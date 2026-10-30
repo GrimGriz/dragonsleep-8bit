@@ -4140,11 +4140,12 @@
       var near = function (B, who) { var p = B.units.filter(function (u) { return u.npc === who; })[0], t = B.roam.token, G = D.grid; if (!p) return false; for (var r = 2; r <= 3; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x = p.x + dx, y = p.y + dy; if (Math.max(Math.abs(dx), Math.abs(dy)) === r && G.canStand(t, x, y)) { t.x = x; t.y = y; B.roam.path = null; return true; } } return false; };
       // (since 10-30, his "do the scene that gives 'company' mission by overlaying ... portraits over the city background": the talk on the counter screen -- Papa's words in
       // his box, Lymen's in the hero's bubble, clicked through; `sc` the screen as it stood, `bgOK` the street drawn behind it)
-      var scene = function (B) { var g = HWw.beat(B), v, k = 0, st, out = [], ly = false, scr = null, lastW = null, bgOK = null, SC = window.DS.stripCodes;
+      var scene = function (B) { var g = HWw.beat(B), v, k = 0, st, out = [], ly = false, scr = null, lastW = null, bgOK = null, wins = null, SC = window.DS.stripCodes;
         while (k++ < 4000) {
           var top = D.top();
           if (top instanceof CHw.Counter) {
             scr = scr || top; ly = ly || B.units.some(function (u) { return u.npc === 'lymenDoor'; }); var w = top.wait || {};
+            if (!wins) { wins = []; var w80 = D.win8; D.win8 = function (c, x, y, ww, hh) { wins.push([x, y, ww, hh]); return w80.apply(this, arguments); }; try { var cD = document.createElement('canvas'); cD.width = D.W; cD.height = D.H; top.draw(cD.getContext('2d')); } catch (eD) { wins.err = String(eD).slice(0, 80); } D.win8 = w80; } // (the boxes the screen draws: 10-30, his "lose the boxes around the characters")
             if (w !== lastW) { lastW = w; out.push('PAPA URTUSK: ' + SC([].concat(w.say || w.ask || []).join(' '))); if (bgOK === null && top.o.bg) { try { var cBg = document.createElement('canvas'); cBg.width = D.W; cBg.height = D.H; bgOK = top.o.bg(cBg.getContext('2d'), 0, 0, D.W, D.H, false) === true; } catch (eBg) { bgOK = String(eBg).slice(0, 80); } } }
             var nx = top.buttons().filter(function (q) { return q.go === 'next'; })[0], op = top.buttons().filter(function (q) { return q.go === 'opt'; })[0];
             if (nx) clickHw(top, nx); else if (op) { out.push('LYMEN: ' + SC(op.label)); clickHw(top, op); } else break;
@@ -4153,7 +4154,7 @@
           st = g.next(v); v = undefined; if (st.done) break;
           if (st.value && st.value.prompt) { out.push(st.value.prompt.title + ': ' + SC(st.value.prompt.lines.join(' '))); v = 0; } else if (typeof st.value === 'number') B.t += st.value;
         }
-        return { lines: out, lymen: ly, sc: scr, bg: bgOK }; };
+        return { lines: out, lymen: ly, sc: scr, bg: bgOK, wins: wins }; };
       var B8 = newHw('barley'); beatHw(B8); var nr8 = near(B8, 'papa'), due8 = HWw.due(B8), sc8 = due8 ? scene(B8) : { lines: [] }, j8 = jHw(B8), c8 = beatHw(B8), fw8 = qHw(B8, 'work');
       okHw('Barley\'s party at the Hex\'s door (' + nr8 + ', due ' + due8 + '): ' + sc8.lines.length + ' lines, Lymen beside Papa ' + sc8.lymen + ' and gone in after (' + !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) + ') -- "' + (sc8.lines[1] || '').slice(0, 60) + '..."; the JOURNAL ' + j8.join(', ') + ', pinned ' + CHw.journal(B8).pin + '; the card "' + String(c8).slice(0, 80) + '"',
         due8 && sc8.lymen && !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) && /^LYMEN: Gnolls on the road/.test(sc8.lines[1]) && sc8.lines.some(function (l) { return /Barley/.test(l); }) === false && sc8.lines.some(function (l) { return /Marta's girl/.test(l) && /farm boy/.test(l); })
@@ -4168,6 +4169,11 @@
       var s8 = sc8.sc, ly8 = sc8.lines.filter(function (l) { return /^LYMEN: /.test(l); }), ly9 = sc9.lines.filter(function (l) { return /^LYMEN: /.test(l); }), hs8 = s8 && s8.hero ? CHw.heroSheet(s8.hero) : null;
       okHw('the talk as portraits over the street: a counter screen ' + !!s8 + ' (Papa ' + (s8 && s8.sheet) + ', no counter ' + !!(s8 && s8.o.room) + ', the street drawn behind ' + sc8.bg + '), Lymen the hero (' + (s8 && s8.hero && s8.hero.name) + ', ' + hs8 + ' -> ' + (hs8 && CHw.HERO_PT[hs8]) + '; his drawn face since 10-30: ' + (s8 && s8.hero && CHw.heroPortrait(s8.hero)) + (D.SHEETS.pt_lymen ? ', ' + D.SHEETS.pt_lymen.fw + 'x' + D.SHEETS.pt_lymen.fh + ' in the 80x84 box, mirrored ' + !!D.SHEETS.pt_lymen.flip : '') + '); his lines in the bubble, ' + ly8.length + ' with Barley leading, ' + ly9.length + ' leading himself',
         !!s8 && s8.sheet === 'pt_papa' && !!s8.o.room && sc8.bg === true && !!s8.hero && s8.hero.name === 'Lymen' && CHw.HERO_PT[hs8] === 'pt_lymen' && CHw.heroPortrait(s8.hero) === 'pt_lymen' && D.SHEETS.pt_lymen.flip === true && D.SHEETS.pt_lymen.fw <= 80 && D.SHEETS.pt_lymen.fh <= 84 && ly8.length === 3 && /Gnolls on the road/.test(ly8[0]) && /find me in the Hex/.test(ly8[2]) && ly9.length === 2 && !!(sc9.sc && sc9.sc.hero));
+      // 9c. NO BOXES ROUND THE TWO (10-30, his "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?" -- "this one is special
+      // for being wordy and outside, council is good until further notice"): no frame where Papa's portrait stands, his words' box run in under it; a keeper's counter keeps its frame
+      var LO = CHw.LAYOUT, wn8 = sc8.wins || [], frP8 = wn8.some(function (r) { return r.join() === LO.portrait.join(); }), wide8 = wn8.filter(function (r) { return r[0] === LO.words[0] && r[1] === LO.words[1]; })[0];
+      okHw('no boxes round the two at the Hex\'s door: open ' + !!(sc8.sc && sc8.sc.o.open) + ', a frame where Papa stands ' + frP8 + ' (want false), his words\' box ' + (wide8 ? wide8[2] : 'none') + ' px wide (the screen\'s ' + LO.words[2] + ', run in under him by ' + CHw.OPEN.under + ')' + (wn8.err ? ' ERROR ' + wn8.err : ''),
+        !!(sc8.sc && sc8.sc.o.open) && !frP8 && !!wide8 && wide8[2] === LO.words[2] + CHw.OPEN.under && !wn8.err);
       // 10. THE PEOPLE BESIDE EACH LEAD'S START: Aldwin (Aurdin's), Marta (Vivian's), Kess (Barley's) -- each opens Finding Work with their own place first
       var B10 = newHw('aurdin'); beatHw(B10); driveHw(THw.fire(B10, trigHw('chapel:aldwin')), null, 2000); var al = RHw.def.room === 'chapel:aldwin' ? talkHw(B10, 'aldwin') : []; driveHw(THw.goOut(B10), null, 400);
       var fw10 = qHw(B10, 'work'), c10 = beatHw(B10);

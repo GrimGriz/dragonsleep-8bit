@@ -302,7 +302,9 @@
     // background (talking outside) with lymen bottom right (similar to ned and aurdin but for background)", then "will need to be mirrored to be bottom left screen" and "try to
     // get the lymen/papa company quest dialog finished"): Papa's portrait speaking, the street as the map's camera has it dimmed behind, Lymen the screen's hero bottom left
     // (js/counter.js Counter.drawHero, C.HERO_PT: pt_lymen, cut mirrored; his figure's face till it loads), his lines his own in the bubble as Aurdin's are at Ned's
-    var sc = new C.Counter(B, { id: 'papa', name: 'Papa Urtusk', place: 'The Hex', what: 'at the front door', room: true, bg: H16.streetShot(B), script: function (s) {
+    // (open: no frames round the two, their words' boxes run in under the portraits -- 10-30, his "can we lose the boxes around the characters and jam the edge of their textbox so
+    // their portrait overlaps it?", and "this one is special for being wordy and outside, council is good until further notice": this scene's alone)
+    var sc = new C.Counter(B, { id: 'papa', name: 'Papa Urtusk', place: 'The Hex', what: 'at the front door', room: true, open: true, bg: H16.streetShot(B), script: function (s) {
       s.hero = { id: 'lymen', key: 'lymen', name: 'Lymen' };
       return (function* () {
         yield s.ask([lyLead ? P.doorLy : P.door], [P.gnolls], 'attentive');

@@ -447,20 +447,27 @@
     var self = this, W8 = D.WIN8, st = this.st, w = this.wait || {};
     var g = ctx.createLinearGradient(0, 0, 0, D.H); g.addColorStop(0, '#0a0c22'); g.addColorStop(1, '#1a1426'); ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
     if (this.o.bg) this.o.bg(ctx, 0, 0, D.W, D.H, false); // (a place's picture behind the screen: the council's night sitting over the Hex's third floor, js/hours.js H16.backdrop)
+    // o.open: no frames -- the one speaking stands free over the place, the words' box run in under the portrait's edge, drawn after it so the portrait overlaps it (10-30,
+    // Griz: "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?" -- the company scene, js/hours.js H16.papaScene)
+    var open = !!this.o.open;
     // the portrait over its counter
-    D.win8(ctx, PX, PY, PW, PH, '#0b1430');
-    ctx.save(); ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip();
-    if (this.o.bg) this.o.bg(ctx, PX + 3, PY + 3, PW - 6, PH - 6, true); // (and behind the one speaking)
-    var sh = this.sheet && D.SHEETS[this.sheet], fr = this.look && sh && sh.anims[this.look] ? { anim: this.look, frame: 0 } : C.frameAt(sh, this.face, this.t);
-    if (this.o.pic) this.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, this.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
-    else if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
-    else if (!(this.bare && this.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
-      ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
-    }
-    if (this.o.room) { ctx.fillStyle = '#0b1430'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); } // (a room, not a shop: no counter under the one speaking -- the council's sittings, js/hours.js H16.sitting, 10-29)
-    else { ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1); }
-    ctx.restore();
-    D.text(ctx, '{y}' + this.o.name + '{/}', PX + PW / 2, CY + 9, W8.text, 'center');
+    var drawP = function () {
+      if (!open) D.win8(ctx, PX, PY, PW, PH, '#0b1430');
+      ctx.save(); if (!open) { ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip(); }
+      if (self.o.bg && !open) self.o.bg(ctx, PX + 3, PY + 3, PW - 6, PH - 6, true); // (and behind the one speaking)
+      var sh = self.sheet && D.SHEETS[self.sheet], fr = self.look && sh && sh.anims[self.look] ? { anim: self.look, frame: 0 } : C.frameAt(sh, self.face, self.t);
+      if (self.o.pic) self.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, self.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
+      else if (sh && C.drawPortrait(ctx, self.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (self.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, self.t); }
+      else if (!(self.bare && self.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
+        ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
+      }
+      if (open) { /* (nothing under the one speaking: the place shows through) */ }
+      else if (self.o.room) { ctx.fillStyle = '#0b1430'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); } // (a room, not a shop: no counter under the one speaking -- the council's sittings, js/hours.js H16.sitting, 10-29)
+      else { ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1); }
+      ctx.restore();
+      if (open) C.nameTag(ctx, self.o.name, PX + PW / 2, CY + 9); else D.text(ctx, '{y}' + self.o.name + '{/}', PX + PW / 2, CY + 9, W8.text, 'center');
+    };
+    if (!open) drawP();
     if (!this.o.room) { D.win8(ctx, PX, PY + PH + 4, PW, 22); D.text(ctx, '◆ ' + (st ? st.silver() : 0) + ' silver', PX + 10, PY + PH + 10, W8.text); } // (and no purse)
     // the words
     D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', RX, 10, W8.text);
@@ -469,11 +476,12 @@
       D.win8(ctx, RX, WY, RW, 48);
       D.wrap(this.msg, RW - 18).slice(0, 4).forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
     } else {
-      D.win8(ctx, RX, WY, RW, WH);
+      D.win8(ctx, RX, WY, open ? RW + C.OPEN.under : RW, WH); // (open: the box's right edge run in under the portrait; the words keep their own width)
       var rows = w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : w.ask ? this.paginate(w.ask)[0] : [];
       rows.forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
       if ((w.say || (this.hero && w.ask)) && this.pages.length > 1) D.text(ctx, (this.page + 1) + '/' + this.pages.length, RX + 10, WY + WH - 16, '#9c9cb4');
     }
+    if (open) drawP(); // (over its words' box)
     if (this.hero) this.drawHero(ctx);
     var bs = this.buttons();
     if (this.sub) {
@@ -518,18 +526,23 @@
   // the hero bottom left, and the bubble beside: the answers while the hero chooses, the line chosen while the keeper answers it
   Counter.prototype.drawHero = function (ctx) {
     var W8 = D.WIN8, h = this.hero, w = this.wait || {}, bs = this.bubbling() ? this.bubbleButtons() : null;
-    D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430');
-    ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip();
-    var pt = C.heroPortrait(h);
-    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
-    else C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
-    ctx.restore();
-    D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center');
+    var pt = C.heroPortrait(h), open = !!this.o.open && !!pt; // (open, the company scene's: no frame, the bubble run in under the portrait's edge -- his figure's face keeps its box)
     var echo = !bs && w.say && this.echo, bh = bs ? bs[bs.length - 1].y + bs[bs.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
-    if (!bh) return;
-    bubble(ctx, BB.x, BB.y, BB.w, Math.max(30, bh));
-    if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
+    var talk = function () {
+      if (!bh) return; var u = open ? C.OPEN.under : 0;
+      bubble(ctx, BB.x - u, BB.y, BB.w + u, Math.max(30, bh));
+      if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
+    };
+    if (open) talk(); // (under the portrait)
+    else { D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); }
+    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, open ? HB.y + HB.h : HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
+    else C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
+    if (open) C.nameTag(ctx, h.name, HB.x + HB.w / 2, HB.y + HB.h - 12);
+    else { ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); talk(); }
   };
+  // a name with no box under it, over a place's picture (o.open): a dark strip just wide enough to read it by
+  C.OPEN = { under: 24 }; // (px the words' box and the hero's bubble run in under the portrait)
+  C.nameTag = function (ctx, name, x, y) { var w = D.textWidth(name) + 10; ctx.fillStyle = 'rgba(11,20,48,.85)'; ctx.fillRect(Math.round(x - w / 2), y - 2, w, 12); D.text(ctx, '{y}' + name + '{/}', x, y, D.WIN8.text, 'center'); };
   function bubble(ctx, x, y, w, h) { // (a speech bubble, its tail at the portrait)
     ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, y + h - 0.5);
