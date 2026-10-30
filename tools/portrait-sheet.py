@@ -162,6 +162,9 @@ PEOPLE = {
     # mouth, in the guano scrapers' workwear on his correction; her work a ruling, the hand flat on the ledge -- it lifts twice, the art desk's own caveat)
     'linnet': ('linnet/ART-123-LINNET', 'ART-123-LINNET', 'npc:linnet', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire'], 'reskin': {'hue': 66, 'k': 1.0, 'hues': (50, 95), 'smin': 0.15, 'vmin': 0.1, 'vmax': 0.95}}),   # (her olive kerchief is drawn at hue 60 on the idle, attentive and work pages and 64-65 on the others: at 60 it snapped tan, at 64 green, so it flickered tan to green from idle to mood -- the band turned to 66 on every page, its saturation and value kept)
     'ottilie': ('ottilie/ART-123-OTTILIE', 'ART-123-OTTILIE', 'npc:ottilie', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # Idony Fell, the notary's senior clerk (10-30, the Keeper cutter, the lanes desk's relay of Griz's "we did image gen ceiling with only 2 idony, but i think
+    # south-facing for when she's not 'watchful'"): the art desk's ART-123-IDONY, her portrait whole -- her word by the notary's on her face
+    'idony': ('idony/ART-123-IDONY', 'ART-123-IDONY', 'npc:idony', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # Lymen "Ly" Urtusk, the party's paladin (10-30, the Keeper cutter, on Griz's "we need them lymen portraits fren, we're doing a cutscene"): the art desk's
     # ART-MC-LYMEN-PORTRAIT, art-wanted section 33, for the company scene at the Hex's door (js/hours.js H16.papaScene) -- the screen's hero in the counter's hero
     # box, bottom left (js/counter.js C.HERO_PT, Counter.drawHero), so cut at Aurdin's hero size (`bust`) and mirrored to look right (`flip`). One action a HEAD

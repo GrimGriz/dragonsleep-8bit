@@ -791,5 +791,11 @@
     'eyes-lymen-face-1030': { pri: 1, group: G2, title: 'Lymen\'s drawn portrait in the company scene at the Hex\'s door, mirrored to sit bottom left looking right (10-30)', pt: 'the bestiary, the Keeper cutter (tools/portrait-sheet.py pt_lymen, flip and bust; js/counter.js C.HERO_PT; mode=hours1028) · eyes',
       url: 'deep16/?hoursshow&beat=papa&fresh=1030y',
       look: 'Your "we need them lymen portraits fren, we\'re doing a cutscene": the art desk\'s Lymen (ART-MC-LYMEN-PORTRAIT), cut mirrored as you asked, at Aurdin\'s hero size so his whole bust fits the box bottom left. Barley comes to the Hex\'s door: Papa\'s portrait speaks on the right, the street dimmed behind, and Lymen at the bottom left looks right and up at him, in place of his figure\'s face. His idle breathes and blinks; his moods and his Earnest (a hand open at his chest) are cut too, for when a scene asks for them.' },
+    'eyes-idony-face-1030': { pri: 2, group: G2, title: 'Idony Fell\'s talking portrait from the art desk\'s ART-123: the notary\'s senior clerk (10-30)', pt: 'the bestiary, the Keeper cutter (tools/portrait-sheet.py pt_idony; deep16/js/counter.js C.VENDORS idony) · eyes',
+      url: 'deep16/?portraits&who=idony&fresh=1030i',
+      look: 'Idony Fell, forty, from the Newland coast: plain, grey-eyed, dressed like a clerk on purpose. Her idle breathes and blinks; the four moods; her work turns a ledger\'s pages. Her colours hold from idle to mood (no flicker to watch for).' },
+    'eyes-idony-street-1030': { pri: 2, group: G2, title: 'Idony Fell in her own figure by the notary\'s, facing south for now (10-30)', pt: 'the bestiary, the Keeper cutter (tools/keeper-town-sheet.py idony_p1; deep16/js/counter.js C.FIG idony) · eyes',
+      url: 'deep16/?roam=silverton&fresh=1030i',
+      look: 'Your "we did image gen ceiling with only 2 idony, but i think south-facing for when she\'s not \'watchful\'": Silverton by pin 5, Idony in her clerk\'s dress, 50 px, facing south. Walk round her: she holds south (C.dress holds every figure drawn south only). Speak to her: her face. Her SE page came with the south; the cutter waits for E, NE and N (the art desk\'s batch A), then cuts all eight and she turns like the others.' },
   };
 })();

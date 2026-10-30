@@ -134,6 +134,10 @@ KEEPERS = {
     # five views drawn, NE and N from behind), where the first game stands them (content/maps warrens_a `linnet`; the mouth's `ottilie`)
     'linnet': ('linnet/ART-123-LINNET', 'ART-123-LINNET', 'npc:linnet', {'views': 'ART-123-LINNET, 10-30', 'avoid': ['red', 'fire'], 'reskin': [{'hue': 66, 'k': 1.0, 'hues': (50, 95), 'smin': 0.15, 'vmin': 0.1, 'vmax': 0.95}, {'hue': 66, 'k': 1.0, 'hues': (42, 50), 'smin': 0.3, 'vmin': 0.1, 'vmax': 0.95}]}),   # (her kerchief, as on her portrait: drawn olive at the snap's line, tan from S, E and NE, green from SE and N -- turned to hue 66 on every page; NE's drawn yellower, 42 to 50, its own band at saturation 0.3 and over, where nothing else of hers lies)
     'ottilie': ('ottilie/ART-123-OTTILIE', 'ART-123-OTTILIE', 'npc:ottilie', {'views': 'ART-123-OTTILIE, 10-30', 'avoid': ['red', 'fire']}),
+    # Idony Fell by the notary's (10-30, the Keeper cutter: the art desk's ART-123-IDONY, its TOWN-PART1 only -- HEAD 2 PAGE 1 S and PAGE 2 SE; Griz, "we did image
+    # gen ceiling with only 2 idony, but i think south-facing for when she's not 'watchful'"): south only till E, NE and N come (the art desk's batch A), then this
+    # line cuts all eight as it is (content/maps/silverton `idony`, js/town.js T.people pin 5)
+    'idony': ('idony/ART-123-IDONY', 'ART-123-IDONY', 'npc:idony', {'views': 'ART-123-IDONY, 10-30 (S; SE waits beside E, NE, N)', 'avoid': ['red', 'fire']}),
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),
