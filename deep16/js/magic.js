@@ -1081,6 +1081,7 @@
   // a shove away from `from`, n squares (Thunderwave's 10 ft): each square only if the body can stand there
   M.push = function (B, from, w, n) {
     if (!w || w.dead || w.hp <= 0 || w.bound) return;
+    if (D.features && D.features.holdGround && D.features.holdGround(B, w, 'push')) return; // (the Drillyard's HOLD GROUND: not moved -- js/features.js, 10-30)
     if (w.hang && G.hanging(w)) { B.clingSave(w, 0, w.hang.rope ? ' is knocked off the rope' : ' is knocked off the face'); return; } // (a climber pushed -- Thunderwave, Gust of Wind -- comes off and falls its height, no second save; it had walked its foot square along the street and stood there unhurt. 10-05, Griz: "2 agreed")
     if (w.riding) return; // (a rider -- a darkmantle on a head, a familiar on its wizard -- goes where the one it rides goes: battle.js mount)
     var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0, st = G.map.def.step, fell = 0, aloft = G.aloft && G.aloft(w);

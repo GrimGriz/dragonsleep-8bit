@@ -4623,6 +4623,76 @@
     document.body.appendChild(preB);
     return;
   }
+  // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
+  // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
+  // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;
+  // one play a turn, none with no opening
+  if (get('mode', '') === 'drill1030') {
+    var repDr = { checks: [], errors: [] }, d0Dr = D.d, RDr = window.DS.R, RUDr = D.rules;
+    function okDr(what, v) { repDr.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runDr(g, want) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts, pr = st.value.prompt, o = os.filter(function (x) { return want && want(x, pr); })[0] || os[os.length - 1]; v = o.value; } } }
+    function plainDr(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkDr(lvl, plays) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=fighter:' + lvl + ',fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0], ok = false;
+      f.subclass = 'the Drillyard'; f.plays = plays; f.feats.openings = 2; g.maxhp = g.hp = 999; g.conds = {}; gs[1].x = 1; gs[1].y = 1;
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = g.x + dx, y = g.y + dy; if ((dx || dy) && D.grid.canStand(f, x, y)) { f.x = x; f.y = y; ok = B.canHit(f, g); } }
+      var okM = false; for (var ey = -1; ey <= 1 && !okM; ey++) for (var ex = -1; ex <= 1 && !okM; ex++) { var x2 = f.x + ex, y2 = f.y + ey; if ((ex || ey) && !(x2 === g.x && y2 === g.y) && D.grid.canStand(m, x2, y2) && D.grid.dist({ x: x2, y: y2 }, g) <= 5) { m.x = x2; m.y = y2; okM = true; } }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(f); B.active = f; return { B: B, f: f, m: m, g: g, ok: ok && okM };
+    }
+    function hitDr(h, want) { D.d = function (n) { return n === 20 ? 15 : d0Dr(n); }; var n0 = (h.B.log || []).length; runDr(h.B.exec(h.f, { do: 'attack', target: h.g }), want); D.d = d0Dr; return (h.B.log || []).slice(n0).map(plainDr).join(' / '); }
+    try {
+      D.seed = 1030;
+      // 1. the register and the maker's asks
+      var fo = RDr.SUBCLASSES.fighter.opts.map(function (o) { return o.name; }), op = (D.npc.OPTIONS.fighter || [])[0];
+      var a3 = D.npc.levelAsks(Object.assign(D.npc.spec('fighter:3'), { subclass: 'the Drillyard' }), 3, { classDefaults: true }), p3 = (a3.asks || []).filter(function (a) { return a.key === 'plays'; })[0];
+      var a7 = D.npc.levelAsks(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Drillyard' }), 7, { classDefaults: true }), p7 = (a7.asks || []).filter(function (a) { return a.key === 'plays'; })[0];
+      var c3 = D.npc.levelAsks(D.npc.spec('fighter:3'), 3, { classDefaults: true }), pc = (c3.asks || []).filter(function (a) { return a.key === 'plays'; })[0];
+      okDr('the register: ' + fo.join(' / ') + '; the maker asks a Drillyard at 3 for ' + (p3 && p3.need) + ' plays, at 7 for ' + (p7 && p7.need) + ', a Champion at 3 ' + (pc ? 'is asked' : 'is not'),
+        fo.indexOf('the Drillyard') >= 0 && op && op.sub === 'the Drillyard' && p3 && p3.need === 3 && p7 && p7.need === 5 && !pc);
+      var s3 = D.npc.sheet(Object.assign(D.npc.spec('fighter:3'), { subclass: 'the Drillyard' })), s7 = D.npc.sheet(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Drillyard' }));
+      okDr('the sheet: at 3 ' + s3.feats.openings + ' openings, plays ' + JSON.stringify(s3.plays) + ', crit at ' + RDr.critRange(s3) + '; at 7 ' + s7.feats.openings + ' openings, ' + s7.plays.length + ' plays',
+        s3.feats.openings === 2 && s3.plays.length === 3 && RDr.critRange(s3) === 20 && s7.feats.openings === 3 && s7.plays.length === 5);
+      // 2. PIN THE SHIELD on a goblin (it bears one): AC 2 less till the fighter's next turn
+      var h1 = mkDr(3, ['pinshield', 'bind', 'breakstride']), ac0 = RUDr.ac(h1.g), l1 = hitDr(h1, function (o) { return o.value === 'pinshield'; }), ac1 = RUDr.ac(h1.g);
+      var op1 = h1.f.feats.openings; D.rules.startTurn(h1.f); var ac2 = RUDr.ac(h1.g);
+      okDr('PIN THE SHIELD (placed ' + h1.ok + '): AC ' + ac0 + ' -> ' + ac1 + ', back to ' + ac2 + ' at the fighter\'s turn; openings ' + op1 + '; "' + (l1.match(/PIN THE SHIELD[^/]*/) || [''])[0].slice(0, 80) + '"',
+        h1.ok && ac1 === ac0 - 2 && ac2 === ac0 && op1 === 1);
+      // 3. BIND and one play a turn: no prompt on the next hit; BREAK STRIDE through its next turn
+      var h2 = mkDr(5, ['bind', 'breakstride', 'wheel']); h2.g.reaction = 1; var l2 = hitDr(h2, function (o) { return o.value === 'bind'; }), r2 = h2.g.reaction;
+      var l2b = hitDr(h2, function (o) { return o.value === 'breakstride'; });
+      okDr('BIND: the goblin\'s reaction ' + r2 + '; a second hit that turn plays nothing (' + !/BREAK STRIDE/.test(l2b) + ', stride ' + !!h2.g.conds.stride + ')', r2 === 0 && !/BREAK STRIDE/.test(l2b) && !h2.g.conds.stride && /BIND/.test(l2));
+      D.rules.startTurn(h2.f); h2.B.active = h2.f; hitDr(h2, function (o) { return o.value === 'breakstride'; }); var sp0 = h2.g.speed;
+      D.rules.startTurn(h2.g); var spT = h2.g.turn.move; D.rules.startTurn(h2.g); var spT2 = h2.g.turn.move;
+      okDr('BREAK STRIDE: its move ' + spT + ' on its next turn (speed ' + sp0 + '), ' + spT2 + ' the turn after', spT === sp0 - 10 && spT2 === sp0);
+      // 4. WHEEL: the fighter and the friend beside trade squares
+      var h3 = mkDr(3, ['wheel', 'bind', 'breakstride']), fx = h3.f.x + ',' + h3.f.y, mx = h3.m.x + ',' + h3.m.y; hitDr(h3, function (o) { return o.value === 'wheel'; });
+      okDr('WHEEL: the fighter ' + fx + ' -> ' + h3.f.x + ',' + h3.f.y + ', the friend ' + mx + ' -> ' + h3.m.x + ',' + h3.m.y, h3.f.x + ',' + h3.f.y === mx && h3.m.x + ',' + h3.m.y === fx);
+      // 5. CALL THE MARK: the button, the mark, the friend's first hit +2 and not the second
+      var h4 = mkDr(3, ['callmark', 'bind', 'breakstride']), cmd4 = h4.B.commands(h4.f).filter(function (c) { return c.id === 'callmark'; })[0];
+      runDr(h4.B.exec(h4.f, { do: 'callmark' }), function (o, pr) { return !!(pr.pick && pr.pick[o.value - 1] === h4.g); });
+      var mk4 = !!h4.g.conds.calledMark; D.rules.startTurn(h4.m); h4.B.active = h4.m; D.d = function (n) { return n === 20 ? 15 : d0Dr(n); };
+      var n4 = (h4.B.log || []).length; runDr(h4.B.exec(h4.m, { do: 'attack', target: h4.g })); runDr(h4.B.exec(h4.m, { do: 'attack', target: h4.g })); D.d = d0Dr;
+      var l4 = (h4.B.log || []).slice(n4).map(plainDr).join(' / '), n4m = (l4.match(/the mark \+2/g) || []).length;
+      okDr('CALL THE MARK: the button ' + (cmd4 && cmd4.ok) + ', marked ' + mk4 + '; the friend\'s hits carry "the mark +2" ' + n4m + ' time(s)', cmd4 && cmd4.ok && mk4 && n4m === 1);
+      // 6. HOLD GROUND on a push: not moved, the reaction and an opening spent; with no reaction, moved
+      var h5 = mkDr(3, ['holdground', 'bind', 'breakstride']); h5.f.reaction = 1; h5.f.feats.openings = 2; var p5 = h5.f.x + ',' + h5.f.y;
+      D.magic.push(h5.B, h5.g, h5.f, 10); var q5 = h5.f.x + ',' + h5.f.y, r5 = h5.f.reaction, o5 = h5.f.feats.openings;
+      D.magic.push(h5.B, h5.g, h5.f, 10); var q5b = h5.f.x + ',' + h5.f.y;
+      okDr('HOLD GROUND: pushed, it stays (' + p5 + ' -> ' + q5 + '), reaction ' + r5 + ', openings ' + o5 + '; pushed again with no reaction, it goes (' + q5b + ')', q5 === p5 && r5 === 0 && o5 === 1 && q5b !== p5);
+      // 6b. a goblin's shove at it (the AI's shoveOff): held, and not knocked flat for having nowhere to go
+      var h5b = mkDr(3, ['holdground', 'bind', 'breakstride']); h5b.f.reaction = 1; h5b.f.feats.openings = 2; h5b.f.abil.str = 1; h5b.f.abil.dex = 1; var p5b = h5b.f.x + ',' + h5b.f.y; D.d = function (n) { return n === 20 ? 10 : d0Dr(n); };
+      D.rules.startTurn(h5b.g); h5b.B.active = h5b.g; var gS = D.ai.shoveOff(h5b.B, h5b.g, h5b.f, { how: 'push', paid: true }); runDr(gS); D.d = d0Dr;
+      okDr('a goblin\'s shove: the fighter stays (' + p5b + ' -> ' + h5b.f.x + ',' + h5b.f.y + '), prone ' + !!h5b.f.conds.prone + ', reaction ' + h5b.f.reaction, h5b.f.x + ',' + h5b.f.y === p5b && !h5b.f.conds.prone && h5b.f.reaction === 0);
+      // 7. no opening: no prompt
+      var h6 = mkDr(3, ['bind', 'breakstride', 'pinshield']); h6.f.feats.openings = 0; h6.g.reaction = 1; var l6 = hitDr(h6, function (o) { return o.value === 'bind'; });
+      okDr('no opening left: the hit plays nothing (reaction ' + h6.g.reaction + ')', h6.g.reaction === 1 && !/BIND/.test(l6));
+    } catch (e) { repDr.errors.push(String(e && e.stack || e)); }
+    D.d = d0Dr;
+    var preDr = document.createElement('pre'); preDr.id = 'out'; preDr.textContent = 'BENCH16 ' + JSON.stringify(repDr);
+    document.body.appendChild(preDr);
+    return;
+  }
   // THE THRESHING FLOOR (mode=threshing1030; the leveling lane, 10-30 -- Griz: "i'd say yes", on the fighter's and the paladin's choice at 3, the Threshing Floor first): the
   // fighter's archetype at 3 on the Pocket DM's maker (js/rules.js R.SUBCLASSES.fighter: the Champion, the SRD's, and ours); one of ours is no Champion (a 20 to crit, no
   // Remarkable Athlete); Hard Ground -- its melee blows from the ground at no disadvantage, no advantage for one beside it, up for 5 ft at the turn's start; Up Off the Floor --

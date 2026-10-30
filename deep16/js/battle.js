@@ -2432,6 +2432,9 @@
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
     }
+    // the Drillyard's CALL THE MARK (ours, 10-30; js/features.js F.callMark): each friend's first hit on the marked one, 2 more damage, till the caller's next turn
+    var cmk = tgt.conds.calledMark;
+    if (cmk && cmk.side === att.side && cmk.by !== att.id && !cmk.hit[att.id]) { cmk.hit[att.id] = 1; dmg += 2; parts.push('{y}the mark +2{/}'); }
     // the Threshing Floor's Threshing (a fighter of ours at 7, 10-30 -- js/rules.js R.SUBCLASSES.fighter): once a turn, a melee weapon hit on a prone one deals one more weapon die
     if (melee && !atk.spell && RU.hardGround(att) && att.lvl >= 7 && tgt.conds.prone && att.turn && !att.turn.threshUsed && /d/.test(dice)) {
       att.turn.threshUsed = true; var thr = D.roll('1' + String(dice).replace(/^\d*/, ''), { crit: crit }); dmg += thr.total; parts.push('{o}threshing +' + thr.total + '{/}');
@@ -2520,7 +2523,7 @@
     // the 8-bit game's named weapons (09-28g): the Winnower threshes one flat on a critical; the Greyseam knife's Sneak Attack
     // poisons, CON 13, till the end of its next turn (the 8-bit battle's own reading, js/battle.js heroAttack)
     if (crit && atk.onCrit === 'prone' && !atk.spell && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
-      tgt.conds.prone = true; this.card(['  {o}' + nameOf(tgt) + ' is threshed flat: PRONE{/}'], 220);
+      if (!(D.features && D.features.holdGround && D.features.holdGround(this, tgt, 'prone'))) { tgt.conds.prone = true; this.card(['  {o}' + nameOf(tgt) + ' is threshed flat: PRONE{/}'], 220); } // (HOLD GROUND, the Drillyard's: js/features.js, 10-30)
     }
     if (sneaked && atk.sneakPoison && !tgt.dead && tgt.hp > 0 && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
       var gsv = RU.save(tgt, 'con', atk.sneakPoison, false, 'poisoned'); // (against being poisoned: Protection from Poison)
@@ -2613,7 +2616,7 @@
     if (atk.prone && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
-      if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }
+      if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, tgt, 'prone'))) tgt.conds.prone = true; D.sfx('hit'); }
       yield 24;
     }
     // a blow that begins the stone (atk.petrify: { dc } -- the cockatrice's bite, SRD 5.1: "against being magically petrified ... begins to turn to stone and is restrained";

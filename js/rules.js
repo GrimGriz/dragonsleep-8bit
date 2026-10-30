@@ -295,6 +295,7 @@
     // Champion is the SRD's (R.champion: its Improved Critical and Remarkable Athlete), the Threshing Floor ours -- deep16/js/rules.js RU.hardGround, RU.startTurn, battle.js
     fighter: { at: 3, word: 'MARTIAL ARCHETYPE', opts: [
       { id: 'champion', name: 'Champion', srd: true, desc: 'Improved Critical: a critical on a 19 or 20. At 7, Remarkable Athlete: half proficiency to STR, DEX and CON checks and to initiative.' },
+      { id: 'drillyard', name: 'the Drillyard', desc: "Ours, the drill yard's set plays. Two openings a short rest (three at 7), one play a turn, three plays known (five at 7): WHEEL (trade places with a friend beside), BIND (no reactions), BREAK STRIDE (10 ft less speed), PIN THE SHIELD (its shield off its AC), CALL THE MARK (friends' first hits +2), HOLD GROUND (not pushed, not knocked flat)." },
       { id: 'threshing', name: 'the Threshing Floor', desc: "Barley's road, ours. Hard Ground: prone is no trouble -- no disadvantage on its own blows from the ground, no advantage for one beside it, up for 5 ft. Up Off the Floor: once a long rest, dropped to 0, it rises at its next turn with its fighter level + CON in HP, its first blow at advantage. At 7, Threshing: once a turn, one more weapon die on a prone foe." }] },
     cleric: { at: 1, word: 'DIVINE DOMAIN', opts: [
       { id: 'life', name: 'Life Domain', srd: true, desc: 'Disciple of Life: a healing spell heals 2 + its level more. At 2, Preserve Life (Channel Divinity); at 6, healing others heals the cleric too; at 8, Divine Strike.' },
@@ -777,7 +778,7 @@
   R.initBonus = function (h) { return DS.mod(h.abil.dex) + (R.champion(h) && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
   R.critRange = function (h) { return (R.champion(h) && h.lvl >= 3) ? 19 : 20; };
   // a fighter of the Champion: every fighter but one of ours (10-30, R.SUBCLASSES.fighter) -- a sheet that names no archetype is the SRD's, as ever
-  R.champion = function (h) { return h.cls === 'fighter' && h.subclass !== 'the Threshing Floor'; };
+  R.champion = function (h) { return h.cls === 'fighter' && ['the Threshing Floor', 'the Drillyard'].indexOf(h.subclass) < 0; };
   R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; if (h.cls === 'fighter' && h.lvl >= 11) return 3; return (/^(fighter|paladin|barbarian|ranger|monk)$/.test(h.cls) && h.lvl >= 5) ? 2 : 1; }; // Extra Attack at 5; the fighter's second at 11 (SRD 5.1; the named past 9, 09-30)
   R.maxSlotLevel = function (h) { var m = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) m = i + 1; }); return m; };
   R.lowestSlot = function (h, min) { for (var i = (min || 1) - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i + 1; return 0; };

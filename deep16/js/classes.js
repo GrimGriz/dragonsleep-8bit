@@ -110,6 +110,15 @@
       { key: 'pact', word: 'PACT', at: 3, opts: [
         { id: 'tome', name: 'Pact of the Tome', desc: 'three cantrips: Fire Bolt, Sacred Flame, Vicious Mockery' },
         { id: 'blade', name: 'Pact of the Blade', desc: 'a pact weapon in hand: a rapier, proficient, magical' }] }],
+    // the Drillyard's set plays (a fighter of ours, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; js/features.js F.drill): three known at 3,
+    // five at 7; `sub` keeps the tab and the ask to that archetype
+    fighter: [{ key: 'plays', word: 'PLAYS', at: 3, sub: 'the Drillyard', count: function (L) { return L >= 7 ? 5 : 3; }, opts: [
+      { id: 'wheel', name: 'Wheel', desc: 'on a hit, trade places with a friend within 5 ft; no opportunity attacks' },
+      { id: 'bind', name: 'Bind', desc: 'on a hit, the creature takes no reactions till its next turn' },
+      { id: 'breakstride', name: 'Break Stride', desc: 'on a hit, its speed 10 ft less through its next turn' },
+      { id: 'pinshield', name: 'Pin the Shield', desc: 'on a hit, its shield adds nothing to its AC till your next turn' },
+      { id: 'callmark', name: 'Call the Mark', desc: 'a bonus action: each friend\'s first hit on one creature +2 till your next turn' },
+      { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
     druid: [{ key: 'land', word: 'LAND', at: 2, opts: [
       { id: 'underdark', name: 'the Underdark', desc: 'Web, Stinking Cloud, Greater Invisibility, Insect Plague' },
       { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' }] }]
@@ -343,6 +352,7 @@
     // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
     // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
     if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
+    if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (spec.plays || ['wheel', 'bind', 'breakstride', 'pinshield', 'callmark']).slice(0, lvl >= 7 ? 5 : 3); } // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
     if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
@@ -494,7 +504,7 @@
       }
     }
     (NPC.OPTIONS[cls] || []).forEach(function (op) {
-      if (L < op.at) return;
+      if (L < op.at || (op.sub && hL.subclass !== op.sub)) return; // (an archetype's own: the Drillyard's plays)
       var nN = op.count ? op.count(L) : 1, nP = L - 1 < op.at ? 0 : op.count ? op.count(L - 1) : 1, cur = hL[op.key];
       if (nN <= nP) return;
       asks.push({ kind: 'option', key: op.key, word: op.word, need: nN, one: !op.count, took: op.count ? fill((cur || []).filter(function (id) { return op.opts.some(function (x) { return x.id === id; }); }), op.opts.map(function (x) { return x.id; }), nN) : (op.opts.some(function (x) { return x.id === cur; }) ? cur : null),
@@ -530,7 +540,7 @@
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
     if (h.lupine) { u.darkvision = Math.max(u.darkvision || 0, 60); u.keenSenses = true; u.raceName = 'Lupine'; } // (a Lupine, GreyFang's people, 10-08: darkvision 60, keen hearing and smell -- battle.js search)
-    u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
+    u.plays = h.plays || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
     // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
     if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
     u.invocations = h.invocations || null;

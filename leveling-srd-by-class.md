@@ -36,7 +36,7 @@ Each decision gets one verdict:
 | Bard | 3 | College | 2: Lore, Valor | Lore | -- | SHORT 1 |
 | Cleric | 1 | Divine Domain | 8: Life, Knowledge, Light, Nature, Tempest, Trickery, War, Death (DMG) | Life | the Window (Kat's), the Vigil (Torvald's); the Keeping is NPC only (`NPC.SUBS`) | SHORT 5 (4 if the Keeping is made playable) |
 | Druid | 2 | Circle | 2: the Land, the Moon | the Land | -- (the Circle of the Pelt drafted, §6.2) | SHORT 1, drafted |
-| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1); the Drillyard drafted (§6.1) | SHORT 1, drafted; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
+| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1); the Drillyard (BUILT 10-30, §6.1) | met; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
 | Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | -- (the Oath of the Green Return drafted, §2.2) | SHORT 3; **not asked on either pick** |
 | Ranger | 3 | Ranger Archetype | 2: Hunter, Beast Master | Hunter | the Grey Road (GreyFang's) | met |
@@ -122,7 +122,7 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 1. **The choice at 3 for the fighter and the paladin** -- talked over in the seat's report of 10-30 (what each piece is, where it is asked, how far into the first game); built on his word.
 2. *(The six drafted feats: APPROVED 10-30, *"approve all in the side by side"*; built one at a time on his word.)*
 4. **Schoolbound** -- its spot and its shape (§3).
-5. **The second batch (§6)** -- the Drillyard, the Circle of the Pelt, Follow-Through, Held Breath, Long Guard, Fortune's Due, Gnawing Word: each his to rule before it is built.
+5. *(The second batch (§6) and §6.5's two: RULED 10-30, *"take leveling's leans and it can start building"* -- the Drillyard BUILT; the rest one at a time.)*
 6. *(Leaving missed the backgrounds, the lesser spells and the Four Elements: RULED 10-30, *"we'll add others as people demand it of us"*; Rootdrag and Called to Account drafted, §6.5.)*
 3. **Stab Debut's cost** -- built free, once a turn; standing unless he says the bonus action.
 
@@ -170,11 +170,11 @@ Griz, by the lanes desk (10-30 ~02:00Z): *"I need a list of the stuff from the P
 
 **Left missed, RULED 10-30** (Griz, by the lanes desk: *"yeah, thorn whipping people into things happens at my friday table I think. draft for the two mentioned and we'll add others as people demand it of us"*) -- till players ask for them: the PHB's backgrounds past the Acolyte (their features are table play; the game's heroes carry their own); the lesser PHB spells (Witch Bolt, Friends, Blade Ward, Chromatic Orb, Dissonant Whispers, Cloud of Daggers, Phantasmal Force, Crown of Madness, Hunger and Arms of Hadar, Elemental Weapon, Destructive Wave, Grasping Vine, Aura of Vitality, Ray of Sickness); the Way of the Four Elements (rarely picked: the monk's two of ours can take other roles). The two a veteran would notice, Thorn Whip's role and Compelled Duel's, are drafted (§6.5: Rootdrag, Called to Account).
 
-## 6. The second batch, from what veterans will miss (DRAFT, 10-30)
+## 6. The second batch, from what veterans will miss (RULED 10-30)
 
-Griz, by the lanes desk (10-30 ~02:35Z), on the seat's five: *"leans yes for levels 4-6 / 7 as another's lane / what's the case for 8?"* -- yes to the four feats, the two subclasses and the curse spell, drafted here (nothing built till he rules each); the human option filed in the Pocket DM and the races lane (its §2o); leaving the backgrounds, the lesser spells and the Four Elements missed RULED after (§5's last line), with two spells drafted (§6.5). Each is ours in name, words and whole, and says what PHB option it is NOT.
+Griz, by the lanes desk (10-30 ~02:35Z), on the seat's five: *"leans yes for levels 4-6 / 7 as another's lane / what's the case for 8?"* -- yes to the four feats, the two subclasses and the curse spell, drafted here (nothing built till he rules each); the human option filed in the Pocket DM and the races lane (its §2o); leaving the backgrounds, the lesser spells and the Four Elements missed RULED after (§5's last line), with two spells drafted (§6.5). Each is ours in name, words and whole, and says what PHB option it is NOT. **RULED 10-30, all nine with §6.5's two** (Griz, by the lanes desk: *"take leveling's leans and it can start building"*): built one at a time -- the Drillyard and Follow-Through first, then the small spells (Gnawing Word, Rootdrag, Called to Account), then the rest.
 
-### 6.1 The fighter's second of ours: the Drillyard (DRAFT) -- the Battle Master's role
+### 6.1 The fighter's second of ours: the Drillyard (BUILT 10-30, the grid) -- the Battle Master's role
 
 A fighter taught on the drill yard, with set plays for the moment a fight offers them.
 
@@ -188,9 +188,9 @@ A fighter taught on the drill yard, with set plays for the moment a fight offers
 - **7, More Plays.** Two more plays, and three openings.
 - **10, 15, 18:** waiting, past the cap.
 
-**NOT** the Battle Master: no superiority dice and no die added to any roll; each play's effect is fixed, and none is one of its maneuvers (no trip, disarm, riposte, precision, menacing, pushing, goading, feint, rally or commander's strike). Nearest: Wheel and its Maneuvering Attack both move a friend -- Wheel trades two places. With the Champion (SRD) and the Threshing Floor (ours, built), the fighter's count of three is met. **The engines:** OAs, reactions, speed, shields' AC (`RU.ac`), shove and prone are all on the grid.
+**NOT** the Battle Master: no superiority dice and no die added to any roll; each play's effect is fixed, and none is one of its maneuvers (no trip, disarm, riposte, precision, menacing, pushing, goading, feint, rally or commander's strike). Nearest: Wheel and its Maneuvering Attack both move a friend -- Wheel trades two places. With the Champion (SRD) and the Threshing Floor (ours, built), the fighter's count of three is met. **Built 10-30:** `js/rules.js` R.SUBCLASSES.fighter and R.champion; `deep16/js/classes.js` NPC.OPTIONS.fighter (the PLAYS, an archetype's own: `sub`), NPC.sheet (the openings, the plays), NPC.levelAsks; `deep16/js/pocket.js` THE GEAR's PLAYS tab; `deep16/js/features.js` F.drill (the plays on a hit through M.onWeaponHit, a prompt for a player and the first that bears for the class AI -- never the wheel; CALL THE MARK a ring button and the AI's, F.holdGround spent on its own); `deep16/js/rules.js` RU.ac, RU.speedNow, RU.startTurn; `deep16/js/battle.js` the mark's +2; HOLD GROUND in `deep16/js/magic.js` M.push (every push, a shove's too) and the knockdowns of a shove, the bulette's Leap, a creature's knock-prone attack, the Winnower's critical and three features' (the Open Hand's, the Sand's, a sweep's) -- the rest (spells such as Command and Grease, falls, a flier brought down) unguarded; the FEATURES shelf; `mode=drill1030`. Not in the first game: Barley's sheet keeps the Champion.
 
-### 6.2 The druid's circle of ours: the Circle of the Pelt (DRAFT) -- the Moon's role
+### 6.2 The druid's circle of ours: the Circle of the Pelt (RULED 10-30) -- the Moon's role
 
 A druid who fights in its own body with a beast's parts on it.
 
@@ -204,7 +204,7 @@ A druid who fights in its own body with a beast's parts on it.
 
 **NOT** the Circle of the Moon: no beast form past the SRD's Wild Shape, no stronger circle forms, no slots spent to heal in a beast's shape -- the druid keeps its own body and spells and wears a part of one. Nearest outside the PHB: the Circle of Spores (a later book) also spends Wild Shape without changing shape, on a fungal aura; this one on a beast's parts. The SRD's own Alter Self lends claws as a spell. **The engines:** Wild Shape's uses are built (`mode=druid12`); the claws ride the grid's unarmed strike, the AC floor reads as Unarmored Defense does (`RU.ac`), temporary HP is built.
 
-### 6.3 The feats (DRAFT)
+### 6.3 The feats (RULED 10-30)
 
 Open by prerequisite, as every feat since 10-30; taken in place of an increase, once. Beside the PHB's in `..\leveling-feats-side-by-side.md` (its second batch), for the reading lamp.
 
@@ -215,11 +215,11 @@ Open by prerequisite, as every feat since 10-30; taken in place of an increase, 
 | **Long Guard** | Polearm Master's | STR 13 | With a reach weapon in hand: **Keep Back** -- the reaction when a creature seen moves into reach: a STR save (DC 8 + proficiency + STR) or it is pushed 5 ft back out of reach and its move ends; **Set Against the Charge** -- one that moved 20 ft or more straight at the hero this turn and ends within reach: the next hit on it before the end of the hero's next turn deals one more weapon die | Polearm Master: no blow with the haft, no attack when a creature comes into reach -- it holds a foe off and punishes the charge. Not Sentinel either: the foe is pushed back, not held |
 | **Fortune's Due** | Lucky's | -- | Each missed attack, failed save or failed check gives a **Due** (three at most; all gone at a short or long rest). After rolling a d20 and before its outcome, spend every Due to add 1d4 apiece | Lucky: no rerolls, nothing at the start of the day, no say over an attacker's roll -- it fills only from the hero's own misses and adds dice instead of rolling again. Nearest in the SRD: Bardic Inspiration, a die another gives |
 
-### 6.4 The curse spell: Gnawing Word (DRAFT) -- Hex's role
+### 6.4 The curse spell: Gnawing Word (RULED 10-30) -- Hex's role
 
 **Gnawing Word** -- 1st level, enchantment, warlock. A bonus action; range 60 ft; concentration, up to 1 minute. A creature the caster can see: until the spell ends, each time the caster hits it with an attack, it takes psychic damage equal to the number of times the caster has hit it since casting -- 1, then 2, then 3, up to 5. The spell ends when the creature drops to 0 HP. *At higher levels:* the most rises by 2 for each slot level above 1st. **NOT** Hex: no curse on an ability's checks, no moving to a new target, a minute not an hour, and damage that grows with each hit instead of a die a hit. With two Eldritch Blast beams that land: 3, 7, 10, 10 over four rounds, against Hex's 7 each round -- behind at first, level by the fourth. Also in `spells-srd-by-class.md` ("Ours, not the SRD's").
 
-### 6.5 Two spells for the two a veteran would notice (DRAFT, 10-30)
+### 6.5 Two spells for the two a veteran would notice (RULED 10-30)
 
 Griz, by the lanes desk (10-30 ~02:55Z), on the case for leaving the minor PHB spells missed: *"yeah, thorn whipping people into things happens at my friday table I think. draft for the two mentioned and we'll add others as people demand it of us"*. Both also in `spells-srd-by-class.md` ("Ours, not the SRD's"). Nothing built till he rules each.
 

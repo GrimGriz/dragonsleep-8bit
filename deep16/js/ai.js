@@ -665,7 +665,7 @@
       var ab = RU.bestSave(w, abs), sv = RU.save(w, ab, L.dc, false, null, tot), ev = ab === 'dex' && RU.evasion(w); // (the better of the two: RU.bestSave)
       var share = parts.map(function (p) { return sv.ok ? (ev ? 0 : Math.floor(p.r.total / 2)) : (ev ? Math.floor(p.r.total / 2) : p.r.total); }), n = share.reduce(function (a, x) { return a + x; }, 0);
       lines.push('  ' + w.name + ': ' + ab.toUpperCase() + ' ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed: prone{/}') + '  {r}' + n + '{/}' + (parts.length > 1 ? ' (' + share.join(' + ') + ')' : '')); hurt.push([w, share]);
-      if (!sv.ok && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; // the Leap flattens those who fail
+      if (!sv.ok && !w.noProne && !RU.immuneTo(w, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(B, w, 'prone'))) w.conds.prone = true; // the Leap flattens those who fail (HOLD GROUND, the Drillyard's: 10-30)
     });
     B.card(lines, 400);
     hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); parts.forEach(function (p, i) { if (h[1][i] > 0 && !h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1][i], p.type); }); }); // (a second type on one the first dropped is no second fall: no "goes down" twice)
@@ -998,12 +998,12 @@
     // (pushed 5 ft away over an edge of 10 ft or more, it goes over and falls: the SRD's shove and the SRD's fall, 1d6 a 10 ft and prone, no save past the contest -- 10-13, Griz:
     // "any shove off a ledge sounds closest to SRD"; "be sure acrobatics is added to the dex save and yes" -- Battle.knockSq and knockOff, as the male giant's rocks have it)
     var offS = won && o.how !== 'prone' ? D.Battle.knockSq(u, w) : null;
-    if (won && o.how === 'prone') { if (!w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' is knocked flat.{/}'], 200); } yield 16; u.anim = 'idle'; return false; }
+    if (won && o.how === 'prone') { if (!w.noProne && !RU.immuneTo(w, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(B, w, 'prone'))) { w.conds.prone = true; B.card(['{o}' + w.name + ' is knocked flat.{/}'], 200); } yield 16; u.anim = 'idle'; return false; }
     if (offS) { yield* B.knockOff(w, offS, u); if (!w.dead && w.hp > 0 && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; if (B.readyForced) yield* B.readyForced(); yield 16; }
     else if (won) {
       var s = u.size || 1; D.magic.push(B, { x: u.x + (s - 1) / 2, y: u.y + (s - 1) / 2 }, w, 1);
       if (B.readyForced) yield* B.readyForced(); // (shoved into a readier's reach: the readied strikes, the grid's rules §2.5)
-      if (w.x === x0 && w.y === y0 && !(w.hang && G.hanging(w)) && !w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' has nowhere to go: knocked flat instead.{/}'], 200); }
+      if (w.x === x0 && w.y === y0 && !(w.hang && G.hanging(w)) && !w.noProne && !RU.immuneTo(w, 'prone') && !w.conds.heldGround) { w.conds.prone = true; B.card(['{o}' + w.name + ' has nowhere to go: knocked flat instead.{/}'], 200); }
       yield 16;
     }
     u.anim = 'idle';

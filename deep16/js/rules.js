@@ -10,7 +10,7 @@
   // AC: armour, Shield, Shield of Faith; and the class NPCs' spells (09-28, js/grimoire.js): Barkskin's floor of 16, Haste's +2,
   // Slow's -2, Warding Bond's +1
   RU.ac = function (u) {
-    var c = u.conds, ac = (u.baseAC || u.ac);
+    var c = u.conds, ac = (u.baseAC || u.ac) - (c.shieldPinned ? 2 : 0); // (the Drillyard's PIN THE SHIELD: a shield's +2 off, js/features.js -- 10-30)
     if (c.barkskin) ac = Math.max(ac, 16);
     var ward = D.battle && D.battle.doorWardOn && u.side === 'party' && u.hp > 0 ? 3 : 0; // the Door-Shield protects the party (battle.js doorWard)
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
@@ -50,7 +50,7 @@
   // condition from one fight to the next (the climb's camp starts every hero clean: climb.js CL.rested), so here it lasts the fight
   RU.EXHAUSTION = ['', 'disadvantage on ability checks', 'and its speed halved', 'and disadvantage on attacks and saves', 'and its hit point maximum halved', 'and its speed 0', 'dead'];
   RU.exhaustion = function (u) { return (u && u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; };
-  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.grappled) return 0; if (u.grappling && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
+  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.stride) s = Math.max(0, s - 10); /* (the Drillyard's BREAK STRIDE, 10-30) */ if (u.conds && u.conds.grappled) return 0; if (u.grappling && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
   RU.exhaust = function (B, u, n, why) {
     if (!u || u.dead || RU.immuneTo(u, 'exhaustion')) return 0;
     var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = u.side === 'foe' && B && B.shortName && !u.named ? 'The ' + B.shortName(u) : u.name;
@@ -102,6 +102,7 @@
   };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
+    if (u.conds.stride) { if (u.conds.stride.seen) delete u.conds.stride; else u.conds.stride.seen = true; } // (BREAK STRIDE: through its next turn, gone before the one after -- before the move is reckoned below)
     u.turn = { move: RU.speedNow(u), action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; // (climbLeft: the feet of face a climb speed may take this turn -- grid.js G.stepCost, battle.js moveAlong, 10-04 night) // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
     // the roper's tendrils cut or broken (battle.js tendrilGone, u.tendrilsLost): back at its turn, free, every one -- SRD 5.1, "can extrude a replacement tendril on its next turn"
@@ -115,7 +116,7 @@
     u.acted = true; // it has had a turn (the Cutthroat's Stab Debut reads it: battle.js stabDebut)
     // the Threshing Floor's Up Off the Floor (ours, 10-30): once a long rest (feats.upOff, classes.js NPC.sheet), one dropped to 0 and not killed rises at the start of its
     // turn -- its fighter level + CON in HP, on its feet at no cost, its first attack this turn at advantage (conds.upAdv: battle.js spends it on the attack, the next turn ends it)
-    delete u.conds.upAdv;
+    delete u.conds.upAdv; delete u.conds.heldGround; // (the Drillyard's HOLD GROUND: held till its own turn -- js/features.js)
     if (u.hp <= 0 && !u.dead && !u.slain && RU.hardGround(u) && u.feats && u.feats.upOff > 0 && !u.conds.petrified) {
       u.feats.upOff--; u.hp = Math.min(u.maxhp, Math.max(1, u.lvl + D.mod(u.abil.con))); u.ko = false; u.anim = 'idle'; delete u.conds.prone; u.conds.upAdv = true;
       if (D.battle) D.battle.card(['{y}' + u.name + '{/} gets up off the floor: {n}' + u.hp + ' HP{/}  {g}(the Threshing Floor: once a long rest; the first blow at advantage){/}'], 260);
@@ -127,6 +128,8 @@
     var noMove = !RU.canRise(u); /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */
     if (u.conds.prone && u.hp > 0 && !noMove) { var rcU = RU.riseCost(u), hfU = Math.floor(RU.speedNow(u) / 2); delete u.conds.prone; u.turn.move = rcU < hfU ? RU.speedNow(u) - rcU : hfU; if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (' + (rcU < hfU ? rcU + ' ft of the move' : 'half the move') + ').{/}'], 200); } // (RU.riseCost: 5 ft for the Grey Road and the Threshing Floor, here as on a walk -- 10-30)
     delete u.conds.shield;
+    // (the Drillyard's plays, 10-30 -- js/features.js: CALL THE MARK and PIN THE SHIELD last till the fighter's next turn; BREAK STRIDE through the one struck's next turn)
+    D.grid.units.forEach(function (w) { if (w.conds.calledMark && w.conds.calledMark.by === u.id) delete w.conds.calledMark; if (w.conds.shieldPinned && w.conds.shieldPinned.by === u.id) delete w.conds.shieldPinned; });
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; if (w.conds.helpedCheck && w.conds.helpedCheck.by === u.id) delete w.conds.helpedCheck; }); // (a Help on a friend's check, unspent, lapses at the helper's turn: SRD 5.1)
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
     if (u.conds.sacred && (u.hp <= 0 || --u.conds.sacred.rounds <= 0)) { delete u.conds.sacred; if (D.battle) D.battle.card(['{g}' + u.name + '\'s blade goes back to steel: Sacred Weapon ends.{/}']); }

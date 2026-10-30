@@ -139,7 +139,7 @@
     if (att.cls === 'monk' && att.lvl >= 3 && att.subclass === 'Way of the Open Hand' && att.turn && att.turn.flurry && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone') && (tgt.size || 1) <= 2) {
       var sv = RU.save(tgt, 'dex', kiDC(att));
       B.card(['  {y}open hand{/}: ' + Nm(B, tgt) + ' DEX ' + RU.saveText(sv) + ' vs DC ' + kiDC(att) + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}PRONE{/}')], 240);
-      if (!sv.ok) tgt.conds.prone = true;
+      if (!sv.ok && !(D.features && D.features.holdGround && D.features.holdGround(B, tgt, 'prone'))) tgt.conds.prone = true; // (HOLD GROUND, 10-30)
       yield 12;
     }
     // Stunning Strike: 1 ki, CON or stunned till the end of the monk's next turn; the AI's monk spends it on one worth stunning
@@ -627,7 +627,7 @@
     att.turn.sanded = true;
     var dc = 8 + att.prof + D.mod(att.abil.str), sv = RU.save(tgt, 'str', dc);
     B.card(['  {o}down in the sand{/}: ' + Nm(B, tgt) + ' STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}keeps its feet{/}' : '{o}PRONE{/}')], 240);
-    if (!sv.ok) tgt.conds.prone = true;
+    if (!sv.ok && !(D.features && D.features.holdGround && D.features.holdGround(B, tgt, 'prone'))) tgt.conds.prone = true; // (HOLD GROUND, 10-30)
     yield 10;
   };
   // ANSWER BACK (6): raging, one who misses him in melee gets one blow back (the reaction) -- battle.js attack calls it on a miss
@@ -693,7 +693,7 @@
     if (atk.sweep && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone') && (tgt.size || 1) <= 2) {
       var sv = RU.save(tgt, 'dex', F.SWEEP_DC);
       B.card(['  {o}swept{/}: ' + nm(B, tgt) + ' DEX ' + RU.saveText(sv) + ' vs DC ' + F.SWEEP_DC + '  ' + (sv.ok ? '{n}keeps its feet{/}' : '{o}PRONE{/}')], 200);
-      if (!sv.ok) tgt.conds.prone = true;
+      if (!sv.ok && !(D.features && D.features.holdGround && D.features.holdGround(B, tgt, 'prone'))) tgt.conds.prone = true; // (HOLD GROUND, 10-30)
       yield 8;
     }
     if (atk.cover && !tgt.dead && tgt.hp > 0) { tgt.conds.covered = { by: att.id, till: { who: att.id, at: 'start', n: 1 } }; B.card(['  {c}covered{/}: ' + nm(B, tgt) + "'s next attack at disadvantage"], 160); }
@@ -915,9 +915,69 @@
   function mine(u) { return u.side === 'party' && !u.guest; }
   function chan(u) { return feat(u, 'channel'); }
   var CHAN_WHY = 'Channel Divinity is spent (a short rest brings it back)';
+  // ------------------------------------------------------------------ the fighter: the Drillyard (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's leans
+  // and it can start building"; leveling-srd-by-class.md 6.1): set plays, each a fixed effect bought with an opening -- two a short rest (three at 7: feats.openings), one
+  // play a turn (turn.playDone). The plays it knows are the sheet's `plays` (js/classes.js NPC.OPTIONS.fighter). On a weapon hit: WHEEL (it and a friend within 5 ft trade
+  // places, no opportunity attacks), BIND (no reactions till its next turn), BREAK STRIDE (10 ft less speed through its next turn: rules.js RU.speedNow), PIN THE SHIELD
+  // (its shield's +2 off its AC till the fighter's next turn: RU.ac). CALL THE MARK, a bonus action: each friend's first hit on one creature +2 till the fighter's next turn
+  // (battle.js). HOLD GROUND, the reaction to a push or a knockdown, spends itself (F.holdGround: no prompt -- the push is not a turn's)
+  F.drill = function (u) { return !!(u && u.cls === 'fighter' && u.subclass === 'the Drillyard' && u.lvl >= 3); };
+  F.knowsPlay = function (u, id) { return F.drill(u) && (u.plays || []).indexOf(id) >= 0; };
+  F.bearsShield = function (u) { return !!(u && ((u.src && u.src.equip && u.src.equip.shield) || (u.kind && D.FOES && D.FOES[u.kind] && D.FOES[u.kind].shield))); };
+  function canPlay(u) { return F.drill(u) && feat(u, 'openings') && u.turn && !u.turn.playDone; }
+  function spendPlay(u) { u.feats.openings--; u.turn.playDone = true; }
+  var onWeaponHit3 = M.onWeaponHit;
+  M.onWeaponHit = function* (B, att, tgt, atk, crit) {
+    if (onWeaponHit3) yield* onWeaponHit3(B, att, tgt, atk, crit);
+    if (!canPlay(att) || B.active !== att || !tgt || tgt.dead || tgt.hp <= 0 || atk.spell || tgt.side === att.side) return;
+    var friends = B.units.filter(function (w) { return w !== att && w.side === att.side && !w.dead && w.hp > 0 && !w.object && !w.riding && G.dist(w, att) <= 5 && !(G.aloft && (G.aloft(w) || G.aloft(att))); });
+    var opts = [];
+    if (F.knowsPlay(att, 'pinshield') && F.bearsShield(tgt) && !tgt.conds.shieldPinned) opts.push({ label: 'PIN THE SHIELD: its shield off its AC', value: 'pinshield' });
+    if (F.knowsPlay(att, 'bind') && tgt.reaction > 0) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
+    if (F.knowsPlay(att, 'breakstride') && !tgt.conds.stride) opts.push({ label: 'BREAK STRIDE: 10 ft less speed', value: 'breakstride' });
+    if (F.knowsPlay(att, 'wheel') && friends.length) opts.push({ label: 'WHEEL: trade places with a friend', value: 'wheel' });
+    if (!opts.length) return;
+    var pick;
+    if (!mine(att)) pick = opts[0].value === 'wheel' ? 0 : opts[0].value; // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride; never the wheel, which wants a plan)
+    else {
+      opts.push({ label: 'NO PLAY', value: 0 });
+      pick = yield { prompt: { who: att, title: att.name + ': A PLAY? (' + att.feats.openings + ' opening' + (att.feats.openings === 1 ? '' : 's') + ' left)', lines: ['The blow lands on ' + (tgt.side === 'foe' ? 'the ' : '') + tgt.name + '.'], opts: opts } };
+    }
+    if (!pick) return;
+    var f = null;
+    if (pick === 'wheel') { f = friends.length > 1 && mine(att) ? yield* pickOne(B, att, 'WHEEL', friends, 'The friend to trade places with.') : friends[0]; if (!f) return; }
+    spendPlay(att); D.sfx('confirm');
+    if (pick === 'pinshield') { tgt.conds.shieldPinned = { by: att.id }; B.card(['  {y}PIN THE SHIELD{/}: ' + D.Battle.nm(tgt) + '\'s shield is pinned  {g}(-2 AC till ' + att.name + '\'s next turn){/}'], 220); }
+    else if (pick === 'bind') { tgt.reaction = 0; B.card(['  {y}BIND{/}: ' + D.Battle.nm(tgt) + ' is bound up  {g}(no reactions till its next turn){/}'], 220); }
+    else if (pick === 'breakstride') { tgt.conds.stride = { by: att.id }; B.card(['  {y}BREAK STRIDE{/}: ' + D.Battle.nm(tgt) + ' is slowed  {g}(10 ft less speed through its next turn){/}'], 220); }
+    else if (pick === 'wheel') { var ax = att.x, ay = att.y; att.x = f.x; att.y = f.y; f.x = ax; f.y = ay; B.card(['  {y}WHEEL{/}: ' + att.name + ' and ' + f.name + ' trade places  {g}(no opportunity attacks){/}'], 220); }
+    yield 12;
+  };
+  F.markTargets = function (B, u) { return hostileNear(B, u, 60).filter(function (w) { return !w.dead && w.hp > 0 && !w.object && !(w.conds.calledMark && w.conds.calledMark.by === u.id); }); };
+  F.callMark = function (B, u, t) {
+    u.turn.bonus = 0; spendPlay(u); t.conds.calledMark = { by: u.id, side: u.side, hit: {} }; D.sfx('confirm');
+    B.card(['{y}' + u.name + '{/} calls the mark: {r}' + D.Battle.nm(t) + '{/}  {g}(each friend\'s first hit on it +2 till ' + u.name + '\'s next turn){/}'], 240);
+  };
+  // the class AI's: a bonus action on a foe that two or more friends stand beside (TX.FIRST, as the Window's Hand on the Neck)
+  TX.FIRST.unshift(function* (B, u) {
+    if (!F.knowsPlay(u, 'callmark') || !canPlay(u) || !(u.turn.bonus > 0) || mine(u)) return;
+    var best = null;
+    F.markTargets(B, u).forEach(function (t) { var n = TX.alliesOf(B, u).filter(function (w) { return w !== u && G.standing(w) && G.dist(w, t) <= 5; }).length; if (n >= 2 && (!best || n > best.n)) best = { t: t, n: n }; });
+    if (best) { F.callMark(B, u, best.t); yield 10; }
+  });
+  // HOLD GROUND: a push or a knockdown the fighter would take -- the reaction and an opening, spent on their own; true when it holds (magic.js M.push, battle.js, here)
+  F.holdGround = function (B, w, what) {
+    if (!F.knowsPlay(w, 'holdground') || !(w.reaction > 0) || !feat(w, 'openings') || w.dead || w.hp <= 0 || !RU.canAct(w)) return false;
+    w.reaction = 0; w.feats.openings--; w.conds.heldGround = true; // (held: a shove's "nowhere to go, knocked flat" reads it -- ai.js; gone at its own turn)
+    if (B && B.card) B.card(['{y}' + w.name + '{/} holds ground  {g}(HOLD GROUND: not ' + (what === 'push' ? 'moved' : 'knocked prone') + '; the reaction and an opening){/}'], 220);
+    return true;
+  };
   F.commands = function (B, u) {
     if (!mine(u)) return [];
     var T = u.turn, out = [], act = T.action > 0 && !T.attacksLeft;
+    if (F.knowsPlay(u, 'callmark')) out.push({ id: 'callmark', label: 'CALL THE MARK', cost: 'B', icon: 'attack', skill: true, ok: T.bonus > 0 && canPlay(u) && F.markTargets(B, u).length > 0,
+      why: !feat(u, 'openings') ? 'no openings left (a short rest)' : T.playDone ? 'a play this turn already' : !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe within 60 ft',
+      note: 'each friend\'s first hit on one foe +2 till your next turn; ' + ((u.feats && u.feats.openings) || 0) + ' openings left' }); // (the Drillyard's, 10-30)
     if (u.cls === 'barbarian') {
       out.push({ id: 'rage', label: 'RAGE', cost: 'B', icon: 'surge', skill: true, ok: T.bonus > 0 && feat(u, 'rage') && !u.conds.raging && !u.conds.incapacitated,
         why: u.conds.raging ? 'raging already' : !feat(u, 'rage') ? 'no rage left (a long rest)' : 'the bonus action is spent',
@@ -1011,6 +1071,10 @@
       case 'showing':
         t = yield* pickOne(B, u, 'THE SHOWING', F.showable(B, u), 'Which of them is shown the glass? (WIS DC ' + u.spellDC + ')');
         if (t) yield* F.showing(B, u, t);
+        return;
+      case 'callmark':
+        t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');
+        if (t) { F.callMark(B, u, t); yield 10; }
         return;
       case 'handonneck':
         t = yield* pickOne(B, u, 'THE HAND ON THE NECK', alliesWithin(B, u, 5).filter(function (w) { return !w.conds.glassHand; }), 'A touch: yourself, or one beside you.');
