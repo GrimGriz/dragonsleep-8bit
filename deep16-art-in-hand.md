@@ -2362,3 +2362,31 @@ HEAD 5 -- THE FIGURE straight from behind, facing away from the viewer (the atta
 HEADs 1-5 (the fight figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as on the attached pages (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it -- the afterimage and its glow too: nothing touches a neighbouring frame, its afterimage or a label. The same scale in every row and on every sheet, feet on one baseline. No scenery, no ground, no effects but the cloak's own.
 ```
 Where: every fight Dace stands in as the party's guest (the deep gallery's cloaker, the dens' random fights: js/mines.js M.guestIn, the party token). Cut as: a `tools/dace-sheet.py` over `tools/sheetrows.py` (the `ghost` split and real-body measure of tools/portrait-sheet.py if the afterimage joins frames) into his fight sheet in all eight (HEAD 1 S, 2 SE, 3 E, 4 NE, 5 N; SW, W, NW their mirrors), then js/save.js SV.LOOK.dace's `sheet` in place of `npcwizard_p0`. His standing figure at the Galleries' mouth stays the plain `dace_p1`.
+
+### Jory Slade (asked 10-28 in art-wanted section 26; drawn 10-29 by the art desk, ART-123-JORY, every HEAD; CUT 10-30, `dc8d39e0`)
+
+Moved here 2026-10-30 by the cutter of 10-29 night (the lanes desk's standing rule, an idle cutter takes the next delivery). The art desk's own choices: a rugged angular tan face, short rough brown hair and stubble, the old collar's scar, a dark work vest (drawn olive-brown: it snaps to stone) over an oatmeal shirt with rolled sleeves, no cradle pole on these pages. His figure's reds left out of its snap. The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-30c-art123-jory.md`.
+
+### Jory Slade
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+JORY SLADE -- the Warrens' crew boss, a human in his thirties: an ex-collar who milked his way out on the deep rate and bosses the crew he came up from; neither cruel nor kind, quota-squeezed; the old collar's scar on his neck, a cradle pole within reach [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): marks a tally on a slate and counts it twice; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp and pens (`jory`, `jorypens`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_jory`; `tools/keeper-town-sheet.py` into `jory_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
