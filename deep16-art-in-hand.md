@@ -2447,3 +2447,59 @@ HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation,
 HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
 ```
 Where: Silverton and the Hex (`pete`, `warrenspete`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_pete`; `tools/keeper-town-sheet.py` into `pete_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Linnet Pellam (asked 10-28 in art-wanted section 26; drawn by the art desk, ART-123-LINNET, every HEAD; CUT 10-30, `413bfaf5`)
+
+Moved here 2026-10-30 by the Keeper cutter, on Griz's "if cutter isn't done, my take on the usage is he can start NPC in fresh" (the lanes desk's relay). Her olive kerchief was drawn on the palette's line between tan and green, so it is turned to green at the cut on every page (`reskin`); her idle's apron is a shade greyer than her moods' (the dream-polish list). Return `_src/outbox/ENGINE-RETURN-2026-10-30g-art123-linnet-ottilie.md`.
+
+### Linnet Pellam
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+LINNET PELLAM -- seventeen, human, Edric's niece, her first morning in the Warrens: thin, nervous, determined, her hair tied up under a kerchief [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): counts three thimbles in her open palm; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp (`linnet`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_linnet`; `tools/keeper-town-sheet.py` into `linnet_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Ottilie Skerrow (asked 10-28 in art-wanted section 26; drawn by the art desk, ART-123-OTTILIE in two parts, on his correction of the merchant dress, every HEAD; CUT 10-30, `413bfaf5`)
+
+Moved here 2026-10-30 by the Keeper cutter, the same word. In the guano scrapers' workwear on his correction. Her work, a ruling, lifts the hand twice -- the art desk's own caveat, cut as drawn (the dream-polish list). She stands at the mouth: the art desk drew no stool. Return `_src/outbox/ENGINE-RETURN-2026-10-30g-art123-linnet-ottilie.md`.
+
+### Ottilie Skerrow
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OTTILIE SKERROW -- fifty-eight, human, the Galleries' final word, the roost law's keeper: was ten the winter the gatherers stayed, and has run the house thirty years from a stool at the mouth; stern, upright, iron-grey hair [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lays one hand flat on the ledge, a ruling; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`ottilie`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_ottilie`; `tools/keeper-town-sheet.py` into `ottilie_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
