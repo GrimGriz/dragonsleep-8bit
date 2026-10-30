@@ -5662,9 +5662,11 @@
         P1.stroke = function () { if (String(this.strokeStyle).toLowerCase() === '#f878f8') lineN1++; return sk01.apply(this, arguments); };
         var c0 = D.ctx; D.ctx = cx1; try { B1.draw(cx1); } finally { D.ctx = c0; P1.fill = fl01; P1.stroke = sk01; }
       };
+      // (10-30, his "the purple (frightened) when you mouse over is good, the tiles all colored is too much": the colour on the refused square under the mouse alone)
       B1.cursor = { x: 4, y: 4 }; B1.cards = []; draw1(); var fillOn1 = fillN1, lineOn1 = lineN1;
-      delete f1.conds.frightened; B1.cache = null; draw1(); var fillOff1 = fillN1 + lineN1;
-      okGC('1 and drawn: the fear\'s colour (#f878f8, the {p} of its tag) filled on ' + fillOn1 + ' squares (want ' + freed1.length + ', the squares the fear refuses), the cursor over 4,4 ringed in it ' + lineOn1 + ' time(s); unafraid, ' + fillOff1 + ' (want 0)', fillOn1 === freed1.length && lineOn1 >= 1 && fillOff1 === 0);
+      B1.cursor = { x: f1.x, y: f1.y }; B1.cards = []; draw1(); var fillAway1 = fillN1 + lineN1;
+      delete f1.conds.frightened; B1.cache = null; B1.cursor = { x: 4, y: 4 }; draw1(); var fillOff1 = fillN1 + lineN1;
+      okGC('1 and drawn: the fear\'s colour (#f878f8, the {p} of its tag) filled on ' + fillOn1 + ' squares with the cursor on a refused one (want 1, of the ' + freed1.length + ' the fear refuses), that square ringed in it ' + lineOn1 + ' time(s); the cursor on the hero\'s own square, ' + fillAway1 + ' (want 0); unafraid, ' + fillOff1 + ' (want 0)', freed1.length > 1 && fillOn1 === 1 && lineOn1 >= 1 && fillAway1 === 0 && fillOff1 === 0);
       // (the eyes row's door, eyes-gridclicks-1029: &afraid=2 -- the second hero frightened of the first foe, the testing room's knob, js/classes.js npcFight, battle.js)
       var B1d = mkGC('?npc=goblin,goblin,goblin&vs=lymen:5,vivian:5&lvl=5&afraid=2'), ly1 = sideGC(B1d, 'party')[0], vv1 = sideGC(B1d, 'party')[1], gd1 = sideGC(B1d, 'foe')[0];
       D.rules.startTurn(vv1); turnGC(B1d, vv1); var nd1 = Object.keys(fsqGC(B1d, vv1)).length;

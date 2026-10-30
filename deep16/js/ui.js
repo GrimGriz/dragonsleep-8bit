@@ -2142,7 +2142,7 @@
       }
       LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
-      var fq = fearSquares(B, u); Object.keys(fq).forEach(function (k) { var e = fq[k]; fillSq(ctx, e.x, e.y, FEAR_COL, 0.2); }); // (frightened: where the fear won't let them go)
+      var fq = fearSquares(B, u)[cx + ',' + cy]; if (fq) fillSq(ctx, fq.x, fq.y, FEAR_COL, 0.3); // (frightened: the square under the mouse the fear won't let them go to -- 10-30, his "the purple (frightened) when you mouse over is good, the tiles all colored is too much")
       if (LAYERZ != null) airColumn(cx, cy, LAYERZ, rc.move[cx + ',' + cy] || (rc.dash && rc.dash[cx + ',' + cy]), T.move, UI.valid(B, u, cx, cy)); // (the cursor itself is drawn at the layer below, red where it cannot go -- Griz, 10-08) // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
       LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
@@ -2298,6 +2298,7 @@
       else if (!owT && D.oil.squareOK(B, u, B.cursor.x, B.cursor.y)) lines.push('{y}oil this square{/}' + (lit0 || (D.oil.at(B, B.cursor.x, B.cursor.y) || {}).lit != null || (B.lights || []).some(function (l) { return l.flame && Math.round(l.x) === B.cursor.x && Math.round(l.y) === B.cursor.y; }) ? ': {o}it catches{/} -- 2 rounds, 5 fire to enter it or end a turn in it' : ': no roll; a torch or any fire on it lights it'));
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      if (fearSquares(B, u)[k]) lines.push('{p}scared to go there{/}'); // (a square the fear refuses -- 10-30, his "add 'scared to go there' or a briefer equivalent")
       // a way out under the cursor (one of the pale squares: battle.js exits): says so, and how (10-06, the grid's rules §2.15 -- "the inspect of an exit square says it is a way out")
       if (!(B.o.embed && B.o.embed.canRun === false) && (B.exits || []).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; })) lines.push('{y}a way out{/}: LEAVE THE FIGHT from here' + (B.fight && B.fight.oneLeavesAll ? ' {g}(the party goes too){/}' : ''));
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
