@@ -276,6 +276,7 @@
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
     fortunesdue: { mate: null, nfoe: 1 }, // (the feat Fortune's Due, ours, 10-30)
+    greenagain: { nfoe: 1 }, whatfallsfeeds: { mate: 'flank', nfoe: 1 }, auraofdeeproots: { nfoe: 1 }, // (the Oath of the Green Return, ours, 10-30)
     keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
@@ -487,9 +488,10 @@
     var PRE = {
       surge: function* (c) { yield* swing(c, null, 1, true); c.hero.turn.action = 0; c.hero.turn.attacksLeft = 0; }, // (Action Surge is after the action)
       flurry: function* (c) { yield* swing(c, null, 1, true); },                                                    // (after the Attack action)
-      unshape: function* (c) { yield* D.features.wildShape(B, c.hero, 'wolf'); }                                    // (a shape to come out of)
+      unshape: function* (c) { yield* D.features.wildShape(B, c.hero, 'wolf'); },                                   // (a shape to come out of)
+      greenagain: function* (c) { var m = c.mate; if (m) { m.hp = 0; m.ko = true; m.conds.prone = true; } yield 20; } // (one of ours down beside the paladin: the Green Return, 10-30)
     };
-    var AIM = { lay: function (c) { return c.mate || c.hero; } };
+    var AIM = { lay: function (c) { return c.mate || c.hero; }, greenagain: function (c) { return c.mate; } };
     var THEN = {
       rage: function* (c) { yield* swing(c, null, 3, true); }, reckless: function* (c) { yield* swing(c, null, 1, true); }, sacred: function* (c) { yield* swing(c, null, 3, false); },
       'meta-quickened': function* (c) { yield* castOne(c, 'magicmissile'); },
@@ -558,6 +560,10 @@
       // Long Guard (ours, 10-30; js/features.js F.keepBack, F.chargeStep): the foe walks at the fighter -- into the glaive's 10 ft, KEEP BACK (its save pinned to fail) and it is
       // held off 5 ft back; then from 30 ft, the reaction spent, it comes 20 ft straight in and stands at 10 ft -- SET AGAINST THE CHARGE, and the glaive's hit one more die
       // Fortune's Due (ours, 10-30; js/features.js): three misses, three Dues (FPIN pins the d20s low); the fourth swing misses by 3 and spends them -- "fortune's due +" and a hit
+      // the Oath of the Green Return (ours, 10-30; js/features.js): a foe at 1 HP beside a hurt friend, struck down -- WHAT FALLS, FEEDS; a push at the friend and at the paladin
+      // of the 7th -- the roots hold
+      whatfallsfeeds: function* (c) { var t = c.foes[0], m = c.mate; if (m) m.hp = Math.max(1, Math.floor(m.maxhp / 2)); t.hp = 1; yield 20; yield* swing(c, t, 3, true); yield 40; },
+      auraofdeeproots: function* (c) { yield 20; if (c.mate) { D.magic.push(B, c.foes[0], c.mate, 2); yield 50; } D.magic.push(B, c.foes[0], c.hero, 2); yield 50; },
       fortunesdue: function* (c) { var t = c.foes[0]; c.hero.feats.dues = 0; t.baseAC = 12 + (c.hero.weapon.atk || 0) + 3; yield* swing(c, t, 4, true); },
       keepback: function* (c) { yield* foeWalk(c, c.foes[0], 3); },
       setagainst: function* (c) { c.hero.reaction = 0; yield* foeWalk(c, c.foes[0], 4); yield 20; yield* swing(c, c.foes[0], 3, true); },

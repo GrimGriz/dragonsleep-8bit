@@ -260,7 +260,7 @@
   });
   // ------------------------------------------------------------------ the paladin: Sacred Weapon for the AI's paladins
   TX.ACTIONS.push(function (B, u, fs) {
-    if (u.cls !== 'paladin' || u.lvl < 3 || !feat(u, 'channel') || u.conds.sacred || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
+    if (u.cls !== 'paladin' || u.lvl < 3 || !RU.devoted(u) || !feat(u, 'channel') || u.conds.sacred || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
     if (!fs.some(function (t) { return G.dist(u, t) <= 30; }) || (B.fight && B.fight.roost)) return null;
     var sb = Math.max(1, D.mod(u.abil.cha));
     return { kind: 'feature', why: 'Sacred Weapon', score: (u.attacksBase || 1) * sb * 0.05 * 9 * 4 * 0.5, go: function* () { yield* B.exec(u, { do: 'sacred' }); } };
@@ -600,6 +600,45 @@
     killer.temp = Math.max(killer.temp || 0, n); FX.sparkle(killer, 'fire', 14);
     B.card(['{r}' + Nm(B, killer) + '{/} drinks it in: {c}' + n + ' temporary HP{/} {g}(Dark One\'s Blessing){/}'], 240);
   };
+  // ------------------------------------------------------------------ the paladin: the Oath of the Green Return (ours, 10-30 -- the leveling lane §8 D; RULED, Griz: "i'd say yes";
+  // leveling-srd-by-class.md 2.2, "what falls, feeds"). Channel Divinity, GREEN AGAIN -- an action: one of its own at 0 HP within 30 ft that it can see stands with the paladin's
+  // level in HP, and the paladin loses as many, which nothing reduces (offered only while that leaves it standing: the seat's call); WHAT FALLS, FEEDS -- the reaction as one it
+  // can see drops within 30 ft: each friend within 10 ft of the fallen 1d6 + CHA (M.onKill, below -- taken by a rule, as the drop comes inside a blow with no asking: some healing
+  // to be had, and the last use kept for GREEN AGAIN while one of its own is down); at 7 the AURA OF DEEP ROOTS -- it and friends within 10 ft (30 at 18) are not moved against
+  // their will nor knocked prone (F.holdGround's guards: M.push and the knockdowns). Sacred Weapon, Turn the Unholy and the Aura of Devotion are Devotion's (RU.devoted)
+  F.green = function (u, lvl) { return !!(u && u.cls === 'paladin' && u.subclass === 'the Oath of the Green Return' && u.lvl >= (lvl || 3)); };
+  F.greenDown = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && !w.dead && !w.slain && !w.object && !w.familiar && w.hp <= 0 && G.dist(u, w) <= 30 && M.sees(B, u, w); }); };
+  F.greenAgain = function* (B, u, t) {
+    var n = u.lvl; u.turn.action = 0; u.feats.channel--;
+    FX.ring(t, 'moss', 34); FX.sparkle(t, 'moss', 16); D.sfx('buff');
+    B.heal(t, n); delete t.conds.prone;
+    u.hp = Math.max(1, u.hp - n); FX.float('-' + n, u, D.PAL.ramps.moss[2]);
+    B.card(['{y}' + Nm(B, u) + '{/}: {n}GREEN AGAIN{/} -- ' + nm(B, t) + ' stands with ' + t.hp + ' HP, and ' + u.name + ' gives ' + n + '.  {g}(Channel Divinity){/}'], 260);
+    yield 30;
+  };
+  F.deepRoots = function (B, w) {
+    return !!(B && B.units && w && !w.dead && w.hp > 0 && B.units.some(function (p) { return F.green(p, 7) && p.side === w.side && G.standing(p) && RU.canAct(p) && G.dist(p, w) <= (p.lvl >= 18 ? 30 : 10); }));
+  };
+  var onKillG = M.onKill;
+  M.onKill = function (B, killer, u) {
+    onKillG.apply(this, arguments);
+    if (!u || u.object || u.familiar) return;
+    B.units.forEach(function (p) {
+      if (!F.green(p) || !(p.reaction > 0) || !feat(p, 'channel') || !G.standing(p) || !RU.canAct(p) || G.dist(p, u) > 30 || !M.sees(B, p, u)) return;
+      var near = B.units.filter(function (w) { return w.side === p.side && G.standing(w) && !w.object && w.hp < w.maxhp && G.dist(w, u) <= 10; });
+      var missing = near.reduce(function (s, w) { return s + w.maxhp - w.hp; }, 0);
+      if (missing < 4 || (p.feats.channel < 2 && F.greenDown(B, p).length)) return;
+      p.reaction = 0; p.feats.channel--;
+      var cm = Math.max(0, D.mod(p.abil.cha)), got = near.map(function (w) { var r = D.roll('1d6').total + cm; B.heal(w, r); return nm(B, w) + ' +' + r; });
+      FX.ring(u, 'moss', 30);
+      B.card(['{y}' + Nm(B, p) + '{/}: {n}WHAT FALLS, FEEDS{/} -- ' + got.join(', ') + '.  {g}(the reaction and Channel Divinity){/}'], 260);
+    });
+  };
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!F.green(u) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest) || u.hp <= u.lvl) return null;
+    var t = F.greenDown(B, u).sort(function (a, b) { return (b.maxhp || 0) - (a.maxhp || 0); })[0];
+    return t ? { kind: 'feature', why: 'Green Again', score: 40, go: function* () { yield* F.greenAgain(B, u, t); } } : null;
+  });
 
   // ================================================================== our own subclasses (RULED 09-28g, Griz, on the four past the SRD: "Sufficiently
   // distinct -- Kat supposed to be Cleric of trickster deity trapped in mirror"; the past-the-SRD principle, invented.json #past-the-srd:
@@ -967,6 +1006,7 @@
   });
   // HOLD GROUND: a push or a knockdown the fighter would take -- the reaction and an opening, spent on their own; true when it holds (magic.js M.push, battle.js, here)
   F.holdGround = function (B, w, what) {
+    if (F.deepRoots && F.deepRoots(B, w)) { if (B && B.card) B.card(['{n}The roots hold{/} ' + w.name + '  {g}(the Aura of Deep Roots: not ' + (what === 'push' ? 'moved' : 'knocked prone') + '){/}'], 220); return true; } // (the Green Return's, 7: no reaction -- 10-30)
     if (!F.knowsPlay(w, 'holdground') || !(w.reaction > 0) || !feat(w, 'openings') || w.dead || w.hp <= 0 || !RU.canAct(w)) return false;
     w.reaction = 0; w.feats.openings--; w.conds.heldGround = true; // (held: a shove's "nowhere to go, knocked flat" reads it -- ai.js; gone at its own turn)
     if (B && B.card) B.card(['{y}' + w.name + '{/} holds ground  {g}(HOLD GROUND: not ' + (what === 'push' ? 'moved' : 'knocked prone') + '; the reaction and an opening){/}'], 220);
@@ -1118,6 +1158,8 @@
     }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
+    if (F.green(u)) { var gdC = F.greenDown(B, u); out.push({ id: 'greenagain', label: 'GREEN AGAIN', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && gdC.length > 0 && u.hp > u.lvl, // (the Oath of the Green Return, ours: 10-30)
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : !gdC.length ? 'no one of yours down within 30 ft that you can see' : 'it would take your last hit points', note: 'Channel Divinity: one of yours at 0 HP within 30 ft stands with ' + u.lvl + ' HP, and you lose as many' }); }
     if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
       why: u.conds.countercharm ? 'the song is up already' : 'the action is spent', note: 'till the end of your next turn: you and friends within 30 ft, advantage on saves against being frightened or charmed' });
     if (u.cls === 'sorcerer' && u.lvl >= 3) (u.metamagic || []).forEach(function (mn) {
@@ -1167,6 +1209,11 @@
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
       case 'preservelife': yield* F.preserveLife(B, u); return;
       case 'turnunholy': yield* F.turnUndead(B, u, F.unholyNear(B, u), { name: 'TURN THE UNHOLY', noDestroy: true }); return;
+      case 'greenagain': { // (the Oath of the Green Return's Channel Divinity, ours: 10-30)
+        var gdE = F.greenDown(B, u); if (!gdE.length || !chan(u) || u.hp <= u.lvl || !(u.turn.action > 0)) return;
+        t = c.target && gdE.indexOf(c.target) >= 0 ? c.target : gdE.length > 1 ? yield* pickOne(B, u, 'GREEN AGAIN', gdE, 'One at 0 HP: it stands with ' + u.lvl + ' HP, and you lose as many.') : gdE[0];
+        if (t) yield* F.greenAgain(B, u, t); return;
+      }
       case 'patient': yield* F.patient(B, u); return;
       case 'flurry': yield* F.bonusStrikes(B, u); return;
       case 'wholeness': { u.turn.action = 0; u.feats.wholeness = 0; var gotW = B.heal(u, 3 * u.lvl); D.sfx('heal'); FX.sparkle(u, 'moss', 16); B.card(['{y}' + Nm(B, u) + '{/}: WHOLENESS OF BODY  {n}+' + gotW + ' HP{/}  {g}(a long rest brings it back){/}'], 240); yield 16; return; }

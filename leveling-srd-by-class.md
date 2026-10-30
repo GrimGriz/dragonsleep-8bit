@@ -38,7 +38,7 @@ Each decision gets one verdict:
 | Druid | 2 | Circle | 2: the Land, the Moon | the Land | the Circle of the Pelt (BUILT 10-30, §6.2) | met |
 | Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1); the Drillyard (BUILT 10-30, §6.1) | met; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
-| Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | -- (the Oath of the Green Return drafted, §2.2) | SHORT 3; **not asked on either pick** |
+| Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | the Oath of the Green Return (BUILT 10-30, §2.2) | SHORT 2; asked on the Pocket DM's maker since 10-30, not on Lymen's own pick |
 | Ranger | 3 | Ranger Archetype | 2: Hunter, Beast Master | Hunter | the Grey Road (GreyFang's) | met |
 | Rogue | 3 | Roguish Archetype | 3: Thief, Assassin, Arcane Trickster | Thief | Cutthroat (Vivian's other road; Stab Debut since 10-29) | SHORT 1 |
 | Sorcerer | 1 | Sorcerous Origin | 2: Draconic, Wild Magic | Draconic | -- | SHORT 1 |
@@ -72,7 +72,7 @@ Barley's road: *"He went down once against Cutter on fight night and got back up
 
 **NOT** the Battle Master (no superiority dice, no maneuvers -- it knocks nothing down, it fights what is down), nor the Eldritch Knight (no spells). Not the SRD's own Relentless Endurance (the half-orc's) or Relentless Rage (the barbarian's): those keep a creature from falling, and this one falls, loses its time, then gets back up. **The engines:** prone is on the grid (its prone rows, the bulette's knockdown, the Sand's, Grappler's PIN); a hero at 0 is down (KO) with no death saves in either battle, so the rise is at the start of its next turn. **Built 10-30** on his *"i'd say yes"*: `js/rules.js` R.SUBCLASSES.fighter (the Pocket DM's maker asks it at 3) and R.champion (the Champion's Improved Critical and Remarkable Athlete, every fighter's but ours); `deep16/js/rules.js` RU.hardGround, RU.riseCost, RU.startTurn (the rise, and up for 5 ft at the turn's start -- the Grey Road's Pit-Wise too, which had paid half there), RU.edges; `deep16/js/battle.js` (the rise's advantage spent, Threshing); `deep16/js/classes.js` (the use a long rest); the FEATURES shelf (`deep16/data/features.js`, `deep16/js/gallery.js`); `mode=threshing1030`. Not in the first game: Barley's sheet keeps the Champion.
 
-### 2.2 The paladin at 3: the Oath of the Green Return (DRAFT)
+### 2.2 The paladin at 3: the Oath of the Green Return (BUILT 10-30, the grid)
 
 Lymen's road: *"Self-ordained under Kalindel, the generative nature of the planet, in a town outside Newland's writ"* (`content/heroes.json`). An oath that gives back what the field takes.
 

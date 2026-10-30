@@ -298,6 +298,11 @@
       { id: 'champion', name: 'Champion', srd: true, desc: 'Improved Critical: a critical on a 19 or 20. At 7, Remarkable Athlete: half proficiency to STR, DEX and CON checks and to initiative.' },
       { id: 'drillyard', name: 'the Drillyard', desc: "Ours, the drill yard's set plays. Two openings a short rest (three at 7), one play a turn, three plays known (five at 7): WHEEL (trade places with a friend beside), BIND (no reactions), BREAK STRIDE (10 ft less speed), PIN THE SHIELD (its shield off its AC), CALL THE MARK (friends' first hits +2), HOLD GROUND (not pushed, not knocked flat)." },
       { id: 'threshing', name: 'the Threshing Floor', desc: "Barley's road, ours. Hard Ground: prone is no trouble -- no disadvantage on its own blows from the ground, no advantage for one beside it, up for 5 ft. Up Off the Floor: once a long rest, dropped to 0, it rises at its next turn with its fighter level + CON in HP, its first blow at advantage. At 7, Threshing: once a turn, one more weapon die on a prone foe." }] },
+    // the paladin's (10-30, the leveling lane §8 D; leveling-srd-by-class.md §2.2; Griz: "i'd say yes", the oath after the Threshing Floor): Devotion is the SRD's (Sacred
+    // Weapon, Turn the Unholy, its spells, the Aura of Devotion -- R.devotion, RU.devoted), the Green Return ours -- deep16/js/features.js F.greenAgain, M.onKill, F.holdGround
+    paladin: { at: 3, word: 'SACRED OATH', opts: [
+      { id: 'devotion', name: 'Oath of Devotion', srd: true, desc: 'Sacred Weapon: CHA to hit for a minute. Turn the Unholy. Protection from Evil and Good and Sanctuary always prepared (Lesser Restoration at 5). At 7, the Aura of Devotion: no charm within 10 ft.' },
+      { id: 'greenreturn', name: 'the Oath of the Green Return', desc: "Lymen's road, ours: what falls, feeds. Longstrider always prepared (Barkskin and Spike Growth at 5, Daylight at 9). Channel Divinity -- GREEN AGAIN: an action, one at 0 HP within 30 ft stands with your paladin level in HP, and you lose as many; WHAT FALLS, FEEDS: your reaction as one you see drops within 30 ft, each friend within 10 ft of it 1d6 + CHA. At 7, the Aura of Deep Roots: you and friends within 10 ft cannot be pushed or knocked prone." }] },
     cleric: { at: 1, word: 'DIVINE DOMAIN', opts: [
       { id: 'life', name: 'Life Domain', srd: true, desc: 'Disciple of Life: a healing spell heals 2 + its level more. At 2, Preserve Life (Channel Divinity); at 6, healing others heals the cleric too; at 8, Divine Strike.' },
       { id: 'window', name: 'the Window', desc: "Kat's: the menders of Tronupholen. The Hand on the Neck: a bonus-action touch, and the first blow to land on that one is rolled again. At 2, The Doubling; at 6, The Showing (Channel Divinity). Illusions always prepared." },
@@ -835,8 +840,12 @@
   function spellData(id) { return DS.DATA.spells[id]; }
   // the Oath of Devotion's spells (SRD 5.1): Protection from Evil and Good and Sanctuary from 3, Lesser Restoration from 5 (Zone of
   // Truth, its pair, isn't built; nor the 9th's -- Beacon of Hope and Dispel Magic are grid-only spells, HELD in the 8-bit since 10-03; the grid's class paladin has them, js/classes.js). Both games (the 3rd's pair was the grid's alone till 09-28g)
+  // (a paladin sworn to the Oath of the Green Return, ours, keeps its own oath's: Longstrider at 3, Barkskin and Spike Growth at 5, Daylight at 9 -- Goodberry and Meld
+  // into Stone not built; deep16/js/classes.js NPC.SUBS. Every other paladin is Devotion's, as R.champion reads the fighter -- the leveling lane §8 item 18, 10-30)
+  R.devotion = function (h) { return h.cls === 'paladin' && h.subclass !== 'the Oath of the Green Return'; };
   R.oathSpells = function (h) {
     if (h.cls !== 'paladin' || h.lvl < 3) return [];
+    if (!R.devotion(h)) return ['longstrider'].concat(h.lvl >= 5 ? ['barkskin', 'spikegrowth'] : [], h.lvl >= 9 ? ['daylight'] : []);
     return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : []);
   };
   R.prepCount = function (h) {

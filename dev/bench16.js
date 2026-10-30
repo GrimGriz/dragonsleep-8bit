@@ -4848,6 +4848,63 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE OATH OF THE GREEN RETURN (mode=greenreturn1030; the leveling lane §8 D and item 18, 10-30 -- RULED, Griz: "i'd say yes"; leveling-srd-by-class.md 2.2): the paladin's
+  // choice at 3 (Devotion, the SRD's, and ours) on R.SUBCLASSES; the oath's spells in Devotion's place; Sacred Weapon and Turn the Unholy Devotion's alone; GREEN AGAIN raises
+  // one of its own at 0 for the paladin's level and costs it as many (not offered when it would take its last); WHAT FALLS, FEEDS heals a hurt friend beside a foe that drops, and
+  // keeps the last use while one of its own is down; the AURA OF DEEP ROOTS at 7 holds a friend within 10 ft against a push and a knockdown (not at 6); the AI's GREEN AGAIN; the shelf
+  if (get('mode', '') === 'greenreturn1030') {
+    var repGr = { checks: [], errors: [] }, d0Gr = D.d, GR = 'the Oath of the Green Return';
+    function okGr(what, v) { repGr.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGr(g) { var v, k = 0, st; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkGr(lvl, green) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=paladin:' + lvl + ',fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), p = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== p; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      if (green) { p.subclass = GR; if (p.src) p.src.subclass = GR; }
+      g.conds = {}; f.x = p.x + 1; f.y = p.y; if (!D.grid.canStand(f, f.x, f.y)) f.x = p.x - 1; g.x = f.x + 1; g.y = f.y; if (!D.grid.canStand(g, g.x, g.y)) { g.x = f.x; g.y = f.y + 1; }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(p); B.active = p; p.feats.channel = 1; p.reaction = 1; return { B: B, p: p, f: f, g: g };
+    }
+    function cmdOf(h, id) { return h.B.commands(h.p).filter(function (c) { return c.id === id; })[0] || null; }
+    try {
+      D.seed = 1030;
+      var R0 = window.DS.R, sc = R0.SUBCLASSES.paladin, gsh = D.npc.sheet(Object.assign(D.npc.spec('paladin:5'), { subclass: GR })), dsh = D.npc.sheet(D.npc.spec('paladin:5'));
+      okGr('the choice at 3: ' + (sc ? sc.word + ' ' + sc.opts.map(function (o) { return o.name; }).join(' / ') : 'none') + '; a Green Return paladin 5 knows ' + ['longstrider', 'barkskin', 'spikegrowth', 'sanctuary'].map(function (id) { return id + ' ' + (gsh.known.indexOf(id) >= 0); }).join(', ') + '; its oath spells ' + R0.oathSpells(gsh).join(',') + '; Devotion\'s ' + R0.oathSpells(dsh).join(','),
+        sc && sc.at === 3 && sc.opts.length === 2 && sc.opts[0].srd && sc.opts[1].name === GR && gsh.subclass === GR && ['longstrider', 'barkskin', 'spikegrowth'].every(function (id) { return gsh.known.indexOf(id) >= 0; }) && gsh.known.indexOf('sanctuary') < 0 && R0.oathSpells(gsh).join() === 'longstrider,barkskin,spikegrowth' && R0.oathSpells(dsh)[0] === 'protectionfromevilandgood');
+      var hd = mkGr(5, false), hg = mkGr(5, true);
+      okGr('Devotion\'s SACRED WEAPON ' + !!cmdOf(hd, 'sacred') + ', turning ' + D.features.unholy(hd.p) + '; the Green Return\'s ' + !!cmdOf(hg, 'sacred') + ', ' + D.features.unholy(hg.p) + ' (want true true, false false)', !!cmdOf(hd, 'sacred') && D.features.unholy(hd.p) && !cmdOf(hg, 'sacred') && !D.features.unholy(hg.p));
+      // GREEN AGAIN
+      var h1 = mkGr(5, true); h1.f.hp = 0; h1.f.ko = true; h1.f.conds.prone = true; var php = h1.p.hp, c1 = cmdOf(h1, 'greenagain');
+      runGr(h1.B.exec(h1.p, { do: 'greenagain', target: h1.f }));
+      okGr('GREEN AGAIN (offered ' + !!(c1 && c1.ok) + '): the fighter at ' + h1.f.hp + ' HP, up ' + (!h1.f.ko && !h1.f.conds.prone) + '; the paladin ' + php + ' -> ' + h1.p.hp + ', the channel ' + h1.p.feats.channel + ' (want 5, 5 less, 0)',
+        c1 && c1.ok && h1.f.hp === 5 && !h1.f.ko && !h1.f.conds.prone && h1.p.hp === php - 5 && h1.p.feats.channel === 0);
+      var h2 = mkGr(5, true); h2.f.hp = 0; h2.f.ko = true; h2.p.hp = 5; var c2 = cmdOf(h2, 'greenagain');
+      okGr('the paladin at 5 HP: GREEN AGAIN offered ' + !!(c2 && c2.ok) + ' ("' + (c2 && c2.why) + '")', c2 && !c2.ok && /last hit points/.test(c2.why));
+      // WHAT FALLS, FEEDS
+      var h3 = mkGr(5, true); h3.f.hp = Math.floor(h3.f.maxhp / 2); var f3 = h3.f.hp; h3.g.hp = 1; var n3 = (h3.B.log || []).length; h3.B.hurt(h3.g, 5, 'slashing', {});
+      var l3 = (h3.B.log || []).slice(n3).join(' / ');
+      okGr('WHAT FALLS, FEEDS: the goblin drops beside the hurt fighter -- ' + f3 + ' -> ' + h3.f.hp + ', the reaction ' + h3.p.reaction + ', the channel ' + h3.p.feats.channel + ', "' + /WHAT FALLS, FEEDS/.test(l3) + '"', h3.f.hp > f3 && h3.p.reaction === 0 && h3.p.feats.channel === 0 && /WHAT FALLS, FEEDS/.test(l3));
+      var h4 = mkGr(5, true); h4.f.hp = 0; h4.f.ko = true; h4.p.hp = h4.p.maxhp - 10; h4.g.x = h4.p.x; h4.g.y = h4.p.y + 1; if (!D.grid.canStand(h4.g, h4.g.x, h4.g.y)) h4.g.y = h4.p.y - 1;
+      D.grid.setup(h4.B.map, h4.B.units); h4.g.hp = 1; h4.B.hurt(h4.g, 5, 'slashing', {}); // (the fighter down within 30 ft, the paladin hurt beside the goblin that drops)
+      okGr('one of its own down and the last use: kept (the reaction ' + h4.p.reaction + ', the channel ' + h4.p.feats.channel + ')', h4.p.reaction === 1 && h4.p.feats.channel === 1);
+      // the AURA OF DEEP ROOTS at 7, not at 6
+      var side = function (h) { return D.grid.canStand(h.f, h.f.x, h.f.y + 1) ? { x: h.f.x, y: h.f.y - 1 } : { x: h.f.x, y: h.f.y + 1 }; }; // (a push across the line, not into the paladin)
+      var h5 = mkGr(7, true), x5 = h5.f.x, y5 = h5.f.y; D.magic.push(h5.B, side(h5), h5.f, 2); var held5 = h5.f.x === x5 && h5.f.y === y5, pr5 = D.features.holdGround(h5.B, h5.f, 'prone');
+      var h6 = mkGr(6, true), x6 = h6.f.x, y6 = h6.f.y; D.magic.push(h6.B, side(h6), h6.f, 2); var moved6 = !(h6.f.x === x6 && h6.f.y === y6);
+      okGr('the AURA OF DEEP ROOTS at 7: the fighter beside not pushed ' + held5 + ', not knocked prone ' + pr5 + '; at 6, pushed ' + moved6, held5 && pr5 && moved6);
+      // the AI's GREEN AGAIN
+      var h7 = mkGr(5, true); h7.p.guest = true; h7.p.feats.lay = 0; h7.f.hp = 0; h7.f.ko = true; runGr(D.tactics.turn(h7.B, h7.p)); // (its Lay on Hands spent: with the pool the AI rightly lays hands, 25 HP)
+      okGr('the AI\'s paladin, the fighter down beside it: GREEN AGAIN (the fighter at ' + h7.f.hp + ' HP, the channel ' + h7.p.feats.channel + ')', h7.f.hp === 5 && h7.p.feats.channel === 0);
+      // the shelf
+      var Bs = D.fxGallery('?fxgallery&features&only=greenagain,whatfallsfeeds,auraofdeeproots'); D.battle = Bs; Bs.one = Bs.one || { shelf: 'features' }; Bs.enter(); // (the one gallery's pinned dice: B.one)
+      var Ss = Bs.gallery, gs = 0, vs, done = 0, rep = {};
+      while (Bs.co && gs++ < 600000 && done < 3) { var st = Bs.co.next(vs); vs = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vs = y.prompt.opts[0].value; continue; } if (y.gallery) { var id = Ss.ids[Ss.i]; rep[id] = (Ss.report[id] && Ss.report[id].tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); done++; vs = 1; } }
+      okGr('the FEATURES shelf: GREEN AGAIN ' + /GREEN AGAIN --/.test(rep.greenagain || '') + ', WHAT FALLS, FEEDS ' + /WHAT FALLS, FEEDS --/.test(rep.whatfallsfeeds || '') + ', the roots ' + /The roots hold/.test(rep.auraofdeeproots || ''),
+        /GREEN AGAIN --/.test(rep.greenagain || '') && /WHAT FALLS, FEEDS --/.test(rep.whatfallsfeeds || '') && /The roots hold/.test(rep.auraofdeeproots || ''));
+    } catch (e) { repGr.errors.push(String(e && e.stack || e)); }
+    D.d = d0Gr;
+    var preGr = document.createElement('pre'); preGr.id = 'out'; preGr.textContent = 'BENCH16 ' + JSON.stringify(repGr);
+    document.body.appendChild(preGr);
+    return;
+  }
   // FORTUNE'S DUE (mode=fortune1030; the leveling lane §8 C, 10-30, RULED by the desk's relay, his "go with the leans"; leveling-srd-by-class.md 6.3): the feat (no prerequisite,
   // any class's, the second game's); a miss a Due, three at most; a player's miss by 3 with three Dues asked FORTUNE'S DUE? and SPEND THEM turns it ("fortune's due +"), the Dues
   // gone; NOT NOW keeps the miss; no ask past what 4 a Due could reach, nor on a natural 1; an AI-run hero by the save's rule; a save short by 5 spends three (2.5 each), short by
