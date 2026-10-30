@@ -2263,6 +2263,9 @@
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (att.conds.upAdv && !atk.spell) delete att.conds.upAdv; // (the Threshing Floor's rise: its advantage on this, the first blow -- RU.startTurn, 10-30)
+    // Follow-Through's WIDE SWING (a feat of ours, 10-30 -- js/features.js): this heavy melee blow; after one that missed, this one at disadvantage
+    var wide = !!(att.conds.wideSwing && melee && !atk.spell && (atk.props || []).indexOf('heavy') >= 0); if (wide) delete att.conds.wideSwing;
+    if (att.conds.wideMiss && !atk.spell) { delete att.conds.wideMiss; e.dis.push('wide swing'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
     // the Hunter's Defensive Tactics (ranger 7; js/classes.js u.hunterDef): Escape the Horde -- an opportunity attack against it is at
     // disadvantage; Multiattack Defense -- once a creature has hit it, that one's later attacks this turn meet AC +4
     if (o.oa && !o.answer && tgt.hunterDef === 'horde') { e.dis.push('escape the horde'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
@@ -2370,6 +2373,7 @@
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; this.card(['{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'], 200); } // (10-04 night, Griz: "lose stealth on successful hit")
     if (!hit) {
+      if (wide) att.conds.wideMiss = true; // (the WIDE SWING missed: the next attack this turn at disadvantage)
       // a natural 1 at a darkmantle riding one of ours (10-01, RULED, Griz: "if SRD says nothing about hurting ally, only hurt ally on natural 1 (ignoring
       // bonuses)" -- the SRD says nothing): the blow lands on the one it rides instead -- the weapon's damage, no critical, no riders (invented.json)
       var host = tgt.riding && tgt.attached && tgt.master;
@@ -2432,6 +2436,7 @@
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
     }
+    if (wide) { var wsB = 2 * (att.prof || 2); dmg += wsB; parts.push('{o}wide swing +' + wsB + '{/}'); } // (Follow-Through's: twice the proficiency bonus, 10-30)
     // the Drillyard's CALL THE MARK (ours, 10-30; js/features.js F.callMark): each friend's first hit on the marked one, 2 more damage, till the caller's next turn
     var cmk = tgt.conds.calledMark;
     if (cmk && cmk.side === att.side && cmk.by !== att.id && !cmk.hit[att.id]) { cmk.hit[att.id] = 1; dmg += 2; parts.push('{y}the mark +2{/}'); }
@@ -2504,6 +2509,7 @@
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     // (one blow, one concentration save on all it dealt: the fire, the smite, a mark's, the blade's, and a bite's poison on a failed save below -- B.blowEnd, the grid's rules §2.1)
+    var hp0FT = tgt.hp; // (Follow-Through's carry reads what it had: below)
     var bl = this.blow(); tgt.blowIn = bl; // (what rides the weapon's hit from js/features.js -- Colossus Slayer, Divine Strike -- banks here too: `blow: tgt.blowIn`)
     if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire', { blow: bl }); }
     if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant', { blow: bl });
@@ -2511,6 +2517,13 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true, blow: bl }); // (a mark's, a curse's: a spell's)
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
+    // Follow-Through's carry (a feat of ours, 10-30 -- js/features.js F.followThrough): a heavy melee blow that drops it carries what went past its last hit point on to
+    // another foe within reach, the weakest -- no roll, once
+    if (melee && !atk.spell && hp0FT > 0 && (tgt.dead || tgt.hp <= 0) && (atk.props || []).indexOf('heavy') >= 0 && D.features && D.features.followThrough && D.features.followThrough(att)) {
+      var overFT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0) - hp0FT;
+      var nextFT = overFT > 0 ? this.units.filter(function (w) { return w !== tgt && G.hostile(att, w) && G.standing(w) && w.hp > 0 && !w.object && G.dist(att, w) <= G.reachOf(att); }).sort(function (a, b) { return a.hp - b.hp; })[0] : null;
+      if (nextFT) { this.card(['  {o}FOLLOW-THROUGH{/}: ' + overFT + ' carries on into ' + nameOf(nextFT) + '  {g}(' + atk.type + '){/}'], 220); this.hurt(nextFT, overFT, atk.type, blowSrc); }
+    }
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
     // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
     if (dis && !tgt.dead && tgt.hp > 0 && tgt.hp <= dis.hp) {

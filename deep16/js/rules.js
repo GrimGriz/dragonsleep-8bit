@@ -116,7 +116,7 @@
     u.acted = true; // it has had a turn (the Cutthroat's Stab Debut reads it: battle.js stabDebut)
     // the Threshing Floor's Up Off the Floor (ours, 10-30): once a long rest (feats.upOff, classes.js NPC.sheet), one dropped to 0 and not killed rises at the start of its
     // turn -- its fighter level + CON in HP, on its feet at no cost, its first attack this turn at advantage (conds.upAdv: battle.js spends it on the attack, the next turn ends it)
-    delete u.conds.upAdv; delete u.conds.heldGround; // (the Drillyard's HOLD GROUND: held till its own turn -- js/features.js)
+    delete u.conds.upAdv; delete u.conds.heldGround; delete u.conds.wideSwing; delete u.conds.wideMiss; // (Follow-Through's WIDE SWING: this turn's only -- js/features.js) // (the Drillyard's HOLD GROUND: held till its own turn -- js/features.js)
     if (u.hp <= 0 && !u.dead && !u.slain && RU.hardGround(u) && u.feats && u.feats.upOff > 0 && !u.conds.petrified) {
       u.feats.upOff--; u.hp = Math.min(u.maxhp, Math.max(1, u.lvl + D.mod(u.abil.con))); u.ko = false; u.anim = 'idle'; delete u.conds.prone; u.conds.upAdv = true;
       if (D.battle) D.battle.card(['{y}' + u.name + '{/} gets up off the floor: {n}' + u.hp + ' HP{/}  {g}(the Threshing Floor: once a long rest; the first blow at advantage){/}'], 260);

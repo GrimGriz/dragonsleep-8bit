@@ -4623,6 +4623,48 @@
     document.body.appendChild(preB);
     return;
   }
+  // FOLLOW-THROUGH (mode=follow1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.3): the feat
+  // on the second game's pick at STR 13 and never on the first game's (a page with no grid); WIDE SWING, its button, a hit's +2x proficiency and a miss's disadvantage on the
+  // next swing; the carry -- a heavy blow that drops a goblin carries its excess into the next one in reach; none without the feat
+  if (get('mode', '') === 'follow1030') {
+    var repFo = { checks: [], errors: [] }, d0Fo = D.d, RFo = window.DS.R;
+    function okFo(what, v) { repFo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFo(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts; v = os[os.length - 1].value; } } }
+    function plainFo(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function featsFo(h) { var rec = { lvl: h.lvl, asks: [{ kind: 'asi', need: 2, took: {} }] }; return RFo.pickRows(h, rec, rec.asks[0], { pages: true }).filter(function (r) { return r.feat === 'followthrough'; }).map(function (r) { return r.off || 'offered'; }).join(','); }
+    function mkFo(lvl, feat) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var f = B.units.filter(function (w) { return w.side === 'party'; })[0], gs = B.units.filter(function (w) { return w.side === 'foe'; }), ok = false;
+      if (feat) f.src.featIds = ['followthrough']; gs.forEach(function (g) { g.conds = {}; });
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = gs[0].x + dx, y = gs[0].y + dy; if ((dx || dy) && D.grid.canStand(f, x, y)) { f.x = x; f.y = y; ok = B.canHit(f, gs[0]); } }
+      var ok2 = false; for (var ey = -1; ey <= 1 && !ok2; ey++) for (var ex = -1; ex <= 1 && !ok2; ex++) { var x2 = f.x + ex, y2 = f.y + ey; if ((ex || ey) && !(x2 === gs[0].x && y2 === gs[0].y) && D.grid.canStand(gs[1], x2, y2)) { gs[1].x = x2; gs[1].y = y2; ok2 = true; } }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(f); B.active = f; return { B: B, f: f, g: gs[0], g2: gs[1], ok: ok && ok2 };
+    }
+    function swingFo(h, d20) { D.d = function (n) { return n === 20 ? d20 : d0Fo(n); }; var n0 = (h.B.log || []).length; runFo(h.B.exec(h.f, { do: 'attack', target: h.g })); D.d = d0Fo; return (h.B.log || []).slice(n0).map(plainFo).join(' / '); }
+    try {
+      D.seed = 1030;
+      // 1. the pick: offered at STR 13 in the second game, wanted below it; never on a page with no grid (the first game's)
+      var hR = RFo.makeHero('barley', 4); RFo.settlePicks(hR, null); hR.abil.str = 16; var off16 = featsFo(hR); hR.abil.str = 12; var off12 = featsFo(hR); hR.abil.str = 16;
+      var D16s = window.D16; window.D16 = undefined; var off8 = featsFo(hR); window.D16 = D16s;
+      okFo('the pick: STR 16 "' + off16 + '", STR 12 "' + off12 + '", on the first game\'s page "' + off8 + '"', off16 === 'offered' && off12 === '' && off8 === '');
+      // 2. WIDE SWING: the button, a hit's +4 at 3rd level (proficiency 2)
+      var h1 = mkFo(3, true), c1 = h1.B.commands(h1.f).filter(function (c) { return c.id === 'wideswing'; })[0]; runFo(h1.B.exec(h1.f, { do: 'wideswing' })); h1.g.hp = h1.g.maxhp = 999; var l1 = swingFo(h1, 15);
+      var c1b = h1.B.commands(h1.f).filter(function (c) { return c.id === 'wideswing'; })[0];
+      okFo('WIDE SWING (placed ' + h1.ok + '): the button ' + (c1 && c1.ok) + ', after it ' + (c1b && c1b.ok) + '; the hit "' + (l1.match(/[^/]*wide swing \+\d+[^/]*/) || [''])[0].trim().slice(0, 90) + '"', h1.ok && c1 && c1.ok && c1b && !c1b.ok && /wide swing \+4/.test(l1));
+      // 3. a miss: the next swing this turn at disadvantage (Extra Attack at 5)
+      var h2 = mkFo(5, true); h2.g.hp = h2.g.maxhp = 999; runFo(h2.B.exec(h2.f, { do: 'wideswing' })); var l2a = swingFo(h2, 2), l2b = swingFo(h2, 15);
+      okFo('a wide swing missed: the next "' + (l2b.match(/[^/]*vs AC[^/]*/) || [''])[0].trim().slice(0, 90) + '"', /MISS/.test(l2a) && /dis: wide swing/.test(l2b));
+      // 4. the carry: the goblin at 2 HP dropped, its excess into the one beside; without the feat, none
+      var h3 = mkFo(3, true); h3.g.hp = 2; h3.g2.hp = h3.g2.maxhp = 50; var hp3 = h3.g2.hp, l3 = swingFo(h3, 15);
+      var h4 = mkFo(3, false); h4.g.hp = 2; h4.g2.hp = h4.g2.maxhp = 50; var l4 = swingFo(h4, 15);
+      okFo('THE CARRY (placed ' + h3.ok + '): "' + (l3.match(/FOLLOW-THROUGH[^/]*/) || [''])[0].slice(0, 80) + '", the next goblin ' + hp3 + ' -> ' + h3.g2.hp + '; without the feat: ' + (/FOLLOW-THROUGH/.test(l4) ? 'carried' : 'none') + ' (' + h4.g2.hp + ')',
+        h3.ok && /FOLLOW-THROUGH/.test(l3) && h3.g2.hp < hp3 && !/FOLLOW-THROUGH/.test(l4) && h4.g2.hp === 50);
+    } catch (e) { repFo.errors.push(String(e && e.stack || e)); }
+    D.d = d0Fo;
+    var preFo = document.createElement('pre'); preFo.id = 'out'; preFo.textContent = 'BENCH16 ' + JSON.stringify(repFo);
+    document.body.appendChild(preFo);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;
@@ -4806,7 +4848,7 @@
   if (get('mode', '') === 'levelcls1029') {
     var repLc = { checks: [], errors: [] }, RLc = window.DS.R;
     function okLc(what, v) { repLc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    function featsLc(h, took) { var rec = { lvl: h.lvl, asks: [{ kind: 'asi', need: 2, took: took }] }; return RLc.pickRows(h, rec, rec.asks[0], { pages: true }).filter(function (r) { return r.feat; }).map(function (r) { return r.feat + (r.off ? '(' + r.off + ')' : ''); }).join(','); }
+    function featsLc(h, took) { var rec = { lvl: h.lvl, asks: [{ kind: 'asi', need: 2, took: took }] }; return RLc.pickRows(h, rec, rec.asks[0], { pages: true }).filter(function (r) { return r.feat === 'symmetric' || r.feat === 'grappler'; }) /* (the two this reads: ours since come and go by their own checks -- follow1030) */.map(function (r) { return r.feat + (r.off ? '(' + r.off + ')' : ''); }).join(','); }
     function heroLc(id, str) { var h = RLc.makeHero(id, 4); RLc.settlePicks(h, null); h.abil.str = str; return h; }
     try {
       var hV = heroLc('vivian', 10), fV = featsLc(hV, { dex: 2 }), hA = heroLc('aurdin', 11), fA = featsLc(hA, { int: 2 });

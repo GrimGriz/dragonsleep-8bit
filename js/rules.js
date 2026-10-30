@@ -337,12 +337,16 @@
   R.FEATS = {
     symmetric: { name: 'Symmetric Fighting', str: 17, cls: ['fighter'], any: true, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
+    // Follow-Through (ours, 10-30 -- the leveling lane, leveling-srd-by-class.md 6.3; RULED, Griz: "take leveling's leans and it can start building"): the role of the PHB's
+    // Great Weapon Master, ours -- the heavy blow's carry and the WIDE SWING (deep16/js/battle.js, features.js). `second`: the second game's alone, never on the first game's pick
+    followthrough: { name: 'Follow-Through', str: 13, cls: [], any: true, second: true, desc: 'With a heavy melee weapon: a blow that drops a creature carries the damage past its last hit point to another foe within reach. Once a turn, before a swing, WIDE SWING: a hit deals twice your proficiency bonus more; a miss puts your next attack this turn at disadvantage. (STR 13.)' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
   // a feat on a hero's pick: its own class's, or one any class may take whose prerequisite the hero meets on the scores before this increase (`took`)
   R.featOn = function (h, id, took) {
     var f = R.FEATS[id]; if (!f) return false;
+    if (f.second && !window.D16) return false; // (a feat of the second game: the first game's pages load no grid, and its pick never shows one -- 10-30)
     if (!f.cls || f.cls.indexOf(h.cls) >= 0) return true;
     return !!f.any && !(f.str && h.abil.str - ((took && took.str) || 0) < f.str);
   };

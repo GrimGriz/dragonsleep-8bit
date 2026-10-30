@@ -972,9 +972,23 @@
     if (B && B.card) B.card(['{y}' + w.name + '{/} holds ground  {g}(HOLD GROUND: not ' + (what === 'push' ? 'moved' : 'knocked prone') + '; the reaction and an opening){/}'], 220);
     return true;
   };
+  // ------------------------------------------------------------------ the feat Follow-Through (ours, 10-30 -- js/rules.js R.FEATS.followthrough; the role of the PHB's
+  // Great Weapon Master): with a heavy melee weapon, the blow that drops a foe carries its excess on (battle.js), and WIDE SWING, once a turn before a swing, free -- a hit
+  // twice the proficiency bonus more, a miss the next attack that turn at disadvantage. The class AI swings wide when the blow is near sure (TX.FIRST)
+  F.followThrough = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'followthrough') && (u.abil || h.abil).str >= 13); };
+  F.heavyInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && (u.weapon.props || []).indexOf('heavy') >= 0); };
+  F.wideSwing = function (B, u) { u.conds.wideSwing = true; u.turn.wideDone = true; D.sfx('crit'); B.card(['{o}' + u.name + ' winds up a wide swing.{/}  {g}(a hit: ' + 2 * (u.prof || 2) + ' more; a miss: the next attack this turn at disadvantage){/}'], 200); };
+  TX.FIRST.unshift(function* (B, u) {
+    var T = u.turn;
+    if (mine(u) || !F.followThrough(u) || !F.heavyInHand(u) || !T || T.wideDone || u.conds.wideSwing || !(T.action > 0 || T.attacksLeft > 0)) return;
+    var t = hostileNear(B, u, G.reachOf(u)).sort(function (a, b) { return RU.ac(a) - RU.ac(b); })[0];
+    if (t && RU.ac(t) - (u.weapon.atk || 0) <= 5) { F.wideSwing(B, u); yield 6; } // (a hit on 6 or better: four in five)
+  });
   F.commands = function (B, u) {
     if (!mine(u)) return [];
     var T = u.turn, out = [], act = T.action > 0 && !T.attacksLeft;
+    if (F.followThrough(u) && F.heavyInHand(u)) out.push({ id: 'wideswing', label: 'WIDE SWING', cost: 'F', icon: 'attack', skill: true, ok: !T.wideDone && !u.conds.wideSwing && (T.action > 0 || T.attacksLeft > 0),
+      why: T.wideDone || u.conds.wideSwing ? 'once a turn' : 'no swing left this turn', note: 'the next heavy blow: a hit ' + 2 * (u.prof || 2) + ' more; a miss, the next attack this turn at disadvantage' }); // (Follow-Through's, 10-30)
     if (F.knowsPlay(u, 'callmark')) out.push({ id: 'callmark', label: 'CALL THE MARK', cost: 'B', icon: 'attack', skill: true, ok: T.bonus > 0 && canPlay(u) && F.markTargets(B, u).length > 0,
       why: !feat(u, 'openings') ? 'no openings left (a short rest)' : T.playDone ? 'a play this turn already' : !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe within 60 ft',
       note: 'each friend\'s first hit on one foe +2 till your next turn; ' + ((u.feats && u.feats.openings) || 0) + ' openings left' }); // (the Drillyard's, 10-30)
@@ -1072,6 +1086,7 @@
         t = yield* pickOne(B, u, 'THE SHOWING', F.showable(B, u), 'Which of them is shown the glass? (WIS DC ' + u.spellDC + ')');
         if (t) yield* F.showing(B, u, t);
         return;
+      case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');
         if (t) { F.callMark(B, u, t); yield 10; }

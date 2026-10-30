@@ -274,6 +274,7 @@
     turnundead: { skel: 2 }, turntheunholy: { skel: 2 }, destroyundead: { skel: 2 },
     deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
+    followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
     sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
@@ -295,6 +296,7 @@
     // (the ranger's kit weapon, js/classes.js, is 'longbow', which content/items.json does not have -- a ranger built as it stands swings Fists; the gallery gives it the shortbow)
     fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
+    followthrough: { picks: { 4: { asi: { feat: 'followthrough' } } } }, // (the feat taken at 4, 10-30)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] }
   };
@@ -531,6 +533,7 @@
       },
       threshing: function* (c) { c.foes[0].conds.prone = true; yield 20; yield* swing(c, null, 3, true); },
       // the Drillyard (ours, 10-30; js/features.js F.drill): a hit and its play (the first offered: BIND); the mark called and a friend's hit on it; a push that does not move it
+      followthrough: function* (c) { var t = c.foes[0]; t.hp = 2; yield* fire(B.exec(c.hero, { do: 'wideswing' })); yield 20; yield* swing(c, t, 3, true); }, // (the wide swing's hit on one at 2 HP: its excess carried on to the next beside)
       setplays: swings(4),
       callthemark: function* (c) { yield* fire(B.exec(c.hero, { do: 'callmark' })); yield 30; if (c.mate) { D.rules.startTurn(c.mate); B.active = c.mate; yield* fire(B.exec(c.mate, { do: 'attack', target: c.foes[0] })); B.active = c.hero; } },
       holdground: function* (c) { var u = c.hero; u.reaction = 1; yield 20; D.magic.push(B, c.foes[0], u, 10); yield 50; },
