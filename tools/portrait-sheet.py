@@ -150,6 +150,9 @@ PEOPLE = {
     # Jory Slade, the Warrens' crew boss (10-30, the cutter of 10-29 night, on the lanes desk's relay of the next delivery): the art desk's ART-123-JORY, an ex-collar
     # who milked his way out on the deep rate, the old collar's scar on his neck -- his face for the camp's scenes and the pens'; his work a tally marked on a slate and counted twice
     'jory': ('jory/ART-123-JORY', 'ART-123-JORY', 'npc:jory', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # Old Hob Rennick (10-30, the cutter of 10-29 night, on the lanes desk's relay): the art desk's ART-123-OLDHOB, a thin sly dosed veteran of the Warrens in his sixties,
+    # his battered hat, the crew coat, the milker's elbow gloves and the thimble on a thong -- his face at the pens' WORK A SHIFT (js/mines.js M.HOB_SHEET) and at his kitchen
+    'oldhob': ('oldhob/ART-123-OLDHOB', 'ART-123-OLDHOB', 'npc:oldhob', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
