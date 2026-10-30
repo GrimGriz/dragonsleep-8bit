@@ -7,6 +7,8 @@ started: 2026-10-30 (the cutter of 10-29 night, on Griz's word through the lanes
 
 Griz, 10-30, to the lanes desk, on Talmok's walks that repeat a leg: *"gimpy art is part of the process, we need a list of 'dream budget polishings' in case we get back to stuff like 'talmok's legs'"*. So nothing here is asked of the art desk now. A sheet in the game that limps stays in the game as it is. This is the list to go back to if the budget allows.
 
+**The rule for every cutter** (Griz, 10-30): *"all cutters should know we try a reasonable amount and leave the rest to the dream list"*. A bad page gets a reasonable try at the cut, and what's left after that goes on `deep16-dream-polish.md` -- not more rework, and not a re-ask to the art desk.
+
 **How to use it.** One line an item, newest last: the date, the sheet and row (or the page), what's wrong, and what a redraw would want. It sits beside `deep16-art-wanted.md` (what is asked now) and `deep16-art-in-hand.md` (what came back). When a redraw is asked, its block goes in art-wanted and this line gets that section's number. When it lands, the line is struck here and points to the commit, never deleted.
 
 ## The list
