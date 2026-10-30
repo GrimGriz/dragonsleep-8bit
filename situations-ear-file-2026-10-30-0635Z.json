@@ -1,0 +1,82 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-30T06:35:08.317Z",
+ "previous_save": "2026-10-30T05:36:00.501Z",
+ "items": [
+  {
+   "id": "eyes-calledtoaccount-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Called to Account, the paladin's hold of ours: radiant for harming anyone but the paladin (10-30)",
+   "pt": "the leveling lane, his \"draft for the two mentioned\" (deep16/js/grimoire.js E.calledtoaccount; deep16/js/battle.js) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=calledtoaccount&fresh=1030h",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T05:43:58.377Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-heldbreath-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Held Breath, a feat of ours: a shot from where you stand, long range no trouble, one more die (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (js/rules.js R.FEATS.heldbreath, R.featWant; deep16/js/battle.js, rules.js) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=heldbreath&only=heldbreath&fresh=1030i",
+   "verdict": "works",
+   "note": "assume it works, long range on a short bow on our maps is pretty rare",
+   "at": "2026-10-30T05:50:40.625Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-pelt-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Circle of the Pelt, the druid's circle of ours: a beast's parts on the druid's own body (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (deep16/js/features.js F.pelt; deep16/js/rules.js RU.ac, RU.speedNow) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=wearthebeast&only=wearthebeast,thickpelt,twoparts&fresh=1030j",
+   "verdict": "works",
+   "note": "we'll need claw attack animations for this",
+   "at": "2026-10-30T06:00:08.183Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-five-door-1029n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Missing Five by words, its door open now: Edric tells it as he books you, Skarn's lines you pick (10-29 night)",
+   "pt": "Silverton's hours and words lane, section 12 item 9 (the story seat of 10-29 night), his note on eyes-five-words-1029b (deep16/js/hours.js C.servicePlay; mode=story1029n) · eyes",
+   "url": "deep16/?hoursshow&beat=five&fresh=29n",
+   "verdict": "works",
+   "note": "'talks you through a settle' - hobs (is that what he's doing in the text)\n'tells you about what he wants to know?' - skarn (shouldn't he just say the things?)\nSkarn with 'the herd stands' without having killed a single crawler, I don't know what he's talking about - might add intro text or 'tell me about it' text earlier\n\n'the other five' came up with Warrens Pete instead of 'the five'\nSame NPC on multiple screens is weird (he's both outside and in the hex) Hob outside and in the back way to the wet",
+   "at": "2026-10-30T06:16:52.017Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-galbunk-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Guano Mine's mouth: the hands' bunkhouse door, free once you take Sabeth's work (10-29)",
+   "pt": "the Warrens and Galleries lane, his 10-29 note (deep16/js/mines.js M.FLOORS galleries doors2, M.INNS keeper:galbunk) · eyes",
+   "url": "deep16/?roam=galleries&gate=east&fresh=29a",
+   "verdict": "broken",
+   "note": "found and equipped ring of prot on barley, disappeared on cloaker roam (ladder down and up)\nalso not showing bat-wings from along the way\nis aurdin able to attack all darkness (against SRD) when we really only need to let him do it to the cloaker for the easter egg?\nfight award pop-ups as popups in the middle (like when they landed on roam) (rather than additional lines at the top)\n\nthe stuff in the actual ask is not broken, losing gear between iso and regular roams is broken\n",
+   "at": "2026-10-30T06:33:20.480Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-burrow-road-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The burrowers and the solid road: a xorn under the ground comes up only where it can still walk to you and strike (10-29)",
+   "pt": "the grid's rules lane and the maps lane 10-29, his \"tell notes to re-evaluate bullette et. all AI to see if it accounts for targets being on a solid road\" (deep16/js/ai.js burrower) · eyes",
+   "url": "deep16/?npc=xorn,xorn&lvl=8&map=seamwall&watch&seed=8148651&fresh=29c",
+   "verdict": "works",
+   "note": "but aurdin fireballs himself twice?",
+   "at": "2026-10-30T06:35:05.551Z",
+   "new_since_last_save": true
+  }
+ ]
+}

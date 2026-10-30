@@ -1,0 +1,35 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "the one gallery (deep16/?gallery), its SAVE"
+ },
+ "saved_at": "2026-10-30T05:36:00.501Z",
+ "previous_save": "2026-10-29T22:12:12.754Z",
+ "items": [
+  {
+   "id": "eyes-rootdrag-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Rootdrag, the druid's pull of ours: roots drag a foe 10 ft your way (10-30)",
+   "pt": "the leveling lane, his \"thorn whipping people into things happens at my friday table\" (deep16/js/grimoire.js E.rootdrag) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=rootdrag&fresh=1030g",
+   "verdict": "broken",
+   "note": "clickable 'drag to' direction/location vs menu",
+   "at": "2026-10-30T05:36:00.490Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-followthrough-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Follow-Through, a feat of ours: the wide swing, and a felled foe's excess carried on (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (js/rules.js R.FEATS.followthrough; deep16/js/battle.js, features.js) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=followthrough&only=followthrough&fresh=1030e",
+   "verdict": "broken",
+   "note": "no visible action",
+   "at": "2026-10-30T05:33:13.238Z",
+   "new_since_last_save": true
+  }
+ ]
+}
