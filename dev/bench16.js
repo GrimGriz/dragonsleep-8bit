@@ -4783,6 +4783,71 @@
     document.body.appendChild(preRd);
     return;
   }
+  // ROOTDRAG'S DRAG BY A CLICK (mode=rootclick1030; the leveling lane §9 0a, 10-30, his eye on the shelf, broken: "clickable 'drag to' direction/location vs menu"): a
+  // player's druid is asked on the grid, not by an eight-way menu -- the prompt's `pick` the squares it may land on (`squares`), each within 10 ft of where it stood and
+  // each where M.push carries it; a way blocked by a body offers nothing past it; a click on the square 5 ft west (js/ui.js pickInput, the mouse on the tile) drags it
+  // there and no further; a square 10 ft away diagonally, there; the right button NOWHERE (it stays); the AI's drag unchanged (mode=rootdrag1030)
+  if (get('mode', '') === 'rootclick1030') {
+    var repRc = { checks: [], errors: [] }, d0Rc = D.d, UIr = D.ui, IR = D.input, moR = IR.mouse;
+    function okRc(what, v) { repRc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkRc() {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=druid:5,fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), u = ps.filter(function (w) { return w.cls === 'druid'; })[0], f = ps.filter(function (w) { return w !== u; })[0], gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0];
+      g.maxhp = g.hp = 999; g.conds = {}; gs[1].x = 0; gs[1].y = 0; f.x = 1; f.y = 0; var ok = false;
+      // (open ground: the goblin with two squares free every way round it, the druid 20 ft west of it)
+      for (var y = 3; y < D.grid.map.h - 3 && !ok; y++) for (var x = 3; x < D.grid.map.w - 8 && !ok; x++) {
+        var fine = true; for (var j = -2; j <= 2 && fine; j++) for (var i = -2; i <= 2 && fine; i++) if (!D.grid.canStand(g, x + 4 + i, y + j) || D.grid.gzAt(g, x + 4 + i, y + j) !== D.grid.gzAt(g, x + 4, y)) fine = false;
+        if (fine && D.grid.canStand(u, x, y)) { u.x = x; u.y = y; g.x = x + 4; g.y = y; ok = true; }
+      }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(u); B.active = u; return { B: B, u: u, f: f, g: g, ok: ok };
+    }
+    // the cast up to its prompt (a failed save pinned): { gen, p } -- the generator held at the prompt, or p null when none came
+    function toPromptRc(h) { D.d = function (n) { return n === 20 ? 2 : d0Rc(n); }; var gen = D.magic.cast(h.B, h.u, 'rootdrag', 0, h.g), v, k = 0, st, p = null; while (k++ < 4000) { st = gen.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { p = st.value.prompt; break; } } D.d = d0Rc; return { gen: gen, p: p }; }
+    function finishRc(gen, v) { var k = 0, st = gen.next(v); while (!st.done && k++ < 4000) st = gen.next(); }
+    // one frame of the mouse on a square's tile: moved there, then a click (UI.input on the prompt, as the pane's mouse is)
+    function clickSqRc(B, x, y, o) {
+      D.iso.lookAt(x, y, D.grid.map.gz(x, y)); var c = D.iso.center(x, y, D.grid.map.gz(x, y)), s = D.iso.toScreen(c.x, c.y), got = [], an0 = B.answer;
+      B.answer = function (v) { got.push(v); };
+      try {
+        Object.assign(moR, { inside: true, moved: true, click: false, rclick: false, rbtn: false, x: s.x, y: s.y }); try { UIr.input(B, B.req); } finally { IR.clear(); }
+        Object.assign(moR, { inside: true, moved: false, click: !(o && o.rbtn), rclick: !!(o && o.rbtn), rbtn: !!(o && o.rbtn), x: s.x, y: s.y }); try { UIr.input(B, B.req); } finally { IR.clear(); }
+      } finally { B.answer = an0; }
+      return got;
+    }
+    try {
+      D.seed = 1030;
+      var h1 = mkRc(), t1 = toPromptRc(h1), p1 = t1.p, pk1 = (p1 && p1.pick) || [], gx = h1.g.x, gy = h1.g.y;
+      var within1 = pk1.every(function (q) { return Math.max(Math.abs(q.x - gx), Math.abs(q.y - gy)) <= 2; }), no1 = p1 ? UIr.noOf(p1) : -1;
+      okRc('the prompt (placed ' + h1.ok + '): "' + (p1 && p1.title) + '", a pick of ' + pk1.length + ' squares, squares ' + !!(p1 && p1.squares) + ', all within 10 ft ' + within1 + ', its NO "' + (no1 >= 0 ? p1.opts[no1].label : '-') + '" (want 16 on open ground)',
+        h1.ok && p1 && p1.squares && pk1.length === 16 && within1 && no1 >= 0 && p1.opts[no1].label === 'NOWHERE' && p1.opts.length === pk1.length + 1);
+      // each square where M.push carries it: the goblin set there by the push and put back
+      var same1 = pk1.every(function (q, i) { var v = p1.opts[i].value, x0 = h1.g.x, y0 = h1.g.y; D.magic.push(h1.B, { x: x0 - v.way[0], y: y0 - v.way[1] }, h1.g, v.n); var at = h1.g.x === q.x && h1.g.y === q.y; h1.g.x = x0; h1.g.y = y0; delete h1.g.tween; return at; });
+      okRc('each lit square is where the push lands it (' + same1 + ')', pk1.length > 0 && same1);
+      // a body in the way: the fighter a square north of the goblin -- nothing north offered
+      var h2 = mkRc(); h2.f.x = h2.g.x; h2.f.y = h2.g.y - 1; D.grid.setup(h2.B.map, h2.B.units); var p2 = toPromptRc(h2).p, pk2 = (p2 && p2.pick) || [];
+      var north2 = pk2.filter(function (q) { return q.x === h2.g.x && q.y < h2.g.y; }).length;
+      okRc('the fighter a square north of it: ' + pk2.length + ' squares, ' + north2 + ' north (want 14, 0)', pk2.length === 14 && north2 === 0);
+      // the mouse on the tile 5 ft west, a click: dragged there, no further
+      var h3 = mkRc(), t3 = toPromptRc(h3), x3 = h3.g.x, y3 = h3.g.y; h3.B.req = { prompt: t3.p }; var a3 = t3.p ? clickSqRc(h3.B, x3 - 1, y3) : [];
+      if (a3.length) finishRc(t3.gen, a3[0]);
+      okRc('a click on the square 5 ft west (' + (x3 - 1) + ',' + y3 + '): answered ' + JSON.stringify(a3) + ', the goblin ' + x3 + ',' + y3 + ' -> ' + h3.g.x + ',' + h3.g.y, a3.length === 1 && h3.g.x === x3 - 1 && h3.g.y === y3);
+      // a square 10 ft away on a slant (north-east): dragged there
+      var h4 = mkRc(), t4 = toPromptRc(h4), x4 = h4.g.x, y4 = h4.g.y; h4.B.req = { prompt: t4.p }; var a4 = t4.p ? clickSqRc(h4.B, x4 + 2, y4 - 2) : [];
+      if (a4.length) finishRc(t4.gen, a4[0]);
+      okRc('a click on the square 10 ft north-east: answered ' + JSON.stringify(a4) + ', the goblin ' + x4 + ',' + y4 + ' -> ' + h4.g.x + ',' + h4.g.y, a4.length === 1 && h4.g.x === x4 + 2 && h4.g.y === y4 - 2);
+      // the right button: NOWHERE -- it stays
+      var h5 = mkRc(), t5 = toPromptRc(h5), x5 = h5.g.x, y5 = h5.g.y; h5.B.req = { prompt: t5.p }; var a5 = t5.p ? clickSqRc(h5.B, x5 - 1, y5, { rbtn: true }) : [];
+      if (a5.length) finishRc(t5.gen, a5[0]);
+      okRc('the right button: answered ' + JSON.stringify(a5) + ', the goblin stays (' + (h5.g.x === x5 && h5.g.y === y5) + ')', a5.length === 1 && a5[0] === 0 && h5.g.x === x5 && h5.g.y === y5);
+      // a click off the gold squares: nothing answered
+      var h6 = mkRc(), t6 = toPromptRc(h6); h6.B.req = { prompt: t6.p }; var a6 = t6.p ? clickSqRc(h6.B, h6.g.x - 4, h6.g.y) : ['none'];
+      okRc('a click 20 ft west of it (off the gold): ' + a6.length + ' answers (want 0)', a6.length === 0);
+    } catch (e) { repRc.errors.push(String(e && e.stack || e)); }
+    D.d = d0Rc;
+    var preRc = document.createElement('pre'); preRc.id = 'out'; preRc.textContent = 'BENCH16 ' + JSON.stringify(repRc);
+    document.body.appendChild(preRc);
+    return;
+  }
   // GNAWING WORD (mode=gnaw1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.4): the warlock's
   // curse of ours -- on the warlock's list (last: the generic warlock's spells unchanged); cast, the mark and the concentration; each of the caster's hits on it psychic 1, 2,
   // 3 ... to 5 (7 from a 2nd-level slot), another's hits nothing; when it drops, the spell ends

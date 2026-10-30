@@ -78,6 +78,10 @@
     B.readyAim = req.aim || null;
     if (req.aim) aimStart(B, req.aim);
     if (req.prompt) { B.sel = 0; D.sfx('popup'); if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
+    if (req.prompt && req.prompt.squares && req.prompt.pick.length) { // (a pick of squares -- Rootdrag's drag, 10-30: the view on the middle of them, so none sits under the prompt's box)
+      var pq = req.prompt.pick, mx = Math.round(pq.reduce(function (s, q) { return s + q.x; }, 0) / pq.length), my = Math.round(pq.reduce(function (s, q) { return s + q.y; }, 0) / pq.length);
+      D.iso.lookAt(mx, my, G.map.gz(mx, my));
+    }
     if (req.entry) B.entryT = B.t;
     if (req.scene) { // a cutscene beat: its clip starts with it, and the beat holds at least as long as the clip runs
       var sc = req.scene; sc.t = 0;
@@ -509,10 +513,11 @@
     if (rightNo(B, p)) return; // (X or the right button: NOT NOW -- noOf)
     for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
     var pickable = function (w) { return p.pick.indexOf(w) >= 0; }; // (one of the gold squares' creatures comes before a figure in front of it: UI.pickUnit's want)
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    // (a pick of squares -- Rootdrag's drag, 10-30: the tile under the mouse, never a figure standing over it)
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = p.squares ? null : UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     ['up', 'down', 'left', 'right'].forEach(function (d) { if (d !== I.stickWay && I.repeat(d)) moveCursor(B, d); });
     if (I.repeat('stick')) stickCursor(B);
-    if (I.mouse.click && !overUI(B)) { var pc = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
+    if (I.mouse.click && !overUI(B)) { var pc = p.squares ? null : UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
     if (I.pressed('a')) return take(pickAt(B, p));
   }
   function promptInput(B, p) {
@@ -2122,7 +2127,7 @@
     var pk = B.req && B.req.prompt && B.req.prompt.pick;
     if (pk) {
       var on = pickAt(B, B.req.prompt);
-      pk.forEach(function (w) { G.foot(w).forEach(function (q) { fillSq(ctx, q[0], q[1], R('gold', 3), w === on ? 0.34 : 0.13, 2); lineSq(ctx, q[0], q[1], R('gold', 4), w === on ? 1 : 0.65, 2); }); });
+      pk.forEach(function (w) { var fc = w.fall ? 'red' : 'gold'; G.foot(w).forEach(function (q) { fillSq(ctx, q[0], q[1], R(fc, 3), w === on ? 0.34 : 0.13, 2); lineSq(ctx, q[0], q[1], R(fc, 4), w === on ? 1 : 0.65, 2); }); }); // (a square over an edge in red: Rootdrag's, a fall -- 10-30)
       if (!on) lineSq(ctx, B.cursor.x, B.cursor.y, R('bone', 1), 0.8, 1);
     }
     if (!u) return;
@@ -2621,7 +2626,8 @@
       D.text(ctx, p.title, px + 8, py + 6, D.WIN8.gold);
       pl.forEach(function (l, k) { D.text(ctx, l, px + 8, py + 18 + k * 9, D.WIN8.text); });
       var lab = on ? p.opts[p.pick.indexOf(on)].label : null;
-      D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X/right-click: not now' : 'a gold square: E or a click   X/right-click: not now'), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
+      var nop = noOf(p), nol = nop >= 0 && p.squares ? p.opts[nop].label.toLowerCase() : 'not now'; // (a pick of squares says its own NO: Rootdrag's NOWHERE)
+      D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X/right-click: ' + nol : 'a gold square: E or a click   X/right-click: ' + nol), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
       B.promptRects = [];
       return;
     }

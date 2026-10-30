@@ -764,19 +764,40 @@
   // Rootdrag (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's leans and it can start building"; Thorn Whip's role, his "yeah, thorn whipping people into
   // things happens at my friday table I think"; leveling-srd-by-class.md 6.5): a druid's cantrip -- a creature standing on the ground within 30 ft, Large or smaller,
   // saves STR or takes the dice (bludgeoning) and roots drag it 10 ft along the ground the caster's way (M.push: over an edge, into a hazard, to a friend's reach).
-  // A player picks the way; the AI drags it toward its nearest friend. Nothing aloft, no spell attack
+  // A player picks the square; the AI drags it toward its nearest friend. Nothing aloft, no spell attack
+  // THE DRAG BY A CLICK (10-30, his eye on the shelf, broken: "clickable 'drag to' direction/location vs menu"): the squares it may be dragged to are lit in gold on the grid,
+  // as a pick of one's creatures is (js/ui.js pickInput, `squares`), and a click on one drags it there -- 5 ft or 10 ft, eight ways, each as M.push would carry it (a square
+  // it cannot stand on ends that way; over an edge it goes down there). X or the right button: NOWHERE. The eight-way menu it was is gone
   var WAYS8 = [['NORTH', 0, -1], ['NORTH-EAST', 1, -1], ['EAST', 1, 0], ['SOUTH-EAST', 1, 1], ['SOUTH', 0, 1], ['SOUTH-WEST', -1, 1], ['WEST', -1, 0], ['NORTH-WEST', -1, -1]];
   function rootable(t) { return !!t && !t.dead && t.hp > 0 && !(G.aloft && G.aloft(t)) && (t.size || 1) <= 2 && !t.object; }
+  // each square it may land on: { x, y } the square lit (a Large one's leading square that way), way, n (squares), fall (over an edge); the 10 ft first
+  function dragSquares(B, t) {
+    var out = [], st = G.map.def.step, s = t.size || 1;
+    WAYS8.forEach(function (w) {
+      var x = t.x, y = t.y, got = [];
+      for (var n = 1; n <= 2; n++) {
+        if (!G.canStand(t, x + w[1], y + w[2])) break;
+        var dz = G.gzAt(t, x, y) - G.gzAt(t, x + w[1], y + w[2]); x += w[1]; y += w[2];
+        got.push({ x: x + (w[1] > 0 ? s - 1 : 0), y: y + (w[2] > 0 ? s - 1 : 0), way: [w[1], w[2]], n: n, name: w[0], fall: dz >= 4 * st });
+        if (dz >= 4 * st) break;
+      }
+      out = out.concat(got.reverse());
+    });
+    return out;
+  }
   function* dragWay(B, u, t) {
     var to = [Math.sign(u.x - t.x), Math.sign(u.y - t.y)];
     if (u.side === 'party' && !u.guest) { // (the player's: a made one on the party's side is the player's to run)
-      var opts = WAYS8.map(function (w) { return { label: w[0] + (w[1] === to[0] && w[2] === to[1] ? ' (toward you)' : w[1] === -to[0] && w[2] === -to[1] ? ' (away from you)' : ''), value: [w[1], w[2]] }; });
-      opts.push({ label: 'NOWHERE', value: 0 });
-      return yield { prompt: { who: u, title: u.name + ': ROOTDRAG -- WHICH WAY?', lines: ['The roots have ' + nm(B, t) + ': 10 ft along the ground, the way you choose.'], opts: opts } };
+      var sq = dragSquares(B, t);
+      if (!sq.length) { B.card(['{g}The roots have ' + nm(B, t) + ', but there is nowhere along the ground to drag it.{/}'], 160); return 0; }
+      var opts = sq.map(function (q) { return { label: q.name + ' ' + q.n * 5 + ' FT' + (q.way[0] === to[0] && q.way[1] === to[1] ? ' (toward you)' : q.way[0] === -to[0] && q.way[1] === -to[1] ? ' (away from you)' : '') + (q.fall ? ', OVER THE EDGE' : ''), value: { way: q.way, n: q.n } }; });
+      opts.push({ label: 'NOWHERE', value: 0, no: true });
+      return yield { prompt: { who: u, title: u.name + ': ROOTDRAG -- DRAG IT WHERE?', lines: ['The roots have ' + nm(B, t) + ': a gold square, up to 10 ft along the ground.'], opts: opts, pick: sq, squares: true } };
     }
     var mate = B.units.filter(function (w) { return w !== u && w.side === u.side && G.standing(w) && !w.object; }).sort(function (a, b) { return G.dist(a, t) - G.dist(b, t); })[0], aim = mate || u;
-    return [Math.sign(aim.x - t.x), Math.sign(aim.y - t.y)];
+    return { way: [Math.sign(aim.x - t.x), Math.sign(aim.y - t.y)], n: 2 };
   }
+  M.rootdragSquares = dragSquares; // (dev/bench16.js rootclick1030)
   E.rootdrag = {
     summary: function (e, u) { return 'a creature on the ground within 30 ft · STR save or ' + dice(e.sp, u, e.slot) + ' bludgeoning and dragged 10 ft, your way'; },
     cast: function* (B, u, t, slot, head, x) {
@@ -788,7 +809,7 @@
       var r = D.roll(dice(x.sp, u, slot)); B.hurt(t, r.total, 'bludgeoning', { magic: true });
       if (t.dead || t.hp <= 0) { yield 14; return; }
       var way = yield* dragWay(B, u, t);
-      if (way && (way[0] || way[1])) M.push(B, { x: t.x - way[0], y: t.y - way[1] }, t, 2);
+      if (way && way.way && (way.way[0] || way.way[1])) M.push(B, { x: t.x - way.way[0], y: t.y - way.way[1] }, t, way.n || 2);
       yield 16;
     },
     ai: function (B, u, e, slot, fs) {
