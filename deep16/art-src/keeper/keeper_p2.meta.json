@@ -4,55 +4,55 @@
   "frames": 4
  },
  "a_wall": {
-  "y": 992,
+  "y": 1184,
   "frames": 6
  },
  "a_dive": {
-  "y": 1984,
+  "y": 2368,
   "frames": 7
  },
  "a_wave": {
-  "y": 2976,
+  "y": 3552,
   "frames": 6
  },
  "b_idle": {
-  "y": 3968,
+  "y": 4736,
   "frames": 4
  },
  "b_wall": {
-  "y": 4960,
+  "y": 5920,
   "frames": 6
  },
  "b_dive": {
-  "y": 5952,
+  "y": 7104,
   "frames": 7
  },
  "b_wave": {
-  "y": 6944,
+  "y": 8288,
   "frames": 6
  },
  "slam_ab": {
-  "y": 7936,
+  "y": 9472,
   "frames": 8
  },
  "slam_ba": {
-  "y": 8928,
+  "y": 10656,
   "frames": 7
  },
  "slam_b3a": {
-  "y": 9920,
+  "y": 11840,
   "frames": 7
  },
  "hurt_b": {
-  "y": 10912,
+  "y": 13024,
   "frames": 2
  },
  "die_b": {
-  "y": 11904,
+  "y": 14208,
   "frames": 2
  },
  "stand": {
-  "y": 12896,
+  "y": 15392,
   "frames": 2
  }
 }

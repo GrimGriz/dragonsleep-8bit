@@ -102,7 +102,11 @@ FIX33 = {'H1P1': {'dive': [((540, 660, 625, 790), '2')]},       # (Dive 2's fing
 VIEWS33 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1', 'H3P2'), 'N': ('H5P1', 'H5P2')}
 ROWS33 = {'stand': 'idle', 'a_wall': 'wall', 'slam_b3a': 'dive', 'b_wave': 'wave', 'hurt_b': 'hurt', 'die_b': 'die'}
 FACE33 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N'}     # engine facing (S SW W NW N NE E SE) -> the view drawn (SW and NW mirrored)
-STAND33 = {'idle': 0, 'wall': 0, 'dive': 6, 'wave': 0}            # a row's standing frame, met against the same frame of E's row
+STAND33 = {'idle': 0, 'wall': 0, 'dive': 6, 'wave': 0}            # a row's standing frame, met against STAND_H
+# ONE STANDING HEIGHT (10-30, Griz: "yes to 1", on the Keeper cutter's "he shrinks 19% the moment he raises the Ice Wall and grows 25% back to the idle
+# after a Slam"): every row's standing frame as tall as the idle's, 116 px. Till then each met the Grok side row it played beside (the Ice Wall 94, the
+# Slam's end 93, the Wave 108); Hurt and Die ride with the Wave's scale (ART-33) or the SE's Hurt (ART-119)
+STAND_H = 114   # (the idle's own: the standing stills scaled to a 116 px box are 114 by tall33's solid rows -- so the idle is cut as before)
 
 
 def _arr(im):
@@ -205,7 +209,7 @@ def art33(eref, CW, CH, FEET):
     for v, ls in VIEWS33.items():
         for L in ls:
             c = cuts[L]
-            K = {r: k33(c[r][STAND33[r]][0], tall33(_arr(eref[r]))) for r in c if r in STAND33}
+            K = {r: k33(c[r][STAND33[r]][0], STAND_H) for r in c if r in STAND33}
             for r in c:
                 K.setdefault(r, K.get('wave'))
             tr = 'wall' if 'wall' in c else 'wave'                     # the page's tone, by its first row the E sheet has a standing frame for
@@ -269,7 +273,7 @@ def art119(eref, A33, CW, CH, FEET):
     for L in SPEC119:
         for r, (rr, i) in STAND119.items():
             if rr in cuts[L]:
-                K[r] = k33(cuts[L][rr][i][0], tall33(_arr(eref[r])))
+                K[r] = k33(cuts[L][rr][i][0], STAND_H)
         for r, i in MATCH119.items():
             if r in cuts[L]:
                 sheet_row = [s for s, pr in ROWS33.items() if pr == r][0]
@@ -311,7 +315,7 @@ if __name__ == '__main__':
             for c, im in enumerate(fr): im.save(f'frames/{"abc"[n-1]}_{nm}_{c+1}.png')
     # ---- keeper_p2: the sheet the engine reads (js/sprites.js: rows are anim x facing, 8 facings S SW W NW N NE E SE, the columns the frames).
     # Grok drew one side view (facing right), so the east-ish facings (S, NE, E, SE) are as drawn and the west-ish (SW, W, NW, N) mirrored.
-    CW, CH, FEET = 216, 124, 4                    # (216 wide since 10-30, ART-119: the E Wave 4's and 5's spray, 103 px ahead of the anchor; 200 since 10-22, ART-33: the SE Wave 5's reach and Die 2's spray; 168 before, every frame centred)
+    CW, CH, FEET = 236, 148, 4                    # (236 x 148 since 10-30, one standing height: the NE Ice Wall 6 stands 140 px over the feet, the E Wave 5's spray 115 ahead, the SE Slam 3's wave 104 behind; 216 wide since 10-30, ART-119: the E Wave 4's and 5's spray, 103 px ahead of the anchor; 200 since 10-22, ART-33: the SE Wave 5's reach and Die 2's spray; 168 before, every frame centred)
     src = {f'{"ab"[n-1]}_{nm}': allf[n][nm] for n in (1, 2) for nm in ('idle', 'wall', 'dive', 'wave')}
     # composed rows: the Slam's dive from both sheets (a = the first sheet's, b = the second's), and the sinking
     rows = dict(src)

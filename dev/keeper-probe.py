@@ -99,9 +99,21 @@ def sheet_checks():
     e0, e1 = cell('stand', 6, 0), cell('stand', 6, 1)
     mirror = [r for r in played for c in range(sh['anims'][r]['frames'])
               if not (np.array_equal(cell(r, 2, c)[:, 1:], cell(r, 6, c)[:, ::-1][:, :-1]) and not cell(r, 2, c)[:, 0, 3].any())]
-    out.append(['E and W draw ART-119: the idle two drawings (not one still a pixel apart: %s), W the mirror of E about the anchor on the six rows the fight plays (off: %s), the cell %d wide, anchor %d' %
-                (not np.array_equal(e0[1:], e1[:-1]), sorted(set(mirror)) or 'none', FW, sh['ax']),
-                not np.array_equal(e0[1:], e1[:-1]) and not mirror and FW == 216 and sh['ax'] == 108])
+    out.append(['E and W draw ART-119: the idle two drawings (not one still a pixel apart: %s), W the mirror of E about the anchor on the six rows the fight plays (off: %s), the cell %d x %d, anchor %d,%d' %
+                (not np.array_equal(e0[1:], e1[:-1]), sorted(set(mirror)) or 'none', FW, FH, sh['ax'], sh['ay']),
+                not np.array_equal(e0[1:], e1[:-1]) and not mirror and FW == 236 and FH == 148 and sh['ax'] == 118 and sh['ay'] == 144])
+    # ONE STANDING HEIGHT (10-30, Griz: "yes to 1"): the standing frame of each row he plays -- Ice Wall 1, the Slam's 7, Wave 1 -- as tall as his idle, in
+    # every facing (by the solid rows, as the cutter measures: till then 94, 93 and 108 against the idle's 114, so he shrank as he raised the wall)
+    def tall(a):
+        ys = np.where((a[..., 3] >= 128).any(axis=1))[0]
+        return int(ys[-1] - ys[0] + 1)
+    off = []
+    for f in range(8):
+        h0 = tall(cell('stand', f, 0))
+        for r, i in (('a_wall', 0), ('slam_b3a', 6), ('b_wave', 0)):
+            if abs(tall(cell(r, f, i)) - h0) > 2:
+                off.append('%s %s %d against %d' % (names[f], r, tall(cell(r, f, i)), h0))
+    out.append(['one standing height ("yes to 1"): the Ice Wall, the Slam and the Wave stand as tall as the idle in all eight facings, within 2 px (off: %s)' % ('; '.join(off) or 'none'), not off])
     return out
 
 
