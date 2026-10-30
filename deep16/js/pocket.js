@@ -193,6 +193,7 @@
     delete f.dues; // (Fortune's Due: all gone at a rest -- js/features.js, 10-30)
     if (c.cls === 'fighter') { if (!(f.secondWind > 0) || !(f.actionSurge > 0)) back.push('Second Wind, Action Surge'); f.secondWind = 1; f.actionSurge = 1; }
     if (c.cls === 'paladin' && c.lvl >= 3) { if (!(f.channel > 0)) back.push('Channel Divinity'); f.channel = 1; }
+    if (c.cls === 'paladin' && c.untempled) { var layMx = 5 * c.lvl; if ((f.lay || 0) < layMx) back.push('Lay on Hands, by half (Untempled)'); f.lay = Math.min(layMx, (f.lay || 0) + Math.floor(layMx / 2)); } // (the feat Untempled, ours: 10-30)
     if (c.cls === 'cleric' && c.lvl >= 2) { var ch = c.lvl >= 18 ? 3 : c.lvl >= 6 ? 2 : 1; if (!(f.channel >= ch)) back.push('Channel Divinity'); f.channel = ch; }
     if (c.cls === 'druid' && c.lvl >= 2) { if (!(f.wildShape >= 2)) back.push('Wild Shape'); f.wildShape = 2; }
     if (c.cls === 'monk' && c.lvl >= 2) { if (!(f.ki >= c.lvl)) back.push('ki'); f.ki = c.lvl; }
@@ -692,7 +693,7 @@
     D.music('title');
     var self = this, run = this.st.run;
     var party = (B.units || []).filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; });
-    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), down: !!(u.ko || u.hp <= 0 || u.dead), conds: Object.keys(u.conds || {}).concat(u.gshelf && u.gshelf.recs ? Object.keys(u.gshelf.recs) : []) }; }); // (conds: what is on it at the end, a globe's shelf too -- the morning's that ended stay ended, Pocket.fightWords)
+    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), untempled: !!(u.src && DS.R.hasFeat(u.src, 'untempled')), down: !!(u.ko || u.hp <= 0 || u.dead), conds: Object.keys(u.conds || {}).concat(u.gshelf && u.gshelf.recs ? Object.keys(u.gshelf.recs) : []) }; }); // (conds: what is on it at the end, a globe's shelf too -- the morning's that ended stay ended, Pocket.fightWords)
     var rec = { t: Date.now(), started: (B.rec && B.rec.started) || info.started, result: res || 'left', rounds: B.round || 0, q: info.q, map: info.mapId, mapName: (D.MAPS[info.mapId] || {}).name || info.mapId,
       party: end.map(function (e) { return e.name + ' (' + D.clsLabel(e.cls) + ' ' + e.lvl + ')'; }), foes: PK.foesText(info.kinds), kinds: info.kinds, cr: PK.fmt8(PK.sum8(info.kinds)), diff: info.d.label + (info.d.deadlyX > 1 ? ' x' + info.d.deadlyX : ''), adj: info.d.adj,
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
@@ -708,7 +709,7 @@
       if (gift) { PK.packAdd(this.st, gift.item, 1); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name + ' (to the pack)'; } // (into the pack, worn only on the player's word -- 10-17, Griz: "rewards should go into pack and not-auto equip unless player confirms equip")
       if (run) {
         // the party's slots are the fight's units in order (the familiars and summons left out above)
-        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha, conds: e.conds } : null; });
+        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha, untempled: e.untempled, conds: e.conds } : null; });
         run.won = (run.won || 0) + 1;
         if (run.trial) { if (!run.dmLadder) this.st.pyro = true; this.st.run = null; this.result.unlocked = !run.dmLadder; } // (a DM's ladder's trial lets no king in)
         else if (run.module && run.rung >= run.plan.length) { this.st.run = null; this.result.moduleDone = run.module.name; } // (a module's last fight won: it is done)

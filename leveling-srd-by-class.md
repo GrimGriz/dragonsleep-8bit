@@ -93,12 +93,12 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 |---|---|---|---|---|
 | **Symmetric Fighting** (his, BUILT) | his own words, 10-15 | STR 17 | two of the same base weapon swung as two-weapon fighting | Dual Wielder |
 | **Grappler** (SRD, BUILT) | -- | STR 13 | advantage on the one held; PIN | (the SRD's own) |
-| **Sudden Dark** | Vivian, *"the candle girl on the east side"* | DEX 13 | a bonus action: one nonmagical flame the hero can see within 30 ft goes out (a torch, a lantern, a candle, a brazier) | Skulker |
+| **Sudden Dark** (BUILT 10-30, the second game) | Vivian, *"the candle girl on the east side"* | DEX 13 | a bonus action: one nonmagical flame the hero can see within 30 ft goes out (a torch, a lantern, a candle, a brazier) | Skulker |
 | **Light Fingers** | Vivian, *"one of the fingers at the Hex on card nights"* | DEX 13 | a bonus action: Use an Object on a creature within 5 ft -- take one loose thing it holds or wears (a potion, a key, a thrown weapon), Sleight of Hand against its passive Perception. Not built in either battle: it needs the machinery to take from a foe | none (the SRD Thief's Fast Hands, a class feature) |
 | **Second Draft** | Aurdin, who *"asks the wrong people"* | INT 13 | once per long rest, at the end of a short rest, the hero swaps one prepared spell for another it could prepare | Ritual Caster, Magic Initiate |
-| **Hold the Thread** | Aurdin | INT, WIS or CHA 13, and casting | a failed CON save to keep concentration succeeds instead, for a spell slot of 1st level or higher spent | War Caster |
-| **Stand In** | Lymen | STR 13 | a reaction when an attack hits a friend within 5 ft: the two trade places, and the attack hits the hero instead if it beats the hero's AC (else it misses) | Sentinel (and the SRD's Protection style) |
-| **Untempled** | Lymen, self-ordained | CHA 13, and Lay on Hands | the Lay on Hands pool refills by half at a short rest | Healer |
+| **Hold the Thread** (BUILT 10-30, the second game: the slot spent by a rule) | Aurdin | INT, WIS or CHA 13, and casting | a failed CON save to keep concentration succeeds instead, for a spell slot of 1st level or higher spent | War Caster |
+| **Stand In** (BUILT 10-30, the second game) | Lymen | STR 13 | a reaction when an attack hits a friend within 5 ft: the two trade places, and the attack hits the hero instead if it beats the hero's AC (else it misses) | Sentinel (and the SRD's Protection style) |
+| **Untempled** (BUILT 10-30, the second game) | Lymen, self-ordained | CHA 13, and Lay on Hands | the Lay on Hands pool refills by half at a short rest | Healer |
 
 **The PHB's 42, named so the drafts can be checked against them:** Alert, Athlete, Actor, Charger, Crossbow Expert, Defensive Duelist, Dual Wielder, Dungeon Delver, Durable, Elemental Adept, Grappler (the SRD's), Great Weapon Master, Healer, Heavily Armored, Heavy Armor Master, Inspiring Leader, Keen Mind, Lightly Armored, Linguist, Lucky, Mage Slayer, Magic Initiate, Martial Adept, Medium Armor Master, Mobile, Moderately Armored, Mounted Combatant, Observant, Polearm Master, Resilient, Ritual Caster, Savage Attacker, Sentinel, Sharpshooter, Shield Master, Skilled, Skulker, Spell Sniper, Tavern Brawler, Tough, War Caster, Weapon Master. The DMG adds no feats.
 

@@ -370,8 +370,9 @@
   M.concCheck = function (B, u, dmg) {
     if (!u.conc || u.hp <= 0) return;
     var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'con', dc, false, 'concentration');
-    B.card(['{y}' + u.name + '{/} holds ' + u.conc.name + '? CON ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}HELD{/}' : '{o}LOST{/}')]);
-    if (!sv.ok) M.endConc(B, u, 'the blow');
+    var ht = !sv.ok && D.features && D.features.holdThread ? D.features.holdThread(u) : 0; // (Hold the Thread, a feat of ours: a slot spent and it holds -- js/features.js, 10-30)
+    B.card(['{y}' + u.name + '{/} holds ' + u.conc.name + '? CON ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}HELD{/}' : ht ? '{y}HOLDS THE THREAD{/} {g}(a level-' + ht + ' slot){/}' : '{o}LOST{/}')]);
+    if (!sv.ok && !ht) M.endConc(B, u, 'the blow');
   };
   function lift(B, list, cond) { list.forEach(function (w) { delete w.conds[cond]; }); }
   // what Lesser Restoration could end on w (SRD 5.1: "either one disease or one condition afflicting it. The condition can be blinded, deafened,

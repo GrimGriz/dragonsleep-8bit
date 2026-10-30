@@ -2379,6 +2379,11 @@
         line += '  {c}' + shortName(ta.w).toUpperCase() + ' TURNS IT ASIDE +' + ta.bonus + '{/}';
       }
     }
+    // STAND IN (a feat of ours, 10-30 -- js/features.js F.standIn): a friend beside the one hit trades places with it, and the blow meets the friend's own AC
+    if (hit && G.hostile(att, tgt) && D.features && D.features.standIn) {
+      var stw = yield* D.features.standIn(this, att, tgt, total, nat);
+      if (stw) { line += '  {c}' + nameOf(stw).toUpperCase() + ' STANDS IN (AC ' + RU.ac(stw) + '){/}'; tgt = stw; ac = RU.ac(stw); hit = nat === 20 || (nat !== 1 && total >= ac); if (!hit) crit = false; }
+    }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; this.card(['{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'], 200); } // (10-04 night, Griz: "lose stealth on successful hit")

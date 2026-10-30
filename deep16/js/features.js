@@ -1087,6 +1087,57 @@
     } else if (2.5 * n < need) return 0;
     return F.dueSpend(u);
   };
+  // ------------------------------------------------------------------ the first batch's feats (ours, 10-30 -- js/rules.js R.FEATS; the leveling lane §8 E, his "approve all in the side by
+  // side"; leveling-srd-by-class.md 2.3). Each read off the hero's sheet (u.src)
+  F.hasFeat = function (u, id) { return !!(u && u.src && window.DS.R.hasFeat(u.src, id)); };
+  // HOLD THE THREAD (War Caster's role): a failed CON save for concentration kept for a slot of 1st level or higher -- the lowest no higher than the spell's own, taken at once
+  // (magic.js M.concCheck: the save comes at a blow's end, with no asking; the seat's call, his to overrule); 0 when none is spent
+  F.holdThread = function (u) {
+    if (!F.hasFeat(u, 'holdthethread') || !u.conc || !u.slots) return 0;
+    var sp = M.data && M.data(u.conc.id), L = Math.max(1, (sp && sp.level) || 1);
+    for (var i = 0; i < Math.min(L, u.slots.length); i++) if (u.slots[i] > 0) { u.slots[i]--; return i + 1; }
+    return 0;
+  };
+  // SUDDEN DARK (Skulker's role): a bonus action, one flame within 30 ft it can see that no magic made goes out -- a torch or a lantern in a hand or on the floor, a map's
+  // brazier or sconce, a campfire (a Flaming Sphere is magic). Picked on the grid as Rootdrag's squares are (ui.js `squares`); a hero's torch goes back in the pack
+  F.darkTargets = function (B, u) {
+    var out = [], L = D.light;
+    (B.lights || []).forEach(function (l) {
+      if (!l.flame || l.kind === 'sphere') return;
+      var q = { x: Math.round(l.x), y: Math.round(l.y), size: 1 }; if (G.dist(u, q) > 30 || !G.los(u, q).clear) return;
+      out.push({ x: q.x, y: q.y, l: l, name: l.kind === 'map' ? 'the fire' : 'the ' + (L && L.word ? L.word(l) : l.kind) + ' on the floor' });
+    });
+    B.units.forEach(function (w) {
+      if (!w.torch || !w.torch.lit || !G.present(w) || G.dist(u, w) > 30 || (w !== u && !M.sees(B, u, w))) return;
+      out.push({ x: w.x, y: w.y, w: w, name: (w === u ? 'your' : nm(B, w) + '\'s') + ' ' + (L && L.word ? L.word(w.torch) : 'torch') });
+    });
+    return out;
+  };
+  F.suddenDark = function (B, u, q) {
+    u.turn.bonus = 0; D.sfx('cancel');
+    if (q.w) { if (q.w.side === 'party' && !q.w.familiar) D.light.douseTorch(B, q.w); else { delete q.w.torch; D.light.regrip(q.w); } }
+    if (q.l) B.lights = (B.lights || []).filter(function (l) { return l !== q.l; });
+    B.lightMap = null; FX.ring({ x: q.x, y: q.y, size: 1 }, 'violet', 20);
+    B.card(['{y}' + u.name + '{/}: {p}SUDDEN DARK{/} -- ' + q.name + ' goes out.  {g}(a bonus action){/}'], 220);
+  };
+  // STAND IN (Sentinel's and the Protection style's role): the reaction when an attack hits a friend within 5 ft -- the two trade places, and the blow meets the hero's own AC
+  // (battle.js attack, after the hit and before the damage). A player's hero asked; the AI's when the blow would miss it, or the friend is near its last
+  F.standIn = function* (B, att, tgt, total, nat) {
+    var ws = B.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && F.hasFeat(w, 'standin') && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !w.conds.prone && !w.conds.grappled && !w.conds.restrained && (w.size || 1) === (tgt.size || 1) && G.dist(w, tgt) <= 5 && !(w.hang && G.hanging(w)) && !(tgt.hang && G.hanging(tgt)) && !tgt.object && !tgt.riding && !w.riding; });
+    for (var i = 0; i < ws.length; i++) {
+      var w = ws[i], ac = RU.ac(w), miss = nat !== 20 && total < ac;
+      if (mine(w)) {
+        var go = yield { prompt: { who: w, title: w.name + ': STAND IN?', lines: [Nm(B, att) + '\'s ' + total + ' hits ' + nm(B, tgt) + '.', 'Trade places: against your AC ' + ac + (miss ? ' it misses.' : ' it still hits -- you.') + ' (your reaction)'], opts: [{ label: 'STAND IN', value: 1 }, { label: 'NOT THIS TIME', value: 0 }] } };
+        if (!go) continue;
+      } else if (!miss && !(tgt.hp <= Math.max(6, tgt.maxhp / 4))) continue;
+      w.reaction = 0; D.sfx('run');
+      var wx = w.x, wy = w.y;
+      w.tween = { fx: wx, fy: wy, fz: G.gzAt(w, wx, wy), t: 0, dur: B.pace(10, true) }; tgt.tween = { fx: tgt.x, fy: tgt.y, fz: G.gzAt(tgt, tgt.x, tgt.y), t: 0, dur: B.pace(10, true) };
+      w.x = tgt.x; w.y = tgt.y; tgt.x = wx; tgt.y = wy;
+      return w;
+    }
+    return null;
+  };
   // ------------------------------------------------------------------ the druid: the Circle of the Pelt (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's
   // leans and it can start building"; leveling-srd-by-class.md 6.2): WEAR THE BEAST, a bonus action and a use of Wild Shape -- one beast part on the druid's own body for
   // the fight (two at 6), its HP, gear, spells and concentration its own: CLAWS (unarmed strikes 1d8 slashing, WIS for the hit and the damage; magical at 6), HIDE (AC at
@@ -1158,6 +1209,8 @@
     }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
+    if (F.hasFeat(u, 'suddendark')) { var sdC = F.darkTargets(B, u); out.push({ id: 'suddendark', label: 'SUDDEN DARK', cost: 'B', icon: 'lantern', skill: true, ok: T.bonus > 0 && sdC.length > 0, // (the feat Sudden Dark, ours: 10-30)
+      why: !(T.bonus > 0) ? 'the bonus action is spent' : 'no flame within 30 ft that you can see', note: 'a bonus action: one flame no magic made goes out -- a torch, a lantern, a brazier' }); }
     if (F.green(u)) { var gdC = F.greenDown(B, u); out.push({ id: 'greenagain', label: 'GREEN AGAIN', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && gdC.length > 0 && u.hp > u.lvl, // (the Oath of the Green Return, ours: 10-30)
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : !gdC.length ? 'no one of yours down within 30 ft that you can see' : 'it would take your last hit points', note: 'Channel Divinity: one of yours at 0 HP within 30 ft stands with ' + u.lvl + ' HP, and you lose as many' }); }
     if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
@@ -1209,6 +1262,12 @@
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
       case 'preservelife': yield* F.preserveLife(B, u); return;
       case 'turnunholy': yield* F.turnUndead(B, u, F.unholyNear(B, u), { name: 'TURN THE UNHOLY', noDestroy: true }); return;
+      case 'suddendark': { // (the feat Sudden Dark, ours: 10-30) -- the flame picked on the grid, as Rootdrag's squares
+        var sdL = F.darkTargets(B, u); if (!sdL.length || !(u.turn.bonus > 0)) return;
+        var pkD = c.target && (c.target.l || c.target.w) ? c.target : sdL.length === 1 ? sdL[0] : null;
+        if (!pkD) { var vD = yield { prompt: { who: u, title: u.name + ': SUDDEN DARK -- WHICH FLAME?', lines: ['A gold square: the flame that goes out.'], opts: sdL.map(function (q, i) { return { label: q.name.toUpperCase(), value: i + 1 }; }).concat([{ label: 'NOT NOW', value: 0 }]), pick: sdL, squares: true } }; if (!vD) return; pkD = sdL[vD - 1]; }
+        F.suddenDark(B, u, pkD); return;
+      }
       case 'greenagain': { // (the Oath of the Green Return's Channel Divinity, ours: 10-30)
         var gdE = F.greenDown(B, u); if (!gdE.length || !chan(u) || u.hp <= u.lvl || !(u.turn.action > 0)) return;
         t = c.target && gdE.indexOf(c.target) >= 0 ? c.target : gdE.length > 1 ? yield* pickOne(B, u, 'GREEN AGAIN', gdE, 'One at 0 HP: it stands with ' + u.lvl + ' HP, and you lose as many.') : gdE[0];

@@ -4848,6 +4848,60 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE FIRST BATCH'S FOUR FEATS (mode=firstfeats1030; the leveling lane §8 E, 10-30, his "approve all in the side by side"; leveling-srd-by-class.md 2.3): their prerequisites
+  // past one score (INT, WIS or CHA; spellcasting; Lay on Hands); HOLD THE THREAD keeps a failed concentration for the lowest slot no higher than the spell's, and not without a
+  // slot or the feat; UNTEMPLED's half pool at the Pocket DM's short rest and the sheet's; SUDDEN DARK puts out a floor torch and a goblin's torch, the bonus action spent;
+  // STAND IN trades places when a blow that hits the friend would miss the fighter (asked; NOT THIS TIME and it lands; the AI's by its rule); the shelf
+  if (get('mode', '') === 'firstfeats1030') {
+    var repF4 = { checks: [], errors: [] }, d0F4 = D.d;
+    function okF4(what, v) { repF4.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runF4(g, ans) { var v, k = 0, st, asked = []; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { var p = st.value.prompt; asked.push(p.title); var o = ans ? p.opts.filter(function (x) { return x.label === ans; })[0] : null; v = (o || p.opts[0]).value; } } return asked.join(' | '); }
+    function fightF4(q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false; return B; }
+    try {
+      D.seed = 1030;
+      var R0 = window.DS.R, F0 = R0.FEATS, sh = function (w) { return D.npc.sheet(D.npc.spec(w)); };
+      var wz = sh('wizard:4'), ft = sh('fighter:4'), pl = sh('paladin:4'), so = sh('sorcerer:4');
+      ft.abil.int = 10; ft.abil.wis = 10; ft.abil.cha = 10;
+      okF4('the prerequisites: Hold the Thread on a wizard "' + R0.featWant(wz, (F0.holdthethread || {})) + '", a fighter "' + R0.featWant(ft, (F0.holdthethread || {})) + '"; Untempled on a paladin "' + R0.featWant(pl, (F0.untempled || {})) + '", a sorcerer "' + R0.featWant(so, (F0.untempled || {})) + '"',
+        F0.holdthethread && F0.untempled && F0.suddendark && F0.standin && F0.standin.second && R0.featWant(wz, (F0.holdthethread || {})) === '' && R0.featWant(ft, (F0.holdthethread || {})) === 'wants INT, WIS or CHA 13' && R0.featWant(pl, (F0.untempled || {})) === '' && R0.featWant(so, (F0.untempled || {})) === 'wants Lay on Hands');
+      // HOLD THE THREAD
+      var thr = function (feat, slots) { var B = fightF4('?npc=goblin&lvl=5&vs=wizard:5'), u = B.units.filter(function (w) { return w.side === 'party'; })[0]; u.src.featIds = feat ? ['holdthethread'] : []; if (slots) u.slots = slots.slice(); D.magic.concentrate(B, u, 'blur', 'Blur', function () {}); D.d = function (k) { return k === 20 ? 1 : d0F4(k); }; D.magic.concCheck(B, u, 30); D.d = d0F4; return { held: !!(u.conc && u.conc.id === 'blur'), slots: u.slots.slice(0, 3).join(',') }; };
+      var t1 = thr(true, [2, 3, 2]), t2 = thr(true, [0, 0, 2]), t3 = thr(false, [2, 3, 2]);
+      okF4('HOLD THE THREAD (Blur, 2nd): a failed save, slots 2,3,2 -> held ' + t1.held + ', ' + t1.slots + '; only a 3rd left -> held ' + t2.held + '; without the feat -> held ' + t3.held + ' (want true 1,3,2; false; false)', t1.held && t1.slots === '1,3,2' && !t2.held && !t3.held);
+      // UNTEMPLED
+      var c1 = { hp: 30, maxhp: 30, cls: 'paladin', lvl: 5, con: 2, feats: { lay: 0 }, untempled: true }, c2 = { hp: 30, maxhp: 30, cls: 'paladin', lvl: 5, con: 2, feats: { lay: 0 } };
+      D.pocket.shortRest(c1, 0, false); D.pocket.shortRest(c2, 0, false); var hs = { cls: 'paladin', lvl: 5, feats: { lay: 3 }, featIds: ['untempled'] }; R0.refresh(hs, false);
+      okF4('UNTEMPLED: the Pocket DM\'s short rest ' + c1.feats.lay + ' (without ' + (c2.feats.lay || 0) + '); the sheet\'s, 3 -> ' + hs.feats.lay + ' (want 12, 0, 15)', c1.feats.lay === 12 && !c2.feats.lay && hs.feats.lay === 15);
+      // SUDDEN DARK
+      var B5 = fightF4('?npc=goblin&lvl=5&vs=rogue:5'), r5 = B5.units.filter(function (w) { return w.side === 'party'; })[0], g5 = B5.units.filter(function (w) { return w.side === 'foe'; })[0];
+      r5.src.featIds = ['suddendark']; g5.x = r5.x + 3; g5.y = r5.y; if (!D.grid.canStand(g5, g5.x, g5.y)) g5.x = r5.x - 3; D.grid.setup(B5.map, B5.units); g5.torch = { lit: true }; B5.lights = (B5.lights || []).filter(function (l) { return l.kind !== 'map'; }).concat([(function () { var q = [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [-1, -1]].map(function (d) { return [r5.x + d[0], r5.y + d[1]]; }).filter(function (q) { return D.grid.canStand(r5, q[0], q[1]) && !(q[0] === g5.x && q[1] === g5.y); })[0] || [r5.x, r5.y]; return { id: 'b-torch', kind: 'torch', x: q[0], y: q[1], bright: 20, dim: 20, color: 'gold', flame: true }; })()]); // (on open floor beside the rogue: in sight)
+      D.rules.startTurn(r5); B5.active = r5; var tg5 = D.features.darkTargets(B5, r5), cm5 = B5.commands(r5).filter(function (x) { return x.id === 'suddendark'; })[0];
+      runF4(B5.exec(r5, { do: 'suddendark', target: tg5.filter(function (q) { return q.l; })[0] })); var floorGone = !(B5.lights || []).some(function (l) { return l.id === 'b-torch'; }), bon = r5.turn.bonus;
+      D.rules.startTurn(r5); runF4(B5.exec(r5, { do: 'suddendark', target: D.features.darkTargets(B5, r5).filter(function (q) { return q.w; })[0] }));
+      okF4('SUDDEN DARK (offered ' + !!(cm5 && cm5.ok) + ', ' + tg5.length + ' flames): the floor torch out ' + floorGone + ', the bonus action ' + bon + '; then the goblin\'s out ' + !g5.torch, cm5 && cm5.ok && tg5.length === 2 && floorGone && bon === 0 && !g5.torch);
+      // STAND IN: the goblin's 15 hits the friend (AC 12) and misses the fighter's AC
+      var si = function (ans, ai) {
+        var B = fightF4('?npc=goblin&lvl=5&vs=fighter:5,fighter:5'), ps = B.units.filter(function (w) { return w.side === 'party'; }), a = ps[0], b = ps[1], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+        a.src.featIds = ['standin']; if (ai) a.guest = true; b.x = a.x + 1; b.y = a.y; g.x = a.x + 2; g.y = a.y; if (!D.grid.canStand(g, g.x, g.y)) { g.x = a.x + 1; g.y = a.y + 1; } D.grid.setup(B.map, B.units); b.baseAC = 12; g.conds = {};
+        var acA = D.rules.ac(a), ax = a.x, bx = b.x, ah = a.hp, bh = b.hp, wp = Object.assign({}, g.weapon || g.attacks[Object.keys(g.attacks)[0]], { atk: 0 });
+        D.rules.startTurn(g); B.active = g; a.reaction = 1; D.d = function (k) { return k === 20 ? Math.min(15, acA - 1) : d0F4(k); }; var asked = runF4(B.attack(g, b, wp), ans); D.d = d0F4;
+        return { asked: asked, swapped: a.x === bx && b.x === ax, aHit: a.hp < ah, bHit: b.hp < bh, react: a.reaction };
+      };
+      var s1 = si(), s2 = si('NOT THIS TIME'), s3 = si(null, true);
+      okF4('STAND IN: asked "' + s1.asked + '", swapped ' + s1.swapped + ', the friend hit ' + s1.bHit + ', the fighter hit ' + s1.aHit + ', the reaction ' + s1.react + '; NOT THIS TIME: the friend hit ' + s2.bHit + '; the AI: swapped ' + s3.swapped + ' (want true false false 0; true; true)',
+        /STAND IN\?/.test(s1.asked) && s1.swapped && !s1.bHit && !s1.aHit && s1.react === 0 && s2.bHit && !s2.swapped && s3.swapped && !s3.asked);
+      // the shelf
+      var Bs = D.fxGallery('?fxgallery&features&only=holdthethread,untempled,suddendark,standin'); D.battle = Bs; Bs.one = Bs.one || { shelf: 'features' }; Bs.enter(); // (the one gallery's pinned dice: B.one)
+      var Ss = Bs.gallery, gs = 0, vs, done = 0, rep = {};
+      while (Bs.co && gs++ < 600000 && done < 4) { var st = Bs.co.next(vs); vs = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vs = y.prompt.opts[0].value; continue; } if (y.gallery) { var id = Ss.ids[Ss.i]; rep[id] = (Ss.report[id] && Ss.report[id].tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); done++; vs = 1; } }
+      okF4('the FEATURES shelf: HOLD THE THREAD ' + /HOLDS THE THREAD/.test(rep.holdthethread || '') + ', UNTEMPLED ' + /UNTEMPLED/.test(rep.untempled || '') + ', SUDDEN DARK ' + /SUDDEN DARK --/.test(rep.suddendark || '') + ', STAND IN ' + /STANDS IN/.test(rep.standin || ''),
+        /HOLDS THE THREAD/.test(rep.holdthethread || '') && /UNTEMPLED/.test(rep.untempled || '') && /SUDDEN DARK --/.test(rep.suddendark || '') && /STANDS IN/.test(rep.standin || ''));
+    } catch (e) { repF4.errors.push(String(e && e.stack || e)); }
+    D.d = d0F4;
+    var preF4 = document.createElement('pre'); preF4.id = 'out'; preF4.textContent = 'BENCH16 ' + JSON.stringify(repF4);
+    document.body.appendChild(preF4);
+    return;
+  }
   // THE OATH OF THE GREEN RETURN (mode=greenreturn1030; the leveling lane §8 D and item 18, 10-30 -- RULED, Griz: "i'd say yes"; leveling-srd-by-class.md 2.2): the paladin's
   // choice at 3 (Devotion, the SRD's, and ours) on R.SUBCLASSES; the oath's spells in Devotion's place; Sacred Weapon and Turn the Unholy Devotion's alone; GREEN AGAIN raises
   // one of its own at 0 for the paladin's level and costs it as many (not offered when it would take its last); WHAT FALLS, FEEDS heals a hurt friend beside a foe that drops, and

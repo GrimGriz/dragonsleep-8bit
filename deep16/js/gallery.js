@@ -276,6 +276,7 @@
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
     fortunesdue: { mate: null, nfoe: 1 }, // (the feat Fortune's Due, ours, 10-30)
+    holdthethread: { mate: null, nfoe: 1 }, untempled: { mate: null, nfoe: 1 }, suddendark: { mate: null, nfoe: 1 }, standin: { mate: 'flank', nfoe: 1 }, // (the first batch's feats, ours, 10-30)
     greenagain: { nfoe: 1 }, whatfallsfeeds: { mate: 'flank', nfoe: 1 }, auraofdeeproots: { nfoe: 1 }, // (the Oath of the Green Return, ours, 10-30)
     keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
@@ -303,6 +304,7 @@
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
     followthrough: { picks: { 4: { asi: { feat: 'followthrough' } } } }, // (the feat taken at 4, 10-30)
     fortunesdue: { picks: { 4: { asi: { feat: 'fortunesdue' } } } }, // (Fortune's Due at 4, 10-30)
+    holdthethread: { picks: { 4: { asi: { feat: 'holdthethread' } } } }, untempled: { picks: { 4: { asi: { feat: 'untempled' } } } }, suddendark: { picks: { 4: { asi: { feat: 'suddendark' } } } }, standin: { picks: { 4: { asi: { feat: 'standin' } } } }, // (the first batch's, at 4)
     keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
@@ -489,9 +491,10 @@
       surge: function* (c) { yield* swing(c, null, 1, true); c.hero.turn.action = 0; c.hero.turn.attacksLeft = 0; }, // (Action Surge is after the action)
       flurry: function* (c) { yield* swing(c, null, 1, true); },                                                    // (after the Attack action)
       unshape: function* (c) { yield* D.features.wildShape(B, c.hero, 'wolf'); },                                   // (a shape to come out of)
-      greenagain: function* (c) { var m = c.mate; if (m) { m.hp = 0; m.ko = true; m.conds.prone = true; } yield 20; } // (one of ours down beside the paladin: the Green Return, 10-30)
+      greenagain: function* (c) { var m = c.mate; if (m) { m.hp = 0; m.ko = true; m.conds.prone = true; } yield 20; }, // (one of ours down beside the paladin: the Green Return, 10-30)
+      suddendark: function* (c) { B.lights = (B.lights || []).concat([{ id: 'gal-torch', kind: 'torch', x: c.hero.x + 2, y: c.hero.y - 2, bright: 20, dim: 20, color: 'gold', flame: true }]); B.lightMap = null; yield 30; } // (a torch burning on the floor: Sudden Dark, 10-30)
     };
-    var AIM = { lay: function (c) { return c.mate || c.hero; }, greenagain: function (c) { return c.mate; } };
+    var AIM = { lay: function (c) { return c.mate || c.hero; }, greenagain: function (c) { return c.mate; }, suddendark: function (c) { var l = (B.lights || []).filter(function (x) { return x.id === 'gal-torch'; })[0]; return l ? { x: l.x, y: l.y, l: l, name: 'the torch on the floor' } : null; } };
     var THEN = {
       rage: function* (c) { yield* swing(c, null, 3, true); }, reckless: function* (c) { yield* swing(c, null, 1, true); }, sacred: function* (c) { yield* swing(c, null, 3, false); },
       'meta-quickened': function* (c) { yield* castOne(c, 'magicmissile'); },
@@ -564,6 +567,11 @@
       // of the 7th -- the roots hold
       whatfallsfeeds: function* (c) { var t = c.foes[0], m = c.mate; if (m) m.hp = Math.max(1, Math.floor(m.maxhp / 2)); t.hp = 1; yield 20; yield* swing(c, t, 3, true); yield 40; },
       auraofdeeproots: function* (c) { yield 20; if (c.mate) { D.magic.push(B, c.foes[0], c.mate, 2); yield 50; } D.magic.push(B, c.foes[0], c.hero, 2); yield 50; },
+      // the first batch's feats (ours, 10-30; js/features.js): HOLD THE THREAD -- Blur held, a hard blow, the save pinned to fail and a slot spent; UNTEMPLED -- a short rest's
+      // half pool; STAND IN -- a foe's blow at the friend beside, which hits the friend's AC and not the fighter's: they trade places and it misses
+      holdthethread: function* (c) { var u = c.hero; D.magic.concentrate(B, u, 'blur', 'Blur', function () {}); yield 20; B.hurt(u, 8, 'slashing', {}); D.magic.concCheck(B, u, 24); yield 50; },
+      untempled: function* (c) { var u = c.hero, h = { cls: 'paladin', lvl: u.lvl, feats: { lay: 0 }, featIds: ['untempled'] }; window.DS.R.refresh(h, false); u.feats.lay = h.feats.lay; B.card(['{y}' + u.name + '{/} rests a short hour: Lay on Hands 0 -> ' + h.feats.lay + ' of ' + 5 * u.lvl + '  {g}(UNTEMPLED){/}'], 400); yield 70; },
+      standin: function* (c) { var m = c.mate, f = c.foes[0]; if (!m || !f) return; m.baseAC = D.rules.ac(c.hero) - 6; D.rules.startTurn(f); B.active = f; c.hero.reaction = 1; yield* fire(B.attack(f, m, Object.assign({}, f.weapon, { atk: D.rules.ac(c.hero) - 21 }))); B.active = c.hero; yield 40; },
       fortunesdue: function* (c) { var t = c.foes[0]; c.hero.feats.dues = 0; t.baseAC = 12 + (c.hero.weapon.atk || 0) + 3; yield* swing(c, t, 4, true); },
       keepback: function* (c) { yield* foeWalk(c, c.foes[0], 3); },
       setagainst: function* (c) { c.hero.reaction = 0; yield* foeWalk(c, c.foes[0], 4); yield 20; yield* swing(c, c.foes[0], 3, true); },
@@ -605,6 +613,7 @@
     // the dice the one gallery pins for a feature (the default: our blows and checks a 19, our saves a 19, a foe's save a 2, a foe's blow a 19), and a
     // feature's own where its point is the die: Brutal Critical's 20, the Champion's 19 a crit, Indomitable's first save failed and its reroll made, an AC's two
     var FPIN = {
+      holdthethread: function (r) { return r.save && r.who && r.who.side === 'party' ? 2 : undefined; }, // (the concentration save fails: Hold the Thread, 10-30)
       fortunesdue: function (r, c) { if (r.save || !r.who || r.who.side !== 'party') return undefined; c.fdK = (c.fdK || 0) + 1; return c.fdK <= 3 ? 2 : 12; }, // (three misses, then 12: 3 short)
       brutalcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 20 : undefined; },
       improvedcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 19 : undefined; },
