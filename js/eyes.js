@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-rootdrag-1030': { pri: 1, group: G2, title: 'Rootdrag, the druid\'s pull of ours: roots drag a foe 10 ft your way (10-30)', pt: 'the leveling lane, his "thorn whipping people into things happens at my friday table" (deep16/js/grimoire.js E.rootdrag) · eyes',
+      look: 'The SPELLS shelf: ROOTDRAG at a foe -- its STR save, "DRAGGED", the bludgeoning, and the foe slid two squares along the ground. In the Pocket DM, MAKE a druid: its cantrips offer Rootdrag; cast in a fight of your own, it asks ROOTDRAG -- WHICH WAY? (eight ways, "toward you" and "away from you" marked) -- drag one into Spike Growth, off a ledge, or beside your fighter.',
+      url: 'deep16/?gallery&shelf=spells&spell=rootdrag&fresh=1030g' },
     'eyes-gnawingword-1030': { pri: 1, group: G2, title: 'Gnawing Word, the warlock\'s curse of ours: psychic that grows with each hit (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (deep16/js/grimoire.js E.gnawingword; deep16/js/battle.js) · eyes',
       look: 'The SPELLS shelf: GNAWING WORD cast at a foe, "a word that gnaws ... to 5". Then in the Pocket DM, MAKE a warlock: its 1st-level spells offer Gnawing Word; in a fight its blasts on the cursed foe read "gnawing word 1 psychic", then 2, then 3, up to 5, and the spell ends when that foe drops.',
       url: 'deep16/?gallery&shelf=spells&spell=gnawingword&fresh=1030f' },

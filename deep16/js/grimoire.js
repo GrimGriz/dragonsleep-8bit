@@ -761,6 +761,42 @@
       return { score: sc, t: target, keep: sc * 0.7 };
     }
   };
+  // Rootdrag (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's leans and it can start building"; Thorn Whip's role, his "yeah, thorn whipping people into
+  // things happens at my friday table I think"; leveling-srd-by-class.md 6.5): a druid's cantrip -- a creature standing on the ground within 30 ft, Large or smaller,
+  // saves STR or takes the dice (bludgeoning) and roots drag it 10 ft along the ground the caster's way (M.push: over an edge, into a hazard, to a friend's reach).
+  // A player picks the way; the AI drags it toward its nearest friend. Nothing aloft, no spell attack
+  var WAYS8 = [['NORTH', 0, -1], ['NORTH-EAST', 1, -1], ['EAST', 1, 0], ['SOUTH-EAST', 1, 1], ['SOUTH', 0, 1], ['SOUTH-WEST', -1, 1], ['WEST', -1, 0], ['NORTH-WEST', -1, -1]];
+  function rootable(t) { return !!t && !t.dead && t.hp > 0 && !(G.aloft && G.aloft(t)) && (t.size || 1) <= 2 && !t.object; }
+  function* dragWay(B, u, t) {
+    var to = [Math.sign(u.x - t.x), Math.sign(u.y - t.y)];
+    if (u.side === 'party' && !u.guest) { // (the player's: a made one on the party's side is the player's to run)
+      var opts = WAYS8.map(function (w) { return { label: w[0] + (w[1] === to[0] && w[2] === to[1] ? ' (toward you)' : w[1] === -to[0] && w[2] === -to[1] ? ' (away from you)' : ''), value: [w[1], w[2]] }; });
+      opts.push({ label: 'NOWHERE', value: 0 });
+      return yield { prompt: { who: u, title: u.name + ': ROOTDRAG -- WHICH WAY?', lines: ['The roots have ' + nm(B, t) + ': 10 ft along the ground, the way you choose.'], opts: opts } };
+    }
+    var mate = B.units.filter(function (w) { return w !== u && w.side === u.side && G.standing(w) && !w.object; }).sort(function (a, b) { return G.dist(a, t) - G.dist(b, t); })[0], aim = mate || u;
+    return [Math.sign(aim.x - t.x), Math.sign(aim.y - t.y)];
+  }
+  E.rootdrag = {
+    summary: function (e, u) { return 'a creature on the ground within 30 ft · STR save or ' + dice(e.sp, u, e.slot) + ' bludgeoning and dragged 10 ft, your way'; },
+    cast: function* (B, u, t, slot, head, x) {
+      if (!rootable(t)) { B.card([head + ': ' + (t ? nm(B, t) : 'nothing') + ' is past the roots\' reach  {g}(the ground, and Large or smaller){/}'], 200); yield 10; return; }
+      var dc = u.spellDC, sv = RU.save(t, 'str', dc);
+      FX.ring(t, 'moss', 26);
+      B.card([head + ': roots break from the ground at ' + nm(B, t) + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}PULLS FREE{/}' : '{o}DRAGGED{/}')], 240);
+      if (sv.ok) { yield 14; return; }
+      var r = D.roll(dice(x.sp, u, slot)); B.hurt(t, r.total, 'bludgeoning', { magic: true });
+      if (t.dead || t.hp <= 0) { yield 14; return; }
+      var way = yield* dragWay(B, u, t);
+      if (way && (way[0] || way[1])) M.push(B, { x: t.x - way[0], y: t.y - way[1] }, t, 2);
+      yield 16;
+    },
+    ai: function (B, u, e, slot, fs) {
+      var d = avg(dice(e.sp, u, slot)), best = null;
+      fs.forEach(function (t) { if (!rootable(t) || !M.targetOK(B, u, e.g, t)) return; var sc = d * 0.55 + (t.hp <= d ? 3 : 0); if (!best || sc > best.score) best = { score: sc, t: t }; });
+      return best;
+    }
+  };
   E.inflictwounds = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, e.slot) + ' necrotic'; },
     cast: function* (B, u, t, slot, head, x) { yield* spellAttack(B, u, t, x.sp, x.g, dice(x.sp, u, slot)); },

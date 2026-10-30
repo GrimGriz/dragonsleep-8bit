@@ -4623,6 +4623,44 @@
     document.body.appendChild(preB);
     return;
   }
+  // ROOTDRAG (mode=rootdrag1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.5): the druid's
+  // pull of ours -- on the druid's list (last); a failed STR save, the dice and a 10-ft drag the player's way (two squares); a save made, nothing; a flier, untouched; the AI's
+  // drag toward its nearest friend
+  if (get('mode', '') === 'rootdrag1030') {
+    var repRd = { checks: [], errors: [] }, d0Rd = D.d;
+    function okRd(what, v) { repRd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRd(g, pickV) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts, o = os.filter(function (x) { return pickV && pickV(x); })[0] || os[os.length - 1]; v = o.value; } } }
+    function plainRd(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkRd(side) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=druid:5,fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), u = ps.filter(function (w) { return w.cls === 'druid'; })[0], f = ps.filter(function (w) { return w !== u; })[0], gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0];
+      g.maxhp = g.hp = 999; g.conds = {}; gs[1].x = 1; gs[1].y = 1; var ok = false;
+      for (var y = 3; y < D.grid.map.h - 3 && !ok; y++) for (var x = 3; x < D.grid.map.w - 8 && !ok; x++) { if ([0, 1, 2, 3, 4, 5].every(function (k) { return D.grid.canStand(g, x + k, y); })) { u.x = x; u.y = y; g.x = x + 4; g.y = y; f.x = x + 1; f.y = y + 1 < D.grid.map.h ? y : y; ok = true; } }
+      f.x = 2; f.y = 2; D.grid.setup(B.map, B.units); D.rules.startTurn(u); B.active = u; return { B: B, u: u, f: f, g: g, ok: ok };
+    }
+    function castRd(h, save, pickV) { D.d = function (n) { return n === 20 ? save : d0Rd(n); }; var n0 = (h.B.log || []).length; runRd(D.magic.cast(h.B, h.u, 'rootdrag', 0, h.g), pickV); D.d = d0Rd; return (h.B.log || []).slice(n0).map(plainRd).join(' / '); }
+    try {
+      D.seed = 1030;
+      var sp = window.DS.DATA.spells.rootdrag, gd = D.SPELLS.rootdrag, dl = D.npc.CLASSES.druid.spells[0], d9 = D.npc.sheet(D.npc.spec('druid:9'));
+      okRd('the spell: level ' + (sp && sp.level) + ', grid ' + !!gd + ' (' + (gd && gd.range) + ' ft); the druid\'s cantrips ' + JSON.stringify(dl) + '; the generic druid 9 knows it ' + (d9.known.indexOf('rootdrag') >= 0),
+        sp && sp.level === 0 && gd && gd.range === 30 && dl[dl.length - 1] === 'rootdrag' && d9.known.indexOf('rootdrag') < 0);
+      // a failed save: the dice and the drag toward the caster (two squares west: the goblin stands east of it)
+      var h1 = mkRd(), x1 = h1.g.x, hp1 = h1.g.hp, l1 = castRd(h1, 2, function (o) { return /toward you/.test(o.label); });
+      okRd('a failed save (placed ' + h1.ok + '): "' + (l1.match(/STR[^/]*/) || [''])[0].slice(0, 60) + '", HP ' + hp1 + ' -> ' + h1.g.hp + ', x ' + x1 + ' -> ' + h1.g.x + ' (toward the druid)', h1.ok && /DRAGGED/.test(l1) && h1.g.hp < hp1 && h1.g.x === x1 - 2);
+      // a save made: nothing; a flier: untouched
+      var h2 = mkRd(), x2 = h2.g.x, hp2 = h2.g.hp, l2 = castRd(h2, 19, function (o) { return /toward you/.test(o.label); });
+      var h3 = mkRd(); h3.g.flies = true; h3.g.fz = (h3.g.fz || 0) + 2; var aloft = D.grid.aloft && D.grid.aloft(h3.g), hp3 = h3.g.hp, l3 = castRd(h3, 2);
+      okRd('a save made: ' + (/PULLS FREE/.test(l2) ? 'pulls free' : l2.slice(0, 60)) + ', HP ' + hp2 + ' -> ' + h2.g.hp + ', x ' + x2 + ' -> ' + h2.g.x + '; aloft (' + aloft + '): "' + l3.slice(0, 70) + '"', /PULLS FREE/.test(l2) && h2.g.hp === hp2 && h2.g.x === x2 && (!aloft || (/past the roots/.test(l3) && h3.g.hp === hp3)));
+      // the AI: dragged toward its nearest friend (the fighter, set beside the druid)
+      var h4 = mkRd(); h4.u.side = 'party'; h4.u.guest = true; h4.f.x = h4.u.x; h4.f.y = h4.u.y + 1; if (!D.grid.canStand(h4.f, h4.f.x, h4.f.y)) h4.f.y = h4.u.y - 1; D.grid.setup(h4.B.map, h4.B.units);
+      var dx0 = D.grid.dist(h4.g, h4.f), l4 = castRd(h4, 2), dx1 = D.grid.dist(h4.g, h4.f);
+      okRd('the AI\'s way: the goblin ' + dx0 + ' ft from the fighter, then ' + dx1 + ' ft', /DRAGGED/.test(l4) && dx1 < dx0);
+    } catch (e) { repRd.errors.push(String(e && e.stack || e)); }
+    D.d = d0Rd;
+    var preRd = document.createElement('pre'); preRd.id = 'out'; preRd.textContent = 'BENCH16 ' + JSON.stringify(repRd);
+    document.body.appendChild(preRd);
+    return;
+  }
   // GNAWING WORD (mode=gnaw1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.4): the warlock's
   // curse of ours -- on the warlock's list (last: the generic warlock's spells unchanged); cast, the mark and the concentration; each of the caster's hits on it psychic 1, 2,
   // 3 ... to 5 (7 from a 2nd-level slot), another's hits nothing; when it drops, the spell ends
