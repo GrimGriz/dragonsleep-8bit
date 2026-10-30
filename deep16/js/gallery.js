@@ -275,6 +275,7 @@
     deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
+    keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
@@ -299,6 +300,7 @@
     fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
     followthrough: { picks: { 4: { asi: { feat: 'followthrough' } } } }, // (the feat taken at 4, 10-30)
+    keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] }
@@ -440,6 +442,12 @@
       }
       return false;
     }
+    // a foe's walk of n squares straight at the hero, on its own turn, then the hero's turn back (Long Guard's demos, 10-30)
+    function* foeWalk(c, t, n) {
+      var u = c.hero, dx = Math.sign(u.x - t.x), dy = Math.sign(u.y - t.y), path = [];
+      for (var i = 1; i <= n; i++) path.push([t.x + dx * i, t.y + dy * i]);
+      D.rules.startTurn(t); B.active = t; yield* fire(B.moveAlong(t, path, { spend: true })); D.rules.startTurn(u); B.active = u;
+    }
     function* twice(c) { // (Extra Attack: two swings on the one action)
       var u = c.hero, t = c.foes[0] || c.skel[0]; D.rules.startTurn(u); B.active = u;
       yield* fire(B.exec(u, { do: 'attack', target: t })); yield 14;
@@ -545,6 +553,10 @@
       // the Drillyard (ours, 10-30; js/features.js F.drill): a hit and its play (the first offered: BIND); the mark called and a friend's hit on it; a push that does not move it
       followthrough: function* (c) { var t = c.foes[0]; t.hp = 2; yield* fire(B.exec(c.hero, { do: 'wideswing' })); yield 20; yield* swing(c, t, 3, true); }, // (the wide swing's hit on one at 2 HP: its excess carried on to the next beside)
       heldbreath: swings(4), // (a shot without a step: "held breath +" one more die on the first hit)
+      // Long Guard (ours, 10-30; js/features.js F.keepBack, F.chargeStep): the foe walks at the fighter -- into the glaive's 10 ft, KEEP BACK (its save pinned to fail) and it is
+      // held off 5 ft back; then from 30 ft, the reaction spent, it comes 20 ft straight in and stands at 10 ft -- SET AGAINST THE CHARGE, and the glaive's hit one more die
+      keepback: function* (c) { yield* foeWalk(c, c.foes[0], 3); },
+      setagainst: function* (c) { c.hero.reaction = 0; yield* foeWalk(c, c.foes[0], 4); yield 20; yield* swing(c, c.foes[0], 3, true); },
       thickpelt: function* (c) { D.features.wearBeast(B, c.hero, ['claws']); yield 30; yield* swing(c, null, 3, true); }, // (the claws on, the temporary HP, a blow with them)
       twoparts: function* (c) { D.features.wearBeast(B, c.hero, ['hide', 'claws']); yield 30; yield* swing(c, null, 3, true); }, // (hide and claws on one use, a blow with magical claws)
       setplays: swings(4),

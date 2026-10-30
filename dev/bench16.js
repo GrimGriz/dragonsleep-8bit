@@ -4848,6 +4848,68 @@
     document.body.appendChild(preRc);
     return;
   }
+  // LONG GUARD (mode=longguard1030; the leveling lane §8 B, 10-30, RULED by the desk's relay, his "go with the leans"; leveling-srd-by-class.md 6.3): the feat (STR 13, a
+  // reach weapon; the pick says when the hero's own has none); KEEP BACK -- a goblin walking in from 20 ft is asked of the player as it enters the glaive's 10 ft, a failed
+  // STR save holds it off 5 ft back and its walk ends there, a save made and it presses in, LET IT COME and it comes; none without the feat or with a longsword; the AI's own,
+  // unasked; SET AGAINST THE CHARGE -- 20 ft straight in and standing at 10 ft, the fighter's hit one more weapon die, once; not after a dog-leg, nor after 15 ft; the shelf
+  if (get('mode', '') === 'longguard1030') {
+    var repLg = { checks: [], errors: [] }, d0Lg = D.d;
+    function okLg(what, v) { repLg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function plainLg(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function logLg(B, n0) { return (B.log || []).slice(n0).map(plainLg).join(' / '); }
+    function runLg(g, ans) { var v, k = 0, st, asked = []; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { var p = st.value.prompt; asked.push(p.title); var o = ans ? p.opts.filter(function (x) { return x.label === ans; })[0] : null; v = (o || p.opts[0]).value; } } return asked.join(' | '); }
+    function mkLg(o) {
+      o = o || {}; var B = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var f = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0], ok = false;
+      g.maxhp = g.hp = 999; g.conds = {}; f.src.equip.weapon = o.w || 'glaive'; f.src.equip.shield = null; f.weapon = D.save.weaponOf(f.src); f.src.featIds = o.nofeat ? [] : ['longguard']; if (o.ai) f.guest = true;
+      for (var y = 3; y < D.grid.map.h - 3 && !ok; y++) for (var x = 3; x < D.grid.map.w - 3 && !ok; x++) {
+        var fine = true; for (var k = 0; k <= 7 && fine; k++) for (var j = -1; j <= 1 && fine; j++) if (!D.grid.canStand(g, x + j, y + k) || D.grid.gzAt(g, x + j, y + k) !== D.grid.gzAt(g, x, y)) fine = false;
+        if (fine) { f.x = x; f.y = y + 7; g.x = x; g.y = y + 7 - (o.far || 4); ok = true; }
+      }
+      D.grid.setup(B.map, B.units); f.reaction = 1; if (o.noReact) f.reaction = 0; return { B: B, f: f, g: g, ok: ok };
+    }
+    // the goblin's walk on its own turn, along `path` (default: straight at the fighter, `n` squares); the save pinned (sv: the d20 on a save)
+    function walkLg(h, n, ans, sv, path) {
+      var g = h.g; D.rules.startTurn(g); h.B.active = g; var p = path || []; if (!path) for (var i = 1; i <= n; i++) p.push([g.x, g.y + i]);
+      var n0 = (h.B.log || []).length; D.d = function (k) { return k === 20 ? (sv || 2) : d0Lg(k); }; var asked = runLg(h.B.moveAlong(g, p, { spend: true }), ans); D.d = d0Lg;
+      return { asked: asked, log: logLg(h.B, n0), d: D.grid.dist(h.f, g) };
+    }
+    try {
+      D.seed = 1030;
+      var R0 = window.DS.R, lf = R0.FEATS.longguard, fh = D.npc.sheet(D.npc.spec('fighter:5'));
+      var rowLg = function (wid) { var h = JSON.parse(JSON.stringify(fh)); h.equip.weapon = wid; h.featIds = []; return R0.pickRows(h, { lvl: 4 }, { kind: 'asi' }, {}).filter(function (r) { return r.feat === 'longguard'; })[0] || null; };
+      var rg = rowLg('glaive'), rl = rowLg('longsword');
+      okLg('the feat: STR ' + (lf && lf.str) + ', the second game\'s ' + !!(lf && lf.second) + '; on the pick with a glaive (' + !!rg + ', no line ' + !!(rg && !/has no reach/.test(rg.desc)) + '), with a longsword: "' + (rl && (rl.desc.match(/Your [^.]*\./) || ['-'])[0]) + '"',
+        lf && lf.str === 13 && lf.second && rg && !/has no reach/.test(rg.desc) && rl && /Your Longsword has no reach\./.test(rl.desc));
+      // KEEP BACK: asked, a failed save -- held off at 15 ft, the walk ended, the reaction spent
+      var h1 = mkLg(), w1 = walkLg(h1, 3);
+      okLg('KEEP BACK (placed ' + h1.ok + '): asked "' + w1.asked + '", "' + ((w1.log.match(/keeps the Goblin back[^/]*/) || [''])[0]).slice(0, 70) + '", the goblin at ' + w1.d + ' ft, the reaction ' + h1.f.reaction + ' (want 15, 0)',
+        h1.ok && /KEEP BACK\?/.test(w1.asked) && /HELD OFF/.test(w1.log) && w1.d === 15 && h1.f.reaction === 0);
+      var h2 = mkLg(), w2 = walkLg(h2, 3, null, 19), h3 = mkLg(), w3 = walkLg(h3, 3, 'LET IT COME');
+      okLg('a save made: "' + ((w2.log.match(/PRESSES IN/) || ['-'])[0]) + '", the goblin to ' + w2.d + ' ft; LET IT COME: to ' + w3.d + ' ft, the reaction ' + h3.f.reaction + ' (want 5, 5, 1)', /PRESSES IN/.test(w2.log) && w2.d === 5 && w3.d === 5 && h3.f.reaction === 1 && !/keeps/.test(w3.log));
+      var h4 = mkLg({ nofeat: true }), w4 = walkLg(h4, 3), h5 = mkLg({ w: 'longsword' }), w5 = walkLg(h5, 3), h6 = mkLg({ ai: true }), w6 = walkLg(h6, 3);
+      okLg('without the feat: asked "' + w4.asked + '", to ' + w4.d + ' ft; with a longsword: asked "' + w5.asked + '", to ' + w5.d + ' ft; the AI\'s own: asked "' + w6.asked + '", ' + (/HELD OFF/.test(w6.log) ? 'held off' : 'not') + ' at ' + w6.d + ' ft',
+        !w4.asked && w4.d === 5 && !w5.asked && w5.d === 5 && !w6.asked && /HELD OFF/.test(w6.log) && w6.d === 15);
+      // SET AGAINST THE CHARGE: from 30 ft, 20 ft straight in, the reaction spent -- the mark, and the glaive's hit one more die, once
+      var h7 = mkLg({ far: 6, noReact: true }), w7 = walkLg(h7, 4), mk7 = !!(h7.g.conds.setAgainst && h7.g.conds.setAgainst.by === h7.f.id);
+      D.rules.startTurn(h7.f); h7.B.active = h7.f; var n7 = (h7.B.log || []).length; D.d = function (k) { return k === 20 ? 15 : d0Lg(k); }; runLg(h7.B.exec(h7.f, { do: 'attack', target: h7.g })); var a7 = logLg(h7.B, n7); D.d = d0Lg;
+      okLg('SET AGAINST THE CHARGE: the goblin 20 ft in to ' + w7.d + ' ft, marked ' + mk7 + '; the glaive\'s hit "' + ((a7.match(/set against the charge \+\d+/) || ['-'])[0]) + '", the mark gone ' + !h7.g.conds.setAgainst,
+        w7.d === 10 && mk7 && /set against the charge \+\d+/.test(a7) && !h7.g.conds.setAgainst);
+      var h8 = mkLg({ far: 6, noReact: true }), gx8 = h8.g.x, gy8 = h8.g.y, w8 = walkLg(h8, 0, null, null, [[gx8, gy8 + 1], [gx8 + 1, gy8 + 1], [gx8 + 1, gy8 + 2], [gx8, gy8 + 3], [gx8, gy8 + 4]]);
+      var h9 = mkLg({ far: 5, noReact: true }), w9 = walkLg(h9, 3);
+      okLg('not after a dog-leg (to ' + w8.d + ' ft, marked ' + !!h8.g.conds.setAgainst + '), nor after 15 ft (to ' + w9.d + ' ft, marked ' + !!h9.g.conds.setAgainst + ')', w8.d === 10 && !h8.g.conds.setAgainst && w9.d === 10 && !h9.g.conds.setAgainst);
+      // the shelf: both entries, their cards
+      var Bs = D.fxGallery('?fxgallery&features&only=keepback,setagainst'); D.battle = Bs; Bs.enter();
+      var Ss = Bs.gallery, gs = 0, vs, done = 0, rep = {};
+      while (Bs.co && gs++ < 400000 && done < 2) { var st = Bs.co.next(vs); vs = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vs = y.prompt.opts[0].value; continue; } if (y.gallery) { var id = Ss.ids[Ss.i]; rep[id] = (Ss.report[id] && Ss.report[id].tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); done++; vs = 1; } }
+      okLg('the FEATURES shelf: KEEP BACK "' + ((rep.keepback || '').match(/HELD OFF/) || ['-'])[0] + '"; SET AGAINST THE CHARGE "' + ((rep.setagainst || '').match(/set against the charge \+\d+/) || ['-'])[0] + '"',
+        /HELD OFF/.test(rep.keepback || '') && /set against the charge \+\d+/.test(rep.setagainst || ''));
+    } catch (e) { repLg.errors.push(String(e && e.stack || e)); }
+    D.d = d0Lg;
+    var preLg = document.createElement('pre'); preLg.id = 'out'; preLg.textContent = 'BENCH16 ' + JSON.stringify(repLg);
+    document.body.appendChild(preLg);
+    return;
+  }
   // THE SRD'S REACH WEAPONS (mode=reach1030; the leveling lane §8 A, 10-30, RULED by the desk's relay, his "go with the leans"): the glaive, the halberd, the pike and
   // the whip in the second game's items by the SRD (reach; the three heavy and two-handed, the whip finesse), on a fighter's rack and not a wizard's; a fighter with a
   // glaive swings at a goblin 10 ft off and not 15, a longsword not at 10; its shove still 5 ft (the body's reach); the goblin walking off from 10 ft draws the glaive's

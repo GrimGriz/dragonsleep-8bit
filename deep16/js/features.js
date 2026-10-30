@@ -984,9 +984,47 @@
   TX.FIRST.unshift(function* (B, u) {
     var T = u.turn;
     if (mine(u) || !F.followThrough(u) || !F.heavyInHand(u) || !T || T.wideDone || u.conds.wideSwing || !(T.action > 0 || T.attacksLeft > 0)) return;
-    var t = hostileNear(B, u, G.reachOf(u)).sort(function (a, b) { return RU.ac(a) - RU.ac(b); })[0];
+    var t = hostileNear(B, u, G.armOf(u)).sort(function (a, b) { return RU.ac(a) - RU.ac(b); })[0]; // (a glaive's 10 ft: G.armOf, 10-30)
     if (t && RU.ac(t) - (u.weapon.atk || 0) <= 5) { F.wideSwing(B, u); yield 6; } // (a hit on 6 or better: four in five)
   });
+  // ------------------------------------------------------------------ the feat Long Guard (ours, 10-30 -- js/rules.js R.FEATS.longguard; the leveling lane §8 B, the role of the
+  // PHB's Polearm Master, leveling-srd-by-class.md 6.3; RULED, Griz: "go with the leans" -- the SRD's reach weapons first, then this as drafted). With a reach weapon in hand:
+  // KEEP BACK, the reaction when a creature it can see moves into its reach -- a STR save (DC 8 + proficiency + STR) or pushed 5 ft back, out of reach, and its move ends
+  // there (battle.js moveAlong, where a step lands, as GIVE GROUND; a player's hero asked, the AI's always); SET AGAINST THE CHARGE -- one that came 20 ft or more straight
+  // at it this turn and stands within its reach: its next hit on that one before the end of its next turn deals one more weapon die (F.chargeStep each step; battle.js)
+  F.longGuard = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'longguard') && (u.abil || h.abil).str >= 13); };
+  F.reachInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && u.weapon.reach >= 10); };
+  F.keepBack = function* (B, mover, from) {
+    var ws = B.units.filter(function (w) { return w !== mover && G.hostile(w, mover) && F.longGuard(w) && F.reachInHand(w) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !mover.object && D.magic.sees(B, w, mover); });
+    for (var i = 0; i < ws.length; i++) {
+      var w = ws[i], r = G.armOf(w), dc = 8 + (w.prof || 2) + D.mod((w.abil || w.src.abil).str);
+      if (mover.dead || mover.hp <= 0 || !(G.dist(w, mover) <= r && G.dist(w, mover, null, null, from.x, from.y) > r)) continue; // (this step brought it into the reach)
+      if (mine(w)) {
+        var go = yield { prompt: { who: w, title: w.name + ': KEEP BACK?', lines: [Nm(B, mover) + ' comes within the ' + w.weapon.name.toLowerCase() + '\'s reach: STR DC ' + dc + ', or pushed 5 ft back and its move ended (your reaction).'], opts: [{ label: 'KEEP IT BACK', value: 1 }, { label: 'LET IT COME', value: 0, no: true }] } };
+        if (!go) continue;
+      }
+      w.reaction = 0; var sv = RU.save(mover, 'str', dc); D.sfx(sv.ok ? 'miss' : 'hit');
+      B.card(['{y}' + Nm(B, w) + '{/} keeps ' + nm(B, mover) + ' back with the ' + w.weapon.name.toLowerCase() + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}PRESSES IN{/}' : '{o}HELD OFF{/}')], 240);
+      if (sv.ok) continue;
+      D.magic.push(B, w, mover, 1);
+      return true; // (held off: its move ends there, pushed or not)
+    }
+    return false;
+  };
+  // SET AGAINST THE CHARGE, kept on the mover's turn: for each Long Guard one hostile to it, where it began (the distance) and whether every step has closed on it. Come 20 ft or
+  // more straight at it and within its reach, the mark; out of its reach again this turn, gone
+  F.chargeStep = function (B, mover, from) {
+    var T = mover.turn; if (!T) return;
+    B.units.forEach(function (w) {
+      if (w === mover || !G.hostile(w, mover) || !F.longGuard(w) || !F.reachInHand(w) || !G.standing(w)) return;
+      var c = (T.charge = T.charge || {})[w.id], d0 = G.dist(w, mover, null, null, from.x, from.y), d1 = G.dist(w, mover);
+      if (!c) c = T.charge[w.id] = { d0: d0, straight: true };
+      if (d1 >= d0) c.straight = false;
+      var sa = mover.conds.setAgainst;
+      if (c.straight && c.d0 - d1 >= 20 && d1 <= G.armOf(w)) { if (!(sa && sa.by === w.id)) { mover.conds.setAgainst = { by: w.id, till: { who: w.id, at: 'end', n: w === B.active ? 2 : 1 } }; B.card(['{y}' + Nm(B, w) + '{/} sets the ' + w.weapon.name.toLowerCase() + ' against the charge.  {g}(the next hit on ' + nm(B, mover) + ': one more weapon die){/}'], 200); } }
+      else if (sa && sa.by === w.id && d1 > G.armOf(w)) delete mover.conds.setAgainst;
+    });
+  };
   // ------------------------------------------------------------------ the druid: the Circle of the Pelt (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's
   // leans and it can start building"; leveling-srd-by-class.md 6.2): WEAR THE BEAST, a bonus action and a use of Wild Shape -- one beast part on the druid's own body for
   // the fight (two at 6), its HP, gear, spells and concentration its own: CLAWS (unarmed strikes 1d8 slashing, WIS for the hit and the damage; magical at 6), HIDE (AC at

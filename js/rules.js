@@ -348,6 +348,9 @@
     // Held Breath (ours, 10-30 -- leveling-srd-by-class.md 6.3; the role of the PHB's Sharpshooter): not having moved yet this turn, ranged weapon attacks ignore half cover
     // and long range, and the first to hit deals one more weapon die (deep16/js/battle.js, rules.js RU.edges). DEX 13: a prerequisite past STR (R.featWant)
     heldbreath: { name: 'Held Breath', dex: 13, cls: [], any: true, second: true, desc: 'Not having moved yet this turn: your ranged weapon attacks this turn ignore half cover and take no disadvantage at long range, and the first that hits deals one more weapon die. (DEX 13.)' },
+    // Long Guard (ours, 10-30 -- the leveling lane §8 B, leveling-srd-by-class.md 6.3; RULED, Griz: "go with the leans"): the role of the PHB's Polearm Master, ours -- KEEP BACK
+    // and SET AGAINST THE CHARGE with a reach weapon (deep16/js/features.js F.keepBack, F.chargeStep; battle.js). `second`: the second game's alone
+    longguard: { name: 'Long Guard', str: 13, cls: [], any: true, second: true, reachW: true, desc: 'With a reach weapon in hand: KEEP BACK -- your reaction when a creature you can see moves into your reach: a STR save (DC 8 + your proficiency bonus + your STR modifier) or it is pushed 5 ft back, out of your reach, and its move ends. SET AGAINST THE CHARGE -- one that came 20 ft or more straight at you this turn and stands within your reach: your next hit on it before the end of your next turn deals one more weapon die. (STR 13, and a reach weapon to use it -- a glaive, a halberd, a pike, a whip.)' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
@@ -450,7 +453,8 @@
     }).concat(R.featIds().filter(function (id) { return R.featOn(h, id, took); }).map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15; its class's own only, 10-29)
       var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id);
       // (a feat used with a heavy weapon -- Follow-Through -- says so when the hero's own is not one: Barley's Threshing Flail is two-handed, not heavy. 10-30, the leveling lane §9 0b)
-      var hw = f.heavy && h.equip && h.equip.weapon ? R.item(h.equip.weapon) : null, light = hw && hw.weapon && (hw.weapon.props || []).indexOf('heavy') < 0 ? ' Your ' + hw.name + ' is not heavy.' : '';
+      var hw = (f.heavy || f.reachW) && h.equip && h.equip.weapon ? R.item(h.equip.weapon) : null, hp = (hw && hw.weapon && hw.weapon.props) || [];
+      var light = hw && hw.weapon ? (f.heavy && hp.indexOf('heavy') < 0 ? ' Your ' + hw.name + ' is not heavy.' : f.reachW && hp.indexOf('reach') < 0 ? ' Your ' + hw.name + ' has no reach.' : '') : ''; // (Long Guard's: a reach weapon, 10-30)
       return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + light + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : R.featWant(h, f, took) }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
     if (ask.kind === 'expertise') {

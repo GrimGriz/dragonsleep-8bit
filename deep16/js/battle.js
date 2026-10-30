@@ -2133,6 +2133,10 @@
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
       // GIVE GROUND (the Grey Road, 7; ours, 10-08): a Grey Road ranger this step brought within reach of steps 5 ft back, the reaction (js/features.js F.giveGround)
       if (D.features && D.features.giveGround && !u.ethereal && !(o && o.noGive)) { yield* D.features.giveGround(this, u, stepFrom); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } shifted = true; }
+      // KEEP BACK (Long Guard, a feat of ours, 10-30 -- js/features.js F.keepBack): a step into a Long Guard's reach, its STR save or held off and the walk ends there;
+      // SET AGAINST THE CHARGE kept step by step (F.chargeStep)
+      if (D.features && D.features.keepBack && !u.ethereal) { var kbk = yield* D.features.keepBack(this, u, stepFrom); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (kbk) { if (o && o.spend) T.move = 0; u.anim = 'idle'; return; } }
+      if (D.features && D.features.chargeStep && !u.ethereal) D.features.chargeStep(this, u, stepFrom);
       if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) {
         var proneR = !!u.conds.prone;
         yield* this.readyHook(u, 'move'); shifted = true;
@@ -2447,6 +2451,9 @@
     if (melee && !atk.spell && RU.hardGround(att) && att.lvl >= 7 && tgt.conds.prone && att.turn && !att.turn.threshUsed && /d/.test(dice)) {
       att.turn.threshUsed = true; var thr = D.roll('1' + String(dice).replace(/^\d*/, ''), { crit: crit }); dmg += thr.total; parts.push('{o}threshing +' + thr.total + '{/}');
     }
+    // Long Guard's SET AGAINST THE CHARGE (a feat of ours, 10-30 -- js/features.js F.chargeStep): the next weapon hit on the one that charged it deals one more weapon die
+    var sagC = tgt.conds.setAgainst;
+    if (sagC && sagC.by === att.id && melee && !atk.spell && /d/.test(dice)) { delete tgt.conds.setAgainst; var sgr = D.roll('1' + String(dice).replace(/^\d*/, ''), { crit: crit }); dmg += sgr.total; parts.push('{o}set against the charge +' + sgr.total + '{/}'); }
     // Flame Tongue (SRD 5.1): while it burns, +2d6 fire on a hit, dealt as fire (a troll's knitting reads it; fire resistance halves it)
     // the riders land as their own kind of damage (09-28: the ochre jelly is immune to slashing, not to a smite): fire, radiant, a foe's extra
     var fire = 0, rad = 0, ext = 0, xtra = []; // (xtra: [n, type] riders of their own kind: a mark's psychic, a curse's necrotic)
