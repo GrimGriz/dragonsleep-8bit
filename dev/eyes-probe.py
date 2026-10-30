@@ -27,6 +27,9 @@ def main():
         if miss: lacking.append('%s lacks %s' % (rid, ' '.join(miss)))
     ok(not lacking, 'every row has pri, group, title, pt, url, look' + ('' if not lacking else ': ' + '; '.join(lacking)))
     sits = len(re.findall(r"^ {4}[a-z0-9]+: \{ group:", open(os.path.join(ROOT, 'js', 'situations.js'), encoding='utf-8').read(), re.M))
+    # (and the second game's, from a link -- deep16/js/situations16.js DS.SIT16, story rows on the same page since 10-30)
+    s16 = os.path.join(ROOT, 'deep16', 'js', 'situations16.js')
+    if os.path.exists(s16): sits += len(re.findall(r"^ {4}[a-z0-9]+: \{ group:", open(s16, encoding='utf-8').read(), re.M))
     want = len(heads) + sits
     # the page itself, as he opens it
     prof = os.path.join(tempfile.gettempdir(), 'eyes-probe-edge-%d' % os.getpid())
