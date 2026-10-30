@@ -954,8 +954,8 @@
     src: 'SRD 5.1 Gibbering Mouther (CR 2): Aberrant Ground (10 ft of doughlike difficult ground, STR 10 at a turn\'s start or no move), Gibbering (within 20 ft at a turn\'s start, WIS 10 or no reactions and a d8 for the turn), Bites (STR 10 or prone, Medium or smaller), Blinding Spittle (recharge 5-6, a point within 15 ft, DEX 13 or blinded till the end of its next turn); content/monsters.json mouther (leg two)', todo: 'one killed by the bite is not absorbed'
   },
   // the Hex card's top (events.js, Fight Night): Talmok and the visiting barbarian, both reckless; Talmok rages when first hit
-  talmok: {
-    name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmok_p1', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
+  talmok: { // (his sheet since 10-30, talmok_p2: the art desk's new look whole, his five town pages and ART-123-TALMOK-COMBAT -- tools/talmok-sheet.py; the old KayKit talmok_p1 kept beside it)
+    name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmok_p2', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
     attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', reach: 5, rage: 2, prone: 13 } },

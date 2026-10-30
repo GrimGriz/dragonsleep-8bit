@@ -17333,6 +17333,82 @@ true
 }
 }
 },
+"talmok_p2": {
+"image": "art/talmok_p2.png?v=718e6a7612",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 44,
+"fh": 63,
+"ax": 22,
+"ay": 60,
+"frames": 14,
+"fps": 4
+},
+"walk": {
+"y": 504,
+"fw": 54,
+"fh": 63,
+"ax": 27,
+"ay": 60,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1008,
+"fw": 82,
+"fh": 63,
+"ax": 41,
+"ay": 60,
+"frames": 6,
+"fps": 12,
+"release": 2
+},
+"hurt": {
+"y": 1512,
+"fw": 84,
+"fh": 63,
+"ax": 42,
+"ay": 60,
+"frames": 4,
+"fps": 8
+},
+"sit": {
+"y": 2016,
+"fw": 50,
+"fh": 63,
+"ax": 25,
+"ay": 60,
+"frames": 2,
+"fps": 2
+},
+"flinch": {
+"y": 2520,
+"fw": 58,
+"fh": 63,
+"ax": 29,
+"ay": 60,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 3024,
+"fw": 84,
+"fh": 63,
+"ax": 42,
+"ay": 60,
+"frames": 4,
+"fps": 8
+}
+},
+"fw": 44,
+"fh": 63,
+"ax": 22,
+"ay": 60,
+"top": 57,
+"source": "drawn by the art desk (ART-123-TALMOK HEAD 2, his five town Idle pages, 10-29; ART-123-TALMOK-COMBAT, his fight poses in five views, 10-30 -- its own word \"PARTIAL / REVIEW CANDIDATES\"), cut and snapped by tools/talmok-sheet.py",
+"old": "talmok_p1"
+},
 "tam_p1": {
 "image": "art/tam_p1.png?v=20bb66568d",
 "fw": 31,
