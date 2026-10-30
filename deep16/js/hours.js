@@ -272,6 +272,15 @@
     return Math.hypot(t.x - p.x, t.y - p.y) * (def.ft || 5) <= H16.DOOR_FT;
   };
   H16.line = function (u, who, text) { return { prompt: { who: u, title: who, lines: D.roam.wrap([text]), opts: [{ label: 'NEXT', value: 0 }] } }; };
+  // a place behind a counter screen played outside (js/counter.js o.bg, as H16.backdrop is the council's): the floor as its camera stands now, drawn under the boxes and dimmed --
+  // live, so a figure turned mid-talk turns there too; behind the one speaking, nothing (the portrait's own window)
+  H16.streetShot = function (B) {
+    return function (ctx, x, y, w, h, behind) {
+      if (behind || !D.ui || !D.ui.drawBattle) return false;
+      ctx.save(); try { D.ui.drawBattle(ctx, B); } catch (e) { ctx.restore(); return false; } ctx.restore();
+      ctx.fillStyle = H16.SHOT.dim; ctx.fillRect(0, 0, D.W, D.H); return true;
+    };
+  };
   H16.papaScene = function* (B) {
     var R = D.roam, R0 = B.roam, t = R0.token, st = C.state(B), f = st.flags, rec = D.house.cur, P = H16.PAPA, lyLead = rec.lead === 'lymen', G = D.grid;
     var papa = B.units.filter(function (u) { return u.npc === 'papa'; })[0], ly = lyLead ? t : null;
@@ -287,15 +296,23 @@
     papa.facing = D.spr.facingFor((ly || t).x - papa.x, (ly || t).y - papa.y);
     B.focus({ x: Math.round((t.x + papa.x) / 2), y: Math.round((t.y + papa.y) / 2), size: 1 }); D.sfx('popup');
     var hd = function (u) { return u && u !== t ? D.spr.facingFor(t.x - u.x, t.y - u.y) : null; };
-    yield H16.line(papa, 'THE HEX\'S DOOR', lyLead ? P.doorLy : P.door);
-    yield H16.line(ly || t, 'LYMEN', P.gnolls);
-    yield H16.line(papa, 'PAPA URTUSK', P.alone);
-    yield H16.line(ly || t, 'LYMEN', P.friends);
-    if (!lyLead) { papa.facing = hd(papa); yield H16.line(papa, 'PAPA URTUSK', P.few); if (ly) ly.facing = hd(ly); yield H16.line(ly || papa, 'LYMEN', P.find); }
     var others = ['barley', 'vivian', 'aurdin'].filter(function (id) { return id !== rec.lead && (rec.hired || []).indexOf(id) < 0; }).map(function (id) { return P.who[id]; });
-    papa.facing = hd(papa) || papa.facing;
-    if (lyLead || others.length) yield H16.line(papa, 'PAPA URTUSK', (lyLead ? P.go + ' ' : '') + others.join(' '));
-    yield H16.line(papa, 'PAPA URTUSK', P.work);
+    // the talk on the counter screen, the door behind it (10-30, his "do the scene that gives 'company' mission by overlaying (cropped as needed) portraits over the city
+    // background (talking outside) with lymen bottom right (similar to ned and aurdin but for background)", then "will need to be mirrored to be bottom left screen" and "try to
+    // get the lymen/papa company quest dialog finished"): Papa's portrait speaking, the street as the map's camera has it dimmed behind, Lymen the screen's hero bottom left
+    // (js/counter.js Counter.drawHero, C.HERO_PT: pt_lymen, cut mirrored; his figure's face till it loads), his lines his own in the bubble as Aurdin's are at Ned's
+    var sc = new C.Counter(B, { id: 'papa', name: 'Papa Urtusk', place: 'The Hex', what: 'at the front door', room: true, bg: H16.streetShot(B), script: function (s) {
+      s.hero = { id: 'lymen', key: 'lymen', name: 'Lymen' };
+      return (function* () {
+        yield s.ask([lyLead ? P.doorLy : P.door], [P.gnolls], 'attentive');
+        yield s.ask([P.alone], [P.friends], 'skeptical');
+        if (!lyLead) { papa.facing = hd(papa); if (ly) ly.facing = hd(ly); yield s.ask([P.few], [P.find], 'idle'); }
+        papa.facing = hd(papa) || papa.facing;
+        if (lyLead || others.length) yield s.say([(lyLead ? P.go + ' ' : '') + others.join(' ')], 'attentive');
+        yield s.say([P.work], 'welcoming');
+      })();
+    } });
+    D.push(sc); while (!sc.done) yield 1;
     ['work:winters', 'work:board', 'work:cradles', 'work:slate'].forEach(function (k) { C.flagOn(st, k); });
     if (ly && ly !== t) { B.units = B.units.filter(function (u) { return u !== ly; }); G.setup(G.map, B.units); B.card(R.wrap([P.inside]), 200); }
     B.focus(t); yield 10;
@@ -1219,7 +1236,7 @@
   // GAME staged for each beat on the counter's show (js/counter.js ServicesShow, C.serviceStage), with this lane's own on top -- the lead alone, flags, renown, THE WORLD's hour
   // (the street turns to it on its first step), and a council's sitting played over it
   H16.SHOW_BEATS = [
-    { hours: 1, id: 'papa', near: 'papa', lead: 'barley', label: 'PAPA AND LYMEN AT THE HEX\'S DOOR: Barley alone', note: 'Lymen in the door with Papa, the talk a line a prompt (NEXT); then the cards: the Company in the JOURNAL, pinned, and Finding Work with its four places.' },
+    { hours: 1, id: 'papa', near: 'papa', lead: 'barley', label: 'PAPA AND LYMEN AT THE HEX\'S DOOR: Barley alone', note: 'Lymen in the door with Papa; the talk on a portrait screen over the street -- Papa\'s portrait speaking, Lymen bottom left with his lines in the bubble (click each); then the cards: the Company in the JOURNAL, pinned, and Finding Work with its four places.' },
     { hours: 1, id: 'papaly', near: 'papa', lead: 'lymen', label: 'PAPA AND LYMEN: Lymen leading', note: 'Lymen himself in front of Papa: "Then go and find some." -- Barley, Marta\'s girl, the farm boy named; the Company opens.' },
     { hours: 1, id: 'journal', near: 'pete', lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete, then the town\'s talk', note: 'A click on Pete: THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
     { hours: 1, id: 'lucia', door: 'shop:lucia', lead: 'aurdin', label: 'LUCIA AT MAMA\'S: Aurdin\'s first visit, CONSULT', note: 'In at the door, E at the counter: her word to Aurdin (the calling herbs), THE SHELVES / CONSULT / LEAVE; CONSULT on a whole party.' },
