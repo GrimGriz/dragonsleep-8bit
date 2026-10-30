@@ -85,9 +85,9 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 
 **NOT** the Oath of the Ancients, the PHB's green oath, though Kalindel is the nature of the planet: its Nature's Wrath restrains with vines, its Turn the Faithless turns fey and fiends, its aura gives resistance to spell damage -- this one restrains nothing, turns nothing and wards against no spell. Not Vengeance (no vow of advantage, no fear), not the DMG's Oathbreaker (no undead, no aura of hate). Not the SRD's Devotion (no blessed weapon, no turning, no charm-proof aura). The nearest outside the PHB is the Crown's Turn the Tide (a bonus action that heals everyone hurt nearby); What Falls, Feeds heals only those beside a foe that has just fallen. **The engines:** being pushed and knocked prone are on the grid (shove, the Sand's knockdown, Repelling Blast, Thunderwave, the roper's Reel).
 
-### 2.3 The feats (DRAFT, and the two built)
+### 2.3 The feats (APPROVED 10-30, and the two built)
 
-**Open by prerequisite, as the PHB's are** (RULED 10-30, built for the two in the game: `R.FEATS` `any`). Each is taken in place of an increase, once; the pick shows a feat on another class's page only when the hero meets its prerequisite, so nothing shows greyed that the hero can't reach. "Drafted from" says whose road it came out of, not who may take it. Each beside the PHB feat it is distinct from: `..\leveling-feats-side-by-side.md`, for the reading lamp.
+**APPROVED 10-30, all six:** *"approve all in the side by side"* -- each built on his word, one at a time (Light Fingers waits on the machinery to take from a foe). **Open by prerequisite, as the PHB's are** (RULED 10-30, built for the two in the game: `R.FEATS` `any`). Each is taken in place of an increase, once; the pick shows a feat on another class's page only when the hero meets its prerequisite, so nothing shows greyed that the hero can't reach. "Drafted from" says whose road it came out of, not who may take it. Each beside the PHB feat it is distinct from: `..\leveling-feats-side-by-side.md`, for the reading lamp.
 
 | Feat | Drafted from | Prerequisite | What it does | Nearest PHB feat |
 |---|---|---|---|---|
@@ -114,10 +114,12 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 - **Feats:** 34 more after §2.3's six, open by prerequisite.
 - **The whole lists, the SRD's own unbuilt:** 28 invocations, 4 metamagic, the Pact of the Chain, 6 lands, 9 dragon ancestors, the ranger's choices.
 - **Multiclassing:** the Pocket DM's, after DEEP16 wraps; not the story game's for now.
+- **Schoolbound (his idea, 10-30, a question):** *"is there a spot for 'schoolbound' with a bonus slot for the same school over the course of leveling? (i.e. 1 evo at 1, 1 at 3, 1 at 5, etc - must come from school of first level spell chosen"* -- the school is that of the first 1st-level spell the hero chooses; one more at 1, 3, 5, 7, 9 (a full caster's new spell levels), each of that school. Its spot and its shape are his answers (the seat's report of 10-30): the sorcerer's origin at 1 (the seat's lean), a wizard tradition at 2, or a feat; a slot only that school can use, or a spell of it known free. Needs every spell's school in the data (the SRD's text has it: `srd/spells/level-N.md`). Nearest outside the PHB: Tasha's Aberrant Mind and Clockwork Soul learn a set spell at 1, 3, 5, 7, 9 -- the cadence, not the rule.
 - **Each built subclass of ours past 9:** its 10th-and-later features, when the cap or the ladders reach them.
 
 ## 4. Open, his word
 
 1. **The choice at 3 for the fighter and the paladin** -- talked over in the seat's report of 10-30 (what each piece is, where it is asked, how far into the first game); built on his word.
-2. **The six drafted feats** -- his look beside the PHB's (`..\leveling-feats-side-by-side.md`); each built on his word.
+2. *(The six drafted feats: APPROVED 10-30, *"approve all in the side by side"*; built one at a time on his word.)*
+4. **Schoolbound** -- its spot and its shape (§3).
 3. **Stab Debut's cost** -- built free, once a turn; standing unless he says the bonus action.
