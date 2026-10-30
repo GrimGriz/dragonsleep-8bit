@@ -3,7 +3,7 @@ layer: reference, to rule. Every decision a hero makes at a new level, counted a
 written: 2026-10-29, the leveling seat (a Claude Code desktop Code tab on ggpc, config echo claude-opus-5-5, door 2026-10-29T23:16Z), started by the lanes desk. What the SRD gives: read off `srd/classes/*.md`, `srd/03-beyond-1st-level.md` and `srd/05-feats.md`. What is built: read off `js/rules.js` (R.SUBCLASSES, R.FEATS, R.STYLES) and `deep16/js/classes.js` (NPC.CLASSES, NPC.SUBS, NPC.OPTIONS). The PHB's and DMG's options are named only, each beside what of ours must not be it.
 revised: 2026-10-30, the same seat, twice on his answers (§0): the count against PHB-and-DMG play; then the SD naming revoked and good names back, every feat open by its score, his metric for "distinct", multiclassing ruled out of the story game for now.
 companion: `..\leveling-feats-side-by-side.md` -- the drafted feats beside the PHB feat each is distinct from, for the reading lamp (`reading-lamp.html`).
-status: PROPOSED, with his rulings of 10-29 and 10-30 folded in (§0); §5 ranks the PHB-only things veterans will miss (10-30). **Nothing here is built by being listed** but what is marked BUILT; every draft and every lean is his to overrule.
+status: PROPOSED, with his rulings of 10-29 and 10-30 folded in (§0); §5 ranks the PHB-only things veterans will miss (10-30); §6 drafts the second batch from it. **Nothing here is built by being listed** but what is marked BUILT; every draft and every lean is his to overrule.
 ---
 
 # The level choices, for DRAGONSLEEP
@@ -35,8 +35,8 @@ Each decision gets one verdict:
 | Barbarian | 3 | Primal Path | 2: Berserker, Totem Warrior | Berserker | the Sand (Talmok's) | met |
 | Bard | 3 | College | 2: Lore, Valor | Lore | -- | SHORT 1 |
 | Cleric | 1 | Divine Domain | 8: Life, Knowledge, Light, Nature, Tempest, Trickery, War, Death (DMG) | Life | the Window (Kat's), the Vigil (Torvald's); the Keeping is NPC only (`NPC.SUBS`) | SHORT 5 (4 if the Keeping is made playable) |
-| Druid | 2 | Circle | 2: the Land, the Moon | the Land | -- | SHORT 1 |
-| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1) | SHORT 1; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
+| Druid | 2 | Circle | 2: the Land, the Moon | the Land | -- (the Circle of the Pelt drafted, §6.2) | SHORT 1, drafted |
+| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1); the Drillyard drafted (§6.1) | SHORT 1, drafted; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
 | Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | -- (the Oath of the Green Return drafted, §2.2) | SHORT 3; **not asked on either pick** |
 | Ranger | 3 | Ranger Archetype | 2: Hunter, Beast Master | Hunter | the Grey Road (GreyFang's) | met |
@@ -122,6 +122,8 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 1. **The choice at 3 for the fighter and the paladin** -- talked over in the seat's report of 10-30 (what each piece is, where it is asked, how far into the first game); built on his word.
 2. *(The six drafted feats: APPROVED 10-30, *"approve all in the side by side"*; built one at a time on his word.)*
 4. **Schoolbound** -- its spot and its shape (§3).
+5. **The second batch (§6)** -- the Drillyard, the Circle of the Pelt, Follow-Through, Held Breath, Long Guard, Fortune's Due, Gnawing Word: each his to rule before it is built.
+6. **Leaving missed** the backgrounds, the lesser spells and the Four Elements (§5's last line) -- open: he asked for the case for it (10-30).
 3. **Stab Debut's cost** -- built free, once a turn; standing unless he says the bonus action.
 
 ## 5. What veterans will miss (ranked, 10-30)
@@ -130,15 +132,15 @@ Griz, by the lanes desk (10-30 ~02:00Z): *"I need a list of the stuff from the P
 
 **How it was made.** Each candidate checked against the repo's SRD, not from memory: the spells against `srd/spells/level-N.md` (all 319 read by a script -- Hunter's Mark, Hellish Rebuke, Misty Step, Spiritual Weapon, Healing Word, Shield and Branding Smite are the SRD's; the spells named below are not, and none of them is in the game's data); the races against `srd/01-races.md` (one subrace a race); the backgrounds against `srd/03-beyond-1st-level.md` (the Acolyte alone); the feats against `srd/05-feats.md` (Grappler alone). The fighting styles have no gap: the PHB's six are the SRD's. The rank is the seat's judgement, not a measurement: how often tables pick each (the common builds; the pick rates D&D Beyond has published), and whether a class's identity rests on it. Each line names the PHB thing only, then its play role, what covers it now, and what a serviceable custom of ours must do -- ours in name, words and whole (his metric, §0); where the count (§1) already wants one of ours, the line says so.
 
-1. **Variant human** (a race option) -- *a feat at 1st level: the build online from the start.* Covers: nothing (the maker's human is the SRD's, +1 to every score). Custom: a human option of ours that gives one signature pick at 1 from our own feats, in place of the +1s -- the races lane's.
-2. **Great Weapon Master** (feat) -- *the two-hander's all-in swing, and a follow-up when a blow fells or crits.* Covers: nothing (Threshing's die is the Threshing Floor's alone). Custom: a heavy-weapon feat of ours that trades its own thing (accuracy, defence) for a big hit.
-3. **Sharpshooter** (feat) -- *the archer's long shot through cover, all-in for damage.* Covers: the SRD's Archery style (+2 to hit) only. Custom: an archer's feat of ours -- range and cover answered, a power shot of its own shape.
-4. **Circle of the Moon** (druid) -- *the druid who fights in beast shape.* Covers: nothing (the Land is the SRD's; Wild Shape is built). Custom: the druid's one circle short (§1) -- Wild Shape made a front-line choice its own way.
-5. **Battle Master** (fighter) -- *a fighter with a menu of tricks every turn.* Covers: the Threshing Floor (built) is a fighter of ours, not a menu. Custom: the fighter's second of ours (§1) -- a small per-rest menu of our own tricks, no superiority dice.
+1. **Variant human** (a race option) -- *a feat at 1st level: the build online from the start.* Covers: nothing (the maker's human is the SRD's, +1 to every score). Custom: a human option of ours that gives one signature pick at 1 from our own feats, in place of the +1s -- the races lane's (filed there 10-30, its §2o).
+2. **Great Weapon Master** (feat) -- *the two-hander's all-in swing, and a follow-up when a blow fells or crits.* Covers: nothing (Threshing's die is the Threshing Floor's alone). Custom: a heavy-weapon feat of ours that trades its own thing for a big hit -- **Follow-Through drafted (§6.3).**
+3. **Sharpshooter** (feat) -- *the archer's long shot through cover, all-in for damage.* Covers: the SRD's Archery style (+2 to hit) only. Custom: an archer's feat of ours -- range and cover answered, a power shot of its own shape -- **Held Breath drafted (§6.3).**
+4. **Circle of the Moon** (druid) -- *the druid who fights in beast shape.* Covers: nothing (the Land is the SRD's; Wild Shape is built). Custom: the druid's one circle short (§1) -- Wild Shape made a front-line choice its own way -- **the Circle of the Pelt drafted (§6.2).**
+5. **Battle Master** (fighter) -- *a fighter with a menu of tricks every turn.* Covers: the Threshing Floor (built) is a fighter of ours, not a menu. Custom: the fighter's second of ours (§1) -- a small per-rest menu of our own tricks, no superiority dice -- **the Drillyard drafted (§6.1).**
 6. **War Caster** (feat) -- *the caster who keeps concentration in a melee.* Covers: **Hold the Thread** (approved) -- serviceable for the heart of it.
-7. **Polearm Master** (feat) -- *the reach fighter: the haft strikes too, and coming near costs a blow.* Covers: nothing. Custom: a reach-weapon feat of ours.
-8. **Hex** (warlock spell, 1st) -- *the warlock's own curse riding every Eldritch Blast.* Covers: the SRD's Hunter's Mark (on the ranger's list, not the warlock's) and Bestow Curse (3rd); the Mirror's Gaze for a warlock of the Mirror alone. Custom: a 1st-level warlock spell of ours, a curse of its own on each hit (the spells register's "Ours").
-9. **Lucky** (feat) -- *rerolls kept for the roll that matters.* Covers: nothing (the halfling's Lucky trait, a 1 rerolled, is the SRD's and a halfling's). Custom: a fortune feat of ours.
+7. **Polearm Master** (feat) -- *the reach fighter: the haft strikes too, and coming near costs a blow.* Covers: nothing. Custom: a reach-weapon feat of ours -- **Long Guard drafted (§6.3).**
+8. **Hex** (warlock spell, 1st) -- *the warlock's own curse riding every Eldritch Blast.* Covers: the SRD's Hunter's Mark (on the ranger's list, not the warlock's) and Bestow Curse (3rd); the Mirror's Gaze for a warlock of the Mirror alone. Custom: a 1st-level warlock spell of ours, a curse of its own on each hit (the spells register's "Ours") -- **Gnawing Word drafted (§6.4).**
+9. **Lucky** (feat) -- *rerolls kept for the roll that matters.* Covers: nothing (the halfling's Lucky trait, a 1 rerolled, is the SRD's and a halfling's). Custom: a fortune feat of ours -- **Fortune's Due drafted (§6.3).**
 10. **Path of the Totem Warrior** (barbarian) -- *the bear: the barbarian nothing hurts.* Covers: the Path of the Sand (ours) meets the count, in another role. Custom: none wanted for the count; the tank role would be a second path of ours, on his word.
 11. **Assassin** (rogue) -- *the ambush burst.* Covers: **Cutthroat's Stab Debut** (built) -- serviceable.
 12. **Arcane Trickster** (rogue) -- *the rogue with a little magic and an unseen hand.* Covers: nothing. Custom: the rogue's second of ours (§1), a small magic of its own.
@@ -167,3 +169,52 @@ Griz, by the lanes desk (10-30 ~02:00Z): *"I need a list of the stuff from the P
 35. **The rest of the 42** (Actor, Athlete, Charger, Dungeon Delver, Durable, the three Armored, Keen Mind, Linguist, Martial Adept, Medium Armor Master, Mounted Combatant, Ritual Caster, Savage Attacker, Skilled, Tavern Brawler, Weapon Master, Healer) -- *rarely a build's reason.* Covers: Second Draft (near Ritual Caster), Untempled (near Healer). Custom: last of the 34.
 
 **Left missed (the seat's lean):** the PHB's backgrounds past the Acolyte (their features are table play; the game's heroes carry their own); the lesser PHB spells (Witch Bolt, Friends, Blade Ward, Thorn Whip, Chromatic Orb, Dissonant Whispers, Compelled Duel, Cloud of Daggers, Phantasmal Force, Crown of Madness, Hunger and Arms of Hadar, Elemental Weapon, Destructive Wave, Grasping Vine, Aura of Vitality, Ray of Sickness) until a class's list feels thin; the Way of the Four Elements (rarely picked: the monk's two of ours can take other roles).
+
+## 6. The second batch, from what veterans will miss (DRAFT, 10-30)
+
+Griz, by the lanes desk (10-30 ~02:35Z), on the seat's five: *"leans yes for levels 4-6 / 7 as another's lane / what's the case for 8?"* -- yes to the four feats, the two subclasses and the curse spell, drafted here (nothing built till he rules each); the human option filed in the Pocket DM and the races lane (its §2o); leaving the backgrounds, the lesser spells and the Four Elements missed is still open (he asked for the case). Each is ours in name, words and whole, and says what PHB option it is NOT.
+
+### 6.1 The fighter's second of ours: the Drillyard (DRAFT) -- the Battle Master's role
+
+A fighter taught on the drill yard, with set plays for the moment a fight offers them.
+
+- **3, Set Plays.** Learn three plays from the six below. You have two openings; a play spends one, once a turn. Openings come back at a short or long rest.
+  - **Wheel** -- when you hit, you and a friend within 5 ft of you trade places; neither provokes an opportunity attack.
+  - **Bind** -- when you hit, the creature can't take reactions until the start of its next turn.
+  - **Break Stride** -- when you hit, the creature's speed drops by 10 ft until the end of its next turn.
+  - **Pin the Shield** -- when you hit a creature that bears a shield, the shield adds nothing to its AC until the start of your next turn.
+  - **Call the Mark** -- a bonus action: name a creature you can see within 60 ft; until the start of your next turn, the first hit each friend lands on it deals 2 more damage.
+  - **Hold Ground** -- a reaction, when you would be pushed or knocked prone: you aren't.
+- **7, More Plays.** Two more plays, and three openings.
+- **10, 15, 18:** waiting, past the cap.
+
+**NOT** the Battle Master: no superiority dice and no die added to any roll; each play's effect is fixed, and none is one of its maneuvers (no trip, disarm, riposte, precision, menacing, pushing, goading, feint, rally or commander's strike). Nearest: Wheel and its Maneuvering Attack both move a friend -- Wheel trades two places. With the Champion (SRD) and the Threshing Floor (ours, built), the fighter's count of three is met. **The engines:** OAs, reactions, speed, shields' AC (`RU.ac`), shove and prone are all on the grid.
+
+### 6.2 The druid's circle of ours: the Circle of the Pelt (DRAFT) -- the Moon's role
+
+A druid who fights in its own body with a beast's parts on it.
+
+- **2, Wear the Beast.** A bonus action: spend a use of Wild Shape to take on one beast part for 10 minutes, or until it is taken off (a bonus action), another is worn, or the druid drops to 0 HP. The druid keeps its own HP, gear and spellcasting, concentration too.
+  - **Claws** -- unarmed strikes deal 1d8 slashing and use WIS for the attack and the damage.
+  - **Hide** -- AC at least 13 + the WIS modifier (a shield still adds).
+  - **Haunches** -- speed 10 ft more, and standing up costs 5 ft.
+- **2, Thick Pelt.** Putting a part on gives temporary HP equal to twice the druid level.
+- **6, Two Parts.** One use of Wild Shape puts on two parts, and the claws count as magical.
+- **10, 14:** waiting, past the cap.
+
+**NOT** the Circle of the Moon: no beast form past the SRD's Wild Shape, no stronger circle forms, no slots spent to heal in a beast's shape -- the druid keeps its own body and spells and wears a part of one. Nearest outside the PHB: the Circle of Spores (a later book) also spends Wild Shape without changing shape, on a fungal aura; this one on a beast's parts. The SRD's own Alter Self lends claws as a spell. **The engines:** Wild Shape's uses are built (`mode=druid12`); the claws ride the grid's unarmed strike, the AC floor reads as Unarmored Defense does (`RU.ac`), temporary HP is built.
+
+### 6.3 The feats (DRAFT)
+
+Open by prerequisite, as every feat since 10-30; taken in place of an increase, once. Beside the PHB's in `..\leveling-feats-side-by-side.md` (its second batch), for the reading lamp.
+
+| Feat | The role | Prerequisite | What it does | NOT |
+|---|---|---|---|---|
+| **Follow-Through** | Great Weapon Master's | STR 13 | With a heavy melee weapon: when the blow drops a creature to 0 HP, the damage past its last hit point carries to another creature within reach; and once a turn, before an attack roll, a **wide swing** -- on a hit, twice the proficiency bonus more damage; on a miss, the next attack roll this turn at disadvantage | Great Weapon Master: no -5/+10 trade, no bonus-action attack -- the carry is the blow's own excess, and the wide swing's price is the next blow's aim. Nearest outside the PHB: the DMG's optional rule for cleaving through creatures |
+| **Held Breath** | Sharpshooter's | DEX 13 | Not having moved yet this turn: ranged weapon attacks this turn ignore half cover and take no disadvantage at long range, and the first that hits deals one more weapon die | Sharpshooter: no -5/+10; three-quarters cover still counts; all of it rests on standing still |
+| **Long Guard** | Polearm Master's | STR 13 | With a reach weapon in hand: **Keep Back** -- the reaction when a creature seen moves into reach: a STR save (DC 8 + proficiency + STR) or it is pushed 5 ft back out of reach and its move ends; **Set Against the Charge** -- one that moved 20 ft or more straight at the hero this turn and ends within reach: the next hit on it before the end of the hero's next turn deals one more weapon die | Polearm Master: no blow with the haft, no attack when a creature comes into reach -- it holds a foe off and punishes the charge. Not Sentinel either: the foe is pushed back, not held |
+| **Fortune's Due** | Lucky's | -- | Each missed attack, failed save or failed check gives a **Due** (three at most; all gone at a short or long rest). After rolling a d20 and before its outcome, spend every Due to add 1d4 apiece | Lucky: no rerolls, nothing at the start of the day, no say over an attacker's roll -- it fills only from the hero's own misses and adds dice instead of rolling again. Nearest in the SRD: Bardic Inspiration, a die another gives |
+
+### 6.4 The curse spell: Gnawing Word (DRAFT) -- Hex's role
+
+**Gnawing Word** -- 1st level, enchantment, warlock. A bonus action; range 60 ft; concentration, up to 1 minute. A creature the caster can see: until the spell ends, each time the caster hits it with an attack, it takes psychic damage equal to the number of times the caster has hit it since casting -- 1, then 2, then 3, up to 5. The spell ends when the creature drops to 0 HP. *At higher levels:* the most rises by 2 for each slot level above 1st. **NOT** Hex: no curse on an ability's checks, no moving to a new target, a minute not an hour, and damage that grows with each hit instead of a die a hit. With two Eldritch Blast beams that land: 3, 7, 10, 10 over four rounds, against Hex's 7 each round -- behind at first, level by the fourth. Also in `spells-srd-by-class.md` ("Ours, not the SRD's").
