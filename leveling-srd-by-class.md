@@ -3,7 +3,7 @@ layer: reference, to rule. Every decision a hero makes at a new level, counted a
 written: 2026-10-29, the leveling seat (a Claude Code desktop Code tab on ggpc, config echo claude-opus-5-5, door 2026-10-29T23:16Z), started by the lanes desk. What the SRD gives: read off `srd/classes/*.md`, `srd/03-beyond-1st-level.md` and `srd/05-feats.md`. What is built: read off `js/rules.js` (R.SUBCLASSES, R.FEATS, R.STYLES) and `deep16/js/classes.js` (NPC.CLASSES, NPC.SUBS, NPC.OPTIONS). The PHB's and DMG's options are named only, each beside what of ours must not be it.
 revised: 2026-10-30, the same seat, twice on his answers (§0): the count against PHB-and-DMG play; then the SD naming revoked and good names back, every feat open by its score, his metric for "distinct", multiclassing ruled out of the story game for now.
 companion: `..\leveling-feats-side-by-side.md` -- the drafted feats beside the PHB feat each is distinct from, for the reading lamp (`reading-lamp.html`).
-status: PROPOSED, with his rulings of 10-29 and 10-30 folded in (§0). **Nothing here is built by being listed** but what is marked BUILT; every draft and every lean is his to overrule.
+status: PROPOSED, with his rulings of 10-29 and 10-30 folded in (§0); §5 ranks the PHB-only things veterans will miss (10-30). **Nothing here is built by being listed** but what is marked BUILT; every draft and every lean is his to overrule.
 ---
 
 # The level choices, for DRAGONSLEEP
@@ -123,3 +123,47 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 2. *(The six drafted feats: APPROVED 10-30, *"approve all in the side by side"*; built one at a time on his word.)*
 4. **Schoolbound** -- its spot and its shape (§3).
 3. **Stab Debut's cost** -- built free, once a turn; standing unless he says the bonus action.
+
+## 5. What veterans will miss (ranked, 10-30)
+
+Griz, by the lanes desk (10-30 ~02:00Z): *"I need a list of the stuff from the PHB we can't use that veteran players are most likely to miss, so our customs for those can be servicable"*. Nothing here is built by being listed.
+
+**How it was made.** Each candidate checked against the repo's SRD, not from memory: the spells against `srd/spells/level-N.md` (all 319 read by a script -- Hunter's Mark, Hellish Rebuke, Misty Step, Spiritual Weapon, Healing Word, Shield and Branding Smite are the SRD's; the spells named below are not, and none of them is in the game's data); the races against `srd/01-races.md` (one subrace a race); the backgrounds against `srd/03-beyond-1st-level.md` (the Acolyte alone); the feats against `srd/05-feats.md` (Grappler alone). The fighting styles have no gap: the PHB's six are the SRD's. The rank is the seat's judgement, not a measurement: how often tables pick each (the common builds; the pick rates D&D Beyond has published), and whether a class's identity rests on it. Each line names the PHB thing only, then its play role, what covers it now, and what a serviceable custom of ours must do -- ours in name, words and whole (his metric, §0); where the count (§1) already wants one of ours, the line says so.
+
+1. **Variant human** (a race option) -- *a feat at 1st level: the build online from the start.* Covers: nothing (the maker's human is the SRD's, +1 to every score). Custom: a human option of ours that gives one signature pick at 1 from our own feats, in place of the +1s -- the races lane's.
+2. **Great Weapon Master** (feat) -- *the two-hander's all-in swing, and a follow-up when a blow fells or crits.* Covers: nothing (Threshing's die is the Threshing Floor's alone). Custom: a heavy-weapon feat of ours that trades its own thing (accuracy, defence) for a big hit.
+3. **Sharpshooter** (feat) -- *the archer's long shot through cover, all-in for damage.* Covers: the SRD's Archery style (+2 to hit) only. Custom: an archer's feat of ours -- range and cover answered, a power shot of its own shape.
+4. **Circle of the Moon** (druid) -- *the druid who fights in beast shape.* Covers: nothing (the Land is the SRD's; Wild Shape is built). Custom: the druid's one circle short (§1) -- Wild Shape made a front-line choice its own way.
+5. **Battle Master** (fighter) -- *a fighter with a menu of tricks every turn.* Covers: the Threshing Floor (built) is a fighter of ours, not a menu. Custom: the fighter's second of ours (§1) -- a small per-rest menu of our own tricks, no superiority dice.
+6. **War Caster** (feat) -- *the caster who keeps concentration in a melee.* Covers: **Hold the Thread** (approved) -- serviceable for the heart of it.
+7. **Polearm Master** (feat) -- *the reach fighter: the haft strikes too, and coming near costs a blow.* Covers: nothing. Custom: a reach-weapon feat of ours.
+8. **Hex** (warlock spell, 1st) -- *the warlock's own curse riding every Eldritch Blast.* Covers: the SRD's Hunter's Mark (on the ranger's list, not the warlock's) and Bestow Curse (3rd); the Mirror's Gaze for a warlock of the Mirror alone. Custom: a 1st-level warlock spell of ours, a curse of its own on each hit (the spells register's "Ours").
+9. **Lucky** (feat) -- *rerolls kept for the roll that matters.* Covers: nothing (the halfling's Lucky trait, a 1 rerolled, is the SRD's and a halfling's). Custom: a fortune feat of ours.
+10. **Path of the Totem Warrior** (barbarian) -- *the bear: the barbarian nothing hurts.* Covers: the Path of the Sand (ours) meets the count, in another role. Custom: none wanted for the count; the tank role would be a second path of ours, on his word.
+11. **Assassin** (rogue) -- *the ambush burst.* Covers: **Cutthroat's Stab Debut** (built) -- serviceable.
+12. **Arcane Trickster** (rogue) -- *the rogue with a little magic and an unseen hand.* Covers: nothing. Custom: the rogue's second of ours (§1), a small magic of its own.
+13. **Sentinel** (feat) -- *the guard who holds a foe in place.* Covers: **Stand In** (approved) protects another way; the hold is open. Custom: a feat of ours that pins a foe to its guard.
+14. **Eldritch Knight** (fighter) -- *the fighter who casts.* Covers: nothing. Custom: a third fighter of ours, on his word (the count asks for one more; the Battle Master's role comes first).
+15. **Resilient** (feat) -- *one more save made proficient (a caster's CON).* Covers: nothing. Custom: a plain save feat of ours.
+16. **Crossbow Expert** (feat) -- *the hand-crossbow duelist, shooting in melee.* Covers: nothing. Custom: a crossbow feat of ours.
+17. **Alert** (feat) -- *first in the order, never caught unaware.* Covers: nothing for most (Feral Instinct is the SRD barbarian's). Custom: an initiative feat of ours.
+18. **Mobile** (feat) -- *hit and run.* Covers: nothing (the Grey Road's Give Ground is a ranger's). Custom: a skirmisher's feat of ours.
+19. **The paladin's smite spells** (Thunderous, Wrathful, Searing, Blinding, Staggering and Banishing Smite) -- *a smite for each kind of trouble.* Covers: Divine Smite and Branding Smite (the SRD's, built). Custom: one or two smite spells of ours.
+20. **The warlock's other patrons** (the Archfey, the Great Old One) -- *the fey trickster, the mind-horror.* Covers: the Fiend (SRD) and the Mirror (ours); the count wants one more. Custom: a patron of ours.
+21. **Oath of Vengeance** (paladin) -- *the hunter paladin, sworn against one foe.* Covers: the Oath of the Green Return (drafted) plays another role. Custom: one of the paladin's two more of ours (§1).
+22. **Way of Shadow** (monk) -- *the stealth monk who steps through darkness.* Covers: nothing. Custom: one of the monk's two of ours (§1).
+23. **Beast Master** (ranger) -- *the ranger and an animal companion.* Covers: the Grey Road (ours) meets the count; the companion is open (familiars are built). Custom: only if he wants the companion.
+24. **School of Divination** (wizard) -- *foreseen rolls to spend.* Covers: nothing. Custom: one of the wizard's six of ours (§1).
+25. **The cleric's other domains** (Light, Tempest and War first; Knowledge, Nature, Trickery; the DMG's Death) -- *the blaster priest, the storm priest, the battle priest.* Covers: the Window and the Vigil (ours) play other roles. Custom: among the cleric's five of ours (§1).
+26. **Wild Magic** (sorcerer) -- *the chaos caster.* Covers: Schoolbound (his idea, unplaced) plays another role. Custom: the sorcerer's one short (§1), if not Schoolbound.
+27. **Magic Initiate** (feat) -- *a few spells from another class.* Covers: nothing (Second Draft changes only what is ready). Custom: a borrowed-magic feat of ours.
+28. **Shield Master** (feat) -- *the shield that shoves.* Covers: SHOVE, the SRD's action, is built. Custom: a shield feat of ours.
+29. **Tough** (feat) -- *more hit points.* Covers: nothing. Custom: a plain hit-point feat of ours.
+30. **The ranger's strike spells** (Ensnaring Strike, Hail of Thorns, Lightning Arrow, Swift Quiver, Conjure Barrage) -- *the archer's spell-shots.* Covers: Hunter's Mark (SRD). Custom: a strike spell or two of ours.
+31. **The other subraces** (mountain dwarf, wood elf, drow, stout halfling, forest gnome) -- *the armoured dwarf, the quick hidden elf, the elf of the deep.* Covers: the SRD's one subrace a race on the maker. Custom: a second subrace of ours a race -- cheap; the races lane's.
+32. **Armor of Agathys** (warlock spell) -- *cold armour that bites back.* Covers: False Life (SRD; Fiendish Vigor, built). Custom: a ward spell of ours.
+33. **College of Valor** (bard) -- *the bard who fights in armour.* Covers: nothing. Custom: the bard's one short (§1).
+34. **The middle feats** (Heavy Armor Master, Inspiring Leader, Mage Slayer, Elemental Adept, Spell Sniper, Defensive Duelist, Skulker, Observant, Dual Wielder) -- *each a build's finishing touch.* Covers: Symmetric Fighting (his) sits near Dual Wielder; Sudden Dark near Skulker. Custom: within the 34 feats still short (§3), after the ranks above.
+35. **The rest of the 42** (Actor, Athlete, Charger, Dungeon Delver, Durable, the three Armored, Keen Mind, Linguist, Martial Adept, Medium Armor Master, Mounted Combatant, Ritual Caster, Savage Attacker, Skilled, Tavern Brawler, Weapon Master, Healer) -- *rarely a build's reason.* Covers: Second Draft (near Ritual Caster), Untempled (near Healer). Custom: last of the 34.
+
+**Left missed (the seat's lean):** the PHB's backgrounds past the Acolyte (their features are table play; the game's heroes carry their own); the lesser PHB spells (Witch Bolt, Friends, Blade Ward, Thorn Whip, Chromatic Orb, Dissonant Whispers, Compelled Duel, Cloud of Daggers, Phantasmal Force, Crown of Madness, Hunger and Arms of Hadar, Elemental Weapon, Destructive Wave, Grasping Vine, Aura of Vitality, Ray of Sickness) until a class's list feels thin; the Way of the Four Elements (rarely picked: the monk's two of ours can take other roles).
