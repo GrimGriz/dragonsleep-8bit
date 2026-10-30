@@ -6814,6 +6814,27 @@
 }
 }
 },
+"jory_p1": {
+"image": "art/jory_p1.png?v=db27952872",
+"fw": 35,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 35,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/jory/ART-123-JORY/ART-123-JORY_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-JORY, 10-30), cut by tools/keeper-town-sheet.py",
+"door": "npc:jory"
+},
 "kael_p1": {
 "image": "art/kael_p1.png?v=decbc96d08",
 "fw": 38,
@@ -13391,6 +13412,102 @@ true
 "art": "ART-81",
 "door": "keeper:hessle",
 "source": "deep16/_src/hessle/ART-81 (the art desk's ART-81, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_jory": {
+"image": "art/pt_jory.png?v=7d41d84d38",
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 174,
+"fh": 156,
+"ax": 91,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-JORY",
+"door": "npc:jory",
+"source": "deep16/_src/jory/ART-123-JORY (the art desk's ART-123-JORY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_kael": {
 "image": "art/pt_kael.png?v=206f6a3ee8",
