@@ -6366,6 +6366,44 @@
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
   // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
   // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
+  // THE WET ON THE CLOCK (mode=house1030; the house seat of 10-29 night again, on Griz's "3 yes, and I just played the wet last night, what do you mean runs in a game?"): the
+  // Wet walked into in a game (the stalls' stair, js/mines.js M.go -- the house's floor since 10-22) on THE WORLD's clock: its walk nothing (on the diamonds), a fight there
+  // fifteen minutes -- the Settling's and the Keeper's pulled-in fights counted too (js/roam.js R.pullIn); the Wet's test door's hour no longer lost to a fight (M.pass); and
+  // the mouths' `outdoors` no ceiling (`sky` is a map's ceiling in ft: js/grid.js G.skyFt -- 4b736a6b had laid `sky: true` there, a ceiling a foot up)
+  if (get('mode', '') === 'house1030') {
+    var repQ = { checks: [], errors: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, HQ = D.house, MQ = D.mines, WQ = D.world;
+    function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveQ(g, until, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { if (until && until()) return; st = g.next(v); v = undefined; if (st.done) return; } }
+    function topQ() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function walkQ(B, to) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveQ(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveQ(B.co, function () { return D.top() !== B; }, 80); return p.length; }
+    function openQ(B, n) { var t = B.roam.token, best = null; for (var dy = -n; dy <= n && !best; dy++) for (var dx = n; dx >= -n && !best; dx--) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== n) continue; var s = D.grid.map.at(t.x + dx, t.y + dy); if (s && s.open && !s.deep && !D.grid.occupant(t.x + dx, t.y + dy) && !(D.roam.def.src8.triggers || []).some(function (r) { return r.rect && t.x + dx >= r.rect[0] && t.y + dy >= r.rect[1] && t.x + dx < r.rect[0] + r.rect[2] && t.y + dy < r.rect[1] + r.rect[3]; })) { var p = D.roam.walkRoute(t, [t.x + dx, t.y + dy]); if (p && p.length === n) best = [t.x + dx, t.y + dy]; } } return best; }
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1030);
+      // 0. the Wet's test door, before any game is begun on the page: a fight's fifteen minutes on its own hour (no NaN)
+      D.push(D.roam.make('?roam=wet&hour=9')); var BT = topQ(); BT.roam.fights = (BT.roam.fights || 0) + 1; driveQ(MQ.tick(BT), null, 40); var hT = MQ.hourNow(D.roam.q, BT);
+      okQ('the Wet\'s test door (&hour=9): a fight, ' + hT, hT === 9.25);
+      while (D.scenes.length) D.pop();
+      // 1. IN A GAME: Silverton at 21:00, then the stalls' stair down (M.go, as the stalls' warp takes it), the Wet on THE WORLD's clock
+      HQ.begin(HQ.fresh(), 0); var BS = topQ(), SQ = WQ.state(); SQ.t = Math.floor(SQ.t / 24) * 24 + 21;
+      driveQ(MQ.go(BS, 'wet', [2, 12], MQ.FACE.right), function () { return D.roam.def && D.roam.def.wet === true && D.top() && D.top().roam; }, 400); var BW = topQ(), dW = D.roam.def, RW = BW && BW.roam;
+      okQ('in a game, down the stalls\' stair: the Wet (' + (dW && dW.name) + ', the house ' + D.roam.house() + ', on the diamonds ' + (MQ.isoFloor && MQ.isoFloor(dW)) + ', THE WORLD at ' + (SQ.t % 24) + ':00)', !!RW && dW.wet === true && D.roam.house() && !!MQ.isoFloor && MQ.isoFloor(dW) && SQ.t % 24 === 21);
+      var t0 = SQ.t, nW = 0; for (var s1 = 0; s1 < 3; s1++) { var toW = openQ(BW, 2); if (toW) nW += walkQ(BW, toW) || 0; } var t1 = SQ.t;
+      RW.fights = (RW.fights || 0) + 1; var toW2 = openQ(BW, 1); if (toW2) walkQ(BW, toW2); var t2 = SQ.t;
+      okQ('its walk spends nothing (' + nW + ' squares: ' + (t0 % 24) + ' -> ' + (t1 % 24) + '); a fight there, fifteen minutes at the next step (' + (t1 % 24) + ' -> ' + (t2 % 24) + ')', nW >= 4 && t1 === t0 && t2 === t0 + 0.25);
+      // the Settling pulled in counts as a fight (R.pullIn): its first beat, then let go
+      var f0 = RW.fights, gP = D.roam.pullIn(BW, 'wet', { id: 'bench' }, [RW.token.x, RW.token.y]); try { gP.next(); } catch (eP) { } var f1 = RW.fights; try { gP.return(); } catch (eP2) { }
+      while (D.scenes.length && D.top() !== BW) D.pop(); D.battle = BW; D.grid.setup(BW.map, BW.units);
+      okQ('the Settling pulled in counts on the floor\'s fights (' + f0 + ' -> ' + f1 + '), as an encounter\'s does', f1 === f0 + 1);
+      // 2. the mouths open to the sky, not roofed a foot up
+      HQ.playing = false; HQ.cur = null; while (D.scenes.length) D.pop(); D.push(D.roam.make('?roam=warrens&hour=23')); var BC = topQ(), dC = D.roam.def, ceil = D.grid.skyFt(BC.roam.token, BC.roam.token.x, BC.roam.token.y);
+      okQ('the mouth camp outdoors (' + dC.outdoors + ', night ' + dC.night + ') with no ceiling (' + JSON.stringify(dC.sky) + ', G.skyFt ' + JSON.stringify(ceil) + ')', dC.outdoors === true && dC.night === true && dC.sky == null && ceil == null);
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    D.store.get = stGQ; D.store.set = stSQ; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // THE ROAM CLOCK BY THE VIEW (mode=house1029o; the house seat of 10-29 night again, on Griz's "Lenient time per square walked on top down roams, clock by event on iso roams (to
   // include the new dwarven road)", relayed by the lanes desk): his route walked in a game -- Silverton's street square by square, out by the feed track (nothing spent), the
   // Warrens' mouth camp square by square at the street's rate, a fight there fifteen minutes, the night walked into the dawn; and an iso floor walked with nothing spent till a fight,
@@ -6445,8 +6483,8 @@
       while (D.top() !== BW && D.scenes.length > 1) D.pop();
       // the Galleries' mouth by the hour, and a floor under the rock left to its own dark
       var gN = MN.floor('galleries', '', {}, 23), gD = MN.floor('galleries', '', {}, 18), gM = MN.floor('galleries', '', {}, 12), wB = MN.floor('warrens_b', '', {}, 23);
-      okN('the Galleries\' mouth by the hour: night at 23 (' + gN.night + '), dusk at 18 (' + gD.dusk + '), neither at noon (' + gM.night + ', ' + gM.dusk + '); the stalls under the rock not the sky\'s (' + !!wB.sky + ', its dark ' + wB.dark + ')',
-        gN.night === true && gD.dusk === true && !gD.night && gM.night === false && gM.dusk === false && !wB.sky && !wB.night);
+      okN('the Galleries\' mouth by the hour: night at 23 (' + gN.night + '), dusk at 18 (' + gD.dusk + '), neither at noon (' + gM.night + ', ' + gM.dusk + '); the stalls under the rock not the sky\'s (' + !!wB.outdoors + ', its dark ' + wB.dark + '); the mouths\' ceiling as any map\'s (`sky`, js/grid.js G.skyFt: ' + gN.sky + ', the camp\'s ' + dW.sky + ')',
+        gN.night === true && gD.dusk === true && !gD.night && gM.night === false && gM.dusk === false && !wB.outdoors && !wB.night && gN.sky == null && dW.sky == null);
       MN.floor('warrens', '', {}, WN.hour()); D.roam.def = dW2; // (M.floor writes D.MAPS: the floor's own put back)
       // 2. THE KEEPERS' WATCH (js/town.js T.watch): Skarn drawn all round at his camp turns to the party within T.WATCH squares and in his sight, and back as it goes
       var sk = BW.units.filter(function (u) { return u.npc === 'skarn'; })[0], tk = BW.roam.token, open = function (x, y) { var s = D.grid.map.at(x, y); return !!s && s.open && !D.grid.occupant(x, y); };

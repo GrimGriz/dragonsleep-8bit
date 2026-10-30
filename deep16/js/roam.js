@@ -907,6 +907,7 @@
   // ------------------------------------------------------------------ a fight elsewhere, pulled in, and back
   R.pullIn = function* (B, which, trig, at, start, how) {
     var R0 = B.roam; R0.pulling = which; // (till its last line is said: the bench waits on it)
+    if (which !== 'field') R0.fights = (R0.fights || 0) + 1; // (the Settling's and the Keeper's fights on THE WORLD's clock too, as a field's callers count theirs: js/mines.js M.tick -- 10-30)
     try { yield* R.pullIn0(B, which, trig, at, start, how); } finally { delete R0.pulling; }
   };
   R.pullIn0 = function* (B, which, trig, at, start, how) {
@@ -2142,7 +2143,7 @@
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
-      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') + (R.def.hours && D.hours ? ', ' + D.hours.band(D.hours.hourNow(R.q, B)) : '') + (R.def.sky && D.world && D.world.todAt ? ', ' + D.world.todAt(R.def.hour) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
+      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') + (R.def.hours && D.hours ? ', ' + D.hours.band(D.hours.hourNow(R.q, B)) : '') + (R.def.outdoors && D.world && D.world.todAt ? ', ' + D.world.todAt(R.def.hour) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)

@@ -23,11 +23,11 @@
   // the floors: the first game's map, the door they are saved by (js/world.js W.DOORS -- the house's save names it: js/roam.js R.canSave), where the party comes in by
   // each gate [x, y, facing], and whether a SAVE is had there (the first game's own rule: its mouths save, its worked floors below are `save: false`)
   M.FLOORS = {
-    warrens: { src: 'warrens_a', door: 'warrens', place: 'The Crawler Warrens', sub: 'the mouth camp', save: true, out: 'silverton', sky: true, // (sky: open to it, drawn by the hour -- M.skyAt)
+    warrens: { src: 'warrens_a', door: 'warrens', place: 'The Crawler Warrens', sub: 'the mouth camp', save: true, out: 'silverton', outdoors: true, // (outdoors: open to the sky, drawn by the hour -- M.skyAt; not `sky`, which is a map's ceiling in ft, js/grid.js G.skyFt)
       gates: { feed: [20, 17, [0, -1]] } }, // (in off the feed track on the road below the bridge, where the first game's world warp sets the party down: content/maps/world.json)
     warrens_b: { src: 'warrens_b', place: 'The Crawler Warrens', sub: 'the stalls and the lit galleries', save: false },
     warrens_c: { src: 'warrens_c', place: 'The Crawler Warrens', sub: 'the abandoned workings', save: false },
-    galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world', sky: true,
+    galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world', outdoors: true,
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
       doors2: [{ id: 'keeper:galbunk', x: 3, y: 12 }] }, // (the second game's own door in the first game's wall: the hands' bunkhouse, M.INNS -- M.floor lays it, the first game's map unwritten)
     // (over: the second game's own squares over the first game's, by the flags -- M.over8; dark and lamps: the working gallery lit only from the mouth -- M.MOUTHLIGHT)
@@ -200,7 +200,7 @@
     var faceLad = F.ledges ? M.ledgeFaces(rows, { rows: r8, legend: leg }, M.ladders8(m8), m8.warps) : null; // (the scrapers' ladders up the rock faces: M.LEDGES)
     var def = D.MAPS[key] = {
       name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!(m8.dark || F.dark), ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
-      clock: !!F.clock, hour: hour, sky: !!F.sky, skyLights: F.sky ? M.skyLamps(r8, leg, marks.doors) : null, ownLights: m8.lights || M.lampLights(key, F, { rows: r8, legend: leg }, people, hour), // (the working gallery's mouth and hooded lamps: M.MOUTHLIGHT) (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
+      clock: !!F.clock, hour: hour, outdoors: !!F.outdoors, skyLights: F.outdoors ? M.skyLamps(r8, leg, marks.doors) : null, ownLights: m8.lights || M.lampLights(key, F, { rows: r8, legend: leg }, people, hour), // (the working gallery's mouth and hooded lamps: M.MOUTHLIGHT) (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
@@ -208,7 +208,7 @@
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
-      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + (iso ? ', on the grid\'s diamonds as the Wet is (' : ', north up as Silverton is (') + w + ' x ' + h + ' squares)' + (F.clock || F.sky ? ', ' + W8tod(hour) : '') + '.',
+      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + (iso ? ', on the grid\'s diamonds as the Wet is (' : ', north up as Silverton is (') + w + ' x ' + h + ' squares)' + (F.clock || F.outdoors ? ', ' + W8tod(hour) : '') + '.',
         ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], M.bunkLine(marks.doors, flags), ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
       where: function () { return F.sub; }
     };
@@ -726,7 +726,7 @@
     var sf = D.fight ? D.fight('cloaker') : {}, F = M.fieldDef(R.def, ['cloaker'], false, { line: sf.intro }, [t.x, t.y]);
     Object.assign(F, { story: true, gimmick: sf.gimmick || 'darkness', music: sf.music || 'boss', name: sf.name || 'The Cloaker', sub: sf.sub || 'the deep gallery', won: sf.won || F.won,
       intro: sf.intro || F.intro, oneLeavesAll: true }); // (oneLeavesAll: a getaway takes the party, as the floors' fights do -- js/battle.js takesParty)
-    R.party0.backTo = R.def.sub;
+    R.party0.backTo = R.def.sub; R0.fights = (R0.fights || 0) + 1; // (on THE WORLD's clock: M.tick, 10-30)
     var fb = null, rec = R.house() ? { fight: 'cloaker', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
     var watch = /[?&]watch\b/.test(R.q || '');
     var enter = function (b) { fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
@@ -1103,16 +1103,19 @@
   // the deep gallery, Web Gulch, and any iso roam to come -- the dwarven road) spends nothing by the walk, only by its events. A fight is fifteen minutes on every floor
   // (js/world.js W.FIGHT_HOURS), counted at the next step; a rest is the bed's own (M.sleep, M.seepFire)
   M.walkFt = function () { return (D.hours && D.hours.FT_HOUR) || 15000; };
+  // (the Wet too, since 10-30, Griz's "3 yes, and I just played the wet last night": the house's floor since 10-22, on the diamonds -- its fights, the Settling and the Keeper
+  // among them, fifteen minutes each, its walk nothing)
+  M.isoFloor = function (def) { return !!(def && (def.iso || (def.wet === true && def.view !== 'top'))); };
   M.tick = function* (B) {
-    var R0 = B.roam, def = D.roam.def, C = (M.FLOORS[def.key] || {}).rate || (def.clock ? M.SEEP : null), hrs = 0;
-    if (!def.iso && C) { R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; } }
-    else if (!def.iso) { R0.hourFt = (R0.hourFt || 0) + (def.ft || 30); if (R0.hourFt >= M.walkFt()) { R0.hourFt -= M.walkFt(); hrs++; } }
+    var R0 = B.roam, def = D.roam.def, iso = M.isoFloor(def), C = (M.FLOORS[def.key] || {}).rate || (def.clock ? M.SEEP : null), hrs = 0;
+    if (!iso && C) { R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; } }
+    else if (!iso) { R0.hourFt = (R0.hourFt || 0) + (def.ft || 30); if (R0.hourFt >= M.walkFt()) { R0.hourFt -= M.walkFt(); hrs++; } }
     if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * ((C && C.fightHours) || (D.world && D.world.FIGHT_HOURS) || 0.25); R0.clockFights = R0.fights; }
     if (hrs) yield* M.pass(B, hrs);
   };
   M.pass = function* (B, hrs) {
     var W = D.world, S = W && W.state && W.state(), R0 = B.roam;
-    if (D.roam.house() && S && S.t != null) { S.t += hrs; W.save(); } else R0.hour = ((R0.hour != null ? R0.hour : D.roam.def.hour) + hrs) % 24;
+    if (D.roam.house() && S && S.t != null) { S.t += hrs; W.save(); } else R0.hour = ((R0.hour != null ? R0.hour : D.roam.def.hour != null ? D.roam.def.hour : M.hourNow(D.roam.q, B)) + hrs) % 24; // (a floor with no hour of its own, the Wet's test door: the door's)
     var lo = D.roam.house() && D.house.lightsOut ? D.house.lightsOut(B) : []; if (lo.length) B.card(D.roam.wrap(['{g}' + lo.join(' ') + '{/}']), 220); // (a Light's hour up on the floor: js/house.js H.lightsOut, 10-28)
     yield* M.light(B);
   };
@@ -1129,10 +1132,10 @@
   // THE SKY OVER THE MOUTHS (10-29 night, the house seat, on Griz's "Silverton at night = morning in warrens by the time you get there?" -- his meaning, "is time being held
   // properly and applied to locations other than silverton', experienced as leaving by the silverton shortcut entrance to warrens at night and arriving south side warrens
   // entrance in daylight"): the hour was held -- the feed track spends none (M.cross), and the floor is laid at THE WORLD's hour (M.hourNow) -- but a floor open to the sky
-  // drew no night: only Silverton's street had one (js/hours.js H16.paintNight). A floor with `sky` (M.FLOORS: the Warrens' mouth camp, the Galleries' mouth) is drawn by its
+  // drew no night: only Silverton's street had one (js/hours.js H16.paintNight). A floor `outdoors` (M.FLOORS: the Warrens' mouth camp, the Galleries' mouth) is drawn by its
   // hour as the street is -- night a dark wash cut away in pools at its lamps and lanterns and round the party, dusk a warm one -- and its hello and the HUD name the hour. The
   // hour holds on it as on every roam floor without a clock (his 10-21: "roams don't until mission completion"), and a bunk's night brings the morning onto it (M.sleep)
-  M.skyAt = function (def, h) { if (!def || !def.sky) return; var tod = W8tod(h); def.night = !!def.sky && tod === 'night'; def.dusk = !!def.sky && tod === 'dusk'; };
+  M.skyAt = function (def, h) { if (!def || !def.outdoors) return; var tod = W8tod(h); def.night = tod === 'night'; def.dusk = tod === 'dusk'; };
   M.skyLamps = function (r8, leg, doors) { // (its lamps and lanterns, and a lamp at each door's step -- the bunkhouses kept by their staff -- as the street's doors are lit)
     var out = []; r8.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (/^(lantern|lamp)$/.test(leg[r.charAt(x)] || '')) out.push({ x: x, y: y }); });
     Object.keys(doors || {}).forEach(function (k) { var q = doors[k]; if (q) out.push({ x: q[0], y: q[1], door: k }); });
@@ -1140,7 +1143,7 @@
   };
   M.SKY = { wash: 'rgba(6,8,30,0.72)', dusk: 'rgba(80,34,40,0.2)', glow: '255,170,90', party: 2.5, lamp: 3 }; // (the street's own: js/hours.js H16.NIGHT)
   M.paintSky = function (ctx, B) {
-    var def = D.roam && D.roam.def; if (!B || !def || !def.sky || !(def.night || def.dusk)) return;
+    var def = D.roam && D.roam.def; if (!B || !def || !def.outdoors || !(def.night || def.dusk)) return;
     var N = M.SKY, iso = D.iso, c = M.skyC || (M.skyC = document.createElement('canvas')); if (c.width !== D.W || c.height !== D.H) { c.width = D.W; c.height = D.H; }
     var x = c.getContext('2d'); x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, D.W, D.H); x.fillStyle = def.night ? N.wash : N.dusk; x.fillRect(0, 0, D.W, D.H);
     if (def.night) {
@@ -1155,7 +1158,7 @@
   var overSky0 = D.roam.paintOver;
   D.roam.paintOver = function (ctx, B) { try { M.paintSky(ctx, B); } catch (e) { } return overSky0.apply(this, arguments); };
   var arrive0 = D.roam.arrive;
-  D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.mine && B.roam && D.battle === B) yield* M.tick(B); return ev; }; // (every mine floor since 10-29 night: THE ROAM CLOCK BY THE VIEW)
+  D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && (D.roam.def.mine || D.roam.def.wet === true) && B.roam && D.battle === B) yield* M.tick(B); return ev; }; // (every mine floor since 10-29 night: THE ROAM CLOCK BY THE VIEW; the Wet since 10-30)
   // the floor's people named where the first game's npcs have no line of theirs (the Glowseep's crew), and a floor's own lights laid (its poles, its moss, the fire)
   var people0 = T.people;
   T.people = function (B) {
