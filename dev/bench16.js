@@ -4174,6 +4174,13 @@
       var LO = CHw.LAYOUT, wn8 = sc8.wins || [], frP8 = wn8.some(function (r) { return r.join() === LO.portrait.join(); }), wide8 = wn8.filter(function (r) { return r[0] === LO.words[0] && r[1] === LO.words[1]; })[0];
       okHw('no boxes round the two at the Hex\'s door: open ' + !!(sc8.sc && sc8.sc.o.open) + ', a frame where Papa stands ' + frP8 + ' (want false), his words\' box ' + (wide8 ? wide8[2] : 'none') + ' px wide (the screen\'s ' + LO.words[2] + ', run in under him by ' + CHw.OPEN.under + ')' + (wn8.err ? ' ERROR ' + wn8.err : ''),
         !!(sc8.sc && sc8.sc.o.open) && !frP8 && !!wide8 && wide8[2] === LO.words[2] + CHw.OPEN.under && !wn8.err);
+      // 9d. A SCENE ON THE FLOOR'S FIRST BEAT (10-30, his "we didn't get the fancy 'missions in your journal now' animation on my pane clickthrough of the dialogue"): Lymen
+      // leading, beside Papa before any beat has run (the show's door, and a NEW GAME that starts him there) -- the first look is taken before the scene, so the Company it gives
+      // still comes with its card and the fly-in (it had been swallowed as a save's own JOURNAL)
+      var B9d = newHw('lymen'); delete CHw.state(B9d).flags.qSeen; near(B9d, 'papa'); /* (as the show's door stands it: no first look yet -- the live tab had papaLymen and no qSeen) */ var due9d = HWw.due(B9d), nx9d = HWw.next && HWw.next.play === HWw.papaScene, sc9d = due9d ? scene(B9d) : { lines: [] };
+      var flew9d = 0, fly9d = HWw.fly; HWw.fly = function* () { flew9d++; yield* fly9d.apply(this, arguments); }; var c9d = beatHw(B9d); HWw.fly = fly9d;
+      okHw('a scene on the floor\'s first beat (Lymen beside Papa, no beat before it: Papa\'s next ' + nx9d + ', ' + sc9d.lines.length + ' lines): then the card "' + String(c9d || '').slice(0, 60) + '", the fly-in ' + flew9d + ' time(s)',
+        due9d && nx9d && sc9d.lines.length >= 5 && /In your JOURNAL: Company/.test(c9d || '') && flew9d === 1);
       // 10. THE PEOPLE BESIDE EACH LEAD'S START: Aldwin (Aurdin's), Marta (Vivian's), Kess (Barley's) -- each opens Finding Work with their own place first
       var B10 = newHw('aurdin'); beatHw(B10); driveHw(THw.fire(B10, trigHw('chapel:aldwin')), null, 2000); var al = RHw.def.room === 'chapel:aldwin' ? talkHw(B10, 'aldwin') : []; driveHw(THw.goOut(B10), null, 400);
       var fw10 = qHw(B10, 'work'), c10 = beatHw(B10);

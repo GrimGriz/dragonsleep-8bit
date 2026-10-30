@@ -1285,6 +1285,10 @@
     var sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10;
   };
   H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
-  H16.due = function (B) { H16.light(B); H16.breadTick(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
+  // the first look before any beat (10-30, his "we didn't get the fancy 'missions in your journal now' animation on my pane clickthrough of the dialogue"): a save from before
+  // has its JOURNAL taken as seen (H16.missionDue's rule) at the floor's first ask, not when the mission card's turn comes -- else a scene on the first beat (Papa's, the
+  // party starting beside him: the show's door, a Lymen-led NEW GAME) gave the Company, and the late first look swallowed its card and fly-in as the save's own
+  H16.firstLook = function (B) { var R = D.roam, st = B && B.roam && R.house && R.house() ? C.state(B) : null; if (!st || st.flags.qSeen) return; st.flags.qSeen = 1; H16.fresh(st).forEach(function (q) { st.flags['q:' + q.id] = 1; }); };
+  H16.due = function (B) { H16.light(B); H16.breadTick(B); H16.firstLook(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
   H16.beat = function* (B) { var b = H16.next; H16.next = null; if (b) yield* b.play(B); };
 })();
