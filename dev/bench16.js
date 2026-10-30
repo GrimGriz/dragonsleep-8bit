@@ -7181,6 +7181,75 @@
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
   // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
   // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
+  // THE SECOND GAME'S SITUATIONS FROM A LINK, 10-30 (mode=sit1030; deep16/js/situations16.js, js/house.js H.saveTo -- the house seat, started by the lanes desk on Griz's "yes to
+  // both"): each situation's save built from its words -- the party, the level as the level-up makes it, the gear, the pack, the JOURNAL open and done, the pin and its step,
+  // the place, THE WORLD's hour -- then opened as CONTINUE opens a slot: the floor, the house, the clock; SAVE refuses; and his slots, seeded, come out byte for byte
+  if (get('mode', '') === 'sit1030') {
+    var repSt = { checks: [], errors: [] }, memSt = {}, stGSt = D.store.get, stSSt = D.store.set, HSt = D.house, WSt = D.world, CSt = D.counter, RSt = window.DS.R, muSt = D.music;
+    function okSt(what, v) { repSt.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topSt() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function lsSt() { var o = {}; try { for (var i = 0; i < window.localStorage.length; i++) { var k = window.localStorage.key(i); o[k] = window.localStorage.getItem(k); } } catch (e) { } return JSON.stringify(o); }
+    function hisSt() { var o = {}; Object.keys(memSt).filter(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); }).sort().forEach(function (k) { o[k] = memSt[k]; }); return JSON.stringify(o); }
+    D.store.get = function (k) { return memSt[k] ? JSON.parse(memSt[k]) : null; }; D.store.set = function (k, v) { memSt[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1030);
+      // his slots, seeded as a game of his would leave them: the second game's three, the first game's, the door's snapshot, THE WORLD's walk
+      var mineSt = HSt.fresh('vivian'); mineSt.saved = 1; mineSt.flags.hisOwn = 1;
+      [1, 2, 3].forEach(function (n) { var r = JSON.parse(JSON.stringify(mineSt)); r.silver = 100 + n; memSt['deep16.game.' + n] = JSON.stringify(r); });
+      memSt['ds8-save-1'] = JSON.stringify({ party: [{ id: 'barley' }], saved: 5 }); memSt['deep16.handoff'] = JSON.stringify({ at: 4, save: { party: [] } }); memSt['deep16.world'] = JSON.stringify({ at: [0, 0], t: 99 });
+      var his0 = hisSt(), ls0 = lsSt(), four = 'lymen,barley,aurdin,vivian';
+      var EXP = {
+        company16: { party: 'lymen,aurdin', lvl: 2, open: ['company', 'work'], done: [], pin: 'company', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 11, site: 'silverton', give: [], silver: 5 },
+        taken16: { party: four, lvl: 2, open: ['work'], done: ['company'], pin: 'work', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 15, site: 'silverton', give: [], silver: 12 },
+        five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
+        cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 }
+      };
+      var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
+      okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
+      idsSt.forEach(function (id) {
+        var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
+        var rec = D.sit16 && D.sit16.save(id);
+        if (!rec) { okSt(id + ': no save built', false); return; }
+        // 1. THE PARTY at the level, each sheet as the level-up makes one (R.makeHero's loop of R.levelUp), its picks made, rested
+        var lvSt = [], okL = rec.party.map(function (h) { return h.id; }).join(',') === e.party && rec.lead === e.party.split(',')[0] && rec.hired.join(',') === e.party;
+        rec.party.forEach(function (h) {
+          var ref = RSt.makeHero(h.id, e.lvl > window.DS.DATA.heroes[h.id].level ? e.lvl : undefined);
+          lvSt.push(h.id + ' L' + h.lvl + ' ' + h.hp + '/' + h.maxhp + ' (made ' + ref.maxhp + ')' + (RSt.picksDue(h) ? ' PICKS DUE' : '') + (h.subclass ? ' ' + h.subclass : ''));
+          okL = okL && h.lvl === e.lvl && h.maxhp === ref.maxhp && h.hp === h.maxhp && h.xp === RSt.XP_LEVEL[e.lvl] && !RSt.picksDue(h) && !RSt.asking(h, 'archetype') && (h.slots || []).join() === (h.slotsMax || []).join();
+        });
+        okSt(id + ': the party ' + rec.party.map(function (h) { return h.id; }).join(',') + ' (lead ' + rec.lead + ', hired ' + rec.hired.join(',') + ') at level ' + e.lvl + ': ' + lvSt.join('; '), okL);
+        // 2. THE GEAR (the start's, what they bought by the level, a slot named) and THE PACK and THE PURSE
+        var gSt = [], okG = rec.party.every(function (h) { var want = Object.assign({}, window.DS.DATA.heroes[h.id].equip, (e.gear || {})[h.id] || {}); return Object.keys(want).every(function (sl) { var ok = (h.equip[sl] || null) === (want[sl] || null); if (!ok || (e.gear || {})[h.id]) gSt.push(h.id + ' ' + sl + ' ' + h.equip[sl]); return ok; }); });
+        var inv = rec.inv.map(function (x) { return x.id + ' ' + x.n; }).join(', ');
+        okSt(id + ': the gear (' + (gSt.join(', ') || 'as they start') + '), the pack (' + inv + '), ' + rec.silver + ' silver', okG && e.give.every(function (g) { return rec.inv.some(function (x) { return x.id === g && x.n > 0; }); }) && rec.silver === e.silver);
+        // 3. THE JOURNAL: the missions it shows, open and done, as C.quests reads this save; the pinned one and its step; seen, so no card flies
+        var st = { flags: rec.flags, inv: rec.inv, party: rec.party }, js = CSt.quests(st), shown = js.map(function (q) { return q.id + (q.done ? ' done' : ' open'); });
+        var pq = js.filter(function (q) { return q.id === rec.flags.pin; })[0], stp = pq && pq.step ? pq.step.npc || pq.step.site || pq.step.door || pq.step.map || '' : '';
+        okSt(id + ': the JOURNAL ' + shown.join(', ') + '; pinned ' + rec.flags.pin + (stp ? ' (its step: ' + stp + ')' : '') + '; seen ' + !!rec.flags.qSeen,
+          shown.slice().sort().join() === e.open.map(function (q) { return q + ' open'; }).concat(e.done.map(function (q) { return q + ' done'; })).sort().join() && rec.flags.pin === e.pin && (!e.step || stp === e.step) && !!rec.flags.qSeen && js.every(function (q) { return rec.flags['q:' + q.id]; }));
+        // 4. THE PLACE and THE WORLD's day and hour
+        var Mw = WSt.map('world'), sx = Mw && (Mw.sites || []).filter(function (s) { return s.id === e.site; })[0];
+        okSt(id + ': the place ' + rec.at.town + ' by the ' + rec.at.gate + ' gate' + (rec.at.sq ? ' on ' + rec.at.sq.join(',') : '') + '; THE WORLD at hour ' + (rec.world && rec.world.t) + ' on ' + (rec.world && rec.world.at && rec.world.at.join(',')) + ' (' + e.site + ')',
+          rec.at.town === e.town && rec.at.gate === e.gate && (!e.sq || !!rec.at.sq) && !!rec.world && rec.world.t === e.t && !!sx && rec.world.at.join() === sx.hex.join() && rec.situation === id && !rec.saved);
+        // 5. OPENED as CONTINUE opens a slot, in none: the town's floor in the house, the JOURNAL off the floor's flags, THE WORLD's clock; SAVE refuses
+        HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
+        D.sit16.open(id); var B = topSt(), R0 = B && B.roam, jn = CSt.journal(B), tk = R0 && R0.token;
+        okSt(id + ': opened -- ' + (D.roam.def && D.roam.def.key) + ' in the house ' + D.roam.house() + ', slot ' + HSt.slot + ', the token on ' + (tk && tk.x + ',' + tk.y) + ', pinned ' + (jn && jn.pin) + ', ' + (jn && jn.quests.length) + ' in the JOURNAL, THE WORLD at ' + (WSt.state() && WSt.state().t),
+          HSt.playing && HSt.cur && HSt.cur.situation === id && HSt.slot === 0 && !!R0 && D.roam.house() && D.roam.def.key === e.roam && !!jn && jn.pin === e.pin && jn.quests.length === e.open.length + e.done.length && WSt.state().t === e.t && (!rec.at.sq || (tk.x === rec.at.sq[0] && tk.y === rec.at.sq[1])));
+        var sv = HSt.saveTo(1), sl = new HSt.Slots('save'); sl.pick(0);
+        okSt(id + ': SAVE refuses (H.saveTo ' + sv + '; the slot page says "' + sl.msg + '")', sv === false && /situation keeps no save/.test(sl.msg || ''));
+      });
+      // 6. HIS SLOTS, byte for byte, after the four built, opened and asked to SAVE; the page's own storage as it was
+      var his1 = hisSt(), extra = Object.keys(memSt).filter(function (k) { return his0.indexOf('"' + k + '"') < 0; });
+      okSt('his slots untouched: deep16.game.1..3, ds8-save-1, deep16.handoff, deep16.world byte for byte (' + (his1 === his0 ? 'the same' : 'CHANGED') + '); the page\'s localStorage ' + (lsSt() === ls0 ? 'the same' : 'CHANGED') + '; written besides: ' + (extra.join(', ') || 'nothing'),
+        his1 === his0 && lsSt() === ls0 && !extra.some(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); }));
+    } catch (eSt) { repSt.errors.push(String(eSt && eSt.stack || eSt).slice(0, 900)); }
+    HSt.playing = false; HSt.cur = null; D.store.get = stGSt; D.store.set = stSSt; D.music = muSt;
+    var preSt = document.createElement('pre'); preSt.id = 'out'; preSt.textContent = 'BENCH16 ' + JSON.stringify(repSt);
+    document.body.appendChild(preSt);
+    return;
+  }
   // THE WET ON THE CLOCK (mode=house1030; the house seat of 10-29 night again, on Griz's "3 yes, and I just played the wet last night, what do you mean runs in a game?"): the
   // Wet walked into in a game (the stalls' stair, js/mines.js M.go -- the house's floor since 10-22) on THE WORLD's clock: its walk nothing (on the diamonds), a fight there
   // fifteen minutes -- the Settling's and the Keeper's pulled-in fights counted too (js/roam.js R.pullIn); the Wet's test door's hour no longer lost to a fight (M.pass); and

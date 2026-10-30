@@ -562,7 +562,7 @@
   };
   // SAVE: the game into a slot, from where they stand (the town's square, or the world's hex)
   H.saveTo = function (n) {
-    if (!H.playing) return false;
+    if (!H.playing || H.cur.situation) return false; // (a situation from a link keeps no save: his slots are his -- js/situations16.js, 10-30)
     H.trail('save', 'slot ' + n); H.slot = n; H.cur.saved = Date.now(); H.cur.v = H.V;
     return D.store.set(H.key(n), H.cur);
   };
@@ -883,6 +883,7 @@
   Slots.prototype.box = function () { var w = 300, h = 22 + H.SLOTS * 16 + 16, x = (D.W - w) / 2, y = (D.H - h) / 2; return { x: x, y: y, w: w, h: h }; };
   Slots.prototype.pick = function (i) {
     var n = i + 1, rec = H.read(n);
+    if (this.mode === 'save' && H.cur && H.cur.situation) { D.sfx('error'); this.msg = 'A situation keeps no save: its link starts it again.'; return; }
     if (this.mode === 'save') { var ok = H.saveTo(n); D.sfx(ok ? 'confirm' : 'error'); this.msg = ok ? 'Saved to slot ' + n + '.' : 'The save would not keep (the browser is full?).'; this.closeIn = ok ? 50 : 0; return; }
     if (!rec) { D.sfx('error'); this.msg = 'Slot ' + n + ' is empty.'; return; }
     D.sfx('confirm'); H.begin(rec, n);

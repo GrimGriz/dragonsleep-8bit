@@ -42,6 +42,7 @@
   try {
   if (/[?&]broke\b/.test(q) && !D.embed.on) D.push(new D.BrokeCard(new Error('a sample -- the page that broke says its own error here'))); // (the card, shown: ?broke)
   else if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
+  else if (D.sit16 && D.sit16.id(q)) D.sit16.open(D.sit16.id(q)); // a situation from a link: ?at=five16 -- a whole save from the door's words, opened as CONTINUE, kept in no slot (js/situations16.js, 10-30)
   else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
   else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
   else if (/[?&]roostfail\b/.test(q) && D.mines) D.push(new D.mines.RoostFail()); // the roost come down in a mine's fight: NOT THIS KIND OF NAME, the run's end, shown (js/mines.js, 10-22)

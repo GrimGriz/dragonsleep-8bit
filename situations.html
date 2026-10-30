@@ -82,6 +82,7 @@
 <div id="toast"></div>
 <script>window.DS = {};</script>
 <script src="js/situations.js"></script>
+<script src="deep16/js/situations16.js"></script>
 <script src="js/eyes.js"></script>
 <script>
 (function () {
@@ -115,6 +116,10 @@
     var E = window.DS.EYES || {}, S = window.DS.SITUATIONS || {}, all = [], n = 0;
     Object.keys(E).forEach(function (id) { all.push({ id: id, s: E[id], pri: E[id].pri || 3, eyes: true, o: n++ }); });
     Object.keys(S).forEach(function (id) { all.push({ id: id, s: S[id], pri: S[id].pri || 4, eyes: false, o: n++ }); });
+    // the second game's situations from a link (deep16/js/situations16.js, 10-30: his "is that something we can't do in the 16bit for these situations.html links?"): each a
+    // story row whose door is deep16/?at=<id>
+    var S16 = window.DS.SIT16 || {};
+    Object.keys(S16).forEach(function (id) { if (!S[id]) all.push({ id: id, s: Object.assign({ url: 'deep16/?at=' + id }, S16[id]), pri: S16[id].pri || 4, eyes: false, o: n++ }); });
     all.forEach(function (r) { r.done = noted(r.id) ? 1 : 0; });
     all.sort(function (a, b) { return a.pri - b.pri || a.done - b.done || (b.eyes - a.eyes) || (a.eyes ? dated(b.id) - dated(a.id) || b.o - a.o : a.o - b.o); });
     ROWS = all;
