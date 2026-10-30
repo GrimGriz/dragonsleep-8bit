@@ -11,12 +11,13 @@
 
   M.data = function (id) { return (window.DS.DATA.spells[id]) || (D.EXTRA_SPELLS || {})[id]; };
   // house rules the seat proposes, each a switch (torchdark, 09-28): Magic Missile may be aimed at a square the caster cannot see
-  // into -- "at the darkness" -- and its darts strike whatever stands there. OPEN for Griz's word (handoff 09-28 §3G)
-  D.RULES = D.RULES || {}; if (D.RULES.missilesAtTheDark == null) D.RULES.missilesAtTheDark = true;
+  // into -- "at the darkness" -- and its darts strike whatever stands there. RULED 10-30, Griz: "only easter egg magic missiles" -- off, and on only in the fight that
+  // carries the gimmick (data/fights.js `gimmick: 'darkness'`, the cloaker's deep gallery; js/mines.js the Galleries' cloaker): elsewhere the SRD's darts, at one the caster can see
+  D.RULES = D.RULES || {}; if (D.RULES.missilesAtTheDark == null) D.RULES.missilesAtTheDark = false;
   if (D.RULES.enlargeReach == null) D.RULES.enlargeReach = false; // (Enlarge +5 ft reach: a house rule, not the SRD's -- off; js/grid.js G.reachOf, 09-29)
   // a square Magic Missile may be thrown at blind: open, in range and line, and one the caster cannot see into (dark, darkness, fog)
   M.missileDark = function (B, u, g, x, y) {
-    if (!D.RULES.missilesAtTheDark || g.shape !== 'darts') return false;
+    if (g.shape !== 'darts' || !(D.RULES.missilesAtTheDark || (B && B.fight && B.fight.gimmick === 'darkness'))) return false;
     var s = G.map.at(x, y); if (!s || !s.open || !M.inRange(u, g, x, y)) return false;
     var v = M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} });
     return !v.ok && (v.why === 'dark' || v.why === 'darkness' || v.why === 'fog' || v.why === 'the cloud' || v.why === 'sleet');

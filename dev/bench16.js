@@ -2519,11 +2519,16 @@
         c9.moan.ready = !spent; D.rules.startTurn(a9); b9.active = a9; a9.slots = [4, 2]; var n0 = (b9.logEntries || []).length;
         driveGl(b9.exec(a9, { do: 'cast', id: 'magicmissile', slot: 1, target: { units: [0, 1, 2].map(function () { return { x: c9.x, y: c9.y, dark: true }; }) } }), null, 3000);
         var said = (b9.logEntries || []).slice(n0).map(function (e) { return e.text; }), r = { moans: said.filter(function (t) { return /moans\. The sound gets inside you/.test(t); }).length, found: said.some(function (t) { return /AT THE DARKNESS/.test(t); }), egg: !!b9.gimmickDone };
+        // (10-30, his "only easter egg magic missiles": the darts at a square unseen only in the fight that carries the gimmick -- the same square, the gimmick taken off, refused)
+        var gM9 = D.magic.geo('magicmissile'), sq9 = null; for (var y9 = 0; y9 < D.grid.map.h && !sq9; y9++) for (var x9 = 0; x9 < D.grid.map.w && !sq9; x9++) { var s9 = D.grid.map.at(x9, y9); if (s9 && s9.open && D.magic.inRange(a9, gM9, x9, y9) && !D.magic.seesSq(b9, a9, x9, y9)) sq9 = [x9, y9]; }
+        var gim9 = b9.fight.gimmick; r.darkOn = !!(sq9 && D.magic.missileDark(b9, a9, gM9, sq9[0], sq9[1])); b9.fight.gimmick = null; r.darkOff = !!(sq9 && D.magic.missileDark(b9, a9, gM9, sq9[0], sq9[1])); b9.fight.gimmick = gim9; r.sq = sq9;
         if (D.top() === b9) D.pop(); return r;
       };
       var m9s = moan9(true), m9u = moan9(false);
       okGl('the darts at the darkness with the Moan spent: found ' + (m9s && m9s.found) + ', the cutscene ' + (m9s && m9s.egg) + ', moans ' + (m9s && m9s.moans) + '; with it unspent: moans ' + (m9u && m9u.moans),
         !!m9s && m9s.found && m9s.egg && m9s.moans === 0 && !!m9u && m9u.moans === 1);
+      okGl('Magic Missile at the darkness only in the egg\'s fight (10-30, his "only easter egg magic missiles"): an unseen square ' + JSON.stringify(m9s && m9s.sq) + ' takes the darts with the gimmick ' + (m9s && m9s.darkOn) + ', without it ' + (m9s && m9s.darkOff) + ' (want true, false)',
+        !!m9s && !!m9s.sq && m9s.darkOn && !m9s.darkOff);
     } catch (eGl) { repGl.errors.push(String(eGl && eGl.stack || eGl).slice(0, 900)); }
     D.store.get = stGGl; D.store.set = stSGl; D.music = muGl; try { if (skGl != null) window.localStorage.setItem(SGl.KEY, skGl); } catch (eK2) { }
     var preGl = document.createElement('pre'); preGl.id = 'out'; preGl.textContent = 'BENCH16 ' + JSON.stringify(repGl);
