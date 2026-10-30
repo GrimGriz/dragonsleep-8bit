@@ -5189,7 +5189,7 @@
     function okFs(what, v) { repFs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     try {
       D.seed = 1030;
-      var Bf = D.fxGallery('?fxgallery&features&only=followthrough'); D.battle = Bf; Bf.enter();
+      var Bf = D.fxGallery('?fxgallery&features&only=followthrough'); D.battle = Bf; Bf.one = Bf.one || { shelf: 'features' }; Bf.enter(); // (the one gallery's pinned dice, B.one: on free dice the wide swing missed one run in five)
       var Sf = Bf.gallery, gf = 0, vf, rf = null;
       while (Bf.co && gf++ < 200000) { var st = Bf.co.next(vf); vf = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vf = y.prompt.opts[0].value; continue; } if (y.gallery) { rf = Sf.report.followthrough; break; } }
       var tail = (rf && rf.tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
