@@ -2068,7 +2068,7 @@
       okM('the night\'s door (hour 22): dark, the night\'s fights, the crew at the moss', D.roam.def.dark && D.roam.def.zone8 === 'glowseep_night' && BSN.units.filter(function (u) { return u.npc; }).every(function (u) { var c = MM.CREW.filter(function (z) { return z.id === u.npc; })[0]; return c && u.x === c.night[0] && u.y === c.night[1]; }));
       // THE HOUSE: Silverton's feed track to the camp and SAVE there; the stalls no SAVE; CONTINUE in the camp; the Galleries' mouth off THE WORLD's site, a SAVE, out by
       // its far edge onto THE WORLD, and CONTINUE there
-      HM.begin(HM.fresh(), 0); var BHS = topM();
+      var nrM = HM.fresh(); nrM.newGame = 1; HM.begin(nrM, 0); var BHS = topM(); // (NEW GAME's own: its SAVE writes -- a staged one's refuses since 10-30, mode=staged1030)
       walkM(BHS, [MM.FEED[0] - 1, MM.FEED[1]]); walkM(BHS, MM.FEED); var BHW = topM();
       okM('in the house: Silverton\'s feed track to the camp (' + D.roam.def.key + ', ' + (D.roam.house() ? 'the save\'s party' : 'NOT the house') + ', THE WORLD under it: ' + D.scenes.map(function (s) { return s.kind || 'roam'; }).join(' > ') + ')', D.roam.def.key === 'warrens' && D.roam.house() && D.scenes[0].kind === 'world' && BHW.roam.members.length === 4);
       okM('SAVE at the mouth camp (R.canSave ' + D.roam.canSave(BHW) + ')', D.roam.canSave(BHW));
@@ -7025,7 +7025,7 @@
       D.seed = +get('seed', 1022);
       // the show (deep16/?services): its beats, and the inn's -- a NEW GAME staged on Cassia's threshold
       var shV = CV.servicesShow('?services'); okV('the show deep16/?services: ' + CV.SERVICE_BEATS.length + ' beats (' + CV.SERVICE_BEATS.map(function (b) { return b.id; }).join(', ') + '), each a box to click', shV.buttons().length === CV.SERVICE_BEATS.length && typeof shV.draw === 'function');
-      var btC = CV.SERVICE_BEATS[0]; D.scenes.length = 0; D.push(shV); clickV(shV, shV.buttons()[0]); var B = topV(), R0 = B.roam, dqC = D.roam.def.marks.doors['inn:cassia'];
+      var btC = CV.SERVICE_BEATS[0]; D.scenes.length = 0; D.push(shV); clickV(shV, shV.buttons()[0]); var B = topV(), R0 = B.roam, dqC = D.roam.def.marks.doors['inn:cassia']; HV.cur.staged = false; // (it saves below as a NEW GAME's game saves: the show's own staged game refuses since 10-30, mode=staged1030)
       okV('the inn\'s beat: the house\'s floor on Cassia\'s threshold (' + R0.token.x + ',' + R0.token.y + ', the door ' + dqC + '), ' + R0.silver + ' sp, the four hurt (' + R0.members.map(function (u) { return u.id + ' ' + u.hp + '/' + u.maxhp; }).join(', ') + ')',
         HV.playing && D.roam.house() && R0.token.x === dqC[0] && R0.token.y === dqC[1] && R0.silver === 40 && R0.members.every(function (u) { return u.hp < u.maxhp; }));
       // CASSIA'S ROOMS (the first game's S.inn): her greeting and the long room's price, STAY / LEAVE
