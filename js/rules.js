@@ -325,12 +325,12 @@
   // own feat on the level-up pick, both games -- the 10-14 "ASI as the SRD has it with no feat row" lifted for these). The pick's SCORES tab offers them, each worth the
   // whole increase; taken, the sheet's `featIds` holds it (R.hasFeat). The class NPCs' builds and the Pocket DM's keep their increases (lean (d))
   // (a feat's classes, 10-29, the leveling lane §2.1 -- Griz, 10-28: "we still have fighter feats showing greyed out on rogue leveling": `cls`, the classes whose pick
-  // offers it, greyed there till its prerequisite is met; `any`, a feat any class may take by the SRD, offered on another class's pick only when it can be taken (R.featOn).
-  // The paladin keeps both as built till his word, the leveling lane §2.2: "lymen probably shouldn't be allowed fighter feats")
+  // shows it greyed till its prerequisite is met; `any`, a feat any class may take, offered on another class's pick only when it can be taken (R.featOn). Every feat is
+  // `any` since 10-30, as the PHB's are -- gated by a score, never a class (the leveling lane §2.2, Griz: "approaching SRD compliance silences this issue"))
   R.FEATS = {
-    symmetric: { name: 'Symmetric Fighting', str: 17, cls: ['fighter', 'paladin'], desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
+    symmetric: { name: 'Symmetric Fighting', str: 17, cls: ['fighter'], any: true, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
-    grappler: { name: 'Grappler', str: 13, cls: ['fighter', 'paladin'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
+    grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
   // a feat on a hero's pick: its own class's, or one any class may take whose prerequisite the hero meets on the scores before this increase (`took`)

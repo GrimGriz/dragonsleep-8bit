@@ -4659,6 +4659,10 @@
       var h3 = mkSd('Cutthroat'); h3.g.acted = true; pinSd([15]); var l3 = swingSd(h3).join(' / ');
       var h4 = mkSd('Thief'); pinSd([15]); var l4 = swingSd(h4).join(' / ');
       okSd('at one that has had its turn: no stab debut (' + !/stab debut/i.test(l3) + '); a Thief: none (' + !/stab debut/i.test(l4) + ')', !/stab debut/i.test(l3) && !/stab debut/i.test(l4) && />/.test(l3) && />/.test(l4));
+      // 5. a natural 20 on the stab (10-30, his "restore the 'on crit' properties to it"): a critical, and a half-orc's Savage Attacks ride it
+      var h5 = mkSd('Cutthroat'); h5.r.savage = true; pinSd([15, 20]); var l5 = swingSd(h5), i5 = -1; l5.forEach(function (s, i) { if (i5 < 0 && /\(stab debut\)/.test(s)) i5 = i; });
+      var deb5 = i5 < 0 ? '' : l5.slice(i5).join(' / ');
+      okSd('a 20 on the stab, Savage Attacks in her blood: "' + deb5.slice(0, 220) + '"', i5 > 0 && /CRITICAL/.test(deb5) && /savage \+/.test(deb5) && !/sneak/.test(deb5));
       // the words: the class's option and Vivian's own sheet say it
       var cutO = window.DS.R.subOpt('rogue', 'cutthroat'), vArc = ((window.DS.DATA.heroes.vivian || {}).archetypes || []).filter(function (a) { return a.name === 'Cutthroat'; })[0];
       okSd('the words: "' + (cutO && cutO.desc) + '" / Vivian\'s "' + (vArc && vArc.desc) + '"', cutO && /Stab Debut/.test(cutO.desc) && !/Opening Cut/.test(cutO.desc) && vArc && /Stab Debut/.test(vArc.desc) && !/Opening Cut/.test(vArc.desc));
@@ -4670,8 +4674,9 @@
   }
   // A CLASS'S PICK SHOWS ITS OWN CHOICES (mode=levelcls1029; the leveling lane §2.1, 10-29 -- Griz, 10-28: "we still have fighter feats showing greyed out on rogue
   // leveling"): the SCORES tab offers a feat on its own classes' page (js/rules.js R.FEATS `cls`), greyed there till its prerequisite is met, and one any class may take by
-  // the SRD (`any`: Grappler) on another class's page only when it can be taken -- Vivian and Aurdin at 4 shown no feat, on the page too; a rogue at STR 13 or 17 shown
-  // Grappler alone; Barley's two greyed as 10-15 had them; Lymen's two as built (his word, §2.2); the Pocket DM's made rogue the same
+  // the SRD (`any`: Grappler) on another class's page only when it can be taken -- Vivian and Aurdin at 4 shown no feat, on the page too; a rogue at STR 13 shown
+  // Grappler; Barley's two greyed as 10-15 had them; the Pocket DM's made rogue the same. Since 10-30 every feat is `any`, as the PHB's (his "approaching SRD compliance
+  // silences this issue", §2.2): a rogue or a paladin at STR 17 shown Symmetric Fighting too, a paladin at 16 Grappler alone and no grey row
   if (get('mode', '') === 'levelcls1029') {
     var repLc = { checks: [], errors: [] }, RLc = window.DS.R;
     function okLc(what, v) { repLc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -4681,13 +4686,13 @@
       var hV = heroLc('vivian', 10), fV = featsLc(hV, { dex: 2 }), hA = heroLc('aurdin', 11), fA = featsLc(hA, { int: 2 });
       okLc('Vivian (' + hV.cls + ', STR 10) at 4: feats on her SCORES tab "' + fV + '"; Aurdin (' + hA.cls + ', STR 11) "' + fA + '" -- none on either', hV.cls === 'rogue' && hA.cls === 'wizard' && fV === '' && fA === '');
       hV.abil.str = 13; var fV13 = featsLc(hV, { dex: 2 }); hV.abil.str = 17; var fV17 = featsLc(hV, { dex: 2 }); hV.abil.str = 14; var fV14s = featsLc(hV, { str: 2 });
-      okLc('a rogue at STR 13 "' + fV13 + '", at 17 "' + fV17 + '" -- Grappler (the SRD\'s, any class) alone; at 14 with STR +2 marked (12 before it) "' + fV14s + '" -- none', fV13 === 'grappler' && fV17 === 'grappler' && fV14s === '');
+      okLc('a rogue at STR 13 "' + fV13 + '", at 17 "' + fV17 + '" -- Grappler at 13, and at 17 Symmetric Fighting too (every feat any class\'s by its score since 10-30); at 14 with STR +2 marked (12 before it) "' + fV14s + '" -- none', fV13 === 'grappler' && fV17 === 'symmetric,grappler' && fV14s === '');
       var hB = heroLc('barley', 16), fB = featsLc(hB, { con: 2 }); hB.abil.str = 12; var fB12 = featsLc(hB, { con: 2 });
       okLc('Barley (' + hB.cls + ') at STR 16 "' + fB + '", at 12 "' + fB12 + '" -- his class\'s two, greyed till met (10-15)', fB === 'symmetric(wants STR 17),grappler' && fB12 === 'symmetric(wants STR 17),grappler(wants STR 13)');
-      var hL = heroLc('lymen', 17), fL = featsLc(hL, { con: 2 });
-      okLc('Lymen (' + hL.cls + ', STR 17) "' + fL + '" -- both, as built till his word (the leveling lane §2.2)', hL.cls === 'paladin' && fL === 'symmetric,grappler');
-      var hP = D.npc.sheet(D.npc.spec('rogue:4')); hP.abil.str = 12; var fP12 = featsLc(hP, {}); hP.abil.str = 14; var fP14 = featsLc(hP, {});
-      okLc('the Pocket DM\'s rogue at 4: STR 12 "' + fP12 + '", STR 14 "' + fP14 + '"', hP.cls === 'rogue' && fP12 === '' && fP14 === 'grappler');
+      var hL = heroLc('lymen', 17), fL = featsLc(hL, { con: 2 }); hL.abil.str = 16; var fL16 = featsLc(hL, { con: 2 });
+      okLc('Lymen (' + hL.cls + ') at STR 17 "' + fL + '" -- both, by their scores; at 16 "' + fL16 + '" -- Grappler, and no grey row (the leveling lane §2.2, 10-30)', hL.cls === 'paladin' && fL === 'symmetric,grappler' && fL16 === 'grappler');
+      var hP = D.npc.sheet(D.npc.spec('rogue:4')); hP.abil.str = 12; var fP12 = featsLc(hP, {}); hP.abil.str = 14; var fP14 = featsLc(hP, {}); hP.abil.str = 17; var fP17 = featsLc(hP, {});
+      okLc('the Pocket DM\'s rogue at 4: STR 12 "' + fP12 + '", STR 14 "' + fP14 + '", STR 17 "' + fP17 + '"', hP.cls === 'rogue' && fP12 === '' && fP14 === 'grappler' && fP17 === 'symmetric,grappler');
       // the page itself: Vivian's SCORES tab as the 8-bit's pick draws it
       var hV2 = heroLc('vivian', 10), recV2 = { lvl: 4, asks: [{ kind: 'asi', need: 2, took: { dex: 2 } }] }; hV2.picks = [recV2]; RLc.pendSync(hV2);
       var pmV = window.DS.MENU.openPicks({ party: function () { return [hV2]; }, close: function () { } }, [hV2], {}, function () { }), pgV = pmV && pmV.top(), gV = pgV && pgV.groups[0];

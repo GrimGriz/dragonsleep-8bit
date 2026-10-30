@@ -2408,16 +2408,17 @@
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
     // Savage Attacks (the half-orc, SRD 5.1): a melee critical rolls one of the weapon's dice once more
-    if (crit && melee && att.savage && /d/.test(dice) && !atk.plain) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
+    if (crit && melee && att.savage && /d/.test(dice)) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
     // Brutal Critical (the barbarian, 9; SRD 5.1): the same, once more (two at 13, three at 17). Fists have no die: nothing to add
-    if (crit && melee && att.cls === 'barbarian' && att.lvl >= 9 && /d/.test(dice) && !atk.plain) { var bc9 = D.roll((att.lvl >= 17 ? 3 : att.lvl >= 13 ? 2 : 1) + String(dice).replace(/^\d*/, '')); dmg += bc9.total; parts.push('{o}brutal +' + bc9.total + '{/}'); }
+    if (crit && melee && att.cls === 'barbarian' && att.lvl >= 9 && /d/.test(dice)) { var bc9 = D.roll((att.lvl >= 17 ? 3 : att.lvl >= 13 ? 2 : 1) + String(dice).replace(/^\d*/, '')); dmg += bc9.total; parts.push('{o}brutal +' + bc9.total + '{/}'); }
     // the class NPCs' riders (09-28): Rage's +2 on a STR blow; Enlarge's +1d4 (Reduce's -1d4); Ray of Enfeeblement halves a STR weapon's
     var strBlow = melee && !atk.finesse || (atk.finesse && att.abil && att.abil.str >= att.abil.dex && melee);
     if (att.conds.raging && strBlow && !atk.plain) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
     if (att.conds.enlarged && !atk.spell && !(atk.plain && !att.conds.enlarged.down)) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
     if (att.conds.enfeebled && strBlow && !atk.spell) { var cut0 = Math.ceil(dmg / 2); dmg -= cut0; parts.push('{g}enfeebled -' + cut0 + '{/}'); }
     if (att.dmgFrac && !atk.spell) { var cutM = dmg - Math.max(1, Math.floor(dmg * att.dmgFrac)); dmg -= cutM; parts.push('{g}the mirror share ' + D.traits.fracName(att.dmgFrac) + ' -' + cutM + '{/}'); } // (the Harbinger's mirror double: js/traits.js mirrorDouble, 10-08)
-    // (atk.plain -- Stab Debut's stab: the weapon's dice alone, so none of the riders below, to the Divine Smite, and no rage or Enlarge above; a penalty still holds)
+    // (atk.plain -- Stab Debut's stab: the weapon's dice alone, so none of the riders below, to the Divine Smite, and no rage or Enlarge above; a penalty still holds, and a
+    // critical's own extras above ride it -- Savage Attacks, Brutal Critical; a weapon's on-a-critical below, the Winnower's -- RULED 10-30, Griz: "restore the 'on crit' properties to it")
     var sneaked = false, fire = 0, rad = 0, ext = 0, xtra = [], dis = null;
     if (!atk.plain) {
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
@@ -2878,7 +2879,8 @@
   };
   // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that
   // haven't first-turned"): with the Attack action at one that has not had its first turn, one more attack at it, its damage the weapon's dice alone -- no ability modifier,
-  // no Sneak Attack, no rider (atk.plain). The seat's reading: free, once a turn, the same one, while it stands; a bow spends its arrow
+  // no Sneak Attack, no rider (atk.plain); a critical doubles its dice and keeps its own extras (10-30, his "restore the 'on crit' properties to it"). The seat's reading: free,
+  // once a turn, the same one, while it stands; a bow spends its arrow
   Battle.prototype.stabDebut = function* (u, tgt) {
     var T = u.turn; if (!T || T.debutDone || !tgt || tgt.dead || tgt.hp <= 0 || !RU.canAct(u) || u.dead || u.hp <= 0) return;
     if (u.weapon.ammo) { if (!this.ammoLeft(u)) return; this.spendAmmo(u); }

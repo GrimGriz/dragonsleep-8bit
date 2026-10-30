@@ -1177,7 +1177,7 @@
       var dx = st.offhand ? R.offhandDamage(h, w) : R.damageExpr(h, w); // (st.offhand: two-weapon fighting's swing -- no ability modifier unless negative, or the style; 10-15)
       var gwf = melee && R.gwf(h, w); // Great Weapon Fighting by the style and the weapon, as the grid's (10-06: it was Barley's by name; Brann's battleaxe too now)
       var dmg = st.plain ? (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit })) : (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw; // (st.plain: Stab Debut's stab, the weapon's dice alone)
-      if (crit && melee && R.savage(h) && dx.dice !== '0' && !st.plain) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
+      if (crit && melee && R.savage(h) && dx.dice !== '0') dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
       var extra = st.plain ? ' Stab debut!' : '', rad = 0;
       var sneaked = false;
       if (h.cls === 'rogue' && !st.plain && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
@@ -1217,7 +1217,8 @@
       if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
     }
     // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that haven't
-    // first-turned"): after her attacks, one more at the one that had not had its first turn, the weapon's dice alone (st.plain); the seat's reading, as the grid's: free, once a
+    // first-turned"): after her attacks, one more at the one that had not had its first turn, the weapon's dice alone (st.plain) -- a critical's own extras still ride it (Savage Attacks, the
+    // Winnower's: 10-30, his "restore the 'on crit' properties to it"); the seat's reading, as the grid's: free, once a
     // turn, while it stands
     if (debutT && !this.over && !down(u) && !down(debutT) && !debutT.acted) {
       st.debutUsed = true; var w1 = st.w, n1 = st.n; st.w = w; st.n = 1; st.plain = true;

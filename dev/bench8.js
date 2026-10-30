@@ -2381,6 +2381,10 @@
         gnS.acted = true; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var actD = dealtS.slice(); dealtS = []; gnS.acted = false;
         viS.h.subclass = 'Thief'; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var thD = dealtS.slice(); dealtS = []; viS.h.subclass = sub0;
         check('at one that has had its turn: ' + actD.length + ' blow; a Thief: ' + thD.length + ' blow', actD.length === 1 && thD.length === 1);
+        // a natural 20 on the stab (10-30, his "restore the 'on crit' properties to it"): a critical, and Savage Attacks (a half-orc's) ride it -- the dice 1 each: 1 + 1
+        var sav0 = DS.R.savage, seqS = [15, 20]; DS.R.savage = function () { return true; }; btS.d20 = function (a) { advS.push(a); return seqS.length ? seqS.shift() : 15; };
+        viS.h.subclass = 'Cutthroat'; gnS.acted = false; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var crD = dealtS.slice(), crSaid = saidS.join(' | '); dealtS = []; saidS = []; viS.h.subclass = sub0; DS.R.savage = sav0;
+        check('A 20 ON THE STAB, Savage Attacks in her blood: blows for ' + crD.join(' + ') + ' (want ' + (1 + dexS + 1) + ' + 2); said "' + crSaid.slice(-120) + '"', crD.length === 2 && crD[1] === 2 && /Critical! .*Stab debut!/.test(crSaid));
         var arcS = (DS.DATA.heroes.vivian.archetypes || []).filter(function (a) { return a.name === 'Cutthroat'; })[0];
         check('her page\'s line: "' + (arcS && arcS.desc) + '"', !!arcS && /Stab Debut/.test(arcS.desc) && !/Opening Cut/.test(arcS.desc));
         btS.say = sayS;
