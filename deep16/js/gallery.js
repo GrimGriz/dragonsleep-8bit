@@ -485,7 +485,14 @@
       'meta-quickened': function* (c) { yield* castOne(c, 'magicmissile'); },
       'meta-twinned': function* (c) { if (c.hero.turn.meta && c.foes[1]) c.hero.turn.meta.t2 = c.foes[1]; yield* castOne(c, 'firebolt', c.foes[0]); },
       'meta-careful': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); },
-      'meta-heightened': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); }
+      'meta-heightened': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); },
+      // Follow-Through's WIDE SWING (ours, 10-30): the swing it winds up, at a foe on 2 HP -- the hit's "wide swing +", and what goes past its last hit point carried on
+      // into the other beside the fighter, "FOLLOW-THROUGH". The button alone only wound it up (10-30, his eye on the shelf, broken: "no visible action")
+      wideswing: function* (c) {
+        var u = c.hero, t = c.foes[0], o = c.foes.filter(function (w) { return w !== t; })[0];
+        if (o && D.grid.dist(u, o) > D.grid.reachOf(u)) { var sq = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].map(function (d) { return [u.x + d[0], u.y + d[1]]; }).filter(function (q) { return D.grid.canStand(o, q[0], q[1]); })[0]; if (sq) { o.x = sq[0]; o.y = sq[1]; } }
+        t.hp = 2; yield 20; yield* swing(c, t, 1, true);
+      }
     };
     // ---- a feature that is always on: the short demonstration, where one is cheap
     // (the wizard across the floor casts at the hero: a fireball for Evasion and Danger Sense, a Fear for Steel Will, a Charm Person for the Aura of Devotion ...)

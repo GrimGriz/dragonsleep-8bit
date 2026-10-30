@@ -344,7 +344,7 @@
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
     // Follow-Through (ours, 10-30 -- the leveling lane, leveling-srd-by-class.md 6.3; RULED, Griz: "take leveling's leans and it can start building"): the role of the PHB's
     // Great Weapon Master, ours -- the heavy blow's carry and the WIDE SWING (deep16/js/battle.js, features.js). `second`: the second game's alone, never on the first game's pick
-    followthrough: { name: 'Follow-Through', str: 13, cls: [], any: true, second: true, desc: 'With a heavy melee weapon: a blow that drops a creature carries the damage past its last hit point to another foe within reach. Once a turn, before a swing, WIDE SWING: a hit deals twice your proficiency bonus more; a miss puts your next attack this turn at disadvantage. (STR 13.)' },
+    followthrough: { name: 'Follow-Through', str: 13, cls: [], any: true, second: true, desc: 'With a heavy melee weapon: a blow that drops a creature carries the damage past its last hit point to another foe within reach. Once a turn, before a swing, WIDE SWING: a hit deals twice your proficiency bonus more; a miss puts your next attack this turn at disadvantage. (STR 13, and a heavy melee weapon to use it -- a greataxe, a greatsword, a maul.)', heavy: true },
     // Held Breath (ours, 10-30 -- leveling-srd-by-class.md 6.3; the role of the PHB's Sharpshooter): not having moved yet this turn, ranged weapon attacks ignore half cover
     // and long range, and the first to hit deals one more weapon die (deep16/js/battle.js, rules.js RU.edges). DEX 13: a prerequisite past STR (R.featWant)
     heldbreath: { name: 'Held Breath', dex: 13, cls: [], any: true, second: true, desc: 'Not having moved yet this turn: your ranged weapon attacks this turn ignore half cover and take no disadvantage at long range, and the first that hits deals one more weapon die. (DEX 13.)' },
@@ -449,7 +449,9 @@
       return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
     }).concat(R.featIds().filter(function (id) { return R.featOn(h, id, took); }).map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15; its class's own only, 10-29)
       var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id);
-      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : R.featWant(h, f, took) }; // (o.pages: the 8-bit's pick says where Grappler acts)
+      // (a feat used with a heavy weapon -- Follow-Through -- says so when the hero's own is not one: Barley's Threshing Flail is two-handed, not heavy. 10-30, the leveling lane §9 0b)
+      var hw = f.heavy && h.equip && h.equip.weapon ? R.item(h.equip.weapon) : null, light = hw && hw.weapon && (hw.weapon.props || []).indexOf('heavy') < 0 ? ' Your ' + hw.name + ' is not heavy.' : '';
+      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + light + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : R.featWant(h, f, took) }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
     if (ask.kind === 'expertise') {
       var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));

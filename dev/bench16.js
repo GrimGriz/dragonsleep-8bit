@@ -4848,6 +4848,31 @@
     document.body.appendChild(preRc);
     return;
   }
+  // FOLLOW-THROUGH ON ITS SHELF (mode=followshelf1030; the leveling lane §9 0b, 10-30, his eye on the shelf, broken: "no visible action"): the FEATURES shelf's entry
+  // winds up the WIDE SWING and then swings it -- "wide swing +4" on the hit, and the excess "FOLLOW-THROUGH ... carries on into" the other foe; and the pick says the
+  // feat wants a heavy weapon, and says so of a hero's own that is not (Barley's Threshing Flail, two-handed, not heavy)
+  if (get('mode', '') === 'followshelf1030') {
+    var repFs = { checks: [], errors: [] };
+    function okFs(what, v) { repFs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      D.seed = 1030;
+      var Bf = D.fxGallery('?fxgallery&features&only=followthrough'); D.battle = Bf; Bf.enter();
+      var Sf = Bf.gallery, gf = 0, vf, rf = null;
+      while (Bf.co && gf++ < 200000) { var st = Bf.co.next(vf); vf = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vf = y.prompt.opts[0].value; continue; } if (y.gallery) { rf = Sf.report.followthrough; break; } }
+      var tail = (rf && rf.tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+      okFs('the shelf: ' + (rf && rf.how) + ', wound up ' + /winds up a wide swing/.test(tail) + ', the hit "' + ((tail.match(/wide swing \+\d+/) || [''])[0]) + '", the carry "' + ((tail.match(/FOLLOW-THROUGH: \d+ carries on into [^/]*/) || [''])[0]).slice(0, 60) + '"',
+        rf && rf.how === 'fired' && /winds up a wide swing/.test(tail) && /wide swing \+4/.test(tail) && /FOLLOW-THROUGH: \d+ carries on into/.test(tail));
+      // the pick: its words, and a hero's own weapon that is not heavy (Barley's flail), or is (a greatsword)
+      var R0 = window.DS.R, fd = R0.FEATS.followthrough.desc, hb = { cls: 'fighter', lvl: 4, abil: { str: 16, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: 'threshingflail' }, featIds: [] };
+      var rowOf = function (h) { return R0.pickRows(h, { lvl: 4 }, { kind: 'asi' }, {}).filter(function (r) { return r.feat === 'followthrough'; })[0] || null; };
+      var rb = rowOf(hb), hg = JSON.parse(JSON.stringify(hb)); hg.equip.weapon = 'greatsword'; var rg = rowOf(hg);
+      okFs('the pick: its words say a heavy weapon (' + /heavy melee weapon to use it/.test(fd) + '); Barley\'s flail: "' + (rb && (rb.desc.match(/Your [^.]*\./) || ['-'])[0]) + '"; a greatsword: no such line (' + !!(rg && !/is not heavy/.test(rg.desc)) + ')',
+        /heavy melee weapon to use it/.test(fd) && rb && /Your Threshing Flail is not heavy\./.test(rb.desc) && rg && !/is not heavy/.test(rg.desc));
+    } catch (e) { repFs.errors.push(String(e && e.stack || e)); }
+    var preFs = document.createElement('pre'); preFs.id = 'out'; preFs.textContent = 'BENCH16 ' + JSON.stringify(repFs);
+    document.body.appendChild(preFs);
+    return;
+  }
   // GNAWING WORD (mode=gnaw1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.4): the warlock's
   // curse of ours -- on the warlock's list (last: the generic warlock's spells unchanged); cast, the mark and the concentration; each of the caster's hits on it psychic 1, 2,
   // 3 ... to 5 (7 from a 2nd-level slot), another's hits nothing; when it drops, the spell ends
