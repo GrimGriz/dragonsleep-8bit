@@ -414,11 +414,23 @@
   // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
   H16.WHO = { hessle: 'Hessle', androit: 'Aldwyn Androit', casper: 'Casper Venn', merrick: 'Merrick', papa: 'Papa Urtusk', harrow: 'Ottak Harrow', thrane: 'The east side\'s man', warda: 'Warda' };
   H16.COUNCIL = {
-    // C1: the night the Pit's word is in (Day 1; the realm's campaign-start.md, CANON 08-25: the notice funded, Papa struck the Lupine-head line, Merrick warned unexplained)
+    // C1: the night the Pit's word is in (Day 1; the realm's campaign-start.md, CANON 08-25: the notice funded, Merrick warned unexplained -- its "Papa struck the Lupine-head line"
+    // a stale fold: the 08-25 story's footer item 22, "the Lupine-head line and Urtusk's strike are CUT")
+    // (10-30, Griz, on the Lupine's head: "we're wasting expository space. What actually came in from newland? Summed up as 'all the tribes gathered for a moot, and now they've
+    // gone snoot - most savage as the new gnoll king' - spin up a seat to write the scripting - someone at the table that likes things explicit clarifying what's there vague for
+    // people that have never heard of gnolls, someone brusk cutting them off and keeping things moving?" -- the Lupine-head exchange cut, as his own 08-25 ruling cut it in the
+    // realm (S1-22). Androit spells it out for the record (the realm's "historian fella", who wants the town's history written down true); Papa cuts him off and moves it on.
+    // The news is the realm's (TarlynsPit/wiki/campaign-start.md, the-snoot.md, gnoll-hills.md: the full-moon moot, Gnash the Gnarled a hundred years under the Mane, killed by
+    // the Dominion, the Snoot -- succession by battle-glory; Newland's patrols stop at the Pit); the lines the story seat's drafts, invented.json council-notice-night)
     notice: { flag: 'councilNotice', card: 'That night, in Silverton, the Weigh-House lamp burns past the fourth bell. On the Hex\'s third floor, the scales are lit.', lines: [
-      ['hessle', 'The Pit\'s word. The gnoll king\'s dead at the moot, by Dominion hands, and their wagons gone south.'], ['merrick', 'There\'s more coming up that road. Don\'t ask me how I know.'],
-      ['androit', 'Then we post it. Fifty gold for true word of the gnolls, sworn before me. Ten a fortnight to anyone who keeps a watch on the road.'], ['harrow', 'My farms are the first thing a gnoll sees. Post it twice.'],
-      ['hessle', 'And a hundred for a Lupine\'s head --'], ['papa', 'Strike it. We pay for word.'], ['hessle', 'Struck.']], end: 'In the morning it is on Hessle\'s board.' },
+      ['hessle', 'Word\'s come up the road from Tarlyn\'s Pit, where Newland\'s patrols stop. Every gnoll tribe in the hills met at the full moon, for a moot.'],
+      ['androit', 'Plainly, for the record. Gnolls are the hyena-folk of the hills down the road, and a moot is all their tribes together under one king.'],
+      ['hessle', 'The Dominion killed that king at the moot. Gnash the Gnarled, a hundred years under their Mane, and the Dominion\'s wagons gone before he was cold.'],
+      ['androit', 'So they\'ve gone Snoot. With no king, the Mane goes to whoever wins the most glory, and to a gnoll glory is killing: the most savage of them will be king. The last time a king died, the histories say --'],
+      ['papa', 'Enough history, Aldwyn. They\'ll come up the road for their glory. What do we do?'],
+      ['merrick', 'There\'s more coming up that road. Don\'t ask me how I know.'],
+      ['androit', 'Then we post it. Fifty gold for true word of the gnolls, sworn before me. Ten a fortnight to anyone who keeps a watch on the road.'],
+      ['harrow', 'My farms are the first thing a gnoll sees. Post it twice.']], end: 'In the morning it is on Hessle\'s board.' },
     // C3: the herd thinned (the lantern man's trigger, R.WARN_AT: `herdWarned`), and again if the whole stock dies (`stockDead`)
     herd: { flag: 'councilHerd', card: 'That night the scales are lit again. The east side\'s house has sent a man up the Hex\'s spiral.', lines: [
       ['thrane', 'Three of the House\'s stock dead on the stone. Somebody is culling a herd that isn\'t theirs.'], ['casper', 'Somebody went down the wet where nobody else would. Ask what they went for.'],
@@ -575,8 +587,8 @@
     var tm = H16.tableSq(); b.focus({ x: tm[0], y: tm[1], size: 1 });
   };
   // a way across a stage's floor, square to square (its walkable squares; a corner cut only between two open ones): the squares after `a` up to `z`
-  H16.route = function (m, a, z) {
-    var key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var s = m.at(x, y); return !!(s && s.walk); }, prev = {}, seen = {}, q = [a]; seen[key(a[0], a[1])] = 1;
+  H16.route = function (m, a, z, bad) { // (bad: a square someone stands on, to go round -- the bread line's leaver, 10-30)
+    var key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var s = m.at(x, y); return !!(s && s.walk) && !(bad && bad(x, y)); }, prev = {}, seen = {}, q = [a]; seen[key(a[0], a[1])] = 1;
     while (q.length) {
       var p = q.shift(); if (p[0] === z[0] && p[1] === z[1]) break;
       for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
@@ -936,39 +948,79 @@
   [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
   // THE LINE MOVES (10-29 night, Griz: "Breadline is good except it says that it moves and doesn't yet" -- the story seat's lean, built, a call standing: the line moves, the
   // word kept): in the early hours, every H16.BREAD.every frames on the street, the one at the front steps up to the chapel door and goes in, the rest each step up a place, and
-  // a newcomer comes up behind (the one who went in, round the back: the line's four are one look). Their talk squares go with them. Asked each frame the floor's script asks
-  // its beats (H16.due), the party never waiting on it
-  H16.BREAD.every = 420; H16.BREAD.step = 14;
+  // a newcomer comes up behind. Their talk squares go with them. Asked each frame the floor's script asks its beats (H16.due), the party never waiting on it.
+  // THEY GET THEIR BREAD AND LEAVE (10-30, Griz on the seat's call: "solid, i assume they get their bread and leave" -- RULED): the one at the door goes in, comes back out with a
+  // loaf in hand, and walks down the street to the nearest other door and in at it (home, or the shift); later someone new comes up behind the line (the same figure again, out of
+  // sight first: the line's four are one look). The legs: 0 to the door and the rest up, 1 inside, 2 out with the loaf, 3 the walk away, 4 the newcomer
+  H16.BREAD.every = 420; H16.BREAD.step = 14; H16.BREAD.inside = 120; H16.BREAD.away = [6, 40]; // (away: the nearest other door at least this far from the chapel's, by a walk no longer)
   H16.breadTick = function (B) {
     var R = D.roam, def = R && R.def, R0 = B && B.roam; if (!def || !def.hours || def.room || def.hexIn || !R0 || !B.units || !B.map) return;
     var line = B.units.filter(function (u) { return /^breadline\d/.test(u.npc || '') && !u.dead; }), dq = def.marks && def.marks.doors && def.marks.doors['chapel:aldwin'], P = H16.BREAD;
     line.forEach(function (u) { if (u.walkTill != null && B.t >= u.walkTill) { u.anim = 'idle'; u.animT = B.t; u.walkTill = null; } });
-    if (def.phase !== 'early' || R0.mode !== 'walk' || D.top() !== B || line.length < 2 || !dq) return;
-    var st = R0.bread; if (!st || (st.leg && line.indexOf(st.u) < 0)) st = R0.bread = { t: B.t + P.every, leg: 0 }; // (a street laid again: the line's own new four)
-    if (B.t < st.t) return;
-    var tk = R0.token, dist = function (q) { return Math.abs(q[0] - dq[0]) + Math.abs(q[1] - dq[1]); };
+    var st = R0.bread;
+    if (st && st.u && line.some(function (u) { return u !== st.u && u.npc === st.npc; })) st = null; // (the street laid again under it: the line's own new four, the one out of it gone with the old)
+    if (def.phase !== 'early') { if (st && st.u) { st.u.loaf = false; } R0.bread = null; return; }
+    if (R0.mode !== 'walk' || D.top() !== B || !dq) return;
+    if (!st) st = R0.bread = { t: B.t + P.every, leg: 0 };
+    if (B.t < st.t || (!st.leg && line.length < 2)) return;
+    var tk = R0.token, dist = function (q) { return Math.abs(q[0] - dq[0]) + Math.abs(q[1] - dq[1]); }, trOf = function (u) { return def.src8.triggers.filter(function (t) { return t.town === 'talk' && t.npc === u.npc; })[0]; };
     var free = function (x, y) { var s = B.map.at(x, y); return !!(s && s.walk) && !(tk && tk.x === x && tk.y === y) && !B.units.some(function (u) { return !u.dead && u.x === x && u.y === y; }); };
-    var move = function (u, q) {
-      var dx = q[0] - u.x, dy = q[1] - u.y, n = Math.max(Math.abs(dx), Math.abs(dy)) || 1, tr = def.src8.triggers.filter(function (t) { return t.town === 'talk' && t.npc === u.npc; })[0];
-      u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: P.step * n, mode: null }; u.facing = D.spr.facingFor(dx, dy); u.x = q[0]; u.y = q[1]; u.anim = 'walk'; u.animT = B.t; u.walkTill = B.t + P.step * n;
-      if (tr) tr.rect = [q[0], q[1], 1, 1]; return P.step * n;
+    var occ = null, taken = function (x, y) { // (for the walk away: round the line and the party -- who stands where, read once a tick)
+      if (!occ) { occ = {}; B.units.forEach(function (o) { if (!o.dead && o !== st.u) occ[o.x + ',' + o.y] = 1; }); if (tk) occ[tk.x + ',' + tk.y] = 1; }
+      return !!occ[x + ',' + y];
     };
-    var long = 0;
-    if (!st.leg) { // (the front one to the door, the rest up a place)
+    var move = function (u, q, talk) {
+      var dx = q[0] - u.x, dy = q[1] - u.y, n = Math.max(Math.abs(dx), Math.abs(dy)) || 1, tr = trOf(u);
+      u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: P.step * n, mode: null }; u.facing = D.spr.facingFor(dx, dy); u.x = q[0]; u.y = q[1]; u.anim = 'walk'; u.animT = B.t; u.walkTill = B.t + P.step * n;
+      if (tr) tr.rect = talk === false ? [-9, -9, 1, 1] : [q[0], q[1], 1, 1]; return P.step * n;
+    };
+    var off = function (u) { B.units = B.units.filter(function (x) { return x !== u; }); var tr = trOf(u); if (tr) tr.rect = [-9, -9, 1, 1]; }; // (out of sight: in at a door; no word to be had)
+    var u = st.u, long = 0;
+    if (st.leg === 0) { // (the front one to the door, the rest up a place)
       if (!free(dq[0], dq[1])) { st.t = B.t + 60; return; } // (someone in the doorway -- the party: wait a moment)
       line.sort(function (a, b) { return dist([a.x, a.y]) - dist([b.x, b.y]); });
-      var spots = line.map(function (u) { return [u.x, u.y]; });
-      long = move(line[0], dq); for (var k = 1; k < line.length; k++) long = Math.max(long, move(line[k], spots[k - 1]));
-      st.leg = 1; st.u = line[0]; st.back = spots[spots.length - 1]; st.t = B.t + long + 30;
-    } else { // (in at the door; a newcomer up behind, from the square past the back of the line)
-      var u = st.u, bk = st.back, best = null;
+      var spots = line.map(function (x) { return [x.x, x.y]; });
+      long = move(line[0], dq, false); for (var k = 1; k < line.length; k++) long = Math.max(long, move(line[k], spots[k - 1]));
+      st.leg = 1; st.u = line[0]; st.npc = line[0].npc; st.back = spots[spots.length - 1]; st.t = B.t + long + 10;
+    } else if (st.leg === 1) { // (in at Aldwin's door)
+      off(u); st.leg = 2; st.t = B.t + P.inside;
+    } else if (st.leg === 2) { // (back out with the loaf, and the way to the nearest other door down the street)
+      if (!free(dq[0], dq[1])) { st.t = B.t + 30; return; }
+      u.x = dq[0]; u.y = dq[1]; u.tween = null; u.loaf = true; B.units.push(u);
+      var M = def.marks.doors, cands = Object.keys(M).filter(function (k) { return k !== 'chapel:aldwin' && M[k] && Math.max(Math.abs(M[k][0] - dq[0]), Math.abs(M[k][1] - dq[1])) >= P.away[0]; }).map(function (k) { return M[k]; });
+      cands.sort(function (a, b) { return dist(a) - dist(b); }); st.path = null; st.to = null;
+      for (var c = 0; c < cands.length && c < 6 && !st.path; c++) { var pth = H16.route(B.map, dq, cands[c], taken); if (pth.length >= P.away[0] && pth.length <= P.away[1]) { st.path = pth.slice(); st.to = cands[c]; } } // (H16.route: the squares after the door, up to the other, round the line; a "path" shorter than the door's distance is its no-way)
+      if (!st.path) st.path = []; // (no door in reach: back inside the way it came)
+      st.leg = 3; st.t = B.t + 10;
+    } else if (st.leg === 3) { // (down the street, a square a step; in at the door at the walk's end)
+      var nx = st.path[0];
+      if (nx && !free(nx[0], nx[1])) { // (someone stepped in the way -- the party: round them, or wait)
+        var re = st.to ? H16.route(B.map, [u.x, u.y], st.to, taken) : []; if (re.length && re.length <= P.away[1] && free(re[0][0], re[0][1])) st.path = re; else { st.t = B.t + 20; return; }
+        nx = st.path[0];
+      }
+      if (nx) { st.path.shift(); move(u, nx, false); st.t = B.t + P.step; return; }
+      u.loaf = false; off(u); st.leg = 4; st.t = B.t + Math.round(P.every / 2);
+    } else { // (a newcomer up behind, from the square past the back of the line)
+      var bk = st.back, best = null;
       if (!free(bk[0], bk[1])) { st.t = B.t + 60; return; }
       [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]].forEach(function (d) { var x = bk[0] + d[0], y = bk[1] + d[1]; if (free(x, y) && dist([x, y]) > dist(bk) && (!best || dist([x, y]) > dist(best))) best = [x, y]; });
-      if (best) { u.x = best[0]; u.y = best[1]; u.tween = null; }
-      move(u, bk); st.leg = 0; st.u = null; st.t = B.t + P.every;
+      u.x = (best || bk)[0]; u.y = (best || bk)[1]; u.tween = null; B.units.push(u); move(u, bk); st.leg = 0; st.u = null; st.npc = null; st.t = B.t + P.every;
     }
     D.grid.setup(B.map, B.units);
   };
+  // the loaf in the hand of the one walking off with it: a crust drawn at the hands, over the street (the floor's figures have no carried thing)
+  H16.paintLoaves = function (ctx, B) {
+    var R = D.roam, def = R && R.def; if (!B || !B.units || !def || !def.hours || def.room || def.hexIn) return 0;
+    var iso = D.iso, n = 0, at = function (gx, gy, z) { var c = iso.center(gx, gy, z); return iso.toScreen(c.x, c.y); }, a = at(0, 0, 0), b = at(1, 0, 0), px = Math.max(2, Math.hypot(b.x - a.x, b.y - a.y));
+    B.units.forEach(function (u) {
+      if (!u.loaf) return; var tw = u.tween, k = tw ? Math.min(1, tw.t / tw.dur) : 1, gx = tw ? tw.fx + (u.x - tw.fx) * k : u.x, gy = tw ? tw.fy + (u.y - tw.fy) * k : u.y, p = at(gx, gy, 12);
+      var w = Math.max(3, px * 0.28), h = Math.max(2, w * 0.55); ctx.save(); ctx.fillStyle = '#6b3d14'; ctx.beginPath(); ctx.ellipse(p.x + px * 0.18, p.y, w / 2 + 1, h / 2 + 1, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d0954a'; ctx.beginPath(); ctx.ellipse(p.x + px * 0.18, p.y, w / 2, h / 2, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.restore(); n++;
+    });
+    return n;
+  };
+  var overL = D.roam.paintOver;
+  D.roam.paintOver = function (ctx, B) { try { H16.paintLoaves(ctx, B); } catch (e) { } return overL.apply(this, arguments); }; // (under the HUD, as the night's picture)
 
   // ---------------------------------------------------------------- HESSLE'S BOARD, ON THE WEIGH-HOUSE WALL (10-29, the story window, on the lanes desk's relay of Griz: "we actually
   // also need a visible board, either inside or outside of hessles - the way hessle reads the board should instead be clickable missions below it (as if they're taking the mission
@@ -1172,10 +1224,10 @@
     { hours: 1, id: 'journal', near: 'pete', lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete, then the town\'s talk', note: 'A click on Pete: THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
     { hours: 1, id: 'lucia', door: 'shop:lucia', lead: 'aurdin', label: 'LUCIA AT MAMA\'S: Aurdin\'s first visit, CONSULT', note: 'In at the door, E at the counter: her word to Aurdin (the calling herbs), THE SHELVES / CONSULT / LEAVE; CONSULT on a whole party.' },
     { hours: 1, id: 'swann', door: 'keeper:sylvia', lead: 'vivian', silver: 20, t: 31, label: 'SWANN, 5 SP: the first morning after the moot', note: 'In at her booth: READ (5 SP). Nothing in the JOURNAL: she opens Finding Work and pins it, her line, the plain next step -- and once, "An old thing walks."' },
-    { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT on the street: the bells, bell to bell.' },
+    { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. Step off the doorway and watch: every seven seconds the front one goes in, comes back out with a loaf, and walks down the street to another door; the line steps up, someone new joins behind. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT: the bells, bell to bell.' },
     { hours: 1, id: 'dusk', door: 'inn:cassia', t: 17.5, label: 'SILVERTON AT DUSK: the town comes out', note: 'One step: the bells go for dusk. Marin, the barber, Mela, Venn Hale, Aldric, Merrick and Tam out at their evening spots; their doors "Closed."' },
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
-    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The cutscene (the lamp at dusk; the council up the spiral, its caption the title alone), then the sitting with no card: Hessle first, the third floor behind the screen, each portrait on its own plain window, no counter, no purse. X at the first shot keeps the card.' },
+    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The cutscene (the lamp at dusk; the council up the spiral), then the sitting: Hessle with the Pit\'s word -- the moot, the king dead -- Androit spelling it out for the record (the Snoot) till Papa cuts him off, Merrick\'s warning, the notice. No Lupine\'s head. X at the first shot keeps the card.' },
     { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The council\'s ask (10-29): Papa vouches, Harrow names the ettercap across Web Gulch, Hessle its forty and ten, Androit swears it to you, Merrick names the gnolls next; then The Braiding Ettercap in the JOURNAL, pinned.' },
     { hours: 1, id: 'about', door: 'shop:marko', label: 'TELL ME ABOUT IT: Marko the provisioner, and Fountain Street', note: 'In at Marko\'s door, E at the counter: TELL ME ABOUT IT beside THE SHELVES / LEAVE -- what wagons are for here; then back to his question. Next door Kasten, Calla, Kessler, Lisbet; the same at every keeper\'s counter and door.' },
     { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },

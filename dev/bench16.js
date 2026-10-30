@@ -4199,7 +4199,7 @@
       // the sitting itself, as a player sees it: the card, then each line on its speaker's portrait
       var BC2 = newHw('barley'), fC2 = {}, scN = HWw.sitting(BC2, ['notice'], [fC2]), sN = sitHw(scN);
       okHw('C1 seen: ' + sN.length + ' pages -- "' + (sN[1] || '').slice(0, 70) + '", Papa "' + (sN.filter(function (s) { return /^Papa Urtusk/.test(s); })[0] || '').slice(0, 50) + '"; its flag (' + !!fC2.councilNotice + ')',
-        sN.length >= 8 && /^The council\|-\|That night, in Silverton/.test(sN[0]) && /^Hessle\|pt_hessle\|"The Pit's word/.test(sN[1]) && /^Merrick\|pt_merrick\|/.test(sN[2]) && /^Aldwyn Androit\|pt_androit\|"Then we post it/.test(sN[3]) && sN.some(function (s) { return /^Papa Urtusk\|pt_papa\|"Strike it\. We pay for word\."/.test(s); }) && !!fC2.councilNotice && scN.done);
+        sN.length >= 10 && /^The council\|-\|That night, in Silverton/.test(sN[0]) && /^Hessle\|pt_hessle\|"Word's come up the road from Tarlyn's Pit/.test(sN[1]) && /^Aldwyn Androit\|pt_androit\|"Plainly, for the record/.test(sN[2]) && /^Papa Urtusk\|pt_papa\|"Enough history, Aldwyn/.test(sN[5]) && /^Merrick\|pt_merrick\|/.test(sN[6]) && /^Aldwyn Androit\|pt_androit\|"Then we post it/.test(sN[7]) && !sN.some(function (s) { return /Lupine|Strike it/.test(s); }) && !!fC2.councilNotice && scN.done); // (10-30, his "we're wasting expository space. What actually came in from newland?": the news, Androit for the record, Papa cutting him off; no Lupine's head)
       // 15. C3, THE HERD'S COUNCIL (his "18 - yes, lantern warning same trigger as council meeting"): the lantern man's flag due at the next morning; and the stock dead, again
       var fH = { herdWarned: 1, councilNotice: 1 }, dH = HWw.councilsDue(fH), sH = sitHw(HWw.sitting(BC2, dH, [fH])), dH2 = HWw.councilsDue(fH); fH.stockDead = 1; var dS = HWw.councilsDue(fH), sS = sitHw(HWw.sitting(BC2, dS, [fH]));
       okHw('C3: the herd thinned, due ' + dH.join(',') + ' -- "' + (sH[1] || '').slice(0, 80) + '" -- then none (' + dH2.length + '); the stock dead, due ' + dS.join(',') + ' -- "' + (sS[1] || '').slice(0, 70) + '"',
@@ -5260,14 +5260,26 @@
       var rd5 = i5 < 0 ? [] : r5.slice(i5 + 1).filter(function (l) { return !/^\?/.test(l); });
       okSn('Swann\'s reading on ' + rd5.length + ' card(s) (' + rd5.map(function (l) { return l.split('|')[2]; }).join('+') + ' pages): her line, then "' + ((rd5.filter(function (l) { return /Next:/.test(l); })[0] || '').replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 60)) + '..." whole on one card, and the old thing',
         rd5.length >= 2 && rd5.every(function (l) { return l.split('|')[2] === '1'; }) && !!wh5 && rd5.some(function (l) { return l.indexOf('Next: ' + wh5) >= 0; }) && rd5.some(function (l) { return /An old thing walks/.test(l); }));
-      // 5. THE BREAD LINE (his "Breadline is good except it says that it moves and doesn't yet"): the front one in at the chapel door, the rest up a place, one new at the back
+      // 5. THE BREAD LINE (his "Breadline is good except it says that it moves and doesn't yet"; then, 10-30, "solid, i assume they get their bread and leave"): the front one up
+      // to the chapel door and in, the rest up a place; back out with a loaf in hand, down the street to another door and in at it; someone new up behind -- frame by frame, the
+      // figures' steps advanced as the battle's update advances them
       var B6 = houseSn('barley'), ln6 = function () { return B6.units.filter(function (u) { return /^breadline\d/.test(u.npc || ''); }); }, dq6 = (RSn.def.marks.doors || {})['chapel:aldwin'];
       var at6 = {}; ln6().forEach(function (u) { at6[u.npc] = u.x + ',' + u.y; }); var sq0 = ln6().map(function (u) { return u.x + ',' + u.y; }).sort().join(' ');
-      B6.t += H6Sn.BREAD.every + 1; H6Sn.breadTick(B6); var door6 = !!dq6 && ln6().some(function (u) { return u.x === dq6[0] && u.y === dq6[1]; });
-      B6.t += 400; H6Sn.breadTick(B6); var sq1 = ln6().map(function (u) { return u.x + ',' + u.y; }).sort().join(' '), mv6 = ln6().filter(function (u) { return at6[u.npc] !== u.x + ',' + u.y; }).length;
+      var door6 = false, in6 = false, loaf6 = false, drawn6 = 0, walk6 = 0, end6 = null, gone6 = false, leg6 = [], cv6 = document.createElement('canvas'); cv6.width = D.W; cv6.height = D.H;
+      for (var fr6 = 0; fr6 < 4000; fr6++) {
+        B6.t++; B6.units.forEach(function (u) { if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } }); H6Sn.breadTick(B6);
+        var s6 = B6.roam.bread || {}, u6 = s6.u; if (leg6[leg6.length - 1] !== s6.leg) leg6.push(s6.leg);
+        if (s6.leg === 1 && u6 && dq6 && u6.x === dq6[0] && u6.y === dq6[1]) door6 = true;
+        if (s6.leg === 2 && u6 && B6.units.indexOf(u6) < 0) in6 = true;
+        if (s6.leg === 3 && u6 && u6.loaf && B6.units.indexOf(u6) >= 0) { loaf6 = true; if (!drawn6) drawn6 = H6Sn.paintLoaves(cv6.getContext('2d'), B6); end6 = [u6.x, u6.y]; walk6 = Math.max(walk6, Math.abs(u6.x - dq6[0]) + Math.abs(u6.y - dq6[1])); }
+        if (s6.leg === 4 && u6 && B6.units.indexOf(u6) < 0 && !u6.loaf) gone6 = true;
+        if (gone6 && s6.leg === 0) break;
+      }
+      var doorEnd6 = !!end6 && Object.keys(RSn.def.marks.doors).some(function (k) { var q = RSn.def.marks.doors[k]; return k !== 'chapel:aldwin' && q && q[0] === end6[0] && q[1] === end6[1]; });
+      var sq1 = ln6().map(function (u) { return u.x + ',' + u.y; }).sort().join(' '), mv6 = ln6().filter(function (u) { return at6[u.npc] !== u.x + ',' + u.y; }).length;
       var tr6 = ln6().every(function (u) { var t = (RSn.def.src8.triggers || []).filter(function (x) { return x.town === 'talk' && x.npc === u.npc; })[0]; return !!t && t.rect[0] === u.x && t.rect[1] === u.y; });
-      okSn('the bread line at Aldwin\'s (' + RSn.def.phase + ', ' + ln6().length + ' in line): the front one up to the chapel door (' + door6 + '); then all four in the line\'s four places again (' + (sq0 === sq1) + '), ' + mv6 + ' of 4 moved up, each one\'s word on its square (' + tr6 + ')',
-        RSn.def.phase === 'early' && ln6().length === 4 && door6 && sq0 === sq1 && mv6 >= 3 && tr6);
+      okSn('the bread line at Aldwin\'s (' + RSn.def.phase + ', legs ' + leg6.join('>') + ' in ' + fr6 + ' frames): the front one up to the chapel door (' + door6 + ') and in (' + in6 + '); out with a loaf (' + loaf6 + ', drawn ' + drawn6 + '), ' + walk6 + ' squares down the street to another door (' + doorEnd6 + ' at ' + end6 + ') and in (' + gone6 + '); then four in the line\'s four places (' + (sq0 === sq1) + '), ' + mv6 + ' moved up, each one\'s word on its square (' + tr6 + ')',
+        RSn.def.phase === 'early' && door6 && in6 && loaf6 && drawn6 === 1 && walk6 >= 4 && doorEnd6 && gone6 && ln6().length === 4 && sq0 === sq1 && mv6 >= 3 && tr6);
       // 6. THE DUSK KEEPERS AND VERA (his "Out at dusk merchants - same inside text, vera doesn't actually sell and claims to")
       var B7 = houseSn('barley'), kd7 = 0; while (RSn.def.phase !== 'dusk' && kd7++ < 6) { H6Sn.wait(B7); driveSn(H6Sn.waitPlay(B7), null, 200); }
       var out7 = Object.keys(H6Sn.EVENING).map(function (id) { return [id, talkSn(B7, id).join(' / ')]; });
@@ -5276,6 +5288,15 @@
       var B8 = houseSn('barley'), v8 = CSn.words(B8, 'vera').join(' '), va8 = (H6Sn.ABOUT.vera || []).join(' ');
       okSn('by day (' + RSn.def.phase + ') no evening word (' + H6Sn.outWords('marin') + '), Marin\'s counter as it was; Vera "' + v8.slice(0, 60) + '..." and TELL ME ABOUT IT "' + va8.slice(0, 70) + '..." claim no trade with the party',
         H6Sn.outWords('marin') === null && /Common clothes/.test(CSn.words(B8, 'marin').join(' ')) && /Nothing on my table is for strangers/.test(v8) && !/turns up here/.test(v8) && !/sell it on/.test(va8) && /not with strangers/.test(va8));
+      // 7. THE NIGHT THE PIT'S WORD COMES, C1 (10-30, his "we're wasting expository space. What actually came in from newland? ... someone at the table that likes things explicit
+      // clarifying what's there vague for people that have never heard of gnolls, someone brusk cutting them off and keeping things moving?"): the news, Androit spelling it out for
+      // the record, Papa cutting him off, Merrick's warning, the notice; no Lupine's head; every page one card
+      var fN9 = {}, sN9 = readSn(H6Sn.sitting(null, ['notice'], [fN9])), ln9 = sN9.map(function (l) { return l.split('|')[0]; }).join(' > ');
+      okSn('C1: ' + sN9.length + ' pages (' + ln9 + '); the news "' + ((sN9[1] || '').split('|')[3] || '').slice(0, 50) + '...", Androit "' + ((sN9[4] || '').split('|')[3] || '').slice(0, 60) + '...", Papa "' + ((sN9[5] || '').split('|')[3] || '').slice(0, 40) + '..."; no Lupine (' + !sN9.some(function (l) { return /Lupine|Strike it/.test(l); }) + ')',
+        /^Hessle\|pt_hessle\|1\|"Word's come up the road from Tarlyn's Pit, where Newland's patrols stop\. Every gnoll tribe in the hills met at the full moon, for a moot\."/.test(sN9[1] || '') && /^Aldwyn Androit\|pt_androit\|1\|"Plainly, for the record\. Gnolls are the hyena-folk/.test(sN9[2] || '')
+          && /Gnash the Gnarled/.test(sN9[3] || '') && /^Aldwyn Androit\|pt_androit\|1\|"So they've gone Snoot\..*the most savage of them will be king\..*the histories say --"$/.test(sN9[4] || '') && /^Papa Urtusk\|pt_papa\|1\|"Enough history, Aldwyn\./.test(sN9[5] || '')
+          && /^Merrick\|/.test(sN9[6] || '') && /^Aldwyn Androit\|pt_androit\|1\|"Then we post it/.test(sN9[7] || '') && /^Ottak Harrow\|pt_harrow\|1\|"My farms/.test(sN9[8] || '') && /In the morning it is on Hessle's board/.test(sN9[9] || '') && sN9.length === 10
+          && !sN9.some(function (l) { return /Lupine|Strike it/.test(l); }) && sN9.every(function (l) { return l.split('|')[2] === '1'; }) && !!fN9.councilNotice);
     } catch (eSn) { repSn.errors.push(String(eSn && eSn.stack || eSn).slice(0, 900)); }
     D.sfx = sfx0Sn; D.store.get = stGSn; D.store.set = stSSn; H6Sn.toHex3 = false; if (HSn) { HSn.playing = false; HSn.cur = null; }
     var preSn = document.createElement('pre'); preSn.id = 'out'; preSn.textContent = 'BENCH16 ' + JSON.stringify(repSn);
@@ -5366,7 +5387,7 @@
       var nH = H6Sb.night(BN, ['notice'], [{}]); for (var sh = 0; sh < 2; sh++) { var frH = 0; while (nH.busy() && frH++ < 3000) { nH.t++; nH.step(); } nH.next(true); } var scH = D.top(), pH = scH instanceof CSb.Counter ? readSb(scH) : [];
       D.scenes.length = 0; D.scenes.push(BN); var nX2 = H6Sb.night(BN, ['notice'], [{}]); nX2.finish(); var scX2 = D.top(), pX2 = scX2 instanceof CSb.Counter ? readSb(scX2) : [];
       okSb('the shots played by hand: the sitting\'s first page "' + (pH[0] || '').slice(0, 60) + '"; X at the first shot: "' + (pX2[0] || '').slice(0, 60) + '"; the arrival\'s caption "' + H6Sb.CUT.arrive.line + '" (title ' + H6Sb.CUT.arrive.title + ')',
-        /^Hessle\|pt_hessle\|-\|"The Pit's word/.test(pH[0] || '') && !pH.some(function (l) { return /past the fourth bell/.test(l); }) && /^The council\|-\|-\|That night, in Silverton/.test(pX2[0] || '') && H6Sb.CUT.arrive.line === '' && !!H6Sb.CUT.arrive.title);
+        /^Hessle\|pt_hessle\|-\|"Word's come up the road from Tarlyn's Pit/.test(pH[0] || '') && !pH.some(function (l) { return /past the fourth bell/.test(l); }) && /^The council\|-\|-\|That night, in Silverton/.test(pX2[0] || '') && H6Sb.CUT.arrive.line === '' && !!H6Sb.CUT.arrive.title);
       var bgN = scX2.o && scX2.o.bg, behN = bgN ? bgN(D.ctx, 0, 0, 40, 40, true) : null, fullN = bgN ? bgN(D.ctx, 0, 0, D.W, D.H, false) : null;
       okSb('one background: the third floor behind the whole screen (' + fullN + '), nothing behind the one speaking (' + behN + '), a room not a shop (' + !!(scX2.o && scX2.o.room) + ')', fullN === true && behN === false && !!scX2.o.room);
       D.scenes.length = 0; D.scenes.push(BN); var nS = H6Sb.night(BN, ['stock'], [{}]), arS = nS.shots[1].st, thS = (arS.walkers || []).filter(function (w) { return w.u.npc === 'councilthrane'; })[0], tblS = D.hex.sqAt(H6Sb.TABLE.mid[0], H6Sb.TABLE.mid[1]), endS = D.hex.sqAt(7.5, -49);
@@ -6321,7 +6342,7 @@
       while (!scK.done && kK++ < 30) { heardK.push({ name: scK.o.name, sheet: scK.sheet, say: String(((scK.wait || {}).say || [])[0] || '') }); scK.step(); }
       var paK = heardK.filter(function (h) { return h.name === 'Papa Urtusk'; }), anK = heardK.filter(function (h) { return h.name === 'Aldwyn Androit'; }), hrK = heardK.filter(function (h) { return h.name === 'Ottak Harrow'; });
       okK('C1, the sitting: Papa\'s line on his own face (' + paK.map(function (h) { return h.sheet + ' ' + h.say.slice(0, 30); }).join('; ') + '), Androit\'s on his (' + (anK[0] && anK[0].sheet) + '), Harrow\'s on his (' + (hrK[0] && hrK[0].sheet + ' ' + hrK[0].say.slice(0, 30)) + ')',
-        paK.length === 1 && paK[0].sheet === 'pt_papa' && /Strike it/.test(paK[0].say) && anK.length === 1 && anK[0].sheet === 'pt_androit' && hrK.length === 1 && hrK[0].sheet === 'pt_harrow' && /Post it twice/.test(hrK[0].say));
+        paK.length === 1 && paK[0].sheet === 'pt_papa' && /Enough history, Aldwyn/.test(paK[0].say) && anK.length === 3 && anK.every(function (h) { return h.sheet === 'pt_androit'; }) && hrK.length === 1 && hrK[0].sheet === 'pt_harrow' && /Post it twice/.test(hrK[0].say));
       D.scenes.length = 0; D.scenes.push(BC); D.battle = BC;
       var nK2 = H6K.night(BC, ['notice'], [{}]), arK = nK2.shots && nK2.shots[1].st, wK = arK && arK.walkers ? arK.walkers.filter(function (w) { return w.u.npc === 'councilpapa'; })[0] : null;
       var pWK = D.SHEETS.pt_warda, fWK = D.SHEETS[CK.FIG.warda], wdK = shK && shK.b ? shK.b.units.filter(function (u) { return u.npc === 'warda'; })[0] : null;
