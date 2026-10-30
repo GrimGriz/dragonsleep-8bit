@@ -277,7 +277,8 @@
   H16.streetShot = function (B) {
     return function (ctx, x, y, w, h, behind) {
       if (behind || !D.ui || !D.ui.drawBattle) return false;
-      ctx.save(); try { D.ui.drawBattle(ctx, B); } catch (e) { ctx.restore(); return false; } ctx.restore();
+      var cards0 = B.cards; B.cards = []; // (the floor's own cards -- its hello, a show's note -- not under the screen's title: the street alone)
+      ctx.save(); try { D.ui.drawBattle(ctx, B); } catch (e) { ctx.restore(); B.cards = cards0; return false; } ctx.restore(); B.cards = cards0;
       ctx.fillStyle = H16.SHOT.dim; ctx.fillRect(0, 0, D.W, D.H); return true;
     };
   };
