@@ -81,7 +81,7 @@
     if (!h || h.dead || h.hp <= 0) return true;
     if (u.conds.blinded && u.conds.blinded.by === h.id) return true;
     if (Object.keys(h.attacks || {}).some(function (k) { return h.attacks[k] && h.attacks[k].needsHeld; })) return true;
-    if (G.dist(u, h) <= G.reachOf(u)) return false;
+    if (G.dist(u, h) <= G.armOf(u)) return false;
     return !((u.weapon && u.weapon.ranged) || (u.alt && u.alt.ranged) || TX.caster(u));
   };
   // held by a roper's tendril (10-02, handoff-2026-10-01-the-tendrils-and-ready §4.1): the three ways out weighed -- the escape check (magic.js breakFree: Athletics or
@@ -95,7 +95,7 @@
       // is a thrown or shot weapon at disadvantage (restrained) weighs that throw against the escape and the turn it buys (10-02: a held hero with a handaxe in the pack
       // "fought" the roper from 15 ft at 16 % a throw, and the fight ran seventeen rounds)
       var h = B.units.filter(function (w) { return w.id === r.by; })[0];
-      if (!h || G.dist(u, h) <= G.reachOf(u) || TX.caster(u)) return 'fight';
+      if (!h || G.dist(u, h) <= G.armOf(u) || TX.caster(u)) return 'fight';
       var th = weapons(u).filter(function (wp) { return wp.ranged && G.range(u, h) <= wp.range[1]; }).map(function (wp) { var s = swing(B, u, h, wp, u.x, u.y); return attacksWith(u, wp) * s.p * s.d; }).sort(function (a, b) { return b - a; })[0] || 0;
       var es = pE * TX.dpr(u) * 0.5;
       if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' held, out of reach: the throw ' + th.toFixed(1) + ' | the escape ' + es.toFixed(1));
@@ -576,7 +576,7 @@
       if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
       var seenAt = !any && B.lastSeenOf ? B.lastSeenOf(u) : null; if (seenAt) { any = seenAt; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' goes to look where ' + (seenAt.who.side === 'foe' ? D.Battle.nm(seenAt.who) : seenAt.who.name) + ' was last seen.{/}'], 160); } // (nothing heard either: where it last saw one -- battle.js lastSeenOf, 10-21)
       var clue = !!(B.heardOf && B.heardOf(u)) || !!seenAt; // (a blow or a spell heard, this round or the last, or a last sight of one: a place to look)
-      if (any) { yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u))); if (seenAt && G.dist(u, seenAt) <= 5) B.lookedAt(u, seenAt); if (!u.dead && u.hp > 0 && (yield* TX.burnDown(B, u))) return; } // (the walk may bring the troll lying out of range into it: the burn from there)
+      if (any) { yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.armOf(u))); if (seenAt && G.dist(u, seenAt) <= 5) B.lookedAt(u, seenAt); if (!u.dead && u.hp > 0 && (yield* TX.burnDown(B, u))) return; } // (the walk may bring the troll lying out of range into it: the burn from there)
       // it still sees no one, with a place to look and a hidden enemy about: the Search action, a Perception check against the hider's Stealth (SRD 5.1; battle.js search, 10-04 --
       // either side's class NPC: Griz, "oversight on my part limiting to 'foes'")
       if ((clue || B.round >= 2) && !u.dead && u.hp > 0 && T.action > 0 && !u.conds.disarmed && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) yield* B.search(u);
@@ -625,7 +625,7 @@
     if (AI.ropeUp && (yield* AI.ropeUp(B, u, near))) return;
     var bd = TX.bonusDash(u); // (the bonus action's Dash, Expeditious Retreat's or the rogue's Cunning Action: taken before the action's, which may keep)
     var rm = G.reach(u, T.move + (T.action ? u.speed : 0) + (bd ? u.speed : 0));
-    var e = AI.approach(u, near, rm, G.reachOf(u));
+    var e = AI.approach(u, near, rm, G.armOf(u));
     if (e && bd && e.cost > T.move) yield* B.exec(u, { do: 'cdash' });
     if (e && T.action && e.cost > T.move && !u.conds.restrained && !u.conds.dancing) { T.action = 0; T.move += u.speed; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' dashes.{/}'], 160); }
     if (e) yield* walk(B, u, e);

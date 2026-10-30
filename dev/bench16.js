@@ -4848,6 +4848,57 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE SRD'S REACH WEAPONS (mode=reach1030; the leveling lane §8 A, 10-30, RULED by the desk's relay, his "go with the leans"): the glaive, the halberd, the pike and
+  // the whip in the second game's items by the SRD (reach; the three heavy and two-handed, the whip finesse), on a fighter's rack and not a wizard's; a fighter with a
+  // glaive swings at a goblin 10 ft off and not 15, a longsword not at 10; its shove still 5 ft (the body's reach); the goblin walking off from 10 ft draws the glaive's
+  // opportunity attack, and not the longsword's; the class AI with a glaive stops 10 ft off and swings
+  if (get('mode', '') === 'reach1030') {
+    var repRe = { checks: [], errors: [] }, d0Re = D.d;
+    function okRe(what, v) { repRe.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRe(g) { var v, k = 0, st, asked = []; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { asked.push(st.value.prompt.title); v = st.value.prompt.opts[0].value; } } return asked; }
+    function plainRe(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function logRe(B, n0) { return (B.log || []).slice(n0).map(plainRe).join(' / '); }
+    function mkRe(wid, far) {
+      var B = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var f = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0], ok = false;
+      g.maxhp = g.hp = 999; g.conds = {}; f.src.equip.weapon = wid; f.src.equip.shield = null; f.weapon = D.save.weaponOf(f.src);
+      for (var y = 2; y < D.grid.map.h - 2 && !ok; y++) for (var x = 2; x < D.grid.map.w - 9 && !ok; x++) {
+        var fine = true; for (var k = 0; k <= 7 && fine; k++) if (!D.grid.canStand(g, x + k, y) || D.grid.gzAt(g, x + k, y) !== D.grid.gzAt(g, x, y)) fine = false;
+        if (fine) { f.x = x; f.y = y; g.x = x + (far || 2); g.y = y; ok = true; }
+      }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(f); B.active = f; B.cache = null; return { B: B, f: f, g: g, ok: ok };
+    }
+    try {
+      D.seed = 1030;
+      var IT = window.DS.DATA.items, R0 = window.DS.R, want = { glaive: ['1d10', 'slashing', 'heavy,reach,two-handed'], halberd: ['1d10', 'slashing', 'heavy,reach,two-handed'], pike: ['1d10', 'piercing', 'heavy,reach,two-handed'], whip: ['1d4', 'slashing', 'finesse,reach'] };
+      var srd = Object.keys(want).every(function (id) { var w = IT[id] && IT[id].weapon; return w && w.dmg === want[id][0] && w.type === want[id][1] && w.props.join() === want[id][2] && w.group === 'martial'; });
+      var fh = D.npc.sheet(D.npc.spec('fighter:5')), wz = D.npc.sheet(D.npc.spec('wizard:5'));
+      okRe('the four by the SRD (' + srd + '); a fighter may take them (' + Object.keys(want).map(function (id) { return R0.canEquip(fh, IT[id]); }) + '), a wizard not (' + Object.keys(want).map(function (id) { return R0.canEquip(wz, IT[id]); }) + ')',
+        srd && Object.keys(want).every(function (id) { return R0.canEquip(fh, IT[id]) && !R0.canEquip(wz, IT[id]); }));
+      // the glaive's reach: a swing at 10 ft, not at 15; the longsword not at 10; the shove still at 5 ft
+      var h1 = mkRe('glaive'), at10 = h1.B.canHit(h1.f, h1.g); h1.g.x += 1; var at15 = h1.B.canHit(h1.f, h1.g); h1.g.x -= 1;
+      var h2 = mkRe('longsword'), ls10 = h2.B.canHit(h2.f, h2.g);
+      h1.B.tool = 'shove'; var sh10 = D.ui.valid(h1.B, h1.f, h1.g.x, h1.g.y); h1.B.tool = 'move';
+      okRe('a glaive (reach ' + h1.f.weapon.reach + ', placed ' + h1.ok + '): the goblin at 10 ft ' + at10 + ', at 15 ft ' + at15 + '; a longsword at 10 ft ' + ls10 + '; the glaive\'s shove at 10 ft ' + sh10 + ' (want true, false, false, no)',
+        h1.ok && h1.f.weapon.reach === 10 && D.grid.armOf(h1.f) === 10 && D.grid.reachOf(h1.f) === 5 && at10 && !at15 && !ls10 && sh10 === 'no');
+      // the swing at 10 ft lands (a pinned hit)
+      D.d = function (n) { return n === 20 ? 17 : d0Re(n); }; var n0 = (h1.B.log || []).length, hp0 = h1.g.hp; runRe(h1.B.exec(h1.f, { do: 'attack', target: h1.g })); D.d = d0Re;
+      okRe('FIGHT at 10 ft: "' + logRe(h1.B, n0).slice(0, 70) + '", HP ' + hp0 + ' -> ' + h1.g.hp, h1.g.hp < hp0 && /Glaive/.test(logRe(h1.B, n0)));
+      // the goblin steps from 10 ft to 15 ft: the glaive's opportunity attack (asked of the player, STRIKE); the longsword's none
+      var oaOf = function (h) { var g = h.g; D.rules.startTurn(g); h.B.active = g; h.f.reaction = 1; var n1 = (h.B.log || []).length; D.d = function (n) { return n === 20 ? 17 : d0Re(n); }; var asked = runRe(h.B.moveAlong(g, [[g.x + 1, g.y]], { spend: true })); D.d = d0Re; return { asked: asked.join(' | '), log: logRe(h.B, n1) }; };
+      var h3 = mkRe('glaive'), oa3 = oaOf(h3), h4 = mkRe('longsword'), oa4 = oaOf(h4);
+      okRe('the goblin walks off from 10 ft: with the glaive "' + oa3.asked + '" (' + /opportunity attack/.test(oa3.log) + '); with the longsword "' + oa4.asked + '" (' + /opportunity attack/.test(oa4.log) + ')',
+        /OPPORTUNITY ATTACK\?/.test(oa3.asked) && /opportunity attack/.test(oa3.log) && !oa4.asked && !/opportunity attack/.test(oa4.log));
+      // the class AI with a glaive, the goblin 35 ft off: it closes to 10 ft and swings
+      var h5 = mkRe('glaive', 7); h5.f.guest = true; var n5 = (h5.B.log || []).length; D.d = function (n) { return n === 20 ? 17 : d0Re(n); }; runRe(D.tactics.turn(h5.B, h5.f)); D.d = d0Re;
+      var l5 = logRe(h5.B, n5), d5 = D.grid.dist(h5.f, h5.g);
+      okRe('the class AI, a glaive, the goblin 35 ft off: it stands ' + d5 + ' ft from it, swung ' + /Glaive/.test(l5), d5 === 10 && /Glaive/.test(l5));
+    } catch (e) { repRe.errors.push(String(e && e.stack || e)); }
+    D.d = d0Re;
+    var preRe = document.createElement('pre'); preRe.id = 'out'; preRe.textContent = 'BENCH16 ' + JSON.stringify(repRe);
+    document.body.appendChild(preRe);
+    return;
+  }
   // CALLED TO ACCOUNT'S WORDS (mode=accountwords1030; the leveling lane §9 0c, 10-30, his play record: an invisible duergar refused, "the spell asks for one you can see"):
   // the record and the card say what the grid asks -- a foe you can see within 30 ft (the SRD's Compelled Duel's "a creature within range that you can see") -- and the
   // refusal still says why

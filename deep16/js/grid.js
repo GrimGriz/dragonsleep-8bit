@@ -318,6 +318,9 @@
   // (Enlarge and reach: the SRD 5.1 gives none -- +1d4, STR advantage, a size larger -- so the +5 ft is a house rule, off unless
   // D.RULES.enlargeReach is set; Griz 09-29: "check rules if you can, that was my remember guess")
   G.reachOf = function (u, base) { var e = u.conds && u.conds.enlarged; return (base || u.reach || 5) + (e && !e.down && D.RULES && D.RULES.enlargeReach ? 5 : 0); };
+  // the reach of what u strikes with: a reach weapon in hand (the SRD's Reach property -- "5 feet to your reach when you attack with it, as well as when determining your reach
+  // for opportunity attacks with it"; js/save.js weaponOf), else its own. Its body's reach -- a shove, a grapple, a touch -- stays G.reachOf (10-30, the leveling lane §8 A)
+  G.armOf = function (u) { var wp = u && u.weapon; return G.reachOf(u, wp && !wp.ranged && wp.reach || null); };
   G.inReach = function (a, b, ax, ay, reach) { return G.dist(a, b, ax, ay) <= G.reachOf(a, reach); };
   G.foesNear = function (u, x, y, ft) {
     return G.units.filter(function (w) { return G.standing(w) && G.hostile(u, w) && G.dist(u, w, x, y) <= (ft || 5); });

@@ -1319,7 +1319,7 @@
   Battle.besideBucket = function (B, u) { var b = B && B.ropeBucket; return !!(b && Math.max(Math.abs(u.x - b[0]), Math.abs(u.y - b[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(b[0], b[1])) <= G.map.def.step); };
   function canCut0(B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r); if (!h || !G.hostile(u, h)) return null;
-    var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = (w && w.ranged ? G.range : G.dist)(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.reachOf(u);
+    var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = (w && w.ranged ? G.range : G.dist)(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.armOf(u);
     var inR = d <= reach && (!(w && w.ranged) || G.losPoint(u.x, u.y, r.at[0], r.at[1]));
     return { foe: h, ok: !!(w && inR && (T.attacksLeft || T.action > 0) && !u.conds.disarmed), why: !w ? 'no weapon' : !inR ? 'the rope\'s top is ' + d + ' ft off (' + (w.ranged ? 'range' : 'reach') + ' ' + reach + ')' : u.conds.disarmed ? 'the weapon is dropped' : 'no attack left this turn',
       ft: Math.round((h.hang.z - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5 };
@@ -1967,7 +1967,7 @@
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var selfO = this, prov = this.units.filter(function (w) {
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
-            && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
+            && G.dist(w, u) <= G.armOf(w) && G.dist(w, u, null, null, nx, ny) > G.armOf(w) && !(w.conds.hidden && false) // (a reach weapon's opportunity attack at 10 ft: G.armOf, 10-30)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u); // (a creature you can see: not into or out of darkness; and never at its charmer)
         });
@@ -2530,7 +2530,7 @@
     // another foe within reach, the weakest -- no roll, once
     if (melee && !atk.spell && hp0FT > 0 && (tgt.dead || tgt.hp <= 0) && (atk.props || []).indexOf('heavy') >= 0 && D.features && D.features.followThrough && D.features.followThrough(att)) {
       var overFT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0) - hp0FT;
-      var nextFT = overFT > 0 ? this.units.filter(function (w) { return w !== tgt && G.hostile(att, w) && G.standing(w) && w.hp > 0 && !w.object && G.dist(att, w) <= G.reachOf(att); }).sort(function (a, b) { return a.hp - b.hp; })[0] : null;
+      var nextFT = overFT > 0 ? this.units.filter(function (w) { return w !== tgt && G.hostile(att, w) && G.standing(w) && w.hp > 0 && !w.object && G.dist(att, w) <= G.reachOf(att, atk.reach || null); }).sort(function (a, b) { return a.hp - b.hp; })[0] : null;
       if (nextFT) { this.card(['  {o}FOLLOW-THROUGH{/}: ' + overFT + ' carries on into ' + nameOf(nextFT) + '  {g}(' + atk.type + '){/}'], 220); this.hurt(nextFT, overFT, atk.type, blowSrc); }
     }
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
@@ -2963,8 +2963,8 @@
   Battle.prototype.provoke = function* (u, why, to) {
     var T = u.turn || {}, self = this;
     if (T.disengaged || u.ethereal) return;
-    var outAt = function (w) { if (!to) return true; var f0 = u.fz; u.fz = to.fz; try { return G.dist(w, u) > G.reachOf(w); } finally { u.fz = f0; } };
-    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
+    var outAt = function (w) { if (!to) return true; var f0 = u.fz; u.fz = to.fz; try { return G.dist(w, u) > G.armOf(w); } finally { u.fz = f0; } };
+    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.armOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
       if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
@@ -3412,7 +3412,7 @@
     var hb = this.heldBack(u);
     if (hb) { D.sfx('miss'); this.card(['{o}' + Battle.refuseText(hb) + '{/}'], 260); yield 20; return; }
     if (!T.disengaged) {
-      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.reachOf(w) && !(w.weapon && w.weapon.ranged); });
+      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.armOf(w) && !(w.weapon && w.weapon.ranged); });
       for (var k = 0; k < prov.length; k++) {
         var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
         if (!atk) continue;
@@ -3787,7 +3787,7 @@
     if (RU.charmedBy(u, w)) return false; // (charmed: never its charmer)
     var wp = u.weapon;
     if (wp && wp.ranged) return G.range(u, w) <= wp.range[1] && G.los(u, w).clear;
-    return G.dist(u, w) <= G.reachOf(u);
+    return G.dist(u, w) <= G.armOf(u); // (a reach weapon's 10 ft: G.armOf, 10-30)
   };
   Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); if (D.ui && D.ui.clampCam) D.ui.clampCam(); }; // (kept in the floor's bounds at once, not a frame later: js/ui.js UI.clampCam)
   Battle.prototype.keepInView = function (u) {
