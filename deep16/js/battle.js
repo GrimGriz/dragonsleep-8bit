@@ -2261,6 +2261,7 @@
     else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? this.unpace(Math.max(4, relT - (this.t - att.animT))) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
+    if (att.conc && att.conc.id === 'calledtoaccount' && D.magic.accountedBy && G.hostile(att, tgt)) { var acT0 = D.magic.accountedBy(this, att); if (acT0 && acT0 !== tgt) D.magic.endConc(this, att, 'an attack at another'); } // (Called to Account ends: 10-30)
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (att.conds.upAdv && !atk.spell) delete att.conds.upAdv; // (the Threshing Floor's rise: its advantage on this, the first blow -- RU.startTurn, 10-30)
     // Follow-Through's WIDE SWING (a feat of ours, 10-30 -- js/features.js): this heavy melee blow; after one that missed, this one at disadvantage
@@ -2519,6 +2520,9 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true, blow: bl }); // (a mark's, a curse's: a spell's)
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
+    // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
+    var acc = att.conds && att.conds.accounted, dealtAC = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
+    if (acc && tgt.id !== acc.by && dealtAC > 0 && !att.dead) { var acR = D.roll(acc.dice); this.card(['  {y}CALLED TO ACCOUNT{/}: ' + nameOf(att) + ' answers for it  {y}' + acR.total + ' radiant{/}'], 220); FX.ring(att, 'gold', 20); this.hurt(att, acR.total, 'radiant', { magic: true }); }
     if ((tgt.dead || tgt.hp <= 0) && tgt.conds.gnawed) { var gwC = this.units.filter(function (w) { return w.id === tgt.conds.gnawed.by; })[0]; delete tgt.conds.gnawed; if (gwC && gwC.conc && gwC.conc.id === 'gnawingword') D.magic.endConc(this, gwC, 'the gnawed one fell'); } // (Gnawing Word ends when it drops)
     // Follow-Through's carry (a feat of ours, 10-30 -- js/features.js F.followThrough): a heavy melee blow that drops it carries what went past its last hit point on to
     // another foe within reach, the weakest -- no roll, once

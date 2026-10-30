@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-calledtoaccount-1030': { pri: 1, group: G2, title: 'Called to Account, the paladin\'s hold of ours: radiant for harming anyone but the paladin (10-30)', pt: 'the leveling lane, his "draft for the two mentioned" (deep16/js/grimoire.js E.calledtoaccount; deep16/js/battle.js) · eyes',
+      look: 'The SPELLS shelf: CALLED TO ACCOUNT at a foe -- its WIS save, "ANSWERABLE" on a failure. In the Pocket DM, MAKE a paladin: its 1st-level spells offer Called to Account; in a fight, the called foe that strikes a friend reads "CALLED TO ACCOUNT: ... answers for it N radiant", one that strikes the paladin reads nothing, and the paladin swinging at another ends it.',
+      url: 'deep16/?gallery&shelf=spells&spell=calledtoaccount&fresh=1030h' },
     'eyes-rootdrag-1030': { pri: 1, group: G2, title: 'Rootdrag, the druid\'s pull of ours: roots drag a foe 10 ft your way (10-30)', pt: 'the leveling lane, his "thorn whipping people into things happens at my friday table" (deep16/js/grimoire.js E.rootdrag) · eyes',
       look: 'The SPELLS shelf: ROOTDRAG at a foe -- its STR save, "DRAGGED", the bludgeoning, and the foe slid two squares along the ground. In the Pocket DM, MAKE a druid: its cantrips offer Rootdrag; cast in a fight of your own, it asks ROOTDRAG -- WHICH WAY? (eight ways, "toward you" and "away from you" marked) -- drag one into Spike Growth, off a ledge, or beside your fighter.',
       url: 'deep16/?gallery&shelf=spells&spell=rootdrag&fresh=1030g' },

@@ -797,6 +797,41 @@
       return best;
     }
   };
+  // Called to Account (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's leans and it can start building"; Compelled Duel's role, a tank paladin's hold on a
+  // foe; leveling-srd-by-class.md 6.5): a foe within 30 ft saves WIS or, while the caster concentrates (a minute), takes radiant each time it deals damage to anyone but
+  // the caster -- 1d8, +1d8 a slot above 1st (battle.js attack). It ends when the caster attacks or casts at another (battle.js, M.cast), or ends a turn more than 30 ft
+  // from it (M.endTurn, below). No disadvantage, no leash
+  function accountedBy(B, u) { return B.units.filter(function (w) { return w.conds.accounted && w.conds.accounted.by === u.id && !w.dead; })[0] || null; }
+  E.calledtoaccount = {
+    summary: function (e, u) { return 'bonus action · a foe within 30 ft · WIS save, or ' + (1 + Math.max(0, (e.slot || 1) - 1)) + 'd8 radiant each time it harms anyone but you'; },
+    cast: function* (B, u, t, slot, head, x) {
+      B.units.forEach(function (w) { if (w.conds.accounted && w.conds.accounted.by === u.id) delete w.conds.accounted; });
+      var sv = RU.save(t, 'wis', u.spellDC);
+      B.card([head + ': ' + u.name + ' calls ' + nm(B, t) + ' to account  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{y}ANSWERABLE{/}')], 240);
+      if (sv.ok) { yield 14; return; }
+      t.conds.accounted = { by: u.id, dice: (1 + Math.max(0, (slot || 1) - 1)) + 'd8' };
+      FX.ring(t, 'gold', 30);
+      if (!(u.conc && u.conc.id === 'calledtoaccount')) M.concentrate(B, u, 'calledtoaccount', 'Called to Account', function () { B.units.forEach(function (w) { if (w.conds.accounted && w.conds.accounted.by === u.id) delete w.conds.accounted; }); });
+      yield 16;
+    },
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc && u.conc.id === 'calledtoaccount') return null;
+      var best = null;
+      fs.forEach(function (t) {
+        if (!M.targetOK(B, u, e.g, t) || t.conds.accounted) return;
+        var near = B.units.filter(function (w) { return w !== u && w.side === u.side && G.standing(w) && G.dist(w, t) <= 10; }).length; if (!near) return;
+        var sc = Math.min(3, near) * 4.5 * 0.5 + TX().dpr(t) * 0.2; if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 };
+      });
+      return best;
+    }
+  };
+  var endTurnCA = M.endTurn;
+  M.endTurn = function (B, u) {
+    var r = endTurnCA.apply(this, arguments);
+    if (u && u.conc && u.conc.id === 'calledtoaccount') { var t = accountedBy(B, u); if (!t || G.dist(u, t) > 30) M.endConc(B, u, t ? 'more than 30 ft from ' + nm(B, t) : 'no one left to answer'); }
+    return r;
+  };
+  M.accountedBy = accountedBy;
   E.inflictwounds = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, e.slot) + ' necrotic'; },
     cast: function* (B, u, t, slot, head, x) { yield* spellAttack(B, u, t, x.sp, x.g, dice(x.sp, u, slot)); },

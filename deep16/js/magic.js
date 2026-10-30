@@ -405,6 +405,7 @@
   // they're getting to choose, simple gives only 1 choice so we split the scorch for them"
   M.spareRay = function (B, u, gone) { return null; };
   M.cast = function* (B, u, id, slot, t) {
+    if (u.conc && u.conc.id === 'calledtoaccount' && id !== 'calledtoaccount' && t && t.id && G.hostile(u, t) && M.accountedBy) { var acT = M.accountedBy(B, u); if (acT && acT !== t) M.endConc(B, u, 'a spell at another'); } // (Called to Account ends: grimoire.js, 10-30)
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)

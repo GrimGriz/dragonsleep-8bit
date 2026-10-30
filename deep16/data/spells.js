@@ -95,7 +95,8 @@
   hideouslaughter: { see: true, shape: 'single', side: 'foe', range: 30, time: 'A', conc: true },
   huntersmark: { see: true, shape: 'single', side: 'foe', range: 90, time: 'B', conc: true },
   gnawingword: { see: true, shape: 'single', side: 'foe', range: 60, time: 'B', conc: true },
-  rootdrag: { see: true, shape: 'single', side: 'foe', range: 30, time: 'A' }, // (ours, 10-30: the druid's pull -- grimoire.js E.rootdrag) // (ours, 10-30: the warlock's curse -- grimoire.js E.gnawingword)
+  rootdrag: { see: true, shape: 'single', side: 'foe', range: 30, time: 'A' },
+  calledtoaccount: { see: true, shape: 'single', side: 'foe', range: 30, time: 'B', conc: true }, // (ours, 10-30: a paladin's hold on a foe -- grimoire.js E.calledtoaccount) // (ours, 10-30: the druid's pull -- grimoire.js E.rootdrag) // (ours, 10-30: the warlock's curse -- grimoire.js E.gnawingword)
   mirrorsgaze: { shape: 'single', side: 'foe', range: 90, time: 'B', conc: true },
   inflictwounds: { shape: 'attack', range: 5, time: 'A' },
   longstrider: { shape: 'touch', side: 'ally', time: 'A' },

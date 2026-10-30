@@ -4623,6 +4623,43 @@
     document.body.appendChild(preB);
     return;
   }
+  // CALLED TO ACCOUNT (mode=account1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.5): the
+  // paladin's hold of ours -- on the paladin's list (last); a failed WIS save, the mark and the concentration; the goblin's hit on the fighter costs it radiant, its hit on
+  // the paladin nothing; 2d8 from a 2nd-level slot; a save made, no mark; the paladin's blow at another ends it; a turn ended more than 30 ft away ends it
+  if (get('mode', '') === 'account1030') {
+    var repAc = { checks: [], errors: [] }, d0Ac = D.d;
+    function okAc(what, v) { repAc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runAc(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts; v = os[os.length - 1].value; } } }
+    function plainAc(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkAc() {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=paladin:5,fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), u = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== u; })[0], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; }); u.hp = u.maxhp = 999; f.hp = f.maxhp = 999; D.rules.startTurn(u); B.active = u; return { B: B, u: u, f: f, g: gs[0], g2: gs[1] };
+    }
+    function castAc(h, save, slot) { D.d = function (n) { return n === 20 ? save : d0Ac(n); }; runAc(D.magic.cast(h.B, h.u, 'calledtoaccount', slot || 1, h.g)); D.d = d0Ac; }
+    function blowAc(h, att, tgt, atk) { D.d = function (n) { return n === 20 ? 19 : d0Ac(n); }; var n0 = (h.B.log || []).length, hp0 = att.hp; runAc(h.B.attack(att, tgt, atk)); D.d = d0Ac; return { log: (h.B.log || []).slice(n0).map(plainAc).join(' / '), lost: hp0 - att.hp }; }
+    try {
+      D.seed = 1030;
+      var sp = window.DS.DATA.spells.calledtoaccount, gd = D.SPELLS.calledtoaccount, pl = D.npc.CLASSES.paladin.spells[1], p9 = D.npc.sheet(D.npc.spec('paladin:9'));
+      okAc('the spell: level ' + (sp && sp.level) + ', grid ' + (gd && gd.time) + ' ' + (gd && gd.range) + ' ft; the paladin\'s 1st ends ' + pl[pl.length - 1] + '; the generic paladin 9 has it ' + ((p9.prepared || p9.known || []).indexOf('calledtoaccount') >= 0),
+        sp && sp.level === 1 && gd && gd.time === 'B' && pl[pl.length - 1] === 'calledtoaccount' && (p9.prepared || p9.known || []).indexOf('calledtoaccount') < 0);
+      var h1 = mkAc(); castAc(h1, 2);
+      okAc('cast, the save failed: the mark ' + JSON.stringify(h1.g.conds.accounted) + ', concentration ' + (h1.u.conc && h1.u.conc.id), h1.g.conds.accounted && h1.g.conds.accounted.dice === '1d8' && h1.u.conc && h1.u.conc.id === 'calledtoaccount');
+      var b1 = blowAc(h1, h1.g, h1.f, h1.g.attacks.scimitar), b2 = blowAc(h1, h1.g, h1.u, h1.g.attacks.scimitar);
+      okAc('the goblin hits the fighter: it loses ' + b1.lost + ' ("' + (b1.log.match(/CALLED TO ACCOUNT[^/]*/) || [''])[0].slice(0, 60) + '"); hits the paladin: loses ' + b2.lost, b1.lost > 0 && /CALLED TO ACCOUNT/.test(b1.log) && b2.lost === 0);
+      var h2 = mkAc(); castAc(h2, 2, 2); var h3 = mkAc(); castAc(h3, 19);
+      okAc('from a 2nd-level slot: ' + (h2.g.conds.accounted && h2.g.conds.accounted.dice) + '; a save made: the mark ' + !!h3.g.conds.accounted + ', concentration ' + (h3.u.conc ? h3.u.conc.id : 'none'), h2.g.conds.accounted && h2.g.conds.accounted.dice === '2d8' && !h3.g.conds.accounted && !(h3.u.conc && h3.u.conc.id === 'calledtoaccount'));
+      var h4 = mkAc(); castAc(h4, 2); blowAc(h4, h4.u, h4.g2, h4.u.weapon);
+      okAc('the paladin swings at the other goblin: the mark ' + !!h4.g.conds.accounted + ', concentration ' + (h4.u.conc ? h4.u.conc.id : 'ended'), !h4.g.conds.accounted && !(h4.u.conc && h4.u.conc.id === 'calledtoaccount'));
+      var h5 = mkAc(); castAc(h5, 2); var far = false; for (var x5 = 0; x5 < D.grid.map.w && !far; x5++) for (var y5 = 0; y5 < D.grid.map.h && !far; y5++) { if (D.grid.canStand(h5.g, x5, y5) && D.grid.dist({ x: x5, y: y5 }, h5.u) > 30) { h5.g.x = x5; h5.g.y = y5; far = true; } }
+      D.grid.setup(h5.B.map, h5.B.units); D.magic.endTurn(h5.B, h5.u);
+      okAc('a turn ended ' + D.grid.dist(h5.g, h5.u) + ' ft away (placed ' + far + '): concentration ' + (h5.u.conc ? h5.u.conc.id : 'ended'), far && !(h5.u.conc && h5.u.conc.id === 'calledtoaccount'));
+    } catch (e) { repAc.errors.push(String(e && e.stack || e)); }
+    D.d = d0Ac;
+    var preAc = document.createElement('pre'); preAc.id = 'out'; preAc.textContent = 'BENCH16 ' + JSON.stringify(repAc);
+    document.body.appendChild(preAc);
+    return;
+  }
   // ROOTDRAG (mode=rootdrag1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.5): the druid's
   // pull of ours -- on the druid's list (last); a failed STR save, the dice and a 10-ft drag the player's way (two squares); a save made, nothing; a flier, untouched; the AI's
   // drag toward its nearest friend
