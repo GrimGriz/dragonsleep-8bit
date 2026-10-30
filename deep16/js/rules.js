@@ -12,6 +12,7 @@
   RU.ac = function (u) {
     var c = u.conds, ac = (u.baseAC || u.ac) - (c.shieldPinned ? 2 : 0); // (the Drillyard's PIN THE SHIELD: a shield's +2 off, js/features.js -- 10-30)
     if (c.barkskin) ac = Math.max(ac, 16);
+    if (c.pelt && c.pelt.parts.indexOf('hide') >= 0 && u.hp > 0) ac = Math.max(ac, 13 + D.mod(u.abil.wis) + (D.features && D.features.bearsShield && D.features.bearsShield(u) ? 2 : 0)); // (the Pelt's HIDE, ours: 13 + WIS at the least -- js/features.js, 10-30)
     var ward = D.battle && D.battle.doorWardOn && u.side === 'party' && u.hp > 0 ? 3 : 0; // the Door-Shield protects the party (battle.js doorWard)
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
   };
@@ -50,7 +51,7 @@
   // condition from one fight to the next (the climb's camp starts every hero clean: climb.js CL.rested), so here it lasts the fight
   RU.EXHAUSTION = ['', 'disadvantage on ability checks', 'and its speed halved', 'and disadvantage on attacks and saves', 'and its hit point maximum halved', 'and its speed 0', 'dead'];
   RU.exhaustion = function (u) { return (u && u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; };
-  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.stride) s = Math.max(0, s - 10); /* (the Drillyard's BREAK STRIDE, 10-30) */ if (u.conds && u.conds.grappled) return 0; if (u.grappling && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
+  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.stride) s = Math.max(0, s - 10); if (u.conds && u.conds.pelt && u.conds.pelt.parts.indexOf('haunches') >= 0) s += 10; /* (the Pelt's HAUNCHES, 10-30) */ /* (the Drillyard's BREAK STRIDE, 10-30) */ if (u.conds && u.conds.grappled) return 0; if (u.grappling && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
   RU.exhaust = function (B, u, n, why) {
     if (!u || u.dead || RU.immuneTo(u, 'exhaustion')) return 0;
     var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = u.side === 'foe' && B && B.shortName && !u.named ? 'The ' + B.shortName(u) : u.name;
@@ -89,7 +90,7 @@
   // on 20 ft lying down): standing "costs an amount of movement equal to half your speed" (SRD 5.1), paid from the walk if the walk has it; else it crawls (grid.js)
   // what standing costs it: half its speed (SRD 5.1), or 5 ft for a ranger of the Grey Road (PIT-WISE, 3; ours, 10-08 -- js/features.js, the
   // Grey Road). grid.js G.reach, ai.js and battle.js ask it too
-  RU.riseCost = function (u) { return (u.subclass === 'the Grey Road' && u.lvl >= 3) || RU.hardGround(u) ? Math.min(5, Math.floor(RU.speedNow(u) / 2)) : Math.floor(RU.speedNow(u) / 2); };
+  RU.riseCost = function (u) { return (u.subclass === 'the Grey Road' && u.lvl >= 3) || RU.hardGround(u) || (u.conds && u.conds.pelt && u.conds.pelt.parts.indexOf('haunches') >= 0) ? Math.min(5, Math.floor(RU.speedNow(u) / 2)) : Math.floor(RU.speedNow(u) / 2); };
   // the Threshing Floor's Hard Ground (a fighter of ours at 3, 10-30 -- js/rules.js R.SUBCLASSES.fighter; Barley's road, "He went down once against Cutter on fight night and got
   // back up"): prone is no trouble -- its own melee blows from the ground at no disadvantage, no advantage for one beside it, and up for 5 ft (RU.riseCost)
   RU.hardGround = function (u) { return !!u && u.subclass === 'the Threshing Floor' && u.cls === 'fighter' && u.lvl >= 3; };

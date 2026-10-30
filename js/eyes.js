@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-pelt-1030': { pri: 1, group: G2, title: 'The Circle of the Pelt, the druid\'s circle of ours: a beast\'s parts on the druid\'s own body (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (deep16/js/features.js F.pelt; deep16/js/rules.js RU.ac, RU.speedNow) · eyes',
+      look: 'The FEATURES shelf, the three in turn (RIGHT for the next). WEAR THE BEAST: the druid puts a part on -- "wears the beast", the temporary HP. THICK PELT: the claws on, and a blow with them (1d8, WIS). TWO PARTS (6th): hide and claws from one use, the blow with magical claws. In the Pocket DM, MAKE a druid: at 2, THE LEVEL asks the Circle of the Land or the Circle of the Pelt; a Pelt druid has no LAND tab and no circle spells, and its ring has WEAR THE BEAST (then SHED THE BEAST).',
+      url: 'deep16/?gallery&shelf=features&feature=wearthebeast&only=wearthebeast,thickpelt,twoparts&fresh=1030j' },
     'eyes-heldbreath-1030': { pri: 1, group: G2, title: 'Held Breath, a feat of ours: a shot from where you stand, long range no trouble, one more die (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (js/rules.js R.FEATS.heldbreath, R.featWant; deep16/js/battle.js, rules.js) · eyes',
       look: 'The FEATURES shelf: a rogue with the feat and a bow shoots without a step -- the first hit reads "held breath +" one more die. In the Pocket DM, MAKE a rogue of DEX 13 or more to level 4: THE LEVEL\'s scores offer HELD BREATH (FEAT); below DEX 13 it is not there. In a fight, a shot at long range from where you stood reads no "long range" -- take a step first and it does.',
       url: 'deep16/?gallery&shelf=features&feature=heldbreath&only=heldbreath&fresh=1030i' },

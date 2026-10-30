@@ -4623,6 +4623,49 @@
     document.body.appendChild(preB);
     return;
   }
+  // THE CIRCLE OF THE PELT (mode=pelt1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.2):
+  // the druid's circle of ours -- the maker asks a druid's circle at 2 (the LAND asked of the Land's alone); a Pelt druid has no land (no circle spells, no land's cantrip,
+  // no Land's Stride); WEAR THE BEAST by the prompt -- CLAWS (1d8, WIS), the temporary HP, a Wild Shape spent; HIDE's AC, HAUNCHES' speed; two parts at 6, the claws
+  // magical; the parts gone at 0 and by SHED THE BEAST; the class AI's hide on with a foe near
+  if (get('mode', '') === 'pelt1030') {
+    var repPe = { checks: [], errors: [] }, d0Pe = D.d, RPe = window.DS.R, RUPe = D.rules;
+    function okPe(what, v) { repPe.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPe(g, picks) { var v, k = 0, st, i = 0; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts, want = picks && picks[i++], o = os.filter(function (x) { return x.value === want; })[0] || os[os.length - 1]; v = o.value; } } }
+    function mkPe(lvl) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=druid:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var u = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      u.subclass = 'the Circle of the Pelt'; u.feats.wildShape = 2; g.maxhp = g.hp = 999; D.rules.startTurn(u); B.active = u; return { B: B, u: u, g: g };
+    }
+    try {
+      D.seed = 1030;
+      var dop = RPe.SUBCLASSES.druid.opts.map(function (o) { return o.name; }), a2 = D.npc.levelAsks(D.npc.spec('druid:2'), 2, { classDefaults: true }), arc2 = (a2.asks || []).filter(function (a) { return a.kind === 'archetype'; })[0], land2 = (a2.asks || []).filter(function (a) { return a.key === 'land'; })[0];
+      var a2p = D.npc.levelAsks(Object.assign(D.npc.spec('druid:2'), { subclass: 'the Circle of the Pelt' }), 2, { classDefaults: true }), land2p = (a2p.asks || []).filter(function (a) { return a.key === 'land'; })[0];
+      okPe('the register: ' + dop.join(' / ') + '; the maker at 2 asks the circle (' + (arc2 ? arc2.rows.map(function (r) { return r.name; }).join(' / ') + ', marked ' + arc2.took : 'no ask') + '), the LAND of the Land ' + !!land2 + ', of the Pelt ' + !!land2p,
+        dop.join('|') === 'Circle of the Land|the Circle of the Pelt' && arc2 && arc2.took === 'Circle of the Land' && !!land2 && !land2p);
+      var sP = D.npc.sheet(Object.assign(D.npc.spec('druid:6'), { subclass: 'the Circle of the Pelt' })), sL = D.npc.sheet(D.npc.spec('druid:6')), uP = D.npc.unit(sP, 'party'), uL = D.npc.unit(sL, 'party');
+      okPe('a Pelt druid 6: land ' + sP.land + ', the land\'s cantrip ' + (sP.known.indexOf('poisonspray') >= 0) + ', Land\'s Stride ' + !!uP.landsStride + '; a Land druid 6: land ' + sL.land + ', Land\'s Stride ' + !!uL.landsStride,
+        sP.land === null && sP.known.indexOf('poisonspray') < 0 && !uP.landsStride && sL.land === 'underdark' && !!uL.landsStride);
+      var h1 = mkPe(3), w0 = h1.u.weapon.name, ws0 = h1.u.feats.wildShape, cmd1 = h1.B.commands(h1.u).filter(function (c) { return c.id === 'wearbeast'; })[0]; runPe(h1.B.exec(h1.u, { do: 'wearbeast' }), ['claws']);
+      okPe('WEAR THE BEAST at 3 (the button ' + (cmd1 && cmd1.ok) + '): ' + JSON.stringify(h1.u.conds.pelt) + ', the weapon ' + w0 + ' -> ' + h1.u.weapon.name + ' ' + h1.u.weapon.dice + '+' + h1.u.weapon.mod + ', temp ' + h1.u.temp + ', Wild Shape ' + ws0 + ' -> ' + h1.u.feats.wildShape,
+        cmd1 && cmd1.ok && h1.u.conds.pelt && h1.u.conds.pelt.parts.join() === 'claws' && h1.u.weapon.name === 'Claws' && h1.u.weapon.dice === '1d8' && h1.u.weapon.mod === D.mod(h1.u.abil.wis) && h1.u.temp === 6 && h1.u.feats.wildShape === ws0 - 1);
+      var h2 = mkPe(3), ac0 = RUPe.ac(h2.u), sp0 = RUPe.speedNow(h2.u); runPe(h2.B.exec(h2.u, { do: 'wearbeast' }), ['hide']); var ac1 = RUPe.ac(h2.u);
+      D.rules.startTurn(h2.u); runPe(h2.B.exec(h2.u, { do: 'wearbeast' }), ['haunches']); var sp1 = RUPe.speedNow(h2.u), want1 = Math.max(ac0, 13 + D.mod(h2.u.abil.wis));
+      okPe('HIDE: AC ' + ac0 + ' -> ' + ac1 + ' (want ' + want1 + ' or more); HAUNCHES: speed ' + sp0 + ' -> ' + sp1 + ', the rise ' + RUPe.riseCost(h2.u) + ' ft', ac1 >= want1 && sp1 === sp0 + 10 && RUPe.riseCost(h2.u) === 5);
+      var h3 = mkPe(6); runPe(h3.B.exec(h3.u, { do: 'wearbeast' }), ['hide', 'claws']); var parts3 = h3.u.conds.pelt && h3.u.conds.pelt.parts.join(), mag3 = h3.u.weapon.magic;
+      h3.u.hp = 1; h3.B.hurt(h3.u, 50, 'slashing', {}); var off3 = !h3.u.conds.pelt && h3.u.weapon.name !== 'Claws';
+      okPe('at 6: two parts (' + parts3 + '), the claws magical ' + mag3 + '; at 0 HP the parts are gone ' + off3, parts3 === 'hide,claws' && mag3 === true && off3);
+      var h4 = mkPe(3), w4 = h4.u.weapon.name; runPe(h4.B.exec(h4.u, { do: 'wearbeast' }), ['claws']); D.rules.startTurn(h4.u); runPe(h4.B.exec(h4.u, { do: 'shedbeast' })); var ws4 = h4.B.commands(h4.u).filter(function (c) { return c.id === 'wildshape'; })[0];
+      okPe('SHED THE BEAST: the parts ' + !!h4.u.conds.pelt + ', the weapon back ' + h4.u.weapon.name + ' (' + w4 + '); WILD SHAPE offered again ' + !!ws4, !h4.u.conds.pelt && h4.u.weapon.name === w4 && !!ws4);
+      var h5 = mkPe(3); h5.u.guest = true; var gx = h5.g; // (a guest: the class AI runs it)
+      h5.u.x = gx.x + 2; h5.u.y = gx.y; if (!D.grid.canStand(h5.u, h5.u.x, h5.u.y)) { h5.u.x = gx.x - 2; } D.grid.setup(h5.B.map, h5.B.units); h5.B.active = h5.u;
+      var gAI = D.ai.turn(h5.B, h5.u), kAI = 0, stAI; while (kAI++ < 3000) { stAI = gAI.next(); if (stAI.done) break; if (stAI.value && stAI.value.prompt) break; }
+      okPe('the class AI with a foe near: ' + JSON.stringify(h5.u.conds.pelt), !!h5.u.conds.pelt && h5.u.conds.pelt.parts.indexOf('hide') >= 0);
+    } catch (e) { repPe.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pe;
+    var prePe = document.createElement('pre'); prePe.id = 'out'; prePe.textContent = 'BENCH16 ' + JSON.stringify(repPe);
+    document.body.appendChild(prePe);
+    return;
+  }
   // HELD BREATH (mode=breath1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.3): the feat
   // of ours at DEX 13 (R.featWant: a prerequisite past STR, the pick says "wants DEX 13" nowhere it can't be taken); standing still, no disadvantage at long range, the
   // first hit one more weapon die, the second none; after a step, long range counts again; Grappler still wants STR 13

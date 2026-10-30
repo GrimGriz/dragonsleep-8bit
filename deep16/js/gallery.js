@@ -276,6 +276,7 @@
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
+    wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
     sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
@@ -537,6 +538,8 @@
       // the Drillyard (ours, 10-30; js/features.js F.drill): a hit and its play (the first offered: BIND); the mark called and a friend's hit on it; a push that does not move it
       followthrough: function* (c) { var t = c.foes[0]; t.hp = 2; yield* fire(B.exec(c.hero, { do: 'wideswing' })); yield 20; yield* swing(c, t, 3, true); }, // (the wide swing's hit on one at 2 HP: its excess carried on to the next beside)
       heldbreath: swings(4), // (a shot without a step: "held breath +" one more die on the first hit)
+      thickpelt: function* (c) { D.features.wearBeast(B, c.hero, ['claws']); yield 30; yield* swing(c, null, 3, true); }, // (the claws on, the temporary HP, a blow with them)
+      twoparts: function* (c) { D.features.wearBeast(B, c.hero, ['hide', 'claws']); yield 30; yield* swing(c, null, 3, true); }, // (hide and claws on one use, a blow with magical claws)
       setplays: swings(4),
       callthemark: function* (c) { yield* fire(B.exec(c.hero, { do: 'callmark' })); yield 30; if (c.mate) { D.rules.startTurn(c.mate); B.active = c.mate; yield* fire(B.exec(c.mate, { do: 'attack', target: c.foes[0] })); B.active = c.hero; } },
       holdground: function* (c) { var u = c.hero; u.reaction = 1; yield 20; D.magic.push(B, c.foes[0], u, 10); yield 50; },

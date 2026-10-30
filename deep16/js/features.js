@@ -987,6 +987,33 @@
     var t = hostileNear(B, u, G.reachOf(u)).sort(function (a, b) { return RU.ac(a) - RU.ac(b); })[0];
     if (t && RU.ac(t) - (u.weapon.atk || 0) <= 5) { F.wideSwing(B, u); yield 6; } // (a hit on 6 or better: four in five)
   });
+  // ------------------------------------------------------------------ the druid: the Circle of the Pelt (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's
+  // leans and it can start building"; leveling-srd-by-class.md 6.2): WEAR THE BEAST, a bonus action and a use of Wild Shape -- one beast part on the druid's own body for
+  // the fight (two at 6), its HP, gear, spells and concentration its own: CLAWS (unarmed strikes 1d8 slashing, WIS for the hit and the damage; magical at 6), HIDE (AC at
+  // least 13 + WIS: rules.js RU.ac), HAUNCHES (10 ft more speed, up for 5 ft: RU.speedNow, RU.riseCost); THICK PELT, temporary HP twice the druid level as a part goes on.
+  // The parts go at 0 HP (battle.js) or by SHED THE BEAST (a bonus action). No Wild Shape while a part is worn
+  F.pelt = function (u) { return !!(u && u.cls === 'druid' && u.subclass === 'the Circle of the Pelt' && u.lvl >= 2); };
+  F.PARTS = { claws: 'CLAWS', hide: 'HIDE', haunches: 'HAUNCHES' };
+  F.wearBeast = function (B, u, parts) {
+    if (u.conds.pelt) F.peltOff(B, u, true);
+    u.turn.bonus = 0; u.feats.wildShape--;
+    u.conds.pelt = { parts: parts.slice(0, u.lvl >= 6 ? 2 : 1) };
+    if (u.conds.pelt.parts.indexOf('claws') >= 0) { var wm = D.mod(u.abil.wis); u.peltWas = u.weapon; u.weapon = { name: 'Claws', atk: (u.prof || 2) + wm, dice: '1d8', mod: wm, type: 'slashing', props: [], magic: u.lvl >= 6, ranged: false, finesse: false }; }
+    u.temp = Math.max(u.temp || 0, 2 * u.lvl);
+    D.sfx('magic'); FX.ring(u, 'moss', 26);
+    B.card(['{y}' + u.name + '{/} wears the beast: ' + u.conds.pelt.parts.map(function (k) { return F.PARTS[k]; }).join(' and ') + '  {g}(' + u.temp + ' temporary HP; spells and concentration kept){/}'], 240);
+  };
+  F.peltOff = function (B, u, quiet) {
+    if (!u.conds.pelt) return;
+    if (u.peltWas) { u.weapon = u.peltWas; delete u.peltWas; }
+    delete u.conds.pelt;
+    if (!quiet && B && B.card) B.card(['{g}' + u.name + '\'s beast parts fall away.{/}'], 160);
+  };
+  // the class AI's: hide on (and the claws too, from 6) once a foe is within 30 ft (TX.FIRST, as the Window's Hand on the Neck)
+  TX.FIRST.unshift(function* (B, u) {
+    if (mine(u) || !F.pelt(u) || u.conds.pelt || u.beast || !u.turn || !(u.turn.bonus > 0) || !feat(u, 'wildShape') || !hostileNear(B, u, 30).length) return;
+    F.wearBeast(B, u, u.lvl >= 6 ? ['hide', 'claws'] : ['hide']); yield 10;
+  });
   F.commands = function (B, u) {
     if (!mine(u)) return [];
     var T = u.turn, out = [], act = T.action > 0 && !T.attacksLeft;
@@ -1003,7 +1030,10 @@
         why: u.conds.reckless ? 'reckless already, till your next turn' : 'it is decided on the turn\'s first swing', note: 'advantage on STR swings this turn; swings at you have it too till your next' });
     }
     // the druid (09-29, Higertha to nine): Wild Shape, and the way back
-    if (u.cls === 'druid' && u.lvl >= 2 && !u.beast) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
+    if (F.pelt(u) && !u.beast) out.push(u.conds.pelt ? { id: 'shedbeast', label: 'SHED THE BEAST', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'the parts off: ' + u.conds.pelt.parts.map(function (k) { return F.PARTS[k]; }).join(', ') }
+      : { id: 'wearbeast', label: 'WEAR THE BEAST', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0 && feat(u, 'wildShape'), why: !feat(u, 'wildShape') ? 'no Wild Shape left (a short rest)' : 'the bonus action is spent',
+        note: (u.lvl >= 6 ? 'two parts' : 'a part') + ' on your own body -- claws (1d8, WIS), hide (AC 13 + WIS), haunches (+10 ft) -- and ' + 2 * u.lvl + ' temporary HP' }); // (the Pelt's, ours: 10-30)
+    if (u.cls === 'druid' && u.lvl >= 2 && !u.beast && !u.conds.pelt) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
       why: !feat(u, 'wildShape') ? 'no shape left (a short rest brings two back)' : 'the action is spent', note: 'a beast\'s shape (' + F.beastsFor(u).map(function (k) { return D.FOES[k].name.toLowerCase(); }).join(', ') + '): its hit points take the blows first, no spells; ' + ((u.feats && u.feats.wildShape) || 0) + ' left (short rest)' });
     if (u.cls === 'druid' && u.beast && !u.beast.morph) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
     if (u.cls === 'cleric' && u.lvl >= 2 && u.subclass === 'Life Domain') out.push({ id: 'preservelife', label: 'PRESERVE LIFE', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.lifeLow(B, u).length > 0,
@@ -1089,6 +1119,19 @@
         t = yield* pickOne(B, u, 'THE SHOWING', F.showable(B, u), 'Which of them is shown the glass? (WIS DC ' + u.spellDC + ')');
         if (t) yield* F.showing(B, u, t);
         return;
+      case 'wearbeast': {
+        if (!F.pelt(u) || !feat(u, 'wildShape') || !(u.turn.bonus > 0)) return;
+        var picked = [], nP = u.lvl >= 6 ? 2 : 1;
+        for (var iP = 0; iP < nP; iP++) {
+          var optsP = Object.keys(F.PARTS).filter(function (k) { return picked.indexOf(k) < 0; }).map(function (k) { return { label: F.PARTS[k] + (k === 'claws' ? ': 1d8 slashing, WIS' : k === 'hide' ? ': AC ' + (13 + D.mod(u.abil.wis)) + ' at least' : ': 10 ft more speed'), value: k }; });
+          optsP.push({ label: iP ? 'NO SECOND' : 'NOT NOW', value: 0 });
+          var vP = yield { prompt: { who: u, title: u.name + ': WEAR THE BEAST' + (nP > 1 ? ' (' + (iP + 1) + ' of 2)' : ''), lines: ['A part of a beast on your own body, for the fight.'], opts: optsP } };
+          if (!vP) break; picked.push(vP);
+        }
+        if (picked.length) { F.wearBeast(B, u, picked); yield 10; }
+        return;
+      }
+      case 'shedbeast': if (u.conds.pelt && u.turn.bonus > 0) { u.turn.bonus = 0; F.peltOff(B, u); yield 8; } return;
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');

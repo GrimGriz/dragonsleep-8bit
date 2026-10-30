@@ -119,7 +119,7 @@
       { id: 'pinshield', name: 'Pin the Shield', desc: 'on a hit, its shield adds nothing to its AC till your next turn' },
       { id: 'callmark', name: 'Call the Mark', desc: 'a bonus action: each friend\'s first hit on one creature +2 till your next turn' },
       { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
-    druid: [{ key: 'land', word: 'LAND', at: 2, opts: [
+    druid: [{ key: 'land', word: 'LAND', at: 2, sub: 'Circle of the Land', opts: [ // (the Land's alone since the Pelt, 10-30)
       { id: 'underdark', name: 'the Underdark', desc: 'Web, Stinking Cloud, Greater Invisibility, Insect Plague' },
       { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' }] }]
   };
@@ -246,7 +246,7 @@
     var sp = c.spells || {}, out = [], cantrips = [];
     var nc = c.cantrips ? c.cantrips[lvl - 1] : 0;
     (sp[0] || []).slice(0, nc).forEach(function (id) { cantrips.push(id); });
-    if (cls === 'druid' && lvl >= 2 && c.landCantrip) cantrips.push(c.landCantrip); // (the Land's bonus cantrip)
+    if (cls === 'druid' && lvl >= 2 && c.landCantrip && land) cantrips.push(c.landCantrip); // (the Land's bonus cantrip)
     var pool = [];
     for (var L = 1; L <= top; L++) (sp[L] || []).forEach(function (id) { pool.push(id); });
     if (cls === 'bard' && lvl >= 6 && sp.magicalSecrets) sp.magicalSecrets.forEach(function (id) { pool.push(id); }); // (Additional Magical Secrets, Lore 6)
@@ -332,7 +332,7 @@
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: spec.style && (R.STYLE_FOR[cls] || []).indexOf(spec.style) >= 0 ? spec.style : c.style || null, // (the Pocket DM's maker picks one, 10-06; R.style gives none before the class's level)
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
-      land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
+      land: sub === 'the Circle of the Pelt' ? null : spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid of the Pelt, ours, has no land: no circle spells, no land's cantrip, no Land's Stride -- 10-30) // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
       featIds: featsW.length ? featsW.slice() : undefined, // (the feats a word's picks took: R.hasFeat, 10-15)
@@ -551,8 +551,8 @@
     if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
     // the Circle of the Land (SRD 5.1): Land's Stride (6) -- nonmagical difficult ground costs nothing (grid.js stepCost), advantage on the save
     // against magically made plants (Entangle); Nature's Ward (10) -- no poison, no disease, and no elemental or fey charms or frightens it
-    if ((h.cls === 'druid' && h.lvl >= 6) || (h.cls === 'ranger' && h.lvl >= 8)) u.landsStride = true; // (the ranger's own Land's Stride, SRD 5.1, 8th: the same words -- no ranger had it, found 10-08 building GreyFang)
-    if (h.cls === 'druid' && h.lvl >= 10) { u.natureWard = true; u.immune = (u.immune || []).concat(['poison']); u.condImmune = (u.condImmune || []).concat(['poisoned', 'diseased']); }
+    if ((h.cls === 'druid' && h.lvl >= 6 && h.land) || (h.cls === 'ranger' && h.lvl >= 8)) u.landsStride = true; // (the ranger's own Land's Stride, SRD 5.1, 8th: the same words -- no ranger had it, found 10-08 building GreyFang)
+    if (h.cls === 'druid' && h.lvl >= 10 && h.land) { u.natureWard = true; u.immune = (u.immune || []).concat(['poison']); u.condImmune = (u.condImmune || []).concat(['poisoned', 'diseased']); }
     if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw

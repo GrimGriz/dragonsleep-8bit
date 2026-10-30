@@ -35,7 +35,7 @@ Each decision gets one verdict:
 | Barbarian | 3 | Primal Path | 2: Berserker, Totem Warrior | Berserker | the Sand (Talmok's) | met |
 | Bard | 3 | College | 2: Lore, Valor | Lore | -- | SHORT 1 |
 | Cleric | 1 | Divine Domain | 8: Life, Knowledge, Light, Nature, Tempest, Trickery, War, Death (DMG) | Life | the Window (Kat's), the Vigil (Torvald's); the Keeping is NPC only (`NPC.SUBS`) | SHORT 5 (4 if the Keeping is made playable) |
-| Druid | 2 | Circle | 2: the Land, the Moon | the Land | -- (the Circle of the Pelt drafted, §6.2) | SHORT 1, drafted |
+| Druid | 2 | Circle | 2: the Land, the Moon | the Land | the Circle of the Pelt (BUILT 10-30, §6.2) | met |
 | Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1); the Drillyard (BUILT 10-30, §6.1) | met; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
 | Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | -- (the Oath of the Green Return drafted, §2.2) | SHORT 3; **not asked on either pick** |
@@ -190,7 +190,7 @@ A fighter taught on the drill yard, with set plays for the moment a fight offers
 
 **NOT** the Battle Master: no superiority dice and no die added to any roll; each play's effect is fixed, and none is one of its maneuvers (no trip, disarm, riposte, precision, menacing, pushing, goading, feint, rally or commander's strike). Nearest: Wheel and its Maneuvering Attack both move a friend -- Wheel trades two places. With the Champion (SRD) and the Threshing Floor (ours, built), the fighter's count of three is met. **Built 10-30:** `js/rules.js` R.SUBCLASSES.fighter and R.champion; `deep16/js/classes.js` NPC.OPTIONS.fighter (the PLAYS, an archetype's own: `sub`), NPC.sheet (the openings, the plays), NPC.levelAsks; `deep16/js/pocket.js` THE GEAR's PLAYS tab; `deep16/js/features.js` F.drill (the plays on a hit through M.onWeaponHit, a prompt for a player and the first that bears for the class AI -- never the wheel; CALL THE MARK a ring button and the AI's, F.holdGround spent on its own); `deep16/js/rules.js` RU.ac, RU.speedNow, RU.startTurn; `deep16/js/battle.js` the mark's +2; HOLD GROUND in `deep16/js/magic.js` M.push (every push, a shove's too) and the knockdowns of a shove, the bulette's Leap, a creature's knock-prone attack, the Winnower's critical and three features' (the Open Hand's, the Sand's, a sweep's) -- the rest (spells such as Command and Grease, falls, a flier brought down) unguarded; the FEATURES shelf; `mode=drill1030`. Not in the first game: Barley's sheet keeps the Champion.
 
-### 6.2 The druid's circle of ours: the Circle of the Pelt (RULED 10-30) -- the Moon's role
+### 6.2 The druid's circle of ours: the Circle of the Pelt (BUILT 10-30, the grid) -- the Moon's role
 
 A druid who fights in its own body with a beast's parts on it.
 

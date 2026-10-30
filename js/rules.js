@@ -310,6 +310,11 @@
     warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
       { id: 'fiend', name: 'The Fiend', srd: true, desc: "Dark One's Blessing: a foe it drops gives temporary HP. At 6, Dark One's Own Luck." },
       { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." }] },
+    // the druid's (10-30, the leveling lane: leveling-srd-by-class.md 6.2; RULED, Griz: "take leveling's leans and it can start building"): the Land, the SRD's, and the Pelt,
+    // ours (deep16/js/features.js F.pelt; a druid of the Pelt has no land: deep16/js/classes.js)
+    druid: { at: 2, word: 'DRUID CIRCLE', opts: [
+      { id: 'land', name: 'Circle of the Land', srd: true, desc: "A land's circle spells always prepared, and its cantrip. At 6, Land's Stride: plain rough ground costs nothing." },
+      { id: 'pelt', name: 'the Circle of the Pelt', desc: "Ours: the druid fights in its own body with a beast's parts on it. WEAR THE BEAST, a bonus action and a use of Wild Shape: CLAWS (1d8, WIS), HIDE (AC at least 13 + WIS) or HAUNCHES (10 ft more speed, up for 5 ft), and temporary HP twice the druid level; spells and concentration kept. At 6, two parts at once, the claws magical." }] },
     wizard: { at: 2, word: 'ARCANE TRADITION', opts: [
       { id: 'evocation', name: 'School of Evocation', srd: true, desc: 'Sculpt Spells: an evocation spares the friends caught in it. At 6, Potent Cantrip: a cantrip saved against still does half.' },
       { id: 'rimeglass', name: 'the Rimeglass', desc: "Willem's: illusion with the cold in it. Rime Doubles: a blow that breaks a Mirror Image slows the one who struck by 10 ft. At 6, Rime Step: an illusion cast, and the wizard is 10 ft off, away from the foes." }] }
