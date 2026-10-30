@@ -157,6 +157,11 @@ PEOPLE = {
     # drunk, whose crew got lost where they should not have gone: puffy eyes, a bulbous reddened nose, a scraggly beard, the crew coat and the milker's gloves -- his word in
     # Silverton and the Hex on his face; his work a mug lifted, drunk from and set down
     'pete': ('pete/ART-123-PETE', 'ART-123-PETE', 'npc:pete', {'edge': True, 'bevel': (2, 3, 4, 5), 'gap': {6: 3}, 'match': {2: 1, 3: 1, 4: 1, 5: 1, 6: 1}}),   # (his reds kept: the drunk's red nose and eyes are his look; the moods and the work drawn redder, the whole face red-orange, matched to the idle's colours)
+    # Linnet Pellam and Ottilie Skerrow (10-30, the Keeper cutter, on Griz's "if cutter isn't done, my take on the usage is he can start NPC in fresh"): the art
+    # desk's ART-123-LINNET (Edric's niece at the Warrens' camp, her work three thimbles counted in her palm) and ART-123-OTTILIE (the Galleries' final word at the
+    # mouth, in the guano scrapers' workwear on his correction; her work a ruling, the hand flat on the ledge -- it lifts twice, the art desk's own caveat)
+    'linnet': ('linnet/ART-123-LINNET', 'ART-123-LINNET', 'npc:linnet', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire'], 'reskin': {'hue': 66, 'k': 1.0, 'hues': (50, 95), 'smin': 0.15, 'vmin': 0.1, 'vmax': 0.95}}),   # (her olive kerchief is drawn at hue 60 on the idle, attentive and work pages and 64-65 on the others: at 60 it snapped tan, at 64 green, so it flickered tan to green from idle to mood -- the band turned to 66 on every page, its saturation and value kept)
+    'ottilie': ('ottilie/ART-123-OTTILIE', 'ART-123-OTTILIE', 'npc:ottilie', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

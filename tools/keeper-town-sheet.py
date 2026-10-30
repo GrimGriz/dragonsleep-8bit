@@ -130,6 +130,10 @@ KEEPERS = {
     # Warrens Pete (10-30, the cutter of 10-29 night: the art desk's ART-123-PETE, all five views drawn, NE and N from behind): in Silverton by pin 18 and in the Hex,
     # where the first game stands him (content/maps silverton `pete`, hex `warrenspete`)
     'pete': ('pete/ART-123-PETE', 'ART-123-PETE', 'npc:pete', {'views': 'ART-123-PETE, 10-30', 'avoid': ['red', 'fire']}),   # (his bloodshot eyes snapped to the lightest red, glowing eyes at 50 px, his gloves' and boots' shadows flecked the reds: left out, as the other keepers' -- his red nose is his portrait's)
+    # Linnet Pellam at the Warrens' camp and Ottilie Skerrow at the Galleries' mouth (10-30, the Keeper cutter: the art desk's ART-123-LINNET and ART-123-OTTILIE, all
+    # five views drawn, NE and N from behind), where the first game stands them (content/maps warrens_a `linnet`; the mouth's `ottilie`)
+    'linnet': ('linnet/ART-123-LINNET', 'ART-123-LINNET', 'npc:linnet', {'views': 'ART-123-LINNET, 10-30', 'avoid': ['red', 'fire'], 'reskin': [{'hue': 66, 'k': 1.0, 'hues': (50, 95), 'smin': 0.15, 'vmin': 0.1, 'vmax': 0.95}, {'hue': 66, 'k': 1.0, 'hues': (42, 50), 'smin': 0.3, 'vmin': 0.1, 'vmax': 0.95}]}),   # (her kerchief, as on her portrait: drawn olive at the snap's line, tan from S, E and NE, green from SE and N -- turned to hue 66 on every page; NE's drawn yellower, 42 to 50, its own band at saturation 0.3 and over, where nothing else of hers lies)
+    'ottilie': ('ottilie/ART-123-OTTILIE', 'ART-123-OTTILIE', 'npc:ottilie', {'views': 'ART-123-OTTILIE, 10-30', 'avoid': ['red', 'fire']}),
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),
@@ -193,8 +197,8 @@ def page(name, path, ov, pg=1):
             rgba[..., :3] = PS.recolour(rgba[..., :3], grey_cloth(rgba[..., :3], piece[top:foot, x0:x1], dye), **ov['recolour'])
         elif ov.get('recolour') and dye:
             rgba[..., :3] = PS.recolour(rgba[..., :3], PS.hem_cut(rgba[..., :3], PS.cloth_mask(rgba[..., :3], piece[top:foot, x0:x1])), **ov['recolour'])  # (the trousers below the hem keep their brown)
-        if ov.get('reskin'):                                          # (an orc's khaki skin turned green: Papa Urtusk's -- tools/portrait-sheet.py reskin)
-            rgba[..., :3] = PS.reskin(rgba[..., :3], piece[top:foot, x0:x1], **ov['reskin'])
+        for rk in ([] if not ov.get('reskin') else ov['reskin'] if isinstance(ov['reskin'], list) else [ov['reskin']]):   # (an orc's khaki skin turned green: Papa Urtusk's -- tools/portrait-sheet.py reskin; a list, two bands: Linnet's kerchief, 10-30)
+            rgba[..., :3] = PS.reskin(rgba[..., :3], piece[top:foot, x0:x1], **rk)
         if ov.get('sat', {}).get(pg):                                 # (a page's own: {page: (top, bottom, k)} -- Mela's SE skirt)
             t0, t1, k0 = ov['sat'][pg]; rgba[..., :3] = sat_band(rgba[..., :3], piece[top:foot, x0:x1], (t0, t1), k0)
         raw.append((rgba, fx - x0, tall, (hc.min(), hc.max() + 1) if ov.get('prop') else None, mtop - top))
