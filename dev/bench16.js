@@ -5035,6 +5035,35 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE SRD'S SIX LANDS (mode=lands1031; the leveling lane §8 item 10, 10-31 -- his "Go ahead and finish the thing after these"): the Circle of the Land's arctic, coast,
+  // desert, forest, grassland and swamp beside the mountain and the Underdark (deep16/js/classes.js C.druid.lands, NPC.OPTIONS.druid): on the maker's LAND tab; a druid of
+  // each knows its built circle spells as it reaches their levels, always prepared and uncounted (NPC.prepInfo), the unbuilt left off; the card's word carries the land
+  if (get('mode', '') === 'lands1031') {
+    var repLd = { checks: [], errors: [] };
+    function okLd(what, v) { repLd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var N = D.npc, tab = (N.OPTIONS.druid || [])[0] || { opts: [] }, ids = tab.opts.map(function (o) { return o.id; });
+      okLd('the LAND tab: ' + ids.join(', '), ['arctic', 'coast', 'desert', 'forest', 'grassland', 'mountain', 'swamp', 'underdark'].every(function (k) { return ids.indexOf(k) >= 0; }));
+      var WANT = { arctic: ['holdperson', 'spikegrowth', 'sleetstorm', 'slow', 'freedomofmovement', 'icestorm', 'coneofcold'], coast: ['mirrorimage', 'mistystep', 'freedomofmovement', 'conjureelemental'],
+        desert: ['blur', 'protectionfromenergy', 'blight', 'insectplague', 'wallofstone'], forest: ['barkskin', 'calllightning', 'plantgrowth', 'freedomofmovement'],
+        grassland: ['invisibility', 'passwithouttrace', 'daylight', 'haste', 'freedomofmovement', 'insectplague'], swamp: ['acidarrow', 'darkness', 'stinkingcloud', 'freedomofmovement', 'insectplague'] };
+      var rows = [], good = true;
+      Object.keys(WANT).forEach(function (L) {
+        var sp = Object.assign(N.spec('druid:9'), { land: L }), h = N.sheet(sp), pi = N.prepInfo(sp), w = WANT[L];
+        var knows = w.every(function (id) { return h.known.indexOf(id) >= 0; }), alw = w.every(function (id) { return pi && pi.always.indexOf(id) >= 0 && pi.pool.indexOf(id) < 0; });
+        var LL = N.CLASSES.druid.lands[L], h3 = N.sheet(Object.assign(N.spec('druid:3'), { land: L })), at3 = LL[3].filter(function (id) { return !!D.SPELLS[id]; }), late = LL[9].filter(function (id) { return !!D.SPELLS[id]; });
+        var ok3 = at3.every(function (id) { return h3.known.indexOf(id) >= 0; }) && !late.some(function (id) { return h3.known.indexOf(id) >= 0; });
+        rows.push(L + ' ' + h.land + ' knows ' + knows + ', always ' + alw + ', at 3rd its 3rd\'s ' + ok3);
+        good = good && h.land === L && knows && alw && ok3;
+      });
+      okLd('the six at 9th, and at 3rd only the circle spells of 2nd level: ' + rows.join('; '), good);
+      var wd = N.optWord('druid', { land: 'swamp' }), back = {}; N.optRead('druid', wd, 5, back);
+      okLd('the word: "' + wd + '", read back ' + back.land, wd === 'l:swamp' && back.land === 'swamp');
+    } catch (e) { repLd.errors.push(String(e && e.stack || e)); }
+    var preLd = document.createElement('pre'); preLd.id = 'out'; preLd.textContent = 'BENCH16 ' + JSON.stringify(repLd);
+    document.body.appendChild(preLd);
+    return;
+  }
   // EVERY SPELL'S SCHOOL (mode=schools1031; the leveling lane §8 item 11, 10-31 -- wanted by Schoolbound and the wizard's traditions): each record's school as the SRD 5.1's
   // text names it (tools/spell-schools.py, which the gate also runs as `check` against srd/spells/), read by R.school -- the counts by school, a few that a hand list got
   // wrong once (Produce Flame and Call Lightning are conjurations), ours by his word (the Scourges evocations; 10-31 the five more, his "you make good leans on what school

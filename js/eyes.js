@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-lands-1031': { pri: 3, group: G1, title: 'The druid\'s LAND: the SRD\'s six more -- arctic, coast, desert, forest, grassland, swamp (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "Go ahead and finish the thing after these" (deep16/js/classes.js C.druid.lands, NPC.OPTIONS.druid; mode=lands1031) · eyes',
+      look: 'THE PARTY, MAKE: a druid of 3rd or higher, the Circle of the Land -- the LAND tab offers eight: the Underdark, the Mountain and the SRD\'s Arctic, Coast, Desert, Forest, Grassland, Swamp, each with its built circle spells. Pick the Arctic at 9th: Hold Person and Cone of Cold on the MAGIC list, always ready and not counted on THE LONG REST\'s page.',
+      url: 'deep16/?pocket&fresh=1031l' },
     'eyes-heavyflail-1031': { pri: 3, group: G1, title: 'Barley\'s Threshing Flail is heavy: with Follow-Through, WIDE SWING on his own ring (10-31)', pt: 'the leveling, RULED 10-31, his "threshing flails are considered heavy, magical ones too" (content/items.json threshingflail, threshingflail1, threshingflail2; deep16/js/features.js F.heavyInHand; mode=flail1031) · eyes',
       look: 'THE PARTY: Barley at 4 or higher, EDIT, his 4th-level pick the feat Follow-Through (the pick no longer says his flail is not heavy). A fight: his ring shows WIDE SWING beside ATTACK; wound up, a hit is twice his proficiency more, a miss the next attack at disadvantage; a blow that drops a foe carries the rest on. The first game\'s fights are unchanged.',
       url: 'deep16/?pocket&fresh=1031t' },

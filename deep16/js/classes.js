@@ -44,7 +44,16 @@
       // the Circle of the Land's circle spells (SRD 5.1), always prepared, by druid level -- the built ones only (spider climb, meld into
       // stone, stone shape, passwall and gaseous form are OUT; wall of stone and cloudkill LATER): Higertha's mountain (invented.json
       // #higertha-druid), the generic druid's Underdark (the Pit's; the seat's call, 09-29)
-      lands: { mountain: { 3: ['spikegrowth'], 5: ['lightningbolt'], 7: ['stoneskin'], 9: ['wallofstone'] }, underdark: { 3: ['web'], 5: ['stinkingcloud'], 7: ['greaterinvisibility'], 9: ['insectplague', 'cloudkill'] } },
+      lands: { mountain: { 3: ['spikegrowth'], 5: ['lightningbolt'], 7: ['stoneskin'], 9: ['wallofstone'] }, underdark: { 3: ['web'], 5: ['stinkingcloud'], 7: ['greaterinvisibility'], 9: ['insectplague', 'cloudkill'] },
+        // the SRD's other six (10-31, the leveling lane §8 item 10, on his "Go ahead and finish the thing after these"): each list whole as srd/classes/druid.md has it -- a
+        // spell not built yet is simply not on it (landSpells reads D.SPELLS): Commune with Nature, Water Breathing, Water Walk, Control Water, Scrying, Silence, Create
+        // Food and Water, Hallucinatory Terrain, Spider Climb, Divination, Tree Stride, Dream, Locate Creature wait
+        arctic: { 3: ['holdperson', 'spikegrowth'], 5: ['sleetstorm', 'slow'], 7: ['freedomofmovement', 'icestorm'], 9: ['communewithnature', 'coneofcold'] },
+        coast: { 3: ['mirrorimage', 'mistystep'], 5: ['waterbreathing', 'waterwalk'], 7: ['controlwater', 'freedomofmovement'], 9: ['conjureelemental', 'scrying'] },
+        desert: { 3: ['blur', 'silence'], 5: ['createfoodandwater', 'protectionfromenergy'], 7: ['blight', 'hallucinatoryterrain'], 9: ['insectplague', 'wallofstone'] },
+        forest: { 3: ['barkskin', 'spiderclimb'], 5: ['calllightning', 'plantgrowth'], 7: ['divination', 'freedomofmovement'], 9: ['communewithnature', 'treestride'] },
+        grassland: { 3: ['invisibility', 'passwithouttrace'], 5: ['daylight', 'haste'], 7: ['divination', 'freedomofmovement'], 9: ['dream', 'insectplague'] },
+        swamp: { 3: ['acidarrow', 'darkness'], 5: ['waterwalk', 'stinkingcloud'], 7: ['freedomofmovement', 'locatecreature'], 9: ['insectplague', 'scrying'] } },
       spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance', 'rootdrag'], /* (Rootdrag, ours, last: no generic druid knows a fifth cantrip -- 10-30) */ 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave', 'animalfriendship', 'charmperson'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['conjureanimals', 'windwall', 'calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight', 'plantgrowth'], 4: ['walloffire', 'blight', 'confusion', 'icestorm', 'freedomofmovement', 'conjurewoodlandbeings', 'polymorph', 'dominatebeast', 'giantinsect'], 5: ['wallofstone', 'insectplague', 'masscurewounds', 'greaterrestoration', 'contagion', 'antilifeshell', 'conjureelemental'], 6: ['wallofthorns', 'heal', 'sunbeam'] } },
     fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
     monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
@@ -124,7 +133,14 @@
       { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
     druid: [{ key: 'land', word: 'LAND', at: 2, sub: 'Circle of the Land', opts: [ // (the Land's alone since the Pelt, 10-30)
       { id: 'underdark', name: 'the Underdark', desc: 'Web, Stinking Cloud, Greater Invisibility, Insect Plague' },
-      { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' }] }]
+      { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' },
+      // (the SRD's other six, 10-31: the built ones of each list -- C.druid.lands)
+      { id: 'arctic', name: 'the Arctic', desc: 'Hold Person, Spike Growth, Sleet Storm, Slow, Freedom of Movement, Ice Storm, Cone of Cold' },
+      { id: 'coast', name: 'the Coast', desc: 'Mirror Image, Misty Step, Freedom of Movement, Conjure Elemental' },
+      { id: 'desert', name: 'the Desert', desc: 'Blur, Protection from Energy, Blight, Insect Plague, Wall of Stone' },
+      { id: 'forest', name: 'the Forest', desc: 'Barkskin, Call Lightning, Plant Growth, Freedom of Movement' },
+      { id: 'grassland', name: 'the Grassland', desc: 'Invisibility, Pass without Trace, Daylight, Haste, Freedom of Movement, Insect Plague' },
+      { id: 'swamp', name: 'the Swamp', desc: 'Acid Arrow, Darkness, Stinking Cloud, Freedom of Movement, Insect Plague' }] }]
   };
   // the options as a word's field ('m:twinned-careful_p:blade'), and back to the spec's fields (the built ones only, each at its level)
   NPC.optWord = function (cls, sp) {
