@@ -500,7 +500,7 @@
   // makes it so, and clears it. Quickened is also the AI's own, above (T.quicken, magic.js M.cast)
   F.hasMeta = function (u, name) { var l = u.metamagic || (u.cls === 'sorcerer' && u.lvl >= 3 ? ['quickened'] : []); return l.indexOf(name) >= 0; };
   function points(u) { return (u.feats && u.feats.sorcery) || 0; }
-  F.metaCost = function (name, sp) { return name === 'quickened' ? 2 : name === 'careful' ? 1 : name === 'heightened' ? 3 : Math.max(1, (sp && sp.level) || 0); }; // (Twinned: the spell's level, 1 for a cantrip)
+  F.metaCost = function (name, sp) { return name === 'quickened' ? 2 : name === 'careful' || name === 'subtle' || name === 'empowered' ? 1 : name === 'heightened' ? 3 : Math.max(1, (sp && sp.level) || 0); }; // (Twinned: the spell's level, 1 for a cantrip)
   // Twinned Spell: a spell that targets one creature and only one, and not the caster alone -- the grid's single, attack and touch shapes
   // without concentration (the seat's call, 09-30: a twin of a concentration spell would be two records of one concentration); not Chain Lightning
   F.twinnable = function (id, sp, g, t) {
@@ -514,6 +514,7 @@
     if (name === 'quickened' && !(sp.level && g.time === 'A')) return 'nothing to quicken: a leveled spell that takes an action';
     if (name === 'twinned' && !F.twinnable(id, sp, g, t)) return g.conc ? 'a spell held in concentration is not twinned (one record of it)' : 'it reaches more than one creature, or only yourself';
     if ((name === 'careful' || name === 'heightened') && !sp.save) return 'no creature saves against it';
+    if (name === 'empowered' && !sp.dmg) return 'it deals no damage'; // (Empowered Spell, 10-31)
     if (points(u) < cost) return 'only ' + points(u) + ' sorcery point' + (points(u) === 1 ? '' : 's') + ' of ' + cost;
     return '';
   };
@@ -528,7 +529,7 @@
     var T = u.turn, mm = T && T.meta;
     if (!mm || !u.feats) return yield* cast1m.apply(this, arguments);
     T.meta = null;
-    var name = mm.name, sp = M.data(id), g = M.geo(id), cost = F.metaCost(name, sp), why = F.metaWhy(u, name, id, t), who = Nm(B, u), label = ({ quickened: 'QUICKENED SPELL', twinned: 'TWINNED SPELL', careful: 'CAREFUL SPELL', heightened: 'HEIGHTENED SPELL' })[name];
+    var name = mm.name, sp = M.data(id), g = M.geo(id), cost = F.metaCost(name, sp), why = F.metaWhy(u, name, id, t), who = Nm(B, u), label = ({ quickened: 'QUICKENED SPELL', twinned: 'TWINNED SPELL', careful: 'CAREFUL SPELL', heightened: 'HEIGHTENED SPELL', subtle: 'SUBTLE SPELL', empowered: 'EMPOWERED SPELL' })[name];
     if (why) { B.card(['{o}' + who + ': ' + label + '{/} does nothing here: ' + why + ' -- cast as it is.'], 240); return yield* cast1m.apply(this, arguments); }
     var second = null, target = null;
     if (name === 'twinned') {
@@ -562,6 +563,24 @@
         T.action = keepT.action; T.bonus = keepT.bonus; T.bonusSpell = keepT.bonusSpell; T.spellAction = keepT.spellAction;
       }
       return r1;
+    }
+    // Subtle and Empowered (SRD 5.1 -- 10-31, the leveling lane §8 item 10, his "do the next two things"): Subtle, cast with no words or gestures -- none sees it cast, so no
+    // Counterspell asks (js/grimoire.js M.counterAsk reads T.subtle); Empowered, its damage dice under the die's middle rolled again, up to CHA of them, the new rolls kept
+    // (D.roll for this cast alone). Distant and Extended wait
+    if (name === 'subtle') {
+      B.card(['{y}' + who + '{/}: SUBTLE SPELL  {g}(' + cost + ' sorcery point, ' + left + ': no words, no gestures -- none sees it cast to counter it){/}'], 220);
+      T.subtle = true;
+      try { return yield* cast1m.apply(this, arguments); } finally { T.subtle = false; }
+    }
+    if (name === 'empowered') {
+      var nE = Math.max(1, M.mod(u)), rollE = D.roll, reE = 0;
+      B.card(['{y}' + who + '{/}: EMPOWERED SPELL  {g}(' + cost + ' sorcery point, ' + left + ': up to ' + nE + ' of its damage dice under the middle rolled again){/}'], 220);
+      D.roll = function (expr, o) {
+        var r = rollE.apply(this, arguments), p = D.parseDice(expr);
+        if (p && p.s > 1) for (var k = 0; k < r.rolls.length && nE > 0; k++) if (r.rolls[k] < (p.s + 1) / 2) { var nr = D.d(p.s); r.total += nr - r.rolls[k]; r.rolls[k] = nr; nE--; reE++; }
+        return r;
+      };
+      try { return yield* cast1m.apply(this, arguments); } finally { D.roll = rollE; if (reE) B.card(['{g}  (empowered: ' + reE + (reE > 1 ? ' dice' : ' die') + ' rolled again){/}'], 160); }
     }
     // Careful: up to CHA-mod of its friends caught (chosen at the save, in the order the creatures save) succeed on it; Heightened: the chosen
     // one has disadvantage on its first save. RU.save reads B.meta for the length of this cast (the first saves only: a hold's later ones stand)
@@ -1220,7 +1239,8 @@
       var on = !!(T.meta && T.meta.name === mn), cost = F.metaCost(mn, null), pt = points(u);
       out.push({ id: 'meta-' + mn, label: mn.toUpperCase() + (on ? ' (ON)' : ''), cost: 'F', icon: 'skills', skill: true, ok: on || pt >= cost, why: 'only ' + pt + ' sorcery point' + (pt === 1 ? '' : 's') + ' of ' + cost,
         note: ({ quickened: '2 points: the next action-spell (a leveled one) is cast as a bonus action', twinned: 'the next spell that reaches one creature also reaches a second: its level in points (1 a cantrip); not concentration',
-          careful: '1 point: the next spell creatures save against: up to ' + Math.max(1, M.mod(u)) + ' of your friends caught in it succeed', heightened: '3 points: the next spell creatures save against: one has disadvantage on its first save' })[mn] + '; ' + pt + ' points left' });
+          careful: '1 point: the next spell creatures save against: up to ' + Math.max(1, M.mod(u)) + ' of your friends caught in it succeed', heightened: '3 points: the next spell creatures save against: one has disadvantage on its first save',
+          subtle: '1 point: the next spell is cast with no words or gestures -- no one can Counterspell it', empowered: '1 point: the next spell that deals damage: up to ' + Math.max(1, M.mod(u)) + ' of its damage dice under the middle rolled again' })[mn] + '; ' + pt + ' points left' });
     });
     if (sub(u, 'the Window', 1)) out.push({ id: 'handonneck', label: 'HAND ON THE NECK', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'handOnNeck'),
       why: !feat(u, 'handOnNeck') ? 'spent (a long rest brings it back)' : 'the bonus action is spent', note: 'touch: the first blow to land on them is rolled again' });

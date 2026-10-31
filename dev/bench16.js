@@ -5035,6 +5035,48 @@
     document.body.appendChild(preRc);
     return;
   }
+  // SUBTLE AND EMPOWERED SPELL (mode=metamagic1031; the leveling lane §8 item 10, 10-31 -- his "do the next two things"): the maker's METAMAGIC tab holds six; a wizard
+  // who knows Counterspell counters a sorcerer's Magic Missile, but not a Subtle one (its reaction kept, a point spent); Empowered rolls again a Fire Bolt's dice that came up
+  // under the middle (pinned at 1, then 10: 2 -> 20), and does nothing for a spell with no damage
+  if (get('mode', '') === 'metamagic1031') {
+    var repMm = { checks: [], errors: [] }, d0Mm = D.d;
+    function okMm(what, v) { repMm.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runMm(g) { var v, k = 0, st; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkMm(foe) {
+      var B = D.npcFight('?npc=' + foe + '&lvl=5&vs=sorcerer:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var u = B.units.filter(function (w) { return w.side === 'party'; })[0], f = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      u.metamagic = ['subtle', 'empowered']; u.feats.sorcery = 5; u.slots = [4, 3, 2]; f.maxhp = f.hp = 999; f.conds = {};
+      f.x = u.x + 3; f.y = u.y; if (!D.grid.canStand(f, f.x, f.y)) f.x = u.x - 3; D.grid.setup(B.map, B.units); D.rules.startTurn(u); B.active = u; return { B: B, u: u, f: f };
+    }
+    try {
+      D.seed = 1031;
+      var tab = ((D.npc.OPTIONS.sorcerer || [])[0] || { opts: [] }).opts.map(function (o) { return o.id; });
+      okMm('the METAMAGIC tab: ' + tab.join(', '), tab.length === 6 && tab.indexOf('subtle') >= 0 && tab.indexOf('empowered') >= 0);
+      var ctr = function (meta) {
+        var h = mkMm('wizard:5'), w = h.f; if ((w.known || []).indexOf('counterspell') < 0) w.known = (w.known || []).concat(['counterspell']); w.slots = [4, 3, 2]; w.reaction = 1; w.known = w.known.filter(function (id) { return id !== 'shield'; }); w.conds = {}; // (no Shield: it would take the darts on its reaction)
+        if (meta) h.u.turn.meta = { name: meta }; var n0 = (h.B.log || []).length;
+        runMm(D.magic.cast(h.B, h.u, 'magicmissile', 1, { units: [w, w, w] })); var l = (h.B.log || []).slice(n0).join(' / ');
+        return { countered: /COUNTERSPELL/i.test(l), react: w.reaction, pts: h.u.feats.sorcery, hurt: w.hp < 999 };
+      };
+      var c0 = ctr(null), c1 = ctr('subtle');
+      okMm('Magic Missile at a wizard who knows Counterspell: countered ' + c0.countered + ' (its reaction ' + c0.react + '); SUBTLE: countered ' + c1.countered + ', the reaction ' + c1.react + ', the darts land ' + c1.hurt + ', points 5 -> ' + c1.pts,
+        c0.countered && c0.react === 0 && !c1.countered && c1.react === 1 && c1.hurt && c1.pts === 4);
+      var emp = function (meta, id) {
+        var h = mkMm('goblin'), n = 0; if (meta) h.u.turn.meta = { name: meta };
+        D.d = function (s) { if (s === 20) return 19; n++; return n <= 2 ? 1 : s; }; var n0 = (h.B.log || []).length;
+        runMm(D.magic.cast(h.B, h.u, id, 0, h.f)); D.d = d0Mm;
+        return { took: 999 - h.f.hp, pts: h.u.feats.sorcery, log: (h.B.log || []).slice(n0).join(' / ').replace(/\{\/?[a-z]*\}/g, '') };
+      };
+      var e0 = emp(null, 'firebolt'), e1 = emp('empowered', 'firebolt');
+      okMm('Fire Bolt, its two d10s at 1: ' + e0.took + '; EMPOWERED ' + e1.took + ' (points 5 -> ' + e1.pts + ', "' + ((e1.log.match(/empowered: [^)]*/) || [''])[0]) + '")', e0.took === 2 && e1.took === 20 && e1.pts === 4 && /empowered: 2 dice rolled again/.test(e1.log));
+      var why = D.features.metaWhy(mkMm('goblin').u, 'empowered', 'blur', null);
+      okMm('EMPOWERED on Blur: "' + why + '"', why === 'it deals no damage');
+    } catch (e) { repMm.errors.push(String(e && e.stack || e)); }
+    D.d = d0Mm;
+    var preMm = document.createElement('pre'); preMm.id = 'out'; preMm.textContent = 'BENCH16 ' + JSON.stringify(repMm);
+    document.body.appendChild(preMm);
+    return;
+  }
   // ELEMENTAL AFFINITY ON A SPELL ATTACK (mode=affinity1031; 10-31, Griz: "yeah fix it" -- the leveling lane §11's find: it reached only the spells that ask a save): a red
   // sorcerer of 6th's Fire Bolt deals its die plus CHA (the dice pinned), a silver's Fire Bolt its die alone; Scorching Ray's three rays carry it on the first that lands only
   if (get('mode', '') === 'affinity1031') {

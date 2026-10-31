@@ -284,7 +284,7 @@
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
     sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
-    quickenedspell: { foe: 3 }, twinnedspell: { foe: 3 }, carefulspell: { foe: 2, mate: 'flank' }, heightenedspell: { foe: 2 },
+    quickenedspell: { foe: 3 }, twinnedspell: { foe: 3 }, carefulspell: { foe: 2, mate: 'flank' }, heightenedspell: { foe: 2 }, subtlespell: { foe: 2 }, empoweredspell: { foe: 2 },
     secondwind: { hurt: 1 }, wholenessofbody: { hurt: 1 }, blessedhealer: { hurt: 1 },
     hide: { foe: 3, nfoe: 1, mate: 'between' }, supremesneak: { foe: 3, nfoe: 1, mate: 'between' }, cunningaction: { foe: 3, nfoe: 1, mate: 'between' },
     steelwill: { foe: 0, mate: null, wiz: 1 }, mindlessrage: { foe: 0, mate: null, wiz: 1 },
@@ -298,7 +298,7 @@
   // what the hero is built from beyond its class and level (js/classes.js NPC.spec); the register's subclass is added
   var SPEC = {
     pitfists: { equip: { weapon: 'unarmed' }, alt: null },
-    carefulspell: { metamagic: ['careful', 'heightened'] }, heightenedspell: { metamagic: ['careful', 'heightened'] },
+    carefulspell: { metamagic: ['careful', 'heightened'] }, heightenedspell: { metamagic: ['careful', 'heightened'] }, subtlespell: { metamagic: ['subtle', 'empowered'] }, empoweredspell: { metamagic: ['subtle', 'empowered'] }, // (the SRD's, 10-31)
     // (the ranger's kit weapon, js/classes.js, is 'longbow', which content/items.json does not have -- a ranger built as it stands swings Fists; the gallery gives it the shortbow)
     fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
@@ -501,6 +501,7 @@
       'meta-twinned': function* (c) { if (c.hero.turn.meta && c.foes[1]) c.hero.turn.meta.t2 = c.foes[1]; yield* castOne(c, 'firebolt', c.foes[0]); },
       'meta-careful': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); },
       'meta-heightened': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); },
+      'meta-subtle': function* (c) { yield* castOne(c, 'firebolt', c.foes[0]); }, 'meta-empowered': function* (c) { yield* castOne(c, 'firebolt', c.foes[0]); }, // (10-31)
       // Follow-Through's WIDE SWING (ours, 10-30): the swing it winds up, at a foe on 2 HP -- the hit's "wide swing +", and what goes past its last hit point carried on
       // into the other beside the fighter, "FOLLOW-THROUGH". The button alone only wound it up (10-30, his eye on the shelf, broken: "no visible action")
       wideswing: function* (c) {

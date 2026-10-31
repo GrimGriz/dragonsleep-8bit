@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-subtleempowered-1031': { pri: 2, group: G1, title: 'Subtle Spell and Empowered Spell, the sorcerer\'s metamagic (the SRD\'s): no Counterspell; low damage dice rolled again (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "do the next two things" (deep16/js/features.js M.cast\'s metamagic, F.metaCost/metaWhy; deep16/js/grimoire.js M.counterAsk; deep16/js/classes.js NPC.OPTIONS.sorcerer; mode=metamagic1031) · eyes',
+      look: 'The FEATURES shelf: SUBTLE SPELL, then a Fire Bolt -- the card "no words, no gestures", a point spent. EMPOWERED SPELL, then a Fire Bolt -- "(empowered: N dice rolled again)" under the roll when its dice came up low. In a fight, a sorcerer whose card picked them (THE PARTY, MAKE: the METAMAGIC tab holds six now) has them on the ring beside the others; a Subtle spell at a foe that knows Counterspell is never countered.',
+      url: 'deep16/?gallery&shelf=features&feature=subtlespell&only=subtlespell,empoweredspell&fresh=1031m' },
     'eyes-ancestor-1031': { pri: 3, group: G1, title: 'The Draconic sorcerer\'s dragon ancestor: the SRD\'s ten on the maker\'s ANCESTOR tab (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "add the next thing in the lane as well then push" (deep16/js/classes.js NPC.DRAGONS, NPC.OPTIONS.sorcerer; deep16/js/features.js M.affinity; mode=ancestor1031) · eyes',
       look: 'THE PARTY, MAKE: a sorcerer (the Draconic Bloodline) -- the ANCESTOR tab offers the ten, each with its damage type (black acid ... white cold); none picked is red, fire, as before. A sorcerer of 6th: a spell of its dragon\'s element that asks a save adds CHA to its damage (Elemental Affinity, "+N affinity" in the log); one of another element does not.',
       url: 'deep16/?pocket&fresh=1031a' },

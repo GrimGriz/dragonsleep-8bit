@@ -115,7 +115,9 @@
       { id: 'quickened', name: 'Quickened Spell', desc: '2 points: a spell of an action cast as a bonus action' },
       { id: 'twinned', name: 'Twinned Spell', desc: 'a point a spell level: a one-target spell takes a second' },
       { id: 'careful', name: 'Careful Spell', desc: '1 point: friends in its area make the save' },
-      { id: 'heightened', name: 'Heightened Spell', desc: '3 points: one target saves at disadvantage' }] },
+      { id: 'heightened', name: 'Heightened Spell', desc: '3 points: one target saves at disadvantage' },
+      { id: 'subtle', name: 'Subtle Spell', desc: '1 point: no words, no gestures -- no Counterspell' }, // (the SRD's, 10-31; Distant and Extended wait)
+      { id: 'empowered', name: 'Empowered Spell', desc: '1 point: up to CHA of its low damage dice rolled again' }] },
       // the Draconic Bloodline's dragon ancestor (SRD 5.1: the ten and their damage types -- 10-31, the leveling lane §8 item 10, on his "add the next thing in the lane as
       // well then push"): its element is Elemental Affinity's at 6 (deep16/js/features.js M.affinity reads the sheet's `ancestry`, the dragon); a sorcerer with none is red, fire, as before
       { key: 'ancestry', word: 'ANCESTOR', at: 1, sub: 'Draconic Bloodline', opts: ['black', 'blue', 'brass', 'bronze', 'copper', 'gold', 'green', 'red', 'silver', 'white'].map(function (k) {

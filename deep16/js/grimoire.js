@@ -1317,7 +1317,7 @@
   // counters a levelled spell that is not a friend's blessing on a friend. Countered, the spell fails; the caster's slot and action are spent. Not asked: a readied
   // spell's release (cast when it was readied), a spell used again (the floating weapon's swing), a cantrip by the AI. Not built: a Counterspell countered
   M.counterAsk = function* (B, u, id, slot, g) {
-    var sp = M.data(id); if (!B || !sp || !B.units || (g && (g.free || g.again || g.move)) || (u.turn && u.turn.readied)) return false;
+    var sp = M.data(id); if (!B || !sp || !B.units || (g && (g.free || g.again || g.move)) || (u.turn && (u.turn.readied || u.turn.subtle))) return false; // (Subtle Spell: none sees it cast -- js/features.js, 10-31)
     var lv = sp.level || 0;
     var can = B.units.filter(function (w) { return w !== u && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.known || []).indexOf('counterspell') >= 0 && (w.slots || []).slice(2).some(function (n) { return n > 0; }) && G.dist(w, u) <= 60 && M.sees(B, w, u) && !w.conds.turned && !RU.charmedBy(w, u); });
     for (var i = 0; i < can.length; i++) {
