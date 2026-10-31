@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      # (10-31: dev/keeper-probe.py reads the Keeper's frames with Pillow, numpy and scipy since 6733f0cd, 10-30 07:48Z -- the runner had none,
+      # and 55 runs were RED on that import alone; the desk's versions, pinned)
+      - name: the probes' Python packages
+        run: python -m pip install pillow==11.0.0 numpy==2.2.2 scipy==1.15.1
+
       - name: the browser
         run: |
           B=$(command -v microsoft-edge || command -v microsoft-edge-stable || command -v google-chrome || command -v chromium || true)
