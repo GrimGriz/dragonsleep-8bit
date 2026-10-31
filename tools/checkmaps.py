@@ -1,20 +1,21 @@
 """Reachability check for every map: flood-fill from each arrival point over walkable tiles
 and report warps, doors, exits, NPCs, chests and triggers that can't be reached.
 
-Walkability comes from js/art.js's tile table (pass: 1). NPCs block; chests block.
-Run:  python tools/checkmaps.py
+Walkability comes from the first game's tile table, first/js/art.js (pass: 1). NPCs block; chests block.
+Run:  python tools/checkmaps.py            (content/maps, the maps the second game reads)
+      python tools/checkmaps.py --first    (first/content/maps, the frozen first game's -- since 10-31)
 """
-import json, os, re, glob
+import json, os, re, glob, sys
 from collections import deque
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-art = open(os.path.join(ROOT, 'js', 'art.js'), encoding='utf-8').read()
+art = open(os.path.join(ROOT, 'first', 'js', 'art.js'), encoding='utf-8').read() # (js/art.js till the freeze, 10-31)
 table = art[art.index('var TILES = DS.TILES = {'):]
 PASS = {m.group(1): m.group(2) == '1' for m in re.finditer(r'(\w+): \{ pass: (\d)', table)}
 TALK = {m.group(1) for m in re.finditer(r'(\w+): \{ pass: \d[^}]*talk: 1', table)}   # counters, bars, stalls: talk across them
 
 maps = {}
-for f in glob.glob(os.path.join(ROOT, 'content', 'maps', '*.json')):
+for f in glob.glob(os.path.join(ROOT, 'first', 'content', 'maps', '*.json') if '--first' in sys.argv else os.path.join(ROOT, 'content', 'maps', '*.json')):
     m = json.load(open(f, encoding='utf-8'))
     maps[m['id']] = m
 

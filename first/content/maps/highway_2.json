@@ -1,0 +1,308 @@
+{
+"id": "highway_2",
+"name": "The road to Second Lamp",
+"tileset": "cave",
+"rows": [
+"############################################################################",
+"####################################CCC#C###################################",
+"#############################CCCCCCCCCCCCCCC##############u#################",
+"############################CCCCCCCCCCCCCCCCCCCCC#########.#####hhhhhhhhhhhh",
+"#########################CCCCCCCCCCCCCCCCCCCCCCCCC#######..#####h_;;_____~~h",
+"########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC######.,####h____L_____h",
+"######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC###.#####h_;________h",
+"#####################C.._____________________________..###.#####h__________h",
+"#####################C.._____________________________..###.#####h__________h",
+"######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..###.#####h__________h",
+"........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...........____________",
+"____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+"____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+"........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC..........hhhhhh_hhhhh",
+"##########S###########..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...#####X#######__#####",
+"######################...CCCCCCCCCCCCCCCCCCCCCCCCCCC....#####.#####______###",
+"######################....CCCCCCCCCCCCCCCCCCCCCCCCC....###......##______o_##",
+"#######################........CCCCCCCCCCCCCCCCCCCC...###......,.#________##",
+"########################........C*CCCCCCCCCC*CCCCC...####........##_o____###",
+"############################C...........CCCCCC..~....####..,....############",
+"############################~#......................#########.##############",
+"######################################...~......############################",
+"############################################################################",
+"############################################################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "madeRoad",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard"
+},
+"music": "highway",
+"bg": "cavern",
+"save": false,
+"dark": true,
+"highway": 2,
+"seals": [
+{
+"x": 6,
+"y": 9
+},
+{
+"x": 14,
+"y": 9
+},
+{
+"x": 10,
+"y": 14
+},
+{
+"x": 61,
+"y": 14,
+"cut": true
+}
+],
+"lights": [
+{
+"x": 69,
+"y": 5,
+"r": 84
+}
+],
+"exits": {
+"west": {
+"to": "highway_1",
+"tx": 70,
+"ty": 10,
+"dir": "left"
+},
+"east": {
+"to": "highway_3",
+"tx": 1,
+"ty": 11,
+"dir": "right"
+}
+},
+"npcs": [
+{
+"id": "thyra",
+"x": 71,
+"y": 6,
+"look": "thyra",
+"dir": "down",
+"name": "Thyra Silversands"
+},
+{
+"id": "lamp2a",
+"x": 67,
+"y": 8,
+"look": "dtrooper2",
+"dir": "right"
+},
+{
+"id": "lamp2b",
+"x": 73,
+"y": 7,
+"look": "dtrooper",
+"dir": "left",
+"idle": true
+},
+{
+"id": "lamp2c",
+"x": 68,
+"y": 11,
+"look": "dtrooper2",
+"dir": "down"
+},
+{
+"id": "lamp2prov",
+"x": 74,
+"y": 9,
+"look": "dclerk",
+"dir": "left",
+"name": "Gudrun Tallowmark"
+}
+],
+"warps": [
+{
+"x": 58,
+"y": 2,
+"to": "pinned",
+"tx": 9,
+"ty": 12,
+"dir": "up",
+"sfx": "stairs"
+}
+],
+"signs": [
+{
+"x": 59,
+"y": 8,
+"text": "A side cut, north off the road. Fresh boot-marks going up it, dwarven, and none coming back.",
+"src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (off the highway: a side cavern)"
+}
+],
+"triggers": [
+{
+"id": "lampArrive2",
+"rect": [
+64,
+10,
+1,
+3
+],
+"on": "step",
+"script": "lampArrive",
+"arg": 2,
+"cond": "!flag:lamp2"
+},
+{
+"id": "tower2",
+"rect": [
+69,
+5,
+1,
+1
+],
+"on": "use",
+"script": "lampTower",
+"arg": 2
+},
+{
+"id": "roper",
+"rect": [
+36,
+7,
+5,
+2
+],
+"on": "step",
+"script": "roper",
+"cond": "!flag:roperDead"
+},
+{
+"id": "bulette",
+"rect": [
+59,
+10,
+4,
+3
+],
+"on": "step",
+"script": "bulette",
+"cond": "!flag:buletteDead"
+},
+{
+"id": "drain",
+"rect": [
+67,
+15,
+7,
+4
+],
+"on": "step",
+"script": "drainCut",
+"cond": "!flag:puddingDead"
+},
+{
+"id": "pyroRoad1",
+"rect": [
+9,
+10,
+1,
+4
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 1,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad1"
+},
+{
+"id": "pyroRoad2",
+"rect": [
+22,
+7,
+2,
+6
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 2,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad2"
+},
+{
+"id": "pyroRoad3",
+"rect": [
+56,
+10,
+1,
+4
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 3,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad3"
+}
+],
+"zones": [
+{
+"zone": "hw2",
+"rect": [
+0,
+0,
+64,
+24
+]
+}
+]
+}

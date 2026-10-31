@@ -23,7 +23,7 @@ SRC = os.path.join(ROOT, 'deep16', '_src')
 if not os.path.isdir(os.path.join(SRC, 'axebeak')):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
     SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
-ART = os.path.join(ROOT, 'js', 'bestiary-art.js')
+ART = os.path.join(ROOT, 'first', 'js', 'bestiary-art.js') # (js/ till the freeze, 10-31: a first-game file -- tools/first-lock.py fix after)
 
 SPECS = {
     'axebeak': dict(file=os.path.join('axebeak', 'Axe Beak NES Battle Sprite Sheet.png'),

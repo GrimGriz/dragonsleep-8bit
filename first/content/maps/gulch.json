@@ -1,0 +1,199 @@
+{
+"id": "gulch",
+"name": "Web Gulch",
+"tileset": "cave",
+"rows": [
+"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+"CCCCCCCCCCCCCCCCCCCCUCCUCCCCCCCCCCCCCCCC",
+"CCCCCCCCCCCCUCCUUUUCUUUUCUCCCCCCCCCCCCCC",
+"CCCCCCCCCCCUUUUUUUUUUUUUUUCUUCCCCCCCCCCC",
+"UUUUUUUUUCUUUUUUUUUUUUXUUUUUUCXCCCCCCCCC",
+"UUUUUUUUUUUUUUUUUUUeUUUUXUUXXXXXXXCCCCCC",
+"CCCCCCUUUUUUUUUXUUUUXUXUUXXXXUUXXXCCCCCC",
+"CCCCUUT,,,UUUUUUUUUUUUUUeXXXUUUUXXXCCCCC",
+"CCCCCU,,,cUUeUUUUUUUUeUUUXXXUUUUXXXCCCCC",
+"CCCCUUUUUUUUUUUUUUUUUUUUUUXXUUUXXXXCCCCC",
+"CCCCXUUUUUXUUUUUXUUUUUUUUUUUUXXXXXUUCCCC",
+"CCUCUUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUCCC",
+"CCUUUXUUUUUXUUUUUUUUUUUUeUUUUUUUUUUUCCCC",
+"CCCCUUUUUUUUUUUeUUUUUUUXUUUUUUUUUUUUCUCC",
+"CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCCC",
+"CCCCUUUUUUUUUUUUUUUXUUUUXUUUUUUUUUUUCCCC",
+"CCCUUUUUUUUUUUUUUeQeUUUUUUUUUXUUUUUUUCCC",
+"CCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCC",
+"CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUUCCC",
+"CCCCCCUUUUUUUUUUUUUUUUUUUUUUUUUeUUCUCCCC",
+"CCCCCUUUUUUUUUUUUXUeUUUUUUUUUUUUUCCCCCCC",
+"CCCCCCCCUUUUUeUUUUUUUUUUUUUUUUUUUCCCCCCC",
+"CCCCCCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCC",
+"CCCCCCCCCCUUUUUUUUUUUUUUUUeUUUUeUUUUUUUC",
+"CCCCCCCCCCCCCUUUUUUUUUUUUUeUCCCCCCCCUUUU",
+"CCCCCCCCCCCCCCCCCUUUUUXUUCCCCCCCCCCCCUUU",
+"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp",
+"Q": "cocoon"
+},
+"music": "dungeon",
+"bg": "gulch",
+"save": false,
+"outside": true,
+"exits": {
+"west": {
+"to": "world",
+"tx": 30,
+"ty": 26,
+"dir": "left"
+},
+"east": {
+"to": "world",
+"tx": 32,
+"ty": 31,
+"dir": "down"
+}
+},
+"npcs": [
+{
+"id": "silkcutter",
+"x": 8,
+"y": 9,
+"look": "worker",
+"dir": "right"
+},
+{
+"id": "drummer",
+"x": 10,
+"y": 9,
+"look": "boy",
+"dir": "left",
+"idle": true
+},
+{
+"id": "ettercap8",
+"x": 30,
+"y": 7,
+"prop": "ettercap",
+"dir": "left",
+"idle": true,
+"anchor": "center",
+"cond": "!flag:ettercapDone & !has:ettercapfangs"
+}
+],
+"chests": [
+{
+"x": 33,
+"y": 8,
+"item": "potion",
+"n": 1
+},
+{
+"x": 19,
+"y": 24,
+"item": "kit",
+"n": 2
+}
+],
+"triggers": [
+{
+"id": "snared",
+"rect": [
+18,
+17,
+1,
+1
+],
+"on": "use",
+"script": "snared",
+"once": true
+},
+{
+"id": "ettercap",
+"rect": [
+29,
+8,
+3,
+3
+],
+"on": "step",
+"script": "ettercap",
+"cond": "!flag:ettercapDone"
+}
+],
+"zones": [
+{
+"zone": "gulch",
+"rect": [
+0,
+0,
+40,
+30
+]
+}
+],
+"flagTiles": [
+{
+"x": 18,
+"y": 17,
+"tile": "gulch",
+"cond": "flag:trig:snared"
+}
+]
+}

@@ -1,0 +1,350 @@
+{
+"id": "highway_3",
+"name": "The road to Third Lamp",
+"tileset": "cave",
+"rows": [
+"############################################################################",
+"############################################################################",
+"############################################################################",
+"############################......##########################hhhhhhhhhhhhhhhh",
+"###########################........#########################h______________h",
+"###########################........#########################h_______L____~~h",
+"############################......##########################h____________~~h",
+"##############################.#,###########################h______________h",
+"##############################,,############################h______________h",
+"########S##########S###########,#####S##########S###########h______________h",
+"............................................................________________",
+"____________________________________________________________________________",
+"____________________________________________________________________________",
+"............................................................________________",
+"#############S############S###############S#.########S######h______________h",
+"############################################..##############h______________h",
+"########################################........############h__________;___h",
+"#######################################..........###########h__________;_;_h",
+"#######################################........k.###########h______________h",
+"########################################..T......###########hhhhhhhhhhhhhhhh",
+"############################################.###############################",
+"############################################################################",
+"############################################################################",
+"############################################################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "madeRoad",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard"
+},
+"music": "highway",
+"bg": "highway",
+"save": false,
+"dark": true,
+"highway": 3,
+"seals": [
+{
+"x": 8,
+"y": 9
+},
+{
+"x": 19,
+"y": 9
+},
+{
+"x": 37,
+"y": 9
+},
+{
+"x": 48,
+"y": 9
+},
+{
+"x": 13,
+"y": 14
+},
+{
+"x": 26,
+"y": 14
+},
+{
+"x": 42,
+"y": 14
+},
+{
+"x": 53,
+"y": 14
+}
+],
+"lights": [
+{
+"x": 68,
+"y": 5,
+"r": 84,
+"cond": "!flag:wordBelow | flag:raidWon"
+}
+],
+"exits": {
+"west": {
+"to": "highway_2",
+"tx": 74,
+"ty": 11,
+"dir": "left"
+},
+"east": {
+"to": "highway_4",
+"tx": 1,
+"ty": 11,
+"dir": "right"
+}
+},
+"npcs": [
+{
+"id": "geir",
+"x": 67,
+"y": 7,
+"look": "dtrooper",
+"dir": "down",
+"name": "Geir Silversands",
+"cond": "!flag:wordBelow"
+},
+{
+"id": "lamp3a",
+"x": 64,
+"y": 12,
+"look": "dtrooper2",
+"dir": "right",
+"cond": "!flag:wordBelow"
+},
+{
+"id": "lamp3b",
+"x": 72,
+"y": 9,
+"look": "dtrooper",
+"dir": "left",
+"cond": "!flag:wordBelow"
+},
+{
+"id": "brannLamp",
+"x": 66,
+"y": 7,
+"look": "brann",
+"dir": "down",
+"cond": "flag:raidWon & !flag:noEscort"
+},
+{
+"id": "heddaLamp",
+"x": 70,
+"y": 7,
+"look": "hedda",
+"dir": "down",
+"cond": "flag:raidWon & !flag:noEscort"
+}
+],
+"triggers": [
+{
+"id": "lampArrive3",
+"rect": [
+60,
+10,
+1,
+4
+],
+"on": "step",
+"script": "lampArrive",
+"arg": 3,
+"cond": "!flag:lamp3 & !flag:wordBelow"
+},
+{
+"id": "raid",
+"rect": [
+57,
+10,
+1,
+4
+],
+"on": "step",
+"script": "raid",
+"cond": "flag:wordBelow & !flag:raidWon"
+},
+{
+"id": "tower3",
+"rect": [
+68,
+5,
+1,
+1
+],
+"on": "use",
+"script": "lampTower",
+"arg": 3,
+"cond": "!flag:wordBelow | flag:raidWon"
+},
+{
+"id": "xorn",
+"rect": [
+29,
+10,
+3,
+4
+],
+"on": "step",
+"script": "xorn",
+"cond": "!flag:xornDone"
+},
+{
+"id": "giant",
+"rect": [
+42,
+16,
+5,
+3
+],
+"on": "step",
+"script": "giant",
+"cond": "!flag:giantDone"
+},
+{
+"id": "captain",
+"rect": [
+69,
+17,
+1,
+1
+],
+"on": "use",
+"script": "captain",
+"cond": "flag:wordBelow"
+},
+{
+"id": "leavings",
+"rect": [
+66,
+15,
+1,
+1
+],
+"on": "use",
+"script": "leavings",
+"cond": "flag:raidWon"
+},
+{
+"id": "deepholmRoad",
+"rect": [
+74,
+10,
+1,
+4
+],
+"on": "step",
+"script": "deepholmRoad",
+"cond": "!flag:wordBelow"
+}
+],
+"zones": [
+{
+"zone": "hw3",
+"rect": [
+0,
+0,
+56,
+24
+]
+}
+],
+"flagTiles": [
+{
+"x": 63,
+"y": 8,
+"tile": "crateCave",
+"cond": "flag:wordBelow"
+},
+{
+"x": 64,
+"y": 8,
+"tile": "crateCave",
+"cond": "flag:wordBelow"
+},
+{
+"x": 72,
+"y": 14,
+"tile": "crateCave",
+"cond": "flag:wordBelow"
+},
+{
+"x": 73,
+"y": 14,
+"tile": "crateCave",
+"cond": "flag:wordBelow"
+},
+{
+"x": 66,
+"y": 15,
+"tile": "crateCave",
+"cond": "flag:wordBelow"
+},
+{
+"x": 69,
+"y": 17,
+"tile": "bodyCaptain",
+"cond": "flag:wordBelow"
+},
+{
+"x": 68,
+"y": 5,
+"tile": "lampTowerDark",
+"cond": "flag:wordBelow & !flag:raidWon"
+}
+]
+}

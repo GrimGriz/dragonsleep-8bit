@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-firstfrozen-1031': { pri: 2, group: G1, title: 'The first game frozen: the 8-bit plays from its own folder, first/ -- nothing should look or play differently (10-31)', pt: 'the first game, the freeze, his "See if you can pull off the freeze/separation, first game is good enough and sitting standby for polish pass when 16bit is finished" (first/README.md; index.html loads first/js and first/data; tools/first-lock.py in the quick gate) · eyes',
+      look: 'Open the first game at the root as a player would: the title, CONTINUE a save of yours (the saves are where they were), walk a field, a fight, the menu, a level-up. All should be exactly as before the freeze. A difference of any kind is a bug in the move, not a change.',
+      url: 'index.html?fresh=1031f' },
     'eyes-subtleempowered-1031': { pri: 2, group: G1, title: 'Subtle Spell and Empowered Spell, the sorcerer\'s metamagic (the SRD\'s): no Counterspell; low damage dice rolled again (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "do the next two things" (deep16/js/features.js M.cast\'s metamagic, F.metaCost/metaWhy; deep16/js/grimoire.js M.counterAsk; deep16/js/classes.js NPC.OPTIONS.sorcerer; mode=metamagic1031) · eyes',
       look: 'The FEATURES shelf: SUBTLE SPELL, then a Fire Bolt -- the card "no words, no gestures", a point spent. EMPOWERED SPELL, then a Fire Bolt -- "(empowered: N dice rolled again)" under the roll when its dice came up low. In a fight, a sorcerer whose card picked them (THE PARTY, MAKE: the METAMAGIC tab holds six now) has them on the ring beside the others; a Subtle spell at a foe that knows Counterspell is never countered.',
       url: 'deep16/?gallery&shelf=features&feature=subtlespell&only=subtlespell,empoweredspell&fresh=1031m' },

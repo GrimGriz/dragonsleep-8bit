@@ -1,0 +1,571 @@
+{
+"id": "warrens_d",
+"name": "The Warrens — the wet",
+"tileset": "cave",
+"rows": [
+"########~###################################",
+"########~###################################",
+"########~######........#.#..################",
+"#####wwwww.#.................#.#############",
+"####wwwwwwww.....................###########",
+"####wwwwwwww......................#.########",
+"####wwwwwwww...y...................y.#######",
+"##.k.wwwwwBBBB~~...........o......~~.#######",
+"##..........~B~~~................~~~~.#####~",
+"#...........~~~~~~..........~~...B~~~~~~~~~~",
+"#.............~~..BB~~~~~..~~~~~BB~~....####",
+"#.................~B~~~~~.~B~~~........#####",
+"#u................~~~~~~~~BB~~~........#####",
+"#u.................~~~~~~....o........######",
+"#...................................########",
+"##.............................o...#########",
+"###.........o...........y...........########",
+"#####..............o...........##.....######",
+"##########.#.................#.###.....#####",
+"###########hhhhhhhhhhhrhhh########.#....####",
+"#########h#hnnnnnnnn____h#########.##....###",
+"########shnhnnnnnnnn____hhhhhhhhhh.###....##",
+"#########hnhnnnnnnnn_______________####....#",
+"#########h#hnnnnnnnn____hhhhhhhhhh######...#",
+"###########hhhhhhhhhhhhhh################..#",
+"#########################################..#",
+"#########################################..#",
+"#########################################uu#",
+"#########################################..#",
+"############################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp",
+"Q": "cocoon"
+},
+"music": "dungeon",
+"bg": "wet",
+"save": false,
+"dark": true,
+"warps": [
+{
+"x": 1,
+"y": 12,
+"to": "warrens_b",
+"tx": 12,
+"ty": 2,
+"dir": "down"
+},
+{
+"x": 1,
+"y": 13,
+"to": "warrens_b",
+"tx": 12,
+"ty": 2,
+"dir": "down"
+},
+{
+"x": 41,
+"y": 27,
+"to": "warrens_c",
+"tx": 24,
+"ty": 2,
+"dir": "down"
+},
+{
+"x": 42,
+"y": 27,
+"to": "warrens_c",
+"tx": 24,
+"ty": 2,
+"dir": "down"
+},
+{
+"x": 8,
+"y": 21,
+"to": "burial",
+"tx": 2,
+"ty": 5,
+"dir": "right",
+"cond": "flag:stairHook & !flag:frontDoor & !flag:keeperWater",
+"sfx": "stairs"
+}
+],
+"chests": [
+{
+"x": 38,
+"y": 21,
+"item": "greaterpotion",
+"n": 1
+}
+],
+"triggers": [
+{
+"id": "bucket",
+"rect": [
+3,
+7,
+1,
+1
+],
+"on": "use",
+"script": "bucket"
+},
+{
+"id": "landlord",
+"rect": [
+4,
+2,
+9,
+7
+],
+"on": "use",
+"script": "landlord"
+},
+{
+"id": "landlordStep",
+"rect": [
+7,
+8,
+4,
+1
+],
+"on": "step",
+"script": "landlordNear",
+"cond": "!flag:otyughDead & !flag:otyughFed"
+},
+{
+"id": "deepCradle0",
+"rect": [
+15,
+6,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 0
+},
+{
+"id": "deepCradle1",
+"rect": [
+35,
+6,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 1
+},
+{
+"id": "deepCradle2",
+"rect": [
+24,
+16,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 2
+},
+{
+"id": "jelly",
+"rect": [
+21,
+14,
+4,
+1
+],
+"on": "step",
+"script": "jelly",
+"cond": "!flag:jellyDead"
+},
+{
+"id": "jellyNorth",
+"rect": [
+22,
+9,
+1,
+1
+],
+"on": "step",
+"script": "jelly",
+"cond": "!flag:jellyDead"
+},
+{
+"id": "poolOoze",
+"rect": [
+29,
+13,
+1,
+1
+],
+"on": "step",
+"script": "poolOoze",
+"cond": "!flag:poolOozeDead"
+},
+{
+"id": "ooze",
+"rect": [
+12,
+16,
+1,
+1
+],
+"on": "step",
+"script": "oozeFight",
+"cond": "!flag:oozeDead"
+},
+{
+"id": "mark",
+"rect": [
+22,
+19,
+1,
+1
+],
+"on": "use",
+"script": "mark"
+},
+{
+"id": "stair",
+"rect": [
+19,
+20,
+1,
+4
+],
+"on": "use",
+"script": "stair",
+"cond": "!flag:stairHook | flag:keeperWater"
+},
+{
+"id": "dryStair",
+"rect": [
+19,
+20,
+1,
+4
+],
+"on": "step",
+"script": "dryStair",
+"cond": "flag:stairHook & !flag:drySeen"
+},
+{
+"id": "holdStair",
+"rect": [
+19,
+20,
+1,
+4
+],
+"on": "step",
+"script": "holdStair",
+"cond": "flag:waterAsked & !flag:keeperWater & flag:drySeen"
+}
+],
+"zones": [
+{
+"zone": "warrens_d",
+"rect": [
+0,
+0,
+44,
+19
+]
+}
+],
+"flagTiles": [
+{
+"x": 12,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 13,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 14,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 15,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 16,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 17,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 18,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 19,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 12,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 13,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 14,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 15,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 16,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 17,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 18,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 19,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 12,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 13,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 14,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 15,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 16,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 17,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 18,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 19,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 12,
+"y": 23,
+"tile": "puddle",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 13,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 14,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 15,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 16,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 17,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 18,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 19,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 11,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 11,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 10,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 10,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 9,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 12,
+"y": 23,
+"tile": "stain",
+"cond": "flag:stairHook & !flag:keeperWater & flag:keeperDone"
+},
+{
+"x": 8,
+"y": 21,
+"tile": "sealCut",
+"cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 8,
+"y": 21,
+"tile": "ironBars",
+"cond": "flag:frontDoor & !flag:keeperWater"
+}
+]
+}

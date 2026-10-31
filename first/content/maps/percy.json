@@ -1,0 +1,77 @@
+{
+"id": "percy",
+"name": "Percy's Particulars",
+"tileset": "inside",
+"rows": [
+"wqqqqqqqqw",
+"wqqqqqqqqw",
+"w::::::::w",
+"wccccccc:w",
+"w::::::::w",
+"wk::::::iw",
+"w:::::::kw",
+"wwwwDwwwww"
+],
+"legend": {
+":": "floorWood",
+";": "floorStone",
+"_": "rug",
+"c": "counter",
+"b": "bar",
+"t": "table",
+"u": "stairsUp",
+"d": "stairsDown",
+"z": "bed",
+"q": "shelf",
+"h": "hearth",
+"i": "boxes",
+"w": "wall",
+"o": "wallWin",
+"p": "pillar",
+"#": "stonewall",
+"s": "sandArena",
+"x": "hexwall",
+"%": "curtain",
+" ": "void",
+"k": "crate",
+"D": "door",
+".": "darkfloor",
+"l": "lamp"
+},
+"music": "town",
+"bg": "town",
+"npcs": [
+{
+"id": "percy",
+"x": 3,
+"y": 2,
+"look": "percy",
+"dir": "down"
+},
+{
+"id": "ned",
+"x": 6,
+"y": 2,
+"look": "ned",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 4,
+"y": 7,
+"to": "silverton",
+"tx": 27,
+"ty": 42,
+"dir": "down"
+}
+],
+"signs": [
+{
+"x": 1,
+"y": 5,
+"text": "The shelf card, in Percy's good hand: guano-and-sulfur, the paper, 1 sp. Sulfur 5 cp. Saltpeter 1 sp. Glow-moss, the pinch, 5 cp. Jar-fly, live, 1 sp. Gulch silk, the skein, 5 sp. Pressed black cake 2 sp. Darkmantle hide, cured, 2 gp. Crawler ichor: ask.",
+"src": "the-lab/pit-maps/shops-silverton.json pin 38 (Percy's shelf, CANON 09-09)"
+}
+]
+}

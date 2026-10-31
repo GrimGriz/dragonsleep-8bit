@@ -68,7 +68,8 @@ def scan(root):
             walk(json.load(open(p, encoding='utf-8')), 'content/' + name)
     for p in sorted(glob.glob(os.path.join(root, 'content', 'maps', '*.json'))):
         walk(json.load(open(p, encoding='utf-8')), 'maps/' + os.path.basename(p))
-    for p in sorted(glob.glob(os.path.join(root, 'js', '*.js')) + glob.glob(os.path.join(root, 'deep16', 'js', '*.js'))):
+    # (since the freeze, 10-31, the first game's engine is first/js: read here too, as the saves' flags are both games'; compile.py --first checks first/ alone)
+    for p in sorted(glob.glob(os.path.join(root, 'js', '*.js')) + glob.glob(os.path.join(root, 'first', 'js', '*.js')) + glob.glob(os.path.join(root, 'deep16', 'js', '*.js'))):
         rel = os.path.relpath(p, root).replace('\\', '/')
         s = open(p, encoding='utf-8').read()
         for m in re.finditer(r'flags8?\.(\w+)\s*' + ASSIGN, s):

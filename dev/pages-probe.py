@@ -31,15 +31,16 @@ def main():
         print('ok   %s: %d scripts, no marker line, none twice' % (page, len(srcs)) if not any(b.startswith(page) for b in bad) else 'FAIL %s' % page)
     # a script on disk the page never loads (10-08: a rebase that took the upstream page dropped js/flight-ai.js's tag, and the room ran without it -- the bench
     # caught it RED, this catches it first). js/eyes.js is situations.html's (and the one gallery's, from deep16/index.html), not the 8-bit page's
-    NOT_LOADED_OK = {'index.html': ['js/eyes.js']}
-    for page, d in [('index.html', 'js'), ('deep16/index.html', 'deep16/js')]:
+    # (since the freeze, 10-31: the root page is the first game's and loads first/js; js/ is the shared five and the eyes, every one deep16/index.html's)
+    NOT_LOADED_OK = {}
+    for page, d in [('index.html', 'first/js'), ('deep16/index.html', 'deep16/js'), ('deep16/index.html', 'js')]:
         text = open(os.path.join(ROOT, page), encoding='utf-8').read()
         srcs = set(s.split('?')[0] for s in re.findall(r'<script src="([^"]+)"', text))
         rel = os.path.relpath(os.path.join(ROOT, d), os.path.dirname(os.path.join(ROOT, page))).replace('\\', '/')
         for fn in sorted(os.listdir(os.path.join(ROOT, d))):
             if fn.endswith('.js') and rel + '/' + fn not in srcs and rel + '/' + fn not in NOT_LOADED_OK.get(page, []):
                 bad.append('%s never loads %s/%s' % (page, rel, fn))
-    for d in ['js', 'deep16/js']:
+    for d in ['first/js', 'js', 'deep16/js']:
         for fn in sorted(os.listdir(os.path.join(ROOT, d))):
             if not fn.endswith('.js'):
                 continue
@@ -49,7 +50,7 @@ def main():
     for b in bad:
         print('FAIL ' + b)
     if not bad:
-        print('ok   no merge marker in js/ or deep16/js/')
+        print('ok   no merge marker in first/js/, js/ or deep16/js/')
     sys.exit(1 if bad else 0)
 
 

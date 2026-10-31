@@ -6,11 +6,13 @@ Geometry follows the register's maps (corridor v3, city v6, environs v3, the mod
 simplified for 16px tiles. Dialogue lives in content/npcs.json, keyed by npc id.
 
 Run:  python tools/mapgen.py
+      python tools/mapgen.py --first   (the frozen first game's copy, first/content/maps -- since 10-31; this code may carry the second
+                                        game's changes since the freeze, so diff what it writes there before a first-game fix keeps it: first/README.md)
 """
-import json, os, random, math
+import json, os, random, math, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'content', 'maps')
+OUT = os.path.join(ROOT, 'first', 'content', 'maps') if '--first' in sys.argv else os.path.join(ROOT, 'content', 'maps')
 
 LEGENDS = {
     'world': {

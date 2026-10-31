@@ -1,0 +1,173 @@
+{
+"id": "hex",
+"name": "The Hex",
+"tileset": "inside",
+"rows": [
+"     xxxxxxxxxxxx     ",
+"    x::::::::::::x    ",
+"   x:::::u::u:::::x   ",
+"  x:::t::::::::t:::x  ",
+" x::::::::::::::::::x ",
+"x:::k::::::::::::k:::x",
+"x::::::::::::::::::::x",
+"x:b:::::ssssss:::::b:x",
+"x:b:::ssssssssss:::b:x",
+"x:b:::ssssssssss:::b:x",
+"x:::::ssssssssss:::::x",
+"x:::::ssssssssss:::::x",
+"x::::t::ssssss::t::::x",
+"x::::::::::::::::::::x",
+"x::::::::::::::::::::x",
+" x::::::::::::::::::x ",
+"  x:bbbbb::::bbbbb:x  ",
+"   x:::::::::iiiiix   ",
+"    x::::::::::::x    ",
+"     xxxxxDDxxxxx     ",
+"                      "
+],
+"legend": {
+":": "floorWood",
+";": "floorStone",
+"_": "rug",
+"c": "counter",
+"b": "bar",
+"t": "table",
+"u": "stairsUp",
+"d": "stairsDown",
+"z": "bed",
+"q": "shelf",
+"h": "hearth",
+"i": "boxes",
+"w": "wall",
+"o": "wallWin",
+"p": "pillar",
+"#": "stonewall",
+"s": "sandArena",
+"x": "hexwall",
+"%": "curtain",
+" ": "void",
+"k": "crate",
+"D": "door",
+".": "darkfloor",
+"l": "lamp"
+},
+"music": "hex",
+"bg": "arena",
+"save": true,
+"npcs": [
+{
+"id": "korvinSlate",
+"x": 11,
+"y": 14,
+"look": "noble",
+"dir": "up"
+},
+{
+"id": "barleyBench",
+"x": 14,
+"y": 15,
+"look": "barley",
+"dir": "down",
+"hire": "barley"
+},
+{
+"id": "lymenHex",
+"x": 16,
+"y": 11,
+"look": "lymen",
+"dir": "left",
+"hire": "lymen"
+},
+{
+"id": "talmok",
+"x": 11,
+"y": 6,
+"look": "orc",
+"dir": "down"
+},
+{
+"id": "bartenderS",
+"x": 6,
+"y": 17,
+"look": "merchant",
+"dir": "up"
+},
+{
+"id": "bartenderE",
+"x": 20,
+"y": 8,
+"look": "worker",
+"dir": "left"
+},
+{
+"id": "warrenspete",
+"x": 4,
+"y": 14,
+"look": "worker2",
+"dir": "right"
+},
+{
+"id": "hexpatron1",
+"x": 8,
+"y": 8,
+"look": "worker",
+"wander": 1
+},
+{
+"id": "hexpatron2",
+"x": 15,
+"y": 7,
+"look": "girl",
+"wander": 1
+},
+{
+"id": "warda",
+"x": 10,
+"y": 3,
+"look": "warda",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 10,
+"y": 19,
+"to": "silverton",
+"tx": 29,
+"ty": 35,
+"dir": "down"
+},
+{
+"x": 11,
+"y": 19,
+"to": "silverton",
+"tx": 30,
+"ty": 35,
+"dir": "down"
+},
+{
+"x": 9,
+"y": 2,
+"to": "hex2",
+"tx": 8,
+"ty": 2,
+"dir": "down"
+},
+{
+"x": 12,
+"y": 2,
+"to": "hex2",
+"tx": 11,
+"ty": 2,
+"dir": "down"
+}
+],
+"signs": [
+{
+"x": 15,
+"y": 17,
+"text": "The Wall of Boxes. Twenty-seven iron boxes, nine by three. Wins in, nothing out till thirty; then a man walks to the lantern free.",
+"src": "wiki/the-hex.md (the Wall of Boxes)"
+}
+]
+}
