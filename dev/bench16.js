@@ -5035,6 +5035,31 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE CLINGER THROUGH HOLD GROUND (mode=clinger1031; the leveling lane §10's find, 10-31): a climber that loses its hold on a face (battle.js clingSave, the DEX save failed)
+  // falls and is kept off prone by the Drillyard's HOLD GROUND (the reaction and an opening spent; without the play, prone) and by the Aura of Deep Roots (a Green Return
+  // paladin of the 7th beside it; of the 6th, prone)
+  if (get('mode', '') === 'clinger1031') {
+    var repCl = { checks: [], errors: [] }, d0Cl = D.d;
+    function okCl(what, v) { repCl.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function fightCl(q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false; return B; }
+    function clingCl(B, u) { u.hang = { face: [u.x + 1, u.y], foot: [u.x, u.y], z: D.grid.map.gz(u.x, u.y) + 4 * D.grid.map.def.step }; u.conds = {}; u.maxhp = u.hp = 999; D.d = function (k) { return k === 20 ? 1 : d0Cl(k); }; B.clingSave(u, 10); D.d = d0Cl; return { prone: !!u.conds.prone, fell: !u.hang }; }
+    try {
+      D.seed = 1031;
+      var drill = function (plays) { var B = fightCl('?npc=goblin&lvl=3&vs=fighter:3'), f = B.units.filter(function (w) { return w.side === 'party'; })[0]; f.subclass = 'the Drillyard'; f.plays = plays; f.feats.openings = 2; f.reaction = 1; var r = clingCl(B, f); r.react = f.reaction; r.open = f.feats.openings; return r; };
+      var c1 = drill(['holdground', 'bind', 'breakstride']), c2 = drill(['wheel', 'bind', 'breakstride']);
+      okCl('HOLD GROUND, a Drillyard fighter knocked off a face: fell ' + c1.fell + ', prone ' + c1.prone + ', the reaction ' + c1.react + ', openings ' + c1.open + '; without the play: prone ' + c2.prone + ' (want true false 0 1; true)', c1.fell && !c1.prone && c1.react === 0 && c1.open === 1 && c2.fell && c2.prone);
+      var roots = function (lvl) {
+        var B = fightCl('?npc=goblin&lvl=' + lvl + '&vs=paladin:' + lvl + ',fighter:' + lvl), ps = B.units.filter(function (w) { return w.side === 'party'; }), p = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== p; })[0];
+        p.subclass = 'the Oath of the Green Return'; f.x = p.x + 1; f.y = p.y; if (!D.grid.canStand(f, f.x, f.y)) f.x = p.x - 1; D.grid.setup(B.map, B.units); return clingCl(B, f);
+      };
+      var r7 = roots(7), r6 = roots(6);
+      okCl('the Aura of Deep Roots, a fighter knocked off a face beside the paladin: fell ' + r7.fell + ', prone at the 7th ' + r7.prone + ', at the 6th ' + r6.prone + ' (want true, false, true)', r7.fell && !r7.prone && r6.prone);
+    } catch (e) { repCl.errors.push(String(e && e.stack || e)); }
+    D.d = d0Cl;
+    var preCl = document.createElement('pre'); preCl.id = 'out'; preCl.textContent = 'BENCH16 ' + JSON.stringify(repCl);
+    document.body.appendChild(preCl);
+    return;
+  }
   // THE SMALL ONES (mode=smallones1030; the leveling lane §8 F, 10-30): item 17 -- a card's feat word reads the prerequisite (a fighter's Hold the Thread refused, a wizard's
   // kept); HOLD GROUND and the Aura of Deep Roots against a fall's prone (a flier brought down beside a Green Return paladin of the 7th: no prone; at the 6th, prone); Called to
   // Account's radiant on a called foe's spell that harms another -- once a cast (a Burning Hands and a Fire Bolt each answered once)

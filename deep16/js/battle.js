@@ -3217,7 +3217,7 @@
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood under it: the cushion, the dice split -- 10-05, landOn)
     this.card(['{o}' + nameOf(u) + (knocked || ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc) + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
     if (onC.length) { this.landOn(u, ft, fd); return; }
-    u.conds.prone = true;
+    if (!u.noProne && !RU.immuneTo(u, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, u, 'prone'))) u.conds.prone = true; // (HOLD GROUND, the Aura of Deep Roots, as a fall from the air: the leveling lane, 10-31)
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
   };
   // one who falls onto a square another stands on (10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- "make a climbing giant fall on the idgit
