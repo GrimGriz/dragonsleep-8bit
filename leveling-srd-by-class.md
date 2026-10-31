@@ -110,7 +110,7 @@ Lymen's road: *"Self-ordained under Kalindel, the generative nature of the plane
 
 ## 3. The rest, waiting (rows for later batches)
 
-- **Subclasses, by the count (§1):** the fighter's second and the paladin's second and third; the rogue's second; the wizard's six more; then bard 1, druid 1, monk 2, sorcerer 1, warlock 1, cleric 5.
+- **Subclasses, by the count (§1):** the fighter's second and the paladin's second (DRAFTED 10-31, §7.1) and third; the rogue's second (DRAFTED 10-31, §7.2); the wizard's six more; then bard 1, druid 1, monk 2, sorcerer 1, warlock 1, cleric 5.
 - **Feats:** 34 more after §2.3's six, open by prerequisite.
 - **The whole lists, the SRD's own unbuilt:** 28 invocations, 4 metamagic, the Pact of the Chain, 6 lands, 9 dragon ancestors, the ranger's choices.
 - **Multiclassing:** the Pocket DM's, after DEEP16 wraps; not the story game's for now.
@@ -227,3 +227,31 @@ Griz, by the lanes desk (10-30 ~02:55Z), on the case for leaving the minor PHB s
 
 - **Rootdrag** (BUILT 10-30, the grid) -- cantrip, transmutation, druid (Thorn Whip's role: *a melee druid's pull*). An action; range 30 ft; instant. A creature standing on the ground within range, Large or smaller, makes a STR save: on a failure it takes 1d6 bludgeoning and roots drag it up to 10 ft in a straight line along the ground, in a direction the caster chooses -- into the fire, the spikes, a friend's reach. 2d6 at 5th level, 3d6 at 11th, 4d6 at 17th. **NOT** Thorn Whip: no spell attack, no thorned vine at reach, no pull toward the caster alone -- roots in the ground drag it by a save, whichever way the caster chooses, and nothing aloft is touched. **The engines:** the grid's forced moves (`deep16/js/magic.js` M.push, the hazards it lands a body in) and the STR save are built.
 - **Called to Account** (BUILT 10-30, the grid) -- 1st level, abjuration, paladin (Compelled Duel's role: *a tank paladin's hold on a foe*). A bonus action; range 30 ft; concentration, up to 1 minute. A creature the caster can see makes a WIS save: on a failure, until the spell ends, each time it deals damage to a creature other than the caster, it takes 1d8 radiant damage. The spell ends early if the caster attacks or casts a spell at another creature, or ends a turn more than 30 ft from it. *At higher levels:* 1d8 more for each slot level above 1st. **NOT** Compelled Duel: no disadvantage on its other attacks and no leash on its movement -- it may do as it likes, and pays in radiant for harming anyone but the caster. Nearest outside the PHB: the Cavalier's mark in a later book, which punishes with a blow, not a ward. **The engines:** the AI must weigh the mark when it picks a target (`deep16/js/ai.js`, `deep16/js/tactics.js`); radiant and the save are built.
+
+## 7. The third batch: the paladin's second and the rogue's second (DRAFTED 10-31, for his word)
+
+Griz, 10-31, to the leveling seat: *"yeah fix it and do the next two things, we're usually burning so much more usage on art cutting"* -- the lane's item 9, by the pull rule the four's classes first (§1: the paladin SHORT 2, the rogue SHORT 1). PROPOSED, nothing built; each beside the PHB's in `..\leveling-feats-side-by-side.md` for the reading lamp. Every engine named is on the grid already.
+
+### 7.1 The paladin's second of ours: the Oath of the Ledger -- Vengeance's role (*the paladin sworn against one foe*)
+
+A paladin who keeps the account: every hurt done to one in her care is owed, and she collects it in person.
+
+- **Tenets.** Every hurt is owed. Collect it in person. Pay your own debts first.
+- **Oath spells** (all SRD and built on the grid; none on Devotion's, the Ancients' or Vengeance's lists): 3rd, Heroism and Hellish Rebuke; 5th, Warding Bond and Spiritual Weapon; 9th, Bestow Curse and Slow.
+- **3, Channel Divinity: Mark the Debt.** A bonus action: one creature within 30 ft that the paladin can see, and that has harmed one of her friends since her last turn, is **owed** for 1 minute. Each time she hits it, the friend it harmed last regains hit points equal to her CHA modifier (at least 1).
+- **3, Channel Divinity: Call It In.** An action: each creature owed to her within 30 ft makes a WIS save against her spell DC or is pulled up to 15 ft straight toward her (the grid's pull, as Rootdrag's).
+- **7, Aura of Arrears.** A creature owed to her that starts its turn within 10 ft of her takes radiant damage equal to her CHA modifier (at least 1). At 18, 30 ft.
+- **15, 20:** waiting.
+
+**NOT** the PHB's Oath of Vengeance: no vow that gives her advantage, no frightening or slowing (Abjure Enemy), no free move when she makes an opportunity attack, no reaction strike at 15, no Hunter's Mark or Misty Step among its spells. Hers heals the one wronged when she hits, drags the debtor in, and burns it for standing near her. Not Devotion (no blessed weapon), not the Ancients (no vines, no resistance aura), not the DMG's Oathbreaker. Called to Account (§6.5, her spell already) holds a foe to her; the Ledger makes it pay. **The engines:** a friend harmed (`B.hurt`'s source), the grid's pull (Rootdrag), a radiant aura at the turn's start (the Spirit Guardians shape).
+
+### 7.2 The rogue's second of ours: the Lampwright -- the Arcane Trickster's role (*a rogue with a little magic*)
+
+Drafted from Vivian, *"the candle girl on the east side"* -- the road is any rogue's, not hers by default. A rogue whose little magic is the light she carries and the light she takes away.
+
+- **3, Wick-Lore.** Two cantrips, Light and Dancing Lights (INT is her casting score for them). No spell slots, no spellbook.
+- **3, Shutter.** Her Cunning Action can also shutter one light within 30 ft that she can see -- a torch, a lantern, a brazier, a Light, a Dancing Light -- dark until the start of her next turn (a light made by a spell of 3rd level or higher stays lit). The dark it leaves counts for her hiding.
+- **9, By Her Own Light.** Against a creature standing in light she made (her Light, her Dancing Lights), her Sneak Attack needs neither advantage nor a friend beside it, and the creature cannot hide from her while it stands there.
+- **13, 17:** waiting.
+
+**NOT** the PHB's Arcane Trickster: no wizard spells, no spell slots, no enchantment or illusion, no spectral hand that picks pockets, no edge on saves against her spells, no stealing spells. Sudden Dark (§2.3, a feat) puts a nonmagical flame out for good; the Shutter darkens any light for a turn, magic too, and works through her hiding. Not the Thief (no fast hands), not the Assassin or Cutthroat (nothing about who acts first). **The engines:** Light and Dancing Lights (built), the floor's lights and Sudden Dark's targets (`deep16/js/light.js`, `F.darkTargets`), hiding by light (`seenBy`), Sneak Attack's conditions (`deep16/js/rules.js`).
