@@ -2896,4 +2896,59 @@
     },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (!G.hostile(u, w)) return; sc += TX().pFail(w, 'wis', u.spellDC) * 40; }); return sc; }); }
   };
+
+  // THE SIGHT IN THE MENU'S WORDS (10-31, Griz: "go ahead with the 2nd game 45 spells that need sight words" -- the aim cards and the summaries above had learned "you can see", 3d4396d1):
+  // the MENU's description of each spell (js/menu.js MagicPage shows DS.DATA.spells[id].desc, content/spells.json's, which the first game shares) says it too, by the SRD's own
+  // words ("a creature that you can see within range"), on this page only -- the first game keeps content/spells.json's, as H16.TEXT (hours.js) does for the words. D.SEE_DESC is
+  // the 45 `see` spells (data/spells.js) whose shared desc named no sight, each the old desc with "you can see" put into its target phrase and nothing else changed (Harm's
+  // "hit point maximum" and "the damage taken" shortened so it keeps its three lines of the box); Gnawing Word and Rootdrag are ours, no SRD text, and their clicks ask sight.
+  // dev/bench16.js mode=seewords1031 reads the table against `see` and content/spells.json
+  D.SEE_DESC = {
+    magicmissile: 'Three darts that never miss, 1d4+1 force each, at one foe or several you can see.',
+    holdperson: 'A humanoid you can see: WIS save or paralyzed. It saves again each turn.',
+    mistystep: 'A bonus action: silver mist, and you are 30 ft away, in a space you can see (on the grid: DEEP16\'s fights).',
+    holdmonster: 'Any creature you can see: WIS save or paralyzed. It saves again at the end of each turn.',
+    poisonspray: 'Cantrip. A foe you can see within 10 ft makes a CON save or takes 1d12 poison (2d12 at level 5, 3d12 at 11); nothing on a save. A creature immune to poison is untouched. A creature under Protection from Poison saves with advantage.',
+    sacredflame: 'Cantrip. A creature you can see: DEX save or 1d8 radiant (2d8 at level 5).',
+    viciousmockery: 'Cantrip. A foe you can see within 60 ft that can hear you (not a deafened one) makes a WIS save or takes 1d4 psychic (2d4 at level 5, 3d4 at 11) and rolls its next attack at disadvantage, until the end of its next turn.',
+    bane: 'Up to three foes you can see within 30 ft (one more per slot above 1st) make a CHA save; each that fails rolls -1d4 on every attack roll and saving throw. Concentration, a minute.',
+    command: 'One word to a creature you can see, WIS save: GROVEL, HALT, FLEE or DROP. It obeys on its turn, and the turn is gone. Not the dead, nor the witless.',
+    healingword: 'Bonus action. A word at range: 1d4 + WIS back to one ally you can see (+1d4 a slot above 1st).',
+    hideouslaughter: 'A foe you can see within 30 ft makes a WIS save or falls prone and incapacitated with laughter, saving again at the end of each of its turns and, with advantage, when hurt. INT 4 or less is unmoved. Concentration, a minute.',
+    huntersmark: 'Bonus action: mark a foe you can see within 90 ft; your weapon hits on it deal +1d6. Concentration; when it drops, a bonus action moves the mark with no slot. Not built: the Perception and Survival bonus to find it.',
+    gnawingword: 'Bonus action: a foe you can see within 60 ft. Each time you hit it with an attack, it takes psychic damage equal to the hits you have landed on it since the casting -- 1, then 2, then 3, up to 5 (+2 to the most a slot level above 1st). Concentration, a minute; it ends when the foe drops.',
+    rootdrag: 'A creature on the ground you can see within 30 ft, Large or smaller, makes a STR save: on a failure, 1d6 bludgeoning and roots drag it up to 10 ft along the ground the way you choose -- into the fire, the spikes, a friend\'s reach. 2d6 at 5th level, 3d6 at 11th, 4d6 at 17th.',
+    blindnessdeafness: 'A foe you can see within 30 ft makes a CON save or is blinded, saving again at the end of each of its turns. Not built: the deafness choice, and extra targets at higher slots.',
+    enlargereduce: 'A creature you can see within 30 ft. An ally grows: +1d4 on weapon hits, advantage on STR checks and saves. A foe shrinks on a failed CON save: -1d4 on weapon hits (min 1), disadvantage on STR checks and saves. Concentration, a minute.',
+    heatmetal: 'A foe you can see within 60 ft: 2d8 fire (+1d8 per slot above 2nd), no save; then CON or it drops a held weapon (no weapon attacks on its next turn), or in armour it can\'t shed has disadvantage on attacks and ability checks until your next turn. A bonus action repeats the burn each turn. Concentration.',
+    calllightning: 'Needs open sky. A bolt strikes a point you can see within 120 ft: DEX save or 3d10 lightning (half) to all within 5 ft; each later turn an action calls another, no slot. +1d10 a slot above 3rd. Concentration, the fight. Not built: the storm bonus.',
+    haste: 'A willing ally you can see within 30 ft: +2 AC, advantage on DEX saves, double speed, and an action more each turn -- one weapon attack, Dash, Disengage, Hide or Use an Object; a lost turn when it ends. Concentration, ten rounds.',
+    masshealingword: 'Bonus action. Up to six allies you can see within 60 ft regain 1d4 + your spellcasting modifier each (+1d4 a slot above 3rd); the fallen get up.',
+    banishment: 'A creature you can see within 60 ft: CHA save or it vanishes from the field, turns skipped, until you lose concentration or ten rounds pass; it returns where it stood. A celestial, elemental, fey or fiend held all ten rounds doesn\'t return. Not built: extra targets from higher slots.',
+    blacktentacles: 'A 20-ft square you can see within 90 ft turns to difficult ground, friends too. Entering it or starting a turn there: DEX save or 3d6 bludgeoning and restrained; the held take 3d6 each turn and break free by an action\'s STR or DEX check. Concentration, ten rounds.',
+    blight: 'A foe you can see within 30 ft: CON save or 8d8 necrotic (half on a save); +1d8 a slot above 4th. The dead and the made (undead, constructs) take nothing. Not built: the plant rules.',
+    guardianoffaith: 'A spectral guardian at a point you can see within 30 ft: a foe coming within 10 ft of it, or starting a turn there, takes 20 radiant (DEX save for half), once a turn. It is gone after dealing 60. Lasts the fight.',
+    phantasmalkiller: 'A creature you can see within 120 ft: WIS save or frightened. At the end of each of its turns, WIS save or 4d10 psychic; a success ends the spell. +1d10 a slot above 4th. Concentration, ten rounds.',
+    polymorph: 'A creature you can see within 60 ft becomes a bestiary beast of its CR or less (a hero: its level): a foe on a failed WIS save, an ally willing. The beast\'s HP come first, no spells; at 0 it reverts and the spell ends. Concentration.',
+    dominatebeast: 'A beast you can see within 60 ft: WIS save (advantage, as it is being fought) or it fights on your side, on its own wits. Each time it is hurt it saves again, and a success frees it and ends the spell. Concentration, ten rounds. Not built: commanding it.',
+    charmperson: 'A humanoid you can see within 30 ft makes a WIS save (with advantage, since it is being fought) or is charmed: it will not strike or target you; harm from your side breaks it. Lasts the fight. Not built: extra targets at higher slots.',
+    animalfriendship: 'A beast of INT 3 or less you can see within 30 ft makes a WIS save or is charmed: it will not strike or target you, and harm from you or your side breaks it. Lasts the fight. Not built: the 24-hour charm.',
+    conjureanimals: 'Beasts from the bestiary appear in spaces you can see within 60 ft: one of CR 2, two of CR 1, four of CR 1/2 or eight of CR 1/4, your pick (twice as many from a 5th-level slot). They fight for you on their own, till 0 HP or concentration ends.',
+    conjurewoodlandbeings: 'Fey creatures answer in spaces you can see within 60 ft: one of CR 2, two of CR 1, four of CR 1/2 or eight of CR 1/4 (twice as many from a 6th-level slot), fighting for you. Greyed out for now: the bestiary has no fey to call. Concentration, the fight.',
+    chainlightning: 'A creature you can see within 150 ft and up to three more foes within 30 ft of it: DEX save for half of 10d8 lightning, one roll for all. The game picks the other three. Not built: extra bolts from higher slots.',
+    disintegrate: 'A green ray at a creature you can see within 60 ft: DEX save or 10d6+40 force; a save takes nothing. Not built: the dust (it simply drops at 0 HP), objects, +3d6 from higher slots.',
+    eyebite: 'Concentration, 10 rounds. Each action, one creature you can see within 60 ft that hasn\'t saved against this casting: WIS save or it sleeps (a tough foe; wakes if hurt), panics and runs (within 10 ft), or is sickened (disadvantage on attacks and ability checks); the game picks. Sickened: WIS at each turn\'s end. Panic ends 60 ft off and out of your sight. All lift when concentration ends. Not built: waking a sleeper by an action.',
+    fleshtostone: 'A creature you can see within 60 ft (concentration, 10 rounds): CON save or restrained as it stiffens. At the end of each of its turns, CON save: three failures and it is stone, out of the fight; three successes and it is free. Lose concentration first and it frees.',
+    harm: 'A creature you can see within 60 ft: CON save for half of 14d6 necrotic, never below 1 HP. On a failure its HP maximum falls by that damage, for the fight.',
+    heal: 'An ally you can see within 60 ft regains 70 HP (+10 a slot above 6th); blindness, deafness and disease (Contagion) end. The fallen get up. Not built: the undead and construct exception.',
+    irresistibledance: 'A creature you can see within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action may be a WIS save to stop: a player\'s dancer is asked at its turn\'s start (SHAKE IT OFF: the save, the action spent; or FIGHT ON: no save, the action kept, still no move and still at disadvantage); the AI always saves.',
+    fingerofdeath: 'A creature you can see within 60 ft: CON save for half of 7d8+30 necrotic. Not built: a humanoid it kills rising as your zombie.',
+    earthquake: 'A 100-ft-radius area at a point you can see within 500 ft (concentration, 10 rounds): difficult ground. At the start of each creature\'s turn there, DEX save or prone, and a concentrating one makes a CON save or loses it. Not built: fissures, structures.',
+    feeblemind: 'A creature you can see within 150 ft takes 4d6 psychic, then INT save or its mind is gone for the fight: no spells, and its concentration ends. Not built: INT and CHA of 1, the repeat save, cures.',
+    maze: 'A creature you can see within 60 ft, no save: sent into a labyrinth and out of the fight (concentration, 100 rounds). At the end of each of its turns it rolls d20 + INT modifier and escapes on 20 or more. Not built: a minotaur\'s automatic escape.',
+    powerwordstun: 'A creature you can see within 60 ft, no save: stunned if it has 150 HP or fewer, otherwise nothing. CON save at the end of each of its turns to shake it off.',
+    meteorswarm: 'Four 40-ft-radius spheres of fire and rock at points you can see within 1 mile: one at your point, three on foes (the game picks). DEX save for half of 20d6 fire and 20d6 bludgeoning, each creature once, friend or foe.',
+    powerwordkill: 'A creature you can see within 60 ft, no save: dropped to 0 HP if it has 100 HP or fewer, otherwise nothing.'
+  };
+  if (DS.DATA && DS.DATA.spells) Object.keys(D.SEE_DESC).forEach(function (id) { if (DS.DATA.spells[id]) DS.DATA.spells[id].desc = D.SEE_DESC[id]; });
 })();

@@ -5406,6 +5406,35 @@
       });
       okSw('every aimed `see` spell says "you can see" on its aim card (missing: ' + (bareSw.join(', ') || 'none') + ')', bareSw.length === 0);
       okSw('every `see` spell\'s grid summary names sight (missing: ' + (sumSw.join(', ') || 'none') + ')', sumSw.length === 0);
+      // THE MENU'S WORDS (10-31, Griz: "go ahead with the 2nd game 45 spells that need sight words"): the MAGIC page's description (js/menu.js descBox -> DS.DATA.spells[id].desc) says
+      // "you can see" for the 45 `see` spells whose shared desc (content/spells.json, the first game's too) did not -- D.SEE_DESC in grimoire.js, on this page only
+      var SEE45 = ('magicmissile holdperson mistystep holdmonster poisonspray sacredflame viciousmockery bane command healingword hideouslaughter huntersmark gnawingword rootdrag blindnessdeafness enlargereduce heatmetal calllightning haste masshealingword ' +
+        'banishment blacktentacles blight guardianoffaith phantasmalkiller polymorph dominatebeast charmperson animalfriendship conjureanimals conjurewoodlandbeings chainlightning disintegrate eyebite fleshtostone harm heal irresistibledance fingerofdeath ' +
+        'earthquake feeblemind maze powerwordstun meteorswarm powerwordkill').split(' '), SIGHT = /you can see|you see|in sight/;
+      var xsw = new XMLHttpRequest(); xsw.open('GET', '../content/spells.json', false); xsw.send(); var sharedSw = JSON.parse(xsw.responseText), pageSw = window.DS.DATA.spells;
+      var seeIds = Object.keys(D.SPELLS).filter(function (id) { return D.SPELLS[id].see; });
+      var tabSw = D.SEE_DESC || {};
+      okSw('the table is the 45 and no other: ' + Object.keys(tabSw).length + ' ids, each a `see` spell with a record on this page', Object.keys(tabSw).length === 45 && SEE45.length === 45 && SEE45.every(function (id) { return tabSw[id] && D.SPELLS[id] && D.SPELLS[id].see && pageSw[id]; }) && Object.keys(tabSw).every(function (id) { return SEE45.indexOf(id) >= 0; }));
+      var noSightPage = seeIds.filter(function (id) { var sp0 = D.magic.data(id); return !sp0 || !SIGHT.test(sp0.desc || ''); });
+      okSw('every one of the ' + seeIds.length + ' `see` spells\' description on this page names sight (without: ' + (noSightPage.join(', ') || 'none') + ')', noSightPage.length === 0);
+      var diffSw = Object.keys(pageSw).filter(function (id) { return SEE45.indexOf(id) < 0 && pageSw[id].desc !== (sharedSw[id] || {}).desc; });
+      okSw('the override touches only the 45: the other ' + (Object.keys(pageSw).length - 45) + ' spells\' desc is content/spells.json\'s (different: ' + (diffSw.join(', ') || 'none') + ')', diffSw.length === 0);
+      var sameSw = SEE45.filter(function (id) { return pageSw[id].desc === sharedSw[id].desc || pageSw[id].desc !== tabSw[id]; });
+      okSw('each of the 45 is the table\'s, not the shared one (kept the old: ' + (sameSw.join(', ') || 'none') + ')', sameSw.length === 0);
+      // (content/spells.json is the first game's too, untouched: the 45 there still name no sight -- and `git diff --stat -- content/spells.json data/data.js` is empty, read by hand at the build)
+      var sharedSight = SEE45.filter(function (id) { return SIGHT.test(sharedSw[id].desc); });
+      okSw('content/spells.json, the first game\'s, is untouched: its 45 still name no sight (with it: ' + (sharedSight.join(', ') || 'none') + ')', sharedSight.length === 0);
+      // the box (js/menu.js descBox: DS.wrap(desc, 236), three lines shown, the ring's "E: cast it" / "Not now" line under it): the sight is inside the lines shown; a desc that fit
+      // in 3 still does; one that left that line room (2) still does. Those long before (cut at the third line already) are counted, not changed
+      var fitBad = [], fitWas = 0, wrapS = function (s) { return window.DS.wrap(String(s), 236); };
+      SEE45.forEach(function (id) {
+        var nl = wrapS(pageSw[id].desc), ol = wrapS(sharedSw[id].desc), shown = nl.slice(0, 3).join(' ');
+        if (!SIGHT.test(shown)) fitBad.push(id + ' (sight past line 3)');
+        if (ol.length <= 3 && nl.length > 3) fitBad.push(id + ' (' + ol.length + ' -> ' + nl.length + ' lines)');
+        if (ol.length <= 2 && nl.length > 2) fitBad.push(id + ' (loses the ring\'s line)');
+        if (ol.length > 3) fitWas++;
+      });
+      okSw('the box shows the sight, and nothing that fit is pushed out: ' + (fitBad.join('; ') || 'none') + ' (' + fitWas + ' of the 45 were already longer than the 3 lines before)', fitBad.length === 0);
     } catch (e) { repSw.errors.push(String(e && e.stack || e)); }
     var preSw = document.createElement('pre'); preSw.id = 'out'; preSw.textContent = 'BENCH16 ' + JSON.stringify(repSw);
     document.body.appendChild(preSw);
