@@ -5037,21 +5037,22 @@
   }
   // EVERY SPELL'S SCHOOL (mode=schools1031; the leveling lane §8 item 11, 10-31 -- wanted by Schoolbound and the wizard's traditions): each record's school as the SRD 5.1's
   // text names it (tools/spell-schools.py, which the gate also runs as `check` against srd/spells/), read by R.school -- the counts by school, a few that a hand list got
-  // wrong once (Produce Flame and Call Lightning are conjurations), ours by his word (the Scourges evocations) and ours not ruled (none). Told, not failed: where the grid's
-  // Sculpt Spells hand list (deep16/js/features.js EVOCATION, M.sculpts) and the data disagree
+  // wrong once (Produce Flame and Call Lightning are conjurations), ours by his word (the Scourges evocations; 10-31 the five more, his "you make good leans on what school
+  // is what"); and the grid's Sculpt Spells reads it (M.sculpts, 10-31, his "have sculpt read the new tag you made": its hand list held two conjurations, missed 33)
   if (get('mode', '') === 'schools1031') {
     var repSc = { checks: [], errors: [] };
     function okSc(what, v) { repSc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     try {
       var RS = window.DS.R, SP = window.DS.DATA.spells, ids = Object.keys(SP).filter(function (k) { return k.charAt(0) !== '_'; }), by = {};
       ids.forEach(function (k) { var s = RS.school ? RS.school(k) : null; by[s || 'none'] = (by[s || 'none'] || 0) + 1; });
-      var WANT = { abjuration: 26, conjuration: 24, divination: 6, enchantment: 18, evocation: 55, illusion: 10, necromancy: 14, transmutation: 22, none: 7 };
+      var WANT = { abjuration: 26, conjuration: 24, divination: 7, enchantment: 21, evocation: 55, illusion: 10, necromancy: 14, transmutation: 23, none: 2 };
       okSc('the schools: ' + Object.keys(by).sort().map(function (k) { return k + ' ' + by[k]; }).join(', '), Object.keys(WANT).every(function (k) { return by[k] === WANT[k]; }) && Object.keys(by).length === Object.keys(WANT).length);
-      var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: null };
+      var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: 'enchantment', calledtoaccount: 'enchantment', glasswhisper: 'enchantment', rootdrag: 'transmutation', mirrorsgaze: 'divination', huntersmark: null, smite: null };
       okSc('a few: ' + Object.keys(spot).map(function (k) { return k + ' ' + RS.school(k); }).join(', '), Object.keys(spot).every(function (k) { return RS.school(k) === spot[k]; }));
       var u = { subclass: 'School of Evocation', lvl: 2 }, hand = ids.filter(function (k) { return D.magic.sculpts(u, k); });
       var extra = hand.filter(function (k) { return RS.school(k) !== 'evocation'; }), miss = ids.filter(function (k) { return RS.school(k) === 'evocation' && hand.indexOf(k) < 0; });
-      okSc('told: Sculpt Spells\' hand list holds ' + hand.length + '; not evocations by the SRD: ' + (extra.map(function (k) { return k + ' (' + RS.school(k) + ')'; }).join(', ') || 'none') + '; evocations it leaves out: ' + (miss.join(', ') || 'none'), true);
+      okSc('Sculpt Spells sculpts ' + hand.length + ' (want 55, every evocation); not evocations: ' + (extra.join(', ') || 'none') + '; evocations left out: ' + (miss.join(', ') || 'none') + '; Wall of Fire ' + D.magic.sculpts(u, 'walloffire') + ', Produce Flame ' + D.magic.sculpts(u, 'produceflame') + ', at the 1st ' + D.magic.sculpts({ subclass: 'School of Evocation', lvl: 1 }, 'fireball'),
+        hand.length === 55 && !extra.length && !miss.length && D.magic.sculpts(u, 'walloffire') && !D.magic.sculpts(u, 'produceflame') && !D.magic.sculpts({ subclass: 'School of Evocation', lvl: 1 }, 'fireball'));
     } catch (e) { repSc.errors.push(String(e && e.stack || e)); }
     var preSc = document.createElement('pre'); preSc.id = 'out'; preSc.textContent = 'BENCH16 ' + JSON.stringify(repSc);
     document.body.appendChild(preSc);

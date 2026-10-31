@@ -14,9 +14,9 @@
   function kiDC(u) { return 8 + u.prof + D.mod(u.abil.wis); }
 
   // ------------------------------------------------------------------ the wizard: Sculpt Spells (evocation 2), Potent Cantrip (6)
-  var EVOCATION = ['fireball', 'lightningbolt', 'burninghands', 'thunderwave', 'shatter', 'icestorm', 'coneofcold', 'magicmissile', 'daylight', 'light', 'dancinglights', 'firebolt', 'rayoffrost', 'shockinggrasp', 'sacredflame', 'produceflame', 'flameblade', 'gustofwind', 'calllightning', 'spiritualweapon', 'continualflame', 'guidingbolt',
-    'searingscourge', 'deathhandsscourge']; // (ours, evocations by his word -- 10-14, Griz: "works with sculpt")
-  M.sculpts = function (u, id) { return u.subclass === 'School of Evocation' && u.lvl >= 2 && EVOCATION.indexOf(id) >= 0; };
+  // (an evocation by the spell's own record, the SRD's school -- js/rules.js R.school; 10-31, Griz: "have sculpt read the new tag you made". The hand list it replaced held Produce
+  // Flame and Call Lightning, conjurations, and left out 33 evocations -- Wall of Fire, Flame Strike, Moonbeam, Sunbeam among them. Ours by his word: the Scourges, 10-14 "works with sculpt")
+  M.sculpts = function (u, id) { return u.subclass === 'School of Evocation' && u.lvl >= 2 && window.DS.R.school(id) === 'evocation'; };
   M.sculpted = function (u, id, sp, caught) {
     if (!M.sculpts(u, id)) return [];
     // (SRD 5.1: "other creatures that you can see" -- not himself, and never an object: the Skylights' glass was being sculpted out of his Shatter, 10-05 night, the show's find)

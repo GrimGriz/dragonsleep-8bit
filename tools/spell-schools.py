@@ -12,8 +12,11 @@ A record of ours with no school is listed, not refused."""
 import glob, io, json, re, sys
 
 SCHOOLS = ['abjuration', 'conjuration', 'divination', 'enchantment', 'evocation', 'illusion', 'necromancy', 'transmutation']
-# ours, by his word: Searing Scourge and Deathhand's are evocations (10-14, Griz: "works with sculpt" -- deep16/js/features.js EVOCATION)
-OURS = {'searingscourge': 'evocation', 'deathhandsscourge': 'evocation'}
+# ours, by his word: Searing Scourge and Deathhand's are evocations (10-14, Griz: "works with sculpt"); the five more by the seat's leans, each its model's school
+# (10-31, Griz: "you make good leans on what school is what"): Called to Account as Compelled Duel, Gnawing Word as Hex, Glass Whisper a psychic word heard,
+# Rootdrag as Thorn Whip, Mirror's Gaze as Hunter's Mark
+OURS = {'searingscourge': 'evocation', 'deathhandsscourge': 'evocation', 'calledtoaccount': 'enchantment', 'gnawingword': 'enchantment', 'glasswhisper': 'enchantment',
+        'rootdrag': 'transmutation', 'mirrorsgaze': 'divination'}
 P = 'content/spells.json'
 
 
