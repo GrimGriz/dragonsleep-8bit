@@ -918,6 +918,7 @@
     var fd = which === 'field' ? trig.field : null, zoom0 = fd ? D.iso.zoom : null; // (zoom0: the floor's zoom, put back after -- 10-27, his "Going to the Grid Fight changes the zoom on the roam": a town floor's zoom is held, js/ui.js UI.setZoom)
     var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
     if (fd && fd.record) o.record = fd.record; // (a field's play record in the house: js/record.js, finished below as the fight comes back)
+    else if (!fd && R.house()) o.record = { fight: which, name: R.def.name + ': ' + (which === 'keeper' ? 'the Keeper of the Flooded Stair' : 'the Settling'), level: ((R0.members[0] || {}).src || {}).lvl, simple: false }; // (the Settling and the Keeper too, 10-31)
     // (paid on the fight's last card: R.pullPay -- a floor's field and the Keeper's room; the Settling keeps no end card, RULED 09-30c, "no press e, just go", so it pays on the floor it is)
     if (which === 'field' || which === 'keeper') o.payNow = function (bb, res) { var pp = R.pullPay(B, bb, res, which, fd); bb.pulledPay = pp || { lines: [], give: [], silver: 0 }; return pp ? pp.lines : []; };
     delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
@@ -1562,7 +1563,14 @@
     B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
     yield 50;
     R0.members.forEach(function (u) { if (u.wings) u.flies = true; }); // (the ring's wings, spread for the fight)
+    // the play record (js/record.js): in the house a fight on the floor's own squares is kept with the others, as a field's is (10-31, Griz: "fights on at least the
+    // wet, gulch, cloaker recording with the other fight records") -- the Wet's random fights, a crawler loose at its cradle; closed below, and the walk after it not kept
+    if (R.house() && D.rec && !B.rec) {
+      var nmR = {}; foes.forEach(function (u) { var k = u.name || u.id; nmR[k] = (nmR[k] || 0) + 1; });
+      D.rec.start(B, { fight: 'roam', name: R.def.name + ': ' + Object.keys(nmR).map(function (k) { return k + (nmR[k] > 1 ? ' x' + nmR[k] : ''); }).join(', '), level: ((R0.members[0] || {}).src || {}).lvl, simple: false });
+    }
     var o = yield* R.fight(B, foes, lurk);
+    if (B.rec && D.rec) { try { D.rec.finish(B, o || 'ended'); } catch (eR) { /* (the record must never stop the way back) */ } B.rec = null; }
     yield* R.after(B, o, grp, foes);
   };
   // the ways out for one of ours as its turn comes (RULED 10-13, the box cut: "no box"): the floor's own doors, and the squares a full move clear of every foe in
@@ -1707,6 +1715,7 @@
     var ours = function () { return foes.filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.fled && !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }); };
     while (true) {
       B.round++;
+      if (B.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(B); // (kept as far as it has gone, each round, as battle.js does its own: 10-31)
       if (B.round > 40) { foes.forEach(function (u) { if (!u.dead) { u.left = true; u.dead = true; } }); B.card(['{g}The rest of them slink back into the dark.{/}'], 300); yield 40; return 'won'; }
       for (var i = 0; i < B.order.length; i++) {
         var u = B.order[i];
@@ -1913,7 +1922,7 @@
     // (10-28 night, Griz: "Ottille stops light violations at the entrance, the party has to cast it inside after to shame fail": not refused -- cast, it is the roost's one law broken, the
     // first game's RoostFail, as a Light cast in a fight there: NOT THIS KIND OF NAME, the run over -- js/mines.js M.roostFail)
     if (kind === 'cast' && R.def && R.def.roost && spA && spA.kind === 'light' && !spA.dim && D.mines) { B.menu = null; if (B.menuClosed) B.menuClosed(); D.mines.roostFail(B).next(); return true; }
-    if ((kind === 'cast' || kind === 'skill') && R.house()) { var lnC = D.house.fieldOnFloor(B, kind, a, unitOf); if (lnC) { B.card(R.wrap(lnC), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
+    if ((kind === 'cast' || kind === 'skill') && R.house()) { var lnC = D.house.fieldOnFloor(B, kind, a, unitOf); if (lnC) { B.card(R.wrap(lnC), 260); if (a.form) { B.menu = null; if (B.menuClosed) B.menuClosed(); } return true; } } // (the house: the field's own rules -- js/house.js H.field; Find Familiar's hour shuts the menu, its lines seen: 10-31)
     if (kind === 'cast' || kind === 'skill') return R.actOut(B, { kind: kind, h: a.h, sp: a.sp, s: a.s, t: a.t }, unitOf); // (the 8-bit's own, by a hand-back: R.actOut)
     return false;
   };

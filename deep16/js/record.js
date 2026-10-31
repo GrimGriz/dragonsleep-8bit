@@ -105,8 +105,10 @@
     r.steps.push(step); r.last = step;
   }
 
+  // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
-    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: 0 };
+    var n = (B.logEntries || []).length;
+    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n };
   };
   REC.finish = function (B, result) {
     var r = B.rec;
@@ -127,9 +129,9 @@
     flush(B);
     r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
-    r.log = (B.logEntries || []).map(logText);
+    r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
-    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'done') out[k] = r[k]; });
+    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });

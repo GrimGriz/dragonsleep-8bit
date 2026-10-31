@@ -1215,6 +1215,7 @@
       wait: calm && D.hours && D.hours.canWait(B) ? function () { D.hours.wait(B); } : null, // (WAIT to the next bell on Silverton's street: deep16/js/hours.js, 10-28)
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
       whyNot: function () { return ''; },
+      famForms: houseFloor && D.house.famForms ? function (h, sp) { return D.house.famForms(h, sp, B); } : null, // (Find Familiar's WHAT SHAPE? on the house's floor: js/house.js, 10-31)
       // the light in a hero's hand on the grid (u.torch, js/light.js): EQUIP's LIGHT row
       light: function (h) { var u = unitOf(h), L = D.light; if (!u || !u.torch) return null; var id = u.torch.item || L.kindOf(u.torch), it = window.DS.DATA.items[id]; return { id: id, name: it ? it.name : L.word(u.torch), hooded: L.kindOf(u.torch) === 'lantern' }; }, // (u.torch: { lit, kind, item, hood }, item set only for the lamp)
       wielding: function (h) { var u = unitOf(h); return u && u.sheathed ? 'away' : ''; }, // (a weapon PUT AWAY: EQUIP says so)

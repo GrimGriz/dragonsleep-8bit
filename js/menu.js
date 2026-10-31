@@ -502,6 +502,15 @@
         m.root.choose({ title: 'WHO CARRIES IT?', sub: sp.name, guests: true, ok: function () { return true; }, then: function (x) { m.act('cast', { h: h, sp: sp, t: x }, function () { self.refresh(); }); } });
         return;
       }
+      // Find Familiar on a host that asks the shape (the second game's THE WORLD and its floors, 10-31, Griz: "can you get find familiar working"): WHAT SHAPE?, of what
+      // lives on the ground here (host.famForms; a line instead says why not), then the cast with it; the first game's ritual asks its own (js/familiar.js)
+      if (sp.kind === 'familiar' && m.host.famForms) {
+        var fms = m.host.famForms(h, sp), F0 = R().FAMILIARS;
+        if (typeof fms === 'string') { sfx('error'); m.say(fms); return; }
+        m.push(new PickPage(m, 'WHAT SHAPE?', (fms || []).filter(function (k) { return F0[k]; }).map(function (k) { return { label: F0[k].name.toUpperCase(), right: F0[k].hp + ' HP', value: k, note: F0[k].gift }; }),
+          function (k) { m.act('cast', { h: h, sp: sp, form: k }, function () { self.refresh(); }); }));
+        return;
+      }
       m.act('cast', { h: h, sp: sp }, function () { self.refresh(); });
     }
   };
@@ -879,6 +888,21 @@
     var cur = this.list.cur(), it = cur && item(cur.value);
     if (it) descBox(ctx, it.desc || '', cur.note || (it.attune ? 'Bonds at a rest (three at most).' : '')); // (cur.note: the OFFHAND's why, 10-28)
     else if (cur && this.fo) descBox(ctx, cur.value.label.replace(/^\(|\)$/g, '') + ': ' + (cur.value.note || ''), cur.value.ok ? '' : 'Not now: ' + (cur.value.why || 'not now') + '.'); // (the grid's choice: what it does and what it costs, or why not)
+  };
+  // a short list asked of the player, its pick handed on (10-31: Find Familiar's WHAT SHAPE? on the second game's hosts); BACK asks nothing
+  function PickPage(m, title, rows, then) { this.m = m; this.title = title; this.then = then; this.list = new List({ visible: 8, items: rows }); }
+  PickPage.prototype.update = function (k) {
+    var r = this.list.update(k), m = this.m;
+    if (r === 'back') { m.pop(); return; }
+    if (r !== 'pick') return;
+    var v = this.list.cur().value; m.pop(); this.then(v);
+  };
+  PickPage.prototype.draw = function (ctx, active) {
+    var n = Math.max(1, this.list.items.length), hh = 24 + Math.min(8, n) * 12;
+    win(ctx, 30, 56, 196, hh);
+    text(ctx, this.title, 38, 63, C.gold);
+    this.list.draw(ctx, 38, 77, 180, active, this.m.t);
+    var cur = this.list.cur(); if (cur && cur.note) descBox(ctx, cur.note, '');
   };
 
   // ------------------------------------------------------------------ STATUS: features, spells by level, what is worn; a guest's own page

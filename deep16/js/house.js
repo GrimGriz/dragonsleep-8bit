@@ -645,7 +645,31 @@
       return [c.name + '\'s Light on ' + (t === c ? c.name + '\'s own gear' : t.name + '\'s gear') + ': bright 20 ft and dim 20 more, for an hour.', say('g.light')];
     }
     if (sp.kind === 'detect') { D.sfx('magic'); return [say('g.detectNo')]; }
+    if (sp.kind === 'familiar') { // Find Familiar (SRD 5.1: a ritual from the book, no slot; RULED 09-29, "let's reinstate", a bundle of Calling Herbs its component) -- the first game's
+      // ritual (js/familiar.js) on the second game's sheets, 10-31, Griz: "can you get find familiar working". The shape is the menu's WHAT SHAPE? (H.famForms); the save's
+      // flags.familiar seats it in the next fight, as the camp's does (deep16/js/familiar.js FM.unit); a floor's own flags (R0.flags) go back to the save as the party leaves it
+      var form = env.form, FR = R.FAMILIARS[form], by = c.key || c.id, fl = env.flags, had = fl && fl.familiar && fl.familiar.by === by ? fl.familiar : null;
+      if (!FR || !fl) return [say('g.nothingHappens')];
+      if (sp.component && !env.has(sp.component)) return [say('g.noComponent', { item: DS.DATA.items[sp.component].name })];
+      if (sp.component) env.take(sp.component);
+      fl.familiar = { kind: form, by: by, hp: FR.hp }; delete fl.familiarGone;
+      if (D.hours && D.hours.pass) D.hours.pass(env.B || null, 1); // ("An hour goes by in the words": the ritual's hour on the clock)
+      D.sfx('magic');
+      var an = function (w) { return (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; };
+      return [say('fam.ritual'), had ? say('fam.change', { name: c.name, old: R.FAMILIARS[had.kind] ? R.FAMILIARS[had.kind].name : had.kind, a: an(FR.name) }) : say('fam.come', { name: c.name, a: an(FR.name) })];
+    }
     return [say('g.nothingHappens')];
+  };
+  // Find Familiar's shapes here (js/menu.js MagicPage, WHAT SHAPE?): what lives on the ground the party stands on -- the first game's by region (js/rules.js R.famForms,
+  // R.FAM_GROUND; 10-31, Griz: "8-bit might have familiar by region shaped somewhere"), THE WORLD's ground read into its regions, a town floor's or a cave floor's;
+  // or a line saying why not (no Calling Herbs in the pack)
+  H.FAM_TERR = { woods: 'forest', bog: 'water', coastal: 'water', lake: 'water', river: 'water', sea: 'water', foothills: 'stone', hills: 'stone', gulch: 'stone', black: 'stone', gray: 'stone', snow: 'snow' };
+  H.famForms = function (h, sp, B) {
+    var R = DS.R, inv = B ? B.inv || [] : (H.cur && H.cur.inv) || [];
+    if (sp && sp.component && !inv.some(function (s) { return s.id === sp.component && s.n > 0; })) return say('g.noComponent', { item: DS.DATA.items[sp.component].name });
+    if (B && B.roam) return R.famForms(null, /[?&]roam=silverton\b/.test(D.roam.q || '') ? 'town' : 'cave');
+    var W = D.world, S = W && W.state ? W.state() : null, Mw = W && W.M ? W.M() : null, e = S && S.at && Mw && Mw.hex ? Mw.hex[W.K(S.at[0], S.at[1])] : null, g = R.FAM_GROUND[H.FAM_TERR[e && e.t] || 'fields'];
+    return g ? g.forms.slice() : ['owl'];
   };
   FD.skill = function (c, s, t) {
     if (s === 'lay') { t = t || c; if (t.hp >= t.maxhp) return [say('g.fullHP', { name: t.name })]; var lh = FD.heal(t, c.feats.lay || 0); c.feats.lay -= lh.n; D.sfx('heal'); return healed(t, lh); }
@@ -715,13 +739,13 @@
   };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;
-    return { where: 'world', party: rec.party, tent: true, has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
+    return { where: 'world', party: rec.party, tent: true, flags: (rec.flags = rec.flags || {}), has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
       ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
   }
   // the field on a town floor (js/roam.js R.menuAct, in the house): the menu's sheets to the floor's figures (unitOf), the same rules
   H.fieldOnFloor = function (B, kind, a, unitOf) {
     var R0 = B.roam, RR = D.roam, c = a.h ? unitOf(a.h) || null : null, t = a.t ? unitOf(a.t) || null : null;
-    var env = { where: 'floor', party: R0.members, tent: false, has: function (id) { return (B.inv || []).some(function (s) { return s.id === id && s.n > 0; }); },
+    var env = { where: 'floor', party: R0.members, tent: false, form: a.form, flags: (R0.flags = R0.flags || {}), B: B, has: function (id) { return (B.inv || []).some(function (s) { return s.id === id && s.n > 0; }); },
       take: function (id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, ward: function (steps) { R0.encIn += steps * RR.RATE; }, longRest: function () { return []; } };
     if (kind === 'cast' && c && a.sp) return FD.cast(c, a.sp, t, env);
     if (kind === 'skill' && c) return FD.skill(c, a.s, t);
@@ -752,9 +776,18 @@
       journal: D.counter ? function () { return D.counter.journal(null); } : null, // (the house's JOURNAL: Winters' Errands -- js/counter.js, 10-21)
       canSave: function () { return true; },
       touch: true, // (the Light on the one it touches, asked: js/menu.js MagicPage, FD.cast)
+      famForms: function (h, sp) { return H.famForms(h, sp, null); }, // (Find Familiar's WHAT SHAPE?, 10-31)
+      // a sheet's WHO COPIES IT? (js/menu.js asks first with no one, then of each): THE WORLD's menu had none, and a sheet read here threw (10-31, his playthrough: "trying to
+      // 'read sheet' from inventory (find familiar) on world map crashes game") -- with no one, '' if any of the four can, else the first one's why
+      whyNot: function (id, h) {
+        var it = DS.DATA.items[id]; if (!it || !it.use || it.use.effect !== 'learn') return '';
+        if (h) return FD.learnWhy(id, h, rec.party);
+        var ws = rec.party.filter(function (x) { return !x.dead; }).map(function (x) { return FD.learnWhy(id, x, rec.party); });
+        return ws.some(function (w) { return !w; }) ? '' : ws[0] || 'No one here can make anything of it.';
+      },
       notes: function () { scene.pm = null; H.notes(); },
       run: function (kind, a, done) {
-        var env = worldEnv(scene), lines = null;
+        var env = worldEnv(scene), lines = null; env.form = a.form;
         if (kind === 'save') { scene.pm = null; D.push(new Slots('save')); }
         else if (kind === 'cast' && a.h && a.sp) lines = FD.cast(a.h, a.sp, a.t || null, env);
         else if (kind === 'skill' && a.h) lines = FD.skill(a.h, a.s, a.t || null);

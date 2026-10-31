@@ -4491,6 +4491,92 @@
     document.body.appendChild(preRL);
     return;
   }
+  // FIND FAMILIAR AND THE FLOORS' FIGHTS IN THE RECORD, 10-31 (mode=familiar1031; the Halloween desk, on his "can you get find familiar working and fights on at least the wet,
+  // gulch, cloaker recording with the other fight records to live?"): a sheet read from THE WORLD's ITEMS (it threw: js/menu.js host.whyNot), the ritual on THE WORLD by the
+  // menu's clicks (WHAT SHAPE? of the ground's region, the herbs spent, an hour, flags.familiar), no page without the herbs, the same on a floor (a cave's shapes), and a
+  // fight on a house floor's own squares kept in deep16.plays with its own log only
+  if (get('mode', '') === 'familiar1031') {
+    var repFF = { checks: [], errors: [] }, memFF = {}, stGFF = D.store.get, stSFF = D.store.set, HFF = D.house, RFF = D.roam, MFF = D.mines, WFF = D.world, LFF = D.light, apFF = window.DS.autoPicks;
+    function okFF(what, v) { repFF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveFF(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topFF() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function floorFF() { var B = topFF(); D.battle = B; if (B && B.co) driveFF(B.co, null, 2); return B; }
+    // the mouse in the menu's own 256x240, as he plays it: the page painted (its rows and tabs are the places a click lands -- js/menu.js HITS), then a click there
+    function kFF(ms) { return { pressed: function () { return false; }, repeat: function () { return false; }, mouse: Object.assign({ x: 0, y: 0, moved: true, click: true, rclick: false, wheel: 0, inside: true }, ms) }; }
+    function paintFF(m) { var cv = document.createElement('canvas'); cv.width = 256; cv.height = 240; m.draw(cv.getContext('2d')); }
+    function clickFF(m, h) { if (!h) return false; m.update(kFF({ x: h.x + h.w / 2, y: h.y + h.h / 2 })); return true; }
+    function rowFF(m, owner, f) { paintFF(m); return clickFF(m, m.hits.filter(function (x) { return x.owner === owner && x.list && x.list.items[x.k] && f(x.list.items[x.k]); })[0]); }
+    function tabFF(m, owner, i) { paintFF(m); return clickFF(m, m.hits.filter(function (x) { return x.owner === owner && x.tab === i; })[0]); }
+    function cardFF(m, name) { var rt = m.root; if (rt.mode !== 'pick') return false; var rows = rt.rows(rt.pick.guests), i = rows.map(function (h) { return h.name; }).indexOf(name); if (i < 0) return false; paintFF(m); m.update(kFF({ x: 90, y: 10 + (i - rt.ps) * 40 + 20 })); return true; }
+    // MAGIC, the caster's card, the spell's level tab, its row -- then, if the menu asks, the one it touches: each a click. What it asked and said
+    function idFF(h) { return h && (h.key || h.id); }
+    function sheetFF(id) { return HFF.cur.party.filter(function (h) { return idFF(h) === id; })[0]; }
+    function figFF(B, id) { return B.roam.members.filter(function (u) { return u.src && idFF(u.src) === id; })[0]; }
+    function packFF(inv, id, n) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n = n; else inv.push({ id: id, n: n }); }
+    function nFF(inv, id) { var s = inv.filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; }
+    function toastFF(m) { var t = m.toast ? m.toast.lines.join(' ') : ''; if (m.toast) m.update(kFF({ x: 128, y: 120 })); return t; }
+    // MAGIC > Aurdin > the level tab > Find Familiar, each a click: what came up (the WHAT SHAPE? page, or a line)
+    function ritualFF(m) {
+      rowFF(m, m.root, function (it) { return it.value === 'magic'; });
+      if (m.root.mode === 'pick') cardFF(m, 'Aurdin');
+      var mp = m.top(), o = { page: null, rows: [], said: '' }; if (!mp || !mp.levels) { o.said = toastFF(m); return o; }
+      var ti = mp.levels.indexOf(1); if (ti !== mp.tab) tabFF(m, mp, ti);
+      rowFF(m, mp, function (it) { return it.id === 'findfamiliar'; });
+      var pp = m.top(); if (pp && pp !== mp && pp.title) { o.page = pp; o.rows = pp.list.items.map(function (r) { return r.value; }); }
+      o.said = toastFF(m); return o;
+    }
+    D.store.get = function (k) { return memFF[k] ? JSON.parse(memFF[k]) : null; }; D.store.set = function (k, v) { memFF[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1031);
+      var spF = window.DS.DATA.spells.findfamiliar, FAM = window.DS.R.FAMILIARS;
+      // 1. THE WORLD's ITEMS: the sheet read, WHO COPIES IT? Aurdin -- it threw before (his playthrough: "trying to 'read sheet' from inventory (find familiar) on world map crashes game")
+      var rec = HFF.fresh(); rec.at = { town: null }; HFF.begin(rec, 0); var WS = topFF(), au = sheetFF('aurdin');
+      au.known = (au.known || []).filter(function (x) { return x !== 'findfamiliar'; }); if (Array.isArray(au.prepared)) au.prepared = au.prepared.filter(function (x) { return x !== 'findfamiliar'; });
+      packFF(rec.inv, 'sheet_findfamiliar', 1); packFF(rec.inv, 'callingherbs', 1);
+      HFF.openMenu(WS); var mW = WS.pm, threw = null, asked = null, saidL = '';
+      try {
+        rowFF(mW, mW.root, function (it) { return it.value === 'items'; }); var ip = mW.top();
+        for (var tF = -1; tF < 4; tF++) { if (tF >= 0) tabFF(mW, ip, tF); if (rowFF(mW, ip, function (it) { return it.value === 'sheet_findfamiliar'; })) break; }
+        asked = mW.root.mode === 'pick' ? mW.root.pick.title : null; if (asked) cardFF(mW, 'Aurdin'); saidL = toastFF(mW);
+      } catch (eL) { threw = String(eL && eL.message || eL); }
+      while (mW.pages.length) mW.pop();
+      okFF('THE WORLD\'s ITEMS: the Find Familiar sheet read without a throw (' + (threw || 'none') + '), asked "' + asked + '", said "' + saidL.slice(0, 70) + '"; Aurdin knows it ' + (au.known.indexOf('findfamiliar') >= 0) + ', the sheet spent (' + nFF(rec.inv, 'sheet_findfamiliar') + ')',
+        !threw && asked === 'WHO COPIES IT?' && /copies Find Familiar/.test(saidL) && au.known.indexOf('findfamiliar') >= 0 && nFF(rec.inv, 'sheet_findfamiliar') === 0);
+      // 2. THE WORLD's MAGIC: Find Familiar asks WHAT SHAPE?, of the region the party stands in (js/rules.js R.FAM_GROUND); the first shape clicked
+      var t0 = WFF.state().t, rW = ritualFF(mW), want = HFF.famForms(au, spF, null);
+      okFF('THE WORLD\'s MAGIC > Find Familiar: the page "' + (rW.page && rW.page.title) + '" with ' + rW.rows.join('/') + ' (the region\'s: ' + [].concat(want).join('/') + ')',
+        !!rW.page && rW.page.title === 'WHAT SHAPE?' && rW.rows.length > 0 && rW.rows.join() === [].concat(want).join());
+      var pick = rW.rows[0], saidW = '';
+      if (rW.page) { rowFF(mW, rW.page, function (it) { return it.value === pick; }); saidW = toastFF(mW); }
+      while (mW.pages.length) mW.pop();
+      var flW = rec.flags && rec.flags.familiar;
+      okFF('the ritual: ' + pick + ' clicked; flags.familiar ' + JSON.stringify(flW) + '; the Calling Herbs ' + nFF(rec.inv, 'callingherbs') + '; THE WORLD\'s clock ' + t0 + ' > ' + WFF.state().t + '; said "' + saidW.slice(0, 90) + '"',
+        !!flW && flW.kind === pick && flW.by === 'aurdin' && flW.hp === FAM[pick].hp && nFF(rec.inv, 'callingherbs') === 0 && Math.abs(WFF.state().t - t0 - 1) < 1e-9 && /settles on Aurdin/.test(saidW));
+      // 3. no herbs: the line, no page
+      var rN = ritualFF(mW); while (mW.pages.length) mW.pop();
+      okFF('no Calling Herbs: no page, the line "' + rN.said.slice(0, 60) + '"', !rN.page && /Calling Herbs/.test(rN.said));
+      // 4. A FLOOR (the Galleries' mouth): a cave's shapes, the ritual on the floor's figure, the floor's own flags (back to the save as the party leaves)
+      while (D.scenes.length > 1) D.pop(); HFF.toTown('mouth', 'east'); var BF = floorFF(); BF.inv = BF.inv || []; packFF(BF.inv, 'callingherbs', 1);
+      var fF = HFF.famForms(au, spF, BF), lnF = HFF.fieldOnFloor(BF, 'cast', { h: au, sp: spF, form: 'bat' }, function (h) { return figFF(BF, idFF(h)); }), flF = BF.roam.flags.familiar;
+      okFF('a floor (' + RFF.def.key + '): the shapes ' + [].concat(fF).join('/') + '; a bat called: ' + JSON.stringify(flF) + ', the herbs ' + nFF(BF.inv, 'callingherbs') + '; "' + (lnF || []).join(' ').slice(0, 80) + '"',
+        [].concat(fF).join() === 'bat,rat,spider' && !!flF && flF.kind === 'bat' && flF.by === 'aurdin' && nFF(BF.inv, 'callingherbs') === 0);
+      // 5. A FIGHT ON THE FLOOR'S OWN SQUARES (js/roam.js R.engage): a rat beside the party, the four by the class AI; kept in deep16.plays as the field fights are, its own log only
+      var R0F = BF.roam, tk = R0F.token, rat = BF.makeFoe({ id: 'bench-rat', kind: 'giantrat' }), spotF = null;
+      [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(function (d) { var x = tk.x + d[0], y = tk.y + d[1]; if (D.grid.canStand(rat, x, y) && !D.grid.occupant(x, y)) { spotF = [x, y]; return true; } return false; });
+      rat.x = spotF[0]; rat.y = spotF[1]; rat.anim = 'idle'; rat.animT = BF.t; rat.reaction = 1; rat.conds = rat.conds || {}; BF.units.push(rat); D.grid.setup(D.grid.map, BF.units);
+      R0F.members.forEach(function (u) { u.guest = true; u.classAI = true; });
+      var walkLog = (BF.logEntries || []).length, plays0 = (D.store.get('deep16.plays') || []).length;
+      driveFF(RFF.engage(BF, { foes: [rat] }, false, 'yours'), null, 40000);
+      var plays = D.store.get('deep16.plays') || [], last = plays[plays.length - 1] || {};
+      okFF('a fight on the floor kept: ' + (plays.length - plays0) + ' new, "' + last.name + '" (' + last.fight + ', ' + last.result + ', ' + last.rounds + ' rounds), ' + (last.log || []).length + ' log lines of the floor\'s ' + (BF.logEntries || []).length + ' (' + walkLog + ' before it); B.rec cleared ' + !BF.rec,
+        plays.length === plays0 + 1 && last.fight === 'roam' && /Giant Rat/.test(last.name || '') && last.result === 'won' && (last.log || []).length > 0 && (last.log || []).length <= (BF.logEntries || []).length - walkLog + 1 && !BF.rec);
+    } catch (eF) { repFF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    D.store.get = stGFF; D.store.set = stSFF; window.DS.autoPicks = apFF;
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repFF);
+    document.body.appendChild(preF);
+    return;
+  }
   // THE LIGHT FROM THE MENU, 10-28 (mode=gridlight1028; the grid seat, on the lanes desk's order from his "i need a grid seat to check how we're doing the out-of-combat casting
   // of light via the menu on the world map and on roams. it doesn't seem to choose a target or impact entering the guano mines"): the M menu driven by the mouse as he plays it, on
   // THE WORLD and on a floor -- whom the Light touches, where it lands, how long it lasts (SRD 5.1: an hour; "The spell ends if you cast it again") -- and the Guano Mines'
@@ -7346,7 +7432,8 @@
         taken16: { party: four, lvl: 2, open: ['work'], done: ['company'], pin: 'work', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 15, site: 'silverton', give: [], silver: 12 },
         five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', npc: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
         cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', npc: 'sabeth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 },
-        dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 }
+        dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 },
+        familiar16: { party: 'aurdin,barley,vivian,lymen', lvl: 3, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: ['sheet_findfamiliar', 'callingherbs'], silver: 40 } // (Find Familiar's door, 10-31)
       };
       var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
