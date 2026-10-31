@@ -23,12 +23,12 @@ Cut each page by its printed numbers. **Scale a whole page by one factor:** its 
 1. **On the grid.** Every frame's crown within 2 px of the rig's (`pilot.points.slash.<view>[i].crown`). A frame drawn taller or shorter than its neighbours fails. The size has to hold through the row, as the rig's does.
 2. **The same count in every view.** Six frames, numbered 1-6 once each, on all five pages. A page with 5 or 7 fails outright: that is the drift the rig exists to stop.
 3. **Feet on the line.** His feet never move in this row. In frames 2-6 the lowest boot row stays on the anchor row (within 1 px) and each boot stays within 2 px of the rig's soles (`soleL`, `soleR`). A bob or a slide fails.
-4. **The right hand holds the blade.** The RIGHT fist is closed within 3 px of the rig's `fist` in every frame; where the rig marks the fist hidden (`under`: the body hides it, mostly in N and NE), his is hidden too. Check handedness against S and N, where it can't be mistaken: in S the fist is on the image's left, in N on its right, and in E it is the near arm (the art desk has drawn right-facing views with the figure's LEFT on the near side before). No sword drawn: a page that draws one anyway is a finding about the generator, not a cut. In SW, W and NW the cut is mirrored, so he is left-handed there. That is the house rule (RULED 10-14), and the grips mirror with him.
+4. **The right hand holds the blade.** The RIGHT fist is closed within 3 px of the rig's `fist` in every frame; where the rig marks the fist hidden (`under`: the body hides it, mostly in N and NE), his is hidden too. Check handedness against S and N, where it can't be mistaken: in S the fist is on the image's left, in N on its right, and in E it is the near arm (the art desk has drawn right-facing views with the figure's LEFT on the near side before). The sword lies along the bar: the blade runs from his fist to within 3 px of the rig's `tip`, the same length in every frame (since 10-31 the ask draws it -- below; before, the fist was asked empty). In SW, W and NW the cut is mirrored, so he is left-handed there. That is the house rule (RULED 10-14), and the grips mirror with him.
 5. **The release frame.** Printed frame 4 is the hit: the right arm reaching out toward the facing, the fist on the rig's frame 4 point. `battle.js` strikes on it (`release: 3`, 15 ticks in at 12 fps). If the reach lands on 3 or 5 instead, the blow is drawn off its beat and fails.
 
 **The verdict:** all five pass on a page, and the pose reference works for that view. If they pass on most pages, the generator follows the reference, and the misses are cutter work. A reasonable try at the cut, and what is left goes on `deep16-dream-polish.md`, not a re-ask (his rule for every cutter, 10-30). If it fails 2 and 3 across the pages, the generator is not following the strip, and the pilot says stop.
 
-**After the pilot (engine work, not this):** a `slash` row plays a longsword once the engine maps the one-handed slashing weapons to it (the weapon-family alias of `deep16-hero-poses.md`, RULED 10-30) and draws a sword in S.WIELD from `grips.slash`.
+**Cut as** `longsword` on `barley_p3`: js/battle.js plays a row named for the weapon, so a longsword's blow plays it with no engine change (and S.wieldOf draws no code weapon over a longsword). `grips.slash` stays in the json for a code-drawn weapon of another kind later.
 
 ## What came back first: free Grok's baseline (10-31)
 
@@ -62,3 +62,5 @@ Look: `tools/sheet-play.html?sheet=barley_grokslash_p1&ref=barley_p3&face=0,7,6,
 - The follow-through is a fist back at the hip in every view, 13-26 px off.
 
 **The lesson for the GPT ask (section 34) and for more families:** the strip carries the frame count, the feet, the size and the beat, but an empty hand does not carry a weapon's arc. "No sword" asked the generator for a punch.
+
+**RULED 10-31**, Griz: *"we can put this on hold til GPT available wed. We'll send the mannequin with the sword along with asking the draw to include it"*. Section 34's blocks ask for the longsword drawn in his hand along the bar, and the ask waits for GPT's image budget (Wednesday 11-04).
