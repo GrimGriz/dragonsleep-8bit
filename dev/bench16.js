@@ -5035,6 +5035,31 @@
     document.body.appendChild(preRc);
     return;
   }
+  // ELEMENTAL AFFINITY ON A SPELL ATTACK (mode=affinity1031; 10-31, Griz: "yeah fix it" -- the leveling lane §11's find: it reached only the spells that ask a save): a red
+  // sorcerer of 6th's Fire Bolt deals its die plus CHA (the dice pinned), a silver's Fire Bolt its die alone; Scorching Ray's three rays carry it on the first that lands only
+  if (get('mode', '') === 'affinity1031') {
+    var repAf = { checks: [], errors: [] }, d0Af = D.d;
+    function okAf(what, v) { repAf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runAf(g) { var v, k = 0, st; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      D.seed = 1031;
+      var cast = function (anc, id, slot) {
+        var sp = D.npc.spec('sorcerer:6'); if (anc) sp.ancestry = anc;
+        var B = D.npcFight('?npc=goblin&lvl=6&vs=sorcerer:6', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+        var u = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+        u.src.ancestry = anc || 'red'; g.maxhp = g.hp = 999; g.conds = {}; g.x = u.x + 2; g.y = u.y; if (!D.grid.canStand(g, g.x, g.y)) g.x = u.x - 2; D.grid.setup(B.map, B.units);
+        D.rules.startTurn(u); B.active = u; D.d = function (k) { return k === 20 ? 19 : 1; }; runAf(D.magic.cast(B, u, id, slot, id === 'scorchingray' ? { units: [g, g, g] } : g)); D.d = d0Af;
+        return { took: 999 - g.hp, cha: Math.max(0, D.mod(u.abil.cha)) };
+      };
+      var red = cast('red', 'firebolt', 0), silver = cast('silver', 'firebolt', 0), rays = cast('red', 'scorchingray', 2);
+      okAf('Fire Bolt (dice at 1): a red sorcerer\'s ' + red.took + ', a silver\'s ' + silver.took + ' (CHA +' + red.cha + '); Scorching Ray, three rays of 2d6 at 1s: ' + rays.took + ' (want ' + (2 + red.cha) + ', 2, ' + (6 + red.cha) + ')',
+        red.cha > 0 && red.took === 2 + red.cha && silver.took === 2 && rays.took === 6 + red.cha);
+    } catch (e) { repAf.errors.push(String(e && e.stack || e)); }
+    D.d = d0Af;
+    var preAf = document.createElement('pre'); preAf.id = 'out'; preAf.textContent = 'BENCH16 ' + JSON.stringify(repAf);
+    document.body.appendChild(preAf);
+    return;
+  }
   // THE DRAGON ANCESTOR (mode=ancestor1031; the leveling lane §8 item 10, 10-31 -- his "add the next thing in the lane as well then push"): the Draconic Bloodline's ten
   // (SRD 5.1) on the maker's ANCESTOR tab, a Draconic sorcerer's only; the sheet's dragon and element (none picked: red, fire, as before); Elemental Affinity at 6 adds CHA to
   // the element's spells alone (a silver's Ray of Frost, not its Fire Bolt); the card's word carries it. And Hunter's Mark a divination (the SRD's: its markdown missed it)

@@ -463,11 +463,15 @@
     if (g.shape === 'attack' || g.shape === 'rays') {
       var shots = (g.shape === 'rays' ? t.units : [t]).slice(), dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
+      // Elemental Affinity on a spell attack (SRD 5.1: CHA "to one damage roll of that spell" -- 10-31, Griz: "yeah fix it"; it had reached only the spells that ask a save):
+      // the first ray that lands carries it
+      var affA = M.affinity ? M.affinity(u, sp.el) : 0;
       for (var i = 0; i < shots.length; i++) {
         if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) { var nx = g.shape === 'rays' ? M.spareRay(B, u, shots[i]) : null; if (!nx) continue; shots[i] = nx; } // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
-        var spAtk = { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' };
+        var spAtk = { name: sp.name, atk: u.spellAtk, dice: dice, mod: affA, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' }, hpA = shots[i].hp;
         if (shots[i].tendril) { yield* B.strikeTendril(u, shots[i], spAtk); continue; } // (a roper's tendril, the spell's object -- js/ui.js spellTarget, 10-06: the grid's rules §2.4)
         yield* B.attack(u, shots[i], spAtk);
+        if (affA && shots[i].hp < hpA) affA = 0; // (spent on the ray that landed)
       }
     } else if (g.shape === 'darts') {
       // "Magic Missile at the darkness" (Griz, 09-28: "we have to do [the] magic missile at the darkness gimmick somewhere in the
@@ -536,7 +540,8 @@
     } else if (g.shape === 'splash') {
       var first = t, second = M.splashSecond(B, u, first);
       var potent = u.subclass === 'School of Evocation' && u.lvl >= 6; // (Potent Cantrip, the evoker's 6: half on a save)
-      var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + (potent ? ', half on a save (potent)' : ', no half')];
+      var dd = M.dice(sp, u, 0), r1 = D.roll(dd), affS = M.affinity ? M.affinity(u, 'acid') : 0; r1 = { rolls: r1.rolls, total: r1.total + affS }; // (Elemental Affinity, a black or copper ancestor's: 10-31)
+      var lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + (affS ? ' {y}+' + affS + ' affinity{/}' : '') + ' = ' + r1.total + ' acid  DEX DC ' + dc + (potent ? ', half on a save (potent)' : ', no half')];
       FX.projectile(u, first, 'fire'); yield { fx: 1 };
       [first, second].filter(Boolean).forEach(function (w) {
         if (M.globed && M.globed(B, u, w, sp.level)) { lines2.push('  ' + w.name + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability, SRD 5.1)
