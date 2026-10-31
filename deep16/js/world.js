@@ -369,11 +369,12 @@
        ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }, 'STAY']]);
   };
   World.prototype.here = function () { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); };
-  // the house's camp (RULED 10-21): the night -- three watches, then the long rest (js/house.js H.night) -- or an hour's short rest
+  // the house's camp (RULED 10-21): the night -- three watches, then the long rest (js/house.js H.night) -- or an hour's short rest, and at its end SECOND DRAFT for one with
+  // the feat (js/house.js H.secondDraft, 10-31)
   World.prototype.campCard = function () {
     var me = this;
     this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
-      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
+      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); D.house.secondDraft(D.house.cur.party); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
   };
   // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
   // march does (js/house.js H.marchAsk): WALK ON (no more asking till a camp), MAKE CAMP, STAY. resume(path): the walk taken up again -- the top-down view's own

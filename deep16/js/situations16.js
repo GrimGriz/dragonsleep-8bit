@@ -11,7 +11,7 @@
    deep16.world. SAVE inside one refuses and says so (H.saveTo reads rec.situation); its link starts it again. dev/bench16.py x mode=sit1030 builds each and checks it.
    One table, DS.SIT16: it needs no game loaded, so situations.html reads it too and lists each as a row (url deep16/?at=<id>).
    TO ADD ONE: a row below -- group, title, pt, look (what to try, what should happen); lead (the one who leads; default barley), hired (who walks with them; default the four),
-   lvl (default each hero's own), kit, gear { hero: { slot: item } }, give [[item, n]], silver, renown; open / done (mission ids, js/hours.js C.QUESTS), flags, pin; at { town:
+   lvl (default each hero's own), kit, gear { hero: { slot: item } }, feats { hero: [feat ids] } (over the build's), give [[item, n]], silver, renown; open / done (mission ids, js/hours.js C.QUESTS), flags, pin; at { town:
    'silverton' | 'warrens' | 'mouth' | 'glowseep', gate, near: a Silverton person's id, mark: a Silverton mark, sq, dir }; day (0 the morning the game opens), hour. Then
    `python tools/deep16-build.py`, and the bench's table (mode=sit1030) checks it -- add its expected journal there. */
 'use strict';
@@ -43,6 +43,12 @@
       open: ['cull'], done: ['company', 'work'], pin: 'cull',
       at: { town: 'mouth', gate: 'east' }, day: 1, hour: 10,
       look: 'Day 2, mid-morning, level 3: the four at the guano mine\'s mouth, Aurdin leading, two Find Familiar sheets and two bundles of Calling Herbs in the pack. M, ITEMS, the sheet: WHO COPIES IT? Aurdin copies it. M, MAGIC, Aurdin, FIND FAMILIAR (a ritual): WHAT SHAPE? -- a bat, a rat or a spider, a cave\'s -- and the hour goes by, the menu shuts and the lines say the spirit settles on his shoulder; the next fight seats it. Then out east to THE WORLD: ITEMS, the second sheet (it crashed the game there: now "Aurdin knows Find Familiar already"), and MAGIC, FIND FAMILIAR again -- the shapes of the ground the party stands on (an owl or a rat on the plains), "ripples like smoke" for the new one, an hour on the clock. With no herbs left: the line, no page.' },
+    // (Second Draft's door, 10-31 -- the leveling seat, on the desk's relay of his "let leveling do a couple of things on main and see where we are": Aurdin with the feat, an hour's rest on THE WORLD)
+    draft16: { group: G, title: 'The Guano Galleries\' mouth at level 4, Aurdin with the feat Second Draft: an hour\'s rest on THE WORLD, one prepared spell swapped (10-31)', pt: 'the leveling · Second Draft · situations from a link',
+      lead: 'aurdin', lvl: 4, kit: true, silver: 40, feats: { aurdin: ['seconddraft'] }, flags: { papaLymen: 1, 'work:winters': 1, heardGalleries: 1 },
+      open: ['cull'], done: ['company', 'work'], pin: 'cull',
+      at: { town: 'mouth', gate: 'east' }, day: 1, hour: 10,
+      look: 'Day 2, mid-morning, level 4: the four at the guano mine\'s mouth, Aurdin leading, with the feat Second Draft. Out by the east gate to THE WORLD, CAMP, then AN HOUR (R): the short rest\'s lines, and the SECOND DRAFT page -- SECOND DRAFT: AURDIN, a prepared spell to let go (X back), then one to take up in its place; the row then says DRAFTED, and MAGIC shows the new day. CAMP and AN HOUR again: no page (once a long rest). THE NIGHT, then an hour: the page again.' },
     // (the deep gallery's door, 10-30 -- eyes-deepgallery-1028's, a test floor at level 6 till then: the desk's "review situations.html and urls better than they knew to make", his word)
     dace16: { group: G, title: 'The Guano Galleries\' mouth at level 6: the cloaker\'s tail on the board, Dace by the beam (10-30)', pt: 'the warrens and galleries on the tiles · the deep gallery · situations from a link',
       lead: 'lymen', lvl: 6, kit: true, silver: 60, renown: 2, give: [['potion', 3], ['torch', 2]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1, heardGalleries: 1, cullHired: 1, paidBats: 0, paidMantles: 0, heardCloaker: 1 },
@@ -74,6 +80,7 @@
     R.autoPicks(h);
     if (s.kit && D.save.KIT) D.save.KIT.forEach(function (k) { if (h.lvl >= k[0] && k[1] === id && DS.DATA.items[k[3]]) h.equip[k[2]] = k[3]; });
     var g = (s.gear || {})[id]; if (g) Object.keys(g).forEach(function (sl) { h.equip[sl] = g[sl]; });
+    var ft = (s.feats || {})[id]; if (ft) h.featIds = (h.featIds || []).concat(ft).filter(function (x, i, a) { return a.indexOf(x) === i; }); // (`feats`: a feat over the build's, 10-31 -- Second Draft's door)
     R.refresh(h, true); // (what is worn bonds: R.attune)
     return h;
   };

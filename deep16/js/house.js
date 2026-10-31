@@ -347,13 +347,27 @@
   function Morning(o) {
     this.kind = 'housemorning'; this.opaque = false; this.o = o; this.t = 0; this.tp = 0; this.phase = 'night'; this.i = 0; this.scroll = 0; this.msg = null; this.pm = null; this.sub = null; this.over = false;
     var R = DS.R; this.party = (o.party || []).filter(function (h) { return !h.dead; });
-    this.due = this.party.filter(function (h) { return R.picksDue(h); });
+    this.due = o.draft ? [] : this.party.filter(function (h) { return R.picksDue(h); }); // (a short rest's SECOND DRAFT asks no picks: H.secondDraft)
     if (this.due.length && (DS.autoPicks || !D.ctx || !DS.MENU)) { this.due.forEach(R.autoPicks); this.due = []; } // (no one to ask -- a bench: the build's picks at once)
     this.was = (DS.audio && DS.audio.songId) || null;
   }
   H.Morning = Morning;
   H.morning = function (o) { var m = new Morning(o || {}); D.push(m); return m; };
-  Morning.prototype.enter = function () { try { D.music(this.o.music || 'inn'); } catch (e) { } }; // (the first game's EV.rest: the inn's tune through the night)
+  Morning.prototype.enter = function () { if (this.o.draft) return; try { D.music(this.o.music || 'inn'); } catch (e) { } }; // (the first game's EV.rest: the inn's tune through the night)
+  // SECOND DRAFT (the feat, ours -- the leveling lane §8 item 4, RULED 10-30, his "Second Draft next leveling session"; js/rules.js R.FEATS.seconddraft): at the end of a short
+  // rest, once a long rest, one prepared spell let go and another the hero could prepare taken up -- the morning's page with a phase of its own, 'draft': whose, the spell let
+  // go, the spell in its place. H.drafts: one with the feat who prepares; H.canDraft: and the swap not spent (h.feats.drafted, gone at a long rest -- R.refresh), a spell to
+  // let go and one to take up. H.secondDraft(party, done): the page, after THE WORLD's hour (js/world.js campCard), or null when no one can
+  H.drafts = function (h) { var R = DS.R; return !!h && !h.dead && R.hasFeat(h, 'seconddraft') && R.prepCount(h) > 0; };
+  H.canDraft = function (h) {
+    if (!H.drafts(h) || (h.feats && h.feats.drafted)) return false;
+    var pool = DS.R.prepPool(h), on = (h.prepared || []).filter(function (id) { return pool.indexOf(id) >= 0; });
+    return on.length > 0 && pool.some(function (id) { return on.indexOf(id) < 0; });
+  };
+  H.secondDraft = function (party, done) {
+    if (!(party || []).some(H.canDraft)) return null;
+    var m = new Morning({ party: party, draft: true, done: done }); m.ORDER = ['draft']; m.phase = 'draft'; D.push(m); return m;
+  };
   Morning.prototype.ORDER = ['night', 'dawn', 'picks', 'bonds', 'spells', 'save'];
   Morning.prototype.wants = function (p) {
     var R = DS.R;
@@ -421,6 +435,21 @@
       });
       return { title: 'THE DAY\'S SPELLS', rows: rs };
     }
+    if (this.phase === 'draft' && s && s.draft) { // (SECOND DRAFT: the spell let go, then the one taken up in its place)
+      var hd = s.draft, poolD = R.prepPool(hd), row = function (id, on) { var sp = DS.DATA.spells[id]; return { label: (on ? '■ ' : '□ ') + (sp.short || sp.name), right: 'L' + sp.level, value: id, color: on ? null : '#C8D0E8', desc: sp.desc }; };
+      if (!s.out) return { title: hd.name.toUpperCase() + ': LET WHICH GO?', rows: hd.prepared.filter(function (id) { return poolD.indexOf(id) >= 0; }).map(function (id) { return row(id, true); }) };
+      var spO = DS.DATA.spells[s.out];
+      return { title: hd.name.toUpperCase() + ': IN PLACE OF ' + (spO.short || spO.name).toUpperCase() + '?', rows: poolD.filter(function (id) { return hd.prepared.indexOf(id) < 0; }).map(function (id) { return row(id, false); }) };
+    }
+    if (this.phase === 'draft') {
+      var rd = [{ label: 'DONE', value: 'done', desc: 'On with the day, the spells as they are.' }];
+      P.filter(H.drafts).forEach(function (x) {
+        var can = H.canDraft(x), spent = !!(x.feats && x.feats.drafted);
+        rd.push({ label: 'SECOND DRAFT: ' + x.name.toUpperCase(), right: spent ? 'DRAFTED' : can ? 'ONE SWAP' : 'NONE TO SWAP', value: { draft: x }, disabled: !can,
+          desc: spent ? x.name + ' has had a second draft since the last long rest.' : 'Once a long rest, at the end of a short rest: one of ' + x.name + '\'s prepared spells let go, another taken up in its place.' });
+      });
+      return { title: 'SECOND DRAFT', rows: rd };
+    }
     if (this.phase === 'save') return { title: say('g.saveAsk'), rows: [{ label: 'SAVE', value: 'save' }, { label: 'NO', value: 'no' }] };
     return { title: '', rows: [] };
   };
@@ -456,12 +485,26 @@
         D.sfx('confirm'); this.sub = { whom: true, c: v.h, sp: v.cast, at: this.i }; this.i = 0; this.scroll = 0; return;
       }
     }
+    if (this.phase === 'draft') {
+      if (s && s.draft && s.out) { // (the swap, in the let-go spell's place on the day; the use spent)
+        var hx = s.draft, ko = hx.prepared.indexOf(s.out), sA = DS.DATA.spells[s.out], sB = DS.DATA.spells[v];
+        if (ko < 0 || !sB) { D.sfx('error'); return; }
+        hx.prepared[ko] = v; hx.feats = hx.feats || {}; hx.feats.drafted = true; D.sfx('magic');
+        this.i = s.at || 0; this.sub = null; this.scroll = 0; this.msg = [hx.name + ' lets ' + sA.name + ' go and prepares ' + sB.name + ' in its place. (SECOND DRAFT: again after a long rest.)'];
+        return;
+      }
+      if (s && s.draft) { D.sfx('confirm'); this.sub = { draft: s.draft, out: v, at: s.at }; this.i = 0; this.scroll = 0; return; }
+      if (v === 'done') { D.sfx('confirm'); this.next(); return; }
+      if (v.draft) { D.sfx('confirm'); this.sub = { draft: v.draft, at: this.i }; this.i = 0; this.scroll = 0; return; }
+    }
     if (this.phase === 'save') {
       if (v === 'save') { D.sfx('confirm'); this.settle(); if (this.o.saveAt) this.o.saveAt(); D.push(new Slots('save', function () { self.finish(); })); return; }
       D.sfx('cancel'); this.finish();
     }
   };
-  Morning.prototype.back = function (quiet) { if (!this.sub) return; this.i = this.sub.at || 0; this.sub = null; this.scroll = 0; if (!quiet) D.sfx('cancel'); };
+  Morning.prototype.back = function (quiet) {
+    if (this.sub && this.sub.out) { this.sub = { draft: this.sub.draft, at: this.sub.at }; this.i = 0; this.scroll = 0; if (!quiet) D.sfx('cancel'); return; } // (SECOND DRAFT: back to the spell to let go)
+    if (!this.sub) return; this.i = this.sub.at || 0; this.sub = null; this.scroll = 0; if (!quiet) D.sfx('cancel'); };
   // X (or a right click): back out of a list within, else the first game's -- the morning's lists end on X as on DONE, the save's on NO
   Morning.prototype.cancel = function () {
     if (this.phase === 'dawn') { this.next(); return; }

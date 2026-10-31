@@ -5035,6 +5035,45 @@
     document.body.appendChild(preRc);
     return;
   }
+  // SECOND DRAFT (mode=seconddraft1031; the leveling lane §8 item 4, RULED 10-30 "Second Draft next leveling session"): the feat's prerequisites (INT 13, one who prepares);
+  // its door (deep16/?at=draft16: Aurdin at 4 with the feat); THE WORLD's CAMP, AN HOUR, then the SECOND DRAFT page (js/house.js H.secondDraft): a prepared spell let go (X
+  // back to it from the next list), one taken up in its place, the use spent -- DRAFTED, and no page at the next hour; a short rest's refresh keeps it spent, a long rest's
+  // gives it back; one without the feat never drafts. His slots untouched (the door's save is held in memory)
+  if (get('mode', '') === 'seconddraft1031') {
+    var repSd = { checks: [], errors: [] }, memSd = {}, stGSd = D.store.get, stSSd = D.store.set, HSd = D.house, RSd = window.DS.R, muSd = D.music;
+    function okSd(what, v) { repSd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memSd[k] ? JSON.parse(memSd[k]) : null; }; D.store.set = function (k, v) { memSd[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = 1031;
+      var fSd = RSd.FEATS.seconddraft || {}, mk = function (id, lvl) { return RSd.makeHero(id, lvl); }, fiA = mk('barley', 4), fiB = mk('barley', 4); fiA.abil.int = 14; fiB.abil.int = 10;
+      var auSd = mk('aurdin', 4);
+      okSd('the feat: second ' + !!fSd.second + '; Aurdin "' + RSd.featWant(auSd, fSd) + '", a fighter of INT 14 "' + RSd.featWant(fiA, fSd) + '", of INT 10 "' + RSd.featWant(fiB, fSd) + '"',
+        !!fSd.second && RSd.featWant(auSd, fSd) === '' && RSd.featWant(fiA, fSd) === 'wants prepared spells' && RSd.featWant(fiB, fSd) === 'wants INT 13');
+      HSd.playing = false; HSd.cur = null; while (D.scenes.length) D.pop();
+      D.sit16.open('draft16'); var a = HSd.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], ly = HSd.cur.party.filter(function (h) { return h.id === 'lymen'; })[0];
+      var wS = D.scenes.filter(function (s) { return s.kind === 'world'; })[0], capSd = null;
+      var hour = function () { capSd = null; wS.card = function (l, x, o) { capSd = o; }; wS.campCard(); var r = (capSd || []).filter(function (o) { return o[0] === 'rec'; })[0]; if (r) r[1](); return D.top(); };
+      okSd('the door: Aurdin L' + (a && a.lvl) + ' with ' + JSON.stringify(a && a.featIds) + ', can draft ' + HSd.canDraft(a) + '; Lymen drafts ' + HSd.drafts(ly) + '; THE WORLD under it ' + !!wS, a && a.lvl === 4 && (a.featIds || []).indexOf('seconddraft') >= 0 && HSd.canDraft(a) && !HSd.drafts(ly) && !!wS);
+      var p0 = a.prepared.slice(), pg = hour(), L0 = pg && pg.list && pg.list(), rowA = L0 && L0.rows.filter(function (r) { return r.value && r.value.draft === a; })[0];
+      okSd('CAMP, AN HOUR: the page ' + (pg && pg.kind) + ' ' + (pg && pg.phase) + ', "' + (L0 && L0.title) + '": ' + (L0 && L0.rows.map(function (r) { return r.label + (r.right ? ' ' + r.right : ''); }).join(' / ')),
+        pg && pg.kind === 'housemorning' && pg.phase === 'draft' && L0.title === 'SECOND DRAFT' && rowA && rowA.right === 'ONE SWAP' && !rowA.disabled && L0.rows.length === 2);
+      pg.pick(rowA); var L1 = pg.list(), outId = L1.rows[0].value; pg.pick(L1.rows[0]); var L2 = pg.list(); pg.back(); var Lb = pg.list(); pg.pick(Lb.rows[0]); var L3 = pg.list(), inId = L3.rows[0].value; pg.pick(L3.rows[0]); var L4 = pg.list();
+      var k0 = p0.indexOf(outId);
+      okSd('the swap: "' + L1.title + '" (' + L1.rows.length + ' of ' + p0.length + '), "' + L2.title + '" (' + L2.rows.length + '), X back to "' + Lb.title + '"; ' + outId + ' let go, ' + inId + ' in its place (' + (a.prepared[k0] === inId) + '), ' + a.prepared.length + ' prepared; "' + (pg.msg || []).join(' ') + '"; the row ' + (L4.rows[1] && L4.rows[1].right),
+        /LET WHICH GO\?/.test(L1.title) && /IN PLACE OF/.test(L2.title) && /LET WHICH GO\?/.test(Lb.title) && L2.rows.every(function (r) { return p0.indexOf(r.value) < 0; }) && a.prepared[k0] === inId && a.prepared.indexOf(outId) < 0 && a.prepared.length === p0.length && a.feats.drafted === true && /SECOND DRAFT/.test((pg.msg || []).join(' ')) && L4.rows[1] && L4.rows[1].right === 'DRAFTED' && L4.rows[1].disabled);
+      pg.pick(pg.list().rows[0]); var gone = D.top() !== pg, pg2 = hour();
+      okSd('DONE shuts it (' + gone + '); the next hour, no page (' + (pg2 && pg2.kind) + ' ' + (pg2 && pg2.phase) + ')', gone && !(pg2 && pg2.phase === 'draft'));
+      RSd.refresh(a, false); var sh = !!a.feats.drafted; RSd.refresh(a, true); var lg = !!a.feats.drafted;
+      okSd('the use: spent after a short rest\'s refresh ' + sh + ', after a long rest\'s ' + lg + ', can draft again ' + HSd.canDraft(a) + ' (want true, false, true)', sh && !lg && HSd.canDraft(a));
+      var his = Object.keys(memSd).filter(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); });
+      okSd('his slots: written ' + (his.join(', ') || 'nothing'), !his.length);
+    } catch (e) { repSd.errors.push(String(e && e.stack || e).slice(0, 900)); }
+    HSd.playing = false; HSd.cur = null; D.store.get = stGSd; D.store.set = stSSd; D.music = muSd;
+    var preSd = document.createElement('pre'); preSd.id = 'out'; preSd.textContent = 'BENCH16 ' + JSON.stringify(repSd);
+    document.body.appendChild(preSd);
+    return;
+  }
   // THE CLINGER THROUGH HOLD GROUND (mode=clinger1031; the leveling lane §10's find, 10-31): a climber that loses its hold on a face (battle.js clingSave, the DEX save failed)
   // falls and is kept off prone by the Drillyard's HOLD GROUND (the reaction and an opening spent; without the play, prone) and by the Aura of Deep Roots (a Green Return
   // paladin of the 7th beside it; of the 6th, prone)
@@ -7524,7 +7563,8 @@
         five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', npc: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
         cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', npc: 'sabeth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 },
         dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 },
-        familiar16: { party: 'aurdin,barley,vivian,lymen', lvl: 3, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: ['sheet_findfamiliar', 'callingherbs'], silver: 40 } // (Find Familiar's door, 10-31)
+        familiar16: { party: 'aurdin,barley,vivian,lymen', lvl: 3, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: ['sheet_findfamiliar', 'callingherbs'], silver: 40 }, // (Find Familiar's door, 10-31)
+        draft16: { party: 'aurdin,barley,vivian,lymen', lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: [], silver: 40 } // (Second Draft's door, 10-31)
       };
       var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));

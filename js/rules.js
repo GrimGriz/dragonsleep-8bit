@@ -99,6 +99,7 @@
   R.refresh = function (h, long) {
     var f = h.feats;
     if (f) delete f.dues; // (Fortune's Due, the second game's feat: its Dues all gone at a rest -- deep16/js/features.js, 10-30)
+    if (f && long) delete f.drafted; // (Second Draft, the second game's feat: its swap again after a long rest -- deep16/js/house.js H.secondDraft, 10-31)
     if (f && !long && h.cls === 'paladin' && R.hasFeat(h, 'untempled')) f.lay = Math.min(5 * h.lvl, (f.lay || 0) + Math.floor(5 * h.lvl / 2)); // (Untempled, the second game's feat: the pool back by half at a short rest -- 10-30)
     if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; if (long) f.indomitable = h.lvl >= 9 ? 1 : 0; }
     if (h.cls === 'paladin') { f.channel = h.lvl >= 3 ? 1 : 0; if (long) { f.lay = 5 * h.lvl; f.relentless = 1; } }
@@ -369,6 +370,10 @@
     untempled: { name: 'Untempled', cha: 13, lay: true, cls: [], any: true, second: true, desc: 'Your Lay on Hands pool comes back by half at a short rest. (CHA 13, and Lay on Hands.)' },
     suddendark: { name: 'Sudden Dark', dex: 13, cls: [], any: true, second: true, desc: 'A bonus action: one flame you can see within 30 ft that no magic made goes out -- a torch, a lantern, a candle, a brazier. (DEX 13.)' },
     standin: { name: 'Stand In', str: 13, cls: [], any: true, second: true, desc: 'Your reaction when an attack hits a friend within 5 ft of you: the two of you trade places, and the attack hits you instead if it beats your AC; else it misses. (STR 13.)' },
+    // Second Draft (ours, 10-31 -- the leveling lane §8 item 4, RULED 10-30 "Second Draft next leveling session"; leveling-srd-by-class.md 2.3, near Ritual Caster's role): once a
+    // long rest, at the end of a short rest, one prepared spell let go and another the hero could prepare taken up -- the second game's house (deep16/js/house.js H.secondDraft,
+    // after THE WORLD's hour); the use spent is h.feats.drafted, gone at a long rest (R.refresh). `prep`: one who prepares spells (R.featWant)
+    seconddraft: { name: 'Second Draft', int: 13, prep: true, cls: [], any: true, second: true, desc: 'Once a long rest, at the end of a short rest: let one prepared spell go and prepare another you could prepare in its place. (INT 13, and spells prepared.)' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
@@ -388,6 +393,7 @@
     if (f.oneOf && !f.oneOf.some(function (k) { return h.abil[k] - ((took && took[k]) || 0) >= f.min; })) return 'wants ' + f.oneOf.map(function (k) { return k.toUpperCase(); }).join(', ').replace(/, (\w+)$/, ' or $1') + ' ' + f.min;
     if (f.casts && !(R.slotsFor(h).length > 0)) return 'wants spellcasting';
     if (f.lay && h.cls !== 'paladin') return 'wants Lay on Hands';
+    if (f.prep && ['cleric', 'druid', 'paladin', 'wizard'].indexOf(h.cls) < 0) return 'wants prepared spells'; // (Second Draft: the SRD's four that prepare, 10-31)
     return '';
   };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
