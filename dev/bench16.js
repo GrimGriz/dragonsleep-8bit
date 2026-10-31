@@ -5349,6 +5349,43 @@
     document.body.appendChild(preRe);
     return;
   }
+  // THE SIGHT IN THE WORDS (mode=seewords1031; 10-31, his play: Aurdin's Enlarge on Lymen in the dark, refused three times after the fact, the card having said only "an ally within 30 ft":
+  // "they need to be able to tell that's why it's not working"): every spell whose data carries `see` says so on the aim card (UI.aimWords) and on the grid's summary --
+  // "a foe you can see within 60 ft", "a creature or object you can see within 30 ft" for Enlarge/Reduce (no side, `obj`) -- and a spell without `see` keeps its plain words
+  if (get('mode', '') === 'seewords1031') {
+    var repSw = { checks: [], errors: [] };
+    function okSw(what, v) { repSw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var aimSw = function (id) { var g = D.SPELLS[id]; return D.ui.aimWords(g, (g.n || 1)); };
+      okSw('Enlarge/Reduce asks "' + aimSw('enlargereduce') + '"', aimSw('enlargereduce') === 'a creature or object you can see within 30 ft');
+      okSw('Hold Monster asks "' + aimSw('holdmonster') + '"', aimSw('holdmonster') === 'a foe you can see within 90 ft');
+      okSw('Healing Word asks "' + aimSw('healingword') + '"', aimSw('healingword') === 'an ally you can see within 60 ft');
+      okSw('Banishment (no side) asks "' + aimSw('banishment') + '"', aimSw('banishment') === 'a creature you can see within 60 ft');
+      okSw('Bane asks "' + aimSw('bane').slice(0, 44) + '..."', /^up to 3 foes you can see within 30 ft /.test(aimSw('bane')));
+      okSw('Magic Missile asks "' + aimSw('magicmissile') + '"', /^3 darts: click a foe you can see for each/.test(aimSw('magicmissile')));
+      okSw('Call Lightning asks "' + aimSw('calllightning') + '"', /^a point you can see within 120 ft/.test(aimSw('calllightning')));
+      okSw('Firebolt keeps "' + aimSw('firebolt') + '"', aimSw('firebolt') === 'a foe in sight within 120 ft');
+      var plain = Object.keys(D.SPELLS).filter(function (id) { var g = D.SPELLS[id]; return !g.see && /^(single|splash|allies|sphere|cube|darts|rays)$/.test(g.shape); });
+      okSw('the ' + plain.length + ' aimed spells without `see` say nothing of sight', plain.every(function (id) { return !/you can see/.test(aimSw(id)); }));
+      var bareSw = [], sumSw = [];
+      Object.keys(D.SPELLS).forEach(function (id, ix) {
+        var g = D.SPELLS[id]; if (!g.see) return;
+        if (/^(single|splash|allies|sphere|cube|darts|rays|teleport)$/.test(g.shape) && !/you can see/.test(aimSw(id))) bareSw.push(id);
+        var B6 = new D.Battle({ bench: true, npc: { party: ['wizard:9', 'fighter:9'], foes: ['fighter:9', 'cleric:9'] }, fightDef: D.classFight(9) });
+        D.battle = B6; B6.enter(); B6.co.next(); B6.round = 1;
+        var u6 = B6.units.filter(function (w) { return w.side === 'party'; })[0];
+        u6.known = [id]; u6.slots = [4, 3, 3, 3, 2, 1, 1, 1, 1]; u6.slotsMax = u6.slots.slice(); D.rules.startTurn(u6);
+        var e6 = D.magic.list(B6, u6)[0], s6 = e6 ? D.magic.summary(e6, u6) : '';
+        // (Rootdrag: `see` in the data, but its draft -- "a creature standing on the ground within range" -- asks no sight: a data question for the desk, 10-31)
+        if (id !== 'rootdrag' && !/you can see|you see|in sight/.test(s6)) sumSw.push(id);
+      });
+      okSw('every aimed `see` spell says "you can see" on its aim card (missing: ' + (bareSw.join(', ') || 'none') + ')', bareSw.length === 0);
+      okSw('every `see` spell\'s grid summary names sight (missing: ' + (sumSw.join(', ') || 'none') + ')', sumSw.length === 0);
+    } catch (e) { repSw.errors.push(String(e && e.stack || e)); }
+    var preSw = document.createElement('pre'); preSw.id = 'out'; preSw.textContent = 'BENCH16 ' + JSON.stringify(repSw);
+    document.body.appendChild(preSw);
+    return;
+  }
   // CALLED TO ACCOUNT'S WORDS (mode=accountwords1030; the leveling lane §9 0c, 10-30, his play record: an invisible duergar refused, "the spell asks for one you can see"):
   // the record and the card say what the grid asks -- a foe you can see within 30 ft (the SRD's Compelled Duel's "a creature within range that you can see") -- and the
   // refusal still says why

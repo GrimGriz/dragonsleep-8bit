@@ -101,7 +101,7 @@
     switch (g.shape) {
       case 'attack': return 'spell attack, ' + g.range + ' ft · ' + d + ' ' + sp.el;
       case 'rays': return n + ' rays, ' + g.range + ' ft · ' + sp.dmg + ' ' + sp.el + ' each';
-      case 'darts': return n + ' darts, ' + g.range + ' ft · 1d4+1 force each, never miss';
+      case 'darts': return n + ' darts, ' + g.range + ' ft, at creatures you can see · 1d4+1 force each, never miss';
       case 'splash': return 'a foe within ' + g.range + ' ft (and one beside it) · DEX · ' + d + ' acid';
       case 'cone': return g.len + '-ft cone · ' + save + ' · ' + d + ' ' + sp.el;
       case 'line': return g.len + '-ft line · ' + save + ' · ' + d + ' ' + sp.el;
@@ -114,7 +114,7 @@
       case 'cube': return g.size + '-ft cube within ' + g.range + ' ft · DEX or restrained' + conc;
       case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
       case 'around': return 'every square round you (5 ft) · ' + save + ' · ' + d + ' ' + sp.el + (sp.dmg2 ? ' + ' + M.dice2(sp, e.slot) + ' ' + sp.el2 : '');
-      case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
+      case 'single': return e.id === 'holdmonster' ? 'a foe you can see within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid you can see within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
       case 'self': return ({ seeinvisibility: 'you see the invisible for the fight', mislead: 'invisible (till you attack or cast), and a false double' + conc, passwithouttrace: '+10 Stealth to all of yours within 30 ft' + conc }[e.id]) || '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';

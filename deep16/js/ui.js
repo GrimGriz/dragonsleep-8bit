@@ -853,6 +853,28 @@
     if (e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
     B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240);
   }
+  // what the picked spell asks of its target, in words (spellAim's card). A spell whose SRD words say "that you can see" (data/spells.js `see`) says so -- "a foe you can see within
+  // 60 ft" -- so a click turned away in the dark is no surprise (10-31, Griz, Aurdin's Enlarge on Lymen in the dark, refused three times: "they need to be able to tell that's why
+  // it's not working"); a `see` spell with no side takes any creature (Enlarge/Reduce, Banishment, Polymorph), and "or object" where `obj` (the SRD's "a creature or object")
+  UI.aimWords = function (g, n) {
+    var see = g.see ? ' you can see' : '', foe = g.side === 'foe', rg = ' within ' + g.range + ' ft', o = g.see && g.obj ? ' or object' : '';
+    switch (g.shape) {
+      case 'attack': return 'a foe in sight' + rg;
+      case 'rays': return n + ' rays: click a foe' + see + ' for each (the same foe again is fine)';
+      case 'darts': return n + ' darts: click a foe' + see + ' for each (the same foe again is fine)';
+      case 'splash': return 'a foe' + see + rg + ' (one beside it is caught too)';
+      case 'single': return (g.see ? (foe ? 'a foe' : g.side === 'ally' ? 'an ally' : 'a creature') + o : foe ? 'a foe' : 'an ally') + see + rg;
+      case 'touch': return 'yourself, or an ally beside you';
+      case 'allies': return 'up to ' + n + (foe ? ' foes' : ' allies') + see + rg + ' (click to add or drop; CAST, the right button, or E off a target casts with fewer; with no one else, the ones picked fill the rest)';
+      case 'sphere': return 'a point' + see + rg + ' (the ' + g.r + '-ft sphere shows)';
+      case 'cube': return 'a point' + see + rg;
+      case 'cone': return 'aim the ' + g.len + '-ft cone';
+      case 'line': return 'aim the ' + g.len + '-ft line';
+      case 'around': return 'every square round you (shown): click yourself or one of them';
+      case 'teleport': return 'a square you can see within 30 ft';
+    }
+    return '';
+  };
   // a spell picked -- off the ring's SPELLS, or off the M menu's MAGIC (10-07): on itself at once, or aimed on the floor at the slot the ring would start at
   function spellAim(B, u, e) {
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
@@ -861,7 +883,7 @@
     if (g.shape === 'self') return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u });
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) { B.picks = [u]; B.spell.auto = u; } // Bless takes the caster by default; click him again to leave him out
-    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + (g.side === 'foe' ? ' foes' : ' allies') + ' within ' + g.range + ' ft (click to add or drop; CAST, the right button, or E off a target casts with fewer; with no one else to take, the ones picked fill the rest)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', around: 'every square round you (shown): click yourself or one of them', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
+    var how = UI.aimWords(g, n);
     if (g.effects) how = 'a creature within ' + g.range + ' ft, or an empty square in the area of a spell (that spell)'; // (Dispel Magic: M.effectsAt, 10-02)
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
