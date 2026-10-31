@@ -65,7 +65,7 @@
     rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'npcrogue_p0', expertise: ['Stealth', 'Perception'] },
     // metamagic (SRD 5.1, 3rd: two options; a third at 10, a fourth at 17): the generic sorcerer knows Quickened and Twinned; Careful and
     // Heightened are built (js/features.js) for a spec that lists them -- { cls: 'sorcerer', metamagic: ['careful', 'heightened'] }
-    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'npcsorcerer_p0', ancestry: 'fire', metamagic: ['quickened', 'twinned'],
+    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'npcsorcerer_p0', ancestry: 'red', metamagic: ['quickened', 'twinned'],
       cantrips: [4, 4, 4, 5, 5, 5, 5, 5, 5], known: [2, 3, 4, 5, 6, 7, 8, 9, 10],
       spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'poisonspray', 'chilltouch'], 1: ['magicmissile', 'shield', 'burninghands', 'colorspray'], 2: ['scorchingray', 'mistystep', 'mirrorimage'], 3: ['fireball', 'haste', 'counterspell', 'fly'], 4: ['icestorm', 'greaterinvisibility', 'dimensiondoor', 'blight', 'banishment', 'walloffire', 'polymorph', 'dominatebeast'], 5: ['coneofcold', 'insectplague', 'holdmonster', 'wallofstone', 'cloudkill'] } },
     // Pact Boon (SRD 5.1, 3rd): the generic warlock (NPC.spec) takes the Tome -- three cantrips from other classes' lists (`tome`, the seat's
@@ -108,12 +108,18 @@
   // the class options a made one chooses with its level (10-14, the level-up pick: "Pocket has leveling choices"), the built ones only: the spec's own fields
   // (NPC.sheet reads them), `at` the class level they come, `count` how many at a level (none: one of them). The Pocket DM's maker shows each as a tab beside
   // STYLE; its word keeps the choice (NPC.code's 10th field). The rogue's Expertise waits: the class floor keeps no skills to double
+  // the SRD 5.1's dragon ancestors and their damage types (the Draconic Bloodline; 10-31)
+  NPC.DRAGONS = { black: 'acid', blue: 'lightning', brass: 'fire', bronze: 'lightning', copper: 'acid', gold: 'fire', green: 'poison', red: 'fire', silver: 'cold', white: 'cold' };
   NPC.OPTIONS = {
     sorcerer: [{ key: 'metamagic', word: 'METAMAGIC', at: 3, count: function (L) { return L >= 17 ? 4 : L >= 10 ? 3 : 2; }, opts: [
       { id: 'quickened', name: 'Quickened Spell', desc: '2 points: a spell of an action cast as a bonus action' },
       { id: 'twinned', name: 'Twinned Spell', desc: 'a point a spell level: a one-target spell takes a second' },
       { id: 'careful', name: 'Careful Spell', desc: '1 point: friends in its area make the save' },
-      { id: 'heightened', name: 'Heightened Spell', desc: '3 points: one target saves at disadvantage' }] }],
+      { id: 'heightened', name: 'Heightened Spell', desc: '3 points: one target saves at disadvantage' }] },
+      // the Draconic Bloodline's dragon ancestor (SRD 5.1: the ten and their damage types -- 10-31, the leveling lane §8 item 10, on his "add the next thing in the lane as
+      // well then push"): its element is Elemental Affinity's at 6 (deep16/js/features.js M.affinity reads the sheet's `ancestry`, the dragon); a sorcerer with none is red, fire, as before
+      { key: 'ancestry', word: 'ANCESTOR', at: 1, sub: 'Draconic Bloodline', opts: ['black', 'blue', 'brass', 'bronze', 'copper', 'gold', 'green', 'red', 'silver', 'white'].map(function (k) {
+        return { id: k, name: 'a ' + k + ' dragon', desc: NPC.DRAGONS[k] + ': Elemental Affinity at 6 adds CHA to its damage' }; }) }],
     warlock: [{ key: 'invocations', word: 'INVOCATIONS', at: 2, count: function (L) { return L >= 12 ? 6 : L >= 9 ? 5 : L >= 7 ? 4 : L >= 5 ? 3 : 2; }, opts: [
       { id: 'agonizing', name: 'Agonizing Blast', desc: 'CHA added to each Eldritch Blast beam' },
       { id: 'devilsight', name: 'Devil\'s Sight', desc: 'sees in any dark, the magical too, to 120 ft' },
@@ -132,6 +138,8 @@
       { id: 'callmark', name: 'Call the Mark', desc: 'a bonus action: each friend\'s first hit on one creature +2 till your next turn' },
       { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
     druid: [{ key: 'land', word: 'LAND', at: 2, sub: 'Circle of the Land', opts: [ // (the Land's alone since the Pelt, 10-30)
+      // (the Underdark is not one of the SRD 5.1's seven: RULED ours, 10-31, Griz: "I think the memetic penetration of R. A. Salvatore warrants the use of UnderDark and if a
+      // session objects we can call it MantleCrust" -- invented.json #underdark-land)
       { id: 'underdark', name: 'the Underdark', desc: 'Web, Stinking Cloud, Greater Invisibility, Insect Plague' },
       { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' },
       // (the SRD's other six, 10-31: the built ones of each list -- C.druid.lands)
@@ -351,6 +359,7 @@
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: spec.style && (R.STYLE_FOR[cls] || []).indexOf(spec.style) >= 0 ? spec.style : c.style || null, // (the Pocket DM's maker picks one, 10-06; R.style gives none before the class's level)
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
+      ancestry: sub === 'Draconic Bloodline' ? (NPC.DRAGONS[spec.ancestry] ? spec.ancestry : c.ancestry || 'red') : null, // (the dragon ancestor, 10-31: its element NPC.DRAGONS's -- M.affinity; the level page reads it by the option's key)
       land: sub === 'the Circle of the Pelt' ? null : spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid of the Pelt, ours, has no land: no circle spells, no land's cantrip, no Land's Stride -- 10-30) // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)

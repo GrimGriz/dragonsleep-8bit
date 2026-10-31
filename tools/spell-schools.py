@@ -17,6 +17,8 @@ SCHOOLS = ['abjuration', 'conjuration', 'divination', 'enchantment', 'evocation'
 # Rootdrag as Thorn Whip, Mirror's Gaze as Hunter's Mark
 OURS = {'searingscourge': 'evocation', 'deathhandsscourge': 'evocation', 'calledtoaccount': 'enchantment', 'gnawingword': 'enchantment', 'glasswhisper': 'enchantment',
         'rootdrag': 'transmutation', 'mirrorsgaze': 'divination'}
+# the SRD's own that srd/spells/ lacks an entry for (10-31: Hunter's Mark is on the ranger's 1st-level list, srd/10-spell-lists.md -- a divination)
+SRD_MISSED = {'huntersmark': 'divination'}
 P = 'content/spells.json'
 
 
@@ -43,7 +45,7 @@ def want():
     for k, r in recs.items():
         if k.startswith('_'):
             continue
-        s = OURS.get(k) or by_id.get(k) or by_name.get(str(r.get('name', '')).lower())
+        s = OURS.get(k) or by_id.get(k) or by_name.get(str(r.get('name', '')).lower()) or SRD_MISSED.get(k)
         if s:
             out[k] = s
         else:

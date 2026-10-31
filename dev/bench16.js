@@ -5035,6 +5035,29 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE DRAGON ANCESTOR (mode=ancestor1031; the leveling lane §8 item 10, 10-31 -- his "add the next thing in the lane as well then push"): the Draconic Bloodline's ten
+  // (SRD 5.1) on the maker's ANCESTOR tab, a Draconic sorcerer's only; the sheet's dragon and element (none picked: red, fire, as before); Elemental Affinity at 6 adds CHA to
+  // the element's spells alone (a silver's Ray of Frost, not its Fire Bolt); the card's word carries it. And Hunter's Mark a divination (the SRD's: its markdown missed it)
+  if (get('mode', '') === 'ancestor1031') {
+    var repAn = { checks: [], errors: [] };
+    function okAn(what, v) { repAn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var N = D.npc, tab = (N.OPTIONS.sorcerer || []).filter(function (o) { return o.key === 'ancestry'; })[0];
+      okAn('the ANCESTOR tab: ' + (tab ? tab.opts.length + ' (' + tab.opts.map(function (o) { return o.id; }).join(', ') + '), for ' + tab.sub + ' at ' + tab.at : 'none'), !!tab && tab.opts.length === 10 && tab.sub === 'Draconic Bloodline' && tab.at === 1);
+      var shOf = function (anc, lvl) { var sp = N.spec('sorcerer:' + (lvl || 6)); if (anc) sp.ancestry = anc; return N.sheet(sp); };
+      var hs = shOf('silver'), hd = shOf(null), hg = shOf('green');
+      okAn('the sheet: silver ' + hs.ancestry + ' (' + N.DRAGONS[hs.ancestry] + '), none ' + hd.ancestry + ' (' + N.DRAGONS[hd.ancestry] + '), green ' + hg.ancestry + ' (' + N.DRAGONS[hg.ancestry] + ')', hs.ancestry === 'silver' && N.DRAGONS[hs.ancestry] === 'cold' && hd.ancestry === 'red' && N.DRAGONS[hd.ancestry] === 'fire' && N.DRAGONS[hg.ancestry] === 'poison');
+      var u = { subclass: 'Draconic Bloodline', lvl: 6, abil: { cha: 18 }, src: hs }, cha = Math.max(0, D.mod(18));
+      okAn('Elemental Affinity, a silver\'s: cold +' + D.magic.affinity(u, 'cold') + ', fire +' + D.magic.affinity(u, 'fire') + '; red\'s fire +' + D.magic.affinity({ subclass: 'Draconic Bloodline', lvl: 6, abil: { cha: 18 }, src: hd }, 'fire'),
+        D.magic.affinity(u, 'cold') === cha && D.magic.affinity(u, 'fire') === 0 && D.magic.affinity({ subclass: 'Draconic Bloodline', lvl: 6, abil: { cha: 18 }, src: hd }, 'fire') === cha);
+      var wd = N.optWord('sorcerer', { ancestry: 'silver', metamagic: ['twinned', 'careful'] }), back = {}; N.optRead('sorcerer', wd, 6, back);
+      okAn('the word: "' + wd + '", read back ' + back.ancestry + ' ' + JSON.stringify(back.metamagic), /a:silver/.test(wd) && back.ancestry === 'silver' && (back.metamagic || []).join() === 'twinned,careful');
+      okAn('Hunter\'s Mark: ' + window.DS.R.school('huntersmark'), window.DS.R.school('huntersmark') === 'divination');
+    } catch (e) { repAn.errors.push(String(e && e.stack || e)); }
+    var preAn = document.createElement('pre'); preAn.id = 'out'; preAn.textContent = 'BENCH16 ' + JSON.stringify(repAn);
+    document.body.appendChild(preAn);
+    return;
+  }
   // THE SRD'S SIX LANDS (mode=lands1031; the leveling lane §8 item 10, 10-31 -- his "Go ahead and finish the thing after these"): the Circle of the Land's arctic, coast,
   // desert, forest, grassland and swamp beside the mountain and the Underdark (deep16/js/classes.js C.druid.lands, NPC.OPTIONS.druid): on the maker's LAND tab; a druid of
   // each knows its built circle spells as it reaches their levels, always prepared and uncounted (NPC.prepInfo), the unbuilt left off; the card's word carries the land
@@ -5074,9 +5097,9 @@
     try {
       var RS = window.DS.R, SP = window.DS.DATA.spells, ids = Object.keys(SP).filter(function (k) { return k.charAt(0) !== '_'; }), by = {};
       ids.forEach(function (k) { var s = RS.school ? RS.school(k) : null; by[s || 'none'] = (by[s || 'none'] || 0) + 1; });
-      var WANT = { abjuration: 26, conjuration: 24, divination: 7, enchantment: 21, evocation: 55, illusion: 10, necromancy: 14, transmutation: 23, none: 2 };
+      var WANT = { abjuration: 26, conjuration: 24, divination: 8, enchantment: 21, evocation: 55, illusion: 10, necromancy: 14, transmutation: 23, none: 1 };
       okSc('the schools: ' + Object.keys(by).sort().map(function (k) { return k + ' ' + by[k]; }).join(', '), Object.keys(WANT).every(function (k) { return by[k] === WANT[k]; }) && Object.keys(by).length === Object.keys(WANT).length);
-      var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: 'enchantment', calledtoaccount: 'enchantment', glasswhisper: 'enchantment', rootdrag: 'transmutation', mirrorsgaze: 'divination', huntersmark: null, smite: null };
+      var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: 'enchantment', calledtoaccount: 'enchantment', glasswhisper: 'enchantment', rootdrag: 'transmutation', mirrorsgaze: 'divination', huntersmark: 'divination', smite: null };
       okSc('a few: ' + Object.keys(spot).map(function (k) { return k + ' ' + RS.school(k); }).join(', '), Object.keys(spot).every(function (k) { return RS.school(k) === spot[k]; }));
       var u = { subclass: 'School of Evocation', lvl: 2 }, hand = ids.filter(function (k) { return D.magic.sculpts(u, k); });
       var extra = hand.filter(function (k) { return RS.school(k) !== 'evocation'; }), miss = ids.filter(function (k) { return RS.school(k) === 'evocation' && hand.indexOf(k) < 0; });

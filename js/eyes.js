@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-ancestor-1031': { pri: 3, group: G1, title: 'The Draconic sorcerer\'s dragon ancestor: the SRD\'s ten on the maker\'s ANCESTOR tab (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "add the next thing in the lane as well then push" (deep16/js/classes.js NPC.DRAGONS, NPC.OPTIONS.sorcerer; deep16/js/features.js M.affinity; mode=ancestor1031) · eyes',
+      look: 'THE PARTY, MAKE: a sorcerer (the Draconic Bloodline) -- the ANCESTOR tab offers the ten, each with its damage type (black acid ... white cold); none picked is red, fire, as before. A sorcerer of 6th: a spell of its dragon\'s element that asks a save adds CHA to its damage (Elemental Affinity, "+N affinity" in the log); one of another element does not.',
+      url: 'deep16/?pocket&fresh=1031a' },
     'eyes-lands-1031': { pri: 3, group: G1, title: 'The druid\'s LAND: the SRD\'s six more -- arctic, coast, desert, forest, grassland, swamp (10-31)', pt: 'the leveling §8 item 10, the leveling seat, his "Go ahead and finish the thing after these" (deep16/js/classes.js C.druid.lands, NPC.OPTIONS.druid; mode=lands1031) · eyes',
       look: 'THE PARTY, MAKE: a druid of 3rd or higher, the Circle of the Land -- the LAND tab offers eight: the Underdark, the Mountain and the SRD\'s Arctic, Coast, Desert, Forest, Grassland, Swamp, each with its built circle spells. Pick the Arctic at 9th: Hold Person and Cone of Cold on the MAGIC list, always ready and not counted on THE LONG REST\'s page.',
       url: 'deep16/?pocket&fresh=1031l' },

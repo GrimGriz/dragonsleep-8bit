@@ -23,7 +23,8 @@
     return caught.filter(function (w) { return w.side === u.side && w !== u && !w.object; }).slice(0, 1 + (sp.level || 0));
   };
   // ------------------------------------------------------------------ the sorcerer: Elemental Affinity (Draconic 6)
-  M.affinity = function (u, el) { return u.subclass === 'Draconic Bloodline' && u.lvl >= 6 && el === (u.src && u.src.ancestry || 'fire') ? Math.max(0, D.mod(u.abil.cha)) : 0; };
+  M.affinity = function (u, el) { var a = u.src && u.src.ancestry; return u.subclass === 'Draconic Bloodline' && u.lvl >= 6 && el === ((D.npc && D.npc.DRAGONS || {})[a] || a || 'fire') ? // (the sheet's dragon ancestor's element: NPC.DRAGONS, 10-31)
+    Math.max(0, D.mod(u.abil.cha)) : 0; };
 
   // ------------------------------------------------------------------ the barbarian: Rage, Reckless Attack, Danger Sense, Frenzy
   // Rage (a bonus action; SRD 5.1): +2 to STR melee damage, blades and blows halved (battle.js hurt), advantage on STR checks and saves;
