@@ -5323,7 +5323,7 @@
   // THE FIRST BATCH'S FOUR FEATS (mode=firstfeats1030; the leveling lane §8 E, 10-30, his "approve all in the side by side"; leveling-srd-by-class.md 2.3): their prerequisites
   // past one score (INT, WIS or CHA; spellcasting; Lay on Hands); HOLD THE THREAD keeps a failed concentration for the lowest slot no higher than the spell's, and not without a
   // slot or the feat; UNTEMPLED's half pool at the Pocket DM's short rest and the sheet's; SUDDEN DARK puts out a floor torch and a goblin's torch, the bonus action spent;
-  // STAND IN trades places when a blow that hits the friend would miss the fighter (asked; NOT THIS TIME and it lands; the AI's by its rule); the shelf
+  // STAND IN takes a blow that hits the friend and would miss the fighter, and nobody moves (10-31: it traded places till then) -- asked; NOT THIS TIME and it lands; the AI's by its rule; the shelf
   if (get('mode', '') === 'firstfeats1030') {
     var repF4 = { checks: [], errors: [] }, d0F4 = D.d;
     function okF4(what, v) { repF4.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -5357,11 +5357,11 @@
         a.src.featIds = ['standin']; if (ai) a.guest = true; b.x = a.x + 1; b.y = a.y; g.x = a.x + 2; g.y = a.y; if (!D.grid.canStand(g, g.x, g.y)) { g.x = a.x + 1; g.y = a.y + 1; } D.grid.setup(B.map, B.units); b.baseAC = 12; g.conds = {};
         var acA = D.rules.ac(a), ax = a.x, bx = b.x, ah = a.hp, bh = b.hp, wp = Object.assign({}, g.weapon || g.attacks[Object.keys(g.attacks)[0]], { atk: 0 });
         D.rules.startTurn(g); B.active = g; a.reaction = 1; D.d = function (k) { return k === 20 ? Math.min(15, acA - 1) : d0F4(k); }; var asked = runF4(B.attack(g, b, wp), ans); D.d = d0F4;
-        return { asked: asked, swapped: a.x === bx && b.x === ax, aHit: a.hp < ah, bHit: b.hp < bh, react: a.reaction };
+        return { asked: asked, kept: a.x === ax && b.x === bx, aHit: a.hp < ah, bHit: b.hp < bh, react: a.reaction };
       };
       var s1 = si(), s2 = si('NOT THIS TIME'), s3 = si(null, true);
-      okF4('STAND IN: asked "' + s1.asked + '", swapped ' + s1.swapped + ', the friend hit ' + s1.bHit + ', the fighter hit ' + s1.aHit + ', the reaction ' + s1.react + '; NOT THIS TIME: the friend hit ' + s2.bHit + '; the AI: swapped ' + s3.swapped + ' (want true false false 0; true; true)',
-        /STAND IN\?/.test(s1.asked) && s1.swapped && !s1.bHit && !s1.aHit && s1.react === 0 && s2.bHit && !s2.swapped && s3.swapped && !s3.asked);
+      okF4('STAND IN: asked "' + s1.asked + '", both in their squares ' + s1.kept + ', the friend hit ' + s1.bHit + ', the fighter hit ' + s1.aHit + ', the reaction ' + s1.react + '; NOT THIS TIME: the friend hit ' + s2.bHit + '; the AI: its reaction ' + s3.react + ', in their squares ' + s3.kept + ' (want true false false 0; true; 0 true)',
+        /STAND IN\?/.test(s1.asked) && s1.kept && !s1.bHit && !s1.aHit && s1.react === 0 && s2.bHit && s2.kept && s3.react === 0 && s3.kept && !s3.asked);
       // the shelf
       var Bs = D.fxGallery('?fxgallery&features&only=holdthethread,untempled,suddendark,standin'); D.battle = Bs; Bs.one = Bs.one || { shelf: 'features' }; Bs.enter(); // (the one gallery's pinned dice: B.one)
       var Ss = Bs.gallery, gs = 0, vs, done = 0, rep = {};

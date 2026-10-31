@@ -1140,20 +1140,21 @@
     B.lightMap = null; FX.ring({ x: q.x, y: q.y, size: 1 }, 'violet', 20);
     B.card(['{y}' + u.name + '{/}: {p}SUDDEN DARK{/} -- ' + q.name + ' goes out.  {g}(a bonus action){/}'], 220);
   };
-  // STAND IN (Sentinel's and the Protection style's role): the reaction when an attack hits a friend within 5 ft -- the two trade places, and the blow meets the hero's own AC
-  // (battle.js attack, after the hit and before the damage). A player's hero asked; the AI's when the blow would miss it, or the friend is near its last
+  // STAND IN (Sentinel's and the Protection style's role): the reaction when an attack hits a friend within 5 ft -- the hero leans in and takes it, and the blow meets the
+  // hero's own AC (battle.js attack, after the hit and before the damage). Nobody moves (10-31, Griz: "that bonus action swap positions feat or whatever isn't gonna work,
+  // forced movement change. Mechanically similar without swapping character locations (leans in, takes hit, returns to square) should be fine" -- till then the two traded
+  // places). A player's hero asked; the AI's when the blow would miss it, or the friend is near its last
   F.standIn = function* (B, att, tgt, total, nat) {
-    var ws = B.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && F.hasFeat(w, 'standin') && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !w.conds.prone && !w.conds.grappled && !w.conds.restrained && (w.size || 1) === (tgt.size || 1) && G.dist(w, tgt) <= 5 && !(w.hang && G.hanging(w)) && !(tgt.hang && G.hanging(tgt)) && !tgt.object && !tgt.riding && !w.riding; });
+    var ws = B.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && F.hasFeat(w, 'standin') && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !w.conds.prone && !w.conds.restrained && G.dist(w, tgt) <= 5 && !(w.hang && G.hanging(w)) && !tgt.object && !w.riding; });
     for (var i = 0; i < ws.length; i++) {
       var w = ws[i], ac = RU.ac(w), miss = nat !== 20 && total < ac;
       if (mine(w)) {
-        var go = yield { prompt: { who: w, title: w.name + ': STAND IN?', lines: [Nm(B, att) + '\'s ' + total + ' hits ' + nm(B, tgt) + '.', 'Trade places: against your AC ' + ac + (miss ? ' it misses.' : ' it still hits -- you.') + ' (your reaction)'], opts: [{ label: 'STAND IN', value: 1 }, { label: 'NOT THIS TIME', value: 0 }] } };
+        var go = yield { prompt: { who: w, title: w.name + ': STAND IN?', lines: [Nm(B, att) + '\'s ' + total + ' hits ' + nm(B, tgt) + '.', 'Lean in and take it: against your AC ' + ac + (miss ? ' it misses.' : ' it still hits -- you.') + ' (your reaction)'], opts: [{ label: 'STAND IN', value: 1 }, { label: 'NOT THIS TIME', value: 0 }] } };
         if (!go) continue;
       } else if (!miss && !(tgt.hp <= Math.max(6, tgt.maxhp / 4))) continue;
       w.reaction = 0; D.sfx('run');
-      var wx = w.x, wy = w.y;
-      w.tween = { fx: wx, fy: wy, fz: G.gzAt(w, wx, wy), t: 0, dur: B.pace(10, true) }; tgt.tween = { fx: tgt.x, fy: tgt.y, fz: G.gzAt(tgt, tgt.x, tgt.y), t: 0, dur: B.pace(10, true) };
-      w.x = tgt.x; w.y = tgt.y; tgt.x = wx; tgt.y = wy;
+      // the lean: drawn from halfway to the friend back to the hero's own square, which it never leaves
+      w.tween = { fx: (w.x + tgt.x) / 2, fy: (w.y + tgt.y) / 2, fz: G.gzAt(w, w.x, w.y), t: 0, dur: B.pace(10, true) };
       return w;
     }
     return null;

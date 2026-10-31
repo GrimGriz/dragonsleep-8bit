@@ -2379,7 +2379,7 @@
         line += '  {c}' + shortName(ta.w).toUpperCase() + ' TURNS IT ASIDE +' + ta.bonus + '{/}';
       }
     }
-    // STAND IN (a feat of ours, 10-30 -- js/features.js F.standIn): a friend beside the one hit trades places with it, and the blow meets the friend's own AC
+    // STAND IN (a feat of ours, 10-30 -- js/features.js F.standIn): a friend beside the one hit leans in and takes it, and the blow meets the friend's own AC (no one moves, 10-31)
     if (hit && G.hostile(att, tgt) && D.features && D.features.standIn) {
       var stw = yield* D.features.standIn(this, att, tgt, total, nat);
       if (stw) { line += '  {c}' + nameOf(stw).toUpperCase() + ' STANDS IN (AC ' + RU.ac(stw) + '){/}'; tgt = stw; ac = RU.ac(stw); hit = nat === 20 || (nat !== 1 && total >= ac); if (!hit) crit = false; }

@@ -569,7 +569,7 @@
       whatfallsfeeds: function* (c) { var t = c.foes[0], m = c.mate; if (m) m.hp = Math.max(1, Math.floor(m.maxhp / 2)); t.hp = 1; yield 20; yield* swing(c, t, 3, true); yield 40; },
       auraofdeeproots: function* (c) { yield 20; if (c.mate) { D.magic.push(B, c.foes[0], c.mate, 2); yield 50; } D.magic.push(B, c.foes[0], c.hero, 2); yield 50; },
       // the first batch's feats (ours, 10-30; js/features.js): HOLD THE THREAD -- Blur held, a hard blow, the save pinned to fail and a slot spent; UNTEMPLED -- a short rest's
-      // half pool; STAND IN -- a foe's blow at the friend beside, which hits the friend's AC and not the fighter's: they trade places and it misses
+      // half pool; STAND IN -- a foe's blow at the friend beside, which hits the friend's AC and not the fighter's: the fighter leans in, takes it, and it misses (no one moves since 10-31)
       holdthethread: function* (c) { var u = c.hero; D.magic.concentrate(B, u, 'blur', 'Blur', function () {}); yield 20; B.hurt(u, 8, 'slashing', {}); D.magic.concCheck(B, u, 24); yield 50; },
       untempled: function* (c) { var u = c.hero, h = { cls: 'paladin', lvl: u.lvl, feats: { lay: 0 }, featIds: ['untempled'] }; window.DS.R.refresh(h, false); u.feats.lay = h.feats.lay; B.card(['{y}' + u.name + '{/} rests a short hour: Lay on Hands 0 -> ' + h.feats.lay + ' of ' + 5 * u.lvl + '  {g}(UNTEMPLED){/}'], 400); yield 70; },
       standin: function* (c) { var m = c.mate, f = c.foes[0]; if (!m || !f) return; m.baseAC = D.rules.ac(c.hero) - 6; D.rules.startTurn(f); B.active = f; c.hero.reaction = 1; yield* fire(B.attack(f, m, Object.assign({}, f.weapon, { atk: D.rules.ac(c.hero) - 21 }))); B.active = c.hero; yield 40; },

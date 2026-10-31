@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-standinlean-1031': { pri: 2, group: G1, title: 'Stand In without the swap: the hero leans in, takes the blow meant for the friend, and is back in its own square (10-31)', pt: 'the leveling, his "Mechanically similar without swapping character locations (leans in, takes hit, returns to square) should be fine" (deep16/js/features.js F.standIn; mode=firstfeats1030) · eyes',
+      look: 'The FEATURES shelf: a foe swings at the friend; the fighter with Stand In leans toward the friend and slides back to its own square, and the blow meets the fighter\'s AC (here it misses). Nobody changes squares.',
+      url: 'deep16/?gallery&shelf=features&feature=standin&only=standin&fresh=1031s' },
     'eyes-firstfrozen-1031': { pri: 2, group: G1, title: 'The first game frozen: the 8-bit plays from its own folder, first/ -- nothing should look or play differently (10-31)', pt: 'the first game, the freeze, his "See if you can pull off the freeze/separation, first game is good enough and sitting standby for polish pass when 16bit is finished" (first/README.md; index.html loads first/js and first/data; tools/first-lock.py in the quick gate) · eyes',
       look: 'Open the first game at the root as a player would: the title, CONTINUE a save of yours (the saves are where they were), walk a field, a fight, the menu, a level-up. All should be exactly as before the freeze. A difference of any kind is a bug in the move, not a change.',
       url: 'index.html?fresh=1031f' },
