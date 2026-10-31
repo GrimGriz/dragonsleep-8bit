@@ -1,0 +1,155 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "the one gallery (deep16/?gallery), its SAVE"
+ },
+ "saved_at": "2026-10-30T20:25:30.506Z",
+ "previous_save": "2026-10-30T20:14:45.581Z",
+ "items": [
+  {
+   "id": "eyes-firstfeats-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Four feats of ours: Hold the Thread, Untempled, Sudden Dark, Stand In (10-30)",
+   "pt": "the leveling lane §8 E, his \"approve all in the side by side\" (js/rules.js R.FEATS, R.featWant; deep16/js/features.js; deep16/js/magic.js M.concCheck; deep16/js/battle.js attack; deep16/js/pocket.js; mode=firstfeats1030) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=holdthethread&only=holdthethread,untempled,suddendark,standin&fresh=1030f",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:21:54.202Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-greenreturn-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Oath of the Green Return, the paladin's oath of ours: GREEN AGAIN, WHAT FALLS, FEEDS, the Aura of Deep Roots; the paladin's choice at 3 (10-30)",
+   "pt": "the leveling lane §8 D, his \"i'd say yes\" (js/rules.js R.SUBCLASSES.paladin, R.devotion, R.oathSpells; deep16/js/features.js F.greenAgain, M.onKill, F.holdGround; deep16/js/classes.js NPC.SUBS; mode=greenreturn1030) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=greenagain&only=greenagain,whatfallsfeeds,auraofdeeproots&fresh=1030e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:24:23.204Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-fortune-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Fortune's Due, a feat of ours: Dues from your misses, spent after the d20 (10-30)",
+   "pt": "the leveling lane §8 C, his \"go with the leans\" (js/rules.js R.FEATS.fortunesdue; deep16/js/features.js F.dueGain, F.fortuneAtk, F.fortuneSave; deep16/js/battle.js attack; deep16/js/rules.js RU.save; mode=fortune1030) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=fortunesdue&only=fortunesdue&fresh=1030d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:21:44.335Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-longguard-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Long Guard, a feat of ours with a reach weapon: KEEP BACK and SET AGAINST THE CHARGE (10-30)",
+   "pt": "the leveling lane §8 B, his \"go with the leans\" (js/rules.js R.FEATS.longguard; deep16/js/features.js F.keepBack, F.chargeStep; deep16/js/battle.js moveAlong and the hit; mode=longguard1030) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=keepback&only=keepback,setagainst&fresh=1030g",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:20:24.318Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-reach-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The SRD's reach weapons in the second game: glaive, halberd, pike, whip -- a swing and an opportunity attack at 10 ft (10-30)",
+   "pt": "the leveling lane §8 A, his \"go with the leans\" (content/items.json; deep16/js/save.js weaponOf `reach`; deep16/js/grid.js G.armOf; deep16/js/battle.js canHit and the opportunity attacks; deep16/js/tactics.js; mode=reach1030) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=~fighter.5.human.18-14-15-9-13-11.glaive_chainmail_______.Glaive_Hand&lvl=5&fresh=1030a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:19:13.264Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-followshelf-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Follow-Through again: its shelf swings the WIDE SWING now, and the carry shows; the pick says it wants a heavy weapon (10-30)",
+   "pt": "the leveling lane §9 0b, his \"no visible action\" on eyes-followthrough-1030 (deep16/js/gallery.js THEN.wideswing; js/rules.js R.FEATS.followthrough, R.pickRows; mode=followshelf1030) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=followthrough&only=followthrough&fresh=1030b",
+   "verdict": "works",
+   "note": "compare threshing with heavy flail - threshing flail isn't defined in SRD is it?",
+   "at": "2026-10-30T20:18:44.553Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-rootclick-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Rootdrag again: the drag is a click on a gold square now, not the eight-way menu (10-30)",
+   "pt": "the leveling lane §9 0a, his \"clickable 'drag to' direction/location vs menu\" on eyes-rootdrag-1030 (deep16/js/grimoire.js dragSquares; deep16/js/ui.js pickInput `squares`; mode=rootclick1030) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=rootdrag&fresh=1030r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:14:52.664Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-keeper-water-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Keeper's stair under water again, all eight steps (the top four stood dry since the 10-14 heights), and the lever's difficulty check (10-30)",
+   "pt": "the difficulty lane 10-30, his \"the top 4 stairs don't seem to be flooded\" (deep16/js/iso.js load: the water sheet scaled with the steps; dev/keeper-probe.js) · eyes",
+   "url": "deep16/?keeperfight&lvl=3&start=ledge&log&fresh=1030k",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:13:01.364Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-gridclicks-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The grid's clicks again: a right-click on END TURN's warning keeps the turn now (SPACE ends it); the frightened's squares; right-click and X a prompt's NO (10-30)",
+   "pt": "the menus lane 10-30, his \"don't let right-click on the warning = yes to end turn warning (other popup it means no)\" and his 0747Z note on the fear's squares (deep16/js/ui.js turnInput, UI.askEnd, the fear's square; deep16/js/simple.js; mode=gridclicks1029) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=lymen:5,vivian:5&lvl=5&afraid=2&fresh=30a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:04:24.316Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-gnawingword-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Gnawing Word, the warlock's curse of ours: psychic that grows with each hit (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (deep16/js/grimoire.js E.gnawingword; deep16/js/battle.js) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=gnawingword&fresh=1030f",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:22:12.836Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-drillyard-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Drillyard, the fighter's archetype of ours: set plays on a hit, Call the Mark, Hold Ground (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (js/features.js F.drill, M.onWeaponHit; deep16/js/classes.js NPC.OPTIONS.fighter) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=setplays&only=setplays,callthemark,holdground&fresh=1030d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:20:37.051Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-threshing-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Threshing Floor, the fighter's archetype of ours: Hard Ground, Up Off the Floor, Threshing (10-30)",
+   "pt": "the leveling lane, his \"i'd say yes\" (js/rules.js R.SUBCLASSES.fighter; deep16/js/rules.js RU.hardGround, RU.startTurn; deep16/js/battle.js) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=hardground&only=hardground,upoffthefloor,threshing&fresh=1030",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T20:25:25.421Z",
+   "new_since_last_save": true
+  }
+ ]
+}
