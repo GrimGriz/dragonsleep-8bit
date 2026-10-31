@@ -2,6 +2,18 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-31
+- 2026-10-31 · `097ee7f1` · the second game's house · Find Familiar cast in the second game: WHAT SHAPE? of the ground's region (the first game's R.famForms), the Calling Herbs spent, an hour on the clock, flags.familiar for the next fight, on THE WORLD and on a floor; `deep16/?at=familiar16`, `mode=familiar1031` · *"can you get find familiar working"*, *"8-bit might have familiar by region shaped somewhere"*
+- 2026-10-31 · `097ee7f1` · the second game's house · A spell sheet read from THE WORLD's ITEMS no longer crashes the game (the world menu's host had no `whyNot`) · *"trying to 'read sheet' from inventory (find familiar) on world map crashes game"*
+- 2026-10-31 · `097ee7f1` · the second game's house · The play record keeps a fight on a floor's own squares (the Wet's, a crawler loose at its cradle) and the pulled-in Settling and Keeper, with that fight's log only; the Gulch's and the cloaker's were kept already · *"fights on at least the wet, gulch, cloaker recording with the other fight records to live"*
+- 2026-10-31 · ruled · Silverton's hours and words · Some missions get a key step, and a key step flies into the JOURNAL with its new line (option A) · *"a, like add flag that some missions will have a key step and key step handling?"*
+- 2026-10-31 · ruled · Silverton's hours and words · WAIT asks how long, and a wait past an hour is a short rest too · *"yeah and if next bell > 1 hr then execute short rest also"*
+- 2026-10-31 · ruled · Silverton's hours and words · Skarn's split said plainly in the words that give the mission · *"Skarn split to be included in mission giving text more explicitly"*
+- 2026-10-31 · ruled · the Warrens and the Galleries on the tiles · Dace's words to the dagger he carries, not a staff · *"words"*
+- 2026-10-31 · ruled · the second game's house · A deep cradle whose crawler broke loose stays empty · *"empty"*
+- 2026-10-31 · ruled · the bestiary · Higertha's face waits on a cutter-side review of the orc tone in what we have, before more portrait asks · *"add to cutter-side orc tone review of what we have now that precedes additional portrait requests in our art lane"*
+- 2026-10-31 · ruled · the leveling · Stab Debut flagged for review against ranged attacks and item use · *"Flag Stab Debut for review vs ranged attacks and item use"*
+
 ## 2026-10-30
 - 2026-10-30 · seen · the leveling · Rootdrag again: the drag is a click on a gold square now, not the eight-way menu (`eyes-rootclick-1030` folded, marked works) · his ear file of 10-30 (2014Z)
 - 2026-10-30 · seen · the difficulty · The Keeper's stair under water again, all eight steps (the top four stood dry since the 10-14 heights), and the lever's difficulty check (`eyes-keeper-water-1030` folded, marked works) · his ear file of 10-30 (2014Z)
