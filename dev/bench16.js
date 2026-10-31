@@ -5066,6 +5066,25 @@
       okSd('DONE shuts it (' + gone + '); the next hour, no page (' + (pg2 && pg2.kind) + ' ' + (pg2 && pg2.phase) + ')', gone && !(pg2 && pg2.phase === 'draft'));
       RSd.refresh(a, false); var sh = !!a.feats.drafted; RSd.refresh(a, true); var lg = !!a.feats.drafted;
       okSd('the use: spent after a short rest\'s refresh ' + sh + ', after a long rest\'s ' + lg + ', can draft again ' + HSd.canDraft(a) + ' (want true, false, true)', sh && !lg && HSd.canDraft(a));
+      // THE POCKET DM: a run's short rest, a wizard of our own with the feat (the card's word ^4a:fseconddraft) beside Barley
+      var cvSd = document.createElement('canvas'); cvSd.width = D.W; cvSd.height = D.H; var cxSd = cvSd.getContext('2d');
+      var drawSd = function (pk) { pk.btns = []; pk.draw(cxSd); return pk.btns; }, btnSd = function (pk, re) { return drawSd(pk).filter(function (b) { return re.test(b.label); }); };
+      var Pq = new D.Pocket(); Pq.enter(); Pq.ask = function () { return true; };
+      Pq.st.roster = [{ code: '~wizard.5.human.8-14-14-16-12-10.quarterstaff.Wenna_Test.firebolt-light-mageArmor-magicmissile-shield+^4a:fseconddraft', name: 'Wenna Test', cls: 'wizard', lvl: 5 }];
+      Pq.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { custom: 0, lvl: 5 }]; Pq.st.morning = null; Pq.cache = {};
+      Pq.st.run = { rung: 1, plan: [], carry: [null, null], hd: [5, 5], arcane: [false, false], map: 'hexfloor', foes: ['goblin'] }; Pq.restCard(); Pq.go('rest');
+      var dSd = Pq.drafters(), b1 = btnSd(Pq, /^SECOND DRAFT: WENNA/)[0];
+      okSd('the Pocket DM\'s rest card: drafters ' + dSd.map(function (d) { return d.i + ' ' + d.h.name + ' ' + d.prepared.length + ' of a pool of ' + d.pool.length; }).join('; ') + ', the button ' + !!b1 + ' (none for Barley ' + !btnSd(Pq, /BARLEY/).length + ')', dSd.length === 1 && dSd[0].i === 1 && !dSd[0].spent && !!b1 && !btnSd(Pq, /BARLEY/).length);
+      var day0 = dSd[0].prepared.slice(); b1.fn(); var sc1 = Pq.screen, bx = btnSd(Pq, /^\[x\]/), outP = day0[0]; bx[0].fn(); var bo = btnSd(Pq, /^\[ \]/), tookP = dSd[0].pool.filter(function (id) { return day0.indexOf(id) < 0; })[0]; // (the page's first to take up)
+      bo[0].fn(); var sc2 = Pq.screen, dr = Pq.st.run.drafts && Pq.st.run.drafts[1], b2 = btnSd(Pq, /^DRAFTED: WENNA/)[0];
+      okSd('the draft page (' + sc1 + '): ' + bx.length + ' to let go, ' + bo.length + ' to take up; ' + outP + ' let go for ' + (dr && dr.took) + ', back on the ' + sc2 + ' card, the button ' + (b2 ? b2.label + (b2.dis ? ' (spent)' : '') : 'none'),
+        sc1 === 'draft' && bx.length === day0.length && bo.length > 0 && !!dr && dr.out === outP && dr.took === tookP && dr.prepared.indexOf(tookP) >= 0 && dr.prepared.indexOf(outP) < 0 && sc2 === 'rest' && !!b2 && b2.dis);
+      var fwSd = Pq.fightWords(), shSd = D.npc.sheet(Object.assign({}, D.npc.spec(fwSd[1].word), fwSd[1])), again = Pq.draftSwap(1, tookP, outP);
+      okSd('the next fight wears it: the word\'s day ' + JSON.stringify(fwSd[1].prepared) + ', the sheet knows ' + tookP + ' ' + (shSd.known.indexOf(tookP) >= 0) + ' and not ' + outP + ' ' + (shSd.known.indexOf(outP) < 0) + '; a second swap refused ' + !again,
+        (fwSd[1].prepared || []).indexOf(tookP) >= 0 && shSd.known.indexOf(tookP) >= 0 && shSd.known.indexOf(outP) < 0 && !again);
+      Pq.setTrial(); var trSd = Pq.st.run.drafts, dSd2 = Pq.drafters();
+      okSd('the long rest for the trial: the drafts gone (' + JSON.stringify(trSd) + '), Wenna may redraft ' + (dSd2[0] && !dSd2[0].spent), !trSd && dSd2.length === 1 && !dSd2[0].spent);
+      Pq.st.run = null;
       var his = Object.keys(memSd).filter(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); });
       okSd('his slots: written ' + (his.join(', ') || 'nothing'), !his.length);
     } catch (e) { repSd.errors.push(String(e && e.stack || e).slice(0, 900)); }

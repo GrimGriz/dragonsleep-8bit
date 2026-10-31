@@ -531,6 +531,7 @@
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
     if (s === 'notes') { var nf = this.noteFrom; this.go(nf === 'result' && this.result ? 'result' : 'fights'); return; } // (opened from a fight's card: back to it)
     if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
+    if (s === 'draft') { if (this.dOut) { this.dOut = null; this.scroll = 0; return; } this.go('rest'); return; } // (SECOND DRAFT: back a step, then to the rest card)
     if (s === 'result' || s === 'rest' || s === 'unlock') return; // (a card with its own buttons)
     this.go('title');
   };
@@ -633,12 +634,13 @@
     // (the ladder carries what the last rung left: js/classes.js NPC.build reads { word, hpLeft, slotsLeft, featsLeft })
     // (and the morning of THE LONG REST, 10-17: the day's spells, what was cast ahead -- the run's till its next long rest, else the single fight's)
     var self = this, run = this.st.run, words = this.words(), mm = run ? run.morning : this.st.dayMorning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null; // (a morning is its party's: a card changed since, and it is not worn)
-    if ((!run || !run.carry) && !mo) return words;
+    if ((!run || !run.carry) && !mo && !(run && run.drafts)) return words;
     return words.map(function (w, i) {
-      var c = run && run.carry ? run.carry[i] : null, m = mo ? mo[i] : null;
-      if (!c && !m) return w;
+      var c = run && run.carry ? run.carry[i] : null, m = mo ? mo[i] : null, dr = run && run.drafts ? run.drafts[i] : null; // (dr: SECOND DRAFT's day, Pocket.draftSwap -- 10-31)
+      if (!c && !m && !dr) return w;
       var o = Object.assign({ word: w, id: 'p' + i + '-' + PK.baseKey(w) }, m ? JSON.parse(JSON.stringify(m)) : {});
       if (c) Object.assign(o, { hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats });
+      if (dr) o.prepared = dr.prepared.slice();
       // (what the morning laid that a fight since has ended -- a Death Ward that held, a Mage Armor dispelled -- stays ended till the long rest, SRD 5.1; the Light is lit again, a cantrip -- 10-21)
       if (c && c.conds && o.conds) Object.keys(o.conds).forEach(function (k) { if (k !== 'light' && c.conds.indexOf(k) < 0) delete o.conds[k]; });
       if (c && c.conds && o.aid && c.conds.indexOf('aid') < 0) delete o.aid;
@@ -755,7 +757,7 @@
   // the trial: double deadly, the smallest table that reads so (his: "give them a 'long rest for the trial' after the fourth win and then do your double deadly")
   Pocket.prototype.setTrial = function () {
     var run = this.st.run; if (!run) return;
-    run.trial = true; run.carry = null; run.hd = this.levels().map(function (L) { return L; }); run.arcane = run.hd.map(function () { return false; });
+    run.trial = true; run.carry = null; run.drafts = null; run.hd = this.levels().map(function (L) { return L; }); run.arcane = run.hd.map(function () { return false; });
     if (this.planRung(run)) { this.keep(); return; }
     this.fightMap = run.map = this.randomMap();
     var pot = PK.pot(this.words(), run.map, this.st.dm), levels = this.levels(), room = Math.max(PK.roomOn(run.map), 6), kinds = null;
@@ -783,6 +785,53 @@
     });
     this.rest = { lines: lines };
     this.keep();
+  };
+  // SECOND DRAFT on a run (the feat, ours -- the leveling lane §8 item 4, RULED 10-30, his "Second Draft next leveling session"; js/rules.js R.FEATS.seconddraft, the house's
+  // deep16/js/house.js H.secondDraft): at a short rest between fights, once a long rest, one spell of a card's day let go and another it could prepare taken up -- kept on the
+  // run (run.drafts[seat]: { out, took, prepared }), worn by its fights (fightWords), gone at its long rest. drafters(): the seats with the feat that prepare, each { i, h, pool,
+  // prepared: the day it has now -- its draft's, else the run's morning, else the class's own --, spent }
+  Pocket.prototype.drafters = function () {
+    var run = this.st.run; if (!run) return [];
+    var words = this.words(), mm = run.morning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null, now = PK.morningInfo(this.st, PK.MORNING0(), false);
+    return now.cards.filter(function (c) { return c && c.pi && R.hasFeat(c.h, 'seconddraft'); }).map(function (c) {
+      var dr = run.drafts && run.drafts[c.i], day = dr ? dr.prepared : mo && mo[c.i] && mo[c.i].prepared ? mo[c.i].prepared : c.prepared;
+      return { i: c.i, h: c.h, pool: c.pi.pool, prepared: (day || []).slice(), spent: !!dr };
+    });
+  };
+  Pocket.prototype.draftSwap = function (i, out, took) {
+    var run = this.st.run, d = this.drafters().filter(function (x) { return x.i === i; })[0], k = d ? d.prepared.indexOf(out) : -1;
+    if (!run || !d || d.spent || k < 0 || d.pool.indexOf(took) < 0 || d.prepared.indexOf(took) >= 0) return false;
+    d.prepared[k] = took; run.drafts = run.drafts || {}; run.drafts[i] = { out: out, took: took, prepared: d.prepared };
+    this.keep(); D.sfx('magic');
+    return true;
+  };
+  // its page, from the rest card: the seat's day (the spell to let go), then what it could take up in its place
+  Pocket.prototype.drawDraft = function (ctx) {
+    var self = this, d = this.drafters().filter(function (x) { return x.i === self.dSeat; })[0], back = function () { self.dOut = null; self.go('rest'); };
+    head(ctx, 'SECOND DRAFT', 'once a long rest, at the end of a short rest: one prepared spell let go, another taken up in its place');
+    var px = 20, py = 34, pw = D.W - 40, ph = 192;
+    ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
+    if (!d || d.spent) { D.text(ctx, d ? d.h.name + ' has had a second draft since the long rest.' : 'nobody here can redraft', D.W / 2, py + 80, P('stone', 5), 'center'); }
+    else {
+      var out = this.dOut && d.prepared.indexOf(this.dOut) >= 0 ? this.dOut : null, list = out ? d.pool.filter(function (id) { return d.prepared.indexOf(id) < 0; }) : d.prepared;
+      D.text(ctx, '{y}' + d.h.name + '{/}: ' + (out ? 'in place of ' + (SV.spell(out) || { name: out }).name + ', which?' : 'let which go?'), px + 6, py + 5, P('bone', 1));
+      var per = 26, from = Math.min(this.scroll, Math.max(0, list.length - per)), b0 = this.btns.length; this.scroll = from; // (two a row, a page of 26: the morning's own)
+      list.slice(from, from + per).forEach(function (id, k) {
+        var sp = SV.spell(id) || { name: id, level: '?' }, col = k % 2, rw = Math.floor(k / 2);
+        self.btn(ctx, fitText((out ? '[ ] ' : '[x] ') + sp.name, 120) + '  L' + sp.level, px + 6 + col * ((pw - 12) / 2), py + 18 + rw * 12, (pw - 16) / 2, 11, function () {
+          if (!out) { self.dOut = id; self.scroll = 0; D.sfx('cursor'); return; }
+          if (self.draftSwap(d.i, out, id)) { self.say(d.h.name + ' lets ' + (SV.spell(out) || { name: out }).name + ' go and prepares ' + sp.name + ' in its place', 260); back(); }
+        }, { small: true });
+      });
+      this.listRows(b0, py + 18, 12, list.length, per, from, 'scroll', 2);
+      this.pager(ctx, px + 6, py + ph - 13, list.length, per, from);
+    }
+    this.btn(ctx, this.dOut ? 'BACK' : 'NOT NOW', 20, 236, 70, 15, function () { if (self.dOut) { self.dOut = null; self.scroll = 0; D.sfx('cancel'); } else back(); });
+  };
+  // the rest card's SECOND DRAFT buttons, a seat a button, under the lines (drawRest, drawModuleRest)
+  Pocket.prototype.draftBtns = function (ctx, x, y) {
+    var self = this;
+    this.drafters().forEach(function (d, k) { self.btn(ctx, d.spent ? 'DRAFTED: ' + fitText(d.h.name.toUpperCase(), 70) : 'SECOND DRAFT: ' + fitText(d.h.name.toUpperCase(), 70), x + k * 140, y, 134, 13, function () { self.dSeat = d.i; self.dOut = null; self.go('draft'); }, { small: true, dis: d.spent }); });
   };
   // what they went in with (his: "quit, retry or reroll rung - restored to what they went in with before they died")
   Pocket.prototype.restore = function () {
@@ -1008,7 +1057,7 @@
   // after a module's won fight: what its slot allows -- a long rest (hit points, slots, hit dice and features back), a short rest (the ladder's), or none
   Pocket.prototype.moduleRest = function () {
     var run = this.st.run, sl = run && run.plan[run.rung - 1], rs = (sl && sl.rest) || {};
-    if (rs.long) { var lvs = this.levelUps(); run.carry = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); this.rest = { long: true, levels: lvs }; this.keep(); } // (the XP's levels at the long rest, 10-17)
+    if (rs.long) { var lvs = this.levelUps(); run.carry = null; run.drafts = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); this.rest = { long: true, levels: lvs }; this.keep(); } // (the XP's levels at the long rest, 10-17)
     else if (rs.short && run.carry) this.restCard();
     else this.rest = { none: true };
     this.rest.module = true; this.rest.market = !!rs.market;
@@ -1552,6 +1601,7 @@
     else if (s === 'cr') this.drawCR(ctx);
     else if (s === 'result') this.drawResult(ctx);
     else if (s === 'rest') this.drawRest(ctx);
+    else if (s === 'draft') this.drawDraft(ctx); // (SECOND DRAFT, from the rest card: 10-31)
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
     else if (s === 'market') this.drawMarket(ctx);
@@ -1960,6 +2010,7 @@
     } else {
       D.text(ctx, 'An hour. The fallen are up first (the DM\'s hand), then hit dice till whole or out (SRD 5.1).', D.W / 2, yy, P('silver', 5), 'center'); yy += 12;
       (this.rest.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
+      this.draftBtns(ctx, x + 15, Math.min(yy + 4, y + 190 - 40)); // (SECOND DRAFT, a seat with the feat a button: 10-31)
     }
     this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (long) { self.toMorning({ label: 'TO THE TRIAL', fn: function () { self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
@@ -1980,6 +2031,7 @@
     else {
       D.text(ctx, 'An hour. The fallen are up first (the DM\'s hand), then hit dice till whole or out (SRD 5.1).', D.W / 2, yy, P('silver', 5), 'center'); yy += 12;
       (rs.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
+      if (rs.lines) { this.draftBtns(ctx, x + 15, yy + 2); yy += 16; } // (SECOND DRAFT: 10-31)
     }
     if (nx) {
       var dd = PK.diff(this.levels(), nx.foes); yy += 6;
