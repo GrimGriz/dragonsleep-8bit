@@ -111,6 +111,8 @@
   // since 10-22 by the date its id ends in first (-1021, -1021h: the month and day, then the letter), as seats both prepend and append their rows (Griz:
   // "didn't find the world map one tho" -- THE WORLD's rows, written near the file's head, had sunk to pages 16 to 20)
   var PER = 6, ROWS = [], pg = +(get('dsl-situations-page') || 0) || 0;
+  // one lane's rows alone (10-31, Griz: "a special version of situations.html with just the maps stuff"): ?lane=the maps,the world map -- a row whose pt begins with one of them
+  var LANES = (function () { var m = /[?&]lane=([^&#]+)/.exec(location.search); return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')).toLowerCase().split(',').map(function (w) { return w.trim(); }).filter(Boolean) : null; })();
   function dated(id) { var m = /-(\d{4})([a-z]?)$/.exec(id); return m ? +m[1] * 30 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 0; }
   function build() {
     var E = window.DS.EYES || {}, S = window.DS.SITUATIONS || {}, all = [], n = 0;
@@ -120,14 +122,16 @@
     // story row whose door is deep16/?at=<id>
     var S16 = window.DS.SIT16 || {};
     Object.keys(S16).forEach(function (id) { if (!S[id]) all.push({ id: id, s: Object.assign({ url: 'deep16/?at=' + id }, S16[id]), pri: S16[id].pri || 4, eyes: false, o: n++ }); });
+    if (LANES) all = all.filter(function (r) { var p = String(r.s.pt || '').toLowerCase().replace(/^\s+/, ''); return LANES.some(function (w) { return p.indexOf(w) === 0; }); });
     all.forEach(function (r) { r.done = noted(r.id) ? 1 : 0; });
     all.sort(function (a, b) { return a.pri - b.pri || a.done - b.done || (b.eyes - a.eyes) || (a.eyes ? dated(b.id) - dated(a.id) || b.o - a.o : a.o - b.o); });
     ROWS = all;
+    if (pg > pages() - 1) pg = 0; // (a saved page past a lane's few)
   }
   function pages() { return Math.max(1, Math.ceil(ROWS.length / PER)); }
   function count() {
     var n = ROWS.filter(function (r) { return noted(r.id); }).length;
-    document.getElementById('count').innerHTML = '<b>' + n + '</b> of ' + ROWS.length + ' noted';
+    document.getElementById('count').innerHTML = '<b>' + n + '</b> of ' + ROWS.length + ' noted' + (LANES ? ' &middot; <i>only ' + LANES.join(', ').replace(/</g, '&lt;') + '</i>' : '');
     document.getElementById('pg').textContent = 'page ' + (pg + 1) + ' of ' + pages();
   }
   function pager() {
