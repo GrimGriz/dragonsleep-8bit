@@ -2930,7 +2930,9 @@
   // once a turn, the same one, while it stands; a bow spends its arrow
   Battle.prototype.stabDebut = function* (u, tgt) {
     var T = u.turn; if (!T || T.debutDone || !tgt || tgt.dead || tgt.hp <= 0 || !RU.canAct(u) || u.dead || u.hp <= 0) return;
-    if (u.weapon.ammo) { if (!this.ammoLeft(u)) return; this.spendAmmo(u); }
+    // (any weapon attack, a bow's too -- RULED 10-31, Griz: "weapon attack, check arrow burn": the shot spends its arrow at the Attack, the debut its own, one an attack as the
+    // SRD spends ammunition; the quiver empty after the first, said, not skipped in silence)
+    if (u.weapon.ammo) { if (!this.ammoLeft(u)) { this.card(['{g}(' + nameOf(u) + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left for the stab debut.){/}'], 120); return; } this.spendAmmo(u); }
     T.debutDone = true;
     this.card(['{y}' + nameOf(u) + '{/}: {o}STAB DEBUT{/}  {g}(' + Battle.nm(tgt) + ' has not had its first turn: one more, the weapon\'s dice alone){/}'], 160);
     yield* this.attack(u, tgt, Object.assign({}, u.weapon, { mod: 0, plain: true, name: u.weapon.name + ' (stab debut)' }));

@@ -413,6 +413,7 @@
   var L = function (k, o) { return D.counter.L(k, o); };
   M.talk = function* (B, id, script, name, pic) { // (pic: a picture in the portrait's place -- js/counter.js o.pic)
     var C = D.counter, N = (DS.DATA.npcs || {})[id] || {}, done = null;
+    if (D.house && D.house.trail) D.house.trail('talk', id); // (the trail his NOTES carry, as a counter's talk writes it -- 10-31, his Sabeth question: the mines' talks left none)
     var sc = new C.Counter(B, { id: id, name: name || N.name || id, place: D.roam.def.name, what: D.roam.def.sub, pic: pic || null, script: function (s) { return (function* () { done = yield* (script || M.SCENES[id])(s, B); })(); } });
     D.push(sc); while (!sc.done) yield 1;
     if (sc.regear && D.roam.regear) D.roam.regear(B);

@@ -313,7 +313,7 @@
       { id: 'greyroad', name: 'the Grey Road', desc: "GreyFang's, the pit-master's way. Turn It Aside: the reaction adds WIS to the AC of one within 5 ft. Pit-Wise: rising and climbing cost less. At 7, Give Ground: the reaction steps back from a foe, and the next bow shot at it has advantage." }] },
     rogue: { at: 3, word: 'ROGUISH ARCHETYPE', opts: [
       { id: 'thief', name: 'Thief', srd: true, desc: 'Fast Hands: using an item is a bonus action. At 9, Supreme Sneak.' },
-      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: attacking a foe that hasn't had its first turn, one more attack at it, the weapon's dice alone (no bonuses)." }] },
+      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: any weapon attack (a bow's shot too) at a foe that hasn't had its first turn, then one more at it, the weapon's dice alone (no bonuses)." }] }, // (RULED 10-31, Griz: "weapon attack")
     warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
       { id: 'fiend', name: 'The Fiend', srd: true, desc: "Dark One's Blessing: a foe it drops gives temporary HP. At 6, Dark One's Own Luck." },
       { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." }] },
