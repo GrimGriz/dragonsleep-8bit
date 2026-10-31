@@ -29,15 +29,16 @@
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): two
       // wolf spiders (ws1, ws2), the gulch's own (content/encounters.json gulch: wolf spiders 2-3, a giant spider with 1-2 of them), on the snared
       // lad's squares. For four at 3: 975 HARD before, 1500 HARD after (x1.54). invented.json#early-fights-half-again
-      foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] },
-             { id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }], wave: null },
+      // (TURNED A QUARTER 10-31, with data/maps.js gulch: every `at` on that map -- here, the ettercap ladder's and the snared lad's below -- is the first draft's (x, y) as (y, 17 - x); the ettercap's seat is now (1, 10), on the ledge at the NW)
+      foes: [{ id: 'ettercap', kind: 'ettercap', at: [1, 10] }, { id: 'gs1', kind: 'giantspider', at: [3, 7] },
+             { id: 'ws1', kind: 'wolfspider', at: [5, 13] }, { id: 'ws2', kind: 'wolfspider', at: [6, 4] }], wave: null },
     // THE LADDER'S RUNGS 3 AND 4 KEEP THEIR OLD FIGHTS (10-28, Griz: "Take the leans" -- the difficulty lane §2.4/§3.3: the half again is the story's, "the ladders are not for this, as with
     // the Keeper"): each `<id>-ladder` record is its story fight as the ladder had it before 10-03 (the record of 9b849b2^ / 45c1dc5^ word for word, or the crew's as it stood before its
     // fourth, the chuul's before its frog), right after the story's own in this list -- its place on the rung (a rung is built from D.fightsAt, in this list's order) -- and the story's own carries `ladder: false`.
     { id: 'ettercap-ladder', level: 3, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
       intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider)', won: 'THE GULCH GOES QUIET.',
-      foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
+      foes: [{ id: 'ettercap', kind: 'ettercap', at: [1, 10] }, { id: 'gs1', kind: 'giantspider', at: [3, 7] }], wave: null },
     { id: 'landlord', level: 4, map: 'pool', name: 'The Landlord', sub: 'the Warrens, the deepest pool', music: 'boss',
       intro: 'It rises from its pool, all eye-stalk and tentacle. It will not leave the water.',
       from: 'the 8-bit game: the Warrens, FIGHT IT instead of the bucket (events.js; the otyugh)', won: 'THE POOL GOES STILL.',
@@ -144,7 +145,7 @@
     { id: 'snared', story: true, level: 2, map: 'gulch', name: 'The Snared Lad', sub: 'Web Gulch', music: 'boss',
       intro: 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       from: 'the 8-bit game: events.js, the snared lad (two wolf spiders and a giant spider)', won: 'YOU CUT THE TRAVELER DOWN.',
-      foes: [{ id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
+      foes: [{ id: 'ws1', kind: 'wolfspider', at: [5, 13] }, { id: 'ws2', kind: 'wolfspider', at: [6, 4] }, { id: 'gs1', kind: 'giantspider', at: [3, 7] }], wave: null },
     // the ladder's wagon yard (Griz, 09-27: "willem escaping (or both) shouldn't result in ladder fall - we need the escape for the
     // 8-bit, can we add a pair of soldiers and have them not escape for the ladder?"): two hired swords ride guard, and nobody runs
     // (noFlee). The 8-bit game's own fight keeps the escape and the chase. DEADLY for four at 4 by the table (the four have max HP).

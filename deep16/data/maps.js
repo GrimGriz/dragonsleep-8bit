@@ -26,42 +26,48 @@
 // bog, the point and the gulch keep their dead ends.
 
 // Web Gulch, the strung end (the 8-bit game's `gulch`): the ravine closes into a knot of web, and on a shelf of rock
-// above it the ettercap sits braiding. The slab at (6-7, 3) is the only way up.
+// above it the ettercap sits braiding. The slab at (3, 10-11) is the only way up.
+// TURNED A QUARTER (10-31, Griz: "quarter turn now"; the iso roam of this gully, js/gulch.js, closes to the NW and opens east, and this map's back wall had faced NE): every square below is the first draft's (x, y) as (y, 17 - x), the map now 14 wide and 18 tall -- the back wall the NW edge, the party's way in the SE; data/fights.js turns the foes' squares (the ettercap, the ettercap ladder, the snared lad) with it
 window.D16.MAPS.gulch = {
   name: 'Web Gulch',
   sub: 'the strung end',
   step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   ground: 'earth', // the gulch is open to the sky (the 8-bit game's `gulch` is an outdoor ground)
   rows: [
-    '##################',
-    '####LLLLLL########',
-    '###.LLLLLL..######',
-    '##....//.....#####',
-    '##............####',
-    '#....P.........###',
-    '#...............##',
-    '##......rr......##',
-    '###....rrr.....###',
-    '####..........####',
-    '####.....P...#####',
-    '#####.......######',
-    '######....########',
-    '######....########'
+    '##############',
+    '##############',
+    '######..######',
+    '#####....#####',
+    '####......####',
+    '###........###',
+    '##..........##',
+    '##..........##',
+    '#LL....rr.P...',
+    '#LL....rr.....',
+    '#LL/....r.....',
+    '#LL/..........',
+    '#LL..P......##',
+    '#LL........###',
+    '##.......#####',
+    '###.....######',
+    '#####..#######',
+    '##############'
   ],
-  entry: [[7, 12], [8, 12], [7, 13], [8, 13], [6, 11]],
+  entry: [[12, 10], [12, 9], [13, 10], [13, 9], [11, 11]],
   // strung rim to rim (Griz, 09-30: "I think we need a bunch of webbing in the room"): the 8-bit gulch's strung end is web from
   // wall to wall, the ettercap sitting in it. Added that day: the ledge round its seat, the floor under the ledge's ends, the back
   // corners and the side walls; the slab and the two squares above it are left clear, so the way up is not all difficult ground
-  webs: [[3, 2], [3, 3], [4, 3], [12, 3], [4, 5], [13, 5], [3, 6], [4, 6], [5, 6], [10, 6], [11, 6], [12, 6], [5, 7], [6, 7], [12, 7], [13, 7], [14, 6],
-    [4, 1], [5, 1], [6, 1], [8, 1], [9, 1], [5, 2], [8, 2], [9, 2], [10, 2], [11, 2],
-    [2, 3], [2, 4], [3, 4], [11, 3], [12, 4], [13, 4], [1, 5], [1, 6], [2, 6], [15, 6], [15, 7], [14, 7]],
+  webs: [[2, 14], [3, 14], [3, 13], [3, 5], [5, 13], [5, 4], [6, 14], [6, 13], [6, 12], [6, 7], [6, 6], [6, 5], [7, 12], [7, 11], [7, 5], [7, 4], [6, 3],
+    [1, 13], [1, 12], [1, 11], [1, 9], [1, 8], [2, 12], [2, 9], [2, 8], [2, 7], [2, 6],
+    [3, 15], [4, 15], [4, 14], [3, 6], [4, 5], [4, 4], [5, 16], [6, 16], [6, 15], [6, 2], [7, 2], [7, 3]],
   webDC: 11, // the ettercap's silk (SRD 5.1 Ettercap, Web: DC 11 Strength to burst it; RULED 09-30, Griz: "11")
   // the corner west of its seat where the floor meets two walls (Griz, 09-30: "fancy up like what I'd call 3 tiles west of the
   // Ettercap where the floor and two walls make a corner" -- then, pointing in the pane: "where the mouse is is the tile I meant ...
   // (his spawn at the time)"): the ledge's end, (4, 1), three along from its seat at (7, 1), walls at (3, 1) and (4, 0). The two
   // nooks of the back wall's step, (3, 2) and (2, 3), first read as his corner, keep theirs. A corner web strung across each, a
   // cocoon hung in it (js/ui.js cornerWeb)
-  webCorners: [[4, 1], [3, 2], [2, 3]],
+  // (TURNED WITH THE MAP, 10-31: a corner web is strung across a square's two FAR edges (js/ui.js cornerWeb) and a turn does not carry that over -- the ledge's end above, (4, 1), is now (1, 13) with its walls to the NW and SW, so the three stand on the squares with rock at both far edges nearest the seat (1, 10): the ledge's NE end (1, 8) and the two nooks of the north step, (2, 6) and (3, 5))
+  webCorners: [[1, 8], [2, 6], [3, 5]],
   foes: [],
   wave: null
 };
