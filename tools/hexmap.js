@@ -166,6 +166,7 @@
     if (!(S.seeded && S.seeded.silverton1028)) SILVERED = seedSilverton();
     if (!(S.seeded && S.seeded.silverton1028b)) RESUNK = seedSinksOut();
     if (!(S.seeded && S.seeded.coldridge1031)) CLIMBED = seedColdridgeClimb();
+    if (!(S.seeded && S.seeded.coldridge1031b)) HAIRPINNED = seedColdridgeHairpins();
   }
   // THE COLDRIDGE CLIMB AND ITS SHELF (10-31, the Halloween desk; his words on the mile hex (112, 32) and the four round it: "Should essentially encompass the road leading
   // up to the road to the doors... like it's pretty decently mapped out road except for this section. I was wonder if you could do the shaping like the silverton fixes were
@@ -174,6 +175,47 @@
   // among gentler ones -- to where it levels near 5,400 ft. A level along the road (the Warrens' bench's way) grades the climb evenly from the floor to the shelf; a wider
   // level holds the shelf flat for some 2 mi (the iso roam to come); the unpainted mile hexes the road runs through are painted by the height they are given (foothills,
   // hills, gray mountains on the shelf). His paint, at the mile or the 5 miles, is kept, and his sinks and the switchbacks to the Doors with it.
+  // THE CLIMB IN HAIRPINS (10-31, the Halloween desk, the same afternoon; his words on the first shaping: "don't worry about [his black-mountain hexes], worry about a
+  // somewhat realistic path when people zoom in"): once, on load, after the first. The climb's straight runs up the face (his rough legs, a mile or two each at 750 ft a
+  // mile) become hairpins across the slope -- ten legs about 0.8 mi wide, each climbing some 530 ft, near an 11% grade, the road some 2 mi longer -- cut into one smooth
+  // face from the junction's floor to the shelf: a broad level along the climb's line for the face, a narrow one along the hairpins for the road's own ledge. The first
+  // seed's even grade along the old legs is taken out; the shelf stays. Every mile hex on the face is painted by its height, his own black ones too (his word above).
+  var HAIRPINNED = false, HP_LEGS = 10, HP_HALF = 0.4;
+  function seedColdridgeHairpins() {
+    S.seeded = S.seeded || {}; S.seeded.coldridge1031b = true;
+    var P = S.paths.filter(function (p) { return /coldridge/i.test(p.name || ''); })[0]; if (!P) return false;
+    var pts = ptsOf(P); if (pts.length < 3) return false;
+    // the climb's end on the old road: CLIMB_TO miles along it, and the index of the first point past it
+    var acc = 0, end = null, past = -1;
+    for (var i = 0; i + 1 < pts.length; i++) {
+      var a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (acc + L >= CLIMB_TO) { var t = (CLIMB_TO - acc) / L; end = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; past = i + 1; break; }
+      acc += L;
+    }
+    if (!end || past < 1) return false;
+    var A = pts[0], dx = end[0] - A[0], dy = end[1] - A[1], D = Math.hypot(dx, dy), ux = dx / D, uy = dy / D, vx = -uy, vy = ux;
+    // (first straight up the face a fifth of the way, so the hairpins swing clear of the mile's and the Galleries road's beds where they leave the junction: js bedAt
+    // pulls the land within 0.45 mi of a road to that road's bed, and the first hairpins had taken the mile road's 650 ft)
+    var F0 = 0.2, pins = [[+(A[0] + dx * F0).toFixed(3), +(A[1] + dy * F0).toFixed(3)]], side = 1;
+    for (var k = 1; k <= HP_LEGS; k++) { var f = F0 + (1 - F0) * k / (HP_LEGS + 1); pins.push([+(A[0] + dx * f + vx * HP_HALF * side).toFixed(3), +(A[1] + dy * f + vy * HP_HALF * side).toFixed(3)]); side = -side; }
+    var climb = [A.slice()].concat(pins, [end]);
+    // the road: its first point (the junction, by name), the hairpins, the climb's end, then the rest as it was
+    P.pts = [P.pts[0]].concat(pins, [[+end[0].toFixed(3), +end[1].toFixed(3)]], P.pts.slice(past));
+    P.note = (P.note ? P.note + '; ' : '') + 'its climb from the junction in ten hairpins, 10-31 (his "a somewhat realistic path when people zoom in")';
+    P.grade = 'even'; // (its bed even at its ends: buildBeds)
+    var L2 = 0; for (var j = 0; j + 1 < climb.length; j++) L2 += Math.hypot(climb[j + 1][0] - climb[j][0], climb[j + 1][1] - climb[j][1]);
+    S.peaks = S.peaks.filter(function (p) { return p.id !== 'v-coldclimb'; }); // (the first seed's grade along the old legs)
+    var note = 'the Halloween desk 10-31, on his "worry about a somewhat realistic path when people zoom in"';
+    S.peaks.push({ id: 'v-coldface', name: 'the Coldridge face', pts: [A.slice(), end.slice()], h: 0, level: [CLIMB_H0, SHELF_H[0]], r: 1.0, note: note + ': one smooth face from the junction to the shelf' });
+    S.peaks.push({ id: 'v-coldroad', name: 'the Coldridge hairpins', pts: climb, h: 0, level: [CLIMB_H0, SHELF_H[0]], r: 0.22, note: note + ': the road\'s ledge, ' + L2.toFixed(1) + ' mi of hairpins at ' + Math.round((SHELF_H[0] - CLIMB_H0) / L2) + ' ft a mile' });
+    var n = 0, w2 = LV[2].w, hh2 = w2 * SQ3 / 2, x0 = Math.min(A[0], end[0]) - 1.5, x1 = Math.max(A[0], end[0]) + 1.5, y0 = Math.min(A[1], end[1]) - 1.5, y1 = Math.max(A[1], end[1]) + 1.5;
+    for (var r = Math.floor(y0 / hh2); r <= Math.ceil(y1 / hh2); r++) for (var q = Math.floor(x0 / w2 - r / 2); q <= Math.ceil(x1 / w2 - r / 2); q++) {
+      var c = hc(2, q, r), sg = segD(c, A, end); if (sg[0] > HP_HALF + 0.35) continue;
+      var hh = CLIMB_H0 + (SHELF_H[0] - CLIMB_H0) * sg[1], tt = hh < 1500 ? 'foothills' : hh < 4000 ? 'hills' : 'gray';
+      if (TB[tt]) { rawSet(2, K(q, r), tt); n++; }
+    }
+    reindex(); return true;
+  }
   var CLIMBED = false, CLIMB_TO = 7.1, SHELF_TO = 9.2, CLIMB_H0 = 10, SHELF_H = [5350, 5450]; // (miles along the road; feet -- 10 ft the trough's floor at the junction)
   function seedColdridgeClimb() {
     S.seeded = S.seeded || {}; S.seeded.coldridge1031 = true;
@@ -633,8 +675,11 @@
         for (var j = 0; j < n; j++) { var t = j / n, x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t; smp.push([x, y, cityOn(x, y, hRaw(x, y))]); }
       }
       var e = pts[pts.length - 1]; smp.push([e[0], e[1], cityOn(e[0], e[1], hRaw(e[0], e[1]))]); // (graded on the ground a town sits on, 10-28: the raw mountain front behind Silverton had lifted the roads out of it)
-      var W = river ? 4 : 10, bed = smp.map(function (s, i) {
-        var a = 0, n = 0, lo = 1e9; for (var k = Math.max(0, i - W); k <= Math.min(smp.length - 1, i + W); k++) { a += smp[k][2]; n++; if (smp[k][2] < lo) lo = smp[k][2]; }
+      // (a road graded `even` -- the Coldridge's hairpins, 10-31 -- keeps its window even at its ends, so it starts and ends on its own ground: a window cut short at an
+      // end had lifted the junction's end of the climb to the average of the two miles above it, some 560 ft)
+      var W = river ? 4 : 10, sym = P.grade === 'even', bed = smp.map(function (s, i) {
+        var w = sym ? Math.min(W, i, smp.length - 1 - i) : W;
+        var a = 0, n = 0, lo = 1e9; for (var k = Math.max(0, i - w); k <= Math.min(smp.length - 1, i + w); k++) { a += smp[k][2]; n++; if (smp[k][2] < lo) lo = smp[k][2]; }
         return river ? lo - 60 : a / n;
       });
       // a river only runs downhill (10-28, the maps window, on his "you're good to move and reshape things to add realism that fits the wiki"; the realm's river
@@ -1759,6 +1804,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED) { saveNow(); msg((CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED) { saveNow(); msg((HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
