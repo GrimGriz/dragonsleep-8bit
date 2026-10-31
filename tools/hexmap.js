@@ -165,6 +165,49 @@
     if (!(S.seeded && S.seeded.fork1022)) FORKED = seedFork();
     if (!(S.seeded && S.seeded.silverton1028)) SILVERED = seedSilverton();
     if (!(S.seeded && S.seeded.silverton1028b)) RESUNK = seedSinksOut();
+    if (!(S.seeded && S.seeded.coldridge1031)) CLIMBED = seedColdridgeClimb();
+  }
+  // THE COLDRIDGE CLIMB AND ITS SHELF (10-31, the Halloween desk; his words on the mile hex (112, 32) and the four round it: "Should essentially encompass the road leading
+  // up to the road to the doors... like it's pretty decently mapped out road except for this section. I was wonder if you could do the shaping like the silverton fixes were
+  // done, with the notion that somewhere around the altitude stabilization area will probably become an iso-roam"): once, on load. The Coldridge Route (the Doors road, the
+  // wiki's "starts up the mountain") left the Galleries junction on his trough's floor and climbed unpainted land unevenly -- 10 ft to 4,400 in 6.6 mi, one mile of 1,000 ft
+  // among gentler ones -- to where it levels near 5,400 ft. A level along the road (the Warrens' bench's way) grades the climb evenly from the floor to the shelf; a wider
+  // level holds the shelf flat for some 2 mi (the iso roam to come); the unpainted mile hexes the road runs through are painted by the height they are given (foothills,
+  // hills, gray mountains on the shelf). His paint, at the mile or the 5 miles, is kept, and his sinks and the switchbacks to the Doors with it.
+  var CLIMBED = false, CLIMB_TO = 7.1, SHELF_TO = 9.2, CLIMB_H0 = 10, SHELF_H = [5350, 5450]; // (miles along the road; feet -- 10 ft the trough's floor at the junction)
+  function seedColdridgeClimb() {
+    S.seeded = S.seeded || {}; S.seeded.coldridge1031 = true;
+    var P = S.paths.filter(function (p) { return /coldridge/i.test(p.name || ''); })[0]; if (!P) return false;
+    var pts = ptsOf(P); if (pts.length < 2) return false;
+    var cut = function (from, to) { // (the road between two distances along it)
+      var out = [], acc = 0;
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), t0 = Math.max(0, from - acc), t1 = Math.min(L, to - acc);
+        if (L > 0 && t1 > t0) { if (!out.length) out.push([a[0] + (b[0] - a[0]) * t0 / L, a[1] + (b[1] - a[1]) * t0 / L]); out.push([a[0] + (b[0] - a[0]) * t1 / L, a[1] + (b[1] - a[1]) * t1 / L]); }
+        acc += L;
+      }
+      return out;
+    };
+    var along = function (line, p) { // (the nearest point of a line: how far off, and how far along it, 0 to 1)
+      var d = 1e9, at0 = 0, acc = 0;
+      for (var i = 0; i + 1 < line.length; i++) { var sl = Math.hypot(line[i + 1][0] - line[i][0], line[i + 1][1] - line[i][1]), sg = segD(p, line[i], line[i + 1]); if (sg[0] < d) { d = sg[0]; at0 = acc + sg[1] * sl; } acc += sl; }
+      return [d, acc ? at0 / acc : 0];
+    };
+    var climb = cut(0, CLIMB_TO), shelf = cut(CLIMB_TO, SHELF_TO); if (climb.length < 2 || shelf.length < 2) return false;
+    var n = 0, has = {}; S.peaks.forEach(function (p) { has[p.id] = 1; });
+    var note = 'the Halloween desk 10-31, on his "do the shaping like the silverton fixes ... the altitude stabilization area will probably become an iso-roam"';
+    if (!has['v-coldclimb']) { S.peaks.push({ id: 'v-coldclimb', name: 'the Coldridge climb', pts: climb, h: 0, level: [CLIMB_H0, SHELF_H[0]], r: 0.45, note: note + ': the road graded evenly from the junction to the shelf' }); n++; }
+    if (!has['v-coldshelf']) { S.peaks.push({ id: 'v-coldshelf', name: 'the Coldridge shelf', pts: shelf, h: 0, level: SHELF_H.slice(), r: 1.0, note: note + ': where the climb levels, held flat (the iso roam to come)' }); n++; }
+    var all = climb.concat(shelf), x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, w2 = LV[2].w, hh2 = w2 * SQ3 / 2;
+    all.forEach(function (p) { x0 = Math.min(x0, p[0] - 1.5); x1 = Math.max(x1, p[0] + 1.5); y0 = Math.min(y0, p[1] - 1.5); y1 = Math.max(y1, p[1] + 1.5); });
+    for (var r = Math.floor(y0 / hh2); r <= Math.ceil(y1 / hh2); r++) for (var q = Math.floor(x0 / w2 - r / 2); q <= Math.ceil(x1 / w2 - r / 2); q++) {
+      var k = K(q, r), c = hc(2, q, r), p1 = up(2, q, r); if (S.paint[2][k] || S.paint[1][K(p1[0], p1[1])]) continue; // (his paint, at the mile or the 5 miles: kept)
+      var on = along(shelf, c), oc = along(climb, c), t = null;
+      if (on[0] <= 0.6) t = 'gray';
+      else if (oc[0] <= 0.45) { var hh = CLIMB_H0 + (SHELF_H[0] - CLIMB_H0) * oc[1]; t = hh < 1500 ? 'foothills' : hh < 4000 ? 'hills' : 'gray'; }
+      if (t && TB[t]) { rawSet(2, k, t); n++; }
+    }
+    reindex(); return n > 0;
   }
   // SILVERTON AND THE WARRENS FIT TO THE REALM (10-28, the maps window; his words: "I'd like a window to use the map-making to adjust the elevations around
   // silverton and the warrens to fit the wiki re altitudes", then on the seat's read of his paint, "1 - show me what's there now, they're probably just me being
@@ -1716,6 +1759,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK) { saveNow(); msg((RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED) { saveNow(); msg((CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
