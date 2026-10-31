@@ -5035,6 +5035,28 @@
     document.body.appendChild(preRc);
     return;
   }
+  // EVERY SPELL'S SCHOOL (mode=schools1031; the leveling lane §8 item 11, 10-31 -- wanted by Schoolbound and the wizard's traditions): each record's school as the SRD 5.1's
+  // text names it (tools/spell-schools.py, which the gate also runs as `check` against srd/spells/), read by R.school -- the counts by school, a few that a hand list got
+  // wrong once (Produce Flame and Call Lightning are conjurations), ours by his word (the Scourges evocations) and ours not ruled (none). Told, not failed: where the grid's
+  // Sculpt Spells hand list (deep16/js/features.js EVOCATION, M.sculpts) and the data disagree
+  if (get('mode', '') === 'schools1031') {
+    var repSc = { checks: [], errors: [] };
+    function okSc(what, v) { repSc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var RS = window.DS.R, SP = window.DS.DATA.spells, ids = Object.keys(SP).filter(function (k) { return k.charAt(0) !== '_'; }), by = {};
+      ids.forEach(function (k) { var s = RS.school ? RS.school(k) : null; by[s || 'none'] = (by[s || 'none'] || 0) + 1; });
+      var WANT = { abjuration: 26, conjuration: 24, divination: 6, enchantment: 18, evocation: 55, illusion: 10, necromancy: 14, transmutation: 22, none: 7 };
+      okSc('the schools: ' + Object.keys(by).sort().map(function (k) { return k + ' ' + by[k]; }).join(', '), Object.keys(WANT).every(function (k) { return by[k] === WANT[k]; }) && Object.keys(by).length === Object.keys(WANT).length);
+      var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: null };
+      okSc('a few: ' + Object.keys(spot).map(function (k) { return k + ' ' + RS.school(k); }).join(', '), Object.keys(spot).every(function (k) { return RS.school(k) === spot[k]; }));
+      var u = { subclass: 'School of Evocation', lvl: 2 }, hand = ids.filter(function (k) { return D.magic.sculpts(u, k); });
+      var extra = hand.filter(function (k) { return RS.school(k) !== 'evocation'; }), miss = ids.filter(function (k) { return RS.school(k) === 'evocation' && hand.indexOf(k) < 0; });
+      okSc('told: Sculpt Spells\' hand list holds ' + hand.length + '; not evocations by the SRD: ' + (extra.map(function (k) { return k + ' (' + RS.school(k) + ')'; }).join(', ') || 'none') + '; evocations it leaves out: ' + (miss.join(', ') || 'none'), true);
+    } catch (e) { repSc.errors.push(String(e && e.stack || e)); }
+    var preSc = document.createElement('pre'); preSc.id = 'out'; preSc.textContent = 'BENCH16 ' + JSON.stringify(repSc);
+    document.body.appendChild(preSc);
+    return;
+  }
   // THE THRESHING FLAIL IS HEAVY (mode=flail1031; RULED 10-31, Griz: "threshing flails are considered heavy, magical ones too" -- the notes for Tuesday, item 2): the three
   // flails `heavy` (content/items.json, both games read it; the first game's fights read no weapon's heavy); Barley's own in hand on the grid is heavy (F.heavyInHand), so
   // with Follow-Through his ring offers WIDE SWING (without the feat it does not), and the level-4 pick no longer says his flail is not heavy

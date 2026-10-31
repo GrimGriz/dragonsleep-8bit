@@ -858,6 +858,8 @@
   // able to transfer back and forth from 16bit fights" -- so the 8-bit battle casts them too, js/battle.js)
   R.PALADIN_SPELLS = ['bless', 'command', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'brandingsmite', 'magicweapon', 'revivify', 'daylight'];
   function spellData(id) { return DS.DATA.spells[id]; }
+  // a spell's school (SRD 5.1's, in its record since 10-31 -- tools/spell-schools.py, the leveling lane §8 item 11; ours only by his word): null when it has none
+  R.school = function (id) { var sp = spellData(id); return (sp && sp.school) || null; };
   // the Oath of Devotion's spells (SRD 5.1): Protection from Evil and Good and Sanctuary from 3, Lesser Restoration from 5 (Zone of
   // Truth, its pair, isn't built; nor the 9th's -- Beacon of Hope and Dispel Magic are grid-only spells, HELD in the 8-bit since 10-03; the grid's class paladin has them, js/classes.js). Both games (the 3rd's pair was the grid's alone till 09-28g)
   // (a paladin sworn to the Oath of the Green Return, ours, keeps its own oath's: Longstrider at 3, Barkskin and Spike Growth at 5, Daylight at 9 -- Goodberry and Meld
