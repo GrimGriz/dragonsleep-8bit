@@ -421,4 +421,5 @@ def main():
                        extras=[(sword, COL['blade'])])
 
 
-main()
+if __name__ == '__main__':      # (run by Blender's --python; imported -- the Willem seat's tools/willem-blend.py, 10-31 -- it builds nothing on its own)
+    main()
