@@ -5035,6 +5035,30 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE THRESHING FLAIL IS HEAVY (mode=flail1031; RULED 10-31, Griz: "threshing flails are considered heavy, magical ones too" -- the notes for Tuesday, item 2): the three
+  // flails `heavy` (content/items.json, both games read it; the first game's fights read no weapon's heavy); Barley's own in hand on the grid is heavy (F.heavyInHand), so
+  // with Follow-Through his ring offers WIDE SWING (without the feat it does not), and the level-4 pick no longer says his flail is not heavy
+  if (get('mode', '') === 'flail1031') {
+    var repTf = { checks: [], errors: [] };
+    function okTf(what, v) { repTf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      D.seed = 1031;
+      var IT = window.DS.DATA.items, hv = ['threshingflail', 'threshingflail1', 'threshingflail2'].map(function (id) { return id + ' ' + JSON.stringify(((IT[id] || {}).weapon || {}).props); });
+      okTf('the flails: ' + hv.join('; '), ['threshingflail', 'threshingflail1', 'threshingflail2'].every(function (id) { var p = ((IT[id] || {}).weapon || {}).props || []; return p.indexOf('heavy') >= 0 && p.indexOf('two-handed') >= 0; }));
+      var ring = function (feat) {
+        var B = D.npcFight('?npc=goblin&lvl=5&vs=barley:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+        var u = B.units.filter(function (w) { return w.side === 'party'; })[0]; u.src.featIds = feat ? ['followthrough'] : []; D.rules.startTurn(u); B.active = u;
+        var c = B.commands(u).filter(function (x) { return x.id === 'wideswing'; })[0]; return { w: u.weapon && u.weapon.id, heavy: D.features.heavyInHand(u), offered: !!(c && c.ok) };
+      };
+      var r1 = ring(true), r0 = ring(false);
+      okTf('Barley on the grid: ' + r1.w + ' heavy in hand ' + r1.heavy + '; with Follow-Through WIDE SWING offered ' + r1.offered + ', without ' + r0.offered + ' (want true, true, false)', /^threshingflail/.test(r1.w || '') && r1.heavy && r1.offered && !r0.offered);
+      var R0 = window.DS.R, hb = R0.makeHero('barley', 4), row = R0.pickRows(hb, { lvl: 4 }, { kind: 'asi' }, {}).filter(function (r) { return r.feat === 'followthrough'; })[0];
+      okTf('Barley\'s pick at 4: Follow-Through ' + (row ? (row.disabled ? 'greyed' : 'open') : 'missing') + ', ' + (row && /is not heavy/.test(row.desc) ? 'says his flail is not heavy' : 'no "not heavy"'), !!row && !/is not heavy/.test(row.desc));
+    } catch (e) { repTf.errors.push(String(e && e.stack || e)); }
+    var preTf = document.createElement('pre'); preTf.id = 'out'; preTf.textContent = 'BENCH16 ' + JSON.stringify(repTf);
+    document.body.appendChild(preTf);
+    return;
+  }
   // SECOND DRAFT (mode=seconddraft1031; the leveling lane §8 item 4, RULED 10-30 "Second Draft next leveling session"): the feat's prerequisites (INT 13, one who prepares);
   // its door (deep16/?at=draft16: Aurdin at 4 with the feat); THE WORLD's CAMP, AN HOUR, then the SECOND DRAFT page (js/house.js H.secondDraft): a prepared spell let go (X
   // back to it from the next list), one taken up in its place, the use spent -- DRAFTED, and no page at the next hour; a short rest's refresh keeps it spent, a long rest's
@@ -5519,7 +5543,7 @@
   }
   // FOLLOW-THROUGH ON ITS SHELF (mode=followshelf1030; the leveling lane §9 0b, 10-30, his eye on the shelf, broken: "no visible action"): the FEATURES shelf's entry
   // winds up the WIDE SWING and then swings it -- "wide swing +4" on the hit, and the excess "FOLLOW-THROUGH ... carries on into" the other foe; and the pick says the
-  // feat wants a heavy weapon, and says so of a hero's own that is not (Barley's Threshing Flail, two-handed, not heavy)
+  // feat wants a heavy weapon, and says so of a hero's own that is not (a battleaxe; Barley's Threshing Flail was, till it was RULED heavy 10-31: mode=flail1031)
   if (get('mode', '') === 'followshelf1030') {
     var repFs = { checks: [], errors: [] };
     function okFs(what, v) { repFs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -5531,12 +5555,12 @@
       var tail = (rf && rf.tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
       okFs('the shelf: ' + (rf && rf.how) + ', wound up ' + /winds up a wide swing/.test(tail) + ', the hit "' + ((tail.match(/wide swing \+\d+/) || [''])[0]) + '", the carry "' + ((tail.match(/FOLLOW-THROUGH: \d+ carries on into [^/]*/) || [''])[0]).slice(0, 60) + '"',
         rf && rf.how === 'fired' && /winds up a wide swing/.test(tail) && /wide swing \+4/.test(tail) && /FOLLOW-THROUGH: \d+ carries on into/.test(tail));
-      // the pick: its words, and a hero's own weapon that is not heavy (Barley's flail), or is (a greatsword)
-      var R0 = window.DS.R, fd = R0.FEATS.followthrough.desc, hb = { cls: 'fighter', lvl: 4, abil: { str: 16, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: 'threshingflail' }, featIds: [] };
+      // the pick: its words, and a hero's own weapon that is not heavy (a battleaxe), or is (a greatsword)
+      var R0 = window.DS.R, fd = R0.FEATS.followthrough.desc, hb = { cls: 'fighter', lvl: 4, abil: { str: 16, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: 'battleaxe' }, featIds: [] };
       var rowOf = function (h) { return R0.pickRows(h, { lvl: 4 }, { kind: 'asi' }, {}).filter(function (r) { return r.feat === 'followthrough'; })[0] || null; };
       var rb = rowOf(hb), hg = JSON.parse(JSON.stringify(hb)); hg.equip.weapon = 'greatsword'; var rg = rowOf(hg);
-      okFs('the pick: its words say a heavy weapon (' + /heavy melee weapon to use it/.test(fd) + '); Barley\'s flail: "' + (rb && (rb.desc.match(/Your [^.]*\./) || ['-'])[0]) + '"; a greatsword: no such line (' + !!(rg && !/is not heavy/.test(rg.desc)) + ')',
-        /heavy melee weapon to use it/.test(fd) && rb && /Your Threshing Flail is not heavy\./.test(rb.desc) && rg && !/is not heavy/.test(rg.desc));
+      okFs('the pick: its words say a heavy weapon (' + /heavy melee weapon to use it/.test(fd) + '); a battleaxe: "' + (rb && (rb.desc.match(/Your [^.]*\./) || ['-'])[0]) + '"; a greatsword: no such line (' + !!(rg && !/is not heavy/.test(rg.desc)) + ')',
+        /heavy melee weapon to use it/.test(fd) && rb && /Your Battleaxe is not heavy\./.test(rb.desc) && rg && !/is not heavy/.test(rg.desc));
     } catch (e) { repFs.errors.push(String(e && e.stack || e)); }
     var preFs = document.createElement('pre'); preFs.id = 'out'; preFs.textContent = 'BENCH16 ' + JSON.stringify(repFs);
     document.body.appendChild(preFs);
