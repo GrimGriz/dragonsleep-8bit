@@ -214,7 +214,7 @@
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
     // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
     willem: { name: 'Willem', named: true, cls: 'wizard', lvl: 5, race: 'human', subclass: 'the Rimeglass', abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
-      equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true, look: 'willem_p1',
+      equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true, look: 'willemglass_p1',
       known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'],
       // past his register's 5th (09-28h; the seat's picks): illusion with the cold in it -- Sleet Storm, Phantasmal Killer, Greater
       // Invisibility, Ice Storm, Cone of Cold, Mislead, Hold Monster; below it, Color Spray, Magic Missile, Sleep; Chill Touch, Shocking Grasp

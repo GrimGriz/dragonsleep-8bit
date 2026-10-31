@@ -1,0 +1,55 @@
+{
+ "image": "art/willemglass_p1.png",
+ "fw": 64,
+ "fh": 76,
+ "ax": 32,
+ "ay": 66,
+ "top": 61,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 66,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 608,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 66,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1216,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 66,
+   "frames": 8,
+   "fps": 12
+  },
+  "sit": {
+   "y": 1824,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 66,
+   "frames": 2,
+   "fps": 2
+  },
+  "cast": {
+   "y": 2432,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 66,
+   "frames": 8,
+   "fps": 10
+  }
+ }
+}
