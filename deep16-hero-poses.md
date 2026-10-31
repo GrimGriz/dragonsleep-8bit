@@ -38,7 +38,7 @@ Started 2026-10-30 by the lanes desk on Griz's word: *"When leveling finishes we
 
 ## Barley
 
-- One-handed melee (longsword, mace, warhammer...): FALLS BACK `attack` (the flail sweep; p3 shows empty hands). WANTED, or by code (`grips`). The slash ASKED 10-31: art-wanted §34, the mannequin pilot -- `slash` on `barley_p3`, six frames, empty-handed over a Blender pose reference, the sword drawn from the rig's `grips.slash` (`deep16/art-src/mannequin/`).
+- One-handed melee (longsword, mace, warhammer...): FALLS BACK `attack` (the flail sweep; p3 shows empty hands). WANTED, or by code (`grips`). The slash ASKED 10-31: art-wanted §34, the mannequin pilot -- `slash` on `barley_p3`, six frames, empty-handed over a Blender pose reference, the sword drawn from the rig's `grips.slash` (`deep16/art-src/mannequin/`). Free Grok's baseline cut 10-31 into `barley_grokslash_p1`, a test sheet with the sword drawn in (nothing plays it; the score in the mannequin README).
 - Greatsword, maul (heavy two-handers; Follow-Through's WIDE SWING wants a heavy weapon): FALLS BACK to the flail pose. WANTED, or by code.
 - Glaive, halberd, pike (reach 10 ft since `7dd4adcd`; Long Guard's KEEP BACK and SET AGAINST THE CHARGE): FALLS BACK `attack`. WANTED -- a thrust at 10 ft.
 - Whip: FALLS BACK `attack`. WANTED.

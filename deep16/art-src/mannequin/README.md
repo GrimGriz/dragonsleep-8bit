@@ -29,3 +29,36 @@ Cut each page by its printed numbers. **Scale a whole page by one factor:** its 
 **The verdict:** all five pass on a page, and the pose reference works for that view. If they pass on most pages, the generator follows the reference, and the misses are cutter work. A reasonable try at the cut, and what is left goes on `deep16-dream-polish.md`, not a re-ask (his rule for every cutter, 10-30). If it fails 2 and 3 across the pages, the generator is not following the strip, and the pilot says stop.
 
 **After the pilot (engine work, not this):** a `slash` row plays a longsword once the engine maps the one-handed slashing weapons to it (the weapon-family alias of `deep16-hero-poses.md`, RULED 10-30) and draws a sword in S.WIELD from `grips.slash`.
+
+## What came back first: free Grok's baseline (10-31)
+
+Griz, 10-31: *"what we got back from grok is in fresh - should we have a cutter try put a longsword in its hand and cut it (without overwriting anything we actually use?)"*. Grok sent five pages (sorted to `deep16/_src/barley/GROK-SLASH-2026-10-31/`). `tools/barley-grokslash-sheet.py` cut them into `barley_grokslash_p1`, a test sheet that nothing plays:
+- `idle` is `barley_p3`'s own.
+- `slash` holds S, SE and E, plus their mirrors.
+- `slashback` holds NE and N, kept out of `slash` until his word (the desk's guard). Up close they are drawn from behind, as asked.
+
+The longsword is drawn into the frames at 1x, not by the engine (S.WIELD has no sword): it runs from his right fist along the mannequin's blade for that frame. His fist was read by eye in each frame (`FIST`), because skin found his face first and on the SE page Grok drew him gloved.
+
+Look: `tools/sheet-play.html?sheet=barley_grokslash_p1&ref=barley_p3&face=0,7,6,5,4&z=3`, and `grok-review.png` (each cut at 4x, the mannequin's fist ringed, the hit boxed). The numbers are in `grok-score.json`.
+
+| check | S | SE | E | NE | N |
+|---|---|---|---|---|---|
+| 1. the size: crown against the rig's, frames 1-6, px (about +1 is the outline ring the cut adds) | 1 -4 3 5 4 2 | 1 -1 3 4 1 1 | 2 3 7 2 1 2 | 1 2 1 1 0 1 | 1 0 -2 -2 -2 0 |
+| 2. six frames | yes | yes | yes | yes | yes |
+| 3. the feet: bob / stance drift, px | 1.0 / 2.4 | 0.3 / 1.8 | 0.4 / 2.5 | 0.6 / 1.5 | 1.0 / 8.4 |
+| 4. his right fist off the rig's, frames 1-6, px | 7 14 7 9 17 6 | 11 4 11 7 26 16 | 10 4 14 3 13 15 | 12 22 4 8 (hidden) 15 | 19 4 5 22 24 23 |
+| 5. the hit on 4 | yes, by eye | yes | yes | yes | yes, by eye |
+
+**What held:** what the strip pins hardest.
+- Six frames in every view.
+- The feet planted on one line: they bob 1 px at most. N's stance widens 8 px in frames 3-4.
+- The size: within 2 px in NE and N.
+- The beat: the reach lands on 4 everywhere. In S and N the reach is toward or away from the camera, so it was read by eye.
+- The hand stays on one side, except NE 2, where he raises the left arm.
+
+**What did not hold: the hand's path.** Asked for an empty fist where the bar is, Grok drew a boxer's punch.
+- The wind-up's raised fist lands near the mannequin's: 3-5 px off in SE 2, E 2, NE 3, N 2 and N 3.
+- The hit lands near it in E and NE.
+- The follow-through is a fist back at the hip in every view, 13-26 px off.
+
+**The lesson for the GPT ask (section 34) and for more families:** the strip carries the frame count, the feet, the size and the beat, but an empty hand does not carry a weapon's arc. "No sword" asked the generator for a punch.

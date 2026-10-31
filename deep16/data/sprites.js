@@ -1028,6 +1028,59 @@
 "source": "deep16/_src/barber/ART-85/ART-85_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:barber"
 },
+"barley_grokslash_p1": {
+"image": "art/barley_grokslash_p1.png?v=d29dfd8272",
+"fw": 64,
+"fh": 72,
+"ax": 32,
+"ay": 60,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 72,
+"ax": 32,
+"ay": 60,
+"frames": 6,
+"fps": 6
+},
+"slash": {
+"y": 576,
+"fw": 96,
+"fh": 84,
+"ax": 48,
+"ay": 79,
+"frames": 6,
+"fps": 12,
+"release": 3,
+"drawn": [
+0,
+1,
+2,
+6,
+7
+]
+},
+"slashback": {
+"y": 1248,
+"fw": 96,
+"fh": 84,
+"ax": 48,
+"ay": 79,
+"frames": 6,
+"fps": 12,
+"release": 3,
+"drawn": [
+3,
+4,
+5
+]
+}
+},
+"name": "Barley in mail, the one-handed slash from free Grok over the mannequin (a test sheet: nothing plays it)",
+"source": "free Grok's baseline pages (deep16/_src/barley/GROK-SLASH-2026-10-31/), cut by tools/barley-grokslash-sheet.py over the mannequin's cell and scale; the longsword drawn in at 1x along the mannequin's blade; the idle is barley_p3's"
+},
 "barley_p0": {
 "image": "art/barley_p0.png?v=28945cb874",
 "fw": 64,
