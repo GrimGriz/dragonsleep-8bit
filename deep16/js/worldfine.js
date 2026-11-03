@@ -176,6 +176,132 @@
       g.beginPath(); g.moveTo(px + 0.5, py - th); g.lineTo(px + 0.5 + th * 0.45, py); g.lineTo(px + 0.5 - th * 0.45, py); g.closePath(); g.fill();
     }
   }
+  // THE BUILT SQUARES (11-03, the hex map and world session; his note 25, "enter worldmap at maximum zoom if leaving location + attempt code draw of structures
+  // appropriate scale to maximum zoom (only at maximum zoom)"; then "the edifice is the bundle at the top marked town, the hex building is the hex marked town, and
+  // the curved row of town hexes is my estimate of town size based on 330' hexes as measuring tool"; "Yes to all leans, lets see what comes out"): at the area's
+  // closest zoom only, drawn by code on the land from his 330 ft paint (data/world.js `built`, every hex he painted town or farmland, by its key). Round a city or a
+  // town: the block of his town hexes its mark stands on is its keep (Silverton's the Edifice, a glass roof against the mountain), a lone one a landmark (the Hex,
+  // glowing hexagonal in the valley), any longer run its stockade, and roofs fill the ground between them. Farmland is furrowed, a farmhouse on some. A place with
+  // none of his squares has its kind's: tents at a camp, a headframe at the Galleries' mouth, the inn, a signpost at a junction. Each stands on the ground at its
+  // own height, hidden where nearer ground covers its foot, drawn north to south; F.lights puts their windows and fires on after the sky at night
+  var BLT = null, HD6 = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+  function hc16(w, q, r) { return [w * (q + r / 2), w * SQ3 / 2 * r]; }
+  function hullOf(P) { // (the convex hull, monotone chain)
+    var p = P.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }), cr = function (o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }, lo = [], up = [];
+    p.forEach(function (q) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    for (var i = p.length - 1; i >= 0; i--) { var q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop(); return lo.concat(up);
+  }
+  function inHull(H, x, y) { if (H.length < 3) return false; for (var i = 0; i < H.length; i++) { var a = H[i], b = H[(i + 1) % H.length]; if ((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]) < -1e-9) return false; } return true; }
+  function builtPlan() {
+    var M = W.M(), B = D.WORLD && D.WORLD.built; if (!M || !B) return null;
+    if (BLT && BLT.key === M.key) return BLT;
+    var w = B.mi, T = {}, items = [], gH = function (x, y) { return G ? F.groundH(x, y) : 0; }; // (no land unpacked -- the benches' page -- no heights: the plan alone)
+    (B.town || []).forEach(function (p) { T[p[0] + ',' + p[1]] = 1; });
+    var seen = {}, comps = [];
+    Object.keys(T).forEach(function (k) { // (his town hexes in blocks: the six neighbours)
+      if (seen[k]) return; var c = [], st = [k]; seen[k] = 1;
+      while (st.length) { var a = st.pop(), qr = a.split(',').map(Number); c.push(qr); HD6.forEach(function (d) { var n = (qr[0] + d[0]) + ',' + (qr[1] + d[1]); if (T[n] && !seen[n]) { seen[n] = 1; st.push(n); } }); }
+      comps.push(c.map(function (qr) { return { q: qr[0], r: qr[1], c: hc16(w, qr[0], qr[1]) }; }));
+    });
+    var used = {};
+    (M.sites || []).forEach(function (s) {
+      if (!/^(city|town|hamlet)$/.test(s.kind)) return;
+      var tw = s.town || [s.x, s.y], mine = comps.filter(function (c) { return c.some(function (h) { return Math.hypot(h.c[0] - tw[0], h.c[1] - tw[1]) < 1.6 || Math.hypot(h.c[0] - s.x, h.c[1] - s.y) < 1.6; }); });
+      if (!mine.length) return;
+      var dm = function (c) { return Math.min.apply(null, c.map(function (h) { return Math.hypot(h.c[0] - s.x, h.c[1] - s.y); })); };
+      var keep = mine.filter(function (c) { return c.length >= 3; }).sort(function (a, b) { return dm(a) - dm(b); })[0]; if (keep && dm(keep) > 0.25) keep = null;
+      var all = [], hs = [];
+      mine.forEach(function (c) {
+        c.forEach(function (h) { all.push(h.c); used[h.q + ',' + h.r] = 1; hs.push(gH(h.c[0], h.c[1])); });
+        if (c === keep) items.push({ y: Math.min.apply(null, c.map(function (h) { return h.c[1]; })), k: 'keep', hexes: c, id: s.id });
+        else if (c.length === 1) items.push({ y: c[0].c[1], k: 'landmark', h: c[0], id: s.id });
+        else items.push({ y: Math.min.apply(null, c.map(function (h) { return h.c[1]; })), k: 'wall', hexes: c });
+      });
+      hs.sort(function (a, b) { return a - b; }); var h0 = hs[hs.length >> 1], H = hullOf(all);
+      var xs = all.map(function (p) { return p[0]; }), ys = all.map(function (p) { return p[1]; }), r0 = Math.floor(Math.min.apply(null, ys) / (w * SQ3 / 2)) - 1, r1 = Math.ceil(Math.max.apply(null, ys) / (w * SQ3 / 2)) + 1;
+      for (var r = r0; r <= r1; r++) for (var q = Math.floor(Math.min.apply(null, xs) / w - r / 2) - 1; q <= Math.ceil(Math.max.apply(null, xs) / w - r / 2) + 1; q++) {
+        var k = q + ',' + r, c = hc16(w, q, r); if (T[k] || !inHull(H, c[0], c[1])) continue;
+        if (gH(c[0], c[1]) > h0 + 300) continue; // (the town on its own ground: not up the slopes the hull crosses)
+        items.push({ y: c[1], k: 'roofs', c: c, q: q, r: r });
+      }
+    });
+    (B.farms || []).forEach(function (p) { var c = hc16(w, p[0], p[1]); items.push({ y: c[1], k: 'field', c: c, q: p[0], r: p[1] }); });
+    Object.keys(T).forEach(function (k) { if (used[k]) return; var qr = k.split(',').map(Number), c = hc16(w, qr[0], qr[1]); items.push({ y: c[1], k: 'roofs', c: c, q: qr[0], r: qr[1] }); }); // (his town hexes far from any town: roofs)
+    var hasPlan = {}; items.forEach(function (it) { if (it.id) hasPlan[it.id] = 1; });
+    (M.sites || []).forEach(function (s) { // (a place with none of his squares: its kind's)
+      if (hasPlan[s.id]) return;
+      var k = s.id === 'mouth' ? 'headframe' : s.id === 'warrens' || s.id === 'glowseep' ? 'camp' : s.kind === 'inn' ? 'inn' : s.kind === 'junction' ? 'sign' : /^(town|hamlet|city)$/.test(s.kind) ? 'hamlet' : s.kind === 'castle' ? 'keepS' : s.kind === 'cave' ? 'cave' : s.kind === 'school' || s.kind === 'seat' ? 'tower' : null;
+      if (k) items.push({ y: s.y, k: k, c: [s.x, s.y], id: s.id });
+    });
+    items.sort(function (a, b) { return a.y - b.y; });
+    var ids = {}; items.forEach(function (it) { if (it.id) ids[it.id] = 1; });
+    BLT = { key: M.key, w: w, items: items, ids: ids }; return BLT;
+  }
+  F.builtPlan = builtPlan; // (for the seat's probes)
+  F.drawnIds = function (cam) { if (!F.live() || F.ringsAt(cam.z) >= 0) return null; var P = builtPlan(); return P ? P.ids : null; }; // (the places whose own buildings stand for their icons)
+  function gp(cam, x, y) { return W.proj(cam, x, y, F.groundH(x, y)); }
+  function seen(cam, p, y) { return p[0] > -24 && p[0] < cam.W + 24 && p[1] > -24 && p[1] < cam.H + 40 && F.vis(p, y); }
+  function hexPts(cam, c, w, lift) { var gh = F.groundH(c[0], c[1]); return W.HCO.map(function (o) { var p = W.proj(cam, c[0] + o[0] * w, c[1] + o[1] * w, gh); return [p[0], p[1] - lift]; }); }
+  function poly(g, P, fill) { g.beginPath(); g.moveTo(P[0][0], P[0][1]); for (var i = 1; i < P.length; i++) g.lineTo(P[i][0], P[i][1]); g.closePath(); g.fillStyle = fill; g.fill(); }
+  function block(g, cam, c, w, lift, top, wallE, wallW) { // (a raised hex: its two south walls, then its top)
+    var G0 = hexPts(cam, c, w, 0), G1 = hexPts(cam, c, w, lift);
+    poly(g, [G0[0], G0[1], G1[1], G1[0]], wallE); poly(g, [G0[1], G0[2], G1[2], G1[1]], wallW); poly(g, G1, top); return G1;
+  }
+  function house(g, x, y, s, roof) { var bw = Math.max(2, Math.round(3 * s)), bh = Math.max(1, Math.round(2 * s)); g.fillStyle = '#d8ccb0'; g.fillRect(x - (bw >> 1), y - bh, bw, bh); g.fillStyle = roof; g.fillRect(x - (bw >> 1) - 1, y - bh - Math.max(1, Math.round(s)), bw + 2, Math.max(1, Math.round(s))); }
+  var ROOFS = ['#a8442e', '#8a3a2a', '#6a5a48', '#94503a'];
+  F.built = function (g, cam) {
+    var P = builtPlan(); if (!P) return 0; var w = P.w, s = Math.max(0.8, Math.min(3, cam.z / 69)), n = 0;
+    P.items.forEach(function (it) {
+      var c = it.c || (it.h && it.h.c) || it.hexes[0].c, p0 = gp(cam, c[0], c[1]);
+      if (it.k === 'keep') { // the Edifice: one raised slab of stone across his squares, its roof glass, two spires on its north side
+        var vis = it.hexes.some(function (h) { return seen(cam, gp(cam, h.c[0], h.c[1]), h.c[1]); }); if (!vis) return;
+        var hx = it.hexes.slice().sort(function (a, b) { return a.c[1] - b.c[1] || a.c[0] - b.c[0]; }), lift = Math.round(5 * s);
+        hx.forEach(function (h, i) { var T2 = block(g, cam, h.c, w * 1.02, lift, (h.q + h.r) & 1 ? '#9ccfe0' : '#86bcd2', '#8a7f6c', '#a89c86'); if (i % 3 === 0) { g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(Math.round(T2[4][0]), Math.round(T2[4][1] + 1), 1, 1); } });
+        var nw = hx[0], ne = hx.filter(function (h) { return h.c[1] === nw.c[1]; }).pop();
+        [nw, ne].forEach(function (h) { var q = gp(cam, h.c[0], h.c[1]), x = Math.round(q[0]), y = Math.round(q[1]) - lift, th = Math.round(7 * s); g.fillStyle = '#a89c86'; g.fillRect(x - 1, y - th, 2, th); g.fillStyle = '#5a6a78'; g.beginPath(); g.moveTo(x - 2, y - th); g.lineTo(x, y - th - Math.round(3 * s)); g.lineTo(x + 2, y - th); g.closePath(); g.fill(); });
+        n++; return;
+      }
+      if (it.k === 'wall') { // the stockade along his run of squares: posts and the rail between neighbours
+        var ks = {}; it.hexes.forEach(function (h) { ks[h.q + ',' + h.r] = h; });
+        g.strokeStyle = '#5a3a1a'; g.lineWidth = 1;
+        it.hexes.forEach(function (h) {
+          var a = gp(cam, h.c[0], h.c[1]); if (!seen(cam, a, h.c[1])) return;
+          HD6.slice(0, 3).forEach(function (d) { var o = ks[(h.q + d[0]) + ',' + (h.r + d[1])]; if (!o) return; var b = gp(cam, o.c[0], o.c[1]); g.beginPath(); g.moveTo(a[0], a[1] - 1.5 * s); g.lineTo(b[0], b[1] - 1.5 * s); g.stroke(); });
+          g.fillStyle = '#4a2e14'; g.fillRect(Math.round(a[0]), Math.round(a[1] - 3 * s), 1, Math.max(2, Math.round(3 * s))); n++;
+        });
+        return;
+      }
+      if (!seen(cam, p0, c[1])) return; n++;
+      var x = Math.round(p0[0]), y = Math.round(p0[1]), hh2 = hash2(it.q || Math.round(c[0] * 100), it.r || Math.round(c[1] * 100), 31);
+      if (it.k === 'landmark') { // the Hex: a hexagonal hall, its walls warm and lit
+        var T3 = block(g, cam, c, w * 0.9, Math.round(6 * s), '#7a4a2a', '#b07a40', '#c89a5a');
+        g.fillStyle = '#ffd86a'; var gq = hexPts(cam, c, w * 0.9, 0); for (var i = 0; i < 3; i++) { var u = (i + 0.5) / 3, wx = gq[0][0] + (gq[2][0] - gq[0][0]) * u, wy = Math.max(gq[0][1], gq[2][1]) - 3 * s; g.fillRect(Math.round(wx), Math.round(wy), 1, 1); }
+        g.fillStyle = 'rgba(255,200,90,.18)'; g.beginPath(); g.arc(x, y - 3 * s, 6 * s, 0, 7); g.fill();
+      } else if (it.k === 'roofs') { var nh = hh2 < 0.15 ? 0 : hh2 < 0.6 ? 1 : 2; for (var j = 0; j < nh; j++) { var ox = (hash2(it.q, it.r, 40 + j) - 0.5) * w * 0.7, oy = (hash2(it.q, it.r, 50 + j) - 0.5) * w * 0.6, hp = gp(cam, c[0] + ox, c[1] + oy); house(g, Math.round(hp[0]), Math.round(hp[1]), s, ROOFS[(hash2(it.q, it.r, 60 + j) * 4) | 0]); } }
+      else if (it.k === 'field') { // furrows across the square; a farmhouse on some
+        g.strokeStyle = 'rgba(110,80,36,.6)'; g.lineWidth = 1; var fw = w * 0.42, sl = hash2(it.q, it.r, 70) < 0.5 ? 0.25 : -0.25;
+        for (var f = -1; f <= 1; f++) { var a1 = gp(cam, c[0] - fw, c[1] + f * w * 0.24 - sl * fw), b1 = gp(cam, c[0] + fw, c[1] + f * w * 0.24 + sl * fw); g.beginPath(); g.moveTo(a1[0], a1[1]); g.lineTo(b1[0], b1[1]); g.stroke(); }
+        if (hh2 < 0.22) { house(g, x, y, s, '#8a2a1a'); }
+      } else if (it.k === 'camp') { for (var t = 0; t < 3; t++) { var tx = x + Math.round((t - 1) * 5 * s), ty = y + (t === 1 ? -2 : 0), tw2 = Math.round(2 * s) + 1; g.fillStyle = '#d8ccb0'; g.beginPath(); g.moveTo(tx - tw2, ty); g.lineTo(tx, ty - Math.round(3 * s) - 1); g.lineTo(tx + tw2, ty); g.closePath(); g.fill(); g.fillStyle = '#3a2410'; g.fillRect(tx, ty - 1, 1, 1); } g.fillStyle = '#ff9a3a'; g.fillRect(x, y + 2, 1, 1); }
+      else if (it.k === 'headframe') { var hf = Math.round(7 * s); g.fillStyle = '#1a1410'; g.fillRect(x - 2, y - 2, 4, 2); g.strokeStyle = '#5a3a1a'; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 3, y); g.lineTo(x, y - hf); g.lineTo(x + 3, y); g.moveTo(x - 2, y - hf / 2); g.lineTo(x + 2, y - hf / 2); g.stroke(); g.beginPath(); g.arc(x, y - hf, Math.max(1.5, 1.5 * s), 0, 7); g.stroke(); }
+      else if (it.k === 'cave') { g.fillStyle = '#1a1410'; g.beginPath(); g.arc(x, y, Math.max(1.5, 2 * s), Math.PI, 0); g.fill(); }
+      else if (it.k === 'inn') { house(g, x - 2, y, s * 1.4, '#6a3a22'); house(g, x + 3, y + 1, s, '#6a5a48'); g.fillStyle = '#ffd86a'; g.fillRect(x - 2, y - 1, 1, 1); g.fillStyle = '#5a3a1a'; g.fillRect(x + 6, y - 4, 1, 4); }
+      else if (it.k === 'sign') { g.fillStyle = '#5a3a1a'; g.fillRect(x, y - 4, 1, 4); g.fillRect(x - 1, y - 4, 3, 1); }
+      else if (it.k === 'hamlet') { for (var m2 = 0; m2 < 4; m2++) { var hp2 = gp(cam, c[0] + (hash2(m2, 7, 80) - 0.5) * w * 3, c[1] + (hash2(m2, 7, 81) - 0.5) * w * 2); house(g, Math.round(hp2[0]), Math.round(hp2[1]), s, ROOFS[m2 & 3]); } }
+      else if (it.k === 'keepS' || it.k === 'tower') { var kt = Math.round((it.k === 'keepS' ? 7 : 5) * s); g.fillStyle = '#8a7f6c'; g.fillRect(x - 2, y - kt, 4, kt); g.fillStyle = '#5a6a78'; g.fillRect(x - 3, y - kt - 1, 6, 1); }
+    });
+    return n;
+  };
+  F.lights = function (g, cam, tod) { // (after the sky: windows and fires at night, the Hex aglow)
+    if (!(tod === 'night' || tod === 'dusk' || tod === 'dawn')) return; var P = builtPlan(); if (!P) return; var w = P.w, s = Math.max(0.8, Math.min(3, cam.z / 69));
+    P.items.forEach(function (it) {
+      var c = it.c || (it.h && it.h.c); if (!c) return; var p0 = gp(cam, c[0], c[1]); if (!seen(cam, p0, c[1])) return; var x = Math.round(p0[0]), y = Math.round(p0[1]);
+      if (it.k === 'landmark') { g.fillStyle = 'rgba(255,190,80,.35)'; g.beginPath(); g.arc(x, y - 3 * s, 7 * s, 0, 7); g.fill(); g.fillStyle = '#ffe08a'; g.fillRect(x - 1, y - Math.round(3 * s), 3, 1); }
+      else if (it.k === 'roofs' && hash2(it.q, it.r, 90) < 0.45) { g.fillStyle = '#ffd86a'; g.fillRect(x, y - 1, 1, 1); }
+      else if (it.k === 'camp' || it.k === 'inn') { g.fillStyle = 'rgba(255,150,60,.4)'; g.beginPath(); g.arc(x, y + 1, 3 * s, 0, 7); g.fill(); g.fillStyle = '#ffb04a'; g.fillRect(x, y + 1, 1, 1); }
+    });
+  };
   // THE LAND SLID (10-22, when it became the default look: a walk moved the camera every frame and the land was drawn again each time -- 18 ms a frame at the
   // opening zoom in the pane, 66 at the closest): a camera's move is the picture's own shift, so the land is drawn F.MARGIN px wider all round and slid under the
   // screen, drawn again only past the margin, at another zoom, or when the party's hex (the rings) changes. RC: the camera it was drawn for; OX, OY: its offset
@@ -184,13 +310,14 @@
   F.draw = function (g, cam, hi, at) {
     var M = W.M(), m = F.MARGIN, key = [W.M().key, cam.z, cam.W, cam.H, cam.E, !!lookPx(), F.LIT].join('|'), atk = at[0] + ',' + at[1], ox = RC ? (RC.cx - cam.cx) * cam.z : 0, oy = RC ? (RC.cy - cam.cy) * cam.z * W.TILT : 0;
     if (key !== F.key || !RC || Math.abs(ox) > m - 1 || Math.abs(oy) > m - 1) { var t0 = performance.now(); RC = { cx: cam.cx, cy: cam.cy, z: cam.z, W: cam.W + 2 * m, H: cam.H + 2 * m, E: cam.E }; render(RC, at); F.key = key; F.atk = atk; F.ms = performance.now() - t0; F.renders = (F.renders || 0) + 1; ox = oy = 0; }
+    else if (atk !== F.atk && F.ringsAt(cam.z) < 0) F.atk = atk; // (no rings at the closest zoom: the land is the same under any hex of the party's)
     else if (atk !== F.atk) { // (the party a hex on: only the columns its rings stood in and stand in now -- each screen column is drawn whole, so the rest stand as they were)
       var t1 = performance.now(), c0x = NEARC[0], half = (F.ringsAt(cam.z) + 1) * M.w, cn = W.hc(at[0], at[1])[0], lo = Math.min(c0x, cn) - half, hi2 = Math.max(c0x, cn) + half;
       render(RC, at, Math.floor((lo - RC.cx) * RC.z + RC.W / 2) - 1, Math.ceil((hi2 - RC.cx) * RC.z + RC.W / 2) + 1); F.atk = atk; F.ms = performance.now() - t1; F.parts = (F.parts || 0) + 1;
     }
     OX = Math.round(ox) - m; OY = Math.round(oy) - m;
     LASTCAM = cam; g.drawImage(CV, OX, OY);
-    trees(g, cam, W.Mworld ? W.Mworld().w : M.w); // (the land's trees at THE WORLD's scale on either map)
+    trees(g, cam, W.Mworld ? W.Mworld().w : M.w); // (the land's trees at THE WORLD's scale on either map; the built squares after the roads and rivers, World.draw)
     // the hero's hexes as today: their outlines when the zoom is close, their decorations, north to south; and the way and the pointer's hex on any hex
     var near = nearOf(at, F.ringsAt(cam.z)), ks = Object.keys(near).sort(function (a, b) { return near[a].r - near[b].r || near[a].q - near[b].q; }), w = M.w, outline = w * cam.z >= 22;
     var polyAt = function (e, drape) {
@@ -230,4 +357,3 @@
   F.data = function () { return G; }; // (for the seat's probes)
   F.label = function () { return !F.on ? 'THE HEX TOPS  F: the land, raised' : F.st === 'fail' ? 'THE LAND: ' + F.err : F.st !== 'ok' ? 'THE LAND, RAISED: unpacking...' : 'THE LAND, RAISED  F: the hex tops'; };
 })();
-    else if (atk !== F.atk && F.ringsAt(cam.z) < 0) F.atk = atk; // (no rings at the closest zoom: the land is the same under any hex of the party's)

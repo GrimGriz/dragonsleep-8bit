@@ -188,7 +188,7 @@
     W.use(S && S.map === 'near' && W.nearOn() ? 'near' : 'world'); if (S && S.map && M.key !== 'near') S.map = null; // (the map the save says, if it is here)
     if (!S || !S.at || !M.hex[K(S.at[0], S.at[1])]) { W.use('world'); S = fresh(); }
     var aq = /[?&]at=(-?\d+),(-?\d+)/.exec(q || ''); if (aq && MS.world.hex[K(+aq[1], +aq[2])]) { W.use('world'); S.map = null; S.at = [+aq[1], +aq[2]]; S.from = null; } // (&at=: THE WORLD's hex)
-    if (M.key === 'world' && W.inArea(S.at[0], S.at[1]) && W.nearOn()) { var sa = M.siteAt[K(S.at[0], S.at[1])]; W.place(S.pos && W.worldHexOf(S.pos[0], S.pos[1]).join() === S.at.join() ? S.pos : sa && sa.length ? [sa[0].x, sa[0].y] : hc(S.at[0], S.at[1])); } // (on the area where it covers -- a new game at Silverton, a save from before it -- at the place in that hex, else its middle)
+    if (M.key === 'world' && W.inArea(S.at[0], S.at[1]) && W.nearOn()) { var sa = M.siteAt[K(S.at[0], S.at[1])], pp = S.pos && W.worldHexOf(S.pos[0], S.pos[1]).join() === S.at.join() ? S.pos : sa && sa.length ? (sa[0].town || [sa[0].x, sa[0].y]) : hc(S.at[0], S.at[1]); W.place(pp); S.pos = pp.slice(); } // (on the area where it covers -- a new game at Silverton, a save from before it -- at the place in that hex (a city's own ground, `town`), else its middle)
     if (W.house()) D.house.cur.world = S;
     W.unstuck = W.unstick();
     return S;
@@ -221,6 +221,7 @@
     this.fineDoor = !!W.FINE; if (this.fineDoor) W.FINE.start(this.q); // (THE LAND, RAISED by default since 10-22: js/worldfine.js F.start, F switches to the hex tops)
     var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] }; this.zi = M.near ? W.NEARZ : 2; this.zBasePx = this.zooms()[this.zi]; // (the area's hexes as big on the screen as THE WORLD's at its opening zoom; zBasePx: the zoom ZOOM ON APPROACH comes back to)
     try { D.music('corridor'); } catch (e) { }
+    if (/[?&]close\b/.test(this.q)) W.closeIn(); // (&close: open at the area's closest zoom, the built squares' show door -- js/eyes.js eyes-closest-1103)
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
@@ -410,7 +411,7 @@
   // the gate by the side the party comes from (his "angle of approach"): the gate whose way out faces back along the last step
   W.gateFor = function (site, from, pt) { // (from: the hex the party came from; pt: or the point in miles it stepped from -- the top-down view's)
     var dr = W.DOORS[site.id], gates = Object.keys(dr.gates); if (!from && !pt) return gates[0];
-    var a = pt || hc(from[0], from[1]), b = [site.x, site.y], v = [a[0] - b[0], a[1] - b[1]], best = gates[0], bd = -1e9;
+    var a = pt || hc(from[0], from[1]), b = site.town || [site.x, site.y], v = [a[0] - b[0], a[1] - b[1]], best = gates[0], bd = -1e9; // (a city's gates round its own ground, 11-03)
     gates.forEach(function (g) { var n = dr.gates[g], d = n[0] * v[0] + n[1] * v[1]; if (d > bd) { bd = d; best = g; } });
     return best;
   };
@@ -551,7 +552,8 @@
   };
   W.drawPlaces = function (g, cam, names) {
     var boxes = [], order = M.sites.slice().sort(function (a, b) { return (RANK[a.kind] || 5) - (RANK[b.kind] || 5); });
-    order.forEach(function (s) { var p = groundAt(cam, s.x, s.y); if (p[0] < -40 || p[0] > cam.W + 40 || p[1] < -20 || p[1] > cam.H + 20) return; if (VIS && !VIS(p, s.y)) return; icon(g, s.kind, Math.round(p[0]), Math.round(p[1])); });
+    var drawn = GH && W.FINE && W.FINE.drawnIds ? W.FINE.drawnIds(cam) : null; // (the closest zoom: a place's own buildings stand for its icon, 11-03)
+    order.forEach(function (s) { var p = groundAt(cam, s.x, s.y); if (p[0] < -40 || p[0] > cam.W + 40 || p[1] < -20 || p[1] > cam.H + 20) return; if (VIS && !VIS(p, s.y)) return; if (drawn && drawn[s.id]) return; icon(g, s.kind, Math.round(p[0]), Math.round(p[1])); });
     if (!names) return;
     order.forEach(function (s) { // (the names, the greater first; one that would overlap a name already written waits for a closer zoom)
       if (!BIG[s.kind] && cam.z < 8) return;
@@ -628,7 +630,8 @@
     if (this.hov) hi[K(this.hov[0], this.hov[1])] = this.plan ? '#ffd23c' : 'rgba(255,90,80,.8)';
     var fine = this.fineDoor && W.FINE.live(); // (THE FINE LAND, a trial: js/worldfine.js; the hex view as it was without its door)
     if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
-    W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); GH = VIS = null;
+    W.drawWays(ctx, cam); if (fine && W.FINE.ringsAt(cam.z) < 0) W.FINE.builtN = W.FINE.built(ctx, cam); // (the closest zoom: his squares built on, over the roads and rivers, 11-03)
+    W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); GH = VIS = null;
     // the party: a banner on the hex's top, bobbing as it walks
     var onLand = fine && W.FINE.ringsAt(cam.z) < 0, pa = onLand ? W.restPt() : hc(S.at[0], S.at[1]), ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : hexTopH(S.at[0], S.at[1]); // (at the closest zoom its hex is the land: the banner on the ground at its own spot)
     if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], pb = hc(nx[0], nx[1]), u = this.walk.f / STEPF; pa = [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
@@ -638,6 +641,7 @@
     ctx.fillStyle = '#d8402c'; ctx.beginPath(); ctx.moveTo(tx + 1, ty - 15); ctx.lineTo(tx + 10, ty - 12); ctx.lineTo(tx + 1, ty - 8); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#f8d878'; ctx.fillRect(tx + 2, ty - 13, 2, 2);
     var sky = W.skyAt(this.hourShown()); if (sky) { ctx.fillStyle = sky; ctx.fillRect(0, 0, D.W, D.H); }
+    if (onLand && W.FINE.lights) W.FINE.lights(ctx, cam, W.todAt(this.hourShown())); // (the built squares' windows and fires after the sky, 11-03)
     this.hud(ctx);
     if (this.pm) { ctx.fillStyle = 'rgba(4,3,10,.6)'; ctx.fillRect(0, 0, D.W, D.H); D.ui.drawMenu(ctx, this.pm); }
   };

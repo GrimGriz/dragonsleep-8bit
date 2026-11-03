@@ -88,7 +88,7 @@
   OV.open = function (sc) {
     OV.ensure(function (ok) {
       if (!ok) { sc.say('No tiles yet: data/world-tiles.js (python tools/world-build.py).'); return; }
-      SITES = {}; W.M().sites.forEach(function (s) { var q = OV.tileOf([s.x, s.y]); (SITES[q[0] + ',' + q[1]] = SITES[q[0] + ',' + q[1]] || []).push(s); });
+      SITES = {}; W.M().sites.forEach(function (s) { var q = OV.tileOf(s.town || [s.x, s.y]); (SITES[q[0] + ',' + q[1]] = SITES[q[0] + ',' + q[1]] || []).push(s); }); // (a city's door on its own ground's tile: Silverton's mark is on the Edifice, 11-03)
       var S = W.state(); if (!S.pos) S.pos = W.hc(S.at[0], S.at[1]);
       var p = OV.tileOf(S.pos); if (!OV.passable(p[0], p[1])) { var q2 = OV.nearestOpen(p); if (q2) S.pos = OV.centre(q2); } else S.pos = OV.centre(p);
       sc.view = 'tiles'; sc.ov = { cam: S.pos.slice(), zi: OV.ZI, walk: null, plan: null, hov: null, fx: 0, hold: 0, facing: [0, 1] }; W.save();

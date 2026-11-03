@@ -3608,6 +3608,51 @@
     document.body.appendChild(preN);
     return;
   }
+  // THE MARK ON THE EDIFICE, THE CLOSEST ZOOM, THE BUILT SQUARES, 11-03 (mode=world1103; the hex map and world session -- his "I couldn't drag the silverton location
+  // marker to the new edifice ... it started to flatten the terrain around it", "Is the first zoom of the hex tool at level 3 the maximum zoom on the world model/can it
+  // be? That'd be the level of zoom when leaving a location and the level to try to code-draw the buildings", "the edifice is the bundle at the top marked town, the hex
+  // building is the hex marked town, and the curved row of town hexes is my estimate of town size", then "Yes to all leans, lets see what comes out"): the area read
+  // here as near1022 reads it; the plan without the land (the benches' page unpacks none), its look by headless shots and his eye
+  if (get('mode', '') === 'world1103') {
+    var repQ = { checks: [], errors: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, HQ = D.house, WQ = D.world, scQ = D.scale;
+    function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; var onStepQ = WQ.onStep; WQ.onStep = null;
+    try {
+      D.seed = +get('seed', 1103);
+      var xq = new XMLHttpRequest(); xq.open('GET', '../deep16/data/world-near.js', false); xq.send(); (0, eval)(xq.responseText);
+      WQ.index(); WQ.use('near'); var MQ = WQ.map('near'), svQ = MQ.sites.filter(function (s) { return s.id === 'silverton'; })[0], swQ = D.WORLD.sites.filter(function (s) { return s.id === 'silverton'; })[0];
+      okQ('Silverton\'s mark on his Edifice (' + (svQ && [svQ.x, svQ.y]) + '), its town where the mark stood (' + (svQ && svQ.town) + ')', !!svQ && Math.hypot(svQ.x - 117.57, svQ.y - 27.359) < 0.02 && !!svQ.town && Math.hypot(svQ.town[0] - 117.567, svQ.town[1] - 27.918) < 0.02);
+      var hQ = svQ && MQ.hex[WQ.K(svQ.hex[0], svQ.hex[1])];
+      okQ('its hexes by its town: the area\'s ' + (svQ && svQ.hex) + ' (' + (hQ && hQ.t) + ', ' + (hQ && hQ.h) + ' ft), THE WORLD\'s ' + (swQ && swQ.hex) + ' (with the mark\'s own, a 5,769 ft mountain)', !!hQ && hQ.t === 'town' && hQ.h > 400 && hQ.h < 1100 && !!swQ && swQ.hex.join() === '20,7');
+      var BQ = D.WORLD.built || {};
+      okQ('his built squares baked: ' + (BQ.town || []).length + ' town, ' + (BQ.farms || []).length + ' farmland, at ' + BQ.mi + ' mi', (BQ.town || []).length >= 32 && (BQ.farms || []).length >= 22 && Math.abs(BQ.mi - 1 / 16) < 1e-9);
+      var czQ = [2, 3, 4].map(function (s) { D.scale = s; return WQ.closeZ() + '/' + WQ.nearZooms()[WQ.nearZooms().length - 1]; }); D.scale = 3;
+      okQ('the closest zoom at 2x, 3x, 4x: ' + czQ.join(', ') + ' px a mile (his tool\'s level 3, 208 a mile on the screen)', czQ.join() === '104/104,69/69,56/56');
+      var rgQ = [28, 40, 56, 69].map(function (z) { return WQ.FINE.ringsAt(z); }).join(', ');
+      okQ('the rings at 28, 40, 56, 69 px a mile (3x): ' + rgQ + ' -- at the closest none, the party\'s hex the land', rgQ === '2, 1, 0, -1');
+      okQ('every door\'s approach comes down to the closest zoom: ' + Object.keys(WQ.DOORS).join(', '), Object.keys(WQ.DOORS).every(function (k) { return WQ.APPROACH[k] && WQ.APPROACH[k].z > 1e6; }));
+      HQ.worldDoor('?world&fresh&noenc&close'); var scC = D.top(), ZC = scC.zooms(), SC0 = WQ.state();
+      okQ('a new game stands at Silverton\'s town (' + SC0.pos.map(function (v) { return v.toFixed(2); }) + '), not on the Edifice; &close opens at ' + ZC[scC.zi] + ' px a mile', Math.hypot(SC0.pos[0] - svQ.town[0], SC0.pos[1] - svQ.town[1]) < 0.01 && scC.zi === ZC.length - 1);
+      HQ.worldDoor('?world&fresh&noenc');
+      [['west', [-1, 0]], ['south', [0, 1]]].forEach(function (gq) {
+        HQ.toTown('silverton', gq[0]); var BT = D.top(); if (BT.baking) { BT.baking = false; BT.enter(); } WQ.leaveTown(gq[0]);
+        var scq = WQ.scene, SQ = WQ.state(), ZS = scq.zooms(), want = [svQ.town[0] + gq[1][0] * 0.75, svQ.town[1] + gq[1][1] * 0.75];
+        okQ('out of Silverton by the ' + gq[0] + ' gate: on the area (' + WQ.M().key + ') at ' + ZS[scq.zi] + ' px a mile (its closest ' + ZS[ZS.length - 1] + '), at ' + SQ.pos.map(function (v) { return v.toFixed(2); }) + ' -- 0.75 mi out from the town, not from the Edifice',
+          WQ.M().near && scq.zi === ZS.length - 1 && Math.hypot(SQ.pos[0] - want[0], SQ.pos[1] - want[1]) < 0.01 && Math.abs(scq.cam.cx - SQ.pos[0]) < 1e-6);
+      });
+      var PQ = WQ.FINE.builtPlan(), keepQ = null, lmQ = null, wallQ = null, roofQ = 0, kindQ = {};
+      (PQ ? PQ.items : []).forEach(function (it) { if (it.k === 'keep' && it.id === 'silverton') keepQ = it; else if (it.k === 'landmark' && it.id === 'silverton') lmQ = it; else if (it.k === 'wall' && !wallQ) wallQ = it; else if (it.k === 'roofs') roofQ++; if (it.id) kindQ[it.id] = it.k; });
+      okQ('Silverton built from his squares: its keep (the Edifice) ' + (keepQ && keepQ.hexes.length) + ' hexes, a landmark (the Hex) ' + (lmQ ? 'at ' + lmQ.h.c.map(function (v) { return v.toFixed(2); }) : 'none') + ', its stockade ' + (wallQ && wallQ.hexes.length) + ', roofs on ' + roofQ + ' hexes between',
+        !!keepQ && keepQ.hexes.length === 13 && !!lmQ && Math.hypot(lmQ.h.c[0] - 117.5625, lmQ.h.c[1] - 27.605) < 0.01 && !!wallQ && wallQ.hexes.length >= 15 && roofQ >= 15);
+      okQ('the doors without his squares by their kind: the mouth ' + kindQ.mouth + ', the Warrens ' + kindQ.warrens + ', the Glowseep ' + kindQ.glowseep + ', the inn ' + kindQ.inn, kindQ.mouth === 'headframe' && kindQ.warrens === 'camp' && kindQ.glowseep === 'camp' && kindQ.inn === 'inn');
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    WQ.onStep = onStepQ; D.store.get = stGQ; D.store.set = stSQ; D.scale = scQ; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    delete D.WORLD_NEAR; if (WQ.use) WQ.use('world');
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // SILVERTON FIT TO THE REALM, ITS ZOOMS, ZOOM ON APPROACH, THE EAST SIDE, 10-28 (mode=maps1028; the maps window -- his "1 - ... you're good to move and reshape things
   // to add realism that fits the wiki (2-4) / 5 - do 40 and 56 variant ... / 6 yes / 8 yes, down to the pit is back out through the west / 9 yes", and on the east
   // edge "warrens mouth, not the guano mine, sorry"): the area read here as near1022 reads it (the benches' page has none)
@@ -3639,7 +3684,7 @@
       var beside = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [svP.hex[0] + d[0], svP.hex[1] + d[1]]; }).filter(function (n) { return WP.stepHours(n, svP.hex, MP); }).sort(function (a, b) { return Math.hypot(WP.hc(a[0], a[1])[0] - WP.hc(jc[0], jc[1])[0], WP.hc(a[0], a[1])[1] - WP.hc(jc[0], jc[1])[1]) - Math.hypot(WP.hc(b[0], b[1])[0] - WP.hc(jc[0], jc[1])[0], WP.hc(b[0], b[1])[1] - WP.hc(jc[0], jc[1])[1]); })[0];
       SP.at = jc.slice(); var rIn = WP.route(jc, beside), zs = [], top = base; wP.walk = { path: rIn.hexes.slice(), f: 0 }; wP.wasWalk = false;
       runP(wP, 8000, function () { if (zs[zs.length - 1] !== ZP[wP.zi]) zs.push(ZP[wP.zi]); top = Math.max(top, wP.zi); });
-      okP('ZOOM ON APPROACH: from the Galleries junction to beside Silverton (' + rIn.hexes.length + ' hexes) the camera stepped ' + zs.join(' > ') + ' px a mile', ZP[top] === 56 && zs[0] === ZP[base] && zs.every(function (z, i) { return !i || z > zs[i - 1]; }));
+      okP('ZOOM ON APPROACH: from the Galleries junction to beside Silverton (' + rIn.hexes.length + ' hexes) the camera stepped ' + zs.join(' > ') + ' px a mile', ZP[top] === (WP.closeZ ? WP.closeZ() : 56) && zs[0] === ZP[base] && zs.every(function (z, i) { return !i || z > zs[i - 1]; }));
       var rOut = WP.route(SP.at, jc), zo = []; wP.walk = { path: rOut.hexes.slice(), f: 0 }; wP.wasWalk = false;
       runP(wP, 8000, function () { if (zo[zo.length - 1] !== ZP[wP.zi]) zo.push(ZP[wP.zi]); });
       okP('walking away to the junction it stepped back out: ' + zo.join(' > ') + ' (the hand\'s ' + ZP[base] + ')', wP.zi === base && zo.every(function (z, i) { return !i || z < zo[i - 1]; }));
