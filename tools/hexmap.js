@@ -1750,7 +1750,15 @@
       out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, 0, fill]);
     });
     out.tiles = bakeTiles(F, b); out.look = bakeLook();
-    S.sites.forEach(function (s) { var h = at(1, s.x, s.y); out.sites.push({ id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' }); });
+    S.sites.forEach(function (s) { // (a city whose flat is pinned apart from its mark: its hex and its gates by its own ground, `town`; the mark where he set it -- 11-03, Silverton's on the Edifice)
+      var tw = s.flat || [s.x, s.y], h = at(1, tw[0], tw[1]), o = { id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' };
+      if (s.flat) o.town = [+s.flat[0].toFixed(3), +s.flat[1].toFixed(3)]; out.sites.push(o);
+    });
+    // THE BUILT SQUARES (11-03, his note 25 "attempt code draw of structures appropriate scale to maximum zoom (only at maximum zoom)", and "the edifice is the bundle at
+    // the top marked town, the hex building is the hex marked town, and the curved row of town hexes is my estimate of town size based on 330' hexes as measuring tool"):
+    // every 330 ft hex he painted town or farmland, by its own axial key, for deep16/js/worldfine.js F.built -- exact, where the land's 330 ft grid is squares
+    out.built = { mi: LV[3].w, town: [], farms: [] };
+    Object.keys(S.paint[3]).forEach(function (k) { var t = S.paint[3][k]; if (out.built[t]) out.built[t].push(unK(k)); });
     S.paths.forEach(function (P) {
       var pts = ptsOf(P); if (pts.length < 2) return;
       var hexes = [], last = null, len = 0;

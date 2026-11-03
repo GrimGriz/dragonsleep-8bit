@@ -80,14 +80,15 @@ def main():
     # the places at their hexes; the roads and rivers as chains of neighbouring hexes, the roads' hexes marked
     sites = []
     for S in B['sites']:
-        S2 = dict(S); a = axial(S['x'], S['y'], NEAR_MI); S2['hex'] = [int(a[0]), int(a[1])]; sites.append(S2)
+        tw = S.get('town') or (S['x'], S['y']) # (a city's own ground where its mark has moved off it: Silverton's mark on the Edifice since 11-03)
+        S2 = dict(S); a = axial(tw[0], tw[1], NEAR_MI); S2['hex'] = [int(a[0]), int(a[1])]; sites.append(S2)
         # a city's hex reads as the town (10-28, the maps window, on his "you're good to move and reshape things to add realism that fits the wiki"): Silverton's
         # hex had come out gray mountain at 1,422 ft, most of its cells the Edifice's mountain front; it takes the town's ground, its own ground second, and the
         # height at the city's own spot
         e = hexes.get(tuple(S2['hex']))
         if S.get('kind') == 'city' and e:
             if e[2] != 'town': e[5], e[6] = e[2], 0.5; e[2] = 'town'; e[4] = 0
-            hi0, hj0 = int((S['x'] - hd['x0']) / (hd['mi'] * hd['hs'])), int((S['y'] - hd['y0']) / (hd['mi'] * hd['hs']))
+            hi0, hj0 = int((tw[0] - hd['x0']) / (hd['mi'] * hd['hs'])), int((tw[1] - hd['y0']) / (hd['mi'] * hd['hs']))
             if 0 <= hj0 < hh and 0 <= hi0 < hw: e[3] = round(float(H[hj0, hi0]))
     def chain(pts):
         out = []
