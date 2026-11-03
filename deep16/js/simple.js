@@ -523,7 +523,7 @@
   S.openList = function (B, u, title, items) { var m = S.menu(B, u); m.stack.push({ mode: m.mode, sel: m.sel, list: m.list, pick: m.pick }); var f = 0; items.some(function (e, i) { if (e.ok) { f = i; return true; } return false; }); m.mode = 'list'; m.list = { title: title, items: items, top: 0 }; m.sel = f; m.msg = null; D.sfx('confirm'); };
   S.pickFrom = function (B, u, title, cands, then) {
     var m = S.menu(B, u);
-    if (!cands.length) { D.sfx('error'); m.msg = '{g}' + title.replace(/: .*$/, '') + ': no one here it takes.{/}'; return; }
+    if (!cands.length) { D.sfx('error'); m.msg = '{g}' + title.replace(/: .*$/, '') + ': no one here it takes.{/}'; refusedRec(B, u, title.replace(/: .*$/, '') + ': no one here it takes', title); return; }
     m.stack.push({ mode: m.mode, sel: m.sel, list: m.list, pick: m.pick });
     var i0 = cands.indexOf(m.lastPick); m.mode = 'pick'; m.pick = { title: title, cands: cands, then: then }; m.sel = i0 >= 0 ? i0 : 0; m.msg = null; D.sfx('confirm');
   };
@@ -536,10 +536,12 @@
   };
   S.rootOf = function (B, u) { var m = S.menu(B, u); if (!m.root) m.root = S.root(B, u); return m.root; }; // (built once a request: the lists ask the grid's rules)
   S.rows = function (B, u) { var m = S.menu(B, u); return m.mode === 'cmd' ? S.rootOf(B, u) : m.mode === 'list' ? m.list.items : []; };
+  // a greyed row picked (or a pick with no one to take) is a step in the play record, as a refused click is on the full grid (js/record.js REC.refused, the play records lane 1, 11-03)
+  function refusedRec(B, u, why, row) { if (B.rec && D.rec && D.rec.refused) { try { D.rec.refused(B, u, why, { tool: 'the column: ' + row }); } catch (e) { /* (the record must never stop the menu) */ } } }
   function choose(B, u, r) {
     var m = S.menu(B, u);
     if (!r) return;
-    if (!r.ok) { D.sfx('error'); m.msg = '{g}' + r.label + ': ' + (r.why || 'not now') + '.{/}'; return; }
+    if (!r.ok) { D.sfx('error'); m.msg = '{g}' + r.label + ': ' + (r.why || 'not now') + '.{/}'; refusedRec(B, u, r.label + ': ' + (r.why || 'not now'), r.label); return; }
     if (m.mode === 'cmd' && S.acts(u)) B.simple.last[u.id] = m.sel;
     r.go();
   }

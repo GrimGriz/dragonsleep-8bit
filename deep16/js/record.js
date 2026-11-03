@@ -85,12 +85,14 @@
     var t = c.target && typeof c.target === 'object' ? (c.target.name || c.target.id || (c.target.units ? c.target.units.length + ' aimed' : '')) : c.target;
     return c.do + (c.id ? ' ' + c.id : '') + (c.slot ? ' L' + c.slot : '') + (t ? ' -> ' + t : '') + (c.x != null ? ' to ' + c.x + ',' + c.y : '');
   };
+  // what a refused click was on: the tool, the square, the figure there (REC.refused)
+  var clicked = function (c) { return (c.tool ? c.tool + ' ' : '') + (c.x != null ? 'at ' + c.x + ',' + c.y : '') + (c.name ? ' (' + c.name + ')' : ''); };
   // the fight as plain reading, for comparing tactics: each turn's start, each answer with how it was made, and what the log said after
   function transcript(steps, opening) {
     var out = (opening || []).length ? ['== before the first answer'].concat(opening.map(function (l) { return '      ' + l; })) : []; // (10-29, the notes seat in his record: the wolf spider's opening bite that dropped Aurdin was in the log alone)
     steps.forEach(function (s) {
       if (s.turnStart) out.push('', '== R' + s.round + ' ' + s.who + '  hp ' + s.hp + '  at ' + s.at.join(',') + '  AI would: ' + (s.turnStart.ai || []).map(function (a) { return a.why + ' ' + a.score; }).join(' | '));
-      out.push('  ' + (s.cmd ? short(s.cmd) : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
+      out.push('  ' + (s.cmd ? short(s.cmd) : s.refused != null ? 'REFUSED' + (s.times > 1 ? ' x' + s.times : '') + ': ' + s.refused + (s.clicked ? '  -- ' + clicked(s.clicked) : '') : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
       (s.screen || []).forEach(function (l) { out.push('      on screen: ' + l); });
       (s.then || []).forEach(function (l) { out.push('      ' + l); });
     });
@@ -119,6 +121,49 @@
     }
     r.steps.push(step); r.last = step;
   }
+  // A CLICK THE GAME TURNS AWAY (11-03, the play records lane 1: his clicks refused -- "No attack left this turn", out of reach, a dart refused -- reached the record only as a
+  // card line in the log, never as a step, so a desk could not see what he tried; the 11-01 off-hand clicks were found only by their cards). A step of its own, `refused`
+  // (the why: the card's words, or the error sound alone) and `clicked` { x, y, who, name, tool }, in its place among the answers; no `cmd`, so a reader counting the
+  // answers skips it. The same refusal again at once counts up (`times`) rather than writing another
+  REC.refused = function (B, u, why, at) {
+    var r = B && B.rec;
+    if (!r || r.done || !u || u.side !== 'party') return;
+    flush(B);
+    var L = r.last, same = L && L.refused === why && L.who === u.id && L.round === B.round && JSON.stringify(L.clicked || null) === JSON.stringify(at || null);
+    if (same) { L.times = (L.times || 1) + 1; return; }
+    if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
+    var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: via(), refused: why };
+    if (at) step.clicked = at;
+    if (B.req && B.req.turn === u) {
+      var key = B.round + ':' + u.id, T = u.turn || {};
+      if (r.turnKey !== key) { r.turnKey = key; step.turnStart = turnStart(B, u); }
+      step.left = { move: T.move, action: T.action, bonus: T.bonus, attacksLeft: T.attacksLeft };
+    }
+    r.steps.push(step); r.last = step;
+  };
+  // the click run (js/ui.js actAt, READY's aim): an answer came of it -- note() wrote it -- or it was turned away, with a refusal's card ({o} or {p}, the orange and the fear's
+  // purple) or the error sound; a click that did nothing and said nothing (a wall clicked on MOVE) is not a refusal and leaves nothing. The card's own log lines are the why,
+  // so they are not written again under it
+  var CARD_NO = /^\{[op]\}/;
+  REC.tried = function (B, u, at, run) {
+    var r = B && B.rec;
+    if (!r || r.done || r.trying || !u || u.side !== 'party') return run();
+    flush(B);
+    var n0 = r.steps.length, cards0 = (B.cards || []).slice(), err = false, sfx0 = D.sfx, out;
+    r.trying = true;
+    D.sfx = function (id) { if (id === 'error') err = true; return sfx0.apply(this, arguments); };
+    try { out = run(); } finally { D.sfx = sfx0; r.trying = false; }
+    if (r.done || r.steps.length !== n0) return out;
+    var said = [];
+    (B.cards || []).forEach(function (c) { if (cards0.indexOf(c) < 0 && c.lines && CARD_NO.test(String(c.lines[0] || ''))) c.lines.forEach(function (l) { said.push(window.DS.stripCodes(String(l))); }); });
+    if (!said.length && !err) return out;
+    try {
+      var seen = r.seen || (r.seen = new WeakSet());
+      (B.logEntries || []).forEach(function (e) { if (e && typeof e === 'object' && !seen.has(e) && said.some(function (s) { return logText(e).slice(-s.length) === s; })) seen.add(e); });
+      REC.refused(B, u, said.length ? said.join(' / ') : 'the error sound, no card', at);
+    } catch (e) { (r.errors = r.errors || []).push(String(e)); } // (the record must never stop the click)
+    return out;
+  };
 
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
@@ -153,7 +198,7 @@
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
-    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt') out[k] = r[k]; });
+    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'trying') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });

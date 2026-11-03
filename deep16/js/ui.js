@@ -473,6 +473,7 @@
     var byKey = I.pressed('a'), go = byKey || (I.mouse.click && !overUI(B));
     if (!go) return;
     var x = B.cursor.x, y = B.cursor.y, w = occ(x, y);
+    return tried(B, u, x, y, function () { // (the readied aim's refusals are steps in the record too: tried, above actAt)
     if (rd.what === 'weapon') {
       var foe = liveFoe(u, hoveredAt(B, x, y)) || liveFoe(u, w) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (the figure the mouse is on first: hoveredAt, 11-03)
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
@@ -483,7 +484,8 @@
       if (UI.valid(B, u, x, y) === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       D.sfx('error'); return;
     }
-    return actAt(B, u, x, y, byKey); // (the spell's own aim -- or the item's, Help's, Lay on Hands': js/ui.js actAt, its command an answer like any)
+    return actAt0(B, u, x, y, byKey); // (the spell's own aim -- or the item's, Help's, Lay on Hands': js/ui.js actAt, its command an answer like any)
+    });
   }
   // a cutscene beat runs its frames; after its first second E or a click moves it on
   function sceneInput(B, sc) {
@@ -1112,7 +1114,14 @@
   };
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
-  function actAt(B, u, x, y, byKey) {
+  // a click the game turns away is a step in the play record (js/record.js REC.tried, the play records lane 1, 11-03): the square, the figure the mouse is on, the tool
+  function tried(B, u, x, y, run) {
+    if (!B.rec || !D.rec || !D.rec.tried) return run();
+    var w = hoveredAt(B, x, y) || occ(x, y), tool = B.tool === 'spell' && B.spell ? 'spell ' + (B.spell.name || B.spell.id) : B.tool === 'item' && B.itemId ? 'item ' + B.itemId : B.tool;
+    return D.rec.tried(B, u, { x: x, y: y, who: w ? w.id : null, name: w ? (w.side === 'foe' && B.shortName ? B.shortName(w) : w.name) : null, tool: tool || null }, run);
+  }
+  function actAt(B, u, x, y, byKey) { return tried(B, u, x, y, function () { return actAt0(B, u, x, y, byKey); }); }
+  function actAt0(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = occ(x, y), hv = hoveredAt(B, x, y), foe = liveFoe(u, hv) || liveFoe(u, w), v = UI.valid(B, u, x, y); // (hv: the figure the mouse is on -- the click is on it, a foe first: UI.valid)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }

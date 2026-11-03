@@ -6391,6 +6391,47 @@
   // squares -- picked, hovered, and a Fire Bolt, a Scorching Ray and an attack find it, not the goblin on its anchor square; 3 three stirges on one hero -- a seat of its own each (UI.perchPos), each
   // hovered and struck at through MOVE and ATTACK, by the hero beside and by the host himself; 4 a dart or a ray turned away says why (UI.actAt); 5 every aimed spell's words say what the click asks,
   // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
+  // THE PLAY RECORDS LANE (mode=records1103; the lanes desk of 11-03 night, `handoff-2026-11-03-the-play-records.md`), a check an item:
+  // 1 a click the game turns away is a step of its own in the record (REC.tried, `refused`, `clicked`), the same refusal again counts up; the simple fight's greyed row the same (REC.refused)
+  if (get('mode', '') === 'records1103') {
+    var repRB = { checks: [], errors: [] }, UIrb = D.ui;
+    function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRB(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkRB(q, tag, more) { var Bx = D.npcFight(q, Object.assign({ record: { fight: 'records1103-' + tag, name: 'the records bench, ' + tag, level: 5 } }, more || {})); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideRB(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function turnRB(Bx, u, tool) { D.rules.startTurn(u); Bx.active = u; Bx.req = { turn: u }; Bx.tool = tool; Bx.list = null; Bx.inspect = null; Bx.spell = null; Bx.picks = []; Bx.hoverUnit = null; Bx.cards = []; Bx.cache = null; Bx.cursor = { x: u.x, y: u.y }; }
+    function keptRB(Bx) { return (D.store.get('deep16.plays') || []).filter(function (f) { return Bx.rec && f.fight === Bx.rec.fight && f.started === Bx.rec.started; })[0]; }
+    function countRB(lines, re) { return (lines || []).filter(function (l) { return re.test(l); }).length; }
+    try {
+      // 1. A REFUSED CLICK: the fighter's action spent, the goblin beside him clicked twice -- one step, `refused` "No attack left", clicked the goblin, x2; the card's line once in the transcript
+      var B1 = mkRB('?npc=goblin&vs=fighter:5&lvl=5', 'refused'), f1 = sideRB(B1, 'party')[0], g1 = sideRB(B1, 'foe')[0];
+      g1.x = f1.x + 1; g1.y = f1.y; B1.cache = null; f1.offhand = null;
+      turnRB(B1, f1, 'attack'); f1.turn.action = 0; f1.turn.attacksLeft = 0;
+      var n1 = B1.rec.steps.length; UIrb.actAt(B1, f1, g1.x, g1.y, true); UIrb.actAt(B1, f1, g1.x, g1.y, true);
+      var s1 = B1.rec.steps[B1.rec.steps.length - 1] || {};
+      okRB('1 two clicks at the goblin, the action spent: steps ' + n1 + ' -> ' + B1.rec.steps.length + ', the last refused "' + s1.refused + '" x' + (s1.times || 1) + ' clicked ' + JSON.stringify(s1.clicked || null) + ' (want one step more, "No attack left", x2, the goblin)',
+        B1.rec.steps.length === n1 + 1 && /No attack left/.test(s1.refused || '') && s1.times === 2 && !!s1.clicked && s1.clicked.who === g1.id && !s1.cmd);
+      D.rec.checkpoint(B1); var k1 = keptRB(B1), t1 = k1 ? k1.transcript || [] : [];
+      okRB('1 the transcript: ' + countRB(t1, /REFUSED x2: No attack left/) + ' REFUSED line, the card\'s words ' + countRB(t1, /No attack left/) + ' times in all (want 1, 1) -- ' + (t1.filter(function (l) { return /REFUSED/.test(l); })[0] || '(none)').trim().slice(0, 160),
+        countRB(t1, /REFUSED x2: No attack left/) === 1 && countRB(t1, /No attack left/) === 1);
+      // ... the goblin out of reach, the action unspent: refused too, and a click that IS an answer leaves no refusal (the answer caught, not run)
+      g1.x = f1.x + 5; g1.y = f1.y; B1.cache = null; turnRB(B1, f1, 'attack');
+      var n1b = B1.rec.steps.length; UIrb.actAt(B1, f1, g1.x, g1.y, true); var s1b = B1.rec.steps[B1.rec.steps.length - 1] || {};
+      okRB('1 the goblin 25 ft off, ATTACK: refused "' + (s1b.refused || '(no step)') + '" (want a step: out of reach)', B1.rec.steps.length === n1b + 1 && /out of reach/.test(s1b.refused || ''));
+      g1.x = f1.x + 1; g1.y = f1.y; B1.cache = null; turnRB(B1, f1, 'attack'); var st1 = B1.step; B1.step = function () { };
+      var n1c = B1.rec.steps.length; try { UIrb.actAt(B1, f1, g1.x, g1.y, true); } finally { B1.step = st1; }
+      var s1c = B1.rec.steps[B1.rec.steps.length - 1] || {};
+      okRB('1 the goblin beside him, the action his: the step ' + (s1c.cmd ? s1c.cmd.do : '(none)') + ', refused ' + (s1c.refused || 'none') + ' (want one step, an attack, no refusal)', B1.rec.steps.length === n1c + 1 && !!s1c.cmd && s1c.cmd.do === 'attack' && s1c.refused == null);
+      // ... the simple fight: a greyed row picked is a refusal too (simple.js choose -> REC.refused), and a pick with no one to take
+      var B1s = mkRB('?npc=goblin&vs=fighter:5&lvl=5', 'simple', { simple: true }), f1s = sideRB(B1s, 'party')[0];
+      if (!B1s.simple || !D.simple || !D.simple.pickFrom) okRB('1 the simple fight is up (B.simple, D.simple.pickFrom)', false);
+      else { turnRB(B1s, f1s, 'move'); var n1s = B1s.rec.steps.length; D.simple.pickFrom(B1s, f1s, 'Throw: at whom', [], function () { return null; }); var s1s = B1s.rec.steps[B1s.rec.steps.length - 1] || {};
+        okRB('1 the simple fight, a pick with no one to take: refused "' + (s1s.refused || '(no step)') + '" ' + JSON.stringify(s1s.clicked || null) + ' (want "Throw: no one here it takes")', B1s.rec.steps.length === n1s + 1 && /Throw: no one here it takes/.test(s1s.refused || '')); }
+    } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
+    var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
+    document.body.appendChild(preRB);
+    return;
+  }
   if (get('mode', '') === 'aloftclicks1103') {
     var repAL = { checks: [], errors: [] }, UIal = D.ui, IAal = D.input, moAL = IAal.mouse, GAal = D.grid, opts0AL = Object.assign({}, UIal.opts);
     function okAL(what, v) { repAL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
