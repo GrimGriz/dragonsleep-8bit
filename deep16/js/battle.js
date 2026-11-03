@@ -1603,7 +1603,7 @@
       case 'attack': {
         if (!c.target || c.target.dead || (c.target.hp <= 0 && !c.target.regenDown)) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29. A troll down at 0 and knitting is a target: blows change nothing but fire or acid, and a player may spend one there -- 10-13, Griz: "should have been able to burn unspendable attack on non-fire/non-acid down troll")
         if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? Battle.nm(c.target) : c.target.name) + '.{/}'], 200); return; }
-        if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
+        if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon: no swing with it this turn (it is back in hand next turn, a free pickup).{/}'], 200); return; } // (11-03, his "if it's a free pickup we can leave it as is": Command's DROP and Heat Metal mark it till this turn's end, the weapon never leaves the sheet)
         // (eyes averted from the gazer it swings at: blind, at disadvantage, or a look -- the save at once, SRD 5.1; the hand is asked, the AI swings blind. 10-15, §2.20)
         var avA = u.conds.averted, gzA = !byAI(u) && avA && c.target.gaze && avA.from.indexOf(c.target.id) >= 0;
         if (gzA) {
