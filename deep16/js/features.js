@@ -623,8 +623,12 @@
   // ------------------------------------------------------------------ the paladin: the Oath of the Green Return (ours, 10-30 -- the leveling lane §8 D; RULED, Griz: "i'd say yes";
   // leveling-srd-by-class.md 2.2, "what falls, feeds"). Channel Divinity, GREEN AGAIN -- an action: one of its own at 0 HP within 30 ft that it can see stands with the paladin's
   // level in HP, and the paladin loses as many, which nothing reduces (offered only while that leaves it standing: the seat's call); WHAT FALLS, FEEDS -- the reaction as one it
-  // can see drops within 30 ft: each friend within 10 ft of the fallen 1d6 + CHA (M.onKill, below -- taken by a rule, as the drop comes inside a blow with no asking: some healing
-  // to be had, and the last use kept for GREEN AGAIN while one of its own is down); at 7 the AURA OF DEEP ROOTS -- it and friends within 10 ft (30 at 18) are not moved against
+  // can see drops within 30 ft: each friend within 10 ft of the fallen 1d6 + CHA (M.onKill, below). A player's paladin is ASKED, as every other reaction is (11-03, Griz on a
+  // Pocket DM fight: "that paladin stuff auto-firing seemed weird" -- it had spent the only Channel Divinity six times unasked, and printed the roll, not the hp gained): the drop
+  // comes inside a blow, in hurt() with no yield to ask from, so M.onKill only queues it (B.greenQ) and F.greenAsk puts the prompt once the blow, the cast or the command is
+  // done (the seams for it are in js/battle.js: Battle.prototype.attack, .exec and the D.magic.cast wrapper call F.greenAsk). The AI's paladin (a
+  // watch, the bench, a guest, an NPC) still takes it by a rule, but only when it is worth the Channel Divinity (F.greenWorth: the hp it would actually restore, not the hp
+  // missing), and keeps the last use for GREEN AGAIN while one of its own is down; at 7 the AURA OF DEEP ROOTS -- it and friends within 10 ft (30 at 18) are not moved against
   // their will nor knocked prone (F.holdGround's guards: M.push and the knockdowns). Sacred Weapon, Turn the Unholy and the Aura of Devotion are Devotion's (RU.devoted)
   F.green = function (u, lvl) { return !!(u && u.cls === 'paladin' && u.subclass === 'the Oath of the Green Return' && u.lvl >= (lvl || 3)); };
   F.greenDown = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && !w.dead && !w.slain && !w.object && !w.familiar && w.hp <= 0 && G.dist(u, w) <= 30 && M.sees(B, u, w); }); };
@@ -639,19 +643,65 @@
   F.deepRoots = function (B, w) {
     return !!(B && B.units && w && !w.dead && w.hp > 0 && B.units.some(function (p) { return F.green(p, 7) && p.side === w.side && G.standing(p) && RU.canAct(p) && G.dist(p, w) <= (p.lvl >= 18 ? 30 : 10); }));
   };
+  // WHAT FALLS, FEEDS: can the paladin take it for the fallen u (the reaction and a Channel Divinity to spend, standing and able, within 30 ft, in sight)
+  F.greenCan = function (B, p, u) { return F.green(p) && p.reaction > 0 && feat(p, 'channel') && G.standing(p) && RU.canAct(p) && G.dist(p, u) <= 30 && M.sees(B, p, u); };
+  // who it would feed and by how much: each friend within 10 ft of the fallen that is hurt and can be healed, its hp gain at the lowest roll (1 + CHA) and the highest (6 + CHA)
+  // -- both capped at what it is missing -- and the gain the roll is expected to give (the six faces, capped); `exp` and `hi` are the sums
+  F.greenFeed = function (B, p, u) {
+    var cm = Math.max(0, D.mod(p.abil.cha)), list = B.units.filter(function (w) { return w.side === p.side && G.standing(w) && !w.object && !w.slain && !w.conds.noHeal && w.hp < w.maxhp && G.dist(w, u) <= 10; }).map(function (w) {
+      var miss = w.maxhp - w.hp, e = 0; for (var r = 1; r <= 6; r++) e += Math.min(miss, r + cm);
+      return { w: w, lo: Math.min(miss, 1 + cm), hi: Math.min(miss, 6 + cm), exp: e / 6 };
+    });
+    return { cm: cm, list: list, exp: list.reduce(function (s, q) { return s + q.exp; }, 0), hi: list.reduce(function (s, q) { return s + q.hi; }, 0) };
+  };
+  // the AI's weighing (11-03, the seat's call): the hp it would actually restore, not the hp missing -- 8 or more expected, about two friends' worth of the roll; or 4 or more when
+  // one of them is down to a quarter of its hit points (the heal that keeps it standing); and never the last use while one of its own is down (GREEN AGAIN's)
+  F.greenWorth = function (B, p, feed) {
+    if (p.feats.channel < 2 && F.greenDown(B, p).length) return false;
+    var low = feed.list.some(function (q) { return q.w.hp * 4 <= q.w.maxhp; });
+    return feed.exp >= 8 || (low && feed.exp >= 4);
+  };
+  // the heal itself: the reaction and the use spent, each friend's own roll, and the card says the hp each one gained (B.heal's return: capped at its maximum), not the roll
+  F.greenGive = function (B, p, u, feed) {
+    p.reaction = 0; p.feats.channel--;
+    var got = [];
+    feed.list.forEach(function (q) { var r = D.roll('1d6').total + feed.cm, n = B.heal(q.w, r); if (n > 0) got.push(nm(B, q.w) + ' +' + n); });
+    FX.ring(u, 'moss', 30);
+    B.card(['{y}' + Nm(B, p) + '{/}: {n}WHAT FALLS, FEEDS{/} -- ' + (got.length ? got.join(', ') : 'no one the better') + '.  {g}(the reaction and Channel Divinity){/}'], 260);
+  };
+  // a player's paladin is asked, once the blow, the cast or the command that dropped it is done (a drop seen in hurt() is only queued there)
+  F.greenAsk = function* (B) {
+    var q = B && B.greenQ; if (!q || !q.length) return;
+    B.greenQ = [];
+    for (var i = 0; i < q.length; i++) {
+      var p = q[i].p, u = q[i].u;
+      if (q[i].round !== B.round || !F.greenCan(B, p, u)) continue; // (a drop of an earlier round, or the reaction spent since, is not asked)
+      var feed = F.greenFeed(B, p, u); if (!feed.list.length) continue;
+      var lines = [Nm(B, u) + ' falls. Each friend within 10 ft of it regains 1d6' + (feed.cm ? ' + ' + feed.cm : '') + ':'];
+      feed.list.slice(0, 5).forEach(function (r) { lines.push('  ' + Nm(B, r.w) + ' ' + r.w.hp + '/' + r.w.maxhp + ':  +' + (r.lo === r.hi ? r.hi : r.lo + ' to +' + r.hi)); });
+      if (feed.list.length > 5) lines.push('  and ' + (feed.list.length - 5) + ' more');
+      lines.push('(your reaction and a use of Channel Divinity: ' + p.feats.channel + ' left)');
+      var down = p.feats.channel < 2 ? F.greenDown(B, p) : [];
+      if (down.length) lines.push('{o}GREEN AGAIN needs a use: ' + nm(B, down[0]) + ' is down.{/}');
+      var go = yield { prompt: { who: p, title: p.name + ': WHAT FALLS, FEEDS?', lines: lines, opts: [{ label: 'FEED THEM', value: true }, { label: 'NOT NOW', value: false }] } };
+      if (!go) continue;
+      F.greenGive(B, p, u, feed);
+      yield 24;
+    }
+  };
+  // (11-03: the ask has its seams in js/battle.js now -- `if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this)` after the blow in Battle.prototype.attack, at the end of
+  // .exec, and at the end of the D.magic.cast wrapper: the blow, the command and the spell that can drop a creature -- so it asks once, whoever queued it. F.greenHook used to lay the same ask
+  // over those three from here, the first time a drop was queued; it is a no-op now, kept so a caller does not break)
+  F.greenHook = function () { };
   var onKillG = M.onKill;
   M.onKill = function (B, killer, u) {
     onKillG.apply(this, arguments);
     if (!u || u.object || u.familiar) return;
     B.units.forEach(function (p) {
-      if (!F.green(p) || !(p.reaction > 0) || !feat(p, 'channel') || !G.standing(p) || !RU.canAct(p) || G.dist(p, u) > 30 || !M.sees(B, p, u)) return;
-      var near = B.units.filter(function (w) { return w.side === p.side && G.standing(w) && !w.object && w.hp < w.maxhp && G.dist(w, u) <= 10; });
-      var missing = near.reduce(function (s, w) { return s + w.maxhp - w.hp; }, 0);
-      if (missing < 4 || (p.feats.channel < 2 && F.greenDown(B, p).length)) return;
-      p.reaction = 0; p.feats.channel--;
-      var cm = Math.max(0, D.mod(p.abil.cha)), got = near.map(function (w) { var r = D.roll('1d6').total + cm; B.heal(w, r); return nm(B, w) + ' +' + r; });
-      FX.ring(u, 'moss', 30);
-      B.card(['{y}' + Nm(B, p) + '{/}: {n}WHAT FALLS, FEEDS{/} -- ' + got.join(', ') + '.  {g}(the reaction and Channel Divinity){/}'], 260);
+      if (!F.greenCan(B, p, u)) return;
+      var feed = F.greenFeed(B, p, u); if (!feed.list.length) return;
+      if (mine(p) && !p.ally) { (B.greenQ = B.greenQ || []).push({ p: p, u: u, round: B.round }); return; } // (a player's: asked, below)
+      if (F.greenWorth(B, p, feed)) F.greenGive(B, p, u, feed);
     });
   };
   TX.ACTIONS.push(function (B, u, fs) {
@@ -992,7 +1042,10 @@
     var friends = B.units.filter(function (w) { return w !== att && w.side === att.side && !w.dead && w.hp > 0 && !w.object && !w.riding && G.dist(w, att) <= 5 && !(G.aloft && (G.aloft(w) || G.aloft(att))); });
     var opts = [];
     if (F.knowsPlay(att, 'pinshield') && F.bearsShield(tgt) && !tgt.conds.shieldPinned) opts.push({ label: 'PIN THE SHIELD: its shield off its AC', value: 'pinshield' });
-    if (F.knowsPlay(att, 'bind') && tgt.reaction > 0) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
+    // (BIND takes a reaction the creature could take: not offered on one that cannot react now -- paralyzed, stunned, surprised, incapacitated, petrified (RU.canAct), 11-03, the desk's read of his
+    // record where the AI spent it on a hobgoblin it had hit asleep. That one was AWAKE by then -- battle.js hurt() wakes a sleeper on the damage, before this runs -- so its reaction was a real one
+    // and the play stood; only a target the blow leaves unable to react is cut)
+    if (F.knowsPlay(att, 'bind') && tgt.reaction > 0 && RU.canAct(tgt)) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
     if (F.knowsPlay(att, 'breakstride') && !tgt.conds.stride) opts.push({ label: 'BREAK STRIDE: 10 ft less speed', value: 'breakstride' });
     if (F.knowsPlay(att, 'wheel') && friends.length) opts.push({ label: 'WHEEL: trade places with a friend', value: 'wheel' });
     if (!opts.length) return;

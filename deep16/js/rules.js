@@ -135,6 +135,14 @@
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
     if (u.conds.sacred && (u.hp <= 0 || --u.conds.sacred.rounds <= 0)) { delete u.conds.sacred; if (D.battle) D.battle.card(['{g}' + u.name + '\'s blade goes back to steel: Sacred Weapon ends.{/}']); }
     if (D.magic) D.magic.startTurn(D.battle, u);
+    // Reckless on a sheet (Talmok, the berserker -- SRD 5.1 Berserker: "At the start of its turn, the berserker can gain advantage on all melee weapon attack rolls during that turn, but attack
+    // rolls against it have advantage until the start of its next turn"): taken here, at its own turn's start and AFTER the clocks above have struck the last turn's, as a condition -- the
+    // class barbarian's conds.reckless, which rules.js edges reads on both sides, and the next turn's start takes off (M.tick). Till 11-03 the sheet's flag itself was the edge, so
+    // Barley swung at the Talmok with advantage in round 1, before he had acted. A creature that takes no turn (caught unaware, held, down) does not take it
+    if (u.reckless && RU.canAct(u) && !u.conds.recoiling) {
+      u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } };
+      if (D.battle) D.battle.card(['{r}' + u.name + ' swings recklessly.{/}  {g}(advantage on its blows; blows at it have it too, till its next turn){/}'], 160);
+    }
   };
 
   // A paladin's auras (SRD 5.1), up while he stands and can act (conscious): Aura of Protection from 6 (he and allies within
@@ -180,7 +188,8 @@
     var resil = !!(u.resilient && ((D.battle && (D.battle.castLevel != null || D.battle.spellRun === u) && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
-    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || RU.exhaustion(u) >= 3 || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var dwf = !!(RU.poisonAdv(u) && (adv0 === 'poison' || (against && /^poison(ed)?$/.test(against)))); // (Dwarven Resilience, RU.poisonAdv: a damage save from poison rides in as adv0 'poison', a condition's as `against`)
+    var adv = !!adv0 || counter || pfp || pfg || resil || heads || dwf || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || RU.exhaustion(u) >= 3 || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.petrified || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
@@ -190,6 +199,7 @@
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0, atx: atx, resil: resil && adv && !dis ? 1 : 0, heads: heads && adv && !dis ? 1 : 0 };
     if (shk) res.shaken = shk;
+    if (dwf && !pfp && adv && !dis) res.dwarf = 1; // (named on the card, RU.saveText -- unless the ward or the antitoxin already is)
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Fortune's Due (a feat of ours, 10-30 -- js/features.js F.fortuneSave): spent on a failed save by the rule, when the Dues' average (2.5 each) reaches the DC
@@ -251,12 +261,23 @@
     if (att.conds.prone && !(melee && RU.hardGround(att))) dis.push('prone'); // (the Threshing Floor's Hard Ground: its own melee blows from the ground, 10-30)
     if (tgt.conds.prone) { if (G.dist(att, tgt, ax, ay) <= 5) { if (!RU.hardGround(tgt)) adv.push('prone target'); } else dis.push('prone target'); }
     if (att.conds.upAdv && !atk.spell) adv.push('up off the floor'); // (the Threshing Floor's rise: the first blow of that turn -- RU.startTurn)
-    // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
-    if ((att.reckless || att.conds.reckless) && melee) adv.push('reckless');
-    if ((tgt.reckless || tgt.conds.reckless) && melee) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js)
+    // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage. The swinger's edge is its OWN turn's only (11-03, the desk's read of his record:
+    // Talmok had advantage on an opportunity attack on another's turn -- SRD 5.1 Berserker: "At the start of its turn, the berserker can gain advantage on all melee weapon attack rolls
+    // during that turn, but attack rolls against it have advantage until the start of its next turn"; the barbarian's Reckless Attack, "during this turn", the same); the target's edge
+    // below holds till its next turn. B.active is whose turn it is (battle.js, the turn loop); no battle up (a bare call): the edge stands as it did
+    // (11-03, the desk's read of Barley's record, "adv: reckless target" in round 1 before the Talmok had acted: the sheet's `reckless` is only that the creature CAN be -- it is the
+    // CONDITION, conds.reckless, that is the edge, on both sides: RU.startTurn lays it on a sheet that has the trait at its own turn's start, a class barbarian's Reckless Attack lays it
+    // on the first swing (js/tactics.js, js/features.js), and the clock -- till its own next turn's start, M.tick -- takes it off. And on the swinging side the SRD's Barbarian is
+    // "melee weapon attack rolls using Strength": not a spell's touch, and not a finesse weapon swung with DEX)
+    var dexSwing = !!atk.finesse && !!att.abil && D.mod(att.abil.dex) > D.mod(att.abil.str); // (R.weaponAbil: a finesse weapon goes by DEX only when DEX is the higher modifier)
+    if (att.conds.reckless && melee && !atk.spell && !dexSwing && (!D.battle || D.battle.active === att)) adv.push('reckless');
+    if (tgt.conds.reckless) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js; the SRD's "attack rolls against you have advantage" -- any attack roll, a shot or a spell's too, 11-03)
     var DB = D.battle, pen = 0, penWhy = '', mirror = function (eye, seen) { return !!(D.magic && DB && eye.mirrorEye && D.magic.inMirror(DB, eye, seen)); };
     var senses = function (a, b) { return !!(a.senseHidden && G.dist(a, b) <= a.senseHidden); }; // (the snake familiar's caster: the hidden within 15 ft, RULED 09-30)
-    if (att.conds.hidden && !mirror(tgt, att) && !senses(tgt, att)) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
+    // (a hider is known to what perceives without sight -- SRD 5.1 blindsight, "without relying on sight", to its range: the bats' and the darkmantle's 60 ft; not what a tremorsense one
+    // cannot feel aloft -- 11-01; and to a foe the simple fight's Hide roll did not beat, js/simple.js: conds.hidden.seenBy. `d`: the feet between the eye and the hider)
+    var knows = function (eye, h, d) { var c = h.conds.hidden; return !!((eye.blindsight && d <= eye.blindsight && !(eye.tremor && G.aloft(h))) || (c && c.seenBy && c.seenBy.indexOf(eye.id) >= 0)); };
+    if (att.conds.hidden && !mirror(tgt, att) && !senses(tgt, att) && !knows(tgt, att, G.dist(tgt, att, null, null, ax, ay))) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
     // who cannot see whom (magic.js seeWhy: blinded, magical darkness, fog, the invisible, the dark). An unseen target is attacked
     // at disadvantage (SRD 5.1; AMENDED 09-28 from his -4, which was AD&D's -- R.BLIND keeps the flat penalty as a switch); an
     // unseen attacker attacks with advantage; a blinded creature is both
@@ -278,7 +299,7 @@
     if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
     // (a hidden target is unseen at any distance -- 10-04 night, Griz: "one line", RULED; it was outside 5 ft only, 09-28's torchdark 'heard and felt' beside you. The foe still knows
     // where she is beside it (ai.js heroes) and swings at disadvantage; a hit finds her -- battle.js attack: "it can tell where you are from the force of the blow")
-    if (tgt.conds.hidden && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden)) dis.push('unseen target');
+    if (tgt.conds.hidden && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden) && !knows(att, tgt, G.dist(att, tgt, ax, ay))) dis.push('unseen target'); // (11-01: nor from blindsight in range, nor from one that already has her -- `knows`, above)
     if (tgt.conds.faerie) adv.push('faerie fire');
     // the class NPCs' spells (09-28, js/grimoire.js): Guiding Bolt's glow (the next attack at it), Vicious Mockery (its own next attack),
     // True Strike (the caster's first at it), Blur (at the blurred: not for blindsight or truesight), Reckless Attack's price
@@ -312,7 +333,16 @@
   // (the condition) or 'poison' (the stinking cloud's, a poison that does harm) -- RU.save reads it; a caller with no `against` to give
   // (a damage save, where `against` would also wake Dark One's Own Luck) passes RU.vsPoison(w) as the save's `adv0` when the harm is poison
   // (the duergar's Resilience too -- "advantage on saving throws against poison": its sheet's `resilient`, 10-02 runner; RU.save reads the rest of it)
-  RU.vsPoison = function (u) { return u && u.conds && (u.conds.poisonWard || u.conds.antitoxin) ? 'poison' : !!(u && u.resilient); }; // ('poison': the ward's or the antitoxin's, which RU.save then names on the card -- 10-21 night, his "antitoxin not tested": the spider's bite rolled two dice and the line never said why) // (the antitoxin too, by the SRD: advantage on saves against poison -- 10-14)
+  // Dwarven Resilience (SRD 5.1, srd/01-races.md: "advantage on saving throws against poison, and ... resistance against poison damage" -- 11-03, the desk's read of his record: Ingrith rolled one
+  // d20 against a spider's poison; only the resistance had been given). A class NPC dwarf carries `poisonAdv` (js/classes.js, NPC.RACES.dwarf); the 8-bit game's dwarves -- Ingrith, Pyro, Halldor, Brann,
+  // Hedda, the troopers -- are known by their sheet's race. RU.save asks it for a damage save that rides in as `adv0` (RU.vsPoison) and for a save against being poisoned
+  RU.poisonAdv = function (u) {
+    if (!u) return false;
+    if (u.poisonAdv) return true;
+    var s = u.src && typeof u.src === 'object' ? u.src : null, d = s && s.id && window.DS && window.DS.DATA && window.DS.DATA.heroes ? window.DS.DATA.heroes[s.id] : null;
+    return !!(d && d.race === 'Dwarf');
+  };
+  RU.vsPoison = function (u) { return u && u.conds && (u.conds.poisonWard || u.conds.antitoxin) ? 'poison' : RU.poisonAdv(u) ? 'poison' : !!(u && u.resilient); }; // ('poison': the ward's or the antitoxin's, which RU.save then names on the card -- 10-21 night, his "antitoxin not tested": the spider's bite rolled two dice and the line never said why) // (the antitoxin too, by the SRD: advantage on saves against poison -- 10-14)
   // advantage and disadvantage on an ability check of `abil` (SRD 5.1), each with its reason: Enhance Ability (conds.enhanced.abil is the aspect's
   // ability, the one the caster chose among the six -- con, str, dex, cha, int, wis; a record with none is Bear's Endurance, so CON) and Heat Metal's burning armour (disAt '*': every attack roll
   // and ability check). The grid's checks: a web's or a grip's break-free (js/magic.js breakFree) and Hide (js/battle.js)
@@ -334,6 +364,7 @@
     var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist); if (sv.due) bits.push('fortune\'s due +' + sv.due);
     if (sv.legendary != null) bits.push('LEGENDARY RESISTANCE: it succeeds instead, ' + sv.legendary + ' left'); // (js/traits.js, 10-08)
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push(sv.atx ? 'advantage: antitoxin' : 'advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
+    if (sv.dwarf) bits.push('advantage: dwarven resilience');
     // (both dice when it rolled two, as an attack's line shows them: the cast's own advantage -- Dominate's "it is being fought" -- had read as one die in the gallery; the grid's rules §2c, 10-08)
     var kept = sv.indomitable ? sv.first : sv.d20, die = sv.rolls && sv.rolls.length === 2 ? '[' + sv.rolls.join(',') + ']>' + kept : kept; // (and Indomitable's reroll after the die it had kept, not after the first rolled)
     return 'd20 ' + die + (sv.indomitable ? ', again ' + sv.indomitable : '') + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;

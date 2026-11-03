@@ -65,6 +65,14 @@
     return obj * (base + (dmg >= hp ? TX.dpr(w) * 1.5 : 0));
   };
 
+  // Called to Account (ours, 10-30; js/grimoire.js): a creature so called takes the caller's radiant for each hit it lands on anyone but the caller (battle.js attack; a spell that
+  // harms another, once a cast: M.accountAnswer). What n blows at t, each hitting with chance p, cost it in hit points (its resistance to radiant counted): off a plan's score, 10-31
+  // (Griz: the foes' AI reacts to Called to Account, not to a Hunter's Mark)
+  TX.accountCost = function (B, u, t, n, p) {
+    var a = u.conds && u.conds.accounted;
+    return a && t && t.id !== a.by ? n * p * B.typed(u, avg(a.dice), 'radiant').n : 0;
+  };
+
   // ------------------------------------------------------------------ who is who
   function foesOf(B, u) { var fs = AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.regenDown; }), tt = u.conds && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, fs); return tt ? [tt] : fs; } // (a troll down and knitting is no one's blow -- only fire or acid matters to it: the burn below, 10-05)
   function alliesOf(B, u) { return B.units.filter(function (w) { return w.side === u.side && !w.dead && !w.fled && !w.left && !w.ethereal; }); }
@@ -188,7 +196,7 @@
           if (wp.ranged && !G.los(u, t, e.x, e.y).clear) return;
           var near = G.foesNear(u, e.x, e.y, 5).length;
           var s = swing(B, u, t, wp, e.x, e.y), dmg = n * s.p * s.d + s.p * s.sneak;
-          var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)); // (a Flame Tongue alight burns a troll: TX.worth, 10-05)
+          var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not
           sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0);
           if (!best || sc > best.score) best = { score: sc, t: t, e: e, wp: wp, why: (wp.ranged ? 'shoots ' : 'strikes ') + t.name };
@@ -207,12 +215,12 @@
     var T = u.turn;
     if (u.dead || u.hp <= 0) return;
     if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); T.hasteAction = 0; } // (the AI takes Haste's one with its Attack: attacksWith counts it)
-    var keep = u.weapon; u.weapon = wp;
-    var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), first = true;
+    var keep = u.weapon; u.weapon = wp; T.swung = wp; // (T.swung: the weapon of the Attack action -- the off hand's swing wants the main one, melee: TX.offhandAfter)
+    var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), first = true, caller = u.conds.accounted && u.conds.accounted.by; // (caller: Called to Account -- the blows after the first go at the one that called it, in reach)
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
     if (!wp.ranged && D.features && D.features.reckless(u) && !u.conds.reckless) { u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' swings recklessly.{/}'], 160); }
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
-      var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+      var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return (b.id === caller) - (a.id === caller) || a.hp - b.hp; })[0];
       first = false;
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
       T.attacksLeft--;
@@ -247,6 +255,7 @@
         var hitT = best.caught || (best.t && best.t.id != null ? [best.t] : best.t && best.t.units ? best.t.units : []);
         hitT.forEach(function (w) { if (w && G.hostile(u, w) && w.regen > 0 && !w.burned && !w.regenDown) best.score += TX.dpr(w) * 2; });
       }
+      if (u.conds.accounted && spD.dmg && !(best.t && best.t.id === u.conds.accounted.by)) best.score -= B.typed(u, avg(u.conds.accounted.dice), 'radiant').n; // (Called to Account: a spell that harms another is answered once a cast -- M.accountAnswer)
       if (D.features && D.features.metaPlan) D.features.metaPlan(B, u, e, slot, best, ev, fs, allies); // (a sorcerer's metamagic on the plan, even one its friends spoil without it: js/features.js)
       if (!(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
@@ -434,12 +443,30 @@
     });
     return best;
   };
+  // what a creature's attack rolls deal in a round, the same 0.65 a blow lands for as TX.dpr's: Extra Attack, the off hand's swing, the martial arts strike, a rogue's sneak, an attack
+  // cantrip -- and not a caster's spell floor (TX.dpr's 4 + top * 6). Bless adds a d4 to an attack roll, so it is worth the rolls it is on (10-31, Griz's play record: it never
+  // picked the two-weapon fighter, whose ~4 sat under every caster's floor and the paladin's)
+  TX.rollsDpr = function (w) {
+    if (!w || w.hp <= 0 || w.dead) return 0;
+    if (typeof w.attacks !== 'number') return TX.dpr(w); // (a stat block's routine: its blows are its rolls)
+    var wp = w.weapon || {}, off = TX.offhandBlow(w), v = 0.65 * ((w.attacksBase || w.attacks || 1) * (avg(wp.dice) + (wp.mod || 0)) + (off ? avg(off.dice) + (off.mod || 0) : 0));
+    if (w.cls === 'rogue') v += avg(RU.sneakDice(w)) * 0.6;
+    if (w.cls === 'monk') v += (avg(DS_R().martialDie(w.lvl)) + D.mod(w.abil.dex)) * 0.6;
+    // the spells that are attack rolls (Fire Bolt, Scorching Ray's rays, Guiding Bolt ...): the best one it can cast now, at its own level -- Aurdin's Scorching Ray is three rolls a turn
+    (w.known || []).forEach(function (id) {
+      var sp = M.data(id), g = M.geo(id), lv = sp && sp.level;
+      if (!sp || !g || (g.shape !== 'attack' && g.shape !== 'rays') || (lv > 0 && !(w.slots || []).some(function (n, i) { return i + 1 >= lv && n > 0; }))) return;
+      v = Math.max(v, (g.shape === 'rays' ? (g.n || 1) * avg(sp.dmg) : avg(M.dice(sp, w, lv))) * 0.65);
+    });
+    return v;
+  };
   // Bless: +1d4 to the attacks and saves of three of its own for the fight
   EV.bless = function (B, u, e, slot, fs, allies) {
     if (u.conc && u.conc.id === 'bless') return null;
-    var n = 3 + Math.max(0, slot - 1), who = allies.filter(function (w) { return G.standing(w) && !w.conds.blessed && G.range(u, w) <= 30; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, n);
+    var n = 3 + Math.max(0, slot - 1), who = allies.filter(function (w) { return G.standing(w) && !w.conds.blessed && G.range(u, w) <= 30; }).sort(function (a, b) { return TX.rollsDpr(b) - TX.rollsDpr(a) || TX.dpr(b) - TX.dpr(a); }).slice(0, n);
     if (!who.length || !fs.length) return null;
-    var sc = who.reduce(function (s, w) { return s + TX.dpr(w) * 0.12 * 3 + 1; }, 0);
+    // (a d4 on an attack roll is +12.5 points in a hundred of a hit: three rounds of the rolls' damage, over rollsDpr's 0.65; and the +1 for the saves -- a concentration check too)
+    var sc = who.reduce(function (s, w) { return s + TX.rollsDpr(w) * (0.125 * 3 / 0.65) + 1; }, 0);
     return { score: sc, t: { units: who }, keep: sc * 0.6 };
   };
   EV.aid = function (B, u, e, slot, fs, allies) {
@@ -595,6 +622,8 @@
       if (u.dead || u.hp <= 0 || B.over()) return;
     }
     for (var j = 0; j < TX.AFTER.length; j++) { yield* TX.AFTER[j](B, u); if (u.dead || u.hp <= 0 || B.over()) return; }
+    yield* TX.offhandAfter(B, u); // (the last of the bonus actions: the off hand's swing where nothing above wanted it)
+    if (u.dead || u.hp <= 0 || B.over()) return;
     yield* keepOff(B, u);
   };
   // every plan for u's action weighed, best first; `bonus`: the bonus-action spells instead (the play record reads both: js/record.js)
@@ -817,6 +846,33 @@
     var r = D.roll('1d10+' + u.lvl); B.heal(u, r.total);
     B.card(['{y}' + u.name + '{/}: SECOND WIND  +' + r.total]); yield 20;
   });
+  // Two-Weapon Fighting's swing (SRD 5.1: "When you take the Attack action and attack with a light melee weapon that you're holding in one hand, you can use a bonus action to attack
+  // with a different light melee weapon that you're holding in the other hand"; battle.js `offhand`, rules.js R.twoWeapon -- RULED 10-15). The class AI never took it until 10-31
+  // (Griz's play record). TX.offhandBlow(u): the blow as the exec makes it (the off hand's weapon, the ability modifier off its damage unless the style puts it back), or null where
+  // there is no pair -- nothing in the off hand, not two light weapons (or a Symmetric Fighting pair), put away, thrown, disarmed
+  TX.offhandBlow = function (u) {
+    var R = DS_R(), h = u.src;
+    if (!h || !h.equip || !u.offhand || u.offhandSheathed || u.offhandThrown || u.conds.disarmed || !R.twoWeapon(h).ok) return null;
+    var od = R.offhandDamage(h, R.item(h.equip.offhand));
+    return Object.assign({}, u.offhand, { dice: od.dice, mod: od.mod, offhandSwing: true });
+  };
+  // ... and the AI's: run LAST (TX.turn, after every TX.AFTER), so the bonus action goes to the off hand only where nothing else wanted it -- Second Wind under half, a bonus spell worth
+  // its slot, the rogue's Cunning Action, the monk's flurry, a bard's inspiration, a Drillyard play (TX.FIRST, before the action). At the foe in reach it would hurt most, the Attack
+  // action's weapon the main one and a melee one (an alt thrown at range is no pair), and a called creature (Called to Account) counts the radiant a blow at another costs it
+  TX.offhandAfter = function* (B, u) {
+    var T = u.turn;
+    if (!T || !T.bonus || T.offhandDone || !T.attackAction || !(T.attacked > 0) || !T.swung || T.swung !== u.weapon || T.swung.ranged || !RU.canAct(u)) return;
+    var blow = TX.offhandBlow(u); if (!blow) return;
+    var best = null;
+    foesOf(B, u).forEach(function (t) {
+      if (G.dist(u, t) > G.reachOf(u) || RU.charmedBy(u, t)) return;
+      var s = swing(B, u, t, blow, u.x, u.y), sc = TX.worth(s.p * s.d + (T.sneakUsed ? 0 : s.p * s.sneak), t) - TX.accountCost(B, u, t, 1, s.p);
+      if (!best || sc > best.sc) best = { sc: sc, t: t };
+    });
+    if (!best || best.sc <= 0.5) return;
+    B.card(['{y}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + '{/}: the ' + blow.name.toLowerCase() + ' in the off hand  {g}(two-weapon fighting: the bonus action){/}'], 160);
+    yield* B.exec(u, { do: 'offhand', target: best.t });
+  };
   // a bonus-action spell still worth it after the action (a heal, the floating weapon's swing)
   TX.AFTER.push(function* (B, u) {
     var T = u.turn;

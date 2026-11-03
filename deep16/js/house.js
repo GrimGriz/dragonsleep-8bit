@@ -219,6 +219,10 @@
   // on the night's tables (js/world.js W.pick, night) at W.WATCHX of the road's going for its hours; a fight wakes the rest with their medium and heavy armor off -- RULED
   // 10-21, his "go with the sleeping in light and robes, let them have the shield on the way to watch-interrupt combat": light armor and robes are slept in (H.SLEEP_IN), a
   // shield is taken up on the way; then the long rest (W.camp -> H.longRest). Rope Trick and the Tiny Hut keep the night with no watch (js/house.js H.field)
+  // THE NIGHT'S EIGHT HOURS (RULED 11-03, his "check that road camping is only moving 8 hours as appropriate (not necessarily 'sleep til morning')"): the three watches are
+  // W.REST (8) hours between them from when the party lies down, the long rest wakes it at the end of the eighth (js/world.js W.camp) -- a camp at noon wakes at 20:00. Each
+  // watch's check reads its own hour: the night's tables and the night's count (W.NIGHTX) only if the watch falls in the dark (a camp at the day's end has the first in the
+  // dusk); in the dark a watch spends 8 miles of the road's encounter count and the night's 24, as before it was by the clock
   H.WATCHES = 3; H.WATCHX = 0.5; H.SLEEP_IN = ['light', 'robe'];
   H.watchDefault = function (party) { var up = party.filter(function (h) { return !down(h); }); var a = {}; up.forEach(function (h, i) { a[h.key || h.id] = (i % H.WATCHES) + 1; }); return a; };
   // the sleepers' armor off (a copy of the save for the fight): what they wore, kept to put back after
@@ -234,24 +238,26 @@
   };
   H.night = function (scene) { if (!H.playing) return; D.push(new Watches(scene)); };
   H.runNight = function (scene, asg) {
-    var W = D.world, k = 0, ids = Object.keys(asg);
+    var W = D.world, k = 0, ids = Object.keys(asg), t0 = W.state().t, wh = W.REST / H.WATCHES; // (t0: the clock as the party lies down; wh: a watch's hours)
     var next = function () {
       if (!H.playing) return;
       k++;
-      if (k > H.WATCHES) { var ups = W.camp(); scene.say('Dawn: the night\'s rest is had, ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); return; }
+      if (k > H.WATCHES) { var ups = W.camp({ from: t0 }); scene.say(H.wakeSaid(ups)); return; } // (the clock to t0 + 8, whatever the fights in the watches spent)
       var on = ids.filter(function (id) { return asg[id] === k; }), S = W.state(), e = W.M().hex[W.K(S.at[0], S.at[1])], zone = W.zoneOf(e);
+      S.t = t0 + (k - 0.5) * wh; // (the clock at the watch's middle: its sky and its fight's are that hour's)
+      var sky = W.todAt(S.t % 24), night = sky === 'night', lit = night ? 'the dark' : sky === 'dawn' || sky === 'dusk' ? 'the half-light' : 'the daylight';
       if (S.zone !== zone || S.count == null) W.resetCount(zone);
-      S.count -= W.DAYHOURS / H.WATCHES * W.PACE * W.NIGHTX * H.WATCHX;
-      var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, true)) : null;
+      S.count -= wh * W.PACE * (night ? W.NIGHTX : 1) * H.WATCHX;
+      var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, night)) : null;
       if (!p || !p.list.length) { next(); return; }
       var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });
-      var so = H.sleepersOff(H.living(H.cur), on), who = p.list.length + ' come out of the dark';
+      var so = H.sleepersOff(H.living(H.cur), on), who = p.list.length + ' come out of ' + lit;
       D.sfx('encounter');
       // FIGHT the way OPTIONS says, or the other way for this fight alone (RULED 10-21, Griz: "yes to the simple fight leans" -- js/simple.js); at the camp's fire either way
       // (his "add a campfire when the party encounters during a camp": js/world.js W.CAMP)
       var simple = !D.simple || D.simple.on(), other = simple ? 'ON THE GRID' : 'SIMPLE';
       var go = function (how) {
-          scene.fight(p, e, { simple: how, camp: true, data: so.data, dark: true, intro: 'In the ' + ['first', 'second', 'third'][k - 1] + ' watch, out of the dark: ' + (names.length ? names.join(' and ') + ' standing it, the rest up from their blankets.' : 'no one standing it.'),
+          scene.fight(p, e, { simple: how, camp: true, data: so.data, dark: night, intro: 'In the ' + ['first', 'second', 'third'][k - 1] + ' watch, out of ' + lit + ': ' + (names.length ? names.join(' and ') + ' standing it, the rest up from their blankets.' : 'no one standing it.'),
             after: function (res, b) {
               try { D.music('corridor'); } catch (e2) { }
               var ln = H.afterFight(b, res); if (ln === null) return;
@@ -319,13 +325,18 @@
     party.forEach(function (h) { if (!h.dead) lines = lines.concat(R.gainXP(h, 0)); });
     return lines;
   };
+  // what the camp says on waking (js/world.js W.camp: eight hours on, whatever the hour it was): a dawn only if it is one; and the morning page's title by the hour
+  // (a camp at noon wakes at 20:00 to NIGHT). The inn's and the Glowseep's fire pass their own (H.sleepOnFloor), the inn a bed to the next morning
+  H.wakeSaid = function (ups) { var W = D.world, h = W.hour(); return (h >= 5 && h < 11 ? 'Dawn: the night\'s rest is had, ' : 'Awake: the rest is had, ') + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : ''); };
+  H.WAKE = { dawn: 'MORNING', morning: 'MORNING', midday: 'MIDDAY', afternoon: 'AFTERNOON', dusk: 'DUSK', night: 'NIGHT' };
+  H.wakeTitle = function () { var W = D.world; return (W && W.timeOfDay && H.WAKE[W.timeOfDay()]) || 'MORNING'; };
   H.longRest = function (scene) {
     if (!H.playing) return [];
     H.trail('rest', 'long rest');
     var R = DS.R;
     DS.G = { flags: H.cur.flags };
     var lines = H.restSheets(H.cur.party);
-    if (scene) { H.morning({ party: H.cur.party, lines: lines, save: true }); return lines; } // (the morning opens the picks: Morning)
+    if (scene) { H.morning({ party: H.cur.party, lines: lines, save: true, title: H.wakeTitle() }); return lines; } // (the morning opens the picks: Morning; titled by the hour it wakes at, 11-03: a camp's eight hours end at any)
     var who = H.cur.party.filter(function (h) { return R.picksDue(h); });
     if (who.length && scene) {
       if (DS.autoPicks || !D.ctx || !DS.MENU) who.forEach(R.autoPicks);
@@ -587,7 +598,7 @@
     if (house) {
       H.fromFloor(B);
       if (o.hours) { var S = W.state(); S.t += o.hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); lines = H.longRest(null) || []; } // (W.camp's day reset, the clock by the hours)
-      else { var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; } }
+      else { var sc0 = W.scene; W.scene = null; try { lines = W.camp({ morning: true }) || []; } finally { W.scene = sc0; } } // (a bed's night, not a road camp: to the next morning, 11-03)
       sheets = H.cur.party.filter(function (h) { return !h.dead; });
     } else {
       sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; });
@@ -707,11 +718,22 @@
   // R.FAM_GROUND; 10-31, Griz: "8-bit might have familiar by region shaped somewhere"), THE WORLD's ground read into its regions, a town floor's or a cave floor's;
   // or a line saying why not (no Calling Herbs in the pack)
   H.FAM_TERR = { woods: 'forest', bog: 'water', coastal: 'water', lake: 'water', river: 'water', sea: 'water', foothills: 'stone', hills: 'stone', gulch: 'stone', black: 'stone', gray: 'stone', snow: 'snow' };
+  // THE COLDRIDGE CLIMB IS MOUNTAINS (RULED 11-03, his "i'd like for up on the coldridge route count as mountains enough to get a white owl", on the eyes row of his 11-01 ear file): the hexes of
+  // the Coldridge Route (the road up from the Galleries junction to The DOORS: data/world.js and data/world-near.js `paths`, found by the road's name -- the held road's hexes are
+  // in the data though the walk does not use them) from H.CLIMB_UP feet -- the line where the climb's own seeding turns the foothills to hills (tools/hexmap.js seedColdridgeClimb);
+  // the junction's floor and the first mile up are not "up on" it -- count as the high ground, whatever the painted terrain: the snowfield's white owl first (the first game's
+  // R.FAM_GROUND.snow), then what lives on stone. Their altitude is the hex's own (e.h, feet), the one the map's `hexes` carry on either map
+  H.CLIMB_UP = 1500;
+  H.onClimb = function (M, e) {
+    if (!M || !e || !(e.h >= H.CLIMB_UP)) return false;
+    return (M.paths || []).some(function (P) { return /coldridge/i.test(P.name || '') && (P.hexes || []).some(function (x) { return x[0] === e.q && x[1] === e.r; }); });
+  };
   H.famForms = function (h, sp, B) {
     var R = DS.R, inv = B ? B.inv || [] : (H.cur && H.cur.inv) || [];
     if (sp && sp.component && !inv.some(function (s) { return s.id === sp.component && s.n > 0; })) return say('g.noComponent', { item: DS.DATA.items[sp.component].name });
     if (B && B.roam) return R.famForms(null, /[?&]roam=silverton\b/.test(D.roam.q || '') ? 'town' : 'cave');
     var W = D.world, S = W && W.state ? W.state() : null, Mw = W && W.M ? W.M() : null, e = S && S.at && Mw && Mw.hex ? Mw.hex[W.K(S.at[0], S.at[1])] : null, g = R.FAM_GROUND[H.FAM_TERR[e && e.t] || 'fields'];
+    if (H.onClimb(Mw, e)) return R.FAM_GROUND.snow.forms.concat(R.FAM_GROUND.stone.forms); // (up on the Coldridge Route: the white owl, then bat, spider, snake)
     return g ? g.forms.slice() : ['owl'];
   };
   FD.skill = function (c, s, t) {

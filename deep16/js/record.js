@@ -31,8 +31,12 @@
     if (u) { o.dist = G.dist(u, w); try { o.seen = !!D.magic.sees(B, u, w); } catch (e) { /* (the sight question can't be asked here) */ } }
     return o;
   }
+  // (11-03, the desk's read of his Hex bout: `hp: u.maxhp` read 26 for a hero who came in at 13/26, hiding the wounds carried into the fight. hp is the hero's hit points as the
+  // block is taken -- at the first answer the player gives, note() below -- and maxhp stands beside it; a fight's rec.hp0 { id: hp }, where REC.start snapshots it, is the
+  // hp at the very start and wins when it is there, for a hero struck before that first answer)
+  function startHp(u) { var h0 = D.battle && D.battle.rec && D.battle.rec.hp0; return h0 && h0[u.id] != null ? h0[u.id] : u.hp; }
   function sheet(u) {
-    return { id: u.id, name: u.name, cls: u.cls, lvl: u.lvl, subclass: u.subclass, hp: u.maxhp, ac: D.rules && D.rules.ac ? D.rules.ac(u) : u.baseAC,
+    return { id: u.id, name: u.name, cls: u.cls, lvl: u.lvl, subclass: u.subclass, hp: startHp(u), maxhp: u.maxhp, ac: D.rules && D.rules.ac ? D.rules.ac(u) : u.baseAC,
       weapon: u.weapon && u.weapon.id, slots: u.slotsMax && u.slotsMax.slice(), known: (u.known || []).slice(), darkvision: u.darkvision || 0 };
   }
   function plans(B, u, bonus, n) {
@@ -50,11 +54,22 @@
     return o;
   }
   // the log since the last answer goes to it: what that answer did
+  // (11-03, the desk's read of his record: a card with an id REPLACES its own log entries -- battle.js Battle.card filters them out and pushes the new ones at the END, the log the
+  // same length -- so flushing by count never saw a re-carded line: the Shield reaction's "SHIELD +5 ... MISS" and a TAKE IT's "HIT" never reached a transcript. Now the entries are
+  // told by identity: an entry not seen before is new; one that re-cards a card's line is kept only where its text differs from what that card's line said when last written)
   function flush(B) {
-    var r = B.rec, ls = B.logEntries || [];
-    if (r.last && ls.length > r.logAt) r.last.then = (r.last.then || []).concat(ls.slice(r.logAt).map(logText));
-    else if (!r.last && ls.length > r.logAt) r.opening = (r.opening || []).concat(ls.slice(r.logAt).map(logText)); // (before the first answer -- the foes' first turns: kept for the transcript's head, 10-29)
-    r.logAt = ls.length;
+    var r = B.rec, ls = B.logEntries || [], seen = r.seen || (r.seen = new WeakSet()), card = r.cardTxt || (r.cardTxt = {}), pos = {}, fresh = [];
+    ls.forEach(function (e) { // (the log's entries are all { id, text } objects: battle.js Battle.card, ai.js, roam.js, hex.js)
+      if (!e || typeof e !== 'object') return;
+      var k = e.id != null ? String(e.id) : null, i = k == null ? 0 : (pos[k] = (pos[k] == null ? 0 : pos[k] + 1));
+      if (seen.has(e)) return;
+      seen.add(e);
+      if (k == null) { fresh.push(logText(e)); return; } // (an entry with no card: new once, as ever)
+      var was = card[k] || (card[k] = []);
+      if (was[i] !== e.text) { was[i] = e.text; fresh.push(logText(e)); } // (a card's line: new, or changed since it was last written)
+    });
+    if (r.last && fresh.length) r.last.then = (r.last.then || []).concat(fresh);
+    else if (!r.last && fresh.length) r.opening = (r.opening || []).concat(fresh); // (before the first answer -- the foes' first turns: kept for the transcript's head, 10-29)
   }
   // what the answer came from, so a slip (a click that was meant for the wheel, the space bar early) can be told from a choice:
   // a mouse click (with where), the END key (space), the confirm key, another key by its name, or code (a helper, a test)
@@ -108,7 +123,14 @@
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
     var n = (B.logEntries || []).length;
-    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n };
+    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, hp0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above)
+    REC.snap(B);
+  };
+  // hp0 { id: hp }: written once a unit, never over (11-03, the desk's read of his Hex bout). REC.start runs at the top of Battle.enter, before the units are built, so this runs again as enter returns (below)
+  REC.snap = function (B) {
+    var r = B && B.rec; if (!r) return;
+    r.hp0 = r.hp0 || {};
+    (B.units || []).forEach(function (w) { if (w.side === 'party' && r.hp0[w.id] == null) r.hp0[w.id] = w.hp; });
   };
   REC.finish = function (B, result) {
     var r = B.rec;
@@ -131,7 +153,7 @@
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
-    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done') out[k] = r[k]; });
+    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });
@@ -200,7 +222,9 @@
     var prev = D.battle;
     if (prev && prev !== this && prev.rec && !prev.rec.done && prev.rec.steps.length) REC.finish(prev, 'restarted');
     if (this.o.record && !this.rec) REC.start(this, this.o.record);
-    return enter0.apply(this, arguments);
+    var r = enter0.apply(this, arguments);
+    if (this.rec) REC.snap(this); // (the units are built: their hit points as the fight begins -- before the first blow, the first answer)
+    return r;
   };
   // the fight's end closes its record where no door of its own does (10-06: ?fight= and ?npc= have no onDone -- the ladder, the climb and the Pocket DM finish
   // theirs there -- so their records stood 'unfinished' at the last round's checkpoint; Griz's Skylights of 10-05 is one). The story inside the 8-bit HAS an

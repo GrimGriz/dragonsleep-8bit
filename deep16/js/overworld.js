@@ -130,7 +130,7 @@
     if (m.click && m.inside && ov.plan) { ov.walk = { path: ov.plan.tiles.slice(), f: 0 }; ov.plan = null; ov.free = false; D.sfx('confirm'); return; }
     if (I.pressed('a')) { var here = OV.doorHere(), rt = OV.routeHere(); if (here) sc.offerDoor(here, ov.last || null); else if (rt) sc.offerRoute(rt); else OV.look(sc); }
     if (I.pressed('end') && W.house()) { sc.campCard(); return; } // (the house's camp: the night's three watches, or an hour -- js/world.js campCard)
-    if (I.pressed('end')) { W.camp(); D.sfx('confirm'); sc.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.'); }
+    if (I.pressed('end')) { var upsC = W.camp(); D.sfx('confirm'); sc.say(W.campSaid(upsC)); }
   };
   // a step a time, as the hex view's: past the day's march it asks, never camps on its own (10-22, his "Right now moving seems to be auto-camping" -- till then a camp
   // past 8 hours here, the house's night and its watches skipped): the house's march by the day's hexes, a tile its share of one; the bare door's by the hours

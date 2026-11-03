@@ -247,11 +247,49 @@
     if (tot >= dc) { this.card(['{y}' + u.name + '{/}: RUN -- d20 ' + d + ' ' + RU.sign(md) + ' = ' + tot + ' against ' + dc + ': {n}the party slips away!{/}'], 300); yield 20; yield* this.leave(u); }
     else { D.sfx('miss'); this.card(['{y}' + u.name + '{/}: RUN -- d20 ' + d + ' ' + RU.sign(md) + ' = ' + tot + ' against ' + dc + ': {o}can\'t get away!{/}'], 300); yield 40; }
   };
-  // HIDE AS THE FIRST GAME'S (RULED 10-22, Griz: "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more successful)"): the
-  // lineup stands the hider in every foe's front cone, lit by the camp (the grid's Hide was 1 in 4 against the worgs), so one of ours hides here as in the first game --
-  // no roll, it always works: hidden till the end of its next turn (the turn after that from 9th level: js/battle.js hideAttack's two rounds, three), or till it attacks
-  // or is struck, its next attack with advantage. No foe's look and no Search finds it. A foe's Hide (the goblin's Nimble Escape) keeps the grid's roll; the Mirror's eye
-  // and faerie fire still forbid it (the grid's own card)
+  // HIDE BY THE ROLL, WITHOUT THE CONES (RULED 10-22, Griz: "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more successful)": the
+  // lineup stands the hider in every foe's front cone, lit by the camp, and the grid's Hide was 1 in 4 against the worgs -- so it was a hide with no roll; RE-RULED 11-01, his
+  // ear file: "like the first game came after we gave vision cone based stealth on the grid. Simple fights she can't get behind people so if cones are used she can't hide.
+  // Best isn't auto-success in simple fight, but stealth roll versus passive perception without sight-cone grid modifiers"). A hero's Hide here is the grid's Stealth roll
+  // (Battle.stealthRoll: her proficiency, Expertise, the edges, the boots, Guidance) against EACH foe's passive Perception on its own (the sheet's `perception`, an ettin's two
+  // heads +5; a tie to the hider, as battle.js spots) -- none of the cone's or the light's bonus (nearOf is off for her, below). A foe it beats loses her; one it does not beat
+  // sees her still (`conds.hidden.seenBy`: S.hideRec), and so does one that perceives without sight (blindsight to its range, SRD 5.1 -- a bat's 60 ft) whatever she rolled.
+  // Hidden from none: SEEN, the action spent, no hide. Hidden from some: till the end of her next turn (the turn after that from 9th level: js/battle.js hideAttack's two
+  // rounds, three), or till she attacks or is struck; her first attack has advantage against those that cannot see her (rules.js RU.edges -- which the dark's disadvantage
+  // cancels). A foe's Search is the grid's contest (its Perception d20 against a fresh Stealth roll of hers), without the cone. A foe's own Hide (the goblin's Nimble Escape)
+  // keeps the grid's roll; the Mirror's eye and faerie fire still forbid it (the grid's own card)
+  S.passive = function (w) { return (w.perception || 10) + (w.twoHeads ? 5 : 0); }; // (battle.js spots: the sheet's passive score, and the ettin's Two Heads' advantage on Perception is +5 on it)
+  // a creature that perceives the hider without sight: blindsight to its range (not what a tremorsense one cannot feel, aloft: the bulette, the xorn), the snake familiar's caster (senseHidden)
+  S.perceives = function (w, u) { return !!((w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) || (w.senseHidden && G.dist(w, u) <= w.senseHidden)); };
+  // each foe's verdict on the hider at Stealth total t: { seen: [{ w, pp, why }], beat: [{ w, pp, why }] }. By eye: its passive Perception must not be beaten (pp > t finds her);
+  // one that cannot see her at all (blinded, the dark with no darkvision, the invisible) cannot find her by eye, whatever its Perception
+  S.judge = function (B, u, foes, t) {
+    var out = { seen: [], beat: [] };
+    foes.forEach(function (w) {
+      var pp = S.passive(w), e = { w: w, pp: pp, why: '' };
+      if (S.perceives(w, u)) { e.why = w.blindsight && G.dist(w, u) <= w.blindsight ? 'blindsight' : 'senses her'; out.seen.push(e); }
+      else if (!D.magic.sees(B, w, u)) { e.why = 'cannot see her'; out.beat.push(e); }
+      else (pp > t ? out.seen : out.beat).push(e);
+    });
+    return out;
+  };
+  // the card's names: 'Goblin x3 (9), Worg (14)' -- a kind once with its count, the passive score (or the sense) in brackets after it
+  S.tally = function (B, list) {
+    var order = [], by = {};
+    list.forEach(function (e) { var nm = B.shortName ? B.shortName(e.w) : e.w.name, k = nm + '|' + (e.why || e.pp); if (!by[k]) { by[k] = { nm: nm, n: 0, v: e.why || String(e.pp) }; order.push(k); } by[k].n++; });
+    return order.map(function (k) { var o = by[k]; return o.nm + (o.n > 1 ? ' x' + o.n : '') + ' (' + o.v + ')'; }).join(', ');
+  };
+  // `conds.hidden` for a hider some foes have spotted: it reads as NOTHING during the turn of a foe in `seenBy` (ai.js heroes and tactics.js choose among those not hidden; the blows'
+  // edges and the found-by-the-blow line ask the same flag), and as the hide at every other time -- her own turn, the ticks, the draw (which clears B.active). rules.js RU.edges asks
+  // `seenBy` for itself too, for a blow struck outside the foe's own turn. Hidden from all, the plain record
+  S.hideRec = function (B, u, rec) {
+    if (!rec.seenBy.length) { u.conds.hidden = rec; return; }
+    Object.defineProperty(u.conds, 'hidden', {
+      configurable: true, enumerable: true,
+      get: function () { var a = B.active; return a && a !== u && rec.seenBy.indexOf(a.id) >= 0 ? undefined : rec; },
+      set: function (v) { Object.defineProperty(u.conds, 'hidden', { value: v, writable: true, configurable: true, enumerable: true }); }
+    });
+  };
   var hide0 = Battle.prototype.hide;
   Battle.prototype.hide = function* (u, bonus) {
     if (!this.simple || u.side !== 'party') return yield* hide0.apply(this, arguments);
@@ -259,14 +297,31 @@
     if (mirror || u.conds.faerie) return yield* hide0.apply(this, arguments);
     if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else Battle.payAction(T); // (as the grid's: Cunning Action's bonus action, else the action)
     T.hid = true; D.sfx('run');
-    var n = (u.lvl || 1) >= 9 ? 3 : 2;
-    u.conds.hidden = { simple: true, till: { who: u.id, at: 'end', n: n }, onEnd: function (w) { delete w.hidTotal; } }; u.hidTotal = 99; // (grimoire.js M.tick ends it; 99: no watch beats it, battle.js spots)
-    this.card(['{y}' + u.name + '{/} melts into the shadows: {n}HIDDEN{/}', '{g}No roll, as in the first game: hidden till the end of ' + (n > 2 ? 'the turn after next' : 'the next turn') + ', or the first attack -- which has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}']);
+    var n = (u.lvl || 1) >= 9 ? 3 : 2, foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && !w.left && RU.canAct(w); }); // (whoever is against her and could notice: the grid's list, less the objects)
+    var q = this.stealthRoll(u), r = q.r, supreme = q.supreme, ce = q.ce, hadv = q.hadv, hdis = q.hdis, total = q.total;
+    RU.spendHelp(u); // (a friend's Help, spent on the Stealth check -- the grid's, 10-01c)
+    var j = S.judge(this, u, foes, total), gd = 0;
+    // Guidance (SRD 5.1: a d4 to one ability check, after the roll): spent when it would turn a look
+    if (j.seen.length && u.conds.guidance && D.magic.spendGuidance && S.judge(this, u, foes, total + 4).seen.length < j.seen.length) { gd = D.magic.spendGuidance(this, u); total += gd; j = S.judge(this, u, foes, total); }
+    var ok = j.beat.length > 0 || !foes.length, sneaky = u.cls === 'rogue' || !!u.sneak; // (hidden from one is hidden: from none, seen)
+    if (ok) { u.hidTotal = total; S.hideRec(this, u, { simple: true, seenBy: j.seen.map(function (e) { return e.w.id; }), till: { who: u.id, at: 'end', n: n }, onEnd: function (w) { delete w.hidTotal; } }); } // (grimoire.js M.tick ends it)
+    else delete u.hidTotal;
+    var beat = j.beat.length ? 'Beat passive Perception: ' + S.tally(this, j.beat) : '', seen = j.seen.length ? 'Seen by: ' + S.tally(this, j.seen) : '', both = beat && seen ? beat + '   ' + seen : '';
+    var lines = ['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + Battle.shakenTag(u) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}')];
+    if (both && D.textWidth(both) <= D.W - 24) lines.push('{g}' + beat + '{/}   {o}' + seen + '{/}'); // (one line if the two fit it: the words across the top hold four)
+    else { if (beat) lines.push('{g}' + beat + '{/}'); if (seen) lines.push('{o}' + seen + '{/}'); }
+    if (ok) {
+      lines.push('{g}Hidden till the end of ' + (n > 2 ? 'the turn after next' : 'the next turn') + ' or the first attack: advantage, which disadvantage cancels.{/}'); // (rules.js RU.edges: the unseen attacker's advantage and the dark's disadvantage cancel)
+      if (sneaky) lines.push('{g}Sneak Attack with advantage, or an ally by the target and no disadvantage.{/}');
+    }
+    this.card(lines);
     if (D.spr.anim(u.sheet, 'hide')) { u.anim = 'hide'; u.animT = this.t; }
     yield 30;
   };
-  var sr0 = Battle.prototype.stealthRoll; // (a foe's Search re-rolls the hider's Stealth, battle.js search: one hidden the first game's way is not found)
-  Battle.prototype.stealthRoll = function (u) { var r = sr0.apply(this, arguments); if (this.simple && u.conds.hidden && u.conds.hidden.simple) r.total = 99; return r; };
+  // no cone and no light's bonus on a lineup hider (Griz, 11-01: "without sight-cone grid modifiers"): battle.js nearOf, which spots / lostCover / findsHidden and a foe's Search
+  // (battle.js search) read, answers nothing for one hidden here -- so only the roll against the passive Perception, above, and a Search's own contest decide it
+  var near0 = Battle.prototype.nearOf;
+  Battle.prototype.nearOf = function (w, u) { if (this.simple && u && u.conds && u.conds.hidden && u.conds.hidden.simple) return null; return near0.apply(this, arguments); };
 
   // ------------------------------------------------------------------ THE SPELL EFFECT SCALER (his "probably need to have a 'spell effect scaler' accompanying simple
   // combat"; the seat's lean, RULED 10-21 on his "yes to the simple fight leans"): an area is aimed at one creature, and takes it and the nearest standing of its side

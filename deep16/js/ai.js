@@ -52,9 +52,28 @@
     if (path && path.length) yield* B.moveAlong(u, path, { spend: true, noOA: o && o.ghost });
   }
 
+  // the end of a turn comes however the turn went (11-03): one lost -- surprised, held, stunned, banished, a Command obeyed, a light-hater recoiling -- ends as surely as one played,
+  // and what lasts "until the end of its next turn" is swept then. Till now a turn that returned early never reached the sweep: Lymen stayed frightened of the deep gallery's
+  // cloaker two rounds past its Moan (his 11-01 play record)
   AI.turn = function* (B, u) {
+    try { yield* turnOf(B, u); }
+    finally {
+      // a Slam's stun and a Moan's fright last till the end of the foe's next turn
+      // (a stun laid with no `fresh` is not this sweep's: a spell's -- Power Word Stun, Divine Word, Symbol -- holds by its own rule, the save at the
+      // end of the stunned one's turns, and a monk's Stunning Strike by its own clock, js/features.js; 09-30)
+      // (not the fright of the turned -- a prayer's, a minute by the turned one's own clock, js/features.js F.setTurned. NOTE, 09-30, not touched: Fear's and
+      // the Killer's fright is swept here too when an AI caster ends its turn, so `feared` stays and `frightened` does not, and M.mustFlee is false)
+      B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id && !(c === 'stunned' && s.fresh === undefined) && !(c === 'frightened' && (w.conds.turned || (w.conds.feared && w.conds.feared.by === u.id) || (w.conds.killer && w.conds.killer.by === u.id)))) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); }); // (a spell's fright -- Fear, Phantasmal Killer, Weird -- holds as long as the spell: RULED 09-30, Griz: "yes", it bites)
+      // the cloaker's duplicates, gone if it or a light moved it into bright light this turn (SRD 5.1 Phantasms, 11-03: magic.js M.dupesLit)
+      if (D.magic.dupesLit) B.units.forEach(function (w) { D.magic.dupesLit(B, w); });
+    }
+  };
+  var turnOf = function* (B, u) {
     var wasStill = !u.acted && !u.woken; // (the roper's False Appearance: a stalagmite till its first turn or a wound -- js/ui.js)
     RU.startTurn(u);
+    // the cloaker's Moan has no recharge (SRD 5.1, 11-03): its action at will, `ready` again as each of its turns begins -- the mark the darkness's cutscene reads, so the round
+    // it moaned on its own turn the darts bring no second Moan (magic.js)
+    if (u.moan && u.moan.recharge == null) u.moan.ready = true;
     if (u.dead) return;
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
@@ -172,12 +191,7 @@
     else yield* guest(B, u);
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
     if (u.side === 'foe' && B.fight && B.fight.whistler === u.id && !u.whistled) yield* whistle(B, u); // (the Skylights: Hallvör's call, the turn she first stands on the roof)
-    // a Slam's stun and a Moan's fright last till the end of the foe's next turn
-    // (a stun laid with no `fresh` is not this sweep's: a spell's -- Power Word Stun, Divine Word, Symbol -- holds by its own rule, the save at the
-    // end of the stunned one's turns, and a monk's Stunning Strike by its own clock, js/features.js; 09-30)
-    // (not the fright of the turned -- a prayer's, a minute by the turned one's own clock, js/features.js F.setTurned. NOTE, 09-30, not touched: Fear's and
-    // the Killer's fright is swept here too when an AI caster ends its turn, so `feared` stays and `frightened` does not, and M.mustFlee is false)
-    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id && !(c === 'stunned' && s.fresh === undefined) && !(c === 'frightened' && (w.conds.turned || (w.conds.feared && w.conds.feared.by === u.id) || (w.conds.killer && w.conds.killer.by === u.id)))) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); }); // (a spell's fright -- Fear, Phantasmal Killer, Weird -- holds as long as the spell: RULED 09-30, Griz: "yes", it bites)
+    // (the sweep of what it laid till the end of its next turn: AI.turn's `finally`, above -- however the turn ended)
     D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;
@@ -1287,7 +1301,8 @@
     if (u.aura && !u.aura.used && T.action && hs.length && !u.conds.hidden) { if (yield* D.magic.castAura(B, u)) return; }
     // the duergar's Invisibility (SRD, an action; torchdark 09-28): with no one in reach yet it fades from sight and closes unseen;
     // the first blow, a spell or its Enlarge ends it (battle.js attack)
-    if (u.invis && !u.invis.used && !u.conds.invisible && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
+    // (not while Faerie Fire outlines it or a Branding Smite has found it -- both beat the invisible, magic.js seeWhy, and Branding Smite's "can't become invisible until the spell ends": the action was wasted, 11-03)
+    if (u.invis && !u.invis.used && !u.conds.invisible && !u.conds.faerie && !u.conds.branded && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
       T.action = 0; u.invis.used = !u.invis.atWill; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
       B.card(['{r}' + the(B, u) + '{/} fades out of sight.  {g}(Invisibility: till it attacks, casts or grows){/}'], 360);
       yield 30;
@@ -1298,31 +1313,30 @@
     // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
     if (bolting) { if (yield* bolt(B, u)) return; }
-    // recharges (5-6 at the start of its turn): the Moan, the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower)
-    if (!T.recharged) [u.moan, u.leap, u.spittle, u.whelm].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    // recharges (5-6 at the start of its turn): the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower), the Spittle, the Whelm; a Moan only if its sheet
+    // gives it a recharge -- the cloaker's has none (SRD 5.1, 11-03): ready again at the start of each of its turns (AI.turn, above)
+    if (!T.recharged) [u.moan, u.leap, u.spittle, u.whelm].forEach(function (s) { if (s && !s.ready && s.recharge != null && D.d(6) >= s.recharge) s.ready = true; });
     // the mouther's Blinding Spittle (SRD 5.1: its Multiattack is "one bite attack and, if it can, uses its Blinding Spittle" -- no action of its own; 10-06)
     if (!grudge && u.spittle && u.spittle.ready && T.action && hs.length) yield* spit(B, u, hs);
-    // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
-    if (!grudge && u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
-      T.action = 0; u.phantasms.used = true; u.images = 3; D.sfx('magic'); FX.sparkle(u, 'violet', 30);
-      B.card(['{r}' + the(B, u) + '{/} splits into shadows: three false shapes wheel about it!  {g}(each blow may go at an image){/}'], 360);
+    // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action. The cloaker's are the SRD's (11-03, Griz: "SRD except for script and easter egg"): cast
+    // only "if it isn't in bright light", once a fight (it recharges after a rest), and its duplicates (`phantasms.dupes`) are gone the moment it stands in bright light, have its
+    // AC, and fool only eyes (magic.js M.dupesLit, M.imagesFool; battle.js attack). When it casts them -- bloodied -- is the AI's choice, the 8-bit's, not the SRD's; and only
+    // while one of its foes sees it to be fooled (the seat's call, 11-03: in the dark, its foes unsighted, the action is better spent)
+    var clk = u.kind === 'cloaker', fooled = clk && D.magic.imagesFool ? B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && D.magic.imagesFool(B, w, u); }) : true;
+    if (!grudge && u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2) && fooled && !(clk && D.magic.inBright && D.magic.inBright(B, u))) {
+      T.action = 0; u.phantasms.used = true; u.images = 3; if (clk) u.phantasms.dupes = true; D.sfx('magic'); FX.sparkle(u, 'violet', 30);
+      B.card(['{r}' + the(B, u) + '{/} splits into shadows: three ' + (clk ? 'duplicates of it wheel about it, and which is it?  {g}(a blow at it may go at a duplicate; bright light ends them){/}' : 'false shapes wheel about it!  {g}(each blow may go at an image){/}')], 360);
       yield 34;
       if (!hs.length) return;
     }
-    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn -- moan: { dc, recharge, cond, range, text }
+    // the Moan (the cloaker, SRD 5.1 -- magic.js M.moan): every creature within 60 ft that can hear it and is no aberration, WIS or frightened till the end of its next turn, and
+    // one who saves is proof against it. Its action, at will; it moans while two or more of the foes it goes for could still be shaken (MO.min) -- none while it hunts the vital
+    // one alone (RULED 10-01c, "cloaker focuses on kid": its turn is his) -- and then shakes all in earshot -- moan: { dc, min, range, text }
     // (the mouther's Gibbering read this way till 10-06, stunned within 20 ft; it is the SRD's own now, js/traits.js)
-    var MO = u.moan, mcond = MO && (MO.cond || 'frightened'), mrange = MO && (MO.range || 60);
-    if (!grudge && MO && MO.ready && T.action && hs.filter(function (w) { return G.range(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
+    var MO = u.moan;
+    if (!grudge && MO && MO.ready && T.action && D.magic.moan && hs.filter(function (w) { return D.magic.moanShakes(u, w); }).length >= (MO.min || 2)) {
       T.action = 0; MO.ready = false; D.sfx('encounter');
-      var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
-      hs.filter(function (w) { return G.range(u, w) <= mrange; }).forEach(function (w) {
-        if (mcond === 'frightened' && w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
-        if (mcond === 'frightened' && RU.immuneTo(w, 'frightened', u)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
-        var sv = RU.save(w, 'wis', MO.dc, false, mcond === 'frightened' ? 'frightened' : 'stunned');
-        ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : mcond === 'stunned' ? '{p}STUNNED{/} (no turn)' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
-        if (!sv.ok) w.conds[mcond] = { by: u.id, fresh: true };
-      });
-      B.card(ml, 420); yield 40; return;
+      B.card(D.magic.moan(B, u, the(B, u), true), 420); yield 40; return;
     }
     // the Leap (the bulette): into the air and down on up to two of them standing together (DEX, half on a save)
     if (u.leap && u.leap.ready && T.action && hs.length) { if (yield* leap(B, u, hs)) return; }
@@ -1469,6 +1483,10 @@
       var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (B.fight && B.fight.quarry && !atk.needsHeld) { var qp = pool.filter(function (w) { return w.id === B.fight.quarry && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (qp.length) pool = qp; } // (a fight's quarry, in reach: him first -- GreyFang in his pit, 10-08: "The Harbinger hunts him down")
+      // Called to Account (ours, 10-30; js/grimoire.js, ruled 10-31, Griz: the foes' AI reacts to it, not to a Hunter's Mark): a brute so called takes the caller's radiant for a hit on anyone
+      // else, so the caller goes first in its pool when in reach -- unless a hunt of the story (the cloaker's vital one, a fight's quarry) is in reach too: that stays first
+      var cqA = u.conds.accounted && !atk.needsHeld ? pool.filter(function (w) { return w.id === u.conds.accounted.by && G.dist(u, w) <= G.reachOf(u, atk.reach); }) : [];
+      if (cqA.length && !pool.some(function (w) { return w !== cqA[0] && G.dist(u, w) <= G.reachOf(u, atk.reach) && ((u.kind === 'cloaker' && w.vital) || (B.fight && B.fight.quarry && w.id === B.fight.quarry)); })) pool = cqA;
       if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
       if (u.noGlass) pool = pool.filter(function (w) { return !w.object; }); // (the roof guard strikes no glass -- 10-05)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {

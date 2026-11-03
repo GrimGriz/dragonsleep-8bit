@@ -630,8 +630,16 @@
   };
 
   // ------------------------------------------------------------------ the fight
+  // THE MAXIMUM CARRIES (11-03, Griz on his module BUILDING: fight 1 ended at 41/41/23 hit points, fight 2 began at 36/36/18 -- Aid's +5, eight hours by the SRD 5.1, was lost between
+  // fights and the hit points clamped to the lower maximum): a spec's `maxhpLeft` -- the maximum the last fight left, Aid's raise or a drain -- is worn by the sheet before
+  // js/classes.js NPC.carry clamps `hpLeft` to it, as the hit points are carried. (A wrapper, as js/monsterrules.js wraps this for rustGone; one line in NPC.carry's own body when it is moved there.)
+  var carry0 = NPC.carry;
+  NPC.carry = function (h, spec) {
+    if (spec && spec.maxhpLeft != null && h && h.maxhp != null && +spec.maxhpLeft >= 1) h.maxhp = Math.round(+spec.maxhpLeft);
+    return carry0.apply(this, arguments);
+  };
   Pocket.prototype.fightWords = function () {
-    // (the ladder carries what the last rung left: js/classes.js NPC.build reads { word, hpLeft, slotsLeft, featsLeft })
+    // (the ladder carries what the last rung left: js/classes.js NPC.build reads { word, hpLeft, slotsLeft, featsLeft, maxhpLeft, condsLeft })
     // (and the morning of THE LONG REST, 10-17: the day's spells, what was cast ahead -- the run's till its next long rest, else the single fight's)
     var self = this, run = this.st.run, words = this.words(), mm = run ? run.morning : this.st.dayMorning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null; // (a morning is its party's: a card changed since, and it is not worn)
     if ((!run || !run.carry) && !mo && !(run && run.drafts)) return words;
@@ -639,7 +647,12 @@
       var c = run && run.carry ? run.carry[i] : null, m = mo ? mo[i] : null, dr = run && run.drafts ? run.drafts[i] : null; // (dr: SECOND DRAFT's day, Pocket.draftSwap -- 10-31)
       if (!c && !m && !dr) return w;
       var o = Object.assign({ word: w, id: 'p' + i + '-' + PK.baseKey(w) }, m ? JSON.parse(JSON.stringify(m)) : {});
-      if (c) Object.assign(o, { hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats });
+      if (c) {
+        Object.assign(o, { hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats });
+        if (c.maxhp != null) o.maxhpLeft = c.maxhp; // (the maximum as the last fight, or THE CAMP, left it: Aid's +5 goes on to the next fight -- see NPC.carry above)
+        var cl = Object.assign({}, c.put || {}); if (c.aid) cl.aid = c.aid; // (c.put: what THE CAMP laid on a card -- Mage Armor, Darkvision -- for the fight after it; c.aid: Aid's condition goes with its hit points)
+        if (Object.keys(cl).length) o.condsLeft = JSON.parse(JSON.stringify(cl));
+      }
       if (dr) o.prepared = dr.prepared.slice();
       // (what the morning laid that a fight since has ended -- a Death Ward that held, a Mage Armor dispelled -- stays ended till the long rest, SRD 5.1; the Light is lit again, a cantrip -- 10-21)
       if (c && c.conds && o.conds) Object.keys(o.conds).forEach(function (k) { if (k !== 'light' && c.conds.indexOf(k) < 0) delete o.conds[k]; });
@@ -695,7 +708,7 @@
     D.music('title');
     var self = this, run = this.st.run;
     var party = (B.units || []).filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; });
-    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), untempled: !!(u.src && DS.R.hasFeat(u.src, 'untempled')), down: !!(u.ko || u.hp <= 0 || u.dead), conds: Object.keys(u.conds || {}).concat(u.gshelf && u.gshelf.recs ? Object.keys(u.gshelf.recs) : []) }; }); // (conds: what is on it at the end, a globe's shelf too -- the morning's that ended stay ended, Pocket.fightWords)
+    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), untempled: !!(u.src && DS.R.hasFeat(u.src, 'untempled')), down: !!(u.ko || u.hp <= 0 || u.dead), conds: Object.keys(u.conds || {}).concat(u.gshelf && u.gshelf.recs ? Object.keys(u.gshelf.recs) : []), aid: +((u.conds && u.conds.aid) || (u.src && u.src.conds && u.src.conds.aid)) || 0 }; }); // (conds: what is on it at the end, a globe's shelf too -- the morning's that ended stay ended, Pocket.fightWords; aid: the +hp Aid laid, its 8 hours -- 11-03, the maximum goes on with it, Pocket.fightWords maxhpLeft)
     var rec = { t: Date.now(), started: (B.rec && B.rec.started) || info.started, result: res || 'left', rounds: B.round || 0, q: info.q, map: info.mapId, mapName: (D.MAPS[info.mapId] || {}).name || info.mapId,
       party: end.map(function (e) { return e.name + ' (' + D.clsLabel(e.cls) + ' ' + e.lvl + ')'; }), foes: PK.foesText(info.kinds), kinds: info.kinds, cr: PK.fmt8(PK.sum8(info.kinds)), diff: info.d.label + (info.d.deadlyX > 1 ? ' x' + info.d.deadlyX : ''), adj: info.d.adj,
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
@@ -711,7 +724,7 @@
       if (gift) { PK.packAdd(this.st, gift.item, 1); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name + ' (to the pack)'; } // (into the pack, worn only on the player's word -- 10-17, Griz: "rewards should go into pack and not-auto equip unless player confirms equip")
       if (run) {
         // the party's slots are the fight's units in order (the familiars and summons left out above)
-        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha, untempled: e.untempled, conds: e.conds } : null; });
+        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha, untempled: e.untempled, conds: e.conds, aid: e.aid } : null; });
         run.won = (run.won || 0) + 1;
         if (run.trial) { if (!run.dmLadder) this.st.pyro = true; this.st.run = null; this.result.unlocked = !run.dmLadder; } // (a DM's ladder's trial lets no king in)
         else if (run.module && run.rung >= run.plan.length) { this.st.run = null; this.result.moduleDone = run.module.name; } // (a module's last fight won: it is done)
@@ -1795,7 +1808,7 @@
           self.btn(ctx, st.name, 20, yy, 130, 13, function () { m.style = k; }, { on: m.style === k, small: true });
           D.text(ctx, st.words, 156, yy + 3, P('bone', 1));
         });
-        D.text(ctx, 'chosen at ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + R.STYLE_AT[m.cls] + ' (SRD 5.1); two-weapon fighting waits with the off-hand attack', 20, y + 18 + stl.length * 15 + 6, P('stone', 5));
+        D.text(ctx, 'chosen at ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + R.STYLE_AT[m.cls] + ' (SRD 5.1); two-weapon fighting: its modifier on the off-hand swing', 20, y + 18 + stl.length * 15 + 6, P('stone', 5));
       } else {
         var kind = m.tab === 'alt' ? 'weapon' : m.tab, rack = this.rack(kind), cur = m.tab === 'alt' ? m.alt : m.equip[m.tab];
         list = (m.tab === 'weapon' ? [] : [null]).concat(rack); from = Math.min(this.scroll, Math.max(0, list.length - per));
@@ -2040,7 +2053,7 @@
     }
     this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { if (rs.long) { var lbl = 'TO FIGHT ' + (run.rung + 1); self.toMorning({ label: lbl, fn: function () { self.nextRung(); self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     if (rs.market) this.btn(ctx, 'THE MARKET', x + 8, y + h - 22, 76, 15, function () { self.openMarket('rest'); });
-    this.btn(ctx, 'THE CAMP', x + w - 144, y + h - 22, 76, 15, function () { self.toCamp({ long: !!rs.long, market: !!rs.market }); }); // (to equip what the market sold, 10-17)
+    this.btn(ctx, 'THE CAMP', x + w - 144, y + h - 22, 76, 15, function () { self.toCamp({ long: !!rs.long, market: !!rs.market, none: !!rs.none }); }); // (to equip what the market sold, 10-17; to drink what the fight left, 11-03)
     this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
   };
   // THE CAMP (10-17, the two Pocket DMs, step B; Griz: "The FOES page on the player side becomes the camp, where they can open the standard 'm' menu / The pick from
@@ -2049,7 +2062,7 @@
   // file -- and where to: SINGLE FIGHT (THE MAP, THE FOES, then THE LONG REST), RANDOM LADDER and PLAY MODULE (THE LONG REST, then the first fight)
   // a rest's THE CAMP (10-17, Griz: "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire (run.atCamp: what the rest was, and
   // whether its market is open) -- THE MENU's EQUIP on what the market sold -- and GO ON is the rest's own way on: a long rest's day first (THE LONG REST), then the fight
-  Pocket.prototype.toCamp = function (o) { var run = this.st.run; if (!run) return; run.atCamp = { long: !!o.long, trial: !!o.trial, market: !!o.market }; this.keep(); this.go('hub'); };
+  Pocket.prototype.toCamp = function (o) { var run = this.st.run; if (!run) return; run.atCamp = { long: !!o.long, trial: !!o.trial, market: !!o.market, none: !!o.none }; this.keep(); this.go('hub'); }; // (none: the DM's slot allows no rest -- the fire is where the potions are drunk, not a rest: 11-03)
   Pocket.prototype.restOn = function () {
     var self = this, run = this.st.run, rest = run && run.atCamp; if (!run) return;
     if (!rest) { this.foes = run.foes; this.fightMap = run.map; this.go('cr'); return; }
@@ -2073,8 +2086,8 @@
     head(ctx, 'THE CAMP', 'the party at the fire: the menu, the market, then where to');
     var yy = 36;
     sh.forEach(function (s, i) {
-      if (!s.h) return; var slot = st.party[i], L = PK.lvlOf(st, slot), nx = R.XP_LEVEL[L + 1], e = PK.stockOf(slot);
-      D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + s.h.maxhp + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
+      if (!s.h) return; var slot = st.party[i], L = PK.lvlOf(st, slot), nx = R.XP_LEVEL[L + 1], e = PK.stockOf(slot), cc = run && run.carry && run.carry[i]; // (cc: what the last fight left -- HP as it stands, 11-03)
+      D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + (cc ? (cc.hp <= 0 ? '{r}' + cc.hp + '{/}{g}' : cc.hp) + '/' + cc.maxhp : s.h.maxhp) + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
     });
     var ltH = st.light && this.lightOf(st.light.seat), ltS = ltH && sh[ltH.seat] && sh[ltH.seat].h; // (the light in hand, 10-17)
     D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things' + (ltS ? '  ·  {y}' + ltS.name + '{/} carries the ' + DS.DATA.items[ltH.id].name.toLowerCase() : ''), 24, yy + 3, P('silver', 5));
@@ -2087,7 +2100,7 @@
       var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
       // (come to the camp from a rest -- 10-17, his "return to camp 'so i can equip after visit market' on long rests": GO ON is the rest's way on, the long rest's day first)
       var nextN = rest ? (run.module ? 'FIGHT ' + (run.rung + 1) : rest.trial ? 'THE TRIAL' : 'RUNG ' + (run.rung + 1)) : null;
-      D.text(ctx, (rest ? '{o}resting:{/} ' : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
+      D.text(ctx, (rest ? (rest.none ? '{o}no rest:{/} ' : '{o}resting:{/} ') : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
       this.btn(ctx, rest ? 'GO ON: ' + nextN : 'GO ON', rx, by, rw, 18, function () { self.restOn(); }, { pri: true });
       this.btn(ctx, 'PUT IT AWAY', rx, by + 22, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
     } else {
@@ -2101,14 +2114,28 @@
     D.hint(ctx, 'M the menu · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
   };
   // THE MENU at the camp: the regular one over the party (EQUIP, ITEMS, MAGIC, SKILLS, STATUS -- the same pages as everywhere), on PK's pack; what comes off goes into
-  // the pack and each card's word keeps what it wears, as GEAR's (gearBack). The order is THE PARTY's (its arrows); nothing is cast or used out here
+  // the pack and each card's word keeps what it wears, as GEAR's (gearBack). The order is THE PARTY's (its arrows). 11-03 (Griz, his module BUILDING, fight 2: "it allowed me to go to the
+  // camp between and open the menu, but in that menu everyone was fine. Not so when the fight started. Might be appropriate, but we had healing potions we could have drank"): on a
+  // run the sheets are the party as the NEXT FIGHT starts it -- the hit points, slots, features and maximum the last fight and the rest left, the morning's casts
+  // (Pocket.campSpecs) -- and ITEMS, MAGIC and SKILLS work on them as the second game's field does (js/house.js H.field, Pocket.campField): a potion drunk comes out of PK's
+  // pack, a slot cast is a slot gone, and what changed is written into run.carry when the menu closes (Pocket.campBack), so the next fight begins as the camp left them
+  // the party's specs as the next fight builds them: a run's carry, morning and draft worn (Pocket.fightWords -- its wrappers too), a single fight's bare word
+  Pocket.prototype.campSpecs = function () {
+    var st = this.st, fw = st.run ? this.fightWords() : null, wi = -1;
+    return st.party.map(function (slot) {
+      var has = !!PK.wordOf(st, slot); if (has) wi++;
+      var w = has && fw ? fw[wi] : null;
+      if (w && typeof w === 'object') return Object.assign({}, NPC.spec(w.word) || {}, JSON.parse(JSON.stringify(w))); // (as NPC.build lays a word over its spec; a copy, so the menu's casts never touch the carry before it closes)
+      return PK.specOf(st, slot);
+    });
+  };
   Pocket.prototype.openMenu = function () {
-    var self = this, st = this.st, hs = [], at = [];
-    st.party.forEach(function (slot, i) { var e = PK.STOCK.filter(function (q) { return q.w === slot.w; })[0]; if (slot.w === 'new' || (e && e.king)) return; var h = PK.sheetOf(PK.specOf(st, slot)); if (h) { h.xp = PK.xpNow(st, slot); hs.push(h); at.push(i); } }); // (the card's XP on the sheet: the menu's Next)
+    var self = this, st = this.st, hs = [], at = [], specs = this.campSpecs();
+    st.party.forEach(function (slot, i) { var e = PK.STOCK.filter(function (q) { return q.w === slot.w; })[0]; if (slot.w === 'new' || (e && e.king)) return; var h = PK.sheetOf(specs[i]); if (h) { h.xp = PK.xpNow(st, slot); hs.push(h); at.push(i); } }); // (the card's XP on the sheet: the menu's Next)
     if (!hs.length) return;
     var wins = at.map(function (i) { return PK.winsOf(st, st.party[i]); }), wornN = function (h, id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
     var give = function (id, n) { for (var k = 0; k < hs.length; k++) if (wornN(hs[k], id) >= 1) { var wk = wins[k].indexOf(id); if (wk >= 0 && wornN(hs[k], id) <= 1 && PK.dropWin(st, st.party[at[k]], id)) wins[k].splice(wk, 1); break; } PK.packAdd(st, id, n || 1); };
-    var lh = this.lightHost(hs, at, give);
+    var lh = this.lightHost(hs, at, give), was = hs.map(PK.campSnap); // (was: each sheet as the menu opened it -- what its close writes back is what changed)
     this.pm = DS.MENU.open({
       party: function () { return hs; },
       pack: function () { return self.campPack(); },
@@ -2117,9 +2144,78 @@
       canSave: function () { return false; },
       order: function () { self.say('the order is THE PARTY\'s: its arrows', 240); },
       light: lh.light,
-      run: lh.run,
-      close: function () { self.pm = null; hs.forEach(function (h, k) { self.gearBack(at[k], h); }); }
+      // a spell sheet is read on the road (the field's learn: js/house.js FD.item), not at this table: the page asks first, and a line says so
+      whyNot: function (id) { var it = DS.DATA.items[id]; return it && it.use && it.use.effect === 'learn' ? 'A spell sheet is copied into a book on the road: the Pocket DM keeps no spellbook.' : ''; },
+      // a light is the camp's own (lightHost: who carries it into the fight); the rest -- a potion, a cure, a skill -- is the field's, over these sheets and PK's pack
+      run: function (kind, a, done) {
+        a = a || {};
+        if (kind === 'light-off' || (kind === 'item' && a.id && PK.isLight(a.id))) { lh.run(kind, a, done); return; }
+        var lines = null;
+        try { lines = self.campField(kind, a, hs, at); }
+        catch (e) { if (window.console) console.error('the camp: ', kind, e); lines = ['The camp could not do that.']; }
+        if (lines && lines.length) { self.say(lines.join(' '), 300); if (self.pm && self.pm.say) self.pm.say(lines); }
+        if (done) done();
+      },
+      close: function () { self.pm = null; self.campBack(hs, at, was); hs.forEach(function (h, k) { self.gearBack(at[k], h); }); }
     });
+  };
+  // what the menu's ITEMS, MAGIC and SKILLS do at the camp: the second game's field rules (js/house.js H.field -- FD.item, FD.cast, FD.skill, the same words) over the camp's
+  // sheets, PK's pack for env.has / env.take. No tent here (Rope Trick, the Tiny Hut: the module's slot decides the rests), no road for a chalk ward, no Pocket DM seat for
+  // a familiar. Returns the lines to say, or null for a kind the camp does not run
+  Pocket.prototype.campField = function (kind, a, hs, at) {
+    var st = this.st, run = st.run, FD = D.house && D.house.field, c = a.h || null, ia = c ? at[hs.indexOf(c)] : -1;
+    if (!FD) return ['The camp has nothing to use that on.'];
+    var env = { where: 'camp', party: hs, tent: false, form: a.form, flags: null, has: function (id) { return PK.packN(st, id) > 0; }, take: function (id) { PK.packAdd(st, id, -1); }, ward: function () { }, longRest: function () { return []; } };
+    if (kind === 'cast' && c && a.sp) {
+      if (a.sp.kind === 'familiar') return ['No familiar comes to the Pocket DM\'s table: it is called up on the road.'];
+      return FD.cast(c, a.sp, a.t || null, env);
+    }
+    if (kind === 'skill' && c) {
+      if (a.s === 'wind' && c.hp >= c.maxhp) return [c.name + ' is unhurt: Second Wind keeps for when it is wanted.']; // (the field spends it for nothing at full hit points)
+      if (a.s === 'arcane') {
+        if (run && run.arcane && ia >= 0 && run.arcane[ia]) return [c.name + ' has taken Arcane Recovery today (a short rest\'s, or the camp\'s).'];
+        if (!(c.slots || []).some(function (n, q) { return n < (c.slotsMax || [])[q]; })) return [c.name + ' has no spent slot to take back.'];
+      }
+      var sl = FD.skill(c, a.s, a.t || null);
+      if (a.s === 'arcane' && run && run.arcane && ia >= 0) run.arcane[ia] = true; // (once a day: the next short rest's Arcane Recovery, PK.shortRest, does not give it twice)
+      return sl;
+    }
+    if (kind === 'item' && a.id) {
+      var it = DS.DATA.items[a.id], use = it && it.use;
+      if (use && use.effect === 'ward') return ['The chalk ward is for the road: there is nothing to keep off at the fire.'];
+      return FD.item(a.id, c || hs[0], env) || [it ? it.name + ': nothing to do with it here.' : 'Nothing to do with that here.'];
+    }
+    return null;
+  };
+  // a sheet's state as the menu opened it, and as it closes: what the camp can change on a card
+  PK.campSnap = function (h) { return JSON.parse(JSON.stringify({ hp: h.hp, ko: !!h.ko, maxhp: h.maxhp, slots: h.slots || null, feats: h.feats || {}, conds: h.conds || {} })); };
+  var CAMP_CONDS = ['mageArmor', 'darkvision', 'continualFlame', 'light', 'daylight']; // (what a cast at the camp lays that goes into the next fight; Aid goes as c.aid and the maximum)
+  // THE CAMP's close: each card whose sheet changed is written into run.carry as the next fight reads it (fightWords: hpLeft, slotsLeft, featsLeft, maxhpLeft, condsLeft) -- a card
+  // with no carry yet (the run's first fight, a long rest's morning) gets one from its sheet, so a slot cast or Aid laid there goes in too. The morning's own casts are on the
+  // sheet already (campSpecs), so they stay; a cast laid at the camp (c.put) is for the next fight, as one cast in a fight is (no day-long buff beyond the morning's, Aid's maximum aside)
+  Pocket.prototype.campBack = function (hs, at, was) {
+    var st = this.st, run = st.run, changed = false; if (!run) return;
+    hs.forEach(function (h, k) {
+      var w = was[k], now = PK.campSnap(h); if (JSON.stringify(now) === JSON.stringify(w)) return;
+      var i = at[k], c = run.carry && run.carry[i];
+      if (!c) {
+        if (!run.carry) run.carry = st.party.map(function () { return null; });
+        c = run.carry[i] = { hp: 0, maxhp: h.maxhp, slots: [], slotsMax: (h.slotsMax || []).slice(), feats: {}, cls: h.cls, lvl: h.lvl, con: DS.mod((h.abil || {}).con || 10), cha: DS.mod((h.abil || {}).cha || 10), untempled: !!DS.R.hasFeat(h, 'untempled'), conds: Object.keys(h.conds || {}), aid: 0 };
+        c.feats = JSON.parse(JSON.stringify(h.feats || {})); // (every feature as the sheet has it)
+      }
+      c.hp = Math.max(0, h.hp); c.maxhp = h.maxhp; c.slots = (h.slots || []).slice();
+      Object.keys(h.feats || {}).forEach(function (f) { if (JSON.stringify(h.feats[f]) !== JSON.stringify((w.feats || {})[f])) { c.feats = c.feats || {}; c.feats[f] = JSON.parse(JSON.stringify(h.feats[f])); } });
+      var put = Object.assign({}, c.put || {}); c.conds = c.conds || [];
+      Object.keys(h.conds || {}).forEach(function (cd) {
+        if (CAMP_CONDS.indexOf(cd) < 0 || JSON.stringify(h.conds[cd]) === JSON.stringify((w.conds || {})[cd])) return;
+        var v = JSON.parse(JSON.stringify(h.conds[cd])); if (v && typeof v === 'object') delete v.until; // (the road's clock means nothing at this table)
+        put[cd] = cd === 'mageArmor' ? 1 : v; if (c.conds.indexOf(cd) < 0) c.conds.push(cd);
+      });
+      if (Object.keys(put).length) c.put = put;
+      c.aid = +(h.conds && h.conds.aid) || 0; if (c.aid && c.conds.indexOf('aid') < 0) c.conds.push('aid');
+      changed = true;
+    });
+    if (changed) { this.cache = {}; this.keep(); }
   };
   // A LIGHT IN HAND (10-17, Griz: "lanterns and torches not appearing when bought in market (on camp equip menu - they're in the pack on the grid)"): at the camp a torch or
   // a lantern from the pack goes into one card's off hand -- EQUIP's OFFHAND, or ITEMS' WHO CARRIES IT? -- one bearer, as the ladder camp's A TORCH IN HAND, and that card
@@ -2145,7 +2241,7 @@
           hs.forEach(function (o) { delete o.equip.torch; }); h.equip.torch = a.id; st.light = { seat: i, id: a.id };
           self.keep(); self.say(h.name + ' carries the ' + it.name.toLowerCase() + ', lit, into the next fight', 300);
         } else if (kind === 'light-off' && h) { if (st.light && st.light.seat === i) st.light = null; delete h.equip.torch; self.keep(); self.say(h.name + ' puts the light away: back in the pack', 240); }
-        else self.say('at the camp the party is whole: nothing to use that on', 240);
+        else self.say('this page only dresses a card: the menu\'s ITEMS and MAGIC are for the potions and the casts', 240); // (the GEAR page has no ITEMS; the camp's menu runs the rest: Pocket.campField)
         if (done) done();
       }
     };
@@ -2164,7 +2260,7 @@
   // A CARD'S PDF (10-26, Griz: "Somewhere in the pocket DM - reference user interface best practices - players should be able to save pdf of character sheet"): the
   // character as a sheet for the table at one press, its file's name said as SAVE THE PARTY says its own (js/sheetpdf.js) -- the sheet bare and whole, nothing cast
   // ahead and nothing a ladder's fight took (the paper's boxes keep the day), with its word and its XP
-  PK.bareSpec = function (sp) { return sp ? Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null, hpLeft: null, slotsLeft: null, featsLeft: null, condsLeft: null }) : null; };
+  PK.bareSpec = function (sp) { return sp ? Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null, hpLeft: null, maxhpLeft: null, slotsLeft: null, featsLeft: null, condsLeft: null }) : null; };
   Pocket.prototype.sheetPdf = function (h, word, xp) {
     if (!h || !D.sheetPdf) { D.sfx('error'); this.say('no sheet to save', 240); return null; }
     var name = null;

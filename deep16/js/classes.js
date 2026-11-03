@@ -16,7 +16,7 @@
   NPC.RACES = {
     human: { name: 'Human', abil: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 } },
     halforc: { name: 'Half-orc', abil: { str: 2, con: 1 }, dv: 60, relentless: true, savage: true },
-    dwarf: { name: 'Dwarf', abil: { con: 2, wis: 1 }, dv: 60, speed: 25, resist: ['poison'], hpLevel: 1 }, // (the hill dwarf)
+    dwarf: { name: 'Dwarf', abil: { con: 2, wis: 1 }, dv: 60, speed: 25, resist: ['poison'], poisonAdv: true, hpLevel: 1 }, // (the hill dwarf; Dwarven Resilience, SRD 5.1: resistance to poison damage AND advantage on saves against poison -- poisonAdv, js/rules.js RU.poisonAdv, 11-03)
     elf: { name: 'Elf', abil: { dex: 2, int: 1 }, dv: 60, fey: true },                                   // (the high elf: Fey Ancestry, no magic sleep)
     halfling: { name: 'Halfling', abil: { dex: 2, cha: 1 }, speed: 25 },
     halfelf: { name: 'Half-elf', abil: { cha: 2, con: 1, dex: 1 }, dv: 60, fey: true },
@@ -566,6 +566,7 @@
     u.darkvision = Math.max(race.dv || 0, u.darkvision || 0);
     if (h.invocations && h.invocations.indexOf('devilsight') >= 0) u.devilSight = true; // Devil's Sight: sees in any dark, the magical too, to 120 ft
     if (race.resist) u.resist = (u.resist || []).concat(race.resist).filter(function (x, i, a) { return a.indexOf(x) === i; }); // (beside what is worn: a Ring of Resistance, save.js unitOf)
+    if (race.poisonAdv) u.poisonAdv = true; // (Dwarven Resilience's advantage on saves against poison: rules.js RU.poisonAdv)
     if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;

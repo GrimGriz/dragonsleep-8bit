@@ -3475,7 +3475,7 @@
       // THE CAMP'S FIRE (his "add a campfire when the party encounters during a camp"): a light behind the party in the dark, the four in its bright light, the fire drawn
       // in the sort -- in the simple fight and on the grid's road field
       var campS = []; [true, false].forEach(function (simple) {
-        wsS.fight({ zone: 'north', list: ['wolf', 'wolf'], mirror: false }, eS, { camp: true, simple: simple }); var Bc = topS(), fc = Bc.fight && Bc.fight.camp;
+        wsS.fight({ zone: 'north', list: ['wolf', 'wolf'], mirror: false }, eS, { camp: true, simple: simple, dark: true }); var Bc = topS(), fc = Bc.fight && Bc.fight.camp; // (dark: a night watch's, as H.runNight passes it by the hour -- 11-03, a camp no longer forces the dark at noon)
         var lc = (Bc.lights || []).filter(function (l) { return fc && l.x === fc[0] && l.y === fc[1]; })[0], four = Bc.units.filter(function (u) { return u.side === 'party'; });
         var lit = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) === 2; }).length, dim = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) >= 1; }).length, pr = (D.looks.props(Bc) || []).filter(function (o) { return fc && o.depth === fc[0] + fc[1] + 0.5; }).length;
         campS.push((simple ? 'simple' : 'grid') + ': ' + (fc ? fc.join(',') : 'no fire') + ', dark ' + !!Bc.dark + ', light ' + (lc ? lc.bright + '/' + lc.dim : '-') + ', ' + lit + ' of ' + four.length + ' in bright light, ' + dim + ' lit, drawn ' + pr);
@@ -3955,6 +3955,19 @@
       var lM = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0]; HH.exhaust(lM, 6);
       okH('exhausted 6 is death: Lymen dead, out of the fights\' party (' + HH.living(HH.cur).party.map(function (h) { return h.id; }).join(', ') + '), past healing (' + HH.field.item('potion', lM, { take: function () { } })[0] + ')', lM.dead && HH.living(HH.cur).party.length === 3 && /dead/.test(HH.field.item('potion', lM, { take: function () { } })[0]));
       WH.camp(); okH('a long rest leaves the dead dead (Lymen ' + lM.hp + ', ' + (lM.dead ? 'dead' : 'up') + ')', lM.dead && lM.hp === 0);
+      // THE CAMP'S CLOCK (11-03, his "check that road camping is only moving 8 hours as appropriate (not necessarily 'sleep til morning')"): the long rest is eight hours from when the party lies down, whatever the hour
+      var nScN = D.scenes.length; SM.t = 24 + 12; WH.camp(); var mkN = D.top(), dwN = mkN instanceof HH.Morning ? mkN.dawnLines().join(' ') : '';
+      okH('a camp at noon wakes at 20:00 the same day (' + (SM.t % 24) + ':00, ' + WH.timeOfDay() + '), the morning page titled for the hour ("' + dwN.slice(0, 40) + '"), the march new (' + SM.today + ')', SM.t === 24 + 20 && WH.timeOfDay() === 'night' && /NIGHT\{\/\} -- day 2/.test(dwN) && SM.today === 0 && SM.todayHex === 0);
+      SM.t = 24 + 3; WH.camp(); okH('a camp at 03:00 sleeps its eight hours, to 11:00 (' + (SM.t % 24) + ':00), not four to the 07:00', SM.t === 24 + 11);
+      SM.t = 24 + 8; WH.camp(); okH('a camp at 08:00 wakes at 16:00 (' + (SM.t % 24) + ':00), not at the 07:00 after', SM.t === 24 + 16);
+      SM.t = 24 + 14; WH.camp({ morning: true }); okH('a bed\'s night (the inn: W.camp morning) is still to the next morning (' + (SM.t % 24) + ':00, day ' + WH.day() + ')', SM.t === 48 + 7);
+      // the watches fall inside the eight hours and read their own hour: a camp at noon has its first watch at 13:20, its second at 16:00 (a day's count, 4 miles a watch, the day's tables); one at 23:00 its first at 00:20 (the night's, 8 miles)
+      var fkN = { card: function (l, x, k) { this.lines = l; this.k = k; }, say: function (s) { this.said = s; }, fight: function (p, e, o) { this.o = o; } }, zN = WH.zoneOf(WH.M().hex[WH.K(SM.at[0], SM.at[1])]);
+      var watchN = function (t0) { SM.t = t0; SM.zone = zN; SM.count = 5; fkN.lines = null; HH.runNight(fkN, { vivian: 1, lymen: 2, barley: 3, aurdin: 3 }); return { w: fkN.lines && (/(FIRST|SECOND|THIRD) WATCH/.exec(fkN.lines[0]) || [])[1], t: SM.t, lit: fkN.lines && /out of ([a-z -]+)/.exec(fkN.lines[0]) }; };
+      var dayN = watchN(24 + 12), nightN = watchN(24 + 23);
+      okH('the watches by the clock: a camp at noon, a count of 5, is found in the ' + dayN.w + ' watch (the clock ' + (dayN.t % 24).toFixed(2) + ', out of ' + (dayN.lit && dayN.lit[1]) + '); one at 23:00 in the ' + nightN.w + ' (' + (nightN.t % 24).toFixed(2) + ', out of ' + (nightN.lit && nightN.lit[1]) + ')',
+        dayN.w === 'SECOND' && Math.abs(dayN.t - (24 + 12 + 4)) < 1e-9 && /daylight|half-light/.test(dayN.lit && dayN.lit[1]) && nightN.w === 'FIRST' && Math.abs(nightN.t - (24 + 23 + 4 / 3)) < 1e-9 && (nightN.lit && nightN.lit[1]) === 'the dark');
+      D.scenes.length = nScN; // (the morning pages these camps opened)
       // a save lost on the walk stops it on a card till OK (his 10-21 "probably need a quick popup every time someone moves a hex and loses the save")
       var nxW = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [SM.at[0] + d[0], SM.at[1] + d[1]]; }).filter(function (n) { return WH.stepHours(SM.at, n); })[0], onS0 = WH.onStep, cdW = null, okW = false, exW = HH.exh(bM);
       if (nxW) { SM.todayHex = 5; SM.pushing = true; wC.cards = []; wC.walk = { path: [nxW], f: 0 }; WH.onStep = null; D.roll = function () { return { total: 1 }; };
@@ -4588,6 +4601,12 @@
       while (mW.pages.length) mW.pop();
       okFF('THE WORLD\'s ITEMS: the Find Familiar sheet read without a throw (' + (threw || 'none') + '), asked "' + asked + '", said "' + saidL.slice(0, 70) + '"; Aurdin knows it ' + (au.known.indexOf('findfamiliar') >= 0) + ', the sheet spent (' + nFF(rec.inv, 'sheet_findfamiliar') + ')',
         !threw && asked === 'WHO COPIES IT?' && /copies Find Familiar/.test(saidL) && au.known.indexOf('findfamiliar') >= 0 && nFF(rec.inv, 'sheet_findfamiliar') === 0);
+      // 1b. UP ON THE COLDRIDGE ROUTE (11-03, his "i'd like for up on the coldridge route count as mountains enough to get a white owl"): the route's hexes from 1,500 ft are the high ground -- the white
+      // owl first, then what lives on stone; the junction's floor and a mountain off the route are as they were
+      var sFF = WFF.state(), atFF = sFF.at.slice(), formsFF = function (q, r) { sFF.at = [q, r]; return [].concat(HFF.famForms(au, spF, null)).join(','); };
+      var upFF = formsFF(18, 7), doorsFF = formsFF(17, 5), jcFF = formsFF(19, 7), offFF = formsFF(3, -3); sFF.at = atFF;
+      okFF('UP ON THE COLDRIDGE ROUTE: the climb\'s hex (18,7) at ' + Math.round(WFF.M().hex['18,7'].h) + ' ft offers "' + upFF + '", The DOORS (17,5) "' + doorsFF + '"; the junction (19,7) at ' + Math.round(WFF.M().hex['19,7'].h) + ' ft "' + jcFF + '" and a black mountain off the road (3,-3) "' + offFF + '" as before',
+        upFF === 'snowyowl,bat,spider,snake' && doorsFF === upFF && jcFF === 'bat,spider,snake' && offFF === 'bat,spider,snake');
       // 2. THE WORLD's MAGIC: Find Familiar asks WHAT SHAPE?, of the region the party stands in (js/rules.js R.FAM_GROUND); the first shape clicked
       var t0 = WFF.state().t, rW = ritualFF(mW), want = HFF.famForms(au, spF, null);
       okFF('THE WORLD\'s MAGIC > Find Familiar: the page "' + (rW.page && rW.page.title) + '" with ' + rW.rows.join('/') + ' (the region\'s: ' + [].concat(want).join('/') + ')',
@@ -4616,6 +4635,8 @@
       var plays = D.store.get('deep16.plays') || [], last = plays[plays.length - 1] || {};
       okFF('a fight on the floor kept: ' + (plays.length - plays0) + ' new, "' + last.name + '" (' + last.fight + ', ' + last.result + ', ' + last.rounds + ' rounds), ' + (last.log || []).length + ' log lines of the floor\'s ' + (BF.logEntries || []).length + ' (' + walkLog + ' before it); B.rec cleared ' + !BF.rec,
         plays.length === plays0 + 1 && last.fight === 'roam' && /Giant Rat/.test(last.name || '') && last.result === 'won' && (last.log || []).length > 0 && (last.log || []).length <= (BF.logEntries || []).length - walkLog + 1 && !BF.rec);
+      // 6. THE OWL ON THE SHOULDER OPPOSITE THE STAFF (11-03, his "Aurdin on top-down roam maps (silverton) should have his owl moved to the shoulder opposite the staff and better positioned"): it is
+      // js/ui.js perchPos now (with js/sprites.js S.SHOULDER), the one place the view's draw and the grid's mouse pick both read -- checked in mode=aloftclicks1103, check 6 (it was js/topview.js TV.perch here)
     } catch (eF) { repFF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.store.get = stGFF; D.store.set = stSFF; window.DS.autoPicks = apFF;
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repFF);
@@ -4823,7 +4844,7 @@
       if (!stB || !u.burrow || u.side !== 'foe') { yield* turn0B.apply(this, arguments); return; }
       var up0 = !u.under, n0 = (B.log || []).length, ps = partyB(B), allRoad = ps.length > 0 && ps.every(onRoadB);
       yield* turn0B.apply(this, arguments);
-      var lg = (B.log || []).slice(n0).join(' | '), dove = /dives into the ground|sinks into the floor/.test(lg), hit = !!(u.turn && u.turn.attacked > 0);
+      var lg = (B.log || []).slice(n0).join(' | '), dove = /dives into the ground|sinks into the floor/.test(lg), hit = !!(u.turn && u.turn.attacked > 0) || /ACID SPRAY/.test(lg); // (11-03: the ankheg's Acid Spray down a line through the party is its blow at them too -- the count had read four sprays as turns with no blow)
       stB.turns++; if (hit) stB.hits++; if (allRoad) { stB.allRoad++; if (hit) stB.hitsRoad++; } if (u.under && !hit) stB.under++;
       if (up0 && dove && !hit) { stB.wasted++; if (allRoad) stB.wastedRoad++; }
       if (/rises out of the floor|bursts up out of the ground/.test(lg) && !hit && !u.dead && u.hp > 0) { stB.roseIdle++; /* (one the readied blows killed as it came up is not counted: that was no plan of its) */ if (allRoad) { stB.roseIdleRoad++; if (!stB.idleLog) stB.idleLog = lg.replace(/\{\/?[a-z]*\}/g, '').slice(0, 700); } } // (came up and struck no one: up into the readied blows for nothing)
@@ -5450,12 +5471,48 @@
       var h2 = mkGr(5, true); h2.f.hp = 0; h2.f.ko = true; h2.p.hp = 5; var c2 = cmdOf(h2, 'greenagain');
       okGr('the paladin at 5 HP: GREEN AGAIN offered ' + !!(c2 && c2.ok) + ' ("' + (c2 && c2.why) + '")', c2 && !c2.ok && /last hit points/.test(c2.why));
       // WHAT FALLS, FEEDS
+      // (11-03, Griz on a Pocket DM fight: "that paladin stuff auto-firing seemed weird" -- a player's paladin is ASKED; this check asserted the old no-ask firing and now asserts the ask)
+      var askGr = function (g, yes) { var v, st, k = 0, pr = []; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { pr.push(st.value.prompt); v = st.value.prompt.opts[/FEED THEM/.test(st.value.prompt.opts[0].label) && !yes ? 1 : 0].value; } } return pr; };
+      var logGr = function (B, n) { return (B.log || []).slice(n).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); };
       var h3 = mkGr(5, true); h3.f.hp = Math.floor(h3.f.maxhp / 2); var f3 = h3.f.hp; h3.g.hp = 1; var n3 = (h3.B.log || []).length; h3.B.hurt(h3.g, 5, 'slashing', {});
-      var l3 = (h3.B.log || []).slice(n3).join(' / ');
-      okGr('WHAT FALLS, FEEDS: the goblin drops beside the hurt fighter -- ' + f3 + ' -> ' + h3.f.hp + ', the reaction ' + h3.p.reaction + ', the channel ' + h3.p.feats.channel + ', "' + /WHAT FALLS, FEEDS/.test(l3) + '"', h3.f.hp > f3 && h3.p.reaction === 0 && h3.p.feats.channel === 0 && /WHAT FALLS, FEEDS/.test(l3));
+      okGr('WHAT FALLS, FEEDS, a player\'s paladin: the goblin drops beside the hurt fighter -- queued ' + (h3.B.greenQ || []).length + ', not fired (' + f3 + ' -> ' + h3.f.hp + ', the reaction ' + h3.p.reaction + ', the channel ' + h3.p.feats.channel + ')',
+        (h3.B.greenQ || []).length === 1 && h3.f.hp === f3 && h3.p.reaction === 1 && h3.p.feats.channel === 1 && !/WHAT FALLS, FEEDS/.test(logGr(h3.B, n3)));
+      var pr3 = askGr(D.features.greenAsk(h3.B), true), l3 = logGr(h3.B, n3), gain3 = h3.f.hp - f3, p3 = pr3[0] || { title: '', lines: [], opts: [] };
+      okGr('the ask: "' + p3.title + '" / ' + p3.lines.join(' / ') + ' / [' + p3.opts.map(function (o) { return o.label; }).join(', ') + ']',
+        pr3.length === 1 && /WHAT FALLS, FEEDS\?/.test(p3.title) && p3.lines.join(' ').indexOf(h3.f.name + ' ' + f3 + '/' + h3.f.maxhp) >= 0 && /\+\d+ to \+\d+/.test(p3.lines.join(' ')) && p3.opts.length === 2 && p3.opts[0].value === true && p3.opts[1].label === 'NOT NOW');
+      okGr('YES: the goblin\'s drop feeds the fighter ' + f3 + ' -> ' + h3.f.hp + ' (+' + gain3 + '), the reaction ' + h3.p.reaction + ', the channel ' + h3.p.feats.channel + ', "' + (l3.match(/WHAT FALLS, FEEDS --[^(]*/) || [''])[0].trim() + '"',
+        gain3 > 0 && h3.p.reaction === 0 && h3.p.feats.channel === 0 && l3.indexOf('WHAT FALLS, FEEDS -- ' + h3.f.name + ' +' + gain3) >= 0);
+      // the card prints the hp gained, not the roll: a fighter missing 1 reads +1
+      var h8 = mkGr(5, true); h8.f.hp = h8.f.maxhp - 1; h8.g.hp = 1; var n8 = (h8.B.log || []).length; h8.B.hurt(h8.g, 5, 'slashing', {});
+      var pr8 = askGr(D.features.greenAsk(h8.B), true), l8 = logGr(h8.B, n8);
+      okGr('capped: the fighter missing 1 -- the ask says "' + (pr8[0] ? pr8[0].lines.filter(function (l) { return l.indexOf(h8.f.name) >= 0; })[0] : '?') + '", the card "' + (l8.match(/WHAT FALLS, FEEDS --[^(]*/) || [''])[0].trim() + '", the fighter ' + h8.f.hp + '/' + h8.f.maxhp,
+        h8.f.hp === h8.f.maxhp && l8.indexOf('WHAT FALLS, FEEDS -- ' + h8.f.name + ' +1.') >= 0 && pr8[0].lines.join('|').indexOf(h8.f.name + ' ' + (h8.f.maxhp - 1) + '/' + h8.f.maxhp + ':  +1|') >= 0);
+      // NOT NOW: nothing is healed and nothing is spent
+      var h9 = mkGr(5, true); h9.f.hp = Math.floor(h9.f.maxhp / 2); h9.g.hp = 1; var n9 = (h9.B.log || []).length; h9.B.hurt(h9.g, 5, 'slashing', {}); var f9 = h9.f.hp;
+      askGr(D.features.greenAsk(h9.B), false);
+      okGr('NOT NOW: the fighter ' + f9 + ' -> ' + h9.f.hp + ', the reaction ' + h9.p.reaction + ', the channel ' + h9.p.feats.channel, h9.f.hp === f9 && h9.p.reaction === 1 && h9.p.feats.channel === 1 && !/WHAT FALLS, FEEDS --/.test(logGr(h9.B, n9)));
+      // the ask comes by itself at the end of a command that drops one (exec -> attack: F.greenHook), the dice pinned to hit
+      var h10 = mkGr(5, true); h10.f.hp = Math.floor(h10.f.maxhp / 2); var f10 = h10.f.hp; h10.g.hp = 1; D.rules.startTurn(h10.f); h10.B.active = h10.f; var n10 = (h10.B.log || []).length, dd10 = D.d; D.d = function () { return 20; };
+      var pr10 = []; try { pr10 = askGr(h10.B.exec(h10.f, { do: 'attack', target: h10.g }), true); } finally { D.d = dd10; }
+      okGr('by itself: the fighter\'s blow drops the goblin -- the prompts "' + pr10.map(function (p) { return p.title; }).join('" "') + '", the fighter ' + f10 + ' -> ' + h10.f.hp + ', the channel ' + h10.p.feats.channel,
+        h10.g.dead && pr10.some(function (p) { return /WHAT FALLS, FEEDS\?/.test(p.title); }) && h10.f.hp > f10 && h10.p.feats.channel === 0 && h10.p.reaction === 0 && /WHAT FALLS, FEEDS --/.test(logGr(h10.B, n10)));
+      // and at the end of a cast (D.magic.cast: a spell can drop one too): the drop queued, then any spell cast asks it
+      var h11 = mkGr(5, true); h11.f.hp = Math.floor(h11.f.maxhp / 2); var f11 = h11.f.hp; h11.g.hp = 1; h11.B.hurt(h11.g, 5, 'slashing', {}); h11.p.turn.action = 1;
+      var pr11 = askGr(D.magic.cast(h11.B, h11.p, 'longstrider', 1, h11.f), true);
+      okGr('by itself, at the end of a cast: the prompts "' + pr11.map(function (p) { return p.title; }).join('" "') + '", the fighter ' + f11 + ' -> ' + h11.f.hp + ', the channel ' + h11.p.feats.channel,
+        pr11.some(function (p) { return /WHAT FALLS, FEEDS\?/.test(p.title); }) && h11.f.hp > f11 && h11.p.feats.channel === 0);
+      // the AI's paladin (a guest: the watch, the bench) still takes it by a rule, but only when worth the Channel Divinity -- the hp it would restore (8 expected, or 4 for one at a quarter)
+      var aiGr = function (mk) { var h = mkGr(5, true); h.p.guest = true; mk(h); h.g.hp = 1; var n = (h.B.log || []).length, fe = D.features.greenFeed(h.B, h.p, h.g); h.B.hurt(h.g, 5, 'slashing', {}); return { h: h, fe: fe, fired: h.p.reaction === 0 && h.p.feats.channel === 0 && /WHAT FALLS, FEEDS --/.test(logGr(h.B, n)), l: logGr(h.B, n) }; };
+      var a1 = aiGr(function (h) { h.f.hp = h.f.maxhp - 3; }), a2 = aiGr(function (h) { h.f.hp = Math.floor(h.f.maxhp / 2); }), a3 = aiGr(function (h) { h.f.hp = Math.floor(h.f.maxhp / 2); h.p.hp = h.p.maxhp - 20; }), a4 = aiGr(function (h) { h.f.hp = Math.floor(h.f.maxhp / 4); });
+      okGr('the AI\'s paladin: a friend missing 3 (expects ' + a1.fe.exp.toFixed(1) + ') -- kept ' + !a1.fired + '; one at half (' + a2.fe.exp.toFixed(1) + ') -- kept ' + !a2.fired + '; two hurt (' + a3.fe.exp.toFixed(1) + ') -- fired ' + a3.fired + '; one at a quarter (' + a4.fe.exp.toFixed(1) + ') -- fired ' + a4.fired,
+        !a1.fired && !a2.fired && a3.fired && a4.fired);
+      okGr('the AI\'s card says the gain: "' + (a3.l.match(/WHAT FALLS, FEEDS --[^(]*/) || [''])[0].trim() + '" (fighter ' + a3.h.f.hp + ', paladin ' + a3.h.p.hp + ')', /WHAT FALLS, FEEDS -- /.test(a3.l) && a3.l.indexOf(a3.h.f.name + ' +') >= 0 && !a3.h.B.greenQ);
       var h4 = mkGr(5, true); h4.f.hp = 0; h4.f.ko = true; h4.p.hp = h4.p.maxhp - 10; h4.g.x = h4.p.x; h4.g.y = h4.p.y + 1; if (!D.grid.canStand(h4.g, h4.g.x, h4.g.y)) h4.g.y = h4.p.y - 1;
       D.grid.setup(h4.B.map, h4.B.units); h4.g.hp = 1; h4.B.hurt(h4.g, 5, 'slashing', {}); // (the fighter down within 30 ft, the paladin hurt beside the goblin that drops)
-      okGr('one of its own down and the last use: kept (the reaction ' + h4.p.reaction + ', the channel ' + h4.p.feats.channel + ')', h4.p.reaction === 1 && h4.p.feats.channel === 1);
+      var pr4 = askGr(D.features.greenAsk(h4.B), false); // (a player's paladin: asked, and told the last use is GREEN AGAIN's -- his to answer; the AI's keeps it by the rule)
+      var a5 = aiGr(function (h) { h.f.hp = 0; h.f.ko = true; h.p.hp = Math.floor(h.p.maxhp / 4); }); // (the paladin itself at a quarter: worth it by the weighing, kept for GREEN AGAIN by the guard)
+      okGr('one of its own down and the last use: the player is asked and told (' + pr4.length + ' ask, "' + (pr4[0] ? pr4[0].lines.filter(function (l) { return /GREEN AGAIN/.test(l); })[0] : '?') + '"), kept on NOT NOW (the reaction ' + h4.p.reaction + ', the channel ' + h4.p.feats.channel + '); the AI keeps it (fired ' + a5.fired + ')',
+        pr4.length === 1 && pr4[0].lines.some(function (l) { return /GREEN AGAIN needs a use/.test(l); }) && h4.p.reaction === 1 && h4.p.feats.channel === 1 && !a5.fired && a5.h.p.reaction === 1 && a5.h.p.feats.channel === 1);
       // the AURA OF DEEP ROOTS at 7, not at 6
       var side = function (h) { return D.grid.canStand(h.f, h.f.x, h.f.y + 1) ? { x: h.f.x, y: h.f.y - 1 } : { x: h.f.x, y: h.f.y + 1 }; }; // (a push across the line, not into the paladin)
       var h5 = mkGr(7, true), x5 = h5.f.x, y5 = h5.f.y; D.magic.push(h5.B, side(h5), h5.f, 2); var held5 = h5.f.x === x5 && h5.f.y === y5, pr5 = D.features.holdGround(h5.B, h5.f, 'prone');
@@ -6308,6 +6365,161 @@
     D.store.get = stGV; D.store.set = stSV; if (HV) { HV.playing = false; HV.cur = null; }
     var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
     document.body.appendChild(preV);
+    return;
+  }
+  // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (mode=aloftclicks1103; 11-03, Griz's Pocket DM notes: "oh, see stirge targetting difficulties fight before this one" and "The 5-foot flight above 4
+  // foes targeting (manticore)"; a fix runner on the lanes desk's order): 1 a stirge 5 ft up over a goblin -- the mouse on the stirge is on the stirge (UI.pickUnit ranks a flier aloft over what stands
+  // under it; UI.hoverPick tests MOVE's tile at the flier's own height), on the goblin's legs the goblin, and the click goes to whichever (UI.hoveredAt); 2 a manticore 5 ft up over four goblins on its four
+  // squares -- picked, hovered, and a Fire Bolt, a Scorching Ray and an attack find it, not the goblin on its anchor square; 3 three stirges on one hero -- a seat of its own each (UI.perchPos), each
+  // hovered and struck at through MOVE and ATTACK, by the hero beside and by the host himself; 4 a dart or a ray turned away says why (UI.actAt); 5 every aimed spell's words say what the click asks,
+  // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
+  if (get('mode', '') === 'aloftclicks1103') {
+    var repAL = { checks: [], errors: [] }, UIal = D.ui, IAal = D.input, moAL = IAal.mouse, GAal = D.grid, opts0AL = Object.assign({}, UIal.opts);
+    function okAL(what, v) { repAL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkAL(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideAL(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function openAL(w, h) { var m = GAal.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function turnAL(Bx, u, tool) { D.rules.startTurn(u); Bx.active = u; Bx.req = { turn: u }; Bx.tool = tool; Bx.list = null; Bx.inspect = null; Bx.spell = null; Bx.picks = []; Bx.hoverUnit = null; Bx.endAsk = null; Bx.cards = []; Bx.cache = null; Bx.cursor = { x: u.x, y: u.y }; }
+    // one frame of the mouse as he plays it: UI.input with the mouse moved onto (x, y), or clicked there (core.js I.clear after); the click's answer is caught, not run
+    function frameAL(Bx, x, y, click) { Object.assign(moAL, { inside: true, moved: !click, click: !!click, rclick: false, rbtn: false, x: x, y: y }); try { UIal.input(Bx, Bx.req); } finally { IAal.clear(); } }
+    function clickAL(Bx, x, y) { var got = [], an0 = Bx.answer; Bx.answer = function (c) { got.push(c); }; try { frameAL(Bx, x, y, false); frameAL(Bx, x, y, true); } finally { Bx.answer = an0; } return got; }
+    function cardAL(Bx) { var c = (Bx.cards || [])[(Bx.cards || []).length - 1]; return c ? c.lines.join(' / ').replace(/\{\/?[a-z]*\}/g, '') : ''; }
+    function tgtAL(c) { return c ? c.target || (c.units && c.units[0]) || null : null; }
+    function whoAL(c) { var t = tgtAL(c); return !c ? 'no command' : t ? (t.id || t.name) : 'nobody'; }
+    try {
+      UIal.opts.style = 'ring'; UIal.opts.autoEnd = false;
+      var z1AL = D.iso.zoom || 1;
+      // 1. A STIRGE 5 FT UP OVER A GOBLIN (his "stirge targetting difficulties"): drawn 20 px above its square, its box ended 5 px under its feet and the floor diamond began 4 px under them -- unclickable on MOVE
+      var B1 = mkAL('?npc=goblin,stirge&vs=fighter:5,fighter:5&lvl=5'), o1 = openAL(7, 7);
+      if (!o1) okAL('1 an open stretch of the class floor', false);
+      else {
+        var X1 = o1[0], Y1 = o1[1], gz1 = GAal.map.gz(X1, Y1), LY1 = GAal.LAYER(), pa1 = sideAL(B1, 'party'), f1 = pa1[0], f1b = pa1[1];
+        var gb1 = sideAL(B1, 'foe').filter(function (w) { return w.kind === 'goblin'; })[0], st1 = sideAL(B1, 'foe').filter(function (w) { return w.kind === 'stirge'; })[0];
+        f1.x = X1 + 2; f1.y = Y1 + 3; f1b.x = X1; f1b.y = Y1; gb1.x = X1 + 3; gb1.y = Y1 + 3; st1.x = gb1.x; st1.y = gb1.y; st1.flies = true; st1.fz = gz1 + LY1; B1.cache = null;
+        D.iso.lookAt(gb1.x, gb1.y, gz1);
+        var pS1 = UIal.unitPos(B1, st1), pG1 = UIal.unitPos(B1, gb1), topS1 = D.spr.unitTop(st1) * z1AL;
+        var mx1 = Math.round(pS1.x), myS1 = Math.round(pS1.y - Math.min(topS1 / 2, 8 * z1AL)), myG1 = Math.round(pG1.y - 4 * z1AL);
+        var pkS1 = UIal.pickUnit(B1, mx1, myS1), pkG1 = UIal.pickUnit(B1, mx1, myG1);
+        okAL('1 the stirge (' + st1.id + ') 5 ft up over the goblin (' + gb1.id + '): the mouse on the stirge picks ' + (pkS1 && pkS1.id) + ', on the goblin\'s legs ' + (pkG1 && pkG1.id) + ' (want the stirge, the goblin)', pkS1 === st1 && pkG1 === gb1);
+        turnAL(B1, f1, 'move'); var hS1 = UIal.hoverPick(B1, f1, mx1, myS1), hG1 = UIal.hoverPick(B1, f1, mx1, myG1);
+        okAL('1 MOVE out: the mouse on the stirge hovers ' + (hS1.unit && hS1.unit.id) + ' at ' + (hS1.sq && hS1.sq.x + ',' + hS1.sq.y) + ', on the goblin\'s legs ' + (hG1.unit && hG1.unit.id) + ' (want the stirge, the goblin: the tile at the flier\'s own height; the floor beneath it is the goblin\'s)', hS1.unit === st1 && hG1.unit === gb1);
+        turnAL(B1, f1, 'move'); var cM1 = clickAL(B1, mx1, myS1);
+        okAL('1 the click on the stirge, MOVE out: ' + JSON.stringify(cM1.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want an attack on the stirge, not the goblin under it)', cM1.length === 1 && cM1[0].do === 'attack' && tgtAL(cM1[0]) === st1);
+        turnAL(B1, f1, 'attack'); var cA1 = clickAL(B1, mx1, myS1);
+        okAL('1 and the attack cued: ' + JSON.stringify(cA1.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want the stirge)', cA1.length === 1 && cA1[0].do === 'attack' && tgtAL(cA1[0]) === st1);
+        turnAL(B1, f1, 'move'); var cG1 = clickAL(B1, mx1, myG1);
+        okAL('1 the click on the goblin\'s legs: ' + JSON.stringify(cG1.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want the goblin)', cG1.length === 1 && cG1[0].do === 'attack' && tgtAL(cG1[0]) === gb1);
+        // (the key after the mouse: an arrow moves the cursor off the figure and the click is the square's again; and the stirge with nobody under it)
+        turnAL(B1, f1, 'move'); frameAL(B1, mx1, myS1, false); var hov1 = B1.hoverUnit === st1; IAal.edge.right = true; try { UIal.input(B1, B1.req); } finally { IAal.clear(); }
+        okAL('1 an arrow after the mouse puts the figure by: hovering ' + hov1 + ', then ' + (B1.hoverUnit ? B1.hoverUnit.id : 'none') + ' (want true, none)', hov1 && !B1.hoverUnit);
+        gb1.x = X1 + 5; gb1.y = Y1 + 1; B1.cache = null; D.iso.lookAt(st1.x, st1.y, gz1); pS1 = UIal.unitPos(B1, st1); mx1 = Math.round(pS1.x); myS1 = Math.round(pS1.y - Math.min(topS1 / 2, 8 * z1AL));
+        turnAL(B1, f1, 'move'); var hE1 = UIal.hoverPick(B1, f1, mx1, myS1), cE1 = clickAL(B1, mx1, myS1);
+        okAL('1 the stirge over an empty square: hovered ' + (hE1.unit && hE1.unit.id) + ', the click ' + JSON.stringify(cE1.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want the stirge, an attack on it)', hE1.unit === st1 && cE1.length === 1 && cE1[0].do === 'attack' && tgtAL(cE1[0]) === st1);
+        // (and a hero on the ground beside an empty square is still a walk there: MOVE takes the tile)
+        turnAL(B1, f1, 'move'); var qx1 = f1.x - 1, qy1 = f1.y, cq1 = D.iso.center(qx1, qy1, gz1), sq1 = D.iso.toScreen(cq1.x, cq1.y), hQ1 = UIal.hoverPick(B1, f1, sq1.x, sq1.y);
+        okAL('1 MOVE on an empty square (' + qx1 + ',' + qy1 + '): no figure (' + (hQ1.unit ? hQ1.unit.id : 'none') + '), the square ' + (hQ1.sq && hQ1.sq.x + ',' + hQ1.sq.y) + ' (want none, that square)', !hQ1.unit && hQ1.sq && hQ1.sq.x === qx1 && hQ1.sq.y === qy1);
+      }
+      // 2. A MANTICORE 5 FT UP OVER FOUR GOBLINS (his "the 5-foot flight above 4 foes targeting"): the Large body loses by footprint depth to the goblin on its south-east square, and its anchor square is the goblin's
+      var B2 = mkAL('?npc=manticore,goblin,goblin,goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), o2 = openAL(8, 7);
+      if (!o2) okAL('2 an open stretch of the class floor', false);
+      else {
+        var X2 = o2[0], Y2 = o2[1], gz2 = GAal.map.gz(X2, Y2), LY2 = GAal.LAYER(), pa2 = sideAL(B2, 'party'), wz2 = pa2.filter(function (w) { return w.cls === 'wizard'; })[0], fg2 = pa2.filter(function (w) { return w.cls === 'fighter'; })[0];
+        var mc2 = sideAL(B2, 'foe').filter(function (w) { return w.kind === 'manticore'; })[0], gs2 = sideAL(B2, 'foe').filter(function (w) { return w.kind === 'goblin'; });
+        mc2.x = X2 + 4; mc2.y = Y2 + 3; mc2.flies = true; mc2.fz = gz2 + LY2; [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (d, i) { gs2[i].x = mc2.x + d[0]; gs2[i].y = mc2.y + d[1]; });
+        wz2.x = X2; wz2.y = Y2 + 3; fg2.x = X2 + 1; fg2.y = Y2 + 3; B2.cache = null; GAal.setup(GAal.map, B2.units);
+        D.iso.lookAt(mc2.x, mc2.y, gz2);
+        var pM2 = UIal.unitPos(B2, mc2), mx2 = Math.round(pM2.x), my2 = Math.round(pM2.y - 8 * z1AL);
+        var pk2 = UIal.pickUnit(B2, mx2, my2), ground2 = GAal.occupant(mc2.x, mc2.y);
+        okAL('2 the manticore (size ' + mc2.size + ') 5 ft up over four goblins: the mouse on its body picks ' + (pk2 && pk2.id) + '; the square its anchor sits over holds ' + (ground2 && ground2.id) + ' (want the manticore, a goblin)', pk2 === mc2 && !!ground2 && ground2 !== mc2);
+        var pkL2 = UIal.pickUnit(B2, mx2, Math.round(pM2.y + 10 * z1AL)), pkL2w = UIal.pickUnit(B2, mx2, Math.round(pM2.y + 10 * z1AL), function (w) { return GAal.hostile(wz2, w); });
+        okAL('2 and on its lower body, in front of the head of the goblin on its south-east square: picks ' + (pkL2 && pkL2.id) + ', wanting a foe ' + (pkL2w && pkL2w.id) + ' (want the manticore both ways -- it was above them, drawn by depth it lost to that goblin)', pkL2 === mc2 && pkL2w === mc2);
+        turnAL(B2, wz2, 'move'); var h2 = UIal.hoverPick(B2, wz2, mx2, my2);
+        okAL('2 MOVE out: the mouse at the body\'s foot, on the tile at its height, hovers ' + (h2.unit && h2.unit.id) + ' (want the manticore)', h2.unit === mc2);
+        var fb2 = D.magic.geo('firebolt'), sr2 = D.magic.geo('scorchingray');
+        turnAL(B2, wz2, 'spell'); B2.spell = { id: 'firebolt', slot: 0, g: fb2, n: 1, name: 'Fire Bolt', sp: {} }; var cF2 = clickAL(B2, mx2, my2);
+        okAL('2 a Fire Bolt aimed with the mouse on it: ' + JSON.stringify(cF2.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want a cast at the manticore, not the goblin on its anchor square)', cF2.length === 1 && cF2[0].do === 'cast' && tgtAL(cF2[0]) === mc2);
+        turnAL(B2, wz2, 'spell'); B2.spell = { id: 'scorchingray', slot: 2, g: sr2, n: 3, name: 'Scorching Ray', sp: {} }; var cR2 = clickAL(B2, mx2, my2);
+        okAL('2 and a Scorching Ray: the first of its ' + sr2.n + ' rays at ' + (B2.picks[0] && (B2.picks[0].id || B2.picks[0].name)) + ' (want the manticore), ' + B2.picks.length + ' aimed, ' + cR2.length + ' cast yet', B2.picks[0] === mc2 && B2.picks.length === 1 && !cR2.length);
+        turnAL(B2, fg2, 'attack'); var cT2 = clickAL(B2, mx2, my2);
+        okAL('2 the fighter 15 ft off with the attack cued, a reach of 5: the click says so (' + JSON.stringify(cT2.length) + ' commands, "' + cardAL(B2) + '") -- of the manticore, not the goblin', !cT2.length && /manticore/i.test(cardAL(B2)));
+        // (the goblin on its south-east square, the mouse just under its feet, below the manticore's space -- the foes under a body in the air are clicked where it does not cover them, or by the keys)
+        var pGg2 = UIal.unitPos(B2, gs2[3]); turnAL(B2, fg2, 'attack'); frameAL(B2, Math.round(pGg2.x), Math.round(pGg2.y + 2 * z1AL), false);
+        okAL('2 the mouse just under the feet of the goblin on the south-east square: ' + (B2.hoverUnit && B2.hoverUnit.id) + ' (want that goblin, ' + gs2[3].id + ')', B2.hoverUnit === gs2[3]);
+        turnAL(B2, fg2, 'attack'); B2.cursor = { x: mc2.x, y: mc2.y }; var kg2 = [], an2 = B2.answer; B2.answer = function (c) { kg2.push(c); }; try { UIal.actAt(B2, fg2, mc2.x, mc2.y, true); } finally { B2.answer = an2; }
+        okAL('2 and the key on the anchor square, no mouse on any: ' + JSON.stringify(kg2.map(function (c) { return [c.do, whoAL(c)]; })) + ' card "' + cardAL(B2) + '" (want the goblin standing there, as ever: ' + (ground2 && ground2.id) + ')', ground2 && (kg2.length ? tgtAL(kg2[0]) === ground2 : new RegExp(ground2.kind, 'i').test(cardAL(B2))));
+      }
+      // 3. THREE STIRGES ON ONE HERO (his "stirge targetting difficulties"): Battle.attach keeps each one's record, but all three took the one perch spot -- the first was the pick, the second and third could not be clicked
+      var B3 = mkAL('?npc=stirge,stirge,stirge&vs=fighter:5,fighter:5&lvl=5'), o3 = openAL(6, 6);
+      if (!o3) okAL('3 an open stretch of the class floor', false);
+      else {
+        var X3 = o3[0], Y3 = o3[1], gz3 = GAal.map.gz(X3, Y3), pa3 = sideAL(B3, 'party'), hs3 = pa3[0], pt3 = pa3[1], sts3 = sideAL(B3, 'foe');
+        hs3.x = X3 + 3; hs3.y = Y3 + 3; pt3.x = X3 + 2; pt3.y = Y3 + 3; sts3.forEach(function (s, i) { s.x = X3 + 5; s.y = Y3 + i; s.flies = false; s.fz = null; });
+        sts3.forEach(function (s) { D.Battle.attach(hs3, { by: s.id, dc: 12 }); B3.mount(s, hs3); s.tween = null; s.anim = 'idle'; }); B3.cache = null;
+        D.iso.lookAt(hs3.x, hs3.y, gz3);
+        var ps3 = sts3.map(function (s) { return UIal.perchPos(B3, s, z1AL); }), topR3 = D.spr.unitTop(sts3[0]) * z1AL, minD3 = 1e9;
+        for (var ia = 0; ia < 3; ia++) for (var ib = ia + 1; ib < 3; ib++) minD3 = Math.min(minD3, Math.hypot(ps3[ia].x - ps3[ib].x, ps3[ia].y - ps3[ib].y));
+        okAL('3 three stirges on ' + hs3.name + ': seats ' + ps3.map(function (p) { return Math.round(p.x) + ',' + Math.round(p.y); }).join(' / ') + ', the least apart ' + Math.round(minD3) + ' px (want 12 or more)', minD3 >= 12);
+        var pks3 = sts3.map(function (s, i) { return UIal.pickUnit(B3, Math.round(ps3[i].x), Math.round(ps3[i].y - Math.min(topR3 / 2, 4 * z1AL))); });
+        okAL('3 the mouse on each picks its own: ' + pks3.map(function (p) { return p && p.id; }).join(' / ') + ' (want ' + sts3.map(function (s) { return s.id; }).join(' / ') + ')', pks3.every(function (p, i) { return p === sts3[i]; }));
+        [['the hero beside', pt3, 'move'], ['the hero beside', pt3, 'attack'], ['the host himself', hs3, 'move']].forEach(function (cs) {
+          var res = sts3.map(function (s, i) { turnAL(B3, cs[1], cs[2]); var c = clickAL(B3, Math.round(ps3[i].x), Math.round(ps3[i].y - Math.min(topR3 / 2, 4 * z1AL))); return c.length === 1 && c[0].do === 'attack' ? c[0].target : null; });
+          okAL('3 ' + cs[0] + ' (' + cs[1].name + '), the ' + cs[2] + ' tool, clicks each: struck at ' + res.map(function (t) { return t && t.id; }).join(' / ') + ' (want ' + sts3.map(function (s) { return s.id; }).join(' / ') + ')', res.every(function (t, i) { return t === sts3[i]; }));
+        });
+        // (the mouse not moved, only the key: the square's first rider, as before)
+        turnAL(B3, pt3, 'attack'); B3.cursor = { x: hs3.x, y: hs3.y }; var kg3 = [], an3 = B3.answer; B3.answer = function (c) { kg3.push(c); }; try { UIal.actAt(B3, pt3, hs3.x, hs3.y, true); } finally { B3.answer = an3; }
+        okAL('3 E on the host\'s square with the mouse not on any: ' + JSON.stringify(kg3.map(function (c) { return [c.do, whoAL(c)]; })) + ' (want an attack on the first, ' + sts3[0].id + ')', kg3.length === 1 && tgtAL(kg3[0]) === sts3[0]);
+      }
+      // 4. A DART OR A RAY TURNED AWAY SAYS WHY (the card the other refused clicks show; `v !== 'ok'` came first): Magic Missile cut to 10 ft at a goblin 30 ft off, and the Scorching Ray the same
+      var B4 = mkAL('?npc=goblin&vs=wizard:5&lvl=5'), o4 = openAL(8, 4);
+      if (!o4) okAL('4 an open stretch of the class floor', false);
+      else {
+        var wz4 = sideAL(B4, 'party')[0], gb4 = sideAL(B4, 'foe')[0], gz4 = GAal.map.gz(o4[0], o4[1]);
+        wz4.x = o4[0] + 1; wz4.y = o4[1] + 1; gb4.x = o4[0] + 7; gb4.y = o4[1] + 1; B4.cache = null; D.iso.lookAt(gb4.x, gb4.y, gz4);
+        var pG4 = UIal.unitPos(B4, gb4), mx4 = Math.round(pG4.x), my4 = Math.round(pG4.y - 8 * z1AL);
+        [['magicmissile', 'darts', 'Magic Missile'], ['scorchingray', 'rays', 'Scorching Ray'], ['firebolt', 'attack', 'Fire Bolt']].forEach(function (sp) {
+          var g4 = Object.assign({}, D.magic.geo(sp[0]), { range: 10 });
+          turnAL(B4, wz4, 'spell'); B4.spell = { id: sp[0], slot: sp[0] === 'firebolt' ? 0 : 1, g: g4, n: g4.n || 1, name: sp[2], sp: {} }; B4.picks = [];
+          var c4 = clickAL(B4, mx4, my4);
+          okAL('4 ' + sp[2] + ' (' + g4.shape + ', cut to ' + g4.range + ' ft) at the goblin ' + GAal.range(wz4, gb4) + ' ft off: ' + c4.length + ' commands, ' + B4.picks.length + ' picks, the card "' + cardAL(B4) + '" (want none, none, a card that says how far)', !c4.length && !B4.picks.length && /ft off/.test(cardAL(B4)));
+        });
+      }
+      // 5. THE AIM WORDS: every aimed shape says what the click asks; the walls (one click, a run of squares centred on it across the line to it, js/walls.js) and Thunderwave (a cube against the side
+      // of the caster the click is toward, js/magic.js M.wave) were blank -- "WALL OF FIRE (L4): .  X back"
+      var blank5 = Object.keys(D.SPELLS).filter(function (id) { var g = D.SPELLS[id]; return g.shape && !/^(self|none|reaction)$/.test(g.shape) && !UIal.aimWords(g, g.n || 1); });
+      okAL('5 every spell aimed on the grid (not self, a reaction, or one with no cast here) has aim words (blank: ' + (blank5.join(', ') || 'none') + ')', blank5.length === 0);
+      var wf5 = UIal.aimWords(D.SPELLS.walloffire, 1), ww5 = UIal.aimWords(D.SPELLS.windwall, 1), wt5 = UIal.aimWords(D.SPELLS.wallofthorns, 1), ws5 = UIal.aimWords(D.SPELLS.wallofstone, 1), tw5 = UIal.aimWords(D.SPELLS.thunderwave, 1);
+      okAL('5 Wall of Fire "' + wf5 + '"; Wind Wall "' + ww5 + '"; Thorns/Stone say their ' + D.SPELLS.wallofthorns.len + ' ft', /60-ft wall/.test(wf5) && /within 120 ft/.test(wf5) && /50-ft wall/.test(ww5) && /60-ft wall/.test(wt5) && /60-ft wall/.test(ws5));
+      okAL('5 Thunderwave "' + tw5 + '"', /15-ft cube from you/.test(tw5) && /click toward/.test(tw5));
+      // 6. AURDIN'S OWL ON THE GRID: the ladder's Snoot fight with his familiar seated (as mode=familiar); the shoulder opposite his staff by facing, at the height of his shoulder, nothing else moved, and the
+      // owl drawn where the mouse picks it -- the object's own record of where it was drawn
+      var data6 = D.save.fixture(5); data6.flags = { familiar: { kind: 'owl', by: 'aurdin', hp: 1 } };
+      var B6 = new D.Battle({ ladder: true, fight: 'snoot', bench: true, data: data6 }); D.battle = B6; B6.enter();
+      var au6 = B6.units.filter(function (w) { return w.id === 'aurdin'; })[0], ow6 = B6.units.filter(function (w) { return w.familiar; })[0], ba6 = B6.units.filter(function (w) { return w.id === 'barley'; })[0];
+      if (!au6 || !ow6) okAL('6 Aurdin and his owl seated', false);
+      else {
+        // (staffL[f]: the staff is on the screen's left at facing f; S SW W NW N NE E SE -- in the roam's calm `staffrest` row, and in the grid's fight `staffidle` row, where it is held across him
+        // at SW and SE the other way: the stills of 11-03, sprites.js S.SHOULDER_FIGHT)
+        var staffCalm6 = [1, 0, 1, 1, 0, 0, 0, 1], staffFight6 = [1, 1, 1, 1, 0, 0, 0, 0], mp6 = null;
+        au6.x = 5; au6.y = 5; B6.cache = null; D.iso.lookAt(au6.x, au6.y, GAal.map.gz(au6.x, au6.y));
+        var spots6 = function () { var sd = [], up = []; for (var f6 = 0; f6 < 8; f6++) { au6.facing = f6; mp6 = UIal.unitPos(B6, au6); var pp6 = UIal.perchPos(B6, ow6, 1); sd.push(Math.round(pp6.x - mp6.x)); up.push(Math.round(mp6.y - pp6.y)); } return { side: sd, up: up }; };
+        var fight6 = spots6(), roam0 = B6.roam; B6.roam = {}; var calm6 = spots6(); B6.roam = roam0;
+        var opp6 = function (r, staffL) { return r.side.length === 8 && r.side.every(function (x, f) { return staffL[f] ? x > 0 : x < 0; }) && r.up.every(function (y) { return y >= 26 && y <= 32; }); };
+        okAL('6 the owl (' + ow6.perch + ') on ' + au6.name + ' (' + au6.sheet + ') by facing S SW W NW N NE E SE, in the grid\'s fight idle: across ' + fight6.side.join(',') + ', up from his feet ' + fight6.up.join(',') + ' -- opposite the staff in every facing',
+          ow6.perch === 'shoulder' && opp6(fight6, staffFight6));
+        okAL('6 and on the roam floors, in the calm row: across ' + calm6.side.join(',') + ', up ' + calm6.up.join(',') + ' (the same but SW and SE crossed)', opp6(calm6, staffCalm6) && calm6.side[1] < 0 && fight6.side[1] > 0 && calm6.side[7] > 0 && fight6.side[7] < 0);
+        var fakeAL = function (m, fam) { return { id: 'fakerider', riding: true, familiar: fam ? 'x' : undefined, perch: 'shoulder', master: m, hp: 1, x: m.x, y: m.y }; }, spot6 = function (r, m) { var q = UIal.perchPos(B6, r, 1), mq = UIal.unitPos(B6, m); return [Math.round(q.x - mq.x), Math.round(mq.y - q.y)].join(','); };
+        ba6.facing = 0; au6.facing = 0; var mt6a = Math.round(D.spr.unitTop(au6) * D.spr.scaleOf(au6) * 0.48), mt6b = Math.round(D.spr.unitTop(ba6) * D.spr.scaleOf(ba6) * 0.48);
+        okAL('6 and nothing else moved: another caster\'s familiar ' + spot6(fakeAL(ba6, true), ba6) + ' (want -9,' + mt6b + '), a rider that is no familiar on Aurdin ' + spot6(fakeAL(au6, false), au6) + ' (want -9,' + mt6a + ')',
+          spot6(fakeAL(ba6, true), ba6) === '-9,' + mt6b && spot6(fakeAL(au6, false), au6) === '-9,' + mt6a);
+        au6.facing = 3; var pw6 = UIal.perchPos(B6, ow6, z1AL), tw6 = D.spr.unitTop(ow6) * z1AL, pk6 = UIal.pickUnit(B6, Math.round(pw6.x), Math.round(pw6.y - Math.min(tw6 / 2, 4 * z1AL)));
+        okAL('6 the mouse on the owl where it sits picks ' + (pk6 && (pk6.id || pk6.name)) + ' (want the owl)', pk6 === ow6);
+        var cv6 = document.createElement('canvas'); cv6.width = D.W; cv6.height = D.H; var ob6 = UIal.unitObj(B6, ow6); ob6.draw(cv6.getContext('2d')); var pw1 = UIal.perchPos(B6, ow6, 1);
+        okAL('6 drawn at ' + (ob6.shown ? Math.round(ob6.shown.x) + ',' + Math.round(ob6.shown.y) : 'nowhere') + ', picked at ' + Math.round(pw1.x) + ',' + Math.round(pw1.y) + ' (want the same spot)', !!ob6.shown && Math.round(ob6.shown.x) === Math.round(pw1.x) && Math.round(ob6.shown.y) === Math.round(pw1.y));
+      }
+    } catch (eAL) { repAL.errors.push(String(eAL && eAL.stack || eAL).slice(0, 900)); }
+    Object.keys(opts0AL).forEach(function (k) { UIal.opts[k] = opts0AL[k]; });
+    var preAL = document.createElement('pre'); preAL.id = 'out'; preAL.textContent = 'BENCH16 ' + JSON.stringify(repAL);
+    document.body.appendChild(preAL);
     return;
   }
   // HIS THREE CLICKS OF 10-29 (mode=gridclicks1029; the grid-UI seat, started by the lanes desk, from his NOTES stamped day 4 · 14:15 at the Guano Galleries' mouth): 1 the
@@ -7623,10 +7835,11 @@
       // THE CAMP'S MORNING (his 10-22 note): a quiet night on THE WORLD wakes to the same morning
       D.scenes.length = 0; shV = CV.servicesShow('?services&beat=camp'); D.push(shV); shV.update(); var wC = topV(), SC = WV.state(), cA = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], cLv = cA.lvl;
       okV('the camp\'s beat: THE WORLD (' + (wC && wC.kind) + '), the four hurt, a quiet night', wC && wC.kind === 'world' && HV.cur.party.every(function (h) { return h.hp < h.maxhp; }) && SC.count > 1e6);
-      HV.runNight(wC, HV.watchDefault(HV.cur.party)); var mC = mornV();
-      okV('the three watches pass with nothing out of the dark, and the morning comes up over THE WORLD (' + (mC && mC.phase) + '; "' + (wC.msg && wC.msg.s || '').slice(0, 60) + '")', !!mC && mC.phase === 'night' && /Dawn/.test(wC.msg && wC.msg.s || ''));
+      var t0C = SC.t; HV.runNight(wC, HV.watchDefault(HV.cur.party)); var mC = mornV();
+      okV('the camp\'s clock (11-03): they lay down at ' + (t0C % 24) + ':00 and wake eight hours on, at ' + (SC.t % 24) + ':00 (the day\'s march new: ' + SC.today + ')', t0C === 7 && SC.t === t0C + 8 && SC.today === 0);
+      okV('the three watches pass with nothing out of the dark, and the morning comes up over THE WORLD (' + (mC && mC.phase) + '; "' + (wC.msg && wC.msg.s || '').slice(0, 60) + '")', !!mC && mC.phase === 'night' && /rest is had/.test(wC.msg && wC.msg.s || '')); // (11-03, the camp's clock: eight hours from when they lie down -- this beat starts at 07:00, so they wake at 15:00 and the line says "Awake", not "Dawn"; was /Dawn/)
       clickV(mC, { x: 10, y: 10, w: 2, h: 2 }); var dawnC = mC.dawnLines().join(' / '); goV(mC, 'ok');
-      okV('MORNING on THE WORLD ("' + dawnC.slice(0, 120) + '"), then the bonds (' + mC.phase + ')', /MORNING\{\/\} -- day 2/.test(dawnC) && /wakes rested/.test(dawnC) && mC.phase === 'bonds' && cA.lvl === cLv + 1);
+      okV('MORNING on THE WORLD ("' + dawnC.slice(0, 120) + '"), then the bonds (' + mC.phase + ')', /AFTERNOON\{\/\} -- day 1/.test(dawnC) && /wakes rested/.test(dawnC) && mC.phase === 'bonds' && cA.lvl === cLv + 1);
       pickV(mC, /^DONE$/); okV('then THE DAY\'S SPELLS (' + rowsV(mC).slice(0, 4).join('; ') + ')', mC.phase === 'spells');
       pickV(mC, /^DONE$/); okV('then the save asked on THE WORLD', mC.phase === 'save');
       pickV(mC, /^NO$/); okV('NO: THE WORLD again, the four whole (' + HV.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + ')', !mornV() && D.top() === wC && HV.cur.party.every(function (h) { return h.hp === h.maxhp; }));
@@ -10293,19 +10506,48 @@
         wz4g.x = 2; wz4g.y = 3; g4g[0].x = 7; g4g[0].y = 3; g4g[1].x = 7; g4g[1].y = 4; B4g.cache = null; g4g[0].hp = 1; g4g[1].maxhp = g4g[1].hp = 100; learnV(wz4g, 'scorchingray');
         RV.startTurn(wz4g); B4g.active = wz4g; pinV(15, function () { runV(MV.cast(B4g, wz4g, 'scorchingray', 2, { units: [g4g[0], g4g[0], g4g[0]] })); }); B4g.active = null;
         okV('4 and on the full grid, three rays aimed at a goblin on 1 with another beside it: it falls ' + (g4g[0].hp <= 0) + ', the other ' + (100 - g4g[1].hp) + ' fire (want true, 0: the hand aimed each -- RULED 10-22, his "it\'s okay if they spend them wrong on the grid, they\'re getting to choose")', g4g[0].hp <= 0 && g4g[1].hp === 100);
-        // 5. THE SIMPLE FIGHT'S HIDE AS THE FIRST GAME'S (RULED 10-22, his "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more
-        // successful)"): Vivian's HIDE in his door, the d20 pinned to 1 (the grid's roll: 8 against the goblins' 18, the worgs' 23 -- seen) -- hidden, no roll; no foe's look
-        // finds her, nor a Search on a 20; still hidden at her turn's end, gone at the end of her next (js/battle.js hideAttack's two rounds). The full grid keeps its roll,
-        // and a foe's Hide in the simple fight (the goblin's Nimble Escape) keeps it too
+        // 5. THE SIMPLE FIGHT'S HIDE BY THE ROLL, WITHOUT THE CONES (10-22 it was the first game's, no roll -- "1 - like the first game"; RE-RULED 11-01, his ear file: "Best isn't
+        // auto-success in simple fight, but stealth roll versus passive perception without sight-cone grid modifiers"): Vivian's HIDE in his door -- Stealth +7 against each foe's
+        // passive Perception on its own (the goblins' 9, the worgs' 14; ties to the hider). The d20 pinned to 1: 8, found by all five, SEEN, no hide; to 20: 27, hidden from all; to
+        // 5: 12 -- hidden from the goblins, seen by the worgs, whose turns read her as not hidden and whose blows and hers carry no unseen edge; a goblin with blindsight in range
+        // perceives her whatever she rolled, on the simple fight's card and in rules.js on the grid. Hidden still at her turn's end, gone at the end of her next (js/battle.js
+        // hideAttack's two rounds); a foe's Search is the grid's contest (its d20 + Perception against a fresh Stealth roll of hers), not a wall. The full grid keeps its roll, and a
+        // foe's Hide in the simple fight (the goblin's Nimble Escape) keeps it too
         var pin20 = function (d, f) { D.d = function (n) { return n === 20 ? d : d0V(n); }; try { return f(); } finally { D.d = d0V; } };
         var B5 = simpleV(), v5 = B5.units.filter(function (w) { return w.id === 'vivian'; })[0], f5 = sideV(B5, 'foe'), wg5 = f5.filter(function (w) { return w.kind === 'worg'; })[0], gb5 = f5.filter(function (w) { return w.kind === 'goblin'; })[0];
         RV.startTurn(v5); B5.active = v5; var n5 = (B5.log || []).length; pin20(1, function () { runV(B5.hide(v5)); }); B5.active = null; var l5 = logV(B5, n5), hid5 = !!v5.conds.hidden, bonus5 = v5.turn && v5.turn.bonus === 0;
-        okV('5 the simple fight: Vivian hides, the d20 pinned to 1: hidden ' + hid5 + ', a Stealth roll on the card ' + /Stealth d20/.test(l5) + ', the bonus action spent ' + bonus5 + ' ("' + l5.slice(0, 70) + '") (want true, false, true)', hid5 && !/Stealth d20/.test(l5) && bonus5);
-        if (hid5) {
+        okV('5 the simple fight: Vivian hides, the d20 pinned to 1 (8 against the goblins\' 9 and the worgs\' 14): hidden ' + hid5 + ', the roll on the card ' + /Stealth d20 1/.test(l5) + ', SEEN ' + /SEEN/.test(l5) + ', the foes named ' + (/Seen by: /.test(l5) && /Goblin x3 \(9\)/.test(l5) && /Worg x2 \(14\)/.test(l5)) + ', the bonus action spent ' + bonus5 + ' ("' + l5.slice(0, 90) + '") (want false, true, true, true, true)', !hid5 && /Stealth d20 1/.test(l5) && /SEEN/.test(l5) && /Seen by: /.test(l5) && /Goblin x3 \(9\)/.test(l5) && /Worg x2 \(14\)/.test(l5) && bonus5);
+        // (b) the d20 pinned to 20: 27, past every passive score -- hidden from all five, the card says whom it beat; the worg's look (the grid's peek) and its Search on a 20 (24, against her 27) find nothing; hidden through her turn, gone at the end of her next
+        RV.startTurn(v5); B5.active = v5; var n5b = (B5.log || []).length; pin20(20, function () { runV(B5.hide(v5)); }); B5.active = null; var l5b = logV(B5, n5b), rec5b = v5.conds.hidden;
+        okV('5 and at a 20: hidden ' + !!rec5b + ', from all (seen by ' + (rec5b && rec5b.seenBy ? rec5b.seenBy.length : '?') + '), the card names the beaten "' + (l5b.match(/Beat passive Perception: [^|]*/) || [''])[0].trim().slice(0, 60) + '" (want true, 0, "Beat passive Perception: ... Goblin x3 (9) ... Worg x2 (14)")',
+          !!rec5b && rec5b.seenBy.length === 0 && /Beat passive Perception: /.test(l5b) && /Goblin x3 \(9\)/.test(l5b) && /Worg x2 \(14\)/.test(l5b) && !/Seen by/.test(l5b) && /advantage, which disadvantage cancels/.test(l5b));
+        if (rec5b) {
           B5.findsHidden(wg5); RV.startTurn(wg5); B5.active = wg5; pin20(20, function () { runV(B5.search(wg5)); }); B5.active = null;
           var after5 = !!v5.conds.hidden; MV.tick(B5, v5, 'end'); var end1 = !!v5.conds.hidden; MV.tick(B5, v5, 'end'); var end2 = !!v5.conds.hidden;
-          okV('5 and the worg\'s look and its Search on a 20: still hidden ' + after5 + '; at the end of her turn ' + end1 + ', at the end of her next ' + end2 + ' (want true; true, false: two rounds, as the first game\'s)', after5 && end1 && !end2);
+          okV('5 and the worg\'s look and its Search on a 20 against her 27: still hidden ' + after5 + '; at the end of her turn ' + end1 + ', at the end of her next ' + end2 + ' (want true; true, false: two rounds, as the first game\'s)', after5 && end1 && !end2);
         } else okV('5 and the worg\'s look, its Search, the two rounds (not hidden: nothing to test)', false);
+        // (b2) a Search is a contest, not a wall: hidden again on a 20, the worg's Search with her fresh Stealth d20 at 1 (8) and its own at 20 (24) finds her
+        RV.startTurn(v5); B5.active = v5; pin20(20, function () { runV(B5.hide(v5)); }); B5.active = null; var hid5c = !!v5.conds.hidden;
+        RV.startTurn(wg5); B5.active = wg5; var seq5 = [1, 20], d05 = D.d; D.d = function (n) { return n === 20 ? (seq5.length ? seq5.shift() : 20) : d05(n); }; try { runV(B5.search(wg5)); } finally { D.d = d05; } B5.active = null;
+        okV('5 and a worg\'s Search (her d20 at 1, its at 20) finds her: hidden before ' + hid5c + ', after ' + !!v5.conds.hidden + ' (want true, false)', hid5c && !v5.conds.hidden);
+        // (c) the d20 pinned to 5: 12 beats the goblins (9), not the worgs (14): hidden, the worgs listed; the worgs' turns read her as not hidden and the goblins' as hidden;
+        // a worg's blow at her and hers at a worg carry no unseen edge, a goblin's and hers at a goblin do
+        var atk5 = { name: 'Rapier', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 }, wgs5 = f5.filter(function (w) { return w.kind === 'worg'; }), gbs5 = f5.filter(function (w) { return w.kind === 'goblin'; });
+        RV.startTurn(v5); B5.active = v5; var n5d = (B5.log || []).length; pin20(5, function () { runV(B5.hide(v5)); }); B5.active = null; var l5d = logV(B5, n5d), rec5d = v5.conds.hidden;
+        B5.active = wgs5[0]; var hidW = !!v5.conds.hidden; B5.active = gbs5[0]; var hidG = !!v5.conds.hidden; B5.active = null;
+        var eW5 = RV.edges(wgs5[0], v5, atk5), eG5 = RV.edges(gbs5[0], v5, atk5), eVw = RV.edges(v5, wgs5[0], atk5), eVg = RV.edges(v5, gbs5[0], atk5);
+        okV('5 and at a 5 (12): hidden ' + !!rec5d + ', seen by ' + (rec5d && rec5d.seenBy ? rec5d.seenBy.length : '?') + ' (the two worgs ' + (!!rec5d && wgs5.every(function (w) { return rec5d.seenBy.indexOf(w.id) >= 0; })) + '); the card "' + (l5d.match(/Beat passive[^|]*/) || [''])[0].trim().slice(0, 100) + '"; hidden on a worg\'s turn ' + hidW + ', a goblin\'s ' + hidG + ' (want true, 2, true; false, true)',
+          !!rec5d && rec5d.seenBy.length === 2 && wgs5.every(function (w) { return rec5d.seenBy.indexOf(w.id) >= 0; }) && /Seen by: Worg x2 \(14\)/.test(l5d) && /Goblin x3 \(9\)/.test(l5d) && !hidW && hidG);
+        okV('5 and the edges: a worg at her ' + (eW5.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + ', a goblin at her ' + (eG5.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + '; her blow at a worg ' + (eVw.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + ', at a goblin ' + (eVg.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + ' (want plain, unseen, plain, unseen)',
+          eW5.dis.indexOf('unseen target') < 0 && eG5.dis.indexOf('unseen target') >= 0 && eVw.adv.indexOf('unseen') < 0 && eVg.adv.indexOf('unseen') >= 0);
+        // (d) blindsight in range perceives her whatever she rolled (SRD 5.1): a goblin with blindsight 60, she rolls a 20 (27): the rest are beaten, it is named on the card with its sense, and
+        // neither its blow at her nor hers at it carries the unseen edge; a tremorsense one cannot feel her aloft
+        delete v5.conds.hidden; var bg5 = gbs5[1]; bg5.blindsight = 60;
+        RV.startTurn(v5); B5.active = v5; var n5e = (B5.log || []).length; pin20(20, function () { runV(B5.hide(v5)); }); B5.active = null; var l5e = logV(B5, n5e), rec5e = v5.conds.hidden;
+        var eBv = RV.edges(bg5, v5, atk5), eVb = RV.edges(v5, bg5, atk5), eVo = RV.edges(v5, gbs5[0], atk5), eOv = RV.edges(gbs5[0], v5, atk5);
+        okV('5 and a goblin with blindsight 60 beside a roll of 27: hidden ' + !!rec5e + ', seen by ' + (rec5e && rec5e.seenBy ? rec5e.seenBy.length : '?') + ' (it ' + (!!rec5e && rec5e.seenBy.indexOf(bg5.id) >= 0) + '), the card "' + (l5e.match(/Seen by: [^|]*/) || [''])[0].trim().slice(0, 50) + '"; its blow at her ' + (eBv.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + ', hers at it ' + (eVb.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + ', hers at another goblin ' + (eVo.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + ' (want true, 1, true, "Seen by: Goblin (blindsight)"; plain, plain, unseen)',
+          !!rec5e && rec5e.seenBy.length === 1 && rec5e.seenBy[0] === bg5.id && /Seen by: Goblin \(blindsight\)/.test(l5e) && eBv.dis.indexOf('unseen target') < 0 && eVb.adv.indexOf('unseen') < 0 && eVo.adv.indexOf('unseen') >= 0 && eOv.dis.indexOf('unseen target') >= 0);
+        bg5.blindsight = 0; delete v5.conds.hidden;
         RV.startTurn(gb5); B5.active = gb5; pin20(1, function () { runV(B5.hide(gb5, true)); }); B5.active = null;
         okV('5 and a goblin\'s Hide in the simple fight, its d20 pinned to 1: hidden ' + !!gb5.conds.hidden + ' (want false: a foe keeps the grid\'s roll)', !gb5.conds.hidden);
         D.pop();
@@ -10313,6 +10555,14 @@
         rg5.x = 3; rg5.y = 3; g5g[0].x = 6; g5g[0].y = 3; g5g[1].x = 6; g5g[1].y = 5; g5g.forEach(function (w) { w.facing = B5g.faceTo(w, rg5); }); B5g.cache = null;
         RV.startTurn(rg5); B5g.active = rg5; pin20(1, function () { runV(B5g.hide(rg5)); }); B5g.active = null;
         okV('5 and on the full grid, the rogue in the goblins\' sight in the light, the d20 pinned to 1: hidden ' + !!rg5.conds.hidden + ' (want false: the grid\'s roll kept)', !rg5.conds.hidden);
+        // (rules.js is shared, 11-01) BLINDSIGHT PERCEIVES A HIDER on the grid too: she is hidden (set by hand), one goblin has blindsight 60 (15 ft off), the other none -- the one with it gets
+        // no disadvantage at her, and she no advantage at it; the other keeps both; a tremorsense one (tremor) cannot feel her when she is aloft
+        rg5.conds.hidden = true; g5g[0].blindsight = 60; B5g.cache = null; var atk5g = { name: 'Rapier', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 };
+        var eHb = RV.edges(g5g[0], rg5, atk5g), eHn = RV.edges(g5g[1], rg5, atk5g), eRb = RV.edges(rg5, g5g[0], atk5g), eRn = RV.edges(rg5, g5g[1], atk5g);
+        okV('5 and on the full grid, a hidden rogue and a goblin with blindsight 60 15 ft off: its blow at her ' + (eHb.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + ', hers at it ' + (eRb.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + '; the goblin without: ' + (eHn.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + ', ' + (eRn.adv.indexOf('unseen') >= 0 ? 'unseen' : 'plain') + ' (want plain, plain; unseen, unseen)',
+          eHb.dis.indexOf('unseen target') < 0 && eRb.adv.indexOf('unseen') < 0 && eHn.dis.indexOf('unseen target') >= 0 && eRn.adv.indexOf('unseen') >= 0);
+        g5g[0].tremor = true; rg5.fz = 40; var aloft5 = D.grid.aloft(rg5), eHt = RV.edges(g5g[0], rg5, atk5g); delete rg5.fz; g5g[0].tremor = false; g5g[0].blindsight = 0; delete rg5.conds.hidden;
+        okV('5 and a tremorsense one (blindsight 60, tremor) with the rogue aloft (' + aloft5 + '): its blow at her ' + (eHt.dis.indexOf('unseen target') >= 0 ? 'unseen' : 'plain') + ' (want true; unseen: nothing aloft is felt)', aloft5 && eHt.dis.indexOf('unseen target') >= 0);
       } finally { try { if (k0v == null) window.localStorage.removeItem(SSv.KEY); else window.localStorage.setItem(SSv.KEY, k0v); if (v0v == null) window.localStorage.removeItem(SSv.VKEY); else window.localStorage.setItem(SSv.VKEY, v0v); } catch (eV1) { } }
     } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); D.d = d0V; }
     if (errs.length) repV.errors = repV.errors.concat(errs);
@@ -13292,6 +13542,54 @@
       ltOK.push(PKm.packN(Pm.st, 'lantern') === 1 && !!Pm.st.light);
       okMo('A LIGHT IN HAND: the lantern on THE MENU\'s OFFHAND (with the torches), taken by ' + (hL && hL.name) + ' (the shield to the pack), held lit from the first round, back in the pack after (' + ltOK.join(' ') + ')', ltOK.length === 5 && ltOK.every(Boolean));
       Pm.st.light = null; Pm.st.pack = JSON.parse(pack0); Pm.st.party.forEach(function (sl) { if (sl.gear) delete sl.gear.shield; }); Pm.cache = {}; Pm.go('hub');
+      // THE CAMP's SHEETS CARRY WHAT THE FIGHT LEFT (11-03, Griz on his module BUILDING, fight 2: "it allowed me to go to the camp between and open the menu, but in that menu everyone was fine. Not so when the
+      // fight started. Might be appropriate, but we had healing potions we could have drank"): fight 1 won with no rest after it, Barley and Vivian at 1 hit point, Aurdin whole under Aid (+5 maximum);
+      // THE CAMP (words: "no rest", not "resting") shows them hurt, a potion is refused on the whole and drunk on Barley (out of the pack), Cure Wounds from Ingrith's slot on Vivian, Second Wind spent;
+      // the close writes it into run.carry and fight 2 begins as the camp left them -- the healed hit points, the spent slot, Aid's maximum
+      var cpOK = [], cpWhy = '';
+      Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; sl.loot = []; delete sl.gear; delete sl.picks; }); Pm.st.pack = [{ id: 'potion', n: 2 }]; Pm.st.light = null; Pm.cache = {}; Pm.go('hub');
+      D.seed = 4242; Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.watch = true; Pm.st.run.plan[0].rest = { short: false, long: false, market: false };
+      var setCp = function () { var Bq = null; D.push = function (b) { Bq = b; }; try { Pm.launch(); } finally { D.push = push0Mo; } if (!Bq) return null; D.battle = Bq; Bq.enter(); for (var g = 0; g < 300 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq; };
+      var partyCp = function (Bq) { return Bq.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; }); }; // (the party's order: Barley, Aurdin, Vivian, Ingrith)
+      Pm.st.party[3] = { w: 'ingrith', lvl: 1, loot: [] }; Pm.cache = {}; // (a cleric in the fourth seat: the standard four have no healer at 1st)
+      var Bcp = setCp();
+      if (Bcp) {
+        drive(Bcp);
+        var puCp = partyCp(Bcp), uBr = puCp[0], uAd = puCp[1], uVv = puCp[2], uIn = puCp[3];
+        [uBr, uVv].forEach(function (u) { u.hp = 1; u.ko = false; u.dead = false; });
+        uAd.maxhp += 5; uAd.hp = uAd.maxhp; uAd.ko = false; uAd.dead = false; uAd.conds.aid = 5; // (Aid cast in the fight: the maximum it raised)
+        uIn.hp = uIn.maxhp; uIn.ko = false; uIn.dead = false; uIn.slots[0] = uIn.slotsMax[0]; uBr.feats.secondWind = 1;
+        Bcp.o.onDone('won');
+      }
+      var runCp = Pm.st.run, cA = runCp && runCp.carry ? JSON.parse(JSON.stringify(runCp.carry)) : null;
+      if (runCp) Pm.moduleRest();
+      cpOK.push(!!Pm.rest && !!Pm.rest.none && !!cA && cA[0].hp === 1 && cA[2].hp === 1 && cA[1].aid === 5 && cA[1].hp === cA[1].maxhp);
+      Pm.go('rest'); drawMo(Pm, 'rest none'); var tcN = btnMo(Pm, /^THE CAMP$/); if (tcN) Pm.fire(tcN);
+      cpOK.push(Pm.screen === 'hub' && !!runCp && !!runCp.atCamp && runCp.atCamp.none === true);
+      var seenCp = [], textCp = D.text; D.text = function (c0, s) { seenCp.push(String(s)); return textCp.apply(this, arguments); }; try { drawMo(Pm, 'hub no rest'); } finally { D.text = textCp; }
+      var wordsCp = seenCp.join(' | ').replace(/\{[a-z\/]+\}/g, '');
+      cpOK.push(/no rest:/.test(wordsCp) && !/resting:/.test(wordsCp) && /Barley.*HP 1\/\d+/.test(wordsCp)); // (the camp's words, and its HP line as the fight left it)
+      Pm.openMenu(); var pmCp = Pm.pm, hsCp = pmCp ? pmCp.host.party() : [], potCp = PKm.packN(Pm.st, 'potion');
+      cpOK.push(hsCp.length === 4 && hsCp[0].hp === 1 && hsCp[2].hp === 1 && hsCp[1].maxhp === cA[1].maxhp && hsCp[1].hp === cA[1].hp && hsCp[3].slots[0] === cA[3].slots[0] && potCp >= 2); // (STATUS and MAGIC: hurt, Aid's maximum, the slots as they stand; the pack: the two it began with, and the winnings' potion at 1st)
+      cpWhy = 'camp: ' + hsCp.map(function (h) { return h.name + ' ' + h.hp + '/' + h.maxhp; }).join(', ');
+      if (pmCp) {
+        pmCp.host.run('item', { id: 'potion', h: hsCp[1] }, function () { }); var refusedCp = PKm.packN(Pm.st, 'potion') === potCp; // (Aurdin is whole: not drunk)
+        pmCp.host.run('item', { id: 'potion', h: hsCp[0] }, function () { }); var drunkCp = PKm.packN(Pm.st, 'potion') === potCp - 1 && hsCp[0].hp >= 5; // (Barley's: out of PK's pack)
+        pmCp.host.run('cast', { h: hsCp[3], sp: DS.DATA.spells.curewounds, t: hsCp[2] }, function () { }); var castCp = hsCp[3].slots[0] === cA[3].slots[0] - 1 && hsCp[2].hp > 1;
+        pmCp.host.run('skill', { h: hsCp[0], s: 'wind' }, function () { }); var windCp = hsCp[0].feats.secondWind === 0 && hsCp[0].hp > 5;
+        pmCp.host.run('cast', { h: hsCp[1], sp: DS.DATA.spells.light, t: hsCp[0] }, function () { }); var lightCp = !!(hsCp[0].conds && hsCp[0].conds.light); // (a buff, a cantrip: Aurdin's Light on Barley's gear, for the fight after)
+        cpOK.push(refusedCp && drunkCp && castCp && windCp && lightCp);
+        var hpCp = [hsCp[0].hp, hsCp[2].hp]; cpWhy += ' | after: barley ' + hpCp[0] + ', vivian ' + hpCp[1] + ', potions ' + PKm.packN(Pm.st, 'potion') + ', ' + hsCp[3].name + ' slot ' + hsCp[3].slots[0] + '/' + cA[3].slots[0] + ' [' + [refusedCp, drunkCp, castCp, windCp].join() + ']';
+        pmCp.close();
+        var cB = runCp.carry; // (the close wrote the camp into the carry)
+        cpOK.push(!!cB && cB[0].hp === hpCp[0] && cB[2].hp === hpCp[1] && cB[3].slots[0] === cA[3].slots[0] - 1 && cB[0].feats.secondWind === 0 && cB[1].maxhp === cA[1].maxhp && cB[1].aid === 5 && !Pm.pm);
+        Pm.nextRung(); // (fight 2 as the camp left them)
+        var B2 = setCp(), p2 = B2 ? partyCp(B2) : [];
+        cpOK.push(p2.length === 4 && p2[0].hp === hpCp[0] && p2[2].hp === hpCp[1] && p2[3].slots[0] === cA[3].slots[0] - 1 && p2[0].feats.secondWind === 0 && p2[1].maxhp === cA[1].maxhp && p2[1].hp === cA[1].hp && p2[1].conds.aid === 5 && !!p2[0].conds.light);
+        cpWhy += '; fight 2: ' + p2.map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp; }).join(', ');
+      }
+      okMo('THE CAMP shows the party as the fight left it and uses it: "no rest" not "resting", Barley and Vivian at 1 hit point, Aurdin under Aid (+5 maximum); a potion refused on the whole and drunk on Barley (out of the pack), Cure Wounds out of Ingrith\'s slot on Vivian, Second Wind spent; the close writes the carry and fight 2 begins as the camp left them (' + cpOK.map(function (b) { return b ? 'y' : 'N'; }).join('') + '; ' + cpWhy + ')', cpOK.length === 7 && cpOK.every(Boolean));
+      Pm.st.run = null; Pm.st.pack = JSON.parse(pack0); Pm.st.light = null; Pm.st.party[3] = { w: 'lymen', lvl: 1, loot: [] }; Pm.cache = {}; Pm.pm = null; Pm.go('hub');
       // THE MENU at THE CAMP: the regular menu over the party, closed back to the camp
       Pm.go('hub'); drawMo(Pm, 'hub'); var mnB = btnMo(Pm, /^THE MENU/); if (mnB) Pm.fire(mnB); var pmOpen = !!Pm.pm, pmN = Pm.pm ? Pm.pm.host.party().length : 0; if (Pm.pm) Pm.pm.close();
       okMo('THE MENU: the regular menu over the ' + pmN + ' of the party, and closed back to THE CAMP', pmOpen && pmN === 4 && !Pm.pm && Pm.screen === 'hub');

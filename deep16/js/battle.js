@@ -1099,7 +1099,15 @@
     if (twO && twO.ok) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
     if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone') out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
-    if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
+    // (greyed with its reason, 11-03 -- the desk's read of his record: "SPELLS: not now." when the slots were spent and nothing said so. Every spell's own `why` is in the list, js/magic.js M.list: one reason
+    // they all share is the command's; else the action gone says so; else the slots -- and for which levels)
+    var spOk = spells.some(function (e) { return e.ok; }), spWhy = '';
+    if (spells.length && !spOk) {
+      var spWs = [], spNoSlot = [];
+      spells.forEach(function (e) { if (e.why && spWs.indexOf(e.why) < 0) spWs.push(e.why); if (e.level > 0 && !e.levels.length && spNoSlot.indexOf(e.level) < 0) spNoSlot.push(e.level); });
+      spWhy = spWs.length === 1 ? spWs[0] : !(T.action > 0) || T.attacksLeft ? 'the action is spent' : spNoSlot.length ? 'no spell slots left for your level ' + spNoSlot.join(', ') + ' spells (a rest brings them back)' : spWs[0] || 'nothing to cast';
+    }
+    if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spOk, why: spWhy, sub: 'spells', icon: 'spell' });
     var items = this.itemList(u);
     var fast = u.subclass === 'Thief' && T.bonus > 0; // Fast Hands: the Thief uses an item with her bonus action
     if (items.length) out.push({ id: 'items', label: 'ITEM', cost: fast ? 'B' : 'A', ok: fast || (T.action > 0 && !T.attacksLeft), sub: 'items', icon: 'item' });
@@ -2301,17 +2309,23 @@
     if (atk.spell && D.magic.globed && D.magic.globed(this, att, tgt, atk.level)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the spell') + ' -- it breaks on the globe about ' + nameOf(tgt) + ' and does nothing.  {c}NO EFFECT{/}']); D.sfx('bump'); yield 20; att.anim = 'idle'; return; }
     if (att.side === 'foe' && att.conds.hidden) delete att.conds.hidden; // a foe that strikes from hiding is seen (the gricks)
     this.endInvis(att, 'the attack'); // (Invisibility: the swing has its advantage, then the spell is gone)
-    // false images (the cloaker's phantasms, Willem's): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+)
-    if (tgt.images > 0 && !atk.save) {
-      var need = [0, 11, 8, 6][Math.min(3, tgt.images)], id20 = D.d(20);
+    // false images (Mirror Image -- Willem's, a wizard's -- Mislead's double, the Doubling): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+), at AC 10 + DEX.
+    // The cloaker's duplicates are the SRD's Phantasms (11-03, Griz: "SRD except for script and easter egg" -- the deep gallery's story cloaker too, whose images took blows at AC 12
+    // inside Aurdin's Light): gone the moment it stands in bright light (magic.js M.dupesLit); "that creature rolls randomly to determine whether it targets the cloaker or one of the
+    // duplicates" -- a die of one side more than the duplicates, its 1 the cloaker (M.dupeRoll); "A duplicate has the cloaker's AC". Neither fools one who can't see the target or
+    // has it in its blindsight or truesight (M.imagesFool -- the SRD's words for both, Phantasms and Mirror Image)
+    var dupes = !!(tgt.images > 0 && D.magic.dupesUp && D.magic.dupesUp(tgt));
+    if (dupes && D.magic.dupesLit(this, tgt)) dupes = false;
+    if (tgt.images > 0 && !atk.save && (!(dupes || tgt.conds.mirrorImage) || !D.magic.imagesFool || D.magic.imagesFool(this, att, tgt))) {
+      var nI = Math.min(3, tgt.images), need = dupes ? 2 : [0, 11, 8, 6][nI], id20 = D.d(dupes ? nI + 1 : 20);
       if (id20 >= need) {
-        var ir = RU.d20(e.net), itot = ir.pick + atk.atk, iac = 10 + D.mod(tgt.abil.dex), ihit = ir.pick === 20 || (ir.pick !== 1 && itot >= iac);
+        var ir = RU.d20(e.net), itot = ir.pick + atk.atk, iac = dupes ? ac : 10 + D.mod(tgt.abil.dex), ihit = ir.pick === 20 || (ir.pick !== 1 && itot >= iac);
         if (ihit) tgt.images--;
         if (ihit && D.features && D.features.rimeDouble) D.features.rimeDouble(this, att, tgt); // (the Rimeglass: the double breaks to rime)
         D.sfx(ihit ? 'hit' : 'miss'); FX.sparkle(tgt, 'violet', 14);
         // (both dice and the reasons, as the attack's own card shows them: a frightened roper's bite at one of Willem's images showed one d20 and no "dis", 10-02, Griz: "please fix card")
         var iwhy = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
-        this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}  d20 ' + (ir.rolls.length > 1 ? RU.fmtRolls(ir.rolls) + '>' : '') + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the image bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}') + iwhy], 300, cid);
+        this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, (dupes ? 'd' + (nI + 1) + ' ' + id20 + ': {p}a duplicate{/}' : 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}') + '  d20 ' + (ir.rolls.length > 1 ? RU.fmtRolls(ir.rolls) + '>' : '') + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the ' + (dupes ? 'duplicate' : 'image') + ' bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}') + iwhy], 300, cid);
         yield o.oa ? 16 : 26; att.anim = 'idle'; return;
       }
     }
@@ -2676,7 +2690,7 @@
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, atk.save.type === 'poison' && RU.vsPoison(tgt), null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)
       var pd = ev2 ? (s2.ok ? 0 : Math.floor(pr.total / 2)) : s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
-      this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
+      this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/}' + (atk.save.half && !ev2 ? ' (half)' : '') : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
       if (pd) this.hurt(tgt, pd, atk.save.type, { blow: bl });
       // the poison that drops one (atk.save.zero: SRD 5.1's giant centipede, giant spider, giant wolf spider, phase spider -- "If the poison damage reduces the target to 0 hit
       // points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way"; RULED 10-29, Griz: "notes has leans -
@@ -2922,6 +2936,7 @@
     yield* attack0.call(this, att, tgt, atk, o);
     if (throws0 > 0 && throws0 !== Infinity && !this.thrownLeft(att, atk)) this.card(['{g}(' + Battle.nm(att) + ' has thrown ' + (att.side === 'foe' && !att.named ? 'its' : 'the') + ' last ' + atk.name.toLowerCase().replace(/^thrown /, '') + '){/}'], 160); // (spendThrow)
     yield* this.readyForced();
+    if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); // (WHAT FALLS, FEEDS: a player's Green Return paladin is asked once the blow that dropped one is done -- js/features.js F.greenAsk; a seam here since 11-03, F.greenHook wrapped this from outside)
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
   };
   // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that
@@ -2949,7 +2964,7 @@
     for (var i = 0; i < s.length; i++) if (s.indexOf(s[i]) === i && G.standing(s[i])) yield* this.readyHook(s[i]);
   };
   var exec0 = Battle.prototype.exec;
-  Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); yield* this.readyForced(); return r; };
+  Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); yield* this.readyForced(); if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); /* (WHAT FALLS, FEEDS, as in attack above: the command done) */ return r; };
   var cast0 = D.magic.cast, ZK = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'];
   D.magic.cast = function* (B, u, id, slot, t) {
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
@@ -2973,6 +2988,7 @@
       }
       yield* B.readyAfter({ kind: 'cast', foe: u, spell: id, effect: ef });
     }
+    if (B && D.features && D.features.greenAsk) yield* D.features.greenAsk(B); // (WHAT FALLS, FEEDS, as in attack above: the spell done)
     return r;
   };
   // leaving everyone's reach at once -- down into the ground, up into the air -- with no step to provoke on (moveAlong provokes square by square): the opportunity attacks of
@@ -3036,7 +3052,10 @@
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     if (type === 'fire' && D.magic.burnWebs) D.magic.burnWebs(this, G.foot(u)); // (fire on one standing in a web burns the web: magic.js)
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
-    if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; u.resist = ['bludgeoning', 'piercing', 'slashing']; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
+    // (the resistance is raised AFTER this blow's damage is reckoned, below -- 11-03, the desk's read of his record: "12 bludgeoning ... rages! ... resists bludgeoning: 12 > 6", the blow that
+    // woke the rage halved by it. A rage is a bonus action in the SRD: the blow that lands before it lands whole)
+    var rageNow = false;
+    if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; rageNow = true; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
     // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two
     if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
     // resistance halves a blow once, however many say so (SRD 5.1: "Multiple instances of resistance or vulnerability that affect the same
@@ -3051,12 +3070,14 @@
       if (ty.why === 'resists') resisted = true;
       if (ty.why) whyN = ty.why === 'immune' ? 'is immune to ' + type : ty.why + ' ' + type;
       n = ty.n;
-      if (n <= 0) { noteN(); return; }
+      if (n <= 0) { if (rageNow) u.resist = ['bludgeoning', 'piercing', 'slashing']; noteN(); return; }
     }
-    // Damage Transfer (the cloaker): while it has someone engulfed -- or rides one, attached (the SRD's cloaker, 10-06) -- half of what it takes goes to them
-    if (u.transfer && ((u.holding && u.holding.length) || (u.attached && u.riding && u.master)) && n > 1) {
-      var vic = (u.holding && u.holding[0]) || u.master, half = Math.floor(n / 2);
-      if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
+    if (rageNow) u.resist = ['bludgeoning', 'piercing', 'slashing']; // (Talmok's rage, raised: the NEXT blow is the first halved)
+    // Damage Transfer (the cloaker): while it has someone engulfed -- or rides one, attached (the SRD's cloaker, 10-06) -- it "takes only half the damage dealt to it (rounded down),
+    // and that creature takes the other half" (SRD 5.1; 11-03 -- till then the cloaker kept the half rounded up, and a single point whole)
+    if (u.transfer && ((u.holding && u.holding.length) || (u.attached && u.riding && u.master)) && n > 0) {
+      var vic = (u.holding && u.holding[0]) || u.master, keep = Math.floor(n / 2);
+      if (vic && !vic.dead && vic.hp > 0) { var pass = n - keep; n = keep; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, pass, type); if (n <= 0) return; }
     }
     // a statue (petrified, SRD 5.1: "resistance to all damage", "immune to poison" -- js/grimoire.js M.petrify, 10-08)
     if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, stone'; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) { noteN(); return; } }

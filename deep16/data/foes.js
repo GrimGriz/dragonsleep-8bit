@@ -669,19 +669,23 @@
   },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
-    abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
+    abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11, stealth: 5, // (Stealth +5, SRD 5.1 -- 11-03)
     saves: { str: 3, dex: 2, con: 1, int: 1, wis: 1, cha: 2 },
     attacks: {
       bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, grapple: { dc: 16, max: 1, size: 'L' }, autoHitHeld: true, blindHeld: 'always' },
       tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 }
     },
-    multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true, lightSensitive: true,
+    // its Moan, Phantasms and Light Sensitivity are the SRD's everywhere, the deep gallery's story cloaker too (11-03, Griz, on the desk's "Keep those two as they are, or follow the
+    // SRD?": "SRD except for script and easter egg"): the Moan its action at will -- no recharge -- and one who saves is proof against it (magic.js M.moan); the Phantasms only out of
+    // bright light, gone in it, each duplicate at its AC and fooling only eyes (magic.js M.dupesLit, battle.js attack); bright light its disadvantage and no lost turn
+    // (`lightSensitive: 'srd'`, magic.js brighten -- the 8-bit's recoil stays the drow's and the duergar's). `phantasms: 'bloodied'` is when the AI casts it, not a rule
+    multi: ['bite', 'tail'], moan: { dc: 13 }, phantasms: 'bloodied', transfer: true, lightSensitive: 'srd',
     // the SRD's cloaker everywhere but the story (battle.js makeFoe, Battle.isStory -- RULED 10-06, Griz: "Story Cloaker is riding as is for the time being, it's an easter egg
     // one. Cloaker's that are used in the Pocket DM should match SRD"): its bite attaches to one Large or smaller and rides it, over the head -- blinded, no breath -- when it had
     // advantage, and bites that one at advantage after; a DC 16 STR check, an action, pulls it off (the darkmantle's machinery: battle.js mount, exec 'detach'); Damage Transfer to
     // the one it rides (battle.js hurt). The story's grip above stays the deep gallery's
     srd: { attacks: { bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, attach: { dc: 16, large: true }, rides: true }, tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 } } },
-    src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'the engulfed one\'s blindness is not read'
+    src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the story\'s bite engulfs (read as a grip, escape DC 16, its bite then always lands, the one inside blinded); Damage Transfer (it keeps half rounded down); Moan (WIS 13 or frightened till the end of its next turn, at will, a save proof against it); Phantasms (three duplicates once a fight, not in bright light, gone in it; the AI casts it when bloodied); Light Sensitivity (disadvantage in bright light)'
   },
   // a patrol lady of the Dominion (the Snoot mode, 10-15 -- Griz: "there wasn't any warlocks when I ran the party into a dominion fight"): one rides
   // each of its wagons, a warlock of the Mirror -- Amara's numbers (warlock 5 at her register's hit points, two beams of Eldritch Blast, the Mirror's

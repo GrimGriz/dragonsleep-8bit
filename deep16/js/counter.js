@@ -914,7 +914,7 @@
     { id: 'davos', door: 'leech:davos', label: 'DAVOS KREN: the fallen stitched', note: 'Vivian and Lymen down, 20 silver: five silver a body, PAY, both up at half their hit points.', down: ['vivian', 'lymen'], silver: 20 },
     { id: 'hessle', door: 'keeper:hessle', label: 'HESSLE: the bounties paid at the scales', note: 'The ettercap\'s fangs, the cloaker\'s tail, the anchor-pin and Amara\'s order in the pack: paid, renown twice, no weapon in kind (10-29), the board clear.', inv: [['ettercapfangs', 1], ['cloakertail', 1], ['anchorpin', 1], ['wagonorder', 1]] },
     { id: 'board', door: 'keeper:hessle', label: 'HESSLE: nothing brought', note: 'His word, and the board read through the glass: the three bounties standing.' },
-    { id: 'camp', label: 'THE CAMP\'S MORNING, on THE WORLD', note: 'The four hurt at Silverton\'s hex, a quiet night: CAMP, THE NIGHT, BEGIN THE NIGHT -- the same morning as the inn\'s.', world: true, hurt: true, spent: true, level: true, ring: true }
+    { id: 'camp', label: 'THE CAMP\'S MORNING, on THE WORLD', note: 'The four hurt at Silverton\'s hex, a quiet night: CAMP, THE NIGHT, BEGIN THE NIGHT -- the same MORNING page as the inn\'s, woken 8 hours after they lie down (the inn\'s rooms wake at 07:00).', world: true, hurt: true, spent: true, level: true, ring: true }
   ];
   C.serviceStage = function (bt) { // a beat's NEW GAME: the second game's four (js/house.js H.fresh), the beat's own on top
     var H = D.house, R = DS.R, rec = H.fresh(), hero = function (id) { return rec.party.filter(function (h) { return h.id === id; })[0]; };

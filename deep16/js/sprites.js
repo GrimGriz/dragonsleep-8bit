@@ -230,6 +230,22 @@
     var opts = to.split('|'); for (var i = 0; i < opts.length; i++) if (sh.anims[opts[i]]) return opts[i];
     return anim;
   };
+  // where a familiar sits on a figure's shoulder, by facing (11-03, Griz: "Aurdin on top-down roam maps (silverton) should have his owl moved to the shoulder opposite the staff and
+  // better positioned"): [px across from the figure's middle, the screen's right +; px up from its feet], for a sheet that names its shoulders -- S SW W NW N NE E SE, the side
+  // OPPOSITE the hand on the staff in its `staffrest` row (the roam's calm idle: the staff on the screen's left at S, W, NW and SE, on the right at SW, N, NE and E -- the desk drew
+  // S, SE, E, NE and N and mirrored the rest, the hand on the staff changing sides), measured off the two mantles' pages. The owl's feet on the shoulder's top, a little in from its tip
+  // (js/ui.js perchPos sits a familiar there -- drawn so and picked so by the mouse, on the town's top-down view and the grid's alike)
+  S.SHOULDER = {
+    aurdin_p2: [[10, 29], [-10, 29], [6, 29], [6, 29], [-10, 29], [-6, 29], [-6, 29], [9, 29]],
+    aurdin_p3: [[10, 29], [-10, 29], [6, 29], [6, 29], [-10, 29], [-6, 29], [-6, 29], [9, 29]]
+  };
+  // ... and on the grid, where he stands in his `staffidle` row (the fight's: the staff held across him -- his hands carry it up the screen's left at SW and the right at SE, the other way from the
+  // calm row's) the same table with those two facings crossed: the stills of 11-03 (deep16/js/ui.js perchPos, B.roam asks which) had the owl on the staff's own shoulder at SW and SE in the grid's idle
+  S.SHOULDER_FIGHT = {
+    aurdin_p2: [[10, 29], [10, 29], [6, 29], [6, 29], [-10, 29], [-6, 29], [-6, 29], [-9, 29]],
+    aurdin_p3: [[10, 29], [10, 29], [6, 29], [6, 29], [-10, 29], [-6, 29], [-6, 29], [-9, 29]]
+  };
+  S.shoulderAt = function (u, calm) { var t = u && ((calm === false && S.SHOULDER_FIGHT[u.sheet]) || S.SHOULDER[u.sheet]); return t ? t[(u.facing || 0) % 8] : null; }; // (calm: the roam's idle, `staffrest`; false, the grid's fight idle, `staffidle`; unsaid, the calm table)
   // the weapon drawn by code in the hands (10-20, the Barley chain seat; Griz: "Had it make empty-handed two handed weapon strikes, try code flail and
   // battle axe implementation"): a sheet drawn empty-handed carries `grips` (tools/barley-sheet.py, measured off the art desk's pixels: for each row,
   // facing and frame the lead fist, the rear fist and flags, from the foot -- 1 under the figure, where his body hides the hands (N, NE, NW); 2 and 4

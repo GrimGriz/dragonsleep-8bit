@@ -7,7 +7,7 @@
 
    THE GOING (RULED 10-20, "SRD for world map"): the SRD's normal pace, 3 mi an hour, 24 a day of 8 hours; a hex of difficult ground (the terrain's `diff`)
    twice the hours; along a road or track the road's own going (a difficult road twice, the Coldridge Route); water and the Rift no one walks. Past 8 hours
-   the party makes camp, and the next step starts at the next morning (a forced march is not built). The clock is hours from the first morning; its day is
+   the party makes camp, and the camp's eight hours (the long rest) go by before the next step -- from when it lies down, 11-03; till then to the next morning (a forced march is not built). The clock is hours from the first morning; its day is
    never shown as a number (the clock lane's rule) but in the sky -- &dev shows it. */
 'use strict';
 (function () {
@@ -210,7 +210,18 @@
   W.todAt = function (h) { return h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 20 ? 'dusk' : 'night'; };
   W.timeOfDay = function () { return W.todAt(W.hour()); };
   W.passDays = function (n, why) { S.t = (Math.floor(S.t / 24) + (n | 0)) * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.scene) W.scene.say(why || (n === 1 ? 'A day passes.' : n + ' days pass.')); }; // (the other path: a mission's end, a ruling's fiat)
-  W.camp = function () { var d = Math.floor(S.t / 24) + (W.hour() >= W.MORNING ? 1 : 0); S.t = d * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.house()) return D.house.longRest(W.scene); return []; }; // (in the house the camp is the long rest: js/house.js H.longRest, its levels and their picks)
+  // THE CAMP'S CLOCK (RULED 11-03, his "check that road camping is only moving 8 hours as appropriate (not necessarily 'sleep til morning')", on the eyes row of his 11-01 ear file):
+  // the SRD's long rest is eight hours, so a road camp moves the clock W.REST hours on from when the party lies down -- a camp at noon wakes at 20:00 -- and no further. It was to
+  // the next 07:00 every time (a camp at 03:00 slept four hours, one at 08:00 twenty-three). The SRD's "no more than one long rest in 24 hours" is not kept: the day's march and its
+  // camps are the player's. o.from: the clock the party lay down at (the night's own: js/house.js H.runNight; else now); o.hours: some other count; o.morning: the old way, on to the
+  // next W.MORNING -- the inn's night (js/house.js H.sleepOnFloor: Cassia's rooms, Aldwin's floor), a bed and not a camp. W.passDays (a mission's fiat) still lands on the morning
+  W.REST = 8;
+  W.camp = function (o) {
+    o = o || {}; var from = o.from != null ? o.from : S.t;
+    if (o.morning) S.t = (Math.floor(from / 24) + (from % 24 >= W.MORNING ? 1 : 0)) * 24 + W.MORNING; else S.t = from + (o.hours != null ? o.hours : W.REST);
+    S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.house()) return D.house.longRest(W.scene); return [];
+  }; // (in the house the camp is the long rest: js/house.js H.longRest, its levels and their picks)
+  W.campSaid = function (ups) { return 'The party makes camp, and rests its ' + W.REST + ' hours: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : ''); }; // (the line a camp says: the bare door's, js/world.js and js/overworld.js)
 
   // ---------------------------------------------------------------- the scene
   function World(q) { this.kind = 'world'; this.opaque = true; this.q = q || ''; this.cam = null; this.zi = 2; this.hov = null; this.plan = null; this.walk = null; this.cards = []; this.msg = null; this.t = 0; }
@@ -307,7 +318,7 @@
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.plan = null; D.sfx('confirm'); return; }
     if (I.pressed('a')) this.here();
     if (I.pressed('end') && W.house()) { this.campCard(); return; }
-    if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); }
+    if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say(W.campSaid(ups)); }
   };
   // a step a time: the hours spent at its end (past the day's 8, a camp first), the place there, and (pass B) the road's chance of a fight
   World.prototype.stepWalk = function () {
@@ -386,10 +397,10 @@
   };
   World.prototype.here = function () { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); };
   // the house's camp (RULED 10-21): the night -- three watches, then the long rest (js/house.js H.night) -- or an hour's short rest, and at its end SECOND DRAFT for one with
-  // the feat (js/house.js H.secondDraft, 10-31)
+  // the feat (js/house.js H.secondDraft, 10-31). The night is the long rest's eight hours from when the party lies down (11-03: W.camp), whatever the hour
   World.prototype.campCard = function () {
     var me = this;
-    this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
+    this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, eight hours, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
       [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); D.house.secondDraft(D.house.cur.party); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
   };
   // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
@@ -398,7 +409,7 @@
     if (S.pushing || !(S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01)) return false;
     var me = this; resume = resume || function (p) { me.walk = { path: p, f: 0 }; };
     this.card(['{y}THE DAY\'S WALK IS WALKED{/} (' + (Math.round(S.today * 10) / 10) + ' hours), ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: walk on    {g}R{/}: make camp    {g}X{/}: stay')], null,
-      [['a', function () { S.pushing = true; resume(path); }, 'WALK ON'], ['rec', function () { var ups = W.camp(); me.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); }, 'MAKE CAMP'],
+      [['a', function () { S.pushing = true; resume(path); }, 'WALK ON'], ['rec', function () { var ups = W.camp(); me.say(W.campSaid(ups)); }, 'MAKE CAMP'],
        ['b', function () { me.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
     return true;
   };
@@ -791,14 +802,17 @@
   // camp's fire on the field behind the party -- a light as a torch's (bright 20 ft, dim 20 more: the SRD names no campfire), drawn by js/campfire.js CF.fieldFire
   W.CAMP = [10, 3]; // (the grid's road field: behind the party's squares)
   World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, camp, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
-    var self = this, camp = !!((o && o.camp) || p.camp), night = W.timeOfDay() === 'night' || !!(o && o.dark) || camp, simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
+    var self = this, camp = !!((o && o.camp) || p.camp), night = W.timeOfDay() === 'night' || !!(o && o.dark), simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
     W.field(e, simple ? D.simple.fieldOpts() : null);
     var fire = camp ? (simple ? D.simple.CAMP : W.CAMP).slice() : null;
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
       intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: simple ? D.simple.seat(p.list) : W.seat(p.list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/flight-ai.js FA.on, 10-21 night)
-    var b = new D.Battle(W.house() ? { fightDef: F, simple: simple, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl, simple: simple }, payNow: function (bb, res) { var pf = D.house.payFight(bb, res); bb.housePay = pf; return pf.lines; }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
-      : { fightDef: F, simple: simple, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
+    // (the fight's play record closes with its result where the fight ends -- 11-03, the desk's read of his records: the road and camp fights read 'restarted' though won, since this onDone
+    // has a door of its own and js/record.js P.finish leaves such a fight's record to it; the menu's BACK TO THE ROAD calls onDone(null): 'left'. As js/roam.js and js/hex.js close theirs)
+    var recEnd = function (res) { if (b && b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, res || 'left'); } catch (eR) { /* (the record must never stop the way back) */ } } };
+    var b = new D.Battle(W.house() ? { fightDef: F, simple: simple, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: F.name, level: (D.house.cur.party[0] || {}).lvl, simple: simple }, payNow: function (bb, res) { var pf = D.house.payFight(bb, res); bb.housePay = pf; return pf.lines; }, onDone: function (res) { recEnd(res); if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
+      : { fightDef: F, simple: simple, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { recEnd(res); self.afterFight(res, p); } }), e0 = b.enter;
     b.enter = function () {
       e0.apply(this, arguments);
       // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x) -- in the simple fight

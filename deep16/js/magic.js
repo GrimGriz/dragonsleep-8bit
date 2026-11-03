@@ -451,6 +451,8 @@
 
     // a guess into the dark at an empty square (M.guessDark): the slot is spent and nothing takes it -- Dispel Magic still asks the square for a spell's area
     if (t && t.dark && t.hp == null && !g.effects && (g.shape === 'single' || g.shape === 'splash')) { B.card([head + ': into the dark -- {g}nothing there takes it{/}.']); yield 20; u.anim = 'idle'; return; }
+    // the cloaker's duplicates (SRD 5.1 Phantasms, 11-03): a harmful spell aimed at it that asks a save or none -- not an attack roll, Battle.attack's -- may go at one of them (M.dupeSpell)
+    if (t && t.hp != null && t !== u && /^(single|touch)$/.test(g.shape) && /^(save|charm|command|shape|auto)$/.test(sp.kind || '') && G.hostile(u, t) && M.dupesUp(t) && !M.dupesLit(B, t) && M.imagesFool(B, u, t) && M.dupeSpell(B, u, t, sp, dc, head)) { yield 26; u.anim = 'idle'; return; }
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];
@@ -484,6 +486,17 @@
       // (the Globe of Invulnerability: a dart at one inside it, from outside, breaks on it -- a dart in the dark that finds one there as well)
       var shutD = M.globed ? darts.filter(function (w) { return w.hp != null && M.globed(B, u, w, sp.level); }) : [];
       darts = darts.filter(function (w) { return shutD.indexOf(w) < 0; });
+      // the cloaker's duplicates (SRD 5.1 Phantasms, 11-03): the spell aimed at it by one who sees it goes at the cloaker or a duplicate on the roll -- one roll for the darts at it.
+      // At a duplicate the darts are spent: they are no attack and ask no save, so it stands ("If an attack hits a duplicate, or if a duplicate fails a saving throw ... the duplicate
+      // disappears"). Thrown at the darkness, blind, they find what is there
+      var dupeD = [], dupeLines = [];
+      darts.forEach(function (w, i) {
+        if (darts.indexOf(w) !== i || w.dark || w.hp == null || !G.hostile(u, w) || !M.dupesUp(w) || M.dupesLit(B, w, dupeLines) || !M.imagesFool(B, u, w)) return;
+        var dr = M.dupeRoll(w), nD = darts.filter(function (x) { return x === w; }).length, nmD = w.side === 'foe' && !w.named ? B.shortName(w) : w.name;
+        if (dr.dupe) { dupeD.push(w); dupeLines.push('  ' + nmD + ': ' + dr.die + ', {p}' + nD + (nD > 1 ? ' darts' : ' dart') + ' at a duplicate{/} -- {g}it shimmers on, the force spent on nothing{/}'); }
+        else dupeLines.push('  ' + nmD + ': ' + dr.die + ', {y}the real one{/}');
+      });
+      if (dupeD.length) darts = darts.filter(function (w) { return dupeD.indexOf(w) < 0; });
       // the gimmick (Griz, 09-28, the livestreams' branding): in the fight that carries it (data/fights.js `gimmick: 'darkness'`, the cloaker's
       // deep gallery), the first Magic Missile thrown at the darkness is a cutscene -- a close-up of the caster and his clip, then the
       // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
@@ -502,13 +515,15 @@
         }
         if (sw.conds.shield) barred.push(sw);
       }
-      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')].concat(shLines), tot = {}, who = {}, struck = [];
+      var lines = [head + ' -- ' + (t.units.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')].concat(dupeLines, shLines), tot = {}, who = {}, struck = [];
       shutD.forEach(function (w, i) { if (shutD.indexOf(w) === i) lines.push('  ' + (w.side === 'foe' ? B.shortName(w) : w.name) + ': {c}inside the globe: ' + shutD.filter(function (x) { return x === w; }).length + ' broke on it, untouched{/}'); });
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
+      var dartHits = [];
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
-      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } if (barred.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}the darts break on the shield -- no damage{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force', MAGIC); if (w.side === 'foe') struck.push(w); });
-      B.card(lines, 360); yield 30;
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } if (barred.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}the darts break on the shield -- no damage{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); dartHits.push([w, tot[wid]]); if (w.side === 'foe') struck.push(w); });
+      // (the darts land AFTER the card that names them: B.hurt posts its own lines -- "The Stirge falls." -- and ran while the card was still being built, so they stood above the cast's header; 11-03, his record)
+      B.card(lines, 360); dartHits.forEach(function (h) { B.hurt(h[0], h[1], 'force', MAGIC); }); yield 30;
       if (gim && struck.length) {
         B.gimmickDone = true;
         var c = struck[0]; if (!c.dead && c.hp > 0) c.grudge = u.id;
@@ -517,22 +532,15 @@
         var cl = c.sheet === 'cloaker_p2';
         yield { scene: { who: c, anim: cl ? 'reveal' : null, animAt: 70, morph: cl ? { from: 'roost', at: 58, dur: 12 } : null, scale: 1.3, frames: cl ? 200 : 130, hit: true, caption: 'THE DARTS FIND IT.' } };
         yield { scene: { who: c, face: true, faceAt: 0.37, zoomFrom: 1.3, morph: cl ? { from: 'reveal', hold: true, at: 6, dur: 36 } : null, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
-        // and not a dive: it moans (the phantasm heads, #8 of the cloak sheet) -- the real Moan, WIS or frightened, spent here so it doesn't repeat; and only while it is unspent
-        // (10-29, his play record: the cloaker moaned on its own turn at the top of the round, then again as the darts found it, all four saving twice -- the SRD's Moan is
-        // its action, once, no recharge)
+        // and not a dive: it moans (the phantasm heads, #8 of the cloak sheet) -- the egg's beat, off its own turn; the real Moan, the SRD's (M.moan), and only while it has not
+        // moaned since its own turn began (10-29, his play record: the cloaker moaned on its own turn at the top of the round, then again as the darts found it, all four saving
+        // twice). The SRD's Moan has no recharge (11-03): `ready` comes back at the start of each of its turns (ai.js AI.turn), and one who saved is proof against it
+        // (laid here, on the caster's turn, the fright ends with the cloaker's next turn -- `fresh` only on its own: his 11-01 play record, Lymen frightened two rounds over)
         var MO = c.moan, unspent = !!(MO && MO.ready);
         if (unspent || !MO) yield { scene: { who: c, over: { anim: 'moan', alpha: 0.7 }, facing: 0, scale: 2.2, frames: 120, tone: 'red', caption: 'IT MOANS.' } };
         if (MO && unspent && !c.dead && c.hp > 0) {
           MO.ready = false; D.sfx('encounter');
-          var ml = ['{r}' + c.name + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
-          B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.range(c, w) <= (MO.range || 60); }).forEach(function (w) {
-            if (w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
-            if (RU.immuneTo(w, 'frightened', c)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
-            var sv = RU.save(w, 'wis', MO.dc, false, 'frightened');
-            ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
-            if (!sv.ok) w.conds.frightened = { by: c.id, fresh: true };
-          });
-          B.card(ml, 420); yield 40;
+          B.card(M.moan(B, c, c.name, B.active === c), 420); yield 40;
         }
         // and its egg (10-02, Griz: the darkness "still needs it's easter egg"; "Make the egg purple and call it 'stare into the void long enough'"): once a save (js/grimoire.js M.egg, M.EGGS)
         if (M.egg) yield* M.egg(B, 'darkness');
@@ -545,6 +553,11 @@
       FX.projectile(u, first, 'fire'); yield { fx: 1 };
       [first, second].filter(Boolean).forEach(function (w) {
         if (M.globed && M.globed(B, u, w, sp.level)) { lines2.push('  ' + w.name + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability, SRD 5.1)
+        // (the cloaker's duplicates, SRD 5.1 Phantasms -- 11-03: at a duplicate, its save is the cloaker's, and a failed one bursts it; the cloaker untouched)
+        if (w.hp != null && G.hostile(u, w) && M.dupesUp(w) && !M.dupesLit(B, w, lines2) && M.imagesFool(B, u, w)) {
+          var drS = M.dupeRoll(w);
+          if (drS.dupe) { var svD = RU.save(w, 'dex', dc); if (!svD.ok) w.images--; lines2.push('  ' + w.name + ': ' + drS.die + ', {p}a duplicate{/}  ' + RU.saveText(svD) + ' ' + (svD.ok ? '{n}saved{/}: it shimmers on' : '{o}failed{/}: {n}the duplicate bursts{/} (' + w.images + ' left)')); return; }
+        }
         var sv = RU.save(w, 'dex', dc);
         lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
         if (!sv.ok) B.hurt(w, r1.total, 'acid', MAGIC); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid', MAGIC);
@@ -938,14 +951,87 @@
     lit.forEach(function (w) { if (w.conds.hidden && (!B.dark || (Lt && Lt.brightAt(B, w)))) { delete w.conds.hidden; w.hidden0 = false; shown.push(w.name); } });
     if (shown.length) lines.push('  {c}' + shown.join(', ') + ' shown up by the light{/}');
     if (shy.length) {
-      var fresh = shy.filter(function (w) { return !w.recoiled; });
-      shy.forEach(function (w) { w.flash = 16; if (!w.recoiled) { w.recoiled = true; w.conds.recoiling = true; } });
-      lines.push('  ' + shy.map(function (w) { return w.name; }).join(', ') + (fresh.length ? ': {o}recoils, shrinking up away from it{/} -- no next turn, and disadvantage while it stands in bright light' : ': {o}dazzled{/}'));
+      // (a sheet's `lightSensitive: 'srd'` -- the cloaker's, 11-03, Griz: "SRD except for script and easter egg" -- is the SRD's Light Sensitivity: disadvantage on its attack rolls
+      // while it stands in bright light (rules.js edges: dazzled), and no turn lost. `recoiled` is set on it all the same: the mark the AI's Light and Daylight read, a light-hater
+      // already lit once -- js/tactics.js)
+      var srdShy = function (w) { return (D.FOES[w.kind] || {}).lightSensitive === 'srd'; };
+      var fresh = shy.filter(function (w) { return !w.recoiled && !srdShy(w); }), dazed = shy.filter(function (w) { return fresh.indexOf(w) < 0; });
+      shy.forEach(function (w) { w.flash = 16; if (!w.recoiled) { w.recoiled = true; if (!srdShy(w)) w.conds.recoiling = true; } });
+      if (fresh.length) lines.push('  ' + fresh.map(function (w) { return w.name; }).join(', ') + ': {o}recoils, shrinking up away from it{/} -- no next turn, and disadvantage while it stands in bright light');
+      if (dazed.length) lines.push('  ' + dazed.map(function (w) { return w.name; }).join(', ') + ': {o}dazzled{/}' + (dazed.some(srdShy) ? ' -- disadvantage on its attacks while it stands in bright light' : ''));
     }
+    // and the cloaker's duplicates, gone in the bright light (SRD 5.1 Phantasms; M.dupesLit below)
+    B.units.forEach(function (w) { M.dupesLit(B, w, lines); });
     if (B.fight && B.fight.roost && !B.roostBroken && (!src || src.bright > 0)) { B.roostBroken = source; lines.push('{r}Bright light under a roosted ceiling.{/}'); D.sfx('encounter'); }
     if (lines.length) B.card(lines, 420);
     FX.ring(u, source === 'torch' || source === 'flame' ? 'fire' : 'glow', 40);
     yield 30;
+  };
+
+  // ------------------------------------------------------------------ the cloaker by the SRD (11-03, Griz, on the desk's question of the deep gallery's story cloaker -- its Phantasms
+  // inside Aurdin's Light, its images at AC 12 -- "SRD except for script and easter egg"; RULED 10-06 for the Pocket DM's: "Cloaker's that are used in the Pocket DM should match SRD").
+  // Its story keeps its grip (the bite's engulf), the darkness's cutscene and its moan off-turn, its hunt for the vital one; the rules below are the SRD's for every cloaker.
+  // In bright light, for the light-haters' rules: in the dark, a square bright by any light (js/light.js); in a lit place, once a light has been struck there (B.brightLit -- the
+  // old fight-wide dazzle rules.js edges reads, so a lit map alone is no bright light to them)
+  M.inBright = function (B, u) { if (!B || !u) return false; if (!B.dark) return !!B.brightLit; return !!(D.light && D.light.brightAt(B, u)); };
+  // Phantasms (SRD 5.1: "three illusory duplicates of itself if it isn't in bright light ... If the cloaker is ever in an area of bright light, the duplicates disappear"):
+  // `phantasms.dupes` marks a cloaker's images as these, not Mirror Image's (ai.js brute, as it casts them)
+  M.dupesUp = function (u) { return !!(u && u.images > 0 && u.phantasms && u.phantasms.dupes); };
+  M.dupesLit = function (B, u, lines) {
+    if (!M.dupesUp(u) || !M.inBright(B, u)) return false;
+    u.images = 0; FX.sparkle(u, 'bone', 16);
+    var l = '{c}' + (u.side === 'foe' && !u.named ? 'The ' + B.shortName(u) : u.name) + '\'s duplicates are gone in the bright light.{/}';
+    if (lines) lines.push('  ' + l); else B.card([l], 240);
+    return true;
+  };
+  // false images fool only eyes (SRD 5.1 Phantasms: "A creature is unaffected by this magical effect if it can't see or if it relies on senses other than sight"; Mirror Image:
+  // "if it can't see, if it relies on senses other than sight, such as blindsight, or if it can perceive illusions as false, as with truesight"): one who cannot see the target,
+  // or has it within its blindsight or truesight, strikes at the one that is there
+  M.imagesFool = function (B, att, tgt) {
+    if (!att || !tgt) return true;
+    var d = G.dist(att, tgt);
+    if ((att.blindsight && att.blindsight >= d) || (att.truesight && att.truesight >= d)) return false;
+    return M.sees(B, att, tgt);
+  };
+  // which one a blow or a harmful spell goes at ("rolls randomly to determine whether it targets the cloaker or one of the duplicates"): a die of one side more than the duplicates
+  // standing, its 1 the cloaker itself
+  M.dupeRoll = function (u) { var n = Math.min(3, u.images || 0), r = D.d(n + 1); return { n: n, r: r, dupe: r > 1, die: 'd' + (n + 1) + ' ' + r }; };
+  // a harmful spell with no attack roll aimed at one whose duplicates stand (M.cast; the attack rolls -- a blow, a ray, a spell attack -- are Battle.attack's): on a duplicate the
+  // spell is spent on it, and "A duplicate has the cloaker's AC and uses its saving throws ... if a duplicate fails a saving throw against an effect that deals damage, the
+  // duplicate disappears". True when the spell went at a duplicate
+  M.dupeSpell = function (B, u, t, sp, dc, head) {
+    var dr = M.dupeRoll(t), nm = t.side === 'foe' && !t.named ? 'the ' + B.shortName(t) : t.name;
+    if (!dr.dupe) { B.card([head + ' at ' + nm + ': ' + dr.die + ', {y}the real one{/}, not a duplicate'], 200); return false; }
+    var line = head + ' at ' + nm + ': ' + dr.die + ', {p}a duplicate{/}', burst = false;
+    if (sp.save) { var sv = RU.save(t, sp.save, dc); line += '  ' + sp.save.toUpperCase() + ' ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}'); burst = !sv.ok && !!sp.dmg; }
+    if (burst) t.images--;
+    line += burst ? '  {n}the duplicate bursts{/} (' + t.images + ' left)' : '  {g}it shimmers on: the spell is spent on nothing{/}';
+    D.sfx(burst ? 'hit' : 'miss'); FX.sparkle(t, 'violet', 14);
+    B.card([line], 300);
+    return true;
+  };
+  // the Moan (SRD 5.1: "Each creature within 60 feet of the cloaker that can hear its moan and that isn't an aberration must succeed on a DC 13 Wisdom saving throw or become
+  // frightened until the end of the cloaker's next turn. If a creature's saving throw is successful, the creature is immune to the cloaker's moan for the next 24 hours"): its
+  // action at will (ai.js brute), or the egg's beat (the darkness's cutscene, above). The 24 hours are the fight: `moanProof` on the one who saved, by the moaner's id. `fresh`:
+  // laid on the moaner's own turn, the fright outlasts that turn's end and goes at the end of the next (ai.js turn's sweep); laid off it, it goes at the end of the next one it has.
+  // Its card's lines; `who` its name as the card says it
+  M.moanHears = function (c, w) { var MO = c.moan || {}; return w !== c && G.standing(w) && !w.object && !w.ethereal && G.range(c, w) <= (MO.range || 60) && w.type !== 'aberration' && !(w.conds && w.conds.deafened); };
+  // one it could still shake (the AI's count, ai.js brute: it moans while two of its foes or more are such)
+  M.moanShakes = function (c, w) { return M.moanHears(c, w) && !(w.moanProof && w.moanProof[c.id]) && !w.conds.frightened && !w.conds.heroism && !RU.immuneTo(w, 'frightened', c); };
+  M.moan = function (B, c, who, fresh) {
+    var MO = c.moan, ml = ['{r}' + who + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
+    B.units.filter(function (w) { return M.moanHears(c, w); }).forEach(function (w) {
+      var nm = w.side === 'foe' && !w.named ? B.shortName(w) : w.name;
+      if (w.moanProof && w.moanProof[c.id]) { ml.push('  ' + nm + ': {n}unshaken{/} (saved against it before)'); return; }
+      if (w.conds.heroism) { ml.push('  ' + nm + ': {n}fearless{/} (Heroism)'); return; }
+      if (RU.immuneTo(w, 'frightened', c)) { ml.push('  ' + nm + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
+      var sv = RU.save(w, 'wis', MO.dc, false, 'frightened');
+      if (sv.ok) { w.moanProof = w.moanProof || {}; w.moanProof[c.id] = true; }
+      else if (!w.conds.frightened || w.conds.frightened.by === c.id) w.conds.frightened = { by: c.id, fresh: !!fresh }; // (a fright another laid -- a spell's, a prayer's -- holds as its own)
+      ml.push('  ' + nm + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/} -- proof against its moan now' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
+    });
+    if (ml.length === 1) ml.push('  {g}no one in earshot to shake{/}');
+    return ml;
   };
 
   // ------------------------------------------------------------------ what a creature can see (torchdark, 09-28): the one question the rules ask.
@@ -1020,7 +1106,7 @@
       var k = obscuredBetween(B, a, b);
       if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' || k === 'kill' ? 'the cloud' : k };
     }
-    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
+    if (b.conds && b.conds.invisible && !b.conds.faerie && !b.conds.branded && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
     if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
     return { ok: true };
   };

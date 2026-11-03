@@ -474,7 +474,7 @@
     if (!go) return;
     var x = B.cursor.x, y = B.cursor.y, w = occ(x, y);
     if (rd.what === 'weapon') {
-      var foe = (w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
+      var foe = liveFoe(u, hoveredAt(B, x, y)) || liveFoe(u, w) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (the figure the mouse is on first: hoveredAt, 11-03)
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
       D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
     }
@@ -533,7 +533,7 @@
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
-    B.hoverUnit = null; B.ropePick = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredRider; nor the rope's rung -- ropeRung)
+    B.hoverUnit = null; B.ropePick = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredAt; nor the rope's rung -- ropeRung)
     if (D.iso.nudge(B.cursor, dir, G.map.w, G.map.h)) showCursor(B);
   }
   function showCursor(B) { // near the screen's edge (or off it), the view comes to the cursor
@@ -558,14 +558,30 @@
   // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
   // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
   function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) || D.keeper.swirlAt(D.battle, x, y) : null); }
+  // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (11-03, Griz, his Pocket DM fights: "see stirge targetting difficulties" and "The 5-foot flight above 4 foes targeting (manticore)"): occ is
+  // G.occupant's answer, the creature standing on the square first, and a flier aloft over it, a rider on its head or shoulder, a big body's other squares are all "that square's" creature
+  // only when nobody stands under them -- so a click on the stirge, the second stirge, the manticore hovering over the party went to whoever stood beneath. B.hoverUnit is the figure the
+  // mouse is on (UI.hoverPick sets it as the mouse moves; a key that moves the cursor clears it, moveCursor/stickCursor), its x, y the square B.cursor was put on: while the cursor is
+  // still there the click is on that figure. A foe it is, alive: liveFoe
+  function hoveredAt(B, x, y) { var hu = B.hoverUnit; return hu && !hu.object && G.present(hu) && hu.x === x && hu.y === y ? hu : null; }
+  function liveFoe(u, t) { return t && G.hostile(u, t) && !t.dead && (t.hp > 0 || !!t.regenDown) ? t : null; }
+  // an item aimed: the figure the mouse is on if the item takes it -- or, a flask, if it is a foe (the refusal then says why of it: out of reach, no line) -- else the square's creature
+  function itemOn(B, u, hv, w) { var it = window.DS.DATA.items[B.itemId]; return hv && (B.itemTargetOK(u, B.itemId, hv) || (it && it.use.effect === 'damage' && G.hostile(u, hv))) ? hv : w; }
+  UI.hoveredAt = hoveredAt; // (dev/bench16.js mode=aloftclicks1103)
   // the hero's turn, the mouse on the grid: the figure under it, else a rope's rung, else the tile. MOVE takes the tile (10-21, his 10-19 note: "when move is active, mouse hover
   // should ignore enemy hotboxes other than tiles (investigate 'fly' movement handling also)", and on the seat's lean "allies yes, the menu no", his "accept leans"): another's
   // figure, foe or friend -- or, for a flier picking at its height, any figure -- only when the tile under the mouse is on its footprint, so a tall sprite drawn over the squares
-  // behind it never takes the walk's square from them; the menu's pick is as it was
+  // behind it never takes the walk's square from them; the menu's pick is as it was. Two figures MOVE's tile does not hold back (11-03, "see stirge targetting difficulties"): a hostile
+  // rider -- a stirge on a shoulder, a darkmantle on a head -- is drawn over its host and its floor is the host's, so the tile under the mouse on it was never its own; and a flier aloft
+  // stands on the tile at ITS height: its figure is drawn 20 px above its square, the floor diamond under it begins a few px below its feet, and the mouse on the stirge was on the tile
+  // behind. The mouse on the tile at the flier's own height (D.iso.pickAt at its layer) is on it; the floor beneath it is still the floor
   UI.hoverPick = function (B, u, mx, my) {
     var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null, tile = function () { return lz != null ? D.iso.pickAt(mx, my, lz) : D.iso.pick(mx, my, G.map.gz(B.cursor.x, B.cursor.y)); };
     var pu = UI.pickUnit(B, mx, my, foeWanted(B, u));
-    if (pu && B.tool === 'move' && (pu !== u || lz != null)) { var t0 = tile(), s0 = pu.size || 1; if (!t0 || t0.x < pu.x || t0.y < pu.y || t0.x >= pu.x + s0 || t0.y >= pu.y + s0) pu = null; }
+    if (pu && B.tool === 'move' && (pu !== u || lz != null) && !(pu.riding && pu.attached && G.hostile(u, pu))) {
+      var s0 = pu.size || 1, onIt = function (t) { return !!t && t.x >= pu.x && t.y >= pu.y && t.x < pu.x + s0 && t.y < pu.y + s0; };
+      if (!onIt(tile()) && !(G.aloft(pu) && onIt(D.iso.pickAt(mx, my, G.gzAt(pu, pu.x, pu.y))))) pu = null;
+    }
     var rg = pu ? null : ropeRung(B, u, mx, my);
     return { unit: pu, rung: rg, sq: pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : tile() };
   };
@@ -577,8 +593,11 @@
       var lf = !u.riding && lyingFrame(u), lm = lf && D.spr.frameMask(u.sheet, lf[0], u.facing || 0, lf[1]), lk = D.spr.scaleOf(u) * z; // (lying flat: the frame it lies at, its pixels as drawn -- sprites.js S.frameMask, 10-05)
       var onLie = !!lm && D.spr.frameHit(lm, (mx - p.x) / lk, (my - p.y) / lk, 2);
       if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z) && !(s > 1 && !u.riding && UI.inCube(UI.cubeHull(B, u), mx, my))) return;
-      if (p.depth > bd) { bd = p.depth; best = u; }
-      if (want && want(u) && p.depth > pd) { pd = p.depth; pick = u; }
+      // (a flier aloft ranks over what stands under it: drawn by footprint depth alone, a 2x2 manticore hovering over the party lost to whoever stood on its south-east square, the
+      // one body in front of its lower half -- 11-03, "the 5-foot flight above 4 foes targeting". Its footprint's size is the depth of what can stand under it, riders go up with their host)
+      var hostU = u.riding && u.master ? u.master : u, rk = p.depth + (G.aloft(hostU) ? hostU.size || 1 : 0);
+      if (rk > bd) { bd = rk; best = u; }
+      if (want && want(u) && rk > pd) { pd = rk; pick = u; }
     });
     return pick || best;
   };
@@ -870,6 +889,10 @@
       case 'cube': return 'a point' + see + rg;
       case 'cone': return 'aim the ' + g.len + '-ft cone';
       case 'line': return 'aim the ' + g.len + '-ft line';
+      // (the walls and the wave said nothing -- the card read "WALL OF FIRE (L4): .  X back", 11-03. One click lays a wall: a point within range, the run of squares centred on it across your line to it,
+      // arms stopping at rock (js/walls.js M.wallSq); Thunderwave's cube is against the side or corner of you the click is toward (js/magic.js M.wave, waveDir) -- both shown as you aim)
+      case 'wall': return 'a point' + see + rg + ': the ' + g.len + '-ft wall shows, laid across your line to it and centred there (one click)';
+      case 'wave': return 'a ' + g.size + '-ft cube from you: click toward the side or corner of you it blasts to (it shows)';
       case 'around': return 'every square round you (shown): click yourself or one of them';
       case 'teleport': return 'a square you can see within 30 ft';
     }
@@ -887,8 +910,9 @@
     if (g.effects) how = 'a creature within ' + g.range + ' ft, or an empty square in the area of a spell (that spell)'; // (Dispel Magic: M.effectsAt, 10-02)
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
-  UI.command = function (B, u, cmd) {
+  UI.command = function (B, u, cmd, lead) {
     B.clearCards();
+    if (lead) B.card(lead, 200); // (a card the click owes the player, before the swing's own lines: the click that became the off hand, 10-31)
     if (/^(dash|cdash|disengage|cdisengage)$/.test(cmd.do)) B.nextTool = 'move';
     B.tool = cmd.do === 'attack' && u.turn.attacksLeft > 1 ? 'attack' : cmd.do === 'attack' && !u.turn.attacksLeft && u.turn.action && u.attacks > 1 ? 'attack' : rest();
     B.spell = null; B.picks = []; B.list = null;
@@ -897,13 +921,12 @@
 
   // is (x, y) somewhere the current tool can act? 'ok' | 'no' | 'self' | 'far' (a dash away)
   UI.valid = function (B, u, x, y) {
-    var tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null, T = u.turn, s = G.map.at(x, y);
+    var tool = B.tool, w = occ(x, y), hv = hoveredAt(B, x, y), foe = liveFoe(u, hv) || liveFoe(u, w), T = u.turn, s = G.map.at(x, y); // (hv: the figure the mouse is on, first -- hoveredAt)
     // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
     // square you normally can't attack"; battle.js mount)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (... or the roper's tendril on a friend, or on you -- 10-02)
     // ... and the mouse on it (its red outline: underCursor) is the click on it, as on any foe -- no ATTACK from the ring first (10-01, Griz: "Have to go into the
-    // ring to do it for the first attack on the darkmantle")
-    if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y);
+    // ring to do it for the first attack on the darkmantle"): hv above, for any foe the mouse is on -- a rider, a flier aloft, a big body (11-03)
     if (!s || !s.open) return 'no';
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
     if (tool === 'pullout') return w && D.Battle.whelmed(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (PULL OUT: a friend the water elemental holds, it beside you -- 10-14)
@@ -932,7 +955,7 @@
     if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.range(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
-    if (tool === 'item') { if (B.itemId === 'oil' && !w && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05)
+    if (tool === 'item') { if (B.itemId === 'oil' && !w && !hv && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, itemOn(B, u, hv, w)) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05) (itemOn: the figure the mouse is on, if it is one for the item)
     if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
     if (tool === 'spell') {
       var g = B.spell.g, M = D.magic;
@@ -941,19 +964,20 @@
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'around') return G.foot(u).concat(M.area(u, g, x, y)).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no'; // (round the caster: himself or a square of it -- Searing Scourge, 10-14)
       if (g.shape === 'teleport') return B.mistyTargets(u, g.range, g.see).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
-      if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
-      if (spellTarget(B, u, g, x, y)) return 'ok';
+      var tg = spellTarget(B, u, g, x, y); // (the figure the mouse is on first, else the one standing there, else a rider on it)
+      if (g.shape === 'allies' && B.picks.length && !tg) return 'self';
+      if (tg) return 'ok';
       if (g.effects && !w && M.effectsAt(B, x, y).length && G.range(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
       return M.missileDark(B, u, g, x, y) || M.guessDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into; a foe's square guessed in the dark, M.guessDark 10-02)
     }
     return 'no';
   };
-  // the creature a spell aimed at (x, y) takes: a rider there the mouse is on, or the one standing there, or -- when the spell will not take that one -- a rider on
+  // the creature a spell aimed at (x, y) takes: the figure the mouse is on there (hoveredAt: a rider, a flier aloft, a big body), or the one standing there, or -- when the spell will not take that one -- a rider on
   // it (a darkmantle on a friend, or on the caster: 10-01, Griz, "check for other spell problems we might have created" -- a spell at it went to the friend's square
   // and found only the friend); null if none of them
   function spellTarget(B, u, g, x, y) {
-    var M = D.magic, w = occ(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
-    if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && ok(hu)) return hu;
+    var M = D.magic, w = occ(x, y), hu = hoveredAt(B, x, y), ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
+    if (ok(hu)) return hu; // (the figure the mouse is on -- a rider, a flier aloft over the one standing there, a big body -- when the spell takes it, hoveredAt, 11-03)
     if (ok(w)) return w;
     var r = D.Battle.riderOn(u, w, B.units); if (ok(r)) return r;
     // a roper's tendril on the one there -- a friend's, or the one on the caster -- for a spell attack whose SRD 5.1 words take an object (`obj`: Fire Bolt, "a creature or
@@ -963,13 +987,12 @@
   }
   UI.spellTarget = spellTarget;
   UI.spellAim = function (B, u, e) { return spellAim(B, u, e); }; UI.actAt = function (B, u, x, y, byKey) { return actAt(B, u, x, y, byKey); }; // (dev/bench16.js rules1021b: Bane on a lone foe by the clicks)
-  // a hostile rider on (x, y) the mouse is on (B.hoverUnit, set as the mouse moves): a darkmantle on a head, outlined red
-  function hoveredRider(B, u, x, y) { var hu = B.hoverUnit; return hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && G.hostile(u, hu) ? hu : null; }
   // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
   function underCursor(B) {
     var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = (B.req && B.req.aim && B.req.aim.who) || B.active;
     if (hu && hu.hang && G.hanging(hu) && hu.x === x && hu.y === y) return hu; // (climbers on one column: the figure the mouse is on, not the square's first occupant -- the one above it. 10-05, Griz: "can't seem to highlight that troll and see how far up he is")
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y) return hu;
+    if (hu && hu !== w && !hu.riding && hoveredAt(B, x, y) === hu) return hu; // (a flier aloft over a square, a big body: the figure the mouse is on, not the creature standing under it -- 11-03)
     if (B.tool === 'attack' && a) { var r = D.Battle.riderOn(a, w, B.units) || D.Battle.tendrilOn(a, w, B.units); if (r) return r; } // (or the roper's tendril on the one there: its AC and what is left of it, 10-02)
     if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }
     return w;
@@ -1090,9 +1113,8 @@
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
-    var T = u.turn, tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null, v = UI.valid(B, u, x, y);
+    var T = u.turn, tool = B.tool, w = occ(x, y), hv = hoveredAt(B, x, y), foe = liveFoe(u, hv) || liveFoe(u, w), v = UI.valid(B, u, x, y); // (hv: the figure the mouse is on -- the click is on it, a foe first: UI.valid)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
-    if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
     if (tool === 'pullout') { if (v === 'ok') return UI.command(B, u, { do: 'pullout', target: w }); return B.card(['{o}Pull out: a friend the water elemental holds, the elemental beside you.{/}'], 120); }
     if (tool === 'breaktendril') { if (v === 'ok') return UI.command(B, u, { do: 'breaktendril', target: w }); return B.card(['{o}Break the tendril: the one it holds -- yourself, or a friend beside you.{/}'], 120); }
@@ -1111,6 +1133,12 @@
       }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
       if (foe) {
+        // the click on a foe in reach with the action spent is the off hand's swing, the bonus action (Griz, 10-31: "the second 'you don't have an action to attack' click should
+        // just eat the bonus action offhand attack rather than say 'no action to attack'"; his "yes" to the lean: in reach only, never the throw, a card that says so)
+        if (!D.rules.charmedBy(u, foe) && G.dist(u, foe) <= G.reachOf(u)) {
+          var ohC = B.commands(u).filter(function (k) { return k.id === 'offhand'; })[0];
+          if (ohC && ohC.ok && u.offhand) return UI.command(B, u, { do: 'offhand', target: foe }, ['{y}OFF HAND:{/} the action is spent, so the ' + u.offhand.name.toLowerCase() + ' in the off hand swings at the ' + B.shortName(foe) + ' on the bonus action.']);
+        }
         D.sfx('error');
         if (D.rules.charmedBy(u, foe)) return B.card(['{o}' + u.name + ' is charmed: no raising a hand to the ' + B.shortName(foe) + '.{/}'], 160);
         if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
@@ -1132,15 +1160,22 @@
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     // (askSelf: a click on your own square with an item aimed is asked first -- 10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, and the next click, on Lymen's own square, ate it
     // and the action with it; battle.js exec 'item')
-    if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w, x: x, y: y, askSelf: w === u }); // (x, y: the oil flask's square when no one stands there -- js/oil.js) // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
-      var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && w && G.hostile(u, w) ? (G.range(u, w) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(w) + ' is ' + G.range(u, w) + ' ft off (the height counts)' : !G.los(u, w).clear ? 'no line to ' + D.Battle.nm(w) : '') : '';
-      if (!whyR && itR && itR.use.effect === 'fortify' && w && !G.hostile(u, w) && !w.object && w.hp <= 0) whyR = w.name + ' is down: a ' + itR.name + ' is for someone on their feet'; // (the pie raises no one: 10-05 night, his "failing to rez from 0 (fine)")
+    if (tool === 'item') { var wi = itemOn(B, u, hv, w); // (wi: the figure the mouse is on when the item takes it -- a flask at the stirge over the hero, not the hero: 11-03)
+      if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: wi, x: x, y: y, askSelf: wi === u }); // (x, y: the oil flask's square when no one stands there -- js/oil.js) // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
+      var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && wi && G.hostile(u, wi) ? (G.range(u, wi) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(wi) + ' is ' + G.range(u, wi) + ' ft off (the height counts)' : !G.los(u, wi).clear ? 'no line to ' + D.Battle.nm(wi) : '') : '';
+      if (!whyR && itR && itR.use.effect === 'fortify' && wi && !G.hostile(u, wi) && !wi.object && wi.hp <= 0) whyR = wi.name + ' is down: a ' + itR.name + ' is for someone on their feet'; // (the pie raises no one: 10-05 night, his "failing to rez from 0 (fine)")
       return B.card(['{o}Not a target for that' + (whyR ? ': ' + whyR : '') + '.{/}'], whyR ? 200 : 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
     if (tool === 'spell') {
       var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, aimedCmd(S, t)); };
+      // a target the spell turns away, said why: Enlarge on one already enlarged, or one it cannot see, out of range, no line -- js/magic.js whyNot, 10-21. The figure the mouse is on first
+      // (hv), as the aim took it; the darts and the rays say it too (11-03, Griz: a dart clicked at a foe out of reach did nothing and said nothing, `v !== 'ok'` returned before the card)
+      var turnedAway = function () {
+        var wt = hv || w, refused = wt && M.whyNot(B, u, g, wt);
+        if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + (wt.side === 'foe' ? 'the ' + B.shortName(wt) : wt.name) + ' ' + refused + '.{/}'], 120); }
+      };
       if (g.shape === 'rays' || g.shape === 'darts') {
-        if (v !== 'ok') return;
+        if (v !== 'ok') return turnedAway();
         B.picks.push(spellTarget(B, u, g, x, y) || { x: x, y: y, size: 1, dark: true, name: 'the dark' }); // (a dart at the darkness; at a darkmantle on a friend, spellTarget)
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
         return B.card(['{y}' + S.name + '{/}: ' + B.picks.length + ' of ' + S.n + ' aimed.  {g}X takes the last back{/}'], 100000);
@@ -1151,18 +1186,14 @@
         // second click cast, and with two foes there was no taking one back). The right button casts with the picks (turnInput). stack: a friend clicked again takes
         // another -- Social Sharing's dice; the Mascots' aims (S.cmd) keep their own count
         var added = false;
-        if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0 && !g.stack) { B.picks.splice(i, 1); if (w === S.auto) S.auto = null; } else { B.picks.push(w); added = true; } }
+        if (v === 'ok') { var tA = spellTarget(B, u, g, x, y) || w, i = B.picks.indexOf(tA); if (i >= 0 && !g.stack) { B.picks.splice(i, 1); if (tA === S.auto) S.auto = null; } else { B.picks.push(tA); added = true; } } // (tA: the one taken -- the figure the mouse is on, a rider on the one standing there, hoveredAt)
         else if (byKey && B.picks.length) return cast({ units: B.picks.slice() });
         else return;
         if (B.picks.length >= S.n || (added && UI.picksFill(B, u, S))) return cast({ units: B.picks.slice() });
         var pn = []; B.picks.forEach(function (p) { var e = pn.filter(function (q) { return q.p === p; })[0]; if (e) e.n++; else pn.push({ p: p, n: 1 }); });
         return B.card(['{y}' + S.name + '{/}: ' + (pn.length ? pn.map(function (q) { return q.p.name + (q.n > 1 ? ' x' + q.n : ''); }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}' + (pn.length ? 'One clicked again drops it; CAST below, the right button, or E off a target casts with these' : 'X back') + '{/}'], 100000);
       }
-      if (v !== 'ok') { // (a target the spell turns away, said why: Enlarge on one already enlarged, or one it cannot see, out of range, no line -- js/magic.js whyNot, 10-21)
-        var refused = w && M.whyNot(B, u, g, w);
-        if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + (w.side === 'foe' ? 'the ' + B.shortName(w) : w.name) + ' ' + refused + '.{/}'], 120); }
-        return;
-      }
+      if (v !== 'ok') { turnedAway(); return; }
       if (g.effects && !w) return cast({ x: x, y: y }); // (the spell on that empty square: Dispel Magic, M.effectsAt)
       if (g.shape === 'around') return cast({ x: u.x, y: u.y }); // (always round the caster, wherever the click)
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line') { var zA = UI.aimZ(B, x, y); return cast(zA != null ? { x: x, y: y, z: zA } : { x: x, y: y }); } // (the point at the height picked, UI.stepAim: areas by height, 10-15)
@@ -1539,16 +1570,42 @@
   UI.unitObj = function (B, u) { return unitObj(B, u); }; // (the figure as the next frame draws it -- .shown holds the row and frame it drew: dev/bench16.js mode=goblinhide1007, 10-07)
   // where a rider sits on the one it rides -- drawn there (unitObj) and picked there by the mouse (UI.pickUnit; 10-01, Griz: "I can't get any indication I'm
   // mousing over the one on his head"). k: the pixels' scale (1 on the world canvas, the zoom on the screen). The one it rides drawn bigger (Enlarge) carries it higher
-  function perchPos(B, u, k) {
-    var m = u.master, mf = m.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, m), mt = D.spr.unitTop(m) * D.spr.scaleOf(m) * k;
+  // SEATS (11-03, Griz: "see stirge targetting difficulties"): several riders on one host (the stirges -- Battle.attach keeps each one's record) all took the one spot, drawn over each other and
+  // picked by pickUnit's tie, the first's. Each takes a seat by its place among the host's riders on that perch (the order of B.units): the first where the perch puts it, the next on the
+  // host's other shoulder (or other foot), the third up on the chest between them, then a row higher each three -- so each can be drawn, hovered and clicked
+  // THE SHOULDER OF A CASTER WHOSE SHEET NAMES THEM (11-03, Griz: "Aurdin on top-down roam maps (silverton) should have his owl moved to the shoulder opposite the staff and better positioned"):
+  // a familiar on the shoulder of a figure js/sprites.js S.shoulderAt answers for -- Aurdin's -- sits on the one opposite the staff, its feet on the shoulder's top (S.SHOULDER, by his
+  // facing, in his sheet's px; the caster drawn bigger -- Enlarge -- carries it out and up with him). It was drawn from js/topview.js on the town's top-down view alone; here it is the one place,
+  // the view's and the grid's, and the mouse picks the owl where it is drawn
+  function riderSeat(B, u) {
+    var n = 0, first = null;
+    for (var i = 0; i < B.units.length; i++) {
+      var r = B.units[i];
+      if (r === u) return { n: n, first: first || u };
+      if (r.riding && r.master === u.master && r.perch === u.perch && G.present(r) && r.hp > 0) { n++; first = first || r; }
+    }
+    return { n: 0, first: u };
+  }
+  function perchBase(B, u, k) {
+    var m = u.master, mf = m.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, m), sk = D.spr.scaleOf(m), mt = D.spr.unitTop(m) * sk * k;
     // (the bat flutters about his head -- Griz, 09-30: "have it flutter around his head" -- a slow loop, in front of him and behind)
-    var ba = B.t / 13 + (u.id || '').length;
+    var ba = B.t / 13 + (u.id || '').length, sh = u.perch === 'shoulder' && u.familiar ? D.spr.shoulderAt(m, !!B.roam) : null; // (!!B.roam: the roam's calm idle or the fight's -- the staff is held on another side at SW and SE: sprites.js S.SHOULDER_FIGHT)
     // (a darkmantle over the head it engulfs -- battle.js mount: sat on the head, in front of it, its foot a little below the crown)
     return u.perch === 'over' ? { x: mp.x, y: mp.y - mt + 13 * k, depth: mp.depth + 0.03, gz: mp.gz }
-      : u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9) * k, y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
+      : u.perch === 'shoulder' ? (sh ? { x: mp.x + Math.round(sh[0] * sk * k), y: mp.y - Math.round(sh[1] * sk * k), depth: mp.depth + 0.02, gz: mp.gz } : { x: mp.x + (fore ? -9 : 9) * k, y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz })
       : u.perch === 'head' ? { x: mp.x + Math.round(11 * k * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * k * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
       : { x: mp.x + (fore ? 9 : -9) * k, y: mp.y + 3 * k, depth: mp.depth + 0.03, gz: mp.gz };
   }
+  function perchPos(B, u, k) {
+    var p = perchBase(B, u, k), st = riderSeat(B, u);
+    if (!st.n) return p;
+    p.depth += st.n * 0.001; // (the later seat in front: drawn over, and picked over, the one it overlaps)
+    if (u.perch !== 'shoulder' && u.perch !== 'feet') return p; // (one head, one pair of eyes: the bat about it flutters on its own phase; a rat or a spider at the feet seats the same way as on a shoulder)
+    var mp = unitPos(B, u.master), f = st.first === u ? p : perchBase(B, st.first, k), side = [1, -1, 0][st.n % 3], rows = Math.floor(st.n / 3) + (st.n % 3 === 2 ? 1 : 0);
+    p.x = mp.x + side * (f.x - mp.x); p.y = f.y - rows * 14 * k;
+    return p;
+  }
+  UI.perchPos = perchPos; // (dev/bench16.js mode=aloftclicks1103, mode=familiar1031)
   // in the water (10-02, Griz: "make the stair a stair and them be drawn underwater - barley looks like he's walking on top"): a map's `wade` (px of a figure under the
   // line on its water, the Flooded Stair's 13; none, a hand's depth, 3) on a still-water square; one held by a creature of the water (bound to it: the Keeper's Constrict,
   // its Drag Under) is drawn down under it to the crown of the head. What lives in the water (bound to it, a swimmer) and what flies is drawn as it was
