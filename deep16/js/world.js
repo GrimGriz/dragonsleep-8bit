@@ -227,7 +227,21 @@
   World.prototype.say = function (s) { this.msg = { s: s, t: 0 }; };
   World.prototype.card = function (lines, then, keys) { this.cards.push({ lines: lines, then: then || null, keys: keys || null }); };
   W.NEARZOOMS = [6, 8.5, 12, 17, 20, 28, 40, 56]; W.NEARZ = 4; // (the area's px a mile: its 1.5-mile hexes 9 to 84 px across, 30 at the opening -- as THE WORLD's 5-mile hexes at its own; 40 and 56 since 10-28, his "5 - do 40 and 56 variant": Silverton, the Warrens and the Galleries junction on one screen, the land up to the party, js/worldfine.js F.ringsAt)
-  World.prototype.zooms = function () { return M.near ? W.NEARZOOMS : this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five; the area's its own)
+  // THE CLOSEST ZOOM (11-03, the hex map and world session; Griz: "Is the first zoom of the hex tool at level 3 the maximum zoom on the world model/can it be? That'd be
+  // the level of zoom when leaving a location and the level to try to code-draw the buildings. The two rings thing would ideally bring them to this level of zoom as
+  // they approached locations", then "Yes to all leans"): his hex map shows its 330 ft hexes from 208 px a mile on his screen (tools/hexmap.js wlev), so the area's
+  // last zoom puts a mile at 208 of his screen's pixels at whatever scale the game is drawn (69 at 3x, the 1080p screen's), never farther out than 56. There the
+  // party's own hex is the land too (js/worldfine.js F.ringsAt), the buildings are drawn on his squares (F.built), a town left opens at it (W.leaveTown) and every
+  // door's approach comes down to it (W.APPROACH)
+  W.TOOL_L3 = 208; var NZC = { s: null, z: null };
+  W.closeZ = function () { var s = D.scale || 3; return Math.max(56, Math.round(W.TOOL_L3 / s)); };
+  W.nearZooms = function () { var cz = W.closeZ(); if (NZC.z !== cz) { NZC.z = cz; NZC.s = cz > W.NEARZOOMS[W.NEARZOOMS.length - 1] ? W.NEARZOOMS.concat([cz]) : W.NEARZOOMS; } return NZC.s; };
+  World.prototype.zooms = function () { return M.near ? W.nearZooms() : this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five; the area's its own, its last from the screen's scale)
+  W.restPt = function () { return S.pos && W.hexOf(S.pos[0], S.pos[1]).join() === S.at.join() ? S.pos : hc(S.at[0], S.at[1]); }; // (the party's own spot in its hex: a town's gate, a place; else the hex's middle)
+  W.closeIn = function () { // (a place left: the area's closest zoom, the camera on the party's spot; the hand's zoom kept for the walk away to step back out to)
+    var sc = W.scene; if (!sc || !M.near) return; var ZS = sc.zooms(), p = W.restPt();
+    sc.zi = ZS.length - 1; sc.zpx = ZS[sc.zi]; sc.zT = sc.t; sc.zHand = false; sc.cam.cx = p[0]; sc.cam.cy = p[1];
+  };
   // the party onto another map (the area's edge crossed, a town left, the top-down view shut): the land kept at the scale it was, the way planned again
   World.prototype.onMap = function () {
     var ZS = this.zooms(), z0 = this.zpx || ZS[this.zi], bi = 0;
@@ -235,7 +249,7 @@
     this.zi = bi; this.plan = null; this.hov = null;
     this.say(M.near ? 'The Silverton area, ' + W.timeOfDay() + ': its hexes a mile and a half.' : 'Out on THE WORLD, ' + W.timeOfDay() + ': its hexes five miles.');
   };
-  World.prototype.camObj = function () { var z = this.zooms()[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
+  World.prototype.camObj = function () { var ZS = this.zooms(); if (this.zi > ZS.length - 1) this.zi = ZS.length - 1; var z = ZS[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
   function proj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
   function hexTopH(q, r) { var e = M.hex[K(q, r)]; if (e) return e.h; if (M.near) { var c = hc(q, r), pw = atw(c[0], c[1], MS.world.w), ew = MS.world.hex[K(pw[0], pw[1])]; if (ew) return ew.h; } return 0; } // (past the area's edge: THE WORLD's hex there)
   World.prototype.pick = function (mx, my) {
@@ -320,7 +334,8 @@
   // sketch -- every door, a hand on the zoom wins till the next walk, an OPTIONS row on by default): each place with a door has a reach and a zoom of its own;
   // walking toward one inside its reach the camera steps in a zoom at a time toward the place's, leaning a third of the way to it as it nears, and walking away
   // it steps back out to the zoom the hand last chose. A step, not a glide: the land is drawn again at each new zoom (18 to 66 ms in the pane)
-  W.APPROACH = { silverton: { mi: 9, z: 56 }, mouth: { mi: 4, z: 40 }, glowseep: { mi: 4, z: 40 }, warrens: { mi: 4, z: 40 } };
+  // (11-03, his "The two rings thing would ideally bring them to this level of zoom as they approached locations": every door's place down to the closest zoom, W.closeZ)
+  W.APPROACH = { silverton: { mi: 9, z: Infinity }, mouth: { mi: 4, z: Infinity }, glowseep: { mi: 4, z: Infinity }, warrens: { mi: 4, z: Infinity } }; // (Web Gulch's own in js/gulch.js)
   W.APKEY = 'deep16.world.approach';
   W.approachOn = function () { var v = null; try { v = window.localStorage.getItem(W.APKEY); } catch (e) { } return v !== 'off'; }; // (a per-device convenience, as RANDOM FIGHTS)
   W.setApproach = function (on) { try { window.localStorage.setItem(W.APKEY, on ? 'on' : 'off'); } catch (e) { } };
@@ -415,7 +430,8 @@
     while (D.scenes.length && D.top() !== W.scene) D.pop();
     if (!W.scene) return;
     var site = W.inDoor && W.inDoor.site, gv = site && W.DOORS[site.id] && W.DOORS[site.id].gates[side];
-    if (site) { S.pos = [site.x + (gv ? gv[0] : 0) * 0.75, site.y + (gv ? gv[1] : 0) * 0.75]; if (W.place(S.pos)) W.scene.onMap(); var cl = hc(S.at[0], S.at[1]); W.scene.cam.cx = cl[0]; W.scene.cam.cy = cl[1]; } // (out by the side's gate: a step beyond it, on the map that covers it)
+    var tw = site && (site.town || [site.x, site.y]); // (a city's own ground, where its mark has moved off it: Silverton's mark on the Edifice since 11-03, its gates round the town as before)
+    if (site) { S.pos = [tw[0] + (gv ? gv[0] : 0) * 0.75, tw[1] + (gv ? gv[1] : 0) * 0.75]; if (W.place(S.pos)) W.scene.onMap(); var cl = hc(S.at[0], S.at[1]); W.scene.cam.cx = cl[0]; W.scene.cam.cy = cl[1]; W.closeIn(); } // (out by the side's gate: a step beyond it, on the map that covers it; at the closest zoom, his note 25)
     W.inDoor = null; if (W.house()) D.house.cur.at = { town: null }; W.save(); try { D.music('corridor'); } catch (e) { }
     W.scene.say('Out on the road by the ' + side + ', ' + W.timeOfDay() + '.');
   };
@@ -614,8 +630,8 @@
     if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
     W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); GH = VIS = null;
     // the party: a banner on the hex's top, bobbing as it walks
-    var pa = hc(S.at[0], S.at[1]), ph = hexTopH(S.at[0], S.at[1]);
-    if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], pb = hc(nx[0], nx[1]), u = this.walk.f / STEPF; pa = [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; ph = ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
+    var onLand = fine && W.FINE.ringsAt(cam.z) < 0, pa = onLand ? W.restPt() : hc(S.at[0], S.at[1]), ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : hexTopH(S.at[0], S.at[1]); // (at the closest zoom its hex is the land: the banner on the ground at its own spot)
+    if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], pb = hc(nx[0], nx[1]), u = this.walk.f / STEPF; pa = [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
     var tp = proj(cam, pa[0], pa[1], ph), bob = this.walk ? Math.round(Math.abs(Math.sin(this.t / 4)) * 2) : 0, tx = Math.round(tp[0]), ty = Math.round(tp[1]) - bob;
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(tx, Math.round(tp[1]), 5, 2, 0, 0, 7); ctx.fill();
     ctx.fillStyle = '#3a2410'; ctx.fillRect(tx - 1, ty - 15, 2, 15);

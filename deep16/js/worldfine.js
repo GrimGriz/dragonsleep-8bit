@@ -99,7 +99,9 @@
   // ---------------------------------------------------------------- the hero's hexes: the hex the party stands on and its two rings, today's columns
   // the rings shrink as the camera comes in (10-28, the maps window; his "5 - do 40 and 56 variant", on the seat's lean): two rings to 28 px a mile, one at 40,
   // the party's own hex alone at 56 -- so his 330 ft paint shows up to the party at the area's closest zooms
-  F.ringsAt = function (z) { return z > 40 ? 0 : z > 28 ? 1 : F.RINGS; };
+  // and at the area's closest zoom none (11-03, his "The two rings thing would ideally bring them to this level of zoom as they approached locations", on the seat's
+  // "the party's own hex is about 40% of the screen tall, so it has to be drawn as land as well"): the party's hex the land too, the banner on the ground
+  F.ringsAt = function (z) { return W.M() && W.M().near && W.closeZ && z >= W.closeZ() - 0.01 ? -1 : z > 40 ? 0 : z > 28 ? 1 : F.RINGS; };
   var NEAR = {}, NEARAT = '', NEARC = [0, 0];
   function nearOf(at, R) {
     var k = W.M().key + ':' + at[0] + ',' + at[1] + ':' + R; if (k === NEARAT) return NEAR; // (keyed by the map too: THE WORLD's or the Silverton area's; and the rings)
@@ -228,3 +230,4 @@
   F.data = function () { return G; }; // (for the seat's probes)
   F.label = function () { return !F.on ? 'THE HEX TOPS  F: the land, raised' : F.st === 'fail' ? 'THE LAND: ' + F.err : F.st !== 'ok' ? 'THE LAND, RAISED: unpacking...' : 'THE LAND, RAISED  F: the hex tops'; };
 })();
+    else if (atk !== F.atk && F.ringsAt(cam.z) < 0) F.atk = atk; // (no rings at the closest zoom: the land is the same under any hex of the party's)

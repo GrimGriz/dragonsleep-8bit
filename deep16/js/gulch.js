@@ -172,7 +172,7 @@
 
   // ---------------------------------------------------------------- IN: the Pit road's gulch hexes on the Silverton area (his lean 1)
   W.DOORS[Gu.KEY] = { roam: Gu.KEY, gates: { north: [-0.14, -1], south: [0.14, 1], west: [-1, 0], east: [1, 0] } }; // (the road's way through the cut: his paint's line)
-  W.APPROACH[Gu.KEY] = { mi: 4, z: 40 };
+  W.APPROACH[Gu.KEY] = { mi: 4, z: Infinity }; // (down to the area's closest zoom, as every door's since 11-03: js/world.js W.closeZ)
   Gu.hc = function (m, q, r) { return [m.w * (q + r / 2), m.w * Math.sqrt(3) / 2 * r]; }; // (a hex's middle in miles on that map -- W.hc reads the map in use)
   Gu.site = function (m) { return ((m || W.M()).sites || []).filter(function (s) { return s.id === Gu.KEY; })[0] || null; };
   // the road's hexes through the cut, in the road's order from the Pit to the fork: the Pit road's hexes on this map that are the gulch's (W.zoneOf) near its site
@@ -218,7 +218,7 @@
     while (D.scenes.length && D.top() !== W.scene) D.pop();
     if (!W.scene) return;
     var S = W.state(); if (pt) { S.pos = pt.slice(); if (W.place(pt)) W.scene.onMap(); }
-    var cl = W.hc(S.at[0], S.at[1]); W.scene.cam.cx = cl[0]; W.scene.cam.cy = cl[1];
+    var cl = W.hc(S.at[0], S.at[1]); W.scene.cam.cx = cl[0]; W.scene.cam.cy = cl[1]; if (W.closeIn) W.closeIn(); // (a place left: the closest zoom, 11-03)
     W.inDoor = null; if (W.house()) D.house.cur.at = { town: null }; W.save(); try { D.music('corridor'); } catch (e) { }
     W.scene.say(line + ' ' + W.timeOfDay().charAt(0).toUpperCase() + W.timeOfDay().slice(1) + '.');
   };
