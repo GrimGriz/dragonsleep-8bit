@@ -214,14 +214,15 @@
       var all = [], hs = [];
       mine.forEach(function (c) {
         c.forEach(function (h) { all.push(h.c); used[h.q + ',' + h.r] = 1; hs.push(gH(h.c[0], h.c[1])); });
-        if (c === keep) items.push({ y: Math.min.apply(null, c.map(function (h) { return h.c[1]; })), k: 'keep', hexes: c, id: s.id });
+        if (c === keep) items.push({ y: Math.min.apply(null, c.map(function (h) { return h.c[1]; })), k: 'keep', hexes: c, id: s.id, box: keepBox(c, w), falls: fallsAt(M, keepBox(c, w)) });
         else if (c.length === 1) items.push({ y: c[0].c[1], k: 'landmark', h: c[0], id: s.id });
         else items.push({ y: Math.min.apply(null, c.map(function (h) { return h.c[1]; })), k: 'wall', hexes: c });
       });
-      hs.sort(function (a, b) { return a - b; }); var h0 = hs[hs.length >> 1], H = hullOf(all);
+      hs.sort(function (a, b) { return a - b; }); var h0 = hs[hs.length >> 1], H = hullOf(all), kb = keep ? keepBox(keep, w) : null;
       var xs = all.map(function (p) { return p[0]; }), ys = all.map(function (p) { return p[1]; }), r0 = Math.floor(Math.min.apply(null, ys) / (w * SQ3 / 2)) - 1, r1 = Math.ceil(Math.max.apply(null, ys) / (w * SQ3 / 2)) + 1;
       for (var r = r0; r <= r1; r++) for (var q = Math.floor(Math.min.apply(null, xs) / w - r / 2) - 1; q <= Math.ceil(Math.max.apply(null, xs) / w - r / 2) + 1; q++) {
         var k = q + ',' + r, c = hc16(w, q, r); if (T[k] || !inHull(H, c[0], c[1])) continue;
+        if (kb && c[0] > kb[0] - w * 0.4 && c[0] < kb[1] + w * 0.4 && c[1] > kb[2] - w * 0.4 && c[1] < kb[3] + w * 0.4) continue; // (no roof under the keep's walls)
         if (gH(c[0], c[1]) > h0 + 300) continue; // (the town on its own ground: not up the slopes the hull crosses)
         items.push({ y: c[1], k: 'roofs', c: c, q: q, r: r });
       }
@@ -237,6 +238,14 @@
     items.sort(function (a, b) { return a.y - b.y; });
     var ids = {}; items.forEach(function (it) { if (it.id) ids[it.id] = 1; });
     BLT = { key: M.key, w: w, items: items, ids: ids }; return BLT;
+  }
+  function keepBox(c, w) { // (the keep's footprint, his squares' outer edges: [west, east, north, south] in miles)
+    var r = w / SQ3; return [Math.min.apply(null, c.map(function (h) { return h.c[0]; })) - w / 2, Math.max.apply(null, c.map(function (h) { return h.c[0]; })) + w / 2, Math.min.apply(null, c.map(function (h) { return h.c[1]; })) - r, Math.max.apply(null, c.map(function (h) { return h.c[1]; })) + r];
+  }
+  function fallsAt(M, b) { // (where a river ends at the keep's north side -- his new river at the Edifice -- the falls come down its face; else its middle)
+    var best = null, bd = 0.15;
+    (M.paths || []).forEach(function (P) { if (P.kind !== 'river') return; [P.pts[0], P.pts[P.pts.length - 1]].forEach(function (p) { var d = Math.hypot(Math.max(b[0] - p[0], 0, p[0] - b[1]), Math.max(b[2] - p[1], 0, p[1] - b[3])); if (d < bd && p[1] <= (b[2] + b[3]) / 2) { bd = d; best = Math.max(b[0] + 0.02, Math.min(b[1] - 0.02, p[0])); } }); });
+    return best != null ? best : (b[0] + b[1]) / 2;
   }
   F.builtPlan = builtPlan; // (for the seat's probes)
   F.drawnIds = function (cam) { if (!F.live() || F.ringsAt(cam.z) >= 0) return null; var P = builtPlan(); return P ? P.ids : null; }; // (the places whose own buildings stand for their icons)
@@ -254,12 +263,26 @@
     var P = builtPlan(); if (!P) return 0; var w = P.w, s = Math.max(0.8, Math.min(3, cam.z / 69)), n = 0;
     P.items.forEach(function (it) {
       var c = it.c || (it.h && it.h.c) || it.hexes[0].c, p0 = gp(cam, c[0], c[1]);
-      if (it.k === 'keep') { // the Edifice: one raised slab of stone across his squares, its roof glass, two spires on its north side
-        var vis = it.hexes.some(function (h) { return seen(cam, gp(cam, h.c[0], h.c[1]), h.c[1]); }); if (!vis) return;
-        var hx = it.hexes.slice().sort(function (a, b) { return a.c[1] - b.c[1] || a.c[0] - b.c[0]; }), lift = Math.round(5 * s);
-        hx.forEach(function (h, i) { var T2 = block(g, cam, h.c, w * 1.02, lift, (h.q + h.r) & 1 ? '#9ccfe0' : '#86bcd2', '#8a7f6c', '#a89c86'); if (i % 3 === 0) { g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(Math.round(T2[4][0]), Math.round(T2[4][1] + 1), 1, 1); } });
-        var nw = hx[0], ne = hx.filter(function (h) { return h.c[1] === nw.c[1]; }).pop();
-        [nw, ne].forEach(function (h) { var q = gp(cam, h.c[0], h.c[1]), x = Math.round(q[0]), y = Math.round(q[1]) - lift, th = Math.round(7 * s); g.fillStyle = '#a89c86'; g.fillRect(x - 1, y - th, 2, th); g.fillStyle = '#5a6a78'; g.beginPath(); g.moveTo(x - 2, y - th); g.lineTo(x, y - th - Math.round(3 * s)); g.lineTo(x + 2, y - th); g.closePath(); g.fill(); });
+      if (it.k === 'keep') { // the Edifice (11-03, his "flat and level and somewhat resemble its silhouette from the title page"): one level block over his squares, the
+        // first game's title facade (first/js/scenes.js drawNightScene) -- long, low and dark, pilasters along its face, the falls down it where his new river comes in --
+        // and the glass roof of the Skylights flat on top
+        var b = it.box, mx = (b[0] + b[1]) / 2, my = (b[2] + b[3]) / 2, base = F.groundH(mx, my), q = function (x, y, h) { return W.proj(cam, x, y, h); };
+        if (!seen(cam, q(mx, b[3], base), b[3]) && !seen(cam, q(mx, my, base), my)) return;
+        var wpx = (b[1] - b[0]) * cam.z, lift = Math.max(5, Math.round(wpx * 0.42)); // (the title's facade, 30 high for 72 wide)
+        var NW = q(b[0], b[2], base), NE = q(b[1], b[2], base), SW = q(b[0], b[3], base), SE = q(b[1], b[3], base), up = function (p) { return [p[0], p[1] - lift]; };
+        var gSW = q(b[0], b[3], Math.min(base, F.groundH(b[0], b[3]))), gSE = q(b[1], b[3], Math.min(base, F.groundH(b[1], b[3]))); // (its face down to the ground before it: a platform's)
+        poly(g, [gSW, gSE, up(SE), up(SW)], '#20202e'); // the facade
+        var np = Math.max(3, Math.round(wpx / (4 * s))), pw = Math.max(1, Math.round(s * 0.9));
+        g.fillStyle = '#34344a'; for (var k2 = 0; k2 < np; k2++) { var u2 = (k2 + 0.5) / np, px = Math.round(gSW[0] + (gSE[0] - gSW[0]) * u2), pt = Math.round(up(SW)[1] + 2), pb = Math.round(gSW[1] + (gSE[1] - gSW[1]) * u2); g.fillRect(px, pt, pw, Math.max(1, pb - pt)); } // its pilasters
+        g.fillStyle = '#4a4a66'; g.fillRect(Math.round(up(SW)[0]), Math.round(up(SW)[1]), Math.round(up(SE)[0] - up(SW)[0]), 1); // the cornice
+        poly(g, [up(NW), up(NE), up(SE), up(SW)], '#34425e'); // the glass roof, dark as the facade under the sky (the title's silhouette), its panes catching it
+        g.strokeStyle = 'rgba(120,170,205,.5)'; g.lineWidth = 1; var nr = Math.max(2, Math.round(wpx / (6 * s)));
+        for (var k3 = 1; k3 < nr; k3++) { var u3 = k3 / nr, a3 = up(q(b[0] + (b[1] - b[0]) * u3, b[2], base)), b3 = up(q(b[0] + (b[1] - b[0]) * u3, b[3], base)); g.beginPath(); g.moveTo(a3[0], a3[1]); g.lineTo(b3[0], b3[1]); g.stroke(); }
+        var mW = up(q(b[0], my, base)), mE = up(q(b[1], my, base)); g.beginPath(); g.moveTo(mW[0], mW[1]); g.lineTo(mE[0], mE[1]); g.stroke();
+        g.strokeStyle = '#5a6a78'; g.beginPath(); var R4 = [up(NW), up(NE), up(SE), up(SW)]; g.moveTo(R4[0][0], R4[0][1]); for (var k4 = 1; k4 < 4; k4++) g.lineTo(R4[k4][0], R4[k4][1]); g.closePath(); g.stroke();
+        var fx = it.falls, fN = up(q(fx, b[2], base)), fB = q(fx, b[3], Math.min(base, F.groundH(fx, b[3]))), fwd = Math.max(2, Math.round(2 * s)), fx0 = Math.round(fN[0] - fwd / 2), ft = Math.round(fN[1]), fh = Math.round(fB[1]) - ft; // the falls, from the mountain over the roof and down the face
+        g.fillStyle = '#3CBCFC'; g.fillRect(fx0, ft, fwd, fh); g.fillStyle = '#A4E4FC'; for (var k5 = 0; k5 < 6; k5++) g.fillRect(fx0 + (k5 & 1), ft + Math.floor(((D.frame || 0) / 2 + k5 * fh / 6) % Math.max(1, fh)), 1, 2);
+        g.fillStyle = 'rgba(164,228,252,.5)'; g.fillRect(fx0 - 1, Math.round(fB[1]) - 1, fwd + 2, 1); // (its foam at the foot)
         n++; return;
       }
       if (it.k === 'wall') { // the stockade along his run of squares: posts and the rail between neighbours
