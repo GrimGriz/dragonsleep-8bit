@@ -168,6 +168,7 @@
     if (!(S.seeded && S.seeded.coldridge1031)) CLIMBED = seedColdridgeClimb();
     if (!(S.seeded && S.seeded.coldridge1031b)) HAIRPINNED = seedColdridgeHairpins();
     if (!(S.seeded && S.seeded.coldridge1031c)) REGRADED = seedColdridgeHisLine();
+    if (!(S.seeded && S.seeded.silverton1103)) SITED = seedEdifice();
   }
   // THE COLDRIDGE CLIMB AND ITS SHELF (10-31, the Halloween desk; his words on the mile hex (112, 32) and the four round it: "Should essentially encompass the road leading
   // up to the road to the doors... like it's pretty decently mapped out road except for this section. I was wonder if you could do the shaping like the silverton fixes were
@@ -331,6 +332,22 @@
       p.note = (p.note || '').replace('moved 3 mi west 10-28 from beside Silverton (it had taken the town to -530 ft; his “good to move and reshape things”)', SINKS_NOTE.replace(/\)$/, '; 3 mi west had sunk the range behind it)')); n++;
     });
     return n > 0;
+  }
+  // THE MARK ON THE EDIFICE (11-03, the hex map and world session; Griz: "I couldn't drag the silverton location marker to the new edifice (town hexes where the rivers
+  // meet) because as I moved it, it started to flatten the terrain around it. the location is as close as I could get it without messing up the mountains", then "Yes to
+  // all leans, lets see what comes out"): once, on load. A city flattens the land within 1.1 mi of its mark to the town's height (cityOn), so his mark dragged onto his
+  // Edifice -- the thirteen 330 ft town hexes at the head of his new river, his paint of 11-02 -- took the range behind the town from 5,800 ft to 1,900. The town's flat
+  // ground is pinned where his mark stood (st.flat), the mark goes to the middle of his Edifice, and the two ways that ended at the mark (the mile, the feed track) keep
+  // their ends where they were: his land, his roads and his town's heights stand exactly as he left them. A drag moves the mark alone; Shift-drag moves both
+  var SITED = false, EDIFICE_AT = [117.570, 27.359], MARK_1102 = [117.5674, 27.9179];
+  function seedEdifice() {
+    S.seeded = S.seeded || {}; S.seeded.silverton1103 = true;
+    var sv = SB.silverton; if (!sv || sv.flat || Math.hypot(sv.x - MARK_1102[0], sv.y - MARK_1102[1]) > 0.05) return false; // (only where his save of 11-02 had it)
+    var at0 = [sv.x, sv.y];
+    S.paths.forEach(function (P) { P.pts = P.pts.map(function (p) { return p === 'silverton' ? at0.slice() : p; }); });
+    sv.flat = at0.slice(); sv.x = EDIFICE_AT[0]; sv.y = EDIFICE_AT[1];
+    sv.note = (sv.note ? sv.note + '; ' : '') + 'on the Edifice 11-03, its flat ground pinned where the mark had stood (his "lets see what comes out")';
+    reindex(); return true;
   }
   // THE FORK DRAGGED SOUTH (10-22, the world map seat; RULED, Griz: "3 - about 8-9 hours from the half-way inn is ideal, the fork can be on either side, but there
   // should be a thin row of plains between the gnoll hills and the bog that the road runs along, and the bog would all be north of it - it can be adjacent to the
@@ -747,12 +764,14 @@
   }
   var PLIFT = 0;
   // a city sits on its own ground (his "1 yes", 10-20): the land within a mile brought to the town ground's height, with the lifts it is under
-  // (a city only: a place of kind town is any new place's kind, and the Doors' hub stands up the mountain). PLIFT is the lifts at the point hRaw read last
+  // (a city only: a place of kind town is any new place's kind, and the Doors' hub stands up the mountain). PLIFT is the lifts at the point hRaw read last.
+  // A city's ground may be pinned apart from its mark (st.flat, 11-03: THE MARK ON THE EDIFICE, below): the flat stays there while the mark moves
+  var CITY_R = 1.1;
   function cityOn(x, y, h) {
     var TT = TB.town, ta = Math.max(10, (TT ? +TT.alt : 300) + PLIFT); // (never under the sea: 10-28, a sink beside Silverton had taken it to -530 ft)
     for (var si = 0; si < S.sites.length; si++) {
       var st = S.sites[si]; if (st.kind !== 'city') continue;
-      var R0 = 1.1, dd = Math.hypot(x - st.x, y - st.y); if (dd >= R0) continue;
+      var R0 = CITY_R, fl = st.flat || [st.x, st.y], dd = Math.hypot(x - fl[0], y - fl[1]); if (dd >= R0) continue;
       var w = dd < R0 * 0.45 ? 1 : 1 - Math.pow((dd - R0 * 0.45) / (R0 * 0.55), 2); h += (ta - h) * w * w * 0.95;
     }
     return h;
@@ -1054,6 +1073,13 @@
     ctx.fill(); ctx.stroke();
   }
   function sites() {
+    var sel = SEL.site && SB[SEL.site];
+    if (sel && sel.kind === 'city' && sel.flat && !isW()) { // (a city's pinned ground, while it is chosen: the ring the town's flat reaches, dashed)
+      var fc = toS(sel.flat[0], sel.flat[1]), fr = CITY_R * view.z;
+      ctx.save(); ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(246,233,197,.75)';
+      ctx.beginPath(); ctx.arc(fc[0], fc[1], fr, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(fc[0] - 6, fc[1]); ctx.lineTo(fc[0] + 6, fc[1]); ctx.moveTo(fc[0], fc[1] - 6); ctx.lineTo(fc[0], fc[1] + 6); ctx.stroke(); ctx.restore();
+    }
     S.sites.forEach(function (st) {
       var s = toS(st.x, st.y); if (s[0] < -200 || s[0] > Wd + 200 || s[1] < -40 || s[1] > Ht + 40) return;
       glyph(s, st.kind, SEL.site === st.id);
@@ -1217,7 +1243,7 @@
         }
       }
       var st = hitSite(p[0], p[1]);
-      if (st) { SEL.site = st.id; if (tool === 'places') { SEL.path = null; SEL.vtx = -1; } begin(); drag = { kind: 'site', s: st, p: p, o: [st.x, st.y] }; panels(); draw(); return; }
+      if (st) { SEL.site = st.id; if (tool === 'places') { SEL.path = null; SEL.vtx = -1; } begin(); drag = { kind: 'site', s: st, p: p, o: [st.x, st.y], f: e.shiftKey && st.flat ? st.flat.slice() : null }; panels(); draw(); return; } // (Shift: a city's pinned ground moves with its mark)
       if (P) { var sg = hitSeg(P, p[0], p[1]); if (sg) { begin(); P.pts.splice(sg[0] + 1, 0, m); SEL.vtx = sg[0] + 1; drag = { kind: 'vtx', P: P, i: sg[0] + 1, p: p, o: m.slice() }; panels(); draw(); return; } }
       if (tool === 'roads') { var hp = hitPath(p[0], p[1]); if (hp) { SEL.path = hp.id; SEL.vtx = -1; SEL.site = null; panels(); draw(); return; } }
     }
@@ -1232,7 +1258,7 @@
     if (drag.kind === 'click' && Math.hypot(p[0] - drag.p[0], p[1] - drag.p[1]) > 4) drag.kind = 'pan';
     if (drag.kind === 'pan') { view.cx = drag.c[0] - (p[0] - drag.p[0]) / view.z; view.cy = drag.c[1] - (p[1] - drag.p[1]) / zy(); }
     else if (drag.kind === 'paint') strokeTo(m);
-    else if (drag.kind === 'site') { drag.s.x = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.s.y = drag.o[1] + (p[1] - drag.p[1]) / zy(); }
+    else if (drag.kind === 'site') { var sdx = (p[0] - drag.p[0]) / view.z, sdy = (p[1] - drag.p[1]) / zy(); drag.s.x = drag.o[0] + sdx; drag.s.y = drag.o[1] + sdy; if (drag.f) drag.s.flat = [drag.f[0] + sdx, drag.f[1] + sdy]; }
     else if (drag.kind === 'vtx') drag.P.pts[drag.i] = [drag.o[0] + (p[0] - drag.p[0]) / view.z, drag.o[1] + (p[1] - drag.p[1]) / zy()];
     else if (drag.kind === 'under') { drag.u.x0 = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.u.y0 = drag.o[1] + (p[1] - drag.p[1]) / view.z; }
     else if (drag.kind === 'lift') {
@@ -1485,7 +1511,7 @@
     var info = $('info'), ed = $('edit'); ed.innerHTML = '';
     if (SEL.site && SB[SEL.site]) {
       var st = SB[SEL.site];
-      info.textContent = st.kind + ' · ' + st.x.toFixed(2) + ', ' + st.y.toFixed(2) + ' mi' + (st.note ? '\n' + st.note : '');
+      info.textContent = st.kind + ' · ' + st.x.toFixed(2) + ', ' + st.y.toFixed(2) + ' mi' + (st.kind === 'city' && st.flat ? '\nits flat ground (the dashed ring) pinned at ' + st.flat[0].toFixed(2) + ', ' + st.flat[1].toFixed(2) + ': a drag moves the mark alone, Shift-drag the two together' : '') + (st.note ? '\n' + st.note : '');
       ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><select id="ed-kind"></select><button id="ed-del">delete</button><button id="ed-go">centre</button></div>' +
         '<div class="row"><input type="text" id="ed-note" placeholder="a note"></div>';
       $('ed-name').value = st.name; $('ed-note').value = st.note || '';
@@ -1841,6 +1867,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED || REGRADED) { saveNow(); msg((REGRADED ? 'The Coldridge climb is graded along your own line: the face and the road\'s ledge follow your hairpins from the junction to the shelf, evenly; your ten lifts by the shelf keep to their hex (a half-mile spread). ' : '') + (HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED || REGRADED || SITED) { saveNow(); msg((SITED ? 'Silverton\'s mark is on your Edifice now; the town\'s flat ground stays where the mark was (the dashed ring when Silverton is chosen; Shift-drag moves the two together), and the mile and the feed track still end there. ' : '') + (REGRADED ? 'The Coldridge climb is graded along your own line: the face and the road\'s ledge follow your hairpins from the junction to the shelf, evenly; your ten lifts by the shelf keep to their hex (a half-mile spread). ' : '') + (HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
