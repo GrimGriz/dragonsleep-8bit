@@ -104,7 +104,7 @@
     var out = (opening || []).length ? ['== before the first answer'].concat(opening.map(function (l) { return '      ' + l; })) : []; // (10-29, the notes seat in his record: the wolf spider's opening bite that dropped Aurdin was in the log alone)
     steps.forEach(function (s) {
       if (s.turnStart) out.push('', '== R' + s.round + ' ' + s.who + '  hp ' + s.hp + '  at ' + s.at.join(',') + '  AI would: ' + (s.turnStart.ai || []).map(function (a) { return a.why + ' ' + a.score; }).join(' | '));
-      out.push('  ' + (s.cmd ? short(s.cmd) : s.refused != null ? 'REFUSED' + (s.times > 1 ? ' x' + s.times : '') + ': ' + s.refused + (s.clicked ? '  -- ' + clicked(s.clicked) : '') : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
+      out.push('  ' + (s.cmd ? short(s.cmd) : s.ai ? '(the AI\'s turn)' : s.refused != null ? 'REFUSED' + (s.times > 1 ? ' x' + s.times : '') + ': ' + s.refused + (s.clicked ? '  -- ' + clicked(s.clicked) : '') : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
       (s.screen || []).forEach(function (l) { out.push('      on screen: ' + l); });
       (s.then || []).forEach(function (l) { out.push('      ' + l); });
     });
@@ -175,6 +175,20 @@
       REC.refused(B, u, said.length ? said.join(' / ') : 'the error sound, no card', at);
     } catch (e) { (r.errors = r.errors || []).push(String(e)); } // (the record must never stop the click)
     return out;
+  };
+
+  // A WATCHED FIGHT'S TURNS (11-03 night, the play records lane 4: the Wagon Road's fights 2-6 under &watch, 11-01, read `steps 0`, the log only): in a fight run with
+  // &watch -- the ladder's, the class floor's, the bench-balance pipeline's seeds -- each turn the AI plays for our side is a step, `ai: true`, with the turn's start (where it
+  // stood, its foes, what the AI weighed) and its log lines under it, so a watched fight reads like a played one. Called by battle.js's round loop as the turn begins
+  // (never by wrapping D.ai.turn: a bench reads its source)
+  REC.aiTurn = function (B, u) {
+    var r = B && B.rec;
+    if (!r || r.done || !B.o.watch || !u || u.side !== 'party') return;
+    flush(B);
+    if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
+    var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: 'the AI (watched)', ai: true };
+    r.turnKey = B.round + ':' + u.id; step.turnStart = turnStart(B, u);
+    r.steps.push(step); r.last = step;
   };
 
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)

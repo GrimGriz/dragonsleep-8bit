@@ -6395,6 +6395,7 @@
   // 1 a click the game turns away is a step of its own in the record (REC.tried, `refused`, `clicked`), the same refusal again counts up; the simple fight's greyed row the same (REC.refused)
   // 2 a re-carded line reads once, its final form -- and a card id reused for a new card (the trophy's lines) keeps every line
   // 3 a fight with a door of its own (an onDone: the road, the camp, the Pocket DM) won and the tab closed at the victory card reads won, not 'unfinished'
+  // 4 a watched fight's turns of ours are steps (`ai`, REC.aiTurn) with their lines under them; a fight not watched writes none
   if (get('mode', '') === 'records1103') {
     var repRB = { checks: [], errors: [] }, UIrb = D.ui;
     function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6450,6 +6451,17 @@
       D.rec.checkpoint(B3); var k3 = keptRB(B3);
       okRB('3 won, the card up (' + cards3.slice(0, 80) + '), onDone ' + done3 + ', the tab closed: recorded ' + (k3 ? k3.result : '(nothing)') + ' (want won)', !!k3 && k3.result === 'won' && done3 === null);
       if (B3.rec) { D.rec.finish(B3, 'won'); var k3b = keptRB(B3); okRB('3 then E: the host closes it ' + (k3b ? k3b.result : '(nothing)') + ' (want won)', !!k3b && k3b.result === 'won'); }
+      // 4. A WATCHED FIGHT'S TURNS: &watch, three rounds -- a step a turn of ours (`ai`, its turn's start, its lines under it), the party sheet filled; a fight not watched,
+      // its four played by the AI by hand (as fix1014's), writes no AI steps
+      var drive4 = function (Bx) { for (var k = 0, v; k < 40000 && Bx.round < 4 && !Bx.over(); k++) { var s = Bx.co.next(v); v = undefined; if (s.done) break; if (s.value && s.value.prompt) v = s.value.prompt.opts[0].value; } };
+      var B4 = mkRB('?npc=goblin,goblin,goblin&vs=fighter:3,cleric:3&lvl=3&watch', 'watched'); drive4(B4);
+      var ai4 = B4.rec ? B4.rec.steps.filter(function (s) { return s.ai; }) : [], ours4 = sideRB(B4, 'party').map(function (w) { return w.id; });
+      D.rec.checkpoint(B4); var k4 = keptRB(B4) || {}, t4 = k4.transcript || [];
+      var lined4 = ai4.filter(function (s) { return (s.then || []).length; }).length, whose4 = ai4.every(function (s) { return ours4.indexOf(s.who) >= 0 && !!s.turnStart; });
+      okRB('4 watched, to round ' + B4.round + ': ' + ai4.length + ' AI steps of ours (' + lined4 + ' with lines under them), each with its turn\'s start ' + whose4 + ', the party sheet ' + (k4.party || []).length + ', the transcript\'s AI turns ' + countRB(t4, /\(the AI's turn\)/) + ' (want some, most with lines, true, 2, as many)',
+        ai4.length >= 2 && lined4 >= 1 && whose4 && (k4.party || []).length === 2 && countRB(t4, /\(the AI's turn\)/) === ai4.length);
+      var B4b = mkRB('?npc=goblin,goblin&vs=fighter:3&lvl=3', 'unwatched'); sideRB(B4b, 'party').forEach(function (w) { w.guest = true; w.classAI = true; }); drive4(B4b);
+      okRB('4 not watched, its party run by the AI by hand: AI steps ' + B4b.rec.steps.filter(function (s) { return s.ai; }).length + ' (want 0: a played fight\'s guests stay in the log)', B4b.rec.steps.filter(function (s) { return s.ai; }).length === 0);
     } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
     var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
     document.body.appendChild(preRB);
