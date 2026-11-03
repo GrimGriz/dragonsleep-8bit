@@ -12,6 +12,8 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 NEAR_MI = 1.5
 NEAR_BOX = (70.0, 150.0, 12.0, 66.0) # (miles: the 5-mile hexes whose middles lie in it -- the corridor's span to just past the Halfway Inn, north of Tarlyn's Pit: RULED 10-22, his "is it putting the edges north of tarlyn's pit (is good, just beyond halfway the old corridor is fine for early game)")
+CLIP_MI = 0.5 # (a road's run through a hex under this, where it comes back to that hex: a hairpin's clip, dropped -- THE ROAD FOLLOWED, below)
+COLD_SHELF_MI = 12.0 # (the Coldridge Route a way up its climb to here, miles from the Galleries junction: the shelf where his road levels, 10.9-11.9 mi, ~5,620 ft -- the 10-31 desk's)
 S3 = math.sqrt(3)
 DIRS = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
 
@@ -90,26 +92,46 @@ def main():
             if e[2] != 'town': e[5], e[6] = e[2], 0.5; e[2] = 'town'; e[4] = 0
             hi0, hj0 = int((tw[0] - hd['x0']) / (hd['mi'] * hd['hs'])), int((tw[1] - hd['y0']) / (hd['mi'] * hd['hs']))
             if 0 <= hj0 < hh and 0 <= hi0 < hw: e[3] = round(float(H[hj0, hi0]))
-    def chain(pts):
-        out = []
+    def chain(pts): # (each hex the way runs through, in its order, with the miles along it where it enters and where it leaves)
+        out, s0 = [], 0.0
         for a, b in zip(pts, pts[1:]):
             L = math.hypot(b[0] - a[0], b[1] - a[1]); n = max(1, int(L / 0.05))
             for k in range(n + 1):
-                x = a[0] + (b[0] - a[0]) * k / n; y = a[1] + (b[1] - a[1]) * k / n; qq, rr = axial(x, y, NEAR_MI); c = (int(qq), int(rr))
-                if out and out[-1] == c: continue
+                x = a[0] + (b[0] - a[0]) * k / n; y = a[1] + (b[1] - a[1]) * k / n; qq, rr = axial(x, y, NEAR_MI); c = (int(qq), int(rr)); sk = s0 + L * k / n
+                if out and out[-1][0] == c: out[-1][2] = sk; continue
                 if out:
-                    p = out[-1]; d = (c[0] - p[0], c[1] - p[1])
+                    p = out[-1][0]; d = (c[0] - p[0], c[1] - p[1])
                     if d not in DIRS: # (a corner crossed: the neighbour of both nearest the way)
                         both = [(p[0] + e[0], p[1] + e[1]) for e in DIRS if (c[0] - p[0] - e[0], c[1] - p[1] - e[1]) in DIRS]
-                        if both: out.append(min(both, key=lambda m: math.hypot(centre(m[0], m[1], NEAR_MI)[0] - x, centre(m[0], m[1], NEAR_MI)[1] - y)))
-                out.append(c)
+                        if both: out.append([min(both, key=lambda m: math.hypot(centre(m[0], m[1], NEAR_MI)[0] - x, centre(m[0], m[1], NEAR_MI)[1] - y)), sk, sk])
+                out.append([c, sk, sk])
+            s0 += L
         return out
+    def near(a, b): return a == b or (b[0] - a[0], b[1] - a[1]) in DIRS
     paths = []
     for P in B['paths']:
-        P2 = dict(P); hx2 = [c for c in chain(P['pts']) if c in hexes]
-        P2['hexes'] = [list(c) for i, c in enumerate(hx2) if i == 0 or hx2[i - 1] != c]
-        if P['kind'] != 'river' and not re.search('coldridge', P.get('name') or '', re.I):
-            for c in hx2: hexes[c][8] = 1
+        P2 = dict(P); runs = []
+        for r in chain(P['pts']):
+            if r[0] not in hexes: continue
+            if runs and runs[-1][0] == r[0]: runs[-1][2] = r[2]
+            else: runs.append(list(r))
+        # THE ROAD FOLLOWED (11-03, the hex map and world session; Griz: "the party on the world map 'skips up' from 111, 34 to 110, 33 without following the route
+        # through 110, 34", then "the route the players walk should follow the road from the tool"): a road's hairpin narrower than these hexes clips one of them
+        # for a few hundred yards on one leg and runs through it again on the next, so its two legs met in that hex and a walk stepped across the bend. A clip
+        # (under CLIP_MI) of a hex the way comes back to is dropped where the hexes either side of it touch, and the way's miles kept, each hex's at its run's middle
+        while True:
+            seen = {}
+            for r in runs: seen[r[0]] = seen.get(r[0], 0) + 1
+            cut = next((i for i in range(1, len(runs) - 1) if runs[i][2] - runs[i][1] < CLIP_MI and seen[runs[i][0]] > 1 and near(runs[i - 1][0], runs[i + 1][0])), None)
+            if cut is None: break
+            del runs[cut]
+            if runs[cut - 1][0] == runs[cut][0]: runs[cut - 1][2] = runs[cut][2]; del runs[cut]
+        P2['hexes'] = [list(r[0]) for r in runs]; P2['at'] = [round((r[1] + r[2]) / 2, 3) for r in runs]
+        cold = re.search('coldridge', P.get('name') or '', re.I)
+        if cold: # (the held road to The DOORS a way only up its climb to the shelf, the iso roam's ground: past it, nothing reaches the Doors -- RULED 10-22, "remove the option for now")
+            P2['upto'] = max([i for i, a in enumerate(P2['at']) if a <= COLD_SHELF_MI] or [0])
+        if P['kind'] != 'river':
+            for r in runs[:(P2['upto'] + 1) if cold else len(runs)]: hexes[r[0]][8] = 1
         paths.append(P2)
     N = {'v': 1, 'hexMi': NEAR_MI, 'from': B.get('from'), 'baked': B.get('baked'), 'saved': B.get('saved'), 'terr': B['terr'], 'look': B.get('look'),
          'hexes': [hexes[k] for k in sorted(hexes, key=lambda k: (k[1], k[0]))], 'sites': sites, 'paths': paths,

@@ -3648,6 +3648,21 @@
       var kbQ = keepQ && keepQ.box; // (his "flat and level and somewhat resemble its silhouette from the title page": one block over his squares, the falls where his new river comes in)
       okQ('the Edifice one level block over his squares: ' + (kbQ ? (kbQ[1] - kbQ[0]).toFixed(2) + ' x ' + (kbQ[3] - kbQ[2]).toFixed(2) + ' mi, the falls at ' + keepQ.falls.toFixed(3) + ' (his new river\'s end 117.569)' : 'no block') + '; no roof under it',
         !!kbQ && kbQ[1] - kbQ[0] > 0.2 && kbQ[1] - kbQ[0] < 0.3 && Math.abs(keepQ.falls - 117.569) < 0.01 && !PQ.items.some(function (it) { return it.k === 'roofs' && it.c[0] > kbQ[0] && it.c[0] < kbQ[1] && it.c[1] > kbQ[2] && it.c[1] < kbQ[3]; }));
+      // THE ROAD FOLLOWED (his "the route the players walk should follow the road from the tool"): the Coldridge a way on the area up its climb to the shelf; from a hairpin's
+      // first leg a walk goes round the bend pass by pass, the arrows never hop to the other leg, the token on the road's own line
+      WQ.use('near'); var cQ = MQ.paths.filter(function (P) { return /coldridge/i.test(P.name || ''); })[0], upQ = cQ ? cQ.upto : -1;
+      okQ('the Coldridge on the area: a way up its climb to pass ' + upQ + ' (' + (cQ && cQ.at[upQ]) + ' mi from the junction, the shelf), ' + (cQ ? cQ.hexes.length : 0) + ' passes in all, the rest held', !!cQ && upQ > 3 && cQ.at[upQ] <= 12 && cQ.n === upQ + 1 && !!MQ.road[WQ.K(cQ.hexes[upQ][0], cQ.hexes[upQ][1])] && !(MQ.pass[WQ.K(cQ.hexes[upQ + 1][0], cQ.hexes[upQ + 1][1])] || []).some(function (p) { return p[0] === cQ; }));
+      var adjQ = function (a, b) { var d = [b[0] - a[0], b[1] - a[1]]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (e) { return e[0] === d[0] && e[1] === d[1]; }); }, hpQ = null;
+      for (var iQ = 0; cQ && iQ <= upQ && !hpQ; iQ++) for (var jQ = iQ + 3; jQ <= upQ; jQ++) if (adjQ(cQ.hexes[iQ], cQ.hexes[jQ]) && !cQ.hexes.slice(iQ, jQ).some(function (h) { return h[0] === cQ.hexes[jQ][0] && h[1] === cQ.hexes[jQ][1]; })) { hpQ = [iQ, jQ]; break; } // (the next leg's hex beside this one, not passed on the way)
+      if (hpQ) {
+        var SR = WQ.state(); SR.at = cQ.hexes[hpQ[0]].slice(); SR.pos = WQ.passPt([cQ.id, hpQ[0]], MQ); SR.rv = [cQ.id, hpQ[0]];
+        var rQ = WQ.route(SR.at, cQ.hexes[hpQ[1]], MQ), rvs = rQ ? rQ.hexes.map(function (h) { return h.rv ? h.rv[1] : null; }) : [];
+        okQ('a hairpin: from pass ' + hpQ[0] + ' (' + cQ.hexes[hpQ[0]] + ') to ' + cQ.hexes[hpQ[1]] + ', beside it but pass ' + hpQ[1] + ' up the road: the walk goes ' + (rQ ? rQ.hexes.length + ' steps by passes ' + rvs.join(', ') : 'nowhere') + ' (one step across the bend before)',
+          !!rQ && rQ.hexes.length === hpQ[1] - hpQ[0] && rvs.every(function (v, k) { return v === hpQ[0] + k + 1; }));
+        okQ('the arrows from pass ' + hpQ[0] + ' toward ' + cQ.hexes[hpQ[1]] + ' (the other leg): ' + JSON.stringify(WQ.passStep(SR.at, cQ.hexes[hpQ[1]], MQ)) + ', refused', WQ.passStep(SR.at, cQ.hexes[hpQ[1]], MQ) === false);
+        var nQ = cQ.hexes[hpQ[0] + 1].slice(); nQ.rv = [cQ.id, hpQ[0] + 1]; var mid = WQ.walkPt({ path: [nQ] }, 0.5), onQ = WQ.roadPt(cQ.id, (cQ.at[hpQ[0]] + cQ.at[hpQ[0] + 1]) / 2, MQ);
+        okQ('half a step along: the token at ' + mid.map(function (v) { return v.toFixed(3); }) + ', on the road\'s own line (' + onQ.map(function (v) { return v.toFixed(3); }) + ')', Math.hypot(mid[0] - onQ[0], mid[1] - onQ[1]) < 0.005);
+      } else okQ('a hairpin on the Coldridge to walk round: none found', false);
       okQ('the doors without his squares by their kind: the mouth ' + kindQ.mouth + ', the Warrens ' + kindQ.warrens + ', the Glowseep ' + kindQ.glowseep + ', the inn ' + kindQ.inn, kindQ.mouth === 'headframe' && kindQ.warrens === 'camp' && kindQ.glowseep === 'camp' && kindQ.inn === 'inn');
     } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
     WQ.onStep = onStepQ; D.store.get = stGQ; D.store.set = stSQ; D.scale = scQ; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
