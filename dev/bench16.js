@@ -6393,6 +6393,7 @@
   // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
   // THE PLAY RECORDS LANE (mode=records1103; the lanes desk of 11-03 night, `handoff-2026-11-03-the-play-records.md`), a check an item:
   // 1 a click the game turns away is a step of its own in the record (REC.tried, `refused`, `clicked`), the same refusal again counts up; the simple fight's greyed row the same (REC.refused)
+  // 2 a re-carded line reads once, its final form -- and a card id reused for a new card (the trophy's lines) keeps every line
   if (get('mode', '') === 'records1103') {
     var repRB = { checks: [], errors: [] }, UIrb = D.ui;
     function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6427,6 +6428,19 @@
       if (!B1s.simple || !D.simple || !D.simple.pickFrom) okRB('1 the simple fight is up (B.simple, D.simple.pickFrom)', false);
       else { turnRB(B1s, f1s, 'move'); var n1s = B1s.rec.steps.length; D.simple.pickFrom(B1s, f1s, 'Throw: at whom', [], function () { return null; }); var s1s = B1s.rec.steps[B1s.rec.steps.length - 1] || {};
         okRB('1 the simple fight, a pick with no one to take: refused "' + (s1s.refused || '(no step)') + '" ' + JSON.stringify(s1s.clicked || null) + ' (want "Throw: no one here it takes")', B1s.rec.steps.length === n1s + 1 && /Throw: no one here it takes/.test(s1s.refused || '')); }
+      // 2. A RE-CARDED LINE ONCE: an attack card amended in place (Shield's verdict) reads once, in its final form; a reused card id with a new head (the trophy's) keeps both
+      var B2 = mkRB('?npc=goblin&vs=fighter:5&lvl=5', 'recard'), f2 = sideRB(B2, 'party')[0];
+      turnRB(B2, f2, 'move');
+      B2.card(['{y}Goblin{/} > {r}Fighter{/}  Scimitar', 'd20 17 vs AC 15'], 300, 'atkRB1');
+      D.rec.refused(B2, f2, 'a boundary: the Shield asked', null);
+      B2.card(['{y}Goblin{/} > {r}Fighter{/}  Scimitar', 'd20 17 vs AC 20  SHIELD +5  {g}MISS{/}'], 300, 'atkRB1');
+      B2.card(['The crowd on the tiers roars.'], 1e9, 'trophyRB');
+      D.rec.refused(B2, f2, 'a boundary: the next beat', null);
+      B2.card(['The crowd on the tiers goes quiet.'], 1e9, 'trophyRB');
+      D.rec.checkpoint(B2); var t2 = (keptRB(B2) || {}).transcript || [], o2 = (keptRB(B2) || {}).opening || [];
+      okRB('2 the amended attack line: its first form ' + countRB(t2, /d20 17 vs AC 15$/) + ', its final ' + countRB(t2, /SHIELD \+5  MISS/) + ', the head ' + countRB(t2, /Goblin > Fighter  Scimitar/) + ' (want 0, 1, 1)',
+        countRB(t2, /d20 17 vs AC 15$/) === 0 && countRB(t2, /SHIELD \+5  MISS/) === 1 && countRB(t2, /Goblin > Fighter  Scimitar/) === 1);
+      okRB('2 the trophy\'s two lines under one id: ' + countRB(t2, /roars\.$/) + ', ' + countRB(t2, /goes quiet\.$/) + ' (want 1, 1)', countRB(t2, /roars\.$/) === 1 && countRB(t2, /goes quiet\.$/) === 1);
     } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
     var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
     document.body.appendChild(preRB);

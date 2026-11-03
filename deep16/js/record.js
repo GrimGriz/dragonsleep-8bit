@@ -57,20 +57,32 @@
   // (11-03, the desk's read of his record: a card with an id REPLACES its own log entries -- battle.js Battle.card filters them out and pushes the new ones at the END, the log the
   // same length -- so flushing by count never saw a re-carded line: the Shield reaction's "SHIELD +5 ... MISS" and a TAKE IT's "HIT" never reached a transcript. Now the entries are
   // told by identity: an entry not seen before is new; one that re-cards a card's line is kept only where its text differs from what that card's line said when last written)
+  // (11-03 night, the play records lane 2: written so, an amended line read twice -- the d20 once without its verdict, once with. A card AMENDED in place -- its head line
+  // the same, as an attack's card is when the Shield or a TAKE IT changes its verdict -- now takes its earlier form of a changed line out of wherever it was written, so the
+  // transcript reads the final form once, where it was last written. A card id reused for a NEW card, its head changed (the trophy's beats, one after another under one id),
+  // keeps every line: those are the story, not drafts. cardAt[k][i] { s: the step it went under, or null for the opening; text }: where each card line was last written)
   function flush(B) {
-    var r = B.rec, ls = B.logEntries || [], seen = r.seen || (r.seen = new WeakSet()), card = r.cardTxt || (r.cardTxt = {}), pos = {}, fresh = [];
+    var r = B.rec, ls = B.logEntries || [], seen = r.seen || (r.seen = new WeakSet()), card = r.cardTxt || (r.cardTxt = {}), at = r.cardAt || (r.cardAt = {}), pos = {}, amend = {}, fresh = [], placed = [];
+    var bare = function (t) { return String(t || '').replace(/^R\d+ /, ''); }; // (the round on the front of every card line: an amendment a round later is still the same card)
     ls.forEach(function (e) { // (the log's entries are all { id, text } objects: battle.js Battle.card, ai.js, roam.js, hex.js)
       if (!e || typeof e !== 'object') return;
       var k = e.id != null ? String(e.id) : null, i = k == null ? 0 : (pos[k] = (pos[k] == null ? 0 : pos[k] + 1));
       if (seen.has(e)) return;
       seen.add(e);
       if (k == null) { fresh.push(logText(e)); return; } // (an entry with no card: new once, as ever)
-      var was = card[k] || (card[k] = []);
-      if (was[i] !== e.text) { was[i] = e.text; fresh.push(logText(e)); } // (a card's line: new, or changed since it was last written)
+      var was = card[k] || (card[k] = []), wh = at[k] || (at[k] = []);
+      if (i === 0) amend[k] = was[0] != null && bare(was[0]) === bare(e.text); // (the head the same: this card amended, not a new one under the old id)
+      if (was[i] === e.text) return;
+      if (amend[k] && wh[i]) unwrite(r, wh[i]); // (the line's earlier form out: only its final form stays)
+      was[i] = e.text; fresh.push(logText(e)); placed.push({ k: k, i: i, text: logText(e) }); // (a card's line: new, or changed since it was last written)
     });
-    if (r.last && fresh.length) r.last.then = (r.last.then || []).concat(fresh);
-    else if (!r.last && fresh.length) r.opening = (r.opening || []).concat(fresh); // (before the first answer -- the foes' first turns: kept for the transcript's head, 10-29)
+    if (!fresh.length) return;
+    var dest = r.last || null;
+    if (dest) dest.then = (dest.then || []).concat(fresh);
+    else r.opening = (r.opening || []).concat(fresh); // (before the first answer -- the foes' first turns: kept for the transcript's head, 10-29)
+    placed.forEach(function (p) { at[p.k][p.i] = { s: dest, text: p.text }; });
   }
+  function unwrite(r, w) { var arr = w.s ? w.s.then : r.opening, j = arr ? arr.lastIndexOf(w.text) : -1; if (j >= 0) arr.splice(j, 1); }
   // what the answer came from, so a slip (a click that was meant for the wheel, the space bar early) can be told from a choice:
   // a mouse click (with where), the END key (space), the confirm key, another key by its name, or code (a helper, a test)
   function via() {
@@ -168,7 +180,7 @@
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
     var n = (B.logEntries || []).length;
-    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, hp0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above)
+    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, cardAt: {}, hp0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above)
     REC.snap(B);
   };
   // hp0 { id: hp }: written once a unit, never over (11-03, the desk's read of his Hex bout). REC.start runs at the top of Battle.enter, before the units are built, so this runs again as enter returns (below)
@@ -198,7 +210,7 @@
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
-    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'trying') out[k] = r[k]; });
+    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'cardAt' && k !== 'trying') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });
