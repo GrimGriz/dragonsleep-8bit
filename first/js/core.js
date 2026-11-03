@@ -198,7 +198,7 @@
 
   // ---------------------------------------------------------------- scenes
   DS.scenes = [];
-  DS.push = function (s) { DS.scenes.push(s); if (s.enter) s.enter(); return s; };
+  DS.push = function (s) { if (DS.startingScript && !s.waitedBy) s.waitedBy = DS.startingScript; DS.scenes.push(s); if (s.enter) s.enter(); return s; };
   DS.pop = function (s) {
     var i = s ? DS.scenes.lastIndexOf(s) : DS.scenes.length - 1;
     if (i < 0) return;
@@ -208,7 +208,16 @@
     DS.input.flush();
   };
   DS.top = function () { return DS.scenes[DS.scenes.length - 1]; };
-  DS.clearScenes = function () { while (DS.scenes.length) { var s = DS.scenes.pop(); if (s.exit) s.exit(); } };
+  // (11-03, Griz on live: "my keyboard doesn't seem to be working after starting a game" -- a script waiting on a scene that clearScenes took (a game over's or
+  // the lake's TITLE, a load) waited for good, DS.scriptActive() stayed true, and the field (world.js Field.busy) took no keys in the game started after. A scene
+  // pushed while a script's waiter starts is that script's (DS.push, Script.step); cleared with no close to come, the script waiting on it is ended)
+  DS.clearScenes = function () {
+    while (DS.scenes.length) {
+      var s = DS.scenes.pop(); if (s.exit) s.exit();
+      var by = s.waitedBy; s.waitedBy = null;
+      if (by && !by.done && by.wait && !by.wait.update) { by.done = true; by.wait = null; s.onClose = null; }
+    }
+  };
   DS.find = function (kind) { for (var i = DS.scenes.length - 1; i >= 0; i--) if (DS.scenes[i].kind === kind) return DS.scenes[i]; return null; };
 
   // ---------------------------------------------------------------- scripts (generator coroutines)
@@ -230,7 +239,7 @@
       if (!w) { val = undefined; continue; }
       if (typeof w === 'function') w = { start: w };
       this.wait = w; w.finished = false;
-      if (w.start) w.start(this);
+      if (w.start) { var st0 = DS.startingScript; DS.startingScript = this; try { w.start(this); } finally { DS.startingScript = st0; } } // (the scenes it pushes are its: DS.clearScenes, 11-03)
       if (w.finished) { this.wait = null; val = w.result; continue; }
       return;
     }

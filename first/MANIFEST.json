@@ -45,7 +45,7 @@
   "first/js/audio.js": "457233bb63339fec",
   "first/js/battle.js": "ad8d7746e460e2f3",
   "first/js/bestiary-art.js": "feff4af2e11ef8b5",
-  "first/js/core.js": "926679adcaa67192",
+  "first/js/core.js": "1493b4a611f6bfdc",
   "first/js/cradle.js": "6b098ce86ef81c7d",
   "first/js/deep.js": "07c8832775b5dd4f",
   "first/js/embed.js": "da4209c9bfe60f69",
@@ -64,6 +64,6 @@
   "first/js/sprites.js": "198dc27c44ee8d02",
   "first/js/ui.js": "33cd910943a9f760",
   "first/js/world.js": "83a69c3e45412f09",
-  "index.html": "3e8aa3ec24feeeb8"
+  "index.html": "7a47a60f377776a6"
  }
 }

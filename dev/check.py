@@ -51,6 +51,7 @@ ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/b
                ['dev/bench8.py', 'fixes1014'], # (the bug-fix seat's 8-bit checks, 10-14: the halls hand off to the Keeper's Water while Halldor mends; the arrow's way walked, Skarn's gate shut or open; the arrow down the spine)
                ['dev/bench8.py', 'fixes1020'], # (the first game's 8-bit fixes, 10-20 -- in place of snootcall1015, THE SNOOT from the road, out with the Skylights: Dace at the pit, under the cloaker and at the mine's mouth, the drummer at his drum, the shops and the starter gear, END HOLD on a dead mark, the dock and the chuul's corpse)
                ['dev/bench8.py', 'conc1017'], # (END <the spell held>, free, in the 8-bit: SKILL's row, the turn goes on -- 10-17)
+               ['dev/bench8.py', 'stalescript1103'], # (a script left waiting on a scene the title or a load cleared ends with it, so the next game takes keys -- 11-03, his "my keyboard doesn't seem to be working after starting a game")
                ['dev/bench8.py', 'stabdebut1029'], # (Stab Debut in the 8-bit, 10-29: Vivian's Cutthroat stabs once more, the dice alone, at a foe that hasn't had a turn -- in place of Opening Cut)
                ['dev/bench8.py', 'twf1015'], # (two-weapon fighting in the 8-bit, 10-15: FIGHT's off-hand swing without the modifier, and Pyro's own swings as they were)
                ['dev/bench8.py', 'offhand1015'], # (the OFFHAND, 10-15, the menus lane §2.5: EQUIP's place, its list, the light there in the field and the fight, a shield the action)

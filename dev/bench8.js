@@ -2390,6 +2390,23 @@
         btS.say = sayS;
       } catch (eS) { check('threw: ' + String(eS && eS.stack || eS).slice(0, 500), false); }
       DS.roll = rollS; var btS2 = DS.find('battle'); if (btS2 && d20s) btS2.d20 = d20s; if (btS2 && hurtS) btS2.hurt = hurtS;
+    } else if (test === 'stalescript1103') {
+      // A SCRIPT LEFT WAITING (11-03, Griz on live: "my keyboard doesn't seem to be working after starting a game"): a script waiting on a scene that DS.clearScenes
+      // takes -- a game over's TITLE, the lake's, a load -- is ended with it, so the field of the game started after takes keys; a frames wait, and a script that
+      // clears the scenes itself and goes on, are not
+      try {
+        var probeS = function () { return { kind: 'probe', update: function () {}, draw: function () {} }; };
+        var ranS = 0; DS.run(function* () { yield DS.W8.scene(probeS()); ranS++; });
+        var actS = DS.scriptActive(), onS = !!DS.find('probe');
+        DS.clearScenes(); T.step(1);
+        check('a script waiting on its scene (active ' + actS + ', the scene up ' + onS + '): the scenes cleared, it is ended (active ' + DS.scriptActive() + ', went on ' + ranS + ')', actS && onS && !DS.scriptActive() && ranS === 0);
+        DS.run(function* () { yield DS.W8.frames(4); ranS++; }); DS.clearScenes(); var frS = DS.scriptActive(); T.step(6);
+        check('a script waiting on frames is not (active after the clear ' + frS + '; it went on ' + ranS + ')', frS && ranS === 1 && !DS.scriptActive());
+        DS.run(function* () { DS.clearScenes(); DS.push(probeS()); yield DS.W8.frames(1); ranS++; }); T.step(3);
+        check('a script that clears the scenes itself goes on (' + ranS + ', active ' + DS.scriptActive() + ')', ranS === 2 && !DS.scriptActive());
+        DS.clearScenes(); var F0 = DS.field = new DS.Field(); DS.push(F0); F0.load(DS.DATA.config.start.map, DS.DATA.config.start.x, DS.DATA.config.start.y, DS.DATA.config.start.dir); T.step(2);
+        check('the field after: busy ' + F0.busy() + ' (keys taken)', !F0.busy());
+      } catch (eSS) { check('threw: ' + String(eSS && eSS.stack || eSS).slice(0, 500), false); }
     } else if (test === 'offhand1015') {
       // the OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
       // slot"): EQUIP's third place is OFFHAND (no LIGHT row); it holds one thing -- a shield, a weapon, the light -- its list the pack's shields, one-handed melee weapons
