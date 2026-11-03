@@ -198,10 +198,12 @@
   // a fight not over yet, kept as far as it has gone: at each round's turn (battle.js, the round's top) and as the tab goes (pagehide,
   // below) -- 10-02, Griz, a bulette fight lost to a closed tab: "yes, if it's overwriting (or not really) that should be pretty cheap".
   // It writes over its own line in deep16.plays (the fight and its start), and REC.finish writes over it again at the end
+  // (11-03 night, the play records lane 3: a fight decided -- its victory card up, the host's door still to close it after E -- checkpoints as its outcome, r.outcome, not
+  // 'unfinished': a road fight won and the tab closed at the card read unfinished)
   REC.checkpoint = function (B) {
     var r = B && B.rec;
     if (!r || r.done || (!r.steps.length && !(B.logEntries || []).length)) return; // (a fight the AI plays has no hand's steps, only its log: kept too -- todo §6, the Skylights' small ones, 10-14)
-    write(B, 'unfinished');
+    write(B, r.outcome || 'unfinished');
   };
   function write(B, result) {
     var r = B.rec;
@@ -210,7 +212,7 @@
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
-    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'cardAt' && k !== 'trying') out[k] = r[k]; });
+    var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'cardAt' && k !== 'trying' && k !== 'outcome') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });
@@ -277,7 +279,7 @@
   };
   P.enter = function () {
     var prev = D.battle;
-    if (prev && prev !== this && prev.rec && !prev.rec.done && prev.rec.steps.length) REC.finish(prev, 'restarted');
+    if (prev && prev !== this && prev.rec && !prev.rec.done && prev.rec.steps.length) REC.finish(prev, prev.rec.outcome || 'restarted'); // (one decided and never closed by its door: its outcome)
     if (this.o.record && !this.rec) REC.start(this, this.o.record);
     var r = enter0.apply(this, arguments);
     if (this.rec) REC.snap(this); // (the units are built: their hit points as the fight begins -- before the first blow, the first answer)
@@ -288,9 +290,16 @@
   // onDone (js/embed.js E.done, which hands the fight back and never finished the record): every story fight he played to 10-12, won or run from, read
   // 'unfinished' (10-13, the road §7g; Griz: "a lot of story fights I ran from, fix if broken") -- so an embedded fight closes its record here too
   var finish0 = P.finish;
+  // A fight whose door closes its own record after E (an onDone: the road's and the camp's, World.fight's recEnd; a floor's, the Hex's, the Pocket DM's) is checkpointed with its
+  // outcome as it is decided, and again once the victory card is up (its pay and its words in): the tab closed at the card keeps the result (11-03 night, the lane's 3)
   P.finish = function* (o) {
-    if (this.rec && !this.rec.done && (typeof this.o.onDone !== 'function' || this.o.embed)) { try { REC.finish(this, o || 'ended'); } catch (e) { /* (the record must never stop the fight's end) */ } }
-    return yield* finish0.apply(this, arguments);
+    var own = typeof this.o.onDone !== 'function' || this.o.embed;
+    if (this.rec && !this.rec.done) {
+      try { if (own) REC.finish(this, o || 'ended'); else { this.rec.outcome = o || 'ended'; REC.checkpoint(this); } } catch (e) { /* (the record must never stop the fight's end) */ }
+    }
+    var out = yield* finish0.apply(this, arguments);
+    if (!own && this.rec && !this.rec.done) { try { REC.checkpoint(this); } catch (e) { /* (as above) */ } }
+    return out;
   };
   // the tab closed, reloaded or sent away mid-fight: the fight as far as it went (REC.checkpoint)
   window.addEventListener('pagehide', function () { try { REC.checkpoint(D.battle); } catch (e) { /* (nothing to keep) */ } });

@@ -6394,6 +6394,7 @@
   // THE PLAY RECORDS LANE (mode=records1103; the lanes desk of 11-03 night, `handoff-2026-11-03-the-play-records.md`), a check an item:
   // 1 a click the game turns away is a step of its own in the record (REC.tried, `refused`, `clicked`), the same refusal again counts up; the simple fight's greyed row the same (REC.refused)
   // 2 a re-carded line reads once, its final form -- and a card id reused for a new card (the trophy's lines) keeps every line
+  // 3 a fight with a door of its own (an onDone: the road, the camp, the Pocket DM) won and the tab closed at the victory card reads won, not 'unfinished'
   if (get('mode', '') === 'records1103') {
     var repRB = { checks: [], errors: [] }, UIrb = D.ui;
     function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6441,6 +6442,14 @@
       okRB('2 the amended attack line: its first form ' + countRB(t2, /d20 17 vs AC 15$/) + ', its final ' + countRB(t2, /SHIELD \+5  MISS/) + ', the head ' + countRB(t2, /Goblin > Fighter  Scimitar/) + ' (want 0, 1, 1)',
         countRB(t2, /d20 17 vs AC 15$/) === 0 && countRB(t2, /SHIELD \+5  MISS/) === 1 && countRB(t2, /Goblin > Fighter  Scimitar/) === 1);
       okRB('2 the trophy\'s two lines under one id: ' + countRB(t2, /roars\.$/) + ', ' + countRB(t2, /goes quiet\.$/) + ' (want 1, 1)', countRB(t2, /roars\.$/) === 1 && countRB(t2, /goes quiet\.$/) === 1);
+      // 3. A WON FIGHT, THE TAB CLOSED AT THE VICTORY CARD: a fight with an onDone of its own (the road's, the camp's) -- the card up, onDone not yet called, the pagehide's checkpoint
+      var done3 = null, B3 = mkRB('?npc=goblin&vs=fighter:5&lvl=5', 'won', { onDone: function (res) { done3 = res; } }), f3 = sideRB(B3, 'party')[0];
+      turnRB(B3, f3, 'move'); D.rec.refused(B3, f3, 'a step, so the record has one', null);
+      sideRB(B3, 'foe').forEach(function (w) { w.hp = 0; w.dead = true; });
+      runRB(B3.finish('won')); var cards3 = (B3.cards || []).map(function (c) { return c.lines.join(' '); }).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      D.rec.checkpoint(B3); var k3 = keptRB(B3);
+      okRB('3 won, the card up (' + cards3.slice(0, 80) + '), onDone ' + done3 + ', the tab closed: recorded ' + (k3 ? k3.result : '(nothing)') + ' (want won)', !!k3 && k3.result === 'won' && done3 === null);
+      if (B3.rec) { D.rec.finish(B3, 'won'); var k3b = keptRB(B3); okRB('3 then E: the host closes it ' + (k3b ? k3b.result : '(nothing)') + ' (want won)', !!k3b && k3b.result === 'won'); }
     } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
     var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
     document.body.appendChild(preRB);
