@@ -307,7 +307,7 @@
     this.fineDoor = !!W.FINE; if (this.fineDoor) W.FINE.start(this.q); // (THE LAND, RAISED by default since 10-22: js/worldfine.js F.start, F switches to the hex tops)
     var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] }; this.zi = M.near ? W.NEARZ : 2; this.zBasePx = this.zooms()[this.zi]; // (the area's hexes as big on the screen as THE WORLD's at its opening zoom; zBasePx: the zoom ZOOM ON APPROACH comes back to)
     try { D.music('corridor'); } catch (e) { }
-    if (/[?&]climb\b/.test(this.q) && M.near) { var cP = M.paths.filter(function (P) { return /coldridge/i.test(P.name || '') && P.at && P.hexes.length > 1; })[0]; if (cP) { S.at = cP.hexes[1].slice(); S.rv = [cP.id, 1]; S.pos = W.passPt(S.rv); W.closeIn(); } } // (&climb: the party on the Coldridge's first hairpin at the closest zoom -- THE ROAD FOLLOWED's door, js/eyes.js eyes-roadfollow-1103)
+    if (/[?&]hairpin\b/.test(this.q) && M.near) { var cP = M.paths.filter(function (P) { return /coldridge/i.test(P.name || '') && P.at && P.hexes.length > 1; })[0]; if (cP) { S.at = cP.hexes[1].slice(); S.rv = [cP.id, 1]; S.pos = W.passPt(S.rv); W.closeIn(); } } // (&hairpin: the party on the Coldridge's first hairpin -- not &climb, the Pocket DM's own door, js/main.js at the closest zoom -- THE ROAD FOLLOWED's door, js/eyes.js eyes-roadfollow-1103)
     else if (/[?&]close\b/.test(this.q)) W.closeIn(); // (&close: open at the area's closest zoom, the built squares' show door -- js/eyes.js eyes-edifice-1103)
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
