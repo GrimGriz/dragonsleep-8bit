@@ -169,6 +169,7 @@
     if (!(S.seeded && S.seeded.coldridge1031b)) HAIRPINNED = seedColdridgeHairpins();
     if (!(S.seeded && S.seeded.coldridge1031c)) REGRADED = seedColdridgeHisLine();
     if (!(S.seeded && S.seeded.silverton1103)) SITED = seedEdifice();
+    if (!(S.seeded && S.seeded.silverton1103b)) TERRACED = seedEdificeTerrace();
   }
   // THE COLDRIDGE CLIMB AND ITS SHELF (10-31, the Halloween desk; his words on the mile hex (112, 32) and the four round it: "Should essentially encompass the road leading
   // up to the road to the doors... like it's pretty decently mapped out road except for this section. I was wonder if you could do the shaping like the silverton fixes were
@@ -348,6 +349,18 @@
     sv.flat = at0.slice(); sv.x = EDIFICE_AT[0]; sv.y = EDIFICE_AT[1];
     sv.note = (sv.note ? sv.note + '; ' : '') + 'on the Edifice 11-03, its flat ground pinned where the mark had stood (his "lets see what comes out")';
     reindex(); return true;
+  }
+  // THE EDIFICE'S TERRACE (11-03, the same session, after he saw it drawn: "The edifice is a hunk of disjointed hexes - it should be flat and level and somewhat
+  // resemble its silhouette from the title page", "you can change the elevations of the tiles at silverton as needed to make the city, just try not to bring the
+  // mountains behind down"): once, on load. His thirteen Edifice hexes stood 880 to 986 ft, falling south; a terrace (terraceOn) levels them at 960 -- its north
+  // edge cut some 25 ft into the slope, its south edge a platform some 80 ft over the town below -- across a line through their middle, 0.14 mi each side, so
+  // nothing a quarter mile off (the mountain's foot behind it, the slopes either side) moves. A lift like his others: L shows it, its level his to change
+  var TERRACED = false;
+  function seedEdificeTerrace() {
+    S.seeded = S.seeded || {}; S.seeded.silverton1103b = true;
+    if ((S.peaks || []).some(function (p) { return p.id === 'v-edifice'; })) return false;
+    S.peaks.push({ id: 'v-edifice', name: 'the Edifice’s terrace', pts: [[117.48, 27.36], [117.66, 27.36]], h: 0, level: [960, 960], r: 0.14, terrace: true, note: 'his thirteen Edifice hexes levelled at 960 ft, 11-03 (his "it should be flat and level")' });
+    return true;
   }
   // THE FORK DRAGGED SOUTH (10-22, the world map seat; RULED, Griz: "3 - about 8-9 hours from the half-way inn is ideal, the fork can be on either side, but there
   // should be a thin row of plains between the gnoll hills and the bog that the road runs along, and the bog would all be north of it - it can be adjacent to the
@@ -682,6 +695,7 @@
     var h = 0, P = S.peaks || []; PW = 0; PC = 0; PL = [];
     for (var i = 0; i < P.length; i++) {
       var p = P[i], r = +p.r || 1, hh = +p.h || 0, d, s = 0;
+      if (p.terrace) continue; // (a terrace is laid last, over the city's flat: terraceOn)
       if (p.pts) {
         var bx = liftBox(p); if (x < bx[0] || y < bx[1] || x > bx[2] || y > bx[3]) continue;
         d = 1e9; var acc = 0, tot = 0, at0 = 0;
@@ -776,11 +790,27 @@
     }
     return h;
   }
+  // A TERRACE (11-03, the hex map and world session; Griz on the Edifice drawn: "it should be flat and level and somewhat resemble its silhouette from the title
+  // page", then "you can change the elevations of the tiles at silverton as needed to make the city, just try not to bring the mountains behind down"): a level
+  // lift marked `terrace` brings the ground to its level after everything else -- the lifts, the river beds, a city's flat -- flat to four fifths of its spread
+  // and down to the land round it in the last fifth, no fractal edge: a built platform, not a valley floor, so the slopes past its spread stand as they were
+  function terraceOn(x, y, h) {
+    var P = S.peaks || [];
+    for (var i = 0; i < P.length; i++) {
+      var p = P[i]; if (!p.terrace || p.level == null) continue;
+      var r = +p.r || 0.1, d = 1e9, acc = 0, at0 = 0, pts = p.pts || [[p.x, p.y], [p.x, p.y]];
+      for (var j = 0; j + 1 < pts.length; j++) { var sl = Math.hypot(pts[j + 1][0] - pts[j][0], pts[j + 1][1] - pts[j][1]), sg = segD([x, y], pts[j], pts[j + 1]); if (sg[0] < d) { d = sg[0]; at0 = acc + sg[1] * sl; } acc += sl; }
+      var u = d / r; if (u >= 1) continue;
+      var f = u <= 0.8 ? 1 : 1 - Math.pow((u - 0.8) / 0.2, 2), lv = lvlOf(p), s = acc ? at0 / acc : 0;
+      h += (lv[0] + (lv[1] - lv[0]) * s - h) * f;
+    }
+    return h;
+  }
   function hAt(x, y, tk) {
     if (tk === undefined) tk = terrAtMi(x, y);
     var h = hRaw(x, y, tk); if (isWet(tk)) return h;
     var pl = PLIFT; h = bedAt(x, y, h); PLIFT = pl;
-    return cityOn(x, y, h);
+    return terraceOn(x, y, cityOn(x, y, h));
   }
   // the caches: a hex's height and its shown ground, cleared when the paint, the roads, the lifts or the seed change
   var HC = new Map(), DT = new Map(), HSIG = '';
@@ -1875,6 +1905,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED || REGRADED || SITED) { saveNow(); msg((SITED ? 'Silverton\'s mark is on your Edifice now; the town\'s flat ground stays where the mark was (the dashed ring when Silverton is chosen; Shift-drag moves the two together), and the mile and the feed track still end there. ' : '') + (REGRADED ? 'The Coldridge climb is graded along your own line: the face and the road\'s ledge follow your hairpins from the junction to the shelf, evenly; your ten lifts by the shelf keep to their hex (a half-mile spread). ' : '') + (HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED || REGRADED || SITED || TERRACED) { saveNow(); msg((TERRACED ? 'The Edifice stands level on a terrace at 960 ft (L shows it: “the Edifice’s terrace”); the mountains behind it as you left them. ' : '') + (SITED ? 'Silverton\'s mark is on your Edifice now; the town\'s flat ground stays where the mark was (the dashed ring when Silverton is chosen; Shift-drag moves the two together), and the mile and the feed track still end there. ' : '') + (REGRADED ? 'The Coldridge climb is graded along your own line: the face and the road\'s ledge follow your hairpins from the junction to the shelf, evenly; your ten lifts by the shelf keep to their hex (a half-mile spread). ' : '') + (HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
