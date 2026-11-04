@@ -275,11 +275,15 @@
         var np = Math.max(3, Math.round(wpx / (4 * s))), pw = Math.max(1, Math.round(s * 0.9));
         g.fillStyle = '#34344a'; for (var k2 = 0; k2 < np; k2++) { var u2 = (k2 + 0.5) / np, px = Math.round(gSW[0] + (gSE[0] - gSW[0]) * u2), pt = Math.round(up(SW)[1] + 2), pb = Math.round(gSW[1] + (gSE[1] - gSW[1]) * u2); g.fillRect(px, pt, pw, Math.max(1, pb - pt)); } // its pilasters
         g.fillStyle = '#4a4a66'; g.fillRect(Math.round(up(SW)[0]), Math.round(up(SW)[1]), Math.round(up(SE)[0] - up(SW)[0]), 1); // the cornice
-        poly(g, [up(NW), up(NE), up(SE), up(SW)], '#34425e'); // the glass roof, dark as the facade under the sky (the title's silhouette), its panes catching it
-        g.strokeStyle = 'rgba(120,170,205,.5)'; g.lineWidth = 1; var nr = Math.max(2, Math.round(wpx / (6 * s)));
-        for (var k3 = 1; k3 < nr; k3++) { var u3 = k3 / nr, a3 = up(q(b[0] + (b[1] - b[0]) * u3, b[2], base)), b3 = up(q(b[0] + (b[1] - b[0]) * u3, b[3], base)); g.beginPath(); g.moveTo(a3[0], a3[1]); g.lineTo(b3[0], b3[1]); g.stroke(); }
-        var mW = up(q(b[0], my, base)), mE = up(q(b[1], my, base)); g.beginPath(); g.moveTo(mW[0], mW[1]); g.lineTo(mE[0], mE[1]); g.stroke();
-        g.strokeStyle = '#5a6a78'; g.beginPath(); var R4 = [up(NW), up(NE), up(SE), up(SW)]; g.moveTo(R4[0][0], R4[0][1]); for (var k4 = 1; k4 < 4; k4++) g.lineTo(R4[k4][0], R4[k4][1]); g.closePath(); g.stroke();
+        // the glass roof, lying back at the land's slant (11-03 night): dark at its near edge as the facade, catching more of the sky toward its far one; its glazing bars run
+        // across it, closer together than they are long, as a roof seen at that slant shows them -- the four-by-two grid of panes in a frame had read as a window facing us
+        var rN = up(NW)[1], rS = up(SW)[1], rg = g.createLinearGradient(0, rN, 0, rS); rg.addColorStop(0, '#5a7c9c'); rg.addColorStop(1, '#2c3852');
+        poly(g, [up(NW), up(NE), up(SE), up(SW)], rg);
+        var nb = Math.max(2, Math.min(6, Math.round((rS - rN) / Math.max(2, 2 * s)))); g.lineWidth = 1;
+        for (var k3 = 1; k3 < nb; k3++) { var u3 = k3 / nb, yb = Math.round(rN + (rS - rN) * u3) + 0.5; g.strokeStyle = 'rgba(150,190,220,' + (0.25 + 0.3 * u3).toFixed(2) + ')'; g.beginPath(); g.moveTo(up(NW)[0], yb); g.lineTo(up(NE)[0], yb); g.stroke(); } // (the bars, fainter toward the back)
+        g.strokeStyle = 'rgba(150,190,220,.18)'; var nr = Math.max(2, Math.round(wpx / (8 * s)));
+        for (var k4 = 1; k4 < nr; k4++) { var xr = Math.round(up(NW)[0] + (up(NE)[0] - up(NW)[0]) * k4 / nr) + 0.5; g.beginPath(); g.moveTo(xr, rN); g.lineTo(xr, rS); g.stroke(); } // (the ribs from front to back, faint)
+        g.fillStyle = '#7e98b0'; g.fillRect(Math.round(up(SW)[0]), Math.round(rS) - 1, Math.round(up(SE)[0] - up(SW)[0]), 1); // (its front edge catching the light, over the cornice)
         var fx = it.falls, fN = up(q(fx, b[2], base)), fB = q(fx, b[3], Math.min(base, F.groundH(fx, b[3]))), fwd = Math.max(2, Math.round(2 * s)), fx0 = Math.round(fN[0] - fwd / 2), ft = Math.round(fN[1]), fh = Math.round(fB[1]) - ft; // the falls, from the mountain over the roof and down the face
         g.fillStyle = '#3CBCFC'; g.fillRect(fx0, ft, fwd, fh); g.fillStyle = '#A4E4FC'; for (var k5 = 0; k5 < 6; k5++) g.fillRect(fx0 + (k5 & 1), ft + Math.floor(((D.frame || 0) / 2 + k5 * fh / 6) % Math.max(1, fh)), 1, 2);
         g.fillStyle = 'rgba(164,228,252,.5)'; g.fillRect(fx0 - 1, Math.round(fB[1]) - 1, fwd + 2, 1); // (its foam at the foot)
@@ -347,7 +351,7 @@
       var c = W.hc(e.q, e.r), P = [];
       for (var i = 0; i < 6; i++) {
         var A = W.HCO[i], B = W.HCO[(i + 1) % 6], n = drape ? 4 : 1;
-        for (var s = 0; s < n; s++) { var x = c[0] + (A[0] + (B[0] - A[0]) * s / n) * w, y = c[1] + (A[1] + (B[1] - A[1]) * s / n) * w; P.push(W.proj(cam, x, y, drape ? F.groundH(x, y) : e.h)); }
+        for (var s = 0; s < n; s++) { var x = c[0] + (A[0] + (B[0] - A[0]) * s / n) * w, y = c[1] + (A[1] + (B[1] - A[1]) * s / n) * w; P.push(W.proj(cam, x, y, drape ? hL0(x, y) : e.h)); } // (draped on the land itself: on an edge it shares with a hex of the party's rings, F.groundH read that hex's column and the outline spiked up to its top -- the road to the Warrens, 11-03 night)
       }
       g.beginPath(); g.moveTo(P[0][0], P[0][1]); for (var j = 1; j < P.length; j++) g.lineTo(P[j][0], P[j][1]); g.closePath(); return P;
     };
