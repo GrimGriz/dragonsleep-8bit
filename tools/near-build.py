@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 NEAR_MI = 1.5
 NEAR_BOX = (70.0, 150.0, 12.0, 66.0) # (miles: the 5-mile hexes whose middles lie in it -- the corridor's span to just past the Halfway Inn, north of Tarlyn's Pit: RULED 10-22, his "is it putting the edges north of tarlyn's pit (is good, just beyond halfway the old corridor is fine for early game)")
 CLIP_MI = 0.5 # (a road's run through a hex under this, where it comes back to that hex: a hairpin's clip, dropped -- THE ROAD FOLLOWED, below)
-COLD_SHELF_MI = 12.0 # (the Coldridge Route a way up its climb to here, miles from the Galleries junction: the shelf where his road levels, 10.9-11.9 mi, ~5,620 ft -- the 10-31 desk's)
+COLD_SHELF_MI = 13.0 # (the Coldridge Route a way up its climb to here, miles from the Galleries junction: the shelf, ~5,350 ft -- 12.6 mi up the climb laid again 11-03 night, tools/hexmap.js seedColdridgeRework; 12.0 on his hairpins of 10-31, the desk's)
 S3 = math.sqrt(3)
 DIRS = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
 
