@@ -6415,6 +6415,7 @@
   // 3 a fight with a door of its own (an onDone: the road, the camp, the Pocket DM) won and the tab closed at the victory card reads won, not 'unfinished'
   // 4 a watched fight's turns of ours are steps (`ai`, REC.aiTurn) with their lines under them; a fight not watched writes none
   // 6 the second game's NOTES stamp names the fight in front by its `started` (H.stamp, H.fightNow), so dev/records.py pairs a note with its transcript
+  // 7 R's file and SAVE ALL write `since`, the last save's stamp, and mark the fights new or changed since it `fresh`; nothing cut
   if (get('mode', '') === 'records1103') {
     var repRB = { checks: [], errors: [] }, UIrb = D.ui;
     function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6489,6 +6490,22 @@
         okRB('6 the NOTES stamp: on a walk "' + walk6 + '"; in a fight "' + in6 + '"; after it "' + after6 + '" (want the fight\'s started in the second only, each a stamp)',
           !/in the fight/.test(walk6) && in6.indexOf('(started ' + B6.rec.started + ') --') > 0 && !/in the fight/.test(after6) && [walk6, in6, after6].every(function (s) { return H6.STAMP_RE.test(s); }));
       } finally { D.store.get = stG6; D.store.set = stS6; }
+      // 7. SINCE THE LAST SAVE (his "yes to those two leans"): R's file and the Pocket DM's SAVE ALL write `since` (the last save's stamp) and mark each fight new or changed since it `fresh`;
+      // nothing cut -- the first save marks all, the next only what ended after the first
+      var mem7 = {}, stG7 = D.store.get, stS7 = D.store.set; D.store.get = function (k) { return mem7[k] ? JSON.parse(mem7[k]) : null; }; D.store.set = function (k, v) { mem7[k] = JSON.stringify(v); return true; };
+      try {
+        var fA7 = { fight: 'npc', started: '2026-11-03T20:00:00.000Z', ended: '2026-11-03T20:05:00.000Z' }, fB7 = { fight: 'npc', started: '2026-11-03T21:00:00.000Z', ended: '2026-11-03T21:30:00.000Z' }, fC7 = { fight: 'npc', started: '2026-11-03T20:50:00.000Z' };
+        D.store.set('deep16.plays', [fA7, fB7, fC7]);
+        var s1 = D.rec.saveBody(new Date('2026-11-03T20:10:00.000Z')); s1.keep(); var s2 = D.rec.saveBody(new Date('2026-11-03T22:00:00.000Z'));
+        var fr7 = function (sb) { return sb.file.fights.filter(function (f) { return f.fresh; }).map(function (f) { return f.started.slice(11, 16); }).join(','); };
+        okRB('7 R\'s file: the first since ' + s1.file.since + ', fresh ' + s1.file.fresh + ' (' + fr7(s1) + '); the next since ' + s2.file.since + ', fresh ' + s2.file.fresh + ' (' + fr7(s2) + '), fights ' + s2.file.fights.length + ' (want null 3, then 20:10 and 2: 21:00 and the unfinished 20:50, all 3 kept)',
+          s1.file.since === null && s1.file.fresh === 3 && s2.file.since === '2026-11-03T20:10:00.000Z' && s2.file.fresh === 2 && fr7(s2) === '21:00,20:50' && s2.file.fights.length === 3);
+        var P7 = new D.Pocket(); P7.st = { fights: [{ started: fB7.started, notes: 'his note' }, { started: fA7.started }] }; P7.summary = function () { return ''; };
+        var q1 = P7.saveAllBody(new Date('2026-11-03T20:10:00.000Z')); q1.keep(); var q2 = P7.saveAllBody(new Date('2026-11-03T22:00:00.000Z'));
+        var qf = q2.file.fights.map(function (x) { return x.fight.started.slice(11, 16) + (x.fresh ? '*' : ''); }).join(',');
+        okRB('7 SAVE ALL: the first fresh ' + q1.file.fresh + '; the next since ' + q2.file.since + ', fresh ' + q2.file.fresh + ' (' + qf + '), noted ' + q2.file.noted + ', a record carried ' + !!(q2.file.fights[0].record) + ' (want 2; 20:10, 1: 21:00*, 20:00; 1, true)',
+          q1.file.fresh === 2 && q2.file.since === '2026-11-03T20:10:00.000Z' && q2.file.fresh === 1 && qf === '21:00*,20:00' && q2.file.noted === 1 && !!q2.file.fights[0].record && !('ended' in q2.file.fights[0]));
+      } finally { D.store.get = stG7; D.store.set = stS7; }
     } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
     var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
     document.body.appendChild(preRB);

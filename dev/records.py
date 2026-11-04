@@ -110,9 +110,10 @@ def cmd_list():
     for p in files():
         d = load(p); fs = fights_of(p, d)
         st = [r.get('started') for r, c in fs if r and r.get('started')] + [c.get('started') for r, c in fs if c and c.get('started') and not r]
-        rows.append((saved_of(p, d), kind(os.path.basename(p)), os.path.relpath(p, DIR), len(fs), max(st) if st else ''))
+        mark = ('  %s fresh since %s' % (d.get('fresh'), (d.get('since') or 'none')[:16])) if isinstance(d, dict) and 'fresh' in d else ''  # (a save's own mark, since 11-03 night: REC.marks)
+        rows.append((saved_of(p, d), kind(os.path.basename(p)), os.path.relpath(p, DIR), len(fs), max(st) if st else '', mark))
     for r in sorted(rows):
-        print('%s  %-26s %-52s %4s fights  newest %s' % (r[0][:16] + 'Z', r[1], r[2], r[3] if r[3] else '-', r[4][:19] if r[4] else '-'))
+        print('%s  %-26s %-52s %4s fights  newest %s%s' % (r[0][:16] + 'Z', r[1], r[2], r[3] if r[3] else '-', r[4][:19] if r[4] else '-', r[5]))
 
 
 def head(r, c, where):

@@ -270,17 +270,32 @@
     fileHas = null;
     return r;
   };
+  // SINCE THE LAST SAVE (11-03 night, the play records lane 7, his "yes to those two leans": every save re-writes every fight the browser kept, 1.4 MB a file, and the desk deduped):
+  // a save writes `since`, the last save's own stamp (none the first time), and marks each fight new or changed since it `fresh` (its `ended` -- or, unfinished, its `started` --
+  // at or after it), with `fresh` counted at the top; nothing is cut. The stamp is kept per kind of save (`key`) as the download goes
+  REC.marks = function (fights, key, when) {
+    var since = D.store.get(key) || null, n = 0;
+    var out = fights.map(function (f) { var at = (f && (f.ended || f.started)) || ''; if (!since || at >= since) { n++; return Object.assign({}, f, { fresh: true }); } return f; });
+    return { since: since, fresh: n, fights: out, keep: function () { D.store.set(key, when); } };
+  };
+  REC.SAVED_KEY = 'deep16.plays.saved';
   // R on the tester ladder: every kept fight to one file (a download: the browser asks where, or drops it in Downloads)
-  REC.save = function () {
+  REC.saveBody = function (d) {
     var all = D.store.get(KEY) || [];
-    if (!all.length) return false;
-    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    if (!all.length) return null;
+    d = d || new Date(); var pad = function (n) { return (n < 10 ? '0' : '') + n; }, mk = REC.marks(all, REC.SAVED_KEY, d.toISOString());
     var name = 'deep16-play-record-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    var body = JSON.stringify({ what: 'DEEP16 play record: every fight this browser kept at this address -- the tester ladder played (P), ?fight=, ?npc= (the class floor, since 10-06), the Pocket DM, the story inside the 8-bit (js/record.js)', saved: d.toISOString(), fights: all }, null, 1);
+    return { name: name, all: all, keep: mk.keep, file: { what: 'DEEP16 play record: every fight this browser kept at this address -- the tester ladder played (P), ?fight=, ?npc= (the class floor, since 10-06), the Pocket DM, the story inside the 8-bit (js/record.js)', saved: d.toISOString(), since: mk.since, fresh: mk.fresh, fights: mk.fights } };
+  };
+  REC.save = function () {
+    var sb = REC.saveBody();
+    if (!sb) return false;
+    var name = sb.name, body = JSON.stringify(sb.file, null, 1);
     var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    fileHas = { name: name, tags: all.map(tag) };
+    sb.keep();
+    fileHas = { name: name, tags: sb.all.map(tag) };
     return name;
   };
 

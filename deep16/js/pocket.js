@@ -878,19 +878,29 @@
   // SAVE ALL on THE FIGHTS (10-17, Griz: "a save on the previous page with all the fights that saves all the fights and all the notes with them would be better"):
   // every fight kept here in one file, each as a fight's own SAVE A FILE writes it -- its summary, its notes, its play record (js/record.js keeps the last 40, so an
   // older fight's `record` is null). R on the tester ladder (REC.save) writes the play records alone, with no notes and no summary
-  Pocket.prototype.saveAll = function () {
+  // (11-03 night, the play records lane 7, his "yes to those two leans": `since` the last SAVE ALL's stamp, and each fight new or changed since it `fresh` -- js/record.js REC.marks;
+  // nothing cut. saveAllBody is the file without the download, for a bench)
+  Pocket.SAVED_KEY = 'deep16.pocket.savedAll';
+  Pocket.prototype.saveAllBody = function (d) {
     var fs = this.st.fights || []; if (!fs.length) return null;
     var plays = D.store.get('deep16.plays') || [], self = this;
-    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    d = d || new Date(); var pad = function (n) { return (n < 10 ? '0' : '') + n; };
     var name = 'pocket-dm-fights-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    var body = JSON.stringify({ what: 'DRAGONSLEEP: every Pocket DM fight kept in this browser, newest first (deep16/?pocket THE FIGHTS, SAVE ALL; the play records by js/record.js)', saved: d.toISOString(), n: fs.length,
-      noted: fs.filter(function (f) { return f.notes; }).length,
-      fights: fs.map(function (rec) { return { summary: self.summary(rec), fight: rec, record: plays.filter(function (f) { return f.started === rec.started; })[0] || null }; }) }, null, 1);
+    var items = fs.map(function (rec) { var r = plays.filter(function (f) { return f.started === rec.started; })[0] || null; return { summary: self.summary(rec), fight: rec, record: r, ended: (r && r.ended) || rec.started }; });
+    var mk = D.rec && D.rec.marks ? D.rec.marks(items, Pocket.SAVED_KEY, d.toISOString()) : { since: null, fresh: items.length, fights: items, keep: function () { } };
+    mk.fights.forEach(function (x) { delete x.ended; });
+    return { name: name, n: fs.length, keep: mk.keep, file: { what: 'DRAGONSLEEP: every Pocket DM fight kept in this browser, newest first (deep16/?pocket THE FIGHTS, SAVE ALL; the play records by js/record.js)', saved: d.toISOString(), since: mk.since, fresh: mk.fresh, n: fs.length,
+      noted: fs.filter(function (f) { return f.notes; }).length, fights: mk.fights } };
+  };
+  Pocket.prototype.saveAll = function () {
+    var sb = this.saveAllBody(); if (!sb) return null;
+    var fs = this.st.fights, name = sb.name, body = JSON.stringify(sb.file, null, 1);
     try {
       var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      this.say('saved ' + name + ': ' + fs.length + ' fight' + (fs.length === 1 ? '' : 's'));
+      sb.keep();
+      this.say('saved ' + name + ': ' + fs.length + ' fight' + (fs.length === 1 ? '' : 's') + (sb.file.since ? ', ' + sb.file.fresh + ' since the last SAVE ALL' : ''));
     } catch (e) { this.say('could not save: ' + e); return null; }
     return name;
   };
