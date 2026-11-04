@@ -12,20 +12,22 @@ full log, then the later `ended`, then the more steps).
         play-records/ -- every fight in no file saved up to that one's `saved` (the desk's "dedupe against every older record").
         Writes to DIR (default: the system temp's records-<since>/): slice-<i>-of-<N>.txt, N slices balanced by size in time order (a
         reader a slice), each fight with its head (door, name, level, result, rounds, ended, its steps by kind, the files it is in), its
-        Pocket DM card matched by `started` (q, foes, CR, difficulty, rung, his NOTES on it), PARTY / PARTY END / OPENING and the
+        Pocket DM card matched by `started` (q, foes, CR, difficulty, rung, his NOTES on it), his second-game NOTES written during it (a
+        NOTES stamp names the fight in front by its `started`, since 11-03 night), PARTY / PARTY END / OPENING and the
         transcript (the log when there is none); and notes.txt -- his NOTES (hero_situations_feedback-*) saved since, the new lines of
         each save only (every save re-sends the whole box; one that shares no start with the last is his own clear, written whole).
 
 Reading the transcripts (the memory feedback-read-his-play-record): lines printed ABOVE a turn's `== R<n> <who>` header belong to that
 turn; a step `REFUSED: ...` is a click the game turned away, `(the AI's turn)` a watched fight's turn of ours (js/record.js, 11-03 night).
 """
-import datetime, glob, json, os, sys, tempfile
+import datetime, glob, json, os, re, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 
 
 def records_dir():
     """play-records/ beside this checkout -- or, run from a worktree (which has none: it is gitignored), the main checkout's"""
+    if os.environ.get('RECORDS_DIR'): return os.environ['RECORDS_DIR']  # (another folder: a test's, or a copy)
     d = os.path.join(ROOT, 'play-records')
     if os.path.isdir(d): return d
     try:
@@ -121,11 +123,40 @@ def head(r, c, where):
                len(st), len(st) - n_ai - n_rf, n_rf, n_ai, ', '.join(sorted(where))))
 
 
+STAMP = re.compile(r'^-- day .* --$')
+IN_FIGHT = re.compile(r'\(started (\d{4}-\d\d-\d\dT[\d:.]+Z)\) --$')
+
+
+def notes_by_fight():
+    """his second-game NOTES written during a fight (since 11-03 night a stamp names the fight in front by its `started`, deep16/js/house.js H.stamp): started -> the notes under it"""
+    out = {}
+    for p in glob.glob(os.path.join(DIR, 'hero_situations_feedback-*.json')):
+        d = load(p)
+        if not isinstance(d, dict) or not isinstance(d.get('notes'), str): continue
+        cur, block = None, []
+        for ln in d['notes'].replace('\r\n', '\n').split('\n') + ['-- day end --']:
+            if STAMP.match(ln):
+                if cur and block and '\n'.join(block).strip():
+                    t = '\n'.join(block).strip()
+                    if t not in out.setdefault(cur[0], []): out[cur[0]].append(t)
+                m = IN_FIGHT.search(ln); cur = (m.group(1),) if m else None; block = []
+            elif cur:
+                block.append(ln)
+    return out
+
+
+FIGHT_NOTES = None
+
+
 def text_of(r, c, where):
+    global FIGHT_NOTES
+    if FIGHT_NOTES is None: FIGHT_NOTES = notes_by_fight()
     L = ['#' * 100, head(r, c, where)]
     if c:
         L.append('POCKET CARD: q=%s | foes=%s | CR %s, %s | rung %s | result %s | HIS NOTES: %s'
                  % (c.get('q'), c.get('foes'), c.get('cr'), c.get('diff'), c.get('rung'), c.get('result'), json.dumps(c.get('notes') or '', ensure_ascii=False)))
+    for t in FIGHT_NOTES.get(r.get('started'), []):
+        L.append('HIS NOTES IN THIS FIGHT (the second game\'s NOTES): ' + json.dumps(t, ensure_ascii=False))
     L.append('PARTY: ' + json.dumps(r.get('party'), ensure_ascii=False))
     L.append('PARTY END: ' + json.dumps(r.get('partyEnd'), ensure_ascii=False))
     if r.get('opening'): L.append('OPENING: ' + json.dumps(r.get('opening'), ensure_ascii=False))

@@ -891,7 +891,15 @@
   H.stamp = function () {
     var rec = H.cur, W = D.world, at = H.atNow(rec), sq = at.town && at.sq ? ' ' + at.sq.join(',') : '', hx = !at.town && rec.world && rec.world.at ? ' hex ' + rec.world.at.join(',') : '';
     var hr = W && W.hour ? W.hour() : null;
-    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.stampWhere(rec) + sq + hx + ' --';
+    var F = H.fightNow(), fs = F ? ' · in the fight ' + String(F.name || F.fight || 'a fight').replace(/\s*--\s*/g, ' ').slice(0, 48) + ' (started ' + F.started + ')' : '';
+    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.stampWhere(rec) + sq + hx + fs + ' --';
+  };
+  // the fight going on as a note is written (11-03 night, the play records lane 6, his "yes to those two leans"): the record of the fight in front, by its `started` -- the stamp
+  // names it, so a desk pairs the note with that fight's transcript (dev/records.py); none on a walk, or once the fight's record is closed
+  H.fightNow = function () {
+    var on = function (s) { return s && s.rec && !s.rec.done && s.rec.started ? s.rec : null; }, r = null;
+    (D.scenes || []).forEach(function (s) { r = on(s) || r; });
+    return r || on(D.battle);
   };
   // the floor the party stands on (10-29, the lanes desk reading his NOTES of 1846Z: six notes on the Galleries' floors all said "the Guano Galleries' mouth", one of them on the
   // cloaker's level -- and his 1808Z ones "the Crawler Warrens (the mouth camp)" in the workings): a mine floor, the Wet, the Hex by their own names; else the save's place

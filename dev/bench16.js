@@ -6414,6 +6414,7 @@
   // 2 a re-carded line reads once, its final form -- and a card id reused for a new card (the trophy's lines) keeps every line
   // 3 a fight with a door of its own (an onDone: the road, the camp, the Pocket DM) won and the tab closed at the victory card reads won, not 'unfinished'
   // 4 a watched fight's turns of ours are steps (`ai`, REC.aiTurn) with their lines under them; a fight not watched writes none
+  // 6 the second game's NOTES stamp names the fight in front by its `started` (H.stamp, H.fightNow), so dev/records.py pairs a note with its transcript
   if (get('mode', '') === 'records1103') {
     var repRB = { checks: [], errors: [] }, UIrb = D.ui;
     function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6480,6 +6481,14 @@
         ai4.length >= 2 && lined4 >= 1 && whose4 && (k4.party || []).length === 2 && countRB(t4, /\(the AI's turn\)/) === ai4.length);
       var B4b = mkRB('?npc=goblin,goblin&vs=fighter:3&lvl=3', 'unwatched'); sideRB(B4b, 'party').forEach(function (w) { w.guest = true; w.classAI = true; }); drive4(B4b);
       okRB('4 not watched, its party run by the AI by hand: AI steps ' + B4b.rec.steps.filter(function (s) { return s.ai; }).length + ' (want 0: a played fight\'s guests stay in the log)', B4b.rec.steps.filter(function (s) { return s.ai; }).length === 0);
+      // 6. A NOTE TIED TO ITS FIGHT (his "yes to those two leans"): the second game's NOTES stamp names the fight in front by its `started`; none on a walk, none once its record is closed
+      var memRB = {}, stG6 = D.store.get, stS6 = D.store.set; D.store.get = function (k) { return memRB[k] ? JSON.parse(memRB[k]) : null; }; D.store.set = function (k, v) { memRB[k] = JSON.stringify(v); return true; };
+      try {
+        var H6 = D.house, rec6 = H6.fresh(); rec6.at = { town: null }; H6.begin(rec6, 0); D.battle = null;
+        var walk6 = H6.stamp(), B6 = mkRB('?npc=goblin&vs=fighter:3&lvl=3', 'notes'), in6 = H6.stamp(); D.rec.finish(B6, 'won'); var after6 = H6.stamp();
+        okRB('6 the NOTES stamp: on a walk "' + walk6 + '"; in a fight "' + in6 + '"; after it "' + after6 + '" (want the fight\'s started in the second only, each a stamp)',
+          !/in the fight/.test(walk6) && in6.indexOf('(started ' + B6.rec.started + ') --') > 0 && !/in the fight/.test(after6) && [walk6, in6, after6].every(function (s) { return H6.STAMP_RE.test(s); }));
+      } finally { D.store.get = stG6; D.store.set = stS6; }
     } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
     var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
     document.body.appendChild(preRB);
