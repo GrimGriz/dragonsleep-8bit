@@ -4638,11 +4638,29 @@
       // 3. no herbs: the line, no page
       var rN = ritualFF(mW); while (mW.pages.length) mW.pop();
       okFF('no Calling Herbs: no page, the line "' + rN.said.slice(0, 60) + '"', !rN.page && /Calling Herbs/.test(rN.said));
+      // 3b. ONE SERVES ALREADY (11-03 night, the house lane's Tuesday 2, the 10-31 not-yet): A NEW SHAPE? first, as the first game's ritual asks -- LEAVE IT keeps it and the herbs; A NEW SHAPE goes on to WHAT SHAPE?
+      packFF(rec.inv, 'callingherbs', 1); var rK = ritualFF(mW), kSaid = rK.page && rK.page.list.cur() ? rK.page.list.cur().note || '' : '';
+      if (rK.page) rowFF(mW, rK.page, function (it) { return it.value === 'n'; }); var afterN = mW.top(), leftN = !afterN || !afterN.title;
+      okFF('a familiar serving, Find Familiar again: the page "' + (rK.page && rK.page.title) + '" (' + rK.rows.join('/') + ', "' + kSaid.slice(0, 60) + '"); LEAVE IT -- no shape page after it ' + leftN + ', the herbs ' + nFF(rec.inv, 'callingherbs') + ', still the ' + (rec.flags.familiar || {}).kind + ' (want A NEW SHAPE?, y/n, true, 1, ' + pick + ')',
+        !!rK.page && rK.page.title === 'A NEW SHAPE?' && rK.rows.join() === 'y,n' && /serves already/.test(kSaid) && leftN && nFF(rec.inv, 'callingherbs') === 1 && (rec.flags.familiar || {}).kind === pick);
+      while (mW.pages.length) mW.pop();
+      var rY = ritualFF(mW); if (rY.page) rowFF(mW, rY.page, function (it) { return it.value === 'y'; }); var afterY = mW.top();
+      okFF('... and A NEW SHAPE: WHAT SHAPE? next (' + (afterY && afterY.title) + ')', !!afterY && afterY.title === 'WHAT SHAPE?');
+      while (mW.pages.length) mW.pop();
       // 4. A FLOOR (the Galleries' mouth): a cave's shapes, the ritual on the floor's figure, the floor's own flags (back to the save as the party leaves)
       while (D.scenes.length > 1) D.pop(); HFF.toTown('mouth', 'east'); var BF = floorFF(); BF.inv = BF.inv || []; packFF(BF.inv, 'callingherbs', 1);
       var fF = HFF.famForms(au, spF, BF), lnF = HFF.fieldOnFloor(BF, 'cast', { h: au, sp: spF, form: 'bat' }, function (h) { return figFF(BF, idFF(h)); }), flF = BF.roam.flags.familiar;
       okFF('a floor (' + RFF.def.key + '): the shapes ' + [].concat(fF).join('/') + '; a bat called: ' + JSON.stringify(flF) + ', the herbs ' + nFF(BF.inv, 'callingherbs') + '; "' + (lnF || []).join(' ').slice(0, 80) + '"',
         [].concat(fF).join() === 'bat,rat,spider' && !!flF && flF.kind === 'bat' && flF.by === 'aurdin' && nFF(BF.inv, 'callingherbs') === 0);
+      // 4b. THE FLOOR'S NEW FAMILIAR JOINS THE WALK AT ONCE (11-03 night, the house lane's Tuesday 2: it waited for the next floor): the bat on the floor now, riding Aurdin's figure, on the floor
+      // while he is; a second ritual (a rat) sends the bat away, and A NEW SHAPE? reads the floor's
+      var fmF = BF.roam.fam, auF = figFF(BF, 'aurdin'), onF = BF.units.indexOf(auF) >= 0;
+      okFF('the bat on the walk now: ' + (fmF ? fmF.kind + ' of ' + (fmF.master && fmF.master.id) + ', riding ' + !!fmF.riding + ', on the floor ' + (BF.units.indexOf(fmF) >= 0) : 'none') + ' (Aurdin on the floor ' + onF + ')',
+        !!fmF && fmF.kind === 'fam_bat' && fmF.master === auF && !!fmF.riding && (BF.units.indexOf(fmF) >= 0) === onF && HFF.famHad(au, BF) === 'bat');
+      packFF(BF.inv, 'callingherbs', 1); HFF.fieldOnFloor(BF, 'cast', { h: au, sp: spF, form: 'rat' }, function (h) { return figFF(BF, idFF(h)); });
+      var fm2F = BF.roam.fam, batsF = BF.units.filter(function (u) { return u.kind === 'fam_bat'; }).length;
+      okFF('a rat called over it: the floor\'s familiar ' + (fm2F && fm2F.kind) + ', bats left on the floor ' + batsF + ', the bat sent away ' + !!(fmF && fmF.left) + ', A NEW SHAPE? reads ' + HFF.famHad(au, BF) + ' (want fam_rat, 0, true, rat)',
+        !!fm2F && fm2F.kind === 'fam_rat' && batsF === 0 && !!(fmF && fmF.left) && HFF.famHad(au, BF) === 'rat');
       // 5. A FIGHT ON THE FLOOR'S OWN SQUARES (js/roam.js R.engage): a rat beside the party, the four by the class AI; kept in deep16.plays as the field fights are, its own log only
       var R0F = BF.roam, tk = R0F.token, rat = BF.makeFoe({ id: 'bench-rat', kind: 'giantrat' }), spotF = null;
       [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(function (d) { var x = tk.x + d[0], y = tk.y + d[1]; if (D.grid.canStand(rat, x, y) && !D.grid.occupant(x, y)) { spotF = [x, y]; return true; } return false; });

@@ -507,8 +507,20 @@
       if (sp.kind === 'familiar' && m.host.famForms) {
         var fms = m.host.famForms(h, sp), F0 = R().FAMILIARS;
         if (typeof fms === 'string') { sfx('error'); m.say(fms); return; }
-        m.push(new ShapePage(m, 'WHAT SHAPE?', (fms || []).filter(function (k) { return F0[k]; }).map(function (k) { return { label: F0[k].name.toUpperCase(), right: F0[k].hp + ' HP', value: k, note: F0[k].gift }; }),
-          function (k) { m.act('cast', { h: h, sp: sp, form: k }, function () { self.refresh(); }); }));
+        var shapes = function () {
+          m.push(new ShapePage(m, 'WHAT SHAPE?', (fms || []).filter(function (k) { return F0[k]; }).map(function (k) { return { label: F0[k].name.toUpperCase(), right: F0[k].hp + ' HP', value: k, note: F0[k].gift }; }),
+            function (k) { m.act('cast', { h: h, sp: sp, form: k }, function () { self.refresh(); }); }));
+        };
+        // one serves already (host.famHad): A NEW SHAPE? first, as the first game's ritual asks (first/js/familiar.js) -- LEAVE IT keeps it and the herbs (11-03 night, the house
+        // lane's Tuesday 2: the not-yet of 10-31)
+        var had = m.host.famHad ? m.host.famHad(h) : null;
+        if (had && F0[had]) {
+          var kp = (DS.DATA.text || {})['fam.keep'], kt = (kp && (kp.t || kp)) || '{name}\'s {form} serves already. A new shape?';
+          kt = String(kt).split('{name}').join(h.name).split('{form}').join(F0[had].name);
+          m.push(new ShapePage(m, 'A NEW SHAPE?', [{ label: 'A NEW SHAPE', value: 'y', note: kt }, { label: 'LEAVE IT', value: 'n', note: kt }], function (v) { if (v === 'y') shapes(); }));
+          return;
+        }
+        shapes();
         return;
       }
       m.act('cast', { h: h, sp: sp }, function () { self.refresh(); });

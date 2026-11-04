@@ -807,12 +807,29 @@
     return { where: 'world', party: rec.party, tent: true, flags: (rec.flags = rec.flags || {}), has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
       ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
   }
+  // a familiar called on a floor joins the walk at once (11-03 night, the house lane's Tuesday 2: it waited for the next floor -- R0.fam is made at the floor's setup, from the
+  // flags the party brought in): its unit made as a fight makes it (deep16/js/familiar.js FM.unit), riding its caster (js/roam.js R.famPlace); the shape it had is sent away
+  function famNow(B, c) {
+    var R0 = B && B.roam, fl = R0 && R0.flags && R0.flags.familiar, FM = D.familiar;
+    if (!fl || fl.by !== (c.key || c.id) || !FM || !FM.unit) return;
+    var u = FM.unit(B, { flags: R0.flags }, R0.members); if (!u) return;
+    var old = R0.fam; if (old) { old.left = true; var j = B.units.indexOf(old); if (j >= 0) B.units.splice(j, 1); }
+    R0.fam = u; if (D.roam && D.roam.famPlace) D.roam.famPlace(B); B.cache = null;
+  }
+  // the shape a caster's familiar has now, or null: js/menu.js asks A NEW SHAPE? before WHAT SHAPE? when there is one, as the first game's ritual does (first/js/familiar.js;
+  // 11-03 night, the house lane's Tuesday 2). On a floor, one fallen there is no shape to keep: the ritual just calls it back
+  H.famHad = function (h, B) {
+    var fl = B && B.roam ? B.roam.flags : H.cur && H.cur.flags, f = fl && fl.familiar, by = h && (h.key || h.id), fu = B && B.roam && B.roam.fam;
+    if (!f || f.by !== by) return null;
+    if (fu && (fu.dead || fu.hp <= 0)) return null;
+    return f.kind;
+  };
   // the field on a town floor (js/roam.js R.menuAct, in the house): the menu's sheets to the floor's figures (unitOf), the same rules
   H.fieldOnFloor = function (B, kind, a, unitOf) {
     var R0 = B.roam, RR = D.roam, c = a.h ? unitOf(a.h) || null : null, t = a.t ? unitOf(a.t) || null : null;
     var env = { where: 'floor', party: R0.members, tent: false, form: a.form, flags: (R0.flags = R0.flags || {}), B: B, has: function (id) { return (B.inv || []).some(function (s) { return s.id === id && s.n > 0; }); },
       take: function (id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, ward: function (steps) { R0.encIn += steps * RR.RATE; }, longRest: function () { return []; } };
-    if (kind === 'cast' && c && a.sp) return FD.cast(c, a.sp, t, env);
+    if (kind === 'cast' && c && a.sp) { var lnC = FD.cast(c, a.sp, t, env); if (a.sp.kind === 'familiar') famNow(B, c); return lnC; }
     if (kind === 'skill' && c) return FD.skill(c, a.s, t);
     if (kind === 'item' && a.id) return FD.item(a.id, c || R0.token, env);
     return null;
@@ -842,6 +859,7 @@
       canSave: function () { return true; },
       touch: true, // (the Light on the one it touches, asked: js/menu.js MagicPage, FD.cast)
       famForms: function (h, sp) { return H.famForms(h, sp, null); }, // (Find Familiar's WHAT SHAPE?, 10-31)
+      famHad: function (h) { return H.famHad(h, null); }, // (A NEW SHAPE? first when one serves already: 11-03 night)
       // a sheet's WHO COPIES IT? (js/menu.js asks first with no one, then of each): THE WORLD's menu had none, and a sheet read here threw (10-31, his playthrough: "trying to
       // 'read sheet' from inventory (find familiar) on world map crashes game") -- with no one, '' if any of the four can, else the first one's why
       whyNot: function (id, h) {
