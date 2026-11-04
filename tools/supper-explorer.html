@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Supper, Explored</title>
+<style>
+:root {
+  --bg: #f4f0e8; --panel: #fffdf8; --ink: #1f1d1a; --mute: #6b655b; --line: #ddd5c6; --accent: #8a531f;
+  --good: #2f6b3a; --bad: #9a2f2f; --chip: #ece4d4; --sel: #f3e1c6; --shadow: 0 1px 2px rgba(0,0,0,.06);
+  --t-game: #2f5f8a; --t-lane: #4f6a22; --t-his: #8a2f6b; --t-draft: #8a6420; --t-realm: #3c6e6e; --warn: #b2541b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15130f; --panel: #1e1b15; --ink: #eee7da; --mute: #a69e90; --line: #3a352b; --accent: #e3a866;
+    --good: #84c891; --bad: #e88c8c; --chip: #2b261e; --sel: #3b2f1f; --shadow: none;
+    --t-game: #86b8e6; --t-lane: #b8cc7c; --t-his: #e793c9; --t-draft: #e4c27e; --t-realm: #86cccc; --warn: #f0a070;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15130f; --panel: #1e1b15; --ink: #eee7da; --mute: #a69e90; --line: #3a352b; --accent: #e3a866;
+  --good: #84c891; --bad: #e88c8c; --chip: #2b261e; --sel: #3b2f1f; --shadow: none;
+  --t-game: #86b8e6; --t-lane: #b8cc7c; --t-his: #e793c9; --t-draft: #e4c27e; --t-realm: #86cccc; --warn: #f0a070;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { padding: 18px 16px 8px; max-width: 1240px; margin: 0 auto; }
+h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: .2px; }
+.sub { color: var(--mute); margin: 0; max-width: 900px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+main { max-width: 1240px; margin: 0 auto; padding: 8px 16px 40px; display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) 330px; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); min-width: 0; }
+.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--mute); margin: 0 0 8px; font-weight: 600; }
+.tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; vertical-align: 1px; white-space: nowrap; }
+.tag.GAME { color: var(--t-game); } .tag.LANE { color: var(--t-lane); } .tag.HIS { color: var(--t-his); } .tag.DRAFT { color: var(--t-draft); } .tag.REALM { color: var(--t-realm); }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.controls label { font-weight: 600; }
+input[type=range] { width: 260px; max-width: 70vw; accent-color: var(--accent); }
+.daynum { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); min-width: 54px; display: inline-block; }
+.flags { display: flex; flex-wrap: wrap; gap: 6px; }
+.flag { font-size: 12px; background: var(--chip); border-radius: 999px; padding: 2px 9px; }
+.flag.on { background: var(--sel); color: var(--accent); font-weight: 600; }
+.track { position: relative; height: 44px; margin: 10px 0 2px; }
+.track .bar { position: absolute; left: 0; right: 0; top: 15px; height: 4px; background: var(--line); border-radius: 2px; }
+.track .mk { position: absolute; top: 4px; width: 2px; height: 26px; transform: translateX(-1px); }
+.track .mk span { position: absolute; top: -2px; left: 4px; font-size: 10px; white-space: nowrap; color: var(--mute); }
+.track .now { position: absolute; top: 9px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); transform: translateX(-8px); box-shadow: 0 0 0 3px var(--panel); }
+.clockrows { display: grid; gap: 6px; margin-top: 8px; }
+.crow { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); }
+.crow.future { opacity: .45; }
+.crow.heard { border-color: var(--accent); }
+.crow .d { font-variant-numeric: tabular-nums; color: var(--mute); font-size: 13px; }
+.crow .w { font-size: 14px; }
+.crow .meta { font-size: 12px; color: var(--mute); margin-top: 2px; }
+.conflict { color: var(--warn); font-size: 12px; margin-top: 3px; }
+.heroes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 640px) { .heroes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hero { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; cursor: pointer; background: var(--panel); text-align: left; color: var(--ink); font: inherit; display: flex; flex-direction: column; justify-content: flex-start; }
+.hero:hover { border-color: var(--accent); }
+.hero.on { border: 2px solid var(--accent); background: var(--sel); padding: 7px 9px; }
+.hero .nm { font-weight: 700; }
+.hero .cl { font-size: 12px; color: var(--mute); }
+.hero .ps { font-size: 12px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.hero .voice { font-size: 12px; color: var(--mute); margin-top: 4px; font-style: italic; }
+.scene .where { font-size: 12px; color: var(--mute); margin-bottom: 6px; }
+.line { margin: 6px 0; padding-left: 10px; border-left: 3px solid var(--line); }
+.line .sp { font-weight: 700; margin-right: 6px; }
+.line.narr { font-style: italic; color: var(--mute); }
+.reads { margin: 10px 0 4px; display: grid; gap: 5px; }
+.read { font-size: 13.5px; padding: 6px 9px; border-radius: 6px; background: var(--chip); }
+.read.ok { border-left: 3px solid var(--good); }
+.read.no { border-left: 3px solid var(--line); color: var(--mute); }
+.read .chk { font-size: 11.5px; font-variant-numeric: tabular-nums; margin-right: 6px; font-weight: 600; }
+.read.ok .chk { color: var(--good); } .read.no .chk { color: var(--mute); }
+.choices { display: grid; gap: 7px; margin-top: 12px; }
+.choice { text-align: left; border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+.choice:hover { border-color: var(--accent); background: var(--sel); }
+.choice .lab { font-weight: 600; }
+.choice .say { display: block; font-size: 13.5px; color: var(--mute); margin-top: 2px; font-style: italic; }
+.choice .ck { display: inline-block; font-size: 11.5px; font-variant-numeric: tabular-nums; background: var(--chip); border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+.roll { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--accent); border-radius: 8px; }
+.roll .q { font-weight: 600; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+button.b { font: inherit; border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 7px; padding: 5px 12px; cursor: pointer; }
+button.b:hover { border-color: var(--accent); }
+button.b.made { border-color: var(--good); color: var(--good); font-weight: 600; }
+button.b.missed { border-color: var(--bad); color: var(--bad); font-weight: 600; }
+.hints { margin-top: 12px; font-size: 13px; color: var(--mute); }
+.hints .h { margin: 3px 0; }
+.hints a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+.note { font-size: 12.5px; color: var(--mute); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.path { display: grid; gap: 4px; font-size: 13px; }
+.path .p { padding: 4px 6px; border-radius: 5px; cursor: pointer; }
+.path .p:hover { background: var(--sel); }
+.known { display: grid; gap: 5px; font-size: 13px; }
+.known .k { padding: 4px 6px; border-radius: 5px; background: var(--chip); }
+.side { display: grid; gap: 14px; align-content: start; }
+.topbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.overview { display: none; }
+.overview.on { display: block; }
+.ov-node { border-top: 1px solid var(--line); padding: 8px 0; font-size: 13px; }
+.ov-node b { font-size: 14px; }
+.ov-node ul { margin: 4px 0 0 18px; padding: 0; }
+.pace { display: grid; gap: 6px; font-size: 13.5px; }
+.pace table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.pace td, .pace th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; font-variant-numeric: tabular-nums; }
+.pace th { color: var(--mute); font-weight: 600; font-size: 12px; }
+.small { font-size: 12px; color: var(--mute); }
+kbd { font: 11px ui-monospace, monospace; background: var(--chip); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Supper at the Halfway Inn, explored</h1>
+  <p class="sub">Potentials for the dinner before we map it to the engine. Pick the day the party sits down, flip between the four (each sees and asks different things), and click what they say. A check shows the hero's own odds; pick MADE or MISSED to walk either branch, or roll it.</p>
+  <div class="legend">
+    <span class="tag GAME">GAME</span><span class="small">built today in inn.js</span>
+    <span class="tag LANE">LANE</span><span class="small">designed in the inn lane</span>
+    <span class="tag REALM">REALM</span><span class="small">the realm's register</span>
+    <span class="tag HIS">HIS</span><span class="small">your 11-04 notes</span>
+    <span class="tag DRAFT">DRAFT</span><span class="small">drafted for this page, yours to cut</span>
+  </div>
+</header>
+<main>
+  <div style="display:grid; gap:14px; min-width:0">
+    <section class="panel">
+      <h2>The clock</h2>
+      <div class="controls">
+        <div><label for="day">The day they sit down</label> <span class="daynum" id="dayLab"></span><br><input id="day" type="range" min="1" max="16" step="1"></div>
+        <div class="flags" id="dayFlags"></div>
+      </div>
+      <div class="track" id="track"></div>
+      <div class="clockrows" id="clock"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Whose eyes <span class="small" style="text-transform:none;letter-spacing:0">(<kbd>&larr;</kbd> <kbd>&rarr;</kbd> to flip)</span></h2>
+      <div class="heroes" id="heroes"></div>
+    </section>
+
+    <section class="panel scene" id="scene"></section>
+
+    <section class="panel overview" id="overview"></section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="topbtns">
+        <button class="b" id="restart">Start the supper again</button>
+        <button class="b" id="ovBtn">All the beats</button>
+        <button class="b" id="theme">Light / dark</button>
+      </div>
+    </div>
+    <div class="panel"><h2>The path so far</h2><div class="path" id="path"></div><div class="small" style="margin-top:6px">Click a step to go back to it.</div></div>
+    <div class="panel"><h2>What the party knows</h2><div class="known" id="known"></div></div>
+    <div class="panel"><h2>Pacing</h2><div class="pace" id="pace"></div></div>
+  </aside>
+</main>
+
+<script>
+'use strict';
+// ------------------------------------------------------------------ the four, at 2nd level as content/heroes.json has them (proficiency +2)
+const HEROES = {
+  barley: { name: 'Barley', cls: 'Human fighter 2, Dispossessed', voice: 'Barley counts.',
+    mods: { Perception: 4, Insight: 4, Survival: 4, Athletics: 5, History: -1, Religion: -1, Arcana: -1, Investigation: -1, Persuasion: 0, Deception: 0, Intimidation: 0, 'Sleight of Hand': 1, Medicine: 2 } },
+  aurdin: { name: 'Aurdin', cls: 'Human wizard 2, Acolyte', voice: 'Aurdin knows, and misreads (WIS 9).',
+    mods: { Perception: -1, Insight: 1, Survival: -1, Athletics: 0, History: 3, Religion: 5, Arcana: 5, Investigation: 5, Persuasion: 1, Deception: 1, Intimidation: 1, 'Sleight of Hand': 2, Medicine: -1 } },
+  vivian: { name: 'Vivian', cls: 'Human rogue 2, the Quarter\'s own', voice: 'Vivian reads right. She sees hands.',
+    mods: { Perception: 6, Insight: 4, Survival: 2, Athletics: 0, History: 1, Religion: 1, Arcana: 1, Investigation: 3, Persuasion: 1, Deception: 3, Intimidation: 1, 'Sleight of Hand': 7, Medicine: 2 } },
+  lymen: { name: 'Lymen', cls: 'Half-orc paladin 2, self-ordained', voice: 'Lymen speaks for the Hex.',
+    mods: { Perception: 1, Insight: 3, Survival: 1, Athletics: 5, History: -1, Religion: 1, Arcana: -1, Investigation: -1, Persuasion: 2, Deception: 2, Intimidation: 4, 'Sleight of Hand': 0, Medicine: 1 } }
+};
+const ORDER = ['barley', 'aurdin', 'vivian', 'lymen'];
+const passive = (h, s) => 10 + (HEROES[h].mods[s] || 0);
+const chance = (h, s, dc) => Math.max(0, Math.min(1, (21 - dc + (HEROES[h].mods[s] || 0)) / 20));
+const pct = p => Math.round(p * 100) + '%';
+const sgn = v => (v >= 0 ? '+' : '') + v;
+
+// ------------------------------------------------------------------ THE CLOCK (filled from the files; HIS = his 11-04 recollection, checked in the report)
+// each row: from (the day it happens), heard (the day the inn hears it, or null), what, who carries it, tag, conflict (where the files disagree)
+const CLOCK = [
+  { from: 1, span: '0 night', mark: 'moot', what: 'The moot at the Gray Keeping\'s ground under the full moon, three days\' walk above the inn: every tribe; the king who refused the Dominion burned.', heard: 1, who: 'Doran, from the drovers at the well', tag: 'REALM', src: 'wiki campaign-start.md (Day 0 = 25 Aug), gnoll-hills.md' },
+  { from: 1, span: '1 dawn', what: 'Farm folk fleeing the Dominion\'s taking reach the Pit before dawn; seven laborers walk the road bound for the Pit.', heard: null, tag: 'REALM', src: 'campaign-start.md, the-road.md; Kat\'s drafted "seven off the last farm" (the lane §7)' },
+  { from: 1, span: '1-28', what: 'The Gray Keeping\'s young blood out for the Snoot from the first day, matriarch-clerics and a relic with them; the Gray Keeping\'s band (the wall over the Mane) holds at the moot ground.', heard: null, tag: 'GAME', src: 'snoot-mode/js/data.js gk1, gk2 (his 10-15)', conflict: 'HIS 11-04 matches: "the group that guards the mantle, and their youngling snooting from the moot point".' },
+  { from: 2, span: '2 pre-dawn', mark: 'vessel', what: 'The one-eye (the Skull-Gate\'s chief, the Old One\'s vessel) stands under the trees and walks north, out of the Snoot on purpose; the Skull-Gate erupts first and headless.', heard: null, tag: 'REALM', src: 'the-snoot.md (CANON 09-11), gnoll-hills.md; the clock lane\'s draft for the day', conflict: 'RULED 11-04: the Skull-Gate tries to follow its possessed chief as he wanders off (not headless).' },
+  { from: 3, span: '3', mark: 'Harbinger?', what: 'The chief\'s right hand tries to get through to the old chief and is made the Harbinger by the Old One instead; then the Skull-Gate starts south toward the Pit.', heard: null, tag: 'HIS', src: 'RULED 11-04 (PATCHLOG 75a68deb)', conflict: 'Days 10-11 stand where the clock lane has him. Not changed: the Snoot mode\'s six mirror hyenas and his hold in the hills (RULED 10-14).' },
+  { from: 1, span: '1 on', what: 'The makings: Mr. Ripples\' mirror-made things ride the encounter tables, feed on magic, and starve smaller in three stages, a day each, unless fed.', heard: 4, who: 'Doran: "eyes that throw your own face back"', tag: 'LANE', src: 'the clock lane (his 10-13); world.js W.mirrorWeight (from day 1, +½ a day to 6, every zone)', conflict: 'RULED 11-04 (his "lean"): made on days 5 and 7 and every second day, huge at first, in his area, reports from day 8; the supper\'s mirror line moves to day 8. Not built yet: the code weighs them from day 1 everywhere.' },
+  { from: 4, span: '4', mark: 'inn night', what: 'The inn night, as the first game locked it (the party\'s arrival may be later in the second game).', heard: null, tag: 'LANE', src: 'the clock lane (RULED 10-13, 10-16)', conflict: 'RULED 11-04: Day 1 is the sunrise after the moot, everywhere. Not built yet: H16.day still counts the first day 0 (In.day and W.day count it 1), so the clock lane\'s Day 4 traveler and the code\'s days 5-6 wait on it.' },
+  { from: 5, span: '5-6', what: 'The traveler (Katarina) at the inn, WAGON DAY-1 and WAGON DAY; WAGON NIGHT on day 6 (then every 28).', heard: 5, who: 'she sits at the table for two', tag: 'LANE', src: 'the inn lane §3 (RULED 11-04), inn.js' },
+  { from: 7, span: '7-9', what: 'Farmers harried off the high fields by the young blood reach the inn and the Pit.', heard: 7, who: 'the farmers themselves, at the well', tag: 'HIS', src: 'RULED 11-04', conflict: 'RULED 11-04: the edgeland farmers are the snooting\'s first victims. Not built yet.' },
+  { from: 8, span: '8-10', mark: 'past the inn', what: 'The vessel passes the inn, four days behind the party, toward the mountain\'s foot.', heard: 8, who: 'Gennet: "three men at that well... not one of them would put a name to it"', tag: 'LANE', src: 'the clock lane\'s draft; inn.js band heardHarbinger' },
+  { from: 8, span: '8', what: 'The Snoot moving north past the Gulch; the silk-cutters pulled in off the webs.', heard: 8, who: 'Doran', tag: 'GAME', src: 'inn.js band heardReach (the-road.md, CANON 09-11)' },
+  { from: 10, span: '10-14', what: 'The tribes leave the plains.', heard: null, tag: 'REALM', src: 'campaign-start.md' },
+  { from: 14, span: '14', mark: 'Snoot at the Pit', what: 'The Snoot at the Pit, the road south shut; a runner at the inn: "South, if you\'re going." Hessle in Silverton pays gold for a true word.', heard: 14, who: 'Doran; the Pit\'s runner at the well', tag: 'GAME', src: 'inn.js band heardPit, In.LINES.runner; the Snoot mode Day 14-28, the hunt from 18; the Pit exchange ~18-21 (REALM)' },
+  { from: 99, span: 'any (renown 2)', what: 'The council (Papa\'s runner, the Hex boy): the ettercap in Web Gulch, then Merrick: "After the gulch, the gnolls... When it\'s time, we\'ll send for you again." No second summons is written.', heard: null, tag: 'GAME', src: 'hours.js C2 looks (his 10-29)', conflict: 'RULED 11-04: the council points them past the inn for a true word, with a journal quest. Not built yet.' },
+  { from: 99, span: 'never written', what: 'A third tribe pulling back from the moot for rituals and coming out with casters in its parties.', heard: null, tag: 'HIS', src: 'your 11-04 note', conflict: 'RULED 11-04: the Wall-Laugh has no minor-relic clerics until further notice; this stays unwritten.' }
+];
+
+// the inn's own calendar (the lane's §3, RULED 11-04): WAGON DAY 6 then every 28; Kat at the inn WAGON DAY-1 and WAGON DAY
+const WAGON_DAY = 6, KAT_DAYS = [5, 6];
+
+// ------------------------------------------------------------------ THE SUPPER: beats, lines and choices
+// a line: { who, t, tag, day: [min, max] (optional), kat: true (only when she sits) }
+// a read (silent, the flipped hero's passive): { skill, dc, ok, no (optional), tag, note }
+// a choice: { id, lab, say: { hero: words } | words, heroes: [...] (who may), day, kat, need(state), check: { skill, dc }, auto: { hero: why },
+//             made, missed, next, learn, tag, note }
+const NODES = {
+  sit: { where: 'The common room at dusk. The long table off the wall, the six on both sides; the traveler at the table for two when she is here.',
+    lines: [
+      { who: '', t: 'Supper is lake fish at the long table. The Waterbys eat with their guests; it is that kind of house. Elsbeth carries and does not sit.', tag: 'GAME' },
+      { who: '', t: 'A woman in a brown dress eats alone at the table for two, a book open under her hand.', tag: 'LANE', kat: true }
+    ],
+    reads: [
+      { skill: 'Insight', dc: 12, ok: '(insight) The house is too well kept for the traffic on this road. Somebody pays for it.', tag: 'GAME', note: 'The module\'s DC 12; today the party\'s best reads it.' },
+      { skill: 'Perception', dc: 15, ok: '(perception) The girl in the kitchen doorway has counted you twice. She counts again when Gennet looks at her.', tag: 'DRAFT', note: 'The game has this as Insight 15, which no hero reaches at 2nd level (best passive Insight is 14). As Perception it is Vivian\'s (16).' },
+      { skill: 'Survival', dc: 13, ok: '(survival) Deep ruts round the yard: a loaded wagon\'s, heavy, on a road this quiet. They come regular, whoever they are.', tag: 'DRAFT', note: 'Barley the farm wanderer reads a yard (passive 14).' },
+      { skill: 'Religion', dc: 14, ok: '(religion) A lantern on a hook by the lake door, trimmed and never carried in the house: a shrine\'s lamp, not a kitchen\'s.', tag: 'DRAFT', note: 'Aurdin\'s Religion +5 is a passive 15; his WIS 9 misses the people, not the theology.' }
+    ],
+    choices: [
+      { id: 'listen', lab: 'Sit and eat; let the table talk', next: 'news', tag: 'GAME' }
+    ] },
+
+  news: { where: 'The road\'s ear: every wagon, crew and runner stops at the well. Doran and Gennet tell what came through, by the day.',
+    lines: [
+      { who: 'Gennet', t: '"End of the month there\'s a wagon through," Gennet says. "Good custom."', tag: 'GAME' }
+    ],
+    reads: [],
+    choices: [
+      { id: 'hear', lab: 'Listen to the road\'s news', say: { barley: 'Barley eats and listens.', aurdin: 'Aurdin leans in. He knows the hills\' history better than either of them.', vivian: 'Vivian listens to how they say it.', lymen: 'Lymen listens for what Papa would want carried home.' },
+        check: { skill: 'History', dc: 10 }, made: 'newsTrue', missed: 'newsWrong', tag: 'GAME', note: 'Today the party\'s best History rolls, shown. Flipped, the one listening rolls: Aurdin +3 (70%), Vivian +1, Barley and Lymen -1.' }
+    ] },
+
+  newsTrue: { where: 'The news, heard right.', bandLines: 'ok', reads: [
+      { skill: 'Insight', dc: 13, ok: '(insight) Doran talks about the hills like a man who would rather talk about anything than the lake.', tag: 'DRAFT' }
+    ], choices: 'hub' },
+  newsWrong: { where: 'The news, heard wrong: the drovers\' version.', bandLines: 'wrong', reads: [], choices: 'hub' },
+
+  hub: { where: 'Gennet fills the cups.', lines: [ { who: 'Gennet', t: '"Eat. Ask what you like; the whole road comes through this door."', tag: 'GAME' } ], reads: [], choices: 'hub' },
+
+  // --- Doran's drovers
+  droverOk: { lines: [ { who: 'Doran', t: '"All right." He sets his cup down. "The drover saw the chief at the ford with a pack behind him, every one with the same eyes. His dogs wouldn\'t go near the water after. He sold them in Silverton for what he could get."', tag: 'GAME' } ], learn: ['heardDrover'], choices: 'hub' },
+  droverNo: { lines: [ { who: 'Doran', t: 'Doran shrugs. "Drovers talk."', tag: 'GAME' } ], choices: 'hub' },
+  droverDogs: { lines: [ { who: 'Doran', t: '"Aye, dogs." He looks at Barley differently. "Good dogs, and they put their tails down at the water and wouldn\'t cross. Whatever came down that ford came down it before them."', tag: 'DRAFT' } ], learn: ['heardDrover'], choices: 'hub' },
+
+  // --- the wagon
+  wagonRead: { lines: [ { who: '', t: '(insight) At "wagon" Doran looks at his plate. Gennet does not look at anything.', tag: 'LANE' },
+      { who: 'Gennet', t: '"Amara\'s wagons. Goblins for the mines up Silverton way; she pays for the yard and the water."', tag: 'DRAFT' } ], learn: ['wagonNamed'], choices: 'hub' },
+  wagonFlat: { lines: [ { who: 'Gennet', t: '"A woman with wagons. She pays for the yard." Gennet passes the fish.', tag: 'DRAFT' } ], choices: 'hub' },
+  wagonTonight: { lines: [ { who: 'Gennet', t: '"Tonight, as it happens. You\'ll hear them in the yard. Don\'t mind them; they keep to themselves."', tag: 'LANE' } ], learn: ['wagonTonight'], choices: 'hub', note: 'WAGON DAY: the night as played (the wagon night on the floor).' },
+
+  // --- the lake
+  lakeGives: { lines: [ { who: 'Gennet', t: '"The lake gives back. It always gives back."', tag: 'GAME' } ], reads: [
+      { skill: 'Religion', dc: 13, ok: '(religion) That is not a saying. It is a response: the line a congregation says back.', tag: 'LANE', note: 'The lane\'s "Gennet\'s it gives back is theology, not talk".' },
+      { skill: 'Insight', dc: 13, ok: '(insight) She means it the way a priest means a prayer.', tag: 'DRAFT' }
+    ], learn: ['lakeTheology'], choices: 'hub' },
+
+  // --- the girl
+  girlPlates: { lines: [ { who: 'Gennet', t: '"She counts plates."', tag: 'DRAFT' } ], reads: [
+      { skill: 'Insight', dc: 14, ok: '(insight) Too quick. Gennet had that answer ready before you asked.', tag: 'DRAFT' }
+    ], choices: 'hub' },
+  girlPushed: { lines: [ { who: '', t: 'In the kitchen doorway Elsbeth\'s hand goes into her apron and stays there.', tag: 'LANE' },
+      { who: 'Doran', t: '"That\'s enough." Doran doesn\'t raise his voice. "She\'s a good girl. Eat your supper."', tag: 'DRAFT' } ], learn: ['elsbethWary'], choices: 'hub', note: 'The lane §5: threats or mockery at Elsbeth and she is done for the night; pushed, the wand (the flee word). At the table, the warning only.' },
+
+  // --- the traveler
+  mirrorOk: { lines: [ { who: '', t: 'The hand-mirror on her belt is a Dominion mender\'s: the glass they set bones by. She sees you see it, and eats no more.', tag: 'GAME' } ], learn: ['katMirror'], choices: 'kat' },
+  mirrorNo: { lines: [ { who: '', t: 'A small mirror on her belt, the kind a careful woman carries. She covers it with her hand.', tag: 'GAME' } ], choices: 'hub' },
+  katDominion: { lines: [ { who: 'Barley', t: '"You\'re with the Dominion."', tag: 'GAME' }, { who: 'Katarina', t: 'She does not look up. "The room over the kitchen is mine till the morning after next. Paid. I don\'t want anything."', tag: 'LANE' } ], learn: ['katMirror'], choices: 'kat' },
+  katHerself: { lines: [ { who: 'Katarina', t: '"A mender. I set bones and I write things down." A beat. "Those are the same work, mostly."', tag: 'LANE' } ], choices: 'kat' },
+  katRoad: { lines: [ { who: 'Katarina', t: '"Seven off the last farm walked with us a day. Bound for the Pit, they said, as if it were a place you could be bound for." She closes the book over her hand.', tag: 'LANE' } ], learn: ['farmersSouth'], choices: 'kat' },
+  katSaw: { lines: [ { who: 'Katarina', t: '"There was a moot. Every tribe under one moon. A king said no to the people I came with, and the people I came with burned him where he stood." She turns the pen over. "Then they made something. I didn\'t look. Everyone who looked is still looking."', tag: 'LANE' } ], learn: ['katMoot'], choices: 'kat' },
+  katHard: { lines: [ { who: 'Katarina', t: '"It went north before dawn, and the dogs went with it. If you meet one on the road whose eyes show you yourself, don\'t look long."', tag: 'LANE' } ], learn: ['katMirrorDogs'], choices: 'kat' },
+  katShut: { lines: [ { who: 'Katarina', t: '"I said I don\'t want anything." The book closes.', tag: 'DRAFT' } ], choices: 'hub' },
+
+  // --- the beasts
+  eyesArcana: { lines: [ { who: '', t: '(arcana) Eyes that give your own face back are not an animal\'s. Something was made, or made over.', tag: 'DRAFT' },
+      { who: 'Gennet', t: 'Gennet looks at the lake door. "Not on this side of the water."', tag: 'DRAFT' } ], learn: ['eyesMade'], choices: 'hub', note: 'His maker timeline: the mirrored abominations are made, start huge and wither unless they feed on magic. Aurdin\'s Arcana is the one who could say so.' },
+  eyesNo: { lines: [ { who: 'Aurdin', t: '"Wolves, probably. Wolves in moonlight."', tag: 'DRAFT' }, { who: '', t: 'Nobody at the table agrees with him.', tag: 'DRAFT' } ], choices: 'hub' },
+
+  // --- the road south (the pacing hook)
+  southWord: { dayLines: [
+      { day: [1, 7], who: 'Doran', t: '"Not here, not yet. Whatever\'s true comes up from the Pit first, and the Pit\'s a long day south. Go and look, if your father wants it true."', tag: 'DRAFT' },
+      { day: [8, 13], who: 'Doran', t: '"South. The drovers who come up from the Pit now don\'t stop to water. That\'s your true word: they don\'t stop."', tag: 'DRAFT' },
+      { day: [14, 99], who: 'Doran', t: '"The road south is shut. If there\'s a true word, it\'s inside the Pit, and the Pit\'s asking for every blade."', tag: 'DRAFT' }
+    ], learn: ['pointedSouth'], choices: 'hub', note: 'HIS 11-04: the council (and the inn after it) point the party past the inn for a true word on the Snoot, so they are timely.' },
+
+  // --- Barley counts
+  countCost: { lines: [ { who: 'Doran', t: 'Doran laughs. "Five silver\'s what the road pays."', tag: 'DRAFT' }, { who: 'Gennet', t: '"The lake provides," Gennet says.', tag: 'DRAFT' } ], learn: ['lakeProvides'], choices: 'hub' },
+
+  bed: { where: 'The end of supper.', dayLines: [
+      { day: [1, 99], who: '', t: 'The fire is let down. Gennet takes the lamp from its hook by the lake door and hangs it again, the way a person touches wood.', tag: 'GAME' },
+      { day: [1, 99], who: '', t: 'A room under the eaves.', tag: 'GAME' },
+      { day: [6, 6], who: '', t: 'Wheels in the yard after dark: the wagon night begins (the watches, the window, the yard).', tag: 'LANE' }
+    ], choices: [] }
+};
+
+// the hub's questions: who may ask, in their own words
+const HUB = [
+  { id: 'drover', lab: 'Ask Doran about the drovers', day: [4, 99],
+    say: { barley: '"A drover\'s dogs know things. What spooked his?"', aurdin: '"Did the drover see them close? Their eyes?"', vivian: '"Drovers talk. What did yours say when he was sober?"', lymen: '"My father would buy that drover a drink. What did he see?"' },
+    check: { skill: 'Persuasion', dc: 12 }, alt: { barley: { skill: 'Survival', dc: 12, made: 'droverDogs', why: 'Barley asks about the dogs: a farm hand\'s question, his Survival' } },
+    made: 'droverOk', missed: 'droverNo', tag: 'GAME', note: 'Today: Persuasion DC 12 by the party\'s best. Flipped: Lymen +2 is the best talker; Barley may take it by the dogs instead.' },
+  { id: 'mirror', lab: 'Ask the traveler about her mirror', kat: true,
+    say: { barley: '"That glass on your belt. You\'re with the Dominion."', aurdin: '"Is that a scrying glass? May I see it?"', vivian: '"Nice glass. Not a vain woman\'s, though."', lymen: '"Kalindel keep you on the road, mender."' },
+    check: { skill: 'Religion', dc: 13 }, auto: { barley: 'Barley knows a Dominion mender\'s glass on sight: he was one of theirs' }, autoTo: { barley: 'katDominion' },
+    made: 'mirrorOk', missed: 'mirrorNo', tag: 'GAME', note: 'Kat sits on WAGON DAY-1 and WAGON DAY (days 5 and 6). Her drafted lines open from here.' },
+  { id: 'wagon', lab: 'Ask about the wagon',
+    say: { barley: '"Whose wagons cut those ruts?"', aurdin: '"What custom comes by wagon, out here?"', vivian: '"Good custom. Whose?"', lymen: '"A wagon through every month? Whose?"' },
+    check: { skill: 'Insight', dc: 13 }, made: 'wagonRead', missed: 'wagonFlat', dayTo: { 6: 'wagonTonight' }, tag: 'LANE', note: 'The lane §3(d): their lines name the month\'s wagon without naming it. The read is the asker\'s Insight (Doran knows the due, §5).' },
+  { id: 'lake', lab: 'Say something about the lake',
+    say: { barley: '"Good water. Good fish."', aurdin: '"Is the lake sacred to anyone? It has that look."', vivian: '"You never go out on it at night, I suppose."', lymen: '"Kalindel\'s water. It feeds you well."' },
+    next: 'lakeGives', tag: 'GAME', note: 'Gennet\'s line from her greeting, said again at the table; the reads under it are the asker\'s.' },
+  { id: 'girl', lab: 'Ask about the girl in the kitchen', need: s => s.known.countedTwice || s.hero === 'vivian',
+    say: { barley: '"Your girl keeps a tally of us."', aurdin: '"Is she shy? She hasn\'t sat down."', vivian: '"Your girl counts heads."', lymen: '"Won\'t your daughter eat with us?"' },
+    next: 'girlPlates', tag: 'DRAFT', note: 'Open to whoever saw her count, and always to Vivian (her Perception 16).' },
+  { id: 'press', lab: 'Press about the girl', heroes: ['lymen', 'barley'], need: s => s.known.saidPlates,
+    say: { lymen: '"Plates don\'t need counting twice." (Intimidation)', barley: '"Plates. Right." He stares at the kitchen door.' },
+    next: 'girlPushed', tag: 'LANE', note: 'Pushing at the table: Elsbeth\'s hand goes to the apron (the wand\'s warning). The lane §5: she is done for the night.' },
+  { id: 'eyes', lab: 'Ask about the eyes on those dogs', heroes: ['aurdin'], day: [4, 99],
+    say: { aurdin: '"Eyes that throw your face back? That isn\'t a dog."' },
+    check: { skill: 'Arcana', dc: 13 }, made: 'eyesArcana', missed: 'eyesNo', tag: 'DRAFT' },
+  { id: 'south', lab: 'Ask where a true word on the gnolls is had',
+    say: { barley: '"Where would a man hear it straight?"', aurdin: '"Who would know for certain? Is there a record?"', vivian: '"Who on this road actually saw them?"', lymen: '"Papa\'s council wants a true word on the Snoot. Where do I get one?"' },
+    next: 'southWord', tag: 'HIS', note: 'HIS 11-04 pacing: the party pointed down the road past the inn.' },
+  { id: 'count', lab: 'Remark on the price', heroes: ['barley'],
+    say: { barley: '"Five silver a head, and fish like this? You\'re losing money."' },
+    next: 'countCost', tag: 'DRAFT', note: 'The three minds table: Barley counts. No roll: he just does the sum.' },
+  { id: 'bed', lab: 'To bed', say: '"Thank you for supper."', next: 'bed', tag: 'GAME' }
+];
+
+// the traveler's questions (open after the mirror; the lane's §7 drafts)
+const KAT = [
+  { id: 'kHerself', lab: 'Ask her about herself', next: 'katHerself', tag: 'LANE' },
+  { id: 'kRoad', lab: 'Ask about the road south (she walked it)', next: 'katRoad', tag: 'LANE' },
+  { id: 'kSaw', lab: 'Ask what she saw', check: { skill: 'Persuasion', dc: 12 }, auto: { barley: 'Barley\'s word first: "You\'re with the Dominion" and she knows him for one' }, made: 'katSaw', missed: 'katShut', tag: 'LANE' },
+  { id: 'kHard', lab: 'Ask what went north', need: s => s.known.katMoot, check: { skill: 'Persuasion', dc: 15 }, made: 'katHard', missed: 'katShut', tag: 'LANE', note: 'The lane §7 hard tier (DC 15, or the vision told).' },
+  { id: 'kBack', lab: 'Leave her to her book', next: 'hub', tag: 'DRAFT' }
+];
+
+// the news bands as the game has them (inn.js In.MEAL.bands), and his 11-04 additions
+const BANDS = [
+  { day: 1, who: 'Doran', ok: '"Gnolls held a moot up in the hills. Every tribe under one moon. Their king told the Dominion no, and they say he burned for it."', wrong: '"Gnolls had a moot in the hills. Fought among themselves, the drovers say, and the old king lost. Good riddance to him."', tag: 'GAME', learn: 'heardMoot' },
+  { day: 4, who: 'Gennet', ok: '"A drover at the well told me the one-eyed chief came down out of the hills after. His fur\'s gone black, and his eye is like the bottom of a well."', wrong: '"One of their chiefs came through the hills, a drover said. Blind in an eye, painted black for his mourning, I\'d guess."', tag: 'GAME', learn: 'heardChief' },
+  { day: 4, who: 'Doran', ok: '"And things off the hills since. Dogs, or something like. Eyes that throw your own face back at you."', tag: 'GAME', learn: 'heardMirror', conflict: 'HIS 11-04: reports of the abominations reach places from day 8. HIS 10-13 set this day-4 line: "at least 4 days since Ripples started making beasts".' },
+  { day: 5, to: 13, who: 'Doran', ok: '"Drovers off the Pit road say a pack crossed below the Gulch heading south, and something tall at the front of it that wasn\'t a gnoll."', wrong: '"Drovers saw a pack going south. Hunting, I\'d say. They do that this time of year."', tag: 'HIS', learn: 'heardSouthPack', note: 'Your 11-04 version: the Harbinger made on day 3 takes the tribe south toward the Pit. The files have him made days 10-11 with six mirror hyenas.' },
+  { day: 7, to: 9, who: 'Doran', ok: '"Farmers off the high fields came through yesterday, everything on one cart. Gnolls in the barley, they said. Young ones, and no chief with them."', wrong: '"Farmers running from wolves, by the sound. City folk would."', tag: 'HIS', learn: 'heardFarmers', note: 'HIS: the mantle group\'s youngling snooting from the moot point; the harassed farmers reach the inn and the Pit days 7-9.' },
+  { day: 8, who: 'Doran', ok: '"The Snoot\'s moving. North past the Gulch. The silk-cutters have pulled in off the webs."', wrong: '"Some gnoll band is raiding down south. It won\'t come this far. It never has."', tag: 'GAME', learn: 'heardReach' },
+  { day: 8, who: 'Gennet', ok: '"Three men at that well this week told me of the same thing, and not one of them would put a name to it."', tag: 'GAME', learn: 'heardHarbinger' },
+  { day: 14, who: 'Doran', ok: '"The Snoot\'s at the Pit. The road south is shut. Hessle in Silverton is paying gold for a true word of it."', wrong: '"There\'s trouble at the Pit, something with the gnolls. It\'ll blow over. It always does."', tag: 'GAME', learn: 'heardPit' }
+];
+
+const LEARN = {
+  heardMoot: 'The moot: every tribe under one moon; the king who refused the Dominion burned.',
+  heardChief: 'The one-eyed chief came down out of the hills, fur gone black.',
+  heardMirror: 'Dog-like things off the hills with eyes like mirrors.',
+  heardFarmers: 'Farmers fled the high fields: young gnolls, no chief.',
+  heardSouthPack: 'A pack crossed below the Gulch heading south, something tall at its head.',
+  heardReach: 'The Snoot moving north past the Gulch; the silk-cutters pulled in.',
+  heardHarbinger: 'Something on the road no one will name.',
+  heardPit: 'The Snoot at the Pit; the road south shut; Hessle pays for a true word.',
+  heardDrover: 'The drover\'s account: the chief at the ford, a pack with the same eyes.',
+  wagonNamed: 'Amara\'s wagons stop here monthly; the Waterbys don\'t like the question.',
+  wagonTonight: 'The wagon is due tonight.',
+  lakeTheology: 'Gennet\'s "the lake gives back" is a rite\'s response.',
+  lakeProvides: 'The house says the lake provides.',
+  countedTwice: 'Elsbeth is counting the party.',
+  saidPlates: 'Gennet: "She counts plates."',
+  elsbethWary: 'Elsbeth is wary of the party now (no kitchen talk tonight).',
+  katMirror: 'The traveler is a Dominion mender.',
+  katMoot: 'Kat\'s account: the king burned; then they made something.',
+  katMirrorDogs: 'Kat: it went north before dawn, the mirror-eyed dogs with it.',
+  farmersSouth: 'Seven farm folk walked south toward the Pit.',
+  eyesMade: 'Aurdin: those eyes mean something made, or made over.',
+  pointedSouth: 'Doran: the true word is south, at the Pit.'
+};
+
+// ------------------------------------------------------------------ state
+const S = { day: 5, hero: 'vivian', node: 'sit', known: {}, path: [], pending: null, ov: false };
+const snap = () => JSON.parse(JSON.stringify({ node: S.node, known: S.known, hero: S.hero, day: S.day }));
+const katHere = d => KAT_DAYS.indexOf(d) >= 0;
+const inDay = (g, d) => !g || (d >= g[0] && d <= g[1]);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const tag = t => t ? ' <span class="tag ' + t + '">' + t + '</span>' : '';
+
+function choicesFor(node, hero) {
+  const list = node.choices === 'hub' ? HUB : node.choices === 'kat' ? KAT : (node.choices || []);
+  return list.filter(c => {
+    if (c.heroes && c.heroes.indexOf(hero) < 0) return false;
+    if (c.day && !inDay(c.day, S.day)) return false;
+    if (c.kat && !katHere(S.day)) return false;
+    if (c.need && !c.need(Object.assign({}, S, { hero }))) return false;
+    if ((node.choices === 'hub' || node.choices === 'kat') && c.id !== 'bed' && c.id !== 'kBack' && S.path.some(p => p.choice === c.id)) return false; // (asked once)
+    return true;
+  });
+}
+
+function nodeLines(id) {
+  const n = NODES[id]; let out = [];
+  if (n.bandLines) BANDS.forEach(b => { if (S.day >= b.day && (!b.to || S.day <= b.to)) { const t = n.bandLines === 'wrong' && b.wrong ? b.wrong : b.ok; out.push({ who: b.who, t, tag: b.tag, conflict: b.conflict, note: b.note }); } });
+  if (n.lines) out = out.concat(n.lines.filter(l => !l.kat || katHere(S.day)));
+  if (n.dayLines) out = out.concat(n.dayLines.filter(l => inDay(l.day, S.day)));
+  if (id === 'news' || id === 'hub') { /* fine */ }
+  return out;
+}
+
+function learnOn(id) {
+  const n = NODES[id];
+  (n.learn || []).forEach(k => S.known[k] = LEARN[k] || k);
+  if (n.bandLines) BANDS.forEach(b => { if (S.day >= b.day && (!b.to || S.day <= b.to)) S.known[b.learn] = (n.bandLines === 'wrong' && b.wrong ? '(heard wrong) ' : '') + LEARN[b.learn]; });
+  if (id === 'girlPlates') S.known.saidPlates = LEARN.saidPlates;
+  (n.reads || []).forEach(r => { if (passive(S.hero, r.skill) >= r.dc && r.ok.indexOf('counted you twice') >= 0) S.known.countedTwice = LEARN.countedTwice; });
+}
+
+function go(nextId, label, choiceId) {
+  S.path.push(Object.assign(snap(), { label, choice: choiceId, to: nextId }));
+  S.node = nextId; S.pending = null; learnOn(nextId); render();
+}
+
+function pick(c) {
+  const h = S.hero, alt = c.alt && c.alt[h];
+  if (c.auto && c.auto[h]) { go((c.autoTo && c.autoTo[h]) || c.made, HEROES[h].name + ': ' + c.lab + ' (no roll: ' + c.auto[h] + ')', c.id); return; }
+  if (c.dayTo && c.dayTo[S.day]) { go(c.dayTo[S.day], HEROES[h].name + ': ' + c.lab, c.id); return; }
+  const ck = alt || c.check;
+  if (!ck) { go(c.next, HEROES[h].name + ': ' + c.lab, c.id); return; }
+  S.pending = { c, ck, made: (alt && alt.made) || c.made, missed: c.missed }; render();
+}
+
+function resolve(made, die) {
+  const p = S.pending, h = S.hero, mod = HEROES[h].mods[p.ck.skill] || 0;
+  const what = die ? ' -- rolled ' + die + ' ' + sgn(mod) + ' = ' + (die + mod) : '';
+  go(made ? p.made : p.missed, HEROES[h].name + ': ' + p.c.lab + ' (' + p.ck.skill + ' DC ' + p.ck.dc + ', ' + (made ? 'made' : 'missed') + what + ')', p.c.id);
+}
+
+// ------------------------------------------------------------------ render
+function renderClock() {
+  $('dayLab').textContent = 'Day ' + S.day;
+  const fl = [];
+  fl.push('<span class="flag' + (katHere(S.day) ? ' on' : '') + '">the traveler at the inn (days 5-6)</span>');
+  fl.push('<span class="flag' + (S.day === WAGON_DAY ? ' on' : '') + '">WAGON DAY (6, then every 28)</span>');
+  $('dayFlags').innerHTML = fl.join('');
+  const max = 16, pos = d => ((d - 1) / (max - 1) * 100) + '%';
+  let tr = '<div class="bar"></div>';
+  let mi = 0;
+  CLOCK.forEach(r => { if (r.from >= 1 && r.from <= max && r.mark) tr += '<div class="mk" style="left:' + pos(r.from) + ';background:var(--t-' + r.tag.toLowerCase() + ')"><span style="top:' + (mi++ % 2 ? 22 : -4) + 'px">' + esc(r.mark) + '</span></div>'; });
+  tr += '<div class="now" style="left:' + pos(S.day) + '"></div>';
+  $('track').innerHTML = tr;
+  $('clock').innerHTML = CLOCK.length ? CLOCK.slice().sort((a, b) => a.from - b.from).map(r => {
+    const happened = r.from <= S.day || r.from === 99, heard = r.heard != null && r.heard <= S.day;
+    return '<div class="crow' + (happened ? '' : ' future') + (heard ? ' heard' : '') + '"><div class="d">day ' + esc(r.span || r.from) + '</div><div><div class="w">' + esc(r.what) + tag(r.tag) + '</div>' +
+      '<div class="meta">' + (r.heard != null ? (heard ? 'Heard at the inn (from day ' + r.heard + ')' : 'Reaches the inn on day ' + r.heard) + (r.who ? ' by ' + esc(r.who) : '') : 'Not heard at the inn') + (r.src ? ' · ' + esc(r.src) : '') + '</div>' +
+      (r.conflict ? '<div class="conflict">' + esc(r.conflict) + '</div>' : '') + '</div></div>';
+  }).join('') : '<div class="small">The clock rows come from the files: filled in below.</div>';
+}
+
+function renderHeroes() {
+  $('heroes').innerHTML = ORDER.map(k => {
+    const h = HEROES[k], m = h.mods;
+    return '<button class="hero' + (S.hero === k ? ' on' : '') + '" data-h="' + k + '"><div class="nm">' + h.name + '</div><div class="cl">' + esc(h.cls) + '</div>' +
+      '<div class="ps">Perception ' + passive(k, 'Perception') + ' · Insight ' + passive(k, 'Insight') + '<br>History ' + sgn(m.History) + ' · Religion ' + sgn(m.Religion) + ' · Arcana ' + sgn(m.Arcana) + '<br>Persuasion ' + sgn(m.Persuasion) + ' · Survival ' + sgn(m.Survival) + '</div>' +
+      '<div class="voice">' + esc(h.voice) + '</div></button>';
+  }).join('');
+  document.querySelectorAll('.hero').forEach(b => b.onclick = () => { S.hero = b.dataset.h; S.pending = null; render(); });
+}
+
+function sayOf(c, h) { return typeof c.say === 'string' ? c.say : (c.say && c.say[h]) || ''; }
+
+function renderScene() {
+  const n = NODES[S.node], h = S.hero, out = [];
+  out.push('<h2>' + (S.node === 'sit' ? 'Supper' : 'The table') + ' · day ' + S.day + ' · through ' + HEROES[h].name + '\'s eyes</h2>');
+  if (n.where) out.push('<div class="where">' + esc(n.where) + '</div>');
+  nodeLines(S.node).forEach(l => {
+    out.push('<div class="line' + (l.who ? '' : ' narr') + '">' + (l.who ? '<span class="sp">' + esc(l.who) + '</span>' : '') + esc(l.t) + tag(l.tag) +
+      (l.conflict ? '<div class="conflict">' + esc(l.conflict) + '</div>' : '') + (l.note ? '<div class="small">' + esc(l.note) + '</div>' : '') + '</div>');
+  });
+  const reads = n.reads || [];
+  if (reads.length) {
+    out.push('<div class="reads">');
+    reads.forEach(r => { const p = passive(h, r.skill), ok = p >= r.dc;
+      out.push('<div class="read ' + (ok ? 'ok' : 'no') + '"><span class="chk">' + r.skill + ' ' + p + ' vs ' + r.dc + (ok ? ' · read' : ' · missed') + '</span>' + (ok ? esc(r.ok) : '<i>' + HEROES[h].name + ' doesn\'t notice.</i>') + tag(r.tag) +
+        (r.note ? '<div class="small">' + esc(r.note) + '</div>' : '') + '</div>'); });
+    const who = reads.map(r => ORDER.filter(k => passive(k, r.skill) >= r.dc && k !== h).map(k => HEROES[k].name)).map((ks, i) => ks.length && passive(h, reads[i].skill) < reads[i].dc ? ks.join(' or ') + ' would read: ' + reads[i].skill + ' ' + reads[i].dc : null).filter(Boolean);
+    if (who.length) out.push('<div class="small">' + who.map(esc).join(' · ') + '</div>');
+    out.push('</div>');
+  }
+  if (S.pending) {
+    const p = S.pending, mod = HEROES[h].mods[p.ck.skill] || 0, ch = chance(h, p.ck.skill, p.ck.dc);
+    out.push('<div class="roll"><div class="q">' + HEROES[h].name + ' rolls ' + p.ck.skill + ' ' + sgn(mod) + ' against DC ' + p.ck.dc + ': ' + pct(ch) + '</div>' +
+      (p.c.alt && p.c.alt[h] ? '<div class="small">' + esc(p.c.alt[h].why) + '</div>' : '') +
+      '<div class="btns"><button class="b made" id="rMade">MADE &rarr;</button><button class="b missed" id="rMissed">MISSED &rarr;</button><button class="b" id="rRoll">Roll it</button><button class="b" id="rBack">Not this</button></div></div>');
+  } else {
+    const cs = choicesFor(n, h);
+    if (cs.length) {
+      out.push('<div class="choices">');
+      cs.forEach((c, i) => {
+        const alt = c.alt && c.alt[h], ck = alt || c.check, auto = c.auto && c.auto[h];
+        const chip = auto ? '<span class="ck">no roll</span>' : ck ? '<span class="ck">' + ck.skill + ' DC ' + ck.dc + ' · ' + sgn(HEROES[h].mods[ck.skill] || 0) + ' · ' + pct(chance(h, ck.skill, ck.dc)) + '</span>' : '';
+        out.push('<button class="choice" data-i="' + i + '"><span class="lab">' + esc(c.lab) + '</span>' + chip + tag(c.tag) + (sayOf(c, h) ? '<span class="say">' + esc(sayOf(c, h)) + '</span>' : '') + '</button>');
+      });
+      out.push('</div>');
+    } else if (S.node === 'bed') out.push('<div class="note">The end of this path. Change the day or the hero, go back a step, or start again.</div>');
+    // what flipping would open
+    const mine = new Set(cs.map(c => c.id)), hints = [];
+    ORDER.filter(k => k !== h).forEach(k => choicesFor(n, k).forEach(c => { if (!mine.has(c.id)) hints.push({ k, c }); }));
+    const better = [];
+    cs.forEach(c => { const ck = c.check; if (!ck || (c.auto && c.auto[h])) return; let best = h, bp = chance(h, ck.skill, ck.dc);
+      ORDER.forEach(k => { const a = (c.auto && c.auto[k]) ? 1 : chance(k, (c.alt && c.alt[k] || ck).skill, (c.alt && c.alt[k] || ck).dc); if (a > bp + 0.001) { best = k; bp = a; } });
+      if (best !== h) better.push({ k: best, c, p: bp }); });
+    if (hints.length || better.length) {
+      out.push('<div class="hints">');
+      hints.forEach(x => out.push('<div class="h">Only ' + HEROES[x.k].name + ' can: ' + esc(x.c.lab) + ' &middot; <a data-flip="' + x.k + '">flip to ' + HEROES[x.k].name + '</a></div>'));
+      better.forEach(x => out.push('<div class="h">' + HEROES[x.k].name + ' does it better: ' + esc(x.c.lab) + ' (' + pct(x.p) + ') &middot; <a data-flip="' + x.k + '">flip</a></div>'));
+      out.push('</div>');
+    }
+  }
+  const notes = [n.note].concat((S.pending ? [S.pending.c.note] : [])).filter(Boolean);
+  if (notes.length) out.push('<div class="note">' + notes.map(esc).join('<br>') + '</div>');
+  $('scene').innerHTML = out.join('');
+  const cs = S.pending ? [] : choicesFor(n, h);
+  document.querySelectorAll('.choice').forEach(b => b.onclick = () => pick(cs[+b.dataset.i]));
+  document.querySelectorAll('[data-flip]').forEach(a => a.onclick = () => { S.hero = a.dataset.flip; render(); });
+  if (S.pending) {
+    $('rMade').onclick = () => resolve(true); $('rMissed').onclick = () => resolve(false);
+    $('rBack').onclick = () => { S.pending = null; render(); };
+    $('rRoll').onclick = () => { const d = 1 + Math.floor(Math.random() * 20), mod = HEROES[S.hero].mods[S.pending.ck.skill] || 0; resolve(d + mod >= S.pending.ck.dc, d); };
+  }
+}
+
+function renderSide() {
+  $('path').innerHTML = S.path.length ? S.path.map((p, i) => '<div class="p" data-i="' + i + '">' + (i + 1) + '. ' + esc(p.label) + '</div>').join('') : '<div class="small">Nothing said yet.</div>';
+  document.querySelectorAll('.path .p').forEach(el => el.onclick = () => { const p = S.path[+el.dataset.i]; S.path = S.path.slice(0, +el.dataset.i); S.node = p.node; S.known = p.known; S.hero = p.hero; S.day = p.day; S.pending = null; $('day').value = S.day; render(); });
+  const ks = Object.keys(S.known);
+  $('known').innerHTML = ks.length ? ks.map(k => '<div class="k">' + esc(S.known[k]) + '</div>').join('') : '<div class="small">Nothing yet.</div>';
+  renderPace();
+}
+
+// ------------------------------------------------------------------ pacing (the road in miles, deep16/js/wagon.js; the SRD's 24 miles a day on foot)
+const ROAD = { silverToInn: 39.2, innToPit: 28.5, gulchToInn: 8 };
+function renderPace() {
+  const foot = 24, cart = 17, d = ROAD;
+  const days = m => (m / foot).toFixed(1);
+  $('pace').innerHTML = '<table><tr><th>Leg</th><th>Miles</th><th>On foot</th><th>By wagon</th></tr>' +
+    '<tr><td>Silverton to the inn</td><td>' + d.silverToInn + '</td><td>' + days(d.silverToInn) + ' d</td><td>' + (d.silverToInn / cart).toFixed(1) + ' d</td></tr>' +
+    '<tr><td>The inn to the Pit</td><td>' + d.innToPit + '</td><td>' + days(d.innToPit) + ' d</td><td>' + (d.innToPit / cart).toFixed(1) + ' d</td></tr>' +
+    '<tr><td>Web Gulch to the inn</td><td>~' + d.gulchToInn + '</td><td>' + days(d.gulchToInn) + ' d</td><td></td></tr></table>' +
+    '<div class="small">THE WORLD\'s road (wagon.js: the inn 28.5 mi from the Pit; the fork 48.7, Silverton 19 past it). Web Gulch is the chase\'s night walk north of the inn, about 8 mi. On foot is the SRD\'s normal pace, 24 mi a day.</div>' +
+    '<div>Leave Silverton on day <b id="lvLab"></b> <input id="lv" type="range" min="1" max="12" value="' + (S.leave || 3) + '" style="width:140px"></div>' +
+    '<div id="paceOut"></div>';
+  const upd = () => { const L = +$('lv').value; S.leave = L; $('lvLab').textContent = L;
+    const inn = L + Math.ceil(d.silverToInn / foot) - 1 + (d.silverToInn % foot > 0 ? 1 : 0), pit = L + Math.ceil((d.silverToInn + d.innToPit) / foot);
+    $('paceOut').innerHTML = 'Straight down the road: at the inn by the evening of day <b>' + (L + 1) + '</b> (a hard 39 mi) or day <b>' + (L + 2) + '</b> (camping once), at the Pit by day <b>' + pit + '</b>.' +
+      '<div class="small">Against the clock: the wagon on day 6; the farmers reach the inn days 7-9 (HIS); the Snoot at the Pit on day 14 (GAME). Set the day slider to the inn day to see that supper.</div>' +
+      '<div class="btns"><button class="b" id="useInn">Sit down on day ' + (L + 2) + '</button></div>';
+    $('useInn').onclick = () => { S.day = Math.min(16, L + 2); $('day').value = S.day; render(); }; };
+  $('lv').oninput = upd; upd();
+}
+
+function renderOverview() {
+  const el = $('overview'); el.classList.toggle('on', S.ov); if (!S.ov) return;
+  const lines = ['<h2>All the beats (for mapping to the engine)</h2>'];
+  Object.keys(NODES).forEach(id => {
+    const n = NODES[id], ch = n.choices === 'hub' ? HUB : n.choices === 'kat' ? KAT : (n.choices || []);
+    lines.push('<div class="ov-node"><b>' + id + '</b>' + (n.where ? ' <span class="small">' + esc(n.where) + '</span>' : '') +
+      ((n.reads || []).length ? '<div class="small">reads: ' + n.reads.map(r => r.skill + ' ' + r.dc).join(', ') + '</div>' : '') +
+      (ch.length ? '<ul>' + ch.map(c => '<li>' + esc(c.lab) + (c.check ? ' · ' + c.check.skill + ' DC ' + c.check.dc : '') + (c.heroes ? ' · ' + c.heroes.join('/') + ' only' : '') + (c.day ? ' · days ' + c.day[0] + '+' : '') + (c.kat ? ' · Kat present' : '') + ' &rarr; ' + esc(c.made ? c.made + ' / ' + c.missed : c.next || '') + tag(c.tag) + '</li>').join('') + '</ul>' : '') + '</div>');
+  });
+  el.innerHTML = lines.join('');
+}
+
+function render() { renderClock(); renderHeroes(); renderScene(); renderSide(); renderOverview(); }
+
+$('day').value = S.day;
+$('day').oninput = e => { S.day = +e.target.value; S.pending = null; render(); };
+$('restart').onclick = () => { S.node = 'sit'; S.known = {}; S.path = []; S.pending = null; learnOn('sit'); render(); };
+$('ovBtn').onclick = () => { S.ov = !S.ov; render(); if (S.ov) $('overview').scrollIntoView({ behavior: 'smooth' }); };
+$('theme').onclick = () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; };
+document.addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  const i = ORDER.indexOf(S.hero);
+  if (e.key === 'ArrowRight') { S.hero = ORDER[(i + 1) % 4]; render(); }
+  if (e.key === 'ArrowLeft') { S.hero = ORDER[(i + 3) % 4]; render(); }
+});
+learnOn('sit'); render();
+</script>
+</body>
+</html>
