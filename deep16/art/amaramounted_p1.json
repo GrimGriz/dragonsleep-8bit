@@ -1,0 +1,30 @@
+{
+ "image": "art/amaramounted_p1.png",
+ "fw": 104,
+ "fh": 131,
+ "ax": 52,
+ "ay": 127,
+ "top": 91,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 104,
+   "fh": 131,
+   "ax": 52,
+   "ay": 127,
+   "frames": 1,
+   "fps": 2
+  },
+  "walk": {
+   "y": 1048,
+   "fw": 104,
+   "fh": 131,
+   "ax": 52,
+   "ay": 127,
+   "frames": 6,
+   "fps": 12
+  }
+ },
+ "name": "Amara on the grey",
+ "source": "drawn by the art desk (HALFWAY-INN-AMARA-MOUNTED, 11-04: art-wanted section 35 block 8, horse and rider together), cut by tools/amara-mounted-sheet.py at horsegrey_p1's length; idle the Halt, walk the six-frame gallop; SW W NW mirrored; not wired yet"
+}
