@@ -2239,6 +2239,118 @@
     document.body.appendChild(preF2);
     return;
   }
+  // THE WAGON ON THE ROAD, 11-04 (mode=wagon1104; js/wagon.js -- the Inn build seat 2, on the Inn seat's §3 "The wagon on the clock", RULED 11-04, his "in on your above leans
+  // as well"): the wagon's clock on THE WORLD's road (the realm's 17 miles a cart-day, the inn at dusk on WAGON DAY), its mark drawn on both views, THE ROAD BY DAY south of the
+  // inn (the talk on the counter screen, the silent read, the lie and the second look, seen through, Lymen's word, the fight on southroad with the pair away on the greys, the
+  // wagon and its children in the road, the wagon brought in to the inn), the gold taken on the road and the inn's night after it, THE ROAD NORTH the morning after (one fewer,
+  // the traveler on the bench, Detect Magic), no second meeting of one wagon, the show
+  if (get('mode', '') === 'wagon1104') {
+    var repWg = { checks: [], errors: [] }, memWg = {}, stGWg = D.store.get, stSWg = D.store.set, HWg = D.house, CWg = D.counter, WWg = D.world, RWg = D.roam, InWg = D.inn, WgB = D.wagon, muWg = D.music;
+    function okWg(what, v) { repWg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveWg(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topWg() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveWg(s.co, null, 2); return s; }
+    // a counter screen read through: each ask answered from `ans` (an option's label, or its index), every line seen; then THE WORLD's next thing (sc.pend), if the screen stood over it
+    function answerWg(sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 80 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); if (!sc.page) seen = seen.concat(w.say || w.ask || []); if (w.ask) { seen.push('[' + w.opts.join(' | ') + ']'); var a = ans.length ? ans.shift() : null, i = typeof a === 'string' ? w.opts.indexOf(a) : a; if (i == null || i < 0) i = w.opts.length - 1; seen.push('> ' + w.opts[i]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i; })[0]); } else sc.press(bs[0]); } var ws = WWg.scene; if (ws && ws.pend && D.top() === ws) { var p = ws.pend; ws.pend = null; p.call(ws); } if (ws && D.top() === ws && ws.cards && ws.cards.length) seen.push('CARD: ' + ws.cards[0].lines.join(' ')); return window.DS.stripCodes(seen.join(' / ')); }
+    function hourWg(day, h) { return (day - 1) * 24 + h; }
+    function fmtWg(t) { var d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24; return 'day ' + d + ' ' + ('0' + Math.floor(h)).slice(-2) + ':' + ('0' + Math.round((h % 1) * 60)).slice(-2); }
+    // a new game on the road: the party at road mile s (its hex on the map that covers it), the clock at t, the flags as given, the hex a step south of it behind them
+    function stageWg(t, s, flags, party) {
+      var rec = HWg.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, flags || {}); rec.silver = 60; if (party) rec.party = rec.party.filter(function (h) { return party.indexOf(h.key || h.id) >= 0; });
+      HWg.begin(rec, 0, '?world&fresh&noenc'); var S = WWg.state(); S.t = t; S.today = 0; S.todayHex = 0;
+      var pt = WgB.pt(s), pt0 = WgB.pt(Math.max(0, s - WWg.M().w)); S.pos = pt.slice(); if (WWg.place(pt)) WWg.scene.onMap(); S.from = WWg.hexOf(pt0[0], pt0[1]); S.rv = null; WWg.save();
+      var lk = WWg.scene.lookAt(pt[0], pt[1]); WWg.scene.cam.cx = lk[0]; WWg.scene.cam.cy = lk[1]; // (the camera on the party, not left at Silverton)
+      return WWg.scene;
+    }
+    function stepWg(scene, mi) { // (a step north along the road: the party's spot moved up the road, the hours spent at its pace, THE WORLD's step hook asked)
+      var S = WWg.state(), m = WWg.M(), s0 = WgB.roadS(WWg.restPt()).s, d = mi || m.w, pt = WgB.pt(s0 + d), st = { h: d / WWg.PACE, mi: d, road: true };
+      var was = S.at.slice(); S.pos = pt.slice(); if (WWg.place(pt)) scene.onMap(); S.from = was; S.t += st.h; WWg.save();
+      return WWg.onStep(scene, st);
+    }
+    function testWg(q) { var B = RWg.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topWg(); }
+    function atWg2(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function wakeWg() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    function flowWg(B, ans) { var seen = [], q = (ans || []).slice(), quiet = 0, R0 = B.roam; B.cards = []; R0.keys.push('use'); for (var k = 0; k < 6000 && quiet < 80; k++) { var s = D.top(); if (s instanceof CWg.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a = q.length ? q.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; } if (s instanceof HWg.Morning) { quiet = 0; seen.push(wakeWg()); continue; } if (s !== B) { D.pop(); continue; } var st = B.co.next(); if (typeof st.value === 'number' || !st.value) quiet++; else quiet = 0; } return window.DS.stripCodes(seen.join(' / ')); }
+    D.store.get = function (k) { return memWg[k] ? JSON.parse(memWg[k]) : null; }; D.store.set = function (k, v) { memWg[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1104); if (InWg) InWg.stay = true;
+      var xWg = new XMLHttpRequest(); xWg.open('GET', '../deep16/data/world-near.js', false); xWg.send(); (0, eval)(xWg.responseText);
+      try { var xWt = new XMLHttpRequest(); xWt.open('GET', '../deep16/data/world-tiles.js', false); xWt.send(); (0, eval)(xWt.responseText); } catch (eWt) { repWg.errors.push('world-tiles: ' + eWt); } // (the top-down view's ground, for its draw)
+      WWg.index();
+      // 1. THE ROAD AS ONE LINE OF MILES: the Pit to the fork to Silverton, the inn's mile on it, the cart's pace
+      var RWg0 = WgB.route(), Lg0 = WgB.legs(0);
+      okWg('the road: ' + RWg0.end.toFixed(1) + ' miles the Pit to Silverton (the fork at ' + RWg0.fork.toFixed(1) + '), the inn at ' + RWg0.inn.toFixed(1) + '; the pace ' + WgB.pace().toFixed(3) + ' mi an hour, seven to seven (17 a cart-day)', Math.abs(RWg0.end - 67.7) < 0.5 && Math.abs(RWg0.inn - 28.5) < 1 && Math.abs(RWg0.fork - 48.7) < 0.3 && Math.abs(WgB.pace() - 17 / 12) < 1e-9);
+      // 2. THE CLOCK: cycle 0's legs on the days (WAGON DAY 6): the Pit mid-morning day 5, the inn at dusk day 6, away at seven day 7, Silverton the morning of day 9; the mark by the hour
+      var atWg = function (d, h, f) { var w = WgB.at(hourWg(d, h), f || {}); return w ? w.leg + ' ' + w.s.toFixed(1) + (w.moving ? '' : ' (camped)') : 'none'; };
+      var seqWg = [[4, 12], [5, 9], [5, 14], [5, 23], [6, 12], [6, 17.9], [6, 18], [6, 23], [7, 6], [7, 8], [7, 23], [8, 12], [9, 9], [9, 12], [10, 12], [33, 14], [34, 12]].map(function (q) { return 'd' + q[0] + ' ' + q[1] + 'h: ' + atWg(q[0], q[1]); });
+      okWg('cycle 0 (WAGON DAY 6): leaves the Pit ' + fmtWg(Lg0.departPit) + ', the inn ' + fmtWg(Lg0.arriveInn) + ', away ' + fmtWg(Lg0.departInn) + ', Silverton ' + fmtWg(Lg0.arriveSil) + ' -- ' + seqWg.join('; '),
+        Math.floor(Lg0.departPit / 24) + 1 === 5 && Lg0.departPit % 24 > 9 && Lg0.departPit % 24 < 11 && Lg0.arriveInn === 5 * 24 + 18 && Lg0.departInn === 6 * 24 + 7 && Math.floor(Lg0.arriveSil / 24) + 1 === 9 && Lg0.arriveSil % 24 > 9 && Lg0.arriveSil % 24 < 12 &&
+        atWg(4, 12) === 'none' && atWg(5, 9) === 'none' && /^south/.test(atWg(5, 14)) && /camped/.test(atWg(5, 23)) && /^south (19|2[0-9])\./.test(atWg(6, 12)) && /^inn/.test(atWg(6, 18)) && /^inn/.test(atWg(7, 6)) && /^north/.test(atWg(7, 8)) && /^north/.test(atWg(8, 12)) && atWg(9, 12) === 'none' && atWg(10, 12) === 'none' && /^south/.test(atWg(33, 14)) && /^south/.test(atWg(34, 12)));
+      var sInnWg = WgB.at(hourWg(6, 17.9), {}).s, sN8 = WgB.at(hourWg(7, 8), {}).s;
+      okWg('at the inn\'s mile as dusk comes on WAGON DAY (' + sInnWg.toFixed(2) + ' of ' + RWg0.inn.toFixed(2) + '); an hour out north at eight the morning after (' + (sN8 - RWg0.inn).toFixed(2) + ' mi); a stopped cycle has no wagon (' + (WgB.at(hourWg(7, 8), { wagonStopped: 'c0' }) === null) + ') and the next cycle runs (' + atWg(33, 14, { wagonStopped: 'c0' }) + ')',
+        Math.abs(sInnWg - RWg0.inn) < 0.2 && Math.abs(sN8 - RWg0.inn - WgB.pace()) < 1e-6 && WgB.at(hourWg(7, 8), { wagonStopped: 'c0' }) === null && /^south/.test(atWg(33, 14, { wagonStopped: 'c0' })));
+      // 3. THE MARK DRAWN: the hex view (zoomed out to hold it) and the top-down both draw it on the road's point without a word of error
+      var scM = stageWg(hourWg(6, 12), RWg0.inn, {}), cvWg = document.createElement('canvas'); cvWg.width = D.W; cvWg.height = D.H; var gWg = cvWg.getContext('2d'); WgB.drawn = null;
+      scM.zi = 0; scM.zpx = scM.zooms()[0]; scM.draw(gWg); var drawnM = WgB.drawn, wM = WgB.now(), mwM = WWg.map('world'), hxM = WWg.worldHexOf(wM.pt[0], wM.pt[1]), onRoadM = !!mwM.road[WWg.K(hxM[0], hxM[1])];
+      okWg('the mark on the hex view at noon on WAGON DAY, the party at the inn: drawn at ' + JSON.stringify(drawnM) + ', the wagon ' + (RWg0.inn - wM.s).toFixed(1) + ' mi south of the inn on THE WORLD\'s road hex ' + hxM + ' (road ' + onRoadM + '), the party\'s map ' + WWg.M().key, !!drawnM && wM.leg === 'south' && onRoadM && WWg.M().key === 'near');
+      var okTop = true; try { if (WWg.OV) { WWg.OV.open(scM); if (scM.view === 'tiles') { scM.ov.zi = 0; scM.draw(gWg); WWg.OV.close(scM); } else okTop = false; } } catch (eT) { okTop = false; repWg.errors.push('top-down: ' + eT); }
+      okWg('the top-down view draws it too (' + okTop + ')', okTop);
+      // 4. THE ROAD BY DAY: the four one hex south of the wagon at ten on WAGON DAY; a step north meets it -- the talk, the silent read, the lie heard (the dice pinned), the second look, seen through; Lymen's word; the fight
+      var w10 = WgB.at(hourWg(6, 10), {}), scA = stageWg(hourWg(6, 10), w10.s - 5 * 0.95, {});
+      InWg.pinned = [15, 18]; var metA = stepWg(scA, WWg.M().w), scA1 = D.top(), fA = HWg.cur.flags;
+      okWg('a step north at ten on WAGON DAY meets the wagon (' + metA + '): the counter screen (' + (scA1 instanceof CWg.Counter) + ', ' + (scA1 && scA1.o && scA1.o.name) + ' at ' + (scA1 && scA1.o && scA1.o.what) + '), the meeting marked ' + fA.wagonMet + ', the party\'s map ' + WWg.M().key, metA === true && scA1 instanceof CWg.Counter && scA1.o.name === 'Amara' && /south of the Halfway Inn/.test(scA1.o.what) && fA.wagonMet === 'c0south');
+      var sA = answerWg(scA1, ['ASK WHERE THEY ARE BOUND', 'STAND IN THE ROAD']), bA = D.top();
+      okWg('the talk: ' + sA.slice(0, 1500), /northbound at a walk/.test(sA) && /Mind the ruts/.test(sA) && /\(history\) Goblins carried north/.test(sA) && /ASK WHERE THEY ARE BOUND/.test(sA) && /LOOK IN THE BED/.test(sA) && /DETECT MAGIC/.test(sA) && /Illusion school/.test(sA) && /look again, harder/.test(sA) && /those are not goblins/.test(sA) && /STAND IN THE ROAD/.test(sA) && /Lymen: Children/.test(sA) && !!fA.glamourSeen);
+      if (bA && bA.baking) { bA.baking = false; bA.enter(); }
+      var foesA = bA instanceof D.Battle ? bA.units.filter(function (u) { return u.side === 'foe'; }) : [], teamA = bA instanceof D.Battle ? bA.riders.filter(function (r) { return r.team; }).length : 0;
+      okWg('STAND IN THE ROAD with Lymen in the party: the fight ' + (bA && bA.fight && bA.fight.id) + ' on ' + (bA && bA.fight && bA.fight.map) + ' (lit ' + !(bA && bA.dark) + '), the pair ' + foesA.map(function (u) { return u.kind + ' flees ' + u.flees + ' at ' + u.speed + ' from ' + u.x + ',' + u.y; }).join(', ') + ', the greys ' + teamA + ', the record ' + (bA && bA.rec && bA.rec.fight),
+        bA instanceof D.Battle && bA.fight.id === 'roadday' && bA.fight.map === 'southroad' && !bA.dark && foesA.length === 2 && foesA.every(function (u) { return u.flees && u.speed === 40 && u.y === 9; }) && teamA === 2 && !!(bA.rec && bA.rec.fight === 'roadday'));
+      // the fight run by the engine, the four by the class AI: the pair make for the north edge and the fight ends 'fled' (one away) within three rounds
+      bA.units.forEach(function (u) { if (u.side === 'party') { u.classAI = true; u.guest = true; } });
+      var sv0A = HWg.cur.silver; driveWg(bA.co, function () { return !!bA.result; }, 30000); var resA = bA.result;
+      okWg('run by the engine: the fight ends ' + resA + ' in round ' + bA.round + ' (the pair ' + bA.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind + (u.fled ? ' fled' : u.hp <= 0 ? ' down' : ' ' + u.hp + ' hp at ' + u.x + ',' + u.y); }).join(', ') + ')', resA === 'fled' && bA.round <= 3);
+      // the way back: the road fight's own after -- the pair lost by day, the wagon and its eight in the road, the strongbox, the order, the renown, the wagon turned for the inn; the mark stops
+      var onDoneA = bA.o.onDone; if (D.top() === bA) D.pop(); onDoneA(resA); var scAf = D.top();
+      var sAf = scAf instanceof CWg.Counter ? answerWg(scAf, []) : 'no counter: ' + (scAf && scAf.kind), fAf = HWg.cur.flags, invAf = CWg.state(null);
+      okWg('after: ' + sAf.slice(0, 700) + ' -- the purse ' + sv0A + ' to ' + HWg.cur.silver + ', the order ' + CWg.count(invAf, 'wagonorder') + ', flags stopped ' + fAf.wagonStopped + ' cycle ' + fAf.wagonCycle + ' outcome ' + fAf.wagonOutcome + ' road ' + fAf.wagonRoad + ' brought ' + fAf.wagonBrought + '; the mark now ' + (WgB.now() === null ? 'gone' : 'still there') + '; the trail\'s checks ' + (HWg.cur.trail || []).filter(function (e) { return e.k === 'check'; }).length,
+        /away north on the greys/.test(sAf) && /no catching them/.test(sAf) && /eight children/.test(sAf) && /strongbox/.test(sAf) && /\+600 silver/.test(sAf) && /Renown \+1/.test(sAf) && /turn the wagon for it/.test(sAf) && HWg.cur.silver === sv0A + 600 && CWg.count(invAf, 'wagonorder') === 1 && fAf.wagonStopped === 'c0' && fAf.wagonCycle === 0 && fAf.wagonOutcome === 'road' && fAf.wagonRoad === 'fled' && fAf.wagonBrought === 1 && WgB.now() === null && (HWg.cur.trail || []).some(function (e) { return e.k === 'check' && /Insight 15/.test(e.s); }));
+      // 5. THE WAGON BROUGHT IN: the inn's floor after -- Doran's drive that night, the one kept, the gift owed, no wagon night this cycle
+      HWg.cur.world.t = hourWg(6, 17); HWg.toTown('inn', 'north'); var Bb = topWg();
+      atWg2(Bb, 10, 22, [0, -1]); Bb.cards = []; var seenB = [], gB = RWg.arrive(Bb);
+      for (var kb = 0; kb < 3000; kb++) { var s2 = D.top(); if (s2 instanceof CWg.Counter) { seenB.push(answerWg(s2, [])); continue; } if (s2 !== Bb) { D.pop(); continue; } var stB = gB.next(); if (stB.done) break; }
+      var fB = Bb.roam.flags;
+      okWg('the wagon in off the road, the inn\'s yard: ' + seenB.join(' / ').slice(0, 400) + ' -- delivered ' + fB.wagonDelivered + ', Doran away ' + fB.doranAway + ', the one kept ' + fB.kidAtInn + ', the gift owed ' + fB.wagonGift + ', no wagon night this cycle (' + !InWg.wagonTonight(fB, 6) + ')', /eight children in the back/.test(seenB.join(' ')) && /drives them back down the road to Newland/.test(seenB.join(' ')) && fB.wagonDelivered === 1 && fB.doranAway === 1 && fB.kidAtInn === 1 && fB.wagonGift === 1 && !InWg.wagonTonight(fB, 6));
+      HWg.playing = false; HWg.cur = null;
+      // 6. THE GOLD ON THE ROAD, no Lymen: LOOK IN THE BED (the Perception pinned high), STAND IN THE ROAD, the word, Amara's fifty gold; the mark runs on, no fight
+      var scG = stageWg(hourWg(6, 10), w10.s - 5 * 0.95, {}, ['barley', 'aurdin', 'vivian']); InWg.pinned = [19]; var metG = stepWg(scG, WWg.M().w), scG1 = D.top(), svG = HWg.cur.silver;
+      var sG = answerWg(scG1, ['LOOK IN THE BED', 'STAND IN THE ROAD', 'TAKE THE GOLD']), fG = HWg.cur.flags;
+      okWg('no Lymen, the bed looked in and the gold taken: ' + sG.slice(Math.max(0, sG.indexOf('LOOK IN THE BED')), sG.indexOf('LOOK IN THE BED') + 700) + ' -- the purse ' + svG + ' to ' + HWg.cur.silver + ', bribed ' + fG.wagonBribed + ', road ' + fG.wagonRoad + ', the mark ' + (WgB.now() ? WgB.now().leg : 'gone') + ', no fight (' + !(D.top() instanceof D.Battle) + ')',
+        metG === true && /those are not goblins/.test(sG) && /Those aren't goblins/.test(sG) && /Fifty gold says/.test(sG) && /TAKE THE GOLD/.test(sG) && /counts it into your hand from the bench/.test(sG) && HWg.cur.silver === svG + 500 && fG.wagonBribed === 'c0' && fG.wagonRoad === 'bribe' && !!WgB.now() && WgB.now().leg === 'south' && !(D.top() instanceof D.Battle));
+      HWg.playing = false; HWg.cur = null;
+      // the inn that night after the road's gold (a test door, the flag set by hand): no second watch, the room kept as paid, the lantern walks, no second five hundred
+      var Bp = testWg('?roam=halfway&hour=18&day=6&at=24,17'); Bp.roam.silver = 30; Bp.roam.flags.wagonBribed = 'c0'; Bp.roam.flags.glamourBroken = 1; atWg2(Bp, 24, 17, [0, -1]); var oP = flowWg(Bp, [0]), fP = Bp.roam.flags, iP = oP.indexOf('as you knew it would');
+      okWg('the inn\'s night after the road\'s gold: ' + oP.slice(Math.max(0, iP - 60), iP + 300) + ' -- no second watch (' + !/On second watch/.test(oP) + '), the purse ' + Bp.roam.silver + ' (the room paid, no gold twice), the outcome ' + fP.wagonOutcome + ', the traveler rode ' + !!fP.katRode,
+        /keep to your room, as paid/.test(oP) && !/On second watch/.test(oP) && /Only the inn lady comes back/.test(oP) && /MORNING/.test(oP) && Bp.roam.silver === 10 && fP.wagonOutcome === 'quiet' && !!fP.katRode);
+      // 7. THE ROAD NORTH the morning after a quiet wagon night: the wagon ahead, one goblin fewer, the traveler on the bench; DETECT MAGIC (Aurdin's ritual, no slot) and the bed hums; LET THEM BY; the mark runs on
+      var scN = stageWg(hourWg(7, 7.5), RWg0.inn, { wagonCycle: 0, wagonOutcome: 'quiet', katRode: 1, katGone: 1, reachedInn: 1 }), auN = HWg.cur.party.filter(function (h) { return (h.key || h.id) === 'aurdin'; })[0], slN = auN && auN.slots ? auN.slots.slice() : null;
+      var metN = stepWg(scN, WWg.M().w), scN1 = D.top(), fN = HWg.cur.flags;
+      var sN = scN1 instanceof CWg.Counter ? answerWg(scN1, ['DETECT MAGIC', 'LET THEM BY']) : 'no counter';
+      okWg('the road north at half past seven the morning after (' + metN + ', met ' + fN.wagonMet + '): ' + sN.slice(0, 900) + ' -- Aurdin\'s slots ' + (slN && slN.join()) + ' to ' + (auN && auN.slots && auN.slots.join()) + ', seen through ' + !!fN.glamourSeen + ', the wagon ' + (WgB.now() ? WgB.now().leg + ' ' + WgB.now().s.toFixed(1) : 'gone'),
+        metN === true && fN.wagonMet === 'c0north' && /one fewer than there were/.test(sN) && /brown farm dress/.test(sN) && /Don't let us keep you/.test(sN) && /DETECT MAGIC/.test(sN) && /casts Detect Magic, the ritual/.test(sN) && /hums with illusion/.test(sN) && /You let them by/.test(sN) && !!fN.glamourSeen && !!slN && auN.slots.join() === slN.join() && !!WgB.now() && WgB.now().leg === 'north');
+      var againN = stepWg(scN, WWg.M().w);
+      okWg('a second step north: no second meeting of the one wagon (' + againN + ')', againN === false && !(D.top() instanceof CWg.Counter));
+      HWg.playing = false; HWg.cur = null;
+      // 8. THE SHOW: deep16/?wagonshow, three beats, each staged without a word of error, the party on the road with the wagon on the clock
+      var beatsWg = WgB.BEATS.map(function (b) { try { WgB.play(b); var S3 = WWg.state(), w3 = WgB.now(); return b.id + ': ' + fmtWg(S3.t) + ' on ' + WWg.M().key + ' at ' + S3.at + (w3 ? ', the wagon ' + w3.leg + ' ' + (w3.s - WgB.roadS(WWg.restPt()).s).toFixed(1) + ' mi on' : ', no wagon'); } catch (e3) { return b.id + ': THREW ' + e3; } });
+      okWg('?wagonshow, ' + WgB.BEATS.length + ' beats: ' + beatsWg.join('; '), WgB.BEATS.length === 3 && beatsWg.every(function (o) { return !/THREW|no wagon/.test(o); }) && typeof WgB.show === 'function');
+      HWg.playing = false; HWg.cur = null;
+    } catch (eWg) { repWg.errors.push(String(eWg && eWg.stack || eWg).slice(0, 900)); }
+    HWg.playing = false; HWg.cur = null; if (InWg) { InWg.stay = false; InWg.pinned = null; }
+    D.store.get = stGWg; D.store.set = stSWg; D.music = muWg;
+    var preWg = document.createElement('pre'); preWg.id = 'out'; preWg.textContent = 'BENCH16 ' + JSON.stringify(repWg);
+    document.body.appendChild(preWg);
+    return;
+  }
   // THE HALFWAY INN ON THE GRID, 11-04 (mode=inn1104; js/inn.js -- the Inn build seat, started by the lanes desk on Griz's word: "alright, did a story-plot review for the
   // inn, we're ready to start adding it back to the world"; re-cut on his "I'd like to try to have the inn exist only as an iso - if we can properly manage the interior
   // interaction (perma transparent walls when party-token inside?)" and "then it can build the interior around the dinner scene, make the inn a more proper place than

@@ -245,6 +245,7 @@
       var q = OV.tileOf([s0.x, s0.y]), p3 = scr(q[0], q[1]), nm = s0.name.replace(/ \(.*\)$/, ''), tx = p3[0] + ts / 2 + 6, ty = p3[1] + ts / 2 - 4, tw = D.textWidth(nm), bx = [tx - 1, ty - 1, tx + tw + 1, ty + 9];
       if (boxes.some(function (b) { return bx[0] < b[2] && bx[2] > b[0] && bx[1] < b[3] && bx[3] > b[1]; })) return; boxes.push(bx); D.text(ctx, nm, tx, ty, W.BIG[s0.kind] ? '#f6e9c5' : '#c8bca0');
     });
+    if (W.drawWagonTop) W.drawWagonTop(ctx, sc, scr, ts, T); // (the wagon on the road while it runs: js/wagon.js, 11-04)
     // the party, between tiles as it walks
     var pp = S.pos, t0 = OV.tileOf(pp);
     if (ov.walk && ov.walk.path.length) { var nx = OV.centre(ov.walk.path[0]), u2 = ov.walk.f / OV.STEPF; pp = [pp[0] + (nx[0] - pp[0]) * u2, pp[1] + (nx[1] - pp[1]) * u2]; }

@@ -233,6 +233,7 @@
   D.roam.arrive = function* (B) {
     var ev = yield* arrive0.apply(this, arguments), def = D.roam.def, t = B.roam && B.roam.token, b = t ? In.inHouse(t.x, t.y) : null;
     if (!ev && def && def.key === In.KEY && t && D.battle === B && b !== (def.inside || null)) In.lay(B, b);
+    if (!ev && def && def.key === In.KEY && t && D.battle === B && B.roam.flags && B.roam.flags.wagonBrought && !B.roam.flags.wagonDelivered) yield* In.wagonIn(B); // (the wagon in off the road: js/wagon.js)
     return ev;
   };
   // the plates: THE INN LADY till she gives her name
@@ -384,7 +385,18 @@
   // the night: the house's bed to the morning (the first night's wagon is the lane's item 2), the floor laid at the morning's hour under the morning card
   In.sleep = function* (B, line) { yield* D.house.sleepOnFloor(B, { line: line || In.LINES.morning, music: 'inn', before: function () { M.lightNow(B); } }); };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
-  In.night = function* (B) { var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; } yield* In.sleep(B); };
+  In.night = function* (B) {
+    var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; }
+    yield* In.sleep(B);
+    if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); // (the morning after the wagon came in off the road, stopped by day: js/wagon.js, In.wagonIn)
+  };
+  // the wagon brought in off the road (js/wagon.js: a day's fight on the Pit road, the pair down or away on the greys, the wagon turned for the nearest roof): the yard's
+  // own ending as the night's has it -- Doran drives the children to Newland that same night, the inn lady keeps one, Elsbeth's gift the morning after
+  In.wagonIn = function* (B) {
+    var f = B.roam.flags, Wg = D.wagon; f.wagonDelivered = 1; f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
+    yield* In.say(B, Wg && Wg.LINES ? (f.wagonBroughtN === 7 ? Wg.LINES.broughtN : Wg.LINES.brought) : [L('wagon.doranTakes')], 'THE YARD');
+    M.relay(B, null, true);
+  };
 
   // ---------------------------------------------------------------- THE WAGON NIGHT (the lane's item 2: the first game's S.wagonNight, its words content/text.json wagon.*, the
   // second game's way -- the night as talk on the counter screen over the yard on the diamonds, the yard fight the grid's `wagonnight` on its own map, the traces as RULED 11-04 §1)
@@ -427,12 +439,19 @@
       }
     }
     if (!f.glamourSeen) { yield sc.say(L('wagon.nothing')); return { how: 'quiet', outside: outside }; }
+    return yield* In.confront(sc, st, f, outside);
+  };
+  // the confrontation, the glamour seen through (the night's, and the road's by day -- js/wagon.js): Lymen's word and steel; else the word, Amara's gold or steel
+  // (noBribe: a cycle whose gold was taken on the road already gets no second offer)
+  In.confront = function* (sc, st, f, outside, noBribe) {
     var ly = outside.filter(function (h) { return (h.key || h.id) === 'lymen'; })[0];
     if (ly) { yield sc.say(In.who('Lymen', L('wagon.lymen'))); return { how: 'fight', outside: outside }; }
     yield sc.say(In.who(outside[0].name, L('wagon.confront')));
-    var b = yield sc.ask(In.who('Amara', L('wagon.bribe')), ['TAKE THE GOLD', 'REFUSE']);
-    if (b === 0) return { how: 'bribe', outside: outside };
-    yield sc.say(In.who(outside[0].name, L('wagon.refuse')));
+    if (!noBribe) {
+      var b = yield sc.ask(In.who('Amara', L('wagon.bribe')), ['TAKE THE GOLD', 'REFUSE']);
+      if (b === 0) return { how: 'bribe', outside: outside };
+      yield sc.say(In.who(outside[0].name, L('wagon.refuse')));
+    }
     return { how: 'fight', outside: outside };
   };
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
@@ -444,11 +463,12 @@
     yield* D.house.sleepOnFloor(B, { hours: Math.max(1, (24 - h0) % 24 || 1), title: 'THE SECOND WATCH', line: L('wagon.night'), music: 'lake', before: function () { M.lightNow(B); } });
     f.wagonIn = 1; if (In.katHere(f, d)) f.katYard = 1;
     In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn'); // (the watcher at the front window, the yard in the lamplight beyond)
-    var res = yield* M.talk(B, 'wagonNight', function (sc) { return In.wagonScene(sc, B); }, 'THE WAGON NIGHT', In.tailPic(B));
+    var paid = !!(D.wagon && f.wagonBribed === 'c' + In.cycle(d)); // (Amara's gold taken on the road that day: no second watch, the night kept to the room -- js/wagon.js)
+    var res = paid ? { how: 'paid' } : yield* M.talk(B, 'wagonNight', function (sc) { return In.wagonScene(sc, B); }, 'THE WAGON NIGHT', In.tailPic(B));
     var how = (res && res.how) || 'quiet', morning = null;
-    if (how === 'quiet') {
-      var seen = !!f.glamourSeen; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
-      yield* In.say(B, [L('wagon.handover'), L('wagon.quietNight'), L(seen ? 'due.walk' : 'due.walkGoblin'), L('due.water'), L('due.back')]); // (the night's second act waits on his word: the lane's §10)
+    if (how === 'quiet' || how === 'paid') {
+      var seen = !!f.glamourSeen || how === 'paid'; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
+      yield* In.say(B, [L('wagon.handover'), how === 'paid' ? D.wagon.LINES.paidNight : L('wagon.quietNight'), L(seen ? 'due.walk' : 'due.walkGoblin'), L('due.water'), L('due.back')]); // (the night's second act waits on his word: the lane's §10)
       morning = L('wagon.morning.' + (seen ? 'quietSeen' : 'quiet'));
     } else if (how === 'bribe') {
       st.silver(500); D.sfx('coin'); f.wagonOutcome = 'bribe'; f.glamourBroken = 1; f.elsbethSilent = 1; f.katGone = 1; f.katRode = 1; f.kidAtInn = 1;
@@ -459,7 +479,7 @@
       In.stage(B, [In.STEP.front[0], In.STEP.front[1]], null);
       var out = yield* In.yardFight(B);
       if (out === 'lost') return;
-      f.glamourBroken = 1; f.glamourSeen = 1;
+      f.glamourBroken = 1; f.glamourSeen = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
       if (out === 'fled') { f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot'; yield* In.say(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 'THE YARD'); } // (the catch on the Gulch roam comes here: the lane's item 3)
       else f.wagonOutcome = 'inn';
       if (In.lastFight.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.say(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 'THE YARD'); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
@@ -489,7 +509,7 @@
   // what a fight at the inn left behind: who lay dead (his book), whether the team came loose
   var finish0 = D.Battle && D.Battle.prototype.finish;
   if (finish0) D.Battle.prototype.finish = function* (o) {
-    if (this.fight && /^(wagonnight|roadcatch1|roadcatch2)$/.test(this.fight.id || '')) In.lastFight.willemDead = In.lastFight.willemDead || this.units.some(function (u) { return u.kind === 'willem' && u.side === 'foe' && u.hp <= 0 && !u.fled && !u.gone; });
+    if (this.fight && /^(wagonnight|roadcatch1|roadcatch2|roadday)$/.test(this.fight.id || '')) In.lastFight.willemDead = In.lastFight.willemDead || this.units.some(function (u) { return u.kind === 'willem' && u.side === 'foe' && u.hp <= 0 && !u.fled && !u.gone; });
     yield* finish0.apply(this, arguments);
   };
   // Elsbeth's gift, the morning after the wagon was stopped (the first game's EV.wagonGift): the lead's armour one better, or a ring of protection

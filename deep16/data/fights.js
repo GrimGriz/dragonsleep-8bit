@@ -183,6 +183,18 @@
       intro: 'You catch them at last. There is nowhere left to run, and they know it.',
       from: 'the 8-bit game: events.js S.wagonChase (caught2)', won: 'IT IS OVER ON THE ROAD.',
       foes: [{ id: 'amara', kind: 'amara', at: [9, 7] }, { id: 'willem', kind: 'willem', at: [11, 7] }], wave: null },
+    // THE WAGON MET ON THE ROAD BY DAY (11-04, the Inn build seat 2; the Halfway Inn lane's item 12 -- the Inn seat's §3 (a) and (c), RULED 11-04: "a fight forced here is
+    // the southroad map with the pair fleeing north by the road, and by day with the horses they are lost -- no gulch between"): the wagon stopped on the Pit road, the greys
+    // in its traces, the pair at its tail; the fight starts and they break for the horses from the first turn (fledEnds, no runWhenHurt: they flee as the catch fights' pair
+    // do), mounted and at the Draft Horse's 40 (js/wagon.js Wg.fight sets it as the yard's loose team is set, js/ai.js traces), nine squares from the north edge -- a round
+    // and a half of the party's blows, and then they are gone unless one is dropped first. The wagon and its children stay in the road (the "goblins" its riders, children once
+    // the glamour breaks). Not on the ladder (no level)
+    { id: 'roadday', story: true, map: 'southroad', name: 'The Wagon on the Road', sub: 'the Pit road, by day', music: 'boss', fledEnds: true,
+      intro: 'Amara is down off the bench before you have finished speaking, and Willem is at the greys\' heads with a knife at the traces. They mean to be away, and the horses are faster than you are.',
+      from: 'the Halfway Inn lane, the Inn seat\'s §3 (a): the wagon met on the road by day; the 8-bit\'s S.wagonFight for the pair', won: 'IT IS OVER ON THE ROAD.', escaped: 'THEY ARE AWAY NORTH ON THE GREYS.',
+      foes: [{ id: 'amara', kind: 'amara', at: [8, 9] }, { id: 'willem', kind: 'willem', at: [11, 9] }], wave: null,
+      riders: [{ at: [9, 7], sheet: 'goblin_p2', after: 'kid1_p0', gz: 12 }, { at: [10, 7], sheet: 'goblin_p2', after: 'kid2_p0', gz: 12 },
+               { at: [9, 2], sheet: 'horse_p1', facing: 5, foot: [1, 2], blocks: true, team: true }, { at: [10, 2], sheet: 'horsegrey_p1', facing: 5, foot: [1, 2], blocks: true, team: true }] },
     // the cleric at Deepholm's door (deep.js EV.torvald, HOLD HIM; Griz 09-28: "given the weight of the scene ... redo it in 16"):
     // a story fight (no level: off the ladder). He yields at half his hit points (foes.js torvald `yields`): the fight ends
     // 'yielded', his own words on the card (the 8-bit's yieldText), and the 8-bit game asks what you do with him

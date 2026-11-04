@@ -725,7 +725,7 @@
     var fine = this.fineDoor && W.FINE.live(); // (THE FINE LAND, a trial: js/worldfine.js; the hex view as it was without its door)
     if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
     W.drawWays(ctx, cam); if (fine && W.FINE.ringsAt(cam.z) < 0) W.FINE.builtN = W.FINE.built(ctx, cam); // (the closest zoom: his squares built on, over the roads and rivers, 11-03)
-    W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); GH = VIS = null;
+    W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); if (W.drawWagon) W.drawWagon(ctx, cam, this.t); GH = VIS = null; // (the wagon on the road while it runs: js/wagon.js, 11-04)
     // the party: a banner on the hex's top, bobbing as it walks
     var onLand = fine && W.FINE.ringsAt(cam.z) < 0, pa = onLand || M.near ? W.restPt() : hc(S.at[0], S.at[1]), ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : hexTopH(S.at[0], S.at[1]); // (at the closest zoom its hex is the land: the banner on the ground at its own spot; on the area at its spot, a road's own point)
     if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], u = this.walk.f / STEPF; pa = M.near ? W.walkPt(this.walk, u) : (function (pb) { return [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; })(hc(nx[0], nx[1])); ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
@@ -918,6 +918,7 @@
   W.World = World;
   W.M = function () { return M; }; W.Mworld = function () { return MS.world || M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
   W.proj = proj; W.tone = tone; W.HCO = HCO; W.TILT = TILT; W.lookImg = function () { return LOOK; }; // (for THE FINE LAND, js/worldfine.js)
+  W.groundAt = function (cam, x, y) { return groundAt(cam, x, y); }; W.visAt = function (p, y) { return !VIS || VIS(p, y); }; // (a point on the land as this draw sees it: the wagon's mark, js/wagon.js)
   // OPTIONS' ZOOM ON APPROACH (above), on by default: a row on the one OPTIONS page beside RANDOM FIGHTS (js/simple.js), the second game's only
   var MN = window.DS && window.DS.MENU;
   if (MN && MN.gridRows) { var rows0 = MN.gridRows; MN.gridRows = function () { var r = rows0.apply(this, arguments); r.push({ label: 'ZOOM ON APPROACH', key: 'approachzoom', get: function () { return W.approachOn() ? 'ON' : 'OFF'; }, step: function () { W.setApproach(!W.approachOn()); } }); return r; }; }

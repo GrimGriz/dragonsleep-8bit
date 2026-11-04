@@ -508,6 +508,38 @@ window.D16.MAPS.snootroad = {
   wave: null
 };
 
+// The Pit road by day, the wagon met on it (11-04, the Inn build seat 2; the Halfway Inn lane's item 12, the Inn seat's §3 (a) and (c): "a fight forced here is the
+// southroad map with the pair fleeing north by the road"): the Road South's open country with Amara's wagon standing on the road, the greys in its traces at the north
+// end (the fight's `riders`, data/fights.js roadday), its open bed at the tail where the "goblins" ride. North is up the map, the way the pair run (both road ends are
+// ways off: the party comes up from the south). Lit: it is day.
+window.D16.MAPS.southroad = {
+  name: 'The Road by Day',
+  sub: 'the Pit road, the wagon stopped on it',
+  step: 10,
+  ground: 'earth',
+  rows: [
+    '########====########',
+    '#####...====...#####',
+    '###.....====.....###',
+    '##....r.====.r....##',
+    '#.......=WW=.......#',
+    '#.......=WW=.......#',
+    '#...rr..=WW=.......#',
+    '#.......=VV=...rr..#',
+    '#.......====.......#',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '######..====..######',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  exit: [[8, 0], [9, 0], [10, 0], [11, 0]],
+  exitName: 'up the road, north',
+  foes: [],
+  wave: null
+};
+
 // The Gnoll Hills (10-08, Griz: "see if deep16 can do a hilly battlemap"): open rolling country, the grid's heights on earth -- a crown four steps up in the
 // north-east, a lesser rise to the west, a shoulder south-east; every slope one step a square, so all of it is walked, none climbed (two steps would be a
 // cliff). Scrub and stones are rough going (r), lone trees on the crown and the west rise (T; the stones were the cave legend's stalagmites -- his "why are there stalagmites coming out of the hills?"). The Harbinger's ground: he waits on the crown.
