@@ -64,3 +64,35 @@ Look: `tools/sheet-play.html?sheet=barley_grokslash_p1&ref=barley_p3&face=0,7,6,
 **The lesson for the GPT ask (section 34) and for more families:** the strip carries the frame count, the feet, the size and the beat, but an empty hand does not carry a weapon's arc. "No sword" asked the generator for a punch.
 
 **RULED 10-31**, Griz: *"we can put this on hold til GPT available wed. We'll send the mannequin with the sword along with asking the draw to include it"*. Section 34's blocks ask for the longsword drawn in his hand along the bar, and the ask waits for GPT's image budget (Wednesday 11-04).
+
+## What came back from GPT: the pilot's pages, scored and cut (2026-11-04)
+
+The art desk's `BARLEY-SLASH-PILOT-2026-11-04.zip`, sorted to `deep16/_src/barley/SLASH-PILOT-2026-11-04/`: five pages, six frames each, Barley in mail with the longsword drawn in his hand along the bar, as section 34 asked. Its own note: SE, NE, S and E are candidates; N is HELD, because frame 5 moves the sword to his left hand. `tools/barley-slash-sheet.py` cut them and wrote `pilot-score.json` and `pilot-review.png` (each cut at 4x, the mannequin's fist ringed blue and its tip magenta, the hit boxed).
+
+**The verdict: the generator followed the pose.** Four views pass outright, and N follows it in every frame but one hand.
+
+| check | S | SE | E | NE | N (held) |
+|---|---|---|---|---|---|
+| 1. the size: crown against the rig's, frames 1-6, px | 0 -2 1 1 1 1 | -1 -2 0 3 1 0 | 1 0 1 1 0 1 | 0 2 0 -2 -2 0 | 0 1 -2 -1 0 -1 |
+| 2. six frames | yes | yes | yes | yes | yes |
+| 3. the feet: bob / stance drift, px | 0.1 / 0.7 | 0 / 0.6 | 0 / -- | 0.1 / -- | 0 / 0.9 |
+| 4. the right hand holds the blade; its tip off the rig's, frames 1-6, px | yes; 3 10 6 6 7 3 | yes; 3 7 5 12 7 8 | yes, the near arm; 5 5 2 6 1 9 | yes; 4 4 3 2 (hidden) 7 | **no on 5** (the left hand); 3 4 4 4 2 5 |
+| 5. the hit on 4 | yes | yes | yes | yes | yes |
+
+(`--` in 3: in E and NE the two boots overlap at the sole, one piece.)
+
+**What held, against Grok's 10-31 baseline:**
+- The size held to 2 px in nearly every frame (SE 4 is 3). Grok drifted up to 7.
+- The feet do not move at all: 0.1 px of bob at most, against Grok's 1.
+- The hand's path: the fist is on the mannequin's fist, by eye, in every frame of S, SE, E and NE. Grok drew a punch.
+- The blade lies along the bar. Its tip lands 2-8 px from the rig's in most frames. That is mostly a blade drawn a little short, never a blade at the wrong angle.
+
+**What did not hold:**
+- N 5: the sword is in his LEFT hand, seen from behind. The arm comes off the left shoulder and the right arm is gone. It fails check 4, so N stays held.
+- NE 5: the whole sword is hidden. The rig's fist is hidden too, but the rig's tip shows low on his left; the drawn one does not. The cut tries to draw the blade behind him, but at 1x his body covers it.
+- SE 4: the blade at the hit is 12 px short of the rig's tip.
+- E 5: the blade is shortened in the follow-through. The art desk named that one itself.
+
+**Cut as** `longsword` on `barley_p3`: S, SE, E, NE as drawn; SW, W, NW their mirrors; `drawn` leaves N out, so his N plays the nearest drawn facing (`js/sprites.js` S.nearFacing). `--with-n` puts N in. The row has its own cell, 96 x 84 with the anchor at 48,79, at 12 fps with `release: 3`. Run the tool again after `tools/barley-sheet.py chain` rebuilds `barley_p3`; it replaces its own row.
+
+**For the next families:** the mannequin with the weapon drawn along the bar is how a move gets asked. The one hand to watch is the hand in the views seen from behind (N).
