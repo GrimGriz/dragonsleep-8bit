@@ -115,11 +115,19 @@
   // where he grows larger should be a counterspell/heal"): his reaction, at a levelled spell a creature he can see casts within 60 ft -- drunk as a Counterspell would take it (3rd
   // level and under at once; higher, his CHA check against 10 + its level), and he heals 'per' a level of it and grows a step (S.regrow, to 1.24 at most); failed, he OVERFILLS --
   // the light goes through him and the spell is cast. 'uses' a fight. Asked ahead of every Counterspell (grimoire.js M.counterAsk)
+  // the one who would drink a levelled spell u casts now, or null (his reaction left, a drink left this fight, within 60 ft, u in his sight) -- the drink's own test, asked by the
+  // class AI before it casts (js/tactics.js spellPlans: 11-03 night, his Harbinger fight, two Fireballs drunk; his "maybe he can only once per round and casting a fireball after he
+  // drank someone elses spell would be good tactic": once his reaction is spent the spells are worth casting again)
+  TR.drinker = function (B, u) {
+    return (B && B.units || []).filter(function (w) { return w !== u && w.drinkLight && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.drinkLeft == null ? w.drinkLight.uses : w.drinkLeft) > 0 && G.dist(w, u) <= 60 && M.sees(B, w, u) && !RU.charmedBy(w, u); })[0] || null;
+  };
+  // the chance he drinks a spell of level lv (3rd and under at once; higher, his CHA check against 10 + its level, the d20 his)
+  TR.drinkChance = function (m, lv) { if (!m) return 0; if (lv <= 3) return 1; var need = 10 + lv - M.mod(m); return Math.max(0, Math.min(1, (21 - need) / 20)); };
   var ca0 = M.counterAsk;
   M.counterAsk = function* (B, u, id, slot, g) {
     var sp = M.data(id), lv = (sp && sp.level) || 0;
     if (B && B.units && sp && lv >= 1 && !(g && (g.free || g.again || g.move)) && !(u.turn && u.turn.readied)) {
-      var m = B.units.filter(function (w) { return w !== u && w.drinkLight && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.drinkLeft == null ? w.drinkLight.uses : w.drinkLeft) > 0 && G.dist(w, u) <= 60 && M.sees(B, w, u) && !RU.charmedBy(w, u); })[0];
+      var m = TR.drinker(B, u);
       if (m) {
         m.reaction = 0; m.drinkLeft = (m.drinkLeft == null ? m.drinkLight.uses : m.drinkLeft) - 1;
         var ok = lv <= 3 && !m.showOverfill, r = 0, tot = 0;

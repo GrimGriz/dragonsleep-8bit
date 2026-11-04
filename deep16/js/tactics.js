@@ -260,6 +260,10 @@
       if (!(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
       if (e.g.conc && u.conc && !(e.g.free && u.conc.id === e.id)) best.score -= (u.conc.value || 6);
+      // the Harbinger's Drink Light (js/traits.js TR.drinker): a levelled spell he would drink now is worth what he leaves of it -- none at 3rd and under -- and costs its slot
+      // all the same; once his reaction is spent on someone else's spell, it is worth casting again (11-03 night, his "casting a fireball after he drank someone elses spell
+      // would be good tactic")
+      if (e.level > 0 && !(e.g.free || e.g.again || e.g.move) && D.traits && D.traits.drinker) { var dk = D.traits.drinker(B, u); if (dk) best.score *= 1 - D.traits.drinkChance(dk, e.level); } // (the spell's own level, as the drink reads it -- not the slot)
       // a slot is dear: a leveled spell must beat what a cantrip or a swing would do by its level's cost (a spell already paid for is free)
       if (e.level > 0 && !e.g.free) best.score -= slot * 1.2;
       if (best.score <= 0) return;
@@ -1096,7 +1100,8 @@
       // (10-07: the estimate reads what the real roll reads -- Battle.stealthEdges: the Boots of Elvenkind's advantage on Stealth, Enhance Ability, a friend's Help, Supreme Sneak if the walk to this square
       // is no more than half her speed -- and an edge is worth about 5 on a middling d20 (the odds of a roll that matters go from half to three in four, or to one in four), a disadvantage as much against)
       var se = B.stealthEdges(u, (T.moved || 0) + (e.cost || 0)), edge = se.hadv !== se.hdis ? (se.hadv ? 5 : -5) : 0;
-      e.hide = all.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus || f.perception + (f.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10 + edge + (u.conds.pwt ? 10 : 0); });
+      e.hide = all.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus || f.perception + (f.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10 + edge + (u.conds.pwt ? 10 : 0); })
+        && !D.Battle.mirrorOn(B, u).length; // (no square in a Mirror's eye: nothing hides in front of it -- she hid into one every round and never struck, his Harbinger fight of 11-03)
       e.beside = all.some(function (f) { return G.dist(u, f) <= Math.max(5, G.reachOf(f)); });
       e.far = chase.every(function (f) { return G.dist(u, f) > G.reachOf(f) + (f.speed || 30); }); // (past what any one that could run at her could cover, even seen)
     });

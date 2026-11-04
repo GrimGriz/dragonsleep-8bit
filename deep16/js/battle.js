@@ -960,9 +960,16 @@
   Battle.grapplerOn = function (att, tgt) { return !!(tgt && tgt.conds && tgt.conds.grappled && tgt.conds.grappled.by === att.id && Battle.grappler(att)); };
   // the reach a creature's grip holds at: its longest attack's (the roper's 50-ft tendril, the chuul's 10-ft pincer -- js/ai.js keeps the same at its turn's start)
   Battle.gripReach = function (u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r || 0, (u.attacks[k] && u.attacks[k].reach) || 0); }); return G.reachOf(u, r); };
+  // a hero's grip on a creature takes a hand: its versatile weapon in one hand while it holds (js/rules.js R.GRIPPING, R.twoHanded), re-gripped as a torch re-grips it (js/light.js
+  // L.regrip) -- the d8, not the d10 (11-03 night, his "1 - longsword yes")
+  Battle.gripFor = function (u) {
+    var R = window.DS.R, h = u && u.src; if (!h || !h.equip || u.guest || !R.GRIPPING) return;
+    if (u.grappling) R.GRIPPING.add(h); else R.GRIPPING.delete(h);
+    if (D.light && D.light.regrip) D.light.regrip(u);
+  };
   Battle.prototype.letGo = function (g, w, why) {
     if (!w || !w.conds.grappled) return;
-    delete w.conds.grappled; if (g && g.grappling === w.id) delete g.grappling;
+    delete w.conds.grappled; if (g && g.grappling === w.id) { delete g.grappling; Battle.gripFor(g); }
     if (w.conds.restrained && w.conds.restrained.pin) delete w.conds.restrained; if (g && g.conds.restrained && g.conds.restrained.pin) delete g.conds.restrained; // (a pin ends with the grapple: Grappler)
     var nm = w.side === 'foe' ? Battle.nm(w, true) : w.name;
     if (why === 'release') this.card(['{y}' + g.name + '{/} lets go of ' + nm + '.'], 160);
@@ -1019,6 +1026,7 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    var RG = window.DS.R.GRIPPING; if (RG) this.units.forEach(function (u) { if (u.src) RG.delete(u.src); }); // (no grip outlives its fight: Battle.gripFor)
     // a trooper left lying when the party got out (escapeEnd): a word for each, and the 8-bit lets them go (embed.js leftBehind -- 10-13, his: "continue with sad note on 'troop' NPCs")
     var lb = o === 'escaped' ? this.units.filter(function (u) { return u.leftBehind; }) : [];
     if (lb.length) { this.card(lb.map(function (u) { return '{g}' + u.name + ' is left where they fell. No one goes back.{/}'; }), 320); yield 40; }
@@ -1118,7 +1126,8 @@
     // HIDE sits on the rogue's first ring (Griz, 09-27: "Rogues gonna hide allatime"): Cunning Action's bonus action from
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    var mirH = u.cls === 'rogue' ? Battle.mirrorOn(this, u) : []; // (the Mirror's eye on her: HIDE greyed, the why said -- 11-03 night, his "2 - fair")
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && !mirH.length && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : mirH.length ? 'the mirror on the ' + shortName(mirH[0]) + ' has you: nothing hides in front of the Mirror\'s eye' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -1778,7 +1787,7 @@
         if (!Battle.openAttack(u, true)) { if (T.hasteAttack) this.card(['{o}The attack Haste gives is a weapon attack: no grapple with it.{/}'], 160); return; } // (the Attack action's, not Haste's: "one weapon attack only")
         T.attacksLeft--;
         if (yield* D.ai.grappleCheck(this, u, gw)) {
-          gw.conds.grappled = { by: u.id }; u.grappling = gw.id;
+          gw.conds.grappled = { by: u.id }; u.grappling = gw.id; Battle.gripFor(u); // (the hand that holds it: a versatile weapon in one hand)
           if (Battle.dragHalves(u)) T.move = Math.floor(T.move / 2); // (the rest of the walk at half, to drag it)
           this.card(['{y}' + u.name + '{/} has ' + (gw.side === 'foe' ? Battle.nm(gw, true) : gw.name) + ': {o}GRAPPLED{/}  {g}(its speed 0; ' + (Battle.dragHalves(u) ? 'yours halved to drag it' : 'small enough to carry at your speed') + '; LET GO is free)' + (T.attacksLeft > 0 ? '  ' + T.attacksLeft + ' attack' + (T.attacksLeft > 1 ? 's' : '') + ' left' : '') + '{/}'], 260);
         }
@@ -3764,13 +3773,18 @@
   };
   // (`bonus`: the Hide is this one's bonus action by a trait of its own -- the goblin's Nimble Escape, js/traits.js after: SRD 5.1, "the Disengage or Hide action as a bonus action
   // on each of its turns" -- and never reads its level for it. T.hid: one Hide to a turn, whichever action paid it -- 10-07, Griz: "4 yes")
+  // the Mirror's eye (the Mirror's warlocks, RULED 09-28: no hiding before it): the foes whose mirror has u -- standing, able, in line, u in its mirror (js/magic.js M.inMirror).
+  // Read by Battle.hide, the ring's HIDE (greyed with the why: his "2 - fair", 11-03 night) and the class AI's cover play (js/tactics.js), which hid into it every round and never
+  // struck (his Harbinger fight of 11-03, read that night)
+  Battle.mirrorOn = function (B, u) { return B.units.filter(function (w) { return w.mirrorEye && G.hostile(u, w) && G.standing(w) && RU.canAct(w) && G.los(w, u).clear && D.magic.inMirror(B, w, u); }); };
   Battle.prototype.hide = function* (u, bonus) {
     var T = u.turn;
+    if (Battle.mirrorOn(this, u).length && !(u.side === 'party' && !u.guest && !u.classAI)) return; // (one the AI runs sees the mirror and does not try: no action spent on it)
     if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else Battle.payAction(T); // a rogue's Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before -- and for anyone else, whatever its level (every bestiary foe is made at 5, makeFoe0: its level is no Cunning Action -- 10-07, Griz: "4 please fix")
     T.hid = true;
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
-    var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
+    var mirror = Battle.mirrorOn(self, u); // (the Mirror's eye: no hiding before it, in light)
     // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn -- what she has walked BEFORE the
     // roll (hide first and the whole move is hers after) -- and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges
     var q = this.stealthRoll(u), r = q.r, supreme = q.supreme, ce = q.ce, hadv = q.hadv, hdis = q.hdis;

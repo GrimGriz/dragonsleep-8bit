@@ -738,10 +738,13 @@
     if (p.indexOf('finesse') >= 0) return DS.mod(h.abil.dex) > DS.mod(h.abil.str) ? 'dex' : 'str';
     return 'str';
   };
+  // a hand holding a creature (SRD 5.1 Grappling: the grapple takes a free hand; 11-03 night, his "1 - longsword yes" -- a grappler swung his versatile longsword for the two-handed
+  // d10): the grid marks the sheet while its hero holds one (deep16/js/battle.js Battle.gripFor), in memory only, never in a save
+  R.GRIPPING = typeof WeakSet === 'function' ? new WeakSet() : null;
   R.twoHanded = function (h, w) {
     var p = w.weapon.props || [];
     if (p.indexOf('two-handed') >= 0) return true;
-    return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch && !h.equip.offhand; // (a torch, or a weapon, in the other hand: one-handed)
+    return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch && !h.equip.offhand && !(R.GRIPPING && R.GRIPPING.has(h)); // (a torch, a weapon or a grip in the other hand: one-handed)
   };
   // ---------------------------------------------------------------- the fighting styles (SRD 5.1: the fighter chooses at 1, the paladin
   // and the ranger at 2). One rule, both games (10-06, Griz: Great Weapon Fighting in the 8-bit "yeah", as the grid's; "yeses. Pocket DM is

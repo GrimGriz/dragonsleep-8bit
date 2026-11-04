@@ -6538,6 +6538,64 @@
   // squares -- picked, hovered, and a Fire Bolt, a Scorching Ray and an attack find it, not the goblin on its anchor square; 3 three stirges on one hero -- a seat of its own each (UI.perchPos), each
   // hovered and struck at through MOVE and ATTACK, by the hero beside and by the host himself; 4 a dart or a ray turned away says why (UI.actAt); 5 every aimed spell's words say what the click asks,
   // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
+  // HIS 18 FIGHTS OF 11-03, READ THAT NIGHT (mode=fights1103; the lanes desk): 1 the Mirror's eye -- HIDE greyed before it with the why (his "2 - fair"), the class AI's rogue strikes
+  // instead of hiding into it (his Harbinger fight: ten "tries to hide" and no blow), and an AI hider spends nothing on it; 2 Drink Light -- no levelled spell of 3rd or under into a
+  // Harbinger who can drink it, and back once his reaction is spent (his "casting a fireball after he drank someone elses spell would be good tactic"); 3 a grappler's versatile
+  // longsword in one hand, the d8, while he holds one, the d10 again when he lets go (his "1 - longsword yes")
+  if (get('mode', '') === 'fights1103') {
+    var repFT = { checks: [], errors: [] }, d0FT = D.d, BFT = D.Battle;
+    function okFT(what, v) { repFT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFT(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkFT(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideFT(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logFT(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function openFT(w, h) { var m = D.grid.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function faceFT(a, b) { var F = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]], dx = b.x - a.x, dy = b.y - a.y, best = 0, bv = -9; F.forEach(function (f, i) { var v = (f[0] * dx + f[1] * dy) / (Math.hypot(f[0], f[1]) * (Math.hypot(dx, dy) || 1)); if (v > bv) { bv = v; best = i; } }); return best; }
+    try {
+      // 1. THE MIRROR'S EYE: a patrol lady (a warlock of the Mirror) facing a rogue 15 ft off, in light
+      var B1 = mkFT('?npc=patrollady&vs=rogue:5&lvl=5'), v1 = sideFT(B1, 'party')[0], w1 = sideFT(B1, 'foe')[0], o1 = openFT(6, 6);
+      sideFT(B1, 'foe').slice(1).forEach(function (w) { w.dead = true; w.hp = 0; });
+      if (o1) { w1.x = o1[0]; w1.y = o1[1]; v1.x = o1[0] + 3; v1.y = o1[1] + 3; } B1.cache = null; D.grid.setup(D.grid.map, B1.units); w1.facing = faceFT(w1, v1);
+      var mo1 = D.magic.inMirror(B1, w1, v1); // (the mirror's own test, so the check runs on the code before too)
+      okFT('1 the rogue in the lady\'s mirror: ' + mo1 + ' (her mirrorEye ' + !!w1.mirrorEye + ', facing ' + w1.facing + ', the light ' + (D.light ? D.light.levelOf(B1, v1) : '?') + ')', mo1);
+      D.rules.startTurn(v1); B1.active = v1; B1.req = { turn: v1 }; B1.cache = null;
+      var h1 = B1.commands(v1).filter(function (c) { return c.id === 'hide'; })[0];
+      okFT('1 HIDE on her ring: ok ' + (h1 && h1.ok) + ', why "' + (h1 && h1.why) + '" (want greyed, the Mirror said)', !!h1 && !h1.ok && /Mirror/.test(h1.why || ''));
+      v1.guest = true; v1.classAI = true; var T1 = v1.turn, a1 = T1.action, b1 = T1.bonus; runFT(B1.hide(v1));
+      okFT('1 an AI hider under the mirror: the action ' + a1 + ' -> ' + T1.action + ', the bonus ' + b1 + ' -> ' + T1.bonus + ', hidden ' + !!v1.conds.hidden + ' (want nothing spent, not hidden)', T1.action === a1 && T1.bonus === b1 && !v1.conds.hidden);
+      D.rules.startTurn(v1); var n1 = (B1.log || []).length, hp1 = w1.hp; runFT(D.ai.turn(B1, v1)); var l1 = logFT(B1, n1);
+      var blow1 = / > .*(Patrol|Lady|Warlock)/i.test(l1) || w1.hp < hp1, hid1 = /HIDDEN/.test(l1);
+      okFT('1 the AI\'s rogue turn before the mirror: a hide into the mirror ' + /tries to hide, but the mirror/.test(l1) + '; a blow at the lady ' + blow1 + ' or a hide out of its light ' + hid1 + ' -- ' + l1.slice(0, 160) + ' (want false; one of the two)',
+        !/tries to hide, but the mirror/.test(l1) && (blow1 || hid1));
+    } catch (eFT1) { repFT.errors.push('1: ' + String(eFT1 && eFT1.stack || eFT1).slice(0, 400)); }
+    try {
+      // 2. DRINK LIGHT: a wizard 30 ft from the Harbinger -- no levelled spell of 3rd or under while he can drink it; his reaction spent (someone else's spell drunk), they are back
+      var B2 = mkFT('?npc=harbinger&vs=wizard:7&lvl=7'), z2 = sideFT(B2, 'party')[0], hb2 = sideFT(B2, 'foe').filter(function (w) { return w.drinkLight; })[0], o2 = openFT(9, 4);
+      if (!hb2) okFT('2 the Harbinger with Drink Light on the floor', false);
+      else {
+        sideFT(B2, 'foe').forEach(function (w) { if (w !== hb2) { w.dead = true; w.hp = 0; } });
+        if (o2) { hb2.x = o2[0]; hb2.y = o2[1]; z2.x = o2[0] + 6; z2.y = o2[1] + 1; } B2.cache = null; D.grid.setup(D.grid.map, B2.units);
+        D.rules.startTurn(z2); B2.active = z2; hb2.reaction = 1;
+        var lv2 = function () { return D.tactics.spellPlansFor(B2, z2).filter(function (p) { return p.level >= 1 && p.level <= 3; }).map(function (p) { return p.id; }); };
+        var ready2 = hb2.reaction > 0 && D.grid.dist(hb2, z2) <= 60 && D.magic.sees(B2, hb2, z2), before2 = lv2(); hb2.reaction = 0; var after2 = lv2(); // (his drink's own conditions, read plain)
+        okFT('2 the wizard 30 ft from the Harbinger: he would drink ' + !!ready2 + '; spells of 1st-3rd planned while he can: ' + (before2.join(',') || 'none') + '; once his reaction is spent: ' + (after2.join(',') || 'none') + ' (want true, none, some)',
+          !!ready2 && before2.length === 0 && after2.length > 0);
+      }
+    } catch (eFT2) { repFT.errors.push('2: ' + String(eFT2 && eFT2.stack || eFT2).slice(0, 400)); }
+    try {
+      // 3. THE GRIP: a fighter with a longsword and no shield grapples a goblin -- the d10 two-handed, the d8 while he holds it, the d10 again when he lets go
+      var B3 = mkFT('?npc=goblin&vs=~fighter.5.human..longsword_chainmail.Hands_Free&lvl=5'), f3 = sideFT(B3, 'party')[0], g3 = sideFT(B3, 'foe')[0];
+      g3.x = f3.x + 1; g3.y = f3.y; B3.cache = null; D.grid.setup(D.grid.map, B3.units);
+      var dA3 = f3.weapon.dice, q3 = [20, 1, 1, 1]; D.rules.startTurn(f3); B3.active = f3;
+      D.d = function (n) { return n === 20 && q3.length ? q3.shift() : d0FT(n); }; try { runFT(B3.exec(f3, { do: 'grapple', target: g3 })); } finally { D.d = d0FT; }
+      var dB3 = f3.weapon.dice, held3 = f3.grappling === g3.id; B3.letGo(f3, g3, 'release'); var dC3 = f3.weapon.dice;
+      okFT('3 ' + f3.weapon.name + ': ' + dA3 + ' in both hands; grappling the goblin ' + held3 + ', ' + dB3 + '; let go, ' + dC3 + ' (want 1d10, true, 1d8, 1d10)', dA3 === '1d10' && held3 && dB3 === '1d8' && dC3 === '1d10');
+    } catch (eFT) { repFT.errors.push(String(eFT && eFT.stack || eFT).slice(0, 900)); }
+    D.d = d0FT;
+    var preFT = document.createElement('pre'); preFT.id = 'out'; preFT.textContent = 'BENCH16 ' + JSON.stringify(repFT);
+    document.body.appendChild(preFT);
+    return;
+  }
   // THE PLAY RECORDS LANE (mode=records1103; the lanes desk of 11-03 night, `handoff-2026-11-03-the-play-records.md`), a check an item:
   // 1 a click the game turns away is a step of its own in the record (REC.tried, `refused`, `clicked`), the same refusal again counts up; the simple fight's greyed row the same (REC.refused)
   // 2 a re-carded line reads once, its final form -- and a card id reused for a new card (the trophy's lines) keeps every line
