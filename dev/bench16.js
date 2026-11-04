@@ -9536,7 +9536,8 @@
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1021);
-      var names = Object.keys(CW.PT).filter(function (n) { return !CW.GENERIC[n]; }), sheets = names.filter(function (n) { var s = D.SHEETS[CW.PT[n]]; return s && s.portrait && s.anims.idle && s.anims.idle.frames === 6 && s.anims.work && s.anims.work.frames === 6; }); // (the named: the unnamed in costume are mode=generic1028's)
+      var HELDW = { elsbethCandles: 'the art desk held her Work page (the working hand switches), 11-04; on deep16-dream-polish.md' }; // (a keeper whose work row the art desk itself held: no work row, and only that)
+      var names = Object.keys(CW.PT).filter(function (n) { return !CW.GENERIC[n]; }), sheets = names.filter(function (n) { var s = D.SHEETS[CW.PT[n]]; return s && s.portrait && s.anims.idle && s.anims.idle.frames === 6 && (s.anims.work ? s.anims.work.frames === 6 : !!HELDW[n]); }); // (the named: the unnamed in costume are mode=generic1028's)
       okW('every keeper\'s portrait cut (tools/portrait-sheet.py): ' + sheets.length + ' of ' + names.length + ' with a six-frame idle and work (' + names.map(function (n) { var s = D.SHEETS[CW.PT[n]]; return n + (s ? ' ' + Object.keys(s.anims).length : ' NONE'); }).join(', ') + ')', sheets.length === names.length && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (a) { return !!D.SHEETS.pt_winters.anims[a]; }));
       HW.begin(HW.fresh(), 0); var B = topW(), R0 = B.roam, st = CW.state(B);
       okW('NEW GAME in Silverton: the floor\'s flags, pack and purse are what the counter reads (' + R0.silver + ' sp)', !!st && st.flags === R0.flags && st.inv === B.inv && st.silver() === R0.silver && st.party.length === 4);
