@@ -1,0 +1,190 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-11-03T22:22:02.915Z",
+ "previous_save": "2026-11-01T03:07:28.038Z",
+ "items": [
+  {
+   "id": "eyes-warrens-camp-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Crawler Warrens' mouth camp as built: on the art desk's tiles, with its pen crawlers, bunk sign, watchers and four figures (11-03)",
+   "pt": "the warrens and galleries on the tiles (deep16/js/mines.js M.floor, M.penCrawlers, M.INNS; deep16/js/town.js T.watch; deep16/js/counter.js C.FIG) · eyes",
+   "url": "deep16/?roam=warrens&fresh=1103w",
+   "verdict": "works",
+   "note": "saving is disabled via situations (and wasn't available here or in silverton) - leaving to the left north of the river puts you in the right place in silverton, but leaving silverton from there puts you mid-south warrens instead of coming in from the left side \n\nBest guess for the square walls is stuff the farms use - sheds or something near the river",
+   "at": "2026-11-03T21:45:59.119Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-roadfollow-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "The walk follows the road: up the Coldridge’s hairpins pass by pass, the banner on the road, no step across a bend (11-03)",
+   "pt": "the world map lane 11-03, the hex map and world session (tools/near-build.py THE ROAD FOLLOWED, CLIP_MI, COLD_SHELF_MI; deep16/js/world.js routeV, W.passStep, W.walkPt, W.STEEP, lookAt) · eyes",
+   "url": "deep16/?world&hairpin&fresh=1103c",
+   "verdict": "unclear",
+   "note": "still kind of a mess, you can scale from prolly 112, 34 to 110, 33 or something - (2007 ft to 5104 ft hex north of it).  I'd like to have you take the 2 hexes surrounding the 3291 hex and rework the coldridge route up the mountain toward the goals we were aiming at with these changes, switchbacks and such so that a wagon could reasonably ascend and descend",
+   "at": "2026-11-03T21:55:25.039Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-edifice-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Edifice one level block on a terrace, the title page’s facade with the falls down it (11-03, after your look)",
+   "pt": "the world map lane 11-03, the hex map and world session (tools/hexmap.js terraceOn, seedEdificeTerrace; deep16/js/worldfine.js F.built keepBox, fallsAt) · eyes",
+   "url": "deep16/?world&close&fresh=1103e",
+   "verdict": "works",
+   "note": "I think it might be worthwhile to reshape the area to better match the hex lines, such that when traveling between town and the warrens on the world map, half of the selected hexes aren't up the side of the mountain. The ceiling of the edifice is drawn as if it is being viewed from top down, and that's not the actual iso angle. \nDiscuss before building",
+   "at": "2026-11-03T21:59:55.966Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-aloftclicks-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "A click goes to the figure under the mouse: a stirge aloft, three on one hero, a manticore hovering (11-03)",
+   "pt": "the menus, his Pocket DM notes \"oh, see stirge targetting difficulties fight before this one\" and \"The 5-foot flight above 4 foes targeting (manticore)\" (deep16/js/ui.js UI.hoverPick, UI.pickUnit, UI.hoveredAt, riderSeat, perchPos, UI.aimWords; mode=aloftclicks1103) · eyes",
+   "url": "deep16/?npc=manticore,goblin,goblin,stirge,stirge,stirge&vs=aurdin:5,barley:5,lymen:5,vivian:5&lvl=5&fresh=1103e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:04:52.327Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-simplehide-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "The simple fight's HIDE is a Stealth roll against each foe's passive Perception, no sight cones (11-03)",
+   "pt": "the grid's rules, his 11-01 \"Best isn't auto-success in simple fight, but stealth roll versus passive perception without sight-cone grid modifiers\" (deep16/js/simple.js S.judge, S.passive, S.hideRec, the Hide; js/rules.js RU.edges) · eyes",
+   "url": "deep16/?world&simple=worg,goblin,goblin,giantbat&camp&fresh=1103d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:05:22.152Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-pocketcamp-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CAMP between a module's fights shows each hero as the next fight starts them; a potion drinks and a heal casts there (11-03)",
+   "pt": "the Pocket DM and the races, his module BUILDING: \"it allowed me to go to the camp between and open the menu, but in that menu everyone was fine. Not so when the fight started. Might be appropriate, but we had healing potions we could have drank\" (deep16/js/pocket.js Pocket.campSpecs, campField, campBack) · eyes",
+   "url": "deep16/?pocket&fresh=1103c",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:07:09.557Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-offhand-click-1103",
+   "eyes": true,
+   "pri": 1,
+   "title": "A click on a foe in reach after the Attack takes the off-hand swing, not \"No attack left\" (11-03)",
+   "pt": "the grid's rules, his \"the second 'you don't have an action to attack' click should just eat the bonus action offhand attack rather than say 'no action to attack'\" (deep16/js/ui.js actAt; deep16/js/tactics.js TX.offhandAfter) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger,aurdin:3&lvl=3&fresh=1103a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:09:02.091Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-villains-1017c",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE VILLAINS, MAKE, THE MARKS, and villains on the DM’s play roster (step C, 10-17)",
+   "pt": "the Pocket DM and the races §2l (deep16/js/pocketdm.js drawVillains, drawMarks, PD.villainRows; deep16/js/pocket.js PK.foe, PK.levelCR, PK.markOf) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:10:55.506Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-campaign-1017c",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CAMPAIGN’s first page, THE LOCATIONS, modules by name with their rests (step C, 10-17)",
+   "pt": "the Pocket DM and the races §2l (deep16/js/pocketdm.js drawCamp, drawLocations, drawBuild, drawDmMods, PD.LAND, PD.addSlot) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "Should be able to select items - and selecting items should load them as the background image (location/monster) - discuss ",
+   "at": "2026-11-03T22:12:53.163Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-campnotes-1017b",
+   "eyes": true,
+   "pri": 1,
+   "title": "Your B notes: EQUIP WHOM? by the mouse, THE CAMP at the fire and from a rest, the market’s line, winnings into the pack (10-17)",
+   "pt": "the Pocket DM and the races §2l (js/menu.js the panel’s pick; deep16/js/pocket.js drawFire, toCamp, restOn, PK.itemLine, PUT IT ON) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:18:13.161Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-modfolder-1017",
+   "eyes": true,
+   "pri": 1,
+   "title": "The modules folder: SAVE AS A MODULE writes there, THE MODULES reads it (10-17; test in Brave)",
+   "pt": "the Pocket DM and the races §2l (deep16/js/pocket.js PK.folder*, folderRead; deep16/js/pocketdm.js PD.saveModule) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "pull the timestamp off the module save so that the folder doesn't read 4 different versions of the same module, save 'overwrite' warning should be handled by windows",
+   "at": "2026-11-03T22:20:31.850Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-xp-1017",
+   "eyes": true,
+   "pri": 1,
+   "title": "XP from won fights, and levels at the next long rest (10-17)",
+   "pt": "the Pocket DM and the races §2l (deep16/js/pocket.js PK.giveXP, levelUps) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T22:21:50.203Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-twf-1015",
+   "eyes": true,
+   "pri": 1,
+   "title": "Two-weapon fighting by the SRD, both games: the off-hand swing, and the style (10-15)",
+   "pt": "the menus §2.5 (js/rules.js R.twoWeapon, R.offhandDamage; js/battle.js offhandSwing; deep16/js/battle.js OFF HAND) · eyes",
+   "url": "deep16/?npc=goblin,goblin&vs=~rogue.5.human..shortsword_leather________dagger.Twin_Blades,fighter:5&lvl=5&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T21:26:42.324Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-pack-laughs-1008c",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Harbinger’s pack: his laugh, then theirs; their laugh at a fall, and the fear scale (10-08)",
+   "pt": "the bestiary §11 (deep16/js/traits.js hisLaugh, packLaugh; js/rules.js RU.FEAR) · eyes",
+   "url": "deep16/?fight=harbinger&lvl=7&seed=12&watch&rise&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T21:27:58.407Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-ring2-1008",
+   "eyes": true,
+   "pri": 1,
+   "title": "RING2: a Mascot turn on the ring by cost -- ACTIONS yellow, BONUSES blue, the fist, DENIM DAMAGE up front, SCUTTLE one icon (10-08)",
+   "pt": "MPMon lane §6j (deep16/js/ui.js cmds2, js/mpmon.js MP.KIT, js/icons.js) · eyes",
+   "url": "deep16/?npc=goblin,goblin,hobgoblin&vs=denny:5,rascal:5&lvl=5&mascots&fresh=8",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-03T21:32:40.661Z",
+   "new_since_last_save": true
+  }
+ ]
+}
