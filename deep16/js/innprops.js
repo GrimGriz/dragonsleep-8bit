@@ -3,7 +3,8 @@
    "Prop request list for the art-department, wall tilings as needed as well"), cut by tools/innprops-sheet.py into deep16/art/innprops_p1 (an atlas of named pieces,
    each with its footprint and its anchor -- the back corner of the footprint on the ground).
    Laid on the inn's floor (js/inn.js In.ROWS) while the party is in the house: the big fire's hearth on the chimney's 2 x 4 (its long mouth to the kitchen, the face the
-   camera sees, its fire playing in it), the small one between the bedrooms, the long table with its benches, the settle by the fire, the table for two and its chairs.
+   camera sees, its fire playing in it), the small one between the bedrooms, the long table with its benches, the settle by the fire, the table for two and its chairs; the kitchen's
+   tub, worktable and the fish on their racks, the crates and barrels, the beds -- and upstairs the beds, the crates and the table by the big room's bed.
    Each piece is found by its glyphs on the rows (the long table wherever its six K stand), so the floor can move under it; the code's own block on those squares
    (js/iso.js blockCanvas, the chimney's rock) gives way to it, and the squares' rules are the floor's as before.
    THE SORT: a piece over several squares is cut a square at a time -- each pixel to the front-most square whose column it stands over -- and each cut sorted at its own
@@ -51,12 +52,18 @@
   function now() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000; }
 
   // where each piece stands, found on the floor's rows by its glyphs: [name, gx, gy, a, b] (a squares along x, b along y), and the fires over their hearths
-  IP.find = function (rows) {
+  IP.find = function (rows, up) { // (up: the floor upstairs -- its chimney has no mouth, page 9's, not cut yet)
     var at = function (x, y) { var r = rows[y]; return r ? r.charAt(x) : ''; }, out = [], flames = [], H = rows.length, Wd = rows[0].length;
-    var x, y, n;
+    var x, y, n, cn = 0;
     for (y = 0; y < H; y++) for (x = 0; x < Wd; x++) {
       var c = at(x, y);
-      if (c === 'C' && at(x - 1, y) !== 'C' && at(x, y - 1) !== 'C') { var a = 0, b = 0; while (at(x + a, y) === 'C') a++; while (at(x, y + b) === 'C') b++; if (a === 2 && b === 4) { out.push(['inn_hearth', x, y, 2, 4]); flames.push(['inn_flameC', x, y]); } }
+      if (!up && c === 'C' && at(x - 1, y) !== 'C' && at(x, y - 1) !== 'C') { var a = 0, b = 0; while (at(x + a, y) === 'C') a++; while (at(x, y + b) === 'C') b++; if (a === 2 && b === 4) { out.push(['inn_hearth', x, y, 2, 4]); flames.push(['inn_flameC', x, y]); } }
+      if (c === 'T') out.push(['inn_tub', x, y, 1, 1]);                                          // (Elsbeth's tub)
+      if (c === 'z') out.push(['inn_bed', x, y, 1, 1]);
+      if (c === 'c') out.push([cn++ % 2 ? 'inn_barrel' : 'inn_crate', x, y, 1, 1]);              // (the crates, every other one a barrel)
+      if (c === 'H' && at(x - 1, y) !== 'H') { n = 0; while (at(x + n, y) === 'H') n++; for (var h = 0; h + 2 <= n; h += 2) out.push(['inn_rack', x + h, y, 2, 1]); } // (the fish drying along the wall, a rack each two squares)
+      if (c === 'K' && at(x - 1, y) !== 'K' && at(x + 1, y) === 'K' && at(x + 2, y) !== 'K') out.push(['inn_worktable', x, y, 2, 1]); // (the kitchen's two)
+      if (up && c === 'K' && at(x - 1, y) !== 'K' && at(x + 1, y) !== 'K') out.push(['inn_bedside', x, y, 1, 1]); // (the table by the big room's bed: the drawer)
       if (c === 'f' && at(x, y - 1) === 'B' && at(x, y + 1) === 'B') { out.push(['inn_hearthS', x, y, 1, 1]); flames.push(['inn_flameS', x, y]); }
       if (c === 'K' && at(x - 1, y) !== 'K') {
         n = 0; while (at(x + n, y) === 'K') n++;
@@ -71,7 +78,7 @@
   // the pieces laid on the loaded floor: each square of each a prop of its own, sorted with the figures; the code's block and the chimney's rock under them let go
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
-    var got = IP.find(In.ROWS), mine = {};
+    var up = m.def && m.def.key === In.UP, got = IP.find(up ? In.UPROWS : In.ROWS, up), mine = {};
     m.props = m.props.filter(function (p) { return !p.innProp; });
     got.pieces.forEach(function (pc) {
       for (var i = 0; i < pc[3]; i++) for (var j = 0; j < pc[4]; j++) (function (i, j) {
@@ -94,5 +101,5 @@
     m.sorted = null; IP.laid = got;
   };
   var load0 = iso.load;
-  iso.load = function (def) { var m = load0.apply(this, arguments); if (def && def.key === In.KEY && def.inside === 'inn') IP.dress(m); return m; };
+  iso.load = function (def) { var m = load0.apply(this, arguments); if (def && ((def.key === In.KEY && def.inside === 'inn') || def.key === In.UP)) IP.dress(m); return m; };
 })();
