@@ -2314,8 +2314,8 @@
       okIn('Elsbeth at the tub: HELP WITH THE DISHES ("' + e1.seen.slice(0, 50) + '"), the god an animal ("' + e2.seen.slice(0, 40) + '"), not tonight ("' + e3.seen.slice(0, 30) + '")',
         /Tobin was fourteen/.test(e1.seen) && /The god is an animal/.test(e2.seen) && /not a feeding night/.test(e3.seen));
       // 8. THE STAIR, THE SAVE inside, the lake door and the point
-      var stIn = stepIn(Be, 21, 19), aIn = HIn.atOf(Be);
-      okIn('the stair up: "' + stIn + '"; a SAVE in the house stands the party in the yard a step out from the front door (' + JSON.stringify(aIn) + ')', /The stair up to the guest rooms/.test(stIn) && aIn.town === 'inn' && aIn.gate === 'north' && aIn.sq.join() === '20,17' && aIn.dir === 'up');
+      var aIn = HIn.atOf(Be);
+      okIn('a SAVE in the house stands the party in the yard a step out from the front door (' + JSON.stringify(aIn) + ')', aIn.town === 'inn' && aIn.gate === 'north' && aIn.sq.join() === '20,17' && aIn.dir === 'up');
       atIn(Be, 30, 25, [0, 1]); stepIn(Be, 30, 26); var inL = RIn.def.inside; stepIn(Be, 30, 27); var outL = !RIn.def.inside;
       var pIn = stepIn(Be, 27, 45); atIn(Be, 27, 46, [0, 1]); var dpIn = useIn(Be, [27, 47]); atIn(Be, 31, 44, [0, -1]); var sgIn = useIn(Be, [31, 43]);
       okIn('out by the lake door (open on its doorway ' + inL + ', roofed on the path ' + outL + '); the point: on the flat stone "' + pIn.slice(0, 50) + '"; E on the deep "' + dpIn.seen.slice(0, 40) + '"; the lantern post "' + sgIn.seen.slice(0, 40) + '"',
@@ -2327,10 +2327,19 @@
       var Bs13 = testIn('?roam=halfway&hour=10&day=13');
       okIn('the Snoot\'s door: on day 14 a runner by the well (' + (rn ? rn.name + ', ' + rn.kind + ' at ' + rn.x + ',' + rn.y : 'none') + '; none on day 13: ' + !folkIn(Bs13, 'snootRunner') + '); his word "' + r1.seen.slice(0, 70) + '"; TO THE SNOOT opens ' + InI.left,
         !!rn && rn.name === 'A runner from the Pit' && rn.x === 13 && rn.y === 10 && !folkIn(Bs13, 'snootRunner') && /The Snoot's come down on the Pit/.test(r1.seen) && InI.left === '../snoot-mode/?from=inn');
+      // 9b. UPSTAIRS: its own floor on the diamonds by the stair, its walls stubs; the drawer by the traveler's bed; a SAVE there at the front step; down into the hall laid open
+      var Bu0 = testIn('?roam=halfway&hour=18&at=21,20'); atIn(Bu0, 21, 20, [0, -1]); stepIn(Bu0, 21, 19); var Bu = topIn(), du = RIn.def, tu = Bu && Bu.roam && Bu.roam.token ? { x: Bu.roam.token.x, y: Bu.roam.token.y } : null;
+      var wallsU = du.rows.join('').replace(/[^v]/g, '').length, roomsU = du.rows.join('').replace(/[^o]/g, '').length;
+      atIn(Bu, 21, 3, [0, -1]); var dr1 = useIn(Bu, [21, 2]), aU = HIn.atOf(Bu); stepIn(Bu, 13, 7); var Bd2 = topIn(), dd2 = RIn.def;
+      okIn('UPSTAIRS by the stair (21,19): ' + du.key + ' on the diamonds (' + !!du.iso + ', ' + du.w + ' x ' + du.h + '), every wall a stub (' + wallsU + '), ' + roomsU + ' floor squares, the party at ' + (tu ? tu.x + ',' + tu.y : '-') + '; the drawer by the traveler\'s bed "' + dr1.seen.slice(0, 60) + '"; a SAVE here stands the party at the front step (' + aU.sq + '); the stair down to the hall (' + dd2.key + ', laid open ' + dd2.inside + ', ' + (Bd2 && Bd2.roam ? Bd2.roam.token.x + ',' + Bd2.roam.token.y : '-') + ')',
+        du.key === 'halfway_up' && !!du.iso && du.w === 27 && du.h === 9 && wallsU > 60 && !!tu && tu.x === 13 && tu.y === 6 && /you leave it shut/.test(dr1.seen) && aU.sq.join() === '20,17' && dd2.key === 'halfway' && dd2.inside === true && !!Bd2.roam && Bd2.roam.token.x === 21 && Bd2.roam.token.y === 20);
+      // 9c. EVERY BEAT OF THE SHOW stands up in the house (the upstairs beat once had no square to stand on: Battle.enter threw)
+      var beatsIn = InI.BEATS.filter(function (b) { return !b.world; }).map(function (b) { var o = b.id + ': '; try { InI.play(b); var Bb = topIn(), t = Bb && Bb.roam && Bb.roam.token; o += (RIn.def && RIn.def.key) + ' at ' + (t ? t.x + ',' + t.y : '-') + (t && t.x === b.at[0] && t.y === b.at[1] && RIn.def.key === b.key ? '' : ' WRONG'); } catch (eB) { o += 'THREW ' + String(eB).slice(0, 80); } HIn.playing = false; HIn.cur = null; InI.pinned = null; return o; });
+      okIn('every beat of ?innshow stands up in the house: ' + beatsIn.join('; '), beatsIn.every(function (o) { return !/WRONG|THREW/.test(o); }));
       // 10. THE EDGES as the realm's sides (the map's top the west): the road's right end north, its left end south
       var dE = RIn.def, sides = [[43, 2], [0, 2], [20, 0]].map(function (q) { return MIn.sideOf(dE, q); });
       okIn('the edges as the realm\'s sides: the road\'s right end ' + sides[0] + ', its left end ' + sides[1] + ', the top ' + sides[2] + '; the show ?innshow ' + InI.BEATS.length + ' beats (' + InI.BEATS.map(function (b) { return b.id; }).join(', ') + '); the first game\'s maps unwritten (' + (before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in)) + ')',
-        sides.join() === 'north,south,west' && InI.BEATS.length === 8 && typeof InI.show === 'function' && before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in));
+        sides.join() === 'north,south,west' && InI.BEATS.length === 9 && typeof InI.show === 'function' && before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in));
     } catch (eIn) { repIn.errors.push(String(eIn && eIn.stack || eIn).slice(0, 900)); }
     HIn.playing = false; HIn.cur = null; if (InI) { InI.stay = false; InI.pinned = null; }
     D.store.get = stGIn; D.store.set = stSIn; D.music = muIn;
