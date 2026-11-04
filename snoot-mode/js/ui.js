@@ -5,7 +5,7 @@
 'use strict';
 (function () {
   var SN = window.SN, V = SN.V, UI = SN.UI = {}, st = null, frame = 0, busy = false, gen = null, shown = 0, KEY = 'snoot.save.v1';
-  var Q = location.search, PROBE = /[?&]probe\b/.test(Q), WATCH = /[?&]watch\b/.test(Q), ROAD = /[?&]from=road\b/.test(Q); // (ROAD: come from the 8-bit game's Halfway Inn -- js/events.js S.snootCall)
+  var Q = location.search, PROBE = /[?&]probe\b/.test(Q), WATCH = /[?&]watch\b/.test(Q), ROAD = /[?&]from=road\b/.test(Q), INN = /[?&]from=inn\b/.test(Q); // (ROAD: come from the 8-bit game's Halfway Inn -- js/events.js S.snootCall)
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   UI.state = function () { return st; };
@@ -27,6 +27,7 @@
     if (saved && saved.units && !saved.over && !/[?&]fresh\b/.test(Q)) b.unshift({ label: 'CONTINUE (Day ' + saved.day + ')', go: true, fn: function () { UI.load(saved); } });
     b.push({ label: 'HOW IT PLAYS', fn: function () { UI.help(true); } });
     if (ROAD) b.push({ label: 'BACK TO THE ROAD', fn: function () { location.href = '../'; } });
+    if (INN) b.push({ label: 'BACK TO THE INN', fn: function () { location.href = '../deep16/'; } }); // (INN: come from the second game's Halfway Inn, its runner in the yard -- deep16/js/inn.js, 11-04)
     UI.card('<h1>THE SNOOT</h1><p class="small">A playtest for the Chef &middot; Tarlyn\'s Pit, the autumn the gnoll king died</p>' +
       '<p><b>Chef:</b> Griz built this battle on the rules you cobbled together from CHAINMAIL and OD&amp;D -- the Combat Tables, post-melee morale, heroes and super-heroes, the wilderness day of five-mile hexes. It is a test, and your verdict is the point of it: what plays, what does not, what the old books would have done instead.</p>' +
       '<p>Two days after the giants came down, the four are at the Halfway Inn, on the road down to Tarlyn\'s Pit. The gnoll tribes are <b>snooting</b>: their king is dead and the Mane goes to whoever wins the most glory -- and nothing is more glorious than a Lupine\'s head. GreyFang, who runs the Pit\'s fighting pit, is the walking jackpot. And something with mirrors for eyes is hunting him.</p>' +

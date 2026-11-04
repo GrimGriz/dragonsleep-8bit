@@ -2239,6 +2239,101 @@
     document.body.appendChild(preF2);
     return;
   }
+  // THE HALFWAY INN ON THE GRID, 11-04 (mode=inn1104; js/inn.js -- the Inn build seat, started by the lanes desk on Griz's word: "alright, did a story-plot review for the
+  // inn, we're ready to start adding it back to the world"; his 10-30 "The inn as potentially top-grid (usual) and synched iso-grid (night-fight) with night scripting attempted
+  // on iso"; his 11-04 "Inn lady needs a name"): THE WORLD's door; the yard north up by day and on the diamonds by night, one map; the hour's turn where the party stands; the
+  // doors in and out; the people and their plates; the inn lady's room and the morning; Elsbeth at the tub; the stair; the point; the Snoot's runner from its day; the SAVE
+  if (get('mode', '') === 'inn1104') {
+    var repIn = { checks: [], errors: [] }, memIn = {}, stGIn = D.store.get, stSIn = D.store.set, MIn = D.mines, HIn = D.house, CIn = D.counter, WIn = D.world, RIn = D.roam, InI = D.inn, muIn = D.music;
+    function okIn(what, v) { repIn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveIn(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topIn() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveIn(s.co, null, 2); return s; }
+    function testIn(q) { var B = RIn.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topIn(); }
+    function runIn(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    function atIn(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function folkIn(B, id) { return ((B && B.units) || []).filter(function (u) { return u.npc === id; })[0] || null; }
+    function cardsIn(B) { return ((B && B.cards) || []).map(function (c) { return c.lines.join(' '); }).join(' / '); }
+    function wakeIn(B) { var m = D.top(); if (!(m instanceof HIn.Morning)) return ''; var ls = []; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } driveIn(B.co, null, 40); return 'MORNING: ' + ls.filter(function (l) { return l; }).join(' '); }
+    // the counter screen read through: each question answered by `ans` (an option's index; with none left, its last); every line seen, and the morning if it slept
+    function answerIn(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveIn(B.co, function () { return D.top() !== sc; }, 60); driveIn(B.co, function () { return D.top() instanceof HIn.Morning; }, 300); var mw = wakeIn(B); if (mw) seen.push(mw); return seen.join(' / '); }
+    // E toward a square beside the token: the counter it opens read through, or the card it says
+    function useIn(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveIn(B.co, function () { return D.top() instanceof CIn.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CIn.Counter) { var nm = sc.o.name; return { sc: sc, name: nm, seen: answerIn(B, sc, ans) }; } return { sc: null, seen: cardsIn(B) }; }
+    // the token set on a square and its arrival run (a way off, a step's trigger): the scene it leaves the party in
+    function stepIn(B, x, y, card) { atIn(B, x, y); B.cards = []; runIn(B, RIn.landed(B)); driveIn(B.co, function () { return D.top() !== B || (card && (B.cards || []).length > 0); }, 400); return topIn(); }
+    D.store.get = function (k) { return memIn[k] ? JSON.parse(memIn[k]) : null; }; D.store.set = function (k, v) { memIn[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1104); InI.stay = true;
+      var before8In = JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in);
+      // 1. THE WORLD: the inn's site a door, on THE WORLD and the area; come down the road from the north, the north gate
+      var xIn = new XMLHttpRequest(); xIn.open('GET', '../deep16/data/world-near.js', false); xIn.send(); (0, eval)(xIn.responseText);
+      WIn.index(); var MNIn = WIn.map('near'), MWIn = WIn.map('world'), sNIn = (MNIn.sites || []).filter(function (s) { return s.id === 'inn'; })[0], sWIn = (MWIn.sites || []).filter(function (s) { return s.id === 'inn'; })[0];
+      HIn.worldDoor('?world&fresh&noenc&far'); var wIn = D.top(), SIn = WIn.state(); SIn.at = sWIn.hex.slice(); SIn.from = [sWIn.hex[0], sWIn.hex[1] - 1]; wIn.cards = [];
+      var dIn = wIn.doorHere(); if (dIn) wIn.offerDoor(dIn); var cIn = (wIn.cards || [])[0];
+      if (dIn) wIn.enterDoor(dIn, WIn.gateFor(dIn, SIn.from)); var BW1 = topIn(), dW1 = RIn.def || {};
+      okIn('THE WORLD: the Halfway Inn\'s site a door (' + JSON.stringify(WIn.DOORS.inn) + ') on THE WORLD (' + (sWIn && sWIn.hex) + ') and the area (' + (sNIn && sNIn.hex) + '); come down the road from the north, its card "' + (cIn ? cIn.lines.slice(0, 2).join(' ') : 'none') + '"; GO IN: ' + dW1.key + ' by the ' + dW1.gate + ' gate, the party on ' + (BW1 && BW1.roam ? BW1.roam.token.x + ',' + BW1.roam.token.y : '-') + ' (the house\'s at ' + JSON.stringify(HIn.cur && HIn.cur.at) + ')',
+        !!WIn.DOORS.inn && WIn.DOORS.inn.roam === 'halfway' && !!sNIn && !!WIn.APPROACH.inn && !!dIn && dIn.id === 'inn' && !!cIn && /north gate/.test(cIn.lines.join(' ')) && dW1.key === 'halfway' && dW1.gate === 'north' && !!BW1.roam && BW1.roam.token.x === 1 && BW1.roam.token.y === 1 && HIn.cur.at.town === 'inn');
+      HIn.playing = false; HIn.cur = null;
+      // 2. ONE MAP, TWO VIEWS (his "top-grid (usual) and synched iso-grid (night-fight)")
+      testIn('?roam=halfway&hour=10'); var dd = RIn.def; testIn('?roam=halfway&hour=22'); var dn = RIn.def; testIn('?roam=halfway&hour=22&view=top'); var dt = RIn.def; testIn('?roam=halfway&hour=10&view=iso'); var di = RIn.def;
+      okIn('one map, two views: by day north up (' + dd.view + ', ' + dd.w + ' x ' + dd.h + '), by night on the diamonds (' + (dn.iso ? 'iso' : dn.view) + ') on the same squares (' + (dd.rows.join('|') === dn.rows.join('|')) + '); &view=top holds the night north up (' + dt.view + '), &view=iso the day on the diamonds (' + (di.iso ? 'iso' : di.view) + '); the night under the sky (' + dn.night + '), a lamp at each door\'s step (' + (dn.skyLights || []).filter(function (l) { return l.door === 'inn'; }).map(function (l) { return l.x + ',' + l.y; }).join(' ') + ')',
+        dd.view === 'top' && !dd.iso && dd.w === 38 && dd.h === 26 && !!dn.iso && !dn.view && dd.rows.join('|') === dn.rows.join('|') && dt.view === 'top' && !dt.iso && !!di.iso && !!dn.night && !dd.night && (dn.skyLights || []).filter(function (l) { return l.door === 'inn'; }).length === 2);
+      // 3. THE HOUR'S TURN where the party stands: dusk to night by the walk (north up the walk spends the hour), and dawn back by a fight's quarter (on the diamonds only events)
+      var Bh = testIn('?roam=halfway&hour=19'); atIn(Bh, 12, 14); Bh.roam.clockSq = InI.RATE.squaresPerHour - 1; Bh.cards = []; driveIn(MIn.tick(Bh), null, 40); var dh = RIn.def, th = Bh.roam.token;
+      okIn('the hour turns as they walk: the 500th square at seven, the hour ' + Bh.roam.hour + ', the yard laid again on the diamonds (' + (dh.iso ? 'iso' : dh.view) + ', the map its ' + (Bh.map.def === dh) + ') with the party on the same square (' + th.x + ',' + th.y + '), the card "' + cardsIn(Bh).slice(0, 80) + '"; the boys gone in for the night as it is laid again (' + !folkIn(Bh, 'orrin') + ')',
+        Bh.roam.hour === 20 && !!dh.iso && Bh.map.def === dh && th.x === 12 && th.y === 14 && /Night at the Halfway Inn/.test(cardsIn(Bh)) && !folkIn(Bh, 'orrin'));
+      var Bm = testIn('?roam=halfway&hour=4.9'), wasIso = !!RIn.def.iso; atIn(Bm, 16, 13); Bm.roam.fights = (Bm.roam.fights || 0) + 1; Bm.cards = []; driveIn(MIn.tick(Bm), null, 40); var dm = RIn.def;
+      okIn('and back: on the diamonds at ten to five (' + wasIso + ') a fight\'s fifteen minutes brings the dawn, the yard north up again (' + dm.view + ') with the party on ' + Bm.roam.token.x + ',' + Bm.roam.token.y, wasIso && dm.view === 'top' && !dm.iso && Bm.roam.token.x === 16 && Bm.roam.token.y === 13);
+      // 4. THE YARD'S PEOPLE AND ITS DOORS
+      var By = testIn('?roam=halfway&hour=10'), dy = RIn.def, dor = folkIn(By, 'doranYard'), orr = folkIn(By, 'orrin'), pel = folkIn(By, 'pell');
+      okIn('the yard\'s people where the first game stands them, in the townsfolk\'s figures: Doran ' + (dor ? dor.kind + ' at ' + dor.x + ',' + dor.y : 'none') + ', Orrin ' + (orr ? orr.kind : 'none') + ', Pell ' + (pel ? pel.kind : 'none') + '; no small girl with no child kept (' + !folkIn(By, 'adoptedKid') + '), no runner before the Snoot\'s day (' + !folkIn(By, 'snootRunner') + '); the doors\' ways on their steps (' + dy.warps.map(function (w) { return w.at + ' to ' + w.to; }).join('; ') + '); the arrival said (' + /only well on the Pit road/.test(dy.hello.join(' ')) + ')',
+        !!dor && dor.kind === 'commoner' && dor.x === 9 && dor.y === 11 && !!orr && orr.kind === 'commonerchild' && !!pel && !folkIn(By, 'adoptedKid') && !folkIn(By, 'snootRunner') && dy.warps.length === 2 && dy.warps[0].at.join() === '13,12' && dy.warps[1].at.join() === '20,12' && dy.rows[12].charAt(13) === 'd' && /only well on the Pit road/.test(dy.hello.join(' ')));
+      var Bk = testIn('?roam=halfway&hour=10&flags=kidAtInn'); okIn('the girl Gennet kept stands at the shore when one is kept (' + !!folkIn(Bk, 'adoptedKid') + ')', !!folkIn(Bk, 'adoptedKid'));
+      // 5. IN BY THE NEAR DOOR: the common room, drawn as a room, its people
+      By = testIn('?roam=halfway&hour=18'); atIn(By, 13, 13); var Bi1 = stepIn(By, 13, 12), di1 = RIn.def, ti1 = Bi1 && Bi1.roam && Bi1.roam.token, gen1 = folkIn(Bi1, 'gennet'), roofsIn = di1.rows.join('').replace(/[^nhbuBjq]/g, '').length;
+      okIn('in by the near door\'s step (13,12): ' + di1.key + ' (' + di1.sub + ', drawn as a room ' + di1.room + ', ' + di1.view + '), the party on ' + (ti1 ? ti1.x + ',' + ti1.y : '-') + '; no roof in it (' + roofsIn + '); the inn lady "' + (gen1 && gen1.name) + '" (' + (gen1 && gen1.kind) + ') at ' + (gen1 ? gen1.x + ',' + gen1.y : '-') + '; ' + ['doranIn', 'elsbeth', 'katarina'].map(function (id) { var u = folkIn(Bi1, id); return u ? u.name + ' ' + u.kind + ' at ' + u.x + ',' + u.y : id + ' none'; }).join('; ') + '; the HUD "' + di1.hud + '"',
+        di1.key === 'halfway_in' && di1.room === 'inn:halfway' && di1.view === 'top' && !!ti1 && ti1.x === 1 && ti1.y === 5 && roofsIn === 0 && !!gen1 && gen1.name === 'The inn lady' && gen1.kind === 'commonerwoman' && !!folkIn(Bi1, 'doranIn') && !!folkIn(Bi1, 'elsbeth') && !!folkIn(Bi1, 'katarina'));
+      // 6. THE INN LADY: her name, a room, the night with no watch, the morning
+      var hurtIn = Bi1.roam.members[0]; hurtIn.hp = Math.max(1, hurtIn.maxhp - 6); Bi1.roam.silver = 30;
+      atIn(Bi1, 5, 5, [0, 1]); var g1 = useIn(Bi1, [5, 6], [0]), reIn = folkIn(Bi1, 'gennet');
+      okIn('the inn lady (her plate "' + g1.name + '"): ' + g1.seen.slice(0, 260) + ' -- ' + hurtIn.name + ' ' + hurtIn.hp + '/' + hurtIn.maxhp + ', the purse ' + Bi1.roam.silver + ', her plate on the floor now "' + (reIn && reIn.name) + '"',
+        g1.name === 'The inn lady' && /Gennet\. Waterby, since the wedding/.test(g1.seen) && /A room for the night\? 20 silver/.test(g1.seen) && /Nobody stands a watch/.test(g1.seen) && /MORNING/.test(g1.seen) && hurtIn.hp === hurtIn.maxhp && Bi1.roam.silver === 10 && !!reIn && reIn.name === 'Gennet Waterby');
+      var g2 = useIn(Bi1, [5, 6], [1]);
+      okIn('her again: GENNET WATERBY on the plate ("' + g2.name + '"), no name given twice (' + !/since the wedding/.test(g2.seen) + '), NO keeps the silver (' + Bi1.roam.silver + ')', g2.name === 'Gennet Waterby' && !/since the wedding/.test(g2.seen) && Bi1.roam.silver === 10);
+      Bi1.roam.silver = 4; var g3 = useIn(Bi1, [5, 6], [0]);
+      okIn('four silver for four: "' + g3.seen.slice(-40) + '", no night (' + !/MORNING/.test(g3.seen) + ')', /Not enough silver/.test(g3.seen) && !/MORNING/.test(g3.seen) && Bi1.roam.silver === 4);
+      // 7. ELSBETH AT THE TUB, the first game's tiers
+      atIn(Bi1, 15, 4, [0, 1]); var e1 = useIn(Bi1, [15, 5], [0]), e2 = useIn(Bi1, [15, 5], []), e3 = useIn(Bi1, [15, 5], []);
+      okIn('Elsbeth at the tub: HELP WITH THE DISHES ("' + e1.seen.slice(0, 70) + '"), then the god an animal ("' + e2.seen.slice(0, 50) + '"), then not tonight ("' + e3.seen.slice(0, 40) + '")',
+        /Tobin was fourteen/.test(e1.seen) && /The god is an animal/.test(e2.seen) && /not a feeding night/.test(e3.seen) && !!Bi1.roam.flags.dishes);
+      // 8. THE STAIR to the room over the kitchen (the drawer's book waits on the wagon night: the lane's item 10)
+      stepIn(Bi1, 9, 1, true); var stIn = cardsIn(Bi1);
+      okIn('the stair up: "' + stIn + '"', /The stair up to the guest rooms/.test(stIn));
+      // 9. THE SAVE in the common room: the yard a step out from the near door; the house's inn a SAVE place
+      var aIn = HIn.atOf(Bi1);
+      okIn('a SAVE in the common room stands the party in the yard a step out from the near door (' + JSON.stringify(aIn) + '); a SAVE place (' + di1.save + ')', aIn.town === 'inn' && aIn.sq.join() === '13,13' && aIn.dir === 'down' && di1.save === true);
+      // 10. OUT BY THE WEST DOOR: the yard, a step south of the door's step
+      var Bo = stepIn(Bi1, 0, 5), dO = RIn.def;
+      okIn('out by the west door (0,5): ' + dO.key + ', the party on ' + (Bo && Bo.roam ? Bo.roam.token.x + ',' + Bo.roam.token.y : '-') + ' (a step south of the door\'s step), the inn lady\'s name carried (' + !!(Bo && Bo.roam && Bo.roam.flags.gennetNamed) + ')',
+        dO.key === 'halfway' && Bo.roam.token.x === 13 && Bo.roam.token.y === 13 && !!Bo.roam.flags.gennetNamed);
+      // 11. THE POINT: the flat stone, the deep, the lantern post
+      stepIn(Bo, 27, 13, true); var pIn = cardsIn(Bo), dpIn = useIn(Bo, [28, 13]); atIn(Bo, 26, 12, [0, -1]); var sgIn = useIn(Bo, [26, 11]);
+      okIn('the point: on the flat stone "' + pIn.slice(0, 60) + '"; E on the deep "' + dpIn.seen.slice(0, 50) + '"; the lantern post "' + sgIn.seen.slice(0, 50) + '"', /By day it reads as a shrine/.test(pIn) && /comes back up/.test(dpIn.seen) && /Nobody swims here/.test(sgIn.seen));
+      // 12. THE SNOOT'S DOOR (the lane's 11-04 §8.2): a runner from the Snoot's day; TO THE SNOOT its page
+      InI.left = null; var Bs = testIn('?roam=halfway&hour=10&day=14'), rn = folkIn(Bs, 'snootRunner'); atIn(Bs, 6, 9, [-1, 0]); var r1 = useIn(Bs, [5, 9], [0]);
+      var Bs13 = testIn('?roam=halfway&hour=10&day=13');
+      okIn('the Snoot\'s door: on day 14 a runner off the Pit road by the well (' + (rn ? rn.name + ', ' + rn.kind + ' at ' + rn.x + ',' + rn.y : 'none') + '; none on day 13: ' + !folkIn(Bs13, 'snootRunner') + '); his word "' + r1.seen.slice(0, 90) + '"; TO THE SNOOT opens ' + InI.left,
+        !!rn && rn.name === 'A runner from the Pit' && rn.x === 5 && rn.y === 9 && !folkIn(Bs13, 'snootRunner') && /The Snoot\'s come down on the Pit/.test(r1.seen) && InI.left === '../snoot-mode/?from=inn');
+      // 13. THE SHOW and the first game's maps untouched
+      okIn('the show ?innshow: ' + InI.BEATS.length + ' beats (' + InI.BEATS.map(function (b) { return b.id; }).join(', ') + '); the first game\'s two maps unwritten (' + (before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in)) + ')',
+        InI.BEATS.length === 7 && typeof InI.show === 'function' && before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in));
+    } catch (eIn) { repIn.errors.push(String(eIn && eIn.stack || eIn).slice(0, 900)); }
+    HIn.playing = false; HIn.cur = null; if (InI) InI.stay = false;
+    D.store.get = stGIn; D.store.set = stSIn; D.music = muIn;
+    var preIn = document.createElement('pre'); preIn.id = 'out'; preIn.textContent = 'BENCH16 ' + JSON.stringify(repIn);
+    document.body.appendChild(preIn);
+    return;
+  }
   // WEB GULCH ON THE GRID, 10-28 (mode=gulch1028; js/gulch.js, js/mines.js -- the gulch seat, started by the lanes desk; Griz: "I think we're ready to build the gulch roam.
   // The 8bit one wasn't bad, but we want this one to slow down time progression greatly (compared to road) and run basically N-S ish like it looks like on the map", then on
   // the seat's five leans "Gulch's leans look good"): the floor laid N-S along his paint's road; its clock at 300 squares an hour; noon and night; the first game's beats
