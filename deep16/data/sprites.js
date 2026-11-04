@@ -1423,7 +1423,7 @@
 "source": "drawn by the art desk (Barley barefoot in his battered brown coat, the threshing flail drawn in his hands), cut and snapped by tools/barley-sheet.py coat; 70 pages, 3 of them attempts the desk marked broken or did not select"
 },
 "barley_p3": {
-"image": "art/barley_p3.png?v=bc45df885e",
+"image": "art/barley_p3.png?v=495c94a837",
 "fw": 64,
 "fh": 72,
 "ax": 32,
@@ -1581,6 +1581,7 @@
 1,
 2,
 3,
+4,
 5,
 6,
 7

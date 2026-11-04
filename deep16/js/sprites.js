@@ -222,7 +222,8 @@
   // them while the hand holds it, its weapon by its sort (u.weapon.kind) and not put away -- the staff's guard for idle (its planted rest out of a
   // fight, `calm`), its carry for walk, the staff as focus for every cast, its strike for a blow (the cast's thrust where no strike is drawn); the
   // dagger's stab for a blow. Drawn only: what the engine sets (u.anim) and times stays the row it names, each pair the same length
-  S.HELD = { quarterstaff: { idle: 'staffidle', walk: 'staffwalk', cast: 'staffcast', castup: 'staffcast', attack: 'staffstrike|staffcast' }, dagger: { attack: 'dagger' } };
+  S.HELD = { quarterstaff: { idle: 'staffidle', walk: 'staffwalk', cast: 'staffcast', castup: 'staffcast', attack: 'staffstrike|staffcast' }, dagger: { attack: 'dagger' },
+    longsword: { attack: 'longsword' } }; // (Barley in mail's slash over the mannequin, barley_p3 `longsword`: played when a longsword is in his hand -- 11-04, Griz: "ideally he'll carry it if a player ever equips it")
   S.inHand = function (u, anim, calm) {
     var sh = u && D.SHEETS && D.SHEETS[u.sheet], w = u && !u.sheathed && u.weapon, m = sh && w && S.HELD[w.kind]; if (!m) return anim;
     if (anim === 'idle' && calm && m === S.HELD.quarterstaff && sh.anims.staffrest) return 'staffrest';

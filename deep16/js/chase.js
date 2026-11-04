@@ -86,7 +86,7 @@
     var pair = Ch.pair(B); if (!pair.length) { c.on = false; return null; }
     c.acc += Ch.pace(B, c); var n = Math.floor(c.acc + 1e-9); c.acc -= n;
     var y1 = Math.max(1, c.y - n);
-    if (y1 !== c.y) { var x1 = Ch.roadX(y1); pair.forEach(function (u, i) { u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(0, -1); u.anim = 'walk'; u.animT = B.t; u.x = x1 + i; u.y = y1; }); c.y = y1; D.grid.setup(B.map, B.units); B.cache = null; }
+    if (y1 !== c.y) { var x1 = Ch.roadX(y1); pair.forEach(function (u, i) { u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(0, -1); u.anim = D.spr.anim(u.sheet, 'run') ? 'run' : 'walk'; u.animT = B.t; u.x = x1 + i; u.y = y1; }); c.y = y1; D.grid.setup(B.map, B.units); B.cache = null; } // (the pair's own run row where the sheet has one -- Amara's amara_p2; 11-04, Griz: "sure")
     if (t.y - c.y <= Ch.CATCH) { yield* Ch.caught(B, c); return 'chase'; }
     if (c.y <= 1) { yield* Ch.mouth(B, c); return 'chase'; }
     return null;
