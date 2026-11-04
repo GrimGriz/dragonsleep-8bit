@@ -505,13 +505,16 @@
     yield* In.card(B, ['{y}' + title + '{/}', line], 420);
   };
   // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
-  In.yardCast = function (B, f) {
-    var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken), Y = {};
+  In.bedRiders = function (B, Y, f, noTeam) { // (the two in the open bed, and the team in its traces unless it is gone)
+    var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken);
     Y.riders = [{ x: w[0] + 3, y: w[1], sheet: seen ? 'kid1_p0' : 'goblin_p2', after: 'kid1_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 },
-      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 },
+      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 }].concat(noTeam ? [] : [
       { x: w[0] - 2, y: w[1], sheet: 'horse_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 },
-      { x: w[0] - 2, y: w[1] + 1, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 }];
+      { x: w[0] - 2, y: w[1] + 1, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 }]);
     B.riders = (B.riders || []).filter(function (r) { return !r.yard; }).concat(Y.riders.map(function (r) { r.yard = true; return r; })); In.teamBlock(B);
+  };
+  In.yardCast = function (B, f) {
+    var w = In.WAGONAT, Y = {}; In.bedRiders(B, Y, f, false);
     Y.amara = In.unit(B, { id: 'amaraYard', kind: 'amara', at: [w[0] + 1, w[1] - 1], name: 'Amara', face: [1, 0], foe: true });
     Y.willem = In.unit(B, { id: 'willemYard', kind: 'willem', at: [w[0] - 3, w[1]], name: 'Willem Glass', face: [-1, 0], foe: true, traces: true });
     Y.kat = f.katYard ? In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: In.YARDFOLK[4].at.slice(), name: 'A traveler', face: [-1, 0] }) : null;
@@ -627,13 +630,15 @@
       if (out === 'lost') return;
       f.glamourBroken = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
       yield* In.breakGlamour(B, st, f, Y);
-      if (out === 'fled') { f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot'; yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420); } // (the catch on the Gulch roam comes here: the lane's item 3)
-      else f.wagonOutcome = 'inn';
-      if (In.lastFight.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.card(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 420); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
-      st.silver(600); D.counter.give(st, 'wagonorder', 1); D.sfx('chest'); f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
-      yield* In.card(B, [In.lastFight.loose ? In.WN.abandonedLoose : In.WN.abandoned], 420);
-      yield* In.card(B, [L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })], 420);
-      yield* In.card(B, D.counter.renown(st, 1, 'renown.wagon').concat([L('wagon.doranTakes')]), 480);
+      if (out === 'fled') {
+        f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot';
+        yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420);
+        if (D.chase && D.chase.start) { // (THE CATCH ON THE GULCH ROAM, the lane's item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
+          var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]);
+          if (go === 0) { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp }); return; }
+        }
+      } else f.wagonOutcome = 'inn';
+      yield* In.yardAfter(B, st, f, In.lastFight.willemDead, In.lastFight.loose);
       morning = L('wagon.morning.inn');
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
     }
@@ -660,8 +665,28 @@
     var o = R0.lastOutcome; In.lastFight.outcome = o; In.lastFight.round = B.round;
     In.lastFight.loose = !!B.teamLoose; In.lastFight.willemDead = !!(Y.willem && Y.willem.hp <= 0 && !Y.willem.fled);
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
-    Y.amara = Y.willem = null;
+    In.lastFight.willemUp = !!(Y.willem && Y.willem.hp > 0 && (!Y.willem.dead || Y.willem.fled)); // (still up -- away, or standing: he runs with her, and his false pair waits at the fork -- js/chase.js; one away off the floor is `dead` to the grid and `fled`)
     return o === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : 'fled';
+  };
+  // the yard's own aftermath, the pair down or gone (and after the chase's walk back, In.chaseBack): Willem's book if he fell, the strongbox under the bench, the order, the seven in the bed real, the renown, Doran's drive
+  In.yardAfter = function* (B, st, f, willemDead, loose) {
+    if (willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.card(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 420); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
+    st.silver(600); D.counter.give(st, 'wagonorder', 1); D.sfx('chest'); f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
+    yield* In.card(B, [loose ? In.WN.abandonedLoose : In.WN.abandoned], 420);
+    yield* In.card(B, [L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })], 420);
+    yield* In.card(B, D.counter.renown(st, 1, 'renown.wagon').concat([L('wagon.doranTakes')]), 480);
+  };
+  // back from the chase (js/chase.js Ch.done: the inn's floor again, at the yard, the floor's script running this first): the wagon where they left it, the yard's own aftermath, the morning
+  In.chaseBack = function* (B) {
+    var R0 = B.roam, f = R0.flags, c = f.wagonChase, st = D.counter.state(B); if (!c || !c.back) return;
+    var Y = {}; In.bedRiders(B, Y, f, !!c.horses);
+    yield* In.card(B, [In.WN.fledYard], 300);
+    yield* In.yardAfter(B, st, f, !!c.willemDead, !!c.horses);
+    var morning = L('wagon.morning.inn');
+    delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
+    In.stage(B, [24, 17], 'inn');
+    yield* In.sleep(B, morning);
+    if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
   // what a fight at the inn left behind: who lay dead (his book), whether the team came loose
   var finish0 = D.Battle && D.Battle.prototype.finish;

@@ -338,7 +338,7 @@
   // (fall: { title, lines } -- a way down not walked, a pit's or the slide's: no stair's card on the floor left, and on the floor below a pop-up says it, OK'd to finish it, before
   // the floor's own hello -- 10-29, Griz's NOTES from the deep gallery: "pop-up on level where you fall through with fall through text, ok'd to finish fall through")
   M.go = function* (B, key, at, face, lines, fall) {
-    var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : ''), F = M.FLOORS[key] || M.ROAMS[key];
+    var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : '') + (!(R.house() && H && H.playing) && B.roam && B.roam.hour != null ? '&hour=' + B.roam.hour : ''), F = M.FLOORS[key] || M.ROAMS[key]; // (&hour: a test door's hour carried to the next floor, as M.cross carries it and THE WORLD's clock is in a game -- 11-04, the inn's night walk to the gulch)
     if (fall) { D.sfx('miss'); yield 20; } else { B.card(['{y}' + F.place + '{/} -- ' + F.sub + '.'], 60); D.sfx('stairs'); yield 20; }
     var back = M.giveBack(B, key), nb;
     // (into the Wet: the first game's way it faces, by name -- the Wet's grid is turned, and js/roam.js R.setup reads the 8-bit's compass off it)

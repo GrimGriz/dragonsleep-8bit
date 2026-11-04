@@ -2239,6 +2239,106 @@
     document.body.appendChild(preF2);
     return;
   }
+  // THE CATCH ON THE GULCH ROAM, 11-04 (mode=chase1104; js/chase.js -- the Inn build seat 2; the Halfway Inn lane's item 3, RULED 11-04 twice: "horses or not the 'catch' is on the
+  // Gulch roam, with horses losing them there is losing them" and "approve chase suggested mechanics"): from the yard's away, AFTER THEM, the night walk and the gulch floor at
+  // the south mouth with the pair ahead; on foot the gap closes two to three and the first catch is a fight on the floor's own squares the pair run from; away again square for
+  // square to the north mouth, the fork and Willem's false pair, the last catch to the end; back to the yard's own after and the morning. With the greys, lost at the mouth, the
+  // Tower in words. The first catch won outright; the west road taken; LET THEM GO is the yard's as it was (inn1104)
+  if (get('mode', '') === 'chase1104') {
+    var repCh = { checks: [], errors: [] }, memCh = {}, stGCh = D.store.get, stSCh = D.store.set, HCh = D.house, CCh = D.counter, RCh = D.roam, InCh = D.inn, ChB = D.chase, GuCh = D.gulch, MCh = D.mines, muCh = D.music;
+    function okCh(what, v) { repCh.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveCh(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topCh() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function testCh(q) { var B = RCh.make(q + '&watch'); D.scenes.length = 0; D.push(B); topCh(); driveCh(D.top().co, null, 2); return D.top(); }
+    function atCh(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function wakeCh() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    var pairHp = function (B, hp) { B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = hp; } }); };
+    // a floor's own script driven on till another floor stands on top (a floor changed under it): each prompt answered from `ans` by its label (none left, the last option), the watches
+    // picker begun with Lymen on the second watch, every card seen once, each morning woken, a counter answered; the pair's hit points set as a choice is made (foeHp), and set to one at
+    // a fork's answer (so the last catch ends)
+    function flowCh(B, ans, foeHp) {
+      var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
+      B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 80000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CCh.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('> ' + w.opts[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HCh.Morning) { quiet = 0; seen.push(wakeCh()); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); s.go('begin'); continue; }
+        if (s !== B && s instanceof D.Battle && s.roam) { seen.push('FLOOR: ' + (RCh.def && RCh.def.key)); break; } // (another floor under the party: the chase's, or the inn's again)
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt, a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push('> ' + p.opts[i].label); v = p.opts[i].value; quiet = 0; if (foeHp) pairHp(B, foeHp); continue; }
+        quiet = 0;
+      }
+      return window.DS.stripCodes(seen.join(' / '));
+    }
+    // the party up the gulch's road a square at a time, each square's business run (the chase's tick: js/chase.js Ch.tick -- the pair's move, the catch, the mouth); the fights by the class
+    // AI; a prompt answered from `ans`; stops when the chase is off, the floor changed, or `steps` are walked. Returns what was seen
+    function climbCh(B, steps, ans, lastHp) {
+      var seen = [], q = (ans || []).slice(), cardsSeen = {}, t = B.roam.token, k = 0;
+      var see = function () { (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } }); };
+      for (; k < steps; k++) {
+        var c = ChB.state(B); if (!c || !c.on || D.top() !== B) break;
+        var y1 = t.y - 1, x1 = ChB.roadX(y1); atCh(B, x1, y1, [0, -1]); B.roam.steps++;
+        var g = RCh.arrive(B), v, st, n = 0;
+        while (n++ < 60000) { st = g.next(v); v = undefined; see(); if (st.done) break; if (typeof st.value === 'number') { B.t += Math.max(1, st.value); continue; } if (st.value && st.value.prompt) { var p = st.value.prompt, a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push('> ' + p.opts[i].label); v = p.opts[i].value; if (lastHp && /NORTH/.test(p.opts[i].label)) pairHp(B, lastHp); } }
+        if (D.top() !== B) break;
+      }
+      return { seen: window.DS.stripCodes(seen.join(' / ')), steps: k };
+    }
+    D.store.get = function (k) { return memCh[k] ? JSON.parse(memCh[k]) : null; }; D.store.set = function (k, v) { memCh[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1104); InCh.stay = true;
+      // 1. AFTER THEM, on foot: the yard's away (the pair past hurting), the prompt, the walk, the gulch floor at the south mouth with the pair twelve up the road, the spiders off
+      var B1 = testCh('?roam=halfway&hour=18&day=6&at=24,17'); B1.roam.silver = 30; atCh(B1, 24, 17, [0, -1]); InCh.pinned = [18, 18];
+      var o1 = flowCh(B1, [0, 'TO BED', 'WAKE THE PARTY', 'AFTER THEM'], 999), Bg = topCh(); driveCh(Bg.co, function () { return !!(ChB.state(Bg) && ChB.state(Bg).on); }, 600); pairHp(Bg, 999);
+      var c1 = ChB.state(Bg), t1 = Bg.roam.token, pr = Bg.units.filter(function (u) { return /^chase/.test(u.scripted || ''); });
+      okCh('AFTER THEM on foot: ' + o1.slice(o1.indexOf('> AFTER THEM') - 240, o1.indexOf('> AFTER THEM') + 400) + ' -- the floor ' + (RCh.def && RCh.def.key) + ' at ' + t1.x + ',' + t1.y + ' (dark ' + !!RCh.def.dark + ', ' + (Bg.roam.hour != null ? Bg.roam.hour.toFixed(1) : '?') + 'h), the pair ' + pr.map(function (u) { return u.name + ' at ' + u.x + ',' + u.y; }).join(', ') + ', the chase ' + JSON.stringify(c1) + ', the spiders off (' + Bg.roam.encIn + ')',
+        /They are away north up the road on foot/.test(o1) && /> AFTER THEM/.test(o1) && /Running feet, north up the road/.test(o1) && /FLOOR: webgulch/.test(o1) && RCh.def.key === 'webgulch' && t1.x === 22 && t1.y === 109 && !!RCh.def.dark && pr.length === 2 && pr.every(function (u) { return u.y === 109 - 12; }) && !!c1 && c1.on && !c1.horses && c1.willem && c1.leg === 1 && Bg.roam.encIn >= 1e9);
+      // 2. the gap closes two to three: after three squares the pair have made two; run down where the road climbs -- the first catch, a fight on the floor's own squares, the pair running again from the first turn, away up the road
+      var r2 = climbCh(Bg, 3, []), c2 = ChB.state(Bg), gap3 = t1.y - c2.y;
+      var r3 = climbCh(Bg, 40, []), c3 = ChB.state(Bg), pr3 = Bg.units.filter(function (u) { return /^chase/.test(u.scripted || ''); });
+      okCh('three squares up: the pair made two (the gap ' + gap3 + ' from 12); on up the cut: ' + r3.seen.slice(0, 1200) + ' -- after ' + (3 + r3.steps) + ' squares; the chase ' + JSON.stringify(c3) + ', the pair ' + pr3.map(function (u) { return u.name + ' at ' + u.y + ' (' + u.hp + ' hp)'; }).join(', '),
+        gap3 === 11 && /you run them down/.test(r3.seen) && /INITIATIVE/.test(r3.seen) && /is gone/.test(r3.seen) && /They're away again, north toward the fork/.test(r3.seen) && !!c3 && c3.on && c3.leg === 2 && pr3.length === 2 && Bg.roam.token.y - c3.y === 12 && RCh.def.key === 'webgulch');
+      // 3. square for square to the north mouth: the fork, Willem's false pair, THE PAIR GOING NORTH, the last catch (the pair at a hit point there: nowhere left to run), over on the road, the walk back
+      var r4 = climbCh(Bg, 120, ['THE PAIR GOING NORTH'], 1), c4 = ChB.state(Bg) || (HCh.cur ? null : null);
+      okCh('to the mouth: ' + r4.seen.slice(Math.max(0, r4.seen.indexOf('The north mouth') - 60), r4.seen.indexOf('The north mouth') + 1400) + ' -- ' + r4.steps + ' squares, the floor now ' + (RCh.def && RCh.def.key),
+        /The north mouth, and the fork beyond it/.test(r4.seen) && /two pairs: one going north/.test(r4.seen) && /> THE PAIR GOING NORTH/.test(r4.seen) && /thin and are gone/.test(r4.seen) && /You catch them at last/.test(r4.seen) && /INITIATIVE/.test(r4.seen) && /It is over on the road/.test(r4.seen) && /The long walk back down the road in the dark/.test(r4.seen) && RCh.def.key === 'halfway');
+      // 4. back at the inn: the wagon where they left it, the yard's own aftermath (seven in the bed, the strongbox, the order, Doran's drive), the morning, Elsbeth's gift; the chase's record gone
+      var Bi = topCh(), o5 = flowCh(Bi, []), f5 = Bi.roam.flags, st5 = CCh.state(Bi);
+      okCh('back at the inn: ' + o5.slice(0, 900) + ' -- flags outcome ' + f5.wagonOutcome + ', chase ' + JSON.stringify(f5.wagonChase) + ', Doran away ' + f5.doranAway + ', the one kept ' + f5.kidAtInn + ', the gift ' + !!f5.lakeGiftGot + ', the tower ' + f5.towerFled + '; the purse ' + Bi.roam.silver + ', the order ' + CCh.count(st5, 'wagonorder'),
+        /In the yard the wagon stands where they left it/.test(o5) && /seven children/.test(o5) && /Under the driver's bench, a strongbox/.test(o5) && /drives the children back down the road to Newland/.test(o5) && /MORNING/.test(o5) && /Doran is gone, and the wagon with him/.test(o5) && f5.wagonOutcome === 'road' && !f5.wagonChase && f5.doranAway === 1 && f5.kidAtInn === 1 && !!f5.lakeGiftGot && !f5.towerFled && CCh.count(st5, 'wagonorder') === 1 && Bi.roam.silver === 10 + 600);
+      // 5. WITH THE GREYS: square for square from ten, never closing; the north mouth is the end -- the Tower in words, back to the yard: the traces cut, the children freed all the same
+      var B6 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B6.roam.silver = 30; atCh(B6, 14, 18, [-1, 0]);
+      var co6 = B6.co; B6.co = (function* () { yield* ChB.start(B6, { horses: true, willem: true }); yield* co6; })(); var o6 = flowCh(B6, []), Bg6 = topCh(); driveCh(Bg6.co, function () { return !!(ChB.state(Bg6) && ChB.state(Bg6).on); }, 600);
+      var c6 = ChB.state(Bg6), r6 = climbCh(Bg6, 130, []), f6 = (topCh() && topCh().roam && topCh().roam.flags) || {};
+      var Bi6 = D.top(), o7 = Bi6 && Bi6.roam ? flowCh(Bi6, []) : 'no inn floor', f7 = Bi6 && Bi6.roam ? Bi6.roam.flags : {};
+      okCh('with the greys: ' + o6.slice(0, 300) + ' ... the gap ' + (c6 && c6.gap) + ' held (' + r6.seen.slice(Math.max(0, r6.seen.indexOf('The north mouth') - 20), r6.seen.indexOf('The north mouth') + 400) + ') after ' + r6.steps + ' squares; back: ' + o7.slice(0, 400) + ' -- outcome ' + f7.wagonOutcome + ', the tower ' + f7.towerFled + ', Doran away ' + f7.doranAway,
+        !!c6 && c6.horses && c6.gap === 10 && /The north mouth, and the greys take them up out of the cut/.test(r6.seen) && !/INITIATIVE/.test(r6.seen) && r6.steps >= 90 && /the traces cut, the team gone north with them/.test(o7) && /seven children/.test(o7) && /MORNING/.test(o7) && f7.wagonOutcome === 'fled' && f7.towerFled === 1 && f7.doranAway === 1);
+      // 6. THE WEST ROAD at the fork: the false pair followed -- your hand goes through them; lost, the Tower in words
+      var B8 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B8.roam.silver = 30; atCh(B8, 14, 18, [-1, 0]);
+      var co8 = B8.co; B8.co = (function* () { yield* ChB.start(B8, { horses: false, willem: true }); yield* co8; })(); flowCh(B8, []); var Bg8 = topCh(); driveCh(Bg8.co, function () { return !!(ChB.state(Bg8) && ChB.state(Bg8).on); }, 600);
+      pairHp(Bg8, 999); var r8 = climbCh(Bg8, 140, ['THE PAIR GOING WEST']), Bi8 = topCh(), o9 = Bi8 && Bi8.roam ? flowCh(Bi8, []) : 'no inn floor', f9 = Bi8 && Bi8.roam ? Bi8.roam.flags : {};
+      okCh('the west road at the fork: ' + r8.seen.slice(Math.max(0, r8.seen.indexOf('> THE PAIR GOING WEST') - 100), r8.seen.indexOf('> THE PAIR GOING WEST') + 500) + ' -- outcome ' + f9.wagonOutcome + ', the tower ' + f9.towerFled + '; back: ' + /seven children/.test(o9),
+        /> THE PAIR GOING WEST/.test(r8.seen) && /Your hand goes through them/.test(r8.seen) && /The real pair are gone north/.test(r8.seen) && f9.wagonOutcome === 'fled' && f9.towerFled === 1 && /seven children/.test(o9) && /MORNING/.test(o9));
+      // 7. THE FIRST CATCH WON: the pair at a hit point, run down and dropped where the road climbs; over on the road, the walk back, Willem's book in the yard's after
+      var B10 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B10.roam.silver = 30; atCh(B10, 14, 18, [-1, 0]);
+      var co10 = B10.co; B10.co = (function* () { yield* ChB.start(B10, { horses: false, willem: true }); yield* co10; })(); flowCh(B10, []); var Bg10 = topCh(); driveCh(Bg10.co, function () { return !!(ChB.state(Bg10) && ChB.state(Bg10).on); }, 600);
+      pairHp(Bg10, 1); var r10 = climbCh(Bg10, 60, []), Bi10 = topCh(), o11 = Bi10 && Bi10.roam ? flowCh(Bi10, []) : 'no inn floor', f11 = Bi10 && Bi10.roam ? Bi10.roam.flags : {}, st11 = Bi10 && Bi10.roam ? CCh.state(Bi10) : null;
+      okCh('the first catch won: ' + r10.seen.slice(Math.max(0, r10.seen.indexOf('run them down') - 40), r10.seen.indexOf('run them down') + 500) + ' -- after ' + r10.steps + ' squares; back: outcome ' + f11.wagonOutcome + ', the book ' + (st11 ? CCh.count(st11, 'willembook') : '?') + ', the tower ' + f11.towerFled,
+        /you run them down/.test(r10.seen) && /INITIATIVE/.test(r10.seen) && /It is over on the road/.test(r10.seen) && !/away again/.test(r10.seen) && f11.wagonOutcome === 'road' && !!st11 && CCh.count(st11, 'willembook') === 1 && !f11.towerFled && /his spells, and at the back/.test(o11));
+      HCh.playing = false; HCh.cur = null;
+    } catch (eCh) { repCh.errors.push(String(eCh && eCh.stack || eCh).slice(0, 900)); }
+    HCh.playing = false; HCh.cur = null; if (InCh) { InCh.stay = false; InCh.pinned = null; }
+    D.store.get = stGCh; D.store.set = stSCh; D.music = muCh;
+    var preCh = document.createElement('pre'); preCh.id = 'out'; preCh.textContent = 'BENCH16 ' + JSON.stringify(repCh);
+    document.body.appendChild(preCh);
+    return;
+  }
   // THE WAGON ON THE ROAD, 11-04 (mode=wagon1104; js/wagon.js -- the Inn build seat 2, on the Inn seat's §3 "The wagon on the clock", RULED 11-04, his "in on your above leans
   // as well"): the wagon's clock on THE WORLD's road (the realm's 17 miles a cart-day, the inn at dusk on WAGON DAY), its mark drawn on both views, THE ROAD BY DAY south of the
   // inn (the talk on the counter screen, the silent read, the lie and the second look, seen through, Lymen's word, the fight on southroad with the pair away on the greys, the
