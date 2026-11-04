@@ -1600,7 +1600,7 @@
     this.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { } }, [h], { built: D.climb.built }, function () {
       self.pm = null;
       var ch = (h.chose && h.chose[L]) || {}, keep = {};
-      kinds.forEach(function (k) { if (ch[k] != null) keep[k] = ch[k]; });
+      kinds.concat(Object.keys(ch).filter(function (k) { return kinds.indexOf(k) < 0; })).forEach(function (k) { if (ch[k] != null) keep[k] = ch[k]; }); // (and what a choice asked after it: a story fighter's Drillyard, its plays -- 11-03)
       if (slot.custom != null) { var mr = self.st.roster[slot.custom]; if (mr) PK.levelMade(mr, L, keep); self.cache = {}; self.keep(); return; } // (a made one's word takes the level, 10-17)
       if (!sp.hero) tooks.forEach(function (t) { if ((t.k === 'spells' || t.k === 'cantrip') && ch[t.k]) { var dr = (t.took || []).filter(function (id) { return ch[t.k].indexOf(id) < 0; }); if (dr.length) keep.drop = (keep.drop || []).concat(dr); } });
       slot.picks = slot.picks || {}; slot.picks[L] = keep;

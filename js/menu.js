@@ -663,7 +663,7 @@
     win(ctx, 2, 2, 252, 192);
     var spr = null; try { spr = this.m.host.walker && this.m.host.walker(h); } catch (e) { spr = null; }
     if (spr) ctx.drawImage(spr, 232, 4, Math.min(16, spr.width), Math.min(24, spr.height));
-    text(ctx, h.name, 10, 9, C.gold); text(ctx, clsName(h) + ' ' + this.rec.lvl + ' -- LEVEL UP', 12 + DS.textWidth(h.name) + 6, 9, C.pale);
+    text(ctx, h.name, 10, 9, C.gold); text(ctx, this.rec.start ? clsName(h) + ' ' + h.lvl + ' -- ' + this.rec.start : clsName(h) + ' ' + this.rec.lvl + ' -- LEVEL UP', 12 + DS.textWidth(h.name) + 6, 9, C.pale); // (a hero's first choices, asked as it joins or begins: js/rules.js R.askStart, 11-03)
     drawTabs(ctx, this.tabs.map(function (tb) {
       var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += markWorth(r.id, tb.g.marks[r.id] || 0); });
       return { label: tb.label, count: n || null };
@@ -693,13 +693,15 @@
   MN.openPicks = function (host, heroes, o, done) {
     if (!host.party) host.party = function () { return heroes; };
     if (!host.canSave) host.canSave = function () { return false; };
-    var m = new Menu(host), q = [];
+    var m = new Menu(host), q = [], last = null;
     heroes.forEach(function (h) { (h.picks || []).slice().sort(function (a, b) { return a.lvl - b.lvl; }).forEach(function (rec) { q.push({ h: h, rec: rec }); }); });
     function next() {
       if (m.pages.length) m.pages.pop();
-      var it = q.shift();
+      // (a record its page's choice gave more asks -- the Drillyard chosen, its three plays: js/rules.js R.applyPick -- opens once more on those, 11-03)
+      var it = last && last.h.picks && last.h.picks.indexOf(last.rec) >= 0 && last.rec.asks.some(function (a) { return last.asks0.indexOf(a) < 0; }) ? last : q.shift();
       while (it && it.h.picks && it.h.picks.indexOf(it.rec) < 0) it = q.shift(); // (a record settled meanwhile)
       if (!it) { m.close(); if (done) done(); return; }
+      it.asks0 = it.rec.asks.slice(); last = it;
       m.push(new PickPage(m, it.h, it.rec, o, next));
       // (the hero's level-up lines first, over the hero's own page -- "Barley is now level 4!", then Barley's choices, then Aurdin's lines and page: 10-16, kept on the
       // record by R.gainXP and said once)
@@ -922,7 +924,11 @@
   // multiple pages by level with color and * for readied"; the designer asides went to CREDITS, the lore stays)
   function featureLines(h) {
     var d = DS.DATA.heroes[h.id] || {}, R0 = R(), out = [];
-    (d.featText || []).forEach(function (f) { if ((f.lvl && f.lvl > h.lvl) || (f.sub && f.sub !== h.subclass)) return; out.push({ t: f.t, use: !!f.use }); });
+    (d.featText || []).forEach(function (f) {
+      if ((f.lvl && f.lvl > h.lvl) || (f.sub && f.sub !== h.subclass)) return;
+      if (f.style) { var st = R0.STYLES[R0.style(h)]; if (st) out.push({ t: 'Fighting Style: ' + st.name + ' (' + st.words + ')', use: false }); return; } // (the style the hero fights by, chosen as it joins or begins: 11-03)
+      out.push({ t: f.t, use: !!f.use });
+    });
     out.forEach(function (f) { // (the class's numbers in the sheet's own line: STATUS listed Sneak Attack twice, 10-06)
       if (/^Sneak Attack/.test(f.t)) f.t = f.t.replace(/^Sneak Attack/, 'Sneak Attack ' + R0.sneakDice(h.lvl));
       if (/^Lay on Hands/.test(f.t) && h.feats) f.t += ', ' + (h.feats.lay || 0) + ' left';

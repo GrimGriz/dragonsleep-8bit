@@ -1394,7 +1394,7 @@
     u.feats = u.feats || {}; Object.keys(h.feats || {}).forEach(function (k) { var v = h.feats[k], v0 = feats0[k]; if (typeof v === 'number') { var dv = v - (typeof v0 === 'number' ? v0 : 0); if (dv) u.feats[k] = (u.feats[k] || 0) + dv; } else if (v0 === undefined) u.feats[k] = JSON.parse(JSON.stringify(v)); });
     R.SHEETF.forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
   };
-  R.SHEETF = ['lvl', 'abil', 'prof', 'init', 'known', 'subclass', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'saves', 'stealth', 'perception', 'athletics', 'acrobatics', 'savage', 'style']; // (what a figure reads off its sheet: R.relevel, R.resheet)
+  R.SHEETF = ['lvl', 'abil', 'prof', 'init', 'known', 'subclass', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'saves', 'stealth', 'perception', 'athletics', 'acrobatics', 'savage', 'style', 'plays']; // (what a figure reads off its sheet: R.relevel, R.resheet) (the Drillyard's plays, 11-03)
   // a figure brought to its sheet as the 8-bit hands it back after its own scene (R.handOut: a cast's slot spent, a heal, a rest's hit points, slots and uses, a spell
   // learned or prepared, Mage Armor put on): the sheet taken whole but its EQUIP and the light (the floor's own, in hand), then the figure's hit points, slots, uses and what
   // lasts off it, and the rest read again as js/save.js makes a figure (gear and AC: R.regear, after)

@@ -152,7 +152,9 @@
     if (!p || p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || p.conds.asleep) return null; // (either side: a class NPC paladin's too) (SRD 5.1: "You must be conscious" -- asleep is unconscious; held or stunned he is awake and it holds. 10-06: it read able-to-act)
     return { r: 10, protect: Math.max(1, D.mod(p.abil.cha)), devotion: p.lvl >= 7 && RU.devoted(p) };
   };
-  RU.devoted = function (p) { return /devotion/i.test(p.subclass || '') || p.id === 'lymen'; }; // (Lymen's oath is Devotion: its spells are PfEG and Sanctuary)
+  // (Lymen's oath was Devotion by his sheet, so his id stood for it; since 11-03 he is asked his oath at 3 -- the leveling lane item 13 -- and a paladin with none named is
+  // Devotion's, as js/rules.js R.devotion reads one: a Lymen of the Green Return has no Sacred Weapon, no Turn the Unholy, no Aura of Devotion)
+  RU.devoted = function (p) { return /devotion/i.test(p.subclass || '') || (p.cls === 'paladin' && !p.subclass); };
   RU.inAura = function (u, key) {
     var best = 0;
     G.units.forEach(function (p) {

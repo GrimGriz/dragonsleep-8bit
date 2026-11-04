@@ -167,6 +167,30 @@
       if (o.count) { if (vs.length) sp[o.key] = vs.slice(0, o.count(lvl)); } else if (vs.length === 1) sp[o.key] = vs[0];
     });
   };
+  // an archetype's own options on a story sheet (11-03, the leveling lane item 13 -- RULED 10-31, Griz, "Agreed, when main story character classes are built out": Barley asked
+  // his archetype at 3 in the second game, the Drillyard among them): js/rules.js R.levelUp and R.applyPick ask them on the one pick page as their count grows -- the plays, three
+  // at 3 and five at 7, the ones it knows marked and the class card's own first ones after them (NPC.sheet's) -- written on the sheet (`sheet`); R.subFill gives the class
+  // card's own where none were chosen (an archetype a card's word named, or no one to ask)
+  function subOpts(h) { return (NPC.OPTIONS[h.cls] || []).filter(function (op) { return op.sub && op.sub === h.subclass; }); }
+  function subTook(op, cur, n) { var ids = op.opts.map(function (x) { return x.id; }), mine = (cur || []).filter(function (id) { return ids.indexOf(id) >= 0; }); return mine.concat(ids.filter(function (id) { return mine.indexOf(id) < 0; })).slice(0, n); }
+  R.subAsks = function (h, L) {
+    var out = [];
+    subOpts(h).forEach(function (op) {
+      if (L < op.at) return;
+      var nN = op.count ? op.count(L) : 1, nP = L - 1 < op.at ? 0 : op.count ? op.count(L - 1) : 1, cur = h[op.key];
+      if (nN <= nP && cur != null) return;
+      out.push({ kind: 'option', key: op.key, word: op.word, need: nN, one: !op.count, sheet: true, took: op.count ? subTook(op, cur, nN) : (op.opts.some(function (x) { return x.id === cur; }) ? cur : op.opts[0].id),
+        rows: op.opts.map(function (x) { return { id: x.id, name: x.name, desc: x.desc || '', max: 1 }; }) });
+    });
+    return out;
+  };
+  R.subFill = function (h) {
+    subOpts(h).forEach(function (op) {
+      if (h.lvl < op.at) return;
+      var cur = h[op.key], n = op.count ? op.count(h.lvl) : 1;
+      if (op.count ? !(cur && cur.length >= n) : cur == null) h[op.key] = op.count ? subTook(op, cur, n) : op.opts[0].id;
+    });
+  };
   NPC.OURS = ['talmok', 'willem', 'katarina', 'torvald'];
   // the tester ladder's four at L, each the grown build (09-28h, Griz: "grown builds please": no dip at a register's own level). One of
   // ours who is that rung's foe (Willem in the Wagon Yard, Talmok on the Card's Top) is swapped for an alternate (Griz: "swap in

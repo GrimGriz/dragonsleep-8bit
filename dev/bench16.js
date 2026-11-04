@@ -5314,6 +5314,124 @@
     document.body.appendChild(preTf);
     return;
   }
+  // THE FOUR'S OWN ASKS (mode=storyasks1103; the leveling lane item 13, 11-03 -- RULED 10-31, Griz: "Agreed, when main story character classes are built out", and "If the
+  // leveling choices are naturally made at 1-2 they can be made at 'start with that character' or 'character joins party' since we're starting everyone at 2"): Barley's
+  // archetype and Lymen's oath asked at 3 on the second game's level-up by the class's word, nothing marked; the Threshing Floor's rise and the Drillyard's openings on the story
+  // sheet, its PLAYS asked after it on the page again (and five at 7); Lymen of the Green Return no Devotion's; a bench's the SRD's, as ever; the STATUS lines by the choice;
+  // Aurdin's tradition and Barley's and Lymen's style asked at NEW GAME (CHOOSE WHO YOU ARE, BEGIN: the page, then the opening, the game begun with it) and as each joins (the
+  // Company's hire: the page over the floor, the figure as chosen; one hired at 4, the style then the oath); the morning of deep16/?at=three16; a card's word carries the plays
+  if (get('mode', '') === 'storyasks1103') {
+    var repSa = { checks: [], errors: [] }, RSa = window.DS.R, apSa = window.DS.autoPicks, ctxSa = D.ctx, memSa = {}, stGSa = D.store.get, stSSa = D.store.set, HSa = D.house, COSa = D.company, muSa = D.music;
+    function okSa(what, v) { repSa.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function KSa(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+    function toastSa(m) { var k = 0; while (m && m.toast && k++ < 8) m.update(KSa('a')); }
+    function rowSa(pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; }
+    function hitSa(m, id) { toastSa(m); if (!m.top() || !rowSa(m.top(), id)) return false; m.update(KSa('a')); return true; }
+    function confSa(m) { toastSa(m); var pg = m.top(); if (!pg || !pg.list) return; for (var k = 0; k < 8 && m.top() === pg && !m.closed; k++) { pg.list.i = pg.list.items.findIndex(function (it) { return it.confirm; }); pg.list.fix(); m.update(KSa('a')); toastSa(m); } }
+    function tabsSa(m) { toastSa(m); var pg = m && !m.closed && m.top(); return pg && pg.tabs ? pg.tabs.map(function (t) { return t.label; }).join(',') : ''; }
+    function marksSa(m) { var pg = m && !m.closed && m.top(), g = pg && pg.groups && pg.groups[0]; return g ? Object.keys(g.marks).filter(function (k) { return g.marks[k]; }).join(',') : ''; }
+    function driveSa(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function floorSa(rec) { HSa.begin(rec, 0); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; driveSa(B.co, null, 2); return B; }
+    D.store.get = function (k) { return memSa[k] ? JSON.parse(memSa[k]) : null; }; D.store.set = function (k, v) { memSa[k] = JSON.stringify(v); return true; }; D.music = function () { };
+    try {
+      D.seed = 1103; window.DS.autoPicks = true;
+      // 1. AT 3: Barley's archetype and Lymen's oath asked by the class's word, nothing marked, no subclass yet, no Champion's line
+      var b3 = RSa.makeHero('barley'); b3.xp = RSa.XP_LEVEL[3]; var mB = RSa.levelUp(b3), recB = (b3.picks || [])[0], aB = recB && recB.asks[0], rowsB = aB ? RSa.pickRows(b3, recB, aB).map(function (r) { return r.name; }).join(', ') : '';
+      okSa('Barley at 3: asked ' + (aB && aB.kind + ' ' + aB.word + ', took ' + aB.took) + ' -- ' + rowsB + '; the subclass ' + b3.subclass + '; "' + mB.chooses + '"; a Champion line ' + mB.some(function (m) { return /Champion: critical/.test(m); }),
+        !!aB && aB.kind === 'archetype' && aB.word === 'MARTIAL ARCHETYPE' && aB.took === null && rowsB === 'Champion, the Drillyard, the Threshing Floor' && b3.subclass == null && mB.chooses === 'Barley chooses a martial archetype next.' && !mB.some(function (m) { return /Champion: critical/.test(m); }));
+      var l3 = RSa.makeHero('lymen'); l3.xp = RSa.XP_LEVEL[3]; var mL = RSa.levelUp(l3), recL = (l3.picks || [])[0], aL = recL && recL.asks[0], rowsL = aL ? RSa.pickRows(l3, recL, aL).map(function (r) { return r.name; }).join(', ') : '';
+      okSa('Lymen at 3: asked ' + (aL && aL.word) + ' -- ' + rowsL + '; the subclass ' + l3.subclass + '; Divine Favor ' + (l3.known.indexOf('divinefavor') >= 0) + '; "' + mL.chooses + '"',
+        !!aL && aL.word === 'SACRED OATH' && aL.took === null && rowsL === 'Oath of Devotion, the Oath of the Green Return' && l3.subclass == null && l3.known.indexOf('divinefavor') >= 0 && mL.chooses === 'Lymen chooses a sacred oath next.');
+      // 2. THE THRESHING FLOOR chosen: its line, its rise at once and again at a long rest (not a short), no crit on 19, Hard Ground on the figure, nothing waiting
+      var lT = RSa.applyPick(b3, recB, { archetype: 'the Threshing Floor' }), uT = D.save.unitOf(b3, false, null), up0 = b3.feats.upOff; b3.feats.upOff = 0; RSa.refresh(b3, false); var upS = b3.feats.upOff; RSa.refresh(b3, true); var upL = b3.feats.upOff;
+      okSa('the Threshing Floor: "' + lT.join(' ') + '"; the rise ' + up0 + ' (spent, a short rest ' + upS + ', a long ' + upL + '); crit ' + RSa.critRange(b3) + '; the figure ' + uT.subclass + ', Hard Ground ' + D.rules.hardGround(uT) + '; waiting ' + RSa.picksDue(b3),
+        lT.join(' ') === 'Barley\'s martial archetype: the Threshing Floor.' && up0 === 1 && upS === 0 && upL === 1 && RSa.critRange(b3) === 20 && uT.subclass === 'the Threshing Floor' && D.rules.hardGround(uT) && !RSa.picksDue(b3));
+      // 3. THE DRILLYARD on the page: CONFIRM, then the page again on PLAYS, the class card's first three marked; Hold Ground for Break Stride; the figure knows it; five at 7
+      window.DS.autoPicks = false; if (!D.ctx) D.ctx = {};
+      var bD = RSa.makeHero('barley'); bD.xp = RSa.XP_LEVEL[3]; RSa.levelUp(bD); var doneD = false;
+      var mD = window.DS.MENU.openPicks({ party: function () { return [bD]; }, close: function () { } }, [bD], { pages: true }, function () { doneD = true; });
+      var t1 = tabsSa(mD), k1 = marksSa(mD); hitSa(mD, 'the Drillyard'); confSa(mD); var t2 = tabsSa(mD), k2 = marksSa(mD), sub2 = bD.subclass;
+      hitSa(mD, 'breakstride'); hitSa(mD, 'holdground'); confSa(mD); var uD = D.save.unitOf(bD, false, null);
+      okSa('the Drillyard on the page: ' + t1 + ' (marked "' + k1 + '"), then ' + t2 + ' (marked ' + k2 + ', the subclass ' + sub2 + '); Hold Ground for Break Stride -- done ' + doneD + ', the plays ' + JSON.stringify(bD.plays) + ', openings ' + bD.feats.openings + ', chose ' + JSON.stringify(bD.chose && bD.chose[3]) + ', the figure knows HOLD GROUND ' + D.features.knowsPlay(uD, 'holdground'),
+        t1 === 'MARTIAL ARCHETYPE' && k1 === '' && t2 === 'PLAYS' && k2 === 'wheel,bind,breakstride' && sub2 === 'the Drillyard' && doneD && (bD.plays || []).join() === 'wheel,bind,holdground' && bD.feats.openings === 2 && !!bD.chose && bD.chose[3].archetype === 'the Drillyard' && (bD.chose[3].plays || []).join() === 'wheel,bind,holdground' && D.features.knowsPlay(uD, 'holdground') && !RSa.picksDue(bD));
+      window.DS.autoPicks = true; var m7 = [];
+      for (var lv = 4; lv <= 7; lv++) { bD.xp = RSa.XP_LEVEL[lv]; m7 = RSa.levelUp(bD); }
+      var a7 = [].concat.apply([], (bD.picks || []).filter(function (r) { return r.lvl === 7; }).map(function (r) { return r.asks; })).filter(function (a) { return a.key === 'plays'; })[0];
+      okSa('at 7: PLAYS asked again, ' + (a7 && a7.need) + ' in all, his marked first (' + (a7 && a7.took.join(',')) + '); openings ' + bD.feats.openings + '; the line ' + JSON.stringify(m7.filter(function (m) { return /Plays|Remarkable|Threshing/.test(m); })),
+        !!a7 && a7.need === 5 && a7.took.join() === 'wheel,bind,holdground,breakstride,pinshield' && bD.feats.openings === 3 && m7.some(function (m) { return /^More Plays/.test(m); }) && !m7.some(function (m) { return /Remarkable|Threshing/.test(m); }));
+      RSa.autoPicks(bD); var flD = window.DS.MENU.featureLines(bD).map(function (f) { return f.t; });
+      okSa('settled at 7: the plays ' + (bD.plays || []).join(',') + '; STATUS ' + JSON.stringify(flD),
+        (bD.plays || []).length === 5 && flD.some(function (t) { return /^the Drillyard/.test(t); }) && flD.some(function (t) { return /^More Plays/.test(t); }) && flD.some(function (t) { return /^Fighting Style: Great Weapon Fighting/.test(t); }) && !flD.some(function (t) { return /Champion|Remarkable|Threshing/.test(t); }));
+      // 4. LYMEN OF THE GREEN RETURN: not Devotion's (no Sacred Weapon, no Turn the Unholy), its own oath spells; Devotion's Lymen as he was; the Deep Roots line at 7
+      var lG = RSa.applyPick(l3, recL, { archetype: 'the Oath of the Green Return' }), uG = D.save.unitOf(l3, false, null), lDv = RSa.makeHero('lymen', 3); RSa.autoPicks(lDv); var uDv = D.save.unitOf(lDv, false, null);
+      var lG7 = RSa.makeHero('lymen', 3); RSa.settlePicks(lG7, { archetype: 'the Oath of the Green Return' }); var m7L = []; for (var lw = 4; lw <= 7; lw++) { lG7.xp = RSa.XP_LEVEL[lw]; m7L = RSa.levelUp(lG7); }
+      okSa('Lymen of the Green Return: "' + lG.join(' ') + '"; devoted ' + D.rules.devoted(uG) + ', Turn the Unholy ' + D.features.unholy(uG) + ', the oath\'s own ' + D.features.green(uG) + ', always ready ' + RSa.oathSpells(l3).join(',') + '; Devotion\'s Lymen (' + lDv.subclass + ') devoted ' + D.rules.devoted(uDv) + '; at 7 ' + JSON.stringify(m7L.filter(function (m) { return /Aura of D/.test(m); })),
+        lG.join(' ') === 'Lymen\'s sacred oath: the Oath of the Green Return.' && !D.rules.devoted(uG) && !D.features.unholy(uG) && D.features.green(uG) && RSa.oathSpells(l3).join() === 'longstrider' && lDv.subclass === 'Oath of Devotion' && D.rules.devoted(uDv) && m7L.some(function (m) { return /^Aura of Deep Roots/.test(m); }) && !m7L.some(function (m) { return /^Aura of Devotion/.test(m); }));
+      // 5. NO ONE TO ASK: the SRD's, as they always were -- a bench's Barley the Champion (crit 19), Lymen Devotion, Aurdin Evocation, Vivian the Thief; the fixture's the same
+      var bA = RSa.makeHero('barley', 5), waitA = RSa.asking(bA, 'archetype'); RSa.autoPicks(bA); var fx = D.save.fixture(5).party.map(function (h) { return h.id + ' ' + h.subclass; }).join(', ');
+      okSa('a bench at 5: Barley waited ' + waitA + ', then ' + bA.subclass + ' (crit ' + RSa.critRange(bA) + '); the fixture\'s: ' + fx,
+        waitA && bA.subclass === 'Champion' && RSa.critRange(bA) === 19 && fx === 'barley Champion, aurdin School of Evocation, vivian Thief, lymen Oath of Devotion');
+      // 6. THE START ASKS: Aurdin's tradition, nothing marked; Barley's style at 1 and Lymen's at 2, the sheet's marked; Vivian none; never twice
+      var sA = HSa.start(RSa.makeHero('aurdin')), sB = HSa.start(RSa.makeHero('barley')), sL = HSa.start(RSa.makeHero('lymen')), sV = HSa.start(RSa.makeHero('vivian'));
+      var kA = RSa.askStart(sA, 'NEW GAME'), kA2 = RSa.askStart(sA), kB = RSa.askStart(sB), kL = RSa.askStart(sL), kV = RSa.askStart(sV), rA = sA.picks && sA.picks[0], rB = sB.picks && sB.picks[0], rL = sL.picks && sL.picks[0];
+      var rowsA = rA ? RSa.pickRows(sA, rA, rA.asks[0]).map(function (r) { return r.name; }).join('/') : '';
+      okSa('the start asks: Aurdin ' + (rA && rA.start + ' at ' + rA.lvl + ' ' + rA.asks.map(function (a) { return a.word + ' took ' + a.took; }).join()) + ' -- ' + rowsA + ' (again: ' + kA2 + '); Barley ' + (rB && rB.lvl + ' ' + rB.asks.map(function (a) { return a.key + ' took ' + a.took + ' of ' + a.rows.length; }).join()) + '; Lymen ' + (rL && rL.lvl + ' ' + rL.asks.map(function (a) { return a.key + ' took ' + a.took + ' of ' + a.rows.length; }).join()) + '; Vivian ' + kV,
+        kA && !kA2 && rA.start === 'NEW GAME' && rA.lvl === 2 && rA.asks.length === 1 && rA.asks[0].word === 'ARCANE TRADITION' && rA.asks[0].took === null && rowsA === 'School of Evocation/the Rimeglass' &&
+        kB && rB.lvl === 1 && rB.start === 'JOINS THE PARTY' && rB.asks.length === 1 && rB.asks[0].key === 'style' && rB.asks[0].took === 'gwf' && rB.asks[0].rows.length === 6 && kL && rL.lvl === 2 && rL.asks[0].took === 'defense' && rL.asks[0].rows.length === 4 && !kV);
+      // 7. NEW GAME: CHOOSE WHO YOU ARE, Aurdin, BEGIN -- the page over the lead pick (ARCANE TRADITION, nothing marked), the Rimeglass, then the opening, and the game begun with it
+      window.DS.autoPicks = false; HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
+      var pkA = COSa.pick(); D.push(pkA); pkA.i = COSa.IDS.indexOf('aurdin'); pkA.begin();
+      var pmA = pkA.pm, tN = tabsSa(pmA), kN = marksSa(pmA), wN = (function () { var pg = pmA && pmA.top(); return pg ? pg.h.name + ' ' + pg.rec.start : ''; })();
+      hitSa(pmA, 'the Rimeglass'); confSa(pmA); var opA = D.top();
+      okSa('NEW GAME as Aurdin: the page ' + tN + ' (' + wN + ', marked "' + kN + '"), then the ' + (opA && opA.kind) + ' with ' + (opA && opA.made && opA.made.subclass) + ', the page shut ' + !pkA.pm,
+        !!pmA && tN === 'ARCANE TRADITION' && wN === 'Aurdin NEW GAME' && kN === '' && !!opA && opA.kind === 'opening' && !!opA.made && opA.made.subclass === 'the Rimeglass' && !pkA.pm);
+      opA.go(); var ldA = HSa.cur && HSa.cur.party[0];
+      okSa('the game begun: the lead ' + (ldA && ldA.id + ' ' + ldA.subclass) + ', nothing waiting ' + (ldA && !RSa.picksDue(ldA)) + ', chose ' + JSON.stringify(ldA && ldA.chose),
+        !!ldA && ldA.id === 'aurdin' && ldA.subclass === 'the Rimeglass' && !RSa.picksDue(ldA) && ldA.chose[2].archetype === 'the Rimeglass');
+      HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
+      var pkB = COSa.pick(); D.push(pkB); pkB.i = COSa.IDS.indexOf('barley'); pkB.begin(); var pmB = pkB.pm, tNB = tabsSa(pmB), kNB = marksSa(pmB); hitSa(pmB, 'dueling'); confSa(pmB); var opB = D.top();
+      HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
+      var pkV = COSa.pick(); D.push(pkV); pkV.i = COSa.IDS.indexOf('vivian'); pkV.begin(); var opV = D.top();
+      okSa('NEW GAME as Barley: ' + tNB + ' (marked ' + kNB + '), Dueling -- the opening\'s Barley ' + (opB && opB.made && opB.made.style) + '; as Vivian: no page (' + !pkV.pm + '), the ' + (opV && opV.kind),
+        tNB === 'FIGHTING STYLE' && kNB === 'gwf' && !!opB && opB.kind === 'opening' && opB.made.style === 'dueling' && RSa.style(opB.made) === 'dueling' && !pkV.pm && !!opV && opV.kind === 'opening');
+      // 8. JOINING: the Company's beat at the chapel (Lymen leads, 25 silver) -- PAY 20 SP, he joins, the page over the floor (ARCANE TRADITION), the Rimeglass, the figure and the save
+      HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
+      var BJ = floorSa(COSa.stage(COSa.BEATS.filter(function (b) { return b.id === 'aurdin'; })[0])), gJ = COSa.hire(BJ, 'aurdinChapel');
+      var upJ = driveSa(gJ, function () { return D.top() instanceof D.counter.Counter; }, 600), scJ = D.top();
+      for (var kJ = 0; kJ < 40 && upJ && !scJ.done; kJ++) { var wJ = scJ.wait || {}, bJ = scJ.buttons(); scJ.press(wJ.ask ? bJ.filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : bJ[0]); }
+      var menuJ = driveSa(gJ, function () { return !!BJ.menu; }, 600); while (D.top() !== BJ && D.scenes.length) D.pop();
+      var mJ = BJ.menu && BJ.menu.m, tJ = tabsSa(mJ), wJ2 = (function () { var pg = mJ && mJ.top(); return pg ? pg.rec.start : ''; })(); hitSa(mJ, 'the Rimeglass'); confSa(mJ); var shutJ = !BJ.menu; driveSa(gJ, null, 200);
+      var auJ = BJ.roam.members.filter(function (u) { return u.id === 'aurdin'; })[0], svJ = HSa.cur && HSa.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      okSa('Aurdin hired at the chapel: the counter ' + upJ + ', then the page over the floor ' + menuJ + ' (' + tJ + ', ' + wJ2 + '), the Rimeglass, shut ' + shutJ + '; the figure ' + (auJ && auJ.subclass) + ', the save\'s ' + (svJ && svJ.subclass),
+        upJ && menuJ && tJ === 'ARCANE TRADITION' && wJ2 === 'JOINS THE PARTY' && shutJ && !!auJ && auJ.subclass === 'the Rimeglass' && !!svJ && svJ.subclass === 'the Rimeglass' && !RSa.picksDue(svJ));
+      var hB2 = COSa.sheetFor('barley', 2), uB2 = COSa.join(BJ, hB2, null), gB2 = COSa.asks(BJ, hB2, uB2); gB2.next(); var mB2 = BJ.menu && BJ.menu.m, tB2 = tabsSa(mB2); hitSa(mB2, 'dueling'); confSa(mB2); driveSa(gB2, null, 50);
+      okSa('Barley joining: ' + tB2 + ', Dueling -- the sheet ' + hB2.style + ', the figure ' + uB2.style, tB2 === 'FIGHTING STYLE' && hB2.style === 'dueling' && uB2.style === 'dueling');
+      var hL4 = COSa.sheetFor('lymen', 5), BL = { o: {}, menu: null }; RSa.askStart(hL4, 'JOINS THE PARTY'); var gL4 = D.levelPicks(BL, [hL4]); gL4.next(); var mL4 = BL.menu && BL.menu.m, seqL = [];
+      for (var kL4 = 0; kL4 < 4 && mL4 && !mL4.closed; kL4++) { var tl = tabsSa(mL4); seqL.push(tl); if (tl === 'SACRED OATH') hitSa(mL4, 'the Oath of the Green Return'); confSa(mL4); }
+      okSa('Lymen hired at ' + hL4.lvl + ' (the lead at 5): the pages ' + seqL.join(' then ') + '; then ' + hL4.subclass + ', ' + hL4.style + ', the Green Return\'s always ready ' + RSa.oathSpells(hL4).join(','),
+        hL4.lvl === 4 && seqL.join('|') === 'FIGHTING STYLE|SACRED OATH' && hL4.subclass === 'the Oath of the Green Return' && hL4.style === 'defense' && !RSa.picksDue(hL4));
+      // 9. THE MORNING of deep16/?at=three16: the night levels the four, the picks -- Barley's archetype (the Drillyard, its PLAYS), Aurdin's spells, Vivian's archetype, Lymen's oath
+      HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
+      D.sit16.open('three16'); var pty = HSa.cur.party; HSa.restSheets(pty); var moT = HSa.morning({ party: pty, lines: [], save: false }), seqM = [];
+      for (var kM = 0; kM < 4 && moT.phase !== 'picks'; kM++) moT.next();
+      var pmM = moT.pm;
+      for (var kP = 0; kP < 10 && pmM && !pmM.closed; kP++) { var tm = tabsSa(pmM), pgM = pmM.top(); seqM.push((pgM && pgM.h.name) + ' ' + tm); if (tm === 'MARTIAL ARCHETYPE') hitSa(pmM, 'the Drillyard'); else if (tm === 'SACRED OATH') hitSa(pmM, 'the Oath of the Green Return'); else if (tm === 'ARCHETYPE') hitSa(pmM, 'Cutthroat'); confSa(pmM); }
+      var byM = {}; pty.forEach(function (h) { byM[h.id] = h; });
+      okSa('three16\'s morning: levels ' + pty.map(function (h) { return h.id + ' ' + h.lvl; }).join(', ') + '; the pages ' + seqM.join(' / ') + '; then Barley ' + byM.barley.subclass + ' ' + JSON.stringify(byM.barley.plays) + ', Lymen ' + byM.lymen.subclass + ', Vivian ' + byM.vivian.subclass + ', Aurdin ' + byM.aurdin.subclass,
+        pty.every(function (h) { return h.lvl === 3 && !RSa.picksDue(h); }) && seqM.join(' / ') === 'Barley MARTIAL ARCHETYPE / Barley PLAYS / Aurdin L1,L2 / Vivian ARCHETYPE / Lymen SACRED OATH' &&
+        byM.barley.subclass === 'the Drillyard' && (byM.barley.plays || []).join() === 'wheel,bind,breakstride' && byM.barley.feats.openings === 2 && byM.lymen.subclass === 'the Oath of the Green Return' && byM.vivian.subclass === 'Cutthroat' && byM.aurdin.subclass === 'School of Evocation');
+      // 10. THE POCKET DM: a card's word carries the plays ('^3q:'), and its Barley wears them
+      var wd = RSa.picksWord({ 3: { archetype: 'the Drillyard', plays: ['wheel', 'bind', 'holdground'] } }), pp = RSa.picksParse(wd), shP = D.npc.heroSheet({ hero: 'barley', lvl: 5, picks: pp });
+      okSa('a card\'s word ' + JSON.stringify(wd) + ': its Barley at 5 ' + shP.subclass + ', plays ' + JSON.stringify(shP.plays) + ', openings ' + (shP.feats && shP.feats.openings),
+        wd.join() === '^3r:the_Drillyard,^3q:wheel-bind-holdground' && shP.subclass === 'the Drillyard' && (shP.plays || []).join() === 'wheel,bind,holdground' && shP.feats.openings === 2);
+      var his = Object.keys(memSa).filter(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); });
+      okSa('his slots: written ' + (his.join(', ') || 'nothing'), !his.length);
+    } catch (e) { repSa.errors.push(String(e && e.stack || e).slice(0, 900)); }
+    HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop(); D.store.get = stGSa; D.store.set = stSSa; D.music = muSa; window.DS.autoPicks = apSa; D.ctx = ctxSa;
+    var preSa = document.createElement('pre'); preSa.id = 'out'; preSa.textContent = 'BENCH16 ' + JSON.stringify(repSa);
+    document.body.appendChild(preSa);
+    return;
+  }
   // SECOND DRAFT (mode=seconddraft1031; the leveling lane §8 item 4, RULED 10-30 "Second Draft next leveling session"): the feat's prerequisites (INT 13, one who prepares);
   // its door (deep16/?at=draft16: Aurdin at 4 with the feat); THE WORLD's CAMP, AN HOUR, then the SECOND DRAFT page (js/house.js H.secondDraft): a prepared spell let go (X
   // back to it from the next list), one taken up in its place, the use spent -- DRAFTED, and no page at the next hour; a short rest's refresh keeps it spent, a long rest's
@@ -8152,6 +8270,7 @@
       var EXP = {
         company16: { party: 'lymen,aurdin', lvl: 2, open: ['company', 'work'], done: [], pin: 'company', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 11, site: 'silverton', give: [], silver: 5 },
         taken16: { party: four, lvl: 2, open: ['work'], done: ['company'], pin: 'work', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 15, site: 'silverton', give: [], silver: 12 },
+        three16: { party: 'barley,aurdin,vivian,lymen', lvl: 2, bank: 1, open: ['work'], done: ['company'], pin: 'work', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 18, site: 'silverton', give: [], silver: 12 }, // (the four's own asks at 3, 11-03: a level banked)
         five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', npc: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
         cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', npc: 'sabeth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 },
         dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 },
@@ -8169,7 +8288,7 @@
         rec.party.forEach(function (h) {
           var ref = RSt.makeHero(h.id, e.lvl > window.DS.DATA.heroes[h.id].level ? e.lvl : undefined);
           lvSt.push(h.id + ' L' + h.lvl + ' ' + h.hp + '/' + h.maxhp + ' (made ' + ref.maxhp + ')' + (RSt.picksDue(h) ? ' PICKS DUE' : '') + (h.subclass ? ' ' + h.subclass : ''));
-          okL = okL && h.lvl === e.lvl && h.maxhp === ref.maxhp && h.hp === h.maxhp && h.xp === RSt.XP_LEVEL[e.lvl] && !RSt.picksDue(h) && !RSt.asking(h, 'archetype') && (h.slots || []).join() === (h.slotsMax || []).join();
+          okL = okL && h.lvl === e.lvl && h.maxhp === ref.maxhp && h.hp === h.maxhp && h.xp === RSt.XP_LEVEL[e.lvl + (e.bank ? 1 : 0)] && !RSt.picksDue(h) && !RSt.asking(h, 'archetype') && (h.slots || []).join() === (h.slotsMax || []).join();
         });
         okSt(id + ': the party ' + rec.party.map(function (h) { return h.id; }).join(',') + ' (lead ' + rec.lead + ', hired ' + rec.hired.join(',') + ') at level ' + e.lvl + ': ' + lvSt.join('; '), okL);
         // 2. THE GEAR (the start's, what they bought by the level, a slot named) and THE PACK and THE PURSE
@@ -13932,7 +14051,9 @@
       okLp('Haste for Lightning Bolt: the menu gone (' + !BR.menu + '), the script on (' + r2.done + '), the sheet: haste ' + (aR.known.indexOf('haste') >= 0) + ', lightning bolt ' + (aR.known.indexOf('lightningbolt') >= 0) + ', fireball ' + (aR.known.indexOf('fireball') >= 0) + ', flag ' + aR.pendingChoice,
         !BR.menu && r2.done && aR.known.indexOf('haste') >= 0 && aR.known.indexOf('lightningbolt') < 0 && aR.known.indexOf('fireball') >= 0 && !aR.pendingChoice);
       // c. the climb: the four from 3 to 4 on the same page, then the summary
-      var sC = { level: 3, party: ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { var h = RL.makeHero(id, 3); if (id === 'vivian') RL.settlePicks(h, { archetype: 'Thief' }); return h; }) }, doneC = false;
+      // (each one's archetype at 3 as the climb's own page would have left it, the build's first: Vivian the Thief, and since 11-03 -- the leveling lane item 13, Barley and Lymen
+      // asked theirs at 3 -- Barley the Champion and Lymen Devotion)
+      var sC = { level: 3, party: ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { var h = RL.makeHero(id, 3); RL.autoPicks(h); return h; }) }, doneC = false;
       var lu = new D.LevelUp(sC, function () { doneC = true; }); lu.enter();
       var pages = 0, names = [], pgC0 = lu.m && lu.m.top(), ladderRows = [];
       if (pgC0) pgC0.groups.forEach(function (gr) { gr.rows.forEach(function (r) { ladderRows.push(r.id + (r.off ? '!' : '')); }); });

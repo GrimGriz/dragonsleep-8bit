@@ -131,7 +131,7 @@
       hp: h.ko ? 0 : h.hp, maxhp: h.maxhp, ko: !!h.ko, conds: JSON.parse(JSON.stringify(h.conds || {})),
       abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
       slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
-      feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
+      feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass, plays: h.plays ? h.plays.slice() : null, // (the Drillyard's plays a story fighter chose: js/features.js F.knowsPlay -- 11-03)
       displacement: SV.displaced(h), // a Cloak of Displacement (rules.js edges)
       resist: SV.wornLists(h, 'resist', h.resist), // (the 8-bit game's guests: Dwarven Resilience, poison halved; and a Ring of Resistance worn and bonded)
       immune: SV.wornLists(h, 'immune', h.conds && h.conds.mindBlank ? ['psychic'] : null), condImmune: SV.wornLists(h, 'condImmune', h.conds && h.conds.mindBlank ? ['charmed'] : null), // (the Periapt of Proof against Poison: battle.js Battle.typed, rules.js RU.immuneTo) (a Mind Blank cast that morning -- the Pocket DM's long rest, 10-21 -- as js/grimoire.js E.mindblank lays it)

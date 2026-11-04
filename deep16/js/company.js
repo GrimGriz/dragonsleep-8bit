@@ -82,7 +82,20 @@
     if (was && !was.holdFacing) was.facing = D.spr.facingFor(t.x - was.x, t.y - was.y);
     var ld = leadOf(st), h = CO.sheetFor(id, ld ? ld.lvl : 0), out = { npc: npc, u: null, bout: null };
     yield* CO.talk(B, npc, h, function (sc) { return CO.SCENES[id](sc, B, h, out); });
+    if (out.u) yield* CO.asks(B, h, out.u);
     if (out.bout && out.u) yield* CO.bout(B, h, out);
+  };
+  // the one hired chooses as they join (RULED 10-31, Griz: "If the leveling choices are naturally made at 1-2 they can be made at 'start with that character' or 'character
+  // joins party' since we're starting everyone at 2"; the leveling lane item 13, 11-03): their first two levels' choices (js/rules.js R.askStart -- Aurdin's tradition, Barley's
+  // and Lymen's fighting style) and any level's waiting (one hired at 3 or more: the archetype), on the one pick page over the floor (deep16/js/climb.js D.levelPicks); then the
+  // figure brought to the sheet (js/roam.js R.relevel: the subclass, the style, the plays). Before Barley's bout, so he fights it as chosen
+  CO.asks = function* (B, h, u) {
+    DS.R.askStart(h, 'JOINS THE PARTY');
+    if (!DS.R.picksDue(h) || !D.levelPicks) return;
+    var f0 = JSON.parse(JSON.stringify(h.feats || {}));
+    yield* D.levelPicks(B, [h]);
+    while (B.menu) yield 1; // (the page open over the floor: the script waits under it)
+    if (D.roam.relevel) D.roam.relevel(B, u, f0);
   };
 
   // ---------------------------------------------------------------- the four scenes: the first game's (js/events.js), line for line, in its words (content/text.json hire.*)
@@ -214,9 +227,20 @@
   Pick.prototype.enter = function () { try { D.music('title'); } catch (e) { } };
   Pick.prototype.prompt = function () { var d = DS.DATA.heroes[CO.IDS[this.i]]; return 'Begin as ' + d.name + '? The other three can be found in play, and hired.'; }; // (js/scenes.js LeadSelect, its own words)
   Pick.prototype.askBox = function () { var w = 300, ls = D.wrap(this.prompt(), w - 20), h = 20 + ls.length * 10 + 26, x = (D.W - w) / 2, y = (D.H - h) / 2; return { x: x, y: y, w: w, h: h, ls: ls, bs: [{ x: x + w / 2 - 96, y: y + h - 22, w: 88, h: 15, label: 'BEGIN', k: 0 }, { x: x + w / 2 + 8, y: y + h - 22, w: 88, h: 15, label: 'BACK', k: 1 }] }; };
-  Pick.prototype.begin = function () { var id = CO.IDS[this.i]; D.sfx('confirm'); D.scenes.length = 0; D.push(new Opening(id)); };
+  // BEGIN: the lead's first two levels' choices first (RULED 10-31, Griz: "... they can be made at 'start with that character' ..."; the leveling lane item 13, 11-03 --
+  // js/rules.js R.askStart: Aurdin's tradition, nothing marked; Barley's or Lymen's fighting style, the sheet's marked) on the one pick page over this screen, then the
+  // opening, the sheet as chosen carried into the game (H.fresh's `made`). No one to ask (a bench): the build's picks and the class's first, at once
+  Pick.prototype.begin = function () {
+    var id = CO.IDS[this.i], self = this, R = DS.R, h = H.start(R.makeHero(id));
+    D.sfx('confirm'); this.ask = null;
+    var go = function () { D.scenes.length = 0; D.push(new Opening(id, h)); };
+    if (!R.askStart(h, 'NEW GAME')) { go(); return; }
+    if (DS.autoPicks || !D.ctx || !DS.MENU) { R.autoPicks(h); go(); return; }
+    this.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { self.pm = null; } }, [h], { pages: true }, function () { self.pm = null; go(); });
+  };
   Pick.prototype.update = function () {
     this.t++; var m = I.mouse, self = this;
+    if (this.pm) { this.pm.update(D.ui.menuKeys()); if (this.pm && this.pm.closed) this.pm = null; return; } // (the lead's first choices: begin, above)
     if (this.ask) {
       var ab = this.askBox(), hit = m.inside ? ab.bs.filter(function (b) { return m.x >= b.x && m.x < b.x + b.w && m.y >= b.y && m.y < b.y + b.h; })[0] : null;
       if (hit && (m.moved || m.click)) this.ah = hit.k;
@@ -260,6 +284,7 @@
     }
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
     D.hint(ctx, this.ask ? 'click a choice · arrows choose · E pick · X back' : 'click one · arrows choose · E confirm · X back', D.W / 2, D.H - 11, '#9a96a8', 'center');
+    if (this.pm) { ctx.fillStyle = 'rgba(4,3,10,.6)'; ctx.fillRect(0, 0, D.W, D.H); D.ui.drawMenu(ctx, this.pm); }
   };
   CO.Pick = Pick;
   CO.pick = function () { return new Pick(); };
@@ -267,14 +292,14 @@
   // ---------------------------------------------------------------- the opening (EV.intro): Silverton, the lead's own page, the motive -- a page each, E or a click on,
   // X past them -- then the lead alone at the west gate. (Its fourth page, the 8-bit's keys, is the floor's own: its first card says the grid's.)
   CO.OPENING = function (lead) { return ['intro.world', 'intro.' + lead, 'intro.motive']; };
-  function Opening(lead) {
-    this.kind = 'opening'; this.opaque = true; this.t = 0; this.lead = lead; this.k = 0;
+  function Opening(lead, made) { // (made: the lead's sheet as CHOOSE WHO YOU ARE left it -- its first choices, 11-03)
+    this.kind = 'opening'; this.opaque = true; this.t = 0; this.lead = lead; this.k = 0; this.made = made || null;
     this.pages = CO.OPENING(lead).map(function (key) { return [].concat(L(key)); });
     var lk = D.save.look ? D.save.look(lead, null, null) : null; this.sheet = (lk && lk.sheet) || lead + '_p0'; if (D.spr.prefetch) D.spr.prefetch([this.sheet]);
   }
   Opening.prototype.box = function () { var w = 340, x = (D.W - w) / 2; return { x: x, y: 56, w: w, h: 150 }; }; // (narrow enough that the lead stands whole in the margin on its own page)
   Opening.prototype.btn = function () { var b = this.box(); return { x: b.x + b.w - 78, y: b.y + b.h - 22, w: 70, h: 15 }; };
-  Opening.prototype.go = function () { D.sfx('confirm'); var nr = CO.startAt(H.fresh(this.lead)); nr.newGame = 1; H.begin(nr, 0); }; // (NEW GAME's own: its SAVE writes his slots -- js/house.js H.begin's staged)
+  Opening.prototype.go = function () { D.sfx('confirm'); var nr = CO.startAt(H.fresh(this.lead, this.made)); nr.newGame = 1; H.begin(nr, 0); }; // (NEW GAME's own: its SAVE writes his slots -- js/house.js H.begin's staged)
   // where the lead starts: where their page puts them, not the west gate (10-28, Griz: "Aurdin should start near where the story says he slept. Vivian should start near her
   // mom's stall. Lymen in front of Urtusk and Barley near kess."): Aurdin where he stands outside Aldwin's chapel ("Aldwin's chapel floor was free"), Vivian before Marta's
   // stall, Lymen before Papa Urtusk at the Hex's front, Barley at the door of Kess's flop-cellars on the Shaft Rows -- each facing them (CO.stage's way: rec.at.sq)

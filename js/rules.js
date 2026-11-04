@@ -102,6 +102,10 @@
     if (f && long) delete f.drafted; // (Second Draft, the second game's feat: its swap again after a long rest -- deep16/js/house.js H.secondDraft, 10-31)
     if (f && !long && h.cls === 'paladin' && R.hasFeat(h, 'untempled')) f.lay = Math.min(5 * h.lvl, (f.lay || 0) + Math.floor(5 * h.lvl / 2)); // (Untempled, the second game's feat: the pool back by half at a short rest -- 10-30)
     if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; if (long) f.indomitable = h.lvl >= 9 ? 1 : 0; }
+    // our fighters' uses on a story sheet (11-03, the leveling lane item 13: Barley asked his archetype at 3): the Drillyard's openings back at any rest, the Threshing Floor's Up
+    // Off the Floor at a long one -- as deep16/js/classes.js NPC.sheet lays them on a class card
+    if (h.cls === 'fighter' && h.lvl >= 3 && h.subclass === 'the Drillyard') f.openings = h.lvl >= 7 ? 3 : 2;
+    if (h.cls === 'fighter' && h.lvl >= 3 && h.subclass === 'the Threshing Floor' && long) f.upOff = 1;
     if (h.cls === 'paladin') { f.channel = h.lvl >= 3 ? 1 : 0; if (long) { f.lay = 5 * h.lvl; f.relentless = 1; } }
     if (h.cls === 'wizard' && long) f.arcaneRecovery = 1;
     // the other eight classes' per-rest resources (SRD 5.1; 09-28, the class NPCs)
@@ -163,16 +167,20 @@
     }
     if (h.prepared && msgs.length > nlearn) msgs.push('New spells are prepared after a long rest.'); // (SRD: the day is chosen on waking)
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
-    if (lu.choose === 'archetype') { asks.push({ kind: 'archetype', need: 1, took: null }); said.push(h.name + ' has a choice to make.'); msgs.push(said[said.length - 1]); } // (no default: RULED 09-24, the player's choice)
+    // (no default: RULED 09-24, the player's choice. A sheet with no list of its own -- Barley's, Lymen's -- is asked the class's, R.SUBCLASSES, by the class's word: the
+    // leveling lane item 13, 11-03 -- RULED 10-31, Griz, "Agreed, when main story character classes are built out", the four asked their subclass in the second game)
+    if (lu.choose === 'archetype') { var scA = !d.archetypes && R.SUBCLASSES[h.cls], askA = { kind: 'archetype', need: 1, took: null }; if (scA) askA.word = scA.word; asks.push(askA); said.push(h.name + ' has a choice to make.'); msgs.push(said[said.length - 1]); }
+    if (h.subclass && R.subAsks) R.subAsks(h, h.lvl).forEach(function (a) { asks.push(a); }); // (an archetype's own options as their count grows: the Drillyard's plays, three at 3 and five at 7 -- deep16/js/classes.js)
+    if (h.cls === 'fighter' && h.subclass === 'the Drillyard' && h.lvl === 7 && h.feats.openings != null) h.feats.openings++; // (its third opening at 7)
     if (asks.length) R.ask(h, h.lvl, asks);
     // (the lines that told the build's picks, and one that says what is to choose: R.gainXP shows that one in their place, the pick page next -- 10-14, Griz: "all the old
     // level up text played before picker opened"; the climb's and the ladder's cards read the lines as they were)
     msgs.asked = said; msgs.chooses = asks.length ? R.choosesLine(h, asks) : '';
-    (lu.feats || []).forEach(function (t) { msgs.push(t); });
+    (lu.feats || []).forEach(function (t) { if (typeof t === 'string') msgs.push(t); else if (t && (!t.sub || t.sub === h.subclass)) msgs.push(t.t); }); // (a subclass's own line: { sub, t } -- 11-03)
     if (h.cls === 'paladin') { h.feats.lay = (h.feats.lay || 0) + 5; if (h.lvl === 3) h.feats.channel = 1; }
     if (h.cls === 'rogue' && h.lvl % 2 === 1) msgs.push('Sneak Attack is now ' + R.sneakDice(h.lvl) + '.');
     if (h.lvl === 5 && (h.cls === 'fighter' || h.cls === 'paladin')) msgs.push('Extra Attack: two attacks with FIGHT.');
-    if (h.lvl === 3 && h.cls === 'fighter') msgs.push('Champion: critical hits on 19 or 20.');
+    if (h.lvl === 3 && h.cls === 'fighter' && h.subclass === 'Champion') msgs.push('Champion: critical hits on 19 or 20.'); // (a sheet that names the Champion; one asked says its choice)
     if (h.lvl === 5 && h.cls === 'rogue') msgs.push('Uncanny Dodge: the first hit each round is halved.');
     if (h.cls === 'fighter' && h.lvl === 9) h.feats.indomitable = 1;
     return msgs;
@@ -401,7 +409,8 @@
   // '^6a:con2', '^4s:shatter-blur', '^4c:light', '^6e:Insight-Sleight_of_Hand', '^3r:Cutthroat' (a space as _)
   // (10-17, the Pocket DM's EDIT for a named card -- Griz: "full edit of torvald and aurdin and such": the spells it let go '^5d:bless', the class options
   // '^5i:agonizing-repelling' '^3m:twinned-careful' '^3p:blade' '^2l:mountain', the style '^1y:defense'; one value for the archetype, the pact, the land, the style)
-  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r', drop: 'd', invocations: 'i', metamagic: 'm', pact: 'p', land: 'l', style: 'y' };
+  // (11-03: the Drillyard's plays '^3q:wheel-bind-holdground', a story fighter's chosen with his archetype -- R.subAsks)
+  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r', drop: 'd', invocations: 'i', metamagic: 'm', pact: 'p', land: 'l', style: 'y', plays: 'q' };
   var PICK_ONE = { archetype: 1, pact: 1, land: 1, style: 1 };
   R.PICK_OPTS = ['invocations', 'metamagic', 'pact', 'land', 'style'];
   R.picksWord = function (picks) {
@@ -441,8 +450,40 @@
       }
       ['asi', 'spells', 'cantrip', 'expertise'].forEach(function (k) { if (ch[k] != null && made[k] != null) { asks.push({ kind: k, need: 0, took: made[k] }); c[k] = ch[k]; } });
       if (asks.length) R.applyPick(h, { lvl: L, asks: asks }, c);
+      if (ch.plays != null) h.plays = [].concat(ch.plays); // (the sheet's own options a card's word names: the Drillyard's plays, 11-03)
+      if (ch.style != null && L === R.STYLE_AT[h.cls]) h.style = ch.style;
     });
+    R.subFeats(h); // (an archetype the word gave: its uses and its plays -- the Drillyard's openings, the Threshing Floor's rise)
     R.pendSync(h);
+  };
+  // the uses and the options a chosen archetype brings to a story sheet at once (11-03, the leveling lane item 13): the Drillyard's openings and, where none were chosen, its
+  // plays (deep16/js/classes.js R.subFill: the class card's own first ones); the Threshing Floor's Up Off the Floor. R.refresh keeps them at the rests after
+  R.subFeats = function (h) {
+    var f = h.feats = h.feats || {};
+    if (h.cls !== 'fighter' || h.lvl < 3) return;
+    if (h.subclass === 'the Drillyard' && f.openings == null) f.openings = h.lvl >= 7 ? 3 : 2;
+    if (h.subclass === 'the Threshing Floor' && f.upOff == null) f.upOff = 1;
+    if (R.subFill) R.subFill(h);
+  };
+  // a story hero's choices of the first two levels, asked when the hero joins the party or begins the game as its lead (RULED 10-31, Griz: "If the leveling choices are
+  // naturally made at 1-2 they can be made at 'start with that character' or 'character joins party' since we're starting everyone at 2"; the leveling lane item 13, 11-03):
+  // the subclass a class takes at 1 or 2 (a wizard's tradition -- Aurdin's) with nothing marked (RULED 09-24, the player's choice), and the fighting style a class takes
+  // at 1 or 2 (Barley's at 1, Lymen's at 2) with the sheet's marked. One record, `start` its page's word; false when there is nothing to ask, or it was chosen or is waiting
+  R.askStart = function (h, word) {
+    if (!h || !R.CLASSES[h.cls]) return false;
+    var asks = [], at = [], sc = R.SUBCLASSES[h.cls], sa = R.STYLE_AT[h.cls], sf = R.STYLE_FOR[h.cls] || [];
+    var waiting = function (k) { return (h.picks || []).some(function (p) { return p.start && p.asks.some(function (a) { return R.askKey(a) === k; }); }); };
+    if (sc && sc.at <= 2 && sc.at <= h.lvl && !R.chosen(h, sc.at, 'archetype') && !waiting('archetype')) { asks.push({ kind: 'archetype', word: sc.word, need: 1, took: null }); at.push(sc.at); }
+    if (sa && sa <= 2 && sa <= h.lvl && sf.length && !R.chosen(h, sa, 'style') && !waiting('style')) {
+      var cur = R.style(h);
+      asks.push({ kind: 'option', key: 'style', word: 'FIGHTING STYLE', need: 1, one: true, sheet: true, took: sf.indexOf(cur) >= 0 ? cur : null,
+        rows: sf.map(function (k) { return { id: k, name: R.STYLES[k].name, desc: R.STYLES[k].words || '', max: 1 }; }) });
+      at.push(sa);
+    }
+    if (!asks.length) return false;
+    (h.picks = h.picks || []).push({ lvl: Math.min.apply(null, at), asks: asks, start: word || 'JOINS THE PARTY' });
+    R.pendSync(h);
+    return true;
   };
   R.ask = function (h, lvl, asks) { (h.picks = h.picks || []).push({ lvl: lvl, asks: asks }); R.pendSync(h); };
   R.asking = function (h, kind) { return (h.picks || []).some(function (p) { return p.asks.some(function (a) { return a.kind === kind; }); }); };
@@ -453,7 +494,9 @@
   };
   // "Aurdin chooses ability scores, two spells and a cantrip next." (a hero's name, no pronoun)
   R.choosesLine = function (h, asks) {
-    var w = asks.map(function (a) { return a.kind === 'asi' ? 'ability scores' : a.kind === 'spells' ? (a.need === 1 ? 'a spell' : a.need === 2 ? 'two spells' : a.need + ' spells') : a.kind === 'cantrip' ? (a.need === 1 ? 'a cantrip' : a.need + ' cantrips') : a.kind === 'expertise' ? 'Expertise' : 'an archetype'; });
+    var an = function (s) { return (/^[aeiou]/.test(s) ? 'an ' : 'a ') + s; }; // ("a martial archetype", "a sacred oath", "plays": an ask by its own word -- 11-03)
+    var w = asks.map(function (a) { return a.kind === 'asi' ? 'ability scores' : a.kind === 'spells' ? (a.need === 1 ? 'a spell' : a.need === 2 ? 'two spells' : a.need + ' spells') : a.kind === 'cantrip' ? (a.need === 1 ? 'a cantrip' : a.need + ' cantrips') : a.kind === 'expertise' ? 'Expertise' :
+      a.kind === 'option' ? (a.one ? an((a.word || a.key).toLowerCase()) : (a.word || a.key).toLowerCase()) : a.word ? an(a.word.toLowerCase()) : 'an archetype'; });
     return h.name + ' chooses ' + (w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0]) + ' next.';
   };
   R.picksDue = function (h) { return !!(h && h.pendingChoice && h.picks && h.picks.length); };
@@ -508,12 +551,13 @@
   // (a class option asks by its key: { kind: 'option', key: 'invocations' } is ch.invocations -- 10-17)
   R.askKey = function (a) { return a.kind === 'option' ? a.key : a.kind; };
   R.applyPick = function (h, rec, ch) {
-    var lines = [], done = {};
+    var lines = [], done = {}, more = [];
     rec.asks = rec.asks.filter(function (a) {
       var v = ch[R.askKey(a)]; if (v == null) return true;
-      if (a.kind === 'option') { // (the asker writes it where it belongs: the maker's sheet, a card's word)
+      if (a.kind === 'option') { // (the asker writes it where it belongs: the maker's sheet, a card's word -- or, `sheet`, the story sheet itself: a style, the plays, 11-03)
         var nm = function (id) { var r = (a.rows || []).filter(function (x) { return x.id === id; })[0]; return r ? r.name : id; };
         lines.push(h.name + ': ' + (a.word || a.key).toLowerCase() + ' ' + [].concat(v).map(nm).join(', ') + '.');
+        if (a.sheet) h[a.key] = Array.isArray(v) ? v.slice() : v;
         done[a.key] = v; return false;
       }
       if (a.kind === 'asi') {
@@ -533,10 +577,21 @@
       } else if (a.kind === 'expertise') {
         h.expertise = (h.expertise || []).filter(function (x) { return (a.took || []).indexOf(x) < 0; }).concat(v);
         lines.push(h.name + ': Expertise in ' + v.join(', ') + '.');
-      } else if (a.kind === 'archetype') { h.subclass = v; lines.push(h.name + ' is a ' + v + '.'); }
+      } else if (a.kind === 'archetype') {
+        h.subclass = v;
+        // (the class's word where the sheet has no list of its own -- "Barley's martial archetype: the Drillyard." -- and Vivian's as it always was, 11-03)
+        var dA = DS.DATA.heroes[h.id] || {}, scW = !dA.archetypes && a.word;
+        lines.push(scW ? h.name + '\'s ' + scW.toLowerCase() + ': ' + v + '.' : h.name + ' is a ' + v + '.');
+        R.subFeats(h);
+        // (its own options at this level asked next, on the page again -- the Drillyard's three plays: js/menu.js MN.openPicks opens a record that gained asks once more.
+        // A story sheet's alone: an ask the maker made (`rows`) brings its options itself, deep16/js/classes.js NPC.levelAsks)
+        if (!a.rows && R.subAsks) more = R.subAsks(h, h.lvl); // (by the level it stands at: chosen late -- hired at 7 -- five plays at once)
+      }
       done[a.kind] = v;
       return false;
     });
+    more = more.filter(function (m) { var k = R.askKey(m); return done[k] == null && !rec.asks.some(function (x) { return R.askKey(x) === k; }); });
+    if (more.length) rec.asks = rec.asks.concat(more);
     if (Object.keys(done).length) { h.chose = h.chose || {}; h.chose[rec.lvl] = Object.assign(h.chose[rec.lvl] || {}, done); }
     if (h.picks && !rec.asks.length) h.picks = h.picks.filter(function (p) { return p !== rec; });
     R.pendSync(h);
@@ -544,17 +599,22 @@
   };
   // every ask with a default kept as it stands (the ones taken at the level-up); `ch` names any the caller chooses (an archetype: a situation's &rogue=, the
   // benches' first). Nothing without a default and not in `ch` is touched
+  // (a class option asks by its key, as R.applyPick reads it -- the style, the plays: 11-03; and again for the asks a choice brought, the Drillyard's plays after it)
   R.settlePicks = function (h, ch) {
-    (h.picks || []).slice().forEach(function (rec) {
-      var c = {};
-      rec.asks.forEach(function (a) { var v = ch && ch[a.kind] != null ? ch[a.kind] : a.took; if (v != null) c[a.kind] = v; });
-      R.applyPick(h, rec, c);
-    });
+    var val = function (a) { var k = R.askKey(a); return ch && ch[k] != null ? ch[k] : a.took; };
+    for (var pass = 0; pass < 4 && (h.picks || []).some(function (r) { return r.asks.some(function (a) { return val(a) != null; }); }); pass++) {
+      (h.picks || []).slice().forEach(function (rec) {
+        var c = {};
+        rec.asks.forEach(function (a) { var v = val(a); if (v != null) c[R.askKey(a)] = v; });
+        R.applyPick(h, rec, c);
+      });
+    }
     R.pendSync(h);
   };
-  // no one to ask (the benches, an AI-run party, a headless page): the defaults, and the first archetype -- what the benches have always given her
+  // no one to ask (the benches, an AI-run party, a headless page): the defaults, and the first archetype -- what the benches have always given her; a sheet with no list of
+  // its own takes its class's first, the SRD's (Barley the Champion, Lymen Devotion, Aurdin Evocation -- what they always were: 11-03)
   R.autoPicks = function (h) {
-    var a = ((DS.DATA.heroes[h.id] || {}).archetypes || [])[0];
+    var d = DS.DATA.heroes[h.id] || {}, a = (d.archetypes || (R.SUBCLASSES[h.cls] || {}).opts || [])[0];
     R.settlePicks(h, a ? { archetype: a.name } : null);
   };
 

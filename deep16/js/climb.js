@@ -61,7 +61,8 @@
     var R = DS.R, c = R.CLASSES[h.cls], ch = (h.chose && h.chose[h.lvl]) || {}, out = [];
     h.maxhp = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)); h.hp = h.maxhp; // a max hit die a level, CON back to level 1 (RULED 09-25)
     if (ch.asi) out.push(Object.keys(ch.asi).filter(function (k) { return ch.asi[k]; }).map(function (k) { return k.toUpperCase() + ' +' + ch.asi[k]; }).join(', ') + '.');
-    if (ch.archetype) out.push(h.name + ' is a ' + ch.archetype + '.');
+    var scA = !(DS.DATA.heroes[h.id] || {}).archetypes && R.SUBCLASSES[h.cls]; // (a sheet with no list of its own is asked the class's, by its word -- Barley's, Lymen's: 11-03)
+    if (ch.archetype) out.push(scA ? h.name + '\'s ' + scA.word.toLowerCase() + ': ' + ch.archetype + '.' : h.name + ' is a ' + ch.archetype + '.');
     if (ch.expertise) out.push('Expertise: ' + ch.expertise.join(', ') + '.');
     var learnt = (ch.spells || []).concat(ch.cantrip || []);
     if (learnt.length) out.push('Learns ' + learnt.map(function (id) { return SV.spell(id).name; }).join(', ') + '.');
@@ -96,7 +97,7 @@
   }
   // the abilities in a card's width, and a subclass in a word
   function abils(h) { return ABIL.map(function (k) { return k.charAt(0).toUpperCase() + (k === 'cha' ? 'h' : '') + h.abil[k]; }).join(' '); }
-  var SUB = { 'School of Evocation': 'evoker', 'Oath of Devotion': 'Devotion' };
+  var SUB = { 'School of Evocation': 'evoker', 'Oath of Devotion': 'Devotion', 'the Oath of the Green Return': 'the Green Return' };
   function sub(h) { return h.subclass ? ' (' + (SUB[h.subclass] || h.subclass) + ')' : ''; }
 
   // ------------------------------------------------------------------ the climb's screen: the party, the rung, the fight drawn

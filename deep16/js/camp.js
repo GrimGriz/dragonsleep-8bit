@@ -294,7 +294,7 @@
           return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: 'L' + sp.level + (D.SPELLS[id] && D.SPELLS[id].shape === 'none' ? '  no use in a fight' : ''), on: on, desc: D.typeText(sp.desc), hero: c.id,
             act: function () { self.togglePrep(c, id); } };
         });
-        oath.forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: ours ? 'domain: always ready' : 'oath: always ready', ok: false, why: ours ? (c.subclass || 'the domain') + ' keeps it ready' : 'the Oath of Devotion keeps it ready', hero: c.id, desc: SV.spell(id).desc }); });
+        oath.forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: ours ? 'domain: always ready' : 'oath: always ready', ok: false, why: ours ? (c.subclass || 'the domain') + ' keeps it ready' : (DS.R.devotion(c) ? 'the Oath of Devotion' : c.subclass) + ' keeps it ready', hero: c.id, desc: SV.spell(id).desc }); });
         (ours ? [] : SV.rituals(c)).forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: 'ritual: from the book', ok: false, why: 'a ritual: cast from the book, never prepared', hero: c.id, desc: SV.spell(id).desc }); });
         return { title: c.name.toUpperCase() + ': ' + c.prepared.length + ' OF ' + n2 + ' PREPARED', rows: rows2 };
       }

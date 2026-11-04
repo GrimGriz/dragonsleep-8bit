@@ -31,9 +31,10 @@
   // its renown, its lead (the one who leads) and who is hired; THE WORLD's clock and hex stand for its time and map. H.fresh(lead): the first game's start, the
   // lead alone and the other three to be found in Silverton and hired (js/company.js, 10-28, Griz: "we need to add the select character part to 'new game' and
   // restore the 8 bit missions to form the party") -- the title's NEW GAME; H.fresh() with no lead: the four together, as every show's and door's NEW GAME stages them
-  H.fresh = function (lead) {
+  // (made: the lead's sheet as CHOOSE WHO YOU ARE left it, its first choices made -- js/company.js Pick's begin, 11-03)
+  H.fresh = function (lead, made) {
     var R = DS.R, C = DS.DATA.config || {}, ids = lead && H.HEROES.indexOf(lead) >= 0 ? [lead] : H.HEROES.slice();
-    return { v: H.V, lead: ids[0], hired: ids.slice(), party: ids.map(function (id) { return H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
+    return { v: H.V, lead: ids[0], hired: ids.slice(), party: ids.map(function (id) { return made && made.id === id ? made : H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
       silver: C.startSilver || 10, renown: 0, steps: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
   };
   // a hero as the second game starts them: the first game's (content/heroes.json, untouched -- the first game keeps it) less what the second game makes a page found in
