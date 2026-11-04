@@ -171,6 +171,11 @@ PEOPLE = {
     # (HEAD 1 to 6, PAGE 1), no ledge: he stands in the open, cut at the waist; his sixth an Earnest still in place of a work row
     'lymen': ('lymen/ART-MC-LYMEN-PORTRAIT', 'ART-MC-LYMEN-PORTRAIT', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s_HEAD-%d_PAGE-1.png', 'flip': True, 'bust': 66,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
+    # Amara of the wagon and Elsbeth at the tub (11-04, the cutter of 11-04): the art desk's HALFWAY-INN-AMARA-PORTRAITS and -ELSBETH-TUB-PORTRAITS, art-wanted
+    # section 35 -- the six pages as ever under the art desk's own names (AMARA-HEAD-01-IDLE.png, KP01-Idle.png): Amara's work counts coins into her palm,
+    # Elsbeth's is at the kitchen tub, its rim her ledge (the tub kept in her portrait, the art desk's own word)
+    'amara': ('amara/INN-PORTRAITS-1104', 'AMARA', 'the Pit road (js/wagon.js: the wagon\'s own picture there now)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    'elsbethtub': ('elsbeth/INN-TUB-PORTRAITS-1104', 'K', 'npc:elsbeth (the Halfway Inn, js/inn.js M.talk)', {'edge': True, 'pat': '%sP%02d-*.png', 'avoid': ['red', 'fire']}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

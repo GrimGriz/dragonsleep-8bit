@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_elsbethtub.png",
+ "fw": 154,
+ "fh": 158,
+ "ax": 87,
+ "ay": 155,
+ "top": 155,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 158,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 316,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 474,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 632,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 790,
+   "fw": 154,
+   "fh": 158,
+   "ax": 87,
+   "ay": 155,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "K",
+ "door": "npc:elsbeth (the Halfway Inn, js/inn.js M.talk)",
+ "source": "deep16/_src/elsbeth/INN-TUB-PORTRAITS-1104 (the art desk's K, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
