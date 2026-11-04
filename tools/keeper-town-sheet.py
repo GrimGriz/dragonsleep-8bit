@@ -116,7 +116,8 @@ KEEPERS = {
     # bald crown's highlight snapped gold, a yellow cap: left out there alone)
     # Corwen Dace (10-29, the same seat: the art desk's ART-123-DACE, all five views drawn, NE and N from behind): in the Galleries' mouth where the first game stands
     # him (content/maps/galleries_g1.json `dace`); in a fight, as the party's guest, he keeps the class floor's wizard (js/save.js SV.LOOK) -- these are an idle's only
-    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
+    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
+
     # Old Wynn Pollard (10-29, the same seat: the art desk's ART-123-WYNN, all five views drawn, NE and N from behind): at the Galleries' mouth where the first game stands him
     'wynn': ('wynn/ART-123-WYNN', 'ART-123-WYNN', 'npc:wynn', {'views': 'ART-123-WYNN, 10-29', 'avoid': ['red', 'fire']}),   # (his weathered cheeks flecked the reds at 50 px, as Edric's: left out, they go to skin)
     # Sabeth Pollard (10-29, the same seat: the art desk's ART-123-SABETH, all five views drawn, NE and N from behind): at the Galleries' mouth where the first game stands her
@@ -137,7 +138,10 @@ KEEPERS = {
     # Idony Fell by the notary's (10-30, the Keeper cutter: the art desk's ART-123-IDONY, its TOWN-PART1 only -- HEAD 2 PAGE 1 S and PAGE 2 SE; Griz, "we did image
     # gen ceiling with only 2 idony, but i think south-facing for when she's not 'watchful'"): south only till E, NE and N come (the art desk's batch A), then this
     # line cuts all eight as it is (content/maps/silverton `idony`, js/town.js T.people pin 5)
-    'idony': ('idony/ART-123-IDONY', 'ART-123-IDONY', 'npc:idony', {'views': 'ART-123-IDONY, 10-30 (S; SE waits beside E, NE, N)', 'avoid': ['red', 'fire']}),
+    'idony': ('idony/ART-123-IDONY-TOWN-FINAL', 'ART-123-IDONY', 'npc:idony', {'views': 'ART-123-IDONY-TOWN-FINAL, 11-04 (all five; S and SE byte for byte the 10-30 pair)', 'avoid': ['red', 'fire']}),
+    # Elsbeth the candle girl on Silverton's street, pin 23 (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-TOWN, all five views at once (H2P1-Idle-S.png
+    # to H2P5-Idle-N.png), her pole held and planted, her tray on its strap
+    'elsbethCandles': ('elsbeth/ART-123-ELSBETH-TOWN', 'H2', 'npc:elsbethCandles', {'pat': '%sP%d-*.png', 'views': 'ART-123-ELSBETH-TOWN, 11-04', 'avoid': ['red', 'fire'], 'holes': (14, 60)}),
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),
@@ -174,6 +178,11 @@ def page(name, path, ov, pg=1):
         raise SystemExit('%s: %d drawings found, 4 wanted' % (name, len(found)))
     raw = []
     for piece, box in found:
+        if ov.get('holes'):                                           # (`holes`: (tolerance, source px) -- an enclosed gap of the page's own navy opened again:
+            dn = np.abs(a - np.median(a.reshape(-1, 3)[::97], axis=0)).max(-1)   # Elsbeth's between her and the pole she plants, 11-04)
+            lb, nb = ndimage.label(piece & (dn <= ov['holes'][0]))
+            if nb:
+                sz = ndimage.sum(np.ones_like(lb), lb, range(1, nb + 1)); piece = piece & ~np.isin(lb, 1 + np.where(sz >= ov['holes'][1])[0])
         if gm is not None:                                            # (the real body's feet are the frame's foot: a ghost's below them cut off, so he stands on his own)
             rf = np.where((piece & ~gm).any(axis=1))[0].max() + 1; piece = piece.copy(); piece[rf:] = False
         ys, xs = np.where(piece)
@@ -223,9 +232,14 @@ def page(name, path, ov, pg=1):
 
 def cut(name):
     folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap; `recolour`, a cloth dyed -- tools/portrait-sheet.py)
-    path = os.path.join(SRC, folder, '%s_HEAD-2_PAGE-1.png' % art)
+    pat = ov.get('pat', '%s_HEAD-2_PAGE-%d.png')                    # (a page's name: the art desk's own where it named them otherwise -- Elsbeth's H2P1-Idle-S.png)
+    def pg_path(n):
+        import glob as _g
+        hit = _g.glob(os.path.join(SRC, folder, pat % (art, n)))
+        return hit[0] if hit else os.path.join(SRC, folder, pat % (art, n))
+    path = pg_path(1)
     faces = {0: page(name, path, ov)}
-    more = {f: os.path.join(SRC, folder, '%s_HEAD-2_PAGE-%d.png' % (art, p)) for p, f in VIEWS.items()}
+    more = {f: pg_path(p) for p, f in VIEWS.items()}
     have = [f for f, q in more.items() if os.path.exists(q)]
     if len(have) == len(VIEWS):                                       # (ART-121 in hand: all eight)
         for p, f in VIEWS.items():
