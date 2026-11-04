@@ -5277,7 +5277,7 @@
     try {
       var RS = window.DS.R, SP = window.DS.DATA.spells, ids = Object.keys(SP).filter(function (k) { return k.charAt(0) !== '_'; }), by = {};
       ids.forEach(function (k) { var s = RS.school ? RS.school(k) : null; by[s || 'none'] = (by[s || 'none'] || 0) + 1; });
-      var WANT = { abjuration: 26, conjuration: 24, divination: 8, enchantment: 21, evocation: 55, illusion: 10, necromancy: 14, transmutation: 23, none: 1 };
+      var WANT = { abjuration: 26, conjuration: 24, divination: 8, enchantment: 21, evocation: 55, illusion: 10, necromancy: 14, transmutation: 24, none: 1 }; // (Goodberry, the SRD's transmutation, 11-03)
       okSc('the schools: ' + Object.keys(by).sort().map(function (k) { return k + ' ' + by[k]; }).join(', '), Object.keys(WANT).every(function (k) { return by[k] === WANT[k]; }) && Object.keys(by).length === Object.keys(WANT).length);
       var spot = { fireball: 'evocation', acidsplash: 'conjuration', produceflame: 'conjuration', calllightning: 'conjuration', curewounds: 'evocation', mageArmor: 'abjuration', fly: 'transmutation', dominateperson: 'enchantment', searingscourge: 'evocation', deathhandsscourge: 'evocation', gnawingword: 'enchantment', calledtoaccount: 'enchantment', glasswhisper: 'enchantment', rootdrag: 'transmutation', mirrorsgaze: 'divination', huntersmark: 'divination', smite: null };
       okSc('a few: ' + Object.keys(spot).map(function (k) { return k + ' ' + RS.school(k); }).join(', '), Object.keys(spot).every(function (k) { return RS.school(k) === spot[k]; }));
@@ -5312,6 +5312,68 @@
     } catch (e) { repTf.errors.push(String(e && e.stack || e)); }
     var preTf = document.createElement('pre'); preTf.id = 'out'; preTf.textContent = 'BENCH16 ' + JSON.stringify(repTf);
     document.body.appendChild(preTf);
+    return;
+  }
+  // CUTTHROAT'S 9TH AND GOODBERRY (mode=finish1103; the leveling lane, the last before the Halfway Inn -- Griz, 11-03: "we're good on feats, build cutthroat's 9 and goodberry,
+  // then we'll call that good to shift to the inn"): OPENING NIGHT -- advantage on initiative on the figure (a Cutthroat of 9; not of 8, not a Thief), and no opportunity attack
+  // on her from one that hasn't had its first turn (a step out of reach and a rise in place; once it has acted, the blow comes); GOODBERRY -- the Green Return's always ready
+  // at 3, cast out of a fight (ten berries into the pack, a slot spent; nowhere to put them, nothing), eaten for 1 HP, dried at the long rest; cast in a fight, the pack's ten
+  // and the ITEM list's Goodberry, eaten for 1 HP
+  if (get('mode', '') === 'finish1103') {
+    var repFn = { checks: [], errors: [] }, RFn = window.DS.R, HFn = D.house, memFn = {}, stGFn = D.store.get, stSFn = D.store.set, muFn = D.music;
+    function okFn(what, v) { repFn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFn(g) { var v, k = 0, st; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function fightFn(q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); return B; }
+    function besideFn(B, u, w) { var qs = [[u.x + 1, u.y], [u.x - 1, u.y], [u.x, u.y + 1], [u.x, u.y - 1]]; for (var i = 0; i < qs.length; i++) { if (B.units.some(function (o) { return o !== w && o.x === qs[i][0] && o.y === qs[i][1]; })) continue; if (D.grid.canStand(w, qs[i][0], qs[i][1])) { w.x = qs[i][0]; w.y = qs[i][1]; D.grid.setup(B.map, B.units); return true; } } return false; }
+    D.store.get = function (k) { return memFn[k] ? JSON.parse(memFn[k]) : null; }; D.store.set = function (k, v) { memFn[k] = JSON.stringify(v); return true; }; D.music = function () { };
+    try {
+      D.seed = 1103; window.DS.autoPicks = true;
+      // 1. OPENING NIGHT on the figure: a story Vivian of 9 a Cutthroat, of 8, a Thief of 9; a class card of the Cutthroat at 9
+      var vAt = function (lvl, sub) { var h = RFn.makeHero('vivian', lvl); RFn.settlePicks(h, { archetype: sub }); return D.save.unitOf(h, false, null); };
+      var c9 = vAt(9, 'Cutthroat'), c8 = vAt(8, 'Cutthroat'), t9 = vAt(9, 'Thief'), n9 = D.npc.unit(D.npc.sheet(Object.assign(D.npc.spec('rogue:9'), { subclass: 'Cutthroat' })), 'party');
+      okFn('OPENING NIGHT, initiative: Vivian a Cutthroat of 9 ' + !!c9.initAdv + ', of 8 ' + !!c8.initAdv + ', a Thief of 9 ' + !!t9.initAdv + '; a class card\'s Cutthroat of 9 ' + !!n9.initAdv + ' (want true false false true)',
+        c9.initAdv === true && !c8.initAdv && !t9.initAdv && n9.initAdv === true);
+      // 2. OPENING NIGHT, no opportunity attack from one that hasn't had its first turn: a step out of the goblin's reach (moveAlong) and its rise in place (provoke)
+      var oaAt = function (sub, lvl, acted, how) {
+        var B = fightFn('?npc=goblin&lvl=3&vs=rogue:' + lvl), u = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+        u.subclass = sub; u.lvl = lvl; u.maxhp = u.hp = 999; besideFn(B, u, g); g.acted = acted; g.reaction = 1; D.rules.startTurn(u); B.active = u;
+        if (how === 'step') { var dx = u.x - g.x, dy = u.y - g.y, to = [u.x + dx * 2, u.y + dy * 2], path = [[u.x + dx, u.y + dy], to].filter(function (q) { return D.grid.canStand(u, q[0], q[1]); }); runFn(B.moveAlong(u, path)); }
+        else runFn(B.provoke(u, 'rising out of reach'));
+        return g.reaction === 0;
+      };
+      var s0 = oaAt('Cutthroat', 9, false, 'step'), s1 = oaAt('Cutthroat', 9, true, 'step'), s2 = oaAt('Thief', 9, false, 'step'), s3 = oaAt('Cutthroat', 8, false, 'step'), p0 = oaAt('Cutthroat', 9, false, 'rise'), p1 = oaAt('Cutthroat', 9, true, 'rise');
+      okFn('OPENING NIGHT, opportunity attacks: a Cutthroat of 9 steps away from a goblin yet to act -- struck ' + s0 + '; once it has acted ' + s1 + '; a Thief ' + s2 + '; a Cutthroat of 8 ' + s3 + '; her rise in place, yet to act ' + p0 + ', acted ' + p1 + ' (want false true true true false true)',
+        !s0 && s1 && s2 && s3 && !p0 && p1);
+      // 3. GOODBERRY, the Green Return's: always ready at 3 (not Devotion's); cast out of a fight -- ten berries into the pack and a 1st-level slot; with nowhere to put them, nothing
+      var lg = RFn.makeHero('lymen', 3); RFn.settlePicks(lg, { archetype: 'the Oath of the Green Return' }); var ld = RFn.makeHero('lymen', 3); RFn.autoPicks(ld);
+      var spG = window.DS.DATA.spells.goodberry, inv = [], sl0 = lg.slots[0], envG = { where: 'world', party: [lg], tent: true, has: function (id) { return inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, give: function (id, n) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else inv.push({ id: id, n: n }); } };
+      var lnG = HFn.field.cast(lg, spG, null, envG), nB = (inv.filter(function (s) { return s.id === 'goodberry'; })[0] || {}).n, slG = lg.slots[0];
+      var lnN = HFn.field.cast(lg, spG, null, Object.assign({}, envG, { give: null }));
+      okFn('GOODBERRY: the Green Return\'s at 3 ' + (RFn.oathSpells(lg).indexOf('goodberry') >= 0) + ', castable ' + (RFn.castable(lg, 'field').indexOf('goodberry') >= 0) + ', Devotion\'s ' + (RFn.oathSpells(ld).indexOf('goodberry') >= 0) + '; cast on THE WORLD: "' + lnG.join(' ') + '" -- ' + nB + ' berries, slots ' + sl0 + ' -> ' + slG + '; with nowhere to put them "' + lnN.join(' ') + '"',
+        RFn.oathSpells(lg).indexOf('goodberry') >= 0 && RFn.castable(lg, 'field').indexOf('goodberry') >= 0 && RFn.oathSpells(ld).indexOf('goodberry') < 0 && nB === 10 && slG === sl0 - 1 && /ten berries/.test(lnG.join(' ')) && lg.slots[0] === slG);
+      // 4. EATEN AND DRIED: Barley hurt eats one (1 HP, nine left); the house's long rest dries the rest -- the line, none in the pack
+      var bb = RFn.makeHero('barley'); bb.hp = bb.maxhp - 5; var lnE = HFn.field.item('goodberry', bb, envG), hpE = bb.hp, nE = (inv.filter(function (s) { return s.id === 'goodberry'; })[0] || {}).n;
+      HFn.playing = false; HFn.cur = null; while (D.scenes.length) D.pop();
+      var rec = HFn.fresh(); rec.inv.push({ id: 'goodberry', n: 7 }); HFn.cur = HFn.fill(rec); HFn.playing = true; var lnR = HFn.longRest(null) || [];
+      okFn('eaten: "' + lnE.join(' ') + '" -- Barley ' + (bb.maxhp - 5) + ' -> ' + hpE + ', ' + nE + ' left; the long rest: dried ' + (lnR.indexOf(HFn.DRY) >= 0) + ', in the pack ' + HFn.cur.inv.filter(function (s) { return s.id === 'goodberry'; }).length,
+        hpE === bb.maxhp - 4 && nE === 9 && lnR.indexOf(HFn.DRY) >= 0 && !HFn.cur.inv.some(function (s) { return s.id === 'goodberry'; }));
+      HFn.playing = false; HFn.cur = null;
+      // 5. IN A FIGHT: a Green Return paladin casts it -- ten in the fight's pack, the ITEM list offers Goodberry, a hurt fighter eats one: 1 HP
+      var BF = fightFn('?npc=goblin&lvl=3&vs=paladin:3,fighter:3'), pal = BF.units.filter(function (w) { return w.cls === 'paladin'; })[0], fig = BF.units.filter(function (w) { return w.cls === 'fighter' && w.side === 'party'; })[0];
+      pal.subclass = 'the Oath of the Green Return'; if (pal.known.indexOf('goodberry') < 0) pal.known.push('goodberry'); D.rules.startTurn(pal); BF.active = pal;
+      var inv0 = (BF.inv || []).filter(function (s) { return s.id === 'goodberry'; }).length; runFn(D.magic.cast(BF, pal, 'goodberry', 1, pal));
+      fig.hp = fig.maxhp - 5; D.rules.startTurn(fig); BF.active = fig;
+      var nF = ((BF.inv || []).filter(function (s) { return s.id === 'goodberry'; })[0] || {}).n, inList = BF.itemList(fig).some(function (e) { return e.id === 'goodberry'; });
+      runFn(BF.useItem(fig, 'goodberry', fig)); var hpF = fig.hp, nF2 = ((BF.inv || []).filter(function (s) { return s.id === 'goodberry'; })[0] || {}).n;
+      okFn('IN A FIGHT: none in the pack before (' + inv0 + '), after the cast ' + nF + '; the ITEM list offers it ' + inList + '; eaten: ' + (fig.maxhp - 5) + ' -> ' + hpF + ', ' + nF2 + ' left',
+        inv0 === 0 && nF === 10 && inList && hpF === fig.maxhp - 4 && nF2 === 9);
+      // 6. THE SHELF: Stab Debut and Opening Night beside the Lampwright's
+      var FE = D.FEATURES || {};
+      okFn('the shelf: ' + ['stabdebut', 'openingnight'].map(function (k) { return k + (FE[k] ? ' ' + FE[k].lvl + ' ' + FE[k].sub : ' MISSING'); }).join(', '), !!FE.stabdebut && !!FE.openingnight && FE.openingnight.lvl === 9 && FE.openingnight.sub === 'Cutthroat');
+    } catch (e) { repFn.errors.push(String(e && e.stack || e).slice(0, 900)); }
+    HFn.playing = false; HFn.cur = null; D.store.get = stGFn; D.store.set = stSFn; D.music = muFn;
+    var preFn = document.createElement('pre'); preFn.id = 'out'; preFn.textContent = 'BENCH16 ' + JSON.stringify(repFn);
+    document.body.appendChild(preFn);
     return;
   }
   // THE LAMPWRIGHT AND EXPERTISE AT 1 (mode=lampwright1103; the leveling lane, 11-03 later -- Griz: "1 yes, 2 no, 3 after, 4 yes / We should at least have their choices to 6 if
@@ -5455,7 +5517,7 @@
       var lG = RSa.applyPick(l3, recL, { archetype: 'the Oath of the Green Return' }), uG = D.save.unitOf(l3, false, null), lDv = RSa.makeHero('lymen', 3); RSa.autoPicks(lDv); var uDv = D.save.unitOf(lDv, false, null);
       var lG7 = RSa.makeHero('lymen', 3); RSa.settlePicks(lG7, { archetype: 'the Oath of the Green Return' }); var m7L = []; for (var lw = 4; lw <= 7; lw++) { lG7.xp = RSa.XP_LEVEL[lw]; m7L = RSa.levelUp(lG7); }
       okSa('Lymen of the Green Return: "' + lG.join(' ') + '"; devoted ' + D.rules.devoted(uG) + ', Turn the Unholy ' + D.features.unholy(uG) + ', the oath\'s own ' + D.features.green(uG) + ', always ready ' + RSa.oathSpells(l3).join(',') + '; Devotion\'s Lymen (' + lDv.subclass + ') devoted ' + D.rules.devoted(uDv) + '; at 7 ' + JSON.stringify(m7L.filter(function (m) { return /Aura of D/.test(m); })),
-        lG.join(' ') === 'Lymen\'s sacred oath: the Oath of the Green Return.' && !D.rules.devoted(uG) && !D.features.unholy(uG) && D.features.green(uG) && RSa.oathSpells(l3).join() === 'longstrider' && lDv.subclass === 'Oath of Devotion' && D.rules.devoted(uDv) && m7L.some(function (m) { return /^Aura of Deep Roots/.test(m); }) && !m7L.some(function (m) { return /^Aura of Devotion/.test(m); }));
+        lG.join(' ') === 'Lymen\'s sacred oath: the Oath of the Green Return.' && !D.rules.devoted(uG) && !D.features.unholy(uG) && D.features.green(uG) && RSa.oathSpells(l3).join() === 'goodberry,longstrider' && lDv.subclass === 'Oath of Devotion' && D.rules.devoted(uDv) && m7L.some(function (m) { return /^Aura of Deep Roots/.test(m); }) && !m7L.some(function (m) { return /^Aura of Devotion/.test(m); }));
       // 5. NO ONE TO ASK: the SRD's, as they always were -- a bench's Barley the Champion (crit 19), Lymen Devotion, Aurdin Evocation, Vivian the Thief; the fixture's the same
       var bA = RSa.makeHero('barley', 5), waitA = RSa.asking(bA, 'archetype'); RSa.autoPicks(bA); var fx = D.save.fixture(5).party.map(function (h) { return h.id + ' ' + h.subclass; }).join(', ');
       okSa('a bench at 5: Barley waited ' + waitA + ', then ' + bA.subclass + ' (crit ' + RSa.critRange(bA) + '); the fixture\'s: ' + fx,
@@ -5715,7 +5777,7 @@
       D.seed = 1030;
       var R0 = window.DS.R, sc = R0.SUBCLASSES.paladin, gsh = D.npc.sheet(Object.assign(D.npc.spec('paladin:5'), { subclass: GR })), dsh = D.npc.sheet(D.npc.spec('paladin:5'));
       okGr('the choice at 3: ' + (sc ? sc.word + ' ' + sc.opts.map(function (o) { return o.name; }).join(' / ') : 'none') + '; a Green Return paladin 5 knows ' + ['longstrider', 'barkskin', 'spikegrowth', 'sanctuary'].map(function (id) { return id + ' ' + (gsh.known.indexOf(id) >= 0); }).join(', ') + '; its oath spells ' + R0.oathSpells(gsh).join(',') + '; Devotion\'s ' + R0.oathSpells(dsh).join(','),
-        sc && sc.at === 3 && sc.opts.length === 2 && sc.opts[0].srd && sc.opts[1].name === GR && gsh.subclass === GR && ['longstrider', 'barkskin', 'spikegrowth'].every(function (id) { return gsh.known.indexOf(id) >= 0; }) && gsh.known.indexOf('sanctuary') < 0 && R0.oathSpells(gsh).join() === 'longstrider,barkskin,spikegrowth' && R0.oathSpells(dsh)[0] === 'protectionfromevilandgood');
+        sc && sc.at === 3 && sc.opts.length === 2 && sc.opts[0].srd && sc.opts[1].name === GR && gsh.subclass === GR && ['longstrider', 'barkskin', 'spikegrowth'].every(function (id) { return gsh.known.indexOf(id) >= 0; }) && gsh.known.indexOf('sanctuary') < 0 && R0.oathSpells(gsh).join() === 'goodberry,longstrider,barkskin,spikegrowth' && R0.oathSpells(dsh)[0] === 'protectionfromevilandgood');
       var hd = mkGr(5, false), hg = mkGr(5, true);
       okGr('Devotion\'s SACRED WEAPON ' + !!cmdOf(hd, 'sacred') + ', turning ' + D.features.unholy(hd.p) + '; the Green Return\'s ' + !!cmdOf(hg, 'sacred') + ', ' + D.features.unholy(hg.p) + ' (want true true, false false)', !!cmdOf(hd, 'sacred') && D.features.unholy(hd.p) && !cmdOf(hg, 'sacred') && !D.features.unholy(hg.p));
       // GREEN AGAIN

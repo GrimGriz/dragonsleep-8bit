@@ -332,7 +332,7 @@
       { id: 'greyroad', name: 'the Grey Road', desc: "GreyFang's, the pit-master's way. Turn It Aside: the reaction adds WIS to the AC of one within 5 ft. Pit-Wise: rising and climbing cost less. At 7, Give Ground: the reaction steps back from a foe, and the next bow shot at it has advantage." }] },
     rogue: { at: 3, word: 'ROGUISH ARCHETYPE', opts: [
       { id: 'thief', name: 'Thief', srd: true, desc: 'Fast Hands: using an item is a bonus action. At 9, Supreme Sneak.' },
-      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: any weapon attack (a bow's shot too) at a foe that hasn't had its first turn, then one more at it, the weapon's dice alone (no bonuses)." }, // (RULED 10-31, Griz: "weapon attack")
+      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: any weapon attack (a bow's shot too) at a foe that hasn't had its first turn, then one more at it, the weapon's dice alone (no bonuses). At 9, Opening Night: advantage on initiative, and one that hasn't had its first turn makes no opportunity attack on her." }, // (RULED 10-31, Griz: "weapon attack")
       // (the Lampwright, ours: 11-03, the leveling lane -- Griz, "1 yes", built before the inn; leveling-srd-by-class.md 7.2; deep16/js/features.js F.lamp, light.js L.levelSeen)
       { id: 'lampwright', name: 'the Lampwright', desc: "Ours: the light she carries and the light she takes away. Wick-Lore: Light and Dancing Lights, by INT. Hooded Lamp: her own light never shows her. Pin the Light: her Cunning Action sets a mote on one within 30 ft (DEX save) -- no hiding, no help from being invisible, till her next turn. At 9, By Her Own Light: in light she made, her Sneak Attack needs no edge or friend." }] },
     warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
@@ -968,7 +968,7 @@
   R.devotion = function (h) { return h.cls === 'paladin' && h.subclass !== 'the Oath of the Green Return'; };
   R.oathSpells = function (h) {
     if (h.cls !== 'paladin' || h.lvl < 3) return [];
-    if (!R.devotion(h)) return ['longstrider'].concat(h.lvl >= 5 ? ['barkskin', 'spikegrowth'] : [], h.lvl >= 9 ? ['daylight'] : []);
+    if (!R.devotion(h)) return ['goodberry', 'longstrider'].concat(h.lvl >= 5 ? ['barkskin', 'spikegrowth'] : [], h.lvl >= 9 ? ['daylight'] : []);
     return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : [], h.lvl >= 9 ? ['beaconofhope', 'dispelmagic'] : []); // (the 9th's two, the SRD's, built on the grid -- held out while the first game shared this list; 11-03. Zone of Truth, the 5th's other, is not built)
   };
   R.prepCount = function (h) {

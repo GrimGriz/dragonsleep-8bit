@@ -1245,6 +1245,9 @@
   // 30 ft she can see, a DEX save against 8 + proficiency + INT, till the start of her next turn: it sheds bright light 10 ft and dim 10 more, and the creature can neither hide
   // nor gain anything from being invisible (no advantage given); at 9, BY HER OWN LIGHT -- against one standing in light she made, her Sneak Attack needs neither advantage nor a
   // friend beside it, and it cannot hide from her while it stands there
+  // OPENING NIGHT (Cutthroat's 9th, ours -- 11-03, Griz: "build cutthroat's 9"; Stab Debut's road on): advantage on initiative (js/save.js unitOf's initAdv), and a creature
+  // that has not had its first turn makes no opportunity attack on her (battle.js moveAlong and provoke). The seat's design, his to overrule
+  F.openingNight = function (u) { return !!(u && u.cls === 'rogue' && u.subclass === 'Cutthroat' && u.lvl >= 9); };
   F.lamp = function (u, lvl) { return !!(u && u.cls === 'rogue' && u.subclass === 'the Lampwright' && u.lvl >= (lvl || 3)); };
   F.pinTargets = function (B, u) { return B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && !w.familiar && G.dist(u, w) <= 30 && M.sees(B, u, w) && !(w.conds.pinned && w.conds.pinned.by === u.id); }); };
   F.pinLight = function* (B, u, t) {

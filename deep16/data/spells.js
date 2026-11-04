@@ -88,6 +88,7 @@
   entangle: { ground: true, shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
   expeditiousretreat: { shape: 'self', time: 'B', conc: true },
   falselife: { shape: 'self', time: 'A' },
+  goodberry: { shape: 'self', time: 'A' },   // ten berries into the pack (js/grimoire.js E.goodberry; the Green Return's, 11-03)
   grease: { ground: true, shape: 'cube', range: 60, size: 10, time: 'A' },
   guidingbolt: { shape: 'attack', range: 120, time: 'A' },
   healingword: { see: true, shape: 'single', side: 'ally', range: 60, time: 'B' },

@@ -147,7 +147,8 @@
       darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0),
       // his blood's Savage Attacks (battle.js attack: a melee critical rolls one more weapon die) and the fighting style he fights by (battle.js
       // reads 'protection'; the rest are in his numbers, js/rules.js) -- 10-06: the grid never gave Lymen his (Griz: "inconceivable!")
-      savage: R.savage(h), style: R.style(h)
+      savage: R.savage(h), style: R.style(h),
+      initAdv: h.cls === 'rogue' && h.subclass === 'Cutthroat' && h.lvl >= 9 // (Opening Night, Cutthroat's 9th: advantage on initiative -- battle.js run reads it; 11-03)
     };
   }
   SV.unitOf = unitOf; // (the class NPCs are made units the same way: js/classes.js)

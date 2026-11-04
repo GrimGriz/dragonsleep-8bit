@@ -466,6 +466,13 @@
     if (u.hp > u.maxhp * 0.6) worth -= chase.reduce(function (s, f) { return s + (G.dist(u, f) <= G.reachOf(f) ? tx.dpr(f) * 0.5 : 0); }, 0);
     return Math.max(0, worth);
   }
+  // Goodberry (SRD 5.1; the Oath of the Green Return's at 3 -- 11-03, Griz: "build ... goodberry"): up to ten berries -- here ten, into the party's pack (an ITEM: an action
+  // eats one, 1 HP back; dry at the next long rest, js/house.js H.dry). No AI casts it
+  E.goodberry = {
+    summary: function () { return 'ten berries into the pack: an action eats one, 1 HP'; },
+    cast: function* (B, u, t, slot, head) { var inv = B.inv = B.inv || [], s = inv.filter(function (x) { return x.id === 'goodberry'; })[0]; if (s) s.n += 10; else inv.push({ id: 'goodberry', n: 10 }); FX.sparkle(u, 'moss', 16); D.sfx('heal'); B.card([head + ': ten berries in the hand, into the pack -- ITEM: an action eats one, {n}1 HP{/}.'], 260); yield 20; },
+    ai: function () { return null; }
+  };
   E.falselife = {
     summary: function (e) { return 'yourself · 1d4+' + (4 + 5 * Math.max(0, e.slot - 1)) + ' temporary HP'; },
     cast: function* (B, u, t, slot, head, x) { var r = D.roll('1d4+' + (4 + 5 * up(x.sp, slot))); u.temp = Math.max(u.temp || 0, r.total); u.conds.falseLife = { by: u.id, temp: r.total }; FX.sparkle(u, 'violet', 14); B.card([head + ': a false life fills ' + nm(B, u) + ' -- {c}' + r.total + ' temporary HP{/}.']); yield 20; }, // (conds.falseLife: what Dispel Magic ends -- its branch read a record nothing set, 10-01b's found list)

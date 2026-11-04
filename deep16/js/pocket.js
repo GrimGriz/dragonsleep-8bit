@@ -2175,7 +2175,7 @@
   Pocket.prototype.campField = function (kind, a, hs, at) {
     var st = this.st, run = st.run, FD = D.house && D.house.field, c = a.h || null, ia = c ? at[hs.indexOf(c)] : -1;
     if (!FD) return ['The camp has nothing to use that on.'];
-    var env = { where: 'camp', party: hs, tent: false, form: a.form, flags: null, has: function (id) { return PK.packN(st, id) > 0; }, take: function (id) { PK.packAdd(st, id, -1); }, ward: function () { }, longRest: function () { return []; } };
+    var env = { where: 'camp', party: hs, tent: false, form: a.form, flags: null, has: function (id) { return PK.packN(st, id) > 0; }, take: function (id) { PK.packAdd(st, id, -1); }, give: function (id, n) { PK.packAdd(st, id, n || 1); }, ward: function () { }, longRest: function () { return []; } }; // (give: Goodberry's berries, 11-03)
     if (kind === 'cast' && c && a.sp) {
       if (a.sp.kind === 'familiar') return ['No familiar comes to the Pocket DM\'s table: it is called up on the road.'];
       return FD.cast(c, a.sp, a.t || null, env);

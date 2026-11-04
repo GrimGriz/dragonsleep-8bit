@@ -2007,7 +2007,8 @@
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
             && G.dist(w, u) <= G.armOf(w) && G.dist(w, u, null, null, nx, ny) > G.armOf(w) && !(w.conds.hidden && false) // (a reach weapon's opportunity attack at 10 ft: G.armOf, 10-30)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
-            && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u); // (a creature you can see: not into or out of darkness; and never at its charmer)
+            && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u) // (a creature you can see: not into or out of darkness; and never at its charmer)
+            && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u)); // (Opening Night, Cutthroat's 9th: none from one that has not had its first turn -- 11-03)
         });
         for (var k = 0; k < prov.length; k++) {
           var w = prov[k], take = true;
@@ -3048,7 +3049,7 @@
     var T = u.turn || {}, self = this;
     if (T.disengaged || u.ethereal) return;
     var outAt = function (w) { if (!to) return true; var f0 = u.fz; u.fz = to.fz; try { return G.dist(w, u) > G.armOf(w); } finally { u.fz = f0; } };
-    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.armOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
+    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.armOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u) && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u)); }); // (Opening Night: 11-03)
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
       if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };

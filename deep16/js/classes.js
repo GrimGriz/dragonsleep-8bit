@@ -93,7 +93,7 @@
   NPC.SUBS = {
     // the Oath of the Green Return (ours, 10-30 -- the leveling lane §8 D; leveling-srd-by-class.md 2.2): its always-prepared in Devotion's place -- Goodberry and Meld into Stone
     // are its own too and not built (js/rules.js R.oathSpells, the same list)
-    'the Oath of the Green Return': { always: { 3: ['longstrider'], 5: ['barkskin', 'spikegrowth'], 9: ['daylight'] } },
+    'the Oath of the Green Return': { always: { 3: ['goodberry', 'longstrider'], 5: ['barkskin', 'spikegrowth'], 9: ['daylight'] } },
     'the Window': { always: { 1: ['disguiseself', 'silentimage'], 3: ['blur', 'passwithouttrace'], 5: ['hypnoticpattern', 'clairvoyance'], 7: ['greaterinvisibility', 'confusion'], 9: ['mislead', 'holdmonster'] }, uses: 'handOnNeck' },
     'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'], 7: ['guardianoffaith', 'freedomofmovement'], 9: ['holdmonster', 'dispelevilandgood'] }, uses: 'keepersWard' },
     // the Keeping (10-16, Griz on the Gray Keeping's matriarchs: "Give the superhero entangle? There's good cleric stuff high level that didn't exist in

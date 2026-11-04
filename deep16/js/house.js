@@ -313,6 +313,9 @@
   // the long rest (THE WORLD's camp; js/events.js EV.longRest, the first game's): Aid's and Mage Armor's hours over, each sheet whole again (js/rules.js R.refresh),
   // then the levels banked come (R.gainXP with nothing new: every level the XP reaches). With a scene (THE WORLD's camp, its night's watches, the Tiny Hut) the
   // morning follows (H.morning: the picks, the night's bonds, the day's spells, the save); with none the caller wakes the party itself (H.sleepOnFloor, js/mines.js)
+  // Goodberry's berries lose their magic (SRD 5.1: "within 24 hours of the casting"; here at the next long rest -- 11-03): gone from the pack; true when there were some
+  H.DRY = 'The goodberries have dried out.';
+  H.dry = function (inv) { if (!inv) return false; var had = inv.some(function (s) { return s.id === 'goodberry' && s.n > 0; }); for (var i = inv.length - 1; i >= 0; i--) if (inv[i].id === 'goodberry') inv.splice(i, 1); return had; };
   H.restSheets = function (party) {
     var R = DS.R, lines = [];
     party.forEach(function (h) {
@@ -337,6 +340,7 @@
     var R = DS.R;
     DS.G = { flags: H.cur.flags };
     var lines = H.restSheets(H.cur.party);
+    if (H.dry(H.cur.inv)) lines.push(H.DRY); // (Goodberry's berries dry out: 11-03)
     if (scene) { H.morning({ party: H.cur.party, lines: lines, save: true, title: H.wakeTitle() }); return lines; } // (the morning opens the picks: Morning; titled by the hour it wakes at, 11-03: a camp's eight hours end at any)
     var who = H.cur.party.filter(function (h) { return R.picksDue(h); });
     if (who.length && scene) {
@@ -601,6 +605,7 @@
       if (o.hours) { var S = W.state(); S.t += o.hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); lines = H.longRest(null) || []; } // (W.camp's day reset, the clock by the hours)
       else { var sc0 = W.scene; W.scene = null; try { lines = W.camp({ morning: true }) || []; } finally { W.scene = sc0; } } // (a bed's night, not a road camp: to the next morning, 11-03)
       sheets = H.cur.party.filter(function (h) { return !h.dead; });
+      H.dry(B.inv); // (the floor's own pack too: Goodberry's berries, 11-03)
     } else {
       sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; });
       lines = H.restSheets(sheets);
@@ -698,6 +703,11 @@
       env.party.forEach(function (x) { [x, x.src].forEach(function (y) { if (y && y.conds && y.conds.light && y.conds.light.by === by) delete y.conds.light; }); });
       t.conds = t.conds || {}; t.conds.light = { by: by }; if (now != null) t.conds.light.until = now + H.LIGHT_HOURS; D.sfx('magic');
       return [c.name + '\'s Light on ' + (t === c ? c.name + '\'s own gear' : t.name + '\'s gear') + ': bright 20 ft and dim 20 more, for an hour.', say('g.light')];
+    }
+    if (sp.kind === 'berries') { // (Goodberry, the SRD's: ten berries into the pack, each an action to eat for 1 HP, dry at the next long rest -- H.dry; 11-03)
+      if (!env.give) return [say('g.nothingHappens')];
+      spend(); env.give('goodberry', 10); D.sfx('heal');
+      return [c.name + '\'s Goodberry: ten berries into the pack. Each one eaten (an action) gives 1 HP; they dry out at the next long rest.'];
     }
     if (sp.kind === 'detect') { D.sfx('magic'); return [say('g.detectNo')]; }
     if (sp.kind === 'familiar') { // Find Familiar (SRD 5.1: a ritual from the book, no slot; RULED 09-29, "let's reinstate", a bundle of Calling Herbs its component) -- the first game's
@@ -805,7 +815,7 @@
   };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;
-    return { where: 'world', party: rec.party, tent: true, flags: (rec.flags = rec.flags || {}), has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
+    return { where: 'world', party: rec.party, tent: true, flags: (rec.flags = rec.flags || {}), has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); }, give: function (id, n) { add(rec.inv, id, n || 1); },
       ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
   }
   // a familiar called on a floor joins the walk at once (11-03 night, the house lane's Tuesday 2: it waited for the next floor -- R0.fam is made at the floor's setup, from the
@@ -829,7 +839,7 @@
   H.fieldOnFloor = function (B, kind, a, unitOf) {
     var R0 = B.roam, RR = D.roam, c = a.h ? unitOf(a.h) || null : null, t = a.t ? unitOf(a.t) || null : null;
     var env = { where: 'floor', party: R0.members, tent: false, form: a.form, flags: (R0.flags = R0.flags || {}), B: B, has: function (id) { return (B.inv || []).some(function (s) { return s.id === id && s.n > 0; }); },
-      take: function (id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, ward: function (steps) { R0.encIn += steps * RR.RATE; }, longRest: function () { return []; } };
+      take: function (id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, give: function (id, n) { add(B.inv = B.inv || [], id, n || 1); }, ward: function (steps) { R0.encIn += steps * RR.RATE; }, longRest: function () { return []; } };
     if (kind === 'cast' && c && a.sp) { var lnC = FD.cast(c, a.sp, t, env); if (a.sp.kind === 'familiar') famNow(B, c); return lnC; }
     if (kind === 'skill' && c) return FD.skill(c, a.s, t);
     if (kind === 'item' && a.id) return FD.item(a.id, c || R0.token, env);
@@ -854,7 +864,7 @@
       guests: function () { return rec.guests || []; }, // (THE HOUSE TAKES GUESTS, 10-28: under the four, STATUS and no EQUIP -- js/menu.js)
       pack: function () { return rec.inv.filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; }); },
       give: function (id, n) { add(rec.inv, id, n || 1); },
-      take: function (id, n) { add(rec.inv, id, -(n || 1)); },
+      take: function (id, n) { add(rec.inv, id, -(n || 1)); }, give: function (id, n) { add(rec.inv, id, n || 1); },
       info: function () { var jn = D.counter && D.counter.journal(null), pq = jn && jn.quests.filter(function (q) { return q.id === jn.pin && !q.done; })[0]; return { silver: rec.silver, renown: rec.renown || 0, place: H.where(rec), time: D.world.timeOfDay(), pin: pq ? pq.name : null }; },
       journal: D.counter ? function () { return D.counter.journal(null); } : null, // (the house's JOURNAL: Winters' Errands -- js/counter.js, 10-21)
       canSave: function () { return true; },
