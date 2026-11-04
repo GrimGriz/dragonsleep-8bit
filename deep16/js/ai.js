@@ -203,11 +203,24 @@
   // stay hitched and the wagon stays put (Griz: they are out of the script's escape), so no line says otherwise
   var FUMBLE = ['fumbles at the traces with shaking hands.', 'drops a buckle in the dark and gropes for it.',
     'cannot find the strap end in the dark.', 'yanks at a buckle. It will not give.', 'curses the harness. Nothing comes loose.'];
+  // THE TRACES COME LOOSE (RULED 11-04, the Halfway Inn lane's 11-04 §1, Griz: "Go with your leans on the pursuit, horses or not the 'catch' is on the Gulch roam, with
+  // horses losing them there is losing them"): a fight's `loosen` -- three turns at the harness with no blow on him, and the team is loose: the greys go with them, the pair
+  // mounted (SRD 5.1 Draft Horse, speed 40) break for the road, and the battle's `teamLoose` (and a floor's own copy of the fight, `loose`) says so to what comes after
+  // (deep16/js/inn.js: the catch on the Gulch roam)
+  var HORSE = 40;
   function* traces(B, u) {
     u.turn.action = 0; u.turn.move = 0; u.turn.bonus = 0;
     var n = u.fumbles = (u.fumbles || 0) + 1;
     var team = B.riders.filter(function (r) { return r.team; }).sort(function (a, b) { return Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y); })[0];
     if (team) u.facing = B.faceTo(u, { x: team.x, y: team.y, size: 1 }); // (turned to the horses, his back to the fight)
+    if (B.fight && B.fight.loosen && n >= B.fight.loosen && !B.hitAtTraces) {
+      u.traces = false; B.teamLoose = true; if (B.o && B.o.fightDef) B.o.fightDef.loose = true; // (on the battle, and on a floor's own copy of the fight -- never the shared def in data/fights.js)
+      B.riders = B.riders.filter(function (r) { return !r.team; });
+      B.units.forEach(function (v) { if (v.side === 'foe' && v.hp > 0 && D.FOES[v.kind] && D.FOES[v.kind].flees && !v.flees) { v.flees = true; v.mounted = true; v.speed = Math.max(v.speed || 30, HORSE); } });
+      D.sfx('run');
+      B.card(['{r}' + u.name + ' gets the team loose.{/}  "Up! Up!"  The pair are on the greys and going for the road.'], 400);
+      yield 40; return;
+    }
     B.card(['{o}' + u.name + '{/} ' + FUMBLE[(n - 1) % FUMBLE.length] + '  {g}(his action: the harness){/}']);
     yield 40;
   }

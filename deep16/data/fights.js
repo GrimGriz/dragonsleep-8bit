@@ -163,8 +163,10 @@
     // - then amara and willem will try to make the escape on foot - either succeeding switches to chase 1 fight 2". Willem at
     // the team's flank (`traces`: ai.js), Amara between him and the inn; the first blow on him and both run (runWhenHurt), and
     // either one on the road ends it (fledEnds: the 8-bit battle's 'fled', S.wagonChase). The glamour is already seen through
-    // (the fight only comes to it once it is): the children in the bed are children
-    { id: 'wagonnight', story: true, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', runWhenHurt: 'willem', fledEnds: true,
+    // (the fight only comes to it once it is): the children in the bed are children. Since 11-04 the second game's (the Halfway Inn's floor pulls it in, js/inn.js
+    // In.yardFight) and the traces come loose (RULED 11-04, the Halfway Inn lane §1: `loosen`, three turns at the harness with no blow on him -- the pair away on
+    // the greys; a blow first and they run on foot, as before -- ai.js traces)
+    { id: 'wagonnight', story: true, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', runWhenHurt: 'willem', fledEnds: true, loosen: 3,
       intro: 'Steel comes out. Willem goes for the team; Amara stands between him and you.',
       from: 'the 8-bit game: events.js S.wagonFight', won: 'THE YARD IS QUIET.', escaped: 'THEY ARE AWAY UP THE ROAD.',
       foes: [{ id: 'amara', kind: 'amara', at: [10, 6] }, { id: 'willem', kind: 'willem', at: [8, 5], traces: true }], wave: null,
