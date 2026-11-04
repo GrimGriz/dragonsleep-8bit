@@ -129,6 +129,8 @@
   // the title, and the last save stands. Returns the lines to say, or null for a loss
   H.afterFight = function (B, res) {
     H.trail('fight', (res || 'ended') + ' in ' + (B.round || '?') + ' rounds: ' + B.units.filter(function (u) { return u.side === 'foe' && !u.summon; }).map(function (u) { return u.name || u.kind; }).join(', '));
+    // an egg found in a road or camp fight is kept in the save, as a floor's fights keep theirs (js/roam.js: B.flags8 into the floor's flags) -- the title's eggs read it (H.EGGS, 11-04)
+    if (B.flags8 && H.cur) Object.keys(B.flags8).forEach(function (k) { if (/^egg/.test(k) && B.flags8[k]) (H.cur.flags = H.cur.flags || {})[k] = 1; });
     H.takeBack(B);
     if (res !== 'won' && res !== 'escaped' && res != null) { H.lost(); return null; }
     if (res !== 'won') return [];
@@ -1015,6 +1017,44 @@
   };
   H.Notes = Notes;
 
+  // ---------------------------------------------------------------- THE EGGS beside the saves (11-04, Griz: "still need 6 egg-shadows outside the box that fill if you have the associated
+  // egg achieved", "it had them in the box with the saves not outside"; his 10-18 "show the six slots over the dragonsleep background not under the save, big pretty eggs that show as you
+  // change selected save"): the first game's six, in its order and hues (first/js/events.js EV.EGGS), each by the flag its egg leaves in a save -- three each side of the box, for the save
+  // the cursor is on. Found: its colour, bobbing, a glint going round the found. Not found, or not built yet: a shadow
+  H.EGGS = [{ id: 'joke', flag: 'eggJoke', hue: 'red' }, { id: 'darkness', flag: 'eggDarkness', hue: 'violet' }, { id: 'dunk', flag: 'eggDunk', hue: 'blue' },
+    { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' }, { id: 'sixth', flag: null, hue: null }];
+  H.eggsOf = function (rec) { var fl = (rec && rec.flags) || {}; return H.EGGS.map(function (e) { return e.flag && fl[e.flag] ? e.hue : null; }); };
+  var EGG_ART = ['...ooo...', '..ollbo..', '.olhlbbo.', '.olhbbbo.', 'olbbbbbdo', 'olbbbbbdo', 'obbbbbddo', 'obbbbbddo', '.obbbddo.', '..odddo..', '...ooo...'];
+  var EGG_HUES = { // (the NES palette's own steps, the first game's: outline, shade, body, light, shine)
+    red: { o: '#501000', d: '#A81000', b: '#D82800', l: '#F87858', h: '#FCD8A8' },
+    violet: { o: '#200C58', d: '#4428BC', b: '#6844FC', l: '#9878F8', h: '#D8B8F8' },
+    blue: { o: '#00186C', d: '#0000BC', b: '#0058F8', l: '#3CBCFC', h: '#A4E4FC' },
+    orange: { o: '#502000', d: '#A83C00', b: '#E45C10', l: '#FCA044', h: '#FCE0A8' },
+    green: { o: '#003000', d: '#007800', b: '#00A800', l: '#58D854', h: '#B8F8B8' },
+    shadow: { o: '#3C3E6C', d: '#0A0B20', b: '#0A0B20', l: '#0E1028', h: '#121430' } // (a dim rim round a darker egg than the night behind it)
+  };
+  var EGG_K = 2, eggCache = {};
+  function eggImage(hue) {
+    if (eggCache[hue]) return eggCache[hue];
+    var cv = document.createElement('canvas'), P = EGG_HUES[hue] || EGG_HUES.shadow, cx;
+    cv.width = 9 * EGG_K; cv.height = 11 * EGG_K; cx = cv.getContext('2d');
+    EGG_ART.forEach(function (row, y) { for (var x = 0; x < row.length; x++) { var c = row[x]; if (c === '.') continue; cx.fillStyle = P[c]; cx.fillRect(x * EGG_K, y * EGG_K, EGG_K, EGG_K); } });
+    return (eggCache[hue] = cv);
+  }
+  H.drawEggs = function (ctx, eggs, b, t) {
+    var EW = 9 * EGG_K, EH = 11 * EGG_K, gap = 6, col = 3 * EH + 2 * gap, y0 = Math.round(b.y + (b.h - col) / 2), lit = [];
+    eggs.forEach(function (hue, i) {
+      var side = i < 3 ? 0 : 1, k = i % 3, x = side ? b.x + b.w + 14 : b.x - 14 - EW, y = y0 + k * (EH + gap) + (hue ? Math.round(Math.sin(t / 11 + i * 1.3) * 1.5) : 0);
+      ctx.drawImage(eggImage(hue || 'shadow'), x, y);
+      if (hue) lit.push([x, y]);
+    });
+    if (!lit.length) return;
+    var f = t % 80, at = lit[Math.floor(t / 80) % lit.length]; // (the glint: one found egg at a time, a four-point star that opens and shuts)
+    if (f >= 14) return;
+    var r = f < 3 || f > 10 ? 1 : 3, gx = at[0] + 12, gy = at[1] + 4;
+    ctx.fillStyle = '#FCFCFC'; ctx.fillRect(gx, gy, 1, 1); ctx.fillRect(gx - r, gy, r, 1); ctx.fillRect(gx + 1, gy, r, 1); ctx.fillRect(gx, gy - r, 1, r); ctx.fillRect(gx, gy + 1, 1, r);
+  };
+
   // ---------------------------------------------------------------- SLOTS: three, to save into or load from
   function Slots(mode, done) { this.kind = 'houseslots'; this.mode = mode; this.done = done || null; this.i = Math.max(0, (H.slot || 1) - 1); this.msg = null; this.t = 0; this.opaque = false; }
   Slots.prototype.rows = function () { var out = []; for (var n = 1; n <= H.SLOTS; n++) out.push(H.line(n, H.read(n))); return out; };
@@ -1041,6 +1081,7 @@
     var b = this.box(), rows = this.rows(), self = this;
     ctx.fillStyle = 'rgba(4,3,10,.55)'; ctx.fillRect(0, 0, D.W, D.H);
     D.win8(ctx, b.x, b.y, b.w, b.h);
+    H.drawEggs(ctx, H.eggsOf(H.read(this.i + 1)), b, this.t); // (the six beside the box, for the save the cursor is on: H.EGGS)
     D.text(ctx, '{y}' + (this.mode === 'save' ? 'SAVE WHERE?' : 'CONTINUE FROM') + '{/}', b.x + 10, b.y + 7, D.WIN8.text);
     rows.forEach(function (r, k) {
       var y = b.y + 20 + k * 16, on = k === self.i;

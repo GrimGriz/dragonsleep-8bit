@@ -70,7 +70,8 @@
     var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; }, to8 = function (gx, gy) { return [W8 - 1 - gy, gx]; };
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
-      name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
+      // (sub: a player's words since 11-04, the house lane's Tuesday 10 -- not `name`, which seeds the floor's look)
+      name: 'The Wet', sub: 'the flooded floor under the old workings', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
       music: M8.music || 'dungeon', // (the first game's tune for warrens_d, at the door and again after a fight pulled in: R.tune -- 10-22, his "boss music still doesn't stop after landlord gets bucket")
       lampAt: wet.lampAt, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
       // the Settling's lights, and the mark's cold glow on the landing beside it, as the Keeper's own map lights it (data/maps.js floodstair: "the rune lights the landing")
@@ -343,14 +344,25 @@
     return d;
   };
 
+  // the place's time, for its top line and its card (11-04, the house lane's Tuesday 11, his "where do we show time of day?"): the house's clock as a clock and its band --
+  // "15:00, afternoon" (js/hours.js H16.hourNow: THE WORLD's hour under the house, a test door's &hour=; an outdoor top floor's own hour); '' with no clock
+  R.timeLine = function (B) {
+    var h = null;
+    try { h = R.def.outdoors && R.def.hour != null && !(R.def.hours && D.hours) ? R.def.hour : D.hours && D.hours.hourNow ? D.hours.hourNow(R.q, B) : null; } catch (e) { return ''; } // (a door with no clock to ask says no hour: the words never stop the floor)
+    if (h == null || isNaN(h)) return '';
+    var hh = ((h % 24) + 24) % 24, mm = Math.round((hh % 1) * 60), hr = Math.floor(hh) + (mm === 60 ? 1 : 0);
+    return ('0' + (hr % 24)).slice(-2) + ':' + ('0' + (mm % 60)).slice(-2) + ', ' + (D.hours && D.hours.band ? D.hours.band(hh) : '');
+  };
   // ------------------------------------------------------------------ the script: walk, the formation, the fights
   R.script = function* (B) {
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
     if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello.concat(R0.roostLines || [])), 420); // (a floor of its own words: the mines' top floors, js/mines.js -- and under a roost its law, R.roostLights)
     // (Silverton's card says where they stand: in at the gate, or at the door a CONTINUE or a show stands them at -- js/town.js T.whereAt)
-    else if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, ' + (D.town.whereAt ? D.town.whereAt(R.def, R0.token.x, R0.token.y) : 'in at the ' + R.def.gate + ' gate') + ': ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
-    else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
+    // (the words a player reads -- 11-04, the house lane's Tuesday 10 and 11, his "The Wet title and description at the top (uses the word token) are Grim facing not player facing" and
+    // "See Silverton Location text (top when you enter) - player facing (where do we show time of day?)": where they stand and the hour, not the map's make)
+    else if (R.def.town) { var tlS = R.timeLine(B); B.card(R.wrap(['{y}SILVERTON{/}, ' + (D.town.whereAt ? D.town.whereAt(R.def, R0.token.x, R0.token.y) : 'in at the ' + R.def.gate + ' gate') + '.' + (tlS ? '  {g}' + tlS + '.{/}' : ''), '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420); }
+    else { var tlW = R.timeLine(B); B.card(['{y}THE WET{/}: the flooded floor under the workings.' + (tlW ? '  {g}' + tlW + '.{/}' : ''), '{g}Click to walk, or the arrows. O: the formation.{/}'], 420); }
     while (true) {
       var t = R0.token;
       if (R0.mode === 'over') { yield 1; continue; }
@@ -2152,7 +2164,8 @@
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
-      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? R.def.hud || 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') + (R.def.hours && D.hours ? ', ' + D.hours.band(D.hours.hourNow(R.q, B)) : '') + (R.def.outdoors && D.world && D.world.todAt ? ', ' + D.world.todAt(R.def.hour) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
+      var tlH = R.timeLine(B); // (the top line in a player's words -- the place, where in it, the hour; the map's size and squares are in his NOTES stamp: 11-04, Tuesday 11)
+      D.text(ctx, R.def.town ? (R.def.room ? R.def.hud || 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + (R.def.where ? ', ' + R.def.where(p8[0], p8[1]) : '') + (tlH ? '   ' + tlH : '') : 'The Wet, the flooded floor' + (tlH ? '   ' + tlH : ''), 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)

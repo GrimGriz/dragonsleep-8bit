@@ -4244,7 +4244,7 @@
       var cdC = cardHs(beatHs('cassia')), cdD = cardHs(beatHs('davos')), cdM = cardHs(beatHs('marta'));
       D.scenes.length = 0; if (D.house) { D.house.playing = false; D.house.cur = null; } D.push(D.roam.make('?roam=silverton')); var cdG = cardHs(topHs());
       okHs('the first card where they stand -- at her door: "' + cdC.slice(0, 40) + '"; at the leech-house: "' + cdD.slice(0, 40) + '"; beside Marta: "' + cdM.slice(0, 40) + '"; the bare floor: "' + cdG.slice(0, 40) + '"',
-        /^SILVERTON, at Cassia's door:/.test(cdC) && /^SILVERTON, at Davos Kren's door:/.test(cdD) && /^SILVERTON, in the /.test(cdM) && !/gate/.test(cdM) && /^SILVERTON, in at the west gate:/.test(cdG));
+        /^SILVERTON, at Cassia's door\./.test(cdC) && /^SILVERTON, at Davos Kren's door\./.test(cdD) && /^SILVERTON, in the /.test(cdM) && !/gate/.test(cdM) && /^SILVERTON, in at the west gate\./.test(cdG)); // (the place then a full stop and the hour since 11-04, Tuesday 11: house1104)
     } catch (eHs) { repHs.errors.push(String(eHs && eHs.stack || eHs).slice(0, 900)); }
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
@@ -6803,6 +6803,47 @@
   // squares -- picked, hovered, and a Fire Bolt, a Scorching Ray and an attack find it, not the goblin on its anchor square; 3 three stirges on one hero -- a seat of its own each (UI.perchPos), each
   // hovered and struck at through MOVE and ATTACK, by the hero beside and by the host himself; 4 a dart or a ray turned away says why (UI.actAt); 5 every aimed spell's words say what the click asks,
   // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
+  // THE HOUSE, 11-04 (mode=house1104; the lanes desk): 1 the six eggs beside the title's save box, filled for the eggs the save under the cursor found (his "still need 6 egg-shadows
+  // outside the box that fill if you have the associated egg achieved"); 2 an egg found in a road or camp fight is kept in the save (H.afterFight); 3 the Wet's and Silverton's card
+  // and top line in a player's words, the hour on them (his Tuesday 10 and 11: "Grim facing not player facing", "where do we show time of day?")
+  if (get('mode', '') === 'house1104') {
+    var repHo = { checks: [], errors: [] }, memHo = {}, stGHo = D.store.get, stSHo = D.store.set, HHo = D.house, dtHo = D.text;
+    function okHo(what, v) { repHo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topHo() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function pxHo(cx, x, y) { var d = cx.getImageData(x, y, 1, 1).data; return d[3] ? '#' + [d[0], d[1], d[2]].map(function (n) { return ('0' + n.toString(16)).slice(-2); }).join('').toUpperCase() : 'none'; }
+    function eggsAt(cx, b) { var col = 3 * 22 + 2 * 6, y0 = Math.round(b.y + (b.h - col) / 2), xs = [b.x - 14 - 18, b.x + b.w + 14], out = []; for (var i = 0; i < 6; i++) out.push(pxHo(cx, xs[i < 3 ? 0 : 1] + 9, y0 + (i % 3) * 28 + 13)); return out; }
+    function cardsHo(Bx) { return (Bx.cards || []).map(function (c) { return c.lines.join(' / '); }).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    D.store.get = function (k) { return memHo[k] ? JSON.parse(memHo[k]) : null; }; D.store.set = function (k, v) { memHo[k] = JSON.stringify(v); return true; };
+    try {
+      // 1. THE EGGS: the darkness and the dunking found -- violet and blue in their places, four shadows; nothing drawn inside the box
+      var e1 = HHo.eggsOf({ flags: { eggDarkness: 1, eggDunk: 1 } }), SH = '#0A0B20';
+      var cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var cx1 = cv1.getContext('2d'), b1 = { x: 90, y: 90, w: 300, h: 86 };
+      HHo.drawEggs(cx1, e1, b1, 0); var got1 = eggsAt(cx1, b1);
+      okHo('1 a save with the darkness and dunking eggs: ' + JSON.stringify(e1) + '; drawn ' + got1.join(' ') + '; inside the box ' + pxHo(cx1, b1.x + 20, b1.y + 20) + ' (want shadow, violet, blue, three shadows; none inside)',
+        JSON.stringify(e1) === JSON.stringify([null, 'violet', 'blue', null, null, null]) && got1.join() === [SH, '#6844FC', '#0058F8', SH, SH, SH].join() && pxHo(cx1, b1.x + 20, b1.y + 20) === 'none');
+      // ... and on CONTINUE FROM itself: a game saved to slot 1 with the laughing egg -- red first on the left
+      var rec1 = HHo.fresh(); rec1.at = { town: null }; HHo.begin(rec1, 0); topHo(); HHo.cur.flags = HHo.cur.flags || {}; HHo.cur.flags.eggJoke = 1; HHo.cur.newGame = 1; HHo.cur.staged = false; var sv1 = HHo.saveTo(1);
+      var sl1 = new HHo.Slots('load'); sl1.i = 0; var cv1b = document.createElement('canvas'); cv1b.width = D.W; cv1b.height = D.H; var cx1b = cv1b.getContext('2d'); sl1.draw(cx1b); var got1b = eggsAt(cx1b, sl1.box());
+      okHo('1 CONTINUE FROM, slot 1 (saved ' + sv1 + ') with the laughing egg: ' + got1b.join(' ') + ' (want red first, five shadows)', got1b.join() === ['#D82800', SH, SH, SH, SH, SH].join());
+      // 2. A ROAD FIGHT'S EGG: a fight that set the laughing egg (and something else) handed back -- the save keeps the egg, not the rest
+      var rec2 = HHo.fresh(); rec2.at = { town: null }; HHo.begin(rec2, 0); topHo();
+      var B2 = D.npcFight('?npc=goblin&vs=fighter:3&lvl=3', {}); D.battle = B2; B2.enter(); while (!B2.order.length) B2.co.next(); B2.flags8 = { eggJoke: 1, notAnEgg: 1 }; HHo.afterFight(B2, 'escaped');
+      var fl2 = HHo.cur.flags || {};
+      okHo('2 a road fight that found the laughing egg: the save keeps eggJoke ' + !!fl2.eggJoke + ', the fight\'s other flag ' + !!fl2.notAnEgg + ' (want true, false)', !!fl2.eggJoke && !fl2.notAnEgg);
+      // 3. THE PLACES' WORDS: the Wet's card and top line, Silverton's -- no "token", no squares, no "THE ROAM"; the hour on each
+      var texts = [], grab = function (Bx) { texts = []; D.text = function (c, s) { texts.push(String(s)); return dtHo.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; Bx.roam.mode = 'walk'; Bx.menu = null; D.roam.paintOver(cv.getContext('2d'), Bx); } finally { D.text = dtHo; } return texts.filter(function (s) { return /Wet|Silverton/.test(s); })[0] || '(no line)'; };
+      var BW = D.roam.make('?roam=wet&watch'); D.scenes.length = 0; D.push(BW); BW = topHo(); D.battle = BW; for (var kW = 0; kW < 4 && BW.co; kW++) BW.co.next();
+      var cW = cardsHo(BW), lW = grab(BW), clock = /\d\d:\d\d, (night|dawn|morning|midday|afternoon|dusk)/;
+      okHo('3 the Wet: card "' + cW.slice(0, 110) + '"; top line "' + lW + '" (want the flooded floor and the hour; no token, squares or THE ROAM)', /THE WET: the flooded floor under the workings/.test(cW) && clock.test(cW) && !/token|squares|THE ROAM/.test(cW + ' ' + lW) && /The Wet/.test(lW) && clock.test(lW));
+      var BS = D.roam.make('?roam=silverton&watch'); D.scenes.length = 0; D.push(BS); BS = topHo(); D.battle = BS; for (var kS = 0; kS < 4 && BS.co; kS++) BS.co.next();
+      var cS = cardsHo(BS), lS = grab(BS);
+      okHo('3 Silverton: card "' + cS.slice(0, 110) + '"; top line "' + lS + '" (want where they stand and the hour; no token, squares, "true scale" or THE ROAM)', /SILVERTON, /.test(cS) && clock.test(cS) && !/token|squares|true scale|THE ROAM/.test(cS + ' ' + lS) && /Silverton/.test(lS) && clock.test(lS) && !/square \d/.test(lS));
+    } catch (eHo) { repHo.errors.push(String(eHo && eHo.stack || eHo).slice(0, 900)); }
+    D.store.get = stGHo; D.store.set = stSHo; D.text = dtHo; HHo.playing = false; HHo.cur = null;
+    var preHo = document.createElement('pre'); preHo.id = 'out'; preHo.textContent = 'BENCH16 ' + JSON.stringify(repHo);
+    document.body.appendChild(preHo);
+    return;
+  }
   // HIS 18 FIGHTS OF 11-03, READ THAT NIGHT (mode=fights1103; the lanes desk): 1 the Mirror's eye -- HIDE greyed before it with the why (his "2 - fair"), the class AI's rogue strikes
   // instead of hiding into it (his Harbinger fight: ten "tries to hide" and no blow), and an AI hider spends nothing on it; 2 Drink Light -- no levelled spell of 3rd or under into a
   // Harbinger who can drink it, and back once his reaction is spent (his "casting a fireball after he drank someone elses spell would be good tactic"); 3 a grappler's versatile
