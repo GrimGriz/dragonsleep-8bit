@@ -259,7 +259,7 @@
     var a = sh && sh.anims;
     if (face && a && a[face.anim]) {
       var dt = t - face.t0, an = a[face.anim];
-      if (face.anim !== 'idle' && an.frames > 1) { // (a row of frames plays through and holds its last: work, Sylvia's stretch, Winters' present and drawer -- 11-04, ART-78-SCENES) var per = 60 / C.WORK.fps, f = Math.floor(dt / per); if (f < an.frames + C.WORK.hold / per) return { anim: face.anim, frame: Math.min(an.frames - 1, f) }; }
+      if (face.anim !== 'idle' && an.frames > 1) { /* (a row of frames plays through and holds its last: work, Sylvia's stretch, Winters' present and drawer -- 11-04, ART-78-SCENES) */ var per = 60 / C.WORK.fps, f = Math.floor(dt / per); if (f < an.frames + C.WORK.hold / per) return { anim: face.anim, frame: Math.min(an.frames - 1, f) }; }
       else if (dt < (face.hold || C.HOLD)) return { anim: face.anim, frame: 0 };
     }
     var n = a && a.idle ? a.idle.frames : 1, run = n * 60 / C.IDLE.fps, c = t % (run + C.IDLE.rest);
