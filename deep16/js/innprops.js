@@ -102,4 +102,14 @@
   };
   var load0 = iso.load;
   iso.load = function (def) { var m = load0.apply(this, arguments); if (def && ((def.key === In.KEY && def.inside === 'inn') || def.key === In.UP)) IP.dress(m); return m; };
+  // ELSBETH AT HOME (11-04, Griz to this seat: "please wire in elsbeth and her tub"): at the inn she wears the art desk's figure of her at home (elsbethhome_p1, art-wanted
+  // section 35 block 6, cut by cutter-1104 -- her alone, its tub-fused views held), standing at page 3's tub (inn_tub, the square east of hers, the way she faces), in place of
+  // the townswoman stand-in; her name, her talk and her scenes as they were. Elsewhere (Silverton's street) she is still the candle girl
+  IP.ELSBETH = 'elsbethhome_p1';
+  var people0 = D.town && D.town.people;
+  if (people0) D.town.people = function (B) {
+    people0.apply(this, arguments);
+    var def = D.roam && D.roam.def; if (!def || def.key !== In.KEY || !D.SHEETS || !D.SHEETS[IP.ELSBETH]) return;
+    (B.units || []).forEach(function (u) { if (u.npc === 'elsbeth') u.sheet = IP.ELSBETH; });
+  };
 })();
