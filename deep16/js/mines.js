@@ -617,7 +617,7 @@
     def.entry = old.entry; def.face = old.face; R.def = def;
     B.map = D.iso.load(def); D.grid.setup(B.map, B.units); R.layChests(B); B.cache = null;
     B.dark = def.dark; if (B.fight) B.fight.dark = def.dark;
-    if (restand) { B.units = B.units.filter(function (u) { return !u.npc; }); T.people(B); }
+    if (restand) { B.units = B.units.filter(function (u) { return !u.npc || u.scripted; }); T.people(B); } // (scripted: a scene's own figure, stood and moved by its script -- the Halfway Inn's wagon night, js/inn.js In.unit -- kept through a relay)
   };
 
   // the dens' low gallery (S.badAir): each standing hero a CON save at 12 or 1d4, never below 1; not again for three steps

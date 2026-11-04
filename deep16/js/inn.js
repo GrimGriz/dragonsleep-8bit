@@ -155,7 +155,7 @@
     var dd = In.day(In.q), npcs = In.FOLK.filter(function (p) { return (inside === 'inn' || p.out) && In.when(p.when, hour) && (p.id !== 'katarina' || In.katHere(flags || {}, dd)) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
     if (flags && flags.wagonIn) { // (THE WAGON NIGHT staged in the yard: the wagon pulled in, the pair by its team, the one at its tail, the inn lady with her lantern, the traveler come down)
       rows = rows.map(function (r, y) { var w = In.WAGONAT; if (y < w[1] || y > w[1] + 1) return r; return r.split('').map(function (c, x) { return x >= w[0] && x < w[0] + 3 ? 'U' : x === w[0] + 3 ? 'V' : c; }).join(''); });
-      In.YARDFOLK.forEach(function (p) { if (p.id !== 'katYard' || In.katHere(flags, dd) || flags.katYard) npcs.push({ id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir }); });
+      // (the yard's people -- the pair, the one at the tail, the inn lady with her lantern, the traveler -- are stood and moved by the night's script, In.wagonNight: In.YARDFOLK keeps their squares)
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
     var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 4, 19], on: 'use', script: 'inn:point' },
@@ -226,7 +226,7 @@
   // a step into a doorway or out of a building: that building laid open or roofed under the party, on the same square
   In.lay = function (B, inside, quiet) {
     In.relaying = inside || null; try { M.relay(B, null, true); } finally { In.relaying = undefined; }
-    var t = B.roam.token; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); B.focus(t); B.cache = null; B.map.occKey = null;
+    var t = B.roam.token; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); B.focus(t); B.cache = null; B.map.occKey = null; if (In.teamBlock) In.teamBlock(B);
     if (inside && !quiet) B.card(D.roam.wrap(['{y}' + (inside === 'barn' ? 'The barn' : 'The Halfway Inn') + '{/} -- ' + (inside === 'barn' ? In.LINES.barn : In.LINES.inside)]), 200);
   };
   var arrive0 = D.roam.arrive;
@@ -405,7 +405,18 @@
     fledFoot: 'They are away north up the road on foot, into the dark toward Web Gulch.',
     fledYard: 'In the yard the wagon stands where they left it.',
     book: 'On Willem Glass, a book in a fair hand: his spells, and at the back, the glamour he laid over the children, worked out line by line.',
-    soon: '"End of the month there\'s a wagon through," Gennet says. "Good custom."'
+    soon: '"End of the month there\'s a wagon through," Gennet says. "Good custom."',
+    // the night played on the floor (11-04 later, his words at the pane: the seat's drafts, invented.json halfway-wagon-night-played)
+    feeling: '"I\'d set a watch tonight," Lymen says, and will not say why. "Call it a feeling. I\'d sleep easier knowing who has the window."',
+    feelingLead: '{name} has a feeling about the road tonight, and says so: a watch, turn and turn about, and whoever has the window keeps an eye on the yard.',
+    turnsIn: '{y}{name}{/}, at the window on the second watch: a wagon turns in off the road. One big wagon, a woman on the bench with the reins and a fair-haired man beside her. Chained in the back, goblins.',
+    suspect: '{c}(insight) The one she takes is not walking like a goblin walks.{/}',
+    lieYard: '"Goblins for the mine across the lake. The house takes one a month off our hands; they work hard for their board."',
+    abandoned: 'The wagon stands in the yard, the team still in its traces, half the buckles undone. In the back, chained, seven children. Real, and very quiet. The eighth went in with the inn lady.',
+    abandonedLoose: 'The wagon stands in the yard, the traces cut, the team gone north with them. In the back, chained, seven children. Real, and very quiet. The eighth went in with the inn lady.',
+    bribeTaken: 'Amara counts it into your hand. "Sleep well," she says. The wagon does not stay the night.',
+    bribeGone: 'The young woman from upstairs comes down with a bag over her shoulder and climbs up on the bench beside Amara. The wagon turns in the yard and is gone up the road.',
+    back: 'Back in by the front door, and up to bed.'
   };
   // the wagon's tail on the counter screen in the portrait's place: what is chained there to the eye -- goblins, till the glamour breaks (RULED 09-24: no words; the player sees it)
   In.tailPic = function (B) {
@@ -420,28 +431,7 @@
   In.who = function (name, line) { return '{y}' + name + ':{/} ' + line; };
   In.perceives = function (h, dc, bonus) { var r = In.d20(), v = DS.R.skill(h, 'Perception', 'wis') + (bonus || 0), ok = r + v >= dc; In.trail((h.name || h.id) + ' Perception ' + r + ' + ' + v + ' vs DC ' + dc + (ok ? ', saw' : ', did not')); return ok; };
   In.saw = function (st, f) { if (f.glamourSeen) return false; f.glamourSeen = 1; D.sfx('magic'); return true; };
-  In.wagonScene = function* (sc, B) {
-    var st = sc.st, f = st.flags, party = st.party.filter(function (h) { return !h.dead && !h.ko && !h.guest; });
-    var wi = party.length === 1 ? 0 : yield sc.ask(L('wagon.secondWatch'), party.map(function (h) { return h.name + ' (Perception ' + (DS.R.skill(h, 'Perception', 'wis') >= 0 ? '+' : '') + DS.R.skill(h, 'Perception', 'wis') + ')'; }));
-    var watcher = party[wi] || party[0];
-    yield sc.say([In.who('The inn lady', L('wagon.greet1')), In.who('Amara', L('wagon.greet2')), In.who('The inn lady', L('wagon.greet3'))]);
-    if (In.perceives(watcher, 15)) In.saw(st, f);
-    var a = yield sc.ask(L('wagon.ask', { name: watcher.name }), ['INVESTIGATE', 'WAKE THE PARTY', 'KEEP WATCH']);
-    if (a === 2) return { how: 'quiet' };
-    var outside = a === 0 ? [watcher] : party.slice();
-    yield sc.say(L(a === 0 ? 'wagon.investigate' : 'wagon.wake', { name: watcher.name }));
-    if (!f.glamourSeen && outside.some(function (h) { return In.perceives(h, 12); })) In.saw(st, f);
-    if (!f.glamourSeen) {
-      yield sc.say(In.who('The inn lady', L('wagon.lie')));
-      if (outside.some(function (h) { var r = In.d20(), v = DS.R.skill(h, 'Insight', 'wis'), ok = r + v >= 13; In.trail((h.name || h.id) + ' Insight ' + r + ' + ' + v + ' vs DC 13 at the lie' + (ok ? ', heard' : ', not')); return ok; })) {
-        yield sc.say(L('wagon.insight'));
-        if (outside.some(function (h) { return In.perceives(h, 12, 5); })) In.saw(st, f);
-      }
-    }
-    if (!f.glamourSeen) { yield sc.say(L('wagon.nothing')); return { how: 'quiet', outside: outside }; }
-    return yield* In.confront(sc, st, f, outside);
-  };
-  // the confrontation, the glamour seen through (the night's, and the road's by day -- js/wagon.js): Lymen's word and steel; else the word, Amara's gold or steel
+  // the confrontation, the glamour seen through (the road's by day -- js/wagon.js, on the counter screen): Lymen's word and steel; else the word, Amara's gold or steel
   // (noBribe: a cycle whose gold was taken on the road already gets no second offer)
   In.confront = function* (sc, st, f, outside, noBribe) {
     var ly = outside.filter(function (h) { return (h.key || h.id) === 'lymen'; })[0];
@@ -456,55 +446,222 @@
   };
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
   In.stage = function (B, at, inside) { var t = B.roam.token; t.x = at[0]; t.y = at[1]; t.tween = null; B.roam.path = null; In.lay(B, inside, true); };
+
+  // ---------------------------------------------------------------- THE WAGON NIGHT, PLAYED ON THE FLOOR (11-04 later, Griz at the pane on ?innshow, relayed by the lanes desk:
+  // "Review how the 8-bit did the wagon fight, this one is all menu interaction and feels like a downgrade"; "battle map for the fight needs to be re-worked for a finalized inn --
+  // they're using different walls at present"; "add a story item at the end of the dinner (or just on wagon night) that Lymen requests they set up watch as he has a feeling, then
+  // use the standard watch interface for camping in the wilderness rather than the text 'who was on watch'"). The first game's S.wagonNight the model (first/js/events.js): the
+  // figures move in the yard on the inn's own floor, the cards on the map's camera, a menu only where the first game asked a choice, the fight where they stand -- on the floor's
+  // own squares, one map for the floor and the fight (the roam's own fight, js/roam.js R.engage, the yard's rules on it: Willem at the traces, the pair run when he is hit, either
+  // on the road ends it, three turns unbothered and the team is loose). THE HANDOVER AT THE GREETING (RULED 11-04, the lane's §10.9 lean 1): one lifted down and led inside before
+  // the watcher's choice -- the due has its offering whatever the yard does, and the yard fight is over the seven still in the bed
+  In.PACE = 8; // (a figure's step, in frames: js/roam.js STEP)
+  In.unit = function (B, o) { // (a figure stood on the floor: the townsfolk's shape, js/town.js T.people -- a foe's when o.foe; no `npc`, so a relay keeps it -- js/mines.js M.relay)
+    var kind = D.FOES[o.kind] ? o.kind : 'bandit', spec = { id: o.id, kind: kind, at: o.at.slice() };
+    if (!o.foe) { spec.side = 'party'; spec.ally = true; } if (o.traces) spec.traces = true;
+    var u = B.makeFoe(spec);
+    u.name = o.name || u.name; u.scripted = o.id; u.conds = u.conds || {}; u.reaction = 1;
+    if (!o.foe) { u.look = true; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; } else u.flees = false; // (the pair stand till the yard's rule starts them running: ai.js, B.fight.runWhenHurt)
+    u.facing = D.spr.facingFor(o.face ? o.face[0] : -1, o.face ? o.face[1] : 0); u.anim = 'idle'; u.animT = B.t;
+    if (o.lantern) { u.torch = D.light.make('lantern', false); D.light.regrip(u); }
+    B.units.push(u); D.grid.setup(B.map, B.units); B.cache = null;
+    return u;
+  };
+  In.gone = function (B, u) { if (!u) return; B.units = B.units.filter(function (x) { return x !== u; }); D.grid.setup(B.map, B.units); B.cache = null; };
+  In.walk = function* (B, u, to, face) { // (a figure along the floor to a square, a step a time; no way there, it is set there)
+    if (!u) return;
+    var p = u.x === to[0] && u.y === to[1] ? [] : D.Battle.route(u, to, false);
+    if (!p) { u.x = to[0]; u.y = to[1]; u.tween = null; }
+    else while (p.length) { var nx = p.shift(); u.tween = { fx: u.x, fy: u.y, fz: D.grid.gzAt(u, u.x, u.y), t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(nx[0] - u.x, nx[1] - u.y); if (u.anim !== 'walk') { u.anim = 'walk'; u.animT = B.t; } u.x = nx[0]; u.y = nx[1]; D.grid.setup(B.map, B.units); yield In.PACE; }
+    u.anim = 'idle'; u.animT = B.t; if (face) u.facing = D.spr.facingFor(face[0], face[1]); B.cache = null;
+  };
+  In.cam = function* (B, at, ticks) { yield* B.camTo({ gx: at[0], gy: at[1], gz: 0 }, D.iso.zoom, ticks || 24); };
+  In.card = function* (B, lines, hold) { hold = hold || 360; B.card(D.roam.wrap([].concat(lines)), hold); yield Math.max(20, hold - 60); };
+  In.ask = function* (B, title, lines, opts) { D.sfx('popup'); return yield { prompt: { who: B.roam.token, title: title, lines: D.roam.wrap([].concat(lines)), opts: opts.map(function (l, i) { return { label: l, value: i }; }) } }; };
+  In.lead = function (B, u) { // (one of the four to the front of the token: the watcher goes out alone, as ORDER's "the leader to lead" -- js/roam.js)
+    var R0 = B.roam, t = R0.token; if (!u || u === t) return;
+    u.x = t.x; u.y = t.y; u.facing = t.facing; u.tween = null; R0.token = u; R0.members = [u].concat(R0.members.filter(function (m) { return m !== u; })); R0.rest = R0.members.slice(1);
+    D.grid.setup(B.map, B.units); B.focus(u);
+  };
+  In.teamBlock = function (B) { (B.riders || []).forEach(function (r) { if (!r.team) return; for (var j = 0; j < r.foot[1]; j++) for (var i = 0; i < r.foot[0]; i++) { var s = B.map.at(r.x + i, r.y + j); if (s) s.walk = false; } }); }; // (the greys hold their squares, as a fight's riders do)
+  // THE WORLD's camp picker on the floor (his word): who stands which watch -- js/house.js H.Watches, with these sheets; null if backed out of
+  In.watches = function* (B, party) {
+    var H = D.house, w = Object.create(H.Watches.prototype), out = null, done = false;
+    w.kind = 'housewatches'; w.opaque = false; w.scene = null; w.party = party; w.asg = H.watchDefault(party); w.i = 0; w.t = 0;
+    w.go = function (what) { if (D.top() === w) D.pop(); out = what === 'begin' ? this.asg : null; done = true; };
+    D.push(w); while (!done) yield 1;
+    return out;
+  };
+  // the lie-down to the second watch (the first game's, Griz 09-25: "long-rest before the wagon rolls in"): the rest's mechanics with no morning page -- the sheets whole, the clock
+  // on to the watch's middle, the floor laid for the hour -- and the dark card; the morning page comes at the real morning (In.sleep)
+  In.lieDown = function* (B, hours, title, line) {
+    var R = D.roam, R0 = B.roam, H = D.house, W = D.world, house = !!(R.house() && H.playing), sheets;
+    if (house) { H.fromFloor(B); var S = W.state(); S.t += hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); H.longRest(null); sheets = H.cur.party; }
+    else { R0.hour = ((R0.hour != null ? R0.hour : M.hourNow(R.q, B)) + hours) % 24; sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; }); H.restSheets(sheets); }
+    var byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
+    R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B);
+    R0.slept = (R0.slept || 0) + 1;
+    M.lightNow(B);
+    yield* In.card(B, ['{y}' + title + '{/}', line], 420);
+  };
+  // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
+  In.yardCast = function (B, f) {
+    var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken), Y = {};
+    Y.riders = [{ x: w[0] + 3, y: w[1], sheet: seen ? 'kid1_p0' : 'goblin_p2', after: 'kid1_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 },
+      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 },
+      { x: w[0] - 2, y: w[1], sheet: 'horse_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 },
+      { x: w[0] - 2, y: w[1] + 1, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 }];
+    B.riders = (B.riders || []).filter(function (r) { return !r.yard; }).concat(Y.riders.map(function (r) { r.yard = true; return r; })); In.teamBlock(B);
+    Y.amara = In.unit(B, { id: 'amaraYard', kind: 'amara', at: [w[0] + 1, w[1] - 1], name: 'Amara', face: [1, 0], foe: true });
+    Y.willem = In.unit(B, { id: 'willemYard', kind: 'willem', at: [w[0] - 3, w[1]], name: 'Willem Glass', face: [-1, 0], foe: true, traces: true });
+    Y.kat = f.katYard ? In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: In.YARDFOLK[4].at.slice(), name: 'A traveler', face: [-1, 0] }) : null;
+    return Y;
+  };
+  In.yardClear = function (B, Y) { ['amara', 'willem', 'kat', 'gennet', 'kid'].forEach(function (k) { if (Y[k] && B.units.indexOf(Y[k]) >= 0) In.gone(B, Y[k]); Y[k] = null; }); B.riders = (B.riders || []).filter(function (r) { return !r.yard; }); };
+  // seen through: the two in the bed are children (RULED 09-24: no words; the player sees it)
+  In.breakGlamour = function* (B, st, f, Y) {
+    if (!In.saw(st, f)) return;
+    (B.riders || []).forEach(function (r) { if (r.yard && r.after) { r.sheet = r.after; if (D.fx) D.fx.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
+    if (Y && Y.kid && B.units.indexOf(Y.kid) >= 0) { var kd = D.FOES.commonerchild; if (kd) { Y.kid.sheet = kd.sheet; Y.kid.kind = 'commonerchild'; Y.kid.name = 'A child, chained'; if (D.fx) D.fx.sparkle(Y.kid, 'gold', 14); } }
+    yield 40;
+  };
+  // the due's walk, the night's cutscene on the map's camera (the first game's EV.dueWalk): the inn lady out of the lake door with her lantern and the one she took, down the path to the point, the lake flat; only she comes back
+  In.dueWalk = function* (B, look) {
+    var f = B.roam.flags, lake = In.DOORS.lake, stone = [43, 18];
+    var lady = In.unit(B, { id: 'dueLady', kind: 'commonerwoman', at: [lake[0] + 1, lake[1]], name: In.named(f), face: [1, 0], lantern: true });
+    var kid = In.unit(B, { id: 'dueKid', kind: look === 'goblin' ? 'goblin' : 'commonerchild', at: [lake[0] + 1, lake[1] + 1], name: look === 'goblin' ? 'A goblin' : 'A child', face: [1, 0] });
+    yield* In.cam(B, [40, 18], 40);
+    yield* In.card(B, [L(look === 'goblin' ? 'due.walkGoblin' : 'due.walk')], 360);
+    yield* In.walk(B, lady, [stone[0], stone[1] + 1], [1, 0]); yield* In.walk(B, kid, [stone[0] + 1, stone[1]], [1, 0]);
+    yield 40;
+    yield* In.card(B, [L('due.water')], 360); D.sfx('splash'); if (D.fx) D.fx.sparkle(kid, 'blue', 24); yield 30;
+    In.gone(B, kid); yield 50;
+    yield* In.walk(B, lady, [lake[0] + 1, lake[1]], [-1, 0]); In.gone(B, lady);
+    yield* In.card(B, [L('due.back')], 360);
+    f.dueSeen = 1;
+  };
   In.wagonNight = function* (B, d) {
-    var R0 = B.roam, f = R0.flags, st = D.counter.state(B), h0 = M.hourNow(D.roam.q, B);
+    var R = D.roam, R0 = B.roam, f = R0.flags, st = D.counter.state(B), H = D.house, W = D.world;
     f.wagonCycle = In.cycle(d); delete f.glamourSeen;
-    // the party sleeps first, to the second watch (the first game's, Griz 09-25: "long-rest before the wagon rolls in")
-    yield* D.house.sleepOnFloor(B, { hours: Math.max(1, (24 - h0) % 24 || 1), title: 'THE SECOND WATCH', line: L('wagon.night'), music: 'lake', before: function () { M.lightNow(B); } });
+    var party = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; }), lead = party[0] || R0.token;
+    var keyOf = function (u) { return u.src ? (u.src.key || u.src.id) : u.id; };
+    // 1. Lymen's feeling, and the watches (his word, 11-04): the camp's picker; the one on the second watch has the window
+    var ly = party.filter(function (u) { return keyOf(u) === 'lymen'; })[0];
+    yield* In.card(B, [ly ? In.who('Lymen', In.WN.feeling) : In.WN.feelingLead.split('{name}').join(lead.name)], 420);
+    var sheets = party.map(function (u) { return { key: keyOf(u), name: u.name, hp: u.hp, maxhp: u.maxhp }; });
+    var asg = (yield* In.watches(B, sheets)) || H.watchDefault(sheets);
+    var watcher = party.filter(function (u) { return asg[keyOf(u)] === 2; })[0] || party[0];
+    In.trail('the watches: ' + Object.keys(asg).map(function (k) { return k + ' ' + asg[k]; }).join(', ') + '; ' + watcher.name + ' at the window');
+    // 2. the lie-down to the second watch: the rest's mechanics, the clock to the watch's middle, the dark
+    yield* In.lieDown(B, (W.REST || 8) / (H.WATCHES || 3) * 1.5, 'THE SECOND WATCH', L('wagon.night'));
+    // 3. the yard: the wagon in, the party at the window, the figures; the inn lady out to meet it with her lantern; the greetings
+    var paid = !!(D.wagon && f.wagonBribed === 'c' + In.cycle(d)); // (Amara's gold taken on the road that day: the night kept to the room, as paid -- js/wagon.js)
     f.wagonIn = 1; if (In.katHere(f, d)) f.katYard = 1;
-    In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn'); // (the watcher at the front window, the yard in the lamplight beyond)
-    var paid = !!(D.wagon && f.wagonBribed === 'c' + In.cycle(d)); // (Amara's gold taken on the road that day: no second watch, the night kept to the room -- js/wagon.js)
-    var res = paid ? { how: 'paid' } : yield* M.talk(B, 'wagonNight', function (sc) { return In.wagonScene(sc, B); }, 'THE WAGON NIGHT', In.tailPic(B));
-    var how = (res && res.how) || 'quiet', morning = null;
-    if (how === 'quiet' || how === 'paid') {
-      var seen = !!f.glamourSeen || how === 'paid'; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
-      yield* In.say(B, [L('wagon.handover'), how === 'paid' ? D.wagon.LINES.paidNight : L('wagon.quietNight'), L(seen ? 'due.walk' : 'due.walkGoblin'), L('due.water'), L('due.back')]); // (the night's second act waits on his word: the lane's §10)
+    In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn');
+    var Y = In.yardCast(B, f), w = In.WAGONAT;
+    yield* In.cam(B, [w[0] + 2, w[1]], 30);
+    yield* In.card(B, [In.WN.turnsIn.split('{name}').join(watcher.name)], 420);
+    Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: In.named(f), face: [-1, 0], lantern: true });
+    yield* In.walk(B, Y.gennet, [w[0] + 5, w[1]], [-1, 0]);
+    yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300);
+    yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300);
+    yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
+    // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
+    Y.kid = In.unit(B, { id: 'wagonKid', kind: 'goblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
+    yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
+    yield* In.card(B, [L('wagon.handover')], 360);
+    f.dueTonight = 1; f.kidTaken = 1;
+    if (In.read(st, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.card(B, [In.WN.suspect], 300); }
+    yield* In.walk(B, Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); yield* In.walk(B, Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]);
+    In.gone(B, Y.gennet); Y.gennet = null; In.gone(B, Y.kid); Y.kid = null; yield 10;
+    // the watcher's look from the window (the first game's Perception 15; the handover's read sharpens it)
+    if (!paid && In.perceives(watcher.src, 15, f.glamourSuspect ? 5 : 0)) yield* In.breakGlamour(B, st, f, Y);
+    // 4. the choice, as the first game asked it: INVESTIGATE, WAKE THE PARTY, KEEP WATCH (a night already paid for on the road keeps to the room)
+    var a = paid ? 2 : yield* In.ask(B, 'THE SECOND WATCH', [L('wagon.ask', { name: watcher.name })], ['INVESTIGATE', 'WAKE THE PARTY', 'KEEP WATCH']);
+    var how = 'quiet', outside = [], morning = null;
+    if (a !== 2) {
+      outside = a === 0 ? [watcher] : party.slice();
+      if (a === 0 && watcher !== R0.token) In.lead(B, watcher); // (the watcher's figure goes out alone: the token is the watcher's from here)
+      yield* In.card(B, [L(a === 0 ? 'wagon.investigate' : 'wagon.wake', { name: watcher.name })], 300);
+      yield* R.walkTo(B, [w[0] + 6, w[1]]); // (out the front door into the yard: a step out roofs the house as ever)
+      if (!f.glamourSeen && outside.some(function (u) { return In.perceives(u.src, 12, f.glamourSuspect ? 5 : 0); })) yield* In.breakGlamour(B, st, f, Y);
+      if (!f.glamourSeen) {
+        yield* In.card(B, [In.who('Amara', In.WN.lieYard)], 360);
+        if (outside.some(function (u) { var r = In.d20(), v = DS.R.skill(u.src, 'Insight', 'wis'), ok = r + v >= 13; In.trail(u.name + ' Insight ' + r + ' + ' + v + ' vs DC 13 at the lie' + (ok ? ', heard' : ', not')); return ok; })) {
+          yield* In.card(B, [L('wagon.insight')], 360);
+          if (outside.some(function (u) { return In.perceives(u.src, 12, 5); })) yield* In.breakGlamour(B, st, f, Y);
+        }
+      }
+      if (!f.glamourSeen) { yield* In.card(B, [L('wagon.nothing')], 360); yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]); }
+      else {
+        var ly2 = outside.filter(function (u) { return keyOf(u) === 'lymen'; })[0];
+        if (ly2) { yield* In.card(B, [In.who('Lymen', L('wagon.lymen'))], 420); how = 'fight'; }
+        else {
+          yield* In.card(B, [In.who(outside[0].name, L('wagon.confront'))], 360);
+          var b = yield* In.ask(B, 'AMARA', [In.who('Amara', L('wagon.bribe'))], ['TAKE THE GOLD', 'REFUSE']);
+          if (b === 0) how = 'bribe'; else { yield* In.card(B, [In.who(outside[0].name, L('wagon.refuse'))], 300); how = 'fight'; }
+        }
+      }
+    }
+    if (how === 'quiet') {
+      var seen = !!f.glamourSeen || paid; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
+      if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; }
+      In.gone(B, Y.amara); In.gone(B, Y.willem); Y.amara = Y.willem = null;
+      yield* In.card(B, [paid && D.wagon ? D.wagon.LINES.paidNight : L('wagon.quietNight')], 360);
+      yield* In.dueWalk(B, seen ? 'kid' : 'goblin');
       morning = L('wagon.morning.' + (seen ? 'quietSeen' : 'quiet'));
     } else if (how === 'bribe') {
       st.silver(500); D.sfx('coin'); f.wagonOutcome = 'bribe'; f.glamourBroken = 1; f.elsbethSilent = 1; f.katGone = 1; f.katRode = 1; f.kidAtInn = 1;
-      yield* In.say(B, [L('g.foundSilver', { n: 500 }), L('wagon.bribeTaken'), L('wagon.bribeGone'), L('due.walk'), L('due.water'), L('due.back')]);
+      yield* In.card(B, [L('g.foundSilver', { n: 500 }), In.WN.bribeTaken], 360);
+      if (!Y.kat) Y.kat = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: 'A traveler', face: [-1, 0] });
+      yield* In.walk(B, Y.kat, [w[0] + 2, w[1] - 1], [-1, 0]); yield 20;
+      In.yardClear(B, Y); delete f.wagonIn; In.lay(B, null, true); // (the wagon gone up the road: the yard laid without it)
+      yield* In.card(B, [In.WN.bribeGone], 360);
+      yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
+      yield* In.dueWalk(B, 'kid');
       morning = L('wagon.morning.bribe');
     } else {
-      if (f.katYard) { delete f.katYard; f.katGone = 1; } // (she is inside before the first blade clears, Griz 09-25)
-      In.stage(B, [In.STEP.front[0], In.STEP.front[1]], null);
-      var out = yield* In.yardFight(B);
+      if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; } // (she is inside before the first blade clears, Griz 09-25)
+      if (f.katYard) { delete f.katYard; f.katGone = 1; }
+      var out = yield* In.yardFight(B, Y);
       if (out === 'lost') return;
-      f.glamourBroken = 1; f.glamourSeen = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
-      if (out === 'fled') { f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot'; yield* In.say(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 'THE YARD'); } // (the catch on the Gulch roam comes here: the lane's item 3)
+      f.glamourBroken = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
+      yield* In.breakGlamour(B, st, f, Y);
+      if (out === 'fled') { f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot'; yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420); } // (the catch on the Gulch roam comes here: the lane's item 3)
       else f.wagonOutcome = 'inn';
-      if (In.lastFight.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.say(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 'THE YARD'); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
+      if (In.lastFight.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.card(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 420); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
       st.silver(600); D.counter.give(st, 'wagonorder', 1); D.sfx('chest'); f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
-      yield* In.say(B, [].concat(L('wagon.abandoned'), [L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })], D.counter.renown(st, 1, 'renown.wagon'), [L('wagon.doranTakes')]), 'THE YARD');
+      yield* In.card(B, [In.lastFight.loose ? In.WN.abandonedLoose : In.WN.abandoned], 420);
+      yield* In.card(B, [L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })], 420);
+      yield* In.card(B, D.counter.renown(st, 1, 'renown.wagon').concat([L('wagon.doranTakes')]), 480);
       morning = L('wagon.morning.inn');
+      yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
     }
     if (how !== 'fight' && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
-    delete f.wagonIn; delete f.katYard;
+    delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
     yield* In.sleep(B, morning);
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
-  // the yard fight: the grid's `wagonnight` on its own map (the inn's yard at night), pulled in from the floor as the Gulch's beats are (js/gulch.js Gu.set). Willem at the traces:
-  // a blow on him first and the pair run on foot; three turns unbothered and the team is loose, and they run with the horses (RULED 11-04 §1; js/ai.js traces)
+  // the yard fight on the floor's own squares (one map for the floor and the fight): the roam's fight with the yard's rules laid on the floor's fight def for its length --
+  // Willem at the traces, the pair run when he is hit (runWhenHurt), either on the road ends it (fledEnds; the road down the west edge the ways off), three turns unbothered
+  // and the team is loose (RULED 11-04 §1; js/ai.js traces). The result as the floor's fights leave it (js/roam.js R.after); the record kept with the others
   In.lastFight = {};
-  In.yardFight = function* (B) {
-    var R = D.roam, R0 = B.roam, t = R0.token, F0 = D.fight && D.fight('wagonnight'); if (!F0) return 'won';
-    var F = Object.assign({}, F0, { level: (R.party0 && R.party0.level) || F0.level, noCards: true }); In.lastFight = {};
-    R0.fights++; R.party0.backTo = R.def.sub;
-    var rec = R.house() ? { fight: 'wagonnight', name: 'The Halfway Inn: ' + F.name, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
-    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: false, zone: null, flag: 'wagonFought', trig: 'wagonnight', back: M.fieldBack, record: rec } }, [t.x, t.y]);
-    delete R.party0.backTo;
-    In.lastFight.loose = !!F.loose;
-    var p = R0.pulled; return p === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(p)) ? 'lost' : 'fled';
+  In.yardFight = function* (B, Y) {
+    var R = D.roam, R0 = B.roam, F = B.fight, keep = {}, exits = [];
+    ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
+    for (var y = 0; y < R.def.h; y++) for (var x = 0; x < 3; x++) exits.push([x, y]);
+    F.runWhenHurt = 'willem'; F.fledEnds = true; F.loosen = 3; F.exit = exits; F.noFlee = false; B.hitAtTraces = false; B.teamLoose = false;
+    var foes = [Y.amara, Y.willem].filter(function (u) { return u && B.units.indexOf(u) >= 0; });
+    foes.forEach(function (u) { u.flees = false; delete u.roamAside; });
+    In.lastFight = { foes: foes.length, hp: foes.map(function (u) { return u.hp; }), onFloor: [Y.amara, Y.willem].map(function (u) { return !!u && B.units.indexOf(u) >= 0; }) }; R0.fights++; R0.lastOutcome = null;
+    try { D.music('boss'); } catch (e) { }
+    yield* R.engage(B, { foes: foes, why: 'yard', zone: null, flag: 'wagonFought', trig: 'wagonnight' }, false, 'yard');
+    var o = R0.lastOutcome; In.lastFight.outcome = o; In.lastFight.round = B.round;
+    In.lastFight.loose = !!B.teamLoose; In.lastFight.willemDead = !!(Y.willem && Y.willem.hp <= 0 && !Y.willem.fled);
+    Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
+    Y.amara = Y.willem = null;
+    return o === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : 'fled';
   };
   // what a fight at the inn left behind: who lay dead (his book), whether the team came loose
   var finish0 = D.Battle && D.Battle.prototype.finish;
