@@ -562,6 +562,19 @@
   // out and a pause), its `blush` a blush on the lead's face, its `noHero` the hero gone)
   C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66 }, pause: 30, blush: 20, faceZoom: 3 };
   C.OPEN.heroS = function () { var R = Math.max(1, Math.round(D.R || 1)); return Math.max(1, (2 * R - 1) / R); };
+  // THE SIDES (11-04, the lanes desk; Griz at the inn's supper on the pane: "we want to show the main room with people seated for dinner, and maybe decide what side the
+  // portrait shows while they're talking based on what side they're on in the background", after "It's returned to the default solid blue background and boxes. The council
+  // scene and lymen/papa conversations look better"): a say or an ask may name who speaks (sc.by, sc.askBy: { name, sheet | unit, side }) -- the one speaking stands top
+  // left or top right by their side, the words' box beside them; the hero bottom left or bottom right (sc.heroSide) with the bubble beside; one with no talking portrait
+  // shows the face of the figure they wear on the floor (C.drawUnitFace), as a hero without one does. The company scene's shape (speaker right, hero left) is the default
+  C.OPEN.papa.left = 2;
+  Counter.prototype.by = function (who, lines, face) { var w = this.say(lines, face); w.who = who; return w; };
+  Counter.prototype.askBy = function (who, prompt, opts, face) { var w = this.ask(prompt, opts, face); w.who = who; return w; };
+  Counter.prototype.spk = function () { var w = this.wait || {}; return w.who || null; };
+  Counter.prototype.spSide = function () { var sp = this.spk(); return sp && sp.side === 'left' ? 'left' : 'right'; };
+  Counter.prototype.hSide = function () { return this.heroSide === 'right' ? 'right' : 'left'; };
+  C.spSheet = function (sc) { var sp = sc.spk(); return sp ? (sp.sheet && D.SHEETS[sp.sheet] ? sp.sheet : null) : sc.sheet; }; // (the one speaking: the wait's, or the counter's own)
+  C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), sh = pt && D.SHEETS[pt]; return sh ? sh.fw * C.OPEN.heroS() : HB.w; };
   C.MOUTH = { pt_lymen: [42, 25] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
   C.CHEEKS = { pt_barley_coat: [41, 54, 10] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
@@ -576,13 +589,22 @@
   C.nameTag = function (ctx, name, x, y) { var w = D.textWidth(name) + 10; ctx.fillStyle = 'rgba(11,20,48,.85)'; ctx.fillRect(Math.round(x - w / 2), y - 2, w, 12); D.text(ctx, '{y}' + name + '{/}', x, y, D.WIN8.text, 'center'); };
   C.typeLen = function (l) { return String(l).replace(/\{[^}]*\}/g, '').length; };
   C.typeCut = function (l, n) { var out = '', k = 0, i = 0; l = String(l); while (i < l.length && k < n) { if (l[i] === '{') { var j = l.indexOf('}', i); if (j < 0) j = l.length - 1; out += l.slice(i, j + 1); i = j + 1; continue; } out += l[i]; k++; i++; } return out; };
-  C.openGeo = function (sc) { var O = C.OPEN, sh = sc.sheet && D.SHEETS[sc.sheet], fw = sh ? sh.fw : 217, ax = sh ? sh.ax : 114, ay = sh ? sh.ay : 153, s = O.papa.s, left = Math.round(O.papa.right - fw * s); return { left: left, x: left + ax * s, cx: left + fw * s / 2, foot: Math.round(O.papa.top + ay * s), s: s }; };
+  C.openGeo = function (sc) {
+    var O = C.OPEN, nm = C.spSheet(sc), sh = nm && D.SHEETS[nm], sp = sc.spk(), face = !sh && sp && sp.unit, fw = sh ? sh.fw : face ? HB.w + 8 : 217, ax = sh ? sh.ax : face ? (HB.w + 8) / 2 : 114, ay = sh ? sh.ay : face ? HB.h - 20 : 153, s = face ? 1 : O.papa.s;
+    var side = sc.spSide(), left = side === 'left' ? O.papa.left : Math.round(O.papa.right - fw * s);
+    return { left: left, right: Math.round(left + fw * s), x: left + ax * s, cx: left + fw * s / 2, foot: Math.round(O.papa.top + ay * s), s: s, side: side, sheet: nm, face: !!face };
+  };
   // the screen's places, swapped in for an open screen's calls and back (one call at a time: nothing else runs between)
   var SAVED = null;
   function openOn(sc) {
     SAVED = { RX: RX, RW: RW, WY: WY, WH: WH, BB: BB }; var O = C.OPEN, w = sc.wait || {};
     if (w.narr) { RW = O.narr.w; WH = O.narr.h; RX = Math.round((D.W - RW) / 2); WY = Math.round((D.H - 14 - WH) / 2); }
-    else { var g = C.openGeo(sc); RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; BB = { x: RX + O.under, y: g.foot + 17, w: RW, h: SAVED.BB.h }; } // (the bubble's top just under the keeper's name)
+    else {
+      var g = C.openGeo(sc), hr = sc.hSide() === 'right';
+      if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
+      var hw = C.heroW(sc), bw = Math.min(RW, hr ? D.W - 16 - hw : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side)
+      BB = { x: hr ? D.W - 2 - hw - 6 - bw : O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
+    }
   }
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
   function inOpen(sc, f, args) { if (!sc.o || !sc.o.open || SAVED) return f.apply(sc, args); openOn(sc); try { return f.apply(sc, args); } finally { openOff(); } }
@@ -620,24 +642,26 @@
     var rows = this.openRows(), bs = this.buttons();
     if (w.narr) { D.win8(ctx, RX, WY, RW, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (a narration: the middle, no one standing)
     else {
-      D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', O.words.x, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, O.words.x, 21, '#9c9cb4');
-      if (rows.length) { D.win8(ctx, RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); }
-      var g = C.openGeo(this), sh = this.sheet && D.SHEETS[this.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right, over his box's edge)
-      if (sh) C.drawPortraitAt(ctx, this.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
-      C.nameTag(ctx, this.o.name, g.cx, g.foot + 3);
-      var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped();
-      var hsh = pt && D.SHEETS[pt], hfoot = BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs; // (his hair just over the bubble's foot)
+      var g = C.openGeo(this), sp = this.spk(), spL = g.side === 'left', tx = spL ? RX : O.words.x;
+      D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', tx, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, tx, 21, '#9c9cb4');
+      if (rows.length) { D.win8(ctx, spL ? RX - O.under : RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (the box runs under the one speaking's edge, whichever side)
+      var sh = g.sheet && D.SHEETS[g.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right -- or top left, by their side -- over their box's edge)
+      if (sh) C.drawPortraitAt(ctx, g.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
+      else if (g.face) C.drawUnitFace(ctx, sp.unit, g.left + 4, g.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, spL); // (no talking portrait yet: the face of the figure they wear)
+      C.nameTag(ctx, sp && sp.name ? sp.name : this.o.name, g.cx, g.foot + 3);
+      var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
+      var hsh = pt && D.SHEETS[pt], hfoot = BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
       if (h && !w.noHero) {
         var bb = this.bubbling() ? bs.filter(function (q) { return q.bubble; }) : null, echo = !bb && w.say && this.echo;
         var bh = bb && bb.length ? bb[bb.length - 1].y + bb[bb.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
         if (bh && (echo || left > 0)) {
-          var mo = C.MOUTH[pt] || [42, 25], mx = O.hero.left + mo[0] * hs, my = hfoot - ((hsh ? hsh.ay : 68) - mo[1]) * hs;
-          bubbleDown(ctx, BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), mx + 14, my);
+          var mo = C.MOUTH[pt] || [42, 25], mx = hR ? hL + hW - mo[0] * hs : hL + mo[0] * hs, my = hfoot - ((hsh ? hsh.ay : 68) - mo[1]) * hs; // (on the right he is mirrored: his mouth counted from his other edge)
+          bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
           else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
         }
-        if (hsh) { C.drawPortraitAt(ctx, pt, 'idle', 0, O.hero.left + hsh.ax * hs, hfoot, hs); C.nameTag(ctx, h.name, O.hero.left + hsh.fw * hs / 2, D.H - 28); }
-        else { D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
+        if (hsh) { if (hR) { ctx.save(); ctx.translate(hL + hW, 0); ctx.scale(-1, 1); C.drawPortraitAt(ctx, pt, 'idle', 0, hsh.ax * hs, hfoot, hs); ctx.restore(); } else C.drawPortraitAt(ctx, pt, 'idle', 0, hL + hsh.ax * hs, hfoot, hs); C.nameTag(ctx, h.name, hL + hW / 2, D.H - 28); }
+        else { var hx = hR ? D.W - 8 - HB.w : HB.x; D.win8(ctx, hx, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(hx + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, hx + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t, hR); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', hx + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
       }
       // the party's lead bottom right, the hero's size, facing in (his portrait mirrored, or his figure's face zoomed and turned): Lymen's line to him, and Papa's after
       var ld = w.leadHero, showLd = ld && (w.lead === true || (w.lead === 'after' && since >= O.pause));
@@ -674,13 +698,22 @@
   // a hero with no portrait: the figure the hero wears on the floor, turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
   C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)
   C.heroSheet = function (h) { var id = h.key || h.id, L0 = D.save && D.save.look ? D.save.look(id, null, h) : null; return (L0 && L0.sheet) || id + '_p0'; };
-  C.drawHeroFace = function (ctx, h, x, y, w, hh, t) {
-    var F = C.HERO_FACE, name = C.heroSheet(h), sh = D.SHEETS && D.SHEETS[name]; if (!sh) return false;
+  C.drawHeroFace = function (ctx, h, x, y, w, hh, t, mirror) { return C.drawSheetFace(ctx, C.heroSheet(h), C.HERO_FACE.facing, x, y, w, hh, t, mirror); };
+  C.drawSheetFace = function (ctx, name, facing, x, y, w, hh, t, mirror) { // (a figure's head and shoulders off its sheet, at HERO_FACE.zoom; mirrored to face in from the right)
+    var F = C.HERO_FACE, sh = name && D.SHEETS && D.SHEETS[name]; if (!sh) return false;
     if (!D.spr.has(name)) { if (!D.spr.offline) D.spr.load(sh.image); return false; }
-    var fr = D.spr.frameAt(name, F.anim, F.facing, t); if (!fr || !fr.img) return false;
+    var fr = D.spr.frameAt(name, F.anim, facing, t); if (!fr || !fr.img) return false;
     var sw = w / F.zoom, sht = hh / F.zoom, sx = fr.sx + fr.ax - sw / 2, sy = fr.sy + Math.max(0, fr.ay - (sh.top || 52) - F.above);
-    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(fr.img, Math.round(sx), Math.round(sy), sw, sht, x, y, w, hh); ctx.restore();
+    ctx.save(); ctx.imageSmoothingEnabled = false; if (mirror) { ctx.translate(x + w, 0); ctx.scale(-1, 1); x = 0; } ctx.drawImage(fr.img, Math.round(sx), Math.round(sy), sw, sht, x, y, w, hh); ctx.restore();
     return true;
+  };
+  // one speaking with no talking portrait (the Halfway Inn's people till art-wanted section 35 comes back): the face of the figure they wear on the floor, turned in toward the screen's middle
+  C.drawUnitFace = function (ctx, u, x, y, w, hh, t, fromLeft) {
+    D.win8(ctx, x - 3, y - 3, w + 6, hh + 6, '#0b1430');
+    if (!u || !u.sheet) return false;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, hh); ctx.clip();
+    var ok = C.drawSheetFace(ctx, u.sheet, D.spr.facingFor(fromLeft ? 1 : -1, 1), x, y, w, hh, t, false);
+    ctx.restore(); return ok;
   };
 
   // ---------------------------------------------------------------- at a counter or a door: the screen up, the floor waiting under it (js/town.js T.fire)
