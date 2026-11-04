@@ -18,6 +18,7 @@ status: PROPOSED, with his rulings of 10-29 and 10-30 folded in (§0); §5 ranks
 - **The choice at 3 (10-30):** *"SRD compliance failures in this area have been a large oversight and are of increased priority re: usage"*; then *"talk over what's to be built"* -- talked over in the seat's report, built on his word.
 - **Multiclassing (RULED 10-30):** *"its exclude from storyworld game for now, will need for pocket DM after deep16 wrap"*.
 - **Stab Debut's crits (RULED 10-30, BUILT):** *"restore the 'on crit' properties to it as well, shallow rebench"*.
+- **Before the Halfway Inn (RULED 11-03, to the leveling seat's four):** *"1 yes, 2 no, 3 after, 4 yes"* -- the Lampwright built before the inn (BUILT 11-03, 7.2); the Oath of the Ledger not before it (7.1 waits); the wizard's six after the inn; the rogue's Expertise at 1 asked at the start and the joining (BUILT 11-03). And: *"We should at least have their choices to 6 if not 9 before we divert usage to the inn"*.
 
 Each decision gets one verdict:
 
@@ -40,7 +41,7 @@ Each decision gets one verdict:
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
 | Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | the Oath of the Green Return (BUILT 10-30, §2.2) | SHORT 2; asked on the Pocket DM's maker since 10-30, not on Lymen's own pick |
 | Ranger | 3 | Ranger Archetype | 2: Hunter, Beast Master | Hunter | the Grey Road (GreyFang's) | met |
-| Rogue | 3 | Roguish Archetype | 3: Thief, Assassin, Arcane Trickster | Thief | Cutthroat (Vivian's other road; Stab Debut since 10-29) | SHORT 1 |
+| Rogue | 3 | Roguish Archetype | 3: Thief, Assassin, Arcane Trickster | Thief | Cutthroat (Vivian's other road; Stab Debut since 10-29); the Lampwright (BUILT 11-03, 7.2) | met |
 | Sorcerer | 1 | Sorcerous Origin | 2: Draconic, Wild Magic | Draconic | -- | SHORT 1 |
 | Warlock | 1 | Otherworldly Patron | 3: the Fiend, the Archfey, the Great Old One | the Fiend | the Mirror (Amara's) | SHORT 1 |
 | Wizard | 2 | Arcane Tradition | 8: the eight schools | Evocation | the Rimeglass (Willem's) | SHORT 6 |
@@ -232,7 +233,7 @@ Griz, by the lanes desk (10-30 ~02:55Z), on the case for leaving the minor PHB s
 
 Griz, 10-31, to the leveling seat: *"yeah fix it and do the next two things, we're usually burning so much more usage on art cutting"* -- the lane's item 9, by the pull rule the four's classes first (§1: the paladin SHORT 2, the rogue SHORT 1). PROPOSED, nothing built; each beside the PHB's in `..\leveling-feats-side-by-side.md` for the reading lamp. Every engine named is on the grid already.
 
-### 7.1 The paladin's second of ours: the Oath of the Ledger -- Vengeance's role (*the paladin sworn against one foe*)
+### 7.1 The paladin's second of ours: the Oath of the Ledger -- Vengeance's role (*the paladin sworn against one foe*) -- not before the Halfway Inn (11-03, his "2 no")
 
 A paladin who keeps the account: every hurt done to one in her care is owed, and she collects it in person.
 
@@ -245,7 +246,7 @@ A paladin who keeps the account: every hurt done to one in her care is owed, and
 
 **NOT** the PHB's Oath of Vengeance: no vow that gives her advantage, no frightening or slowing (Abjure Enemy), no free move when she makes an opportunity attack, no reaction strike at 15, no Hunter's Mark or Misty Step among its spells. Hers heals the one wronged when she hits, drags the debtor in, and burns it for standing near her. Not Devotion (no blessed weapon), not the Ancients (no vines, no resistance aura), not the DMG's Oathbreaker. Called to Account (§6.5, her spell already) holds a foe to her; the Ledger makes it pay. **The engines:** a friend harmed (`B.hurt`'s source), the grid's pull (Rootdrag), a radiant aura at the turn's start (the Spirit Guardians shape).
 
-### 7.2 The rogue's second of ours: the Lampwright -- the Arcane Trickster's role (*a rogue with a little magic*)
+### 7.2 The rogue's second of ours: the Lampwright -- the Arcane Trickster's role (*a rogue with a little magic*) (BUILT 11-03, the grid: `deep16/js/features.js` F.lamp, F.pinLight, F.ownLight; `light.js` L.levelSeen; `mode=lampwright1103`)
 
 Drafted from Vivian, *"the candle girl on the east side"* -- the road is any rogue's, not hers by default. A rogue whose little magic is the light she carries and the light she takes away.
 

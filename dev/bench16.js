@@ -5314,6 +5314,95 @@
     document.body.appendChild(preTf);
     return;
   }
+  // THE LAMPWRIGHT AND EXPERTISE AT 1 (mode=lampwright1103; the leveling lane, 11-03 later -- Griz: "1 yes, 2 no, 3 after, 4 yes / We should at least have their choices to 6 if
+  // not 9 before we divert usage to the inn"): Vivian's Expertise asked at the start (her pair marked; the skill numbers follow the choice; the 6th's defaults step around it);
+  // the Lampwright on her page at 3 (Wick-Lore's cantrips by INT); HOODED LAMP (her own light shows her to no one); PIN THE LIGHT (the button, the DEX save, the mote's light,
+  // no hiding, invisibility no help, gone at her next turn); BY HER OWN LIGHT at 9 (Sneak Attack with no edge or friend; nothing hides from her in her light); the class AI's pin
+  // at 9; the class card; the FEATURES shelf; the SRD's spells now on the four's lists (Aurdin's 4th and 5th, Lymen's pool, Devotion's 9th)
+  if (get('mode', '') === 'lampwright1103') {
+    var repLw = { checks: [], errors: [] }, RLw = window.DS.R, d0Lw = D.d, cardLw = [], apLw = window.DS.autoPicks;
+    function okLw(what, v) { repLw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runLw(g) { var v, k = 0, st; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function fightLw(q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); var c0 = B.card; B.card = function (ls) { cardLw.push([].concat(ls).join(' ')); return c0.apply(this, arguments); }; return B; }
+    function darkLw(B) { B.dark = true; B.lights = []; B.units.forEach(function (w) { w.torch = null; delete w.conds.light; }); B.lightMap = null; }
+    function d20Lw(n) { D.d = function (k) { return k === 20 ? n : d0Lw(k); }; }
+    function nearLw(B, u, w, far, alt) { for (var dd = far; dd >= 1; dd--) { var qs = [[u.x + dd, u.y], [u.x - dd, u.y], [u.x, u.y + dd], [u.x, u.y - dd]]; if (alt) qs.reverse(); for (var i = 0; i < qs.length; i++) { if (B.units.some(function (o) { return o !== w && o.x === qs[i][0] && o.y === qs[i][1]; })) continue; if (D.grid.canStand(w, qs[i][0], qs[i][1]) && D.grid.losPoint(u.x, u.y, qs[i][0], qs[i][1])) { w.x = qs[i][0]; w.y = qs[i][1]; D.grid.setup(B.map, B.units); B.lightMap = null; return true; } } } return false; }
+    try {
+      D.seed = 1103; window.DS.autoPicks = true;
+      // 1. EXPERTISE AT 1: asked, her pair marked; Stealth and Sleight of Hand for Perception -- Stealth 2 up, Perception 2 down at 2; STATUS says the choice; the 6th's defaults step round it
+      var v1 = D.house.start(RLw.makeHero('vivian')), k1 = RLw.askStart(v1, 'NEW GAME'), r1 = v1.picks && v1.picks[0], a1 = r1 && r1.asks[0];
+      var sk0 = ['Stealth', 'Perception', 'Sleight of Hand'].map(function (n) { return RLw.skill(v1, n, n === 'Perception' ? 'wis' : 'dex'); });
+      RLw.applyPick(v1, r1, { expertise1: ['Stealth', 'Sleight of Hand'] });
+      var sk1 = ['Stealth', 'Perception', 'Sleight of Hand'].map(function (n) { return RLw.skill(v1, n, n === 'Perception' ? 'wis' : 'dex'); }), fl1 = window.DS.MENU.featureLines(v1).map(function (f) { return f.t; }).filter(function (t) { return /^Expertise/.test(t); });
+      okLw('Expertise at 1: asked ' + (a1 && a1.word + ', ' + a1.need + ' of ' + a1.rows.length + ', marked ' + a1.took.join('/')) + '; Stealth/Perception/Sleight ' + sk0.join('/') + ' -> ' + sk1.join('/') + '; chose ' + JSON.stringify(v1.chose && v1.chose[1]) + '; STATUS ' + JSON.stringify(fl1),
+        k1 && a1.key === 'expertise1' && a1.need === 2 && a1.rows.length === 7 && a1.took.join() === 'Sleight of Hand,Perception' && sk1[0] === sk0[0] + 2 && sk1[1] === sk0[1] - 2 && sk1[2] === sk0[2] && v1.expertise1.join() === 'Stealth,Sleight of Hand' && fl1.join() === 'Expertise: Stealth, Sleight of Hand' && !RLw.picksDue(v1));
+      for (var lv1 = 3; lv1 <= 6; lv1++) { v1.xp = RLw.XP_LEVEL[lv1]; RLw.levelUp(v1); } RLw.autoPicks(v1);
+      var fl6 = window.DS.MENU.featureLines(v1).map(function (f) { return f.t; }).filter(function (t) { return /^Expertise/.test(t); }), st6 = RLw.skill(v1, 'Stealth', 'dex');
+      okLw('at 6: her later pair ' + JSON.stringify(v1.expertise) + ' (Stealth not twice), STATUS ' + JSON.stringify(fl6) + ', Stealth ' + st6 + ' (DEX ' + v1.abil.dex + ', proficiency 3 twice)',
+        v1.expertise.length === 2 && v1.expertise.indexOf('Stealth') < 0 && v1.expertise.indexOf('Sleight of Hand') < 0 && v1.expertise.indexOf('Deception') >= 0 && st6 === D.mod(v1.abil.dex) + 6 && fl6.length === 1 && /^Expertise: Stealth, Sleight of Hand, /.test(fl6[0]));
+      // 2. THE LAMPWRIGHT ON HER PAGE AT 3: her list of three; chosen -- "Vivian: the Lampwright.", Light and Dancing Lights known, cast by INT; STATUS by it
+      var v3 = RLw.makeHero('vivian'); v3.xp = RLw.XP_LEVEL[3]; RLw.levelUp(v3); var r3 = (v3.picks || []).filter(function (r) { return r.lvl === 3; })[0], rows3 = r3 ? RLw.pickRows(v3, r3, r3.asks[0]).map(function (r) { return r.name; }) : [];
+      var l3 = r3 ? RLw.applyPick(v3, r3, { archetype: 'the Lampwright' }) : [], u3 = D.save.unitOf(v3, false, null), fl3 = window.DS.MENU.featureLines(v3).map(function (f) { return f.t; });
+      okLw('the Lampwright at 3: offered ' + rows3.join(', ') + '; "' + l3.join(' ') + '"; known ' + JSON.stringify(v3.known) + ', the figure\'s ' + JSON.stringify(u3.known) + ', DC ' + u3.spellDC + ' (INT ' + v3.abil.int + '); STATUS ' + JSON.stringify(fl3.filter(function (t) { return /Lamp|Pin|Fast|Stab/.test(t); })),
+        rows3.join() === 'Thief,Cutthroat,the Lampwright' && l3.join(' ') === 'Vivian: the Lampwright.' && v3.known.indexOf('light') >= 0 && v3.known.indexOf('dancinglights') >= 0 && u3.known.indexOf('light') >= 0 && u3.known.indexOf('dancinglights') >= 0 &&
+        u3.spellDC === 8 + 2 + D.mod(v3.abil.int) && fl3.some(function (t) { return /^the Lampwright/.test(t); }) && fl3.some(function (t) { return /^Pin the Light/.test(t); }) && !fl3.some(function (t) { return /Fast Hands|Stab Debut/.test(t); }));
+      // 3. HOODED LAMP: in the dark, her own Light on her -- bright where she stands, yet the foe with no darkvision does not see her, the one with darkvision sees her dim; a Thief with it is seen bright
+      var B1 = fightLw('?npc=goblin,goblin&lvl=3&vs=rogue:3'), r = B1.units.filter(function (w) { return w.side === 'party'; })[0], gs = B1.units.filter(function (w) { return w.side === 'foe'; }), g1 = gs[0], g2 = gs[1];
+      darkLw(B1); g1.darkvision = 0; g2.darkvision = 120; nearLw(B1, r, g1, 3); nearLw(B1, r, g2, 4, true); r.conds.light = { by: r.id }; B1.lightMap = null;
+      r.subclass = 'Thief'; var thS = D.magic.sees(B1, g1, r), thL = B1.seenBy(g2, r);
+      r.subclass = 'the Lampwright'; var lwW = D.magic.seeWhy(B1, g1, r), lwL = B1.seenBy(g2, r), lvO = D.light.levelOf(B1, r), lvS = D.light.levelSeen(B1, r);
+      okLw('HOODED LAMP, her Light on her in the dark (lit ' + lvO + ', to others\' eyes ' + lvS + '): the goblin without darkvision sees a Thief ' + thS + ', the Lampwright ' + lwW.ok + ' (' + lwW.why + '); the one with darkvision ' + thL + ' -> ' + lwL,
+        thS && thL === 2 && lvO === 2 && lvS === 0 && !lwW.ok && lwW.why === 'dark' && lwL === 1);
+      // 4. PIN THE LIGHT: the button (her bonus action), the save failed -- the mote on the goblin (its light, no hiding, invisibility no help), gone at her next turn; a save made, none
+      D.rules.startTurn(r); B1.active = r; var cmd = D.features.commands(B1, r).filter(function (c) { return c.id === 'pinlight'; })[0];
+      d20Lw(1); var got = runLw(D.features.exec(B1, r, { do: 'pinlight', target: g1 })); D.d = d0Lw;
+      var pin = g1.conds.pinned, mote = D.light.carried(g1).filter(function (l) { return l.kind === 'mote'; })[0]; delete r.conds.light; B1.lightMap = null; var lvG = D.light.levelOf(B1, g1);
+      okLw('PIN THE LIGHT: the button ' + (cmd && cmd.label + ' ' + cmd.cost + ' ' + cmd.ok) + '; the save failed -- pinned ' + JSON.stringify(pin && pin.by) + ', her bonus action ' + r.turn.bonus + ', the mote bright ' + (mote && mote.bright) + '/' + (mote && mote.dim) + ' by ' + (mote && mote.maker) + ', the goblin lit ' + lvG,
+        !!cmd && cmd.cost === 'B' && cmd.ok && !!pin && pin.by === r.id && r.turn.bonus === 0 && !!mote && mote.bright === 10 && mote.dim === 10 && mote.maker === r.id && lvG === 2);
+      D.rules.startTurn(g1); B1.active = g1; runLw(B1.hide(g1)); var hid = !!g1.conds.hidden, cHide = cardLw.filter(function (l) { return /hides/.test(l); }).pop() || '';
+      g1.conds.invisible = { by: 'x' }; var seeP = D.magic.sees(B1, r, g1); delete g1.conds.pinned; var seeN = D.magic.seeWhy(B1, r, g1); g1.conds.pinned = pin; delete g1.conds.invisible;
+      D.magic.onStart(B1, r); var gone = !g1.conds.pinned;
+      d20Lw(20); D.rules.startTurn(r); r.conds.light = { by: r.id }; B1.lightMap = null; runLw(D.features.exec(B1, r, { do: 'pinlight', target: g2 })); D.d = d0Lw; var c2 = cardLw.filter(function (l) { return /PIN THE LIGHT/.test(l); }).pop() || '';
+      okLw('the mote: the goblin hides -- hidden ' + hid + ' ("' + cHide.replace(/\{[a-z\/]*\}/g, '').slice(0, 110) + '"); invisible and pinned, seen ' + seeP + ' (not pinned: ' + seeN.why + '); at her next turn gone ' + gone + '; a made save: "' + c2.replace(/\{[a-z\/]*\}/g, '').slice(0, 80) + '", pinned ' + !!g2.conds.pinned,
+        !hid && /nowhere to hide/.test(cHide) && seeP && seeN.why === 'invisible' && gone && /slips the mote/.test(c2) && !g2.conds.pinned);
+      // 5. BY HER OWN LIGHT (9): the goblin pinned, no friend beside it, no edge -- her rapier's Sneak Attack lands; at 8 it does not. A hidden goblin in her Dancing Lights is found
+      var sneakAt = function (lvl) {
+        var B = fightLw('?npc=goblin&lvl=3&vs=rogue:3'), u = B.units.filter(function (w) { return w.side === 'party'; })[0], t = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+        darkLw(B); u.subclass = 'the Lampwright'; u.lvl = lvl; t.darkvision = 120; t.maxhp = t.hp = 999; nearLw(B, u, t, 1);
+        D.rules.startTurn(u); B.active = u; t.conds.pinned = { by: u.id, till: { who: u.id, at: 'start', n: 1 } }; B.lightMap = null; cardLw = []; d20Lw(15); // (pinned on her turn: the mote ends as her next begins)
+        runLw(B.attack(u, t, u.weapon)); D.d = d0Lw; var line = cardLw.join(' | ');
+        return { sneak: /sneak/.test(line), own: /BY HER OWN LIGHT/.test(line), line: line.slice(0, 160), own9: D.features.ownLight(B, u, t) };
+      };
+      var s9 = sneakAt(9), s8 = sneakAt(8);
+      var B2 = fightLw('?npc=goblin&lvl=3&vs=rogue:3'), u2 = B2.units.filter(function (w) { return w.side === 'party'; })[0], t2 = B2.units.filter(function (w) { return w.side === 'foe'; })[0];
+      u2.subclass = 'the Lampwright'; u2.lvl = 9; B2.lights = [{ id: 'dance' + u2.id + '0', kind: 'dance', x: t2.x, y: t2.y, bright: 0, dim: 10, color: 'glow', by: u2.id }]; B2.lightMap = null;
+      t2.conds.hidden = true; t2.hidTotal = 40; var spot9 = B2.spots(u2, t2); u2.lvl = 8; var spot8 = B2.spots(u2, t2);
+      okLw('BY HER OWN LIGHT: at 9 the pinned goblin\'s blow ' + (s9.sneak ? 'sneaks' : 'no sneak') + (s9.own ? ' (BY HER OWN LIGHT)' : '') + ' -- "' + s9.line + '"; at 8 ' + (s8.sneak ? 'sneaks' : 'no sneak') + '; a hidden goblin in her Dancing Lights at 9: "' + spot9 + '", at 8: ' + spot8,
+        s9.sneak && s9.own && s9.own9 && !s8.sneak && /own light/.test(spot9 || '') && !spot8);
+      // 6. THE CLASS AI at 9: a mote on the nearest foe with no friend of hers beside it, before her blow; at 8, none
+      var aiAt = function (lvl) { var B = fightLw('?npc=goblin&lvl=3&vs=rogue:3'), u = B.units.filter(function (w) { return w.side === 'party'; })[0], t = B.units.filter(function (w) { return w.side === 'foe'; })[0]; u.subclass = 'the Lampwright'; u.lvl = lvl; u.guest = true; nearLw(B, u, t, 4); D.rules.startTurn(u); B.active = u; d20Lw(1); for (var i = 0; i < D.tactics.FIRST.length; i++) runLw(D.tactics.FIRST[i](B, u)); D.d = d0Lw; return !!(t.conds.pinned && t.conds.pinned.by === u.id); };
+      var ai9 = aiAt(9), ai8 = aiAt(8);
+      okLw('the class AI pins at 9 (' + ai9 + '), not at 8 (' + !ai8 + ')', ai9 && !ai8);
+      // 7. THE POCKET DM AND THE SHELF: the maker's three roguish archetypes; a class card of the Lampwright knows Light and Dancing Lights; the FEATURES shelf's four
+      var rso = RLw.SUBCLASSES.rogue.opts.map(function (o) { return o.id; }), shL = D.npc.sheet(Object.assign(D.npc.spec('rogue:3'), { subclass: 'the Lampwright' })), FE = D.FEATURES || {};
+      r.known = shL.known.slice(); D.rules.startTurn(r); var ringL = D.magic.list(B1, r).filter(Boolean).map(function (e) { return e.id; });
+      okLw('her ring\'s MAGIC: ' + JSON.stringify(ringL), ringL.indexOf('light') >= 0 && ringL.indexOf('dancinglights') >= 0);
+      okLw('the maker\'s rogue: ' + rso.join(', ') + '; a class card of the Lampwright knows ' + JSON.stringify(shL.known) + '; the shelf: ' + ['wicklore', 'hoodedlamp', 'pinthelight', 'byherownlight'].map(function (k) { return k + (FE[k] ? ' ' + FE[k].lvl : ' MISSING'); }).join(', '),
+        rso.join() === 'thief,cutthroat,lampwright' && shL.known.indexOf('light') >= 0 && shL.known.indexOf('dancinglights') >= 0 && !!FE.pinthelight && FE.pinthelight.cmd === 'pinlight' && !!FE.byherownlight && FE.byherownlight.lvl === 9 && !!FE.wicklore && !!FE.hoodedlamp);
+      // 8. THE SRD'S SPELLS ON THE FOUR'S LISTS: Aurdin at 7 offered thirteen 4th-level spells (three before), at 9 seven 5th (two before); Lymen's day -- Devotion's 9th's two always ready,
+      // and the Green Return's pool with Protection from Evil and Good, Protection from Poison, Dispel Magic and Called to Account
+      var a7 = RLw.makeHero('aurdin', 6), lvRows = function (h, L, lv) { return RLw.pickRows(h, { lvl: L }, { kind: 'spells', need: 2, took: [] }, { pages: true }).filter(function (r) { return r.lv === lv; }).length; };
+      var n4 = lvRows(a7, 7, 4), n5 = lvRows(a7, 9, 5);
+      var ldv = RLw.makeHero('lymen', 9); RLw.settlePicks(ldv, { archetype: 'Oath of Devotion' }); var lgr = RLw.makeHero('lymen', 9); RLw.settlePicks(lgr, { archetype: 'the Oath of the Green Return' });
+      var oD = RLw.oathSpells(ldv), pG = RLw.prepPool(lgr), pD = RLw.prepPool(ldv);
+      okLw('the lists: Aurdin\'s 4th-level offers at 7 ' + n4 + ', 5th at 9 ' + n5 + '; Devotion\'s Lymen at 9 always ready ' + oD.join(',') + '; the Green Return\'s pool ' + pG.join(','),
+        n4 === 13 && n5 === 7 && oD.indexOf('beaconofhope') >= 0 && oD.indexOf('dispelmagic') >= 0 && ['protectionfromevilandgood', 'protectionfrompoison', 'dispelmagic', 'calledtoaccount'].every(function (id) { return pG.indexOf(id) >= 0; }) && pD.indexOf('protectionfromevilandgood') < 0 && pD.indexOf('dispelmagic') < 0 && pD.indexOf('protectionfrompoison') >= 0);
+    } catch (e) { repLw.errors.push(String(e && e.stack || e).slice(0, 900)); }
+    D.d = d0Lw; window.DS.autoPicks = apLw;
+    var preLw = document.createElement('pre'); preLw.id = 'out'; preLw.textContent = 'BENCH16 ' + JSON.stringify(repLw);
+    document.body.appendChild(preLw);
+    return;
+  }
   // THE FOUR'S OWN ASKS (mode=storyasks1103; the leveling lane item 13, 11-03 -- RULED 10-31, Griz: "Agreed, when main story character classes are built out", and "If the
   // leveling choices are naturally made at 1-2 they can be made at 'start with that character' or 'character joins party' since we're starting everyone at 2"): Barley's
   // archetype and Lymen's oath asked at 3 on the second game's level-up by the class's word, nothing marked; the Threshing Floor's rise and the Drillyard's openings on the story
@@ -5377,7 +5466,7 @@
       var rowsA = rA ? RSa.pickRows(sA, rA, rA.asks[0]).map(function (r) { return r.name; }).join('/') : '';
       okSa('the start asks: Aurdin ' + (rA && rA.start + ' at ' + rA.lvl + ' ' + rA.asks.map(function (a) { return a.word + ' took ' + a.took; }).join()) + ' -- ' + rowsA + ' (again: ' + kA2 + '); Barley ' + (rB && rB.lvl + ' ' + rB.asks.map(function (a) { return a.key + ' took ' + a.took + ' of ' + a.rows.length; }).join()) + '; Lymen ' + (rL && rL.lvl + ' ' + rL.asks.map(function (a) { return a.key + ' took ' + a.took + ' of ' + a.rows.length; }).join()) + '; Vivian ' + kV,
         kA && !kA2 && rA.start === 'NEW GAME' && rA.lvl === 2 && rA.asks.length === 1 && rA.asks[0].word === 'ARCANE TRADITION' && rA.asks[0].took === null && rowsA === 'School of Evocation/the Rimeglass' &&
-        kB && rB.lvl === 1 && rB.start === 'JOINS THE PARTY' && rB.asks.length === 1 && rB.asks[0].key === 'style' && rB.asks[0].took === 'gwf' && rB.asks[0].rows.length === 6 && kL && rL.lvl === 2 && rL.asks[0].took === 'defense' && rL.asks[0].rows.length === 4 && !kV);
+        kB && rB.lvl === 1 && rB.start === 'JOINS THE PARTY' && rB.asks.length === 1 && rB.asks[0].key === 'style' && rB.asks[0].took === 'gwf' && rB.asks[0].rows.length === 6 && kL && rL.lvl === 2 && rL.asks[0].took === 'defense' && rL.asks[0].rows.length === 4 && kV && sV.picks[0].asks[0].key === 'expertise1'); // (Vivian's Expertise at 1 since 11-03 later: mode=lampwright1103)
       // 7. NEW GAME: CHOOSE WHO YOU ARE, Aurdin, BEGIN -- the page over the lead pick (ARCANE TRADITION, nothing marked), the Rimeglass, then the opening, and the game begun with it
       window.DS.autoPicks = false; HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
       var pkA = COSa.pick(); D.push(pkA); pkA.i = COSa.IDS.indexOf('aurdin'); pkA.begin();
@@ -5391,9 +5480,10 @@
       HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
       var pkB = COSa.pick(); D.push(pkB); pkB.i = COSa.IDS.indexOf('barley'); pkB.begin(); var pmB = pkB.pm, tNB = tabsSa(pmB), kNB = marksSa(pmB); hitSa(pmB, 'dueling'); confSa(pmB); var opB = D.top();
       HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
-      var pkV = COSa.pick(); D.push(pkV); pkV.i = COSa.IDS.indexOf('vivian'); pkV.begin(); var opV = D.top();
-      okSa('NEW GAME as Barley: ' + tNB + ' (marked ' + kNB + '), Dueling -- the opening\'s Barley ' + (opB && opB.made && opB.made.style) + '; as Vivian: no page (' + !pkV.pm + '), the ' + (opV && opV.kind),
-        tNB === 'FIGHTING STYLE' && kNB === 'gwf' && !!opB && opB.kind === 'opening' && opB.made.style === 'dueling' && RSa.style(opB.made) === 'dueling' && !pkV.pm && !!opV && opV.kind === 'opening');
+      var pkV = COSa.pick(); D.push(pkV); pkV.i = COSa.IDS.indexOf('vivian'); pkV.begin(); var pmV = pkV.pm, tNV = tabsSa(pmV), kNV = marksSa(pmV); confSa(pmV); var opV = D.top();
+      // (since 11-03 later, his "4 yes": Vivian's Expertise at 1 asked too -- mode=lampwright1103 walks it)
+      okSa('NEW GAME as Barley: ' + tNB + ' (marked ' + kNB + '), Dueling -- the opening\'s Barley ' + (opB && opB.made && opB.made.style) + '; as Vivian: ' + tNV + ' (marked ' + kNV + '), then the ' + (opV && opV.kind),
+        tNB === 'FIGHTING STYLE' && kNB === 'gwf' && !!opB && opB.kind === 'opening' && opB.made.style === 'dueling' && RSa.style(opB.made) === 'dueling' && tNV === 'EXPERTISE' && kNV === 'Sleight of Hand,Perception' && !!opV && opV.kind === 'opening');
       // 8. JOINING: the Company's beat at the chapel (Lymen leads, 25 silver) -- PAY 20 SP, he joins, the page over the floor (ARCANE TRADITION), the Rimeglass, the figure and the save
       HSa.playing = false; HSa.cur = null; while (D.scenes.length) D.pop();
       var BJ = floorSa(COSa.stage(COSa.BEATS.filter(function (b) { return b.id === 'aurdin'; })[0])), gJ = COSa.hire(BJ, 'aurdinChapel');
@@ -14215,7 +14305,7 @@
       var sDr = PKl.mkSheet(), wDr = NPCx.code(PKl.mkSpec()), bDr = NPCx.sheet(NPCx.spec(wDr)), alwDr = (NPCx.prepInfo(NPCx.spec(wDr)) || {}).always || [];
       okLp('A DRUID AT 3, the Mountain: ' + sDr.land + ', back ' + bDr.land + ', always ready ' + JSON.stringify(alwDr), sDr.land === 'mountain' && bDr.land === 'mountain' && alwDr.indexOf('spikegrowth') >= 0);
       var rowsR = RL.pickRows({ id: 'npc-rogue3', cls: 'rogue', lvl: 3, abil: {}, skills: {} }, { lvl: 3 }, { kind: 'archetype', need: 1, took: null }, {}).map(function (r) { return r.id; });
-      okLp('THE PICK PAGE for a rogue with no sheet of its own offers the class\'s: ' + rowsR.join('/'), rowsR.join('/') === 'Thief/Cutthroat');
+      okLp('THE PICK PAGE for a rogue with no sheet of its own offers the class\'s: ' + rowsR.join('/'), rowsR.join('/') === 'Thief/Cutthroat/the Lampwright'); // (the Lampwright, ours, since 11-03: mode=lampwright1103)
     } catch (eLp) { repLp.errors.push(String(eLp && eLp.stack || eLp).slice(0, 900)); }
     D.ctx = ctx0Lp; window.DS.autoPicks = auto0Lp;
     if (errs.length) repLp.errors = repLp.errors.concat(errs);

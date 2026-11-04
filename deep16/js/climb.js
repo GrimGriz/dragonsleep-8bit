@@ -62,7 +62,7 @@
     h.maxhp = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)); h.hp = h.maxhp; // a max hit die a level, CON back to level 1 (RULED 09-25)
     if (ch.asi) out.push(Object.keys(ch.asi).filter(function (k) { return ch.asi[k]; }).map(function (k) { return k.toUpperCase() + ' +' + ch.asi[k]; }).join(', ') + '.');
     var scA = !(DS.DATA.heroes[h.id] || {}).archetypes && R.SUBCLASSES[h.cls]; // (a sheet with no list of its own is asked the class's, by its word -- Barley's, Lymen's: 11-03)
-    if (ch.archetype) out.push(scA ? h.name + '\'s ' + scA.word.toLowerCase() + ': ' + ch.archetype + '.' : h.name + ' is a ' + ch.archetype + '.');
+    if (ch.archetype) out.push(scA ? h.name + '\'s ' + scA.word.toLowerCase() + ': ' + ch.archetype + '.' : /^the /.test(ch.archetype) ? h.name + ': ' + ch.archetype + '.' : h.name + ' is a ' + ch.archetype + '.');
     if (ch.expertise) out.push('Expertise: ' + ch.expertise.join(', ') + '.');
     var learnt = (ch.spells || []).concat(ch.cantrip || []);
     if (learnt.length) out.push('Learns ' + learnt.map(function (id) { return SV.spell(id).name; }).join(', ') + '.');

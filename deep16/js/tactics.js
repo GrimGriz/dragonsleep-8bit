@@ -1083,7 +1083,7 @@
   }
   function* rogueCoverTurn(B, u) {
     var T = u.turn;
-    if (u.hp <= 0 || u.dead || u.conds.restrained || u.conds.dancing || u.conds.faerie || (M.mustFlee && M.mustFlee(u))) return false; // (faerie fire: "nowhere to hide", battle.js hide)
+    if (u.hp <= 0 || u.dead || u.conds.restrained || u.conds.dancing || u.conds.faerie || u.conds.pinned || (M.mustFlee && M.mustFlee(u))) return false; // (faerie fire: "nowhere to hide", battle.js hide)
     // (a Hide that has failed her three turns running -- whatever the reason -- is let go a turn for the class turn, so that a cover that will not come is no turn never fought)
     if ((u._hideFails || 0) >= 3) { u._hideFails = 1; return false; }
     var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), fs = foesOf(B, u), cun = u.lvl >= 2; // (before 2, Hide is the action: a shot, and then no hiding again)

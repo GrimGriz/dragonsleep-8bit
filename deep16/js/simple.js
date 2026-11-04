@@ -294,7 +294,7 @@
   Battle.prototype.hide = function* (u, bonus) {
     if (!this.simple || u.side !== 'party') return yield* hide0.apply(this, arguments);
     var self = this, T = u.turn, mirror = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); });
-    if (mirror || u.conds.faerie) return yield* hide0.apply(this, arguments);
+    if (mirror || u.conds.faerie || u.conds.pinned) return yield* hide0.apply(this, arguments); // (the Lampwright's mote: as faerie fire, 11-03)
     if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else Battle.payAction(T); // (as the grid's: Cunning Action's bonus action, else the action)
     T.hid = true; D.sfx('run');
     var n = (u.lvl || 1) >= 9 ? 3 : 2, foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && !w.left && RU.canAct(w); }); // (whoever is against her and could notice: the grid's list, less the objects)

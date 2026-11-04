@@ -1239,6 +1239,38 @@
     if (mine(u) || !F.pelt(u) || u.conds.pelt || u.beast || !u.turn || !(u.turn.bonus > 0) || !feat(u, 'wildShape') || !hostileNear(B, u, 30).length) return;
     F.wearBeast(B, u, u.lvl >= 6 ? ['hide', 'claws'] : ['hide']); yield 10;
   });
+  // ------------------------------------------------------------------ the rogue: the Lampwright (ours, 11-03 -- the leveling lane, the story party's classes; Griz, "1 yes", to
+  // building it before the Halfway Inn; leveling-srd-by-class.md 7.2 as redrafted 10-31 on his "Go on shutter redraft"): WICK-LORE, Light and Dancing Lights by INT (js/rules.js
+  // R.subFeats, classes.js NPC.sheet); HOODED LAMP, light she made never shows her (light.js L.levelSeen); PIN THE LIGHT, her Cunning Action -- a mote on one creature within
+  // 30 ft she can see, a DEX save against 8 + proficiency + INT, till the start of her next turn: it sheds bright light 10 ft and dim 10 more, and the creature can neither hide
+  // nor gain anything from being invisible (no advantage given); at 9, BY HER OWN LIGHT -- against one standing in light she made, her Sneak Attack needs neither advantage nor a
+  // friend beside it, and it cannot hide from her while it stands there
+  F.lamp = function (u, lvl) { return !!(u && u.cls === 'rogue' && u.subclass === 'the Lampwright' && u.lvl >= (lvl || 3)); };
+  F.pinTargets = function (B, u) { return B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && !w.familiar && G.dist(u, w) <= 30 && M.sees(B, u, w) && !(w.conds.pinned && w.conds.pinned.by === u.id); }); };
+  F.pinLight = function* (B, u, t) {
+    u.turn.bonus = 0; D.sfx('magic'); FX.projectile(u, t, 'glow'); yield { fx: 1 };
+    var sv = RU.save(t, 'dex', u.spellDC), line = '{y}' + Nm(B, u) + '{/}: {c}PIN THE LIGHT{/} on ' + nm(B, t) + ' -- DEX ' + RU.saveText(sv) + ' (DC ' + u.spellDC + ') ';
+    if (sv.ok) { B.card([line + '{n}it slips the mote{/}  {g}(the bonus action){/}'], 220); yield 16; return false; }
+    t.conds.pinned = { by: u.id, till: { who: u.id, at: 'start', n: 1 }, endText: 'The mote of light on {who} goes out.' };
+    if (t.conds.hidden) { delete t.conds.hidden; delete t.hidTotal; }
+    B.lightMap = null; FX.sparkle(t, 'glow', 16);
+    B.card([line + '{o}a mote clings to it{/}: bright 10 ft, no hiding, nothing gained by being invisible, till ' + u.name + '\'s next turn.  {g}(the bonus action){/}'], 260); yield 16;
+    return true;
+  };
+  // BY HER OWN LIGHT (9): t stands in light u made -- her mote on it, or her Light or Dancing Lights reaching its square
+  F.ownLight = function (B, u, t) {
+    if (!F.lamp(u, 9) || !t || t === u) return false;
+    if (t.conds && t.conds.pinned && t.conds.pinned.by === u.id) return true;
+    return !!(D.light && D.light.levelFrom && D.light.levelFrom(B, t, u.id) > 0);
+  };
+  // the class AI's (the seat's call, his to overrule): at 9, before her blow, a mote on the nearest foe she sees with no friend of hers beside it -- her Sneak Attack then rides By
+  // Her Own Light; below 9 her bonus action hides, as any rogue's
+  TX.FIRST.unshift(function* (B, u) {
+    if (mine(u) || !F.lamp(u, 9) || !u.turn || !(u.turn.bonus > 0) || u.turn.attackAction) return;
+    var ts = F.pinTargets(B, u).filter(function (w) { return G.hostile(u, w) && !B.units.some(function (k) { return k !== u && k.side === u.side && G.standing(k) && G.dist(k, w) <= 5; }) && !F.ownLight(B, u, w); })
+      .sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    if (ts.length) yield* F.pinLight(B, u, ts[0]);
+  });
   F.commands = function (B, u) {
     if (!mine(u)) return [];
     var T = u.turn, out = [], act = T.action > 0 && !T.attacksLeft;
@@ -1285,6 +1317,8 @@
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
     if (F.hasFeat(u, 'suddendark')) { var sdC = F.darkTargets(B, u); out.push({ id: 'suddendark', label: 'SUDDEN DARK', cost: 'B', icon: 'lantern', skill: true, ok: T.bonus > 0 && sdC.length > 0, // (the feat Sudden Dark, ours: 10-30)
       why: !(T.bonus > 0) ? 'the bonus action is spent' : 'no flame within 30 ft that you can see', note: 'a bonus action: one flame no magic made goes out -- a torch, a lantern, a brazier' }); }
+    if (F.lamp(u)) { var plC = F.pinTargets(B, u); out.push({ id: 'pinlight', label: 'PIN THE LIGHT', cost: 'B', icon: 'lantern', skill: true, ok: T.bonus > 0 && plC.length > 0, // (the Lampwright's, ours: 11-03)
+      why: !(T.bonus > 0) ? 'the bonus action is spent' : 'no one within 30 ft that you can see', note: 'Cunning Action: a mote on one within 30 ft -- DEX DC ' + u.spellDC + ' -- bright 10 ft, no hiding, nothing gained by being invisible, till your next turn' }); }
     if (F.green(u)) { var gdC = F.greenDown(B, u); out.push({ id: 'greenagain', label: 'GREEN AGAIN', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && gdC.length > 0 && u.hp > u.lvl, // (the Oath of the Green Return, ours: 10-30)
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : !gdC.length ? 'no one of yours down within 30 ft that you can see' : 'it would take your last hit points', note: 'Channel Divinity: one of yours at 0 HP within 30 ft stands with ' + u.lvl + ' HP, and you lose as many' }); }
     if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
@@ -1342,6 +1376,11 @@
         var pkD = c.target && (c.target.l || c.target.w) ? c.target : sdL.length === 1 ? sdL[0] : null;
         if (!pkD) { var vD = yield { prompt: { who: u, title: u.name + ': SUDDEN DARK -- WHICH FLAME?', lines: ['A gold square: the flame that goes out.'], opts: sdL.map(function (q, i) { return { label: q.name.toUpperCase(), value: i + 1 }; }).concat([{ label: 'NOT NOW', value: 0 }]), pick: sdL, squares: true } }; if (!vD) return; pkD = sdL[vD - 1]; }
         F.suddenDark(B, u, pkD); return;
+      }
+      case 'pinlight': { // (the Lampwright's Cunning Action, ours: 11-03) -- the creature picked on the grid, as a spell's target
+        var plE = F.pinTargets(B, u); if (!plE.length || !(u.turn.bonus > 0)) return;
+        t = c.target && plE.indexOf(c.target) >= 0 ? c.target : yield* pickOne(B, u, 'PIN THE LIGHT', plE, 'One within 30 ft that you can see: a DEX save (DC ' + u.spellDC + ') or a mote of your light clings to it.');
+        if (t) yield* F.pinLight(B, u, t); return;
       }
       case 'greenagain': { // (the Oath of the Green Return's Channel Divinity, ours: 10-30)
         var gdE = F.greenDown(B, u); if (!gdE.length || !chan(u) || u.hp <= u.lvl || !(u.turn.action > 0)) return;

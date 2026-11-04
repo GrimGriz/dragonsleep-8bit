@@ -78,7 +78,7 @@
   SP.model = function (h, o) {
     o = o || {};
     var RC = R.CLASSES[h.cls] || { name: cap1(h.cls), hd: 8, saves: [], armor: [], weapons: [] }, hero = (h.id && DS.DATA.heroes[h.id]) || null, race = raceOf(h, hero);
-    var prof = R.prof(h.lvl), heroExp = (hero && hero.expertise) || [];
+    var prof = R.prof(h.lvl), heroExp = hero && R.expert1 ? R.expert1(h) : (hero && hero.expertise) || []; // (the 1st level's pair as chosen: js/rules.js R.expert1, 11-03)
     var m = { name: plain(h.name) || RC.name, cls: h.cls, lvl: h.lvl, at: o.at || new Date(), word: o.word || null };
     m.fullName = hero && hero.fullName && hero.fullName !== h.name ? plain(hero.fullName) : null;
     m.line = [RC.name + ' ' + h.lvl, h.subclass, (hero && hero.race) || (race && race.name), hero && hero.background].filter(Boolean).map(plain);

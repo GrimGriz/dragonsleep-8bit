@@ -282,6 +282,7 @@
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
+    wicklore: { mate: null }, hoodedlamp: { mate: null }, pinthelight: { foe: 3, mate: null }, byherownlight: { mate: null }, // (the Lampwright, ours, 11-03: no friend beside the foe)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
     sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
     quickenedspell: { foe: 3 }, twinnedspell: { foe: 3 }, carefulspell: { foe: 2, mate: 'flank' }, heightenedspell: { foe: 2 }, subtlespell: { foe: 2 }, empoweredspell: { foe: 2 },
@@ -558,6 +559,8 @@
         D.rules.startTurn(u); B.active = u; yield 50; yield* swing(c, null, 1, true);
       },
       threshing: function* (c) { c.foes[0].conds.prone = true; yield 20; yield* swing(c, null, 3, true); },
+      // the Lampwright (ours, 11-03; js/features.js F.ownLight): her mote on the foe, no friend beside it and no advantage -- her blow's Sneak Attack, BY HER OWN LIGHT
+      byherownlight: function* (c) { var t = c.foes[0]; t.conds.pinned = { by: c.hero.id, till: { who: c.hero.id, at: 'start', n: 1 } }; B.lightMap = null; yield 30; yield* swing(c, t, 3, true); },
       // the Drillyard (ours, 10-30; js/features.js F.drill): a hit and its play (the first offered: BIND); the mark called and a friend's hit on it; a push that does not move it
       followthrough: function* (c) { var t = c.foes[0]; t.hp = 2; yield* fire(B.exec(c.hero, { do: 'wideswing' })); yield 20; yield* swing(c, t, 3, true); }, // (the wide swing's hit on one at 2 HP: its excess carried on to the next beside)
       heldbreath: swings(4), // (a shot without a step: "held breath +" one more die on the first hit)

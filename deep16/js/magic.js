@@ -1106,7 +1106,7 @@
       var k = obscuredBetween(B, a, b);
       if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' || k === 'kill' ? 'the cloud' : k };
     }
-    if (b.conds && b.conds.invisible && !b.conds.faerie && !b.conds.branded && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
+    if (b.conds && b.conds.invisible && !b.conds.faerie && !b.conds.pinned && !b.conds.branded && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
     if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
     return { ok: true };
   };

@@ -408,6 +408,7 @@
     if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
     if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (spec.plays || ['wheel', 'bind', 'breakstride', 'pinshield', 'callmark']).slice(0, lvl >= 7 ? 5 : 3); } // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
+    if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
     if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
     if (cls === 'warlock' && lvl >= 3 && spec.pact === 'blade') { // the pact weapon in hand; what it carried takes the second place

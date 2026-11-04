@@ -73,10 +73,12 @@
     if (!u || u.dead || u.ethereal || u.left) return out;
     var cx = u.x + ((u.size || 1) - 1) / 2, cy = u.y + ((u.size || 1) - 1) / 2;
     // (`rec`: the spell's own record on him, { by, from, lv } -- where it was cast from and its level, for a Globe of Invulnerability: L.map carves the globe's squares out of it)
-    var add = function (b, d, color, flame, kind, rec) { var l = { x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }; if (rec && typeof rec === 'object' && rec.from) { l.from = rec.from; l.lv = rec.lv; l.by = rec.by; } out.push(l); };
+    // (`maker`: the one whose light it is -- a Light's caster, a mote's pinner: the Lampwright's Hooded Lamp and By Her Own Light read it, L.madeBy; 11-03)
+    var add = function (b, d, color, flame, kind, rec) { var l = { x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }; if (rec && typeof rec === 'object' && rec.from) { l.from = rec.from; l.lv = rec.lv; l.by = rec.by; } if (rec && typeof rec === 'object' && rec.by) l.maker = rec.by; out.push(l); };
     if (u.torch && u.torch.lit) { var tr = L.radii(u.torch); add(tr.bright, tr.dim, 'gold', true, L.kindOf(u.torch)); }
     if (u.glow && u.hp > 0 && !u.conds.invisible) add(u.glow.bright, u.glow.dim, u.glow.color || 'glow', false, 'glow'); // (a creature's own light: the wisp's, and "its light magically becomes invisible" with it)
     if (u.conds.light) add(20, 20, 'glow', false, 'light', u.conds.light);       // the Light cantrip, on him or his gear
+    if (u.conds.pinned && u.hp > 0) add(10, 10, 'glow', false, 'mote', u.conds.pinned); // the Lampwright's PIN THE LIGHT: bright 10 ft, dim 10 more (js/features.js F.pinLight, 11-03)
     if (u.conds.daylight) add(60, 60, 'bone', false, 'daylight', u.conds.daylight); // Daylight cast on a point he stood on: it goes with him
     if (u.conds.sacred && u.hp > 0) add(20, 20, 'gold', false, 'sacred');         // Sacred Weapon's glow (SRD: bright 20 ft)
     // a Continual Flame rides the weapon it was set on (the 8-bit keeps the weapon's id): it shines while that weapon is in hand
@@ -139,6 +141,34 @@
     return lm.lv[y * lm.w + x] || 0;
   };
   L.levelOf = function (B, u) { var best = 0; G.foot(u).forEach(function (p) { best = Math.max(best, L.levelAt(B, p[0], p[1])); }); return best; };
+  // the Lampwright's own lights (ours, 11-03 -- js/features.js F.lamp): a light made by `id` -- her Light on whoever carries it, her Dancing Lights, her pinned mote
+  L.madeBy = function (l, id) { return !!id && (l.maker === id || (l.kind === 'dance' && l.by === id)); };
+  // the light at u's squares from the lights `keep` lets through, laid as L.map lays them (a wall stops it, a globe carves a spell's, magical darkness takes it); `any`: read
+  // even where the place has no dark (a lit hall: the light is still there to stand in)
+  function levelBy(B, u, keep, any) {
+    if (!B || !B.map || (!B.dark && !any)) return 2;
+    var m = B.map, M = D.magic, tall = D.grid.tall && D.grid.tall(), ls = L.all(B).filter(keep), best = 0;
+    G.foot(u).forEach(function (p) {
+      var x = p[0], y = p[1], s = m.at(x, y); if (!s || !s.open) return;
+      if (M && M.darkKindAt && (B.darks || []).length && M.darkKindAt(B, x, y) === 'darkness') return;
+      ls.forEach(function (l) {
+        var lx = Math.round(l.x), ly = Math.round(l.y), lz = tall && m.at(lx, ly) ? m.gz(lx, ly) : 0;
+        var d = Math.hypot(x - l.x, y - l.y, tall ? (m.gz(x, y) - lz) / m.def.step / 2 : 0) * 5, v = l.bright > 0 && d <= l.bright + 0.01 ? 2 : d <= l.bright + l.dim + 0.01 ? 1 : 0;
+        if (v <= best || !L.reaches(B, l, x, y)) return;
+        if (!(x === lx && y === ly) && !G.losPoint(lx, ly, x, y)) return;
+        best = v;
+      });
+    });
+    return best;
+  }
+  // how lit u is to another's eyes: as it stands, but for a Lampwright of the 3rd her own lights never show her (HOODED LAMP: "to anyone else the light seems to hang there on
+  // its own") -- L.seesBy and battle.js seenBy read it
+  L.levelSeen = function (B, u) {
+    if (!(u && u.cls === 'rogue' && u.subclass === 'the Lampwright' && u.lvl >= 3) || !B || !B.dark) return L.levelOf(B, u);
+    return levelBy(B, u, function (l) { return !L.madeBy(l, u.id); });
+  };
+  // the light at u from lights `id` made alone (BY HER OWN LIGHT, js/features.js F.ownLight): 0 none of it
+  L.levelFrom = function (B, u, id) { return levelBy(B, u, function (l) { return L.madeBy(l, id); }, true); };
   L.brightAt = function (B, u) { return L.levelOf(B, u) === 2; };
   // bright light the party made reaching a creature (a torch, the Light cantrip, Daylight, a burning blade): what hates light is
   // dazzled by that, never by its own campfire or the place's lamp (a map light is the creature's own ground)
@@ -181,7 +211,7 @@
     if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };
     if (a.blindsight && G.dist(a, b) <= a.blindsight) return { ok: true };
     if (a.blind) return { ok: false, why: 'blind' }; // (a grimlock past its blindsight: eyeless)
-    if (L.levelOf(B, b) >= 1) return { ok: true };
+    if (L.levelSeen(B, b) >= 1) return { ok: true }; // (a Lampwright's own light shows her to no one: L.levelSeen, 11-03)
     var dv = a.darkvision || 0;
     if (dv && G.dist(a, b) <= dv) return { ok: true, dv: true };
     return { ok: false, why: 'dark' };

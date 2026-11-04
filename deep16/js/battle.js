@@ -2469,8 +2469,10 @@
     var sneaked = false;
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
       var ally = this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; });
-      if (e.net > 0 || ally) {
+      var ownL = !(e.net > 0 || ally) && D.features && D.features.ownLight && D.features.ownLight(this, att, tgt); // (By Her Own Light, the Lampwright's 9: in light she made, neither needed -- 11-03)
+      if (e.net > 0 || ally || ownL) {
         att.turn.sneakUsed = true; sneaked = true;
+        if (ownL) parts.push('{c}BY HER OWN LIGHT{/}'); // (the feature's name)
         var sn = D.roll(RU.sneakDice(att), { crit: crit }); dmg += sn.total;
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
@@ -3680,7 +3682,7 @@
   Battle.prototype.seenBy = function (w, u, hide) {
     var s = D.magic.seeWhy(this, w, u), l = G.los(w, u, undefined, undefined, hide); if (!s.ok || !l.clear || l.cover) return 0;
     if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
-    return s.dv || (D.light && D.light.levelOf(this, u) < 2) ? 1 : 2;
+    return s.dv || (D.light && (D.light.levelSeen || D.light.levelOf)(this, u) < 2) ? 1 : 2; // (a Lampwright's own light shows her to no one: light.js L.levelSeen, 11-03)
   };
   // ---- the neighbourhood (10-04, Griz: "the stealth roll hides outside of 15 feet of each opponent, that 15' divided into front and back (squares 1-3 front,
   // 4 & 6 the sides, 7-9 the back) ... a hidden entering squares 1-3 would get a perception check +5 that had to beat the stealth roll, and 4 & 6 would be +3 (bright
@@ -3724,6 +3726,7 @@
   // w finds u (hidden by B.hide): its passive Perception plus the bonus of where u stands beats the Stealth total u rolled when it hid (held -- Griz 10-04, "the existing
   // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null
   Battle.prototype.spots = function (w, u) {
+    if (D.features && D.features.ownLight && G.hostile(w, u) && D.features.ownLight(this, w, u)) return 'in ' + shortName(w) + '\'s own light: By Her Own Light'; // (the Lampwright's 9: nothing hides from her in light she made -- 11-03)
     var n = this.nearOf(w, u); if (!n || !n.bonus) return null;
     var pp = w.perception + (w.twoHeads ? 5 : 0) + n.bonus; if (pp <= u.hidTotal) return null;
     return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
@@ -3797,11 +3800,12 @@
       // square she moves into after, a fresh roll (Battle.spots)
       var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + n.bonus : 0; }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
-      var gd = u.conds.guidance && !u.conds.faerie && total < worst() && total + 4 >= worst() && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
+      var gd = u.conds.guidance && !u.conds.faerie && !u.conds.pinned && total < worst() && total + 4 >= worst() && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd; u.hidTotal = total;
       var rr = { t: total, r: r }, why = '';
       foes.forEach(function (w) { if (!why) why = self.spots(w, u, rr) || ''; });
-      var ok = !why && !u.conds.faerie; // (faerie: outlined in violet light, nowhere to hide)
+      var ok = !why && !u.conds.faerie && !u.conds.pinned; // (faerie: outlined in violet light, nowhere to hide; pinned: the Lampwright's mote on it, the same -- 11-03)
+      if (!why && u.conds.pinned) why = 'a mote of light clings to ' + u.name + ': nowhere to hide';
       this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + Battle.shakenTag(u) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; ' + u.name + '\'s next attack has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}' : why ? '{g}' + why + '.{/}' : '']);
       if (ok) u.conds.hidden = true; else delete u.hidTotal;
     }

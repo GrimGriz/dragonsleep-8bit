@@ -927,6 +927,10 @@
     (d.featText || []).forEach(function (f) {
       if ((f.lvl && f.lvl > h.lvl) || (f.sub && f.sub !== h.subclass)) return;
       if (f.style) { var st = R0.STYLES[R0.style(h)]; if (st) out.push({ t: 'Fighting Style: ' + st.name + ' (' + st.words + ')', use: false }); return; } // (the style the hero fights by, chosen as it joins or begins: 11-03)
+      if (f.expertise) { // (the skills she chose: the 1st level's pair, R.expert1, and the 6th's -- 11-03; the sheet's words named only its own)
+        var e1 = R0.expert1(h), ex = f.expertise === 1 ? e1 : (h.expertise || []).filter(function (x) { return e1.indexOf(x) < 0; });
+        if (ex.length) out.push({ t: 'Expertise: ' + ex.join(', '), use: false }); return;
+      }
       out.push({ t: f.t, use: !!f.use });
     });
     out.forEach(function (f) { // (the class's numbers in the sheet's own line: STATUS listed Sneak Attack twice, 10-06)

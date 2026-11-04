@@ -1302,7 +1302,7 @@
     // the duergar's Invisibility (SRD, an action; torchdark 09-28): with no one in reach yet it fades from sight and closes unseen;
     // the first blow, a spell or its Enlarge ends it (battle.js attack)
     // (not while Faerie Fire outlines it or a Branding Smite has found it -- both beat the invisible, magic.js seeWhy, and Branding Smite's "can't become invisible until the spell ends": the action was wasted, 11-03)
-    if (u.invis && !u.invis.used && !u.conds.invisible && !u.conds.faerie && !u.conds.branded && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
+    if (u.invis && !u.invis.used && !u.conds.invisible && !u.conds.faerie && !u.conds.pinned && !u.conds.branded && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
       T.action = 0; u.invis.used = !u.invis.atWill; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
       B.card(['{r}' + the(B, u) + '{/} fades out of sight.  {g}(Invisibility: till it attacks, casts or grows){/}'], 360);
       yield 30;

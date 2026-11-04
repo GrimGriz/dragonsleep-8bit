@@ -142,6 +142,11 @@
     var d = DS.DATA.heroes[h.id];
     var lu = (d.levels && d.levels[h.lvl]) || {};
     var asks = [], said = []; // (what this level gives that the player chooses, the build's default already taken: R.ask below, the level-up pick -- 10-14; `said`, its lines)
+    if (lu.expertise) { // (the sheet's pair, less any the 1st level's choice took -- R.expert1, 11-03 -- topped up from her other skills)
+      var e1L = R.expert1(h), exL = lu.expertise.filter(function (x) { return e1L.indexOf(x) < 0; });
+      Object.keys(h.skills || {}).forEach(function (k) { if (exL.length < lu.expertise.length && e1L.indexOf(k) < 0 && exL.indexOf(k) < 0 && (h.expertise || []).indexOf(k) < 0) exL.push(k); });
+      lu = Object.assign({}, lu, { expertise: exL });
+    }
     if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); said.push('Expertise: ' + lu.expertise.join(', ') + '.'); msgs.push(said[said.length - 1]); asks.push({ kind: 'expertise', need: lu.expertise.length, took: lu.expertise.slice() }); }
     if (lu.asi || R.asiLevels(h.cls).indexOf(h.lvl) >= 0) { // (the class's levels for a sheet that does not name one: Brann at 6, 10-14 -- "I just clicked brann from L5 to L6 and expected choices")
       var asi = lu.asi || c.asi, parts = [], got = {};
@@ -291,7 +296,12 @@
     'colorspray', 'grease', 'hideouslaughter', 'falselife', 'expeditiousretreat', 'longstrider', 'protectionfromevilandgood', 'fogcloud',
     'acidarrow', 'blur', 'mirrorimage', 'rayofenfeeblement', 'gustofwind', 'enlargereduce', 'magicweapon', 'invisibility', 'darkvision', 'seeinvisibility', 'continualflame', 'darkness',
     'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm', 'counterspell',
-    'searingscourge', 'deathhandsscourge'];
+    'searingscourge', 'deathhandsscourge',
+    // (11-03, the leveling lane -- Griz: "We should at least have their choices to 6 if not 9 before we divert usage to the inn": the SRD 5.1's wizard spells built on the grid that
+    // the pick never offered -- at 7 he had three 4th-level spells to choose two from, at 9 two 5th-level)
+    'charmperson', 'blindnessdeafness', 'flamingsphere', 'bestowcurse', 'fly',
+    'banishment', 'blacktentacles', 'blight', 'confusion', 'dimensiondoor', 'fireshield', 'phantasmalkiller', 'polymorph', 'resilientsphere', 'walloffire',
+    'cloudkill', 'conjureelemental', 'dominateperson', 'mislead', 'wallofstone'];
   R.WIZARD_CANTRIPS = ['firebolt', 'acidsplash', 'light', 'rayoffrost', 'shockinggrasp', 'chilltouch', 'poisonspray', 'truestrike', 'dancinglights'];
   // the subclass a class chooses, the SRD's and ours (10-14, the level-up pick §5, routed 10-08 from the GreyFang window; Griz, 10-14: "better build it for the
   // pocket DM as well, there are actual choices to work with"): `at` the class level it comes, `word` the SRD's name for it, the options with their `id` (the
@@ -322,7 +332,9 @@
       { id: 'greyroad', name: 'the Grey Road', desc: "GreyFang's, the pit-master's way. Turn It Aside: the reaction adds WIS to the AC of one within 5 ft. Pit-Wise: rising and climbing cost less. At 7, Give Ground: the reaction steps back from a foe, and the next bow shot at it has advantage." }] },
     rogue: { at: 3, word: 'ROGUISH ARCHETYPE', opts: [
       { id: 'thief', name: 'Thief', srd: true, desc: 'Fast Hands: using an item is a bonus action. At 9, Supreme Sneak.' },
-      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: any weapon attack (a bow's shot too) at a foe that hasn't had its first turn, then one more at it, the weapon's dice alone (no bonuses)." }] }, // (RULED 10-31, Griz: "weapon attack")
+      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Stab Debut: any weapon attack (a bow's shot too) at a foe that hasn't had its first turn, then one more at it, the weapon's dice alone (no bonuses)." }, // (RULED 10-31, Griz: "weapon attack")
+      // (the Lampwright, ours: 11-03, the leveling lane -- Griz, "1 yes", built before the inn; leveling-srd-by-class.md 7.2; deep16/js/features.js F.lamp, light.js L.levelSeen)
+      { id: 'lampwright', name: 'the Lampwright', desc: "Ours: the light she carries and the light she takes away. Wick-Lore: Light and Dancing Lights, by INT. Hooded Lamp: her own light never shows her. Pin the Light: her Cunning Action sets a mote on one within 30 ft (DEX save) -- no hiding, no help from being invisible, till her next turn. At 9, By Her Own Light: in light she made, her Sneak Attack needs no edge or friend." }] },
     warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
       { id: 'fiend', name: 'The Fiend', srd: true, desc: "Dark One's Blessing: a foe it drops gives temporary HP. At 6, Dark One's Own Luck." },
       { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." }] },
@@ -460,6 +472,7 @@
   // plays (deep16/js/classes.js R.subFill: the class card's own first ones); the Threshing Floor's Up Off the Floor. R.refresh keeps them at the rests after
   R.subFeats = function (h) {
     var f = h.feats = h.feats || {};
+    if (h.cls === 'rogue' && h.lvl >= 3 && h.subclass === 'the Lampwright') { h.known = h.known || []; ['light', 'dancinglights'].forEach(function (id) { if (h.known.indexOf(id) < 0) h.known.push(id); }); } // (Wick-Lore, the Lampwright's: 11-03)
     if (h.cls !== 'fighter' || h.lvl < 3) return;
     if (h.subclass === 'the Drillyard' && f.openings == null) f.openings = h.lvl >= 7 ? 3 : 2;
     if (h.subclass === 'the Threshing Floor' && f.upOff == null) f.upOff = 1;
@@ -479,6 +492,15 @@
       asks.push({ kind: 'option', key: 'style', word: 'FIGHTING STYLE', need: 1, one: true, sheet: true, took: sf.indexOf(cur) >= 0 ? cur : null,
         rows: sf.map(function (k) { return { id: k, name: R.STYLES[k].name, desc: R.STYLES[k].words || '', max: 1 }; }) });
       at.push(sa);
+    }
+    // the rogue's Expertise at 1 (SRD 5.1: two of her skill proficiencies; his "4 yes" to the leaning seat, 11-03): her sheet's pair marked, the skills she has offered -- not one
+    // a later level already made expert (one hired at 6)
+    var dh = DS.DATA.heroes[h.id] || {};
+    if (h.cls === 'rogue' && (dh.expertise || []).length && !R.chosen(h, 1, 'expertise1') && !waiting('expertise1')) {
+      var e1 = R.expert1(h), later = (h.expertise || []).filter(function (x) { return e1.indexOf(x) < 0; }), sks = Object.keys(h.skills || {}).filter(function (k) { return later.indexOf(k) < 0; });
+      asks.push({ kind: 'option', key: 'expertise1', word: 'EXPERTISE', need: Math.min(e1.length, sks.length), sheet: true, took: e1.filter(function (k) { return sks.indexOf(k) >= 0; }),
+        rows: sks.map(function (k) { return { id: k, name: k, max: 1, desc: h.name + '\'s proficiency counts twice for ' + k + '.' + (k === 'Stealth' ? ' (HIDE reads Stealth.)' : '') }; }) });
+      at.push(1);
     }
     if (!asks.length) return false;
     (h.picks = h.picks || []).push({ lvl: Math.min.apply(null, at), asks: asks, start: word || 'JOINS THE PARTY' });
@@ -530,7 +552,7 @@
       return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + light + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : R.featWant(h, f, took) }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
     if (ask.kind === 'expertise') {
-      var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));
+      var have = R.expert1(h).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));
       return Object.keys(h.skills || {}).filter(function (k) { return have.indexOf(k) < 0; }).map(function (k) {
         return { id: k, name: k, max: 1, desc: h.name + "'s proficiency counts twice for " + k + '.' + (k === 'Stealth' ? ' (HIDE reads Stealth.)' : '') };
       });
@@ -581,7 +603,7 @@
         h.subclass = v;
         // (the class's word where the sheet has no list of its own -- "Barley's martial archetype: the Drillyard." -- and Vivian's as it always was, 11-03)
         var dA = DS.DATA.heroes[h.id] || {}, scW = !dA.archetypes && a.word;
-        lines.push(scW ? h.name + '\'s ' + scW.toLowerCase() + ': ' + v + '.' : h.name + ' is a ' + v + '.');
+        lines.push(scW ? h.name + '\'s ' + scW.toLowerCase() + ': ' + v + '.' : /^the /.test(v) ? h.name + ': ' + v + '.' : h.name + ' is a ' + v + '.'); // ("Vivian: the Lampwright.")
         R.subFeats(h);
         // (its own options at this level asked next, on the page again -- the Drillyard's three plays: js/menu.js MN.openPicks opens a record that gained asks once more.
         // A story sheet's alone: an ask the maker made (`rows`) brings its options itself, deep16/js/classes.js NPC.levelAsks)
@@ -882,13 +904,17 @@
   };
   // skills are written at proficiency +2; they grow with it, twice over where there's expertise, and a skill that gains
   // expertise later (the rogue at 6) adds proficiency once more
+  // (the 1st level's Expertise as chosen -- h.expertise1, asked as she begins or joins: R.askStart, 11-03, his "4 yes" -- the written numbers carry the sheet's own pair, so a
+  // skill the choice takes off is one proficiency less at 2, and one it puts on one more)
   R.skill = function (h, name, ab) {
     var s = h.skills && h.skills[name], d = h.id && DS.DATA.heroes[h.id], p = R.prof(h.lvl);
     if (s == null) return DS.mod(h.abil[ab]) + (R.champion(h) && h.lvl >= 7 && /^(str|dex|con)$/.test(ab) ? Math.ceil(R.prof(h.lvl) / 2) : 0); // (Remarkable Athlete, SRD 5.1, the Champion's 7: half its proficiency, rounded up, to a STR, DEX or CON check it is not proficient in -- R.initBonus has the initiative; the grid's rules §2d, 10-08)
-    var base = (d && d.expertise) || [], later = (h.expertise || []).filter(function (x) { return base.indexOf(x) < 0; });
+    var d0 = (d && d.expertise) || [], base = R.expert1(h), later = (h.expertise || []).filter(function (x) { return base.indexOf(x) < 0; });
+    var shift = (base.indexOf(name) >= 0 ? 2 : 0) - (d0.indexOf(name) >= 0 ? 2 : 0);
     var grown = d && d.abil && d.abil[ab] != null ? DS.mod(h.abil[ab]) - DS.mod(d.abil[ab]) : 0; // an ability raised since level 2 raises its skills
-    return s + (p - 2) * (base.indexOf(name) >= 0 ? 2 : 1) + (later.indexOf(name) >= 0 ? p : 0) + grown;
+    return s + shift + (p - 2) * (base.indexOf(name) >= 0 ? 2 : 1) + (later.indexOf(name) >= 0 ? p : 0) + grown;
   };
+  R.expert1 = function (h) { var d = h && h.id && DS.DATA.heroes[h.id]; return ((h && h.expertise1) || (d && d.expertise) || []).slice(); };
   R.spellDC = function (h) { var c = R.CLASSES[h.cls], w = R.item(h.equip.weapon); return 8 + R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']) + ((w && w.weapon && w.weapon.dcBonus) || 0); };
   R.spellAtk = function (h) { var c = R.CLASSES[h.cls]; return R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
   R.initBonus = function (h) { return DS.mod(h.abil.dex) + (R.champion(h) && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
@@ -919,7 +945,10 @@
   // `spellOf` is the lookup (DEEP16 passes its own, which also knows the grid's spells)
   // Command, Branding Smite and Magic Weapon joined 09-28 (built on the grid for the class NPCs; RULED 09-28g, Griz: "they have to be
   // able to transfer back and forth from 16bit fights" -- so the 8-bit battle casts them too, js/battle.js)
-  R.PALADIN_SPELLS = ['bless', 'command', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'brandingsmite', 'magicweapon', 'revivify', 'daylight'];
+  R.PALADIN_SPELLS = ['bless', 'command', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'brandingsmite', 'magicweapon', 'revivify', 'daylight',
+    // (11-03, his "their choices to 6 if not 9": the SRD 5.1's paladin spells built on the grid that Lymen's day never offered -- the list was the first game's till the freeze -- and
+    // Called to Account, ours, a paladin's since 10-30)
+    'protectionfromevilandgood', 'calledtoaccount', 'protectionfrompoison', 'dispelmagic'];
   function spellData(id) { return DS.DATA.spells[id]; }
   // a spell's school (SRD 5.1's, in its record since 10-31 -- tools/spell-schools.py, the leveling lane §8 item 11; ours only by his word): null when it has none
   R.school = function (id) { var sp = spellData(id); return (sp && sp.school) || null; };
@@ -931,7 +960,7 @@
   R.oathSpells = function (h) {
     if (h.cls !== 'paladin' || h.lvl < 3) return [];
     if (!R.devotion(h)) return ['longstrider'].concat(h.lvl >= 5 ? ['barkskin', 'spikegrowth'] : [], h.lvl >= 9 ? ['daylight'] : []);
-    return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : []);
+    return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : [], h.lvl >= 9 ? ['beaconofhope', 'dispelmagic'] : []); // (the 9th's two, the SRD's, built on the grid -- held out while the first game shared this list; 11-03. Zone of Truth, the 5th's other, is not built)
   };
   R.prepCount = function (h) {
     if (h.cls === 'wizard') return Math.max(1, DS.mod(h.abil.int) + h.lvl);
