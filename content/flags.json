@@ -225,6 +225,8 @@
     "unlawful": "set: js/deep.js; read: js/deep.js",
     "vivTried": "set: js/deep.js; read: js/deep.js",
     "wagonGift": "set: js/events.js; read: js/events.js",
+    "wagonIn": "set: deep16/js/inn.js In.wagonNight (the wagon staged in the yard for the night); read: deep16/js/inn.js In.map",
+    "katYard": "set: deep16/js/inn.js In.wagonNight (Katarina come down into the yard on the wagon night); read: deep16/js/inn.js In.map",
     "wagonNight": "set: js/events.js, js/situations.js; read: js/events.js, maps/halfway.json",
     "wagonOutcome": "set: js/events.js, js/situations.js, js/world.js; read: js/world.js",
     "warrantShield": "set: js/deep.js, js/situations.js; read: content/quests.json, js/deep.js",
