@@ -700,7 +700,7 @@
     src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid'
   },
   amara: {
-    named: true, name: 'Amara', type: 'humanoid', sheet: 'amara_p1', cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, // (hp: warlock 5 at a max d8+1 a level, RULED 09-28; the speed, size and reach sat behind this comment from e8435b3 to 09-28, so she had none)
+    named: true, name: 'Amara', type: 'humanoid', sheet: 'amara_p2', cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, // (sheet: the art desk's HALFWAY-INN-AMARA-COMBAT since 11-04, art-wanted section 35, tools/amara-sheet.py -- idle, walk, run, cast, flinch, fall, prone in eight facings; amara_p1, the old render, kept beside it) (hp: warlock 5 at a max d8+1 a level, RULED 09-28; the speed, size and reach sat behind this comment from e8435b3 to 09-28, so she had none)
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },

@@ -1,0 +1,80 @@
+{
+ "image": "art/amara_p2.png",
+ "fw": 42,
+ "fh": 64,
+ "ax": 21,
+ "ay": 60,
+ "top": 48,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 42,
+   "fh": 64,
+   "ax": 21,
+   "ay": 60,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 512,
+   "fw": 46,
+   "fh": 64,
+   "ax": 23,
+   "ay": 60,
+   "frames": 8,
+   "fps": 10
+  },
+  "run": {
+   "y": 1024,
+   "fw": 52,
+   "fh": 64,
+   "ax": 26,
+   "ay": 60,
+   "frames": 8,
+   "fps": 12
+  },
+  "cast": {
+   "y": 1536,
+   "fw": 48,
+   "fh": 64,
+   "ax": 24,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2048,
+   "fw": 50,
+   "fh": 64,
+   "ax": 25,
+   "ay": 60,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2560,
+   "fw": 68,
+   "fh": 64,
+   "ax": 34,
+   "ay": 60,
+   "frames": 4,
+   "fps": 10
+  },
+  "prone": {
+   "y": 3072,
+   "fw": 70,
+   "fh": 64,
+   "ax": 35,
+   "ay": 60,
+   "frames": 4,
+   "fps": 10
+  }
+ },
+ "name": "Amara",
+ "hold": [
+  "SE cast: frame 3 lifts the near arm, 4-5 the far arm (the art desk's own review note)",
+  "N walk and run: the same boot leads in several frames (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-AMARA-COMBAT, 11-04: art-wanted section 35, her fight figure in five views, seven rows a view), cut by tools/amara-sheet.py; SW W NW mirrored; amara_p1 (the old render) kept beside it"
+}
