@@ -8,6 +8,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 - 2026-11-04 · the Halfway Inn's props and walls, art-wanted section 36 (the art desk's nine pages, HALFWAY-INN-PAGES-01-09.zip: P01 hearths, P02 common room, P03 kitchen, P04 rooms, P05 barn, P06 yard and shore, P07 walls, P08 roofs, P09A supper and lighting, P09B utility and shore, a CUTTER-NOTES.md a page; the single-page zips byte-identical, in `_dupes/`) · `deep16/_src/halfway-inn/ART-36-PAGES-01-09/` · pages 1-2 cut into `innprops_p1` (the hearths and their fires, the long table, the settle, the table for two and its chairs) and laid by `deep16/js/innprops.js`, `269822b6`; the counter and the stair held (`deep16-dream-polish.md`); pages 3-9 in hand, waiting for the cutter (the walls and roofs want a new draw path in js/iso.js -- the inn lane)
+- 2026-11-04 · the art desk's 10-30 batches: Idony's E, NE and N (ART-123-IDONY-TOWN-FINAL), Elsbeth the candle girl's portrait (ART-123-ELSBETH-PORTRAITS-PARTIAL, its Work held) and town figure (ART-123-ELSBETH-TOWN), the Hex boy (ART-126-HEXBOY-BATCH-F), Winters' four scene rows (ART-78-SCENES-2026-10-30-I) -- art-wanted sections 26, 30 and 19 · `deep16/_src/idony/`, `elsbeth/`, `hexboy/`, `winters/` · cut into `idony_p1` (all eight), `pt_elsbethCandles`, `elsbethCandles_p1` (all eight), `pt_hexboy`, `pt_winters` rows present, nod, averted, drawer by `tools/keeper-town-sheet.py` and `tools/portrait-sheet.py`, `HASH-BATCH`
 - 2026-11-04 · the Halfway Inn's people IN PART, art-wanted section 35 (the art desk's HALFWAY-INN-AMARA-PORTRAITS, -COMBAT -- five views, seven rows a view -- and -MOUNTED, and HALFWAY-INN-ELSBETH-TUB, -TUB-PORTRAITS, -SE-E-NE) · `deep16/_src/amara/INN-*-1104/`, `deep16/_src/elsbeth/INN-*-1104/` · cut into `pt_amara`, `amara_p2` (in the bestiary's `amara`), `amaramounted_p1` (unwired), `pt_elsbethtub` (her word at the inn) and `elsbethhome_p1` (unwired; her views from behind at the tub HELD) by `tools/portrait-sheet.py`, `tools/amara-sheet.py`, `tools/amara-mounted-sheet.py`, `tools/elsbeth-home-sheet.py`, `HASH-PEOPLE`
 - 2026-11-04 · the one-handed slash over the mannequin, art-wanted section 34 (the art desk's BARLEY-SLASH-PILOT-2026-11-04: five pages, Barley in mail with the longsword drawn along the bar, six frames, the hit on 4; SE NE S E candidates, N HELD for frame 5's left hand) · `deep16/_src/barley/SLASH-PILOT-2026-11-04/` · cut into `barley_p3` row `longsword` (S SE E NE, SW W NW mirrored, N held) by `tools/barley-slash-sheet.py`, `5c53084d`; the score in `deep16/art-src/mannequin/README.md`: the generator followed the pose
 - 2026-10-31 · free Grok's baseline of art-wanted section 34, a test (five pages, SE NE S E N: Barley in mail punching over the mannequin's slash, six frames, the hit on 4, empty fists; Griz: "we'll see what free grok comes back with as a baseline") · `deep16/_src/barley/GROK-SLASH-2026-10-31/` (sorted out of Fresh), `tools/barley-grokslash-sheet.py` -> `barley_grokslash_p1` (nothing plays it: `slash` S SE E and their mirrors, NE and N apart in `slashback` on the desk's guard; the longsword drawn in at 1x along the mannequin's blade; the score in `deep16/art-src/mannequin/README.md`) · `6020ce34` -- section 34's GPT ask stays wanted
@@ -2634,3 +2635,105 @@ HEAD 2 -- THE TOWN FIGURE from the front, facing the viewer (south). Rows: Idle 
 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; she is a girl of sixteen, a head shorter; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame faces the way its HEAD says; the walk is animated in place. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery except the tub under the Scrub and Idle rows of HEAD 1.
 ```
 Where: the inn's kitchen (`elsbeth`: the dishes, her tiers); her face is §26's `pt_elsbethCandles` (one face serves her at the inn, as §26 says). Cut as: `tools/keeper-town-sheet.py` into `elsbeth_p1` (HEAD 1 NE: `work` and `idle` from behind; HEAD 2 S: `idle`, `walk`; the rest her candle-girl figure's when it comes); the morning after the wagon she walks over from the tub (the 8-bit's EV.wagonGift).
+
+### Ambrose Winters' poses for the ring and the copper scraping (asked 10-21 in art-wanted section 19; drawn 10-30 by the art desk, ART-78-SCENES-2026-10-30-I: present, nod, averted, drawer; CUT 11-04, `HASH-BATCH`, onto `pt_winters`)
+
+
+His words, 2026-10-21 (to the lanes desk, of the Ring of Binding and the copper scraping): *"they'll be in this one too, do you need more poses?"*. Yes: his six ART-78 pages (idle, four dialogue stills, the acquisition) cover his errands and his shelves (`deep16/js/counter.js`, the counter's screen); these are the moments his two held scenes and his own words name that no page draws. HEADs 1-4 are wanted; HEADs 5-6 are optional (his ledger and pen, which his words describe and no page shows). Drawn as ART-78 was, so `tools/portrait-sheet.py` cuts them as it cut his six. Sent to the art desk as `deep16/_src/art-desk/sent/ASK-2026-10-21-winters-poses.md`.
+
+```text
+AMBROSE WINTERS, MORE POSES (one image a HEAD). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png (his identity: the Idle page) and ART-78_HEAD-1_PAGE-6.png (his hands on the counter: the Acquisition page). The same man, the same clothes, the same camera, scale and counter as those pages: do not redesign him.
+
+AMBROSE WINTERS -- dealer in acquisitions and estates. A human man whose face does not agree with itself: the eyes and mouth of a man in his fifties set in skin that has gone suddenly, unevenly old -- deep crepe at the throat and temples, a young man's jaw beneath it, hair white at one temple and dark at the other. Excellent old clothes, decades out of date and immaculately kept: an oxblood doublet with small round buttons, a slate-grey coat, a bone-white collar and cuffs. Waist-up behind a plain dark wooden counter ledge, three-quarter front, looking screen left at someone just beside the camera.
+
+HEAD 1 -- PRESENT (6, two bands of three): the Ring of Binding. 1 his hands resting on the counter, looking at the party; 2 his right hand (screen left) goes into his waistcoat; 3 it brings out a plain ring of dull metal between finger and thumb, held up a moment; 4 he sets it on the counter in front of him; 5 two fingers slide it a hand's width toward the party (screen left); 6 his hand lifted away, both hands resting again either side, the ring on the counter. The ring small but clear on every frame it is in.
+
+HEAD 2 -- NOD (3, one band of three): "This time he nods." 1 the assessing look of his Skeptical page, chin a touch raised; 2 a slow single nod, chin down, eyes still on the party; 3 the head back up, the look eased, a guarded approval -- not a smile.
+
+HEAD 3 -- AVERTED (1, one drawing): "Winters glances at what's in your hand, and then, carefully, doesn't." His eyes turned deliberately down and away from the party's hands, toward the counter's far end (screen right); the face composed and careful; hands still on the counter.
+
+HEAD 4 -- DRAWER (6, two bands of three): a small curl of copper scraping put away. 1 his hands on the counter, a small curl of dull copper scraping lying in front of him, his eyes not on it; 2 he takes it up between finger and thumb without looking at it; 3 his hand goes down below the counter's edge, out of sight, his shoulder dipping; 4 the hand comes back up empty but for a small iron key; 5 he turns the key once at the counter's front edge, a short firm turn, eyes on the party; 6 the key gone into his waistcoat, both hands resting on the counter. Nothing written, nothing said: for him "a kind of shouting".
+
+HEAD 5 (optional) -- WRITE (6, two bands of three): his ledger. 1 a ledger open on the counter, his right hand writing a line with a dip pen, his eyes on the page; 2-3 the pen moving along the line; 4 the line finished, the pen still on the page; 5 he looks up from the ledger at the party; 6 the pen lifted a little off the page, held there: "Winters waits, pen lifted."
+
+HEAD 6 (optional) -- PEN DOWN (1, one drawing): "For once he sets the pen down." The ledger open on the counter, the pen laid flat across it, both his hands resting on the counter, looking straight at the party, attentive.
+
+16-bit pixel-art cut-scene portrait animation, comparable to his ART-78 pages and to Sylvia Swann's. Waist-up, the stable eye-level three-quarter front camera of ART-78, his head and body the same size on every page as on its Idle page; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the frames in bands of three with clear gutters between them; the counter ledge under his hands on every frame, as on the Acquisition page, its top edge at the same height on every frame. A title and frame numbers as on ART-78's pages, kept well clear of the drawings: a clear gap of navy between the title and the top of his hair, and between each number and the drawing. Nothing overlaps a neighbour. No scenery, no shop interior, no UI or border.
+```
+Cut as: `tools/portrait-sheet.py`, one line for his supplement in `PEOPLE` (its folder `deep16/_src/winters/<id>/` and a layout: HEAD 1 PRESENT 6 as two bands, HEAD 2 NOD 3 as one band, HEAD 3 AVERTED 1, HEAD 4 DRAWER 6 as two bands, HEADs 5-6 if drawn) into rows `present`, `nod`, `averted`, `drawer` (`write`, `pendown`) on `pt_winters`; the counter is cut off at its top as on his six pages. `deep16/js/counter.js` plays them in the ring's scene (winters.ready, winters.ring), the scraping's (deep.wintersCurl, deep.wintersPaid), and his menu's "pen lifted" -- when those scenes come to the grid with the lake.
+
+
+### Idony Fell and Elsbeth the candle girl (asked 10-28 in art-wanted section 26; drawn 10-30 to 11-04 by the art desk, ART-123-IDONY-TOWN-FINAL, ART-123-ELSBETH-PORTRAITS-PARTIAL and -TOWN; CUT 11-04, `HASH-BATCH`; Elsbeth's Work held by the art desk)
+
+### Idony Fell
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+IDONY FELL -- the notary's senior clerk, a human woman of about forty from the Newland coast, fifteen years in Silverton: plain, grey-eyed, dressed like a clerk and mistaken for one on purpose; reads every ledger and forgets nothing [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): turns a ledger page and runs one finger down the column, without looking down for long; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: Silverton's street by the notary's (`idony`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_idony`; `tools/keeper-town-sheet.py` into `idony_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+PARTIAL IN HAND 2026-10-30 (`1e8ae79f`): HEADs 1-6, the portrait, whole (`pt_idony`); HEAD 7 S and HEAD 8 SE came (TOWN-PART1, Griz: *"we did image gen ceiling with only 2 idony, but i think south-facing for when she's not 'watchful'"*) -- `idony_p1` stands south only, held south. **Still asked: HEAD 9 E, HEAD 10 NE, HEAD 11 N** (the art desk's batch A); when they come, `python tools/keeper-town-sheet.py idony` cuts all eight with the SE already in `_src/idony/ART-123-IDONY/`.
+
+
+### Elsbeth the candle girl
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+ELSBETH THE CANDLE GIRL -- a human girl of sixteen on vice row with a tray of candles hung from her neck and a lamp on a pole; guarded, nearly smiling [seat: the look]. She is the Halfway Inn's daughter, come to town: one face serves her at the inn later.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lifts a candle from the tray and lights it from the lamp, offers it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: vice row (`elsbethCandles`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_elsbethCandles`; `tools/keeper-town-sheet.py` into `elsbethCandles_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+
+### Papa's runner, a Hex boy's talking portrait (asked 10-29 in art-wanted section 30; drawn 10-30 by the art desk, ART-126-HEXBOY-BATCH-F, idle and the four moods; CUT 11-04, `HASH-BATCH`, `pt_hexboy`)
+
+
+His words, in his NOTES of 10-29 1808Z: *"papa's runner should appear in game, probably as a popup portrait dialogue"*; on the window's lean (a Hex boy runs up, says it on his own face, an art block for the face), his *"Leans stand"* (the lanes desk's relay, 10-29). In the game since `0ba65d41` (deep16/js/hours.js H16.runner): at renown 2 a Hex boy -- the townsfolk's child, `folkchild_p1` -- runs up to the party on Silverton's street or in the Hex, says *"Papa Urtusk wants you on the Hex's third floor. Up the spiral stair, all the way to the top."* / *"The council's sitting for you. Don't make them wait."* on the counter screen with `pt_hexboy` (the plain shape till it comes), and runs back. His figure is the townsfolk child's, so only the face is wanted, and it should be the same boy.
+
+### A Hex boy, Papa Urtusk's runner
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/art/folkchild_p1.png` (the game's own townsfolk child, the figure he runs up as: draw the same boy's face).
+```text
+Attached: two portrait pages from the same game, for the format only; and the sheet of the child who stands in the same game's town, the figure this boy runs up as -- draw this same boy's face.
+
+A HEX BOY -- Papa Urtusk's runner at the Hex, Silverton's fighting arena: a human boy of about ten, thin and quick, out of breath from running; short untidy hair, a smudge of dust on one cheek, a too-big tunic belted with cord, the sleeves rolled. Eager and a little proud to be carrying a message for Papa; looks straight at whoever he is talking to [seat: the look, from the child's figure].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter ledge, both hands on it, catching his breath after a run; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening, eyes up at a grown-up.
+HEAD 3 -- WELCOMING (1): a quick grin.
+HEAD 4 -- SKEPTICAL (1): a boy's doubtful squint.
+HEAD 5 -- CONCERNED (1): worried he has said it wrong.
+
+HEADs 1-5 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page -- a child, so smaller in the frame than a grown keeper, his chin a little above the ledge. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Where: Silverton's street and the Hex's ground floor, at renown 2 (deep16/js/hours.js H16.RUNNER `sheet`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_hexboy`; no figure (the townsfolk child's is his), no C.VENDORS line needed -- the runner's screen names the sheet itself.
