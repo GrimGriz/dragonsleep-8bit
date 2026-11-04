@@ -365,7 +365,8 @@
     (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : spec.asis ? (c.asiAt || [4, 8]) : []) : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
       var mine = spec.picks && spec.picks[at] && spec.picks[at].asi, got = {};
-      if (mine && mine.feat) { if (R.FEATS && R.FEATS[mine.feat] && featsW.indexOf(mine.feat) < 0 && !(R.featWant && R.featWant({ cls: cls, lvl: lvl, abil: abil, subclass: sub }, R.FEATS[mine.feat]))) { featsW.push(mine.feat); got.feat = mine.feat; } } // (its prerequisite read as the pick reads it: a card's word cannot give what the pick would not -- the leveling lane item 17, 10-30) // (a feat in place of the increase -- js/rules.js R.FEATS, 10-15)
+      // (the prerequisite read with the style the sheet will have: Symmetric Fighting wants Two-Weapon Fighting since 11-03 night, his word)
+      if (mine && mine.feat) { if (R.FEATS && R.FEATS[mine.feat] && featsW.indexOf(mine.feat) < 0 && !(R.featWant && R.featWant({ cls: cls, lvl: lvl, abil: abil, subclass: sub, style: spec.style && (R.STYLE_FOR[cls] || []).indexOf(spec.style) >= 0 ? spec.style : c.style || null }, R.FEATS[mine.feat]))) { featsW.push(mine.feat); got.feat = mine.feat; } } // (its prerequisite read as the pick reads it: a card's word cannot give what the pick would not -- the leveling lane item 17, 10-30) // (a feat in place of the increase -- js/rules.js R.FEATS, 10-15)
       else if (mine) Object.keys(mine).forEach(function (k) { if (abil[k] == null) return; var g = Math.max(0, Math.min(20 - abil[k], mine[k])); if (g > 0) { abil[k] += g; got[k] = g; } });
       else { var left = 2; c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; got[k] = g; } }); }
       asiAt[at] = got;

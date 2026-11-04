@@ -6408,13 +6408,15 @@
       var hV = heroLc('vivian', 10), fV = featsLc(hV, { dex: 2 }), hA = heroLc('aurdin', 11), fA = featsLc(hA, { int: 2 });
       okLc('Vivian (' + hV.cls + ', STR 10) at 4: feats on her SCORES tab "' + fV + '"; Aurdin (' + hA.cls + ', STR 11) "' + fA + '" -- none on either', hV.cls === 'rogue' && hA.cls === 'wizard' && fV === '' && fA === '');
       hV.abil.str = 13; var fV13 = featsLc(hV, { dex: 2 }); hV.abil.str = 17; var fV17 = featsLc(hV, { dex: 2 }); hV.abil.str = 14; var fV14s = featsLc(hV, { str: 2 });
-      okLc('a rogue at STR 13 "' + fV13 + '", at 17 "' + fV17 + '" -- Grappler at 13, and at 17 Symmetric Fighting too (every feat any class\'s by its score since 10-30); at 14 with STR +2 marked (12 before it) "' + fV14s + '" -- none', fV13 === 'grappler' && fV17 === 'symmetric,grappler' && fV14s === '');
+      okLc('a rogue at STR 13 "' + fV13 + '", at 17 "' + fV17 + '" -- Grappler at 13, and at 17 Grappler still: Symmetric Fighting wants the Two-Weapon Fighting style, which no rogue has (his word, 11-03 night; every feat any class\'s by its score since 10-30); at 14 with STR +2 marked (12 before it) "' + fV14s + '" -- none', fV13 === 'grappler' && fV17 === 'grappler' && fV14s === '');
       var hB = heroLc('barley', 16), fB = featsLc(hB, { con: 2 }); hB.abil.str = 12; var fB12 = featsLc(hB, { con: 2 });
       okLc('Barley (' + hB.cls + ') at STR 16 "' + fB + '", at 12 "' + fB12 + '" -- his class\'s two, greyed till met (10-15)', fB === 'symmetric(wants STR 17),grappler' && fB12 === 'symmetric(wants STR 17),grappler(wants STR 13)');
+      hB.abil.str = 17; hB.style = 'gwf'; var fBg = featsLc(hB, { con: 2 }); hB.style = 'twf'; var fBt = featsLc(hB, { con: 2 });
+      okLc('Barley at STR 17: with Great Weapon Fighting "' + fBg + '", with Two-Weapon Fighting "' + fBt + '" -- the style a prerequisite (his word, 11-03 night)', fBg === 'symmetric(wants the Two-Weapon Fighting style),grappler' && fBt === 'symmetric,grappler');
       var hL = heroLc('lymen', 17), fL = featsLc(hL, { con: 2 }); hL.abil.str = 16; var fL16 = featsLc(hL, { con: 2 });
-      okLc('Lymen (' + hL.cls + ') at STR 17 "' + fL + '" -- both, by their scores; at 16 "' + fL16 + '" -- Grappler, and no grey row (the leveling lane §2.2, 10-30)', hL.cls === 'paladin' && fL === 'symmetric,grappler' && fL16 === 'grappler');
+      okLc('Lymen (' + hL.cls + ') at STR 17 "' + fL + '" -- Grappler; Symmetric Fighting wants the Two-Weapon Fighting style, no paladin\'s (11-03 night); at 16 "' + fL16 + '" -- Grappler, and no grey row (the leveling lane §2.2, 10-30)', hL.cls === 'paladin' && fL === 'grappler' && fL16 === 'grappler');
       var hP = D.npc.sheet(D.npc.spec('rogue:4')); hP.abil.str = 12; var fP12 = featsLc(hP, {}); hP.abil.str = 14; var fP14 = featsLc(hP, {}); hP.abil.str = 17; var fP17 = featsLc(hP, {});
-      okLc('the Pocket DM\'s rogue at 4: STR 12 "' + fP12 + '", STR 14 "' + fP14 + '", STR 17 "' + fP17 + '"', hP.cls === 'rogue' && fP12 === '' && fP14 === 'grappler' && fP17 === 'symmetric,grappler');
+      okLc('the Pocket DM\'s rogue at 4: STR 12 "' + fP12 + '", STR 14 "' + fP14 + '", STR 17 "' + fP17 + '"', hP.cls === 'rogue' && fP12 === '' && fP14 === 'grappler' && fP17 === 'grappler');
       // the page itself: Vivian's SCORES tab as the 8-bit's pick draws it
       var hV2 = heroLc('vivian', 10), recV2 = { lvl: 4, asks: [{ kind: 'asi', need: 2, took: { dex: 2 } }] }; hV2.picks = [recV2]; RLc.pendSync(hV2);
       var pmV = window.DS.MENU.openPicks({ party: function () { return [hV2]; }, close: function () { } }, [hV2], {}, function () { }), pgV = pmV && pmV.top(), gV = pgV && pgV.groups[0];
@@ -6763,7 +6765,7 @@
     } catch (eFT3) { repFT.errors.push('3: ' + String(eFT3 && eFT3.stack || eFT3).slice(0, 400)); }
     try {
       // 4. TWIN STRIKE (his design of Symmetric Fighting, 11-03 night): a fighter 5 with the feat, STR 17 and two longswords, an ogre beside him
-      var spec4 = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords+^4a:fsymmetric';
+      var spec4 = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric';
       var mk4 = function () { var Bx = mkFT('?npc=ogre&vs=' + spec4 + '&lvl=5'), f = sideFT(Bx, 'party')[0], o = sideFT(Bx, 'foe')[0]; o.x = f.x + 1; o.y = f.y; o.baseAC = 11; o.hp = o.maxhp = 200; Bx.cache = null; D.grid.setup(D.grid.map, Bx.units); D.rules.startTurn(f); Bx.active = f; Bx.req = { turn: f }; Bx.tool = 'move'; Bx.cards = []; return { B: Bx, f: f, o: o }; };
       var s4 = mk4(), f4 = s4.f, cm4 = s4.B.commands(f4), ids4 = cm4.map(function (c) { return c.id; });
       okFT('4 the pair: R.twinPair ' + window.DS.R.twinPair(f4.src) + ', ' + f4.weapon.name + ' and ' + (f4.offhand && f4.offhand.name) + '; the ring opens with ' + ids4.slice(0, 2).join(', ') + ', TWIN STRIKE ok ' + (cm4[0] && cm4[0].ok) + ', OFF HAND before a swing ' + (ids4.indexOf('offhand') >= 0) + ' (want true; twinstrike, attack; true; false)',
@@ -13069,10 +13071,12 @@
     function okFt(what, v) { repFt.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function runFt(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     try {
-      var hF = RF.makeHero('barley', 4); RF.settlePicks(hF, null);
+      var hF = RF.makeHero('barley', 4); RF.settlePicks(hF, null); hF.style = 'twf'; // (the Two-Weapon Fighting style: the feat's prerequisite since 11-03 night, his word -- the STR checks below read with it met)
       var recA = function (took) { return { lvl: 4, asks: [{ kind: 'asi', need: 2, took: took }] }; };
       hF.abil.str = 18; var rows16 = RF.pickRows(hF, recA({ str: 2 }), recA({ str: 2 }).asks[0]), sy16 = rows16.filter(function (r) { return r.feat === 'symmetric'; })[0];
       hF.abil.str = 17; hF.abil.con = 16; var rec17 = recA({ con: 2 }), rows17 = RF.pickRows(hF, rec17, rec17.asks[0]), sy17 = rows17.filter(function (r) { return r.feat === 'symmetric'; })[0];
+      hF.style = 'gwf'; var rowsG = RF.pickRows(hF, rec17, rec17.asks[0]), syG = rowsG.filter(function (r) { return r.feat === 'symmetric'; })[0]; hF.style = 'twf';
+      okFt('the SCORES tab at STR 17 with Great Weapon Fighting: SYMMETRIC FIGHTING "' + (syG && syG.off) + '" (want: wants the Two-Weapon Fighting style -- his word, 11-03 night)', !!syG && syG.off === 'wants the Two-Weapon Fighting style');
       okFt('the SCORES tab: SYMMETRIC FIGHTING (FEAT) at STR 16 before the increase "' + (sy16 && sy16.off) + '"; at 17 ' + (sy17 && !sy17.off ? 'offered' : sy17 && sy17.off) + ', worth ' + (sy17 && sy17.worth),
         sy16 && sy16.off === 'wants STR 17' && sy17 && !sy17.off && sy17.worth === 2 && /SYMMETRIC FIGHTING/.test(sy17.name));
       // the page: marked, the whole increase; CONFIRM applies it
@@ -13088,10 +13092,10 @@
       RF.applyPick(hF, { lvl: 4, asks: [{ kind: 'asi', need: 0, took: { feat: 'symmetric' } }] }, { asi: { con: 2 } });
       okFt('taken back for CON +2: feats ' + JSON.stringify(hF.featIds || []) + ', CON ' + hF.abil.con, (hF.featIds || []).indexOf('symmetric') < 0 && hF.abil.con === 16);
       // the swing: a pair with the feat and STR 17
-      var pair = function (str, w, o, feat) { var s0 = { abil: { str: str, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: w, offhand: o }, featIds: feat ? ['symmetric'] : [] }; return RF.twoWeapon(s0); };
-      var p1 = pair(17, 'longsword', 'longsword', true), p2 = pair(16, 'longsword', 'longsword', true), p3 = pair(17, 'mace', 'macedisruption', true), p4 = pair(17, 'longsword', 'dagger', true), p5 = pair(17, 'greatsword', 'greatsword', true), p6 = pair(17, 'longsword', 'longsword', false);
-      okFt('two longswords, the feat, STR 17: ' + p1.ok + ' (' + p1.by + '); STR 16: ' + p2.ok + ' (' + p2.why + '); a mace and the Mace of Disruption: ' + p3.ok + '; a longsword and a dagger: ' + p4.ok + ' (' + p4.why + '); two greatswords: ' + p5.ok + '; two longswords without the feat: ' + p6.ok,
-        p1.ok && p1.by === 'symmetric' && !p2.ok && /STR 17/.test(p2.why) && p3.ok && !p4.ok && !p5.ok && !p6.ok);
+      var pair = function (str, w, o, feat, style) { var s0 = { cls: 'fighter', lvl: 5, style: style === undefined ? 'twf' : style, abil: { str: str, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: w, offhand: o }, featIds: feat ? ['symmetric'] : [] }; return RF.twoWeapon(s0); }; // (a fighter with the Two-Weapon Fighting style unless said: the feat's prerequisite, 11-03 night)
+      var p1 = pair(17, 'longsword', 'longsword', true), p2 = pair(16, 'longsword', 'longsword', true), p3 = pair(17, 'mace', 'macedisruption', true), p4 = pair(17, 'longsword', 'dagger', true), p5 = pair(17, 'greatsword', 'greatsword', true), p6 = pair(17, 'longsword', 'longsword', false), p7 = pair(17, 'longsword', 'longsword', true, 'gwf');
+      okFt('two longswords, the feat, STR 17: ' + p1.ok + ' (' + p1.by + '); STR 16: ' + p2.ok + ' (' + p2.why + '); a mace and the Mace of Disruption: ' + p3.ok + '; a longsword and a dagger: ' + p4.ok + ' (' + p4.why + '); two greatswords: ' + p5.ok + '; two longswords without the feat: ' + p6.ok + '; with the feat and Great Weapon Fighting: ' + p7.ok + ' (' + p7.why + ')',
+        p1.ok && p1.by === 'symmetric' && !p2.ok && /STR 17/.test(p2.why) && p3.ok && !p4.ok && !p5.ok && !p6.ok && !p7.ok && /Two-Weapon Fighting style/.test(p7.why || ''));
       // on the grid: OFF HAND for the pair after the Attack; the style and the feat together keep STR on it
       var Bf = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = Bf; Bf.enter(); while (!Bf.order.length) Bf.co.next(); Bf.dark = false;
       var fF = Bf.units.filter(function (w) { return w.side === 'party'; })[0], gbF = Bf.units.filter(function (w) { return w.side === 'foe'; })[0]; gbF.hp = gbF.maxhp = 500; fF.guest = false;
@@ -13105,7 +13109,7 @@
       okFt('on the grid, two longswords, the feat and the style: OFF HAND ' + (oF && oF.ok) + ' (' + (oF && oF.note) + '); swung the ' + (swF && swF.name) + ' ' + (swF && swF.dice) + D.rules.sign(swF ? swF.mod : 0) + ' (STR ' + D.rules.sign(D.mod(17)) + ' kept by the style; the longsword one-handed beside it ' + (fF.weapon && fF.weapon.dice) + ')',
         oF && oF.ok && swF && swF.offhandSwing && swF.name === 'Longsword' && swF.mod === D.mod(17) && fF.weapon.dice === '1d8');
       // the door's word (eyes-symmetric-1015): a fighter at 5, STR 17, two longswords, the feat at 4 in its picks
-      var wF = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords+^4a:fsymmetric', shF = D.npc.sheet ? D.npc.sheet(D.npc.spec(wF)) : null;
+      var wF = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric', shF = D.npc.sheet ? D.npc.sheet(D.npc.spec(wF)) : null;
       okFt('the door’s word: STR ' + (shF && shF.abil.str) + ', feats ' + JSON.stringify(shF && shF.featIds) + ', ' + (shF && shF.equip.weapon) + ' and ' + (shF && shF.equip.offhand) + ', a pair ' + (shF && RF.twoWeapon(shF).ok),
         !!shF && shF.abil.str === 17 && (shF.featIds || []).indexOf('symmetric') >= 0 && shF.equip.offhand === 'longsword' && RF.twoWeapon(shF).ok);
       // Pyro: no feat, his maces his script's (twf1015 holds the rest)

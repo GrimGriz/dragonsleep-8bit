@@ -368,7 +368,7 @@
   // shows it greyed till its prerequisite is met; `any`, a feat any class may take, offered on another class's pick only when it can be taken (R.featOn). Every feat is
   // `any` since 10-30, as the PHB's are -- gated by a score, never a class (the leveling lane §2.2, Griz: "approaching SRD compliance silences this issue"))
   R.FEATS = {
-    symmetric: { name: 'Symmetric Fighting', str: 17, cls: ['fighter'], any: true, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.) TWIN STRIKE: both weapons in one attack at +2 -- one roll, and a hit lands each weapon\'s own damage, STR on both; it takes the Attack\'s swing and the bonus action, once a turn. ATTACK swings one weapon, and OFF HAND follows it.' }, // (his words, 10-15; TWIN STRIKE his design of 11-03 night)
+    symmetric: { name: 'Symmetric Fighting', str: 17, style: 'twf', cls: ['fighter'], any: true, desc: 'Prerequisite: the Two-Weapon Fighting style. Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.) TWIN STRIKE: both weapons in one attack at +2 -- one roll, and a hit lands each weapon\'s own damage, STR on both; it takes the Attack\'s swing and the bonus action, once a turn. ATTACK swings one weapon, and OFF HAND follows it.' }, // (his words, 10-15; TWIN STRIKE his design of 11-03 night)
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
     // Follow-Through (ours, 10-30 -- the leveling lane, leveling-srd-by-class.md 6.3; RULED, Griz: "take leveling's leans and it can start building"): the role of the PHB's
     // Great Weapon Master, ours -- the heavy blow's carry and the WIDE SWING (deep16/js/battle.js, features.js). `second`: the second game's alone, never on the first game's pick
@@ -414,6 +414,7 @@
     if (f.casts && !(R.slotsFor(h).length > 0)) return 'wants spellcasting';
     if (f.lay && h.cls !== 'paladin') return 'wants Lay on Hands';
     if (f.prep && ['cleric', 'druid', 'paladin', 'wizard'].indexOf(h.cls) < 0) return 'wants prepared spells'; // (Second Draft: the SRD's four that prepare, 10-31)
+    if (f.style && R.style(h) !== f.style) return 'wants the ' + ((R.STYLES && R.STYLES[f.style] && R.STYLES[f.style].name) || f.style) + ' style'; // (a fighting style first: Symmetric Fighting wants Two-Weapon Fighting -- 11-03 night, his "make two-weapon fighting an explicit pre-req for Symmetric")
     return '';
   };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
@@ -837,15 +838,15 @@
     if (mp.indexOf('two-handed') >= 0 || op.indexOf('two-handed') >= 0) return { ok: false, why: 'never a two-handed weapon' };
     if (mp.indexOf('light') >= 0 && op.indexOf('light') >= 0) return { ok: true, by: 'light' };
     var same = R.baseWeapon(main, e.weapon) === R.baseWeapon(off, e.offhand);
-    if (R.hasFeat(h, 'symmetric') && same && h.abil.str >= 17) return { ok: true, by: 'symmetric' };
-    if (R.hasFeat(h, 'symmetric') && same) return { ok: false, why: 'Symmetric Fighting wants STR 17' }; // (SRD 5.1, Feats: a prerequisite lost, the feat waits)
+    if (R.hasFeat(h, 'symmetric') && same && h.abil.str >= 17 && R.style(h) === 'twf') return { ok: true, by: 'symmetric' };
+    if (R.hasFeat(h, 'symmetric') && same) return { ok: false, why: h.abil.str < 17 ? 'Symmetric Fighting wants STR 17' : 'Symmetric Fighting wants the Two-Weapon Fighting style' }; // (SRD 5.1, Feats: a prerequisite lost, the feat waits -- the style since 11-03 night, his word)
     return { ok: false, why: (mp.indexOf('light') < 0 ? 'the ' + main.name.toLowerCase() : 'the ' + off.name.toLowerCase()) + ' is not light' + (R.hasFeat(h, 'symmetric') ? ', and not a pair' : '') };
   };
   // TWIN STRIKE's pair (11-03 night, his design of Symmetric Fighting: "a +2 to attack and have it as a single attack that uses both weapons (as the default)"): the feat, STR 17,
   // and the same weapon in both hands, melee and one-handed -- light or not (deep16/js/battle.js Battle.twinOK, exec 'twinstrike')
   R.twinPair = function (h) {
     var e = (h && h.equip) || {}, main = R.item(e.weapon), off = R.item(e.offhand);
-    if (!R.hasFeat(h, 'symmetric') || !(h.abil && h.abil.str >= 17) || !main || !main.weapon || !off || !off.weapon) return false;
+    if (!R.hasFeat(h, 'symmetric') || !(h.abil && h.abil.str >= 17) || R.style(h) !== 'twf' || !main || !main.weapon || !off || !off.weapon) return false; // (the style a prerequisite: 11-03 night)
     var mp = main.weapon.props || [], op = off.weapon.props || [];
     if (mp.indexOf('ranged') >= 0 || op.indexOf('ranged') >= 0 || mp.indexOf('two-handed') >= 0 || op.indexOf('two-handed') >= 0) return false;
     return R.baseWeapon(main, e.weapon) === R.baseWeapon(off, e.offhand);
