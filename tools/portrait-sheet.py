@@ -52,7 +52,10 @@ PEOPLE = {
     # divining (played as her work), page 2 the owl's stretch -- the owl and the divining's glow kept with her (ART-SYLVIA-CUTTER-NOTES-v2.md)
     'sylvia': ('sylvia/ART-SYLVIA', 'ART-SPECIAL-SYLVIA', 'keeper:sylvia', {'pat': '%s_HEAD-1_PAGE-%d-v2.png', 'layout': [
         (1, [6, 4, 6], ['idle'] * 6 + ['welcoming', 'amused', 'concerned', 'startled'] + ['work'] * 6), (2, [3], ['stretch'] * 3)]}),
-    'winters': ('winters/ART-78', 'ART-78', 'warp:winters', {'blank': {6: [(0, 0, 420, 29)]}}),
+    # (and his four scene rows, 11-04, the cutter of 11-04: the art desk's ART-78-SCENES-2026-10-30-I -- present (the ring slid across), nod, averted, drawer
+    # (the copper and the key stowed) -- on his own sheet, the pages by their paths)
+    'winters': ('winters/ART-78', 'ART-78', 'warp:winters', {'blank': {6: [(0, 0, 420, 29)]}, 'layout': LAYOUT + [
+        ('winters/ART-78-SCENES-2026-10-30-I/ART-78-SCENES_HEAD-%d_PAGE-1.png' % 1, [3, 3], ['present'] * 6), ('winters/ART-78-SCENES-2026-10-30-I/ART-78-SCENES_HEAD-%d_PAGE-1.png' % 2, [3], ['nod'] * 3), ('winters/ART-78-SCENES-2026-10-30-I/ART-78-SCENES_HEAD-%d_PAGE-1.png' % 3, [1], ['averted']), ('winters/ART-78-SCENES-2026-10-30-I/ART-78-SCENES_HEAD-%d_PAGE-1.png' % 4, [3, 3], ['drawer'] * 6)]}),
     'casper': ('casper/ART-79', 'ART-79', 'keeper:casper', {}),
     'androit': ('androit/ART-80', 'ART-80', 'keeper:androit', {}),
     'hessle': ('hessle/ART-81', 'ART-81', 'keeper:hessle', {}),
@@ -176,6 +179,12 @@ PEOPLE = {
     # Elsbeth's is at the kitchen tub, its rim her ledge (the tub kept in her portrait, the art desk's own word)
     'amara': ('amara/INN-PORTRAITS-1104', 'AMARA', 'the Pit road (js/wagon.js: the wagon\'s own picture there now)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     'elsbethtub': ('elsbeth/INN-TUB-PORTRAITS-1104', 'K', 'npc:elsbeth (the Halfway Inn, js/inn.js M.talk)', {'edge': True, 'pat': '%sP%02d-*.png', 'avoid': ['red', 'fire']}),
+    # Elsbeth the candle girl (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-PORTRAITS-PARTIAL, five pages (H1P1-Idle.png to H1P5-Concerned.png) -- her
+    # Work held by the art desk (the working hand switches), so no work row: her face on Silverton's street; at the inn she speaks on pt_elsbethtub
+    'elsbethCandles': ('elsbeth/ART-123-ELSBETH-PORTRAITS-PARTIAL', 'H1', 'npc:elsbethCandles', {'edge': True, 'pat': '%sP%d-*.png', 'layout': LAYOUT[:5], 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # the Hex boy, Papa's runner (11-04, the cutter of 11-04): the art desk's ART-126-HEXBOY-BATCH-F, art-wanted section 30 -- idle and the four moods, no work
+    # page asked; his town figure stays folkchild_p1
+    'hexboy': ('hexboy/ART-126-HEXBOY-BATCH-F', 'ART-126_HEXBOY', 'Papa\'s runner (art-wanted section 30)', {'edge': True, 'layout': LAYOUT[:5], 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
@@ -409,7 +418,9 @@ def cut_person(name):
     raw, order = {}, []                                          # action -> [(rgba crop at source size, anchor x, anchor y, bust, ledge)]
     pages = []
     for pg, bands, acts in ov.get('layout', LAYOUT):
-        a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
+        # (a page named by its own path under _src: a supplement from another delivery -- Winters' scenes, ART-78-SCENES-2026-10-30-I, 11-04)
+        src_pg = os.path.join(SRC, pg) if isinstance(pg, str) else page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))
+        a = np.asarray(Image.open(src_pg).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
             a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0) if not ov.get('edge') else np.median(np.concatenate([a[:6].reshape(-1, 3), a[:, :6].reshape(-1, 3)]), axis=0)   # (a printed title touching a head: Winters' ACQUISITION; with `edge`, the navy by the page's edges -- Skarn's counters run cell to cell)
         for bx0, by0, bx1, by1 in ov.get('untext', {}).get(pg, []):   # (a printed title's white letters on a strand of hair, where a box would cut the hair: Dace's skeptical, ART-123-DACE-DISPLACEMENT)

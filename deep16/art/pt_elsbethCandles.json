@@ -1,0 +1,79 @@
+{
+ "image": "art/pt_elsbethCandles.png",
+ "fw": 165,
+ "fh": 154,
+ "ax": 82,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 165,
+   "fh": 154,
+   "ax": 82,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "attentive": {
+   "y": 154,
+   "fw": 165,
+   "fh": 154,
+   "ax": 82,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "welcoming": {
+   "y": 308,
+   "fw": 165,
+   "fh": 154,
+   "ax": 82,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "skeptical": {
+   "y": 462,
+   "fw": 165,
+   "fh": 154,
+   "ax": 82,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "concerned": {
+   "y": 616,
+   "fw": 165,
+   "fh": 154,
+   "ax": 82,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  }
+ },
+ "art": "H1",
+ "door": "npc:elsbethCandles",
+ "source": "deep16/_src/elsbeth/ART-123-ELSBETH-PORTRAITS-PARTIAL (the art desk's H1, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

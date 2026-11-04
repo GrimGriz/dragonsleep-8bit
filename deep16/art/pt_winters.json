@@ -1,17 +1,17 @@
 {
  "image": "art/pt_winters.png",
- "fw": 176,
+ "fw": 189,
  "fh": 157,
- "ax": 96,
+ "ax": 98,
  "ay": 155,
  "top": 155,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 6,
    "fps": 3,
@@ -26,9 +26,9 @@
   },
   "attentive": {
    "y": 157,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 1,
    "fps": 1,
@@ -38,9 +38,9 @@
   },
   "welcoming": {
    "y": 314,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 1,
    "fps": 1,
@@ -50,9 +50,9 @@
   },
   "skeptical": {
    "y": 471,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 1,
    "fps": 1,
@@ -62,9 +62,9 @@
   },
   "concerned": {
    "y": 628,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 1,
    "fps": 1,
@@ -74,12 +74,72 @@
   },
   "work": {
    "y": 785,
-   "fw": 176,
+   "fw": 189,
    "fh": 157,
-   "ax": 96,
+   "ax": 98,
    "ay": 155,
    "frames": 6,
    "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "present": {
+   "y": 942,
+   "fw": 189,
+   "fh": 157,
+   "ax": 98,
+   "ay": 155,
+   "frames": 6,
+   "fps": 1,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "nod": {
+   "y": 1099,
+   "fw": 189,
+   "fh": 157,
+   "ax": 98,
+   "ay": 155,
+   "frames": 3,
+   "fps": 1,
+   "ledge": [
+    true,
+    true,
+    true
+   ]
+  },
+  "averted": {
+   "y": 1256,
+   "fw": 189,
+   "fh": 157,
+   "ax": 98,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "drawer": {
+   "y": 1413,
+   "fw": 189,
+   "fh": 157,
+   "ax": 98,
+   "ay": 155,
+   "frames": 6,
+   "fps": 1,
    "ledge": [
     true,
     true,

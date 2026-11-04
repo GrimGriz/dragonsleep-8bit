@@ -39,6 +39,7 @@
     linnet: { sheet: 'pt_linnet', wait: '' }, // (Linnet Pellam, Edric's niece at the Warrens' camp: the art desk's ART-123-LINNET, 10-30, on Griz's "if cutter isn't done, my take on the usage is he can start NPC in fresh" -- her word at the camp on her face, js/town.js T.people)
     ottilie: { sheet: 'pt_ottilie', wait: '' }, // (Ottilie Skerrow, the Galleries' final word at the mouth: the art desk's ART-123-OTTILIE, 10-30, the same word -- the roost law and the lights on her face, js/mines.js M.talk by C.PT; she keeps no shop)
     idony: { sheet: 'pt_idony', wait: '' }, // (Idony Fell, the notary's senior clerk on Silverton's street: the art desk's ART-123-IDONY, 10-30, the lanes desk's relay -- her word by the notary's on her face)
+    elsbethCandles: { sheet: 'pt_elsbethCandles', wait: '' }, // (Elsbeth the candle girl on Silverton's street: the art desk's ART-123-ELSBETH-PORTRAITS-PARTIAL, 11-04, by the cutter of 11-04 -- idle and the four moods; her Work held by the art desk, so none)
     wynn: { sheet: 'pt_wynn', wait: '' }, // (Old Wynn Pollard at the Galleries' mouth: the art desk's ART-123-WYNN, 10-29, on the lanes desk's relay -- his scene, SEND HIM HOME, on his face, js/mines.js M.talk by C.PT; half-blind, his left eye clouded)
     dacedisp: { sheet: 'pt_dacedisp', wait: '', name: 'Corwen Dace, in the cloak of displacement' }, // (the art desk's ART-123-DACE-DISPLACEMENT, 10-29, on Griz's "Dace in Displacement Cloak sprites to follow": a second look, its cloak worn as the magic item -- no floor stands `dacedisp`; since his word, 10-29 later, Dace's own scenes wear this face till he gives the party the cloak, C.SHEETOF.dace)
     talmok: { sheet: 'pt_talmok', wait: '' }, // (Talmok, the Hex's champion by the sand: the art desk's ART-123-TALMOK, 10-29, on the lanes desk's "Take Talmok after Dace" -- his word in the Hex on his face, js/town.js T.fire by C.takes; he keeps no shop, and fights in his own talmok_p1)
@@ -132,7 +133,7 @@
     pete: 'pete_p1', warrenspete: 'pete_p1', // (10-30, the cutter of 10-29 night: Warrens Pete all round, in Silverton by pin 18 and in the Hex by the west bar, where the first game stands him -- content/maps silverton `pete`, hex `warrenspete`)
     linnet: 'linnet_p1', // (10-30, the Keeper cutter: Linnet Pellam all round, at the Warrens' camp where the first game stands her -- content/maps/warrens_a.json `linnet`)
     ottilie: 'ottilie_p1', // (10-30, the Keeper cutter: Ottilie Skerrow all round, at the Galleries' mouth where the first game stands her -- content/maps/galleries_g1.json `ottilie`; standing, the art desk drew no stool)
-    idony: 'idony_p1', // (10-30, the Keeper cutter: Idony Fell by the notary's, pin 5 -- south only, C.dress holding her south, on Griz's "i think south-facing for when she's not 'watchful'"; her E, NE and N wait for the art desk's batch A)
+    idony: 'idony_p1', elsbethCandles: 'elsbethCandles_p1', // (10-30, the Keeper cutter: Idony Fell by the notary's, pin 5, south only on Griz's "i think south-facing for when she's not 'watchful'"; all eight since 11-04, the art desk's ART-123-IDONY-TOWN-FINAL by the cutter of 11-04 -- south at rest, turning to whoever speaks or watches. Elsbeth the candle girl by vice row, pin 23: ART-123-ELSBETH-TOWN, all eight, 11-04)
     wynn: 'wynn_p1', // (10-29, the Edric and Dace cutter seat: Old Wynn all round at the Galleries' mouth, where the first game stands him: js/town.js T.people)
     dacedisp: 'dacedisp_p1', // (10-29, the Edric and Dace cutter seat: Dace in the cloak of displacement all round, its afterimage trailing him -- for the shows only, as C.VENDORS.dacedisp)
     papa: 'papa_p1', // (10-29, the cutscene cutter seat: Papa Urtusk all round, 58 px -- the largest thing in any room -- in the Hex's front door, at the council's long table and on the night's picture of it: js/hours.js, js/hex.js)
@@ -258,7 +259,7 @@
     var a = sh && sh.anims;
     if (face && a && a[face.anim]) {
       var dt = t - face.t0, an = a[face.anim];
-      if (face.anim === 'work' || face.anim === 'stretch') { var per = 60 / C.WORK.fps, f = Math.floor(dt / per); if (f < an.frames + C.WORK.hold / per) return { anim: face.anim, frame: Math.min(an.frames - 1, f) }; }
+      if (face.anim !== 'idle' && an.frames > 1) { // (a row of frames plays through and holds its last: work, Sylvia's stretch, Winters' present and drawer -- 11-04, ART-78-SCENES) var per = 60 / C.WORK.fps, f = Math.floor(dt / per); if (f < an.frames + C.WORK.hold / per) return { anim: face.anim, frame: Math.min(an.frames - 1, f) }; }
       else if (dt < (face.hold || C.HOLD)) return { anim: face.anim, frame: 0 };
     }
     var n = a && a.idle ? a.idle.frames : 1, run = n * 60 / C.IDLE.fps, c = t % (run + C.IDLE.rest);
