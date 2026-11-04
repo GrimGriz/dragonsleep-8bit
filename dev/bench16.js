@@ -6631,7 +6631,9 @@
   // HIS 18 FIGHTS OF 11-03, READ THAT NIGHT (mode=fights1103; the lanes desk): 1 the Mirror's eye -- HIDE greyed before it with the why (his "2 - fair"), the class AI's rogue strikes
   // instead of hiding into it (his Harbinger fight: ten "tries to hide" and no blow), and an AI hider spends nothing on it; 2 Drink Light -- no levelled spell of 3rd or under into a
   // Harbinger who can drink it, and back once his reaction is spent (his "casting a fireball after he drank someone elses spell would be good tactic"); 3 a grappler's versatile
-  // longsword in one hand, the d8, while he holds one, the d10 again when he lets go (his "1 - longsword yes")
+  // longsword in one hand, the d8, while he holds one, the d10 again when he lets go (his "1 - longsword yes"); 4 TWIN STRIKE, his design of Symmetric Fighting -- the ring's default,
+  // one roll at +2, each longsword's damage with STR on both, the bonus action with it, OFF HAND only after a one-weapon ATTACK; 5 an attack card's total says what lands after a
+  // resistance (his "3 - yes"); 6 the stirge's "so far" counts the drink it is drinking
   if (get('mode', '') === 'fights1103') {
     var repFT = { checks: [], errors: [] }, d0FT = D.d, BFT = D.Battle;
     function okFT(what, v) { repFT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6680,7 +6682,50 @@
       D.d = function (n) { return n === 20 && q3.length ? q3.shift() : d0FT(n); }; try { runFT(B3.exec(f3, { do: 'grapple', target: g3 })); } finally { D.d = d0FT; }
       var dB3 = f3.weapon.dice, held3 = f3.grappling === g3.id; B3.letGo(f3, g3, 'release'); var dC3 = f3.weapon.dice;
       okFT('3 ' + f3.weapon.name + ': ' + dA3 + ' in both hands; grappling the goblin ' + held3 + ', ' + dB3 + '; let go, ' + dC3 + ' (want 1d10, true, 1d8, 1d10)', dA3 === '1d10' && held3 && dB3 === '1d8' && dC3 === '1d10');
-    } catch (eFT) { repFT.errors.push(String(eFT && eFT.stack || eFT).slice(0, 900)); }
+    } catch (eFT3) { repFT.errors.push('3: ' + String(eFT3 && eFT3.stack || eFT3).slice(0, 400)); }
+    try {
+      // 4. TWIN STRIKE (his design of Symmetric Fighting, 11-03 night): a fighter 5 with the feat, STR 17 and two longswords, an ogre beside him
+      var spec4 = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords+^4a:fsymmetric';
+      var mk4 = function () { var Bx = mkFT('?npc=ogre&vs=' + spec4 + '&lvl=5'), f = sideFT(Bx, 'party')[0], o = sideFT(Bx, 'foe')[0]; o.x = f.x + 1; o.y = f.y; o.baseAC = 11; o.hp = o.maxhp = 200; Bx.cache = null; D.grid.setup(D.grid.map, Bx.units); D.rules.startTurn(f); Bx.active = f; Bx.req = { turn: f }; Bx.tool = 'move'; Bx.cards = []; return { B: Bx, f: f, o: o }; };
+      var s4 = mk4(), f4 = s4.f, cm4 = s4.B.commands(f4), ids4 = cm4.map(function (c) { return c.id; });
+      okFT('4 the pair: R.twinPair ' + window.DS.R.twinPair(f4.src) + ', ' + f4.weapon.name + ' and ' + (f4.offhand && f4.offhand.name) + '; the ring opens with ' + ids4.slice(0, 2).join(', ') + ', TWIN STRIKE ok ' + (cm4[0] && cm4[0].ok) + ', OFF HAND before a swing ' + (ids4.indexOf('offhand') >= 0) + ' (want true; twinstrike, attack; true; false)',
+        window.DS.R.twinPair(f4.src) && ids4[0] === 'twinstrike' && ids4[1] === 'attack' && !!cm4[0].ok && ids4.indexOf('offhand') < 0);
+      var got4 = []; s4.B.answer = function (c) { got4.push(c); }; try { D.ui.actAt(s4.B, f4, s4.o.x, s4.o.y, true); } finally { delete s4.B.answer; }
+      okFT('4 a click on the ogre: ' + (got4[0] ? got4[0].do : 'no command') + ' (want twinstrike, the default)', !!got4[0] && got4[0].do === 'twinstrike');
+      var md4 = D.mod(17), hp4 = s4.o.hp, n4 = (s4.B.log || []).length;
+      D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(s4.B.exec(f4, { do: 'twinstrike', target: s4.o })); } finally { D.d = d0FT; }
+      var T4 = f4.turn, l4 = logFT(s4.B, n4), lost4 = hp4 - s4.o.hp;
+      okFT('4 TWIN STRIKE, the d20 a 12 (+2 on it) and every die a 4: the ogre ' + hp4 + ' -> ' + s4.o.hp + ' (' + lost4 + ', want ' + (2 * (4 + md4)) + ': both longswords, STR on each); "the same blow" ' + /the same blow/.test(l4) + '; the bonus ' + T4.bonus + ', attacks left ' + T4.attacksLeft + ', TWIN STRIKE again ' + D.Battle.twinOpen(f4) + ' (want 0, 1, false)',
+        lost4 === 2 * (4 + md4) && /the same blow/.test(l4) && T4.bonus === 0 && T4.attacksLeft === 1 && !D.Battle.twinOpen(f4));
+      var ids4b = s4.B.commands(f4).map(function (c) { return c.id; });
+      okFT('4 after it: OFF HAND on the ring ' + (ids4b.indexOf('offhand') >= 0) + ' (want false: the bonus went with the Twin Strike)', ids4b.indexOf('offhand') < 0);
+      var s4c = mk4(), f4c = s4c.f; D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(s4c.B.exec(f4c, { do: 'attack', target: s4c.o })); } finally { D.d = d0FT; }
+      var oh4 = s4c.B.commands(f4c).filter(function (c) { return c.id === 'offhand'; })[0];
+      okFT('4 one ATTACK first, a single longsword: OFF HAND appears ' + !!oh4 + ', ok ' + !!(oh4 && oh4.ok) + ' (want true, true)', !!oh4 && !!oh4.ok);
+      var s4d = mk4(), f4d = s4d.f, sw4 = null, dd4 = s4d.B; var at0 = dd4.attack; dd4.attack = function* (a, t, atk) { if (a === f4d && sw4 == null) sw4 = atk.atk; return yield* at0.apply(this, arguments); };
+      D.d = function (n) { return n === 20 ? 1 : 4; }; try { runFT(dd4.exec(f4d, { do: 'twinstrike', target: s4d.o })); } finally { D.d = d0FT; delete dd4.attack; }
+      okFT('4 the strike roll: +' + sw4 + ' against the longsword\'s +' + f4d.weapon.atk + ' (want 2 more)', sw4 === f4d.weapon.atk + 2);
+    } catch (eFT4) { repFT.errors.push('4: ' + String(eFT4 && eFT4.stack || eFT4).slice(0, 400)); }
+    try {
+      // 5. THE CARD'S TOTAL SAYS WHAT LANDS (his "3 - yes"): a goblin that resists slashing, struck for 8 -- the card "= 8, 4 after the resistance"
+      var B5 = mkFT('?npc=ogre&vs=fighter:5&lvl=5'), f5 = sideFT(B5, 'party')[0], o5 = sideFT(B5, 'foe')[0];
+      o5.x = f5.x + 1; o5.y = f5.y; o5.baseAC = 5; o5.hp = o5.maxhp = 200; o5.resist = ['slashing', 'piercing', 'bludgeoning']; B5.cache = null; D.grid.setup(D.grid.map, B5.units); D.rules.startTurn(f5); B5.active = f5;
+      var hp5 = o5.hp; D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(B5.attack(f5, o5, f5.weapon)); } finally { D.d = d0FT; }
+      var card5 = (B5.cards || []).map(function (c) { return c.lines.join(' / '); }).filter(function (t) { return / = /.test(t); }).pop() || '', lost5 = hp5 - o5.hp;
+      okFT('5 the card after a resisted blow: "' + card5.replace(/\{\/?[a-z]*\}/g, '').slice(-60) + '", the ogre lost ' + lost5 + ' (want the card to say ' + lost5 + ' after the resistance)', new RegExp(lost5 + ' after the resistance').test(card5));
+    } catch (eFT5) { repFT.errors.push('5: ' + String(eFT5 && eFT5.stack || eFT5).slice(0, 400)); }
+    try {
+      // 6. THE STIRGE'S COUNT: 5 drunk already, a 7 drunk now -- the line counts it with this drink ("10 of 10: full"), then lets go
+      var B6 = mkFT('?npc=stirge&vs=fighter:5&lvl=5'), h6 = sideFT(B6, 'party')[0], st6 = sideFT(B6, 'foe')[0];
+      st6.x = h6.x + 1; st6.y = h6.y; B6.cache = null; D.grid.setup(D.grid.map, B6.units);
+      D.Battle.attach(h6, { by: st6.id, dc: 1 }); B6.mount(st6, h6); st6.drained = 5; D.rules.startTurn(st6); B6.active = st6;
+      var n6 = (B6.log || []).length, ra6 = Object.keys(st6.attacks).map(function (k) { return st6.attacks[k]; }).filter(function (a) { return a.rides; })[0];
+      D.d = function (n) { return 4; }; try { runFT(D.ai.turn(B6, st6)); } finally { D.d = d0FT; }
+      var l6 = logFT(B6, n6);
+      okFT('6 the stirge drinks with 5 drunk: "' + (l6.match(/drinks: [^|]*/) || ['(no drink)'])[0].slice(0, 90) + '" (want the count with this drink in it, ' + (ra6 ? 'its ' + ra6.dice + RU_mod(ra6) : '?') + ')', /drinks: \d+ piercing/.test(l6) && /\((\d+) of 10/.test(l6) && +(l6.match(/\((\d+) of 10/) || [0, 0])[1] > 5);
+    } catch (eFT6) { repFT.errors.push('6: ' + String(eFT6 && eFT6.stack || eFT6).slice(0, 400)); }
+    function RU_mod(a) { return a && a.mod ? (a.mod > 0 ? '+' : '') + a.mod : ''; }
+    try { } catch (eFT) { repFT.errors.push(String(eFT && eFT.stack || eFT).slice(0, 900)); }
     D.d = d0FT;
     var preFT = document.createElement('pre'); preFT.id = 'out'; preFT.textContent = 'BENCH16 ' + JSON.stringify(repFT);
     document.body.appendChild(preFT);

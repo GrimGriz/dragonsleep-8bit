@@ -1097,6 +1097,10 @@
     var slot = function (min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; };
     // a swing is only there to take with a foe in reach, or the feet left to walk to one (Lymen's second attack, 09-27)
     var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
+    // TWIN STRIKE (11-03 night, his design of Symmetric Fighting): with the feat and a pair in hand, the default -- both weapons in one attack at +2, the Attack's swing and the
+    // bonus action together, once a turn; ATTACK beside it swings one, and OFF HAND follows that (Battle.twinOK, twinOpen; exec 'twinstrike'; ui.js actAt's default click)
+    var twinC = Battle.twinOK(u), twinO = twinC && Battle.twinOpen(u);
+    if (twinC) out.push({ id: 'twinstrike', twin: true, icon: (u.weapon && u.weapon.icon) || null, label: 'TWIN STRIKE', cost: 'A', ok: twinO && (foeNear || canWalk), why: !twinO ? (T.twinDone ? 'once a turn' : !(T.bonus > 0) || T.offhandDone ? 'the bonus action is spent' : 'the action is spent') : 'no foe in reach, and no feet left', tool: 'attack', note: 'both weapons in one attack at +2 -- one roll, each weapon\'s own damage; the bonus action with it' });
     out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : !T.action && T.hasteAction ? 'ATTACK (HASTE)' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
     // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
@@ -1104,7 +1108,8 @@
     // OFF HAND: two-weapon fighting (SRD 5.1; RULED 10-15 -- js/rules.js R.twoWeapon): after the Attack action, the bonus action, the weapon in the off hand at a foe in reach -- or
     // thrown, a weapon with the thrown property; no ability modifier on its damage unless negative, or the style (R.offhandDamage). Pyro's maces are his script's: a mace is not light
     var twO = u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null;
-    if (twO && twO.ok) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
+    // (a Twin Strike hand: OFF HAND only after a one-weapon ATTACK -- his "the bonus attack appearing on the ring if they do use the single attack", 11-03 night)
+    if (twO && twO.ok && !(twinC && (!T.attacked || T.twinDone))) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
     if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone') out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     // (greyed with its reason, 11-03 -- the desk's read of his record: "SPELLS: not now." when the slots were spent and nothing said so. Every spell's own `why` is in the list, js/magic.js M.list: one reason
@@ -1665,6 +1670,21 @@
       case 'putaway': { // (PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched; off the ring since 10-15, EQUIP's and the torch's ask)
         this.putAway(u); return;
       }
+      case 'twinstrike': { // TWIN STRIKE (11-03 night, his design of Symmetric Fighting; his answers "1 - one strike roll at +2, damage individual swings combined", "2&3 - yes"): one
+        // attack roll with the main weapon at +2; a hit lands each weapon's own damage -- the second through Battle.twinOff, its own type and magic, STR on both; the Attack's
+        // swing and the bonus action spent together, once a turn (the Attack's other swings, Extra Attack's, are one weapon each)
+        var tgW = c.target;
+        if (!tgW || tgW.dead || (tgW.hp <= 0 && !tgW.regenDown) || !Battle.twinOpen(u)) return;
+        if (RU.charmedBy(u, tgW)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tgW.side === 'foe' ? Battle.nm(tgW) : tgW.name) + '.{/}'], 200); return; }
+        if (!Battle.openAttack(u, true)) return;
+        T.attacksLeft--; T.bonus = 0; T.offhandDone = true; T.twinDone = true;
+        var RW = window.DS.R, offW = RW.item(u.src.equip.offhand), oxW = RW.damageExpr(u.src, offW), hitW = null, critW = false;
+        var mainW = Object.assign({}, u.weapon, { atk: (u.weapon.atk || 0) + 2, twin: true });
+        yield* this.attack(u, tgW, mainW, { onHit: function (w, cr) { hitW = w; critW = !!cr; } });
+        if (hitW && !tgW.dead && (tgW.hp > 0 || tgW.regenDown)) yield* this.twinOff(u, tgW, offW, oxW, critW);
+        if (u.conds.hidden) delete u.conds.hidden;
+        return;
+      }
       case 'offhand': { // (two-weapon fighting's swing, the bonus action -- RULED 10-15; Pyro's script never sends it)
         var twX = u.src && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null, tgX = c.target;
         if (!twX || !twX.ok || !tgX || tgX.dead || (tgX.hp <= 0 && !tgX.regenDown) || !T.attackAction || !(T.bonus > 0) || T.offhandDone) return;
@@ -2174,6 +2194,20 @@
   Battle.acts = function (T) { return T.action > 0 || T.hasteAction > 0; };
   Battle.payAction = function (T) { if (T.action > 0) T.action = 0; else T.hasteAction = 0; };
   // the Attack opened: by the action (its attacks, or Slow's one), else by Haste's (one weapon attack). notHaste: a shove, which Haste's action cannot be
+  // TWIN STRIKE (js/rules.js R.twinPair): a hero holding the pair, both in hand; open while the Attack's swing (not Haste's) and the bonus action are there, once a turn
+  Battle.twinOK = function (u) { return !!(u && u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown && !u.sheathed && !(u.conds && u.conds.disarmed) && window.DS.R.twinPair(u.src)); };
+  Battle.twinOpen = function (u) { var T = u && u.turn; return !!(T && Battle.twinOK(u) && T.bonus > 0 && !T.offhandDone && !T.twinDone && !T.hasteAttack && (T.attacksLeft > 0 || T.action > 0)); };
+  // TWIN STRIKE's second weapon on the one hit: its dice (doubled on the crit), STR and its own bonus (his "str bonuses would apply per weapon"), its type and its magic -- so a
+  // resistance or an immunity reads each weapon as itself (his "a longsword+2 paired with a longsword vs immune to non-magic weapon targets")
+  Battle.prototype.twinOff = function* (u, tgt, off, ox, crit) {
+    var mag = !!(off && off.weapon && (off.weapon.bonus || off.weapon.magic)), dr = RU.damage(ox.dice, ox.mod, { crit: crit }), cidT = 'twin' + (++this.cardSeq || (this.cardSeq = 1)), blT = this.blow();
+    var lineT = '{y}' + nameOf(u) + '{/} -- and the ' + off.name.toLowerCase() + ', the same blow: ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '');
+    this.card([lineT], 300, cidT);
+    this.hurt(tgt, dr.total, ox.type, { magic: mag, blow: blT });
+    if (dr.total > 0 && blT.took !== dr.total && !tgt.dead && tgt.hp > 0) this.card([lineT + ', {o}' + blT.took + ' after the ' + (blT.took > dr.total ? 'vulnerability' : blT.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cidT); // (what lands, as the main blow's card says it)
+    this.blowEnd(tgt, blT);
+    yield 20;
+  };
   Battle.openAttack = function (u, notHaste) {
     var T = u.turn;
     if (T.attacksLeft) return !(notHaste && T.hasteAttack);
@@ -2564,6 +2598,10 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true, blow: bl }); // (a mark's, a curse's: a spell's)
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
+    // the card's total says what lands (11-03 night, his "3 - yes": "= 15" read on the card and "Talmok resists slashing: 8 > 4" on the next line, 11 dealt): the blow re-carded
+    // in place with what its parts took (`bl.took`, after resistance, vulnerability, immunity, a ward) -- unless it killed mid-blow, its later parts never dealt
+    var sumT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
+    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
     var acc = att.conds && att.conds.accounted, dealtAC = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
     if (acc && tgt.id !== acc.by && dealtAC > 0 && !att.dead && !(this.castLevel != null && this.castBy === att.id)) { /* (a spell's attack: answered once a cast by M.accountAnswer, below in hurt) */ var acR = D.roll(acc.dice); this.card(['  {y}CALLED TO ACCOUNT{/}: ' + nameOf(att) + ' answers for it  {y}' + acR.total + ' radiant{/}'], 220); FX.ring(att, 'gold', 20); this.hurt(att, acR.total, 'radiant', { magic: true }); }

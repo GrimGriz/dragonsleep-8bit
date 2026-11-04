@@ -1354,8 +1354,9 @@
       if (ra && ra.stinger) {
         if (!host || !G.standing(host)) { B.dismount(u); return; }
         var dn = ra.dice ? D.roll(ra.dice).total + (ra.mod || 0) : 5;
-        B.card(['{r}' + the(B, u) + '{/} drinks: ' + dn + ' piercing from ' + host.name + '.  {g}(' + (u.drained || 0) + ' of 10 so far){/}'], 120); FX.sparkle(host, 'red', 8); D.sfx('poison');
-        u.drained = (u.drained || 0) + dn; B.hurt(host, dn, ra.type || 'piercing', {}); yield 20;
+        u.drained = (u.drained || 0) + dn; // (counted with this drink: the line read "7 piercing ... (5 of 10 so far)" before it, then "lets go" -- his fight of 11-03, read that night)
+        B.card(['{r}' + the(B, u) + '{/} drinks: ' + dn + ' piercing from ' + host.name + '.  {g}(' + Math.min(10, u.drained) + ' of 10' + (u.drained >= 10 ? ': full' : ' so far') + '){/}'], 120); FX.sparkle(host, 'red', 8); D.sfx('poison');
+        B.hurt(host, dn, ra.type || 'piercing', {}); yield 20;
         if (u.drained >= 10 || !G.standing(host)) { B.card(['{g}' + the(B, u) + ' lets go, swollen.{/}'], 160); B.dismount(u); }
         return;
       }

@@ -424,7 +424,7 @@
     ];
   };
   // ---- FIGHT
-  S.fightCmd = function (B, u, t) { var m = S.menu(B, u); m.fight = t; m.left0 = null; return { do: 'attack', target: t }; };
+  S.fightCmd = function (B, u, t) { var m = S.menu(B, u); m.fight = t; m.left0 = null; return { do: Battle.twinOpen && Battle.twinOpen(u) ? 'twinstrike' : 'attack', target: t }; }; // (FIGHT's first blow a TWIN STRIKE for its pair, the rest one weapon each: 11-03 night)
   // ---- MAGIC: the grid's own list (js/magic.js M.list) with range and reach let go -- a spell aimed at one creature, any one of the kind it takes
   var AIMS = { self: 'none', around: 'none', single: 'side', touch: 'friend', attack: 'foe', rays: 'foe', darts: 'foe', splash: 'foe', sphere: 'side', cube: 'side', cone: 'foe', line: 'foe', wave: 'foe', allies: 'friends' };
   // whom a spell offers, in the order the list shows them: the foes for a harm (an area with no side named is a harm -- Fireball offered our own first, and the
