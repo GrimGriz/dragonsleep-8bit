@@ -3,14 +3,17 @@
    "I'd like to try to have the inn exist only as an iso - if we can properly manage the interior interaction (perma transparent walls when party-token inside?)" and "then it
    can build the interior around the dinner scene, make the inn a more proper place than conversion of an 8bit stab"; and "Inn lady needs a name" (Gennet Waterby, the realm's).
 
-   ONE PLACE ON THE DIAMONDS: the seat's own floor (In.ROWS, 44 x 54), laid from the realm's drawn battle map (TarlynsPit/battle-maps/halfway-inn-battlemap-drawn-2026-08-27.jpg,
-   module-halfway-inn.md §2): the Pit road along the top -- its left end south to the Pit, its right end north to the Gulch, so the map's top is the realm's west and the lake
-   below it east -- the yard with the well, the hitching rail, the stable and its cart, the woodpile; the long stone inn (the common room with its long table and the hearth on
-   the road wall, the serving counter, the hall and its stair up, the pantry, the family room, the kitchen with its hearth, its tub and its fish); the lake door, the path down
-   the grass, the point with its flat stone, its lantern post and the rowboat, and the deep. It rides the top levels' floors (js/mines.js M.FLOORS: `own`, `iso`).
-   THE WALLS SEE-THROUGH INSIDE (his "perma transparent walls when party-token inside"): the inn is laid two ways by where the token stands. From the yard it is a building
-   under its roof, its rooms closed; a step into either doorway lays it again with its rooms open, its people standing in them, and every wall cut to a knee-high stub (In.STUB)
-   -- the whole house seen from above for as long as the party is in it, and a step out roofs it again (In.lay, js/mines.js M.relay).
+   ONE PLACE ON THE DIAMONDS: the seat's own floor (In.ROWS, 50 x 40, north up the screen's right as Web Gulch's), first laid from the realm's drawn battle map
+   (TarlynsPit/battle-maps/halfway-inn-battlemap-drawn-2026-08-27.jpg, module-halfway-inn.md §2) and re-laid 11-04 on his note on eyes-halfwayinn-iso-1104: the Pit road
+   down the west side, the lake east; the yard with the well, the hitching rail, the barn for six horses, the woodpile; the inn two stories over the token -- the big fire in
+   the middle, the common room on the road side of it (the long table across the north wall, the bench by the fire, a table for two, the bar counter under the stair) and the
+   kitchen on the other (its hearth the fire's other face, the tub, the fish) -- and a one-story wing past the kitchen, two bedrooms with a small fireplace between them; the
+   lake door, the path, the point with its flat stone, its lantern post and the rowboat, and the deep. Upstairs, small rooms over the common room and the big room on the
+   kitchen side over the lake. It rides the top levels' floors (js/mines.js M.FLOORS: `own`, `iso`).
+   THE WALLS SEE-THROUGH INSIDE (his "perma transparent walls when party-token inside"; RULED 11-04, his "Leans stand": stubs, not a fade): each building (In.BUILDINGS: the
+   house and its wing, the barn) is laid two ways by where the token stands. From the yard it stands under its roof, its rooms closed; a step into its doorway lays it again
+   with its rooms open, its people standing in them, and every wall cut to a knee-high stub (In.STUB) -- the whole building seen from above for as long as the party is in it,
+   and a step out roofs it again (In.lay, js/mines.js M.relay).
    THE MEAL (the lane's 11-04 §4, the Inn seat's design, built with the interior on his "build the interior around the dinner scene"): the first room taken of the inn lady,
    supper at the long table before the night -- what the road has told the house by the day the party comes (In.day: the moot; the one-eyed chief and the mirror-eyed beasts;
    the Snoot's reach north; the Snoot at the Pit), each word true or heard wrong by the party's History, shown; the house read by its silent Insight; Doran's drovers asked by
@@ -27,65 +30,74 @@
   In.SNOOT_DAY = 14;          // (the runner from this day of the house's clock: the Snoot at the Pit -- the Snoot mode's own first day)
   In.PRICE = 5;               // (a room, silver a head: the first game's S.gennet)
   In.RATE = { squaresPerHour: 500, fightHours: 0.25 }; // (on the diamonds the walk spends nothing -- js/mines.js THE ROAM CLOCK BY THE VIEW -- a fight its quarter hour)
-  In.HOUSE = [8, 18, 34, 26]; // (the inn's walls, x0 y0 x1 y1: inside them the house is laid open)
-  In.DOORS = { front: [20, 18], lake: [30, 26] }; // (the front door on the yard, the lake door from the kitchen passage)
+  // THE BUILDINGS (re-laid 11-04 on his note on eyes-halfwayinn-iso-1104: "When outside, it looks like a one-story building with roofs shorter than the player token avatar"; "There
+  // should be a big fire in the center, with the common room on the road side of it and the kitchen on the other ... Two bedrooms with a small fireplace on the other end of the
+  // kitchen (a one-story part of the building) - barn big enough to house 6 horses"): each laid open from its own doorway, walls x0 y0 x1 y1 by part, each part its roof
+  In.BUILDINGS = {
+    inn: { parts: [{ r: [19, 13, 36, 24], roof: 'R' }, { r: [29, 25, 36, 30], roof: 'X' }], walls: 'B' },   // (the house two stories; the wing of two bedrooms one)
+    barn: { parts: [{ r: [5, 3, 14, 9], roof: 'Q' }], walls: 'A' }                                           // (the barn: six stalls either side of an aisle)
+  };
+  In.HOUSE = In.BUILDINGS.inn.parts[0].r; // (the house's main block, for the upstairs over it)
+  In.DOORS = { front: [19, 18], lake: [36, 18], barn: [14, 6] }; // (the front door on the yard and the road, the lake door from the kitchen, the barn's on the yard)
+  In.STEP = { front: [18, 18, 'left'], lake: [37, 18, 'right'], barn: [15, 6, 'right'] }; // (a step out of each, and the way it faces)
   In.STUB = 1;                // (the walls' height while the party is inside, a roof's own measure: a knee-high stub -- js/iso.js roofCanvas)
-  In.ROOF = 'b';              // (the inn under red tile from the yard; the stable under shingle)
-  In.inHouse = function (x, y) { var h = In.HOUSE; return x >= h[0] && x <= h[2] && y >= h[1] && y <= h[3]; };
+  In.ROOFS = { I: { h: 9, roof: 'red', wall: 'stone' }, J: { h: 4.5, roof: 'red', wall: 'stone' }, Z: { h: 6, roof: 'stone', wall: 'leather' } }; // (the house two stories over the token, the wing one, the barn a high single; js/iso.js roofPx)
+  In.inHouse = function (x, y) { // (the building a square is in, or null)
+    var ids = Object.keys(In.BUILDINGS);
+    for (var i = 0; i < ids.length; i++) if (In.BUILDINGS[ids[i]].parts.some(function (p) { return x >= p.r[0] && x <= p.r[2] && y >= p.r[1] && y <= p.r[3]; })) return ids[i];
+    return null;
+  };
+  In.roofAt = function (b, x, y) { var ps = In.BUILDINGS[b].parts; for (var i = ps.length - 1; i >= 0; i--) { var r = ps[i].r; if (x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3] && (i === 0 || y > ps[0].r[3])) return ps[i].roof; } return ps[0].roof; };
 
-  // ---------------------------------------------------------------- the floor (the seat's, laid from the realm's battle map): 44 x 54, the road along the top, the lake below
+  // ---------------------------------------------------------------- the floor (the seat's, laid from the realm's battle map; re-laid 11-04 on his "it feels like the road should
+  // be running the same way the gulch does over on the left side of the screen instead of the top"): 50 x 40, north up the screen's right as the Gulch's -- the Pit road down
+  // the west side (north to the Gulch, south to the Pit), the yard and the barn, the inn, the grass and the path to the point, the lake east
   In.ROWS = [
-    '""""""""""""""""""""""""""""""""""""""""""""', ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
-    ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,', ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
-    '""""""".............................."""""""', '""""".................................."""""',
-    '""""....................................""""', '""t".......................ssssssss.....""""',
-    '"""".......................ssssssss.....""""', '""""........q..............ssssssss....."t""',
-    '"""".......................ssssssss.....""""', '"""".......................ssssssss.....""""',
-    '"t"".........................cc.........""""', '""""............||||....................""""',
-    '""""....................................""""', '""""....................................""""',
-    '""""....................................""t"', '""""..www...............................""""',
-    '""".....BBBBBBBBBBBBDBBBBBBBBBBBBBB......"""', '""""....BcoohhoooooBouBHHHBoHHHoooB.....""""',
-    '""t"....BooooooooKoBooooooooooooooB.....""""', '""""....BooooooooKoBooBoocBoooooohB.....""""',
-    '""""....BooKKKKKoKooooBBBBBooKKoohB.....t"""', '""""....BooooooooKooooBoozBoooooooB.....""""',
-    '""""....BooooooooKoBooooooooooooooB.....""""', '""""....BccooooooooBooBzozBooooTocB.....""""',
-    '"t""....BBBBBBBBBBBBBBBBBBBBBBDBBBB.....""t"', '""""..........................,.........""""',
-    '""""".........................,........"""""', '""""".........................,........"""""',
-    '""""""........................,.......""""""', '""t"""""".....................,..."""""""t""',
-    '""""""""""""""""""""""""""""",""""""""""""""', '""""""""""""""""""""""""""""","""""t""""""""',
-    '"""""""""""""""""""t""""""""",""""""""""""""', '""""""""""""""""""""""""""""",""""""""""""""',
-    '""""""""""""""""""""""""""""",""""""""""""""', '"""t"""""""""""""""""""""""","""""""""""t"""',
-    '"""""""""""""""""""""""""""","""""""""""""""', '"""""""""""""t"""""""""""""","""""""""""""""',
-    '"""""""""""""""""""""""""""","""""""""""""""', '""""""t""""""""""""""""""""","""""""""""""""',
-    '"""""""""""""""""""""""""""",""""""""t""""""', '"""""""""""""""""""""""""""",""l""""""""""""',
-    '""""""""""""""""""""""""rrrrrrrr""""""""""""', 'nneeeeeeennnnnnnnnnnnnnnrrriirrrnnnneeeeeeen',
-    'WWWWWWWWWWWWWWWWWWWWWWWWrrrrrrrrWbWWWWWWWWWW', 'WWWWWWWWWWWWWWWWWWWWWWYYWWWWWWWWWYYWWWWWWWWW',
-    'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW', 'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW',
-    'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW', 'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW',
-    'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW', 'WWWWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYWWWWWWWW'
+    ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWWW', ',,,".............."""""""""""""""""""""""""nWWWWWW',
+    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWWW',
+    ',,,..Awo|wo|woA...."""t""""""""""""""""""""eWWWWWW', ',,,..Aoo|oo|ooA...."""""""""""t""""""""""""eWWWWWW',
+    ',,,..AooooooooD...."""""""""""""""""""t""""eWWWWWW', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWWW',
+    ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
+    ',,,................"""""""""""""""t""""""""nWWYYYY', ',,,................""""""""""""""""""""""""nWWYYYY',
+    ',,,..||||.........."""""""""""""""""""""t""nWWYYYY', ',,,................BBBBBBBBBBBBBBBBBB""""""nWYYYYY',
+    ',,,................BcKKKKKKcoooHHHHoB""""""nWYYYYY', ',,,........q.......BooooooooooooooooB"""""lnWWYYYY',
+    ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,................BooooooooCCooooooB"""""rrrrYYYY',
+    ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
+    ',,,................BoomKmoooCCooooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
+    ',,,................BoKKKKoooooooooooB""""""nWpYYYY', ',,,................BooooouooooooooocB""""""nWWYYYY',
+    ',,,................BBBBBBBBBBBBoBBoBB""""""nWYYYYY', ',,,................""""""""""BoocBooB""t"""nWYYYYY',
+    ',,,..............kk""""""""""BoooBooB""""""nWWYYYY', ',,,..............kk"""""t""""BooofooB""""""eWWYYYY',
+    ',,,................"t""""""""BoooBooB""""""eWWYYYY', ',,,................""""""""""BzooBozB""""""eWWWWWW',
+    ',,,................""""""""""BBBBBBBB""""""eWWWWWW', ',,,................"""""""""""""""""""""t""eWWWWWW',
+    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,................""t"""""""""""""""""""""eWWWWWW',
+    ',,,................""""""""""""""""t"""""""eWWWWWW', ',,,................""""""""t"""""""""""""""eWWWWWW',
+    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,................""""""""""""""""""""""""nWWWWWW',
+    ',,,".............."""""""""""""""""""""""""nWWWWWW', ',,,"""""t"""""""t""""""""""""""""""""""""""nWWWWWW'
   ];
-  In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', w: 'woodpile', c: 'crate', s: 'roofS', B: 'innWall', o: 'floorWood',
-    D: 'doorway', K: 'table', H: 'shelf', z: 'bed', h: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks', l: 'lamp', e: 'reeds', W: 'water', Y: 'deep', b: 'boat' };
+  In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', k: 'woodpile', w: 'manger', c: 'crate', B: 'innWall', A: 'barnWall', o: 'floorWood',
+    D: 'doorway', K: 'table', b: 'bench', m: 'chair', C: 'chimney', H: 'shelf', z: 'bed', h: 'firepit', f: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks',
+    l: 'lamp', e: 'reeds', W: 'water', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof' };
   // the names the top levels' floors had not needed, as the grid's squares (js/mines.js M.LAY; a roof by M.ROOF)
-  Object.assign(M.LAY, { grassT: ['g'], earth: ['.'], woodpile: ['k'], floorWood: ['o'], doorway: ['d'], table: ['K'], shelf: ['S'], bed: ['y'], tub: ['w'], sand: ['.'],
-    flatstone: ['.'], rocks: ['r'], boat: ['k'] });
-  M.ROOF.innRoof = In.ROOF; M.ROOF.innWall = 'v';
+  Object.assign(M.LAY, { grassT: ['g'], earth: ['.'], woodpile: ['k'], manger: ['k'], floorWood: ['o'], doorway: ['d'], table: ['K'], bench: ['K'], chair: ['k'], shelf: ['S'], bed: ['y'],
+    tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'] });
+  Object.assign(M.ROOF, { innRoof: 'I', wingRoof: 'J', barnRoof: 'Z', innWall: 'v', barnWall: 'v' });
   // where the people stand, by the hour and the floor's flags (the first game's conditions): the yard's by day, the house's inside it -- seen while the party is in
   In.FOLK = [
-    { id: 'doranYard', at: [9, 16], look: 'worker', dir: 'down', cond: '!flag:doranAway', when: 'day', out: true },
-    { id: 'orrin', at: [26, 44], look: 'kid', dir: 'down', cond: '!flag:dueSeen', when: 'light', out: true },
-    { id: 'pell', at: [21, 44], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },
-    { id: 'adoptedKid', at: [34, 44], look: 'girl', dir: 'left', cond: 'flag:kidAtInn & !flag:dueSeen', when: 'light', out: true },
-    { id: 'doranIn', at: [18, 21], look: 'worker', dir: 'left', cond: '!flag:doranAway', when: 'evening' },
-    { id: 'gennet', at: [14, 20], look: 'innlady', dir: 'down', cond: '!flag:lakeDone' },
-    { id: 'gennetGrief', at: [11, 21], look: 'innlady', dir: 'down', cond: 'flag:lakeDone' },
-    { id: 'elsbeth', at: [31, 24], look: 'elsbeth', dir: 'down', cond: '!flag:postgame' },
-    { id: 'katarina', at: [10, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }
+    { id: 'doranYard', at: [16, 26], look: 'worker', dir: 'right', cond: '!flag:doranAway', when: 'day', out: true },   // (by the woodpile)
+    { id: 'orrin', at: [43, 20], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },           // (the stone stack at the point)
+    { id: 'pell', at: [43, 24], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },            // (skimming stones off the shore)
+    { id: 'adoptedKid', at: [43, 12], look: 'girl', dir: 'right', cond: 'flag:kidAtInn & !flag:dueSeen', when: 'light', out: true },
+    { id: 'doranIn', at: [22, 23], look: 'worker', dir: 'up', cond: '!flag:doranAway', when: 'evening' },                // (behind the bar, under the stair)
+    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone' },
+    { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone' },
+    { id: 'elsbeth', at: [33, 21], look: 'elsbeth', dir: 'right', cond: '!flag:postgame' },                              // (at the tub, her back to the room)
+    { id: 'katarina', at: [26, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }                                   // (writing by the fire)
   ];
-  In.RUNNER = [13, 10];       // (the Snoot's runner by the well)
-  In.WAGONAT = [22, 11];      // (THE WAGON NIGHT: the wagon pulled in on the yard's ring, its cover three squares and its open bed at the tail, two rows)
+  In.RUNNER = [12, 16];       // (the Snoot's runner by the well)
+  In.WAGONAT = [8, 18];       // (THE WAGON NIGHT: the wagon pulled in on the yard's ring, its cover three squares and its open bed at the tail, two rows)
   In.YARDFOLK = [
-    { id: 'amaraYard', at: [21, 11], look: 'amara', dir: 'down' }, { id: 'willemYard', at: [21, 12], look: 'willem', dir: 'down' },
-    { id: 'wagonGoblin', at: [26, 12], look: 'goblin', dir: 'left' }, { id: 'gennetYard', at: [20, 15], look: 'innlady', dir: 'up' }, { id: 'katYard', at: [17, 16], look: 'kat', dir: 'up' }
+    { id: 'amaraYard', at: [7, 18], look: 'amara', dir: 'right' }, { id: 'willemYard', at: [7, 19], look: 'willem', dir: 'right' },
+    { id: 'wagonGoblin', at: [12, 19], look: 'goblin', dir: 'left' }, { id: 'gennetYard', at: [17, 18], look: 'innlady', dir: 'left' }, { id: 'katYard', at: [17, 20], look: 'kat', dir: 'left' }
   ];
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
@@ -99,8 +111,9 @@
   In.LINES = {
     arrive: ['The Halfway Inn: the only well on the Pit road, a long day and a half from either end. A long low stone house between the road and the water.',
       'Halfway Lake is older than the inn and named it. Knee-shallow forty paces out; then, off the point, it goes.'],
-    hello: 'The Pit road runs along the top, the lake below; the inn in the yard between, its front door on the yard and its lake door on the path to the point. Any edge: back to the world map.',
-    inside: 'Inside the Halfway Inn: the common room, the hall and its stair, the pantry and the family room, the kitchen through the back.',
+    hello: 'The Pit road runs down the west side, the lake to the east; the yard and the barn between, the inn\'s front door on the yard and its lake door on the path to the point. Any edge: back to the world map.',
+    inside: 'Inside the Halfway Inn: the common room round the big fire, the bar under the stair, the kitchen beyond the fire, two bedrooms off the kitchen.',
+    barn: 'The barn: six stalls either side of the aisle, mangers at their heads.',
     name: '"Gennet. Waterby, since the wedding. The lake\'s older than either."',
     bed: 'A room under the eaves. Nobody stands a watch at the Halfway Inn: the house keeps its own door.',
     morning: 'Morning on Halfway Lake: mist off the water, the well\'s chain, the boys already down at the shore.',
@@ -110,7 +123,7 @@
       '"The Snoot\'s come down on the Pit -- the whole of it, gnolls past counting. The Pit\'s asking for every blade on the road. South, if you\'re going."'],
     runnerAsk: 'THE SNOOT is a page of its own: the war on the hexes round the Pit. What is not saved here stays behind.',
     stair: 'The stair up to the guest rooms. The room over the kitchen has its door shut.',
-    upstairs: 'Upstairs: three small guest rooms off the passage, and the larger room over the kitchen with the lake under its window. The stair down is in the passage.',
+    upstairs: 'Upstairs: three small guest rooms over the common room, and the big room on the kitchen side with the lake under its window. The stair down is in the passage.',
     drawerShut: 'The room over the kitchen: two nights paid, a farm woman\'s things folded on the chair. The drawer by the bed is shut, and you leave it shut.',
     drawerEmpty: 'The drawer by the bed is empty.'
   };
@@ -136,49 +149,50 @@
 
   // the floor in the first game's shape (js/mines.js M.floor reads it): the inn laid open or roofed, the people by the hour, the squares' words
   In.map = function (hour, flags) {
-    var inside = In.inside, rows = In.ROWS.map(function (r, y) {
-      if (y < In.HOUSE[1] || y > In.HOUSE[3]) return r;
-      return r.split('').map(function (c, x) { return !inside && In.inHouse(x, y) && c !== 'D' ? 'R' : c; }).join(''); // (from the yard: the house under its roof but its two doorways)
+    var inside = In.inside || null, rows = In.ROWS.map(function (r, y) { // (every building roofed but the one the party is in, and its doorways open)
+      return r.split('').map(function (c, x) { var b = In.inHouse(x, y); return b && b !== inside && c !== 'D' ? In.roofAt(b, x, y) : c; }).join('');
     });
-    var dd = In.day(In.q), npcs = In.FOLK.filter(function (p) { return (inside || p.out) && In.when(p.when, hour) && (p.id !== 'katarina' || In.katHere(flags || {}, dd)) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
+    var dd = In.day(In.q), npcs = In.FOLK.filter(function (p) { return (inside === 'inn' || p.out) && In.when(p.when, hour) && (p.id !== 'katarina' || In.katHere(flags || {}, dd)) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
     if (flags && flags.wagonIn) { // (THE WAGON NIGHT staged in the yard: the wagon pulled in, the pair by its team, the one at its tail, the inn lady with her lantern, the traveler come down)
       rows = rows.map(function (r, y) { var w = In.WAGONAT; if (y < w[1] || y > w[1] + 1) return r; return r.split('').map(function (c, x) { return x >= w[0] && x < w[0] + 3 ? 'U' : x === w[0] + 3 ? 'V' : c; }).join(''); });
       In.YARDFOLK.forEach(function (p) { if (p.id !== 'katYard' || In.katHere(flags, dd) || flags.katYard) npcs.push({ id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir }); });
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
-    var trig = [{ id: 'flatstone', rect: [27, 45, 2, 1], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [21, 47, 15, 7], on: 'use', script: 'inn:point' },
-      { id: 'lanternpost', rect: [31, 43, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' }];
-    if (inside) trig.push({ id: 'stair', rect: [21, 19, 1, 1], on: 'step', script: 'inn:stair' });
-    var lights = inside ? [[12, 19], [13, 19], [33, 21], [33, 22]].map(function (q, i) { return { id: 'hearth' + i, kind: 'map', x: q[0], y: q[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }; }) : null;
-    return { id: 'halfway', name: 'The Halfway Inn', rows: rows, legend: Object.assign({ R: 'innRoof', U: 'wagon', V: 'wagonBed' }, In.LEGEND, inside ? {} : { B: 'innRoof' }), music: inside ? 'inn' : 'lake', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: false,
+    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 4, 19], on: 'use', script: 'inn:point' },
+      { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' }];
+    if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
+    var lights = inside === 'inn' ? In.FIRES.map(function (q, i) { return { id: 'hearth' + i, kind: 'map', x: q[0], y: q[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }; }) : null;
+    return { id: 'halfway', name: 'The Halfway Inn', rows: rows, legend: Object.assign({ U: 'wagon', V: 'wagonBed' }, In.LEGEND), music: inside === 'inn' ? 'inn' : 'lake', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: false,
       lights: lights, npcs: npcs, triggers: trig, chests: [] };
   };
+  In.STAIR = [25, 23];        // (the stair's foot, by the bar)
+  In.FIRES = [[27, 18], [27, 19], [30, 18], [30, 19], [33, 27]]; // (the big fire's two faces, the common room's and the kitchen's, and the small one between the two bedrooms)
   M.FLOORS[In.KEY] = { src: 'halfway', own: true, map: In.map, door: In.SITE, place: 'The Halfway Inn', sub: 'the yard and the shore', save: true, out: 'world', outdoors: true,
     clock: true, edges: true, iso: true, rate: In.RATE, phase: M.seepPhase, phaseLine: In.line,
-    gates: { south: [1, 2, [1, 0]], north: [42, 2, [-1, 0]], west: [20, 1, [0, 1]] } }; // (the Pit road in at its south end and its north, and off the hills over it)
-  // the map's sides as the realm's (its top is the west): the way out by a side, and its words
-  In.SIDE = { north: 'west', east: 'north', south: 'east', west: 'south' };
-  var sideOf0 = M.sideOf;
-  M.sideOf = function (def, sq) { var s = sideOf0.apply(this, arguments); return def && def.key === In.KEY ? In.SIDE[s] || s : s; };
-  In.qInside = function (q) { var a = /[?&]at=(\d+),(\d+)/.exec(q || ''); return /[?&]inside\b/.test(q || '') || (!!a && In.inHouse(+a[1], +a[2])); };
+    gates: { north: [1, 1, [0, 1]], south: [1, 38, [0, -1]], west: [1, 20, [1, 0]] } }; // (the Pit road in at its north end and its south, and off the hills over it)
+  In.qInside = function (q) { var a = /[?&]at=(\d+),(\d+)/.exec(q || ''); return /[?&]inside\b/.test(q || '') ? 'inn' : a ? In.inHouse(+a[1], +a[2]) : null; };
   // UPSTAIRS (the module's N, the battle map's inset; the lanes desk's reading of his iso-only word, "the yard, the common room and the rooms upstairs are all on the iso
-  // grid"): its own small floor on the diamonds, the house's footprint, its walls stubs as the ground floor's are with the party in -- three small guest rooms and the room over
-  // the kitchen (Katarina's, two nights paid, the drawer by the bed), a passage along the lake side, the stair down in it
+  // grid"; re-laid 11-04 on his note, "One big room on the kitchen side of the fire (overlooking the lake ...) and small rooms over the common room"): its own small floor on
+  // the diamonds over the house's main block, its walls stubs -- three small guest rooms over the common room, the big room on the kitchen side (Katarina's, the drawer by
+  // the bed), the big fire's chimney rising through the middle, the passage and the stair head over the bar
   In.UP = 'halfway_up';
   In.UPROWS = [
-    'BBBBBBBBBBBBBBBBBBBBBBBBBBB',
-    'BoooooBoooooBoooooBoooooooB',
-    'BozoooBozoooBozoooBozKooooB',
-    'BoooooBoooooBoooooBoooooooB',
-    'BoooooBoooooBoooooBoooooooB',
-    'BBBoBBBBBoBBBBBoBBBBBBoBBBB',
-    'BoooooooooooooooooooooooooB',
-    'BooooooooooooDooooooooooooB',
-    'BBBBBBBBBBBBBBBBBBBBBBBBBBB'
+    'BBBBBBBBBBBBBBBBBB',
+    'BzoBzoBzoccBoooozB',
+    'BooBooBooccBooooKB',
+    'BooBooBooBBBoooooB',
+    'BooBooBooCCBoooooB',
+    'BBoBBoBBoCCBoooooB',
+    'BooooooooCCBoooooB',
+    'BooooooooCCooooooB',
+    'BooooooooooBoooooB',
+    'BooooooooooBoooooB',
+    'BooooooDoooBoooooB',
+    'BBBBBBBBBBBBBBBBBB'
   ];
-  In.UPSTAIR = [13, 7]; In.DRAWER = [21, 2]; // (the stair head in the passage; the bedside table in the room over the kitchen)
+  In.UPSTAIR = [7, 10]; In.DRAWER = [16, 2]; // (the stair head in the passage, over the bar's stair; the bedside table in the big room)
   In.upMap = function () {
-    return { id: In.UP, name: 'The Halfway Inn', rows: In.UPROWS.slice(), legend: { B: 'innWall', o: 'floorWood', z: 'bed', K: 'table', D: 'stairsDown' }, music: 'inn', exits: {}, dark: false, npcs: [],
+    return { id: In.UP, name: 'The Halfway Inn', rows: In.UPROWS.slice(), legend: { B: 'innWall', o: 'floorWood', z: 'bed', K: 'table', c: 'crate', C: 'chimney', D: 'stairsDown' }, music: 'inn', exits: {}, dark: false, npcs: [],
       triggers: [{ id: 'stairdown', rect: [In.UPSTAIR[0], In.UPSTAIR[1], 1, 1], on: 'step', script: 'inn:down' }, { id: 'drawer', rect: [In.DRAWER[0], In.DRAWER[1], 1, 1], on: 'use', script: 'inn:drawer' }], chests: [] };
   };
   M.FLOORS[In.UP] = { src: In.UP, own: true, map: In.upMap, door: In.SITE, place: 'The Halfway Inn', sub: 'upstairs: the guest rooms', save: true, clock: true, iso: true, rate: In.RATE, phase: M.seepPhase, phaseLine: In.line,
@@ -192,33 +206,33 @@
       return du;
     }
     if (key !== In.KEY) return floor0.apply(this, arguments);
-    In.inside = In.state != null ? In.state : In.qInside(q); In.q = q || '';
+    In.inside = In.state !== undefined ? In.state : In.qInside(q); In.q = q || '';
     var h = hour != null ? hour : M.hourNow(q), def = floor0.call(this, key, q, flags, h); flags = flags || {};
-    def.inside = In.inside; def.sub = In.inside ? 'the common room and the rooms' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
-    def.roofs = Object.assign({}, def.roofs, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the walls cut low while the party is in)
+    def.inside = In.inside || null; def.sub = In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
+    def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if (p.id === 'wagonGoblin' && flags.glamourSeen) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
-    def.skyLights = (def.skyLights || []).concat([[20, 17], [30, 27]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'inn' }; }), In.inside ? [[12, 20], [33, 21], [14, 22], [30, 23], [21, 22]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the hearths and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
+    def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
     var first = !flags.reachedInn; flags.reachedInn = 1;
     def.hello = ['{y}THE HALFWAY INN{/} -- ' + def.sub + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(h) : '') + '.']
-      .concat(first ? In.LINES.arrive : [], [In.inside ? In.LINES.inside : In.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
+      .concat(first ? In.LINES.arrive : [], [In.inside === 'inn' ? In.LINES.inside : In.inside === 'barn' ? In.LINES.barn : In.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
     return def;
   };
-  // a floor laid again (the hour's phase, or the house opened or roofed): the house as it stood unless In.lay says otherwise
+  // a floor laid again (the hour's phase, or a building opened or roofed): the buildings as they stood unless In.lay says otherwise
   var relay0 = M.relay;
   M.relay = function (B, hour, restand) {
-    var keep = In.relaying != null ? In.relaying : D.roam.def && D.roam.def.key === In.KEY ? !!D.roam.def.inside : null;
-    In.state = keep; try { relay0.apply(this, arguments); } finally { In.state = null; }
+    var keep = In.relaying !== undefined ? In.relaying : D.roam.def && D.roam.def.key === In.KEY ? D.roam.def.inside || null : undefined;
+    In.state = keep; try { relay0.apply(this, arguments); } finally { In.state = undefined; }
   };
-  // a step into a doorway or out of the house: the house laid open or roofed under the party, on the same square
+  // a step into a doorway or out of a building: that building laid open or roofed under the party, on the same square
   In.lay = function (B, inside, quiet) {
-    In.relaying = inside; try { M.relay(B, null, true); } finally { In.relaying = null; }
+    In.relaying = inside || null; try { M.relay(B, null, true); } finally { In.relaying = undefined; }
     var t = B.roam.token; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); B.focus(t); B.cache = null; B.map.occKey = null;
-    if (inside && !quiet) B.card(D.roam.wrap(['{y}The Halfway Inn{/} -- ' + In.LINES.inside]), 200);
+    if (inside && !quiet) B.card(D.roam.wrap(['{y}' + (inside === 'barn' ? 'The barn' : 'The Halfway Inn') + '{/} -- ' + (inside === 'barn' ? In.LINES.barn : In.LINES.inside)]), 200);
   };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) {
-    var ev = yield* arrive0.apply(this, arguments), def = D.roam.def, t = B.roam && B.roam.token;
-    if (!ev && def && def.key === In.KEY && t && D.battle === B && In.inHouse(t.x, t.y) !== !!def.inside) In.lay(B, In.inHouse(t.x, t.y));
+    var ev = yield* arrive0.apply(this, arguments), def = D.roam.def, t = B.roam && B.roam.token, b = t ? In.inHouse(t.x, t.y) : null;
+    if (!ev && def && def.key === In.KEY && t && D.battle === B && b !== (def.inside || null)) In.lay(B, b);
     return ev;
   };
   // the plates: THE INN LADY till she gives her name
@@ -229,9 +243,13 @@
     var f = (B.roam && B.roam.flags) || {};
     B.units.forEach(function (u) { if (typeof u.npc === 'string' && In.NAME[u.npc]) u.name = In.NAME[u.npc](f); });
   };
-  // a SAVE in the house stands the party in the yard a step out from the front door, as a room's on Silverton's street (js/house.js H.atOf)
+  // a SAVE in a building stands the party a step out of its door, as a room's on Silverton's street (js/house.js H.atOf): the house's and upstairs the front door's, the barn's its own
   var atOf0 = D.house && D.house.atOf;
-  if (atOf0) D.house.atOf = function (B) { var def = D.roam.def, t = B && B.roam && B.roam.token; if (def && t && (def.key === In.UP || (def.key === In.KEY && In.inHouse(t.x, t.y)))) return { town: In.SITE, gate: 'north', sq: [In.DOORS.front[0], In.DOORS.front[1] - 1], dir: 'up' }; return atOf0.apply(this, arguments); };
+  if (atOf0) D.house.atOf = function (B) {
+    var def = D.roam.def, t = B && B.roam && B.roam.token, b = def && t && def.key === In.KEY ? In.inHouse(t.x, t.y) : null, st = def && def.key === In.UP ? In.STEP.front : b ? In.STEP[b === 'barn' ? 'barn' : 'front'] : null;
+    if (st) return { town: In.SITE, gate: 'west', sq: [st[0], st[1]], dir: st[2] };
+    return atOf0.apply(this, arguments);
+  };
 
   // ---------------------------------------------------------------- THE MEAL: supper at the long table, the first room taken (the lane's 11-04 §4-5)
   // the news by the day the party comes (the inn the road's ear): each word true or heard wrong by the party's History, shown; the line under the line by its silent Insight
@@ -384,7 +402,7 @@
     // the party sleeps first, to the second watch (the first game's, Griz 09-25: "long-rest before the wagon rolls in")
     yield* D.house.sleepOnFloor(B, { hours: Math.max(1, (24 - h0) % 24 || 1), title: 'THE SECOND WATCH', line: L('wagon.night'), music: 'lake', before: function () { M.lightNow(B); } });
     f.wagonIn = 1; if (In.katHere(f, d)) f.katYard = 1;
-    In.stage(B, [In.DOORS.front[0], In.DOORS.front[1] + 1], true); // (the watcher at the front window, the yard in the lamplight beyond)
+    In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn'); // (the watcher at the front window, the yard in the lamplight beyond)
     var res = yield* M.talk(B, 'wagonNight', function (sc) { return In.wagonScene(sc, B); }, 'THE WAGON NIGHT', In.tailPic(B));
     var how = (res && res.how) || 'quiet', morning = null;
     if (how === 'quiet') {
@@ -397,7 +415,7 @@
       morning = L('wagon.morning.bribe');
     } else {
       if (f.katYard) { delete f.katYard; f.katGone = 1; } // (she is inside before the first blade clears, Griz 09-25)
-      In.stage(B, [In.DOORS.front[0], In.DOORS.front[1] - 1], false);
+      In.stage(B, [In.STEP.front[0], In.STEP.front[1]], null);
       var out = yield* In.yardFight(B);
       if (out === 'lost') return;
       f.glamourBroken = 1; f.glamourSeen = 1;
@@ -410,7 +428,7 @@
     }
     if (how !== 'fight' && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
     delete f.wagonIn; delete f.katYard;
-    In.stage(B, [14, 21], true); // (to bed: the morning in the common room)
+    In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
     yield* In.sleep(B, morning);
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
@@ -489,7 +507,7 @@
     else if (s === 'inn:point') say = [L(f.lakeDone ? 'lake.quiet' : 'lake.deep')];
     else if (s === 'inn:sign') say = [trig.text || ''];
     else if (s === 'inn:stair') { yield* M.go(B, In.UP, [In.UPSTAIR[0], In.UPSTAIR[1] - 1], [0, -1]); return; } // (up to the guest rooms, a step off the stair head)
-    else if (s === 'inn:down') { yield* M.go(B, In.KEY, [21, 20], [0, 1]); return; } // (down into the hall, a step off the stair's foot: the house laid open, js/inn.js In.qInside)
+    else if (s === 'inn:down') { yield* M.go(B, In.KEY, [In.STAIR[0] + 1, In.STAIR[1]], [1, 0]); return; } // (down by the bar, a step off the stair's foot: the house laid open, js/inn.js In.qInside)
     else if (s === 'inn:drawer') {
       if (In.bookInDrawer(f, In.day(D.roam.q), st)) { f.katBookTaken = 1; D.counter.give(st, 'katbook', 1); D.sfx('chest'); say = [L('inn.drawerBook'), L('g.got', { item: DS.DATA.items.katbook.name })]; } // (she rode out with the wagon: the book left in the drawer -- the lane's item 10)
       else say = [In.katHere(f, In.day(D.roam.q)) ? In.LINES.drawerShut : In.LINES.drawerEmpty]; // (her room while she has it; after, the book if she left it, else nothing)
@@ -504,15 +522,15 @@
 
   // ---------------------------------------------------------------- THE HALFWAY INN, shown (deep16/?innshow -- the eyes rows' door): a NEW GAME's four staged on the floor by the beat
   In.BEATS = [
-    { id: 'yard', label: 'THE YARD BY DAY, in off the Pit road', note: 'Ten in the morning on the road by the yard: the well, the rail, the stable and its cart, Doran by the woodpile, the boys down at the point. The inn under its roof. Walk to the front door.', key: In.KEY, at: [21, 15], hour: 10 },
-    { id: 'door', label: 'THROUGH THE FRONT DOOR: the walls go see-through', note: 'A step short of the front door. One step into the doorway: the roof comes off and every wall drops to a stub -- the whole house seen from above, its people in it. A step back out roofs it again.', key: In.KEY, at: [20, 17], hour: 18 },
-    { id: 'room', label: 'THE COMMON ROOM at dusk: the inn lady\'s room and THE MEAL', note: 'Inside at six in the evening, day 5. The inn lady by the hearth (plated THE INN LADY till she gives her name), Doran at the counter, the traveler by the fire (she is here days 5 and 6), Elsbeth at the kitchen tub. E on the inn lady: a room at five silver a head, then supper at the long table -- the moot, the one-eyed chief and the mirror-eyed beasts, true or heard wrong by your History, shown; ask Doran about the drovers, the traveler about her mirror; then the night.', key: In.KEY, at: [14, 21], hour: 18, day: 5, inside: true, dice: [14, 12, 15] },
-    { id: 'meal8', label: 'THE MEAL ON DAY 10: the Snoot moving north', note: 'The same supper eight days later: the moot, the one-eyed chief, the mirror-eyed beasts, the Snoot past the Gulch, the thing three men would not name. A low History die: every word heard wrong. Ask Doran about the drovers (Persuasion, shown); the traveler is gone south by now.', key: In.KEY, at: [14, 21], hour: 18, day: 10, inside: true, dice: [3, 15, 16] },
-    { id: 'meal14', label: 'THE MEAL ON DAY 15: the Snoot at the Pit', note: 'Supper on day 15: everything the road has said, and the worst of it -- the Snoot at the Pit, the road south shut. The dice high.', key: In.KEY, at: [14, 21], hour: 18, day: 15, inside: true, dice: [18, 17, 17] },
-    { id: 'wagon', label: 'DAY 6: THE WAGON NIGHT', note: 'The first WAGON DAY, six in the evening in the common room, the traveler by the fire. E on the inn lady: a room, supper, then the second watch -- Amara\'s wagon turns in, goblins chained in the back. Who had the watch? INVESTIGATE, WAKE THE PARTY or KEEP WATCH; the gold, or steel: the yard fight on the grid, Willem at the traces (three turns unbothered and the team is loose).', key: In.KEY, at: [14, 21], hour: 18, day: 6, inside: true },
-    { id: 'upstairs', label: 'UPSTAIRS: the guest rooms and the room over the kitchen', note: 'At the head of the stair in the passage. Three small guest rooms, and the room over the kitchen at the east end: E at the table by its bed -- the drawer. The stair down takes you back into the hall.', key: In.UP, at: [13, 6], hour: 18 },
-    { id: 'night', label: 'THE YARD BY NIGHT', note: 'Ten at night by the lake door: the house dark on the yard, lamps at its doors, the lantern post on the point, the lake black. The boys are in.', key: In.KEY, at: [30, 28], hour: 22 },
-    { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 11], hour: 10, day: 14 },
+    { id: 'yard', label: 'THE YARD BY DAY, in off the Pit road', note: 'Ten in the morning in the yard off the Pit road (the road down the west side, as the Gulch\'s): the well, the hitching rail, the barn for six horses, Doran by the woodpile, the boys down at the point. The inn two stories under its roof, its one-story wing behind. Walk to the front door.', key: In.KEY, at: [10, 22], hour: 10 },
+    { id: 'door', label: 'THROUGH THE FRONT DOOR: the walls go see-through', note: 'A step short of the front door. One step into the doorway: the roofs come off the house and its wing and every wall drops to a stub -- the common room round the big fire, the bar under the stair, the kitchen beyond, the two bedrooms, its people in them. A step back out roofs it again. The barn does the same at its own door.', key: In.KEY, at: [18, 18], hour: 18 },
+    { id: 'room', label: 'THE COMMON ROOM at dusk: the inn lady\'s room and THE MEAL', note: 'Inside at six in the evening, day 5. The inn lady by the hearth (plated THE INN LADY till she gives her name), Doran at the counter, the traveler by the fire (she is here days 5 and 6), Elsbeth at the kitchen tub. E on the inn lady: a room at five silver a head, then supper at the long table -- the moot, the one-eyed chief and the mirror-eyed beasts, true or heard wrong by your History, shown; ask Doran about the drovers, the traveler about her mirror; then the night.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, dice: [14, 12, 15] },
+    { id: 'meal8', label: 'THE MEAL ON DAY 10: the Snoot moving north', note: 'The same supper eight days later: the moot, the one-eyed chief, the mirror-eyed beasts, the Snoot past the Gulch, the thing three men would not name. A low History die: every word heard wrong. Ask Doran about the drovers (Persuasion, shown); the traveler is gone south by now.', key: In.KEY, at: [24, 17], hour: 18, day: 10, inside: true, dice: [3, 15, 16] },
+    { id: 'meal14', label: 'THE MEAL ON DAY 15: the Snoot at the Pit', note: 'Supper on day 15: everything the road has said, and the worst of it -- the Snoot at the Pit, the road south shut. The dice high.', key: In.KEY, at: [24, 17], hour: 18, day: 15, inside: true, dice: [18, 17, 17] },
+    { id: 'wagon', label: 'DAY 6: THE WAGON NIGHT', note: 'The first WAGON DAY, six in the evening in the common room, the traveler by the fire. E on the inn lady: a room, supper, then the second watch -- Amara\'s wagon turns in, goblins chained in the back. Who had the watch? INVESTIGATE, WAKE THE PARTY or KEEP WATCH; the gold, or steel: the yard fight on the grid, Willem at the traces (three turns unbothered and the team is loose).', key: In.KEY, at: [24, 17], hour: 18, day: 6, inside: true },
+    { id: 'upstairs', label: 'UPSTAIRS: the guest rooms and the room over the kitchen', note: 'At the head of the stair in the passage. Three small guest rooms over the common room, the big fire\'s chimney through the middle, and the big room on the kitchen side over the lake: E at the table by its bed -- the drawer. The stair down sets you by the bar.', key: In.UP, at: [7, 9], hour: 18 },
+    { id: 'night', label: 'THE YARD BY NIGHT', note: 'Ten at night on the path from the lake door: the house dark on the yard, lamps at its doors and the barn\'s, the lantern post on the point, the lake black. The boys are in.', key: In.KEY, at: [38, 18], hour: 22 },
+    { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
   ];
   In.play = function (bt) {
