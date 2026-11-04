@@ -60,7 +60,7 @@
     ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
     ',,,................"""""""""""""""t""""""""nWWYYYY', ',,,................""""""""""""""""""""""""nWWYYYY',
     ',,,..||||.........."""""""""""""""""""""t""nWWYYYY', ',,,................BBBBBBBBBBBBBBBBBB""""""nWYYYYY',
-    ',,,................BcKKKKKKcoooHHHHoB""""""nWYYYYY', ',,,........q.......BooooooooooooooooB"""""lnWWYYYY',
+    ',,,................BcoooooocoooHHHHoB""""""nWYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
     ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,................BooooooooCCooooooB"""""rrrrYYYY',
     ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
     ',,,................BoomKmoooCCooooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
@@ -115,7 +115,7 @@
     inside: 'Inside the Halfway Inn: the common room round the big fire, the bar under the stair, the kitchen beyond the fire, two bedrooms off the kitchen.',
     barn: 'The barn: six stalls either side of the aisle, mangers at their heads.',
     name: '"Gennet. Waterby, since the wedding. The lake\'s older than either."',
-    bed: 'A room under the eaves. Nobody stands a watch at the Halfway Inn: the house keeps its own door.',
+    bed: 'A room under the eaves.', // (its watch line cut 11-04, Griz: "The nobody stands watch can just go unmentioned since we violate it on wagon night")
     morning: 'Morning on Halfway Lake: mist off the water, the well\'s chain, the boys already down at the shore.',
     night: 'Night at the Halfway Inn. The lamps are lit in the common room; past the point the lake is black.',
     day: 'Morning comes up over Halfway Lake.',
@@ -284,15 +284,18 @@
   // THE MEAL'S TABLE (11-04, the lanes desk; Griz at the pane: "Have the dinner reworked. It's returned to the default solid blue background and boxes. The council scene and
   // lymen/papa conversations look better", then "it's showing me 'doran' talking with the inn lady picture and aurdin's rolls in the main box" and "we want to show the main
   // room with people seated for dinner, and maybe decide what side the portrait shows while they're talking based on what side they're on in the background"): supper plays
-  // on the open screen (js/counter.js THE OPEN SCREEN, its sides) over the common room as the camera has it -- the Waterbys and the party sat along the long table's open
-  // side, the traveler at the table for two -- the one speaking top left or top right by their seat, the hero whose die it was bottom on theirs with the die in their bubble
-  In.TABLE = { seats: [[22, 15], [23, 15], [25, 15], [26, 15]], doran: [21, 15], gennet: [24, 15], kat: [22, 20], focus: [20, 13], mid: 23.5 }; // (the four's places at the long table, the host at its west end, the inn lady in the middle; the camera north-west of the table so the table sits in the screen's lower half, under the words' boxes)
+  // on the open screen (js/counter.js THE OPEN SCREEN, its sides) over the common room as the camera has it -- the Waterbys and the party sat at the long table, the
+  // traveler at the table for two -- the one speaking top left or top right by their seat, the hero whose die it was bottom on theirs with the die in their bubble.
+  // THE TABLE OFF THE WALL (11-04, the Opus lanes desk; Griz after the supper on main: "Table is crammed up against a wall and everyone is on one side"): the long
+  // table a row down (row 15, x 21-26) and sat on both sides, staggered -- the north side faces the camera (the lead, the inn lady in the middle, the second), the
+  // south side shows its backs (the third, the fourth), the host at the west end; Gennet's own square by day (24,16) and the room beat's (24,17) stay free
+  In.TABLE = { y: 15, seats: [[22, 14], [26, 14], [23, 16], [25, 16]], doran: [20, 15], gennet: [24, 14], kat: [22, 20], focus: [21.5, 13], mid: 23.5 }; // (the four's places, the north side first; the camera north-west of the table so the table sits in the screen's lower half, under the words' boxes, the six centred across the screen)
   In.sideOf = function (x) { return x <= In.TABLE.mid ? 'left' : 'right'; };
   In.sit = function (B) { // (everyone to the table; what to put back after)
     var R0 = B.roam, G = D.grid, kept = [], put = function (u, q, face) { if (!u) return; kept.push({ u: u, x: u.x, y: u.y, facing: u.facing }); u.x = q[0]; u.y = q[1]; u.tween = null; u.facing = D.spr.facingFor(face[0], face[1]); u.anim = 'idle'; u.animT = B.t; };
     var folk = {}; B.units.forEach(function (u) { if (typeof u.npc === 'string') folk[u.npc] = u; }); folk.gennet = folk.gennet || folk.gennetGrief;
     var four = [R0.token].concat(R0.rest || []).filter(function (u) { return u && u.src && !u.src.guest && u.hp > 0; }).slice(0, 4);
-    four.forEach(function (u, i) { put(u, In.TABLE.seats[i], [0, -1]); });
+    four.forEach(function (u, i) { var q = In.TABLE.seats[i]; put(u, q, [0, q[1] < In.TABLE.y ? 1 : -1]); }); // (each faces the table: the north side south, the south side north)
     put(folk.doranIn, In.TABLE.doran, [1, 0]); put(folk.gennet, In.TABLE.gennet, [0, 1]); put(folk.katarina, In.TABLE.kat, [1, 0]);
     var added = four.filter(function (u) { return B.units.indexOf(u) < 0; }); B.units = B.units.concat(added); // (the three who walk inside the token on a roam stand at their seats for the picture -- js/roam.js R.riding)
     R0.path = null; G.setup(B.map, B.units); B.focus({ x: In.TABLE.focus[0], y: In.TABLE.focus[1], size: 1 });

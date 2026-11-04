@@ -560,7 +560,7 @@
   // from 2 -- (2R-1)/R, whole device pixels at the screen's scale D.R, core.js -- the bubble just under the keeper's name, its pointer dropping from its foot to the hero's
   // mouth, the hero standing so his hair just overlaps its foot; a wait's `lead` puts the party's lead bottom right at the hero's size, facing in ('after': once the words are
   // out and a pause), its `blush` a blush on the lead's face, its `noHero` the hero gone)
-  C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66 }, pause: 30, blush: 20, faceZoom: 3 };
+  C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66, pad: 34, rows: 16 }, pause: 30, blush: 20, faceZoom: 3 };
   C.OPEN.heroS = function () { var R = Math.max(1, Math.round(D.R || 1)); return Math.max(1, (2 * R - 1) / R); };
   // THE SIDES (11-04, the lanes desk; Griz at the inn's supper on the pane: "we want to show the main room with people seated for dinner, and maybe decide what side the
   // portrait shows while they're talking based on what side they're on in the background", after "It's returned to the default solid blue background and boxes. The council
@@ -598,7 +598,10 @@
   var SAVED = null;
   function openOn(sc) {
     SAVED = { RX: RX, RW: RW, WY: WY, WH: WH, BB: BB }; var O = C.OPEN, w = sc.wait || {};
-    if (w.narr) { RW = O.narr.w; WH = O.narr.h; RX = Math.round((D.W - RW) / 2); WY = Math.round((D.H - 14 - WH) / 2); }
+    if (w.narr) { // (a narration's box as tall as its wrapped lines, NEXT clear under the last -- never under 66, so a short one is as it was; 11-04, Griz after the supper: "the insight popup and 'fire is let down' popup break the box they're displayed in")
+      RW = O.narr.w; var n = 0; [].concat(w.say || []).forEach(function (l, k) { n += (k ? 1 : 0) + D.wrap(l, RW - 18).length; }); // (as paginate counts them: a blank between lines)
+      WH = Math.max(O.narr.h, O.narr.pad + Math.min(n, O.narr.rows) * 10); RX = Math.round((D.W - RW) / 2); WY = Math.round((D.H - 14 - WH) / 2);
+    }
     else {
       var g = C.openGeo(sc), hr = sc.hSide() === 'right';
       if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
