@@ -216,13 +216,23 @@ def cmd_new(args):
     os.makedirs(out, exist_ok=True)
     texts = [text_of(best[k], cards.get(k), where[k]) for k in new]
     total = sum(len(t) for t in texts); nsl = min(nsl, max(1, len(texts)))
-    slices, cur, size = [], [], 0
-    for t in texts:  # (cut where the running size comes nearest each slice's share, before or after the fight that crosses it)
-        goal = total * (len(slices) + 1) / nsl
-        if cur and len(slices) < nsl - 1 and size + len(t) > goal and goal - size < size + len(t) - goal: slices.append(cur); cur = []
-        cur.append(t); size += len(t)
-        if len(slices) < nsl - 1 and size >= goal: slices.append(cur); cur = []
-    if cur or not slices: slices.append(cur)
+    # (the slices in time order with the largest as small as it can be: the least cap that N slices can hold, found by halving, then filled to it --
+    # the running-share cut left 44/36/15/65 KB on his 11-03 night's 18 fights)
+    sizes = [len(t) for t in texts]
+
+    def fill(cap):
+        out, cur, s = [], [], 0
+        for t, n in zip(texts, sizes):
+            if cur and s + n > cap: out.append(cur); cur, s = [], 0
+            cur.append(t); s += n
+        if cur: out.append(cur)
+        return out
+    lo, hi = max(sizes) if sizes else 0, total
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if len(fill(mid)) <= nsl: hi = mid
+        else: lo = mid + 1
+    slices = fill(lo) if texts else [[]]
     for i, s in enumerate(slices):
         p = os.path.join(out, 'slice-%d-of-%d.txt' % (i + 1, len(slices)))
         with open(p, 'w', encoding='utf-8') as f: f.write(''.join(s))
