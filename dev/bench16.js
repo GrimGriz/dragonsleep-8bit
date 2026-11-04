@@ -2239,6 +2239,100 @@
     document.body.appendChild(preF2);
     return;
   }
+  // THE SECOND ACT, 11-04 (mode=secondact1104; js/secondact.js -- the Inn build seat 2; the Halfway Inn lane's item 13, the Inn seat's §10 beat sheet RULED 11-04): the signs
+  // after a won yard and the fork (LET IT BE: the walk, the due paid); the path staged -- STRIKE, Gennet yields at half, TAKE THE CHILD, the rise at the shore without the ring;
+  // the rise with the ring warm and the fight on the point; the rise with nobody at the shore; Elsbeth's wand in the kitchen; the bystander flag; Doran on a blow at a boy;
+  // the show's beats staged; &probe=1&seeds=..&lvl=N: Gennet's fight seeded a level for dev/inn-probe.py
+  if (get('mode', '') === 'secondact1104') {
+    var repAc = { checks: [], errors: [], table: [] }, memAc = {}, stGAc = D.store.get, stSAc = D.store.set, HAc = D.house, CAc = D.counter, RAc = D.roam, InAc = D.inn, AcB = D.secondact, muAc = D.music;
+    function okAc(what, v) { repAc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveAc(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topAc() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    // a test floor with a staged beat: the flags' object set before the floor is made (js/roam.js R.flags0 is copied in at R.setup), so the floor's script runs it first
+    function stageAc(q, extra, before) { var B = RAc.make(q + '&watch'); Object.assign(RAc.flags0, extra || {}); D.scenes.length = 0; D.push(B); topAc(); if (before) before(D.top()); return D.top(); }
+    function atAc(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function wakeAc() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    var foeAc = function (B, kind, hp) { B.units.forEach(function (u) { if (u.kind === kind && u.side === 'foe') { u.hp = hp; } }); };
+    // the floor's script driven on: prompts answered by label from `ans` (none left, the last option), the watches picker begun with Lymen on the second, every card seen once, each
+    // morning woken, a counter answered; `hook(label)` as each prompt is answered (the bench's knob on the foes' hit points); stops when another floor stands on top
+    function flowAc(B, ans, hook) {
+      var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
+      B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 90000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CAc.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('> ' + w.opts[i0]); if (hook) hook(w.opts[i0], B); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HAc.Morning) { quiet = 0; seen.push(wakeAc()); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); s.go('begin'); continue; }
+        if (s !== B && s instanceof D.Battle && s.roam) { seen.push('FLOOR: ' + (RAc.def && RAc.def.key)); break; }
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt, a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push((p.lines || []).join(' ') + ' [' + p.opts.map(function (o) { return o.label; }).join(' | ') + ']'); seen.push('> ' + p.opts[i].label); v = p.opts[i].value; quiet = 0; if (hook) hook(p.opts[i].label, B); continue; }
+        quiet = 0;
+      }
+      return window.DS.stripCodes(seen.join(' / '));
+    }
+    var BASE = 'wagonIn,dueTonight,kidTaken,glamourBroken,glamourSeen,wagonStopped,kidAtInn,doranAway,katGone,reachedInn,mealHad,gennetNamed';
+    D.store.get = function (k) { return memAc[k] ? JSON.parse(memAc[k]) : null; }; D.store.set = function (k, v) { memAc[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1104); InAc.stay = true;
+      if (get('probe')) { // (dev/inn-probe.py: Gennet on the path, seeded a level -- the party by the class AI, her numbers as written)
+        var seeds = get('seeds', '1').split(',').map(Number), lvl = get('lvl', '4');
+        seeds.forEach(function (sd) {
+          D.seed = sd; var Bp = stageAc('?roam=halfway&hour=23&day=6&at=37,18&lvl=' + lvl + '&flags=' + BASE, { secondAct: { beat: 'path', strike: true } }), t0p = Bp.roam.token;
+          var sp = flowAc(Bp, ['STRIKE', 'TAKE THE CHILD']), fp = Bp.roam.flags, downs = Bp.roam.members.filter(function (u) { return u.hp <= 0; }).length;
+          repAc.table.push({ seed: sd, lvl: +lvl, end: fp.gennetDead ? 'killed' : fp.gennetYield ? 'yielded' : /INITIATIVE/.test(sp) ? 'other' : 'no fight', rounds: Bp.round || 0, downs: downs, doran: !!fp.doranFights, offering: fp.offeringSaved ? 'saved' : fp.duePaid ? 'paid' : '-' });
+        });
+        throw 'probe done';
+      }
+      // 1. THE SIGNS AND THE FORK after a won yard (the night played through: WAKE, the pair at a hit point and rooted): the three the fight ate, the last three with their reads, the fork; LET IT BE: the walk, the due paid
+      var B1 = stageAc('?roam=halfway&hour=18&day=6&at=24,17'); B1.roam.silver = 30; atAc(B1, 24, 17, [0, -1]); InAc.pinned = [18, 18];
+      var o1 = flowAc(B1, [0, 'TO BED', 'WAKE THE PARTY', 'LET IT BE'], function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); }), f1 = B1.roam.flags, i1 = o1.indexOf('While the yard was busy');
+      okAc('the signs and the fork after a won yard: ' + o1.slice(Math.max(0, i1 - 40), i1 + 1500) + ' -- warmup ' + f1.warmup + ', the lantern walks ' + f1.lanternWalks + ', the due paid ' + f1.duePaid + ', seen ' + f1.dueSeen + ', the outcome ' + f1.wagonOutcome,
+        /While the yard was busy/.test(o1) && /\+5 minutes: Elsbeth is sent up/.test(o1) && /\+10 minutes/.test(o1) && /\+15 minutes/.test(o1) && /\+20 minutes/.test(o1) && /\+25 minutes/.test(o1) && /\+30 minutes: The lantern has left its post/.test(o1) && /Down the path toward the water: a woman, two boys/.test(o1) && /\[THE LANTERN \| LET IT BE\]/.test(o1) && /> LET IT BE/.test(o1) && /Only the inn lady comes back/.test(o1) && /seven children/.test(o1) && /MORNING/.test(o1) && f1.warmup === 6 && f1.lanternWalks === 1 && f1.duePaid === 1 && f1.wagonOutcome === 'inn');
+      // 2. THE PATH, STRIKE: Gennet, the boys, the child in the lantern's light; her line; the fight on the floor's squares -- she yields at half (her hit points pinned low) and sits; TAKE THE CHILD; the lake rises at the hour anyway, the party at the shore without the ring: it goes down; the morning
+      var B2 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE, { secondAct: { beat: 'path' } }), hp2 = null;
+      var o2 = flowAc(B2, ['STRIKE', 'TAKE THE CHILD'], function (lb, B) { if (lb === 'STRIKE') B.units.forEach(function (u) { if (u.kind === 'gennet') { hp2 = u.maxhp; u.hp = 3; } }); }), f2 = B2.roam.flags, i2 = o2.indexOf('Stand out of the light');
+      okAc('the path, STRIKE: ' + o2.slice(Math.max(0, i2 - 200), i2 + 1600) + ' -- Gennet ' + hp2 + ' hp as written; flags yield ' + f2.gennetYield + ', saved ' + f2.offeringSaved + ', stopped ' + f2.dueStopped + ', the god seen ' + f2.chuulSeen + ', done ' + f2.secondActDone + ', lake ' + f2.lakeDone,
+        /Orrin: "Mam\?"/.test(o2) && /Stand out of the light/.test(o2) && /> STRIKE/.test(o2) && /INITIATIVE/.test(o2) && /It gave back\. It always gave back/.test(o2) && /> TAKE THE CHILD/.test(o2) && /takes the child's hand/.test(o2) && /The water off the point heaves/.test(o2) && /Nothing stands on the stone|Nothing stands in the water|not ready for it/.test(o2) && /eight children in the back of it/.test(o2) && hp2 === 33 && f2.gennetYield === 1 && f2.offeringSaved === 1 && f2.dueStopped === 1 && f2.chuulSeen === 1 && f2.secondActDone === 1 && !f2.lakeDone);
+      // 3. THE RISE WITH THE RING WARM: the lead wearing the Ring of Binding, the party at the stone -- it turns toward the ring, the fight on the point with its frog (their hit points pinned low), the ring's rounds; won: the deep is only water, the corpse's gift, the morning's lake
+      var unit0 = InAc.unit; InAc.unit = function (B, o) { var u = unit0.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
+      var B3 = stageAc('?roam=halfway&hour=23&day=6&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; });
+      var o3 = flowAc(B3, []), f3 = B3.roam.flags, st3 = CAc.state(B3), i3 = o3.indexOf('It turns toward the ring');
+      InAc.unit = unit0;
+      okAc('the rise with the ring warm: ' + o3.slice(Math.max(0, i3 - 300), i3 + 1200) + ' -- lake done ' + f3.lakeDone + ', the gift ' + f3.lakeGiftGot + ' (' + (B3.inv || []).map(function (s) { return s.id; }).join(',') + '), the god seen ' + f3.chuulSeen,
+        /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /something the lake took/.test(o3) && /draws from the lake in front of everyone, and drinks/.test(o3) && f3.lakeDone === 1 && f3.lakeGiftGot === 1 && f3.chuulSeen === 1);
+      // 4. THE RISE WITH NOBODY AT THE SHORE: the party back at the path's head -- nothing stands on the stone, it goes down; the god seen, not fought
+      var B4 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise', far: true } });
+      var o4 = flowAc(B4, []), f4 = B4.roam.flags;
+      okAc('the rise with nobody at the shore: ' + o4.slice(0, 500) + ' -- seen ' + f4.chuulSeen + ', lake done ' + !!f4.lakeDone, /Nothing stands on the stone\. It goes down/.test(o4) && !/INITIATIVE/.test(o4) && f4.chuulSeen === 1 && !f4.lakeDone);
+      // 5. ELSBETH'S WAND in the kitchen: the dishes (tier 1), then CALL GENNET A FRAUD -- the word, the save failed (pinned), out of the kitchen; PRESS ON, the cone; she is done for the night; the god seen gives her third tier for nothing
+      var B5 = stageAc('?roam=halfway&hour=18&day=6&at=32,21&inside'); atAc(B5, 32, 21, [1, 0]); InAc.pinned = [2, 2, 2, 2];
+      var o5a = flowAc(B5, ['HELP WITH THE DISHES']); atAc(B5, 32, 21, [1, 0]); var o5 = o5a + ' / ' + flowAc(B5, ['CALL GENNET A FRAUD', 'PRESS ON']), f5 = B5.roam.flags, t5 = { x: B5.roam.token.x, y: B5.roam.token.y };
+      atAc(B5, 32, 21, [1, 0]); var o5b = flowAc(B5, []);
+      okAc('the wand: ' + o5.slice(-900) + ' -- out ' + f5.wandOut + ', pushed ' + f5.elsbethPushed + ', tier ' + f5.elsbethTier + ', the party at ' + t5.x + ',' + t5.y + '; her again: "' + o5b.slice(0, 80) + '"',
+        /Tobin was fourteen/.test(o5) && /> CALL GENNET A FRAUD/.test(o5) && /is a fraud, and you know it/.test(o5) && /blackened bone-white wood/.test(o5) && /walks out of the kitchen/.test(o5) && /> PRESS ON/.test(o5) && /wall of fear/.test(o5) && /Nobody is hurt/.test(o5) && f5.wandOut === 1 && f5.elsbethPushed === 1 && f5.elsbethTier === 1 && t5.x === 25 && t5.y === 20 && /The kitchen door is shut/.test(o5b));
+      var B5c = stageAc('?roam=halfway&hour=18&day=6&at=32,21&inside&flags=chuulSeen'); atAc(B5c, 32, 21, [1, 0]); var o5c = flowAc(B5c, []);
+      okAc('the god seen: her third tier for nothing (' + o5c.slice(0, 120) + ', tier ' + B5c.roam.flags.elsbethTier + ')', /The god is an animal/.test(o5c) && B5c.roam.flags.elsbethTier === 3);
+      // 6. THE BYSTANDERS AND DORAN: the cast stood on the path -- the AI's targets for Gennet hold none of the boys or the child; Doran on a blow at a boy, a foe who yields
+      var B6 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE), Y6 = AcB.cast(B6, B6.roam.flags, AcB.PATH.half), tg = D.ai.heroes(B6, Y6.gennet).map(function (u) { return u.id; });
+      var d6 = AcB.doranIn(B6, Y6), f6 = B6.roam.flags;
+      okAc('the bystanders: Gennet\'s targets ' + tg.join(',') + ' (none of orrin, pell, the child: ' + !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) + '); Doran in on a blow at a boy: ' + d6.name + ' (' + d6.kind + ', yields ' + d6.yields + ', ' + d6.hp + ' hp, side ' + d6.side + '), doranFights ' + f6.doranFights,
+        tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && [Y6.orrin, Y6.pell, Y6.kid].every(function (u) { return u.bystander && u.look; }));
+      // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
+      var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 8 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      HAc.playing = false; HAc.cur = null;
+    } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
+    HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
+    D.store.get = stGAc; D.store.set = stSAc; D.music = muAc;
+    var preAc = document.createElement('pre'); preAc.id = 'out'; preAc.textContent = 'BENCH16 ' + JSON.stringify(repAc);
+    document.body.appendChild(preAc);
+    return;
+  }
   // THE CATCH ON THE GULCH ROAM, 11-04 (mode=chase1104; js/chase.js -- the Inn build seat 2; the Halfway Inn lane's item 3, RULED 11-04 twice: "horses or not the 'catch' is on the
   // Gulch roam, with horses losing them there is losing them" and "approve chase suggested mechanics"): from the yard's away, AFTER THEM, the night walk and the gulch floor at
   // the south mouth with the pair ahead; on foot the gap closes two to three and the first catch is a fight on the floor's own squares the pair run from; away again square for
@@ -2555,7 +2649,7 @@
         /The road south is shut/.test(g5.seen) && trl.some(function (s) { return /History 18 /.test(s) && /made/.test(s); }) && trl.some(function (s) { return /passive Insight/.test(s); }) && trl.some(function (s) { return /Persuasion 17 /.test(s); }));
       HIn.playing = false; HIn.cur = null;
       // 7. ELSBETH AT THE TUB, the first game's tiers; THE MEAL's hard read opens her first tier without the dishes
-      var Be = testIn('?roam=halfway&hour=18&at=32,21'); atIn(Be, 32, 21, [1, 0]); var e1 = useIn(Be, [33, 21], [0]), e2 = useIn(Be, [33, 21], []), e3 = useIn(Be, [33, 21], []);
+      var Be = testIn('?roam=halfway&hour=18&at=32,21'); atIn(Be, 32, 21, [1, 0]); var e1 = useIn(Be, [33, 21], [0]), e2 = useIn(Be, [33, 21], [0]), e3 = useIn(Be, [33, 21], []); // (e2: ASK HER MORE, not the second act's push -- js/secondact.js A.wand)
       okIn('Elsbeth at the tub: HELP WITH THE DISHES ("' + e1.seen.slice(0, 50) + '"), the god an animal ("' + e2.seen.slice(0, 40) + '"), not tonight ("' + e3.seen.slice(0, 30) + '")',
         /Tobin was fourteen/.test(e1.seen) && /The god is an animal/.test(e2.seen) && /not a feeding night/.test(e3.seen));
       // 8. THE STAIR, THE SAVE inside, the lake door and the point

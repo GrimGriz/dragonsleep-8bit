@@ -212,6 +212,11 @@
     // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
     // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
     // His domain the Vigil, Dvalgarda's (09-28g, the seat's on Griz's "Sufficiently distinct"; invented.json #the-vigil)
+    // Gennet Waterby, the inn lady on the path (the Halfway Inn lane's §10.2, 11-04): the SRD Cult Fanatic's list as a cleric 4 on WIS -- her figure the townsfolk woman's, her sheet's numbers data/foes.js's
+    gennet: { name: 'Gennet Waterby', named: true, cls: 'cleric', lvl: 4, race: 'human', subclass: 'Life Domain',
+      abil: { str: 11, dex: 14, con: 12, int: 10, wis: 13, cha: 14 },
+      equip: { weapon: 'dagger', armor: 'leather' }, noPrecast: true, look: 'folkwoman_p1',
+      known: ['sacredflame', 'light', 'command', 'inflictwounds', 'shieldoffaith', 'holdperson', 'spiritualweapon'] },
     torvald: { name: 'Torvald', named: true, cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', // (the name for the Pocket DM; his fight's card keeps 'Dwarf Cleric')
       abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true, look: 'torvald_p0', // (his own figure off the story's card: the Pocket DM, the tester ladder)

@@ -18,11 +18,12 @@
     // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
     // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
     // off and the Breach never ended, 10-02)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
+    // (bystander: one the AI never targets and that never acts -- the Halfway Inn's boys and the child on the path, js/secondact.js, 11-04; an area still catches them)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.bystander && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.bystander && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }

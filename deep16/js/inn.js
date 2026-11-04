@@ -83,13 +83,13 @@
   Object.assign(M.ROOF, { innRoof: 'I', wingRoof: 'J', barnRoof: 'Z', innWall: 'v', barnWall: 'v' });
   // where the people stand, by the hour and the floor's flags (the first game's conditions): the yard's by day, the house's inside it -- seen while the party is in
   In.FOLK = [
-    { id: 'doranYard', at: [16, 26], look: 'worker', dir: 'right', cond: '!flag:doranAway', when: 'day', out: true },   // (by the woodpile)
+    { id: 'doranYard', at: [16, 26], look: 'worker', dir: 'right', cond: '!flag:doranAway & !flag:doranDead', when: 'day', out: true },   // (by the woodpile)
     { id: 'orrin', at: [43, 20], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },           // (the stone stack at the point)
     { id: 'pell', at: [43, 24], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },            // (skimming stones off the shore)
     { id: 'adoptedKid', at: [43, 12], look: 'girl', dir: 'right', cond: 'flag:kidAtInn & !flag:dueSeen', when: 'light', out: true },
-    { id: 'doranIn', at: [24, 23], look: 'worker', dir: 'up', cond: '!flag:doranAway', when: 'evening' },                // (behind the bar, under the stair's high end, where the headroom is)
-    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone' },
-    { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone' },
+    { id: 'doranIn', at: [24, 23], look: 'worker', dir: 'up', cond: '!flag:doranAway & !flag:doranDead', when: 'evening' },                // (behind the bar, under the stair's high end, where the headroom is)
+    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone & !flag:gennetDead' },
+    { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone & !flag:gennetDead' },
     { id: 'elsbeth', at: [33, 21], look: 'elsbeth', dir: 'right', cond: '!flag:postgame' },                              // (at the tub, her back to the room)
     { id: 'katarina', at: [26, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }                                   // (writing by the fire)
   ];
@@ -369,8 +369,21 @@
   // ---------------------------------------------------------------- the people: the inn lady's room, Elsbeth at the tub (the first game's S.gennet, S.elsbeth on the counter screen)
   In.has = function (st, id) { return D.counter.count(st, id) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === id; }); }); };
   In.heads = function (B) { return ((B.roam && B.roam.members) || []).filter(function (u) { return u.src && !u.src.guest; }).length || 1; };
+  // the rooms from Doran after the second act's ends (the lane's §10.3 beat 5): the due stopped, Gennet keeps her back to the room and sells nothing; Gennet killed, "You'll want the road" and no rooms again
+  In.doranRoom = function* (sc, B) {
+    var st = sc.st, f = st.flags, A = D.secondact, cost = In.PRICE * In.heads(B);
+    if (f.gennetDead) { yield sc.say([].concat(M.words(B, 'doranIn'), A ? [A.LINES.doranRoad] : [])); return false; }
+    yield sc.say(M.words(B, 'doranIn'));
+    var a = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
+    if (a !== 0) return false;
+    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return false; }
+    st.silver(-cost); D.sfx('coin');
+    yield sc.say(In.LINES.bed);
+    return true;
+  };
   In.gennet = function* (sc, B) {
-    var st = sc.st, f = st.flags, cost = In.PRICE * In.heads(B);
+    var st = sc.st, f = st.flags, cost = In.PRICE * In.heads(B), A = D.secondact;
+    if (f.dueStopped && A) { yield sc.say([].concat(M.words(B, 'gennet'), [A.LINES.gaveBack, A.LINES.noRoom])); return false; } // (the due stopped on the path: no room from her; Doran sells)
     var d = In.day(D.roam.q), soon = !In.isWagonDay(d) && f.wagonCycle == null && !f.wagonNamed ? [In.WN.soon] : []; // (any other night: the month's wagon named without being named -- the lane's 11-04 §3 (d))
     if (soon.length) f.wagonNamed = 1;
     if (!f.gennetNamed) { f.gennetNamed = 1; yield sc.say([].concat(M.words(B, 'gennet'), [In.LINES.name], soon)); }
@@ -633,13 +646,13 @@
       if (out === 'fled') {
         f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot';
         yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420);
-        if (D.chase && D.chase.start) { // (THE CATCH ON THE GULCH ROAM, the lane's item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
-          var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]);
-          if (go === 0) { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp }); return; }
-        }
       } else f.wagonOutcome = 'inn';
+      var act = null;
+      if (D.secondact && f.dueTonight) act = yield* D.secondact.afterYard(B, out); // (THE SECOND ACT, the lane's §10 -- js/secondact.js: the signs the yard ate, the rest, the fork: the chase, the lantern, or let it be)
+      else if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
+      if (act === 'after') { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp }); return; } // (THE CATCH ON THE GULCH ROAM, item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
       yield* In.yardAfter(B, st, f, In.lastFight.willemDead, In.lastFight.loose);
-      morning = L('wagon.morning.inn');
+      morning = (D.secondact && D.secondact.morning(f)) || L('wagon.morning.inn');
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
     }
     if (how !== 'fight' && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
@@ -682,7 +695,7 @@
     var Y = {}; In.bedRiders(B, Y, f, !!c.horses);
     yield* In.card(B, [In.WN.fledYard], 300);
     yield* In.yardAfter(B, st, f, !!c.willemDead, !!c.horses);
-    var morning = L('wagon.morning.inn');
+    var morning = L('wagon.morning.inn'); if (f.duePaid && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold'); // (the lantern walked while they were up the road: the second act's AFTER THEM)
     delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn');
     yield* In.sleep(B, morning);
@@ -706,18 +719,25 @@
   // Willem Glass's book (the lane's item 5; the house lane's item 7, 09-30c: a drop when the party kills him): the seat's draft, invented.json halfway-wagon-night
   if (DS && DS.DATA && DS.DATA.items && !DS.DATA.items.willembook) DS.DATA.items.willembook = { name: 'Willem\'s Book', kind: 'key', price: 0, noSell: true,
     desc: 'Willem Glass\'s spellbook: an illusionist\'s, in a fair hand -- and at the back, worked out line by line, the glamour he laid over the children on Amara\'s wagon.', src: 'invented.json halfway-wagon-night' };
+  // (her three tiers as the first game had them, each a flag now -- elsbethTier 1, 2, 3: the second act reads EARNED at 3; the god seen and not fought gives the third for nothing;
+  // the push -- Gennet named a fraud to her face -- is the wand, in the kitchen only, and she is done for the night: js/secondact.js A.wand, the lane's §10.4)
   M.SCENES.elsbeth = function* (sc, B) {
-    var st = sc.st, f = st.flags;
+    var st = sc.st, f = st.flags, A = D.secondact;
     if (f.lakeDone) { yield sc.say(L('inn.elsbethAfter')); return; }
+    if (f.wandOut) { yield sc.say(A ? A.LINES.elsbethSilentWand : L('inn.elsbethSilent')); return; }
     if (f.elsbethSilent) { yield sc.say(L('inn.elsbethSilent')); return; }
     if (f.doranAway && !In.has(st, 'ringofbinding')) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); return; }
+    if (f.chuulSeen && (f.elsbethTier || 0) < 3) { f.dishes = 1; f.elsbethTold = 1; f.elsbethTier = 3; yield sc.say([].concat(L('inn.elsbeth2'), L('inn.elsbeth3'))); return; } // (the god seen: her third tier for nothing)
     if (!f.dishes && !f.mealWrong) { // (THE MEAL's hard Insight opens her first tier without the dishes: the lane's 11-04 §4)
       var a = yield sc.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']);
       if (a !== 0) return;
     }
-    if (!f.dishes) { f.dishes = 1; yield sc.say(L('inn.elsbeth1')); return; }
-    if (!f.elsbethTold) { f.elsbethTold = 1; yield sc.say(L('inn.elsbeth2')); return; }
-    yield sc.say(L(In.has(st, 'ringofbinding') ? 'inn.elsbethTonight' : 'inn.elsbeth3'));
+    if (!f.dishes) { f.dishes = 1; f.elsbethTier = 1; yield sc.say(L('inn.elsbeth1')); return; }
+    if (!f.elsbethTold) {
+      if (A && A.wand) { var p = yield sc.ask('At the tub.', ['ASK HER MORE', A.LINES.opts.fraud]); if (p === 1) { yield* A.wand(sc, B, st, f); return; } }
+      f.elsbethTold = 1; f.elsbethTier = 2; yield sc.say(L('inn.elsbeth2')); return;
+    }
+    f.elsbethTier = 3; yield sc.say(L(In.has(st, 'ringofbinding') ? 'inn.elsbethTonight' : 'inn.elsbeth3'));
   };
   // the Snoot's runner: his word, and the Snoot's page on TO THE SNOOT
   In.runnerScene = function* (sc) {
@@ -729,6 +749,16 @@
   var fire0 = T.fire;
   T.fire = function* (B, trig, at) {
     var def = D.roam.def;
+    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'elsbeth') { // (the kitchen: her tiers, and the wand's walk out -- js/secondact.js A.wand)
+      yield* M.talk(B, 'elsbeth', function (sc) { return M.SCENES.elsbeth(sc, B); });
+      if (In.wandWalk) { In.wandWalk = false; yield* D.roam.walkTo(B, [25, 20]); B.card(D.roam.wrap([D.secondact.LINES.wandDone]), 360); yield 40; }
+      return;
+    }
+    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'doranIn' && (B.roam.flags.dueStopped || B.roam.flags.gennetDead)) { // (Doran sells the rooms after the second act's ends: js/secondact.js)
+      var sleptD = yield* M.talk(B, 'doranIn', function (sc) { return In.doranRoom(sc, B); }, 'Doran Waterby');
+      if (sleptD) yield* In.night(B);
+      return;
+    }
     if (def && def.key === In.KEY && trig.town === 'talk' && (trig.npc === 'gennet' || trig.npc === 'snootRunner')) {
       if (trig.npc === 'gennet') {
         var slept = yield* M.talk(B, 'gennet', function (sc) { return In.gennet(sc, B); }, In.named(B.roam.flags));
