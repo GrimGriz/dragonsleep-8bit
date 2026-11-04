@@ -4661,6 +4661,17 @@
       var fm2F = BF.roam.fam, batsF = BF.units.filter(function (u) { return u.kind === 'fam_bat'; }).length;
       okFF('a rat called over it: the floor\'s familiar ' + (fm2F && fm2F.kind) + ', bats left on the floor ' + batsF + ', the bat sent away ' + !!(fmF && fmF.left) + ', A NEW SHAPE? reads ' + HFF.famHad(au, BF) + ' (want fam_rat, 0, true, rat)',
         !!fm2F && fm2F.kind === 'fam_rat' && batsF === 0 && !!(fmF && fmF.left) && HFF.famHad(au, BF) === 'rat');
+      // 4c. THE FLOOR'S MENU SHOWS WHAT IS SPENT (11-03 night, the house lane's Tuesday 4, his "lay on hands not spending points in top down roam menu casting?"): Lymen lays on hands from
+      // the floor's M menu; the menu's own sheet shows the pool spent at once, not the save's till the floor hands back
+      var lyF = figFF(BF, 'lymen');
+      if (!lyF || !lyF.feats || !(lyF.feats.lay > 0)) okFF('4c Lymen on the floor with Lay on Hands (' + (lyF ? JSON.stringify(lyF.feats || null) : 'no Lymen') + ')', false);
+      else {
+        lyF.hp = Math.max(1, lyF.maxhp - 5); D.ui.openMenu(BF); var hostLF = BF.menu.m.host, shLF = function () { return hostLF.party().filter(function (h) { return h.name === lyF.name; })[0]; };
+        var lay0F = lyF.feats.lay; hostLF.run('skill', { h: shLF(), s: 'lay', t: shLF() }, function () { }); var pLF = shLF();
+        okFF('4c Lay on Hands from the floor\'s menu: the figure\'s pool ' + lay0F + ' -> ' + lyF.feats.lay + ', the menu\'s sheet reads ' + (pLF && pLF.feats ? pLF.feats.lay : '?') + ', the save\'s ' + ((lyF.src.feats || {}).lay) + ' (want the menu = the figure, spent)',
+          lyF.feats.lay < lay0F && !!pLF && pLF.feats.lay === lyF.feats.lay);
+        BF.menu = null;
+      }
       // 5. A FIGHT ON THE FLOOR'S OWN SQUARES (js/roam.js R.engage): a rat beside the party, the four by the class AI; kept in deep16.plays as the field fights are, its own log only
       var R0F = BF.roam, tk = R0F.token, rat = BF.makeFoe({ id: 'bench-rat', kind: 'giantrat' }), spotF = null;
       [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(function (d) { var x = tk.x + d[0], y = tk.y + d[1]; if (D.grid.canStand(rat, x, y) && !D.grid.occupant(x, y)) { spotF = [x, y]; return true; } return false; });

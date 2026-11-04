@@ -1224,6 +1224,7 @@
       var c = cache.filter(function (x) { return x.u === u; })[0];
       if (!c) { c = { u: u, p: Object.create(u.src) }; cache.push(c); }
       var p = c.p; p.hp = Math.max(0, u.hp); p.maxhp = u.maxhp; p.ko = u.dead || u.hp <= 0; p.name = u.name; if (u.slots) p.slots = u.slots;
+      if (u.feats) p.feats = u.feats; // (the figure's own pools -- Lay on Hands, Second Wind, Arcane Recovery -- as the slots: the sheet's showed the pool unspent till the floor handed back, and its row never greyed at 0. 11-03 night, the house lane's Tuesday 4, his "lay on hands not spending points in top down roam menu casting?")
       return p;
     }
     function unitOf(h) { var c = cache.filter(function (x) { return x.p === h; })[0]; return c ? c.u : null; }
