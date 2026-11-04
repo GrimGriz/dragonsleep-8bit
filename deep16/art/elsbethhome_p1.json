@@ -1,0 +1,45 @@
+{
+ "image": "art/elsbethhome_p1.png",
+ "fw": 48,
+ "fh": 64,
+ "ax": 24,
+ "ay": 60,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 48,
+   "fh": 64,
+   "ax": 24,
+   "ay": 60,
+   "frames": 4,
+   "fps": 4,
+   "drawn": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7
+   ]
+  },
+  "walk": {
+   "y": 512,
+   "fw": 48,
+   "fh": 64,
+   "ax": 24,
+   "ay": 60,
+   "frames": 6,
+   "fps": 8,
+   "drawn": [
+    0
+   ]
+  }
+ },
+ "name": "Elsbeth",
+ "hold": [
+  "K01 N Scrub 6 and K02 N Idle 4: drawn fused to an oversized tub on a stand (the art desk asked her isolated for the inn's one-square tub)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-ELSBETH-TUB and -ELSBETH-SE-E-NE, 11-04: art-wanted section 35 block 6, the candle girl at home), cut by tools/elsbeth-home-sheet.py; SW W NW mirrored; her views from behind at the tub held"
+}
