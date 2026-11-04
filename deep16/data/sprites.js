@@ -172,6 +172,116 @@
 }
 }
 },
+"amara_p2": {
+"image": "art/amara_p2.png?v=f1c1b1d9ad",
+"fw": 42,
+"fh": 64,
+"ax": 21,
+"ay": 60,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 42,
+"fh": 64,
+"ax": 21,
+"ay": 60,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 46,
+"fh": 64,
+"ax": 23,
+"ay": 60,
+"frames": 8,
+"fps": 10
+},
+"run": {
+"y": 1024,
+"fw": 52,
+"fh": 64,
+"ax": 26,
+"ay": 60,
+"frames": 8,
+"fps": 12
+},
+"cast": {
+"y": 1536,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 60,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2048,
+"fw": 50,
+"fh": 64,
+"ax": 25,
+"ay": 60,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 68,
+"fh": 64,
+"ax": 34,
+"ay": 60,
+"frames": 4,
+"fps": 10
+},
+"prone": {
+"y": 3072,
+"fw": 70,
+"fh": 64,
+"ax": 35,
+"ay": 60,
+"frames": 4,
+"fps": 10
+}
+},
+"name": "Amara",
+"hold": [
+"SE cast: frame 3 lifts the near arm, 4-5 the far arm (the art desk's own review note)",
+"N walk and run: the same boot leads in several frames (the art desk's own note)"
+],
+"source": "drawn by the art desk (HALFWAY-INN-AMARA-COMBAT, 11-04: art-wanted section 35, her fight figure in five views, seven rows a view), cut by tools/amara-sheet.py; SW W NW mirrored; amara_p1 (the old render) kept beside it"
+},
+"amaramounted_p1": {
+"image": "art/amaramounted_p1.png?v=3075e7f5a4",
+"fw": 104,
+"fh": 131,
+"ax": 52,
+"ay": 127,
+"top": 91,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 104,
+"fh": 131,
+"ax": 52,
+"ay": 127,
+"frames": 1,
+"fps": 2
+},
+"walk": {
+"y": 1048,
+"fw": 104,
+"fh": 131,
+"ax": 52,
+"ay": 127,
+"frames": 6,
+"fps": 12
+}
+},
+"name": "Amara on the grey",
+"source": "drawn by the art desk (HALFWAY-INN-AMARA-MOUNTED, 11-04: art-wanted section 35 block 8, horse and rider together), cut by tools/amara-mounted-sheet.py at horsegrey_p1's length; idle the Halt, walk the six-frame gallop; SW W NW mirrored; not wired yet"
+},
 "androit_p1": {
 "image": "art/androit_p1.png?v=87c0458cd9",
 "fw": 35,
@@ -4019,6 +4129,51 @@
 },
 "source": "deep16/_src/edric/ART-123-EDRIC/ART-123-EDRIC_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-EDRIC, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:edric"
+},
+"elsbethhome_p1": {
+"image": "art/elsbethhome_p1.png?v=43846a18b2",
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 60,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 60,
+"frames": 4,
+"fps": 4,
+"drawn": [
+0,
+1,
+2,
+3,
+5,
+6,
+7
+]
+},
+"walk": {
+"y": 512,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 60,
+"frames": 6,
+"fps": 8,
+"drawn": [
+0
+]
+}
+},
+"name": "Elsbeth",
+"hold": [
+"K01 N Scrub 6 and K02 N Idle 4: drawn fused to an oversized tub on a stand (the art desk asked her isolated for the inn's one-square tub)"
+],
+"source": "drawn by the art desk (HALFWAY-INN-ELSBETH-TUB and -ELSBETH-SE-E-NE, 11-04: art-wanted section 35 block 6, the candle girl at home), cut by tools/elsbeth-home-sheet.py; SW W NW mirrored; her views from behind at the tub held"
 },
 "ettercap_p1": {
 "image": "art/ettercap_p1.png?v=604e1449be",
@@ -11788,6 +11943,102 @@ true
 "door": "chapel:aldwin",
 "source": "deep16/_src/aldwin/ART-114 (the art desk's ART-114, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_amara": {
+"image": "art/pt_amara.png?v=8e5f19f912",
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 165,
+"fh": 155,
+"ax": 90,
+"ay": 152,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "AMARA",
+"door": "the Pit road (js/wagon.js: the wagon's own picture there now)",
+"source": "deep16/_src/amara/INN-PORTRAITS-1104 (the art desk's AMARA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_androit": {
 "image": "art/pt_androit.png?v=afd6fdf634",
 "fw": 205,
@@ -12915,6 +13166,102 @@ true
 "art": "ART-123-EDRIC",
 "door": "npc:edric",
 "source": "deep16/_src/edric/ART-123-EDRIC (the art desk's ART-123-EDRIC, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_elsbethtub": {
+"image": "art/pt_elsbethtub.png?v=e78c219076",
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 158,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 316,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 474,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 632,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 790,
+"fw": 154,
+"fh": 158,
+"ax": 87,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "K",
+"door": "npc:elsbeth (the Halfway Inn, js/inn.js M.talk)",
+"source": "deep16/_src/elsbeth/INN-TUB-PORTRAITS-1104 (the art desk's K, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_falstaff": {
 "image": "art/pt_falstaff.png?v=fab7cae67a",
