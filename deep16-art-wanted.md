@@ -296,7 +296,7 @@ HEAD: PROPS, THE SHOPS OF SILVERTON -- the furniture of a poor frontier mining t
 ```
 Cut as: stills by a `tools/shopprops-sheet.py` into `shopprops_p1`; the rooms (`deep16/js/town.js` T.room) stand them on their squares in place of the code-drawn counter and shelves, the forge in place of the camp's fire, the beam scale on the Weigh-House's floor.
 
-## 18. The world's tiles, top-down (added 10-20, the world map seat) -- WAITING on the art budget
+## 18. The world's tiles, top-down (added 10-20, the world map seat) -- SHELVED 2026-11-04 for the first game's 8-bit reskin: the art desk's ART-127 J, K and L came back unfinished by design and sit uncut in `deep16/_src/world-tiles-8bit-reskin/` (Griz: *"ah - we ended up liking the way the world map is now - that's why those tiles were sitting unfinished in the art department. Tuck them away for the 8bit reskin."*); nothing more asked
 
 His words, 2026-10-20: *"let's yes the 1-4 above and see what comes out"*, to the seat's four leans for the world map seen top-down: a tile half a mile, 16 px a tile and the map scrolling, the heights as Zelda's ledges, and *"the tiles drawn by code till the art comes, and an art ask for them"*. Built: `deep16/?world&tiles` (`deep16/js/overworld.js`; V switches to the hex view), every tile drawn by code today. This week's art budget is spent (his 10-20: *"Negative, except for Rat swarm"*), so this waits. What the tiles are: `deep16/data/world-tiles.js` (`tools/world-build.py` from his hex map): the ground of his terrains, the ledges (a face where ground stands above the tile south of it), roads, tracks and rivers, and the place icons.
 
