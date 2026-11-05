@@ -2579,7 +2579,7 @@
     ctx.fillStyle = u.side === 'foe' ? R('red', 3) : R('moss', 2); ctx.fillRect(44, BAR_Y + 15, Math.round(100 * Math.max(0, u.hp) / u.maxhp), 4);
     D.text(ctx, 'HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u), 44, BAR_Y + 21, R('bone', 1));
     ctx.save(); ctx.beginPath(); ctx.rect(44, BAR_Y + 29, BX - 48, 12); ctx.clip(); // a long line of conditions stops short of the keys
-    D.text(ctx, conds(u).trim() || (u.slots && u.slots.length ? 'slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : ''), 44, BAR_Y + 31, R('accent', 2));
+    D.text(ctx, conds(u).trim() || slotLine(u, BX - 48), 44, BAR_Y + 31, R('accent', 2)); // (the slots as "L1 0/3", left of most: UI.slotLine)
     ctx.restore();
     if (!hero) { D.text(ctx, u.under ? 'under the ground...' : u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
     var T = u.turn, px = clx + D.textWidth(cl) + 6;
@@ -2605,6 +2605,18 @@
   }
   function costTag(c) { return c === 'A' ? '{y}A{/}' : c === 'B' ? '{c}B{/}' : c === 'M' ? '{c}M{/}' : ''; }
   // (a row with no count says nothing: READY's picks in the WINDOW list read "xundefined" -- 10-08, Griz: "saying nothing is better than undefined")
+  // a caster's slots in words (11-05, the journal seat, on the desk's word -- Griz, his second playthrough at Web Gulch: "lymen's bottom left was showing 1:0 slots but spells
+  // weren't an option... / he shows 0/3 here, is the 1:0 a cantrip indicator and he doesn't have those?"): each level's left of its most, "slots L1 0/3 L2 1/2", as the M menu's
+  // "0/3"; where that runs past `room` (a high caster on the bar), the levels once and the counts after them, "L1-5 4/4 3/3 3/3 3/3 1/1". A level with none at all is left out
+  function slotLine(u, room) {
+    var lv = []; (u.slots || []).forEach(function (n, i) { var mx = u.slotsMax && u.slotsMax[i]; if (n > 0 || mx > 0) lv.push({ l: i + 1, t: n + (mx != null ? '/' + mx : '') }); });
+    if (!lv.length) return '';
+    var full = 'slots ' + lv.map(function (x) { return 'L' + x.l + ' ' + x.t; }).join(' ');
+    if (room == null || D.textWidth(full) <= room) return full;
+    var run = lv.every(function (x, k) { return x.l === lv[0].l + k; });
+    return run && lv.length > 1 ? 'L' + lv[0].l + '-' + lv[lv.length - 1].l + ' ' + lv.map(function (x) { return x.t; }).join(' ') : lv.map(function (x) { return 'L' + x.l + ' ' + x.t; }).join(' ');
+  }
+  UI.slotLine = slotLine; // (dev/bench16.js mode=journal1105)
   function slotText(e) { return e.kind === 'spell' ? (e.level ? 'L' + e.slot + (e.levels.length > 1 ? ' <>' : '') : 'cantrip') : e.n != null ? 'x' + e.n : ''; }
 
   // a list (spells, items) as a popup: the BAR style's, and the WINDOW style's second window
@@ -2613,7 +2625,8 @@
     var h = vis * 11 + 26, y = yBottom - h;   // the rows, then the summary line clear of the last one
     win ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h, R('glow', 1));
     B.uiRects.push({ x: x, y: y, w: w, h: h });
-    D.text(ctx, L.kind === 'spells' ? (L.title || 'SPELLS') + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : L.kind === 'items' ? 'ITEMS (an action)' : (L.title || ''), x + 6, y + 4, R('gold', 4));
+    var spT = L.kind === 'spells' ? L.title || 'SPELLS' : ''; // (its slots as the bar says them: UI.slotLine, in the room the title leaves)
+    D.text(ctx, L.kind === 'spells' ? spT + (u.slots && u.slots.length ? '   ' + slotLine(u, w - 12 - D.textWidth(spT + '   ')) : '') : L.kind === 'items' ? 'ITEMS (an action)' : (L.title || ''), x + 6, y + 4, R('gold', 4));
     for (var k = 0; k < vis; k++) {
       var i = start + k, e = rows[i], r = { x: x + 3, y: y + 14 + k * 11, w: w - 6, h: 11, list: i };
       B.buttons.push(r);

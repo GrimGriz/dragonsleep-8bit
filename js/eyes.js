@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-slotwords-1105': { pri: 2, group: G2, title: 'THE SLOTS IN WORDS on the grid: "slots L1 0/3" under the hero and over the SPELLS list, not "1:0"; SPELLS greyed "no spell slots left (a rest brings them back)" (11-05)', pt: 'the menus, the desk\'s item from his second playthrough at Web Gulch: "lymen\'s bottom left was showing 1:0 slots but spells weren\'t an option... / he shows 0/3 here, is the 1:0 a cantrip indicator and he doesn\'t have those?" (deep16/js/ui.js UI.slotLine, deep16/js/battle.js commands; mode=journal1105) · eyes',
+      url: 'deep16/?npc=goblin,goblin,goblin,goblin&vs=paladin:3,wizard:9&lvl=3&fresh=1105sl',
+      look: 'A paladin of 3 and a wizard of 9 against four goblins. On the paladin\'s turn the line under his name reads "slots L1 3/3" (was "1:3"); cast his first-level spells till it reads "slots L1 0/3" -- then SPELLS on the ring is grey, and pointing at it says "no spell slots left (a rest brings them back)". The wizard\'s line takes the short form when the long one would run past the bar (a 9th-level wizard\'s: "L1-5 4/4 3/3 3/3 3/3 1/1"). In the WINDOW menu (M, OPTIONS, MENU TYPE) the SPELLS list\'s title says the same.' },
     // THE RESTS AND THE WAITS (11-05, the rests-and-waits seat: a door per place on deep16/?restshow, the four hurt at each)
     'eyes-rest-wait-1105': { pri: 2, group: G2, title: 'WAIT ASKS: NEXT BELL, AN HOUR, SHORT REST, NEVER MIND on Silverton\'s street, and a long wait a short rest too (11-05)', pt: 'Silverton\'s hours and words, the Tuesday notes\' 27 and 28 (deep16/js/hours.js H16.waitPlay), his "yeah and if next bell > 1 hr then execute short rest also"',
       url: 'deep16/?restshow&beat=wait&fresh=1105w',

@@ -1158,7 +1158,10 @@
     if (spells.length && !spOk) {
       var spWs = [], spNoSlot = [];
       spells.forEach(function (e) { if (e.why && spWs.indexOf(e.why) < 0) spWs.push(e.why); if (e.level > 0 && !e.levels.length && spNoSlot.indexOf(e.level) < 0) spNoSlot.push(e.level); });
-      spWhy = spWs.length === 1 ? spWs[0] : !(T.action > 0) || T.attacksLeft ? 'the action is spent' : spNoSlot.length ? 'no spell slots left for your level ' + spNoSlot.join(', ') + ' spells (a rest brings them back)' : spWs[0] || 'nothing to cast';
+      // (every one refused for want of a slot: said as slots, with the rest that brings them back -- 11-05, the journal seat on the desk's word, Griz at Web Gulch: "lymen's
+      // bottom left was showing 1:0 slots but spells weren't an option..."; the spells' shared "no slot of level 1 or higher" said nothing of the rest)
+      var spSlotsOnly = spNoSlot.length && spWs.length && spWs.every(function (w) { return /^no slot of level/.test(w); }), spAllOut = !(u.slots || []).some(function (n) { return n > 0; });
+      spWhy = spSlotsOnly ? (spAllOut ? 'no spell slots left (a rest brings them back)' : 'no spell slots left for your level ' + spNoSlot.sort(function (a, b) { return a - b; }).join(', ') + ' spells (a rest brings them back)') : spWs.length === 1 ? spWs[0] : !(T.action > 0) || T.attacksLeft ? 'the action is spent' : spNoSlot.length ? 'no spell slots left for your level ' + spNoSlot.join(', ') + ' spells (a rest brings them back)' : spWs[0] || 'nothing to cast';
     }
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spOk, why: spWhy, sub: 'spells', icon: 'spell' });
     var items = this.itemList(u);

@@ -6678,6 +6678,26 @@
       okJ('the eyes doors: fivekey at ' + (Bfk && Bfk.roam && D.roam.def.key) + ', the Five on ' + (qfk && qfk.step && qfk.step.npc) + ' (no card yet: ' + !kfk + '), the book closed -> Skarn\'s card due (' + kfk2 + '); pins1105 on ' + (Bpn && D.roam.def.key) + ', the arrow on ' + mpn + ' (the west gate ' + gpn + ')',
         !!qfk && qfk.step.npc === 'edric' && !kfk && kfk2 && !!mpn && !!gpn && mpn[0] === gpn[0] && mpn[1] === gpn[1]);
       HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
+      // 15. THE SLOTS IN WORDS (the desk's item of 11-05, Griz's second playthrough at Web Gulch: "lymen's bottom left was showing 1:0 slots but spells weren't an option... / he
+      // shows 0/3 here, is the 1:0 a cantrip indicator and he doesn't have those?"): the grid's bar under the hero and the SPELLS list's title say "L1 0/3", left of most, as the
+      // M menu's "0/3"; a high caster's line the short way when the long one runs past the bar; SPELLS on the ring greyed with "no spell slots left (a rest brings them back)"
+      var Bsl = new D.Battle({ bench: true, npc: { party: ['paladin:3', 'wizard:9'], foes: ['wolf'] }, fightDef: D.classFight(3) }); D.battle = Bsl; Bsl.enter();
+      var palS = Bsl.units.filter(function (u) { return u.cls === 'paladin'; })[0], wizS = Bsl.units.filter(function (u) { return u.cls === 'wizard'; })[0], UIs = D.ui;
+      palS.slots = palS.slotsMax.map(function () { return 0; }); D.rules.startTurn(palS); Bsl.active = palS; Bsl.req = Object.assign({}, Bsl.req || {}, { turn: palS }); // (his turn, as the UI reads it)
+      var cvS = document.createElement('canvas'); cvS.width = D.W; cvS.height = D.H; var cxS = cvS.getContext('2d'), saidS = [], tx0S = D.text;
+      var grabS = function (fn) { saidS = []; D.text = function (c, s) { saidS.push(String(s)); return tx0S.apply(this, arguments); }; try { fn(); } catch (eS) { saidS.push('threw ' + eS); } finally { D.text = tx0S; } return saidS.filter(function (s) { return /slots|L1 /.test(s); }); };
+      var barS = grabS(function () { Bsl.draw(cxS); });
+      Bsl.list = { kind: 'spells', items: D.magic.list(Bsl, palS).map(function (e) { return Object.assign({ kind: 'spell' }, e); }), sel: 0 };
+      var um0S = UIs.urlMenu, listS; UIs.urlMenu = 'window'; try { listS = grabS(function () { Bsl.draw(cxS); }); } finally { UIs.urlMenu = um0S; } Bsl.list = null; // (the SPELLS list's own title: the WINDOW style's second window)
+      var cmdS = Bsl.commands(palS).filter(function (c) { return c.id === 'spells'; })[0];
+      var wizLong = UIs.slotLine(wizS), wizBar = UIs.slotLine(wizS, 182 - 48), palSome = UIs.slotLine({ slots: [0, 2], slotsMax: [4, 3] });
+      okJ('THE SLOTS IN WORDS: Lymen spent -- "' + UIs.slotLine(palS, 134) + '"; drawn on the bar ' + JSON.stringify(barS) + ', on the SPELLS list ' + JSON.stringify(listS) + '; SPELLS on the ring ' + (cmdS && (cmdS.ok ? 'lit' : 'greyed, "' + cmdS.why + '"')) + '; a 9th-level wizard "' + wizLong + '", on the bar "' + wizBar + '" (' + D.textWidth(wizBar) + ' of 134 px); one level spent of two "' + palSome + '"',
+        UIs.slotLine(palS, 134) === 'slots L1 0/3' && barS.indexOf('slots L1 0/3') >= 0 && listS.some(function (s) { return /^SPELLS +slots L1 0\/3$/.test(s); }) && !barS.concat(listS).some(function (s) { return /\b1:0\b/.test(s); }) &&
+        !!cmdS && !cmdS.ok && cmdS.why === 'no spell slots left (a rest brings them back)' && wizLong === 'slots L1 4/4 L2 3/3 L3 3/3 L4 3/3 L5 1/1' && /^L1-5 4\/4 3\/3 3\/3 3\/3 1\/1$/.test(wizBar) && D.textWidth(wizBar) <= 134 && palSome === 'slots L1 0/4 L2 2/3');
+      // (one level out, another left: the ring says which level is out)
+      palS.slots = [0, 2]; palS.slotsMax = [4, 3]; var cmdS2 = Bsl.commands(palS).filter(function (c) { return c.id === 'spells'; })[0];
+      okJ('a level out, another left: SPELLS ' + (cmdS2 && (cmdS2.ok ? 'lit (' + cmdS2.why + ')' : 'greyed, "' + cmdS2.why + '"')), !!cmdS2 && (cmdS2.ok || /level 1 spells \(a rest brings them back\)$/.test(cmdS2.why)));
+      D.scenes.length = 0; D.battle = null;
     } catch (eJ) { repJ.errors.push(String(eJ && eJ.stack || eJ).slice(0, 900)); }
     D.sfx = sfxJ; window.DS.autoPicks = apJ; D.store.get = stGJ; D.store.set = stSJ;
     var preJ = document.createElement('pre'); preJ.id = 'out'; preJ.textContent = 'BENCH16 ' + JSON.stringify(repJ);
