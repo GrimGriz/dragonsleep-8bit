@@ -209,18 +209,24 @@
       slots: m.slots.map(function (s) { var o = { map: s.map, foes: s.foes.slice(), rest: Object.assign(PD.REST0(), s.rest || {}) }; if (s.name) o.name = s.name; if (s.intro) o.intro = s.intro; return o; }) };
   };
   // SAVE TO THE FOLDER (10-17, the two Pocket DMs; his "re 5 - can we when DM saves module store a pointer to a folder" -- "2 yes"): written into the modules folder --
-  // picked the first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download
+  // picked the first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download.
+  // THE FILE BY THE MODULE'S NAME ALONE (11-03 night, Griz: "pull the timestamp off the module save so that the folder doesn't read 4 different versions of the same module, save
+  // 'overwrite' warning should be handled by windows"): pocket-module-<name>.json, no stamp. In the folder a save again replaces the module's own file, and says so; a download is
+  // the browser's to name (Brave writes "name (1).json" beside the old one unless its "Ask where to save each file" is on -- then Windows asks to replace it)
+  PD.moduleFileName = function (m) { return 'pocket-module-' + (String(m && m.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'module') + '.json'; };
   PD.saveModule = function (pk, m) {
     m = m || PD.editing(pk.st); if (!m || !m.slots.length) return null;
-    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
-    var slug = String(m.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'module', file = 'pocket-module-' + slug + '-' + stamp + '.json', text = JSON.stringify(PD.moduleFile(m), null, 1);
+    var file = PD.moduleFileName(m), text = JSON.stringify(PD.moduleFile(m), null, 1);
     var download = function () {
       try { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.href = url; a.download = file; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); pk.say('saved ' + file + ': THE CAMP, LOAD MODULE, FROM A FILE plays it', 420); }
       catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; }
     };
     if (!PK.canFolder()) { download(); return file; }
     var h = PK.folder, got = h ? PK.folderAllowed(h, true, true).then(function (ok) { return ok ? h : PK.folderPick(); }) : PK.folderPick();
-    got.then(function (fh) { return PK.folderWrite(fh, file, text).then(function () { pk.say('saved ' + m.name + ' to the folder ' + fh.name + ': THE CAMP\'s LOAD MODULE lists it', 420); }); })
+    got.then(function (fh) {
+      var had = fh.getFileHandle(file).then(function () { return true; }, function () { return false; }); // (one of its name there already: the save replaces it)
+      return had.then(function (was) { return PK.folderWrite(fh, file, text).then(function () { pk.say((was ? 'saved ' + m.name + ' over its file in ' : 'saved ' + m.name + ' to the folder ') + fh.name + ': THE CAMP\'s LOAD MODULE lists it', 420); }); });
+    })
       .catch(function (e) { if (e && e.name === 'AbortError') { pk.say('no folder picked: nothing saved', 300); return; } pk.say('the folder would not take it (' + (e && e.message || e) + '): a download instead', 300); download(); });
     return file;
   };

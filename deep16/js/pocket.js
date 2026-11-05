@@ -1041,9 +1041,9 @@
     var out = [], it = h && h.values ? h.values() : null; if (!it) return Promise.resolve(out);
     var step = function () { return it.next().then(function (r) {
       if (r.done) return out; var e = r.value; if (!e || e.kind !== 'file' || !/\.json$/i.test(e.name)) return step();
-      return e.getFile().then(function (f) { return f.text(); }).then(function (t) { var j = null; try { j = JSON.parse(t); } catch (x) { j = null; } var m = PK.moduleOf(j); if (m) { m.file = e.name; out.push(m); } return step(); }, step);
+      return e.getFile().then(function (f) { return f.text().then(function (t) { return { t: t, at: f.lastModified || 0 }; }); }).then(function (r) { var j = null; try { j = JSON.parse(r.t); } catch (x) { j = null; } var m = PK.moduleOf(j); if (m) { m.file = e.name; m.saved = r.at; out.push(m); } return step(); }, step);
     }); };
-    return step().then(function (ms) { return ms.sort(function (a, b) { return a.file < b.file ? 1 : -1; }); }); // (the newest file names first: they carry the date)
+    return step().then(function (ms) { return ms.sort(function (a, b) { return (b.saved || 0) - (a.saved || 0) || (a.file < b.file ? -1 : 1); }); }); // (the last written first: a module's file is its name alone since 11-05, no date in it -- js/pocketdm.js PD.moduleFileName)
   };
   PK.folderWrite = function (h, name, text) { return h.getFileHandle(name, { create: true }).then(function (fh) { return fh.createWritable(); }).then(function (w) { return Promise.resolve(w.write(text)).then(function () { return w.close(); }); }); };
   // THE MODULES' view of the folder: none, waiting for an allow, read (its modules), or none to be had here
