@@ -19,7 +19,8 @@ Rows (vivian_p0's names): idle, walk, attack, hurt, sit; a row drawn in SE only 
 49 -- the notes' "top metadata 49"); a page of hurt and sit (drawn bigger: the head 1.16 x on vivian_p2's SE) by its Stagger to STAG, a stagger as tall
 as her idle. A frame stands on its lowest row (AY, vivian_p0's 61); upright, by its torso's middle (the top 55%); down (hurt 5 and 6, the notes'
 "register their pelvis to the same world position"), by its whole body's middle. Boxed down, snapped to the 64, outlined -- her auburn hair on the reds.
-NOT WIRED: SV.LOOK keeps vivian_p0; which look she fights in is his word.
+WORN BY HER ARMOUR (11-05, Griz: "They're meant to be alternate armor options (leather and studded)"): js/save.js SV.LOOK.vivian.armor -- Studded Leather
+wears vivian_p3; leather wears vivian_p2 once its other views come (vivian_p0 till then, the desk's call). Attack's `release` 3: the blow on frame 4.
 """
 import csv, importlib.util, json, os, sys
 import numpy as np
@@ -39,6 +40,7 @@ FACE = {'S': 0, 'SE': 7, 'E': 6, 'NE': 5, 'N': 4}
 MIRROR = {1: 7, 2: 6, 3: 5}
 ROWS = [('idle', 6, 2), ('walk', 10, 9), ('attack', 12, 6), ('hurt', 10, 6), ('sit', 2, 3)]   # (name, fps, frames: vivian_p0's)
 GROUND = {('hurt', 4), ('hurt', 5)}
+RELEASE = {'attack': 3}                    # (the blow lands on frame 4, zero-based 3: the house's standard, 117 attack rows -- Griz 11-05, "i think contact on frame 4 is standard?"; js/battle.js reads it)
 BG_TOL, HOLE = 30, 400
 AVOID = None
 LOOKS = {
@@ -52,7 +54,7 @@ LOOKS = {
                             'S and N attack: the blade sweeps across the screen at the contact; check it reads toward the target (its own note)',
                             'N and the back views: a studded panel at the lower back the outfit page does not show (its own note)'],
                       source='drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), '
-                             'cut by tools/vivian-sheet.py; SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure'),
+                             'cut by tools/vivian-sheet.py; SW W NW mirrored; worn in Studded Leather (js/save.js SV.LOOK.vivian.armor)'),
 }
 
 
@@ -151,6 +153,8 @@ def cut(look):
                 sub = o[sy:sy + hh, sx:sx + ww]; dst = blk[cy0:cy0 + hh, cx0:cx0 + ww]
                 put = sub[..., 3] > 0; dst[put] = sub[put]
         a = dict(y=y, fw=fw, fh=FH, ax=ax, ay=AY, frames=n, fps=fps)
+        if name in RELEASE:
+            a['release'] = RELEASE[name]
         if len(fs) < 8:
             a['drawn'] = fs                          # (SE and its mirror: js/sprites.js shows the nearest drawn facing)
         anims[name] = a; blocks.append(blk); y += 8 * FH

@@ -9443,10 +9443,17 @@
       var s2 = D.SHEETS.vivian_p2, ROWS2 = { idle: 2, walk: 9, attack: 6, hurt: 6, sit: 3 }, bad2 = s2 ? Object.keys(ROWS2).filter(function (r) { var a = s2.anims[r]; return !a || a.frames !== ROWS2[r] || (['idle', 'walk', 'attack'].indexOf(r) >= 0 ? String((a.drawn || []).slice().sort()) !== '1,7' : !!a.drawn); }) : ['NONE'];
       okHo('vivian_p2 cut (' + (s2 ? Object.keys(s2.anims).map(function (r) { var a = s2.anims[r]; return r + ' ' + a.frames + (a.drawn ? ' SE only' : ''); }).join(', ') : 'NONE') + '), vivian_p0\'s rows, top ' + (s2 && s2.top) + ' as vivian_p0\'s ' + D.SHEETS.vivian_p0.top + '; her figure still ' + D.save.look('vivian', null, hV).sheet + (bad2.length ? ' -- off: ' + bad2.join(', ') : ''),
         !bad2.length && s2.top === D.SHEETS.vivian_p0.top && s2.ay === D.SHEETS.vivian_p0.ay && D.save.look('vivian', null, hV).sheet === 'vivian_p0');
-      // and the "3B" look, the hood up over studded leather (VIVIAN-3B-COMBAT batches A and B): every row in all five views, so all eight facings -- NOT worn yet
+      // and the "3B" look, the hood up over studded leather (VIVIAN-3B-COMBAT batches A and B): every row in all five views, so all eight facings -- worn in Studded Leather since 11-05 (below)
       var s3 = D.SHEETS.vivian_p3, bad3 = s3 ? Object.keys(ROWS2).filter(function (r) { var a = s3.anims[r]; return !a || a.frames !== ROWS2[r] || !!a.drawn; }) : ['NONE'];
-      okHo('vivian_p3 cut, the hooded look (' + (s3 ? Object.keys(s3.anims).map(function (r) { return r + ' ' + s3.anims[r].frames; }).join(', ') : 'NONE') + '), every row all round, top ' + (s3 && s3.top) + '; her figure still ' + D.save.look('vivian', null, hV).sheet + (bad3.length ? ' -- off: ' + bad3.join(', ') : ''),
+      okHo('vivian_p3 cut, the hooded look (' + (s3 ? Object.keys(s3.anims).map(function (r) { return r + ' ' + s3.anims[r].frames; }).join(', ') : 'NONE') + '), every row all round, top ' + (s3 && s3.top) + '; in no armour her figure still ' + D.save.look('vivian', null, hV).sheet + (bad3.length ? ' -- off: ' + bad3.join(', ') : ''),
         !bad3.length && s3.top === D.SHEETS.vivian_p0.top && s3.ay === D.SHEETS.vivian_p0.ay && D.save.look('vivian', null, hV).sheet === 'vivian_p0');
+      // HER FIGURE FOLLOWS HER ARMOUR (11-05, the desk's relay of Griz: "They're meant to be alternate armor options (leather and studded)"; "i think contact on frame 4
+      // is standard?"): Studded Leather and its +1 wear the 3B hood, leather and none the figure she wore before; her face the same in each; the strike on frame 4 in both
+      // looks; the class floor's Vivian from 4th (SV.KIT's studded) in the hood, at 3rd not
+      var lkHo = function (arm) { return D.save.look('vivian', null, { id: 'vivian', key: 'vivian', equip: { armor: arm } }).sheet; }, wearHo = { studded: lkHo('studded'), studded1: lkHo('studded1'), leather: lkHo('leather'), none: lkHo(null) };
+      var ptHo = CHo.heroPortrait({ id: 'vivian', key: 'vivian', name: 'Vivian', equip: { armor: 'studded' } }), nl5 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 5 }) : '?', nl3 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 3 }) : '?';
+      okHo('Vivian by her armour: ' + JSON.stringify(wearHo) + '; her face in studded ' + ptHo + '; the strike lands on frame ' + (s3 && s3.anims.attack.release) + ' (3B) and ' + (s2 && s2.anims.attack.release) + ' (the teal jacket), zero-based; the class floor at 5th ' + nl5 + ', at 3rd ' + nl3,
+        wearHo.studded === 'vivian_p3' && wearHo.studded1 === 'vivian_p3' && wearHo.leather === 'vivian_p0' && wearHo.none === 'vivian_p0' && ptHo === 'pt_vivian' && s3.anims.attack.release === 3 && s2.anims.attack.release === 3 && nl5 === 'vivian_p3' && nl3 === 'vivian_p0');
       var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
       if (btHo) CHo.servicePlay(btHo);
       okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',
@@ -18176,7 +18183,10 @@
                 D.SHEETS.zz_lost = Object.assign({}, D.SHEETS.xorn_p1, { image: '../deep16/art/zz-no-such-sheet.png' });
                 var o4 = {}; SZ.gate(o4, ['zz_lost']);
                 var heldAt = SZ.held(o4, true);
-                return SZ.ensure(['zz_lost']).then(function () {
+                // (the figures the fights at 4th would have brought before a camp at 5th, as the ladder climbs: since 11-05 Vivian wears the 3B hood in the studded
+                // leather SV.KIT buys her at 4th, vivian_p3, which this bench's one fight at 3rd never asked for -- fetched here, behind the failing sheet)
+                var pre5 = D.save.fixture(5).party.map(function (h) { return D.save.look(h.id, null, h).sheet; }).filter(function (k) { return k && !SZ.has(k); });
+                return SZ.ensure(['zz_lost'].concat(pre5)).then(function () {
                   var d6 = drawZ(function () { return SZ.draw(cxZ, 'zz_lost', 'idle', 0, 0, 120, 200, {}); });
                   okZ(heldAt && !SZ.held(o4, true) && SZ.failed('zz_lost') && !d6.err && d6.caps === 1, 'a sheet that fails: held while it was out (' + heldAt + '), let go when it failed, drawn as the capsule');
                   delete D.SHEETS.zz_lost;

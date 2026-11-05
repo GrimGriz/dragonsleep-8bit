@@ -20034,6 +20034,7 @@ true
 "ay": 61,
 "frames": 6,
 "fps": 12,
+"release": 3,
 "drawn": [
 1,
 7
@@ -20098,7 +20099,8 @@ true
 "ax": 23,
 "ay": 61,
 "frames": 6,
-"fps": 12
+"fps": 12,
+"release": 3
 },
 "hurt": {
 "y": 1536,
@@ -20125,7 +20127,7 @@ true
 "S and N attack: the blade sweeps across the screen at the contact; check it reads toward the target (its own note)",
 "N and the back views: a studded panel at the lower back the outfit page does not show (its own note)"
 ],
-"source": "drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), cut by tools/vivian-sheet.py; SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure"
+"source": "drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), cut by tools/vivian-sheet.py; SW W NW mirrored; worn in Studded Leather (js/save.js SV.LOOK.vivian.armor)"
 },
 "wagon_p1": {
 "image": "art/wagon_p1.png?v=a525af8a27",

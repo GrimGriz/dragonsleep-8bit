@@ -182,7 +182,7 @@
   // special monsters or fights")
   // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
   // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
-  SV.LOOK = { barley: { sheet: 'barley_p2', mail: 'barley_p3' }, aurdin: { sheet: 'aurdin_p3', robe: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'dace_p2' } }; // (Corwen Dace, a guest: his own fight sheet in the cloak of displacement since 10-30 -- the art desk's ART-123-DACE-COMBAT, tools/dace-sheet.py, on Griz's "fight poses when he's guest"; the class floor's wizard, npcwizard_p0, till then) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
+  SV.LOOK = { barley: { sheet: 'barley_p2', mail: 'barley_p3' }, aurdin: { sheet: 'aurdin_p3', robe: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0', armor: { studded: 'vivian_p3', studded1: 'vivian_p3' } }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'dace_p2' } }; // (Corwen Dace, a guest: his own fight sheet in the cloak of displacement since 10-30 -- the art desk's ART-123-DACE-COMBAT, tools/dace-sheet.py, on Griz's "fight poses when he's guest"; the class floor's wizard, npcwizard_p0, till then) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
   // the look by what he wears (10-20, Griz: "We're going to try mantle as starter gear and ochre when wizard robes equpped"): a look with a `robe` sheet
   // wears it while the hero `h` has a robe on (an item whose armor type is robe: Wizard's Robes, Robes +1), its own sheet otherwise -- Aurdin's Red
   // Mantle (aurdin_p3, ART-73) out of robes, the Ochre Mantle (aurdin_p2, ART-72) in them. A caller without the hero gets the plain look
@@ -191,9 +191,13 @@
   // Half Plate (15), Chain Mail (16), Splint (17), Plate (18), and their +1s and the dwarven plate; not Hide (12), no light armour, no robe, no shield.
   // Barley: his coat barefoot (barley_p2, ART-75/76/77) out of it, the chainmail and boots (barley_p3, ART-109) in it
   SV.mailed = function (it) { return !!(it && it.armor && (it.armor.type === 'medium' || it.armor.type === 'heavy') && it.armor.base >= 13); };
+  // A look with an `armor` table wears the sheet its body armour names, by the item's id (11-05, the desk's relay of Griz on Vivian: "They're meant to be
+  // alternate armor options (leather and studded)"): Vivian in Studded Leather (or the +1) wears the art desk's 3B, the hood up over the studs (vivian_p3,
+  // tools/vivian-sheet.py); in leather or none, the figure she wore before (vivian_p0) till the leather look's other views come (vivian_p2, SE only) -- the desk's call
   SV.look = function (id, fight, h) {
     var L = (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {};
-    var a = (L.robe || L.mail) && h && h.equip && h.equip.armor, it = a && window.DS && window.DS.DATA && window.DS.DATA.items[a];
+    var a = (L.robe || L.mail || L.armor) && h && h.equip && h.equip.armor, it = a && window.DS && window.DS.DATA && window.DS.DATA.items[a];
+    if (L.armor && a && L.armor[a]) return Object.assign({}, L, { sheet: L.armor[a] });
     if (L.mail && SV.mailed(it)) return Object.assign({}, L, { sheet: L.mail });
     return L.robe && it && it.armor && it.armor.type === 'robe' ? Object.assign({}, L, { sheet: L.robe }) : L;
   };
