@@ -209,6 +209,10 @@ PEOPLE = {
     # Elsbeth's is at the kitchen tub, its rim her ledge (the tub kept in her portrait, the art desk's own word)
     'amara': ('amara/INN-PORTRAITS-1104', 'AMARA', 'the Pit road (js/wagon.js: the wagon\'s own picture there now)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     'elsbethtub': ('elsbeth/INN-TUB-PORTRAITS-1104', 'K', 'npc:elsbeth (the Halfway Inn, js/inn.js M.talk)', {'edge': True, 'pat': '%sP%02d-*.png', 'avoid': ['red', 'fire']}),
+    # Katarina at the Halfway Inn (11-05, cutter-1105, on the lanes desk's relay of Griz's "cutter has Katarina it doesn't know about yet"): the art desk's
+    # HALFWAY-INN-KATARINA-PORTRAITS, art-wanted section 35 -- H01-Idle.png to H06-Work.png, writing in her book at a table by the common room's fire, the table's near
+    # edge her ledge (cut off, as a counter's); her work the book written in, blotted and closed over her fingers, played once
+    'katarina': ('katarina/INN-PORTRAITS-1105', 'H', 'npc:katarina (the Halfway Inn, js/inn.js)', {'edge': True, 'pat': '%s%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' table edge bevelled, as Falstaff's: a sliver of it stood under them)
     # Elsbeth the candle girl (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-PORTRAITS-PARTIAL, five pages (H1P1-Idle.png to H1P5-Concerned.png) -- her
     # Work held by the art desk (the working hand switches), so no work row: her face on Silverton's street; at the inn she speaks on pt_elsbethtub
     'elsbethCandles': ('elsbeth/ART-123-ELSBETH-PORTRAITS-PARTIAL', 'H1', 'npc:elsbethCandles', {'edge': True, 'pat': '%sP%d-*.png', 'layout': LAYOUT[:5], 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),

@@ -75,7 +75,9 @@ def col(r, *names):
 
 
 def windows(look):
-    """[(batch, view, row, frame index, file, box)] from the look's FRAME-MAP.csv files"""
+    """[(batch, view, row, frame index, file, box)] from the look's FRAME-MAP.csv files -- or its own `windows` (tools/katarina-sheet.py: a frame map given as a table)"""
+    if LOOKS[look].get('windows'):
+        return LOOKS[look]['windows']
     out = []
     for batch in LOOKS[look]['batches']:
         for r in csv.DictReader(open(os.path.join(SRC, batch, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
@@ -85,7 +87,7 @@ def windows(look):
     return out
 
 
-def figure(a):
+def figure(a, trim=False):
     bg = np.median(np.concatenate([a[:, :4].reshape(-1, 3), a[:, -4:].reshape(-1, 3), a[:4].reshape(-1, 3), a[-4:].reshape(-1, 3)]), axis=0)
     near = np.linalg.norm(a - bg, axis=2) < BG_TOL
     lab, n = ndimage.label(near)
@@ -94,10 +96,14 @@ def figure(a):
     fg = ~(np.isin(lab, list(edge)) | np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s > HOLE]))
     fl, fn = ndimage.label(fg)
     sz = ndimage.sum(fg, fl, range(1, fn + 1))
-    return np.isin(fl, [i + 1 for i, s in enumerate(sz) if s > 0.005 * sz.max()])     # (specks of the matte's dither out)
+    keep = [i + 1 for i, s in enumerate(sz) if s > 0.005 * sz.max()]     # (specks of the matte's dither out)
+    if trim:                                          # (`trim`: windows cut on approximate boundaries -- a neighbour's edge reaching in at the side goes, the frame's own pieces stay)
+        big = int(np.argmax(sz)) + 1; objs = ndimage.find_objects(fl)
+        keep = [k for k in keep if k == big or (objs[k - 1][1].start > 0 and objs[k - 1][1].stop < a.shape[1])]
+    return np.isin(fl, keep)
 
 
-def to1x(rgb, mask, k):
+def to1x(rgb, mask, k, avoid=None):
     h, w = mask.shape; nw, nh = max(1, round(w * k)), max(1, round(h * k))
     al = np.asarray(Image.fromarray((mask * 255).astype(np.uint8)).resize((nw, nh), Image.BOX)).astype(np.float32) / 255
     pm = rgb.astype(np.float32) * mask[..., None]
@@ -106,7 +112,7 @@ def to1x(rgb, mask, k):
     solid = al >= 0.5
     o = np.zeros((nh + 2, nw + 2, 4), np.uint8)
     s2 = np.zeros((nh + 2, nw + 2), bool); s2[1:-1, 1:-1] = solid
-    o[1:-1, 1:-1][solid, :3] = pix.snap(c, AVOID)[solid]; o[s2, 3] = 255
+    o[1:-1, 1:-1][solid, :3] = pix.snap(c, avoid if avoid is not None else AVOID)[solid]; o[s2, 3] = 255
     e = np.zeros_like(s2); e[1:, :] |= s2[:-1, :]; e[:-1, :] |= s2[1:, :]; e[:, 1:] |= s2[:, :-1]; e[:, :-1] |= s2[:, 1:]
     o[e & ~s2, :3] = OUTL; o[e & ~s2, 3] = 255
     return o
@@ -115,11 +121,12 @@ def to1x(rgb, mask, k):
 def cut(look):
     L = LOOKS[look]
     pages, crops, pageof = {}, {}, {}
+    src = os.path.join(pix.SRC, L['src']) if L.get('src') else SRC      # (`src`: another figure's folder under _src -- Katarina's)
     for batch, view, row, i, fn, (x0, y0, x1, y1) in windows(look):
         if (batch, fn) not in pages:
-            pages[(batch, fn)] = np.asarray(Image.open(os.path.join(SRC, batch, fn)).convert('RGB')).astype(np.float32)
+            pages[(batch, fn)] = np.asarray(Image.open(os.path.join(src, batch, fn)).convert('RGB')).astype(np.float32)
         a = pages[(batch, fn)][y0:y1, x0:x1]
-        m = figure(a); ys, xs = np.where(m)
+        m = figure(a, L.get('trim', False)); ys, xs = np.where(m)
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
         crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
@@ -128,7 +135,7 @@ def cut(look):
         mine = [c for c, p in pageof.items() if p == pg]
         idle = [crops[c][1].shape[0] for c in mine if c[1] == 'idle']
         stag = [crops[c][1].shape[0] for c in mine if c[1] == 'hurt' and c[2] == 0]
-        scale[pg] = TALL / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag else None
+        scale[pg] = L.get('tall', TALL) / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag else None   # (`tall`: a figure's own height -- the inn's women stand 47)
     for pg in [p for p in scale if scale[p] is None and L.get('match')]:   # (`match`: a page of one row drawn bigger -- the candle sale -- scaled so its first frame stands as tall as the view's frame it names)
         c0 = [c for c, p in pageof.items() if p == pg and c[1] in L['match'] and c[2] == 0]
         if c0:
@@ -140,7 +147,7 @@ def cut(look):
         scale[pg] = [scale[p] for c, p in pageof.items() if p[0] == pg[0] and c[0] == v and scale.get(p)][0]
     cells = {}
     for c, (rgb, m) in crops.items():
-        o = to1x(rgb, m, scale[pageof[c]])
+        o = to1x(rgb, m, scale[pageof[c]], L.get('avoid'))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (c[1], c[2]) in GROUND:
             cx = ndimage.center_of_mass(al)[1]
@@ -180,13 +187,13 @@ def cut(look):
         sheet[yy:yy + b.shape[0], :b.shape[1]] = b; yy += b.shape[0]
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ROOT, 'deep16', 'art', look + '.png'), optimize=True)
     i0 = anims['idle']
-    meta = dict(image='art/%s.png' % look, fw=i0['fw'], fh=FH, ax=i0['ax'], ay=AY, top=TALL, anims=anims, name=L['name'], hold=L['hold'], source=L['source'])
+    meta = dict(image='art/%s.png' % look, fw=i0['fw'], fh=FH, ax=i0['ax'], ay=AY, top=L.get('tall', TALL), anims=anims, name=L['name'], hold=L['hold'], source=L['source'])
     with open(os.path.join(ROOT, 'deep16', 'art', look + '.json'), 'w', encoding='utf-8', newline='\n') as f_:
         json.dump(meta, f_, indent=1)
     print('%s: %dx%d, rows %s; scale %s' % (look, W, y, ', '.join('%s %d@%dpx%s' % (n_, a_['frames'], a_['fw'], ' drawn ' + str(a_['drawn']) if 'drawn' in a_ else '') for n_, a_ in anims.items()),
                                           ', '.join('%s %.4f' % ('/'.join(pg[1:]), k) for pg, k in sorted(scale.items()))))
     if 'check' in sys.argv:
-        Z = 3; out = os.path.join(ROOT, 'deep16', 'art-src', 'vivian'); os.makedirs(out, exist_ok=True)
+        Z = 3; out = os.path.join(ROOT, 'deep16', 'art-src', L.get('src', 'vivian')); os.makedirs(out, exist_ok=True)
         tiles = []
         for name, fps, n in L.get('rows', ROWS):
             a = anims[name]
@@ -199,5 +206,6 @@ def cut(look):
         print('review:', os.path.join(out, look + '-review.png'))
 
 
-for lk in [a for a in sys.argv[1:] if a in LOOKS] or list(LOOKS):
-    cut(lk)
+if __name__ == '__main__':                            # (tools/katarina-sheet.py loads this file for its cutter, and runs its own look)
+    for lk in [a for a in sys.argv[1:] if a in LOOKS] or list(LOOKS):
+        cut(lk)

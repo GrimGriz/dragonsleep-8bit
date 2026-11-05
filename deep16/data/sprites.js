@@ -7751,6 +7751,49 @@
 "source": "deep16/_src/kasten/ART-88/ART-88_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "shop:kasten"
 },
+"katarina_p1": {
+"image": "art/katarina_p1.png?v=e24150a047",
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 8,
+"fps": 10
+},
+"sit": {
+"y": 1024,
+"fw": 44,
+"fh": 64,
+"ax": 22,
+"ay": 61,
+"frames": 4,
+"fps": 2
+}
+},
+"name": "Katarina",
+"hold": [
+"walk: the same lead repeats (1 against 5, 3 against 7) and the knees lift higher than close steps (the art desk's own note)",
+"sit: the bench drawn with her, its geometry still; where a scene draws its own bench, mask the overlap (the art desk's own note)"
+],
+"source": "drawn by the art desk (HALFWAY-INN-KATARINA-TOWN, 11-05: art-wanted section 35, her town figure in five views), cut by tools/katarina-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "keeper_p1": {
 "image": "art/keeper_p1.png?v=c43ca0ef06",
 "fw": 120,
@@ -15293,6 +15336,102 @@ true
 "art": "ART-88",
 "door": "shop:kasten",
 "source": "deep16/_src/kasten/ART-88 (the art desk's ART-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_katarina": {
+"image": "art/pt_katarina.png?v=bb92210e84",
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 182,
+"fh": 155,
+"ax": 102,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "H",
+"door": "npc:katarina (the Halfway Inn, js/inn.js)",
+"source": "deep16/_src/katarina/INN-PORTRAITS-1105 (the art desk's H, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_kess": {
 "image": "art/pt_kess.png?v=ea60a1473d",

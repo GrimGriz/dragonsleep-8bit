@@ -1,0 +1,43 @@
+{
+ "image": "art/katarina_p1.png",
+ "fw": 30,
+ "fh": 64,
+ "ax": 15,
+ "ay": 61,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 30,
+   "fh": 64,
+   "ax": 15,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 32,
+   "fh": 64,
+   "ax": 16,
+   "ay": 61,
+   "frames": 8,
+   "fps": 10
+  },
+  "sit": {
+   "y": 1024,
+   "fw": 44,
+   "fh": 64,
+   "ax": 22,
+   "ay": 61,
+   "frames": 4,
+   "fps": 2
+  }
+ },
+ "name": "Katarina",
+ "hold": [
+  "walk: the same lead repeats (1 against 5, 3 against 7) and the knees lift higher than close steps (the art desk's own note)",
+  "sit: the bench drawn with her, its geometry still; where a scene draws its own bench, mask the overlap (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-KATARINA-TOWN, 11-05: art-wanted section 35, her town figure in five views), cut by tools/katarina-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

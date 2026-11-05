@@ -134,6 +134,7 @@
     linnet: 'linnet_p1', // (10-30, the Keeper cutter: Linnet Pellam all round, at the Warrens' camp where the first game stands her -- content/maps/warrens_a.json `linnet`)
     ottilie: 'ottilie_p1', // (10-30, the Keeper cutter: Ottilie Skerrow all round, at the Galleries' mouth where the first game stands her -- content/maps/galleries_g1.json `ottilie`; standing, the art desk drew no stool)
     idony: 'idony_p1', elsbethCandles: 'elsbethCandles_p1', // (10-30, the Keeper cutter: Idony Fell by the notary's, pin 5, south only on Griz's "i think south-facing for when she's not 'watchful'"; all eight since 11-04, the art desk's ART-123-IDONY-TOWN-FINAL by the cutter of 11-04 -- south at rest, turning to whoever speaks or watches. Elsbeth the candle girl by vice row, pin 23: ART-123-ELSBETH-TOWN, all eight, 11-04)
+    katarina: 'katarina_p1', katYard: 'katarina_p1', // (11-05, cutter-1105: Katarina at the Halfway Inn -- by the common room's fire and in the yard on the wagon night, js/inn.js In.FOLK, In.YARDFOLK -- in the art desk's HALFWAY-INN-KATARINA-TOWN all round, tools/katarina-sheet.py, in place of the townswoman stand-in; her talking portrait, pt_katarina, is her talk's to name, js/inn.js)
     wynn: 'wynn_p1', // (10-29, the Edric and Dace cutter seat: Old Wynn all round at the Galleries' mouth, where the first game stands him: js/town.js T.people)
     dacedisp: 'dacedisp_p1', // (10-29, the Edric and Dace cutter seat: Dace in the cloak of displacement all round, its afterimage trailing him -- for the shows only, as C.VENDORS.dacedisp)
     papa: 'papa_p1', // (10-29, the cutscene cutter seat: Papa Urtusk all round, 58 px -- the largest thing in any room -- in the Hex's front door, at the council's long table and on the night's picture of it: js/hours.js, js/hex.js)
@@ -1253,11 +1254,14 @@
   C.FACES = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work'];
   function PortraitShow(q) {
     this.kind = 'portraitshow'; this.opaque = true; this.t = 0; this.k = -1; this.cur = null;
-    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k] || !!C.heroPt(k); }) : Object.keys(C.PT).filter(function (k) { return !C.GENERIC[k]; }); // (in the order asked; the unnamed by name only)
+    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k] || !!C.heroPt(k) || !!C.anyPt(k); }) : Object.keys(C.PT).filter(function (k) { return !C.GENERIC[k]; }); // (in the order asked; the unnamed by name only)
   }
   // (a hero's talking portrait on the same screen, by its sheet's name less pt_ -- who=vivian, aurdin_red, barley_coat, lymen -- every row the sheet has, Vivian's coin and Lymen's
   // earnest among them: 11-05, cutter-1105, the art desk's hero portraits; in the game they stand in the hero box, C.HERO_PT)
   C.heroPt = function (k) { var pt = 'pt_' + k; return Object.keys(C.HERO_PT).some(function (s) { return C.HERO_PT[s] === pt; }) && D.SHEETS && D.SHEETS[pt] ? pt : null; };
+  // (and any talking portrait by its sheet's name less pt_, one a scene names itself and no counter takes -- Katarina's at the Halfway Inn, pt_katarina, 11-05: her talk,
+  // js/inn.js, is hers to wire; here only shown)
+  C.anyPt = function (k) { var pt = 'pt_' + k, s = D.SHEETS && D.SHEETS[pt]; return s && s.portrait ? pt : null; };
   C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id), wd = (C.VENDORS[id] || {}).words; return plain ? plain.say.slice() : wd ? [].concat(L(wd)) : sh ? [sh] : ['(no first-game word)']; };
   PortraitShow.prototype.update = function () {
     this.t++;
@@ -1265,8 +1269,9 @@
     if (++this.k >= this.ids.length) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); return; }
     var id = this.ids[this.k], n = this.ids.length, k = this.k, nm = (C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || D.town.KEEPER['inn:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id, words = C.wordsOf(id);
     var g = C.GENERIC[id], faces = g ? [g[1]] : C.FACES; // (an unnamed one: their costume, the one page)
-    var hp = !C.PT[id] && C.heroPt(id); // (a hero's: the name, a line, and the sheet's own rows)
+    var hp = !C.PT[id] && C.heroPt(id), op = !C.PT[id] && !hp && C.anyPt(id); // (a hero's: the name, a line, and the sheet's own rows; or one whose face a scene names itself -- Katarina's at the inn)
     if (hp) { var hk = id.split('_')[0]; nm = hk.charAt(0).toUpperCase() + hk.slice(1); words = ['(the hero box: ' + Object.keys(C.HERO_PT).filter(function (s) { return C.HERO_PT[s] === hp; }).join(', ') + ')']; faces = Object.keys(D.SHEETS[hp].anims); }
+    else if (op) { hp = op; faces = Object.keys(D.SHEETS[op].anims); }
     this.cur = new Counter(null, { id: id, name: nm, place: 'THE PORTRAITS (a show)', what: nm + ', ' + (k + 1) + ' of ' + n, script: function* (sc) {
       for (var i = 0; i < faces.length; i++) yield sc.say(['{y}' + (g ? 'THE ' + g[0].toUpperCase() + ' -- ' : '') + faces[i].toUpperCase() + '{/}'].concat(words), faces[i]);
     } });
