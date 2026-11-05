@@ -3048,6 +3048,8 @@
       var roll1 = {}; for (var s1 = 1; s1 <= 60; s1++) { D.seed = s1; roll1[WF5.lineup(['goblin']).gap] = 1; } D.seed = +get('seed', 1105);
       var rk1 = Object.keys(roll1).map(Number).sort(function (a, b) { return a - b; });
       okF5('rolled each fight: the gaps seen over 60 seeds ' + rk1.join(','), rk1[0] >= 6 && rk1[rk1.length - 1] <= 12 && rk1.length >= 6);
+      var big1 = [2, 6, 12].map(function (g) { var L = WF5.lineup(['ogre', 'ogre', 'ogre', 'ogre', 'goblin'], g), sq = {}, clash = 0; L.foes.forEach(function (f) { var z = Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1); for (var j = 0; j < z; j++) for (var i = 0; i < z; i++) { var k = (f.at[0] + i) + ',' + (f.at[1] + j); if (sq[k]) clash++; sq[k] = 1; } }); var ins = L.foes.every(function (f) { return f.at[0] >= 1 && f.at[1] >= 1 && f.at[1] + ((D.FOES[f.kind] && D.FOES[f.kind].size) || 1) - 1 <= 5; }); return { g: g, n: L.foes.length, clash: clash, ins: ins }; });
+      okF5('four Large and one more seated (the rescue\'s four giant bats; it had three Large squares): ' + big1.map(function (r) { return 'gap ' + r.g + ' ' + r.n + ' of 5, ' + r.clash + ' squares shared, in the lane ' + r.ins; }).join('; '), big1.every(function (r) { return r.n === 5 && !r.clash && r.ins; }));
       } catch (eS) { repF5.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 400)); }
       try { // (secF5: each section its own, so one that throws hides none after it)
       // 2. A ROAD FIGHT ON THE GRID (the house, THE WORLD): the two sides 30 to 60 ft apart, every one of them on open ground, the camp's fire behind the four
@@ -3081,7 +3083,7 @@
         out3.length === 3 && out3.every(function (o) { return !o.simple && o.gap >= 6 && o.gap <= 12 && o.ft === o.gap * 5 && o.w === 13 + o.gap && o.shut === 0; }));
       var F3s = MF5.fieldDef(RF5.def, ['goblin', 'goblin'], false, { line: 'Set.' }, [20, 14]), d3s = D.MAPS['mine-field'];
       var fr3s = Math.max.apply(null, F3s.foes.map(function (f) { return f.at[0]; }));
-      okF5('a set fight on the field (the cloaker\'s way, the rescue\'s bats) keeps its 2: gap ' + d3s.gap + ', ' + d3s.rows[0].length + ' wide, the foes\' front ' + fr3s + ' to the four\'s ' + d3s.entry[0][0], d3s.gap === 2 && d3s.rows[0].length === 16 && d3s.entry[0][0] - fr3s === 2);
+      okF5('a set fight on the field (the cloaker\'s way: RULED 11-05, kept) keeps its 2: gap ' + d3s.gap + ', ' + d3s.rows[0].length + ' wide, the foes\' front ' + fr3s + ' to the four\'s ' + d3s.entry[0][0], d3s.gap === 2 && d3s.rows[0].length === 16 && d3s.entry[0][0] - fr3s === 2);
       } catch (eS) { repF5.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 400)); }
       try { // (secF5: each section its own, so one that throws hides none after it)
       // 4. THE ROAM'S WALK-IN (the Wet): the start held 30 to 60 ft; a group seen at the edge of sight inside that band, walking in, the fight where it comes within it
@@ -3199,6 +3201,17 @@
       okF5('the camera at INITIATIVE: the floor at ' + zf + ' (the steps ' + L11.join(',') + '), the fight 30 ft apart at ' + z11 + ', both in view ' + inView + '; back at the gather ' + back11 + '; a fight 140 ft long at ' + (wide11 && wide11.to) + '; a floor already at ' + L11[0] + ' kept at ' + (keep11 && keep11.to) + ' (never further out)',
         !!cam11 && z11 > zf && inView && back11 === zf && wide11 && wide11.to < z11 && keep11 && keep11.to === L11[0]);
       } catch (eS) { repF5.errors.push('section 11: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5)
+      // 12. THE RESCUE'S BATS BY THE RULE (RULED 11-05, Griz: "approve fight start's exception leans, including the bats at 6-12 in that one story fight"): the dens' rescue
+      // (M.rescue), four giant bats, ON THE GRID -- 6 to 12 squares between the fronts; the cloaker's way (section 3) keeps its 2
+      var B12 = testF5('?roam=galleries_g3&flags=cullHired&at=20,10'), out12 = null, pk12 = function (p) { var i = p.opts.map(function (o) { return o.label; }).indexOf('ON THE GRID'); return p.title === 'ENCOUNTER' && i >= 0 ? i : 0; };
+      D.seed = 1212; var g12 = MF5.rescue(B12, null, [20, 12]), st12, v12, n12 = 0;
+      while (n12++ < 800 && D.top() === B12) { st12 = g12.next(v12); v12 = undefined; if (st12.done) break; if (typeof st12.value === 'number') B12.t += st12.value; if (st12.value && st12.value.prompt) v12 = st12.value.prompt.opts[pk12(st12.value.prompt)].value; }
+      var b12 = D.top();
+      if (b12 !== B12) { if (b12.baking) { b12.baking = false; b12.enter(); } out12 = { simple: !!b12.o.simple, gap: b12.map.def.gap, ft: nearFt(b12), bats: b12.units.filter(function (u) { return u.kind === 'giantbat'; }).length, w: b12.map.w }; if (D.top() === b12) D.pop(); if (b12.o.onDone) b12.o.onDone('escaped'); driveF5(g12, null, 800); }
+      okF5('the rescue\'s bats on the grid: ' + (out12 ? (out12.simple ? 'SIMPLE ' : '') + out12.bats + ' bats, ' + out12.gap + ' squares between the fronts, ' + out12.ft + ' ft, ' + out12.w + ' wide' : 'no fight'),
+        !!out12 && !out12.simple && out12.bats === 4 && out12.gap >= 6 && out12.gap <= 12 && out12.ft === out12.gap * 5 && out12.w === 13 + out12.gap);
+      } catch (eS) { repF5.errors.push('section 12: ' + String(eS && eS.stack || eS).slice(0, 400)); }
     } catch (eF5) { repF5.errors.push(String(eF5 && eF5.stack || eF5).slice(0, 900)); }
     HF5.playing = false; HF5.cur = null; D.store.get = stGF5; D.store.set = stSF5; D.music = muF5; try { if (skF5 != null) window.localStorage.setItem(D.simple.KEY, skF5); } catch (eK2) { }
     var preF5 = document.createElement('pre'); preF5.id = 'out'; preF5.textContent = 'BENCH16 ' + JSON.stringify(repF5);
