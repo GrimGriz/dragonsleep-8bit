@@ -594,7 +594,7 @@
     return { unit: pu, rung: rg, sq: pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : tile() };
   };
   UI.pickUnit = function (B, mx, my, want) {
-    var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
+    var best = null, bd = -1e9, pick = null, pd = -1e9, pv = 0, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal || u.object) return;
       var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
@@ -605,7 +605,8 @@
       // one body in front of its lower half -- 11-03, "the 5-foot flight above 4 foes targeting". Its footprint's size is the depth of what can stand under it, riders go up with their host)
       var hostU = u.riding && u.master ? u.master : u, rk = p.depth + (G.aloft(hostU) ? hostU.size || 1 : 0);
       if (rk > bd) { bd = rk; best = u; }
-      if (want && want(u) && rk > pd) { pd = rk; pick = u; }
+      var wv = want ? +want(u) || 0 : 0; // (a want's answer ranks: 2 a target the spell takes, 1 a foe for a blow -- wanted; true counts 1)
+      if (wv > 0 && (wv > pv || (wv === pv && rk > pd))) { pv = wv; pd = rk; pick = u; }
     });
     return pick || best;
   };
@@ -634,11 +635,16 @@
     if (u.hp <= 0) { if (prow === 'prone' && u.proneLook) return ['prone', pf]; var h = S.anim(u.sheet, 'hurt'); return h ? ['hurt', h.frames - 1] : null; }
     return pf >= 0 && u.proneLook ? [prow, pf] : null;
   }
-  // what the tool in hand asks for, when it is a foe: the attack cued, a spell aimed at one, a flask to throw (UI.pickUnit's `want`)
+  // what the tool in hand asks for (UI.pickUnit's `want`): the attack cued or a flask to throw, a foe; a spell aimed at a creature, the ones it takes -- an ally spell's too
+  // (11-05, the tuesday-grid seat on the lanes desk's word -- Griz, his 10-31 playthrough, Tuesday 19: "That thing we did to make it easier to target squares you want to move to
+  // still applies on attack targeting (I think) and shouldn't. I had to steer 'light' cast on barley by keyboard+enter"; RULED, the lean, as the foe's preference was 10-01): of
+  // the figures under the mouse, one the spell takes (M.targetOK: Light's touch, Cure Wounds, Bless's picks) comes before the front-most, and for a foe's spell a foe after it
+  var AIMED = /^(single|attack|rays|darts|splash|allies|touch)$/;
   function foeWanted(B, u) {
     var g = B.tool === 'spell' && B.spell && B.spell.g, it = B.tool === 'item' && window.DS.DATA.items[B.itemId];
-    if (B.tool !== 'attack' && !(it && it.use && it.use.effect === 'damage') && !(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape)))) return null;
-    return function (w) { return G.hostile(u, w) && G.standing(w); };
+    var foe = B.tool === 'attack' || !!(it && it.use && it.use.effect === 'damage') || !!(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape))), aimed = !!(g && AIMED.test(g.shape));
+    if (!foe && !aimed) return null;
+    return function (w) { if (aimed && D.magic.targetOK(B, u, g, w)) return 2; return foe && G.hostile(u, w) && G.standing(w) ? 1 : 0; };
   }
   UI.foeWanted = foeWanted; // (dev/bench16.js oil1005)
   function overUI(B) { // is the mouse over a menu, a list or the bar (so the grid doesn't take the click)?
