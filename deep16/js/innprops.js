@@ -60,7 +60,7 @@
 
   // where each piece stands, found on the floor's rows by its glyphs: [name, gx, gy, a, b] (a squares along x, b along y), and the fires over their hearths
   IP.find = function (rows, up, opt) { // (up: the floor upstairs -- its chimney page 9's; its hearth the small one's copy, 11-05) (opt.lit: the lamps lit)
-    var at = function (x, y) { var r = rows[y]; return r ? r.charAt(x) : ''; }, out = [], flames = [], H = rows.length, Wd = rows[0].length;
+    var at = function (x, y) { var r = rows[y]; return r ? r.charAt(x) : ''; }, out = [], flames = [], tables = [], H = rows.length, Wd = rows[0].length;
     var x, y, n, cn = 0;
     for (y = 0; y < H; y++) for (x = 0; x < Wd; x++) {
       var c = at(x, y);
@@ -75,8 +75,8 @@
       if (c === 'f' && at(x, y - 1) === 'B' && at(x, y + 1) === 'B') { out.push(['inn_hearthS', x, y, 1, 1]); flames.push(['inn_flameS', x, y]); }
       if (c === 'K' && at(x - 1, y) !== 'K') {
         n = 0; while (at(x + n, y) === 'K') n++;
-        if (n === 6) { out.push(['inn_longtable', x, y, 3, 2]); out.push(['inn_longtable', x + 3, y, 3, 2]); } // (two sections end to end: the drawing at a figure's scale is half the six)
-        else if (n === 1 && at(x - 1, y) === 'm' && at(x + 1, y) === 'm') { out.push(['inn_table2', x, y, 1, 1]); out.push(['inn_chairA', x - 1, y, 1, 1]); out.push(['inn_chairB', x + 1, y, 1, 1]); }
+        if (n === 6) { out.push(['inn_longtable', x, y, 3, 2]); out.push(['inn_longtable', x + 3, y, 3, 2]); tables.push(['long', x, y, n]); } // (two sections end to end: the drawing at a figure's scale is half the six)
+        else if (n === 1 && at(x - 1, y) === 'm' && at(x + 1, y) === 'm') { out.push(['inn_table2', x, y, 1, 1]); out.push(['inn_chairA', x - 1, y, 1, 1]); out.push(['inn_chairB', x + 1, y, 1, 1]); tables.push(['two', x, y, 1]); }
       }
       if (c === 'b' && at(x, y - 1) !== 'b' && at(x, y + 1) === 'b') out.push(['inn_settle', x, y, 1, 2]);
       // PAGES 5, 6, 9A AND 9B (11-05, the exteriors seat): the barn, the yard and the shore, the hearth's tools and kettle, upstairs' chimney and stair head
@@ -96,9 +96,24 @@
       if (c === 's') out.push(['yard_sign', x, y, 1, 1]);
     }
     if (!up) IP.FLOATS.forEach(function (q, k) { if (at(q[0], q[1]) === 'W') out.push(['shore_float', q[0], q[1], 1, 1, false, k * 0.37]); }); // (out on the shallows, bobbing: [7] the phase)
-    return { pieces: out, flames: flames };
+    return { pieces: out, flames: flames, tables: tables };
   };
   IP.FLOATS = [[45, 11], [45, 26], [47, 29]];
+  // THE SUPPER ON THE TABLES (11-05, the exteriors seat; page 9A): while the party sits at THE MEAL (In.sit to In.rise -- the meal itself is the supper seat's), the long
+  // spread's dishes along the long table's top, each where the page set it (innprops_p2 `spread`: along the table from its west end, across it from the far edge), and the
+  // spread for two on the table for two. TABLE_TOP: the tops' height in px over the floor (the long table's drawn top, the table for two's)
+  IP.supper = false; IP.TABLE_TOP = { long: 22, two: 17 };
+  var sit0 = In.sit, rise0 = In.rise;
+  if (sit0) In.sit = function () { IP.supper = true; return sit0.apply(this, arguments); };
+  if (rise0) In.rise = function () { IP.supper = false; return rise0.apply(this, arguments); };
+  IP.spread = function (tables) { // [name, frame, px, py, gz]: a dish at a point on the floor (square x spans px x..x+1), its height
+    var S = D.SHEETS && D.SHEETS.innprops_p2, lay = S && S.spread || [], out = []; // (the layout from the sheet's own words: laid before its picture has come)
+    tables.forEach(function (t) {
+      if (t[0] === 'long') lay.forEach(function (d, f) { out.push(['supper_dish', f, t[1] + 0.3 + d[0] * (t[3] - 0.6), t[2] + 0.5 + d[1] * 0.2, IP.TABLE_TOP.long]); });
+      else out.push(['supper_two', 0, t[1] + 0.5, t[2] + 0.5, IP.TABLE_TOP.two]);
+    });
+    return out;
+  };
 
   // the pieces laid on the loaded floor: each square of each a prop of its own, sorted with the figures; the code's block and the chimney's rock under them let go
   IP.dress = function (m) {
@@ -125,6 +140,14 @@
       var big = fl[0] === 'inn_flameC', fx = fl[1] + (big ? 1 : 0), fy = fl[2] + (big ? 3 : 0), S = D.SHEETS[SHEET], fps = (S.fps && S.fps[fl[0]]) || 8;
       [[fl[1] + (big ? 2 : 1), fl[2], big ? 2 : 1]].forEach(function (apr) { for (var k = 0; k < apr[2]; k++) mine[apr[0] + ',' + (apr[1] + 1 + k)] = 1; }); // (the hearthstone before the big mouth: its code fire gives way)
       m.props.push({ innProp: true, kind: 'innflame', depth: fx + fy + 0.5, gz: 0, layer: 0.5, draw: function (ctx) { var bx = boxes(fl[0]); if (bx) frameAt(ctx, fl[0], Math.floor(now() * fps + fl[1] * 0.7), fl[1], fl[2]); } });
+    });
+    IP.spread(got.tables.filter(function (t) { return seen(t[1], t[2]); })).forEach(function (d, k) { // (the supper: drawn only while they sit -- IP.supper)
+      var fx = Math.floor(d[2]), fy = Math.floor(d[3]);
+      m.props.push({ innProp: true, kind: 'innsupper', depth: fx + fy + 0.51 + (d[3] - fy) * 0.01 + k * 1e-4, gz: 0, draw: function (ctx) {
+        if (!IP.supper) return; var bx = boxes(d[0]), S = sheet(d[0]); if (!bx || !S) return;
+        var q = bx[d[1] % bx.length], c = iso.center(d[2] - 0.5, d[3] - 0.5, d[4]), s = iso.toScreen(c.x, c.y);
+        ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(s.x - q[4]), Math.round(s.y - q[5]), q[2], q[3]);
+      } });
     });
     m.props = m.props.filter(function (p) { return p.innProp || !(p.sq && mine[p.sq.x + ',' + p.sq.y] && (p.kind === 'block' || p.kind === 'rock')); });
     if (m.isoFire) m.isoFire = m.isoFire.filter(function (q) { return !mine[q[0] + ',' + q[1]]; });

@@ -2695,6 +2695,13 @@
       var houseOutY = laidY.filter(function (n) { return /^inn_|^barn_|^kitchen_/.test(n); }).length;
       okIn('pages 5, 6, 9A and 9B laid (11-05): ' + nmsY.map(function (nm, k) { return nm + ' ' + gotY[k]; }).join(', ') + '; the north stalls mirrored ' + cntY(fY, 'barn_stall', true) + '; the lamp lit by night ' + cntY(fYn, 'yard_postlit') + '; upstairs the chimney ' + cntY(fU, 'up_chimney') + ', the stair head ' + cntY(fU, 'up_stairhead') + '; in the yard by day ' + laidY.length + ' laid, the house\'s and the barn\'s under their roofs (' + houseOutY + ' out)',
         gotY.join() === wantY.join() && cntY(fY, 'barn_stall', true) === 3 && cntY(fYn, 'yard_postlit') === 1 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
+      // 9b4. THE SUPPER ON THE TABLES (11-05, the exteriors seat; page 9A): the long spread's dishes along the long table's top and the spread for two, drawn only while
+      // the party sits at THE MEAL (In.sit to In.rise)
+      var Bsp = testIn('?roam=halfway&hour=18&day=5&inside&at=24,17'), dishSp = ((D.SHEETS.innprops_p2 || {}).spread || []).length, tabSp = IPy.laid ? IPy.laid.tables : [];
+      var spSp = IPy.spread(tabSp), onLong = spSp.filter(function (d) { return d[0] === 'supper_dish' && d[2] > 21 && d[2] < 27 && d[3] > 15.2 && d[3] < 15.8; }).length;
+      var before = IPy.supper, seatSp = InI.sit(Bsp), during = IPy.supper; InI.rise(Bsp, seatSp); var after = IPy.supper;
+      okIn('the supper on the tables (11-05): ' + dishSp + ' dishes cut, ' + onLong + ' on the long table\'s top, the spread for two ' + spSp.filter(function (d) { return d[0] === 'supper_two'; }).length + '; drawn before the meal ' + before + ', while they sit ' + during + ', after ' + after,
+        dishSp >= 8 && onLong === dishSp && spSp.length === dishSp + 1 && before === false && during === true && after === false);
       // 9c. EVERY BEAT OF THE SHOW stands up in the house (the upstairs beat once had no square to stand on: Battle.enter threw)
       var beatsIn = InI.BEATS.filter(function (b) { return !b.world; }).map(function (b) { var o = b.id + ': '; try { InI.play(b); var Bb = topIn(), t = Bb && Bb.roam && Bb.roam.token; o += (RIn.def && RIn.def.key) + ' at ' + (t ? t.x + ',' + t.y : '-') + (t && t.x === b.at[0] && t.y === b.at[1] && RIn.def.key === b.key ? '' : ' WRONG'); } catch (eB) { o += 'THREW ' + String(eB).slice(0, 80); } HIn.playing = false; HIn.cur = null; InI.pinned = null; return o; });
       okIn('every beat of ?innshow stands up in the house: ' + beatsIn.join('; '), beatsIn.every(function (o) { return !/WRONG|THREW/.test(o); }));
