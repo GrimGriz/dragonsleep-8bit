@@ -2094,6 +2094,7 @@
       okM('CONTINUE slot 2: the Galleries\' mouth (' + D.roam.def.key + ')', D.roam.def.key === 'galleries' && D.roam.house());
       var siteS = HM.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WM.state().t = 22; WM.scene.enterDoor(siteS, 'east'); var BHS2 = topM();
       okM('THE WORLD\'s site "' + (siteS && siteS.name) + '": its door opens the Glowseep in the house, by THE WORLD\'s hour (' + WM.hour() + ': dark ' + D.roam.def.dark + '), SAVE there ' + D.roam.canSave(BHS2), !!siteS && D.roam.def.key === 'glowseep' && D.roam.house() && D.roam.def.dark && D.roam.canSave(BHS2));
+      HM.cur.restEnd = null; // (the clock set back to 22 by hand under a save that slept at the bunkhouse: no long rest behind it -- one a day since 11-05, mode=rest24h1105)
       var tS0 = WM.state().t; besideM(BHS2, MM.SEEP_FIRE); useM(BHS2, MM.SEEP_FIRE, [0]); driveM(BHS2.co, null, 300);
       okM('the crews\' fire in the house: THE WORLD\'s clock from hour ' + tS0 + ' to ' + WM.state().t + ' (a long rest, ' + MM.SEEP.restHours + ' hours), no watch, the floor lit again (dark ' + D.roam.def.dark + ')', WM.state().t === tS0 + MM.SEEP.restHours && !D.roam.def.dark && D.top() === BHS2);
       HM.playing = false; HM.cur = null;
@@ -2575,6 +2576,128 @@
     document.body.appendChild(preWg);
     return;
   }
+  // ONE LONG REST IN 24 HOURS, 11-05 (mode=rest24h1105; js/house.js H.longOpen, H.longWhy, H.longWake, H.longRest's restEnd, H.sleepOnFloor o.noLong; js/hours.js H16.waitAsk's
+  // TILL A LONG REST, H16.worldWait; js/mines.js M.longWhy; js/counter.js C.inn, C.chapel, o.off; js/world.js the camp's card; js/inn.js In.room, In.lieDown -- the rests-and-waits
+  // seat, on Griz's words to the lanes desk, RULED: "the one-long rest per 24 hours per SRD is the way to go, how to handle that at the inns becomes the question. For the bunk
+  // and campfire long-rests we can grey it out and tell them to 'wait' (til bell x?) to benefit from another long rest. At the inn.. what, let them know that it'll be X hours when
+  // they wake up (where X is 'hours till can long rest' +8) ?", then "offer both, and 'wait' on world map works for short-rest or next bell"): the rule; the fire, the bunks,
+  // the town's beds, THE WORLD's camp and the Tiny Hut shut inside the 24 hours; WAIT to the hour; the inn's both sleeps; the wagon night's watches by the stay; the show
+  if (get('mode', '') === 'rest24h1105') {
+    var repY = { checks: [], errors: [] }, memY = {}, stGY = D.store.get, stSY = D.store.set, HY = D.house, CY = D.counter, RY = D.roam, MY = D.mines, WY = D.world, H6Y = D.hours, InY = D.inn, muY = D.music;
+    function okY(what, v) { repY.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveY(g, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function topY() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) { D.battle = s; driveY(s.co, 2); } return s; }
+    function wakeY() { var m = D.top(); if (!(m instanceof HY.Morning)) return ''; var ls = [], ti = (m.o && m.o.title) || 'MORNING'; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } return 'WOKE ' + ti + ': ' + ls.filter(function (l) { return l; }).join(' '); }
+    // a generator run to its end on floor B, every screen answered by its label from `ans` (none left: the last option; a greyed one pressed is refused, then the last); a floor
+    // prompt the same, each morning woken; what was said on screens, prompts and the floor's cards; `offs`: the greyed labels seen
+    function runY(B, g, ans, offs) {
+      var seen = [], q = (ans || []).slice(), v, quiet = 0, c0 = B.card;
+      B.card = function (ls) { seen.push('CARD: ' + [].concat(ls).join(' ')); return c0.apply(this, arguments); };
+      try {
+        for (var k = 0; k < 20000 && quiet < 400; k++) {
+          var s = D.top();
+          if (s instanceof CY.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons();
+            if (w.ask) { seen = seen.concat(w.ask); var ol = w.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }), off = w.opts.map(function (o) { return !!(o && o.off); }), a0 = q.length ? q.shift() : ol.length - 1, i0 = typeof a0 === 'string' ? ol.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = ol.length - 1;
+              ol.forEach(function (l, i) { if (off[i] && offs) offs.push(l); }); seen.push('[' + ol.map(function (l, i) { return off[i] ? '(' + l + ')' : l; }).join(' | ') + '] > ' + ol[i0]);
+              var b0 = bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]; s.press(b0); if (b0 && b0.off) { seen.push('REFUSED'); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === ol.length - 1; })[0]); } }
+            else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]);
+            if (s.done && D.top() === s) D.pop(); continue; }
+          if (s instanceof HY.Morning) { quiet = 0; seen.push(wakeY()); continue; }
+          if (s && s.kind === 'housewatches') { quiet = 0; s.go('begin'); continue; }
+          if (s !== B) { D.pop(); continue; }
+          var st = g.next(v); v = undefined;
+          if (st.done) break;
+          if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+          if (st.value && st.value.prompt) { var p = st.value.prompt, ls = p.opts.map(function (o) { return o.label; }), a = q.length ? q.shift() : null, i = typeof a === 'string' ? ls.indexOf(a) : a; if (i == null || i < 0) i = ls.length - 1; seen.push('? ' + p.title + ': ' + p.lines.join(' ') + ' [' + ls.join(' | ') + '] > ' + ls[i]); v = p.opts[i].value; quiet = 0; continue; }
+          quiet = 0;
+        }
+      } finally { B.card = c0; }
+      return window.DS.stripCodes(seen.join(' / '));
+    }
+    function houseY(town, gate, sq, t, flags, silver) {
+      HY.playing = false; HY.cur = null; var rec = HY.fresh('barley'); Object.assign(rec.flags, flags || {}); if (silver != null) rec.silver = silver;
+      rec.at = { town: town, gate: gate, sq: sq ? sq.slice() : null, dir: null }; HY.begin(rec, 0); var B = topY(); WY.state().t = t;
+      if (B && B.roam) { if (RY.def.hours) { if (H6Y.turnDue(B)) driveY(H6Y.turnPlay(B), 200); } else MY.lightNow(B); }
+      return B;
+    }
+    function tY() { return WY.state().t; }
+    function hurtY(B, id) { var u = B.roam.members.filter(function (m) { return m.src && (m.src.key || m.src.id) === id; })[0]; u.hp = 1; u.src.hp = 1; return u; }
+    function unitY(B, id) { return B.roam.members.filter(function (m) { return m.src && (m.src.key || m.src.id) === id; })[0]; }
+    function trigY(id) { var d = RY.def; return ((d.src8 && d.src8.triggers) || d.triggers || []).filter(function (t) { return t.id === id; })[0] || null; }
+    function slotsY(u) { return (u.slots || []).reduce(function (a, b) { return a + b; }, 0); }
+    D.store.get = function (k) { return memY[k] ? JSON.parse(memY[k]) : null; }; D.store.set = function (k, v) { memY[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1105);
+      // 1. THE RULE: a NEW GAME has none behind it (open); the crews' fire's long rest at noon ends at 20:00, kept on the save; the next may begin 16 hours after it (a night's
+      // eight ending 24 hours after), its words the hour it opens at
+      var B1 = houseY('glowseep', 'east', [30, 11], 12), open1 = HY.longOpen(8), r1 = HY.cur.restEnd; runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS']);
+      var e1 = HY.cur.restEnd, f1 = HY.longFrom(8), w1 = HY.longWait(8), k1 = HY.longWake(8), y1 = HY.longWhy(8);
+      okY('the rule: a NEW GAME open (' + open1 + ', restEnd ' + r1 + '); the fire\'s long rest from 12 kept at ' + e1 + '; then a night\'s may begin at ' + f1 + ' (wait ' + w1 + ', awake ' + k1 + '): "' + y1 + '"',
+        open1 && r1 == null && e1 === 20 && f1 === 36 && w1 === 16 && k1 === 44 && !HY.longOpen(8) && HY.longOpen(0) === false && y1 === 'No long rest yet: one a day. A long rest again from 12:00, midday: WAIT till then.');
+      // 2. THE FIRE INSIDE THE DAY: LONG REST greyed with its hour, pressed and refused (nothing slept); SHORT REST still the hour and the dice
+      hurtY(B1, 'barley'); var offs2 = [], o2 = runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS'], offs2), t2 = tY(), hp2 = unitY(B1, 'barley').hp, o2s = runY(B1, MY.seepFire(B1), ['SHORT REST, AN HOUR']), t2s = tY(), hp2s = unitY(B1, 'barley').hp;
+      okY('the fire at 20:00: ' + o2.slice(0, 240) + ' (the clock ' + t2 + ', Barley ' + hp2 + ', restEnd ' + HY.cur.restEnd + ') // SHORT REST: the clock ' + t2s + ', Barley ' + hp2s,
+        offs2.indexOf('LONG REST, 8 HOURS') >= 0 && /A long rest again from 12:00, midday: M > WAIT till then\./.test(o2) && /REFUSED/.test(o2) && !/WOKE/.test(o2) && t2 === 20 && hp2 === 1 && HY.cur.restEnd === 20 && t2s === 21 && hp2s > 1);
+      // 3. WAIT TILL A LONG REST (his "tell them to 'wait'"): the ask's fifth choice, the hour named; on to 12:00 next day, a short rest on the way; then the fire's long rest again
+      var bz3 = hurtY(B1, 'barley'); bz3.src.hdLeft = bz3.src.lvl; HY.cur.party.forEach(function (h) { if (h.id === 'barley') h.hdLeft = h.lvl; }); var o3 = runY(B1, H6Y.waitPlay(B1), ['TILL A LONG REST']), t3 = tY(), hp3 = unitY(B1, 'barley').hp, /* (his hit dice back by hand: check 2's short rest spent them) */ offs3 = [], o3f = runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS'], offs3), t3f = tY();
+      okY('WAIT at 21:00: ' + o3.slice(0, 420) + ' (the clock ' + t3 + ', Barley ' + hp3 + ') // then the fire: ' + (offs3.length ? 'greyed ' + offs3.join() : 'open') + ', ' + o3f.slice(o3f.indexOf('WOKE'), o3f.indexOf('WOKE') + 30) + ' (the clock ' + t3f + ', restEnd ' + HY.cur.restEnd + ')',
+        /\[NEXT BELL \| AN HOUR \| SHORT REST \| TILL A LONG REST \| NEVER MIND\] > TILL A LONG REST/.test(o3) && /A long rest again from 12:00, midday\./.test(o3) && /CARD: The wait runs on to 12:00, midday: a long rest is open again\./.test(o3) && /The wait is a short rest too/.test(o3) &&
+        t3 === 36 && hp3 > 1 && !offs3.length && /WOKE/.test(o3f) && t3f === 44 && HY.cur.restEnd === 44);
+      // 4. THE BUNKS: the Warrens' bunkhouse an hour after a long rest -- LONG REST greyed, its hour on the ask; the short rest still
+      var B4 = houseY('warrens', 'feed', null, 21, { shifts: 1 }); HY.cur.restEnd = 20; hurtY(B4, 'barley'); var offs4 = [], o4 = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['A BUNK: LONG REST, 8 HOURS'], offs4), t4 = tY();
+      var o4s = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['A BUNK: SHORT REST, AN HOUR']), t4s = tY(), hp4 = unitY(B4, 'barley').hp;
+      okY('the bunkhouse at 21:00, rested at 20:00: ' + o4.slice(o4.indexOf('A bunk?'), o4.indexOf('A bunk?') + 260) + ' (the clock ' + t4 + ') // the short rest: ' + t4s + ', Barley ' + hp4,
+        offs4.indexOf('A BUNK: LONG REST, 8 HOURS') >= 0 && /A long rest again from 12:00, midday: M > WAIT till then\./.test(o4) && /REFUSED/.test(o4) && !/WOKE/.test(o4) && t4 === 21 && t4s === 22 && hp4 > 1);
+      // 5. THE TOWN'S BEDS at 20:00, rested at 08:00: Aldwin's SLEEP greyed till midnight; Cassia's both sleeps -- A NIGHT'S SLEEP (eight hours, no morning page, the long rest's
+      // end kept where it was, a short rest's dice), then STAY TILL RESTED (awake at 08:00 the day after: X = 12 hours, the morning, the end kept there)
+      var B5 = houseY('silverton', 'west', null, 20, null, 60); HY.cur.restEnd = 8; var offs5 = [], o5a = runY(B5, CY.talk(B5, 'aldwin'), ['SLEEP'], offs5), t5a = tY();
+      hurtY(B5, 'barley'); var o5n = runY(B5, CY.talk(B5, 'cassia'), ['A NIGHT\'S SLEEP: 8 HOURS, NO LONG REST']), t5n = tY(), hp5n = unitY(B5, 'barley').hp, e5n = HY.cur.restEnd;
+      WY.state().t = 20; var o5t = runY(B5, CY.talk(B5, 'cassia'), [0]), t5t = tY(), e5t = HY.cur.restEnd;
+      okY('Aldwin\'s floor: ' + o5a.slice(o5a.indexOf('['), o5a.indexOf('[') + 60) + ' greyed ' + offs5.join() + ' (the clock ' + t5a + ') // Cassia\'s A NIGHT\'S SLEEP: ' + o5n.slice(o5n.indexOf('['), o5n.indexOf('[') + 140) + ' ... ' + o5n.slice(-140) + ' (the clock ' + t5n + ', Barley ' + hp5n + ', restEnd ' + e5n + ') // STAY TILL RESTED: ' + o5t.slice(o5t.indexOf('WOKE'), o5t.indexOf('WOKE') + 24) + ' (the clock ' + t5t + ', restEnd ' + e5t + ')',
+        offs5.indexOf('SLEEP') >= 0 && /A long rest again from 00:00, night: WAIT on the street till then\./.test(o5a) && t5a === 20 &&
+        /\[STAY TILL RESTED: AWAKE 08:00, MORNING \(12 HOURS\) \| A NIGHT'S SLEEP: 8 HOURS, NO LONG REST \| LEAVE\]/.test(o5n) && /CARD: NIGHT .*A night's sleep, and no long rest: one a day\./.test(o5n) && !/WOKE/.test(o5n) && t5n === 28 && hp5n > 1 && e5n === 8 &&
+        /WOKE MORNING/.test(o5t) && t5t === 32 && e5t === 32);
+      // 6. THE WORLD (his "'wait' on world map works for short-rest or next bell"): at 20:00, rested at 08:00 -- CAMP's THE NIGHT greyed with its hour, WAIT beside it; the night
+      // refused (no watches); MAKE CAMP past the day's march opens the camp's card; M > WAIT on THE WORLD, its five, TILL A LONG REST to midnight; then THE NIGHT open; the
+      // Tiny Hut's night refused with nothing spent
+      var sc6 = houseY(null, null, null, 20); HY.cur.restEnd = 8; sc6 = D.top(); sc6.cards.length = 0; sc6.campCard(); var cd6 = sc6.cards.shift() || { lines: [], keys: [] };
+      HY.night(sc6); var night6 = D.top() === sc6 && !(D.top() && D.top().kind === 'housewatches'), msg6 = sc6.msg ? sc6.msg.s : '';
+      var S6 = WY.state(); S6.todayHex = HY.DAYHEX; S6.pushing = false; HY.marchAsk(sc6, { share: 1, h: 1 }, { path: [[0, 0]] }); var ma6 = sc6.cards.shift(), mk6 = ma6 && ma6.keys.filter(function (k) { return k[0] === 'rec'; })[0]; if (mk6) mk6[1](); var mc6 = sc6.cards.shift();
+      HY.openMenu(sc6); var ent6 = sc6.pm && sc6.pm.root ? sc6.pm.root.entries.map(function (e) { return e[0]; }) : []; sc6.pm = null;
+      var th = DS.DATA.spells.tinyhut, ar6 = HY.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0] || HY.cur.party[0], took6 = 0, rested6 = 0, hut6 = HY.field.cast(ar6, th, null, { where: 'world', party: HY.cur.party, tent: true, has: function () { return true; }, take: function () { took6++; }, ward: function () { }, longRest: function () { rested6++; return []; } });
+      H6Y.worldWait(sc6); var wc6 = sc6.cards.shift() || { lines: [], keys: [] }, wk6 = wc6.keys.filter(function (k) { return /TILL A LONG REST/.test(k[2]); })[0]; if (wk6) wk6[1](); var t6 = tY(), wm6 = sc6.msg ? sc6.msg.s : '';
+      sc6.campCard(); var cd6b = sc6.cards.shift() || { keys: [] };
+      okY('THE WORLD at 20:00: the camp "' + window.DS.stripCodes(cd6.lines.join(' / ')).slice(0, 170) + '" [' + cd6.keys.map(function (k) { return k[2] + (k[3] ? ' (off)' : ''); }).join(' | ') + ']; the night refused (' + night6 + ', "' + msg6.slice(0, 60) + '"); MAKE CAMP past the march: "' + (mc6 ? window.DS.stripCodes(mc6.lines[0]) : 'none') + '"; M\'s ' + ent6.join(',') + '; the Tiny Hut "' + (hut6 || []).join(' ').slice(0, 60) + '" (spent ' + took6 + ', rested ' + rested6 + ') // WAIT: [' + wc6.keys.map(function (k) { return k[2]; }).join(' | ') + '] -- the clock ' + t6 + ', "' + wm6.slice(0, 120) + '" // the camp again: THE NIGHT ' + (cd6b.keys[0] && cd6b.keys[0][3] ? 'off' : 'open'),
+        cd6.keys.length === 4 && cd6.keys[0][2] === 'THE NIGHT' && cd6.keys[0][3] === true && cd6.keys[2][2] === 'WAIT' && /A long rest again from 00:00, night: M: WAIT till then\./.test(window.DS.stripCodes(cd6.lines.join(' '))) &&
+        night6 && /A long rest again from 00:00/.test(msg6) && !!mc6 && /CAMP/.test(mc6.lines[0]) && ent6.indexOf('WAIT') >= 0 && /No long rest yet/.test((hut6 || []).join(' ')) && took6 === 0 && rested6 === 0 &&
+        wc6.keys.map(function (k) { return k[2]; }).join('|') === '1 NEXT BELL|2 AN HOUR|3 SHORT REST|4 TILL A LONG REST|X NEVER MIND' && t6 === 24 && /The wait runs on to 00:00, night: a long rest is open again\. The wait is a short rest too/.test(wm6) && cd6b.keys[0] && !cd6b.keys[0][3]);
+      // 7. THE HALFWAY INN (RULED, his "offer both"): at six on day 5, rested at 08:00 -- SLEEP TILL RESTED (awake 08:00, 14 hours) / A NIGHT'S SLEEP: 11 HOURS, NO LONG REST /
+      // SHORT REST / NOT NOW; A NIGHT'S SLEEP eleven hours with no morning page; SLEEP TILL RESTED the morning at eight; a day since: STAY THE NIGHT as built
+      var stageI = function (rest) { InY.play({ key: InY.KEY, at: [24, 17], hour: 18, day: 5, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } }); var B = topY(); if (rest != null) HY.cur.restEnd = rest; var t = B.roam.token; t.x = 24; t.y = 17; t.tween = null; B.roam.fw = [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); return B; };
+      var gen = function (B) { return CY.talk ? D.town.fire(B, trigY('talk:gennet')) : null; };
+      var BI1 = stageI(4 * 24 + 8), o7n = runY(BI1, gen(BI1), ['A NIGHT\'S SLEEP: 11 HOURS, NO LONG REST']), t7n = tY(), e7n = HY.cur.restEnd; // (the inn lady's talk sleeps the night it gives: js/inn.js T.fire, In.night)
+      var BI2 = stageI(4 * 24 + 8), o7t = runY(BI2, gen(BI2), [0]), t7t = tY(), e7t = HY.cur.restEnd;
+      var BI3 = stageI(3 * 24 + 8), o7o = runY(BI3, gen(BI3), ['NO']);
+      okY('the inn at 18:00 on day 5, rested at 08:00: ' + o7n.slice(o7n.indexOf('['), o7n.indexOf('[') + 170) + ' -- A NIGHT\'S SLEEP: the clock ' + t7n + ', restEnd ' + e7n + ', woke ' + /WOKE/.test(o7n) + ' // SLEEP TILL RESTED: the clock ' + t7t + ', restEnd ' + e7t + ', ' + o7t.slice(o7t.indexOf('WOKE'), o7t.indexOf('WOKE') + 20) + ' // a day since: ' + o7o.slice(o7o.indexOf('['), o7o.indexOf('[') + 40),
+        /\[SLEEP TILL RESTED: AWAKE 08:00, MORNING \(14 HOURS\) \| A NIGHT'S SLEEP: 11 HOURS, NO LONG REST \| SHORT REST \| NOT NOW\]/.test(o7n) && /A long rest again from 21:00, night\./.test(o7n) && !/WOKE/.test(o7n) && /A night's sleep, and no long rest/.test(o7n) && t7n === 4 * 24 + 29 && e7n === 4 * 24 + 8 &&
+        /WOKE MORNING/.test(o7t) && t7t === 4 * 24 + 32 && e7t === 4 * 24 + 32 && /\[STAY THE NIGHT \| NO\]/.test(o7o));
+      // 8. THE WAGON NIGHT'S WATCHES READ THE STAY: the lie-down on a night's sleep with no long rest -- everyone the first watch's short rest (Aurdin's slots not back); on a
+      // long rest's night -- the second and third watches the long rest's mechanics (Aurdin's slots back), as built; the long rest's end kept only at the morning (In.sleep)
+      var asg8 = { barley: 1, aurdin: 2, vivian: 3, lymen: 3 }, lie8 = function (long) { var B = stageI(4 * 24 + 8); B.roam.stay = { t0: InY.clock(B), hours: 11, kind: 'dinner', long: long }; B.roam.members.forEach(function (u) { u.hp = 1; if (u.src) u.src.hp = 1; if (Array.isArray(u.slots)) u.slots = u.slots.map(function () { return 0; }); }); driveY(InY.lieDown(B, 5.5, 'THE SECOND WATCH', ['x'], asg8), 400); var a = unitY(B, 'aurdin'), v = unitY(B, 'vivian'), vs = HY.cur.party.filter(function (h) { return h.id === 'vivian'; })[0] || {}; return { aur: slotsY(a), viv: v.hp + '/' + v.maxhp, hd: vs.hdLeft, lvl: vs.lvl, e: HY.cur.restEnd }; }; // (the hit dice tell the rests apart: a short rest spends them, a long rest's mechanics give them back)
+      var n8 = lie8(false), l8 = lie8(true);
+      okY('the wagon night\'s lie-down: a night\'s sleep, no long rest -- Vivian (the third watch) ' + n8.viv + ', hit dice ' + n8.hd + ' of ' + n8.lvl + ', Aurdin\'s slots ' + n8.aur + ', restEnd ' + n8.e + '; a long rest\'s night -- Vivian ' + l8.viv + ', hit dice ' + l8.hd + ' of ' + l8.lvl + ', Aurdin\'s slots ' + l8.aur + ', restEnd ' + l8.e,
+        n8.hd < n8.lvl && n8.e === 4 * 24 + 8 && l8.hd === l8.lvl && /^(\d+)\/\1$/.test(l8.viv) && l8.aur > 0 && l8.e === 4 * 24 + 8);
+      // 9. THE SHOW (deep16/?restshow, the eyes rows' door): the five shut beats staged -- the place, the hour, the long rest shut
+      var beats9 = H6Y.REST_BEATS.filter(function (bt) { return bt.restAgo != null; }).map(function (bt) { try { CY.servicePlay(bt); var B = topY(); if (B && B.roam) driveY(B.co, 400); return bt.id + ': ' + (B && B.roam ? RY.def.key : B && B.kind) + ' at ' + tY() + ', shut ' + !HY.longOpen(8); } catch (e9) { return bt.id + ': THREW ' + e9; } });
+      okY('?restshow, the shut beats: ' + beats9.join('; '), beats9.length === 5 && beats9.every(function (o) { return !/THREW/.test(o) && / shut true$/.test(o); }) && /^shutseep: glowseep at 21/.test(beats9[0]) && /^shutbunk: warrens at 21/.test(beats9[1]) && /^shuttown: silverton at 20/.test(beats9[2]) && /^shutworld: world at 20/.test(beats9[3]) && /^shutinn: halfway at 114/.test(beats9[4]));
+    } catch (eY) { repY.errors.push(String(eY && eY.stack || eY).slice(0, 900)); }
+    HY.playing = false; HY.cur = null;
+    D.store.get = stGY; D.store.set = stSY; D.music = muY;
+    var preY = document.createElement('pre'); preY.id = 'out'; preY.textContent = 'BENCH16 ' + JSON.stringify(repY);
+    document.body.appendChild(preY);
+    return;
+  }
   // THE RESTS AND THE WAITS, 11-05 (mode=rests1105; js/house.js H.shortRestOnFloor, js/hours.js H16.waitPlay and the Hex's bar C.SCRIPTS.bar, js/mines.js M.seepFire, M.inn,
   // M.sleep, M.clockOn -- the rests-and-waits seat, started by the lanes desk on Griz's 11-05 notes, "no 'wait' menu short rest, no short rest option on the campfire", "no short
   // rest at bunk, no menu wait 'next bell' 'short rest' - bunk cost how many hours?", "wait option here still kicks you instantly to next bells?", "should allow short rest here,
@@ -2688,7 +2811,7 @@
         RZ.def.hexIn === 1 && /Ale by the gallon, the bench's way/.test(o9) && !/copper/.test(o9) && /Two silver the gallon, however many you are\. Sit as long as it lasts/.test(o9) && !/\/ OK \//.test(o9) && /\[A SHORT REST OVER ALE, 2 SP \| NOT NOW\] > A SHORT REST OVER ALE/.test(o9) && /A gallon jug and mugs/.test(o9) && /Barley spends/.test(o9) &&
         s9b === s9 - 2 && t9 === 12 && hp9 > 1 && /\[A SHORT REST OVER ALE, 2 SP \| NOT NOW\] > NOT NOW/.test(o9e) && /The jug doesn't pour itself/.test(o9p) && t9p === 12 && B9.roam.silver === 1);
       // 10. THE SHOW (deep16/?restshow, the eyes rows' door): each beat staged -- the floor, the hour, the four hurt -- and the Hex's beat in at the bar
-      var beats10 = H6Z.REST_BEATS.map(function (bt) { try { CZ.servicePlay(bt); var B = topZ(); driveZ(B.co, 400); var hurt = B.roam.members.filter(function (u) { return u.src && u.hp < u.maxhp; }).length; return bt.id + ': ' + RZ.def.key + (RZ.def.hexIn ? ' ' + RZ.def.hexIn : '') + ' at ' + tZ() + ', ' + hurt + ' hurt, WAIT ' + H6Z.canWait(B); } catch (e10) { return bt.id + ': THREW ' + e10; } });
+      var beats10 = H6Z.REST_BEATS.filter(function (bt) { return bt.restAgo == null; }).map(function (bt) { try { CZ.servicePlay(bt); var B = topZ(); driveZ(B.co, 400); var hurt = B.roam.members.filter(function (u) { return u.src && u.hp < u.maxhp; }).length; return bt.id + ': ' + RZ.def.key + (RZ.def.hexIn ? ' ' + RZ.def.hexIn : '') + ' at ' + tZ() + ', ' + hurt + ' hurt, WAIT ' + H6Z.canWait(B); } catch (e10) { return bt.id + ': THREW ' + e10; } });
       okZ('?restshow, ' + H6Z.REST_BEATS.length + ' beats: ' + beats10.join('; '), beats10.length === 5 && beats10.every(function (o) { return !/THREW/.test(o) && / 4 hurt/.test(o); }) && /^wait: silverton at 9/.test(beats10[0]) && /^seep: glowseep at 12/.test(beats10[1]) && /^bunk: warrens at 12/.test(beats10[2]) && /^galbunk: galleries at 23/.test(beats10[3]) && /^hex: hex1 1 at 11/.test(beats10[4]) && typeof H6Z.restShow === 'function');
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     HZ.playing = false; HZ.cur = null;
@@ -3907,9 +4030,15 @@
       okG('the test door: three long rests at the fire, the clock ' + MG.SEEP.restHours + ' hours on each (' + h3.join(' > ') + '), each one whole (' + hp3.join(',') + '), woken to ' + wk3.join(', ') + ', dark ' + dk3.join(','),
         h3.join(',') === '22,6,14,22' && hp3.every(Boolean) && wk3.join(',') === 'MORNING,AFTERNOON,NIGHT' && dk3.join(',') === 'false,false,true' && RG.def.zone8 === 'glowseep_night' && D.top() === B3);
       HG.begin(HG.fresh(), 0); topG(); var siteH = HG.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WG.state().t = 22; WG.scene.enterDoor(siteH, 'east'); var BH3 = topG(), tH = [WG.state().t], okH = [];
-      for (var j3 = 0; j3 < 3; j3++) { var vH = BH3.roam.members[0]; vH.hp = 1; fireG(BH3, 0); var sH = HG.cur.party.filter(function (h) { return (h.key || h.id) === (vH.src.key || vH.src.id); })[0]; tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sH && sH.hp === sH.maxhp); }
-      okG('in the house: THE WORLD\'s clock by the long rests (' + tH.join(' > ') + ', hour ' + WG.hour() + '), each one whole on the floor and in the save (' + okH.join(',') + '), the night again (dark ' + RG.def.dark + ')',
-        D.roam.house() && tH.join(',') === [22, 30, 38, 46].join(',') && WG.hour() === 22 && okH.every(Boolean) && RG.def.dark && D.top() === BH3);
+      // (one long rest in 24 hours since 11-05, RULED -- Griz: "the one-long rest per 24 hours per SRD is the way to go": the first sleep the long rest, 22 to 30; the fire again inside
+      // the day, LONG REST greyed and its hour named, nothing slept; a day on by hand, the clock to 46, and it is the long rest again, 46 to 54 -- mode=rest24h1105 walks the rest)
+      var vH = BH3.roam.members[0], sOf = function () { return HG.cur.party.filter(function (h) { return (h.key || h.id) === (vH.src.key || vH.src.id); })[0]; };
+      vH.hp = 1; fireG(BH3, 0); tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sOf() && sOf().hp === sOf().maxhp);
+      vH.hp = 1; var fxH = fireG(BH3, null), scH = fxH.sc, offH = scH ? scH.buttons().filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : null, whyH = scH && scH.wait && scH.wait.ask ? [].concat(scH.wait.ask).join(' ') : '';
+      if (scH) { scH.press(offH); scH.press(scH.buttons().filter(function (b) { return b.go === 'opt' && b.k === 2; })[0]); } driveG(BH3.co, function () { return D.top() === BH3; }, 300); tH.push(WG.state().t); var hpH = vH.hp;
+      WG.state().t = 46; vH.hp = 1; fireG(BH3, 0); tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sOf() && sOf().hp === sOf().maxhp);
+      okG('in the house, one long rest in 24 hours: THE WORLD\'s clock ' + tH.join(' > ') + ' (the second ask "' + whyH.slice(0, 110) + '", LONG REST greyed ' + !!(offH && offH.off) + ', Vivian ' + hpH + ' after it), each long rest whole on the floor and in the save (' + okH.join(',') + ')',
+        D.roam.house() && tH.join(',') === [22, 30, 30, 54].join(',') && !!(offH && offH.off) && /A long rest again from 22:00, night/.test(whyH) && hpH === 1 && okH.every(Boolean) && D.top() === BH3);
       HG.playing = false; HG.cur = null;
       // 5. A CLICK ON A FOE (his "clicking on an enemy when 'fight' is highlighted should function like clicking 'fight' in the menu (simple combat)"): with FIGHT lit, a
       // click on a foe in the picture is FIGHT at that foe; with another command lit it is not
@@ -9001,6 +9130,7 @@
     function wearP(B, n) { B.roam.members.forEach(function (u) { if (!u.src) return; u.src.conds = u.src.conds || {}; delete u.src.conds.exhaustion; if (n) HP.exhaust(u.src, n); }); }
     // a word that leads to a night: the counter up, the choice pressed, the night's MORNING closed, the floor walking again; returns what the night left
     function sleepP(B, trig, pick) {
+      if (HP.cur) HP.cur.restEnd = null; // (each bed as if a day after the last: the check is a level off a sleep, not the 24 hours -- one long rest a day since 11-05, mode=rest24h1105)
       var g = TP.fire(B, trig), sc = null; driveP(g, upP, 1200); sc = D.top(); var k = 0;
       while (upP() && k++ < 12) { sc = D.top(); if (sc.wait && sc.wait.ask) { if (!optP(sc, pick)) break; } else if (sc.wait && sc.wait.say) clickP(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); else break; driveP(g, function () { return !!mornP() || !upP(); }, 1200); }
       driveP(g, function () { return !!mornP(); }, 4000); var m = mornP(); if (m) m.finish(); driveP(g, null, 4000);
@@ -9648,6 +9778,7 @@
       HV.begin(HV.read(2), 2); var B2 = topV();
       okV('CONTINUE slot 2: Silverton, on Cassia\'s threshold (' + B2.roam.token.x + ',' + B2.roam.token.y + ', ' + D.roam.def.key + '), not THE WORLD', D.roam.def.key === 'silverton' && B2.roam.token.x === dqC[0] && B2.roam.token.y === dqC[1]);
       B = B2; R0 = B.roam;
+      HV.cur.restEnd = null; // (Cassia's night just slept: a day on by hand, so Aldwin's floor is a long rest too -- one a day since 11-05, mode=rest24h1105)
       // ALDWIN'S FLOOR (the first game's S.chapel): his word, SLEEP / LEAVE, free
       vU = unitV(B, 'vivian'); vU.hp = Math.max(1, vU.hp - 6); var silC = R0.silver;
       okV('in at the chapel\'s door', inV(B, 'chapel:aldwin') && D.roam.def.keeper.id === 'aldwin');

@@ -358,8 +358,8 @@
     var m = I.mouse;
     if (this.cards.length) { // (a card waits for its key)
       var cd = this.cards[0];
-      if (cd.keys && m.click && cd.btns) for (var bi = 0; bi < cd.btns.length; bi++) { var bb = cd.btns[bi]; if (m.x >= bb.x && m.x < bb.x + bb.w && m.y >= bb.y && m.y < bb.y + bb.h) { this.cards.shift(); D.sfx('confirm'); cd.keys[bi][1](); return; } } // (a click on a choice: his 10-21 "playable by mouse only")
-      if (cd.keys) { for (var ki = 0; ki < cd.keys.length; ki++) if (I.pressed(cd.keys[ki][0])) { this.cards.shift(); D.sfx('confirm'); cd.keys[ki][1](); return; } return; }
+      if (cd.keys && m.click && cd.btns) for (var bi = 0; bi < cd.btns.length; bi++) { var bb = cd.btns[bi]; if (m.x >= bb.x && m.x < bb.x + bb.w && m.y >= bb.y && m.y < bb.y + bb.h) { if (cd.keys[bi][3]) { D.sfx('error'); return; } this.cards.shift(); D.sfx('confirm'); cd.keys[bi][1](); return; } } // (a click on a choice: his 10-21 "playable by mouse only")
+      if (cd.keys) { for (var ki = 0; ki < cd.keys.length; ki++) if (I.pressed(cd.keys[ki][0])) { if (cd.keys[ki][3]) { D.sfx('error'); return; } this.cards.shift(); D.sfx('confirm'); cd.keys[ki][1](); return; } return; } // (a key's fourth, off: greyed, refused -- a long rest inside the 24 hours, 11-05)
       if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
     }
@@ -481,10 +481,13 @@
   World.prototype.here = function () { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); };
   // the house's camp (RULED 10-21): the night -- three watches, then the long rest (js/house.js H.night) -- or an hour's short rest, and at its end SECOND DRAFT for one with
   // the feat (js/house.js H.secondDraft, 10-31). The night is the long rest's eight hours from when the party lies down (11-03: W.camp), whatever the hour
+  // (one long rest in 24 hours -- RULED 11-05, Griz: "For the bunk and campfire long-rests we can grey it out and tell them to 'wait'": js/house.js H.longOpen -- inside them THE
+  // NIGHT is greyed with the hour it opens at, and M: WAIT beside it, THE WORLD's own (js/hours.js H16.worldWait, TILL A LONG REST among its choices))
   World.prototype.campCard = function () {
-    var me = this;
-    this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, eight hours, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
-      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); D.house.secondDraft(D.house.cur.party); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
+    var me = this, Hs = D.house, why = Hs && Hs.longWhy ? Hs.longWhy(W.REST, 'M: WAIT till then') : '';
+    this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.'].concat(why ? D.wrap(why, 280).map(function (l) { return '{r}' + l + '{/}'; }) : [], ['', D.keys(why ? '{g}R{/}: an hour (a short rest)    {g}M{/}: wait    {g}X{/}: walk on' : '{g}E{/}: the night (three watches, eight hours, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')]), null,
+      [['a', function () { D.house.night(me); }, 'THE NIGHT', !!why], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); D.house.secondDraft(D.house.cur.party); }, 'AN HOUR']]
+        .concat(why && D.hours && D.hours.worldWait ? [['menu', function () { D.hours.worldWait(me); }, 'WAIT']] : [], [['b', function () { }, 'WALK ON']]));
   };
   // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
   // march does (js/house.js H.marchAsk): WALK ON (no more asking till a camp), MAKE CAMP, STAY. resume(path): the walk taken up again -- the top-down view's own
@@ -763,16 +766,20 @@
     this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + (this.fineDoor ? 'F: ' + (W.FINE.on ? 'hex tops' : 'the land') + '  ' : '') + 'V: tiles  wheel: zoom');
     if (this.fineDoor && W.FINE.showLabel(this.t - (this.fineT == null ? -999 : this.fineT))) { var fl = W.FINE.label(), fw = D.textWidth(fl) + 10; D.win8(ctx, D.W - fw - 4, 4, fw, 16); D.text(ctx, fl, D.W - fw + 1, 8, W.FINE.on ? D.WIN8.gold : D.WIN8.text); } // (the look named on screen: as it unpacks, and a moment after F)
   };
-  W.button = function (ctx, b) { var mo = I.mouse, hov = mo.inside && mo.x >= b.x && mo.x < b.x + b.w && mo.y >= b.y && mo.y < b.y + b.h; ctx.fillStyle = hov ? D.WIN8.sel : 'rgba(16,18,58,.85)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = hov ? D.WIN8.gold : D.WIN8.mid; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); D.text(ctx, b.label, b.x + b.w / 2, b.y + 3, hov ? D.WIN8.gold : D.WIN8.text, 'center'); };
+  W.button = function (ctx, b) { var mo = I.mouse, hov = mo.inside && mo.x >= b.x && mo.x < b.x + b.w && mo.y >= b.y && mo.y < b.y + b.h; ctx.fillStyle = hov ? D.WIN8.sel : 'rgba(16,18,58,.85)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = hov ? D.WIN8.gold : D.WIN8.mid; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); D.text(ctx, b.label, b.x + b.w / 2, b.y + 3, b.off ? '#6c6c84' : hov ? D.WIN8.gold : D.WIN8.text, 'center'); }; // (b.off: greyed, 11-05)
   World.prototype.hudBottom = function (ctx, hint) { // (the message, the keys and the card: both views')
     if (this.msg && this.msg.t < 360) { var mw = Math.min(D.W - 16, D.textWidth(this.msg.s) + 12); ctx.fillStyle = 'rgba(8,8,20,.8)'; ctx.fillRect((D.W - mw) / 2, D.H - 30, mw, 13); D.text(ctx, this.msg.s, D.W / 2, D.H - 27, '#f6e9c5', 'center'); }
     D.hint(ctx, hint, D.W / 2, D.H - 12, '#9a96a8', 'center');
     if (this.cards.length) {
-      var cd = this.cards[0], nb = cd.keys ? cd.keys.length : 0, cw = 300, ch = 14 + cd.lines.length * 10 + (nb ? 18 : 0), cx = (D.W - cw) / 2, cy = (D.H - ch) / 2;
+      var cd = this.cards[0], nb = cd.keys ? cd.keys.length : 0, cw = 300, KN = { a: 'E', b: 'X', rec: 'R' }, lbOf = function (k) { return k[2] || KN[k[0]] || k[0]; }, bw = Math.min(96, Math.floor((cw - 12 - (nb - 1) * 6) / nb));
+      var wide = nb && cd.keys.some(function (k) { return D.textWidth(lbOf(k)) + 8 > bw; }), rowsB = [[]], rwB = 0; // (wide: each its own width, as many rows as they need -- WAIT's five on THE WORLD, 11-05)
+      if (wide) cd.keys.forEach(function (k, i) { var w = D.textWidth(lbOf(k)) + 12; if (rwB && rwB + 6 + w > cw - 12) { rowsB.push([]); rwB = 0; } rowsB[rowsB.length - 1].push({ i: i, w: w }); rwB += (rwB ? 6 : 0) + w; });
+      var ch = 14 + cd.lines.length * 10 + (nb ? 18 + (wide ? (rowsB.length - 1) * 16 : 0) : 0), cx = (D.W - cw) / 2, cy = (D.H - ch) / 2;
       D.win8(ctx, cx, cy, cw, ch); cd.lines.forEach(function (l, i) { D.text(ctx, l, D.W / 2, cy + 8 + i * 10, D.WIN8.text, 'center'); });
       if (nb) { // (each choice a button: a click is its key)
-        var KN = { a: 'E', b: 'X', rec: 'R' }, bw = Math.min(96, Math.floor((cw - 12 - (nb - 1) * 6) / nb)), bx0 = Math.round(D.W / 2 - (nb * bw + (nb - 1) * 6) / 2), by0 = cy + ch - 18;
-        cd.btns = cd.keys.map(function (k, i) { return { x: bx0 + i * (bw + 6), y: by0, w: bw, h: 13, label: k[2] || KN[k[0]] || k[0] }; });
+        var bx0 = Math.round(D.W / 2 - (nb * bw + (nb - 1) * 6) / 2), by0 = cy + ch - 18;
+        if (!wide) cd.btns = cd.keys.map(function (k, i) { return { x: bx0 + i * (bw + 6), y: by0, w: bw, h: 13, label: lbOf(k), off: !!k[3] }; });
+        else { cd.btns = []; rowsB.forEach(function (row, r) { var tw = row.reduce(function (a, q) { return a + q.w; }, 0) + (row.length - 1) * 6, x = Math.round(D.W / 2 - tw / 2), y = by0 - (rowsB.length - 1 - r) * 16; row.forEach(function (q) { cd.btns[q.i] = { x: x, y: y, w: q.w, h: 13, label: lbOf(cd.keys[q.i]), off: !!cd.keys[q.i][3] }; x += q.w + 6; }); }); }
         cd.btns.forEach(function (b) { W.button(ctx, b); });
       }
     }

@@ -974,12 +974,15 @@
   M.LINES.bunk.ask = 'A bunk? ';
   M.LINES.bunk.short = 'An hour on a bunk with your boots off, the camp going about its business outside.';
   M.LINES.bunk.wake = { AFTERNOON: 'Afternoon: daylight in the cracks of the boards, and the bunks round you empty.', DUSK: 'Dusk: the lamp being lit by the door, the night shift pulling its boots on.', NIGHT: 'Night: a hooded lamp by the door, and somebody snoring two bunks down.' };
-  M.bunkOpts = function (p) { var hd = 'A BUNK' + (p ? ', ' + p + ' SP' : '') + ': '; return [hd + 'LONG REST, ' + M.BUNK.restHours + ' HOURS', hd + 'SHORT REST, AN HOUR', 'LEAVE']; };
+  // (one long rest in 24 hours -- RULED 11-05, Griz: "For the bunk and campfire long-rests we can grey it out and tell them to 'wait' (til bell x?) to benefit from another long rest":
+  // js/house.js H.longOpen -- inside them the bunk's and the fire's LONG REST greyed, the hour it opens at on the ask, M > WAIT's TILL A LONG REST to it; short rests untouched)
+  M.longWhy = function (hours) { var H = D.house; return H && H.longWhy ? H.longWhy(hours, 'M > WAIT till then') : ''; };
+  M.bunkOpts = function (p) { var hd = 'A BUNK' + (p ? ', ' + p + ' SP' : '') + ': ', lr = hd + 'LONG REST, ' + M.BUNK.restHours + ' HOURS'; return [M.longWhy(M.BUNK.restHours) ? { label: lr, off: true } : lr, hd + 'SHORT REST, AN HOUR', 'LEAVE']; };
   M.inn = function* (sc, B, inn) {
     var st = sc.st, f = st.flags, p = inn.price(f);
     yield sc.say(inn.say || M.words(B, inn.id));
-    var a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', M.bunkOpts(p));
-    if (a !== 0 && a !== 1) return false;
+    var why = M.longWhy(M.BUNK.restHours), a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')' + (why ? ' ' + why : ''), M.bunkOpts(p));
+    if ((a !== 0 && a !== 1) || (a === 0 && why)) return false; // (the greyed LONG REST never lands: refused on its button, js/counter.js o.off)
     if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
     if (p) { st.silver(-p); D.sfx('coin'); }
     if (a === 1) { yield sc.say([M.LINES.bunk.short].concat(M.shortRestHere(B))); return false; } // (the hour on the bunk, said on its own screen as the inn's by the fire)
@@ -1114,7 +1117,7 @@
   // option at Glowseep campfire for one": an hour by the fire, the hit dice spent, said on the fire's own screen; the hours on both choices, his "bunk cost how many hours?")
   M.LINES.seep.short = 'An hour by the crews\' fire, boots to the coals. The Veterans keep Watch.';
   M.seepFire = function* (B) {
-    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { var a = yield sc.ask(M.LINES.seep.fire, ['LONG REST, ' + M.SEEP.restHours + ' HOURS', 'SHORT REST, AN HOUR', 'LEAVE']); if (a === 1) yield sc.say([M.LINES.seep.short].concat(M.shortRestHere(B))); return a === 0; })(); }, 'The crews\' fire', M.firePic);
+    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { var why = M.longWhy(M.SEEP.restHours), lr = 'LONG REST, ' + M.SEEP.restHours + ' HOURS', a = yield sc.ask([M.LINES.seep.fire].concat(why ? [why] : []), [why ? { label: lr, off: true } : lr, 'SHORT REST, AN HOUR', 'LEAVE']); if (a === 1) yield sc.say([M.LINES.seep.short].concat(M.shortRestHere(B))); return a === 0 && !why; })(); }, 'The crews\' fire', M.firePic);
     if (!go) return;
     B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
     // a long rest by the clock (10-27, his "sleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time"): the SRD's eight hours on THE WORLD's

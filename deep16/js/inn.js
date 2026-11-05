@@ -129,7 +129,8 @@
     drawerEmpty: 'The drawer by the bed is empty.',
     // the inn's rest hours (11-05, In.REST): supper with the room from three, the kitchen cold after ten, before three a word about supper (the seat's drafts, invented.json halfway-inn-rest)
     dinnerAt8: '"Dinner is at eight." A room for the night after it is {n} silver.',
-    opts: { short: 'SHORT REST', wait: 'WAIT TIL DINNER', notNow: 'NOT NOW' },
+    opts: { short: 'SHORT REST', wait: 'WAIT TIL DINNER', notNow: 'NOT NOW', till: 'SLEEP TILL RESTED: AWAKE {when} ({n} HOURS)', night: 'A NIGHT\'S SLEEP: {n} HOURS, NO LONG REST' },
+    shut: 'Supper\'s over and the room is yours. How long do you sleep?', // (11-05: inside the 24 hours, the room paid at supper -- invented.json rests-24h)
     shortRest: 'An hour by the fire with your boots off.',
     waited: 'The afternoon goes by the fire. At eight, supper.',
     dinner: 'Supper at the long table -- lake fish, bread, the road\'s talk -- and then a room under the eaves.',
@@ -531,8 +532,18 @@
   };
   // a room asked for (the inn lady's, or Doran's after the second act): by the hour -- 'meal' (the first supper, THE MEAL's own screen next), 'dinner', 'bed', or false; the
   // night's start and length kept on the floor (B.roam.stay) for the bed and the wagon night. noMeal: the supper as a line, not THE MEAL's scene
+  // ONE LONG REST IN 24 HOURS AT THE INN (RULED 11-05 -- Griz: "the one-long rest per 24 hours per SRD is the way to go, how to handle that at the inns becomes the question ... At the
+  // inn.. what, let them know that it'll be X hours when they wake up (where X is 'hours till can long rest' +8) ?", then "offer both"; js/house.js H.longOpen): when the night the
+  // room would give ends inside 24 hours of the last long rest's end, the inn lady offers both sleeps -- SLEEP TILL RESTED, awake at the hour the long rest's benefit may land
+  // (X = the hours till a long rest may begin + the night's own: 8, 11 with supper), or A NIGHT'S SLEEP, the night's hours with no long rest (a short rest's worth: js/house.js
+  // H.sleepOnFloor o.noLong) -- with SHORT REST and NOT NOW; 24 hours or more since, the room as built. The choice rides the stay (B.roam.stay.long) to the bed and the wagon night
+  In.nightHours = function (kind) { return kind === 'dinner' ? In.REST.dinnerHours : In.REST.lateHours; };
+  In.longShut = function (kind) { var H = D.house; return !!(H && H.longOpen && !H.longOpen(In.nightHours(kind))); };
+  In.tillRested = function (kind) { var H = D.house, wake = H.longWake(In.nightHours(kind)); return { wake: wake, hours: wake - H.now() }; };
+  In.bothOpts = function (kind) { var H = D.house, tr = In.tillRested(kind), nh = In.nightHours(kind); return [In.LINES.opts.till.split('{when}').join(H.clockAt(tr.wake).toUpperCase()).split('{n}').join(Math.round(tr.hours * 10) / 10), In.LINES.opts.night.split('{n}').join(nh)]; };
   In.room = function* (sc, B, cost, noMeal) {
     var st = sc.st, f = st.flags, kind = In.restKind(In.hourOf(B)), pay = function () { if (st.silver() < cost) { D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
+    var H = D.house, long = true, hours = null, both = function () { return In.bothOpts(kind); }; // (long: the night a long rest; hours: SLEEP TILL RESTED's own)
     if (kind === 'day') {
       var a = yield sc.ask(In.LINES.dinnerAt8.split('{n}').join(cost), [In.LINES.opts.short, In.LINES.opts.wait, In.LINES.opts.notNow]);
       if (a === 0) { var ls = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls)); return false; }
@@ -540,13 +551,20 @@
       if (!pay()) { yield sc.say(L('g.poor')); return false; }
       In.waitTo(B, In.REST.dinnerAt); kind = 'dinner';
       yield sc.say(In.LINES.waited);
+      if (In.longShut(kind)) { var a1 = yield sc.ask([In.LINES.shut, H.longWhy(In.nightHours(kind), false)], both()); long = a1 === 0; if (long) hours = In.tillRested(kind).hours; } // (the room paid at supper: which sleep)
+    } else if (In.longShut(kind)) {
+      var a3 = yield sc.ask([L('inn.stayAsk', { n: cost }), H.longWhy(In.nightHours(kind), false)], both().concat([In.LINES.opts.short, In.LINES.opts.notNow]));
+      if (a3 === 2) { var ls3 = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls3)); return false; }
+      if (a3 !== 0 && a3 !== 1) return false;
+      if (!pay()) { yield sc.say(L('g.poor')); return false; }
+      long = a3 === 0; if (long) hours = In.tillRested(kind).hours;
     } else {
       var a2 = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
       if (a2 !== 0) return false;
       if (!pay()) { yield sc.say(L('g.poor')); return false; }
     }
-    B.roam.stay = { t0: In.clock(B), hours: kind === 'dinner' ? In.REST.dinnerHours : In.REST.lateHours, kind: kind };
-    if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours');
+    B.roam.stay = { t0: In.clock(B), hours: hours || In.nightHours(kind), kind: kind, long: long };
+    if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours' + (long ? '' : ', no long rest') + (hours ? ', till rested' : ''));
     if (kind === 'dinner') { if (!f.mealHad && !noMeal) return 'meal'; yield sc.say(In.LINES.dinner); return 'dinner'; } // (the first room with supper: THE MEAL's screen, then the bed line there)
     yield sc.say(In.LINES.late); return 'bed';
   };
@@ -657,7 +675,7 @@
   In.sleep = function* (B, line) {
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
-    yield* D.house.sleepOnFloor(B, { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, title: wk ? wk.title : null, music: 'inn', before: function () { M.lightNow(B); } });
+    yield* D.house.sleepOnFloor(B, { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn', before: function () { M.lightNow(B); } }); // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
   };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
@@ -774,7 +792,10 @@
   // (H.restSheets: whole, the hit dice back, a banked level), no morning page; without it, all of them the long rest as before
   In.lieDown = function* (B, hours, title, line, asg) {
     var R = D.roam, R0 = B.roam, H = D.house, W = D.world, house = !!(R.house() && H.playing), sheets;
-    var byWatch = function (party) { var sh = party.filter(function (h) { return !h.dead && asg[h.key || h.id] === 1; }); return { long: party.filter(function (h) { return sh.indexOf(h) < 0; }), short: sh }; };
+    // (one long rest in 24 hours, 11-05: the wagon night is its room's one night -- the second and third watches' long rest is that night's, read off the stay, and the morning's sleep
+    // (In.sleep) is where its end is kept (js/house.js H.longRest); a room taken as A NIGHT'S SLEEP, no long rest inside the 24 hours, gives every watch the first's short rest)
+    var noLong = !!(R0.stay && R0.stay.long === false);
+    var byWatch = function (party) { var sh = party.filter(function (h) { return !h.dead && (noLong || asg[h.key || h.id] === 1); }); return { long: party.filter(function (h) { return sh.indexOf(h) < 0; }), short: sh }; };
     var restBy = function (party) { var p = byWatch(party); H.trail('rest', 'the wagon night: a long rest (' + p.long.map(function (h) { return h.name; }).join(', ') + '), a short rest (' + p.short.map(function (h) { return h.name; }).join(', ') + ')'); H.restSheets(p.long); H.shortRest(p.short); };
     if (house) { H.fromFloor(B); var S = W.state(); S.t += hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); sheets = H.cur.party; if (asg) { DS.G = { flags: H.cur.flags }; restBy(sheets); H.dry(H.cur.inv); } else H.longRest(null); }
     else { R0.hour = ((R0.hour != null ? R0.hour : M.hourNow(R.q, B)) + hours) % 24; sheets = In.sheetsOf(B); if (asg) restBy(sheets); else H.restSheets(sheets); }

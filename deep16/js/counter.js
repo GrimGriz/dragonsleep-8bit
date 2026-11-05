@@ -316,7 +316,7 @@
     if (this.paging()) { var last = this.page >= this.pages.length - 1; out.push({ x: RX + RW - 70, y: WY + WH - 20, w: 62, h: 15, label: w.say && last ? 'OK' : 'NEXT', go: 'next' }); }
     if (this.bubbling()) return this.bubbleButtons();
     var yo = 0; // (an option may be { label, color }: Ned's Insight, his "insight text a different color"; one too long for its box wraps onto two lines in a taller one)
-    if (w.ask && !this.hero) w.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.textWidth(o.label) > RW - 28 ? D.wrap(o.label, RW - 28) : null, h = ls ? 6 + ls.length * 10 : 16; out.push({ x: RX + 8, y: WY + WH + 8 + k * 19 + yo, w: RW - 16, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k }); yo += h - 16; });
+    if (w.ask && !this.hero) w.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.textWidth(o.label) > RW - 28 ? D.wrap(o.label, RW - 28) : null, h = ls ? 6 + ls.length * 10 : 16; out.push({ x: RX + 8, y: WY + WH + 8 + k * 19 + yo, w: RW - 16, h: h, label: o.label, lines: ls, color: o.color, off: !!o.off, go: 'opt', k: k }); yo += h - 16; }); // (o.off: greyed, refused -- a long rest inside the 24 hours, 11-05)
     if (w.shelves) {
       var tw = 76;
       out.push({ x: RX, y: 86, w: tw, h: 15, label: 'BUY', go: 'tab', tab: 'buy', on: this.tab === 'buy', off: !this.shop.items || !this.shop.items.length });
@@ -909,18 +909,26 @@
   C.sleep = function* (B) { if (B && B.roam && D.house && D.house.sleepOnFloor) yield* D.house.sleepOnFloor(B, { music: 'inn' }); };
   // the inn (S.inn): STAY or LEAVE at her price -- the good bed for one, the long room for a company (content/shops.json cassia: price, partyPrice; RULED 09-24), then the night
   C.SCRIPTS.hatch = function* (sc, B, id) { while ((yield sc.ask([C.HATCH[id]], ['THE SHELVES', 'LEAVE'], 'welcoming')) === 0) yield sc.shelves(C.VENDORS[id].shop); }; // (the Hex's hatches, 10-28: C.HATCH)
+  // (inside the 24 hours since the last long rest -- RULED 11-05, his "offer both": js/house.js H.longOpen -- her rooms offer both sleeps, as the Halfway Inn's (js/inn.js In.room):
+  // STAY TILL RESTED, awake at the hour the long rest's benefit may land (his "X is 'hours till can long rest' +8"), or A NIGHT'S SLEEP, eight hours with no long rest; the price either way)
+  C.BED_HOURS = 8;
+  C.bothSleeps = function () { var H = D.house, x = H.longWake(C.BED_HOURS) - H.now(); return { x: x, opts: ['STAY TILL RESTED: AWAKE ' + H.clockAt(H.longWake(C.BED_HOURS)).toUpperCase() + ' (' + Math.round(x * 10) / 10 + ' HOURS)', 'A NIGHT\'S SLEEP: ' + C.BED_HOURS + ' HOURS, NO LONG REST'] }; };
   C.SCRIPTS.inn = C.inn = function* (sc, B, id) {
     var st = sc.st, inn = (DS.DATA.shops || {})[id] || {}, n = st.party.filter(function (h) { return !h.dead; }).length, cost = n > 1 && inn.partyPrice ? inn.partyPrice : inn.price * n;
-    if ((yield sc.ask(inn.greeting + ' ' + L('g.innAsk', { n: cost }), ['STAY', 'LEAVE'], 'welcoming')) !== 0) return;
+    var H = D.house, shut = !!(H && H.longOpen && !H.longOpen(C.BED_HOURS)), both = shut ? C.bothSleeps() : null;
+    var a = yield sc.ask(inn.greeting + ' ' + L('g.innAsk', { n: cost }) + (shut ? ' ' + H.longWhy(C.BED_HOURS, false) : ''), shut ? both.opts.concat(['LEAVE']) : ['STAY', 'LEAVE'], 'welcoming');
+    if (a !== 0 && !(shut && a === 1)) return;
     if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
     st.silver(-cost); D.sfx('coin');
-    sc.next = C.sleep;
+    sc.next = shut ? function (B2) { return C.sleep(B2, a === 0 ? { hours: both.x } : { hours: C.BED_HOURS, noLong: true }); } : C.sleep;
   };
   // the mission chapel (S.chapel): Aldwin's word (his first talk whose condition holds, the first game's EV.dialog), then SLEEP or LEAVE -- the floor is free. On his
-  // face (10-28): his "Bread at six" as he breaks a loaf and holds out half (his work), the floor offered welcoming (the art desk's brief for that still)
+  // face (10-28): his "Bread at six" as he breaks a loaf and holds out half (his work), the floor offered welcoming (the art desk's brief for that still).
+  // Inside the 24 hours (11-05, js/house.js H.longOpen) SLEEP is greyed with the hour it opens at, as the bunks' (a free floor, not an inn's room: the seat's call)
   C.SCRIPTS.chapel = C.chapel = function* (sc, B) {
     yield sc.say(C.words(B, 'aldwin'), 'work');
-    if ((yield sc.ask(L('chapel.ask'), ['SLEEP', 'LEAVE'], 'welcoming')) !== 0) return;
+    var H = D.house, why = H && H.longWhy ? H.longWhy(C.BED_HOURS, 'WAIT on the street till then') : '';
+    if ((yield sc.ask(L('chapel.ask') + (why ? ' ' + why : ''), [why ? { label: 'SLEEP', off: true } : 'SLEEP', 'LEAVE'], 'welcoming')) !== 0) return;
     sc.next = C.sleep;
   };
   // the leech-house (S.leech): five silver a body for the fallen, stood up at half their hit points. On a floor the fallen are its figures, whose hit points are the floor's

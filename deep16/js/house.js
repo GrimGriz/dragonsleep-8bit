@@ -189,7 +189,7 @@
     if ((S.todayHex || 0) + H.marchCost(st) <= H.DAYHEX + 1e-9 || S.pushing) return false;
     var path = w.path.slice(); scene.walk = null;
     scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + H.hexes(S.todayHex) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
-      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
+      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { if (!H.longOpen(W.REST) && scene.campCard) scene.campCard(); else H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]); // (MAKE CAMP inside the 24 hours: the camp's card, its night greyed -- H.longOpen, 11-05)
     return true;
   };
   H.marchHours = function (st) { return st.h / (H.pace() || 1); };
@@ -239,7 +239,7 @@
     });
     return { data: d, off: off };
   };
-  H.night = function (scene) { if (!H.playing) return; D.push(new Watches(scene)); };
+  H.night = function (scene) { if (!H.playing) return; if (!H.longOpen(D.world.REST)) { D.sfx('error'); if (scene && scene.say) scene.say(H.longWhy(D.world.REST, 'WAIT till then')); return; } D.push(new Watches(scene)); }; // (one long rest in 24 hours, 11-05: H.longOpen)
   H.runNight = function (scene, asg) {
     var W = D.world, k = 0, ids = Object.keys(asg), t0 = W.state().t, wh = W.REST / H.WATCHES; // (t0: the clock as the party lies down; wh: a watch's hours)
     var next = function () {
@@ -336,10 +336,28 @@
   H.wakeSaid = function (ups) { var W = D.world, h = W.hour(); return (h >= 5 && h < 11 ? 'Dawn: the night\'s rest is had, ' : 'Awake: the rest is had, ') + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : ''); };
   H.WAKE = { dawn: 'MORNING', morning: 'MORNING', midday: 'MIDDAY', afternoon: 'AFTERNOON', dusk: 'DUSK', night: 'NIGHT' };
   H.wakeTitle = function () { var W = D.world; return (W && W.timeOfDay && H.WAKE[W.timeOfDay()]) || 'MORNING'; };
+  // ONE LONG REST IN 24 HOURS (RULED 11-05, Griz to the lanes desk: "the one-long rest per 24 hours per SRD is the way to go, how to handle that at the inns becomes the question.
+  // For the bunk and campfire long-rests we can grey it out and tell them to 'wait' (til bell x?) to benefit from another long rest. At the inn.. what, let them know that it'll be X
+  // hours when they wake up (where X is 'hours till can long rest' +8) ?"; then "offer both, and 'wait' on world map works for short-rest or next bell"; SRD 5.1: "A character can't
+  // benefit from more than one long rest in a 24-hour period"): the save keeps the clock its last long rest ended at (H.cur.restEnd, THE WORLD's hours, written by H.longRest), and a
+  // long rest's benefit lands no sooner than 24 hours after the last's -- a rest of `hours` may begin at restEnd + 24 - hours (a night's eight: sixteen hours after waking). In the
+  // house only (a test door keeps no day; a save from before, or a NEW GAME, has none: open). Where it is shut the bunks, the crews' fire, Aldwin's floor and THE WORLD's camp grey
+  // their long rest with the hour it opens at, and WAIT offers TILL A LONG REST (js/hours.js); the inns offer both sleeps -- till rested, or a night's sleep with no long rest
+  // (js/inn.js In.room, js/counter.js C.inn). Short rests are untouched (the SRD sets them no limit)
+  H.REST_EVERY = 24; H.LONG_HOURS = 8;
+  H.now = function () { var S = D.world && D.world.state && D.world.state(); return S && S.t != null ? S.t : null; };
+  H.inHouse = function () { var B = D.battle, R = D.roam; if (!H.playing || !H.cur) return false; return B && B.roam && D.scenes.indexOf(B) >= 0 ? !!(R && R.house && R.house()) : true; }; // (a floor the house's own, or THE WORLD: a test door keeps no day)
+  H.longFrom = function (hours) { var e = H.inHouse() ? H.cur.restEnd : null; return e == null ? null : e + H.REST_EVERY - (hours != null ? hours : H.LONG_HOURS); }; // (the clock a rest of `hours` may begin at; null: any time)
+  H.longOpen = function (hours) { var f = H.longFrom(hours), t = H.now(); return f == null || t == null || t >= f - 1e-6; };
+  H.longWait = function (hours) { var f = H.longFrom(hours), t = H.now(); return f == null || t == null ? 0 : Math.max(0, f - t); }; // (hours till a rest of `hours` may begin)
+  H.longWake = function (hours) { var t = H.now(), h = hours != null ? hours : H.LONG_HOURS; return t == null ? null : t + H.longWait(h) + h; }; // (the earliest a long rest begun now, waiting first, ends: his "X is 'hours till can long rest' +8")
+  H.clockAt = function (t) { var hh = ((t % 24) + 24) % 24, mm = Math.round((hh % 1) * 60), hr = Math.floor(hh) + (mm === 60 ? 1 : 0); return ('0' + (hr % 24)).slice(-2) + ':' + ('0' + (mm % 60)).slice(-2) + (D.hours && D.hours.band ? ', ' + D.hours.band(hh) : ''); }; // (the HUD's own words: js/roam.js R.timeLine)
+  H.NIGHT_SLEEP = 'A night\'s sleep, and no long rest: one a day.';
+  H.longWhy = function (hours, how) { return H.longOpen(hours) ? '' : 'No long rest yet: one a day. A long rest again from ' + H.clockAt(H.longFrom(hours)) + (how === false ? '.' : ': ' + (how || 'WAIT till then') + '.'); };
   H.longRest = function (scene) {
     if (!H.playing) return [];
     H.trail('rest', 'long rest');
-    var R = DS.R;
+    var R = DS.R, S0 = D.world && D.world.state && D.world.state(); if (S0 && S0.t != null) H.cur.restEnd = S0.t; // (the clock the rest ends at: every caller moves it first -- js/world.js W.camp, H.sleepOnFloor)
     DS.G = { flags: H.cur.flags };
     var lines = H.restSheets(H.cur.party);
     if (H.dry(H.cur.inv)) lines.push(H.DRY); // (Goodberry's berries dry out: 11-03)
@@ -602,6 +620,15 @@
     o = o || {};
     var R = D.roam, R0 = B.roam, W = D.world, house = !!(R.house() && H.playing), lines = [], sheets, done = false;
     R0.slept = (R0.slept || 0) + 1; // (a night slept on this floor: outside the house THE WORLD's march starts fresh when the party goes out -- js/mines.js M.carryClock)
+    // A NIGHT'S SLEEP WITH NO LONG REST (o.noLong -- the inns' choice inside the 24 hours, RULED 11-05, his "offer both": H.longOpen): the clock o.hours on, the day's march
+    // fresh, the night's downtime a short rest (the hit dice: the SRD sets a short rest no limit), no morning page -- its picks, bonds and spells are the long rest's -- and a card
+    if (o.noLong && house) {
+      var S1 = W.state(); S1.t += o.hours || H.LONG_HOURS; S1.today = 0; S1.todayHex = 0; S1.pushing = false; W.save();
+      var ls1 = H.shortRestOnFloor(B, { head: H.NIGHT_SLEEP }), lo1 = H.lightsOut(B);
+      if (o.before) o.before();
+      D.sfx('popup'); B.card(R.wrap(['{y}' + (o.title || 'MORNING') + '{/}'].concat(o.line ? [o.line] : [], ls1, lo1)), 480); yield 30;
+      return;
+    }
     if (house) {
       H.fromFloor(B);
       if (o.hours) { var S = W.state(); S.t += o.hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); lines = H.longRest(null) || []; } // (W.camp's day reset, the clock by the hours)
@@ -662,6 +689,7 @@
     if (sp.kind === 'rest') { // (Rope Trick a short rest, the Tiny Hut a long one: only where a tent could go, each spending its component -- the first game's rule)
       if (!env.tent) return [say('g.noRestHere')];
       if (sp.component && !env.has(sp.component)) return [say('g.noComponent', { item: DS.DATA.items[sp.component].name })];
+      if (sp.rest === 'long' && !H.longOpen(H.LONG_HOURS)) return [H.longWhy(H.LONG_HOURS)]; // (the Tiny Hut's night is a long rest too: one a day, 11-05 -- nothing spent)
       if (sp.component) env.take(sp.component); spend(); D.sfx('magic');
       if (sp.rest === 'long') return [say('g.tinyHut')].concat(env.longRest() || []);
       env.party.forEach(function (x) { if (!down(x)) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); });
@@ -906,6 +934,7 @@
         return ws.some(function (w) { return !w; }) ? '' : ws[0] || 'No one here can make anything of it.';
       },
       notes: function () { scene.pm = null; H.notes(); },
+      wait: D.hours && D.hours.worldWait && scene && scene.campCard ? function () { scene.pm = null; D.hours.worldWait(scene); } : null, // (WAIT on THE WORLD's map, RULED 11-05, his "'wait' on world map works for short-rest or next bell": js/hours.js H16.worldWait)
       run: function (kind, a, done) {
         var env = worldEnv(scene), lines = null; env.form = a.form;
         if (kind === 'save') { scene.pm = null; D.push(new Slots('save')); }

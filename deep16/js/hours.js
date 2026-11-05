@@ -1011,24 +1011,55 @@
   H16.WAIT.restToo = 'The wait is a short rest too.';
   H16.WAIT.opts = ['NEXT BELL', 'AN HOUR', 'SHORT REST', 'NEVER MIND'];
   H16.toBell = function (h) { var hh = ((h % 24) + 24) % 24, nx = H16.STARTS.filter(function (s) { return s > hh + 0.001; })[0]; return (nx != null ? nx : 24 + H16.STARTS[0]) - hh; };
+  // TILL A LONG REST (11-05, RULED -- Griz: "For the bunk and campfire long-rests we can grey it out and tell them to 'wait' (til bell x?) to benefit from another long rest";
+  // js/house.js H.longOpen): inside the 24 hours a fifth choice, value 4, before NEVER MIND -- to the hour a night's long rest may begin, named on the ask; a wait past an hour
+  // a short rest too, as NEXT BELL. H16.waitAsk: the ask's line and choices, the floor's and THE WORLD's (H16.worldWait) alike; H16.waitHours: a choice's hours from h
+  H16.WAIT.till = 'TILL A LONG REST';
+  H16.WAIT.tillDone = 'The wait runs on to {when}: a long rest is open again.';
+  H16.waitAsk = function (h) {
+    var Hs = D.house, W8 = H16.WAIT, toB = H16.toBell(h), shut = !!(Hs && Hs.longOpen && !Hs.longOpen(Hs.LONG_HOURS)), opts = [0, 1, 2].map(function (k) { return { label: W8.opts[k], value: k }; });
+    if (shut) opts.push({ label: W8.till, value: 4 });
+    opts.push({ label: W8.opts[3], value: 3, no: true });
+    return { line: W8.how.replace('{band}', H16.band(h + toB)) + (toB > 1 + 1e-6 ? W8.far : W8.near) + (shut ? ' ' + Hs.longWhy(Hs.LONG_HOURS, false) : ''), opts: opts, toB: toB };
+  };
+  H16.waitHours = function (a, h) { var Hs = D.house; return a === 0 ? H16.toBell(h) : a === 4 ? Math.max(0, Hs.longWait(Hs.LONG_HOURS)) : 1; };
+  H16.waitRests = function (a, hrs) { return a === 2 || ((a === 0 || a === 4) && hrs > 1 + 1e-6); };
   H16.waitPlay = function* (B) {
     B.roam.waitAsk = 0;
     var R = D.roam, R0 = B.roam, t = R0.token, street = !!R.def.hours, MN = D.mines;
     if (R.tracking && R.tracking(R0).length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); return; } // (as O, E and the rest: js/roam.js R.script)
-    var h = H16.hourNow(R.q, B), toB = H16.toBell(h), far = toB > 1 + 1e-6, W8 = H16.WAIT;
+    var h = H16.hourNow(R.q, B), ask = H16.waitAsk(h), W8 = H16.WAIT;
     D.sfx('popup'); t.anim = 'idle'; t.animT = B.t;
-    var a = yield { prompt: { who: t, title: W8.ask, lines: R.wrap([W8.how.replace('{band}', H16.band(h + toB)) + (far ? W8.far : W8.near)]), opts: W8.opts.map(function (l, k) { return k === 3 ? { label: l, value: k, no: true } : { label: l, value: k }; }) } };
+    var a = yield { prompt: { who: t, title: W8.ask, lines: R.wrap([ask.line]), opts: ask.opts } };
     if (a == null) a = 0; // (a bench's driver that answers nothing walks the old WAIT, to the next bell)
     if (a === 3) return;
-    var hrs = a === 0 ? toB : 1, rest = a === 2 || (a === 0 && far), lines = (MN ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), [])), h2 = H16.hourNow(R.q, B), said = [];
+    var tillAt = a === 4 ? D.house.longFrom(D.house.LONG_HOURS) : null;
+    var hrs = H16.waitHours(a, h), rest = H16.waitRests(a, hrs), lines = (MN ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), [])), h2 = H16.hourNow(R.q, B), said = [];
+    if (a === 4) said.push(W8.tillDone.replace('{when}', D.house.clockAt(tillAt)));
     // (what passed, one card: the street's turn where the hour turned it, else the bell's word (NEXT BELL) or the hour's (AN HOUR); off the street the floor's own line where
     // its day turned (js/mines.js M.lightNow); SHORT REST says the rest alone; then the rest's dice and any Light gone out)
     if (street) { var was = R.def.phase, turned = H16.phaseOf(h2) !== was; if (turned) { H16.relay(B, h2); H16.light(B); } else D.roam.def.hour = h2; said.push(turned ? H16.TURN[D.roam.def.phase] : a === 0 ? W8.bell.replace('{band}', H16.band(h2)) : a === 1 ? W8.hour : null); }
     else { var ln = MN && MN.lightNow ? MN.lightNow(B) : null; said.push(a === 0 ? W8.off.replace('{band}', H16.band(h2)) : a === 1 ? W8.hour : null); if (ln) said.push(ln); }
     said = said.filter(function (s) { return !!s; });
     if (rest) said = said.concat(D.house.shortRestOnFloor(B, { head: a === 2 ? null : W8.restToo }));
-    if (D.house && D.house.trail) D.house.trail('rest', 'WAIT: ' + W8.opts[a] + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
+    if (D.house && D.house.trail) D.house.trail('rest', 'WAIT: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
     D.sfx('popup'); B.card(D.roam.wrap(said.concat(lines)), rest ? 360 : 240); yield 20;
+  };
+  // WAIT ON THE WORLD (RULED 11-05, Griz: "'wait' on world map works for short-rest or next bell" -- the house lane's field menu short rest on THE WORLD, its RULED lean 4):
+  // M > WAIT on THE WORLD's map (js/house.js H.openMenu), the floor's own ask as THE WORLD's card -- 1 NEXT BELL, 2 AN HOUR, 3 SHORT REST, 4 TILL A LONG REST inside the 24
+  // hours, X NEVER MIND -- on the save's own sheets; the day's march goes on (a wait is no camp); what passed said on the map's line
+  H16.worldWait = function (scene) {
+    var Wd = D.world, Hs = D.house, S = Wd.state(); if (!Hs.playing || !S) return;
+    var ask = H16.waitAsk(S.t), W8 = H16.WAIT, keyOf = { 0: 'n1', 1: 'n2', 2: 'n3', 4: 'n4', 3: 'b' };
+    var go = function (a) {
+      var tillAt = a === 4 ? Hs.longFrom(Hs.LONG_HOURS) : null, hrs = H16.waitHours(a, S.t), rest = H16.waitRests(a, hrs);
+      S.t += hrs; Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null].filter(function (s) { return !!s; });
+      if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, a === 2 ? null : W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
+      said = said.concat(Hs.lightsOut(null));
+      Hs.trail('rest', 'WAIT on THE WORLD: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
+      scene.say(said.join(' '));
+    };
+    scene.card(['{y}WAIT{/}, ' + Wd.timeOfDay() + '.'].concat(D.wrap(ask.line, 280)), null, ask.opts.map(function (o) { var k = keyOf[o.value]; return [k, o.value === 3 ? function () { } : function () { go(o.value); }, (k === 'b' ? 'X ' : k.slice(1) + ' ') + o.label]; }));
   };
   // a shut door: "Closed." -- on a click, and on its sign's mouseover (his "mouseover just 'closed' if closed")
   var fire0 = T.fire;
@@ -1053,10 +1084,12 @@
   // a bed in town -- Cassia's rooms, Aldwin's floor -- is the SRD's long rest, eight hours from lying down, not on to the next morning (10-28 2258Z, his "in town sleeps seem to past
   // days rather than long rest": a bed at seven had slept a whole day round; the Glowseep's fire the same since 10-27, js/mines.js M.SEEP.restHours)
   H16.BED_HOURS = 8;
-  C.sleep = function* (B) {
+  // (o: { hours, noLong } -- Cassia's STAY TILL RESTED and A NIGHT'S SLEEP inside the 24 hours, 11-05: js/counter.js C.inn)
+  C.sleep = function* (B, o) {
     if (!B || !B.roam || !D.house || !D.house.sleepOnFloor) return;
-    var h1 = (H16.hourNow(D.roam && D.roam.q, B) + H16.BED_HOURS) % 24, wk = D.mines && D.mines.wakeAt ? D.mines.wakeAt(h1) : null; // (the waking card by the hour, as the Glowseep's fire: MORNING, AFTERNOON, DUSK, NIGHT)
-    yield* D.house.sleepOnFloor(B, { music: 'inn', hours: H16.BED_HOURS, title: wk ? wk.title : null });
+    o = o || {}; var hrs = o.hours || H16.BED_HOURS;
+    var h1 = (H16.hourNow(D.roam && D.roam.q, B) + hrs) % 24, wk = D.mines && D.mines.wakeAt ? D.mines.wakeAt(h1) : null; // (the waking card by the hour, as the Glowseep's fire: MORNING, AFTERNOON, DUSK, NIGHT)
+    yield* D.house.sleepOnFloor(B, { music: 'inn', hours: hrs, noLong: !!o.noLong, title: wk ? wk.title : null });
   };
   // THE HEX'S BAR (11-05, the rests-and-waits seat, the lanes desk's lean 5 on Griz's "please to all leans" -- his 11-05 note in the Hex, verbatim, "should allow short rest here,
   // maybe talking to bartender?", and "make them by the gallon of ale so we don't have to deal with copper"): either bartender's word, then a short rest over a gallon for the
@@ -1415,23 +1448,34 @@
     { rests: 1, id: 'seep', at: ['glowseep', 'east', [30, 11], '-1,0'], t: 12, hurt: true, label: 'THE GLOWSEEP: the crews\' fire at noon, the four hurt', note: 'E at the fire: LONG REST, 8 HOURS / SHORT REST, AN HOUR / LEAVE. SHORT REST: an hour by the fire, the hit dice. M > WAIT works here too: the wait runs on to the next band, by night the moss lit.' },
     { rests: 1, id: 'bunk', at: ['warrens', 'feed', [35, 8], '0,-1'], t: 12, hurt: true, silver: 10, flags: { shifts: 1 }, label: 'THE WARRENS\' BUNKHOUSE AND THE PELLAM BARNS: noon, a shift worked', note: 'At the bunkhouse door, E: A BUNK: LONG REST, 8 HOURS (awake at night, eight hours on) / A BUNK: SHORT REST, AN HOUR / LEAVE -- free to crew. The Pellam barns (the south landing): a silver either way. M > WAIT on the camp.' },
     { rests: 1, id: 'galbunk', at: ['mouth', 'east', [3, 13], '0,-1'], t: 23, hurt: true, flags: { cullHired: 1 }, label: 'THE GUANO GALLERIES\' BUNKHOUSE: eleven at night, the house\'s hands', note: 'At the hands\' bunkhouse, E: the long rest, eight hours -- awake at seven to the river of wings coming home; or the hour\'s short rest.' },
-    { rests: 1, id: 'hex', door: 'inn:cassia', hex: [7, 21], t: 11, hurt: true, silver: 10, label: 'THE HEX\'S BAR: eleven in the morning, ten silver', note: 'Beside the south bar: E on the bartender (or a click) -- their word, then A SHORT REST OVER ALE, 2 SP: a gallon for the bench, an hour, the hit dice. The east bar\'s the same.' }
+    { rests: 1, id: 'hex', door: 'inn:cassia', hex: [7, 21], t: 11, hurt: true, silver: 10, label: 'THE HEX\'S BAR: eleven in the morning, ten silver', note: 'Beside the south bar: E on the bartender (or a click) -- their word, then A SHORT REST OVER ALE, 2 SP: a gallon for the bench, an hour, the hit dice. The east bar\'s the same.' },
+    // ONE LONG REST IN 24 HOURS, shown (RULED 11-05: js/house.js H.longOpen): restAgo, the hours since the last long rest ended (the save's restEnd), so the long rest is shut
+    { rests: 1, id: 'shutseep', at: ['glowseep', 'east', [30, 11], '-1,0'], t: 21, restAgo: 1, hurt: true, label: 'ONE LONG REST A DAY: the Glowseep\'s fire an hour after one', note: 'E at the fire: LONG REST, 8 HOURS greyed, "A long rest again from 12:00, midday: M > WAIT till then." SHORT REST still. M > WAIT: TILL A LONG REST -- on to midday, a short rest on the way; then the fire\'s LONG REST again.' },
+    { rests: 1, id: 'shutbunk', at: ['warrens', 'feed', [35, 8], '0,-1'], t: 21, restAgo: 1, hurt: true, flags: { shifts: 1 }, label: 'ONE LONG REST A DAY: the Warrens\' bunkhouse an hour after one', note: 'E at the door: A BUNK: LONG REST, 8 HOURS greyed with the hour it opens at; the short rest still. The Pellam barns the same.' },
+    { rests: 1, id: 'shuttown', door: 'inn:cassia', t: 20, restAgo: 12, hurt: true, silver: 40, label: 'ONE LONG REST A DAY: Cassia\'s rooms and Aldwin\'s floor, twelve hours after one', note: 'In at Cassia\'s, E on her: STAY TILL RESTED: AWAKE 08:00, MORNING (12 HOURS) or A NIGHT\'S SLEEP: 8 HOURS, NO LONG REST (a short rest\'s worth, no morning page). At Aldwin\'s, SLEEP greyed till midnight.' },
+    { rests: 1, id: 'shutworld', world: true, t: 20, restAgo: 12, hurt: true, label: 'ONE LONG REST A DAY: THE WORLD\'s camp, twelve hours after one', note: 'CAMP: THE NIGHT greyed, "A long rest again from 00:00, night", and WAIT beside it. M > WAIT on THE WORLD: 1 NEXT BELL, 2 AN HOUR, 3 SHORT REST, 4 TILL A LONG REST, X NEVER MIND.' },
+    { rests: 1, id: 'shutinn', inn: { day: 5, hour: 18, at: [24, 17] }, restAgo: 10, label: 'ONE LONG REST A DAY: the Halfway Inn at six, ten hours after one', note: 'E on the inn lady: SLEEP TILL RESTED: AWAKE 08:00, MORNING (14 HOURS) or A NIGHT\'S SLEEP: 11 HOURS, NO LONG REST, with SHORT REST and NOT NOW (his "offer both").' }
   ];
   var play1 = C.servicePlay;
   C.servicePlay = function (bt) {
     if (!bt || !bt.rests) return play1.apply(this, arguments);
-    var Hs = D.house, rec = C.serviceStage(Object.assign({}, bt, { door: bt.door || 'inn:cassia' }));
+    var Hs = D.house, ago = function () { var S1 = D.world.state(); if (bt.restAgo != null && Hs.cur && S1) Hs.cur.restEnd = S1.t - bt.restAgo; };
+    if (bt.inn && D.inn) { D.inn.play({ key: D.inn.KEY, at: bt.inn.at, hour: bt.inn.hour, day: bt.inn.day, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } }); ago(); return; } // (the inn's own staging: js/inn.js In.play)
+    var rec = C.serviceStage(Object.assign({}, bt, { door: bt.door || 'inn:cassia' }));
     Object.assign(rec.flags, bt.flags || {});
     if (bt.at) rec.at = { town: bt.at[0], gate: bt.at[1], sq: bt.at[2].slice(), dir: D.roam.DIR8[bt.at[3]] || null };
     Hs.begin(rec, 0);
     var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
-    H16.restAt = { hex: bt.hex || null }; // (the floor laid for the beat's hour, and the Hex's bar, at its first beat: H16.restAtPlay)
+    ago(); if (!bt.world) H16.restAt = { hex: bt.hex || null }; // (the floor laid for the beat's hour, and the Hex's bar, at its first beat: H16.restAtPlay)
   };
   H16.restShow = function (q) { return new C.ServicesShow(q, H16.REST_BEATS, '{y}THE RESTS AND THE WAITS, 11-05{/} -- a NEW GAME staged, the four hurt; the rest is yours (a show)'); };
   H16.restAtDue = function (B) { return !!(H16.restAt && B && B.roam && B.roam.mode === 'walk' && D.roam.def && !D.roam.def.room); };
   H16.restAtPlay = function* (B) {
     var o = H16.restAt; H16.restAt = null;
-    if (!D.roam.def.hours && D.mines && D.mines.lightNow) D.mines.lightNow(B); // (off the street the floor at the beat's hour; the street's own turn lays it there)
+    if (!D.roam.def.hours && D.mines && D.mines.lightNow) { // (off the street the floor at the beat's hour, and said so -- its first card was laid at the staging's hour; the street's own turn lays it there)
+      var ln0 = D.mines.lightNow(B), tl0 = D.roam.timeLine ? D.roam.timeLine(B) : '';
+      if (!o.hex) B.card(D.roam.wrap(['{y}' + String(D.roam.def.name || '').toUpperCase() + '{/}' + (tl0 ? '  {g}' + tl0 + '.{/}' : '')].concat(ln0 ? [ln0] : [])), 360);
+    }
     if (o.hex && D.hex) { var HX = D.hex; yield* HX.goIn(B, 'front'); var at = HX.near(HX.rows(1), o.hex) || o.hex; HX.lay(B, 1, at, [-1, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10; }
   };
 
