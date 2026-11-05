@@ -174,7 +174,7 @@
   // stew, a CON save each at DC 13. The tells, each hero's own silent read: Medicine 13 tastes it (that one does not eat), Insight 15 sees the inn lady fill every bowl but her own (the
   // rest save with advantage). Some asleep, or a tell: the fight in the common room to submission (the first yield ends it), Doran's confession, his bucket over the sleepers, and he
   // leads them out back to the stone -- the rise, the fight at the shore; Gennet stays by the fire. All asleep: the drag, ten minutes, a save every two (+1 a success), then on the
-  // stone each saves with its bonus as the water heaves and again each round; who makes it wakes (POISON.firstOnly: only the first of them, his question open); three rounds with
+  // stone each saves with its bonus as the water heaves and again each round; everyone who makes it wakes, each with its own bonus till it does (RULED 11-05, his "Everyone who makes it"; POISON.firstOnly false); three rounds with
   // nobody awake and it takes one. No supper, no tell and nobody asleep: the lake goes unfed. The seat's drafts: invented.json halfway-poison-dinner-1105
   A.POISON = { dc: 13, taste: 13, watch: 15, dragMin: 10, dragEvery: 2, perSuccess: 1, cut: 3, firstOnly: false };
   A.poisonSave = function (u, bonus, adv) { var h = u.src || u, r = In.d20(), r2 = adv ? In.d20() : null, roll = adv ? Math.max(r, r2) : r, b = DS.R.saveBonus(h, 'con') + (bonus || 0), ok = roll + b >= A.POISON.dc; In.trail((h.name || u.name) + ' CON save ' + (adv ? '[' + r + ',' + r2 + ']>' : '') + roll + ' + ' + b + ' vs DC ' + A.POISON.dc + ' (the draught)' + (ok ? ', made' : ', failed')); return ok; };
