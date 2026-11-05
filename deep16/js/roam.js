@@ -2149,6 +2149,23 @@
   // (green), the four (blue, the token white) and the foes (red)
   R.MAPCOL = { '#': '#15131c', '.': '#4a4650', '~': '#24456a', D: '#1a3456', '=': '#7a5a34', y: '#5a3a1a', P: '#2a2630', k: '#5a4630' };
   R.TOWNCOL = { '#': '#3a3228', '.': '#9a7c50', ',': '#c4a878', '=': '#b8b8bc', b: '#8a4430', D: '#2a5a78', '~': '#5a9ab0', f: '#3a2814', k: '#d8c070', w: '#141414', r: '#7a7468', d: '#f0e0b0' }; // (the town map, L: v6's own colours, near enough)
+  // the stores on the town's map (11-05, tuesday-world; his Tuesday 29: "Can we make the L map show icons for stores, or render a version that can instead of the tile
+  // accurate 8bit or whatever we're using", RULED the lean -- the glyphs on the map as it is): each store's sign glyph, small, over its door (the def's `signs`, the
+  // square above the door), from js/topview.js TV.signIcon; at 3 px a square or more a glyph's cell is 2 px, else 1. Two doors closer than a glyph: the later one
+  // nudged the least way clear of the earlier (the mortar beside the sword). Drawn after the folk, under the Warrens' mark and the party
+  R.mapSigns = function (ctx, x0, y0, s) {
+    var sg = R.def.signs || {}, TV = D.topview, out = []; if (!TV || !TV.signIcon) return out;
+    var m = G.map, c = s >= 3 ? 2 : 1, X1 = x0 + m.w * s, Y1 = y0 + m.h * s;
+    var clear = function (px, py, N) { return px >= x0 && py >= y0 && px + N <= X1 && py + N <= Y1 && out.every(function (o) { return px >= o.x + o.n + 1 || px + N + 1 <= o.x || py >= o.y + o.n + 1 || py + N + 1 <= o.y; }); };
+    Object.keys(sg).forEach(function (k) {
+      var ic = TV.signIcon(sg[k], c); if (!ic) return;
+      var a = k.split(','), N = ic.width, px = Math.round(x0 + (+a[0] + 0.5) * s - N / 2), py = Math.round(y0 + (+a[1] + 0.5) * s - N / 2);
+      px = Math.max(x0, Math.min(X1 - N, px)); py = Math.max(y0, Math.min(Y1 - N, py));
+      for (var d = 1; d <= 2 * N && !clear(px, py, N); d++) { var to = [[d, 0], [-d, 0], [0, -d], [0, d]].filter(function (o) { return clear(px + o[0], py + o[1], N); })[0]; if (to) { px += to[0]; py += to[1]; break; } }
+      ctx.drawImage(ic, px, py); out.push({ key: k, kind: sg[k], x: px, y: py, n: N });
+    });
+    return (R.mapSigns.last = out);
+  };
   R.paintMap = function (ctx, B, x0, y0, s) {
     var R0 = B.roam, m = G.map, C = R0.cut, sv = C || R0.mode === 'fight' ? R0.sightV : null;
     ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = '#05040a'; ctx.fillRect(x0 - 2, y0 - 2, m.w * s + 4, m.h * s + 4);
@@ -2156,6 +2173,7 @@
       if (!m.townMap || m.townMap.s !== s) { var cv = document.createElement('canvas'); cv.width = m.w * s; cv.height = m.h * s; var cc = cv.getContext('2d'); for (var ty = 0; ty < m.h; ty++) for (var tx = 0; tx < m.w; tx++) { var tq = m.at(tx, ty); cc.fillStyle = R.TOWNCOL[tq.ch] || (tq.open ? '#8a7656' : '#2a2420'); cc.fillRect(tx * s, ty * s, s, s); } m.townMap = { canvas: cv, s: s }; }
       ctx.drawImage(m.townMap.canvas, x0, y0);
       B.units.forEach(function (u) { if (u.npc) { ctx.fillStyle = '#e8d070'; ctx.fillRect(x0 + u.x * s, y0 + u.y * s, s, s); } });
+      R.mapSigns(ctx, x0, y0, s);
       // the feed track where it leaves the town, named (10-28 later, his "having a difficult time figuring out how to get to the warrens"): a gold mark on its squares at the edge
       // and THE WARRENS beside them (js/mines.js T.wayOut takes the party over the bridge from there; the JOURNAL's The Crawler Warrens says so)
       var feed = (R.def.doors || []).filter(function (q) { return /feed track/.test((R.def.wayName || {})[q[0] + ',' + q[1]] || ''); });

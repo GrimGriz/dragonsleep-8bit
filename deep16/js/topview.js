@@ -228,6 +228,21 @@
     }
   };
   TV.SIGNX = 3;
+  // the stores on the town's L map (11-05, tuesday-world; Griz's Tuesday 29, his 10-31 playthrough: "Can we make the L map show icons for stores, or render a version
+  // that can instead of the tile accurate 8bit or whatever we're using"; the desk's lean RULED 11-05, his "5 - yes": the glyphs on the map as it is, not a second
+  // render): a store's sign small -- its 8x8 glyph at `c` px a cell, in the sign's colours, on a dark board framed in the sign's leather -- one picture a kind and size,
+  // kept. js/roam.js R.paintMap lays one over each door that hangs a sign (the town def's `signs`)
+  TV.signIcon = function (kind, c) {
+    var g = TV.SIGNS[kind]; if (!g) return null; c = c || 1;
+    var memo = TV.signIcon.memo || (TV.signIcon.memo = {}), key = kind + '@' + c; if (memo[key]) return memo[key];
+    var lea = R('leather'), gold = R('gold'), red = R('red'), bone = R('bone'), orc = R('orc'), blue = R('blue'), ink = [16, 16, 24];
+    var COL = { '#': [70, 62, 54], o: gold[4], w: bone[1], r: red[4], g: orc[3], b: blue[3] }; // (ink lifted to a dark grey: on the board's black it would vanish)
+    var N = 8 * c + 2, cv = document.createElement('canvas'); cv.width = N; cv.height = N; var cx = cv.getContext('2d');
+    var css = function (a) { return 'rgb(' + a[0] + ',' + a[1] + ',' + a[2] + ')'; };
+    cx.fillStyle = css(lea[1]); cx.fillRect(0, 0, N, N); cx.fillStyle = css(ink); cx.fillRect(1, 1, N - 2, N - 2); // (the frame, the board)
+    for (var gy = 0; gy < 8; gy++) for (var gx = 0; gx < 8; gx++) { var col = COL[g[gy].charAt(gx)]; if (!col) continue; cx.fillStyle = css(col); cx.fillRect(1 + gx * c, 1 + gy * c, c, c); }
+    cv.kind = kind; return (memo[key] = cv);
+  };
   // the store's name on its sign (10-28, Griz: "store names popup on sign mouseover"): a sign hangs at the eave of the square over its door (js/town.js signs, signDoor);
   // the mouse on the sign, or on the face and the door under it, names the store in a box over the screen (TV.signTip, from js/roam.js R.screenOver)
   TV.faceOf = function (m, s) { return TV.artOn() && TV.ROOFART[s.ch] && TV.ART.tall ? (/[buB]/.test(s.ch) ? TV.FACEPX.tall : TV.FACEPX.low) : iso.roofPx(m, s.ch); }; // (a roof's south face, px: as artRoof and standCode stand it)
