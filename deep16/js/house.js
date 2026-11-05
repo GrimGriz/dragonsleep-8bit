@@ -750,6 +750,14 @@
     return g ? g.forms.slice() : ['owl'];
   };
   FD.skill = function (c, s, t) {
+    // (11-05, the desk's read of his Web Gulch record: Barley poisoned and paralyzed by a wolf spider's bite at 0, healed and still held into the next fight, and Lymen's Lay on
+    // Hands here only healed -- "You can expend 5 hit points from your pool of healing to cure the target of one disease or neutralize one poison affecting it" (SRD 5.1, the
+    // Paladin): a poisoned one takes the cure first, 5 from the pool, and with it the paralysis that poison holds; again on someone whole, the pool heals as ever)
+    if (s === 'lay' && (t || c).conds && (t || c).conds.poisoned && (c.feats.lay || 0) >= 5) {
+      t = t || c; var pc = t.conds; c.feats.lay -= 5; delete pc.poisoned; if (pc.paralyzed && pc.paralyzed.poison) delete pc.paralyzed;
+      Object.keys(pc).forEach(function (k) { var v = pc[k]; if (v && typeof v === 'object' && v.linked === 'poisoned') delete pc[k]; });
+      D.sfx('heal'); return [c.name + ' lays on hands: the poison goes out of ' + t.name + '. (5 from the pool, ' + c.feats.lay + ' left)'];
+    }
     if (s === 'lay') { t = t || c; if (t.hp >= t.maxhp) return [say('g.fullHP', { name: t.name })]; var lh = FD.heal(t, c.feats.lay || 0); c.feats.lay -= lh.n; D.sfx('heal'); return healed(t, lh); }
     if (s === 'arcane') {
       var budget = Math.ceil(c.lvl / 2), got = 0;

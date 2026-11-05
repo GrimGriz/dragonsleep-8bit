@@ -2806,7 +2806,8 @@
       if (pd && atk.save.zero && tgt.hp <= 0 && !tgt.dead && !tgt.summon && !RU.immuneTo(tgt, 'poisoned')) {
         tgt.conds.poisoned = { paralysis: true, hour: true, by: att.id }; tgt.conds.paralyzed = { poison: true, hour: true, by: att.id };
         D.sfx('poison'); FX.sparkle(tgt, 'moss', 12);
-        this.card(['{p}' + nameOf(tgt) + ': the poison takes hold{/} -- POISONED for an hour, and PARALYZED while it lasts, {g}even healed (Lesser Restoration ends it){/}']);
+        var cures = this.poisonCures(tgt); // (11-05, the desk's lean on his Gulch record: the card said only Lesser Restoration, and Lymen's Lay on Hands could have ended it)
+        this.card(['{p}' + nameOf(tgt) + ': the poison takes hold{/} -- POISONED for an hour, and PARALYZED while it lasts, even healed.', '{g}' + (cures.length ? 'A cure ends it: ' + cures.join(', ') + '.' : 'A cure ends it: Lay on Hands (5 from the pool), Lesser Restoration or Protection from Poison.') + '{/}']);
       }
       yield 30;
     }
@@ -2964,6 +2965,18 @@
   // and sight; a readied spell, a feature or an item only when it can reach someone the trigger points at (readyAuto's own answer: the foe, or the one of us struck or fallen); a
   // readied move always. One that cannot is not asked, and keeps its reaction for the next trigger (SRD 5.1: "you can either take your reaction right after the trigger finishes or
   // ignore the trigger")
+  // the cures of a poison on one of `tgt`'s side that its friends standing hold now (the card of a poison that drops one, attack above): a paladin's Lay on Hands with 5 in
+  // the pool (layOnHands' CURE POISON), Lesser Restoration or Protection from Poison castable now. Words for the card, "Lymen's Lay on Hands (5 from the pool)"
+  Battle.prototype.poisonCures = function (tgt) {
+    var self = this, out = [], CURES = { lesserrestoration: 'Lesser Restoration', protectionfrompoison: 'Protection from Poison' };
+    this.units.forEach(function (w) {
+      if (w === tgt || w.side !== tgt.side || w.dead || !(w.hp > 0) || w.summon || w.familiar || w.object) return;
+      if (w.feats && (w.feats.lay || 0) >= 5) out.push(w.name + '\'s Lay on Hands (5 from the pool)');
+      var es = []; try { es = D.magic.list(self, w, { anyTarget: true }) || []; } catch (e) { /* (no spells to ask) */ }
+      Object.keys(CURES).forEach(function (id) { if (es.some(function (e) { return e.id === id && e.ok; })) out.push(w.name + '\'s ' + CURES[id]); });
+    });
+    return out;
+  };
   Battle.prototype.readyCan = function (w, rd, ctx, kind) {
     if (!rd || rd.what === 'move') return true;
     var wk = w.weapon; if (rd.what === 'weapon' && rd.wp) w.weapon = rd.wp;
