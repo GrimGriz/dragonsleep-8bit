@@ -20,7 +20,8 @@ Rows (vivian_p0's names): idle, walk, attack, hurt, sit; a row drawn in SE only 
 as her idle. A frame stands on its lowest row (AY, vivian_p0's 61); upright, by its torso's middle (the top 55%); down (hurt 5 and 6, the notes'
 "register their pelvis to the same world position"), by its whole body's middle. Boxed down, snapped to the 64, outlined -- her auburn hair on the reds.
 WORN BY HER ARMOUR (11-05, Griz: "They're meant to be alternate armor options (leather and studded)"): js/save.js SV.LOOK.vivian.armor -- Studded Leather
-wears vivian_p3; leather wears vivian_p2 (11-05, look 1's other views in). Attack's `release` 3: the blow on frame 4.
+wears vivian_p3; anything else, the leather she starts in or none, vivian_p2 -- her own sheet, the LPC
+vivian_p0 retired (11-05, Griz: "go ahead with look1 default retire LPC"). Attack's `release` 3: the blow on frame 4.
 """
 import csv, importlib.util, json, os, sys
 import numpy as np
