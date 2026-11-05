@@ -217,6 +217,7 @@
       if (R0 && R0.mode === 'walk' && R.def.town && D.town && D.town.watch) D.town.watch(this); // (the keepers drawn all round turn to the party where they watch: js/town.js T.watch, 10-29 night)
       return update0.apply(this, arguments);
     };
+    B.paintUnder = function (ctx) { R.paintUnder(ctx, this); }; // (the hour's picture: drawn by js/ui.js drawBattle over the floor and under the cards, the bar and the menu -- R.paintUnder)
     B.paint = function (ctx) {
       var t0 = (window.performance || Date).now();
       paint0.apply(this, arguments);
@@ -2164,6 +2165,10 @@
 
   // ------------------------------------------------------------------ the picture: the ground's edge while a fight is on, a line of help
   function corner(gx, gy) { var w = D.iso.cornerW ? D.iso.cornerW(gx, gy) : { x: (gx - gy) * D.iso.TW / 2, y: (gx + gy) * D.iso.TH / 2 }; return D.iso.toScreen(w.x, w.y); } // (a square's corner, the diamonds' or the town's north-up view: js/topview.js)
+  // THE PICTURE UNDER THE HUD (11-05, Griz, the mouth camp: "darkness impacts menu here"; Tuesday 5, "no reason the menu should be subject to darkness on a dark topdown roam"): the
+  // hour's wash over an outdoor floor -- a mine's sky (js/mines.js M.paintSky), the street's night (js/hours.js H16.paintNight) and the loaf in a hand under it -- hooks this, drawn
+  // by js/ui.js drawBattle once the floor is on the screen and before the cards, the bar, a prompt and the M menu (it hooked R.paintOver, after all of them, and covered them)
+  R.paintUnder = function (ctx, B) { };
   R.paintOver = function (ctx, B) {
     var R0 = B.roam; if (!R0) return;
     var C = R0.cut;

@@ -970,8 +970,8 @@
     }
     ctx.drawImage(c, 0, 0);
   };
-  var over0 = D.roam.paintOver;
-  D.roam.paintOver = function (ctx, B) { try { H16.paintNight(ctx, B); } catch (e) { } return over0.apply(this, arguments); };
+  var over0 = D.roam.paintUnder; // (under the HUD and the menu: js/roam.js R.paintUnder, 11-05)
+  D.roam.paintUnder = function (ctx, B) { try { H16.paintNight(ctx, B); } catch (e) { } return over0.apply(this, arguments); };
   // the clock on the street: an hour each H16.FT_HOUR feet walked
   H16.pass = function (B, hrs) {
     var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null;
@@ -1159,8 +1159,8 @@
     });
     return n;
   };
-  var overL = D.roam.paintOver;
-  D.roam.paintOver = function (ctx, B) { try { H16.paintLoaves(ctx, B); } catch (e) { } return overL.apply(this, arguments); }; // (under the HUD, as the night's picture)
+  var overL = D.roam.paintUnder;
+  D.roam.paintUnder = function (ctx, B) { try { H16.paintLoaves(ctx, B); } catch (e) { } return overL.apply(this, arguments); }; // (under the HUD, as the night's picture: js/roam.js R.paintUnder)
 
   // ---------------------------------------------------------------- HESSLE'S BOARD, ON THE WEIGH-HOUSE WALL (10-29, the story window, on the lanes desk's relay of Griz: "we actually
   // also need a visible board, either inside or outside of hessles - the way hessle reads the board should instead be clickable missions below it (as if they're taking the mission

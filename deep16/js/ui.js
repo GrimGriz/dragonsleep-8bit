@@ -1431,6 +1431,7 @@
     var shk = B.shakeT > 0 && (B.shakeT % 10) < 4; // (the roost coming down: a shake every ten frames, as the 8-bit's swarm)
     ctx.drawImage(wc, 0, 0, vw, vh, shk ? Math.round((Math.random() - 0.5) * 6) : 0, shk ? Math.round((Math.random() - 0.5) * 4) : 0, vw * z, vh * z);
     if (z * D.R < 1 - 1e-9) farMarks(ctx, B); // (a far step: the figures are a few pixels tall -- a mark on each, 10-04 night, Griz: "great idea")
+    if (B.paintUnder) B.paintUnder(ctx); // (a floor's hour over its picture, under everything drawn after: the night on an outdoor roam -- js/roam.js R.paintUnder, 11-05)
     ctx.imageSmoothingEnabled = false;
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     if (!B.cine) strip(ctx, B); // (B.cine: a show's scene, js/gameshow.js -- no turn strip and no bar over it)

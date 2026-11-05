@@ -1189,8 +1189,8 @@
     }
     ctx.drawImage(c, 0, 0);
   };
-  var overSky0 = D.roam.paintOver;
-  D.roam.paintOver = function (ctx, B) { try { M.paintSky(ctx, B); } catch (e) { } return overSky0.apply(this, arguments); };
+  var overSky0 = D.roam.paintUnder; // (under the HUD and the menu: js/roam.js R.paintUnder, 11-05)
+  D.roam.paintUnder = function (ctx, B) { try { M.paintSky(ctx, B); } catch (e) { } return overSky0.apply(this, arguments); };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && (D.roam.def.mine || D.roam.def.wet === true) && B.roam && D.battle === B) yield* M.tick(B); return ev; }; // (every mine floor since 10-29 night: THE ROAM CLOCK BY THE VIEW; the Wet since 10-30)
   // the floor's people named where the first game's npcs have no line of theirs (the Glowseep's crew), and a floor's own lights laid (its poles, its moss, the fire)
