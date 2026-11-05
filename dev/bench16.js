@@ -2290,11 +2290,18 @@
         });
         throw 'probe done';
       }
-      // 1. THE SIGNS AND THE FORK after a won yard (the night played through: WAKE, the pair at a hit point and rooted): the three the fight ate, the last three with their reads, the fork; LET IT BE: the walk, the due paid
+      // 1. THE WAGON NIGHT WON, THE DUE THREE NIGHTS ON (RULED 11-05, his "hate to do it, but let's move the offering to 3 nights after wagon night"): the night played through (WAKE, the pair
+      // at a hit point and rooted) -- no lantern walks tonight, the one she took kept for the due; then THE DUE'S OWN NIGHT, day 15: a room with supper, past midnight the singing wakes
+      // them (the read forced), the signs from there with their reads, the fork; LET IT BE: the walk, the due paid
       var B1 = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); B1.roam.silver = 30; atAc(B1, 24, 17, [0, -1]); InAc.pinned = [18, 18];
-      var o1 = flowAc(B1, [0, 'TO BED', 'WAKE THE PARTY', 'LET IT BE'], function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); }), f1 = B1.roam.flags, i1 = o1.indexOf('While the yard was busy');
-      okAc('the signs and the fork after a won yard: ' + o1.slice(Math.max(0, i1 - 40), i1 + 1500) + ' -- warmup ' + f1.warmup + ', the lantern walks ' + f1.lanternWalks + ', the due paid ' + f1.duePaid + ', seen ' + f1.dueSeen + ', the outcome ' + f1.wagonOutcome,
-        /While the yard was busy/.test(o1) && /\+5 minutes: Elsbeth is sent up/.test(o1) && /\+10 minutes/.test(o1) && /\+15 minutes/.test(o1) && /\+20 minutes/.test(o1) && /\+25 minutes/.test(o1) && /\+30 minutes: The lantern has left its post/.test(o1) && /Down the path toward the water: a woman with the lantern, and the one she took inside/.test(o1) && /\[THE LANTERN \| LET IT BE\]/.test(o1) && /> LET IT BE/.test(o1) && /Only the inn lady comes back/.test(o1) && /seven children/.test(o1) && /MORNING/.test(o1) && f1.warmup === 6 && f1.lanternWalks === 1 && f1.duePaid === 1 && f1.wagonOutcome === 'inn');
+      var o1 = flowAc(B1, [0, 'TO BED', 'WAKE THE PARTY'], function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); }), f1 = B1.roam.flags;
+      okAc('the wagon night won, no lantern tonight: ' + o1.slice(Math.max(0, o1.indexOf('seven children') - 200), o1.indexOf('seven children') + 500) + ' -- the offering ' + f1.dueOff + ' (cycle ' + f1.dueOffC + '), kept ' + f1.kidAtInn + ', the due paid ' + !!f1.duePaid + ', tonight ' + !!f1.dueTonight,
+        /seven children/.test(o1) && /MORNING/.test(o1) && !/lantern has left its post/.test(o1) && !/Only the inn lady comes back/.test(o1) && f1.dueOff === 'kept' && f1.dueOffC === 0 && f1.kidAtInn === 1 && !f1.duePaid && !f1.dueTonight && f1.wagonOutcome === 'inn');
+      var wake0 = AcB.DUE_WAKE; AcB.DUE_WAKE = 0;
+      var B1b = stageAc('?roam=halfway&hour=18&day=' + D.inn.dueDay(0) + '&at=24,17&flags=reachedInn,mealHad,gennetNamed,kidAtInn,glamourBroken,glamourSeen,katGone', { wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept' }); B1b.roam.silver = 30; atAc(B1b, 24, 17, [0, -1]); InAc.pinned = [18, 18];
+      var o1b = flowAc(B1b, [0, 'LET IT BE']), f1b = B1b.roam.flags, i1 = o1b.indexOf('Past midnight'); AcB.DUE_WAKE = wake0;
+      okAc('the due\'s own night, day ' + D.inn.dueDay(0) + ': ' + o1b.slice(Math.max(0, i1 - 40), i1 + 1300) + ' -- warmup ' + f1b.warmup + ', the lantern walks ' + f1b.lanternWalks + ', the due paid ' + f1b.duePaid + ', seen ' + f1b.dueSeen + ', the cycle ' + f1b.dueCycle,
+        /Past midnight at the Halfway Inn/.test(o1b) && /Something wakes you: low singing/.test(o1b) && /\+20 minutes/.test(o1b) && /\+25 minutes/.test(o1b) && /\+30 minutes: The lantern has left its post/.test(o1b) && /Down the path toward the water: a woman with the lantern, and the one she took inside/.test(o1b) && /\[THE LANTERN \| LET IT BE\]/.test(o1b) && /> LET IT BE/.test(o1b) && /Only the inn lady comes back/.test(o1b) && /MORNING: .*Out back, nobody is skipping stones/.test(o1b) && f1b.warmup === 6 && f1b.lanternWalks === 1 && f1b.duePaid === 1 && f1b.dueCycle === 0);
       // 2. THE PATH, STRIKE: Gennet, the boys, the child in the lantern's light; her line; the fight on the floor's squares -- she yields at half (her hit points pinned low) and sits; TAKE THE CHILD; the lake rises at the hour anyway, the party at the shore without the ring: it goes down; the morning
       var B2 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE, { secondAct: { beat: 'path' } }), hp2 = null;
       var o2 = flowAc(B2, ['STRIKE', 'TAKE THE CHILD', 'TAKE HER INSIDE', 'LET THE LAKE HAVE HER'], function (lb, B) { if (lb === 'STRIKE') B.units.forEach(function (u) { if (u.kind === 'gennet') { hp2 = u.maxhp; u.hp = 3; } }); }), f2 = B2.roam.flags, i2 = o2.indexOf('Stand out of the light');
@@ -2333,7 +2340,7 @@
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && !Y6.orrin && !Y6.pell && [Y6.kid].every(function (u) { return u.bystander && u.look; })); // (the boys stay in, 11-05: his "I don't think she'd bring the boys out")
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 14 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 13 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
       HAc.playing = false; HAc.cur = null;
     } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
     HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
@@ -2418,28 +2425,30 @@
       g2 = fireWn(B2, 'talk:winters'); sc2 = D.top(); var w2c = readWn(sc2).map(strip), ask2c = askWn(sc2); goWn(sc2, 'opt', 'LEAVE'); var w2d = readWn(sc2).map(strip); if (g2) driveWn(g2, null, 200);
       okWn('in again with it on: "' + ask2c + '" -- no second ring, no look as you go ("' + (w2d.join(' ') || 'nothing') + '")', /glances at the ring on your hand/.test(ask2c) && !/Now you're ready/.test(w2c.join(' ')) && !/Not ready/.test(w2d.join(' ')) && !CWn.count(st2, 'ringofbinding') && on2);
       HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
-      // 3. THE QUIET NIGHT WITH THE RING (the first WAGON DAY, KEEP WATCH): the walk, then the ring warm -- GO DOWN TO THE POINT: the water heaves, it turns toward the ring, the fight at
-      // the stone (the chuul and its frog at two hit points), the deep only water, back to bed; the lake's morning, the quiet's own after it, no ring cold
+      // 3-6. THE RING WARM ON THE DUE'S OWN NIGHT (day 15 since 11-05, his "let's move the offering to 3 nights after wagon night"): a room with supper, the one they kept for the stone.
+      // Asleep through it (the singing's read failed), the walk, then the ring warm -- GO DOWN TO THE POINT: the water heaves, it turns toward the ring, the fight (the chuul and its frog
+      // at two hit points), the deep only water, back to bed; the lake's morning, Doran back and drinking, no ring cold
       InWn.stay = true;
       InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
-      var B3 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B3.roam.silver = 30; atWn(B3, 24, 17, [0, -1]);
-      var o3 = flowWn(B3, [0, 'TO BED', 'KEEP WATCH', 'GO DOWN TO THE POINT']), f3 = B3.roam.flags;
-      okWn('the quiet night with the ring, GO DOWN TO THE POINT: ' + sl(o3, /Only the inn lady comes back/, 1500) + ' -- paid ' + f3.duePaid + ', the lake done ' + f3.lakeDone + ', seen ' + f3.chuulSeen + ', once ' + f3.ringWarmNight,
-        /Only the inn lady comes back/.test(o3) && /The ring on your hand is warm\. Go down to the point\./.test(o3) && /> GO DOWN TO THE POINT/.test(o3) && /It comes up out of the deep: the size of a wagon/.test(o3) && /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /Back up the path to the lake door, and in to bed/.test(o3) && /MORNING: .*Up at the inn a lamp came on in the kitchen before dawn/.test(o3) && /The wagon left at first light/.test(o3) && !/The ring on your hand is cold this morning/.test(o3) && f3.duePaid === 1 && f3.lakeDone === 1 && f3.chuulSeen === 1 && f3.ringWarmNight === 1);
+      var wakeW = AWn.DUE_WAKE, dueQ = '?roam=halfway&hour=18&day=' + InWn.dueDay(0) + '&at=24,17&flags=reachedInn,mealHad,gennetNamed,kidAtInn,glamourBroken,glamourSeen,katGone';
+      var dueStage = function (ring) { var Bd = stageWn(dueQ, { wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept' }, ring ? ringOn : null); Bd.roam.silver = 30; atWn(Bd, 24, 17, [0, -1]); return Bd; };
+      AWn.DUE_WAKE = 99;
+      var B3 = dueStage(true), o3 = flowWn(B3, [0, 'GO DOWN TO THE POINT']), f3 = B3.roam.flags;
+      okWn('the due\'s night asleep with the ring, GO DOWN TO THE POINT: ' + sl(o3, /Only the inn lady comes back/, 1500) + ' -- paid ' + f3.duePaid + ', the lake done ' + f3.lakeDone + ', seen ' + f3.chuulSeen + ', once ' + f3.ringWarmNight,
+        /Past midnight at the Halfway Inn/.test(o3) && !/Something wakes you/.test(o3) && /Only the inn lady comes back/.test(o3) && /The ring on your hand is warm\. Go down to the point\./.test(o3) && /> GO DOWN TO THE POINT/.test(o3) && /It comes up out of the deep: the size of a wagon/.test(o3) && /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /Back up the path to the lake door, and in to bed/.test(o3) && /MORNING: .*Up at the inn a lamp came on in the kitchen before dawn.*draws from the lake in front of everyone, and drinks/.test(o3) && !/The ring on your hand is cold this morning/.test(o3) && f3.duePaid === 1 && f3.lakeDone === 1 && f3.chuulSeen === 1 && f3.ringWarmNight === 1);
       // 4. ...BACK TO BED: no fight, the ring cold by morning
-      var B4 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B4.roam.silver = 30; atWn(B4, 24, 17, [0, -1]);
-      var o4 = flowWn(B4, [0, 'TO BED', 'KEEP WATCH', 'BACK TO BED']), f4 = B4.roam.flags;
-      okWn('the quiet night with the ring, BACK TO BED: ' + sl(o4, /The ring on your hand is warm/, 700) + ' -- the lake done ' + !!f4.lakeDone,
-        /The ring on your hand is warm/.test(o4) && /> BACK TO BED/.test(o4) && !/INITIATIVE/.test(o4) && /MORNING: .*The ring on your hand is cold this morning\. Whatever is in the lake has eaten\./.test(o4) && !f4.lakeDone);
+      var B4 = dueStage(true), o4 = flowWn(B4, [0, 'BACK TO BED']), f4 = B4.roam.flags;
+      okWn('the due\'s night asleep with the ring, BACK TO BED: ' + sl(o4, /The ring on your hand is warm/, 700) + ' -- the lake done ' + !!f4.lakeDone,
+        /The ring on your hand is warm/.test(o4) && /> BACK TO BED/.test(o4) && !/INITIATIVE/.test(o4) && /MORNING: .*Out back, nobody is skipping stones\. The ring on your hand is cold this morning\. Whatever is in the lake has eaten\./.test(o4) && !f4.lakeDone);
       // 5. ...no ring: no ring warm, no ring cold -- the walk, the morning
-      var B5 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17'); B5.roam.silver = 30; atWn(B5, 24, 17, [0, -1]);
-      var o5 = flowWn(B5, [0, 'TO BED', 'KEEP WATCH']), f5 = B5.roam.flags;
-      okWn('the quiet night with no ring: the walk, no ring warm, no fight (' + sl(o5, /Only the inn lady comes back/, 300) + ')', /Only the inn lady comes back/.test(o5) && !/ring on your hand/.test(o5) && !/INITIATIVE/.test(o5) && /MORNING/.test(o5) && !f5.lakeDone);
-      // 6. LET IT BE after a won yard, the ring worn: the walk, the ring warm, down to the point; the morning the lake's with Doran gone up the road with the children
-      var B6 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B6.roam.silver = 30; atWn(B6, 24, 17, [0, -1]); InWn.pinned = [18, 18];
-      var o6 = flowWn(B6, [0, 'TO BED', 'WAKE THE PARTY', 'LET IT BE', 'GO DOWN TO THE POINT'], pairDown), f6 = B6.roam.flags; InWn.pinned = null;
-      okWn('LET IT BE after a won yard, the ring worn: ' + sl(o6, /> LET IT BE/, 1400) + ' -- the lake done ' + f6.lakeDone,
-        /> LET IT BE/.test(o6) && /Only the inn lady comes back/.test(o6) && /The ring on your hand is warm/.test(o6) && /It turns toward the ring/.test(o6) && /The deep is only water now/.test(o6) && /MORNING: .*Doran is gone, and the wagon with him\. The lantern stays on its hook/.test(o6) && f6.lakeDone === 1 && f6.wagonOutcome === 'inn');
+      var B5 = dueStage(false), o5 = flowWn(B5, [0]), f5 = B5.roam.flags;
+      okWn('the due\'s night asleep with no ring: the walk, no ring warm, no fight (' + sl(o5, /Only the inn lady comes back/, 300) + ')', /Only the inn lady comes back/.test(o5) && !/ring on your hand/.test(o5) && !/INITIATIVE/.test(o5) && /MORNING/.test(o5) && !f5.lakeDone && f5.duePaid === 1);
+      // 6. ...woken by the singing (the read forced), LET IT BE, the ring worn: the walk, the ring warm, down to the point
+      AWn.DUE_WAKE = 0;
+      var B6 = dueStage(true), o6 = flowWn(B6, [0, 'LET IT BE', 'GO DOWN TO THE POINT']), f6 = B6.roam.flags; AWn.DUE_WAKE = wakeW;
+      okWn('the due\'s night woken, LET IT BE, the ring worn: ' + sl(o6, /> LET IT BE/, 1200) + ' -- the lake done ' + f6.lakeDone,
+        /Something wakes you: low singing/.test(o6) && /> LET IT BE/.test(o6) && /Only the inn lady comes back/.test(o6) && /The ring on your hand is warm/.test(o6) && /It turns toward the ring/.test(o6) && /The deep is only water now/.test(o6) && /MORNING/.test(o6) && f6.lakeDone === 1);
+      AWn.DUE_WAKE = wakeW;
       // 7. STAND ASIDE on the path, the ring worn: the take at the stone, the lantern back alone -- then the ring warm, the fight
       var B7 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=37,18&flags=' + BASEWn, { secondAct: { beat: 'path' } }, ringOn);
       var o7 = flowWn(B7, ['STAND ASIDE', 'GO DOWN TO THE POINT']), f7 = B7.roam.flags;
@@ -2516,6 +2525,18 @@
       var r16a = room16('gennetTaken,gennetLet'), r16b = room16('gennetTaken,gennetWent');
       okWn('Doran after the lake took her: let -- "' + r16a.said.slice(-60) + '" (no room ' + !r16a.stay + '); went back -- [' + r16b.ask + '] "' + r16b.said.slice(-90) + '", the night ' + (r16b.stay && r16b.stay.hours) + ' hours, ' + (r16b.stay && r16b.stay.kind),
         /You'll want the road/.test(r16a.said) && !r16a.stay && /Nobody cooks at the Waterbys' now/.test(r16b.said) && !!r16b.stay && r16b.stay.kind === 'late' && r16b.stay.hours === 8);
+      // 20. THE DUE THREE NIGHTS ON (RULED 11-05): its days -- the first WAGON DAY 12, the due 15, then every 28; and what the Waterbys keep by the night: a cycle never seen, the goblin
+      var Iq = InWn, fq20 = {};
+      okWn('the due\'s days: wagon ' + Iq.WAGON.first + ', due ' + Iq.dueDay(0) + ' then ' + Iq.dueDay(1) + '; day 12 a due ' + Iq.isDueDay(12) + ', day 15 ' + Iq.isDueDay(15) + ', day 43 ' + Iq.isDueDay(43) + '; a cycle never seen keeps ' + Iq.offering(fq20, 0),
+        Iq.dueDay(0) === Iq.WAGON.first + 3 && Iq.dueDay(1) === Iq.WAGON.first + 3 + Iq.WAGON.every && !Iq.isDueDay(Iq.WAGON.first) && Iq.isDueDay(Iq.dueDay(0)) && Iq.isDueDay(Iq.dueDay(1)) && Iq.offering(fq20, 0) === 'goblin' && Iq.dueTonightOn({}, Iq.dueDay(0)) && !Iq.dueTonightOn({ dueCycle: 0 }, Iq.dueDay(0)));
+      // 21. THE GOBLIN IN THE BARN (his "goblin in the barn if they fail to reveal the illusion"; the lean "found and revealed there"): day 13 after a quiet wagon night, the glamour whole --
+      // chained in the end stall; TOUCH IT (Perception 12, the party's best passive), a child; FREE HER -- the due has no offering, the stall empty
+      var f21 = { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, dueOffC: 0, dueOff: 'goblin' }, on21 = Iq.barnGoblinOn(f21, 13), on21b = Iq.barnGoblinOn(f21, Iq.dueDay(0)), on21c = Iq.barnGoblinOn(f21, Iq.WAGON.first - 1);
+      var B21 = stageWn('?roam=halfway&hour=12&day=13&at=8,5', { wagonCycle: 0, dueOffC: 0, dueOff: 'goblin' }), g21 = D.mines.talk(B21, 'barnGoblin', function (sc) { return Iq.barnScene(sc, B21); }, 'A goblin, chained');
+      driveWn(g21, upWn, 600); var sc21 = D.top(), w21 = upWn() ? readWn(sc21).map(strip) : [], ask21 = askWn(sc21); if (upWn()) { goWn(sc21, 'opt', 'TOUCH IT'); w21 = w21.concat(readWn(sc21).map(strip)); } var ask21b = askWn(D.top()); if (upWn()) { goWn(D.top(), 'opt', 'FREE HER'); w21 = w21.concat(readWn(D.top()).map(strip)); } driveWn(g21, null, 400);
+      var f21b = B21.roam.flags;
+      okWn('the goblin in the barn: in the stall day 13 ' + on21 + ', the due\'s day ' + on21b + ', before the wagon ' + on21c + '; "' + w21.join(' / ').slice(0, 420) + '" [' + ask21 + '] [' + ask21b + '] -- seen ' + f21b.glamourBroken + ', freed ' + f21b.barnFreed + ', the offering ' + Iq.offering(f21b, 0) + ', the stall ' + Iq.barnGoblinOn(f21b, 13),
+        on21 && on21b && !on21c && /a goblin, small, its knees drawn up/.test(w21.join(' ')) && /A goblin, chained in the inn's barn/.test(ask21) && /a farm chain/.test(ask21b) && /a child's wrist under the chain/.test(w21.join(' ')) && /A child sits chained in the stall/.test(w21.join(' ')) && /she takes a hand and holds on\. The due has no offering now\./.test(w21.join(' ')) && f21b.glamourBroken === 1 && f21b.barnFreed === 1 && Iq.offering(f21b, 0) === 'none' && !Iq.barnGoblinOn(f21b, 13));
     } catch (eWn) { repWn.errors.push(String(eWn && eWn.stack || eWn).slice(0, 900)); }
     InWn.unit = unit0Wn; HWn.playing = false; HWn.cur = null; if (InWn) { InWn.stay = false; InWn.pinned = null; }
     D.store.get = stGWn; D.store.set = stSWn; D.music = muWn;
@@ -2706,7 +2727,7 @@
       atWg2(Bb, 10, 22, [0, -1]); Bb.cards = []; var seenB = [], gB = RWg.arrive(Bb);
       for (var kb = 0; kb < 3000; kb++) { var s2 = D.top(); if (s2 instanceof CWg.Counter) { seenB.push(answerWg(s2, [])); continue; } if (s2 !== Bb) { D.pop(); continue; } var stB = gB.next(); if (stB.done) break; }
       var fB = Bb.roam.flags;
-      okWg('the wagon in off the road, the inn\'s yard: ' + seenB.join(' / ').slice(0, 400) + ' -- delivered ' + fB.wagonDelivered + ', Doran away ' + fB.doranAway + ', the one kept ' + fB.kidAtInn + ', the gift owed ' + fB.wagonGift + ', no wagon night this cycle (' + !InWg.wagonTonight(fB, 6 + OWg) + ')', /eight children in the back/.test(seenB.join(' ')) && /drives them back down the road to Newland/.test(seenB.join(' ')) && fB.wagonDelivered === 1 && fB.doranAway === 1 && fB.kidAtInn === 1 && fB.wagonGift === 1 && !InWg.wagonTonight(fB, 6 + OWg));
+      okWg('the wagon in off the road, the inn\'s yard: ' + seenB.join(' / ').slice(0, 400) + ' -- delivered ' + fB.wagonDelivered + ', Doran away ' + fB.doranAway + ', the one kept ' + fB.kidAtInn + ', the gift owed ' + fB.wagonGift + ', no wagon night this cycle (' + !InWg.wagonTonight(fB, 6 + OWg) + ')', /eight children in the back/.test(seenB.join(' ')) && /drives them back down the road to Newland/.test(seenB.join(' ')) && fB.wagonDelivered === 1 && fB.doranAway === 1 && !fB.kidAtInn && fB.dueOff === 'none' && fB.wagonGift === 1 && !InWg.wagonTonight(fB, 6 + OWg)); // (stopped south of the inn, before the handover: all eight to Newland, none kept -- the due's night the poison dinner, RULED 11-05)
       HWg.playing = false; HWg.cur = null;
       // 6. THE GOLD ON THE ROAD, no Lymen: LOOK IN THE BED (the Perception pinned high), STAND IN THE ROAD, the word, Amara's fifty gold; the mark runs on, no fight
       var scG = stageWg(hourWg(6, 10), w10.s - 5 * 0.95, {}, ['barley', 'aurdin', 'vivian']); InWg.pinned = [19]; var metG = stepWg(scG, WWg.M().w), scG1 = D.top(), svG = HWg.cur.silver;
@@ -2736,7 +2757,7 @@
       }
       var Bp = testWg('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bp.roam.silver = 30; Bp.roam.flags.wagonBribed = 'c0'; Bp.roam.flags.glamourBroken = 1; atWg2(Bp, 24, 17, [0, -1]); var oP = nightWg(Bp, [0, 'TO BED']), fP = Bp.roam.flags, iP = oP.indexOf('as you knew it would');
       okWg('the inn\'s night after the road\'s gold: ' + oP.slice(Math.max(0, iP - 60), iP + 300) + ' -- no watcher\'s choice (' + !/> (INVESTIGATE|WAKE THE PARTY|KEEP WATCH)/.test(oP) + '), the purse ' + Bp.roam.silver + ' (the room paid, no gold twice), the outcome ' + fP.wagonOutcome + ', the traveler rode ' + !!fP.katRode,
-        /keep to your room, as paid/.test(oP) && !/> (INVESTIGATE|WAKE THE PARTY|KEEP WATCH)/.test(oP) && /Only the inn lady comes back/.test(oP) && /MORNING/.test(oP) && Bp.roam.silver === 10 && fP.wagonOutcome === 'quiet' && !!fP.katRode);
+        /keep to your room, as paid/.test(oP) && !/> (INVESTIGATE|WAKE THE PARTY|KEEP WATCH)/.test(oP) && !/Only the inn lady comes back/.test(oP) && fP.dueOff === 'kept' && /MORNING/.test(oP) && Bp.roam.silver === 10 && fP.wagonOutcome === 'quiet' && !!fP.katRode);
       // 7. THE ROAD NORTH the morning after a quiet wagon night: the wagon ahead, one goblin fewer, the traveler on the bench; DETECT MAGIC (Aurdin's ritual, no slot) and the bed hums; LET THEM BY; the mark runs on
       var scN = stageWg(hourWg(7, 7.5), RWg0.inn, { wagonCycle: 0, wagonOutcome: 'quiet', katRode: 1, katGone: 1, reachedInn: 1 }), auN = HWg.cur.party.filter(function (h) { return (h.key || h.id) === 'aurdin'; })[0], slN = auN && auN.slots ? auN.slots.slice() : null;
       var metN = stepWg(scN, WWg.M().w), scN1 = D.top(), fN = HWg.cur.flags;
@@ -3509,7 +3530,7 @@
       Bm2.roam.silver = 30; var Bm3 = testIn('?roam=halfway&hour=18&day=15&at=24,17'); Bm3.roam.silver = 4; atIn(Bm3, 24, 17, [0, -1]); var g4 = useIn(Bm3, [24, 16], [0]);
       okIn('four silver for four: "' + g4.seen.slice(-30) + '", no supper, no night', /Not enough silver/.test(g4.seen) && !/Supper/.test(g4.seen) && !/MORNING/.test(g4.seen));
       // 6. THE DICE IN THE RECORD: THE MEAL in the house, its checks on the save's trail
-      InI.play(InI.BEATS.filter(function (b) { return b.id === 'meal14'; })[0]); var Bh = topIn(); atIn(Bh, 24, 17, [0, -1]); var g5 = useIn(Bh, [24, 16], [0, 'vivian:trade', 'lymen:news', 'lymen:word']);
+      InI.play(InI.BEATS.filter(function (b) { return b.id === 'meal14'; })[0]); var Bh = topIn(); atIn(Bh, 24, 17, [0, -1]); Bh.roam.flags.dueCycle = 0; var g5 = useIn(Bh, [24, 16], [0, 'vivian:trade', 'lymen:news', 'lymen:word']); // (day 15 is the first due's night since 11-05: marked had, so the supper's dice stay on the trail's forty -- the due's own are secondact1104's)
       var trl = ((HIn.cur && HIn.cur.trail) || []).filter(function (e) { return e.k === 'check'; }).map(function (e) { return e.s; });
       okIn('THE MEAL in the house on day 15 (the show\'s dice 18, 17): the Snoot at the Pit heard (' + /The road south is shut/.test(g5.seen) + '), Lymen\'s true word south ("' + (g5.seen.match(/If there.s a true word[^/]*/) || [''])[0] + '"); its dice and reads on the save\'s trail: ' + trl.join(' | '),
         /The road south is shut/.test(g5.seen) && /it.s inside the Pit/.test(g5.seen) && trl.some(function (s) { return /Deception 18 /.test(s) && /made/.test(s); }) && trl.some(function (s) { return /History 17 /.test(s) && /made/.test(s); }) && trl.some(function (s) { return /passive Perception/.test(s); }) && trl.some(function (s) { return /: Lymen: Papa/.test(s); }));
@@ -3614,8 +3635,9 @@
       // greeting and its read, KEEP WATCH, the lamps down, the due's walk on the point, the morning; the traveler rides out, her book in the drawer after
       var Bq = testIn('?roam=halfway&hour=18&day=' + WDI + '&at=24,17'); Bq.roam.silver = 30; atIn(Bq, 24, 17, [0, -1]); InI.pinned = [1]; var oq = nightIn(Bq, [0, 'TO BED', 'KEEP WATCH']), fq = Bq.roam.flags, iq = oq.indexOf('WATCHES');
       okIn('THE WAGON NIGHT, day ' + WDI + ', KEEP WATCH: ' + oq.slice(Math.max(0, iq - 200), iq + 1400) + ' -- the outcome ' + fq.wagonOutcome + ', the traveler rode ' + !!fq.katRode + ', the cycle ' + fq.wagonCycle + ', the due tonight ' + fq.dueTonight + ' (the one taken ' + fq.kidTaken + '), the walk seen ' + fq.dueSeen + ', her book in the drawer after (' + InI.bookInDrawer(fq, WDI + 1) + '), the yard clear after (' + !Bq.units.some(function (u) { return u.scripted; }) + ', riders ' + (Bq.riders || []).length + ')',
-        /Something sits wrong with me tonight/.test(oq) && /WATCHES: .*lymen 2/.test(oq) && /Lymen has the window now/.test(oq) && /THE SECOND WATCH/.test(oq) && /Lymen, at the window on the second watch: a wagon turns in/.test(oq) && /Mistress Amara/.test(oq) && /Amara lifts one down from the back/.test(oq) && /> KEEP WATCH/.test(oq) && /lantern leaves its post/.test(oq) && /The inn lady walks the path to the point, and a goblin walks with her/.test(oq) && /Only the inn lady comes back/.test(oq) && /MORNING/.test(oq) && !/INITIATIVE/.test(oq) &&
-        fq.wagonOutcome === 'quiet' && !!fq.katRode && fq.wagonCycle === 0 && fq.dueTonight === 1 && fq.kidTaken === 1 && fq.dueSeen === 1 && InI.bookInDrawer(fq, WDI + 1) && !Bq.units.some(function (u) { return u.scripted; }) && !(Bq.riders || []).length &&
+        /Something sits wrong with me tonight/.test(oq) && /WATCHES: .*lymen 2/.test(oq) && /Lymen has the window now/.test(oq) && /THE SECOND WATCH/.test(oq) && /Lymen, at the window on the second watch: a wagon turns in/.test(oq) && /Mistress Amara/.test(oq) && /Amara lifts one down from the back/.test(oq) && /> KEEP WATCH/.test(oq) && !/lantern leaves its post/.test(oq) && /the house sleeps/.test(oq) && !/Only the inn lady comes back/.test(oq) && /MORNING/.test(oq) && !/INITIATIVE/.test(oq) &&
+        fq.wagonOutcome === 'quiet' && !!fq.katRode && fq.wagonCycle === 0 && !fq.dueTonight && fq.kidTaken === 1 && !fq.dueSeen && fq.dueOff === 'goblin' && fq.dueOffC === 0 && // (the lantern walks three nights on since 11-05: the one handed over kept in the barn, a goblin to the eye
+        InI.bookInDrawer(fq, WDI + 1) && !Bq.units.some(function (u) { return u.scripted; }) && !(Bq.riders || []).length &&
         /The traveler and Amara know each other/.test(oq) && fq.katKnewAmara === 1); // (11-05, the Katarina seat: the greeting's silent Insight 13, the party's best passive -- her message's key)
       // 13. THE WAGON NIGHT, steel and won: seen through at the window (the die pinned high), WAKE THE PARTY, the party out the front door into the yard, Lymen's word, the fight on the
       // floor's own squares (the pair at one hit point and rooted, for a sure win), the strongbox, the seven in the bed, Doran's drive, Willem's book, Elsbeth's gift in the morning
