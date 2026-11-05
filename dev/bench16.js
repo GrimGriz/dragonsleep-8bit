@@ -2297,9 +2297,9 @@
         /While the yard was busy/.test(o1) && /\+5 minutes: Elsbeth is sent up/.test(o1) && /\+10 minutes/.test(o1) && /\+15 minutes/.test(o1) && /\+20 minutes/.test(o1) && /\+25 minutes/.test(o1) && /\+30 minutes: The lantern has left its post/.test(o1) && /Down the path toward the water: a woman with the lantern, and the one she took inside/.test(o1) && /\[THE LANTERN \| LET IT BE\]/.test(o1) && /> LET IT BE/.test(o1) && /Only the inn lady comes back/.test(o1) && /seven children/.test(o1) && /MORNING/.test(o1) && f1.warmup === 6 && f1.lanternWalks === 1 && f1.duePaid === 1 && f1.wagonOutcome === 'inn');
       // 2. THE PATH, STRIKE: Gennet, the boys, the child in the lantern's light; her line; the fight on the floor's squares -- she yields at half (her hit points pinned low) and sits; TAKE THE CHILD; the lake rises at the hour anyway, the party at the shore without the ring: it goes down; the morning
       var B2 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE, { secondAct: { beat: 'path' } }), hp2 = null;
-      var o2 = flowAc(B2, ['STRIKE', 'TAKE THE CHILD'], function (lb, B) { if (lb === 'STRIKE') B.units.forEach(function (u) { if (u.kind === 'gennet') { hp2 = u.maxhp; u.hp = 3; } }); }), f2 = B2.roam.flags, i2 = o2.indexOf('Stand out of the light');
+      var o2 = flowAc(B2, ['STRIKE', 'TAKE THE CHILD', 'TAKE HER INSIDE', 'LET THE LAKE HAVE HER'], function (lb, B) { if (lb === 'STRIKE') B.units.forEach(function (u) { if (u.kind === 'gennet') { hp2 = u.maxhp; u.hp = 3; } }); }), f2 = B2.roam.flags, i2 = o2.indexOf('Stand out of the light');
       okAc('the path, STRIKE: ' + o2.slice(Math.max(0, i2 - 200), i2 + 1600) + ' -- Gennet ' + hp2 + ' hp as written; flags yield ' + f2.gennetYield + ', saved ' + f2.offeringSaved + ', stopped ' + f2.dueStopped + ', the god seen ' + f2.chuulSeen + ', done ' + f2.secondActDone + ', lake ' + f2.lakeDone,
-        !/Orrin|Pell/.test(o2) && /Stand out of the light/.test(o2) && /> STRIKE/.test(o2) && /INITIATIVE/.test(o2) && /It gave back\. It always gave back/.test(o2) && /> TAKE THE CHILD/.test(o2) && /takes the child's hand/.test(o2) && /The water off the point heaves/.test(o2) && /Nothing stands on the stone\. It goes down\./.test(o2) && /eight children in the back of it/.test(o2) && hp2 === 33 && f2.gennetYield === 1 && f2.offeringSaved === 1 && f2.dueStopped === 1 && f2.chuulSeen === 1 && f2.secondActDone === 1 && !f2.lakeDone); // (the party gathered off the shore after the yield: nobody there, it goes down; at the shore with no ring it fights since 11-05 -- mode=winters1105)
+        !/Orrin|Pell/.test(o2) && /Stand out of the light/.test(o2) && /> STRIKE/.test(o2) && /INITIATIVE/.test(o2) && /It gave back\. It always gave back/.test(o2) && /> TAKE THE CHILD/.test(o2) && /takes the child's hand/.test(o2) && /The water off the point heaves/.test(o2) && /The child's hand is in yours/.test(o2) && /> TAKE HER INSIDE/.test(o2) && /It comes up out of the shallows onto the path to where she sits/.test(o2) && /You'll want the road/.test(o2) && hp2 === 33 && f2.gennetYield === 1 && f2.offeringSaved === 1 && f2.dueStopped === 1 && f2.chuulSeen === 1 && f2.secondActDone === 1 && f2.gennetTaken === 1 && f2.gennetLet === 1 && !f2.lakeDone); // (11-05, RULED: the child taken with the inn lady alive on the path, she is the nearest offering -- taken inside, the lake let have her; the rest of its ways are mode=winters1105's)
       // 3. THE RISE WITH THE RING WARM: the lead wearing the Ring of Binding, the party at the stone -- it turns toward the ring, the fight on the point with its frog (their hit points pinned low), the ring's rounds; won: the deep is only water, the corpse's gift, the morning's lake
       var unit0 = InAc.unit; InAc.unit = function (B, o) { var u = unit0.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
       var B3 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; });
@@ -2333,7 +2333,7 @@
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && !Y6.orrin && !Y6.pell && [Y6.kid].every(function (u) { return u.bystander && u.look; })); // (the boys stay in, 11-05: his "I don't think she'd bring the boys out")
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 12 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 14 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
       HAc.playing = false; HAc.cur = null;
     } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
     HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
@@ -2391,7 +2391,7 @@
     var sl = function (o, re, n) { var i = o.search(re); return i < 0 ? o.slice(0, n || 400) : o.slice(Math.max(0, i - 60), i + (n || 900)); };
     D.store.get = function (k) { return memWn[k] ? JSON.parse(memWn[k]) : null; }; D.store.set = function (k, v) { memWn[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
-    var unit0Wn = InWn.unit;
+    var unit0Wn = InWn.unit, In0legend = function () { return D.inn.LEGEND.W; };
     try {
       D.seed = +get('seed', 1105);
       // 1. WINTERS AT THE LEAD'S 2ND (deep16/?at=winters2): Elsbeth's word said by the one who leads, "You are not yet ready", the menu; LEAVE -- his look names level 3; once a level
@@ -2473,6 +2473,49 @@
       var o11 = flowWn(B11, []), f11 = B11.roam.flags; InWn.unit = unit0Wn;
       okWn('the rise at the shore without the ring -- it fights: ' + sl(o11, /The water off the point heaves/, 900) + ' -- the lake done ' + f11.lakeDone,
         /Cheated of the stone, it does not go down\. It comes up onto the point at whatever stands there -- and you are not ready for it\./.test(o11) && !/It turns toward the ring/.test(o11) && !/It goes down\./.test(o11) && /INITIATIVE/.test(o11) && /The deep is only water now/.test(o11) && f11.lakeDone === 1 && f11.chuulSeen === 1);
+      // 12. THE LAKE KNEE-SHALLOW AS DRAWN (11-05, his "we also need to make the water knee deep for 40 paces or what-have-you for the fight (seeded in dialog but not true)"): on the
+      // inn's floor every square the page 9B shallows paint (js/innprops.js IP.groundAt) is the grid's waded pool ('~': open, difficult), and every other water square the deep ('D':
+      // a hero may not stand in it, the chuul may); the deep only off the point; the lake's east edge no way to THE WORLD
+      var B12 = stageWn('?roam=halfway&hour=14&day=5&at=40,18'), m12 = D.iso.map, IPw = D.innprops, sh = 0, dp = 0, bad12 = [], hero12 = B12.roam.members[0], ch12 = { swims: true, size: 2 };
+      for (var y12 = 0; y12 < m12.h; y12++) for (var x12 = 0; x12 < m12.w; x12++) {
+        var s12 = m12.at(x12, y12), painted = IPw && IPw.groundAt ? IPw.groundAt(x12, y12) === 'ground_shallows' : false;
+        if (s12.ch === '~') { sh++; if (!painted || !s12.walk || !s12.difficult) bad12.push(x12 + ',' + y12 + ' ~'); }
+        else if (s12.ch === 'D') { dp++; if (painted || s12.walk || !s12.deep || x12 < 46 || y12 < 13 || y12 > 23) bad12.push(x12 + ',' + y12 + ' D'); }
+        else if (painted) bad12.push(x12 + ',' + y12 + ' painted on ' + s12.ch);
+      }
+      var wayE = (D.roam.def.doors || []).filter(function (q) { return q[0] === m12.w - 1; }).length;
+      okWn('the lake as drawn: ' + sh + ' knee-shallow squares (the grid\'s pool, waded, difficult) under the painted shallows, ' + dp + ' deep off the point (rows 13-23 from column 46); mismatches: ' + (bad12.slice(0, 6).join('; ') || 'none') + '; ways out at the east edge ' + wayE,
+        sh >= 150 && dp >= 30 && !bad12.length && wayE === 0 && In0legend() === 'shallows');
+      // 13. THE NEAREST OFFERING, STAY AT THE WATER (RULED 11-05, his "yes the lean"): Gennet yielded on the path (her hit points pinned at 1), the child taken -- the party by the stone,
+      // and it turns toward the one on the path, not them; it has her and goes down with her; the morning: he will let a room, nobody cooks
+      HWn.playing = false; HWn.cur = null;
+      var gPin = function (lb, B) { if (lb === 'STAY AT THE WATER') { B.units.forEach(function (u) { if (u.kind === 'gennet') { u.hp = 1; u.x = 44; u.y = 20; } }); D.grid.setup(B.map, B.units); } }; // (at 1 hit point, on the rocks by the deep: in its reach; it acts first, below -- a Fireball of the party's that catches her first kills her, not the lake: gennetDead)
+      var B13 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=38,18&flags=' + BASEWn + ',gennetYield', { secondAct: { beat: 'offer' } });
+      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul') u.init = 40; return u; }; // (it goes first)
+      var o13 = flowWn(B13, ['STAY AT THE WATER'], gPin), f13 = B13.roam.flags; InWn.unit = unit0Wn;
+      var t13 = [/The child's hand is in yours/, /> STAY AT THE WATER/, /It does not turn toward you\. It turns toward the one on the path: the nearest offering\./, /in the lake turns toward (?!the one)[^:/]+: the nearest offering/, /It has her\. It goes down into the deep and takes the inn lady with it/, /You tried for her\. I saw\." He will let you a room\. Nobody cooks at the Waterbys' now\./].map(function (re, k) { return k + (re.test(o13) ? '' : ' MISSING'); });
+      okWn('the nearest offering, STAY AT THE WATER: ' + t13.join(', ') + ' -- ' + o13.slice(o13.indexOf('INITIATIVE'), o13.indexOf('INITIATIVE') + 2600) + ' -- taken ' + f13.gennetTaken + ', let ' + !!f13.gennetLet + ', the lake done ' + !!f13.lakeDone,
+        /The child's hand is in yours/.test(o13) && /> STAY AT THE WATER/.test(o13) && /It does not turn toward you\. It turns toward the one on the path: the nearest offering\./.test(o13) && /turns toward Gennet Waterby: the nearest offering/.test(o13) && /It has her\. It goes down into the deep and takes the inn lady with it/.test(o13) && /He will let you a room\. Nobody cooks at the Waterbys' now\./.test(o13) && f13.gennetTaken === 1 && !f13.gennetLet && !f13.lakeDone);
+      // 14. ...TAKE HER INSIDE, LET THE LAKE HAVE HER: from the lake door, the water heaves; it comes up onto the path and takes her; no fight; "You'll want the road"
+      var B14 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=38,18&flags=' + BASEWn + ',gennetYield', { secondAct: { beat: 'offer' } });
+      var o14 = flowWn(B14, ['TAKE HER INSIDE', 'LET THE LAKE HAVE HER']), f14 = B14.roam.flags;
+      okWn('the nearest offering, TAKE HER INSIDE, LET THE LAKE HAVE HER: ' + sl(o14, /> TAKE HER INSIDE/, 900) + ' -- taken ' + f14.gennetTaken + ', let ' + f14.gennetLet,
+        /> TAKE HER INSIDE/.test(o14) && /From the doorway: the inn lady is still on the path/.test(o14) && /\[GO BACK FOR HER \| LET THE LAKE HAVE HER\]/.test(o14) && /It comes up out of the shallows onto the path to where she sits/.test(o14) && !/INITIATIVE/.test(o14) && /You'll want the road/.test(o14) && f14.gennetTaken === 1 && f14.gennetLet === 1);
+      // 15. ...TAKE HER INSIDE, GO BACK FOR HER, and they save her (the chuul and its frog at two hit points): the lake's end, the inn lady lives
+      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
+      var B15 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=38,18&flags=' + BASEWn + ',gennetYield', { secondAct: { beat: 'offer' } });
+      var o15 = flowWn(B15, ['TAKE HER INSIDE', 'GO BACK FOR HER']), f15 = B15.roam.flags; InWn.unit = unit0Wn;
+      okWn('the nearest offering, GO BACK FOR HER and saved: ' + sl(o15, /> GO BACK FOR HER/, 700) + ' -- went ' + f15.gennetWent + ', taken ' + !!f15.gennetTaken + ', the lake done ' + f15.lakeDone,
+        /> GO BACK FOR HER/.test(o15) && /It does not turn toward you/.test(o15) && /INITIATIVE/.test(o15) && /The deep is only water now/.test(o15) && f15.gennetWent === 1 && !f15.gennetTaken && f15.lakeDone === 1);
+      // 16. DORAN'S ROOMS after: the lake let have her -- the road, no room; went back for her -- a room by Doran at supper time, and no supper
+      var room16 = function (fl) {
+        var Bq = stageWn('?roam=halfway&hour=18&day=13&at=24,22&inside&flags=reachedInn,mealHad,gennetNamed,dueStopped,' + fl); Bq.roam.silver = 200; var g = D.mines.talk(Bq, 'doranIn', function (sc) { return InWn.doranRoom(sc, Bq); }, 'Doran Waterby');
+        driveWn(g, upWn, 600); var sc = D.top(), w = upWn() ? readWn(sc).map(strip) : [], ask = askWn(sc); if (upWn() && sc.wait && sc.wait.ask) { goWn(sc, 'opt', sc.wait.opts[0]); w = w.concat(readWn(sc).map(strip)); } driveWn(g, null, 400);
+        return { said: w.join(' / '), ask: ask, stay: Bq.roam.stay };
+      };
+      var r16a = room16('gennetTaken,gennetLet'), r16b = room16('gennetTaken,gennetWent');
+      okWn('Doran after the lake took her: let -- "' + r16a.said.slice(-60) + '" (no room ' + !r16a.stay + '); went back -- [' + r16b.ask + '] "' + r16b.said.slice(-90) + '", the night ' + (r16b.stay && r16b.stay.hours) + ' hours, ' + (r16b.stay && r16b.stay.kind),
+        /You'll want the road/.test(r16a.said) && !r16a.stay && /Nobody cooks at the Waterbys' now/.test(r16b.said) && !!r16b.stay && r16b.stay.kind === 'late' && r16b.stay.hours === 8);
     } catch (eWn) { repWn.errors.push(String(eWn && eWn.stack || eWn).slice(0, 900)); }
     InWn.unit = unit0Wn; HWn.playing = false; HWn.cur = null; if (InWn) { InWn.stay = false; InWn.pinned = null; }
     D.store.get = stGWn; D.store.set = stSWn; D.music = muWn;
@@ -3525,8 +3568,8 @@
       var gaN = function (x, y) { return IPy.groundAt(x, y) || '-'; }, Bga = testIn('?roam=halfway&hour=12&day=5&at=40,18'), dga = RIn.def, mga = D.iso.map, tga = IPy.groundTile('ground_shallows', mga);
       var bk = D.iso.map && D.iso.map.bake, pxGa = null;
       if (bk && bk.canvas && bk.canvas.getContext && tga) { var cga = D.iso.center(44, 12, 0), dpx = bk.canvas.getContext('2d').getImageData(Math.round(cga.x - bk.x), Math.round(cga.y - bk.y), 1, 1).data, o16 = (16 * tga.w + 32) * 4; pxGa = [dpx[0], dpx[1], dpx[2]].join() === [tga.data[o16], tga.data[o16 + 1], tga.data[o16 + 2]].join(); }
-      okIn('the ground tiles (11-05): the shallows at 44,12 ' + gaN(44, 12) + ', the deep at 47,12 ' + gaN(47, 12) + ', the road at 1,5 ' + gaN(1, 5) + ', the track at 5,18 ' + gaN(5, 18) + ', the yard at 12,22 ' + gaN(12, 22) + '; the floor a groundArt ' + (typeof dga.groundArt) + ', the baked pixel at 44,12 the tile\'s ' + (tga ? pxGa : 'not come: the floor waits on its sheet to bake again ' + !!mga.groundWait),
-        gaN(44, 12) === 'ground_shallows' && gaN(47, 12) === '-' && gaN(1, 5) === 'ground_ruts' && gaN(5, 18) === 'ground_rutsX' && gaN(12, 22) === '-' && typeof dga.groundArt === 'function' && (tga ? pxGa === true : !!mga.groundWait));
+      okIn('the ground tiles (11-05): the shallows at 44,12 ' + gaN(44, 12) + ', the deep at 47,17 ' + gaN(47, 17) + ', the road at 1,5 ' + gaN(1, 5) + ', the track at 5,18 ' + gaN(5, 18) + ', the yard at 12,22 ' + gaN(12, 22) + '; the floor a groundArt ' + (typeof dga.groundArt) + ', the baked pixel at 44,12 the tile\'s ' + (tga ? pxGa : 'not come: the floor waits on its sheet to bake again ' + !!mga.groundWait),
+        gaN(44, 12) === 'ground_shallows' && gaN(47, 17) === '-' && gaN(47, 12) === 'ground_shallows' && gaN(1, 5) === 'ground_ruts' && gaN(5, 18) === 'ground_rutsX' && gaN(12, 22) === '-' && typeof dga.groundArt === 'function' && (tga ? pxGa === true : !!mga.groundWait));
       // 9b6. THE WALLS AND THE ROOFS (11-05, the exteriors seat; pages 7, 8 and 9A): the faces the camera sees laid square by square -- the lake door and the barn's
       // doors where the floor's doorways are, windows between, every module and roof piece in innwalls_p1, the lit ones by night; the house the party is in cut
       // to stubs along each wall square's middle (a straight run, a corner to the middle, a wall end at a doorway), on its boards (inn.js In.under)
