@@ -570,10 +570,14 @@
   // reaction) and any gnolls go into hideous laughter for 2 full rounds without save. after their reactions have played, hideous laughter on aurdin expires
   // - battle pauses and big red shiny easter egg on screen: "Guess I'm the Joke, Now" for a few seconds then resume"). The silent quest is the unjournaled
   // one, Ink for Katarina (js/events.js EV.UNJOURNALED: her vision was of Aurdin laughing, flag katVision, and the sheet); learned: in his book; selected:
-  // among the day's spells he brought (the fight's list, js/save.js knownOf). The main game: a fight the 8-bit game opened (B.o.embed)
+  // among the day's spells he brought (the fight's list, js/save.js knownOf). The main game: a fight the 8-bit game opened (B.o.embed), or -- since 11-05 (the
+  // Katarina seat: the first game froze 10-31 and hands no fight over, so the egg had no road left) -- THE SECOND GAME's own story, a fight its house opened
+  // (B.o.house: THE WORLD's, a floor's) while the house plays, its save's flags the ones read (katVision: js/inn.js In.katVision); never the Pocket DM
+  M.jokeMain = function (B) { return !!(B && B.o && (B.o.embed || (B.o.house && D.house && D.house.playing && !B.o.pocket && !B.o.npc && !B.o.climb))); };
+  M.jokeFlags = function (B) { var H = D.house; return (B.from && B.from.data && B.from.data.flags) || (B.o && B.o.house && B.roam && B.roam.flags) || (B.o && B.o.house && H && H.cur && H.cur.flags) || {}; };
   M.jokeReady = function (B, u) {
-    if (!B || !B.o || !B.o.embed || !u || u.id !== 'aurdin' || u.side !== 'party' || u.guest || u.classAI) return false;
-    var fl = (B.from && B.from.data && B.from.data.flags) || {}, h = u.src || {};
+    if (!M.jokeMain(B) || !u || u.id !== 'aurdin' || u.side !== 'party' || u.guest || u.classAI) return false;
+    var fl = M.jokeFlags(B), h = u.src || {};
     if (!fl.katVision || (h.known || []).indexOf('hideouslaughter') < 0 || (u.known || []).indexOf('hideouslaughter') < 0) return false;
     if (M.eggFound(B, 'joke')) return false; // (once the egg has come up, never again: RULED 10-02, Griz: "disabled when the egg appears (1 per customer)")
     return B.units.some(function (w) { return M.gnoll(w) && !w.dead && w.hp > 0; });
@@ -716,7 +720,7 @@
   // (the darkness's: RULED 10-02, Griz: "Make the egg purple and call it \"stare into the void long enough\"" -- set in the joke's case)
   M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Stare Into the Void Long Enough', hue: 'violet' },
     dunk: { flag: 'eggDunk', line: 'Dunking Booth', hue: 'blue' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
-  M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); };
+  M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = M.jokeFlags ? M.jokeFlags(B) : (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); }; // (the house's save too, 11-05: js/house.js keeps an egg found -- once a save)
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;
     B.flags8 = B.flags8 || {}; B.flags8[M.EGGS[key].flag] = 1;

@@ -125,7 +125,7 @@
     runnerAsk: 'THE SNOOT is a page of its own: the war on the hexes round the Pit. What is not saved here stays behind.',
     stair: 'The stair up to the guest rooms. The room over the kitchen has its door shut.',
     upstairs: 'Upstairs: three small guest rooms over the common room, and the big room on the kitchen side with the lake under its window. The stair down is in the passage.',
-    drawerShut: 'The room over the kitchen: two nights paid, a farm woman\'s things folded on the chair. The drawer by the bed is shut, and you leave it shut.',
+    drawerShut: 'The room over the kitchen: paid ahead, a farm woman\'s things folded on the chair. The drawer by the bed is shut, and you leave it shut.', // (11-05: her stay from day 4, not two nights -- invented.json halfway-katarina)
     drawerEmpty: 'The drawer by the bed is empty.'
   };
   In.line = function (h) { return M.night(h) ? In.LINES.night : In.LINES.day; };
@@ -137,15 +137,21 @@
   };
   In.INDOORS = { doranYard: 1, orrin: 1, pell: 1, adoptedKid: 1 }; // (the yard's own, in while the wagon stands in the yard)
   In.snootOn = function (q) { return In.day(q) >= In.SNOOT_DAY; };
-  // THE WAGON ON THE CALENDAR (the lane's 11-04 §3, RULED 11-04, his "in on your above leans as well": the first WAGON DAY 6, then every 28 -- his numbers to move):
-  // Amara's wagon reaches the inn at dusk on a WAGON DAY; a room taken that evening is THE WAGON NIGHT (In.wagonNight). Katarina is at the inn the day before and the
-  // day of the first (Marek paid two nights and walked north); after it she has ridden out with the wagon or walked south, her book in the drawer unless she gave it
-  In.WAGON = { first: 6, every: 28 };
+  // THE WAGON ON THE CALENDAR (the lane's 11-04 §3, RULED 11-04, his "in on your above leans as well": the first WAGON DAY then every 28 -- his numbers to move):
+  // Amara's wagon reaches the inn at dusk on a WAGON DAY; a room taken that evening is THE WAGON NIGHT (In.wagonNight).
+  // MOVED 11-05 (the Katarina seat, kat-1105; RULED 11-05, Griz to the lanes desk, "Yes, the leans", on "I'm predicting we'll have to move wagon night back and keep kat
+  // waiting at the inn longer (based on recent playthroughs)", and his 10-16 "we can have the party get to the inn later than day 4, and have had kat waiting longer"): the
+  // first WAGON DAY 12, not 6 (his 10-31 save was still in Silverton on day 9). KATARINA waits at the inn from her arrival on day 4 (the clock lane's "inn night = Day 4",
+  // RULED 10-13) through the first WAGON DAY; she rides out with the wagon, or walks south the morning after when the wagon was stopped (her last day, In.katLast: the book
+  // given, the first game's "the day after"); her book in the drawer after unless she gave it
+  In.WAGON = { first: 12, every: 28 };
+  In.KAT = { from: 4 };       // (her arrival: the fourth morning after the moot, her finished book in hand)
   In.isWagonDay = function (d) { return d >= In.WAGON.first && (d - In.WAGON.first) % In.WAGON.every === 0; };
   In.cycle = function (d) { return Math.floor((d - In.WAGON.first) / In.WAGON.every); };
   In.wagonTonight = function (f, d) { return In.isWagonDay(d) && f.wagonCycle !== In.cycle(d); };
-  In.katHere = function (f, d) { return !f.katGone && !f.katRode && d >= In.WAGON.first - 1 && d <= In.WAGON.first; };
-  In.bookInDrawer = function (f, d, st) { return !f.katBookTaken && !f.katGave && !(st && In.has(st, 'katbook')) && (!!f.katRode || d > In.WAGON.first); };
+  In.katLast = function (f, d) { return !f.katGone && !f.katRode && d === In.WAGON.first + 1 && f.wagonStopped === 'c0'; }; // (the first wagon stopped -- in the yard or on the road: no ride, so she walks south the morning after, and gives the book)
+  In.katHere = function (f, d) { return !f.katGone && !f.katRode && ((d >= In.KAT.from && d <= In.WAGON.first) || In.katLast(f, d)); };
+  In.bookInDrawer = function (f, d, st) { return !f.katBookTaken && !f.katGave && !(st && In.has(st, 'katbook')) && (!!f.katRode || d > In.WAGON.first + (In.katLast(f, d) ? 1 : 0)); };
   In.q = ''; In.inside = false;
 
   // the floor in the first game's shape (js/mines.js M.floor reads it): the inn laid open or roofed, the people by the hour, the squares' words
@@ -415,6 +421,93 @@
     if (f.mealHad) { yield sc.say(In.LINES.bed); return 'bed'; }
     return 'meal'; // (the first room taken: supper first, on its own screen over the room -- In.mealScene, then the bed line there)
   };
+  // ---------------------------------------------------------------- KATARINA AT THE FIRE (11-05, the Katarina seat, kat-1105: the lane's item 10, built whole with the wagon's
+  // move; the first game's S.katarina -- RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
+  // with the Dominion' - Kat breaks into: My deity gave me a vision, and when it ended I had used up all my ink. If you bring me another bottle, I'll tell you the vision ... If
+  // they have ink then, or manage to get her some before she vanishes from play in one of the various ways, she say her vision was of Aurdin laughing, and gives the party how
+  // he'll learn hideous laughter. Can be the same time she hands over the book. Not there if they get the book out of the drawer thing."; RULED 09-24: the book given the
+  // day after, and south). Barley's first time at her table before the wagon's night: the Dominion, the ink; the ink given: the vision, the Sheet: Hideous Laughter (Aurdin's
+  // to learn -- js/house.js FD.item -- and the joke egg's road, js/grimoire.js M.jokeReady); till it comes: the ink waited on. Her last day (In.katLast): the book, the vision
+  // with it if the ink came in time, then south. Around the errand her talk at the fire -- the lane's §7 drafts (RULED 09-24: the drafts stand): what she is, the road south,
+  // what she saw (Persuasion 12, 15 the hard tier, shown; Barley's word opens the first, the vision told both), Amara once the wagon is known, the message she carried once
+  // the wagon has come and Insight 13 caught her and Amara at the greeting. The words content/text.json kat.*, the first game's; the seat's invented.json halfway-katarina
+  In.KL = {
+    look: 'She does not look up. "The room over the kitchen is mine till I\'m fetched. Paid ahead. I don\'t want anything."', // (the lane's §7 first look, re-drafted for the longer stay: it was "till the morning after next")
+    prompt: 'She keeps her place in the book with one finger.',
+    asks: { what: 'ASK WHAT SHE IS', road: 'ASK ABOUT THE ROAD SOUTH', saw: 'ASK WHAT SHE SAW', amara: 'ASK ABOUT AMARA', message: 'ASK WHAT SHE CARRIED', leave: 'LEAVE HER TO HER BOOK', go: 'LET HER GO' },
+    what: '"A mender. I set bones and I write things down." A beat. "Those are the same work, mostly."',
+    road: '"Seven off the last farm walked with us a day. Bound for the Pit, they said, as if it were a place you could be bound for." She closes the book over her hand.',
+    saw1: '"There was a moot. Every tribe under one moon. A king said no to the people I came with, and the people I came with burned him where he stood." She turns the pen over. "Then they made something. I didn\'t look. Everyone who looked is still looking."',
+    saw2: '"It went north before dawn, and the dogs went with it. If you meet one on the road whose eyes show you yourself, don\'t look long."',
+    sawNo: 'She turns the pen over, and over, and does not answer.',
+    amara: '"I knew her before she had wagons. She was kind, then." She does not say more, and will not.',
+    message: '"I carried a dozen words for a woman who was kind to me when I was a girl. I don\'t know what they mean. I think she does."',
+    knew: '{c}(insight) The traveler and Amara know each other. Neither of them says so.{/}',
+    DC: { saw: 12, saw2: 15, knew: 13 }
+  };
+  In.barleyIn = function (st) { return st.party.some(function (h) { return (h.key || h.id) === 'barley' && !h.dead && !h.ko && !h.guest; }); };
+  // what she will be asked now (each once a visit): what she saw while there is more to hear, Amara once the wagon is known, the message once it has come and the read caught them
+  In.katOpts = function (f, asked) {
+    var free = f.katVision ? 2 : f.katInk ? 1 : 0, out = ['what', 'road'];
+    if (f.katSaw == null || free > f.katSaw) out.push('saw');
+    if (f.wagonMet || f.wagonCycle != null) out.push('amara');
+    if (f.katKnewAmara && f.wagonCycle != null) out.push('message');
+    return out.filter(function (a) { return !asked[a]; });
+  };
+  // what she saw: Barley's word opens the first tier, the vision told both; else one roll ever, the party's best Persuasion, shown -- 12 the first, 15 the hard tier
+  In.katSaw = function (st, f) {
+    var free = f.katVision ? 2 : f.katInk ? 1 : 0, out = [];
+    if (f.katSaw == null && free < 2) {
+      var b = In.best(st, 'Persuasion'), r = In.d20(), v = b ? b.v : 0, tot = r + v, nm = b ? (b.h.name || b.h.id) : 'The party', tier = tot >= In.KL.DC.saw2 ? 2 : tot >= In.KL.DC.saw ? 1 : 0;
+      if (D.house && D.house.trail) D.house.trail('check', 'THE TRAVELER: ' + nm + ' Persuasion ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + tot + ' vs DC ' + In.KL.DC.saw + '/' + In.KL.DC.saw2 + ', tier ' + tier);
+      out.push('{y}' + nm + ': Persuasion ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + tot + '{/}');
+      f.katSaw = Math.max(free, tier);
+    } else f.katSaw = Math.max(f.katSaw || 0, free);
+    return out.concat(f.katSaw >= 1 ? [In.KL.saw1] : [In.KL.sawNo], f.katSaw >= 2 ? [In.KL.saw2] : []);
+  };
+  In.katAsks = function* (sc, st, f, end) {
+    var asked = {};
+    for (var k = 0; k < 8; k++) {
+      var acts = In.katOpts(f, asked); if (!acts.length) return;
+      var i = yield sc.ask(In.KL.prompt, acts.map(function (a) { return In.KL.asks[a]; }).concat([end]));
+      if (i == null || i >= acts.length) return;
+      var a = acts[i]; asked[a] = 1;
+      yield sc.say(a === 'saw' ? In.katSaw(st, f) : In.KL[a]);
+    }
+  };
+  // the ink given: the vision told, and the page she wrote it on (the first game's katVision)
+  In.katVision = function* (sc, st, f) {
+    D.counter.take(st, 'ink', 1); f.katVision = 1;
+    yield sc.say(L('kat.inkGiven'));
+    yield sc.say(L('kat.vision'));
+    D.counter.give(st, 'sheet_hideouslaughter', 1); D.sfx('chest');
+    yield sc.say(L('g.got', { item: DS.DATA.items.sheet_hideouslaughter.name }));
+  };
+  In.katScene = function* (sc, B) {
+    var st = sc.st, f = st.flags, d = In.day(D.roam.q), ink = function () { return D.counter.count(st, 'ink') > 0; };
+    if (In.katLast(f, d)) { // her last day: the book across the table, the vision with it if the ink came in time, her talk, then south
+      f.katGone = 1; f.katGave = 1; D.counter.give(st, 'katbook', 1); D.sfx('chest');
+      yield sc.say(L('kat.gives'));
+      yield sc.say(L('g.got', { item: DS.DATA.items.katbook.name }));
+      if (f.katInk && !f.katVision && ink()) yield* In.katVision(sc, st, f);
+      yield* In.katAsks(sc, st, f, In.KL.asks.go);
+      yield sc.say(L('kat.south'));
+      M.later(B, function () { M.relay(B, null, true); }); // (the floor laid again without her)
+      return;
+    }
+    if (!f.katInk && In.barleyIn(st) && f.wagonCycle == null) { // Barley, the first time he is at her table, and only before the wagon's night
+      f.katInk = 1; f.katLooked = 1;
+      yield sc.say(In.who('Barley', L('kat.dominion')));
+      yield sc.say(L('kat.ink'));
+      if (ink()) yield* In.katVision(sc, st, f);
+      return;
+    }
+    if (f.katInk && !f.katVision && ink()) { yield* In.katVision(sc, st, f); return; }
+    var open = M.words(B, 'katarina'); if (!f.katLooked) { f.katLooked = 1; open = open.concat([In.KL.look]); }
+    if (f.katInk && !f.katVision) open = open.concat([L('kat.inkWait')]);
+    yield sc.say(open);
+    yield* In.katAsks(sc, st, f, In.KL.asks.leave);
+  };
   // the night: the house's bed to the morning (the first night's wagon is the lane's item 2), the floor laid at the morning's hour under the morning card
   In.sleep = function* (B, line) { yield* D.house.sleepOnFloor(B, { line: line || In.LINES.morning, music: 'inn', before: function () { M.lightNow(B); } }); };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
@@ -438,7 +531,7 @@
     fledFoot: 'They are away north up the road on foot, into the dark toward Web Gulch.',
     fledYard: 'In the yard the wagon stands where they left it.',
     book: 'On Willem Glass, a book in a fair hand: his spells, and at the back, the glamour he laid over the children, worked out line by line.',
-    soon: '"End of the month there\'s a wagon through," Gennet says. "Good custom."',
+    soon: '"Once a month there\'s a wagon through," Gennet says. "Good custom."', // (11-05, the Katarina seat: "End of the month" no longer fit -- the first wagon is day 12, a week into the realm's September; invented.json halfway-katarina)
     // the night played on the floor (11-04 later, his words at the pane: the seat's drafts, invented.json halfway-wagon-night-played)
     feeling: '"I\'d set a watch tonight," Lymen says, and will not say why. "Call it a feeling. I\'d sleep easier knowing who has the window."',
     feelingLead: '{name} has a feeling about the road tonight, and says so: a watch, turn and turn about, and whoever has the window keeps an eye on the yard.',
@@ -602,6 +695,7 @@
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300);
     yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300);
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
+    if (Y.kat && In.read(st, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.card(B, [In.KL.knew], 300); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
     // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
     Y.kid = In.unit(B, { id: 'wagonKid', kind: 'goblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
     yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
@@ -649,16 +743,17 @@
     } else if (how === 'bribe') {
       st.silver(500); D.sfx('coin'); f.wagonOutcome = 'bribe'; f.glamourBroken = 1; f.elsbethSilent = 1; f.katGone = 1; f.katRode = 1; f.kidAtInn = 1;
       yield* In.card(B, [L('g.foundSilver', { n: 500 }), In.WN.bribeTaken], 360);
-      if (!Y.kat) Y.kat = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: 'A traveler', face: [-1, 0] });
-      yield* In.walk(B, Y.kat, [w[0] + 2, w[1] - 1], [-1, 0]); yield 20;
+      var katUp = !!f.katYard; // (11-05: only while she is at the inn -- a later cycle's wagon night has no traveler to climb up)
+      if (katUp && !Y.kat) Y.kat = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: 'A traveler', face: [-1, 0] });
+      if (Y.kat) { yield* In.walk(B, Y.kat, [w[0] + 2, w[1] - 1], [-1, 0]); yield 20; }
       In.yardClear(B, Y); delete f.wagonIn; In.lay(B, null, true); // (the wagon gone up the road: the yard laid without it)
-      yield* In.card(B, [In.WN.bribeGone], 360);
+      if (katUp) yield* In.card(B, [In.WN.bribeGone], 360);
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
       yield* In.dueWalk(B, 'kid');
       morning = L('wagon.morning.bribe');
     } else {
       if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; } // (she is inside before the first blade clears, Griz 09-25)
-      if (f.katYard) { delete f.katYard; f.katGone = 1; }
+      delete f.katYard; // (11-05: she stays the night inside; the wagon stopped, she has no ride -- the morning after is her last day, the book given and south: In.katLast, In.katScene)
       var out = yield* In.yardFight(B, Y);
       if (out === 'lost') return;
       f.glamourBroken = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
@@ -779,6 +874,7 @@
       if (sleptD) yield* In.night(B);
       return;
     }
+    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { yield* M.talk(B, 'katarina', function (sc) { return In.katScene(sc, B); }); return; } // (her talk at the fire: In.katScene)
     if (def && def.key === In.KEY && trig.town === 'talk' && (trig.npc === 'gennet' || trig.npc === 'snootRunner')) {
       if (trig.npc === 'gennet') {
         var slept = yield* M.talk(B, 'gennet', function (sc) { return In.gennet(sc, B); }, In.named(B.roam.flags));
@@ -818,10 +914,13 @@
   In.BEATS = [
     { id: 'yard', label: 'THE YARD BY DAY, in off the Pit road', note: 'Ten in the morning in the yard off the Pit road (the road down the west side, as the Gulch\'s): the well, the hitching rail, the barn for six horses, Doran by the woodpile, the boys down at the point. The inn two stories under its roof, its one-story wing behind. Walk to the front door.', key: In.KEY, at: [10, 22], hour: 10 },
     { id: 'door', label: 'THROUGH THE FRONT DOOR: the walls go see-through', note: 'A step short of the front door. One step into the doorway: the roofs come off the house and its wing and every wall drops to a stub -- the common room round the big fire, the bar under the stair, the kitchen beyond, the two bedrooms, its people in them. A step back out roofs it again. The barn does the same at its own door.', key: In.KEY, at: [18, 18], hour: 18 },
-    { id: 'room', label: 'THE COMMON ROOM at dusk: the inn lady\'s room and THE MEAL at the long table', note: 'Inside at six in the evening, day 5. The inn lady by the hearth (plated THE INN LADY till she gives her name), Doran behind the bar under the stair\'s high end, the traveler by the fire (she is here days 5 and 6), Elsbeth at the kitchen tub. E on the inn lady: a room at five silver a head, then supper -- everyone sits along the long table, the traveler at the table for two, and the talk plays over the room: the one speaking on the side they sit, the hero whose die it was on theirs with the die in their bubble. The moot, the one-eyed chief and the mirror-eyed beasts, true or heard wrong by your History; ask Doran about the drovers, the traveler about her mirror; then the night.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, dice: [14, 12, 15] },
-    { id: 'meal8', label: 'THE MEAL ON DAY 10: the Snoot moving north', note: 'The same supper eight days later: the moot, the one-eyed chief, the mirror-eyed beasts, the Snoot past the Gulch, the thing three men would not name. A low History die: every word heard wrong. Ask Doran about the drovers (Persuasion, shown); the traveler is gone south by now.', key: In.KEY, at: [24, 17], hour: 18, day: 10, inside: true, dice: [3, 15, 16] },
+    { id: 'room', label: 'THE COMMON ROOM at dusk: the inn lady\'s room and THE MEAL at the long table', note: 'Inside at six in the evening, day 5. The inn lady by the hearth (plated THE INN LADY till she gives her name), Doran behind the bar under the stair\'s high end, the traveler by the fire (she is here days 4 to 12), Elsbeth at the kitchen tub. E on the inn lady: a room at five silver a head, then supper -- everyone sits along the long table, the traveler at the table for two, and the talk plays over the room: the one speaking on the side they sit, the hero whose die it was on theirs with the die in their bubble. The moot, the one-eyed chief and the mirror-eyed beasts, true or heard wrong by your History; ask Doran about the drovers, the traveler about her mirror; then the night.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, dice: [14, 12, 15] },
+    { id: 'meal8', label: 'THE MEAL ON DAY 10: the Snoot moving north', note: 'The same supper eight days later: the moot, the one-eyed chief, the mirror-eyed beasts, the Snoot past the Gulch, the thing three men would not name. A low History die: every word heard wrong. Ask Doran about the drovers (Persuasion, shown); the traveler is still at her table for two (she waits till the wagon, day 12).', key: In.KEY, at: [24, 17], hour: 18, day: 10, inside: true, dice: [3, 15, 16] },
     { id: 'meal14', label: 'THE MEAL ON DAY 15: the Snoot at the Pit', note: 'Supper on day 15: everything the road has said, and the worst of it -- the Snoot at the Pit, the road south shut. The dice high.', key: In.KEY, at: [24, 17], hour: 18, day: 15, inside: true, dice: [18, 17, 17] },
-    { id: 'wagon', label: 'DAY 6: THE WAGON NIGHT', note: 'The first WAGON DAY, six in the evening in the common room, the traveler by the fire. E on the inn lady: a room, supper, then the second watch -- Amara\'s wagon turns in, goblins chained in the back. Who had the watch? INVESTIGATE, WAKE THE PARTY or KEEP WATCH; the gold, or steel: the yard fight on the grid, Willem at the traces (three turns unbothered and the team is loose).', key: In.KEY, at: [24, 17], hour: 18, day: 6, inside: true },
+    { id: 'kat', label: 'DAY 7: THE TRAVELER BY THE FIRE, Barley with a bottle of ink (11-05)', note: 'Six in the evening on day 7, the four in the common room, a bottle of ink from Lisbet\'s in the pack. E on the traveler at her table by the fire: Barley -- "You\'re with the Dominion." -- and she breaks in: her deity gave her a vision and it used up all her ink. The bottle set by her book; the vision, Aurdin laughing in the dust with the tribe that laughs; the page torn free: the Sheet: Hideous Laughter in the pack. E on her again: her talk at the fire -- what she is, the road south, what she saw (the vision told: both tiers). Then M, ITEMS, the sheet on Aurdin: he copies it into his book.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, inv: ['ink'] },
+    { id: 'katbook', label: 'DAY 13: HER LAST MORNING, the wagon stopped (11-05)', note: 'Eight in the morning on day 13, the wagon stopped in the yard last night (the pair down or run, the children freed), Barley\'s word given her days ago and a bottle of ink in the pack. E on the traveler by the fire: she closes her book, opens it, slides it across -- her book; the ink set by it and the vision with it, the sheet; ask her about Amara, and what she carried (the read at the greeting caught them); LET HER GO: she pays out her nights and walks south toward the Pit, and the fire\'s table is empty.', key: In.KEY, at: [25, 20], hour: 8, day: 13, inside: true, inv: ['ink'],
+      flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', glamourBroken: 1, kidAtInn: 1, doranAway: 1, katInk: 1, katLooked: 1, katKnewAmara: 1 } },
+    { id: 'wagon', label: 'DAY 12: THE WAGON NIGHT', note: 'The first WAGON DAY, six in the evening in the common room, the traveler by the fire. E on the inn lady: a room, supper, then the second watch -- Amara\'s wagon turns in, goblins chained in the back. Who had the watch? INVESTIGATE, WAKE THE PARTY or KEEP WATCH; the gold, or steel: the yard fight on the grid, Willem at the traces (three turns unbothered and the team is loose).', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first, inside: true },
     { id: 'upstairs', label: 'UPSTAIRS: the guest rooms and the room over the kitchen', note: 'At the head of the stair in the passage. Three small guest rooms over the common room, the big fire\'s chimney through the middle, and the big room on the kitchen side over the lake, its door off the passage past the chimney: E at the table by its bed -- the drawer. The stair down sets you by the bar.', key: In.UP, at: [6, 9], hour: 18 },
     { id: 'night', label: 'THE YARD BY NIGHT', note: 'Ten at night on the path from the lake door: the house dark on the yard, lamps at its doors and the barn\'s, the lantern post on the point, the lake black. The boys are in.', key: In.KEY, at: [38, 18], hour: 22 },
     { id: 'barn', label: 'THE BARN: the six stalls, the hay, the doors (11-05)', note: 'Noon in the barn, a step in from its doors: three stalls either side of the aisle, each with its manger and hay, the hay pile by the doors. Walk the aisle; step out by the doors and the barn roofs again.', key: In.KEY, at: [12, 6], hour: 12, inside: 'barn' },
@@ -831,6 +930,7 @@
   ];
   In.play = function (bt) {
     var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({ councilNotice: 1, councilSeen: 1 }, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60); // (Silverton's council night sat already: a show of the inn -- 11-04, his "these previews are all firing the council discussion")
+    (bt.inv || []).forEach(function (id) { H.add(rec.inv, id, 1); }); // (what the beat's pack holds: the traveler's ink, 11-05)
     var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === In.SITE; })[0] : null;
     H.begin(rec, 0, site ? '?world&at=' + site.hex[0] + ',' + site.hex[1] : null);
     var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? (bt.day - 1) * 24 : Math.floor((S.t || 0) / 24) * 24) + bt.hour;

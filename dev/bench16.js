@@ -2282,43 +2282,43 @@
       if (get('probe')) { // (dev/inn-probe.py: Gennet on the path, seeded a level -- the party by the class AI, her numbers as written)
         var seeds = get('seeds', '1').split(',').map(Number), lvl = get('lvl', '4');
         seeds.forEach(function (sd) {
-          D.seed = sd; var Bp = stageAc('?roam=halfway&hour=23&day=6&at=37,18&lvl=' + lvl + '&flags=' + BASE, { secondAct: { beat: 'path', strike: true } }), t0p = Bp.roam.token;
+          D.seed = sd; var Bp = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&lvl=' + lvl + '&flags=' + BASE, { secondAct: { beat: 'path', strike: true } }), t0p = Bp.roam.token;
           var sp = flowAc(Bp, ['STRIKE', 'TAKE THE CHILD']), fp = Bp.roam.flags, downs = Bp.roam.members.filter(function (u) { return u.hp <= 0; }).length;
           repAc.table.push({ seed: sd, lvl: +lvl, end: fp.gennetDead ? 'killed' : fp.gennetYield ? 'yielded' : /INITIATIVE/.test(sp) ? 'other' : 'no fight', rounds: Bp.round || 0, downs: downs, doran: !!fp.doranFights, offering: fp.offeringSaved ? 'saved' : fp.duePaid ? 'paid' : '-' });
         });
         throw 'probe done';
       }
       // 1. THE SIGNS AND THE FORK after a won yard (the night played through: WAKE, the pair at a hit point and rooted): the three the fight ate, the last three with their reads, the fork; LET IT BE: the walk, the due paid
-      var B1 = stageAc('?roam=halfway&hour=18&day=6&at=24,17'); B1.roam.silver = 30; atAc(B1, 24, 17, [0, -1]); InAc.pinned = [18, 18];
+      var B1 = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); B1.roam.silver = 30; atAc(B1, 24, 17, [0, -1]); InAc.pinned = [18, 18];
       var o1 = flowAc(B1, [0, 'TO BED', 'WAKE THE PARTY', 'LET IT BE'], function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); }), f1 = B1.roam.flags, i1 = o1.indexOf('While the yard was busy');
       okAc('the signs and the fork after a won yard: ' + o1.slice(Math.max(0, i1 - 40), i1 + 1500) + ' -- warmup ' + f1.warmup + ', the lantern walks ' + f1.lanternWalks + ', the due paid ' + f1.duePaid + ', seen ' + f1.dueSeen + ', the outcome ' + f1.wagonOutcome,
         /While the yard was busy/.test(o1) && /\+5 minutes: Elsbeth is sent up/.test(o1) && /\+10 minutes/.test(o1) && /\+15 minutes/.test(o1) && /\+20 minutes/.test(o1) && /\+25 minutes/.test(o1) && /\+30 minutes: The lantern has left its post/.test(o1) && /Down the path toward the water: a woman, two boys/.test(o1) && /\[THE LANTERN \| LET IT BE\]/.test(o1) && /> LET IT BE/.test(o1) && /Only the inn lady comes back/.test(o1) && /seven children/.test(o1) && /MORNING/.test(o1) && f1.warmup === 6 && f1.lanternWalks === 1 && f1.duePaid === 1 && f1.wagonOutcome === 'inn');
       // 2. THE PATH, STRIKE: Gennet, the boys, the child in the lantern's light; her line; the fight on the floor's squares -- she yields at half (her hit points pinned low) and sits; TAKE THE CHILD; the lake rises at the hour anyway, the party at the shore without the ring: it goes down; the morning
-      var B2 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE, { secondAct: { beat: 'path' } }), hp2 = null;
+      var B2 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE, { secondAct: { beat: 'path' } }), hp2 = null;
       var o2 = flowAc(B2, ['STRIKE', 'TAKE THE CHILD'], function (lb, B) { if (lb === 'STRIKE') B.units.forEach(function (u) { if (u.kind === 'gennet') { hp2 = u.maxhp; u.hp = 3; } }); }), f2 = B2.roam.flags, i2 = o2.indexOf('Stand out of the light');
       okAc('the path, STRIKE: ' + o2.slice(Math.max(0, i2 - 200), i2 + 1600) + ' -- Gennet ' + hp2 + ' hp as written; flags yield ' + f2.gennetYield + ', saved ' + f2.offeringSaved + ', stopped ' + f2.dueStopped + ', the god seen ' + f2.chuulSeen + ', done ' + f2.secondActDone + ', lake ' + f2.lakeDone,
         /Orrin: "Mam\?"/.test(o2) && /Stand out of the light/.test(o2) && /> STRIKE/.test(o2) && /INITIATIVE/.test(o2) && /It gave back\. It always gave back/.test(o2) && /> TAKE THE CHILD/.test(o2) && /takes the child's hand/.test(o2) && /The water off the point heaves/.test(o2) && /Nothing stands on the stone|Nothing stands in the water|not ready for it/.test(o2) && /eight children in the back of it/.test(o2) && hp2 === 33 && f2.gennetYield === 1 && f2.offeringSaved === 1 && f2.dueStopped === 1 && f2.chuulSeen === 1 && f2.secondActDone === 1 && !f2.lakeDone);
       // 3. THE RISE WITH THE RING WARM: the lead wearing the Ring of Binding, the party at the stone -- it turns toward the ring, the fight on the point with its frog (their hit points pinned low), the ring's rounds; won: the deep is only water, the corpse's gift, the morning's lake
       var unit0 = InAc.unit; InAc.unit = function (B, o) { var u = unit0.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
-      var B3 = stageAc('?roam=halfway&hour=23&day=6&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; });
+      var B3 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; });
       var o3 = flowAc(B3, []), f3 = B3.roam.flags, st3 = CAc.state(B3), i3 = o3.indexOf('It turns toward the ring');
       InAc.unit = unit0;
       okAc('the rise with the ring warm: ' + o3.slice(Math.max(0, i3 - 300), i3 + 1200) + ' -- lake done ' + f3.lakeDone + ', the gift ' + f3.lakeGiftGot + ' (' + (B3.inv || []).map(function (s) { return s.id; }).join(',') + '), the god seen ' + f3.chuulSeen,
         /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /something the lake took/.test(o3) && /draws from the lake in front of everyone, and drinks/.test(o3) && f3.lakeDone === 1 && f3.lakeGiftGot === 1 && f3.chuulSeen === 1);
       // 4. THE RISE WITH NOBODY AT THE SHORE: the party back at the path's head -- nothing stands on the stone, it goes down; the god seen, not fought
-      var B4 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise', far: true } });
+      var B4 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise', far: true } });
       var o4 = flowAc(B4, []), f4 = B4.roam.flags;
       okAc('the rise with nobody at the shore: ' + o4.slice(0, 500) + ' -- seen ' + f4.chuulSeen + ', lake done ' + !!f4.lakeDone, /Nothing stands on the stone\. It goes down/.test(o4) && !/INITIATIVE/.test(o4) && f4.chuulSeen === 1 && !f4.lakeDone);
       // 5. ELSBETH'S WAND in the kitchen: the dishes (tier 1), then CALL GENNET A FRAUD -- the word, the save failed (pinned), out of the kitchen; PRESS ON, the cone; she is done for the night; the god seen gives her third tier for nothing
-      var B5 = stageAc('?roam=halfway&hour=18&day=6&at=32,21&inside'); atAc(B5, 32, 21, [1, 0]); InAc.pinned = [2, 2, 2, 2];
+      var B5 = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=32,21&inside'); atAc(B5, 32, 21, [1, 0]); InAc.pinned = [2, 2, 2, 2];
       var o5a = flowAc(B5, ['HELP WITH THE DISHES']); atAc(B5, 32, 21, [1, 0]); var o5 = o5a + ' / ' + flowAc(B5, ['CALL GENNET A FRAUD', 'PRESS ON']), f5 = B5.roam.flags, t5 = { x: B5.roam.token.x, y: B5.roam.token.y };
       atAc(B5, 32, 21, [1, 0]); var o5b = flowAc(B5, []);
       okAc('the wand: ' + o5.slice(-900) + ' -- out ' + f5.wandOut + ', pushed ' + f5.elsbethPushed + ', tier ' + f5.elsbethTier + ', the party at ' + t5.x + ',' + t5.y + '; her again: "' + o5b.slice(0, 80) + '"',
         /Tobin was fourteen/.test(o5) && /> CALL GENNET A FRAUD/.test(o5) && /is a fraud, and you know it/.test(o5) && /blackened bone-white wood/.test(o5) && /walks out of the kitchen/.test(o5) && /> PRESS ON/.test(o5) && /wall of fear/.test(o5) && /Nobody is hurt/.test(o5) && f5.wandOut === 1 && f5.elsbethPushed === 1 && f5.elsbethTier === 1 && t5.x === 25 && t5.y === 20 && /The kitchen door is shut/.test(o5b));
-      var B5c = stageAc('?roam=halfway&hour=18&day=6&at=32,21&inside&flags=chuulSeen'); atAc(B5c, 32, 21, [1, 0]); var o5c = flowAc(B5c, []);
+      var B5c = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=32,21&inside&flags=chuulSeen'); atAc(B5c, 32, 21, [1, 0]); var o5c = flowAc(B5c, []);
       okAc('the god seen: her third tier for nothing (' + o5c.slice(0, 120) + ', tier ' + B5c.roam.flags.elsbethTier + ')', /The god is an animal/.test(o5c) && B5c.roam.flags.elsbethTier === 3);
       // 6. THE BYSTANDERS AND DORAN: the cast stood on the path -- the AI's targets for Gennet hold none of the boys or the child; Doran on a blow at a boy, a foe who yields
-      var B6 = stageAc('?roam=halfway&hour=23&day=6&at=37,18&flags=' + BASE), Y6 = AcB.cast(B6, B6.roam.flags, AcB.PATH.half), tg = D.ai.heroes(B6, Y6.gennet).map(function (u) { return u.id; });
+      var B6 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE), Y6 = AcB.cast(B6, B6.roam.flags, AcB.PATH.half), tg = D.ai.heroes(B6, Y6.gennet).map(function (u) { return u.id; });
       var d6 = AcB.doranIn(B6, Y6), f6 = B6.roam.flags;
       okAc('the bystanders: Gennet\'s targets ' + tg.join(',') + ' (none of orrin, pell, the child: ' + !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) + '); Doran in on a blow at a boy: ' + d6.name + ' (' + d6.kind + ', yields ' + d6.yields + ', ' + d6.hp + ' hp, side ' + d6.side + '), doranFights ' + f6.doranFights,
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && [Y6.orrin, Y6.pell, Y6.kid].every(function (u) { return u.bystander && u.look; }));
@@ -2388,7 +2388,7 @@
     try {
       D.seed = +get('seed', 1104); InCh.stay = true;
       // 1. AFTER THEM, on foot: the yard's away (the pair past hurting), the prompt, the walk, the gulch floor at the south mouth with the pair twelve up the road, the spiders off
-      var B1 = testCh('?roam=halfway&hour=18&day=6&at=24,17'); B1.roam.silver = 30; atCh(B1, 24, 17, [0, -1]); InCh.pinned = [18, 18];
+      var B1 = testCh('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); B1.roam.silver = 30; atCh(B1, 24, 17, [0, -1]); InCh.pinned = [18, 18];
       var o1 = flowCh(B1, [0, 'TO BED', 'WAKE THE PARTY', 'AFTER THEM'], 999), Bg = topCh(); driveCh(Bg.co, function () { return !!(ChB.state(Bg) && ChB.state(Bg).on); }, 600); pairHp(Bg, 999);
       var c1 = ChB.state(Bg), t1 = Bg.roam.token, pr = Bg.units.filter(function (u) { return /^chase/.test(u.scripted || ''); });
       okCh('AFTER THEM on foot: ' + o1.slice(o1.indexOf('> AFTER THEM') - 240, o1.indexOf('> AFTER THEM') + 400) + ' -- the floor ' + (RCh.def && RCh.def.key) + ' at ' + t1.x + ',' + t1.y + ' (dark ' + !!RCh.def.dark + ', ' + (Bg.roam.hour != null ? Bg.roam.hour.toFixed(1) : '?') + 'h), the pair ' + pr.map(function (u) { return u.name + ' at ' + u.x + ',' + u.y; }).join(', ') + ', the chase ' + JSON.stringify(c1) + ', the spiders off (' + Bg.roam.encIn + ')',
@@ -2407,20 +2407,20 @@
       okCh('back at the inn: ' + o5.slice(0, 900) + ' -- flags outcome ' + f5.wagonOutcome + ', chase ' + JSON.stringify(f5.wagonChase) + ', Doran away ' + f5.doranAway + ', the one kept ' + f5.kidAtInn + ', the gift ' + !!f5.lakeGiftGot + ', the tower ' + f5.towerFled + '; the purse ' + Bi.roam.silver + ', the order ' + CCh.count(st5, 'wagonorder'),
         /In the yard the wagon stands where they left it/.test(o5) && /seven children/.test(o5) && /Under the driver's bench, a strongbox/.test(o5) && /drives the children back down the road to Newland/.test(o5) && /MORNING/.test(o5) && /Doran is gone, and the wagon with him/.test(o5) && f5.wagonOutcome === 'road' && !f5.wagonChase && f5.doranAway === 1 && f5.kidAtInn === 1 && !!f5.lakeGiftGot && !f5.towerFled && CCh.count(st5, 'wagonorder') === 1 && Bi.roam.silver === 10 + 600);
       // 5. WITH THE GREYS: square for square from ten, never closing; the north mouth is the end -- the Tower in words, back to the yard: the traces cut, the children freed all the same
-      var B6 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B6.roam.silver = 30; atCh(B6, 14, 18, [-1, 0]);
+      var B6 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B6.roam.silver = 30; atCh(B6, 14, 18, [-1, 0]);
       var co6 = B6.co; B6.co = (function* () { yield* ChB.start(B6, { horses: true, willem: true }); yield* co6; })(); var o6 = flowCh(B6, []), Bg6 = topCh(); driveCh(Bg6.co, function () { return !!(ChB.state(Bg6) && ChB.state(Bg6).on); }, 600);
       var c6 = ChB.state(Bg6), r6 = climbCh(Bg6, 130, []), f6 = (topCh() && topCh().roam && topCh().roam.flags) || {};
       var Bi6 = D.top(), o7 = Bi6 && Bi6.roam ? flowCh(Bi6, []) : 'no inn floor', f7 = Bi6 && Bi6.roam ? Bi6.roam.flags : {};
       okCh('with the greys: ' + o6.slice(0, 300) + ' ... the gap ' + (c6 && c6.gap) + ' held (' + r6.seen.slice(Math.max(0, r6.seen.indexOf('The north mouth') - 20), r6.seen.indexOf('The north mouth') + 400) + ') after ' + r6.steps + ' squares; back: ' + o7.slice(0, 400) + ' -- outcome ' + f7.wagonOutcome + ', the tower ' + f7.towerFled + ', Doran away ' + f7.doranAway,
         !!c6 && c6.horses && c6.gap === 10 && /The north mouth, and the greys take them up out of the cut/.test(r6.seen) && !/INITIATIVE/.test(r6.seen) && r6.steps >= 90 && /the traces cut, the team gone north with them/.test(o7) && /seven children/.test(o7) && /MORNING/.test(o7) && f7.wagonOutcome === 'fled' && f7.towerFled === 1 && f7.doranAway === 1);
       // 6. THE WEST ROAD at the fork: the false pair followed -- your hand goes through them; lost, the Tower in words
-      var B8 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B8.roam.silver = 30; atCh(B8, 14, 18, [-1, 0]);
+      var B8 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B8.roam.silver = 30; atCh(B8, 14, 18, [-1, 0]);
       var co8 = B8.co; B8.co = (function* () { yield* ChB.start(B8, { horses: false, willem: true }); yield* co8; })(); flowCh(B8, []); var Bg8 = topCh(); driveCh(Bg8.co, function () { return !!(ChB.state(Bg8) && ChB.state(Bg8).on); }, 600);
       pairHp(Bg8, 999); var r8 = climbCh(Bg8, 140, ['THE PAIR GOING WEST']), Bi8 = topCh(), o9 = Bi8 && Bi8.roam ? flowCh(Bi8, []) : 'no inn floor', f9 = Bi8 && Bi8.roam ? Bi8.roam.flags : {};
       okCh('the west road at the fork: ' + r8.seen.slice(Math.max(0, r8.seen.indexOf('> THE PAIR GOING WEST') - 100), r8.seen.indexOf('> THE PAIR GOING WEST') + 500) + ' -- outcome ' + f9.wagonOutcome + ', the tower ' + f9.towerFled + '; back: ' + /seven children/.test(o9),
         /> THE PAIR GOING WEST/.test(r8.seen) && /Your hand goes through them/.test(r8.seen) && /The real pair are gone north/.test(r8.seen) && f9.wagonOutcome === 'fled' && f9.towerFled === 1 && /seven children/.test(o9) && /MORNING/.test(o9));
       // 7. THE FIRST CATCH WON: the pair at a hit point, run down and dropped where the road climbs; over on the road, the walk back, Willem's book in the yard's after
-      var B10 = testCh('?roam=halfway&hour=22&day=6&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B10.roam.silver = 30; atCh(B10, 14, 18, [-1, 0]);
+      var B10 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B10.roam.silver = 30; atCh(B10, 14, 18, [-1, 0]);
       var co10 = B10.co; B10.co = (function* () { yield* ChB.start(B10, { horses: false, willem: true }); yield* co10; })(); flowCh(B10, []); var Bg10 = topCh(); driveCh(Bg10.co, function () { return !!(ChB.state(Bg10) && ChB.state(Bg10).on); }, 600);
       pairHp(Bg10, 1); var r10 = climbCh(Bg10, 60, []), Bi10 = topCh(), o11 = Bi10 && Bi10.roam ? flowCh(Bi10, []) : 'no inn floor', f11 = Bi10 && Bi10.roam ? Bi10.roam.flags : {}, st11 = Bi10 && Bi10.roam ? CCh.state(Bi10) : null;
       okCh('the first catch won: ' + r10.seen.slice(Math.max(0, r10.seen.indexOf('run them down') - 40), r10.seen.indexOf('run them down') + 500) + ' -- after ' + r10.steps + ' squares; back: outcome ' + f11.wagonOutcome + ', the book ' + (st11 ? CCh.count(st11, 'willembook') : '?') + ', the tower ' + f11.towerFled,
@@ -2445,7 +2445,7 @@
     function topWg() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveWg(s.co, null, 2); return s; }
     // a counter screen read through: each ask answered from `ans` (an option's label, or its index), every line seen; then THE WORLD's next thing (sc.pend), if the screen stood over it
     function answerWg(sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 80 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); if (!sc.page) seen = seen.concat(w.say || w.ask || []); if (w.ask) { seen.push('[' + w.opts.join(' | ') + ']'); var a = ans.length ? ans.shift() : null, i = typeof a === 'string' ? w.opts.indexOf(a) : a; if (i == null || i < 0) i = w.opts.length - 1; seen.push('> ' + w.opts[i]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i; })[0]); } else sc.press(bs[0]); } var ws = WWg.scene; if (ws && ws.pend && D.top() === ws) { var p = ws.pend; ws.pend = null; p.call(ws); } if (ws && D.top() === ws && ws.cards && ws.cards.length) seen.push('CARD: ' + ws.cards[0].lines.join(' ')); return window.DS.stripCodes(seen.join(' / ')); }
-    function hourWg(day, h) { return (day - 1) * 24 + h; }
+    var OWg = D.inn.WAGON.first - 6; function hourWg(day, h) { return (day + OWg - 1) * 24 + h; } // (the days below are written as the first WAGON DAY 6 was, 11-04; OWg moves them with it -- day 12 since 11-05)
     function fmtWg(t) { var d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24; return 'day ' + d + ' ' + ('0' + Math.floor(h)).slice(-2) + ':' + ('0' + Math.round((h % 1) * 60)).slice(-2); }
     // a new game on the road: the party at road mile s (its hex on the map that covers it), the clock at t, the flags as given, the hex a step south of it behind them
     function stageWg(t, s, flags, party) {
@@ -2478,7 +2478,7 @@
       var atWg = function (d, h, f) { var w = WgB.at(hourWg(d, h), f || {}); return w ? w.leg + ' ' + w.s.toFixed(1) + (w.moving ? '' : ' (camped)') : 'none'; };
       var seqWg = [[4, 12], [5, 9], [5, 14], [5, 23], [6, 12], [6, 17.9], [6, 18], [6, 23], [7, 6], [7, 8], [7, 23], [8, 12], [9, 9], [9, 12], [10, 12], [33, 14], [34, 12]].map(function (q) { return 'd' + q[0] + ' ' + q[1] + 'h: ' + atWg(q[0], q[1]); });
       okWg('cycle 0 (WAGON DAY 6): leaves the Pit ' + fmtWg(Lg0.departPit) + ', the inn ' + fmtWg(Lg0.arriveInn) + ', away ' + fmtWg(Lg0.departInn) + ', Silverton ' + fmtWg(Lg0.arriveSil) + ' -- ' + seqWg.join('; '),
-        Math.floor(Lg0.departPit / 24) + 1 === 5 && Lg0.departPit % 24 > 9 && Lg0.departPit % 24 < 11 && Lg0.arriveInn === 5 * 24 + 18 && Lg0.departInn === 6 * 24 + 7 && Math.floor(Lg0.arriveSil / 24) + 1 === 9 && Lg0.arriveSil % 24 > 9 && Lg0.arriveSil % 24 < 12 &&
+        Math.floor(Lg0.departPit / 24) + 1 === 5 + OWg && Lg0.departPit % 24 > 9 && Lg0.departPit % 24 < 11 && Lg0.arriveInn === (5 + OWg) * 24 + 18 && Lg0.departInn === (6 + OWg) * 24 + 7 && Math.floor(Lg0.arriveSil / 24) + 1 === 9 + OWg && Lg0.arriveSil % 24 > 9 && Lg0.arriveSil % 24 < 12 &&
         atWg(4, 12) === 'none' && atWg(5, 9) === 'none' && /^south/.test(atWg(5, 14)) && /camped/.test(atWg(5, 23)) && /^south (19|2[0-9])\./.test(atWg(6, 12)) && /^inn/.test(atWg(6, 18)) && /^inn/.test(atWg(7, 6)) && /^north/.test(atWg(7, 8)) && /^north/.test(atWg(8, 12)) && atWg(9, 12) === 'none' && atWg(10, 12) === 'none' && /^south/.test(atWg(33, 14)) && /^south/.test(atWg(34, 12)));
       var sInnWg = WgB.at(hourWg(6, 17.9), {}).s, sN8 = WgB.at(hourWg(7, 8), {}).s;
       okWg('at the inn\'s mile as dusk comes on WAGON DAY (' + sInnWg.toFixed(2) + ' of ' + RWg0.inn.toFixed(2) + '); an hour out north at eight the morning after (' + (sN8 - RWg0.inn).toFixed(2) + ' mi); a stopped cycle has no wagon (' + (WgB.at(hourWg(7, 8), { wagonStopped: 'c0' }) === null) + ') and the next cycle runs (' + atWg(33, 14, { wagonStopped: 'c0' }) + ')',
@@ -2513,7 +2513,7 @@
       atWg2(Bb, 10, 22, [0, -1]); Bb.cards = []; var seenB = [], gB = RWg.arrive(Bb);
       for (var kb = 0; kb < 3000; kb++) { var s2 = D.top(); if (s2 instanceof CWg.Counter) { seenB.push(answerWg(s2, [])); continue; } if (s2 !== Bb) { D.pop(); continue; } var stB = gB.next(); if (stB.done) break; }
       var fB = Bb.roam.flags;
-      okWg('the wagon in off the road, the inn\'s yard: ' + seenB.join(' / ').slice(0, 400) + ' -- delivered ' + fB.wagonDelivered + ', Doran away ' + fB.doranAway + ', the one kept ' + fB.kidAtInn + ', the gift owed ' + fB.wagonGift + ', no wagon night this cycle (' + !InWg.wagonTonight(fB, 6) + ')', /eight children in the back/.test(seenB.join(' ')) && /drives them back down the road to Newland/.test(seenB.join(' ')) && fB.wagonDelivered === 1 && fB.doranAway === 1 && fB.kidAtInn === 1 && fB.wagonGift === 1 && !InWg.wagonTonight(fB, 6));
+      okWg('the wagon in off the road, the inn\'s yard: ' + seenB.join(' / ').slice(0, 400) + ' -- delivered ' + fB.wagonDelivered + ', Doran away ' + fB.doranAway + ', the one kept ' + fB.kidAtInn + ', the gift owed ' + fB.wagonGift + ', no wagon night this cycle (' + !InWg.wagonTonight(fB, 6 + OWg) + ')', /eight children in the back/.test(seenB.join(' ')) && /drives them back down the road to Newland/.test(seenB.join(' ')) && fB.wagonDelivered === 1 && fB.doranAway === 1 && fB.kidAtInn === 1 && fB.wagonGift === 1 && !InWg.wagonTonight(fB, 6 + OWg));
       HWg.playing = false; HWg.cur = null;
       // 6. THE GOLD ON THE ROAD, no Lymen: LOOK IN THE BED (the Perception pinned high), STAND IN THE ROAD, the word, Amara's fifty gold; the mark runs on, no fight
       var scG = stageWg(hourWg(6, 10), w10.s - 5 * 0.95, {}, ['barley', 'aurdin', 'vivian']); InWg.pinned = [19]; var metG = stepWg(scG, WWg.M().w), scG1 = D.top(), svG = HWg.cur.silver;
@@ -2541,7 +2541,7 @@
         }
         return window.DS.stripCodes(seen.join(' / '));
       }
-      var Bp = testWg('?roam=halfway&hour=18&day=6&at=24,17'); Bp.roam.silver = 30; Bp.roam.flags.wagonBribed = 'c0'; Bp.roam.flags.glamourBroken = 1; atWg2(Bp, 24, 17, [0, -1]); var oP = nightWg(Bp, [0, 'TO BED']), fP = Bp.roam.flags, iP = oP.indexOf('as you knew it would');
+      var Bp = testWg('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bp.roam.silver = 30; Bp.roam.flags.wagonBribed = 'c0'; Bp.roam.flags.glamourBroken = 1; atWg2(Bp, 24, 17, [0, -1]); var oP = nightWg(Bp, [0, 'TO BED']), fP = Bp.roam.flags, iP = oP.indexOf('as you knew it would');
       okWg('the inn\'s night after the road\'s gold: ' + oP.slice(Math.max(0, iP - 60), iP + 300) + ' -- no watcher\'s choice (' + !/> (INVESTIGATE|WAKE THE PARTY|KEEP WATCH)/.test(oP) + '), the purse ' + Bp.roam.silver + ' (the room paid, no gold twice), the outcome ' + fP.wagonOutcome + ', the traveler rode ' + !!fP.katRode,
         /keep to your room, as paid/.test(oP) && !/> (INVESTIGATE|WAKE THE PARTY|KEEP WATCH)/.test(oP) && /Only the inn lady comes back/.test(oP) && /MORNING/.test(oP) && Bp.roam.silver === 10 && fP.wagonOutcome === 'quiet' && !!fP.katRode);
       // 7. THE ROAD NORTH the morning after a quiet wagon night: the wagon ahead, one goblin fewer, the traveler on the bench; DETECT MAGIC (Aurdin's ritual, no slot) and the bed hums; LET THEM BY; the mark runs on
@@ -2562,6 +2562,111 @@
     D.store.get = stGWg; D.store.set = stSWg; D.music = muWg;
     var preWg = document.createElement('pre'); preWg.id = 'out'; preWg.textContent = 'BENCH16 ' + JSON.stringify(repWg);
     document.body.appendChild(preWg);
+    return;
+  }
+  // KATARINA AT THE FIRE, 11-05 (mode=kat1105; js/inn.js In.katScene, In.KAT, In.WAGON, js/grimoire.js M.jokeReady -- the Katarina seat, started by the lanes desk on Griz's
+  // "Yes, the leans": the wagon moved to day 12, her stay from day 4 through it, her talk ported from the first game's S.katarina, the lane's §7 drafts): the calendar; the
+  // ink bought at Lisbet's; Barley at her table on day 7 with it -- the Dominion, the vision, the Sheet: Hideous Laughter, katVision; Aurdin copies it into his book; the joke
+  // egg's condition met in the second game's own fight (no longer only the 8-bit's); her look and talk without Barley, what she saw by the dice; the ink waited on; no errand
+  // after the wagon's night; her last day -- the book, the vision with it, the message, south; the drawer; the show's two beats
+  if (get('mode', '') === 'kat1105') {
+    var repKt = { checks: [], errors: [] }, memKt = {}, stGKt = D.store.get, stSKt = D.store.set, HKt = D.house, CKt = D.counter, RKt = D.roam, InK = D.inn, MKt = D.magic, muKt = D.music;
+    function okKt(what, v) { repKt.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveKt(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topKt() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveKt(s.co, null, 2); return s; }
+    function testKt(q) { var B = RKt.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topKt(); }
+    function atKt(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function folkKt(B, id) { return ((B && B.units) || []).filter(function (u) { return u.npc === id; })[0] || null; }
+    function heroKt(st, id) { return st.party.filter(function (h) { return (h.key || h.id) === id; })[0] || null; }
+    // E on her from the square west of her (26,20): her counter read through, each question answered from `ans` (a label or an index; none left, its last), the options seen
+    function talkKt(B, ans) {
+      var R0 = B.roam, q = (ans || []).slice(), seen = []; atKt(B, 25, 20, [1, 0]); B.cards = []; R0.keys.push('use');
+      driveKt(B.co, function () { return D.top() instanceof CKt.Counter || (B.cards || []).length > 0; }, 400);
+      var sc = D.top(); if (!(sc instanceof CKt.Counter)) return { name: '', seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') };
+      var nm = sc.o.name;
+      for (var k = 0; k < 80 && !sc.done; k++) {
+        var w = sc.wait || {}, bs = sc.buttons();
+        if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + '] > ' + w.opts[i0]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); }
+        else { seen = seen.concat(w.say || []); sc.press(bs[0]); }
+      }
+      driveKt(B.co, function () { return D.top() !== sc; }, 60); driveKt(B.co, null, 40);
+      return { name: nm, seen: window.DS.stripCodes(seen.join(' / ')) };
+    }
+    D.store.get = function (k) { return memKt[k] ? JSON.parse(memKt[k]) : null; }; D.store.set = function (k, v) { memKt[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1105); InK.stay = true;
+      // 1. THE CALENDAR (RULED 11-05, his "Yes, the leans"): the first WAGON DAY 12 then every 28; the traveler from day 4 through it, and the morning after a stopped wagon
+      var hk = function (d, f) { return InK.katHere(f || {}, d) ? 1 : 0; }, Lk0 = D.wagon && { day: D.wagon.day(0) }; // (the wagon's own calendar, js/wagon.js Wg.day: its legs on THE WORLD's road are mode=wagon1104's)
+      okKt('the calendar: the first WAGON DAY ' + InK.WAGON.first + ' (every ' + InK.WAGON.every + '; day 40 ' + InK.isWagonDay(40) + ', day 6 ' + InK.isWagonDay(6) + '), the wagon\'s cycle 0 at the inn on day ' + (Lk0 && Lk0.day) + '; the traveler on days 3-13 ' + [3, 4, 7, 11, 12, 13].map(function (d) { return d + ':' + hk(d); }).join(' ') + '; the morning after a stopped wagon ' + hk(13, { wagonStopped: 'c0' }) + ' (gone already ' + hk(13, { wagonStopped: 'c0', katGone: 1 }) + ', day 14 ' + hk(14, { wagonStopped: 'c0' }) + '); ridden out ' + hk(7, { katRode: 1 }),
+        InK.WAGON.first === 12 && InK.WAGON.every === 28 && InK.KAT.from === 4 && InK.isWagonDay(40) && !InK.isWagonDay(6) && !!Lk0 && Lk0.day === 12 && [3, 4, 7, 11, 12, 13].map(function (d) { return hk(d); }).join('') === '011110' && hk(13, { wagonStopped: 'c0' }) === 1 && hk(13, { wagonStopped: 'c0', katGone: 1 }) === 0 && hk(14, { wagonStopped: 'c0' }) === 0 && hk(7, { katRode: 1 }) === 0);
+      // 2. THE INK BOUGHT AT LISBET'S (the counter's own buy: 100 silver a bottle), on day 7 in the common room, Barley one of the four
+      var Bk = testKt('?roam=halfway&hour=18&day=7&inside&at=25,20'), stK = CKt.state(Bk), kat0 = folkKt(Bk, 'katarina'); Bk.roam.silver = 130;
+      var shopK = window.DS.DATA.shops.lisbet, buyK = { st: stK, shop: shopK, shopId: 'lisbet', price: CKt.Counter.prototype.price, setFace: function () { } }; CKt.Counter.prototype.buy.call(buyK, 'ink', 1);
+      okKt('the ink at Lisbet\'s: her stock ' + JSON.stringify(shopK.items) + ', a bottle bought for ' + (130 - Bk.roam.silver) + ' silver (' + CKt.count(stK, 'ink') + ' in the pack); day 7 at six the traveler at her table by the fire (' + (kat0 ? kat0.name + ' at ' + kat0.x + ',' + kat0.y : 'none') + '), Barley one of the four (' + InK.barleyIn(stK) + ')',
+        shopK.items.indexOf('ink') >= 0 && Bk.roam.silver === 30 && CKt.count(stK, 'ink') === 1 && !!kat0 && kat0.x === 26 && kat0.y === 20 && kat0.name === 'A traveler' && InK.barleyIn(stK));
+      // 3. BARLEY AT HER TABLE WITH THE INK: the Dominion, the ink asked, given, the vision, the sheet; katVision
+      var t1 = talkKt(Bk, []), fK = Bk.roam.flags;
+      okKt('Barley at her table, the ink in hand (her plate "' + t1.name + '"): ' + t1.seen.slice(0, 900) + ' -- katInk ' + fK.katInk + ', katVision ' + fK.katVision + ', the ink ' + CKt.count(stK, 'ink') + ', the sheet ' + CKt.count(stK, 'sheet_hideouslaughter'),
+        t1.name === 'A traveler' && /Barley: "You're with the Dominion\."/.test(t1.seen) && /She breaks in before he can say more/.test(t1.seen) && /used up all my ink/.test(t1.seen) && /You set the bottle by her book/.test(t1.seen) && /I saw Aurdin laughing/.test(t1.seen) && /Sheet: Hideous Laughter/.test(t1.seen) &&
+        fK.katInk === 1 && fK.katVision === 1 && CKt.count(stK, 'ink') === 0 && CKt.count(stK, 'sheet_hideouslaughter') === 1);
+      // 4. AURDIN LEARNS IT (the field's use of a sheet, js/house.js FD.item): copied into his book, the sheet spent; Barley can make nothing of it
+      var auK = heroKt(stK, 'aurdin'), baK = heroKt(stK, 'barley'), envK = { where: 'floor', party: stK.party, has: function (id) { return CKt.count(stK, id) > 0; }, take: function (id) { CKt.take(stK, id, 1); } };
+      var whyBa = HKt.field.learnWhy('sheet_hideouslaughter', baK, stK.party), knew0 = (auK.known || []).indexOf('hideouslaughter') >= 0, lnK = HKt.field.item('sheet_hideouslaughter', auK, envK) || [];
+      okKt('the sheet used: Barley "' + whyBa + '"; Aurdin (knew it before ' + knew0 + ') "' + lnK.join(' ') + '" -- his book ' + ((auK.known || []).indexOf('hideouslaughter') >= 0) + ', the sheet left ' + CKt.count(stK, 'sheet_hideouslaughter'),
+        /wants a wizard/.test(whyBa) && !knew0 && /Aurdin copies Hideous Laughter into the spellbook/.test(lnK.join(' ')) && (auK.known || []).indexOf('hideouslaughter') >= 0 && CKt.count(stK, 'sheet_hideouslaughter') === 0);
+      // 5. HER AGAIN: the default word (her first look was Barley's broken-in line, as the first game had it), the vision told -- what she saw both tiers, no roll; the road
+      // south, what she is; no Amara before the wagon is known
+      var t2 = talkKt(Bk, ['ASK WHAT SHE SAW', 'ASK ABOUT THE ROAD SOUTH', 'ASK WHAT SHE IS']);
+      okKt('her again, the vision told: ' + t2.seen.slice(0, 1100) + ' -- katSaw ' + fK.katSaw,
+        /writing in a thick bound book by the fire/.test(t2.seen) && !/mine till I'm fetched/.test(t2.seen) && /There was a moot/.test(t2.seen) && /don't look long/.test(t2.seen) && !/Persuasion/.test(t2.seen) && /as if it were a place you could be bound for/.test(t2.seen) && /Those are the same work, mostly/.test(t2.seen) && !/ASK ABOUT AMARA/.test(t2.seen) && fK.katSaw === 2);
+      // 6. THE JOKE EGG'S CONDITION MET IN THE SECOND GAME (js/grimoire.js M.jokeReady: the main game is the house's own story since 11-05): the save's flags, his book, the day's
+      // spells, gnolls on the field -- ready; not while the house is not playing, nor without the vision
+      var jokeK = function (vis, playing) {
+        var rec = HKt.fresh(); rec.flags = JSON.parse(JSON.stringify(vis ? fK : {})); var au = heroKt(rec, 'aurdin'); au.known = auK.known.slice(); if (Array.isArray(au.prepared)) au.prepared = au.prepared.slice(0, -1).concat(['hideouslaughter']);
+        HKt.cur = rec; HKt.playing = true; var Bx = new D.Battle({ house: true, fight: 'snoot', data: HKt.living(rec) }); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.round = 1; HKt.playing = !!playing;
+        var u = Bx.units.filter(function (x) { return x.id === 'aurdin'; })[0], out = { ready: MKt.jokeReady(Bx, u), main: MKt.jokeMain(Bx), gnolls: Bx.units.filter(function (w) { return MKt.gnoll(w); }).length, known: !!u && (u.known || []).indexOf('hideouslaughter') >= 0 };
+        HKt.playing = false; HKt.cur = null; D.battle = null; return out;
+      };
+      var jY = jokeK(true, true), jN = jokeK(true, false), jV = jokeK(false, true);
+      okKt('the joke egg in the second game: a house fight with ' + jY.gnolls + ' gnolls, Aurdin carrying it (' + jY.known + '), the vision in the save -- ready ' + jY.ready + ' (the main game ' + jY.main + '); the house not playing ' + jN.ready + '; no vision ' + jV.ready,
+        jY.ready === true && jY.main === true && jY.gnolls > 0 && jY.known && jN.ready === false && jV.ready === false);
+      // 7. WITHOUT BARLEY (down this evening): no errand -- her look, her talk; what she saw by the dice: a 3 misses and the roll is spent; a 19 the hard tier (shown)
+      var Bn = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), stN = CKt.state(Bn), baN = heroKt(stN, 'barley'); baN.ko = true; InK.pinned = [3];
+      var t3 = talkKt(Bn, ['ASK WHAT SHE SAW']), t3b = talkKt(Bn, []), fN = Bn.roam.flags;
+      var Bn2 = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), baN2 = heroKt(CKt.state(Bn2), 'barley'); baN2.ko = true; InK.pinned = [19]; var t4 = talkKt(Bn2, ['ASK WHAT SHE SAW']);
+      okKt('without Barley, day 5: ' + t3.seen.slice(0, 500) + ' // again: ' + t3b.seen.slice(0, 300) + ' // a 19: ' + t4.seen.slice(0, 400) + ' -- katInk ' + fN.katInk + ', katSaw ' + fN.katSaw + ' then ' + Bn2.roam.flags.katSaw,
+        !/Dominion/.test(t3.seen) && !fN.katInk && /mine till I'm fetched/.test(t3.seen) && /Persuasion 3 [+-] \d+ = \d+/.test(t3.seen) && /does not answer/.test(t3.seen) && !/There was a moot/.test(t3.seen) && fN.katSaw === 0 && !/ASK WHAT SHE SAW/.test(t3b.seen) && !/mine till I'm fetched/.test(t3b.seen) &&
+        /Persuasion 19 [+-] \d+ = \d+/.test(t4.seen) && /There was a moot/.test(t4.seen) && /don't look long/.test(t4.seen) && Bn2.roam.flags.katSaw === 2);
+      InK.pinned = null;
+      // 8. THE INK WAITED ON: Barley's word given days ago, no bottle -- her wait; with one later, the vision
+      var Bw8 = testKt('?roam=halfway&hour=18&day=9&inside&at=25,20&flags=katInk,katLooked'), stW8 = CKt.state(Bw8), t5 = talkKt(Bw8, []); CKt.give(stW8, 'ink', 1); var t5b = talkKt(Bw8, []);
+      okKt('the ink waited on (day 9): "' + t5.seen.slice(0, 260) + '"; a bottle brought: "' + t5b.seen.slice(0, 200) + '" -- katVision ' + Bw8.roam.flags.katVision + ', the sheet ' + CKt.count(stW8, 'sheet_hideouslaughter'),
+        /A bottle of ink, and I'll tell you what I saw/.test(t5.seen) && !/Dominion/.test(t5.seen) && /I saw Aurdin laughing/.test(t5b.seen) && Bw8.roam.flags.katVision === 1 && CKt.count(stW8, 'sheet_hideouslaughter') === 1);
+      // 9. NO ERRAND AFTER THE WAGON'S NIGHT (the first game's rule): the first wagon stopped on the road on day 11; on day 12 Barley at her table, nothing asked of the ink
+      var B12 = testKt('?roam=halfway&hour=10&day=12&inside&at=25,20'); B12.roam.flags.wagonCycle = 0; B12.roam.flags.wagonStopped = 'c0'; B12.roam.flags.wagonMet = 'c0south'; var t6 = talkKt(B12, ['ASK ABOUT AMARA']);
+      okKt('after the wagon\'s night (day 12, the wagon stopped on the road): ' + t6.seen.slice(0, 500) + ' -- katInk ' + B12.roam.flags.katInk,
+        !/Dominion/.test(t6.seen) && !B12.roam.flags.katInk && /I knew her before she had wagons/.test(t6.seen) && !/ASK WHAT SHE CARRIED/.test(t6.seen));
+      // 10. HER LAST DAY (the show's beat: day 13 at eight, the wagon stopped in the yard last night, Barley's word given, a bottle in the pack): the book across the table, the
+      // vision with it, what she carried (the read at the greeting caught her and Amara), LET HER GO -- south; the floor without her; the drawer
+      InK.play(InK.BEATS.filter(function (b) { return b.id === 'katbook'; })[0]); var Bl = topKt(), stL = CKt.state(Bl), here0 = !!folkKt(Bl, 'katarina'), drw0 = InK.bookInDrawer(Bl.roam.flags, 13, stL);
+      var t7 = talkKt(Bl, ['ASK WHAT SHE CARRIED', 'ASK ABOUT AMARA']), fL = Bl.roam.flags;
+      okKt('her last day (day 13, ' + RKt.def.key + ', the beat\'s square ' + Bl.roam.token.x + ',' + Bl.roam.token.y + '; she is there ' + here0 + ', no book in the drawer yet ' + !drw0 + '): ' + t7.seen.slice(0, 1400) + ' -- katGone ' + fL.katGone + ', katGave ' + fL.katGave + ', katVision ' + fL.katVision + ', her book ' + CKt.count(stL, 'katbook') + ', the sheet ' + CKt.count(stL, 'sheet_hideouslaughter') + '; on the floor after ' + !!folkKt(Bl, 'katarina') + '; the drawer on day 14 ' + InK.bookInDrawer(fL, 14, stL),
+        RKt.def.key === 'halfway' && here0 && !drw0 && /closes her book when you sit down/.test(t7.seen) && /It should go to somebody who'll read it/.test(t7.seen) && new RegExp(window.DS.DATA.items.katbook.name).test(t7.seen) && /I saw Aurdin laughing/.test(t7.seen) && /a dozen words/.test(t7.seen) && /She was kind, then/.test(t7.seen) && /LET HER GO/.test(t7.seen) && /walks south, toward the Pit/.test(t7.seen) &&
+        fL.katGone === 1 && fL.katGave === 1 && fL.katVision === 1 && CKt.count(stL, 'katbook') === 1 && CKt.count(stL, 'sheet_hideouslaughter') === 1 && !folkKt(Bl, 'katarina') && !InK.bookInDrawer(fL, 14, stL));
+      HKt.playing = false; HKt.cur = null;
+      // 11. THE DRAWER: ridden out with the wagon, the book left there; still at the inn the morning after a stopped wagon, none yet; walked south after it without giving it, there
+      okKt('the drawer: ridden out (day 13) ' + InK.bookInDrawer({ katRode: 1 }, 13) + '; the wagon never met, day 13 ' + InK.bookInDrawer({}, 13) + '; the wagon stopped, day 13 ' + InK.bookInDrawer({ wagonStopped: 'c0' }, 13) + ', day 14 ' + InK.bookInDrawer({ wagonStopped: 'c0' }, 14) + '; given ' + InK.bookInDrawer({ katGave: 1, katGone: 1 }, 14),
+        InK.bookInDrawer({ katRode: 1 }, 13) && InK.bookInDrawer({}, 13) && !InK.bookInDrawer({ wagonStopped: 'c0' }, 13) && InK.bookInDrawer({ wagonStopped: 'c0' }, 14) && !InK.bookInDrawer({ katGave: 1, katGone: 1 }, 14) && !InK.bookInDrawer({}, 12));
+      // 12. THE SHOW'S BEAT 'kat' (deep16/?innshow&beat=kat): the house's four on day 7 at six, a bottle in the pack, the traveler by the fire; E on her: the errand and the vision
+      InK.play(InK.BEATS.filter(function (b) { return b.id === 'kat'; })[0]); var Bs = topKt(), stS = CKt.state(Bs), inkS = CKt.count(stS, 'ink'), kS = folkKt(Bs, 'katarina'), t8 = talkKt(Bs, []);
+      okKt('the show\'s beat kat: ' + RKt.def.key + ' at ' + Bs.roam.token.x + ',' + Bs.roam.token.y + ', day ' + InK.day(RKt.q) + ', the ink ' + inkS + ', the traveler ' + !!kS + '; E on her: ' + t8.seen.slice(0, 300) + ' -- the sheet ' + CKt.count(stS, 'sheet_hideouslaughter'),
+        RKt.def.key === 'halfway' && inkS === 1 && !!kS && /You're with the Dominion/.test(t8.seen) && /I saw Aurdin laughing/.test(t8.seen) && CKt.count(stS, 'sheet_hideouslaughter') === 1);
+    } catch (eKt) { repKt.errors.push(String(eKt && eKt.stack || eKt).slice(0, 900)); }
+    HKt.playing = false; HKt.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
+    D.store.get = stGKt; D.store.set = stSKt; D.music = muKt;
+    var preKt = document.createElement('pre'); preKt.id = 'out'; preKt.textContent = 'BENCH16 ' + JSON.stringify(repKt);
+    document.body.appendChild(preKt);
     return;
   }
   // THE HALFWAY INN ON THE GRID, 11-04 (mode=inn1104; js/inn.js -- the Inn build seat, started by the lanes desk on Griz's word: "alright, did a story-plot review for the
@@ -2722,11 +2827,12 @@
       // 9c. EVERY BEAT OF THE SHOW stands up in the house (the upstairs beat once had no square to stand on: Battle.enter threw)
       var beatsIn = InI.BEATS.filter(function (b) { return !b.world; }).map(function (b) { var o = b.id + ': '; try { InI.play(b); var Bb = topIn(), t = Bb && Bb.roam && Bb.roam.token; o += (RIn.def && RIn.def.key) + ' at ' + (t ? t.x + ',' + t.y : '-') + (t && t.x === b.at[0] && t.y === b.at[1] && RIn.def.key === b.key ? '' : ' WRONG'); } catch (eB) { o += 'THREW ' + String(eB).slice(0, 80); } HIn.playing = false; HIn.cur = null; InI.pinned = null; return o; });
       okIn('every beat of ?innshow stands up in the house: ' + beatsIn.join('; '), beatsIn.every(function (o) { return !/WRONG|THREW/.test(o); }));
-      // 11. THE WAGON ON THE CALENDAR (RULED 11-04: the first WAGON DAY 6, then every 28): the days, the traveler's two, the other nights' word
-      var wd = [5, 6, 7, 33, 34, 62].map(function (d) { return d + (InI.isWagonDay(d) ? ' WAGON' : ''); }), kd = [4, 5, 6, 7].map(function (d) { var Bk2 = testIn('?roam=halfway&hour=18&day=' + d + '&at=24,17'); return d + (folkIn(Bk2, 'katarina') ? ' Kat' : ''); });
+      // 11. THE WAGON ON THE CALENDAR (RULED 11-04: the first WAGON DAY then every 28 -- moved 11-05 from day 6 to day 12, his "Yes, the leans", the Katarina seat): the days, the
+      // traveler's stay from day 4 through the first WAGON DAY (the clock lane's "inn night = Day 4"), the other nights' word
+      var WDI = InI.WAGON.first, wd = [WDI - 1, WDI, WDI + 1, WDI + 27, WDI + 28, WDI + 56].map(function (d) { return d + (InI.isWagonDay(d) ? ' WAGON' : ''); }), kd = [3, 4, WDI, WDI + 1].map(function (d) { var Bk2 = testIn('?roam=halfway&hour=18&day=' + d + '&at=24,17'); return d + (folkIn(Bk2, 'katarina') ? ' Kat' : ''); });
       var Bo3 = testIn('?roam=halfway&hour=18&day=3&at=24,17'); Bo3.roam.silver = 30; atIn(Bo3, 24, 17, [0, -1]); var o3 = flowIn(Bo3, [0]);
-      okIn('the calendar: ' + wd.join(', ') + '; the traveler at the inn ' + kd.join(', ') + '; another night (day 3): the month\'s wagon named (' + /End of the month there's a wagon through/.test(o3) + '), the bed, no second watch (' + !/On second watch/.test(o3) + ')',
-        wd.join() === '5,6 WAGON,7,33,34 WAGON,62 WAGON' && kd.join() === '4,5 Kat,6 Kat,7' && /End of the month there's a wagon through/.test(o3) && /MORNING/.test(o3) && !/On second watch/.test(o3));
+      okIn('the calendar: ' + wd.join(', ') + '; the traveler at the inn ' + kd.join(', ') + '; another night (day 3): the month\'s wagon named (' + /Once a month there's a wagon through/.test(o3) + '), the bed, no second watch (' + !/On second watch/.test(o3) + ')',
+        WDI === 12 && wd.join() === '11,12 WAGON,13,39,40 WAGON,68 WAGON' && kd.join() === '3,4 Kat,12 Kat,13' && /Once a month there's a wagon through/.test(o3) && /MORNING/.test(o3) && !/On second watch/.test(o3));
       // THE WAGON NIGHT PLAYED ON THE FLOOR (11-04 later, his word at the pane): the floor's own script driven on -- each prompt answered from `ans` by its label (none left, the
       // last option), the watches picker begun with Lymen on the second watch, every card's lines seen once, each morning woken, a counter answered; the fight on the floor runs
       // by the class AI (&watch), the pair's hit points set as the choice is made (foeHp: 1 and no speed for a sure win, 999 for the run)
@@ -2750,19 +2856,21 @@
       }
       // 12. THE WAGON NIGHT, KEEP WATCH: Lymen's feeling and the watches (Lymen on the second), the wagon in on the floor, the inn lady out with her lantern, the greetings, the handover at the
       // greeting and its read, KEEP WATCH, the lamps down, the due's walk on the point, the morning; the traveler rides out, her book in the drawer after
-      var Bq = testIn('?roam=halfway&hour=18&day=6&at=24,17'); Bq.roam.silver = 30; atIn(Bq, 24, 17, [0, -1]); InI.pinned = [10, 1]; var oq = nightIn(Bq, [0, 'TO BED', 'KEEP WATCH']), fq = Bq.roam.flags, iq = oq.indexOf('WATCHES');
-      okIn('THE WAGON NIGHT, day 6, KEEP WATCH: ' + oq.slice(Math.max(0, iq - 200), iq + 1400) + ' -- the outcome ' + fq.wagonOutcome + ', the traveler rode ' + !!fq.katRode + ', the cycle ' + fq.wagonCycle + ', the due tonight ' + fq.dueTonight + ' (the one taken ' + fq.kidTaken + '), the walk seen ' + fq.dueSeen + ', her book in the drawer after (' + InI.bookInDrawer(fq, 7) + '), the yard clear after (' + !Bq.units.some(function (u) { return u.scripted; }) + ', riders ' + (Bq.riders || []).length + ')',
+      var Bq = testIn('?roam=halfway&hour=18&day=' + WDI + '&at=24,17'); Bq.roam.silver = 30; atIn(Bq, 24, 17, [0, -1]); InI.pinned = [10, 1]; var oq = nightIn(Bq, [0, 'TO BED', 'KEEP WATCH']), fq = Bq.roam.flags, iq = oq.indexOf('WATCHES');
+      okIn('THE WAGON NIGHT, day ' + WDI + ', KEEP WATCH: ' + oq.slice(Math.max(0, iq - 200), iq + 1400) + ' -- the outcome ' + fq.wagonOutcome + ', the traveler rode ' + !!fq.katRode + ', the cycle ' + fq.wagonCycle + ', the due tonight ' + fq.dueTonight + ' (the one taken ' + fq.kidTaken + '), the walk seen ' + fq.dueSeen + ', her book in the drawer after (' + InI.bookInDrawer(fq, WDI + 1) + '), the yard clear after (' + !Bq.units.some(function (u) { return u.scripted; }) + ', riders ' + (Bq.riders || []).length + ')',
         /set a watch tonight/.test(oq) && /WATCHES: .*lymen 2/.test(oq) && /THE SECOND WATCH/.test(oq) && /Lymen, at the window on the second watch: a wagon turns in/.test(oq) && /Mistress Amara/.test(oq) && /Amara lifts one down from the back/.test(oq) && /> KEEP WATCH/.test(oq) && /lantern leaves its post/.test(oq) && /The inn lady walks the path to the point, and a goblin walks with her/.test(oq) && /Only the inn lady comes back/.test(oq) && /MORNING/.test(oq) && !/INITIATIVE/.test(oq) &&
-        fq.wagonOutcome === 'quiet' && !!fq.katRode && fq.wagonCycle === 0 && fq.dueTonight === 1 && fq.kidTaken === 1 && fq.dueSeen === 1 && InI.bookInDrawer(fq, 7) && !Bq.units.some(function (u) { return u.scripted; }) && !(Bq.riders || []).length);
+        fq.wagonOutcome === 'quiet' && !!fq.katRode && fq.wagonCycle === 0 && fq.dueTonight === 1 && fq.kidTaken === 1 && fq.dueSeen === 1 && InI.bookInDrawer(fq, WDI + 1) && !Bq.units.some(function (u) { return u.scripted; }) && !(Bq.riders || []).length &&
+        /The traveler and Amara know each other/.test(oq) && fq.katKnewAmara === 1); // (11-05, the Katarina seat: the greeting's silent Insight 13, the party's best passive -- her message's key)
       // 13. THE WAGON NIGHT, steel and won: seen through at the window (the die pinned high), WAKE THE PARTY, the party out the front door into the yard, Lymen's word, the fight on the
       // floor's own squares (the pair at one hit point and rooted, for a sure win), the strongbox, the seven in the bed, Doran's drive, Willem's book, Elsbeth's gift in the morning
-      var Bw = testIn('?roam=halfway&hour=18&day=6&at=24,17'); Bw.roam.silver = 30; atIn(Bw, 24, 17, [0, -1]); InI.pinned = [18, 18]; var s0w = 30 - 20, ow = nightIn(Bw, [0, 'TO BED', 'WAKE THE PARTY'], 1), fw = Bw.roam.flags, stw = CIn.state(Bw), iw = ow.indexOf('> WAKE THE PARTY');
+      var Bw = testIn('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bw.roam.silver = 30; atIn(Bw, 24, 17, [0, -1]); InI.pinned = [18, 18]; var s0w = 30 - 20, ow = nightIn(Bw, [0, 'TO BED', 'WAKE THE PARTY'], 1), fw = Bw.roam.flags, stw = CIn.state(Bw), iw = ow.indexOf('> WAKE THE PARTY');
       okIn('THE WAGON NIGHT, steel and won: ' + ow.slice(Math.max(0, iw - 100), iw + 1500) + ' -- the purse ' + Bw.roam.silver + ', the order ' + CIn.count(stw, 'wagonorder') + ', Willem\'s book ' + CIn.count(stw, 'willembook') + ', the gift ' + !!fw.lakeGiftGot + ', the flags ' + [fw.wagonOutcome, fw.glamourBroken, fw.kidAtInn, fw.doranAway, fw.wagonStopped].join('/') + ', the fight ' + JSON.stringify(InI.lastFight) + ', the floor ' + RIn.def.key + ' (' + RIn.def.inside + ') with ' + Bw.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes left on it',
         /> WAKE THE PARTY/.test(ow) && /shakes the others awake/.test(ow) && /Lymen: Children/.test(ow) && /INITIATIVE/.test(ow) && !/FIGHT wagonnight/.test(ow) && /The wagon stands in the yard, the team still in its traces/.test(ow) && /seven children/.test(ow) && /Under the driver's bench, a strongbox/.test(ow) && /drives the children back down the road to Newland/.test(ow) && /his spells, and at the back/.test(ow) && /MORNING/.test(ow) &&
-        Bw.roam.silver === s0w + 600 && CIn.count(stw, 'wagonorder') === 1 && CIn.count(stw, 'willembook') === 1 && !!fw.lakeGiftGot && fw.wagonOutcome === 'inn' && fw.glamourBroken === 1 && fw.kidAtInn === 1 && fw.doranAway === 1 && fw.wagonStopped === 'c0' && RIn.def.key === 'halfway' && !Bw.units.some(function (u) { return u.side === 'foe'; }));
+        Bw.roam.silver === s0w + 600 && CIn.count(stw, 'wagonorder') === 1 && CIn.count(stw, 'willembook') === 1 && !!fw.lakeGiftGot && fw.wagonOutcome === 'inn' && fw.glamourBroken === 1 && fw.kidAtInn === 1 && fw.doranAway === 1 && fw.wagonStopped === 'c0' && RIn.def.key === 'halfway' && !Bw.units.some(function (u) { return u.side === 'foe'; }) &&
+        !fw.katGone && InI.katHere(fw, WDI + 1) && !InI.katHere(fw, WDI + 2)); // (11-05: the wagon stopped, she has no ride -- the morning after is her last day, In.katLast)
       // 14. THE WAGON NIGHT, steel and away: the pair past hurting (999), a blow on Willem at the traces and both break for the road down the west edge -- on foot -- and either on it ends it;
       // the wagon and its seven left in the yard, the children freed all the same, no book
-      var Bf = testIn('?roam=halfway&hour=18&day=6&at=24,17'); Bf.roam.silver = 30; atIn(Bf, 24, 17, [0, -1]); InI.pinned = [18, 18]; var of = nightIn(Bf, [0, 'TO BED', 'WAKE THE PARTY'], 999), ff = Bf.roam.flags, stf = CIn.state(Bf), fi = of.indexOf('lets go of the traces');
+      var Bf = testIn('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bf.roam.silver = 30; atIn(Bf, 24, 17, [0, -1]); InI.pinned = [18, 18]; var of = nightIn(Bf, [0, 'TO BED', 'WAKE THE PARTY'], 999), ff = Bf.roam.flags, stf = CIn.state(Bf), fi = of.indexOf('lets go of the traces');
       okIn('THE WAGON NIGHT, away on foot: ' + of.slice(Math.max(0, fi - 300), fi + 700) + ' -- fled ' + ff.wagonFled + ', the outcome ' + ff.wagonOutcome + ', no book (' + !CIn.count(stf, 'willembook') + '), the children still freed (' + ff.kidAtInn + '), stopped ' + ff.wagonStopped,
         /lets go of the traces/.test(of) && /breaks for the road, on foot/.test(of) && /is gone/.test(of) && /They are away north up the road on foot/.test(of) && /the traces cut|the team still in its traces/.test(of) && /seven children/.test(of) && /MORNING/.test(of) && ff.wagonFled === 'foot' && ff.wagonOutcome === 'fled' && !CIn.count(stf, 'willembook') && ff.kidAtInn === 1 && ff.wagonStopped === 'c0');
       // 15. THE TRACES (RULED 11-04 §1): three turns at the harness unbothered and the team is loose, the pair mounted; a blow first and they run on foot as before
