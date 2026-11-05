@@ -616,6 +616,7 @@
       if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
       var hw = C.heroW(sc), fu = C.heroFull(sc.hero && C.heroPortrait(sc.hero)), bx = fu && !hr ? O.hero.left + hw + 4 : 0, bw = Math.min(RW, hr ? D.W - 16 - hw : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- the keepers' bust, its trial: clear of him)
       BB = { x: hr ? D.W - 2 - hw - 6 - bw : bx || O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
+      if (w.flip && !hr && !fu) { var fx = O.hero.left + hw + 4; BB = { x: fx, y: BB.y, w: D.W - 8 - fx, h: BB.h }; } // (THE FLIP, 11-05: its bubble runs taller than an answer's, so it stands beside the hero, clear of them)
     }
   }
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
@@ -702,6 +703,68 @@
     });
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
     D.hint(ctx, done ? 'click a choice · arrows choose · E pick · X back' : 'click or E: all the words', D.W / 2, D.H - 11, '#9a96a8', 'center');
+  };
+  // ---------------------------------------------------------------- THE FLIP (11-05, the supper seat; Griz: "I sort of want the player to be able to flip through characters at the
+  // dinner (which have different perception etc. checks) that let the player choose responses and questions of the innkeeps", then "when it's the party's opening in the conversation"
+  // and a read "would appear above vivian's conversation options for that turn"): sc.flip(who, prompt, list, at) -- an ask on the open screen whose answers are one hero's at a time,
+  // list[i] = { hero, side, key, reads: [lines], opts: [labels] }; the heroes' names in a row at the bubble's head (click one, or left and right), the one shown's silent reads in
+  // the insight colour above that hero's answers (never picked); it gives back { at, k, seen: [every i shown while it waited] }. Every other ask is as it was.
+  C.FLIP = { read: '#7CF8E8', off: '#7c7c98', said: /\s*\((insight|perception|deception|persuasion|history|religion|arcana|survival|intimidation)\)$/i };
+  C.flipSaid = function (l) { return String(l).replace(C.FLIP.said, ''); }; // (the line as the hero says it: the check's name off its end)
+  Counter.prototype.flip = function (who, prompt, list, at) {
+    var f = { list: list, at: Math.max(0, Math.min(list.length - 1, at || 0)), seen: {} }, w = this.askBy(who, prompt, list[f.at].opts);
+    w.flip = f; f.seen[f.at] = 1; this.hero = list[f.at].hero; this.heroSide = list[f.at].side; return w;
+  };
+  Counter.prototype.flipTo = function (k) {
+    var w = this.wait || {}, f = w.flip; if (!f) return; var n = f.list.length; k = ((k % n) + n) % n; if (k === f.at) return;
+    f.at = k; f.seen[k] = 1; var e = f.list[k]; w.opts = e.opts; this.hero = e.hero; this.heroSide = e.side;
+    if (this.typeAt) this.typeAt.t0 = -1e9; // (a flip shows that hero's answers at once: only the first hero's are typed out)
+    var bs = this.buttons(), o = bs.filter(function (q) { return q.go === 'opt'; })[0]; this.hov = o ? bs.indexOf(o) : -1; D.sfx('cursor');
+  };
+  Counter.prototype.flipButtons = function () { // (inside the open screen's places: BB is the bubble's)
+    var w = this.wait, f = w.flip, out = [], x = BB.x + 4, y = BB.y + 5, tw = BB.w - 20, W8 = D.WIN8;
+    var tab = function (lb, k, color) { var wd = D.textWidth(lb) + 12; out.push({ x: x, y: y, w: wd, h: 12, label: lb, lines: [lb], go: 'flip', k: k, bubble: true, tab: true, color: color }); x += wd + 1; };
+    if (f.list.length > 1) { tab('◀', f.at - 1, C.FLIP.off); f.list.forEach(function (e, i) { tab(e.hero.name, i, i === f.at ? W8.gold : C.FLIP.off); }); tab('▶', f.at + 1, C.FLIP.off); y += 15; }
+    (f.list[f.at].reads || []).forEach(function (r) { var ls = D.wrap(r, tw); out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: 4 + ls.length * 10, label: r, lines: ls, go: 'read', off: true, bubble: true, color: C.FLIP.read }); y += 4 + ls.length * 10 + 2; });
+    (w.opts || []).forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.wrap(o.label, tw), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k, bubble: true }); y += h + 3; });
+    return out;
+  };
+  var bubbleF = Counter.prototype.bubbleButtons;
+  Counter.prototype.bubbleButtons = function () { var self = this; if (!(this.wait || {}).flip) return bubbleF.apply(this, arguments); return inOpen(this, function () { return self.flipButtons(); }, []); };
+  var pressF = Counter.prototype.press;
+  Counter.prototype.press = function (b) {
+    var w = this.wait || {}, f = w.flip, self = this;
+    if (!f || !b) return pressF.apply(this, arguments);
+    if (b.go === 'flip') { this.flipTo(b.k); return; }
+    if (b.go === 'read') return;
+    if (b.go === 'opt') { D.sfx('cursor'); this.echo = inOpen(this, function () { return D.wrap(C.flipSaid(b.label), BB.w - 20); }, []); this.step({ at: f.at, k: b.k, seen: Object.keys(f.seen).map(Number) }); return; } // (the hero's line stays in the bubble while the hosts answer)
+    return pressF.apply(this, arguments);
+  };
+  var updateF = Counter.prototype.update;
+  Counter.prototype.update = function () {
+    var w = this.wait || {}, self = this;
+    if (!w.flip || !this.o || !this.o.open || !this.typed()) return updateF.apply(this, arguments);
+    return inOpen(this, function () { return self.flipUpdate(); }, []);
+  };
+  Counter.prototype.flipUpdate = function () { // (left and right flip the hero, up and down the answer, E says it; a click on a name flips, on an answer says it)
+    if (!this.bubbling()) return update0.apply(this, arguments);
+    this.t++;
+    var m = I.mouse, bs = this.buttons(), f = this.wait.flip, opts = bs.filter(function (q) { return q.go === 'opt'; });
+    if (!f.hov0) { f.hov0 = 1; this.hov = opts.length ? bs.indexOf(opts[0]) : -1; }
+    var hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
+    if (m.moved || m.click) this.hov = hit && !hit.off ? bs.indexOf(hit) : this.hov;
+    if (m.click && m.inside && hit) { this.press(hit); return; }
+    if (I.repeat('left')) { this.flipTo(f.at - 1); return; }
+    if (I.repeat('right')) { this.flipTo(f.at + 1); return; }
+    var k0 = opts.indexOf(bs[this.hov]);
+    if (I.repeat('down') && opts.length) { this.hov = bs.indexOf(opts[(k0 + 1) % opts.length]); D.sfx('cursor'); }
+    if (I.repeat('up') && opts.length) { this.hov = bs.indexOf(opts[k0 < 0 ? opts.length - 1 : (k0 - 1 + opts.length) % opts.length]); D.sfx('cursor'); }
+    if (I.pressed('a')) { var q = bs[this.hov]; this.press(q && (q.go === 'opt' || q.go === 'flip') ? q : opts[0]); }
+  };
+  var drawOpenF = Counter.prototype.drawOpen;
+  Counter.prototype.drawOpen = function (ctx) {
+    drawOpenF.apply(this, arguments); var w = this.wait || {};
+    if (w.flip && this.bubbling() && this.typed()) { ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14); D.hint(ctx, '◀ ▶ whose words · click a name or a line · up down choose · E say it', D.W / 2, D.H - 11, '#9a96a8', 'center'); }
   };
   // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
   // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
