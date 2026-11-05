@@ -153,8 +153,31 @@
     if (m.isoFire) m.isoFire = m.isoFire.filter(function (q) { return !mine[q[0] + ',' + q[1]]; });
     m.sorted = null; IP.laid = got;
   };
+  // THE GROUND TILES (11-05, the exteriors seat; page 9B): painted into the code's floor as it is baked (js/iso.js `groundArt`) -- the lake's shallows on its knee-deep
+  // squares (W), the wagon ruts down the Pit road (its three columns, along y) and on the wagon's track off the road into the yard (along x, to where it stands on its night)
+  IP.TRACK = { x0: 3, x1: 7, rows: [18, 19] };
+  var GT = {};
+  IP.groundTile = function (name, m) {
+    if (GT[name] !== undefined) return GT[name];
+    var S = sheet(name), bx = boxes(name);
+    if (!S || !bx) { // (its sheet not come yet: the code's floor for now, and the floor baked again when it comes -- js/iso.js iso.rebake)
+      var key = SHEETS.filter(function (k) { return D.SHEETS && D.SHEETS[k] && D.SHEETS[k].tiles[name]; })[0], src = key && D.SHEETS[key].image;
+      if (m && src && D.spr && D.spr.load && !m.groundWait) { m.groundWait = true; D.spr.load(src).then(function () { m.groundWait = false; if (iso.map === m && sheet(name)) iso.rebake(m); }); }
+      return null;
+    }
+    var q = bx[0], cv = document.createElement('canvas'); cv.width = q[2]; cv.height = q[3]; var cx = cv.getContext('2d'); cx.drawImage(S.im, q[0], q[1], q[2], q[3], 0, 0, q[2], q[3]);
+    try { return (GT[name] = { data: cx.getImageData(0, 0, q[2], q[3]).data, w: q[2], h: q[3] }); } catch (e) { return (GT[name] = null); } // (a page that may not read the atlas's pixels -- a file opened without leave -- keeps the code's floor)
+  };
+  IP.groundAt = function (x, y) {
+    var r = In.ROWS[y], c = r ? r.charAt(x) : '', T = IP.TRACK;
+    if (c === 'W') return 'ground_shallows';
+    if (c === ',' && x <= 2) return 'ground_ruts';
+    if (c === '.' && x >= T.x0 && x <= T.x1 && T.rows.indexOf(y) >= 0) return 'ground_rutsX';
+    return null;
+  };
   var load0 = iso.load;
   iso.load = function (def) {
+    if (def && def.key === In.KEY && IP.on) def.groundArt = function (x, y, m) { var nm = IP.groundAt(x, y); return nm ? IP.groundTile(nm, m) : null; };
     var m = load0.apply(this, arguments); if (def && (def.key === In.KEY || def.key === In.UP)) IP.dress(m); return m; // (the yard, the barn and the shore too since 11-05)
   };
   // ELSBETH AT HOME (11-04, Griz to this seat: "please wire in elsbeth and her tub"): at the inn she wears the art desk's figure of her at home (elsbethhome_p1, art-wanted

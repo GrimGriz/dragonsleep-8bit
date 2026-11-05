@@ -171,6 +171,9 @@
       // the ground under it (11-05, the exteriors seat, on Griz's "the props appear to be drawn on the code-drawn dirt tile despite being inside"): a map's `under`, rows as its own,
       // names the look painted beneath a square that is not its own -- the boards under a bed or a crate in a house; the square's rules are its own char's as ever
       var gch = (m.def.under && m.def.under[s.y] && m.def.under[s.y].charAt(s.x)) || ' '; if (gch === ' ') gch = s.ch;
+      // a tile painted into the floor (11-05, the exteriors seat; art-wanted 36 page 9B: the lake's shallows, the wagon ruts): a map's `groundArt(x, y)` gives a drawn square's
+      // pixels, { data, w: 64, h: 32 } -- its top as drawn, the diamond -- or null; where they are opaque they stand for the code's own, the map's edge still fading them
+      var gArt = m.def.groundArt && !s.gz ? m.def.groundArt(s.x, s.y, m) : null;
       var c = iso.center(s.x, s.y, s.gz), ox = c.x - minX, oy = c.y - minY;
       // (no rock within reach of any of its pixels' look-round -- three squares, the pixel's own square one off the square's at the rhombus edge: nearRock is 9 for each, so skip
       // its 25 looks a pixel; the same pixels, for the town's streets and plazas a fifth of the time -- 10-20)
@@ -253,6 +256,7 @@
               if (gch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
             }
           }
+          if (gArt) { var gtx = dx + HW, gty = dy + HH, gto = (gty * gArt.w + gtx) * 4; if (gtx >= 0 && gty >= 0 && gtx < gArt.w && gty < gArt.h && gArt.data[gto + 3] > 127) col = [gArt.data[gto], gArt.data[gto + 1], gArt.data[gto + 2]]; }
           // an open edge of the map (a road running on, the way out) fades into the dark, dithered
           var ed = Math.min(gx + 0.5, gy + 0.5, m.w - 0.5 - gx, m.h - 0.5 - gy);
           if (ed < 0.9 && dith(ix, iy) > ed / 0.9) col = stone[0];
@@ -328,6 +332,8 @@
         p.pc.getContext('2d').putImageData(p.pim, 0, 0); p.cv = p.pc; p.pim = p.pc = null; this.baked++; return true;
       } };
   }
+  // the floor painted again (11-05, the exteriors seat): a map whose `groundArt` was asked before its sheet had come (the sheets load as they are wanted) bakes once more when it comes
+  iso.rebake = function (m) { m = m || iso.map; if (m) bake(m); };
   iso.PAGE = 1024; iso.PAGES_KEPT = 48; iso.PAGE_MS = 6; // (a page's px; the pages kept painted at once, the least lately seen let go past that -- 4 MB each)
   // the paged floor on the canvas being drawn: the pages in view painted now, one more a frame from those just outside it, and the least lately seen let go
   function drawPages(ctx, b, o, vw, vh) {
