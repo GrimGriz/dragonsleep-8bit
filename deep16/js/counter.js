@@ -833,28 +833,61 @@
 
   // ---------------------------------------------------------------- Ambrose Winters (the first game's js/events.js S.winters and S.wintersWork, on the grid). His words
   // are the first game's (content/text.json winters.*); the one new line is the JOURNAL's hint, the grid's menu named (invented.json winters-journal-grid)
+  // THE RING OF BINDING AT THE LEAD'S 3RD (11-05, the Winters seat, winters-1105; the Halfway Inn lane's item 8): the first game's scene (S.winters: given at the main's 4th, RULED
+  // 09-23) at the second game's 3rd -- RULED 10-29, the difficulty, Griz: "1 - change Winters requirement" -- in the first game's words: Elsbeth's errand said by the one who leads
+  // (winters.askLake), "you are not yet ready" below it (winters.watching, his words 09-25), then "Now you're ready." and the ring, put on whoever has a finger free (the lead
+  // first); not ready, his look as the talk ends names level 3 (winters.notReady). invented.json winters-ring-at-3-1105
+  C.RING_LVL = 3;
+  C.leadOf = function (st) { var rec = D.house && D.house.playing && D.house.cur, k = rec && rec.lead, p = st.party.filter(function (h) { return h && !h.dead; }); return p.filter(function (h) { return (h.key || h.id) === k; })[0] || p[0] || st.party[0] || null; };
+  C.ringReady = function (st) { var ld = C.leadOf(st); return !!ld && (ld.lvl || 1) >= C.RING_LVL; };
+  C.wintersRing = function* (sc) {
+    var st = sc.st, f = st.flags, ld = C.leadOf(st);
+    yield sc.say(L('winters.ready'), 'welcoming');
+    D.sfx('ring'); give(st, 'ringofbinding', 1); f.wintersRing = 1;
+    yield sc.say(L('winters.ring'), 'attentive');
+    var free = function (h) { return h && h.equip && !h.dead && (!h.equip.ring || !h.equip.ring2); }; // (two ring fingers on the grid: camp.js SLOTS ring, ring2)
+    var who = free(ld) ? ld : st.party.filter(free)[0] || ld;
+    if (who && who.equip && (yield sc.ask(L('winters.equipAsk', { name: who.name }), ['YES', 'NO'], 'attentive')) === 0) {
+      var slot = !who.equip.ring ? 'ring' : !who.equip.ring2 ? 'ring2' : 'ring';
+      if (who.equip[slot]) give(st, who.equip[slot], 1);
+      who.equip[slot] = 'ringofbinding'; take(st, 'ringofbinding', 1); sc.regear = true; D.sfx('confirm');
+    }
+    if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Binding' + (who && who.equip && (who.equip.ring === 'ringofbinding' || who.equip.ring2 === 'ringofbinding') ? ', on ' + who.name : ', to the pack') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
+  };
   C.winters = function* (sc) {
-    var st = sc.st, f = st.flags;
+    var st = sc.st, f = st.flags, ld = C.leadOf(st), had = function () { return count(st, 'ringofbinding') > 0 || st.party.some(function (h) { return h.equip && (h.equip.ring === 'ringofbinding' || h.equip.ring2 === 'ringofbinding'); }); };
     if (!f.wintersMet) {
       f.wintersMet = 1;
       yield sc.say(L('winters.first'), 'attentive');
       yield sc.say(L('winters.words'), 'welcoming');
       if (st.party.some(function (h) { return (h.key || h.id) === 'vivian' && !h.dead; })) yield sc.say(L('winters.vivian'), 'skeptical');
     }
+    // Elsbeth sent you (the first game's, RULED 09-25): the one who leads says so, and hears why not yet
+    if (f.elsbethSent && !f.wintersAsked && !had() && !f.lakeDone) {
+      f.wintersAsked = 1;
+      yield sc.say(['{y}' + (ld ? ld.name : 'The party') + ':{/} "' + L('winters.askLake') + '"'], 'attentive');
+      if (!C.ringReady(st)) yield sc.say(L('winters.watching'), 'attentive');
+    }
+    if (!had() && !f.lakeDone && C.ringReady(st)) { yield* C.wintersRing(sc); return; } // (the first game's: the ring ends the talk)
     // (an errand brought back closes as soon as you walk in, and the next one comes with it -- the first game's playtest 09-25 round four)
+    var notReady = function () { // (once at each of the lead's levels below the 3rd, as the talk ends: the first game said it at every leaving; the JOURNAL keeps it between)
+      var lv = ld ? ld.lvl || 1 : 1; if (had() || f.lakeDone || C.ringReady(st) || f.wintersLooked === lv) return null;
+      f.wintersLooked = lv; return sc.say(L('winters.notReady', { lvl: lv, at: C.RING_LVL }), 'skeptical');
+    };
     var back = (f.wErrA && !f.wErrADone && f.wValued) || (f.wErrB && !f.wErrBDone && f.wPaid);
     if (back) {
       yield* C.wintersWork(sc);
-      if (f.wErrADone && !f.wErrB && (yield* C.wintersWork(sc)) === 'leave') return;
+      if (f.wErrADone && !f.wErrB && (yield* C.wintersWork(sc)) === 'leave') { var n0 = notReady(); if (n0) yield n0; return; }
     }
     while (true) {
-      var a = yield sc.ask(L('winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE']);
+      var a = yield sc.ask(L(had() ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE']);
       if (a === 0) { if ((yield* C.wintersWork(sc)) === 'leave') break; }
       else if (a === 1) {
         if (!f.wErrADone) { yield sc.say(L('winters.shelvesShut'), 'concerned'); continue; }
         yield sc.shelves('winters');
       } else break;
     }
+    var n1 = notReady(); if (n1) yield n1; // (the first game's: his look as you go, the level named)
   };
   // an offer of work or a mission, any keeper's (10-21, Griz, on the counter: "Need to 'not now' option the work/mission 'offers'"): its words, the last as the
   // question, then TAKE IT or NOT NOW -- NOT NOW (a click, or X) closes it untaken, and it is offered again on a later visit. True when taken
@@ -1236,6 +1269,15 @@
       text: 'Across the river, the Crawler Warrens: the mouth camp, where the cradles take hands on by the shift and the bunkhouse gives a bed for the night.',
       doneText: 'The mouth camp: Edric Pellam has your names in his book. The feed track runs between it and Silverton.',
       steps: [{ where: 'The feed track: walk off Silverton\'s east edge where it leaves the town, over the bridge to the mouth camp. The town map (L) marks it.' }] }];
+  // WHEN YOU'RE READY moves on as it happens (11-05, the Winters seat, over the journal seat's content/quests.json `ring` at level 3): below the lead's 3rd its own words; at the
+  // 3rd its words say he is ready and its step is a KEY step (js/hours.js H16.keyCard: it flies into the JOURNAL as the lead reaches it); the ring had, done, and onward to the lake
+  // in Winters' words (winters.ring: "For the thing in the lake"). invented.json winters-ring-at-3-1105
+  C.RING_WORDS = { text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The one who leads you is ready now, and Winters has something for you.',
+    step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and he is ready.',
+    doneText: 'The Ring of Binding, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
+  C.OWN_QUESTS.push({ id: 'ring', doneText: C.RING_WORDS.doneText,
+    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? C.RING_WORDS.text : q.text; },
+    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
   // (a second game's record of a first-game id stands over it, field by field -- its show, its words, its steps: js/hours.js; `text` and `steps` may be read off the state; the
   // list in C.QUESTS's order)
   C.quests = function (st) {

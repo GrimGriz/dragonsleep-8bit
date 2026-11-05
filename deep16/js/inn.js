@@ -174,7 +174,8 @@
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
     var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 4, 19], on: 'use', script: 'inn:point' },
-      { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' }];
+      { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' },
+      { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
     if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
     var lights = inside === 'inn' ? In.FIRES.map(function (q, i) { return { id: 'hearth' + i, kind: 'map', x: q[0], y: q[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }; }) : null;
     return { id: 'halfway', name: 'The Halfway Inn', rows: rows, legend: Object.assign({ U: 'wagon', V: 'wagonBed' }, In.LEGEND), music: inside === 'inn' ? 'inn' : 'lake', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: false,
@@ -859,7 +860,7 @@
   };
   In.wagonNight = function* (B, d) {
     var R = D.roam, R0 = B.roam, f = R0.flags, st = D.counter.state(B), H = D.house, W = D.world;
-    f.wagonCycle = In.cycle(d); delete f.glamourSeen;
+    f.wagonCycle = In.cycle(d); delete f.glamourSeen; delete f.duePaid; // (duePaid is tonight's: the ring cold by morning, the ring warm after the take -- 11-05)
     var party = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; }), lead = party[0] || R0.token;
     var keyOf = function (u) { return u.src ? (u.src.key || u.src.id) : u.id; };
     // 1. Lymen's feeling, and the watches (his word, 11-04): the camp's picker; the one on the second watch has the window
@@ -966,7 +967,11 @@
       morning = (D.secondact && D.secondact.morning(f)) || L('wagon.morning.inn');
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
     }
-    if (how !== 'fight' && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
+    // the ring warm after the due (11-05, the Winters seat; the lane's §3 and beat 4, RULED 11-04): the lantern walked and the take was made tonight -- the quiet, the gold, LET IT BE
+    // (STAND ASIDE's is on the path, js/secondact.js A.due) -- and the Ring of Binding worn: GO DOWN TO THE POINT, the chuul; else the ring cold by morning
+    if ((how !== 'fight' || act === 'let') && D.secondact && D.secondact.ringWarm) { f.duePaid = 1; if ((yield* D.secondact.ringWarm(B, {})) === 'lost') return; }
+    if (f.lakeDone && D.secondact) morning = how === 'fight' ? D.secondact.morning(f) || morning : D.secondact.lakeMorning(morning);
+    else if ((how !== 'fight' || f.duePaid) && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
     delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
     yield* In.sleep(B, morning);
@@ -1095,6 +1100,7 @@
     if (s === 'inn:pointStep') { if (f.lakeDone) say = [L('lake.quiet')]; else if (!f.pointSeen) { f.pointSeen = 1; say = [L('lake.pointDay')]; } } // (the due seen, the thing awake there: the lake's, the lane's item 7)
     else if (s === 'inn:point') say = [L(f.lakeDone ? 'lake.quiet' : 'lake.deep')];
     else if (s === 'inn:sign') say = [trig.text || ''];
+    else if (s === 'inn:rowboat') { if (D.secondact && D.secondact.sound) yield* D.secondact.sound(B); return; } // (the rowboat: LEAVE IT, or sound the deep -- the chuul by day, 11-05)
     else if (s === 'inn:stair') { yield* M.go(B, In.UP, [In.UPSTAIR[0], In.UPSTAIR[1] - 1], [0, -1]); return; } // (up to the guest rooms, a step off the stair head)
     else if (s === 'inn:down') { yield* M.go(B, In.KEY, [In.STAIR[0], In.STAIR[1] - 1], [0, -1]); return; } // (down by the bar, a step off the stair's foot into the room: the house laid open, js/inn.js In.qInside)
     else if (s === 'inn:drawer') {

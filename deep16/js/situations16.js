@@ -60,7 +60,16 @@
       lead: 'lymen', lvl: 6, kit: true, silver: 60, renown: 2, give: [['potion', 3], ['torch', 2]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1, heardGalleries: 1, cullHired: 1, paidBats: 0, paidMantles: 0, heardCloaker: 1 },
       open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail',
       at: { town: 'mouth', gate: 'east' }, day: 2, hour: 10,
-      look: 'Day 3, mid-morning, level 6 (the kit they buy by 6: Vivian\'s studded leather, Lymen\'s Longsword +1): the four at the guano mine\'s mouth. The JOURNAL: the cloaker\'s tail pinned (forty gold, the deep gallery) and the Cull taken. Dace by the beam: TAKE HIM and his mission opens; Old Wynn sends him home if asked. Down the working gallery to the slide, then the deep gallery: his staff lights, the cloaker hunts him.' }
+      look: 'Day 3, mid-morning, level 6 (the kit they buy by 6: Vivian\'s studded leather, Lymen\'s Longsword +1): the four at the guano mine\'s mouth. The JOURNAL: the cloaker\'s tail pinned (forty gold, the deep gallery) and the Cull taken. Dace by the beam: TAKE HIM and his mission opens; Old Wynn sends him home if asked. Down the working gallery to the slide, then the deep gallery: his staff lights, the cloaker hunts him.' },
+    // (Winters' ring at the lead's 3rd, 11-05 -- the Winters seat, the Halfway Inn lane's item 8, RULED 10-29 "1 - change Winters requirement": the same visit a level apart, Elsbeth's word carried)
+    winters2: { group: G, title: 'Fountain Street at level 2, Elsbeth\'s word carried: Winters not ready yet (11-05)', pt: 'the halfway inn and the lake · Winters\' ring · situations from a link',
+      lead: 'lymen', silver: 30, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, wintersMet: 1, wErrA: 1, wErrADone: 1, elsbethSent: 1, reachedInn: 1 }, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring',
+      at: { town: 'silverton', door: 'warp:winters' }, day: 6, hour: 10,
+      look: 'Day 7, mid-morning, level 2, Lymen leading: on Fountain Street at Winters\' door, back from the Halfway Inn with Elsbeth\'s word. The JOURNAL: When You\'re Ready pinned -- "once the one who leads you is level 3". E at the door, E on Winters: Lymen says the girl at the dishes sent you; Winters sets the pen down -- "You are not yet ready." -- then WORK / THE SHELVES / LEAVE; LEAVE: "Not ready. Not yet. (The one who leads you is level 2. Winters will be ready at level 3.)"' },
+    winters3: { group: G, title: 'Fountain Street at level 3: Winters gives the Ring of Binding (11-05)', pt: 'the halfway inn and the lake · Winters\' ring · situations from a link',
+      lead: 'lymen', lvl: 3, silver: 30, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, wintersMet: 1, wErrA: 1, wErrADone: 1, elsbethSent: 1, reachedInn: 1, kSeen: 1 }, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring',
+      at: { town: 'silverton', door: 'warp:winters' }, day: 6, hour: 10,
+      look: 'Day 7, mid-morning, level 3, Lymen leading: at Winters\' door. As the street comes up the JOURNAL\'s card flies in -- When You\'re Ready, the next step: "the one who leads you is level 3 now, and he is ready." E at the door, E on Winters: Lymen says the girl at the dishes sent you; then "Now you\'re ready." and the RING OF BINDING on the counter, "For the thing in the lake", +3 to CON saves, the rounds it must turn on its wearer; "Put it on Lymen?" YES: M, EQUIP shows it on his hand. The JOURNAL: When You\'re Ready done -- "for the thing in the lake, Winters says. The Halfway Inn, down the road."' }
   };
 
   var D = window.D16; if (!D || !D.house) return; // (situations.html reads the table alone)
@@ -95,7 +104,8 @@
   function besideOn(fl, at) {
     var R = D.roam;
     if (at.mark) { var mk = (fl.marks[at.mark] || [])[0]; return mk ? { sq: mk.slice(), dir: R.DIR8['0,-1'] } : null; }
-    var pp = fl.people.filter(function (p) { return p.id === at.near; })[0], taken = {}; if (!pp) return null;
+    var dq = at.door && fl.marks && fl.marks.doors && fl.marks.doors[at.door]; // (`door`: on the street beside a door of the town, facing it -- Winters' at the ring's door, 11-05)
+    var pp = dq ? { at: dq } : fl.people.filter(function (p) { return p.id === at.near; })[0], taken = {}; if (!pp) return null;
     fl.people.forEach(function (p) { taken[p.at[0] + ',' + p.at[1]] = 1; });
     var o0 = [[0, 1], [-1, 0], [1, 0], [0, -1], [1, 1], [-1, 1]].filter(function (o) { var x = pp.at[0] + o[0], y = pp.at[1] + o[1], r = fl.rows[y]; return r && '.,='.indexOf(r.charAt(x)) >= 0 && !taken[x + ',' + y]; })[0];
     return o0 ? { sq: [pp.at[0] + o0[0], pp.at[1] + o0[1]], dir: R.DIR8[(-o0[0]) + ',' + (-o0[1])] || null } : null;
@@ -118,7 +128,7 @@
       if (s.pin) rec.flags.pin = s.pin;
       rec.flags.qSeen = 1; C.quests(st).forEach(function (q) { rec.flags['q:' + q.id] = 1; }); // (the JOURNAL as it stands, seen: no card flies for what it opens with -- js/hours.js H16.missionDue)
       var at = s.at || {}, town = at.town || 'silverton', dr = W.DOORS[town], pl = null;
-      if (town === 'silverton' && (at.near || at.mark) && D.town && D.town.floor) pl = besideOn(D.town.floor('', rec.flags), at);
+      if (town === 'silverton' && (at.near || at.mark || at.door) && D.town && D.town.floor) pl = besideOn(D.town.floor('', rec.flags), at);
       rec.at = { town: town, gate: at.gate || (dr ? Object.keys(dr.gates)[0] : 'west'), sq: at.sq || (pl && pl.sq) || null, dir: at.dir || (pl && pl.dir) || null };
       // THE WORLD under it: the place's hex (the Warrens have none of their own -- Silverton's feed track), the day and the hour
       if (W.index) W.index(); // (THE WORLD's map is indexed on its first look: js/world.js W.index)
