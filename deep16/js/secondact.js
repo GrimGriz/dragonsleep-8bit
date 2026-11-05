@@ -64,9 +64,9 @@
     wandOut: 'Her hand goes into the apron and comes out with a length of blackened bone-white wood, a hand and a half long, and she says one word.',
     wandFlee: '{y}{name}{/} turns and walks out of the kitchen, and cannot come nearer her for a minute.',
     wandHold: '{y}{name}{/} holds. The word slides off.',
-    wandCone: 'The rest of you press, and she says the other word: the kitchen is a wall of fear, and you are through the door before you know it.',
-    wandDone: 'Nobody is hurt. The kitchen is empty behind you, and she will not open it again tonight.',
-    elsbethSilentWand: 'The kitchen door is shut. Nothing you say opens it.',
+    wandCone: 'The rest of you press, and she says the other word: the kitchen is a wall of fear, and you are back by the fire before you know it.',
+    wandDone: 'Nobody is hurt. Behind you she is at the tub again, the wood gone back into the apron, and she will not speak to you again tonight.', // (11-05, his "says the kitchen is empty and doors won't open and the kitchen doesn't empty and has no doors. Easiest to change the text")
+    elsbethSilentWand: 'She keeps her back to you and works. Nothing you say turns her round tonight.',
     // (the Winters seat, 11-05: the chuul on the due's own night and the rowboat -- invented.json halfway-lake-due-night-1105)
     ringWarmBack: 'Back up the path to the lake door, and in to bed.',
     mornLakeAway: 'Morning. Up at the inn a lamp came on in the kitchen before dawn. Doran is gone, and the wagon with him. The lantern stays on its hook by the lake door, and nobody lights it.',
