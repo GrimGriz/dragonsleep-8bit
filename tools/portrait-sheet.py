@@ -221,6 +221,10 @@ PEOPLE = {
     # played once (the hook and the lantern kept with her: islands inside her frame's box)
     'gennet': ('gennet/INN-PORTRAITS-1105', 'GENNET', 'npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s_HEAD-%d_*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' bar top bevelled: a sliver of it stood under them)
     'katarina': ('katarina/INN-PORTRAITS-1105', 'H', 'npc:katarina (the Halfway Inn, js/inn.js)', {'edge': True, 'pat': '%s%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' table edge bevelled, as Falstaff's: a sliver of it stood under them)
+    # Willem Glass, the illusionist (11-05, the Waterby cutter, on the lanes desk's relay of Griz's "Saw the mention I'd failed to DL them to Fresh and Willem portraits are there
+    # now"): the art desk's HALFWAY-INN-WILLEM-PORTRAITS, art-wanted section 35 -- WILLEM_HEAD-1_PAGE-1.png to HEAD-6, at a table in his navy coat, a coin walking his knuckles;
+    # his work the coin closed in his hand, the palm shown empty and the coin found at his ear, played once
+    'willem': ('willem/INN-PORTRAITS-1105/selected', 'WILLEM', 'Willem at the wagon and on the road (js/wagon.js, js/chase.js)', {'edge': True, 'pat': '%s_HEAD-%d_PAGE-1.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # Elsbeth the candle girl (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-PORTRAITS-PARTIAL, five pages (H1P1-Idle.png to H1P5-Concerned.png) -- her
     # Work held by the art desk (the working hand switches), so no work row: her face on Silverton's street; at the inn she speaks on pt_elsbethtub
     'elsbethCandles': ('elsbeth/ART-123-ELSBETH-PORTRAITS-PARTIAL', 'H1', 'npc:elsbethCandles', {'edge': True, 'pat': '%sP%d-*.png', 'layout': LAYOUT[:5], 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),

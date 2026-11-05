@@ -10612,6 +10612,12 @@
       okWl('his fight figure: ' + descWl('willemglass_p2') + (badW.length ? ' -- off: ' + badW.join(', ') : ''), !badW.length && /tools\/willem-sheet\.py/.test(sW.source) && sW.top >= 45 && sW.top <= 54 && D.spr.proneRow('willemglass_p2') === 'prone');
       var sM = D.SHEETS.willemmounted_p1;
       okWl('mounted: ' + descWl('willemmounted_p1') + ' -- at amaramounted_p1\'s size (its top ' + (D.SHEETS.amaramounted_p1 || {}).top + '), cut and not wired', !!sM && sM.anims.idle.frames === 1 && sM.anims.walk.frames === 6 && !sM.anims.idle.drawn && /tools\/willem-sheet\.py/.test(sM.source) && Math.abs(sM.top - D.SHEETS.amaramounted_p1.top) <= 6);
+      // his talking portrait (later 11-05, the art desk's HALFWAY-INN-WILLEM-PORTRAITS, Griz: "Saw the mention I'd failed to DL them to Fresh and Willem portraits are there now"):
+      // idle 6, the four moods, the work 6 (the coin found at his ear); on the portraits shelf by C.VENDORS (he speaks nowhere yet), the show takes him by name
+      var sPW = D.SHEETS.pt_willem, MOODW = ['attentive', 'welcoming', 'skeptical', 'concerned'], CWl = D.counter, psW = CWl.portraitShow('?portraits&who=willem,nobody');
+      okWl('pt_willem cut (' + (sPW ? sPW.fw + 'x' + sPW.fh + ', ' + Object.keys(sPW.anims).map(function (a) { return a + ' ' + sPW.anims[a].frames; }).join(', ') : 'NONE') + '), on the shelf (C.VENDORS.willem ' + (CWl.VENDORS.willem || {}).sheet + '); the portraits\' show takes him (' + psW.ids.join(',') + ')',
+        !!sPW && sPW.portrait && sPW.anims.idle.frames === 6 && sPW.anims.work.frames === 6 && MOODW.every(function (a) { return sPW.anims[a] && sPW.anims[a].frames === 1; }) && (CWl.VENDORS.willem || {}).sheet === 'pt_willem' && psW.ids.join() === 'willem');
+      D.scenes.length = 0;
       okWl('the records: data/foes.js willem ' + D.FOES.willem.sheet + ', the class floor\'s (NPC.NAMED.willem.look) ' + D.npc.NAMED.willem.look, D.FOES.willem.sheet === 'willemglass_p2' && D.npc.NAMED.willem.look === 'willemglass_p2');
       // a fight built with him (data/foes.js `build`, js/classes.js NPC.fromFoe): the yard's, the road's, the chase's Willem; and his Traces row as the floor draws him at the buckles
       D.spr.has = function () { return true; }; D.spr.frameMask = function () { return null; };

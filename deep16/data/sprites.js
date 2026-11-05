@@ -18972,6 +18972,102 @@ true
 "door": "hex:warda",
 "source": "deep16/_src/warda/ART-123-WARDA (the art desk's ART-123-WARDA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_willem": {
+"image": "art/pt_willem.png?v=e9ebb673f7",
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 182,
+"fh": 155,
+"ax": 91,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "WILLEM",
+"door": "Willem at the wagon and on the road (js/wagon.js, js/chase.js)",
+"source": "deep16/_src/willem/INN-PORTRAITS-1105/selected (the art desk's WILLEM, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_winters": {
 "image": "art/pt_winters.png?v=24fa7964bb",
 "fw": 189,
