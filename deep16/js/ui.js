@@ -1436,7 +1436,7 @@
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     if (!B.cine) strip(ctx, B); // (B.cine: a show's scene, js/gameshow.js -- no turn strip and no bar over it)
     if (B.skylight) D.text(ctx, B.skylight.name.toUpperCase() + '  ' + (G.standing(B.skylight) ? B.skylight.hp + '/' + B.skylight.maxhp : 'BROKEN'), D.W / 2, 14, G.standing(B.skylight) ? R('glow', 2) : R('red', 4), 'center'); // (the defend fight's object, under the strip)
-    cards(ctx, B);
+    if (!B.menu) cards(ctx, B); // (the M menu open: its cards go over it, below -- a cast's word from the menu sat under the menu, 11-05)
     var ey = B.dark && B.eyes; // (the one under the mouse, or the hero whose turn it is on a map with no light: js/light.js L.pass)
     if (ey) { var vm = D.light.viewMap(B, ey); D.text(ctx, 'EYES: ' + ey.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (ey.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 2)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
     tooltip(ctx, B, hero);
@@ -1457,9 +1457,9 @@
     if (req && req.entry) entry(ctx, B);
     if (req && req.scene) scene(ctx, B, req.scene);
     if (req && req.victory) victory(ctx, B, req.victory);
-    if (B.menu) menu(ctx, B);
+    if (B.menu) { menu(ctx, B); cards(ctx, B); } // (Tuesday 3, his 10-31 "the 'nothing happens' appears underneath the menus that don't drop when you click to cast it": a cast's card over the menu, the menu kept open for the next -- RULED 11-05, "go with leans")
   };
-  UI.drawReq = function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); if (req.victory) victory(ctx, B, req.victory); }; // (the simple fight's: its boxes under them -- js/simple.js)
+  UI.drawReq =function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); if (req.victory) victory(ctx, B, req.victory); }; // (the simple fight's: its boxes under them -- js/simple.js)
 
   // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
   function farMarks(ctx, B) {
