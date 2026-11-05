@@ -288,13 +288,17 @@
   C.Counter = Counter;
   C.LAYOUT = { portrait: [PX, PY, PW, PH], words: [RX, WY, RW, WH], hero: [HB.x, HB.y, HB.w, HB.h], bubble: [BB.x, BB.y, BB.w, BB.h] };
   Counter.prototype.say = function (lines, face) { return { say: [].concat(lines), face: face }; };
+  // the answer under the cursor as a question opens: none on a question that commits -- two answers or more, the confirm key does nothing till the mouse or the arrows
+  // pick one (the hire's preselect, his 10-31 Sabeth note "Did pinning the mission count as a first talk without interacting with NPC?": TAKE THE WORK stood under the
+  // cursor, and the E that paged her words took it; RULED 11-05, "go with leans"). A one-answer ask (a hero's line to say) keeps its one
+  C.preHov = function (w) { return w && w.ask && (w.opts || []).length < 2 ? 0 : -1; };
   Counter.prototype.ask = function (prompt, opts, face) { return { ask: [].concat(prompt), opts: opts, face: face }; };
   Counter.prototype.shelves = function (shop) { return { shelves: shop }; };
   Counter.prototype.setFace = function (f) { if (f) this.face = { anim: f, t0: this.t }; };
   Counter.prototype.step = function (v) {
     var r = this.co.next(v);
     if (r.done) { this.close(); return; }
-    this.wait = r.value; this.i = 0; this.hov = this.wait.ask ? 0 : -1; this.page = 0;
+    this.wait = r.value; this.i = 0; this.hov = C.preHov(this.wait); this.page = 0;
     if (this.wait.face) this.setFace(this.wait.face);
     if (this.wait.say) this.pages = this.paginate(this.wait.say);
     if (this.wait.ask && this.hero) { this.pages = this.paginate(this.wait.ask); this.echo = null; } // (a hero's question: the keeper's words paged, the answers in the bubble)
@@ -411,7 +415,7 @@
     var w = this.wait || {}, s = this.sub, self = this;
     if (!b || b.off) { D.sfx('error'); return; }
     D.sfx(b.go === 'back' || b.go === 'qback' || b.go === 'notnow' ? 'cancel' : 'cursor');
-    if (b.go === 'next') { if (this.page < this.pages.length - 1) this.page++; else this.step(); return; }
+    if (b.go === 'next') { if (this.page < this.pages.length - 1) { this.page++; if (this.bubbling()) this.hov = C.preHov(w); } else this.step(); return; } // (onto a hero's answers: NEXT's place under the cursor is not the first answer's -- C.preHov)
     if (b.go === 'opt') { if (b.bubble) this.echo = D.wrap(b.label.replace(/ \(insight\)$/, ''), BB.w - 20); this.step(b.k); return; } // (the hero's line stays in the bubble while the keeper answers)
     if (b.go === 'tab') { this.tab = b.tab; this.scroll = 0; this.cur = 0; if (b.tab === 'sell') { this.setFace('skeptical'); if (!this.rows().length) this.msg = this.shop.nothingText || 'You have nothing I want.'; } return; }
     if (b.go === 'back') { this.shop = null; this.step(); return; }
@@ -446,7 +450,7 @@
     var live = bs.filter(function (q) { return !q.off; });
     if (I.repeat('down') || I.repeat('right')) { var k0 = live.indexOf(bs[this.hov]); this.hov = bs.indexOf(live[(k0 + 1) % live.length]); D.sfx('cursor'); }
     if (I.repeat('up') || I.repeat('left')) { var k1 = live.indexOf(bs[this.hov]); this.hov = bs.indexOf(live[(k1 < 0 ? live.length - 1 : k1 - 1 + live.length) % live.length]); D.sfx('cursor'); }
-    if (I.pressed('a')) { this.press(bs[this.hov] || (w.say ? bs[0] : null)); return; }
+    if (I.pressed('a')) { this.press(bs[this.hov] || (w.say || (this.paging() && !this.sub) ? bs[0] : null)); return; } // (words to page, a hero's question's too, go on; a question's answers wait for a pick -- C.preHov)
     if (I.pressed('b') || m.rclick) { // back: the words go on, a question takes its last answer (LEAVE), the shelves go back
       var back = this.sub ? bs.filter(function (q) { return q.go === 'qback' || q.go === 'notnow'; })[0] : w.say ? bs[0] : w.ask ? bs[bs.length - 1] : bs.filter(function (q) { return q.go === 'back'; })[0];
       this.press(back);
