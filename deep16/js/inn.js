@@ -176,31 +176,45 @@
   // the diamonds over the house's main block, its walls stubs -- three small guest rooms over the common room, the big room on the kitchen side (Katarina's, the drawer by
   // the bed), the big fire's chimney rising through the middle, the passage and the stair head over the bar
   In.UP = 'halfway_up';
+  // (11-05, the exteriors seat, his notes at the pane: "copy the small fireplace and position upstairs over the chimney on the first floor / add a bed to each of the 3 front
+  // rooms and 3 beds to the backroom / move the nice bed and nightstand to the northern wall as far from the fireplace on that wall": the small hearth f in the big room's
+  // wall on the chimney, its mouth into the room; a second bed z in each small room along its west wall; the big room's three Z along its north wall, heads to it; the good bed
+  // and its table to the hearth's own wall at its far end, the room's top corner)
   In.UPROWS = [
     'BBBBBBBBBBBBBBBBBB',
-    'BzoBzoBzoccBoooozB',
-    'BooBooBooccBooooKB',
-    'BooBooBooBBBoooooB',
+    'BzoBzoBzoccBzoZZZB',
+    'BooBooBooccBKooooB',
+    'BzoBzoBzoBBBoooooB',
     'BooBooBooCCBoooooB',
     'BBoBBoBBoCCBoooooB',
-    'BooooooooCCBoooooB',
+    'BooooooooCCfoooooB',
     'BooooooooCCBoooooB',
     'BooooooooooooooooB',
     'BooooooooooBoooooB',
     'BoooooDooooBoooooB',
     'BBBBBBBBBBBBBBBBBB'
   ];
-  In.UPSTAIR = [6, 10]; In.DRAWER = [16, 2]; // (the stair head in the passage, over the top of the bar's stair (25,23); the bedside table in the big room; the big room's door off the passage at 11,8)
+  In.UPSTAIR = [6, 10]; In.DRAWER = [12, 2]; In.UPFIRE = [11, 6]; // (the stair head in the passage, over the top of the bar's stair (25,23); the bedside table in the big room; the big room's door off the passage at 11,8; its hearth)
   In.upMap = function () {
-    return { id: In.UP, name: 'The Halfway Inn', rows: In.UPROWS.slice(), legend: { B: 'innWall', o: 'floorWood', z: 'bed', K: 'table', c: 'crate', C: 'chimney', D: 'stairsDown' }, music: 'inn', exits: {}, dark: false, npcs: [],
+    return { id: In.UP, name: 'The Halfway Inn', rows: In.UPROWS.slice(), legend: { B: 'innWall', o: 'floorWood', z: 'bed', Z: 'bed', K: 'table', c: 'crate', C: 'chimney', D: 'stairsDown', f: 'firepit' }, music: 'inn', exits: {}, dark: false, npcs: [],
+      lights: [{ id: 'hearthUp', kind: 'map', x: In.UPFIRE[0], y: In.UPFIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }],
       triggers: [{ id: 'stairdown', rect: [In.UPSTAIR[0], In.UPSTAIR[1], 1, 1], on: 'step', script: 'inn:down' }, { id: 'drawer', rect: [In.DRAWER[0], In.DRAWER[1], 1, 1], on: 'use', script: 'inn:drawer' }], chests: [] };
   };
   M.FLOORS[In.UP] = { src: In.UP, own: true, map: In.upMap, door: In.SITE, place: 'The Halfway Inn', sub: 'upstairs: the guest rooms', save: true, clock: true, iso: true, rate: In.RATE, phase: M.seepPhase, phaseLine: In.line,
     gates: { stair: [In.UPSTAIR[0], In.UPSTAIR[1] - 1, [0, -1]] } }; // (in at the stair head whatever the door: a floor laid with no square of its own to stand on had no entry -- the house's show, 11-04)
+  // THE FLOOR UNDER THE THINGS INSIDE (11-05, the exteriors seat, on Griz's "it looks like all the props are drawn on code-drawn dirt instead of interior floor" and, again,
+  // "the props appear to be drawn on the code-drawn dirt tile despite being inside"): a square that holds a thing -- a bed, a crate, a table, the tub, a stall's rail -- is
+  // laid as the thing, and the open air's earth was painted under it. Every square in a house that is not its wall, a doorway, its chimney or its stair takes the house's
+  // boards under it, a hearth's own square and the stone before its mouth dressed stone (js/iso.js `under`)
+  In.UNDER = { h: '=', f: '=' };
+  In.under = function (rows, inside) {
+    return rows.map(function (r, y) { return r.split('').map(function (c, x) { return !inside(x, y) || 'BADCoSu'.indexOf(c) >= 0 ? ' ' : In.UNDER[c] || 'o'; }).join(''); });
+  };
   var floor0 = M.floor;
   M.floor = function (key, q, flags, hour) {
     if (key === In.UP) {
       var du = floor0.apply(this, arguments);
+      du.under = In.under(In.UPROWS, function () { return true; });
       du.roofs = Object.assign({}, du.roofs, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); du.hud = 'the Halfway Inn';
       du.hello = ['{y}THE HALFWAY INN{/} -- upstairs, on the grid\'s diamonds (' + du.w + ' x ' + du.h + ' squares).', In.LINES.upstairs, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
       return du;
@@ -208,7 +222,8 @@
     if (key !== In.KEY) return floor0.apply(this, arguments);
     In.inside = In.state !== undefined ? In.state : In.qInside(q); In.q = q || '';
     var h = hour != null ? hour : M.hourNow(q), def = floor0.call(this, key, q, flags, h); flags = flags || {};
-    def.inside = In.inside || null; def.sub = In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
+    def.under = In.under(In.ROWS, In.inHouse); // (the boards under the things inside: In.under)
+    def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if (p.id === 'wagonGoblin' && flags.glamourSeen) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)

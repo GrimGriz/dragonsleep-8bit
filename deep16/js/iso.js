@@ -168,6 +168,9 @@
     var order = m.sq.filter(function (s) { return s.open; }).sort(function (a, b) { return (a.x + a.y) - (b.x + b.y) || a.gz - b.gz; });
     var dst = ctx, dx0 = 0, dy0 = 0; // (where a square's picture goes: the one floor canvas, or the page being painted, offset by its corner)
     var paintSq = function (s) {
+      // the ground under it (11-05, the exteriors seat, on Griz's "the props appear to be drawn on the code-drawn dirt tile despite being inside"): a map's `under`, rows as its own,
+      // names the look painted beneath a square that is not its own -- the boards under a bed or a crate in a house; the square's rules are its own char's as ever
+      var gch = (m.def.under && m.def.under[s.y] && m.def.under[s.y].charAt(s.x)) || ' '; if (gch === ' ') gch = s.ch;
       var c = iso.center(s.x, s.y, s.gz), ox = c.x - minX, oy = c.y - minY;
       // (no rock within reach of any of its pixels' look-round -- three squares, the pixel's own square one off the square's at the rhombus edge: nearRock is 9 for each, so skip
       // its 25 looks a pixel; the same pixels, for the town's streets and plazas a fifth of the time -- 10-20)
@@ -190,15 +193,15 @@
           shade -= Math.max(0, 0.9 - rock) * 0.22;             // darker where the floor meets the wall
           if (s.gz) shade += 0.08;                                // the ledge catches a little more light
           var col;
-          if (s.ch === '=' || s.ch === 'd') {                     // dressed stone: cold, with slab seams (d: a door's threshold, the same stone)
+          if (gch === '=' || gch === 'd') {                     // dressed stone: cold, with slab seams (d: a door's threshold, the same stone)
             var fx = gx + 0.5 - Math.floor(gx + 0.5), fy = gy + 0.5 - Math.floor(gy + 0.5);
             var seam = fx < 0.04 || fy < 0.04 || (fx > 0.49 && fx < 0.53 && (Math.floor(gy + 0.5) % 2));
             col = seam ? silver[1] : rampPick(silver, 0.25 + n * 0.35, ix, iy);
-          } else if (s.ch === '~' || s.ch === 'D') {                              // the still pool: black water, the cave's colour in it, a rare glint
-            var edge = Math.min(nearOpen(m, gx, gy, s.ch), 1); // (D, the deep water, drawn as the pool is)
+          } else if (gch === '~' || gch === 'D') {                              // the still pool: black water, the cave's colour in it, a rare glint
+            var edge = Math.min(nearOpen(m, gx, gy, gch), 1); // (D, the deep water, drawn as the pool is)
             var sheen = vnoise(gx * 2 + 0.3, gy * 5, seed + 9), glint = h2(Math.floor(gx * 11), Math.floor(gy * 22), seed + 8) > 0.992;
             col = edge < 0.1 ? stone[2] : edge < 0.2 ? stone[1] : glint ? silver[5] : sheen > 0.8 ? violet[2] : rampPick(blue, n * 0.22 + (1 - Math.min(1, edge * 2)) * 0.12, ix, iy);
-          } else if (s.ch === 'G') {                              // a roof of glass (the Edifice, 10-04 night, Griz: "the skylight glass that should make up the majority of the 4th floor/3rd floor
+          } else if (gch === 'G') {                              // a roof of glass (the Edifice, 10-04 night, Griz: "the skylight glass that should make up the majority of the 4th floor/3rd floor
             // ceiling" -- then: "can we do semi transparent and put the orchard under it? thin silver on the glass tile edges over the hole"): the orchard on the floor below is painted
             // first -- grass as the grass tile has it, the round dark crown of a tree, the Sunshaft's hole (`shaft`) with its stone rim -- and the glass over it as a thin tint, a
             // gloss across the panes, and each tile's edge in thin silver, over the hole as well, so the glass reads as one sheet across it
@@ -231,23 +234,23 @@
             var crack = Math.abs(vnoise(gx * 2.2, gy * 2.2, seed + 21) - 0.5) < 0.012;
             var pebble = h2(Math.floor(gx * 14), Math.floor(gy * 14), seed + 5) > 0.985;
             var mossy = fbm(gx * 0.7, gy * 0.7, seed + 40) > 0.66 && rock < 0.6;
-            if (s.ch === ',') {                                   // the road: packed dirt, two ruts along it, no grass
+            if (gch === ',') {                                   // the road: packed dirt, two ruts along it, no grass
               var rx = gx + 0.5 - Math.floor(gx + 0.5), ry = gy + 0.5 - Math.floor(gy + 0.5), rut = (m.def.road === 'y' ? Math.abs(rx - 0.3) < 0.05 || Math.abs(rx - 0.7) < 0.05 : Math.abs(ry - 0.3) < 0.05 || Math.abs(ry - 0.7) < 0.05);
               col = rut ? leather[0] : pebble ? stone[5] : rampPick(leather, 0.12 + n * 0.4 + (fine - 0.5) * 0.15, ix, iy);
-            } else if (s.ch === 'o') {                            // a floor of boards (a town's rooms, 10-20): planks along the grid's x, their seams and pegs, worn paler down the middle
+            } else if (gch === 'o') {                            // a floor of boards (a town's rooms, 10-20): planks along the grid's x, their seams and pegs, worn paler down the middle
               var bx = gx + 0.5 - Math.floor(gx + 0.5), by = gy + 0.5 - Math.floor(gy + 0.5), board = Math.floor(by * 4), seamB = (by * 4) % 1 < 0.1 || ((bx + board * 0.37) % 1) < 0.03;
               col = seamB ? leather[0] : rampPick(leather, 0.45 + (h2(Math.floor(gx + 0.5) * 4 + board, Math.floor(gy + 0.5), seed + 11) - 0.5) * 0.3 + n * 0.25 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
-            } else if (s.ch === 'g') {                            // grass, all of it
+            } else if (gch === 'g') {                            // grass, all of it
               col = pebble ? stone[4] : rampPick(moss, 0.12 + n * 0.75 + (fine - 0.5) * 0.2 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
-            } else if (m.def.ground === 'sand' && s.ch === '.') {                // the Hex's sand (js/hex.js HX.field): raked gold, trodden darker, a stone in it now and then
+            } else if (m.def.ground === 'sand' && gch === '.') {                // the Hex's sand (js/hex.js HX.field): raked gold, trodden darker, a stone in it now and then
               col = pebble ? stone[5] : rampPick(gold, 0.3 + n * 0.25 + (fine - 0.5) * 0.12 - Math.max(0, 0.9 - rock) * 0.2, ix, iy);
             } else if (earth) {
-              var grass = fbm(gx * 0.45, gy * 0.45, seed + 40) + (fine - 0.5) * 0.25 > 0.5 && s.ch !== 'r';
+              var grass = fbm(gx * 0.45, gy * 0.45, seed + 40) + (fine - 0.5) * 0.25 > 0.5 && gch !== 'r';
               col = crack ? leather[0] : pebble ? stone[5] : grass ? rampPick(moss, 0.15 + n * 0.7 - Math.max(0, 0.9 - rock) * 0.3, ix, iy) : rampPick(leather, 0.2 + n * 0.5 + (fine - 0.5) * 0.15 - Math.max(0, 0.9 - rock) * 0.25, ix, iy);
-              if (s.ch === 'r' && fine > 0.55) col = rampPick(stone, shade + 0.25, ix, iy);
+              if (gch === 'r' && fine > 0.55) col = rampPick(stone, shade + 0.25, ix, iy);
             } else {
               col = crack ? stone[1] : pebble ? stone[6] : mossy && fine > 0.55 ? rampPick(moss, 0.3 + n * 0.4, ix, iy) : rampPick(stone, shade, ix, iy);
-              if (s.ch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
+              if (gch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
             }
           }
           // an open edge of the map (a road running on, the way out) fades into the dark, dithered

@@ -29,13 +29,17 @@
     cx.lineTo(rx, rx > tx + HW ? 9999 : my); cx.lineTo(tx + HW, my); cx.lineTo(tx, by); cx.lineTo(tx - HW, my); cx.lineTo(lx, lx < tx - HW ? 9999 : my); cx.closePath();
   }
   // the piece's frame cut a square at a time: { 'i,j': { canvas, ax, ay } } with each cut's anchor its own square's middle
-  IP.slices = function (name, f, a, b) {
-    var key = name + '|' + f + '|' + a + ',' + b; if (CUT[key]) return CUT[key];
+  // (mir: the drawing mirrored left for right -- a thing drawn along the grid's x laid along its y, its footprint a, b as laid; its back corner stays its back corner)
+  IP.slices = function (name, f, a, b, mir) {
+    var key = name + '|' + f + '|' + a + ',' + b + (mir ? '|m' : ''); if (CUT[key]) return CUT[key];
     var S = sheet(), bx = boxes(name); if (!bx) return null;
-    var q = bx[f % bx.length], out = {};
+    var q0 = bx[f % bx.length], q = mir ? [q0[0], q0[1], q0[2], q0[3], q0[2] - q0[4], q0[5]] : q0, out = {};
     for (var i = 0; i < a; i++) for (var j = 0; j < b; j++) {
       var cv = document.createElement('canvas'); cv.width = q[2]; cv.height = q[3]; var cx = cv.getContext('2d');
-      cx.imageSmoothingEnabled = false; cx.drawImage(S.im, q[0], q[1], q[2], q[3], 0, 0, q[2], q[3]);
+      cx.imageSmoothingEnabled = false;
+      if (mir) { cx.save(); cx.translate(q[2], 0); cx.scale(-1, 1); }
+      cx.drawImage(S.im, q[0], q[1], q[2], q[3], 0, 0, q[2], q[3]);
+      if (mir) cx.restore();
       cx.globalCompositeOperation = 'destination-in'; prism(cx, q, i, j, a, b); cx.fill();
       cx.globalCompositeOperation = 'destination-out';
       for (var i2 = 0; i2 < a; i2++) for (var j2 = 0; j2 < b; j2++) if (i2 + j2 > i + j) { prism(cx, q, i2, j2, a, b); cx.fill(); }
@@ -52,7 +56,7 @@
   function now() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000; }
 
   // where each piece stands, found on the floor's rows by its glyphs: [name, gx, gy, a, b] (a squares along x, b along y), and the fires over their hearths
-  IP.find = function (rows, up) { // (up: the floor upstairs -- its chimney has no mouth, page 9's, not cut yet)
+  IP.find = function (rows, up) { // (up: the floor upstairs -- its chimney page 9's, not cut yet; its hearth the small one's copy, 11-05)
     var at = function (x, y) { var r = rows[y]; return r ? r.charAt(x) : ''; }, out = [], flames = [], H = rows.length, Wd = rows[0].length;
     var x, y, n, cn = 0;
     for (y = 0; y < H; y++) for (x = 0; x < Wd; x++) {
@@ -60,6 +64,7 @@
       if (!up && c === 'C' && at(x - 1, y) !== 'C' && at(x, y - 1) !== 'C') { var a = 0, b = 0; while (at(x + a, y) === 'C') a++; while (at(x, y + b) === 'C') b++; if (a === 2 && b === 4) { out.push(['inn_hearth', x, y, 2, 4]); flames.push(['inn_flameC', x, y]); } }
       if (c === 'T') out.push(['inn_tub', x, y, 1, 1]);                                          // (Elsbeth's tub)
       if (c === 'z') out.push(['inn_bed', x, y, 1, 1]);
+      if (c === 'Z') out.push(['inn_bed', x, y, 1, 1, true]);                                     // (the bed mirrored: along y, its head to the north wall -- the big room's three, 11-05)
       if (c === 'c') out.push([cn++ % 2 ? 'inn_barrel' : 'inn_crate', x, y, 1, 1]);              // (the crates, every other one a barrel)
       if (c === 'H' && at(x - 1, y) !== 'H') { n = 0; while (at(x + n, y) === 'H') n++; for (var h = 0; h + 2 <= n; h += 2) out.push(['inn_rack', x + h, y, 2, 1]); } // (the fish drying along the wall, a rack each two squares)
       if (c === 'K' && at(x - 1, y) !== 'K' && at(x + 1, y) === 'K' && at(x + 2, y) !== 'K') out.push(['inn_worktable', x, y, 2, 1]); // (the kitchen's two)
@@ -85,7 +90,7 @@
         var sq = m.at(pc[1] + i, pc[2] + j); if (!sq) return;
         mine[sq.x + ',' + sq.y] = 1;
         m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
-          var sl = IP.slices(pc[0], 0, pc[3], pc[4]), p = sl && sl[i + ',' + j]; if (!p) return;
+          var sl = IP.slices(pc[0], 0, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
           var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y);
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
         } });
