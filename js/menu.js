@@ -169,7 +169,15 @@
   Menu.prototype.push = function (p) { this.pages.push(p); return p; };
   Menu.prototype.pop = function () { this.pages.pop(); var p = this.top(); if (p.refresh) p.refresh(); };
   Menu.prototype.top = function () { return this.pages.length ? this.pages[this.pages.length - 1] : this.root; };
-  Menu.prototype.say = function (lines, then) { this.toast = { lines: [].concat(lines), then: then }; };
+  Menu.prototype.say = function (lines, then, mid) { this.toast = { lines: [].concat(lines), then: then, mid: !!mid }; }; // (mid: in the middle of the page, a pop-up -- the level-up page's own, PickPage)
+  // the toast's lines and window: at the foot of the menu, or (mid) in its middle -- Tuesday 30, his 10-31 "on the level up page, the first thing that appears at the bottom
+  // ... should be centered like a pop-up" (RULED 11-05, "go with leans": the level-up page's toasts only; every other stays at the foot, over the description, its row in sight)
+  Menu.prototype.toastBox = function () {
+    var t = this.toast; if (!t) return null;
+    var ls = []; t.lines.forEach(function (l) { ls = ls.concat(wrap(l, 214)); }); ls = ls.slice(0, 7);
+    var hh = 12 + ls.length * 11;
+    return { lines: ls, x: 12, y: t.mid ? Math.round((240 - hh) / 2) : 234 - hh, w: 232, h: hh };
+  };
   Menu.prototype.close = function () { if (this.closed) return; this.closed = true; if (this.host.close) this.host.close(); };
   // an action that talks (a potion drunk, a spell cast): the host runs it in its own voice; the menu waits, then refreshes
   Menu.prototype.act = function (kind, args, then) {
@@ -236,11 +244,10 @@
     this.pages.forEach(function (p) { OWNER = p; p.draw(ctx, p === self.top() && self.root.mode !== 'pick'); });
     OWNER = null; this.hits = HITS;
     if (this.root.mode === 'pick' && this.pages.length) this.root.drawPick(ctx);
-    if (this.toast) {
-      var ls = []; this.toast.lines.forEach(function (l) { ls = ls.concat(wrap(l, 214)); }); ls = ls.slice(0, 7);
-      var hh = 12 + ls.length * 11, y = 234 - hh;
-      win(ctx, 12, y, 232, hh);
-      ls.forEach(function (l, i) { text(ctx, l, 20, y + 7 + i * 11, C.white); });
+    var tb = this.toastBox();
+    if (tb) {
+      win(ctx, tb.x, tb.y, tb.w, tb.h);
+      tb.lines.forEach(function (l, i) { text(ctx, l, tb.x + 8, tb.y + 7 + i * 11, C.white); });
     }
   };
 
@@ -706,7 +713,7 @@
     if (nx >= 0) { this.tab = nx; this.list.i = 0; this.refresh(); sfx('cursor'); return; } // (a marked tab not yet seen: CONFIRM shows it first)
     var lines = R().applyPick(this.h, this.rec, this.choice());
     sfx('levelup');
-    m.say(lines.length ? lines : [this.h.name + ': done.'], function () { self.next(); });
+    m.say(lines.length ? lines : [this.h.name + ': done.'], function () { self.next(); }, true); // (centred, a pop-up: Menu.toastBox)
   };
   PickPage.prototype.draw = function (ctx, active) {
     var h = this.h, t = this.tabs[this.tab], g = t && t.g, self = this;
@@ -755,7 +762,7 @@
       m.push(new PickPage(m, it.h, it.rec, o, next));
       // (the hero's level-up lines first, over the hero's own page -- "Barley is now level 4!", then Barley's choices, then Aurdin's lines and page: 10-16, kept on the
       // record by R.gainXP and said once)
-      if (it.rec.lines && it.rec.lines.length) { m.say(it.rec.lines); delete it.rec.lines; }
+      if (it.rec.lines && it.rec.lines.length) { m.say(it.rec.lines, null, true); delete it.rec.lines; } // (centred, a pop-up: Menu.toastBox -- Tuesday 30)
     }
     next();
     return m;
