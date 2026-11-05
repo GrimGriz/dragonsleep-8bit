@@ -59,7 +59,7 @@
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
       doneText: 'Dace climbed back up to the house to tell it everything.',
-      steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His staff lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
+      steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His dagger lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
         { key: 'killed', site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',

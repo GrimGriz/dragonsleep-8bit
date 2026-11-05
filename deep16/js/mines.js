@@ -506,10 +506,10 @@
       if (a !== 0) { yield sc.say(L('dace.notToday')); return; }
       f.daceWith = 1; if (after) f.daceAfter = 1;
       M.later(B, function () { M.guestIn(B, 'dace'); D.mines.relay(B, null, true); }); // (into the token, and his figure off the floor by the beam: after the screen closes)
-      yield sc.say([M.LINES.daceJoin, [].concat(L('dace.join'))[1]]); // (the first game's second line; its first lights his staff at the mouth -- under the roost that is the roof down, M.daceLight)
+      yield sc.say([M.LINES.daceJoin, [].concat(L('dace.join'))[1]]); // (the first game's second line; its first lights his dagger at the mouth -- under the roost that is the roof down, M.daceLight)
     }
   };
-  M.LINES.daceJoin = 'Corwen Dace takes up his staff and his year-old book. "No light on it till we\'re past the roost. I know the law better than you do."'; // (invented.json deepgallery-dace-words)
+  M.LINES.daceJoin = 'Corwen Dace takes up his dagger and his year-old book. "No light on it till we\'re past the roost. I know the law better than you do."'; // (invented.json deepgallery-dace-words; his dagger, the kit's, since 11-05 -- Tuesday 9, RULED 10-31, Griz: "words")
   // Ottilie at the mouth, a light that is always lit on the party (S.roostDoor): left with her, or the party turns back -- and since 10-28 night every light burning on the party
   // (M.burning), put out or the party turns back (Griz: "Ottille stops light violations at the entrance, the party has to cast it inside after to shame fail"). True when it goes in
   M.LINES.ottilieSpell = '{name}. I can see that light on you from my stool. Let it go before you go in -- it would spook the roost.'; // (invented.json ottilie-mouth-lights)
@@ -647,7 +647,9 @@
   M.NOT_STOOD = { dacedown: 1 };
   M.PIT_AT = [18, 12]; // (where a pit sets the party down: the first game's S.pit)
   M.cloakerDead = function (B) { var f = B.roam.flags; return !!(f.cloakerKilled || f.cloakerDone || D.counter.count(D.counter.state(B), 'cloakertail')); };
-  M.LINES.daceLight = '{y}Corwen Dace{/} lifts his staff, and the light comes up on its head. "No roost down here. It\'s lawful."'; // (the first game's dace.join, lit below the roost: invented.json deepgallery-dace-words)
+  // (his dagger, not a staff: the kit's -- content/heroes.json dace, a dagger in one hand -- Tuesday 9, his "words say dace lifts a staff, menu status says he's dagger in one hand
+  // empty off hand", RULED 10-31, "words"; the light is the Light cantrip on the dagger, M.daceLight, as it was)
+  M.LINES.daceLight = '{y}Corwen Dace{/} lifts his dagger, and the light comes up on its pommel. "No roost down here. It\'s lawful."'; // (the first game's dace.join, lit below the roost: invented.json deepgallery-dace-words)
   M.LINES.daceShaft = 'Dace touches the mark as he passes it, the way the hands touch it going home.';
   M.LINES.daceFail = 'Corwen Dace walked into the dark with you, and did not walk out. The house will not forgive it, and neither will you.';
 
@@ -673,7 +675,7 @@
     var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1);
     D.grid.setup(B.map, B.units); B.cache = null;
   };
-  // the test door's guests (&guest=dace on a floor's door) and its guests carried floor to floor (M.testMake: the house's are in its save); the deep gallery lit by Dace's staff
+  // the test door's guests (&guest=dace on a floor's door) and its guests carried floor to floor (M.testMake: the house's are in its save); the deep gallery lit by Dace's dagger
   var setup0 = D.roam.setup;
   D.roam.setup = function (B) {
     setup0.apply(this, arguments);
@@ -685,7 +687,7 @@
     if (def.key === 'galleries_g4') { var ln = M.daceLight(B); if (ln.length) R0.roostLines = (R0.roostLines || []).concat(ln); } // (said with the floor's hello: js/roam.js R.script)
   };
   // DACE'S LIGHT (RULED 10-28, his "all 5 leans"): dark through the roost -- Ottilie stops a light at the mouth, and one lit under the roost brings the roof down -- and lit as he
-  // steps into the deep gallery, where "a light is lawful" (dace.ask): the Light cantrip on his staff (SRD: bright 20 ft, dim 20 more, an hour on THE WORLD's clock in the house).
+  // steps into the deep gallery, where "a light is lawful" (dace.ask): the Light cantrip on his dagger (SRD: bright 20 ft, dim 20 more, an hour on THE WORLD's clock in the house).
   // Back up under the roost it is let go there as any Light is (js/roam.js R.roostLights)
   M.daceLight = function (B) {
     var u = M.guestUnit(B, 'dace'); if (!u || u.hp <= 0 || (u.conds && u.conds.light)) return [];
