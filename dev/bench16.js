@@ -7092,6 +7092,94 @@
     document.body.appendChild(preLw);
     return;
   }
+  // THE HOUSE'S TUESDAY FIXES (mode=house1105; the tuesday-house seat, 11-05 -- Griz to the lanes desk: "Seat 1 - go with leans minus 'shelf'", on his 10-31 playthrough's
+  // notes, ..\notes-for-tuesday-2026-11-03.md): 1. a cast's card over the floor's M menu, the menu kept open (Tuesday 3: deep16/js/ui.js drawBattle); 2. the level-up page's
+  // toast in the middle, every other at the foot (Tuesday 30: js/menu.js Menu.toastBox); 3. no answer under the cursor on a question that commits, a one-answer ask keeps its
+  // one (the hire's preselect: deep16/js/counter.js C.preHov); 4. the deep station's screens with the cradle in the portrait's place (Tuesday 13: deep16/js/roam.js R.deepTalk);
+  // 5. a crawler in each deep crib; one roused at its cradle leaves it empty for good -- no crawler, no deep rate, the save's flags keep it (Tuesday 15: deep16/js/cradle.js
+  // CR.cribProps, CR.empty, CR.spend; deep16/js/roam.js R.cradle)
+  if (get('mode', '') === 'house1105') {
+    var repH5 = { checks: [], errors: [] }, memH5 = {}, stGH5 = D.store.get, stSH5 = D.store.set, HH5 = D.house, CH5 = D.counter, RH5 = D.roam, CRH5 = D.cradle, UIH5 = D.ui, MNH5 = window.DS.MENU, RjH5 = window.DS.R;
+    var sfxH5 = D.sfx, apH5 = window.DS.autoPicks, d20H5 = RH5.d20, strH5 = CRH5.STRAIGHT, dmH5 = UIH5.drawMenu, txH5 = D.text, dsTxH5 = window.DS.text, sprH5 = D.spr.draw;
+    function okH5(what, v) { repH5.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveH5(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topH5() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveH5(s.co, null, 2); return s; }
+    // the Wet as the house's floor: a NEW GAME's four (flags given: a fresh save with them; null: the save as it stands), on the first game's square at8
+    function floorH5(flags, at8) { D.scenes.length = 0; if (flags) { var rec = HH5.fresh(); rec.at = { town: null }; HH5.begin(rec, 0); HH5.cur.flags = Object.assign({ tallyMet: 1 }, flags); } var B = RH5.make('?roam=wet', { save: HH5.living(HH5.cur), opts: { at8: at8.slice() }, house: true }); D.push(B); B = topH5(); B.roam.encIn = 1e9; D.battle = B; return B; }
+    function keyH5(sc, b) { D.input.press(b); try { sc.update(); } finally { D.input.release(b); D.input.clear(); } }
+    function answerH5(sc, ans) { ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } }
+    function flowH5(g, ans, until) { var scs = [];
+      for (var st = 0; st < 6; st++) { driveH5(g, function () { var t = D.top(); return (until && until()) || (t instanceof CH5.Counter && !t.done); }, 3000); if (until && until()) break; var t = D.top();
+        if (t instanceof CH5.Counter && !t.done) { scs.push(t); answerH5(t, scs.length === 1 ? ans : []); } else break; }
+      driveH5(g, until || null, 400); return scs; }
+    function cribsH5(B) { return D.looks.props(B).filter(function (p) { return p.crib != null; }).map(function (p) { return p.crib; }).sort().join(','); }
+    var cvH5 = document.createElement('canvas'); cvH5.width = D.W; cvH5.height = D.H; var cxH5 = cvH5.getContext('2d');
+    D.store.get = function (k) { return memH5[k] ? JSON.parse(memH5[k]) : null; }; D.store.set = function (k, v) { memH5[k] = JSON.stringify(v); return true; };
+    try {
+      D.sfx = function () { }; window.DS.autoPicks = true; D.seed = 1105;
+      // 1. THE CARD OVER THE MENU: on the Wet, M open, Cure Wounds cast from it -- the cast's card says what came of it, the menu stays open, and on the screen the card's words
+      // are drawn after the menu (over it), not under it
+      var B1 = floorH5({}, [15, 7]); UIH5.openMenu(B1); var m1 = B1.menu && B1.menu.m, ps1 = m1 ? m1.host.party() : [], h1 = ps1.filter(function (h) { return h.cls === 'paladin'; })[0] || ps1[0];
+      B1.cards = []; if (m1) m1.act('cast', { h: h1, sp: window.DS.DATA.spells.curewounds, t: ps1[0] }, function () { });
+      var c1 = B1.cards[B1.cards.length - 1], w1 = c1 ? String(c1.lines.filter(Boolean)[0] || '') : '', log1 = [];
+      UIH5.drawMenu = function () { log1.push('<menu>'); var r = dmH5.apply(this, arguments); log1.push('</menu>'); return r; };
+      D.text = function (c, s) { log1.push(String(s)); return txH5.apply(this, arguments); };
+      try { UIH5.drawBattle(cxH5, B1); } finally { UIH5.drawMenu = dmH5; D.text = txH5; }
+      var end1 = log1.lastIndexOf('</menu>'), at1 = -1; log1.forEach(function (s, i) { if (s.length > 3 && w1.indexOf(s) === 0) at1 = i; });
+      okH5('a cast from the M menu on the Wet (' + (h1 && h1.name) + ', Cure Wounds): its card "' + w1.slice(0, 60) + '", the menu still open (' + !!B1.menu + '); on the screen the card drawn at ' + at1 + ', the menu ended at ' + end1 + ': over it ' + (at1 > end1),
+        !!m1 && !!c1 && !!B1.menu && end1 >= 0 && at1 > end1);
+      B1.menu = null; B1.cards = [{ lines: ['A card with no menu.'], t0: B1.t, life: 200 }]; log1 = [];
+      UIH5.drawMenu = function () { log1.push('<menu>'); return dmH5.apply(this, arguments); }; D.text = function (c, s) { log1.push(String(s)); return txH5.apply(this, arguments); };
+      try { UIH5.drawBattle(cxH5, B1); } finally { UIH5.drawMenu = dmH5; D.text = txH5; }
+      okH5('the menu shut: the card drawn once, as before (' + log1.filter(function (s) { return s === 'A card with no menu.'; }).length + ')', log1.filter(function (s) { return s === 'A card with no menu.'; }).length === 1 && log1.indexOf('<menu>') < 0);
+      // 2. THE LEVEL-UP TOAST: Aurdin to level 3 -- "Aurdin is now level 3!" in the middle of the page; a refusal's toast elsewhere still at the foot
+      window.DS.autoPicks = false; var hL = RjH5.makeHero('aurdin', 2); RjH5.autoPicks(hL); RjH5.gainXP(hL, RjH5.XP_LEVEL[3] - hL.xp); window.DS.autoPicks = true; // (no one to ask would say the lines at once: R.gainXP keeps them for the page)
+      var mL = MNH5.openPicks({ party: function () { return [hL]; }, close: function () { } }, [hL], { pages: true }, function () { });
+      var cvL = document.createElement('canvas'); cvL.width = 256; cvL.height = 240;
+      var ysOf = function (m, re) { var ys = []; window.DS.text = function (c, s, x, y) { if (re.test(String(s))) ys.push(y); return dsTxH5.apply(this, arguments); }; try { m.draw(cvL.getContext('2d')); } finally { window.DS.text = dsTxH5; } return ys; };
+      var tL = mL.toast ? mL.toast.lines.join(' ') : '', yL = ysOf(mL, /is now level/);
+      mL.toast = null; mL.say('Not yet: no slot of its level.'); var yF = ysOf(mL, /^Not yet: no slot/);
+      okH5('the level-up page opens on "' + tL.slice(0, 50) + '" drawn at y ' + yL.join(',') + ' (the middle of the 240: 60 to 160); a refusal\'s toast at y ' + yF.join(',') + ' (the foot, past 190)',
+        /Aurdin is now level 3!/.test(tL) && yL.length === 1 && yL[0] > 60 && yL[0] < 160 && yF.length === 1 && yF[0] > 190);
+      // 3. THE HIRE'S PRESELECT: a keeper's words, then a question that commits (TAKE THE WORK / NOT NOW, Sabeth's) -- nothing under the cursor; E pages her words and then does
+      // nothing; DOWN puts it on TAKE THE WORK and E takes it. A one-answer ask has its one under the cursor and E says it
+      var B3 = floorH5({}, [15, 7]), said3 = [], sc3 = new CH5.Counter(B3, { id: 'sabeth', name: 'the bench', script: function (s) { return (function* () { yield s.say(['Words of hers, to page.']); said3.push(yield s.ask(['Take the work?'], ['TAKE THE WORK', 'NOT NOW'])); said3.push(yield s.ask(['And one more?'], ['ONE ANSWER'])); })(); } });
+      D.push(sc3); keyH5(sc3, 'a'); var hov3 = sc3.hov, ask3 = !!(sc3.wait && sc3.wait.ask); keyH5(sc3, 'a'); keyH5(sc3, 'a'); var still3 = said3.length;
+      keyH5(sc3, 'down'); var hovD = sc3.hov; keyH5(sc3, 'a'); var took3 = said3[0], hov1 = sc3.hov; keyH5(sc3, 'a');
+      okH5('her words paged by E; the question that commits opens with nothing under the cursor (' + hov3 + '), E twice does nothing (' + still3 + ' answered); DOWN: TAKE THE WORK (' + hovD + '), E takes it (' + took3 + '); a one-answer ask under the cursor (' + hov1 + '), E says it (' + said3[1] + ', the screen ' + (sc3.done ? 'shut' : 'open') + ')',
+        ask3 && hov3 === -1 && still3 === 0 && hovD === 0 && took3 === 0 && hov1 === 0 && said3[1] === 0 && sc3.done);
+      D.scenes.length = 0;
+      // 4 and 5. THE DEEP CRIBS AND THE STATION'S FACE: a NEW GAME on the Wet -- a crawler in each of the three cribs (drawn on the screen); E on cradle one, LEAVE: the deep station
+      // with the cradle in the portrait's place
+      var B5 = floorH5({}, [15, 7]), q0 = RH5.def.from8(15, 6), q1 = RH5.def.from8(35, 6), cr5 = cribsH5(B5), sq5 = (CRH5.cribs ? CRH5.cribs(B5) : []).map(function (c) { var s = D.iso.map.at(c.x, c.y); return s && s.ch; }).join(''), drawn5 = 0;
+      D.spr.draw = function (c, nm) { if (nm === D.FOES.crawler.sheet) drawn5++; return sprH5.apply(this, arguments); }; try { UIH5.drawBattle(cxH5, B5); } finally { D.spr.draw = sprH5; }
+      var tr0 = RH5.useAt(B5, q0[0], q0[1]), scL = flowH5(RH5.fire(B5, tr0, q0), [1]);
+      okH5('the Wet: a crawler in each deep crib (' + cr5 + ', on squares ' + sq5 + '), ' + drawn5 + ' drawn; E on cradle one, LEAVE: "' + (scL[0] && scL[0].o.name) + '" with the cradle in the portrait\'s place (' + !!(scL[0] && scL[0].o.pic === CRH5.pic) + ')',
+        cr5 === '0,1,2' && sq5 === 'yyy' && drawn5 >= 1 && !!tr0 && scL.length === 1 && scL[0].o.pic === CRH5.pic && !B5.roam.flags.deepShifts);
+      // a natural 1 at cradle one: roused, the fight on the floor -- the crib empty from here (deepEmpty 1), no crawler in it; both of the station's screens had the cradle's picture
+      CRH5.STRAIGHT = true; RH5.d20 = function () { return 1; };
+      var scR = flowH5(RH5.fire(B5, tr0, q0), [0, 0], function () { return B5.roam.mode === 'fight'; }); driveH5(B5.co, function () { return B5.roam.mode === 'fight'; }, 2000); RH5.d20 = d20H5; CRH5.STRAIGHT = strH5;
+      var cr5b = cribsH5(B5), loose5 = B5.units.filter(function (u) { return u.side === 'foe' && u.kind === 'crawler' && !u.dead; }).length;
+      okH5('a natural 1 at cradle one: the fight on the floor (' + B5.roam.mode + ', ' + loose5 + ' crawler loose), the crib empty from here (deepEmpty ' + B5.roam.flags.deepEmpty + ', the cribs drawn ' + cr5b + '); the station\'s ' + scR.length + ' screens each with the cradle (' + scR.map(function (s) { return s.o.pic === CRH5.pic; }).join(',') + ')',
+        B5.roam.mode === 'fight' && loose5 === 1 && B5.roam.flags.deepEmpty === 1 && cr5b === '1,2' && scR.length === 2 && scR.every(function (s) { return s.o.pic === CRH5.pic; }));
+      // the floor handed back to the save, and walked again from it: cradle one still empty -- no crawler, E on it a card and no screen; cradle two works as ever
+      HH5.fromFloor(B5); var fl6 = HH5.cur.flags.deepEmpty, B6 = floorH5(null, [15, 7]), cr6 = cribsH5(B6), sh6 = B6.roam.flags.deepShifts; B6.cards = [];
+      var sc6 = flowH5(RH5.fire(B6, RH5.useAt(B6, q0[0], q0[1]), q0), [0]), card6 = (B6.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ');
+      var sc7 = flowH5(RH5.fire(B6, RH5.useAt(B6, q1[0], q1[1]), q1), [1]);
+      okH5('the save keeps it (deepEmpty ' + fl6 + '); the Wet again from the save: the cribs ' + cr6 + '; E on cradle one -- no screen (' + sc6.length + '), "' + card6.slice(0, 80) + '", deepShifts ' + B6.roam.flags.deepShifts + ' as before (' + sh6 + '); E on cradle two: its station (' + (sc7[0] && sc7[0].o.name) + ')',
+        fl6 === 1 && B6.roam.flags.deepEmpty === 1 && cr6 === '1,2' && sc6.length === 0 && /Cradle 1.{0,8} stands empty/.test(card6) && B6.roam.flags.deepShifts === sh6 && sc7.length === 1 && /cradle 2$/.test(sc7[0].o.name));
+      // the eyes row's show (deep16/?wetshow&beat=emptycrib): a NEW GAME below cradle one, its crib empty, the other two with theirs
+      D.scenes.length = 0; var btE = RH5.WET_BEATS.filter(function (b) { return b.id === 'emptycrib'; })[0]; D.push(RH5.wetShow('?wetshow&beat=emptycrib')); D.top().update(); var BE = topH5();
+      okH5('the show\'s beat ' + (btE && btE.label) + ': the Wet on the house (' + RH5.house() + '), deepEmpty ' + (BE && BE.roam && BE.roam.flags.deepEmpty) + ', the cribs drawn ' + (BE && BE.roam ? cribsH5(BE) : '-'),
+        !!btE && !!(BE && BE.roam) && RH5.house() && BE.roam.flags.deepEmpty === 1 && cribsH5(BE) === '1,2');
+      D.scenes.length = 0; D.battle = null;
+    } catch (eH5) { repH5.errors.push(String(eH5 && eH5.stack || eH5).slice(0, 900)); }
+    D.sfx = sfxH5; window.DS.autoPicks = apH5; D.store.get = stGH5; D.store.set = stSH5; RH5.d20 = d20H5; CRH5.STRAIGHT = strH5; UIH5.drawMenu = dmH5; D.text = txH5; window.DS.text = dsTxH5; D.spr.draw = sprH5;
+    if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preH5 = document.createElement('pre'); preH5.id = 'out'; preH5.textContent = 'BENCH16 ' + JSON.stringify(repH5);
+    document.body.appendChild(preH5);
+    return;
+  }
   // THE DESCRIPTION BOX AND THE JOURNAL'S GAPS (mode=journal1105; the journal seat, 11-05 -- Griz on live: "Rime Glass description runs out the bottom on Aurdin join selection",
   // "nothing would have let me know to talk to the gate guy again for more reward?", "Missing stuff in todo?"; his answers "6 - it won't hurt to make that box bigger, but also have
   // right arrow drop you into the box to scroll if necessary, descriptions can get pretty long. Mousewheel on mouseover scroll also." and "7 - add step to journal quest"; the
