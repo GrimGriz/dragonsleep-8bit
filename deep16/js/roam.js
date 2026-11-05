@@ -1250,10 +1250,12 @@
   // his "Crawler game needs rebuilt for this engine": the grid's own scene, the first game's rules -- the deep rate unsettled, three silver a thimble, a whip rouses the animal);
   // then the pay back on the counter. Returns { n, roused, milker, touched } as the 8-bit's did, or null when they leave it
   R.deepTalk = function* (B, n) {
-    var nm = 'The deep station: cradle ' + (n + 1), job = yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepAsk(sc, B, n); }, nm);
+    // (the cradle in the portrait's place, as the pens' screens have it -- js/cradle.js CR.pic; Tuesday 13, his 10-31 "all those interaction interfaces need something in their
+    // portrait slots as appropriate", RULED 11-05 "go with leans")
+    var nm = 'The deep station: cradle ' + (n + 1), pic = D.cradle && D.cradle.pic, job = yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepAsk(sc, B, n); }, nm, pic);
     if (!job) return null;
     var r = yield* R.shiftPlay(B, job);
-    return yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepPay(sc, B, job, r); }, nm);
+    return yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepPay(sc, B, job, r); }, nm, pic);
   };
   R.DEEP_DC = 15; R.DEEP_DRAWS = 6;
   R.deepAsk = function* (sc, B, n) {
