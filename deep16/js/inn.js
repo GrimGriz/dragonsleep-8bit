@@ -126,7 +126,14 @@
     stair: 'The stair up to the guest rooms. The room over the kitchen has its door shut.',
     upstairs: 'Upstairs: three small guest rooms over the common room, and the big room on the kitchen side with the lake under its window. The stair down is in the passage.',
     drawerShut: 'The room over the kitchen: paid ahead, a farm woman\'s things folded on the chair. The drawer by the bed is shut, and you leave it shut.', // (11-05: her stay from day 4, not two nights -- invented.json halfway-katarina)
-    drawerEmpty: 'The drawer by the bed is empty.'
+    drawerEmpty: 'The drawer by the bed is empty.',
+    // the inn's rest hours (11-05, In.REST): supper with the room from three, the kitchen cold after ten, before three a word about supper (the seat's drafts, invented.json halfway-inn-rest)
+    dinnerAt8: '"Dinner is at eight." A room for the night after it is {n} silver.',
+    opts: { short: 'SHORT REST', wait: 'WAIT TIL DINNER', notNow: 'NOT NOW' },
+    shortRest: 'An hour by the fire with your boots off.',
+    waited: 'The afternoon goes by the fire. At eight, supper.',
+    dinner: 'Supper at the long table -- lake fish, bread, the road\'s talk -- and then a room under the eaves.',
+    late: 'The kitchen is cold this late. A room under the eaves, and no supper.'
   };
   In.line = function (h) { return M.night(h) ? In.LINES.night : In.LINES.day; };
   // the house's day (THE WORLD's clock), or a test door's &day=
@@ -497,12 +504,52 @@
     var st = sc.st, f = st.flags, A = D.secondact, cost = In.PRICE * In.heads(B);
     if (f.gennetDead) { yield sc.say([].concat(M.words(B, 'doranIn'), A ? [A.LINES.doranRoad] : [])); return false; }
     yield sc.say(M.words(B, 'doranIn'));
-    var a = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
-    if (a !== 0) return false;
-    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return false; }
-    st.silver(-cost); D.sfx('coin');
-    yield sc.say(In.LINES.bed);
-    return true;
+    return yield* In.room(sc, B, cost, true); // (the hour's rules as hers; no supper scene from him -- In.room)
+  };
+  // THE INN'S REST HOURS (11-05, the Katarina seat; Griz to the lanes desk, verbatim: "Resting at the Inn costs 11 hours instead of 8 if 'dinner' is activated (not cold) and
+  // party triggers between 3 pm and 10 pm. 10pm to 6 am gets rest and triggers no dinner, spends 8 hours. Trying to rest at the inn in the 6 am until 4 pm results in 'dinner
+  // is at 8' with a 'short rest' 'wait til dinner' or 'not now' option with 'wait til dinner' ending at waking 11 hours after 3 pm."; on the desk's two questions, RULED: "1 -
+  // lean / i was being too generous re: #2, 7 am it is."): a room taken from 3 pm to 10 pm has supper and a night of eleven hours from then; from 10 pm to 6 am the kitchen
+  // is cold -- no supper, eight hours; from 6 am to 3 pm, "Dinner is at eight": SHORT REST (an hour by the fire), WAIT TIL DINNER (the room paid, the clock on to eight,
+  // supper, eleven hours: 7 am), NOT NOW. The numbers here, his to move
+  In.REST = { dayFrom: 6, dinnerFrom: 15, dinnerTo: 22, dinnerAt: 20, dinnerHours: 11, lateHours: 8, shortHours: 1 };
+  In.restKind = function (h) { h = ((h % 24) + 24) % 24; return h >= In.REST.dinnerFrom && h < In.REST.dinnerTo ? 'dinner' : h >= In.REST.dayFrom && h < In.REST.dinnerFrom ? 'day' : 'late'; };
+  In.hourOf = function (B) { return M.hourNow(D.roam.q, B); };
+  In.clock = function (B) { var W = D.world, S = W.state && W.state(); return D.roam.house() && D.house.playing && S ? S.t : (In.day(D.roam.q) - 1) * 24 + In.hourOf(B); }; // (the house's clock; a test door's its day and hour)
+  // the clock on to an hour later this day (the house's, or the test door's own), the floor laid for it
+  In.waitTo = function (B, hour) {
+    var W = D.world, S = W.state && W.state(), now = In.hourOf(B); if (hour <= now) return;
+    if (D.roam.house() && D.house.playing && S) { D.house.fromFloor(B); S.t += hour - now; W.save(); } else B.roam.hour = hour;
+    M.lightNow(B);
+  };
+  // a short rest at the inn: an hour by the fire, the hit dice spent (js/house.js H.shortRest)
+  In.shortRest = function (B) {
+    var H = D.house, W = D.world, house = !!(D.roam.house() && H.playing), sheets, lines;
+    if (house) { H.fromFloor(B); var S = W.state(); S.t += In.REST.shortHours; W.save(); sheets = H.cur.party; } else { B.roam.hour = (In.hourOf(B) + In.REST.shortHours) % 24; sheets = In.sheetsOf(B); }
+    lines = H.shortRest(sheets.filter(function (h) { return !h.dead; }));
+    In.resheet(B, sheets); M.lightNow(B);
+    return lines;
+  };
+  // a room asked for (the inn lady's, or Doran's after the second act): by the hour -- 'meal' (the first supper, THE MEAL's own screen next), 'dinner', 'bed', or false; the
+  // night's start and length kept on the floor (B.roam.stay) for the bed and the wagon night. noMeal: the supper as a line, not THE MEAL's scene
+  In.room = function* (sc, B, cost, noMeal) {
+    var st = sc.st, f = st.flags, kind = In.restKind(In.hourOf(B)), pay = function () { if (st.silver() < cost) { D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
+    if (kind === 'day') {
+      var a = yield sc.ask(In.LINES.dinnerAt8.split('{n}').join(cost), [In.LINES.opts.short, In.LINES.opts.wait, In.LINES.opts.notNow]);
+      if (a === 0) { var ls = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls)); return false; }
+      if (a !== 1) return false;
+      if (!pay()) { yield sc.say(L('g.poor')); return false; }
+      In.waitTo(B, In.REST.dinnerAt); kind = 'dinner';
+      yield sc.say(In.LINES.waited);
+    } else {
+      var a2 = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
+      if (a2 !== 0) return false;
+      if (!pay()) { yield sc.say(L('g.poor')); return false; }
+    }
+    B.roam.stay = { t0: In.clock(B), hours: kind === 'dinner' ? In.REST.dinnerHours : In.REST.lateHours, kind: kind };
+    if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours');
+    if (kind === 'dinner') { if (!f.mealHad && !noMeal) return 'meal'; yield sc.say(In.LINES.dinner); return 'dinner'; } // (the first room with supper: THE MEAL's screen, then the bed line there)
+    yield sc.say(In.LINES.late); return 'bed';
   };
   In.gennet = function* (sc, B) {
     var st = sc.st, f = st.flags, cost = In.PRICE * In.heads(B), A = D.secondact;
@@ -511,12 +558,7 @@
     if (soon.length) f.wagonNamed = 1;
     if (!f.gennetNamed) { f.gennetNamed = 1; yield sc.say([].concat(M.words(B, 'gennet'), [In.LINES.name], soon)); }
     else yield sc.say([].concat(M.words(B, 'gennet'), soon));
-    var a = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
-    if (a !== 0) return false;
-    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return false; }
-    st.silver(-cost); D.sfx('coin');
-    if (f.mealHad) { yield sc.say(In.LINES.bed); return 'bed'; }
-    return 'meal'; // (the first room taken: supper first, on its own screen over the room -- In.mealScene, then the bed line there)
+    return yield* In.room(sc, B, cost); // (by the hour, In.REST: the first room with supper is THE MEAL -- its own screen over the room, In.mealScene, then the bed line there)
   };
   // ---------------------------------------------------------------- KATARINA AT THE FIRE (11-05, the Katarina seat, kat-1105: the lane's item 10, built whole with the wagon's
   // move; the first game's S.katarina -- RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
@@ -611,7 +653,13 @@
     yield* In.katAsks(sc, st, f, In.KL.asks.leave);
   };
   // the night: the house's bed to the morning (the first night's wagon is the lane's item 2), the floor laid at the morning's hour under the morning card
-  In.sleep = function* (B, line) { yield* D.house.sleepOnFloor(B, { line: line || In.LINES.morning, music: 'inn', before: function () { M.lightNow(B); } }); };
+  // (11-05: a room taken by In.room sleeps its night's hours -- eleven from the hour it was taken with supper, eight without, the wagon night's hours already spent counted
+  // off -- and wakes to the card the hour says (MORNING, or NIGHT for a room taken at three); a night with no room behind it, to the next morning as before)
+  In.sleep = function* (B, line) {
+    var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
+    if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
+    yield* D.house.sleepOnFloor(B, { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, title: wk ? wk.title : null, music: 'inn', before: function () { M.lightNow(B); } });
+  };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
     var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; }
@@ -635,7 +683,8 @@
     book: 'On Willem Glass, a book in a fair hand: his spells, and at the back, the glamour he laid over the children, worked out line by line.',
     soon: '"Once a month there\'s a wagon through," Gennet says. "Good custom."', // (11-05, the Katarina seat: "End of the month" no longer fit -- the first wagon is day 12, a week into the realm's September; invented.json halfway-katarina)
     // the night played on the floor (11-04 later, his words at the pane: the seat's drafts, invented.json halfway-wagon-night-played)
-    feeling: '"I\'d set a watch tonight," Lymen says, and will not say why. "Call it a feeling. I\'d sleep easier knowing who has the window."',
+    feeling: '"Something sits wrong with me tonight," Lymen says, and will not say what. "Call it a feeling. I\'d set a watch, turn and turn about -- I\'d sleep easier knowing who has the window."', // (11-05, the Katarina seat, on his "Lymen says something about having a weird feeling and wanting to put up a watch": invented.json halfway-inn-rest)
+    rested1: '{names} stood the first watch and slept short.', rested2: '{names} {has} the window now.', rested3: '{names} {sleeps} on, the third watch to come.', // (11-05: who rested how, by name; {has} {sleeps} by how many)
     feelingLead: '{name} has a feeling about the road tonight, and says so: a watch, turn and turn about, and whoever has the window keeps an eye on the yard.',
     turnsIn: '{y}{name}{/}, at the window on the second watch: a wagon turns in off the road. One big wagon, a woman on the bench with the reins and a fair-haired man beside her. Chained in the back, goblins.',
     suspect: '{c}(insight) The one she takes is not walking like a goblin walks.{/}',
@@ -722,16 +771,33 @@
   };
   // the lie-down to the second watch (the first game's, Griz 09-25: "long-rest before the wagon rolls in"): the rest's mechanics with no morning page -- the sheets whole, the clock
   // on to the watch's middle, the floor laid for the hour -- and the dark card; the morning page comes at the real morning (In.sleep)
-  In.lieDown = function* (B, hours, title, line) {
+  // asg (11-05, the wagon night's watches, his word above): the rest by the watch -- the first watch a short rest (js/house.js H.shortRest), the others the long rest's mechanics
+  // (H.restSheets: whole, the hit dice back, a banked level), no morning page; without it, all of them the long rest as before
+  In.lieDown = function* (B, hours, title, line, asg) {
     var R = D.roam, R0 = B.roam, H = D.house, W = D.world, house = !!(R.house() && H.playing), sheets;
-    if (house) { H.fromFloor(B); var S = W.state(); S.t += hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); H.longRest(null); sheets = H.cur.party; }
-    else { R0.hour = ((R0.hour != null ? R0.hour : M.hourNow(R.q, B)) + hours) % 24; sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; }); H.restSheets(sheets); }
-    var byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
-    R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B);
+    var byWatch = function (party) { var sh = party.filter(function (h) { return !h.dead && asg[h.key || h.id] === 1; }); return { long: party.filter(function (h) { return sh.indexOf(h) < 0; }), short: sh }; };
+    var restBy = function (party) { var p = byWatch(party); H.trail('rest', 'the wagon night: a long rest (' + p.long.map(function (h) { return h.name; }).join(', ') + '), a short rest (' + p.short.map(function (h) { return h.name; }).join(', ') + ')'); H.restSheets(p.long); H.shortRest(p.short); };
+    if (house) { H.fromFloor(B); var S = W.state(); S.t += hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); sheets = H.cur.party; if (asg) { DS.G = { flags: H.cur.flags }; restBy(sheets); H.dry(H.cur.inv); } else H.longRest(null); }
+    else { R0.hour = ((R0.hour != null ? R0.hour : M.hourNow(R.q, B)) + hours) % 24; sheets = In.sheetsOf(B); if (asg) restBy(sheets); else H.restSheets(sheets); }
+    In.resheet(B, sheets);
     R0.slept = (R0.slept || 0) + 1;
     M.lightNow(B);
-    yield* In.card(B, ['{y}' + title + '{/}', line], 420);
+    yield* In.card(B, ['{y}' + title + '{/}'].concat(line), 420);
   };
+  // the floor's figures as sheets (outside the house: copies, their hit points and slots as they stand), and the rested sheets back on the figures
+  In.sheetsOf = function (B) { return B.roam.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; }); };
+  In.resheet = function (B, sheets) {
+    var R = D.roam, byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
+    B.roam.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B);
+  };
+  // who rested how, by name (no pronouns): the first watch short of sleep, the second at the window, the third asleep
+  In.restedLine = function (party, asg, keyOf) {
+    var by = [1, 2, 3].map(function (k) { return party.filter(function (u) { return asg[keyOf(u)] === k; }).map(function (u) { return u.name; }); });
+    var put = function (s, ns) { return ns.length ? s.split('{names}').join(ns.length > 1 ? ns.slice(0, -1).join(', ') + ' and ' + ns[ns.length - 1] : ns[0]).split('{has}').join(ns.length > 1 ? 'have' : 'has').split('{sleeps}').join(ns.length > 1 ? 'sleep' : 'sleeps') : ''; };
+    return [put(In.WN.rested1, by[0]), put(In.WN.rested2, by[1]), put(In.WN.rested3, by[2])].filter(function (s) { return s; }).join(' ');
+  };
+  // the lead back in front once the house is up (the watcher went first: the wagon night's opening)
+  In.leadBack = function (B) { var R0 = B.roam, l0 = R0.lead0; R0.lead0 = null; if (l0 && R0.token !== l0 && R0.members.indexOf(l0) >= 0) In.lead(B, l0); };
   // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
   In.bedRiders = function (B, Y, f, noTeam) { // (the two in the open bed, and the team in its traces unless it is gone)
     var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken);
@@ -783,8 +849,13 @@
     var asg = (yield* In.watches(B, sheets)) || H.watchDefault(sheets);
     var watcher = party.filter(function (u) { return asg[keyOf(u)] === 2; })[0] || party[0];
     In.trail('the watches: ' + Object.keys(asg).map(function (k) { return k + ' ' + asg[k]; }).join(', ') + '; ' + watcher.name + ' at the window');
-    // 2. the lie-down to the second watch: the rest's mechanics, the clock to the watch's middle, the dark
-    yield* In.lieDown(B, (W.REST || 8) / (H.WATCHES || 3) * 1.5, 'THE SECOND WATCH', L('wagon.night'));
+    // 2. the lie-down to the second watch: the clock to the watch's middle (the night's own hours, In.REST: eleven after supper), the dark -- and the rest BY THE WATCH (11-05,
+    // Griz: "The people on second and third watch get their longrest (but not daily bonding and spell selection for this event) and those on first watch get a short rest before
+    // the scene starts with only the second watch character active"): the second and third watches the long rest's mechanics, the first a short rest, no morning page; then
+    // the one at the window alone in front, the rest asleep inside the token (the lead put back after: In.leadBack)
+    var nightH = (R0.stay && R0.stay.hours) || W.REST || 8, lead0 = R0.token;
+    yield* In.lieDown(B, nightH / (H.WATCHES || 3) * 1.5, 'THE SECOND WATCH', [L('wagon.night'), In.restedLine(party, asg, keyOf)], asg);
+    In.lead(B, watcher); R0.lead0 = lead0;
     // 3. the yard: the wagon in, the party at the window, the figures; the inn lady out to meet it with her lantern; the greetings
     var paid = !!(D.wagon && f.wagonBribed === 'c' + In.cycle(d)); // (Amara's gold taken on the road that day: the night kept to the room, as paid -- js/wagon.js)
     f.wagonIn = 1; if (In.katHere(f, d)) f.katYard = 1;
@@ -836,6 +907,7 @@
       }
     }
     if (how === 'quiet') {
+      In.leadBack(B);
       var seen = !!f.glamourSeen || paid; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
       if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; }
       In.gone(B, Y.amara); In.gone(B, Y.willem); Y.amara = Y.willem = null;
@@ -843,6 +915,7 @@
       yield* In.dueWalk(B, seen ? 'kid' : 'goblin');
       morning = L('wagon.morning.' + (seen ? 'quietSeen' : 'quiet'));
     } else if (how === 'bribe') {
+      In.leadBack(B);
       st.silver(500); D.sfx('coin'); f.wagonOutcome = 'bribe'; f.glamourBroken = 1; f.elsbethSilent = 1; f.katGone = 1; f.katRode = 1; f.kidAtInn = 1;
       yield* In.card(B, [L('g.foundSilver', { n: 500 }), In.WN.bribeTaken], 360);
       var katUp = !!f.katYard; // (11-05: only while she is at the inn -- a later cycle's wagon night has no traveler to climb up)
@@ -858,6 +931,7 @@
       delete f.katYard; // (11-05: she stays the night inside; the wagon stopped, she has no ride -- the morning after is her last day, the book given and south: In.katLast, In.katScene)
       var out = yield* In.yardFight(B, Y);
       if (out === 'lost') return;
+      In.leadBack(B); // (the whole house up now: the lead in front again)
       f.glamourBroken = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
       yield* In.breakGlamour(B, st, f, Y);
       if (out === 'fled') {

@@ -2564,6 +2564,86 @@
     document.body.appendChild(preWg);
     return;
   }
+  // THE INN'S REST HOURS AND THE WAGON NIGHT'S WATCHES, 11-05 (mode=innrest1105; js/inn.js In.REST, In.room, In.sleep, In.lieDown -- the Katarina seat, on Griz's words to
+  // the lanes desk: "Resting at the Inn costs 11 hours instead of 8 if 'dinner' is activated ... 10pm to 6 am ... 8 hours ... 'dinner is at 8' with a 'short rest' 'wait til
+  // dinner' or 'not now'", RULED "1 - lean / ... 7 am it is"; and "The people on second and third watch get their longrest ... those on first watch get a short rest before the
+  // scene starts with only the second watch character active"): every case in the house, its clock read from THE WORLD's
+  if (get('mode', '') === 'innrest1105') {
+    var repR = { checks: [], errors: [] }, memR = {}, stGR = D.store.get, stSR = D.store.set, HR = D.house, CR = D.counter, RR = D.roam, InR = D.inn, WR = D.world, muR = D.music;
+    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveR(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topR() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveR(s.co, null, 2); return s; }
+    function atR(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function wakeR(B) { var m = D.top(); if (!(m instanceof HR.Morning)) return ''; var ls = []; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } driveR(B.co, null, 40); return 'WOKE: ' + ls.filter(function (l) { return l; }).join(' '); }
+    // a NEW GAME's four in the house on the inn's floor at day/hour (the show's own staging, js/inn.js In.play), inside; the clock as an absolute hour
+    function stageR(day, hour, flags, at) { InR.play({ key: InR.KEY, at: at || [24, 17], hour: hour, day: day, inside: true, flags: Object.assign({ reachedInn: 1, gennetNamed: 1, mealHad: 1 }, flags || {}) }); return topR(); }
+    function tR() { return WR.state().t; }
+    function hm(t) { return 'day ' + (Math.floor(t / 24) + 1) + ' ' + ((t % 24) + '').replace(/\.5$/, ':30') + 'h'; }
+    // E on the inn lady, every screen answered by its label (none left: the last option), the watch box set from `asg`, each morning woken; `onAsk(title, B)` at each floor prompt
+    function runR(B, ans, asg, onAsk) {
+      var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {}; atR(B, 24, 17, [0, -1]); B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 60000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CR.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + '] > ' + w.opts[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HR.Morning) { quiet = 0; seen.push(wakeR(B) + ' @ ' + hm(tR())); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { if (asg && asg[id]) s.asg[id] = asg[id]; }); seen.push('WATCHES: ' + Object.keys(s.asg).map(function (id) { return id + ' ' + s.asg[id]; }).join(', ')); s.go('begin'); continue; }
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt; if (onAsk) onAsk(p.title, B); var a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push('> ' + p.opts[i].label); v = p.opts[i].value; quiet = 0; continue; }
+        quiet = 0;
+      }
+      return window.DS.stripCodes(seen.join(' / '));
+    }
+    D.store.get = function (k) { return memR[k] ? JSON.parse(memR[k]) : null; }; D.store.set = function (k, v) { memR[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1105); InR.stay = true;
+      // 1. THE HOURS (RULED): supper with the room from 3 pm to 10 pm, the kitchen cold from 10 pm to 6 am, before 3 pm "Dinner is at 8"
+      var kinds = [0, 5, 6, 14, 15, 18, 21, 22, 23].map(function (h) { return h + ':' + InR.restKind(h); }).join(' ');
+      okR('the hours: ' + JSON.stringify(InR.REST) + ' -- ' + kinds, kinds === '0:late 5:late 6:day 14:day 15:dinner 18:dinner 21:dinner 22:late 23:late' && InR.REST.dinnerHours === 11 && InR.REST.lateHours === 8 && InR.REST.dinnerAt + InR.REST.dinnerHours - 24 === 7);
+      // 2. A ROOM AT SIX IN THE EVENING, day 5, supper had before (the plain supper): eleven hours -- awake at five on day 6
+      var B2 = stageR(5, 18), s2 = HR.cur.silver, o2 = runR(B2, ['STAY THE NIGHT']), t2 = tR();
+      okR('a room at six, supper: ' + o2.slice(0, 500) + ' -- the clock ' + hm(t2) + ', the purse ' + s2 + ' to ' + HR.cur.silver,
+        /Supper at the long table/.test(o2) && /WOKE: MORNING/.test(o2) && t2 === 4 * 24 + 18 + 11 && HR.cur.silver === s2 - InR.PRICE * 4);
+      HR.playing = false; HR.cur = null;
+      // 3. A ROOM AT ELEVEN AT NIGHT: the kitchen cold, no supper, eight hours -- awake at seven on day 6
+      var B3 = stageR(5, 23), o3 = runR(B3, ['STAY THE NIGHT']), t3 = tR();
+      okR('a room at eleven at night: ' + o3.slice(0, 400) + ' -- the clock ' + hm(t3), /The kitchen is cold this late/.test(o3) && !/Supper at the long table/.test(o3) && /WOKE: MORNING/.test(o3) && t3 === 4 * 24 + 23 + 8);
+      HR.playing = false; HR.cur = null;
+      // 4. AT TEN IN THE MORNING: "Dinner is at eight." -- SHORT REST (an hour, the hit dice, nothing paid), NOT NOW, WAIT TIL DINNER (paid, eight o'clock, supper, awake at seven)
+      var B4 = stageR(5, 10), hurt = HR.cur.party[0], u4 = B4.roam.members[0]; u4.hp = 1; var s4 = HR.cur.silver, o4a = runR(B4, ['SHORT REST']), t4a = tR(), hp4 = B4.roam.members[0].hp;
+      var o4b = runR(B4, ['NOT NOW']), t4b = tR();
+      var o4c = runR(B4, ['WAIT TIL DINNER']), t4c = tR();
+      okR('at ten in the morning: ' + o4a.slice(0, 260) + ' // ' + o4b.slice(-80) + ' // ' + o4c.slice(0, 500) + ' -- short rest: the clock ' + hm(t4a) + ', ' + hurt.name + ' 1 to ' + hp4 + ' hp; not now: ' + hm(t4b) + '; wait til dinner: awake ' + hm(t4c) + ', the purse ' + s4 + ' to ' + HR.cur.silver,
+        /Dinner is at eight/.test(o4a) && /SHORT REST \| WAIT TIL DINNER \| NOT NOW/.test(o4a) && /An hour by the fire/.test(o4a) && !/WOKE/.test(o4a) && t4a === 4 * 24 + 11 && hp4 > 1 &&
+        !/WOKE/.test(o4b) && t4b === t4a && /At eight, supper/.test(o4c) && /Supper at the long table/.test(o4c) && /WOKE: MORNING/.test(o4c) && t4c === 5 * 24 + 7 && HR.cur.silver === s4 - InR.PRICE * 4);
+      HR.playing = false; HR.cur = null;
+      // 5. THE WAGON NIGHT BY THE WATCHES (day 12, a room at six): Lymen's feeling, the box -- Barley the first watch, Aurdin the second, Vivian and Lymen the third; everyone
+      // hurt to 1 and Aurdin's slots spent before; at the scene the first watch short-rested (Barley's hit dice, not whole), the others whole, Aurdin's slots back, Aurdin
+      // alone in front; KEEP WATCH; the lead in front again; awake eleven hours from six
+      var B5 = stageR(12, 18), snap = null; B5.roam.members.forEach(function (u) { u.hp = 1; if (u.src) u.src.hp = 1; if (Array.isArray(u.slots)) u.slots = u.slots.map(function () { return 0; }); });
+      var ba0 = HR.cur.party.filter(function (h) { return h.id === 'barley'; })[0] || {}, hd0 = ba0.hdLeft != null ? ba0.hdLeft : ba0.lvl; InR.pinned = [2, 2, 2, 2];
+      var o5 = runR(B5, ['STAY THE NIGHT', 'KEEP WATCH'], { barley: 1, aurdin: 2, vivian: 3, lymen: 3 }, function (title, B) {
+        if (title !== 'THE SECOND WATCH' || snap) return;
+        var by = {}; B.roam.members.forEach(function (u) { by[u.src ? (u.src.key || u.src.id) : u.id] = { hp: u.hp, max: u.maxhp, slots: (u.slots || []).reduce(function (a, b) { return a + b; }, 0) }; });
+        snap = { by: by, token: B.roam.token.src && (B.roam.token.src.key || B.roam.token.src.id), t: tR(), hd: (HR.cur.party.filter(function (h) { return h.id === 'barley'; })[0] || {}).hdLeft };
+      }), t5 = tR(), tok5 = B5.roam.token.src && (B5.roam.token.src.key || B5.roam.token.src.id);
+      var sn = snap || { by: {} }, b = sn.by;
+      okR('the wagon night by the watches: ' + o5.slice(o5.indexOf('Something sits'), o5.indexOf('Something sits') + 700) + ' -- at the scene (' + hm(sn.t || 0) + ') ' + Object.keys(b).map(function (k) { return k + ' ' + b[k].hp + '/' + b[k].max + (b[k].slots ? ' slots ' + b[k].slots : ''); }).join(', ') + '; Barley\'s hit dice ' + hd0 + ' to ' + sn.hd + '; in front ' + sn.token + '; after, in front ' + tok5 + ', awake ' + hm(t5),
+        /Something sits wrong with me tonight/.test(o5) && /WATCHES: .*barley 1.*aurdin 2/.test(o5) && /Barley stood the first watch and slept short/.test(o5) && /Aurdin has the window now/.test(o5) && /Vivian and Lymen sleep on/.test(o5) && /Aurdin, at the window on the second watch/.test(o5) &&
+        !!snap && b.barley.hp > 1 && sn.hd < hd0 && b.aurdin.hp === b.aurdin.max && b.aurdin.slots > 0 && b.vivian.hp === b.vivian.max && b.lymen.hp === b.lymen.max && sn.token === 'aurdin' && sn.t === 11 * 24 + 18 + 11 / 3 * 1.5 &&
+        tok5 === 'barley' && t5 === 11 * 24 + 18 + 11 && /WOKE: MORNING/.test(o5));
+      InR.pinned = null; HR.playing = false; HR.cur = null;
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    HR.playing = false; HR.cur = null; if (InR) { InR.stay = false; InR.pinned = null; }
+    D.store.get = stGR; D.store.set = stSR; D.music = muR;
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // KATARINA AT THE FIRE, 11-05 (mode=kat1105; js/inn.js In.katScene, In.KAT, In.WAGON, js/grimoire.js M.jokeReady -- the Katarina seat, started by the lanes desk on Griz's
   // "Yes, the leans": the wagon moved to day 12, her stay from day 4 through it, her talk ported from the first game's S.katarina, the lane's §7 drafts): the calendar; the
   // ink bought at Lisbet's; Barley at her table on day 7 with it -- the Dominion, the vision, the Sheet: Hideous Laughter, katVision; Aurdin copies it into his book; the joke
@@ -2896,7 +2976,7 @@
       // greeting and its read, KEEP WATCH, the lamps down, the due's walk on the point, the morning; the traveler rides out, her book in the drawer after
       var Bq = testIn('?roam=halfway&hour=18&day=' + WDI + '&at=24,17'); Bq.roam.silver = 30; atIn(Bq, 24, 17, [0, -1]); InI.pinned = [1]; var oq = nightIn(Bq, [0, 'TO BED', 'KEEP WATCH']), fq = Bq.roam.flags, iq = oq.indexOf('WATCHES');
       okIn('THE WAGON NIGHT, day ' + WDI + ', KEEP WATCH: ' + oq.slice(Math.max(0, iq - 200), iq + 1400) + ' -- the outcome ' + fq.wagonOutcome + ', the traveler rode ' + !!fq.katRode + ', the cycle ' + fq.wagonCycle + ', the due tonight ' + fq.dueTonight + ' (the one taken ' + fq.kidTaken + '), the walk seen ' + fq.dueSeen + ', her book in the drawer after (' + InI.bookInDrawer(fq, WDI + 1) + '), the yard clear after (' + !Bq.units.some(function (u) { return u.scripted; }) + ', riders ' + (Bq.riders || []).length + ')',
-        /set a watch tonight/.test(oq) && /WATCHES: .*lymen 2/.test(oq) && /THE SECOND WATCH/.test(oq) && /Lymen, at the window on the second watch: a wagon turns in/.test(oq) && /Mistress Amara/.test(oq) && /Amara lifts one down from the back/.test(oq) && /> KEEP WATCH/.test(oq) && /lantern leaves its post/.test(oq) && /The inn lady walks the path to the point, and a goblin walks with her/.test(oq) && /Only the inn lady comes back/.test(oq) && /MORNING/.test(oq) && !/INITIATIVE/.test(oq) &&
+        /Something sits wrong with me tonight/.test(oq) && /WATCHES: .*lymen 2/.test(oq) && /Lymen has the window now/.test(oq) && /THE SECOND WATCH/.test(oq) && /Lymen, at the window on the second watch: a wagon turns in/.test(oq) && /Mistress Amara/.test(oq) && /Amara lifts one down from the back/.test(oq) && /> KEEP WATCH/.test(oq) && /lantern leaves its post/.test(oq) && /The inn lady walks the path to the point, and a goblin walks with her/.test(oq) && /Only the inn lady comes back/.test(oq) && /MORNING/.test(oq) && !/INITIATIVE/.test(oq) &&
         fq.wagonOutcome === 'quiet' && !!fq.katRode && fq.wagonCycle === 0 && fq.dueTonight === 1 && fq.kidTaken === 1 && fq.dueSeen === 1 && InI.bookInDrawer(fq, WDI + 1) && !Bq.units.some(function (u) { return u.scripted; }) && !(Bq.riders || []).length &&
         /The traveler and Amara know each other/.test(oq) && fq.katKnewAmara === 1); // (11-05, the Katarina seat: the greeting's silent Insight 13, the party's best passive -- her message's key)
       // 13. THE WAGON NIGHT, steel and won: seen through at the window (the die pinned high), WAKE THE PARTY, the party out the front door into the yard, Lymen's word, the fight on the
