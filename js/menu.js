@@ -765,7 +765,7 @@
   // ------------------------------------------------------------------ SKILLS: a hero's, each with its line (his: "popup available skill with description line")
   function skillsOf(h) {
     var out = [], f = h.feats || {};
-    if (h.cls === 'paladin' && f.lay != null) out.push({ s: 'lay', name: 'LAY ON HANDS', right: f.lay, ok: f.lay > 0, ally: true, desc: 'Heal by touch from a pool of 5 a level; it wakes the fallen.' });
+    if (h.cls === 'paladin' && f.lay != null) out.push({ s: 'lay', name: 'LAY ON HANDS', right: f.lay, ok: f.lay > 0, ally: true, desc: 'Heal by touch from a pool of 5 a level; it wakes the fallen. On one poisoned, 5 from the pool ends the poison and its paralysis.' });
     if (h.cls === 'wizard') out.push({ s: 'arcane', name: 'ARCANE RECOVERY', right: f.arcaneRecovery ? 'ready' : 'spent', ok: !!f.arcaneRecovery, desc: 'Once a day: spent slots back, ' + Math.ceil(h.lvl / 2) + ' levels of them.' });
     if (h.cls === 'fighter') out.push({ s: 'wind', name: 'SECOND WIND', right: f.secondWind ? 'ready' : 'spent', ok: !!f.secondWind, desc: 'Once a rest: 1d10 + ' + h.lvl + ' HP back.' });
     return out;
