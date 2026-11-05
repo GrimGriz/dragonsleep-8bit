@@ -3550,7 +3550,7 @@
       // NEW GAME on the title: CHOOSE WHO YOU ARE
       var tO = new HO.Title(); D.scenes.length = 0; D.push(tO); tO.enter(); tO.go('new'); var pk = D.top();
       okO('NEW GAME: CHOOSE WHO YOU ARE (' + (pk && pk.kind) + '), the four in the first game\'s order (' + (pk && pk.heroes ? idsO(pk.heroes) : '') + ') in their own figures (' + (pk && pk.sheets || []).join(', ') + '), the cursor on the first',
-        !!pk && pk.kind === 'leadpick' && idsO(pk.heroes) === 'barley,aurdin,vivian,lymen' && pk.i === 0 && pk.sheets.join() === ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return D.save.look(id, null, null).sheet; }).join());
+        !!pk && pk.kind === 'leadpick' && idsO(pk.heroes) === 'barley,aurdin,vivian,lymen' && pk.i === 0 && pk.sheets.join() === pk.heroes.map(function (h) { return D.save.look(h.key || h.id, null, h).sheet; }).join() && pk.sheets[2] === 'vivian_p2'); // (dressed as they start: since 11-05 Vivian's leather wears her look 1, vivian_p2 -- SV.LOOK.vivian.armor)
       var drewO = true; try { pk.draw(cxO); } catch (eD) { drewO = String(eD); }
       keyO('right'); keyO('right'); keyO('a'); var askO = pk.ask ? pk.prompt() : ''; try { pk.draw(cxO); } catch (eD2) { drewO = String(eD2); }
       okO('two to the right and E: Vivian, and the first game\'s words -- "' + askO + '" BEGIN / BACK; the screen drawn (' + drewO + ')', pk.i === 2 && !!pk.ask && askO === 'Begin as Vivian? The other three can be found in play, and hired.' && drewO === true);
@@ -9465,8 +9465,8 @@
       okHo('the portraits\' show takes the four by the sheet\'s name (' + ps4Ho.ids.join(', ') + ')', ps4Ho.ids.join() === 'aurdin_red,aurdin_ochre,barley_coat,lymen');
       // her fight figure as the art desk is drawing it (ART-MC-VIVIAN-COMBAT batches A and B, tools/vivian-sheet.py): vivian_p0's rows; idle, walk and attack in SE
       // only (batch A, its checkpoint), hurt and sit in all eight; NOT worn -- the LPC composite is still her figure till every view stands
-      var s2 = D.SHEETS.vivian_p2, ROWS2 = { idle: 2, walk: 9, attack: 6, hurt: 6, sit: 3 }, bad2 = s2 ? Object.keys(ROWS2).filter(function (r) { var a = s2.anims[r]; return !a || a.frames !== ROWS2[r] || (['idle', 'walk', 'attack'].indexOf(r) >= 0 ? String((a.drawn || []).slice().sort()) !== '1,7' : !!a.drawn); }) : ['NONE'];
-      okHo('vivian_p2 cut (' + (s2 ? Object.keys(s2.anims).map(function (r) { var a = s2.anims[r]; return r + ' ' + a.frames + (a.drawn ? ' SE only' : ''); }).join(', ') : 'NONE') + '), vivian_p0\'s rows, top ' + (s2 && s2.top) + ' as vivian_p0\'s ' + D.SHEETS.vivian_p0.top + '; her figure still ' + D.save.look('vivian', null, hV).sheet + (bad2.length ? ' -- off: ' + bad2.join(', ') : ''),
+      var s2 = D.SHEETS.vivian_p2, ROWS2 = { idle: 2, walk: 9, attack: 6, hurt: 6, sit: 3 }, bad2 = s2 ? Object.keys(ROWS2).filter(function (r) { var a = s2.anims[r]; return !a || a.frames !== ROWS2[r] || !!a.drawn; }) : ['NONE']; // (since 11-05 look 1's batch A whole: every row all round, no SE-only rows)
+      okHo('vivian_p2 cut, look 1 (' + (s2 ? Object.keys(s2.anims).map(function (r) { var a = s2.anims[r]; return r + ' ' + a.frames + (a.drawn ? ' SE only' : ''); }).join(', ') : 'NONE') + '), vivian_p0\'s rows all round, top ' + (s2 && s2.top) + ' as vivian_p0\'s ' + D.SHEETS.vivian_p0.top + '; in no armour her figure still ' + D.save.look('vivian', null, hV).sheet + (bad2.length ? ' -- off: ' + bad2.join(', ') : ''),
         !bad2.length && s2.top === D.SHEETS.vivian_p0.top && s2.ay === D.SHEETS.vivian_p0.ay && D.save.look('vivian', null, hV).sheet === 'vivian_p0');
       // and the "3B" look, the hood up over studded leather (VIVIAN-3B-COMBAT batches A and B): every row in all five views, so all eight facings -- worn in Studded Leather since 11-05 (below)
       var s3 = D.SHEETS.vivian_p3, bad3 = s3 ? Object.keys(ROWS2).filter(function (r) { var a = s3.anims[r]; return !a || a.frames !== ROWS2[r] || !!a.drawn; }) : ['NONE'];
@@ -9474,11 +9474,11 @@
         !bad3.length && s3.top === D.SHEETS.vivian_p0.top && s3.ay === D.SHEETS.vivian_p0.ay && D.save.look('vivian', null, hV).sheet === 'vivian_p0');
       // HER FIGURE FOLLOWS HER ARMOUR (11-05, the desk's relay of Griz: "They're meant to be alternate armor options (leather and studded)"; "i think contact on frame 4
       // is standard?"): Studded Leather and its +1 wear the 3B hood, leather and none the figure she wore before; her face the same in each; the strike on frame 4 in both
-      // looks; the class floor's Vivian from 4th (SV.KIT's studded) in the hood, at 3rd not
+      // looks; the class floor's Vivian from 4th (SV.KIT's studded) in the hood, at 3rd in her leather, look 1 (its views whole since 11-05)
       var lkHo = function (arm) { return D.save.look('vivian', null, { id: 'vivian', key: 'vivian', equip: { armor: arm } }).sheet; }, wearHo = { studded: lkHo('studded'), studded1: lkHo('studded1'), leather: lkHo('leather'), none: lkHo(null) };
       var ptHo = CHo.heroPortrait({ id: 'vivian', key: 'vivian', name: 'Vivian', equip: { armor: 'studded' } }), nl5 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 5 }) : '?', nl3 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 3 }) : '?';
       okHo('Vivian by her armour: ' + JSON.stringify(wearHo) + '; her face in studded ' + ptHo + '; the strike lands on frame ' + (s3 && s3.anims.attack.release) + ' (3B) and ' + (s2 && s2.anims.attack.release) + ' (the teal jacket), zero-based; the class floor at 5th ' + nl5 + ', at 3rd ' + nl3,
-        wearHo.studded === 'vivian_p3' && wearHo.studded1 === 'vivian_p3' && wearHo.leather === 'vivian_p0' && wearHo.none === 'vivian_p0' && ptHo === 'pt_vivian' && s3.anims.attack.release === 3 && s2.anims.attack.release === 3 && nl5 === 'vivian_p3' && nl3 === 'vivian_p0');
+        wearHo.studded === 'vivian_p3' && wearHo.studded1 === 'vivian_p3' && wearHo.leather === 'vivian_p2' && lkHo('leather1') === 'vivian_p2' && wearHo.none === 'vivian_p0' && ptHo === 'pt_vivian' && s3.anims.attack.release === 3 && s2.anims.attack.release === 3 && nl5 === 'vivian_p3' && nl3 === 'vivian_p2');
       var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
       if (btHo) CHo.servicePlay(btHo);
       okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',

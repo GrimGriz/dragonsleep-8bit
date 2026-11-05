@@ -13,38 +13,26 @@
    "ax": 16,
    "ay": 61,
    "frames": 2,
-   "fps": 6,
-   "drawn": [
-    1,
-    7
-   ]
+   "fps": 6
   },
   "walk": {
    "y": 512,
-   "fw": 34,
+   "fw": 36,
    "fh": 64,
-   "ax": 17,
+   "ax": 18,
    "ay": 61,
    "frames": 9,
-   "fps": 10,
-   "drawn": [
-    1,
-    7
-   ]
+   "fps": 10
   },
   "attack": {
    "y": 1024,
-   "fw": 42,
+   "fw": 46,
    "fh": 64,
-   "ax": 21,
+   "ax": 23,
    "ay": 61,
    "frames": 6,
    "fps": 12,
-   "release": 3,
-   "drawn": [
-    1,
-    7
-   ]
+   "release": 3
   },
   "hurt": {
    "y": 1536,
@@ -67,8 +55,8 @@
  },
  "name": "Vivian",
  "hold": [
-  "idle, walk and attack drawn in SE only so far (the art desk's batch A, its SE checkpoint): the other views wait on its verdict",
-  "SE walk: the lead boot repeats at the opposite contact (the art desk's own HOLD)"
+  "walk: the contacts still alike in some views, the lead boot repeating in S (the art desk's own notes; the fix asked, attempt 1 of 2)",
+  "S and N attack: check the blade reads toward the target at game size (the art desk's own note)"
  ],
- "source": "drawn by the art desk (ART-MC-VIVIAN-COMBAT batches A and B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure"
+ "source": "drawn by the art desk (VIVIAN-ORIGINAL-OUTFIT-COMBAT-BATCH-A, 11-05, all five views -- it consolidates the 11-04 SE checkpoint, kept in _src/vivian/COMBAT-A-1104 -- and ART-MC-VIVIAN-COMBAT batch B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; SW W NW mirrored; worn in leather (js/save.js SV.LOOK.vivian.armor)"
 }

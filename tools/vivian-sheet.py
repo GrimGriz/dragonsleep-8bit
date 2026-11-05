@@ -5,9 +5,9 @@
 
 Each look is the art desk's ART-MC-VIVIAN-COMBAT redrawing vivian_p0 row for row (its notes: "Retain runtime key vivian_p0 and its existing row
 semantics"), two batches a look, sorted to deep16/_src/vivian/ by _src/art-desk/heroes-1105-sort.py and heroes-1105b-sort.py:
-  vivian_p2  her art-wanted section 37 identity (HEAD 1: the teal jacket open over the leather, the candle-knife), 11-04:
-             COMBAT-A-1104, its "SE checkpoint" -- SE only: Idle 2, Walk 9 (its own HOLD: the lead boot repeats), Attack 6 (frame 4, the contact,
-             from SE-CONTACT-SOURCE.png so the blade stays in the sequence); COMBAT-B-1104 -- Hurt 6 and Sit 3 in all five views.
+  vivian_p2  look 1, the leather: her art-wanted section 37 identity (HEAD 1: the teal jacket open over the leather, the candle-knife):
+             ORIGINAL-COMBAT-A-1105 (11-05) -- Idle 2, Walk 9 and Attack 6 in all five views, consolidating the 11-04 SE checkpoint (COMBAT-A-1104,
+             kept as the reference, its SE-CONTACT-SOURCE re-roll no longer needed); COMBAT-B-1104 (11-04) -- Hurt 6 and Sit 3 in all five views.
   vivian_p3  "3B": the hood up, a slate-teal cloak over dark studded leather (the loose page "Vivian Venn -- Studded Leather: Open and Hooded", 3B), 11-05:
              3B-COMBAT-A-1105 -- Idle 2, Walk 9 and Attack 6 in all five views (its notes: the walk's contacts still candidates, the lead boot repeating
              in SE and S); 3B-COMBAT-B-1105 -- Hurt 6 and Sit 3 in all five.
@@ -20,7 +20,7 @@ Rows (vivian_p0's names): idle, walk, attack, hurt, sit; a row drawn in SE only 
 as her idle. A frame stands on its lowest row (AY, vivian_p0's 61); upright, by its torso's middle (the top 55%); down (hurt 5 and 6, the notes'
 "register their pelvis to the same world position"), by its whole body's middle. Boxed down, snapped to the 64, outlined -- her auburn hair on the reds.
 WORN BY HER ARMOUR (11-05, Griz: "They're meant to be alternate armor options (leather and studded)"): js/save.js SV.LOOK.vivian.armor -- Studded Leather
-wears vivian_p3; leather wears vivian_p2 once its other views come (vivian_p0 till then, the desk's call). Attack's `release` 3: the blow on frame 4.
+wears vivian_p3; leather wears vivian_p2 (11-05, look 1's other views in). Attack's `release` 3: the blow on frame 4.
 """
 import csv, importlib.util, json, os, sys
 import numpy as np
@@ -44,11 +44,12 @@ RELEASE = {'attack': 3}                    # (the blow lands on frame 4, zero-ba
 BG_TOL, HOLE = 30, 400
 AVOID = None
 LOOKS = {
-    'vivian_p2': dict(batches=('COMBAT-A-1104', 'COMBAT-B-1104'), name='Vivian',
-                      hold=['idle, walk and attack drawn in SE only so far (the art desk\'s batch A, its SE checkpoint): the other views wait on its verdict',
-                            'SE walk: the lead boot repeats at the opposite contact (the art desk\'s own HOLD)'],
-                      source='drawn by the art desk (ART-MC-VIVIAN-COMBAT batches A and B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; '
-                             'SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure'),
+    'vivian_p2': dict(batches=('ORIGINAL-COMBAT-A-1105', 'COMBAT-B-1104'), name='Vivian',
+                      hold=['walk: the contacts still alike in some views, the lead boot repeating in S (the art desk\'s own notes; the fix asked, attempt 1 of 2)',
+                            'S and N attack: check the blade reads toward the target at game size (the art desk\'s own note)'],
+                      source='drawn by the art desk (VIVIAN-ORIGINAL-OUTFIT-COMBAT-BATCH-A, 11-05, all five views -- it consolidates the 11-04 SE checkpoint, kept in '
+                             '_src/vivian/COMBAT-A-1104 -- and ART-MC-VIVIAN-COMBAT batch B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; '
+                             'SW W NW mirrored; worn in leather (js/save.js SV.LOOK.vivian.armor)'),
     'vivian_p3': dict(batches=('3B-COMBAT-A-1105', '3B-COMBAT-B-1105'), name='Vivian',
                       hold=['walk: the contacts are the art desk\'s candidates, the lead boot repeating in SE and S (its own note)',
                             'S and N attack: the blade sweeps across the screen at the contact; check it reads toward the target (its own note)',
