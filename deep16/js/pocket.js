@@ -457,6 +457,10 @@
     var b = { label: label, x: x, y: y, w: w, h: h, fn: fn, dis: !!o.dis, why: o.why || null, pri: !!o.pri, on: !!o.on, small: !!o.small, key: o.key, nokey: !!o.nokey }, i = this.btns.length;
     this.btns.push(b);
     var sel = this.ksel === i && !o.nokey;
+    if (o.ghost) { // (a list row's own pick, its text the row's: no box till it is chosen, a faint one while it is the pick -- js/pocketdm.js PD.pickRows, 11-05)
+      if (sel || o.on) { ctx.fillStyle = sel ? 'rgba(60,38,8,.45)' : 'rgba(248,214,122,.08)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = sel ? P('gold', 4) : 'rgba(248,214,122,.35)'; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); }
+      return b;
+    }
     ctx.fillStyle = o.on ? P('gold', 1) : o.pri && !o.dis ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)';
     ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = o.dis ? (sel ? P('stone', 5) : P('stone', 2)) : sel ? P('gold', 4) : o.on ? P('gold', 3) : o.pri ? P('gold', 2) : P('stone', 3);

@@ -349,6 +349,117 @@
     D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's') + (cp.bought.length ? ' {g}+' + cp.bought.length + '{/}' : ''), x + w / 2, y + 22, P('bone', 1), 'center');
   };
 
+  // ------------------------------------------------------------------ THE PICK BEHIND THE PAGE (11-05; the lane's 11-03 night item 3, RULED 11-03 night -- Griz: "Should be able to select
+  // items - and selecting items should load them as the background image (location/monster) - discuss"; on the lean, "re the pocket DM items - for the beasts drawn in the background,
+  // it should cycle through special attack animations and show the 'infocard' (at least the same as 'inspect') on the right side"; 11-05, "in monster shops you can highlight/select
+  // (other than buy button) and it replaces the background with a gallery of the monster and show's it statbloc/inspect card, with similar notion of background preview version for
+  // locations"): in a shop, THE VILLAINS and THE LOCATIONS the row the cursor is on -- the keys', the pad's, the mouse over it, a click on the row (its BUY still buys) -- is the pick,
+  // and stays the pick when the cursor leaves the list (a page's first row at first). A creature picked stands behind the page, dimmed, playing its rows one after another -- its
+  // blows and its specials, as the row gallery has them (js/show.js SH.wanted), an idle between -- with the grid's own inspect card on the right (js/ui.js UI.inspect); a location
+  // picked is its floor as the grid draws it (js/iso.js), dimmed behind the list
+  PD.PICK = { alpha: 0.78, floor: 0.6, veil: 'rgba(6,5,12,.5)', tall: 124, idle: 45, card: 178, cx: 386, foot: 222 }; // (the seat's calls: a half veil over the hall; the figure on the right under its card -- beside the list, not under its words -- about 124 px tall at most and a little dimmed; a floor at 0.6 under the whole list; 3/4 s of idle between rows; the card 178 px at most)
+  // the pick of a list: rows [{ word, b: [the row's buttons] }] as drawn; the cursor on one makes it the pick (pickT: when, for its rows to start from the first)
+  PD.pickRows = function (pk, key, rows) {
+    var k = pk.ksel, at = null, picks = pk.picks = pk.picks || {};
+    rows.forEach(function (r) { if (r.b.indexOf(k) >= 0) at = r.word; });
+    if (at == null && picks[key] == null && rows.length) at = rows[0].word;
+    if (at != null && picks[key] !== at) { picks[key] = at; pk.pickT = pk.t; }
+    return picks[key] == null ? null : picks[key];
+  };
+  PD.setPick = function (pk, key, word) { (pk.picks = pk.picks || {})[key] = word; pk.pickT = pk.t; }; // (a click, or E, on the row: picked again, its rows from the first)
+  PD.picked = function (pk, key) { return pk.picks && pk.picks[key] != null ? pk.picks[key] : null; };
+  // a creature as the grid would field it (js/battle.js makeFoe, or js/classes.js NPC.build for a villain's word), once a word: the card reads it and its sheet is drawn
+  var unitC = {}, benchB = null;
+  PD.unitFor = function (word) {
+    if (unitC[word] !== undefined) return unitC[word];
+    var u = null;
+    try {
+      if (!benchB) benchB = { o: { pocket: true }, fight: null, isStory: function () { return false; }, makeFoe0: D.Battle.prototype.makeFoe0 }; // (a fight of none: the Pocket DM's reading, never the story's)
+      u = (NPC && NPC.build ? NPC.build(word, 5, 'foe', { id: 'pick' }) : null) || (D.FOES[word] ? D.Battle.prototype.makeFoe.call(benchB, { id: 'pick', kind: word }) : null);
+    } catch (e) { u = null; }
+    if (u) { u.conds = u.conds || {}; u.side = 'foe'; }
+    return (unitC[word] = u);
+  };
+  // its rows to play: the gallery's, less the walks, the waits and the falls (the seat's call: what it does, not how it moves)
+  var NOT_SHOWN = { idle: 1, walk: 1, run: 1, slither: 1, fly: 1, roost: 1, braid: 1, still: 1, sit: 1, rofl: 1, climb: 1, hurt: 1, prone: 1, flinch: 1 };
+  var rowsC = {};
+  PD.pickRowsOf = function (u) {
+    var sh = u && u.sheet; if (!sh || !D.SHEETS || !D.SHEETS[sh]) return [];
+    if (rowsC[sh + '|' + u.kind]) return rowsC[sh + '|' + u.kind];
+    var all = D.show && D.show.wanted ? D.show.wanted(sh, u.kind) : Object.keys(D.SHEETS[sh].anims);
+    return (rowsC[sh + '|' + u.kind] = all.filter(function (r) { return !NOT_SHOWN[r] && !!D.spr.anim(sh, r); }));
+  };
+  // which row plays t frames after the pick, and how far in: each row once, an idle between (only an idle where it has no other)
+  PD.pickBeat = function (u, t) {
+    var sh = u.sheet, S = D.spr, seq = [];
+    PD.pickRowsOf(u).forEach(function (r) { seq.push([r, Math.max(24, S.duration(sh, r))]); seq.push(['idle', PD.PICK.idle]); });
+    if (!seq.length) seq = [['idle', 600]];
+    var T = seq.reduce(function (n, s) { return n + s[1]; }, 0), tt = ((t % T) + T) % T, i = 0;
+    while (i < seq.length - 1 && tt >= seq[i][1]) { tt -= seq[i][1]; i++; }
+    return { row: seq[i][0], t: tt, n: PD.pickRowsOf(u).length };
+  };
+  PD.drawCreature = function (ctx, u, t, cx, foot) {
+    var sh = u && u.sheet, S = D.spr; if (!sh || !D.SHEETS || !D.SHEETS[sh]) return null;
+    var sd = D.SHEETS[sh], fw = sd.fw || 64, ax = sd.ax != null ? sd.ax : fw / 2;
+    var bt = PD.pickBeat(u, t), k = Math.max(1, Math.min(4, Math.floor(PD.PICK.tall / Math.max(24, S.top(sh))), Math.floor(200 / fw))); // (as tall as the room under the card, as wide as the right of the page)
+    cx = Math.min(cx, D.W - 2 - (fw - ax) * k); // (its frame inside the screen's right edge)
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(cx), Math.round(foot)); ctx.scale(k, k);
+    S.draw(ctx, sh, bt.row, 1, bt.t, 0, 0, { alpha: PD.PICK.alpha, once: bt.row !== 'idle' }); // (facing SW, toward the list; a sheet still on its way is fetched by S.draw and drawn when it lands)
+    ctx.restore();
+    return bt;
+  };
+  // a floor's picture: the map as the grid bakes and draws it, at its own size, once a map (eight kept); the grid's camera put back as it was
+  var picC = {}, picN = [];
+  PD.floorPic = function (id) {
+    if (picC[id] !== undefined) return picC[id];
+    var def = D.MAPS[id], IS = D.iso, out = null; if (!def || !IS || !IS.load || !IS.draw) return null;
+    var keep = { map: IS.map, x: IS.cam.x, y: IS.cam.y, zoom: IS.zoom, inWorld: IS.inWorld };
+    try {
+      var m = IS.load(def), b = m.bake;
+      if (b && b.canvas && !b.paged) {
+        var pad = 110, W = b.canvas.width, H = b.canvas.height + pad, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+        IS.inWorld = true; IS.zoom = Math.min(D.W / W, D.H / H); // (the world's way of drawing: unscaled, the view as big as the picture, so nothing in it is culled)
+        IS.cam.x = b.x + D.W / IS.zoom / 2; IS.cam.y = b.y - pad + D.H / IS.zoom / 2;
+        IS.draw(cx, [], null);
+        out = PD.cropPic(cv);
+      }
+    } catch (e) { out = null; }
+    finally { IS.map = keep.map; IS.cam.x = keep.x; IS.cam.y = keep.y; IS.zoom = keep.zoom; IS.inWorld = keep.inWorld; }
+    picC[id] = out; picN.push(id); if (picN.length > 8) delete picC[picN.shift()];
+    return out;
+  };
+  // the picture cut to what is drawn in it (the bake leaves room round a floor for its heights and walls)
+  PD.cropPic = function (cv) {
+    var W = cv.width, H = cv.height, px = cv.getContext('2d').getImageData(0, 0, W, H).data, x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (var y = 0; y < H; y += 2) for (var x = 0; x < W; x += 2) if (px[(y * W + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) return null;
+    x0 = Math.max(0, x0 - 2); y0 = Math.max(0, y0 - 2); x1 = Math.min(W - 1, x1 + 2); y1 = Math.min(H - 1, y1 + 2);
+    var out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1; out.getContext('2d').drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+    return out;
+  };
+  PD.drawFloor = function (ctx, id) {
+    var pic = PD.floorPic(id); if (!pic) return false;
+    var aw = D.W - 8, ah = D.H - 34, s = Math.min(aw / pic.width, ah / pic.height); if (s >= 1) s = Math.floor(s);
+    var w = Math.round(pic.width * s), h = Math.round(pic.height * s);
+    ctx.save(); ctx.globalAlpha = PD.PICK.floor; ctx.imageSmoothingEnabled = s < 1; ctx.drawImage(pic, Math.round((D.W - w) / 2), 30 + Math.round((ah - h) / 2), w, h); ctx.restore();
+    return true;
+  };
+  // behind the page: the veil, then the pick (a creature, or with `floor` a map); its card on the right after the list (pickCard)
+  PD.backdrop = function (pk, ctx, key, floor) {
+    var w = PD.picked(pk, key); if (w == null) return;
+    ctx.fillStyle = PD.PICK.veil; ctx.fillRect(0, 0, D.W, D.H);
+    if (floor) PD.drawFloor(ctx, w);
+    else { var u = PD.unitFor(w); if (u) pk.pickPlay = PD.drawCreature(ctx, u, pk.t - (pk.pickT || 0), PD.PICK.cx, PD.PICK.foot); }
+  };
+  PD.pickCard = function (pk, ctx, key, tag) {
+    var w = PD.picked(pk, key), u = w != null ? PD.unitFor(w) : null; if (!u || !D.ui || !D.ui.inspect) return null;
+    var r = D.ui.inspect(ctx, u, { right: 6, y: 32, w: PD.PICK.card, max: 19 }), bt = pk.pickPlay;
+    var say = [tag || '', bt && bt.n ? '{g}playing{/} ' + String(bt.row).toUpperCase() : bt ? '{g}no blow of its own drawn{/}' : ''].filter(Boolean).join('  ·  ');
+    if (r && say) D.text(ctx, say, r.x + r.w - 4, r.y + r.h + 3, P('stone', 5), 'right');
+    return r;
+  };
+
   // ------------------------------------------------------------------ the screens: the campaign, the shops, a shop, the villains, the marks, the units, the locations, the modules,
   // the builder, the doors, the notes
   var BACKTO = { camp: 'title', doors: 'title', shops: 'camp', units: 'camp', build: 'camp', locations: 'camp', dmmods: 'camp', shop: 'shops', villains: 'shops', marks: 'villains', feedback: 'doors' };
@@ -447,38 +558,46 @@
   Pocket.prototype.drawVillains = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st), sh = PD.shopById('villains'), per = 11;
     var rows = PD.villainRows(st).map(function (v) { return { v: v, word: v.word }; }).concat(PD.shelf(sh, 'cheap').map(function (k) { return { story: true, word: k }; }));
+    var pkey = 'villains';
+    PD.backdrop(this, ctx, pkey); // (the row picked, behind the page: 11-05)
     head(ctx, 'VILLAINS', 'yours first, then the story\'s named · a villain of a class at its level\'s CR · the purse ' + PD.fmt(cp.purse));
     ctx.drawImage(icon('crown'), 0, 0, 12, 12, 14, 4, 24, 24);
     var from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
     var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
-    D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}villain{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}level{/}', 240, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 306, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 334, 34, P('stone', 5));
-    var b0 = this.btns.length;
+    // (the columns closer since 11-05: the picked villain's card stands on the right, past 290 -- its STORY / MARKED / MADE under the card, a made one's EDIT on the bar)
+    D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}villain{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}level{/}', 196, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 256, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 274, 34, P('stone', 5));
+    var b0 = this.btns.length, prow = [], pw = PD.picked(this, pkey), pr = null;
     rows.slice(from, from + per).forEach(function (r, i) {
-      var yy = 44 + i * 16, k = r.word, cost = PD.price(k), f = PK.foe(k) || { name: k }, v = r.v;
+      var yy = 44 + i * 16, k = r.word, cost = PD.price(k), f = PK.foe(k) || { name: k }, v = r.v, at = self.btns.length;
       self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
         var res = PD.buy(st, k);
         if (res.ok) { self.keep(); self.say('bought ' + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left; bind it on THE UNITS', 240); }
         else { D.sfx('error'); self.say(res.why, 300); }
       }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a fight of yours pays twice its CR' });
-      D.text(ctx, cut(v ? v.name : f.name, 120), 112, yy + 3, r.story ? P('bone', 1) : P('gold', 4));
+      self.btn(ctx, '', 108, yy, 84, 13, function () { PD.setPick(self, pkey, k); }, { ghost: true, on: pw === k }); // (the row's name: the pick -- its BUY still buys, its arrows still level)
+      D.text(ctx, cut(v ? v.name : f.name, 80), 112, yy + 3, pw === k ? P('gold', 4) : r.story ? P('bone', 1) : P('gold', 3));
       if (v && v.w) { // (a stock card: its level by the arrows)
-        self.btn(ctx, '<', 236, yy, 13, 13, function () { cp.vlvl[v.w] = Math.max(v.lo, v.lvl - 1); self.keep(); }, { small: true, dis: v.lvl <= v.lo });
-        D.text(ctx, clsOf(v.cls).slice(0, 3).toUpperCase() + ' ' + v.lvl, 271, yy + 3, P('bone', 1), 'center');
-        self.btn(ctx, '>', 292, yy, 13, 13, function () { cp.vlvl[v.w] = Math.min(v.hi, v.lvl + 1); self.keep(); }, { small: true, dis: v.lvl >= v.hi });
-      } else if (v) D.text(ctx, cut(clsOf(v.cls) + ' ' + v.lvl, 62), 240, yy + 3, P('bone', 1));
-      else D.text(ctx, '{g}' + (f.type || '') + '{/}', 240, yy + 3, P('stone', 5));
-      D.text(ctx, crOf(k), 310, yy + 3, P('gold', 4));
-      if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 340, yy + 3, P('moss', 2));
-      D.text(ctx, '{g}' + (r.story ? 'STORY' : v.mark === 'only' ? 'ONLY' : v.tag) + '{/}', 358, yy + 3, P('stone', 5));
-      if (v && v.i != null) self.btn(ctx, 'EDIT', D.W - 50, yy, 36, 13, function () { self.makeVillain(v.i); }, { small: true }); // (the maker on it: its level, its gear, its spells)
+        self.btn(ctx, '<', 194, yy, 13, 13, function () { cp.vlvl[v.w] = Math.max(v.lo, v.lvl - 1); self.keep(); }, { small: true, dis: v.lvl <= v.lo });
+        D.text(ctx, clsOf(v.cls).slice(0, 3).toUpperCase() + ' ' + v.lvl, 222, yy + 3, P('bone', 1), 'center');
+        self.btn(ctx, '>', 237, yy, 13, 13, function () { cp.vlvl[v.w] = Math.min(v.hi, v.lvl + 1); self.keep(); }, { small: true, dis: v.lvl >= v.hi });
+      } else if (v) D.text(ctx, cut(clsOf(v.cls).slice(0, 3).toUpperCase() + ' ' + v.lvl, 56), 196, yy + 3, P('bone', 1));
+      else D.text(ctx, '{g}' + cut(f.type || '', 56) + '{/}', 196, yy + 3, P('stone', 5));
+      D.text(ctx, crOf(k), 256, yy + 3, P('gold', 4));
+      if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 278, yy + 3, P('moss', 2));
+      prow.push({ word: k, b: self.btns.slice(at).map(function (b, j) { return at + j; }) });
+      if (k === pw) pr = r;
     });
-    if (!PD.villainRows(st).length) D.text(ctx, '{g}none of your own yet: MAKE A VILLAIN, or mark one of the roster on THE MARKS{/}', D.W / 2, 44 + Math.min(per, rows.length) * 16 + 4, P('stone', 5), 'center');
+    if (!PD.villainRows(st).length) D.text(ctx, '{g}none of your own yet: MAKE A VILLAIN, or mark one on THE MARKS{/}', 150, 44 + Math.min(per, rows.length) * 16 + 4, P('stone', 5), 'center');
     this.listRows(b0, 44, 16, rows.length, per, from); // (the arrows scroll every list, js/pocket.js listRows: 10-27)
+    var pwN = PD.pickRows(this, pkey, prow); if (pwN !== pw) { pr = rows.filter(function (r) { return r.word === pwN; })[0] || null; }
+    PD.pickCard(this, ctx, pkey, pr ? '{g}' + (pr.story ? 'THE STORY\'S' : pr.v.mark === 'only' ? 'VILLAIN ONLY' : pr.v.tag === 'MADE' ? 'MADE HERE' : 'MARKED') + '{/}' : '');
     this.pager(ctx, 14, 222, rows.length, per, from); // (^ v under every list, js/pocket.js pager: 10-27)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'MAKE A VILLAIN', 88, 236, 120, 15, function () { self.makeVillain(null); }, { pri: true });
     this.btn(ctx, 'THE MARKS', 214, 236, 90, 15, function () { self.scroll = 0; self.go('marks'); });
     this.btn(ctx, 'THE UNITS (' + cp.bought.length + ')', 310, 236, 100, 15, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !cp.bought.length && !cp.units.length, why: 'nothing bought yet' });
+    var ed = pr && pr.v && pr.v.i != null ? pr.v : null; // (EDIT, the maker on the one picked -- its level, its gear, its spells -- where it is one of yours: on the row till 11-05)
+    this.btn(ctx, 'EDIT', D.W - 64, 236, 48, 15, function () { if (ed) self.makeVillain(ed.i); }, { dis: !ed, why: 'pick one of your own (MADE or MARKED from the roster) to edit it' });
   };
   // THE MARKS (his "going through the existing roster and being able to mark as villain or villain only to add to villain store and remove from 'campaign' available
   // party members"): every card of the roster, the king aside, and the mark it carries -- --, VILLAIN, VILLAIN ONLY, a click the next
@@ -503,17 +622,19 @@
   };
   // THE LOCATIONS: by ground, small to large; BUY (or LET GO, its silver back); STRIKE keeps a floor out of the random draw at this table
   Pocket.prototype.drawLocations = function (ctx) {
-    var self = this, st = this.st, cp = PD.camp(st), land = this.landTab || 'underground', per = 9;
+    var self = this, st = this.st, cp = PD.camp(st), land = this.landTab || 'underground', per = 9, pkey = 'locations:' + land; // (a pick a ground: each tab its own)
+    PD.backdrop(this, ctx, pkey, true); // (the floor picked, drawn behind the page: 11-05)
     head(ctx, 'THE LOCATIONS', 'the floors by their ground, small to large · 50 / 100 / 200 sp by size · the purse ' + PD.fmt(cp.purse));
     PD.LANDS.forEach(function (L, k) { self.btn(ctx, L[1] + '  ' + PD.locations(self, L[0]).length, 20 + k * 148, 34, 142, 13, function () { self.landTab = L[0]; self.scroll = 0; }, { on: land === L[0], small: true }); });
     var list = PD.locations(this, land), from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     D.text(ctx, '{g}' + (PD.LANDS.filter(function (L) { return L[0] === land; })[0] || [])[2] + '{/}', 20, 52, P('stone', 5));
-    var b0 = this.btns.length;
+    var b0 = this.btns.length, prow = [], pw = PD.picked(this, pkey);
     list.slice(from, from + per).forEach(function (id, i) {
-      var yy = 62 + i * 16, d = D.MAPS[id], own = PD.owns(st, id), band = PD.bandOf(id), cost = band[2], struck = cp.strike.indexOf(id) >= 0;
+      var yy = 62 + i * 16, d = D.MAPS[id], own = PD.owns(st, id), band = PD.bandOf(id), cost = band[2], struck = cp.strike.indexOf(id) >= 0, at = self.btns.length;
       if (own) self.btn(ctx, 'YOURS: LET GO', 14, yy, 96, 13, function () { var r = PD.letGoMap(st, id); if (r && r.ok) { self.keep(); self.say((d.name || id) + ' let go: +' + PD.fmt(r.back), 240); } else { D.sfx('error'); self.say(r ? r.why : 'not yours', 300); } }, { small: true, on: true });
       else self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 96, 13, function () { var r = PD.buyMap(st, id); if (r.ok) { self.keep(); self.say((d.name || id) + ' is yours: BUILD offers it', 240); } else { D.sfx('error'); self.say(r.why, 300); } }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) });
-      D.text(ctx, cut(d.name || id, 150), 116, yy + 3, own ? P('gold', 4) : P('bone', 1));
+      self.btn(ctx, '', 112, yy, D.W - 64 - 116, 13, function () { PD.setPick(self, pkey, id); }, { ghost: true, on: pw === id }); // (the row itself: the pick, its floor behind the page -- BUY and STRIKE beside it as they were)
+      D.text(ctx, cut(d.name || id, 150), 116, yy + 3, own || pw === id ? P('gold', 4) : P('bone', 1));
       D.text(ctx, band[1] + '  {g}' + PD.sizeOf(id) + ' squares{/}', 272, yy + 3, P('bone', 1));
       if (d.dark) D.text(ctx, '{p}DARK{/}', 372, yy + 3, P('violet', 5));
       self.btn(ctx, struck ? 'STRUCK' : 'STRIKE', D.W - 64, yy, 50, 13, function () {
@@ -522,8 +643,10 @@
         else cp.strike.push(id);
         self.keep();
       }, { small: true, on: struck });
+      prow.push({ word: id, b: [at, at + 1, at + 2] });
     });
     this.listRows(b0, 62, 16, list.length, per, from);
+    PD.pickRows(this, pkey, prow);
     this.pager(ctx, 14, 62 + per * 16, list.length, per, from);
     D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ') · BUILD offers the floors you own (' + cp.maps.length + ')', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -560,7 +683,8 @@
   var SORTS = [['cheap', 'PRICE: LOW FIRST'], ['dear', 'PRICE: HIGH FIRST'], ['name', 'BY NAME']];
   Pocket.prototype.drawShop = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st), sh = PD.SHOPS.filter(function (s) { return s.id === self.shop; })[0] || PD.SHOPS[0];
-    var sort = this.shopSort || 'cheap', list = PD.shelf(sh, sort), per = 12;
+    var sort = this.shopSort || 'cheap', list = PD.shelf(sh, sort), per = 12, pkey = 'shop:' + sh.id;
+    PD.backdrop(this, ctx, pkey); // (the row picked, behind the page: 11-05)
     head(ctx, sh.name, sh.sub + ' · the purse: ' + PD.fmt(cp.purse));
     ctx.drawImage(icon(sh.icon), 0, 0, 12, 12, 14, 4, 24, 24);
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
@@ -568,21 +692,25 @@
     // two kinds of one name on a shelf (the trooper and the trooper with the crossbow) are told apart by their first blow
     var nmN = {}; list.forEach(function (k) { var n = D.FOES[k].name; nmN[n] = (nmN[n] || 0) + 1; });
     var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks)[0]]; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
-    D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}creature{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 300, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 350, 34, P('stone', 5));
-    var b0 = this.btns.length;
+    // (the columns closer since 11-05: the picked creature's card stands on the right, past 290)
+    D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}creature{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 236, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 258, 34, P('stone', 5));
+    var b0 = this.btns.length, prow = [], pw = PD.picked(this, pkey);
     list.slice(from, from + per).forEach(function (k, i) {
-      var yy = 44 + i * 15, cost = PD.price(k), f = D.FOES[k];
+      var yy = 44 + i * 15, cost = PD.price(k), f = D.FOES[k], at = self.btns.length;
       self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
         var r = PD.buy(st, k);
         if (r.ok) { self.keep(); self.say('bought ' + (/^[aeiou]/i.test(f.name) ? 'an ' : 'a ') + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left; BIND makes your receipts a unit', 240); }
         else { D.sfx('error'); self.say(r.why, 300); }
       }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a fight of yours pays twice its CR' });
-      D.text(ctx, cut(label(k), 180), 112, yy + 3, P('bone', 1));
-      D.text(ctx, crOf(k), 300, yy + 3, P('gold', 4));
-      if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 350, yy + 3, P('moss', 2));
-      if (f.bound) D.text(ctx, '{g}water{/}', 380, yy + 3, P('stone', 5));
+      self.btn(ctx, '', 108, yy, 182, 13, function () { PD.setPick(self, pkey, k); }, { ghost: true, on: pw === k }); // (the row itself: the pick -- its BUY beside it still buys)
+      D.text(ctx, cut(label(k), 118), 112, yy + 3, pw === k ? P('gold', 4) : P('bone', 1));
+      D.text(ctx, crOf(k), 236, yy + 3, P('gold', 4));
+      if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 262, yy + 3, P('moss', 2));
+      if (f.bound) D.text(ctx, '{g}~{/}', 280, yy + 3, P('stone', 5)); // (water-bound: its card says "Keeps to the water")
+      prow.push({ word: k, b: [at, at + 1] });
     });
     this.listRows(b0, 44, 15, list.length, per, from);
+    PD.pickRows(this, pkey, prow); PD.pickCard(this, ctx, pkey);
     this.pager(ctx, 14, 44 + per * 15 - 1, list.length, per, from);
     var si = SORTS.map(function (s) { return s[0]; }).indexOf(sort);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });

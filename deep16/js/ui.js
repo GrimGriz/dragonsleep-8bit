@@ -2815,7 +2815,7 @@
     if (B.dark) D.text(ctx, 'DARK GROUND: the four see by their lights and darkvision. You see it all: what they cannot is grey.', D.W / 2, 208, R('fire', 1), 'center');
     if ((B.t >> 5) & 1) D.hint(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
-  function inspect(ctx, u) {
+  function inspect(ctx, u, at) {
     var ty = UI.typeOf(u);
     var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + D.clsLabel(u.cls) + ' ' + u.lvl : '') + '  {g}' + ty + '{/}', 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
     var own = u.kind === 'keeper' && D.keeper && D.keeper.inspectLines ? D.keeper.inspectLines(D.battle, u) : null; // (the Keeper's own lines in place of its Slam's and its water's: js/keeper.js, 10-03)
@@ -2846,15 +2846,21 @@
     var c = conds(u).trim(); if (c) lines.push(c);
     // the one whose turn it is cannot see it (the dashed ring at its feet): say why -- the dark, the cloud, unseen (10-01b, the bond)
     var Bq = D.battle, ah = Bq && Bq.active;
-    if (u.side === 'foe' && ah && ah.side === 'party' && !ah.guest && Bq.req && Bq.req.turn === ah) { var sw = D.magic.seeWhy(Bq, ah, u); if (!sw.ok) lines.push('{o}' + ah.name + ' cannot see it{/} {g}(' + (sw.why === 'dark' ? 'the dark' : sw.why) + '){/}'); }
+    if (!at && u.side === 'foe' && ah && ah.side === 'party' && !ah.guest && Bq.req && Bq.req.turn === ah) { var sw = D.magic.seeWhy(Bq, ah, u); if (!sw.ok) lines.push('{o}' + ah.name + ' cannot see it{/} {g}(' + (sw.why === 'dark' ? 'the dark' : sw.why) + '){/}'); }
+    if (at && at.w) lines = [].concat.apply([], lines.map(function (l) { return D.textWidth(l) > at.w - 28 ? D.wrap(l, at.w - 28) : [l]; })); // (a card held to a width: its long lines wrapped)
+    if (at && at.max) lines = lines.slice(0, at.max);
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
     // the upper left -- or the upper right while the mouse is where the card would be, so it never sits over what is being aimed at (10-05, Griz: "we have the inspect card
     // coming up during spell selection, but I think I need it to shift to the right side of the screen when the mouse is in the up left corner")
-    var bw = w + 28, bh = lines.length * 9 + 8, m0 = I.mouse, bx = m0 && m0.inside && m0.x <= 6 + bw + 12 && m0.y <= 40 + bh + 12 ? D.W - bw - 6 : 6;
-    box(ctx, bx, 40, bw, bh, u.side === 'foe' ? R('red', 3) : R('glow', 1));
-    lines.forEach(function (l, k) { D.text(ctx, l, bx + 6, 44 + k * 9, R('bone', 1)); });
-    UI.drawGlyph(ctx, ty, bx + bw - 10, 50); // (its creature type: the glyphs above)
+    var bw = w + 28, bh = lines.length * 9 + 8, m0 = I.mouse, by = at && at.y != null ? at.y : 40, bx = at ? D.W - bw - (at.right || 6) : m0 && m0.inside && m0.x <= 6 + bw + 12 && m0.y <= 40 + bh + 12 ? D.W - bw - 6 : 6;
+    box(ctx, bx, by, bw, bh, u.side === 'foe' ? R('red', 3) : R('glow', 1));
+    lines.forEach(function (l, k) { D.text(ctx, l, bx + 6, by + 4 + k * 9, R('bone', 1)); });
+    UI.drawGlyph(ctx, ty, bx + bw - 10, by + 10); // (its creature type: the glyphs above)
+    return { x: bx, y: by, w: bw, h: bh };
   }
+  // the card off the grid (11-05, the Pocket DM's shops: a creature picked, its card on the right -- js/pocketdm.js PD.pickCard): at { right, y, w, max } -- flush right, at y,
+  // its lines held to w and to max of them; the turn's own line (who cannot see it) left out
+  UI.inspect = function (ctx, u, at) { return inspect(ctx, u, at || { right: 6 }); };
   var menuCv = null;
   function menu(ctx, B) { // (the one menu: drawn at its own 256x240 and set on the screen as a window; the old grid menu cut 10-07)
     if (B.menu.m) UI.drawMenu(ctx, B.menu.m);

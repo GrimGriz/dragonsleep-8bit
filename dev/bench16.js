@@ -16123,6 +16123,70 @@
     document.body.appendChild(preS);
     return;
   }
+  // THE PICK BEHIND THE PAGE (mode=pocketpick1105; the Pocket DM lane, 11-03 night item 3, RULED -- Griz: "for the beasts drawn in the background, it should cycle through special attack
+  // animations and show the 'infocard' (at least the same as 'inspect') on the right side"; 11-05: "in monster shops you can highlight/select (other than buy button) and it replaces the
+  // background with a gallery of the monster and show's it statbloc/inspect card, with similar notion of background preview version for locations"): in a shop the first row is the pick
+  // at first, the down arrow moves it, a click on a row's own button picks it and its BUY still buys; the creature drawn behind the page plays its blows and specials one after another
+  // (js/show.js SH.wanted less the walks and falls), an idle between; the grid's inspect card on the right (js/ui.js UI.inspect) with its HP, AC and blows, and no row's words under it;
+  // THE VILLAINS the same, a made one's EDIT on the bar; THE LOCATIONS the floor drawn behind (js/iso.js), the grid's camera put back. On a stand-in store
+  if (get('mode', '') === 'pocketpick1105') {
+    var repPp = { checks: [], errors: [] }, okPp = function (c, s) { repPp.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memPp = {}, stGPp = D.store.get, stSPp = D.store.set, textPp = D.text, inspPp = D.ui && D.ui.inspect, doneQ = false;
+    D.store.get = function (k) { return memPp[k] ? JSON.parse(memPp[k]) : null; }; D.store.set = function (k, v) { memPp[k] = JSON.stringify(v); return true; };
+    var finishPp = function () { if (doneQ) return; doneQ = true; D.store.get = stGPp; D.store.set = stSPp; D.text = textPp; if (D.ui) D.ui.inspect = inspPp; var pre = document.createElement('pre'); pre.id = 'out'; pre.textContent = 'BENCH16 ' + JSON.stringify(repPp); document.body.appendChild(pre); };
+    try {
+      var IP = D.input, cvP = document.createElement('canvas'); cvP.width = D.W; cvP.height = D.H; var cxP = cvP.getContext('2d'); cxP.imageSmoothingEnabled = false;
+      var PDp = D.pocketdm, Pp = new D.Pocket(); Pp.enter(); Pp.ask = function () { return true; }; Pp.st.dm = true; var cpP = PDp.camp(Pp.st); cpP.purse = 100000;
+      var seen = null, cards = [];
+      D.text = function (c0, s, x, y) { if (seen) seen.push({ s: String(s), x: x, y: y, a: arguments[5] || 'left', w: D.textWidth(String(s)) }); return textPp.apply(this, arguments); };
+      D.ui.inspect = function (c0, u, at) { var r = inspPp.apply(this, arguments); cards.push({ u: u, at: at, r: r }); return r; };
+      var frameP = function () { seen = []; cards = []; Pp.btns = []; Pp.draw(cxP); var s0 = seen; seen = null; return s0; };
+      var keyP = function (b) { IP.press(b); Pp.update(); IP.release(b); IP.clear(); return frameP(); };
+      // 1. a shop: the first row picked at first, its creature behind, its card on the right
+      Pp.toShop('beasts'); frameP(); var t1 = frameP(), sh1 = PDp.shelf(PDp.SHOPS[0], 'cheap'), k1 = PDp.picked(Pp, 'shop:beasts'), c1 = cards[0];
+      var card1 = c1 && c1.r, lines1 = t1.filter(function (q) { return card1 && q.x >= card1.x && q.y >= card1.y && q.y < card1.y + card1.h; }).map(function (q) { return q.s.replace(/\{[a-z\/]+\}/g, ''); });
+      var u1 = c1 && c1.u;
+      okPp(k1 === sh1[0] && !!u1 && u1.kind === k1 && !!card1 && card1.x >= 290 && card1.x + card1.w <= D.W && lines1.some(function (l) { return l.indexOf('HP ' + u1.hp + '/' + u1.maxhp) >= 0 && /AC \d+/.test(l); }) && lines1.length >= 3,
+        'BEASTS: the first row picked at first (' + k1 + '), its card on the right at ' + (card1 && card1.x) + '-' + (card1 && card1.x + card1.w) + ': ' + lines1.slice(0, 3).join(' / '));
+      var rowsT = t1.filter(function (q) { return q.y >= 44 && q.y < 44 + 12 * 15 && q.a === 'left' && q.x < 290; }), over = rowsT.filter(function (q) { return q.x + q.w > 292; });
+      okPp(rowsT.length >= 24 && !over.length, 'the shop\'s rows keep left of the card (' + rowsT.length + ' words, none past 292' + (over.length ? ': ' + over.map(function (q) { return q.s + ' at ' + q.x + '+' + q.w; }).slice(0, 3).join(', ') : '') + ')');
+      // 2. the down arrow moves the pick; a click on a row's own button picks it; its BUY still buys
+      var ks0 = Pp.ksel; keyP('down'); keyP('down'); var k2 = PDp.picked(Pp, 'shop:beasts');
+      // (a click: the mouse over the button first, as js/pocket.js readButtons has it -- the cursor there -- then the press)
+      var clickP = function (b) { if (!b) return; Pp.ksel = Pp.btns.indexOf(b); Pp.fire(b); frameP(); };
+      var ghosts = Pp.btns.filter(function (b) { return b.label === '' && b.x === 108; }); clickP(ghosts[5]); var k3 = PDp.picked(Pp, 'shop:beasts');
+      var buy3 = Pp.btns.filter(function (b) { return /^BUY/.test(b.label); })[3], p0 = cpP.purse, n0 = cpP.bought.length; clickP(buy3);
+      okPp(k2 === sh1[2] && k3 === sh1[5] && !!buy3 && cpP.bought.length === n0 + 1 && cpP.bought[cpP.bought.length - 1].kind === sh1[3] && cpP.purse < p0 && PDp.picked(Pp, 'shop:beasts') === sh1[3],
+        'the arrows move the pick (two down: ' + k2 + '), a click on the sixth row picks it (' + k3 + '), the fourth\'s BUY still buys (' + (cpP.bought.length && cpP.bought[cpP.bought.length - 1].kind) + ') -- its row the pick, the mouse on it');
+      // 3. its rows one after another, an idle between: every row of the gallery's but the walks and the falls (a creature in the shops with two or more)
+      var many = null; PDp.SHOPS.slice(0, 5).some(function (s) { return PDp.shelf(s, 'cheap').some(function (k) { var u = PDp.unitFor(k); if (u && PDp.pickRowsOf(u).length >= 3) { many = u; return true; } return false; }); });
+      var rowsM = many ? PDp.pickRowsOf(many) : [], playM = [], last = null;
+      for (var tq = 0; tq < 6000 && many; tq += 3) { var bq = PDp.pickBeat(many, tq).row; if (bq !== last) { playM.push(bq); last = bq; } if (playM.length > rowsM.length * 2 + 2) break; }
+      var wantM = []; rowsM.forEach(function (r) { wantM.push(r, 'idle'); });
+      okPp(!!many && playM.slice(0, wantM.length).join() === wantM.join() && rowsM.indexOf('walk') < 0 && rowsM.indexOf('idle') < 0 && rowsM.indexOf('hurt') < 0, (many && many.name) + ' behind the page plays ' + rowsM.join(', ') + ', an idle between (' + playM.slice(0, wantM.length).join(' > ') + ')');
+      var pm = Pp.pickPlay; okPp(!!pm && typeof pm.row === 'string', 'the picked creature\'s row is drawn each frame (' + (pm && pm.row) + ')');
+      // 4. THE VILLAINS: one of your own first, its card, its EDIT on the bar; a story villain's EDIT greyed
+      Pp.st.roster = [{ code: '~wizard.5.human.8-14-14-16-12-10.quarterstaff.Wenna_Test.firebolt-light-mageArmor', name: 'Wenna Test', cls: 'wizard', lvl: 5, dm: true }]; Pp.cache = {};
+      Pp.toShop('villains'); frameP(); var tv = frameP(), kv = PDp.picked(Pp, 'villains'), cv1 = cards[0], edV = Pp.btns.filter(function (b) { return b.label === 'EDIT'; })[0];
+      var tagV = tv.filter(function (q) { return /MADE HERE/.test(q.s); }).length;
+      okPp(!!cv1 && cv1.u && /Wenna/.test(cv1.u.name) && cv1.r.x >= 290 && !!edV && !edV.dis && tagV === 1, 'THE VILLAINS: your own first and picked (' + (cv1 && cv1.u && cv1.u.name) + ', ' + kv + '), its card on the right, MADE HERE under it, EDIT on the bar lit');
+      keyP('down'); var tv2 = frameP(), cv2 = cards[0], edV2 = Pp.btns.filter(function (b) { return b.label === 'EDIT'; })[0], kv2 = PDp.picked(Pp, 'villains');
+      okPp(kv2 !== kv && !!cv2 && !!cv2.u && !!edV2 && edV2.dis && tv2.some(function (q) { return /THE STORY'S/.test(q.s); }), 'down a row: the story\'s ' + (cv2 && cv2.u && cv2.u.name) + ' (' + kv2 + '), its card, EDIT greyed');
+      var vRows = tv2.filter(function (q) { return q.y >= 44 && q.y < 44 + 11 * 16 && q.a === 'left' && q.x < 290; }), vOver = vRows.filter(function (q) { return q.x + q.w > 292; });
+      okPp(!vOver.length, 'THE VILLAINS\' rows keep left of the card' + (vOver.length ? ': ' + vOver.map(function (q) { return q.s + ' at ' + q.x + '+' + q.w; }).slice(0, 3).join(', ') : ''));
+      // 5. THE LOCATIONS: the first floor picked, drawn behind the page as the grid draws it; the down arrow the next; the grid's camera as it was
+      var IS = D.iso, cam0 = JSON.stringify(IS.cam), z0 = IS.zoom, w0 = IS.inWorld;
+      Pp.scroll = 0; Pp.go('locations'); frameP(); frameP(); var land0 = Pp.landTab || 'underground', list0 = PDp.locations(Pp, land0), kl = PDp.picked(Pp, 'locations:' + land0), pic = kl ? PDp.floorPic(kl) : null;
+      var lit = 0; if (pic) { var pd = pic.getContext('2d').getImageData(0, 0, pic.width, pic.height).data; for (var pi = 3; pi < pd.length; pi += 4 * 97) if (pd[pi]) lit++; }
+      okPp(kl === list0[0] && !!pic && pic.width > 100 && lit > 20 && JSON.stringify(IS.cam) === cam0 && IS.zoom === z0 && IS.inWorld === w0, 'THE LOCATIONS: the first floor picked (' + kl + '), its picture ' + (pic && pic.width + 'x' + pic.height) + ' drawn behind the page; the grid\'s camera put back');
+      var gl = Pp.btns.filter(function (b) { return b.label === '' && b.x === 112; }); Pp.ksel = Pp.btns.indexOf(gl[0]); frameP(); keyP('down'); var kl2 = PDp.picked(Pp, 'locations:' + land0);
+      okPp(kl2 === list0[1] && !!PDp.floorPic(kl2), 'the down arrow: the next floor picked (' + kl2 + ') and drawn');
+      var buyL = Pp.btns.filter(function (b) { return /^BUY/.test(b.label); })[0], ownN = cpP.maps.length; if (buyL) Pp.fire(buyL);
+      okPp(!!buyL && cpP.maps.length === ownN + 1, 'a floor\'s BUY still buys it (' + (cpP.maps.length && cpP.maps[cpP.maps.length - 1].id) + ')');
+    } catch (ePp) { repPp.errors.push(String(ePp && ePp.stack || ePp).slice(0, 800)); }
+    finishPp();
+    return;
+  }
   // THE CAMP'S RESTS (mode=camprest1105; the Pocket DM lane, 11-03 night, Griz: "Let's do the 'short rest' or 'long rest' as options that happen at the camp / ... if a short or long
   // rest is available, go to camp - where they can short rest (over above continue fight?) or market as needed. If no SR or LR or Market available, continuing ladder would go to next
   // ladder fight"), with the lead of his 18 fights of 11-03 (fight 1 of 5 ended Drill 49/57 and Aurdin 17/29, fight 2 began all four full: his CR 2-3's first slot is a long rest and the
