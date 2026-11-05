@@ -33,6 +33,8 @@ def git(*args, check=True):
     out = p.stdout.decode('utf-8', 'replace').strip()
     if check and p.returncode:
         sys.exit('land: git %s failed: %s' % (' '.join(args), (p.stderr.decode('utf-8', 'replace').strip() or out)[:400]))
+    if p.returncode:  # (a failed call says why: git puts a refused push's reason on stderr -- 11-05, the Waterby cutter's push refused twice "with an empty reason")
+        out = (out + '\n' + p.stderr.decode('utf-8', 'replace').strip()).strip()
     return out if check else (p.returncode, out)
 
 
