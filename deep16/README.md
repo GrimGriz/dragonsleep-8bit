@@ -379,11 +379,11 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   has water; no more heads than the map has room for. The dial starts where the party reads HARD. WATCH hands your side to the class AI.
 - **The ladder** (his: *"a button that auto-fill the next map with a reasonable increase in CR (randomly generated 4-rung ladder) where they get
   'short rest for the wicked' shown and applied to their party before the next map loads"*): THE LADDER: 4 RUNGS FROM HERE takes the dial's table
-  first, then three more at **a third again each** on maps drawn fresh. Between rungs **SHORT REST FOR THE WICKED**: the fallen up at 1 HP first
+  first, then three more at **a third again each** on maps drawn fresh. Between rungs **the short rest** (since 11-05 THE CAMP's: a rung won goes TO THE CAMP, whose SHORT REST, THE MARKET and GO ON are the way on -- SHORT REST FOR THE WICKED on the card till then; a module's slot the same, its rests as its DM flagged them, and with no rest or market CONTINUE straight on): the fallen up at 1 HP first
   (the DM's hand; his: *"SRD + free rez for the fallen before the short rest applies"*), then **hit dice till whole or out** (one a level a run,
   d(hit die) + CON each), Second Wind and Action Surge, Channel Divinity, Wild Shape, ki, a bard's inspiration from 5, a warlock's pact slots
   back, a wizard's Arcane Recovery once a run (SRD 5.1). What a fight leaves (HP, slots, features) walks into the next (NPC.carry). After the
-  fourth win **LONG REST FOR THE TRIAL** (whole), then **the trial: double deadly** -- the smallest table whose adjusted XP is twice the party's
+  fourth win **LONG REST FOR THE TRIAL** (whole; THE CAMP's since 11-05, GO ON: THE TRIAL takes it first), then **the trial: double deadly** -- the smallest table whose adjusted XP is twice the party's
   deadly threshold (his: *"give them a 'long rest for the trial' after the fourth win and then do your double deadly"*). Win it and **Pyro joins
   the roster**. A loss: **QUIT, RETRY or REROLL THE RUNG**, the party as it went in (his: *"restored to what they went in with before they died"*).
 - **The table's file** (10-06, his: *"I couldn't seem to save a roster and saw no place to load a ladder save"*; *"yes to 1 & 2"*): **SAVE TABLE** and
