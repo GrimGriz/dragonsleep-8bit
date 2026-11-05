@@ -6377,6 +6377,162 @@
     document.body.appendChild(preLw);
     return;
   }
+  // THE DESCRIPTION BOX AND THE JOURNAL'S GAPS (mode=journal1105; the journal seat, 11-05 -- Griz on live: "Rime Glass description runs out the bottom on Aurdin join selection",
+  // "nothing would have let me know to talk to the gate guy again for more reward?", "Missing stuff in todo?"; his answers "6 - it won't hurt to make that box bigger, but also have
+  // right arrow drop you into the box to scroll if necessary, descriptions can get pretty long. Mousewheel on mouseover scroll also." and "7 - add step to journal quest"; the
+  // menus lane's 10-30 one scrolling box; Tuesday 6, 7, 12 (c), 31; the difficulty's ring at 3): js/menu.js descBox/scrollBox -- four lines, every word reachable, the right
+  // arrow in and left/X/E out, a right from inside on to the tabs, the wheel over it, the row it rested on kept on the way down; the pages above it clear of it; the JOURNAL's
+  // words the same; deep16/js/hours.js the Five's office-box step and its pay in words, the key steps flown in once (kSeen for a save from before), Fight Night's next bout and
+  // stake, the street's gate arrow for a step out on THE WORLD, When You're Ready in the list at level 3
+  if (get('mode', '') === 'journal1105') {
+    var repJ = { checks: [], errors: [] }, shotJ = !!get('shot', ''), MNj = window.DS.MENU, Rj = window.DS.R, apJ = window.DS.autoPicks, memJ = {}, stGJ = D.store.get, stSJ = D.store.set, HJ = D.house, CJ = D.counter, H6J = D.hours, WJ = D.world, sfxJ = D.sfx;
+    function okJ(what, v) { repJ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function KJ(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+    function MJ(o) { return { pressed: function () { return false; }, repeat: function () { return false; }, mouse: Object.assign({ x: -1, y: -1, moved: false, click: false, rclick: false, wheel: 0 }, o) }; }
+    function toastJ(m) { var k = 0; while (m && m.toast && k++ < 8) m.update(KJ('a')); }
+    var cvJ = document.createElement('canvas'); cvJ.width = 256; cvJ.height = 240; var cxJ = cvJ.getContext('2d');
+    function drawJ(m) { cxJ.clearRect(0, 0, 256, 240); m.draw(cxJ); return MNj.descOf(m.top()); }
+    function flat(s) { return String(s || '').replace(/\{[a-z\/]\}/g, '').replace(/\s+/g, ''); }
+    D.store.get = function (k) { return memJ[k] ? JSON.parse(memJ[k]) : null; }; D.store.set = function (k, v) { memJ[k] = JSON.stringify(v); return true; };
+    if (shotJ) repJ.shots = []; // (&shot=1: the box drawn, as PNG data, for a seat's own eyes)
+    try {
+      D.sfx = function () { }; window.DS.autoPicks = false; D.seed = 1105; var DB = MNj.DBOX;
+      // 1. AURDIN'S JOIN PICK, THE RIMEGLASS: the box four lines; its words longer, every one of them in the box's lines (nothing cut), the first four shown and the more mark
+      var hA = HJ.start(Rj.makeHero('aurdin')); Rj.askStart(hA, 'NEW GAME');
+      var mA = MNj.openPicks({ party: function () { return [hA]; }, close: function () { } }, [hA], { pages: true }, function () { }); toastJ(mA);
+      var pA = mA.top(), iR = pA.list.items.map(function (it) { return it.value && it.value.id; }).indexOf('the Rimeglass'); pA.list.i = iR; pA.list.fix();
+      var drawnJ = [], tx0J = window.DS.text; window.DS.text = function (c, s, x, y) { drawnJ.push({ s: String(s), x: x, y: y }); return tx0J.apply(this, arguments); };
+      var dA; try { dA = drawJ(mA); } finally { window.DS.text = tx0J; }
+      var rim = pA.list.items[iR] || {}, shownA = drawnJ.filter(function (d) { return d.x === DB.tx && d.y >= DB.ty && d.y < DB.ty + DB.rows * 10; }), moreA = drawnJ.some(function (d) { return d.s === '▶' && d.y === DB.ty + (DB.rows - 1) * 10; });
+      okJ('THE RIMEGLASS on Aurdin\'s join pick (' + pA.tabs.map(function (t) { return t.label; }).join(',') + '): its ' + String(rim.desc || '').length + ' characters in ' + (dA && dA.lines.length) + ' lines, ' + shownA.length + ' shown (the box ' + DB.rows + ' rows, y ' + DB.y + '-' + (DB.y + DB.h) + '), every word in them ' + (dA && flat(dA.lines.join(' ')) === flat(rim.desc + 'E: mark or unmark.')) + ', the more mark ' + moreA,
+        iR >= 0 && !!dA && DB.rows === 4 && DB.y + DB.h <= 240 && dA.max > 0 && shownA.length === 4 && flat(dA.lines.join(' ')) === flat(rim.desc + 'E: mark or unmark.') && /away from the foes\.$/.test(rim.desc) && moreA);
+      // 2. THE RIGHT ARROW INTO IT: down to the last line and its end shown, up again, left out with the place kept; X and E in it come out and do nothing else (no mark, no page shut)
+      if (shotJ) repJ.shots.push(cvJ.toDataURL()); // (the Rimeglass as the page opens on it: four lines and the more mark)
+      var mk0 = JSON.stringify(pA.groups[0].marks); mA.update(KJ('right')); var inA = dA.focus, tab1 = pA.tab;
+      for (var dn = 0; dn < 12; dn++) { drawJ(mA); mA.update(KJ('down')); } drawJ(mA); var lastA = dA.lines[dA.off + DB.rows - 1], offEnd = dA.off, iStay = pA.list.i;
+      if (shotJ) repJ.shots.push(cvJ.toDataURL()); // (the Rimeglass read to its end, the cursor in the box)
+      mA.update(KJ('up')); drawJ(mA); var offUp = dA.off; mA.update(KJ('left')); drawJ(mA); var outL = !dA.focus, keptL = dA.off;
+      mA.update(KJ('right')); drawJ(mA); mA.update(KJ('b')); drawJ(mA); var outB = !dA.focus && mA.top() === pA && !mA.closed;
+      mA.update(KJ('right')); drawJ(mA); mA.update(KJ('a')); drawJ(mA); var outE = !dA.focus && JSON.stringify(pA.groups[0].marks) === mk0;
+      okJ('RIGHT drops the cursor in (' + inA + ', the tab ' + tab1 + '); DOWN reads to the end (off ' + offEnd + ' of ' + dA.max + ', the last line "' + lastA + '", the cursor kept on row ' + iStay + '), UP back one (' + offUp + '); LEFT out, the place kept (' + outL + ', ' + keptL + '); X out, the page open (' + outB + '); E out, no mark made (' + outE + ')',
+        inA && tab1 === 0 && offEnd === dA.max && /^E: mark or unmark\.?/.test(String(lastA).trim()) && iStay === iR && offUp === dA.max - 1 && outL && keptL === dA.max - 1 && outB && outE);
+      // 3. ANOTHER ROW: its words from the top, the cursor back in the list; a row whose words fit -- RIGHT does nothing there on a page of one tab
+      mA.update(KJ('down')); var dB = drawJ(mA), iB = pA.list.i, curB = pA.list.items[iB]; mA.update(KJ('right')); drawJ(mA);
+      okJ('another row (' + (curB && curB.label) + '): from the top (' + dB.off + '), not in the box (' + !dB.focus + '); its words ' + dB.lines.length + ' lines, so RIGHT ' + (dB.max ? 'drops in' : 'does nothing') + ' (' + dB.focus + ')', dB.off === 0 && (dB.max > 0 ? dB.focus : !dB.focus && pA.tab === 0));
+      if (dB.focus) mA.update(KJ('left'));
+      // 4. THE MOUSE: the wheel over the box reads its words, the list's cursor kept; over the list the wheel is the list's; the pointer down into the box past other rows
+      // brings back the row it rested on
+      pA.list.i = iR; pA.list.fix(); drawJ(mA); var off0 = dA.off;
+      mA.update(MJ({ x: 120, y: DB.y + 20, moved: true })); drawJ(mA); mA.update(MJ({ x: 120, y: DB.y + 20, wheel: 1 })); drawJ(mA); var offW = dA.off, iW = pA.list.i;
+      mA.update(MJ({ x: 120, y: DB.y + 20, wheel: -1 })); drawJ(mA); var offW2 = dA.off;
+      var hitsA = mA.hits.filter(function (h) { return h.owner === pA && h.list === pA.list; }), hR = hitsA.filter(function (h) { return h.k === iR; })[0], hO = hitsA.filter(function (h) { return h.k !== iR; })[0];
+      mA.update(MJ({ x: 60, y: hR.y + 4, moved: true })); for (var st6 = 0; st6 < 8; st6++) { drawJ(mA); mA.update(MJ({ x: 60, y: hR.y + 4 })); }
+      mA.update(MJ({ x: 60, y: hO.y + 4, moved: true })); drawJ(mA); var crossed = pA.list.i;
+      mA.update(MJ({ x: 60, y: DB.y + 10, moved: true })); var dBk = drawJ(mA), backTo = pA.list.i;
+      okJ('THE WHEEL over the box: ' + off0 + ' -> ' + offW + ' -> ' + offW2 + ', the cursor kept (' + iW + '); the pointer rested on the Rimeglass, crossed row ' + crossed + ', into the box: the Rimeglass again (' + backTo + ', ' + (dBk && dBk.lines[0]) + ')',
+        off0 === 0 && offW === 1 && offW2 === 0 && iW === iR && crossed !== iR && backTo === iR && !!dBk && dBk.lines[0] === dA.lines[0]);
+      // 5. A PAGE WITH TABS (Aurdin's level-up, a tab a spell level): RIGHT on a row whose words run long drops in, a second RIGHT goes on to the next tab; on a row that fits, RIGHT
+      // is the tab's at once, as before
+      var hL = Rj.makeHero('aurdin', 2); Rj.autoPicks(hL); hL.xp = Rj.XP_LEVEL[3]; Rj.levelUp(hL);
+      var mL = MNj.openPicks({ party: function () { return [hL]; }, close: function () { } }, [hL], { pages: true }, function () { }); toastJ(mL);
+      var pL = mL.top(), longI = -1, fitI = -1, tabsL = pL.tabs.map(function (t) { return t.label; }).join(',');
+      var spellTab = pL.tabs.map(function (t) { return t.lv != null; }).indexOf(true); if (spellTab >= 0) { pL.tab = spellTab; pL.list.i = 0; pL.refresh(); }
+      for (var li = 0; li < pL.list.items.length; li++) { if (pL.list.items[li].confirm) continue; pL.list.i = li; pL.list.fix(); var dl = drawJ(mL); if (dl.max > 0 && longI < 0) longI = li; if (!dl.max && fitI < 0) fitI = li; }
+      var t0L = pL.tab, inL = false, t1L = -1, t2L = -1;
+      if (longI >= 0) { pL.list.i = longI; pL.list.fix(); drawJ(mL); mL.update(KJ('right')); inL = MNj.descOf(pL).focus && pL.tab === t0L; drawJ(mL); mL.update(KJ('right')); t1L = pL.tab; }
+      pL.tab = t0L; pL.list.i = 0; pL.refresh(); if (fitI >= 0) { pL.list.i = fitI; pL.list.fix(); drawJ(mL); mL.update(KJ('right')); t2L = pL.tab; }
+      okJ('a page with tabs (' + tabsL + ', on ' + (pL.tabs[t0L] && pL.tabs[t0L].label) + '): a long row (' + longI + ') RIGHT drops in (' + inL + '), RIGHT again the next tab (' + t1L + '); a row that fits (' + fitI + '), RIGHT the next tab at once (' + t2L + ')',
+        pL.tabs.length > 1 && longI >= 0 && inL && t1L === (t0L + 1) % pL.tabs.length && (fitI < 0 || t2L === (t0L + 1) % pL.tabs.length));
+      // 6. THE PAGES ABOVE IT: every row the mouse may point at on ITEMS, GEAR, MAGIC and the pick page ends above the box (12, 12, 10, 10 rows), so the box hides none
+      var packI = Object.keys(window.DS.DATA.items).filter(function (id) { return MNj.itemTab(window.DS.DATA.items[id]) === 0; }).slice(0, 16).map(function (id) { return { id: id, n: 1 }; });
+      var packG = Object.keys(window.DS.DATA.items).filter(function (id) { return window.DS.DATA.items[id].kind === 'weapon'; }).slice(0, 16).map(function (id) { return { id: id, n: 1 }; });
+      var hW = Rj.makeHero('aurdin', 9); Rj.autoPicks(hW);
+      var hostJ = function (pack) { return { fight: null, party: function () { return [hW]; }, guests: function () { return []; }, pack: function () { return pack; }, give: function () { }, take: function () { }, info: function () { return { silver: 1, renown: 0, place: '' }; }, canSave: function () { return false; }, whyNot: function () { return ''; }, light: function () { return null; }, run: function (k, a, d) { d({}); }, close: function () { }, journal: function () { return jrJ; } }; };
+      var jrJ = { renown: 0, title: '', pin: null, rumors: [], setPin: function () { }, quests: [] };
+      var under = {}, pageOf = function (pack, go) { var m = MNj.open(hostJ(pack)); m.root.go(go); toastJ(m); drawJ(m); var top = m.top(), bad = m.hits.filter(function (h) { return h.owner === top && h.y + h.h > DB.y; }); return { m: m, top: top, bad: bad, vis: top.list && top.list.vis }; };
+      [['items', packI], ['gear', packG], ['magic', packI]].forEach(function (pg) { var r = pageOf(pg[1], pg[0]); under[pg[0]] = r.bad.length + ' under, ' + r.vis + ' rows'; under[pg[0] + 'Ok'] = !r.bad.length; });
+      var badL = mL.hits.filter(function (h) { return h.owner === pL && h.y + h.h > DB.y; }).length;
+      okJ('the pages above the box: ITEMS ' + under.items + ', GEAR ' + under.gear + ', MAGIC ' + under.magic + ', the pick page ' + badL + ' under, ' + pL.list.vis + ' rows', under.itemsOk && under.gearOk && under.magicOk && badL === 0);
+      // 7. EVERY DESCRIPTION, TODAY'S LONGEST: each spell's and item's words all in the box's lines, the longest read to its last word
+      var allD = []; Object.keys(window.DS.DATA.spells).forEach(function (id) { allD.push(window.DS.DATA.spells[id].desc || ''); }); Object.keys(window.DS.DATA.items).forEach(function (id) { allD.push(window.DS.DATA.items[id].desc || ''); });
+      allD.sort(function (a, b) { return b.length - a.length; }); var longest = allD[0], over4 = 0, over3 = 0;
+      allD.forEach(function (s) { var n = window.DS.wrap(s, DB.tw).length; if (n > DB.rows) over4++; if (n > 3) over3++; });
+      // (the longest laid as an item's words on ITEMS, the forecast twice as long after it: the box's lines hold every word, and DOWN reads to the last)
+      var idX = packI[0].id, itX = window.DS.DATA.items[idX], desc0X = itX.desc, readX = function (words) {
+        itX.desc = words; var m = MNj.open(hostJ(packI)); m.root.go('items'); var pg = m.top(); pg.list.i = pg.list.items.map(function (x) { return x.value; }).indexOf(idX); pg.list.fix();
+        var d = drawJ(m); m.update(KJ('right')); for (var q = 0; q < 80; q++) { drawJ(m); m.update(KJ('down')); } drawJ(m);
+        return { all: flat(d.lines.join(' ')).indexOf(flat(words)) === 0, end: d.off === d.max && d.max > 0, n: d.lines.length };
+      };
+      var rX1, rX2; try { rX1 = readX(longest); rX2 = readX(longest + ' ' + longest); } finally { itX.desc = desc0X; }
+      okJ('every spell\'s and item\'s words: ' + over4 + ' of ' + allD.length + ' run past four lines (' + over3 + ' past the old three); the longest, ' + longest.length + ' characters, in ' + rX1.n + ' lines, every word (' + rX1.all + '), read to its end (' + rX1.end + '); twice that (the forecast), ' + rX2.n + ' lines, every word (' + rX2.all + '), its end (' + rX2.end + ')',
+        rX1.all && rX1.end && rX2.all && rX2.end && rX2.n > rX1.n);
+      // 8. THE JOURNAL'S BOX: the Five's words with the pay and its NEXT, seven lines, the rest by the right arrow; the right arrow on a mission that fits steps the tabs as before
+      var stF = { flags: { heardPete: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, fiveRecovered: 1 }, inv: [], party: [] }, qF = CJ.quests(stF).filter(function (q) { return q.id === 'warrens'; })[0];
+      jrJ.quests = [qF]; var mJr = MNj.open(hostJ(packI)); mJr.root.go('journal'); var pJr = mJr.top(), dJr = drawJ(mJr), JB = MNj.JBOX;
+      mJr.update(KJ('right')); drawJ(mJr); var inJr = dJr.focus, tabJr = pJr.tab; for (var jd = 0; jd < 10; jd++) { mJr.update(KJ('down')); drawJ(mJr); } var endJr = dJr.lines[dJr.off + JB.rows - 1];
+      if (shotJ) repJ.shots.push(cvJ.toDataURL()); // (the JOURNAL's box, read to its end, the cursor in it)
+      mJr.update(KJ('left')); drawJ(mJr); mJr.update(KJ('right')); var tabJr2 = pJr.tab; // (a right from the list again: in, as the words still run long)
+      okJ('the JOURNAL\'s box: the Five with its pay, ' + dJr.lines.length + ' lines in ' + JB.rows + ' (every word ' + (flat(dJr.lines.join(' ')) === flat(qF.text + 'NEXT: ' + qF.where)) + '), RIGHT in (' + inJr + ', the tab ' + tabJr + '), read to "' + String(endJr).slice(-30) + '"',
+        dJr.lines.length > JB.rows && flat(dJr.lines.join(' ')) === flat(qF.text + 'NEXT: ' + qF.where) && inJr && tabJr === 0 && /^NEXT:|Back to Edric|tally-house\.$/.test(String(endJr).trim()) && tabJr2 === 0);
+      // 9. THE MISSING FIVE, BY ITS STEPS: the pay in its words; the gear in the pack -> Edric (a key step); after Edric's book, Skarn and the office box (a key step, his own word);
+      // open till Skarn has paid -- or the stock is dead; Edric's and Skarn's own lines name the pay
+      var stp = function (fl, inv) { var st = { flags: fl, inv: inv || [], party: [] }, q = CJ.quests(st).filter(function (x) { return x.id === 'warrens'; })[0]; return q; };
+      var q9a = stp({ heardPete: 1, tallyMet: 1, skarnOk: 1, fiveRecovered: 1 }, [{ id: 'fivetokens', n: 1 }]), q9b = stp({ heardPete: 1, tallyMet: 1, skarnOk: 1, fiveRecovered: 1, fiveDone: 1 }), q9c = stp({ heardPete: 1, fiveDone: 1, skarnPaid: 1 }), q9d = stp({ heardPete: 1, fiveDone: 1, stockDead: 1 }), q9e = stp({ heardPete: 1, stockDead: 1 });
+      var Lw = function (k) { return [].concat(CJ.L(k)).join(' '); };
+      okJ('THE MISSING FIVE: the words name the pay (' + /fifty silver/.test(q9a.text) + ', ' + /sixty more from the Warrens' office box/.test(q9a.text) + '); the gear in the pack -> ' + q9a.step.npc + ' (key ' + q9a.step.key + '); Edric\'s book closed -> ' + (q9b.step && q9b.step.npc) + ' (key ' + (q9b.step && q9b.step.key) + ', "' + (q9b.where || '').slice(0, 40) + '..."), still open ' + !q9b.done + '; Skarn paid, done ' + q9c.done + '; the stock dead after the five, done ' + q9d.done + '; dead before them, open ' + !q9e.done + '; Edric names the fifty (' + /fifty silver/.test(Lw('w16.edricFive')) + '), Skarn the sixty (' + /sixty/.test(Lw('w16.skarnFive')) + ', ' + /sixty/.test(Lw('w16.skarnWork')) + ')',
+        /fifty silver/.test(q9a.text) && /sixty more from the Warrens' office box/.test(q9a.text) && q9a.step.npc === 'edric' && q9a.step.key === 'gear' && !q9b.done && q9b.step.npc === 'skarn' && q9b.step.key === 'paid' && /office box/.test(q9b.where) && q9c.done && q9d.done && !q9e.done && /fifty silver/.test(Lw('w16.edricFive')) && /sixty/.test(Lw('w16.skarnFive')) && /sixty/.test(Lw('w16.skarnWork')));
+      // 10. A KEY STEP FLIES IN, ONCE: on the street, the gear roped -> the card and the fly-in ("In your JOURNAL: The Missing Five, the next step.", Edric), pinned when nothing
+      // was; again for Skarn's step after the book; not twice; a save from before (no kSeen) takes the step it stands on as seen, no card
+      HJ.begin(HJ.fresh(), 0); var BK = D.top(); if (BK && BK.baking) { BK.baking = false; BK.enter(); } D.battle = BK; BK.roam.mode = 'walk'; var stK = CJ.state(BK), fK = stK.flags;
+      fK.qSeen = 1; H6J.fresh(stK).forEach(function (q) { fK['q:' + q.id] = 1; }); Object.assign(fK, { heardPete: 1, 'q:warrens': 1, tallyMet: 1, skarnOk: 1, fiveRecovered: 1, kSeen: 1 }); delete fK.pin;
+      var flyK = function () { var g = H6J.keyCard(BK), k = 0, s, lines = null; while (k++ < 600) { s = g.next(); if (BK.jfly) lines = BK.jfly.lines.join(' '); if (s.done) break; if (typeof s.value === 'number') BK.t += s.value; } return lines; };
+      var due0 = H6J.keyDue(BK); stK.inv.push({ id: 'fivetokens', n: 1 }); var due1 = H6J.keyDue(BK), fly1 = due1 ? flyK() : null, pin1 = fK.pin, due1b = H6J.keyDue(BK);
+      CJ.take(stK, 'fivetokens', 1); fK.fiveDone = 1; var due2 = H6J.keyDue(BK), fly2 = due2 ? flyK() : null, due2b = H6J.keyDue(BK); fK.skarnPaid = 1; var due3 = H6J.keyDue(BK);
+      okJ('A KEY STEP: nothing due at first (' + due0 + '); the gear roped, due (' + due1 + '): "' + flat(fly1).slice(0, 0) + (fly1 || '').replace(/\{[a-z\/]\}/g, '').slice(0, 90) + '...", pinned ' + pin1 + ', not again (' + !due1b + '); the book closed, due (' + due2 + '): "' + (fly2 || '').replace(/\{[a-z\/]\}/g, '').slice(0, 70) + '...", not again (' + !due2b + '); Skarn paid, nothing (' + !due3 + ')',
+        !due0 && due1 && /In your JOURNAL: The Missing Five, the next step\./.test((fly1 || '').replace(/\{[a-z\/]\}/g, '')) && /Edric/.test(fly1 || '') && pin1 === 'warrens' && !due1b && due2 && /Skarn/.test(fly2 || '') && /office box/.test(fly2 || '') && !due2b && !due3);
+      delete fK.kSeen; delete fK.skarnPaid; delete fK['k:warrens:paid']; var dueOld = H6J.keyDue(BK), seenOld = !!fK['k:warrens:paid'] && !!fK.kSeen, dueOld2 = H6J.keyDue(BK);
+      okJ('a save from before (no kSeen) standing on Skarn\'s step: no card (' + !dueOld + '), the step taken as seen (' + seenOld + '), nothing after (' + !dueOld2 + ')', !dueOld && seenOld && !dueOld2);
+      // the cloaker's tail and the ettercap's fangs, key steps too (Tuesday 12 (c)); Dace's after the kill
+      var keyOf = function (id, fl, inv) { var q = CJ.quests({ flags: fl, inv: inv || [], party: [] }).filter(function (x) { return x.id === id; })[0]; return q && q.step ? q.step.key || null : 'none'; };
+      okJ('the other key steps: the cloaker\'s tail (' + keyOf('tail', { heardCloaker: 1 }, [{ id: 'cloakertail', n: 1 }]) + '), the ettercap\'s fangs (' + keyOf('ettercap', { heardEttercap: 1 }, [{ id: 'ettercapfangs', n: 1 }]) + '), Dace after the kill (' + keyOf('dace', { daceWith: 1, cloakerKilled: 1 }) + '); none before (' + keyOf('tail', { heardCloaker: 1 }) + ', ' + keyOf('dace', { daceWith: 1 }) + ')',
+        keyOf('tail', { heardCloaker: 1 }, [{ id: 'cloakertail', n: 1 }]) === 'tail' && keyOf('ettercap', { heardEttercap: 1 }, [{ id: 'ettercapfangs', n: 1 }]) === 'fangs' && keyOf('dace', { daceWith: 1, cloakerKilled: 1 }) === 'killed' && keyOf('tail', { heardCloaker: 1 }) === null && keyOf('dace', { daceWith: 1 }) === null);
+      // 11. THE STREET'S ARROW TO A STEP OUT ON THE WORLD (Tuesday 31): the Cull pinned -> the west gate; the ettercap -> the east gate; Ned's tongue -> the gate H16.GATE_TO names;
+      // and the table holds to THE WORLD's own gates (js/world.js W.gateFor, the gate facing the place)
+      var markK = function (pin, fl) { Object.assign(fK, fl); fK.pin = pin; H6J.marked = null; CJ.paintPin(cxJ, BK); return H6J.marked; };
+      var gts = D.roam.def.marks.gates, mC = markK('cull', { cullHired: 1, heardGalleries: 1 }), mE = markK('ettercap', { heardEttercap: 1 }), mN = markK('nedpage', { nedQuest: 1 });
+      var same = function (a, b) { return !!a && !!b && a[0] === b[0] && a[1] === b[1]; };
+      var Mw = WJ.Mworld ? WJ.Mworld() : null, svJ = Mw && Mw.sites.filter(function (s) { return s.id === 'silverton'; })[0], geo = {};
+      // (each table gate's way out within 60 degrees of the place: js/world.js W.DOORS.silverton's gates against the line from the town to the site)
+      Object.keys(H6J.GATE_TO).forEach(function (id) { var s = Mw && Mw.sites.filter(function (x) { return x.id === id; })[0], b = svJ && (svJ.town || [svJ.x, svJ.y]), a = s && (s.town || [s.x, s.y]), n = WJ.DOORS.silverton.gates[H6J.GATE_TO[id]];
+        if (!a || !b || !n) { geo[id] = null; return; } var v = [a[0] - b[0], a[1] - b[1]], lv = Math.hypot(v[0], v[1]) || 1, ln = Math.hypot(n[0], n[1]) || 1; geo[id] = Math.round(Math.acos(Math.max(-1, Math.min(1, (v[0] * n[0] + v[1] * n[1]) / lv / ln))) * 180 / Math.PI); });
+      okJ('THE STREET\'S ARROW: the Cull pinned on ' + mC + ' (the west gate ' + gts.west + '), the ettercap on ' + mE + ' (the east ' + gts.east + '), Ned\'s tongue on ' + mN + ' (' + H6J.GATE_TO.glowseep + '); each gate\'s way out off the line to its place, degrees: ' + JSON.stringify(geo) + ' (' + JSON.stringify(H6J.GATE_TO) + ')',
+        same(mC, gts.west) && same(mE, gts.east) && same(mN, gts[H6J.GATE_TO.glowseep]) && Object.keys(geo).every(function (id) { return geo[id] != null && geo[id] <= 60; }));
+      HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
+      // 12. FIGHT NIGHT'S STEP: the next bout and its stake, bout by bout
+      var hexW = function (fl) { var q = CJ.quests({ flags: Object.assign({ heardHex: 1 }, fl), inv: [], party: [] }).filter(function (x) { return x.id === 'hex'; })[0]; return q ? (q.done ? 'done' : q.where) : 'none'; };
+      var w0 = hexW({}), w1 = hexW({ 'hex:brawl': 1 }), w3 = hexW({ 'hex:brawl': 1, 'hex:freeman': 1, 'hex:card': 1 }), w4 = hexW({ 'hex:brawl': 1, 'hex:freeman': 1, 'hex:card': 1, 'hex:talmok': 1, talmokBeaten: 1 });
+      okJ('FIGHT NIGHT: "' + w0 + '" / then "' + w1.slice(-60) + '" / then "' + w3.slice(-50) + '" / Talmok beaten: ' + w4,
+        /Next on the card: the brawl in the small sand -- no stake; 4 silver to the one left standing\./.test(w0) && /the Freeman Challenge, a stable's fighter -- 5 silver in, 10 if you win\./.test(w1) && /Talmok, the champion -- 5 silver in, 10 if you win\./.test(w3) && w4 === 'done');
+      // 13. WHEN YOU'RE READY in the second game's JOURNAL, at level 3 (content/quests.json -> data/data.js, the second game's; the first game reads first/content/)
+      var qR = CJ.quests({ flags: { wintersMet: 1 }, inv: [], party: [] }).filter(function (x) { return x.id === 'ring'; })[0];
+      okJ('WHEN YOU\'RE READY in the list: ' + (qR && qR.name) + ' -- "' + (qR && qR.text || '').slice(-50) + '", NEXT "' + (qR && qR.where || '').slice(0, 50) + '"; no level 4 in it (' + !/level 4/.test((qR && qR.text || '') + (qR && qR.where || '')) + ')',
+        !!qR && /level 3/.test(qR.text) && /level 3/.test(qR.where) && !/level 4/.test(qR.text + qR.where) && CJ.QUESTS.indexOf('ring') >= 0);
+      // 14. THE EYES ROWS' DOORS (deep16/?hoursshow&beat=fivekey, &beat=pins1105): staged as they say -- at the camp with the tokens, the Five on Edric's key step already seen and
+      // Skarn's not; on the street with the Cull pinned, the arrow at the west gate
+      var beatJ = function (id) { return H6J.SHOW_BEATS.filter(function (b) { return b.id === id; })[0]; }, stageJ = function (id) { D.scenes.length = 0; CJ.servicePlay(beatJ(id)); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; if (B && B.roam) { B.roam.mode = 'walk'; } return B; };
+      var Bfk = stageJ('fivekey'), stfk = CJ.state(Bfk), qfk = CJ.quests(stfk).filter(function (x) { return x.id === 'warrens'; })[0], kfk = H6J.keyDue(Bfk);
+      stfk.inv.splice(0, stfk.inv.length); stfk.flags.fiveDone = 1; var kfk2 = H6J.keyDue(Bfk);
+      HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
+      var Bpn = stageJ('pins1105'), mpn = (function () { H6J.marked = null; CJ.paintPin(cxJ, Bpn); return H6J.marked; })(), gpn = D.roam.def.marks && D.roam.def.marks.gates.west;
+      okJ('the eyes doors: fivekey at ' + (Bfk && Bfk.roam && D.roam.def.key) + ', the Five on ' + (qfk && qfk.step && qfk.step.npc) + ' (no card yet: ' + !kfk + '), the book closed -> Skarn\'s card due (' + kfk2 + '); pins1105 on ' + (Bpn && D.roam.def.key) + ', the arrow on ' + mpn + ' (the west gate ' + gpn + ')',
+        !!qfk && qfk.step.npc === 'edric' && !kfk && kfk2 && !!mpn && !!gpn && mpn[0] === gpn[0] && mpn[1] === gpn[1]);
+      HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
+    } catch (eJ) { repJ.errors.push(String(eJ && eJ.stack || eJ).slice(0, 900)); }
+    D.sfx = sfxJ; window.DS.autoPicks = apJ; D.store.get = stGJ; D.store.set = stSJ;
+    var preJ = document.createElement('pre'); preJ.id = 'out'; preJ.textContent = 'BENCH16 ' + JSON.stringify(repJ);
+    document.body.appendChild(preJ);
+    return;
+  }
   // THE FOUR'S OWN ASKS (mode=storyasks1103; the leveling lane item 13, 11-03 -- RULED 10-31, Griz: "Agreed, when main story character classes are built out", and "If the
   // leveling choices are naturally made at 1-2 they can be made at 'start with that character' or 'character joins party' since we're starting everyone at 2"): Barley's
   // archetype and Lymen's oath asked at 3 on the second game's level-up by the class's word, nothing marked; the Threshing Floor's rise and the Drillyard's openings on the story
@@ -6979,17 +7135,17 @@
       // (content/spells.json is the first game's too, untouched: the 45 there still name no sight -- and `git diff --stat -- content/spells.json data/data.js` is empty, read by hand at the build)
       var sharedSight = SEE45.filter(function (id) { return SIGHT.test(sharedSw[id].desc); });
       okSw('content/spells.json, the first game\'s, is untouched: its 45 still name no sight (with it: ' + (sharedSight.join(', ') || 'none') + ')', sharedSight.length === 0);
-      // the box (js/menu.js descBox: DS.wrap(desc, 236), three lines shown, the ring's "E: cast it" / "Not now" line under it): the sight is inside the lines shown; a desc that fit
-      // in 3 still does; one that left that line room (2) still does. Those long before (cut at the third line already) are counted, not changed
-      var fitBad = [], fitWas = 0, wrapS = function (s) { return window.DS.wrap(String(s), 236); };
+      // the box (js/menu.js descBox, MN.DBOX since 11-05: four lines in view, the ring's "E: cast it" / "Not now" line under the words, the rest by scrolling -- the journal seat):
+      // the sight is inside the lines first shown. A desc the sight words pushed past the lines in view is counted, not failed: since the box scrolls, nothing past them is cut
+      // (10-31 it was -- "nothing that fit is pushed out" guarded that; every word reachable is mode=journal1105's)
+      var BXs = window.DS.MENU.DBOX, RW = BXs.rows, fitBad = [], fitWas = 0, pushed = [], wrapS = function (s) { var l = window.DS.wrap(String(s), BXs.tw); return l.length > RW ? window.DS.wrap(String(s), BXs.twS) : l; };
       SEE45.forEach(function (id) {
-        var nl = wrapS(pageSw[id].desc), ol = wrapS(sharedSw[id].desc), shown = nl.slice(0, 3).join(' ');
-        if (!SIGHT.test(shown)) fitBad.push(id + ' (sight past line 3)');
-        if (ol.length <= 3 && nl.length > 3) fitBad.push(id + ' (' + ol.length + ' -> ' + nl.length + ' lines)');
-        if (ol.length <= 2 && nl.length > 2) fitBad.push(id + ' (loses the ring\'s line)');
-        if (ol.length > 3) fitWas++;
+        var nl = wrapS(pageSw[id].desc), ol = wrapS(sharedSw[id].desc), shown = nl.slice(0, RW).join(' ');
+        if (!SIGHT.test(shown)) fitBad.push(id + ' (sight past line ' + RW + ')');
+        if (ol.length <= RW && nl.length > RW) pushed.push(id + ' ' + ol.length + '->' + nl.length);
+        if (ol.length > RW) fitWas++;
       });
-      okSw('the box shows the sight, and nothing that fit is pushed out: ' + (fitBad.join('; ') || 'none') + ' (' + fitWas + ' of the 45 were already longer than the 3 lines before)', fitBad.length === 0);
+      okSw('the box shows the sight in its first ' + RW + ' lines: ' + (fitBad.join('; ') || 'every one') + ' (' + fitWas + ' of the 45 were already longer than the box before; pushed to scroll by the sight words: ' + (pushed.join(', ') || 'none') + ')', fitBad.length === 0);
     } catch (e) { repSw.errors.push(String(e && e.stack || e)); }
     var preSw = document.createElement('pre'); preSw.id = 'out'; preSw.textContent = 'BENCH16 ' + JSON.stringify(repSw);
     document.body.appendChild(preSw);
@@ -8266,7 +8422,7 @@
       var badSn = [], campSn = [];
       H6Sn.SHOW_BEATS.forEach(function (bt) { HSn.playing = false; HSn.cur = null; D.scenes.length = 0; try { CSn.servicePlay(bt); if (bt.camp) campSn.push(bt.id + ':' + (HSn.cur && HSn.cur.at && HSn.cur.at.town)); } catch (e) { badSn.push(bt.id + ' ' + String(e).slice(0, 70)); } });
       D.scenes.length = 0; H6Sn.toHex3 = false;
-      okSn('the show\'s doors: ' + H6Sn.SHOW_BEATS.length + ' beats staged, none thrown (' + (badSn.join('; ') || 'none') + '); the Five\'s at the camp (' + campSn.join(', ') + ')', !badSn.length && campSn.length === 2 && campSn.every(function (s) { return /:warrens$/.test(s); }));
+      okSn('the show\'s doors: ' + H6Sn.SHOW_BEATS.length + ' beats staged, none thrown (' + (badSn.join('; ') || 'none') + '); the Five\'s at the camp (' + campSn.join(', ') + ')', !badSn.length && campSn.length === H6Sn.SHOW_BEATS.filter(function (b) { return b.camp; }).length && ['five', 'fiveafter'].every(function (id) { return campSn.indexOf(id + ':warrens') >= 0; }) && campSn.every(function (s) { return /:warrens$/.test(s); })); // (every camp beat at the camp: the Five's two, and since 11-05 fivekey -- mode=journal1105)
       // 2. THE FLY-IN (his "little less time to read it before it goes in the journal please / remove first sound on appearance and keep the tucked away in journal sound")
       var B2 = houseSn('barley'), snd2 = [], go2 = null, k2 = 0; B2.roam.flags.heardPete = 1; D.sfx = function (n) { snd2.push(n); }; // (heard after the floor's first steps: its own script would take the card)
       var due2 = H6Sn.missionDue(B2), g2 = due2 ? H6Sn.missionCard(B2) : null;
