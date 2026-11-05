@@ -68,14 +68,23 @@
   // one met where she works, in her own talking portrait at a keeper's size, its moods on her lines (11-05, Griz to cutter-1105 on the art desk's Candle Girl page: "the
   // scene is the recruitment at the start of the game"): Vivian with her candle tray on Vice row (tools/portrait-sheet.py viviancandle); the rest their hero face (CO.face)
   CO.HIREPT = { vivian: 'pt_viviancandle' };
+  // and where she stands in the town till she joins, her working figure (T.people below): Vivian with the tray on its strap (tools/vivian-sheet.py viviancandle_p1, the art
+  // desk's VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, 11-05) -- "remove the independent candle-girl world sprite as Vivian joins the party token" (its notes): CO.join takes her in
+  CO.TOWNSHEET = { vivian: 'viviancandle_p1' };
   CO.talk = function* (B, npc, h, script) {
     var step = CO.step(npc), wh = step ? step.where : '', RW = C.LAYOUT.words[2];
     if (D.textWidth(wh) > RW) wh = wh.split('. ')[0].replace(/\.?$/, '.'); // (the JOURNAL's step, the first game's words: its first sentence where the whole will not fit the line)
     if (D.textWidth(wh) > RW) wh = '';
     var hp = CO.HIREPT[npc] && D.SHEETS && D.SHEETS[CO.HIREPT[npc]] ? CO.HIREPT[npc] : null;
-    var sc = new C.Counter(B, { id: npc, name: h.name, place: CO.PLACE[npc] || h.name, what: wh, script: script,
+    // (and played outside as Papa and Lymen's is at the Hex's door -- 11-05, Griz: "build it like the lymen/urtusk outdoor convo where the background is the screen this pops
+    // up on-top of": the open screen, js/counter.js drawOpen -- her portrait top right over the street, the street live and dimmed behind (js/hours.js H16.streetShot), no
+    // counter, the party's lead bottom left with the answers in the bubble, the camera between the two)
+    var open = !!(hp && B && D.hours && D.hours.streetShot), ld = open ? leadOf(C.state(B)) : null;
+    if (open) { var t0 = B.roam && B.roam.token, u0 = B.units.filter(function (u) { return u.npc === npc; })[0]; if (t0 && u0 && B.focus) B.focus({ x: Math.round((t0.x + u0.x) / 2), y: Math.round((t0.y + u0.y) / 2), size: 1 }); }
+    var sc = new C.Counter(B, { id: npc, name: h.name, place: CO.PLACE[npc] || h.name, what: wh, script: script, room: open, open: open, bg: open ? D.hours.streetShot(B) : null,
       pic: hp ? null : function (ctx, x, y, w, hh, t, cy) { CO.face(ctx, h, x, y, w, (cy || y + hh) - y, t); } });
     if (hp) sc.sheet = hp;
+    if (ld) sc.hero = ld;
     if (sc.done) return sc;
     D.push(sc); while (!sc.done) yield 1;
     return sc;
@@ -135,7 +144,7 @@
       if ((yield sc.ask(L('hire.vivianAsk'), ['BUY A CANDLE (1 SP)', 'NOT NOW'], 'welcoming')) !== 0) return; // (her faces: pt_viviancandle, CO.HIREPT)
       if (!pay(sc.st, 1)) { yield sc.say(L('g.poor'), 'skeptical'); return; }
       C.give(sc.st, 'candle', 1);
-      if ((yield sc.ask(L('hire.vivianAsk2'), ['COME ALONG?', 'JUST THE CANDLE'], 'attentive')) !== 0) { yield sc.say(L('hire.vivianNo'), 'concerned'); return; } // (attentive: her eyes down on your hands)
+      if ((yield sc.ask(L('hire.vivianAsk2'), ['COME ALONG?', 'JUST THE CANDLE'], 'sale')) !== 0) { yield sc.say(L('hire.vivianNo'), 'concerned'); return; } // (`sale`: the taper off the tray, offered, let go, her hand back on the tray -- the art desk's BUY A CANDLE, held on its last frame while she watches your hands)
       yield sc.say(L('hire.vivianYes'), 'talk');
       yield* joins(sc, B, h, out);
     },
@@ -177,7 +186,10 @@
   T.people = function (B) {
     people0.apply(this, arguments);
     var want = [];
-    (B.units || []).forEach(function (u) { var id = u.npc && CO.HIRES[u.npc], lk = id && D.save.look ? D.save.look(id, null, null) : null; if (lk && lk.sheet && D.SHEETS && D.SHEETS[lk.sheet]) { u.sheet = lk.sheet; want.push(lk.sheet); } });
+    (B.units || []).forEach(function (u) {
+      var id = u.npc && CO.HIRES[u.npc], lk = id && D.save.look ? D.save.look(id, null, null) : null, ts = id && CO.TOWNSHEET[u.npc] && D.SHEETS && D.SHEETS[CO.TOWNSHEET[u.npc]] ? CO.TOWNSHEET[u.npc] : null;
+      if (ts) { u.sheet = ts; want.push(ts); } else if (lk && lk.sheet && D.SHEETS && D.SHEETS[lk.sheet]) { u.sheet = lk.sheet; want.push(lk.sheet); }
+    });
     if (want.length && D.spr.prefetch) D.spr.prefetch(want);
   };
 

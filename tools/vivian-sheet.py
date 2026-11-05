@@ -57,6 +57,13 @@ LOOKS = {
                             'N and the back views: a studded panel at the lower back the outfit page does not show (its own note)'],
                       source='drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), '
                              'cut by tools/vivian-sheet.py; SW W NW mirrored; worn in Studded Leather (js/save.js SV.LOOK.vivian.armor)'),
+    # her town figure as the candle girl, the tray of candles on its strap (11-05, Griz: "world poses are in Fresh", for her recruitment on Vice row): the art desk's
+    # VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, sorted to CANDLE-TOWN-1105 -- Idle 4 in all five views (the rear loops barely move, its own note), and an SE candle sale 6
+    # drawn bigger, matched to SE Idle 1 (its note: "Match the sale to SE Idle 1"); she stands on Vice row in it till she joins (js/company.js CO.TOWNSHEET)
+    'viviancandle_p1': dict(batches=('CANDLE-TOWN-1105',), name='Vivian', rows=[('idle', 4, 4), ('sale', 4, 6)], match={'sale': ('idle', 0)}, perview=True,
+                            hold=['the sale, frame 3: the lifted candle is thicker than the taper of frame 4, and one candle on the tray drops out (the art desk\'s own note)'],
+                            source='drawn by the art desk (VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, 11-05: her town figure as the candle girl), cut by tools/vivian-sheet.py; SW W NW mirrored; '
+                                   'worn by the vivian npc on Vice row till she joins (js/company.js CO.TOWNSHEET)'),
 }
 
 
@@ -73,7 +80,8 @@ def windows(look):
     for batch in LOOKS[look]['batches']:
         for r in csv.DictReader(open(os.path.join(SRC, batch, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
             box = tuple(int(col(r, *n)) for n in (('x0', 'left'), ('y0', 'top'), ('x1_exclusive', 'right_exclusive', 'x1'), ('y1_exclusive', 'bottom_exclusive', 'y1')))
-            out.append((batch, r['view'], col(r, 'row', 'action'), int(col(r, 'runtime_index_0_based', 'runtime_index')), r['file'], box))
+            ri = r.get('runtime_index_0_based') or r.get('runtime_index')
+            out.append((batch, r['view'], col(r, 'row', 'action'), int(ri) if ri not in (None, '') else int(r['frame_1_based']) - 1, r['file'], box))   # (no runtime index: the one-based frame less one)
     return out
 
 
@@ -113,7 +121,7 @@ def cut(look):
         a = pages[(batch, fn)][y0:y1, x0:x1]
         m = figure(a); ys, xs = np.where(m)
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
-        crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn)
+        crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
     scale = {}
     for pg in set(pageof.values()):
@@ -121,6 +129,12 @@ def cut(look):
         idle = [crops[c][1].shape[0] for c in mine if c[1] == 'idle']
         stag = [crops[c][1].shape[0] for c in mine if c[1] == 'hurt' and c[2] == 0]
         scale[pg] = TALL / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag else None
+    for pg in [p for p in scale if scale[p] is None and L.get('match')]:   # (`match`: a page of one row drawn bigger -- the candle sale -- scaled so its first frame stands as tall as the view's frame it names)
+        c0 = [c for c, p in pageof.items() if p == pg and c[1] in L['match'] and c[2] == 0]
+        if c0:
+            v, row = c0[0][0], c0[0][1]; tgt = (v, L['match'][row][0], L['match'][row][1])
+            if scale.get(pageof.get(tgt)):
+                scale[pg] = crops[tgt][1].shape[0] * scale[pageof[tgt]] / float(crops[c0[0]][1].shape[0])
     for pg in [p for p in scale if scale[p] is None]:   # (a page of one re-drawn frame -- vivian_p2's SE-CONTACT-SOURCE, attack 4: its batch's page of the same view)
         v = [c[0] for c, p in pageof.items() if p == pg][0]
         scale[pg] = [scale[p] for c, p in pageof.items() if p[0] == pg[0] and c[0] == v and scale.get(p)][0]
@@ -139,7 +153,7 @@ def cut(look):
             o, cx, foot = cells[(f, row, i)]
             cells[(mf, row, i)] = (np.ascontiguousarray(o[:, ::-1]), o.shape[1] - 1 - cx, foot)
     anims, blocks, y = {}, [], 0
-    for name, fps, n in ROWS:
+    for name, fps, n in L.get('rows', ROWS):
         fs = [f for f in range(8) if (f, name, 0) in cells]
         reach = max(max(cx, o.shape[1] - cx) for f in fs for i in range(n) for (o, cx, foot) in [cells[(f, name, i)]])
         fw = int(2 * np.ceil(reach + 2)); ax = fw // 2
@@ -170,11 +184,11 @@ def cut(look):
     with open(os.path.join(ROOT, 'deep16', 'art', look + '.json'), 'w', encoding='utf-8', newline='\n') as f_:
         json.dump(meta, f_, indent=1)
     print('%s: %dx%d, rows %s; scale %s' % (look, W, y, ', '.join('%s %d@%dpx%s' % (n_, a_['frames'], a_['fw'], ' drawn ' + str(a_['drawn']) if 'drawn' in a_ else '') for n_, a_ in anims.items()),
-                                          ', '.join('%s %.4f' % (fn, k) for (b, fn), k in sorted(scale.items()))))
+                                          ', '.join('%s %.4f' % ('/'.join(pg[1:]), k) for pg, k in sorted(scale.items()))))
     if 'check' in sys.argv:
         Z = 3; out = os.path.join(ROOT, 'deep16', 'art-src', 'vivian'); os.makedirs(out, exist_ok=True)
         tiles = []
-        for name, fps, n in ROWS:
+        for name, fps, n in L.get('rows', ROWS):
             a = anims[name]
             for f in ([7] if 'drawn' in a else [0, 7, 6, 5, 4]):
                 tiles.append(sheet[a['y'] + f * FH:a['y'] + (f + 1) * FH, :a['fw'] * a['frames']])

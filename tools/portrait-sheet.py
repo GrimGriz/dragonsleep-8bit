@@ -38,7 +38,7 @@ BUST = 150                        # px from the head's top to the hands' line at
 MASK_D = 22                       # how far from the navy a channel must be to be figure
 HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
-FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin a work's pace)
+FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
@@ -184,8 +184,13 @@ PEOPLE = {
     # the world poses now"): the art desk's loose page "Vivian Venn -- Candle Girl", six faces one page, sorted to _src/vivian/CANDLE-GIRL-1105/ (an ASCII-named copy
     # beside it). Not the hero box: she speaks from the keeper's panel as you buy a candle and ask her along (js/company.js CO.HIREPT), so a keeper's size and
     # looking screen left as drawn (no `flip`); a one-frame idle, the four moods, and her sixth, mid-word, as `talk`. The tray is hers: `noledge`, nothing cut off her foot
+    # (and the same night the art desk's VIVIAN-CANDLE-GIRL-INTERACTION, its two pages in the same windows: her Idle 6 -- rest, inhale, crest, blink, reopen, return -- in
+    # place of the page's one still, which stays as `neutral`; and BUY A CANDLE 6, `sale`, played once as you buy: ready, reach, the taper lifted, offered, let go, the
+    # hand back on the tray -- js/company.js CO.SCENES.vivian)
     'viviancandle': ('vivian/CANDLE-GIRL-1105', 'VIVIAN', 'her recruitment on Vice row (js/company.js CO.HIREPT)', {'edge': True, 'noledge': True,
-                     'layout': [('vivian/CANDLE-GIRL-1105/VIVIAN-CANDLE-GIRL-1105.png', [3, 3], ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'talk'])]}),
+                     'layout': [('vivian/CANDLE-INTERACTION-1105/VIVIAN-CANDLE-IDLE.png', [3, 3], ['idle'] * 6),
+                                ('vivian/CANDLE-INTERACTION-1105/VIVIAN-BUY-A-CANDLE.png', [3, 3], ['sale'] * 6),
+                                ('vivian/CANDLE-GIRL-1105/VIVIAN-CANDLE-GIRL-1105.png', [3, 3], ['neutral', 'attentive', 'welcoming', 'skeptical', 'concerned', 'talk'])]}),
     # Aurdin in his two mantles and Barley in his coat (11-05, cutter-1105): the art desk's own AURDIN- and BARLEY-HERO-DIALOGUE-PORTRAITS, idle 6 and the four moods,
     # drawn looking screen right already (no `flip`), cut at the same hero size as Lymen's -- in place of the 10-22 and 10-30 stills off their identity pages
     # (tools/hero-portrait.py), under the same names, so C.HERO_PT's looks hold: the Red Mantle out of robes, the Ochre in them, Barley's coat

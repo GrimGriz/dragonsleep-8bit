@@ -18186,32 +18186,66 @@ false
 "flip": true
 },
 "pt_viviancandle": {
-"image": "art/pt_viviancandle.png?v=781d022043",
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
-"top": 152,
+"image": "art/pt_viviancandle.png?v=536348e550",
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
+"top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
-"frames": 1,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
+"frames": 6,
 "fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"sale": {
+"y": 155,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"neutral": {
+"y": 310,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
+"frames": 1,
+"fps": 1,
 "ledge": [
 false
 ]
 },
 "attentive": {
-"y": 154,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
+"y": 465,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18219,11 +18253,11 @@ false
 ]
 },
 "welcoming": {
-"y": 308,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
+"y": 620,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18231,11 +18265,11 @@ false
 ]
 },
 "skeptical": {
-"y": 462,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
+"y": 775,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18243,11 +18277,11 @@ false
 ]
 },
 "concerned": {
-"y": 616,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
+"y": 930,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18255,11 +18289,11 @@ false
 ]
 },
 "talk": {
-"y": 770,
-"fw": 127,
-"fh": 154,
-"ax": 58,
-"ay": 152,
+"y": 1085,
+"fw": 177,
+"fh": 155,
+"ax": 108,
+"ay": 153,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -20797,6 +20831,43 @@ true
 "N and the back views: a studded panel at the lower back the outfit page does not show (its own note)"
 ],
 "source": "drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), cut by tools/vivian-sheet.py; SW W NW mirrored; worn in Studded Leather (js/save.js SV.LOOK.vivian.armor)"
+},
+"viviancandle_p1": {
+"image": "art/viviancandle_p1.png?v=1974c035e0",
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"sale": {
+"y": 512,
+"fw": 46,
+"fh": 64,
+"ax": 23,
+"ay": 61,
+"frames": 6,
+"fps": 4,
+"drawn": [
+1,
+7
+]
+}
+},
+"name": "Vivian",
+"hold": [
+"the sale, frame 3: the lifted candle is thicker than the taper of frame 4, and one candle on the tray drops out (the art desk's own note)"
+],
+"source": "drawn by the art desk (VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, 11-05: her town figure as the candle girl), cut by tools/vivian-sheet.py; SW W NW mirrored; worn by the vivian npc on Vice row till she joins (js/company.js CO.TOWNSHEET)"
 },
 "wagon_p1": {
 "image": "art/wagon_p1.png?v=a525af8a27",

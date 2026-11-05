@@ -1,0 +1,37 @@
+{
+ "image": "art/viviancandle_p1.png",
+ "fw": 36,
+ "fh": 64,
+ "ax": 18,
+ "ay": 61,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "sale": {
+   "y": 512,
+   "fw": 46,
+   "fh": 64,
+   "ax": 23,
+   "ay": 61,
+   "frames": 6,
+   "fps": 4,
+   "drawn": [
+    1,
+    7
+   ]
+  }
+ },
+ "name": "Vivian",
+ "hold": [
+  "the sale, frame 3: the lifted candle is thicker than the taper of frame 4, and one candle on the tray drops out (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, 11-05: her town figure as the candle girl), cut by tools/vivian-sheet.py; SW W NW mirrored; worn by the vivian npc on Vice row till she joins (js/company.js CO.TOWNSHEET)"
+}

@@ -1,30 +1,64 @@
 {
  "image": "art/pt_viviancandle.png",
- "fw": 127,
- "fh": 154,
- "ax": 58,
- "ay": 152,
- "top": 152,
+ "fw": 177,
+ "fh": 155,
+ "ax": 108,
+ "ay": 153,
+ "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
-   "frames": 1,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
+   "frames": 6,
    "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "sale": {
+   "y": 155,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "neutral": {
+   "y": 310,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
    "ledge": [
     false
    ]
   },
   "attentive": {
-   "y": 154,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
+   "y": 465,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -32,11 +66,11 @@
    ]
   },
   "welcoming": {
-   "y": 308,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
+   "y": 620,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -44,11 +78,11 @@
    ]
   },
   "skeptical": {
-   "y": 462,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
+   "y": 775,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -56,11 +90,11 @@
    ]
   },
   "concerned": {
-   "y": 616,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
+   "y": 930,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -68,11 +102,11 @@
    ]
   },
   "talk": {
-   "y": 770,
-   "fw": 127,
-   "fh": 154,
-   "ax": 58,
-   "ay": 152,
+   "y": 1085,
+   "fw": 177,
+   "fh": 155,
+   "ax": 108,
+   "ay": 153,
    "frames": 1,
    "fps": 1,
    "ledge": [
