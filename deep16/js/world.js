@@ -891,7 +891,8 @@
   W.GAP = [6, 12];
   W.lineup = function (list, gap) {
     var d = gap != null ? gap : W.GAP[0] + D.rint(W.GAP[1] - W.GAP[0] + 1), fx = Math.max(5, 8 - d), P = fx + d; // (at the old 2: the old squares, the four at x 8)
-    var front = [[fx, 3], [fx, 2], [fx, 4], [fx, 1], [fx, 5]], back = [[fx - 2, 1], [fx - 2, 4], [fx - 4, 2]], small2 = [[fx - 1, 3], [fx - 1, 1], [fx - 1, 5]], foes = [];
+    // (four Large squares behind the front, none on another: the rescue's four giant bats had three, and the fourth was left out of every grid fight -- 11-05)
+    var front = [[fx, 3], [fx, 2], [fx, 4], [fx, 1], [fx, 5]], back = [[fx - 2, 1], [fx - 2, 4], [fx - 4, 2], [fx - 4, 4]], small2 = [[fx - 1, 3], [fx - 1, 1], [fx - 1, 5]], foes = [];
     list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) foes.push({ id: 'w' + i + '-' + k, kind: k, at: at.slice() }); });
     // (the gap is to the nearest of them: a group of Large ones alone is moved up to the front's column)
     var near = -1; foes.forEach(function (f) { var s = Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1); near = Math.max(near, f.at[0] + s - 1); });

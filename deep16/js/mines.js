@@ -631,7 +631,7 @@
   M.rescue = function* (B, trig, at) {
     var R = D.roam, f = B.roam.flags;
     B.card(R.wrap([].concat(L('g3.rescue1'))), 320); yield 60;
-    yield* R.encounter(B, 'set', { list: ['giantbat', 'giantbat', 'giantbat', 'giantbat'], at: at, flag: 'rescued', line: [].concat(L('g3.rescueIntro'))[0], how: 'under the roost' });
+    yield* R.encounter(B, 'set', { list: ['giantbat', 'giantbat', 'giantbat', 'giantbat'], at: at, flag: 'rescued', line: [].concat(L('g3.rescueIntro'))[0], how: 'under the roost', gap: 'rule' }); // (gap 'rule': 6 to 12 squares on the grid, not a set fight's 2 -- RULED 11-05, M.fieldDef)
     if (!f.rescued) return;
     f.cullDone = 1;
     B.card(R.wrap([].concat(L('g3.rescue2'), D.counter.renown(D.counter.state(B), 1, 'renown.rescue'))), 360); yield 30;
@@ -820,8 +820,9 @@
       to: function (x, y) { var d = [x - best.x0, y - best.y0]; return [d[best.turned], d[1 - best.turned]]; } }; // (a floor square's place on the field)
   };
   M.fieldDef = function (def, list, simple, set, at) {
-    // (a set fight -- the story's own, the cloaker in the deep gallery, the rescue's bats -- keeps the old 2 squares, the lineup it was drawn for: 11-05, an exception for his word)
-    var o = simple ? D.simple.fieldOpts(true) : null, LU = simple ? null : D.world.lineup(list, set ? M.SET_GAP : null), kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Math.max(Gd.w, LU.w), h = o ? o.h : Gd.h;
+    // (a set fight -- the story's own, the cloaker in the deep gallery -- keeps the old 2 squares, the lineup it was drawn for; one whose set says gap 'rule' -- the rescue's bats --
+    // takes the rule's 6 to 12. RULED 11-05, Griz: "approve fight start's exception leans, including the bats at 6-12 in that one story fight")
+    var o = simple ? D.simple.fieldOpts(true) : null, LU = simple ? null : D.world.lineup(list, set && set.gap !== 'rule' ? M.SET_GAP : null), kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Math.max(Gd.w, LU.w), h = o ? o.h : Gd.h;
     var entry = o ? o.entry : LU.entry.map(function (q) { return [q[0] + Gd.dx, q[1] + Gd.dy]; });
     var foes = simple ? D.simple.seat(list) : LU.foes.map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
     var foot = function (f) { var s = Math.max(1, Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1)), out = []; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) out.push([f.at[0] + i, f.at[1] + j]); return out; };
