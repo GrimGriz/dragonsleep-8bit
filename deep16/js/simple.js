@@ -409,7 +409,10 @@
   // second weapon's swing), MAGIC, SKILL, ITEM -- and END TURN
   S.root = function (B, u) {
     var T = T_(u), mg = S.spells(B, u), sk = S.skills(B, u), it = S.items(B, u), fast = u.subclass === 'Thief' && T.bonus > 0;
-    var MAGIC = { label: 'MAGIC', ok: mg.some(function (e) { return e.ok; }), why: mg.length ? 'nothing castable now' : 'no spells', go: function () { S.openList(B, u, 'MAGIC', mg); } };
+    // (MAGIC's slots in the grid's words, over its list and in its grey: 11-05, the tuesday-grid seat -- Griz, Tuesday 21: "Slots remaining on simple fight 'magic' menu"; the
+    // grid's "slots L1 0/3" since d7489168, js/ui.js UI.slotLine, and SPELLS greyed with "no spell slots left (a rest brings them back)", js/battle.js commands)
+    var sp0 = S.cmd(B, u, 'spells'), mgWhy = sp0 && !sp0.ok && /spell slots left/.test(sp0.why || '') && !mg.some(function (e) { return e.ok; }) ? sp0.why : mg.length ? 'nothing castable now' : 'no spells';
+    var MAGIC = { label: 'MAGIC', ok: mg.some(function (e) { return e.ok; }), why: mgWhy, go: function () { S.openList(B, u, S.magicTitle(u), mg); } };
     var SKILL = { label: 'SKILL', ok: sk.some(function (e) { return e.ok; }), why: 'nothing to use now', go: function () { S.openList(B, u, 'SKILL', sk); } };
     var ITEM = { label: 'ITEM', right: fast ? 'bonus' : '', ok: it.some(function (e) { return e.ok; }), why: it.length ? 'nothing usable now' : 'nothing in the pack for a fight', go: function () { S.openList(B, u, 'ITEM', it); } };
     if (!S.acts(u)) {
@@ -467,8 +470,11 @@
     });
   };
   S.openSlots = function (B, u, e) {
-    S.openList(B, u, e.name.toUpperCase() + ': AT WHAT LEVEL?', e.levels.map(function (L) { return { label: 'LEVEL ' + L, right: (u.slots[L - 1] || 0) + ' left', ok: true, go: function () { S.aimSpell(B, u, e, L); } }; }));
+    S.openList(B, u, e.name.toUpperCase() + ': AT WHAT LEVEL?', e.levels.map(function (L) { var mx = u.slotsMax && u.slotsMax[L - 1]; return { label: 'LEVEL ' + L, right: (u.slots[L - 1] || 0) + (mx != null ? '/' + mx : '') + ' left', ok: true, go: function () { S.aimSpell(B, u, e, L); } }; }));
   };
+  // MAGIC's title with the slots left of their most, as the grid's SPELLS list says them ("MAGIC   slots L1 0/3 L2 1/2"; the short form where it runs past the window: UI.slotLine)
+  S.LISTW = 236; // (the list's window, S.drawList)
+  S.magicTitle = function (u) { var sl = u.slots && u.slots.length && UI.slotLine ? UI.slotLine(u, S.LISTW - 16 - D.textWidth('MAGIC   ')) : ''; return 'MAGIC' + (sl ? '   ' + sl : ''); };
   S.spellCmd = function (B, u, e, slot, t) {
     var g = e.g, n = (g.n || 1) + Math.max(0, slot - (e.level || 0)), c = { do: 'cast', id: e.id, slot: slot };
     if (g.shape === 'self') c.target = u;
@@ -744,7 +750,7 @@
     });
   };
   S.drawList = function (ctx, B, title, items, m, rects, kind) {
-    var vis = 12, n = items.length, rh = 11, w = 236, top = Math.max(0, Math.min(m.list && kind !== 'pick' ? m.list.top || 0 : 0, n - vis));
+    var vis = 12, n = items.length, rh = 11, w = S.LISTW, top = Math.max(0, Math.min(m.list && kind !== 'pick' ? m.list.top || 0 : 0, n - vis));
     if (m.sel < top) top = m.sel; if (m.sel >= top + vis) top = m.sel - vis + 1;
     if (m.list && kind !== 'pick') m.list.top = top;
     var shown = Math.min(vis, n), h = 22 + shown * rh + 14, y = D.H - h, x = PX0 - w;
