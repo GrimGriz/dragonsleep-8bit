@@ -2306,7 +2306,7 @@
       var o3 = flowAc(B3, []), f3 = B3.roam.flags, st3 = CAc.state(B3), i3 = o3.indexOf('It turns toward the ring');
       InAc.unit = unit0;
       okAc('the rise with the ring warm: ' + o3.slice(Math.max(0, i3 - 300), i3 + 1200) + ' -- lake done ' + f3.lakeDone + ', the gift ' + f3.lakeGiftGot + ' (' + (B3.inv || []).map(function (s) { return s.id; }).join(',') + '), the god seen ' + f3.chuulSeen,
-        /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /something the lake took/.test(o3) && /draws from the lake in front of everyone, and drinks/.test(o3) && f3.lakeDone === 1 && f3.lakeGiftGot === 1 && f3.chuulSeen === 1);
+        /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /something the lake took/.test(o3) && /Doran is gone, and the wagon with him\. The lantern stays on its hook/.test(o3) && f3.lakeDone === 1 && f3.lakeGiftGot === 1 && f3.chuulSeen === 1);
       // 4. THE RISE WITH NOBODY AT THE SHORE: the party back at the path's head -- nothing stands on the stone, it goes down; the god seen, not fought
       var B4 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise', far: true } });
       var o4 = flowAc(B4, []), f4 = B4.roam.flags;
@@ -2333,13 +2333,130 @@
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && [Y6.orrin, Y6.pell, Y6.kid].every(function (u) { return u.bystander && u.look; }));
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 8 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 11 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
       HAc.playing = false; HAc.cur = null;
     } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
     HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
     D.store.get = stGAc; D.store.set = stSAc; D.music = muAc;
     var preAc = document.createElement('pre'); preAc.id = 'out'; preAc.textContent = 'BENCH16 ' + JSON.stringify(repAc);
     document.body.appendChild(preAc);
+    return;
+  }
+  // WINTERS' RING AND THE CHUUL, 11-05 (mode=winters1105; deep16/js/counter.js C.winters, C.wintersRing and the ring's JOURNAL record; js/secondact.js A.ringWarm, A.sound, A.meet;
+  // js/inn.js In.wagonNight's end -- the Winters seat, started by the lanes desk on Griz's "start up a seat to wire winters and the 'ready' tie in, as well as the chuul fight"; the
+  // Halfway Inn lane's items 8 and 7): Winters at the lead's 2nd (Elsbeth's word said, "not yet ready", his look naming level 3 as the talk ends -- once a level) and at the 3rd
+  // (the JOURNAL's ready step flies in, a key step; "Now you're ready.", the Ring of Binding, on Lymen; the JOURNAL done, onward to the lake); the chuul on the due's own night --
+  // the quiet with the ring (GO DOWN TO THE POINT: the fight at the stone, the lake's morning; BACK TO BED: the ring cold), no ring and no prompt, LET IT BE after a won yard,
+  // STAND ASIDE on the path; the rowboat by day (LEAVE IT; PUSH OUT AND SOUND THE DEEP: the fight, no ring)
+  if (get('mode', '') === 'winters1105') {
+    var repWn = { checks: [], errors: [] }, memWn = {}, stGWn = D.store.get, stSWn = D.store.set, HWn = D.house, CWn = D.counter, RWn = D.roam, InWn = D.inn, AWn = D.secondact, TWn = D.town, H6Wn = D.hours, muWn = D.music;
+    function okWn(what, v) { repWn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveWn(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topWn() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upWn() { return D.top() instanceof CWn.Counter; }
+    function trigWn(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function fireWn(B, id) { var tr = trigWn(id); if (!tr) return null; var g = TWn.fire(B, tr); driveWn(g, upWn, 600); return g; }
+    function clickWn(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goWn(sc, go, label) { var b = sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]; return clickWn(sc, b); }
+    function readWn(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goWn(sc, 'next'); } return out; }
+    function inWn(B, id) { driveWn(TWn.fire(B, trigWn(id)), null, 600); return D.roam.def.room === id; }
+    function askWn(sc) { return (sc && sc.wait && sc.wait.ask || []).join(' '); }
+    function strip(s) { return window.DS.stripCodes ? window.DS.stripCodes(String(s || '')) : String(s || '').replace(/\{[a-z\/]\}/g, ''); }
+    // the floor's script driven on (mode=secondact1104's flowAc): prompts and counters answered from `ans` by label, the watches begun with Lymen on the second, each card seen once, each morning woken
+    function wakeWn() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    function stageWn(q, extra, before) { var B = RWn.make(q + '&watch'); Object.assign(RWn.flags0, extra || {}); D.scenes.length = 0; D.push(B); topWn(); if (before) before(D.top()); return D.top(); }
+    function atWn(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function flowWn(B, ans, hook) {
+      var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
+      B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 90000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CWn.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('> ' + w.opts[i0]); if (hook) hook(w.opts[i0], B); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HWn.Morning) { quiet = 0; seen.push(wakeWn()); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); s.go('begin'); continue; }
+        if (s !== B && s instanceof D.Battle && s.roam) { seen.push('FLOOR: ' + (RWn.def && RWn.def.key)); break; }
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt, a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push((p.lines || []).join(' ') + ' [' + p.opts.map(function (o) { return o.label; }).join(' | ') + ']'); seen.push('> ' + p.opts[i].label); v = p.opts[i].value; quiet = 0; if (hook) hook(p.opts[i].label, B); continue; }
+        quiet = 0;
+      }
+      return strip(seen.join(' / '));
+    }
+    var BASEWn = 'wagonIn,dueTonight,kidTaken,glamourBroken,glamourSeen,wagonStopped,kidAtInn,doranAway,katGone,reachedInn,mealHad,gennetNamed';
+    var ringOn = function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; };
+    var pairDown = function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); };
+    var sl = function (o, re, n) { var i = o.search(re); return i < 0 ? o.slice(0, n || 400) : o.slice(Math.max(0, i - 60), i + (n || 900)); };
+    D.store.get = function (k) { return memWn[k] ? JSON.parse(memWn[k]) : null; }; D.store.set = function (k, v) { memWn[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    var unit0Wn = InWn.unit;
+    try {
+      D.seed = +get('seed', 1105);
+      // 1. WINTERS AT THE LEAD'S 2ND (deep16/?at=winters2): Elsbeth's word said by the one who leads, "You are not yet ready", the menu; LEAVE -- his look names level 3; once a level
+      HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
+      D.sit16.open('winters2'); var B1 = topWn(), st1 = CWn.state(B1), f1 = st1.flags, q1 = CWn.quests(st1).filter(function (q) { return q.id === 'ring'; })[0];
+      var in1 = inWn(B1, 'warp:winters'), g1 = fireWn(B1, 'talk:winters'), sc1 = D.top(), w1 = readWn(sc1).map(strip), ask1 = askWn(sc1);
+      goWn(sc1, 'opt', 'LEAVE'); var nr1 = readWn(sc1).map(strip); if (g1) driveWn(g1, null, 200);
+      okWn('Winters at the lead\'s 2nd (?at=winters2): in at his door ' + in1 + '; "' + w1.join(' / ').slice(0, 320) + '" [' + ask1 + '] > LEAVE: "' + nr1.join(' ') + '" -- no ring ' + !CWn.count(st1, 'ringofbinding') + ', asked ' + f1.wintersAsked + ', looked ' + f1.wintersLooked + '; the JOURNAL: ' + (q1 && q1.where),
+        in1 && /Lymen: "Elsbeth, at the Halfway Inn/.test(w1.join(' ')) && /You are not yet ready/.test(w1.join(' ')) && /pen lifted/.test(ask1) && /Not ready\. Not yet\. \(The one who leads you is level 2\. Winters will be ready at level 3\.\)/.test(nr1.join(' ')) && !CWn.count(st1, 'ringofbinding') && f1.wintersAsked === 1 && f1.wintersLooked === 2 && !upWn() && !!q1 && !q1.done && /level 3\. Until then/.test(q1.where || '') && !(q1.step && q1.step.key));
+      g1 = fireWn(B1, 'talk:winters'); sc1 = D.top(); var w1b = readWn(sc1).map(strip); goWn(sc1, 'opt', 'LEAVE'); var nr1b = readWn(sc1).map(strip); if (g1) driveWn(g1, null, 200);
+      okWn('in again at the 2nd: no second word of Elsbeth (' + !/Elsbeth/.test(w1b.join(' ')) + '), his look not said twice ("' + (nr1b.join(' ') || 'nothing') + '")', !/Elsbeth/.test(w1b.join(' ')) && !/Not ready/.test(nr1b.join(' ')) && !upWn());
+      // 2. AT THE LEAD'S 3RD (deep16/?at=winters3): the JOURNAL's ready step flies in on the street (a key step); in at his door -- Elsbeth's word, "Now you're ready.", the ring, YES: on Lymen
+      HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
+      D.sit16.open('winters3'); var B2 = topWn(), st2 = CWn.state(B2), f2 = st2.flags, ld2 = CWn.leadOf(st2); D.battle = B2; B2.roam.mode = 'walk';
+      var q2 = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0], due2 = H6Wn.keyDue(B2), fly2 = null;
+      if (due2) { var gk = H6Wn.keyCard(B2), k2 = 0, s2; while (k2++ < 600) { s2 = gk.next(); if (B2.jfly) fly2 = B2.jfly.lines.join(' '); if (s2.done) break; if (typeof s2.value === 'number') B2.t += s2.value; } }
+      okWn('at the lead\'s 3rd (' + (ld2 && ld2.name) + ' ' + (ld2 && ld2.lvl) + '): the JOURNAL\'s words "' + (q2 && q2.text) + '", its step a key step (' + (q2 && q2.step && q2.step.key) + ') -- due ' + due2 + ', flown in: "' + strip(fly2).slice(0, 170) + '", once (' + !H6Wn.keyDue(B2) + ')',
+        !!ld2 && ld2.lvl === 3 && !!q2 && !q2.done && q2.step && q2.step.key === 'ready' && /level 3 now, and he is ready/.test(q2.where) && /is ready now/.test(q2.text) && due2 && /In your JOURNAL: When You're Ready, the next step\./.test(strip(fly2)) && !H6Wn.keyDue(B2) && f2['k:ring:ready'] === 1);
+      var in2 = inWn(B2, 'warp:winters'), g2 = fireWn(B2, 'talk:winters'), sc2 = D.top(), w2 = readWn(sc2).map(strip), ask2 = askWn(sc2);
+      goWn(sc2, 'opt', 'YES'); readWn(sc2); if (g2) driveWn(g2, null, 200);
+      var on2 = !!ld2 && (ld2.equip.ring === 'ringofbinding' || ld2.equip.ring2 === 'ringofbinding'), q2d = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0];
+      okWn('in at his door at the 3rd: "' + w2.join(' / ').slice(0, 460) + '" [' + ask2 + '] > YES -- on ' + (ld2 && ld2.name) + ' ' + on2 + ', in the pack ' + CWn.count(st2, 'ringofbinding') + ', the talk over ' + !upWn() + ', given ' + f2.wintersRing + '; the JOURNAL: ' + (q2d && (q2d.done ? 'done -- ' + q2d.doneText : 'open')),
+        in2 && /Lymen: "Elsbeth/.test(w2.join(' ')) && !/not yet ready/.test(w2.join(' ')) && /Now you're ready/.test(w2.join(' ')) && /RING OF BINDING/.test(w2.join(' ')) && /\+3 to CON saves/.test(w2.join(' ')) && /Put it on Lymen\?/.test(ask2) && on2 && !CWn.count(st2, 'ringofbinding') && !upWn() && f2.wintersRing === 1 && !!q2d && q2d.done && /for the thing in the lake/.test(q2d.doneText));
+      g2 = fireWn(B2, 'talk:winters'); sc2 = D.top(); var w2c = readWn(sc2).map(strip), ask2c = askWn(sc2); goWn(sc2, 'opt', 'LEAVE'); var w2d = readWn(sc2).map(strip); if (g2) driveWn(g2, null, 200);
+      okWn('in again with it on: "' + ask2c + '" -- no second ring, no look as you go ("' + (w2d.join(' ') || 'nothing') + '")', /glances at the ring on your hand/.test(ask2c) && !/Now you're ready/.test(w2c.join(' ')) && !/Not ready/.test(w2d.join(' ')) && !CWn.count(st2, 'ringofbinding') && on2);
+      HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
+      // 3. THE QUIET NIGHT WITH THE RING (the first WAGON DAY, KEEP WATCH): the walk, then the ring warm -- GO DOWN TO THE POINT: the water heaves, it turns toward the ring, the fight at
+      // the stone (the chuul and its frog at two hit points), the deep only water, back to bed; the lake's morning, the quiet's own after it, no ring cold
+      InWn.stay = true;
+      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
+      var B3 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B3.roam.silver = 30; atWn(B3, 24, 17, [0, -1]);
+      var o3 = flowWn(B3, [0, 'TO BED', 'KEEP WATCH', 'GO DOWN TO THE POINT']), f3 = B3.roam.flags;
+      okWn('the quiet night with the ring, GO DOWN TO THE POINT: ' + sl(o3, /Only the inn lady comes back/, 1500) + ' -- paid ' + f3.duePaid + ', the lake done ' + f3.lakeDone + ', seen ' + f3.chuulSeen + ', once ' + f3.ringWarmNight,
+        /Only the inn lady comes back/.test(o3) && /The ring on your hand is warm\. Go down to the point\./.test(o3) && /> GO DOWN TO THE POINT/.test(o3) && /It comes up out of the deep: the size of a wagon/.test(o3) && /It turns toward the ring before it turns toward anything else/.test(o3) && /INITIATIVE/.test(o3) && /The deep is only water now/.test(o3) && /Back up the path to the lake door, and in to bed/.test(o3) && /MORNING: .*Up at the inn a lamp came on in the kitchen before dawn/.test(o3) && /The wagon left at first light/.test(o3) && !/The ring on your hand is cold this morning/.test(o3) && f3.duePaid === 1 && f3.lakeDone === 1 && f3.chuulSeen === 1 && f3.ringWarmNight === 1);
+      // 4. ...BACK TO BED: no fight, the ring cold by morning
+      var B4 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B4.roam.silver = 30; atWn(B4, 24, 17, [0, -1]);
+      var o4 = flowWn(B4, [0, 'TO BED', 'KEEP WATCH', 'BACK TO BED']), f4 = B4.roam.flags;
+      okWn('the quiet night with the ring, BACK TO BED: ' + sl(o4, /The ring on your hand is warm/, 700) + ' -- the lake done ' + !!f4.lakeDone,
+        /The ring on your hand is warm/.test(o4) && /> BACK TO BED/.test(o4) && !/INITIATIVE/.test(o4) && /MORNING: .*The ring on your hand is cold this morning\. Whatever is in the lake has eaten\./.test(o4) && !f4.lakeDone);
+      // 5. ...no ring: no ring warm, no ring cold -- the walk, the morning
+      var B5 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17'); B5.roam.silver = 30; atWn(B5, 24, 17, [0, -1]);
+      var o5 = flowWn(B5, [0, 'TO BED', 'KEEP WATCH']), f5 = B5.roam.flags;
+      okWn('the quiet night with no ring: the walk, no ring warm, no fight (' + sl(o5, /Only the inn lady comes back/, 300) + ')', /Only the inn lady comes back/.test(o5) && !/ring on your hand/.test(o5) && !/INITIATIVE/.test(o5) && /MORNING/.test(o5) && !f5.lakeDone);
+      // 6. LET IT BE after a won yard, the ring worn: the walk, the ring warm, down to the point; the morning the lake's with Doran gone up the road with the children
+      var B6 = stageWn('?roam=halfway&hour=18&day=' + InWn.WAGON.first + '&at=24,17', {}, ringOn); B6.roam.silver = 30; atWn(B6, 24, 17, [0, -1]); InWn.pinned = [18, 18];
+      var o6 = flowWn(B6, [0, 'TO BED', 'WAKE THE PARTY', 'LET IT BE', 'GO DOWN TO THE POINT'], pairDown), f6 = B6.roam.flags; InWn.pinned = null;
+      okWn('LET IT BE after a won yard, the ring worn: ' + sl(o6, /> LET IT BE/, 1400) + ' -- the lake done ' + f6.lakeDone,
+        /> LET IT BE/.test(o6) && /Only the inn lady comes back/.test(o6) && /The ring on your hand is warm/.test(o6) && /It turns toward the ring/.test(o6) && /The deep is only water now/.test(o6) && /MORNING: .*Doran is gone, and the wagon with him\. The lantern stays on its hook/.test(o6) && f6.lakeDone === 1 && f6.wagonOutcome === 'inn');
+      // 7. STAND ASIDE on the path, the ring worn: the take at the stone, the lantern back alone -- then the ring warm, the fight
+      var B7 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=37,18&flags=' + BASEWn, { secondAct: { beat: 'path' } }, ringOn);
+      var o7 = flowWn(B7, ['STAND ASIDE', 'GO DOWN TO THE POINT']), f7 = B7.roam.flags;
+      okWn('STAND ASIDE on the path, the ring worn: ' + sl(o7, /You stand out of the light/, 1300) + ' -- paid ' + f7.duePaid + ', the lake done ' + f7.lakeDone,
+        /You stand out of the light/.test(o7) && /At the flat stone the offering is set down/.test(o7) && /The ring on your hand is warm/.test(o7) && /INITIATIVE/.test(o7) && /The deep is only water now/.test(o7) && f7.duePaid === 1 && f7.lakeDone === 1);
+      // 8. THE ROWBOAT BY DAY (no wagon, no ring): the boat's square on the floor; LEAVE IT -- nothing; PUSH OUT AND SOUND THE DEEP -- the line goes down, something comes up, not ready, the fight
+      var B8 = stageWn('?roam=halfway&hour=14&day=5&at=45,21', { secondAct: { beat: 'boat' } }), tr8 = ((RWn.def.src8 || {}).triggers || RWn.def.triggers || []).filter(function (t) { return t.script === 'inn:rowboat'; })[0];
+      var o8a = flowWn(B8, ['LEAVE IT']), f8 = B8.roam.flags;
+      var B8b = stageWn('?roam=halfway&hour=14&day=5&at=45,21', { secondAct: { beat: 'boat' } });
+      var o8 = flowWn(B8b, ['PUSH OUT AND SOUND THE DEEP']), f8b = B8b.roam.flags;
+      okWn('the rowboat by day: its square ' + (tr8 ? tr8.rect.join(',') + ' (' + tr8.on + ')' : 'NONE') + '; LEAVE IT -- "' + o8a.slice(0, 160) + '"; SOUND THE DEEP -- ' + sl(o8, /sounding line/, 700) + ' -- the lake done ' + f8b.lakeDone,
+        !!tr8 && tr8.on === 'use' && /worst decision available here/.test(o8a) && !/INITIATIVE/.test(o8a) && !f8.lakeDone && /The sounding line goes down and down/.test(o8) && /you are not ready for it/.test(o8) && /INITIATIVE/.test(o8) && /The deep is only water now/.test(o8) && f8b.lakeDone === 1);
+    } catch (eWn) { repWn.errors.push(String(eWn && eWn.stack || eWn).slice(0, 900)); }
+    InWn.unit = unit0Wn; HWn.playing = false; HWn.cur = null; if (InWn) { InWn.stay = false; InWn.pinned = null; }
+    D.store.get = stGWn; D.store.set = stSWn; D.music = muWn;
+    var preWn = document.createElement('pre'); preWn.id = 'out'; preWn.textContent = 'BENCH16 ' + JSON.stringify(repWn);
+    document.body.appendChild(preWn);
     return;
   }
   // THE CATCH ON THE GULCH ROAM, 11-04 (mode=chase1104; js/chase.js -- the Inn build seat 2; the Halfway Inn lane's item 3, RULED 11-04 twice: "horses or not the 'catch' is on the
@@ -9999,7 +10116,9 @@
         cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', npc: 'sabeth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 },
         dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 },
         familiar16: { party: 'aurdin,barley,vivian,lymen', lvl: 3, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: ['sheet_findfamiliar', 'callingherbs'], silver: 40 }, // (Find Familiar's door, 10-31)
-        draft16: { party: 'aurdin,barley,vivian,lymen', lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: [], silver: 40 } // (Second Draft's door, 10-31)
+        draft16: { party: 'aurdin,barley,vivian,lymen', lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', town: 'mouth', gate: 'east', roam: 'galleries', t: 34, site: 'mouth', give: [], silver: 40 }, // (Second Draft's door, 10-31)
+        winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
+        winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
       var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
@@ -10593,7 +10712,8 @@
       okW('WORK offers the errand: its words, then TAKE IT / NOT NOW, every one a button (' + (sc.wait && sc.wait.opts || []).join(', ') + ')', sc.wait && sc.wait.ask && sc.wait.opts.join() === 'TAKE IT,NOT NOW' && /settle themselves/.test(wO.join(' ')) && /inventory/.test(sc.wait.ask.join(' ')) && !R0.flags.wErrA);
       goW(sc, 'opt', 'NOT NOW'); var wN = readW(sc);
       okW('NOT NOW puts it off untaken: no papers, no flag, his "' + wN.join(' ') + '", and his question again', !R0.flags.wErrA && !CW.count(st, 'estatepapers') && /keep/.test(wN.join(' ')) && sc.wait && sc.wait.ask && sc.wait.opts.indexOf('WORK') >= 0);
-      goW(sc, 'opt', 'LEAVE'); driveW(g1, null, 200);
+      goW(sc, 'opt', 'LEAVE'); var nrW = readW(sc); driveW(g1, null, 200);
+      okW('LEAVE: his look as the talk ends, once at the lead\'s level ("' + nrW.join(' ').slice(0, 160) + '") -- the Ring of Binding at the lead\'s 3rd (RULED 10-29; mode=winters1105)', /Not ready\. Not yet\./.test(nrW.join(' ')) && /Winters will be ready at level 3/.test(nrW.join(' ')) && R0.flags.wintersLooked === CW.leadOf(st).lvl && CW.leadOf(st).lvl < 3 && !upW());
       g1 = fireW(B, 'talk:winters'); sc = D.top(); readW(sc); goW(sc, 'opt', 'WORK'); readW(sc);
       okW('a later visit: WORK offers it again', sc.wait && sc.wait.ask && sc.wait.opts.join() === 'TAKE IT,NOT NOW' && !R0.flags.wErrA);
       goW(sc, 'opt', 'TAKE IT'); var wA = readW(sc);
@@ -10601,9 +10721,9 @@
       driveW(g1, null, 200);
       okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests.filter(function (q) { return q.id === 'errands'; })[0] || jn.quests[0];
       // (Company first since 10-28, the first game's order -- done here, the four walking: js/company.js)
-      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
+      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands,ring' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where) && /level 3/.test((jn.quests[2] || {}).where || '')); // (When You're Ready open once he is met, at the lead's 3rd: bc08a3a5, the journal seat -- this check read 'company,errands' till 11-05)
       D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
-      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 2 && infW.silver === R0.silver && infW.pin === qE.name);
+      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 3 && infW.silver === R0.silver && infW.pin === qE.name);
       B.menu = null;
       var pin1 = CW.pinned(st);
       okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');
