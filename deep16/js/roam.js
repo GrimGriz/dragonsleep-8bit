@@ -1854,7 +1854,7 @@
     B.focus(lead);
     // the gather pays: the XP of everything that fell since the last one; on a win the coin, the drops and the parts off this fight's fallen (a getaway forfeits them)
     var paid = o === 'won' ? R.spoils(B, fell) : [], xpL = R.pay(B);
-    if (paid.length || xpL.length) { B.card(R.wrap([o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid)), 420); yield 30; }
+    if (paid.length || xpL.length) { var payL = [o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid); B.logOnly(payL); yield { victory: D.Battle.victoryOf(payL) }; } // (the VICTORY panel in the middle, E closes it: 11-05, his "popup in the middle", js/ui.js)
     yield* R.picks(B);
     yield 20;
     if (g2) g2.t = B.t; // (their hold starts when the party can move again, not during the gather's beat)

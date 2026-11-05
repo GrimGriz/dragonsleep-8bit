@@ -561,6 +561,38 @@
     if (this.cards.length > 3) this.cards.shift();
   };
   Battle.prototype.clearCards = function () { this.cards = []; };
+  // lines for the log (and the play record's transcript) with no card on the screen: what the VICTORY panel says (finish, js/roam.js R.after; 11-05)
+  Battle.prototype.logOnly = function (lines) {
+    var round = this.round; this.logEntries = this.logEntries || [];
+    [].concat(lines).forEach(function (l) { if (l) this.logEntries.push({ id: null, text: 'R' + round + ' ' + window.DS.stripCodes(l) }); }, this);
+    this.log = this.logEntries.map(function (e) { return e.text; });
+  };
+  // THE VICTORY PANEL, shown (deep16/?victoryshow -- the eyes row's door, 11-05): the class floor, a goblin and a wolf against four, the two fallen as the fight opens, and
+  // the panel up in the middle with the pay as the house words it (js/house.js H.payFight: the XP of the fallen shared by those standing, the spoils by the first game's own
+  // roll, js/rules.js R.spoils); E closes it, the card at the top says how it ended, and E again plays it again. &lvl= the level, &npc= the fallen
+  Battle.victoryShow = function (q) {
+    var b = D.npcFight(/[?&]npc=/.test(q) ? q : q + '&npc=goblin,wolf', {}), e0 = b.enter; // (no &vs=: our four)
+    b.o.backTo = 'the show'; b.o.onDone = function () { D.push(Battle.victoryShow(q)); }; // (E on the last card: the show again)
+    b.enter = function () {
+      e0.apply(this, arguments);
+      this.dark = false; this.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); // (fallen as it opens: the end comes at once)
+      var self = this; this.co = (function* () { yield 40; yield* self.finish('won'); })(); // (no turn first: the fight's end, its pay in the panel)
+    };
+    b.o.payNow = function (bb) {
+      var R = window.DS.R, H = D.house, xp = 0, fell = [], up = bb.units.filter(function (u) { return u.side === 'party' && !u.familiar && u.hp > 0 && !u.dead; });
+      bb.units.forEach(function (u) { if (u.side !== 'foe' || u.summon) return; var x = H && H.xpOf ? H.xpOf(u.kind) : { xp: 0, m: null }; xp += x.xp; if (x.m) fell.push({ m: x.m }); });
+      var each = up.length ? Math.floor(xp / up.length) : 0, lines = ['{y}Victory!{/}', 'Each one standing gains ' + each + ' XP.'];
+      try { if (fell.length && R.spoils) lines = lines.concat(R.spoils(fell, up.map(function (u) { return u.src; }).filter(Boolean), { roll: function (e) { return D.roll(e).total; }, rng: D.rand }, function () { }).lines || []); } catch (eS) { /* (the show says the XP alone) */ }
+      return lines;
+    };
+    return b;
+  };
+  // the VICTORY panel's request from a fight's pay lines (theirs start with the head, '{y}Victory!{/}' or '{y}What fell{/}'): null when there is no pay to show (js/ui.js victory)
+  Battle.victoryOf = function (paid) {
+    paid = [].concat(paid || []).filter(Boolean); if (!paid.length) return null;
+    var h = window.DS.stripCodes(paid[0]).trim(), head = /^(victory!?|what fell)$/i.test(h);
+    return { title: head ? h.replace(/!$/, '').toUpperCase() : 'VICTORY', lines: head ? paid.slice(1) : paid };
+  };
 
   Battle.prototype.alive = function (side) { return this.units.filter(function (u) { return u.side === side && !u.dead && u.hp > 0; }); };
   Battle.prototype.over = function () {
@@ -1045,7 +1077,14 @@
     // the victory on this last card, the XP and the spoils (RULED 10-29, Griz: "Leans stand" -- his "can we do victory (xp rewards, etc) on the fight screen instead of the
     // roam screen after return from the fight?"): a host that pays its fights pays here (o.payNow: a floor's, js/roam.js R.pullPay; the road's and the night's watches', js/house.js H.payFight)
     var paid = this.o.payNow ? [].concat(this.o.payNow(this, o) || []) : [];
-    this.card([head].concat(paid, [D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.backTo ? 'E back to ' + this.o.backTo : this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : this.o.world ? 'E back to the road' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')]), 1e9);
+    // (the pay in the VICTORY panel in the middle, closed with E -- 11-05, Griz: "still would prefer end of fight reward text as a popup in the middle rather than an additional
+    // line at the top"; "4&5 yes" -- the card at the top the ending alone while it is up, then the way on under it; the pay in the log and the record as it was)
+    var vic = Battle.victoryOf(paid);
+    if (vic) {
+      this.card([head], 1e9, 'fightend'); this.logOnly(paid);
+      yield { victory: vic };
+    }
+    this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.backTo ? 'E back to ' + this.o.backTo : this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : this.o.world ? 'E back to the road' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9, 'fightend');
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN

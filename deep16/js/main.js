@@ -45,6 +45,7 @@
   else if (D.sit16 && D.sit16.id(q)) D.sit16.open(D.sit16.id(q)); // a situation from a link: ?at=five16 -- a whole save from the door's words, opened as CONTINUE, kept in no slot (js/situations16.js, 10-30)
   else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
   else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
+  else if (/[?&]victoryshow\b/.test(q)) D.push(D.Battle.victoryShow(q)); // a won fight's pay in the VICTORY panel in the middle, shown (js/battle.js Battle.victoryShow, 11-05)
   else if (/[?&]roostfail\b/.test(q) && D.mines) D.push(new D.mines.RoostFail()); // the roost come down in a mine's fight: NOT THIS KIND OF NAME, the run's end, shown (js/mines.js, 10-22)
   else if (/[?&]dacefail\b/.test(q) && D.mines) D.push(new D.mines.DaceFail()); // Corwen Dace fallen in a fight he walked into with the party: the run's end, shown (js/mines.js, 10-28)
   else if (/[?&]rulesshow\b/.test(q) && D.rulesshow) D.push(D.rulesshow.make(q)); // the grid's rules, shown: the antitoxin, the pudding's acid, Heat Metal's end, the dice pinned, ENTER again (js/rulesshow.js, 10-21 night)

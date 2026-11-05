@@ -406,6 +406,7 @@
       return;
     }
     if (req.scene) return sceneInput(B, req.scene);
+    if (req.victory) return victoryInput(B); // (the VICTORY panel: E closes it)
     UI.camera(B);
     if (req.prompt) return promptInput(B, req.prompt);
     if (req.aim) return aimInput(B, req.aim);
@@ -1454,9 +1455,10 @@
     if (req && req.prompt) prompt(ctx, B, req.prompt);
     if (req && req.entry) entry(ctx, B);
     if (req && req.scene) scene(ctx, B, req.scene);
+    if (req && req.victory) victory(ctx, B, req.victory);
     if (B.menu) menu(ctx, B);
   };
-  UI.drawReq = function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); }; // (the simple fight's: its boxes under them -- js/simple.js)
+  UI.drawReq = function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); if (req.victory) victory(ctx, B, req.victory); }; // (the simple fight's: its boxes under them -- js/simple.js)
 
   // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
   function farMarks(ctx, B) {
@@ -2753,6 +2755,32 @@
       });
     });
   }
+  // THE VICTORY PANEL (11-05, Griz, the Warrens: "still would prefer end of fight reward text as a popup in the middle rather than an additional line at the top"; on the lean,
+  // "4&5 yes"): a fight's pay -- the XP, the coin, the harvest -- in a window of the prompt's own (D.win8) in the middle of the fight's screen (the 10-29 ruling stands: victory on
+  // the fight's screen), closed with E, a click or X; the fight's last card at the top says only how it ended. A request of its own, { victory: { title, lines } }: js/battle.js
+  // finish, and the floor's own fights' gather (js/roam.js R.after). The benches pass it as a beat
+  function victoryWrap(lines, w) {
+    var out = [];
+    [].concat(lines).forEach(function (l) { var words = String(l).split(' '), cur = ''; words.forEach(function (wd) { var t = cur ? cur + ' ' + wd : wd; if (cur && D.textWidth(t) > w) { out.push(cur); cur = wd; } else cur = t; }); if (cur) out.push(cur); });
+    return out;
+  }
+  UI.victoryLayout = function (v) {
+    var lines = v.lines || [], wide = Math.max.apply(null, lines.map(function (l) { return D.textWidth(l); }).concat([0])) + 24;
+    var w = Math.max(240, Math.min(D.W - 40, wide)), ls = victoryWrap(lines, w - 24).slice(0, 14), h = 44 + ls.length * 10 + 14;
+    var x = Math.round((D.W - w) / 2), y = Math.max(18, Math.round((BAR_Y - h) / 2));
+    return { x: x, y: y, w: w, h: h, lines: ls };
+  };
+  function victory(ctx, B, v) {
+    var W8 = D.WIN8, Lv = UI.victoryLayout(v);
+    D.win8(ctx, Lv.x, Lv.y, Lv.w, Lv.h);
+    ctx.save(); ctx.translate(D.W / 2, Lv.y + 8); ctx.scale(2, 2); D.text(ctx, v.title || 'VICTORY', 0, 0, W8.gold, 'center'); ctx.restore();
+    Lv.lines.forEach(function (l, k) { D.text(ctx, l, Lv.x + 12, Lv.y + 34 + k * 10, W8.text); });
+    D.text(ctx, D.keys('{g}E to close{/}'), D.W / 2, Lv.y + Lv.h - 13, R('accent', 2), 'center');
+  }
+  function victoryInput(B) {
+    if (I.pressed('a') || I.pressed('b') || I.mouse.click || I.mouse.rclick) { D.sfx('confirm'); B.answer(); }
+  }
+  UI.victory = victory;
   function entry(ctx, B) {
     ctx.fillStyle = 'rgba(10,8,16,.7)'; ctx.fillRect(0, 0, D.W, D.H);
     var from = B.from, names = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.name; });

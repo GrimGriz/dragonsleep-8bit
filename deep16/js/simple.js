@@ -652,7 +652,8 @@
     try { draw0.call(this, ctx, B); } finally { ctx.restore(); B.req = req; B.cards = cards; B.cursor = cur; B.cine = cine; I.mouse.inside = ins; B.active = act; }
     S.draw(ctx, B);
     var my = I.mouse.y;
-    if (req && (req.prompt || req.entry || req.scene) && UI.drawReq) { // (the grid's own window -- a prompt, the entry card -- over the windows, a band lower as the picture is)
+    if (req && req.victory && UI.victory) UI.victory(ctx, B, req.victory); // (the VICTORY panel, 11-05: the middle of the whole screen, over the windows)
+    else if (req && (req.prompt || req.entry || req.scene) && UI.drawReq) { // (the grid's own window -- a prompt, the entry card -- over the windows, a band lower as the picture is)
       I.mouse.y = my - OFF; ctx.save(); ctx.translate(0, OFF);
       try { UI.drawReq(ctx, B, req); } finally { ctx.restore(); I.mouse.y = my; }
     }
