@@ -19992,6 +19992,79 @@ true
 }
 }
 },
+"vivian_p2": {
+"image": "art/vivian_p2.png?v=131892c535",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 2,
+"fps": 6,
+"drawn": [
+1,
+7
+]
+},
+"walk": {
+"y": 512,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 9,
+"fps": 10,
+"drawn": [
+1,
+7
+]
+},
+"attack": {
+"y": 1024,
+"fw": 42,
+"fh": 64,
+"ax": 21,
+"ay": 61,
+"frames": 6,
+"fps": 12,
+"drawn": [
+1,
+7
+]
+},
+"hurt": {
+"y": 1536,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 2048,
+"fw": 66,
+"fh": 64,
+"ax": 33,
+"ay": 61,
+"frames": 3,
+"fps": 2
+}
+},
+"name": "Vivian",
+"hold": [
+"idle, walk and attack drawn in SE only so far (the art desk's batch A, its SE checkpoint): the other views wait on its verdict",
+"SE walk: the lead boot repeats at the opposite contact (the art desk's own HOLD)"
+],
+"source": "drawn by the art desk (ART-MC-VIVIAN-COMBAT batches A and B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure"
+},
 "wagon_p1": {
 "image": "art/wagon_p1.png?v=a525af8a27",
 "fw": 216,

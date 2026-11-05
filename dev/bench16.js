@@ -9438,6 +9438,11 @@
         !offHo.length && CHo.CHEEKS.pt_barley_coat[0] < D.SHEETS.pt_barley_coat.fw);
       var ps4Ho = CHo.portraitShow('?portraits&who=aurdin_red,aurdin_ochre,barley_coat,lymen');
       okHo('the portraits\' show takes the four by the sheet\'s name (' + ps4Ho.ids.join(', ') + ')', ps4Ho.ids.join() === 'aurdin_red,aurdin_ochre,barley_coat,lymen');
+      // her fight figure as the art desk is drawing it (ART-MC-VIVIAN-COMBAT batches A and B, tools/vivian-sheet.py): vivian_p0's rows; idle, walk and attack in SE
+      // only (batch A, its checkpoint), hurt and sit in all eight; NOT worn -- the LPC composite is still her figure till every view stands
+      var s2 = D.SHEETS.vivian_p2, ROWS2 = { idle: 2, walk: 9, attack: 6, hurt: 6, sit: 3 }, bad2 = s2 ? Object.keys(ROWS2).filter(function (r) { var a = s2.anims[r]; return !a || a.frames !== ROWS2[r] || (['idle', 'walk', 'attack'].indexOf(r) >= 0 ? String((a.drawn || []).slice().sort()) !== '1,7' : !!a.drawn); }) : ['NONE'];
+      okHo('vivian_p2 cut (' + (s2 ? Object.keys(s2.anims).map(function (r) { var a = s2.anims[r]; return r + ' ' + a.frames + (a.drawn ? ' SE only' : ''); }).join(', ') : 'NONE') + '), vivian_p0\'s rows, top ' + (s2 && s2.top) + ' as vivian_p0\'s ' + D.SHEETS.vivian_p0.top + '; her figure still ' + D.save.look('vivian', null, hV).sheet + (bad2.length ? ' -- off: ' + bad2.join(', ') : ''),
+        !bad2.length && s2.top === D.SHEETS.vivian_p0.top && s2.ay === D.SHEETS.vivian_p0.ay && D.save.look('vivian', null, hV).sheet === 'vivian_p0');
       var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
       if (btHo) CHo.servicePlay(btHo);
       okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',
