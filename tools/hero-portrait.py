@@ -37,6 +37,10 @@ LOOKS = {
     # somewhere, or this could be cut" -- for the company scene, js/hours.js H16.papaScene, Lymen's line to him); his mail (ART-109) has no bust page
     'barley_coat': ('barley/ART-75', 'ART-75', 'barley_p2', True, 'ART-75_IDENTITY_PAGE-1.png', (0, 0, 525, 610)), # (the 1774 x 887 page: the bust to its collar, clear of the turnaround)
 }
+# (11-05, cutter-1105: all three RETIRED -- tools/portrait-sheet.py cuts pt_aurdin_ochre, pt_aurdin_red and pt_barley_coat now, under the same names, from the art
+# desk's AURDIN- and BARLEY-HERO-DIALOGUE-PORTRAITS: talking portraits, idle 6 and the four moods, at the heroes' size beside Lymen's and Vivian's. The stills
+# stay in git's history; this tool writes nothing unless a look is put back in LOOKS)
+RETIRED, LOOKS = LOOKS, {}
 
 
 def bust(a, corner=None):

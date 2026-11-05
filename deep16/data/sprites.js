@@ -12199,52 +12199,162 @@ true
 "source": "deep16/_src/androit/ART-80 (the art desk's ART-80, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_aurdin_ochre": {
-"image": "art/pt_aurdin_ochre.png?v=1a8b63dfd1",
-"fw": 80,
-"fh": 72,
-"ax": 40,
-"ay": 72,
-"top": 72,
+"image": "art/pt_aurdin_ochre.png?v=5f1a566106",
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"top": 68,
 "portrait": true,
-"still": true,
-"figure": "aurdin_p2",
-"art": "ART-72",
 "anims": {
 "idle": {
 "y": 0,
-"fw": 80,
-"fh": 72,
-"ax": 40,
-"ay": 72,
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 71,
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
 "frames": 1,
-"fps": 1
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 142,
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 213,
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 284,
+"fw": 54,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
-"source": "deep16/_src/aurdin/ART-72/ART-72_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-72, its portrait), cut by tools/hero-portrait.py, mirrored"
+"art": "AURDIN",
+"door": "the hero box in Wizard's Robes (js/counter.js C.HERO_PT aurdin_p2)",
+"source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_aurdin_red": {
-"image": "art/pt_aurdin_red.png?v=5987970686",
-"fw": 80,
-"fh": 70,
-"ax": 40,
-"ay": 70,
-"top": 70,
+"image": "art/pt_aurdin_red.png?v=23b8e6816a",
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"top": 68,
 "portrait": true,
-"still": true,
-"figure": "aurdin_p3",
-"art": "ART-73",
 "anims": {
 "idle": {
 "y": 0,
-"fw": 80,
-"fh": 70,
-"ax": 40,
-"ay": 70,
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 71,
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
 "frames": 1,
-"fps": 1
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 142,
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 213,
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 284,
+"fw": 52,
+"fh": 71,
+"ax": 29,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
-"source": "deep16/_src/aurdin/ART-73/ART-73_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-73, its portrait), cut by tools/hero-portrait.py, mirrored"
+"art": "AURDIN",
+"door": "the hero box out of robes (js/counter.js C.HERO_PT aurdin_p3)",
+"source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_barber": {
 "image": "art/pt_barber.png?v=38daba79df",
@@ -12343,28 +12453,83 @@ true
 "source": "deep16/_src/barber/ART-85 (the art desk's ART-85, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_barley_coat": {
-"image": "art/pt_barley_coat.png?v=ad5f4f94a2",
-"fw": 80,
-"fh": 83,
-"ax": 40,
-"ay": 83,
-"top": 83,
+"image": "art/pt_barley_coat.png?v=de1f22a803",
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"top": 68,
 "portrait": true,
-"still": true,
-"figure": "barley_p2",
-"art": "ART-75",
 "anims": {
 "idle": {
 "y": 0,
-"fw": 80,
-"fh": 83,
-"ax": 40,
-"ay": 83,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 70,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
 "frames": 1,
-"fps": 1
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 140,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 210,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 280,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
-"source": "deep16/_src/barley/ART-75/ART-75_IDENTITY_PAGE-1.png (the art desk's ART-75, its portrait), cut by tools/hero-portrait.py, mirrored"
+"art": "BARLEY",
+"door": "the hero box in his coat (js/counter.js C.HERO_PT barley_p2)",
+"source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_brennan": {
 "image": "art/pt_brennan.png?v=32a1aed5d3",
@@ -15207,19 +15372,19 @@ true
 "source": "deep16/_src/lucia/ART-110 (the art desk's ART-110, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_lymen": {
-"image": "art/pt_lymen.png?v=360bb59827",
-"fw": 77,
+"image": "art/pt_lymen.png?v=ae6bd53c14",
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "top": 68,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 6,
 "fps": 3,
@@ -15234,9 +15399,9 @@ false
 },
 "attentive": {
 "y": 71,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 1,
 "fps": 1,
@@ -15246,9 +15411,9 @@ false
 },
 "welcoming": {
 "y": 142,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 1,
 "fps": 1,
@@ -15258,9 +15423,9 @@ false
 },
 "skeptical": {
 "y": 213,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 1,
 "fps": 1,
@@ -15270,9 +15435,9 @@ false
 },
 "concerned": {
 "y": 284,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 1,
 "fps": 1,
@@ -15282,9 +15447,9 @@ false
 },
 "earnest": {
 "y": 355,
-"fw": 77,
+"fw": 69,
 "fh": 71,
-"ax": 36,
+"ax": 34,
 "ay": 68,
 "frames": 1,
 "fps": 1,
@@ -15293,9 +15458,9 @@ false
 ]
 }
 },
-"art": "ART-MC-LYMEN-PORTRAIT",
+"art": "LYMEN",
 "door": "the company scene (js/hours.js H16.papaScene)",
-"source": "deep16/_src/lymen/ART-MC-LYMEN-PORTRAIT (the art desk's ART-MC-LYMEN-PORTRAIT, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"source": "deep16/_src/lymen/HERO-DIALOGUE-1104/sources (the art desk's LYMEN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
 "flip": true
 },
 "pt_marin": {

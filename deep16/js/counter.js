@@ -578,8 +578,8 @@
   Counter.prototype.hSide = function () { return this.heroSide === 'right' ? 'right' : 'left'; };
   C.spSheet = function (sc) { var sp = sc.spk(); return sp ? (sp.sheet && D.SHEETS[sp.sheet] ? sp.sheet : null) : sc.sheet; }; // (the one speaking: the wait's, or the counter's own)
   C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), sh = pt && D.SHEETS[pt]; return sh ? sh.fw * C.OPEN.heroS() : HB.w; };
-  C.MOUTH = { pt_lymen: [42, 25], pt_vivian: [33, 22] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
-  C.CHEEKS = { pt_barley_coat: [41, 54, 10], pt_vivian: [34, 20, 4, 0.45] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
+  C.MOUTH = { pt_lymen: [38, 23], pt_vivian: [33, 22], pt_aurdin_ochre: [31, 23], pt_aurdin_red: [31, 23], pt_barley_coat: [34, 24] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there -- the four re-cut 11-05 from the art desk's dialogue portraits)
+  C.CHEEKS = { pt_barley_coat: [35, 20, 4, 0.45], pt_vivian: [34, 20, 4, 0.45] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
     if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);

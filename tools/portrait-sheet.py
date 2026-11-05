@@ -172,8 +172,16 @@ PEOPLE = {
     # ART-MC-LYMEN-PORTRAIT, art-wanted section 33, for the company scene at the Hex's door (js/hours.js H16.papaScene) -- the screen's hero in the counter's hero
     # box, bottom left (js/counter.js C.HERO_PT, Counter.drawHero), so cut at Aurdin's hero size (`bust`) and mirrored to look right (`flip`). One action a HEAD
     # (HEAD 1 to 6, PAGE 1), no ledge: he stands in the open, cut at the waist; his sixth an Earnest still in place of a work row
-    'lymen': ('lymen/ART-MC-LYMEN-PORTRAIT', 'ART-MC-LYMEN-PORTRAIT', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s_HEAD-%d_PAGE-1.png', 'flip': True, 'bust': 66,
+    # (11-05, cutter-1105: re-cut from the art desk's own LYMEN-HERO-DIALOGUE-PORTRAITS, its redraw of the same six at Winters' finish -- the same face, tusks and
+    # mail, the pages without titles; the 10-30 pages stay in _src/lymen/ART-MC-LYMEN-PORTRAIT)
+    'lymen': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True, 'bust': 66,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
+    # Aurdin in his two mantles and Barley in his coat (11-05, cutter-1105): the art desk's own AURDIN- and BARLEY-HERO-DIALOGUE-PORTRAITS, idle 6 and the four moods,
+    # drawn looking screen right already (no `flip`), cut at the same hero size as Lymen's -- in place of the 10-22 and 10-30 stills off their identity pages
+    # (tools/hero-portrait.py), under the same names, so C.HERO_PT's looks hold: the Red Mantle out of robes, the Ochre in them, Barley's coat
+    'aurdin_ochre': ('aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the hero box in Wizard\'s Robes (js/counter.js C.HERO_PT aurdin_p2)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
+    'aurdin_red': ('aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the hero box out of robes (js/counter.js C.HERO_PT aurdin_p3)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
+    'barley_coat': ('barley/HERO-DIALOGUE-1104/sources', 'BARLEY', 'the hero box in his coat (js/counter.js C.HERO_PT barley_p2)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
     # Vivian Venn, the party's rogue (11-05, cutter-1105, the character/beast cutter): the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS, art-wanted section 37 (the
     # Opus lanes desk's deep dive on his "Do a deep dive and put an informed portrait/identity art request in for Vivian in the outbox please") -- HEADs 2 to 7,
     # the generator's originals (VIVIAN-HEAD-02-IDLE.png ...): idle 6, the four moods, and THE COIN 6 (rolled over the knuckles, palmed, the hand opened empty) in

@@ -1,24 +1,79 @@
 {
  "image": "art/pt_barley_coat.png",
- "fw": 80,
- "fh": 83,
- "ax": 40,
- "ay": 83,
- "top": 83,
+ "fw": 61,
+ "fh": 70,
+ "ax": 31,
+ "ay": 68,
+ "top": 68,
  "portrait": true,
- "still": true,
- "figure": "barley_p2",
- "art": "ART-75",
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 80,
-   "fh": 83,
-   "ax": 40,
-   "ay": 83,
+   "fw": 61,
+   "fh": 70,
+   "ax": 31,
+   "ay": 68,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 70,
+   "fw": 61,
+   "fh": 70,
+   "ax": 31,
+   "ay": 68,
    "frames": 1,
-   "fps": 1
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 140,
+   "fw": 61,
+   "fh": 70,
+   "ax": 31,
+   "ay": 68,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 210,
+   "fw": 61,
+   "fh": 70,
+   "ax": 31,
+   "ay": 68,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 280,
+   "fw": 61,
+   "fh": 70,
+   "ax": 31,
+   "ay": 68,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
- "source": "deep16/_src/barley/ART-75/ART-75_IDENTITY_PAGE-1.png (the art desk's ART-75, its portrait), cut by tools/hero-portrait.py, mirrored"
+ "art": "BARLEY",
+ "door": "the hero box in his coat (js/counter.js C.HERO_PT barley_p2)",
+ "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }
