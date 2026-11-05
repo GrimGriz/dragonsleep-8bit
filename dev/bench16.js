@@ -9403,6 +9403,37 @@
     document.body.appendChild(preF);
     return;
   }
+  // THE HEROES' TALKING PORTRAITS, 11-05 (mode=heroes1105; tools/portrait-sheet.py vivian, js/counter.js C.HERO_PT, C.heroPt and the portraits' show, js/hours.js the show's
+  // beat papaviv -- cutter-1105, the character/beast cutter): Vivian's (art-wanted 37, the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS) cut mirrored at the heroes' size, her
+  // coin a row of its own; her figure's sheet finds it; the portraits' show takes a hero by the sheet's name, every row it has; the company scene with her leading staged
+  if (get('mode', '') === 'heroes1105') {
+    var repHo = { checks: [], errors: [] }, memHo = {}, stGHo = D.store.get, stSHo = D.store.set, CHo = D.counter;
+    function okHo(what, v) { repHo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memHo[k] ? JSON.parse(memHo[k]) : null; }; D.store.set = function (k, v) { memHo[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1105);
+      var rowsHo = function (n) { var s = D.SHEETS[n]; return s ? Object.keys(s.anims).map(function (a) { return a + ' ' + s.anims[a].frames; }).join(', ') : 'NONE'; };
+      var MOODS = ['attentive', 'welcoming', 'skeptical', 'concerned'], sV = D.SHEETS.pt_vivian;
+      okHo('pt_vivian cut (' + (sV ? sV.fw + 'x' + sV.fh + ', mirrored ' + !!sV.flip : 'NONE') + '): ' + rowsHo('pt_vivian') + ' -- the idle of six, the four moods, the coin of six; inside the hero box (80 x 84)',
+        !!sV && sV.portrait && sV.flip === true && sV.fw <= 80 && sV.fh <= 84 && sV.anims.idle.frames === 6 && MOODS.every(function (a) { return sV.anims[a] && sV.anims[a].frames === 1; }) && !!sV.anims.coin && sV.anims.coin.frames === 6);
+      var hV = { id: 'vivian', key: 'vivian', name: 'Vivian' };
+      okHo('Vivian\'s figure (' + CHo.heroSheet(hV) + ') finds her drawn face: ' + CHo.heroPortrait(hV) + '; her mouth ' + JSON.stringify(CHo.MOUTH.pt_vivian) + ' and cheeks ' + JSON.stringify(CHo.CHEEKS.pt_vivian) + ' on the frame',
+        CHo.heroSheet(hV) === 'vivian_p0' && CHo.heroPortrait(hV) === 'pt_vivian' && !!sV && CHo.MOUTH.pt_vivian[0] < sV.fw && CHo.MOUTH.pt_vivian[1] < sV.ay && !!CHo.CHEEKS.pt_vivian);
+      var psHo = CHo.portraitShow('?portraits&who=vivian,winters,nobody'); D.scenes.length = 0; D.push(psHo); psHo.update(); var cuHo = psHo.cur, facesHo = [];
+      for (var kHo = 0; kHo < 12 && cuHo && !cuHo.done; kHo++) { facesHo.push(cuHo.wait && cuHo.wait.face); cuHo.step(); }
+      okHo('the portraits\' show takes a hero by the sheet\'s name (' + psHo.ids.join(', ') + '): Vivian on her own sheet (' + (cuHo && cuHo.sheet) + ', ' + (cuHo && cuHo.o.name) + '), every row it has in turn (' + facesHo.join(' ') + ')',
+        psHo.ids.join() === 'vivian,winters' && !!cuHo && cuHo.sheet === 'pt_vivian' && cuHo.o.name === 'Vivian' && facesHo.join() === 'idle,attentive,welcoming,skeptical,concerned,coin');
+      D.scenes.length = 0;
+      var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
+      if (btHo) CHo.servicePlay(btHo);
+      okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',
+        !!btHo && !!D.house.cur && D.house.cur.lead === 'vivian');
+    } catch (eHo) { repHo.errors.push(String(eHo && eHo.stack || eHo).slice(0, 900)); }
+    D.store.get = stGHo; D.store.set = stSHo; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preHo = document.createElement('pre'); preHo.id = 'out'; preHo.textContent = 'BENCH16 ' + JSON.stringify(repHo);
+    document.body.appendChild(preHo);
+    return;
+  }
   // THE UNNAMED IN COSTUME, 10-28 evening (mode=generic1028; tools/portrait-sheet.py pt_genman and pt_genwoman, js/counter.js C.GENERIC -- the fourth cutter seat, the art
   // desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"): the generic man and woman cut whole, their own clothes' idle and a
   // still a costume; every unnamed id on its person's sheet in its costume, taken to the counter's screen; the townsman spoken to on the street, his idle; a drinker's

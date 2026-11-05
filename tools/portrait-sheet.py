@@ -38,7 +38,7 @@ BUST = 150                        # px from the head's top to the hands' line at
 MASK_D = 22                       # how far from the navy a channel must be to be figure
 HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
-FPS = {'idle': 3, 'work': 4, 'stretch': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap)
+FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin a work's pace)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
@@ -174,6 +174,13 @@ PEOPLE = {
     # (HEAD 1 to 6, PAGE 1), no ledge: he stands in the open, cut at the waist; his sixth an Earnest still in place of a work row
     'lymen': ('lymen/ART-MC-LYMEN-PORTRAIT', 'ART-MC-LYMEN-PORTRAIT', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s_HEAD-%d_PAGE-1.png', 'flip': True, 'bust': 66,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
+    # Vivian Venn, the party's rogue (11-05, cutter-1105, the character/beast cutter): the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS, art-wanted section 37 (the
+    # Opus lanes desk's deep dive on his "Do a deep dive and put an informed portrait/identity art request in for Vivian in the outbox please") -- HEADs 2 to 7,
+    # the generator's originals (VIVIAN-HEAD-02-IDLE.png ...): idle 6, the four moods, and THE COIN 6 (rolled over the knuckles, palmed, the hand opened empty) in
+    # place of a work row. The screen's hero in the hero box, so Lymen's way: Aurdin's hero size (`bust`), mirrored to look right (`flip`), cut at the waist. Her
+    # auburn hair is her look: no `avoid` red
+    'vivian': ('vivian/PORTRAITS-1104/originals', 'VIVIAN', 'the open screen\'s hero, any counter she leads (js/counter.js C.HERO_PT vivian_p0)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'flip': True, 'bust': 66,
+               'layout': [(2, [3, 3], ['idle'] * 6), (3, [1], ['attentive']), (4, [1], ['welcoming']), (5, [1], ['skeptical']), (6, [1], ['concerned']), (7, [3, 3], ['coin'] * 6)]}),
     # Amara of the wagon and Elsbeth at the tub (11-04, the cutter of 11-04): the art desk's HALFWAY-INN-AMARA-PORTRAITS and -ELSBETH-TUB-PORTRAITS, art-wanted
     # section 35 -- the six pages as ever under the art desk's own names (AMARA-HEAD-01-IDLE.png, KP01-Idle.png): Amara's work counts coins into her palm,
     # Elsbeth's is at the kitchen tub, its rim her ledge (the tub kept in her portrait, the art desk's own word)

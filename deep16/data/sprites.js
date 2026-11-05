@@ -17328,6 +17328,103 @@ true
 "door": "shop:vilar",
 "source": "deep16/_src/vilar/ART-97 (the art desk's ART-97, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_vivian": {
+"image": "art/pt_vivian.png?v=7d1804ef0d",
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"top": 68,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 71,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 142,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 213,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 284,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"coin": {
+"y": 355,
+"fw": 62,
+"fh": 71,
+"ax": 31,
+"ay": 68,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "VIVIAN",
+"door": "the open screen's hero, any counter she leads (js/counter.js C.HERO_PT vivian_p0)",
+"source": "deep16/_src/vivian/PORTRAITS-1104/originals (the art desk's VIVIAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"flip": true
+},
 "pt_warda": {
 "image": "art/pt_warda.png?v=572f198d62",
 "fw": 226,

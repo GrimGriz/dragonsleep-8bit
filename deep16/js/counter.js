@@ -548,7 +548,7 @@
     ctx.lineTo(bx + 12, by); ctx.lineTo(Math.round(tx - 6), py); ctx.lineTo(bx, by); ctx.lineTo(x + 4, by); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
   }
-  C.blush = function (ctx, cx, cy, a, k, spread) { if (!(a > 0)) return; k = k || 1; spread = spread || 10; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * spread * k), Math.round(cy), 6 * k, 3 * k, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); };
+  C.blush = function (ctx, cx, cy, a, k, spread, sz) { if (!(a > 0)) return; k = k || 1; spread = spread || 10; sz = sz || 1; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * spread * k), Math.round(cy), 6 * k * sz, 3 * k * sz, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); }; // (`sz`: a smaller face's cheeks -- C.CHEEKS' fourth, Vivian's, 11-05)
   // ---------------------------------------------------------------- THE OPEN SCREEN (o.open: the company scene's alone, js/hours.js H16.papaScene -- 10-30, Griz on the pane:
   // "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?", "this one is special for being wordy and outside, council
   // is good until further notice", "extend the top textbox wider and allow fewer lines. Move urtusk more top right, make him smaller a little bit if necessary. run lymens text
@@ -578,8 +578,8 @@
   Counter.prototype.hSide = function () { return this.heroSide === 'right' ? 'right' : 'left'; };
   C.spSheet = function (sc) { var sp = sc.spk(); return sp ? (sp.sheet && D.SHEETS[sp.sheet] ? sp.sheet : null) : sc.sheet; }; // (the one speaking: the wait's, or the counter's own)
   C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), sh = pt && D.SHEETS[pt]; return sh ? sh.fw * C.OPEN.heroS() : HB.w; };
-  C.MOUTH = { pt_lymen: [42, 25] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
-  C.CHEEKS = { pt_barley_coat: [41, 54, 10] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread: where C.blush goes)
+  C.MOUTH = { pt_lymen: [42, 25], pt_vivian: [33, 22] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
+  C.CHEEKS = { pt_barley_coat: [41, 54, 10], pt_vivian: [34, 20, 4, 0.45] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
     if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);
@@ -683,7 +683,7 @@
         else { ctx.beginPath(); ctx.rect(0, ly, LW, Math.max(0, D.H - 14 - ly)); ctx.clip(); var F0 = C.HERO_FACE, z0 = F0.zoom; F0.zoom = O.faceZoom; C.drawHeroFace(ctx, ld, 0, ly, LW, LH, this.t); F0.zoom = z0; }
         ctx.restore();
         var ck = lsh && C.CHEEKS[lpt], bx0 = ck ? lx + LW - ck[0] * ls : lx + LW / 2, by0 = ck ? ly + ck[1] * ls : ly + LH * 0.42; // (mirrored: his cheeks counted from the right)
-        if (w.blush || (w.lead === 'after' && since >= O.pause + O.blush)) C.blush(ctx, bx0, by0, Math.min(1, w.blush ? 1 : (since - O.pause - O.blush) / 20), ls, ck ? ck[2] : 10); // (code-drawn: his "maybe a code-drawn blush on barley")
+        if (w.blush || (w.lead === 'after' && since >= O.pause + O.blush)) C.blush(ctx, bx0, by0, Math.min(1, w.blush ? 1 : (since - O.pause - O.blush) / 20), ls, ck ? ck[2] : 10, ck && ck[3]); // (code-drawn: his "maybe a code-drawn blush on barley")
         C.nameTag(ctx, ld.name, lx + LW / 2, D.H - 28);
       }
     }
@@ -699,7 +699,7 @@
   // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
   // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
   // Aurdin's Red Mantle out of robes, his Ochre in them
-  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen', barley_p2: 'pt_barley_coat' }; // (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30)
+  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen', barley_p2: 'pt_barley_coat', vivian_p0: 'pt_vivian' }; // (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30; Vivian's, art-wanted §37, the same way, 11-05)
   C.heroPortrait = function (h) { var pt = C.HERO_PT[C.heroSheet(h)]; return pt && D.SHEETS && D.SHEETS[pt] ? pt : null; };
   // a hero with no portrait: the figure the hero wears on the floor, turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
   C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)
@@ -1247,8 +1247,11 @@
   C.FACES = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work'];
   function PortraitShow(q) {
     this.kind = 'portraitshow'; this.opaque = true; this.t = 0; this.k = -1; this.cur = null;
-    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k]; }) : Object.keys(C.PT).filter(function (k) { return !C.GENERIC[k]; }); // (in the order asked; the unnamed by name only)
+    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k] || !!C.heroPt(k); }) : Object.keys(C.PT).filter(function (k) { return !C.GENERIC[k]; }); // (in the order asked; the unnamed by name only)
   }
+  // (a hero's talking portrait on the same screen, by its sheet's name less pt_ -- who=vivian, aurdin_red, barley_coat, lymen -- every row the sheet has, Vivian's coin and Lymen's
+  // earnest among them: 11-05, cutter-1105, the art desk's hero portraits; in the game they stand in the hero box, C.HERO_PT)
+  C.heroPt = function (k) { var pt = 'pt_' + k; return Object.keys(C.HERO_PT).some(function (s) { return C.HERO_PT[s] === pt; }) && D.SHEETS && D.SHEETS[pt] ? pt : null; };
   C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id), wd = (C.VENDORS[id] || {}).words; return plain ? plain.say.slice() : wd ? [].concat(L(wd)) : sh ? [sh] : ['(no first-game word)']; };
   PortraitShow.prototype.update = function () {
     this.t++;
@@ -1256,9 +1259,12 @@
     if (++this.k >= this.ids.length) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); return; }
     var id = this.ids[this.k], n = this.ids.length, k = this.k, nm = (C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || D.town.KEEPER['inn:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id, words = C.wordsOf(id);
     var g = C.GENERIC[id], faces = g ? [g[1]] : C.FACES; // (an unnamed one: their costume, the one page)
+    var hp = !C.PT[id] && C.heroPt(id); // (a hero's: the name, a line, and the sheet's own rows)
+    if (hp) { var hk = id.split('_')[0]; nm = hk.charAt(0).toUpperCase() + hk.slice(1); words = ['(the hero box: ' + Object.keys(C.HERO_PT).filter(function (s) { return C.HERO_PT[s] === hp; }).join(', ') + ')']; faces = Object.keys(D.SHEETS[hp].anims); }
     this.cur = new Counter(null, { id: id, name: nm, place: 'THE PORTRAITS (a show)', what: nm + ', ' + (k + 1) + ' of ' + n, script: function* (sc) {
       for (var i = 0; i < faces.length; i++) yield sc.say(['{y}' + (g ? 'THE ' + g[0].toUpperCase() + ' -- ' : '') + faces[i].toUpperCase() + '{/}'].concat(words), faces[i]);
     } });
+    if (hp) this.cur.sheet = hp;
     D.push(this.cur);
   };
   PortraitShow.prototype.draw = function (ctx) { ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H); };
