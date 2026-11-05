@@ -2386,7 +2386,7 @@
     D.store.get = function (k) { return memCh[k] ? JSON.parse(memCh[k]) : null; }; D.store.set = function (k, v) { memCh[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
     try {
-      D.seed = +get('seed', 1104); InCh.stay = true;
+      D.seed = +get('seed', 1104); InCh.stay = true; var KSEED_CH = +get('seed7', 0); // (check 7's own dice: the seed plus this)
       // 1. AFTER THEM, on foot: the yard's away (the pair past hurting), the prompt, the walk, the gulch floor at the south mouth with the pair twelve up the road, the spiders off
       var B1 = testCh('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); B1.roam.silver = 30; atCh(B1, 24, 17, [0, -1]); InCh.pinned = [18, 18];
       var o1 = flowCh(B1, [0, 'TO BED', 'WAKE THE PARTY', 'AFTER THEM'], 999), Bg = topCh(); driveCh(Bg.co, function () { return !!(ChB.state(Bg) && ChB.state(Bg).on); }, 600); pairHp(Bg, 999);
@@ -2420,6 +2420,9 @@
       okCh('the west road at the fork: ' + r8.seen.slice(Math.max(0, r8.seen.indexOf('> THE PAIR GOING WEST') - 100), r8.seen.indexOf('> THE PAIR GOING WEST') + 500) + ' -- outcome ' + f9.wagonOutcome + ', the tower ' + f9.towerFled + '; back: ' + /seven children/.test(o9),
         /> THE PAIR GOING WEST/.test(r8.seen) && /Your hand goes through them/.test(r8.seen) && /The real pair are gone north/.test(r8.seen) && f9.wagonOutcome === 'fled' && f9.towerFled === 1 && /seven children/.test(o9) && /MORNING/.test(o9));
       // 7. THE FIRST CATCH WON: the pair at a hit point, run down and dropped where the road climbs; over on the road, the walk back, Willem's book in the yard's after
+      // (its own dice from here, 11-05, the Katarina seat: the check rode on what the earlier ones had rolled -- seed 7 lost it on main, and the wagon night's short rest by the
+      // watch, rolling its hit dice, moved it the same way: Willem's Hypnotic Pattern held the party and he was never dropped)
+      D.seed = +get('seed', 1104) + KSEED_CH;
       var B10 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B10.roam.silver = 30; atCh(B10, 14, 18, [-1, 0]);
       var co10 = B10.co; B10.co = (function* () { yield* ChB.start(B10, { horses: false, willem: true }); yield* co10; })(); flowCh(B10, []); var Bg10 = topCh(); driveCh(Bg10.co, function () { return !!(ChB.state(Bg10) && ChB.state(Bg10).on); }, 600);
       pairHp(Bg10, 1); var r10 = climbCh(Bg10, 60, []), Bi10 = topCh(), o11 = Bi10 && Bi10.roam ? flowCh(Bi10, []) : 'no inn floor', f11 = Bi10 && Bi10.roam ? Bi10.roam.flags : {}, st11 = Bi10 && Bi10.roam ? CCh.state(Bi10) : null;
