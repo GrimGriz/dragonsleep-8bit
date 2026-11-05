@@ -1,0 +1,33 @@
+{
+ "image": "art/willemmounted_p1.png",
+ "fw": 104,
+ "fh": 116,
+ "ax": 52,
+ "ay": 112,
+ "top": 91,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 104,
+   "fh": 116,
+   "ax": 52,
+   "ay": 112,
+   "frames": 1,
+   "fps": 2
+  },
+  "walk": {
+   "y": 928,
+   "fw": 104,
+   "fh": 116,
+   "ax": 52,
+   "ay": 112,
+   "frames": 6,
+   "fps": 12
+  }
+ },
+ "name": "Willem on the grey",
+ "hold": [
+  "ride: the far hooves overlap and the gait's leg order wants native playback; NE gained small gold waist buttons (the art desk's own notes)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-WILLEM-MOUNTED, 11-05: art-wanted section 35 block 8, horse and rider together), cut by tools/willem-sheet.py at horsegrey_p1's length; idle the Halt, walk the six-frame Ride; SW W NW mirrored; not wired yet (nothing draws a mounted unit)"
+}

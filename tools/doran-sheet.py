@@ -62,12 +62,12 @@ def manifest_windows(folder, pad=0):
     return out
 
 
-def letters(pg, floors=()):
+def letters(pg, floors=(), tol=None):
     """the printed labels and numbers on a whole page: a small piece of white or light grey with the page's navy round most of it, or (`floors`: the
     art desk's tight boxes, (x0, y0, x1, bottom)) one centred below a box's bottom under it -- a number's top can touch a boot (Doran's S Flinch 3),
     and its own drop shadow rings it there. Inside a box nothing is lettering: the axe's bright steel stays"""
     bg = np.median(np.concatenate([pg[:, :4].reshape(-1, 3), pg[:, -4:].reshape(-1, 3)]), axis=0)
-    navy = np.linalg.norm(pg - bg, axis=2) < BG_TOL
+    navy = np.linalg.norm(pg - bg, axis=2) < (tol or BG_TOL)
     lite = (pg.min(-1) > 150) & (pg.max(-1) - pg.min(-1) < 45)
     ll, ln = ndimage.label(lite, structure=np.ones((3, 3)))
     out = np.zeros(lite.shape, bool)
@@ -85,11 +85,11 @@ def letters(pg, floors=()):
     return out
 
 
-def figure(a, shadow=False, drop=None, below=False):
+def figure(a, shadow=False, drop=None, below=False, tol=None):
     """the drawing in a window: not the navy reaching in from the window's edges (nor, with `shadow`, the baked dark ground shadow beside it), a navy
     hole bigger than HOLE left navy, nor `drop` (the page's lettering); then the main body and what is near it or big -- a neighbour's edge at the side goes"""
     bg = np.median(np.concatenate([a[:, :3].reshape(-1, 3), a[:, -3:].reshape(-1, 3), a[:3].reshape(-1, 3), a[-3:].reshape(-1, 3)]), axis=0)
-    near = np.linalg.norm(a - bg, axis=2) < BG_TOL
+    near = np.linalg.norm(a - bg, axis=2) < (tol or BG_TOL)    # (`tol`: a source's own -- Willem's navy coat sits 12 to 30 off the page's navy, so his is 10)
     flood = near.copy()
     if shadow:                                            # (Gennet's walk: a dark ellipse under the boots, navy darkened -- blue over red by 6 to 28, nothing over 38;
         br = a[..., 2] - a[..., 0]                        # the outline's black has no blue in it, so the flood stops there)
@@ -113,12 +113,16 @@ def figure(a, shadow=False, drop=None, below=False):
         bl, bn = ndimage.label(body, structure=np.ones((3, 3)))
         if bn:
             bs = ndimage.sum(body, bl, range(1, bn + 1)); main = bl == int(np.argmax(bs)) + 1
-            foot = np.where(main.any(1))[0].max()
+            mw = main & (a[..., 0] > a[..., 2] + 8)        # (at a tight `tol`, Willem's, the foot by the body's warm pixels, the boots: a number's dark blue drop shadow joins the body there)
+            foot = np.where((mw if tol and mw.any() else main).any(1))[0].max()
             sl_, sn_ = ndimage.label(small, structure=np.ones((3, 3)))
             for i, sl in enumerate(ndimage.find_objects(sl_)):
                 if sl[0].start >= foot - 2:
                     pc = sl_ == i + 1
-                    out |= pc | (ndimage.binary_dilation(pc, iterations=2) & (a[..., 2] >= a[..., 0]) & ~(a.max(-1) < 14) & ~main)
+                    if tol:                                # (at a tight `tol` the number's drop shadow is part of the body: protect only the body's warm pixels, the boots)
+                        out |= pc | (ndimage.binary_dilation(pc, iterations=3) & (a[..., 2] >= a[..., 0]) & ~(a.max(-1) < 14) & ~mw)
+                    else:
+                        out |= pc | (ndimage.binary_dilation(pc, iterations=2) & (a[..., 2] >= a[..., 0]) & ~(a.max(-1) < 14) & ~main)
     fg = ~out
     fl, fn = ndimage.label(fg, structure=np.ones((3, 3)))
     if not fn:
@@ -170,16 +174,16 @@ def cut(L, look):
     for src, act, i in need:
         S = L['SOURCES'][src]
         for view in FACE:
-            fn, (x0, y0, x1, y1), _ = S['windows'][(act, i, view)]
+            w_ = S['windows'][(act, i, view)]; fn, (x0, y0, x1, y1) = w_[0], w_[1]; floor = w_[3] if len(w_) > 3 else None   # (a 4th: the band's floor on the page -- tools/willem-sheet.py)
             if (src, fn) not in pages:
                 pg = np.asarray(Image.open(os.path.join(S['folder'], fn)).convert('RGB')).astype(np.float32)
-                fl_ = [(b[0], b[1], b[2], bot) for (f_, b, bot) in S['windows'].values() if f_ == fn and bot is not None]
-                pages[(src, fn)] = (pg, letters(pg, fl_))
+                fl_ = [(w[1][0], w[1][1], w[1][2], w[2]) for w in S['windows'].values() if w[0] == fn and w[2] is not None]
+                pages[(src, fn)] = (pg, letters(pg, fl_, S.get('tol')))
             pg, lt = pages[(src, fn)]; x0, y0, x1, y1 = max(0, x0), max(0, y0), min(pg.shape[1], x1), min(pg.shape[0], y1)
             a = pg[y0:y1, x0:x1]
-            m = figure(a, S.get('shadow', False), lt[y0:y1, x0:x1], S.get('below', False)); ys, xs = np.where(m)
+            m = figure(a, S.get('shadow', False), lt[y0:y1, x0:x1], S.get('below', False), S.get('tol')); ys, xs = np.where(m)
             sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
-            crops[(src, act, i, view)] = (a[sl], m[sl])
+            crops[(src, act, i, view)] = (a[sl], m[sl], (floor - (y0 + sl[0].stop)) if floor is not None else 0)   # (how far its lowest row stands above its band's floor)
     # one scale a group: (source, group) -> its actions and the frames it is measured by
     scale = {}
     for (src, grp), (acts, meas) in L['GROUPS'].items():
@@ -189,15 +193,17 @@ def cut(L, look):
                 for act in acts:
                     scale[(src, act, view)] = lk.get('tall', L['TALL']) / float(np.median(hs))
     cells = {}
-    for (src, act, i, view), (rgb, m) in crops.items():
-        o = to1x(rgb, m, scale[(src, act, view)], L['AVOID'], L.get('FIRE_OK', False))
+    for (src, act, i, view), (rgb, m, above) in crops.items():
+        k = scale[(src, act, view)]
+        o = to1x(rgb, m, k, L['AVOID'], L.get('FIRE_OK', False))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (src, act, i) in L['GROUND']:
             cx = ndimage.center_of_mass(al)[1]
         else:
             top = al.copy(); top[ys[0] + int((ys[-1] - ys[0]) * 0.55):] = False
             cx = ndimage.center_of_mass(top)[1]
-        cells[(FACE[view], src, act, i)] = (o, cx, ys[-1])
+        lift = int(round(above * k)) if act in L.get('LIFT', ()) else 0   # (`LIFT`: a row that keeps its lift -- Willem's run stands on its band's floor, not its own lowest row)
+        cells[(FACE[view], src, act, i)] = (o, cx, ys[-1] + lift)
     for mf, sf in MIRROR.items():
         for (f, src, act, i) in [c for c in list(cells) if c[0] == sf]:
             o, cx, foot = cells[(f, src, act, i)]

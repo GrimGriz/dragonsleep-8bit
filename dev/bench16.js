@@ -10595,6 +10595,43 @@
     document.body.appendChild(preWb);
     return;
   }
+  // WILLEM'S FIGURES, 11-05 (mode=willem1105; tools/willem-sheet.py, data/foes.js willem, js/classes.js NPC.NAMED.willem, js/ui.js the Traces row -- the Waterby cutter, on
+  // Griz's "Got Willem in Fresh and can push live to main once that art is slotted"): the art desk's HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING cut all round as
+  // willemglass_p2, worn in every fight with him and on the class floor; his Traces row drawn while u.traces holds; -MOUNTED cut as willemmounted_p1, not wired (nothing
+  // draws a mounted unit yet: js/chase.js gives the greys their speed only)
+  if (get('mode', '') === 'willem1105') {
+    var repWl = { checks: [], errors: [] }, memWl = {}, stGWl = D.store.get, stSWl = D.store.set;
+    function okWl(what, v) { repWl.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memWl[k] ? JSON.parse(memWl[k]) : null; }; D.store.set = function (k, v) { memWl[k] = JSON.stringify(v); return true; };
+    var spDWl = D.spr.draw, spHWl = D.spr.has, spMWl = D.spr.frameMask;
+    try {
+      D.seed = +get('seed', 1105);
+      var descWl = function (n) { var s = D.SHEETS[n]; return s ? n + ' top ' + s.top + ': ' + Object.keys(s.anims).map(function (a) { var x = s.anims[a]; return a + ' ' + x.frames + (x.release != null ? '/' + x.release : '') + (x.drawn ? ' drawn ' + x.drawn : ''); }).join(', ') : n + ' NONE'; };
+      var ROWSW = { idle: [6], walk: [8], run: [8], cast: [6, 2], attack: [6, 2], traces: [6], flinch: [4], hurt: [4], prone: [4] }, sW = D.SHEETS.willemglass_p2;
+      var badW = sW ? Object.keys(ROWSW).filter(function (r) { var a = sW.anims[r]; return !a || a.frames !== ROWSW[r][0] || !!a.drawn || (ROWSW[r][1] != null && a.release !== ROWSW[r][1]); }) : ['NONE'];
+      okWl('his fight figure: ' + descWl('willemglass_p2') + (badW.length ? ' -- off: ' + badW.join(', ') : ''), !badW.length && /tools\/willem-sheet\.py/.test(sW.source) && sW.top >= 45 && sW.top <= 54 && D.spr.proneRow('willemglass_p2') === 'prone');
+      var sM = D.SHEETS.willemmounted_p1;
+      okWl('mounted: ' + descWl('willemmounted_p1') + ' -- at amaramounted_p1\'s size (its top ' + (D.SHEETS.amaramounted_p1 || {}).top + '), cut and not wired', !!sM && sM.anims.idle.frames === 1 && sM.anims.walk.frames === 6 && !sM.anims.idle.drawn && /tools\/willem-sheet\.py/.test(sM.source) && Math.abs(sM.top - D.SHEETS.amaramounted_p1.top) <= 6);
+      okWl('the records: data/foes.js willem ' + D.FOES.willem.sheet + ', the class floor\'s (NPC.NAMED.willem.look) ' + D.npc.NAMED.willem.look, D.FOES.willem.sheet === 'willemglass_p2' && D.npc.NAMED.willem.look === 'willemglass_p2');
+      // a fight built with him (data/foes.js `build`, js/classes.js NPC.fromFoe): the yard's, the road's, the chase's Willem; and his Traces row as the floor draws him at the buckles
+      D.spr.has = function () { return true; }; D.spr.frameMask = function () { return null; };
+      var drawsW = []; D.spr.draw = function (ctx, name, anim) { drawsW.push(name + ':' + anim); return D.spr.top(name); };
+      var BW = D.npcFight('?npc=goblin&lvl=5&vs=ranger:5', {}); D.battle = BW; BW.enter(); var kW = 0; while (!BW.order.length && kW++ < 400) BW.co.next(); BW.dark = false;
+      var uW = BW.makeFoe({ id: 'willemYard', kind: 'willem', at: [BW.units[0].x + 3, BW.units[0].y] }); BW.units.push(uW); D.grid.setup(BW.map, BW.units);
+      uW.anim = 'idle'; uW.animT = BW.t; uW.traces = true;
+      var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var cxW = cvW.getContext('2d');
+      drawsW = []; try { D.ui.drawBattle(cxW, BW); } catch (eW) { repWl.errors.push('drawBattle: ' + String(eW).slice(0, 200)); } var atT = drawsW.filter(function (d) { return /^willemglass_p2:/.test(d); });
+      uW.traces = false; drawsW = []; try { D.ui.drawBattle(cxW, BW); } catch (eW2) { } var offT = drawsW.filter(function (d) { return /^willemglass_p2:/.test(d); });
+      okWl('a fight built with him wears ' + uW.sheet + ' (built by his class: ' + !!uW.classAI + '); at the traces he is drawn ' + atT.join(' ') + ', let go ' + offT.join(' '),
+        uW.sheet === 'willemglass_p2' && atT.indexOf('willemglass_p2:traces') >= 0 && offT.indexOf('willemglass_p2:idle') >= 0 && offT.indexOf('willemglass_p2:traces') < 0);
+      D.scenes.length = 0;
+    } catch (eWl) { repWl.errors.push(String(eWl && eWl.stack || eWl).slice(0, 900)); }
+    D.spr.draw = spDWl; D.spr.has = spHWl; D.spr.frameMask = spMWl;
+    D.store.get = stGWl; D.store.set = stSWl;
+    var preWl = document.createElement('pre'); preWl.id = 'out'; preWl.textContent = 'BENCH16 ' + JSON.stringify(repWl);
+    document.body.appendChild(preWl);
+    return;
+  }
   // THE HEROES' TALKING PORTRAITS, 11-05 (mode=heroes1105; tools/portrait-sheet.py vivian, js/counter.js C.HERO_PT, C.heroPt and the portraits' show, js/hours.js the show's
   // beat papaviv -- cutter-1105, the character/beast cutter): Vivian's (art-wanted 37, the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS) cut mirrored at the heroes' size, her
   // coin a row of its own; her figure's sheet finds it; the portraits' show takes a hero by the sheet's name, every row it has; the company scene with her leading staged

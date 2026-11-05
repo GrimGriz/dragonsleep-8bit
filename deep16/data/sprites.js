@@ -21796,6 +21796,139 @@ true
 }
 }
 },
+"willemglass_p2": {
+"image": "art/willemglass_p2.png?v=417c5c89ca",
+"fw": 44,
+"fh": 64,
+"ax": 22,
+"ay": 61,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 44,
+"fh": 64,
+"ax": 22,
+"ay": 61,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 46,
+"fh": 64,
+"ax": 23,
+"ay": 61,
+"frames": 8,
+"fps": 10
+},
+"run": {
+"y": 1024,
+"fw": 50,
+"fh": 64,
+"ax": 25,
+"ay": 61,
+"frames": 8,
+"fps": 12
+},
+"cast": {
+"y": 1536,
+"fw": 54,
+"fh": 64,
+"ax": 27,
+"ay": 61,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"attack": {
+"y": 2048,
+"fw": 54,
+"fh": 64,
+"ax": 27,
+"ay": 61,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"traces": {
+"y": 2560,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 61,
+"frames": 6,
+"fps": 6
+},
+"flinch": {
+"y": 3072,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 61,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3584,
+"fw": 68,
+"fh": 64,
+"ax": 34,
+"ay": 61,
+"frames": 4,
+"fps": 10
+},
+"prone": {
+"y": 4096,
+"fw": 68,
+"fh": 64,
+"ax": 34,
+"ay": 61,
+"frames": 4,
+"fps": 10
+}
+},
+"name": "Willem Glass",
+"hold": [
+"walk: 5-8 more hurried than 1-4, SE's corrected; walk and run leads alike at 1 and 5 in several views (the art desk's own notes)",
+"attack: his Cast row (no staff or wand drawn: the hands are the instrument)",
+"NE, S, E and N fall 4 and prone: lying sideways or partly face down, not the exact facing (the art desk's own notes)"
+],
+"source": "drawn by the art desk (HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING, 11-05: art-wanted section 35, his fight figure in five views, two pages a view), cut by tools/willem-sheet.py over tools/doran-sheet.py; SW W NW mirrored; willemglass_p1 (the mannequin render) kept beside it"
+},
+"willemmounted_p1": {
+"image": "art/willemmounted_p1.png?v=31f1fa08cc",
+"fw": 104,
+"fh": 116,
+"ax": 52,
+"ay": 112,
+"top": 91,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 104,
+"fh": 116,
+"ax": 52,
+"ay": 112,
+"frames": 1,
+"fps": 2
+},
+"walk": {
+"y": 928,
+"fw": 104,
+"fh": 116,
+"ax": 52,
+"ay": 112,
+"frames": 6,
+"fps": 12
+}
+},
+"name": "Willem on the grey",
+"hold": [
+"ride: the far hooves overlap and the gait's leg order wants native playback; NE gained small gold waist buttons (the art desk's own notes)"
+],
+"source": "drawn by the art desk (HALFWAY-INN-WILLEM-MOUNTED, 11-05: art-wanted section 35 block 8, horse and rider together), cut by tools/willem-sheet.py at horsegrey_p1's length; idle the Halt, walk the six-frame Ride; SW W NW mirrored; not wired yet (nothing draws a mounted unit)"
+},
 "winters_p1": {
 "image": "art/winters_p1.png?v=fd9767be36",
 "fw": 27,

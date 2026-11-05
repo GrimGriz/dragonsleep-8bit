@@ -708,7 +708,7 @@
     src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone'
   },
   willem: {
-    named: true, name: 'Willem Glass', type: 'humanoid', sheet: 'willemglass_p1', cr: '3', ac: 12, hp: 35, speed: 30, size: 1, reach: 5, // (hp: wizard 5 at a max d6+1 a level, RULED 09-28; the same lost line as Amara's)
+    named: true, name: 'Willem Glass', type: 'humanoid', sheet: 'willemglass_p2', cr: '3', ac: 12, hp: 35, speed: 30, size: 1, reach: 5, // (sheet: the art desk's HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING since 11-05, art-wanted section 35, tools/willem-sheet.py -- idle, walk, run, cast, traces, flinch, fall, prone in eight facings; willemglass_p1, the mannequin render, kept beside it) (hp: wizard 5 at a max d6+1 a level, RULED 09-28; the same lost line as Amara's)
     abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
     saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
     attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },

@@ -1665,6 +1665,9 @@
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';
         // the roper stands as a stalagmite the same way till its first turn or a wound (its Still row; js/ai.js plays its Reveal then -- 10-01e)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('still')) anim = 'still';
+        // Willem at the team's traces (the wagon night's yard, js/ai.js traces): his Traces row, the buckles at the horses' chest, while u.traces holds (11-05, the art desk's
+        // HALFWAY-INN-WILLEM-COMBAT, art-wanted section 35: "the Traces row plays while u.traces holds")
+        if (!down && u.traces && anim === 'idle' && has('traces')) anim = 'traces';
         if (!down && anim === 'walk' && u.charge && u.turn && (u.turn.moved || 0) >= 20 && has('run')) anim = 'run';
         // aloft (10-28, RULED, Griz: "1 yes" to a sheet's fly row played while its unit is in the air): one off the ground (u.fz, G.aloft) plays its `fly` row in
         // place of its idle and its walk, a loop -- the manticore's and the gargoyle's; the cloaker's flight in is its egg's `swoop` row, never this
