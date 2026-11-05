@@ -53,7 +53,7 @@
     riseRing: 'It turns toward the ring before it turns toward anything else.',
     riseNoRing: 'Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it.', // (RULED 11-05, his "Yes, the leans": it fights, ring or not -- the Winters seat; it had gone down)
     elsbethThat: '{y}Elsbeth:{/} "That\'s what it is. That\'s all it is."',
-    mornStopped: 'Morning. Doran is gone, and the wagon with him, and eight children in the back of it. The inn lady keeps her back to the room.',
+    mornStopped: 'Morning. The child sleeps by the fire under somebody\'s coat. The inn lady keeps her back to the room.', // (the due's own night since 11-05: Doran drove the wagon's children three nights ago)
     mornDead: 'Morning. The lantern is on its hook by the lake door, and nobody lights it. Doran Waterby at the counter: "You\'ll want the road."',
     mornDoranDead: 'Morning. The inn is the inn lady\'s and the boys\'. The lantern is on its hook by the lake door, and it will be lit again at the month\'s end.',
     mornLake: 'Morning. Up at the inn a lamp came on in the kitchen before dawn. The Waterbys keep the inn; the lantern stays on its hook by the lake door, and nobody lights it. Doran walks down to the water with a bucket, draws from the lake in front of everyone, and drinks.',
@@ -70,6 +70,11 @@
     // (the Winters seat, 11-05: the chuul on the due's own night and the rowboat -- invented.json halfway-lake-due-night-1105)
     ringWarmBack: 'Back up the path to the lake door, and in to bed.',
     mornLakeAway: 'Morning. Up at the inn a lamp came on in the kitchen before dawn. Doran is gone, and the wagon with him. The lantern stays on its hook by the lake door, and nobody lights it.',
+    // (the due three nights on, 11-05: invented.json halfway-due-moved-1105)
+    dueNight: 'Past midnight at the Halfway Inn. The house is dark, and the lake door shut.',
+    dueWoke: 'Something wakes you: low singing, somewhere in the house. Two boys\' voices under a woman\'s.',
+    mornDue: 'Morning. The inn lady hums at the stove. Out on the point the lantern hangs cold on its post.',
+    mornDueKept: 'Morning. The inn lady hums at the stove. Out back, nobody is skipping stones.',
     // (the nearest offering, 11-05: invented.json halfway-nearest-offering-1105)
     withChild: 'The child\'s hand is in yours. Behind you on the path the inn lady sits by her lantern, and has not moved.',
     inside: 'In through the lake door with the child. From the doorway: the inn lady is still on the path, the lantern beside her. The water off the point heaves.',
@@ -115,20 +120,52 @@
   A.elsbethState = function (f) { return f.wandOut ? 'wand' : f.elsbethTier >= 3 ? 'earned' : 'neutral'; };
   A.hasRing = function (B) { var w = null; (B.roam.members || []).forEach(function (u) { if (!w && u.hp > 0 && u.src && DS.R.wears(u.src, 'ringofbinding')) w = u; }); return w; };
 
-  // ---------------------------------------------------------------- BEAT 1: the fork, after the yard's business (a fight: the signs it ate, the rest, then the card and its buttons by the case)
-  A.afterYard = function* (B, out) { // (out: 'inn' the pair down, 'fled' the pair away; the party up in the yard)
-    var R0 = B.roam, f = R0.flags, st = D.counter.state(B);
-    if (!f.dueTonight) return false; // (no handover: nothing walks tonight)
-    yield* A.signs(B, 3, true);
-    yield* A.signs(B, 6, false);
-    var lines = [A.LINES.fork].concat(out === 'fled' ? [A.LINES.forkNorth] : [], f.glamourBroken || f.glamourSeen ? [] : [A.LINES.forkGoblin]), opts = [], acts = [];
-    if (out === 'fled' && D.chase && D.chase.start) { opts.push(A.LINES.opts.after); acts.push('after'); }
-    opts.push(A.LINES.opts.lantern); acts.push('lantern'); opts.push(A.LINES.opts.let); acts.push('let');
+  // ---------------------------------------------------------------- THE DUE'S OWN NIGHT (RULED 11-05, Griz: "hate to do it, but let's move the offering to 3 nights after wagon night ..."; then
+  // "go with those leans"): the night of WAGON DAY + 3 at the inn (js/inn.js In.night, In.DUE), by what the Waterbys keep for the stone (In.offering). An offering kept -- the goblin
+  // in the barn, or the one they kept -- and the house goes to bed; past midnight Gennet's half hour runs (the six signs), and the singing wakes the party if its best passive Perception
+  // makes DC 13 (the seat's call): the signs from there with their reads, then the fork, THE LANTERN or LET IT BE. Asleep through it, the walk as the night's cutscene, the due paid,
+  // and the Ring of Binding warm if it is worn (A.ringWarm). No offering -- the wagon stopped before it reached them, or the child freed from the barn -- is the poison dinner
+  // (A.poisonNight). The morning by the end (A.morning), the ring cold if the lake has eaten
+  A.DUE_WAKE = 13; A.DUE_HOUR = 1; // (the singing's read; the house's half hour past midnight)
+  A.wiped = function (B) { return !(B.roam.members || []).some(function (u) { return u.hp > 0 && !u.dead; }); };
+  A.dueNight = function* (B, d) {
+    var R0 = B.roam, f = R0.flags, c = In.dueCycle(d), off = In.offering(f, c), st = D.counter.state(B);
+    f.dueCycle = c; ['duePaid', 'dueTonight', 'secondActDone', 'lanternWalks', 'pathStand'].forEach(function (k) { delete f[k]; }); f.warmup = 0;
+    delete f.doranAway; // (Doran back from Newland by the due: the seat's call)
+    A.trail('the due night, day ' + d + ': the offering ' + off);
+    if (off === 'none') { yield* A.poisonNight(B, d); return; }
+    f.dueTonight = 1; f.kidTaken = 1; if (off === 'kept') { f.glamourBroken = 1; f.glamourSeen = 1; }
+    In.stage(B, [24, 17], 'inn'); In.passTo(B, A.DUE_HOUR);
+    yield* In.card(B, [A.LINES.dueNight], 360);
+    if (In.read(st, 'Perception', A.DUE_WAKE)) {
+      f.warmup = 2; // (the singing, +15: what came before it slept through)
+      yield* In.card(B, [A.LINES.dueWoke], 300);
+      yield* A.signs(B, 6, false);
+      if ((yield* A.dueFork(B)) === 'lost' || A.wiped(B)) return;
+    } else {
+      yield* In.dueWalk(B, f.glamourBroken || f.glamourSeen ? 'kid' : 'goblin'); f.duePaid = 1;
+      if ((yield* A.ringWarm(B, {})) === 'lost' || A.wiped(B)) return;
+    }
+    yield* A.dueMorning(B, off);
+  };
+  A.poisonNight = function* (B, d) { // (the poison dinner -- built next, his design RULED 11-05; till then the lake unfed and the night slept)
+    var f = B.roam.flags; f.dueUnfed = In.dueCycle(d); A.trail('the due night with no offering: the lake unfed');
+    yield* In.sleep(B);
+  };
+  A.dueMorning = function* (B, off) {
+    var f = B.roam.flags, st = D.counter.state(B);
+    var morning = A.morning(f) || (off === 'kept' ? A.LINES.mornDueKept : A.LINES.mornDue);
+    if ((f.duePaid || f.gennetTaken) && !f.lakeDone && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
+    In.stage(B, [24, 17], 'inn');
+    yield* In.sleep(B, morning);
+  };
+  // the fork (beat 1, on the due's own night now): the lantern has left its post -- THE LANTERN (the path) or LET IT BE (the walk, the due paid, the ring warm)
+  A.dueFork = function* (B) {
+    var f = B.roam.flags, goblin = !(f.glamourBroken || f.glamourSeen);
     yield* B.camTo({ gx: A.PATH.half[0], gy: A.PATH.half[1], gz: 0 }, D.iso.zoom, 30);
-    var a = acts[yield* In.ask(B, 'THE LANTERN WALKS', lines, opts)];
-    A.trail('the fork: ' + a);
-    if (a === 'after') { f.duePaid = 1; f.dueSeen = 1; f.pathStand = 0; return 'after'; } // (the chase: the lantern is behind them and the due is paid -- js/chase.js takes it from the yard)
-    if (a === 'let') { yield* In.dueWalk(B, f.glamourBroken || f.glamourSeen ? 'kid' : 'goblin'); f.duePaid = 1; return 'let'; }
+    var a = yield* In.ask(B, 'THE LANTERN WALKS', [A.LINES.fork].concat(goblin ? [A.LINES.forkGoblin] : []), [A.LINES.opts.lantern, A.LINES.opts.let]);
+    A.trail('the fork: ' + (a === 0 ? 'the lantern' : 'let it be'));
+    if (a === 1) { yield* In.dueWalk(B, goblin ? 'goblin' : 'kid'); f.duePaid = 1; return yield* A.ringWarm(B, {}); }
     yield* A.path(B);
     return 'path';
   };
@@ -341,9 +378,9 @@
   // the ring cold by morning. With no ring nothing calls it back up tonight: it has eaten. Returns null (no ring, or nothing to warm it), 'bed', or the fight's end
   A.ringWarm = function* (B, Y, onPath) {
     var R0 = B.roam, f = R0.flags; Y = Y || {};
-    if (f.lakeDone || !f.duePaid || f.ringWarmNight === f.wagonCycle + 1) return null;
+    if (f.lakeDone || !f.duePaid || f.ringWarmNight === (f.dueCycle || 0) + 1) return null;
     var ring = A.hasRing(B); if (!ring) return null;
-    f.ringWarmNight = (f.wagonCycle || 0) + 1; // (once a wagon night)
+    f.ringWarmNight = (f.dueCycle || 0) + 1; // (once a due night)
     var a = yield* In.ask(B, 'THE RING IS WARM', [].concat(L('due.after')), [A.LINES.opts.down, A.LINES.opts.bed]);
     A.trail('the ring warm after the due: ' + (a === 0 ? 'down to the point' : 'back to bed') + (onPath ? ' (from the path)' : ''));
     if (a !== 0) return 'bed';
@@ -418,8 +455,7 @@
 
   // ---------------------------------------------------------------- the show: deep16/?show=secondact&beat=<id>&case=<case> -- a NEW GAME's four staged on the floor at the beat, the dice pinned
   A.BEATS = [
-    { id: 'signs', beat: 'fork', label: 'BEAT 1: the signs and the fork, after the yard is won', note: 'The yard fought and won (the pair down), the four in the yard at the second watch. The house\'s half hour ran on while they fought: the signs it ate as a batch, then the last three with their reads (the dice pinned: the singing heard, the lake flat seen, the bow-wave caught), and the fork card: THE LANTERN or LET IT BE.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19] },
-    { id: 'forkfled', beat: 'fork', label: 'BEAT 1: the fork after the pair got away -- AFTER THEM too', note: 'The same fork with the pair away up the road on foot: three buttons -- AFTER THEM (the chase, the due paid behind you), THE LANTERN, LET IT BE.', flags: { wagonOutcome: 'fled', wagonFled: 'foot' }, dice: [19, 19, 19], fled: true },
+    { id: 'signs', beat: 'fork', label: 'BEAT 1: THE DUE\'S NIGHT (day 15) -- the singing wakes you, the signs, the fork (11-05)', note: 'Three nights after the wagon (RULED 11-05), past midnight, the house asleep. Low singing wakes the party (its best passive Perception, DC 13); then the signs from there with their reads (the dice pinned: the lake flat seen, the bow-wave caught), and the fork card: THE LANTERN or LET IT BE.', flags: {}, dice: [19, 19, 19] },
     { id: 'path', beat: 'path', label: 'BEAT 2: the path -- Gennet and the child in the lantern\'s light', note: 'The four at the path\'s head by the lake door; ahead at its half-way Gennet with the shore-lantern and the child (the boys stay in, 11-05). "Stand out of the light." STAND ASIDE (the due at the stone: the take), TAKE THE CHILD or STRIKE (the fight on the path).', flags: { wagonOutcome: 'inn' } },
     { id: 'pathearned', beat: 'path', label: 'BEAT 2 with Elsbeth EARNED: her lantern behind you', note: 'The same path with Elsbeth\'s third tier reached at the tub: she comes behind with the kitchen lantern -- "You\'ll want this. I\'m not going nearer."', flags: { wagonOutcome: 'inn', elsbethTier: 3, elsbethTold: 1, dishes: 1 } },
     { id: 'fight', beat: 'path', label: 'BEAT 3: Gennet on the path -- the crook of light, the yield at half', note: 'STRIKE on the path: Gennet opens with Shield of Faith, the crook of light stands over the child and strikes whoever comes near her, Hold Person, the cold through your boots, the daggers when she must. At half she yields and sits: TAKE THE CHILD or LEAVE HER. (The boys stay in, so the child is the only bystander, and she lends no one a flank.)', flags: { wagonOutcome: 'inn' }, strike: true },
@@ -435,11 +471,11 @@
   ];
   A.play = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
-    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonIn: 1, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, doranAway: 1, katGone: 1, wagonStopped: 'c0', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled } }, bt.flags || {});
+    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled } }, bt.flags || {});
     if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
     if (bt.beat === 'boat') { ['wagonIn', 'dueTonight', 'kidTaken', 'kidAtInn', 'doranAway', 'wagonStopped'].forEach(function (k) { delete rec.flags[k]; }); } // (a day with no wagon: the rowboat's own)
     if (bt.ring) { var lead = rec.party[0]; if (lead && lead.equip) { lead.equip.ring = 'ringofbinding'; H.add(rec.inv, 'ringofbinding', 0); } }
-    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = (In.WAGON.first - 1) * 24 + (bt.beat === 'wand' ? 18 : bt.beat === 'boat' ? 14 - 24 : 23); // (the first WAGON DAY's night: day 12 since 11-05, js/inn.js In.WAGON; the rowboat the afternoon before)
+    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? (In.WAGON.first - 1) * 24 + 18 : (In.dueDay(0) - 1) * 24 + (bt.beat === 'boat' ? 14 - 24 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon before the due)
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
     var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
@@ -450,13 +486,13 @@
   A.resume = function* (B) {
     var R0 = B.roam, f = R0.flags, s = f.secondAct; if (!s || !s.beat) return;
     f.secondAct = null; f.warmup = f.warmup || 0;
-    if (s.beat === 'fork') { var r = yield* A.afterYard(B, s.fled ? 'fled' : 'inn'); if (r === 'after' && D.chase) { yield* D.chase.start(B, { horses: false, willem: true }); return; } if (r === 'let' && (yield* A.ringWarm(B, {})) === 'lost') return; } // (LET IT BE: the ring warm after the walk, as js/inn.js In.wagonNight has it)
+    if (s.beat === 'fork') { f.dueTonight = 1; f.warmup = 2; yield* In.card(B, [A.LINES.dueWoke], 300); yield* A.signs(B, 6, false); if ((yield* A.dueFork(B)) === 'lost') return; } // (the due's own night, woken by the singing: the signs, the fork -- A.dueNight)
     else if (s.beat === 'path') { if (s.strike) A.strikeNext = true; yield* A.path(B); }
     else if (s.beat === 'rise') { var Y = {}; yield* A.rise(B, Y); }
     else if (s.beat === 'boat') { yield* A.sound(B); return; } // (the rowboat by day: the floor goes on after)
     else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; yield* A.offerGennet(B, Yo); } // (Gennet yielded on the path, the child taken: the nearest offering)
     var mornA = A.morning(f);
-    if (f.secondActDone) { var mornL = mornA || L('wagon.morning.' + (f.wagonOutcome === 'inn' ? 'inn' : 'quietSeen')); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
+    if (f.secondActDone) { var mornL = mornA || A.LINES.mornDueKept; if (f.duePaid && !f.lakeDone && In.has(D.counter.state(B), 'ringofbinding')) mornL = mornL + ' ' + L('wagon.ringCold'); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
   };
   var script0 = D.roam.script;
   D.roam.script = function* (B) {

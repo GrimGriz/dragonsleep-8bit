@@ -104,7 +104,7 @@
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
     orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'commonerchild', snootRunner: 'commoner',
-    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'goblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35)
+    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'goblin', barnGoblin: 'goblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35)
   In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
   In.NAME = { gennet: In.named, gennetGrief: In.named, gennetYard: In.named, snootRunner: function () { return 'A runner from the Pit'; },
@@ -159,6 +159,25 @@
   In.isWagonDay = function (d) { return d >= In.WAGON.first && (d - In.WAGON.first) % In.WAGON.every === 0; };
   In.cycle = function (d) { return Math.floor((d - In.WAGON.first) / In.WAGON.every); };
   In.wagonTonight = function (f, d) { return In.isWagonDay(d) && f.wagonCycle !== In.cycle(d); };
+  // THE DUE THREE NIGHTS ON (RULED 11-05, Griz: "hate to do it, but let's move the offering to 3 nights after wagon night. goblin in the barn if they fail to reveal the illusion, 'one
+  // they kept' if they rescue, and a poison dinner (likely fight) if they interrupt the wagon before it gets there and happen to be there on sacrifice night"; then "go with those leans"):
+  // the lantern walks on the night of WAGON DAY + 3 (day 15, then every 28) -- js/secondact.js A.dueNight. What the Waterbys have for the stone this cycle (In.offering): 'goblin', the
+  // one handed over at the greeting with the glamour unbroken, chained in the barn's end stall (In.BARN) till the night; 'kept', a child seen for one, kept; 'none', the wagon stopped
+  // on the road before it reached them -- the poison dinner. A cycle the party never saw: the wagon came and went, the handover made, 'goblin'
+  In.DUE = { after: 3 };
+  In.dueDay = function (c) { return In.WAGON.first + c * In.WAGON.every + In.DUE.after; };
+  In.isDueDay = function (d) { var d0 = In.WAGON.first + In.DUE.after; return d >= d0 && (d - d0) % In.WAGON.every === 0; };
+  In.dueCycle = function (d) { return Math.floor((d - In.WAGON.first - In.DUE.after) / In.WAGON.every); };
+  In.dueTonightOn = function (f, d) { return In.isDueDay(d) && f.dueCycle !== In.dueCycle(d) && !f.lakeDone; };
+  In.setOffering = function (f, c, kind) { f.dueOffC = c; f.dueOff = kind; };
+  In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : 'goblin'; };
+  In.BARN = [7, 5]; // (the barn's west end stall, the far end from its door)
+  In.barnGoblinOn = function (f, d) { var c = In.cycle(d); return c >= 0 && d >= In.WAGON.first + c * In.WAGON.every && d <= In.dueDay(c) && f.dueCycle !== c && (In.offering(f, c) === 'goblin' || f.barnC === c) && !f.lakeDone && !f.barnFreed; }; // (barnC: the one seen through in the barn, a child there still)
+  In.passTo = function (B, hour) { // (the clock on to the next `hour` -- past midnight, the due's -- the floor lit for it; no rest)
+    var now = In.hourOf(B), h = ((hour - now) % 24 + 24) % 24, W = D.world, S = W.state && W.state(); if (!h) return;
+    if (D.roam.house() && D.house.playing && S) { D.house.fromFloor(B); S.t += h; W.save(); } else B.roam.hour = (now + h) % 24;
+    M.lightNow(B);
+  };
   In.katLast = function (f, d) { return !f.katGone && !f.katRode && d === In.WAGON.first + 1 && f.wagonStopped === 'c0'; }; // (the first wagon stopped -- in the yard or on the road: no ride, so she walks south the morning after, and gives the book)
   In.katHere = function (f, d) { return !f.katGone && !f.katRode && ((d >= In.KAT.from && d <= In.WAGON.first) || In.katLast(f, d)); };
   In.bookInDrawer = function (f, d, st) { return !f.katBookTaken && !f.katGave && !(st && In.has(st, 'katbook')) && (!!f.katRode || d > In.WAGON.first + (In.katLast(f, d) ? 1 : 0)); };
@@ -175,6 +194,7 @@
       // (the yard's people -- the pair, the one at the tail, the inn lady with her lantern, the traveler -- are stood and moved by the night's script, In.wagonNight: In.YARDFOLK keeps their squares)
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
+    if (In.barnGoblinOn(flags || {}, dd)) npcs.push({ id: 'barnGoblin', x: In.BARN[0], y: In.BARN[1], look: 'goblin', dir: 'down' }); // (the one handed over, chained in the end stall till the due: 11-05)
     var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 4, 19], on: 'use', script: 'inn:point' },
       { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' },
       { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
@@ -245,7 +265,7 @@
     def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
-    def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if (p.id === 'wagonGoblin' && flags.glamourSeen) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
+    def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
     var first = !flags.reachedInn; flags.reachedInn = 1;
     def.hello = ['{y}THE HALFWAY INN{/} -- ' + def.sub + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(h) : '') + '.']
@@ -685,13 +705,17 @@
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
     var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; }
+    if (D.secondact && D.secondact.dueNight && In.dueTonightOn(f, d)) { yield* D.secondact.dueNight(B, d); return; } // (the due's own night, three on from the wagon's: 11-05)
     yield* In.sleep(B);
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); // (the morning after the wagon came in off the road, stopped by day: js/wagon.js, In.wagonIn)
   };
   // the wagon brought in off the road (js/wagon.js: a day's fight on the Pit road, the pair down or away on the greys, the wagon turned for the nearest roof): the yard's
   // own ending as the night's has it -- Doran drives the children to Newland that same night, the inn lady keeps one, Elsbeth's gift the morning after
   In.wagonIn = function* (B) {
-    var f = B.roam.flags, Wg = D.wagon; f.wagonDelivered = 1; f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
+    var f = B.roam.flags, Wg = D.wagon; f.wagonDelivered = 1; f.doranAway = 1; f.wagonGift = 1;
+    // (what the Waterbys keep for the due, 11-05 -- his "a poison dinner (likely fight) if they interrupt the wagon before it gets there": stopped south of the inn, before the
+    // handover, all eight go to Newland and they keep none -- the due's night is the poison dinner, js/secondact.js; stopped north of it, the one handed over stays, seen through)
+    if (f.wagonBroughtN === 7) { f.kidAtInn = 1; In.setOffering(f, f.wagonCycle, 'kept'); } else In.setOffering(f, f.wagonCycle, 'none');
     yield* In.say(B, Wg && Wg.LINES ? (f.wagonBroughtN === 7 ? Wg.LINES.broughtN : Wg.LINES.brought) : [L('wagon.doranTakes')], 'THE YARD');
     M.relay(B, null, true);
   };
@@ -715,7 +739,8 @@
     abandonedLoose: 'The wagon stands in the yard, the traces cut, the team gone north with them. In the back, chained, seven children. Real, and very quiet. The eighth went in with the inn lady.',
     bribeTaken: 'Amara counts it into your hand. "Sleep well," she says. The wagon does not stay the night.',
     bribeGone: 'The young woman from upstairs comes down with a bag over her shoulder and climbs up on the bench beside Amara. The wagon turns in the yard and is gone up the road.',
-    back: 'Back in by the front door, and up to bed.'
+    back: 'Back in by the front door, and up to bed.',
+    quietNight: 'The fair-haired man takes the horses round to the stable. The lamps go out one by one, all but one, and the house sleeps.' // (11-05: the lantern walks three nights on -- wagon.quietNight had it leave its post tonight)
   };
   // the wagon's tail on the counter screen in the portrait's place: what is chained there to the eye -- goblins, till the glamour breaks (RULED 09-24: no words; the player sees it)
   In.tailPic = function (B) {
@@ -898,7 +923,7 @@
     Y.kid = In.unit(B, { id: 'wagonKid', kind: 'goblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
     yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);
-    f.dueTonight = 1; f.kidTaken = 1;
+    f.kidTaken = 1; // (the due three nights on since 11-05 -- In.DUE; what she keeps for it, by how the night goes: In.setOffering below)
     if (In.read(st, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.card(B, [In.WN.suspect], 300); }
     yield* In.walk(B, Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); yield* In.walk(B, Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]);
     In.gone(B, Y.gennet); Y.gennet = null; In.gone(B, Y.kid); Y.kid = null; yield 10;
@@ -936,8 +961,8 @@
       var seen = !!f.glamourSeen || paid; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
       if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; }
       In.gone(B, Y.amara); In.gone(B, Y.willem); Y.amara = Y.willem = null;
-      yield* In.card(B, [paid && D.wagon ? D.wagon.LINES.paidNight : L('wagon.quietNight')], 360);
-      yield* In.dueWalk(B, seen ? 'kid' : 'goblin');
+      yield* In.card(B, [paid && D.wagon ? D.wagon.LINES.paidNight : In.WN.quietNight], 360);
+      In.setOffering(f, In.cycle(d), seen ? 'kept' : 'goblin'); if (seen) f.kidAtInn = 1; // (the one she took: in the barn's end stall three nights, a goblin to the eye while the glamour holds)
       morning = L('wagon.morning.' + (seen ? 'quietSeen' : 'quiet'));
     } else if (how === 'bribe') {
       In.leadBack(B);
@@ -949,7 +974,7 @@
       In.yardClear(B, Y); delete f.wagonIn; In.lay(B, null, true); // (the wagon gone up the road: the yard laid without it)
       if (katUp) yield* In.card(B, [In.WN.bribeGone], 360);
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
-      yield* In.dueWalk(B, 'kid');
+      In.setOffering(f, In.cycle(d), 'kept');
       morning = L('wagon.morning.bribe');
     } else {
       if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; } // (she is inside before the first blade clears, Griz 09-25)
@@ -964,18 +989,15 @@
         yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420);
       } else f.wagonOutcome = 'inn';
       var act = null;
-      if (D.secondact && f.dueTonight) act = yield* D.secondact.afterYard(B, out); // (THE SECOND ACT, the lane's §10 -- js/secondact.js: the signs the yard ate, the rest, the fork: the chase, the lantern, or let it be)
-      else if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
+      In.setOffering(f, In.cycle(d), 'kept'); // (the yard stopped: the one she took at the greeting is the one they kept -- the second act is the due's own night since 11-05, js/secondact.js A.dueNight)
+      if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
       if (act === 'after') { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp }); return; } // (THE CATCH ON THE GULCH ROAM, item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
       yield* In.yardAfter(B, st, f, In.lastFight.willemDead, In.lastFight.loose);
-      morning = (D.secondact && D.secondact.morning(f)) || L('wagon.morning.inn');
+      morning = L('wagon.morning.inn');
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
     }
-    // the ring warm after the due (11-05, the Winters seat; the lane's §3 and beat 4, RULED 11-04): the lantern walked and the take was made tonight -- the quiet, the gold, LET IT BE
-    // (STAND ASIDE's is on the path, js/secondact.js A.due) -- and the Ring of Binding worn: GO DOWN TO THE POINT, the chuul; else the ring cold by morning
-    if ((how !== 'fight' || act === 'let') && D.secondact && D.secondact.ringWarm) { f.duePaid = 1; if ((yield* D.secondact.ringWarm(B, {})) === 'lost') return; }
-    if (f.lakeDone && D.secondact) morning = how === 'fight' ? D.secondact.morning(f) || morning : D.secondact.lakeMorning(morning);
-    else if ((how !== 'fight' || f.duePaid || f.gennetTaken) && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold'); // (it has eaten: the take, or the inn lady)
+    // (the lantern walks three nights on since 11-05, his "let's move the offering to 3 nights after wagon night": the due, the ring warm and the ring cold are the due's own night's --
+    // js/secondact.js A.dueNight; this night keeps the yard, the watch, the handover and the chase)
     delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
     yield* In.sleep(B, morning);
@@ -1015,7 +1037,7 @@
     var Y = {}; In.bedRiders(B, Y, f, !!c.horses);
     yield* In.card(B, [In.WN.fledYard], 300);
     yield* In.yardAfter(B, st, f, !!c.willemDead, !!c.horses);
-    var morning = L('wagon.morning.inn'); if (f.duePaid && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold'); // (the lantern walked while they were up the road: the second act's AFTER THEM)
+    var morning = L('wagon.morning.inn'); // (the lantern walks three nights on since 11-05: no ring cold the morning after the chase)
     delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn');
     yield* In.sleep(B, morning);
@@ -1065,6 +1087,35 @@
     var a = yield sc.ask(In.LINES.runnerAsk, ['TO THE SNOOT', 'NOT NOW']);
     return a === 0;
   };
+  // THE GOBLIN IN THE BARN (RULED 11-05, his "goblin in the barn if they fail to reveal the illusion", "go with those leans": found and revealed there): the one handed over at the
+  // greeting with the glamour unbroken, chained in the end stall till the due. LOOK CLOSER (the house's silent Insight 13, the greeting's), TOUCH IT (Perception 12 by touch, the
+  // wagon bed's), DETECT MAGIC (Aurdin's ritual, no slot -- the road's); seen through, a child -- FREE HER (the due has no offering: the night is the poison dinner) or LEAVE HER.
+  // The seat's drafts, invented.json halfway-due-moved-1105
+  In.BL = { goblin: 'In the end stall, chained to the manger by one ankle: a goblin, small, its knees drawn up. It does not look up.', ask: 'A goblin, chained in the inn\'s barn.',
+    lookNo: 'A goblin. It keeps its face to the boards.', lookYes: '{c}(insight){/} It is not sitting like a goblin sits. It is sitting like a child told to be quiet.',
+    touchNo: 'Under your hand: rough hide, a goblin\'s. It flinches.', touchYes: '{c}(perception){/} Under your hand the hide is not there: a thin arm, a sleeve, a child\'s wrist under the chain.',
+    magic: 'Aurdin\'s ritual: the whole of it hums with an illusion, laid close as a skin.', child: 'A child sits chained in the stall, eyes on you.',
+    free: 'The chain is a farm chain, a pin through the ring.', freed: 'The pin comes out. She does not run: she takes a hand and holds on. The due has no offering now.' };
+  In.barnScene = function* (sc, B) {
+    var st = sc.st, f = st.flags, c = In.cycle(In.day(D.roam.q)), BL = In.BL;
+    var freeAsk = function* () {
+      if ((yield sc.ask(BL.free, ['FREE HER', 'LEAVE HER'])) !== 0) return;
+      f.barnFreed = 1; In.setOffering(f, c, 'none'); D.sfx('confirm'); In.trail('the barn: the child freed -- the due has no offering');
+      yield sc.say([BL.freed]);
+    };
+    if (f.glamourBroken) { yield sc.say([BL.child]); yield* freeAsk(); return; }
+    yield sc.say([BL.goblin]);
+    var opts = ['LOOK CLOSER', 'TOUCH IT'], acts = ['look', 'touch'];
+    if (st.party.some(function (h) { return (h.key || h.id) === 'aurdin' && !h.dead; })) { opts.push('DETECT MAGIC'); acts.push('magic'); }
+    opts.push('LEAVE IT'); acts.push('leave');
+    var act = acts[yield sc.ask(BL.ask, opts)];
+    if (act === 'leave') return;
+    var ok = act === 'magic' || In.read(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12);
+    if (!ok) { yield sc.say([act === 'look' ? BL.lookNo : BL.touchNo]); return; }
+    f.glamourBroken = 1; f.glamourSeen = 1; In.setOffering(f, c, 'kept'); f.barnC = c; In.trail('the barn: the glamour seen through (' + act + ')');
+    yield sc.say([act === 'look' ? BL.lookYes : act === 'touch' ? BL.touchYes : BL.magic, BL.child]);
+    yield* freeAsk();
+  };
   In.toSnoot = function () { In.left = '../snoot-mode/?from=inn'; if (!In.stay) window.location.href = In.left; }; // (In.stay: a bench's, the page kept)
   var fire0 = T.fire;
   T.fire = function* (B, trig, at) {
@@ -1077,6 +1128,11 @@
     if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'doranIn' && (B.roam.flags.dueStopped || B.roam.flags.gennetDead)) { // (Doran sells the rooms after the second act's ends: js/secondact.js)
       var sleptD = yield* M.talk(B, 'doranIn', function (sc) { return In.doranRoom(sc, B); }, 'Doran Waterby');
       if (sleptD) yield* In.night(B);
+      return;
+    }
+    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'barnGoblin') { // (the one handed over, in the barn's end stall: found and revealed there -- In.barnScene, 11-05)
+      yield* M.talk(B, 'barnGoblin', function (sc) { return In.barnScene(sc, B); }, B.roam.flags.glamourBroken ? 'A child, chained' : 'A goblin, chained');
+      if (B.roam.flags.barnFreed) In.lay(B, In.inside, true);
       return;
     }
     if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { // (her talk at the fire: In.katScene -- she looks up at whoever speaks, still sat, as js/town.js T.fire turns a figure drawn all round)
