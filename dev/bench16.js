@@ -9755,6 +9755,13 @@
       okHo('Gennet: pt_gennet (' + (sGe ? sGe.fw + 'x' + sGe.fh + ', ' + Object.keys(sGe.anims).map(function (r) { return r + ' ' + sGe.anims[r].frames; }).join(' ') : 'NONE') + '); her counter screen wears ' + scGe.sheet + ' (after the lake ' + CHo.SHEETOF.gennetGrief() + ', in the yard ' + CHo.SHEETOF.gennetYard() + '); a counter takes her talk ' + CHo.takes('gennet') + '; the portraits\' show ' + psGe.ids.join(),
         !!sGe && sGe.portrait && !sGe.flip && sGe.anims.idle.frames === 6 && sGe.anims.work.frames === 6 && MK.every(function (a) { return sGe.anims[a] && sGe.anims[a].frames === 1; }) && scGe.sheet === 'pt_gennet' && CHo.SHEETOF.gennetGrief() === 'pt_gennet' && CHo.SHEETOF.gennetYard() === 'pt_gennet' && !CHo.takes('gennet') && psGe.ids.join() === 'gennet');
       if (scGe.close) scGe.close(); D.scenes.length = 0;
+      // AT THE MEAL'S TABLE (11-05, the lanes desk: "make the one-line In.speaker change"): the table's speakers (js/inn.js In.speaker) carry their drawn faces -- Doran's and
+      // Gennet's by C.SHEETOF, Katarina's by In.FACE -- and the open screen draws the one speaking on it (C.openGeo's sheet), not their figure's face; one with none (Elsbeth) as before
+      var InS = D.inn, seatS = { folk: {}, flags: {} }, spk = function (id) { return InS.speaker(seatS, id); }, geoS = function (id) { var sc = new CHo.Counter(null, { id: 'innMealProbe', name: 'probe', place: '', what: '', open: true, room: true, script: function* (s) { yield s.by(spk(id), ['...']); } }); var g = CHo.openGeo(sc); if (sc.close) sc.close(); return g; };
+      var gD = geoS('doranIn'), gG = geoS('gennet'), gK = geoS('katarina'), gE = geoS('elsbeth');
+      okHo('THE MEAL\'s table: Doran speaks on ' + spk('doranIn').sheet + ' (drawn ' + gD.sheet + '), Gennet on ' + spk('gennet').sheet + ' (' + gG.sheet + '), Katarina on ' + spk('katarina').sheet + ' (' + gK.sheet + '); one with no face of her own, Elsbeth, as before (' + spk('elsbeth').sheet + ', her figure\'s face ' + gE.face + ')',
+        spk('doranIn').sheet === 'pt_doran' && gD.sheet === 'pt_doran' && spk('gennet').sheet === 'pt_gennet' && gG.sheet === 'pt_gennet' && spk('katarina').sheet === 'pt_katarina' && gK.sheet === 'pt_katarina' && !spk('elsbeth').sheet && !gE.sheet);
+      D.scenes.length = 0;
       var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
       if (btHo) CHo.servicePlay(btHo);
       okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',

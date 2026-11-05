@@ -360,7 +360,7 @@
   };
   In.heroOf = function (u) { var k = u.src ? (u.src.key || u.src.id) : u.id; return { id: k, key: k, name: u.name }; };
   In.unitOf = function (seat, h) { return h ? seat.four.filter(function (u) { return u.src === h || (u.src && (u.src.key || u.src.id) === (h.key || h.id)); })[0] : null; };
-  In.speaker = function (seat, id) { var u = seat.folk[id]; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right' }; };
+  In.speaker = function (seat, id) { var u = seat.folk[id], SO = D.counter && D.counter.SHEETOF; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right', sheet: (SO && SO[id] && SO[id]({ flags: seat.flags || {} })) || null }; }; // (sheet: the one speaking's drawn face where they have one -- js/counter.js C.SHEETOF, Doran's and Gennet's, Katarina's by In.FACE -- else their figure's, as before: 11-05, cutter-1105, on the lanes desk's word)
   In.mealScene = function* (B) { // (the first room taken: supper on the open screen over the room, then the bed)
     var C = D.counter, seat = In.sit(B), st = C.state(B); seat.flags = st.flags;
     if (D.house && D.house.trail) D.house.trail('talk', 'meal');
