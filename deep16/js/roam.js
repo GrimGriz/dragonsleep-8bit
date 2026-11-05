@@ -1234,10 +1234,13 @@
   // a cradle (the 8-bit's deep rate, RULED 09-30g; js/events.js EV.deepRate): the 8-bit's own scene by a hand-back, the floor again after it; the animal roused, the fight is on
   // the floor at its cradle -- the milker on the square the party worked it from, stiff with the poison if the touch took (the Settling's harness: deep16/js/wet.js)
   R.cradle = function* (B, trig, at) {
-    var R0 = B.roam, n = +String(trig.id).replace(/\D/g, '') || 0, c = null;
+    var R0 = B.roam, n = +String(trig.id).replace(/\D/g, '') || 0, c = null, CRd = D.cradle;
+    // (a crib whose crawler broke loose stands empty for the rest of the game: no deep rate -- Tuesday 15, RULED 10-31 his "empty"; js/cradle.js CR.empty)
+    if (CRd && CRd.empty(R0.flags, n)) { D.sfx('miss'); B.card(R.wrap(['{y}Cradle ' + (n + 1) + '{/} stands empty: its crawler broke loose. Nothing to work at the deep rate here now.']), 220); yield 20; return; }
     if (R.emb && !R.house()) { var m = yield* R.handOut(B, 'cradle', { n: n }); c = m && m.cradle; } // (inside the 8-bit, as it was: nothing sends ds8:roam since the two games split, 10-20)
     else c = yield* R.deepTalk(B, n); // (the second game's own: the deep rate on the counter screen -- R.deepRate)
     if (!c || !c.roused) return;
+    if (CRd) CRd.spend(R0.flags, n); // (loose: the crib empty from here, fought or let go -- R0.flags.deepEmpty, a bit a cradle, carried to the save with the floor's flags)
     yield* R.encounter(B, 'set', { list: ['crawler'], at: at, line: R.say8('w.deepRoused'), how: 'loose at its cradle', onSpill: function (B2) {
       var mk = R0.members.filter(function (u) { return u.id === c.milker && u.hp > 0; })[0], ld = R0.token;
       if (mk && mk !== ld) { var x = mk.x, y = mk.y; mk.x = ld.x; mk.y = ld.y; ld.x = x; ld.y = y; G.setup(G.map, B2.units); }
@@ -2233,6 +2236,7 @@
   R.WET_BEATS = [
     { id: 'stair', label: 'DOWN TO THE WET, from the stalls', note: 'On the stalls below its stair, Skarn\'s gate open, Edric\'s book signed: walk up onto the stair, down into the Wet. Its own stair takes them back up.', key: 'warrens_b', at: [12, 2], dir: 'up' },
     { id: 'cradle', label: 'THE DEEP RATE at a cradle', note: 'On the Wet below cradle one, the book signed, a draught in the pack: E on the cradle (or a click): WORK THE DEEP RATE, WHO MILKS? -- a 1 rouses the animal.', at: [15, 7], dir: 'up', inv: [['draught', 1]] },
+    { id: 'emptycrib', label: 'CRADLE ONE, ITS CRAWLER BROKE LOOSE', note: 'On the Wet below cradle one, its crawler roused and gone (deepEmpty): an empty crib, and E on it says so -- no deep rate. Cradles two and three hold theirs.', at: [15, 7], dir: 'up', flags: { deepEmpty: 1 } }, // (Tuesday 15, 11-05: R.cradle, js/cradle.js CR.empty)
     { id: 'dry', label: 'THE DRY STAIR (drained)', note: 'The stair pumped dry, the four on the landing: step onto the stair -- the dry steps, Pete\'s five off the bottom step, the cut door.', at: [21, 21], dir: 'left', flags: { stairHook: 1 } },
     { id: 'hold', label: 'HOLDING THE STAIR', note: 'Drained, the dry stair seen, Ragna\'s siphon asked: step onto the stair -- the night crews down the daytime way, a fight; won, three nights and the water back.', at: [21, 21], dir: 'left', flags: { stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 } },
     { id: 'warn', label: 'THE LANTERN MAN: three of the herd dead', note: 'On the Wet near the stalls\' stair, three of its six crawlers already dead: a lantern comes down the stair -- Jory Slade, with Skarn\'s word. Once.', at: [6, 12], dir: 'left', kills: { crawler: 3, 'warrens_d:crawler': 3 } },

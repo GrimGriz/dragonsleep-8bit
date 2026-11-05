@@ -59,6 +59,7 @@
     "daceShaft": "set and read: deep16/js/mines.js (Dace's words at the dens' shaft head said once, the second game's one Dace -- 10-28)",
     "daceWith": "set: js/events.js; read: js/events.js, maps/galleries_g1.json, maps/galleries_g3.json",
     "dagnyIdx": "set at run time: how far through Dagny's lines (js/deep.js S.dagny)",
+    "deepEmpty": "set: deep16/js/cradle.js; read: deep16/js/cradle.js, deep16/js/roam.js -- the Wet's deep cribs left empty, a bit a cradle (1, 2, 4): its crawler broke loose (Tuesday 15, 11-05)",
     "deepholmSeen": "set: js/deep.js, js/situations.js; read: js/deep.js",
     "deepShifts": "set: js/events.js; read: js/events.js",
     "dishes": "set: js/events.js, js/situations.js; read: js/events.js",

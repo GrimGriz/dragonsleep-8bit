@@ -400,6 +400,38 @@
     ctx.drawImage(c, s[0] + (s[2] - sw) / 2, s[1] + (s[3] - sh) / 2, sw, sh, x, y, w, h);
   };
 
+  // ---------------------------------------------------------------- the deep cribs on the Wet's floor (Tuesday 15, his 10-31: "just worked the deep crawler (which are hard to
+  // see and should have a crawler in them?) and it busted loose (which would leave them empty and no longer 'workable for the deep rate')"; RULED 10-31 "empty", and 11-05
+  // "go with leans"): a crawler in each crib, its own figure a size down, facing the square it is worked from, drawn before the crib so the slats stand over it; one roused
+  // at its cradle -- broke loose, then fought or let go -- leaves the crib empty for the rest of the game: no crawler drawn, no deep rate, and the save's flags keep it
+  // (flags.deepEmpty, a bit a cradle: 1, 2, 4 -- js/roam.js R.cradle). The pens' crawlers at the mouth camp are js/mines.js M.penCrawlers
+  CR.CRIB = { scale: 0.5 }; // (half the crawler's own figure: inside the one square of its crib, the slats over its feelers -- seen in the pane, 11-05)
+  CR.empty = function (flags, n) { return !!(((flags && flags.deepEmpty) || 0) & (1 << n)); };
+  CR.spend = function (flags, n) { flags.deepEmpty = (flags.deepEmpty || 0) | (1 << n); };
+  CR.cribs = function (B) { // (the floor's deep cribs: [{ n, x, y, fx, fy }] on its own squares, the 8-bit's triggers turned as the Wet is -- R.def.from8; fx, fy the worker's square)
+    var R = D.roam, def = R && R.def; if (!B || !B.roam || !def || !def.src8) return [];
+    var at = function (x, y) { return def.from8 ? def.from8(x, y) : [x, y]; };
+    return (def.src8.triggers || []).filter(function (t) { return /^deepCradle\d$/.test(t.id); }).map(function (t) {
+      var q = at(t.rect[0], t.rect[1]), w = at(t.rect[0], t.rect[1] + 1); return { n: +t.id.replace(/\D/g, ''), x: q[0], y: q[1], fx: w[0], fy: w[1] };
+    });
+  };
+  CR.cribProps = function (B) {
+    var out = [], m = D.iso.map, sheet = ((D.FOES || {}).crawler || {}).sheet; if (!sheet || !m) return out;
+    CR.cribs(B).forEach(function (c) {
+      var sq = m.at(c.x, c.y); if (!sq || sq.ch !== 'y' || CR.empty(B.roam.flags, c.n)) return;
+      if (!CR.fetched) { CR.fetched = true; if (D.spr.prefetch) D.spr.prefetch([sheet]); }
+      var face = D.spr.facingFor(c.fx - c.x, c.fy - c.y);
+      out.push({ depth: c.x + c.y + 0.4, gz: 0, crib: c.n, draw: function (ctx) { // (the block's depth is x + y + 0.5: the crawler first, the crib over it)
+        var cc = D.iso.center(c.x, c.y, 0), s = D.iso.toScreen(cc.x, cc.y), k = CR.CRIB.scale;
+        ctx.save(); ctx.translate(Math.round(s.x), Math.round(s.y) + 2); ctx.scale(k, k);
+        D.spr.draw(ctx, sheet, 'idle', face, B.t + c.n * 23, 0, 0, {});
+        ctx.restore();
+      } });
+    });
+    return out;
+  };
+  if (D.looks && D.looks.props) { var props0 = D.looks.props; D.looks.props = function (B) { var r = props0.apply(this, arguments); return B && B.roam ? (r || []).concat(CR.cribProps(B)) : r; }; }
+
   // ---------------------------------------------------------------- THE CRADLE, shown (deep16/?cradle -- the eyes row's door, 10-22: the desk's "land it with an eyes row whose SHOW
   // door opens the shift with the dice pinned"): a beat opens the shift at once, the second game's four (js/house.js H.fresh) and the milker the first game would pick, the
   // seed pinned (&seed=, 1022 by default) so the feelers, the gold and the save fall the same each time; the third stands a NEW GAME at pen two for the whole of it -- WORK A
