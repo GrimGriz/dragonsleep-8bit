@@ -1721,6 +1721,22 @@
   // one fight on the floor: initiative (those set aside sit it out), the rounds (js/waves.js fight, the Game Show's, is this loop); the ways out set for each of
   // ours as its turn comes; one of ours out and the fight is over for all of them (RULED 10-13, Griz: "yeah, we have a 'party refuses' line in the build somewhere");
   // won when this fight's foes are down (another group waiting on the floor holds nothing open)
+  // THE CAMERA AT INITIATIVE (11-05, the iso roam combat lane's item 2, his "why not zoom in on active iso roam when initiative to do that fight"; the desk's "yes to item 6"):
+  // as the fight on the floor's own squares rolls its initiative, the deepest of the zoom's own steps (js/ui.js UI.zooms) that holds every one in it -- the view less the
+  // turn strip above and the bar below -- and the view on their middle; never further out than the floor was (a fight too wide for any step keeps the floor's zoom). The
+  // floor's zoom comes back at the gather (R.after), as a pulled-in fight's does (R.pullIn0). A town's floor keeps its one scale (js/ui.js UI.setZoom's rule)
+  R.fightCam = function (B, us) {
+    var R0 = B.roam, iso = D.iso; if (!R0 || !us || !us.length || !D.ui || !D.ui.zooms || (R.def && R.def.town && !R.def.iso)) return null;
+    var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    us.forEach(function (u) { var s = u.size || 1, c = iso.center(u.x + (s - 1) / 2, u.y + (s - 1) / 2, G.gzAt ? G.gzAt(u, u.x, u.y) : 0); x0 = Math.min(x0, c.x - 22 * s); x1 = Math.max(x1, c.x + 22 * s); y0 = Math.min(y0, c.y - 50 * s); y1 = Math.max(y1, c.y + 10 * s); });
+    var top = 22, bot = 74, vw = D.W - 24, vh = D.H - top - bot, z0 = iso.zoom, best = z0;
+    D.ui.zooms().forEach(function (z) { if (z > best + 1e-9 && (x1 - x0) * z <= vw && (y1 - y0) * z <= vh) best = z; });
+    if (R0.zoomFight0 == null) R0.zoomFight0 = z0;
+    iso.zoom = best;
+    iso.cam.x = Math.round((x0 + x1) / 2); iso.cam.y = Math.round((y0 + y1) / 2 + ((bot - top) / 2) / best); // (the box's middle on the middle of the view between the strip and the bar)
+    if (D.ui.clampCam) D.ui.clampCam();
+    return R0.camFight = { from: z0, to: best, box: [x0, y0, x1, y1] };
+  };
   R.fight = function* (B, foes, lurk) {
     var R0 = B.roam; R0.mode = 'fight'; B.cine = false;
     B.round = 0; B.active = null; B.mpHiveDone = {};
@@ -1728,6 +1744,7 @@
     rolls.forEach(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + (u.init || 0); });
     B.order = rolls.sort(function (a, b) { return b.initRoll - a.initRoll || ((b.abil && b.abil.dex) || 10) - ((a.abil && a.abil.dex) || 10); });
     B.card(['{y}INITIATIVE{/}  ' + B.order.map(function (u) { return B.shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
+    R.fightCam(B, B.order); // (the camera in on the fight: R.fightCam, 11-05)
     yield 50;
     // a lurker's ambush (SRD 5.1 surprise; battle.js run's own lines): their Stealth, rolled once, against each passive Perception
     if (lurk) {
@@ -1768,6 +1785,7 @@
     var R0 = B.roam, g2 = null;
     B.order = []; B.active = null; B.cine = true; B.req = null; B.exits = [];
     R0.lastOutcome = o;
+    if (R0.zoomFight0 != null) { D.iso.zoom = R0.zoomFight0; R0.zoomFight0 = null; } // (the floor's own zoom back at the gather: R.fightCam)
     if (o === 'lost') {
       R0.mode = 'over'; D.sfx('error');
       if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } // (inside the 8-bit: its game over)
