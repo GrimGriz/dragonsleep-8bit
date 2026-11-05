@@ -310,10 +310,18 @@
   P.enter = function () {
     var prev = D.battle;
     if (prev && prev !== this && prev.rec && !prev.rec.done && prev.rec.steps.length) REC.finish(prev, prev.rec.outcome || 'restarted'); // (one decided and never closed by its door: its outcome)
-    if (this.o.record && !this.rec) REC.start(this, this.o.record);
+    if (this.o.record && !this.rec) { REC.start(this, this.o.record); this.recFresh = true; }
     var r = enter0.apply(this, arguments);
     if (this.rec) REC.snap(this); // (the units are built: their hit points as the fight begins -- before the first blow, the first answer)
     return r;
+  };
+  // (11-05, the desk's read of his Web Gulch record, the 06:49:49Z fight lost: hp0 and the PARTY block read every hero whole, where the first steps had Lymen at 12 and Aurdin at 1.
+  // A fight pulled in from a floor (js/roam.js R.pullIn0) and a Hex bout give the figures the floor's own wounds in an enter of their own, AFTER this one's: the snap above took the
+  // fresh sheets. So a record begun at enter takes its hit points again at the fight's first step -- after every enter has done, before the script's first beat -- over the first)
+  var step0 = P.step;
+  P.step = function () {
+    if (this.recFresh) { this.recFresh = false; if (this.rec && !this.rec.done && !this.rec.steps.length) { this.rec.hp0 = {}; REC.snap(this); } }
+    return step0.apply(this, arguments);
   };
   // the fight's end closes its record where no door of its own does (10-06: ?fight= and ?npc= have no onDone -- the ladder, the climb and the Pocket DM finish
   // theirs there -- so their records stood 'unfinished' at the last round's checkpoint; Griz's Skylights of 10-05 is one). The story inside the 8-bit HAS an
