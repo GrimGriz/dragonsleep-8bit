@@ -428,6 +428,20 @@
   // called from ui.js drawBattle while iso.inWorld: a night ambient multiplied over everything, each light's pool added in
   // (a flame breathes), then the floor greyed where no one of the party sees (darkvision's reach: grey, no darker; past it:
   // grey and dim). The player sees the whole grid, the characters do not (RULED 09-28)
+  // THE DARK'S LOOK (11-05, the tuesday-grid seat on the lanes desk's word -- Griz, his 10-31 playthrough, Tuesday 22: "Do we have layers of darkness to work with? Can dark be not
+  // as Dark and still work as it does now, everything shifted up a bit?"; RULED, the lean: an OPTIONS setting, as SIMPLE VIEW is, the default nudged up a little): OPTIONS'
+  // DARK LOOK -- DEEP the look before 11-05, SOFT (the default) a little lifted, LIGHT more -- the night's multiply, the darkvision's grey lifted with it (it must stay over the
+  // night round it), and the wash on the squares nobody sees (the hovered one's eyes darker). The rules read the light map (L.map, L.seesBy), never these pixels, and are the
+  // same at every step; too bright and the pools lose their punch, so LIGHT stops well short of day. &dark=deep|soft|light in a door's address for that page
+  L.LOOKS = { deep: { name: 'DEEP', night: 'rgb(52,56,86)', dv: 'rgb(72,70,66)', wash: 0.4, hover: 0.62 },
+    soft: { name: 'SOFT', night: 'rgb(66,70,100)', dv: 'rgb(88,86,80)', wash: 0.33, hover: 0.54 },
+    light: { name: 'LIGHT', night: 'rgb(84,88,116)', dv: 'rgb(108,106,99)', wash: 0.24, hover: 0.44 } };
+  L.LOOK_ORDER = ['deep', 'soft', 'light']; L.LKEY = 'deep16.darklook';
+  var lookQ = /[?&]dark=(deep|soft|light)/.exec((window.location && window.location.search) || ''), lookNow = null;
+  L.lookId = function () { if (lookQ) return lookQ[1]; if (lookNow) return lookNow; var v = null; try { v = window.localStorage.getItem(L.LKEY); } catch (e) { } return (lookNow = L.LOOKS[v] ? v : 'soft'); };
+  L.look = function () { return L.LOOKS[L.lookId()]; };
+  L.setLook = function (v) { if (!L.LOOKS[v]) return; lookNow = v; lookQ = null; try { window.localStorage.setItem(L.LKEY, v); } catch (e) { } };
+  (function () { var MN = window.DS && window.DS.MENU; if (!MN || !MN.gridRows) return; var rows0 = MN.gridRows; MN.gridRows = function () { var r = rows0.apply(this, arguments); r.push({ label: 'DARK LOOK', key: 'darklook', get: function () { return L.look().name; }, step: function (d) { var o = L.LOOK_ORDER, i = o.indexOf(L.lookId()); L.setLook(o[(i + (d < 0 ? o.length - 1 : 1)) % o.length]); } }); return r; }; })();
   var lit = null;
   function flick(t) { return Math.sin(t * 0.21) * 0.5 + Math.sin(t * 0.53 + 1.3) * 0.3 + Math.sin(t * 1.7) * 0.2; }
   // a square whose rhombus lies wholly off the canvas being drawn (W by H, the world canvas) is skipped in the pass's two floor sweeps: a huge floor is thousands of
@@ -440,7 +454,8 @@
     if (lit.width !== W || lit.height !== H) { lit.width = W; lit.height = H; }
     var l = lit.getContext('2d');
     l.globalCompositeOperation = 'source-over';
-    l.fillStyle = 'rgb(52,56,86)'; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees
+    var LK = L.look(); // (OPTIONS' DARK LOOK, above)
+    l.fillStyle = LK.night; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees
     l.globalCompositeOperation = 'lighter';
     var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) ? a : null;
     var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B); // (whose eyes: below)
@@ -450,7 +465,7 @@
     // (and a square in dim light within darkvision, no darker than the dark beside it: SRD 5.1, "in dim light as if it were bright light" -- 10-29, the Galleries seat: a hooded
     // lamp's dim squares drew darker than the darkvision round them, a dark cross under every lamp in the working gallery and round a hood-down lantern in the dens)
     var lmD = L.map(B), dvSq = pm.dvs;
-    l.fillStyle = 'rgb(72,70,66)';
+    l.fillStyle = LK.dv;
     for (var yd = 0; yd < m.h; yd++) for (var xd = 0; xd < m.w; xd++) { var id = yd * m.w + xd, sd = m.sq[id]; if (!sd.open || !(pm.v[id] === 1 || (dvSq && dvSq[id] && lmD && lmD.lv[id] === 1)) || !inView(iso, xd, yd, sd.gz, W, H)) continue; iso.rhombus(l, xd, yd, sd.gz, 0); l.fill(); }
     var lights = L.all(B);
     lights.forEach(function (lg) {
@@ -481,7 +496,7 @@
     B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2 || !inView(iso, x, y, s2.gz, W, H)) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
-    ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
+    ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,' + LK.hover + ')' : 'rgba(6,6,16,' + LK.wash + ')';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2] || !inView(iso, x2, y2, s3.gz, W, H)) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
     var sn = va || own; // (whose senses ride on top: the hovered one's, else the one whose turn it is)
     if (sn) { if (sn.sense === 'tongue') tongue(ctx, B, sn, t, sn.blindsight || 0); else sonar(ctx, B, sn, t); if (sn.senseHidden) tongue(ctx, B, sn, t, sn.senseHidden); }
