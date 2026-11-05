@@ -176,6 +176,10 @@ PEOPLE = {
     # mail, the pages without titles; the 10-30 pages stay in _src/lymen/ART-MC-LYMEN-PORTRAIT)
     'lymen': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True, 'bust': 66,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
+    # the same six at the keepers' bust (BUST, Papa's), a trial (11-05, the lanes desk, Griz: "do a test of the new NPC scale cut such that more of their bust is included in the
+    # hero box with current verse trial on the lymen/papa conversation"): the art desk's "full" cut, made here with today's cutter; the open screen draws it on `&herofull`
+    'lymen_full': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene on &herofull, a trial (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True,
+              'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
     # Aurdin in his two mantles and Barley in his coat (11-05, cutter-1105): the art desk's own AURDIN- and BARLEY-HERO-DIALOGUE-PORTRAITS, idle 6 and the four moods,
     # drawn looking screen right already (no `flip`), cut at the same hero size as Lymen's -- in place of the 10-22 and 10-30 stills off their identity pages
     # (tools/hero-portrait.py), under the same names, so C.HERO_PT's looks hold: the Red Mantle out of robes, the Ochre in them, Barley's coat

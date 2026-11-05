@@ -577,8 +577,13 @@
   Counter.prototype.spSide = function () { var sp = this.spk(); return sp && sp.side === 'left' ? 'left' : 'right'; };
   Counter.prototype.hSide = function () { return this.heroSide === 'right' ? 'right' : 'left'; };
   C.spSheet = function (sc) { var sp = sc.spk(); return sp ? (sp.sheet && D.SHEETS[sp.sheet] ? sp.sheet : null) : sc.sheet; }; // (the one speaking: the wait's, or the counter's own)
-  C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), sh = pt && D.SHEETS[pt]; return sh ? sh.fw * C.OPEN.heroS() : HB.w; };
-  C.MOUTH = { pt_lymen: [38, 23], pt_vivian: [33, 22], pt_aurdin_ochre: [31, 23], pt_aurdin_red: [31, 23], pt_barley_coat: [34, 24] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there -- the four re-cut 11-05 from the art desk's dialogue portraits)
+  // THE KEEPERS' BUST, a trial (11-05, the lanes desk, Griz: "do a test of the new NPC scale cut such that more of their bust is included in the hero box with current verse trial on
+  // the lymen/papa conversation"): on `&herofull` the open screen's hero is the art desk's NPC-scale cut (pt_<name>_full, tools/portrait-sheet.py lymen_full) at the keeper's own
+  // size (C.OPEN.papa.s), his whole bust standing on the screen's foot, and the bubble beside him; without it, as ever
+  C.FULL_TRIAL = /[?&]herofull\b/.test((window.location && window.location.search) || '');
+  C.heroFull = function (pt) { var f = C.FULL_TRIAL && pt ? pt + '_full' : null; return f && D.SHEETS && D.SHEETS[f] ? f : null; };
+  C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), fu = C.heroFull(pt), sh = pt && D.SHEETS[fu || pt]; return sh ? sh.fw * (fu ? C.OPEN.papa.s : C.OPEN.heroS()) : HB.w; };
+  C.MOUTH = { pt_lymen_full: [86, 58], pt_lymen: [38, 23], pt_vivian: [33, 22], pt_aurdin_ochre: [31, 23], pt_aurdin_red: [31, 23], pt_barley_coat: [34, 24] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there -- the four re-cut 11-05 from the art desk's dialogue portraits)
   C.CHEEKS = { pt_barley_coat: [35, 20, 4, 0.45], pt_vivian: [34, 20, 4, 0.45] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
@@ -608,8 +613,8 @@
     else {
       var g = C.openGeo(sc), hr = sc.hSide() === 'right';
       if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
-      var hw = C.heroW(sc), bw = Math.min(RW, hr ? D.W - 16 - hw : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side)
-      BB = { x: hr ? D.W - 2 - hw - 6 - bw : O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
+      var hw = C.heroW(sc), fu = C.heroFull(sc.hero && C.heroPortrait(sc.hero)), bx = fu && !hr ? O.hero.left + hw + 4 : 0, bw = Math.min(RW, hr ? D.W - 16 - hw : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- the keepers' bust, its trial: clear of him)
+      BB = { x: hr ? D.W - 2 - hw - 6 - bw : bx || O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
     }
   }
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
@@ -656,7 +661,8 @@
       else if (g.face) C.drawUnitFace(ctx, sp.unit, g.left + 4, g.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, spL); // (no talking portrait yet: the face of the figure they wear)
       C.nameTag(ctx, sp && sp.name ? sp.name : this.o.name, g.cx, g.foot + 3);
       var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
-      var hsh = pt && D.SHEETS[pt], hfoot = BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
+      var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, a trial: &herofull -- C.heroFull)
+      var hsh = pt && D.SHEETS[pt], hfoot = hfu ? D.H - 14 : BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
       if (h && !w.noHero) {
         var bb = this.bubbling() ? bs.filter(function (q) { return q.bubble; }) : null, echo = !bb && w.say && this.echo;
         var bh = bb && bb.length ? bb[bb.length - 1].y + bb[bb.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;

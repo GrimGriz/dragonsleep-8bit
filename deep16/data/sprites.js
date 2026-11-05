@@ -15618,6 +15618,98 @@ false
 "source": "deep16/_src/lymen/HERO-DIALOGUE-1104/sources (the art desk's LYMEN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
 "flip": true
 },
+"pt_lymen_full": {
+"image": "art/pt_lymen_full.png?v=9b3252b301",
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 620,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"earnest": {
+"y": 775,
+"fw": 150,
+"fh": 155,
+"ax": 74,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "LYMEN",
+"door": "the company scene on &herofull, a trial (js/counter.js C.heroFull)",
+"source": "deep16/_src/lymen/HERO-DIALOGUE-1104/sources (the art desk's LYMEN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"flip": true
+},
 "pt_marin": {
 "image": "art/pt_marin.png?v=6cdba37aa1",
 "fw": 178,
