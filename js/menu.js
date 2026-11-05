@@ -129,11 +129,38 @@
       if (t.count != null) right(ctx, t.count, tx + each - 4, y + 1, on ? C.pale : C.dim);
     });
   }
-  function descBox(ctx, s, extra) {
-    win(ctx, 4, 196, 248, 40);
-    var ln = wrap(s, 236).concat(extra ? wrap(extra, 236) : []);
-    for (var i = 0; i < Math.min(3, ln.length); i++) text(ctx, ln[i], 10, 203 + i * 10, i >= wrap(s, 236).length ? C.green : C.tan);
+  // THE DESCRIPTION BOX: one box every description uses (11-05, the menus lane; Griz, 10-30: "why not build it so the current longest and forecasted longest are
+  // scrollable and suddenly the overflow ones don't?", and 11-05: "it won't hurt to make that box bigger, but also have right arrow drop you into the box to scroll if
+  // necessary, descriptions can get pretty long. Mousewheel on mouseover scroll also."): four lines (it was three), and a text longer than that scrolls -- the right
+  // arrow (the pad's too) drops the cursor into the box, up/down scroll it, left, X or E come back; the mouse wheel scrolls it while the pointer is over it. Nothing is
+  // cut, today's longest or any written later. Each page keeps its own box's place (OWNER._desc); a new row's words start at the top, the cursor back in the list.
+  // A right from inside the box goes on to the page (a page with tabs steps them: right twice, the next tab -- the seat's call, his to overrule)
+  var DBOX = { x: 4, y: 188, w: 248, h: 50, rows: 4, tx: 10, ty: 195, tw: 236, twS: 228 }, DLAST = null;
+  MN.DBOX = DBOX;
+  // the scrolling text in a box `g` ({ x, y, w, h: the box and where the mouse reads it; rows, tx, ty: the lines; tw, twS: the wrap, and the wrap with the bar }): parts
+  // [[words, colour]] one after another; `key` the words that, changed, put it back at the top. The page drawing it keeps its place (OWNER._desc); the menu reads DLAST
+  function scrollBox(ctx, g, parts, key) {
+    var st = OWNER ? (OWNER._desc || (OWNER._desc = { key: null, off: 0, focus: false, max: 0 })) : { key: null, off: 0, focus: false, max: 0 };
+    var lay = function (w) { var out = []; parts.forEach(function (p) { if (p[0]) wrap(p[0], w).forEach(function (l) { out.push([l, p[1]]); }); }); return out; };
+    var ln = lay(g.tw); if (ln.length > g.rows) ln = lay(g.twS); // (room at the right for the arrows and the bar)
+    var max = Math.max(0, ln.length - g.rows); key = String(key == null ? (parts[0] && parts[0][0]) || '' : key);
+    if (st.key !== key) { st.key = key; st.off = 0; st.focus = false; }
+    st.max = max; st.off = clamp(st.off, 0, max); st.lines = ln.map(function (l) { return l[0]; }); if (!max) st.focus = false;
+    for (var i = 0; i < g.rows && st.off + i < ln.length; i++) text(ctx, ln[st.off + i][0], g.tx, g.ty + i * 10, ln[st.off + i][1]);
+    if (max) {
+      var ac = st.focus ? C.gold : C.pale, ty = g.y + 5, th = g.h - 10, bh = Math.max(4, Math.round(th * g.rows / ln.length)), ax = g.x + g.w - 13, ay = g.ty + (g.rows - 1) * 10;
+      ctx.fillStyle = MID; ctx.fillRect(g.x + g.w - 6, ty, 1, th); // (the bar: where in the words the box stands)
+      ctx.fillStyle = ac; ctx.fillRect(g.x + g.w - 7, ty + Math.round((th - bh) * st.off / max), 3, bh);
+      if (st.focus) { if (st.off > 0) text(ctx, '▲', ax, g.ty, ac); if (st.off < max) text(ctx, '▼', ax, ay, ac); }
+      else if (st.off < max) text(ctx, '▶', ax, ay, ((MN.T || 0) >> 4) & 1 ? C.pale : C.gold); // (more: the right arrow reads it)
+    }
+    DLAST = { owner: OWNER, st: st, g: g };
   }
+  function descBox(ctx, s, extra) {
+    win(ctx, DBOX.x, DBOX.y, DBOX.w, DBOX.h);
+    scrollBox(ctx, DBOX, [[s, C.tan], [extra, C.green]], s || '');
+  }
+  MN.descOf = function (page) { return page && page._desc || null; }; // (dev/bench16.js mode=descbox1105)
   function footer(ctx, s, y) { DS.textCenter(ctx, DS.keys ? DS.keys(s) : s, 128, y || 228, C.dim); }
 
   // ------------------------------------------------------------------ the menu
@@ -154,18 +181,32 @@
     if (this.busy || this.closed) return;
     // the mouse (a host that has one: k.mouse = { x, y, moved, click, rclick } in the menu's own 256x240): pointing at a row of the page on top moves the
     // cursor there, a click is E on it, a right click is X
+    var dsc = DLAST && DLAST.owner === this.top() && this.root.mode !== 'pick' ? DLAST.st : null, inBox = false; // (the description box the page on top drew: descBox)
     if (k.mouse && !this.toast) {
       var ms = k.mouse, top = this.root.mode === 'pick' ? null : this.top(), hit = null;
       if (top) for (var hi = this.hits.length - 1; hi >= 0; hi--) { var hh = this.hits[hi]; if (hh.owner === top && ms.x >= hh.x && ms.x < hh.x + hh.w && ms.y >= hh.y && ms.y < hh.y + hh.h) { hit = hh; break; } }
       if (hit && hit.tab != null) { if (ms.click) TABCLICK = hit.tab; } // (a tab: the page's tabStep takes it -- above)
       else if (hit && (ms.moved || ms.click) && hit.list.i !== hit.k) { hit.list.i = hit.k; hit.list.fix(); }
+      // (the pointer down into the description box crosses the rows under the one it was reading, and each took the cursor: in the box, the row the cursor last rested
+      // on is back, so the wheel there reads its words -- 11-05)
+      this.still = ms.moved ? 0 : (this.still || 0) + 1;
+      var gb = dsc && DLAST.g; inBox = !!gb && ms.x >= gb.x && ms.x < gb.x + gb.w && ms.y >= gb.y && ms.y < gb.y + gb.h;
+      var rl = top && top.list;
+      if (inBox && !this.inBox && this.rest && this.rest.list === rl && rl.i !== this.rest.k && this.rest.k < rl.items.length) { rl.i = this.rest.k; rl.fix(); }
+      else if (rl && this.still >= 6 && !inBox) this.rest = { list: rl, k: rl.i };
+      this.inBox = inBox;
+      if (dsc && dsc.focus && ms.click && hit) dsc.focus = false; // (a click on a row or a tab: out of the box, and the click goes on)
       if (ms.click && hit && hit.tab == null) k = MN.keyAlso(k, 'a');
       else if (ms.rclick) k = MN.keyAlso(k, 'b');
     }
     // (a click or a right click lets a message go, as E or X does -- 10-14, Griz: "right-click as esc after confirmation click text shows (also on misclick for spell choice)")
     if (this.toast && k.mouse && (k.mouse.click || k.mouse.rclick)) k = MN.keyAlso(k, 'a');
     if (this.toast) { if (k.pressed('a') || k.pressed('b')) { sfx('confirm'); var th = this.toast.then; this.toast = null; if (th) th(); } return; }
-    if (k.mouse && k.mouse.wheel && this.root.mode !== 'pick') { var tw = this.top(); if (tw && tw.list && tw.list.wheel) tw.list.wheel(k.mouse.wheel > 0 ? 1 : -1); } // (the wheel scrolls the page's rows, 10-14)
+    if (k.mouse && k.mouse.wheel && this.root.mode !== 'pick') {
+      var tw = this.top();
+      if (inBox && dsc.max > 0) { var o0 = dsc.off; dsc.off = clamp(dsc.off + (k.mouse.wheel > 0 ? 1 : -1), 0, dsc.max); if (dsc.off !== o0) sfx('cursor'); } // (over the box: its words, 11-05)
+      else if (tw && tw.list && tw.list.wheel) tw.list.wheel(k.mouse.wheel > 0 ? 1 : -1); // (the wheel scrolls the page's rows, 10-14)
+    }
     // the party panel when it asks WHO (EQUIP WHOM?, WHO CASTS?): the mouse over a card points at it, a click is E, the wheel walks the party (10-17, Griz: "mouse
     // stops working on 'menu' after you click equip (have to keyboard - need mousewheel through party")
     if (k.mouse && !this.toast && this.root.mode === 'pick' && this.root.pick) {
@@ -175,13 +216,22 @@
       if (rt.pi !== p0) { sfx('cursor'); if (rt.pi < rt.ps) rt.ps = rt.pi; if (rt.pi >= rt.ps + 4) rt.ps = rt.pi - 3; }
     }
     if (this.root.mode === 'pick') { this.root.update(k); return; } // (the cursor kicked into the panel, over whatever page asked)
+    // the description box's keys (descBox, 11-05): in it, up/down scroll, left, X or E come back, a fresh right goes on to the page; out of it, a right on words
+    // longer than the box drops the cursor in
+    if (dsc && dsc.focus) {
+      if (k.repeat('down') && dsc.off < dsc.max) { dsc.off++; sfx('cursor'); }
+      if (k.repeat('up') && dsc.off > 0) { dsc.off--; sfx('cursor'); }
+      if (k.pressed('a') || k.pressed('b') || k.pressed('left')) { dsc.focus = false; sfx('cancel'); return; }
+      if (!k.pressed('right')) return;
+      dsc.focus = false;
+    } else if (dsc && dsc.max > 0 && k.pressed('right')) { dsc.focus = true; sfx('cursor'); return; }
     this.top().update(k);
   };
   // a key pressed as well as what the host's keys say (the mouse's click as E)
   MN.keyAlso = function (k, b) { return { pressed: function (x) { return x === b || k.pressed(x); }, repeat: function (x) { return x === b || k.repeat(x); } }; };
   Menu.prototype.draw = function (ctx) {
     var self = this;
-    HITS = []; OWNER = this.root;
+    HITS = []; OWNER = this.root; DLAST = null; MN.T = this.t;
     this.root.draw(ctx);
     this.pages.forEach(function (p) { OWNER = p; p.draw(ctx, p === self.top() && self.root.mode !== 'pick'); });
     OWNER = null; this.hits = HITS;
@@ -342,7 +392,7 @@
     return -1; // (what is worn or wielded, and the ammunition: GEAR)
   }
   MN.itemTab = itemTab;
-  function ItemsPage(m) { this.m = m; this.list = new List({ visible: 13 }); this.tab = 0; var self = this, pack = m.host.pack(); for (var t = 0; t < 4; t++) if (pack.some(function (s) { return itemTab(item(s.id)) === t; })) { this.tab = t; break; } this.refresh(); }
+  function ItemsPage(m) { this.m = m; this.list = new List({ visible: 12 }); this.tab = 0; var self = this, pack = m.host.pack(); for (var t = 0; t < 4; t++) if (pack.some(function (s) { return itemTab(item(s.id)) === t; })) { this.tab = t; break; } this.refresh(); }
   // the ring's entry for a thing in the pack (the grid's ITEM list: battle.js itemList -- its ok and its why), or null
   function ringItem(m, id) { var l = ringOf(m, 'items'); return l ? l.filter(function (e) { return e.id === id; })[0] || null : null; }
   ItemsPage.prototype.refresh = function () {
@@ -381,7 +431,7 @@
   };
   ItemsPage.prototype.draw = function (ctx, active) {
     var self = this;
-    win(ctx, 2, 2, 252, 192);
+    win(ctx, 2, 2, 252, 184);
     drawTabs(ctx, ITEM_TABS.map(function (t, i) { return { label: t.label, glyph: t.glyph, count: self.counts[i] }; }), this.tab, 8, 9, 240);
     if (!this.list.items.length) text(ctx, 'Nothing of this kind.', 24, 32, C.grey);
     this.list.draw(ctx, 10, 30, 234, active, this.m.t, 12, 9);
@@ -394,7 +444,7 @@
   // ------------------------------------------------------------------ GEAR: to look at, tabs by kind; equipping is EQUIP's
   var GEAR_TABS = [{ label: 'WEAPONS', glyph: 'sword', kinds: ['weapon'] }, { label: 'ARMOR', glyph: 'armor', kinds: ['armor'] }, { label: 'OFFHAND', glyph: 'shield', kinds: ['shield'], off: true }, // (OFFHAND, RULED 10-15: the shields, the weapons worn in the off hand, the lights -- R.offhandOf)
     { label: 'RINGS', glyph: 'ring', kinds: ['ring'] }, { label: 'CLOAKS', glyph: 'cloak', kinds: ['cloak'] }, { label: 'MISC', glyph: 'boot', kinds: ['worn'] }, { label: 'AMMO', glyph: 'arrow', kinds: ['ammo'] }];
-  function GearPage(m) { this.m = m; this.tab = 0; this.list = new List({ visible: 13 }); this.refresh(); }
+  function GearPage(m) { this.m = m; this.tab = 0; this.list = new List({ visible: 12 }); this.refresh(); }
   GearPage.prototype.refresh = function () {
     var host = this.m.host, tab = GEAR_TABS[this.tab], rows = [];
     host.pack().forEach(function (s) { var it = item(s.id); if (it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'x' + s.n, value: s.id }); });
@@ -424,7 +474,7 @@
   };
   GearPage.prototype.draw = function (ctx, active) {
     var self = this, host = this.m.host;
-    win(ctx, 2, 2, 252, 192);
+    win(ctx, 2, 2, 252, 184);
     drawTabs(ctx, GEAR_TABS.map(function (t, i) { return { label: i === self.tab ? t.label : '', glyph: t.glyph }; }), this.tab, 8, 9, 240);
     if (!this.list.items.length) text(ctx, 'None in the pack, none worn.', 24, 32, C.grey);
     this.list.draw(ctx, 10, 30, 234, active, this.m.t);
@@ -433,7 +483,7 @@
       var who = host.party().filter(function (h) { return R().canEquip(h, it); }).map(function (h) { return h.name; });
       descBox(ctx, it.desc || '', (it.attune ? 'Wants a bond (attunement). ' : '') + (who.length === host.party().length ? '' : who.length ? 'For ' + who.join(', ') + '.' : 'No one here can use it.'));
     } else descBox(ctx, '◀ ▶ the kinds.');
-    if (it && !host.fight) footer(ctx, cur.who ? 'E: ' + cur.who.name + '\'s EQUIP' : 'E: who wears it', 186);
+    if (it && !host.fight) footer(ctx, cur.who ? 'E: ' + cur.who.name + '\'s EQUIP' : 'E: who wears it', 174);
   };
 
   // ------------------------------------------------------------------ spells: what a hero has to cast from, and their colours
@@ -457,7 +507,7 @@
   // (in a fight with the ring's lists -- the grid's -- the page is the ring's SPELLS for the one whose turn it is, a tab a level: each lit as the ring lights it, its why
   // when not, and E on it is the ring's own aim at the slot the ring starts at; 10-07, his find on the grid's menu, "doesn't work for ... magic")
   function MagicPage(m, h) {
-    this.m = m; this.h = h; this.ring = ringOf(m, 'spells'); this.tab = 0; this.list = new List({ visible: 11 });
+    this.m = m; this.h = h; this.ring = ringOf(m, 'spells'); this.tab = 0; this.list = new List({ visible: 10 });
     this.levels = this.ring ? this.ring.map(function (e) { return e.level || 0; }).filter(function (lv, i, a) { return a.indexOf(lv) === i; }).sort(function (a, b) { return a - b; }) : levelsOf(h);
     if (this.ring) { var self = this; this.ring.some(function (e) { if (e.ok) { self.tab = self.levels.indexOf(e.level || 0); return true; } return false; }); } // (the first tab with something to cast)
     this.refresh();
@@ -528,12 +578,12 @@
   };
   MagicPage.prototype.draw = function (ctx, active) {
     var h = this.h, self = this;
-    win(ctx, 2, 2, 252, 192);
+    win(ctx, 2, 2, 252, 184);
     text(ctx, h.name, 10, 9, C.gold); right(ctx, h.slotsMax && h.slotsMax.length ? 'slots ' + (h.slots || []).map(function (n, q) { return n + '/' + h.slotsMax[q]; }).join(' ') : '', 246, 9, C.magic);
     drawTabs(ctx, this.levels.map(function (lv) { return { label: lv ? 'L' + lv : 'C' }; }), this.tab, 8, 22, Math.min(240, this.levels.length * 34));
     text(ctx, lvWord(this.levels[this.tab]), 10, 38, C.pale);
     this.list.draw(ctx, 10, 52, 234, active, this.m.t);
-    if (this.ring) costKey(ctx, 10, 184); else legend(ctx, 184);
+    if (this.ring) costKey(ctx, 10, 174); else legend(ctx, 174); // (one row up for the description box's fourth line, 11-05)
     var cur = this.list.cur();
     if (cur && cur.ring) descBox(ctx, cur.desc, cur.disabled ? 'Not now: ' + (cur.value.why || 'not now') + '.' : 'E: cast it -- aimed as the ring aims.');
     else descBox(ctx, cur ? (cur.value.desc || '') : '', cur && !cur.ready ? 'Not prepared today.' : '');
@@ -660,7 +710,7 @@
   };
   PickPage.prototype.draw = function (ctx, active) {
     var h = this.h, t = this.tabs[this.tab], g = t && t.g, self = this;
-    win(ctx, 2, 2, 252, 192);
+    win(ctx, 2, 2, 252, 184);
     var spr = null; try { spr = this.m.host.walker && this.m.host.walker(h); } catch (e) { spr = null; }
     if (spr) ctx.drawImage(spr, 232, 4, Math.min(16, spr.width), Math.min(24, spr.height));
     text(ctx, h.name, 10, 9, C.gold); text(ctx, this.rec.start ? clsName(h) + ' ' + h.lvl + ' -- ' + this.rec.start : clsName(h) + ' ' + this.rec.lvl + ' -- LEVEL UP', 12 + DS.textWidth(h.name) + 6, 9, C.pale); // (a hero's first choices, asked as it joins or begins: js/rules.js R.askStart, 11-03)
@@ -681,7 +731,7 @@
       HITS.push({ list: this.list, k: 0, owner: OWNER, x: 150, y: 6, w: 76, h: 12 });
     }
     var def = this.groups.some(function (x) { return x.ask.took != null; }); // (an archetype comes with nothing marked: the player's choice, RULED 09-24)
-    text(ctx, '◆', 10, 184, C.gold); text(ctx, def ? 'marked  ·  the build\'s picks come marked' : 'marked  ·  nothing comes marked: yours to choose', 20, 184, C.dim);
+    text(ctx, '◆', 10, 174, C.gold); text(ctx, def ? 'marked  ·  the build\'s picks come marked' : 'marked  ·  nothing comes marked: yours to choose', 20, 174, C.dim);
     var cur = this.list.cur();
     if (!cur) return;
     var nxD = this.unseen();
@@ -743,9 +793,9 @@
   };
   SkillsPage.prototype.draw = function (ctx, active) {
     var n = Math.max(1, Math.min(this.list.vis, this.list.items.length)), hh = 26 + n * 24; // (the ring's SKILLS may run past five: the list scrolls)
-    win(ctx, 16, 50, 224, hh);
-    text(ctx, this.h.name + ': SKILLS', 24, 57, C.gold);
-    this.list.draw(ctx, 22, 72, 208, active, this.m.t, 24);
+    win(ctx, 16, 36, 224, hh); // (up 14 for the description box's fourth line, 11-05)
+    text(ctx, this.h.name + ': SKILLS', 24, 43, C.gold);
+    this.list.draw(ctx, 22, 58, 208, active, this.m.t, 24);
     // what the one under the cursor does, in full, greyed or not (10-07, Griz, in a fight: "I was trying to find the feat descrip for social flame" -- a greyed
     // entry's line is why not, so its words were nowhere): the ring's note, and E's word when it can be used
     var cur = this.list.cur();
@@ -1031,6 +1081,8 @@
   };
 
   // ------------------------------------------------------------------ JOURNAL: open, done (his: "extra tab to stow completed"), the talk
+  var JBOX = { x: 6, y: 146, w: 244, h: 78, rows: 7, tx: 12, ty: 153, tw: 230, twS: 222 }; // (the mission's words: scrollBox, above the footer)
+  MN.JBOX = JBOX;
   function JournalPage(m) { this.m = m; this.tab = 0; this.list = new List({ visible: 9 }); this.scroll = 0; this.refresh(); var j = m.host.journal(), self = this; (j.quests || []).forEach(function (q) { if (!q.done && q.id === j.pin) self.list.i = self.list.items.map(function (x) { return x.value; }).indexOf(q); }); this.list.fix(); }
   JournalPage.prototype.refresh = function () {
     var j = this.m.host.journal(), tab = this.tab;
@@ -1063,9 +1115,10 @@
       var cur = this.list.cur(), q = cur && cur.value;
       win(ctx, 6, 146, 244, 90);
       if (q) {
-        var yy = 153;
-        wrap(q.done ? (q.doneText || 'Done.') : q.text, 230).slice(0, 5).forEach(function (l) { text(ctx, l, 12, yy, q.done ? C.grey : C.tan); yy += 10; });
-        if (!q.done && q.where) wrap('NEXT: ' + q.where, 230).slice(0, 2).forEach(function (l) { text(ctx, l, 12, yy + 2, C.green); yy += 10; });
+        // (the mission's words and its NEXT in the one scrolling box -- seven lines, then the right arrow or the wheel reads on; 11-05, the Five's pay split ran past the
+        // five lines this box cut at)
+        var qt = q.done ? (q.doneText || 'Done.') : q.text;
+        scrollBox(ctx, JBOX, [[qt, q.done ? C.grey : C.tan], [!q.done && q.where ? 'NEXT: ' + q.where : '', C.green]], q.id + '|' + qt);
         footer(ctx, q.done ? 'X: back' : j.pin === q.id ? 'E: unpin   X: back' : 'E: pin (a marker shows the way)   X: back', 226);
       }
     } else {
