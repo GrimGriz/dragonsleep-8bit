@@ -147,6 +147,29 @@ def notes_by_fight():
 
 
 FIGHT_NOTES = None
+SIZE_WORD = {2: 'Large', 3: 'Huge', 4: 'Gargantuan'}
+
+
+def squares_line(ts):
+    """a turn's start (deep16/js/record.js turnStart): each foe's and ally's square, size, distance and sight, one line (11-05, Griz: "go on attacker location to record")"""
+    def one(w):
+        s = '%s %s' % (w.get('name') or w.get('id'), ','.join(str(v) for v in (w.get('at') or [])))
+        if (w.get('size') or 1) > 1: s += ' ' + SIZE_WORD.get(min(4, w['size']), 'size %s' % w['size'])
+        if w.get('dist') is not None: s += ' %s ft' % w['dist']
+        if w.get('seen') is False: s += ' unseen'
+        return s
+    foes, allies = ts.get('foes') or [], ts.get('allies') or []
+    return '      SQUARES  foes: %s   allies: %s' % (' | '.join(one(w) for w in foes) or '-', ' | '.join(one(w) for w in allies) or '-')
+
+
+def with_squares(tr, steps):
+    """the transcript with a SQUARES line under each turn's == header: the record writes one header for each step with a turnStart, in their order"""
+    starts, out, i = [s['turnStart'] for s in steps if isinstance(s, dict) and s.get('turnStart')], [], 0
+    for t in tr:
+        t = str(t); out.append(t)
+        if t.startswith('== R') and i < len(starts):
+            out.append(squares_line(starts[i])); i += 1
+    return out
 
 
 def text_of(r, c, where):
@@ -164,8 +187,8 @@ def text_of(r, c, where):
     if r.get('errors'): L.append('RECORD ERRORS: ' + json.dumps(r.get('errors'), ensure_ascii=False))
     tr = r.get('transcript') or []
     if tr:
-        L.append("--- TRANSCRIPT (lines above a turn's == header belong to THAT turn)")
-        L.extend(str(t) for t in tr)
+        L.append("--- TRANSCRIPT (lines above a turn's == header belong to THAT turn; SQUARES under it: everyone's square as that turn began, the distance from the one whose turn it is)")
+        L.extend(with_squares(tr, r.get('steps') or []))
     else:
         L.append('--- (no transcript -- the log:)')
         L.extend(str(t) for t in r.get('log') or [])

@@ -28,6 +28,7 @@
   }
   function brief(B, w, u) {
     var o = { id: w.id, name: w.name, at: [w.x, w.y], hp: w.hp, maxhp: w.maxhp, conds: Object.keys(w.conds || {}) };
+    if ((w.size || 1) > 1) o.size = w.size; // (a big one's squares from its corner: dev/records.py prints it with the square, 11-05)
     if (u) { o.dist = G.dist(u, w); try { o.seen = !!D.magic.sees(B, u, w); } catch (e) { /* (the sight question can't be asked here) */ } }
     return o;
   }

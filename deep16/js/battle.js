@@ -550,11 +550,12 @@
   // ------------------------------------------------------------------ cards: every roll on screen, the 8-bit game's CheckScene in small
   // a card with an id updates in place (an attack's card grows as the reactions and the damage come in), in the log too:
   // the log keeps { id, text } so an update replaces its own lines even after the screen's cards were cleared
+  // (this.logTail[id]: words the log and the play record keep after a card's head line and the screen does not show -- a foe's attack's squares and sizes, Battle.atkTail; 11-05)
   Battle.prototype.card = function (lines, life, id) {
-    var round = this.round, ls = [].concat(lines), last = this.cards[this.cards.length - 1];
+    var round = this.round, ls = [].concat(lines), last = this.cards[this.cards.length - 1], lt = id != null && this.logTail ? this.logTail[id] : null;
     if (D.STREAM) ls = RU.streamLines(ls); // (the stream, 10-07: names and numbers, no dice -- js/rules.js RU.streamLines; &stream or ?gameshow, js/core.js D.STREAM)
     this.logEntries = (this.logEntries || []).filter(function (e) { return !id || e.id !== id; });
-    ls.forEach(function (l) { if (l) this.logEntries.push({ id: id, text: 'R' + round + ' ' + window.DS.stripCodes(l) }); }, this);
+    ls.forEach(function (l, k) { if (l) this.logEntries.push({ id: id, text: 'R' + round + ' ' + window.DS.stripCodes(l) + (k === 0 && lt ? lt : '') }); }, this);
     this.log = this.logEntries.map(function (e) { return e.text; });
     if (id && last && last.id === id) { last.lines = ls; last.t0 = this.t; return; }
     this.cards.push({ lines: ls, t0: this.t, life: this.pace(life || 300), id: id }); // (the message's time: D.PACE, whoever's turn -- Battle.prototype.pace)
@@ -2330,6 +2331,7 @@
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     this.spendThrow(att, atk); // (out of the hand, hit or miss)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
+    if (att.side === 'foe') (this.logTail = this.logTail || {})[cid] = Battle.atkTail(att, tgt, atk, melee); // (the log's: where each stood, 11-05)
     this.turnTo(att, faceTo(att, tgt));
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
     // (o.ride: a blow riding the one before it in one move -- the Grey Road's Sweep the Ring and Covering Volley, 10-08: the row plays once, its second and third blows land on it)
@@ -3115,6 +3117,17 @@
     }
   };
   function nameOf(u) { return u.side === 'foe' ? u.name : u.name; }
+  // a foe's attack as the log and the play record keep its head (11-05, Griz: "might be worth while to record attacker coordinates in the fights?", then "go on attacker location
+  // to record"): after the head, "Crawler > Vivian  Feelers  (Crawler at 7,27, Large; Vivian at 6,26; reach 10 ft, 10 ft off)" -- each one's square (a big one's by its least x and
+  // y, the grid's own), its size past Medium, the blow's reach or the shot's range, and the distance between them as the grid counts it. The head itself as ever (the benches and
+  // the readers find a blow by "X > Y"); the card on the screen keeps its short head (Battle.card's logTail)
+  Battle.SIZE_WORD = { 2: 'Large', 3: 'Huge', 4: 'Gargantuan' };
+  Battle.atkTail = function (att, tgt, atk, melee) {
+    var sq = function (u) { var s = u.size || 1; return window.DS.stripCodes(String(nameOf(u))) + ' at ' + u.x + ',' + u.y + (s > 1 ? ', ' + Battle.SIZE_WORD[Math.min(4, s)] : ''); };
+    var reach = melee ? (atk.reach || (atk === att.weapon ? G.armOf(att) : G.reachOf(att, null))) : 0, rg = !melee && atk.range ? [].concat(atk.range).join('/') + ' ft' : '';
+    var ft = '?'; try { ft = G.dist(att, tgt); } catch (e) { /* (a thing with no square of its own) */ }
+    return '  (' + sq(att) + '; ' + sq(tgt) + '; ' + (melee ? 'reach ' + reach + ' ft, ' : rg ? 'range ' + rg + ', ' : '') + ft + ' ft off)';
+  };
   // a unit the AI runs (a foe, a guest, a hero on the bench): its reactions are decided, never asked (09-28, the class NPCs)
   function byAI(u) { return u.side !== 'party' || !!u.guest; }
   function M16() { return D.magic; }
