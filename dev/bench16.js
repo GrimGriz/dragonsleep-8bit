@@ -8302,17 +8302,18 @@
         m5 instanceof HV.Morning && MV.seepPhase(d5) === 'night' && h5 === 7 && MV.seepPhase(h5) === 'day' && !dark5 && card5.indexOf(MV.seepLine(7)) >= 0);
       // 6. TELL ME ABOUT IT ON THE FIRST SCREEN (his "tell me more was absent from Skarn, and appears when it shouldn't - still appears rather. It's associated with their first page,
       // carrying into the ned conversation (for example) makes it seem like the 'tell me more' function will include 'more' about current dialogue"): Skarn has it; it stands on a
-      // keeper's first screen and that screen again, never on a later page of what they say
+      // keeper's first screen and that screen again, never on a later page of what they say. (11-05, his 10-30 rule built -- js/hours.js H16.TELL_RULE: a later screen that leaves
+      // something out carries its own, its `tell`, +TELL here: Skarn's job and its two purses; the keeper's own trade, +ABOUT, still the first screen's alone)
       var B6 = testV('?roam=warrens&flags=tallyMet'), g6 = MV.talk(B6, 'skarn'); driveV(g6, function () { return D.top() instanceof CV.Counter; }, 200); var sc6 = D.top(), sk6 = [];
-      for (var k6 = 0; k6 < 12 && sc6 instanceof CV.Counter && !sc6.done; k6++) { var w6 = sc6.wait || {}; sk6.push((w6.ask ? 'ask' : 'say') + (aboutV(sc6) ? '+ABOUT' : '')); var bs6 = sc6.buttons(); sc6.press(w6.ask ? bs6.filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : bs6.filter(function (b) { return b.go === 'next'; })[0]); }
+      for (var k6 = 0; k6 < 12 && sc6 instanceof CV.Counter && !sc6.done; k6++) { var w6 = sc6.wait || {}; sk6.push((w6.ask ? 'ask' : 'say') + (aboutV(sc6) ? (w6.tell ? '+TELL' : '+ABOUT') : '')); var bs6 = sc6.buttons(); sc6.press(w6.ask ? bs6.filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : bs6.filter(function (b) { return b.go === 'next'; })[0]); }
       HV.begin(HV.fresh(), 0); var BN = topV(); D.battle = BN; var gN = CV.talk(BN, 'ned'); /* (a NEW GAME's four: Ned talks with Aurdin) */ driveV(gN, function () { return D.top() instanceof CV.Counter; }, 400); var scN = D.top(), seenN = [], laterN = 0, firstN = null;
       for (var kN = 0; kN < 14 && scN instanceof CV.Counter && !scN.done; kN++) {
         var wN = scN.wait || {}, keyN = JSON.stringify([wN.say || null, wN.ask || null]), abN = aboutV(scN); if (firstN == null) firstN = keyN;
         seenN.push((keyN === firstN ? 'first' : 'later') + (abN ? '+ABOUT' : '')); if (keyN !== firstN && abN) laterN++;
         var bsN = scN.buttons(), opN = bsN.filter(function (b) { return b.go === 'opt'; }), nxN = bsN.filter(function (b) { return b.go === 'next'; })[0]; scN.press(opN.length ? opN[opN.length - 1] : nxN || bsN[0]); // (the last answer each time: NO, then LEAVE)
       }
-      okV('TELL ME ABOUT IT: Skarn\'s screens ' + sk6.join(', ') + ' (on his first, and no later); Ned\'s ' + seenN.join(', ') + ' (later screens with it: ' + laterN + ')',
-        sk6.length > 1 && /\+ABOUT$/.test(sk6[0]) && sk6.slice(1).every(function (s) { return !/ABOUT/.test(s); }) && /^first\+ABOUT/.test(seenN[0] || '') && seenN.some(function (s) { return /^later/.test(s); }) && laterN === 0 && !!H6V.ABOUT.skarn);
+      okV('TELL ME ABOUT IT: Skarn\'s screens ' + sk6.join(', ') + ' (his trade on his first, and no later; the job\'s own on the job); Ned\'s ' + seenN.join(', ') + ' (later screens with it: ' + laterN + ')',
+        sk6.length > 1 && /\+ABOUT$/.test(sk6[0]) && sk6.slice(1).every(function (s) { return !/ABOUT/.test(s); }) && /\+TELL$/.test(sk6[sk6.length - 1]) && /^first\+ABOUT/.test(seenN[0] || '') && seenN.some(function (s) { return /^later/.test(s); }) && laterN === 0 && !!H6V.ABOUT.skarn);
       HV.playing = false; HV.cur = null; D.scenes.length = 0;
       // 7. THE ONE BEHIND A WALL (his "simple fight enemies hard to target behind walls - transparency on targeting mouseover?"): a wall counts as cover in the x-ray, so a foe mostly
       // behind one shows through as its red outline; the one the mouse means is drawn whole through it, see-through

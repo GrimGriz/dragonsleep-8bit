@@ -421,6 +421,8 @@
     return done;
   };
   M.later = function (B, fn) { if (B.roam) (B.roam.later = B.roam.later || []).push(fn); };
+  // a screen's own TELL ME ABOUT IT (js/hours.js H16.TELL_RULE: it answers what that screen left out): the words of text key `k` on what a scene yields, sc.say's or sc.ask's
+  M.tell = function (w, k) { var t = k ? [].concat(L(k)).filter(Boolean) : []; if (w && t.length) w.tell = t; return w; };
   // a talk entry of theirs (the first game's EV.dialog: the first whose condition holds, with its doing), as lines
   M.words = function (B, id) { return D.counter.words(B, id); };
   var kills = function (B, k) { return ((B.roam && B.roam.kills) || {})[k] || 0; };
@@ -433,14 +435,16 @@
     // slave, and you meet the Champion). Work past the pens is the five, so it opens them (fiveBy: who told it -- js/hours.js the Missing Five's words). The words js/hours.js H16.TEXT
     skarn: function* (sc, B) {
       var st = sc.st, f = st.flags;
-      if (f.fiveDone && !f.skarnPaid) { f.skarnPaid = 1; yield sc.say(L(f.stockDead ? 'w.skarnAfterDead' : 'w.skarnAfter')); if (!f.stockDead) { st.silver(60); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 60 })); } return; }
+      // (paid, or not: TELL ME ABOUT IT on his words and on the "+60 silver" says the two purses and what the herd is -- 11-05, Tuesday 7, his "really wish 'tell me more'
+      // worked on whatever the heck Skarn just said - what's the official quest reward, why are we splitting payout?"; js/hours.js H16.TELL_RULE)
+      if (f.fiveDone && !f.skarnPaid) { f.skarnPaid = 1; var tk = f.stockDead ? 'w16.skarnTellDead' : 'w16.skarnTellPaid'; yield M.tell(sc.say(L(f.stockDead ? 'w.skarnAfterDead' : 'w.skarnAfter')), tk); if (!f.stockDead) { st.silver(60); D.sfx('coin'); yield M.tell(sc.say(L('g.foundSilver', { n: 60 })), tk); } return; }
       if (!f.skarnOk) {
         var carry = M.fiveOpen(f);
         yield sc.say(L('w.skarnFirst'));
         var a = yield sc.ask(L('w16.skarnSay'), [L(carry ? 'w16.skarnAskFive' : 'w16.skarnAskWork'), L('w16.skarnRude')]);
         if (a === 1) { yield sc.say(L('w.skarnChampion')); return; }
         f.skarnOk = 1; if (!carry) { f.heardFive = 1; f.fiveBy = 'skarn'; }
-        yield sc.say(L(carry ? 'w16.skarnFive' : 'w16.skarnWork')); return;
+        yield M.tell(sc.say(L(carry ? 'w16.skarnFive' : 'w16.skarnWork')), 'w16.skarnTellJob'); return; // (the job and its pay: TELL ME ABOUT IT, the two purses and the herd before he has named it -- the lane's section 15 item 3)
       }
       yield sc.say(L('w.skarnAgain'));
     },

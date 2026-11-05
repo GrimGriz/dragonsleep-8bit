@@ -1320,11 +1320,23 @@
     'w16.skarnSay': 'He looks at you and waits. What do you say?',
     'w16.skarnAskFive': 'PETE\'S FIVE. WHERE DID THEY GO DOWN?', 'w16.skarnAskWork': 'ANY WORK BESIDES THE CRADLES?', 'w16.skarnRude': 'OPEN UP, COLLAR.',
     // (the pay in his own words as he gives the job -- RULED 10-31, Tuesday 7, his "Skarn split to be included in mission giving text more explicitly"; H16.FIVE_PAY the JOURNAL's)
-    'w16.skarnFive': ['"Past the wet, after leavings. Six went down, and one came up: Pete."', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up. Edric can close his book."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
-    'w16.skarnWork': ['"Past the pens there\'s one job, and nobody takes it."', 'Five names in Edric\'s book have no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
+    // (his question in his own voice since 11-05 -- section 15 item 2 of the Silverton lane, Griz: "'tells you about what he wants to know?' - skarn (shouldn't he just say the things?)")
+    'w16.skarnFive': ['"Past the wet, after leavings. Six went down, and one came up: Pete."', '"And find out one thing for me down there: why the deep rate is three silver. It was two, till the deep-margin scare."', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up. Edric can close his book."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
+    'w16.skarnWork': ['"Past the pens there\'s one job, and nobody takes it."', 'Five names in Edric\'s book have no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.', '"And find out one thing for me down there: why the deep rate is three silver. It was two, till the deep-margin scare."', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
     'w16.edricFive': ['He turns back a page. "Five names in this book have no return line. Warrens Pete\'s crew, gone down past the wet after leavings, and Pete came up alone."', '"Bring me their tokens and the book pays fifty silver to close. Skarn pays his own out of the office box."'],
     'w16.edricSkarn': ['"Skarn holds the gate to where they went. Ask him, not me."'],
-    'w16.edricAfter': ['"Five return lines. The book balances, for once."'], 'w16.edricOffice': ['"Skarn pays for it out of the office box. Tell him yourself."'] };
+    'w16.edricAfter': ['"Five return lines. The book balances, for once."'], 'w16.edricOffice': ['"Skarn pays for it out of the office box. Tell him yourself."'],
+    // SKARN'S TELL ME ABOUT IT on the screens that leave it out (11-05, Tuesday 7 -- his "what's the official quest reward, why are we splitting payout?" -- and the Silverton lane's
+    // section 15 item 3, "Skarn with 'the herd stands' without having killed a single crawler, I don't know what he's talking about - might add intro text or 'tell me about it'
+    // text earlier"): as he gives the job, and on the "+60 silver" that pays it, who pays what and why there are two purses, and what the herd is. The seat's drafts by
+    // TarlynsPit/wiki/the-warrens.md (the Warrener Thrane's bought face; the fork is the stock: live stock, the council; dead, Captain Dunmore's stable), invented.json skarn-tell-1105
+    'w16.skarnTellJob': ['"Two purses, because two people lost those five. Edric keeps the book at the tally-house: he pays fifty silver to close their names, and a page of Pete\'s he\'s been holding."',
+      '"The office box is the House\'s -- Thrane\'s house, that owns the Warrens, and me. It pays sixty if the herd stands: the six crawlers in the settling pools of the Wet, the stock the hands milk. Kill all six getting through, and the box pays nothing."',
+      '"The deep rate is what a hand gets for a thimble milked below the wet. The House doesn\'t raise a rate for nothing. Something down there scared the crews."'],
+    'w16.skarnTellPaid': ['"Two purses. Edric\'s book paid for its names. The box pays for the herd: the six crawlers in the Wet are the House\'s stock, and you left them standing."',
+      '"Live stock, and the House takes its trouble to the council, quietly. Dead stock, and it would have hired Captain Dunmore\'s fighters to stand on my bridge for whoever killed it -- and the box would pay nobody."'],
+    'w16.skarnTellDead': ['"The herd was the House\'s stock: the six crawlers in the Wet. They\'re dead, so the office box pays nothing. Edric\'s book still pays for its names."',
+      '"I sent the lantern-token up the road. The House answers a dead herd with Captain Dunmore\'s stable: fighters across my bridge, for whoever killed it."'] };
   if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
 
   // ---------------------------------------------------------------- TELL ME ABOUT IT (RULED 10-28, his "TELL ME ABOUT IT", on the window's lean, after his "check with the story lane
@@ -1332,6 +1344,13 @@
   // own -- on a question beside its answers, on words beside their OK -- that says, in one or two plain sentences, what their trade is for here and why the party would want it;
   // asked again it says the same, and the screen goes back to where it was (no answer of the keeper's script moves: the button is the screen's, js/counter.js Counter). Mouse
   // first, as every button. Each line the window's draft against the register (the first game's records, the realm's pages), invented.json about-<id>
+  // THE RULE (RULED 10-30, Griz on the Hex's spiral: "when applicable, 'tell me about it' should cover the text being presented or absent (i.e. you catch hell then they buy you
+  // rounds) has tell me about it, could explain the crowd gives you a hard time and then welcomes you back - or continue to remove tell me more other than when the main text
+  // describes their job/position/reason d'etre"; built 11-05 on Skarn's split, Tuesday 7: "really wish 'tell me more' worked on whatever the heck Skarn just said - what's the
+  // official quest reward, why are we splitting payout?"): H16.TELL_RULE, the lane's words for every talk after this one
+  H16.TELL_RULE = 'TELL ME ABOUT IT answers what the screen it stands on left out, said plainly: who pays and why, what a word the person used means, what a choice will do. ' +
+    'A screen gets its own (`tell` on what a script yields -- js/mines.js M.tell) where its words leave something out; a keeper\'s own (H16.ABOUT) stands on their first screen alone, where the words name their job, place or reason for being. ' +
+    'Where it would add nothing, it is not there.';
   H16.ABOUT_BTN = 'TELL ME ABOUT IT';
   H16.ABOUT = {
     marko: ['Wagons carry everything in and out of Silverton. There\'s no harbour this side of the mountains, so it all goes south: four days by wagon to Tarlyn\'s Pit, the only road out.', 'The harvest houses send guards with theirs now, with gnolls about on the road. My father took a wagon up the Coldridge road to the Doors once. It never came back.'],
@@ -1380,7 +1399,9 @@
     // function will include 'more' about current dialogue"): never on a later page of what they are saying, a quest's word or an answer's
     var waitKey = function (w) { return w ? JSON.stringify([w.say || null, w.ask || null, (w.opts || []).map(function (o) { return typeof o === 'object' ? o.label : o; })]) : ''; };
     P.step = function () { var r = step0.apply(this, arguments); var fk = this.firstKeys = this.firstKeys || {}; if (this.wait && fk[this.id] == null) fk[this.id] = waitKey(this.wait); return r; };
-    P.aboutable = function () { var w = this.wait || {}; return !!H16.ABOUT[this.id] && !this.aboutBack && !this.sub && !w.shelves && !(this.bubbling && this.bubbling()) && !!(w.ask || (w.say && this.page >= (this.pages || []).length - 1)) && !!this.firstKeys && this.firstKeys[this.id] === waitKey(w); };
+    // what TELL ME ABOUT IT says on the screen now (H16.TELL_RULE): the screen's own `tell`, else the keeper's own on their first screen, else nothing
+    P.tellOf = function () { var w = this.wait || {}; if (w.tell && w.tell.length) return w.tell; return H16.ABOUT[this.id] && !!this.firstKeys && this.firstKeys[this.id] === waitKey(w) ? H16.ABOUT[this.id] : null; };
+    P.aboutable = function () { var w = this.wait || {}; return !this.aboutBack && !this.sub && !w.shelves && !w.about && !(this.bubbling && this.bubbling()) && !!(w.ask || (w.say && this.page >= (this.pages || []).length - 1)) && !!this.tellOf(); };
     P.buttons = function () {
       var bs = buttons0.apply(this, arguments); if (!this.aboutable()) return bs;
       var b = { x: Lw[0] + 8, y: Lw[1] + Lw[3] - 20, w: 124, h: 15, label: H16.ABOUT_BTN, go: 'about' };
@@ -1388,7 +1409,7 @@
       return bs;
     };
     P.press = function (q) {
-      if (q && q.go === 'about') { D.sfx('confirm'); this.aboutBack = { wait: this.wait, pages: this.pages, page: this.page, hov: this.hov }; this.wait = { say: H16.ABOUT[this.id].slice(), face: 'welcoming', about: true }; this.pages = this.paginate(this.wait.say); this.page = 0; this.hov = -1; if (this.setFace) this.setFace('welcoming'); return; }
+      if (q && q.go === 'about') { D.sfx('confirm'); this.aboutBack = { wait: this.wait, pages: this.pages, page: this.page, hov: this.hov }; this.wait = { say: this.tellOf().slice(), face: 'welcoming', about: true }; this.pages = this.paginate(this.wait.say); this.page = 0; this.hov = -1; if (this.setFace) this.setFace('welcoming'); return; }
       if (q && q.go === 'next' && this.aboutBack && this.page >= this.pages.length - 1) { var a = this.aboutBack; this.aboutBack = null; this.wait = a.wait; this.pages = a.pages; this.page = a.page; this.hov = a.hov; D.sfx('cursor'); return; }
       return press0.apply(this, arguments);
     };
