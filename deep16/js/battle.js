@@ -2952,8 +2952,22 @@
       // (you see it cast: the caster in sight, or what it does -- a creature it lands on (you too), a square of what it lays. 10-02, Griz: "could we 'you see a spell cast'
       // then target based on readied action (i.e the spell effect if eligible, the caster for a bow shot)" -- "2 - yes")
       if (kind === 'cast' && (!G.hostile(w, ctx.foe) || !(D.magic.sees(self, w, ctx.foe) || Battle.sawEffect(self, w, ctx.effect)))) continue;
+      if (!this.readyCan(w, w.ready, ctx, kind)) continue; // (out of its reach: not asked, and it waits for the next -- readyCan)
       yield* this.readySpring(w, w.ready, ctx);
     }
+  };
+  // WITHIN REACH (11-05, his record of the Wet's Crawler, R1-R2: Lymen's readied Longsword, "a foe attacks one of us", was offered at the Crawler 20 ft off and refused it as out of
+  // reach, twice; the lean, his "10 agreed"): a readied blade springs on 'ally' or 'cast' only when the foe who did it is within the blade's reach, a readied shot only in its range
+  // and sight; a readied spell, a feature or an item only when it can reach someone the trigger points at (readyAuto's own answer: the foe, or the one of us struck or fallen); a
+  // readied move always. One that cannot is not asked, and keeps its reaction for the next trigger (SRD 5.1: "you can either take your reaction right after the trigger finishes or
+  // ignore the trigger")
+  Battle.prototype.readyCan = function (w, rd, ctx, kind) {
+    if (!rd || rd.what === 'move') return true;
+    var wk = w.weapon; if (rd.what === 'weapon' && rd.wp) w.weapon = rd.wp;
+    try {
+      if (rd.what === 'weapon' && kind !== 'down') return !!(ctx.foe && G.hostile(w, ctx.foe) && G.standing(ctx.foe) && this.canHit(w, ctx.foe));
+      return !!this.readyAuto(w, rd, ctx);
+    } catch (e) { return true; } finally { w.weapon = wk; } // (a question this can't answer: asked, as before)
   };
   // the readied thing, sprung: a player's hero aims it now (a request of its own, { aim }: js/ui.js -- the cursor on the one that set it off, X or the right button
   // holds it; 10-02, Griz: "or were you letting them pick target when the trigger went off, that's probably better"), the AI's goes where the trigger points (readyAuto).
