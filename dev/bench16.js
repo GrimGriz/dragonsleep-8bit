@@ -2171,7 +2171,7 @@
         D.top() === BS && RS.mode === 'walk' && RS.token.x === at0[0] && RS.token.y === at0[1] && fS.res === 'won' && Object.keys(RS.kills).some(function (k) { return /^glowseep_night:/.test(k); }) && RS.fights === 1 && mus2[mus2.length - 1] === RF.def.music);
       okF2('the field opens on the fight, no entry card (its "walk in as the fixture" is not the floor\'s four: seen in the pane 10-22) -- noCards ' + (fS.b && fS.b.fight.noCards), !!fS.b && fS.b.fight.noCards === true);
       var fG = fieldF2(BS, 1, false);
-      okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.b.map.w === 16 && fG.b.map.h === 16 && D.top() === BS && BS.roam.mode === 'walk'); // (16 by 16 since 10-28, his "The simple fight's grid seems like the appropriate 'grid' sized fight": mode=glowseep1028)
+      okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes, ' + fG.map.gap + ' squares between the fronts' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.map.gap >= 6 && fG.map.gap <= 12 && fG.b.map.w === Math.max(16, 13 + fG.map.gap) && fG.b.map.h === 16 && D.top() === BS && BS.roam.mode === 'walk'); // (16 by 16 since 10-28, his "The simple fight's grid seems like the appropriate 'grid' sized fight": mode=glowseep1028; wider by the gap since 11-05, his "between 6 and 12 squares away from each other", js/world.js W.lineup)
       var B3 = testF2('?roam=galleries_g3&flags=cullHired'), R3 = B3.roam; R3.token.x = 6; R3.token.y = 10; D.grid.setup(B3.map, B3.units); B3.focus(R3.token);
       var f3 = fieldF2(B3, 0, false), rows3 = f3.b ? f3.map.rows : [], edge3 = 0, n3 = 0;
       rows3.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (y === 0 || x === 0 || y === rows3.length - 1 || x === r.length - 1) { n3++; if (r[x] === '#' || r[x] === 'r') edge3++; } });
@@ -2770,6 +2770,155 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE FIGHT'S START AND ITS END, 11-05 (mode=fights1105; js/world.js W.lineup, js/mines.js M.fieldDef, js/roam.js R.GAP R.encounter R.tickGroups, js/ui.js the VICTORY panel,
+  // js/battle.js finish Battle.victoryOf Battle.atkTail readyCan, js/roam.js R.paintUnder -- the fights seat, started by the lanes desk on Griz's 11-05 notes: "Grid fights on random
+  // encounters still start the two sides right next to each other - check encounter distances in SRD and tell me, set these for between 6 and 12 squares away from each other",
+  // "3 - default 6-12, list reasoned exceptions"; "still would prefer end of fight reward text as a popup in the middle rather than an additional line at the top", "4&5 yes";
+  // "darkness impacts menu here"; "go on attacker location to record"; "10 agreed"): the field's lineup 6 to 12 squares, the road's and the floors'; a set fight's 2 kept; a
+  // roam's walk-in seen and met 30 to 60 ft off; the pay in a panel in the middle, E closes it; the night under the menu; a foe's blow logged with its squares; READY in reach
+  if (get('mode', '') === 'fights1105') {
+    var repF5 = { checks: [], errors: [] }, memF5 = {}, stGF5 = D.store.get, stSF5 = D.store.set, WF5 = D.world, MF5 = D.mines, RF5 = D.roam, HF5 = D.house, UF5 = D.ui, GF5 = D.grid, muF5 = D.music, skF5 = null;
+    function okF5(what, v) { repF5.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveF5(g, until, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.victory) driveF5.vic = st.value.victory; if (st.value && st.value.prompt) v = st.value.prompt.opts[(driveF5.pick && driveF5.pick(st.value.prompt)) || 0].value; } return !!(until && until()); }
+    function topF5() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveF5(s.co, null, 2); return s; }
+    function testF5(q) { var B = RF5.make(q); D.scenes.length = 0; D.push(B); D.battle = B; return topF5(); }
+    function mkF5(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function nearFt(b) { var ps = b.units.filter(function (u) { return u.side === 'party' && !u.familiar && GF5.standing(u); }), fs = b.units.filter(function (u) { return u.side === 'foe' && GF5.standing(u); }), lo = 1e9; ps.forEach(function (p) { fs.forEach(function (f) { lo = Math.min(lo, GF5.dist(p, f)); }); }); return lo; }
+    D.store.get = function (k) { return memF5[k] ? JSON.parse(memF5[k]) : null; }; D.store.set = function (k, v) { memF5[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skF5 = window.localStorage.getItem(D.simple.KEY); window.localStorage.removeItem(D.simple.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1105);
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 1. THE LINEUP: the gap between the fronts as asked, to the nearest of them -- a Large one alone moved up to the front; the field as wide as it needs; the old 2 the old squares
+      var gaps1 = [2, 6, 9, 12].map(function (g) {
+        var a = WF5.lineup(['goblin', 'goblin', 'ogre'], g), b = WF5.lineup(['ogre'], g), P = a.entry[0][0];
+        var near = function (L) { var n = -1; L.foes.forEach(function (f) { var s = Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1); n = Math.max(n, f.at[0] + s - 1); }); return n; };
+        return { g: g, a: P - near(a), b: b.entry[0][0] - near(b), w: a.w, front: a.foes[0].at.join(','), P: P };
+      });
+      okF5('the lineup: gaps ' + gaps1.map(function (r) { return r.g + ' -> ' + r.a + ' (an ogre alone ' + r.b + '), ' + r.w + ' wide'; }).join('; ') + '; at 2 the foes\' front ' + gaps1[0].front + ', the four at x ' + gaps1[0].P + ' (as before 11-05)',
+        gaps1.every(function (r) { return r.a === r.g && r.b === r.g && r.w === Math.max(16, 13 + r.g); }) && gaps1[0].front === '6,3' && gaps1[0].P === 8);
+      var roll1 = {}; for (var s1 = 1; s1 <= 60; s1++) { D.seed = s1; roll1[WF5.lineup(['goblin']).gap] = 1; } D.seed = +get('seed', 1105);
+      var rk1 = Object.keys(roll1).map(Number).sort(function (a, b) { return a - b; });
+      okF5('rolled each fight: the gaps seen over 60 seeds ' + rk1.join(','), rk1[0] >= 6 && rk1[rk1.length - 1] <= 12 && rk1.length >= 6);
+      } catch (eS) { repF5.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 2. A ROAD FIGHT ON THE GRID (the house, THE WORLD): the two sides 30 to 60 ft apart, every one of them on open ground, the camp's fire behind the four
+      HF5.worldDoor('?world&noenc'); var ws2 = D.top(); if (ws2 && ws2.baking) { ws2.baking = false; ws2.enter(); }
+      var st2 = WF5.state(), e2 = WF5.M().hex[WF5.K(st2.at[0], st2.at[1])], out2 = [];
+      for (var k2 = 0; k2 < 3; k2++) {
+        D.seed = 300 + k2; ws2.fight({ list: ['wolf', 'wolf', 'ogre'], zone: 'north', camp: k2 === 2 }, e2, { simple: false }); var b2 = D.top();
+        if (b2 !== ws2) { if (b2.baking) { b2.baking = false; b2.enter(); } var gp2 = b2.map.def.gap, ft2 = nearFt(b2), open2 = b2.units.filter(function (u) { return u.side === 'party' || u.side === 'foe'; }).every(function (u) { var q = b2.map.at(u.x, u.y); return q && q.walk; }), fire2 = b2.fight.camp;
+          var pmax2 = Math.max.apply(null, b2.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.x; }));
+          out2.push({ gap: gp2, ft: ft2, open: open2, w: b2.map.w, fire: fire2 ? fire2[0] > pmax2 : null });
+          if (D.top() === b2) D.pop(); }
+      }
+      HF5.playing = false; HF5.cur = null;
+      okF5('the road\'s grid fights: ' + out2.map(function (o) { return o.gap + ' squares, ' + o.ft + ' ft between, ' + o.w + ' wide, on open ground ' + o.open + (o.fire != null ? ', the camp\'s fire behind the four ' + o.fire : ''); }).join('; '),
+        out2.length === 3 && out2.every(function (o) { return o.gap >= 6 && o.gap <= 12 && o.ft === o.gap * 5 && o.open && o.w === 13 + o.gap; }) && out2[2].fire === true);
+      } catch (eS) { repF5.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 3. A FLOOR'S GRID FIGHT (the Glowseep by night, his note's own ground): a random one ON THE GRID 30 to 60 ft apart, the ground between them open; a set fight keeps its 2
+      var B3 = testF5('?roam=glowseep&hour=22&at=20,14'), out3 = [];
+      for (var k3 = 0; k3 < 3; k3++) {
+        D.seed = 500 + k3; driveF5.pick = function (p) { var i = p.opts.map(function (o) { return o.label; }).indexOf('ON THE GRID'); return p.title === 'ENCOUNTER' && i >= 0 ? i : 0; }; // (the card's ON THE GRID; OPTIONS' default is simple)
+        var g3 = RF5.encounter(B3, 'steps'), st3, v3, n3 = 0; while (n3++ < 400 && D.top() === B3) { st3 = g3.next(v3); v3 = undefined; if (st3.done) break; if (typeof st3.value === 'number') B3.t += st3.value; if (st3.value && st3.value.prompt) v3 = st3.value.prompt.opts[driveF5.pick(st3.value.prompt)].value; }
+        var b3 = D.top();
+        if (b3 !== B3) { if (b3.baking) { b3.baking = false; b3.enter(); } var gp3 = b3.map.def.gap, ft3 = nearFt(b3), row3 = b3.map.def.entry[0][1], px3 = b3.map.def.entry[0][0], between3 = 0, shut3 = 0;
+          for (var xx3 = px3 - gp3 + 1; xx3 < px3; xx3++) { between3++; var q3 = b3.map.at(xx3, row3); if (!q3 || !q3.walk) shut3++; }
+          out3.push({ simple: !!b3.o.simple, gap: gp3, ft: ft3, w: b3.map.w, shut: shut3, between: between3 });
+          if (D.top() === b3) D.pop(); b3.o.onDone && b3.o.onDone('escaped'); driveF5(g3, null, 600); }
+      }
+      driveF5.pick = null;
+      okF5('the Glowseep\'s grid fights: ' + out3.map(function (o) { return (o.simple ? 'SIMPLE ' : '') + o.gap + ' squares, ' + o.ft + ' ft, ' + o.w + ' wide, the row between shut at ' + o.shut + ' of ' + o.between; }).join('; '),
+        out3.length === 3 && out3.every(function (o) { return !o.simple && o.gap >= 6 && o.gap <= 12 && o.ft === o.gap * 5 && o.w === 13 + o.gap && o.shut === 0; }));
+      var F3s = MF5.fieldDef(RF5.def, ['goblin', 'goblin'], false, { line: 'Set.' }, [20, 14]), d3s = D.MAPS['mine-field'];
+      var fr3s = Math.max.apply(null, F3s.foes.map(function (f) { return f.at[0]; }));
+      okF5('a set fight on the field (the cloaker\'s way, the rescue\'s bats) keeps its 2: gap ' + d3s.gap + ', ' + d3s.rows[0].length + ' wide, the foes\' front ' + fr3s + ' to the four\'s ' + d3s.entry[0][0], d3s.gap === 2 && d3s.rows[0].length === 16 && d3s.entry[0][0] - fr3s === 2);
+      } catch (eS) { repF5.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 4. THE ROAM'S WALK-IN (the Wet): the start held 30 to 60 ft; a group seen at the edge of sight inside that band, walking in, the fight where it comes within it
+      var sf4 = [{ speed: 20 }, { speed: 30 }, { speed: 30, reach: 10 }, { speed: 60, reach: 10 }].map(function (u) { return RF5.startFt(u); });
+      okF5('the walk-in\'s fight starts within its reach and a move, held to 30-60 ft: speed 20 -> ' + sf4[0] + ', 30 -> ' + sf4[1] + ', 30 reach 10 -> ' + sf4[2] + ', 60 reach 10 -> ' + sf4[3], sf4.join() === '30,35,40,60');
+      var B4 = testF5('?roam=wet&watch&enc=999'), R4 = B4.roam, t4 = R4.token, got4 = [];
+      [[8, 24], [12, 30], [8, 12]].forEach(function (at, i) {
+        R4.groups = []; B4.units = B4.units.filter(function (u) { return u.side !== 'foe'; }); R4.mode = 'walk'; t4.x = at[0]; t4.y = at[1]; R4.fw = [0, -1]; GF5.setup(GF5.map, B4.units);
+        D.seed = 700 + i; driveF5(RF5.encounter(B4, 'asked', { list: ['giantrat', 'giantrat'] }), null, 400);
+        var L4 = R4.last || {}; if (!R4.groups.length) { got4.push({ how: L4.how, seen: L4.distFt, fought: false }); return; }
+        var co4 = (function* () { for (var k = 0; k < 4000; k++) { var hit = RF5.tickGroups(B4); if (hit) return hit; B4.t += 8; yield 1; } })(), hit4 = null, n4 = 0, r4;
+        while (n4++ < 5000) { r4 = co4.next(); if (r4.done) { hit4 = r4.value; break; } }
+        var c4 = hit4 ? Math.min.apply(null, RF5.live(B4, hit4).map(function (u) { return GF5.dist(t4, u); })) : null;
+        got4.push({ how: L4.how, seen: L4.distFt, sees: L4.sightFar, met: c4 });
+      });
+      okF5('the Wet\'s walk-ins: ' + got4.map(function (g) { return g.how + ' ' + g.seen + ' ft (the party sees ' + g.sees + '), met at ' + g.met + ' ft'; }).join('; '),
+        got4.length === 3 && got4.every(function (g) { return g.seen >= 30 && g.seen <= 60 && g.met != null && g.met >= 30 && g.met <= 60 && g.met <= g.seen; }));
+      } catch (eS) { repF5.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 5. THE VICTORY PANEL: a fight's pay in the middle -- the card at the top the ending alone while it is up, then the way on; the pay in the log; E closes it
+      var B5 = mkF5('?npc=goblin&lvl=5&vs=fighter'); B5.o.payNow = function () { return ['{y}Victory!{/}', 'Each one standing gains 50 XP.', 'The goblin had 4 sp on it.']; }; B5.o.onDone = function () { };
+      var g5 = B5.finish('won'), r5, k5 = 0, vic5 = null, card5a = null; while (k5++ < 400) { r5 = g5.next(); if (r5.done) break; if (r5.value && r5.value.victory) { vic5 = r5.value.victory; card5a = B5.cards[B5.cards.length - 1].lines.map(window.DS.stripCodes); g5.next(); break; } }
+      var card5b = B5.cards[B5.cards.length - 1].lines.map(window.DS.stripCodes), log5 = (B5.log || []).join(' | ');
+      okF5('the panel: ' + (vic5 ? vic5.title + ' "' + vic5.lines.map(window.DS.stripCodes).join(' | ') + '"' : 'none') + '; the card while it is up "' + (card5a || []).join(' | ') + '", after "' + card5b.join(' | ') + '"; the pay in the log ' + /gains 50 XP/.test(log5),
+        !!vic5 && vic5.title === 'VICTORY' && vic5.lines.length === 2 && /gains 50 XP/.test(vic5.lines[0]) && card5a && card5a.length === 1 && !/XP/.test(card5a.join(' ')) && card5b.length === 2 && /E back to/.test(card5b[1]) && /gains 50 XP/.test(log5));
+      var Lv5 = UF5.victoryLayout(vic5 || { lines: [] }), texts5 = [], dt5 = D.text, cv5 = document.createElement('canvas'); cv5.width = D.W; cv5.height = D.H;
+      D.text = function (c, s) { texts5.push(window.DS.stripCodes(String(s))); return dt5.apply(this, arguments); };
+      try { B5.req = { victory: vic5 }; UF5.drawBattle(cv5.getContext('2d'), B5); } finally { D.text = dt5; }
+      okF5('drawn in the middle (' + Lv5.x + ',' + Lv5.y + ' ' + Lv5.w + ' x ' + Lv5.h + ' on ' + D.W + ' x ' + D.H + '): ' + texts5.filter(function (s) { return /VICTORY|XP|to close/.test(s); }).join(' | '),
+        Math.abs(Lv5.x + Lv5.w / 2 - D.W / 2) <= 1 && Lv5.y > 20 && Lv5.y + Lv5.h < D.H - 40 && Math.abs((Lv5.y + Lv5.h / 2) - D.H / 2) < 60 && texts5.indexOf('VICTORY') >= 0 && texts5.some(function (s) { return /gains 50 XP/.test(s); }) && texts5.some(function (s) { return /to close/.test(s); }));
+      var done5 = false; B5.req = null; B5.co = (function* () { yield { victory: vic5 }; done5 = true; })(); B5.step(); var up5 = !!(B5.req && B5.req.victory);
+      D.input.press('a'); UF5.input(B5, B5.req); D.input.held = {}; D.input.clear();
+      okF5('E closes it: up ' + up5 + ', closed ' + !B5.req + ', the fight goes on ' + done5, up5 && !B5.req && done5);
+      // the floor's own fight's gather (the Wet: two crawlers fallen) says its pay in the panel too
+      R4.groups = []; R4.xpBank = 0; var mk5 = function (n, x, y) { var u = B4.makeFoe({ id: 'v' + n, kind: 'crawler' }); u.conds = u.conds || {}; u.x = x; u.y = y; u.hp = 0; u.dead = true; B4.units.push(u); return u; };
+      var cA5 = mk5(1, 12, 30), cB5 = mk5(2, 14, 30); R4.mode = 'fight'; driveF5.vic = null;
+      driveF5(RF5.after(B4, 'won', { zone: 'warrens_d' }, [cA5, cB5]), null, 2000);
+      var fv5 = driveF5.vic; driveF5.vic = null;
+      okF5('the floor\'s fight\'s gather: the panel ' + (fv5 ? fv5.title + ' "' + fv5.lines.map(window.DS.stripCodes).join(' | ').slice(0, 120) + '"' : 'none') + '; no Victory! card on the floor ' + !(B4.cards || []).some(function (c) { return c.lines.some(function (l) { return /Victory!/.test(l); }); }),
+        !!fv5 && fv5.title === 'VICTORY' && fv5.lines.some(function (l) { return /XP/.test(l); }) && !(B4.cards || []).some(function (c) { return c.lines.some(function (l) { return /Victory!/.test(l); }); }));
+      } catch (eS) { repF5.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 6. THE NIGHT UNDER THE MENU (the mouth camp by night, his "darkness impacts menu here"): the M menu's squares the same with the night on as off; the night still on the floor
+      var B6 = testF5('?roam=warrens&hour=22'), d6 = RF5.def, ctx06 = D.ctx, cv6 = document.createElement('canvas'); cv6.width = D.W; cv6.height = D.H; D.R = D.R || 1;
+      var shot6 = function (menu, night) { d6.night = night; if (menu && !B6.menu) UF5.openMenu(B6); if (!menu && B6.menu) B6.menu = null; D.ctx = cv6.getContext('2d'); D.ctx.setTransform(1, 0, 0, 1, 0, 0); D.ctx.clearRect(0, 0, cv6.width, cv6.height); try { D.draw(); } finally { D.ctx = ctx06; } return cv6.getContext('2d').getImageData(0, 0, cv6.width, cv6.height).data.slice(); };
+      var night6 = !!d6.night, outd6 = !!d6.outdoors, A6 = shot6(false, true), Bm6 = shot6(true, true), Cm6 = shot6(true, false), D6 = shot6(false, false); B6.menu = null; d6.night = night6;
+      var inMenu6 = 0, same6 = 0, washed6 = 0, all6 = A6.length / 4;
+      for (var i6 = 0; i6 < A6.length; i6 += 4) {
+        var mdiff = Math.abs(Bm6[i6] - A6[i6]) + Math.abs(Bm6[i6 + 1] - A6[i6 + 1]) + Math.abs(Bm6[i6 + 2] - A6[i6 + 2]) > 30;
+        if (mdiff) { inMenu6++; if (Math.abs(Bm6[i6] - Cm6[i6]) + Math.abs(Bm6[i6 + 1] - Cm6[i6 + 1]) + Math.abs(Bm6[i6 + 2] - Cm6[i6 + 2]) <= 6) same6++; }
+        if (Math.abs(A6[i6] - D6[i6]) + Math.abs(A6[i6 + 1] - D6[i6 + 1]) + Math.abs(A6[i6 + 2] - D6[i6 + 2]) > 30) washed6++;
+      }
+      okF5('the mouth camp by night (outdoors ' + outd6 + ', night ' + night6 + '): the menu\'s ' + inMenu6 + ' pixels the same with the night off ' + same6 + ' (' + Math.round(100 * same6 / Math.max(1, inMenu6)) + '%); the night on the floor ' + Math.round(100 * washed6 / all6) + '% of the screen',
+        outd6 && night6 && inMenu6 > 2000 && same6 >= inMenu6 * 0.95 && washed6 > all6 * 0.2);
+      } catch (eS) { repF5.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 7. A FOE'S BLOW IN THE LOG WITH ITS SQUARES (his "go on attacker location to record"): the head as ever, then where each stood, the size, the reach or range, the distance
+      var B7 = mkF5('?npc=ogre,goblin&lvl=5&vs=fighter'), h7 = B7.units.filter(function (u) { return u.side === 'party'; })[0], og7 = B7.units.filter(function (u) { return u.kind === 'ogre'; })[0], gb7 = B7.units.filter(function (u) { return u.kind === 'goblin'; })[0];
+      h7.x = 9; h7.y = 9; og7.x = 10; og7.y = 7; gb7.x = 3; gb7.y = 9; GF5.setup(GF5.map, B7.units); B7.active = og7; h7.hp = h7.maxhp = 999;
+      var atkOf = function (u, ranged) { var A = u.attacks || {}; return Object.keys(A).map(function (k) { return A[k]; }).filter(function (a) { return !!a.ranged === ranged; })[0]; };
+      var n7 = (B7.log || []).length; driveF5(B7.attack(og7, h7, atkOf(og7, false), {}), null, 400); var l7a = (B7.log || []).slice(n7).filter(function (l) { return / > /.test(l); })[0] || '', cd7 = (B7.cards[B7.cards.length - 1] || { lines: [''] }).lines[0];
+      B7.active = gb7; n7 = (B7.log || []).length; driveF5(B7.attack(gb7, h7, atkOf(gb7, true), {}), null, 400); var l7b = (B7.log || []).slice(n7).filter(function (l) { return / > /.test(l); })[0] || '';
+      okF5('the ogre\'s blow: "' + l7a + '" (the card on the screen "' + window.DS.stripCodes(cd7) + '"); the goblin\'s shot: "' + l7b + '"',
+        /Ogre > .*\(Ogre at 10,7, Large; .* at 9,9; reach \d+ ft, 5 ft off\)$/.test(l7a) && !/ at 10,7/.test(cd7) && /Goblin > .*\(Goblin at 3,9; .* at 9,9; range \d+\/\d+ ft, 30 ft off\)$/.test(l7b));
+      } catch (eS) { repF5.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5: each section its own, so one that throws hides none after it)
+      // 8. READY IN REACH (his record, the Crawler 20 ft from Lymen; "10 agreed"): a readied blade, "a foe attacks one of us", is not asked at a foe out of its reach and keeps its
+      // reaction; asked at one in reach; a readied bow asked at the far one
+      var B8 = mkF5('?npc=goblin&lvl=5&vs=fighter,fighter'), ps8 = B8.units.filter(function (u) { return u.side === 'party'; }), r8 = ps8[0], a8 = ps8[1], g8 = B8.units.filter(function (u) { return u.side === 'foe'; })[0];
+      B8.units.forEach(function (u) { if (u.side === 'foe' && u !== g8) { u.hp = 0; u.dead = true; } }); r8.x = 5; r8.y = 9; a8.x = 10; a8.y = 9; g8.x = 11; g8.y = 9; GF5.setup(GF5.map, B8.units); B8.active = g8;
+      // (asked: the aim put to the player, held; or, for one the AI runs, the reaction spent on it)
+      var asks8 = function (g) { var n = 0, st, v, k = 0, r0 = r8.reaction; while (k++ < 400) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.aim) { n++; v = null; } else if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } return n + (!n && r0 > 0 && r8.reaction === 0 ? 1 : 0); };
+      var arm8 = function (wp) { r8.ready = { trigger: 'ally', what: 'weapon', name: wp.name, wp: wp }; r8.reaction = 1; r8.conc = null; };
+      arm8(r8.weapon); var far8 = asks8(B8.readyOn('ally', { foe: g8, ally: a8, why: 'The Goblin attacks.' }, g8)), kept8 = !!r8.ready && r8.reaction === 1;
+      g8.x = 6; g8.y = 9; GF5.setup(GF5.map, B8.units); arm8(r8.weapon); var near8 = asks8(B8.readyOn('ally', { foe: g8, ally: a8, why: 'The Goblin attacks.' }, g8));
+      g8.x = 11; g8.y = 9; GF5.setup(GF5.map, B8.units); arm8({ name: 'Longbow', ranged: true, range: [150, 600], dice: '1d8', atk: 5, mod: 3, type: 'piercing' }); var bow8 = asks8(B8.readyOn('ally', { foe: g8, ally: a8, why: 'The Goblin attacks.' }, g8));
+      okF5('READY, a foe attacks one of us: the blade at the goblin 30 ft off asked ' + far8 + ' (kept ' + kept8 + '); at 5 ft asked ' + near8 + '; a bow at 30 ft asked ' + bow8, far8 === 0 && kept8 && near8 === 1 && bow8 === 1);
+  } catch (eS) { repF5.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+    } catch (eF5) { repF5.errors.push(String(eF5 && eF5.stack || eF5).slice(0, 900)); }
+    HF5.playing = false; HF5.cur = null; D.store.get = stGF5; D.store.set = stSF5; D.music = muF5; try { if (skF5 != null) window.localStorage.setItem(D.simple.KEY, skF5); } catch (eK2) { }
+    var preF5 = document.createElement('pre'); preF5.id = 'out'; preF5.textContent = 'BENCH16 ' + JSON.stringify(repF5);
+    document.body.appendChild(preF5);
+    return;
+  }
   // KATARINA AT THE FIRE, 11-05 (mode=kat1105; js/inn.js In.katScene, In.KAT, In.WAGON, js/grimoire.js M.jokeReady -- the Katarina seat, started by the lanes desk on Griz's
   // "Yes, the leans": the wagon moved to day 12, her stay from day 4 through it, her talk ported from the first game's S.katarina, the lane's §7 drafts): the calendar; the
   // ink bought at Lisbet's; Barley at her table on day 7 with it -- the Dominion, the vision, the Sheet: Hideous Laughter, katVision; Aurdin copies it into his book; the joke
@@ -3266,7 +3415,9 @@
     function testVc(q) { var B = RVc.make(q); D.scenes.length = 0; D.push(B); return topVc(); }
     function runVc(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
     // (a fight run to its end with the foes struck down at the first turn of ours: what it says last)
-    function winVc(b) { if (b.baking) { b.baking = false; b.enter(); } var k = 0, v, r; while (b.co && k++ < 200000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { b.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; } } var c = (b.cards || [])[b.cards.length - 1]; return c ? c.lines.map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : []; }
+    function winVc(b) { if (b.baking) { b.baking = false; b.enter(); } var k = 0, v, r; while (b.co && k++ < 200000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.victory) { winVc.panel = y.victory; continue; } if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { b.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; } } var c = (b.cards || [])[b.cards.length - 1]; return c ? c.lines.map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : []; }
+    // (since 11-05 the pay is the VICTORY panel's, in the middle -- his "popup in the middle": winVc.panel, { title, lines }; the last card the ending and the way back)
+    function panVc() { var p = winVc.panel; winVc.panel = null; return p ? { title: p.title, lines: p.lines.map(function (l) { return window.DS.stripCodes(l); }) } : { title: '', lines: [] }; }
     D.store.get = function (k) { return memVc[k] ? JSON.parse(memVc[k]) : null; }; D.store.set = function (k, v) { memVc[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
     try { skVc = window.localStorage.getItem(SVc.KEY); window.localStorage.removeItem(SVc.KEY); } catch (eK) { }
@@ -3276,18 +3427,18 @@
       // the last card says Victory! and the XP with the way back; E back: the floor says the way is clear and no Victory!, the XP paid once, the bank empty
       var B1 = testVc('?roam=galleries_g3&flags=cullHired&at=20,10'), R1 = B1.roam, xp1 = R1.members.map(function (u) { return (u.src && u.src.xp) || 0; });
       runVc(B1, MVc.fieldFight(B1, 'asked', { list: ['giantbat'], line: 'A bat.' })); driveVc(B1.co, function () { var s = D.top(); return s !== B1 && s instanceof D.Battle; }, 4000);
-      var b1 = D.top(), last1 = b1 !== B1 ? winVc(b1) : [], ban1 = b1.simple && SVc.banner ? SVc.banner(b1).map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : [];
+      var b1 = D.top(), last1 = b1 !== B1 ? winVc(b1) : [], pan1 = panVc(), ban1 = b1.simple && SVc.banner ? SVc.banner(b1).map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : [];
       var paid1 = R1.xpPaid || 0; if (D.top() === b1) D.pop(); b1.o.onDone(b1.result); B1.cards = []; driveVc(B1.co, function () { return !R1.pulling && D.top() === B1; }, 4000); driveVc(B1.co, null, 60);
       var floor1 = (B1.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), gain1 = R1.members.map(function (u, i) { return ((u.src && u.src.xp) || 0) - xp1[i]; });
-      okVc('the dens\' fight (' + b1.result + ', simple ' + !!b1.simple + '): its last card "' + last1.join(' | ').slice(0, 150) + '"; the simple screen\'s words ' + ban1.length + ' lines ("' + (ban1[ban1.length - 1] || '').slice(0, 40) + '")',
-        b1.result === 'won' && last1.some(function (l) { return /^Victory!/.test(l); }) && last1.some(function (l) { return /\d+ XP/.test(l); }) && /E back to/.test(last1[last1.length - 1]) && !!b1.simple && ban1.some(function (l) { return /^Victory!/.test(l); }) && /E back to/.test(ban1.join(' ')));
+      okVc('the dens\' fight (' + b1.result + ', simple ' + !!b1.simple + '): the VICTORY panel ' + pan1.title + ' "' + pan1.lines.join(' | ').slice(0, 120) + '"; its last card "' + last1.join(' | ').slice(0, 90) + '"; the simple screen\'s words ' + ban1.length + ' lines ("' + (ban1[ban1.length - 1] || '').slice(0, 40) + '")',
+        b1.result === 'won' && pan1.title === 'VICTORY' && pan1.lines.some(function (l) { return /\d+ XP/.test(l); }) && !last1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(last1[last1.length - 1]) && !!b1.simple && !ban1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(ban1.join(' ')));
       okVc('back on the floor: "' + floor1.slice(0, 120) + '"; paid on the card ' + paid1 + ' and after it ' + (R1.xpPaid || 0) + ', each one\'s XP up ' + gain1.join(',') + ', the bank ' + R1.xpBank,
         !/Victory!/.test(floor1) && /The way is clear/.test(floor1) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
       // 2. A ROAD FIGHT IN THE HOUSE (the same way everywhere): a NEW GAME on THE WORLD, a wolf on the road; the last card says Victory! and the XP; THE WORLD after says the road is
       // clear and no XP, each one's banked once
       HVc.worldDoor('?world&noenc'); var ws2 = D.top(); if (ws2 && ws2.baking) { ws2.baking = false; ws2.enter(); }
       var st2 = WVc.state(), e2 = WVc.M().hex[WVc.K(st2.at[0], st2.at[1])], xp2 = HVc.cur.party.map(function (h) { return h.xp || 0; });
-      ws2.fight({ list: ['wolf'], zone: 'north' }, e2); var b2 = D.top(), last2 = b2 !== ws2 ? winVc(b2) : [], said2 = [], say2 = ws2.say;
+      ws2.fight({ list: ['wolf'], zone: 'north' }, e2); var b2 = D.top(), last2 = b2 !== ws2 ? winVc(b2) : [], pan2 = panVc(), said2 = [], say2 = ws2.say;
       ws2.say = function (s) { said2.push(String(s)); return say2.apply(this, arguments); };
       if (D.top() === b2) D.pop(); b2.o.onDone(b2.result); ws2.say = say2;
       var gain2 = HVc.cur.party.map(function (h, i) { return (h.xp || 0) - xp2[i]; });
@@ -3296,8 +3447,8 @@
       var inv2 = give2.map(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return g[0] + ' ' + (s ? s.n : 0); });
       okVc('the spoils once: the floor\'s ' + give1.map(function (g) { return g.join(' x'); }).join(', ') + ' in its ledger ' + led1.length + ' times; the road\'s in the save\'s pack ' + inv2.join(', '),
         give1.length > 0 && led1.length === give1.length && give2.length > 0 && give2.every(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return s && s.n === g[1]; }));
-      okVc('a road fight (' + b2.result + ', the house ' + !!HVc.playing + '): its last card "' + last2.join(' | ').slice(0, 130) + '"; THE WORLD after "' + said2.join(' ').slice(0, 90) + '"; each one\'s XP up ' + gain2.join(','),
-        b2.result === 'won' && last2.some(function (l) { return /^Victory!/.test(l); }) && last2.some(function (l) { return /gains \d+ XP/.test(l); }) && /The road is clear/.test(said2.join(' ')) && !/XP/.test(said2.join(' ')) && gain2.every(function (g) { return g > 0 && g === gain2[0]; }));
+      okVc('a road fight (' + b2.result + ', the house ' + !!HVc.playing + '): the VICTORY panel ' + pan2.title + ' "' + pan2.lines.join(' | ').slice(0, 100) + '"; its last card "' + last2.join(' | ').slice(0, 90) + '"; THE WORLD after "' + said2.join(' ').slice(0, 90) + '"; each one\'s XP up ' + gain2.join(','),
+        b2.result === 'won' && pan2.title === 'VICTORY' && pan2.lines.some(function (l) { return /gains \d+ XP/.test(l); }) && /E back to the road/.test(last2.join(' ')) && /The road is clear/.test(said2.join(' ')) && !/XP/.test(said2.join(' ')) && gain2.every(function (g) { return g > 0 && g === gain2[0]; }));
       HVc.playing = false; HVc.cur = null;
       // 3. THE LEDGES (his "the ladders are supposed to be going up to ledges? All ground is walkable and they look more like ladders down than up as placed"): the working gallery's seven
       // ladders off the floor -- the guano there, no ladder's look -- each up a rock face over open ground, one a face, none at the slide's lip; the art desk's ladder_up in hand
@@ -10646,7 +10797,7 @@
       okW('the step count rolls a group, seen ' + (RW.last && RW.last.distFt) + ' ft off and coming (' + (RW.last && RW.last.who) + ', ' + (RW.last && RW.last.how) + ')', spotW && !!apW && apW.mode === 'approach');
       var foughtW = driveW(BW.co, function () { return RW.mode === 'fight' && BW.order.length; }, 6000);
       var L1W = RW.last || {}, foesW = BW.units.filter(function (u) { return u.side === 'foe'; });
-      okW('they walk in and the fight starts where they meet (' + L1W.contactFt + ' ft: within reach and a move)', foughtW && foesW.length > 0 && L1W.contactFt <= Math.max.apply(null, foesW.map(function (u) { return (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) && L1W.contactFt < L1W.distFt);
+      okW('they walk in and the fight starts where they meet (' + L1W.contactFt + ' ft: within reach and a move, held to 30-60 ft since 11-05 -- js/roam.js R.startFt)', foughtW && foesW.length > 0 && L1W.contactFt <= Math.max.apply(null, foesW.map(function (u) { return D.roam.startFt(u); })) && L1W.contactFt >= 30 && L1W.contactFt < L1W.distFt);
       okW('it was spotted inside the party\'s sight (' + L1W.distFt + ' ft; the party sees ' + L1W.sightFar + ' ft)', L1W.distFt > 0 && L1W.distFt <= L1W.sightFar);
       okW('the four out of the token, on their formation (off their slots: ' + (L1W.spill || []).map(function (s) { return s.off; }).join('') + ')', RW.members.every(function (u) { return BW.units.indexOf(u) >= 0; }));
       okW('no box: the whole floor open to the fight (' + GW.map.sq.filter(function (s) { return s.walk; }).length + ' of ' + walk0W + ' squares walkable)', !RW.cut && GW.map.sq.filter(function (s) { return s.walk; }).length === walk0W);
