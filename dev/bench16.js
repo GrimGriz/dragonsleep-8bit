@@ -2912,7 +2912,46 @@
       g8.x = 6; g8.y = 9; GF5.setup(GF5.map, B8.units); arm8(r8.weapon); var near8 = asks8(B8.readyOn('ally', { foe: g8, ally: a8, why: 'The Goblin attacks.' }, g8));
       g8.x = 11; g8.y = 9; GF5.setup(GF5.map, B8.units); arm8({ name: 'Longbow', ranged: true, range: [150, 600], dice: '1d8', atk: 5, mod: 3, type: 'piercing' }); var bow8 = asks8(B8.readyOn('ally', { foe: g8, ally: a8, why: 'The Goblin attacks.' }, g8));
       okF5('READY, a foe attacks one of us: the blade at the goblin 30 ft off asked ' + far8 + ' (kept ' + kept8 + '); at 5 ft asked ' + near8 + '; a bow at 30 ft asked ' + bow8, far8 === 0 && kept8 && near8 === 1 && bow8 === 1);
-  } catch (eS) { repF5.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      } catch (eS) { repF5.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5)
+      // 9. THE START HP (the desk's read of his Web Gulch record, the 06:49:49Z fight lost: hp0 and PARTY read whole, the first steps Lymen 12 and Aurdin 1): a fight that gives
+      // its figures their wounds in an enter of its own after the record's (a floor's pulled-in fight, R.pullIn0; a Hex bout) reads them wounded
+      var b9 = D.npcFight('?npc=goblin&lvl=5&vs=fighter,cleric', { record: { fight: 'probe', name: 'the start hp', level: 5 } }), e9 = b9.enter;
+      b9.enter = function () { e9.apply(this, arguments); this.units.forEach(function (u) { if (u.side === 'party') u.hp = Math.min(u.maxhp, 7); }); }; // (as R.pullIn0 does: the floor's hit points after the enter)
+      D.battle = b9; b9.enter(); var at9 = JSON.stringify((b9.rec && b9.rec.hp0) || {}); b9.step();
+      var h9 = (b9.rec && b9.rec.hp0) || {}, ids9 = Object.keys(h9);
+      okF5('a fight entered wounded reads wounded: hp0 at enter ' + at9 + ', at the first step ' + JSON.stringify(h9), ids9.length >= 2 && ids9.every(function (k) { return h9[k] === 7; }));
+      } catch (eS) { repF5.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5)
+      // 10. THE POISON'S CURES (the desk's lean on the same record: Barley paralyzed by a wolf spider's poison at 0 into the next fight, the card naming only Lesser Restoration):
+      // the card names the cures the party holds, else the three; and the floor's M menu's Lay on Hands neutralizes it, 5 from the pool, the paralysis with it
+      var bite10 = function (q) {
+        var Bx = mkF5(q), ps = Bx.units.filter(function (u) { return u.side === 'party'; }), tg = ps.filter(function (u) { return u.cls === 'fighter'; })[0] || ps[0], sp = Bx.units.filter(function (u) { return u.side === 'foe'; })[0];
+        tg.x = 9; tg.y = 9; sp.x = 10; sp.y = 9; ps.forEach(function (u, i) { if (u !== tg) { u.x = 8 - i; u.y = 9; } }); GF5.setup(GF5.map, Bx.units); tg.hp = 3; Bx.active = sp; Bx.cards = [];
+        var d0 = D.d; D.d = function (n) { return n === 20 ? 19 : 1; };
+        try { driveF5(Bx.attack(sp, tg, sp.attacks.bite, {}), null, 400); } finally { D.d = d0; }
+        var c = (Bx.cards || []).filter(function (cd) { return cd.lines.some(function (l) { return /the poison takes hold/.test(l); }); })[0];
+        return { held: !!(tg.conds.poisoned && tg.conds.paralyzed), card: c ? c.lines.map(window.DS.stripCodes).join(' | ') : '' };
+      };
+      var p10 = bite10('?npc=wolfspider&lvl=3&vs=fighter,paladin'), n10 = bite10('?npc=wolfspider&lvl=3&vs=fighter,fighter');
+      var FD10 = HF5.field, c10 = { name: 'Lymen', feats: { lay: 10 } }, t10 = { name: 'Barley', hp: 39, maxhp: 39, conds: { poisoned: { paralysis: true, hour: true }, paralyzed: { poison: true, hour: true } } };
+      var l10 = FD10.skill(c10, 'lay', t10), again10 = FD10.skill(c10, 'lay', t10);
+      okF5('the poison\'s card with a paladin by: "' + p10.card + '" (held ' + p10.held + '); with two fighters: "' + n10.card + '"; the floor\'s Lay on Hands: "' + l10.join(' ') + '", then on him whole "' + again10.join(' ') + '" (conds left ' + Object.keys(t10.conds).join(',') + ', the pool ' + c10.feats.lay + ')',
+        p10.held && /A cure ends it: .*Lay on Hands \(5 from the pool\)/.test(p10.card) && /A cure ends it: Lay on Hands \(5 from the pool\), Lesser Restoration or Protection from Poison/.test(n10.card) && /the poison goes out of Barley/.test(l10.join(' ')) && !Object.keys(t10.conds).length && c10.feats.lay === 5 && !/poison/.test(again10.join(' ')));
+      } catch (eS) { repF5.errors.push('section 10: ' + String(eS && eS.stack || eS).slice(0, 400)); }
+      try { // (secF5)
+      // 11. THE CAMERA AT INITIATIVE (the iso roam combat lane's item 2, his "why not zoom in on active iso roam when initiative to do that fight"): in, both sides in view
+      // between the strip and the bar; the floor's zoom back at the gather; a fight too wide for a deeper step keeps the floor's
+      var B11 = testF5('?roam=wet&watch&enc=999'), R11 = B11.roam, t11 = R11.token, L11 = UF5.zooms(), zf = L11[L11.length - 1];
+      B11.units = B11.units.filter(function (u) { return u.side !== 'foe'; }); t11.x = 12; t11.y = 30; GF5.setup(GF5.map, B11.units); D.iso.zoom = zf;
+      var f11 = B11.makeFoe({ id: 'cam1', kind: 'giantrat' }); f11.x = 12; f11.y = 24; f11.conds = f11.conds || {}; B11.units.push(f11); GF5.setup(GF5.map, B11.units);
+      var cam11 = RF5.fightCam(B11, [t11, f11]), inView = [t11, f11].every(function (u) { var c = D.iso.center(u.x, u.y, 0), s = D.iso.toScreen(c.x, c.y); return s.x > 0 && s.x < D.W && s.y > 22 && s.y < D.H - 74; });
+      var z11 = D.iso.zoom; R11.mode = 'fight'; driveF5(RF5.after(B11, 'won', { zone: 'warrens_d' }, []), null, 600); var back11 = D.iso.zoom;
+      D.iso.zoom = zf; R11.zoomFight0 = null; var far11 = B11.makeFoe({ id: 'cam2', kind: 'giantrat' }); far11.x = 12; far11.y = 2; far11.conds = {}; B11.units.push(far11); var wide11 = RF5.fightCam(B11, [t11, far11]); R11.zoomFight0 = null;
+      D.iso.zoom = L11[0]; var keep11 = RF5.fightCam(B11, [t11, f11]); R11.zoomFight0 = null; D.iso.zoom = zf;
+      okF5('the camera at INITIATIVE: the floor at ' + zf + ' (the steps ' + L11.join(',') + '), the fight 30 ft apart at ' + z11 + ', both in view ' + inView + '; back at the gather ' + back11 + '; a fight 140 ft long at ' + (wide11 && wide11.to) + '; a floor already at ' + L11[0] + ' kept at ' + (keep11 && keep11.to) + ' (never further out)',
+        !!cam11 && z11 > zf && inView && back11 === zf && wide11 && wide11.to < z11 && keep11 && keep11.to === L11[0]);
+      } catch (eS) { repF5.errors.push('section 11: ' + String(eS && eS.stack || eS).slice(0, 400)); }
     } catch (eF5) { repF5.errors.push(String(eF5 && eF5.stack || eF5).slice(0, 900)); }
     HF5.playing = false; HF5.cur = null; D.store.get = stGF5; D.store.set = stSF5; D.music = muF5; try { if (skF5 != null) window.localStorage.setItem(D.simple.KEY, skF5); } catch (eK2) { }
     var preF5 = document.createElement('pre'); preF5.id = 'out'; preF5.textContent = 'BENCH16 ' + JSON.stringify(repF5);
