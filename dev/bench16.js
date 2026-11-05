@@ -4062,6 +4062,106 @@
     document.body.appendChild(preI);
     return;
   }
+  // THE WORDS AFTER THE DEEDS (mode=words1105; the tuesday-words seat, 11-05 -- Griz's 10-31 playthrough, his 11-05 "Seat 2 - go with leans"): Tuesday 9, Dace's dagger ("words say
+  // dace lifts a staff, menu status says he's dagger in one hand empty off hand", RULED 10-31 "words"); Tuesday 7, TELL ME ABOUT IT on what Skarn just said ("what's the official
+  // quest reward, why are we splitting payout?") by his 10-30 rule (js/hours.js H16.TELL_RULE: a screen's own `tell`, js/mines.js M.tell); Tuesday 12 (a)(b)(d), after the
+  // cloaker ("post cloaker death and reward conversations"): Dace by the beam keyed on the kill, Ottilie, Wynn and Sabeth on it, TELL ME ABOUT IT for Dace, Wynn and Ottilie
+  if (get('mode', '') === 'words1105') {
+    var repWd = { checks: [], errors: [] }, memWd = {}, stGWd = D.store.get, stSWd = D.store.set, MWd = D.mines, RWd = D.roam, CWd = D.counter, H6Wd = D.hours, muWd = D.music, sfxWd = D.sfx;
+    function okWd(what, v) { repWd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveWd(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topWd() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveWd(s.co, null, 2); return s; }
+    function testWd(q) { var B = RWd.make(q); D.scenes.length = 0; D.push(B); D.battle = B; return topWd(); }
+    function nextWd(sc) { return sc.buttons().filter(function (b) { return b.go === 'next'; })[0]; }
+    // a talk walked screen by screen: each screen's words, its TELL ME ABOUT IT read (pressed, its words, then back to the screen), its ask answered `ans`
+    function walkWd(B, id, ans) {
+      var co0 = B.co, g = MWd.talk(B, id); B.co = (function* () { yield* g; yield* co0; })();
+      driveWd(B.co, function () { return D.top() instanceof CWd.Counter; }, 400);
+      var sc = D.top(), out = []; if (!(sc instanceof CWd.Counter)) return out;
+      for (var k = 0; k < 40 && !sc.done; k++) {
+        var w = sc.wait || {}, j = 0; if (w.say) while (sc.page < sc.pages.length - 1 && j++ < 20) sc.press(nextWd(sc));
+        var ab = sc.buttons().filter(function (b) { return b.go === 'about'; })[0], tell = null, back = true;
+        if (ab) { sc.press(ab); tell = [].concat((sc.wait && sc.wait.say) || []).join(' '); var j2 = 0; while (sc.wait && sc.wait.about && j2++ < 20) sc.press(nextWd(sc)); back = sc.wait === w; }
+        out.push({ kind: w.ask ? 'ask' : 'say', text: [].concat(w.ask || w.say || []).join(' ').replace(/\{.\}|\{\/\}/g, ''), tell: tell, own: !!w.tell, back: back });
+        if (w.ask) sc.press(sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === (ans || 0); })[0]); else sc.press(nextWd(sc));
+      }
+      driveWd(B.co, null, 80); return out;
+    }
+    function sumWd(sc) { return sc.map(function (s) { return s.kind + (s.tell != null ? (s.own ? '+TELL' : '+ABOUT') : '') + ' "' + s.text.slice(0, 34) + '..."'; }).join(' | '); }
+    function allWd(sc) { return sc.map(function (s) { return s.text; }).join(' '); }
+    var Tw = function (k) { return [].concat(CWd.L(k)).join(' '); };
+    D.store.get = function (k) { return memWd[k] ? JSON.parse(memWd[k]) : null; }; D.store.set = function (k, v) { memWd[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { }; D.sfx = function () { };
+    try {
+      D.seed = +get('seed', 1105);
+      // 1. DACE'S DAGGER (Tuesday 9): his kit is a dagger, and every word of his says so -- TAKE HIM, the light below the roost, the deep gallery walked, the JOURNAL's step
+      var kit1 = ((DS.DATA.heroes || {}).dace || {}).equip || {}, ws1 = [MWd.LINES.daceJoin, MWd.LINES.daceLight, Tw('dace.join'), Tw('dace.deep')].join(' ');
+      var dq1 = CWd.quests({ flags: { daceWith: 1 }, inv: [], party: [] }).filter(function (q) { return q.id === 'dace'; })[0];
+      var B1 = testWd('?roam=galleries_g4&guest=dace'), u1 = MWd.guestUnit(B1, 'dace'), hello1 = (RWd.def.hello || []).concat(B1.roam.roostLines || []).join(' ');
+      okWd('DACE\'S DAGGER: his kit "' + kit1.weapon + '"; TAKE HIM "' + MWd.LINES.daceJoin.slice(0, 40) + '...", below the roost "' + MWd.LINES.daceLight.replace(/\{.\}|\{\/\}/g, '').slice(0, 55) + '...", the JOURNAL "' + ((dq1 && dq1.where) || '').slice(0, 70) + '..."; no staff anywhere (' + !/staff/.test(ws1 + ' ' + ((dq1 && dq1.where) || '')) + '); the light still the Light, on him (' + !!(u1 && u1.conds.light) + ', said ' + /lifts his dagger/.test(hello1) + ')',
+        kit1.weapon === 'dagger' && /takes up his dagger/.test(MWd.LINES.daceJoin) && /lifts his dagger, and the light comes up on its pommel/.test(MWd.LINES.daceLight) && /dagger/.test(Tw('dace.join')) && /dagger/.test(Tw('dace.deep')) &&
+        !/staff/.test(ws1) && !!dq1 && /dagger lights below the roost/.test(dq1.where || '') && !!u1 && !!u1.conds.light && /lifts his dagger/.test(hello1));
+      // 2. THE RULE (his 10-30 words, built): written once, for every talk after this; a screen's own tell first, the keeper's own on the first screen alone
+      okWd('THE RULE: H16.TELL_RULE "' + String(H6Wd.TELL_RULE || '').slice(0, 80) + '..."; the counter reads a screen\'s own (' + typeof CWd.Counter.prototype.tellOf + ')',
+        /answers what the screen it stands on left out/.test(H6Wd.TELL_RULE || '') && /first screen alone/.test(H6Wd.TELL_RULE || '') && typeof CWd.Counter.prototype.tellOf === 'function' && typeof MWd.tell === 'function');
+      // 3. SKARN GIVES THE JOB (Tuesday 7; the lane's 15 items 2-3): his trade on his first screen; the job's own tell, the two purses and the herd before he has named it; his question
+      // in his own voice
+      var B3 = testWd('?roam=warrens&flags=tallyMet'), s3 = walkWd(B3, 'skarn', 0), job3 = s3.filter(function (s) { return /office box pays sixty/.test(s.text); })[0] || {};
+      okWd('SKARN GIVES THE JOB: ' + sumWd(s3) + '; the job\'s TELL "' + String(job3.tell || '').slice(0, 90) + '..."',
+        s3.length >= 3 && s3[0].tell != null && !s3[0].own && /keep the Warrens' gate/.test(s3[0].tell) && !!job3.own && /fifty silver/.test(job3.tell || '') && /sixty if the herd stands/.test(job3.tell || '') && /six crawlers in the settling pools of the Wet/.test(job3.tell || '') && /pays nothing/.test(job3.tell || '') && /deep rate is what a hand gets/.test(job3.tell || '') && job3.back &&
+        !/He tells you what he wants to know/.test(allWd(s3)) && /find out one thing for me down there: why the deep rate is three silver/.test(allWd(s3)) && !/He tells you what he wants to know/.test(Tw('w16.skarnFive')));
+      // 4. SKARN PAYS (Tuesday 7: "TELL ME ABOUT IT ... isn't offered on the '+60 silver' screen"): on his words and on the "+60 silver", the two purses and the stock's fork; the
+      // stock dead: why the box pays nothing
+      var B4 = testWd('?roam=warrens&flags=tallyMet,skarnOk,heardPete,fiveKnown,fiveDone'), sp4 = B4.roam.silver || 0, s4 = walkWd(B4, 'skarn', 0), got4 = (B4.roam.silver || 0) - sp4, sil4 = s4.filter(function (s) { return /\+60 silver/.test(s.text); })[0] || {}, aft4 = s4[0] || {};
+      var B4d = testWd('?roam=warrens&flags=tallyMet,skarnOk,heardPete,fiveKnown,fiveDone,stockDead'), sp4d = B4d.roam.silver || 0, s4d = walkWd(B4d, 'skarn', 0), got4d = (B4d.roam.silver || 0) - sp4d;
+      okWd('SKARN PAYS: ' + sumWd(s4) + ' (+' + got4 + ' sp); the "+60 silver"\'s TELL "' + String(sil4.tell || '').slice(0, 100) + '..."; the stock dead: ' + sumWd(s4d) + ' (+' + got4d + ' sp), "' + String((s4d[0] || {}).tell || '').slice(0, 80) + '..."',
+        got4 === 60 && /The herd stands/.test(aft4.text || '') && aft4.own && /Two purses/.test(aft4.tell || '') && !!sil4.own && sil4.tell === aft4.tell && /Edric's book paid for its names/.test(sil4.tell || '') && /six crawlers in the Wet are the House's stock/.test(sil4.tell || '') && /council/.test(sil4.tell || '') && /Captain Dunmore/.test(sil4.tell || '') && sil4.back &&
+        got4d === 0 && s4d.length === 1 && /Dead stock/.test(s4d[0].text) && s4d[0].own && /pays nothing/.test(s4d[0].tell || '') && /lantern-token/.test(s4d[0].tell || '') && /Dunmore's stable/.test(s4d[0].tell || ''));
+      // 5. DACE BY THE BEAM AFTER THE KILL (Tuesday 12 (a)): keyed on the kill itself, not on Hessle's pay -- with the party at the kill (the page), taken after (the cloak, the page);
+      // never his pre-quest pitch; before it, the pitch and the ask, its TELL what TAKE HIM means; after the kill without him, the ask's TELL what "worth the climb" is
+      var dW = function (fl, ans) { var B = testWd('?roam=galleries&flags=cullHired' + (fl ? ',' + fl : '')); return walkWd(B, 'dace', ans == null ? 1 : ans); };
+      var s5a = dW('cloakerKilled,daceDone,daceSheet'), s5b = dW('cloakerKilled,daceDone,daceCloak'), s5c = dW('cloakerKilled,daceDone'), s5d = dW(''), s5e = dW('cloakerKilled');
+      var pitch5 = /ambitious grandson|The hands won't tell you that/;
+      okWd('DACE AFTER THE KILL (the tail unpaid): with the party at it ' + sumWd(s5a) + '; taken after, the cloak ' + sumWd(s5b) + '; the page ' + sumWd(s5c),
+        s5a.length === 1 && /with the thing dead behind us/.test(s5a[0].text) && s5b.length === 1 && /without his grandfather's cloak/.test(s5b[0].text) && s5c.length === 1 && /I've been down/.test(s5c[0].text) && !/cloak/.test(s5c[0].text) &&
+        ![s5a, s5b, s5c].some(function (s) { return pitch5.test(allWd(s)); }) && ![s5a, s5b, s5c].some(function (s) { return s.some(function (x) { return x.tell != null; }); }));
+      var ask5d = s5d.filter(function (s) { return s.kind === 'ask'; })[0] || {}, ask5e = s5e.filter(function (s) { return s.kind === 'ask'; })[0] || {};
+      okWd('DACE BEFORE AND AFTER, NOT TAKEN: ' + sumWd(s5d) + '; the ask\'s TELL "' + String(ask5d.tell || '').slice(0, 80) + '..."; the kill without him: ' + sumWd(s5e) + ', "' + String(ask5e.tell || '').slice(0, 70) + '..."',
+        pitch5.test(allWd(s5d)) && !!ask5d.own && /cloaker/.test(ask5d.tell || '') && /forty gold/.test(ask5d.tell || '') && /if I fall down there, the house won't forgive you/.test(ask5d.tell || '') && /Old Wynn, here at the mouth/.test(ask5d.tell || '') && ask5d.back &&
+        !pitch5.test(allWd(s5e)) && /It's dead\?/.test(ask5e.text || '') && !!ask5e.own && /grandfather's cloak/.test(ask5e.tell || '') && /a page I'll write for your wizard/.test(ask5e.tell || '') && /If I fall, it's over/.test(ask5e.tell || ''));
+      // 6. OTTILIE, WYNN AND SABETH ON THE KILL (Tuesday 12 (b)); TELL ME ABOUT IT for Ottilie and Wynn (12 (d)) where their words leave it out, none on the kill's lines
+      var oW = function (id, fl, ans) { var B = testWd('?roam=galleries&flags=cullHired' + (fl ? ',' + fl : '')); return { B: B, s: walkWd(B, id, ans) }; };
+      var o6a = oW('ottilie', '').s, o6b = oW('ottilie', 'cloakerKilled').s, o6c = oW('ottilie', 'cloakerKilled,daceDone').s, o6d = oW('ottilie', 'cloakerKilled,roostBroken').s;
+      okWd('OTTILIE: before ' + sumWd(o6a) + ' -- "' + String((o6a[0] || {}).tell || '').slice(0, 70) + '..."; after the kill ' + sumWd(o6b) + '; with Dace brought back ' + sumWd(o6c) + '; the roost broken ' + sumWd(o6d),
+        o6a.length === 1 && /The final word/.test(o6a[0].text) && o6a[0].own && /The roost is the bats/.test(o6a[0].tell || '') && /The mark is the last lamp/.test(o6a[0].tell || '') && /Sabeth hires you/.test(o6a[0].tell || '') &&
+        o6b.length === 1 && /It's done, then/.test(o6b[0].text) && o6b[0].tell == null && o6c.length === 1 && /said no to that boy/.test(o6c[0].text) && o6d.length === 1 && /broken the place/.test(o6d[0].text));
+      var w6a = oW('wynn', '').s, w6b = oW('wynn', 'cloakerKilled').s, w6c = oW('wynn', 'cloakerKilled,daceDone').s, B6g = testWd('?roam=galleries&flags=cullHired&guest=dace'), w6d = walkWd(B6g, 'wynn', 1), ask6 = w6d[0] || {};
+      okWd('WYNN: before ' + sumWd(w6a) + ' -- "' + String((w6a[0] || {}).tell || '').slice(0, 60) + '..."; after the kill ' + sumWd(w6b) + '; with Dace brought back ' + sumWd(w6c) + '; Dace in the party, the ask ' + sumWd(w6d) + ' -- "' + String(ask6.tell || '').slice(0, 60) + '..."',
+        w6a.length === 1 && /crisis winter/.test(w6a[0].text) && w6a[0].own && /The Furnace is up the mountain, in the Doors/.test(w6a[0].tell || '') && /rattle/.test(w6a[0].tell || '') &&
+        w6b.length === 1 && /Forty-eight winters/.test(w6b[0].text) && w6b[0].tell == null && w6c.length === 1 && /You brought the boy back up/.test(w6c[0].text) &&
+        ask6.kind === 'ask' && /Bringing him down/.test(ask6.text) && ask6.own && /send the boy home/.test(ask6.tell || '') && /yours to bring back up/.test(ask6.tell || '') && ask6.back && w6d.some(function (s) { return /Then bring him back up/.test(s.text); }));
+      var sb6 = oW('sabeth', 'cloakerKilled'), sb6a = sb6.s, sb6b = walkWd(sb6.B, 'sabeth', 0), sb6c = oW('sabeth', 'cloakerKilled,cloakerDone').s, sb6d = oW('sabeth', '').s, sb6e = oW('sabeth', 'cloakerKilled,roostBroken').s;
+      okWd('SABETH: after the kill ' + sumWd(sb6a) + '; again ' + sumWd(sb6b) + '; the tail paid ' + sumWd(sb6c) + '; before ' + sumWd(sb6d) + '; the roost broken ' + sumWd(sb6e) + ' (sabethCloaker ' + sb6.B.roam.flags.sabethCloaker + ')',
+        sb6a.length === 2 && /That's no head of mine: Hessle's board pays for that one/.test(sb6a[0].text) && /Nothing to pay on/.test(sb6a[1].text) && sb6b.length === 1 && /Nothing to pay on/.test(sb6b[0].text) && sb6.B.roam.flags.sabethCloaker === 1 &&
+        /Forty gold off Hessle's drawer/.test((sb6c[0] || {}).text || '') && sb6d.length === 1 && !/Hessle/.test(allWd(sb6d)) && sb6e.length === 1 && /never rehired/.test(sb6e[0].text));
+      // 7. THE DOORS: the hours show's three beats (the eyes rows'), staged where they say, and none thrown
+      // (each beat beside its person, on a square the party can stand on, facing them; staged without a throw, at its place with its flags)
+      var bad7 = [], seen7 = [], who7 = function (q, id, sq) { var B = testWd(q), u = B.units.filter(function (x) { return x.npc === id; })[0], ok = !!u && D.grid.canStand(B.roam.token, sq[0], sq[1]); D.scenes.length = 0; return u ? { at: [u.x, u.y], stand: ok } : null; };
+      [['galleries1105', '?roam=galleries&flags=cullHired', 'dace'], ['cloakerafter1105', '?roam=galleries&flags=cullHired,cloakerKilled,daceDone,daceSheet', 'dace'], ['skarnpay1105', '?roam=warrens&flags=tallyMet', 'skarn']].forEach(function (p) {
+        var id = p[0], bt = H6Wd.SHOW_BEATS.filter(function (b) { return b.id === id; })[0]; if (!bt || !bt.at) { bad7.push(id + ': no beat'); return; }
+        var sq = bt.at[2], w = who7(p[1], p[2], sq), dv = D.roam.DIR8[bt.at[3]];
+        if (!w) bad7.push(id + ': no ' + p[2] + ' on the floor'); else { if (Math.max(Math.abs(sq[0] - w.at[0]), Math.abs(sq[1] - w.at[1])) > 1) bad7.push(id + ': ' + sq + ' not beside ' + p[2] + ' at ' + w.at); if (!w.stand) bad7.push(id + ': ' + sq + ' not a square to stand on'); if (dv == null) bad7.push(id + ': no facing'); }
+        try { D.house.playing = false; D.house.cur = null; D.scenes.length = 0; CWd.servicePlay(bt); var H = D.house, at = H.cur && H.cur.at; seen7.push(id + '@' + (at && at.town) + ' ' + sq + ' (' + p[2] + ' ' + (w && w.at) + ')'); if (!at || at.town !== bt.at[0]) bad7.push(id + ': at ' + JSON.stringify(at)); Object.keys(bt.flags || {}).forEach(function (k) { if (H.cur.flags[k] !== bt.flags[k]) bad7.push(id + ': flag ' + k); }); }
+        catch (e7) { bad7.push(id + ': ' + String(e7).slice(0, 120)); }
+        D.house.playing = false; D.house.cur = null; D.scenes.length = 0;
+      });
+      okWd('THE DOORS: ' + seen7.join(', ') + (bad7.length ? ' -- ' + bad7.join('; ') : ''), seen7.length === 3 && !bad7.length);
+    } catch (eWd) { repWd.errors.push(String(eWd && eWd.stack || eWd).slice(0, 900)); }
+    D.music = muWd; D.sfx = sfxWd; D.store.get = stGWd; D.store.set = stSWd; D.scenes.length = 0; D.battle = null;
+    var preWd = document.createElement('pre'); preWd.id = 'out'; preWd.textContent = 'BENCH16 ' + JSON.stringify(repWd);
+    document.body.appendChild(preWd);
+    return;
+  }
   // THE DEEP GALLERY, THE CLOAKER AND CORWEN DACE, 10-28 (mode=deepgallery1028; js/mines.js THE DEEP GALLERY, js/roam.js, js/house.js, js/hours.js -- the deep gallery seat,
   // started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on main yet?"; his answer to its five, "all 5 leans, but
   // put the guests in the party token (not follow behind)"): the hole floor from the first game's map and its ways; one Dace; TAKE HIM into the token; his light dark through
