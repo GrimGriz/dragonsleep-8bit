@@ -1,0 +1,130 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-11-04T23:09:10.593Z",
+ "previous_save": "2026-10-30T00:02:30.307Z",
+ "items": [
+  {
+   "id": "eyes-halfwayinn-props-1104",
+   "eyes": true,
+   "pri": 2,
+   "title": "The Halfway Inn dressed: the art desk's hearths with their fires, the long table, the settle, the table for two and its chairs, the kitchen's things, the beds upstairs and down (11-04)",
+   "pt": "the Halfway Inn and the lake, item 1 (deep16/js/innprops.js, deep16/art/innprops_p1, tools/innprops-sheet.py; art-wanted section 36 pages 1-4) · eyes",
+   "url": "deep16/?innshow&beat=room&fresh=1104p",
+   "verdict": "works",
+   "note": "it looks like all the props are drawn on code-drawn dirt instead of interior floor\ncopy the small fireplace and position upstairs over the chimney on the first floor\nadd a bed to each of the 3 front rooms and 3 beds to the backroom\nmove the nice bed and nightstand to the northern wall as far from the fireplace on that wall",
+   "at": "2026-11-04T22:26:46.640Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-harbinger-ai-1103n",
+   "eyes": true,
+   "pri": 2,
+   "title": "Watched, the Harbinger fight: no hiding into his mirror, no Fireball into his drink while he can drink it (11-03 night)",
+   "pt": "the AI and the dark, his Harbinger fight of 11-03 read that night (deep16/js/battle.js Battle.mirrorOn; deep16/js/tactics.js rogueCoverTurn, spellPlans; deep16/js/traits.js TR.drinker; mode=fights1103) · eyes",
+   "url": "deep16/?fight=harbinger&watch&fresh=1103q",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:45:47.142Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-floor-pools-1103n",
+   "eyes": true,
+   "pri": 2,
+   "title": "A floor's M menu shows Lay on Hands spent at once (and Second Wind, Arcane Recovery) (11-03 night)",
+   "pt": "the second game's house, Tuesday 4, his \"lay on hands not spending points in top down roam menu casting?\" (deep16/js/ui.js gridHost sheet(): the figure's own pools; mode=familiar1031 check 4c) · eyes",
+   "url": "deep16/?at=familiar16&fresh=1103p",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:47:57.715Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-familiar-floor-1103n",
+   "eyes": true,
+   "pri": 2,
+   "title": "Find Familiar on a floor: the familiar with Aurdin at once; cast again, A NEW SHAPE? first (11-03 night)",
+   "pt": "the second game's house, Tuesday 2, his \"Find Familiar isn't working at all\" -- the two not-yets of 10-31 (deep16/js/house.js famNow, H.famHad; js/menu.js MagicPage; mode=familiar1031 checks 3b and 4b) · eyes",
+   "url": "deep16/?at=familiar16&fresh=1103n",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:51:00.409Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-silverton-built-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "Silverton as built: the doors in the walls, the zoom step, tall faces, pin 19 and the compound (11-03)",
+   "pt": "the second game's house (deep16/js/town.js T.DOORS, T.ZOOMSTEP, T.COMPOUND; deep16/js/topview.js TV.ART.tall) · eyes",
+   "url": "deep16/?roam=silverton&fresh=1103s",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:54:04.848Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-options-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "The second game's OPTIONS: one page on its title and in a fight, GRID SCALE and MENU TYPE in both (11-03)",
+   "pt": "the menus §2.1 (js/menu.js MN.gridRows, OptionsPage; deep16/js/ui.js optsChanged; deep16/js/simple.js RANDOM FIGHTS, SIMPLE VIEW; deep16/js/world.js ZOOM ON APPROACH) · eyes",
+   "url": "deep16/?fresh=1103o",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:55:23.989Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-coldridge-owl-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "Aurdin's owl on the shoulder opposite his staff, all eight facings; the Coldridge climb offers the white owl (11-03)",
+   "pt": "the second game's house, his \"i'd like for up on the coldridge route count as mountains enough to get a white owl\" and \"Aurdin on top-down roam maps (silverton) should have his owl moved to the shoulder opposite the staff and better positioned\" (deep16/js/house.js H.famForms, H.onClimb; deep16/js/sprites.js S.SHOULDER; deep16/js/ui.js perchBase, perchPos; mode=familiar1031 check 1b, mode=aloftclicks1103 check 6) · eyes",
+   "url": "deep16/?npc=goblin,goblin&vs=aurdin:3&fam=owl&lvl=3&fresh=1103g",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:56:15.756Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-campclock-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "A road camp passes eight hours from when the party lies down, not on to the next morning (11-03)",
+   "pt": "the second game's house, his \"check that road camping is only moving 8 hours as appropriate (not necessarily 'sleep til morning')\" (deep16/js/world.js W.camp, W.REST; deep16/js/house.js H.runNight, H.wakeTitle, H.wakeSaid) · eyes",
+   "url": "deep16/?world&fresh=1103f",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T22:56:47.401Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-cloaker-srd-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "The cloaker by the SRD: the Moan, the Phantasms out of bright light, and bright light its disadvantage (11-03)",
+   "pt": "the bestiary, his \"SRD except for script and easter egg\" (deep16/data/foes.js cloaker; deep16/js/magic.js M.moan, M.dupesLit, M.imagesFool; deep16/js/ai.js brute; deep16/js/battle.js attack and the images) · eyes",
+   "url": "deep16/?fight=cloaker&fresh=1103i",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T23:02:46.383Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-joinasks-1103",
+   "eyes": true,
+   "pri": 2,
+   "title": "A hero hired chooses as they join: Aurdin's tradition at the chapel, Barley's style before his bout, Lymen's at the Hex (11-03)",
+   "pt": "the leveling item 13, his RULED \"... or 'character joins party' since we're starting everyone at 2\" (deep16/js/company.js CO.hire, CO.asks; js/rules.js R.askStart; mode=storyasks1103) · eyes",
+   "url": "deep16/?company&beat=aurdin&fresh=1103e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T23:06:49.837Z",
+   "new_since_last_save": true
+  }
+ ]
+}

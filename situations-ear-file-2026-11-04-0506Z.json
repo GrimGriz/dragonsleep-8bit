@@ -1,0 +1,82 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-11-04T05:06:25.554Z",
+ "previous_save": "2026-11-03T23:36:05.473Z",
+ "items": [
+  {
+   "id": "eyes-title-eggs-1104",
+   "eyes": true,
+   "pri": 1,
+   "title": "The six eggs beside CONTINUE FROM, filled for the eggs each save found (11-04)",
+   "pt": "the second game's house, his \"still need 6 egg-shadows outside the box that fill if you have the associated egg achieved\" and \"it had them in the box with the saves not outside\" (deep16/js/house.js H.EGGS, H.eggsOf, H.drawEggs, Slots.draw; H.afterFight keeps a road fight's egg; mode=house1104) · eyes",
+   "url": "deep16/?fresh=1104e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T04:41:09.158Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-halfwayinn-iso-1104",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE HALFWAY INN, one place on the diamonds: the walls see-through inside, THE MEAL at the long table, the Snoot's runner (11-04)",
+   "pt": "the Halfway Inn and the lake, item 1 and item 11 (deep16/js/inn.js) · eyes",
+   "url": "deep16/?innshow&fresh=1104c",
+   "verdict": "unclear",
+   "note": "it feels like the road should be running the same way the gulch does over on the left side of the screen instead of the top. \nWhen outside, it looks like a one-story building with roofs shorter than the player token avatar\n\nThere should be a big fire in the center, with the common room on the road side of it and the kitchen on the other. There should be a long table across one wall and a bench by the fire, and a table with two seats - as well as the bar counter underneath the stairs. One big room on the kitchen side of the fire (overlooking the lake (still opposite the road with the road moved) and small rooms over the common room. Two bedrooms with a small fireplace on the other end of the kitchen (a one-story part of the building) - barn big enough to house 6 horses\nProp request list for the art-department, wall tilings as needed as well\n",
+   "at": "2026-11-04T04:58:18.972Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-twinstrike-1103n",
+   "eyes": true,
+   "pri": 1,
+   "title": "TWIN STRIKE: Symmetric Fighting as you designed it -- both longswords in one attack at +2 (11-03 night)",
+   "pt": "the menus, his design of 11-03 night and his answers \"1 - one strike roll at +2, damage individual swings combined\", \"2&3 - yes\" (js/rules.js R.twinPair; deep16/js/battle.js Battle.twinOK, twinOpen, twinOff, exec twinstrike; deep16/js/ui.js actAt; deep16/js/simple.js S.fightCmd; mode=fights1103) · eyes",
+   "url": "deep16/?npc=ogre&vs=~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric&lvl=5&fresh=1103t",
+   "verdict": "works",
+   "note": "Twin strike auto-fires on click but is missing from the q' menu. Attack is on the q menu and not in the 'actions' part.",
+   "at": "2026-11-04T05:00:52.652Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-edifice-roof-1103n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Edifice's glass roof lying back at the land's slant (11-03 night)",
+   "pt": "the world map, his \"The ceiling of the edifice is drawn as if it is being viewed from top down, and that's not the actual iso angle\" (deep16/js/worldfine.js F.built, the keep's roof) · eyes",
+   "url": "deep16/?world&close&fresh=1103z",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T05:01:25.552Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-coldridge-climb-1103n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Coldridge climb laid again: switchbacks across the 3291 ft hex and the two either side, each hex once, rising (11-03 night)",
+   "pt": "the world map, his \"rework the coldridge route up the mountain toward the goals we were aiming at with these changes, switchbacks and such so that a wagon could reasonably ascend and descend\" (tools/hexmap.js seedColdridgeRework, spreadW; tools/near-build.py COLD_SHELF_MI; mode=world1103 the climb check and the hairpin fixture) · eyes",
+   "url": "deep16/?world&hairpin&fresh=1103y",
+   "verdict": "works",
+   "note": "feels a little fast - are we slowing their movement due to terrain?",
+   "at": "2026-11-04T05:05:57.051Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-warrensfoot-1103n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The mountain pulled back off the road to the Warrens: the hexes from the town on the valley floor (11-03 night)",
+   "pt": "the world map, his \"reshape the area to better match the hex lines, such that when traveling between town and the warrens on the world map, half of the selected hexes aren't up the side of the mountain\" and \"try the pulling the mountain back, preferably without the surrounding area becoming malformed\" (tools/hexmap.js seedWarrensFoot, footW; deep16/js/worldfine.js the outline draped on the land; dev/world-probe.py) · eyes",
+   "url": "deep16/?world&fresh=1103x",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-04T05:06:22.083Z",
+   "new_since_last_save": true
+  }
+ ]
+}
