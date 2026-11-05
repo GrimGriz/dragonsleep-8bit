@@ -430,12 +430,24 @@
   // whom a spell offers, in the order the list shows them: the foes for a harm (an area with no side named is a harm -- Fireball offered our own first, and the
   // first pick burned the caster: 10-21, the seat's own walk), our own for a help -- a heal, a buff, a cure, a shape -- and a summons or a ground set by our own
   var HELPS = { heal: 1, buff: 1, cure: 1, shape: 1 }, OURS = { summon: 1, ground: 1 };
-  S.targets = function (B, u, g, sp) {
+  // THE SIGHT A SPELL ASKS (11-05, the tuesday-grid seat on the lanes desk's word -- Griz, his 10-31 playthrough, Tuesday 17: "Is aurdin supposed to be able to shoot the acid
+  // spells or only firebolt in the dark?"; RULED, the lean): a spell whose SRD 5.1 words name "a creature you can see" (data/spells.js `see`: Hold Person, Bane, Enlarge, Magic
+  // Missile...) takes only one its caster sees, as on the grid (js/magic.js M.targetOK) -- a friend or a foe, by the grid's own M.sees. The rest keep the simple fight's guess-free
+  // pick: Acid Splash, Fire Bolt, Ray of Frost at a foe unseen, where the grid asks its square be guessed (M.guessDark) -- range and reach let go. Magic Missile at the dark
+  // (M.missileDark: the rule or the fight's darkness) still flies at one in the dark, the fog, the cloud. An area's point is not asked, as the grid asks it of none (M.targetOK's
+  // shapes alone); Bane's three and Mass Healing Word's six are the ones seen (S.spellCmd)
+  var SEEN = { single: 1, attack: 1, rays: 1, darts: 1, splash: 1, allies: 1, touch: 1 };
+  S.seen = function (B, u, g, w) {
+    if (!g || !g.see || g.swing || w === u || !SEEN[g.shape] || D.magic.sees(B, u, w)) return true;
+    if (g.shape === 'darts' && G.hostile(u, w) && (D.RULES.missilesAtTheDark || (B.fight && B.fight.gimmick === 'darkness'))) { var v = D.magic.seeWhy(B, u, w); return /^(dark|darkness|fog|the cloud|sleet)$/.test(v.why || ''); }
+    return false;
+  };
+  S.targets = function (B, u, g, sp, blind) {
     var kind = AIMS[g.shape], k = (sp && sp.kind) || '';
     if (kind === 'none' || kind === 'friends') return [];
-    var ok = function (w) { return G.present(w) && !w.left && !w.ethereal; };
-    if (kind === 'friend') return S.friends(B, u, true).filter(function (w) { return (!w.object || g.obj) && !D.magic.targetWhy(u, g, w, B); });
-    var foes = S.foes(B, u).filter(function (w) { return D.magic.targetKind(B, u, g, w); }), ours = S.friends(B, u, HELPS[k] && k !== 'buff').filter(function (w) { return ok(w) && D.magic.targetKind(B, u, g, w); });
+    var ok = function (w) { return G.present(w) && !w.left && !w.ethereal; }, eye = function (w) { return blind || S.seen(B, u, g, w); }; // (blind: who it would take with sight let go -- the greyed row's words, S.spells)
+    if (kind === 'friend') return S.friends(B, u, true).filter(function (w) { return (!w.object || g.obj) && !D.magic.targetWhy(u, g, w, B) && eye(w); });
+    var foes = S.foes(B, u).filter(function (w) { return D.magic.targetKind(B, u, g, w) && eye(w); }), ours = S.friends(B, u, HELPS[k] && k !== 'buff').filter(function (w) { return ok(w) && D.magic.targetKind(B, u, g, w) && eye(w); });
     if (kind === 'foe' || g.side === 'foe') return foes;
     if (g.side === 'ally' || OURS[k]) return ours;
     if (HELPS[k]) return ours.concat(foes);
@@ -447,7 +459,8 @@
     return D.magic.list(B, u, { anyTarget: true }).map(function (e) {
       var g = e.g, kind = AIMS[g.shape], why = e.why, ok = e.ok;
       if (!kind) { ok = false; why = why || 'aimed on the full grid'; }
-      else if (ok && kind !== 'none' && kind !== 'friends' && !S.targets(B, u, g, e.sp).length) { ok = false; why = 'no one here it takes'; }
+      else if (ok && kind !== 'none' && kind !== 'friends' && !S.targets(B, u, g, e.sp).length) { ok = false; why = S.targets(B, u, g, e.sp, true).length ? 'no one in sight it takes (the spell asks for one you can see)' : 'no one here it takes'; }
+      else if (ok && g.shape === 'allies' && g.see && g.side === 'foe' && !S.foes(B, u).some(function (w) { return S.seen(B, u, g, w); })) { ok = false; why = 'no foe in sight (the spell asks for ones you can see)'; } // (Bane in the dark)
       var rst = S.roostOf(B, function () { return D.magic.summary(e, u); });
       return { label: e.name.toUpperCase(), right: rst ? 'ROOST' : (g.time === 'B' ? 'bonus ' : '') + (e.level ? 'L' + e.level : ''), roost: rst, ok: ok, why: why, e: e,
         go: function () { if (e.levels.length > 1) S.openSlots(B, u, e); else S.aimSpell(B, u, e, e.slot); } };
@@ -460,7 +473,7 @@
     var g = e.g, n = (g.n || 1) + Math.max(0, slot - (e.level || 0)), c = { do: 'cast', id: e.id, slot: slot };
     if (g.shape === 'self') c.target = u;
     else if (g.shape === 'around') { var f = nearestFoe(B, u, u); c.target = f ? { x: f.x, y: f.y } : { x: u.x, y: u.y }; }
-    else if (g.shape === 'allies') { var fr = S.friends(B, u).filter(function (w) { return !D.magic.targetWhy(u, g, w, B); }); if (e.id === 'bless' || g.side !== 'foe') fr.sort(function (a, b) { return (b === u) - (a === u); }); c.target = { units: (g.side === 'foe' ? S.foes(B, u) : fr).slice(0, n) }; }
+    else if (g.shape === 'allies') { var eyeA = function (w) { return S.seen(B, u, g, w); }, fr = S.friends(B, u).filter(function (w) { return !D.magic.targetWhy(u, g, w, B) && eyeA(w); }); if (e.id === 'bless' || g.side !== 'foe') fr.sort(function (a, b) { return (b === u) - (a === u); }); c.target = { units: (g.side === 'foe' ? S.foes(B, u).filter(eyeA) : fr).slice(0, n) }; } // (eyeA: the ones seen, for a spell that asks it -- Bane, Mass Healing Word)
     else if (g.shape === 'rays' || g.shape === 'darts') { var us = []; for (var k = 0; k < n; k++) us.push(t); c.target = { units: us }; } // (all at the one: his "spell targeting is single foe")
     else if (/^(sphere|cube|cone|line|wave)$/.test(g.shape)) c.target = { x: t.x, y: t.y, z: D.magic.aimAt(t, g) };
     else c.target = t;
