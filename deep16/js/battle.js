@@ -66,7 +66,7 @@
     // riders (a fight's scenery figures: the wagon's glamoured children, the team in its traces): drawn where they stand,
     // never in the fight. `foot` [w, h] for a big one (a horse is 2 x 1), `blocks` holds its squares, `team` startles when the run begins
     this.riders = (F.riders || []).map(function (r) { return { x: r.at[0], y: r.at[1], sheet: r.sheet, after: r.after, facing: r.facing || 0, gz: r.gz || 0, foot: r.foot || [1, 1], team: !!r.team, anim: 'idle', animT: 0 }; });
-    (F.riders || []).forEach(function (r) { if (!r.blocks) return; var f = r.foot || [1, 1]; for (var j = 0; j < f[1]; j++) for (var i = 0; i < f[0]; i++) { var s = m.at(r.at[0] + i, r.at[1] + j); if (s) s.walk = false; } });
+    (F.riders || []).forEach(function (r) { if (!r.blocks) return; var f = r.foot || [1, 1]; for (var j = 0; j < f[1]; j++) for (var i = 0; i < f[0]; i++) { var s = m.at(r.at[0] + i, r.at[1] + j); if (s) { if (!s.teamHeld) s.teamHeld = { walk: s.walk }; s.walk = false; } } });
     // the lone investigator (the 8-bit wagon night's INVESTIGATE, this.o.embed.solo): one hero in the yard; the rest come out
     // of the inn at round this.o.embed.join (the 8-bit battle's `join`), onto the squares by the door
     var solo = this.o.embed && this.o.embed.solo;
@@ -595,6 +595,38 @@
     var n = 0;
     (B && B.units || []).forEach(function (u) { if (u.side === 'foe' && u.yields && !u.dead && u.hp > 0 && u.hp <= u.maxhp / 2 && D.spr.anim(u.sheet, 'sit')) { u.anim = 'sit'; u.animT = B.t; n++; } });
     return n;
+  };
+  // THE PAIR ON THE GREYS (11-05, RULED, Griz: "Yes, as leaned", on the lanes desk's lean): one who takes a horse (`mounted`: the yard's team loose, js/ai.js traces; the road day's
+  // flight, js/wagon.js; the chase on the greys, js/chase.js) wears its mounted sheet -- horse and rider one figure, the art desk's HALFWAY-INN-AMARA-MOUNTED and -WILLEM-MOUNTED -- and
+  // takes the horse's Large space, a 2x2 with its own square in it (SRD 5.1: a rider shares its mount's space), else stays on its one square. One figure: a blow at it is a blow at
+  // the rider (the horse as a creature of its own, the SRD's "attack the mount instead", is on deep16-dream-polish.md). Not the engine's rider (u.rider, js/sprites.js S.drawRider):
+  // that draws a rider on a mount's own figure; these sheets are one drawing. Dropped, it comes off the horse: its foot sheet back, its one square (Battle.dismount)
+  Battle.MOUNTED = { amara: 'amaramounted_p1', willem: 'willemmounted_p1' };
+  Battle.mountSheet = function (u) { var s = (u && (Battle.MOUNTED[u.kind] || u.kind + 'mounted_p1')) || null; return s && D.SHEETS && D.SHEETS[s] ? s : null; };
+  Battle.mountUp = function (B, u, speed) {
+    if (!u) return u;
+    u.mounted = true; u.speed = Math.max(u.speed || 30, speed || 40);
+    var s = Battle.mountSheet(u); if (!s) return u;
+    if (u.sheet !== s) { u.footSheet = u.footSheet || u.sheet; u.sheet = s; if (D.spr.prefetch) D.spr.prefetch([s]); }
+    if ((u.size || 1) < 2 && G.map) {                    // (Large: the first free 2x2 that holds its own square -- its square as the top-left, then the other three ways)
+      var x0 = u.x, y0 = u.y, sz0 = u.size, at = null; u.size = 2;
+      [[0, 0], [-1, 0], [0, -1], [-1, -1]].some(function (d) { if (G.canStand(u, x0 + d[0], y0 + d[1])) { at = [x0 + d[0], y0 + d[1]]; return true; } return false; });
+      if (at) { u.footSize = sz0 || 1; u.x = at[0]; u.y = at[1]; } else u.size = sz0;
+    }
+    if (B) B.cache = null;
+    return u;
+  };
+  // the team away from the wagon (the yard's traces loose, the road day's pair up on the greys): off the picture, and its squares given back as they were (a blocking rider
+  // marks them unwalkable: the setup above, js/inn.js In.teamBlock) -- a rider on a grey is a 2x2 and needs the road the team stood on
+  Battle.teamAway = function (B) {
+    (B.riders || []).forEach(function (r) { if (!r.team) return; var f = r.foot || [1, 1]; for (var j = 0; j < f[1]; j++) for (var i = 0; i < f[0]; i++) { var s = B.map && B.map.at(r.x + i, r.y + j); if (s && s.teamHeld) { s.walk = s.teamHeld.walk; delete s.teamHeld; } } });
+    B.riders = (B.riders || []).filter(function (r) { return !r.team; }); B.cache = null;
+  };
+  Battle.dismount = function (B, u) {
+    if (!u || !u.mounted) return;
+    if (u.footSheet) { u.sheet = u.footSheet; delete u.footSheet; }
+    if (u.footSize) { u.size = u.footSize === 1 ? undefined : u.footSize; if (u.size === undefined) delete u.size; delete u.footSize; }
+    u.mounted = false; if (B) B.cache = null;
   };
   // the VICTORY panel's request from a fight's pay lines (theirs start with the head, '{y}Victory!{/}' or '{y}What fell{/}'): null when there is no pay to show (js/ui.js victory)
   Battle.victoryOf = function (paid) {
@@ -3266,6 +3298,7 @@
       return;
     }
     var hp0 = u.hp; u.hp = Math.max(0, u.hp - n);
+    if (u.hp <= 0 && u.mounted) Battle.dismount(this, u); // (a rider dropped comes off the grey: its own figure and square to fall in -- Battle.mountUp, 11-05)
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;

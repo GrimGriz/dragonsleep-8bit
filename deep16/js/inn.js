@@ -808,7 +808,7 @@
     u.x = t.x; u.y = t.y; u.facing = t.facing; u.tween = null; R0.token = u; R0.members = [u].concat(R0.members.filter(function (m) { return m !== u; })); R0.rest = R0.members.slice(1);
     D.grid.setup(B.map, B.units); B.focus(u);
   };
-  In.teamBlock = function (B) { (B.riders || []).forEach(function (r) { if (!r.team) return; for (var j = 0; j < r.foot[1]; j++) for (var i = 0; i < r.foot[0]; i++) { var s = B.map.at(r.x + i, r.y + j); if (s) s.walk = false; } }); }; // (the greys hold their squares, as a fight's riders do)
+  In.teamBlock = function (B) { (B.riders || []).forEach(function (r) { if (!r.team) return; for (var j = 0; j < r.foot[1]; j++) for (var i = 0; i < r.foot[0]; i++) { var s = B.map.at(r.x + i, r.y + j); if (s) { if (!s.teamHeld) s.teamHeld = { walk: s.walk }; s.walk = false; } } }); }; // (the greys hold their squares, as a fight's riders do -- and give them back when they go: js/battle.js Battle.teamAway, 11-05)
   // THE WORLD's camp picker on the floor (his word): who stands which watch -- js/house.js H.Watches, with these sheets; null if backed out of
   In.watches = function* (B, party) {
     var H = D.house, w = Object.create(H.Watches.prototype), out = null, done = false;

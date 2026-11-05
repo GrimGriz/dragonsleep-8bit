@@ -216,8 +216,8 @@
     if (team) u.facing = B.faceTo(u, { x: team.x, y: team.y, size: 1 }); // (turned to the horses, his back to the fight)
     if (B.fight && B.fight.loosen && n >= B.fight.loosen && !B.hitAtTraces) {
       u.traces = false; B.teamLoose = true; if (B.o && B.o.fightDef) B.o.fightDef.loose = true; // (on the battle, and on a floor's own copy of the fight -- never the shared def in data/fights.js)
-      B.riders = B.riders.filter(function (r) { return !r.team; });
-      B.units.forEach(function (v) { if (v.side === 'foe' && v.hp > 0 && D.FOES[v.kind] && D.FOES[v.kind].flees && !v.flees) { v.flees = true; v.mounted = true; v.speed = Math.max(v.speed || 30, HORSE); } });
+      D.Battle.teamAway(B); // (the team off the picture and its squares given back: the pair on the greys are 2x2 -- js/battle.js, 11-05)
+      B.units.forEach(function (v) { if (v.side === 'foe' && v.hp > 0 && D.FOES[v.kind] && D.FOES[v.kind].flees && !v.flees) { v.flees = true; D.Battle.mountUp(B, v, HORSE); /* (on the greys: its mounted sheet and the horse's Large space -- js/battle.js Battle.mountUp, 11-05) */ } });
       D.sfx('run');
       B.card(['{r}' + u.name + ' gets the team loose.{/}  "Up! Up!"  The pair are on the greys and going for the road.'], 400);
       yield 40; return;
@@ -615,7 +615,7 @@
       var rx = G.reach(u, B.fight.runWhenHurt || B.fight.fledEnds ? T.move : Math.min(T.move, 15)), go = null, gd = Infinity; // (the 8-bit's story fights: fledEnds too)
       Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
       if (go && (go.x !== u.x || go.y !== u.y)) { yield* walkTo(B, u, go); if (u.dead || u.hp <= 0) return; }
-      if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+      if (exits.some(function (x) { return G.foot(u).some(function (q) { return x[0] === q[0] && x[1] === q[1]; }); })) { // (any square of its space on the way off: a rider on a grey stands 2x2 -- js/battle.js Battle.mountUp, 11-05)
         u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
         B.card(['{o}' + u.name + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30; return;
       }
@@ -717,7 +717,7 @@
     B.card(['{r}' + the(B, u) + '{/} breaks and runs!  {g}(Dash){/}']); yield 16;
     if (best) yield* walkTo(B, u, best);
     if (u.dead || u.hp <= 0) return true;
-    if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+    if (exits.some(function (x) { return G.foot(u).some(function (q) { return x[0] === q[0] && x[1] === q[1]; }); })) { // (any square of its space on the way off: a rider on a grey stands 2x2 -- js/battle.js Battle.mountUp, 11-05)
       u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
       if (u.holding && u.holding.length) B.release(u);
       B.card(['{o}' + the(B, u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;
@@ -1593,6 +1593,9 @@
   // record shows why). Not for the asleep, the held, the hidden or a rider; twice a foe a fight at most
   var turnQuiet = AI.turnBody = AI.turn; // (the turn itself, for a bench that reads its rules: mode=rulings0930)
   AI.turn = function* (B, u) {
+    // the road day's pair break on the greys (js/wagon.js `mountOnBreak`, 11-05, RULED "Yes, as leaned"): on its first turn one of them is up on a grey -- its mounted sheet and the
+    // horse's Large space (js/battle.js Battle.mountUp) -- and the team comes away from the wagon under them, as in the yard (traces, above)
+    if (u.mountOnBreak && u.flees && !u.mounted && u.hp > 0 && !u.dead) { delete u.mountOnBreak; D.Battle.teamAway(B); G.setup(B.map, B.units); D.Battle.mountUp(B, u, 40); B.cache = null; }
     var n0 = (B.logEntries || []).length, x0 = u.x, y0 = u.y;
     yield* turnQuiet.apply(this, arguments);
     var c = u.conds || {};

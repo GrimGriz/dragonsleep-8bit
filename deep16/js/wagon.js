@@ -285,7 +285,7 @@
       e0.apply(this, arguments);
       this.units.forEach(function (u) { // (the party comes up the road from the south, the pair at the wagon's tail; the pair mounted the moment they break -- SRD 5.1 Draft Horse, speed 40)
         u.facing = D.spr.facingFor(0, u.side === 'party' ? -1 : 1);
-        if (u.side === 'foe' && D.FOES[u.kind] && D.FOES[u.kind].flees) { u.flees = true; u.mounted = true; u.speed = Math.max(u.speed || 30, 40); }
+        if (u.side === 'foe' && D.FOES[u.kind] && D.FOES[u.kind].flees) { u.flees = true; u.speed = Math.max(u.speed || 30, 40); u.mountOnBreak = true; } // (up on a grey on its first turn: its mounted sheet and the horse's Large space, the team away under them -- js/ai.js AI.turn, js/battle.js Battle.mountUp, 11-05)
       });
     };
     Wg.lastFight = { willemDead: false };

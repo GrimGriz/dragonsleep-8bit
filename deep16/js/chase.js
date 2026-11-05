@@ -73,8 +73,10 @@
   Ch.place = function (B, c, y) { // (the pair stood on the road at row y, side by side; Willem only if he is still up)
     var x = Ch.roadX(y);
     Ch.clear(B);
+    var mt = !!c.horses; // (on the greys, the pair drawn mounted and one behind the other on the two-square road: each a Large 2x2 -- js/battle.js Battle.mountUp, 11-05, RULED "Yes, as leaned")
     Ch.amara = In.unit(B, { id: 'chaseAmara', kind: 'amara', at: [x, y], name: 'Amara', face: [0, -1], foe: true });
-    Ch.willem = c.willem ? In.unit(B, { id: 'chaseWillem', kind: 'willem', at: [x + 1, y], name: 'Willem Glass', face: [0, -1], foe: true }) : null;
+    Ch.willem = c.willem ? In.unit(B, { id: 'chaseWillem', kind: 'willem', at: mt ? [Ch.roadX(y + 2), y + 2] : [x + 1, y], name: 'Willem Glass', face: [0, -1], foe: true }) : null;
+    if (mt) [Ch.amara, Ch.willem].forEach(function (u) { if (u) D.Battle.mountUp(B, u, 40); });
     c.y = y;
   };
   Ch.clear = function (B) { [Ch.amara, Ch.willem].forEach(function (u) { if (u && B.units.indexOf(u) >= 0) In.gone(B, u); }); Ch.amara = Ch.willem = null; };
@@ -86,7 +88,7 @@
     var pair = Ch.pair(B); if (!pair.length) { c.on = false; return null; }
     c.acc += Ch.pace(B, c); var n = Math.floor(c.acc + 1e-9); c.acc -= n;
     var y1 = Math.max(1, c.y - n);
-    if (y1 !== c.y) { var x1 = Ch.roadX(y1); pair.forEach(function (u, i) { u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(0, -1); u.anim = D.spr.anim(u.sheet, 'run') ? 'run' : 'walk'; u.animT = B.t; u.x = x1 + i; u.y = y1; }); c.y = y1; D.grid.setup(B.map, B.units); B.cache = null; } // (the pair's own run row where the sheet has one -- Amara's amara_p2; 11-04, Griz: "sure")
+    if (y1 !== c.y) { var x1 = Ch.roadX(y1); pair.forEach(function (u, i) { u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(0, -1); u.anim = D.spr.anim(u.sheet, 'run') ? 'run' : 'walk'; u.animT = B.t; if ((u.size || 1) > 1) { u.x = Ch.roadX(y1 + 2 * i); u.y = y1 + 2 * i; } else { u.x = x1 + i; u.y = y1; } }); /* (a rider on a grey a 2x2 on the two-square road, one behind the other) */ c.y = y1; D.grid.setup(B.map, B.units); B.cache = null; } // (the pair's own run row where the sheet has one -- Amara's amara_p2; 11-04, Griz: "sure")
     if (t.y - c.y <= Ch.CATCH) { yield* Ch.caught(B, c); return 'chase'; }
     if (c.y <= 1) { yield* Ch.mouth(B, c); return 'chase'; }
     return null;
@@ -100,7 +102,7 @@
     var exits = [];
     if (!last) { for (var y = Math.max(0, c.y - Ch.AWAY - 3); y <= Math.max(0, c.y - Ch.AWAY); y++) { var x = Ch.roadX(y); exits.push([x, y], [x + 1, y]); } }
     F.runWhenHurt = null; F.fledEnds = !last; F.loosen = null; F.exit = exits; F.noFlee = last;
-    pair.forEach(function (u) { u.flees = !last; if (c.horses) { u.mounted = true; u.speed = Math.max(u.speed || 30, 40); } delete u.roamAside; u.facing = D.spr.facingFor(0, 1); });
+    pair.forEach(function (u) { u.flees = !last; if (c.horses) D.Battle.mountUp(B, u, 40); delete u.roamAside; u.facing = D.spr.facingFor(0, 1); });
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
     yield* R.engage(B, { foes: pair, why: 'chase', zone: null }, false, 'chase');

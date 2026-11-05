@@ -10595,6 +10595,66 @@
     document.body.appendChild(preWb);
     return;
   }
+  // THE PAIR ON THE GREYS, 11-05 (mode=riders1105; js/battle.js Battle.mountUp, Battle.dismount; js/ai.js traces, js/wagon.js the road day, js/chase.js -- the Waterby cutter, RULED,
+  // Griz: "Yes, as leaned", on the lanes desk's lean): one who takes a horse wears its mounted sheet and the horse's Large 2x2 (else its one square); the yard's grab, the road day's
+  // flight, the chase on the greys and its catch; a rider dropped comes off; a foe with no mounted sheet keeps its own
+  if (get('mode', '') === 'riders1105') {
+    var repRd = { checks: [], errors: [] }, memRd = {}, stGRd = D.store.get, stSRd = D.store.set, BtR = D.Battle, GR = D.grid;
+    function okRd(what, v) { repRd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveRd(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } return !!(until && until()); }
+    function topRd() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memRd[k] ? JSON.parse(memRd[k]) : null; }; D.store.set = function (k, v) { memRd[k] = JSON.stringify(v); return true; };
+    // a mounted one: its sheet, its size, and its space free and standable (nobody else on any of its squares)
+    var riderRd = function (B, u) { if (!u) return 'NONE'; GR.setup(B.map, B.units); var f = GR.foot(u), clear = f.every(function (q) { var o = GR.occupant(q[0], q[1], u); return !o; }) && GR.canStand(u, u.x, u.y); return u.kind + ' ' + u.sheet + ' size ' + (u.size || 1) + ' at ' + u.x + ',' + u.y + ' speed ' + u.speed + (clear ? '' : ' OVERLAPS'); };
+    var onGrey = function (B, u, sheet) { if (!u) return false; GR.setup(B.map, B.units); return !!u.mounted && u.sheet === sheet && (u.size || 1) === 2 && GR.foot(u).every(function (q) { return !GR.occupant(q[0], q[1], u); }) && GR.canStand(u, u.x, u.y); };
+    try {
+      D.seed = +get('seed', 1105);
+      okRd('the mounted sheets (' + ['amaramounted_p1', 'willemmounted_p1'].map(function (n) { var s = D.SHEETS[n]; return n + (s ? ' ' + Object.keys(s.anims).join('+') : ' NONE'); }).join(', ') + '); Battle.mountUp ' + typeof BtR.mountUp + ', by kind ' + JSON.stringify(BtR.MOUNTED || null),
+        !!D.SHEETS.amaramounted_p1 && !!D.SHEETS.willemmounted_p1 && typeof BtR.mountUp === 'function' && BtR.mountSheet({ kind: 'amara' }) === 'amaramounted_p1' && BtR.mountSheet({ kind: 'willem' }) === 'willemmounted_p1' && BtR.mountSheet({ kind: 'goblin' }) === null);
+      // 1. THE YARD'S GRAB: three turns at the traces unbothered (js/ai.js traces), the team loose -- the pair up on the greys
+      var B1 = new D.Battle({ fight: 'wagonnight', bench: true }); D.battle = B1; B1.enter();
+      var w1 = B1.units.filter(function (u) { return u.kind === 'willem'; })[0], a1 = B1.units.filter(function (u) { return u.kind === 'amara'; })[0];
+      for (var t1 = 0; t1 < 3; t1++) { w1.turn = { action: 1, move: w1.speed, bonus: 1, reaction: 1 }; driveRd(D.ai.turn(B1, w1), null, 400); }
+      okRd('the yard\'s grab (the team loose ' + !!B1.teamLoose + '): ' + riderRd(B1, w1) + ' | ' + riderRd(B1, a1), !!B1.teamLoose && onGrey(B1, w1, 'willemmounted_p1') && onGrey(B1, a1, 'amaramounted_p1') && w1.speed === 40);
+      // a rider dropped comes off the grey: its own sheet and its one square to fall in
+      var sz1 = a1.size; B1.hurt(a1, a1.maxhp * 4);
+      okRd('Amara dropped on the grey (from size ' + sz1 + ', HP ' + a1.hp + '): ' + a1.sheet + ', size ' + (a1.size || 1) + ', mounted ' + !!a1.mounted + ', anim ' + a1.anim, a1.sheet === 'amara_p2' && (a1.size || 1) === 1 && !a1.mounted);
+      // the same in the 8-bit's yard with a blow first: on foot as before, their own sheets
+      var B2 = new D.Battle({ fight: 'wagonnight', bench: true }); D.battle = B2; B2.enter(); var w2 = B2.units.filter(function (u) { return u.kind === 'willem'; })[0];
+      w2.turn = { action: 1, move: w2.speed, bonus: 1, reaction: 1 }; driveRd(D.ai.turn(B2, w2), null, 400); B2.hitAtTraces = true; w2.turn = { action: 1, move: w2.speed, bonus: 1, reaction: 1 }; driveRd(D.ai.turn(B2, w2), null, 400); w2.turn = { action: 1, move: w2.speed, bonus: 1, reaction: 1 }; driveRd(D.ai.turn(B2, w2), null, 400);
+      okRd('a blow at the traces first: on foot (' + riderRd(B2, w2) + ')', !B2.teamLoose && !w2.mounted && w2.sheet === 'willemglass_p2' && (w2.size || 1) === 1);
+      // 2. THE ROAD DAY (js/wagon.js Wg.fight): the pair mounted the moment they break
+      D.house.begin(D.house.fresh(), 0); D.scenes.length = 0;
+      D.wagon.fight({ say: function () {}, card: function () {} }, { leg: 'north', k: 0 }); var B3 = topRd(); D.battle = B3;
+      var w3 = (B3.units || []).filter(function (u) { return u.kind === 'willem'; })[0], a3 = (B3.units || []).filter(function (u) { return u.kind === 'amara'; })[0];
+      var team3 = (B3.riders || []).filter(function (r) { return r.team; }).length, on3 = !!(w3 && w3.mounted) || !!(a3 && a3.mounted);   // (the team at the wagon's heads as the fight opens; nobody up yet)
+      [a3, w3].forEach(function (u) { if (!u) return; u.turn = { action: 1, move: u.speed, bonus: 1, reaction: 1 }; driveRd(D.ai.turn(B3, u), null, 600); });   // (each one's first turn: it breaks, up on a grey)
+      var team3b = (B3.riders || []).filter(function (r) { return r.team; }).length;
+      okRd('the road day (the team at the wagon ' + team3 + ', anyone up as it opens ' + on3 + '; after their first turns the team ' + team3b + '): ' + riderRd(B3, w3) + ' | ' + riderRd(B3, a3),
+        team3 === 2 && !on3 && team3b === 0 && onGrey(B3, w3, 'willemmounted_p1') && onGrey(B3, a3, 'amaramounted_p1'));
+      D.scenes.length = 0; D.house.playing = false; D.house.cur = null;
+      // 3. THE CHASE ON THE GREYS (js/chase.js): up Web Gulch the pair ahead mounted, one behind the other on the two-square road; then the catch on the floor's own squares
+      var RRd = D.roam, ChR = D.chase, Bq = RRd.make('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped&watch'); D.scenes.length = 0; D.push(Bq); topRd(); driveRd(D.top().co, null, 2);
+      var coQ = Bq.co; Bq.co = (function* () { yield* ChR.start(Bq, { horses: true, willem: true }); yield* coQ; })();
+      for (var kq = 0; kq < 3000 && !(D.top().roam && RRd.def.key === 'webgulch' && ChR.state(D.top()) && ChR.state(D.top()).on); kq++) { var sq = D.top(); if (sq && sq.baking) { sq.baking = false; sq.enter(); } if (sq && sq.co) { var stq = sq.co.next(); if (stq.value && stq.value.prompt) sq.co.next(stq.value.prompt.opts[0].value); } else if (sq && sq.press && sq.buttons) { var bq = sq.buttons(); if (bq.length) sq.press(bq[0]); else break; } else break; }
+      var Bg = D.top(), cq = ChR.state(Bg), pq = cq ? ChR.pair(Bg) : [];
+      okRd('the chase on the greys up the Gulch (' + (RRd.def && RRd.def.key) + ', on ' + !!(cq && cq.on) + '): ' + pq.map(function (u) { return riderRd(Bg, u); }).join(' | '),
+        !!cq && cq.horses && pq.length === 2 && onGrey(Bg, pq[0], 'amaramounted_p1') && onGrey(Bg, pq[1], 'willemmounted_p1') && pq[1].y - pq[0].y === 2);
+      // the party faster than the greys catches them: the catch on the floor's own squares, the pair still up on the greys as it starts
+      var gq = ChR.caught(Bg, cq), started = driveRd(gq, function () { return (Bg.order || []).length > 0; }, 3000), pq2 = [ChR.amara, ChR.willem];
+      okRd('the catch on the greys (the fight on: ' + started + '): ' + pq2.map(function (u) { return riderRd(Bg, u); }).join(' | '), started && onGrey(Bg, pq2[0], 'amaramounted_p1') && onGrey(Bg, pq2[1], 'willemmounted_p1'));
+      D.scenes.length = 0;
+      // 4. A FOE WITH NO MOUNTED SHEET: mounted at the greys' speed, its own sheet and square
+      var B4 = new D.Battle({ fight: 'wagonnight', bench: true }); D.battle = B4; B4.enter(); var g4 = B4.makeFoe({ id: 'g4', kind: 'goblin', at: [B4.units[0].x + 4, B4.units[0].y] }); B4.units.push(g4); GR.setup(B4.map, B4.units); var gs4 = g4.sheet;
+      BtR.mountUp(B4, g4, 40);
+      okRd('a goblin on a horse (no mounted sheet): ' + riderRd(B4, g4), g4.mounted && g4.sheet === gs4 && (g4.size || 1) === 1 && g4.speed === 40);
+    } catch (eRd) { repRd.errors.push(String(eRd && eRd.stack || eRd).slice(0, 900)); }
+    D.scenes.length = 0; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    D.store.get = stGRd; D.store.set = stSRd;
+    var preRd = document.createElement('pre'); preRd.id = 'out'; preRd.textContent = 'BENCH16 ' + JSON.stringify(repRd);
+    document.body.appendChild(preRd);
+    return;
+  }
   // WILLEM'S FIGURES, 11-05 (mode=willem1105; tools/willem-sheet.py, data/foes.js willem, js/classes.js NPC.NAMED.willem, js/ui.js the Traces row -- the Waterby cutter, on
   // Griz's "Got Willem in Fresh and can push live to main once that art is slotted"): the art desk's HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING cut all round as
   // willemglass_p2, worn in every fight with him and on the class floor; his Traces row drawn while u.traces holds; -MOUNTED cut as willemmounted_p1, not wired (nothing
