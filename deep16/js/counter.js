@@ -156,6 +156,7 @@
   // displacement on his face (pt_dacedisp, ART-123-DACE-DISPLACEMENT) till the party takes it off his back after the cloaker (js/mines.js M.daceDeep, THE CLOAK: flags.daceCloak),
   // the plain look after -- THE PAGE leaves it on him. C.PT keeps the plain one, for the portraits' show
   C.SHEETOF = { dace: function (st) { return st && st.flags && st.flags.daceCloak ? 'pt_dace' : 'pt_dacedisp'; },
+    doranIn: function () { return D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, doranYard: function () { return D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, gennet: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetGrief: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetYard: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, // (Doran Waterby behind his bar and at the woodpile, and Gennet in the common room, after the lake and in the yard: every word on their own counter screens -- js/inn.js M.talk -- on the art desk's HALFWAY-INN-DORAN- and -GENNET-PORTRAITS, 11-05, cutter-1105; by C.SHEETOF, not C.VENDORS, so no counter takes their talk from the inn's)
     jorypens: function () { return 'pt_jory'; }, // (Jory Slade at the pens: his one face, not a second line in C.PT -- the portraits' show lists him once, 10-30)
     hobCamp: function () { return 'pt_oldhob'; }, hobB: function () { return 'pt_oldhob'; }, hobC: function () { return 'pt_oldhob'; }, // (Old Hob at his kitchen, the pens and the deep stalls: his one face, 10-30)
     warrenspete: function () { return 'pt_pete'; } }; // (Warrens Pete in the Hex: his one face, 10-30)
@@ -1334,7 +1335,7 @@
     var g = C.GENERIC[id], faces = g ? [g[1]] : C.FACES; // (an unnamed one: their costume, the one page)
     var hp = !C.PT[id] && C.heroPt(id), op = !C.PT[id] && !hp && C.anyPt(id); // (a hero's: the name, a line, and the sheet's own rows; or one whose face a scene names itself -- Katarina's at the inn)
     if (hp) { var hk = id.split('_')[0]; nm = hk.charAt(0).toUpperCase() + hk.slice(1); words = ['(the hero box: ' + Object.keys(C.HERO_PT).filter(function (s) { return C.HERO_PT[s] === hp; }).join(', ') + ')']; faces = Object.keys(D.SHEETS[hp].anims); }
-    else if (op) { hp = op; faces = Object.keys(D.SHEETS[op].anims); }
+    else if (op) { hp = op; faces = Object.keys(D.SHEETS[op].anims); if (nm === id) nm = id.charAt(0).toUpperCase() + id.slice(1); } // (a name the data has none for: the sheet's, capitalised -- Doran)
     this.cur = new Counter(null, { id: id, name: nm, place: 'THE PORTRAITS (a show)', what: nm + ', ' + (k + 1) + ' of ' + n, script: function* (sc) {
       for (var i = 0; i < faces.length; i++) yield sc.say(['{y}' + (g ? 'THE ' + g[0].toUpperCase() + ' -- ' : '') + faces[i].toUpperCase() + '{/}'].concat(words), faces[i]);
     } });

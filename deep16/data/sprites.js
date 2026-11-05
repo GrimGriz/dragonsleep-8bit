@@ -13845,6 +13845,102 @@ true
 "door": "leech:davos",
 "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_doran": {
+"image": "art/pt_doran.png?v=2fe2d0d929",
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 157,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 628,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 785,
+"fw": 202,
+"fh": 157,
+"ax": 93,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "H",
+"door": "npc:doranIn, doranYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)",
+"source": "deep16/_src/doran/INN-PORTRAITS-1105 (the art desk's H, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_edric": {
 "image": "art/pt_edric.png?v=75d20c5d54",
 "fw": 227,
@@ -14398,6 +14494,102 @@ true
 "art": "ART-122-MAN",
 "door": "the unnamed (js/counter.js C.GENERIC)",
 "source": "deep16/_src/genman/ART-122 (the art desk's ART-122-MAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_gennet": {
+"image": "art/pt_gennet.png?v=c31b78618b",
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 215,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "GENNET",
+"door": "npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)",
+"source": "deep16/_src/gennet/INN-PORTRAITS-1105 (the art desk's GENNET, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_genwoman": {
 "image": "art/pt_genwoman.png?v=d51056f94c",

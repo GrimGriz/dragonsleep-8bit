@@ -212,6 +212,14 @@ PEOPLE = {
     # Katarina at the Halfway Inn (11-05, cutter-1105, on the lanes desk's relay of Griz's "cutter has Katarina it doesn't know about yet"): the art desk's
     # HALFWAY-INN-KATARINA-PORTRAITS, art-wanted section 35 -- H01-Idle.png to H06-Work.png, writing in her book at a table by the common room's fire, the table's near
     # edge her ledge (cut off, as a counter's); her work the book written in, blotted and closed over her fingers, played once
+    # Doran Waterby, the Halfway Inn's owner (11-05, cutter-1105, on the lanes desk's relay of Griz's "Waterby's inbound in Fresh"): the art desk's
+    # HALFWAY-INN-DORAN-PORTRAITS, art-wanted section 35 -- H01-idle.png to H06-work.png, behind his bar, his right hand on a pewter mug and his left on an
+    # earthenware jug, the bar's top his ledge; his work the mug filled from the jug and nudged across to the guest, played once
+    'doran': ('doran/INN-PORTRAITS-1105', 'H', 'npc:doranIn, doranYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s%02d-*.png', 'avoid': ['red', 'fire']}),
+    # Gennet Waterby, the inn lady (11-05, cutter-1105, the same relay): the art desk's HALFWAY-INN-GENNET-PORTRAITS -- GENNET_HEAD-1_IDLE.png to HEAD-6_WORK.png, at the
+    # bar in her linen kerchief and charcoal wool, the cloth in her right hand; her work the lantern taken off its hook, opened, trimmed, lit, shut and hung again,
+    # played once (the hook and the lantern kept with her: islands inside her frame's box)
+    'gennet': ('gennet/INN-PORTRAITS-1105', 'GENNET', 'npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s_HEAD-%d_*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' bar top bevelled: a sliver of it stood under them)
     'katarina': ('katarina/INN-PORTRAITS-1105', 'H', 'npc:katarina (the Halfway Inn, js/inn.js)', {'edge': True, 'pat': '%s%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' table edge bevelled, as Falstaff's: a sliver of it stood under them)
     # Elsbeth the candle girl (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-PORTRAITS-PARTIAL, five pages (H1P1-Idle.png to H1P5-Concerned.png) -- her
     # Work held by the art desk (the working hand switches), so no work row: her face on Silverton's street; at the inn she speaks on pt_elsbethtub
