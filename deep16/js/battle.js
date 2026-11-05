@@ -1680,6 +1680,7 @@
         T.attacksLeft--; T.bonus = 0; T.offhandDone = true; T.twinDone = true;
         var RW = window.DS.R, offW = RW.item(u.src.equip.offhand), oxW = RW.damageExpr(u.src, offW), hitW = null, critW = false;
         var mainW = Object.assign({}, u.weapon, { atk: (u.weapon.atk || 0) + 2, twin: true });
+        this.atkCard = null; // (the strike's own card, set in attack -- the second weapon's line goes on it)
         yield* this.attack(u, tgW, mainW, { onHit: function (w, cr) { hitW = w; critW = !!cr; } });
         if (hitW && !tgW.dead && (tgW.hp > 0 || tgW.regenDown)) yield* this.twinOff(u, tgW, offW, oxW, critW);
         if (u.conds.hidden) delete u.conds.hidden;
@@ -2200,12 +2201,22 @@
   Battle.twinOpen = function (u) { var T = u && u.turn; return !!(T && Battle.twinOK(u) && T.bonus > 0 && !T.offhandDone && !T.twinDone && !T.hasteAttack && (T.attacksLeft > 0 || T.action > 0)); };
   // TWIN STRIKE's second weapon on the one hit: its dice (doubled on the crit), STR and its own bonus (his "str bonuses would apply per weapon"), its type and its magic -- so a
   // resistance or an immunity reads each weapon as itself (his "a longsword+2 paired with a longsword vs immune to non-magic weapon targets")
+  // The second weapon's line goes in the strike's own box (11-05, his "The card for twin-strike puts the second blade on its own line for some reason, see why it isn't the box with
+  // the main strike (too wordy?)" -- it was given a card id of its own, so it drew as a box of its own after the strike's): one line more on the strike's card, both weapons' total at its
+  // end; its own box only when another card came between (a feature's rider on the hit)
   Battle.prototype.twinOff = function* (u, tgt, off, ox, crit) {
-    var mag = !!(off && off.weapon && (off.weapon.bonus || off.weapon.magic)), dr = RU.damage(ox.dice, ox.mod, { crit: crit }), cidT = 'twin' + (++this.cardSeq || (this.cardSeq = 1)), blT = this.blow();
-    var lineT = '{y}' + nameOf(u) + '{/} -- and the ' + off.name.toLowerCase() + ', the same blow: ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '');
-    this.card([lineT], 300, cidT);
+    var mag = !!(off && off.weapon && (off.weapon.bonus || off.weapon.magic)), dr = RU.damage(ox.dice, ox.mod, { crit: crit }), blT = this.blow();
+    var mc = this.atkCard, lastT = this.cards[this.cards.length - 1], onMain = !!(mc && lastT && lastT.id === mc.id);
+    var cidT = onMain ? mc.id : 'twin' + (++this.cardSeq || (this.cardSeq = 1));
+    var lineT = function (took) {
+      return '{y}+ the ' + off.name.toLowerCase() + '{/}  ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '') +
+        (took !== dr.total ? ', {o}' + took + ' after the ' + (took > dr.total ? 'vulnerability' : took === 0 ? 'immunity' : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
+        (onMain ? '  both {r}' + (mc.dealt + took) + '{/}' : '');
+    };
+    var cardT = function (took) { return onMain ? mc.lines.concat([lineT(took)]) : ['{y}' + nameOf(u) + '{/} ' + lineT(took)]; };
+    this.card(cardT(dr.total), 300, cidT);
     this.hurt(tgt, dr.total, ox.type, { magic: mag, blow: blT });
-    if (dr.total > 0 && blT.took !== dr.total && !tgt.dead && tgt.hp > 0) this.card([lineT + ', {o}' + blT.took + ' after the ' + (blT.took > dr.total ? 'vulnerability' : blT.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cidT); // (what lands, as the main blow's card says it)
+    if (dr.total > 0 && blT.took !== dr.total && !tgt.dead && tgt.hp > 0) this.card(cardT(blT.took), 300, cidT);
     this.blowEnd(tgt, blT);
     yield 20;
   };
@@ -2403,7 +2414,7 @@
     var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
-    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
+    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin ? ' {c}(twin strike){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
@@ -2588,7 +2599,8 @@
     if (tgt.resist && (tgt.resist.indexOf('mundane') >= 0 || (tgt.resist.indexOf('mundaneps') >= 0 && /piercing|slashing/.test(atk.type))) && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
       var cut = dmg - Math.floor(dmg / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
-    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'], 300, cid);
+    var atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'];
+    this.card(atkL, 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     // (one blow, one concentration save on all it dealt: the fire, the smite, a mark's, the blade's, and a bite's poison on a failed save below -- B.blowEnd, the grid's rules §2.1)
     var hp0FT = tgt.hp; // (Follow-Through's carry reads what it had: below)
@@ -2602,7 +2614,8 @@
     // the card's total says what lands (11-03 night, his "3 - yes": "= 15" read on the card and "Talmok resists slashing: 8 > 4" on the next line, 11 dealt): the blow re-carded
     // in place with what its parts took (`bl.took`, after resistance, vulnerability, immunity, a ward) -- unless it killed mid-blow, its later parts never dealt
     var sumT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
-    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
+    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
+    this.atkCard = { id: cid, lines: atkL, dealt: bl.took }; // (the blow's card as it stands: TWIN STRIKE's second weapon joins it -- Battle.twinOff, 11-05)
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
     var acc = att.conds && att.conds.accounted, dealtAC = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
     if (acc && tgt.id !== acc.by && dealtAC > 0 && !att.dead && !(this.castLevel != null && this.castBy === att.id)) { /* (a spell's attack: answered once a cast by M.accountAnswer, below in hurt) */ var acR = D.roll(acc.dice); this.card(['  {y}CALLED TO ACCOUNT{/}: ' + nameOf(att) + ' answers for it  {y}' + acR.total + ' radiant{/}'], 220); FX.ring(att, 'gold', 20); this.hurt(att, acR.total, 'radiant', { magic: true }); }

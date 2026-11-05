@@ -7318,8 +7318,17 @@
       var md4 = D.mod(17), hp4 = s4.o.hp, n4 = (s4.B.log || []).length;
       D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(s4.B.exec(f4, { do: 'twinstrike', target: s4.o })); } finally { D.d = d0FT; }
       var T4 = f4.turn, l4 = logFT(s4.B, n4), lost4 = hp4 - s4.o.hp;
-      okFT('4 TWIN STRIKE, the d20 a 12 (+2 on it) and every die a 4: the ogre ' + hp4 + ' -> ' + s4.o.hp + ' (' + lost4 + ', want ' + (2 * (4 + md4)) + ': both longswords, STR on each); "the same blow" ' + /the same blow/.test(l4) + '; the bonus ' + T4.bonus + ', attacks left ' + T4.attacksLeft + ', TWIN STRIKE again ' + D.Battle.twinOpen(f4) + ' (want 0, 1, false)',
-        lost4 === 2 * (4 + md4) && /the same blow/.test(l4) && T4.bonus === 0 && T4.attacksLeft === 1 && !D.Battle.twinOpen(f4));
+      okFT('4 TWIN STRIKE, the d20 a 12 (+2 on it) and every die a 4: the ogre ' + hp4 + ' -> ' + s4.o.hp + ' (' + lost4 + ', want ' + (2 * (4 + md4)) + ': both longswords, STR on each); "+ the longsword" ' + /\+ the longsword/.test(l4) + '; the bonus ' + T4.bonus + ', attacks left ' + T4.attacksLeft + ', TWIN STRIKE again ' + D.Battle.twinOpen(f4) + ' (want 0, 1, false)',
+        lost4 === 2 * (4 + md4) && /\+ the longsword/.test(l4) && T4.bonus === 0 && T4.attacksLeft === 1 && !D.Battle.twinOpen(f4));
+      // (11-05, his "The card for twin-strike puts the second blade on its own line for some reason, see why it isn't the box with the main strike": one box, both weapons' total at its foot)
+      var box4 = (s4.B.cards || []).filter(function (c) { return c.lines.some(function (l) { return /twin strike/.test(l); }); }).map(function (c) { return window.DS.stripCodes(c.lines.join(' / ')); })[0] || '', both4 = /both (\d+)/.exec(box4);
+      okFT('4 the card: one box holds the strike and the second longsword ' + /\+ the longsword/.test(box4) + ', "both" ' + (both4 && both4[1]) + ' (want true, ' + lost4 + ') -- ' + box4.slice(0, 220),
+        /\+ the longsword/.test(box4) && !!both4 && +both4[1] === lost4);
+      // (11-05, his "twinstrike not on wheel (attack is), attack under actions for twinstriker properly equipped": the ring and RING2 both)
+      var s4r = mk4(), ringIds4 = function (cs) { return cs.map(function (c) { return c.id; }); }, sub4 = function (cs, id) { var g = cs.filter(function (c) { return c.id === id; })[0]; return g && g.items ? ringIds4(g.items) : []; };
+      var r4 = D.ui.cmds(s4r.B, s4r.f), r4b = D.ui.cmds2(s4r.B, s4r.f);
+      okFT('4 the ring: ' + ringIds4(r4).join(',') + '; ACTIONS ' + sub4(r4, 'actions').join(',') + ' | RING2: ' + ringIds4(r4b).join(',') + '; ACTIONS ' + sub4(r4b, 'actions').join(',') + ' (want TWIN STRIKE after MOVE, no ATTACK up front, ATTACK under ACTIONS, on both)',
+        ringIds4(r4)[1] === 'twinstrike' && ringIds4(r4).indexOf('attack') < 0 && sub4(r4, 'actions').indexOf('attack') >= 0 && ringIds4(r4b)[1] === 'twinstrike' && ringIds4(r4b).indexOf('attack') < 0 && sub4(r4b, 'actions').indexOf('attack') >= 0);
       var ids4b = s4.B.commands(f4).map(function (c) { return c.id; });
       okFT('4 after it: OFF HAND on the ring ' + (ids4b.indexOf('offhand') >= 0) + ' (want false: the bonus went with the Twin Strike)', ids4b.indexOf('offhand') < 0);
       var s4c = mk4(), f4c = s4c.f; D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(s4c.B.exec(f4c, { do: 'attack', target: s4c.o })); } finally { D.d = d0FT; }

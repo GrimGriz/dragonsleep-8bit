@@ -283,13 +283,16 @@
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
     if (UI.styleOf(u, B) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot game's default, or anyone's under RING2 -- below)
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    // TWIN STRIKE up front and the one-weapon ATTACK under ACTIONS for the pair in hand (11-05, his "twinstrike not on wheel (attack is), attack under actions for twinstriker properly
+    // equipped": it sat on `top` under a key this ring never drew, so the ring showed ATTACK alone; a click on a foe is still the strike while it is open -- actAt)
+    var tw = c.some(function (x) { return x.id === 'twinstrike'; });
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || ((q || tw) && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (offhand: two-weapon fighting's swing beside the Attack, 10-15)
+    ['twinstrike', 'attack', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
@@ -308,11 +311,13 @@
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    var tw = c.some(function (x) { return x.id === 'twinstrike'; }); // (TWIN STRIKE up front, ATTACK among the actions -- as UI.cmds, 11-05)
     c.forEach(function (x) {
       if (CHANNEL[x.id]) { cd.push(x); return; }
       if (x.id === 'spells') return; // (SPELLS by the cost first: one on each ring, below)
       if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
-      if (q && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it)
+      if (x.id === 'twinstrike') { top.twinstrike = x; return; }
+      if ((q || tw) && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it)
       if (FIRST2[x.id] && !x.skill && !x.under) { top[x.id] = x; return; } // (a rogue's HIDE up front; a Mascot's SCUTTLE: HIDE under its icon with the bonuses)
       (x.cost === 'A' ? A : Bn).push(x); // (cost 'B', 'F' and none: with the bonuses)
     });
@@ -329,7 +334,7 @@
     if (spA.length) A.unshift({ id: 'spells', label: 'SPELLS', cost: 'A', time: 'A', ok: spA.some(function (e) { return e.ok; }), why: 'nothing to cast with the action now', sub: 'spells', icon: 'spell', note: 'the spells that take the action, by level' });
     if (spB.length) Bn.unshift({ id: 'bspells', label: 'SPELLS', cost: 'B', time: 'B', ok: spB.some(function (e) { return e.ok; }), why: 'nothing to cast with the bonus action now', sub: 'spells', icon: 'spell', note: 'the spells that take the bonus action, by level' });
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['twinstrike', 'attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
