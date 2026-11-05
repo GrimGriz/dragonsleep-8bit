@@ -165,7 +165,8 @@
       return best;
     }
     // draw squares back to front so a raised square's faces cover the floor behind it
-    var order = m.sq.filter(function (s) { return s.open; }).sort(function (a, b) { return (a.x + a.y) - (b.x + b.y) || a.gz - b.gz; });
+    // (and a square not open whose floor the map's `under` names -- a wall cut to a stub with the boards under it, js/innprops.js: the stub stands on the floor, 11-05)
+    var undr = m.def.under, order = m.sq.filter(function (s) { return s.open || (undr && undr[s.y] && (undr[s.y].charAt(s.x) || ' ') !== ' '); }).sort(function (a, b) { return (a.x + a.y) - (b.x + b.y) || a.gz - b.gz; });
     var dst = ctx, dx0 = 0, dy0 = 0; // (where a square's picture goes: the one floor canvas, or the page being painted, offset by its corner)
     var paintSq = function (s) {
       // the ground under it (11-05, the exteriors seat, on Griz's "the props appear to be drawn on the code-drawn dirt tile despite being inside"): a map's `under`, rows as its own,
@@ -334,6 +335,106 @@
   }
   // the floor painted again (11-05, the exteriors seat): a map whose `groundArt` was asked before its sheet had come (the sheets load as they are wanted) bakes once more when it comes
   iso.rebake = function (m) { m = m || iso.map; if (m) bake(m); };
+
+  // ------------------------------------------------------------------ A BUILDING DRAWN FROM ITS ART (11-05, the exteriors seat; art-wanted section 36 pages 7, 8 and 9A -- Griz:
+  // "5-9 we need and it wants to build something fancy to do it"): in place of roofCanvas's box, a building's walls laid a square at a time along the two faces the
+  // camera sees -- the south face along x, the east face along y, each square its own module (plain, a window, a door) and the corner where they meet -- and its
+  // roof over them from the roof's pieces, each mapped by its own corners onto the roof at the building's pitch and repeated along the ridge: the far slope's edge
+  // over the ridge, the east gable, the near slope down onto the south wall's top, the ridge cap. Then cut a square at a time (iso.slices) to be sorted with the
+  // figures as the code's roof squares were. The atlas, the modules' choice and the pitch are the map's (js/innprops.js, the Halfway Inn's three).
+  //   spec: { x0, y0, x1, y1 (the footprint, squares), H (the walls, px), R (the ridge over them, px), piece(name) -> { img, x, y, w, h, ax, ay } (an atlas box,
+  //   its anchor), pts(name) -> { minx, maxx, miny, maxy } (a roof piece's corners), south(x), east(y), gable(y) -> a module's name, corner: [the south half, the east half],
+  //   roof: { slope, shade, ridge, gable }, extras: [[name, gx, gy, gz]] (a lamp by a door) } -> { canvas, ax, ay: the footprint's back corner on it }
+  function gscr(gx, gy, gz) { return { x: (gx - gy) * HW, y: (gx + gy) * HH - (gz || 0) }; } // (a point of the floor -- square x spans x..x+1 -- at a height, on the screen)
+  iso.affine = function (ctx, img, sx, sy, sw, sh, s3, d3) { // (a box of an image drawn so three of its points (its own px) land on three points)
+    var X = s3, det = X[0][0] * (X[1][1] - X[2][1]) - X[1][0] * (X[0][1] - X[2][1]) + X[2][0] * (X[0][1] - X[1][1]); if (!det) return;
+    var solve = function (t) {
+      var p = (t[0] * (X[1][1] - X[2][1]) - t[1] * (X[0][1] - X[2][1]) + t[2] * (X[0][1] - X[1][1])) / det;
+      var q = (X[0][0] * (t[1] - t[2]) - X[1][0] * (t[0] - t[2]) + X[2][0] * (t[0] - t[1])) / det;
+      return [p, q, t[0] - p * X[0][0] - q * X[0][1]];
+    };
+    var u = solve([d3[0][0], d3[1][0], d3[2][0]]), v = solve([d3[0][1], d3[1][1], d3[2][1]]);
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.transform(u[0], v[0], u[1], v[1], u[2], v[2]); ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh); ctx.restore();
+  };
+  iso.house = function (S) {
+    var E = S.x1 + 1, Sy = S.y1 + 1, mid = (S.y0 + Sy) / 2, H = S.H, R = S.R, L = S.y0;
+    var c3 = [[S.x0, S.y0, 0], [E, S.y0, 0], [S.x0, Sy, 0], [E, Sy, 0], [S.x0, S.y0, H], [E, S.y0, H], [S.x0, mid, H + R], [E, mid, H + R], [S.x0, Sy, H + R + 20], [E, Sy, H + R + 20]];
+    var xs = c3.map(function (p) { return gscr(p[0], p[1], p[2]).x; }), ys = c3.map(function (p) { return gscr(p[0], p[1], p[2]).y; });
+    var pad = 40, minX = Math.min.apply(null, xs) - pad, minY = Math.min.apply(null, ys) - pad - 30, maxX = Math.max.apply(null, xs) + pad, maxY = Math.max.apply(null, ys) + 12;
+    var cv = document.createElement('canvas'); cv.width = Math.ceil(maxX - minX); cv.height = Math.ceil(maxY - minY);
+    var ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    var P = function (gx, gy, gz) { var s = gscr(gx, gy, gz); return [s.x - minX, s.y - minY]; };
+    var mod = function (nm, at) { var q = S.piece(nm); if (q) ctx.drawImage(q.img, q.x, q.y, q.w, q.h, Math.round(at[0] - q.ax), Math.round(at[1] - q.ay), q.w, q.h); };
+    var len = function (a, b) { return Math.hypot(b[0] - a[0], b[1] - a[1]); };
+    var poly = function (pts) { ctx.beginPath(); pts.forEach(function (p, k) { if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.closePath(); };
+    var TS = S.ts || 0.45; // (the roof pieces' own px to the picture's: page 8 was cut at half its size, page 7's walls at about a fifth)
+    // a slope: its pieces at their own size, each its ridge edge (the piece's top and right corners) along the ridge and its far corner toward the eave, laid in
+    // courses down the slope and along the ridge, over the slope's own colour so no gap between two pieces shows through; clipped to the roof's face
+    var slope = function (nm, eaveY, base) {
+      var q = S.piece(nm), c = S.pts(nm); if (!q || !c) return;
+      var rW = c.miny, rE = c.maxx, eW = c.minx, fallS = len(rW, eW), ridgeS = len(rW, rE);
+      var top = P(S.x0, mid, H + R), foot = P(S.x0, eaveY, H), tF = [foot[0] - top[0], foot[1] - top[1]];
+      var nf = Math.max(1, Math.round(Math.hypot(tF[0], tF[1]) / (fallS * TS))), Lm = Math.max(0.5, ridgeS * TS / Math.hypot(HW, HH));
+      ctx.save(); poly([P(S.x0, mid, H + R), P(E, mid, H + R), P(E, eaveY, H), P(S.x0, eaveY, H)]); ctx.clip();
+      if (base) { ctx.fillStyle = base; ctx.fill(); }
+      for (var f = 0; f < nf; f++) for (var k = S.x0 - (f % 2) * Lm / 2; k < E; k += Lm) { // (each course offset half a piece from the one above, as tiles are laid)
+        var a = P(k, mid, H + R), b = P(k + Lm, mid, H + R), d0 = f / nf, d1 = (f + 1) / nf;
+        iso.affine(ctx, q.img, q.x, q.y, q.w, q.h, [rW, rE, eW], [[a[0] + tF[0] * d0, a[1] + tF[1] * d0], [b[0] + tF[0] * d0, b[1] + tF[1] * d0], [a[0] + tF[0] * d1, a[1] + tF[1] * d1]]);
+      }
+      ctx.restore();
+    };
+    slope(S.roof.shade, L, S.base && S.base[1]);                                                  // the far slope: its edge shows over the ridge
+    // the east gable, the face toward +x: the east wall carried up into the roof's end (its own modules, a course above the eaves, clipped to the gable) -- or, for
+    // a roof as steep as page 8 drew, its gable piece (`S.gableArt`: on the inn's long, low roofs the page's steep gable stretched to streaks)
+    ctx.save(); poly([P(E, Sy, H), P(E, S.y0, H), P(E, mid, H + R)]); ctx.clip();
+    if (S.base) { ctx.fillStyle = S.base[2] || S.base[1]; ctx.fill(); }
+    var g = S.roof.gable, gq = S.piece(g), gc = S.pts(g);
+    if (S.gableArt && gq && gc) iso.affine(ctx, gq.img, gq.x, gq.y, gq.w, gq.h, [gc.minx, gc.maxx, gc.miny], [P(E, Sy, H), P(E, S.y0, H), P(E, mid, H + R)]);
+    else for (var yg = S.y0; yg <= S.y1; yg++) mod(S.gable ? S.gable(yg) : S.east(yg), P(E, yg, H));
+    ctx.restore();
+    for (var y = S.y0; y <= S.y1; y++) mod(S.east(y), P(E, y, 0));                               // the east face, a square at a time, back to front
+    for (var x = S.x0; x <= S.x1; x++) mod(S.south(x), P(x, Sy, 0));                              // the south face
+    (S.corner || []).forEach(function (nm) { mod(nm, P(E, Sy, 0)); });                             // the corner, on top of the two ends
+    slope(S.roof.slope, Sy, S.base && S.base[0]);                                                 // the near slope, down onto the south wall's top
+    var r = S.roof.ridge, rq = S.piece(r), rc = S.pts(r);                                          // the ridge cap along the ridge, its pieces at their own size end to end
+    if (rq && rc) {
+      var rl = len(rc.minx, rc.maxx), th = Math.max(4, rq.h - Math.abs(rc.maxx[1] - rc.minx[1])), Lr = Math.max(0.5, rl * TS / Math.hypot(HW, HH));
+      ctx.save(); poly([P(S.x0, mid, H + R + 40), P(E, mid, H + R + 40), P(E, mid, H + R - 40), P(S.x0, mid, H + R - 40)]); ctx.clip();
+      for (var k2 = S.x0; k2 < E; k2 += Lr) {
+        var a0 = P(k2, mid, H + R + th * TS * 0.35), a1 = P(k2 + Lr, mid, H + R + th * TS * 0.35);
+        iso.affine(ctx, rq.img, rq.x, rq.y, rq.w, rq.h, [rc.minx, rc.maxx, [rc.minx[0], rc.minx[1] - th]], [a0, a1, [a0[0], a0[1] - th * TS]]);
+      }
+      ctx.restore();
+    }
+    (S.extras || []).forEach(function (e) { mod(e[0], P(e[1], e[2], e[3])); });                  // a lamp by a door
+    var o = P(S.x0, S.y0, 0);
+    return { canvas: cv, ax: o[0], ay: o[1] };
+  };
+  // a picture over a footprint of a x b squares cut a square at a time for the sort: each pixel to the front-most square whose column it stands over (the column
+  // from its two lower edges, and a few px under, up off the top; the outer squares take what overhangs past the sides) -- for a building only its south row and
+  // east column have pixels of their own. -> { 'i,j': { canvas, ax, ay: the square's middle on it } }
+  iso.slices = function (pic, a, b) {
+    var out = {}, cv0 = pic.canvas;
+    var prism = function (cx, i, j, ox, oy) {
+      var tx = pic.ax + (i - j) * HW - ox, ty = pic.ay + (i + j) * HH - oy, my = ty + HH + 6, by = ty + 2 * HH + 6;
+      var lx = i === 0 && j === b - 1 ? -9999 : tx - HW, rx = i === a - 1 && j === 0 ? 9999 : tx + HW;
+      cx.beginPath(); cx.moveTo(lx, -9999); cx.lineTo(rx, -9999);
+      cx.lineTo(rx, rx > tx + HW ? 9999 : my); cx.lineTo(tx + HW, my); cx.lineTo(tx, by); cx.lineTo(tx - HW, my); cx.lineTo(lx, lx < tx - HW ? 9999 : my); cx.closePath();
+    };
+    for (var i = 0; i < a; i++) for (var j = 0; j < b; j++) {
+      if (i < a - 1 && j < b - 1) continue;                                   // (an inner square: every column of it is a square's in front)
+      var tx = pic.ax + (i - j) * HW, ty = pic.ay + (i + j) * HH;
+      var x0 = i === 0 && j === b - 1 ? 0 : Math.max(0, tx - HW - 1), x1 = i === a - 1 && j === 0 ? cv0.width : Math.min(cv0.width, tx + HW + 1), y1 = Math.min(cv0.height, ty + 2 * HH + 8);
+      if (x1 <= x0 || y1 <= 0) continue;
+      var cv = document.createElement('canvas'); cv.width = x1 - x0; cv.height = y1; var cx = cv.getContext('2d');
+      cx.drawImage(cv0, -x0, 0);
+      cx.globalCompositeOperation = 'destination-in'; prism(cx, i, j, x0, 0); cx.fill();
+      cx.globalCompositeOperation = 'destination-out';
+      for (var i2 = 0; i2 < a; i2++) for (var j2 = 0; j2 < b; j2++) if (i2 + j2 > i + j && Math.abs((i2 - j2) - (i - j)) <= 2) { prism(cx, i2, j2, x0, 0); cx.fill(); }
+      out[i + ',' + j] = { canvas: cv, ax: tx - x0, ay: ty + HH };
+    }
+    return out;
+  };
   iso.PAGE = 1024; iso.PAGES_KEPT = 48; iso.PAGE_MS = 6; // (a page's px; the pages kept painted at once, the least lately seen let go past that -- 4 MB each)
   // the paged floor on the canvas being drawn: the pages in view painted now, one more a frame from those just outside it, and the least lately seen let go
   function drawPages(ctx, b, o, vw, vh) {

@@ -209,14 +209,14 @@
   // laid as the thing, and the open air's earth was painted under it. Every square in a house that is not its wall, a doorway, its chimney or its stair takes the house's
   // boards under it, a hearth's own square and the stone before its mouth dressed stone (js/iso.js `under`)
   In.UNDER = { h: '=', f: '=' };
-  In.under = function (rows, inside) {
-    return rows.map(function (r, y) { return r.split('').map(function (c, x) { return !inside(x, y) || 'BADCoSu'.indexOf(c) >= 0 ? ' ' : In.UNDER[c] || 'o'; }).join(''); });
+  In.under = function (rows, inside, open) { // (open(x, y): the square's house is the one the party is in -- its walls cut to stubs stand on its boards, js/innprops.js, 11-05)
+    return rows.map(function (r, y) { return r.split('').map(function (c, x) { return !inside(x, y) || 'DCoSu'.indexOf(c) >= 0 ? ' ' : c === 'B' || c === 'A' ? (open && open(x, y) ? 'o' : ' ') : In.UNDER[c] || 'o'; }).join(''); });
   };
   var floor0 = M.floor;
   M.floor = function (key, q, flags, hour) {
     if (key === In.UP) {
       var du = floor0.apply(this, arguments);
-      du.under = In.under(In.UPROWS, function () { return true; });
+      du.under = In.under(In.UPROWS, function () { return true; }, function () { return true; });
       du.roofs = Object.assign({}, du.roofs, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); du.hud = 'the Halfway Inn';
       du.hello = ['{y}THE HALFWAY INN{/} -- upstairs, on the grid\'s diamonds (' + du.w + ' x ' + du.h + ' squares).', In.LINES.upstairs, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
       return du;
@@ -224,7 +224,7 @@
     if (key !== In.KEY) return floor0.apply(this, arguments);
     In.inside = In.state !== undefined ? In.state : In.qInside(q); In.q = q || '';
     var h = hour != null ? hour : M.hourNow(q), def = floor0.call(this, key, q, flags, h); flags = flags || {};
-    def.under = In.under(In.ROWS, In.inHouse); // (the boards under the things inside: In.under)
+    def.under = In.under(In.ROWS, In.inHouse, function (x, y) { return !!In.inside && In.inHouse(x, y) === In.inside; }); // (the boards under the things inside, and under the walls of the house the party is in: In.under)
     def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if (p.id === 'wagonGoblin' && flags.glamourSeen) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)

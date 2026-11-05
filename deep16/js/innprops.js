@@ -12,8 +12,9 @@
 'use strict';
 (function () {
   var D = window.D16, iso = D.iso, In = D.inn; if (!iso || !In) return;
-  // (two atlases since 11-05: innprops_p2 holds pages 5, 6, 9A and 9B -- the barn, the yard and the shore, the kitchen's kettle and tools, upstairs' stair head and chimney)
-  var IP = D.innprops = {}, SHEETS = ['innprops_p1', 'innprops_p2'], SHEET = SHEETS[0], HW = 32, HH = 16;
+  // (three atlases since 11-05: innprops_p2 holds pages 5, 6, 9A and 9B -- the barn, the yard and the shore, the kitchen's kettle and tools, upstairs' stair head and
+  // chimney; innwalls_p1 pages 7, 8 and 9A's walls, roofs and lamps)
+  var IP = D.innprops = {}, SHEETS = ['innprops_p1', 'innprops_p2', 'innwalls_p1'], SHEET = SHEETS[0], HW = 32, HH = 16;
   IP.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
   function sheet(name) {
     var key = SHEET;
@@ -149,10 +150,106 @@
         ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(s.x - q[4]), Math.round(s.y - q[5]), q[2], q[3]);
       } });
     });
+    IP.walls(m, mine, up, ins);
     m.props = m.props.filter(function (p) { return p.innProp || !(p.sq && mine[p.sq.x + ',' + p.sq.y] && (p.kind === 'block' || p.kind === 'rock')); });
     if (m.isoFire) m.isoFire = m.isoFire.filter(function (q) { return !mine[q[0] + ',' + q[1]]; });
     m.sorted = null; IP.laid = got;
   };
+  // THE WALLS AND THE ROOFS (11-05, the exteriors seat; art-wanted 36 pages 7, 8 and 9A, cut by tools/innwalls-sheet.py into innwalls_p1): a building the party is
+  // not in is drawn by js/iso.js iso.house -- its walls a square at a time along the two faces the camera sees, a window every few squares (the house's on the
+  // ground floor and upstairs by turns), its door where the floor's doorway is, the corner, a lamp by the door; its roof from page 8's pieces at its own pitch
+  // (`R`, px over the walls: the wing's lower, as the page drew it) -- and cut a square at a time for the sort. Its windows and lamps lit at dusk and by night.
+  // The house the party is in (and upstairs) has every wall square cut to the knee-high stub: page 7's stub along the square's middle, along x where the wall
+  // runs along x and along y where it runs along y (both at a corner, each to the middle where the wall ends), on the boards (inn.js In.under)
+  var WALLS = 'innwalls_p1';
+  IP.HOUSE = {
+    house: { R: 56, base: ['#9c3d2b', '#6a2a1e', '#7d3a29'], win: function (k) { return k % 4 === 1 ? 'win' : k % 4 === 3 ? 'winup' : null; } }, // (base: the near slope's, the far slope's and the gable's own colour under its pieces)
+    wing: { R: 24, base: ['#9c3d2b', '#6a2a1e', '#7d3a29'], win: function (k) { return k % 3 === 1 ? 'win' : null; } },
+    barn: { R: 34, base: ['#837d74', '#57534d', '#6f5c47'], win: function (k) { return k % 3 === 1 ? 'win' : null; } }
+  };
+  IP.PARTS = function () { return [['house', In.BUILDINGS.inn.parts[0].r, 'inn'], ['wing', In.BUILDINGS.inn.parts[1].r, 'inn'], ['barn', In.BUILDINGS.barn.parts[0].r, 'barn']]; };
+  var HC = {};
+  function wsheet() { var S = sheet('house_plain_x'); return S && S.sh.tiles && S; }
+  // the modules of a building's two faces the camera sees, square by square: its door where the floor's doorway is, a window every few squares (lit at dusk and by
+  // night), none at either end -> { south: [names along x], east: [names along y] }
+  IP.faceNames = function (mat, r, lit) {
+    var rows = In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; }, cfg = IP.HOUSE[mat], out = { south: [], east: [] };
+    var kind = function (c, k, last) { if (c === 'D') return 'door'; var w = !last && k > 0 && cfg.win(k); return w ? w + (lit ? '_lit' : '') : 'plain'; };
+    for (var x = r[0]; x <= r[2]; x++) out.south.push(mat + '_' + kind(at(x, r[3]), x - r[0], x === r[2]) + '_x');
+    for (var y = r[1]; y <= r[3]; y++) out.east.push(mat + '_' + kind(at(r[2], y), y - r[1], y === r[3]) + '_y');
+    return out;
+  };
+  IP.houseSpec = function (mat, r, lit) {
+    var S = wsheet(); if (!S) return null;
+    var H0 = (S.sh.height || {})[mat], rows = In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; }, cfg = IP.HOUSE[mat], fn = IP.faceNames(mat, r, lit);
+    var lamps = [];
+    for (var y = r[1]; y <= r[3]; y++) if (at(r[2], y) === 'D') lamps.push([(lit ? 'lamplit' : 'lamp') + '_y', r[2] + 1, y - 0.12, Math.round(H0 * (mat === 'barn' ? 0.62 : 0.5))]);
+    return { x0: r[0], y0: r[1], x1: r[2], y1: r[3], H: H0, R: cfg.R, base: cfg.base,
+      piece: function (nm) { var b = boxes(nm); if (!b) return null; var q = b[0]; return { img: S.im, x: q[0], y: q[1], w: q[2], h: q[3], ax: q[4], ay: q[5] }; },
+      pts: function (nm) { var c = (S.sh.roofpts || {})[nm]; return c ? { minx: c.minx, maxx: c.maxx, miny: c.miny, maxy: c.maxy } : null; },
+      south: function (x) { return fn.south[x - r[0]]; }, east: function (y) { return fn.east[y - r[1]]; },
+      gable: function () { return mat + '_plain_y'; }, corner: [mat + '_cornerL', mat + '_cornerR'],
+      roof: { slope: 'roof_' + mat + '_slope', shade: 'roof_' + mat + '_shade', ridge: 'roof_' + mat + '_ridge', gable: 'roof_' + mat + '_gableA' }, extras: lamps };
+  };
+  IP.house = function (mat, r, lit) { // its slices, made once a look
+    var key = mat + (lit ? 'n' : 'd'); if (HC[key]) return HC[key];
+    var sp = IP.houseSpec(mat, r, lit); if (!sp) return null;
+    var pic = iso.house(sp);
+    return (HC[key] = { pic: pic, slices: iso.slices(pic, r[2] - r[0] + 1, r[3] - r[1] + 1) });
+  };
+  IP.wallsWait = false;
+  IP.walls = function (m, mine, up, ins) {
+    if (!wsheet()) { // (its sheet not come yet: the code's walls and roofs this time, and the floor dressed again when it comes)
+      var src = D.SHEETS && D.SHEETS[WALLS] && D.SHEETS[WALLS].image;
+      if (src && D.spr && D.spr.load && !IP.wallsWait) { IP.wallsWait = true; D.spr.load(src).then(function () { IP.wallsWait = false; if (iso.map === m && wsheet()) IP.dress(m); }); }
+      return;
+    }
+    var lit = !!(m.def && (m.def.night || m.def.dusk));
+    if (!up) IP.PARTS().forEach(function (pt) {
+      var mat = pt[0], r = pt[1]; if (pt[2] === ins) return;             // (the house the party is in: its stubs, below)
+      var h = IP.house(mat, r, lit); if (!h) return;
+      for (var x = r[0]; x <= r[2]; x++) for (var y = r[1]; y <= r[3]; y++) mine[x + ',' + y] = 1;
+      Object.keys(h.slices).forEach(function (k) {
+        var ij = k.split(',').map(Number), sq = m.at(r[0] + ij[0], r[1] + ij[1]), sl = h.slices[k]; if (!sq) return;
+        m.props.push({ innProp: true, kind: 'innhouse', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
+          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y); ctx.drawImage(sl.canvas, Math.round(s.x - sl.ax), Math.round(s.y - sl.ay));
+        } });
+      });
+    });
+    // the stubs: every wall square of the house the party is in, or of the floor upstairs
+    var rows = up ? In.UPROWS : In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; };
+    for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++) {
+      var c = at(x, y); if (c !== 'B' && c !== 'A') continue;
+      if (!up && (!ins || In.inHouse(x, y) !== ins)) continue;
+      var sq = m.at(x, y); if (!sq) continue;
+      var mat = c === 'A' ? 'barn' : 'wing', runs = IP.stubRuns(rows, x, y);
+      mine[x + ',' + y] = 1;
+      (function (sq, mat, runs) {
+        m.props.push({ innProp: true, kind: 'innstub', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
+          var S = wsheet(); if (!S) return;
+          runs.forEach(function (rn) {
+            var b = boxes(mat + '_stub_' + rn[0]); if (!b) return; var q = b[0];
+            var pt = function (u) { var c = rn[0] === 'x' ? iso.center(sq.x + u - 0.5, sq.y, 0) : iso.center(sq.x, sq.y + u - 0.5, 0); return iso.toScreen(c.x, c.y); }; // (a point along the square's middle line)
+            var a0 = pt(0), p0 = pt(rn[1]), p1 = pt(rn[2]), cx0, cx1;
+            if (rn[0] === 'x') { cx0 = p0.x - (rn[1] ? 1 : 0); cx1 = p1.x + (rn[2] === 1 ? 14 : 1); } else { cx0 = p1.x - (rn[2] === 1 ? 14 : 1); cx1 = p0.x + (rn[1] ? 1 : 0); }
+            ctx.save(); ctx.beginPath(); ctx.rect(cx0, -99999, cx1 - cx0, 199999); ctx.clip();
+            ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(a0.x - q[4]), Math.round(a0.y - q[5]), q[2], q[3]);
+            ctx.restore();
+          });
+        } });
+      })(sq, mat, runs);
+    }
+  };
+  // a wall square's stub: along x where a wall (or a doorway, or the hearth in it) is east or west of it, along y where one is north or south, each from the
+  // square's middle to the side that carries on -> [[axis, from, to]] along the square, 0..1
+  IP.stubRuns = function (rows, x, y) {
+    var at = function (x2, y2) { var w = rows[y2]; return w ? w.charAt(x2) : ''; }, wl = function (x2, y2) { var c = at(x2, y2); return c === 'B' || c === 'A' || c === 'D' || c === 'f'; };
+    var nE = wl(x + 1, y), nW = wl(x - 1, y), nN = wl(x, y - 1), nS = wl(x, y + 1), runs = [];
+    if (nE || nW || (!nN && !nS)) runs.push(['x', nW ? 0 : 0.5, nE ? 1 : 0.5]); if (nN || nS) runs.push(['y', nN ? 0 : 0.5, nS ? 1 : 0.5]);
+    return runs;
+  };
+  IP.prefetch = function () { [WALLS, 'innprops_p2', SHEET].forEach(function (k) { var sh = D.SHEETS && D.SHEETS[k]; if (sh && D.spr && D.spr.load) D.spr.load(sh.image, true); }); };
+
   // THE GROUND TILES (11-05, the exteriors seat; page 9B): painted into the code's floor as it is baked (js/iso.js `groundArt`) -- the lake's shallows on its knee-deep
   // squares (W), the wagon ruts down the Pit road (its three columns, along y) and on the wagon's track off the road into the yard (along x, to where it stands on its night)
   IP.TRACK = { x0: 3, x1: 7, rows: [18, 19] };
@@ -177,6 +274,7 @@
   };
   var load0 = iso.load;
   iso.load = function (def) {
+    if (def && (def.key === In.KEY || def.key === In.UP) && IP.on) IP.prefetch(); // (the inn's sheets asked for as its floor is first laid: walls, roofs and props come with it)
     if (def && def.key === In.KEY && IP.on) def.groundArt = function (x, y, m) { var nm = IP.groundAt(x, y); return nm ? IP.groundTile(nm, m) : null; };
     var m = load0.apply(this, arguments); if (def && (def.key === In.KEY || def.key === In.UP)) IP.dress(m); return m; // (the yard, the barn and the shore too since 11-05)
   };
