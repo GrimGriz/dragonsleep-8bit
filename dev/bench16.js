@@ -2583,14 +2583,14 @@
       var R0 = B.roam, q = (ans || []).slice(), seen = []; atKt(B, 25, 20, [1, 0]); B.cards = []; R0.keys.push('use');
       driveKt(B.co, function () { return D.top() instanceof CKt.Counter || (B.cards || []).length > 0; }, 400);
       var sc = D.top(); if (!(sc instanceof CKt.Counter)) return { name: '', seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') };
-      var nm = sc.o.name;
+      var nm = sc.o.name, shK = sc.sheet;
       for (var k = 0; k < 80 && !sc.done; k++) {
         var w = sc.wait || {}, bs = sc.buttons();
         if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + '] > ' + w.opts[i0]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); }
         else { seen = seen.concat(w.say || []); sc.press(bs[0]); }
       }
       driveKt(B.co, function () { return D.top() !== sc; }, 60); driveKt(B.co, null, 40);
-      return { name: nm, seen: window.DS.stripCodes(seen.join(' / ')) };
+      return { name: nm, sheet: shK, seen: window.DS.stripCodes(seen.join(' / ')) };
     }
     D.store.get = function (k) { return memKt[k] ? JSON.parse(memKt[k]) : null; }; D.store.set = function (k, v) { memKt[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
@@ -2662,6 +2662,12 @@
       InK.play(InK.BEATS.filter(function (b) { return b.id === 'kat'; })[0]); var Bs = topKt(), stS = CKt.state(Bs), inkS = CKt.count(stS, 'ink'), kS = folkKt(Bs, 'katarina'), t8 = talkKt(Bs, []);
       okKt('the show\'s beat kat: ' + RKt.def.key + ' at ' + Bs.roam.token.x + ',' + Bs.roam.token.y + ', day ' + InK.day(RKt.q) + ', the ink ' + inkS + ', the traveler ' + !!kS + '; E on her: ' + t8.seen.slice(0, 300) + ' -- the sheet ' + CKt.count(stS, 'sheet_hideouslaughter'),
         RKt.def.key === 'halfway' && inkS === 1 && !!kS && /You're with the Dominion/.test(t8.seen) && /I saw Aurdin laughing/.test(t8.seen) && CKt.count(stS, 'sheet_hideouslaughter') === 1);
+      // 13. HER FACE BY NAME (11-05, the desk: "Build her talk so a portrait can drop in by name"): with no sheet of hers the screen as it was; a sheet under her first name
+      // (stood in by Elsbeth's at the tub, for the bench only) and it is her face at the fire -- the cutter's page drops in with nothing else changed (js/inn.js In.FACE)
+      var nmF = InK.FACE.katarina[0], had = !!D.SHEETS[nmF], Bf0 = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), tf0 = talkKt(Bf0, []);
+      if (!had) D.SHEETS[nmF] = D.SHEETS.pt_elsbethtub; var Bf1 = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), tf1 = talkKt(Bf1, []); if (!had) delete D.SHEETS[nmF];
+      okKt('her face by name (' + InK.FACE.katarina.join(', ') + '): ' + (had ? 'her sheet is in, the screen wears ' + tf1.sheet : 'none yet -- the screen\'s portrait ' + tf0.sheet + '; a sheet named ' + nmF + ' and it wears ' + tf1.sheet),
+        tf1.sheet === nmF && (had || tf0.sheet === null) && /You're with the Dominion/.test(tf1.seen)); // (the fresh four have Barley: his errand is her first word)
     } catch (eKt) { repKt.errors.push(String(eKt && eKt.stack || eKt).slice(0, 900)); }
     HKt.playing = false; HKt.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
     D.store.get = stGKt; D.store.set = stSKt; D.music = muKt;

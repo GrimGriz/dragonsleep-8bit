@@ -445,7 +445,12 @@
     knew: '{c}(insight) The traveler and Amara know each other. Neither of them says so.{/}',
     DC: { saw: 12, saw2: 15, knew: 13 }
   };
-  In.barleyIn = function (st) { return st.party.some(function (h) { return (h.key || h.id) === 'barley' && !h.dead && !h.ko && !h.guest; }); };
+  // HER FACE BY NAME (11-05, the desk: "Build her talk so a portrait can drop in by name", her art in from the art desk, art-wanted section 35, the cutter cutting it): her
+  // talk is the counter screen with id 'katarina', and its portrait is the first of these that is a sheet -- none yet, the screen as it was; the cutter's page by any name
+  // here shows on her every line at the fire with nothing else changed (js/counter.js C.SHEETOF, as Elsbeth's pt_elsbethtub at the tub)
+  In.FACE = { katarina: ['pt_katarina', 'pt_kat'] };
+  if (D.counter && D.counter.SHEETOF) D.counter.SHEETOF.katarina = function () { var ns = In.FACE.katarina || []; for (var i = 0; i < ns.length; i++) if (D.SHEETS && D.SHEETS[ns[i]]) return ns[i]; return null; };
+  In.barleyIn =function (st) { return st.party.some(function (h) { return (h.key || h.id) === 'barley' && !h.dead && !h.ko && !h.guest; }); };
   // what she will be asked now (each once a visit): what she saw while there is more to hear, Amara once the wagon is known, the message once it has come and the read caught them
   In.katOpts = function (f, asked) {
     var free = f.katVision ? 2 : f.katInk ? 1 : 0, out = ['what', 'road'];
