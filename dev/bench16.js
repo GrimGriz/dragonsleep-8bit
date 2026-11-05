@@ -3121,6 +3121,259 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE TUESDAY GRID, 11-05 (mode=tuesgrid1105; the tuesday-grid seat, started by the lanes desk on Griz's 11-05 word on his 10-31 playthrough's Tuesday notes -- "Seat 3 - go, though
+  // I've encountered light cast in a battle ending after an hour (glowseep maybe), so is this map specific check (20)? I think the spacing is set (23) elsewhere at 6-12 squares with
+  // exceptions... Zoom variant versus zoom-wheel steps on simple fights (think grid allows zooming already)"): 1. the simple fight's `see` spells (js/simple.js S.seen, S.targets);
+  // 2. the pick prefers the spell's own targets, an ally spell's too (js/ui.js foeWanted, UI.pickUnit); 3. MAGIC's slots in the grid's words (S.magicTitle); 4. OPTIONS' DARK LOOK
+  // (js/light.js L.LOOKS); 5. the simple fight's fronts 6 to 12 squares apart, the exceptions held, the camera fit and the wheel (S.fieldOpts, S.gapOf, S.camera); 6. a Light cast
+  // on Barley in the Wet and a fight's carried out, then Silverton and the road: what is lit round the party when it gets there (js/house.js H.lightsOut, js/roam.js R.lasting)
+  if (get('mode', '') === 'tuesgrid1105') {
+    var repTG = { checks: [], errors: [], notes: [] }, memTG = {}, stGTG = D.store.get, stSTG = D.store.set, muTG = D.music, apTG = window.DS.autoPicks, SSg = D.simple, MGg = D.magic, UIg = D.ui, GGg = D.grid, RUg = D.rules, LGg = D.light, WGg = D.world, HGg = D.house, RMg = D.roam, MNg = D.mines;
+    var keysTG = {}, gap0TG = WGg.GAP.slice(), R0TG = D.R, d0TG = D.d;
+    function okTG(what, v) { repTG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function noteTG(s) { repTG.notes.push(s); }
+    function runTG(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkTG(q, more) { var Bx = D.npcFight(q, more || {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideTG(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function clsTG(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function learnTG(u, id) { if ((u.known || []).indexOf(id) < 0) (u.known = u.known || []).push(id); if (Array.isArray(u.prepared) && u.prepared.indexOf(id) < 0) u.prepared.push(id); }
+    function topTG() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function nmTG(Bx, w) { return w ? (w.side === 'party' ? w.name : (Bx.shortName ? Bx.shortName(w) : w.name)) : 'none'; }
+    D.store.get = function (k) { return memTG[k] ? JSON.parse(memTG[k]) : null; }; D.store.set = function (k, v) { memTG[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    [SSg.KEY, SSg.VKEY, LGg.LKEY].forEach(function (k) { try { keysTG[k] = window.localStorage.getItem(k); window.localStorage.removeItem(k); } catch (eK) { } });
+    try {
+      D.seed = +get('seed', 1105);
+      try { // (secTG: each section its own, so one that throws hides none after it)
+      // 1. TUESDAY 17, THE SIGHT A SPELL ASKS (his "Is aurdin supposed to be able to shoot the acid spells or only firebolt in the dark?"): in the simple fight a spell whose words name
+      // "a creature you can see" -- Sacred Flame, Magic Missile, Bane, Healing Word -- takes only one seen; Acid Splash and Fire Bolt keep the pick of a foe unseen
+      var B1 = mkTG('?npc=goblin,goblin&vs=cleric:5,wizard:5,fighter:5&lvl=5', { simple: true }), cl1 = clsTG(B1, 'cleric'), wz1 = clsTG(B1, 'wizard'), ft1 = clsTG(B1, 'fighter'), gs1 = sideTG(B1, 'foe');
+      if (!B1.simple) SSg.setup(B1);
+      ['sacredflame', 'bane', 'healingword'].forEach(function (id) { learnTG(cl1, id); }); ['acidsplash', 'firebolt', 'magicmissile'].forEach(function (id) { learnTG(wz1, id); });
+      cl1.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; wz1.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0];
+      gs1[0].conds.invisible = { by: 'probe' }; ft1.conds.invisible = { by: 'probe' }; B1.cache = null;
+      var tg1 = function (u, id) { return SSg.targets(B1, u, MGg.geo(id), MGg.data(id)); }, has1 = function (u, id, w) { return tg1(u, id).indexOf(w) >= 0; };
+      var seen1 = MGg.sees(B1, cl1, gs1[1]) && MGg.sees(B1, wz1, gs1[1]), unseen1 = !MGg.sees(B1, cl1, gs1[0]) && !MGg.sees(B1, wz1, gs1[0]) && !MGg.sees(B1, cl1, ft1);
+      var r1 = { sf: [has1(cl1, 'sacredflame', gs1[0]), has1(cl1, 'sacredflame', gs1[1])], mm: [has1(wz1, 'magicmissile', gs1[0]), has1(wz1, 'magicmissile', gs1[1])],
+        as: [has1(wz1, 'acidsplash', gs1[0]), has1(wz1, 'acidsplash', gs1[1])], fb: [has1(wz1, 'firebolt', gs1[0]), has1(wz1, 'firebolt', gs1[1])], hw: [has1(cl1, 'healingword', ft1), has1(cl1, 'healingword', wz1)] };
+      okTG('1 the sight (the first goblin and the fighter invisible, the second goblin seen: ' + seen1 + ', unseen ' + unseen1 + '): Sacred Flame at the unseen ' + r1.sf[0] + ', the seen ' + r1.sf[1] + '; Magic Missile ' + r1.mm.join('/') + '; Acid Splash ' + r1.as.join('/') + '; Fire Bolt ' + r1.fb.join('/') + '; Healing Word on the unseen fighter ' + r1.hw[0] + ', the wizard ' + r1.hw[1] + ' (want false/true, false/true, true/true, true/true, false/true)',
+        seen1 && unseen1 && !r1.sf[0] && r1.sf[1] && !r1.mm[0] && r1.mm[1] && r1.as[0] && r1.as[1] && r1.fb[0] && r1.fb[1] && !r1.hw[0] && r1.hw[1]);
+      // both goblins unseen: the rows greyed with the sight's words; Bane's three the seen ones; and every see spell's offer is one M.sees, as the grid's M.targetOK asks
+      gs1[1].conds.invisible = { by: 'probe' }; B1.cache = null; RUg.startTurn(cl1); B1.active = cl1;
+      var rows1 = SSg.spells(B1, cl1), row1 = function (id) { return rows1.filter(function (r) { return r.e && r.e.id === id; })[0] || {}; }, sfR = row1('sacredflame'), baR = row1('bane');
+      RUg.startTurn(wz1); B1.active = wz1; var rowsW1 = SSg.spells(B1, wz1), asR = rowsW1.filter(function (r) { return r.e && r.e.id === 'acidsplash'; })[0] || {}, mmR = rowsW1.filter(function (r) { return r.e && r.e.id === 'magicmissile'; })[0] || {};
+      okTG('1 both goblins unseen: SACRED FLAME greyed ' + !sfR.ok + ' ("' + sfR.why + '"), BANE ' + !baR.ok + ' ("' + baR.why + '"), MAGIC MISSILE ' + !mmR.ok + ' ("' + mmR.why + '"); ACID SPLASH still ' + asR.ok,
+        sfR.ok === false && /in sight/.test(sfR.why || '') && baR.ok === false && /in sight/.test(baR.why || '') && mmR.ok === false && /in sight/.test(mmR.why || '') && asR.ok === true);
+      delete gs1[1].conds.invisible; B1.cache = null; RUg.startTurn(cl1); B1.active = cl1;
+      var baE = MGg.list(B1, cl1, { anyTarget: true }).filter(function (x) { return x.id === 'bane'; })[0], baC = baE ? SSg.spellCmd(B1, cl1, baE, 1, null) : null, baU = baC && baC.target && baC.target.units || [];
+      okTG('1 Bane with one goblin seen: it takes ' + baU.map(function (w) { return nmTG(B1, w); }).join(', ') + ' (want the seen one alone)', baU.length === 1 && baU[0] === gs1[1]);
+      var bad1 = []; Object.keys(D.SPELLS).forEach(function (id) { var g = MGg.geo(id); if (!g.see || !/^(single|attack|rays|darts|splash|touch)$/.test(g.shape)) return; [cl1, wz1].forEach(function (u) { SSg.targets(B1, u, g, MGg.data(id)).forEach(function (w) { if (w !== u && !MGg.sees(B1, u, w)) bad1.push(id + ' ' + u.name + '>' + nmTG(B1, w)); }); }); });
+      okTG('1 every spell asking sight offers only the seen (the grid\'s rule): ' + (bad1.length ? bad1.slice(0, 6).join('; ') : 'none unseen'), !bad1.length);
+      } catch (eS) { repTG.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secTG)
+      // 2. TUESDAY 19, THE PICK (his "I had to steer 'light' cast on barley by keyboard+enter"): Light aimed by the wizard, the cleric beside it (its touch) behind the fighter, whose
+      // figure is drawn in front: the mouse on both takes the cleric; with no spell in hand the front-most; a foe's spell the foe as before; both taken, the front-most of them
+      var B2 = mkTG('?npc=goblin&vs=wizard:5,cleric:5,fighter:5&lvl=5'), wz2 = clsTG(B2, 'wizard'), cl2 = clsTG(B2, 'cleric'), ft2 = clsTG(B2, 'fighter'), gb2 = sideTG(B2, 'foe')[0];
+      var place2 = function (fx, fy) { wz2.x = 5; wz2.y = 5; cl2.x = 6; cl2.y = 5; ft2.x = fx; ft2.y = fy; gb2.x = 12; gb2.y = 12; GGg.setup(GGg.map, B2.units); B2.cache = null; };
+      place2(7, 6); learnTG(wz2, 'light'); learnTG(wz2, 'firebolt'); RUg.startTurn(wz2); B2.active = wz2; B2.req = { turn: wz2 };
+      var both2 = function (front, back) { // (a point on the screen inside both figures' boxes, the back one's middle first)
+        var pb = UIg.unitPos(B2, back), pf = UIg.unitPos(B2, front), z = D.iso.zoom, tb = D.spr.unitTop(back) * z, tf = D.spr.unitTop(front) * z, hwb = 11 * Math.max(1, D.spr.scaleOf(back)) * z, hwf = 11 * Math.max(1, D.spr.scaleOf(front)) * z;
+        for (var dy = 0; dy <= tb; dy++) for (var dx = -hwb; dx <= hwb; dx += 1) { var x = Math.round(pb.x + dx), y = Math.round(pb.y - dy); if (Math.abs(x - pf.x) <= hwf && y >= pf.y - tf && y <= pf.y + 5 * z && Math.abs(x - pb.x) <= hwb && y >= pb.y - tb) return { x: x, y: y }; }
+        return null;
+      };
+      var pt2 = both2(ft2, cl2); B2.tool = 'spell'; B2.spell = { id: 'light', g: MGg.geo('light') };
+      var leg2 = MGg.targetOK(B2, wz2, MGg.geo('light'), cl2), legF2 = MGg.targetOK(B2, wz2, MGg.geo('light'), ft2);
+      var pk2 = pt2 ? UIg.pickUnit(B2, pt2.x, pt2.y, UIg.foeWanted(B2, wz2)) : null, bare2 = pt2 ? UIg.pickUnit(B2, pt2.x, pt2.y, null) : null, hv2 = pt2 ? UIg.hoverPick(B2, wz2, pt2.x, pt2.y).unit : null;
+      okTG('2 Light by the wizard, the mouse on the cleric behind the fighter (' + (pt2 ? pt2.x + ',' + pt2.y : 'no shared point') + '; the cleric in its touch ' + leg2 + ', the fighter ' + legF2 + '): picked ' + nmTG(B2, pk2) + ', the hover ' + nmTG(B2, hv2) + '; the front-most with nothing wanted ' + nmTG(B2, bare2) + ' (want the cleric, the cleric, the fighter)',
+        !!pt2 && leg2 && !legF2 && pk2 === cl2 && hv2 === cl2 && bare2 === ft2);
+      gb2.x = 6; gb2.y = 5; cl2.x = 4; cl2.y = 7; GGg.setup(GGg.map, B2.units); B2.cache = null; var pt2b = both2(ft2, gb2);
+      B2.spell = { id: 'firebolt', g: MGg.geo('firebolt') }; var pk2b = pt2b ? UIg.pickUnit(B2, pt2b.x, pt2b.y, UIg.foeWanted(B2, wz2)) : null;
+      okTG('2 Fire Bolt, the goblin behind the fighter: picked ' + nmTG(B2, pk2b) + ' (want the goblin, as ruled 10-01)', !!pt2b && pk2b === gb2);
+      place2(7, 6); wz2.x = 6; wz2.y = 6; GGg.setup(GGg.map, B2.units); B2.cache = null; var pt2c = both2(ft2, cl2); B2.spell = { id: 'light', g: MGg.geo('light') }; // (the wizard at 6,6: both in its touch)
+      var pk2c = pt2c ? UIg.pickUnit(B2, pt2c.x, pt2c.y, UIg.foeWanted(B2, wz2)) : null;
+      okTG('2 Light with both in its touch (the wizard at 6,6, the fighter at 7,6 now ' + MGg.targetOK(B2, wz2, MGg.geo('light'), ft2) + '): picked ' + nmTG(B2, pk2c) + ' (want the front-most of the two, the fighter)', !!pt2c && pk2c === ft2);
+      B2.tool = 'move'; B2.spell = null; okTG('2 the move tool wants no one (' + !UIg.foeWanted(B2, wz2) + ')', !UIg.foeWanted(B2, wz2));
+      } catch (eS) { repTG.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secTG)
+      // 3. TUESDAY 21, MAGIC'S SLOTS (his "Slots remaining on simple fight 'magic' menu"): the list's title says them as the grid's does, "slots L1 2/4"; AT WHAT LEVEL? "1/3 left";
+      // every slot spent, a paladin's MAGIC greyed with the grid's words
+      var B3 = mkTG('?npc=goblin&vs=paladin:5,wizard:5&lvl=5', { simple: true }), pa3 = clsTG(B3, 'paladin'), wz3 = clsTG(B3, 'wizard'); if (!B3.simple) SSg.setup(B3);
+      RUg.startTurn(wz3); B3.active = wz3; wz3.slots = wz3.slots.slice(); wz3.slots[0] = 2; learnTG(wz3, 'magicmissile');
+      var title3 = SSg.magicTitle(wz3), line3 = UIg.slotLine(wz3, 999), mg3 = SSg.root(B3, wz3).filter(function (r) { return r.label === 'MAGIC'; })[0];
+      mg3.go(); var opened3 = SSg.menu(B3, wz3).list && SSg.menu(B3, wz3).list.title;
+      var mmE3 = MGg.list(B3, wz3, { anyTarget: true }).filter(function (x) { return x.id === 'magicmissile'; })[0]; SSg.openSlots(B3, wz3, mmE3); var lv3 = (SSg.menu(B3, wz3).list.items || []).map(function (r) { return r.label + ' ' + r.right; });
+      okTG('3 the wizard\'s MAGIC opens "' + opened3 + '" (the grid\'s bar: "' + line3 + '"); AT WHAT LEVEL? ' + lv3.join(', '),
+        title3 === opened3 && /^MAGIC {3}slots L1 2\/\d L2 \d\/\d/.test(opened3 || '') && /^LEVEL 1 2\/\d left$/.test(lv3[0] || ''));
+      RUg.startTurn(pa3); B3.active = pa3; pa3.slots = pa3.slots.map(function () { return 0; }); SSg.menu(B3, pa3).root = null;
+      var pmg3 = SSg.root(B3, pa3).filter(function (r) { return r.label === 'MAGIC'; })[0] || {};
+      okTG('3 the paladin, every slot spent: MAGIC greyed ' + !pmg3.ok + ', "' + pmg3.why + '" (want the grid\'s "no spell slots left (a rest brings them back)")', pmg3.ok === false && pmg3.why === 'no spell slots left (a rest brings them back)');
+      } catch (eS) { repTG.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secTG)
+      // 4. TUESDAY 22, THE DARK'S LOOK (his "Can dark be not as Dark and still work as it does now, everything shifted up a bit?"): OPTIONS' DARK LOOK -- DEEP the old, SOFT the
+      // default, LIGHT -- each lifting the unlit floor, the pools still standing out; the rules (the light map, sight) the same at every step
+      var LK = LGg.LOOKS, def4 = LGg.lookId(), deep4 = LK && LK.deep;
+      var row4 = (window.DS.MENU && window.DS.MENU.gridRows ? window.DS.MENU.gridRows(null) : []).filter(function (r) { return r.label === 'DARK LOOK'; })[0], seq4 = [];
+      if (row4) for (var s4 = 0; s4 < 3; s4++) { row4.step(1); seq4.push(row4.get()); }
+      okTG('4 OPTIONS\' DARK LOOK: default ' + def4 + ', DEEP the old (' + (deep4 && deep4.night + ' ' + deep4.wash + '/' + deep4.hover) + '); the row ' + !!row4 + ', stepped ' + seq4.join(' > '),
+        def4 === 'soft' && !!deep4 && deep4.night === 'rgb(52,56,86)' && deep4.wash === 0.4 && deep4.hover === 0.62 && !!row4 && seq4.join() === 'LIGHT,DEEP,SOFT');
+      var B4 = mkTG('?npc=goblin,goblin&vs=fighter:5,wizard:5&lvl=5'), f4 = clsTG(B4, 'fighter'), z4 = clsTG(B4, 'wizard'), g4 = sideTG(B4, 'foe');
+      f4.x = 3; f4.y = 3; z4.x = 2; z4.y = 4; g4[0].x = 7; g4[0].y = 3; g4[1].x = 14; g4[1].y = 13; GGg.setup(GGg.map, B4.units); B4.dark = true; B4.lights = []; f4.torch = { lit: true }; B4.cache = null; B4.active = null; B4.req = null;
+      var cv4 = document.createElement('canvas'); cv4.width = D.W; cv4.height = D.H; D.R = D.R || 1;
+      var lum4 = function (dt, x, y) { var s = 0, n = 0; for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) { var xx = Math.round(x) + i, yy = Math.round(y) + j; if (xx < 0 || yy < 0 || xx >= D.W || yy >= D.H) continue; var k = (yy * D.W + xx) * 4; s += 0.299 * dt[k] + 0.587 * dt[k + 1] + 0.114 * dt[k + 2]; n++; } return n ? s / n : 0; };
+      var shot4 = function (look) {
+        LGg.setLook(look); D.iso.zoom = 0.5; var c = cv4.getContext('2d'), np = 0, ps0 = LGg.pass; LGg.pass = function () { np++; return ps0.apply(this, arguments); }; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, D.W, D.H); try { UIg.drawBattle(c, B4); } finally { LGg.pass = ps0; } var dt = c.getImageData(0, 0, D.W, D.H).data; noteTG('4 drawn ' + look + ': the pass ran ' + np + ', dark ' + B4.dark + ', the world ' + (D.iso.inWorld) + ', zoom ' + D.iso.zoom);
+        // (the picture between the strip and the bar, by its luminance: the middle of it the unlit floor, the top two in a hundred the torch's pool and what it lights)
+        var ls = []; for (var y = 24; y < D.H - 74; y += 2) for (var x = 2; x < D.W - 2; x += 2) { var k = (y * D.W + x) * 4; ls.push(0.299 * dt[k] + 0.587 * dt[k + 1] + 0.114 * dt[k + 2]); }
+        ls.sort(function (a, b) { return a - b; }); var pc = function (q) { return ls.length ? ls[Math.min(ls.length - 1, Math.floor(ls.length * q))] : -1; };
+        if (get('shots', '')) noteTG('4 shot ' + look + ' ' + cv4.toDataURL('image/png'));
+        var fl = ls.filter(function (v) { return v > 3 && v < 70; }), pf = function (q) { return fl.length ? fl[Math.min(fl.length - 1, Math.floor(fl.length * q))] : -1; }; // (the floor: no black off the field, no figure or pool)
+        return { look: look, dark: Math.round(pf(0.5)), pool: Math.round(pc(0.98)), n: fl.length };
+      };
+      var sees4 = function () { LGg.setLook(LGg.lookId()); B4.cache = null; var lm = LGg.map(B4), v = lm && lm.lv ? Array.prototype.slice.call(lm.lv).join('') : ''; return v + '|' + [f4, z4].map(function (u) { return g4.map(function (g) { return MGg.sees(B4, u, g) ? 1 : 0; }).join(''); }).join(','); };
+      var lk4 = ['deep', 'soft', 'light'].map(function (k) { var s = shot4(k); s.rules = sees4(); return s; });
+      okTG('4 the dark, a torch in the fighter\'s hand: ' + lk4.map(function (s) { return s.look.toUpperCase() + ' the unlit floor ' + s.dark + ' (the middle of ' + s.n + ' pixels), the pool ' + s.pool + ' (the top 2%)'; }).join('; ') + ' -- lifted in turn, the pool over the floor by half again at LIGHT; the light map and the sight the same at all three ' + (lk4[0].rules === lk4[1].rules && lk4[1].rules === lk4[2].rules),
+        lk4.every(function (s) { return s.n > 1000; }) && lk4[0].dark < lk4[1].dark && lk4[1].dark < lk4[2].dark && lk4[2].pool > lk4[2].dark * 1.5 && lk4[0].rules === lk4[1].rules && lk4[1].rules === lk4[2].rules);
+      LGg.setLook('soft'); try { window.localStorage.removeItem(LGg.LKEY); } catch (eL) { }
+      } catch (eS) { repTG.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secTG)
+      // 5. TUESDAY 23, THE FRONTS (his "each side could move two 'squares' out", then "I think the spacing is set (23) elsewhere at 6-12 squares with exceptions"): the road's simple
+      // fights, ISO and ACROSS, 6 to 12 squares between the fronts, every one seated on open ground in the field; the camera holds them all, the wheel steps it
+      var ws5 = WGg.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(ws5); ws5.enter(); var e5 = WGg.M().hex[WGg.K(WGg.state().at[0], WGg.state().at[1])];
+      var fight5 = function (list, o) { ws5.fight({ zone: 'north', list: list, mirror: false }, e5, Object.assign({ simple: true }, o || {})); var s = topTG(); D.battle = s; if (s && !s.simple) SSg.setup(s); return s; };
+      var near5 = function (b) { var ps = b.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.object; }), fs = b.units.filter(function (u) { return u.side === 'foe' && !u.object; }), lo = 1e9; ps.forEach(function (p) { fs.forEach(function (f) { lo = Math.min(lo, GGg.dist(p, f)); }); }); return lo; };
+      var out5 = [];
+      ['iso', 'across'].forEach(function (v) {
+        try { window.localStorage.setItem(SSg.VKEY, v); } catch (eV) { }
+        for (var k = 0; k < 6; k++) {
+          D.seed = 5100 + k; var list = k === 4 ? ['ogre', 'goblin', 'goblin'] : k === 5 ? ['wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf'] : ['goblin', 'goblin', 'wolf'], b = fight5(list);
+          var gp = b.simple.gap, open = b.units.every(function (u) { var q = b.map.at(u.x, u.y); return q && q.walk; }), seated = b.units.filter(function (u) { return u.side === 'foe'; }).length;
+          out5.push({ v: v, d: gp.d, ft: near5(b), w: b.map.w, h: b.map.h, open: open, seated: seated === list.length, n: list.length }); D.pop();
+        }
+      });
+      okTG('5 the road\'s simple fights: ' + out5.map(function (o) { return o.v + ' ' + o.d + ' sq, ' + o.ft + ' ft, ' + o.w + 'x' + o.h + (o.open ? '' : ' NOT OPEN') + (o.seated ? '' : ' a foe left out'); }).join('; '),
+        out5.length === 12 && out5.every(function (o) { return o.d >= 6 && o.d <= 12 && o.ft === o.d * 5 && o.open && o.seated && (o.v === 'iso' ? o.w === 12 + o.d && o.h === 16 : o.d % 2 === 0 && o.w === 14 + o.d && o.h === 14 + o.d); }));
+      // the lineup as it was drawn, by the old numbers: ISO 4 squares on 16 by 16 round 8,7, the four's front x 10 rows 4-10; ACROSS 2 on 16 by 16; the floor's strip 16 by 9
+      try { window.localStorage.setItem(SSg.VKEY, 'iso'); } catch (eV) { }
+      var h5 = SSg.fieldOpts(false, 'held'), hp5 = SSg.PARTY.slice(0, 4).map(function (q) { return q.join(','); }).join(' '), hc5 = SSg.CAMP.join(','), sm5 = SSg.fieldOpts(true, 'held');
+      try { window.localStorage.setItem(SSg.VKEY, 'across'); } catch (eV) { }
+      var a5 = SSg.fieldOpts(false, 'held'), ap5 = SSg.PARTY.slice(0, 4).map(function (q) { return q.join(','); }).join(' ');
+      okTG('5 the lineup as drawn (the Hex\'s sand, a set fight): ISO ' + h5.gap + ' sq, ' + h5.w + 'x' + h5.h + ', the four at ' + hp5 + ', the fire ' + hc5 + ', the floor\'s strip ' + sm5.w + 'x' + sm5.h + '; ACROSS ' + a5.gap + ' sq ' + a5.w + 'x' + a5.h + ', the four at ' + ap5,
+        h5.gap === 4 && h5.w === 16 && h5.h === 16 && hp5 === '10,4 10,6 10,8 10,10' && hc5 === '11,7' && sm5.w === 16 && sm5.h === 9 && a5.gap === 2 && a5.w === 16 && a5.h === 16 && ap5 === '6,3 8,5 10,7 12,9');
+      // the floor's own (the Glowseep by night): a random one by the rule, the ground between open; a set one held; the Hex's sand held
+      try { window.localStorage.setItem(SSg.VKEY, 'iso'); } catch (eV) { }
+      var B5f = RMg.make('?roam=glowseep&hour=22&at=20,14'); D.scenes.length = 0; D.push(B5f); D.battle = B5f; topTG(); if (B5f.co) runTG(B5f.co, 2);
+      D.seed = 5200; var F5 = MNg.fieldDef(RMg.def, ['goblin', 'goblin', 'wolf'], true, null, [20, 14]), d5 = D.MAPS['mine-field'], rows5 = d5.rows;
+      var opn5 = function (q) { var c = rows5[q[1]] && rows5[q[1]].charAt(q[0]); return '.,gr~'.indexOf(c) >= 0 && !!c; }, stand5 = d5.entry.slice(0, 4).concat(F5.foes.map(function (f) { return f.at; }));
+      var pf5 = Math.min.apply(null, d5.entry.slice(0, 4).map(function (q) { return q[0]; })), ff5 = Math.max.apply(null, F5.foes.map(function (f) { return f.at[0]; })), between5 = 0, shut5 = 0;
+      for (var xb5 = ff5; xb5 <= pf5; xb5++) { between5++; if (!opn5([xb5, d5.entry[0][1]])) shut5++; }
+      var Fs5 = MNg.fieldDef(RMg.def, ['goblin', 'goblin'], true, { line: 'Set.' }, [20, 14]), ds5 = D.MAPS['mine-field'];
+      okTG('5 the Glowseep\'s simple fight: ' + d5.gap + ' sq between the fronts (' + ff5 + ' to ' + pf5 + '), ' + rows5[0].length + 'x' + rows5.length + ', stood on open ground ' + stand5.every(opn5) + ', the row between shut at ' + shut5 + ' of ' + between5 + '; a set fight held at ' + ds5.gap,
+        d5.gap >= 6 && d5.gap <= 12 && pf5 - ff5 === d5.gap && rows5[0].length === 12 + d5.gap && rows5.length === 9 && stand5.every(opn5) && shut5 === 0 && ds5.gap === 4);
+      var hx5 = D.hex && D.hex.field ? D.hex.field(true) : null;
+      okTG('5 the Hex\'s sand held: the hero at ' + (hx5 && hx5.hero.join(',')) + ', the foe at ' + (hx5 && hx5.foe.join(',')) + ' (' + (hx5 ? Math.abs(hx5.hero[0] - hx5.foe[0]) : '?') + ' sq; want 4, as before 11-05)', !!hx5 && Math.abs(hx5.hero[0] - hx5.foe[0]) === 4 && SSg.GAP.d === 4);
+      // the camera: at every backing scale the whole lineup in the picture; a held lineup a step further out as before; the wheel over the picture steps it
+      try { window.localStorage.setItem(SSg.VKEY, 'iso'); } catch (eV) { }
+      D.seed = 5300; WGg.GAP = [8, 8]; var b5c = fight5(['goblin', 'goblin', 'wolf', 'wolf']), P5 = SSg.PIC(), cams5 = [];
+      [1, 2, 3, 4].forEach(function (R) {
+        D.R = R; b5c.simple.cam = null; SSg.camera(b5c); var Z = SSg.ZOOMS(), inPic = b5c.units.filter(function (u) { return !u.object && GGg.present(u); }).every(function (u) { var s = SSg.screenOf(b5c, u), top = (D.spr.unitTop ? D.spr.unitTop(u) : 40) * D.iso.zoom; return s.x > P5.x && s.x < P5.x + P5.w && s.y - top > P5.y - 2 && s.y < P5.y + P5.h + 2; });
+        cams5.push({ R: R, z: Math.round(D.iso.zoom * 1000) / 1000, steps: Z.map(function (x) { return Math.round(x * 100) / 100; }).join('/'), inPic: inPic });
+      });
+      D.R = 4; b5c.simple.cam = null; SSg.camera(b5c); var i5 = b5c.simple.cam.i, mo5 = D.input.mouse, keep5 = { x: mo5.x, y: mo5.y, inside: mo5.inside, wheel: mo5.wheel };
+      mo5.x = P5.x + 40; mo5.y = P5.y + 40; mo5.inside = true; mo5.wheel = -1; SSg.camera(b5c); var in5 = b5c.simple.cam.i; mo5.wheel = 1; SSg.camera(b5c); mo5.wheel = 1; SSg.camera(b5c); var out5b = b5c.simple.cam.i; Object.assign(mo5, keep5);
+      okTG('5 the camera at 8 squares: ' + cams5.map(function (c) { return 'R' + c.R + ' ' + c.z + ' (steps ' + c.steps + ') all in the picture ' + c.inPic; }).join('; ') + '; the wheel at R4 from step ' + i5 + ': in ' + in5 + ', out twice ' + out5b,
+        cams5.every(function (c) { return c.inPic; }) && in5 === Math.max(0, i5 - 1) && out5b === Math.min(SSg.ZOOMS().length - 1, i5 + 1));
+      D.pop(); D.R = R0TG; WGg.GAP = gap0TG.slice();
+      // THE FIGHT CLOSES AT 12 SQUARES (every one is back on its own square at each turn's start and a walk is bounded by the move: the squares past the lineup as drawn cost none,
+      // or a foe on foot never reached the four -- toplevels1021 hung): two wolves on the road by day, every side run by the AI, a wolf's first move and the fight's end
+      WGg.GAP = [12, 12]; D.seed = 5500; var b5w = fight5(['wolf', 'wolf']); b5w.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+      var wf5 = b5w.units.filter(function (u) { return u.side === 'foe'; })[0], ps5 = b5w.units.filter(function (u) { return u.side === 'party' && !u.object; });
+      var dw5 = Math.min.apply(null, ps5.map(function (p) { return GGg.dist(wf5, p); })); RUg.startTurn(wf5); var mv5 = wf5.turn.move;
+      var hp05 = ps5.reduce(function (n, p) { return n + p.hp; }, 0), kw = 0, stw, vw; while (kw++ < 60000 && !b5w.result && b5w.co) { stw = b5w.co.next(vw); vw = undefined; if (stw.done) break; if (typeof stw.value === 'number') b5w.t += Math.max(1, stw.value); if (stw.value && stw.value.prompt) vw = stw.value.prompt.opts[0].value; }
+      var hp15 = ps5.reduce(function (n, p) { return n + Math.max(0, p.hp); }, 0);
+      okTG('5 two wolves at 12 squares, every side the AI\'s: the wolf ' + dw5 + ' ft from the nearest of the four, its move ' + mv5 + ' ft (its 40 and the 40 the rule added); the fight ends ' + (b5w.result || 'NOT') + ' in ' + (b5w.round || '?') + ' rounds, the party hurt ' + (hp05 - hp15),
+        mv5 >= dw5 - 5 && !!b5w.result && (b5w.round || 99) <= 20 && hp05 > hp15);
+      if (D.top() === b5w) D.pop(); WGg.GAP = gap0TG.slice();
+      // THE DARK (the desk's word: "sight reads real squares, and a torch's dim edge is 40 ft"): a road fight by night at 6, 8, 10 and 12 squares, the four's front hero with a torch
+      // and with none -- whom each of the four sees of the foes' front, by the grid's own sight
+      var dark5 = [];
+      [6, 8, 10, 12].forEach(function (g) {
+        WGg.GAP = [g, g]; D.seed = 5400 + g; var b = fight5(['goblin', 'goblin', 'goblin', 'goblin'], { dark: true }); b.dark = true; b.lights = (b.lights || []).filter(function (l) { return l.kind !== 'torch'; });
+        var four = b.units.filter(function (u) { return u.side === 'party' && !u.guest && !u.familiar && !u.object; }), foes = b.units.filter(function (u) { return u.side === 'foe'; });
+        var fr = foes.filter(function (f) { return f.x === Math.max.apply(null, foes.map(function (q) { return q.x; })); });
+        var count = function () { b.cache = null; return four.map(function (u) { return u.name + ' ' + fr.filter(function (f) { return MGg.sees(b, u, f); }).length + '/' + fr.length + (u.darkvision ? ' (dv ' + u.darkvision + ')' : ''); }).join(', '); };
+        four.forEach(function (u) { u.torch = null; }); var none = count();
+        var lead = four.filter(function (u) { return u.x === Math.min.apply(null, four.map(function (q) { return q.x; })); })[0]; lead.torch = { lit: true }; var lit = count();
+        var allLit = four.every(function (u) { return fr.every(function (f) { return MGg.sees(b, u, f); }); });
+        // (sight by the real squares: one with no darkvision sees a foe of the front just when the light map lights its square; one with darkvision, within its reach as well)
+        b.cache = null; var lm = LGg.map(b), lvAt = function (f) { return lm && lm.lv ? lm.lv[f.y * b.map.w + f.x] : 0; }, byMap = four.every(function (u) { return fr.every(function (f) { var dv = u.darkvision && GGg.dist(u, f) <= u.darkvision; return MGg.sees(b, u, f) === (lvAt(f) > 0 || !!dv); }); });
+        dark5.push({ g: g, none: none, lit: lit, allLit: allLit, byMap: byMap, torch: lead.name, litN: fr.filter(function (f) { return lvAt(f) > 0; }).length, n: fr.length }); D.pop();
+      });
+      WGg.GAP = gap0TG.slice();
+      dark5.forEach(function (o) { noteTG('5 dark at ' + o.g + ' sq (' + o.g * 5 + ' ft), the foes\' front seen -- no torch: ' + o.none + '; a torch in ' + o.torch + '\'s hand: ' + o.lit); });
+      okTG('5 the dark reads the real squares: the torch at the front lights ' + dark5.map(function (o) { return o.litN + ' of the foes\' front ' + o.n + ' at ' + o.g + ' sq'; }).join(', ') + ' (its dim edge 40 ft); each of the four sees just those, darkvision its 60 ft besides: ' + dark5.map(function (o) { return o.g + ' ' + o.byMap; }).join(', ') + ' -- the notes name each',
+        dark5.length === 4 && dark5.every(function (o) { return o.byMap; }) && dark5[0].litN >= 3 && dark5[3].litN === 0);
+      try { window.localStorage.removeItem(SSg.VKEY); } catch (eV) { }
+      } catch (eS) { repTG.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      WGg.GAP = gap0TG.slice(); D.R = R0TG;
+      try { // (secTG)
+      // 6. TUESDAY 20, THE LIGHT IN THE PARTY (his 10-31 "Trying to figure out why it looks like some is a light source in the party after a 6-hr journey from silverton / running
+      // theory is light cast on barley in the wet"; 11-05, "is this map specific check?"): the house, a Light cast on Barley in the Wet by the floor's menu, then one in a fight there
+      // carried out; Silverton; the road six hours; at the far end, what is lit round the party
+      var t6 = { hour: null }, kG = function (ms) { return { pressed: function () { return false; }, repeat: function () { return false; }, mouse: Object.assign({ x: 0, y: 0, moved: true, click: true, rclick: false, wheel: 0, inside: true }, ms) }; };
+      var paintG = function (m) { var cv = document.createElement('canvas'); cv.width = 256; cv.height = 240; m.draw(cv.getContext('2d')); }, clickG = function (m, h) { if (!h) return false; m.update(kG({ x: h.x + h.w / 2, y: h.y + h.h / 2 })); return true; };
+      var rowG = function (m, owner, f) { paintG(m); return clickG(m, m.hits.filter(function (x) { return x.owner === owner && x.list && x.list.items[x.k] && f(x.list.items[x.k]); })[0]); }, tabG = function (m, owner, i) { paintG(m); return clickG(m, m.hits.filter(function (x) { return x.owner === owner && x.tab === i; })[0]); };
+      var cardG = function (m, name) { var rt = m.root; if (rt.mode !== 'pick') return false; var rows = rt.rows(rt.pick.guests), i = rows.map(function (h) { return h.name; }).indexOf(name); if (i < 0) return false; paintG(m); m.update(kG({ x: 90, y: 10 + (i - rt.ps) * 40 + 20 })); return true; };
+      var castG = function (m, caster, id, target) { var o = { said: [] }; rowG(m, m.root, function (it) { return it.value === 'magic'; }); if (m.root.mode === 'pick') cardG(m, caster); var mp = m.top(); if (!mp || !mp.levels) return o; var ti = mp.levels.indexOf(window.DS.DATA.spells[id].level || 0); if (ti !== mp.tab) tabG(m, mp, ti); rowG(m, mp, function (it) { return it.id === id; }); if (m.root.mode === 'pick') o.touched = cardG(m, target); if (m.toast) { o.said = m.toast.lines.slice(); m.update(kG({ x: 128, y: 120 })); } while (m.pages.length) m.pop(); return o; };
+      var idG = function (h) { return h && (h.key || h.id); }, sheetG = function (id) { return HGg.cur.party.filter(function (h) { return idG(h) === id; })[0]; }, figG = function (B, id) { return B.roam.members.filter(function (u) { return u.src && idG(u.src) === id; })[0]; };
+      var floorG = function () { var B = topTG(); D.battle = B; if (B && B.co) runTG(B.co, 2); return B; };
+      var litOf = function (x) { return x && x.conds && x.conds.light ? 'Light until ' + (x.conds.light.until != null ? Math.round(x.conds.light.until * 100) / 100 : 'no hour') : ''; };
+      HGg.worldDoor('?world&noenc'); var WS6 = topTG(), SW6 = WGg.state(); SW6.t = 24 + 9; var tA = SW6.t;
+      D.push(RMg.make('?roam=wet', { save: HGg.living(HGg.cur), house: true })); var BW6 = floorG(), wetKey = RMg.def && (RMg.def.key || RMg.def.name);
+      D.ui.openMenu(BW6); var cW6 = castG(BW6.menu.m, 'Aurdin', 'light', 'Barley'); if (BW6.menu) { BW6.menu.m.close(); BW6.menu = null; }
+      var ba6 = figG(BW6, 'barley'), au6 = figG(BW6, 'aurdin'), menu6 = litOf(ba6);
+      // a fight on the Wet's own squares (it fights in place): Aurdin casts Light on Barley there, and the fight ends -- the gather gives a fight's Light its hour
+      SW6.t = tA + 0.4; BW6.roam.mode = 'fight'; RUg.startTurn(au6); BW6.active = au6; runTG(MGg.cast(BW6, au6, 'light', 0, ba6), 400); var inFight6 = litOf(ba6);
+      runTG(RMg.after(BW6, 'won', { zone: 'warrens_d' }, []), 2000); var after6 = litOf(ba6), fl6 = HGg.lightsOut ? HGg.lightsOut(BW6) : [];
+      HGg.fromFloor(BW6); while (D.scenes.length > 1) D.pop(); var sheet6 = litOf(sheetG('barley'));
+      okTG('6 the Wet (' + wetKey + '), cast at ' + tA + ': the menu\'s Light on Barley "' + menu6 + '" ("' + (cW6.said || []).join(' ') + '"); in a fight there at ' + (tA + 0.4) + ' "' + inFight6 + '", after the gather "' + after6 + '", on the sheet out "' + sheet6 + '" -- THE WORLD\'s one clock, not the map\'s',
+        /^Light until /.test(menu6) && Math.abs(ba6.conds.light ? 0 : 1) === 0 && /^Light until /.test(after6) && Math.abs(parseFloat(after6.replace(/^Light until /, '')) - (tA + 1.4)) < 0.02 && after6 === sheet6);
+      // Silverton, then the road: the save's party into the town and out, THE WORLD walked from its hex six hours on toward the Glowseep, and into it
+      var sv6 = HGg.siteOf('silverton'), gs6 = HGg.siteOf('glowseep'); SW6.t = tA + 0.6; HGg.toTown('silverton', 'east'); var BT6 = floorG(); var town6 = litOf(figG(BT6, 'barley'));
+      HGg.fromFloor(BT6); while (D.scenes.length > 1) D.pop(); var WS6b = topTG(); SW6.at = (sv6 && sv6.hex ? sv6.hex : SW6.at).slice(); var t6a = SW6.t;
+      var route6 = gs6 && gs6.hex ? WGg.route(SW6.at, gs6.hex) : null, walked6 = 0; WS6b.walk = route6 ? { path: route6.hexes.slice(), f: 0, goal: gs6.hex.slice() } : null; WS6b.msg = null; WS6b.cards = [];
+      for (var f6 = 0; f6 < 20000 && WS6b.walk && WS6b.walk.path && WS6b.walk.path.length && SW6.t - t6a < 6; f6++) { WS6b.stepWalk(); if (WS6b.cards && WS6b.cards.length) WS6b.cards = []; }
+      walked6 = Math.round((SW6.t - t6a) * 100) / 100; if (SW6.t - t6a < 6) SW6.t = t6a + 6; var lo6 = HGg.lightsOut(null), road6 = litOf(sheetG('barley'));
+      okTG('6 Silverton at ' + (Math.round(t6a * 100) / 100) + ' ("' + town6 + '"), then THE WORLD walked ' + walked6 + ' h toward the Glowseep, the clock at ' + (Math.round(SW6.t * 100) / 100) + ' (' + WGg.timeOfDay() + '): Barley "' + road6 + '"' + (lo6.length ? ' (' + lo6.join(' ') + ')' : ''),
+        !!route6 && road6 === '' && !HGg.cur.party.some(function (h) { return h.conds && (h.conds.light || h.conds.daylight); }));
+      // arriving: the far end's floors by night -- every light round the party on each: what each one carries, the floor's lights within 4 squares of the token, and the night's own
+      // pool round the token (js/mines.js M.paintSky, an outdoor floor by night; js/hours.js H16.paintNight, Silverton's street), drawn whether anyone carries a light or not
+      SW6.t = Math.floor(SW6.t / 24) * 24 + 22; var arr6 = [];
+      [['glowseep', 'north'], ['mouth', 'east'], ['warrens', 'feed'], ['silverton', 'east']].forEach(function (pl) {
+        while (D.scenes.length > 1) D.pop(); HGg.toTown(pl[0], pl[1]); var Bx = floorG(); if (!Bx || !Bx.roam) { arr6.push({ at: pl[0], none: true }); return; }
+        var def = RMg.def, t = Bx.roam.token, carried = [];
+        Bx.roam.members.forEach(function (u) { (LGg.carried ? LGg.carried(u) : []).forEach(function (l) { carried.push(u.name + ' ' + (l.kind || 'light') + ' ' + l.bright + '/' + l.dim); }); if (u.conds && u.conds.light) carried.push(u.name + ' cond light'); });
+        var near = (LGg.all ? LGg.all(Bx) : []).filter(function (l) { return Math.max(Math.abs(l.x - t.x), Math.abs(l.y - t.y)) <= 4; }).map(function (l) { return (l.kind || l.color || 'light') + '@' + Math.round(l.x) + ',' + Math.round(l.y); });
+        var sky = !!(def && def.outdoors && def.night), street = pl[0] === 'silverton' && D.hours16 !== undefined;
+        arr6.push({ at: pl[0], key: def && def.key, carried: carried, near: near, dark: !!Bx.dark, sky: sky, outdoors: !!(def && def.outdoors), night: !!(def && def.night) });
+        HGg.fromFloor(Bx);
+      });
+      while (D.scenes.length > 1) D.pop();
+      arr6.forEach(function (a) { noteTG('6 at 22:00 on ' + a.at + (a.none ? ': no floor' : ' (' + a.key + ', dark ' + a.dark + ', outdoors ' + a.outdoors + ', night ' + a.night + '): carried ' + (a.carried.join('; ') || 'nothing') + '; the floor\'s lights within 4 sq of the token ' + (a.near.join(' ') || 'none') + '; the night\'s pool round the token ' + (a.sky ? 'DRAWN (M.SKY.party 2.5 sq, no light behind it)' : a.at === 'silverton' ? 'the street\'s (H16.NIGHT.party 2.5 sq) by night' : 'none'))); });
+      okTG('6 on arrival nobody carries a light (' + arr6.filter(function (a) { return a.carried && a.carried.length; }).map(function (a) { return a.at + ': ' + a.carried.join(', '); }).join(' | ') + '); the pool round the party is the night\'s own on ' + arr6.filter(function (a) { return a.sky; }).map(function (a) { return a.at; }).join(', '),
+        arr6.length === 4 && arr6.every(function (a) { return !a.none && !a.carried.length; }));
+      // and the rest: a long rest ends a Light whatever its hour (the 10-20 rule, kept)
+      var sh6 = sheetG('barley'); sh6.conds = sh6.conds || {}; sh6.conds.light = { by: 'aurdin', until: SW6.t + 5 }; HGg.longRest(null);
+      okTG('6 a long rest ends a Light with hours left: ' + !(sheetG('barley').conds || {}).light, !(sheetG('barley').conds || {}).light);
+      HGg.playing = false; HGg.cur = null;
+      } catch (eS) { repTG.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (eTG) { repTG.errors.push(String(eTG && eTG.stack || eTG).slice(0, 900)); }
+    if (HGg) { HGg.playing = false; HGg.cur = null; }
+    WGg.GAP = gap0TG; D.R = R0TG; D.d = d0TG; D.store.get = stGTG; D.store.set = stSTG; D.music = muTG; window.DS.autoPicks = apTG;
+    Object.keys(keysTG).forEach(function (k) { try { if (keysTG[k] == null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, keysTG[k]); } catch (eK) { } });
+    var preTG = document.createElement('pre'); preTG.id = 'out'; preTG.textContent = 'BENCH16 ' + JSON.stringify(repTG);
+    document.body.appendChild(preTG);
+    return;
+  }
   // THE FIGHT'S START AND ITS END, 11-05 (mode=fights1105; js/world.js W.lineup, js/mines.js M.fieldDef, js/roam.js R.GAP R.encounter R.tickGroups, js/ui.js the VICTORY panel,
   // js/battle.js finish Battle.victoryOf Battle.atkTail readyCan, js/roam.js R.paintUnder -- the fights seat, started by the lanes desk on Griz's 11-05 notes: "Grid fights on random
   // encounters still start the two sides right next to each other - check encounter distances in SRD and tell me, set these for between 6 and 12 squares away from each other",
@@ -4431,8 +4684,11 @@
       var f2s = fieldG(B2, 0, { list: ['goblin', 'goblin', 'goblin', 'goblin'] }), cs = cutG(f2s, B2, R2), C2s = SG.C.slice();
       if (f2s.b) endG(B2, f2s);
       var road2 = SG.fieldOpts();
-      okG('the simple fight\'s field from it (the iso view, ' + SG.view() + '): ' + (f2s.b ? f2s.b.map.w + ' x ' + f2s.b.map.h + (f2s.b.o.simple ? ' simple' : ' THE GRID') : 'none') + ', round ' + C2s + '; ' + cs.s + '; and the road\'s simple field as it was (' + road2.w + ' x ' + road2.h + ', round ' + SG.C + ')',
-        !!f2s.b && f2s.b.o.simple && f2s.b.map.w === 16 && f2s.b.map.h === 9 && C2s.join() === '8,4' && cs.ok && road2.w === 16 && road2.h === 16 && SG.C.join() === '8,7' && D.top() === B2);
+      // (since 11-05 the simple fight's field is as wide as its gap -- the fronts 6 to 12 squares by the grid's rule, js/simple.js S.fieldOpts, the tuesday-grid seat; the lineup as
+      // drawn, 4, on the old 16 by 9 round 8,4 and 16 by 16 round 8,7: 12 + the gap wide, round 6 + half of it)
+      var g2s = (f2s.b && f2s.b.map.def && f2s.b.map.def.gap) || 4, wOf = function (g) { return 12 + g; }, cOf = function (g, y) { return (6 + Math.floor(g / 2)) + ',' + y; };
+      okG('the simple fight\'s field from it (the iso view, ' + SG.view() + '): ' + (f2s.b ? f2s.b.map.w + ' x ' + f2s.b.map.h + (f2s.b.o.simple ? ' simple' : ' THE GRID') : 'none') + ' at ' + g2s + ' squares between the fronts, round ' + C2s + '; ' + cs.s + '; and the road\'s simple field (' + road2.w + ' x ' + road2.h + ' at ' + road2.gap + ', round ' + SG.C + ')',
+        !!f2s.b && f2s.b.o.simple && f2s.b.map.w === wOf(g2s) && f2s.b.map.h === 9 && C2s.join() === cOf(g2s, 4) && cs.ok && road2.w === wOf(road2.gap) && road2.h === 16 && SG.C.join() === cOf(road2.gap, 7) && road2.gap >= 6 && road2.gap <= 12 && D.top() === B2);
       var B2d = testG('?roam=galleries_g3&flags=cullHired&at=6,10'), f2d = fieldG(B2d, 1, { list: ['giantbat', 'giantbat'] }), cd = cutG(f2d, B2d, B2d.roam), rk2 = 0, nn2 = 0;
       if (f2d.b) f2d.b.map.def.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) { nn2++; if (r[i] === '#') rk2++; } });
       if (f2d.b) endG(B2d, f2d);
@@ -4942,6 +5198,9 @@
     function feet(u) { return D.grid.foot(u, SS.homeOf(D.battle, u)[0], SS.homeOf(D.battle, u)[1]); }
     try { key0 = window.localStorage.getItem(SS.KEY); window.localStorage.removeItem(SS.KEY); } catch (eK) { }
     var vk0 = null; try { vk0 = window.localStorage.getItem(SS.VKEY); window.localStorage.setItem(SS.VKEY, 'across'); } catch (eV0) { } // (the ACROSS checks first; ISO, the default since 10-21, below)
+    // (the lineup as it was drawn, the fronts ACROSS's 2 squares and ISO's 4 -- js/simple.js S.HELD: since 11-05 a fight's fronts are the grid's rule, 6 to 12, and its layout and
+    // camera are mode=tuesgrid1105's; here the drawing's own geometry, pinned)
+    var gapS0 = D.world.GAP.slice(); D.world.GAP = [SS.HELD.across, SS.HELD.across];
     try {
       D.seed = +get('seed', 1021);
       // OPTIONS' RANDOM FIGHTS (js/menu.js gridRows, this game's row)
@@ -5073,6 +5332,7 @@
       // THE ISO VIEW (his "can we try with isometry back with the new side menu"): OPTIONS' SIMPLE VIEW, and the lines along the grid's axis -- the four at x +2 down
       // their column, the foes from x -2 back, each row's two four squares apart
       try { window.localStorage.removeItem(SS.VKEY); } catch (eV) { }
+      D.world.GAP = [SS.HELD.iso, SS.HELD.iso]; // (ISO's lineup as drawn: above)
       var rvS = window.DS.MENU.gridRows(null).filter(function (r) { return r.label === 'SIMPLE VIEW'; })[0], v0S = rvS && rvS.get();
       wsS.fight({ zone: 'north', list: ['bandit', 'bandit', 'wolf', 'worg', 'goblin'], mirror: false }, eS); var B6 = topS(); D.battle = B6;
       if (!B6.simple) SS.setup(B6);
@@ -5091,6 +5351,7 @@
         aU > 0 && aO > 0 && typeof B6.floorMarks === 'function' && typeof B6.marksOver === 'function');
       D.pop();
     } catch (eS2) { repS.errors.push(String(eS2 && eS2.stack || eS2).slice(0, 900)); }
+    D.world.GAP = gapS0;
     try { if (key0 == null) window.localStorage.removeItem(SS.KEY); else window.localStorage.setItem(SS.KEY, key0); } catch (eK2) { }
     try { if (vk0 == null) window.localStorage.removeItem(SS.VKEY); else window.localStorage.setItem(SS.VKEY, vk0); } catch (eV3) { }
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
@@ -5550,7 +5811,9 @@
       okH('MAGIC on the road: Mage Armor on Aurdin (' + lnMA.join(' ') + '), a slot spent', !!aS.conds.mageArmor && aS.slots[0] === sl0 - 1);
       var ah0 = aS.hp, lay0 = lW.feats.lay, lnLay = HH.field.skill(lW, 'lay', aS);
       okH('SKILLS: Lymen\'s Lay on Hands on Aurdin (' + lnLay.join(' ') + '; the pool ' + lay0 + ' to ' + lW.feats.lay + ')', aS.hp > ah0 && lW.feats.lay === lay0 - (aS.hp - ah0));
-      bW.hp = Math.max(1, bW.hp - 10); var hd0 = bW.hdLeft != null ? bW.hdLeft : bW.lvl, bh0 = bW.hp, lnSR = HH.shortRest(HH.cur.party);
+      // (the hit die pinned to its top: the seed's dice ran on with the fights before, and a road fight's simple field rolls its gap since 11-05 -- js/simple.js S.gapOf, the
+      // tuesday-grid seat -- so a low roll spent two of Barley's dice and the check read RED by the dice alone)
+      bW.hp = Math.max(1, bW.hp - 10); var hd0 = bW.hdLeft != null ? bW.hdLeft : bW.lvl, bh0 = bW.hp, dH0 = D.d, lnSR; D.d = function (n) { return n; }; try { lnSR = HH.shortRest(HH.cur.party); } finally { D.d = dH0; }
       okH('a short rest\'s hit dice (' + lnSR.join(' ').slice(0, 110) + ')', bW.hp > bh0 && bW.hdLeft === hd0 - 1);
       var lnL = HH.field.cast(aS, spH.light, null, envH);
       okH('Light out of a fight (' + lnL.join(' ').slice(0, 60) + '): on Aurdin, kept on his sheet till the long rest', !!aS.conds.light);
