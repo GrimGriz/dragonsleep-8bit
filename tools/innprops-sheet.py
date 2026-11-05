@@ -36,7 +36,7 @@ pix = GS.pix
 SRC = os.path.join(pix.SRC, 'halfway-inn', 'ART-36-PAGES-01-09')
 PAGE = {'P01': 'halfway-handoff/P01-HEARTHS-SOURCE.png', 'P02': 'halfway-handoff/P02-COMMON-ROOM-SOURCE.png', 'P03': 'halfway-p03/P03-KITCHEN-SOURCE.png',
         'P04': 'halfway-p04/P04-ROOMS-SOURCE.png', 'P05': 'halfway-p05/P05-BARN-SOURCE.png', 'P06': 'halfway-p06/P06-YARD-AND-SHORE-SOURCE.png',
-        'P09A': 'halfway-p09/P09A-SUPPER-AND-LIGHTING.png'}
+        'P09A': 'halfway-p09/P09A-SUPPER-AND-LIGHTING.png', 'P09B': 'halfway-p09/P09B-UTILITY-AND-SHORE.png'}
 HW, HH = 32, 16
 
 # name: page, box (x0, y0, x1, y1 on the page), foot (a along x, b along y, the floor's), and the fit's own words
@@ -68,6 +68,120 @@ HELD = {'inn_counter': 'P02 lower centre: drawn near frontal (its top 0.13 a px 
                        'the side away from the camera -- held (the code\'s counter stands)',
         'inn_stair': 'P02 lower right: rises toward the screen\'s upper right (along the grid\'s y), the floor\'s runs east along x from its foot at (20,23) -- held, '
                      'as the page\'s notes warned (the code\'s floor stands)'}
+# THE SECOND ATLAS, innprops_p2 (11-05, the exteriors seat): pages 5, 6, 9A and 9B -- the barn, the yard and the shore, the kitchen's kettle and tools, upstairs' stair
+# head and chimney, the sign. Fitted as above (by the footprint where the page's own footprint gives a believable height at 8 px a foot, else by `h` or `k`); `mask`:
+# polygons on the page cleared first (the stall's back rail and its manger: the far row's stall, which opens away from the camera, is its two side partitions)
+STALL_BACK = [(272, 225), (596, 72), (598, 470), (455, 508), (272, 352)]
+PIECES2 = {
+    # PAGE 5 -- the barn (the stall drawn opening toward the grid's +x, its manger on the -x rail: laid mirrored it opens +y, the aisle side of the north row)
+    'barn_stall':      dict(page='P05', box=(190, 65, 975, 865), foot=(2, 2)),
+    'barn_stallsides': dict(page='P05', box=(190, 65, 975, 865), foot=(2, 2), mask=[STALL_BACK]),
+    'barn_hay':        dict(page='P05', box=(1160, 630, 1570, 845), foot=(1, 1)),
+    # PAGE 6 -- the yard and the shore
+    'yard_well':       dict(page='P06', box=(75, 70, 385, 415), foot=(1, 1)),
+    'yard_rail':       dict(page='P06', box=(480, 110, 862, 415), foot=(2, 1), k=5.3, mirror=True),  # (posts 4 ft at 8 px a foot: half the rail's four squares, laid twice)
+    'yard_woodpile':   dict(page='P06', box=(930, 118, 1215, 395), foot=(1, 1)),                  # (a stack of 4 ft on one square: laid on each square of the floor's 2 x 2)
+    'yard_wagon':      dict(page='P06', box=(1280, 30, 1760, 425), foot=(2, 4)),                  # (cut, not laid: drawn tongue to the camera, the yard's wagon faces away -- the dream list)
+    'shore_boat':      dict(page='P06', box=(50, 535, 420, 830), foot=(1, 2)),
+    'yard_post':       dict(page='P06', box=(555, 475, 760, 850), foot=(1, 1), h=84, dx=-11, dy=6),   # (its post, not its middle, on the square's middle)
+    'yard_postlit':    dict(page='P06', box=(962, 475, 1168, 850), foot=(1, 1), h=84, dx=-11, dy=6),
+    'shore_stone':     dict(page='P06', box=(1295, 540, 1728, 825), foot=(1, 2)),
+    # PAGE 9B -- the kitchen's kettle and tools, the trough (drawn along y: mirrored, along x)
+    'kitchen_kettle':  dict(page='P09B', box=(135, 58, 355, 327), foot=(1, 1), h=30),
+    'kitchen_tools':   dict(page='P09B', box=(480, 43, 693, 340), foot=(1, 1), h=34),
+    'yard_trough':     dict(page='P09B', box=(690, 390, 1083, 670), foot=(2, 1), mirror=True),
+    # PAGE 9A -- upstairs' stair head and chimney (drawn 2 x 1 along x, mirrored to stand along y), the sign by the road
+    'up_stairhead':    dict(page='P09A', box=(1148, 15, 1472, 303), foot=(1, 1)),
+    'up_chimney':      dict(page='P09A', box=(180, 298, 395, 687), foot=(1, 2), h=170, mirror=True),  # (by its height to the ceiling: a stack of 1 x 2, laid at the hearth's back)
+    'yard_sign':       dict(page='P09A', box=(1108, 705, 1390, 1000), foot=(1, 1), h=88, dx=-30, dy=16),
+}
+# the floats: four frames on one waterline (the page's 1, 2, 3 bob and 4 still), each cut from the same band so the bob is kept
+FLOATS = dict(page='P09B', band=(735, 860), xs=(338, 701, 1066, 1435), half=60, k=7.0)
+
+
+# THE SUPPER (P09A row 1): the long spread is drawn in a row across the page, not along the table's diagonal -- each dish cut alone (a frame of `supper_dish`, anchored
+# at its foot) and its place on the long table kept: `along` 0..1 down the table's length from its west end (the page's left to right), `across` -1..1 from the far edge
+# to the near (the page's back row to its front); js/innprops.js lays them on the table's top during THE MEAL. The spread for two is one piece, for the table for two.
+SPREAD = dict(page='P09A', box=(65, 55, 630, 232), k=4.5)
+SPREAD2 = dict(page='P09A', box=(750, 62, 1008, 240), k=9.0)
+
+
+def spread(spec, a):
+    x0, y0, x1, y1 = spec['box']
+    src = blobs_in(a, spec['box']); src[src[..., 3] < 128] = 0          # (the page's dark glow round its drawings left behind)
+    # the dishes touch outline to outline: each seeded from its lit middle (the candle's flame and the jug's handle join the nearest), every pixel to its nearest seed
+    al = src[..., 3]; lum = src[..., :3].astype(int).sum(-1) / 3.0
+    seed = ndimage.binary_opening((al >= 240) & (lum > 45), iterations=1)
+    lab, n = ndimage.label(seed); sizes = ndimage.sum(seed, lab, range(1, n + 1))
+    big = [i + 1 for i in range(n) if sizes[i] >= 400]
+    lab2 = np.zeros_like(lab)
+    for k in big: lab2[lab == k] = k
+    iy, ix = ndimage.distance_transform_edt(lab2 == 0, return_indices=True)[1]
+    own = lab2[iy, ix]
+    parts = []
+    for k in big:
+        one = src.copy(); one[own != k] = 0
+        ys, xs = np.where(one[..., 3] > 0)
+        g = trim(GS.game(trim(one), spec['k']))
+        cx = (xs.min() + xs.max()) / 2.0 + x0; by = ys.max() + y0
+        parts.append(dict(g=g, ax=g.shape[1] // 2, ay=g.shape[0] - 3, foot=[1, 1], cx=cx, by=by))
+    parts.sort(key=lambda p: (p['by'], p['cx']))                 # (back to front: the far dishes drawn first)
+    bys = [p['by'] for p in parts]; lo, hi = min(bys), max(bys)
+    for p in parts:
+        p['along'] = round((p['cx'] - x0) / float(x1 - x0), 3)
+        p['across'] = round(((p['by'] - lo) / float(max(1, hi - lo))) * 2 - 1, 3)
+    return parts
+
+
+def spread2(spec, a):
+    src = trim(blobs_in(a, spec['box']))
+    g = trim(GS.game(src, spec['k']))
+    return dict(g=g, ax=g.shape[1] // 2, ay=int(g.shape[0] * 0.62), foot=[1, 1])
+
+
+# THE GROUND TILES (P09B row 2): the lake's shallows and the wagon ruts, painted into the code's floor (js/iso.js `groundArt`): each the drawing's diamond made exactly
+# the square's 64 x 32, its colours snapped to the palette and NO outline (a dark line round every square would be a seam), the diamond filled to its edge from the
+# drawing's nearest colour. The ruts are drawn along the grid's y (the Pit road): `ground_rutsX` is the same tile mirrored, along x (the wagon's track into the yard).
+# The shallows are drawn deepening from the near edge to the far, so laid side by side they made a checkerboard: `flat` keeps the ripples and the light on them and lays
+# them over one shallow tint (the drawing's own colours, its water two parts to its sand one)
+GROUND = {'ground_shallows': dict(page='P09B', box=(105, 400, 570, 660), flat=True),
+          'ground_ruts': dict(page='P09B', box=(1205, 400, 1670, 660))}
+
+
+def ground(spec, a, mirror=False):
+    src = trim(blobs_in(a, spec['box']))
+    if mirror: src = src[:, ::-1].copy()
+    t = np.asarray(Image.fromarray(src, 'RGBA').resize((2 * HW, 2 * HH), Image.BOX)).astype(np.float32) / 255.0
+    yy, xx = np.mgrid[0:2 * HH, 0:2 * HW]
+    dia = (np.abs(xx + 0.5 - HW) / HW + np.abs(yy + 0.5 - HH) / HH) <= 1.0
+    op = t[..., 3] > 0.6
+    iy, ix = ndimage.distance_transform_edt(~op, return_indices=True)[1]
+    rgb = t[..., :3][iy, ix]
+    if spec.get('flat'):
+        low = np.stack([ndimage.gaussian_filter(rgb[..., c], 5) for c in range(3)], -1)
+        top, bot = rgb[:HH][dia[:HH]].mean(0), rgb[HH:][dia[HH:]].mean(0)
+        rgb = np.clip(rgb - low + (top * 2 + bot) / 3.0, 0, 1)
+    out = np.zeros((2 * HH, 2 * HW, 4), np.uint8)
+    out[..., :3] = pix.snap(rgb); out[..., 3] = np.where(dia, 255, 0)
+    return dict(g=out, ax=HW, ay=0, foot=[1, 1])
+
+
+def floats(spec, a):
+    y0, y1 = spec['band']; out = []
+    for cx in spec['xs']:
+        box = (cx - spec['half'], y0, cx + spec['half'], y1)
+        src = blobs_in(a, box)
+        out.append(GS.game(src, spec['k']))
+    hmax = max(g.shape[0] for g in out); wmax = max(g.shape[1] for g in out)
+    cells = []
+    for g in out:
+        c = np.zeros((hmax, wmax, 4), np.uint8); c[:g.shape[0], :g.shape[1]] = g; cells.append(c)
+    st = cells[3][..., 3] > 0; ys, xs = np.where(st)
+    water = int(round((ys.min() + ys.max()) / 2.0 + (ys.max() - ys.min()) * 0.3))  # (the still frame's waterline: a little under its middle, the ripple's ring)
+    ax, ay = wmax // 2, water - HH
+    return [dict(g=c, ax=ax, ay=ay, foot=[1, 1]) for c in cells]
+
+
 FLAMES = {  # the flame strips: page, the band of rows the frames lie in, how many, onto which hearth
     'inn_flameC': dict(page='P01', band=(455, 560), n=6, x0=100, hearth='inn_hearth'),
     'inn_flameS': dict(page='P01', band=(700, 785), n=4, x0=100, hearth='inn_hearthS'),
@@ -97,7 +211,27 @@ def trim(g):
     return g[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
 
+def masked(a, polys):
+    """the page with each polygon (page px) cleared"""
+    from PIL import ImageDraw
+    m = Image.new('L', (a.shape[1], a.shape[0]), 0); d = ImageDraw.Draw(m)
+    for p in polys: d.polygon(p, fill=255)
+    out = a.copy(); out[np.array(m) > 0] = 0
+    return out
+
+
 def fit(name, spec, a):
+    if spec.get('mask'):
+        # (the drawing whole first, for its size and anchor; then the cleared page cut to the same box, so a masked piece lays exactly where the whole one does)
+        whole = fit(name, dict(spec, mask=None), a)
+        src = blobs_in(masked(a, spec['mask']), spec['box'])
+        full = blobs_in(a, spec['box'])
+        if spec.get('mirror'): src, full = src[:, ::-1].copy(), full[:, ::-1].copy()
+        ys, xs = np.where(full[..., 3] > 0)
+        gf = GS.game(full[ys.min():ys.max() + 1, xs.min():xs.max() + 1], whole['k'])
+        gm = GS.game(src[ys.min():ys.max() + 1, xs.min():xs.max() + 1], whole['k'])
+        yy, xx = np.where(gf[..., 3] > 0)
+        return dict(whole, g=gm[yy.min():yy.max() + 1, xx.min():xx.max() + 1])
     src = blobs_in(a, spec['box'])
     if spec.get('mirror'): src = src[:, ::-1].copy()
     src = trim(src)
@@ -188,7 +322,7 @@ def pack(items, width=512):
     return sheet, {k: ' '.join(v) for k, v in tiles.items()}
 
 
-def check(items):
+def check(items, fn='innprops-check.png'):
     """each piece at 2x on its footprint's diamonds, on the floor's grey: the anchor and the fit at a glance"""
     from PIL import ImageDraw
     cells = []
@@ -211,7 +345,7 @@ def check(items):
     out = Image.new('RGBA', (W, y + rowh), (30, 30, 30, 255))
     for c, (px, py) in zip(cells, pos): out.alpha_composite(c, (px, py))
     os.makedirs(os.path.join(ROOT, 'dev', 'visions'), exist_ok=True)
-    out.save(os.path.join(ROOT, 'dev', 'visions', 'innprops-check.png'))
+    out.save(os.path.join(ROOT, 'dev', 'visions', fn))
 
 
 def main():
@@ -235,6 +369,34 @@ def main():
         json.dump(meta, fh, indent=1)
     print('innprops_p1:', sheet.shape[1], 'x', sheet.shape[0], '|', ', '.join('%s %dx%d k%.2f' % (nm, got[nm]['g'].shape[1], got[nm]['g'].shape[0], got[nm]['k']) for nm in PIECES))
     if 'check' in sys.argv[1:]: check(items)
+    # the second atlas (11-05): pages 5, 6, 9A and 9B
+    got2, items2 = {}, []
+    for nm, spec in PIECES2.items():
+        if spec['page'] not in pages: pages[spec['page']] = page(spec['page'])
+        got2[nm] = fit(nm, spec, pages[spec['page']]); items2.append((nm, got2[nm]))
+    if FLOATS['page'] not in pages: pages[FLOATS['page']] = page(FLOATS['page'])
+    for f in floats(FLOATS, pages[FLOATS['page']]): items2.append(('shore_float', f))
+    if SPREAD['page'] not in pages: pages[SPREAD['page']] = page(SPREAD['page'])
+    dishes = spread(SPREAD, pages[SPREAD['page']])
+    for dsh in dishes: items2.append(('supper_dish', dsh))
+    items2.append(('supper_two', spread2(SPREAD2, pages[SPREAD2['page']])))
+    for nm, spec in GROUND.items():
+        if spec['page'] not in pages: pages[spec['page']] = page(spec['page'])
+        items2.append((nm, ground(spec, pages[spec['page']])))
+    items2.append(('ground_rutsX', ground(GROUND['ground_ruts'], pages[GROUND['ground_ruts']['page']], mirror=True)))
+    sheet2, tiles2 = pack(items2)
+    Image.fromarray(sheet2, 'RGBA').save(os.path.join(pix.ART, 'innprops_p2.png'), optimize=True)
+    meta2 = {'_note': 'the Halfway Inn\'s barn, yard and shore, and the rest of the house (tools/innprops-sheet.py, art-wanted section 36 pages 5, 6, 9A and 9B, 2026-11-05): '
+                      'as innprops_p1 -- each piece a box x,y,w,h and its anchor ax,ay, the back corner of its footprint; shore_float four frames on one waterline (1-3 the bob, '
+                      '4 still). js/innprops.js lays them.',
+             'image': 'art/innprops_p2.png', 'fw': 64, 'fh': 64, 'ax': 32, 'ay': 48, 'prop': True, 'anims': {},
+             'foot': {nm: got2[nm]['foot'] for nm in PIECES2}, 'fps': {'shore_float': 3}, 'tiles': tiles2,
+             'spread': [[dsh['along'], dsh['across']] for dsh in dishes],   # (each frame of supper_dish: along the long table 0..1 from its west end, across it -1 far .. 1 near)
+             'source': 'generated by the art desk (2026-11-04, ART-36 pages 5-9: deep16/_src/halfway-inn/ART-36-PAGES-01-09), cut by tools/innprops-sheet.py'}
+    with open(os.path.join(pix.ART, 'innprops_p2.json'), 'w', encoding='utf-8') as fh:
+        json.dump(meta2, fh, indent=1)
+    print('innprops_p2:', sheet2.shape[1], 'x', sheet2.shape[0], '|', ', '.join('%s %dx%d k%.2f' % (nm, got2[nm]['g'].shape[1], got2[nm]['g'].shape[0], got2[nm]['k']) for nm in PIECES2))
+    if 'check' in sys.argv[1:]: check(items2, 'innprops2-check.png')
 
 
 if __name__ == '__main__':

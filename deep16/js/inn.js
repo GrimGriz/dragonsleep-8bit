@@ -56,14 +56,14 @@
     ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWWW', ',,,".............."""""""""""""""""""""""""nWWWWWW',
     ',,,................""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWWW',
     ',,,..Awo|wo|woA...."""t""""""""""""""""""""eWWWWWW', ',,,..Aoo|oo|ooA...."""""""""""t""""""""""""eWWWWWW',
-    ',,,..AooooooooD...."""""""""""""""""""t""""eWWWWWW', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWWW',
+    ',,,..AaoooooooD...."""""""""""""""""""t""""eWWWWWW', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWWW',
     ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
     ',,,................"""""""""""""""t""""""""nWWYYYY', ',,,................""""""""""""""""""""""""nWWYYYY',
-    ',,,..||||.........."""""""""""""""""""""t""nWWYYYY', ',,,................BBBBBBBBBBBBBBBBBB""""""nWYYYYY',
+    ',,,..||||.........."""""""""""""""""""""t""nWWYYYY', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWYYYYY',
     ',,,................BcoooooocoooHHHHoB""""""nWYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
-    ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,................BooooooooCCooooooB"""""rrrrYYYY',
+    ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,s...............BooooooooCCjoooooB"""""rrrrYYYY',
     ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
-    ',,,................BoomKmoooCCooooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
+    ',,,................BoomKmoooCCjoooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
     ',,,................BoKKKKoooooooooooB""""""nWpYYYY', ',,,................BuSSSSSooooooooocB""""""nWWYYYY',
     ',,,................BBBBBBBBBBBBoBBoBB""""""nWYYYYY', ',,,................""""""""""BoocBooB""t"""nWYYYYY',
     ',,,..............kk""""""""""BoooBooB""""""nWWYYYY', ',,,..............kk"""""t""""BooofooB""""""eWWYYYY',
@@ -76,10 +76,11 @@
   ];
   In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', k: 'woodpile', w: 'manger', c: 'crate', B: 'innWall', A: 'barnWall', o: 'floorWood',
     D: 'doorway', K: 'table', b: 'bench', m: 'chair', C: 'chimney', H: 'shelf', z: 'bed', h: 'firepit', f: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks',
-    l: 'lamp', e: 'reeds', W: 'water', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof', S: 'stairRun' };
+    l: 'lamp', e: 'reeds', W: 'water', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof', S: 'stairRun',
+    a: 'hay', x: 'trough', j: 'tools', s: 'sign' }; // (11-05, the exteriors seat: the barn's hay, the trough by the rail, the hearth's tools and kettle, the sign by the road -- js/innprops.js)
   // the names the top levels' floors had not needed, as the grid's squares (js/mines.js M.LAY; a roof by M.ROOF)
   Object.assign(M.LAY, { grassT: ['g'], earth: ['.'], woodpile: ['k'], manger: ['k'], floorWood: ['o'], doorway: ['d'], table: ['K'], bench: ['K'], chair: ['k'], shelf: ['S'], bed: ['y'],
-    tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'] }); // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
+    tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'], hay: ['k'], trough: ['w'], tools: ['k'], sign: ['f'] }); // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
   Object.assign(M.ROOF, { innRoof: 'I', wingRoof: 'J', barnRoof: 'Z', innWall: 'v', barnWall: 'v' });
   // where the people stand, by the hour and the floor's flags (the first game's conditions): the yard's by day, the house's inside it -- seen while the party is in
   In.FOLK = [
@@ -179,16 +180,17 @@
   // (11-05, the exteriors seat, his notes at the pane: "copy the small fireplace and position upstairs over the chimney on the first floor / add a bed to each of the 3 front
   // rooms and 3 beds to the backroom / move the nice bed and nightstand to the northern wall as far from the fireplace on that wall": the small hearth f in the big room's
   // wall on the chimney, its mouth into the room; a second bed z in each small room along its west wall; the big room's three Z along its north wall, heads to it; the good bed
-  // and its table to the hearth's own wall at its far end, the room's top corner)
+  // and its table to the hearth's own wall at its far end, the room's top corner; and the chimney upstairs the stack page 9 drew, a 1 x 2 at the hearth's back, the rest of
+  // the big fire's 2 x 4 the passage and room 3's corner)
   In.UPROWS = [
     'BBBBBBBBBBBBBBBBBB',
     'BzoBzoBzoccBzoZZZB',
     'BooBooBooccBKooooB',
     'BzoBzoBzoBBBoooooB',
-    'BooBooBooCCBoooooB',
-    'BBoBBoBBoCCBoooooB',
-    'BooooooooCCfoooooB',
-    'BooooooooCCBoooooB',
+    'BooBooBooBBBoooooB',
+    'BBoBBoBBoBCBoooooB',
+    'BoooooooooCfoooooB',
+    'BooooooooooBoooooB',
     'BooooooooooooooooB',
     'BooooooooooBoooooB',
     'BoooooDooooBoooooB',
@@ -822,6 +824,8 @@
     { id: 'wagon', label: 'DAY 6: THE WAGON NIGHT', note: 'The first WAGON DAY, six in the evening in the common room, the traveler by the fire. E on the inn lady: a room, supper, then the second watch -- Amara\'s wagon turns in, goblins chained in the back. Who had the watch? INVESTIGATE, WAKE THE PARTY or KEEP WATCH; the gold, or steel: the yard fight on the grid, Willem at the traces (three turns unbothered and the team is loose).', key: In.KEY, at: [24, 17], hour: 18, day: 6, inside: true },
     { id: 'upstairs', label: 'UPSTAIRS: the guest rooms and the room over the kitchen', note: 'At the head of the stair in the passage. Three small guest rooms over the common room, the big fire\'s chimney through the middle, and the big room on the kitchen side over the lake, its door off the passage past the chimney: E at the table by its bed -- the drawer. The stair down sets you by the bar.', key: In.UP, at: [6, 9], hour: 18 },
     { id: 'night', label: 'THE YARD BY NIGHT', note: 'Ten at night on the path from the lake door: the house dark on the yard, lamps at its doors and the barn\'s, the lantern post on the point, the lake black. The boys are in.', key: In.KEY, at: [38, 18], hour: 22 },
+    { id: 'barn', label: 'THE BARN: the six stalls, the hay, the doors (11-05)', note: 'Noon in the barn, a step in from its doors: three stalls either side of the aisle, each with its manger and hay, the hay pile by the doors. Walk the aisle; step out by the doors and the barn roofs again.', key: In.KEY, at: [12, 6], hour: 12, inside: 'barn' },
+    { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
   ];
@@ -832,7 +836,7 @@
     var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? (bt.day - 1) * 24 : Math.floor((S.t || 0) / 24) * 24) + bt.hour;
     if (bt.world) return;
     In.pinned = bt.dice ? bt.dice.slice() : null;
-    var nb = R.make('?roam=' + bt.key + (bt.inside ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true });
+    var nb = R.make('?roam=' + bt.key + (bt.inside === 'barn' ? '&at=' + bt.at.join(',') : bt.inside ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true });
     D.push(nb);
   };
   In.show = function (q) { return new D.roam.WetShow(q, { kind: 'innshow', beats: In.BEATS, play: In.play, title: '{y}THE HALFWAY INN, 11-04{/} -- one place on the diamonds, the walls see-through inside, THE MEAL (a show)' }); };

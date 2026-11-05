@@ -12,15 +12,18 @@
 'use strict';
 (function () {
   var D = window.D16, iso = D.iso, In = D.inn; if (!iso || !In) return;
-  var IP = D.innprops = {}, SHEET = 'innprops_p1', HW = 32, HH = 16;
+  // (two atlases since 11-05: innprops_p2 holds pages 5, 6, 9A and 9B -- the barn, the yard and the shore, the kitchen's kettle and tools, upstairs' stair head and chimney)
+  var IP = D.innprops = {}, SHEETS = ['innprops_p1', 'innprops_p2'], SHEET = SHEETS[0], HW = 32, HH = 16;
   IP.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
-  function sheet() {
-    var sh = D.SHEETS && D.SHEETS[SHEET]; if (!sh) return null;
+  function sheet(name) {
+    var key = SHEET;
+    if (name) { key = null; for (var k = 0; k < SHEETS.length; k++) { var s0 = D.SHEETS && D.SHEETS[SHEETS[k]]; if (s0 && s0.tiles[name]) { key = SHEETS[k]; break; } } }
+    var sh = key && D.SHEETS && D.SHEETS[key]; if (!sh) return null;
     var im = D.images && D.images[sh.image]; if (!im && D.spr && D.spr.load) D.spr.load(sh.image);
     return im && im.naturalWidth ? { sh: sh, im: im } : null;
   }
   var BOX = {}, CUT = {};
-  function boxes(name) { var S = sheet(); if (!S || !S.sh.tiles[name]) return null; return BOX[name] || (BOX[name] = S.sh.tiles[name].split(' ').map(function (b) { return b.split(',').map(Number); })); }
+  function boxes(name) { var S = sheet(name); if (!S || !S.sh.tiles[name]) return null; return BOX[name] || (BOX[name] = S.sh.tiles[name].split(' ').map(function (b) { return b.split(',').map(Number); })); }
   // a square's column over the piece: from its two lower edges (and a few px under, for the feet) up off the top; the outer squares take what overhangs past the sides
   function prism(cx, q, i, j, a, b) {
     var tx = q[4] + (i - j) * HW, ty = q[5] + (i + j) * HH, my = ty + HH + 6, by = ty + 2 * HH + 6;
@@ -32,7 +35,7 @@
   // (mir: the drawing mirrored left for right -- a thing drawn along the grid's x laid along its y, its footprint a, b as laid; its back corner stays its back corner)
   IP.slices = function (name, f, a, b, mir) {
     var key = name + '|' + f + '|' + a + ',' + b + (mir ? '|m' : ''); if (CUT[key]) return CUT[key];
-    var S = sheet(), bx = boxes(name); if (!bx) return null;
+    var S = sheet(name), bx = boxes(name); if (!bx) return null;
     var q0 = bx[f % bx.length], q = mir ? [q0[0], q0[1], q0[2], q0[3], q0[2] - q0[4], q0[5]] : q0, out = {};
     for (var i = 0; i < a; i++) for (var j = 0; j < b; j++) {
       var cv = document.createElement('canvas'); cv.width = q[2]; cv.height = q[3]; var cx = cv.getContext('2d');
@@ -49,14 +52,14 @@
   };
   // a frame whole (a fire's flame over its hearth), anchored on the footprint's back corner
   function frameAt(ctx, name, f, gx, gy) {
-    var S = sheet(), bx = boxes(name); if (!bx) return;
+    var S = sheet(name), bx = boxes(name); if (!bx) return;
     var q = bx[f % bx.length], c = iso.center(gx, gy, 0), s = iso.toScreen(c.x, c.y - HH);
     ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(s.x - q[4]), Math.round(s.y - q[5]), q[2], q[3]);
   }
   function now() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000; }
 
   // where each piece stands, found on the floor's rows by its glyphs: [name, gx, gy, a, b] (a squares along x, b along y), and the fires over their hearths
-  IP.find = function (rows, up) { // (up: the floor upstairs -- its chimney page 9's, not cut yet; its hearth the small one's copy, 11-05)
+  IP.find = function (rows, up, opt) { // (up: the floor upstairs -- its chimney page 9's; its hearth the small one's copy, 11-05) (opt.lit: the lamps lit)
     var at = function (x, y) { var r = rows[y]; return r ? r.charAt(x) : ''; }, out = [], flames = [], H = rows.length, Wd = rows[0].length;
     var x, y, n, cn = 0;
     for (y = 0; y < H; y++) for (x = 0; x < Wd; x++) {
@@ -76,21 +79,43 @@
         else if (n === 1 && at(x - 1, y) === 'm' && at(x + 1, y) === 'm') { out.push(['inn_table2', x, y, 1, 1]); out.push(['inn_chairA', x - 1, y, 1, 1]); out.push(['inn_chairB', x + 1, y, 1, 1]); }
       }
       if (c === 'b' && at(x, y - 1) !== 'b' && at(x, y + 1) === 'b') out.push(['inn_settle', x, y, 1, 2]);
+      // PAGES 5, 6, 9A AND 9B (11-05, the exteriors seat): the barn, the yard and the shore, the hearth's tools and kettle, upstairs' chimney and stair head
+      if (up && c === 'C' && at(x, y - 1) !== 'C' && at(x, y + 1) === 'C') out.push(['up_chimney', x, y, 1, 2]);   // (the stack over the big fire, at the small hearth's back)
+      if (up && c === 'D') out.push(['up_stairhead', x, y, 1, 1]);
+      if (c === 'w' && at(x, y - 1) === 'A') out.push(['barn_stall', x, y, 2, 2, true]);                   // (the north row: mirrored, it opens +y onto the aisle, its manger on the north rail)
+      if (c === 'w' && at(x, y + 1) === 'A') { out.push(['barn_stallsides', x, y - 1, 2, 2, true]); out.push(['yard_trough', x, y, 2, 1]); } // (the south row opens away from the camera: its two partitions, and a trough for its manger along the back)
+      if (c === 'a') out.push(['barn_hay', x, y, 1, 1]);
+      if (c === 'x' && at(x - 1, y) !== 'x') out.push(['yard_trough', x, y, 2, 1]);
+      if (c === '|' && at(x - 1, y) !== '|' && at(x + 1, y) === '|') { n = 0; while (at(x + n, y) === '|') n++; for (var r2 = 0; r2 + 2 <= n; r2 += 2) out.push(['yard_rail', x + r2, y, 2, 1]); } // (the hitching rail, half its four squares a drawing)
+      if (c === 'q') out.push(['yard_well', x, y, 1, 1]);
+      if (c === 'k') out.push(['yard_woodpile', x, y, 1, 1]);
+      if (c === 'p') out.push(['shore_boat', x, y, 1, 2]);
+      if (c === 'l') out.push([opt && opt.lit ? 'yard_postlit' : 'yard_post', x, y, 1, 1]);                 // (the lantern post on the point: lit at dusk and by night)
+      if (c === 'i' && at(x, y - 1) !== 'i' && at(x, y + 1) === 'i') out.push(['shore_stone', x, y, 1, 2]);   // (the flat stone, its cairn to the north)
+      if (c === 'j') out.push([at(x, y + 1) === 'h' ? 'kitchen_tools' : 'kitchen_kettle', x, y, 1, 1]);      // (beside the kitchen mouth: the tools above it, the kettle below)
+      if (c === 's') out.push(['yard_sign', x, y, 1, 1]);
     }
+    if (!up) IP.FLOATS.forEach(function (q, k) { if (at(q[0], q[1]) === 'W') out.push(['shore_float', q[0], q[1], 1, 1, false, k * 0.37]); }); // (out on the shallows, bobbing: [7] the phase)
     return { pieces: out, flames: flames };
   };
+  IP.FLOATS = [[45, 11], [45, 26], [47, 29]];
 
   // the pieces laid on the loaded floor: each square of each a prop of its own, sorted with the figures; the code's block and the chimney's rock under them let go
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
-    var up = m.def && m.def.key === In.UP, got = IP.find(up ? In.UPROWS : In.ROWS, up), mine = {};
+    var up = m.def && m.def.key === In.UP, got = IP.find(up ? In.UPROWS : In.ROWS, up, { lit: !!(m.def && (m.def.night || m.def.dusk)) }), mine = {};
+    // (a house roofed over -- the party outside it, or in another -- keeps its things under its roof: only what stands in the open or in the house the party is in)
+    var ins = m.def && m.def.inside || null, seen = function (x, y) { if (up) return true; var b = In.inHouse(x, y); return !b || b === ins; };
+    got.pieces = got.pieces.filter(function (pc) { return seen(pc[1], pc[2]); }); got.flames = got.flames.filter(function (fl) { return seen(fl[1], fl[2]); });
     m.props = m.props.filter(function (p) { return !p.innProp; });
     got.pieces.forEach(function (pc) {
+      var anim = pc[6] != null, fps = anim ? ((sheet(pc[0]) || { sh: {} }).sh.fps || {})[pc[0]] || 3 : 0; // (a piece with a phase plays its frames: the floats' bob, 1-2-3)
       for (var i = 0; i < pc[3]; i++) for (var j = 0; j < pc[4]; j++) (function (i, j) {
         var sq = m.at(pc[1] + i, pc[2] + j); if (!sq) return;
         mine[sq.x + ',' + sq.y] = 1;
         m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
-          var sl = IP.slices(pc[0], 0, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
+          var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
+          var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
           var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y);
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
         } });
@@ -106,7 +131,9 @@
     m.sorted = null; IP.laid = got;
   };
   var load0 = iso.load;
-  iso.load = function (def) { var m = load0.apply(this, arguments); if (def && ((def.key === In.KEY && def.inside === 'inn') || def.key === In.UP)) IP.dress(m); return m; };
+  iso.load = function (def) {
+    var m = load0.apply(this, arguments); if (def && (def.key === In.KEY || def.key === In.UP)) IP.dress(m); return m; // (the yard, the barn and the shore too since 11-05)
+  };
   // ELSBETH AT HOME (11-04, Griz to this seat: "please wire in elsbeth and her tub"): at the inn she wears the art desk's figure of her at home (elsbethhome_p1, art-wanted
   // section 35 block 6, cut by cutter-1104 -- her alone, its tub-fused views held), standing at page 3's tub (inn_tub, the square east of hers, the way she faces), in place of
   // the townswoman stand-in; her name, her talk and her scenes as they were. Elsewhere (Silverton's street) she is still the candle girl

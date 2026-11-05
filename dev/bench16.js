@@ -2684,6 +2684,17 @@
       du.rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if ('yKkw'.indexOf(r.charAt(x)) >= 0) { thingsU++; if ('o='.indexOf((unU[y] || '').charAt(x)) >= 0) boardsU++; } });
       okIn('his four notes (11-05): upstairs ' + boardsU + ' of ' + thingsU + ' things on the boards; downstairs under the tub "' + unD[21].charAt(34) + '", the long table "' + unD[15].charAt(21) + '", the woodpile in the yard "' + unD[26].charAt(17) + '"; the small hearth upstairs ' + upN('inn_hearthS') + ' at ' + InI.UPFIRE + ', beds ' + upN('inn_bed') + ' and ' + upN('inn_bed', true) + ' mirrored, the drawer at ' + InI.DRAWER,
         thingsU > 10 && boardsU === thingsU && unD[21].charAt(34) === 'o' && unD[15].charAt(21) === 'o' && unD[26].charAt(17) === ' ' && upN('inn_hearthS') === 1 && upN('inn_bed') === 7 && upN('inn_bed', true) === 3 && InI.DRAWER.join() === '12,2');
+      // 9b3. PAGES 5, 6, 9A AND 9B LAID (11-05, the exteriors seat): the barn's six stalls (the north row whole and mirrored, the south row its partitions and a trough), the
+      // hay, the yard's rail, trough, well, woodpile and sign, the shore's boat, stone, lantern post and floats, the kitchen's tools and kettle, upstairs' chimney and stair
+      // head; out in the yard the house's furniture stays under its roof; the lamp lit by night
+      var IPy = D.innprops, cntY = function (L, nm, mir) { return L.pieces.filter(function (p) { return p[0] === nm && (mir == null || !!p[5] === mir); }).length; };
+      var fY = IPy.find(InI.ROWS, false, { lit: false }), fYn = IPy.find(InI.ROWS, false, { lit: true }), fU = IPy.find(InI.UPROWS, true);
+      var nmsY = ['barn_stall', 'barn_stallsides', 'yard_trough', 'barn_hay', 'yard_rail', 'yard_well', 'yard_woodpile', 'shore_boat', 'yard_post', 'shore_stone', 'kitchen_tools', 'kitchen_kettle', 'yard_sign', 'shore_float'], wantY = [3, 3, 4, 1, 2, 1, 4, 1, 1, 1, 1, 1, 1, 3];
+      var gotY = nmsY.map(function (nm) { return cntY(fY, nm); });
+      testIn('?roam=halfway&hour=10&day=5&at=10,22'); var laidY = (IPy.laid ? IPy.laid.pieces : []).map(function (p) { return p[0]; });
+      var houseOutY = laidY.filter(function (n) { return /^inn_|^barn_|^kitchen_/.test(n); }).length;
+      okIn('pages 5, 6, 9A and 9B laid (11-05): ' + nmsY.map(function (nm, k) { return nm + ' ' + gotY[k]; }).join(', ') + '; the north stalls mirrored ' + cntY(fY, 'barn_stall', true) + '; the lamp lit by night ' + cntY(fYn, 'yard_postlit') + '; upstairs the chimney ' + cntY(fU, 'up_chimney') + ', the stair head ' + cntY(fU, 'up_stairhead') + '; in the yard by day ' + laidY.length + ' laid, the house\'s and the barn\'s under their roofs (' + houseOutY + ' out)',
+        gotY.join() === wantY.join() && cntY(fY, 'barn_stall', true) === 3 && cntY(fYn, 'yard_postlit') === 1 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
       // 9c. EVERY BEAT OF THE SHOW stands up in the house (the upstairs beat once had no square to stand on: Battle.enter threw)
       var beatsIn = InI.BEATS.filter(function (b) { return !b.world; }).map(function (b) { var o = b.id + ': '; try { InI.play(b); var Bb = topIn(), t = Bb && Bb.roam && Bb.roam.token; o += (RIn.def && RIn.def.key) + ' at ' + (t ? t.x + ',' + t.y : '-') + (t && t.x === b.at[0] && t.y === b.at[1] && RIn.def.key === b.key ? '' : ' WRONG'); } catch (eB) { o += 'THREW ' + String(eB).slice(0, 80); } HIn.playing = false; HIn.cur = null; InI.pinned = null; return o; });
       okIn('every beat of ?innshow stands up in the house: ' + beatsIn.join('; '), beatsIn.every(function (o) { return !/WRONG|THREW/.test(o); }));
@@ -2740,7 +2751,7 @@
       // 10. THE EDGES as the realm's sides (the map's top the west): the road's right end north, its left end south
       var dE = RIn.def, sides = [[1, 0], [0, 20], [1, 39]].map(function (q) { return MIn.sideOf(dE, q); });
       okIn('the edges, north up: the road\'s north end ' + sides[0] + ', the west edge ' + sides[1] + ', the road\'s south end ' + sides[2] + '; the show ?innshow ' + InI.BEATS.length + ' beats (' + InI.BEATS.map(function (b) { return b.id; }).join(', ') + '); the first game\'s maps unwritten (' + (before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in)) + ')',
-        sides.join() === 'north,west,south' && InI.BEATS.length === 10 && typeof InI.show === 'function' && before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in));
+        sides.join() === 'north,west,south' && InI.BEATS.length >= 10 && typeof InI.show === 'function' && before8In === JSON.stringify(window.DS.DATA.maps.halfway) + JSON.stringify(window.DS.DATA.maps.halfway_in));
     } catch (eIn) { repIn.errors.push(String(eIn && eIn.stack || eIn).slice(0, 900)); }
     HIn.playing = false; HIn.cur = null; if (InI) { InI.stay = false; InI.pinned = null; }
     D.store.get = stGIn; D.store.set = stSIn; D.music = muIn;
