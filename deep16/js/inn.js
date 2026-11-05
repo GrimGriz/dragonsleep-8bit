@@ -104,7 +104,7 @@
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
     orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'commonerchild', snootRunner: 'commoner',
-    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'goblin', barnGoblin: 'goblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35)
+    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'goblin', barnGoblin: 'goblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35 -- the Waterbys and Katarina wear their own over them since 11-05, js/counter.js C.FIG)
   In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
   In.NAME = { gennet: In.named, gennetGrief: In.named, gennetYard: In.named, snootRunner: function () { return 'A runner from the Pit'; },
@@ -786,7 +786,8 @@
     var u = B.makeFoe(spec);
     u.name = o.name || u.name; u.scripted = o.id; u.conds = u.conds || {}; u.reaction = 1;
     if (!o.foe) { u.look = true; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; } else u.flees = false; // (the pair stand till the yard's rule starts them running: ai.js, B.fight.runWhenHurt)
-    u.facing = D.spr.facingFor(o.face ? o.face[0] : -1, o.face ? o.face[1] : 0); u.anim = 'idle'; u.animT = B.t;
+    if (!o.foe && D.counter) D.counter.dress(u, o.id); // (one with a figure of their own wears it, as on the floor (js/town.js T.people): Gennet in the yard and on the due's walk, Katarina in the yard on the wagon night -- js/counter.js C.FIG, 11-05; the facing is the scene's, below)
+    u.facing =D.spr.facingFor(o.face ? o.face[0] : -1, o.face ? o.face[1] : 0); u.anim = 'idle'; u.animT = B.t;
     if (o.lantern) { u.torch = D.light.make('lantern', false); D.light.regrip(u); }
     B.units.push(u); D.grid.setup(B.map, B.units); B.cache = null;
     return u;

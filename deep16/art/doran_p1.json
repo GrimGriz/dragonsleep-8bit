@@ -1,0 +1,34 @@
+{
+ "image": "art/doran_p1.png",
+ "fw": 40,
+ "fh": 64,
+ "ax": 20,
+ "ay": 61,
+ "top": 51,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 40,
+   "fh": 64,
+   "ax": 20,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 44,
+   "fh": 64,
+   "ax": 22,
+   "ay": 61,
+   "frames": 8,
+   "fps": 9
+  }
+ },
+ "name": "Doran Waterby",
+ "hold": [
+  "walk: the phases uneven and repeated, E's legs overlapping, N's 7-8 back on the right-side lift early (the art desk's own notes)",
+  "idle: the breath slight (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-DORAN-TOWN, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored; the inn's floor (js/counter.js C.FIG doranYard, doranIn)"
+}

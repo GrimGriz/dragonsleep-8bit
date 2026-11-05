@@ -365,6 +365,7 @@
   // ring's rounds still binding it to the ring; downed, she is taken and it goes down with her (`gennetTaken`: Doran still lets the rooms, and nobody cooks)
   A.offerGennet = function* (B, Y) {
     var Rm = R(), R0 = B.roam, f = R0.flags;
+    if (Y.gennet && D.spr.anim(Y.gennet.sheet, 'sit')) { Y.gennet.anim = 'sit'; Y.gennet.animT = B.t; } // (she sits yielded on the path: her own sheet's Sit, gennet_p2 -- 11-05, the Waterby cutter)
     var a = yield* In.ask(B, 'THE CHILD', [A.LINES.withChild], [A.LINES.opts.inside, A.LINES.opts.water]);
     A.trail('the child: ' + (a === 0 ? 'taken in through the lake door' : 'kept at the water'));
     if (a === 0) {

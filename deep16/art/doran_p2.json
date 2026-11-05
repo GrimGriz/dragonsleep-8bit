@@ -1,0 +1,81 @@
+{
+ "image": "art/doran_p2.png",
+ "fw": 66,
+ "fh": 64,
+ "ax": 33,
+ "ay": 61,
+ "top": 51,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 66,
+   "fh": 64,
+   "ax": 33,
+   "ay": 61,
+   "frames": 1,
+   "fps": 2
+  },
+  "walk": {
+   "y": 512,
+   "fw": 44,
+   "fh": 64,
+   "ax": 22,
+   "ay": 61,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1024,
+   "fw": 70,
+   "fh": 64,
+   "ax": 35,
+   "ay": 61,
+   "frames": 4,
+   "fps": 10,
+   "release": 2
+  },
+  "flinch": {
+   "y": 1536,
+   "fw": 68,
+   "fh": 64,
+   "ax": 34,
+   "ay": 61,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2048,
+   "fw": 98,
+   "fh": 64,
+   "ax": 49,
+   "ay": 61,
+   "frames": 4,
+   "fps": 8
+  },
+  "prone": {
+   "y": 2560,
+   "fw": 98,
+   "fh": 64,
+   "ax": 49,
+   "ay": 61,
+   "frames": 4,
+   "fps": 8
+  },
+  "sit": {
+   "y": 3072,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 1,
+   "fps": 2
+  }
+ },
+ "name": "Doran Waterby",
+ "hold": [
+  "idle: Attack 1 held, the axe at the ready (no armed idle was drawn); walk: the town walk, the bucket in his hand (no axe walk was drawn)",
+  "N fall 4 and prone: nearly face down, not the side-lying asked; N fall 3 sits toward screen right before the collapse (the art desk's own notes)",
+  "S fall 4 and prone share the SE side silhouette (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the walk from HALFWAY-INN-DORAN-TOWN; every fight he is in (deep16/data/foes.js doran)"
+}

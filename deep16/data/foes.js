@@ -1113,16 +1113,19 @@ window.D16.FOES.gnollmatriarchlama = {
 // spiritual weapon a shepherd's crook of lantern-light, her inflict wounds the lake's cold up through your boots, her command the one word the family hears the god in --
 // numbers as written, built as a cleric 4 by her list (js/classes.js NPC.NAMED.gennet); she yields at half (`yields`, as Torvald does). Doran Waterby, the SRD Commoner with a
 // woodaxe, who enters only when a boy is struck at and yields at half (js/secondact.js)
+// THEIR OWN FIGURES (11-05, the Waterby cutter, on Griz's "We got art for the waterby inkeeps in Fresh"): the art desk's HALFWAY-INN-GENNET-COMBAT and -DORAN-COMBAT, art-wanted
+// section 35, cut into gennet_p2 (tools/gennet-sheet.py: her town idle and lantern walk, cast 6 for her spells, dagger 4, flinch, fall, prone, sit) and doran_p2 (tools/doran-sheet.py:
+// the axe at the ready for his idle, his town walk, the woodaxe's chop, flinch, fall, prone, sit) in all eight facings -- the path, the poison dinner's common room, every fight with them
 window.D16.FOES.gennet = {
-  named: true, name: 'Gennet Waterby', type: 'humanoid', sheet: 'folkwoman_p1', cr: '2', ac: 13, armor: 'leather armor', hp: 33, speed: 30, size: 1, reach: 5,
+  named: true, name: 'Gennet Waterby', type: 'humanoid', sheet: 'gennet_p2', cr: '2', ac: 13, armor: 'leather armor', hp: 33, speed: 30, size: 1, reach: 5,
   abil: { str: 11, dex: 14, con: 12, int: 10, wis: 13, cha: 14 }, init: 2, perception: 11,
   saves: { str: 0, dex: 2, con: 1, int: 0, wis: 4, cha: 4 },
   attacks: { dagger: { name: 'Dagger', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
   multi: ['dagger', 'dagger'], yields: true, darkDevotion: true, build: 'gennet',
-  src: 'SRD 5.1 Cult Fanatic (CR 2; AC 13 leather, 33 HP, speed 30; DEX 14, WIS 13, CHA 14; Dark Devotion, advantage against charmed or frightened; Multiattack, two daggers +4, 1d4+2; a 4th-level cleric on WIS, DC 11, +3: light, sacred flame, command, inflict wounds, shield of faith, hold person, spiritual weapon), reflavored as the inn lady -- the Halfway Inn lane\'s section 10.2; the realm\'s wiki/halfway-inn-and-lake.md. The figure the townsfolk woman\'s till the art desk\'s comes back (deep16-art-wanted.md section 35)'
+  src: 'SRD 5.1 Cult Fanatic (CR 2; AC 13 leather, 33 HP, speed 30; DEX 14, WIS 13, CHA 14; Dark Devotion, advantage against charmed or frightened; Multiattack, two daggers +4, 1d4+2; a 4th-level cleric on WIS, DC 11, +3: light, sacred flame, command, inflict wounds, shield of faith, hold person, spiritual weapon), reflavored as the inn lady -- the Halfway Inn lane\'s section 10.2; the realm\'s wiki/halfway-inn-and-lake.md. The figure the art desk\'s, gennet_p2 (deep16-art-wanted.md section 35; the townsfolk woman\'s till 11-05)'
 };
 window.D16.FOES.doran = {
-  named: true, name: 'Doran Waterby', type: 'humanoid', sheet: 'folkman_p1', cr: '0', ac: 10, hp: 4, speed: 30, size: 1, reach: 5,
+  named: true, name: 'Doran Waterby', type: 'humanoid', sheet: 'doran_p2', cr: '0', ac: 10, hp: 4, speed: 30, size: 1, reach: 5,
   abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, init: 0, perception: 10,
   saves: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
   attacks: { woodaxe: { name: 'Woodaxe', atk: 2, dice: '1d6', mod: 0, type: 'slashing', reach: 5 } },

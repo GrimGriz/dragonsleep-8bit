@@ -1,0 +1,91 @@
+{
+ "image": "art/gennet_p2.png",
+ "fw": 34,
+ "fh": 64,
+ "ax": 17,
+ "ay": 61,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 40,
+   "fh": 64,
+   "ax": 20,
+   "ay": 61,
+   "frames": 8,
+   "fps": 10
+  },
+  "cast": {
+   "y": 1024,
+   "fw": 48,
+   "fh": 64,
+   "ax": 24,
+   "ay": 61,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 62,
+   "fh": 64,
+   "ax": 31,
+   "ay": 61,
+   "frames": 4,
+   "fps": 10,
+   "release": 2
+  },
+  "flinch": {
+   "y": 2048,
+   "fw": 50,
+   "fh": 64,
+   "ax": 25,
+   "ay": 61,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2560,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 61,
+   "frames": 5,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3072,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 61,
+   "frames": 4,
+   "fps": 8
+  },
+  "sit": {
+   "y": 3584,
+   "fw": 54,
+   "fh": 64,
+   "ax": 27,
+   "ay": 61,
+   "frames": 1,
+   "fps": 2
+  }
+ },
+ "name": "Gennet Waterby",
+ "hold": [
+  "walk: the town walk with the lantern in her hand, the poison dinner's fight too (no fight walk was drawn)",
+  "attack: the front Dagger 2 blade foreshortened behind her fist; front and SE Dagger 3 angle down, a short low jab (the art desk's own notes)",
+  "E Flinch 2 still turns toward the viewer; N recoils on a slight rear diagonal (the art desk's own notes)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-GENNET-COMBAT, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored -- the idle and walk from HALFWAY-INN-GENNET-TOWN; every fight she is in (deep16/data/foes.js gennet)"
+}

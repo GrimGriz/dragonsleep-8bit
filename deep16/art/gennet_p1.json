@@ -1,0 +1,34 @@
+{
+ "image": "art/gennet_p1.png",
+ "fw": 34,
+ "fh": 64,
+ "ax": 17,
+ "ay": 61,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 40,
+   "fh": 64,
+   "ax": 20,
+   "ay": 61,
+   "frames": 8,
+   "fps": 10
+  }
+ },
+ "name": "Gennet Waterby",
+ "hold": [
+  "walk: skirt occlusion leaves some support phases ambiguous; the 8 to 1 seam wants native playback; NE and N corrected for the opposite heel lead (the art desk's own notes)",
+  "her face at game size reads younger and softer than her portrait (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (HALFWAY-INN-GENNET-TOWN, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored; the inn's floor (js/counter.js C.FIG gennet, gennetGrief, gennetYard, dueLady)"
+}
