@@ -5197,6 +5197,16 @@
       var cG = scG.cards && scG.cards[0], dG = Math.hypot(SG.pos[0] - gV.x, SG.pos[1] - gV.y);
       okV('the step taken: at ' + SG.at + ', the party ' + dG.toFixed(2) + ' mi from the mark, on the road (' + (SG.rv && SG.rv.join(' pass ')) + '), its door offered: ' + (cG ? cG.lines.slice(0, 2).join(' / ').replace(/\{.\}|\{\/\}/g, '') : 'no card'),
         SG.at.join() === gV.hex.join() && !!SG.rv && SG.rv[0] === 'mile' && !!cG && /Glowseep/.test(cG.lines[0]));
+      // THE COLDRIDGE'S THREE DAYS ON FOOT (11-05 night; his "still aiming at 3 days but the distance may have changed and rate may need adjusting", then "On foot"):
+      // the road's going from its own length now (tools/hexmap.js seedGoingOnFoot), the whole road three days at the SRD's 24 mi; the climb on the area at that going
+      var cV = MV.paths.filter(function (P) { return /coldridge/i.test(P.name || ''); })[0], lenC = 0, ptC = (cV && cV.pts || []).filter(function (p) { return Array.isArray(p); });
+      for (var iC = 0; iC + 1 < ptC.length; iC++) lenC += Math.hypot(ptC[iC + 1][0] - ptC[iC][0], ptC[iC + 1][1] - ptC[iC][1]);
+      var footC = cV ? lenC * cV.going / (WV.PACE * WV.DAYHOURS) : 0, wagC = cV ? lenC * cV.going / 17 : 0;
+      okV('the Coldridge Route, the Galleries junction to the Doors: ' + lenC.toFixed(1) + ' mi at going ' + (cV && cV.going) + ' = ' + footC.toFixed(2) + ' days on foot (' + wagC.toFixed(2) + ' wagon-days), difficult ' + (cV && cV.difficult) + ' (his "3 days ... due to mountain and weather"; 1.43, 2.39 days on foot, before)',
+        !!cV && Math.abs(footC - 3) < 0.03 && cV.difficult === false && cV.going < 2);
+      var upC = cV ? cV.upto : -1, rC = cV ? WV.route(cV.hexes[0], cV.hexes[upC], MV) : null, r1C = cV ? WV.route(cV.hexes[1], cV.hexes[upC], MV) : null, onC = function (r) { return !!r && r.hexes.every(function (h) { return h.rv && h.rv[0] === cV.id; }); };
+      okV('the climb on the area at that going: the junction to the shelf (pass ' + upC + ', ' + (cV && cV.at[upC]) + ' road mi) ' + (rC ? rC.hexes.length + ' steps, ' + rC.hours.toFixed(2) + ' h' : 'no way') + '; from the first hairpin (deep16/?world&hairpin) ' + (r1C ? r1C.hours.toFixed(2) + ' h' : 'no way') + ' -- all along the road (3.6 and 2.9 h before)',
+        onC(rC) && onC(r1C) && rC.hexes.length === upC && Math.abs(rC.hours - upC * MV.w * cV.going / WV.PACE) < 1e-6 && rC.hours > 4.3 && rC.hours < 4.7);
       scG.cards = []; WV.use('near');
       // the stores on the town's L map: Silverton's street, its map painted with the signs and without, on a canvas of the bench's own
       var BV = RV.make('?roam=silverton&watch'); D.scenes.length = 0; D.push(BV); if (BV.baking) { BV.baking = false; BV.enter(); }
