@@ -787,8 +787,9 @@
     return null;
   };
   // a short rest (RULED 10-21, lean 3: "the SRD's hit dice"): an hour; the fallen up at 1 HP, then each spends hit dice -- a die of the class and the CON modifier
-  // -- till whole or out; the short rest's own uses back (js/rules.js R.refresh). A long rest gives back half the dice (H.longRest). h.hdLeft: the dice not yet spent
-  H.shortRest = function (party) {
+  // -- till whole or out; the short rest's own uses back (js/rules.js R.refresh). A long rest gives back half the dice (H.longRest). h.hdLeft: the dice not yet spent.
+  // head: the line's head where the rest is not the plain hour's (a long WAIT's, js/hours.js H16.waitPlay -- 11-05)
+  H.shortRest = function (party, head) {
     var R = DS.R, lines = [];
     H.trail('rest', 'short rest');
     party.forEach(function (h) {
@@ -798,9 +799,24 @@
       while (h.hp < h.maxhp && left > 0) { var r = Math.max(0, D.roll('1d' + hd).total + DS.mod(h.abil.con)); h.hp = Math.min(h.maxhp, h.hp + r); got += r; left--; n++; }
       h.hdLeft = left; R.refresh(h, false);
       if (n) lines.push(h.name + ' spends ' + n + ' hit ' + (n > 1 ? 'dice' : 'die') + ' (+' + got + ' HP, ' + left + ' left)');
+      else if (h.hp < h.maxhp) lines.push(h.name + ' has no hit dice left (a long rest gives half back)'); // (hurt and out of dice: it had said "No one needs a die" -- 11-05, the rests-and-waits seat's find)
     });
     D.sfx('heal');
-    return ['A short rest: an hour.' + (lines.length ? ' ' + lines.join('; ') + '.' : ' No one needs a die.')];
+    return [(head || 'A short rest: an hour.') + (lines.length ? ' ' + lines.join('; ') + '.' : ' No one needs a die.')];
+  };
+  // A SHORT REST ON A FLOOR (11-05, the rests-and-waits seat, the lanes desk's lean 1 on Griz's "please to all leans": the inn's, js/inn.js In.shortRest, lifted here for
+  // every floor that offers one -- WAIT, the Glowseep's crews' fire, the bunks, the Hex's bar): in the house the floor's party into the save first (H.fromFloor), else the
+  // floor's own sheets; the hit dice spent (H.shortRest); the figures given their rested sheets where they stand (js/roam.js R.resheet), as H.sleepOnFloor gives them.
+  // The hour is the caller's -- each floor's clock passes its own way (js/mines.js M.clockOn, the inn's In.REST). o.head: H.shortRest's. The lines to say
+  H.shortRestOnFloor = function (B, o) {
+    o = o || {};
+    var R = D.roam, R0 = B.roam, house = !!(R.house() && H.playing), sheets;
+    if (house) { H.fromFloor(B); sheets = H.cur.party; }
+    else sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; });
+    var lines = H.shortRest(sheets.filter(function (h) { return !h.dead; }), o.head), byKey = {};
+    sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
+    R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B);
+    return lines;
   };
   // the Light's hour (SRD 5.1: "Duration: 1 hour" -- 10-28, the grid seat on his "check how we're doing the out-of-combat casting of light": the long rest stood in for the
   // hour while the game had no clock, RULED 10-20): a Light carries `until` on THE WORLD's clock (FD.cast; one cast in a fight as it comes back, js/roam.js R.lasting), and as

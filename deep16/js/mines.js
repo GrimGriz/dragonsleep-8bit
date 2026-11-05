@@ -964,20 +964,45 @@
     return { name: inn.name, who: M.priceLine(inn, f).split('. ')[0] };
   };
   M.LINES.bunk = { ask: 'A bunk for the night? ', sleep: 'The bunks fill with the shift coming off; somebody snores through the lot. Nobody stands a watch -- the staff keep the door.', morning: 'Morning, and the camp\'s bell.', poor: 'Not without the silver.' }; // (invented.json toplevels-bunkhouses)
+  // A BUNK'S TWO RESTS (11-05, the rests-and-waits seat, the lanes desk's lean 4 on Griz's "please to all leans" -- his 11-05 note at the Warrens' mouth camp, verbatim: "no short
+  // rest at bunk, no menu wait 'next bell' 'short rest' - bunk cost how many hours?"): the bunk's price for either, and the hours on the choice -- the long rest the SRD's eight from
+  // lying down, as the town's beds since f06739c (it went on to the next morning), the short rest an hour, the hit dice spent (js/house.js H.shortRestOnFloor). The long rest
+  // first, as it was. What the party wakes to by the hour it wakes at: the bunk's own morning, or these (the seat's drafts, invented.json rests-bunk-hours)
+  M.BUNK = { restHours: 8 };
+  M.LINES.bunk.ask = 'A bunk? ';
+  M.LINES.bunk.short = 'An hour on a bunk with your boots off, the camp going about its business outside.';
+  M.LINES.bunk.wake = { AFTERNOON: 'Afternoon: daylight in the cracks of the boards, and the bunks round you empty.', DUSK: 'Dusk: the lamp being lit by the door, the night shift pulling its boots on.', NIGHT: 'Night: a hooded lamp by the door, and somebody snoring two bunks down.' };
+  M.bunkOpts = function (p) { var hd = 'A BUNK' + (p ? ', ' + p + ' SP' : '') + ': '; return [hd + 'LONG REST, ' + M.BUNK.restHours + ' HOURS', hd + 'SHORT REST, AN HOUR', 'LEAVE']; };
   M.inn = function* (sc, B, inn) {
     var st = sc.st, f = st.flags, p = inn.price(f);
     yield sc.say(inn.say || M.words(B, inn.id));
-    var a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', [p ? 'A BUNK, ' + p + ' SP' : 'A BUNK', 'LEAVE']);
-    if (a !== 0) return false;
+    var a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', M.bunkOpts(p));
+    if (a !== 0 && a !== 1) return false;
     if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
     if (p) { st.silver(-p); D.sfx('coin'); }
+    if (a === 1) { yield sc.say([M.LINES.bunk.short].concat(M.shortRestHere(B))); return false; } // (the hour on the bunk, said on its own screen as the inn's by the fire)
     yield sc.say(inn.sleep || M.LINES.bunk.sleep);
     return true;
   };
   // the night slept, on the house's one sleep for a floor (js/house.js H.sleepOnFloor -- 10-22, Griz: "3 move to whole mornings"): in the house the floor's party into the
-  // save, THE WORLD's clock to the morning and the long rest on the save; on the test door the four rested in place; then the first game's whole morning -- the picks, the
-  // night's bonds, the day's spells, the save where the floor keeps one -- with this place's own morning on its card
-  M.sleep = function* (B, inn) { yield* D.house.sleepOnFloor(B, { line: (inn && inn.morning) || M.LINES.bunk.morning, music: 'inn', before: function () { M.lightNow(B); } }); }; // (before: the floor at the morning's hour -- a sky floor's night gone: M.skyAt)
+  // save, THE WORLD's clock eight hours on (M.BUNK, 11-05 -- it went to the next morning) and the long rest on the save; on the test door the four rested in place, the floor's
+  // hour eight on; then the first game's whole morning -- the picks, the night's bonds, the day's spells, the save where the floor keeps one -- with this place's own morning
+  // on its card when it is the morning they wake to (M.wakeAt's word for the hour, as the Glowseep's fire)
+  M.sleep = function* (B, inn) {
+    var house = !!(D.roam.house() && D.house && D.house.playing), h1 = (M.hourNow(D.roam.q, B) + M.BUNK.restHours) % 24, wk = M.wakeAt(h1);
+    if (!house) B.roam.hour = h1;
+    yield* D.house.sleepOnFloor(B, { line: wk.title === 'MORNING' ? (inn && inn.morning) || M.LINES.bunk.morning : M.LINES.bunk.wake[wk.title], title: wk.title, hours: M.BUNK.restHours, music: 'inn', before: function () { M.lightNow(B); } }); // (before: the floor at the waking hour -- a sky floor's night gone: M.skyAt)
+  };
+  // THE CLOCK ON, QUIETLY (11-05, the rests-and-waits seat): an hour's short rest at a fire, a bunk or a bar, and WAIT (js/hours.js H16.waitPlay), say what passed on one card or
+  // screen of their own -- so the clock moves here without M.pass's cards: THE WORLD's in the house, the floor's own hour on a test door (M.hourNow's rule); the Lights whose hour
+  // is up as lines (js/house.js H.lightsOut). The floor laid for the hour is the caller's (M.lightNow, or the street's turn)
+  M.clockOn = function (B, hrs) {
+    var W = D.world, S = W && W.state && W.state(), H = D.house, inHouse = !!(H && H.playing && S && S.t != null);
+    if (inHouse) { S.t += hrs; W.save(); } else B.roam.hour = (((M.hourNow(D.roam.q, B) + hrs) % 24) + 24) % 24;
+    return inHouse && H.lightsOut ? H.lightsOut(B) : [];
+  };
+  // an hour's short rest where the party stands (a bunk, the crews' fire): the clock an hour on, the rest, the floor laid for the hour -- the lines to say
+  M.shortRestHere = function (B) { var lo = M.clockOn(B, 1), ls = D.house.shortRestOnFloor(B), ln = M.lightNow(B); return ls.concat(lo, ln ? [ln] : []); };
 
   // ---------------------------------------------------------------- THE GLOWSEEP (10-21 night, Griz to the desk, on the top levels seat's five leans: "Go on the Glowseep - run with
   // its leans for all, including the time-slowing but that might be adjusted. Thematically correct"; his first word on it, "he hung out with them where they worked and they walked
@@ -1082,8 +1107,12 @@
   // the crews' fire (his "watch-less camp location"): a long rest with no watch, free -- the house's night (M.sleep), and the light the morning brings. One box (10-27, his eye
   // on it: "Use a campfire where you're waiting for an NPC portrait and "the Veterans keep Watch" is cleaner version on the sleep text box. Call sleep long rest. 'ok' box is
   // superlative"): the fire in the portrait's place (M.firePic), his words over LONG REST and LEAVE, and no box before them to OK
+  // (and a SHORT REST beside it -- 11-05, the rests-and-waits seat, the lanes desk's lean 3 on Griz's "please to all leans": his 11-05 note at the Glowseep, verbatim, "no 'wait'
+  // menu short rest, no short rest option on the campfire", and the Tuesday notes' 27, "Short Rest - Tents being required is excessive ... Additional opportunities, as an
+  // option at Glowseep campfire for one": an hour by the fire, the hit dice spent, said on the fire's own screen; the hours on both choices, his "bunk cost how many hours?")
+  M.LINES.seep.short = 'An hour by the crews\' fire, boots to the coals. The Veterans keep Watch.';
   M.seepFire = function* (B) {
-    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { return (yield sc.ask(M.LINES.seep.fire, ['LONG REST', 'LEAVE'])) === 0; })(); }, 'The crews\' fire', M.firePic);
+    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { var a = yield sc.ask(M.LINES.seep.fire, ['LONG REST, ' + M.SEEP.restHours + ' HOURS', 'SHORT REST, AN HOUR', 'LEAVE']); if (a === 1) yield sc.say([M.LINES.seep.short].concat(M.shortRestHere(B))); return a === 0; })(); }, 'The crews\' fire', M.firePic);
     if (!go) return;
     B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
     // a long rest by the clock (10-27, his "sleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time"): the SRD's eight hours on THE WORLD's

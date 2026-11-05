@@ -522,12 +522,11 @@
     if (D.roam.house() && D.house.playing && S) { D.house.fromFloor(B); S.t += hour - now; W.save(); } else B.roam.hour = hour;
     M.lightNow(B);
   };
-  // a short rest at the inn: an hour by the fire, the hit dice spent (js/house.js H.shortRest)
+  // a short rest at the inn: an hour by the fire, the hit dice spent -- the house's one short rest on a floor since 11-05 (js/house.js H.shortRestOnFloor)
   In.shortRest = function (B) {
-    var H = D.house, W = D.world, house = !!(D.roam.house() && H.playing), sheets, lines;
-    if (house) { H.fromFloor(B); var S = W.state(); S.t += In.REST.shortHours; W.save(); sheets = H.cur.party; } else { B.roam.hour = (In.hourOf(B) + In.REST.shortHours) % 24; sheets = In.sheetsOf(B); }
-    lines = H.shortRest(sheets.filter(function (h) { return !h.dead; }));
-    In.resheet(B, sheets); M.lightNow(B);
+    var H = D.house, W = D.world, house = !!(D.roam.house() && H.playing);
+    if (house) { var S = W.state(); S.t += In.REST.shortHours; W.save(); } else B.roam.hour = (In.hourOf(B) + In.REST.shortHours) % 24;
+    var lines = H.shortRestOnFloor(B); M.lightNow(B);
     return lines;
   };
   // a room asked for (the inn lady's, or Doran's after the second act): by the hour -- 'meal' (the first supper, THE MEAL's own screen next), 'dinner', 'bed', or false; the
