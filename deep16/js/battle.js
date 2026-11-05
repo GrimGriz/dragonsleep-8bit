@@ -588,6 +588,14 @@
     };
     return b;
   };
+  // THE YIELDED SIT (11-05, Griz: "Yes, sit them", on the Waterby cutter's lean): a fight ended `yielded`, the one who gave up -- a foe who `yields`, standing at half or under
+  // (Battle.over's own test) -- sits on its sheet's Sit row: Gennet on the path and at the poison dinner, Doran at the dinner (gennet_p2, doran_p2). One with no Sit row stays as
+  // it was. Called where each fight ends that way: Battle.finish (a fight of its own) and js/roam.js R.after (a floor's: the second act's). -> how many sat
+  Battle.sitYielded = function (B) {
+    var n = 0;
+    (B && B.units || []).forEach(function (u) { if (u.side === 'foe' && u.yields && !u.dead && u.hp > 0 && u.hp <= u.maxhp / 2 && D.spr.anim(u.sheet, 'sit')) { u.anim = 'sit'; u.animT = B.t; n++; } });
+    return n;
+  };
   // the VICTORY panel's request from a fight's pay lines (theirs start with the head, '{y}Victory!{/}' or '{y}What fell{/}'): null when there is no pay to show (js/ui.js victory)
   Battle.victoryOf = function (paid) {
     paid = [].concat(paid || []).filter(Boolean); if (!paid.length) return null;
@@ -1068,6 +1076,7 @@
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
     if (o === 'won') this.units.forEach(function (u) { if (u.side === 'party' && !u.dead && u.hp > 0 && D.spr.anim(u.sheet, 'victory')) { u.anim = 'victory'; u.animT = this.t; } }, this); // (a sheet's Victory row, once, the fight won: Aurdin's ART-72, 10-18)
+    if (o === 'yielded') Battle.sitYielded(this); // (the one who gave up sits on its Sit row: Battle.sitYielded, 11-05)
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
     // the roost coming down as a picture on the grid (torchdark 09-28; the 8-bit's swarm() the model): the ceiling lets go over the
     // iso map, the shake every ten frames, then the hand-off to the 8-bit game's RoostFail as before

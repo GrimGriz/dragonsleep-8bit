@@ -1798,6 +1798,7 @@
     var still = (foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.summon; }); // (a foe's summoning goes with the fight)
     B.units = B.units.filter(function (u) { return u.side === 'party' ? !u.summon && !u.object : !u.dead && u.hp > 0 && !(u.summon && foes && foes.indexOf(u) >= 0); });
     B.units.forEach(function (u) { delete u.roamAside; });
+    if (o === 'yielded' && D.Battle.sitYielded) D.Battle.sitYielded(B); // (the one who gave up sits on its Sit row as the floor's fight ends: Gennet on the path and at the poison dinner, Doran at the dinner -- js/battle.js Battle.sitYielded, 11-05, Griz: "Yes, sit them")
     // the fight's own state off the four as it ends (the 8-bit's finish: "clear battle-only state" -- 10-14, his "handoff issues between fight and out of fight"): a spell held
     // ends, and of the conditions only what lasts stays (R.lasting: Mage Armor, the day's Darkvision, a Continual Flame, Aid) -- prone, poisoned, blessed and the rest do not walk on
     R0.members.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'the fight is over'); });

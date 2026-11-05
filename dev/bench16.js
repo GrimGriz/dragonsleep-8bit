@@ -10541,7 +10541,8 @@
   }
   // THE WATERBYS' FIGURES, 11-05 (mode=waterby1105; tools/doran-sheet.py, tools/gennet-sheet.py, js/counter.js C.FIG, js/inn.js In.unit, data/foes.js gennet and doran,
   // js/secondact.js A.offerGennet -- the Waterby cutter, on Griz's "We got art for the waterby inkeeps in Fresh"): the art desk's HALFWAY-INN-DORAN- and -GENNET-TOWN and -COMBAT
-  // (art-wanted 35) cut all round; worn on the inn's floor by day and evening, by the scenes' own figures (the yard, the due's walk), in every fight with them; Gennet sits as the offering
+  // (art-wanted 35) cut all round; worn on the inn's floor by day and evening, by the scenes' own figures (the yard, the due's walk), in every fight with them; Gennet sits as the offering;
+  // and (later 11-05, his "Yes, sit them") a fight ended `yielded` sits the one who gave up on its Sit row (js/battle.js Battle.sitYielded, from Battle.finish and js/roam.js R.after)
   if (get('mode', '') === 'waterby1105') {
     var repWb = { checks: [], errors: [] }, memWb = {}, stGWb = D.store.get, stSWb = D.store.set, CWb = D.counter, RWb = D.roam, InW = D.inn, AWb = D.secondact;
     function okWb(what, v) { repWb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -10572,6 +10573,22 @@
       var gO = InW.unit(Be, { id: 'gennetPath', kind: 'gennet', at: [20, 20], name: 'Gennet', face: [1, 0], foe: true, lantern: true }), YO = { gennet: gO }, coO = AWb.offerGennet(Be, YO); coO.next();
       okWb('the nearest offering: Gennet on the path in ' + gO.sheet + ', her anim ' + gO.anim + ', the lantern lit ' + !!gO.torch, gO.sheet === 'gennet_p2' && gO.anim === 'sit' && !!gO.torch);
       InW.gone(Be, gO); D.scenes.length = 0;
+      // 6. THE YIELDED SIT (11-05, Griz: "Yes, sit them"): a fight ended `yielded`, the one who gave up sits on its Sit row; one with no Sit row, one still above half, the party: as they were
+      var BS = D.Battle.sitYielded, mkS = function (sheet, hp, max, side, yields) { return { sheet: sheet, hp: hp, maxhp: max, side: side || 'foe', yields: yields !== false, anim: 'idle', animT: 0, conds: {} }; };
+      var cS = { gen: mkS('gennet_p2', 16, 33), dor: mkS('doran_p2', 2, 4), plain: mkS('folkman_p1', 2, 4), up: mkS('gennet_p2', 30, 33), hero: mkS('gennet_p2', 5, 33, 'party'), nos: mkS('doran_p2', 2, 4, 'foe', false) };
+      var nS = BS ? BS({ t: 77, units: Object.keys(cS).map(function (k) { return cS[k]; }) }) : -1;
+      okWb('Battle.sitYielded (' + (BS ? 'there' : 'MISSING') + ', ' + nS + ' sat): Gennet at half ' + cS.gen.anim + ', Doran at half ' + cS.dor.anim + '; no Sit row ' + cS.plain.anim + ', above half ' + cS.up.anim + ', the party ' + cS.hero.anim + ', not a yielder ' + cS.nos.anim,
+        nS === 2 && cS.gen.anim === 'sit' && cS.gen.animT === 77 && cS.dor.anim === 'sit' && cS.plain.anim === 'idle' && cS.up.anim === 'idle' && cS.hero.anim === 'idle' && cS.nos.anim === 'idle');
+      // the floor's fight ended that way (js/roam.js R.after: the path, the poison dinner) -- Gennet yielded at half on the inn's floor sits through the gather; and a fight of its own (Battle.finish) calls it
+      var Bf = floorWb('?roam=halfway&hour=23&day=15&at=24,17'), gF = InW.unit(Bf, { id: 'gennetPath', kind: 'gennet', at: [30, 18], name: 'Gennet', face: [-1, 0], foe: true }), dF = InW.unit(Bf, { id: 'doranSup', kind: 'doran', at: [32, 18], name: 'Doran Waterby', face: [-1, 0], foe: true });
+      gF.yields = true; dF.yields = true; gF.hp = Math.floor(gF.maxhp / 2); dF.hp = dF.maxhp;
+      var coF = RWb.after(Bf, 'yielded', { foes: [gF, dF] }, [gF, dF]), kF = 0, stF; try { while (kF++ < 600) { stF = coF.next(); if (stF.done) break; } } catch (eF) { repWb.errors.push('R.after: ' + String(eF).slice(0, 200)); }
+      // a fight of its own (Battle.finish, through the inn's wrapper): driven to its first beat on a bare fight -- Gennet at half sits, as on the floor
+      var gB = mkS('gennet_p2', 16, 33), fB = { t: 9, units: [gB], riders: [], fight: {}, o: {}, result: null, rideSync: function () {}, card: function () {}, logOnly: function () {}, alive: function () { return []; } }, finB = '';
+      try { var coB = D.Battle.prototype.finish.call(fB, 'yielded'); for (var kB = 0; kB < 3 && gB.anim !== 'sit'; kB++) { if (coB.next().done) break; } } catch (eB) { finB = String(eB).slice(0, 160); }
+      okWb('the floor\'s fight ended yielded (R.after, ' + kF + ' steps): Gennet at half ' + gF.anim + ', Doran still up ' + dF.anim + ' (he did not yield); a fight of its own ended yielded (Battle.finish): Gennet ' + gB.anim + (finB ? ' -- ' + finB : ''),
+        gF.anim === 'sit' && Bf.units.indexOf(gF) >= 0 && dF.anim !== 'sit' && gB.anim === 'sit');
+      D.scenes.length = 0;
     } catch (eWb) { repWb.errors.push(String(eWb && eWb.stack || eWb).slice(0, 900)); }
     D.store.get = stGWb; D.store.set = stSWb;
     var preWb = document.createElement('pre'); preWb.id = 'out'; preWb.textContent = 'BENCH16 ' + JSON.stringify(repWb);
