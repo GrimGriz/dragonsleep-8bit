@@ -2340,7 +2340,7 @@
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && !Y6.orrin && !Y6.pell && [Y6.kid].every(function (u) { return u.bystander && u.look; })); // (the boys stay in, 11-05: his "I don't think she'd bring the boys out")
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 13 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 15 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
       HAc.playing = false; HAc.cur = null;
     } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
     HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
@@ -2537,6 +2537,25 @@
       var f21b = B21.roam.flags;
       okWn('the goblin in the barn: in the stall day 13 ' + on21 + ', the due\'s day ' + on21b + ', before the wagon ' + on21c + '; "' + w21.join(' / ').slice(0, 420) + '" [' + ask21 + '] [' + ask21b + '] -- seen ' + f21b.glamourBroken + ', freed ' + f21b.barnFreed + ', the offering ' + Iq.offering(f21b, 0) + ', the stall ' + Iq.barnGoblinOn(f21b, 13),
         on21 && on21b && !on21c && /a goblin, small, its knees drawn up/.test(w21.join(' ')) && /A goblin, chained in the inn's barn/.test(ask21) && /a farm chain/.test(ask21b) && /a child's wrist under the chain/.test(w21.join(' ')) && /A child sits chained in the stall/.test(w21.join(' ')) && /she takes a hand and holds on\. The due has no offering now\./.test(w21.join(' ')) && f21b.glamourBroken === 1 && f21b.barnFreed === 1 && Iq.offering(f21b, 0) === 'none' && !Iq.barnGoblinOn(f21b, 13));
+      // 22. THE POISON DINNER, SOME ASLEEP (RULED 11-05, his "Fight inside to submission and doran confesses about the lake monster and leads them out back"): the due's night with no
+      // offering (the wagon stopped south of the inn), a room with supper; the tells out of reach, the dice pinned -- the first to eat fails, the rest make it; the fight in the common
+      // room (Gennet at 17 of 33, Doran made sturdy so her yield ends it), Doran's confession and his bucket, out back to the stone, the rise (the chuul and its frog at two)
+      var P0 = { taste: AWn.POISON.taste, watch: AWn.POISON.watch }; AWn.POISON.taste = 99; AWn.POISON.watch = 99;
+      var poisonQ = '?roam=halfway&hour=18&day=' + InWn.dueDay(0) + '&at=24,17&flags=reachedInn,mealHad,gennetNamed,katGone', poisonF = { wagonCycle: 0, wagonOutcome: 'road', dueOffC: 0, dueOff: 'none' };
+      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; if (o.kind === 'gennet') u.hp = 17; if (o.kind === 'doran') { u.hp = u.maxhp = 40; } return u; };
+      var B22 = stageWn(poisonQ, poisonF); B22.roam.silver = 30; atWn(B22, 24, 17, [0, -1]); InWn.pinned = [2, 19, 19, 19];
+      var o22 = flowWn(B22, [0]), f22 = B22.roam.flags; InWn.pinned = null;
+      okWn('the poison dinner, one asleep: ' + sl(o22, /Supper at the long table: lake fish/, 1700) + ' -- the fight ' + f22.poisonFight + ', confessed ' + f22.doranConfessed + ', the lake done ' + f22.lakeDone,
+        /Supper at the long table: lake fish, a stew/.test(o22) && /go down at the table, face to the boards/.test(o22) && /The rest of you are up/.test(o22) && (o22.match(/INITIATIVE/g) || []).length >= 2 && /There's a thing in the lake\. It was there before the inn/.test(o22) && /throws it over whoever still sleeps/.test(o22) && /I'll show you the stone/.test(o22) && /Doran stops at the path's head with the shore-lantern\. The inn lady stays by the fire\./.test(o22) && /It comes halfway up/.test(o22) && /The deep is only water now/.test(o22) && f22.poisonFight === 1 && f22.doranConfessed === 1 && f22.lakeDone === 1);
+      // 23. ...ALL ASLEEP (his "if they all fail have the successes they make during the x minutes we suppose it would take to drag the whole party out there count as a bonus to the save
+      // when they're all out there"): the four fail at the table; the drag's five saves each (the first makes three: +3); on the stone, as the water heaves, the first wakes on the bonus,
+      // the rest sleep on; the fight
+      var B23 = stageWn(poisonQ, poisonF); B23.roam.silver = 30; atWn(B23, 24, 17, [0, -1]);
+      InWn.pinned = [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2];
+      var o23 = flowWn(B23, [0]), f23 = B23.roam.flags; InWn.pinned = null; InWn.unit = unit0Wn; AWn.POISON.taste = P0.taste; AWn.POISON.watch = P0.watch;
+      var tr23 = ((HWn.cur && HWn.cur.trail) || []).length;
+      okWn('the poison dinner, all asleep: ' + sl(o23, /The table tilts away/, 1300) + ' -- the drag ' + f23.poisonDrag + ', taken ' + (f23.poisonTaken || 'none') + ', the lake done ' + f23.lakeDone + ' (firstOnly ' + AWn.POISON.firstOnly + ')',
+        /The table tilts away/.test(o23) && !/go down at the table/.test(o23) && /Wet stone under your cheek/.test(o23) && /come awake on the stone/.test(o23) && /It comes halfway up/.test(o23) && /INITIATIVE/.test(o23) && /The deep is only water now/.test(o23) && f23.poisonDrag === 1 && f23.lakeDone === 1 && !f23.poisonTaken && AWn.POISON.firstOnly === false);
     } catch (eWn) { repWn.errors.push(String(eWn && eWn.stack || eWn).slice(0, 900)); }
     InWn.unit = unit0Wn; HWn.playing = false; HWn.cur = null; if (InWn) { InWn.stay = false; InWn.pinned = null; }
     D.store.get = stGWn; D.store.set = stSWn; D.music = muWn;
