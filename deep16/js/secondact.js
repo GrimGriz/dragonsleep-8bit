@@ -75,6 +75,24 @@
     dueWoke: 'Something wakes you: low singing, somewhere in the house. Two boys\' voices under a woman\'s.',
     mornDue: 'Morning. The inn lady hums at the stove. Out on the point the lantern hangs cold on its post.',
     mornDueKept: 'Morning. The inn lady hums at the stove. Out back, nobody is skipping stones.',
+    // (the poison dinner, 11-05: invented.json halfway-poison-dinner-1105)
+    poisonSupper: 'Supper at the long table: lake fish, a stew, the inn lady\'s bread. Doran pours, and the bowls go round.',
+    poisonTaste: '{c}(medicine){/} {name} tastes it before the second spoonful: a bitterness under the fish. {name} puts the spoon down.',
+    poisonWatch: '{c}(insight){/} {name} sees the inn lady fill every bowl but her own, and says so.',
+    poisonNothing: 'Supper ends. Nobody feels a thing they would put a name to. The house goes to bed.',
+    poisonDrop: '{names} go down at the table, face to the boards, breathing slow.',
+    poisonRise: 'The rest of you are up, and the inn lady\'s chair goes back.',
+    poisonNoConfess: 'Nobody in the house says anything after. Out back the lantern post stands unlit.',
+    confess1: '{y}Doran Waterby{/} sets the woodaxe down on the table. "There\'s a thing in the lake. It was there before the inn. Every month it\'s fed, and every month the lake gives back -- the fish, the old coin, her."',
+    confess2: 'He does not look at the inn lady. "Tonight was the night. You were tonight."',
+    confessBucket: 'He takes the bucket from the hearth and throws it over whoever still sleeps.',
+    confess3: '"It comes up anyway. It always comes up. If you mean to stop it, come out back. I\'ll show you the stone."',
+    confessLead: 'Doran stops at the path\'s head with the shore-lantern. The inn lady stays by the fire.',
+    poisonAll: 'The table tilts away. The last thing: the inn lady\'s hand taking the spoon out of yours.',
+    dragStone: 'Cold. Wet stone under your cheek, and the lake\'s breath. The lantern is at the path\'s head, and two shapes stand by it.',
+    dragWake: '{names} come awake on the stone.',
+    dragTaken: 'It takes {name} off the stone, and the water closes. The cold of it wakes the rest of you.',
+    mornPoison: 'Morning. Doran Waterby at the counter, the bucket by his boots. The inn lady keeps to the kitchen.',
     // (the nearest offering, 11-05: invented.json halfway-nearest-offering-1105)
     withChild: 'The child\'s hand is in yours. Behind you on the path the inn lady sits by her lantern, and has not moved.',
     inside: 'In through the lake door with the child. From the doorway: the inn lady is still on the path, the lantern beside her. The water off the point heaves.',
@@ -148,13 +166,106 @@
     }
     yield* A.dueMorning(B, off);
   };
-  A.poisonNight = function* (B, d) { // (the poison dinner -- built next, his design RULED 11-05; till then the lake unfed and the night slept)
-    var f = B.roam.flags; f.dueUnfed = In.dueCycle(d); A.trail('the due night with no offering: the lake unfed');
-    yield* In.sleep(B);
+  // ---------------------------------------------------------------- THE POISON DINNER (RULED 11-05, Griz: "a poison dinner (likely fight) if they interrupt the wagon before it gets there and happen
+  // to be there on sacrifice night"; "something like a sleep vs con save thing where if they don't all fail the con save, the ones that do fail it trigger the suspicion of the others, if
+  // they do the first one to make a con save and they wake up having been drug out to the sacrifice rock"; "if they all fail have the successes they make during the x minutes we suppose
+  // it would take to drag the whole party out there count as a bonus to the save when they're all out there (sleep to fight outside vs fight inside)"; "Fight inside to submission and
+  // doran confesses about the lake monster and leads them out back"; "go with those leans"). No offering on the due's night and the party at supper: a mundane sleeping draught in the
+  // stew, a CON save each at DC 13. The tells, each hero's own silent read: Medicine 13 tastes it (that one does not eat), Insight 15 sees the inn lady fill every bowl but her own (the
+  // rest save with advantage). Some asleep, or a tell: the fight in the common room to submission (the first yield ends it), Doran's confession, his bucket over the sleepers, and he
+  // leads them out back to the stone -- the rise, the fight at the shore; Gennet stays by the fire. All asleep: the drag, ten minutes, a save every two (+1 a success), then on the
+  // stone each saves with its bonus as the water heaves and again each round; who makes it wakes (POISON.firstOnly: only the first of them, his question open); three rounds with
+  // nobody awake and it takes one. No supper, no tell and nobody asleep: the lake goes unfed. The seat's drafts: invented.json halfway-poison-dinner-1105
+  A.POISON = { dc: 13, taste: 13, watch: 15, dragMin: 10, dragEvery: 2, perSuccess: 1, cut: 3, firstOnly: false };
+  A.poisonSave = function (u, bonus, adv) { var h = u.src || u, r = In.d20(), r2 = adv ? In.d20() : null, roll = adv ? Math.max(r, r2) : r, b = DS.R.saveBonus(h, 'con') + (bonus || 0), ok = roll + b >= A.POISON.dc; In.trail((h.name || u.name) + ' CON save ' + (adv ? '[' + r + ',' + r2 + ']>' : '') + roll + ' + ' + b + ' vs DC ' + A.POISON.dc + ' (the draught)' + (ok ? ', made' : ', failed')); return ok; };
+  A.passive = function (u, skill, ab) { return 10 + DS.R.skill(u.src || u, skill, ab); };
+  A.poisonNight = function* (B, d) {
+    var Rm = R(), R0 = B.roam, f = R0.flags, c = In.dueCycle(d), P = A.POISON, stay = R0.stay;
+    if (!stay || stay.kind !== 'dinner') { f.dueUnfed = c; A.trail('the due night with no offering, no supper: the lake unfed'); yield* In.sleep(B); return; }
+    f.poisonNight = c;
+    var party = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; });
+    var taster = party.filter(function (u) { return A.passive(u, 'Medicine', 'wis') >= P.taste; })[0] || null, watcher = party.filter(function (u) { return A.passive(u, 'Insight', 'wis') >= P.watch; })[0] || null;
+    In.stage(B, [24, 17], 'inn');
+    yield* In.card(B, [A.LINES.poisonSupper], 360);
+    if (taster) yield* In.card(B, [A.LINES.poisonTaste.split('{name}').join(taster.name)], 360);
+    if (watcher) yield* In.card(B, [A.LINES.poisonWatch.split('{name}').join(watcher.name)], 360);
+    var eaters = party.filter(function (u) { return u !== taster; }), asleep = eaters.filter(function (u) { return !A.poisonSave(u, 0, !!watcher); }), awake = party.filter(function (u) { return asleep.indexOf(u) < 0; });
+    A.trail('the poison dinner: ' + (asleep.map(function (u) { return u.name; }).join(', ') || 'nobody') + ' asleep' + (taster ? ', ' + taster.name + ' tasted it' : '') + (watcher ? ', ' + watcher.name + ' saw' : ''));
+    if (!asleep.length && !taster && !watcher) { f.dueUnfed = c; yield* In.card(B, [A.LINES.poisonNothing], 360); yield* In.sleep(B); return; }
+    if (!awake.length) { yield* A.drag(B, party); return; }
+    yield* A.supperFight(B, asleep, awake);
+  };
+  // some asleep: the sleepers drop at the table, the awake rise -- the fight in the common room to submission; Doran confesses and leads them out back
+  A.supperFight = function* (B, asleep, awake) {
+    var Rm = R(), R0 = B.roam, f = R0.flags, Y = {};
+    yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')), A.LINES.poisonRise], 420);
+    B.units.filter(function (u) { return u.npc === 'gennet' || u.npc === 'doranIn'; }).forEach(function (u) { In.gone(B, u); }); // (the two at the table, as foes now)
+    Y.gennet = In.unit(B, { id: 'gennetSup', kind: 'gennet', at: [24, 16], name: In.named(f), face: [0, 1], foe: true }); Y.gennet.yields = true; Y.gennet.flees = false;
+    Y.doran = In.unit(B, { id: 'doranSup', kind: 'doran', at: [26, 16], name: 'Doran Waterby', face: [0, 1], foe: true }); Y.doran.yields = true; Y.doran.flees = false;
+    asleep.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; });
+    f.poisonFight = 1; R0.fights++; R0.lastOutcome = null;
+    try { D.music('boss'); } catch (e) { }
+    yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null }, false, 'supper');
+    var o = R0.lastOutcome;
+    if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
+    var doranUp = A.standing(B, Y.doran);
+    if (!A.standing(B, Y.gennet)) f.gennetDead = 1; if (!doranUp) f.doranDead = 1;
+    A.clear(B, Y); In.lay(B, 'inn', true);
+    if (!doranUp) { yield* In.card(B, [A.LINES.poisonNoConfess], 420); f.dueUnfed = In.dueCycle(In.day(D.roam.q)); yield* A.dueMorning(B, 'none'); return; }
+    f.doranConfessed = 1; A.trail('Doran confesses: the thing in the lake');
+    yield* In.card(B, [A.LINES.confess1], 480);
+    yield* In.card(B, [A.LINES.confess2], 420);
+    R0.members.forEach(function (u) { if (u.conds && u.conds.asleep) { delete u.conds.asleep; delete u.conds.prone; } }); // (his bucket: everyone up)
+    yield* In.card(B, [A.LINES.confessBucket, A.LINES.confess3], 420);
+    In.passTo(B, A.DUE_HOUR);
+    yield* Rm.walkTo(B, A.PATH.head); yield* In.card(B, [A.LINES.confessLead], 360);
+    yield* Rm.walkTo(B, [A.STONE[0] - 2, A.STONE[1]]);
+    yield* A.rise(B, {}); // (cheated, at the shore: it fights, ring or not -- Gennet by the fire, no offering on the path)
+    if (A.wiped(B)) return;
+    yield* A.dueMorning(B, 'none');
+  };
+  // all asleep: the drag -- ten minutes of it, a save every two, each success +1 to the save at the stone; on the stone the rise, and the saves again each round
+  A.drag = function* (B, party) {
+    var R0 = B.roam, f = R0.flags, P = A.POISON, n = Math.round(P.dragMin / P.dragEvery), bonus = {};
+    yield* In.card(B, [A.LINES.poisonAll], 420);
+    party.forEach(function (u) { var s = 0; for (var i = 0; i < n; i++) if (A.poisonSave(u, 0, false)) s++; bonus[u.id] = s * P.perSuccess; });
+    A.trail('the drag: ' + party.map(function (u) { return u.name + ' +' + bonus[u.id]; }).join(', '));
+    f.poisonDrag = 1; In.passTo(B, A.DUE_HOUR);
+    var t = R0.token; t.x = A.STONE[0]; t.y = A.STONE[1]; t.tween = null; R0.path = null; In.lay(B, null, true);
+    yield* In.card(B, [A.LINES.dragStone], 420);
+    var Y = {}; yield* A.surface(B, Y);
+    party.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; });
+    var wake = function (Bf, why) { // (each sleeper's save with its bonus; who makes it wakes -- or only the first, P.firstOnly)
+      var woke = [];
+      party.forEach(function (u) { if (!u.conds || !u.conds.asleep || u.dead || u.hp <= 0) return; if ((!P.firstOnly || !woke.length) && A.poisonSave(u, bonus[u.id], false)) { delete u.conds.asleep; woke.push(u); } });
+      if (woke.length && Bf && Bf.card) Bf.card(D.roam.wrap([A.LINES.dragWake.split('{names}').join(woke.map(function (u) { return u.name; }).join(' and ')) + (why ? ' ' + why : '')]), 360);
+      return woke;
+    };
+    var first = wake(null, ''); // (as the water heaves: the first saves, the drag's bonus on them)
+    if (first.length) yield* In.card(B, [A.LINES.dragWake.split('{names}').join(first.map(function (u) { return u.name; }).join(' and '))], 360);
+    var turn0 = D.ai.turn, lastR = 0, quiet = 0, chuul = Y.chuul;
+    D.ai.turn = function* (Bf, u) {
+      if (u === chuul && Bf.round !== lastR) {
+        lastR = Bf.round; var up = party.some(function (w) { return w.hp > 0 && !w.dead && !(w.conds && w.conds.asleep); });
+        if (!up) { var w2 = wake(Bf, ''); up = w2.length > 0; }
+        if (!up) { quiet++; if (quiet >= P.cut) { // (three rounds, nobody up: it takes one, and the cold wakes the rest)
+          var near = party.filter(function (w) { return w.hp > 0 && !w.dead; }).sort(function (a, b) { return G.dist(chuul, a) - G.dist(chuul, b); })[0];
+          if (near) { near.hp = 0; near.dead = true; near.fled = true; near.deadT = Bf.t; f.poisonTaken = near.name; Bf.card(D.roam.wrap([A.LINES.dragTaken.split('{name}').join(near.name)]), 480); D.sfx('splash'); }
+          party.forEach(function (w) { if (w.conds && w.conds.asleep) delete w.conds.asleep; });
+        } }
+      }
+      yield* turn0.apply(this, arguments);
+    };
+    var o;
+    try { o = yield* A.meet(B, Y, A.hasRing(B)); } finally { D.ai.turn = turn0; }
+    if (o === 'lost' || A.wiped(B)) return;
+    A.clear(B, Y); yield* A.ends(B);
+    yield* A.dueMorning(B, 'none');
   };
   A.dueMorning = function* (B, off) {
     var f = B.roam.flags, st = D.counter.state(B);
-    var morning = A.morning(f) || (off === 'kept' ? A.LINES.mornDueKept : A.LINES.mornDue);
+    var morning = A.morning(f) || (f.poisonFight || f.poisonDrag ? A.LINES.mornPoison : off === 'kept' ? A.LINES.mornDueKept : A.LINES.mornDue);
+    if (f.poisonTaken && !f.poisonTakenSaid) { f.poisonTakenSaid = 1; morning = 'Morning. ' + f.poisonTaken + ' is not with you. ' + morning.replace(/^Morning\.\s*/, ''); } // (the drag's three rounds with nobody up: one taken)
     if ((f.duePaid || f.gennetTaken) && !f.lakeDone && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
     In.stage(B, [24, 17], 'inn');
     yield* In.sleep(B, morning);
@@ -463,6 +574,8 @@
     { id: 'risenoring', beat: 'rise', label: 'BEAT 4: the rise at the shore without the ring -- it fights (11-05)', note: 'The child taken, the party at the flat stone, no ring worn: the water off the point heaves, it comes halfway up -- "Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it." -- and the fight with its frog, the chuul as the SRD has it, no ring\'s rounds. Get clear of the water and it ends.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 } },
     { id: 'offerinside', beat: 'offer', label: 'THE NEAREST OFFERING: the child taken inside, the inn lady left on the path (11-05)', note: 'Gennet yielded and sitting on the path with her lantern, the child\'s hand in yours. TAKE HER INSIDE: up to the lake door -- the water off the point heaves behind you. GO BACK FOR HER: down to the stone, and it turns toward the one on the path, not you; shield her (stand between, kill it first) or it takes her and goes down with her -- then Doran lets you rooms and nobody cooks. LET THE LAKE HAVE HER: it comes up onto the path and takes her, the lantern into the water -- "You\'ll want the road."', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
     { id: 'offerwater', beat: 'offer', label: 'THE NEAREST OFFERING: STAY AT THE WATER, the inn lady its first target (11-05)', note: 'The same, STAY AT THE WATER: the party by the flat stone, the water heaves, and it goes for Gennet first -- "It does not turn toward you. It turns toward the one on the path: the nearest offering." The ring\'s rounds still turn it on the wearer (this beat: no ring).', flags: { wagonOutcome: 'inn', gennetYield: 1 }, water: true },
+    { id: 'poison', beat: 'poison', label: 'THE POISON DINNER: one asleep at the table, the fight inside, Doran\'s confession (11-05)', note: 'Day 15 at six, the wagon stopped on the road three days ago, so the Waterbys kept no child: supper is the draught. The tells are each hero\'s own (Medicine 13 tastes it, Insight 15 sees the inn lady not eat). The dice pinned: the first to eat fails the CON save (DC 13) and goes down at the table, the rest make it -- the fight in the common room to submission (the first yield ends it), then Doran: "There\'s a thing in the lake ..." -- his bucket over the sleepers, and he leads you out back to the stone: the rise, the fight at the shore.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 19, 19, 19] },
+    { id: 'poisonall', beat: 'poison', label: 'THE POISON DINNER: all asleep -- the drag, and awake on the stone (11-05)', note: 'The same supper, every save failed: the table tilts away. The drag, ten minutes, a save every two (the dice pinned: the first makes three of five, +3). On the stone as the water heaves, each saves again with its bonus: the first wakes, the rest sleep on -- shake them awake (HELP) while it comes up out of the deep; three rounds with nobody up and it takes one.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2] },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
     { id: 'ringwarm', beat: 'fork', label: 'THE RING WARM after the due: LET IT BE, then down to the point (11-05)', note: 'The yard won, the lead wearing the Ring of Binding (Winters gives it at the lead\'s 3rd). The fork: LET IT BE -- the lantern walks, only the inn lady comes back. Then "The ring on your hand is warm. Go down to the point." -- GO DOWN TO THE POINT: at the flat stone the water heaves, it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. BACK TO BED: the ring cold by morning.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19], ring: true },
     { id: 'standring', beat: 'path', label: 'STAND ASIDE with the ring on: the take, then the ring warm (11-05)', note: 'The path, the lead wearing the Ring of Binding. STAND ASIDE: the offering set on the flat stone, the take, the lantern back up the path alone -- then the ring warm: GO DOWN TO THE POINT, the fight; BACK TO BED, the morning.', flags: { wagonOutcome: 'inn' }, ring: true },
@@ -473,12 +586,13 @@
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
     rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled } }, bt.flags || {});
     if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
+    if (bt.beat === 'poison') { ['dueTonight', 'kidTaken', 'kidAtInn', 'glamourBroken', 'glamourSeen'].forEach(function (k) { delete rec.flags[k]; }); }
     if (bt.beat === 'boat') { ['wagonIn', 'dueTonight', 'kidTaken', 'kidAtInn', 'doranAway', 'wagonStopped'].forEach(function (k) { delete rec.flags[k]; }); } // (a day with no wagon: the rowboat's own)
     if (bt.ring) { var lead = rec.party[0]; if (lead && lead.equip) { lead.equip.ring = 'ringofbinding'; H.add(rec.inv, 'ringofbinding', 0); } }
-    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? (In.WAGON.first - 1) * 24 + 18 : (In.dueDay(0) - 1) * 24 + (bt.beat === 'boat' ? 14 - 24 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon before the due)
+    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? (In.WAGON.first - 1) * 24 + 18 : (In.dueDay(0) - 1) * 24 + (bt.beat === 'boat' ? 14 - 24 : bt.beat === 'poison' ? 18 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon before the due)
     In.pinned = bt.dice ? bt.dice.slice() : null;
-    var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
-    var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
+    var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'poison' ? [24, 17] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
+    var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' || bt.beat === 'poison' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
     D.push(nb);
   };
   A.show = function (q) { return new D.roam.WetShow(q, { kind: 'actshow', beats: A.BEATS, play: A.play, title: '{y}THE SECOND ACT, 11-04{/} -- the signs, the fork, the path, the fight, the rise, the wand (a show)' }); };
@@ -490,6 +604,7 @@
     else if (s.beat === 'path') { if (s.strike) A.strikeNext = true; yield* A.path(B); }
     else if (s.beat === 'rise') { var Y = {}; yield* A.rise(B, Y); }
     else if (s.beat === 'boat') { yield* A.sound(B); return; } // (the rowboat by day: the floor goes on after)
+    else if (s.beat === 'poison') { R0.stay = { t0: In.clock(B), hours: In.REST.dinnerHours, kind: 'dinner', long: true }; yield* A.poisonNight(B, In.day(D.roam.q)); return; } // (the poison dinner: a room with supper on the due's night, no offering)
     else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; yield* A.offerGennet(B, Yo); } // (Gennet yielded on the path, the child taken: the nearest offering)
     var mornA = A.morning(f);
     if (f.secondActDone) { var mornL = mornA || A.LINES.mornDueKept; if (f.duePaid && !f.lakeDone && In.has(D.counter.state(B), 'ringofbinding')) mornL = mornL + ' ' + L('wagon.ringCold'); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
