@@ -54,9 +54,9 @@
   { "id": "snoot", "name": "The Snoot's Young Blood", "show": "flag:heardSnoot|flag:reachedInn", "done": "flag:snootDone", "text": "Gnoll glory-seekers range south of the Halfway Inn. The challenge by day.", "doneText": "You held the road.",
     "steps": [ { "map": "world", "trig": "snoot", "where": "The road south of the Halfway Inn." } ],
     "src": "wiki/the-road.md; wiki/the-snoot.md" },
-  { "id": "ring", "name": "When You're Ready", "show": "flag:wintersMet|flag:heardWinters", "done": "has:ringofbinding", "text": "Ambrose Winters, Acquisitions & Estates, Fountain Street. Not ready, not yet. (He will be ready when the one who leads you reaches level 4.)", "doneText": "The Ring of Binding.",
-    "steps": [ { "map": "winters", "npc": "winters", "where": "Winters, once the one who leads you is level 4. Until then, ask him for work." } ],
-    "src": "handoff-2026-09-23 §4, §11-A" },
+  { "id": "ring", "name": "When You're Ready", "show": "flag:wintersMet|flag:heardWinters", "done": "has:ringofbinding", "text": "Ambrose Winters, Acquisitions & Estates, Fountain Street. Not ready, not yet. (He will be ready when the one who leads you reaches level 3.)", "doneText": "The Ring of Binding.",
+    "steps": [ { "map": "winters", "npc": "winters", "where": "Winters, once the one who leads you is level 3. Until then, ask him for work." } ],
+    "src": "handoff-2026-09-23 §4, §11-A; the second game's at level 3, RULED 10-29 (the difficulty, Griz: '1 - change Winters requirement'), 11-05 the journal seat" },
   { "id": "lake", "name": "What the Lake Keeps", "show": "flag:reachedInn|flag:heardLake", "done": "flag:lakeDone", "text": "The Halfway Inn, seventeen miles down the road. The Waterbys. The deep off the point.", "doneText": "The thing in the lake is dead.",
     "steps": [
       { "if": "!flag:reachedInn", "map": "halfway", "npc": "doranYard", "where": "The Halfway Inn: south from the fork, past Web Gulch, on the east side of the road." },

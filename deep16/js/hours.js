@@ -23,10 +23,16 @@
     // mysteriously shows up in your journal ... Mission text says from warren's pete - should get from warrens pete, or with dialogue from Edric. Both should point to ask Skarn
     // step": it opens on words only -- Pete's, Edric's own telling as he books you, or Skarn's work past the pens (js/mines.js; fiveBy: who told it) -- never on the booking
     // alone; its words say who told it; Pete's goes to Edric, then Skarn, Edric's and Skarn's on from there -- the Edric step till the book is signed, which since 10-29 always tells the five)
-    { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:heardFive', done: 'flag:fiveDone',
-      text: function (st) { return H16.FIVE_BY[st.flags.fiveBy] || H16.FIVE_BY.pete; },
-      doneText: 'The five came back up. Edric wrote their return lines.',
-      steps: [{ 'if': 'has:fivetokens', map: 'warrens_a', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
+    // (11-05, the journal seat: Skarn's payout a step of its own -- Griz on live, 11-05: "nothing would have let me know to talk to the gate guy again for more reward?", and the
+    // desk's lean, his "7 - add step to journal quest": after Edric's book, Skarn at the mouth camp, the office box; done when he has paid, or when the stock is dead and there is
+    // nothing in the box for it (js/mines.js M.SCENES.skarn). The pay said in the mission's own words -- RULED 10-31, Tuesday 7, his "Skarn split to be included in mission
+    // giving text more explicitly": H16.FIVE_PAY. `key`: a step that flies into the JOURNAL as it comes (RULED 10-31, Tuesday 6, his "a, like add flag that some missions will
+    // have a key step and key step handling?" -- H16.keyCard, below)
+    { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:heardFive', done: 'flag:fiveDone & flag:skarnPaid|flag:fiveDone & flag:stockDead',
+      text: function (st) { return (H16.FIVE_BY[st.flags.fiveBy] || H16.FIVE_BY.pete) + ' ' + H16.FIVE_PAY; },
+      doneText: 'The five came back up. Edric wrote their return lines, and Skarn heard it out at the office box.',
+      steps: [{ 'if': 'flag:fiveDone', key: 'paid', map: 'warrens_a', npc: 'skarn', where: 'Skarn, the Warrener, at the mouth camp: Edric\'s book is closed, and the office box pays sixty silver more for the five while the crawlers in the Wet are alive. Talk to him.' },
+        { 'if': 'has:fivetokens', key: 'gear', map: 'warrens_a', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
         { 'if': '!flag:tallyMet & !flag:skarnOk', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
         { 'if': '!flag:skarnOk', map: 'warrens_a', npc: 'skarn', where: 'Skarn, the Warrener, at the mouth camp: ask him about the five, and he opens his gate.' },
         { 'if': '!flag:fiveRecovered', map: 'warrens_d', trig: 'stair', where: 'The flooded stair past the wet: through Skarn\'s gate, up the drift, the daytime way down. Bring rope.' },
@@ -41,23 +47,25 @@
         { site: 'mouth', where: 'The dens, down past the working gallery. Listen for Old Wynn\'s rattle.' }] },
     { id: 'tail', show: 'flag:heardCloaker', done: 'flag:cloakerDone',
       text: 'Forty gold on Hessle\'s board for the cloaker in the guano mine\'s deep gallery. Nobody has ever collected. Bright light is its weakness.',
-      steps: [{ 'if': 'has:cloakertail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
+      steps: [{ 'if': 'has:cloakertail', key: 'tail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
         { site: 'mouth', where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
     // THE BRAIDING ETTERCAP (10-29, the story window, RULED on Griz's "Leans stand": a paper on Hessle's board is a mission once its ground is built -- his 10-28 "16 yes" -- and
     // Web Gulch's was, 10-28, js/gulch.js): the board read, the rumour, or the council's ask at a name made (H16.COUNCIL.looks) opens it; done when its fangs are paid at the scales
     { id: 'ettercap', name: 'The Braiding Ettercap', show: 'flag:heardEttercap', done: 'flag:ettercapDone',
       text: 'Forty gold on Hessle\'s board, and ten more since it snared a lad: an ettercap strung across Web Gulch, on the road south out of Silverton. Bring its fangs to the Weigh-House.',
-      steps: [{ 'if': 'has:ettercapfangs', door: 'hessle', where: 'Take the fangs to Hessle at the Weigh-House, on Fountain Street.' },
+      steps: [{ 'if': 'has:ettercapfangs', key: 'fangs', door: 'hessle', where: 'Take the fangs to Hessle at the Weigh-House, on Fountain Street.' },
         { site: 'webgulch', where: 'Web Gulch, on the road south: out of Silverton by the east gate, then down the road on THE WORLD past the fork. The ettercap braids at the strung end, up a side gully off the west bank.' }] },
     // CORWEN DACE (10-28, the deep gallery seat: his escort, js/mines.js THE DEEP GALLERY) -- open while he walks with the party, done when he is home with his thanks given
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
       doneText: 'Dace climbed back up to the house to tell it everything.',
       steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His staff lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
-        { site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
+        { key: 'killed', site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',
-      steps: [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' }] },
+      // (11-05, the journal seat: the next bout on the card and its stake, not one fixed step -- the to-do's gap, the desk's "Fight Night's step names the next bout and the
+      // stake"; js/hex.js HX.CARD, each bout opening the next)
+      steps: function (st) { var nx = H16.nextBout(st); return [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' + (nx ? ' Next on the card: ' + H16.BOUT_WORDS[nx.id] + ' -- ' + (nx.stake ? nx.stake + ' silver in, ' + nx.win + ' if you win.' : 'no stake; ' + nx.win + ' silver to the one left standing.') : '') }]; } },
     // THE COUNCIL SENDS FOR YOU (10-29 night, Griz on Papa's runner: "should put a quest in your journal to guide you to the third floor"): opened by the runner and pinned
     // (H16.runner), done when the party is up the spiral and the council sits for them (C2, councilSeen); the marker on the Hex's front doors, inside on the spiral up (hex3:
     // H16.pinSq). The words the story seat's draft, invented.json council-summons-1029
@@ -82,7 +90,15 @@
     doneText: 'Work found. Its own line is in the JOURNAL.',
     steps: function (st) { return H16.workHeard(st).map(function (w) { return w.step; }); } });
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
-  C.QUESTS = ['company', 'council', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'nedpage'];
+  // (WHEN YOU'RE READY, Winters' ring, in the list since 11-05 -- content/quests.json `ring`, the second game's own content/ since the freeze, at the lead's 3rd level: RULED 10-29,
+  // the difficulty, his "1 - change Winters requirement". Its Winters scene is not built yet: the Halfway Inn lane's item 8)
+  C.QUESTS = ['company', 'council', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'ring', 'nedpage'];
+  // the next bout on Korvin's slate (js/hex.js HX.CARD: each opens the next; the first not yet won) and its words for Fight Night's step
+  H16.nextBout = function (st) { var f = st.flags, HX = D.hex; return HX && HX.CARD ? HX.CARD.filter(function (c) { return (!c.need || f[c.need]) && !f['hex:' + c.id]; })[0] || null : null; };
+  H16.BOUT_WORDS = { brawl: 'the brawl in the small sand', freeman: 'the Freeman Challenge, a stable\'s fighter', card: 'the card, a hired blade', talmok: 'Talmok, the champion', festival: 'the festival\'s visiting barbarian' };
+  // the Five's pay, said in the mission's words (RULED 10-31, Tuesday 7, his "Skarn split to be included in mission giving text more explicitly"; the deal js/mines.js: Edric's 50
+  // and the Grease page, Skarn's 60 only while the stock lives -- wiki the-warrens.md). The seat's draft, invented.json five-pay-split-1105
+  H16.FIVE_PAY = 'The pay comes from two purses: Edric pays fifty silver to close his book, with a page Pete pledged against his tally; Skarn pays sixty more from the Warrens\' office box, so long as the crawlers down in the Wet, the Warrens\' stock, are left alive.';
   // The Missing Five's words by who told it (js/mines.js fiveBy; Pete's when the town's word or the rumour opened it). The window's drafts, invented.json warrens-five-words-1029
   H16.FIVE_BY = {
     pete: 'Warrens Pete says six went down past the wet in the Crawler Warrens, and six came up. He says six too fast. The tally-house book has five names with no return line.',
@@ -125,7 +141,11 @@
     if (tr) { var r = tr.rect, my = r[1] + Math.floor(((r[3] || 1) - 1) / 2); return def.from8 ? def.from8(r[0], my) : [r[0], my]; } // (the Wet's stair by its middle, turned onto the grid)
     var toW = /^warrens/.test(s.map || '') || s.npc === 'edric' || s.npc === 'skarn' || !!s.trig && /^pen/.test(s.trig);
     if (def.key === 'silverton' && !def.room && toW && D.mines && D.mines.FEED && !def.cut) return D.mines.FEED.slice();
-    if (def.key === 'warrens' && !toW && (s.door || s.npc)) { var g = D.mines && D.mines.FLOORS && D.mines.FLOORS.warrens.gates.feed; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
+    // (a step out on THE WORLD -- the Cull's dens, the ettercap's gulch, the Glowseep's bog -- on Silverton's street: the gate it lies beyond; 11-05, Tuesday 31, his "either having
+    // the cull pinned isn't giving me an arrow to leave silverton or i'm missing it")
+    var gk = s.site && H16.GATE_TO[s.site]; if (def.key === 'silverton' && !def.room && !toW && gk && def.marks && def.marks.gates && def.marks.gates[gk]) return def.marks.gates[gk].slice();
+    // (a step in town, or out on THE WORLD -- the camp has no gate onto it: the feed track back to town first)
+    if (def.key === 'warrens' && !toW && (s.door || s.npc || s.site)) { var g = D.mines && D.mines.FLOORS && D.mines.FLOORS.warrens.gates.feed; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
     if (s.map && id8 && s.map !== id8) return H16.wayTo(B, s.map); // (another floor below: the way there)
     return null;
   };
@@ -161,6 +181,10 @@
   // its person or its door is in -- the Warrens' floors and Edric, Skarn and the pens the mouth camp's; the guano mine's its mouth; anyone behind a town door Silverton. Drawn
   // over that place on the hex view by js/world.js (the gold marker the floors draw: C.paintPin), held at the screen's edge, pointing, when it is off it
   H16.SITE_OF = { edric: 'warrens', skarn: 'warrens', hob: 'warrens', sabeth: 'mouth', wynn: 'mouth', ottilie: 'mouth' };
+  // the gate of Silverton a place on THE WORLD lies beyond, for the street's arrow (H16.pinSq; the missions' own words: "out of Silverton by the west gate" for the guano mine, "by
+  // the east gate, then down the road on THE WORLD past the fork" for Web Gulch -- the east gate's road leaves south-south-east, js/world.js W.DOORS; the Glowseep's bog beside that
+  // fork). dev/bench16.js mode=journal1105 holds each gate to facing its place on the world map (within 60 degrees)
+  H16.GATE_TO = { mouth: 'west', webgulch: 'east', glowseep: 'east' };
   H16.pinSite = function (st) {
     var q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return null;
     if (s.site) return s.site;
@@ -189,7 +213,7 @@
   H16.LINES = { opened: '{y}In your JOURNAL:{/} {name}.', pinned: '{g}Pinned: the gold arrow marks the next step. M, then JOURNAL, to read it again.{/}', more: '{g}And: {names}.{/}' };
   H16.missionCard = function* (B) {
     var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
-    nu.forEach(function (q) { f['q:' + q.id] = 1; });
+    nu.forEach(function (q) { f['q:' + q.id] = 1; if (q.step && q.step.key) f['k:' + q.id + ':' + q.step.key] = 1; }); // (a mission opening on a key step: its own card says it, not a second -- H16.keyCard)
     var open = nu.filter(function (q) { return !q.done; }); if (!open.length) return;
     // one card a mission, in the order a scene gave them, the one it wants left active pinned (10-30, his "gives two missions? the one to winters to appear second and be left
     // active", on Papa's at the Hex's door: the Company, then Finding Work -- Winters' papers its first -- pinned; f.cardEach, H16.papaScene)
@@ -212,6 +236,27 @@
     // H16.DING, is no longer played; the chime as the words go into the JOURNAL is the fly-in's, below)
     // ... and into the JOURNAL (10-29, below): the card kept in the log, its words on the fly-in instead of the floor's card
     B.cards.pop(); yield* H16.fly(B, R.wrap(lines));
+  };
+  // A KEY STEP (RULED 10-31, Tuesday 6, Griz: "Something similar to the 'quest in the journal' on key moment (i.e. just roped the proof of the missing 5) - suggestions?", then
+  // "a, like add flag that some missions will have a key step and key step handling?"; 11-05 on live, "nothing would have let me know to talk to the gate guy again for more
+  // reward?"): a mission's step marked `key` (the Five's gear roped, Skarn's office box after Edric's book, the cloaker's tail, the ettercap's fangs, the cloaker killed with Dace
+  // along) flies into the JOURNAL as it comes, with its new line -- the card and the fly-in of a mission opening (H16.missionCard), once a step (`k:<mission>:<key>`); the mission
+  // pinned when nothing is. A save from before has the steps it stands on taken as seen (kSeen), as the JOURNAL's first look takes its missions (H16.firstLook). Covers Tuesday
+  // 12 (c), the cloaker's tail
+  H16.LINES.step = '{y}In your JOURNAL:{/} {name}, the next step.';
+  H16.keyFresh = function (st) { return C.quests(st).filter(function (q) { return !q.done && q.step && q.step.key && !st.flags['k:' + q.id + ':' + q.step.key]; }); };
+  H16.keyDue = function (B) {
+    var R = D.roam, R0 = B && B.roam; if (!R0 || !R.house || !R.house() || R0.mode !== 'walk' || (R.tracking && R.tracking(R0).length)) return false;
+    var st = C.state(B); if (!st) return false;
+    if (!st.flags.kSeen) { st.flags.kSeen = 1; H16.keyFresh(st).forEach(function (q) { st.flags['k:' + q.id + ':' + q.step.key] = 1; }); return false; }
+    return H16.keyFresh(st).length > 0;
+  };
+  H16.keyCard = function* (B) {
+    var R = D.roam, st = C.state(B), f = st.flags, q = H16.keyFresh(st)[0]; if (!q) return;
+    f['k:' + q.id + ':' + q.step.key] = 1;
+    var live = C.quests(st).filter(function (x) { return x.id === f.pin && !x.done; })[0], ls = [H16.LINES.step.replace('{name}', q.name), q.step.where];
+    if (!live) { f.pin = q.id; ls.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned); }
+    B.card(R.wrap(ls), 480); B.cards.pop(); yield* H16.fly(B, R.wrap(ls));
   };
   // THE JOURNAL'S FLY-IN (10-29, Griz, NOTES 1846Z at the Guano Galleries' mouth: "Added to Journal - can we show the text, the popup the part of the menu that has journal, and
   // the text collapsing and moving into 'journal' which highlights, then have that part of the menu disappear with a more pleasant sound" -- on the 10-28 ding above): the card's
@@ -1241,9 +1286,10 @@
     'w.shiftPaid': 'Shift done. {n} sealed thimble(s), paid at the pen: {n} silver.', 'w.cradle.paid': '{n} sealed, paid at the pen - {n} silver',
     'w16.skarnSay': 'He looks at you and waits. What do you say?',
     'w16.skarnAskFive': 'PETE\'S FIVE. WHERE DID THEY GO DOWN?', 'w16.skarnAskWork': 'ANY WORK BESIDES THE CRADLES?', 'w16.skarnRude': 'OPEN UP, COLLAR.',
-    'w16.skarnFive': ['"Past the wet, after leavings. Six went down, and one came up: Pete."', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up. Edric can close his book."'],
-    'w16.skarnWork': ['"Past the pens there\'s one job, and nobody takes it."', 'Five names in Edric\'s book have no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up."'],
-    'w16.edricFive': ['He turns back a page. "Five names in this book have no return line. Warrens Pete\'s crew, gone down past the wet after leavings, and Pete came up alone."'],
+    // (the pay in his own words as he gives the job -- RULED 10-31, Tuesday 7, his "Skarn split to be included in mission giving text more explicitly"; H16.FIVE_PAY the JOURNAL's)
+    'w16.skarnFive': ['"Past the wet, after leavings. Six went down, and one came up: Pete."', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up. Edric can close his book."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
+    'w16.skarnWork': ['"Past the pens there\'s one job, and nobody takes it."', 'Five names in Edric\'s book have no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up."', '"Edric pays for his book. The office box pays sixty for the Warrens -- if my stock down in the Wet is still alive when you come up. Come and tell me."'],
+    'w16.edricFive': ['He turns back a page. "Five names in this book have no return line. Warrens Pete\'s crew, gone down past the wet after leavings, and Pete came up alone."', '"Bring me their tokens and the book pays fifty silver to close. Skarn pays his own out of the office box."'],
     'w16.edricSkarn': ['"Skarn holds the gate to where they went. Ask him, not me."'],
     'w16.edricAfter': ['"Five return lines. The book balances, for once."'], 'w16.edricOffice': ['"Skarn pays for it out of the office box. Tell him yourself."'] };
   if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
@@ -1339,6 +1385,10 @@
     { hours: 1, id: 'runner', door: 'inn:cassia', renown: 2, flags: { papaLymen: 1 }, label: 'PAPA\'S RUNNER: renown 2, on the street', note: 'At Cassia\'s door at renown 2: a Hex boy runs up from a few squares off, his word on his own screen (the plain shape till his face comes), and runs back. Then the Hex\'s third floor: C2.' },
     { hours: 1, id: 'five', camp: [8, 8], label: 'THE MISSING FIVE BY WORDS: Edric at the mouth camp', note: 'Beside Edric, nothing heard of the five: E on him -- the book, then the five in his own words, Skarn named; the card. East along the camp, Skarn: ANY WORK BESIDES THE CRADLES? or OPEN UP, COLLAR. A pen: the cradle in the portrait\'s place.' },
     { hours: 1, id: 'fiveafter', camp: [8, 8], flags: { heardPete: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, fiveDone: 1, 'q:warrens': 1 }, label: 'AFTER THE FIVE: Edric, Skarn, Pete', note: 'E on Edric: the book balances, and Skarn\'s office box; Skarn pays from it. In town and in the Hex, Pete stops saying six.' },
+    // (11-05, the journal seat: the Five's tokens in the pack beside Edric -- the book, then the key step that flies in, Skarn's office box; and the street's pins -- Fight Night's
+    // next bout, the Cull's and the ettercap's gate arrows; mode=journal1105)
+    { hours: 1, id: 'fivekey', camp: [8, 8], inv: [['fivetokens', 1]], flags: { heardPete: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, fiveRecovered: 1, 'q:warrens': 1, kSeen: 1, 'k:warrens:gear': 1, pin: 'warrens' }, label: 'THE FIVE BROUGHT HOME: Edric\'s book, then Skarn\'s office box (11-05)', note: 'The tokens in the pack, beside Edric: E on him -- the return lines, fifty silver, the page. The talk shut: "In your JOURNAL: The Missing Five, the next step." flies in -- Skarn at the camp, the office box. M, JOURNAL: the Five open on that step, its words naming both purses. E on Skarn: sixty silver, and the Five done.' },
+    { hours: 1, id: 'pins1105', door: 'inn:cassia', flags: { heardHex: 1, 'hex:brawl': 1, cullHired: 1, heardGalleries: 1, heardEttercap: 1, heardWinters: 1, pin: 'cull' }, label: 'THE STREET\'S PINS: the Cull to the west gate, Fight Night\'s next bout (11-05)', note: 'At Cassia\'s door, the Cull pinned: the gold arrow on the street points at the west gate. M, JOURNAL: Fight Night names the next bout on the card and its stake; When You\'re Ready at level 3; pin The Braiding Ettercap: the arrow at the east gate.' },
     { hours: 1, id: 'board', door: 'keeper:hessle', label: 'HESSLE\'S BOARD on the Weigh-House wall', note: 'At the Weigh-House door: the board on the wall beside it, a paper nailed up for each bounty. E at it or a click: the board\'s screen, TAKE a paper down -- its mission in the JOURNAL, pinned. Hessle inside points you out to it, and pays at the scales.' },
     { hours: 1, id: 'barber', door: 'keeper:barber', label: 'VENN THE BARBER AND DAVOS KREN', note: 'At the barber-surgeon\'s door: the house\'s fighters are Davos Kren\'s, what the house won\'t pay for is his, at the Hex\'s door on fight nights; TELL ME ABOUT IT the same.' }
   ];
@@ -1392,7 +1442,7 @@
     H16.toHex3 = false; var HX = D.hex; yield* HX.goIn(B, 'front');
     var sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10;
   };
-  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.restAtDue, play: H16.restAtPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
+  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.restAtDue, play: H16.restAtPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }, { due: H16.keyDue, play: H16.keyCard }];
   // the first look before any beat (10-30, his "we didn't get the fancy 'missions in your journal now' animation on my pane clickthrough of the dialogue"): a save from before
   // has its JOURNAL taken as seen (H16.missionDue's rule) at the floor's first ask, not when the mission card's turn comes -- else a scene on the first beat (Papa's, the
   // party starting beside him: the show's door, a Lymen-led NEW GAME) gave the Company, and the late first look swallowed its card and fly-in as the save's own
