@@ -71,6 +71,19 @@
   // and where she stands in the town till she joins, her working figure (T.people below): Vivian with the tray on its strap (tools/vivian-sheet.py viviancandle_p1, the art
   // desk's VIVIAN-CANDLE-GIRL-TOWN-RECRUITMENT, 11-05) -- "remove the independent candle-girl world sprite as Vivian joins the party token" (its notes): CO.join takes her in
   CO.TOWNSHEET = { vivian: 'viviancandle_p1' };
+  // a row played by the one on the street behind an open screen (her candle sale as the portrait's plays): the floor's clock stands still under the screen, so the
+  // screen's own ticks carry that one figure's row through (its animT walked back a tick a tick) and stand it at idle again when the row is done
+  CO.streetPlay = function (sc, B, npc, row) {
+    var u = B && (B.units || []).filter(function (x) { return x.npc === npc; })[0];
+    if (!sc || !sc.o || !sc.o.open || !u || !D.spr.anim(u.sheet, row)) return null;
+    u.anim = row; u.animT = B.t; sc.streetU = u; return u;
+  };
+  CO.streetTick = function (sc, B) {
+    var u = sc.streetU; if (!u || !B) return;
+    if (u.anim === 'idle' || u.dead) { sc.streetU = null; return; }
+    u.animT--;
+    if (B.t - u.animT > (D.spr.duration ? D.spr.duration(u.sheet, u.anim) : 60) + 6) { u.anim = 'idle'; u.animT = B.t; sc.streetU = null; } // (the row once through -- js/ui.js plays `sale` once -- then her idle)
+  };
   CO.talk = function* (B, npc, h, script) {
     var step = CO.step(npc), wh = step ? step.where : '', RW = C.LAYOUT.words[2];
     if (D.textWidth(wh) > RW) wh = wh.split('. ')[0].replace(/\.?$/, '.'); // (the JOURNAL's step, the first game's words: its first sentence where the whole will not fit the line)
@@ -85,6 +98,7 @@
       pic: hp ? null : function (ctx, x, y, w, hh, t, cy) { CO.face(ctx, h, x, y, w, (cy || y + hh) - y, t); } });
     if (hp) sc.sheet = hp;
     if (ld) sc.hero = ld;
+    if (open) { var up0 = sc.update; sc.update = function () { CO.streetTick(sc, B); return up0.apply(this, arguments); }; }
     if (sc.done) return sc;
     D.push(sc); while (!sc.done) yield 1;
     return sc;
@@ -144,6 +158,7 @@
       if ((yield sc.ask(L('hire.vivianAsk'), ['BUY A CANDLE (1 SP)', 'NOT NOW'], 'welcoming')) !== 0) return; // (her faces: pt_viviancandle, CO.HIREPT)
       if (!pay(sc.st, 1)) { yield sc.say(L('g.poor'), 'skeptical'); return; }
       C.give(sc.st, 'candle', 1);
+      CO.streetPlay(sc, B, out.npc, 'sale'); // (and her figure on the street behind sells it too, the same moment: the art desk's SE candle sale -- 11-05, Griz: "thanks to the background visibility, you can play them at the same time!")
       if ((yield sc.ask(L('hire.vivianAsk2'), ['COME ALONG?', 'JUST THE CANDLE'], 'sale')) !== 0) { yield sc.say(L('hire.vivianNo'), 'concerned'); return; } // (`sale`: the taper off the tray, offered, let go, her hand back on the tray -- the art desk's BUY A CANDLE, held on its last frame while she watches your hands)
       yield sc.say(L('hire.vivianYes'), 'talk');
       yield* joins(sc, B, h, out);
