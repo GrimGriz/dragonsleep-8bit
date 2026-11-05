@@ -2163,7 +2163,8 @@
       var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
       // (come to the camp from a rest -- 10-17, his "return to camp 'so i can equip after visit market' on long rests": GO ON is the rest's way on, the long rest's day first)
       var nextN = rest ? (run.module ? 'FIGHT ' + (run.rung + 1) : rest.trial ? 'THE TRIAL' : 'RUNG ' + (run.rung + 1)) : null;
-      D.text(ctx, (rest ? (rest.none ? '{o}no rest:{/} ' : rest.took ? '{o}rested:{/} ' : '{o}at the camp:{/} ') : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
+      var said = rest ? (rest.none ? '{o}no rest:{/} ' : rest.took ? '{o}rested:{/} ' : '{o}at the camp:{/} ') : '{o}under way:{/} ';
+      D.text(ctx, said + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw - D.textWidth(said)), rx, by - 10, P('bone', 1)); // (the words after it held to what is left of the column, 11-05)
       this.btn(ctx, rest ? 'GO ON: ' + nextN : 'GO ON', rx, by, rw, 18, function () { self.restOn(); }, { pri: true });
       // the camp's rests, what the fight's end offered (11-05: toCamp) -- one of each a visit; a long rest taken leaves the short one nothing to give
       var ry = by + 22;
