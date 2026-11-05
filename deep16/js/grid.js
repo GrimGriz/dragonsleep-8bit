@@ -423,7 +423,8 @@
     return false;
   };
 
-  // flanking: an ally of the attacker, standing and able, adjacent to the target on the opposite side of it
+  // flanking: an ally of the attacker, standing and able, adjacent to the target on the opposite side of it -- never a bystander, on either side (11-05, Griz on the
+  // second act: "when it breaks into combat the other kids are granting flanking to the party"; the children, js/ai.js `bystander`, take no part in a fight)
   function side(x, y, t) {
     var s = t.size || 1;
     return [x < t.x ? -1 : x > t.x + s - 1 ? 1 : 0, y < t.y ? -1 : y > t.y + s - 1 ? 1 : 0];
@@ -434,7 +435,7 @@
     var me = side(ax, ay, tgt);
     for (var i = 0; i < G.units.length; i++) {
       var w = G.units[i];
-      if (w === att || w.side !== att.side || !G.standing(w) || !D.rules.canAct(w)) continue;
+      if (w === att || w.side !== att.side || w.bystander || !G.standing(w) || !D.rules.canAct(w)) continue;
       if (G.dist(w, tgt) > 5) continue;
       var it = side(w.x, w.y, tgt);
       if (it[0] === -me[0] && it[1] === -me[1]) return w;

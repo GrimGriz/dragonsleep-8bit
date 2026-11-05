@@ -7,9 +7,10 @@
    BUILT ON THE FLOOR inn.js HAS (§10.6.1): the lake door, the path, the point with its stone and post, the deep. The signs as cards on the map with their silent reads (a yard
    fight eats three); the fork card with its buttons by the yard's case (AFTER THEM hands to the chase, js/chase.js, with duePaid set); Gennet as a foe (the SRD Cult Fanatic
    reflavored, data/foes.js gennet, a cleric 4 by js/classes.js NPC.NAMED, `yields` at half and sits; her Spiritual Weapon the crook of lantern-light that guards the child --
-   D.scripts.gennet casts it at whoever is nearest her); Doran a foe on a blow at a boy (the SRD Commoner with a woodaxe, yields at half); the boys and the child BYSTANDERS the
-   AI never targets and that never act (the `bystander` flag, js/ai.js heroes -- built once here, the lamia lane's Wystan wants it next); TAKE THE CHILD; the rise on the iso
-   camera (Battle.camTo) with its three cases and the chuul fight on the point when the ring is warm (the `chuul` fight's frog and the Ring of Binding's rounds laid on the
+   D.scripts.gennet casts it at whoever is nearest her); Doran a foe on a blow at a boy (the SRD Commoner with a woodaxe, yields at half -- with the boys in since 11-05, unasked);
+   the child a BYSTANDER the AI never targets, that never acts and lends no flank (the `bystander` flag, js/ai.js heroes, js/grid.js G.flank -- built once here, the lamia lane's
+   Wystan wants it next); TAKE THE CHILD; the rise on the iso camera (Battle.camTo) with its three cases and the chuul fight at the shore, ring or not (11-05: the ring's rounds
+   the edge, not the gate), and after a paid due with the ring warm (A.ringWarm); the rowboat (A.sound) (the `chuul` fight's frog and the Ring of Binding's rounds laid on the
    floor's fight); Elsbeth's three states, the wand in the kitchen only (js/inn.js M.SCENES.elsbeth); the flags a line each (the registry under content/); the record on the trail; the show
    door deep16/?show=secondact&beat=<id>&case=<case> with the dice pinned; invented.json lines. The seat's calls where the sheet did not fit the floor are in the lane's section.
    Bench: dev/bench16.js mode=secondact1104; the probe dev/inn-probe.py. */
@@ -32,10 +33,9 @@
   ];
   A.LINES = { // (the seat's drafts, the sheet's where it had them: invented.json halfway-second-act)
     fought: '{g}While the yard was busy, the house\'s half hour ran on.{/}',
-    fork: 'The lantern has left its post. Down the path toward the water: a woman, two boys, and the one she took inside.',
+    fork: 'The lantern has left its post. Down the path toward the water: a woman with the lantern, and the one she took inside.',
     forkNorth: 'North up the road: two shapes going hard in the dark.',
     forkGoblin: '{g}(To the eye the one she leads is a goblin still.){/}',
-    orrin: '{y}Orrin:{/} "Mam?"',
     gennetPath: '{y}Gennet Waterby:{/} "You\'ve had your supper and your beds. This is the house\'s business. Stand out of the light."',
     elsbethLantern: '{y}Elsbeth:{/} "You\'ll want this. I\'m not going nearer."',
     stand: 'You stand out of the light. The lantern goes on down the path to the water.',
@@ -51,7 +51,7 @@
     rise: 'The water off the point heaves. It comes halfway up: the size of a wagon, the colour of wet stone, plated, legged, two long soft arms that move as if they were thinking. It waits.',
     riseNone: 'Nothing stands on the stone. It goes down.',
     riseRing: 'It turns toward the ring before it turns toward anything else.',
-    riseNoRing: 'and you are not ready for it. Nothing stands in the water. It goes down.',
+    riseNoRing: 'Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it.', // (RULED 11-05, his "Yes, the leans": it fights, ring or not -- the Winters seat; it had gone down)
     elsbethThat: '{y}Elsbeth:{/} "That\'s what it is. That\'s all it is."',
     mornStopped: 'Morning. Doran is gone, and the wagon with him, and eight children in the back of it. The inn lady keeps her back to the room.',
     mornDead: 'Morning. The lantern is on its hook by the lake door, and nobody lights it. Doran Waterby at the counter: "You\'ll want the road."',
@@ -86,24 +86,22 @@
     }
     if (f.warmup >= A.SIGNS.length) f.lanternWalks = 1;
   };
-  // ---------------------------------------------------------------- the cast on the path: Gennet (a foe, inert till the fight), Orrin with the lantern, Pell, the child -- bystanders
+  // ---------------------------------------------------------------- the cast on the path: Gennet (a foe, inert till the fight) with the shore-lantern, and the child, a bystander. THE BOYS STAY
+  // IN (11-05, Griz on the second act, the lanes desk's relay: "I don't think she'd bring the boys out"): Orrin and Pell are not on the path on the due's night -- they had stood there
+  // as bystanders and lent the party flanking; Gennet carries the lantern herself, and Doran's way into the fight (a blow at a boy, A.fight) has no boy to answer now
   A.cast = function (B, f, at) {
     var Y = {}, kid = f.glamourBroken || f.glamourSeen;
-    Y.gennet = In.unit(B, { id: 'gennetPath', kind: 'gennet', at: [at[0], at[1]], name: In.named(f), face: [1, 0], foe: true });
+    Y.gennet = In.unit(B, { id: 'gennetPath', kind: 'gennet', at: [at[0], at[1]], name: In.named(f), face: [1, 0], foe: true, lantern: true });
     Y.gennet.script = 'gennet'; Y.gennet.flees = false; Y.gennet.yields = true;
-    Y.orrin = In.unit(B, { id: 'orrinPath', kind: 'commonerchild', at: [at[0] + 1, at[1]], name: 'Orrin', face: [1, 0], lantern: true });
-    Y.pell = In.unit(B, { id: 'pellPath', kind: 'commonerchild', at: [at[0], at[1] + 1], name: 'Pell', face: [1, 0] });
-    Y.kid = In.unit(B, { id: 'dueChild', kind: kid ? 'commonerchild' : 'goblin', at: [at[0] + 1, at[1] + 1], name: kid ? 'A child' : 'A goblin', face: [1, 0] });
-    [Y.orrin, Y.pell, Y.kid].forEach(function (u) { u.bystander = true; u.boy = u !== Y.kid; });
+    Y.kid = In.unit(B, { id: 'dueChild', kind: kid ? 'commonerchild' : 'goblin', at: [at[0] + 1, at[1]], name: kid ? 'A child' : 'A goblin', face: [1, 0] });
+    Y.kid.bystander = true;
     Y.gennet.guards = Y.kid.id;
     return Y;
   };
   A.clear = function (B, Y) { ['gennet', 'orrin', 'pell', 'kid', 'doran', 'elsbeth', 'chuul', 'frog'].forEach(function (k) { if (Y[k] && B.units.indexOf(Y[k]) >= 0) In.gone(B, Y[k]); Y[k] = null; }); };
-  A.walkAll = function* (B, Y, to) { // (the four of them down the path to a square, the lantern with them)
+  A.walkAll = function* (B, Y, to) { // (the two of them down the path to a square, the lantern with them)
     yield* In.walk(B, Y.gennet, [to[0], to[1]], [1, 0]);
-    yield* In.walk(B, Y.orrin, [to[0] + 1, to[1]], [1, 0]);
-    yield* In.walk(B, Y.pell, [to[0], to[1] + 1], [1, 0]);
-    yield* In.walk(B, Y.kid, [to[0] + 1, to[1] + 1], [1, 0]);
+    yield* In.walk(B, Y.kid, [to[0] + 1, to[1]], [1, 0]);
   };
   A.elsbethState = function (f) { return f.wandOut ? 'wand' : f.elsbethTier >= 3 ? 'earned' : 'neutral'; };
   A.hasRing = function (B) { var w = null; (B.roam.members || []).forEach(function (u) { if (!w && u.hp > 0 && u.src && DS.R.wears(u.src, 'ringofbinding')) w = u; }); return w; };
@@ -133,7 +131,6 @@
     if (A.elsbethState(f) === 'earned') { Y.elsbeth = In.unit(B, { id: 'elsbethPath', kind: 'commonerwoman', at: [In.DOORS.lake[0] + 1, In.DOORS.lake[1] + 1], name: 'Elsbeth', face: [1, 0], lantern: true }); Y.elsbeth.bystander = true; f.elsbethLantern = 1; }
     yield* Rm.walkTo(B, A.PATH.head);
     yield* B.camTo({ gx: A.PATH.half[0], gy: A.PATH.half[1], gz: 0 }, D.iso.zoom, 24);
-    yield* In.card(B, [A.LINES.orrin], 240);
     if (Y.elsbeth) yield* In.card(B, [A.LINES.elsbethLantern], 300);
     Y.gennet.facing = D.spr.facingFor(-1, 0);
     yield* In.card(B, [A.LINES.gennetPath], 420);
@@ -225,8 +222,11 @@
     f.chuulSeen = 1;
     var near = Math.max(Math.abs(t.x - A.STONE[0]), Math.abs(t.y - A.STONE[1])) <= A.SHORE, ring = near ? A.hasRing(B) : null;
     if (!near) { yield* In.card(B, [A.LINES.riseNone].concat(Y.elsbeth ? [A.LINES.elsbethThat] : []), 420); A.trail('the lake rose: nobody at the shore'); In.gone(B, Y.chuul); Y.chuul = null; A.clear(B, Y); yield* A.ends(B); return; }
-    if (!ring) { yield* In.card(B, [L('lake.risesNoRing').replace(', and you are not ready for it.', ''), A.LINES.riseNoRing].concat(Y.elsbeth ? [A.LINES.elsbethThat] : []), 480); A.trail('the lake rose: no ring, it went down'); In.gone(B, Y.chuul); Y.chuul = null; A.clear(B, Y); yield* A.ends(B); return; }
-    yield* In.card(B, [A.LINES.riseRing], 360);
+    // at the shore it fights, ring or not (RULED 11-05, his "Yes, the leans", on the seat's lean to his note "I don't think the chuul would back down because the party isn't
+    // ready"): no ring, the warning (the first game's own, lake.risesNoRing's "and you are not ready for it") and the fight as the SRD has the chuul and its frog -- the ring's
+    // rounds are the party's edge, not the gate; getting clear of the water ends it (the floor's way out, A.lakeFight's noFlee off)
+    if (!ring) { yield* In.card(B, [A.LINES.riseNoRing], 480); A.trail('the lake rose: no ring, it came up onto the point'); }
+    else yield* In.card(B, [A.LINES.riseRing], 360);
     if ((yield* A.meet(B, Y, ring)) === 'lost') return;
     A.clear(B, Y);
     yield* A.ends(B);
@@ -344,10 +344,11 @@
   A.BEATS = [
     { id: 'signs', beat: 'fork', label: 'BEAT 1: the signs and the fork, after the yard is won', note: 'The yard fought and won (the pair down), the four in the yard at the second watch. The house\'s half hour ran on while they fought: the signs it ate as a batch, then the last three with their reads (the dice pinned: the singing heard, the lake flat seen, the bow-wave caught), and the fork card: THE LANTERN or LET IT BE.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19] },
     { id: 'forkfled', beat: 'fork', label: 'BEAT 1: the fork after the pair got away -- AFTER THEM too', note: 'The same fork with the pair away up the road on foot: three buttons -- AFTER THEM (the chase, the due paid behind you), THE LANTERN, LET IT BE.', flags: { wagonOutcome: 'fled', wagonFled: 'foot' }, dice: [19, 19, 19], fled: true },
-    { id: 'path', beat: 'path', label: 'BEAT 2: the path -- Gennet, the boys, the child in the lantern\'s light', note: 'The four at the path\'s head by the lake door; ahead at its half-way Gennet with the child, Orrin with the shore-lantern, Pell at her skirt. "Stand out of the light." STAND ASIDE (the due at the stone, then the lake rises: at the shore without the ring it goes down), TAKE THE CHILD or STRIKE (the fight on the path).', flags: { wagonOutcome: 'inn' } },
+    { id: 'path', beat: 'path', label: 'BEAT 2: the path -- Gennet and the child in the lantern\'s light', note: 'The four at the path\'s head by the lake door; ahead at its half-way Gennet with the shore-lantern and the child (the boys stay in, 11-05). "Stand out of the light." STAND ASIDE (the due at the stone: the take), TAKE THE CHILD or STRIKE (the fight on the path).', flags: { wagonOutcome: 'inn' } },
     { id: 'pathearned', beat: 'path', label: 'BEAT 2 with Elsbeth EARNED: her lantern behind you', note: 'The same path with Elsbeth\'s third tier reached at the tub: she comes behind with the kitchen lantern -- "You\'ll want this. I\'m not going nearer."', flags: { wagonOutcome: 'inn', elsbethTier: 3, elsbethTold: 1, dishes: 1 } },
-    { id: 'fight', beat: 'path', label: 'BEAT 3: Gennet on the path -- the crook of light, the yield at half', note: 'STRIKE on the path: Gennet opens with Shield of Faith, the crook of light stands over the child and strikes whoever comes near her, Hold Person, the cold through your boots, the daggers when she must. At half she yields and sits: TAKE THE CHILD or LEAVE HER. (A Fireball that catches a boy brings Doran with the woodaxe.)', flags: { wagonOutcome: 'inn' }, strike: true },
+    { id: 'fight', beat: 'path', label: 'BEAT 3: Gennet on the path -- the crook of light, the yield at half', note: 'STRIKE on the path: Gennet opens with Shield of Faith, the crook of light stands over the child and strikes whoever comes near her, Hold Person, the cold through your boots, the daggers when she must. At half she yields and sits: TAKE THE CHILD or LEAVE HER. (The boys stay in, so the child is the only bystander, and she lends no one a flank.)', flags: { wagonOutcome: 'inn' }, strike: true },
     { id: 'risering', beat: 'rise', label: 'BEAT 4: the rise with the ring warm -- the thing in the lake', note: 'The child taken, the lead wearing the Ring of Binding: the water off the point heaves, it comes halfway up and waits -- it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. Won: the deep is only water, the corpse\'s gift.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, ring: true },
+    { id: 'risenoring', beat: 'rise', label: 'BEAT 4: the rise at the shore without the ring -- it fights (11-05)', note: 'The child taken, the party at the flat stone, no ring worn: the water off the point heaves, it comes halfway up -- "Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it." -- and the fight with its frog, the chuul as the SRD has it, no ring\'s rounds. Get clear of the water and it ends.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 } },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
     { id: 'ringwarm', beat: 'fork', label: 'THE RING WARM after the due: LET IT BE, then down to the point (11-05)', note: 'The yard won, the lead wearing the Ring of Binding (Winters gives it at the lead\'s 3rd). The fork: LET IT BE -- the lantern walks, only the inn lady comes back. Then "The ring on your hand is warm. Go down to the point." -- GO DOWN TO THE POINT: at the flat stone the water heaves, it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. BACK TO BED: the ring cold by morning.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19], ring: true },
     { id: 'standring', beat: 'path', label: 'STAND ASIDE with the ring on: the take, then the ring warm (11-05)', note: 'The path, the lead wearing the Ring of Binding. STAND ASIDE: the offering set on the flat stone, the take, the lantern back up the path alone -- then the ring warm: GO DOWN TO THE POINT, the fight; BACK TO BED, the morning.', flags: { wagonOutcome: 'inn' }, ring: true },

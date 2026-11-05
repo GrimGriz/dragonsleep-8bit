@@ -2558,7 +2558,7 @@
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
     var sneaked = false;
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
-      var ally = this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; });
+      var ally = this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }); // (never a bystander: the inn's children take no part -- 11-05, as G.flank)
       var ownL = !(e.net > 0 || ally) && D.features && D.features.ownLight && D.features.ownLight(this, att, tgt); // (By Her Own Light, the Lampwright's 9: in light she made, neither needed -- 11-03)
       if (e.net > 0 || ally || ownL) {
         att.turn.sneakUsed = true; sneaked = true;
@@ -2607,7 +2607,7 @@
       att.turn.martialUsed = true; var ma = D.roll(att.martial, { crit: crit }); dmg += ma.total; parts.push('{o}martial ' + att.martial + ' ' + RU.fmtRolls(ma.rolls) + '{/}');
     }
     // a foe's Sneak Attack (the sect blades): once a turn, with advantage or an ally beside the target, and not at disadvantage
-    if (att.sneak && att.turn && !att.turn.sneakUsed && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
+    if (att.sneak && att.turn && !att.turn.sneakUsed && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
       att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
     }
     // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder

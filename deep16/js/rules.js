@@ -298,7 +298,7 @@
     if (tgt.conds.stunned) adv.push('stunned');
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');
     // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
-    if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
+    if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics'); // (never a bystander -- 11-05, as G.flank)
     // (a hidden target is unseen at any distance -- 10-04 night, Griz: "one line", RULED; it was outside 5 ft only, 09-28's torchdark 'heard and felt' beside you. The foe still knows
     // where she is beside it (ai.js heroes) and swings at disadvantage; a hit finds her -- battle.js attack: "it can tell where you are from the force of the blow")
     if (tgt.conds.hidden && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden) && !knows(att, tgt, G.dist(att, tgt, ax, ay))) dis.push('unseen target'); // (11-01: nor from blindsight in range, nor from one that already has her -- `knows`, above)
