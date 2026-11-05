@@ -815,7 +815,7 @@
   // lights in it (the Glowseep's poles, moss and fire)
   M.GRID = { w: 16, h: 16, dx: 1, dy: 4 }; // (the road's grid lineup, js/world.js W.lineup, moved into the middle: 6 to 12 squares between the fronts since 11-05, the field as wide as it needs)
   M.NUDGE = 4;
-  M.SET_GAP = 2; // (the squares between the fronts in a set fight on the grid's field: M.fieldDef)
+  M.SET_GAP = 2; // (the squares between the fronts in a set fight on the grid's field: M.fieldDef; in the simple fight, its lineup as drawn, js/simple.js S.HELD)
   M.cutChar = function (c) { return c === 'd' || c === 'o' || c === '=' ? '.' : '.,gr~DkfwyTP'.indexOf(c) >= 0 ? c : '#'; }; // (a door's threshold or a bridge's boards ground; a building, a roof or a wall rock)
   M.cut = function (def, w, h, at, anchor, need, kind) {
     var ch = function (x, y) { return x >= 0 && y >= 0 && x < def.w && y < def.h ? M.cutChar(def.rows[y].charAt(x)) : null; }, open = function (c) { return c != null && '.,gr~'.indexOf(c) >= 0; };
@@ -842,7 +842,7 @@
   M.fieldDef = function (def, list, simple, set, at) {
     // (a set fight -- the story's own, the cloaker in the deep gallery -- keeps the old 2 squares, the lineup it was drawn for; one whose set says gap 'rule' -- the rescue's bats --
     // takes the rule's 6 to 12. RULED 11-05, Griz: "approve fight start's exception leans, including the bats at 6-12 in that one story fight")
-    var o = simple ? D.simple.fieldOpts(true) : null, LU = simple ? null : D.world.lineup(list, set && set.gap !== 'rule' ? M.SET_GAP : null), kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Math.max(Gd.w, LU.w), h = o ? o.h : Gd.h;
+    var o = simple ? D.simple.fieldOpts(true, set && set.gap !== 'rule' ? 'held' : null) : null, LU = simple ? null : D.world.lineup(list, set && set.gap !== 'rule' ? M.SET_GAP : null), kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Math.max(Gd.w, LU.w), h = o ? o.h : Gd.h;
     var entry = o ? o.entry : LU.entry.map(function (q) { return [q[0] + Gd.dx, q[1] + Gd.dy]; });
     var foes = simple ? D.simple.seat(list) : LU.foes.map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
     var foot = function (f) { var s = Math.max(1, Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1)), out = []; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) out.push([f.at[0] + i, f.at[1] + j]); return out; };
@@ -853,7 +853,7 @@
       // when encounters happen in them)" -- a fight in a den's chamber or the dens' way stood the two lines in pockets of floor in the rock, and his giant bats "paced: it cannot
       // get at anyone" three rounds running, the AI finding no walk to a square beside anyone): the chamber cut wide enough for the fight, as the grid's fight's is (below)
       if (D.simple.layout === 'iso') {
-        var C0 = D.simple.C[0], ys0 = stand.map(function (q) { return q[1]; }), fx0 = Math.max.apply(null, stand.filter(function (q) { return q[0] < C0; }).map(function (q) { return q[0]; }).concat([C0 - 2])), px0 = Math.min.apply(null, entry.slice(0, 4).map(function (q) { return q[0]; }));
+        var C0 = D.simple.C[0], ys0 = stand.map(function (q) { return q[1]; }), fx0 = Math.max.apply(null, stand.filter(function (q) { return q[0] < C0; }).map(function (q) { return q[0]; }).concat([C0 - D.simple.GAP.hf])), px0 = Math.min.apply(null, entry.slice(0, 4).map(function (q) { return q[0]; }));
         for (var yb = Math.min.apply(null, ys0); yb <= Math.max.apply(null, ys0); yb++) for (var xb = fx0; xb <= px0; xb++) need.push([xb, yb]);
       }
     }
@@ -861,7 +861,7 @@
     need = need.filter(function (q) { return q[0] >= 0 && q[1] >= 0 && q[0] < w && q[1] < h; });
     var anchor = simple ? [D.simple.PARTY[0][0], D.simple.C[1]] : entry[0], cut = M.cut(def, w, h, at || anchor, anchor, need, kind);
     D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: def.iso && kind === 'cave' ? null : 'earth', /* (cut from a cave floor on the diamonds, the floor's own stone: ON THE DIAMONDS) */ rows: cut.rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
-      entry: entry, foes: [], wave: null, cut: cut, gap: LU ? LU.gap : null }; // (gap: the squares between the fronts, W.lineup)
+      entry: entry, foes: [], wave: null, cut: cut, gap: LU ? LU.gap : o ? o.gap : null }; // (gap: the squares between the fronts, W.lineup -- the simple fight's its own since 11-05, js/simple.js S.fieldOpts)
     var lights = (def.ownLights || []).map(function (l) { if (!l || typeof l.x !== 'number') return null; var p = cut.to(l.x, l.y); return p[0] >= 0 && p[1] >= 0 && p[0] < w && p[1] < h ? [p[0], p[1], l.dim || l.bright || 5, l.color, l.bright ? 0 : 1] : null; }).filter(Boolean); // (js/battle.js's map light: [x, y, ft, colour, dim only])
     return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: lights.length ? lights : null,
       intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.', noCards: true, // (no entry card: the encounter's card asked, and the four are the floor's -- its "walk in as the fixture" is not theirs, seen in the pane 10-22)

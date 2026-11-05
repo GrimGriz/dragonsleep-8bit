@@ -46,21 +46,34 @@
   S.W = 16; S.H = 16; S.C = [8, 7];
   S.TALL = { 1: 50, 2: 90, 3: 140 }; // (a figure's height by its size, px at zoom 1: the troll's 75, the ettin's 101, the stone giant's 137)
   function sq(c, r, s) { s = s || 1; var x2 = c + r - (s - 1); if (x2 % 2) return null; var x = x2 / 2; return [S.C[0] + x, S.C[1] + x - c]; } // (ACROSS: the anchor of a body s squares a side, its middle at c, r)
+  // THE GAP BETWEEN THE FRONTS (11-05, the tuesday-grid seat on the lanes desk's word -- Griz, his 10-31 playthrough, Tuesday 23: "place the teams more on the edges and less
+  // together in the middle - ... each side could move two 'squares' out"; then 11-05, "I think the spacing is set (23) elsewhere at 6-12 squares with exceptions"): the grid's
+  // rule (RULED 11-05, js/world.js W.GAP -- 6 to 12 squares between the fronts, rolled each fight), his two squares out each side the 8 inside it. ISO's fronts stood 4 squares
+  // apart (x -2 and +2), ACROSS's 2 (c -2 and +2, a diagonal a square); now d apart, the party's front hp past the middle and the foes' hf before it, ACROSS by an even d (its rows
+  // are every other square on the diagonal). The exceptions RULED 11-05 keep the lineup as it was drawn (S.HELD): the Hex's sand (its bouts at 20 ft in the ring, js/hex.js
+  // HX.field) and a set fight on a floor (js/mines.js M.fieldDef, one whose set does not say gap 'rule'). Nobody walks in the simple fight, so the gap is the sight and the
+  // light (a torch's dim edge 40 ft; dev/bench16.js mode=tuesgrid1105) and the picture
+  S.HELD = { iso: 4, across: 2 };
+  S.GAP = { d: 2, hp: 1, hf: 1, v: 'across' };
+  S.gapOf = function (v, gap) {
+    var WG = (D.world && D.world.GAP) || [6, 12], d = gap === 'held' ? S.HELD[v] || 4 : typeof gap === 'number' ? gap : WG[0] + D.rint(WG[1] - WG[0] + 1);
+    return v === 'across' && d % 2 ? d + 1 : d;
+  };
   S.LAYOUTS = {
     across: {
       face: [[-1, 1], [1, -1]], // (the party facing the screen's left, the foes its right -- D.spr.facingFor)
-      col: function (side, j) { var c = side * (2 + 2 * j); return [-6, -2, 2, 6].map(function (r) { return sq(c, r); }); },
-      camp: function () { return sq(4, 0); },
+      col: function (side, j) { var c = side * (S.GAP.d + 2 * j); return [-6, -2, 2, 6].map(function (r) { return sq(c, r); }); },
+      camp: function () { return sq(S.GAP.d + 2, 0); },
       front: function (rx, ry) { return rx - ry; }, frontMax: -2, heads: true, // (no foe's body past the foes' front; a tall one's head kept under the four's top row)
-      lane: function (rx, ry) { var c = rx - ry, r = rx + ry; return c >= -12 && c <= 9 && r >= -10 && r <= 10; },
+      lane: function (rx, ry) { var c = rx - ry, r = rx + ry, d = S.GAP.d; return c >= -(d + 10) && c <= d + 7 && r >= -10 && r <= 10; },
       road: function (rx, ry) { return rx + ry === -1 || rx + ry === 0; }
     },
     iso: {
       face: [[-1, 0], [1, 0]],
-      col: function (side, j) { var x = S.C[0] + side * (2 + 2 * j); return [-3, -1, 1, 3].map(function (r) { return [x, S.C[1] + r]; }); }, // (every other square: neighbours hid each other at the opening zoom)
-      camp: function () { return [S.C[0] + 3, S.C[1]]; },
+      col: function (side, j) { var x = S.C[0] + side * ((side > 0 ? S.GAP.hp : S.GAP.hf) + 2 * j); return [-3, -1, 1, 3].map(function (r) { return [x, S.C[1] + r]; }); }, // (every other square: neighbours hid each other at the opening zoom)
+      camp: function () { return [S.C[0] + S.GAP.hp + 1, S.C[1]]; },
       front: function (rx) { return rx; }, frontMax: -2, midRow: 0, // (the foes stand up the screen of the four here: by the middle rows, not the heads)
-      lane: function (rx, ry) { return rx >= -9 && rx <= 7 && ry >= -6 && ry <= 6; },
+      lane: function (rx, ry) { return rx >= -(S.GAP.hf + 7) && rx <= S.GAP.hp + 5 && ry >= -6 && ry <= 6; },
       road: function (rx, ry) { return ry === -1 || ry === 0; }
     }
   };
@@ -70,8 +83,10 @@
   S.setView = function (v) { try { window.localStorage.setItem(S.VKEY, v); } catch (e) { } };
   if (MN && MN.gridRows) { var rows1 = MN.gridRows; MN.gridRows = function () { var r = rows1.apply(this, arguments); r.push({ label: 'SIMPLE VIEW', key: 'simpleview', get: function () { return S.view() === 'iso' ? 'ISO' : 'ACROSS'; }, step: function () { S.setView(S.view() === 'iso' ? 'across' : 'iso'); } }); return r; }; }
   // the view a fight is laid out in: its party's squares (four, then guests), the camp's square, the facings
-  S.use = function (v) {
+  S.use = function (v, d) {
     var L = S.LAYOUTS[v] || S.LAYOUTS.across; S.L = L; S.layout = S.LAYOUTS[v] ? v : 'across';
+    d = d != null ? d : S.HELD[S.layout]; var hf = Math.floor(d / 2); S.GAP = { d: d, hp: d - hf, hf: hf, v: S.layout }; // (the gap: S.gapOf; without one, the lineup as drawn)
+    L.frontMax = S.layout === 'iso' ? -hf : -d;
     S.FACE = L.face; S.PARTY = L.col(1, 0).concat(L.col(1, 1), L.col(1, 2)); S.CAMP = L.camp();
     return L;
   };
@@ -80,9 +95,15 @@
   S.road = function (x, y) { return S.L.road(x - S.C[0], y - S.C[1]); };
   // the field's size: 16 by 16 round [8, 7]; SMALL, a floor's own fight (10-27, his eye on the Glowseep: "The simple fight's grid seems like the appropriate 'grid' sized fight and
   // vice versa (simple with 6-8 width or whatever)" -- js/mines.js M.fieldDef): ISO's lineup on a strip 16 by 9 round [8, 4], its four rows every other square and a rim; ACROSS's
-  // lines run on the diagonal and keep the 16 by 16. The road's fights and the Hex's sand ask the full one (no `small`)
+  // lines run on the diagonal and keep the 16 by 16. The road's fights and the Hex's sand ask the full one (no `small`). Since 11-05 (THE GAP, above) each is as wide as its gap
+  // asks, the old sizes at the old gap: ISO 12 + d across (C's x 6 + hf), its rows as they were; ACROSS grown d - 2 each way. `gap`: a number of squares, 'held' (the lineup as
+  // drawn: S.HELD), or none for the rule's roll
   S.SMALL = { iso: { w: 16, h: 9, C: [8, 4] } };
-  S.fieldOpts = function (small) { var v = S.view(), sz = (small && S.SMALL[v]) || { w: 16, h: 16, C: [8, 7] }; S.W = sz.w; S.H = sz.h; S.C = sz.C.slice(); S.use(v); return { w: S.W, h: S.H, lane: S.lane, road: S.road, entry: S.PARTY }; };
+  S.fieldOpts = function (small, gap) {
+    var v = S.view(), d = S.gapOf(v, gap), hf = Math.floor(d / 2), sz = (small && S.SMALL[v]) || { w: 16, h: 16, C: [8, 7] }, g2 = v === 'iso' ? 0 : (d - 2) / 2;
+    if (v === 'iso') { S.W = 12 + d; S.H = sz.h; S.C = [6 + hf, sz.C[1]]; } else { S.W = sz.w + 2 * g2; S.H = sz.h + 2 * g2; S.C = [sz.C[0] + g2, sz.C[1] + g2]; }
+    S.use(v, d); return { w: S.W, h: S.H, lane: S.lane, road: S.road, entry: S.PARTY, gap: d };
+  };
   S.seat = function (list) {
     var L = S.L, taken = {}, out = [], smalls = [];
     S.PARTY.concat([S.CAMP]).forEach(function (q) { taken[q[0] + ',' + q[1]] = 1; });
@@ -125,7 +146,7 @@
 
   // ------------------------------------------------------------------ the fight's state: each one's own square, and where the picture draws it
   S.setup = function (B) {
-    B.simple = { home: {}, last: {}, m: null, act: null, cam: null }; B.units.forEach(function (u) { S.homeOf(B, u); });
+    B.simple = { home: {}, last: {}, m: null, act: null, cam: null, gap: Object.assign({}, S.GAP) }; B.units.forEach(function (u) { S.homeOf(B, u); }); // (gap: this fight's, S.fieldOpts)
     var fm0 = B.floorMarks, mo0 = B.marksOver; // (the turn's glow: under the feet with the floor's marks, its light over the night's -- js/ui.js drawBattle's hooks)
     B.floorMarks = function (c) { if (fm0) fm0.apply(this, arguments); S.turnGlow(c, B, false); };
     B.marksOver = function (c) { if (mo0) mo0.apply(this, arguments); S.turnGlow(c, B, true); };
@@ -201,7 +222,14 @@
     var B = D.battle, on = !!(B && B.simple && u && B.units.indexOf(u) >= 0);
     if (on) { S.snap(B); S.homeOf(B, u); B.simple.act = u; if (B.simple.m && B.simple.m.u === u) B.simple.m = null; }
     var r = st0.apply(this, arguments);
-    if (on && u.turn) u.turn.disengaged = true;
+    if (on && u.turn) {
+      u.turn.disengaged = true;
+      // (the squares the rule set between the fronts past the lineup as drawn cost no move -- 11-05, the tuesday-grid seat: everyone is back on its own square at each turn's
+      // start, and a walk is a jump bounded by the turn's move, so a foe on foot reached the four from the old 4 squares and never from 8 to 12; the AI's walk (ai.js, tactics.js
+      // by u.turn.move) is as long as it was at the old gap, sight still by the real squares. A fight that never closed hung dev/bench16.js mode=toplevels1021)
+      var gp = B.simple.gap, xs = gp ? Math.max(0, gp.d - (S.HELD[gp.v] || 4)) * 5 : 0;
+      if (xs && u.turn.move > 0) u.turn.move += xs;
+    }
     return r;
   };
   // a walk is a jump to its end: the picture never shows it, and nothing on the way is felt (no web, no ground, no opportunity attack)
@@ -634,9 +662,11 @@
         mnx = Math.min(mnx, p.x - hw); mxx = Math.max(mxx, p.x + hw); mny = Math.min(mny, p.y - top - 6); mxy = Math.max(mxy, p.y + 10 * s);
       });
       if (mnx > mxx) { var p0 = iso.center(S.C[0], S.C[1], 0); mnx = p0.x - 100; mxx = p0.x + 100; mny = p0.y - 80; mxy = p0.y + 80; }
-      var fit = Math.min(P.w / (mxx - mnx), P.h / (mxy - mny)), i = 0;
+      // (the fronts by the rule, 6 to 12 squares, 11-05: the deepest step that holds the lineup with a margin, and the wheel from there -- the desk's word, "no side-by-side zoom
+      // variants"; the lineup as drawn, the Hex's sand and a set fight, a step further out as before: B.simple.gap, S.GAP's at the fight's start)
+      var gp = B.simple.gap || S.GAP, wide = gp.d > S.HELD[gp.v || S.layout], mg = wide ? 14 : 0, fit = Math.min(P.w / (mxx - mnx + 2 * mg), P.h / (mxy - mny + mg)), i = 0;
       while (i < Z.length - 1 && Z[i] > fit) i++;
-      c = B.simple.cam = { R: D.R || 1, i: Math.min(Z.length - 1, i + 1), wx: (mnx + mxx) / 2, wy: (mny + mxy) / 2 };
+      c = B.simple.cam = { R: D.R || 1, i: Math.min(Z.length - 1, i + (wide ? 0 : 1)), wx: (mnx + mxx) / 2, wy: (mny + mxy) / 2 };
     }
     var mo = I.mouse;
     if (mo.wheel && mo.inside && mo.x < P.x + P.w && mo.y >= P.y && !(B.simple.m && B.simple.m.mode === 'list')) { c.i = Math.max(0, Math.min(Z.length - 1, c.i + (mo.wheel > 0 ? 1 : -1))); mo.wheel = 0; }

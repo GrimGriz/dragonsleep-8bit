@@ -727,7 +727,8 @@
   // its middle, two tiers of boards stepping up from it and the crowd's ring above them (ground 'sand': js/iso.js)
   HX.SANDR = 4.6; HX.TIERS = [5.6, 6.6];
   HX.field = function (simple) {
-    var S = D.simple, o = S ? S.fieldOpts() : { w: 16, h: 16, entry: [[10, 7]] }, w = o.w, h = o.h, C = S ? S.C : [8, 7], rows = [], hts = [];
+    // ('held': the bout's lineup as drawn, 20 ft in the ring -- the simple fight's 6-12 rule's exception, RULED 11-05: js/simple.js S.HELD)
+    var S = D.simple, o = S ? S.fieldOpts(false, 'held') : { w: 16, h: 16, entry: [[10, 7]] }, w = o.w, h = o.h, C = S ? S.C : [8, 7], rows = [], hts = [];
     for (var y = 0; y < h; y++) {
       var r = '', ht = '';
       for (var x = 0; x < w; x++) {
