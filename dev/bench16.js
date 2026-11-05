@@ -5065,6 +5065,60 @@
     document.body.appendChild(preN);
     return;
   }
+  // THE GLOWSEEP'S DOOR ON THE ROAD, THE STORES ON THE TOWN'S MAP, 11-05 (mode=world1105; tuesday-world -- his Tuesday 26, "the Glowseep Hex and location start is
+  // one-hex off road while the road runs through it, indicating the entrance/map position should be road adjacent", and 29, "Can we make the L map show icons for
+  // stores, or render a version that can instead of the tile accurate 8bit or whatever we're using"; the desk's leans RULED 11-05, his "5 - yes"): the area read
+  // here as near1022 reads it; Silverton's L map painted on a canvas of the bench's own, with the signs and without
+  if (get('mode', '') === 'world1105') {
+    var repV = { checks: [], errors: [] }, memV = {}, stGV = D.store.get, stSV = D.store.set, WV = D.world, RV = D.roam;
+    function okV(what, v) { repV.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memV[k] ? JSON.parse(memV[k]) : null; }; D.store.set = function (k, v) { memV[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; var onStepV = WV.onStep; WV.onStep = null;
+    try {
+      D.seed = +get('seed', 1105);
+      var xv = new XMLHttpRequest(); xv.open('GET', '../deep16/data/world-near.js', false); xv.send(); (0, eval)(xv.responseText);
+      WV.index(); WV.use('near'); var MV = WV.map('near'), siteV = function (id) { return MV.sites.filter(function (s) { return s.id === id; })[0]; };
+      var gV = siteV('glowseep'), fV = siteV('fork'), svV = siteV('silverton'), kV = WV.K(gV.hex[0], gV.hex[1]), hV = MV.hex[kV], rdV = MV.road[kV], znV = hV ? WV.zoneOf(hV) : null;
+      var dFV = Math.max(Math.abs(gV.hex[0] - fV.hex[0]), Math.abs(gV.hex[1] - fV.hex[1]), Math.abs(gV.hex[0] + gV.hex[1] - fV.hex[0] - fV.hex[1]));
+      okV('the Glowseep\'s door on the area\'s ' + gV.hex + ': ' + (hV && hV.t) + ', ' + (rdV ? 'on ' + rdV.name : 'off every road') + ', its fights the ' + znV + '\'s, ' + dFV + ' hex from the fork (' + fV.hex + ') -- the bog\'s ' + '57,32 before, a hex off the road',
+        !!rdV && rdV.id === 'mile' && !!hV && hV.t === 'bog' && znV === 'glowseep' && dFV === 1);
+      var mileV = MV.pathById.mile, dLV = 1e9, ptsV = (mileV && mileV.pts || []).filter(function (p) { return Array.isArray(p); });
+      for (var iV = 0; iV + 1 < ptsV.length; iV++) { var aV = ptsV[iV], bV = ptsV[iV + 1], vx = bV[0] - aV[0], vy = bV[1] - aV[1], L2 = vx * vx + vy * vy, tV = L2 ? Math.max(0, Math.min(1, ((gV.x - aV[0]) * vx + (gV.y - aV[1]) * vy) / L2)) : 0; dLV = Math.min(dLV, Math.hypot(gV.x - aV[0] - tV * vx, gV.y - aV[1] - tV * vy)); }
+      okV('its mark on the mile\'s own line (' + gV.x + ', ' + gV.y + '; ' + dLV.toFixed(3) + ' mi off it), the bog\'s 110.211, 41.544 before (1.27 mi off)', dLV < 0.01);
+      var wgV = D.WORLD.sites.filter(function (s) { return s.id === 'glowseep'; })[0];
+      okV('THE WORLD\'s bake the same mark (' + (wgV && [wgV.x, wgV.y]) + '), in its 5-mile hex ' + (wgV && wgV.hex) + ' with the fork, as before', !!wgV && wgV.x === gV.x && wgV.y === gV.y && wgV.hex.join() === '17,10');
+      var rtV = WV.route(svV.hex, gV.hex, MV), lastV = rtV && rtV.hexes[rtV.hexes.length - 1], toInnV = WV.route(gV.hex, siteV('inn').hex, MV);
+      okV('a walk from Silverton to the Glowseep: ' + (rtV ? rtV.hexes.length + ' hexes, ' + rtV.hours.toFixed(1) + ' h, its last step ' + (lastV.rv ? 'along ' + lastV.rv[0] + ' (pass ' + lastV.rv[1] + ')' : 'off the road') : 'no way') + '; on to the inn ' + (toInnV ? toInnV.hexes.length + ' hexes, ' + toInnV.hours.toFixed(1) + ' h' : 'no way') + ' (his "about 8-9 hours")',
+        !!rtV && lastV.join() === gV.hex.join() && !!lastV.rv && lastV.rv[0] === 'mile' && !!toInnV && toInnV.hours >= 8 - 1e-9 && toInnV.hours <= 9 + 1e-9);
+      D.house.worldDoor('?world&fresh&noenc&glowseep'); var scG = D.top(), SG = WV.state(), ZG = scG.zooms && scG.zooms(), rG = WV.route(SG.at, gV.hex, WV.M()), lG = rG && rG.hexes[rG.hexes.length - 1];
+      okV('the show door deep16/?world&glowseep: at the fork (' + SG.at + ', ' + (SG.rv && SG.rv.join(' pass ')) + ') at ' + (ZG ? ZG[scG.zi] : '?') + ' px a mile (the closest ' + (ZG ? ZG[ZG.length - 1] : '?') + '); the Glowseep ' + (rG ? rG.hexes.length + ' step up the road' + (lG.rv ? ' (' + lG.rv.join(' pass ') + ')' : ', off it') : ' no way'),
+        WV.M().near && SG.at.join() === fV.hex.join() && !!SG.rv && SG.rv[0] === 'mile' && !!ZG && scG.zi === ZG.length - 1 && !!rG && rG.hexes.length === 1 && !!lG.rv && lG.rv[0] === 'mile');
+      if (rG) { scG.cards = []; scG.walk = { path: rG.hexes.slice(), f: 0 }; for (var kG = 0; kG < 6000 && scG.walk && !scG.cards.length; kG++) scG.update(); }
+      var cG = scG.cards && scG.cards[0], dG = Math.hypot(SG.pos[0] - gV.x, SG.pos[1] - gV.y);
+      okV('the step taken: at ' + SG.at + ', the party ' + dG.toFixed(2) + ' mi from the mark, on the road (' + (SG.rv && SG.rv.join(' pass ')) + '), its door offered: ' + (cG ? cG.lines.slice(0, 2).join(' / ').replace(/\{.\}|\{\/\}/g, '') : 'no card'),
+        SG.at.join() === gV.hex.join() && !!SG.rv && SG.rv[0] === 'mile' && !!cG && /Glowseep/.test(cG.lines[0]));
+      scG.cards = []; WV.use('near');
+      // the stores on the town's L map: Silverton's street, its map painted with the signs and without, on a canvas of the bench's own
+      var BV = RV.make('?roam=silverton&watch'); D.scenes.length = 0; D.push(BV); if (BV.baking) { BV.baking = false; BV.enter(); }
+      var sgV = RV.def.signs || {}, nV = Object.keys(sgV).length, kindsV = {}; Object.keys(sgV).forEach(function (k) { kindsV[sgV[k]] = (kindsV[sgV[k]] || 0) + 1; });
+      var cvV = document.createElement('canvas'); cvV.width = D.W; cvV.height = D.H; var cxV = cvV.getContext('2d'), paintV = function (signs) { var keep = RV.def.signs; RV.def.signs = signs; RV.mapSigns && (RV.mapSigns.last = null); cxV.clearRect(0, 0, D.W, D.H); RV.showMap = true; try { RV.paintOver(cxV, BV); } finally { RV.showMap = false; RV.def.signs = keep; } return cxV.getImageData(0, 0, D.W, D.H).data; };
+      var withV = paintV(sgV), drawnV = (RV.mapSigns && RV.mapSigns.last || []).slice(); if (get('shot', '')) repV.shot = cvV.toDataURL(); var bareV = paintV({}), mV = D.grid.map, sV = Math.max(1, Math.min(4, Math.floor((D.W - 12) / mV.w), Math.floor((D.H - 60) / mV.h)));
+      var showV = drawnV.filter(function (d) { var diff = 0; for (var y = d.y; y < d.y + d.n; y++) for (var x = d.x; x < d.x + d.n; x++) { var o = (y * D.W + x) * 4; if (Math.abs(withV[o] - bareV[o]) + Math.abs(withV[o + 1] - bareV[o + 1]) + Math.abs(withV[o + 2] - bareV[o + 2]) > 24) diff++; } return diff >= d.n * d.n * 0.3; });
+      okV('Silverton\'s L map (' + mV.w + ' x ' + mV.h + ' squares at ' + sV + ' px): ' + drawnV.length + ' store glyphs of ' + nV + ' signs (' + Object.keys(kindsV).map(function (k) { return k + (kindsV[k] > 1 ? ' x' + kindsV[k] : ''); }).join(', ') + '), ' + showV.length + ' of them seen on the map',
+        nV >= 8 && drawnV.length === nV && showV.length === nV);
+      var x0V = D.W - mV.w * sV - 6, offV = drawnV.map(function (d) { var a = d.key.split(','), cx = x0V + (+a[0] + 0.5) * sV, cy = 22 + (+a[1] + 1.5) * sV; return Math.round(Math.max(Math.abs(d.x + d.n / 2 - cx), Math.abs(d.y + d.n / 2 - cy))); });
+      var overV = drawnV.filter(function (d, i) { return drawnV.some(function (o, j) { return j !== i && d.x < o.x + o.n && o.x < d.x + d.n && d.y < o.y + o.n && o.y < d.y + d.n; }); }).length;
+      okV('each at its door (the square under its sign): at most ' + Math.max.apply(null, offV.concat([0])) + ' px off its door (' + offV.filter(function (v) { return v > sV; }).length + ' nudged clear of a neighbour), the glyphs ' + (drawnV[0] ? drawnV[0].n : 0) + ' px; ' + overV + ' over another',
+        drawnV.length > 0 && offV.every(function (v) { return v <= drawnV[0].n; }) && overV === 0);
+      var feedV = (RV.def.doors || []).filter(function (q) { return /feed track/.test((RV.def.wayName || {})[q[0] + ',' + q[1]] || ''); }), hitV = drawnV.filter(function (d) { return feedV.some(function (q) { var fx = x0V + q[0] * sV, fy = 22 + q[1] * sV; return fx + 2 * sV >= d.x && fx - sV < d.x + d.n && fy + 2 * sV >= d.y && fy - sV < d.y + d.n; }); });
+      okV('the Warrens\' mark kept clear (his hunt for it, 10-28): ' + feedV.length + ' feed-track squares, ' + hitV.length + ' glyphs over them', feedV.length > 0 && hitV.length === 0);
+    } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); }
+    WV.onStep = onStepV; D.store.get = stGV; D.store.set = stSV; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    delete D.WORLD_NEAR; if (WV.use) WV.use('world');
+    var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
+    document.body.appendChild(preV);
+    return;
+  }
   // THE MARK ON THE EDIFICE, THE CLOSEST ZOOM, THE BUILT SQUARES, 11-03 (mode=world1103; the hex map and world session -- his "I couldn't drag the silverton location
   // marker to the new edifice ... it started to flatten the terrain around it", "Is the first zoom of the hex tool at level 3 the maximum zoom on the world model/can it
   // be? That'd be the level of zoom when leaving a location and the level to try to code-draw the buildings", "the edifice is the bundle at the top marked town, the hex
