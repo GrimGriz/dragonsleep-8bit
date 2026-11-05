@@ -532,6 +532,7 @@
     if (s === 'notes') { var nf = this.noteFrom; this.go(nf === 'result' && this.result ? 'result' : 'fights'); return; } // (opened from a fight's card: back to it)
     if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
     if (s === 'draft') { if (this.dOut) { this.dOut = null; this.scroll = 0; return; } this.go('rest'); return; } // (SECOND DRAFT: back a step, then to the rest card)
+    if (s === 'rest' && this.st.run && this.st.run.atCamp) { this.go('hub'); return; } // (the camp's SHORT REST card: X back to the fire, 11-05)
     if (s === 'result' || s === 'rest' || s === 'unlock') return; // (a card with its own buttons)
     this.go('title');
   };
@@ -1992,9 +1993,9 @@
       this.btn(ctx, 'THE CAMP', x + 20, by, 120, 15, function () { self.go('hub'); }, { pri: true });
       this.btn(ctx, 'THE MODULES', x + w - 110, by, 90, 15, function () { self.go('modules'); });
     } else if (slot && won) {
-      // a module's fight won: what its slot allows next (10-17, his "DM flag ... if he allows short rest, long rest, market visit between runs")
-      var rs = slot.rest || {}, nx = run.plan[run.rung], nName = 'FIGHT ' + (run.rung + 1) + (nx && nx.name ? ': ' + nx.name : '');
-      this.btn(ctx, rs.long ? 'A LONG REST' : rs.short ? 'A SHORT REST' : 'ON TO FIGHT ' + (run.rung + 1), x + 20, by, 160, 15, function () { self.moduleRest(); self.go('rest'); }, { pri: true });
+      // a module's fight won: what its slot allows next (10-17, his "DM flag ... if he allows short rest, long rest, market visit between runs") -- at THE CAMP since 11-05 (wayBtns)
+      var nx = run.plan[run.rung], nName = 'FIGHT ' + (run.rung + 1) + (nx && nx.name ? ': ' + nx.name : '');
+      this.wayBtns(ctx, this.wayOn(run), 'FIGHT ' + (run.rung + 1), x, by);
       this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
       D.text(ctx, 'next: ' + (nName.length > 60 ? nName.slice(0, 58) + '..' : nName), D.W / 2, by - 12, P('stone', 5), 'center');
     } else if (slot) {
@@ -2005,8 +2006,8 @@
       // a ladder of the DM's making with no fifth slot ends at its last rung
       this.btn(ctx, 'THE LADDER IS CLIMBED', x + 20, by, 190, 15, function () { self.st.run = null; var lv = self.levelUps(); self.keep(); self.go('hub'); if (lv.length) self.say(lv.join(' '), 360); }, { pri: true });
     } else if (run && won) {
-      if (!run.trial && run.rung < this.lastRung(run)) this.btn(ctx, 'SHORT REST FOR THE WICKED', x + 20, by, 190, 15, function () { self.restCard(); self.go('rest'); }, { pri: true });
-      else this.btn(ctx, 'LONG REST FOR THE TRIAL', x + 20, by, 190, 15, function () { var lv = self.levelUps(); self.setTrial(); self.rest = { long: true, levels: lv }; self.go('rest'); }, { pri: true });
+      // a rung won: THE CAMP, its short rest and the market -- after the fourth, its long rest for the trial (SHORT REST FOR THE WICKED and LONG REST FOR THE TRIAL till 11-05)
+      this.wayBtns(ctx, this.wayOn(run), !run.trial && run.rung < this.lastRung(run) ? 'RUNG ' + (run.rung + 1) : 'THE TRIAL', x, by);
       this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
     } else if (run) {
       this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.lossMenu = true; self.go('cr'); }, { pri: true });
@@ -2035,9 +2036,15 @@
       (this.rest.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
       this.draftBtns(ctx, x + 15, Math.min(yy + 4, y + 190 - 40)); // (SECOND DRAFT, a seat with the feat a button: 10-31)
     }
-    this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (long) { self.toMorning({ label: 'TO THE TRIAL', fn: function () { self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
-    this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
-    this.btn(ctx, 'THE CAMP', x + w - 84, y + 190 - 22, 76, 15, function () { self.toCamp({ long: long, trial: long, market: true }); }); // (to equip what the market sold, 10-17)
+    this.restBtns(ctx, x, y, w, 190); // (the camp's short rest: back to the fire, or on -- 11-05; THE MARKET and the next rung's own button were here till then)
+  };
+  // the rest card's way out (11-05): the card is THE CAMP's SHORT REST, so THE CAMP is first -- the market, the menu, the long rest are there -- and GO ON beside it
+  Pocket.prototype.restBtns = function (ctx, x, y, w, h) {
+    var self = this, run = this.st.run; if (!run) return;
+    var nextN = run.module ? 'FIGHT ' + (run.rung + 1) : run.trial ? 'THE TRIAL' : 'RUNG ' + (run.rung + 1);
+    var camp = function () { if (run.atCamp) { self.go('hub'); return; } self.toCamp(Object.assign(self.wayOn(run) || {}, { took: self.rest && self.rest.long ? 'long' : 'short' })); }; // (a card come to by another road: the camp it would have been)
+    this.btn(ctx, 'THE CAMP', x + w / 2 - 146, y + h - 22, 140, 15, camp, { pri: true });
+    this.btn(ctx, 'GO ON: ' + nextN, x + w / 2 + 6, y + h - 22, 140, 15, function () { camp(); self.restOn(); });
   };
   function fitText(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
   PK.restText = function (rs) { rs = rs || {}; return (rs.long ? 'a long rest' : rs.short !== false ? 'a short rest' : 'no rest') + (rs.market ? ' and the market' : ''); };
@@ -2061,10 +2068,7 @@
       D.text(ctx, fitText('{y}NEXT, FIGHT ' + (run.rung + 1) + ' OF ' + run.plan.length + (nx.name ? ': ' + nx.name : '') + '{/}', w - 20), D.W / 2, yy, P('gold', 4), 'center'); yy += 11;
       D.text(ctx, fitText(PK.foesText(nx.foes) + ' on ' + ((D.MAPS[nx.map] || {}).name || nx.map) + '  {g}' + dd.label + '{/}', w - 20), D.W / 2, yy, P('bone', 1), 'center');
     }
-    this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { if (rs.long) { var lbl = 'TO FIGHT ' + (run.rung + 1); self.toMorning({ label: lbl, fn: function () { self.nextRung(); self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
-    if (rs.market) this.btn(ctx, 'THE MARKET', x + 8, y + h - 22, 76, 15, function () { self.openMarket('rest'); });
-    this.btn(ctx, 'THE CAMP', x + w - 144, y + h - 22, 76, 15, function () { self.toCamp({ long: !!rs.long, market: !!rs.market, none: !!rs.none }); }); // (to equip what the market sold, 10-17; to drink what the fight left, 11-03)
-    this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
+    this.restBtns(ctx, x, y, w, h); // (back to the fire, or on: 11-05 -- FIGHT n, THE MARKET, THE CAMP and QUIT were the card's own till then)
   };
   // THE CAMP (10-17, the two Pocket DMs, step B; Griz: "The FOES page on the player side becomes the camp, where they can open the standard 'm' menu / The pick from
   // there, single fight, random ladder or play module (load module to change greyed out play module when none loaded or to change loaded module)"; "Player saves
@@ -2072,13 +2076,58 @@
   // file -- and where to: SINGLE FIGHT (THE MAP, THE FOES, then THE LONG REST), RANDOM LADDER and PLAY MODULE (THE LONG REST, then the first fight)
   // a rest's THE CAMP (10-17, Griz: "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire (run.atCamp: what the rest was, and
   // whether its market is open) -- THE MENU's EQUIP on what the market sold -- and GO ON is the rest's own way on: a long rest's day first (THE LONG REST), then the fight
-  Pocket.prototype.toCamp = function (o) { var run = this.st.run; if (!run) return; run.atCamp = { long: !!o.long, trial: !!o.trial, market: !!o.market, none: !!o.none }; this.keep(); this.go('hub'); }; // (none: the DM's slot allows no rest -- the fire is where the potions are drunk, not a rest: 11-03)
+  // THE RESTS ARE THE CAMP'S (11-03 night, Griz: "Let's do the 'short rest' or 'long rest' as options that happen at the camp / At the end of the mission, it currently offers short
+  // rest or something else - feels like if a short or long rest is available, go to camp - where they can short rest (over above continue fight?) or market as needed. If no SR or LR
+  // or Market available, continuing ladder would go to next ladder fight"): a fight won with a rest or the market to be had goes TO THE CAMP, where SHORT REST and LONG REST are
+  // its own buttons beside THE MARKET and GO ON; with none of the three, CONTINUE goes straight to the next fight (THE CAMP beside it, small, for the potions: 11-03).
+  // run.atCamp: what the camp offers { short, long, market, trial, none } and what was taken there (took: 'short' | 'long')
+  Pocket.prototype.toCamp = function (o) { var run = this.st.run; if (!run) return; run.atCamp = { short: !!o.short, long: !!o.long, trial: !!o.trial, market: !!o.market, none: !!o.none, took: o.took || null }; this.keep(); this.go('hub'); }; // (none: the DM's slot allows no rest -- the fire is where the potions are drunk, not a rest: 11-03)
+  // what a won fight offers before the next: a module's slot as its DM flagged it; a ladder's rung its short rest and the market, the fourth the long rest for the trial
+  Pocket.prototype.wayOn = function (run) {
+    if (!run) return null;
+    var slot = this.slotOf(run);
+    if (slot) { var rs = slot.rest || {}; return { short: !!rs.short, long: !!rs.long, market: !!rs.market, trial: false }; }
+    if (!run.trial && run.rung < this.lastRung(run)) return { short: true, long: false, market: true, trial: false };
+    return { short: false, long: true, market: true, trial: true };
+  };
+  Pocket.prototype.wayBtns = function (ctx, wy, nextN, x, by) {
+    var self = this;
+    if (wy.short || wy.long || wy.market) {
+      this.btn(ctx, 'TO THE CAMP', x + 20, by, 150, 15, function () { self.toCamp(wy); }, { pri: true });
+      D.text(ctx, '{g}at the camp: ' + [wy.short ? 'a short rest' : '', wy.long ? 'a long rest' : '', wy.market ? 'the market' : ''].filter(Boolean).join(', ') + ', then ' + nextN + '{/}', D.W / 2, by - 22, P('stone', 5), 'center');
+      return;
+    }
+    this.btn(ctx, 'CONTINUE: ' + nextN, x + 20, by, 150, 15, function () { self.nextRung(); self.keep(); self.go('cr'); }, { pri: true }); // (no rest and no market here: straight on, as they are)
+    this.btn(ctx, 'THE CAMP', x + 176, by, 70, 15, function () { self.toCamp({ none: true }); }, { small: true }); // (no rest: the fire for what the pack holds, 11-03)
+  };
+  // a rest at the camp: SHORT REST the ladder's hit dice (the card, then back to the fire); LONG REST a night of it -- the levels due, everything back, THE LONG REST's page -- and the
+  // trial set where it is the trial's (the ladder's own long rest, 10-03)
+  Pocket.prototype.campRest = function (kind) {
+    var self = this, run = this.st.run, rest = run && run.atCamp; if (!rest) return;
+    if (kind === 'long') {
+      var lv = this.levelUps();
+      if (rest.trial) this.setTrial(); else { run.carry = null; run.drafts = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); }
+      rest.took = 'long'; this.keep(); this.cache = {};
+      this.toMorning({ label: 'BACK TO THE CAMP', fn: function () { self.takeMorning(); self.go('hub'); } }, 'hub');
+      if (lv.length) this.say(lv.join(' '), 360);
+      return;
+    }
+    if (run.carry) this.restCard(); else this.rest = { lines: [] }; // (no carry: the long rest's whole, nothing to spend a hit die on)
+    this.rest.module = !!run.module; rest.took = 'short'; this.cache = {}; this.keep(); this.go('rest');
+  };
+  // GO ON: the next fight as the camp leaves them (no rest it was not asked for), the trial after its long rest -- taken here first if the camp's LONG REST was not
   Pocket.prototype.restOn = function () {
     var self = this, run = this.st.run, rest = run && run.atCamp; if (!run) return;
     if (!rest) { this.foes = run.foes; this.fightMap = run.map; this.go('cr'); return; }
-    var on = function () { delete run.atCamp; if (!rest.trial) self.nextRung(); };
-    if (rest.long) { this.toMorning({ label: rest.trial ? 'TO THE TRIAL' : 'TO ' + (run.module ? 'FIGHT ' : 'RUNG ') + (run.rung + 1), fn: function () { on(); self.takeMorning(); self.go('cr'); } }, 'hub'); return; }
-    on(); this.keep(); this.go('cr');
+    if (rest.trial && rest.took !== 'long') {
+      var lv = this.levelUps(); this.setTrial(); rest.took = 'long'; this.keep();
+      this.toMorning({ label: 'TO THE TRIAL', fn: function () { delete run.atCamp; self.takeMorning(); self.foes = run.foes; self.fightMap = run.map; self.go('cr'); } }, 'hub');
+      if (lv.length) this.say(lv.join(' '), 360);
+      return;
+    }
+    delete run.atCamp;
+    if (!rest.trial) this.nextRung(); else { this.foes = run.foes; this.fightMap = run.map; }
+    this.keep(); this.go('cr');
   };
   // the night clearing of the ladder's camp (js/campfire.js, js/camp.js): the party's first four in the fire's four seats, in THE PARTY's order
   var SEATKEY = ['barley', 'aurdin', 'lymen', 'vivian'], FIRE_HUB = [232, 196];
@@ -2110,9 +2159,13 @@
       var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
       // (come to the camp from a rest -- 10-17, his "return to camp 'so i can equip after visit market' on long rests": GO ON is the rest's way on, the long rest's day first)
       var nextN = rest ? (run.module ? 'FIGHT ' + (run.rung + 1) : rest.trial ? 'THE TRIAL' : 'RUNG ' + (run.rung + 1)) : null;
-      D.text(ctx, (rest ? (rest.none ? '{o}no rest:{/} ' : '{o}resting:{/} ') : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
+      D.text(ctx, (rest ? (rest.none ? '{o}no rest:{/} ' : rest.took ? '{o}rested:{/} ' : '{o}at the camp:{/} ') : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
       this.btn(ctx, rest ? 'GO ON: ' + nextN : 'GO ON', rx, by, rw, 18, function () { self.restOn(); }, { pri: true });
-      this.btn(ctx, 'PUT IT AWAY', rx, by + 22, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
+      // the camp's rests, what the fight's end offered (11-05: toCamp) -- one of each a visit; a long rest taken leaves the short one nothing to give
+      var ry = by + 22;
+      if (rest && rest.short) { this.btn(ctx, rest.took ? 'SHORT REST: ' + (rest.took === 'long' ? 'NO NEED' : 'TAKEN') : 'SHORT REST', rx, ry, rw, 15, function () { self.campRest('short'); }, { dis: !!rest.took, why: rest.took === 'long' ? 'the long rest is taken: everyone is whole' : 'the short rest is taken: GO ON' }); ry += 19; }
+      if (rest && rest.long) { this.btn(ctx, rest.took === 'long' ? 'LONG REST: TAKEN' : rest.trial ? 'LONG REST FOR THE TRIAL' : 'LONG REST', rx, ry, rw, 15, function () { self.campRest('long'); }, { dis: rest.took === 'long', why: 'the long rest is taken: GO ON' }); ry += 19; }
+      this.btn(ctx, 'PUT IT AWAY', rx, ry, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
     } else {
       this.btn(ctx, 'SINGLE FIGHT', rx, by, rw, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
       this.btn(ctx, 'RANDOM LADDER', rx, by + 22, rw, 16, function () { self.dayLevels(); self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });

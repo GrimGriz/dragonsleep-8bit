@@ -16123,6 +16123,92 @@
     document.body.appendChild(preS);
     return;
   }
+  // THE CAMP'S RESTS (mode=camprest1105; the Pocket DM lane, 11-03 night, Griz: "Let's do the 'short rest' or 'long rest' as options that happen at the camp / ... if a short or long
+  // rest is available, go to camp - where they can short rest (over above continue fight?) or market as needed. If no SR or LR or Market available, continuing ladder would go to next
+  // ladder fight"), with the lead of his 18 fights of 11-03 (fight 1 of 5 ended Drill 49/57 and Aurdin 17/29, fight 2 began all four full: his CR 2-3's first slot is a long rest and the
+  // market, read off pocket-module-CR2-3 -- the DM's rest, not the carry failing): a fight won with nothing after it -- CONTINUE, straight on, the wounds carried; with a rest or the
+  // market -- TO THE CAMP, SHORT REST and LONG REST its own, GO ON carrying only the rest taken; the ladder's rungs to the camp, the trial after its long rest; and the module's file by
+  // its name alone (his "pull the timestamp off the module save"). The fights set and their ends laid by hand, nothing driven. On a stand-in store
+  if (get('mode', '') === 'camprest1105') {
+    var repCr = { checks: [], errors: [] }, okCr = function (c, s) { repCr.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memCr = {}, stGCr = D.store.get, stSCr = D.store.set, push0Cr = D.push;
+    D.store.get = function (k) { return memCr[k] ? JSON.parse(memCr[k]) : null; }; D.store.set = function (k, v) { memCr[k] = JSON.stringify(v); return true; };
+    try {
+      var cvCr = document.createElement('canvas'); cvCr.width = D.W; cvCr.height = D.H; var cxCr = cvCr.getContext('2d');
+      var Pc = new D.Pocket(); Pc.enter(); Pc.ask = function () { return true; }; Pc.xpAlways = true;
+      var drawCr = function () { Pc.btns = []; Pc.draw(cxCr); return Pc.btns.map(function (b) { return b.label; }); };
+      var btnCr = function (re) { return Pc.btns.filter(function (b) { return re.test(b.label); })[0] || null; };
+      Pc.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pc.st.pack = []; Pc.st.light = null; Pc.cache = {};
+      var idsCr = Pc.mapIds();
+      var setCr = function () { var Bq = null; D.push = function (b) { Bq = b; }; try { Pc.launch(); } finally { D.push = push0Cr; } if (!Bq) return null; D.battle = Bq; Bq.enter(); for (var g = 0; g < 300 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq; };
+      var partyCr = function (Bq) { return Bq.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; }); };
+      var winCr = function (hp) { var Bq = setCr(); if (!Bq) return null; var pu = partyCr(Bq), max = pu.map(function (u) { return u.maxhp; }); pu.forEach(function (u, k) { if (hp[k] != null) { u.hp = Math.min(u.maxhp, hp[k]); u.ko = false; u.dead = false; } }); Bq.o.onDone('won'); return max; };
+      var hpIn = function () { var Bq = setCr(); return Bq ? partyCr(Bq).map(function (u) { return u.hp; }) : null; }; // (the next fight's hit points as it sets)
+      var modCr = { name: 'THE CAMP TEST', key: 'test:camp', slots: [
+        { map: idsCr[0], foes: ['goblin', 'goblin'], rest: { short: false, long: false, market: false } },
+        { map: idsCr[1], foes: ['goblin', 'goblin'], rest: { short: true, long: true, market: true } },
+        { map: idsCr[2], foes: ['goblin', 'goblin'], rest: { short: true, long: false, market: false } },
+        { map: idsCr[3], foes: ['goblin', 'goblin'], rest: { short: true, long: false, market: false } }] };
+      D.seed = 1105; Pc.startModule(modCr); // (no morning taken: the fights' hit points are the carry's alone)
+      // 1. fight 1 won hurt, its slot no rest and no market: CONTINUE: FIGHT 2, straight on, the wounds carried (the lead: the carry holds)
+      var max1 = winCr([5, 6, 7, 8]), L1 = drawCr(), ct1 = btnCr(/^CONTINUE: FIGHT 2$/);
+      okCr(Pc.screen === 'result' && !!max1 && !!ct1 && !btnCr(/^TO THE CAMP$/) && !!btnCr(/^THE CAMP$/), 'fight 1 won, no rest and no market after it: CONTINUE: FIGHT 2 (THE CAMP small beside it, for the pack), no TO THE CAMP (' + L1.join(' | ') + ')');
+      if (ct1) Pc.fire(ct1);
+      var hp2 = hpIn();
+      okCr(Pc.screen === 'cr' && Pc.st.run.rung === 2 && !Pc.st.run.atCamp && !!hp2 && hp2.join() === '5,6,7,8', 'CONTINUE goes straight to fight 2, begun as fight 1 left them: ' + (hp2 && hp2.join('/')) + ' -- the carry holds with no rest (his 11-03 fight 2 began full after his module\'s long rest)');
+      // 2. fight 2 won hurt, its slot a short rest, a long rest and the market: TO THE CAMP, where the rests are the camp's own
+      var max2 = winCr([4, 4, 4, 4]); drawCr();
+      var tc2 = btnCr(/^TO THE CAMP$/);
+      okCr(!!tc2 && !btnCr(/^CONTINUE/) && !btnCr(/^A (SHORT|LONG) REST$/), 'fight 2 won, a short rest, a long rest and the market after it: TO THE CAMP, no CONTINUE (nor A SHORT REST / A LONG REST, the card\'s till now)');
+      if (tc2) Pc.fire(tc2);
+      var Lh = drawCr(), rs2 = Pc.st.run.atCamp, srB = btnCr(/^SHORT REST$/), lrB = btnCr(/^LONG REST$/), mkB = btnCr(/^THE MARKET/), goB = btnCr(/^GO ON: FIGHT 3$/);
+      okCr(Pc.screen === 'hub' && !!rs2 && rs2.short && rs2.long && rs2.market && !rs2.took && !!srB && !srB.dis && !!lrB && !lrB.dis && !!mkB && !mkB.dis && !!goB, 'THE CAMP: SHORT REST, LONG REST, THE MARKET and GO ON: FIGHT 3, nothing taken yet (' + Lh.join(' | ') + ')');
+      // 3. SHORT REST: the hit dice on its card, then back to the fire -- the short rest spent, the long one still to have
+      var c0 = Pc.st.run.carry.map(function (c) { return c.hp; }); if (srB) Pc.fire(srB);
+      var onCard = Pc.screen === 'rest', c1 = Pc.st.run.carry.map(function (c) { return c.hp; }), hdL = Pc.st.run.hd.join('/');
+      var Lr = drawCr(), bk = btnCr(/^THE CAMP$/);
+      okCr(onCard && c1.some(function (h, k) { return h > c0[k]; }) && c1.every(function (h, k) { return h >= c0[k]; }) && !!bk && !!btnCr(/^GO ON: FIGHT 3$/) && !btnCr(/^THE MARKET$/), 'SHORT REST: its card, the hit dice spent (' + c0.join('/') + ' to ' + c1.join('/') + ', dice left ' + hdL + '), THE CAMP and GO ON on it (' + Lr.join(' | ') + ')');
+      if (bk) Pc.fire(bk); drawCr();
+      var srB2 = btnCr(/^SHORT REST/), lrB2 = btnCr(/^LONG REST$/);
+      okCr(Pc.screen === 'hub' && Pc.st.run.atCamp.took === 'short' && !!srB2 && srB2.dis && !!lrB2 && !lrB2.dis, 'back at the fire: ' + (srB2 && srB2.label) + ' greyed, LONG REST still to have');
+      var Pr = new D.Pocket(); Pr.enter(); okCr(Pr.screen === 'hub' && !!Pr.st.run.atCamp && Pr.st.run.atCamp.took === 'short', 'a reload at the camp opens at the fire, its short rest still taken');
+      // 4. LONG REST: THE LONG REST's page, BACK TO THE CAMP, everything back -- then GO ON, whole
+      if (lrB2) Pc.fire(lrB2); var onMorn = Pc.screen === 'morning'; drawCr(); var btc = btnCr(/^BACK TO THE CAMP$/); if (btc) Pc.fire(btc);
+      drawCr(); var srB3 = btnCr(/^SHORT REST/), lrB3 = btnCr(/^LONG REST/);
+      okCr(onMorn && !!btc && Pc.screen === 'hub' && Pc.st.run.atCamp.took === 'long' && !Pc.st.run.carry && !!srB3 && srB3.dis && !!lrB3 && lrB3.dis, 'LONG REST: THE LONG REST\'s page, BACK TO THE CAMP; the carry gone, everything back -- ' + (srB3 && srB3.label) + ', ' + (lrB3 && lrB3.label));
+      var goB3 = btnCr(/^GO ON: FIGHT 3$/); if (goB3) Pc.fire(goB3); var hp3 = hpIn();
+      okCr(Pc.screen === 'cr' && Pc.st.run.rung === 3 && !!hp3 && !!max2 && hp3.every(function (h, k) { return h === max2[k]; }), 'GO ON after the long rest: fight 3 begins whole, ' + (hp3 && hp3.join('/')) + ' of ' + (max2 && max2.join('/')));
+      // 5. fight 3 won hurt, its slot a short rest alone: TO THE CAMP, the market shut (the DM's); GO ON with the rest untaken carries the wounds
+      winCr([9, 9, 9, 9]); drawCr(); var tc3 = btnCr(/^TO THE CAMP$/); if (tc3) Pc.fire(tc3); drawCr();
+      var mk4 = btnCr(/^THE MARKET/), go4 = btnCr(/^GO ON: FIGHT 4$/);
+      okCr(!!tc3 && Pc.screen === 'hub' && !btnCr(/^LONG REST/) && !!btnCr(/^SHORT REST$/) && !!mk4 && mk4.dis && !!go4, 'fight 3 won, a short rest alone after it: TO THE CAMP, SHORT REST, no LONG REST, THE MARKET greyed');
+      if (go4) Pc.fire(go4); var hp4 = hpIn();
+      okCr(Pc.screen === 'cr' && Pc.st.run.rung === 4 && !!hp4 && hp4.join() === '9,9,9,9', 'GO ON with the short rest not taken: fight 4 begins as fight 3 left them, ' + (hp4 && hp4.join('/')) + ' -- only the rest asked for is taken');
+      // 6. THE LADDER: a rung won, TO THE CAMP (its short rest and the market); the fourth, TO THE CAMP for the trial, and GO ON takes the trial's long rest first
+      Pc.st.run = null; Pc.fightMap = idsCr[0]; Pc.crI = Pc.defaultCR(); Pc.reroll(); Pc.startRun();
+      winCr([6, 6, 6, 6]); drawCr(); var tcL = btnCr(/^TO THE CAMP$/), oldL = btnCr(/^SHORT REST FOR THE WICKED$/); if (tcL) Pc.fire(tcL); drawCr();
+      var srL = btnCr(/^SHORT REST$/), mkL = btnCr(/^THE MARKET/), goL = btnCr(/^GO ON: RUNG 2$/);
+      okCr(!!tcL && !oldL && Pc.screen === 'hub' && !!srL && !!mkL && !mkL.dis && !!goL && !btnCr(/^LONG REST/), 'a ladder\'s rung won: TO THE CAMP -- SHORT REST, THE MARKET, GO ON: RUNG 2 (SHORT REST FOR THE WICKED was the card\'s till now)');
+      if (goL) Pc.fire(goL); var hpL = hpIn();
+      okCr(Pc.screen === 'cr' && Pc.st.run.rung === 2 && !!hpL && hpL.join() === '6,6,6,6', 'GO ON: rung 2 as rung 1 left them (' + (hpL && hpL.join('/')) + ')');
+      Pc.st.run.rung = 4; winCr([7, 7, 7, 7]); drawCr(); var tcT = btnCr(/^TO THE CAMP$/); if (tcT) Pc.fire(tcT); drawCr();
+      var lrT = btnCr(/^LONG REST FOR THE TRIAL$/), goT = btnCr(/^GO ON: THE TRIAL$/);
+      okCr(!!tcT && Pc.screen === 'hub' && !!Pc.st.run.atCamp && Pc.st.run.atCamp.trial && !!lrT && !!goT && !btnCr(/^SHORT REST/), 'the fourth rung won: TO THE CAMP, LONG REST FOR THE TRIAL and GO ON: THE TRIAL');
+      if (goT) Pc.fire(goT); var onMT = Pc.screen === 'morning'; drawCr(); var ttT = btnCr(/^TO THE TRIAL$/); if (ttT) Pc.fire(ttT); var hpT = hpIn();
+      okCr(onMT && !!ttT && Pc.screen === 'cr' && Pc.st.run.trial && !Pc.st.run.atCamp && !Pc.st.run.carry && !!hpT && hpT.every(function (h) { return h > 7; }), 'GO ON: THE TRIAL with the long rest not taken takes it first -- THE LONG REST\'s page, TO THE TRIAL, the four whole (' + (hpT && hpT.join('/')) + ')');
+      Pc.st.run = null;
+      // 7. the module's file by its name alone, the same every save (a download here: the folder stood aside)
+      var PDc = D.pocketdm, fnA = PDc.moduleFileName({ name: 'CR 2-3' }), fnB = PDc.moduleFileName({ name: 'The Wagon Road!' });
+      var dlCr = [], clkCr = HTMLAnchorElement.prototype.click, canF = D.pocket.canFolder; HTMLAnchorElement.prototype.click = function () { dlCr.push(this.download); };
+      D.pocket.canFolder = function () { return false; };
+      try { var mC = { id: 77, name: 'BUILDING', slots: [{ map: idsCr[0], foes: ['goblin'], rest: PDc.REST0() }] }; PDc.saveModule(Pc, mC); PDc.saveModule(Pc, mC); } finally { HTMLAnchorElement.prototype.click = clkCr; D.pocket.canFolder = canF; }
+      okCr(fnA === 'pocket-module-cr-2-3.json' && fnB === 'pocket-module-the-wagon-road.json' && dlCr.length === 2 && dlCr[0] === 'pocket-module-building.json' && dlCr[1] === dlCr[0], 'a module saves under its own name, no stamp: ' + fnA + ', ' + fnB + '; BUILDING saved twice as ' + dlCr.join(' and '));
+    } catch (eCr) { repCr.errors.push(String(eCr && eCr.stack || eCr).slice(0, 800)); }
+    D.store.get = stGCr; D.store.set = stSCr; D.push = push0Cr;
+    var preCr = document.createElement('pre'); preCr.id = 'out'; preCr.textContent = 'BENCH16 ' + JSON.stringify(repCr);
+    document.body.appendChild(preCr);
+    return;
+  }
   // THE MODULES (mode=module1017; 10-17, Griz: "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for new users to have
   // as example module?"): the game's own module whole -- its floors dealt, its foes in the bestiary, its rests as flagged -- the title's MODULES, THE MODULES' screen
   // and THE PARTY TO LEVEL 1, a DM's ladder file of 10-17 read as a module; then THE WAGON ROAD played through `runs` times (3 in the gate; runs=20 for a balance read) by the AI's party (watched, as the Pocket
@@ -16207,13 +16293,19 @@
           if (fMo === 5 && xpSeq == null) { xpSeq = xpRun.join(' '); lvEnd = { levels: Pm.levels().join('/'), lines: (Pm.result && Pm.result.levels) || [] }; }
           if (fMo === 5) { if (!(Pm.result && Pm.result.moduleDone === 'THE WAGON ROAD' && !Pm.st.run)) { doneOK = false; outMo = 'the last won, not marked done'; } break; }
           if (!drawMo(Pm, 'result ' + (fMo + 1))) drawsMo = false;
-          var rbMo = btnMo(Pm, /^A (LONG|SHORT) REST$|^ON TO FIGHT/); if (!rbMo) { outMo = 'no rest button after fight ' + (fMo + 1); break; }
-          Pm.fire(rbMo); if (!drawMo(Pm, 'rest ' + (fMo + 1))) drawsMo = false;
-          restSeen[fMo + 1] = rbMo.label + (btnMo(Pm, /^THE MARKET$/) ? ' + THE MARKET' : '');
+          // (the rests are THE CAMP's since 11-05, camprest1105: TO THE CAMP, the rest the slot allows taken there -- the long one where it is offered -- then GO ON; CONTINUE where none is)
+          var rbMo = btnMo(Pm, /^TO THE CAMP$|^CONTINUE: FIGHT/); if (!rbMo) { outMo = 'no way on after fight ' + (fMo + 1); break; }
+          Pm.fire(rbMo); if (!drawMo(Pm, 'camp ' + (fMo + 1))) drawsMo = false;
+          var srMo = btnMo(Pm, /^LONG REST$/) || btnMo(Pm, /^SHORT REST$/);
+          restSeen[fMo + 1] = rbMo.label === 'TO THE CAMP' ? (srMo ? srMo.label : 'NO REST') + (btnMo(Pm, /^THE MARKET/) && !btnMo(Pm, /^THE MARKET/).dis ? ' + THE MARKET' : '') : rbMo.label;
+          if (srMo) {
+            Pm.fire(srMo);
+            if (Pm.screen === 'morning') { if (!drawMo(Pm, 'morning ' + (fMo + 2))) drawsMo = false; var gmMo = btnMo(Pm, /^BACK TO THE CAMP$/); if (!gmMo) { outMo = 'no BACK TO THE CAMP on THE LONG REST'; break; } restSeen[fMo + 1] += ' + THE LONG REST'; Pm.fire(gmMo); }
+            else { if (!drawMo(Pm, 'rest ' + (fMo + 1))) drawsMo = false; var bcMo = btnMo(Pm, /^THE CAMP$/); if (!bcMo) { outMo = 'no THE CAMP on the rest card'; break; } Pm.fire(bcMo); }
+            drawMo(Pm, 'camp again ' + (fMo + 1));
+          }
           if (fMo === 2 && Pm.st.run.carry) longOK = false;
-          var nbMo = btnMo(Pm, new RegExp('^FIGHT ' + (fMo + 2) + '$')); if (!nbMo) { outMo = 'no FIGHT ' + (fMo + 2) + ' on the rest'; break; }
-          Pm.fire(nbMo);
-          if (Pm.screen === 'morning') { if (!drawMo(Pm, 'morning ' + (fMo + 2))) drawsMo = false; var gmMo = btnMo(Pm, new RegExp('^TO FIGHT ' + (fMo + 2) + '$')); if (!gmMo) { outMo = 'no TO FIGHT ' + (fMo + 2) + ' on THE LONG REST'; break; } restSeen[fMo + 1] += ' + THE LONG REST'; Pm.fire(gmMo); }
+          if (Pm.screen === 'hub') { var nbMo = btnMo(Pm, new RegExp('^GO ON: FIGHT ' + (fMo + 2) + '$')); if (!nbMo) { outMo = 'no GO ON: FIGHT ' + (fMo + 2) + ' at the camp'; break; } Pm.fire(nbMo); }
           var sl2 = wr.slots[fMo + 1]; if (!(Pm.st.run.rung === fMo + 2 && Pm.st.run.map === sl2.map && Pm.st.run.foes.join() === sl2.foes.join() && Pm.screen === 'cr')) { outMo = 'fight ' + (fMo + 2) + ' not as built'; break; }
         }
         repMo.reach.push(gotMo); repMo.runs.push(outMo); repMo.fought.push(foughtMo); repMo.retries.push(triedMo);
@@ -16247,17 +16339,17 @@
       }
       if (nRs) repMo.restartText = repMo.restart.map(function (r) { return r.roads + ' [' + r.won + ']'; }).join('; ');
       // THE CAMP from a rest (10-17, his "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire, GO ON is the rest's way on
-      var campOK = [];
-      Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.st.run.rung = 3; Pm.st.run.carry = null; Pm.moduleRest(); Pm.go('rest'); drawMo(Pm, 'rest 3 (camp)');
-      var tcB = btnMo(Pm, /^THE CAMP$/); if (tcB) Pm.fire(tcB); campOK.push(Pm.screen === 'hub' && !!Pm.st.run.atCamp && Pm.st.run.atCamp.long && Pm.st.run.atCamp.market);
-      drawMo(Pm, 'hub resting'); var goB = btnMo(Pm, /^GO ON: FIGHT 4$/), mkB = btnMo(Pm, /^THE MARKET/); campOK.push(!!goB && !!mkB && !mkB.dis);
+      var campOK = []; // (the rests are THE CAMP's own since 11-05: camprest1105)
+      Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.st.run.rung = 3; Pm.st.run.carry = null; Pm.toCamp(Pm.wayOn(Pm.st.run)); campOK.push(Pm.screen === 'hub' && !!Pm.st.run.atCamp && Pm.st.run.atCamp.long && Pm.st.run.atCamp.market);
+      drawMo(Pm, 'hub resting'); var goB = btnMo(Pm, /^GO ON: FIGHT 4$/), mkB = btnMo(Pm, /^THE MARKET/), lrB = btnMo(Pm, /^LONG REST$/); campOK.push(!!goB && !!mkB && !mkB.dis && !!lrB);
       var keepE = Pm.st.run.rung, Pe = new D.Pocket(); Pe.enter(); campOK.push(Pe.screen === 'hub'); // (a reload while resting comes back to the fire)
-      if (goB) Pm.fire(goB); campOK.push(Pm.screen === 'morning' && keepE === 3 && Pm.st.run.rung === 3); drawMo(Pm, 'morning from camp'); var tf4 = btnMo(Pm, /^TO FIGHT 4$/); if (tf4) Pm.fire(tf4);
+      if (lrB) Pm.fire(lrB); campOK.push(Pm.screen === 'morning' && keepE === 3 && Pm.st.run.rung === 3); drawMo(Pm, 'morning from camp'); var bc4 = btnMo(Pm, /^BACK TO THE CAMP$/); if (bc4) Pm.fire(bc4);
+      drawMo(Pm, 'hub rested'); goB = btnMo(Pm, /^GO ON: FIGHT 4$/); if (goB) Pm.fire(goB);
       campOK.push(Pm.screen === 'cr' && Pm.st.run.rung === 4 && !Pm.st.run.atCamp && Pm.st.run.foes.join() === wr.slots[3].foes.join());
-      Pm.st.run.rung = 1; Pm.moduleRest(); Pm.go('rest'); drawMo(Pm, 'rest 1 (camp)'); tcB = btnMo(Pm, /^THE CAMP$/); if (tcB) Pm.fire(tcB); drawMo(Pm, 'hub resting 2');
+      Pm.st.run.rung = 1; Pm.toCamp(Pm.wayOn(Pm.st.run)); drawMo(Pm, 'hub resting 2');
       var mk2 = btnMo(Pm, /^THE MARKET/), go2 = btnMo(Pm, /^GO ON: FIGHT 2$/); campOK.push(!!mk2 && mk2.dis && !!go2); if (go2) Pm.fire(go2); campOK.push(Pm.screen === 'cr' && Pm.st.run.rung === 2);
       Pm.st.run = null; Pm.keep();
-      okMo('THE CAMP from a rest: after fight 3 the run waits at the fire with the market open, GO ON: FIGHT 4 through THE LONG REST to fight 4; after fight 1 the market shut (the DM\'s) and GO ON: FIGHT 2 straight on; a reload while resting opens at the fire (' + campOK.join(' ') + ')', campOK.length === 7 && campOK.every(Boolean));
+      okMo('THE CAMP after a fight: after fight 3 the fire with LONG REST and the market open, LONG REST through THE LONG REST back to the fire, GO ON: FIGHT 4; after fight 1 the market shut (the DM\'s) and GO ON: FIGHT 2 straight on; a reload while resting opens at the fire (' + campOK.join(' ') + ')', campOK.length === 7 && campOK.every(Boolean));
       // THE MARKET's line for the row under the mouse (10-17, his "item descriptions on mouseover and highlight of store options (bow range, finesse, etc on weapons)")
       var ilB = PKm.itemLine('longbow'), ilD = PKm.itemLine('dagger'), ilC = PKm.itemLine('cloakdisplacement'), ilA = PKm.itemLine('chainmail');
       Pm.openMarket('hub'); drawMo(Pm, 'market'); var rowB = Pm.btns.map(function (b, i) { return [b, i]; }).filter(function (q) { return q[0].small && q[0].w === 150; })[0]; if (rowB) Pm.ksel = rowB[1]; var mkDrew = drawMo(Pm, 'market hovered');
@@ -16305,9 +16397,9 @@
         Bcp.o.onDone('won');
       }
       var runCp = Pm.st.run, cA = runCp && runCp.carry ? JSON.parse(JSON.stringify(runCp.carry)) : null;
-      if (runCp) Pm.moduleRest();
-      cpOK.push(!!Pm.rest && !!Pm.rest.none && !!cA && cA[0].hp === 1 && cA[2].hp === 1 && cA[1].aid === 5 && cA[1].hp === cA[1].maxhp);
-      Pm.go('rest'); drawMo(Pm, 'rest none'); var tcN = btnMo(Pm, /^THE CAMP$/); if (tcN) Pm.fire(tcN);
+      drawMo(Pm, 'result none'); var ctN = btnMo(Pm, /^CONTINUE: FIGHT 2$/), tcN = btnMo(Pm, /^THE CAMP$/); // (no rest: CONTINUE straight on, THE CAMP beside it for the pack -- 11-05)
+      cpOK.push(!!ctN && !!tcN && !!cA && cA[0].hp === 1 && cA[2].hp === 1 && cA[1].aid === 5 && cA[1].hp === cA[1].maxhp);
+      if (tcN) Pm.fire(tcN);
       cpOK.push(Pm.screen === 'hub' && !!runCp && !!runCp.atCamp && runCp.atCamp.none === true);
       var seenCp = [], textCp = D.text; D.text = function (c0, s) { seenCp.push(String(s)); return textCp.apply(this, arguments); }; try { drawMo(Pm, 'hub no rest'); } finally { D.text = textCp; }
       var wordsCp = seenCp.join(' | ').replace(/\{[a-z\/]+\}/g, '');
@@ -16357,7 +16449,7 @@
       repMo.report.push('  fights fought a road (retries in it): ' + repMo.fought.map(function (f, i) { return f + ' (' + repMo.retries[i] + ')'; }).join(' '));
       if (repMo.restartText) repMo.report.push('  restart on a loss -- roads begun to the four at 2nd [fights won each road]: ' + repMo.restartText);
       var rsTxt = Object.keys(restSeen).map(function (k) { return k + ': ' + restSeen[k]; }).join('; ');
-      okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET + THE LONG REST' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
+      okMo('after each fight the rest its slot allows, at THE CAMP (' + rsTxt + ')', restSeen[1] === 'SHORT REST' && restSeen[3] === 'LONG REST + THE MARKET + THE LONG REST' && (!restSeen[4] || restSeen[4] === 'SHORT REST') && (!restSeen[5] || restSeen[5] === 'SHORT REST'));
       okMo('the long rest after fight 3 carries nothing into fight 4', longOK);
       // XP (10-17, his "watched the module, are we by chance not giving the xp?"): the SRD's XP a won fight, split four ways; the levels at a long rest
       okMo('XP: each fight of THE WAGON ROAD gives the four ' + xpSeq + ' each; after fight 3\'s long rest still ' + lvMid + '; at its end ' + (lvEnd && lvEnd.levels) + ' ("' + (lvEnd && lvEnd.lines.join(' ')) + '")',
