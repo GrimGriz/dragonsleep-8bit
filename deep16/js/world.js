@@ -862,7 +862,7 @@
     for (var y = 0; y < h; y++) {
       var row = '';
       for (var x = 0; x < w; x++) {
-        var lane = inLane(x, y), r0 = D.rand(), ch = '.', edge = y === 0 || y === h - 1 || (o && (x === 0 || x === w - 1));
+        var lane = inLane(x, y), r0 = D.rand(), ch = '.', edge = y === 0 || y === h - 1 || (o && !o.grid && (x === 0 || x === w - 1)); // (o.grid: the grid's lineup, W.lineup -- its ends open as ever)
         var kind = k2 && hh(e.q * 64 + (x >> 2), e.r * 64 + (y >> 1), salt) < sh2 ? k2 : k1; // (the second ground in patches, four squares by two)
         if (road && onRoad(x, y)) ch = ',';
         else if (x === rx) ch = r0 < 0.75 ? '~' : 'D';
@@ -876,21 +876,34 @@
       entry: (o && o.entry) || [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
     return def;
   };
-  W.seat = function (list) { // the foes' line facing the four: the front at x 6, the Large behind it (two squares each)
-    var front = [[6, 3], [6, 2], [6, 4], [6, 1], [6, 5]], back = [[4, 1], [4, 4], [3, 2]], small2 = [[5, 3], [5, 1], [5, 5]], out = [];
-    list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) out.push({ id: 'w' + i + '-' + k, kind: k, at: at }); });
-    return out;
+  // THE GAP ON THE FIELD (RULED 11-05, Griz, his Glowseep note: "Grid fights on random encounters still start the two sides right next to each other - check encounter distances
+  // in SRD and tell me, set these for between 6 and 12 squares away from each other"; on the desk's lean, "3 - default 6-12, list reasoned exceptions"): the grid's lineup with
+  // W.GAP squares between the two fronts, rolled each fight (it stood 2: the foes' front at x 6, the four at x 8), the field as wide as it needs -- the foes' front at x 5, the
+  // Large two squares behind it (a third at x 1), the four the gap on, the camp's fire two behind them, and the field 8 past their front as it always ran. The roam's walk-ins
+  // keep the same 30 to 60 ft (js/roam.js R.GAP); the SRD 5.1 has no table for it (js/roam.js, its head). The simple fight keeps its own lineup (js/simple.js: no distances in it)
+  W.GAP = [6, 12];
+  W.lineup = function (list, gap) {
+    var d = gap != null ? gap : W.GAP[0] + D.rint(W.GAP[1] - W.GAP[0] + 1), fx = Math.max(5, 8 - d), P = fx + d; // (at the old 2: the old squares, the four at x 8)
+    var front = [[fx, 3], [fx, 2], [fx, 4], [fx, 1], [fx, 5]], back = [[fx - 2, 1], [fx - 2, 4], [fx - 4, 2]], small2 = [[fx - 1, 3], [fx - 1, 1], [fx - 1, 5]], foes = [];
+    list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) foes.push({ id: 'w' + i + '-' + k, kind: k, at: at.slice() }); });
+    // (the gap is to the nearest of them: a group of Large ones alone is moved up to the front's column)
+    var near = -1; foes.forEach(function (f) { var s = Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1); near = Math.max(near, f.at[0] + s - 1); });
+    if (near >= 0 && near < fx) foes.forEach(function (f) { f.at[0] += fx - near; });
+    return { gap: d, w: P + 8, h: 7, foes: foes, entry: [[P, 3], [P, 2], [P, 4], [P + 1, 3], [P + 1, 1], [P + 1, 5], [P, 1], [P, 5]], camp: [P + 2, 3],
+      lane: function (x, y) { return x >= 1 && x <= P + 2 && y >= 1 && y <= 5; }, grid: true };
   };
+  W.seat = function (list, gap) { return W.lineup(list, gap).foes; }; // the foes' line facing the four (W.lineup)
   // THE CAMP'S FIRE (RULED 10-21, Griz: "add a campfire when the party encounters during a camp"): a fight in the night's watches (o.camp, js/house.js H.runNight) has the
   // camp's fire on the field behind the party -- a light as a torch's (bright 20 ft, dim 20 more: the SRD names no campfire), drawn by js/campfire.js CF.fieldFire
   W.CAMP = [10, 3]; // (the grid's road field: behind the party's squares)
   World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, camp, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
     var self = this, camp = !!((o && o.camp) || p.camp), night = W.timeOfDay() === 'night' || !!(o && o.dark), simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
-    W.field(e, simple ? D.simple.fieldOpts() : null);
-    var fire = camp ? (simple ? D.simple.CAMP : W.CAMP).slice() : null;
+    var LU = simple ? null : W.lineup(p.list); // (the grid's: W.GAP squares between the fronts, 11-05)
+    W.field(e, simple ? D.simple.fieldOpts() : LU); D.MAPS['world-field'].gap = LU ? LU.gap : null;
+    var fire = camp ? (simple ? D.simple.CAMP : LU.camp).slice() : null;
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
       intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
-      foes: simple ? D.simple.seat(p.list) : W.seat(p.list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/flight-ai.js FA.on, 10-21 night)
+      foes: simple ? D.simple.seat(p.list) : LU.foes, wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/flight-ai.js FA.on, 10-21 night)
     // (the fight's play record closes with its result where the fight ends -- 11-03, the desk's read of his records: the road and camp fights read 'restarted' though won, since this onDone
     // has a door of its own and js/record.js P.finish leaves such a fight's record to it; the menu's BACK TO THE ROAD calls onDone(null): 'left'. As js/roam.js and js/hex.js close theirs)
     var recEnd = function (res) { if (b && b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, res || 'left'); } catch (eR) { /* (the record must never stop the way back) */ } } };

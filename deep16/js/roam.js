@@ -1460,6 +1460,12 @@
 
   // ------------------------------------------------------------------ an encounter: who, how far, the spill, the ground, the fight
   R.CEILING = { darkmantle: 1 }; // (the lurkers that hang from a ceiling when there is one)
+  // THE GAP (RULED 11-05, Griz, his Glowseep note: "Grid fights on random encounters still start the two sides right next to each other - check encounter distances in SRD and
+  // tell me, set these for between 6 and 12 squares away from each other"; on the desk's lean, "3 - default 6-12, list reasoned exceptions"): a walk-in group is seen, and the
+  // fight begins, 30 to 60 ft off (R.encounter, R.tickGroups); the field fights the same (js/world.js W.lineup). The SRD 5.1 has no table for it (the head of this file).
+  // Not by it (his word asked): a lurker lying in wait (R.LURK, 10 to 20 ft), a set fight on its own square, F (the fight now, at the range it is), the chase after a getaway
+  R.GAP = [30, 60];
+  R.startFt = function (u) { return Math.min(R.GAP[1], Math.max(R.GAP[0], (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0))); }; // (a walk-in's fight: within its reach and a move, held to the gap)
   R.LURK = { grick: 1, roper: 1, darkmantle: 1, xorn: 1, grimlock: 1, cube: 1, gelatinouscube: 1, grayooze: 1 }; // (battle.js's natural lurkers, and the gray ooze by its False Appearance)
   R.pick = function (zone, flags) {
     var Z = window.DS.DATA.encounters[zone]; if (!Z) return null;
@@ -1490,12 +1496,16 @@
       var ahead = near.filter(function (q) { return (q[0] - t.x) * R0.fw[0] + (q[1] - t.y) * R0.fw[1] > 0; });
       var pool = ahead.length ? ahead : near; spot = pool.length ? pool[D.rint(pool.length)] : null; how = 'lying in wait';
     } else {
-      // the edge of what the party sees, and a walk to them from there no more than half again the straight line
-      var seen = cand.filter(function (q) { return sight.v[q[1] * sight.w + q[0]] > 0 && q[2] * 5 <= ftOf(q) * 1.5 + 10; });
+      // the edge of what the party sees, and a walk to them from there no more than half again the straight line -- kept between R.GAP's 30 and 60 ft (RULED 11-05, Griz:
+      // "set these for between 6 and 12 squares away from each other"; "3 - default 6-12, list reasoned exceptions"): the farthest seen square inside that band; a party that
+      // sees less than 30 ft has them come out of the dark from 30 ft or just past it (heard, not seen); a floor with no square 30 ft off, its farthest (the floor's own room)
+      var walkOK = function (q) { return q[2] * 5 <= ftOf(q) * 1.5 + 10; }, band = cand.filter(function (q) { var f = ftOf(q); return f >= R.GAP[0] && f <= R.GAP[1] && walkOK(q); });
+      var seen = band.filter(function (q) { return sight.v[q[1] * sight.w + q[0]] > 0; });
       var far = 0; seen.forEach(function (q) { far = Math.max(far, ftOf(q)); });
       var ring = seen.filter(function (q) { return ftOf(q) >= far - 5; });
       spot = ring.length ? ring[D.rint(ring.length)] : null; how = 'at the edge of sight';
-      if (!spot) { var close = cand.filter(function (q) { return ftOf(q) <= 10; }); spot = close.length ? close[D.rint(close.length)] : null; how = 'out of the dark, right on them'; }
+      if (!spot && band.length) { var lo = Math.min.apply(null, band.map(ftOf)), dark = band.filter(function (q) { return ftOf(q) <= lo + 5; }); spot = dark[D.rint(dark.length)]; how = 'out of the dark'; }
+      if (!spot) { var top = 0, wk = cand.filter(walkOK); wk.forEach(function (q) { top = Math.max(top, ftOf(q)); }); var edge = wk.filter(function (q) { return ftOf(q) >= top - 5; }); spot = edge.length ? edge[D.rint(edge.length)] : null; how = 'as far off as the floor allows'; }
     }
     if (!spot) { B.card(['{g}(no square for them: the encounter passes){/}'], 160); return; }
     // the group round the spot, on squares the token could walk to (or a swimmer's pool), clear of each other and of anyone on the floor (a big one's whole footing)
@@ -1653,7 +1663,7 @@
           u.x = nx[0]; u.y = nx[1];
         }
       });
-      if (!hit && !(g.stall > 0) && live.some(function (u) { return g.mode === 'pursue' ? G.dist(u, t) <= 10 : G.dist(u, t) <= (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) { hit = g; return; }
+      if (!hit && !(g.stall > 0) && live.some(function (u) { return g.mode === 'pursue' ? G.dist(u, t) <= 10 : G.dist(u, t) <= R.startFt(u); })) { hit = g; return; } // (R.GAP: 30 to 60 ft, 11-05)
       if (seen) { g.rolled = false; return; }
       if (g.rolled) return;
       g.rolled = true;

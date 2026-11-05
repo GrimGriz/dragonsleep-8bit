@@ -793,8 +793,9 @@
   // up to M.NUDGE squares, for the most of the lineup's squares open (M.cut) -- a building or a wall rock, and past the floor's edge its rim (M.FIELD's kinds: a cave's rock, the
   // bog's grass); made open ground only where the lineup stands and steps (the simple fight's square before each one, the grid's ground between the two sides); the floor's own
   // lights in it (the Glowseep's poles, moss and fire)
-  M.GRID = { w: 16, h: 16, dx: 1, dy: 4, entry: [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]] }; // (the road's grid lineup, js/world.js W.seat, moved into the middle)
+  M.GRID = { w: 16, h: 16, dx: 1, dy: 4 }; // (the road's grid lineup, js/world.js W.lineup, moved into the middle: 6 to 12 squares between the fronts since 11-05, the field as wide as it needs)
   M.NUDGE = 4;
+  M.SET_GAP = 2; // (the squares between the fronts in a set fight on the grid's field: M.fieldDef)
   M.cutChar = function (c) { return c === 'd' || c === 'o' || c === '=' ? '.' : '.,gr~DkfwyTP'.indexOf(c) >= 0 ? c : '#'; }; // (a door's threshold or a bridge's boards ground; a building, a roof or a wall rock)
   M.cut = function (def, w, h, at, anchor, need, kind) {
     var ch = function (x, y) { return x >= 0 && y >= 0 && x < def.w && y < def.h ? M.cutChar(def.rows[y].charAt(x)) : null; }, open = function (c) { return c != null && '.,gr~'.indexOf(c) >= 0; };
@@ -819,9 +820,10 @@
       to: function (x, y) { var d = [x - best.x0, y - best.y0]; return [d[best.turned], d[1 - best.turned]]; } }; // (a floor square's place on the field)
   };
   M.fieldDef = function (def, list, simple, set, at) {
-    var o = simple ? D.simple.fieldOpts(true) : null, kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Gd.w, h = o ? o.h : Gd.h;
-    var entry = o ? o.entry : Gd.entry.map(function (q) { return [q[0] + Gd.dx, q[1] + Gd.dy]; });
-    var foes = simple ? D.simple.seat(list) : D.world.seat(list).map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
+    // (a set fight -- the story's own, the cloaker in the deep gallery, the rescue's bats -- keeps the old 2 squares, the lineup it was drawn for: 11-05, an exception for his word)
+    var o = simple ? D.simple.fieldOpts(true) : null, LU = simple ? null : D.world.lineup(list, set ? M.SET_GAP : null), kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Math.max(Gd.w, LU.w), h = o ? o.h : Gd.h;
+    var entry = o ? o.entry : LU.entry.map(function (q) { return [q[0] + Gd.dx, q[1] + Gd.dy]; });
+    var foes = simple ? D.simple.seat(list) : LU.foes.map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
     var foot = function (f) { var s = Math.max(1, Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1)), out = []; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) out.push([f.at[0] + i, f.at[1] + j]); return out; };
     var stand = entry.concat([].concat.apply([], foes.map(foot))), need = [];
     if (simple) {
@@ -838,7 +840,7 @@
     need = need.filter(function (q) { return q[0] >= 0 && q[1] >= 0 && q[0] < w && q[1] < h; });
     var anchor = simple ? [D.simple.PARTY[0][0], D.simple.C[1]] : entry[0], cut = M.cut(def, w, h, at || anchor, anchor, need, kind);
     D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: def.iso && kind === 'cave' ? null : 'earth', /* (cut from a cave floor on the diamonds, the floor's own stone: ON THE DIAMONDS) */ rows: cut.rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
-      entry: entry, foes: [], wave: null, cut: cut };
+      entry: entry, foes: [], wave: null, cut: cut, gap: LU ? LU.gap : null }; // (gap: the squares between the fronts, W.lineup)
     var lights = (def.ownLights || []).map(function (l) { if (!l || typeof l.x !== 'number') return null; var p = cut.to(l.x, l.y); return p[0] >= 0 && p[1] >= 0 && p[0] < w && p[1] < h ? [p[0], p[1], l.dim || l.bright || 5, l.color, l.bright ? 0 : 1] : null; }).filter(Boolean); // (js/battle.js's map light: [x, y, ft, colour, dim only])
     return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: lights.length ? lights : null,
       intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.', noCards: true, // (no entry card: the encounter's card asked, and the four are the floor's -- its "walk in as the fixture" is not theirs, seen in the pane 10-22)
