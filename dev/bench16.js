@@ -2668,6 +2668,13 @@
       if (!had) D.SHEETS[nmF] = D.SHEETS.pt_elsbethtub; var Bf1 = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), tf1 = talkKt(Bf1, []); if (!had) delete D.SHEETS[nmF];
       okKt('her face by name (' + InK.FACE.katarina.join(', ') + '): ' + (had ? 'her sheet is in, the screen wears ' + tf1.sheet : 'none yet -- the screen\'s portrait ' + tf0.sheet + '; a sheet named ' + nmF + ' and it wears ' + tf1.sheet),
         tf1.sheet === nmF && (had || tf0.sheet === null) && /You're with the Dominion/.test(tf1.seen)); // (the fresh four have Barley: his errand is her first word)
+      // 14. SAT WRITING BY THE FIRE (11-05, cutter-1105's figure katarina_p1, its sit row): dressed in her own figure, sat, facing the hearth; spoken to, she turns to the
+      // speaker and stays sat; the floor laid again (the hour's phase) sits her again
+      var Bt = testKt('?roam=halfway&hour=18&day=5&inside&at=25,20'), kt = folkKt(Bt, 'katarina'), f0 = kt && kt.facing, a0 = kt && kt.anim, fFire = D.spr.facingFor(InK.KAT_FIRE[0] - 26, InK.KAT_FIRE[1] - 20);
+      driveKt(Bt.co, null, 60); var a1 = kt && kt.anim; talkKt(Bt, []); var kt2 = folkKt(Bt, 'katarina'), a2 = kt2 && kt2.anim, fc2 = kt2 && kt2.facing;
+      D.mines.relay(Bt, null, true); var kt3 = folkKt(Bt, 'katarina');
+      okKt('sat writing by the fire: her figure ' + (kt && kt.sheet) + ', ' + a0 + ' facing ' + f0 + ' (the hearth ' + fFire + '); a second later ' + a1 + '; spoken to from the west, ' + a2 + ' facing ' + fc2 + ' (the speaker ' + D.spr.facingFor(-1, 0) + '); the floor laid again ' + (kt3 && kt3.anim),
+        !!kt && kt.sheet === 'katarina_p1' && a0 === 'sit' && f0 === fFire && a1 === 'sit' && a2 === 'sit' && fc2 === D.spr.facingFor(-1, 0) && !!kt3 && kt3.anim === 'sit');
     } catch (eKt) { repKt.errors.push(String(eKt && eKt.stack || eKt).slice(0, 900)); }
     HKt.playing = false; HKt.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
     D.store.get = stGKt; D.store.set = stSKt; D.music = muKt;

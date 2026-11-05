@@ -266,6 +266,15 @@
     var def = D.roam && D.roam.def; if (!def || def.key !== In.KEY) return;
     var f = (B.roam && B.roam.flags) || {};
     B.units.forEach(function (u) { if (typeof u.npc === 'string' && In.NAME[u.npc]) u.name = In.NAME[u.npc](f); });
+    B.units.forEach(function (u) { if (u.npc === 'katarina') In.katSits(u); });
+  };
+  // KATARINA SAT WRITING BY THE FIRE (11-05, the Katarina seat, on cutter-1105's offer: her figure katarina_p1 has a sit row all round, "writing on a bench; the bench is drawn
+  // with her"): on her square by the big fire (In.FOLK, 26,20, bare boards) she sits and writes, facing the hearth; spoken to, she turns to whoever speaks and stays sat
+  // (js/town.js T.fire turns a figure drawn all round). Without the sheet, the stand-in as before
+  In.KAT_FIRE = [27, 19];     // (the hearth's common-room face she writes toward)
+  In.katSits = function (u) {
+    var sh = u.sheet && D.SHEETS && D.SHEETS[u.sheet]; if (!sh || !sh.anims || !sh.anims.sit) return false;
+    u.anim = 'sit'; u.animT = 0; u.facing = D.spr.facingFor(In.KAT_FIRE[0] - u.x, In.KAT_FIRE[1] - u.y); return true;
   };
   // a SAVE in a building stands the party a step out of its door, as a room's on Silverton's street (js/house.js H.atOf): the house's and upstairs the front door's, the barn's its own
   var atOf0 = D.house && D.house.atOf;
@@ -879,7 +888,10 @@
       if (sleptD) yield* In.night(B);
       return;
     }
-    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { yield* M.talk(B, 'katarina', function (sc) { return In.katScene(sc, B); }); return; } // (her talk at the fire: In.katScene)
+    if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { // (her talk at the fire: In.katScene -- she looks up at whoever speaks, still sat, as js/town.js T.fire turns a figure drawn all round)
+      var ku = B.units.filter(function (u) { return u.npc === 'katarina'; })[0], tk = B.roam && B.roam.token; if (ku && tk && !ku.holdFacing) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y);
+      yield* M.talk(B, 'katarina', function (sc) { return In.katScene(sc, B); }); return;
+    }
     if (def && def.key === In.KEY && trig.town === 'talk' && (trig.npc === 'gennet' || trig.npc === 'snootRunner')) {
       if (trig.npc === 'gennet') {
         var slept = yield* M.talk(B, 'gennet', function (sc) { return In.gennet(sc, B); }, In.named(B.roam.flags));
