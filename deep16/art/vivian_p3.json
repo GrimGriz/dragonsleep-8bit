@@ -1,0 +1,62 @@
+{
+ "image": "art/vivian_p3.png",
+ "fw": 40,
+ "fh": 64,
+ "ax": 20,
+ "ay": 61,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 40,
+   "fh": 64,
+   "ax": 20,
+   "ay": 61,
+   "frames": 2,
+   "fps": 6
+  },
+  "walk": {
+   "y": 512,
+   "fw": 44,
+   "fh": 64,
+   "ax": 22,
+   "ay": 61,
+   "frames": 9,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1024,
+   "fw": 46,
+   "fh": 64,
+   "ax": 23,
+   "ay": 61,
+   "frames": 6,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 1536,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 61,
+   "frames": 6,
+   "fps": 10
+  },
+  "sit": {
+   "y": 2048,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 3,
+   "fps": 2
+  }
+ },
+ "name": "Vivian",
+ "hold": [
+  "walk: the contacts are the art desk's candidates, the lead boot repeating in SE and S (its own note)",
+  "S and N attack: the blade sweeps across the screen at the contact; check it reads toward the target (its own note)",
+  "N and the back views: a studded panel at the lower back the outfit page does not show (its own note)"
+ ],
+ "source": "drawn by the art desk (VIVIAN-3B-COMBAT batches A and B, 11-05: the hood up, the slate-teal cloak over dark studded leather), cut by tools/vivian-sheet.py; SW W NW mirrored; not wired -- vivian_p0 (the LPC composite) is still her figure"
+}
