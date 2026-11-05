@@ -475,6 +475,8 @@
     sabeth: function* (sc, B) {
       var st = sc.st, f = st.flags;
       if (f.roostBroken) { yield sc.say(L('g1.sabethFired')); return; }
+      // the cloaker dead, said once before her work (11-05, Tuesday 12 (b), Griz: "post cloaker death and reward conversations"): no head of hers, Hessle's board pays it
+      if (M.cloakerDead(B) && !f.sabethCloaker) { f.sabethCloaker = 1; yield sc.say(L(f.cloakerDone ? 'g1.sabethCloakerPaid' : 'g1.sabethCloaker')); }
       if (!f.cullHired) {
         yield sc.say(L('g1.sabethHire'));
         var a = yield sc.ask(L('g1.sabethAsk'), ['TAKE THE WORK', 'NOT NOW']);
@@ -485,28 +487,38 @@
       if (bats > 0 || mantles > 0) { var pay = bats * 3 + mantles * 10; f.paidBats = (f.paidBats || 0) + bats; f.paidMantles = (f.paidMantles || 0) + mantles; st.silver(pay); D.sfx('coin'); yield sc.say(L('g1.sabethPay', { b: bats, m: mantles, n: pay })); }
       else yield sc.say(L('g1.sabethNothing'));
     },
-    // Ottilie Skerrow, the house's final word (S.ottilie)
-    ottilie: function* (sc) { var f = sc.st.flags; yield sc.say(L(f.roostBroken ? 'g1.ottilieCold' : f.rescued ? 'g1.ottilieRespect' : 'g1.ottilie')); },
+    // Ottilie Skerrow, the house's final word (S.ottilie). After the cloaker (11-05, Tuesday 12 (b)): the kill, and the boy brought back up if he went down; her law's TELL ME
+    // ABOUT IT on her first word (Tuesday 12 (d): what the roost, the mark and her final word are)
+    ottilie: function* (sc, B) {
+      var f = sc.st.flags;
+      if (f.roostBroken) { yield sc.say(L('g1.ottilieCold')); return; }
+      if (M.cloakerDead(B)) { yield sc.say(L(f.daceDone ? 'g1.ottilieCloakerDace' : 'g1.ottilieCloaker')); return; }
+      yield f.rescued ? sc.say(L('g1.ottilieRespect')) : M.tell(sc.say(L('g1.ottilie')), 'g1.ottilieTell');
+    },
     // Old Wynn Pollard (S.wynn): the way to send Dace home before the deep gallery (RULED 10-01c, Griz: "Let the party talk to the Grandad to back out of the escort, telling the
     // kid maybe they'll take him down later") -- his own words otherwise
+    // After the cloaker (11-05, Tuesday 12 (b)): the kill, and the boy brought back; TELL ME ABOUT IT on the ask (what each answer does) and on his words (who he is: Tuesday 12 (d))
     wynn: function* (sc, B) {
       var f = sc.st.flags;
       if (M.hasGuest(B, 'dace') && !f.daceDone) {
-        var a = yield sc.ask(L('wynn.ask'), ['SEND HIM HOME', 'HE COMES']);
+        var a = yield M.tell(sc.ask(L('wynn.ask'), ['SEND HIM HOME', 'HE COMES']), 'wynn.tellAsk');
         if (a === 0) { M.later(B, function () { M.daceHome(B, true); }); yield sc.say(L('wynn.home')); } else yield sc.say(L('wynn.keep'));
         return;
       }
-      yield sc.say(M.words(B, 'wynn'));
+      if (M.cloakerDead(B)) { yield sc.say(L(f.daceDone ? 'wynn.cloakerDace' : 'wynn.cloaker')); return; }
+      yield M.tell(sc.say(M.words(B, 'wynn')), 'wynn.tell');
     },
     // Corwen Dace (S.dace), who always tries to talk people into taking him into the deep gallery (CANON 09-22): taken, he walks with the party as its guest, inside the party
     // token with the heroes (RULED 10-28, Griz: "put the guests in the party token (not follow behind)"), till the cloaker is dead -- and if he falls it is over (RULED 10-01c,
     // Griz: "game over if the kid falls, cloaker focuses on kid if they bring him to that fight"). Taken after the kill, the walk down is his thanks: the cloak or the page
+    // (11-05, Tuesday 12 (a), Griz: "post cloaker death and reward conversations": back by the beam after the kill he speaks of it -- keyed on the kill itself, M.daceAfter, not
+    // on Hessle's pay, so no more pre-quest pitch; (d) TELL ME ABOUT IT on his ask, what TAKE HIM means and what "worth the climb" is)
     dace: function* (sc, B) {
       var st = sc.st, f = st.flags; f.daceLight = 1;
-      if (f.daceDone || M.hasGuest(B, 'dace')) { yield sc.say(M.words(B, 'dace')); return; }
+      if (f.daceDone || M.hasGuest(B, 'dace')) { yield sc.say(M.daceAfter(B) || M.words(B, 'dace')); return; }
       var after = M.cloakerDead(B);
       if (!after) yield sc.say(M.words(B, 'dace'));
-      var a = yield sc.ask(L(after ? 'dace.askAfter' : 'dace.ask'), ['TAKE HIM', 'NOT TODAY']);
+      var a = yield M.tell(sc.ask(L(after ? 'dace.askAfter' : 'dace.ask'), ['TAKE HIM', 'NOT TODAY']), after ? 'dace.tellAfter' : 'dace.tellAsk');
       if (a !== 0) { yield sc.say(L('dace.notToday')); return; }
       f.daceWith = 1; if (after) f.daceAfter = 1;
       M.later(B, function () { M.guestIn(B, 'dace'); D.mines.relay(B, null, true); }); // (into the token, and his figure off the floor by the beam: after the screen closes)
@@ -651,6 +663,8 @@
   M.NOT_STOOD = { dacedown: 1 };
   M.PIT_AT = [18, 12]; // (where a pit sets the party down: the first game's S.pit)
   M.cloakerDead = function (B) { var f = B.roam.flags; return !!(f.cloakerKilled || f.cloakerDone || D.counter.count(D.counter.state(B), 'cloakertail')); };
+  // Dace by the beam once he has been down (Tuesday 12 (a)): his words by how it went -- with the party at the kill (the page), or taken after it (the cloak, or the page)
+  M.daceAfter = function (B) { var f = B.roam.flags; if (!f.daceDone || !M.cloakerDead(B)) return null; return [].concat(L(f.daceCloak ? 'dace.afterCloak' : f.daceSheet ? 'dace.afterSheet' : 'dace.afterPage')); };
   // (his dagger, not a staff: the kit's -- content/heroes.json dace, a dagger in one hand -- Tuesday 9, his "words say dace lifts a staff, menu status says he's dagger in one hand
   // empty off hand", RULED 10-31, "words"; the light is the Light cantrip on the dagger, M.daceLight, as it was)
   M.LINES.daceLight = '{y}Corwen Dace{/} lifts his dagger, and the light comes up on its pommel. "No roost down here. It\'s lawful."'; // (the first game's dace.join, lit below the roost: invented.json deepgallery-dace-words)

@@ -196,6 +196,7 @@
     "roostTold": "set: js/events.js; read: js/events.js",
     "roperDead": "set: js/deep.js, js/situations.js; read: maps/highway_2.json",
     "roperSeen": "set: js/deep.js, js/situations.js; read: js/deep.js",
+    "sabethCloaker": "set and read: deep16/js/mines.js M.SCENES.sabeth (her word on the cloaker's kill, said once -- Tuesday 12 (b), 11-05)",
     "sackHinted": "set: js/deep.js; read: js/deep.js",
     "sackReturned": "set: js/deep.js, js/situations.js; read: js/deep.js",
     "sackSold": "set: js/deep.js; read: content/npcs.json",
