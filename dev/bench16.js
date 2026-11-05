@@ -9489,6 +9489,13 @@
       var ptHo = CHo.heroPortrait({ id: 'vivian', key: 'vivian', name: 'Vivian', equip: { armor: 'studded' } }), nl5 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 5 }) : '?', nl3 = D.npc && D.npc.lookOf ? D.npc.lookOf({ hero: 'vivian', lvl: 3 }) : '?';
       okHo('Vivian by her armour: ' + JSON.stringify(wearHo) + '; her face in studded ' + ptHo + '; the strike lands on frame ' + (s3 && s3.anims.attack.release) + ' (3B) and ' + (s2 && s2.anims.attack.release) + ' (the teal jacket), zero-based; the class floor at 5th ' + nl5 + ', at 3rd ' + nl3,
         wearHo.studded === 'vivian_p3' && wearHo.studded1 === 'vivian_p3' && wearHo.leather === 'vivian_p2' && lkHo('leather1') === 'vivian_p2' && wearHo.none === 'vivian_p2' && lkHo('chainshirt') === 'vivian_p2' && ptHo === 'pt_vivian' && s3.anims.attack.release === 3 && s2.anims.attack.release === 3 && nl5 === 'vivian_p3' && nl3 === 'vivian_p2');
+      // THE CANDLE GIRL (11-05, Griz: "the scene is the recruitment at the start of the game"): the art desk's page cut whole, her tray kept, at a keeper's size; her
+      // recruitment on Vice row speaks on it from the keeper's panel (js/company.js CO.HIREPT), no hero face drawn there, her moods on her lines
+      var sCg = D.SHEETS.pt_viviancandle, FCg = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'talk'], COh = D.company;
+      var gCg = COh.talk(null, 'vivian', hV, function (sc) { return (function* () { yield sc.say(['...'], 'welcoming'); })(); }); D.scenes.length = 0; gCg.next(); var scCg = D.top();
+      okHo('pt_viviancandle cut (' + (sCg ? sCg.fw + 'x' + sCg.fh + ', ' + Object.keys(sCg.anims).join(' ') : 'NONE') + '), not mirrored; her recruitment\'s screen on it (' + (scCg && scCg.sheet) + ', the hero face drawn ' + !!(scCg && scCg.o && scCg.o.pic) + ', the face ' + (scCg && scCg.face && scCg.face.anim) + ')',
+        !!sCg && sCg.portrait && !sCg.flip && FCg.every(function (a) { return sCg.anims[a] && sCg.anims[a].frames === 1; }) && sCg.fh > 120 && COh.HIREPT.vivian === 'pt_viviancandle' && !!scCg && scCg.sheet === 'pt_viviancandle' && !scCg.o.pic && scCg.face && scCg.face.anim === 'welcoming');
+      if (scCg && scCg.close) scCg.close(); D.scenes.length = 0;
       var btHo = D.hours.SHOW_BEATS.filter(function (b) { return b.id === 'papaviv'; })[0];
       if (btHo) CHo.servicePlay(btHo);
       okHo('the hours\' show: PAPA AND LYMEN AT THE HEX\'S DOOR with Vivian alone (' + (btHo && btHo.label) + '), staged with her leading (' + (D.house.cur && D.house.cur.lead) + ', the party ' + (D.house.cur && (D.house.cur.party || []).map(function (h) { return h.key || h.id || h; }).join(',')) + ')',

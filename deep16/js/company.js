@@ -65,12 +65,17 @@
     var F = C.HERO_FACE, f0 = F.facing; F.facing = D.spr.facingFor(-1, 1);
     try { C.drawHeroFace(ctx, h, x, y, w, hh, t); } finally { F.facing = f0; }
   };
+  // one met where she works, in her own talking portrait at a keeper's size, its moods on her lines (11-05, Griz to cutter-1105 on the art desk's Candle Girl page: "the
+  // scene is the recruitment at the start of the game"): Vivian with her candle tray on Vice row (tools/portrait-sheet.py viviancandle); the rest their hero face (CO.face)
+  CO.HIREPT = { vivian: 'pt_viviancandle' };
   CO.talk = function* (B, npc, h, script) {
     var step = CO.step(npc), wh = step ? step.where : '', RW = C.LAYOUT.words[2];
     if (D.textWidth(wh) > RW) wh = wh.split('. ')[0].replace(/\.?$/, '.'); // (the JOURNAL's step, the first game's words: its first sentence where the whole will not fit the line)
     if (D.textWidth(wh) > RW) wh = '';
+    var hp = CO.HIREPT[npc] && D.SHEETS && D.SHEETS[CO.HIREPT[npc]] ? CO.HIREPT[npc] : null;
     var sc = new C.Counter(B, { id: npc, name: h.name, place: CO.PLACE[npc] || h.name, what: wh, script: script,
-      pic: function (ctx, x, y, w, hh, t, cy) { CO.face(ctx, h, x, y, w, (cy || y + hh) - y, t); } });
+      pic: hp ? null : function (ctx, x, y, w, hh, t, cy) { CO.face(ctx, h, x, y, w, (cy || y + hh) - y, t); } });
+    if (hp) sc.sheet = hp;
     if (sc.done) return sc;
     D.push(sc); while (!sc.done) yield 1;
     return sc;
@@ -127,11 +132,11 @@
     },
     vivian: function* (sc, B, h, out) { // (S.hireVivian)
       yield sc.say(C.words(B, out.npc));
-      if ((yield sc.ask(L('hire.vivianAsk'), ['BUY A CANDLE (1 SP)', 'NOT NOW'])) !== 0) return;
-      if (!pay(sc.st, 1)) { yield sc.say(L('g.poor')); return; }
+      if ((yield sc.ask(L('hire.vivianAsk'), ['BUY A CANDLE (1 SP)', 'NOT NOW'], 'welcoming')) !== 0) return; // (her faces: pt_viviancandle, CO.HIREPT)
+      if (!pay(sc.st, 1)) { yield sc.say(L('g.poor'), 'skeptical'); return; }
       C.give(sc.st, 'candle', 1);
-      if ((yield sc.ask(L('hire.vivianAsk2'), ['COME ALONG?', 'JUST THE CANDLE'])) !== 0) { yield sc.say(L('hire.vivianNo')); return; }
-      yield sc.say(L('hire.vivianYes'));
+      if ((yield sc.ask(L('hire.vivianAsk2'), ['COME ALONG?', 'JUST THE CANDLE'], 'attentive')) !== 0) { yield sc.say(L('hire.vivianNo'), 'concerned'); return; } // (attentive: her eyes down on your hands)
+      yield sc.say(L('hire.vivianYes'), 'talk');
       yield* joins(sc, B, h, out);
     },
     lymen: function* (sc, B, h, out) { // (S.hireLymen: a name first -- renown 1)

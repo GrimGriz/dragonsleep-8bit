@@ -18185,6 +18185,92 @@ false
 "source": "deep16/_src/vivian/PORTRAITS-1104/originals (the art desk's VIVIAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
 "flip": true
 },
+"pt_viviancandle": {
+"image": "art/pt_viviancandle.png?v=781d022043",
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 3,
+"ledge": [
+false
+]
+},
+"attentive": {
+"y": 154,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 308,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 462,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 616,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"talk": {
+"y": 770,
+"fw": 127,
+"fh": 154,
+"ax": 58,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "VIVIAN",
+"door": "her recruitment on Vice row (js/company.js CO.HIREPT)",
+"source": "deep16/_src/vivian/CANDLE-GIRL-1105 (the art desk's VIVIAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_warda": {
 "image": "art/pt_warda.png?v=572f198d62",
 "fw": 226,

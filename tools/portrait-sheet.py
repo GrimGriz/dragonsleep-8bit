@@ -180,6 +180,12 @@ PEOPLE = {
     # hero box with current verse trial on the lymen/papa conversation"): the art desk's "full" cut, made here with today's cutter; the open screen draws it on `&herofull`
     'lymen_full': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene on &herofull, a trial (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
+    # Vivian the candle girl, her tray of candles on its strap (11-05, cutter-1105, on Griz's "the scene is the recruitment at the start of the game, art dept is making
+    # the world poses now"): the art desk's loose page "Vivian Venn -- Candle Girl", six faces one page, sorted to _src/vivian/CANDLE-GIRL-1105/ (an ASCII-named copy
+    # beside it). Not the hero box: she speaks from the keeper's panel as you buy a candle and ask her along (js/company.js CO.HIREPT), so a keeper's size and
+    # looking screen left as drawn (no `flip`); a one-frame idle, the four moods, and her sixth, mid-word, as `talk`. The tray is hers: `noledge`, nothing cut off her foot
+    'viviancandle': ('vivian/CANDLE-GIRL-1105', 'VIVIAN', 'her recruitment on Vice row (js/company.js CO.HIREPT)', {'edge': True, 'noledge': True,
+                     'layout': [('vivian/CANDLE-GIRL-1105/VIVIAN-CANDLE-GIRL-1105.png', [3, 3], ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'talk'])]}),
     # Aurdin in his two mantles and Barley in his coat (11-05, cutter-1105): the art desk's own AURDIN- and BARLEY-HERO-DIALOGUE-PORTRAITS, idle 6 and the four moods,
     # drawn looking screen right already (no `flip`), cut at the same hero size as Lymen's -- in place of the 10-22 and 10-30 stills off their identity pages
     # (tools/hero-portrait.py), under the same names, so C.HERO_PT's looks hold: the Red Mantle out of robes, the Ochre in them, Barley's coat
@@ -447,7 +453,7 @@ def cut_person(name):
         dr = drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()), ov.get('edge', False))
         if ov.get('ghost'):                                      # (a ghost's glow joining the frames: split at the real bodies -- Dace's cloak of displacement)
             dr = split_ghosts(a, dr, bands, ghost_mask(a, ov['ghost']), upper=0.95)   # (0.95: the satchel hangs low on the next frame's left, the counter is under that)
-        found = [(piece, box, ledge_top(piece, box)) for piece, box in dr]
+        found = [(piece, box, box[3] if ov.get('noledge') else ledge_top(piece, box)) for piece, box in dr]   # (`noledge`: what is at the foot is hers -- Vivian's candle tray)
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
         pages.append((pg, a, found, acts))
