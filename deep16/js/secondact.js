@@ -20,7 +20,7 @@
   if (!M || !W || !In) return;
   var L = function (k, o) { return D.counter.L(k, o); };
   var R = function () { return D.roam; };
-  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [44, 16]; // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
+  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [46, 17]; // (the deep: off the point, 11-05 -- it had been 44,16, a rock of the point; the lake knee-shallow elsewhere, js/inn.js) // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
   A.SHORE = 5; // (squares from the stone: "a party at the shore" -- the point's end; the path's head by the lake door, seven off, is not)
   // ---------------------------------------------------------------- §10.1 the clock: six signs, each a card with its read beside it (the §4 shape: the house reads in silence)
   A.SIGNS = [
@@ -70,8 +70,17 @@
     // (the Winters seat, 11-05: the chuul on the due's own night and the rowboat -- invented.json halfway-lake-due-night-1105)
     ringWarmBack: 'Back up the path to the lake door, and in to bed.',
     mornLakeAway: 'Morning. Up at the inn a lamp came on in the kitchen before dawn. Doran is gone, and the wagon with him. The lantern stays on its hook by the lake door, and nobody lights it.',
+    // (the nearest offering, 11-05: invented.json halfway-nearest-offering-1105)
+    withChild: 'The child\'s hand is in yours. Behind you on the path the inn lady sits by her lantern, and has not moved.',
+    inside: 'In through the lake door with the child. From the doorway: the inn lady is still on the path, the lantern beside her. The water off the point heaves.',
+    gennetFirst: 'It does not turn toward you. It turns toward the one on the path: the nearest offering.',
+    letTaken: 'It comes up out of the shallows onto the path to where she sits. The lantern goes into the water, and then the water is only water.',
+    fightTaken: 'It has her. It goes down into the deep and takes the inn lady with it; the lantern floats a moment, and goes out.',
+    mornTakenLet: 'Morning. The lantern is gone from its hook by the lake door. Doran Waterby at the counter, his eyes on the lake door: "You\'ll want the road."',
+    mornTakenTried: 'Morning. The lantern is gone from its hook by the lake door. Doran Waterby at the counter: "You tried for her. I saw." He will let you a room. Nobody cooks at the Waterbys\' now.',
     opts: { after: 'AFTER THEM', lantern: 'THE LANTERN', let: 'LET IT BE', stand: 'STAND ASIDE', take: 'TAKE THE CHILD', strike: 'STRIKE', leave: 'LEAVE HER', press: 'PRESS ON', back: 'BACK OFF', fraud: 'CALL GENNET A FRAUD',
-      down: 'GO DOWN TO THE POINT', bed: 'BACK TO BED', leaveIt: 'LEAVE IT', sound: 'PUSH OUT AND SOUND THE DEEP' }
+      down: 'GO DOWN TO THE POINT', bed: 'BACK TO BED', leaveIt: 'LEAVE IT', sound: 'PUSH OUT AND SOUND THE DEEP',
+      inside: 'TAKE HER INSIDE', water: 'STAY AT THE WATER', goBack: 'GO BACK FOR HER', letLake: 'LET THE LAKE HAVE HER' }
   };
   A.trail = function (s) { if (D.house && D.house.trail) D.house.trail('act', 'THE SECOND ACT: ' + s); };
 
@@ -196,7 +205,56 @@
     if (Y.kid) In.gone(B, Y.kid); Y.kid = null;
     yield* In.card(B, [A.LINES.childTaken.split('{name}').join(t.name)], 360);
     A.trail('the child taken' + (afterKill ? ' over Gennet\'s body' : ' after the yield'));
+    if (!afterKill && A.standing(B, Y.gennet)) { yield* A.offerGennet(B, Y); return; } // (the inn lady alive on the path: the nearest offering, below)
     yield* A.rise(B, Y);
+  };
+  A.standing = function (B, u) { return !!u && B.units.indexOf(u) >= 0 && u.hp > 0 && !u.dead; };
+  // ---------------------------------------------------------------- THE NEAREST OFFERING (RULED 11-05, Griz: "yes the lean - if the party goes back and she doesn't make it, he'll still rent them
+  // rooms (dinners are over)", on the seat's lean to his "I meant the chuul might find Gennet the nearest offering if the party has ushered the child back inside"): cheated of the
+  // stone, the thing in the lake goes for the nearest offering, and while Gennet lives that is Gennet, sitting yielded on the path with her lantern. The child in the party's keeping:
+  // TAKE HER INSIDE -- up to the lake door, and the water heaves behind them: GO BACK FOR HER or LET THE LAKE HAVE HER (it comes up onto the path and takes her: `gennetTaken`, `gennetLet`
+  // -- "You'll want the road", no rooms); or STAY AT THE WATER. Either way back at the shore it is the fight, Gennet its first target while she stands (js/ai.js `wantsOffering`), the
+  // ring's rounds still binding it to the ring; downed, she is taken and it goes down with her (`gennetTaken`: Doran still lets the rooms, and nobody cooks)
+  A.offerGennet = function* (B, Y) {
+    var Rm = R(), R0 = B.roam, f = R0.flags;
+    var a = yield* In.ask(B, 'THE CHILD', [A.LINES.withChild], [A.LINES.opts.inside, A.LINES.opts.water]);
+    A.trail('the child: ' + (a === 0 ? 'taken in through the lake door' : 'kept at the water'));
+    if (a === 0) {
+      yield* Rm.walkTo(B, [In.DOORS.lake[0] + 1, In.DOORS.lake[1]]);
+      yield* A.surface(B, Y);
+      var b = yield* In.ask(B, 'THE WATER HEAVES', [A.LINES.inside], [A.LINES.opts.goBack, A.LINES.opts.letLake]);
+      A.trail(b === 1 ? 'the lake let have her' : 'back for her');
+      if (b === 1) {
+        yield* A.takesHer(B, Y);
+        f.gennetTaken = 1; f.gennetLet = 1;
+        A.clear(B, Y); yield* A.ends(B); return;
+      }
+      f.gennetWent = 1;
+    } else yield* A.surface(B, Y);
+    yield* Rm.walkTo(B, [A.STONE[0] - 2, A.STONE[1]]);
+    var ring = A.hasRing(B);
+    yield* In.card(B, [A.LINES.gennetFirst].concat(ring ? [A.LINES.riseRing] : [A.LINES.riseNoRing]), 480);
+    if ((yield* A.meet(B, Y, ring)) === 'lost') return;
+    A.clear(B, Y);
+    yield* A.ends(B);
+  };
+  // LET THE LAKE HAVE HER: on the map's camera it comes up out of the shallows onto the path to where she sits; the lantern goes into the water
+  A.takesHer = function* (B, Y) {
+    var g = Y.gennet, c = Y.chuul; if (!g || !c) return;
+    yield* B.camTo({ gx: g.x, gy: g.y, gz: 0 }, D.iso.zoom, 30);
+    yield* In.walk(B, c, [g.x + 1, g.y - 1], [-1, 0]);
+    yield* In.card(B, [A.LINES.letTaken], 480); D.sfx('splash');
+    if (D.fx) D.fx.sparkle(g, 'blue', 30); In.gone(B, g); Y.gennet = null; yield 30;
+    yield* In.walk(B, c, A.DEEP.slice(), [1, 0]); In.gone(B, c); Y.chuul = null; yield 20;
+  };
+  // the water off the point heaves: it comes halfway up and waits (the rise's first beat, on the map's camera)
+  A.surface = function* (B, Y) {
+    var f = B.roam.flags;
+    yield* B.camTo({ gx: A.STONE[0], gy: A.STONE[1], gz: 0 }, D.iso.zoom, 30);
+    yield* In.card(B, [A.LINES.rise], 480);
+    Y.chuul = In.unit(B, { id: 'lakeChuul', kind: 'chuul', at: A.DEEP.slice(), name: 'The thing in the lake', face: [-1, 0], foe: true }); Y.chuul.flees = false;
+    if (D.fx) D.fx.sparkle(Y.chuul, 'blue', 30); D.sfx('splash'); yield 40;
+    f.chuulSeen = 1;
   };
   // ---------------------------------------------------------------- BEAT 4: the stone -- the due with its offering, or the lake rising at the hour anyway
   A.due = function* (B, Y, offering) {
@@ -214,12 +272,8 @@
     yield* A.ends(B);
   };
   A.rise = function* (B, Y) {
-    var R0 = B.roam, f = R0.flags, t = R0.token, st = D.counter.state(B);
-    yield* B.camTo({ gx: A.STONE[0], gy: A.STONE[1], gz: 0 }, D.iso.zoom, 30);
-    yield* In.card(B, [A.LINES.rise], 480);
-    Y.chuul = In.unit(B, { id: 'lakeChuul', kind: 'chuul', at: A.DEEP.slice(), name: 'The thing in the lake', face: [-1, 0], foe: true }); Y.chuul.flees = false;
-    if (D.fx) D.fx.sparkle(Y.chuul, 'blue', 30); D.sfx('splash'); yield 40;
-    f.chuulSeen = 1;
+    var R0 = B.roam, f = R0.flags, t = R0.token;
+    yield* A.surface(B, Y);
     var near = Math.max(Math.abs(t.x - A.STONE[0]), Math.abs(t.y - A.STONE[1])) <= A.SHORE, ring = near ? A.hasRing(B) : null;
     if (!near) { yield* In.card(B, [A.LINES.riseNone].concat(Y.elsbeth ? [A.LINES.elsbethThat] : []), 420); A.trail('the lake rose: nobody at the shore'); In.gone(B, Y.chuul); Y.chuul = null; A.clear(B, Y); yield* A.ends(B); return; }
     // at the shore it fights, ring or not (RULED 11-05, his "Yes, the leans", on the seat's lean to his note "I don't think the chuul would back down because the party isn't
@@ -237,6 +291,7 @@
     var f = B.roam.flags, st = D.counter.state(B);
     var o = yield* A.lakeFight(B, Y, ring);
     if (o === 'lost') return o;
+    if (f.gennetTaken && Y.chuul && Y.chuul.fled) { A.trail('the inn lady taken: it went down with her'); return 'taken'; } // (it has its offering: down with her, the frog's fight its own end)
     if (o === 'won') { f.lakeDone = 1; A.trail('the thing in the lake killed' + (ring ? '' : ', no ring')); yield* In.card(B, [].concat(L('lake.after')), 480); if (!f.lakeGiftGot) { var id = In.giftId(st); D.counter.give(st, id, 1); f.lakeGiftGot = 1; D.sfx('chest'); yield* In.card(B, [L('lake.corpseGift'), L('g.got', { item: DS.DATA.items[id].name })], 420); } }
     else { A.trail('the party got clear of the lake'); }
     return o;
@@ -251,10 +306,30 @@
     Y.frog = In.unit(B, { id: 'lakeFrog', kind: 'giantfrog', at: [at[0] - 1, at[1] + 2], name: 'Giant Frog', face: [-1, 0], foe: true }); Y.frog.flees = false;
     var rounds = (Fd && Fd.ring && Fd.ring.rounds) || [1, 4, 7, 10], con0 = ring && ring.saves ? ring.saves.con : null;
     if (ring) { if (ring.saves) { ring.saves = Object.assign({}, ring.saves); ring.saves.con += (Fd && Fd.ring && Fd.ring.con) || 3; } ring.ring = true; B.taunt = { u: ring, rounds: rounds }; }
+    // the nearest offering (A.offerGennet): Gennet, yielded on the path, off the foes' side for this fight -- no turns, no yield to end it, a bystander to every AI but the thing in
+    // the lake's (js/ai.js `wantsOffering`); downed, she is taken, and it goes down with her
+    var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside } : null, hurt0 = B.hurt, self = B;
+    if (gn) {
+      gn.side = 'offering'; gn.bystander = true; gn.offering = true; gn.yields = false; gn.script = null; gn.roamAside = true; Y.chuul.wantsOffering = true; // (roamAside: no turn of hers in the floor's fight -- js/roam.js R.fight's initiative; she sits)
+      B.hurt = function (u, n) {
+        var r = hurt0.apply(this, arguments), c = Y.chuul;
+        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) {
+          if (self.active === c) { // (its own blow: it has her, and goes down with her)
+            R0.flags.gennetTaken = 1; gn.dead = true; gn.fled = true; gn.deadT = self.t;
+            if (c && !c.dead && c.hp > 0) { if (c.holding && c.holding.length) self.release(c); c.dead = true; c.fled = true; c.deadT = self.t; }
+            self.card(D.roam.wrap([A.LINES.fightTaken]), 480); D.sfx('splash');
+          } else { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight (not by it)'); } // (the party's own -- a Fireball catches her: killed, the first ending's; it fights on)
+        }
+        return r;
+      };
+    }
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
     yield* Rm.engage(B, { foes: [Y.chuul, Y.frog], why: 'lake', zone: null }, false, 'lake');
     var o = R0.lastOutcome;
+    B.hurt = hurt0;
+    if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; } // (she lives: back on the path as she sat)
+    else if (gn) { In.gone(B, gn); Y.gennet = null; }
     B.taunt = null; if (ring) { if (ring.saves && con0 != null) ring.saves.con = con0; delete ring.ring; }
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     return /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : o === 'won' ? 'won' : 'escaped';
@@ -313,6 +388,7 @@
     In.stage(B, [24, 17], 'inn');
   };
   A.morning = function (f) { // (the morning's line by the end: the due paid is the wagon's own mornings, js/inn.js)
+    if (f.gennetTaken) return f.gennetLet ? A.LINES.mornTakenLet : A.LINES.mornTakenTried; // (the lake took the inn lady, 11-05: let, or tried for -- his "he'll still rent them rooms (dinners are over)")
     if (f.lakeDone) return f.doranAway ? A.LINES.mornLakeAway : A.LINES.mornLake; // (the yard stopped, Doran drove the children to Newland that night: not at the water in the morning -- 11-05)
     if (f.doranDead) return A.LINES.mornDoranDead;
     if (f.gennetDead) return A.LINES.mornDead;
@@ -349,6 +425,8 @@
     { id: 'fight', beat: 'path', label: 'BEAT 3: Gennet on the path -- the crook of light, the yield at half', note: 'STRIKE on the path: Gennet opens with Shield of Faith, the crook of light stands over the child and strikes whoever comes near her, Hold Person, the cold through your boots, the daggers when she must. At half she yields and sits: TAKE THE CHILD or LEAVE HER. (The boys stay in, so the child is the only bystander, and she lends no one a flank.)', flags: { wagonOutcome: 'inn' }, strike: true },
     { id: 'risering', beat: 'rise', label: 'BEAT 4: the rise with the ring warm -- the thing in the lake', note: 'The child taken, the lead wearing the Ring of Binding: the water off the point heaves, it comes halfway up and waits -- it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. Won: the deep is only water, the corpse\'s gift.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, ring: true },
     { id: 'risenoring', beat: 'rise', label: 'BEAT 4: the rise at the shore without the ring -- it fights (11-05)', note: 'The child taken, the party at the flat stone, no ring worn: the water off the point heaves, it comes halfway up -- "Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it." -- and the fight with its frog, the chuul as the SRD has it, no ring\'s rounds. Get clear of the water and it ends.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 } },
+    { id: 'offerinside', beat: 'offer', label: 'THE NEAREST OFFERING: the child taken inside, the inn lady left on the path (11-05)', note: 'Gennet yielded and sitting on the path with her lantern, the child\'s hand in yours. TAKE HER INSIDE: up to the lake door -- the water off the point heaves behind you. GO BACK FOR HER: down to the stone, and it turns toward the one on the path, not you; shield her (stand between, kill it first) or it takes her and goes down with her -- then Doran lets you rooms and nobody cooks. LET THE LAKE HAVE HER: it comes up onto the path and takes her, the lantern into the water -- "You\'ll want the road."', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
+    { id: 'offerwater', beat: 'offer', label: 'THE NEAREST OFFERING: STAY AT THE WATER, the inn lady its first target (11-05)', note: 'The same, STAY AT THE WATER: the party by the flat stone, the water heaves, and it goes for Gennet first -- "It does not turn toward you. It turns toward the one on the path: the nearest offering." The ring\'s rounds still turn it on the wearer (this beat: no ring).', flags: { wagonOutcome: 'inn', gennetYield: 1 }, water: true },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
     { id: 'ringwarm', beat: 'fork', label: 'THE RING WARM after the due: LET IT BE, then down to the point (11-05)', note: 'The yard won, the lead wearing the Ring of Binding (Winters gives it at the lead\'s 3rd). The fork: LET IT BE -- the lantern walks, only the inn lady comes back. Then "The ring on your hand is warm. Go down to the point." -- GO DOWN TO THE POINT: at the flat stone the water heaves, it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. BACK TO BED: the ring cold by morning.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19], ring: true },
     { id: 'standring', beat: 'path', label: 'STAND ASIDE with the ring on: the take, then the ring warm (11-05)', note: 'The path, the lead wearing the Ring of Binding. STAND ASIDE: the offering set on the flat stone, the take, the lantern back up the path alone -- then the ring warm: GO DOWN TO THE POINT, the fight; BACK TO BED, the morning.', flags: { wagonOutcome: 'inn' }, ring: true },
@@ -363,7 +441,7 @@
     if (bt.ring) { var lead = rec.party[0]; if (lead && lead.equip) { lead.equip.ring = 'ringofbinding'; H.add(rec.inv, 'ringofbinding', 0); } }
     H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = (In.WAGON.first - 1) * 24 + (bt.beat === 'wand' ? 18 : bt.beat === 'boat' ? 14 - 24 : 23); // (the first WAGON DAY's night: day 12 since 11-05, js/inn.js In.WAGON; the rowboat the afternoon before)
     In.pinned = bt.dice ? bt.dice.slice() : null;
-    var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
+    var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
     var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
     D.push(nb);
   };
@@ -376,6 +454,7 @@
     else if (s.beat === 'path') { if (s.strike) A.strikeNext = true; yield* A.path(B); }
     else if (s.beat === 'rise') { var Y = {}; yield* A.rise(B, Y); }
     else if (s.beat === 'boat') { yield* A.sound(B); return; } // (the rowboat by day: the floor goes on after)
+    else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; yield* A.offerGennet(B, Yo); } // (Gennet yielded on the path, the child taken: the nearest offering)
     var mornA = A.morning(f);
     if (f.secondActDone) { var mornL = mornA || L('wagon.morning.' + (f.wagonOutcome === 'inn' ? 'inn' : 'quietSeen')); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
   };

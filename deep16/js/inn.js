@@ -58,16 +58,16 @@
     ',,,..Awo|wo|woA...."""t""""""""""""""""""""eWWWWWW', ',,,..Aoo|oo|ooA...."""""""""""t""""""""""""eWWWWWW',
     ',,,..AaoooooooD...."""""""""""""""""""t""""eWWWWWW', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWWW',
     ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
-    ',,,................"""""""""""""""t""""""""nWWYYYY', ',,,................""""""""""""""""""""""""nWWYYYY',
-    ',,,..||||.........."""""""""""""""""""""t""nWWYYYY', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWYYYYY',
-    ',,,................BcoooooocoooHHHHoB""""""nWYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
+    ',,,................"""""""""""""""t""""""""nWWWWWW', ',,,................""""""""""""""""""""""""nWWWWWW',
+    ',,,..||||.........."""""""""""""""""""""t""nWWWWWW', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWYYYY',
+    ',,,................BcoooooocoooHHHHoB""""""nWWYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
     ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,s...............BooooooooCCjoooooB"""""rrrrYYYY',
     ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
     ',,,................BoomKmoooCCjoooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
     ',,,................BoKKKKoooooooooooB""""""nWpYYYY', ',,,................BuSSSSSooooooooocB""""""nWWYYYY',
-    ',,,................BBBBBBBBBBBBoBBoBB""""""nWYYYYY', ',,,................""""""""""BoocBooB""t"""nWYYYYY',
-    ',,,..............kk""""""""""BoooBooB""""""nWWYYYY', ',,,..............kk"""""t""""BooofooB""""""eWWYYYY',
-    ',,,................"t""""""""BoooBooB""""""eWWYYYY', ',,,................""""""""""BzooBozB""""""eWWWWWW',
+    ',,,................BBBBBBBBBBBBoBBoBB""""""nWWWWWW', ',,,................""""""""""BoocBooB""t"""nWWWWWW',
+    ',,,..............kk""""""""""BoooBooB""""""nWWWWWW', ',,,..............kk"""""t""""BooofooB""""""eWWWWWW',
+    ',,,................"t""""""""BoooBooB""""""eWWWWWW', ',,,................""""""""""BzooBozB""""""eWWWWWW',
     ',,,................""""""""""BBBBBBBB""""""eWWWWWW', ',,,................"""""""""""""""""""""t""eWWWWWW',
     ',,,................""""""""""""""""""""""""eWWWWWW', ',,,................""t"""""""""""""""""""""eWWWWWW',
     ',,,................""""""""""""""""t"""""""eWWWWWW', ',,,................""""""""t"""""""""""""""eWWWWWW',
@@ -76,11 +76,12 @@
   ];
   In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', k: 'woodpile', w: 'manger', c: 'crate', B: 'innWall', A: 'barnWall', o: 'floorWood',
     D: 'doorway', K: 'table', b: 'bench', m: 'chair', C: 'chimney', H: 'shelf', z: 'bed', h: 'firepit', f: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks',
-    l: 'lamp', e: 'reeds', W: 'water', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof', S: 'stairRun',
+    l: 'lamp', e: 'reeds', W: 'shallows', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof', S: 'stairRun',
     a: 'hay', x: 'trough', j: 'tools', s: 'sign' }; // (11-05, the exteriors seat: the barn's hay, the trough by the rail, the hearth's tools and kettle, the sign by the road -- js/innprops.js)
   // the names the top levels' floors had not needed, as the grid's squares (js/mines.js M.LAY; a roof by M.ROOF)
   Object.assign(M.LAY, { grassT: ['g'], earth: ['.'], woodpile: ['k'], manger: ['k'], floorWood: ['o'], doorway: ['d'], table: ['K'], bench: ['K'], chair: ['k'], shelf: ['S'], bed: ['y'],
-    tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'], hay: ['k'], trough: ['w'], tools: ['k'], sign: ['f'] }); // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
+    tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'], hay: ['k'], trough: ['w'], tools: ['k'], sign: ['f'], // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
+    shallows: ['~'] }); // (the lake KNEE-SHALLOW, as its words say -- "Knee-shallow forty paces out; then, off the point, it goes." -- the grid's pool: waded, difficult ground; the deep (Y) off the point the grid's deep water, only a swimmer's (11-05, Griz: "we also need to make the water knee deep for 40 paces or what-have-you for the fight (seeded in dialog but not true)"; it had been the deep, D, all of it -- the page 9B shallows painted over what nobody could wade)
   Object.assign(M.ROOF, { innRoof: 'I', wingRoof: 'J', barnRoof: 'Z', innWall: 'v', barnWall: 'v' });
   // where the people stand, by the hour and the floor's flags (the first game's conditions): the yard's by day, the house's inside it -- seen while the party is in
   In.FOLK = [
@@ -89,8 +90,8 @@
     { id: 'pell', at: [43, 24], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },            // (skimming stones off the shore)
     { id: 'adoptedKid', at: [43, 12], look: 'girl', dir: 'right', cond: 'flag:kidAtInn & !flag:dueSeen', when: 'light', out: true },
     { id: 'doranIn', at: [24, 23], look: 'worker', dir: 'up', cond: '!flag:doranAway & !flag:doranDead', when: 'evening' },                // (behind the bar, under the stair's high end, where the headroom is)
-    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone & !flag:gennetDead' },
-    { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone & !flag:gennetDead' },
+    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone & !flag:gennetDead & !flag:gennetTaken' },
+    { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone & !flag:gennetDead & !flag:gennetTaken' },
     { id: 'elsbeth', at: [33, 21], look: 'elsbeth', dir: 'right', cond: '!flag:postgame' },                              // (at the tub, her back to the room)
     { id: 'katarina', at: [26, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }                                   // (writing by the fire)
   ];
@@ -134,7 +135,8 @@
     shortRest: 'An hour by the fire with your boots off.',
     waited: 'The afternoon goes by the fire. At eight, supper.',
     dinner: 'Supper at the long table -- lake fish, bread, the road\'s talk -- and then a room under the eaves.',
-    late: 'The kitchen is cold this late. A room under the eaves, and no supper.'
+    late: 'The kitchen is cold this late. A room under the eaves, and no supper.',
+    noCook: 'Nobody cooks at the Waterbys\' now. A room under the eaves, and no supper.' // (the lake took the inn lady, 11-05: invented.json halfway-nearest-offering-1105)
   };
   In.line = function (h) { return M.night(h) ? In.LINES.night : In.LINES.day; };
   // the house's day (THE WORLD's clock), or a test door's &day=
@@ -178,7 +180,7 @@
       { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
     if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
     var lights = inside === 'inn' ? In.FIRES.map(function (q, i) { return { id: 'hearth' + i, kind: 'map', x: q[0], y: q[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }; }) : null;
-    return { id: 'halfway', name: 'The Halfway Inn', rows: rows, legend: Object.assign({ U: 'wagon', V: 'wagonBed' }, In.LEGEND), music: inside === 'inn' ? 'inn' : 'lake', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: false,
+    return { id: 'halfway', name: 'The Halfway Inn', rows: rows, legend: Object.assign({ U: 'wagon', V: 'wagonBed' }, In.LEGEND), music: inside === 'inn' ? 'inn' : 'lake', exits: { north: 1, south: 1, west: 1 }, dark: false, // (no east: the lake's edge, waded since 11-05 -- not a way to THE WORLD, whose door has no east gate)
       lights: lights, npcs: npcs, triggers: trig, chests: [] };
   };
   In.STAIR = [20, 23];        // (the stair's foot, at the bar's west end; its run S rises east along the south wall to its head at 25,23 by the fire -- 11-04, Griz at the pane: "move the stairs to ascend from 20, 23 toward 25, 23 (such that headroom behind the bar is nearer the fire)"; the barman stands under its high end)
@@ -241,6 +243,7 @@
     var h = hour != null ? hour : M.hourNow(q), def = floor0.call(this, key, q, flags, h); flags = flags || {};
     def.under = In.under(In.ROWS, In.inHouse, function (x, y) { return !!In.inside && In.inHouse(x, y) === In.inside; }); // (the boards under the things inside, and under the walls of the house the party is in: In.under)
     def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
+    def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if (p.id === 'wagonGoblin' && flags.glamourSeen) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
@@ -504,7 +507,7 @@
   // the rooms from Doran after the second act's ends (the lane's §10.3 beat 5): the due stopped, Gennet keeps her back to the room and sells nothing; Gennet killed, "You'll want the road" and no rooms again
   In.doranRoom = function* (sc, B) {
     var st = sc.st, f = st.flags, A = D.secondact, cost = In.PRICE * In.heads(B);
-    if (f.gennetDead) { yield sc.say([].concat(M.words(B, 'doranIn'), A ? [A.LINES.doranRoad] : [])); return false; }
+    if (f.gennetDead || (f.gennetTaken && f.gennetLet)) { yield sc.say([].concat(M.words(B, 'doranIn'), A ? [A.LINES.doranRoad] : [])); return false; } // (the lake let have her: no rooms either -- 11-05, RULED; went back for her, he lets them: In.room, no supper)
     yield sc.say(M.words(B, 'doranIn'));
     return yield* In.room(sc, B, cost, true); // (the hour's rules as hers; no supper scene from him -- In.room)
   };
@@ -543,7 +546,8 @@
   In.tillRested = function (kind) { var H = D.house, wake = H.longWake(In.nightHours(kind)); return { wake: wake, hours: wake - H.now() }; };
   In.bothOpts = function (kind) { var H = D.house, tr = In.tillRested(kind), nh = In.nightHours(kind); return [In.LINES.opts.till.split('{when}').join(H.clockAt(tr.wake).toUpperCase()).split('{n}').join(Math.round(tr.hours * 10) / 10), In.LINES.opts.night.split('{n}').join(nh)]; };
   In.room = function* (sc, B, cost, noMeal) {
-    var st = sc.st, f = st.flags, kind = In.restKind(In.hourOf(B)), pay = function () { if (st.silver() < cost) { D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
+    // (the lake took the inn lady: no more suppers at the Waterbys' -- 11-05, his "dinners are over"; a room by Doran, eight hours)
+    var st = sc.st, f = st.flags, kind = f.gennetTaken ? 'late' : In.restKind(In.hourOf(B)), pay = function () { if (st.silver() < cost) { D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
     var H = D.house, long = true, hours = null, both = function () { return In.bothOpts(kind); }; // (long: the night a long rest; hours: SLEEP TILL RESTED's own)
     if (kind === 'day') {
       var a = yield sc.ask(In.LINES.dinnerAt8.split('{n}').join(cost), [In.LINES.opts.short, In.LINES.opts.wait, In.LINES.opts.notNow]);
@@ -567,7 +571,7 @@
     B.roam.stay = { t0: In.clock(B), hours: hours || In.nightHours(kind), kind: kind, long: long };
     if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours' + (long ? '' : ', no long rest') + (hours ? ', till rested' : ''));
     if (kind === 'dinner') { if (!f.mealHad && !noMeal) return 'meal'; yield sc.say(In.LINES.dinner); return 'dinner'; } // (the first room with supper: THE MEAL's screen, then the bed line there)
-    yield sc.say(In.LINES.late); return 'bed';
+    yield sc.say(f.gennetTaken ? In.LINES.noCook : In.LINES.late); return 'bed';
   };
   In.gennet = function* (sc, B) {
     var st = sc.st, f = st.flags, cost = In.PRICE * In.heads(B), A = D.secondact;
@@ -971,7 +975,7 @@
     // (STAND ASIDE's is on the path, js/secondact.js A.due) -- and the Ring of Binding worn: GO DOWN TO THE POINT, the chuul; else the ring cold by morning
     if ((how !== 'fight' || act === 'let') && D.secondact && D.secondact.ringWarm) { f.duePaid = 1; if ((yield* D.secondact.ringWarm(B, {})) === 'lost') return; }
     if (f.lakeDone && D.secondact) morning = how === 'fight' ? D.secondact.morning(f) || morning : D.secondact.lakeMorning(morning);
-    else if ((how !== 'fight' || f.duePaid) && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
+    else if ((how !== 'fight' || f.duePaid || f.gennetTaken) && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold'); // (it has eaten: the take, or the inn lady)
     delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
     yield* In.sleep(B, morning);

@@ -19,11 +19,11 @@
     // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
     // off and the Breach never ended, 10-02)
     // (bystander: one the AI never targets and that never acts -- the Halfway Inn's boys and the child on the path, js/secondact.js, 11-04; an area still catches them)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.bystander && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.bystander && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
@@ -1383,6 +1383,9 @@
       hs = [B.taunt.u]; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + B.taunt.u.name + '{/}: the ring binds it  {g}(round ' + B.round + '){/}']); yield 20;
     } else if (u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, hs)) { // (taunted by an MPMon, js/mpmon.js: only at him, when it can)
       hs = [D.mpmon.tauntTarget(B, u, hs)];
+    } else if (u.wantsOffering && hs.some(function (w) { return w.offering; })) { // (the nearest offering -- the thing in the lake, cheated of the stone, and the inn lady on the path: js/secondact.js A.offerGennet, 11-05 RULED, Griz's "yes the lean")
+      hs = hs.filter(function (w) { return w.offering; });
+      if (!u.offeringSaid) { u.offeringSaid = true; B.card(['{r}' + (u.name || the(B, u)) + '{/} turns toward {y}' + hs[0].name + '{/}: the nearest offering.']); yield 20; }
     }
     // Whelm (the water elemental: its action, when it has it back -- recharge 4-6 -- on those beside it, or it closes on one first)
     if (!grudge && u.whelm && u.whelm.ready && T.action) { if (yield* whelm(B, u, hs)) return; }
@@ -1495,6 +1498,7 @@
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
+      else if (u.wantsOffering && !atk.needsHeld && pool.some(function (w) { return w.offering; })) pool = pool.filter(function (w) { return w.offering; }); // (the offering first, in reach: js/secondact.js, 11-05)
       var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (B.fight && B.fight.quarry && !atk.needsHeld) { var qp = pool.filter(function (w) { return w.id === B.fight.quarry && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (qp.length) pool = qp; } // (a fight's quarry, in reach: him first -- GreyFang in his pit, 10-08: "The Harbinger hunts him down")
