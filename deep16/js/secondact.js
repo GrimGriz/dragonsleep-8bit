@@ -293,7 +293,7 @@
   A.play = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
     rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonIn: 1, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, doranAway: 1, katGone: 1, wagonStopped: 'c0', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled } }, bt.flags || {});
-    if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; rec.flags.secondAct = null; }
+    if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
     if (bt.ring) { var lead = rec.party[0]; if (lead && lead.equip) { lead.equip.ring = 'ringofbinding'; H.add(rec.inv, 'ringofbinding', 0); } }
     H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = (In.WAGON.first - 1) * 24 + (bt.beat === 'wand' ? 18 : 23); // (the first WAGON DAY's night: day 12 since 11-05, js/inn.js In.WAGON)
     In.pinned = bt.dice ? bt.dice.slice() : null;

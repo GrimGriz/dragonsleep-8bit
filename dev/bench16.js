@@ -2318,6 +2318,13 @@
         /Tobin was fourteen/.test(o5) && /> CALL GENNET A FRAUD/.test(o5) && /is a fraud, and you know it/.test(o5) && /blackened bone-white wood/.test(o5) && /walks out of the kitchen/.test(o5) && /> PRESS ON/.test(o5) && /wall of fear/.test(o5) && /Nobody is hurt/.test(o5) && f5.wandOut === 1 && f5.elsbethPushed === 1 && f5.elsbethTier === 1 && t5.x === 25 && t5.y === 20 && /The kitchen door is shut/.test(o5b));
       var B5c = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=32,21&inside&flags=chuulSeen'); atAc(B5c, 32, 21, [1, 0]); var o5c = flowAc(B5c, []);
       okAc('the god seen: her third tier for nothing (' + o5c.slice(0, 120) + ', tier ' + B5c.roam.flags.elsbethTier + ')', /The god is an animal/.test(o5c) && B5c.roam.flags.elsbethTier === 3);
+      // (11-05, his "trying to run that last beat (mentions call gennet a fraud) - and all i'm getting from elsbeth is 'go see winters'": the show's own wand beat, as A.play stages it --
+      // its flags carried doranAway, and with Doran gone and no ring Elsbeth sends the party to Winters before the dishes; six on day 12 is before the wagon)
+      var Aw = D.secondact, bw = Aw && (Aw.BEATS || []).filter(function (b) { return b.id === 'wand'; })[0], Hw = D.house, hb0 = Hw.begin, recW = null;
+      Hw.begin = function (rec) { recW = rec; throw new Error('staged'); }; try { Aw.play(bw); } catch (eW) { /* (the rec is all this wants) */ } finally { Hw.begin = hb0; InAc.pinned = null; }
+      var fw = recW ? Object.keys(recW.flags).filter(function (k) { return recW.flags[k] === 1; }) : [], B5w = stageAc('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=32,21&inside&flags=' + fw.join(','));
+      atAc(B5w, 32, 21, [1, 0]); var o5w = flowAc(B5w, ['HELP WITH THE DISHES']);
+      okAc('the show\'s wand beat: its flags ' + fw.join(',') + ' (want no doranAway); Elsbeth: "' + o5w.slice(0, 160) + '" (want the dishes, not Winters)', !!recW && fw.indexOf('doranAway') < 0 && /HELP WITH THE DISHES/.test(o5w) && !/Go and see him/.test(o5w));
       // 6. THE BYSTANDERS AND DORAN: the cast stood on the path -- the AI's targets for Gennet hold none of the boys or the child; Doran on a blow at a boy, a foe who yields
       var B6 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=37,18&flags=' + BASE), Y6 = AcB.cast(B6, B6.roam.flags, AcB.PATH.half), tg = D.ai.heroes(B6, Y6.gennet).map(function (u) { return u.id; });
       var d6 = AcB.doranIn(B6, Y6), f6 = B6.roam.flags;
