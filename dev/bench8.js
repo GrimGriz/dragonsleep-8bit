@@ -346,6 +346,9 @@
       for (var wS = 0; wS < 400 && !DS.find('battle'); wS++) T.step(1);
       var bS = DS.find('battle'), aS = bS.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], seenImages = 0;
       bS.foes.forEach(function (f) { f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, { wis: -30, dex: -30 }) }); f.hp = f.maxhp = 400; }); // (long enough for his four casts)
+      // (his concentration held: the laughter rides it -- first/js/battle.js concCheck on every blow, CON DC 10 -- and a failed save before the ogre's turn ended it, so "its turn
+      // lost" went RED by the dice; the full gate's flake of 10-14 and 11-06, passing alone. The check is the spell's, not the save's)
+      bS.save = (function (s0) { return function (u, ab) { return u === aS && ab === 'con' ? { success: true, roll: 20, total: 99 } : s0.apply(this, arguments); }; })(bS.save);
       var say0S = bS.say; bS.say = function (m) { if (aS.images > seenImages) seenImages = aS.images; return say0S.apply(this, arguments); };
       drive({ aurdin: ['MAGIC', 'Mirror', 'MAGIC', 'Hideous', 'Ogre', 'MAGIC', 'Hideous', 'Hyena', 'MAGIC', 'Grease', 'Ogre'] }, 5000);
       var saidS = (T.blog || []).concat(out.log).join(' | '), castS = (saidS.match(/Aurdin casts /g) || []).length;
