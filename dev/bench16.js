@@ -2486,6 +2486,7 @@
         var c = cRef, on = !!(c && c.take && !c.take.off);
         if (on && u === c) B.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; });
         if (u.side === 'party' && c && !seen5.script) seen5.script = c.script || 'none';
+        if (on && u.side === 'party' && o.web && c.take.g && c.take.g.inClaws && !seen5.webbed && D.magic.list && (D.rules.startTurn(u), true) && D.magic.list(B, u).some(function (x) { return x.id === o.web && x.ok; })) { seen5.webbed = u.name; seen5.webSq = [c.x - 1, c.y]; var sl0 = u.src && u.src.slots; yield* B.exec(u, { do: 'cast', id: o.web, slot: o.webSlot || 2, target: { x: c.x - 1, y: c.y, size: 1 } }); seen5.gAfter = [c.take.g.x, c.take.g.y, !!c.take.g.inClaws, c.x, c.y]; seen5.cConds = Object.keys(c.conds).join(','); return; }
         if (on && u.side === 'party') { if (o.strike && c.take.g && c.take.g.inClaws) { seen5.struck = u.name; seen5.gAt = [c.take.g.x, c.take.g.y]; yield* B.attack(u, c, u.weapon || u.attacks[Object.keys(u.attacks)[0]]); seen5.gAfter = [c.take.g.x, c.take.g.y, !!c.take.g.inClaws, c.x, c.y]; return; } yield 4; return; }
         yield* ai0If.apply(this, arguments);
       }; };
@@ -2501,6 +2502,10 @@
       var t5b = run5({ strike: true });
       okIf('THE TAKE, struck at with her in its claws (' + t5b.s.struck + '): ' + sl(t5b.o, /fall from its claw/, 500) + ' -- she was at ' + t5b.s.gAt + ', after ' + t5b.s.gAfter + '; taken ' + !!t5b.f.gennetTaken + ', the lake done ' + t5b.f.lakeDone,
         /IN ITS CLAWS/.test(t5b.o) && /lets Gennet Waterby fall from its claw and turns on /.test(t5b.o) && !!t5b.s.gAfter && t5b.s.gAfter[2] === false && !(t5b.s.gAfter[0] === t5b.s.gAfter[3] && t5b.s.gAfter[1] === t5b.s.gAfter[4]) && !t5b.f.gennetTaken && t5b.f.lakeDone === 1 && !/It has her\. It goes down/.test(t5b.o));
+      // (11-06 evening, RULED, his "2 - count them": a spell that only lays a condition on it -- Web cast at the square beside it, not at it, its DEX save -- turns it as a blow does)
+      var t5d = run5({ web: 'web', webSlot: 2 });
+      okIf('THE TAKE, a Web over it with her in its claws (' + t5d.s.webbed + ', at ' + t5d.s.webSq + '; its conditions after: ' + t5d.s.cConds + '): ' + sl(t5d.o, /fall from its claw/, 400) + ' -- she after ' + t5d.s.gAfter + '; taken ' + !!t5d.f.gennetTaken + ', the lake done ' + t5d.f.lakeDone,
+        !!t5d.s.webbed && /DEX DC/.test(t5d.o) && /lets Gennet Waterby fall from its claw and turns on /.test(t5d.o) && !!t5d.s.gAfter && t5d.s.gAfter[2] === false && !t5d.f.gennetTaken && t5d.f.lakeDone === 1 && !/It has her\. It goes down/.test(t5d.o));
       var t5c = run5({ hurt: true });
       okIf('THE TAKE, hurt before it rises: its turn ' + t5c.s.script + ', no nearest-offering line ' + !/the nearest offering\./.test(t5c.o.replace(/It turns toward the one on the path: the nearest offering\./, '')) + ', taken ' + !!t5c.f.gennetTaken + ', the lake done ' + t5c.f.lakeDone,
         t5c.s.script === 'none' && !/IN ITS CLAWS/.test(t5c.o) && !t5c.f.gennetTaken && t5c.f.lakeDone === 1);

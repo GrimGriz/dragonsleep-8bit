@@ -464,6 +464,7 @@
     c.take.off = true; c.script = null; c.wantsOffering = false;
     var held = !!(g && g.inClaws && g.inClaws.by === c.id);
     if (g && g.conds.restrained && g.conds.restrained.by === c.id) B.release(c, g);
+    if (g && g.inClaws && g.inClaws.by === c.id) { B.clawDrop(g); c.holding = (c.holding || []).filter(function (w) { return w !== g; }); } // (out of the claws whatever holds her now -- a Web over the two of them takes her restrained for its own, 11-06 evening)
     if (g && D.spr.anim(g.sheet, 'sit')) { g.anim = 'sit'; g.animT = B.t; } // (she sits where she fell, yielded still)
     A.trail('the thing in the lake struck at on the way' + (held ? ', Gennet in its claws: it dropped her' : '') + ' -- it fights');
     B.card(['{r}The thing in the lake{/} ' + (held ? 'lets {y}' + g.name + '{/} fall from its claw' : 'turns from the offering') + (by && by.name && by !== g ? ' and turns on {y}' + (by.side === 'foe' ? D.Battle.nm(by, true) : by.name) + '{/}.' : ' and turns on you.')], 320);
@@ -550,7 +551,7 @@
     // -- off the screen, never drawn dying (`fled` set only then). Struck at on the way (A.turned): it lets her fall from the claw and fights the party. A party Fireball that kills her is the
     // first ending's (`gennetDead`), as before
     var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside } : null, hurt0 = B.hurt, self = B, c = Y.chuul;
-    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, ownExec = B.hasOwnProperty('exec'), exec0 = B.exec;
+    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, ownExec = B.hasOwnProperty('exec'), exec0 = B.exec, RUx = D.rules, save0 = RUx.save;
     if (gn) {
       gn.side = 'offering'; gn.bystander = true; gn.offering = true; gn.yields = false; gn.script = null; gn.roamAside = true; // (roamAside: no turn of hers in the floor's fight -- js/roam.js R.fight's initiative; she sits)
       if (c && c.hp >= c.maxhp) { c.script = 'lakeTake'; c.take = { g: gn, done: A.taken(B, Y) }; c.wantsOffering = false; } // (whole when it rises: the take; hurt already, it fights from the first)
@@ -571,13 +572,23 @@
         return r;
       };
       B.attack = function* (att, tgt) { if (tgt === c && att !== c && on()) A.turned(self, Y, att); return yield* atk0.apply(this, arguments); }; // (hit or miss: struck at -- an opportunity attack as it walks too)
-      B.exec = function* (u, cmd) { if (cmd && cmd.do === 'cast' && u !== c && on() && (cmd.target === c || (cmd.targets || []).indexOf(c) >= 0)) A.turned(self, Y, u); return yield* exec0.apply(this, arguments); }; // (a spell aimed at it)
+      // A SPELL THAT ONLY LAYS A CONDITION ON IT counts as striking at it too (RULED 11-06 evening, Griz to the lanes desk on the seat's call 3: "2 - count them"; read by the desk: anything cast
+      // at it, or catching it in an area, that it must save against or that lays a condition on it, damage or not -- Web, Hypnotic Pattern and their kind): a save it makes while it takes her
+      // (D.rules.save, whoever's turn it is -- a web it walks into is the party's spell catching it), and a cast by another after which it carries a condition it did not have (Sleep, no save)
+      B.exec = function* (u, cmd) {
+        var cast = !!(cmd && cmd.do === 'cast' && u !== c && on());
+        if (cast && (cmd.target === c || (cmd.targets || []).indexOf(c) >= 0)) A.turned(self, Y, u); // (a spell aimed at it)
+        var had = cast && c ? Object.keys(c.conds || {}) : null, r = yield* exec0.apply(this, arguments);
+        if (had && on() && Object.keys(c.conds || {}).some(function (k) { return had.indexOf(k) < 0; })) A.turned(self, Y, u); // (a condition the cast laid on it)
+        return r;
+      };
+      RUx.save = function (w) { if (w === c && on()) A.turned(self, Y, self.active && self.active !== c ? self.active : null); return save0.apply(this, arguments); }; // (a save it must make: the spell is on it)
     }
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
     yield* Rm.engage(B, { foes: [Y.chuul, Y.frog], why: 'lake', zone: null }, false, 'lake');
     var o = R0.lastOutcome;
-    B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0;
+    B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0; if (RUx.save !== save0) RUx.save = save0;
     if (c) { if (c.take && c.take.unhold) c.take.unhold(); delete c.take; if (c.script === 'lakeTake') c.script = null; }
     if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; delete gn.inClaws; delete gn.goneDown; if (gn.conds.restrained && c && gn.conds.restrained.by === c.id) delete gn.conds.restrained; } // (she lives: back on the path as she sat)
     else if (gn) { In.gone(B, gn); Y.gennet = null; }
