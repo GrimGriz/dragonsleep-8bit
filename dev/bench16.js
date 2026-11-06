@@ -3121,6 +3121,157 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE GRID'S FIXES OF 11-06 (mode=gridfixes1106; the gridfixes-1106 seat, started by the lanes desk on his fights of 11-05/11-06 -- the grid's rules lane's "2026-11-06 -- his
+  // fights of 11-05/11-06 read" and the play records lane's): 1. Sneak Attack once per TURN, any creature's (battle.js Battle.turnKey) -- her opportunity attack before her first
+  // turn, and on a foe's turn after her own sneak; twice in one foe's turn, once; Martial Advantage the same; 2. HIDE against blindsight (battle.js spots): SEEN with the reason,
+  // and found by it on a step in; 3. Lay on Hands at full hit points turned away, the action kept, the card pointing at HELP (Battle.layNothing; the ring's click, ui.js); 4. HELP's
+  // why (Battle.helpWhyNot) and its note and card naming a sleeper; 5. a named foe's article (ui.js: "The The Keeper"); 6. a readied aim's answer a step, not a refusal (record.js
+  // note); 7. the found line under the blow that found her; 8. the down said once a fall; 9. the Keeper's swirl looked at as each hero's turn begins (keeper.js); 10. Sleep's aim
+  // names the party in its sphere (ui.js). The dice pinned: every d20 a 19, every other die its half
+  if (get('mode', '') === 'gridfixes1106') {
+    var repGF = { checks: [], errors: [], notes: [] }, memGF = {}, stGGF = D.store.get, stSGF = D.store.set, muGF = D.music, apGF = window.DS.autoPicks, d0GF = D.d, BTf = D.Battle, RUf = D.rules, GGf = D.grid, UIf = D.ui, MGf = D.magic;
+    function okGF(what, v) { repGF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGF(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkGF(q, more) { var Bx = D.npcFight(q, more || {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function clsGF(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function foesGF(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; }); }
+    function putGF(Bx, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; }); GGf.setup(GGf.map, Bx.units); Bx.cache = null; }
+    function logGF(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return e.text; }); }
+    function nGF(Bx) { return (Bx.logEntries || []).length; }
+    function cardGF(Bx) { var c = Bx.cards[Bx.cards.length - 1]; return c ? (c.lines || []).map(function (l) { return window.DS.stripCodes(String(l)); }).join(' / ') : ''; }
+    function stubGF(Bx) { var got = []; Bx.answer = function (c) { got.push(c); }; return got; }
+    D.store.get = function (k) { return memGF[k] ? JSON.parse(memGF[k]) : null; }; D.store.set = function (k, v) { memGF[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1106);
+      D.d = function (n) { return n === 20 ? 19 : Math.ceil(n / 2); };
+      try { // (secGF: each section its own, so one that throws hides none after it)
+      // 1. SNEAK ATTACK ONCE A TURN, ANY TURN (his 19:30:08Z R2, Vivian's opportunity attack with Barley and Lymen at the target, no sneak; and the lead, 19:24:49Z R1, before her first turn)
+      var B1 = mkGF('?npc=goblin,goblin&vs=rogue:5,fighter:5&lvl=5'), ro1 = clsGF(B1, 'rogue'), fi1 = clsGF(B1, 'fighter'), g1 = foesGF(B1);
+      putGF(B1, [[ro1, 5, 5], [fi1, 6, 6], [g1[0], 6, 5], [g1[1], 13, 13]]); g1[0].hp = g1[0].maxhp = 400; ro1.hp = ro1.maxhp = 400;
+      var at1 = ro1.weapon, sn1 = function (n0) { return logGF(B1, n0).some(function (l) { return /sneak \d+d6/.test(l); }); };
+      repGF.notes.push('1 the rogue\'s weapon: ' + (at1 && at1.name) + (at1 && at1.finesse ? ' (finesse)' : at1 && at1.ranged ? ' (ranged)' : ' (NEITHER: no sneak to test)'));
+      delete ro1.turn; delete ro1.sneakAt; B1.round = 1; RUf.startTurn(g1[0]); B1.active = g1[0];
+      var n1 = nGF(B1); runGF(B1.attack(ro1, g1[0], at1, { oa: true })); var a1 = sn1(n1);
+      okGF('1 her opportunity attack before her first turn (no turn of hers yet), the fighter beside the goblin: sneak ' + a1 + ' (want true)', a1);
+      RUf.startTurn(ro1); B1.active = ro1; n1 = nGF(B1); runGF(B1.attack(ro1, g1[0], at1, {})); var b1 = sn1(n1);
+      B1.round = 2; RUf.startTurn(g1[0]); B1.active = g1[0]; n1 = nGF(B1); runGF(B1.attack(ro1, g1[0], at1, { oa: true })); var c1 = sn1(n1);
+      n1 = nGF(B1); runGF(B1.attack(ro1, g1[0], at1, { oa: true })); var d1 = sn1(n1);
+      okGF('1 her own turn: sneak ' + b1 + '; the goblin\'s turn after, her opportunity attack: sneak ' + c1 + ' (want true, another creature\'s turn); a second in that turn: sneak ' + d1 + ' (want false, once a turn)', b1 && c1 && !d1);
+      B1.round = 3; RUf.startTurn(ro1); B1.active = ro1; n1 = nGF(B1); runGF(B1.attack(ro1, g1[0], at1, {})); var e1 = sn1(n1);
+      okGF('1 her next turn: sneak ' + e1 + ', the turn\'s own flag for the AI (tactics.js T.sneakUsed) ' + ro1.turn.sneakUsed, e1 && ro1.turn.sneakUsed === true);
+      var Bm = mkGF('?npc=hobgoblin,hobgoblin&vs=fighter:5&lvl=5'), hm = foesGF(Bm), fm = clsGF(Bm, 'fighter');
+      putGF(Bm, [[fm, 5, 5], [hm[0], 6, 5], [hm[1], 5, 6]]); fm.hp = fm.maxhp = 400;
+      var am = hm[0].attacks.longsword || hm[0].attacks[Object.keys(hm[0].attacks)[0]], ma1 = function (n0) { return logGF(Bm, n0).some(function (l) { return /martial 2d6/.test(l); }); };
+      RUf.startTurn(hm[0]); Bm.active = hm[0]; var nm1 = nGF(Bm); runGF(Bm.attack(hm[0], fm, am, {})); var mA = ma1(nm1);
+      RUf.startTurn(fm); Bm.active = fm; nm1 = nGF(Bm); runGF(Bm.attack(hm[0], fm, am, { oa: true })); var mB = ma1(nm1);
+      okGF('1 Martial Advantage: the hobgoblin\'s own turn ' + mA + ', its opportunity attack on the fighter\'s turn ' + mB + ' (want both: "once per turn", SRD 5.1)', mA && mB);
+      } catch (eS) { repGF.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 2. HIDDEN AGAINST BLINDSIGHT (his guano dens, 18:03:07Z R1-R2, a giant bat's 60 ft: the card said HIDDEN and "next attack has advantage (and Sneak Attack)", and neither came)
+      var B2 = mkGF('?npc=giantbat&vs=rogue:5,fighter:5&lvl=5'), ro2 = clsGF(B2, 'rogue'), fi2 = clsGF(B2, 'fighter'), bat2 = foesGF(B2)[0];
+      B2.dark = true; putGF(B2, [[ro2, 3, 4], [fi2, 1, 1], [bat2, 9, 4]]); RUf.startTurn(bat2);
+      RUf.startTurn(ro2); B2.active = ro2; var n2 = nGF(B2); runGF(B2.hide(ro2)); var l2 = logGF(B2, n2).join(' | ');
+      okGF('2 the rogue hides 30 ft from the giant bat in the dark (its blindsight ' + bat2.blindsight + ' ft): hidden ' + !!ro2.conds.hidden + ' (want false); "' + l2.slice(0, 280) + '"', !ro2.conds.hidden && /SEEN/.test(l2) && /blindsight \(60 ft\)/.test(l2));
+      bat2.blindsight = 20; RUf.startTurn(ro2); n2 = nGF(B2); runGF(B2.hide(ro2)); var hid2 = !!ro2.conds.hidden;
+      putGF(B2, [[bat2, 6, 4]]); var lost2 = B2.lostCover(ro2), c2 = cardGF(B2);
+      okGF('2 its sense cut to 20 ft, the rogue 30 ft off: hidden ' + hid2 + ' (want true); the bat in to 15 ft: found ' + lost2 + ' -- "' + c2 + '"', hid2 && lost2 && /blindsight \(20 ft\)/.test(c2));
+      bat2.blindsight = 60; ro2.conds.hidden = { simple: true, seenBy: [bat2.id] }; ro2.hidTotal = 40; var sp2 = B2.spots(bat2, ro2);
+      okGF('2 a simple fight\'s hider with the bat in its seenBy: spots says ' + JSON.stringify(sp2) + ' (want no blindsight line: simple.js S.judge counted it, and she stays hidden from the rest)', !/blindsight/.test(sp2 || ''));
+      delete ro2.conds.hidden; delete ro2.hidTotal;
+      } catch (eS) { repGF.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 3. LAY ON HANDS FOR +0 (his 17:42:29Z R3, "Lymen lays on hands: +0 to Aurdin" at 12/12, Aurdin asleep in his own Sleep)
+      var B3 = mkGF('?npc=goblin&vs=paladin:5,wizard:5&lvl=5'), pa3 = clsGF(B3, 'paladin'), wz3 = clsGF(B3, 'wizard'), gb3 = foesGF(B3)[0];
+      putGF(B3, [[pa3, 4, 4], [wz3, 5, 4], [gb3, 13, 13]]); wz3.hp = wz3.maxhp; wz3.conds.asleep = { by: wz3.id }; pa3.feats.lay = 25;
+      RUf.startTurn(pa3); B3.active = pa3; B3.req = { turn: pa3 }; var n3 = nGF(B3); runGF(B3.layOnHands(pa3, wz3)); var l3 = logGF(B3, n3).join(' | ');
+      okGF('3 Lay on Hands on the wizard asleep at full: the action ' + pa3.turn.action + ', the pool ' + pa3.feats.lay + ' (want 1, 25); "' + l3 + '"', pa3.turn.action === 1 && pa3.feats.lay === 25 && /full hit points/.test(l3) && /HELP shakes/.test(l3));
+      B3.tool = 'lay'; var g3 = stubGF(B3); UIf.actAt(B3, pa3, 5, 4, false); delete B3.answer;
+      okGF('3 the ring\'s LAY HANDS clicked on him: ' + g3.length + ' commands (want 0), "' + cardGF(B3) + '"', g3.length === 0 && /full hit points/.test(cardGF(B3)));
+      wz3.hp = wz3.maxhp - 6; runGF(B3.layOnHands(pa3, wz3));
+      okGF('3 at ' + (wz3.maxhp - 6) + '/' + wz3.maxhp + ': ' + wz3.hp + ' after, the action ' + pa3.turn.action + ', the pool ' + pa3.feats.lay + ' (want full, 0, 19)', wz3.hp === wz3.maxhp && pa3.turn.action === 0 && pa3.feats.lay === 19);
+      } catch (eS) { repGF.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 4. HELP, THE SHAKE TO WAKE (his "ah yes, the sleeping heroes - 'help' should be the 'shake to wake', like I tried to click"; the 17:49:00Z loss R8, HELP on Vivian at 0 hp x6)
+      var B4 = mkGF('?npc=goblin&vs=wizard:5,rogue:5,fighter:5&lvl=5'), wz4 = clsGF(B4, 'wizard'), ro4 = clsGF(B4, 'rogue'), fi4 = clsGF(B4, 'fighter'), gb4 = foesGF(B4)[0];
+      putGF(B4, [[wz4, 4, 4], [ro4, 5, 4], [fi4, 4, 5], [gb4, 13, 13]]); ro4.hp = 0; ro4.ko = true; fi4.conds.asleep = { by: wz4.id };
+      RUf.startTurn(wz4); B4.active = wz4; B4.req = { turn: wz4 };
+      var hc4 = B4.commands(wz4).filter(function (c) { return c.id === 'help'; })[0] || {};
+      okGF('4 HELP with ' + fi4.name + ' asleep beside: the note "' + hc4.note + '"', new RegExp('^shake ' + fi4.name + ' awake').test(hc4.note || ''));
+      B4.clearCards(); UIf.pickCommand(B4, wz4, hc4); var tc4 = cardGF(B4);
+      okGF('4 HELP picked: the card "' + tc4 + '"', new RegExp('HELP: shake ' + fi4.name + ' awake -- click ' + fi4.name).test(tc4));
+      B4.tool = 'help'; var g4 = stubGF(B4); UIf.actAt(B4, wz4, 5, 4, false); var c4 = cardGF(B4); UIf.actAt(B4, wz4, 4, 5, false); delete B4.answer;
+      okGF('4 HELP clicked on ' + ro4.name + ', down at 0 hp: "' + c4 + '"; on the sleeper: ' + g4.map(function (c) { return c.do + ' -> ' + (c.target && c.target.name); }).join(', '),
+        new RegExp(ro4.name + ' is down, not asleep: a healer\'s kit, a potion or healing gets ' + ro4.name + ' up').test(c4) && g4.length === 1 && g4[0].do === 'help' && g4[0].target === fi4);
+      delete fi4.conds.asleep; putGF(B4, [[gb4, 12, 4]]); var w4 = BTf.helpWhyNot(wz4, fi4, null), f4 = BTf.helpWhyNot(wz4, null, gb4);
+      okGF('4 the why for one awake and free: "' + w4 + '"; at a foe 40 ft off: "' + f4 + '"', /awake and free/.test(w4) && /40 ft away/.test(f4));
+      } catch (eS) { repGF.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 5. "THE THE KEEPER IS OUT OF REACH" (his 19:03:49Z R8): a named foe's own article, on the turn's click and the readied aim's
+      var B5 = mkGF('?npc=goblin&vs=fighter:5&lvl=5'), fi5 = clsGF(B5, 'fighter'), gb5 = foesGF(B5)[0];
+      gb5.named = true; gb5.name = 'The Keeper'; putGF(B5, [[fi5, 2, 2], [gb5, 9, 2]]); RUf.startTurn(fi5); B5.active = fi5; B5.req = { turn: fi5 }; B5.tool = 'attack';
+      var g5 = stubGF(B5); UIf.actAt(B5, fi5, 9, 2, false); delete B5.answer; var c5 = cardGF(B5);
+      okGF('5 a named foe out of reach: "' + c5 + '" (want "The Keeper is out of reach", one article)', /^The Keeper is out of reach/.test(c5) && !/The The/.test(c5) && !g5.length);
+      } catch (eS) { repGF.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 6. A READIED AIM IS AN ANSWER (17:46:18Z R1, "REFUSED: Lymen: the readied Longsword, at the Darkmantle. (The Darkmantle comes within reach.)" with the blow the next line)
+      var B6 = mkGF('?npc=goblin&vs=fighter:5&lvl=5'), fi6 = clsGF(B6, 'fighter'), gb6 = foesGF(B6)[0];
+      putGF(B6, [[fi6, 4, 4], [gb6, 5, 4]]); RUf.startTurn(fi6); RUf.startTurn(gb6); B6.active = gb6;
+      D.rec.start(B6, { fight: 'bench1106', name: 'the readied aim', level: 5 });
+      var rd6 = { what: 'weapon', name: fi6.weapon.name, wp: fi6.weapon }, why6 = 'The Goblin comes within reach.';
+      B6.step = function () { B6.card(['{o}' + fi6.name + '{/}: the readied ' + rd6.name + ', at the Goblin.  {g}(' + why6 + '){/}']); }; // (the spring's own card, as battle.js readySpring writes it)
+      B6.req = { aim: { who: fi6, rd: rd6, ctx: { why: why6, foe: gb6 } } };
+      D.rec.tried(B6, fi6, { x: 5, y: 4, who: gb6.id, name: 'Goblin', tool: 'attack' }, function () { return UIf.command(B6, fi6, { do: 'attack', target: gb6 }); });
+      B6.req = { aim: { who: fi6, rd: rd6, ctx: { why: why6, foe: gb6 } } }; B6.answer(null); // (the next one held: X)
+      delete B6.step;
+      var st6 = B6.rec.steps, rf6 = st6.filter(function (s) { return s.refused != null; }), an6 = st6.filter(function (s) { return s.cmd; }), ho6 = st6.filter(function (s) { return s.answer === 'HOLD'; });
+      D.rec.finish(B6, 'won'); var tr6 = (B6.rec.transcript || []).join(' | ');
+      okGF('6 the readied ' + rd6.name + ' aimed at the goblin, then one held: ' + an6.length + ' answer (readied "' + (an6[0] && an6[0].readied) + '"), ' + ho6.length + ' held, ' + rf6.length + ' refused (want 1, 1, 0); "' + tr6.slice(0, 260) + '"',
+        an6.length === 1 && ho6.length === 1 && rf6.length === 0 && !!an6[0].readied && /readied [^|]*: attack -> /.test(tr6));
+      } catch (eS) { repGF.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 7. THE FOUND LINE UNDER THE BLOW THAT FOUND HER (21:43:45Z R2 the Crawler: the reveal above the blow's own lines, under the last MISS)
+      var B7 = mkGF('?npc=goblin&vs=fighter:5&lvl=5'), fi7 = clsGF(B7, 'fighter'), gb7 = foesGF(B7)[0];
+      putGF(B7, [[fi7, 4, 4], [gb7, 5, 4]]); gb7.hp = gb7.maxhp = 400; gb7.conds.hidden = true; gb7.hidTotal = 60; // (past any passive Perception: the look before the blow does not find it, the blow does)
+      RUf.startTurn(fi7); B7.active = fi7; var n7 = nGF(B7); runGF(B7.attack(fi7, gb7, fi7.weapon, {}));
+      var l7 = logGF(B7, n7), iH = -1, iF = -1; l7.forEach(function (l, i) { if (iH < 0 && l.indexOf(fi7.name + ' > ') >= 0) iH = i; if (/found by the blow/.test(l)) iF = i; });
+      okGF('7 a hidden goblin struck: the blow\'s head at ' + iH + ', the found line at ' + iF + ' of ' + l7.length + ' (want the found line after the blow\'s); hidden after ' + !!gb7.conds.hidden, iH >= 0 && iF > iH + 1 && !gb7.conds.hidden);
+      } catch (eS) { repGF.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 8. THE DOWN SAID ONCE A FALL (19:03:49Z: "Vivian is down." and "Lymen is down." every round R3 to R11); 9. the Keeper's swirl looked at as a hero's turn begins
+      var B8 = mkGF('?npc=goblin&vs=rogue:5,fighter:5&lvl=5'), ro8 = clsGF(B8, 'rogue'), csN = 0, cs0 = D.keeper && D.keeper.checkSwirl;
+      if (D.keeper) D.keeper.checkSwirl = function () { csN++; }; B8.kp = B8.kp || {};
+      ro8.hp = 5; ro8.ko = false; B8.round = 2; B8.hurt(ro8, 6, 'slashing', {});
+      var n8 = nGF(B8); B8.round = 3; B8.active = ro8; runGF(B8.heroTurn(ro8)); B8.round = 4; runGF(B8.heroTurn(ro8)); var dn8 = logGF(B8, n8).filter(function (l) { return /is down\./.test(l); }).length;
+      ro8.hp = 5; ro8.ko = false; B8.hurt(ro8, 6, 'slashing', {}); n8 = nGF(B8); B8.round = 5; runGF(B8.heroTurn(ro8)); var dn8b = logGF(B8, n8).filter(function (l) { return /is down\./.test(l); }).length;
+      if (D.keeper) D.keeper.checkSwirl = cs0; delete B8.kp;
+      okGF('8 a hero down two turns: "is down." said ' + dn8 + ' times (want 1); up and down again: said ' + dn8b + ' (want 1)', dn8 === 1 && dn8b === 1);
+      okGF('9 a hero\'s turn in the Keeper\'s fight looks at the swirl first: ' + csN + ' looks for 3 turns (want 3: keeper.js K.checkSwirl -- the swirl round one gone down lapses before the next hero clicks)', csN === 3);
+      } catch (eS) { repGF.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 10. SLEEP'S SPHERE ON THE PARTY (17:42:29Z R1, Aurdin's Sleep took himself; two of the four in the 17:49 loss): the aim says who of ours is in it, beside the cursor
+      var B10 = mkGF('?npc=goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), wz10 = clsGF(B10, 'wizard'), fi10 = clsGF(B10, 'fighter'), g10 = foesGF(B10);
+      putGF(B10, [[wz10, 3, 3], [fi10, 8, 6], [g10[0], 9, 6], [g10[1], 9, 7]]);
+      if ((wz10.known || []).indexOf('sleep') < 0) (wz10.known = wz10.known || []).push('sleep'); RUf.startTurn(wz10); B10.active = wz10; B10.req = { turn: wz10 };
+      B10.tool = 'spell'; B10.spell = { id: 'sleep', slot: 1, g: MGf.geo('sleep'), sp: MGf.data('sleep'), n: 1, name: 'Sleep' }; B10.picks = [];
+      var cv10 = document.createElement('canvas'); cv10.width = D.W; cv10.height = D.H; var cx10 = cv10.getContext('2d'), said10 = [], tx010 = D.text;
+      var grab10 = function () { said10 = []; D.text = function (c, s) { said10.push(window.DS.stripCodes(String(s))); return tx010.apply(this, arguments); }; var c0 = D.ctx; D.ctx = cx10; try { B10.draw(cx10); } catch (eD) { said10.push('threw ' + eD); } finally { D.text = tx010; D.ctx = c0; } return said10.filter(function (s) { return /Sleep takes|threw/.test(s); }); };
+      B10.cursor = { x: 9, y: 6 }; var on10 = grab10(); B10.cursor = { x: 15, y: 13 }; var off10 = grab10();
+      okGF('10 Sleep aimed at the goblins with ' + fi10.name + ' beside them: "' + on10.join(' / ') + '"; aimed where no friend is: ' + off10.length + ' lines (want ' + fi10.name + ' named, then none)', on10.length === 1 && new RegExp('^' + fi10.name + ' \\(\\d+\\) is in it').test(on10[0]) && !off10.length);
+      } catch (eS) { repGF.errors.push('section 10: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try { // (secGF)
+      // 11. THE SHOW'S BEATS (js/eyes.js eyes-gridfixes-show-1106, deep16/?rulesshow&only=gridfixes1106): each beat staged and run by the engine, headless with &fast
+      D.d = d0GF; var B11 = D.rulesshow.make('?rulesshow&fast&only=gridfixes1106'); D.battle = B11; B11.enter();
+      var v11, k11 = 0; while (B11.co && k11++ < 400000) { var r11 = B11.co.next(v11); v11 = undefined; if (r11.done) break; var y11 = r11.value; if (y11 && y11.prompt) v11 = y11.prompt.opts[0].value; }
+      (B11.rulesReport || []).forEach(function (b) { okGF('11 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
+      okGF('11 the show ran ' + (B11.rulesReport || []).length + ' beats (want 5)', (B11.rulesReport || []).length === 5);
+      } catch (eS) { repGF.errors.push('section 11: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (eGF) { repGF.errors.push(String(eGF && eGF.stack || eGF).slice(0, 900)); }
+    D.d = d0GF; D.store.get = stGGF; D.store.set = stSGF; D.music = muGF; window.DS.autoPicks = apGF;
+    var preGF = document.createElement('pre'); preGF.id = 'out'; preGF.textContent = 'BENCH16 ' + JSON.stringify(repGF);
+    document.body.appendChild(preGF);
+    return;
+  }
   // ONE LIGHT FOR THE SIMPLE FIGHT'S FIELD, 11-05 night (mode=simplelight1105; js/light.js L.fieldLevel and its readers L.map, L.seesBy, L.partyMap, L.viewMap, L.pass -- RULED,
   // Griz, to the lanes desk on the tuesday-grid seat's numbers: "Fixed distance is fine on simple, but is that a ghetto fix for a light problem? At 6 squares does an illuminated
   // hero (torch, etc) still illuminated the furthest south of the enemy group? / should we just simplify simple vision?", then "Yes, simplify"): a light lit anywhere on a simple
