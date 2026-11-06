@@ -3121,6 +3121,110 @@
     document.body.appendChild(preR);
     return;
   }
+  // ONE LIGHT FOR THE SIMPLE FIGHT'S FIELD, 11-05 night (mode=simplelight1105; js/light.js L.fieldLevel and its readers L.map, L.seesBy, L.partyMap, L.viewMap, L.pass -- RULED,
+  // Griz, to the lanes desk on the tuesday-grid seat's numbers: "Fixed distance is fine on simple, but is that a ghetto fix for a light problem? At 6 squares does an illuminated
+  // hero (torch, etc) still illuminated the furthest south of the enemy group? / should we just simplify simple vision?", then "Yes, simplify"): a light lit anywhere on a simple
+  // fight's field lights all of it dim for both sides; Daylight bright; none dark, darkvision the whole field; magical darkness, fog, blindsight and the hide as they were; the grid
+  // as it was; the picture by the field's light
+  if (get('mode', '') === 'simplelight1105') {
+    var repSL = { checks: [], errors: [], notes: [] }, memSL = {}, stGSL = D.store.get, stSSL = D.store.set, muSL = D.music, apSL = window.DS.autoPicks, SSl = D.simple, MGl = D.magic, RUl = D.rules, LGl = D.light, WGl = D.world, GGl = D.grid, UIl = D.ui, RMl = D.roam, MNl = D.mines;
+    var keysSL = {}, gap0SL = WGl.GAP.slice(), R0SL = D.R;
+    function okSL(what, v) { repSL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSL(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function learnSL(u, id) { if ((u.known || []).indexOf(id) < 0) (u.known = u.known || []).push(id); if (Array.isArray(u.prepared) && u.prepared.indexOf(id) < 0) u.prepared.push(id); }
+    function flSL(b) { return LGl.fieldLevel ? LGl.fieldLevel(b) : undefined; } // (undefined on scripts before the field's one light: each check then reads RED on its own)
+    function topSL() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memSL[k] ? JSON.parse(memSL[k]) : null; }; D.store.set = function (k, v) { memSL[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    [SSl.KEY, SSl.VKEY, LGl.LKEY].forEach(function (k) { try { keysSL[k] = window.localStorage.getItem(k); window.localStorage.removeItem(k); } catch (eK) { } });
+    try {
+      D.seed = +get('seed', 1105);
+      var wsL = WGl.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsL); wsL.enter(); var eL = WGl.M().hex[WGl.K(WGl.state().at[0], WGl.state().at[1])];
+      // a road fight by night at `g` squares between the fronts, simple or on the grid, every light taken off; its four, its foes
+      var night = function (list, g, o) {
+        WGl.GAP = [g, g]; wsL.fight({ zone: 'north', list: list, mirror: false }, eL, Object.assign({ dark: true, simple: true }, o || {})); var b = topSL(); D.battle = b; if (b.o.simple && !b.simple) SSl.setup(b);
+        b.dark = true; b.lights = []; b.units.forEach(function (u) { u.torch = null; if (u.conds) { delete u.conds.light; delete u.conds.daylight; } }); b.cache = null; b.lightMap = null;
+        return { b: b, four: b.units.filter(function (u) { return u.side === 'party' && !u.guest && !u.familiar && !u.object; }), foes: b.units.filter(function (u) { return u.side === 'foe'; }) };
+      };
+      var seesAll = function (b, us, ws) { b.cache = null; return us.every(function (u) { return ws.every(function (w) { return MGl.sees(b, u, w); }); }); };
+      var count = function (b, us, ws) { b.cache = null; return us.map(function (u) { return u.name + ' ' + ws.filter(function (w) { return MGl.sees(b, u, w); }).length + '/' + ws.length + (u.darkvision ? ' (dv ' + u.darkvision + ')' : ''); }).join(', '); };
+      var uniform = function (b, v) { var lm = LGl.map(b), m = b.map; if (!lm) return false; for (var i = 0; i < m.w * m.h; i++) if (m.sq[i].open && lm.lv[i] !== v) return false; return true; };
+      try { // (secSL)
+      // 1. ONE TORCH, ANY GAP: in a hero's hand at the front's end, it lights the whole field dim -- every one of the four sees every foe, the back lines too, at 6, 8, 10 and 12 squares
+      var g1 = [6, 8, 10, 12].map(function (g) {
+        D.seed = 6100 + g; var F = night(['goblin', 'goblin', 'goblin', 'goblin', 'bandit', 'bandit', 'bandit'], g), lead = F.four[0]; lead.torch = { lit: true }; F.b.cache = null;
+        var r = { g: g, fl: flSL(F.b), uni: uniform(F.b, 1), all: seesAll(F.b, F.four, F.foes), back: seesAll(F.b, F.foes, F.four), far: Math.max.apply(null, F.foes.map(function (f) { return GGl.dist(lead, f); })) };
+        D.pop(); return r;
+      });
+      okSL('1 a torch in one hero\'s hand, the field by night: ' + g1.map(function (r) { return r.g + ' sq: the field ' + LGl.name(r.fl) + ' all of it ' + r.uni + ', the four see every foe ' + r.all + ' (the farthest ' + r.far + ' ft), the foes every one of the four ' + r.back; }).join('; '),
+        g1.every(function (r) { return r.fl === 1 && r.uni && r.all && r.back; }));
+      // 2. A FOE'S OWN LIGHT: a bandit's torch lights it for the party as well; the camp's fire on the field the same (the seat's call: the field's own lights count)
+      D.seed = 6200; var F2 = night(['goblin', 'goblin', 'bandit'], 12), bd2 = F2.foes.filter(function (f) { return f.kind === 'bandit'; })[0]; bd2.torch = { lit: true }; F2.b.cache = null;
+      var foe2 = flSL(F2.b) === 1 && seesAll(F2.b, F2.four, F2.foes); D.pop();
+      D.seed = 6201; WGl.GAP = [10, 10]; wsL.fight({ zone: 'north', list: ['goblin', 'goblin'], mirror: false, camp: true }, eL, { dark: true, simple: true }); var bc2 = topSL(); D.battle = bc2; if (!bc2.simple) SSl.setup(bc2); bc2.units.forEach(function (u) { u.torch = null; }); bc2.cache = null; bc2.lightMap = null;
+      var camp2 = (bc2.lights || []).length, fire2 = flSL(bc2) === 1 && seesAll(bc2, bc2.units.filter(function (u) { return u.side === 'party' && !u.object; }), bc2.units.filter(function (u) { return u.side === 'foe'; })); D.pop();
+      okSL('2 a bandit\'s torch alone lights it for the party at 12 squares (' + foe2 + '); the camp\'s fire alone (' + camp2 + ' light on the field) the same (' + fire2 + ')', foe2 && camp2 > 0 && fire2);
+      // 3. NO LIGHT: dark -- darkvision sees the whole field (Lymen's 60 ft, the foes' back lines past it), the rest see no one; the goblins' darkvision sees the four, the bandits no one
+      D.seed = 6300; var F3 = night(['goblin', 'goblin', 'bandit', 'bandit', 'goblin', 'bandit'], 12), dv3 = F3.four.filter(function (u) { return u.darkvision; }), nd3 = F3.four.filter(function (u) { return !u.darkvision; });
+      var gob3 = F3.foes.filter(function (f) { return f.kind === 'goblin'; }), ban3 = F3.foes.filter(function (f) { return f.kind === 'bandit'; }), far3 = dv3.length ? Math.max.apply(null, F3.foes.map(function (f) { return GGl.dist(dv3[0], f); })) : 0;
+      var none3 = nd3.every(function (u) { return F3.foes.every(function (f) { return !MGl.sees(F3.b, u, f); }); }), why3 = nd3.length ? (MGl.seeWhy(F3.b, nd3[0], F3.foes[0]).why || '') : '';
+      var pm3 = LGl.partyMap(F3.b), m3 = F3.b.map, pmAll3 = (function () { for (var i = 0; i < m3.w * m3.h; i++) if (m3.sq[i].open && pm3.v[i] === 0 && F3.four.some(function (u) { return u.darkvision && GGl.losPoint(u.x, u.y, i % m3.w, Math.floor(i / m3.w)); })) return false; return true; })();
+      okSL('3 no light at 12 squares: the field ' + LGl.name(flSL(F3.b)) + '; ' + count(F3.b, F3.four, F3.foes) + ' (the farthest foe ' + far3 + ' ft from Lymen); the others "' + why3 + '"; the goblins see the four ' + seesAll(F3.b, gob3, F3.four) + ', the bandits none ' + ban3.every(function (f) { return F3.four.every(function (u) { return !MGl.sees(F3.b, f, u); }); }) + '; the party\'s map seen all over by darkvision ' + pmAll3,
+        flSL(F3.b) === 0 && dv3.length > 0 && seesAll(F3.b, dv3, F3.foes) && far3 > 60 && none3 && why3 === 'dark' && seesAll(F3.b, gob3, F3.four) && ban3.every(function (f) { return F3.four.every(function (u) { return !MGl.sees(F3.b, f, u); }); }) && pmAll3);
+      // the hide in that dark field (the simple fight's own roll, no cone, no light's bonus): a hider the bandits cannot see beats them by eye, the goblins' darkvision judge her by passive
+      var hd3 = nd3.filter(function (u) { return u.cls === 'rogue'; })[0] || nd3[0], jd3 = SSl.judge(F3.b, hd3, F3.foes, 1), jl3 = null;
+      F3.four[0].torch = { lit: true }; F3.b.cache = null; jl3 = SSl.judge(F3.b, hd3, F3.foes, 1);
+      var byEye = function (j, k) { return j.beat.filter(function (e) { return e.w.kind === k && e.why === 'cannot see her'; }).length; };
+      okSL('3 ' + hd3.name + '\'s hide at a Stealth of 1 in the dark field: the bandits beaten by eye ' + byEye(jd3, 'bandit') + ' of ' + ban3.length + ', the goblins by their passive (seen ' + jd3.seen.filter(function (e) { return e.w.kind === 'goblin'; }).length + '); with a torch lit, none by eye (' + (byEye(jl3, 'bandit') + byEye(jl3, 'goblin')) + '), every foe by its passive (seen ' + jl3.seen.length + ' of ' + F3.foes.length + ')',
+        byEye(jd3, 'bandit') === ban3.length && jd3.seen.filter(function (e) { return e.w.kind === 'goblin'; }).length === gob3.length && byEye(jl3, 'bandit') + byEye(jl3, 'goblin') === 0 && jl3.seen.length === F3.foes.length);
+      D.pop();
+      // 4. DAYLIGHT on the field: bright all over; the night's pass draws nothing
+      D.seed = 6400; var F4 = night(['goblin', 'goblin'], 10); F4.four[0].conds.daylight = { by: F4.four[0].id, lv: 3 }; F4.b.cache = null;
+      var np4 = 0, ps4 = LGl.pass, cv4 = document.createElement('canvas'); cv4.width = D.W; cv4.height = D.H; var c4 = cv4.getContext('2d'), mul4 = 0, mu04 = c4.drawImage; c4.drawImage = function () { mul4++; return mu04.apply(this, arguments); };
+      LGl.pass(c4, F4.b, D.W, D.H);
+      okSL('4 Daylight on a hero: the field ' + LGl.name(flSL(F4.b)) + ', bright all over ' + uniform(F4.b, 2) + ', the night\'s pass laid nothing (' + mul4 + ' draws)', flSL(F4.b) === 2 && uniform(F4.b, 2) && mul4 === 0);
+      D.pop();
+      // 5. WHAT IS SIGHT'S OWN, AS IT WAS: a Darkness cast on a goblin's square hides it though the field is lit; a fog the same; a giant bat's blindsight in the dark field to its 60 ft
+      D.seed = 6500; var F5 = night(['goblin', 'goblin', 'goblin'], 8), au5 = F5.four.filter(function (u) { return u.id === 'aurdin'; })[0] || F5.four[0]; F5.four[0].torch = { lit: true };
+      var gd5 = F5.foes[0], go5 = F5.foes.slice(1); learnSL(au5, 'darkness'); au5.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; RUl.startTurn(au5); F5.b.active = au5; runSL(MGl.cast(F5.b, au5, 'darkness', 2, { x: gd5.x, y: gd5.y }), 600); F5.b.cache = null;
+      var dk5 = !MGl.sees(F5.b, F5.four[1], gd5), dkw5 = MGl.seeWhy(F5.b, F5.four[1], gd5).why, rest5 = seesAll(F5.b, F5.four, go5.filter(function (f) { return Math.max(Math.abs(f.x - gd5.x), Math.abs(f.y - gd5.y)) > 3; }));
+      D.pop();
+      D.seed = 6510; var F5b = night(['giantbat', 'goblin'], 12), bat5 = F5b.foes.filter(function (f) { return f.kind === 'giantbat'; })[0]; F5b.four[3].x += 4; // (one of the four stepped back past the bat's 60 ft)
+      var bs5 = F5b.four.map(function (u) { return { d: GGl.dist(bat5, u), s: MGl.sees(F5b.b, bat5, u) }; });
+      D.pop();
+      okSL('5 a Darkness on a goblin in the lit field: it unseen ' + dk5 + ' ("' + dkw5 + '"), the goblins clear of it seen ' + rest5 + '; a giant bat (blindsight ' + bat5.blindsight + ' ft) in the dark: ' + bs5.map(function (o) { return o.d + ' ft ' + o.s; }).join(', '),
+        dk5 && dkw5 === 'darkness' && rest5 && bs5.every(function (o) { return o.s === (o.d <= bat5.blindsight); }) && bs5.some(function (o) { return o.s; }) && bs5.some(function (o) { return !o.s; }));
+      // 6. THE GRID AS IT WAS: a road fight ON THE GRID by night, a torch at the front, 12 squares -- the foes past its 40 ft unseen
+      D.seed = 6600; var F6 = night(['goblin', 'goblin', 'goblin'], 12, { simple: false }); F6.four[0].torch = { lit: true }; F6.b.cache = null;
+      var g6 = flSL(F6.b), far6 = F6.foes.filter(function (f) { return GGl.dist(F6.four[0], f) > 45; }), un6 = far6.length && far6.every(function (f) { return F6.four.filter(function (u) { return !u.darkvision; }).every(function (u) { return !MGl.sees(F6.b, u, f); }); });
+      okSL('6 the grid by night, a torch at the front, 12 squares: no field light (' + g6 + '), ' + far6.length + ' foes past the torch unseen by those without darkvision ' + un6, g6 === null && !!un6);
+      D.pop();
+      // 7. THE PICTURE BY THE FIELD'S LIGHT: a torch lit, the floor drawn at a dim light's level (well over the dark field's); DARK LOOK steps it; nothing washed as unseen
+      var shot7 = function (lit, look, nodv) {
+        D.seed = 6700; var F = night(['goblin', 'goblin', 'wolf'], 8); if (lit) F.four[0].torch = { lit: true }; if (nodv) F.four.forEach(function (u) { u.darkvision = 0; }); F.b.cache = null; F.b.partyMap = null; LGl.setLook(look || 'soft');
+        var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var c = cv.getContext('2d'); UIl.drawBattle(c, F.b); var dt = c.getImageData(0, 0, D.W, D.H).data, ls = [];
+        for (var y = 40; y < D.H - 10; y += 2) for (var x = 2; x < SSl.PIC().w - 2; x += 2) { var k = (y * D.W + x) * 4, v = 0.299 * dt[k] + 0.587 * dt[k + 1] + 0.114 * dt[k + 2]; if (v > 3) ls.push(v); }
+        ls.sort(function (a, b) { return a - b; }); var pm = LGl.partyMap(F.b), m = F.b.map, unseen = 0; for (var i = 0; i < m.w * m.h; i++) if (m.sq[i].open && pm && pm.v[i] === 0) unseen++;
+        if (get('shots', '')) repSL.notes.push('7 shot ' + (lit ? 'lit' : nodv ? 'blind' : 'dark') + '-' + (look || 'soft') + ' ' + cv.toDataURL('image/png'));
+        D.pop(); return { med: Math.round(ls[Math.floor(ls.length / 2)] || 0), unseen: unseen };
+      };
+      var n7 = shot7(false, null, true), d7 = shot7(false), l7 = shot7(true), ld7 = shot7(true, 'deep'), ll7 = shot7(true, 'light'); LGl.setLook('soft'); try { window.localStorage.removeItem(LGl.LKEY); } catch (eL) { }
+      okSL('7 the picture, the simple fight by night at 8 squares: no light and no darkvision, the floor ' + n7.med + ' (' + n7.unseen + ' squares washed as unseen); no light, Lymen\'s darkvision, ' + d7.med + ' (' + d7.unseen + ' washed: he sees it all, grey); a torch lit, ' + l7.med + ' (' + l7.unseen + ' washed); DARK LOOK on the lit field DEEP ' + ld7.med + ', SOFT ' + l7.med + ', LIGHT ' + ll7.med,
+        n7.unseen > 0 && d7.unseen === 0 && l7.unseen === 0 && l7.med > n7.med * 1.5 && l7.med > d7.med && ld7.med < l7.med && l7.med < ll7.med);
+      // 8. THE DOORS (js/eyes.js eyes-fieldlight-road-1105): deep16/?world&night&simple=... a fight by night, no light on the field; with &torch, the first of the four's lit
+      var door8 = function (q) { var ws = WGl.make(q); D.scenes.length = 0; D.push(ws); if (ws.baking) { ws.baking = false; ws.enter(); } var kc = (ws.cards[0] && ws.cards[0].keys) || []; if (kc[0]) kc[0][1](); var b = topSL(); D.battle = b; if (b && b.o && b.o.simple && !b.simple) SSl.setup(b); var r = b && b !== ws ? { t: WGl.state().t, tod: WGl.timeOfDay(), fdark: b.fight && b.fight.dark, dark: !!b.dark, fl: flSL(b), torch: b.units.filter(function (u) { return u.torch && u.torch.lit; }).map(function (u) { return u.name; }).join(',') } : null; D.scenes.length = 0; D.push(wsL); return r; };
+      var dn8 = door8('?world&fresh&noenc&night&simple=goblin,goblin,bandit'), dt8 = door8('?world&fresh&noenc&night&torch&simple=goblin,goblin,bandit');
+      okSL('8 the doors: &night ' + JSON.stringify(dn8) + '; &night&torch ' + JSON.stringify(dt8), !!dn8 && dn8.dark && dn8.fl === 0 && !dn8.torch && !!dt8 && dt8.dark && dt8.fl === 1 && !!dt8.torch);
+      // (a note: the Glowseep by night, its simple fight's field cut from the floor -- the floor's own lights in it, which light the field by the seat's call)
+      [[20, 14], [8, 6], [30, 10]].forEach(function (at) { var Bg = RMl.make('?roam=glowseep&hour=22&at=' + at.join(',')); D.scenes.length = 0; D.push(Bg); D.battle = Bg; topSL(); if (Bg.co) runSL(Bg.co, 2); D.seed = 6800; var Fg = MNl.fieldDef(RMl.def, ['goblin', 'goblin'], true, null, at); repSL.notes.push('the Glowseep at ' + at + ' by night: its simple field ' + D.MAPS['mine-field'].rows[0].length + ' wide, dark ' + Fg.dark + ', the floor\'s lights in it ' + ((Fg.lights || []).length)); D.scenes.length = 0; D.push(wsL); });
+      } catch (eS) { repSL.errors.push('section: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+    } catch (eSL) { repSL.errors.push(String(eSL && eSL.stack || eSL).slice(0, 900)); }
+    WGl.GAP = gap0SL; D.R = R0SL; D.store.get = stGSL; D.store.set = stSSL; D.music = muSL; window.DS.autoPicks = apSL;
+    Object.keys(keysSL).forEach(function (k) { try { if (keysSL[k] == null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, keysSL[k]); } catch (eK) { } });
+    var preSL = document.createElement('pre'); preSL.id = 'out'; preSL.textContent = 'BENCH16 ' + JSON.stringify(repSL);
+    document.body.appendChild(preSL);
+    return;
+  }
   // THE TUESDAY GRID, 11-05 (mode=tuesgrid1105; the tuesday-grid seat, started by the lanes desk on Griz's 11-05 word on his 10-31 playthrough's Tuesday notes -- "Seat 3 - go, though
   // I've encountered light cast in a battle ending after an hour (glowseep maybe), so is this map specific check (20)? I think the spacing is set (23) elsewhere at 6-12 squares with
   // exceptions... Zoom variant versus zoom-wheel steps on simple fights (think grid allows zooming already)"): 1. the simple fight's `see` spells (js/simple.js S.seen, S.targets);
@@ -3293,25 +3397,25 @@
       okTG('5 two wolves at 12 squares, every side the AI\'s: the wolf ' + dw5 + ' ft from the nearest of the four, its move ' + mv5 + ' ft (its 40 and the 40 the rule added); the fight ends ' + (b5w.result || 'NOT') + ' in ' + (b5w.round || '?') + ' rounds, the party hurt ' + (hp05 - hp15),
         mv5 >= dw5 - 5 && !!b5w.result && (b5w.round || 99) <= 20 && hp05 > hp15);
       if (D.top() === b5w) D.pop(); WGg.GAP = gap0TG.slice();
-      // THE DARK (the desk's word: "sight reads real squares, and a torch's dim edge is 40 ft"): a road fight by night at 6, 8, 10 and 12 squares, the four's front hero with a torch
-      // and with none -- whom each of the four sees of the foes' front, by the grid's own sight
+      // THE DARK, ONE LIGHT FOR THE FIELD (RULED 11-05 night, Griz: "Yes, simplify" -- js/light.js L.fieldLevel; mode=simplelight1105 has the rest): a road fight by night at 6, 8, 10
+      // and 12 squares -- with no light only darkvision sees the foes' front, all of it; a torch in the front hero's hand lights the field, and every one of the four sees all of it
       var dark5 = [];
       [6, 8, 10, 12].forEach(function (g) {
         WGg.GAP = [g, g]; D.seed = 5400 + g; var b = fight5(['goblin', 'goblin', 'goblin', 'goblin'], { dark: true }); b.dark = true; b.lights = (b.lights || []).filter(function (l) { return l.kind !== 'torch'; });
         var four = b.units.filter(function (u) { return u.side === 'party' && !u.guest && !u.familiar && !u.object; }), foes = b.units.filter(function (u) { return u.side === 'foe'; });
         var fr = foes.filter(function (f) { return f.x === Math.max.apply(null, foes.map(function (q) { return q.x; })); });
         var count = function () { b.cache = null; return four.map(function (u) { return u.name + ' ' + fr.filter(function (f) { return MGg.sees(b, u, f); }).length + '/' + fr.length + (u.darkvision ? ' (dv ' + u.darkvision + ')' : ''); }).join(', '); };
-        four.forEach(function (u) { u.torch = null; }); var none = count();
+        four.forEach(function (u) { u.torch = null; }); var none = count(), noneOK = four.every(function (u) { return fr.every(function (f) { return MGg.sees(b, u, f) === !!u.darkvision; }); });
         var lead = four.filter(function (u) { return u.x === Math.min.apply(null, four.map(function (q) { return q.x; })); })[0]; lead.torch = { lit: true }; var lit = count();
         var allLit = four.every(function (u) { return fr.every(function (f) { return MGg.sees(b, u, f); }); });
         // (sight by the real squares: one with no darkvision sees a foe of the front just when the light map lights its square; one with darkvision, within its reach as well)
         b.cache = null; var lm = LGg.map(b), lvAt = function (f) { return lm && lm.lv ? lm.lv[f.y * b.map.w + f.x] : 0; }, byMap = four.every(function (u) { return fr.every(function (f) { var dv = u.darkvision && GGg.dist(u, f) <= u.darkvision; return MGg.sees(b, u, f) === (lvAt(f) > 0 || !!dv); }); });
-        dark5.push({ g: g, none: none, lit: lit, allLit: allLit, byMap: byMap, torch: lead.name, litN: fr.filter(function (f) { return lvAt(f) > 0; }).length, n: fr.length }); D.pop();
+        dark5.push({ g: g, none: none, noneOK: noneOK, lit: lit, allLit: allLit, byMap: byMap, torch: lead.name, litN: fr.filter(function (f) { return lvAt(f) > 0; }).length, n: fr.length }); D.pop();
       });
       WGg.GAP = gap0TG.slice();
       dark5.forEach(function (o) { noteTG('5 dark at ' + o.g + ' sq (' + o.g * 5 + ' ft), the foes\' front seen -- no torch: ' + o.none + '; a torch in ' + o.torch + '\'s hand: ' + o.lit); });
-      okTG('5 the dark reads the real squares: the torch at the front lights ' + dark5.map(function (o) { return o.litN + ' of the foes\' front ' + o.n + ' at ' + o.g + ' sq'; }).join(', ') + ' (its dim edge 40 ft); each of the four sees just those, darkvision its 60 ft besides: ' + dark5.map(function (o) { return o.g + ' ' + o.byMap; }).join(', ') + ' -- the notes name each',
-        dark5.length === 4 && dark5.every(function (o) { return o.byMap; }) && dark5[0].litN >= 3 && dark5[3].litN === 0);
+      okTG('5 the dark, one light for the field: with none, only darkvision sees the foes\' front (' + dark5.map(function (o) { return o.g + ' sq ' + o.noneOK; }).join(', ') + '); a torch at the front lights ' + dark5.map(function (o) { return o.litN + ' of ' + o.n + ' at ' + o.g + ' sq'; }).join(', ') + ', every one of the four seeing all of it (' + dark5.map(function (o) { return o.allLit; }).join(', ') + ') -- the notes name each',
+        dark5.length === 4 && dark5.every(function (o) { return o.noneOK && o.allLit && o.byMap && o.litN === o.n; }));
       try { window.localStorage.removeItem(SSg.VKEY); } catch (eV) { }
       } catch (eS) { repTG.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       WGg.GAP = gap0TG.slice(); D.R = R0TG;
@@ -5295,7 +5399,9 @@
         var lc = (Bc.lights || []).filter(function (l) { return fc && l.x === fc[0] && l.y === fc[1]; })[0], four = Bc.units.filter(function (u) { return u.side === 'party'; });
         var lit = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) === 2; }).length, dim = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) >= 1; }).length, pr = (D.looks.props(Bc) || []).filter(function (o) { return fc && o.depth === fc[0] + fc[1] + 0.5; }).length;
         campS.push((simple ? 'simple' : 'grid') + ': ' + (fc ? fc.join(',') : 'no fire') + ', dark ' + !!Bc.dark + ', light ' + (lc ? lc.bright + '/' + lc.dim : '-') + ', ' + lit + ' of ' + four.length + ' in bright light, ' + dim + ' lit, drawn ' + pr);
-        campS.ok = (campS.ok !== false) && !!fc && !!Bc.dark && !!lc && lc.bright === 20 && lit >= 2 && dim === four.length && pr === 1 && Bc.fight.name === 'The camp';
+        // (the simple fight's field by its one light since 11-05 night -- RULED, Griz: "Yes, simplify", js/light.js L.fieldLevel: the fire lights all of it dim, the four with it;
+        // the grid's field by the fire's own bright 20 ft as before)
+        campS.ok = (campS.ok !== false) && !!fc && !!Bc.dark && !!lc && lc.bright === 20 && (simple ? lit === 0 && D.light.fieldLevel(Bc) === 1 : lit >= 2) && dim === four.length && pr === 1 && Bc.fight.name === 'The camp';
         D.pop();
       });
       okS('the camp\'s fire -- ' + campS.join('; '), campS.ok === true);
