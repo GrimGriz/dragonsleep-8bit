@@ -498,8 +498,9 @@
   // the player at the parties nearest (chronological) rest cycle", "C3 is that any crawler kill trigger or the thinning the herd too much amount", "18 - yes, lantern warning same
   // trigger as council meeting", "17 - yeah, that's good"). The register: Androit, Hessle, Casper Venn, Papa Urtusk, Ottak Harrow, and Merrick when word from outside matters; the
   // lounge under the Big Window; "the scales are lit", the Weigh-House lamp the signal (TarlynsPit/wiki/silverton.md, the-hex.md). One screen for every sitting: the counter's,
-  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the plain shape; Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C1 and C3 play at the party's next long
-  // rest after the council sits, over the morning, the party not in the room; C2 is the party called up, at renown 2, played when they reach the third floor. Every line the
+  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the plain shape; Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C3 plays at the party's next long
+  // rest after the council sits, over the morning, the party not in the room; C1 since 11-06 at its own hour, wherever the party is (THE PIT'S WORD AT ITS HOUR, below the
+  // night's cutscene); C2 is the party called up, at renown 2, played when they reach the third floor. Every line the
   // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
   H16.WHO = { hessle: 'Hessle', androit: 'Aldwyn Androit', casper: 'Casper Venn', merrick: 'Merrick', papa: 'Papa Urtusk', harrow: 'Ottak Harrow', thrane: 'The east side\'s man', warda: 'Warda' };
   H16.COUNCIL = {
@@ -545,6 +546,9 @@
   };
   H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
   H16.NOTICE_AT = 24 + 17; // (the council's night: Day 1, from dusk -- THE WORLD's S.t in hours)
+  H16.NOTICE_END = 48 + 5; // (and its end: Day 2's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
+  H16.clockT = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; return S && S.t != null ? S.t : null; };
+  H16.noticeNight = function () { var t = H16.clockT(); return t != null && t >= H16.NOTICE_AT && t < H16.NOTICE_END; };
   H16.councilsDue = function (flags) {
     var W = D.world, S = W && W.state ? W.state() : null, t = S && S.t != null ? S.t : 0, out = [];
     if (!flags.councilNotice && t >= H16.NOTICE_AT) out.push('notice');
@@ -556,18 +560,24 @@
   // (cut: the night's cutscene played to its end, so its shots have said what the cards would -- 10-29, the story window, RULED on Griz's "Leans stand", his note "the first
   // cutscene has redundancy - explainer line replaced by shots. The background of the scene vs background in the portrait window": no card, the first speaker first; and the
   // screen a room, not a shop -- no counter under the one speaking, no purse, js/counter.js o.room)
-  H16.sitting = function (B, ids, flagsets, seen, cut) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
-    var night = ids.some(function (id) { return id !== 'looks'; }); // (a council's night, played at the party's rest: over the third floor's picture -- H16.backdrop)
-    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, room: true, bg: night ? H16.backdrop(ids) : null, script: function (s) { return (function* () {
+  // (here: the party in the room, on the third floor at the table -- the floor itself behind, not its picture; 11-06, the Pit's word at its hour)
+  // THE LAST FRAME, HESSLE'S BOARD (11-06, his NOTES, day 3 04:45: "last frame is empty portrait labeled council (council dream nightscene while you longrest) could show hessle's
+  // board"; then to the lanes desk, "the empty council box has a line about hessle's board, which could go there..."): a sitting's end line ("In the morning it is on Hessle's
+  // board.") over the board itself in the portrait's place -- H16.boardPic, as the board's own screen draws it, with the papers nailed up now that the notice is funded (the
+  // Snoot's under its seal) -- named Hessle's board, not an empty box named the council
+  H16.sitting = function (B, ids, flagsets, seen, cut, here) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
+    var night = ids.some(function (id) { return id !== 'looks'; }); // (a council's night: over the third floor's picture -- H16.backdrop)
+    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, room: true, bg: night && !here ? H16.backdrop(ids) : null, script: function (s) { return (function* () {
       for (var i = 0; i < ids.length; i++) {
         var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) { f[cs.flag] = 1; if (cs.opens) f[cs.opens] = 1; if (cs.pin) f.pinWant = cs.pin; } });
         if (!(seen && i === 0) && !cut) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); } // (bare: no one speaking -- over the third floor, the room alone)
         for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.bare = false; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
-        if (cs.end) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
+        if (cs.end) { s.sheet = null; s.bare = false; s.o.name = H16.BOARD.name; s.o.pic = H16.boardPic({ flags: H16.mergeFlags(flagsets) }); yield s.say(['{g}' + cs.end + '{/}']); s.o.pic = null; s.o.name = 'The council'; }
       }
     })(); } });
     D.push(sc); return sc;
   };
+  H16.mergeFlags = function (flagsets) { var f = {}; (flagsets || []).slice().reverse().forEach(function (x) { if (x) Object.assign(f, x); }); return f; }; // (the first set wins: the floor's, else the save's)
   // ---------------------------------------------------------------- THE THIRD FLOOR BEHIND THE NIGHT'S SITTING (10-29, Griz to the lanes desk: "In the cutscene at night - perhaps try
   // the third floor as background for the speaking parts" -- a try, his eye the ruling): a council's night sitting at the party's rest (C1, C3) plays its card and its portraits over
   // a picture of the Hex's third floor -- the council in their seats at the long table under the Big Window (H16.TABLE; who sits as H16.atTable has them on a night), Warda in the
@@ -710,15 +720,20 @@
     ctx.fillStyle = '#3a2a1a'; ctx.fillRect(Math.round(p.x - 3 * z), Math.round(y - 4 * z), Math.round(6 * z), Math.round(8 * z)); // (the lamp's iron)
     ctx.fillStyle = 'rgba(255,214,120,' + f + ')'; ctx.fillRect(Math.round(p.x - 2 * z), Math.round(y - 3 * z), Math.round(4 * z), Math.round(5 * z)); // (its flame)
   };
-  function Night(B, ids, flagsets) {
-    this.kind = 'cutaway'; this.opaque = true; this.t = 0; this.seen = 0; this.B = B; this.ids = ids; this.flagsets = flagsets; this.k = 0; this.done = false; var self = this;
+  // (o, 11-06 -- the Pit's word at its hour: o.card, a card before the first shot, { title, line } -- "ELSEWHERE... Meanwhile, in Silverton." -- a click or E on to the first
+  // shot, X to the sitting; o.only, the shots played, by id -- on Silverton's street the lamp is the live floor's own, so the cut is to the arrival alone. this.sc: the sitting
+  // it opens at its end, so a beat that cut away can wait for both)
+  function Night(B, ids, flagsets, o) {
+    this.kind = 'cutaway'; this.opaque = true; this.t = 0; this.seen = 0; this.B = B; this.ids = ids; this.flagsets = flagsets; this.k = 0; this.done = false; this.sc = null; var self = this;
+    this.o = o || {}; this.cardUp = !!this.o.card;
     var flags = (flagsets || []).filter(Boolean)[0] || {};
     this.shots = [
       { id: 'lamp', st: H16.stage(['silverton'], function (st, b) { H16.layLamp(st, b, flags); }) },
       { id: 'arrive', st: H16.stage(['hex3'], function (st, b) { H16.layArrive(st, b, self.ids); }) }
-    ];
+    ].filter(function (sh) { return !self.o.only || self.o.only.indexOf(sh.id) >= 0; });
   }
   H16.Night = Night;
+  H16.nightOver = function (n) { return !n || (n.done && (!n.sc || n.sc.done)); }; // (the cutscene and its sitting both played)
   Night.prototype.enter = function () { this.shots.forEach(function (sh) { sh.st.run(null); }); }; // (both floors laid at once, so the cut is not a pause)
   Night.prototype.shot = function () { return this.shots[this.k] || null; };
   Night.prototype.busy = function () {
@@ -727,7 +742,7 @@
   };
   Night.prototype.ff = function () { var sh = this.shot(); if (!sh) return; (sh.st.walkers || []).forEach(H16.walkDone); if (sh.id === 'lamp' && !sh.st.lit) { sh.st.lit = true; D.sfx('fire'); } this.t = Math.max(this.t, H16.CUT.held); };
   Night.prototype.next = function (hand) { if (hand) this.seen++; this.k++; this.t = 0; if (this.k >= this.shots.length) this.finish(); else D.sfx(this.shot().id === 'arrive' ? 'stairs' : 'popup'); };
-  Night.prototype.finish = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); H16.sitting(this.B, this.ids, this.flagsets, false, this.seen >= this.shots.length); }; // (every shot gone past by hand: the sitting's cards said already -- H16.sitting `cut`)
+  Night.prototype.finish = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); this.sc = H16.sitting(this.B, this.ids, this.flagsets, false, this.seen >= this.shots.length); }; // (every shot gone past by hand: the sitting's cards said already -- H16.sitting `cut`; on the street the lamp was the live floor's, and the arrival the rest)
   Night.prototype.step = function () {
     var sh = this.shot(), st = sh && sh.st, t = this.t; if (!st) return;
     if (st.err || !st.b) { this.next(); return; } // (a floor that would not lay: on to the next, and at the last the sitting as before)
@@ -735,12 +750,23 @@
     if (sh.id === 'lamp' && !st.lit && t >= H16.CUT.lit) { st.lit = true; D.sfx('fire'); }
   };
   Night.prototype.update = function () {
-    var I = D.input, m = I.mouse; this.t++;
+    var I = D.input, m = I.mouse;
     if (I.pressed('b') || m.rclick) { this.finish(); return; }
+    if (this.cardUp) { if (I.pressed('a') || (m.click && m.inside)) { this.cardUp = false; this.t = 0; D.sfx('popup'); } return; } // (the card first: on to the first shot)
+    this.t++;
     if (I.pressed('a') || (m.click && m.inside)) { if (this.busy()) this.ff(); else this.next(true); return; }
     this.step();
   };
+  H16.cardPaint = function (ctx, cd) { // (the cut-away's card: dark, its title and its line in a box at the middle)
+    ctx.fillStyle = '#05040a'; ctx.fillRect(0, 0, D.W, D.H);
+    var W8 = D.WIN8, ls = cd.line ? D.wrap(cd.line, D.W - 80) : [], w = Math.min(D.W - 40, 40 + Math.max(D.textWidth(cd.title || ''), Math.max.apply(null, ls.map(function (l) { return D.textWidth(l); }).concat([0])))), h = 24 + ls.length * 10, x = Math.round((D.W - w) / 2), y = Math.round((D.H - h) / 2) - 10;
+    D.win8(ctx, x, y, w, h); D.text(ctx, '{y}' + cd.title + '{/}', D.W / 2, y + 6, W8.text, 'center');
+    ls.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 17 + i * 10, W8.text, 'center'); });
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
+    D.hint(ctx, 'click or E: on · X: to the sitting', D.W / 2, D.H - 11, '#9a96a8', 'center');
+  };
   Night.prototype.draw = function (ctx) {
+    if (this.cardUp) { H16.cardPaint(ctx, this.o.card); return; }
     var sh = this.shot(), self = this; ctx.fillStyle = '#05040a'; ctx.fillRect(0, 0, D.W, D.H); if (!sh) return;
     sh.st.run(function (s, b) {
       b.t = self.t; var at = sh.id === 'lamp' ? s.door : H16.tableSq();
@@ -755,14 +781,15 @@
     D.hint(ctx, 'click or E: on · X: to the sitting', D.W / 2, D.H - 11, '#9a96a8', 'center');
   };
   // a council's night: the cutscene, then the sitting (a sitting that is not a night's -- C2 -- or no screen to play it on: the sitting alone, as before)
-  H16.night = function (B, ids, flagsets) {
+  H16.night = function (B, ids, flagsets, o) {
     if (!D.ctx || !ids.some(function (id) { return id !== 'looks'; })) return H16.sitting(B, ids, flagsets);
-    var n = new Night(B, ids, flagsets); D.push(n); return n;
+    var n = new Night(B, ids, flagsets, o); D.push(n); return n;
   };
-  // C1 and C3 at the morning: the sitting over the morning screen, played first (a bench, no one watching, takes the flags without the screen -- as the morning's picks, js/house.js Morning)
+  // C3 at the morning: the sitting over the morning screen, played first (a bench, no one watching, takes the flags without the screen -- as the morning's picks, js/house.js Morning).
+  // C1 no longer (11-06, his order -- "arrange for it to play around the time it happens" -- and his NOTES' "council dream nightscene while you longrest"): at its hour, H16.pitDue
   var morning0 = D.house.morning;
   D.house.morning = function (o) {
-    var m = morning0.apply(this, arguments), Hs = D.house, ff = [Hs.cur && Hs.cur.flags, o && o.floor && o.floor.roam && o.floor.roam.flags], ids = ff[0] ? H16.councilsDue(Object.assign({}, ff[1] || {}, ff[0])) : [];
+    var m = morning0.apply(this, arguments), Hs = D.house, ff = [Hs.cur && Hs.cur.flags, o && o.floor && o.floor.roam && o.floor.roam.flags], ids = ff[0] ? H16.councilsDue(Object.assign({}, ff[1] || {}, ff[0])).filter(function (id) { return id !== 'notice'; }) : [];
     if (ids.length) { if (DS.autoPicks || !D.ctx) ids.forEach(function (id) { ff.forEach(function (f) { if (f) f[H16.COUNCIL[id].flag] = 1; }); }); else H16.night(o && o.floor, ids, ff); } // (the night's cutscene, then the sitting: H16.night)
     return m;
   };
@@ -823,9 +850,9 @@
     rise: '{g}The council breaks up. Papa goes back down to his door.{/}', word: 'doesn\'t look up from the table. The council is sitting.' };
   // who sits tonight: 'looks' (C2 due), or the night's sittings due (the window's councilsDue) from dusk -- Merrick when word from outside matters (C1, C2), the east side's man for the herd
   H16.atTable = function (flags) {
-    var ph = H16.phaseOf(H16.hourNow(D.roam && D.roam.q, null)), due = H16.councilsDue(flags), night = due.length && (ph === 'dusk' || ph === 'night');
+    var ph = H16.phaseOf(H16.hourNow(D.roam && D.roam.q, null)), due = H16.councilsDue(flags), nn = H16.noticeNight(), night = (due.length || nn) && (ph === 'dusk' || ph === 'night'); // (nn: the Pit's word's night -- sat on at its hour since 11-06, and the council at the table till dawn)
     var why = night ? 'night' : !flags.councilSeen && C.renownOf() >= 2 ? 'looks' : null; if (!why) return null;
-    var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (why === 'looks' || due.indexOf('notice') >= 0) who.push('merrick'); if (why === 'night' && (due.indexOf('herd') >= 0 || due.indexOf('stock') >= 0)) who.push('thrane');
+    var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (why === 'looks' || due.indexOf('notice') >= 0 || nn) who.push('merrick'); if (why === 'night' && (due.indexOf('herd') >= 0 || due.indexOf('stock') >= 0)) who.push('thrane');
     return { why: why, who: who };
   };
   var hexDef0 = D.hex.def;
@@ -940,7 +967,7 @@
       H16.LIGHTS.doors.forEach(function (k) { var q = M.doors && M.doors[k]; if (q) lit([q[0], q[1] + 1], k); });
       if (H16.LIGHTS.hex) [].concat(M.hexFront || [], M.hexBack || []).forEach(function (q, i) { lit(q, 'hex' + i, 15); });
       lit(M.gates && M.gates[H16.LIGHTS.gate], 'gate');
-      if (H16.councilsDue(flags).length) { var qh = M.doors && M.doors[H16.LIGHTS.scales]; if (qh) lit([qh[0], qh[1] + 1], 'scales', 15); } // (the Weigh-House lamp: the scales lit, the council sitting)
+      if (H16.councilsDue(flags).length || H16.noticeNight()) { var qh = M.doors && M.doors[H16.LIGHTS.scales]; if (qh) lit([qh[0], qh[1] + 1], 'scales', 15); } // (the Weigh-House lamp: the scales lit, the council sitting -- the Pit's word's night through, 11-06)
     }
     def.townLights = lights;
   };
@@ -1016,6 +1043,7 @@
   // a short rest too, as NEXT BELL. H16.waitAsk: the ask's line and choices, the floor's and THE WORLD's (H16.worldWait) alike; H16.waitHours: a choice's hours from h
   H16.WAIT.till = 'TILL A LONG REST';
   H16.WAIT.tillDone = 'The wait runs on to {when}: a long rest is open again.';
+  H16.WAIT.campAsk = 'Make camp for the night now?'; H16.WAIT.campKeys = '{g}E{/}: the night (three watches, eight hours, a long rest)    {g}X{/}: not now'; H16.WAIT.campLater = 'The party stays on its feet; the camp can wait.'; // (THE WORLD's camp after TILL A LONG REST, 11-06: H16.worldWait)
   H16.waitAsk = function (h) {
     var Hs = D.house, W8 = H16.WAIT, toB = H16.toBell(h), shut = !!(Hs && Hs.longOpen && !Hs.longOpen(Hs.LONG_HOURS)), opts = [0, 1, 2].map(function (k) { return { label: W8.opts[k], value: k }; });
     if (shut) opts.push({ label: W8.till, value: 4 });
@@ -1057,6 +1085,10 @@
       if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, a === 2 ? null : W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
       said = said.concat(Hs.lightsOut(null));
       Hs.trail('rest', 'WAIT on THE WORLD: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
+      // (TILL A LONG REST at a camp, 11-06 -- his NOTES, "waiting til that long-rest didn't do the long rest nor offer me a camping option after?", RULED to the lanes desk: "at a
+      // camp, not the aldwin pointer. players will learn the time limit on a long rest fairly quickly": on THE WORLD, the camp, the night it waited for offered on the wait's
+      // card -- E the camp's night, X not now; on Silverton's street and the other floors the wait's card as it was, no pointer to a bed)
+      if (a === 4 && Hs.longOpen && Hs.longOpen(Wd.REST)) { scene.card(['{y}WAIT{/}, ' + Wd.timeOfDay() + '.'].concat(D.wrap(said.join(' '), 280), [W8.campAsk, '', D.keys(W8.campKeys)]), null, [['a', function () { Hs.night(scene); }, 'THE NIGHT'], ['b', function () { scene.say(W8.campLater); }, 'NOT NOW']]); return; }
       scene.say(said.join(' '));
     };
     scene.card(['{y}WAIT{/}, ' + Wd.timeOfDay() + '.'].concat(D.wrap(ask.line, 280)), null, ask.opts.map(function (o) { var k = keyOf[o.value]; return [k, o.value === 3 ? function () { } : function () { go(o.value); }, (k === 'b' ? 'X ' : k.slice(1) + ' ') + o.label]; }));
@@ -1428,11 +1460,15 @@
     { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. Step off the doorway and watch: every seven seconds the front one goes in, comes back out with a loaf, and walks down the street to another door; the line steps up, someone new joins behind. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT: the bells, bell to bell.' },
     { hours: 1, id: 'dusk', door: 'inn:cassia', t: 17.5, label: 'SILVERTON AT DUSK: the town comes out', note: 'One step: the bells go for dusk. Marin, the barber, Mela, Venn Hale, Aldric, Merrick and Tam out at their evening spots; their doors "Closed."' },
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
-    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The cutscene (the lamp at dusk; the council up the spiral), then the sitting: Hessle with the Pit\'s word -- the moot, the king dead -- Androit spelling it out for the record (the Snoot) till Papa cuts him off, Merrick\'s warning, the notice. No Lupine\'s head. X at the first shot keeps the card.' },
+    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (the cutscene alone)', note: 'The cutscene (the lamp at dusk; the council up the spiral), then the sitting: Hessle with the Pit\'s word -- the moot, the king dead -- Androit spelling it out for the record (the Snoot) till Papa cuts him off, Merrick\'s warning, the notice. No Lupine\'s head. X at the first shot keeps the card.' },
     { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The council\'s ask (10-29): Papa vouches, Harrow names the ettercap across Web Gulch, Hessle its forty and ten, Androit swears it to you, Merrick names the gnolls next; then The Braiding Ettercap in the JOURNAL, pinned.' },
     { hours: 1, id: 'about', door: 'shop:marko', label: 'TELL ME ABOUT IT: Marko the provisioner, and Fountain Street', note: 'In at Marko\'s door, E at the counter: TELL ME ABOUT IT beside THE SHELVES / LEAVE -- what wagons are for here; then back to his question. Next door Kasten, Calla, Kessler, Lisbet; the same at every keeper\'s counter and door.' },
     { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },
-    { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Their sitting plays at the party\'s next rest.' },
+    { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, pit: true, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Since 11-06 their sitting plays there and then, the party in the room (no picture behind it): the last page Hessle\'s board.' },
+    // THE PIT'S WORD AT ITS HOUR (11-06, the pitword seat, his order "arrange for it to play around the time it happens (elsewhere... if they aren't in silverton) and just grab
+    // the camera if they happen to be in silverton at the time"): Day 1, the hour itself, out of town and on the street -- `pit`, the staged game takes it (H.cur.pitWord; mode=pitword1106)
+    { hours: 1, id: 'pitaway', at: ['glowseep', 'east', [30, 11], '-1,0'], t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, OUT OF TOWN: the Glowseep at dusk, Day 1 (11-06)', note: 'At the Glowseep\'s fire as the clock reaches Day 1\'s dusk: a card, ELSEWHERE... Meanwhile, in Silverton. Then the lamp lit by the Weigh-House, the council up the spiral, the sitting; its last page Hessle\'s board in the box (the Snoot\'s paper under its seal). Then back at the fire, as you were. No dream at the next rest.' },
+    { hours: 1, id: 'pittown', door: 'inn:cassia', t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, IN TOWN: Silverton\'s street at dusk, Day 1 (11-06)', note: 'At Cassia\'s door as the bells go for dusk: the street\'s own camera slides along to the Weigh-House, Hessle comes out and lights the lamp by his door, his card; then the cut to the Hex\'s third floor, the council up the spiral, the sitting, Hessle\'s board last. The camera slides back to the party; the lamp stays lit at the Weigh-House all night.' },
     { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' },
     // (10-29, the story window, RULED on Griz's "Leans stand": his story notes of 10-29 1808Z, each a beat -- invented.json warrens-five-words-1029, hexboy-runner-1029)
     { hours: 1, id: 'council4', door: 'inn:cassia', sit: ['stock'], flags: { herdWarned: 1, councilHerd: 1, stockDead: 1 }, label: 'THE COUNCIL, C3: the stock dead', note: 'The cutscene: the east side\'s man comes up the spiral and stands at the table\'s end, the others at their places; the sitting with no card.' },
@@ -1462,6 +1498,7 @@
     if (bt.at) rec.at = { town: bt.at[0], gate: bt.at[1], sq: bt.at[2].slice(), dir: D.roam.DIR8[bt.at[3]] || null }; // (at: [a site's door, its gate, the square, facing] -- the guano mine's mouth, 11-05, as the rests' show stages)
     Hs.begin(rec, 0);
     var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
+    if (bt.pit) Hs.cur.pitWord = 1; // (the Pit's word at its hour, taken by this staged game: H16.pitOpen)
     if (bt.sit) H16.night(null, bt.sit, [rec.flags]); // (a night's sitting with its cutscene first, as at a rest)
     if (bt.hex3) H16.toHex3 = true;
   };
@@ -1505,6 +1542,96 @@
     if (o.hex && D.hex) { var HX = D.hex; yield* HX.goIn(B, 'front'); var at = HX.near(HX.rows(1), o.hex) || o.hex; HX.lay(B, 1, at, [-1, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10; }
   };
 
+  // ---------------------------------------------------------------- THE PIT'S WORD AT ITS HOUR (11-06, Griz's order to the lanes desk: "we need to place the cinematic we play for
+  // the player about the word from the Pit regarding the snoot - and arrange for it to play around the time it happens (elsewhere... if they aren't in silverton) and just grab
+  // the camera if they happen to be in silverton at the time"; with his NOTES of the same day, "council dream nightscene while you longrest"). C1, the council's notice night,
+  // plays once THE WORLD's clock has passed its hour (H16.NOTICE_AT, Day 1's dusk), at the first free moment wherever the party is -- a floor's walk with no fight, no screen
+  // or menu over it and no path being walked (js/roam.js R.script asks H16.due), or THE WORLD's map with no menu up, between hexes (World.update, below) -- not at the rest:
+  //   - on Silverton's street on its night: the street's own camera, along to the Weigh-House; Hessle out of his door and the lamp lit beside it, his card; then the cut to
+  //     the Hex's third floor, the council up the spiral (the Night's arrival alone), the sitting over it, and the camera back along to the party -- the lamp burning there
+  //     all that night (H16.scalesLit)
+  //   - on the Hex's third floor with the council at the table (up there at the hour): the table's shot and the sitting in the room, the party at the back (H16.sitting `here`)
+  //   - anywhere else in Silverton -- a room, the Hex's lower floors -- the whole cutscene; out of it -- THE WORLD, the road, the mines, the Wet, the inn -- the cutscene after a
+  //     card, ELSEWHERE... "Meanwhile, in Silverton."; then back where they were, as they were
+  //   - a clock gone past the night in one step (a rest, a long road, a long wait), or an old save past it without the sitting: the same at the first free moment, the card
+  //     saying when ("Last night, in Silverton." / "Some nights back, in Silverton."; in Silverton, EARLIER...)
+  // A staged game (a show, a test door, a bench: js/house.js H.begin's `staged`) takes it only where its clock crosses the hour in play, or where its staging asks (H.cur.pitWord
+  // -- the show's two doors, below); a bench with no one to watch takes the flag without the screen, as the morning did. The cards the seat's drafts (invented.json pit-word-hour-1106)
+  H16.PIT = { away: 'ELSEWHERE...', earlier: 'EARLIER...', now: 'Meanwhile, in Silverton.', last: 'Last night, in Silverton.', back: 'Some nights back, in Silverton.', glide: 40 };
+  H16.pitSeen = { rec: null, t: null, held: false }; // (the clock the last ask saw, for a staged game: the hour crossed in play)
+  H16.pitOpen = function (floorFlags) {
+    var Hs = D.house, rec = Hs && Hs.playing && Hs.cur, t = H16.clockT(), ps = H16.pitSeen; if (!rec || t == null) return false;
+    if (ps.rec !== rec) { ps.rec = rec; ps.t = null; ps.held = false; }
+    if (ps.t != null && ps.t < H16.NOTICE_AT && t >= H16.NOTICE_AT) ps.held = true; ps.t = t;
+    if (t < H16.NOTICE_AT || rec.flags.councilNotice || (floorFlags && floorFlags.councilNotice)) return false;
+    return !rec.staged || !!rec.pitWord || ps.held;
+  };
+  H16.inSilverton = function (def) { return !!def && (def.key === 'silverton' || def.key === 'room' || !!def.hexIn); }; // (the street, its rooms -- js/town.js T.room -- and the Hex)
+  H16.pitCard = function (def) {
+    var t = H16.clockT() || 0, late = t >= H16.NOTICE_END, inS = H16.inSilverton(def); if (inS && !late) return null;
+    return { title: inS ? H16.PIT.earlier : H16.PIT.away, line: !late ? H16.PIT.now : t < H16.NOTICE_END + 24 ? H16.PIT.last : H16.PIT.back };
+  };
+  H16.pitTake = function (ff) { ff.forEach(function (f) { if (f) f.councilNotice = 1; }); };
+  H16.pitTrail = function (where) { if (D.house && D.house.trail) D.house.trail('story', 'THE PIT\'S WORD at its hour (' + where + ')'); };
+  H16.pitDue = function (B) {
+    var R = D.roam, R0 = B && B.roam; if (!R.def || !R0 || !R.house || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+    return H16.pitOpen(R0.flags);
+  };
+  H16.pitStreetNow = function (def) { return !!def && def.key === 'silverton' && def.town && !def.room && !def.hexIn && !def.cut && H16.noticeNight() && (def.phase === 'dusk' || def.phase === 'night'); };
+  H16.pitPlay = function* (B) {
+    var R = D.roam, def = R.def, R0 = B.roam, ff = [R0.flags, D.house.cur && D.house.cur.flags];
+    if (DS.autoPicks || !D.ctx) { H16.pitTake(ff); return; } // (no one to watch)
+    if (H16.pitStreetNow(def)) { H16.pitTrail('on the street'); yield* H16.pitStreet(B, ff); return; }
+    if (def.hexIn === 3 && def.councilAt === 'night' && B.units.some(function (u) { return /^council/.test(u.npc || ''); })) {
+      H16.pitTrail('the Hex, the third floor'); R0.tableDay = H16.day(); yield* H16.tableShot(B, H16.TABLE.night);
+      var sc = H16.sitting(B, ['notice'], ff, true, false, true); while (!sc.done) yield 1; return;
+    }
+    H16.pitTrail(def.name || def.key || 'a floor');
+    var n = H16.night(B, ['notice'], ff, { card: H16.pitCard(def) }); while (!H16.nightOver(n)) yield 1;
+    B.focus(R0.token); yield 1;
+  };
+  // the street's camera along from one square to another (the town's own, D.iso.lookAt; the floor's bounds kept), a frame a step
+  H16.glide = function* (a, b, n) { for (var k = 1; k <= n; k++) { var f = k / n, e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2; D.iso.lookAt(a[0] + (b[0] - a[0]) * e, a[1] + (b[1] - a[1]) * e, 0); if (D.ui && D.ui.clampCam) D.ui.clampCam(); yield 1; } };
+  H16.pitLamp = null; // (the live street's lamp while the beat plays: { B, door, lit })
+  H16.pitStreet = function* (B, ff) {
+    var R = D.roam, def = R.def, R0 = B.roam, t = R0.token, G = D.grid, m = B.map, d = def.marks && def.marks.doors && def.marks.doors[H16.LIGHTS.scales], STEP = def.step || 10;
+    if (!d) { var n0 = H16.night(B, ['notice'], ff); while (!H16.nightOver(n0)) yield 1; return; }
+    var free = function (q) { var s = q && m.at(q[0], q[1]); return !!(s && s.walk) && !(t.x === q[0] && t.y === q[1]) && !B.units.some(function (u) { return !u.dead && u.x === q[0] && u.y === q[1]; }); };
+    var near = [[0, 0], [1, 0], [-1, 0], [0, 1], [1, 1], [-1, 1]].map(function (o) { return [d[0] + o[0], d[1] + o[1]]; }), from = near.filter(free)[0]; // (out of his door, or beside it where the party stands on the step)
+    if (!from) { var n1 = H16.night(B, ['notice'], ff); while (!H16.nightOver(n1)) yield 1; return; }
+    var to = [[1, 0], [-1, 0]].map(function (o) { return [from[0] + o[0], from[1]]; }).filter(free)[0] || null; // (a step along the street, and turned back to the lamp)
+    D.sfx('popup'); yield* H16.glide([t.x, t.y], d, H16.PIT.glide); B.focus({ x: d[0], y: d[1], size: 1 });
+    var h = B.makeFoe({ id: 'pithessle', kind: 'crewman', at: from.slice(), side: 'party', ally: true });
+    h.name = H16.WHO.hessle; h.look = true; h.npc = 'pithessle'; h.attacks = {}; h.multi = 1; h.hp = h.maxhp = 4; h.lvl = 1; h.facing = D.spr.facingFor(0, 1); h.anim = 'idle'; h.animT = B.t;
+    if (D.counter) D.counter.dress(h, 'hessle'); B.units.push(h); G.setup(G.map, B.units); if (h.sheet && D.spr.prefetch) D.spr.prefetch([h.sheet]);
+    var lamp = H16.pitLamp = { B: B, door: d.slice(), lit: false, h: h };
+    yield H16.CUT.out;
+    if (to) { h.anim = 'walk'; h.animT = B.t; h.tween = { fx: h.x, fy: h.y, fz: 0, t: 0, dur: STEP, mode: null }; h.facing = D.spr.facingFor(to[0] - h.x, 0); h.x = to[0]; h.y = to[1]; yield STEP; }
+    h.anim = 'idle'; h.animT = B.t; h.facing = D.spr.facingFor(d[0] >= h.x ? (d[0] > h.x ? 1 : 0) : -1, -1); G.setup(G.map, B.units);
+    yield H16.CUT.lit - H16.CUT.out; lamp.lit = true; D.sfx('fire'); yield H16.CUT.held - H16.CUT.lit;
+    yield { prompt: { who: h, title: H16.CUT.lamp.title, lines: R.wrap([H16.CUT.lamp.line]), opts: [{ label: 'NEXT', value: 0 }] } };
+    B.units = B.units.filter(function (u) { return u !== h; }); G.setup(G.map, B.units); // (off up the Hex's spiral to his seat)
+    var n = H16.night(B, ['notice'], ff, { only: ['arrive'] }); while (!H16.nightOver(n)) yield 1;
+    H16.pitLamp = null; yield* H16.glide(d, [t.x, t.y], H16.PIT.glide); B.focus(t); yield 1;
+  };
+  // the Weigh-House lamp on the live street: while the beat lights it, and lit after, all the Pit's word's night (its pool at night is the street's own light, H16.lay)
+  H16.scalesLit = function (B) {
+    var def = D.roam && D.roam.def, L = H16.pitLamp; if (!B || !def || def.key !== 'silverton' || def.room || def.hexIn || def.cut || !def.hours) return null;
+    if (L && L.B === B) return L.lit ? L.door : null;
+    if (!H16.noticeNight() || !(def.dusk || def.night)) return null;
+    var f = B.roam && B.roam.flags, c = D.house && D.house.cur && D.house.cur.flags; if (!((f && f.councilNotice) || (c && c.councilNotice))) return null;
+    return (def.marks && def.marks.doors && def.marks.doors[H16.LIGHTS.scales]) || null;
+  };
+  var underP = D.roam.paintUnder; // (over the street's night, under the HUD: drawn after the hooks before it)
+  D.roam.paintUnder = function (ctx, B) { var r = underP.apply(this, arguments); try { var q = H16.scalesLit(B); if (q) H16.lampGlow(ctx, q, B.t || 0); } catch (e) { } return r; };
+  // on THE WORLD: at its first free moment -- no menu over the map, between two hexes of a walk -- the cut-away over the map (a card waiting stays under it, for after)
+  H16.pitWorldDue = function (sc) { var W = D.world; return !!(W && W.house && W.house() && !sc.pm && !(sc.walk && sc.walk.f) && H16.pitOpen(null)); };
+  H16.pitWorld = function (sc) { var ff = [D.house.cur.flags]; if (DS.autoPicks || !D.ctx) { H16.pitTake(ff); return; } H16.pitTrail('THE WORLD'); H16.night(null, ['notice'], ff, { card: H16.pitCard(null) }); };
+  if (D.world && D.world.World) {
+    var wup0 = D.world.World.prototype.update;
+    D.world.World.prototype.update = function () { if (H16.pitWorldDue(this)) { H16.pitWorld(this); return; } return wup0.apply(this, arguments); };
+  }
+
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
   // (a show's beat that starts on the Hex's third floor: in at the front doors and up the spirals, as the party walks it -- js/hex.js HX.goIn, HX.lay)
   H16.toHex3Due = function (B) { var def = D.roam && D.roam.def; return !!(H16.toHex3 && def && def.town && !def.room && !def.hexIn && B && B.roam && B.roam.mode === 'walk'); };
@@ -1512,7 +1639,7 @@
     H16.toHex3 = false; var HX = D.hex; yield* HX.goIn(B, 'front');
     var sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10;
   };
-  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.restAtDue, play: H16.restAtPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }, { due: H16.keyDue, play: H16.keyCard }];
+  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.restAtDue, play: H16.restAtPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.pitDue, play: H16.pitPlay }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }, { due: H16.keyDue, play: H16.keyCard }];
   // the first look before any beat (10-30, his "we didn't get the fancy 'missions in your journal now' animation on my pane clickthrough of the dialogue"): a save from before
   // has its JOURNAL taken as seen (H16.missionDue's rule) at the floor's first ask, not when the mission card's turn comes -- else a scene on the first beat (Papa's, the
   // party starting beside him: the show's door, a Lymen-led NEW GAME) gave the Company, and the late first look swallowed its card and fly-in as the save's own
