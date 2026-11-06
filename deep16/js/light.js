@@ -106,13 +106,26 @@
     (B.globes || []).forEach(function (g) { k += 'G' + g.x + ',' + g.y + ',' + g.max + ',' + (g.grow == null ? 1 : g.grow) + ';'; }); // (and while it swells: 10-01c) // (a Globe of Invulnerability up or down changes where a darkness and a spell's light lie: SRD 5.1, "the area within the barrier is excluded")
     return { k: k, ls: ls };
   }
+  // ONE LIGHT FOR THE SIMPLE FIGHT'S FIELD (RULED 2026-11-05 night, Griz, to the lanes desk, on the tuesday-grid seat's numbers -- a torch at the front lit 3 of the foes' front 4
+  // at 6 squares, none at 10: "Fixed distance is fine on simple, but is that a ghetto fix for a light problem? At 6 squares does an illuminated hero (torch, etc) still illuminated
+  // the furthest south of the enemy group? / should we just simplify simple vision?", then on the desk's lean "Yes, simplify"): the simple fight lets range and reach go, and light
+  // goes with them. Any light lit on its field -- one either side carries (a torch, a lantern, a candle, Light, a Continual Flame, a creature's own glow), one on the ground (a
+  // dropped torch, Dancing Lights) or the field's own (the camp's fire, a floor's lamps: the seat's call, a fire on the field is light on it) -- lights all of it DIM, for everyone;
+  // Daylight on it, BRIGHT (a fight by day has no dark at all); none, DARK, where darkvision sees the whole field and the rest fight blind. Magical darkness still swallows its
+  // squares (below), and fog, sleet, the clouds, invisibility, blindsight and truesight are sight's own (magic.js seeWhy) as the grid has them. null outside a simple fight's dark
+  L.fieldLevel = function (B, ls) {
+    if (!B || !B.dark || !B.o || !B.o.simple) return null;
+    ls = ls || L.all(B);
+    if (ls.some(function (l) { return l.kind === 'daylight'; })) return 2;
+    return ls.some(function (l) { return (l.bright || 0) + (l.dim || 0) > 0; }) ? 1 : 0;
+  };
   L.map = function (B) {
     if (!B || !B.map || !B.dark) return null;
-    var kk = sig(B);
+    var kk = sig(B), fl = L.fieldLevel(B, kk.ls); if (fl != null) kk.k += '|field' + fl; // (the simple fight's field: one light for all of it, L.fieldLevel)
     if (B.lightMap && B.lightMap.k === kk.k) return B.lightMap;
     var m = B.map, lv = new Array(m.w * m.h), M = D.magic, carve = !!(M && M.zoneGlobed && (B.globes || []).length);
-    for (var i = 0; i < lv.length; i++) lv[i] = 0;
-    kk.ls.forEach(function (l) {
+    for (var i = 0; i < lv.length; i++) lv[i] = fl != null && m.sq[i] && m.sq[i].open ? fl : 0;
+    if (fl == null) kk.ls.forEach(function (l) {
       var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil((l.bright + l.dim) / 5), tall = D.grid.tall && D.grid.tall(), lz = tall && m.at(lx, ly) ? m.gz(lx, ly) : 0;
       for (var y = ly - R; y <= ly + R; y++) for (var x = lx - R; x <= lx + R; x++) {
         var s = m.at(x, y); if (!s || !s.open) continue;
@@ -213,9 +226,11 @@
     if (a.blind) return { ok: false, why: 'blind' }; // (a grimlock past its blindsight: eyeless)
     if (L.levelSeen(B, b) >= 1) return { ok: true }; // (a Lampwright's own light shows her to no one: L.levelSeen, 11-03)
     var dv = a.darkvision || 0;
-    if (dv && G.dist(a, b) <= dv) return { ok: true, dv: true };
+    if (dv && (G.dist(a, b) <= dv || L.fieldLevel(B) === 0)) return { ok: true, dv: true }; // (a simple fight's dark field: darkvision sees all of it, L.fieldLevel)
     return { ok: false, why: 'dark' };
   };
+  // the reach of one's darkvision for the maps below: the whole field in a simple fight's dark one (L.fieldLevel)
+  function dvReach(B, u, fl) { var dv = (u && u.darkvision) || 0; return dv && fl === 0 ? 1e9 : dv; }
 
   // what the party can see, square by square: 2 by light, 1 by darkvision only (grey), 0 not at all (the player still sees)
   L.partyMap = function (B) {
@@ -227,13 +242,13 @@
     var eyes = all.filter(function (u) { return u.darkvision || u.blindsight || u.truesight; });
     var k = lm.k + '|' + all.map(function (u) { return u.id + u.x + ',' + u.y + (u.darkvision || 0) + (u.blindsight || 0) + (u.truesight || 0); }).join(';');
     if (B.partyMap && B.partyMap.k === k) return B.partyMap;
-    var out = new Array(m.w * m.h), dvs = new Array(m.w * m.h);
+    var out = new Array(m.w * m.h), dvs = new Array(m.w * m.h), fl = L.fieldLevel(B);
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var i = y * m.w + x, s = m.sq[i];
       if (!s.open) { out[i] = 0; continue; }
       var v = lm.lv[i] && all.some(function (u) { return G.losPoint(u.x, u.y, x, y); }) ? 2 : 0, dvx = 0;
       if (!v || lm.lv[i] === 1) for (var e = 0; e < eyes.length; e++) { // (a dim square too: within darkvision it is seen as bright -- dvs, L.pass)
-        var u = eyes[e], r = Math.max(u.darkvision || 0, u.blindsight || 0, u.truesight || 0);
+        var u = eyes[e], r = Math.max(dvReach(B, u, fl), u.blindsight || 0, u.truesight || 0);
         if (G.dist(u, { x: x, y: y, size: 1 }) <= r && G.losPoint(u.x, u.y, x, y)) { if (!v) v = 1; dvx = 1; break; }
       }
       out[i] = v; dvs[i] = dvx;
@@ -246,7 +261,7 @@
   // for each party member"): 2 a lit square it has a line to, or within its blindsight or truesight; 1 dark but within its darkvision and
   // in line; 0 neither (behind the rock, past its darkvision, or it is blinded). L.pass draws it in the party's map's place while hovered
   L.viewMap = function (B, u) {
-    var lm = L.map(B), m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), blind = !!(u.conds && u.conds.blinded), dv = blind ? 0 : u.darkvision || 0;
+    var lm = L.map(B), m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), blind = !!(u.conds && u.conds.blinded), dv = blind ? 0 : dvReach(B, u, L.fieldLevel(B));
     var k = lm.k + '|' + u.id + ':' + u.x + ',' + u.y + '|' + bs + '|' + dv + (blind ? 'b' : '');
     if (B.viewMap && B.viewMap.k === k) return B.viewMap;
     var out = new Array(m.w * m.h), dvs = new Array(m.w * m.h);
@@ -433,9 +448,11 @@
   // DARK LOOK -- DEEP the look before 11-05, SOFT (the default) a little lifted, LIGHT more -- the night's multiply, the darkvision's grey lifted with it (it must stay over the
   // night round it), and the wash on the squares nobody sees (the hovered one's eyes darker). The rules read the light map (L.map, L.seesBy), never these pixels, and are the
   // same at every step; too bright and the pools lose their punch, so LIGHT stops well short of day. &dark=deep|soft|light in a door's address for that page
-  L.LOOKS = { deep: { name: 'DEEP', night: 'rgb(52,56,86)', dv: 'rgb(72,70,66)', wash: 0.4, hover: 0.62 },
-    soft: { name: 'SOFT', night: 'rgb(66,70,100)', dv: 'rgb(88,86,80)', wash: 0.33, hover: 0.54 },
-    light: { name: 'LIGHT', night: 'rgb(84,88,116)', dv: 'rgb(108,106,99)', wash: 0.24, hover: 0.44 } };
+  // (`field`: a simple fight's field lit dim by one light, L.fieldLevel -- the whole floor at a dim light's level, a torch's dim ring's middle, so a foe the party sees is never drawn
+  // in the night's black; 11-05 night, the ruling's own "the picture shouldn't contradict the rule")
+  L.LOOKS = { deep: { name: 'DEEP', night: 'rgb(52,56,86)', dv: 'rgb(72,70,66)', wash: 0.4, hover: 0.62, field: 'rgb(124,112,104)' },
+    soft: { name: 'SOFT', night: 'rgb(66,70,100)', dv: 'rgb(88,86,80)', wash: 0.33, hover: 0.54, field: 'rgb(138,126,116)' },
+    light: { name: 'LIGHT', night: 'rgb(84,88,116)', dv: 'rgb(108,106,99)', wash: 0.24, hover: 0.44, field: 'rgb(156,144,132)' } };
   L.LOOK_ORDER = ['deep', 'soft', 'light']; L.LKEY = 'deep16.darklook';
   var lookQ = /[?&]dark=(deep|soft|light)/.exec((window.location && window.location.search) || ''), lookNow = null;
   L.lookId = function () { if (lookQ) return lookQ[1]; if (lookNow) return lookNow; var v = null; try { v = window.localStorage.getItem(L.LKEY); } catch (e) { } return (lookNow = L.LOOKS[v] ? v : 'soft'); };
@@ -449,13 +466,14 @@
   function inView(iso, x, y, gz, W, H) { var c = iso.center(x, y, gz), s = iso.toScreen(c.x, c.y); return s.x > -40 && s.x < W + 40 && s.y > -40 && s.y < H + 40; }
   L.pass = function (ctx, B, W, H) {
     if (!B || !B.dark || !B.map) return;
+    var FL = L.fieldLevel(B); if (FL === 2) return; // (a simple fight's field under Daylight: no night on it -- L.fieldLevel)
     var iso = D.iso, t = B.t, m = B.map;
     if (!lit) lit = document.createElement('canvas');
     if (lit.width !== W || lit.height !== H) { lit.width = W; lit.height = H; }
     var l = lit.getContext('2d');
     l.globalCompositeOperation = 'source-over';
     var LK = L.look(); // (OPTIONS' DARK LOOK, above)
-    l.fillStyle = LK.night; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees
+    l.fillStyle = FL === 1 ? LK.field : LK.night; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees (a simple fight's lit field: all of it dim, L.fieldLevel)
     l.globalCompositeOperation = 'lighter';
     var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) ? a : null;
     var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B); // (whose eyes: below)

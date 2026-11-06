@@ -132,13 +132,16 @@
     return out;
   };
   // the test doors (js/eyes.js): deep16/?world&simple=wolf,wolf,bandit -- THE WORLD with that encounter's card up at once, FIGHT and ON THE GRID on it;
-  // &camp -- a fight in the night's watches, the camp's fire behind the party (js/world.js W.CAMP)
+  // &camp -- a fight in the night's watches, the camp's fire behind the party (js/world.js W.CAMP); &night -- THE WORLD's clock at 22:00 first, the fight by night; &torch -- the
+  // four's first with a torch lit as it opens (11-05 night, the tuesday-grid seat: the doors for one light on the field, js/light.js L.fieldLevel)
   var WW = D.world && D.world.World;
   if (WW) { var wen0 = WW.prototype.enter; WW.prototype.enter = function () {
     var r = wen0.apply(this, arguments), mq = /[?&]simple=([a-z0-9,]+)/.exec(this.q || '');
     if (mq && !this.simpleDoor) {
       this.simpleDoor = true;
       var list = mq[1].split(',').filter(function (k) { return D.FOES && D.FOES[k]; }).slice(0, 8), st = D.world.state(), e = D.world.M().hex[D.world.K(st.at[0], st.at[1])];
+      if (/[?&]night\b/.test(this.q)) st.t = Math.floor(st.t / 24) * 24 + 22;
+      S.doorTorch = /[?&]torch\b/.test(this.q);
       if (list.length && e) this.encounter({ zone: D.world.zoneOf(e), list: list, mirror: false, camp: /[?&]camp\b/.test(this.q) }, e);
     }
     return r;
@@ -147,6 +150,7 @@
   // ------------------------------------------------------------------ the fight's state: each one's own square, and where the picture draws it
   S.setup = function (B) {
     B.simple = { home: {}, last: {}, m: null, act: null, cam: null, gap: Object.assign({}, S.GAP) }; B.units.forEach(function (u) { S.homeOf(B, u); }); // (gap: this fight's, S.fieldOpts)
+    if (S.doorTorch) { S.doorTorch = false; var lt = B.units.filter(function (u) { return u.side === 'party' && !u.guest && !u.object && !u.familiar; })[0]; if (lt) { lt.torch = { lit: true }; if (D.light.regrip) D.light.regrip(lt); B.cache = null; } } // (the door's &torch, above)
     var fm0 = B.floorMarks, mo0 = B.marksOver; // (the turn's glow: under the feet with the floor's marks, its light over the night's -- js/ui.js drawBattle's hooks)
     B.floorMarks = function (c) { if (fm0) fm0.apply(this, arguments); S.turnGlow(c, B, false); };
     B.marksOver = function (c) { if (mo0) mo0.apply(this, arguments); S.turnGlow(c, B, true); };
