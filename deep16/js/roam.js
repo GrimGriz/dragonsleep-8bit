@@ -1777,7 +1777,7 @@
         // in pane)": the split half was in the order but not in the fight's foes, so the fight was won with it standing, and it stood on the floor after in no group)
         B.units.forEach(function (w) { if (w.side === 'foe' && !w.roamAside && !w.dead && foes.indexOf(w) < 0) { w.roamBorn = true; foes.push(w); } });
         if (R0.members.some(function (m) { return m.left; })) return 'escaped';
-        if (!ours().length && !B.units.some(function (w) { return w.side === 'foe' && w.regenDown && !w.dead && !w.roamAside; })) return 'won';
+        if (!ours().length && !B.units.some(function (w) { return w.side === 'foe' && w.regenDown && !w.dead && !w.roamAside; })) return B.fight && B.fight.fledEnds && foes.some(function (w) { return w.fled && w.hp > 0; }) ? 'fled' : 'won'; // (none standing and one away on a fledEnds fight -- the yard: 'fled', the chase after the one; js/battle.js over, 11-06)
         var o = B.over();
         if (o && o !== 'won') return o;
         i = B.order.indexOf(u);

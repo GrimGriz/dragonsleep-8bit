@@ -116,6 +116,11 @@
     return out;
   };
 
+  // THE CHIMNEY SEE-THROUGH IN A FIGHT (11-06, Griz on the poisoned supper's fight: "might transparency the chimney during combat in the inn"): the big fire's 2 x 4 stack stands in the
+  // middle of the common room, and in a fight on the floor's own squares (js/roam.js R.fight: the supper's, the yard's seen from inside) it is drawn faint, so the figures behind it show;
+  // walking, it stands whole as before. Its squares still block as a wall does
+  IP.SEE = 0.35;
+  IP.fightOn = function () { var B = D.battle; return !!(B && B.roam && B.roam.mode === 'fight'); };
   // the pieces laid on the loaded floor: each square of each a prop of its own, sorted with the figures; the code's block and the chimney's rock under them let go
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
@@ -132,8 +137,10 @@
         m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
           var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
           var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
-          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y);
+          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = pc[0] === 'inn_hearth' && IP.fightOn();
+          if (see) { ctx.save(); ctx.globalAlpha = IP.SEE; } // (the big fire's chimney see-through while a fight is on the floor: IP.fightOn, 11-06)
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
+          if (see) ctx.restore();
         } });
       })(i, j);
     });

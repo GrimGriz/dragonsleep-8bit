@@ -1496,7 +1496,7 @@
       if (!reeled && !atk.grapple) { reeled = true; yield* reel(B, u, reelFt); if (u.dead || u.hp <= 0) return; }
       // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold; an
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
-      var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
+      var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w) && !w.offering; }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       else if (u.wantsOffering && !atk.needsHeld && pool.some(function (w) { return w.offering; })) pool = pool.filter(function (w) { return w.offering; }); // (the offering first, in reach: js/secondact.js, 11-05)
       var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)

@@ -195,17 +195,27 @@
     if (!awake.length) { yield* A.drag(B, party); return; }
     yield* A.supperFight(B, asleep, awake);
   };
+  // the four at their places at the long table as the supper's fight opens (js/inn.js In.TABLE.seats, In.sit's order: the lead and the second on the north side, the third and the fourth
+  // on the south), each facing the table; a guest stands where the spill put them
+  A.seatFight = function (B) {
+    var R0 = B.roam, Gd = D.grid, four = [R0.token].concat(R0.rest || []).filter(function (u) { return u && u.src && !u.src.guest && B.units.indexOf(u) >= 0; }).slice(0, 4);
+    four.forEach(function (u, i) { var q = In.TABLE.seats[i]; if (!q) return; u.x = q[0]; u.y = q[1]; u.tween = null; u.facing = D.spr.facingFor(0, q[1] < In.TABLE.y ? 1 : -1); u.animT = B.t; });
+    Gd.setup(Gd.map, B.units); B.cache = null;
+  };
   // some asleep: the sleepers drop at the table, the awake rise -- the fight in the common room to submission; Doran confesses and leads them out back
   A.supperFight = function* (B, asleep, awake) {
     var Rm = R(), R0 = B.roam, f = R0.flags, Y = {};
     yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')), A.LINES.poisonRise], 420);
     B.units.filter(function (u) { return u.npc === 'gennet' || u.npc === 'doranIn'; }).forEach(function (u) { In.gone(B, u); }); // (the two at the table, as foes now)
-    Y.gennet = In.unit(B, { id: 'gennetSup', kind: 'gennet', at: [24, 16], name: In.named(f), face: [0, 1], foe: true }); Y.gennet.yields = true; Y.gennet.flees = false;
-    Y.doran = In.unit(B, { id: 'doranSup', kind: 'doran', at: [26, 16], name: 'Doran Waterby', face: [0, 1], foe: true }); Y.doran.yields = true; Y.doran.flees = false;
+    // AT THE TABLE (11-06, Griz on the fight: "the fight should break out from a dinner thing, with them in dinner positions"): the Waterbys up from their own places at the long table
+    // -- the inn lady on its north side, Doran at its west end (js/inn.js In.TABLE, the meal's seats) -- and the party at theirs once the fight spills them (A.seatFight): the sleepers
+    // slumped where they sat, the awake up beside their places. It had opened with the party stood below the table and the pair at 24,16 and 26,16
+    Y.gennet = In.unit(B, { id: 'gennetSup', kind: 'gennet', at: In.TABLE.gennet.slice(), name: In.named(f), face: [0, 1], foe: true }); Y.gennet.yields = true; Y.gennet.flees = false;
+    Y.doran = In.unit(B, { id: 'doranSup', kind: 'doran', at: In.TABLE.doran.slice(), name: 'Doran Waterby', face: [1, 0], foe: true }); Y.doran.yields = true; Y.doran.flees = false;
     asleep.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; });
     f.poisonFight = 1; R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
-    yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null }, false, 'supper');
+    yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); } }, false, 'supper');
     var o = R0.lastOutcome;
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
     var doranUp = A.standing(B, Y.doran);
@@ -445,6 +455,82 @@
     else { A.trail('the party got clear of the lake'); }
     return o;
   };
+  // ---------------------------------------------------------------- THE TAKE's pieces (11-06; the ruling at A.lakeFight below)
+  // the deep: every square of its body on the grid's deep water (the 'Y' off the point -- js/inn.js; the lake knee-shallow elsewhere)
+  A.inDeep = function (u, x, y) { return G.foot(u, x == null ? u.x : x, y == null ? u.y : y).every(function (q) { var s = G.map.at(q[0], q[1]); return !!(s && s.deep); }); };
+  // struck at on the way, or hurt: the offering refused -- it lets her fall from the claw beside it (js/battle.js clawDrop), and from now it is the chuul of the SRD, fighting the party
+  A.turned = function (B, Y, by) {
+    var c = Y.chuul, g = Y.gennet; if (!c || !c.take || c.take.off) return;
+    c.take.off = true; c.script = null; c.wantsOffering = false;
+    var held = !!(g && g.inClaws && g.inClaws.by === c.id);
+    if (g && g.conds.restrained && g.conds.restrained.by === c.id) B.release(c, g);
+    if (g && D.spr.anim(g.sheet, 'sit')) { g.anim = 'sit'; g.animT = B.t; } // (she sits where she fell, yielded still)
+    A.trail('the thing in the lake struck at on the way' + (held ? ', Gennet in its claws: it dropped her' : '') + ' -- it fights');
+    B.card(['{r}The thing in the lake{/} ' + (held ? 'lets {y}' + g.name + '{/} fall from its claw' : 'turns from the offering') + (by && by.name && by !== g ? ' and turns on {y}' + (by.side === 'foe' ? D.Battle.nm(by, true) : by.name) + '{/}.' : ' and turns on you.')], 320);
+  };
+  // in the deep with her, never struck at: the offering taken -- the card and the splash, and the two go down together, faded out where they went (js/ui.js unitObj: `fled` with its hit
+  // points, never drawn lying), she still in its claws
+  A.taken = function (B, Y) {
+    return function* (Bt, c) {
+      var f = B.roam.flags, g = Y.gennet;
+      f.gennetTaken = 1; c.take.off = true; c.script = null;
+      if (g) { g.goneDown = true; g.dead = true; g.fled = true; g.deadT = Bt.t; delete g.conds.restrained; }
+      c.holding = []; c.goneDown = true; c.dead = true; c.fled = true; c.deadT = Bt.t;
+      A.trail('the offering taken: it went down into the deep with Gennet, never struck at');
+      if (D.fx) D.fx.sparkle(c, 'blue', 30); D.sfx('splash');
+      Bt.card(D.roam.wrap([A.LINES.fightTaken]), 480); yield 50;
+    };
+  };
+  // its turn while it takes her (D.scripts.lakeTake): up to her, the grab, the walk into the deep -- one square at a time, so a blow on the way stops it where it is
+  function* takeStep(B, u, path) {
+    for (var i = 0; i < path.length; i++) {
+      if (!u.take || u.take.off || u.dead || u.hp <= 0) return;
+      var nx = path[i][0], ny = path[i][1], cost = G.stepCost(u, u.x, u.y, nx, ny);
+      if (!(u.turn.move >= cost)) return;
+      yield* B.moveAlong(u, [[nx, ny]], { spend: true });
+    }
+  }
+  A.grab = function* (B, c, g, pin) {
+    g.conds.restrained = { dc: pin.grapple.dc, by: c.id, grapple: true, only: true };
+    c.holding = (c.holding || []).concat([g]);
+    D.sfx('poison'); if (D.fx && D.fx.ring) D.fx.ring(g, 'bone', 26);
+    B.card(['{r}The thing in the lake{/} has {y}' + g.name + '{/}: {o}IN ITS CLAWS{/}  {g}(it makes for the deep with her: strike at it, or the lake has its offering){/}'], 300);
+    yield* B.clawIn(c, g);
+  };
+  (D.scripts = D.scripts || {}).lakeTake = function* (B, u) {
+    var tk = u.take, g = tk && tk.g, T = u.turn, AIx = D.ai;
+    var gone = function () { return !g || B.units.indexOf(g) < 0 || g.dead || g.hp <= 0; };
+    if (!tk || tk.off || gone()) { u.script = null; if (tk) tk.off = true; yield* AIx.brute(B, u); return; }
+    // the Ring of Binding's round: it must turn on the wearer (data/fights.js chuul.ring) -- this turn the brute's, at the wearer, her in its claws all the while; the take goes on after it
+    if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u)) { yield* AIx.brute(B, u); return; }
+    if (!tk.said) { tk.said = true; B.card(['{r}' + u.name + '{/} turns toward {y}' + g.name + '{/}: the nearest offering.']); yield 20; }
+    if (A.holdShow) B.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; }); // (the show's held hands: no opportunity attack as it passes)
+    var pin = u.attacks.pincer, held = function () { return !!(g.inClaws && g.inClaws.by === u.id); };
+    if (!held()) {
+      var rch = G.reachOf(u, pin.reach);
+      if (G.dist(u, g) > rch && T.move > 0) { var rm = G.reach(u, T.move), e = AIx.approach(u, g, rm, rch), pth = e && G.path(rm, e.x, e.y); if (pth && pth.length) yield* takeStep(B, u, pth); }
+      if (tk.off || u.dead || u.hp <= 0) return;
+      if (G.dist(u, g) <= rch && T.action) {
+        T.action = 0;
+        var grab = Object.assign({}, pin, { noDamage: true }); // (no harm: the grab is the take -- the ruling at A.lakeFight)
+        for (var n = 0; n < 2 && !held() && !tk.off && !gone(); n++) { // (its Multiattack's two pincers, both at her till one holds)
+          var hit = false, dS = D.d; if (A.holdShow) D.d = function (k) { return k === 20 ? 18 : dS.apply(this, arguments); }; // (the show's grab: the d20 pinned)
+          try { yield* B.attack(u, g, grab, { onHit: function () { hit = true; } }); } finally { D.d = dS; }
+          if (hit && !tk.off && !gone()) yield* A.grab(B, u, g, pin);
+          if (u.dead || u.hp <= 0) return;
+        }
+      }
+    }
+    if (!held() || tk.off) return;
+    // the carry: back into the deep by the way that costs least, as far as the half speed goes this turn
+    if (!A.inDeep(u)) {
+      var far = G.reach(u, 400), goal = null, gc = Infinity;
+      Object.keys(far).forEach(function (k) { var q = far[k]; if (q.stand && q.cost < gc && A.inDeep(u, q.x, q.y)) { gc = q.cost; goal = q; } });
+      var route = goal && G.path(far, goal.x, goal.y);
+      if (route && route.length) yield* takeStep(B, u, route);
+    }
+    if (!tk.off && held() && !u.dead && u.hp > 0 && A.inDeep(u)) yield* tk.done(B, u);
+  };
   // the chuul fight on the floor's point end, the `chuul` fight's frog with it and the Ring of Binding's rounds laid on the floor's fight (js/battle.js enter's rule, for this fight);
   // with no ring worn, the chuul and its frog as the SRD has them (`ring` null)
   A.lakeFight = function* (B, Y, ring) {
@@ -455,29 +541,45 @@
     Y.frog = In.unit(B, { id: 'lakeFrog', kind: 'giantfrog', at: [at[0] - 1, at[1] + 2], name: 'Giant Frog', face: [-1, 0], foe: true }); Y.frog.flees = false;
     var rounds = (Fd && Fd.ring && Fd.ring.rounds) || [1, 4, 7, 10], con0 = ring && ring.saves ? ring.saves.con : null;
     if (ring) { if (ring.saves) { ring.saves = Object.assign({}, ring.saves); ring.saves.con += (Fd && Fd.ring && Fd.ring.con) || 3; } ring.ring = true; B.taunt = { u: ring, rounds: rounds }; }
-    // the nearest offering (A.offerGennet): Gennet, yielded on the path, off the foes' side for this fight -- no turns, no yield to end it, a bystander to every AI but the thing in
-    // the lake's (js/ai.js `wantsOffering`); downed, she is taken, and it goes down with her
-    var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside } : null, hurt0 = B.hurt, self = B;
+    // the nearest offering (A.offerGennet): Gennet, yielded on the path, off the foes' side for this fight -- no turns, no yield to end it, a bystander to every AI (js/ai.js heroes).
+    // THE TAKE (RULED 11-06, Griz to the lanes desk: "if it's been hurt, it'd fight" and "basically the only way it accepts Gennet as offering is if it gets up, grabs her and returns to the water
+    // without being attacked"; read by the desk: an attack at it on the way -- hit or miss, an opportunity attack too -- turns it to the fight, and hurt before it rises it fights from the
+    // first): its own turn, D.scripts.lakeTake above -- up to her, the pincer's grab (no harm in it: she is taken by the grab, not by a blow that drops her -- the offering goes down living, as
+    // the child goes at the stone, and a blow to 0 would end the grip by the SRD short of the deep), the lunge and she is in its claws (js/battle.js clawIn), then the walk back into the deep
+    // with her at half speed, square by square, the party's opportunity attacks as it goes. In the deep unattacked: taken (`gennetTaken`), the card and the splash, and it goes down with her
+    // -- off the screen, never drawn dying (`fled` set only then). Struck at on the way (A.turned): it lets her fall from the claw and fights the party. A party Fireball that kills her is the
+    // first ending's (`gennetDead`), as before
+    var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside } : null, hurt0 = B.hurt, self = B, c = Y.chuul;
+    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, ownExec = B.hasOwnProperty('exec'), exec0 = B.exec;
     if (gn) {
-      gn.side = 'offering'; gn.bystander = true; gn.offering = true; gn.yields = false; gn.script = null; gn.roamAside = true; Y.chuul.wantsOffering = true; // (roamAside: no turn of hers in the floor's fight -- js/roam.js R.fight's initiative; she sits)
+      gn.side = 'offering'; gn.bystander = true; gn.offering = true; gn.yields = false; gn.script = null; gn.roamAside = true; // (roamAside: no turn of hers in the floor's fight -- js/roam.js R.fight's initiative; she sits)
+      if (c && c.hp >= c.maxhp) { c.script = 'lakeTake'; c.take = { g: gn, done: A.taken(B, Y) }; c.wantsOffering = false; } // (whole when it rises: the take; hurt already, it fights from the first)
+      else if (c) A.trail('the thing in the lake rose hurt: no take, it fights');
+      var on = function () { return !!(c && c.take && !c.take.off); };
+      // THE SHOW's take (A.BEATS 'take', A.holdShow): the four's hands held while it takes her -- each turn passed, no opportunity attack (lakeTake), its grab's d20 pinned -- and its frog
+      // asleep; once it has gone down (or been struck at) the hands are the player's again
+      if (A.holdShow && c && c.take) {
+        Y.frog.conds.asleep = { by: 'show' };
+        var heroT0 = B.hasOwnProperty('heroTurn') ? B.heroTurn : null;
+        B.heroTurn = function* (u) { if (on()) { u.reaction = 0; self.card(['{c}THE SHOW{/}: ' + u.name + ' holds -- the hands held while it takes her.'], 160); yield 40; return; } return yield* D.Battle.prototype.heroTurn.apply(this, arguments); };
+        c.take.unhold = function () { if (heroT0) B.heroTurn = heroT0; else delete B.heroTurn; };
+      }
       B.hurt = function (u, n) {
-        var r = hurt0.apply(this, arguments), c = Y.chuul;
-        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) {
-          if (self.active === c) { // (its own blow: it has her, and goes down with her)
-            R0.flags.gennetTaken = 1; gn.dead = true; gn.fled = true; gn.deadT = self.t;
-            if (c && !c.dead && c.hp > 0) { if (c.holding && c.holding.length) self.release(c); c.dead = true; c.fled = true; c.deadT = self.t; }
-            self.card(D.roam.wrap([A.LINES.fightTaken]), 480); D.sfx('splash');
-          } else { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight (not by it)'); } // (the party's own -- a Fireball catches her: killed, the first ending's; it fights on)
-        }
+        if (u === c && n > 0 && on()) A.turned(self, Y, self.active !== c ? self.active : null); // (a blow that lands from anything -- a spell's save, a fire, a flask)
+        var r = hurt0.apply(this, arguments);
+        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight (not by it)'); } // (the party's own -- a Fireball catches her: killed, the first ending's; it fights on)
         return r;
       };
+      B.attack = function* (att, tgt) { if (tgt === c && att !== c && on()) A.turned(self, Y, att); return yield* atk0.apply(this, arguments); }; // (hit or miss: struck at -- an opportunity attack as it walks too)
+      B.exec = function* (u, cmd) { if (cmd && cmd.do === 'cast' && u !== c && on() && (cmd.target === c || (cmd.targets || []).indexOf(c) >= 0)) A.turned(self, Y, u); return yield* exec0.apply(this, arguments); }; // (a spell aimed at it)
     }
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
     yield* Rm.engage(B, { foes: [Y.chuul, Y.frog], why: 'lake', zone: null }, false, 'lake');
     var o = R0.lastOutcome;
-    B.hurt = hurt0;
-    if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; } // (she lives: back on the path as she sat)
+    B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0;
+    if (c) { if (c.take && c.take.unhold) c.take.unhold(); delete c.take; if (c.script === 'lakeTake') c.script = null; }
+    if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; delete gn.inClaws; delete gn.goneDown; if (gn.conds.restrained && c && gn.conds.restrained.by === c.id) delete gn.conds.restrained; } // (she lives: back on the path as she sat)
     else if (gn) { In.gone(B, gn); Y.gennet = null; }
     B.taunt = null; if (ring) { if (ring.saves && con0 != null) ring.saves.con = con0; delete ring.ring; }
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
@@ -575,6 +677,7 @@
     { id: 'risenoring', beat: 'rise', label: 'BEAT 4: the rise at the shore without the ring -- it fights (11-05)', note: 'The child taken, the party at the flat stone, no ring worn: the water off the point heaves, it comes halfway up -- "Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it." -- and the fight with its frog, the chuul as the SRD has it, no ring\'s rounds. Get clear of the water and it ends.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 } },
     { id: 'offerinside', beat: 'offer', label: 'THE NEAREST OFFERING: the child taken inside, the inn lady left on the path (11-05)', note: 'Gennet yielded and sitting on the path with her lantern, the child\'s hand in yours. TAKE HER INSIDE: up to the lake door -- the water off the point heaves behind you. GO BACK FOR HER: down to the stone, and it turns toward the one on the path, not you; shield her (stand between, kill it first) or it takes her and goes down with her -- then Doran lets you rooms and nobody cooks. LET THE LAKE HAVE HER: it comes up onto the path and takes her, the lantern into the water -- "You\'ll want the road."', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
     { id: 'offerwater', beat: 'offer', label: 'THE NEAREST OFFERING: STAY AT THE WATER, the inn lady its first target (11-05)', note: 'The same, STAY AT THE WATER: the party by the flat stone, the water heaves, and it goes for Gennet first -- "It does not turn toward you. It turns toward the one on the path: the nearest offering." The ring\'s rounds still turn it on the wearer (this beat: no ring).', flags: { wagonOutcome: 'inn', gennetYield: 1 }, water: true },
+    { id: 'take', beat: 'offer', hold: true, label: 'THE TAKE: STAY AT THE WATER, the four\'s hands held -- it comes up, takes her in its claws and goes down (11-06)', note: 'Gennet yielded on the path, the child taken. Answer STAY AT THE WATER: the party by the flat stone, the water heaves, and it comes for her. THE SHOW holds the four\'s hands while it takes her (its frog left asleep): it comes up over the rocks, its pincer closes on her (the d20 pinned) -- the lunge, out to her and back to its own square, and she is in its claws, lifted at its side -- then back into the deep with her at half speed, and it goes down: "It has her." The two fade out where they went; nothing is drawn dying. The other way is the beat before, STAY AT THE WATER with your hands: strike at it on the way (an opportunity attack counts) and it lets her fall from the claw and fights you.', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
     { id: 'poison', beat: 'poison', label: 'THE POISON DINNER: one asleep at the table, the fight inside, Doran\'s confession (11-05)', note: 'Day 15 at six, the wagon stopped on the road three days ago, so the Waterbys kept no child: supper is the draught. The tells are each hero\'s own (Medicine 13 tastes it, Insight 15 sees the inn lady not eat). The dice pinned: the first to eat fails the CON save (DC 13) and goes down at the table, the rest make it -- the fight in the common room to submission (the first yield ends it), then Doran: "There\'s a thing in the lake ..." -- his bucket over the sleepers, and he leads you out back to the stone: the rise, the fight at the shore.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 19, 19, 19] },
     { id: 'poisonall', beat: 'poison', label: 'THE POISON DINNER: all asleep -- the drag, and awake on the stone (11-05)', note: 'The same supper, every save failed: the table tilts away. The drag, ten minutes, a save every two (the dice pinned: the first makes three of five, +3). On the stone as the water heaves, each saves again with its bonus: the first wakes, the rest sleep on -- shake them awake (HELP) while it comes up out of the deep; three rounds with nobody up and it takes one.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2] },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
@@ -585,7 +688,7 @@
   ];
   A.play = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
-    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled } }, bt.flags || {});
+    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled, hold: !!bt.hold } }, bt.flags || {});
     if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
     if (bt.beat === 'poison') { ['dueTonight', 'kidTaken', 'kidAtInn', 'glamourBroken', 'glamourSeen'].forEach(function (k) { delete rec.flags[k]; }); }
     if (bt.beat === 'boat') { ['wagonIn', 'dueTonight', 'kidTaken', 'kidAtInn', 'doranAway', 'wagonStopped'].forEach(function (k) { delete rec.flags[k]; }); } // (a day with no wagon: the rowboat's own)
@@ -606,7 +709,7 @@
     else if (s.beat === 'rise') { var Y = {}; yield* A.rise(B, Y); }
     else if (s.beat === 'boat') { yield* A.sound(B); return; } // (the rowboat by day: the floor goes on after)
     else if (s.beat === 'poison') { R0.stay = { t0: In.clock(B), hours: In.REST.dinnerHours, kind: 'dinner', long: true }; yield* A.poisonNight(B, In.day(D.roam.q)); return; } // (the poison dinner: a room with supper on the due's night, no offering)
-    else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; yield* A.offerGennet(B, Yo); } // (Gennet yielded on the path, the child taken: the nearest offering)
+    else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; A.holdShow = !!s.hold; try { yield* A.offerGennet(B, Yo); } finally { A.holdShow = false; } } // (Gennet yielded on the path, the child taken: the nearest offering; the show's `hold`: the take with the four's hands held, A.lakeFight)
     var mornA = A.morning(f);
     if (f.secondActDone) { var mornL = mornA || A.LINES.mornDueKept; if (f.duePaid && !f.lakeDone && In.has(D.counter.state(B), 'ringofbinding')) mornL = mornL + ' ' + L('wagon.ringCold'); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
   };

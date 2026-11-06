@@ -597,7 +597,7 @@
     var best = null, bd = -1e9, pick = null, pd = -1e9, pv = 0, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal || u.object) return;
-      var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
+      var p = u.riding && u.master ? perchPos(B, u, z) : u.inClaws ? clawPos(B, u) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
       var lf = !u.riding && lyingFrame(u), lm = lf && D.spr.frameMask(u.sheet, lf[0], u.facing || 0, lf[1]), lk = D.spr.scaleOf(u) * z; // (lying flat: the frame it lies at, its pixels as drawn -- sprites.js S.frameMask, 10-05)
       var onLie = !!lm && D.spr.frameHit(lm, (mx - p.x) / lk, (my - p.y) / lk, 2);
       if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z) && !(s > 1 && !u.riding && UI.inCube(UI.cubeHull(B, u), mx, my))) return;
@@ -1587,6 +1587,8 @@
       gx = fx + (tx - fx) * kxy; gy = fy + (ty - fy) * kxy;
       // ('hurl': up and over on an arc to where it lands -- a body flung, js/trophy.js, 10-08)
       gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.mode === 'hurl' ? tw.fz + (gz - tw.fz) * k + (tw.peak || 0) * 4 * k * (1 - k) : tw.fz + (gz - tw.fz) * kz;
+      // ('lunge': a claw's grab, battle.js clawIn, 11-06 -- out to the one it seizes in two fifths of the beat, eased, and back to its own square in the rest, carrying them)
+      if (tw.mode === 'lunge') { var lk = k < 0.4 ? Math.sin(k / 0.4 * Math.PI / 2) : Math.max(0, 1 - (k - 0.4) / 0.6); if (k >= 0.4) lk = lk * lk * (3 - 2 * lk); gx = tx + (tw.lx || 0) * lk; gy = ty + (tw.ly || 0) * lk; gz = G.gzAt(u, tx, ty); }
     }
     var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y), dep = gx + gy + (s - 1) + 0.6;
     if (onR) dep = Math.max(dep, onR.foot[0] + onR.foot[1] + 0.4); // (in front of the rope, ropeObjs: its foot's depth + 0.3)
@@ -1594,6 +1596,19 @@
   }
   UI.unitPos = unitPos;
   UI.unitObj = function (B, u) { return unitObj(B, u); }; // (the figure as the next frame draws it -- .shown holds the row and frame it drew: dev/bench16.js mode=goblinhide1007, 10-07)
+  // IN ITS CLAWS (battle.js clawIn, 11-06, Griz: "Can we make a successful grab look like a lunge-return to actual position?"): one a claw holds is drawn at the claw's point by the holder's
+  // facing (D.Battle.clawPoint), lifted off the ground, in front of the holder or behind it as the claw is; while the lunge goes out (its first two fifths) it still stands where it stood,
+  // and from the turn of it it comes in with the claw. k: the pixels' scale, as perchPos
+  var CLAW_LIFT = 9;
+  function clawPos(B, u) {
+    var c = u.inClaws, h = B.units.filter(function (w) { return w.id === c.by; })[0];
+    if (!h || h.left) return unitPos(B, u);
+    var tw = h.tween, k = tw && tw.mode === 'lunge' && tw.grab === u.id ? tw.t / tw.dur : 1;
+    if (k < 0.4 && c.from) return unitPos(B, { x: c.from[0], y: c.from[1], size: u.size });
+    var hp = unitPos(B, h), cp = D.Battle.clawPoint(h, c.side), c0 = D.iso.center(0, 0, 0), c1 = D.iso.center(cp.x, cp.y, CLAW_LIFT), p0 = D.iso.toScreen(c0.x, c0.y), p1 = D.iso.toScreen(c1.x, c1.y);
+    return { x: hp.x + p1.x - p0.x, y: hp.y + p1.y - p0.y, depth: hp.depth + cp.x + cp.y + 0.05, gz: hp.gz, claw: true };
+  }
+  UI.clawPos = clawPos; // (dev/bench16.js mode=innfights1106)
   // where a rider sits on the one it rides -- drawn there (unitObj) and picked there by the mouse (UI.pickUnit; 10-01, Griz: "I can't get any indication I'm
   // mousing over the one on his head"). k: the pixels' scale (1 on the world canvas, the zoom on the screen). The one it rides drawn bigger (Enlarge) carries it higher
   // SEATS (11-03, Griz: "see stirge targetting difficulties"): several riders on one host (the stirges -- Battle.attach keeps each one's record) all took the one spot, drawn over each other and
@@ -1638,7 +1653,7 @@
   UI.wading = function (B, u) {
     var s = G.map && G.map.at(u.x, u.y); if (D.keeper && D.keeper.iced && D.keeper.iced(B, u.x, u.y)) return null; // (on ice: on top of it, not in the water -- js/keeper.js)
     if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
-    var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.ethereal || u.under) return null;
+    var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.inClaws || u.ethereal || u.under) return null; // (inClaws: lifted in a chuul's claws, 11-06)
     var def = G.map.def || {}, cut = def.waterLevel != null ? Math.min(Math.max(2, def.waterLevel - G.map.gz(u.x, u.y)), Math.round(D.spr.unitTop(u) * 0.8)) : def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1); // (a map's `waterLevel`: one flat sheet, so the depth is the sheet less the floor under it -- the Flooded Stair's steps; a drawing only)
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
     if (hold && hold.bound && hold.kind !== 'keeper' && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6); // (the Keeper's held sit in its swirl, not sunk: js/keeper.js)
@@ -1651,11 +1666,15 @@
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
+    if (u.inClaws && !u.dead && !u.left) { p = clawPos(B, u); var hCl = p.claw && B.units.filter(function (w) { return w.id === u.inClaws.by; })[0]; if (hCl) u.facing = ((hCl.facing || 0) + 4) % 8; } // (in a chuul's claws: drawn at the claw, facing it -- battle.js clawIn, 11-06)
     if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
     if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
     if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)
-    if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
+    // (one that got away -- off the field with its hit points: `fled` -- leaves the screen, faded out where it went, and is never drawn lying there as the fallen are: 11-06, Griz on the yard's
+    // Willem, "he falls prone and lies on the road if he escapes and amara dies?", and the chuul's take, "it looks like it dies")
+    var fledUp = !!(u.dead && u.fled && u.hp > 0);
+    if (u.dead && (!has('hurt') || fledUp) && B.t - (u.deadT || 0) > 50) return null;
     var obj = {
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
         var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4), wield: D.spr.wieldOf(u) }, anim = u.anim, t = B.t - (u.animT || 0); // (wield: the weapon drawn in an empty-handed sheet's hands -- sprites.js S.wield, 10-20)
@@ -1697,7 +1716,8 @@
         var pf = D.spr.proneFrame(u.sheet), prow = D.spr.proneRow(u.sheet); // (prow: its own `prone` row, or its death row -- sprites.js S.proneRow, 10-02)
         if (pf >= 0 && !down && !!u.conds.prone !== !!u.proneLook) { u.proneLook = !!u.conds.prone; u.proneT = B.t; }
         if (down) {
-          if (u.headless && has('headless')) { anim = 'headless'; o.once = true; } // (GreyFang's end, js/trophy.js, 10-08: his Fall without the head, its last frame held)
+          if (fledUp) { anim = has('walk') ? 'walk' : 'idle'; o.alpha = Math.max(0, 1 - (B.t - (u.deadT || 0)) / 50); } // (got away: walking off, fading -- no fall, no tint)
+          else if (u.headless && has('headless')) { anim = 'headless'; o.once = true; } // (GreyFang's end, js/trophy.js, 10-08: his Fall without the head, its last frame held)
           else if (prow === 'prone' && u.proneLook) { anim = 'prone'; o.frame = pf; } // (down while it lies: it stays as it lies)
           else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
@@ -1705,6 +1725,7 @@
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock|taunt|denimdamage|gaze|cannonball|socialsharing|socialflame|socialdistancing|honk|hottake|goingviral|spot|spotlight|guard|lobstahhug|grouphug|lifeline|scimitar|shortbow|nimble|hide|morningstar|javelin|ambush|catch|engulf|digest|slam|battleaxe|crush|darkness|backhand|pounce|drain|mirrorstrike|kneel|overfill|ascend|longbow|slash|volley|whirlwind|parry|backstep|pseudopod|bites|spittle|spikedboneclub|whelm|castup|defend|useitem|victory|attack|interact|secondwind|actionsurge|oilfire|breath|tailspike|tail|touch|antennae|song|enslave|sale)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g) (breath, tailspike, tail: the winter wolf's Cold Breath, the manticore's volley, the aboleth's tail, 10-22)
         // hiding (10-07, the goblin's Hide: its sheet's `hide` row, a crouch behind its shield): the row plays at the Hide (battle.js hide sets it, the once-rows above), and while it stays
         // hidden and would stand idle it keeps the row's last frame -- the crouch held; one that walks or strikes shows that, and one found stands up
+        if (!down && u.inClaws && p.claw && has('flinch')) { anim = 'flinch'; o.frame = D.spr.anim(u.sheet, 'flinch').frames - 1; o.once = false; } // (in its claws: caught, the flinch's last frame held -- battle.js clawIn, 11-06)
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
         // the water elemental holding what it whelmed (SRD 5.1 Whelm, js/ai.js whelm): swollen round them, its Whelm row's last frame held, the hide's way (10-14)
         if (!down && anim === 'idle' && u.whelm && (u.holding || []).some(function (w) { return G.standing(w); }) && has('whelm')) { anim = 'whelm'; o.frame = D.spr.anim(u.sheet, 'whelm').frames - 1; o.once = false; }

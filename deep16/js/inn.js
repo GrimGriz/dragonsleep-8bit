@@ -52,6 +52,8 @@
   // ---------------------------------------------------------------- the floor (the seat's, laid from the realm's battle map; re-laid 11-04 on his "it feels like the road should
   // be running the same way the gulch does over on the left side of the screen instead of the top"): 50 x 40, north up the screen's right as the Gulch's -- the Pit road down
   // the west side (north to the Gulch, south to the Pit), the yard and the barn, the inn, the grass and the path to the point, the lake east
+  // (11-06, the innfights seat: the two crates at the long table's ends -- 20,14 and 27,14 -- moved a square east and to the shelf's end, 28,14 and 35,14: they sealed the table's
+  // north side between the wall and the board, and the supper's fight opens with two of the party sat there -- js/secondact.js A.seatFight; the grid lets nobody squeeze a corner)
   In.ROWS = [
     ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWWW', ',,,".............."""""""""""""""""""""""""nWWWWWW',
     ',,,................""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWWW',
@@ -60,7 +62,7 @@
     ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
     ',,,................"""""""""""""""t""""""""nWWWWWW', ',,,................""""""""""""""""""""""""nWWWWWW',
     ',,,..||||.........."""""""""""""""""""""t""nWWWWWW', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWYYYY',
-    ',,,................BcoooooocoooHHHHoB""""""nWWYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
+    ',,,................BoooooooocooHHHHcB""""""nWWYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
     ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,s...............BooooooooCCjoooooB"""""rrrrYYYY',
     ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
     ',,,................BoomKmoooCCjoooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
@@ -726,6 +728,9 @@
     fledHorses: 'They have the team loose and are away north up the road on the greys, into the dark toward Web Gulch.',
     fledFoot: 'They are away north up the road on foot, into the dark toward Web Gulch.',
     fledYard: 'In the yard the wagon stands where they left it.',
+    // (one of the pair away and the other down -- 11-06, the yard's end RULED: 'fled' only with neither left standing; the chase goes after the one. The seat's lines, `{name}` the one away)
+    fledOneHorses: '{name} has a grey loose and is away north up the road, into the dark toward Web Gulch.',
+    fledOneFoot: '{name} is away north up the road on foot, into the dark toward Web Gulch.',
     book: 'On Willem Glass, a book in a fair hand: his spells, and at the back, the glamour he laid over the children, worked out line by line.',
     soon: '"Once a month there\'s a wagon through," Gennet says. "Good custom."', // (11-05, the Katarina seat: "End of the month" no longer fit -- the first wagon is day 12, a week into the realm's September; invented.json halfway-katarina)
     // the night played on the floor (11-04 later, his words at the pane: the seat's drafts, invented.json halfway-wagon-night-played)
@@ -987,12 +992,13 @@
       yield* In.breakGlamour(B, st, f, Y);
       if (out === 'fled') {
         f.wagonOutcome = 'fled'; f.wagonFled = In.lastFight.loose ? 'horses' : 'foot';
-        yield* In.card(B, [f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420);
+        var one = In.lastFight.amaraUp !== In.lastFight.willemUp ? (In.lastFight.amaraUp ? 'Amara' : 'Willem') : null; // (one away, the other down: the lone runner's line)
+        yield* In.card(B, [one ? (f.wagonFled === 'horses' ? In.WN.fledOneHorses : In.WN.fledOneFoot).split('{name}').join(one) : f.wagonFled === 'horses' ? In.WN.fledHorses : In.WN.fledFoot, In.WN.fledYard], 420);
       } else f.wagonOutcome = 'inn';
       var act = null;
       In.setOffering(f, In.cycle(d), 'kept'); // (the yard stopped: the one she took at the greeting is the one they kept -- the second act is the due's own night since 11-05, js/secondact.js A.dueNight)
-      if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
-      if (act === 'after') { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp }); return; } // (THE CATCH ON THE GULCH ROAM, item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
+      if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [D.chase.ln ? D.chase.ln({ amara: In.lastFight.amaraUp, willem: In.lastFight.willemUp }, 'chase1', L('wagon.chase1')) : L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
+      if (act === 'after') { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp, amara: In.lastFight.amaraUp, willemDead: In.lastFight.willemDead }); return; } // (THE CATCH ON THE GULCH ROAM, item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
       yield* In.yardAfter(B, st, f, In.lastFight.willemDead, In.lastFight.loose);
       morning = L('wagon.morning.inn');
       yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
@@ -1005,7 +1011,8 @@
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
   // the yard fight on the floor's own squares (one map for the floor and the fight): the roam's fight with the yard's rules laid on the floor's fight def for its length --
-  // Willem at the traces, the pair run when he is hit (runWhenHurt), either on the road ends it (fledEnds; the road down the west edge the ways off), three turns unbothered
+  // Willem at the traces, the pair run when he is hit (runWhenHurt), the fight over once neither stands on the field and one is away on the road (fledEnds, js/battle.js over -- RULED 11-06,
+  // his "4 - lean": till then the one left fights on; the road down the west edge the ways off; the chase goes after whoever got away), three turns unbothered
   // and the team is loose (RULED 11-04 §1; js/ai.js traces). The result as the floor's fights leave it (js/roam.js R.after); the record kept with the others
   In.lastFight = {};
   In.yardFight = function* (B, Y) {
@@ -1020,6 +1027,7 @@
     yield* R.engage(B, { foes: foes, why: 'yard', zone: null, flag: 'wagonFought', trig: 'wagonnight' }, false, 'yard');
     var o = R0.lastOutcome; In.lastFight.outcome = o; In.lastFight.round = B.round;
     In.lastFight.loose = !!B.teamLoose; In.lastFight.willemDead = !!(Y.willem && Y.willem.hp <= 0 && !Y.willem.fled);
+    In.lastFight.amaraUp = !!(Y.amara && Y.amara.hp > 0 && (!Y.amara.dead || Y.amara.fled)); // (11-06: a dead Amara rides in no chase -- js/chase.js Ch.place)
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     In.lastFight.willemUp = !!(Y.willem && Y.willem.hp > 0 && (!Y.willem.dead || Y.willem.fled)); // (still up -- away, or standing: he runs with her, and his false pair waits at the fork -- js/chase.js; one away off the floor is `dead` to the grid and `fled`)
     return o === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : 'fled';

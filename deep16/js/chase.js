@@ -23,6 +23,25 @@
   Ch.AWAY = 8;               // (the first catch's way off: the road this many squares on from where it began -- a full stride and a half)
   Ch.WALK_HOURS = 2.7;       // (the inn to the gulch's south mouth, about eight road miles at the SRD's three an hour, and the same back)
   Ch.SQ_HOUR = 300;          // (the gulch's clock: js/gulch.js Gu.RATE)
+  // ONE AWAY (11-06, the yard's end RULED, his "4 - lean": the chase goes after the one who got away, the other down in the yard or the first catch): a lone runner's lines, `{name}` the
+  // one -- the seat's drafts (invented.json halfway-chase-one-away). Willem's trick at the fork keeps its own lines: a pair of runners made of nothing is his to make, alone or not
+  Ch.ONE = {
+    chase1: 'Running feet, north up the road: one shape going hard in the dark. You go after {name}.',
+    mouth: 'Web Gulch, the south mouth, and ahead up the cut one shape on the road, going hard: {name}.',
+    foot: '{g}On foot {name} is slower than you: every three squares of yours, two. Run {name} down.{/}',
+    horses: '{g}On a grey {name} is as fast as you are, and the north mouth is the end of it unless you are faster.{/}',
+    faster: '{g}You are faster than the grey on this road: every square of yours it makes less than one. Run {name} down.{/}',
+    caught1: 'Where the road climbs past the gulch, you run {name} down.',
+    caught2: 'You catch {name} at last. There is nowhere left to run.',
+    chase2: '{name} is away again, north toward the fork and the Tower.',
+    again: 'Square for square now up the cut: catch {name} before the mouth.',
+    fork: 'The north mouth, and the fork beyond it in the first grey of the dawn. {name} pulls up a moment at the parting of the roads --',
+    forkOne: 'There is nowhere left to run.',
+    lostHorses: 'The north mouth, and the grey takes {name} up out of the cut and away. By morning {name} will be in Silverton, and the Tower\'s door opens.',
+    lostEscaped: 'You let {name} go. North, and gone; by morning the Tower\'s door opens.'
+  };
+  Ch.one = function (c) { return !c ? null : c.amara !== false && !c.willem ? 'Amara' : c.amara === false && c.willem ? 'Willem' : null; };
+  Ch.ln = function (c, k, dflt) { var n = Ch.one(c); return n && Ch.ONE[k] ? Ch.ONE[k].split('{name}').join(n) : dflt; };
   Ch.LINES = { // (the seat's drafts beside the first game's wagon.* lines: invented.json halfway-gulch-chase)
     walk: 'The Pit road north in the dark, at a run where the road allows it: two hours and more to where the cut opens. Nothing on the road but the road.',
     mouth: 'Web Gulch, the south mouth, and ahead up the cut two shapes on the road, going hard.',
@@ -52,9 +71,9 @@
   // ---------------------------------------------------------------- from the yard: AFTER THEM
   Ch.start = function* (B, o) { // (o: { horses, willem } -- the yard's own: the team loose or not, Willem still up)
     var R = D.roam, R0 = B.roam, f = R0.flags;
-    f.wagonChase = { horses: !!o.horses, willem: !!o.willem, leg: 1, gap: o.horses ? Ch.START.horses : Ch.START.foot, acc: 0, on: false, steps: 0, back: null, willemDead: false };
+    f.wagonChase = { horses: !!o.horses, willem: !!o.willem, amara: o.amara !== false, leg: 1, gap: o.horses ? Ch.START.horses : Ch.START.foot, acc: 0, on: false, steps: 0, back: null, willemDead: !!o.willemDead }; // (amara: she is up -- the chase goes after whoever got away, 11-06; willemDead: killed in the yard, his book at the walk back)
     if (D.house && D.house.trail) D.house.trail('chase', 'after the wagon pair, ' + (o.horses ? 'on the greys' : 'on foot'));
-    yield* In.card(B, [L('wagon.chase1'), Ch.LINES.walk], 420);
+    yield* In.card(B, [Ch.ln(f.wagonChase, 'chase1', L('wagon.chase1')), Ch.LINES.walk], 420);
     yield* M.pass(B, Ch.WALK_HOURS);
     yield* M.go(B, Gu.KEY, [22, 109], [0, -1]); // (the south mouth: js/gulch.js's south gate, a step in)
   };
@@ -67,15 +86,15 @@
     c.on = true;
     yield* B.camTo({ gx: Ch.roadX(t.y - Math.floor(c.gap / 2)), gy: t.y - Math.floor(c.gap / 2), gz: 0 }, D.iso.zoom, 30);
     var faster = c.horses && Ch.partySpeed(B) > 30;
-    yield* In.card(B, [Ch.LINES.mouth, c.horses ? (faster ? Ch.LINES.faster : Ch.LINES.horses) : Ch.LINES.foot], 480);
+    yield* In.card(B, [Ch.ln(c, 'mouth', Ch.LINES.mouth), c.horses ? (faster ? Ch.ln(c, 'faster', Ch.LINES.faster) : Ch.ln(c, 'horses', Ch.LINES.horses)) : Ch.ln(c, 'foot', Ch.LINES.foot)], 480);
     B.focus(t);
   };
-  Ch.place = function (B, c, y) { // (the pair stood on the road at row y, side by side; Willem only if he is still up)
+  Ch.place = function (B, c, y) { // (the pair stood on the road at row y, side by side; each only if still up -- Amara too since 11-06: a dead Amara rode in the chase)
     var x = Ch.roadX(y);
     Ch.clear(B);
     var mt = !!c.horses; // (on the greys, the pair drawn mounted and one behind the other on the two-square road: each a Large 2x2 -- js/battle.js Battle.mountUp, 11-05, RULED "Yes, as leaned")
-    Ch.amara = In.unit(B, { id: 'chaseAmara', kind: 'amara', at: [x, y], name: 'Amara', face: [0, -1], foe: true });
-    Ch.willem = c.willem ? In.unit(B, { id: 'chaseWillem', kind: 'willem', at: mt ? [Ch.roadX(y + 2), y + 2] : [x + 1, y], name: 'Willem Glass', face: [0, -1], foe: true }) : null;
+    Ch.amara = c.amara !== false ? In.unit(B, { id: 'chaseAmara', kind: 'amara', at: [x, y], name: 'Amara', face: [0, -1], foe: true }) : null;
+    Ch.willem = c.willem ? In.unit(B, { id: 'chaseWillem', kind: 'willem', at: mt && Ch.amara ? [Ch.roadX(y + 2), y + 2] : [x + (Ch.amara ? 1 : 0), y], name: 'Willem Glass', face: [0, -1], foe: true }) : null;
     if (mt) [Ch.amara, Ch.willem].forEach(function (u) { if (u) D.Battle.mountUp(B, u, 40); });
     c.y = y;
   };
@@ -98,7 +117,7 @@
     var R = D.roam, R0 = B.roam, f = R0.flags, F = B.fight, keep = {}, pair = Ch.pair(B), last = c.leg >= 2;
     ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
     c.on = false;
-    yield* In.card(B, [last ? L('wagon.caught2') : L('wagon.caught1')], 360);
+    yield* In.card(B, [last ? Ch.ln(c, 'caught2', L('wagon.caught2')) : Ch.ln(c, 'caught1', L('wagon.caught1'))], 360);
     var exits = [];
     if (!last) { for (var y = Math.max(0, c.y - Ch.AWAY - 3); y <= Math.max(0, c.y - Ch.AWAY); y++) { var x = Ch.roadX(y); exits.push([x, y], [x + 1, y]); } }
     F.runWhenHurt = null; F.fledEnds = !last; F.loosen = null; F.exit = exits; F.noFlee = last;
@@ -111,25 +130,25 @@
     if (Ch.willem && (Ch.willem.hp <= 0 || Ch.willem.dead) && !Ch.willem.fled) c.willemDead = true;
     if (/^(lost|lose|dead|ko)$/.test(String(o))) return; // (the title: js/roam.js R.after)
     if (o === 'won' || (last && o !== 'escaped')) { yield* Ch.done(B, c, 'road'); return; }
-    if (o === 'escaped') { yield* In.card(B, [Ch.LINES.lostEscaped], 420); yield* Ch.done(B, c, 'fled'); return; }
+    if (o === 'escaped') { yield* In.card(B, [Ch.ln(c, 'lostEscaped', Ch.LINES.lostEscaped)], 420); yield* Ch.done(B, c, 'fled'); return; }
     // away again: up the cut toward the fork, square for square (the first game's chase2)
-    c.leg = 2; c.willem = !!(Ch.willem && Ch.willem.hp > 0 && (!Ch.willem.dead || Ch.willem.fled)); c.acc = 0; // (away off the floor is `dead` to the grid and `fled`: still up)
+    c.leg = 2; c.willem = !!(Ch.willem && Ch.willem.hp > 0 && (!Ch.willem.dead || Ch.willem.fled)); c.amara = !!(Ch.amara && Ch.amara.hp > 0 && (!Ch.amara.dead || Ch.amara.fled)); c.acc = 0; // (away off the floor is `dead` to the grid and `fled`: still up; the one killed in the first catch is not placed again -- 11-06)
     var t = R0.token; Ch.place(B, c, Math.max(1, t.y - Ch.START.foot));
-    yield* In.card(B, [L('wagon.chase2'), Ch.LINES.again], 420);
+    yield* In.card(B, [Ch.ln(c, 'chase2', L('wagon.chase2')), Ch.ln(c, 'again', Ch.LINES.again)], 420);
     c.on = true;
   };
   // the north mouth: with the greys, lost; on foot, the fork -- Willem's false pair if he is up, and the last catch
   Ch.mouth = function* (B, c) {
     var R0 = B.roam, f = R0.flags, t = R0.token;
     c.on = false;
-    if (c.horses) { yield* In.card(B, [Ch.LINES.lostHorses], 480); f.towerFled = 1; Ch.clear(B); yield* Ch.done(B, c, 'fled'); return; }
-    yield* In.card(B, [Ch.LINES.fork], 360);
+    if (c.horses) { yield* In.card(B, [Ch.ln(c, 'lostHorses', Ch.LINES.lostHorses)], 480); f.towerFled = 1; Ch.clear(B); yield* Ch.done(B, c, 'fled'); return; }
+    yield* In.card(B, [Ch.ln(c, 'fork', Ch.LINES.fork)], 360);
     if (c.willem) {
       yield* In.card(B, [Ch.LINES.forkTwo], 360);
       var a = yield* In.ask(B, 'THE FORK', [Ch.LINES.forkTwo], [Ch.LINES.opts.north, Ch.LINES.opts.west]);
       if (a !== 0) { yield* In.card(B, [L('wagon.fakeRider'), Ch.LINES.west], 480); f.towerFled = 1; Ch.clear(B); yield* Ch.done(B, c, 'fled'); return; }
       yield* In.card(B, [L('wagon.fakeRider').replace('Your hand goes through them. ', 'The pair going west thin and are gone: ')], 300);
-    } else yield* In.card(B, [Ch.LINES.forkOne], 300);
+    } else yield* In.card(B, [Ch.ln(c, 'forkOne', Ch.LINES.forkOne)], 300);
     // the last catch at the mouth: the pair stood two squares up the road from the party, nowhere left to run
     Ch.place(B, c, Math.max(1, t.y - Ch.CATCH)); c.leg = 2;
     yield* Ch.caught(B, c);

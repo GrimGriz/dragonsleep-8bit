@@ -836,11 +836,15 @@
     abil: { str: 19, dex: 10, con: 16, int: 5, wis: 11, cha: 5 }, init: 0, perception: 14,
     saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
-      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2, only: true, size: 'L' } }, // (only: grappled, not restrained -- SRD 5.1's chuul, 10-06; its frog and the otyugh do restrain)
+      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2, only: true, size: 'L', claws: true } }, // (only: grappled, not restrained -- SRD 5.1's chuul, 10-06; its frog and the otyugh do restrain)
+      // (claws: A HOUSE RULE, RULED 11-06 -- Griz to the lanes desk: "i'm tempted to break the SRD and have it actually have the grappled character in its claws, discuss", then "Yeah, the lake fight is
+      // climax, we should go fancy. Can we make a successful grab look like a lunge-return to actual position?" -- the desk's lean taken whole: the one a pincer takes hold of is pulled in from its
+      // 10-ft reach to its side at the grab, the chuul lunging out and back to its own square, and is carried in its claws -- the SRD's carry, at half speed; it never carries a hero into the
+      // deep, only the inn lady goes down (js/battle.js Battle.clawIn, js/secondact.js the take). The SRD's chuul holds at reach and does not pull: the pull is the break)
       tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 10, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
     },
     multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
-    src: 'SRD 5.1 Chuul (CR 4, Large): two pincers (reach 10, grappled, escape DC 14), the tentacles on one it holds (CON 13 or poisoned and paralyzed); content/monsters.json chuul. It swims: the water does not slow it'
+    src: 'SRD 5.1 Chuul (CR 4, Large): two pincers (reach 10, grappled, escape DC 14), the tentacles on one it holds (CON 13 or poisoned and paralyzed); content/monsters.json chuul. It swims: the water does not slow it. HOUSE RULE (11-06, his word): the one a pincer grapples is pulled in from its reach and carried in its claws -- never a hero into the deep'
   },
   // the Hex floor (events.js, Fight Night's floor): brawlers and a card bruiser, the ladder's level-1 set piece
   brawler: {

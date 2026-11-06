@@ -2340,13 +2340,187 @@
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 4 && f6.doranFights === 1 && !Y6.orrin && !Y6.pell && [Y6.kid].every(function (u) { return u.bystander && u.look; })); // (the boys stay in, 11-05: his "I don't think she'd bring the boys out")
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 15 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 16 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
       HAc.playing = false; HAc.cur = null;
     } catch (eAc) { if (eAc !== 'probe done') repAc.errors.push(String(eAc && eAc.stack || eAc).slice(0, 900)); }
     HAc.playing = false; HAc.cur = null; if (InAc) { InAc.stay = false; InAc.pinned = null; }
     D.store.get = stGAc; D.store.set = stSAc; D.music = muAc;
     var preAc = document.createElement('pre'); preAc.id = 'out'; preAc.textContent = 'BENCH16 ' + JSON.stringify(repAc);
     document.body.appendChild(preAc);
+    return;
+  }
+  // THE INN'S FIGHTS, 11-06 (mode=innfights1106; the innfights-1106 seat, started by the lanes desk on Griz's eye on the inn's 11-05 rows and his rulings that day -- the Halfway Inn
+  // lane's 11-06 section, items 1-6, and THE CLAWS, RULED 11-06: "Yeah, the lake fight is climax, we should go fancy. Can we make a successful grab look like a lunge-return to actual
+  // position?"): 1. the chuul's claws on the four (js/battle.js Battle.clawIn: the lunge, in its claws, carried at half speed, the other claw for a second, a Large one held where it
+  // stands, set down beside it at the escape, never into the deep); 2. the bystander takes no opportunity attack; 3. the yard's end (js/battle.js over: 'fled' only with none standing);
+  // 4. one that got away fades off, never drawn lying; 5. THE TAKE (js/secondact.js): unattacked it grabs her and goes down with her; struck at with her in its claws it drops her and
+  // fights; hurt before it rises it fights from the first; 6. the supper's fight at the table, the chimney faint, the walk out back; 7. the lantern's line names the weapon raised
+  if (get('mode', '') === 'innfights1106') {
+    var repIf = { checks: [], errors: [] }, memIf = {}, TIf = D.town, H6If = D.hours, stGIf = D.store.get, stSIf = D.store.set, HIf = D.house, CIf = D.counter, RIf = D.roam, InIf = D.inn, AIf = D.secondact, G6 = D.grid, RU6 = D.rules, d0If = D.d, muIf = D.music, drawIf0 = D.spr.draw;
+    function okIf(what, v) { repIf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runIf(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function pinIf(seq) { var i = 0; D.d = function (n) { return n === 20 && i < seq.length ? seq[i++] : d0If(n); }; }
+    function sqAt(u, h, ft) { for (var r = 1; r <= 6; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x = h.x + dx, y = h.y + dy; if (G6.canStand(u, x, y) && G6.dist(h, u, null, null, x, y) === ft) { u.x = x; u.y = y; delete u.tween; return true; } } return false; }
+    function px(a, b) { return Math.round(Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))); }
+    var spyIf = []; function spyOn() { spyIf = []; D.spr.draw = function (ctx, sheet, anim, f, t, x, y, o) { spyIf.push({ sheet: sheet, anim: anim, alpha: o && o.alpha, x: x, y: y }); return drawIf0.apply(this, arguments); }; } function spyOff() { D.spr.draw = drawIf0; }
+    var cvIf = document.createElement('canvas'); cvIf.width = 64; cvIf.height = 64; var cxIf = cvIf.getContext('2d');
+    // the floor's script driven on (mode=winters1105's helpers, as there)
+    function driveIf(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topIf() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upIf() { return D.top() instanceof CIf.Counter; }
+    function trigIf(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function fireIf(B, id) { var tr = trigIf(id); if (!tr) return null; var g = TIf.fire(B, tr); driveIf(g, upIf, 600); return g; }
+    function clickIf(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goIf(sc, go, label) { var b = sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]; return clickIf(sc, b); }
+    function readIf(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goIf(sc, 'next'); } return out; }
+    function inIf(B, id) { driveIf(TIf.fire(B, trigIf(id)), null, 600); return D.roam.def.room === id; }
+    function askIf(sc) { return (sc && sc.wait && sc.wait.ask || []).join(' '); }
+    function strip(s) { return window.DS.stripCodes ? window.DS.stripCodes(String(s || '')) : String(s || '').replace(/\{[a-z\/]\}/g, ''); }
+    // the floor's script driven on (mode=secondact1104's flowAc): prompts and counters answered from `ans` by label, the watches begun with Lymen on the second, each card seen once, each morning woken
+    function wakeIf() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    function stageIf(q, extra, before) { var B = RIf.make(q + '&watch'); Object.assign(RIf.flags0, extra || {}); D.scenes.length = 0; D.push(B); topIf(); if (before) before(D.top()); return D.top(); }
+    function atIf(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function flowIf(B, ans, hook) {
+      var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
+      B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 90000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CIf.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('> ' + w.opts[i0]); if (hook) hook(w.opts[i0], B); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HIf.Morning) { quiet = 0; seen.push(wakeIf()); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); s.go('begin'); continue; }
+        if (s !== B && s instanceof D.Battle && s.roam) { seen.push('FLOOR: ' + (RIf.def && RIf.def.key)); break; }
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt, a = q.length ? q.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push((p.lines || []).join(' ') + ' [' + p.opts.map(function (o) { return o.label; }).join(' | ') + ']'); seen.push('> ' + p.opts[i].label); v = p.opts[i].value; quiet = 0; if (hook) hook(p.opts[i].label, B); continue; }
+        quiet = 0;
+      }
+      return strip(seen.join(' / '));
+    }
+    var BASEIf = 'wagonIn,dueTonight,kidTaken,glamourBroken,glamourSeen,wagonStopped,kidAtInn,doranAway,katGone,reachedInn,mealHad,gennetNamed';
+    var sl = function (o, re, n) { var i = o.search(re); return i < 0 ? o.slice(0, n || 400) : o.slice(Math.max(0, i - 60), i + (n || 900)); };
+    D.store.get = function (k) { return memIf[k] ? JSON.parse(memIf[k]) : null; }; D.store.set = function (k, v) { memIf[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    var unit0If = InIf.unit, ai0If = D.ai.turn;
+    try {
+      D.seed = +get('seed', 1106);
+      // ---------------------------------------------------------------- 1. THE CLAWS ON THE FOUR (a scratch fight: the chuul against three)
+      var Bc = D.npcFight('?npc=chuul,giantfrog&lvl=5&vs=fighter:5,cleric:5,wizard:5', {}); D.battle = Bc; Bc.enter(); while (!Bc.order.length) Bc.co.next(); Bc.dark = false; D.ui.urlMenu = null; Bc.answer = function () { this.req = null; };
+      var ch = Bc.units.filter(function (w) { return w.kind === 'chuul'; })[0], frog = Bc.units.filter(function (w) { return w.kind === 'giantfrog'; })[0];
+      var fg = Bc.units.filter(function (w) { return w.side === 'party' && w.cls === 'fighter'; })[0], cl = Bc.units.filter(function (w) { return w.side === 'party' && w.cls === 'cleric'; })[0], wz = Bc.units.filter(function (w) { return w.side === 'party' && w.cls === 'wizard'; })[0];
+      ch.hp = ch.maxhp = 400; frog.x = 0; frog.y = 0; frog.hp = frog.maxhp = 400; frog.conds.asleep = { by: 'bench' };
+      var spot = null; for (var yy = 2; yy < 40 && !spot; yy++) for (var xx = 2; xx < 40 && !spot; xx++) if (G6.canStand(ch, xx, yy) && [fg, cl, wz].every(function (w) { return G6.dist(w, ch, null, null, xx, yy) > 20; })) spot = [xx, yy];
+      ch.x = spot[0]; ch.y = spot[1];
+      ch.facing = 0; var st1 = sqAt(fg, ch, 10), from1 = [fg.x, fg.y]; sqAt(cl, ch, 30); sqAt(wz, ch, 30); G6.setup(G6.map, Bc.units);
+      RU6.startTurn(ch); Bc.active = ch; var pin1 = ch.attacks.pincer;
+      pinIf([18, 18]); runIf(Bc.attack(ch, fg, pin1)); D.d = d0If;
+      var tw1 = ch.tween, held1 = !!(fg.inClaws && fg.inClaws.by === ch.id), occ1 = G6.occupant(from1[0], from1[1]), sp1 = RU6.speedNow(ch);
+      okIf('a hero in its claws: the pincer hits the fighter 10 ft off (stood ' + st1 + ') -- held ' + held1 + ' (' + JSON.stringify(fg.conds.restrained) + '), on its square ' + (fg.x === ch.x && fg.y === ch.y) + ', the square it stood on free ' + !occ1 + ', the lunge ' + (tw1 && tw1.mode) + ' (' + (tw1 && [tw1.lx.toFixed(2), tw1.ly.toFixed(2)]) + '), its speed ' + sp1 + ' (half, carrying)',
+        st1 && held1 && fg.conds.restrained && fg.conds.restrained.grapple && fg.x === ch.x && fg.y === ch.y && !occ1 && tw1 && tw1.mode === 'lunge' && Math.abs(tw1.lx) + Math.abs(tw1.ly) > 0.5 && sp1 === 15);
+      // the look: out (the held one still where it stood), the turn of it (the claw meets it), home (at the claw, lifted, beside the body)
+      var UIf = D.ui, fromPos = UIf.unitPos(Bc, { x: from1[0], y: from1[1], size: 1 });
+      tw1.t = Math.round(tw1.dur * 0.2); var pOut = UIf.clawPos(Bc, fg), chOut = UIf.unitPos(Bc, ch);
+      tw1.t = Math.ceil(tw1.dur * 0.4); var pMeet = UIf.clawPos(Bc, fg), chPeak = UIf.unitPos(Bc, ch);
+      delete ch.tween; var pHome = UIf.clawPos(Bc, fg), chHome = UIf.unitPos(Bc, ch);
+      var c00 = D.iso.center(0, 0, 0), c09 = D.iso.center(0, 0, 9), Lft = D.iso.toScreen(c09.x, c09.y).y - D.iso.toScreen(c00.x, c00.y).y, fromLift = { x: fromPos.x, y: fromPos.y + Lft };
+      okIf('the lunge as drawn: going out the fighter stands where it stood (' + px(pOut, fromPos) + ' px), the body surges ' + px(chPeak, chHome) + ' px and the claw meets it at the turn (' + px(pMeet, fromLift) + ' px off its square, lifted ' + Math.round(-Lft) + '), home it is at the claw ' + px(pHome, chHome) + ' px from the body',
+        px(pOut, fromPos) <= 1 && px(chPeak, chHome) >= 10 && px(pMeet, fromLift) <= 3 && px(pHome, chHome) >= 5 && px(pHome, chHome) <= 160 && pHome.claw === true);
+      // the second grab: the other claw; a Large one (Enlarged) is held where it stands
+      sqAt(cl, ch, 10); G6.setup(G6.map, Bc.units); RU6.startTurn(ch); pinIf([18]); runIf(Bc.attack(ch, cl, pin1)); D.d = d0If; delete ch.tween;
+      var two = !!(cl.inClaws && fg.inClaws && cl.inClaws.side === -fg.inClaws.side), pCl = UIf.clawPos(Bc, cl), pFg = UIf.clawPos(Bc, fg);
+      Bc.release(ch, cl); var clDown = [cl.x, cl.y], clBeside = G6.dist(ch, cl) <= 5 && !(cl.x === ch.x && cl.y === ch.y) && !cl.inClaws && G6.occupant(cl.x, cl.y) === cl;
+      sqAt(wz, ch, 10); wz.conds.enlarged = { down: false }; G6.setup(G6.map, Bc.units); var wzAt = [wz.x, wz.y]; RU6.startTurn(ch); pinIf([18]); runIf(Bc.attack(ch, wz, pin1)); D.d = d0If; delete ch.tween;
+      var bigHeld = wz.conds.restrained && wz.conds.restrained.by === ch.id, bigStays = wz.x === wzAt[0] && wz.y === wzAt[1] && !wz.inClaws;
+      okIf('the second grab takes the other claw (' + (cl.inClaws ? cl.inClaws.side : 'none') + ' against ' + fg.inClaws.side + ', drawn ' + px(pCl, pFg) + ' px apart) ' + two + '; let go, set down beside it at ' + clDown + ' ' + clBeside + '; an Enlarged (Large) one grappled ' + !!bigHeld + ' where it stood, not pulled in ' + bigStays,
+        two && px(pCl, pFg) >= 12 && clBeside && bigHeld && bigStays);
+      Bc.release(ch, wz); delete wz.conds.enlarged;
+      // the escape: free of the grip, set down beside it on the claw's side, and walks from there
+      RU6.startTurn(fg); pinIf([20]); runIf(D.magic.breakFree(Bc, fg)); D.d = d0If;
+      var esc = !fg.inClaws && !(fg.conds.restrained) && !(fg.x === ch.x && fg.y === ch.y) && G6.dist(ch, fg) <= 5 && G6.occupant(fg.x, fg.y) === fg, spAfter = RU6.speedNow(ch);
+      okIf('the fighter breaks the grip: set down beside it at ' + fg.x + ',' + fg.y + ' ' + esc + ', the chuul\'s speed whole again ' + spAfter + ', the move left the fighter ' + fg.turn.move, esc && spAfter === 30 && fg.turn.move > 0);
+      // it never carries a hero into the deep: its squares made deep water for the test, the step's carry lets the hero go at the edge
+      sqAt(fg, ch, 10); G6.setup(G6.map, Bc.units); RU6.startTurn(ch); pinIf([18]); runIf(Bc.attack(ch, fg, pin1)); D.d = d0If; delete ch.tween;
+      var deepSq = G6.foot(ch).map(function (q) { return G6.map.at(q[0], q[1]); }), deep0 = deepSq.map(function (s) { return s.deep; }); deepSq.forEach(function (s) { s.deep = true; });
+      Bc.cards = []; Bc.clawAlong(ch); var cardDeep = (Bc.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ');
+      deepSq.forEach(function (s, i) { s.deep = deep0[i]; });
+      okIf('into the deep with a hero in its claws: let go at the water\'s edge (' + !fg.inClaws + ', at ' + fg.x + ',' + fg.y + ') -- "' + strip(cardDeep).slice(0, 160) + '"', !fg.inClaws && !(fg.x === ch.x && fg.y === ch.y) && /at the water's edge/.test(cardDeep));
+      // down, the held one is let fall: the sweep
+      sqAt(fg, ch, 10); G6.setup(G6.map, Bc.units); RU6.startTurn(ch); pinIf([18]); runIf(Bc.attack(ch, fg, pin1)); D.d = d0If; delete ch.tween;
+      var hp0 = ch.hp; ch.hp = 0; Bc.sweep(); var letFall = !fg.inClaws && !(fg.x === ch.x && fg.y === ch.y); ch.hp = hp0; ch.dead = false;
+      okIf('the chuul down: the one in its claws let fall beside it ' + letFall + ' (' + fg.x + ',' + fg.y + ')', letFall);
+      // ---------------------------------------------------------------- 2. THE BYSTANDER TAKES NO OPPORTUNITY ATTACK (the inn lady sat yielded on the path took one, 19:32:50Z)
+      var arm = G6.armOf(ch); sqAt(fg, ch, arm); G6.setup(G6.map, Bc.units); RU6.startTurn(fg); ch.reaction = 1; ch.bystander = true;
+      var away = null; for (var dy2 = -1; dy2 <= 1 && !away; dy2++) for (var dx2 = -1; dx2 <= 1 && !away; dx2++) { var ax = fg.x + dx2, ay = fg.y + dy2; if ((dx2 || dy2) && G6.canStand(fg, ax, ay) && G6.dist(ch, fg, null, null, ax, ay) > arm) away = [ax, ay]; }
+      var fgAt = [fg.x, fg.y]; if (away) runIf(Bc.moveAlong(fg, [away], { spend: true })); var r2a = ch.reaction;
+      fg.x = fgAt[0]; fg.y = fgAt[1]; delete fg.tween; delete ch.bystander; RU6.startTurn(fg); ch.reaction = 1; var hpF = fg.hp; fg.hp = fg.maxhp = 999; if (away) runIf(Bc.moveAlong(fg, [away], { spend: true })); var r2b = ch.reaction; fg.hp = fg.maxhp = hpF; if (fg.inClaws) Bc.release(ch, fg);
+      okIf('the opportunity attack: from a bystander none (its reaction ' + r2a + '), from the same one not a bystander one (' + r2b + ') -- the step ' + away, !!away && r2a === 1 && r2b === 0);
+      // ---------------------------------------------------------------- 3. THE YARD'S END (Battle.over with fledEnds): one away and one standing goes on; none standing, 'fled'; both down, not 'fled'
+      Bc.fight.fledEnds = true; ch.dead = false; ch.hp = 50; frog.dead = true; frog.fled = true; frog.hp = 5; frog.deadT = Bc.t;
+      var o3a = Bc.over(); ch.hp = 0; ch.dead = true; var o3b = Bc.over(); frog.fled = false; frog.hp = 0; var o3c = Bc.over();
+      var Chf = D.chase, oneA = Chf.ln({ amara: true, willem: false }, 'caught1', 'X'), oneW = Chf.ln({ amara: false, willem: true }, 'chase2', 'X'), both = Chf.ln({ amara: true, willem: true }, 'caught1', 'X');
+      okIf('the yard\'s end: one away and one standing ' + o3a + ', the other down too ' + o3b + ', both down ' + o3c + '; the chase\'s lone lines: "' + oneA + '" / "' + oneW + '" / the pair "' + both + '"',
+        o3a !== 'fled' && o3b === 'fled' && o3c !== 'fled' && /run Amara down/.test(oneA) && /^Willem is away again/.test(oneW) && both === 'X');
+      Bc.fight.fledEnds = false; ch.dead = false; ch.hp = 50; frog.dead = false; frog.hp = 5; frog.fled = false;
+      // ---------------------------------------------------------------- 4. ONE THAT GOT AWAY FADES OFF, never drawn lying (Willem on the road, the chuul's take)
+      spyOn(); ch.dead = true; ch.fled = true; ch.deadT = Bc.t; ch.hp = 50; var o4 = UIf.unitObj(Bc, ch); if (o4) o4.draw(cxIf); var s4a = spyIf.filter(function (s) { return s.sheet === ch.sheet; })[0] || {};
+      spyIf = []; Bc.t += 25; o4 = UIf.unitObj(Bc, ch); if (o4) o4.draw(cxIf); var s4b = spyIf.filter(function (s) { return s.sheet === ch.sheet; })[0] || {}; Bc.t += 30; var gone4 = !UIf.unitObj(Bc, ch);
+      ch.fled = false; ch.hp = 0; ch.deadT = Bc.t; spyIf = []; o4 = UIf.unitObj(Bc, ch); if (o4) o4.draw(cxIf); var s4c = spyIf.filter(function (s) { return s.sheet === ch.sheet; })[0] || {}; spyOff();
+      okIf('got away: drawn ' + s4a.anim + ' at alpha ' + s4a.alpha + ', then ' + s4b.anim + ' ' + (s4b.alpha != null ? s4b.alpha.toFixed(2) : s4b.alpha) + ', gone after ' + gone4 + '; killed (hp 0) it is drawn ' + s4c.anim,
+        s4a.anim && s4a.anim !== 'hurt' && s4b.alpha > 0.2 && s4b.alpha < 0.8 && gone4 && s4c.anim === 'hurt');
+      ch.dead = false; ch.hp = 50;
+      // ---------------------------------------------------------------- 7. THE LANTERN LET FALL names the weapon raised (Gennet's 19:30:08Z R1: "the Dagger", then her crossbow)
+      var xbId = window.DS.DATA.items.lightcrossbow ? 'lightcrossbow' : null, eq0 = cl.src.equip.weapon;
+      cl.src.equip.weapon = xbId; var xb = D.save.weaponOf(cl.src); cl.src.equip.weapon = eq0;
+      cl.torch = D.light.make('lantern', false); D.light.regrip(cl); var mainN = cl.weapon.name; cl.weapon = xb; sqAt(cl, ch, 20); G6.setup(G6.map, Bc.units); RU6.startTurn(cl); Bc.active = cl; Bc.cards = [];
+      runIf(Bc.attack(cl, ch, xb)); var c7 = strip((Bc.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '));
+      okIf('the lantern let fall to take the ' + (xb && xb.name) + ' (two-handed ' + (xb && (xb.props || []).indexOf('two-handed') >= 0) + ', the hand\'s own ' + mainN + '): "' + (c7.match(/lets the [^.]+\./) || ['none'])[0] + '"',
+        !!xb && new RegExp('fall to take the ' + xb.name.replace(/[.()]/g, '\\$&') + ' in both hands').test(c7) && mainN !== xb.name && !new RegExp('take the ' + mainN).test(c7));
+      // ---------------------------------------------------------------- 5. THE TAKE (the nearest offering, STAY AT THE WATER: Gennet on the path where she sits, the party by the stone)
+      HIf.playing = false; HIf.cur = null; while (D.scenes.length) D.pop();
+      var cRef = null, seen5 = {}, mkTake = function (o) { return function (B, u0) { var u = unit0If.apply(this, arguments); if (u0.kind === 'chuul') { cRef = u; u.init = 40; u.attacks = JSON.parse(JSON.stringify(u.attacks)); u.attacks.pincer.atk = 40; u.hp = u.maxhp = 30; if (o.hurt) u.hp = 25; } if (u0.kind === 'giantfrog') { u.hp = u.maxhp = 1; u.conds.asleep = { by: 'bench' }; } return u; }; };
+      // (the four hold their hands while it takes her -- no blow, no opportunity attack: under &watch they are guests run by js/ai.js turn, the class tactics; once it has gone down,
+      // or turned, they fight the frog as ever. The strike: the first of them to act once she is in its claws swings at it)
+      var holdOff = function (o) { return function* (B, u) {
+        var c = cRef, on = !!(c && c.take && !c.take.off);
+        if (on && u === c) B.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; });
+        if (u.side === 'party' && c && !seen5.script) seen5.script = c.script || 'none';
+        if (on && u.side === 'party') { if (o.strike && c.take.g && c.take.g.inClaws) { seen5.struck = u.name; seen5.gAt = [c.take.g.x, c.take.g.y]; yield* B.attack(u, c, u.weapon || u.attacks[Object.keys(u.attacks)[0]]); seen5.gAfter = [c.take.g.x, c.take.g.y, !!c.take.g.inClaws, c.x, c.y]; return; } yield 4; return; }
+        yield* ai0If.apply(this, arguments);
+      }; };
+      var run5 = function (o) {
+        cRef = null; seen5 = {}; InIf.unit = mkTake(o); D.ai.turn = holdOff(o);
+        var B5 = stageIf('?roam=halfway&hour=23&day=' + InIf.WAGON.first + '&at=38,18&flags=' + BASEIf + ',gennetYield', { secondAct: { beat: 'offer' } });
+        var out = flowIf(B5, ['STAY AT THE WATER']); InIf.unit = unit0If; D.ai.turn = ai0If;
+        return { o: out, f: B5.roam.flags, c: cRef, s: seen5 };
+      };
+      var t5a = run5({});
+      okIf('THE TAKE, never struck at: ' + sl(t5a.o, /turns toward Gennet/, 900) + ' -- taken ' + t5a.f.gennetTaken + ', the lake done ' + !!t5a.f.lakeDone + ', it went down (fled ' + !!(t5a.c && t5a.c.fled) + ', hp ' + (t5a.c && t5a.c.hp) + '), its turn the take\'s (' + t5a.s.script + ')',
+        /turns toward Gennet Waterby: the nearest offering/.test(t5a.o) && /IN ITS CLAWS/.test(t5a.o) && /It has her\. It goes down into the deep/.test(t5a.o) && t5a.f.gennetTaken === 1 && !t5a.f.lakeDone && !t5a.f.gennetDead && t5a.c && t5a.c.fled && t5a.c.hp > 0 && t5a.s.script === 'lakeTake' && /He will let you a room/.test(t5a.o));
+      var t5b = run5({ strike: true });
+      okIf('THE TAKE, struck at with her in its claws (' + t5b.s.struck + '): ' + sl(t5b.o, /fall from its claw/, 500) + ' -- she was at ' + t5b.s.gAt + ', after ' + t5b.s.gAfter + '; taken ' + !!t5b.f.gennetTaken + ', the lake done ' + t5b.f.lakeDone,
+        /IN ITS CLAWS/.test(t5b.o) && /lets Gennet Waterby fall from its claw and turns on /.test(t5b.o) && !!t5b.s.gAfter && t5b.s.gAfter[2] === false && !(t5b.s.gAfter[0] === t5b.s.gAfter[3] && t5b.s.gAfter[1] === t5b.s.gAfter[4]) && !t5b.f.gennetTaken && t5b.f.lakeDone === 1 && !/It has her\. It goes down/.test(t5b.o));
+      var t5c = run5({ hurt: true });
+      okIf('THE TAKE, hurt before it rises: its turn ' + t5c.s.script + ', no nearest-offering line ' + !/the nearest offering\./.test(t5c.o.replace(/It turns toward the one on the path: the nearest offering\./, '')) + ', taken ' + !!t5c.f.gennetTaken + ', the lake done ' + t5c.f.lakeDone,
+        t5c.s.script === 'none' && !/IN ITS CLAWS/.test(t5c.o) && !t5c.f.gennetTaken && t5c.f.lakeDone === 1);
+      // ---------------------------------------------------------------- 6. THE SUPPER'S FIGHT AT THE TABLE (winters1105 22's night: the first to eat asleep, the dice pinned)
+      HIf.playing = false; HIf.cur = null; while (D.scenes.length) D.pop();
+      var P0 = { taste: AIf.POISON.taste, watch: AIf.POISON.watch }; AIf.POISON.taste = 99; AIf.POISON.watch = 99;
+      var seat0 = AIf.seatFight, seat6 = null, chim6 = null;
+      D.ai.turn = function* (B, u) { if (chim6 == null && B.roam && B.roam.mode === 'fight') chim6 = D.innprops && D.innprops.fightOn ? D.innprops.fightOn() : 'none'; yield* ai0If.apply(this, arguments); }; // (the chimney faint while the fight is on: read at the first turn the AI runs in it)
+      AIf.seatFight = function (B) { seat0.apply(this, arguments); seat6 = B.units.filter(function (u) { return u.side === 'party' || u.kind === 'gennet' || u.kind === 'doran'; }).map(function (u) { return u.name + '@' + u.x + ',' + u.y + (u.conds.asleep ? ' asleep' : '') + (u.conds.prone ? ' prone' : ''); }); };
+      InIf.unit = function (B, o) { var u = unit0If.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; if (o.kind === 'gennet') u.hp = 17; if (o.kind === 'doran') { u.hp = u.maxhp = 40; } return u; };
+      var B6 = stageIf('?roam=halfway&hour=18&day=' + InIf.dueDay(0) + '&at=24,17&flags=reachedInn,mealHad,gennetNamed,katGone', { wagonCycle: 0, wagonOutcome: 'road', dueOffC: 0, dueOff: 'none' }); B6.roam.silver = 30; atIf(B6, 24, 17, [0, -1]); InIf.pinned = [2, 19, 19, 19];
+      var o6 = flowIf(B6, [0]), f6 = B6.roam.flags; InIf.pinned = null; InIf.unit = unit0If; AIf.seatFight = seat0; D.ai.turn = ai0If; AIf.POISON.taste = P0.taste; AIf.POISON.watch = P0.watch;
+      var T6 = InIf.TABLE, seatsOk = !!seat6 && T6.seats.every(function (q) { return seat6.some(function (s) { return new RegExp('@' + q[0] + ',' + q[1] + '( |$)').test(s); }); }) && seat6.some(function (s) { return /^Gennet Waterby@24,14/.test(s); }) && seat6.some(function (s) { return /^Doran Waterby@20,15/.test(s); }) && seat6.some(function (s) { return / asleep prone/.test(s); });
+      okIf('the supper\'s fight at the table: ' + (seat6 || []).join('; ') + ' -- the chimney faint in it ' + chim6 + '; Doran never "cannot get at anyone" ' + !/Doran Waterby paces: it cannot get at anyone/.test(o6) + '; then out back: ' + (/It comes halfway up/.test(o6) ? sl(o6, /It comes halfway up/, 160) : sl(o6, /INITIATIVE/, 3000)) + ' -- the lake done ' + f6.lakeDone,
+        seatsOk && chim6 === true && !/Doran Waterby paces: it cannot get at anyone/.test(o6) && /It comes halfway up/.test(o6) && !/Nothing stands on the stone/.test(o6) && f6.doranConfessed === 1 && f6.lakeDone === 1);
+    } catch (eIf) { repIf.errors.push(String(eIf && eIf.stack || eIf).slice(0, 900)); }
+    D.d = d0If; spyOff(); InIf.unit = unit0If; D.ai.turn = ai0If; HIf.playing = false; HIf.cur = null; if (InIf) { InIf.stay = false; InIf.pinned = null; }
+    D.store.get = stGIf; D.store.set = stSIf; D.music = muIf;
+    var preIf = document.createElement('pre'); preIf.id = 'out'; preIf.textContent = 'BENCH16 ' + JSON.stringify(repIf);
+    document.body.appendChild(preIf);
     return;
   }
   // WINTERS' RING AND THE CHUUL, 11-05 (mode=winters1105; deep16/js/counter.js C.winters, C.wintersRing and the ring's JOURNAL record; js/secondact.js A.ringWarm, A.sound, A.meet;
@@ -2498,13 +2672,13 @@
       // 13. THE NEAREST OFFERING, STAY AT THE WATER (RULED 11-05, his "yes the lean"): Gennet yielded on the path (her hit points pinned at 1), the child taken -- the party by the stone,
       // and it turns toward the one on the path, not them; it has her and goes down with her; the morning: he will let a room, nobody cooks
       HWn.playing = false; HWn.cur = null;
-      var gPin = function (lb, B) { if (lb === 'STAY AT THE WATER') { B.units.forEach(function (u) { if (u.kind === 'gennet') { u.hp = 1; u.x = 44; u.y = 20; } }); D.grid.setup(B.map, B.units); } }; // (at 1 hit point, on the rocks by the deep: in its reach; it acts first, below -- a Fireball of the party's that catches her first kills her, not the lake: gennetDead)
+      var gPin = function (lb, B) { if (lb === 'STAY AT THE WATER') { B.units.forEach(function (u) { if (u.kind === 'gennet') { u.hp = 1; u.x = 44; u.y = 20; } }); D.grid.setup(B.map, B.units); } }; // (on the rocks by the deep: in its reach; it acts first, below, and its pincer cannot miss -- the take by the 11-06 rule, js/secondact.js: it grabs her and is in the deep already, so she is taken before anyone can strike at it; mode=innfights1106 has the take walked, struck at, and hurt before it rises)
       var B13 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=38,18&flags=' + BASEWn + ',gennetYield', { secondAct: { beat: 'offer' } });
-      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul') u.init = 40; return u; }; // (it goes first)
+      InWn.unit = function (B, o) { var u = unit0Wn.apply(this, arguments); if (o.kind === 'chuul') { u.init = 40; u.attacks = JSON.parse(JSON.stringify(u.attacks)); u.attacks.pincer.atk = 40; } return u; }; // (it goes first, and grabs)
       var o13 = flowWn(B13, ['STAY AT THE WATER'], gPin), f13 = B13.roam.flags; InWn.unit = unit0Wn;
       var t13 = [/The child's hand is in yours/, /> STAY AT THE WATER/, /It does not turn toward you\. It turns toward the one on the path: the nearest offering\./, /in the lake turns toward (?!the one)[^:/]+: the nearest offering/, /It has her\. It goes down into the deep and takes the inn lady with it/, /You tried for her\. I saw\." He will let you a room\. Nobody cooks at the Waterbys' now\./].map(function (re, k) { return k + (re.test(o13) ? '' : ' MISSING'); });
       okWn('the nearest offering, STAY AT THE WATER: ' + t13.join(', ') + ' -- ' + o13.slice(o13.indexOf('INITIATIVE'), o13.indexOf('INITIATIVE') + 2600) + ' -- taken ' + f13.gennetTaken + ', let ' + !!f13.gennetLet + ', the lake done ' + !!f13.lakeDone,
-        /The child's hand is in yours/.test(o13) && /> STAY AT THE WATER/.test(o13) && /It does not turn toward you\. It turns toward the one on the path: the nearest offering\./.test(o13) && /turns toward Gennet Waterby: the nearest offering/.test(o13) && /It has her\. It goes down into the deep and takes the inn lady with it/.test(o13) && /He will let you a room\. Nobody cooks at the Waterbys' now\./.test(o13) && f13.gennetTaken === 1 && !f13.gennetLet && !f13.lakeDone);
+        /The child's hand is in yours/.test(o13) && /> STAY AT THE WATER/.test(o13) && /It does not turn toward you\. It turns toward the one on the path: the nearest offering\./.test(o13) && /turns toward Gennet Waterby: the nearest offering/.test(o13) && /IN ITS CLAWS/.test(o13) && /It has her\. It goes down into the deep and takes the inn lady with it/.test(o13) && /He will let you a room\. Nobody cooks at the Waterbys' now\./.test(o13) && f13.gennetTaken === 1 && !f13.gennetLet && !f13.lakeDone);
       // 14. ...TAKE HER INSIDE, LET THE LAKE HAVE HER: from the lake door, the water heaves; it comes up onto the path and takes her; no fight; "You'll want the road"
       var B14 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=38,18&flags=' + BASEWn + ',gennetYield', { secondAct: { beat: 'offer' } });
       var o14 = flowWn(B14, ['TAKE HER INSIDE', 'LET THE LAKE HAVE HER']), f14 = B14.roam.flags;

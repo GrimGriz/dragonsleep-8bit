@@ -402,6 +402,7 @@
       if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off the head, the cloaker's fold)
       if (w.conds.attached && Battle.attOf(w, u) && (!only || only === w)) Battle.unattach(w, u); // (a darkmantle that was attached: SRD 5.1; one of several stirges on one, its own record -- Battle.attOf)
     });
+    var selfR = this; this.units.forEach(function (w) { if (w.inClaws && w.inClaws.by === u.id && (!only || only === w)) selfR.clawDrop(w); }); // (out of its claws, set down beside it: Battle.clawIn, 11-06)
     u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
   };
   // attached (the darkmantle: SRD 5.1 Crush, "it moves with the target"; 10-01, Griz in the Fork: "it looks like it's on his head, but it's actually in
@@ -647,8 +648,10 @@
   Battle.prototype.over = function () {
     // a fight that must not let them go (the wagon yard: fight.noEscape): one got away, and it is lost
     if (this.fight.noEscape && !this.alive('foe').length && this.units.some(function (u) { return u.fled; })) return 'lost';
-    // a fight that ends the moment one gets away (the 8-bit wagon yard, fight.fledEnds: either of the pair on the road is the chase)
-    if (this.fight.fledEnds && this.units.some(function (u) { return u.side === 'foe' && u.fled; })) return 'fled';
+    // a fight that ends when one got away and none of them is left standing on the field (the wagon yard and the chase's first catch, fight.fledEnds -- RULED 11-06, Griz on the yard:
+    // "the fight shouldn't end when only one of them escapes - we'll have to work on that", then "4 - lean": 'fled' only with no foe left standing and one away; both down is won, below;
+    // one killed and one gone, the chase goes after the one -- js/inn.js In.yardFight, js/chase.js. It reverses 09-27's "either of the pair on the road is the chase")
+    if (this.fight.fledEnds && !this.alive('foe').filter(function (u) { return !u.summon; }).length && this.units.some(function (u) { return u.side === 'foe' && u.fled; })) return 'fled';
     // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
     // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
     if (this.roostBroken) return 'roost';
@@ -1034,7 +1037,7 @@
   // speed (two or more sizes smaller: carried at its own); the grapple ended -- let go, escaped, out of reach, the grappler incapacitated (sweep)
   Battle.heldBy = function (B, u) { if (!u || !u.grappling) return null; var w = B.units.filter(function (x) { return x.id === u.grappling; })[0]; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
   Battle.grabbable = function (u, w) { return !!(w && G.hostile(u, w) && G.standing(w) && !w.object && !w.ethereal && !w.dead && w.hp > 0 && G.dist(u, w) <= 5 && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1 && !RU.immuneTo(w, 'grappled') && !(w.conds.grappled && w.conds.grappled.by === u.id)); };
-  Battle.dragHalves = function (u) { var B = D.battle, w = B && Battle.heldBy(B, u); return !!w && Battle.sizeCat(w) > Battle.sizeCat(u) - 2; };
+  Battle.dragHalves = function (u) { var B = D.battle, w = B && (Battle.heldBy(B, u) || Battle.clawHeld(B, u).sort(function (a, b) { return Battle.sizeCat(b) - Battle.sizeCat(a); })[0]); return !!w && Battle.sizeCat(w) > Battle.sizeCat(u) - 2; }; // (and one carried in its claws: Battle.clawIn, 11-06)
   // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): a hero with the feat and STR 13 (SRD 5.1, Feats: "If your Strength is reduced below 13 ... you can't benefit from the Grappler feat until your Strength is restored"), and
   // its advantage against the one it holds (rules.js RU.edges)
   Battle.grappler = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'grappler') && (u.abil || h.abil).str >= 13); };
@@ -1085,6 +1088,8 @@
       // within the holder's own space: theirs
       var rH = s.conds.restrained;
       if (rH && rH.grapple && !rH.pin && !rH.water && !rH.whelm && !gone && !s.conds.grappled) { var hH = self.units.filter(function (x) { return x.id === rH.by; })[0]; if (hH && !hH.dead && hH.hp > 0 && G.dist(hH, s) > Battle.gripReach(hH)) { self.release(hH, s); self.card(['{g}' + Battle.nm(s, true) + ' is out of ' + Battle.nm(hH) + "'s reach: the grip lets go.{/}"], 200); } }
+      // in its claws (Battle.clawIn, 11-06): the grip gone however it went (a spell's Freedom of Movement, the holder fallen), or the one held down -- set down beside it, the body let fall
+      if (s.inClaws && !s.left) { var hC = self.units.filter(function (x) { return x.id === s.inClaws.by; })[0], rC = s.conds.restrained, gripC = !!(hC && rC && rC.grapple && rC.by === hC.id); if (!hC || hC.dead || hC.left || hC.hp <= 0 || !gripC || s.hp <= 0 || s.dead) { if (gripC) self.release(hC, s); else self.clawDrop(s); } }
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
       if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !Battle.attOf(s, bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }
@@ -2115,7 +2120,8 @@
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var selfO = this, prov = this.units.filter(function (w) {
-          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
+          return G.hostile(u, w) && !w.bystander && !w.offering && !(w.inClaws && w.inClaws.by === u.id) // (never a bystander -- the inn lady sat yielded as the offering took swings at the party, 11-06, his record; nor one carried in the mover's claws, battle.js clawIn)
+            && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
             && G.dist(w, u) <= G.armOf(w) && G.dist(w, u, null, null, nx, ny) > G.armOf(w) && !(w.conds.hidden && false) // (a reach weapon's opportunity attack at 10 ft: G.armOf, 10-30)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u) // (a creature you can see: not into or out of darkness; and never at its charmer)
@@ -2256,6 +2262,7 @@
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
       if (u.carrying) this.carryAlong(u); // (one carried out of the fight rides along: pickUp, 10-13)
+      if (u.clawing) this.clawAlong(u); // (and one in its claws: Battle.clawIn, 11-06)
       var dropFt = G.map.def.climb && !u.flies && !u.climbs && !rpS && !hung0 ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down, as one on a rope does)
       if (csD && !csDmiss) dropFt = 0; // (climbed down: no fall)
       if (u.hang && !G.hanging(u)) delete u.hang; // (off the rope: at its top, or stepped away from its foot)
@@ -2387,8 +2394,8 @@
     // a two-handed weapon swung (or a bow drawn) with a torch in the other hand: the torch is let fall first, burning at the attacker's feet -- free, as letting go is (10-05, Griz:
     // "two handers holding a torch that drops when they attack"; light.js handsUsed: carried in one hand till then)
     if (att.torch && att.weapon && atk && !atk.spell && (atk === att.weapon || atk.name === att.weapon.name) && (att.weapon.props || []).indexOf('two-handed') >= 0) {
-      var ltW = D.light.word(att.torch); D.light.dropTorch(this, att, true);
-      this.card(['{y}' + nameOf(att) + '{/} lets the ' + ltW + ' fall to take the ' + att.weapon.name + ' in both hands.  {g}(it burns where it fell){/}'], 220);
+      var ltW = D.light.word(att.torch), twoW = att.weapon.name; D.light.dropTorch(this, att, true); // (twoW: named before the drop -- its regrip (light.js L.regrip) puts the sheet's own weapon back in u.weapon, and the line named Gennet's Dagger as she raised the crossbow: 11-06, his record)
+      this.card(['{y}' + nameOf(att) + '{/} lets the ' + ltW + ' fall to take the ' + twoW + ' in both hands.  {g}(it burns where it fell){/}'], 220);
     }
     // Sanctuary (SRD 5.1): "any creature who targets the warded creature with an attack ... must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the
     // attack" -- the save, then a new target (an AI picks the weakest other foe it can reach; a player's pick is asked) or the attack is lost (10-03; before, a failed save only lost it)
@@ -2794,7 +2801,7 @@
       att.holding = (att.holding || []).concat([tgt]);
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED' + (atk.grapple.only ? '' : ' and RESTRAINED') + '{/}  {g}(escape DC ' + atk.grapple.dc + ', an action' + (atk.tendril ? '; the tendril AC ' + atk.tendril.ac + ', ' + atk.tendril.hp + ' HP -- strike it, or break it with a DC ' + (atk.tendril.breakDC || 15) + ' STR check' : '') + '){/}']);
-      yield 30;
+      if (Battle.clawsOn(att, atk, tgt)) yield* this.clawIn(att, tgt); else yield 30; // (in its claws: the lunge, and the held one comes in with the claw -- Battle.clawIn, 11-06)
       // (pulled in: below)
     }
     // pulled into the water (10-02, Griz: "can we make the stair a stair and them be drawn underwater"; the Water Weird's own Constrict "pulls the target 5 feet
@@ -3669,12 +3676,62 @@
     var self = this;
     this.units.forEach(function (u) { if (!u.carriedBy) return; var c = self.units.filter(function (x) { return x.id === u.carriedBy; })[0]; if (!c || c.dead || c.hp <= 0 || u.hp > 0) self.setDown(u); });
   };
+  // ------------------------------------------------------------------ IN ITS CLAWS (RULED 11-06, Griz to the lanes desk: "i'm tempted to break the SRD and have it actually have the grappled
+  // character in its claws, discuss", then "Yeah, the lake fight is climax, we should go fancy. Can we make a successful grab look like a lunge-return to actual position?" -- the desk's lean
+  // taken whole). A grip with `grapple.claws` (the chuul's pincer, a house rule on its row in data/foes.js) that takes hold plays as a lunge: the body surges out until the claw meets the one
+  // it seizes and comes back to its own square, the held one coming in with the claw (js/ui.js unitPos 'lunge', clawPos) -- pulled in from its 10-ft reach to its side, the break from the SRD.
+  // Held so, it holds no square of its own (grid.js G.occupant): it rides at the holder's square, drawn at the claw, moved with it at every step (clawAlong) -- the SRD's carry, at half speed
+  // (Battle.dragHalves; a Medium one to a Large holder) -- and set down beside it, at the claw's side, when the grip ends however it ends (release; the sweep: the holder fallen, the held one
+  // down, a Freedom of Movement). It never carries a hero into the deep: stepping into it, it lets go at the water's edge; only the offering goes down (js/secondact.js, the take).
+  // The seat's leans on the edges (11-06): a Large one is held where it stands, not pulled in (no claw closes on a body its own size); a second grab while one is held takes the other
+  // claw, one each side; a held one carried and the claw's side square taken at the set-down -- the nearest free square to the claw's point
+  var CLAW8 = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]], LUNGE = 26; // (a facing's step, js/sprites.js STEP turned round; the lunge's frames, out in two fifths, back in three)
+  Battle.clawHeld = function (B, u) { return ((B && B.units) || []).filter(function (w) { return w.inClaws && w.inClaws.by === u.id && !w.left; }); };
+  Battle.clawsOn = function (att, atk, tgt) { return !!(atk && atk.grapple && atk.grapple.claws && tgt && !tgt.object && !tgt.left && !tgt.inClaws && Battle.sizeCat(tgt) <= Battle.SIZE.M && Battle.clawHeld(D.battle, att).length < 2); };
+  // the claw's point, from the holder's centre in squares: out in front of it by its facing, one claw to each side (side 1 or -1)
+  Battle.clawPoint = function (h, side) {
+    var s = h.size || 1, d = CLAW8[((h.facing || 0) % 8 + 8) % 8], n = d[0] && d[1] ? Math.SQRT1_2 : 1, ux = d[0] * n, uy = d[1] * n, f = s / 2 + 0.1, l = (side || 1) * 0.3 * s;
+    return { x: ux * f - uy * l, y: uy * f + ux * l };
+  };
+  Battle.prototype.clawIn = function* (att, tgt) {
+    var held = Battle.clawHeld(this, att), side = held.some(function (w) { return w.inClaws.side === 1; }) ? -1 : 1, s = att.size || 1, ts = tgt.size || 1;
+    var cx = att.x + (s - 1) / 2, cy = att.y + (s - 1) / 2, tx = tgt.x + (ts - 1) / 2, ty = tgt.y + (ts - 1) / 2, cp = Battle.clawPoint(att, side), lx = tx - cx - cp.x, ly = ty - cy - cp.y;
+    var d = CLAW8[((att.facing || 0) % 8 + 8) % 8], dl = Math.sqrt(d[0] * d[0] + d[1] * d[1]) || 1, pr = (lx * d[0] + ly * d[1]) / dl; if (pr < 0) { lx -= pr * d[0] / dl; ly -= pr * d[1] / dl; } // (never a surge backward: one already in close is taken where the claw is)
+    att.tween = { fx: att.x, fy: att.y, fz: G.gzAt(att, att.x, att.y), t: 0, dur: this.pace(LUNGE, true), mode: 'lunge', lx: lx, ly: ly, grab: tgt.id };
+    tgt.inClaws = { by: att.id, side: side, from: [tgt.x, tgt.y] };
+    tgt.x = att.x; tgt.y = att.y; delete tgt.tween; tgt.anim = 'idle';
+    att.clawing = true;
+    if (att.turn && Battle.dragHalves(att)) att.turn.move = Math.floor(att.turn.move / 10) * 5; // (the rest of its walk at half, carrying -- SRD 5.1; RU.speedNow halves its next turns')
+    yield LUNGE;
+  };
+  Battle.prototype.clawAlong = function (u) {
+    var self = this, held = Battle.clawHeld(this, u); if (!held.length) { delete u.clawing; return; }
+    var deep = G.foot(u).some(function (q) { var s = G.map.at(q[0], q[1]); return !!(s && s.deep); });
+    held.forEach(function (w) {
+      w.x = u.x; w.y = u.y;
+      if (deep && !w.offering) { self.release(u, w); self.card(['{r}' + Battle.nm(u, true) + '{/} lets ' + nameOf(w) + ' go at the water\'s edge: it takes no one down but its offering.'], 240); }
+    });
+  };
+  Battle.prototype.clawDrop = function (w) {
+    var c = w.inClaws; if (!c) return; delete w.inClaws;
+    var h = this.units.filter(function (x) { return x.id === c.by; })[0];
+    if (h && !Battle.clawHeld(this, h).length) delete h.clawing;
+    if (w.left || !h || w.x !== h.x || w.y !== h.y) return; // (moved out of it some other way -- a teleport: it stays where it went)
+    var s = h.size || 1, ws = w.size || 1, cp = Battle.clawPoint(h, c.side), px = h.x + (s - 1) / 2 + cp.x, py = h.y + (s - 1) / 2 + cp.y, best = null, bd = 1e9;
+    for (var y = h.y - 8; y <= h.y + s + 7; y++) for (var x = h.x - 8; x <= h.x + s + 7; x++) {
+      if (!G.canStand(w, x, y)) continue;
+      var dd = Math.pow(x + (ws - 1) / 2 - px, 2) + Math.pow(y + (ws - 1) / 2 - py, 2); if (dd < bd) { bd = dd; best = [x, y]; }
+    }
+    if (!best) return;
+    w.tween = { fx: px - (ws - 1) / 2, fy: py - (ws - 1) / 2, fz: G.gzAt(w, best[0], best[1]) + 6, t: 0, dur: this.pace(10, true), mode: 'walk' }; // (let fall from the claw to the square)
+    w.x = best[0]; w.y = best[1]; w.anim = 'idle'; w.animT = this.t;
+  };
   Battle.prototype.leave = function* (u) {
     var T = u.turn;
     var hb = this.heldBack(u);
     if (hb) { D.sfx('miss'); this.card(['{o}' + Battle.refuseText(hb) + '{/}'], 260); yield 20; return; }
     if (!T.disengaged) {
-      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.armOf(w) && !(w.weapon && w.weapon.ranged); });
+      var prov = this.units.filter(function (w) { return G.hostile(u, w) && !w.bystander && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.armOf(w) && !(w.weapon && w.weapon.ranged); }); // (!bystander: as moveAlong's, 11-06)
       for (var k = 0; k < prov.length; k++) {
         var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
         if (!atk) continue;
