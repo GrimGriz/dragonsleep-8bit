@@ -822,7 +822,7 @@
     var R0 = B.roam, f = R0.flags, Rr = window.DS.R, settled = f.keeperDone || f.stairHook || f.fiveRecovered || f.keeperAwake;
     var lines = [R.say8(f.stairHook && !f.keeperWater ? 'w.markDry' : f.keeperAwake && !f.keeperDone && !f.fiveRecovered ? 'w.markAwake' : settled ? 'w.markPlain' : 'w.markSee')];
     var read = R0.members.some(function (u) { return u.src && u.hp > 0 && D.d(20) + Math.max(Rr.skill(u.src, 'Arcana', 'int'), Rr.skill(u.src, 'Religion', 'int')) >= 12; });
-    if (read || f.hobMet) { f.markRead = 1; lines.push(R.say8('w.markRead')); }
+    if (read || f['heard:r-promised']) { f.markRead = 1; lines.push(R.say8('w.markRead')); } // (Hob's line heard, not the shift worked: his doors line moved off the cradle to the surface, 11-06 -- the hobshift seat)
     if (settled) { B.card(R.wrap(lines), 320); yield 30; return; }
     var a = yield { prompt: { who: R0.token, title: 'THE MARK', lines: R.wrap(lines.concat([R.say8('w.markAsk')])), opts: [{ label: 'PUT A HAND ON IT', value: 1 }, { label: 'LEAVE IT', value: 0 }] } };
     if (a !== 1) return;
@@ -1282,7 +1282,7 @@
   };
   // the shift itself: THE CRADLE's scene over the floor (deep16/js/cradle.js), or -- a bench's D.cradle.STRAIGHT, or no scene loaded -- the register's table rule rolled straight
   R.shiftPlay = function* (B, job) {
-    if (D.cradle && !D.cradle.STRAIGHT) return yield* D.cradle.run(B, { hero: job.hero, skill: job.skill, skillName: job.skillName, draught: job.draught, deep: job.deep, mouth: job.mouth, shifts: job.shifts, auto: R.shiftAuto || null });
+    if (D.cradle && !D.cradle.STRAIGHT) return yield* D.cradle.run(B, { hero: job.hero, skill: job.skill, skillName: job.skillName, draught: job.draught, deep: job.deep, mouth: job.mouth, shifts: job.shifts, auto: R.shiftAuto || null, coach: job.coach || null }); // (coach: Old Hob on the first shift at the pens, 11-06 -- js/mines.js M.penAsk)
     return R.shiftRoll(job.hero, job.skill, job.draught);
   };
   // the register's table rule at the wet (js/events.js EV.deepRate's, with no cradle scene): a d20 and the hands' best against DC 15, a natural 1 rouses it; 10 or under a CON

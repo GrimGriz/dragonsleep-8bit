@@ -69,12 +69,14 @@
     for (var k = PIN; k < N; k++) { var p = this.pts[k], f = (k - PIN) / (N - 1 - PIN); p.py = p.y + 12 + 14 * f; p.px = p.x - (this.i < 4 ? -1 : 1) * 5 * f; }
   };
 
-  // ---------------------------------------------------------------- the scene. o: { hero (a sheet), skill, skillName, draught, deep, mouth, shifts, auto }
-  // (auto: the hands play themselves -- 'perfect' lets go in the middle of the gold, 'dry' short of it, 'wild' never: a bench's, or a show's watched beat)
+  // ---------------------------------------------------------------- the scene. o: { hero (a sheet), skill, skillName, draught, deep, mouth, shifts, auto, coach, saves }
+  // (auto: the hands play themselves -- 'perfect' lets go in the middle of the gold, 'clean' inside it but off the middle, 'dry' short of it, 'spilt' a little past, 'wild'
+  // never: a bench's, or a show's watched beat; a list, one a draw. coach: who talks the milker through it, CR.COACH. saves: a show's CON saves' d20s, pinned in order)
   function Cradle(o) {
     this.kind = 'cradle'; this.opaque = true; this.o = o;
     this.h = o.hero; this.skill = o.skill || 0; this.skillName = o.skillName || 'Animal Handling'; this.draught = !!o.draught;
     this.mouth = o.mouth || 2; this.first = !o.shifts; this.deep = !!o.deep; this.roused = false; this.auto = o.auto || null;
+    this.coach = (!this.deep && o.coach && CR.COACH[o.coach]) || null; this.cq = []; this.cs = null; this.cn = {}; this.heard = []; this.face = null; this.saves = (o.saves || []).slice();
     this.t = 0; this.ts = 1; this.phase = 'intro'; this.pt = 0;
     this.tents = []; for (var i = 0; i < TENTS; i++) this.tents.push(new Feeler(i));
     this.sel = 3; this.draws = 0; this.got = 0; this.perfect = 0; this.touched = false; this.slots = [];
@@ -88,8 +90,36 @@
   CR.Scene = Cradle;
   Cradle.prototype.cur = function () { return this.tents[this.sel]; };
   Cradle.prototype.unrest = function () { return this.deep ? 1 : clamp((this.draws - 1) / (DRAWS - 1), 0, 1); };
-  Cradle.prototype.setPhase = function (p) { this.phase = p; this.pt = 0; };
+  Cradle.prototype.setPhase = function (p) {
+    this.phase = p; this.pt = 0;
+    if (p === 'tally' && this.coach) this.speak(this.touched ? 'tallyTouched' : this.got >= 5 ? 'tallyFive' : this.got >= 3 ? 'tallyGood' : this.got ? 'tallySome' : 'tallyNone', { n: this.got }); // (the shift's end, by what it sealed)
+  };
   Cradle.prototype.caption = function (key, vars, life) { var s = D.counter ? D.counter.L(key, vars) : key; this.cap = { s: Array.isArray(s) ? s[0] : s, t: 0, life: life || 150 }; };
+  // ---------------------------------------------------------------- THE COACH: Old Hob talks the party through its first shift (11-06, the hobshift seat; Griz to the lanes
+  // desk: "I'd like to make hobbs actually talk the player through their first crawler milking (we say he'll talk them through the settling, is that what we mean) - where he
+  // says the in-game stuff like 'grab the 'part' up high and work it down' with commentary on how they do, etc."): on the party's first shift at the pens (js/mines.js
+  // M.penAsk sets job.coach) he stands at the milker's shoulder -- his face in a box of its own right of the cradle (the art desk's pt_oldhob: his idle, four moods, the
+  // thimble's work row), his words in the band under the work in the narrator's place, each on the scene's own events: the settle taking (the intro waits on his lines; E or
+  // a click for the next), the gold reached on the first two draws, the gold passed, each draw let go (perfect, clean, dry, spilt), the settle wearing thin, a feeler off
+  // the bar, the save held (or held by the draught) or the touch, and the shift's end by what it sealed. His words: content/text.json w.hob.<event>; a list is its turns,
+  // said in order (past its end the turns after the first come round again), the intro's said whole. The deep rate has no coach (no crew down there)
+  CR.COACH = { hob: { sheet: 'pt_oldhob', name: 'OLD HOB', key: 'w.hob.', top: 2, face: { intro: ['attentive', 'attentive', 'work', 'attentive'], now: 'attentive', ease: 'concerned',
+    perfect: 'welcoming', clean: 'welcoming', dry: 'skeptical', spilt: 'skeptical', twitch: 'concerned', whip: 'concerned', jerk: 'attentive', shrug: 'attentive', touch: 'concerned',
+    tallyTouched: 'concerned', tallyFive: 'welcoming', tallyGood: 'welcoming', tallySome: 'attentive', tallyNone: 'skeptical' } } };
+  CR.COACH_EVENTS = ['intro', 'now', 'ease', 'perfect', 'clean', 'dry', 'spilt', 'twitch', 'whip', 'jerk', 'shrug', 'touch', 'tallyTouched', 'tallyFive', 'tallyGood', 'tallySome', 'tallyNone'];
+  CR.COACH_BOX = { x: 380, y: 70, w: 96, h: 160 }; // (right of the cradle's right post, under the thimbles and the settle, above the band: his hat to his folded arms)
+  CR.coachLife = function (s) { return clamp(Math.round(70 + 3.4 * String(s).length), 150, 460); }; // (frames a line stays: a reading pace)
+  // the coach says his word on an event: one line (a list's next turn), the one showing and any waiting put by; or, all, the whole list in turn (the intro)
+  Cradle.prototype.speak = function (ev, vars, all) {
+    var c = this.coach; if (!c || !D.counter) return false;
+    var r = D.counter.L(c.key + ev, vars); if (r === c.key + ev) return false;
+    var list = [].concat(r), fc = c.face[ev], n = this.cn[ev] || 0;
+    var line = function (s, k) { return { ev: ev, s: s, t: 0, life: CR.coachLife(s), face: Array.isArray(fc) ? fc[Math.min(k, fc.length - 1)] : fc }; };
+    if (all) { this.cq = list.map(line); this.cs = null; }
+    else { var k = n < list.length || list.length < 2 ? Math.min(n, list.length - 1) : 1 + (n - 1) % (list.length - 1); this.cq = []; this.mood(this.cs = line(list[k], k)); } // (a sixth full thimble isn't his first: the later turns alternate)
+    this.cn[ev] = n + 1; return true;
+  };
+  Cradle.prototype.mood = function (l) { this.face = l.face ? { anim: l.face, t0: this.t, hold: l.life } : null; this.heard.push(l.ev + ': ' + l.s); }; // (heard: what he said, in order -- the bench reads it)
   Cradle.prototype.makeBand = function () {
     var T = this.cur(), w = clamp(0.055 + 0.018 * (this.skill - (this.deep ? 3 : 0)), 0.035, 0.17) * T.ripe * (1 - 0.3 * this.unrest()); // (the gold narrows as the settle wears)
     this.band = { c: 0.42 + D.rand() * 0.34, w: w, phase: D.rand() * TAU, jump: 0 };
@@ -102,8 +132,10 @@
   // the feeler under the mouse, by its gland (the hanging tip): one not yet milked, within 10 px
   Cradle.prototype.feelerAt = function (x, y) { var best = -1, bd = 11; this.tents.forEach(function (T, i) { if (T.milked || !T.pinned) return; var p = T.tip(), d = Math.hypot(p.x - x, p.y - y + 2); if (d < bd) { bd = d; best = i; } }); return best; };
   // the hands on the gland: E held, or the mouse's button held since it went down on the work (a press on another feeler only chooses it)
+  Cradle.prototype.autoNow = function () { var a = this.auto; return Array.isArray(a) ? a[Math.min(this.draws, a.length - 1)] : a; };
   Cradle.prototype.held = function () {
-    if (this.auto) { var c = this.bandC(), w = this.band ? this.band.w : 0.05; return this.auto === 'wild' ? true : this.auto === 'dry' ? this.p < Math.max(0.02, c - w - 0.12) : this.p < c - w * 0.15; }
+    var am = this.autoNow();
+    if (am) { var c = this.bandC(), w = this.band ? this.band.w : 0.05; return am === 'wild' ? true : am === 'dry' ? this.p < Math.max(0.02, c - w - 0.12) : am === 'clean' ? this.p < c + w * 0.62 : am === 'spilt' ? this.p < c + w + 0.06 : this.p < c - w * 0.15; }
     return !!(I.held.a || (I.mouse.down && this.squeezing));
   };
 
@@ -122,11 +154,18 @@
     this.pinch.x += (pp.x - this.pinch.x) * (this.jerk ? 0.3 : 0.2); this.pinch.y += (pp.y - this.pinch.y) * (this.jerk ? 0.3 : 0.2);
     if (this.shake > 0) this.shake -= ts;
     if (this.cap) { this.cap.t++; if (this.cap.t > this.cap.life) this.cap = null; }
+    if (this.coach) { var cs = this.cs; if (cs && ++cs.t > cs.life) this.cs = null; if (!this.cs && this.cq.length) this.mood(this.cs = this.cq.shift()); } // (the coach's words, each its time, the next of a list after it)
     if (this.phase !== 'out' && this.fade > 0) this.fade = Math.max(0, this.fade - 1 / 30);
     this['ph_' + this.phase]();
   };
   Cradle.prototype.ph_intro = function () {
     var len = this.first ? 170 : 70, m = I.mouse;
+    if (this.coach) { // (the coach's own lines first, the settle taking to the gold: each held its time, or E or a click for the next -- then the work)
+      if (this.pt === 30) this.speak('intro', null, true);
+      if (this.pt > 30 && this.cs && this.cs.t > 12 && (I.pressed('a') || m.click)) this.cs.t = this.cs.life;
+      if (this.pt > 30 && !this.cs && !this.cq.length) { this.pickNext(); this.setPhase('ready'); }
+      return;
+    }
     if (this.pt === 30) this.caption(this.deep ? 'w.cradle.enterDeep' : 'w.cradle.enter', null, 200);
     if (this.pt >= len || (this.pt > 30 && (I.pressed('a') || m.click || this.auto))) { this.pickNext(); this.setPhase('ready'); }
   };
@@ -135,7 +174,7 @@
     if (I.pressed('left')) this.cycle(-1);
     if (I.pressed('right')) this.cycle(1);
     if (m.click && m.inside) { var f = this.feelerAt(m.x, m.y); if (f >= 0 && f !== this.sel) { this.choose(f); return; } } // (a click on another feeler: that one)
-    if (I.pressed('a') || (m.click && m.inside) || this.auto) { this.squeezing = !I.pressed('a'); this.p = 0; this.twitch = null; this.setPhase('squeeze'); D.sfx('cursor'); }
+    if (I.pressed('a') || (m.click && m.inside) || this.auto) { this.squeezing = !I.pressed('a'); this.p = 0; this.twitch = null; this.dNow = this.dEase = false; this.setPhase('squeeze'); D.sfx('cursor'); }
   };
   Cradle.prototype.ph_squeeze = function () {
     var T = this.cur(), unrest = this.unrest(), b = this.band;
@@ -144,8 +183,13 @@
     if (unrest > 0.3 && !this.twitch && D.rand() < 0.004 + 0.018 * unrest) this.twitch = { t: 0 };
     if (this.twitch) {
       this.twitch.t++;
-      if (this.twitch.t === 10) { b.jump = (D.rand() < 0.5 ? -1 : 1) * (0.06 + 0.08 * unrest); T.flinch = 12; this.shake = 6; D.sfx('miss'); if (!this.twitched) { this.twitched = true; this.caption(this.deep ? 'w.cradle.twitchDeep' : 'w.cradle.twitch', null, 120); } }
+      if (this.twitch.t === 10) { b.jump = (D.rand() < 0.5 ? -1 : 1) * (0.06 + 0.08 * unrest); T.flinch = 12; this.shake = 6; D.sfx('miss'); if (!this.twitched) { this.twitched = true; if (!this.speak('twitch')) this.caption(this.deep ? 'w.cradle.twitchDeep' : 'w.cradle.twitch', null, 120); } }
       if (this.twitch.t > 70) this.twitch = null;
+    }
+    if (this.coach) { // (the coach as the ring fills: the gold reached on the first two draws -- let go now; past it, twice a shift at most -- ease off)
+      var c0 = this.bandC();
+      if (!this.dNow && this.draws < 2 && this.p >= c0 - b.w && this.p <= c0 + b.w) { this.dNow = true; this.speak('now'); }
+      if (!this.dEase && this.p > c0 + b.w && (this.cn.ease || 0) < 2) { this.dEase = true; this.speak('ease'); }
     }
     if (this.p > this.bandC() + b.w) this.shake = Math.max(this.shake, 2);
     if (!this.held()) { this.release(); return; }
@@ -159,9 +203,10 @@
     else if (off <= b.w + 0.12) kind = 'spilt';
     else { this.draws--; this.wild(); return; }
     this.anim = { kind: kind, t: 0 };
-    if (kind === 'perfect' || kind === 'clean') { this.got++; if (kind === 'perfect') this.perfect++; D.sfx('coin'); this.caption(kind === 'perfect' ? 'w.drawPerfect' : 'w.drawClean', null, 110); }
-    else if (kind === 'dry') { D.sfx('miss'); this.caption('w.drawDry', null, 110); }
-    else { D.sfx('splash'); this.spray(16, VENOM); this.caption('w.drawSpilt', null, 110); }
+    var said = this.speak(kind); // (the coach's word on the draw, in the narrator's place)
+    if (kind === 'perfect' || kind === 'clean') { this.got++; if (kind === 'perfect') this.perfect++; D.sfx('coin'); if (!said) this.caption(kind === 'perfect' ? 'w.drawPerfect' : 'w.drawClean', null, 110); }
+    else if (kind === 'dry') { D.sfx('miss'); if (!said) this.caption('w.drawDry', null, 110); }
+    else { D.sfx('splash'); this.spray(16, VENOM); if (!said) this.caption('w.drawSpilt', null, 110); }
     T.state = kind; this.slots[this.draws - 1] = kind;
     this.setPhase('result');
   };
@@ -169,9 +214,9 @@
     var T = this.cur(); this.squeezing = false;
     this.draws++;
     T.whip(); T.swell = 0; this.jerk = true; this.ts = 0.22; this.shake = 26; D.sfx('encounter');
-    var R = window.DS.R, bonus = this.h ? R.saveBonus(this.h, 'con') : 0, r1 = D.d(20), r2 = this.draught ? D.d(20) : 0, roll = Math.max(r1, r2);
+    var R = window.DS.R, bonus = this.h ? R.saveBonus(this.h, 'con') : 0, r1 = this.saves.length ? this.saves.shift() : D.d(20), r2 = this.draught ? D.d(20) : 0, roll = Math.max(r1, r2);
     this.save = { r1: r1, r2: r2, bonus: bonus, roll: roll, total: roll + bonus, holds: roll + bonus >= DC, show1: r1, show2: r2 };
-    this.caption('w.cradle.whip', null, 100);
+    if (!this.speak('whip')) this.caption('w.cradle.whip', null, 100);
     this.setPhase('save');
   };
   Cradle.prototype.ph_result = function () {
@@ -183,7 +228,7 @@
       else if (a.t === 58) { this.thimble.sealed = true; D.sfx('chest'); }
     } else if (a.kind === 'dry') T.swell = lerp(this.p, -0.3, smooth(a.t / 30));
     else { if (a.t < 14) T.swell = lerp(this.p, 1.5, a.t / 14); else if (a.t === 14) { this.spray(18, VENOM); T.swell = -0.2; } }
-    if (a.t >= 84 || (this.auto && a.t >= 60)) this.nextDraw();
+    if (a.t >= 84 || (this.auto && a.t >= 60 && !(this.coach && this.cs))) this.nextDraw(); // (a watched shift with its coach waits on his word)
   };
   Cradle.prototype.nextDraw = function () {
     var T = this.cur(); T.milked = true; T.swell = 0; T.pinned = true;
@@ -195,7 +240,10 @@
     if (pt === 30) this.ts = 1;
     if (pt > 30 && pt < 82 && pt % 3 === 0) { s.show1 = 1 + Math.floor(Math.random() * 20); s.show2 = this.draught ? 1 + Math.floor(Math.random() * 20) : 0; } // (the dice tumbling: the picture's, not D16's -- the roll is made)
     if (pt === 82) { s.show1 = s.r1; s.show2 = s.r2; D.sfx('cursor'); }
-    if (pt === 120) { if (s.holds) { D.sfx('confirm'); this.caption(this.draught && s.r2 >= s.r1 && s.r2 + s.bonus >= DC && s.r1 + s.bonus < DC ? 'w.touchShrug' : 'w.drawJerk', null, 120); } else D.sfx('poison'); }
+    if (pt === 120) {
+      var shrug = this.draught && s.r2 >= s.r1 && s.r2 + s.bonus >= DC && s.r1 + s.bonus < DC; // (the draught's second die the one that held)
+      if (s.holds) { D.sfx('confirm'); if (!this.speak(shrug ? 'shrug' : 'jerk')) this.caption(shrug ? 'w.touchShrug' : 'w.drawJerk', null, 120); } else { D.sfx('poison'); this.speak('touch'); }
+    }
     if (pt === 170) {
       if (this.deep) this.roused = true; // (the Wet: a whip rouses it, the touch held or not -- the shift is over)
       if (s.holds && this.deep) { this.cur().state = 'jerk'; this.slots[this.draws - 1] = 'jerk'; this.save = null; this.setPhase('tally'); }
@@ -204,7 +252,7 @@
     }
   };
   Cradle.prototype.ph_paralysis = function () { if (this.pt >= 210 || (this.auto && this.pt >= 60)) this.setPhase('tally'); };
-  Cradle.prototype.ph_tally = function () { var m = I.mouse; if (this.pt > 20 && (I.pressed('a') || I.pressed('b') || (m.click && m.inside) || this.auto)) { D.sfx('confirm'); this.setPhase('out'); } };
+  Cradle.prototype.ph_tally = function () { var m = I.mouse; if (this.pt > (this.coach ? 50 : 20) && (I.pressed('a') || I.pressed('b') || (m.click && m.inside) || this.auto)) { D.sfx('confirm'); this.setPhase('out'); } };
   Cradle.prototype.ph_out = function () {
     this.fade = Math.min(1, this.fade + 1 / 24);
     if (this.pt >= 26) { this.result = { got: this.got, touched: this.touched, perfect: this.perfect, roused: this.roused, slots: this.slots.slice() }; this.over = true; if (D.top() === this) D.pop(); }
@@ -315,7 +363,30 @@
     this.hud(ctx);
     if (this.save) this.drawSave(ctx);
     if (this.phase === 'tally' || this.phase === 'out') this.drawTally(ctx);
+    this.drawCoach(ctx);
     if (this.fade > 0) { ctx.fillStyle = 'rgba(0,0,0,' + this.fade + ')'; ctx.fillRect(0, 0, D.W, D.H); }
+  };
+  // the coach beside the cradle: his face cropped in its box at the sheet's own size, the hero box's way (js/counter.js drawHero), his name under it; his words on the band,
+  // in his quotes, at full strength through the touch's grey (the screen's words fade with it; his don't)
+  Cradle.prototype.drawCoach = function (ctx) {
+    var c = this.coach, Bx = CR.COACH_BOX, C = D.counter, a = this.phase === 'intro' ? smooth((this.pt - 20) / 40) : 1;
+    if (!c || a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a;
+    D.win8(ctx, Bx.x, Bx.y, Bx.w, Bx.h, '#0b1430');
+    var sh = D.SHEETS && D.SHEETS[c.sheet];
+    if (sh && C && C.drawPortrait) {
+      ctx.save(); ctx.beginPath(); ctx.rect(Bx.x + 3, Bx.y + 3, Bx.w - 6, Bx.h - 20); ctx.clip();
+      var fr = C.frameAt(sh, this.face, this.t); this.drawn = C.drawPortrait(ctx, c.sheet, fr.anim, fr.frame, Bx.x + Bx.w / 2, Bx.y + 3 + sh.ay - c.top); // (the frame's middle on the box's, its top c.top px above the box's)
+      ctx.restore();
+    }
+    D.text(ctx, '{y}' + c.name + '{/}', Bx.x + Bx.w / 2, Bx.y + Bx.h - 14, D.WIN8.text, 'center');
+    var cs = this.cs;
+    if (cs) {
+      var ls = D.wrap('"' + cs.s + '"', D.W - 60).slice(0, 2), ca = clamp(Math.min(1, cs.t / 10, (cs.life - cs.t) / 20), 0, 1), y0 = this.banded ? 249 : ls.length > 1 ? 243 : 248;
+      ctx.globalAlpha = a; if (!this.banded) { ctx.fillStyle = 'rgba(8,6,12,0.72)'; ctx.fillRect(0, 234, D.W, 36); }
+      ctx.globalAlpha = a * ca; ls.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y0 + i * 10, '#f8e4b0', 'center'); });
+    }
+    ctx.restore();
   };
   function thimbleIcon(ctx, x, y, st, now) {
     ctx.fillStyle = P('silver', 1); ctx.fillRect(x - 3, y, 7, 8); ctx.fillStyle = st ? P('silver', 4) : P('silver', now ? 3 : 2); ctx.fillRect(x - 2, y, 5, 7);
@@ -326,7 +397,7 @@
   }
   Cradle.prototype.hud = function (ctx) {
     var a = this.phase === 'intro' ? smooth((this.pt - 20) / 40) : this.phase === 'paralysis' ? 1 - smooth(this.pt / 90) : 1;
-    if (a <= 0) return;
+    this.banded = false; if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a;
     D.text(ctx, '{y}THE CRADLE{/}', 10, 8, '#fff'); D.text(ctx, this.sub[0], 10, 18, '#9a96a8'); D.text(ctx, this.sub[1], 10, 27, '#9a96a8');
     for (var k = 0; k < DRAWS; k++) thimbleIcon(ctx, D.W - 16 - (DRAWS - 1 - k) * 13, 8, this.slots[k], k === this.draws && (this.phase === 'ready' || this.phase === 'squeeze'));
@@ -335,6 +406,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(bx, by, 80, 3); ctx.fillStyle = settle > 0.5 ? P('gold', 3) : settle > 0 ? P('fire', 0) : P('red', 3); ctx.fillRect(bx + Math.round(80 * (1 - settle)), by, Math.round(80 * settle), 3);
     var prompt = this.phase === 'ready' ? 'hold E, or the mouse on the gland -- let go in the gold.   arrows or a click: another feeler' : this.phase === 'squeeze' ? 'let go in the gold' : '';
     var capL = this.cap ? D.wrap(this.cap.s, D.W - 60).slice(0, 2) : [];
+    this.banded = !!(prompt || capL.length); // (the band drawn: drawCoach puts the coach's words on it)
     if (prompt || capL.length) { ctx.fillStyle = 'rgba(8,6,12,0.72)'; ctx.fillRect(0, 234, D.W, 36); } // (a band of its own under the work, the words on it)
     if (prompt) D.hint(ctx, prompt, D.W / 2, 238, '#e8e4d8', 'center');
     if (capL.length) { var c = this.cap, ca = clamp(Math.min(1, c.t / 14, (c.life - c.t) / 24), 0, 1); ctx.globalAlpha = a * ca; capL.forEach(function (l, i) { D.hint(ctx, l, D.W / 2, 249 + i * 10, '#fcfcf4', 'center'); }); ctx.globalAlpha = a; }
@@ -439,15 +511,19 @@
   CR.BEATS = [
     { id: 'pens', label: 'A SHIFT AT THE PENS (settled)', note: 'Mouth Two, the animal settled: six draws, the gold narrowing as the settle wears off. Lymen milks (Nature).', job: { who: 'lymen', mouth: 2, shifts: 1 } },
     { id: 'deep', label: 'THE DEEP RATE at the Wet (no settle)', note: 'A harnessed animal nobody settled, the draught taken: DC 15 as if three worse, three silver a thimble -- and a whip rouses it.', job: { who: 'lymen', deep: true, draught: true, shifts: 1 } },
-    { id: 'counter', label: 'WORK A SHIFT, at pen two on the mouth camp', note: 'A NEW GAME beside pen two, Edric\'s book signed: E (or a click) on the pen -- WORK A SHIFT, WHO MILKS?, the cradle, the pay at the board.', counter: true }
+    { id: 'counter', label: 'WORK A SHIFT, at pen two on the mouth camp', note: 'A NEW GAME beside pen two, Edric\'s book signed: E (or a click) on the pen -- WORK A SHIFT, WHO MILKS?, the cradle, the pay at the board.', counter: true },
+    // (11-06, the hobshift seat: Old Hob talks the first shift through -- THE COACH above)
+    { id: 'hob', label: 'OLD HOB TALKS YOU THROUGH -- your first shift, your hands (11-06)', note: 'The party\'s first shift at Mouth Two, Old Hob at your shoulder: the settle, the feeler up high and worked down, and his word on each draw you make.', job: { who: 'lymen', mouth: 2, shifts: 0, coach: 'hob' } },
+    { id: 'hobwatch', label: 'OLD HOB, WATCHED -- every kind of draw (11-06)', note: 'The hands play themselves: a full one, a clean one, a dry pull, a spill, a feeler off the bar and jerked clear, then the touch. Hob on each.', job: { who: 'lymen', mouth: 2, shifts: 0, coach: 'hob', auto: ['perfect', 'clean', 'dry', 'spilt', 'wild', 'wild'], saves: [18, 1] } },
+    { id: 'hobfirst', label: 'THE FIRST SHIFT AT PEN TWO, Hob there -- then the kitchen (11-06)', note: 'A NEW GAME at pen two, no shift worked yet: WORK A SHIFT, Hob comes over, the cradle with him, the pay, his word on the water. Then Hob by the kitchen: the doors.', counter: true, flags: { tallyMet: 1, skarnOk: 1 } }
   ];
   CR.seedOf = function (q) { var m = /[?&]seed=(\d+)/.exec(String(q || '')); return m ? +m[1] : 1022; };
   CR.play = function (bt, q, show) {
     var H = D.house, R = window.DS.R; D.seed = CR.seedOf(q) | 0;
-    var rec = H.fresh(); rec.at = { town: null }; rec.flags = { tallyMet: 1, skarnOk: 1, shifts: 1 }; H.begin(rec, 0);
+    var rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, bt.flags || { tallyMet: 1, skarnOk: 1, shifts: 1 }); H.begin(rec, 0);
     if (bt.counter) { D.push(D.roam.make('?roam=warrens&at=9,5', { save: H.living(H.cur), opts: { at8: [9, 5] }, house: true })); return; }
     var h = H.cur.party.filter(function (x) { return x.id === bt.job.who; })[0] || H.cur.party[0], ah = R.skill(h, 'Animal Handling', 'wis'), na = R.skill(h, 'Nature', 'int');
-    var sc = new Cradle({ hero: h, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: !!bt.job.draught, deep: !!bt.job.deep, mouth: bt.job.mouth || 2, shifts: bt.job.shifts || 0 });
+    var sc = new Cradle({ hero: h, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: !!bt.job.draught, deep: !!bt.job.deep, mouth: bt.job.mouth || 2, shifts: bt.job.shifts || 0, coach: bt.job.coach, auto: bt.job.auto, saves: bt.job.saves });
     sc.after = function (r) { show.last = bt.label + ': ' + r.got + ' sealed' + (r.perfect ? ' (' + r.perfect + ' full)' : '') + (r.touched ? ', the touch' : '') + (r.roused ? ', roused' : ''); D.scenes.length = 0; D.push(show); };
     D.scenes.length = 0; D.push(sc);
   };
@@ -475,7 +551,7 @@
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
       D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
     });
-    if (this.last) D.text(ctx, '{y}LAST{/}: ' + this.last, 12, 136, W8.text);
+    if (this.last) D.text(ctx, '{y}LAST{/}: ' + this.last, 12, 30 + CR.BEATS.length * 34, W8.text); // (under the last beat: six since 11-06)
     D.hint(ctx, 'click a beat · in the cradle: hold the mouse (or E) on the gland, let go in the gold · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   CR.Show = Show;

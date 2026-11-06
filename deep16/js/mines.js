@@ -597,8 +597,12 @@
     var hh = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!hh) return null;
     var draught = C.count(st, 'draught') > 0; if (draught) C.take(st, 'draught', 1);
     var ah = Rr.skill(hh, 'Animal Handling', 'wis'), na = Rr.skill(hh, 'Nature', 'int');
-    if (!f.shifts) yield sc.say(L('w.penHow'));
-    return { n: n, hero: hh, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: draught, deep: false, mouth: +n || 2, shifts: f.shifts || 0 };
+    var job = { n: n, hero: hh, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: draught, deep: false, mouth: +n || 2, shifts: f.shifts || 0 };
+    // the party's first shift at the pens: Old Hob comes over on his own face and talks it through, in the cradle beside the milker (11-06, the hobshift seat, Griz to the lanes
+    // desk: "I'd like to make hobbs actually talk the player through their first crawler milking ... rather than him saying the same promises line about the runes"): his
+    // words here the poles and the settle (the first game's how-to, its text key penHow, retired into his mouth), his coaching js/cradle.js CR.COACH; a deep shift first doesn't count
+    if (!f.shifts) { sc.o.pic = null; sc.sheet = M.HOB_SHEET; sc.o.name = 'Old Hob'; yield sc.say(L('w.hob.comes'), 'welcoming'); job.coach = 'hob'; }
+    return job;
   };
   M.shiftRoll = function (job) {
     var hh = job.hero, Rr = DS.R, r = { got: 0, touched: false };
@@ -615,7 +619,10 @@
     if (got) { st.silver(got); D.sfx('coin'); }
     f.shifts = (f.shifts || 0) + 1; lines.push(L('w.shiftPaid', { n: got }));
     yield sc.say(lines);
-    if (f.shifts === 1) { f.hobMet = 1; f['heard:r-promised'] = 1; sc.o.pic = null; sc.sheet = M.HOB_SHEET; sc.o.name = 'Old Hob'; yield sc.say(L('w.hobAtCradle')); }
+    // the first shift's end: Old Hob's word on the water (11-06, RULED, Griz to the lanes desk: "Let's give old hob something like "there's something in that water, don't let
+    // it drown you too" at the end of the shift") in the old hobAtCradle line's place; the doors line is his on the surface now, by the kitchen (content/npcs.json hobCamp, where
+    // heard:r-promised is set). The five already up out of that water: his word knows it
+    if (f.shifts === 1) { f.hobMet = 1; sc.o.pic = null; sc.sheet = M.HOB_SHEET; sc.o.name = 'Old Hob'; yield sc.say(L(f.fiveRecovered || f.keeperDone ? 'w.hob.waterAfter' : 'w.hob.water'), 'concerned'); }
   };
   M.d20 = function () { return D.d(20); }; // (the shift's die: the bench pins it)
   // Skarn's gate in the stalls (S.skarnGate): shut till Skarn has taken the party on; then it swings back and stays open -- the floor laid again with it open

@@ -7473,6 +7473,145 @@
     document.body.appendChild(preLw);
     return;
   }
+  // OLD HOB TALKS THE FIRST MILKING (mode=hobshift1106; the hobshift seat, 11-06 -- Griz to the lanes desk: "I'd like to make hobbs actually talk the player through their first
+  // crawler milking ... where he says the in-game stuff like 'grab the 'part' up high and work it down' with commentary on how they do, etc. - rather than him saying the same
+  // promises line about the runes that he does on the surface after they've done the thing / maybe have him explain that line better"; then, RULED: "Let's give old hob
+  // something like "there's something in that water, don't let it drown you too" at the end of the shift"): 1. his words, each event's, fit the cradle's band; 2. the first
+  // shift at pen two on the floor -- Hob on his face at the ask, the cradle coached (his lines by the scene's own events, the narrator's captions not said), his water at the
+  // pay, hobMet set and the doors NOT said there; 3. each draw's word from the scene itself (perfect, clean, dry, spilt, the gold reached and passed, the settle wearing thin,
+  // the whip, held, held by the draught, the touch, the shift's end by what it sealed), and an uncoached cradle as before; 4. the intro waits on him; 5. his box right of the
+  // cradle, clear of the feelers and their rings, his face and his words on the band; 6. later shifts as before, a deep shift first not counted, the deep rate never coached;
+  // 7. the surface: hobCamp's doors line explained once (heard:r-promised set there), then short; hobC's with its meaning; the mark read on his line heard, not on the shift
+  // worked; 8. the show's beats (deep16/?cradle&beat=hob|hobwatch|hobfirst: the eyes row's door)
+  if (get('mode', '') === 'hobshift1106') {
+    var repHb = { checks: [], errors: [] }, memHb = {}, stGHb = D.store.get, stSHb = D.store.set, HHb = D.house, CHb = D.counter, RHb = D.roam, MHb = D.mines, CRHb = D.cradle, IHb = D.input;
+    var sfxHb = D.sfx, apHb = window.DS.autoPicks, autoHb = RHb.shiftAuto, capHb = CRHb.Scene.prototype.caption, dpHb = CHb.drawPortrait, txHb = D.text, dHb = D.d, LHb = CHb.L;
+    function okHb(what, v) { repHb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveHb(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topHb() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveHb(s.co, null, 2); return s; }
+    function floorHb(q, at, flags) { D.scenes.length = 0; var rec = HHb.fresh(); rec.at = { town: null }; HHb.begin(rec, 0); HHb.cur.flags = Object.assign({}, flags || {}); var B = RHb.make(q, { save: HHb.living(HHb.cur), opts: { at8: at.slice() }, house: true }); D.push(B); B = topHb(); B.roam.encIn = 1e9; D.battle = B; return B; }
+    // a counter answered: each say recorded once as name|sheet|words, each ask as ? and the answer taken
+    function answerHb(sc, ans, out) { ans = (ans || []).slice(); var w0 = null;
+      for (var k = 0; k < 60 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons();
+        if (w.say) { if (w !== w0) out.push(sc.o.name + '|' + (sc.sheet || '-') + '|' + window.DS.stripCodes(w.say.join(' '))); w0 = w; sc.press(bs.filter(function (q) { return q.go === 'next'; })[0] || bs[0]); }
+        else if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; out.push('? ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); }
+        else if (bs[0]) sc.press(bs[0]); else break; } }
+    function runHb(sc, cap) { for (var k = 0; k < (cap || 20000) && !sc.over; k++) { sc.update(); IHb.clear(); } return sc.result; }
+    function shiftHb(g, ans) { var seen = [], scene = null, first = true;
+      for (var st = 0; st < 6; st++) { driveHb(g, function () { var t = D.top(); return (t instanceof CHb.Counter && !t.done) || (t instanceof CRHb.Scene && !t.over); }, 3000); var t = D.top();
+        if (t instanceof CHb.Counter && !t.done) { answerHb(t, first ? ans : [], seen); first = false; } else if (t instanceof CRHb.Scene && !t.over) { scene = t; runHb(t); } else break; }
+      driveHb(g, null, 400); return { seen: seen, scene: scene }; }
+    var capLog = []; CRHb.Scene.prototype.caption = function (k) { capLog.push(k); return capHb.apply(this, arguments); };
+    D.store.get = function (k) { return memHb[k] ? JSON.parse(memHb[k]) : null; }; D.store.set = function (k, v) { memHb[k] = JSON.stringify(v); return true; };
+    try {
+      D.sfx = function () { }; window.DS.autoPicks = true;
+      var hobL = function (ev) { var r = LHb('w.hob.' + ev); return r === 'w.hob.' + ev ? null : [].concat(r); };
+      // 1. HIS WORDS: every event's in content/text.json, none a stub, each line in his quotes two lines at most on the band (the cradle's D.W - 60)
+      var evs = CRHb.COACH_EVENTS || [], miss = [], long = [], stub = [], nLines = 0;
+      evs.forEach(function (ev) { var ls = hobL(ev); if (!ls) { miss.push(ev); return; } ls.forEach(function (s) { nLines++; var w = D.wrap('"' + s.replace('{n}', '6') + '"', D.W - 60); if (w.length > 2) long.push(ev + ' (' + w.length + ')'); if (/\[GRIZ|TODO|TBD|XXX/.test(s)) stub.push(ev); }); });
+      var cn1 = hobL('comes'), wa1 = hobL('water'), wb1 = hobL('waterAfter');
+      okHb('his words: ' + evs.length + ' events, ' + nLines + ' lines, every one in text.json (missing: ' + (miss.join(',') || 'none') + '), two band lines at most in his quotes (too long: ' + (long.join(',') || 'none') + '), no stub; his face for each (' + evs.filter(function (e) { return CRHb.COACH.hob.face[e]; }).length + '); at the counter w.hob.comes (' + (cn1 && cn1.length) + ' pages), w.hob.water, w.hob.waterAfter',
+        evs.length >= 17 && !miss.length && !long.length && !stub.length && evs.every(function (e) { return CRHb.COACH.hob.face[e]; }) && hobL('intro').length === 4 && !!cn1 && !!wa1 && !!wb1);
+      var up1 = hobL('intro').join(' '), wat1 = wa1.join(' ');
+      okHb('the intro: the settle taking, the feelers under the bar, the brightest gland first, the feeler up high and worked down, the gold ("' + hobL('intro')[2].slice(0, 70) + '"); the water: Griz\'s two halves ("' + wat1.slice(0, 50) + '...")',
+        /settle/.test(up1) && /under the bar/.test(up1) && /brightest gland/.test(up1) && /up high/.test(up1) && /work it down/.test(up1) && /gold/.test(up1) && /something in that water/.test(wat1) && /drown you too/.test(wat1) && /drown you/.test(wb1.join(' ')));
+      // 2. THE FIRST SHIFT ON THE FLOOR: a NEW GAME at pen two, Edric's book signed, no shift yet; the hands let go in the gold (the seed pinned)
+      D.seed = 1106; RHb.shiftAuto = 'perfect'; capLog = [];
+      var B2 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1 }), f2 = B2.roam.flags, s0 = B2.roam.silver, r2 = shiftHb(MHb.penShift(B2, 2), [0, 0]), sc2 = r2.scene, said2 = r2.seen;
+      RHb.shiftAuto = autoHb;
+      var hobAt = said2.filter(function (l) { return /^Old Hob\|pt_oldhob\|/.test(l); }), askI = said2.indexOf('? WORK A SHIFT'), hb2 = sc2 ? sc2.heard : [], res2 = sc2 && sc2.result;
+      okHb('the first shift at pen two: WORK A SHIFT (' + (askI >= 0) + '), then Old Hob on his own face (' + hobAt.length + ' of his: "' + (hobAt[0] || '').split('|')[2].slice(0, 60) + '..."), the cradle with him (' + (sc2 && sc2.coach && sc2.coach.name) + ', first ' + (sc2 && sc2.first) + ')',
+        askI >= 0 && hobAt.length >= 2 && /^First time in the cradle\? Hob Rennick/.test(hobAt[0].split('|')[2]) && /poles/.test(hobAt[0]) && /settle goes in after it/.test(hobAt[0]) && said2.indexOf(hobAt[0]) > askI && !!sc2 && !!sc2.coach && sc2.coach.name === 'OLD HOB' && sc2.first && !sc2.deep);
+      var kinds2 = (res2 && res2.slots || []).join(','), evs2 = hb2.map(function (l) { return l.split(':')[0]; });
+      okHb('in the cradle he says, in order: the four of the intro first (' + evs2.slice(0, 4).join(',') + '), then by the draws (' + evs2.slice(4).join(',') + '), the draws ' + kinds2 + '; the narrator\'s captions said: ' + (capLog.join(',') || 'none'),
+        evs2.slice(0, 4).join() === 'intro,intro,intro,intro' && hb2[0].indexOf(hobL('intro')[0]) >= 0 && hb2[3].indexOf(hobL('intro')[3]) >= 0 && evs2.indexOf('now') >= 4 && !!res2 && res2.slots.length === 6 &&
+        res2.slots.every(function (k, i) { var j = evs2.indexOf(k, 4); return j >= 0; }) && /^tally/.test(evs2[evs2.length - 1]) && !capLog.length);
+      var tallyL = hb2[hb2.length - 1] || '', want2 = res2 ? (res2.got >= 5 ? 'tallyFive' : res2.got >= 3 ? 'tallyGood' : res2.got ? 'tallySome' : 'tallyNone') : '-';
+      okHb('the shift\'s end by what it sealed (' + (res2 && res2.got) + ' sealed): "' + tallyL + '"', tallyL.indexOf(want2 + ': ') === 0 && tallyL.indexOf(String(res2.got) + ' sealed') >= 0);
+      var pay2 = said2.filter(function (l) { return /Shift done/.test(l); })[0] || '', last2 = said2[said2.length - 1] || '';
+      okHb('the pay at the board (+' + (B2.roam.silver - s0) + ' sp), then Old Hob on his face with his word on the water: "' + last2.split('|')[2] + '"; hobMet ' + f2.hobMet + ', and the doors not said at the pens (heard:r-promised ' + (f2['heard:r-promised'] || 0) + ', "promised" in nothing said: ' + !/promised/.test(said2.join(' ') + hb2.join(' ')) + ')',
+        !!pay2 && said2.indexOf(pay2) < said2.length - 1 && /^Old Hob\|pt_oldhob\|/.test(last2) && last2.split('|')[2] === wat1 && f2.hobMet === 1 && f2.shifts === 1 && !f2['heard:r-promised'] && !/promised/.test(said2.join(' ') + hb2.join(' ')) && B2.roam.silver - s0 === res2.got);
+      // 3. EACH DRAW'S WORD from the scene itself: a coached cradle, the gold pinned at 0.5 +/- 0.1
+      var hLy = HHb.cur.party.filter(function (x) { return x.id === 'lymen'; })[0] || HHb.cur.party[0];
+      var mk = function (o) { var sc = CRHb.make(Object.assign({ hero: hLy, skill: 4, skillName: 'Nature', mouth: 2, shifts: 0, coach: 'hob' }, o || {})); D.scenes.length = 0; D.push(sc); sc.pickNext(); sc.setPhase('squeeze'); sc.band = { c: 0.5, w: 0.1, phase: 0, jump: 0 }; sc.bandC = function () { return 0.5; }; return sc; };
+      var lastOf = function (sc) { return sc.heard[sc.heard.length - 1] || ''; };
+      var letGo = function (sc, p) { sc.p = p; sc.release(); return lastOf(sc); };
+      var sP = mk(), ps = [0, 1, 2, 3, 4].map(function () { sP.setPhase('squeeze'); return letGo(sP, 0.52).replace('perfect: ', ''); }), pl = hobL('perfect');
+      okHb('five full ones in a row: the first his first, then the later turns alternate (' + ps.map(function (s) { return pl.indexOf(s); }).join(',') + ')', ps.map(function (s) { return pl.indexOf(s); }).join() === '0,1,2,1,2');
+      var sR = mk(), w1 = letGo(sR, 0.52); sR.setPhase('squeeze'); var w2 = letGo(sR, 0.52); sR.setPhase('squeeze'); var w3 = letGo(sR, 0.58); sR.setPhase('squeeze'); var w4 = letGo(sR, 0.3); sR.setPhase('squeeze'); var w5 = letGo(sR, 0.65); sR.setPhase('squeeze'); var w6 = letGo(sR, 0.58);
+      okHb('each draw let go: a full one "' + w1.slice(9, 60) + '", a second "' + w2.slice(9, 50) + '", clean "' + w3.slice(7, 50) + '", dry "' + w4.slice(5, 50) + '", spilt "' + w5.slice(7, 50) + '", clean again "' + w6.slice(7, 40) + '"; no narrator caption (' + !sR.cap + '), his face ' + (sR.face && sR.face.anim),
+        w1 === 'perfect: ' + hobL('perfect')[0] && w2 === 'perfect: ' + hobL('perfect')[1] && w3 === 'clean: ' + hobL('clean')[0] && w4 === 'dry: ' + hobL('dry')[0] && w5 === 'spilt: ' + hobL('spilt')[0] && w6 === 'clean: ' + hobL('clean')[1] && !sR.cap && sR.face && sR.face.anim === 'welcoming');
+      var sN = mk(); sN.draws = 0; IHb.held.a = true; sN.p = 0.41; sN.ph_squeeze(); var n1 = lastOf(sN); sN.p = 0.61; sN.ph_squeeze(); IHb.held.a = false; var e1 = lastOf(sN);
+      var sN3 = mk(); sN3.draws = 2; sN3.p = 0.45; IHb.held.a = true; sN3.ph_squeeze(); IHb.held.a = false; var n3 = sN3.heard.length;
+      okHb('as the ring fills: the gold reached on the first draw "' + n1 + '", passed and still held "' + e1 + '"; on the third draw no "now" (' + n3 + ' said)', n1 === 'now: ' + hobL('now')[0] && e1 === 'ease: ' + hobL('ease')[0] && n3 === 0);
+      var sT = mk(); sT.draws = 4; sT.twitch = { t: 9 }; sT.p = 0.1; IHb.held.a = true; sT.ph_squeeze(); IHb.held.a = false;
+      okHb('the settle wearing thin (a twitch, the fifth draw): "' + lastOf(sT) + '"', lastOf(sT) === 'twitch: ' + hobL('twitch'));
+      var saveRun = function (o, r2pin) { var sc = mk(o); if (r2pin) D.d = function () { return r2pin; }; try { sc.p = 0.8; sc.release(); } finally { D.d = dHb; } var w0 = lastOf(sc); for (var k = 0; k < 121; k++) { sc.pt = k; sc.ph_save(); } return { w: w0, last: lastOf(sc), sc: sc }; };
+      var sJ = saveRun({ saves: [18] }), sTo = saveRun({ saves: [1] }), sSh = saveRun({ draught: true, saves: [1] }, 20);
+      okHb('a feeler off the bar: "' + sJ.w + '"; held: "' + sJ.last + '"; held by the draught\'s second die: "' + sSh.last + '"; the touch: "' + sTo.last + '" (his face ' + (sTo.sc.face && sTo.sc.face.anim) + ')',
+        sJ.w === 'whip: ' + hobL('whip')[0] && sJ.last === 'jerk: ' + hobL('jerk')[0] && sSh.last === 'shrug: ' + hobL('shrug') && sTo.last === 'touch: ' + hobL('touch') && sTo.sc.face.anim === 'concerned' && !sJ.sc.cap);
+      var talOf = function (got, touched) { var sc = mk(); sc.got = got; sc.touched = touched; sc.setPhase('tally'); return lastOf(sc); };
+      var tl = [talOf(0), talOf(1), talOf(3), talOf(5), talOf(2, true)];
+      okHb('the shift\'s end: none "' + tl[0].slice(0, 40) + '", one "' + tl[1].slice(0, 30) + '", three "' + tl[2].slice(0, 30) + '", five "' + tl[3].slice(0, 30) + '", touched "' + tl[4].slice(0, 40) + '"',
+        /^tallyNone: Nothing sealed/.test(tl[0]) && /^tallySome: 1 sealed/.test(tl[1]) && /^tallyGood: 3 sealed/.test(tl[2]) && /^tallyFive: 5 sealed/.test(tl[3]) && /^tallyTouched: /.test(tl[4]));
+      capLog = []; var sU = mk({ coach: null }), u1 = letGo(sU, 0.52), sUd = mk({ coach: 'hob', deep: true });
+      okHb('no coach, as before: the narrator\'s caption ("' + (sU.cap && sU.cap.s) + '"), nothing of his (' + sU.heard.length + '); the deep rate never coached (' + !sUd.coach + ')', !sU.coach && sU.cap && sU.cap.s === LHb('w.drawPerfect') && !sU.heard.length && capLog.join() === 'w.drawPerfect' && !sUd.coach);
+      // 4. THE INTRO WAITS ON HIM: no hands on it, still the intro at the uncoached one's end (170 frames) and on; E takes the next of his four; after them, the work
+      D.scenes.length = 0; var sI = CRHb.make({ hero: hLy, skill: 4, skillName: 'Nature', mouth: 2, shifts: 0, coach: 'hob' }); D.push(sI);
+      for (var kI = 0; kI < 200; kI++) { sI.update(); IHb.clear(); } var ph200 = sI.phase, h200 = sI.heard.length;
+      var presses = 0; while (sI.phase === 'intro' && presses < 10) { IHb.press('a'); sI.update(); IHb.release('a'); IHb.clear(); for (var kJ = 0; kJ < 14; kJ++) { sI.update(); IHb.clear(); } presses++; }
+      okHb('the intro waits on him: at 200 frames still ' + ph200 + ' (' + h200 + ' of his four said); E for the next, ' + presses + ' presses to the work (' + sI.phase + '), all four said (' + sI.heard.length + ')', ph200 === 'intro' && h200 === 1 && sI.phase === 'ready' && sI.heard.length === 4 && presses === 4);
+      // 5. HIS BOX: right of the cradle's right post, clear of the feelers and their rings; his face drawn from his sheet, his name, his words on the band in quotes
+      var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var cx = cv.getContext('2d'), dps = [], txs = [];
+      CHb.drawPortrait = function (c, nm, an) { dps.push(nm + ':' + an); return dpHb.apply(this, arguments); }; D.text = function (c, s, x, y) { txs.push({ s: String(s), x: x, y: y }); return txHb.apply(this, arguments); };
+      try { sI.speak('clean'); sI.update(); sI.draw(cx); } finally { CHb.drawPortrait = dpHb; D.text = txHb; }
+      var bx = CRHb.COACH_BOX, ringR = Math.max.apply(null, sI.tents.map(function (T) { return T.tip().x; })) + 13, said5 = txs.filter(function (t) { return t.y >= 240 && /^"/.test(t.s); });
+      okHb('his box at ' + bx.x + ',' + bx.y + ' ' + bx.w + 'x' + bx.h + ' (the feelers\' rings end at x ' + Math.round(ringR) + ', the right post at 376; on the screen ' + (bx.x + bx.w <= D.W && bx.y + bx.h <= 234) + '), his face drawn (' + dps.join(',') + '), "' + (txs.filter(function (t) { return /OLD HOB/.test(t.s); })[0] || {}).s + '", his words on the band: ' + said5.map(function (t) { return t.s; }).join(' ').slice(0, 60),
+        bx.x >= 378 && ringR < bx.x && bx.x + bx.w <= D.W && bx.y + bx.h <= 234 && bx.y >= 30 && dps.length === 1 && /^pt_oldhob:welcoming$/.test(dps[0]) && txs.some(function (t) { return /OLD HOB/.test(t.s); }) && said5.length >= 1 && said5[0].s.indexOf('"' + hobL('clean')[0].slice(0, 20)) === 0);
+      D.scenes.length = 0; var sUn = CRHb.make({ hero: hLy, skill: 4, mouth: 2, shifts: 0 }); dps = []; CHb.drawPortrait = function (c, nm) { dps.push(nm); return dpHb.apply(this, arguments); }; try { for (var kU = 0; kU < 40; kU++) sUn.update(); sUn.draw(cx); } finally { CHb.drawPortrait = dpHb; }
+      okHb('an uncoached cradle draws no box and no face (' + dps.length + ')', !dps.length);
+      // 6. LATER SHIFTS AS BEFORE; a deep shift first not counted; the deep rate not coached
+      D.seed = 1106; RHb.shiftAuto = 'perfect'; capLog = [];
+      var B6 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1, shifts: 1, hobMet: 1 }), r6 = shiftHb(MHb.penShift(B6, 2), [0, 0]); RHb.shiftAuto = autoHb;
+      okHb('a second shift: no Hob at the ask or the pay (' + r6.seen.filter(function (l) { return /^Old Hob\|/.test(l); }).length + '), the cradle uncoached (' + !(r6.scene && r6.scene.coach) + '), the narrator\'s captions (' + capLog.slice(0, 3).join(',') + '...)',
+        !r6.seen.some(function (l) { return /^Old Hob\|/.test(l); }) && !!r6.scene && !r6.scene.coach && capLog.length >= 6 && B6.roam.flags.shifts === 2);
+      RHb.shiftAuto = 'perfect'; D.seed = 1106;
+      var B7 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1, deepShifts: 1 }), r7 = shiftHb(MHb.penShift(B7, 2), [0, 0]); RHb.shiftAuto = autoHb;
+      okHb('a deep shift worked first: the first at the pens still his (coach ' + (r7.scene && r7.scene.coach && r7.scene.coach.name) + '), his water at the pay (' + /something in that water/.test(r7.seen.join(' ')) + ')',
+        !!r7.scene && !!r7.scene.coach && /something in that water/.test(r7.seen.join(' ')) && B7.roam.flags.hobMet === 1);
+      RHb.shiftAuto = 'perfect'; D.seed = 1106;
+      var B8 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1, fiveRecovered: 1 }), r8 = shiftHb(MHb.penShift(B8, 2), [0, 0]); RHb.shiftAuto = autoHb;
+      okHb('the five already up out of that water: his word knows it ("' + (r8.seen[r8.seen.length - 1] || '').split('|').pop().slice(0, 70) + '...")', (r8.seen[r8.seen.length - 1] || '').split('|').pop() === wb1.join(' '));
+      // 7. THE SURFACE: Old Hob by the kitchen -- before the shift, the promise; after it, the doors explained once (heard:r-promised set there), then his short word
+      var B9 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1 }), w9a = CHb.words(B9, 'hobCamp').join(' / '), f9 = B9.roam.flags, h9a = f9['heard:r-promised'] || 0;
+      f9.hobMet = 1; var w9b = CHb.words(B9, 'hobCamp'), h9 = f9['heard:r-promised'], w9c = CHb.words(B9, 'hobCamp').join(' / ');
+      okHb('Old Hob by the kitchen before the shift: "' + w9a.slice(0, 70) + '..." (the doors not heard yet: ' + h9a + ')', /talk you through the settle/.test(w9a) && !h9a);
+      var exp9 = w9b.join(' ');
+      okHb('after the shift: the doors explained, ' + w9b.length + ' pages ("' + w9b[1].slice(0, 80) + '..."), heard:r-promised set by it (' + h9 + '); again: "' + w9c.slice(0, 60) + '"',
+        w9b.length === 4 && /not locked\. They're promised/.test(exp9) && /sworn shut/.test(exp9) && /Rekknar's ledger/.test(exp9) && /blasphemy/.test(exp9) && /something keeping it/.test(exp9) && h9 === 1 && /^Not locked\. Promised\./.test(w9c) && w9c.indexOf('sworn shut') < 0);
+      var B10 = floorHb('?roam=warrens&at=9,5', [9, 5], { tallyMet: 1 }), wC = CHb.words(B10, 'hobC').join(' ');
+      okHb('Old Hob in the deep stalls: the line with its meaning ("' + wC.slice(-110) + '"), heard ' + B10.roam.flags['heard:r-promised'], /promised: sworn shut in Rekknar's ledger/.test(wC) && B10.roam.flags['heard:r-promised'] === 1);
+      var rum = (window.DS.DATA.rumors || []).filter(function (r) { return r.id === 'r-promised'; })[0] || {};
+      okHb('the journal\'s rumour: "' + String(rum.t).slice(0, 90) + '..."', /Rekknar's ledger/.test(rum.t) && /blasphemy/.test(rum.t));
+      var markOf = function (flags) { var B = floorHb('?roam=wet', [15, 7], Object.assign({ tallyMet: 1, keeperDone: 1 }, flags)); B.cards = []; D.d = function () { return 1; }; try { driveHb(RHb.markScene(B, {}, null), null, 200); } finally { D.d = dHb; } return { read: B.roam.flags.markRead || 0, card: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ') }; };
+      var mk1 = markOf({ hobMet: 1 }), mk2 = markOf({ hobMet: 1, 'heard:r-promised': 1 });
+      okHb('the mark at the stair head, nobody reading it (the dice at 1): the shift worked alone, not read (' + mk1.read + '); his line heard, read ("' + mk2.card.slice(-70) + '")', !mk1.read && mk2.read === 1 && mk2.card.indexOf(window.DS.stripCodes([].concat(LHb('w.markRead'))[0]).slice(0, 20)) >= 0);
+      // 8. THE SHOW's beats (the eyes row's door): hob -- your hands, his words; hobwatch -- every kind of draw, the dice pinned; hobfirst -- the floor at pen two, no shift yet
+      var shB = CRHb.show('?cradle&seed=1106'), pick = function (id) { return CRHb.BEATS.filter(function (b) { return b.id === id; })[0]; };
+      D.scenes.length = 0; CRHb.play(pick('hob'), '?cradle&seed=1106', shB); var tH = D.top();
+      D.scenes.length = 0; CRHb.play(pick('hobwatch'), '?cradle&seed=1106', shB); var tW = D.top(), rW = runHb(tW), evW = tW.heard.map(function (l) { return l.split(':')[0]; });
+      D.scenes.length = 0; CRHb.play(pick('hobfirst'), '?cradle&seed=1106', shB); var tF = topHb();
+      okHb('the show deep16/?cradle&beat=hob: his, your hands (' + !!(tH && tH.coach && !tH.auto && tH.first) + '); beat=hobwatch, the seed and the saves pinned: ' + (rW && rW.slots.join(',')) + ', his words ' + evW.slice(4).join(',') + '; beat=hobfirst: the floor at pen two, no shift yet (' + (tF && tF.roam && D.roam.def.key) + ', shifts ' + (tF && tF.roam && (tF.roam.flags.shifts || 0)) + ')',
+        !!tH && !!tH.coach && !tH.auto && tH.first && !!rW && rW.slots.join() === 'perfect,clean,dry,spilt,jerk,touch' && rW.touched && ['perfect', 'clean', 'dry', 'spilt', 'whip', 'jerk', 'touch', 'tallyTouched'].every(function (e) { return evW.indexOf(e) >= 0; }) &&
+        !!tF && !!tF.roam && D.roam.def.key === 'warrens' && !tF.roam.flags.shifts && tF.roam.flags.tallyMet === 1);
+      D.scenes.length = 0; D.battle = null;
+    } catch (eHb) { repHb.errors.push(String(eHb && eHb.stack || eHb).slice(0, 900)); }
+    D.sfx = sfxHb; window.DS.autoPicks = apHb; D.store.get = stGHb; D.store.set = stSHb; RHb.shiftAuto = autoHb; CRHb.Scene.prototype.caption = capHb; CHb.drawPortrait = dpHb; D.text = txHb; D.d = dHb; IHb.held.a = false;
+    if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preHb = document.createElement('pre'); preHb.id = 'out'; preHb.textContent = 'BENCH16 ' + JSON.stringify(repHb);
+    document.body.appendChild(preHb);
+    return;
+  }
   // THE HOUSE'S TUESDAY FIXES (mode=house1105; the tuesday-house seat, 11-05 -- Griz to the lanes desk: "Seat 1 - go with leans minus 'shelf'", on his 10-31 playthrough's
   // notes, ..\notes-for-tuesday-2026-11-03.md): 1. a cast's card over the floor's M menu, the menu kept open (Tuesday 3: deep16/js/ui.js drawBattle); 2. the level-up page's
   // toast in the middle, every other at the foot (Tuesday 30: js/menu.js Menu.toastBox); 3. no answer under the cursor on a question that commits, a one-answer ask keeps its
@@ -9752,9 +9891,9 @@
       D.cradle.STRAIGHT = true; D.seed = 1029; var B6 = floorSb('?roam=warrens&flags=tallyMet&at=9,5'), g6 = MSb.penShift(B6, 2), pics6 = [], seen6 = [];
       for (var k6 = 0; k6 < 6; k6++) { driveSb(g6, function () { return D.top() instanceof CSb.Counter; }, 400); if (!(D.top() instanceof CSb.Counter)) break; var sc6 = D.top(); pics6.push(sc6.o.pic === D.cradle.pic); seen6 = seen6.concat(readSb(sc6, [0, 0])); }
       driveSb(g6, null, 400); D.cradle.STRAIGHT = false;
-      var hob6 = seen6.filter(function (l) { return /^Old Hob\|/.test(l); })[0] || '', pay6 = seen6.filter(function (l) { return /Shift done/.test(l); })[0] || '';
-      okSb('a shift at pen two: the cradle in the portrait\'s place on both screens (' + pics6.join(',') + '), the pay "' + pay6.replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 50) + '" (' + pay6.split('|')[2] + '), Old Hob "' + hob6.slice(0, 60) + '"',
-        pics6.length === 2 && pics6.every(Boolean) && /paid at the pen/.test(pay6) && pay6.split('|')[2] === 'pic' && /^Old Hob\|pt_oldhob\|-\|An old hand talks you through the settle/.test(hob6) && B6.roam.flags.hobMet === 1);
+      var hobs6 = seen6.filter(function (l) { return /^Old Hob\|/.test(l); }), hob6 = hobs6.join(' // '), pay6 = seen6.filter(function (l) { return /Shift done/.test(l); })[0] || '';
+      okSb('a shift at pen two: the cradle in the portrait\'s place on both screens (' + pics6.join(',') + '), the pay "' + pay6.replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 50) + '" (' + pay6.split('|')[2] + '), Old Hob at the ask and after the pay (11-06, the hobshift seat: his water, not the doors) "' + hob6.slice(0, 60) + ' ... ' + (hobs6[hobs6.length - 1] || '').slice(-50) + '"',
+        pics6.length === 2 && pics6.every(Boolean) && /paid at the pen/.test(pay6) && pay6.split('|')[2] === 'pic' && /^Old Hob\|pt_oldhob\|-\|First time in the cradle\?/.test(hobs6[0] || '') && /^Old Hob\|pt_oldhob\|-\|One more thing\. There's something in that water/.test(hobs6[hobs6.length - 1] || '') && !/promised/.test(hob6) && B6.roam.flags.hobMet === 1);
       var cvSb = document.createElement('canvas'); cvSb.width = 140; cvSb.height = 180; D.cradle.stillC = null; D.seed = 77; var r0Sb = D.rand(); D.seed = 77; D.cradle.pic(cvSb.getContext('2d'), 0, 0, 140, 180); var r1Sb = D.rand();
       var pxSb = cvSb.getContext('2d').getImageData(0, 0, 140, 180).data, litSb = 0; for (var iSb = 0; iSb < pxSb.length; iSb += 4) if (pxSb[iSb + 3] > 0 && pxSb[iSb] + pxSb[iSb + 1] + pxSb[iSb + 2] > 120) litSb++;
       okSb('the cradle\'s picture: ' + litSb + ' lit pixels of ' + (140 * 180) + ' in a portrait\'s box, and the dice where they were (' + (r0Sb === r1Sb) + ')', litSb > 4000 && r0Sb === r1Sb);
@@ -10541,7 +10680,7 @@
         !!fP.scene && !fP.scene.deep && fP.scene.mouth === 2 && !!rP && RP.silver - sP0 === rP.got && RP.flags.shifts === 1 && RP.flags.hobMet === 1 && fP.seen.indexOf('> WORK A SHIFT') >= 0 && fP.seen.indexOf(CX.L('w.shiftPaid', { n: rP.got })) >= 0);
       // the show (deep16/?cradle, the eyes row's door): each beat opens the shift with the seed pinned
       var shC = CRX.show('?cradle'), bC = CRX.BEATS.map(function (bt) { D.scenes.length = 0; CRX.play(bt, '?cradle', shC); var t = D.top(); if (t && t.baking) { t.baking = false; t.enter(); } return bt.id + ':' + (bt.counter ? (D.roam.def.key === 'warrens' && RX.house() ? 'floor' : 'X') : t instanceof CRX.Scene ? (t.deep ? 'deep' : 'pens') + (t.draught ? '+draught' : '') : 'X'); });
-      okX('the show deep16/?cradle: ' + bC.join(', '), bC.join() === 'pens:pens,deep:deep+draught,counter:floor' && shC.buttons().length === 3 && CRX.seedOf('?cradle') === 1022);
+      okX('the show deep16/?cradle: ' + bC.join(', '), bC.join() === 'pens:pens,deep:deep+draught,counter:floor,hob:pens,hobwatch:pens,hobfirst:floor' && shC.buttons().length === 6 && CRX.seedOf('?cradle') === 1022);
       // E. THE SHOW (deep16/?wetshow, the eyes row's door): each beat stands a NEW GAME on its floor, on its square
       var shX = RX.wetShow('?wetshow'), bxX = RX.WET_BEATS.map(function (bt) { D.scenes.length = 0; D.push(RX.wetShow('?wetshow&beat=' + bt.id)); D.top().update(); var B = topX(), want = bt.key ? bt.at : D.roam.def.from8(bt.at[0], bt.at[1]);
         return bt.id + (B && B.roam && RX.house() && B.roam.token.x === want[0] && B.roam.token.y === want[1] && (bt.key ? D.roam.def.key === bt.key : !!D.roam.def.wet) && B.roam.flags.tallyMet === 1 ? '' : ' (not staged)'); });
