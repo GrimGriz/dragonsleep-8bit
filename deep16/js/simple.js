@@ -52,11 +52,15 @@
   // apart (x -2 and +2), ACROSS's 2 (c -2 and +2, a diagonal a square); now d apart, the party's front hp past the middle and the foes' hf before it, ACROSS by an even d (its rows
   // are every other square on the diagonal). The exceptions RULED 11-05 keep the lineup as it was drawn (S.HELD): the Hex's sand (its bouts at 20 ft in the ring, js/hex.js
   // HX.field) and a set fight on a floor (js/mines.js M.fieldDef, one whose set does not say gap 'rule'). Nobody walks in the simple fight, so the gap is the sight and the
-  // light (a torch's dim edge 40 ft; dev/bench16.js mode=tuesgrid1105) and the picture
+  // light (a torch's dim edge 40 ft; dev/bench16.js mode=tuesgrid1105) and the picture.
+  // FIXED AT 8 (RULED 11-05 night, Griz: "Fix at 8", on the seat's lean once the field had one light -- js/light.js L.fieldLevel, his "Yes, simplify" -- so the gap is the picture
+  // alone, and a rolled 6 to 12 moved the opening zoom fight to fight): every simple fight's fronts S.FIXED apart, his "two squares out each side"; the lineup as drawn kept for
+  // the exceptions above; the grid's fights roll W.GAP's 6 to 12 as before. (S.FIXED is read at each fight: a bench may set it to stand a fight at another gap)
   S.HELD = { iso: 4, across: 2 };
+  S.FIXED = 8;
   S.GAP = { d: 2, hp: 1, hf: 1, v: 'across' };
   S.gapOf = function (v, gap) {
-    var WG = (D.world && D.world.GAP) || [6, 12], d = gap === 'held' ? S.HELD[v] || 4 : typeof gap === 'number' ? gap : WG[0] + D.rint(WG[1] - WG[0] + 1);
+    var d = gap === 'held' ? S.HELD[v] || 4 : typeof gap === 'number' ? gap : S.FIXED;
     return v === 'across' && d % 2 ? d + 1 : d;
   };
   S.LAYOUTS = {
@@ -97,7 +101,7 @@
   // vice versa (simple with 6-8 width or whatever)" -- js/mines.js M.fieldDef): ISO's lineup on a strip 16 by 9 round [8, 4], its four rows every other square and a rim; ACROSS's
   // lines run on the diagonal and keep the 16 by 16. The road's fights and the Hex's sand ask the full one (no `small`). Since 11-05 (THE GAP, above) each is as wide as its gap
   // asks, the old sizes at the old gap: ISO 12 + d across (C's x 6 + hf), its rows as they were; ACROSS grown d - 2 each way. `gap`: a number of squares, 'held' (the lineup as
-  // drawn: S.HELD), or none for the rule's roll
+  // drawn: S.HELD), or none for S.FIXED's 8 (RULED 11-05 night)
   S.SMALL = { iso: { w: 16, h: 9, C: [8, 4] } };
   S.fieldOpts = function (small, gap) {
     var v = S.view(), d = S.gapOf(v, gap), hf = Math.floor(d / 2), sz = (small && S.SMALL[v]) || { w: 16, h: 16, C: [8, 7] }, g2 = v === 'iso' ? 0 : (d - 2) / 2;
@@ -666,7 +670,7 @@
         mnx = Math.min(mnx, p.x - hw); mxx = Math.max(mxx, p.x + hw); mny = Math.min(mny, p.y - top - 6); mxy = Math.max(mxy, p.y + 10 * s);
       });
       if (mnx > mxx) { var p0 = iso.center(S.C[0], S.C[1], 0); mnx = p0.x - 100; mxx = p0.x + 100; mny = p0.y - 80; mxy = p0.y + 80; }
-      // (the fronts by the rule, 6 to 12 squares, 11-05: the deepest step that holds the lineup with a margin, and the wheel from there -- the desk's word, "no side-by-side zoom
+      // (the fronts by the rule, 8 squares since 11-05 night (S.FIXED): the deepest step that holds the lineup with a margin, and the wheel from there -- the desk's word, "no side-by-side zoom
       // variants"; the lineup as drawn, the Hex's sand and a set fight, a step further out as before: B.simple.gap, S.GAP's at the fight's start)
       var gp = B.simple.gap || S.GAP, wide = gp.d > S.HELD[gp.v || S.layout], mg = wide ? 14 : 0, fit = Math.min(P.w / (mxx - mnx + 2 * mg), P.h / (mxy - mny + mg)), i = 0;
       while (i < Z.length - 1 && Z[i] > fit) i++;
