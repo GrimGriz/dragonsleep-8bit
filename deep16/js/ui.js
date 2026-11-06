@@ -483,7 +483,7 @@
     if (rd.what === 'weapon') {
       var foe = liveFoe(u, hoveredAt(B, x, y)) || liveFoe(u, w) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (the figure the mouse is on first: hoveredAt, 11-03)
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
-      D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
+      D.sfx('error'); return B.card(['{o}' + (foe ? D.Battle.nm(foe, true) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
     }
     if (rd.what === 'move') {
       if (w && w !== u) { D.sfx('error'); return; }
@@ -833,7 +833,7 @@
       B.list = { kind: c.sub, items: items, sel: first, back: back || null }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.twin = !!c.twin; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwable(u); if (thK) B.card([D.keys('{g}THROW: a foe in sight within ' + thK.range[1] + ' ft (past ' + thK.range[0] + ', at disadvantage) -- ' + D.Battle.thrownLeft(u, thK) + ' left.  X back{/}')], 100000); } if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.twin = !!c.twin; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwable(u); if (thK) B.card([D.keys('{g}THROW: a foe in sight within ' + thK.range[1] + ' ft (past ' + thK.range[0] + ', at disadvantage) -- ' + D.Battle.thrownLeft(u, thK) + ' left.  X back{/}')], 100000); } if (c.tool === 'help') { var hsN = B.units.filter(function (w) { return D.Battle.helpable(u, w) && w.conds.asleep; }).map(D.Battle.nm); B.card([hsN.length ? '{g}HELP: shake ' + hsN.join(' and ') + ' awake -- click ' + (hsN.length > 1 ? 'the sleeper' : hsN[0]) + '; or a foe beside you, and the next ally to swing at it has advantage.{/}' : '{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); } /* (a sleeper beside you named, 11-06: his "'help' should be the 'shake to wake'") */ if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u, time) { // (time 'A' or 'B': only the spells cast with the action, or the bonus action -- RING2's two SPELLS, 10-15)
@@ -1001,6 +1001,7 @@
   }
   UI.spellTarget = spellTarget;
   UI.spellAim = function (B, u, e) { return spellAim(B, u, e); }; UI.actAt = function (B, u, x, y, byKey) { return actAt(B, u, x, y, byKey); }; // (dev/bench16.js rules1021b: Bane on a lone foe by the clicks)
+  UI.pickCommand = function (B, u, c) { return pickCommand(B, u, c); }; // (a ring's row picked, as the click on it: dev/bench16.js gridfixes1106, HELP's card naming a sleeper)
   // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
   function underCursor(B) {
     var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = (B.req && B.req.aim && B.req.aim.who) || B.active;
@@ -1163,10 +1164,10 @@
         D.sfx('error');
         if (D.rules.charmedBy(u, foe)) return B.card(['{o}' + u.name + ' is charmed: no raising a hand to the ' + B.shortName(foe) + '.{/}'], 160);
         if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
-        return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}'], 120);
+        return B.card(['{o}' + D.Battle.nm(foe, true) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}'], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
-      if (v === 'no' && fearSquares(B, u)[x + ',' + y]) { var fsA = fearOf(B, u); D.sfx('error'); return B.card(['{p}' + u.name + ' is frightened of ' + (fsA.side === u.side ? fsA.name : 'the ' + B.shortName(fsA)) + ': not one step nearer it.{/}'], 140); } // (a square the fear refuses says so: fearSquares)
+      if (v === 'no' && fearSquares(B, u)[x + ',' + y]) { var fsA = fearOf(B, u); D.sfx('error'); return B.card(['{p}' + u.name + ' is frightened of ' + (fsA.side === u.side ? fsA.name : D.Battle.nm(fsA)) + ': not one step nearer it.{/}'], 140); } // (a square the fear refuses says so: fearSquares)
       if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } var czC = UI.climber(B) === u ? UI.climbPick(B, u, x, y) : null; if (czC != null) { B.climbZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, cz: czC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (cz: a climber's height on the face, §2.18) // (fz: the layer, flight at a height)
       if (v === 'far') { var fzD = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzD != null) { B.flyZ = null; return UI.command(B, u, { do: 'dashmove', x: x, y: y, fz: fzD }); } return UI.command(B, u, { do: 'dashmove', x: x, y: y }); } // (a dash at a layer: flight at a height, 10-08)
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
@@ -1177,8 +1178,8 @@
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
     if (tool === 'grapple') { if (v === 'ok') return UI.command(B, u, { do: 'grapple', target: foe }); return B.card(['{o}Grapple: a foe beside you, no more than one size larger.{/}'], 120); }
     if (tool === 'offhand') { if (v === 'ok') return UI.command(B, u, { do: 'offhand', target: foe }); return B.card(['{o}Off hand: a foe in your reach' + (D.Battle.offThrow(u) ? ', or one to throw it at' : '') + '.{/}'], 120); }
-    if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
-    if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
+    if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}' + D.Battle.helpWhyNot(u, w, foe) + '{/}'], 120); } // (the why: down, not asleep; too far; awake and free -- 11-06)
+    if (tool === 'lay') { if (v === 'ok') { var lnN = D.Battle.layNothing(w); if (lnN) { D.sfx('error'); return B.card([lnN], 160); } return UI.command(B, u, { do: 'lay', target: w }); } return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); } // (at full hit points: turned away before the action is spent, 11-06)
     // (askSelf: a click on your own square with an item aimed is asked first -- 10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, and the next click, on Lymen's own square, ate it
     // and the action with it; battle.js exec 'item')
     if (tool === 'item') { var wi = itemOn(B, u, hv, w); // (wi: the figure the mouse is on when the item takes it -- a flask at the stirge over the hero, not the hero: 11-03)
@@ -1193,7 +1194,7 @@
       // (hv), as the aim took it; the darts and the rays say it too (11-03, Griz: a dart clicked at a foe out of reach did nothing and said nothing, `v !== 'ok'` returned before the card)
       var turnedAway = function () {
         var wt = hv || w, refused = wt && M.whyNot(B, u, g, wt);
-        if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + (wt.side === 'foe' ? 'the ' + B.shortName(wt) : wt.name) + ' ' + refused + '.{/}'], 120); }
+        if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + D.Battle.nm(wt) + ' ' + refused + '.{/}'], 120); }
       };
       if (g.shape === 'rays' || g.shape === 'darts') {
         if (v !== 'ok') return turnedAway();
@@ -2312,6 +2313,10 @@
         var shA = UI.areaShow(B, u, g, cx, cy), sqA = shA.sq; shA.tint.forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
         if (sqA.oz != null && sqA.oz > G.map.gz(cx, cy) + G.map.def.step + 0.5) airColumn(cx, cy, sqA.oz, null, 0, 'ok'); // (a point in the air: the column up to it and its height, as a flier's layer -- areas by height, 10-15)
         shA.caught.forEach(function (w) { G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('gold', 4), 0.8, 1); }); }); // (by height, who it catches is outlined: one in the air over its squares, not)
+        // (Sleep's sphere on the party said in words beside the aim: the tint alone before (the gold outline only where height matters), and by the SRD its pool takes the weakest first, friend or foe -- 11-06, the desk's read of
+        // his 17:42:29Z fight, Aurdin's Sleep on himself at R1, and two of the four in the 17:49 loss)
+        // (shA.caught is filled only where height can matter -- sqA.inZ; on a flat floor, who stands in it: G.inArea)
+        if (S.id === 'sleep') { var slF = (sqA.inZ ? shA.caught : B.units.filter(function (w) { return G.present(w) && !w.object && G.inArea(w, sqA); })).filter(function (w) { return !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.conds.asleep; }); if (slF.length) { var slP = D.iso.center(cx, cy, G.map.gz(cx, cy)), slS = D.iso.toScreen(slP.x, slP.y); LABELS.push({ x: slS.x + 18, y: slS.y - 4, text: '{o}' + slF.map(function (w) { return w.name + ' (' + w.hp + ')'; }).join(', ') + (slF.length > 1 ? ' are' : ' is') + ' in it: Sleep takes the weakest first, friend or foe{/}', color: R('bone', 1) }); } }
         shA.air.forEach(function (w) { var pa = UI.unitPos(B, w), ca = G.hostile(u, w) ? R('red', 4) : R('gold', 4); DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { c.save(); c.globalAlpha = 0.9; c.strokeStyle = ca; c.lineWidth = 1; c.setLineDash([3, 2]); c.lineDashOffset = B.t / 4; c.beginPath(); c.ellipse(pa.x, pa.y, 12, 5.5, 0, 0, 7); c.stroke(); c.restore(); } }); }); // (caught up there: a ring where it flies -- the fold's 2(c))
       } else if (g.shape === 'teleport') B.mistyTargets(u, g.range, g.see).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {

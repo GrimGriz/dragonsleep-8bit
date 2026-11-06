@@ -505,6 +505,14 @@
   // a wait in the row's own ticks: what to yield so the pace's stretch (above) gives n back, never short of it -- a blow on a row's release frame (attack, 10-15)
   Battle.prototype.unpace = function (n) { var P = D.PACE; if (!(P > 0) || P === 1 || !(n > 0) || !(this.active && byAI(this.active))) return n; return Math.max(1, Math.ceil(n / P)); };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
+  // the turn in play, as a key: the turn of the one whose turn it is (its `turn`, new at each RU.startTurn -- so a show that starts a hero's turn again starts a new one), or, between
+  // turns, this fight's round. What "once per turn" is counted on -- Sneak Attack, Martial Advantage -- since the SRD's "turn" is any creature's, not the one who strikes (11-06, the
+  // grid's rules lane: a rogue's opportunity attack on a foe's turn, and one before her own first turn). A serial, never the object: a hero's sheet walks into the next fight
+  Battle.prototype.turnKey = function () {
+    var a = this.active, t = a && a.turn, nx = function () { return (Battle.turnKeyN = (Battle.turnKeyN || 0) + 1); };
+    if (t) return 't' + (t.tk || (t.tk = nx()));
+    return 'r' + (this.turnKeyB || (this.turnKeyB = nx())) + ':' + this.round;
+  };
   // the floor (10-03, Griz: "1 - yes", to: a fight that breaks mid-way goes back where it came from as it was): a fight with a way back -- the Pocket DM, the
   // ladder, the climb (o.onDone) -- that throws in its turn, or whose picture keeps failing (DRAW_BAD frames in a row; one bad frame is logged and it plays on),
   // ends there: the play record kept as 'broke', and the host told { broke, how } through onDone with no result. Inside the 8-bit game the 8-bit takes the fight
@@ -1139,8 +1147,11 @@
     if (D.monsterRules && D.monsterRules.lured(this, u) && (yield* D.monsterRules.luredTurn(this, u))) { yield 20; D.magic.endTurn(this, u); return; }
     if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
-      this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']);
-      yield 40;
+      // (the down said at the first turn down, not every round after -- "Vivian is down." R3 to R11 in his Keeper fight of 19:03:49Z, 11-06; `downSaid` goes at the fall, below)
+      var downQ = u.hp <= 0 && u.downSaid;
+      if (!downQ) this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']);
+      if (u.hp <= 0) u.downSaid = true;
+      yield downQ ? 12 : 40;
       if (u.hp > 0) D.magic.endTurn(this, u); // a held hero still gets the save at the end of the turn (the weaver's Hold, the chuul)
       return;
     }
@@ -1285,8 +1296,10 @@
     // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
     var helpFoe = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }), helpMate = this.units.some(function (w) { return Battle.helpable(u, w); });
+    // (a sleeper beside you named: "shake Aurdin awake" -- 11-06, Griz: "ah yes, the sleeping heroes - 'help' should be the 'shake to wake', like I tried to click")
+    var helpSl = this.units.filter(function (w) { return Battle.helpable(u, w) && w.conds.asleep; }).map(Battle.nm), mateN = helpSl.length ? 'shake ' + helpSl.join(' and ') + ' awake' + (helpSl.length < this.units.filter(function (w) { return Battle.helpable(u, w); }).length ? '; a hand out of a web or a grip' : '') : 'a hand out of a web or a grip';
     if (helpFoe || helpMate)
-      out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: helpFoe && helpMate ? 'a foe beside you: the next ally to swing at it has advantage; a friend beside you: wake a sleeper, a hand out of a web or a grip' : helpFoe ? 'the next ally to swing at a foe beside you has advantage' : 'a friend beside you: wake a sleeper, a hand out of a web or a grip' });
+      out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: helpFoe && helpMate ? 'a foe beside you: the next ally to swing at it has advantage; a friend beside you: ' + mateN : helpFoe ? 'the next ally to swing at a foe beside you has advantage' : mateN });
     // SHOVE (SRD 5.1, Shoving a Creature: one attack of the Attack action, at one in your reach no more than one size larger; your Athletics against its Athletics or Acrobatics, its
     // pick; won, it is knocked prone or pushed 5 ft away -- over an edge of 10 ft or more, it falls. 10-13, Griz: "2 yes", a hero's SHOVE; ai.js shoveOff)
     var shoveT = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1; });
@@ -1358,6 +1371,19 @@
   };
   // a friend u may Help: beside it, asleep (shaken awake) or held in a web or a grip (advantage on its next check to get out)
   Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
+  // why a HELP click is turned away, in the card's words (js/ui.js; 11-06, his 17:49:00Z loss, R8: Aurdin's HELP on Vivian six times, "Help: a foe beside you, or a friend beside you
+  // asleep or held fast." -- Vivian at 0 hp by then, woken from his Sleep and dropped by a bat's bite. The down are not the asleep: Help wakes no one at 0 hp)
+  Battle.helpWhyNot = function (u, w, foe) {
+    if (foe && G.hostile(u, foe)) return Battle.nm(foe, true) + ' is ' + G.dist(u, foe) + ' ft away: Help at a foe is at one beside you.';
+    if (w && w !== u && !G.hostile(u, w)) {
+      if (w.dead) return w.name + ' is dead: past any hand.';
+      if (w.hp <= 0) return w.name + ' is down, not asleep: a healer\'s kit, a potion or healing gets ' + w.name + ' up.';
+      if (G.dist(u, w) > 5) return w.name + ' is ' + G.dist(u, w) + ' ft away: Help is a hand beside you.';
+      if (w.conds.helpedCheck) return w.name + ' has a hand already, on the next check to get free.';
+      if (!(w.conds.asleep || w.conds.restrained || w.conds.attached)) return w.name + ' is awake and free: nothing to help with.';
+    }
+    return 'Help: a foe beside you, or a friend beside you asleep or held fast.';
+  };
   // the riders u could pull off a friend beside it (a darkmantle attached: PULL IT OFF)
   Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); }; // (the one it rides, too: SRD 5.1, "a creature")
   // the friends u could pull out of a water elemental (SRD 5.1 Whelm: "A creature within 5 feet of the elemental can pull a creature or object out of it by taking an
@@ -2540,7 +2566,10 @@
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
-    if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; this.card(['{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'], 200); } // (10-04 night, Griz: "lose stealth on successful hit")
+    // (the card said after the blow's own: the attack's card is re-carded in place with its damage below, and a re-carded card goes to the log's foot -- so said here, the found
+    // line read above the blow that found her, under the last MISS. 11-06, his 21:43:45Z R2 the Crawler, read by the lanes desk. foundTxt: said where the blow's card is done)
+    var foundTxt = null;
+    if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; foundTxt = '{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'; } // (10-04 night, Griz: "lose stealth on successful hit")
     if (!hit) {
       if (D.features && D.features.dueGain) D.features.dueGain(att); // (Fortune's Due: a miss, a Due -- js/features.js, 10-30)
       if (wide) att.conds.wideMiss = true; // (the WIDE SWING missed: the next attack this turn at disadvantage)
@@ -2560,7 +2589,7 @@
       if (D.features && D.features.answerBack) yield* D.features.answerBack(this, att, tgt, atk, melee); // (the Path of the Sand, 6)
       return;
     }
-    if (atk.noDamage) { if (o.onHit) o.onHit(tgt, crit); if (atk.intoxicate) yield* this.intoxicate(att, tgt); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
+    if (atk.noDamage) { if (foundTxt) this.card([foundTxt], 200); if (o.onHit) o.onHit(tgt, crit); if (atk.intoxicate) yield* this.intoxicate(att, tgt); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
     // Rock Catching (the stone giant, SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take
     // no bludgeoning damage from it" -- a trait, not a reaction: every rock, as often as they come; data/foes.js `rockCatch`, the DC): a hurled rock (a giant's Rock, `hurled`) that hits one
     // who has it is caught on the save -- no damage, and nothing the blow carries (a caught rock knocks no one down: the seat's reading, 10-08); she turns to the thrower and her CATCH row
@@ -2573,6 +2602,7 @@
         this.turnTo(tgt, faceTo(tgt, att));
         if (D.spr.anim(tgt.sheet, 'catch')) { tgt.anim = 'catch'; tgt.animT = this.t; }
         D.sfx('bump'); FX.float('CAUGHT', tgt, D.PAL.ramps.silver[5]);
+        if (foundTxt) this.card([foundTxt], 200);
         yield o.oa ? 18 : Math.max(26, (D.spr.duration(tgt.sheet, 'catch') || 0) + 4); att.anim = 'idle';
         return;
       }
@@ -2597,12 +2627,14 @@
     var sneaked = false, fire = 0, rad = 0, ext = 0, xtra = [], dis = null;
     if (!atk.plain) {
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
-    var sneaked = false;
-    if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
+    // (SRD 5.1: "once per turn" -- any creature's turn, not only hers: keyed to the turn in play, Battle.turnKey, so an opportunity attack or a readied strike on a foe's turn
+    // sneaks too, and one before her own first turn. 11-06, his fights read by the lanes desk: Vivian's OA at 19:30:08Z R2 with Barley and Lymen at the target, no sneak)
+    var sneaked = false, snK = this.turnKey();
+    if (att.cls === 'rogue' && att.sneakAt !== snK && (atk.finesse || atk.ranged) && e.net >= 0) {
       var ally = this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }); // (never a bystander: the inn's children take no part -- 11-05, as G.flank)
       var ownL = !(e.net > 0 || ally) && D.features && D.features.ownLight && D.features.ownLight(this, att, tgt); // (By Her Own Light, the Lampwright's 9: in light she made, neither needed -- 11-03)
       if (e.net > 0 || ally || ownL) {
-        att.turn.sneakUsed = true; sneaked = true;
+        att.sneakAt = snK; if (att.turn) att.turn.sneakUsed = true; sneaked = true; // (turn.sneakUsed kept for the AI's own-turn weighing: js/tactics.js)
         if (ownL) parts.push('{c}BY HER OWN LIGHT{/}'); // (the feature's name)
         var sn = D.roll(RU.sneakDice(att), { crit: crit }); dmg += sn.total;
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
@@ -2644,12 +2676,13 @@
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); ext += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }
     // Martial Advantage (the hobgoblins): once a turn, +2d6 while an ally who can act stands within 5 ft of the target
-    if (att.martial && att.turn && !att.turn.martialUsed && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) {
-      att.turn.martialUsed = true; var ma = D.roll(att.martial, { crit: crit }); dmg += ma.total; parts.push('{o}martial ' + att.martial + ' ' + RU.fmtRolls(ma.rolls) + '{/}');
+    // (Martial Advantage and a foe's Sneak Attack: "once per turn" by the SRD as hers above -- the turn in play, Battle.turnKey, 11-06)
+    if (att.martial && att.martialAt !== this.turnKey() && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) {
+      att.martialAt = this.turnKey(); if (att.turn) att.turn.martialUsed = true; var ma = D.roll(att.martial, { crit: crit }); dmg += ma.total; parts.push('{o}martial ' + att.martial + ' ' + RU.fmtRolls(ma.rolls) + '{/}');
     }
     // a foe's Sneak Attack (the sect blades): once a turn, with advantage or an ally beside the target, and not at disadvantage
-    if (att.sneak && att.turn && !att.turn.sneakUsed && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
-      att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
+    if (att.sneak && att.sneakAt !== this.turnKey() && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
+      att.sneakAt = this.turnKey(); if (att.turn) att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
     }
     // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder
     if (att.raging && atk.rage) { dmg += atk.rage; parts.push('{o}rage +' + atk.rage + '{/}'); }
@@ -2700,6 +2733,7 @@
     // in place with what its parts took (`bl.took`, after resistance, vulnerability, immunity, a ward) -- unless it killed mid-blow, its later parts never dealt
     var sumT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
     if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
+    if (foundTxt && !tgt.dead && tgt.hp > 0) this.card([foundTxt], 200); // (found by the blow, said under it -- above)
     this.atkCard = { id: cid, lines: atkL, dealt: bl.took }; // (the blow's card as it stands: TWIN STRIKE's second weapon joins it -- Battle.twinOff, 11-05)
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
     var acc = att.conds && att.conds.accounted, dealtAC = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
@@ -3341,7 +3375,7 @@
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
       else if (u.ally && !u.fated) { u.dead = true; u.deadT = this.t; delete u.conds.ablaze; if (u.holding && u.holding.length) this.release(u); this.card(['{r}' + u.name + ' is cut down.{/}']); } // (one of ours the fight lent -- the Hex's men, the garrison: it dies as a foe does, 10-05)
-      else if (u.side === 'party' && !u.object) { if (u.conds.pelt && D.features && D.features.peltOff) D.features.peltOff(this, u); u.ko = true; /* (the Pelt's parts go at 0, 10-30) */ delete u.conds.ablaze; D.light.fell(this, u); var ltF = D.light.torchAt(this, u.x, u.y); this.card(['{r}' + u.name + ' goes down.{/}' + (ltF ? '  {g}The ' + D.light.word(ltF) + ' burns where ' + u.name + ' fell.{/}' : '')]); } // (the name, never "him"; the light by its own word -- "The torch burns beside Aurdin" was the Ledger-Lamp on his own square, the Breach 10-11)
+      else if (u.side === 'party' && !u.object) { if (u.conds.pelt && D.features && D.features.peltOff) D.features.peltOff(this, u); u.ko = true; delete u.downSaid; /* (the Pelt's parts go at 0, 10-30) */ /* (downSaid: a fresh fall is said again at the turn, heroTurn -- 11-06) */ delete u.conds.ablaze; D.light.fell(this, u); var ltF = D.light.torchAt(this, u.x, u.y); this.card(['{r}' + u.name + ' goes down.{/}' + (ltF ? '  {g}The ' + D.light.word(ltF) + ' burns where ' + u.name + ' fell.{/}' : '')]); } // (the name, never "him"; the light by its own word -- "The torch burns beside Aurdin" was the Ledger-Lamp on his own square, the Breach 10-11)
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
       // Griz: "i think the regen is there it's just turning off when they die"): it lies there, still a target, and gets up at its turn unless it burned (ai.js AI.turn)
@@ -3903,6 +3937,13 @@
   // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null
   Battle.prototype.spots = function (w, u) {
     if (D.features && D.features.ownLight && G.hostile(w, u) && D.features.ownLight(this, w, u)) return 'in ' + shortName(w) + '\'s own light: By Her Own Light'; // (the Lampwright's 9: nothing hides from her in light she made -- 11-03)
+    // what perceives without sight finds her whatever she rolled: blindsight to its range (SRD 5.1, "without relying on sight" -- the bats' and the darkmantle's 60 ft; not what a
+    // tremorsense one cannot feel aloft), the snake familiar's caster to its 15 ft -- as rules.js RU.edges `knows` and simple.js S.perceives judge it. Before, the Hide said HIDDEN
+    // and the edges took the advantage away (11-06, his guano dens fight read by the lanes desk: 18:03:07Z R1-R2, a giant bat's blindsight)
+    // (a simple fight's hider is left to its own judge: the sense already counted her seen by that one alone, simple.js S.judge `seenBy`, and she stays hidden from the rest)
+    var simpleH = u.conds.hidden && u.conds.hidden.simple;
+    if (!simpleH && w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) return 'within ' + Battle.nm(w) + '\'s blindsight (' + w.blindsight + ' ft): it perceives ' + Battle.nm(u) + ' without sight';
+    if (!simpleH && w.senseHidden && G.dist(w, u) <= w.senseHidden) return 'within ' + Battle.nm(w) + '\'s ' + w.senseHidden + ' ft: the snake familiar\'s sense';
     var n = this.nearOf(w, u); if (!n || !n.bonus) return null;
     var pp = w.perception + (w.twoHeads ? 5 : 0) + n.bonus; if (pp <= u.hidTotal) return null;
     return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
@@ -3991,13 +4032,22 @@
   };
 
   // ------------------------------------------------------------------ Lay on Hands: an action, touch -- the target must be adjacent (or himself)
+  // the card for a touch that would mend nothing -- at full hit points, no poison to cure -- or null (layOnHands, and the ring's tool before the command: js/ui.js, 11-06)
+  Battle.layNothing = function (tgt) {
+    if (!tgt || tgt.hp < tgt.maxhp || tgt.conds.poisoned) return null;
+    return '{o}' + tgt.name + ' is at full hit points (' + tgt.hp + '/' + tgt.maxhp + '): Lay on Hands would mend nothing.{/}  {g}(the action kept)' + (tgt.conds.asleep ? '  ' + tgt.name + ' is asleep, and healing wakes no sleeper: HELP shakes ' + tgt.name + ' awake.' : '') + '{/}';
+  };
   Battle.prototype.layOnHands = function* (u, tgt, cure) {
     var T = u.turn;
     if (tgt !== u && G.dist(u, tgt) > 5) { this.card(['{o}Lay on Hands is touch: ' + tgt.name + ' is ' + G.dist(u, tgt) + ' ft away.{/}']); return; }
-    var pool = u.feats.lay;
+    var pool = u.feats.lay, full = tgt.hp >= tgt.maxhp;
+    // (at full hit points the HEAL would mend nothing: not offered, and with no poison to cure the touch is turned away before the action is spent -- 11-06, his fight of 17:42:29Z
+    // R3, "Lymen lays on hands: +0 to Aurdin" at 12/12, Aurdin asleep in his own Sleep. Healing wakes no sleeper by the SRD; a shake does: the card points at HELP)
     if (cure === undefined && tgt.conds.poisoned && pool >= 5) {
-      cure = yield { prompt: { who: u, title: u.name + ': LAY ON HANDS', lines: [tgt.name + ' is poisoned. Pool: ' + pool + '.'], opts: [{ label: 'HEAL', value: false }, { label: 'CURE POISON (5)', value: true }] } };
+      cure = yield { prompt: { who: u, title: u.name + ': LAY ON HANDS', lines: [tgt.name + ' is poisoned' + (full ? ', at full hit points' : '') + '. Pool: ' + pool + '.'], opts: (full ? [] : [{ label: 'HEAL', value: false }]).concat([{ label: 'CURE POISON (5)', value: true }], full ? [{ label: 'NOT NOW', value: null }] : []) } };
+      if (cure === null) return; // (NOT NOW: the action kept)
     }
+    if (!cure && full) { if (u.side === 'party') D.sfx('error'); this.card([Battle.layNothing(tgt) || '{o}' + tgt.name + ' is at full hit points: Lay on Hands would mend nothing, and the pool (' + pool + ') is short of the 5 a poison takes.{/}  {g}(the action kept){/}'], 200); return; }
     T.action = 0;
     if (cure) {
       u.feats.lay -= 5; delete tgt.conds.poisoned;

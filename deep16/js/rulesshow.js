@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -31,6 +31,7 @@
     var W = function (n) { return FAST ? 1 : n * 2; }; // (time to read each card before the next blow)
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cleric = party.filter(function (w) { return w.cls === 'cleric'; })[0], bard = party.filter(function (w) { return w.cls === 'bard'; })[0], wizard = party.filter(function (w) { return w.cls === 'wizard'; })[0];
+    var rogue = party.filter(function (w) { return w.cls === 'rogue'; })[0], paladin = party.filter(function (w) { return w.cls === 'paladin'; })[0]; // (the grid's fixes of 11-06: their beats, below)
     var kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
     var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin'), ooze = kind('grayooze'), gob = kind('goblin');
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, baseAC: w.baseAC, armored: w.armored, metalArmor: w.metalArmor, weapon: w.weapon, equip: w.src && w.src.equip ? Object.assign({}, w.src.equip) : null, slots: w.slots ? w.slots.slice() : null, known: w.known ? w.known.slice() : null }; });
@@ -220,6 +221,67 @@
       return [still && fogGone && torchOut && blown === 3 && ooze.x === ox && creep && !!again && north, (still ? 'the cast pushed no one' : 'the cast pushed someone') + '; the fog ' + (fogGone ? 'torn apart' : 'still there') + ', the cleric\'s torch ' + (torchOut ? 'out and back in the pack' : 'still lit') + '; the hobgoblin blown ' + blown * 5 + ' ft, the ooze ' + (ooze.x === ox ? 'stood firm' : 'moved') + ', toward the wizard ' + (creep ? 'its 10 ft goes 5' : 'not at double cost') + '; ' + (again && north ? 'the bonus action turned it north' : 'not turned')];
     }
 
+    // ---- the grid's fixes of 11-06 (his fights of 11-05/11-06, the grid's rules lane; &only=gridfixes1106): the rogue and the paladin joined the show's party for them
+    var sneakIn = function (n) { return /sneak \d+d6/.test(since(n)); };
+    function* sneakTurn() {
+      // SRD 5.1 Sneak Attack, "once per turn": any creature's turn, not only hers (battle.js Battle.turnKey). The rogue beside the goblin, the cleric at its other side; every d20 15
+      stage([rogue, gob, cleric], [[0, 0], [1, 0], [2, 0]]); setPin(15, null); gob.maxhp = gob.hp = 200; rogue.maxhp = rogue.hp = 200;
+      delete rogue.turn; delete rogue.sneakAt;
+      say(['Before the rogue has had a turn: the goblin\'s turn, and it walks away from her -- her opportunity attack, the cleric at its side (the d20s pinned to 15, the goblin\'s hit points deep).']); yield W(60);
+      var n = mark(); turn(gob); yield* fire(B.attack(rogue, gob, rogue.weapon, { oa: true })); yield W(50); var a = sneakIn(n);
+      say(['A second blow of hers on the same goblin turn (a readied one, say): no Sneak Attack -- once a turn.']); yield W(50);
+      n = mark(); yield* fire(B.attack(rogue, gob, rogue.weapon, { oa: true })); B.active = null; yield W(50); var b = sneakIn(n);
+      say(['Her own turn: Sneak Attack.']); yield W(40);
+      n = mark(); turn(rogue); yield* fire(B.attack(rogue, gob, rogue.weapon)); B.active = null; yield W(50); var c = sneakIn(n);
+      say(['The goblin\'s next turn, her opportunity attack: Sneak Attack again -- another creature\'s turn, a turn of its own.']); yield W(50);
+      B.round++; n = mark(); turn(gob); yield* fire(B.attack(rogue, gob, rogue.weapon, { oa: true })); B.active = null; yield W(60); var d = sneakIn(n);
+      return [a && !b && c && d, 'before her first turn ' + (a ? 'sneak' : 'none') + '; again that turn ' + (b ? 'sneak: wrong' : 'none') + '; her own turn ' + (c ? 'sneak' : 'none') + '; the goblin\'s next ' + (d ? 'sneak' : 'none')];
+    }
+    function* hideBlind() {
+      // the rogue hides 20 ft from the gray ooze, which is blind and perceives by its blindsight (60 ft): SEEN, with the reason (battle.js spots -- before, HIDDEN, and the edges took the advantage away)
+      stage([rogue, ooze], [[0, 0], [4, 0]]); setPin(18, null);
+      say(['The rogue hides 20 ft from the gray ooze. It has no eyes: its blindsight perceives all round it, 60 ft (her Stealth d20 pinned to 18).']); yield W(60);
+      var n = mark(); turn(rogue); yield* fire(B.hide(rogue)); B.active = null; yield W(70);
+      var l = since(n), seen = !rogue.conds.hidden && /SEEN/.test(l) && /blindsight \(60 ft\)/.test(l);
+      return [seen, seen ? 'SEEN: "' + ((l.match(/within [^|]*/) || [''])[0]).trim() + '"' : 'not as it should be: ' + l.slice(0, 160)];
+    }
+    function* layHelp() {
+      // Lay on Hands on a sleeper at full hit points: turned away, the action kept, the card pointing at HELP (battle.js Battle.layNothing); HELP's note names the sleeper; HELP clicked on one
+      // down at 0 hp says why (Battle.helpWhyNot); HELP on the sleeper shakes him awake
+      stage([paladin, wizard, cleric], [[0, 0], [1, 0], [0, 1]]); wizard.conds.asleep = { by: wizard.id }; cleric.hp = 0; cleric.ko = true;
+      say(['The wizard asleep at full hit points beside the paladin; the cleric down at 0 beside him. The paladin lays on hands on the wizard.']); yield W(60);
+      turn(paladin); B.req = { turn: paladin }; var n = mark(); yield* fire(B.layOnHands(paladin, wizard)); yield W(80);
+      var kept = paladin.turn.action === 1 && /full hit points/.test(since(n)) && /HELP shakes/.test(since(n));
+      var hc = (B.commands(paladin) || []).filter(function (c) { return c.id === 'help'; })[0] || {};
+      say(['HELP on the paladin\'s ring reads: "' + hc.note + '". He tries HELP on the cleric first.']); yield W(70);
+      B.tool = 'help'; var an0 = B.answer, got = []; B.answer = function (c) { got.push(c); }; try { D.ui.actAt(B, paladin, cleric.x, cleric.y, false); } finally { B.answer = an0; }
+      var why = (B.cards[B.cards.length - 1] || { lines: [] }).lines.join(' '); yield W(80);
+      say(['Then HELP on the wizard.']); yield W(30);
+      yield* fire(B.exec(paladin, { do: 'help', target: wizard })); B.tool = null; B.req = null; B.active = null; yield W(60);
+      var woke = !wizard.conds.asleep, named = new RegExp('shake ' + wizard.name + ' awake').test(hc.note || ''), down = new RegExp(cleric.name + ' is down, not asleep').test(why) && !got.length;
+      return [kept && named && down && woke, (kept ? 'the touch turned away, the action kept' : 'the action spent on +0') + '; the note ' + (named ? 'names him' : '"' + hc.note + '"') + '; on the cleric ' + (down ? '"down, not asleep"' : 'no why') + '; ' + (woke ? 'the wizard shaken awake' : 'still asleep')];
+    }
+    function* foundBlow() {
+      // the cleric strikes the goblin hidden beside it (out of any passive Perception's reach): the blow, then "found by the blow" under it (before, above the blow's lines)
+      stage([cleric, gob], [[0, 0], [1, 0]]); setPin(15, null); gob.maxhp = gob.hp = 200; gob.conds.hidden = true; gob.hidTotal = 60;
+      say(['The goblin is hidden beside the cleric. The cleric swings at where it is (the d20 pinned to 15).']); yield W(60);
+      var n = mark(); turn(cleric); yield* fire(B.attack(cleric, gob, cleric.weapon)); B.active = null; yield W(70);
+      var ls = (B.log || []).slice(n), iH = -1, iF = -1; ls.forEach(function (l, i) { if (iH < 0 && l.indexOf(cleric.name + ' > ') >= 0) iH = i; if (/found by the blow/.test(l)) iF = i; });
+      return [iH >= 0 && iF > iH + 1, iF > iH + 1 ? 'the blow, its damage, then "found by the blow"' : 'the found line at ' + iF + ', the blow at ' + iH];
+    }
+    function* sleepAim() {
+      // Sleep aimed with the bard beside the goblins: the words beside the cursor name the bard (ui.js -- the gold outline alone before). The beat holds the aim up on the wizard's turn
+      stage([wizard, gob, bard], [[0, 0], [5, 0], [4, 1]]);
+      if ((wizard.known || []).indexOf('sleep') < 0) (wizard.known = wizard.known || []).push('sleep'); wizard.slots = [4, 3, 2, 0, 0, 0, 0, 0, 0];
+      turn(wizard); B.req = { turn: wizard }; B.tool = 'spell'; B.spell = { id: 'sleep', slot: 1, g: D.magic.geo('sleep'), sp: D.magic.data('sleep'), n: 1, name: 'Sleep' }; B.picks = []; B.cursor = { x: gob.x, y: gob.y };
+      say(['The wizard aims Sleep at the goblin, the bard beside it: beside the cursor, who of ours is in the sphere.']); yield W(140);
+      var said = [], tx0 = D.text, cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var c0 = D.ctx;
+      D.text = function (c, s) { said.push(String(s).replace(/\{\/?[a-z]*\}/g, '')); return tx0.apply(this, arguments); }; D.ctx = cv.getContext('2d');
+      try { B.draw(D.ctx); } catch (eD) { said.push('threw ' + eD); } finally { D.text = tx0; D.ctx = c0; }
+      B.tool = null; B.spell = null; B.req = null; B.active = null;
+      var line = said.filter(function (s) { return /Sleep takes/.test(s); })[0] || '';
+      return [new RegExp('^' + bard.name + ' \\(\\d+\\) is in it').test(line), line ? '"' + line + '"' : 'no words beside the cursor'];
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -229,7 +291,12 @@
       { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s chain mail (it cannot shed it: attacks and checks at disadvantage) and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal },
       { id: 'metalgrasp', group: 'metal', name: 'Shocking Grasp and a foe\'s mail', what: 'A foe\'s sheet names its metal armour now, by the SRD block\'s AC (the hobgoblin\'s chain mail, the guard\'s chain shirt, the veteran\'s splint). The wizard\'s Shocking Grasp at the hobgoblin has advantage (metal armour); at the giant spider, none.', run: metalGrasp },
       { id: 'oozemail', group: 'metal', name: 'The gray ooze and a foe\'s mail', what: 'The gray ooze\'s pseudopod eats metal armour: on the hobgoblin\'s chain mail -1 AC, -2, and the third bite eats it through -- the mail gone, its shield still counting (AC 13).', run: oozeMail },
-      { id: 'gust', group: 'gust', name: 'Gust of Wind, held', what: 'The SRD\'s Gust of Wind: a line of wind 60 ft long and 10 ft wide blasts from the wizard while it is held (a minute). The cast pushes no one; it tears the fog apart and blows the torch out (a lantern half the time). Whoever starts a turn in it saves STR or is blown 15 ft along it; walking toward the wizard in it costs 2 ft a foot; a bonus action turns the line.', run: gust }
+      { id: 'gust', group: 'gust', name: 'Gust of Wind, held', what: 'The SRD\'s Gust of Wind: a line of wind 60 ft long and 10 ft wide blasts from the wizard while it is held (a minute). The cast pushes no one; it tears the fog apart and blows the torch out (a lantern half the time). Whoever starts a turn in it saves STR or is blown 15 ft along it; walking toward the wizard in it costs 2 ft a foot; a bonus action turns the line.', run: gust },
+      { id: 'sneakturn', group: 'gridfixes1106', name: 'Sneak Attack on another\'s turn', what: 'SRD 5.1: Sneak Attack is once per turn -- any creature\'s turn, not only hers. Her opportunity attack on the goblin\'s turn sneaks (even before her own first turn), a second blow that same turn does not, her own turn sneaks, and the goblin\'s next turn sneaks again. (11-06, his fight of 19:30:08Z R2: Vivian\'s opportunity attack with Barley and Lymen at the target, no sneak.)', run: sneakTurn },
+      { id: 'hideblind', group: 'gridfixes1106', name: 'Hiding from what has no eyes', what: 'A creature with blindsight perceives all round it without sight, to its range: nothing hides from it there. The rogue hides 20 ft from the gray ooze (blindsight 60 ft): SEEN, and the card says why. (11-06, his guano dens: HIDDEN against a giant bat, and then neither the advantage nor the Sneak Attack came.)', run: hideBlind },
+      { id: 'layhelp', group: 'gridfixes1106', name: 'A sleeper, a touch and a shake', what: 'Lay on Hands on the wizard asleep at full hit points mends nothing: turned away, the action kept, and the card says healing wakes no sleeper -- HELP does. HELP\'s note names him. HELP on the cleric, down at 0, says why not; HELP on the wizard shakes him awake. (11-06, his "ah yes, the sleeping heroes - \'help\' should be the \'shake to wake\', like I tried to click".)', run: layHelp },
+      { id: 'foundblow', group: 'gridfixes1106', name: 'Found by the blow, said after it', what: 'A hit on one hidden finds it: the line says so under the blow that found it, not above it. (11-06, his 21:43:45Z R2, the Crawler.)', run: foundBlow },
+      { id: 'sleepaim', group: 'gridfixes1106', name: 'Sleep and the party in its sphere', what: 'Sleep takes the weakest first, friend or foe. Aimed with the bard beside the goblin, the words beside the cursor name the bard and the bard\'s hit points. (11-06, his fights of 17:42 and 17:49: Aurdin\'s Sleep took Aurdin, then two of the four.)', run: sleepAim }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

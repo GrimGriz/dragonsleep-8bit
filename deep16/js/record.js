@@ -105,7 +105,7 @@
     var out = (opening || []).length ? ['== before the first answer'].concat(opening.map(function (l) { return '      ' + l; })) : []; // (10-29, the notes seat in his record: the wolf spider's opening bite that dropped Aurdin was in the log alone)
     steps.forEach(function (s) {
       if (s.turnStart) out.push('', '== R' + s.round + ' ' + s.who + '  hp ' + s.hp + '  at ' + s.at.join(',') + '  AI would: ' + (s.turnStart.ai || []).map(function (a) { return a.why + ' ' + a.score; }).join(' | '));
-      out.push('  ' + (s.cmd ? short(s.cmd) : s.ai ? '(the AI\'s turn)' : s.refused != null ? 'REFUSED' + (s.times > 1 ? ' x' + s.times : '') + ': ' + s.refused + (s.clicked ? '  -- ' + clicked(s.clicked) : '') : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
+      out.push('  ' + (s.cmd ? (s.readied ? 'readied ' + s.readied + ': ' : '') + short(s.cmd) : s.ai ? '(the AI\'s turn)' : s.refused != null ? 'REFUSED' + (s.times > 1 ? ' x' + s.times : '') + ': ' + s.refused + (s.clicked ? '  -- ' + clicked(s.clicked) : '') : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
       (s.screen || []).forEach(function (l) { out.push('      on screen: ' + l); });
       (s.then || []).forEach(function (l) { out.push('      ' + l); });
     });
@@ -114,7 +114,9 @@
   function note(B, v) {
     var r = B.rec, req = B.req;
     if (!req || r.done) return;
-    var u = req.turn || (req.prompt && req.prompt.who);
+    // (req.aim: a readied thing sprung, aimed by the player on another's turn -- js/ui.js aimInput. 11-06, the desk's read of his record: unwritten, its answer left no step, and
+    // REC.tried took the spring's own orange card -- "Lymen: the readied Longsword, at the Darkmantle." -- for the why of a refusal. Now it is an answer, `readied`)
+    var u = req.turn || (req.prompt && req.prompt.who) || (req.aim && req.aim.who);
     if (!u || u.side !== 'party') return; // (a prompt of the foes' is the AI's; only ours are the player's)
     flush(B);
     if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
@@ -127,6 +129,11 @@
       step.cmd = plain(v);
       var T = u.turn || {};
       step.left = { move: T.move, action: T.action, bonus: T.bonus, attacksLeft: T.attacksLeft };
+    } else if (req.aim) {
+      var rdA = req.aim.rd || {};
+      step.readied = rdA.what === 'move' ? 'move' : rdA.name || rdA.what || 'the readied';
+      if (v) step.cmd = plain(v);
+      else { step.prompt = { title: u.name + ': THE READIED ' + String(step.readied).toUpperCase() + ' (aimed)', lines: [req.aim.ctx && req.aim.ctx.why].filter(Boolean), opts: ['aim', 'HOLD'] }; step.answer = 'HOLD'; } // (X or the right button: held)
     } else {
       var p = req.prompt, opts = p.opts || [], hit = opts.filter(function (o) { return o.value === v; })[0];
       step.prompt = { title: p.title, lines: p.lines, opts: opts.map(function (o) { return o.label; }) };

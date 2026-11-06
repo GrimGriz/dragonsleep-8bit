@@ -160,6 +160,10 @@
   };
   var exec0 = D.Battle.prototype.exec;
   D.Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); if (this.kp) K.checkSwirl(this); return r; }; // (whatever a hero did to get free -- break free, a friend's help -- the swirl ends at once)
+  // ... and at a hero's turn's start: one drowned down at its own turn's start does nothing after, and the swirl hung about the fallen through the next hero's turn -- its squares
+  // the Keeper's body, so the clicks there to walk read "The Keeper is out of reach (30 ft)" (11-06, his 19:03:49Z fight R8: Aurdin at 2,10 and 3,8, round Barley at 2,9, down at R7)
+  var heroTurn0 = D.Battle.prototype.heroTurn;
+  D.Battle.prototype.heroTurn = function* (u) { if (this.kp) K.checkSwirl(this); return yield* heroTurn0.apply(this, arguments); };
   // a breath on the walk out (10-03, Griz's play=keeper log: Lymen broke free and walked off the deep, and "gets a breath" came at the start of his next turn, a round on): the drowning ends
   // with the move that takes the head over water; the turn's door (K.drownTick) still says it for one who was carried out
   var moveK0 = D.Battle.prototype.moveAlong;
