@@ -21,6 +21,7 @@
   var KEY = 'deep16.pocket', KEEP = 60;
   var PK = D.pocket = {};
   PK.DISCORD = 'https://discord.gg/VDxa5hkA3x';
+  PK.recordLine = function (n) { return '{y}THE RECORD{/}  ' + n + ' fight' + (n === 1 ? '' : 's') + ', every door'; }; // (FIGHTS' row: the ladder's R, 11-06 -- Pocket.prototype.drawFights)
   PK.MAIL = 'grimgriz@gmail.com';
   PK.CAP = 8;
   // THE DM'S POCKET DM (10-09, Griz: "the DM's Pocket DM where the cool new stuff in URLs and the stuff in test runs unlocks"; the door and its screens: js/pocketdm.js):
@@ -510,6 +511,7 @@
     if (this.screen === 'title' && I.pressed('menu') && !D.typing && DS.MENU && DS.MENU.openOptions) { var selfT = this; D.sfx('confirm'); this.pm = DS.MENU.openOptions({ close: function () { selfT.pm = null; } }); return; } // (the front page's M: OPTIONS, the music off with E on MUSIC -- 10-28, Griz: "allow pressing 'm' on the pocket DM front page get you to the option menu to turn off the music"; the second game's title's own OPTIONS page, js/menu.js MN.openOptions)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
+    if (s === 'fights' && I.pressed('rec') && !D.typing) { this.saveRecord(); return; } // (R, as on the ladder: THE RECORD to a file, 11-06)
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
     if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || s === 'morning' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
@@ -525,7 +527,7 @@
     var s = this.screen;
     D.sfx('cancel');
     if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
-    if (s === 'title') { location.href = '../'; return; }
+    if (s === 'title') { location.href = './'; return; } // (X: the Story Realm Game's title, as the button -- the 8-bit's till 11-06)
     if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
     if (s === 'modules') { this.keep(); this.go('hub'); return; } // (LOAD MODULE is THE CAMP's)
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go(this.mk && this.mk.villain ? 'villains' : 'party'); return; } // (a villain's maker came from THE VILLAINS, 10-17)
@@ -1652,16 +1654,16 @@
     // (the buttons stand to the right, so the stone and the light on it stay in view; the column starts under the right lamp, whose head is one of the DM's three)
     var w = 150, x = D.W - w - 22, y = 104, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09, 120 till 10-17: up for the campaign's two rows, then A DM'S LADDER)
     this.btn(ctx, this.st.run ? (this.st.run.module ? 'MODULE: FIGHT ' + this.st.run.rung + ' OF ' + this.st.run.plan.length : 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung)) : 'START', x, y, w, 18, function () { if (self.st.run && self.st.run.atCamp) self.go('hub'); else if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
-    this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
+    this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n && !(D.rec && D.rec.count && D.rec.count()), why: 'no fights kept yet: START one' }); // (open with only THE RECORD's too, 11-06: its R and CLEAR RECORD live there)
     this.btn(ctx, 'DOORS', x, y + 41, w, 16, function () { self.scroll = 0; self.go('doors'); }); // (one DOORS on both tables, js/pocketdm.js PD.doorsFor -- USEFULS till 10-17, Griz: "Usefuls is a less functional version of DOORS")
-    this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
+    this.btn(ctx, 'STORY REALM GAME', x, y + 60, w, 16, function () { location.href = './'; }); // (the second game's title, deep16/ -- THE 8-BIT GAME till 11-06, Griz: "the button to the 8-bit to go to the 16 bit game instead as \"Story Realm Game\"")
     // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
     this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
     this.btn(ctx, 'LOAD CAMPAIGN', x, y + 96, w, 15, function () { self.loadTable(); });
     // (MODULES -- A DM'S LADDER till 10-17 -- is THE CAMP's LOAD MODULE since 10-17, his "Remove 'Play DM Ladder' from the Front page")
     this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
-    D.hint(ctx, 'up/down choose · E go · M options · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
+    D.hint(ctx, 'up/down choose · E go · M options · X the Story Realm Game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
   };
   // (USEFULS, the release's eight doors, is DOORS since 10-17: js/pocketdm.js PD.PUBLIC, the same rows in DOORS' list)
   // the party: the slots across, arrows above and below (his words), the level beneath
@@ -2465,8 +2467,9 @@
     this.btn(ctx, this.st.moduleKey === (m && m.key) ? 'LOADED' : 'LOAD THIS MODULE', D.W - 150, 236, 130, 15, function () { self.st.moduleKey = m.inFolder ? PK.keepModule(st, m) : m.key; self.keep(); self.go('hub'); self.say(m.name + ' loaded: PLAY it from THE CAMP', 240); }, { pri: true, dis: !m, why: 'no module picked' }); // (THE CAMP's PLAY MODULE plays it, 10-17)
   };
   Pocket.prototype.drawFights = function (ctx) {
-    var self = this, fs = this.st.fights, per = 11;
+    var self = this, fs = this.st.fights, per = 10; // (10 since 11-06: THE RECORD's row under the list)
     head(ctx, 'THE FIGHTS', fs.length + ' kept in this browser · E on one for its notes · SAVE ALL: every fight and its notes in one file');
+    if (!fs.length) D.text(ctx, 'no Pocket DM fights kept yet: START one', D.W / 2, 110, P('stone', 5), 'center');
     var from = Math.min(this.scroll, Math.max(0, fs.length - per)); this.scroll = from;
     var b0 = this.btns.length;
     fs.slice(from, from + per).forEach(function (f, i) {
@@ -2477,9 +2480,31 @@
     });
     this.listRows(b0, 36, 17, fs.length, per, from); // (the arrows scroll it, 10-27)
     this.pager(ctx, 14, 36 + per * 17 - 1, fs.length, per, from);
+    // THE RECORD (11-06, Griz: "can we get the buttons from the ladder that download all the browser fights (and clear button) added to the 'fights' area of the pocket DM? I guess
+    // where 'fights' is pocket DM battles and 'R' is all the other ones?"): the ladder's R and CLEAR RECORD here too. The list above is the Pocket DM's own fights with their cards and
+    // notes (SAVE ALL, pocket-dm-fights-*); THE RECORD is every recorded fight in this browser step by step -- every door, the Pocket DM's among them (js/record.js REC.save,
+    // deep16-play-record-*); CLEAR RECORD takes out only what the last save holds, after a question, and never the list above
+    var rec = D.rec, nr = rec && rec.count ? rec.count() : 0, nc = rec && rec.clearable ? rec.clearable() : 0, ry = 212;
+    D.text(ctx, PK.recordLine(nr), 14, ry + 3, P('bone', 1)); // (clear of SAVE THE RECORD's left edge: mode=pocketrec1106 measures it)
+    this.btn(ctx, 'SAVE THE RECORD (R)', D.W - 262, ry, 120, 13, function () { self.saveRecord(); }, { small: true, dis: !nr, why: 'no fights recorded in this browser yet' });
+    this.btn(ctx, 'CLEAR RECORD', D.W - 136, ry, 116, 13, function () { self.clearRecord(); }, { small: true, dis: !nc, why: 'save the record first: only what a file holds is cleared' });
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE ALL', 90, 236, 90, 15, function () { self.saveAll(); }, { pri: true, dis: !fs.length }); // (10-17: one file, every fight and its notes)
     this.btn(ctx, 'FORGET THEM ALL', D.W - 150, 236, 130, 15, function () { self.st.fights = []; self.keep(); self.go('title'); }, { dis: !fs.length });
+  };
+  // the ladder's R here (js/ladder.js): every recorded fight to one file, a download; and its CLEAR RECORD, after a save, with the ladder's question
+  Pocket.prototype.saveRecord = function () {
+    var nm = D.rec && D.rec.save ? D.rec.save() : false; D.sfx(nm ? 'confirm' : 'error');
+    this.say(nm ? 'saved: ' + String(nm).replace(/^deep16-play-record-/, '') + '  (CLEAR RECORD takes those fights out of this browser)' : 'no fights recorded in this browser yet', 240);
+    return nm;
+  };
+  Pocket.prototype.clearRecord = function () {
+    var R = D.rec, nc = R && R.clearable ? R.clearable() : 0; if (!nc) return false;
+    var since = R.count() - nc, ask = this.ask || function (q) { return window.confirm(q); };
+    if (!ask('Clear the record? The ' + nc + ' fight' + (nc === 1 ? '' : 's') + ' in ' + (R.lastFile() || 'the file') + ' leave this browser; the file keeps ' + (nc === 1 ? 'it' : 'them') + '.' + (since > 0 ? ' ' + since + ' played since ' + (since === 1 ? 'stays' : 'stay') + '.' : '') + ' The Pocket DM\'s fights in the list are not touched.')) return false;
+    var r = R.clear(); D.sfx(r ? 'confirm' : 'error');
+    this.say(r ? r.gone + ' fight' + (r.gone === 1 ? '' : 's') + ' cleared; ' + r.file + ' keeps ' + (r.gone === 1 ? 'it' : 'them') : 'the browser would not clear it', 240);
+    return r;
   };
   Pocket.prototype.drawNotes = function (ctx) {
     var self = this, f = this.st.fights[this.note || 0]; if (!f) { this.go('fights'); return; }

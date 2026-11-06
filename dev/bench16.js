@@ -17126,6 +17126,51 @@
     document.body.appendChild(preS);
     return;
   }
+  // THE POCKET DM'S WAY OUT AND THE RECORD (mode=pocketrec1106; the Pocket DM lane, 11-06, Griz: "i need a quick menu change on pocket dm, the button to the 8-bit to go to the 16
+  // bit game instead as "Story Realm Game" / can we get the buttons from the ladder that download all the browser fights (and clear button) added to the 'fights' area of the pocket
+  // DM?"): the front page's STORY REALM GAME to the second game's title (and X with it), the DM's DOORS led by it; FIGHTS open with only the record's fights; on FIGHTS, THE RECORD's
+  // SAVE (R, as the ladder's) writes every recorded fight to one file, CLEAR RECORD after it takes out only what that file holds after the ladder's question -- the Pocket DM's own
+  // fights in the list untouched. On a stand-in store; the download caught, not made
+  if (get('mode', '') === 'pocketrec1106') {
+    var repPr = { checks: [], errors: [] }, okPr = function (c, s) { repPr.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memPr = {}, stGPr = D.store.get, stSPr = D.store.set, clickPr = HTMLAnchorElement.prototype.click, gotPr = [];
+    D.store.get = function (k) { return memPr[k] ? JSON.parse(memPr[k]) : null; }; D.store.set = function (k, v) { memPr[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { gotPr.push(this.download || this.href); };
+    var finishPr = function () { D.store.get = stGPr; D.store.set = stSPr; HTMLAnchorElement.prototype.click = clickPr; var pre = document.createElement('pre'); pre.id = 'out'; pre.textContent = 'BENCH16 ' + JSON.stringify(repPr); document.body.appendChild(pre); };
+    try {
+      var IPr = D.input, cvR = document.createElement('canvas'); cvR.width = D.W; cvR.height = D.H; var cxR = cvR.getContext('2d');
+      var fakeR = function (n) { return { fight: 'bench-' + n, started: '2026-11-06T0' + n + ':00:00.000Z', ended: '2026-11-06T0' + n + ':05:00.000Z', result: 'won', steps: [] }; };
+      D.store.set('deep16.plays', [fakeR(1), fakeR(2)]);
+      var Pr = new D.Pocket(); Pr.enter(); var askedR = []; Pr.ask = function (q) { askedR.push(q); return true; };
+      var frameR = function () { Pr.btns = []; Pr.draw(cxR); return Pr.btns; }, byR = function (l) { return frameR().filter(function (b) { return b.label === l; })[0]; };
+      // 1. the front page: STORY REALM GAME to the second game's title (./), no 8-bit button; X the same; FIGHTS open with the record's two and no Pocket DM fight
+      Pr.st.fights = []; Pr.go('title'); var bS = byR('STORY REALM GAME'), b8 = byR('THE 8-BIT GAME'), bF = frameR().filter(function (b) { return /^FIGHTS/.test(b.label); })[0];
+      var backSrc = String(D.Pocket.prototype.back), titleBack = (backSrc.match(/s === 'title'\) \{ location\.href = '([^']*)'/) || [])[1];
+      okPr(!!bS && !b8 && /location\.href = '\.\/'/.test(String(bS.fn)) && titleBack === './' && !!bF && !bF.dis,
+        'the front page: STORY REALM GAME to ./ (' + !!bS + '), no THE 8-BIT GAME (' + !b8 + '), X to ' + titleBack + ', FIGHTS open with the record\'s 2 and no Pocket DM fight (' + (bF && !bF.dis) + ')');
+      var PDr = D.pocketdm, d0 = PDr.DOORS[0], u0 = PDr.doorUrl(d0[1]);
+      var inGame = new URL('./', 'https://grimgriz.github.io/dragonsleep-8bit/deep16/?pocket').href; // (the bench page is dev/'s: the door's ./ read where the game stands)
+      okPr(d0[0] === 'STORY REALM GAME' && d0[1] === './' && u0 === new URL('./', location.href).href && /\/deep16\/$/.test(inGame) && PDr.DOORS.some(function (r) { return r[0] === 'THE 8-BIT GAME'; }), 'the DM\'s DOORS: STORY REALM GAME first, ./ (from ?pocket: ' + inGame + '); THE 8-BIT GAME kept below it');
+      // 2. FIGHTS: one Pocket DM fight in the list; THE RECORD's SAVE open, CLEAR shut till a save
+      Pr.st.fights = [{ t: Date.now(), result: 'won', rounds: 3, foes: '2 goblins', cr: 1, diff: 'easy', notes: '', party: [] }]; Pr.go('fights');
+      var bR = byR('SAVE THE RECORD (R)'), bC = byR('CLEAR RECORD');
+      var lineW = D.textWidth(D.pocket.recordLine(1500).replace(/\{[a-z\/]+\}/g, ''));
+      okPr(!!bR && !bR.dis && !!bC && bC.dis && bR.y + bR.h <= 236 && bR.y > 36 + 9 * 17 + 15 && 14 + lineW + 4 <= bR.x, 'FIGHTS: SAVE THE RECORD (R) open at y ' + (bR && bR.y) + ', under the list\'s ten rows, its line (' + lineW + ' px at 1500 fights) clear of it at x ' + (bR && bR.x) + '; CLEAR RECORD shut till a save (' + (bC && bC.dis) + ')');
+      // 3. R: the record to one file -- every kept fight in it, the card says the name
+      IPr.press('rec'); Pr.update(); IPr.release('rec'); IPr.clear(); var nameR = gotPr[gotPr.length - 1];
+      okPr(gotPr.length === 1 && /^deep16-play-record-\d{4}-\d\d-\d\d-\d{4}\.json$/.test(nameR || '') && D.rec.clearable() === 2 && Pr.msg && /saved:/.test(Pr.msg.text), 'R on FIGHTS: ' + nameR + ' written, its 2 fights the save holds; the card: ' + (Pr.msg && Pr.msg.text));
+      // 4. CLEAR RECORD after it: the ladder's question, the saved two out, one played since kept, the Pocket DM's fight in the list untouched
+      memPr['deep16.plays'] = JSON.stringify(JSON.parse(memPr['deep16.plays']).concat([fakeR(3)]));
+      var bC2 = byR('CLEAR RECORD'); if (bC2 && !bC2.dis) Pr.fire(bC2); var leftR = D.store.get('deep16.plays') || [];
+      okPr(!!bC2 && !bC2.dis && askedR.length === 1 && /The 2 fights in deep16-play-record-/.test(askedR[0]) && /1 played since stays/.test(askedR[0]) && leftR.length === 1 && leftR[0].fight === 'bench-3' && Pr.st.fights.length === 1 && /2 fights cleared/.test(Pr.msg && Pr.msg.text),
+        'CLEAR RECORD: asked "' + (askedR[0] || '').slice(0, 90) + '..."; ' + leftR.length + ' left (the one played since), the Pocket DM\'s list still ' + Pr.st.fights.length + '; the card: ' + (Pr.msg && Pr.msg.text));
+      // 5. nothing saved since: CLEAR shut again; SAVE ALL (the Pocket DM's own file) still there beside it
+      var bC3 = byR('CLEAR RECORD'), bA = byR('SAVE ALL');
+      okPr(!!bC3 && bC3.dis && !!bA && !bA.dis, 'after the clear: CLEAR RECORD shut again (' + (bC3 && bC3.dis) + '), SAVE ALL for the Pocket DM\'s fights still open');
+    } catch (ePr) { repPr.errors.push(String(ePr && ePr.stack || ePr).slice(0, 800)); }
+    finishPr();
+    return;
+  }
   // THE PICK BEHIND THE PAGE (mode=pocketpick1105; the Pocket DM lane, 11-03 night item 3, RULED -- Griz: "for the beasts drawn in the background, it should cycle through special attack
   // animations and show the 'infocard' (at least the same as 'inspect') on the right side"; 11-05: "in monster shops you can highlight/select (other than buy button) and it replaces the
   // background with a gallery of the monster and show's it statbloc/inspect card, with similar notion of background preview version for locations"): in a shop the first row is the pick

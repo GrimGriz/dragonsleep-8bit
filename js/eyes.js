@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE POCKET DM'S WAY OUT AND THE RECORD (11-06, the lanes desk on his "i need a quick menu change on pocket dm"; mode=pocketrec1106) -- a menu, to be tested by his hands
+    'eyes-pocketrec-1106': { pri: 2, group: G2, title: 'The Pocket DM: STORY REALM GAME on the front page, and THE RECORD\'s R and CLEAR RECORD on FIGHTS (11-06)', pt: 'the Pocket DM and the races, the lanes desk 11-06 (deep16/js/pocket.js drawTitle, back, drawFights, saveRecord, clearRecord; deep16/js/pocketdm.js PD.DOORS) · eyes',
+      url: 'deep16/?pocket',
+      look: 'Your "the button to the 8-bit to go to the 16 bit game instead as \'Story Realm Game\'": the front page\'s fourth button reads STORY REALM GAME and opens the second game\'s title (X does the same; the hint says so); the DM\'s DOORS list it first, THE 8-BIT GAME kept under it. Your "the buttons from the ladder that download all the browser fights (and clear button) added to the \'fights\' area": FIGHTS opens even with no Pocket DM fight kept if the browser holds recorded fights; under its list, THE RECORD (N fights, every door) with SAVE THE RECORD (R) -- the ladder\'s R, deep16-play-record-<date>.json, every recorded fight -- and CLEAR RECORD, open after a save, asking first, taking out only what that file holds. SAVE ALL and FORGET THEM ALL stay the Pocket DM\'s own fights.' },
     // THE INN'S FIGHTS (11-06, the innfights-1106 seat on the lanes desk's word: his eye on the inn's 11-05 rows and his rulings that day -- a door per place; mode=innfights1106)
     'eyes-lake-take-1106': { pri: 1, group: G1, title: 'THE TAKE AND THE CLAWS: it comes up, grabs the inn lady in its claws and goes down with her -- or, struck at, drops her and fights (11-06)', pt: 'the Halfway Inn and the lake, 11-06 items 1 and 2 and THE CLAWS, RULED 11-06 (deep16/js/secondact.js the take, D.scripts.lakeTake, A.turned; deep16/js/battle.js Battle.clawIn; deep16/js/ui.js clawPos; mode=innfights1106) · eyes',
       url: 'deep16/?show=secondact&beat=take&fresh=1106t',
