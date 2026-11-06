@@ -1,0 +1,130 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-11-06T19:36:56.069Z",
+ "previous_save": "2026-11-04T05:06:25.554Z",
+ "items": [
+  {
+   "id": "eyes-nearestoffering-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE NEAREST OFFERING: the child taken inside, the inn lady left on the path -- GO BACK FOR HER or LET THE LAKE HAVE HER; and the lake knee-shallow in the fight (11-05)",
+   "pt": "the Halfway Inn and the lake, item 13, RULED 11-05 \"yes the lean\" (deep16/js/secondact.js A.offerGennet, deep16/js/ai.js wantsOffering, deep16/js/inn.js the lake and Doran's rooms; mode=winters1105) · eyes",
+   "url": "deep16/?show=secondact&beat=offerinside&fresh=1105no",
+   "verdict": "broken",
+   "note": "most of it works as intended, but when the chuul kills her it looks like it dies and says it goes back into the water, but it would grant attacks of opportunity... like it doesn't actually go back into the water, and once the fight has started (it has been damaged) it wouldn't just finish the sacrifice and stop",
+   "at": "2026-11-06T19:36:49.995Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-vivian-face-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Vivian's drawn talking portrait, the art desk's answer to the deep dive: her idle, the four moods, and THE COIN (11-05)",
+   "pt": "the bestiary, cutter-1105 (tools/portrait-sheet.py vivian, flip and bust; deep16/js/counter.js C.HERO_PT vivian_p0, C.heroPt; deep16/js/hours.js the beat papaviv; mode=heroes1105) · eyes",
+   "url": "deep16/?portraits&who=vivian&fresh=1105v",
+   "verdict": "broken",
+   "note": "why so tiny? (first OK row walk)\nLooks fine in the lymen/papa talk, but I thought those worked lymen larger",
+   "at": "2026-11-06T19:12:18.856Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-hero-faces-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Aurdin in both mantles, Barley in his coat and Lymen redrawn: the art desk's own dialogue portraits in place of the old stills (11-05)",
+   "pt": "the bestiary, cutter-1105 (tools/portrait-sheet.py aurdin_ochre, aurdin_red, barley_coat, lymen; tools/hero-portrait.py retired; deep16/js/counter.js C.MOUTH, C.CHEEKS; mode=heroes1105) · eyes",
+   "url": "deep16/?portraits&who=aurdin_red,aurdin_ochre,barley_coat,lymen&fresh=1105h",
+   "verdict": "broken",
+   "note": "I thought I had the art dept make the same size as urtusk",
+   "at": "2026-11-06T19:14:45.695Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-vivian-fight-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Vivian in leather fights in look 1, the teal jacket: her whole figure all round from the art desk (11-05)",
+   "pt": "the bestiary, cutter-1105 (tools/vivian-sheet.py vivian_p2; js/save.js SV.LOOK.vivian.armor; mode=heroes1105) · eyes",
+   "url": "deep16/?npc=goblin,goblin&vs=vivian:3&lvl=3&watch&seed=1&fresh=1105m",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T19:16:54.557Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-vivian-hooded-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Vivian in Studded Leather fights in the art desk's \"3B\": the hood up, the slate-teal cloak, her whole figure all round (11-05)",
+   "pt": "the bestiary, cutter-1105 (tools/vivian-sheet.py vivian_p3; js/save.js SV.LOOK.vivian.armor; mode=heroes1105) · eyes",
+   "url": "deep16/?npc=goblin,goblin&vs=vivian:5&lvl=5&watch&seed=1&fresh=1105k",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T19:17:28.297Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-vivian-candlegirl-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Vivian's recruitment on Vice row, played outside: the candle girl over the street, her tray, the candle sold (11-05)",
+   "pt": "the bestiary, cutter-1105 (tools/portrait-sheet.py viviancandle; tools/vivian-sheet.py viviancandle_p1; deep16/js/company.js CO.HIREPT, CO.TOWNSHEET, CO.talk open; mode=heroes1105) · eyes",
+   "url": "deep16/?company&beat=vivian&fresh=1105d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T19:18:20.977Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-riders-yard-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "The yard's flight: the pair up on the greys, each a horse and rider on a Large space (11-05)",
+   "pt": "the Halfway Inn and the lake, the Waterby cutter (deep16/js/battle.js Battle.mountUp; js/ai.js the traces) · eyes",
+   "url": "deep16/?fight=wagonnight&fresh=1105rd",
+   "verdict": "works",
+   "note": "looks great but the fight shouldn't end when only one of them escapes - we'll have to work on that",
+   "at": "2026-11-06T19:20:55.382Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-willem-yard-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "The wagon yard: Willem at the traces in his own figure, then the fight (11-05)",
+   "pt": "the Halfway Inn and the lake, the Waterby cutter (deep16/data/foes.js willem: willemglass_p2; deep16/js/ui.js his Traces row) · eyes",
+   "url": "deep16/?fight=wagonnight&fresh=1105wl",
+   "verdict": "works",
+   "note": "but he falls prone and lies on the road if he escapes and amara dies?",
+   "at": "2026-11-06T19:24:14.614Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-waterby-dinnerfight-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "The poison dinner's fight inside: Doran with his woodaxe and Gennet, in their fight figures (11-05)",
+   "pt": "the Halfway Inn and the lake, the Waterby cutter (deep16/data/foes.js gennet, doran: gennet_p2, doran_p2) · eyes",
+   "url": "deep16/?show=secondact&beat=poison&fresh=1105w",
+   "verdict": "broken",
+   "note": "the fight should break out from a dinner thing, with them in dinner positions, might transparency the chimney during combat in the inn - doran didn't seem to return to idle after axe attack, but graphics otherwise approved",
+   "at": "2026-11-06T19:29:37.708Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-waterby-pathfight-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "Gennet on the path in her fight figure: the lantern walk, the palm raised, the dagger, the yield (11-05)",
+   "pt": "the Halfway Inn and the lake, the Waterby cutter (deep16/data/foes.js gennet: gennet_p2) · eyes",
+   "url": "deep16/?show=secondact&beat=fight&fresh=1105w",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T19:29:46.962Z",
+   "new_since_last_save": true
+  }
+ ]
+}
