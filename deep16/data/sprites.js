@@ -13063,6 +13063,85 @@ false
 "door": "the hero box in Wizard's Robes (js/counter.js C.HERO_PT aurdin_p2)",
 "source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_aurdin_ochre_full": {
+"image": "art/pt_aurdin_ochre_full.png?v=831cdf8bdc",
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 620,
+"fw": 117,
+"fh": 155,
+"ax": 64,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "AURDIN",
+"door": "the open screen in Wizard's Robes (js/counter.js C.heroFull)",
+"source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_aurdin_red": {
 "image": "art/pt_aurdin_red.png?v=23b8e6816a",
 "fw": 52,
@@ -13140,6 +13219,85 @@ false
 },
 "art": "AURDIN",
 "door": "the hero box out of robes (js/counter.js C.HERO_PT aurdin_p3)",
+"source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_aurdin_red_full": {
+"image": "art/pt_aurdin_red_full.png?v=027fdcee2f",
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 620,
+"fw": 114,
+"fh": 155,
+"ax": 63,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "AURDIN",
+"door": "the open screen out of robes (js/counter.js C.heroFull)",
 "source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_barber": {
@@ -13315,6 +13473,85 @@ false
 },
 "art": "BARLEY",
 "door": "the hero box in his coat (js/counter.js C.HERO_PT barley_p2)",
+"source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_barley_coat_full": {
+"image": "art/pt_barley_coat_full.png?v=e1d20ce2c7",
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 154,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 308,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 462,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 616,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "BARLEY",
+"door": "the open screen in his coat (js/counter.js C.heroFull)",
 "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_brennan": {
@@ -16625,7 +16862,7 @@ false
 }
 },
 "art": "LYMEN",
-"door": "the company scene on &herofull, a trial (js/counter.js C.heroFull)",
+"door": "the company scene, the open screen (js/counter.js C.heroFull; the rule since 11-06)",
 "source": "deep16/_src/lymen/HERO-DIALOGUE-1104/sources (the art desk's LYMEN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
 "flip": true
 },
@@ -18753,6 +18990,103 @@ false
 },
 "art": "VIVIAN",
 "door": "the open screen's hero, any counter she leads (js/counter.js C.HERO_PT vivian_p0)",
+"source": "deep16/_src/vivian/PORTRAITS-1104/originals (the art desk's VIVIAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"flip": true
+},
+"pt_vivian_full": {
+"image": "art/pt_vivian_full.png?v=5fdfb995df",
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 620,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"coin": {
+"y": 775,
+"fw": 134,
+"fh": 155,
+"ax": 66,
+"ay": 152,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "VIVIAN",
+"door": "the open screen, any counter she leads (js/counter.js C.heroFull)",
 "source": "deep16/_src/vivian/PORTRAITS-1104/originals (the art desk's VIVIAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
 "flip": true
 },

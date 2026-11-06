@@ -86,7 +86,7 @@
   }
  },
  "art": "LYMEN",
- "door": "the company scene on &herofull, a trial (js/counter.js C.heroFull)",
+ "door": "the company scene, the open screen (js/counter.js C.heroFull; the rule since 11-06)",
  "source": "deep16/_src/lymen/HERO-DIALOGUE-1104/sources (the art desk's LYMEN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
  "flip": true
 }

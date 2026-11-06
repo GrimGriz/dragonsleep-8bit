@@ -11461,6 +11461,71 @@
     document.body.appendChild(preWl);
     return;
   }
+  // THE HEROES AT THE KEEPERS' BUST, 11-06 (mode=faces1106; faces-1106, on Griz's "why so tiny?", "I thought I had the art dept make the same size as urtusk" and "I thought I
+  // approved them and they'd be worked in"): every hero portrait has its NPC-scale cut (tools/portrait-sheet.py <name>_full, the keepers' 150 px bust) with the small cut's rows;
+  // no flag (&herofull retired); the mouth and cheeks on each; the open screen draws the hero and the lead brought in at the keeper's size on the screen's foot, the bubble clear
+  // of both; the hero box and the company's talk at the keepers' 1x; the portraits' show at the bust by name (and _small)
+  if (get('mode', '') === 'faces1106') {
+    var repF6 = { checks: [], errors: [] }, CF6 = D.counter, memF6 = {}, stGF6 = D.store.get, stSF6 = D.store.set, hs0F6 = CF6.heroSheet, dpaF6 = CF6.drawPortraitAt, dpF6 = CF6.drawPortrait;
+    var okF6 = function (what, v) { repF6.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    D.store.get = function (k) { return memF6[k] ? JSON.parse(memF6[k]) : null; }; D.store.set = function (k, v) { memF6[k] = JSON.stringify(v); return true; };
+    try {
+      var SMF6 = ['pt_lymen', 'pt_aurdin_ochre', 'pt_aurdin_red', 'pt_barley_coat', 'pt_vivian'], papaF6 = D.SHEETS.pt_papa, badF6 = [];
+      SMF6.forEach(function (n) {
+        var s = D.SHEETS[n], f = D.SHEETS[n + '_full'], why = !s ? 'no small' : !f ? 'no _full' : !f.portrait ? 'not a portrait' : !!f.flip !== !!s.flip ? 'flip differs' : Math.abs(f.ay - papaF6.ay) > 3 ? 'ay ' + f.ay + ' not Papa\'s ' + papaF6.ay : f.fh < 2 * s.fh ? 'not twice the small' :
+          Object.keys(s.anims).join() !== Object.keys(f.anims).join() ? 'rows ' + Object.keys(f.anims).join() : Object.keys(s.anims).some(function (a) { return s.anims[a].frames !== f.anims[a].frames; }) ? 'frame counts differ' : null;
+        if (why) badF6.push(n + ': ' + why);
+      });
+      okF6('every hero portrait has its cut at the keepers\' bust (' + SMF6.map(function (n) { var f = D.SHEETS[n + '_full']; return n + '_full ' + (f ? f.fw + 'x' + f.fh : 'NONE'); }).join(', ') + '; Papa ' + papaF6.fw + 'x' + papaF6.fh + '), the small cut\'s rows and frames, mirrored as it is' + (badF6.length ? ' -- ' + badF6.join('; ') : ''), !badF6.length);
+      var htF6 = Object.keys(CF6.HERO_PT).map(function (k) { return CF6.HERO_PT[k]; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+      okF6('no flag: C.heroFull finds the bust for every portrait C.HERO_PT names (' + htF6.map(function (p) { return p + ' -> ' + CF6.heroFull(p); }).join(', ') + '); &herofull is gone (C.FULL_TRIAL ' + CF6.FULL_TRIAL + ', the address ' + location.search.indexOf('herofull') + ')',
+        htF6.every(function (p) { return CF6.heroFull(p) === p + '_full'; }) && CF6.FULL_TRIAL === undefined && location.search.indexOf('herofull') < 0);
+      var mcF6 = [];
+      SMF6.forEach(function (n) { var f = D.SHEETS[n + '_full'], m = CF6.MOUTH[n + '_full'], c = CF6.CHEEKS[n + '_full']; if (!f || !m || !c || m[0] <= f.ax - 10 || m[0] >= f.fw || m[1] < f.ay * 0.2 || m[1] > f.ay * 0.45 || c[1] >= m[1] || c[1] < f.ay * 0.2 || !(c[2] > 0) || !(c[3] > 0)) mcF6.push(n + '_full ' + JSON.stringify(m) + ' ' + JSON.stringify(c)); });
+      okF6('each bust\'s mouth and cheeks on its face (' + SMF6.map(function (n) { return n.replace('pt_', '') + ' ' + JSON.stringify(CF6.MOUTH[n + '_full']) + '/' + JSON.stringify((CF6.CHEEKS[n + '_full'] || []).slice(0, 2)); }).join(', ') + ')' + (mcF6.length ? ' -- off: ' + mcF6.join('; ') : ''), !mcF6.length);
+      // the draws, recorded: every sheet "loaded" as a blank canvas of its size (the benches fetch nothing), C.drawPortraitAt and C.drawPortrait logged
+      var loadF6 = function (n) { var s = D.SHEETS[n]; if (!s || (D.images[s.image] && D.images[s.image].naturalWidth)) return; var cv = document.createElement('canvas'), H = 0; Object.keys(s.anims).forEach(function (a) { H = Math.max(H, s.anims[a].y + s.fh); }); cv.width = s.fw * 6; cv.height = H; Object.defineProperty(cv, 'naturalWidth', { value: cv.width }); D.images[s.image] = cv; };
+      SMF6.forEach(function (n) { loadF6(n); loadF6(n + '_full'); }); loadF6('pt_papa');
+      var logF6 = []; CF6.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) { logF6.push({ n: name, x: x, y: y, s: s || 1, m: ctx.getTransform ? ctx.getTransform().a : 1 }); return dpaF6.apply(this, arguments); };
+      CF6.drawPortrait = function (ctx, name, anim, frame, x, y) { logF6.push({ n: name, x: x, y: y, s: 1, one: true }); return dpF6.apply(this, arguments); };
+      CF6.heroSheet = function (h) { return h.sheetF6 || hs0F6(h); };
+      var cvF6 = document.createElement('canvas'); cvF6.width = D.W; cvF6.height = D.H; var cxF6 = cvF6.getContext('2d'), Sp = CF6.OPEN.papa.s;
+      var HF6 = { lymen: ['lymen_p0', 'Lymen'], aurdin_red: ['aurdin_p3', 'Aurdin'], aurdin_ochre: ['aurdin_p2', 'Aurdin'], barley: ['barley_p2', 'Barley'], vivian: ['vivian_p2', 'Vivian'] };
+      var heroF6 = function (k) { var e = HF6[k], id = k.split('_')[0]; return { id: id, key: id, name: e[1], sheetF6: e[0] }; };
+      var openF6 = function (hero, side, lead) { var sc = new CF6.Counter(null, { id: 'facesbench', name: 'Papa Urtusk', place: 'The Hex', what: 'a bench', room: true, open: true, bg: function () { return false; }, script: function (s) { s.hero = hero; if (side) s.heroSide = side; return (function* () { var w = s.ask(['Words from the keeper.'], ['An answer from the hero, long enough to wrap the bubble across the screen.']); if (lead) { w.leadHero = lead; w.lead = true; } yield w; })(); } }); sc.sheet = 'pt_papa'; sc.typeAt = { w: sc.wait, page: sc.page, t0: -1e9, doneT: 0 }; return sc; };
+      var offF6 = [];
+      Object.keys(HF6).forEach(function (k) {
+        ['left', 'right'].forEach(function (side) {
+          var h = heroF6(k), sc = openF6(h, side), pt = CF6.heroPortrait(h), fu = pt && pt + '_full', fs = D.SHEETS[fu]; logF6 = []; sc.draw(cxF6);
+          var d = logF6.filter(function (e) { return e.n === fu; })[0], bb = sc.bubbleButtons ? sc.bubbleButtons() : [], hw = fs ? Math.round(fs.fw * Sp) : 0;
+          var bubOk = bb.length && bb.every(function (q) { return side === 'left' ? q.x >= CF6.OPEN.hero.left + hw : q.x + q.w <= D.W - 2 - hw; });
+          if (!d || Math.abs(d.s - Sp) > 1e-6 || Math.round(d.y) !== D.H - 14 || !bubOk) offF6.push(k + ' ' + side + ': ' + (d ? d.n + ' at ' + d.s + ' foot ' + Math.round(d.y) : 'drew ' + logF6.map(function (e) { return e.n + '@' + e.s; }).join(' ')) + (bubOk ? '' : ' (its answers under the hero)'));
+        });
+      });
+      okF6('the open screen draws each hero at the keepers\' bust, the keeper\'s size (' + Sp + ') on the screen\'s foot (' + (D.H - 14) + '), left and right, its answers clear of the hero -- Lymen, Aurdin in both mantles, Barley, Vivian' + (offF6.length ? ' -- off: ' + offF6.join('; ') : ''), !offF6.length);
+      var scLF6 = openF6(heroF6('lymen'), 'left', { id: 'barley', key: 'barley', name: 'Barley', sheetF6: 'barley_p2' }); logF6 = []; scLF6.draw(cxF6);
+      var ldF6 = logF6.filter(function (e) { return e.n === 'pt_barley_coat_full'; })[0], lwF6 = CF6.leadW(scLF6.wait), bbLF6 = scLF6.bubbleButtons();
+      okF6('the papa beat\'s lead brought in at the bust too (Barley ' + (ldF6 ? ldF6.n + ' at ' + ldF6.s + ', mirrored ' + (ldF6.m < 0) : 'NOT DRAWN: ' + logF6.map(function (e) { return e.n; }).join(' ')) + '), ' + lwF6 + ' px of the foot; Lymen\'s answers stop short of him (their right edge ' + bbLF6.map(function (q) { return q.x + q.w; }).join(',') + ' < ' + (D.W - 2 - lwF6) + ')',
+        !!ldF6 && Math.abs(ldF6.s - Sp) < 1e-6 && ldF6.m < 0 && lwF6 === Math.round(D.SHEETS.pt_barley_coat_full.fw * Sp) && bbLF6.length > 0 && bbLF6.every(function (q) { return q.x + q.w <= D.W - 2 - lwF6; }));
+      // the hero box of a counter screen (Ned's, Aurdin's): the bust at the keepers' 1x, the crown under the box's edge
+      var HBF6 = CF6.LAYOUT.hero, scNF6 = new CF6.Counter(null, { id: 'facesbench', name: 'Ned Halloway', place: 'a bench', script: function (s) { s.hero = heroF6('aurdin_red'); return (function* () { yield s.ask(['Words.'], ['An answer.']); })(); } }); logF6 = []; scNF6.draw(cxF6);
+      var nbF6 = logF6.filter(function (e) { return e.n === 'pt_aurdin_red_full'; })[0], snF6 = D.SHEETS.pt_aurdin_red_full;
+      okF6('the hero box (Ned\'s counter): Aurdin\'s bust at 1x, the keeper\'s face size (' + (nbF6 ? nbF6.n + ' at ' + nbF6.s + ', its frame top ' + Math.round(nbF6.y - snF6.ay) + ' under the box\'s inner edge ' + (HBF6[1] + 3) : 'NOT DRAWN: ' + logF6.map(function (e) { return e.n; }).join(' ')) + ')',
+        !!nbF6 && nbF6.one && Math.round(nbF6.y - snF6.ay) === HBF6[1] + 3 + CF6.HERO_BOX.top && Math.round(nbF6.x) === HBF6[0] + Math.round(HBF6[2] / 2));
+      // the company's talk (js/company.js CO.face): a hero met where a keeper's portrait stands, at the keepers' 1x
+      logF6 = []; if (D.company && D.company.face) D.company.face(cxF6, heroF6('barley'), 0, 0, 184, 180, 0); var cfF6 = logF6.filter(function (e) { return e.n === 'pt_barley_coat_full'; })[0];
+      okF6('the company\'s talk: Barley where a keeper stands, his bust at 1x (' + (cfF6 ? cfF6.n + ' at ' + cfF6.s + ', foot ' + cfF6.y : 'drew ' + logF6.map(function (e) { return e.n + '@' + e.s; }).join(' ')) + ')', !!cfF6 && cfF6.one && cfF6.y === 181);
+      // the portraits' show: a hero by name at the bust, _small the hero-size cut, _full the bust outright
+      var psF6 = CF6.portraitShow('?portraits&who=vivian,lymen_small,barley_coat_full'), shF6 = [];
+      D.scenes.length = 0; D.push(psF6); for (var kF6 = 0; kF6 < 3; kF6++) { psF6.update(); shF6.push(psF6.cur && psF6.cur.sheet); if (psF6.cur) psF6.cur.done = true; }
+      okF6('the portraits\' show by name (' + psF6.ids.join(', ') + '): ' + shF6.join(', '), psF6.ids.join() === 'vivian,lymen_small,barley_coat_full' && shF6.join() === 'pt_vivian_full,pt_lymen,pt_barley_coat_full');
+      D.scenes.length = 0;
+    } catch (eF6) { repF6.errors.push(String(eF6 && eF6.stack || eF6).slice(0, 900)); }
+    CF6.heroSheet = hs0F6; CF6.drawPortraitAt = dpaF6; CF6.drawPortrait = dpF6; D.store.get = stGF6; D.store.set = stSF6;
+    var preF6 = document.createElement('pre'); preF6.id = 'out'; preF6.textContent = 'BENCH16 ' + JSON.stringify(repF6);
+    document.body.appendChild(preF6);
+    return;
+  }
   // THE HEROES' TALKING PORTRAITS, 11-05 (mode=heroes1105; tools/portrait-sheet.py vivian, js/counter.js C.HERO_PT, C.heroPt and the portraits' show, js/hours.js the show's
   // beat papaviv -- cutter-1105, the character/beast cutter): Vivian's (art-wanted 37, the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS) cut mirrored at the heroes' size, her
   // coin a row of its own; her figure's sheet finds it; the portraits' show takes a hero by the sheet's name, every row it has; the company scene with her leading staged
@@ -11480,7 +11545,7 @@
       var psHo = CHo.portraitShow('?portraits&who=vivian,winters,nobody'); D.scenes.length = 0; D.push(psHo); psHo.update(); var cuHo = psHo.cur, facesHo = [];
       for (var kHo = 0; kHo < 12 && cuHo && !cuHo.done; kHo++) { facesHo.push(cuHo.wait && cuHo.wait.face); cuHo.step(); }
       okHo('the portraits\' show takes a hero by the sheet\'s name (' + psHo.ids.join(', ') + '): Vivian on her own sheet (' + (cuHo && cuHo.sheet) + ', ' + (cuHo && cuHo.o.name) + '), every row it has in turn (' + facesHo.join(' ') + ')',
-        psHo.ids.join() === 'vivian,winters' && !!cuHo && cuHo.sheet === 'pt_vivian' && cuHo.o.name === 'Vivian' && facesHo.join() === 'idle,attentive,welcoming,skeptical,concerned,coin');
+        psHo.ids.join() === 'vivian,winters' && !!cuHo && cuHo.sheet === (CHo.heroFull ? CHo.heroFull('pt_vivian') || 'pt_vivian' : 'pt_vivian') /* (at the keepers' bust since 11-06: mode=faces1106) */ && cuHo.o.name === 'Vivian' && facesHo.join() === 'idle,attentive,welcoming,skeptical,concerned,coin');
       D.scenes.length = 0;
       // the other three, re-cut from the art desk's own AURDIN-, BARLEY- and LYMEN-HERO-DIALOGUE-PORTRAITS under the names C.HERO_PT already gave them: the same hero size
       var FOURHo = { pt_aurdin_ochre: ['aurdin_p2', false, 5], pt_aurdin_red: ['aurdin_p3', false, 5], pt_barley_coat: ['barley_p2', false, 5], pt_lymen: ['lymen_p0', true, 6] }, offHo = [];
@@ -12022,7 +12087,7 @@
       CN.drawPortrait = dp0; CN.drawHeroFace = df0;
       var sR = D.SHEETS.pt_aurdin_red, sO = D.SHEETS.pt_aurdin_ochre;
       okN('10-22, his "The first page of the characters stuff was supposed to have a big one ... use the one based on the outfit he\'s in": out of robes the Red Mantle\'s (' + ptR + ', ' + (sR && sR.fw + 'x' + sR.fh) + '), in Wizard\'s Robes the Ochre\'s (' + ptO + ' with ' + shO + ', ' + (sO && sO.fw + 'x' + sO.fh) + '), each its talking portrait (the stills off the first pages till 11-05), drawn bottom left (' + drawnN.join(', ') + ') and the floor figure not',
-        ptR === 'pt_aurdin_red' && ptO === 'pt_aurdin_ochre' && shO === 'aurdin_p2' && !!sR && !!sO && sR.portrait && sO.portrait && sR.anims.idle.frames === 6 && sO.anims.idle.frames === 6 /* (since 11-05 the art desk's talking portraits under the same names, idle 6 and the moods, not the stills off the first pages: mode=heroes1105) */ && sR.fw <= LH[2] - 6 && sO.fw <= LH[2] - 6 && drawnN.indexOf('pt_aurdin_ochre') >= 0 && drawnN.indexOf('pt_aurdin_red') >= 0 && !facedN);
+        ptR === 'pt_aurdin_red' && ptO === 'pt_aurdin_ochre' && shO === 'aurdin_p2' && !!sR && !!sO && sR.portrait && sO.portrait && sR.anims.idle.frames === 6 && sO.anims.idle.frames === 6 /* (since 11-05 the art desk's talking portraits under the same names, idle 6 and the moods, not the stills off the first pages: mode=heroes1105) */ && sR.fw <= LH[2] - 6 && sO.fw <= LH[2] - 6 && drawnN.indexOf(CN.heroFull('pt_aurdin_ochre') || 'pt_aurdin_ochre') >= 0 && drawnN.indexOf(CN.heroFull('pt_aurdin_red') || 'pt_aurdin_red') >= 0 /* (the box draws each at the keepers' bust since 11-06, mode=faces1106) */ && !facedN);
       goN(sc1, 'opt', AS.yes); var o1b = optsN(sc1); goN(sc1, 'opt', AS.yes); var ech1 = (sc1.echo || []).join(' '), w1b = readN(sc1); endN(T1);
       okN('Yes.: CAN YOU CAST IT? (' + o1b.join(' / ') + ') -- Yes.: his "' + ech1 + '" in his bubble, "Show me." and the laugh, the talk over (' + w1b.length + ' lines); the story not marked heard', sc1.done && ech1 === 'Yes.' && /Show me/.test(w1b.join(' ')) && /laughs/.test(w1b.join(' ')) && !f.nedStory && !f.nedSaw && !upN() && au.known.indexOf('findfamiliar') < 0);
       var T2 = talkN(B), w2 = T2.sc ? readN(T2.sc) : []; endN(T2);

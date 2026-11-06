@@ -1,0 +1,79 @@
+{
+ "image": "art/pt_aurdin_ochre_full.png",
+ "fw": 117,
+ "fh": 155,
+ "ax": 64,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 117,
+   "fh": 155,
+   "ax": 64,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 155,
+   "fw": 117,
+   "fh": 155,
+   "ax": 64,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 310,
+   "fw": 117,
+   "fh": 155,
+   "ax": 64,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 465,
+   "fw": 117,
+   "fh": 155,
+   "ax": 64,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 620,
+   "fw": 117,
+   "fh": 155,
+   "ax": 64,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "AURDIN",
+ "door": "the open screen in Wizard's Robes (js/counter.js C.heroFull)",
+ "source": "deep16/_src/aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources (the art desk's AURDIN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

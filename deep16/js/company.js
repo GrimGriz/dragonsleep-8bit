@@ -60,7 +60,9 @@
   // ---------------------------------------------------------------- the talk: the counter screen, the hero's face where a keeper's portrait stands -- Aurdin's portrait
   // (js/counter.js C.heroPortrait) at twice its size, the others their own figure at three times, turned to the talk (C.drawHeroFace, facing south-west)
   CO.face = function (ctx, h, x, y, w, hh, t) {
-    var pt = C.heroPortrait(h);
+    var pt = C.heroPortrait(h), fu = C.heroFull && C.heroFull(pt); // (at the keepers' bust, where a keeper's portrait stands at a keeper's 1x: 11-06, faces-1106, his "I thought I had the art dept make the same size as urtusk")
+    if (fu && C.drawPortrait(ctx, fu, 'idle', 0, Math.round(x + w / 2), Math.round(y + hh + 1))) return;
+    if (fu) return; // (nothing the frame it loads, as a keeper's)
     if (pt) { ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(x + w / 2), Math.round(y + hh + 1)); ctx.scale(2, 2); var ok = C.drawPortrait(ctx, pt, 'idle', 0, 0, 0); ctx.restore(); if (ok) return; }
     var F = C.HERO_FACE, f0 = F.facing; F.facing = D.spr.facingFor(-1, 1);
     try { C.drawHeroFace(ctx, h, x, y, w, hh, t); } finally { F.facing = f0; }

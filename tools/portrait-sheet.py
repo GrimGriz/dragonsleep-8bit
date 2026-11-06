@@ -177,8 +177,8 @@ PEOPLE = {
     'lymen': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True, 'bust': 66,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
     # the same six at the keepers' bust (BUST, Papa's), a trial (11-05, the lanes desk, Griz: "do a test of the new NPC scale cut such that more of their bust is included in the
-    # hero box with current verse trial on the lymen/papa conversation"): the art desk's "full" cut, made here with today's cutter; the open screen draws it on `&herofull`
-    'lymen_full': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene on &herofull, a trial (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True,
+    # hero box with current verse trial on the lymen/papa conversation"): the art desk's "full" cut, made here with today's cutter; the open screen drew it on `&herofull`, and since 11-06 by default (below)
+    'lymen_full': ('lymen/HERO-DIALOGUE-1104/sources', 'LYMEN', 'the company scene, the open screen (js/counter.js C.heroFull; the rule since 11-06)', {'edge': True, 'pat': '%s-P%02d-*.png', 'flip': True,
               'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
     # Vivian the candle girl, her tray of candles on its strap (11-05, cutter-1105, on Griz's "the scene is the recruitment at the start of the game, art dept is making
     # the world poses now"): the art desk's loose page "Vivian Venn -- Candle Girl", six faces one page, sorted to _src/vivian/CANDLE-GIRL-1105/ (an ASCII-named copy
@@ -203,6 +203,15 @@ PEOPLE = {
     # place of a work row. The screen's hero in the hero box, so Lymen's way: Aurdin's hero size (`bust`), mirrored to look right (`flip`), cut at the waist. Her
     # auburn hair is her look: no `avoid` red
     'vivian': ('vivian/PORTRAITS-1104/originals', 'VIVIAN', 'the open screen\'s hero, any counter she leads (js/counter.js C.HERO_PT vivian_p0)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'flip': True, 'bust': 66,
+               'layout': [(2, [3, 3], ['idle'] * 6), (3, [1], ['attentive']), (4, [1], ['welcoming']), (5, [1], ['skeptical']), (6, [1], ['concerned']), (7, [3, 3], ['coin'] * 6)]}),
+    # THE HEROES AT THE KEEPERS' BUST, the rule since 11-06 (faces-1106, the lanes desk's seat; Griz on the small faces: "why so tiny?", "I thought I had the art dept make the same
+    # size as urtusk", "I thought I approved them and they'd be worked in"): every hero's open-screen face from the same pages as the hero box's, at BUST (Papa's 150 px), no
+    # `bust` -- Lymen's trial of 11-05 (`lymen_full`) the way. The art desk's own `cuts/pt_*_full` are this cutter's run at d04591e (Lymen's byte for byte), so they are cut
+    # here, not copied: a later change to the cutter rebuilds them with the rest. js/counter.js C.heroFull draws `pt_<name>_full` wherever an open screen draws the hero
+    'aurdin_ochre_full': ('aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the open screen in Wizard\'s Robes (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
+    'aurdin_red_full': ('aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the open screen out of robes (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
+    'barley_coat_full': ('barley/HERO-DIALOGUE-1104/sources', 'BARLEY', 'the open screen in his coat (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
+    'vivian_full': ('vivian/PORTRAITS-1104/originals', 'VIVIAN', 'the open screen, any counter she leads (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'flip': True,
                'layout': [(2, [3, 3], ['idle'] * 6), (3, [1], ['attentive']), (4, [1], ['welcoming']), (5, [1], ['skeptical']), (6, [1], ['concerned']), (7, [3, 3], ['coin'] * 6)]}),
     # Amara of the wagon and Elsbeth at the tub (11-04, the cutter of 11-04): the art desk's HALFWAY-INN-AMARA-PORTRAITS and -ELSBETH-TUB-PORTRAITS, art-wanted
     # section 35 -- the six pages as ever under the art desk's own names (AMARA-HEAD-01-IDLE.png, KP01-Idle.png): Amara's work counts coins into her palm,

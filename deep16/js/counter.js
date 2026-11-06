@@ -533,8 +533,9 @@
     var W8 = D.WIN8, h = this.hero, w = this.wait || {}, bs = this.bubbling() ? this.bubbleButtons() : null;
     D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430');
     ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip();
-    var pt = C.heroPortrait(h);
-    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
+    var pt = C.heroPortrait(h), fu = C.heroFull(pt);
+    if (fu) C.drawPortrait(ctx, fu, 'idle', 0, HB.x + HB.w / 2, HB.y + 3 + C.HERO_BOX.top + D.SHEETS[fu].ay); // (at the keepers' bust, 1x -- the keeper's own face size across the screen -- head and shoulders in the box, the crown C.HERO_BOX.top under its edge: 11-06, his "I thought I had the art dept make the same size as urtusk")
+    else if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
     else C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
     ctx.restore();
     D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center');
@@ -543,6 +544,7 @@
     bubble(ctx, BB.x, BB.y, BB.w, Math.max(30, bh));
     if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
   };
+  C.HERO_BOX = { top: 1 }; // (the bust's frame top under the hero box's inner edge: the cut's crown sits 2 px down its frame, so the hair just clears the edge)
   function bubble(ctx, x, y, w, h) { // (a speech bubble, its tail at the portrait)
     ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, y + h - 0.5);
@@ -555,6 +557,15 @@
     ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, by);
     ctx.lineTo(bx + 12, by); ctx.lineTo(Math.round(tx - 6), py); ctx.lineTo(bx, by); ctx.lineTo(x + 4, by); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
+  }
+  function bubbleSide(ctx, x, y, w, h, right, ty) { // (a speech bubble beside the one speaking, its tail off the side toward them at their mouth's height: the hero at the keepers' bust stands beside it, 11-06)
+    var c = Math.max(y + 11, Math.min(y + h - 11, ty)), tip = Math.max(c - 8, Math.min(c + 8, ty)), ex = right ? x + w - 0.5 : x + 0.5, tx = right ? x + w + 9 : x - 9;
+    ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4);
+    if (right) { ctx.lineTo(ex, c - 6); ctx.lineTo(tx, Math.round(tip) + 0.5); ctx.lineTo(ex, c + 7); }
+    ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, y + h - 0.5); ctx.lineTo(x + 4, y + h - 0.5); ctx.lineTo(x + 0.5, y + h - 4);
+    if (!right) { ctx.lineTo(ex, c + 7); ctx.lineTo(tx, Math.round(tip) + 0.5); ctx.lineTo(ex, c - 6); }
+    ctx.lineTo(x + 0.5, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
   }
   C.blush = function (ctx, cx, cy, a, k, spread, sz) { if (!(a > 0)) return; k = k || 1; spread = spread || 10; sz = sz || 1; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * spread * k), Math.round(cy), 6 * k * sz, 3 * k * sz, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); }; // (`sz`: a smaller face's cheeks -- C.CHEEKS' fourth, Vivian's, 11-05)
   // ---------------------------------------------------------------- THE OPEN SCREEN (o.open: the company scene's alone, js/hours.js H16.papaScene -- 10-30, Griz on the pane:
@@ -585,14 +596,19 @@
   Counter.prototype.spSide = function () { var sp = this.spk(); return sp && sp.side === 'left' ? 'left' : 'right'; };
   Counter.prototype.hSide = function () { return this.heroSide === 'right' ? 'right' : 'left'; };
   C.spSheet = function (sc) { var sp = sc.spk(); return sp ? (sp.sheet && D.SHEETS[sp.sheet] ? sp.sheet : null) : sc.sheet; }; // (the one speaking: the wait's, or the counter's own)
-  // THE KEEPERS' BUST, a trial (11-05, the lanes desk, Griz: "do a test of the new NPC scale cut such that more of their bust is included in the hero box with current verse trial on
-  // the lymen/papa conversation"): on `&herofull` the open screen's hero is the art desk's NPC-scale cut (pt_<name>_full, tools/portrait-sheet.py lymen_full) at the keeper's own
-  // size (C.OPEN.papa.s), his whole bust standing on the screen's foot, and the bubble beside him; without it, as ever
-  C.FULL_TRIAL = /[?&]herofull\b/.test((window.location && window.location.search) || '');
-  C.heroFull = function (pt) { var f = C.FULL_TRIAL && pt ? pt + '_full' : null; return f && D.SHEETS && D.SHEETS[f] ? f : null; };
+  // THE KEEPERS' BUST (11-05 a trial on `&herofull`, the lanes desk, Griz: "do a test of the new NPC scale cut such that more of their bust is included in the hero box with current
+  // verse trial on the lymen/papa conversation"; THE RULE since 11-06, faces-1106, on his "why so tiny?", "I thought I had the art dept make the same size as urtusk" and "I thought
+  // I approved them and they'd be worked in"): wherever an open screen draws a hero -- the one answering, or the party's lead brought in -- it is that hero's NPC-scale cut
+  // (pt_<name>_full, tools/portrait-sheet.py <name>_full: the same pages at the keepers' 150 px bust) at the keeper's own size (C.OPEN.papa.s), the whole bust standing on the
+  // screen's foot, the bubble beside; the hero box of a counter screen (Counter.drawHero) and the company's talk (js/company.js CO.face) take the same cut at the keepers'
+  // 1x. A hero with no _full cut keeps the hero-size cut, as ever
+  C.heroFull = function (pt) { var f = pt ? pt + '_full' : null; return f && D.SHEETS && D.SHEETS[f] ? f : null; };
   C.heroW = function (sc) { var h = sc.hero, pt = h && C.heroPortrait(h), fu = C.heroFull(pt), sh = pt && D.SHEETS[fu || pt]; return sh ? sh.fw * (fu ? C.OPEN.papa.s : C.OPEN.heroS()) : HB.w; };
-  C.MOUTH = { pt_lymen_full: [86, 58], pt_lymen: [38, 23], pt_vivian: [33, 22], pt_aurdin_ochre: [31, 23], pt_aurdin_red: [31, 23], pt_barley_coat: [34, 24] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there -- the four re-cut 11-05 from the art desk's dialogue portraits)
-  C.CHEEKS = { pt_barley_coat: [35, 20, 4, 0.45], pt_vivian: [34, 20, 4, 0.45] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
+  C.leadW = function (w) { var ld = w && w.leadHero, pt = ld && C.heroPortrait(ld), fu = C.heroFull(pt); return fu ? Math.round(D.SHEETS[fu].fw * C.OPEN.papa.s) : 0; }; // (the lead brought in at the bust, bottom right: how much of the screen's foot it takes -- the hero's bubble stops short of it)
+  C.MOUTH = { pt_lymen_full: [87, 51], pt_aurdin_ochre_full: [71, 52], pt_aurdin_red_full: [70, 53], pt_barley_coat_full: [78, 53], pt_vivian_full: [74, 52],
+              pt_lymen: [38, 23], pt_vivian: [33, 22], pt_aurdin_ochre: [31, 23], pt_aurdin_red: [31, 23], pt_barley_coat: [34, 24] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there -- the four re-cut 11-05 from the art desk's dialogue portraits; the bust's, 11-06, read off each cut)
+  C.CHEEKS = { pt_barley_coat: [35, 20, 4, 0.45], pt_vivian: [34, 20, 4, 0.45],
+               pt_barley_coat_full: [77, 45, 9, 1], pt_vivian_full: [73, 44, 9, 1], pt_aurdin_ochre_full: [70, 45, 9, 1], pt_aurdin_red_full: [69, 45, 9, 1], pt_lymen_full: [84, 44, 10, 1] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread, and a smaller face's blush size: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
     if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);
@@ -621,7 +637,8 @@
     else {
       var g = C.openGeo(sc), hr = sc.hSide() === 'right';
       if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
-      var hw = C.heroW(sc), fu = C.heroFull(sc.hero && C.heroPortrait(sc.hero)), bx = fu && !hr ? O.hero.left + hw + 4 : 0, bw = Math.min(RW, hr ? D.W - 16 - hw : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- the keepers' bust, its trial: clear of him)
+      var hw = C.heroW(sc), fu = C.heroFull(sc.hero && C.heroPortrait(sc.hero)), bx = fu && !hr ? O.hero.left + hw + 4 : 0, bw = Math.min(RW, hr ? D.W - 16 - hw : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- at the keepers' bust: clear of him)
+      var lw = !hr && C.leadW(w); if (lw && bx) bw = Math.min(bw, D.W - 2 - lw - 6 - bx); // (and short of the lead brought in bottom right at the bust, when this wait has one -- the papa beat's "standing about", 11-06)
       BB = { x: hr ? D.W - 2 - hw - 6 - bw : bx || O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
       if (w.flip && !hr && !fu) { var fx = O.hero.left + hw + 4; BB = { x: fx, y: BB.y, w: D.W - 8 - fx, h: BB.h }; } // (THE FLIP, 11-05: its bubble runs taller than an answer's, so it stands beside the hero, clear of them)
     }
@@ -670,14 +687,15 @@
       else if (g.face) C.drawUnitFace(ctx, sp.unit, g.left + 4, g.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, spL); // (no talking portrait yet: the face of the figure they wear)
       C.nameTag(ctx, sp && sp.name ? sp.name : this.o.name, g.cx, g.foot + 3);
       var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
-      var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, a trial: &herofull -- C.heroFull)
+      var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, the rule since 11-06 -- C.heroFull)
       var hsh = pt && D.SHEETS[pt], hfoot = hfu ? D.H - 14 : BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
       if (h && !w.noHero) {
         var bb = this.bubbling() ? bs.filter(function (q) { return q.bubble; }) : null, echo = !bb && w.say && this.echo;
         var bh = bb && bb.length ? bb[bb.length - 1].y + bb[bb.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
         if (bh && (echo || left > 0)) {
           var mo = C.MOUTH[pt] || [42, 25], mx = hR ? hL + hW - mo[0] * hs : hL + mo[0] * hs, my = hfoot - ((hsh ? hsh.ay : 68) - mo[1]) * hs; // (on the right he is mirrored: his mouth counted from his other edge)
-          bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
+          if (hfu) bubbleSide(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR, my); // (at the bust he stands beside it: the tail off its side at his mouth)
+          else bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
           else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
         }
@@ -687,10 +705,12 @@
       // the party's lead bottom right, the hero's size, facing in (his portrait mirrored, or his figure's face zoomed and turned): Lymen's line to him, and Papa's after
       var ld = w.leadHero, showLd = ld && (w.lead === true || (w.lead === 'after' && since >= O.pause));
       if (showLd) {
-        var lpt = C.heroPortrait(ld), lsh = lpt && D.SHEETS[lpt] && D.spr.has(lpt) ? D.SHEETS[lpt] : null, ref = lsh || hsh; // (his own size where he has a portrait, else the hero's)
-        // (the largest crisp zoom, no more than the hero's, at which he fits between the keeper's name and the strip, his cut edge on the strip)
+        var lpt = C.heroPortrait(ld), lfu = C.heroFull(lpt); if (lfu) lpt = lfu; // (at the keepers' bust as the hero is, where the lead has its cut: 11-06)
+        var lsh = lpt && D.SHEETS[lpt] && D.spr.has(lpt) ? D.SHEETS[lpt] : null, ref = lsh || hsh; // (his own size where he has a portrait, else the hero's)
+        // (the largest crisp zoom, no more than the hero's, at which he fits between the keeper's name and the strip, his cut edge on the strip -- at the bust, the keeper's own size)
         var R1 = Math.max(1, Math.round(D.R || 1)), lfoot = D.H - 14, lfit = (lfoot - (C.openGeo(this).foot + 19)) / (ref ? ref.fh : 71), ls = Math.max(1, Math.min(hs, Math.floor(lfit * R1) / R1));
         if (R1 > 1) ls = Math.min(hs, Math.max(1 / R1, Math.floor(lfit * R1) / R1));
+        if (lfu) ls = O.papa.s;
         var LW = Math.round((ref ? ref.fw : 77) * ls), LH = Math.round((ref ? ref.fh : 71) * ls), lx = D.W - 2 - LW, ly = Math.round(lfoot - (ref ? ref.ay : 68) * ls);
         if (lpt && !lsh && D.SHEETS[lpt] && !D.spr.offline) D.spr.load(D.SHEETS[lpt].image);
         ctx.save(); ctx.translate(lx + LW, 0); ctx.scale(-1, 1); // (mirrored: looking left, at Lymen and Papa)
@@ -1378,7 +1398,12 @@
   }
   // (a hero's talking portrait on the same screen, by its sheet's name less pt_ -- who=vivian, aurdin_red, barley_coat, lymen -- every row the sheet has, Vivian's coin and Lymen's
   // earnest among them: 11-05, cutter-1105, the art desk's hero portraits; in the game they stand in the hero box, C.HERO_PT)
-  C.heroPt = function (k) { var pt = 'pt_' + k; return Object.keys(C.HERO_PT).some(function (s) { return C.HERO_PT[s] === pt; }) && D.SHEETS && D.SHEETS[pt] ? pt : null; };
+  // (and at the keepers' bust, 11-06, faces-1106: who=vivian shows her pt_vivian_full -- the face the open screens draw -- and who=vivian_small the hero-size cut;
+  // who=vivian_full names the bust outright)
+  C.heroPt = function (k) {
+    var sm = /_small$/.test(k), base = 'pt_' + k.replace(/_(small|full)$/, ''), ok = Object.keys(C.HERO_PT).some(function (s) { return C.HERO_PT[s] === base; }) && D.SHEETS && D.SHEETS[base];
+    return !ok ? null : sm ? base : C.heroFull(base) || base;
+  };
   // (and any talking portrait by its sheet's name less pt_, one a scene names itself and no counter takes -- Katarina's at the Halfway Inn, pt_katarina, 11-05: her talk,
   // js/inn.js, is hers to wire; here only shown)
   C.anyPt = function (k) { var pt = 'pt_' + k, s = D.SHEETS && D.SHEETS[pt]; return s && s.portrait ? pt : null; };
@@ -1390,7 +1415,7 @@
     var id = this.ids[this.k], n = this.ids.length, k = this.k, nm = (C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || D.town.KEEPER['inn:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id, words = C.wordsOf(id);
     var g = C.GENERIC[id], faces = g ? [g[1]] : C.FACES; // (an unnamed one: their costume, the one page)
     var hp = !C.PT[id] && C.heroPt(id), op = !C.PT[id] && !hp && C.anyPt(id); // (a hero's: the name, a line, and the sheet's own rows; or one whose face a scene names itself -- Katarina's at the inn)
-    if (hp) { var hk = id.split('_')[0]; nm = hk.charAt(0).toUpperCase() + hk.slice(1); words = ['(the hero box: ' + Object.keys(C.HERO_PT).filter(function (s) { return C.HERO_PT[s] === hp; }).join(', ') + ')']; faces = Object.keys(D.SHEETS[hp].anims); }
+    if (hp) { var hk = id.split('_')[0], hb = hp.replace(/_full$/, ''); nm = hk.charAt(0).toUpperCase() + hk.slice(1); words = ['(' + (hb !== hp ? 'at the keepers\' bust, the open screens and the hero box' : 'the hero-size cut') + ': ' + Object.keys(C.HERO_PT).filter(function (s) { return C.HERO_PT[s] === hb; }).join(', ') + ')']; faces = Object.keys(D.SHEETS[hp].anims); }
     else if (op) { hp = op; faces = Object.keys(D.SHEETS[op].anims); if (nm === id) nm = id.charAt(0).toUpperCase() + id.slice(1); } // (a name the data has none for: the sheet's, capitalised -- Doran)
     this.cur = new Counter(null, { id: id, name: nm, place: 'THE PORTRAITS (a show)', what: nm + ', ' + (k + 1) + ' of ' + n, script: function* (sc) {
       for (var i = 0; i < faces.length; i++) yield sc.say(['{y}' + (g ? 'THE ' + g[0].toUpperCase() + ' -- ' : '') + faces[i].toUpperCase() + '{/}'].concat(words), faces[i]);

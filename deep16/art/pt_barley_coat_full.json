@@ -1,0 +1,79 @@
+{
+ "image": "art/pt_barley_coat_full.png",
+ "fw": 133,
+ "fh": 154,
+ "ax": 68,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 133,
+   "fh": 154,
+   "ax": 68,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 154,
+   "fw": 133,
+   "fh": 154,
+   "ax": 68,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 308,
+   "fw": 133,
+   "fh": 154,
+   "ax": 68,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 462,
+   "fw": 133,
+   "fh": 154,
+   "ax": 68,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 616,
+   "fw": 133,
+   "fh": 154,
+   "ax": 68,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "BARLEY",
+ "door": "the open screen in his coat (js/counter.js C.heroFull)",
+ "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
