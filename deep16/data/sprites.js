@@ -3749,7 +3749,7 @@
 "source": "drawn by the art desk (HALFWAY-INN-DORAN-TOWN, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored; the inn's floor (js/counter.js C.FIG doranYard, doranIn)"
 },
 "doran_p2": {
-"image": "art/doran_p2.png?v=7f349b3fc1",
+"image": "art/doran_p2.png?v=8ff90790df",
 "fw": 66,
 "fh": 64,
 "ax": 33,
@@ -3762,8 +3762,8 @@
 "fh": 64,
 "ax": 33,
 "ay": 61,
-"frames": 1,
-"fps": 2
+"frames": 4,
+"fps": 4
 },
 "walk": {
 "y": 512,
@@ -3823,11 +3823,11 @@
 },
 "name": "Doran Waterby",
 "hold": [
-"idle: Attack 1 held, the axe at the ready (no armed idle was drawn); walk: the town walk, the bucket in his hand (no axe walk was drawn)",
+"idle: the armed idle 4 (the art desk's 11-06 page), a guard lower than Attack 1 in E and N -- he rises into the chop and settles back; SE Idle 3 dips the deepest; walk: the town walk, the bucket in his hand (no axe walk was drawn)",
 "N fall 4 and prone: nearly face down, not the side-lying asked; N fall 3 sits toward screen right before the collapse (the art desk's own notes)",
 "S fall 4 and prone share the SE side silhouette (the art desk's own note)"
 ],
-"source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the walk from HALFWAY-INN-DORAN-TOWN; every fight he is in (deep16/data/foes.js doran)"
+"source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the idle from the art desk's five-view axe idle page (11-06), the walk from HALFWAY-INN-DORAN-TOWN; every fight he is in (deep16/data/foes.js doran)"
 },
 "drider_p1": {
 "image": "art/drider_p1.png?v=a0acd18d15",
@@ -4962,7 +4962,7 @@
 "source": "drawn by the art desk (HALFWAY-INN-GENNET-TOWN, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored; the inn's floor (js/counter.js C.FIG gennet, gennetGrief, gennetYard, dueLady)"
 },
 "gennet_p2": {
-"image": "art/gennet_p2.png?v=2824079a45",
+"image": "art/gennet_p2.png?v=c86573dfb7",
 "fw": 34,
 "fh": 64,
 "ax": 17,
@@ -4980,9 +4980,9 @@
 },
 "walk": {
 "y": 512,
-"fw": 40,
+"fw": 44,
 "fh": 64,
-"ax": 20,
+"ax": 22,
 "ay": 61,
 "frames": 8,
 "fps": 10
@@ -5046,11 +5046,11 @@
 },
 "name": "Gennet Waterby",
 "hold": [
-"walk: the town walk with the lantern in her hand, the poison dinner's fight too (no fight walk was drawn)",
+"walk: the fight walk (the art desk's 11-06 HALFWAY-INN-GENNET-FIGHT-WALK), empty-handed and guarded; stood by her crown, which the art desk keeps level, not by her lowest sole (a lifted sole sits lower than the planted foot: their own note); the strides broad for a guarded walk (their own note)",
 "attack: the front Dagger 2 blade foreshortened behind her fist; front and SE Dagger 3 angle down, a short low jab (the art desk's own notes)",
 "E Flinch 2 still turns toward the viewer; N recoils on a slight rear diagonal (the art desk's own notes)"
 ],
-"source": "drawn by the art desk (HALFWAY-INN-GENNET-COMBAT, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored -- the idle and walk from HALFWAY-INN-GENNET-TOWN; every fight she is in (deep16/data/foes.js gennet)"
+"source": "drawn by the art desk (HALFWAY-INN-GENNET-COMBAT, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored -- the idle from HALFWAY-INN-GENNET-TOWN, the walk from HALFWAY-INN-GENNET-FIGHT-WALK (11-06); every fight she is in (deep16/data/foes.js gennet)"
 },
 "giantbat_p1": {
 "image": "art/giantbat_p1.png?v=5fa2b4c149",

@@ -14,8 +14,10 @@ Each drawing is read from the MANIFEST.json window (generous: the number inside 
 
 gennet_p1 (the inn's floor: gennet, gennetGrief, gennetYard, and the due's walk to the point, dueLady -- js/counter.js C.FIG): idle <- Idle 4; walk <-
 Walk 8 (the lantern).
-gennet_p2 (every fight she is in: deep16/data/foes.js gennet -- the path, the poison dinner's common room): idle <- the town Idle 4; walk <- the town Walk 8
-(the lantern -- she carries the shore-lantern on the path; at the dinner it is the drawn walk still); cast <- Cast 6 (`release` 3: the palm out on frame
+gennet_p2 (every fight she is in: deep16/data/foes.js gennet -- the path, the poison dinner's common room): idle <- the town Idle 4; walk <- the fight walk
+(11-06: HALFWAY-INN-GENNET-FIGHT-WALK, sorted to INN-FIGHT-WALK-1106/ -- one page a view, Walk 1-4 over 5-8, empty-handed and guarded; its MANIFEST's
+windows; one scale by its own median height; stood by her crown, which the art desk keeps level, not by the lowest sole: CROWN; no fire ramp. Till 11-06
+the town walk with the lantern, which gennet_p1 keeps); cast <- Cast 6 (`release` 3: the palm out on frame
 4); attack <- Dagger 4 (`release` 2: the extension on frame 3); flinch <- Flinch 4; hurt <- Fall 4 then Prone 1 (she dies lying, not seated); prone <-
 Fall 2-4 then Prone 1 (js/sprites.js S.proneRow); sit <- Sit 1. Facings (RULED 10-14): S SE E NE N as drawn, SW W NW their mirrors (the lantern's
 hand and the dagger's mirror too).
@@ -35,9 +37,12 @@ _G = os.path.join(DS.pix.SRC, 'gennet')
 SOURCES = {
     'town': dict(folder=os.path.join(_G, 'INN-TOWN-1105'), windows=DS.manifest_windows(os.path.join(_G, 'INN-TOWN-1105')), shadow=True),
     'fight': dict(folder=os.path.join(_G, 'INN-COMBAT-1105'), windows=DS.manifest_windows(os.path.join(_G, 'INN-COMBAT-1105')), shadow=True, below=True),
+    'fwalk': dict(folder=os.path.join(_G, 'INN-FIGHT-WALK-1106'), windows=DS.manifest_windows(os.path.join(_G, 'INN-FIGHT-WALK-1106')), shadow=True,
+                  fire_ok=False),   # (empty-handed: no flame, so nothing of hers on the fire ramp -- two hair and skin highlights went there at first)
 }
 GROUPS = {('town', 'idle'): (['idle'], [('idle', i) for i in range(4)]),
           ('town', 'walk'): (['walk'], [('walk', i) for i in range(8)]),
+          ('fwalk', 'walk'): (['fight walk'], [('fight walk', i) for i in range(8)]),
           ('fight', 'all'): (['cast', 'dagger', 'flinch', 'fall', 'prone', 'sit'], [('cast', 0), ('cast', 1), ('flinch', 3)])}
 GROUND = {('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0), ('fight', 'sit', 0)}
 _src = 'drawn by the art desk (HALFWAY-INN-GENNET-%s, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored'
@@ -47,19 +52,22 @@ LOOKS = {
                             'lead (the art desk\'s own notes)',
                             'her face at game size reads younger and softer than her portrait (the art desk\'s own note)'],
                       source=_src % 'TOWN' + '; the inn\'s floor (js/counter.js C.FIG gennet, gennetGrief, gennetYard, dueLady)'),
-    'gennet_p2': dict(rows=[('idle', 4, [('town', 'idle', i) for i in range(4)]), ('walk', 10, [('town', 'walk', i) for i in range(8)]),
+    'gennet_p2': dict(rows=[('idle', 4, [('town', 'idle', i) for i in range(4)]), ('walk', 10, [('fwalk', 'fight walk', i) for i in range(8)]),
                             ('cast', 10, [('fight', 'cast', i) for i in range(6)]), ('attack', 10, [('fight', 'dagger', i) for i in range(4)]),
                             ('flinch', 12, [('fight', 'flinch', i) for i in range(4)]),
                             ('hurt', 8, [('fight', 'fall', i) for i in range(4)] + [('fight', 'prone', 0)]),
                             ('prone', 8, [('fight', 'fall', 1), ('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0)]),
                             ('sit', 2, [('fight', 'sit', 0)])],
                       release={'cast': 3, 'attack': 2},
-                      hold=['walk: the town walk with the lantern in her hand, the poison dinner\'s fight too (no fight walk was drawn)',
+                      hold=['walk: the fight walk (the art desk\'s 11-06 HALFWAY-INN-GENNET-FIGHT-WALK), empty-handed and guarded; stood by her crown, which the art '
+                            'desk keeps level, not by her lowest sole (a lifted sole sits lower than the planted foot: their own note); the strides broad for a '
+                            'guarded walk (their own note)',
                             'attack: the front Dagger 2 blade foreshortened behind her fist; front and SE Dagger 3 angle down, a short low jab (the art desk\'s own notes)',
                             'E Flinch 2 still turns toward the viewer; N recoils on a slight rear diagonal (the art desk\'s own notes)'],
-                      source=(_src % 'COMBAT') + ' -- the idle and walk from HALFWAY-INN-GENNET-TOWN; every fight she is in (deep16/data/foes.js gennet)'),
+                      source=(_src % 'COMBAT') + ' -- the idle from HALFWAY-INN-GENNET-TOWN, the walk from HALFWAY-INN-GENNET-FIGHT-WALK (11-06); every fight she '
+                             'is in (deep16/data/foes.js gennet)'),
 }
-GENNET = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, TALL=47, AVOID=['red', 'fire'], FIRE_OK=True, LOOKS=LOOKS, NAME='Gennet Waterby', SRCDIR='gennet')
+GENNET = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, CROWN=[('fwalk', 'fight walk')], TALL=47, AVOID=['red', 'fire'], FIRE_OK=True, LOOKS=LOOKS, NAME='Gennet Waterby', SRCDIR='gennet')
 
 if __name__ == '__main__':
     for lk_ in [a for a in sys.argv[1:] if a in LOOKS] or list(LOOKS):

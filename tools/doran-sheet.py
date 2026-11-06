@@ -4,16 +4,20 @@
     python tools/doran-sheet.py [name] check                 (also deep16/art-src/doran/<name>-review.png: every row of every drawn view at 3x)
 
 Asked in art-wanted section 35 (11-04, the Inn seat); cut 11-05 by the Waterby cutter (waterby-cutter-1105) on the lanes desk's relay of Griz's "We got
-art for the waterby inkeeps in Fresh". The art desk's two batches, sorted to deep16/_src/doran/:
+art for the waterby inkeeps in Fresh". The art desk's batches, sorted to deep16/_src/doran/:
   INN-TOWN-1105    HALFWAY-INN-DORAN-TOWN: one page a view (H07 S, H08 SE, H09 E, H10 NE, H11 N), Idle 4 over Walk 8 -- the walk with a wooden bucket in his
                    left hand, the idle empty-handed. Its FRAME-MAP.csv gives each drawing's box (tight: padded here, 10 px a side; the fight's 3).
   INN-COMBAT-1105  HALFWAY-INN-DORAN-COMBAT: one page a view (H06 SE, H07 NE, H08 S, H09 E, H10 N), the woodaxe two-handed: Attack 4 (ready, overhead,
                    the low chop, recovery), Flinch 4, Fall 4 (kneeling, the hip collapse and the axe let go, lying), Prone 1 (the axe beside him), Sit 1
                    (the axe across his knees). Its FRAME-MAP.csv likewise (North's Fall 4 and Prone boxes widened by the art desk to take the axe).
+  INN-IDLE-1106    his armed idle (11-06, on Griz's "doran didn't seem to return to idle after axe attack, but graphics otherwise approved"): one loose page,
+                   "Doran Waterby five-view axe idle sheet.png", bands SE NE S E N, Idle 4 (the haft across him, a breath); no map -- its boxes in _IB.
 
 doran_p1 (the inn's floor: doranYard, doranIn -- js/counter.js C.FIG): idle <- Idle 4; walk <- Walk 8 (the bucket).
-doran_p2 (every fight he is in: js/data/foes.js doran): idle <- Attack 1 held (the axe at the ready, as every fight row begins; the town idle has empty
-hands); walk <- the town Walk 8 (the bucket -- no axe walk was drawn: deep16-dream-polish.md); attack <- Attack 4 (`release` 2: the low chop on frame 3);
+
+doran_p2 (every fight he is in: js/data/foes.js doran): idle <- the armed Idle 4 (11-06; till then Attack 1 held, one frame, and after a chop he read as
+stuck), at the fight page's scale times each view's fit to Attack 1 by the head and shoulders (TIE); walk <- the town Walk 8 (the bucket -- no axe walk was drawn:
+deep16-dream-polish.md); attack <- Attack 4 (`release` 2: the low chop on frame 3);
 flinch <- Flinch 4; hurt <- Fall 4 (he dies lying, the axe beside him); prone <- Fall 2-4 then Prone 1 (js/sprites.js S.proneRow: where he lies); sit
 <- Sit 1. Facings (RULED 10-14): S SE E NE N as drawn, SW W NW their mirrors (the bucket's hand mirrors too).
 
@@ -53,12 +57,14 @@ def csv_windows(folder, views, pad):
 
 
 def manifest_windows(folder, pad=0):
-    """{(action, i0, view): (file, box)} from an art desk MANIFEST.json: pages[].view / file / frames[].action, frame (one-based), window"""
+    """{(action, i0, view): (file, box)} from an art desk MANIFEST.json: pages[].view / file / frames[].action, frame (one-based), window -- a frame
+    with no action of its own takes the manifest's (HALFWAY-INN-GENNET-FIGHT-WALK, 11-06: one `action` at its head, "Fight Walk")"""
     out = {}
-    for pg in json.load(open(os.path.join(folder, 'MANIFEST.json'), encoding='utf-8'))['pages']:
+    mf = json.load(open(os.path.join(folder, 'MANIFEST.json'), encoding='utf-8'))
+    for pg in mf['pages']:
         for fr in pg['frames']:
             x0, y0, x1, y1 = fr['window']
-            out[(fr['action'].lower(), int(fr['frame']) - 1, pg['view'])] = (pg['file'], (x0 - pad, y0 - pad, x1 + pad, y1 + pad), None)
+            out[(fr.get('action', mf.get('action', '')).lower(), int(fr['frame']) - 1, pg['view'])] = (pg['file'], (x0 - pad, y0 - pad, x1 + pad, y1 + pad), None)
     return out
 
 
@@ -192,10 +198,14 @@ def cut(L, look):
             if hs:
                 for act in acts:
                     scale[(src, act, view)] = lk.get('tall', L['TALL']) / float(np.median(hs))
-    cells = {}
+    for (src, act), (rsrc, ract, fit) in L.get('TIE', {}).items():   # (`TIE`: a page drawn to go with another page's frames takes that group's scale a view, times
+        for view in FACE:                                            # the fit of the one to the other by the head and shoulders -- Doran's armed idle on his fight page's)
+            if (rsrc, ract, view) in scale:
+                scale[(src, act, view)] = scale[(rsrc, ract, view)] * fit[view]
+    cells, tops = {}, {}
     for (src, act, i, view), (rgb, m, above) in crops.items():
         k = scale[(src, act, view)]
-        o = to1x(rgb, m, k, L['AVOID'], L.get('FIRE_OK', False))
+        o = to1x(rgb, m, k, L['AVOID'], L['SOURCES'][src].get('fire_ok', L.get('FIRE_OK', False)))   # (a source's own `fire_ok`: Gennet's fight walk has no lantern)
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (src, act, i) in L['GROUND']:
             cx = ndimage.center_of_mass(al)[1]
@@ -204,6 +214,15 @@ def cut(L, look):
             cx = ndimage.center_of_mass(top)[1]
         lift = int(round(above * k)) if act in L.get('LIFT', ()) else 0   # (`LIFT`: a row that keeps its lift -- Willem's run stands on its band's floor, not its own lowest row)
         cells[(FACE[view], src, act, i)] = (o, cx, ys[-1] + lift)
+        tops[(FACE[view], src, act, i)] = (ys[0], ys[-1] - ys[0])
+    for (src, act) in L.get('CROWN', ()):                 # (`CROWN`: a walk the art desk drew with the head level and the lifted sole sometimes lowest -- each frame
+        for f in set(FACE.values()):                      # stood by its crown, the loop's median height on the ground line: Gennet's fight walk, 11-06)
+            ks = [c for c in cells if c[:3] == (f, src, act)]
+            if not ks:
+                continue
+            med = int(round(np.median([tops[c][1] for c in ks])))
+            for c in ks:
+                o, cx, _ = cells[c]; cells[c] = (o, cx, tops[c][0] + med)
     for mf, sf in MIRROR.items():
         for (f, src, act, i) in [c for c in list(cells) if c[0] == sf]:
             o, cx, foot = cells[(f, src, act, i)]
@@ -262,11 +281,25 @@ SOURCES = {
     'fight': dict(folder=os.path.join(_D, 'INN-COMBAT-1105'), windows=csv_windows(os.path.join(_D, 'INN-COMBAT-1105'),
                   {'H06-SE.png': 'SE', 'H07-NE.png': 'NE', 'H08-S.png': 'S', 'H09-E.png': 'E', 'H10-N.png': 'N'}, 3)),   # (3: the printed numbers sit a few px under the boxes)
 }
+# his armed idle (11-06): one loose page, no map -- the drawings' boxes found by the navy between them (the page's figures, dilated 4 px, each piece over 60 px),
+# the bands SE NE S E N top to bottom as its row labels print them, Idle 1-4 left to right; padded 3 a side as the fight page's
+_IDLE = 'Doran Waterby five-view axe idle sheet.png'
+_IB = {'SE': [(266, 16, 405, 188), (547, 15, 689, 188), (827, 25, 968, 188), (1095, 15, 1236, 188)],
+       'NE': [(261, 221, 409, 387), (541, 219, 692, 387), (817, 223, 968, 388), (1092, 221, 1239, 387)],
+       'S': [(266, 425, 402, 590), (542, 424, 683, 590), (819, 427, 959, 590), (1096, 425, 1232, 590)],
+       'E': [(265, 623, 401, 774), (545, 622, 683, 774), (821, 626, 959, 774), (1098, 623, 1235, 774)],
+       'N': [(259, 807, 406, 969), (541, 805, 688, 969), (816, 807, 967, 969), (1092, 807, 1239, 969)]}
+SOURCES['axeidle'] = dict(folder=os.path.join(_D, 'INN-IDLE-1106'),
+                          windows={('idle', i, v): (_IDLE, (b[0] - 3, b[1] - 3, b[2] + 3, b[3] + 3), b[3]) for v, bs in _IB.items() for i, b in enumerate(bs)})
 GROUPS = {('town', 'idle'): (['idle'], [('idle', i) for i in range(4)]),
           ('town', 'walk'): (['walk'], [('walk', i) for i in range(8)]),
           ('fight', 'all'): (['attack', 'flinch', 'fall', 'prone', 'sit'], [('attack', 0), ('attack', 3), ('flinch', 0), ('flinch', 3)])}
 GROUND = {('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0), ('fight', 'sit', 0)}
-TALL = 51                       # (sole to crown: a big man -- the townsman folkman_p1 50, the keepers 49 to 50, the heroes 49 to 54)
+# his armed idle at his fight page's scale, times the page-to-page fit of Idle 1 on Attack 1 and on Attack 4 by the top 42% (the head and shoulders, free
+# offset, the best overlap at 0.01 steps; the two fits averaged): the idle is drawn a guard lower than Attack 1 in E and N, so a height measure would swell
+# him there -- the head keeps his size from idle to chop (11-06, the cutter of the Waterbys' 11-06 pages)
+TIE = {('axeidle', 'idle'): ('fight', 'attack', {'SE': 1.005, 'NE': 0.99, 'S': 1.05, 'E': 1.055, 'N': 1.015})}
+TALL = 51                      # (sole to crown: a big man -- the townsman folkman_p1 50, the keepers 49 to 50, the heroes 49 to 54)
 AVOID = ['red', 'fire']
 _src = ('drawn by the art desk (HALFWAY-INN-DORAN-%s, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored')
 LOOKS = {
@@ -274,17 +307,19 @@ LOOKS = {
                      hold=['walk: the phases uneven and repeated, E\'s legs overlapping, N\'s 7-8 back on the right-side lift early (the art desk\'s own notes)',
                            'idle: the breath slight (the art desk\'s own note)'],
                      source=_src % 'TOWN' + '; the inn\'s floor (js/counter.js C.FIG doranYard, doranIn)'),
-    'doran_p2': dict(rows=[('idle', 2, [('fight', 'attack', 0)]), ('walk', 9, [('town', 'walk', i) for i in range(8)]),
+    'doran_p2': dict(rows=[('idle', 4, [('axeidle', 'idle', i) for i in range(4)]), ('walk', 9, [('town', 'walk', i) for i in range(8)]),
                            ('attack', 10, [('fight', 'attack', i) for i in range(4)]), ('flinch', 12, [('fight', 'flinch', i) for i in range(4)]),
                            ('hurt', 8, [('fight', 'fall', i) for i in range(4)]), ('prone', 8, [('fight', 'fall', 1), ('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0)]),
                            ('sit', 2, [('fight', 'sit', 0)])],
                      release={'attack': 2},
-                     hold=['idle: Attack 1 held, the axe at the ready (no armed idle was drawn); walk: the town walk, the bucket in his hand (no axe walk was drawn)',
+                     hold=['idle: the armed idle 4 (the art desk\'s 11-06 page), a guard lower than Attack 1 in E and N -- he rises into the chop and settles back; '
+                           'SE Idle 3 dips the deepest; walk: the town walk, the bucket in his hand (no axe walk was drawn)',
                            'N fall 4 and prone: nearly face down, not the side-lying asked; N fall 3 sits toward screen right before the collapse (the art desk\'s own notes)',
                            'S fall 4 and prone share the SE side silhouette (the art desk\'s own note)'],
-                     source=(_src % 'COMBAT') + ' -- the walk from HALFWAY-INN-DORAN-TOWN; every fight he is in (deep16/data/foes.js doran)'),
+                     source=(_src % 'COMBAT') + ' -- the idle from the art desk\'s five-view axe idle page (11-06), the walk from HALFWAY-INN-DORAN-TOWN; every fight '
+                            'he is in (deep16/data/foes.js doran)'),
 }
-DORAN = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, TALL=TALL, AVOID=AVOID, LOOKS=LOOKS, NAME='Doran Waterby', SRCDIR='doran')
+DORAN = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, TIE=TIE, TALL=TALL, AVOID=AVOID, LOOKS=LOOKS, NAME='Doran Waterby', SRCDIR='doran')
 
 if __name__ == '__main__':                               # (tools/gennet-sheet.py loads this file for its cutter, and runs its own looks)
     for lk_ in [a for a in sys.argv[1:] if a in LOOKS] or list(LOOKS):

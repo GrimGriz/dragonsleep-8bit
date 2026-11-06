@@ -11735,6 +11735,46 @@
     document.body.appendChild(preF);
     return;
   }
+  // THE WATERBYS' 11-06 ROWS (mode=waterby1106; tools/doran-sheet.py doran_p2's idle, tools/gennet-sheet.py gennet_p2's walk -- the cutter of the art desk's 11-06 pages, on his
+  // "doran didn't seem to return to idle after axe attack, but graphics otherwise approved" and "1 - Doran is in Fresh, Gennet will be soon"): Doran's fight idle is his armed idle
+  // loop (four frames, the five-view axe idle page) where it was Attack 1 held, so after a chop the figure the next frame draws plays the loop, not a still pose; Gennet's fight
+  // walk (HALFWAY-INN-GENNET-FIGHT-WALK) in place of the lantern walk, which her town figure keeps; every other row as it was. The pixels -- the idle meeting the chop, her head
+  // level -- are dev/waterby-probe.py's (the benches fetch no images: each sheet stands in here as a blank canvas of its size, as faces1106's do)
+  if (get('mode', '') === 'waterby1106') {
+    var repW6 = { checks: [], errors: [] };
+    function okW6(what, v) { repW6.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var rowsW6 = function (n) { var s = D.SHEETS[n]; return s ? Object.keys(s.anims).map(function (a) { var x = s.anims[a]; return a + ' ' + x.frames + '@' + x.fps + (x.release != null ? '/' + x.release : '') + (x.drawn ? ' drawn' : '') + (x.under ? ' under' : ''); }).join(', ') : 'NONE'; };
+      var isW6 = function (n, rows) { var s = D.SHEETS[n]; return !!s && Object.keys(rows).every(function (r) { var a = s.anims[r]; return a && a.frames === rows[r][0] && !a.drawn && !a.under && (rows[r][1] == null || a.release === rows[r][1]); }); };
+      var dS = D.SHEETS.doran_p2, gS = D.SHEETS.gennet_p2, tS = D.SHEETS.gennet_p1;
+      // 1. the sheets: Doran's idle four frames from the 11-06 page, every fight row he had kept; Gennet's walk eight from the fight walk, every row she had kept; her town walk the lantern's
+      okW6('doran_p2: ' + rowsW6('doran_p2') + ' -- the idle the armed loop from the 11-06 page (' + /five-view axe idle page \(11-06\)/.test(dS && dS.source) + ')',
+        isW6('doran_p2', { idle: [4], walk: [8], attack: [4, 2], flinch: [4], hurt: [4], prone: [4], sit: [1] }) && dS.anims.idle.fps === 4 && /five-view axe idle page \(11-06\)/.test(dS.source) && /tools\/doran-sheet\.py/.test(dS.source));
+      okW6('gennet_p2: ' + rowsW6('gennet_p2') + ' -- the walk from HALFWAY-INN-GENNET-FIGHT-WALK (' + /HALFWAY-INN-GENNET-FIGHT-WALK \(11-06\)/.test(gS && gS.source) + '); gennet_p1 (the inn\'s floor) keeps the town walk with the lantern (' + /HALFWAY-INN-GENNET-TOWN/.test(tS && tS.source) + ')',
+        isW6('gennet_p2', { idle: [4], walk: [8], cast: [6, 3], attack: [4, 2], flinch: [4], hurt: [5], prone: [4], sit: [1] }) && /HALFWAY-INN-GENNET-FIGHT-WALK \(11-06\)/.test(gS.source) && isW6('gennet_p1', { idle: [4], walk: [8] }) && /HALFWAY-INN-GENNET-TOWN/.test(tS.source) && !/FIGHT-WALK/.test(tS.source));
+      okW6('their fights wear them: the foes\' records gennet ' + D.FOES.gennet.sheet + ', doran ' + D.FOES.doran.sheet, D.FOES.gennet.sheet === 'gennet_p2' && D.FOES.doran.sheet === 'doran_p2');
+      // 2. after a chop: a fight on the class floor, one of its foes dressed as Doran -- the chop drawn once, then (its length and six ticks on) the idle, a loop through all four frames
+      var loadW6 = function (n) { var s = D.SHEETS[n]; if (!s || (D.images[s.image] && D.images[s.image].naturalWidth)) return; var cv = document.createElement('canvas'), H = 0, W = 0; Object.keys(s.anims).forEach(function (a) { H = Math.max(H, s.anims[a].y + 8 * s.fh); W = Math.max(W, s.anims[a].fw * s.anims[a].frames); }); cv.width = W; cv.height = H; Object.defineProperty(cv, 'naturalWidth', { value: cv.width }); D.images[s.image] = cv; };
+      loadW6('doran_p2'); loadW6('gennet_p2');
+      var BW6 = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = BW6; BW6.enter(); while (!BW6.order.length) BW6.co.next(); BW6.dark = false;
+      var uW6 = BW6.units.filter(function (u) { return u.side === 'foe'; })[0], cvW6 = document.createElement('canvas'); cvW6.width = 640; cvW6.height = 480; var cxW6 = cvW6.getContext('2d');
+      uW6.sheet = 'doran_p2'; uW6.conds = {}; uW6.hp = uW6.maxhp = 40; uW6.facing = 6;
+      var shotW6 = function (n, anim, at) { var u = n === 'gennet_p2' ? gW6 : uW6; u.sheet = n; u.anim = anim; BW6.t = u.animT + at; var o = D.ui.unitObj(BW6, u); o.draw(cxW6); return o.shown || {}; };
+      var t0W6 = BW6.t; uW6.animT = t0W6; var durW6 = D.spr.duration('doran_p2', 'attack');
+      var midW6 = shotW6('doran_p2', 'attack', 5), frW6 = {}, aftW6 = [];
+      for (var kW6 = 0; kW6 <= 64; kW6 += 4) { var sW6 = shotW6('doran_p2', 'attack', durW6 + 7 + kW6); aftW6.push(sW6.anim); var fW6 = D.spr.frameAt('doran_p2', sW6.anim, uW6.facing, sW6.t, { once: sW6.once }); if (fW6 && sW6.anim === 'idle') frW6[fW6.fr] = 1; }
+      okW6('after the chop (' + durW6 + ' ticks): mid-chop drawn ' + midW6.anim + ' once ' + midW6.once + '; after it ' + aftW6.filter(function (a, i, A) { return A.indexOf(a) === i; }).join('/') + ', the idle frames drawn over a second ' + Object.keys(frW6).sort().join(',') + ' (of ' + dS.anims.idle.frames + ')',
+        midW6.anim === 'attack' && midW6.once === true && aftW6.every(function (a) { return a === 'idle'; }) && Object.keys(frW6).length === 4);
+      // 3. Gennet walking in a fight draws her fight walk, all eight frames over a stride
+      var gW6 = BW6.units.filter(function (u) { return u.side === 'party'; })[0]; gW6.conds = {}; gW6.hp = gW6.maxhp = 40; gW6.facing = 1; gW6.animT = BW6.t; var gfW6 = {}, gaW6 = '';
+      for (var jW6 = 0; jW6 < 48; jW6 += 3) { var sG6 = shotW6('gennet_p2', 'walk', jW6); gaW6 = sG6.anim; var fG6 = D.spr.frameAt('gennet_p2', sG6.anim, gW6.facing, sG6.t, { once: sG6.once }); if (fG6) gfW6[fG6.fr] = 1; }
+      okW6('Gennet walking draws ' + gaW6 + ', frames ' + Object.keys(gfW6).sort().join(',') + ' over 48 ticks at ' + gS.anims.walk.fps + ' fps', gaW6 === 'walk' && Object.keys(gfW6).length === 8);
+      D.scenes.length = 0;
+    } catch (eW6) { repW6.errors.push(String(eW6 && eW6.stack || eW6).slice(0, 900)); }
+    var preW6 = document.createElement('pre'); preW6.id = 'out'; preW6.textContent = 'BENCH16 ' + JSON.stringify(repW6);
+    document.body.appendChild(preW6);
+    return;
+  }
   // THE WATERBYS' FIGURES, 11-05 (mode=waterby1105; tools/doran-sheet.py, tools/gennet-sheet.py, js/counter.js C.FIG, js/inn.js In.unit, data/foes.js gennet and doran,
   // js/secondact.js A.offerGennet -- the Waterby cutter, on Griz's "We got art for the waterby inkeeps in Fresh"): the art desk's HALFWAY-INN-DORAN- and -GENNET-TOWN and -COMBAT
   // (art-wanted 35) cut all round; worn on the inn's floor by day and evening, by the scenes' own figures (the yard, the due's walk), in every fight with them; Gennet sits as the offering;
@@ -11753,7 +11793,7 @@
       // 1. the four sheets: the town figures idle 4 and walk 8, the fight figures with every row a fight plays, all eight facings (no `drawn`), as tall as the inn's people
       okWb('the town figures: ' + descWb('doran_p1') + ' | ' + descWb('gennet_p1'), wantWb('doran_p1', { idle: [4], walk: [8] }, 'doran') && wantWb('gennet_p1', { idle: [4], walk: [8] }, 'gennet') && D.SHEETS.doran_p1.top > D.SHEETS.gennet_p1.top);
       okWb('the fight figures: ' + descWb('doran_p2') + ' | ' + descWb('gennet_p2') + ' -- the blow on frame 3 (zero-based 2), her palm out on 4',
-        wantWb('doran_p2', { idle: [1], walk: [8], attack: [4, 2], flinch: [4], hurt: [4], prone: [4], sit: [1] }, 'doran') && wantWb('gennet_p2', { idle: [4], walk: [8], cast: [6, 3], attack: [4, 2], flinch: [4], hurt: [5], prone: [4], sit: [1] }, 'gennet') && D.spr.proneRow('gennet_p2') === 'prone' && D.spr.proneFrame('doran_p2') === 3);
+        wantWb('doran_p2', { idle: [4], walk: [8], attack: [4, 2], flinch: [4], hurt: [4], prone: [4], sit: [1] }, 'doran') && wantWb('gennet_p2', { idle: [4], walk: [8], cast: [6, 3], attack: [4, 2], flinch: [4], hurt: [5], prone: [4], sit: [1] }, 'gennet') && D.spr.proneRow('gennet_p2') === 'prone' && D.spr.proneFrame('doran_p2') === 3);
       // 2. their fights wear them: the foes' records, and the units the second act makes (the path, the poison dinner)
       okWb('the foes\' records: gennet ' + D.FOES.gennet.sheet + ', doran ' + D.FOES.doran.sheet, D.FOES.gennet.sheet === 'gennet_p2' && D.FOES.doran.sheet === 'doran_p2');
       // 3. the inn's floor: Doran at the woodpile by day; Gennet and Doran in the common room by evening

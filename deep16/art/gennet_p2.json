@@ -17,9 +17,9 @@
   },
   "walk": {
    "y": 512,
-   "fw": 40,
+   "fw": 44,
    "fh": 64,
-   "ax": 20,
+   "ax": 22,
    "ay": 61,
    "frames": 8,
    "fps": 10
@@ -83,9 +83,9 @@
  },
  "name": "Gennet Waterby",
  "hold": [
-  "walk: the town walk with the lantern in her hand, the poison dinner's fight too (no fight walk was drawn)",
+  "walk: the fight walk (the art desk's 11-06 HALFWAY-INN-GENNET-FIGHT-WALK), empty-handed and guarded; stood by her crown, which the art desk keeps level, not by her lowest sole (a lifted sole sits lower than the planted foot: their own note); the strides broad for a guarded walk (their own note)",
   "attack: the front Dagger 2 blade foreshortened behind her fist; front and SE Dagger 3 angle down, a short low jab (the art desk's own notes)",
   "E Flinch 2 still turns toward the viewer; N recoils on a slight rear diagonal (the art desk's own notes)"
  ],
- "source": "drawn by the art desk (HALFWAY-INN-GENNET-COMBAT, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored -- the idle and walk from HALFWAY-INN-GENNET-TOWN; every fight she is in (deep16/data/foes.js gennet)"
+ "source": "drawn by the art desk (HALFWAY-INN-GENNET-COMBAT, 11-05: art-wanted section 35), cut by tools/gennet-sheet.py over tools/doran-sheet.py; SW W NW mirrored -- the idle from HALFWAY-INN-GENNET-TOWN, the walk from HALFWAY-INN-GENNET-FIGHT-WALK (11-06); every fight she is in (deep16/data/foes.js gennet)"
 }
