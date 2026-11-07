@@ -4246,6 +4246,64 @@
 "source": "deep16/_src/edric/ART-123-EDRIC/ART-123-EDRIC_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-EDRIC, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:edric"
 },
+"eldermage_p1": {
+"image": "art/eldermage_p1.png?v=f3b296e1b5",
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 576,
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"frames": 8,
+"fps": 10
+},
+"fly": {
+"y": 1152,
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"frames": 6,
+"fps": 8
+},
+"stomp": {
+"y": 1728,
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"frames": 6,
+"fps": 10,
+"pulse": 3
+},
+"hover": {
+"y": 2304,
+"fw": 72,
+"fh": 72,
+"ax": 36,
+"ay": 66,
+"frames": 4,
+"fps": 6,
+"held": "the upright hover: cut, not played yet (the engine plays `fly` for any unit aloft)"
+}
+},
+"source": "drawn by the art desk (DEEP16-ELDER-MAGE-SOURCES and -FLIGHT, 11-07), cut by tools/eldermage-sheet.py by their FRAME-MAPs (11-07)"
+},
 "elsbethCandles_p1": {
 "image": "art/elsbethCandles_p1.png?v=fd581f400f",
 "fw": 35,

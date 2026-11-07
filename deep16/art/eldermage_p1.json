@@ -1,0 +1,58 @@
+{
+ "image": "art/eldermage_p1.png",
+ "fw": 72,
+ "fh": 72,
+ "ax": 36,
+ "ay": 66,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 66,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 576,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 66,
+   "frames": 8,
+   "fps": 10
+  },
+  "fly": {
+   "y": 1152,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 66,
+   "frames": 6,
+   "fps": 8
+  },
+  "stomp": {
+   "y": 1728,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 66,
+   "frames": 6,
+   "fps": 10,
+   "pulse": 3
+  },
+  "hover": {
+   "y": 2304,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 66,
+   "frames": 4,
+   "fps": 6,
+   "held": "the upright hover: cut, not played yet (the engine plays `fly` for any unit aloft)"
+  }
+ },
+ "source": "drawn by the art desk (DEEP16-ELDER-MAGE-SOURCES and -FLIGHT, 11-07), cut by tools/eldermage-sheet.py by their FRAME-MAPs (11-07)"
+}

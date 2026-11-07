@@ -3300,6 +3300,74 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
+  // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
+  // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)
+  if (get('mode', '') === 'eldermage1107') {
+    var repEM = { checks: [], errors: [], notes: [] }, muEM = D.music, apEM = window.DS.autoPicks;
+    function okEM(what, v) { repEM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      var NP = D.npc, R2 = window.DS.R, spE = NP.spec('eldermage:12'), hE = NP.sheet(spE), uE = NP.unit(hE, 'party'), shE = D.SHEETS.eldermage_p1;
+      okEM('1 the build: ' + hE.cls + ' ' + hE.lvl + ', ' + hE.race + ', ' + (hE.subclass || '-') + ', ring ' + hE.equip.ring + ', cloak ' + hE.equip.cloak, hE.cls === 'wizard' && hE.lvl === 12 && hE.equip.ring === 'ringofflying' && hE.equip.cloak === 'cloakdisplacement');
+      var dx = R2.saveBonus(hE, 'dex'), ix = R2.saveBonus(hE, 'int');
+      okEM('2 +10 to every save: DEX ' + dx + ' (want 12: +2, no proficiency, +10), INT ' + ix + ' (want 19: +5, proficiency +4, +10)', dx === 12 && ix === 19);
+      okEM('3 his sheet: ' + (shE ? Object.keys(shE.anims).map(function (a) { return a + ' ' + shE.anims[a].frames; }).join(', ') : 'NONE') + ' (worn in a fight: check 5)', !!shE && shE.anims.idle.frames === 4 && shE.anims.walk.frames === 8 && shE.anims.fly.frames === 6 && shE.anims.stomp.frames === 6);
+      var stE = D.pocket && D.pocket.STOCK ? D.pocket.STOCK.filter(function (x) { return x.w === 'eldermage'; })[0] : null;
+      okEM('4 on the DM\'s roster: ' + JSON.stringify(stE), !!stE && stE.dm === true && stE.hi === 12);
+      var Bf = D.npcFight('?npc=goblin&lvl=12&vs=eldermage:12', {}); D.battle = Bf; Bf.enter(); var kf = 0; while (!Bf.order.length && kf++ < 400) Bf.co.next();
+      var mE = Bf.units.filter(function (w) { return w.side === 'party'; })[0];
+      okEM('5 in a fight: ' + (mE && mE.name) + ', flying ' + !!(mE && mE.flies) + ', displaced ' + !!(mE && mE.displacement) + ', sheet ' + (mE && mE.sheet), !!mE && mE.flies && mE.sheet === 'eldermage_p1');
+    } catch (eEM) { repEM.errors.push(String(eEM && eEM.stack || eEM).slice(0, 900)); }
+    D.music = muEM; window.DS.autoPicks = apEM;
+    var preEM = document.createElement('pre'); preEM.id = 'out'; preEM.textContent = 'BENCH16 ' + JSON.stringify(repEM);
+    document.body.appendChild(preEM);
+    return;
+  }
+  // THE WOUND THAT ENDS A DISGUISE (mode=wound1107; the desk of 11-07 on Griz's "Build it now"): a creature standing in its disguise (a sheet with Still and
+  // Reveal) and wounded plays its Reveal at once -- the lamia's struck woman (`stillflinch`, the art desk's ART-125 batch H) first, ui.js running the one into the
+  // other -- where before the wound woke it straight to its idle and the Reveal waited for a turn begun still (js/battle.js hurt, js/ui.js unitObj, js/show.js)
+  if (get('mode', '') === 'wound1107') {
+    var repWD = { checks: [], errors: [], notes: [] }, muWD = D.music, apWD = window.DS.autoPicks, d0WD = D.d;
+    function okWD(what, v) { repWD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkWD(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function foeWD(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; })[0]; }
+    var cvWD = document.createElement('canvas'); cvWD.width = 640; cvWD.height = 480; var cxWD = cvWD.getContext('2d');
+    function shotWD(Bx, u, when) { var t0 = Bx.t; Bx.t = (u.animT || 0) + when; var o = D.ui.unitObj(Bx, u); if (o) o.draw(cxWD); Bx.t = t0; return (o && o.shown) || {}; }
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1107);
+      // 1. the lamia standing as the robed woman, wounded: struck, then her Reveal, then the lion's idle
+      var B1 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), la = foeWD(B1), st1 = !la.woken && !la.acted, dF = D.spr.duration(la.sheet, 'stillflinch'), dR = D.spr.duration(la.sheet, 'reveal');
+      var s0 = shotWD(B1, la, 0);
+      okWD('1 the lamia stands disguised before the blow (woken ' + !!la.woken + ', drawn ' + s0.anim + ')', st1 && s0.anim === 'still');
+      B1.hurt(la, 3, 'slashing');
+      okWD('1 wounded: her row ' + la.anim + ' (want stillflinch), woken ' + !!la.woken + ', hp ' + la.hp, la.anim === 'stillflinch' && la.woken && la.hp > 0);
+      var sA = shotWD(B1, la, 2), sB = shotWD(B1, la, dF + 2), sC = shotWD(B1, la, dF + dR + 20);
+      repWD.notes.push('1 stillflinch ' + dF + ' ticks, reveal ' + dR);
+      okWD('1 drawn: ' + sA.anim + ' at once, ' + sB.anim + ' after the flinch, ' + sC.anim + ' after both (want stillflinch, reveal, idle)', sA.anim === 'stillflinch' && sB.anim === 'reveal' && sC.anim === 'idle');
+      var aT = la.animT; B1.hurt(la, 2, 'slashing');
+      okWD('1 a second blow mid-flinch leaves it playing (' + la.anim + ', animT kept ' + (la.animT === aT) + ')', la.anim === 'stillflinch' && la.animT === aT);
+      B1.t = aT + dF + dR + 10; B1.hurt(la, 2, 'slashing');
+      okWD('1 a blow after the reveal: her own flinch (' + la.anim + ')', la.anim === 'flinch');
+      // 2. a lamia already awake (she has acted): a blow is the plain flinch, no reveal
+      var B2 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), l2 = foeWD(B2); l2.acted = true; B2.hurt(l2, 3, 'slashing');
+      okWD('2 an awake lamia wounded flinches (' + l2.anim + ')', l2.anim === 'flinch');
+      // 3. a blow that drops her: no reveal row over the fall
+      var B3 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), l3 = foeWD(B3); B3.hurt(l3, l3.hp + 5, 'slashing');
+      okWD('3 a blow that drops her disguised: no stillflinch (' + l3.anim + ', hp ' + l3.hp + ')', l3.anim !== 'stillflinch' && l3.anim !== 'reveal' && l3.hp <= 0);
+      // 4. the roper's stalagmite (Still and Reveal, no struck row): the wound plays its Reveal
+      var B4 = mkWD('?npc=roper&lvl=5&vs=fighter:5'), r4 = foeWD(B4); B4.hurt(r4, 3, 'slashing');
+      var s4 = shotWD(B4, r4, 2);
+      okWD('4 the roper wounded standing still: ' + r4.anim + ', drawn ' + s4.anim + ' (want reveal)', r4.anim === 'reveal' && s4.anim === 'reveal');
+      // 5. her turn after the wound: no second Reveal (js/ai.js wasStill reads woken)
+      okWD('5 woken by the wound, so her turn plays no Reveal again (woken ' + !!la.woken + ')', !!la.woken);
+    } catch (eWD) { repWD.errors.push(String(eWD && eWD.stack || eWD).slice(0, 900)); }
+    D.d = d0WD; D.music = muWD; window.DS.autoPicks = apWD;
+    var preWD = document.createElement('pre'); preWD.id = 'out'; preWD.textContent = 'BENCH16 ' + JSON.stringify(repWD);
+    document.body.appendChild(preWD);
+    return;
+  }
   // THE GRID'S FIXES OF 11-07 (mode=gridfix1107; the gridfix-1107 seat, started by the lanes desk on his fights of 11-06 evening -- the grid's rules lane's "2026-11-07 -- his
   // fights of 11-06 evening read"): 1. a foe that yields mid-turn stops there (battle.js Battle.overStop, ai.js AI.TURN_OVER) -- no more walk, no more reactions asked, no shot after;
   // 2. a simple fight's Hide against blindsight it will meet in melee (simple.js S.meetsInMelee) -- seen, the card saying why, and a bow keeps the lineup's distance; 3. keen senses in
