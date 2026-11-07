@@ -1,0 +1,190 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-11-07T01:32:01.851Z",
+ "previous_save": "2026-11-06T23:58:46.358Z",
+ "items": [
+  {
+   "id": "eyes-halfwayinn-walls-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Halfway Inn's walls and roofs in the art desk's drawing: the house, the wing and the barn, the stubs inside, the lit windows by night (11-05)",
+   "pt": "the Halfway Inn and the lake, art-wanted section 36 pages 7, 8 and 9A (deep16/js/iso.js iso.house, iso.slices; deep16/js/innprops.js IP.walls; deep16/art/innwalls_p1, tools/innwalls-sheet.py) · eyes",
+   "url": "deep16/?innshow&beat=yard&fresh=1105w",
+   "verdict": "works",
+   "note": "all looks good but the knee-deep water. Can't we do it like the keeper stairs and with the regular water look?",
+   "at": "2026-11-06T23:03:38.583Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-twinstrike-ring-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "TWIN STRIKE on the ring, ATTACK under ACTIONS, and both blades in one box (11-05)",
+   "pt": "the menus, his \"twinstrike not on wheel (attack is), attack under actions for twinstriker properly equipped\" and \"The card for twin-strike puts the second blade on its own line for some reason, see why it isn't the box with the main strike (too wordy?)\" (deep16/js/ui.js UI.cmds, cmds2; deep16/js/battle.js Battle.twinOff, attack's atkCard; mode=fights1103 section 4) · eyes",
+   "url": "deep16/?npc=ogre&vs=~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric&lvl=5&fresh=1105t",
+   "verdict": "works",
+   "note": "we'll need to have TWIN STRIKE have it's own logo - make one with two maces and one with two swords depending on char equip (blunt/slashing & piercing (for now).  Keep single attack on the wheel next to twinstrike (click with wheel closed defaults to twin-strike when it can), and pull twin-strike from the wheel once the bonus action is gone (i.e. used twin strike already or a bonus action) - when it can't be used pull from the wheel. ",
+   "at": "2026-11-06T23:08:25.157Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SUPPER BY WHOSE EYES, built: Gennet asks what brings you down the road, and at each of five turns you flip the four and pick who answers (11-05)",
+   "pt": "the Halfway Inn and the lake, the 2026-11-05 section (THE MEAL, items 1-15; deep16/js/inn.js In.SUP, deep16/js/counter.js THE FLIP) · eyes",
+   "url": "deep16/?innshow&beat=room&fresh=1105s",
+   "verdict": "unclear",
+   "note": "one insight per character per turn (vivians choices drop off the screen)\nthe scrying glass questions seem to be pointing to the waterby's as kat isn't in the conversation\n'who built this place' isn't answered \nglass on your belt - where it looks like kat's is around her neck\nfeel like 'gennet looks at him' and 'see's you noticing and eats no more' should get actual looks instead of just text box",
+   "at": "2026-11-06T23:25:38.186Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-katarina-ink-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA AT THE FIRE: Barley's \"You're with the Dominion\", the ink, the vision and the Sheet: Hideous Laughter; her last morning, the book, and south -- the wagon on day 12 now (11-05)",
+   "pt": "the Halfway Inn and the lake, item 10 (deep16/js/inn.js In.katScene, In.KAT, In.WAGON; deep16/js/grimoire.js M.jokeReady), his \"Yes, the leans\" of 11-05",
+   "url": "deep16/?innshow&beat=kat&fresh=1105kat",
+   "verdict": "works",
+   "note": "Kat shouldn't be a watching keeper (rotating on player location) - at least when bench-sitting\nNeed transparency when the characters move near the front door on the outside map",
+   "at": "2026-11-07T01:31:59.367Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagonwatch-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON NIGHT'S WATCHES: Lymen's feeling, the watch box, the first watch short of sleep, the second alone at the window (11-05)",
+   "pt": "the Halfway Inn and the lake, his 11-05 word on the watch (deep16/js/inn.js In.wagonNight, In.lieDown, In.leadBack)",
+   "url": "deep16/?innshow&beat=wagon&fresh=1105w",
+   "verdict": "broken",
+   "note": "the grays aren't gray\nAurdin wasn't on the team for the fight\nchase needs work (either the horseback or not runners get stuck in webbing/jumped by a spider) or something that sensibly slows them down. Text says you do give chase then offers to chase or not",
+   "at": "2026-11-06T23:38:11.087Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-risenoring-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE RISE AT THE SHORE WITHOUT THE RING: it does not go down, it fights -- and the path with the boys kept in (11-05)",
+   "pt": "the Halfway Inn and the lake, item 13 re-cut on his 11-05 notes, RULED \"Yes, the leans\" (deep16/js/secondact.js A.rise, A.cast; deep16/js/grid.js G.flank; mode=winters1105) · eyes",
+   "url": "deep16/?show=secondact&beat=risenoring&fresh=1105nr",
+   "verdict": "works",
+   "note": "she says doran sells rooms after and he doesn't (at least not when he's outside)",
+   "at": "2026-11-06T23:40:59.775Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-ringwarm-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CHUUL ON THE DUE'S OWN NIGHT: the ring warm after the take -- GO DOWN TO THE POINT (11-05)",
+   "pt": "the Halfway Inn and the lake, item 7 (the lane's §3, RULED 11-04: \"with the ring on, the ring warm, and it may go down to the point THAT NIGHT\"; deep16/js/secondact.js A.ringWarm, A.meet; deep16/js/inn.js In.wagonNight; mode=winters1105) · eyes",
+   "url": "deep16/?show=secondact&beat=ringwarm&fresh=1105rw",
+   "verdict": "unclear",
+   "note": "Barley sitting out front is weird. 'something wakes you' with cameras showing what the text box says, maybe try our sound method for the singing",
+   "at": "2026-11-06T23:43:07.654Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-wintersring-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "WINTERS GIVES THE RING OF BINDING AT THE LEAD'S 3RD: the JOURNAL's ready step flies in, \"Now you're ready.\" (11-05)",
+   "pt": "the Halfway Inn and the lake, item 8 (RULED 10-29, the difficulty, \"1 - change Winters requirement\"; deep16/js/counter.js C.winters, C.wintersRing, the ring's JOURNAL record; mode=winters1105) · eyes",
+   "url": "deep16/?at=winters3&fresh=1105wr",
+   "verdict": "works",
+   "note": "works, but if elsbeth hasn't talked to them after stopping the wagon it's a weird open",
+   "at": "2026-11-06T23:44:10.990Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-poisondinner-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE POISON DINNER: the draught at supper, the fight inside and Doran's confession -- or the drag, and awake on the stone (11-05)",
+   "pt": "the Halfway Inn and the lake, RULED 11-05 (his poison dinner and its two ends; \"go with those leans\") (deep16/js/secondact.js A.poisonNight, A.supperFight, A.drag; mode=winters1105) · eyes",
+   "url": "deep16/?show=secondact&beat=poison&fresh=1105pd",
+   "verdict": "unclear",
+   "note": "it should happen like the regular dinner happens, and we have to figure out to do with the dialogue after the first dinner",
+   "at": "2026-11-06T23:45:24.694Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-duemoved-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE DUE THREE NIGHTS ON: the goblin in the barn, and the due's own night -- the singing, the fork (11-05)",
+   "pt": "the Halfway Inn and the lake, RULED 11-05 \"hate to do it, but let's move the offering to 3 nights after wagon night\" and \"go with those leans\" (deep16/js/inn.js In.DUE, In.offering, In.barnScene; deep16/js/secondact.js A.dueNight; mode=winters1105, secondact1104) · eyes",
+   "url": "deep16/?show=secondact&beat=signs&fresh=1105dm",
+   "verdict": "unclear",
+   "note": "this was meant to test the goblin in the barn and starts at barley with a kid when he checks out the lamp",
+   "at": "2026-11-06T23:49:29.743Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-rest24-inn-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "ONE LONG REST A DAY at the Halfway Inn: SLEEP TILL RESTED or A NIGHT'S SLEEP (11-05)",
+   "pt": "the Halfway Inn and the lake, and Silverton's hours and words (deep16/js/inn.js In.room, In.sleep, In.lieDown), his \"offer both\"",
+   "url": "deep16/?restshow&beat=shutinn&fresh=1105r5",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T23:50:16.360Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-rest24-world-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "ONE LONG REST A DAY on THE WORLD: THE NIGHT greyed, and M > WAIT on the map (11-05)",
+   "pt": "Silverton's hours and words, the 2026-11-05 sections (deep16/js/world.js campCard, deep16/js/hours.js H16.worldWait), his \"'wait' on world map works for short-rest or next bell\"",
+   "url": "deep16/?restshow&beat=shutworld&fresh=1105r4",
+   "verdict": "unclear",
+   "note": "should so current time where it shows how long til a long rest is available, where it says 'dawn' it should also have day number",
+   "at": "2026-11-06T23:52:45.932Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-rest24-town-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "ONE LONG REST A DAY in Silverton: Cassia's STAY TILL RESTED or A NIGHT'S SLEEP; Aldwin's floor greyed (11-05)",
+   "pt": "Silverton's hours and words, the 2026-11-05 sections (deep16/js/counter.js C.inn, C.chapel; deep16/js/house.js H.sleepOnFloor o.noLong), his \"offer both\"",
+   "url": "deep16/?restshow&beat=shuttown&fresh=1105r3",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T23:53:58.925Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-rest24-seep-1105",
+   "eyes": true,
+   "pri": 1,
+   "title": "ONE LONG REST A DAY at the Glowseep's fire: LONG REST greyed, WAIT TILL A LONG REST (11-05)",
+   "pt": "Silverton's hours and words, the 2026-11-05 sections (deep16/js/house.js H.longOpen, deep16/js/mines.js M.longWhy, deep16/js/hours.js H16.waitAsk), his \"the one-long rest per 24 hours per SRD is the way to go\"",
+   "url": "deep16/?restshow&beat=shutseep&fresh=1105r1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T23:54:40.450Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-halfwayinn-supper-1104b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE MEAL on your three notes: the long table off the wall with people on both sides, the narration boxes as tall as their lines, the watch line gone (11-04, again)",
+   "pt": "the Halfway Inn and the lake, item 11 (deep16/js/inn.js In.ROWS row 15, In.TABLE, In.LINES.bed; js/counter.js THE OPEN SCREEN, its narration box) · eyes",
+   "url": "deep16/?innshow&beat=room&fresh=1104m",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-06T23:54:47.964Z",
+   "new_since_last_save": false
+  }
+ ]
+}
