@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -283,7 +283,7 @@
       return [new RegExp('^' + bard.name + ' \\(\\d+\\) is in it').test(line), line ? '"' + line + '"' : 'no words beside the cursor'];
     }
     // ---- the grid's fixes of 11-07 (his fights of 11-06 evening, the grid's rules lane; &only=gridfix1107): Gennet and two wolves joined the show's foes for them
-    var gennet = foes.filter(function (w) { return w.kind === 'gennet' || /^Gennet/.test(w.name); })[0], wolves = foes.filter(function (w) { return w.kind === 'wolf'; });
+    var gennet = foes.filter(function (w) { return w.kind === 'gennet' || /^Gennet/.test(w.name); })[0], bandit = kind('bandit'), wolves = foes.filter(function (w) { return w.kind === 'wolf'; });
     // the simple fight's Hide (js/simple.js Battle.hide, S.judge), run whole on this stage: B.simple on for the roll alone, the picture the grid's
     function* simpleHide(u) {
       var s0 = B.simple, g = B.hide(u), v, r; B.simple = true;
@@ -328,6 +328,18 @@
       delete rogue.conds.hidden; delete rogue.hidTotal;
       return [ok, ok ? 'HIDDEN from the goblin; "Seen by: Wolf x2 (18, keen hearing and smell)"' : l.slice(0, 220)];
     }
+    function* keenDark() {
+      // by ear and nose (RULED 11-07, rules.js RU.earNose): in the dark the wolf cannot see the rogue, and its keen hearing and smell find her all the same; the bandit -- no
+      // darkvision, no keen sense -- cannot
+      stage([rogue, wolves[0], bandit], [[4, 0], [-4, -1], [-4, 1]]); var sk = rogue.stealth || 0; setPin(Math.max(1, Math.min(20, 15 - sk)), null); var dk0 = B.dark;
+      try {
+        B.dark = true;
+        say(['A simple fight in the dark: the rogue hides from a wolf and a bandit across the lineup (her Stealth pinned to 15). Neither can see her. The wolf\'s keen hearing and smell need no eyes: its passive 13 +5 is 18. The bandit has nothing but eyes.']); yield W(100);
+        var n = mark(); turn(rogue); yield* simpleHide(rogue); B.active = null; yield W(120);
+        var l = since(n), ok = !!rogue.conds.hidden && /Seen by: Wolf \(18, keen hearing and smell, without sight\)/.test(l) && /Bandit \(cannot see her\)/.test(l);
+        return [ok, ok ? 'HIDDEN from the bandit (cannot see her); "Seen by: Wolf (18, keen hearing and smell, without sight)"' : l.slice(0, 220)];
+      } finally { B.dark = dk0; delete rogue.conds.hidden; delete rogue.hidTotal; }
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -345,7 +357,8 @@
       { id: 'sleepaim', group: 'gridfixes1106', name: 'Sleep and the party in its sphere', what: 'Sleep takes the weakest first, friend or foe. Aimed with the bard beside the goblin, the words beside the cursor name the bard and the bard\'s hit points. (11-06, his fights of 17:42 and 17:49: Aurdin\'s Sleep took Aurdin, then two of the four.)', run: sleepAim },
       { id: 'yieldstop', group: 'gridfix1107', name: 'A foe that yields stops there', what: 'Gennet yields at half her hit points. She walks off the rogue and the paladin to shoot the wizard; the rogue\'s opportunity attack takes her to half -- her walk stops there, the paladin is asked for no opportunity attack, and the shot never comes. (11-06, his path fight: Gennet took both opportunity attacks below her yield, then shot Aurdin; Lymen was offered a Divine Smite on her.)', run: yieldStop },
       { id: 'meleeblind', group: 'gridfix1107', name: 'A simple fight, blindsight and a blade', what: 'In a simple fight a melee blow is struck from the square beside the target. Hiding from the giant spider (blindsight 10 ft) with a blade in hand: SEEN, the card saying why -- the blow would land inside its blindsight. With a bow in hand: HIDDEN, the lineup\'s 40 ft out of its reach. (11-06, his Web Gulch: HIDDEN from the spider, then a single d20 at it.)', run: meleeBlind },
-      { id: 'keenwolves', group: 'gridfix1107', name: 'Keen hearing and smell', what: 'A wolf\'s Keen Hearing and Smell (advantage on Perception that relies on hearing or smell) counts in the Perception that finds a hider: its passive 13 is 18. The rogue hides from two wolves and a goblin, Stealth 15: hidden from the goblin (9), seen by the wolves -- "Wolf x2 (18, keen hearing and smell)". (11-06, his road fight: "Seen by: Wolf x2 (13)".)', run: keenWolves }
+      { id: 'keenwolves', group: 'gridfix1107', name: 'Keen hearing and smell', what: 'A wolf\'s Keen Hearing and Smell (advantage on Perception that relies on hearing or smell) counts in the Perception that finds a hider: its passive 13 is 18. The rogue hides from two wolves and a goblin, Stealth 15: hidden from the goblin (9), seen by the wolves -- "Wolf x2 (18, keen hearing and smell)". (11-06, his road fight: "Seen by: Wolf x2 (13)".)', run: keenWolves },
+      { id: 'keendark', group: 'gridfix1107', name: 'By ear and nose, in the dark', what: 'A keen hearing or smell finds a hider without sight. In the dark the rogue hides from a wolf and a bandit, Stealth 15: neither can see her; the wolf\'s nose and ears find her by its passive 13 +5, "Wolf (18, keen hearing and smell, without sight)"; the bandit cannot. (11-07, his "yeah - for all the monsters with non-vision senses notes".)', run: keenDark }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

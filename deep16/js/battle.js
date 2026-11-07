@@ -4009,9 +4009,16 @@
     var simpleH = u.conds.hidden && u.conds.hidden.simple;
     if (!simpleH && w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) return 'within ' + Battle.nm(w) + '\'s blindsight (' + w.blindsight + ' ft): it perceives ' + Battle.nm(u) + ' without sight';
     if (!simpleH && w.senseHidden && G.dist(w, u) <= w.senseHidden) return 'within ' + Battle.nm(w) + '\'s ' + w.senseHidden + ' ft: the snake familiar\'s sense';
-    var n = this.nearOf(w, u); if (!n || !n.bonus) return null;
+    var n = this.nearOf(w, u); if (!n || !n.bonus) return this.earSpots(w, u); // (none of its watch on her: by ear and nose, if it has them -- 11-07)
     var kp = RU.keenPP(this, w, u), pp = w.perception + (w.twoHeads ? 5 : 0) + kp + n.bonus; if (pp <= u.hidTotal) return null; // (kp: a keen sense, rules.js RU.keen -- 11-07)
     return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + (kp ? ' +5 (' + RU.keen(this, w, u) + ')' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
+  };
+  // BY EAR AND NOSE (RULED 11-07, rules.js RU.earNose): a keen hearing or smell's passive Perception +5 against the hider it cannot see -- all round, to RU.EARSHOT, no wall or shut door
+  // between; earPP its score there (0: none), earSpots the card's line or null (a simple fight's hider is its own judge's, simple.js S.judge)
+  Battle.prototype.earPP = function (w, u) { return u.conds.hidden && u.conds.hidden.simple ? 0 : RU.earNose(this, w, u) && RU.earNoseReach(w, u, RU.EARSHOT) ? (w.perception || 10) + RU.KEEN_PP : 0; };
+  Battle.prototype.earSpots = function (w, u) {
+    var pp = this.earPP(w, u); if (!pp || u.hidTotal == null || pp <= u.hidTotal) return null;
+    return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + (w.perception || 10) + ' +5 (' + RU.earNose(this, w, u) + ', without sight, ' + G.dist(w, u) + ' ft) = ' + pp;
   };
   // the Search action (SRD 5.1: an action; "you devote your attention to finding something" -- a Wisdom (Perception) check, which is what contests a hider's Stealth, "any creature
   // that actively searches"): d20 + Perception against each hidden enemy it has a clear, lit look at, from where it stands and all round it (no facing: it looks about);
@@ -4026,11 +4033,12 @@
       // (in sight, cover or none: a hider behind a stalagmite is what a search is for -- seenBy asks for no cover, the watch's reach, and the search had asked it too. 10-08, the fix
       // session's probe on the AI lane's duel: Vivian, 25 ft off in the bright with a clear line, never rolled against Rascal hidden in a stalagmite's half cover, his or the AI's)
       var sw = D.magic.seeWhy(self, u, w), lw = G.los(u, w, undefined, undefined, true);
-      if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !sw.ok || !lw.clear) return;
+      if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !lw.clear) return;
+      var ear = !sw.ok ? RU.earNose(self, u, w) : ''; if (!sw.ok && !(ear && G.dist(u, w) <= RU.EARSHOT_SEARCH)) return; // (no look at her: by ear and nose, to 30 ft -- rules.js RU.earNose, 11-07)
       // (a keen sense -- GreyFang's hearing and smell, 10-08; every sheet's since 11-07, rules.js RU.keen -- advantage on the roll)
       var kS = RU.keen(self, u, w), n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = kS ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus - RU.shaken(u), got = tot > held;
       any = true;
-      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + (kS ? ' {n}(' + kS + ': advantage){/}' : '') + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + Battle.shakenTag(u) + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
+      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + (kS ? ' {n}(' + kS + (ear ? ', without sight' : '') + ': advantage){/}' : '') + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + Battle.shakenTag(u) + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
       if (got) { delete w.conds.hidden; delete w.hidTotal; }
     });
     if (!any && u.side === 'party') this.card(['{g}' + nameOf(u) + ' searches: no one hidden in sight.{/}']);
@@ -4080,7 +4088,7 @@
     } else {
       // the roll hides her outside every foe's watch (its 3x3 and the cone before it); inside, the foe's passive Perception plus its bonus must not beat it -- and each
       // square she moves into after, a fresh roll (Battle.spots)
-      var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + RU.keenPP(self, w, u) + n.bonus : 0; }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
+      var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + RU.keenPP(self, w, u) + n.bonus : self.earPP(w, u); }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
       var gd = u.conds.guidance && !u.conds.faerie && !u.conds.pinned && total < worst() && total + 4 >= worst() && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd; u.hidTotal = total;

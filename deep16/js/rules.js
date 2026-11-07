@@ -397,6 +397,20 @@
     return s.length ? 'keen ' + s.join(' and ') : '';
   };
   RU.keenPP = function (B, w, u) { return w && !w.twoHeads && RU.keen(B, w, u) ? RU.KEEN_PP : 0; };
+  // BY EAR AND NOSE (RULED 11-07, Griz, on the gridfix-1107 seat's call -- a keen hearing-or-smell foe that cannot see the hider: "yeah - for all the monsters with non-vision
+  // senses notes"): a keen hearing or smell finds a hider without sight -- the dark it cannot see through, blinded, out of its watch -- by its passive Perception +5 against her
+  // Stealth (battle.js Battle.earPP, spots; simple.js S.judge), and a Search still listens (battle.js search); keen sight only where it sees (RU.keen). The bestiary's other
+  // senses that are not sight already have rules of their own: blindsight and the bulette's tremorsense (spots, S.perceives), the rust monster's Iron Scent (ai.js). Deafened,
+  // no hearing. RU.earNose: the words ('keen smell'), '' for none. The reach (the seat's lean, kept simple): all round, along a line no wall or shut door cuts -- the dark, fog,
+  // invisibility and cover do not stop a sound or a scent -- to 15 ft for the passive (his own hide neighbourhood of 10-04: "hides outside of 15 feet of each opponent"),
+  // 30 ft for a Search, the ear turned to it
+  RU.EARSHOT = 15; RU.EARSHOT_SEARCH = 30;
+  RU.earNose = function (B, w, u) {
+    var k = w && (w.keen || (w.keenSenses ? 'hearing and smell' : '')); if (!k) return '';
+    var s = k.split(/,? and |, /).filter(function (x) { return x === 'smell' || (x === 'hearing' && !(w.conds && w.conds.deafened)); });
+    return s.length ? 'keen ' + s.join(' and ') : '';
+  };
+  RU.earNoseReach = function (w, u, ft) { return G.dist(w, u) <= ft && G.los(w, u, undefined, undefined, true).clear; };
 
   // ------------------------------------------------------------------ the stream's log (10-07, Griz, the Game Show lane's note: "no dice roll lines ... under the heart line, just
   // Rascal and the HP, and under the group hug line, all 3 names and green HP numbers on one line")

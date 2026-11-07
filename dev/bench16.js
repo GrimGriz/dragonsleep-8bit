@@ -3379,11 +3379,38 @@
         k3a === 'keen hearing' && k3b === '' && RUx.keenPP(B3, ow3b, ro3) === 0 && k3c === 'keen sight' && RUx.keenPP(B3, { twoHeads: true, keen: 'smell' }, ro3) === 0);
       } catch (eS) { repGX.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
+      // 5. BY EAR AND NOSE (RULED 11-07, Griz on the seat's call: "yeah - for all the monsters with non-vision senses notes"): a keen hearing or smell finds a hider it cannot see --
+      // the simple judge, the grid's passive to 15 ft all round, a Search to 30 ft; a wall stops it, the dark does not (rules.js RU.earNose)
+      var B5 = mkGX('?npc=wolf,bandit&vs=rogue:5,fighter:5&lvl=5'), ro5 = clsGX(B5, 'rogue'), fi5 = clsGX(B5, 'fighter'), wo5 = kindGX(B5, 'wolf')[0], bd5 = kindGX(B5, 'bandit')[0];
+      putGX(B5, [[ro5, 14, 6], [fi5, 14, 9], [wo5, 6, 6], [bd5, 6, 8]]); B5.dark = true;
+      var sw5 = D.magic.sees(B5, wo5, ro5), sb5 = D.magic.sees(B5, bd5, ro5);
+      var j5 = SSx.judge(B5, ro5, [wo5, bd5], 15), t5 = 'Seen by: ' + SSx.tally(B5, j5.seen) + ' / Beat: ' + SSx.tally(B5, j5.beat);
+      okGX('5 the simple judge in the dark (the wolf sees her ' + sw5 + ', the bandit ' + sb5 + '), Stealth 15: "' + t5 + '" (want the wolf by ear and nose at 18, the bandit blind to her)', !sw5 && !sb5 && /^Seen by: Wolf \(18, keen hearing and smell, without sight\) \/ Beat: Bandit \(cannot see her\)$/.test(t5));
+      ro5.conds.hidden = true; ro5.hidTotal = 15; wo5.facing = 4; bd5.facing = 4;
+      putGX(B5, [[wo5, 11, 6], [bd5, 12, 8]]); var g5a = B5.spots(wo5, ro5), g5b = B5.spots(bd5, ro5);
+      putGX(B5, [[wo5, 10, 6]]); var g5c = B5.spots(wo5, ro5); putGX(B5, [[wo5, 11, 6]]); ro5.hidTotal = 18; var g5d = B5.spots(wo5, ro5); ro5.hidTotal = 15;
+      wo5.conds.deafened = true; var g5e = B5.spots(wo5, ro5); delete wo5.conds.deafened;
+      okGX('5 the grid in the dark, the wolf facing away 15 ft off: "' + g5a + '"; the bandit 10 ft off: ' + g5b + '; the wolf at 20 ft: ' + g5c + '; at Stealth 18: ' + g5d + '; deafened, by smell alone: "' + g5e + '"',
+        /passive Perception 13 \+5 \(keen hearing and smell, without sight, 15 ft\) = 18/.test(g5a || '') && !g5b && !g5c && !g5d && /\(keen smell, without sight, 15 ft\)/.test(g5e || ''));
+      var los0 = GGx.los; GGx.los = function () { var r = los0.apply(this, arguments); return Object.assign({}, r, { clear: false }); }; var g5w = null; try { g5w = B5.spots(wo5, ro5); } finally { GGx.los = los0; }
+      okGX('5 a wall between them (the line cut): ' + g5w + ' (want none)', !g5w);
+      putGX(B5, [[wo5, 10, 6], [bd5, 12, 6]]); RUx.startTurn(bd5); B5.active = bd5; var n5 = nGX(B5), sq5 = [1, 15, 15, 15];
+      D.d = function (n) { return n === 20 ? (sq5.length ? sq5.shift() : 15) : Math.ceil(n / 2); };
+      try { runGX(B5.search(bd5)); var hb5 = !!ro5.conds.hidden; sq5 = [1, 15, 15]; RUx.startTurn(wo5); B5.active = wo5; runGX(B5.search(wo5)); } finally { D.d = d0GX; B5.active = null; }
+      var l5 = logGX(B5, n5);
+      okGX('5 Searches in the dark: the bandit 10 ft off rolls ' + (/Bandit searches/.test(l5) ? 'a search (wrong)' : 'nothing') + ', she hidden after ' + hb5 + '; the wolf 20 ft off: "' + (l5.match(/Wolf searches[^|]*/) || [''])[0] + '"',
+        !/Bandit searches/.test(l5) && hb5 && /Wolf searches: Perception d20 15 \(keen hearing and smell, without sight: advantage\)[^|]*FOUND/.test(l5) && !ro5.conds.hidden);
+      ro5.conds.hidden = true; ro5.hidTotal = 15; putGX(B5, [[wo5, 6, 6]]); RUx.startTurn(wo5); B5.active = wo5; var n5f = nGX(B5);
+      try { runGX(B5.search(wo5)); } finally { B5.active = null; }
+      okGX('5 the wolf 40 ft off searches: ' + (/Wolf searches/.test(logGX(B5, n5f)) ? 'a roll (wrong: past 30 ft)' : 'no roll') + ', she hidden ' + !!ro5.conds.hidden, !/Wolf searches/.test(logGX(B5, n5f)) && !!ro5.conds.hidden);
+      delete ro5.conds.hidden; delete ro5.hidTotal; B5.dark = false;
+      } catch (eS) { repGX.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
       // 4. THE SHOW'S BEATS (js/eyes.js eyes-gridfix-show-1107, deep16/?rulesshow&only=gridfix1107): staged and run by the engine, headless with &fast
       D.d = d0GX; var B4 = D.rulesshow.make('?rulesshow&fast&only=gridfix1107'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
       (B4.rulesReport || []).forEach(function (b) { okGX('4 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
-      okGX('4 the show ran ' + (B4.rulesReport || []).length + ' beats (want 3)', (B4.rulesReport || []).length === 3);
+      okGX('4 the show ran ' + (B4.rulesReport || []).length + ' beats (want 4)', (B4.rulesReport || []).length === 4);
       } catch (eS) { repGX.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
     } catch (eGX) { repGX.errors.push(String(eGX && eGX.stack || eGX).slice(0, 900)); }
     D.d = d0GX; D.store.get = stGGX; D.store.set = stSGX; D.music = muGX; window.DS.autoPicks = apGX;

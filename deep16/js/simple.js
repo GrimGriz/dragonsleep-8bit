@@ -310,7 +310,7 @@
       var kn = RU.keen(B, w, u), pp = S.passive(w) + RU.keenPP(B, w, u), e = { w: w, pp: pp, why: '', keen: kn && RU.keenPP(B, w, u) ? kn : '' }; // (a keen sense +5: rules.js RU.keen, 11-07)
       if (S.perceives(w, u)) { e.why = w.blindsight && G.dist(w, u) <= w.blindsight ? 'blindsight' : 'senses her'; out.seen.push(e); }
       else if (S.meetsInMelee(w, u)) { e.why = 'blindsight ' + w.blindsight + ' ft, met in melee'; out.seen.push(e); }
-      else if (!D.magic.sees(B, w, u)) { e.why = 'cannot see her'; out.beat.push(e); }
+      else if (!D.magic.sees(B, w, u)) { var en = RU.earNose(B, w, u); if (en) { e.keen = en + ', without sight'; (pp > t ? out.seen : out.beat).push(e); } else { e.why = 'cannot see her'; out.beat.push(e); } } // (by ear and nose: rules.js RU.earNose, 11-07)
       else (pp > t ? out.seen : out.beat).push(e);
     });
     return out;
