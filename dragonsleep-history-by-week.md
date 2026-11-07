@@ -49,4 +49,4 @@ room: compiled 2026-11-07 ~02:30Z by the lanes desk (a Claude Code desktop Code 
 - 11-04 THE HALFWAY INN built (the Fable inn desk); two Opus cutters on Fresh's twenty-three; an Opus lanes desk.
 - 11-05 The inn's walls and people, Katarina's quest, the wagon on day 1, the Waterbys cut; the leftover Tuesdays built by four seats.
 - 11-06 The Pit's word at its hour; Old Hob coaches the first milking; the chuul's lunge, claws and take; the heroes at the keepers' bust; the grid's SRD fixes; the Pocket DM's STORY REALM GAME and THE RECORD; shipped to live (`18a9820d`).
-- 11-07 A yielding foe stops; keen senses count in Perception.
+- 11-07 A yielding foe stops; keen senses count in Perception, and a nose or ear finds a hider in the dark; his 2358Z ear file folded; this history put in the orient; tonight's fixes shipped (`8db54a3f`).
