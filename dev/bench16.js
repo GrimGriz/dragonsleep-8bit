@@ -3300,6 +3300,30 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
+  // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
+  // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)
+  if (get('mode', '') === 'eldermage1107') {
+    var repEM = { checks: [], errors: [], notes: [] }, muEM = D.music, apEM = window.DS.autoPicks;
+    function okEM(what, v) { repEM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      var NP = D.npc, R2 = window.DS.R, spE = NP.spec('eldermage:12'), hE = NP.sheet(spE), uE = NP.unit(hE, 'party'), shE = D.SHEETS.eldermage_p1;
+      okEM('1 the build: ' + hE.cls + ' ' + hE.lvl + ', ' + hE.race + ', ' + (hE.subclass || '-') + ', ring ' + hE.equip.ring + ', cloak ' + hE.equip.cloak, hE.cls === 'wizard' && hE.lvl === 12 && hE.equip.ring === 'ringofflying' && hE.equip.cloak === 'cloakdisplacement');
+      var dx = R2.saveBonus(hE, 'dex'), ix = R2.saveBonus(hE, 'int');
+      okEM('2 +10 to every save: DEX ' + dx + ' (want 12: +2, no proficiency, +10), INT ' + ix + ' (want 19: +5, proficiency +4, +10)', dx === 12 && ix === 19);
+      okEM('3 his sheet: ' + (shE ? Object.keys(shE.anims).map(function (a) { return a + ' ' + shE.anims[a].frames; }).join(', ') : 'NONE') + ' (worn in a fight: check 5)', !!shE && shE.anims.idle.frames === 4 && shE.anims.walk.frames === 8 && shE.anims.fly.frames === 6 && shE.anims.stomp.frames === 6);
+      var stE = D.pocket && D.pocket.STOCK ? D.pocket.STOCK.filter(function (x) { return x.w === 'eldermage'; })[0] : null;
+      okEM('4 on the DM\'s roster: ' + JSON.stringify(stE), !!stE && stE.dm === true && stE.hi === 12);
+      var Bf = D.npcFight('?npc=goblin&lvl=12&vs=eldermage:12', {}); D.battle = Bf; Bf.enter(); var kf = 0; while (!Bf.order.length && kf++ < 400) Bf.co.next();
+      var mE = Bf.units.filter(function (w) { return w.side === 'party'; })[0];
+      okEM('5 in a fight: ' + (mE && mE.name) + ', flying ' + !!(mE && mE.flies) + ', displaced ' + !!(mE && mE.displacement) + ', sheet ' + (mE && mE.sheet), !!mE && mE.flies && mE.sheet === 'eldermage_p1');
+    } catch (eEM) { repEM.errors.push(String(eEM && eEM.stack || eEM).slice(0, 900)); }
+    D.music = muEM; window.DS.autoPicks = apEM;
+    var preEM = document.createElement('pre'); preEM.id = 'out'; preEM.textContent = 'BENCH16 ' + JSON.stringify(repEM);
+    document.body.appendChild(preEM);
+    return;
+  }
   // THE WOUND THAT ENDS A DISGUISE (mode=wound1107; the desk of 11-07 on Griz's "Build it now"): a creature standing in its disguise (a sheet with Still and
   // Reveal) and wounded plays its Reveal at once -- the lamia's struck woman (`stillflinch`, the art desk's ART-125 batch H) first, ui.js running the one into the
   // other -- where before the wound woke it straight to its idle and the Reveal waited for a turn begun still (js/battle.js hurt, js/ui.js unitObj, js/show.js)

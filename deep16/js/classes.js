@@ -285,6 +285,12 @@
     // list (the races are their own lane). The numbers are the seat's draft (STR 12, DEX 18, CON 14, INT 10, WIS 16, CHA 10; the SRD's average HP)
     greyfang: { name: 'GreyFang', named: true, cls: 'ranger', lvl: 11, maxLvl: 11, race: 'human', lupine: true, subclass: 'the Grey Road', look: 'greyfang_p1',
       abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, equip: { weapon: 'greyfangbow', armor: 'leather' }, alt: 'shortsword', style: 'archery' }, // (his bow, the fight's reward: content/items.json greyfangbow -- Griz, 10-08: "Yes, have it equipped for the little benches")
+    // the elder mage (11-07, the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster onto live (with a ring of flying and
+    // displacer cloak) onto live to play with til tuesday"): the art desk's little old mage (DEEP16-ELDER-MAGE-SOURCES and -FLIGHT, tools/eldermage-sheet.py), the DM's figure
+    // on his map (the runes plan, cloud-notes/pocket-dm-runes-look-2026-11-07.md) and a tester's wizard on the DM's roster. The desk's calls, standing for his overrule: wizard 12
+    // (the DM table's cap), a gnome (Small, the SRD's; the art draws him a child's height), the School of Evocation, +10 to every save for his "+10 resistances" -- not the SRD's
+    eldermage: { name: 'The Elder Mage', named: true, cls: 'wizard', lvl: 12, maxLvl: 12, race: 'gnome', subclass: 'School of Evocation', look: 'eldermage_p1', saveAll: 10,
+      abil: { str: 8, dex: 14, con: 14, int: 20, wis: 13, cha: 10 }, equip: { weapon: 'quarterstaff', ring: 'ringofflying', cloak: 'cloakdisplacement' } },
     ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
@@ -394,6 +400,7 @@
       ancestry: sub === 'Draconic Bloodline' ? (NPC.DRAGONS[spec.ancestry] ? spec.ancestry : c.ancestry || 'red') : null, // (the dragon ancestor, 10-31: its element NPC.DRAGONS's -- M.affinity; the level page reads it by the option's key)
       land: sub === 'the Circle of the Pelt' ? null : spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid of the Pelt, ours, has no land: no circle spells, no land's cantrip, no Land's Stride -- 10-30) // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
+      saveAll: spec.saveAll || 0, // (the elder mage's +10 to every save, 11-07 -- js/rules.js R.saveBonus; his "+10 resistances", read as saves)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
       featIds: featsW.length ? featsW.slice() : undefined, // (the feats a word's picks took: R.hasFeat, 10-15)
       script: spec.script || null // (a named one's own turn: js/pyro.js)

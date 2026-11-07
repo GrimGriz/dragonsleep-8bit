@@ -905,6 +905,7 @@
   R.saveBonus = function (h, ab) {
     var b = DS.mod(h.abil[ab]);
     if (h.saveProf && h.saveProf.indexOf(ab) >= 0) b += R.prof(h.lvl);
+    if (h.saveAll) b += h.saveAll; // (a named hero's own bonus to every save: the elder mage's +10, 11-07 -- deep16/js/classes.js NPC.NAMED.eldermage; not the SRD's)
     R.gear(h).forEach(function (g) {
       if (g.ring && g.ring.saveBonus && g.ring.saveBonus[ab]) b += g.ring.saveBonus[ab];
       if (g.ring && g.ring.saveAll) b += g.ring.saveAll;
