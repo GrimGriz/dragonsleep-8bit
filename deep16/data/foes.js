@@ -1129,12 +1129,12 @@ window.D16.FOES.gennet = {
   src: 'SRD 5.1 Cult Fanatic (CR 2; AC 13 leather, 33 HP, speed 30; DEX 14, WIS 13, CHA 14; Dark Devotion, advantage against charmed or frightened; Multiattack, two daggers +4, 1d4+2; a 4th-level cleric on WIS, DC 11, +3: light, sacred flame, command, inflict wounds, shield of faith, hold person, spiritual weapon), reflavored as the inn lady -- the Halfway Inn lane\'s section 10.2; the realm\'s wiki/halfway-inn-and-lake.md. The figure the art desk\'s, gennet_p2 (deep16-art-wanted.md section 35; the townsfolk woman\'s till 11-05)'
 };
 window.D16.FOES.doran = {
-  named: true, name: 'Doran Waterby', type: 'humanoid', sheet: 'doran_p2', cr: '0', ac: 10, hp: 4, speed: 30, size: 1, reach: 5,
-  abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, init: 0, perception: 10,
-  saves: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
-  attacks: { woodaxe: { name: 'Woodaxe', atk: 2, dice: '1d6', mod: 0, type: 'slashing', reach: 5 } },
-  multi: 1, yields: true,
-  src: 'SRD 5.1 Commoner (CR 0; AC 10, 4 HP) with a woodaxe for its club (1d6 slashing): the module\'s "nothing left to lose that isn\'t in this yard" -- the Halfway Inn lane\'s section 10.2; he yields at half'
+  named: true, name: 'Doran Waterby', type: 'humanoid', sheet: 'doran_p2', cr: '1/2', ac: 10, hp: 32, speed: 30, size: 1, reach: 5,
+  abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+  saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+  attacks: { woodaxe: { name: 'Woodaxe', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 } },
+  multi: ['woodaxe', 'woodaxe'], packTactics: true, yields: true,
+  src: 'SRD 5.1 Thug (CR 1/2; 32 HP, STR 15, CON 14; Multiattack, two blows; Pack Tactics) with his woodaxe for its mace (+4, 1d6 + 2 slashing) and no leather at the table (AC 10) -- RULED 11-07, Griz: "we might have to bump her dad\'s HP, i think he got one-shotted a lot in my visual testings", then "1 yes" to the Thug; before, the SRD Commoner (CR 0; 4 HP); the module\'s "nothing left to lose that isn\'t in this yard" -- the Halfway Inn lane\'s section 10.2; he yields at half'
 };
 window.D16.FOES.commoner = {
   name: 'Commoner', type: 'humanoid', sheet: 'folkman_p1', cr: '0', ac: 10, hp: 4, speed: 30, size: 1, reach: 5,
