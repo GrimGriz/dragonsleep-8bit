@@ -1,0 +1,29 @@
+{
+ "image": "art/goblinchild_p1.png",
+ "fw": 72,
+ "fh": 64,
+ "ax": 36,
+ "ay": 60,
+ "top": 35,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 60,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 512,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 60,
+   "frames": 8,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (HALFWAY-INN-UNARMED-GOBLINS-SELECTED-SOURCES, 11-06: five views of Idle 4 and Walk 8, every Walk its ART HOLD), cut by tools/goblinchild-sheet.py through tools/artdesk.py (11-07)"
+}

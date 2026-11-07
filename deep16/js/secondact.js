@@ -125,7 +125,7 @@
     var Y = {}, kid = f.glamourBroken || f.glamourSeen;
     Y.gennet = In.unit(B, { id: 'gennetPath', kind: 'gennet', at: [at[0], at[1]], name: In.named(f), face: [1, 0], foe: true, lantern: true });
     Y.gennet.script = 'gennet'; Y.gennet.flees = false; Y.gennet.yields = true;
-    Y.kid = In.unit(B, { id: 'dueChild', kind: kid ? 'commonerchild' : 'goblin', at: [at[0] + 1, at[1]], name: kid ? 'A child' : 'A goblin', face: [1, 0] });
+    Y.kid = In.unit(B, { id: 'dueChild', kind: kid ? 'commonerchild' : 'glamourgoblin', at: [at[0] + 1, at[1]], name: kid ? 'A child' : 'A goblin', face: [1, 0] });
     Y.kid.bystander = true;
     Y.gennet.guards = Y.kid.id;
     return Y;

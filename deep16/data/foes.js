@@ -1156,3 +1156,8 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,
   sheet: 'folkchild_p1', src: window.D16.FOES.commoner.src + '; the child\'s look (folkchild_p1, 10-27): the same block, the size of a Small one\'s figure on a Medium square' });
+// the glamour's goblin (11-07, the desk of 11-07, on Griz's "also got some illusion goblins"): the child the wagon gives up and the barn holds, seen as a goblin
+// while the illusion holds -- a child's block under a goblin's look, the child's size, in the child's own clothes, empty-handed (goblinchild_p1, the art desk's
+// HALFWAY-INN-UNARMED-GOBLINS, tools/goblinchild-sheet.py); when the glamour breaks the unit becomes `commonerchild` (js/inn.js) and only the body changes
+window.D16.FOES.glamourgoblin = Object.assign({}, window.D16.FOES.commonerchild, { name: 'Goblin',
+  sheet: 'goblinchild_p1', src: window.D16.FOES.commonerchild.src + '; under a glamour, a goblin to the eye (goblinchild_p1, 11-07): the inn lane\'s child given up at the wagon' });

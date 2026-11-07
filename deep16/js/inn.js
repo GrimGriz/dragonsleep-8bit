@@ -106,7 +106,7 @@
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
     orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'commonerchild', snootRunner: 'commoner',
-    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'goblin', barnGoblin: 'goblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35 -- the Waterbys and Katarina wear their own over them since 11-05, js/counter.js C.FIG)
+    amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'glamourgoblin', barnGoblin: 'glamourgoblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35 -- the Waterbys and Katarina wear their own over them since 11-05, js/counter.js C.FIG)
   In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
   In.NAME = { gennet: In.named, gennetGrief: In.named, gennetYard: In.named, snootRunner: function () { return 'A runner from the Pit'; },
@@ -882,7 +882,7 @@
   In.dueWalk = function* (B, look) {
     var f = B.roam.flags, lake = In.DOORS.lake, stone = [43, 18];
     var lady = In.unit(B, { id: 'dueLady', kind: 'commonerwoman', at: [lake[0] + 1, lake[1]], name: In.named(f), face: [1, 0], lantern: true });
-    var kid = In.unit(B, { id: 'dueKid', kind: look === 'goblin' ? 'goblin' : 'commonerchild', at: [lake[0] + 1, lake[1] + 1], name: look === 'goblin' ? 'A goblin' : 'A child', face: [1, 0] });
+    var kid = In.unit(B, { id: 'dueKid', kind: look === 'goblin' ? 'glamourgoblin' : 'commonerchild', at: [lake[0] + 1, lake[1] + 1], name: look === 'goblin' ? 'A goblin' : 'A child', face: [1, 0] });
     yield* In.cam(B, [40, 18], 40);
     yield* In.card(B, [L(look === 'goblin' ? 'due.walkGoblin' : 'due.walk')], 360);
     yield* In.walk(B, lady, [stone[0], stone[1] + 1], [1, 0]); yield* In.walk(B, kid, [stone[0] + 1, stone[1]], [1, 0]);
@@ -926,7 +926,7 @@
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
     if (Y.kat && In.read(st, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.card(B, [In.KL.knew], 300); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
     // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
-    Y.kid = In.unit(B, { id: 'wagonKid', kind: 'goblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
+    Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
     yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);
     f.kidTaken = 1; // (the due three nights on since 11-05 -- In.DUE; what she keeps for it, by how the night goes: In.setOffering below)
