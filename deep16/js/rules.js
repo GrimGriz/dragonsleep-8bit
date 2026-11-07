@@ -384,6 +384,19 @@
   RU.sneakDice = function (u) { return Math.ceil(u.lvl / 2) + 'd6'; };
   RU.fmtRolls = function (rolls) { return '[' + rolls.join(',') + ']'; };
   RU.sign = function (n) { return (n >= 0 ? '+' : '') + n; };
+  // KEEN SENSES (RULED 11-07, Griz, on the wolves' "Seen by: Wolf x2 (13)" in his road fight of 11-06: "they bothered to put it in text, should be reflected in their perception
+  // stat or something - compare theirs to other monsters"; the gridfix-1107 seat): SRD 5.1's Keen Hearing, Keen Smell, Keen Sight and their pairs -- "advantage on Wisdom
+  // (Perception) checks that rely on" the sense -- count in the Perception that finds a hider: hearing and smell always (a hider is unseen, not unheard or unscented), sight
+  // only where the eye can see the hider (magic.js sees). The sheet's `keen` (data/foes.js KEEN, the bestiary's table) or `keenSenses` (hearing and smell: a Lupine, GreyFang's
+  // people). RU.keen: the words for the card ('keen hearing and smell'), '' for none; RU.keenPP: the passive score's +5 (RU.KEEN_PP, the SRD's passive check with advantage) --
+  // none on top of the ettin's Two Heads, an advantage already (advantage never stacks); a Search rolls with the advantage (battle.js search)
+  RU.KEEN_PP = 5;
+  RU.keen = function (B, w, u) {
+    var k = w && (w.keen || (w.keenSenses ? 'hearing and smell' : '')); if (!k) return '';
+    var s = k.split(/,? and |, /).filter(function (x) { return x !== 'sight' || !B || !u || !D.magic || D.magic.sees(B, w, u); });
+    return s.length ? 'keen ' + s.join(' and ') : '';
+  };
+  RU.keenPP = function (B, w, u) { return w && !w.twoHeads && RU.keen(B, w, u) ? RU.KEEN_PP : 0; };
 
   // ------------------------------------------------------------------ the stream's log (10-07, Griz, the Game Show lane's note: "no dice roll lines ... under the heart line, just
   // Rascal and the HP, and under the group hug line, all 3 names and green HP numbers on one line")

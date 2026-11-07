@@ -299,11 +299,17 @@
   S.perceives = function (w, u) { return !!((w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) || (w.senseHidden && G.dist(w, u) <= w.senseHidden)); };
   // each foe's verdict on the hider at Stealth total t: { seen: [{ w, pp, why }], beat: [{ w, pp, why }] }. By eye: its passive Perception must not be beaten (pp > t finds her);
   // one that cannot see her at all (blinded, the dark with no darkvision, the invisible) cannot find her by eye, whatever its Perception
+  // a foe with blindsight the hider will meet in melee (RULED 11-07 on the lanes desk's lean, his Web Gulch fight of 11-06: "Vivian hides ... HIDDEN / Beat passive
+  // Perception: Spider (10)", then a single d20 at the Giant Spider): a simple fight strikes a melee blow from the square beside its target (the head of this file), inside any
+  // blindsight of 5 ft or more -- so a hider with a melee weapon in hand is seen by it whatever the lineup's distance, and the card says why (rules.js RU.edges `knows` reads
+  // the same sense at the blow's 5 ft and gives no advantage there); a bow in hand keeps the lineup's distance, where the sense may not reach
+  S.meetsInMelee = function (w, u) { return !!(w.blindsight >= 5 && !(w.tremor && G.aloft(u)) && u.weapon && !u.weapon.ranged); };
   S.judge = function (B, u, foes, t) {
     var out = { seen: [], beat: [] };
     foes.forEach(function (w) {
-      var pp = S.passive(w), e = { w: w, pp: pp, why: '' };
+      var kn = RU.keen(B, w, u), pp = S.passive(w) + RU.keenPP(B, w, u), e = { w: w, pp: pp, why: '', keen: kn && RU.keenPP(B, w, u) ? kn : '' }; // (a keen sense +5: rules.js RU.keen, 11-07)
       if (S.perceives(w, u)) { e.why = w.blindsight && G.dist(w, u) <= w.blindsight ? 'blindsight' : 'senses her'; out.seen.push(e); }
+      else if (S.meetsInMelee(w, u)) { e.why = 'blindsight ' + w.blindsight + ' ft, met in melee'; out.seen.push(e); }
       else if (!D.magic.sees(B, w, u)) { e.why = 'cannot see her'; out.beat.push(e); }
       else (pp > t ? out.seen : out.beat).push(e);
     });
@@ -312,7 +318,7 @@
   // the card's names: 'Goblin x3 (9), Worg (14)' -- a kind once with its count, the passive score (or the sense) in brackets after it
   S.tally = function (B, list) {
     var order = [], by = {};
-    list.forEach(function (e) { var nm = B.shortName ? B.shortName(e.w) : e.w.name, k = nm + '|' + (e.why || e.pp); if (!by[k]) { by[k] = { nm: nm, n: 0, v: e.why || String(e.pp) }; order.push(k); } by[k].n++; });
+    list.forEach(function (e) { var nm = B.shortName ? B.shortName(e.w) : e.w.name, v = e.why || e.pp + (e.keen ? ', ' + e.keen : ''), k = nm + '|' + v; if (!by[k]) { by[k] = { nm: nm, n: 0, v: String(v) }; order.push(k); } by[k].n++; });
     return order.map(function (k) { var o = by[k]; return o.nm + (o.n > 1 ? ' x' + o.n : '') + ' (' + o.v + ')'; }).join(', ');
   };
   // `conds.hidden` for a hider some foes have spotted: it reads as NOTHING during the turn of a foe in `seenBy` (ai.js heroes and tactics.js choose among those not hidden; the blows'

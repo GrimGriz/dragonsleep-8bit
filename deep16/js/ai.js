@@ -56,9 +56,13 @@
   // the end of a turn comes however the turn went (11-03): one lost -- surprised, held, stunned, banished, a Command obeyed, a light-hater recoiling -- ends as surely as one played,
   // and what lasts "until the end of its next turn" is swept then. Till now a turn that returned early never reached the sweep: Lymen stayed frightened of the deep gallery's
   // cloaker two rounds past its Moan (his 11-01 play record)
+  AI.TURN_OVER = { turnOver: true }; // (thrown by battle.js Battle.overStop: the fight over in the middle of this one's move -- its turn ends there, 11-07)
   AI.turn = function* (B, u) {
+    var mover0 = B.aiMover; B.aiMover = u;
     try { yield* turnOf(B, u); }
+    catch (eT) { if (eT !== AI.TURN_OVER) throw eT; }
     finally {
+      B.aiMover = mover0;
       // a Slam's stun and a Moan's fright last till the end of the foe's next turn
       // (a stun laid with no `fresh` is not this sweep's: a spell's -- Power Word Stun, Divine Word, Symbol -- holds by its own rule, the save at the
       // end of the stunned one's turns, and a monk's Stunning Strike by its own clock, js/features.js; 09-30)

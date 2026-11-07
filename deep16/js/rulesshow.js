@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -282,6 +282,52 @@
       var line = said.filter(function (s) { return /Sleep takes/.test(s); })[0] || '';
       return [new RegExp('^' + bard.name + ' \\(\\d+\\) is in it').test(line), line ? '"' + line + '"' : 'no words beside the cursor'];
     }
+    // ---- the grid's fixes of 11-07 (his fights of 11-06 evening, the grid's rules lane; &only=gridfix1107): Gennet and two wolves joined the show's foes for them
+    var gennet = foes.filter(function (w) { return w.kind === 'gennet' || /^Gennet/.test(w.name); })[0], wolves = foes.filter(function (w) { return w.kind === 'wolf'; });
+    // the simple fight's Hide (js/simple.js Battle.hide, S.judge), run whole on this stage: B.simple on for the roll alone, the picture the grid's
+    function* simpleHide(u) {
+      var s0 = B.simple, g = B.hide(u), v, r; B.simple = true;
+      try { for (var n = 0; n < 4000; n++) { r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } } finally { B.simple = s0; }
+    }
+    function* yieldStop() {
+      // a foe that yields at half stops when it does (battle.js Battle.overStop, ai.js AI.TURN_OVER): Gennet walks off the rogue and the paladin to shoot the wizard -- her turn the
+      // AI's own (D.ai.turn), its plan scripted for the beat; the rogue's opportunity attack takes her to half: the walk stops there, the paladin is asked nothing, no shot comes
+      stage([gennet, rogue, paladin, wizard], [[1, 0], [0, 0], [2, 0], [1, -5]]); setPin(15, null); gennet.maxhp = 200; gennet.hp = 101; gennet.yields = true; // (her sheet's yields: data/foes.js -- the class floor's build of her leaves it off)
+      // (deep hit points: the blow that takes her to half never drops her)
+      var bow = { name: 'Light Crossbow', atk: 4, dice: '1d8', mod: 2, type: 'piercing', ranged: true, range: [80, 320] }, tx0 = D.tactics.turn, ai0 = gennet.classAI, wz0 = wizard.hp;
+      say(['Gennet yields at half her hit points (101 of 200 here). She walks off the rogue and the paladin to shoot the wizard; both may strike as she leaves (the d20s pinned to 15).']); yield W(80);
+      var n = mark();
+      D.tactics.turn = function* (Bx, u) { if (u !== gennet) return yield* tx0.apply(this, arguments); yield* Bx.moveAlong(u, [[u.x, u.y - 1], [u.x, u.y - 2], [u.x, u.y - 3]], { spend: true }); yield* Bx.attack(u, wizard, bow); };
+      gennet.classAI = true;
+      try { yield* fire(D.ai.turn(B, gennet)); } finally { D.tactics.turn = tx0; gennet.classAI = ai0; }
+      B.active = null; yield W(90);
+      var l = since(n), oas = (l.match(/an opportunity attack on/g) || []).length, shot = wizard.hp < wz0 || l.indexOf(gennet.name + ' > ') >= 0, over = B.over();
+      return [oas === 1 && !shot && over === 'yielded' && gennet.hp <= 100, oas + ' opportunity attack' + (oas === 1 ? '' : 's') + ' (want 1: the paladin asked nothing once she yields); ' + (shot ? 'her shot came: wrong' : 'no shot') + '; the fight ' + (over || 'not over') + ' (' + gennet.hp + ' of 200)'];
+    }
+    function* meleeBlind() {
+      // a simple fight strikes a melee blow from the square beside its target, inside the giant spider's 10 ft of blindsight: a hider with a blade in hand is seen by it, the card
+      // saying why; with a bow in hand the lineup's 40 ft stands between them -- hidden (simple.js S.meetsInMelee)
+      stage([rogue, spider], [[4, 0], [-4, 0]]); var sk = rogue.stealth || 0; setPin(Math.max(1, Math.min(20, 20 - sk)), null);
+      say(['A simple fight: the rogue hides from the giant spider across the lineup, 40 ft off. Its blindsight reaches 10 ft -- and a melee blow here is struck from the square beside it (her Stealth pinned past its passive 10).']); yield W(80);
+      var n = mark(); turn(rogue); yield* simpleHide(rogue); B.active = null; yield W(100);
+      var l1 = since(n), seen = !rogue.conds.hidden && /Seen by: [^|]*blindsight 10 ft, met in melee/.test(l1);
+      delete rogue.conds.hidden; delete rogue.hidTotal;
+      rogue.weapon = { name: 'Shortbow', atk: (rogue.weapon && rogue.weapon.atk) || 6, dice: '1d6', mod: (rogue.weapon && rogue.weapon.mod) || 4, type: 'piercing', ranged: true, range: [80, 320] };
+      say(['The same hide with a bow in hand: from the lineup the blindsight does not reach her.']); yield W(60);
+      n = mark(); turn(rogue); yield* simpleHide(rogue); B.active = null; yield W(100);
+      var l2 = since(n), hid = !!rogue.conds.hidden && /Beat passive Perception: Spider \(10\)/.test(l2);
+      delete rogue.conds.hidden; delete rogue.hidTotal;
+      return [seen && hid, (seen ? 'blade in hand: SEEN, "blindsight 10 ft, met in melee"' : 'blade in hand: ' + l1.slice(0, 160)) + '; ' + (hid ? 'bow in hand: HIDDEN' : 'bow in hand: ' + l2.slice(0, 160))];
+    }
+    function* keenWolves() {
+      // Keen Hearing and Smell (SRD 5.1: advantage on Perception that relies on hearing or smell) counts in the Perception that finds a hider: a passive 13 is 18 (rules.js RU.keen)
+      stage([rogue, wolves[0], wolves[1], gob], [[4, 0], [-4, -1], [-4, 1], [-4, 0]]); var sk = rogue.stealth || 0; setPin(Math.max(1, Math.min(20, 15 - sk)), null);
+      say(['A simple fight: the rogue hides from two wolves and a goblin across the lineup (her Stealth pinned to 15). A wolf\'s passive Perception is 13; its Keen Hearing and Smell makes it 18. The goblin\'s is 9.']); yield W(90);
+      var n = mark(); turn(rogue); yield* simpleHide(rogue); B.active = null; yield W(110);
+      var l = since(n), ok = !!rogue.conds.hidden && /Seen by: Wolf x2 \(18, keen hearing and smell\)/.test(l) && /Beat passive Perception: Goblin \(9\)/.test(l);
+      delete rogue.conds.hidden; delete rogue.hidTotal;
+      return [ok, ok ? 'HIDDEN from the goblin; "Seen by: Wolf x2 (18, keen hearing and smell)"' : l.slice(0, 220)];
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -296,7 +342,10 @@
       { id: 'hideblind', group: 'gridfixes1106', name: 'Hiding from what has no eyes', what: 'A creature with blindsight perceives all round it without sight, to its range: nothing hides from it there. The rogue hides 20 ft from the gray ooze (blindsight 60 ft): SEEN, and the card says why. (11-06, his guano dens: HIDDEN against a giant bat, and then neither the advantage nor the Sneak Attack came.)', run: hideBlind },
       { id: 'layhelp', group: 'gridfixes1106', name: 'A sleeper, a touch and a shake', what: 'Lay on Hands on the wizard asleep at full hit points mends nothing: turned away, the action kept, and the card says healing wakes no sleeper -- HELP does. HELP\'s note names him. HELP on the cleric, down at 0, says why not; HELP on the wizard shakes him awake. (11-06, his "ah yes, the sleeping heroes - \'help\' should be the \'shake to wake\', like I tried to click".)', run: layHelp },
       { id: 'foundblow', group: 'gridfixes1106', name: 'Found by the blow, said after it', what: 'A hit on one hidden finds it: the line says so under the blow that found it, not above it. (11-06, his 21:43:45Z R2, the Crawler.)', run: foundBlow },
-      { id: 'sleepaim', group: 'gridfixes1106', name: 'Sleep and the party in its sphere', what: 'Sleep takes the weakest first, friend or foe. Aimed with the bard beside the goblin, the words beside the cursor name the bard and the bard\'s hit points. (11-06, his fights of 17:42 and 17:49: Aurdin\'s Sleep took Aurdin, then two of the four.)', run: sleepAim }
+      { id: 'sleepaim', group: 'gridfixes1106', name: 'Sleep and the party in its sphere', what: 'Sleep takes the weakest first, friend or foe. Aimed with the bard beside the goblin, the words beside the cursor name the bard and the bard\'s hit points. (11-06, his fights of 17:42 and 17:49: Aurdin\'s Sleep took Aurdin, then two of the four.)', run: sleepAim },
+      { id: 'yieldstop', group: 'gridfix1107', name: 'A foe that yields stops there', what: 'Gennet yields at half her hit points. She walks off the rogue and the paladin to shoot the wizard; the rogue\'s opportunity attack takes her to half -- her walk stops there, the paladin is asked for no opportunity attack, and the shot never comes. (11-06, his path fight: Gennet took both opportunity attacks below her yield, then shot Aurdin; Lymen was offered a Divine Smite on her.)', run: yieldStop },
+      { id: 'meleeblind', group: 'gridfix1107', name: 'A simple fight, blindsight and a blade', what: 'In a simple fight a melee blow is struck from the square beside the target. Hiding from the giant spider (blindsight 10 ft) with a blade in hand: SEEN, the card saying why -- the blow would land inside its blindsight. With a bow in hand: HIDDEN, the lineup\'s 40 ft out of its reach. (11-06, his Web Gulch: HIDDEN from the spider, then a single d20 at it.)', run: meleeBlind },
+      { id: 'keenwolves', group: 'gridfix1107', name: 'Keen hearing and smell', what: 'A wolf\'s Keen Hearing and Smell (advantage on Perception that relies on hearing or smell) counts in the Perception that finds a hider: its passive 13 is 18. The rogue hides from two wolves and a goblin, Stealth 15: hidden from the goblin (9), seen by the wolves -- "Wolf x2 (18, keen hearing and smell)". (11-06, his road fight: "Seen by: Wolf x2 (13)".)', run: keenWolves }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

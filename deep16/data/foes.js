@@ -1146,5 +1146,13 @@ window.D16.FOES.commoner = {
 };
 window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sheet: 'folkwoman_p1',
   src: window.D16.FOES.commoner.src + '; the woman\'s look (folkwoman_p1, 10-27): the same block' });
+// KEEN SENSES (RULED 11-07, Griz: "they bothered to put it in text, should be reflected in their perception stat or something - compare theirs to other monsters"; js/rules.js
+// RU.keen): every sheet here whose SRD 5.1 block has a Keen trait, the senses it names -- hearing and smell find a hider, sight only where it sees one. The winter wolf's
+// `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
+// hound, the owlbear, the weres...) have no sheet yet: a new sheet of one takes its line here
+(function (F) {
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing' };
+  Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
+})(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,
   sheet: 'folkchild_p1', src: window.D16.FOES.commoner.src + '; the child\'s look (folkchild_p1, 10-27): the same block, the size of a Small one\'s figure on a Medium square' });

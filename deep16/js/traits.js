@@ -525,7 +525,7 @@
     if (u.nimble && T.bonus > 0 && !T.hid && !u.conds.hidden && !u.conds.restrained && !u.conds.dancing && !u.conds.faerie && !u.ethereal && !G.foesNear(u, u.x, u.y, 5).length) {
       var seers = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); });
       if (seers.length && !seers.some(function (w) { return w.mirrorEye; })) { // (nothing hides in front of the Mirror's eye: the Hide would only fail)
-        var holds = function () { return seers.every(function (w) { var n = B.nearOf(w, u); return !n || !n.bonus || w.perception + (w.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10; }); }, spot = null;
+        var holds = function () { return seers.every(function (w) { var n = B.nearOf(w, u); return !n || !n.bonus || w.perception + (w.twoHeads ? 5 : 0) + RU.keenPP(B, w, u) + n.bonus <= u.stealth + 10; }); }, spot = null;
         if (!holds() && T.move > 0) {
           var rmH = G.reach(u, T.move), ox = u.x, oy = u.y;
           var cand = Object.keys(rmH).map(function (k) { return rmH[k]; }).filter(function (e) { return e.stand && (e.x !== ox || e.y !== oy); }).sort(function (a, b) { return a.cost - b.cost; });

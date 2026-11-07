@@ -3300,6 +3300,97 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE GRID'S FIXES OF 11-07 (mode=gridfix1107; the gridfix-1107 seat, started by the lanes desk on his fights of 11-06 evening -- the grid's rules lane's "2026-11-07 -- his
+  // fights of 11-06 evening read"): 1. a foe that yields mid-turn stops there (battle.js Battle.overStop, ai.js AI.TURN_OVER) -- no more walk, no more reactions asked, no shot after;
+  // 2. a simple fight's Hide against blindsight it will meet in melee (simple.js S.meetsInMelee) -- seen, the card saying why, and a bow keeps the lineup's distance; 3. keen senses in
+  // the Perception that finds a hider (rules.js RU.keen, data/foes.js KEEN): the passive +5 in the simple judge and the grid's spots, a Search's advantage, sight only when it sees;
+  // 4. the show's beats (deep16/?rulesshow&only=gridfix1107). The d20s pinned per check
+  if (get('mode', '') === 'gridfix1107') {
+    var repGX = { checks: [], errors: [], notes: [] }, memGX = {}, stGGX = D.store.get, stSGX = D.store.set, muGX = D.music, apGX = window.DS.autoPicks, d0GX = D.d, RUx = D.rules, GGx = D.grid, SSx = D.simple;
+    function okGX(what, v) { repGX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGX(g, cap) { var v, k = 0, st, asked = 0; while (g && k++ < (cap || 6000)) { st = g.next(v); v = undefined; if (st.done) return asked; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { if (/OPPORTUNITY/.test(st.value.prompt.title || "")) asked++; v = st.value.prompt.opts[0].value; } } return asked; }
+    function mkGX(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function clsGX(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function kindGX(Bx, k) { return Bx.units.filter(function (w) { return w.side === 'foe' && w.kind === k; }); }
+    function putGX(Bx, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; }); GGx.setup(GGx.map, Bx.units); Bx.cache = null; }
+    function logGX(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return e.text; }).join(' | '); }
+    function nGX(Bx) { return (Bx.logEntries || []).length; }
+    function hideGX(Bx, u) { var s0 = Bx.simple; Bx.simple = true; try { runGX(Bx.hide(u)); } finally { Bx.simple = s0; } } // (the simple fight's Hide on a grid bench fight: simple.js Battle.hide)
+    D.store.get = function (k) { return memGX[k] ? JSON.parse(memGX[k]) : null; }; D.store.set = function (k, v) { memGX[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1107);
+      try { // (each section its own, so one that throws hides none after it)
+      // 1. A FOE THAT YIELDS STOPS (his path fight, 23:48:12Z R1: Gennet took Vivian's and Lymen's opportunity attacks to 16 of 33, then shot Aurdin; Lymen offered a Divine Smite on her)
+      var B1 = mkGX('?npc=gennet&vs=rogue:5,paladin:5,wizard:5&lvl=5'), ge1 = B1.units.filter(function (w) { return w.side === 'foe' && (w.kind === 'gennet' || /^Gennet/.test(w.name)); })[0], ro1 = clsGX(B1, 'rogue'), pa1 = clsGX(B1, 'paladin'), wz1 = clsGX(B1, 'wizard');
+      repGX.notes.push('1 Gennet ' + !!ge1 + ', yields ' + (ge1 && ge1.yields) + ', the rogue\'s weapon ' + (ro1 && ro1.weapon && ro1.weapon.name) + ', the paladin\'s ' + (pa1 && pa1.weapon && pa1.weapon.name));
+      putGX(B1, [[ro1, 5, 8], [ge1, 6, 8], [pa1, 7, 8], [wz1, 6, 3]]); ge1.maxhp = 200; ge1.hp = 101; ge1.yields = true; B1.round = 1; // (her sheet's yields: the class floor's build of her leaves it off)
+      D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); };
+      var bw1 = { name: 'Light Crossbow', atk: 4, dice: '1d8', mod: 2, type: 'piercing', ranged: true, range: [80, 320] }, tx1 = D.tactics.turn, ai1 = ge1.classAI, wh1 = wz1.hp, n1 = nGX(B1), th1 = null, asked1 = 0;
+      D.tactics.turn = function* (Bx, u) { if (u !== ge1) return yield* tx1.apply(this, arguments); yield* Bx.moveAlong(u, [[u.x, u.y - 1], [u.x, u.y - 2], [u.x, u.y - 3]], { spend: true }); yield* Bx.attack(u, wz1, bw1); };
+      ge1.classAI = true; B1.active = ge1;
+      try { asked1 = runGX(D.ai.turn(B1, ge1)); } catch (eT) { th1 = eT; } finally { D.tactics.turn = tx1; ge1.classAI = ai1; B1.active = null; D.d = d0GX; }
+      var l1 = logGX(B1, n1), oa1 = (l1.match(/an opportunity attack on/g) || []).length, shot1 = wz1.hp < wh1 || l1.indexOf(ge1.name + ' > ') >= 0;
+      okGX('1 Gennet walks off the rogue and the paladin to shoot: ' + oa1 + ' opportunity attacks, ' + asked1 + ' asked (want 1 and 1: the paladin asked nothing once she yields), ' + ge1.hp + ' of 200, the fight ' + B1.over() + ' (want yielded), her shot ' + shot1 + ' (want false), thrown ' + (th1 && (th1.message || JSON.stringify(th1))) + ' (want none: ai.js AI.turn catches its own)',
+        oa1 === 1 && asked1 === 1 && ge1.hp <= 100 && B1.over() === 'yielded' && !shot1 && !th1 && B1.aiMover === undefined);
+      ge1.hp = 101; delete ge1.turn; var ok1b = D.Battle.prototype.overStop.call(B1, ge1) === false; ge1.hp = 90; var th1b = null, st1b; try { st1b = B1.overStop(ro1); } catch (eB) { th1b = eB; }
+      okGX('1 Battle.overStop: false while the fight runs ' + ok1b + '; over, for a mover in no AI turn -- true, nothing thrown: ' + st1b + ' ' + !th1b, ok1b && st1b === true && !th1b);
+      } catch (eS) { repGX.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 2. A SIMPLE FIGHT'S HIDE AND BLINDSIGHT MET IN MELEE (his Web Gulch, 01:21:30Z R2: HIDDEN, "Beat passive Perception: Spider (10)", then a single d20 at the Giant Spider)
+      var B2 = mkGX('?npc=giantspider,goblin&vs=rogue:5,fighter:5&lvl=5'), ro2 = clsGX(B2, 'rogue'), fi2 = clsGX(B2, 'fighter'), sp2 = kindGX(B2, 'giantspider')[0], gb2 = kindGX(B2, 'goblin')[0];
+      putGX(B2, [[ro2, 14, 6], [fi2, 14, 8], [sp2, 6, 6], [gb2, 6, 8]]); var blade2 = ro2.weapon;
+      var j2 = SSx.judge(B2, ro2, [sp2, gb2], 30), w2 = j2.seen.filter(function (e) { return e.w === sp2; })[0];
+      okGX('2 the rogue, a ' + (blade2 && blade2.name) + ' in hand, 40 ft from the giant spider (blindsight ' + sp2.blindsight + ' ft), Stealth 30: the spider ' + (w2 ? 'sees her, "' + w2.why + '"' : 'beaten') + ' (want seen, "blindsight 10 ft, met in melee"), the goblin beaten ' + j2.beat.some(function (e) { return e.w === gb2; }),
+        !!w2 && w2.why === 'blindsight 10 ft, met in melee' && j2.beat.some(function (e) { return e.w === gb2; }));
+      ro2.weapon = { name: 'Shortbow', atk: 6, dice: '1d6', mod: 4, type: 'piercing', ranged: true, range: [80, 320] }; var j2b = SSx.judge(B2, ro2, [sp2], 30);
+      okGX('2 a bow in hand: the spider ' + (j2b.beat.length ? 'beaten' : 'sees her') + ' (want beaten: the lineup\'s 40 ft, out of its blindsight)', j2b.beat.length === 1 && !j2b.seen.length);
+      ro2.weapon = blade2; RUx.startTurn(ro2); B2.active = ro2; D.d = function (n) { return n === 20 ? 19 : Math.ceil(n / 2); }; var n2 = nGX(B2);
+      try { hideGX(B2, ro2); } finally { D.d = d0GX; B2.active = null; } var l2 = logGX(B2, n2);
+      okGX('2 the simple Hide, the spider alone in the fight\'s list: hidden ' + !!ro2.conds.hidden + ' (want false -- hidden from the goblin only: true), "' + l2.slice(0, 240) + '"', /Seen by: Spider \(blindsight 10 ft, met in melee\)/.test(l2) && /Beat passive Perception: Goblin/.test(l2) && !!ro2.conds.hidden && ro2.conds.hidden.seenBy.indexOf(sp2.id) >= 0);
+      delete ro2.conds.hidden; delete ro2.hidTotal;
+      } catch (eS) { repGX.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 3. KEEN SENSES (his road fight, 01:29:29Z R2: "SEEN, Seen by: Wolf x2 (13)"): the bestiary's table, the simple judge, the grid's spots, a Search, sight only when it sees
+      var F3 = D.FOES, tab3 = ['wolf', 'worg', 'grimlock', 'troll', 'giantrat', 'ratswarm', 'giantbat', 'batswarm'].map(function (k) { return k + ':' + (F3[k] && F3[k].keen); });
+      okGX('3 the bestiary\'s keen senses: ' + tab3.join(', ') + '; the winter wolf by keenSenses: "' + RUx.keen(null, { keenSenses: true }) + '"', tab3.every(function (s) { return !/:(undefined|null)$/.test(s); }) && RUx.keen(null, { keenSenses: true }) === 'keen hearing and smell');
+      var B3 = mkGX('?npc=wolf,wolf,goblin&vs=rogue:5,fighter:5&lvl=5'), ro3 = clsGX(B3, 'rogue'), fi3 = clsGX(B3, 'fighter'), wo3 = kindGX(B3, 'wolf'), gb3 = kindGX(B3, 'goblin')[0];
+      putGX(B3, [[ro3, 14, 6], [fi3, 14, 8], [wo3[0], 6, 5], [wo3[1], 6, 7], [gb3, 6, 9]]);
+      var j3 = SSx.judge(B3, ro3, [wo3[0], wo3[1], gb3], 15), t3 = 'Seen by: ' + SSx.tally(B3, j3.seen) + ' / Beat: ' + SSx.tally(B3, j3.beat);
+      okGX('3 the simple judge at Stealth 15: "' + t3 + '" (want "Wolf x2 (18, keen hearing and smell)" seen, the goblin beaten; the wolf\'s unit keen "' + wo3[0].keen + '")', /^Seen by: Wolf x2 \(18, keen hearing and smell\) \/ Beat: Goblin \(9\)$/.test(t3));
+      RUx.startTurn(ro3); B3.active = ro3; D.d = function (n) { return n === 20 ? Math.max(1, Math.min(20, 15 - (ro3.stealth || 0))) : Math.ceil(n / 2); }; var n3 = nGX(B3);
+      try { hideGX(B3, ro3); } finally { D.d = d0GX; B3.active = null; } var l3 = logGX(B3, n3);
+      okGX('3 the simple Hide\'s card, Stealth 15: "' + l3.slice(0, 260) + '"', /= 15 /.test(l3) && /Seen by: Wolf x2 \(18, keen hearing and smell\)/.test(l3) && /Beat passive Perception: Goblin \(9\)/.test(l3));
+      delete ro3.conds.hidden; delete ro3.hidTotal;
+      // the grid's spots: a wolf's watch on her with a bonus from where she stands -- the +5 named on the card's line
+      var near0 = B3.nearOf; B3.nearOf = function () { return { bonus: 2, side: 'in the open', lvl: 2 }; };
+      ro3.conds.hidden = true; ro3.hidTotal = 19; var s3 = B3.spots(wo3[0], ro3), s3g = B3.spots(gb3, ro3); B3.nearOf = near0; delete ro3.conds.hidden; delete ro3.hidTotal;
+      okGX('3 the grid\'s spots at Stealth 19, the wolf (13 +5 keen +2): "' + s3 + '"; the goblin (9 +2): ' + s3g + ' (want the wolf finds her, keen named; the goblin none)', /\+5 \(keen hearing and smell\) \+2 \(in the open\) = 20/.test(s3 || '') && !s3g);
+      // a Search: the wolf's Perception roll with advantage, said on the card
+      gb3.conds.hidden = true; gb3.hidTotal = 12; var ro3h = ro3; ro3h.conds.hidden = true; ro3h.hidTotal = 12; RUx.startTurn(wo3[0]); B3.active = wo3[0];
+      var n3s = nGX(B3), dk3 = 0; D.d = function (n) { if (n === 20) return ++dk3 === 1 ? 3 : 17; return Math.ceil(n / 2); }; var cg3 = null;
+      try { runGX(B3.search(wo3[0])); } catch (eQ) { cg3 = eQ; } finally { D.d = d0GX; B3.active = null; }
+      var l3s = logGX(B3, n3s); delete ro3.conds.hidden; delete ro3.hidTotal; delete gb3.conds.hidden; delete gb3.hidTotal;
+      okGX('3 the wolf\'s Search: "' + l3s.slice(0, 220) + '"' + (cg3 ? ' threw ' + cg3 : ''), /keen hearing and smell: advantage/.test(l3s) && !cg3);
+      // sight only when it sees: a keen hearing-and-sight sheet, blinded, keeps its hearing alone
+      var ow3 = Object.assign({}, gb3, { keen: 'hearing and sight', conds: { blinded: true } }), ow3b = Object.assign({}, gb3, { keen: 'sight', conds: { blinded: true } }), ow3c = Object.assign({}, gb3, { keen: 'sight', conds: {} });
+      var k3a = RUx.keen(B3, ow3, ro3), k3b = RUx.keen(B3, ow3b, ro3), k3c = RUx.keen(B3, ow3c, ro3);
+      okGX('3 keen sight only where it sees: hearing and sight, blinded "' + k3a + '"; sight, blinded "' + k3b + '" (+' + RUx.keenPP(B3, ow3b, ro3) + '); sight, seeing "' + k3c + '"; an ettin\'s Two Heads with a keen sense: +' + RUx.keenPP(B3, { twoHeads: true, keen: 'smell' }, ro3),
+        k3a === 'keen hearing' && k3b === '' && RUx.keenPP(B3, ow3b, ro3) === 0 && k3c === 'keen sight' && RUx.keenPP(B3, { twoHeads: true, keen: 'smell' }, ro3) === 0);
+      } catch (eS) { repGX.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 4. THE SHOW'S BEATS (js/eyes.js eyes-gridfix-show-1107, deep16/?rulesshow&only=gridfix1107): staged and run by the engine, headless with &fast
+      D.d = d0GX; var B4 = D.rulesshow.make('?rulesshow&fast&only=gridfix1107'); D.battle = B4; B4.enter();
+      var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
+      (B4.rulesReport || []).forEach(function (b) { okGX('4 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
+      okGX('4 the show ran ' + (B4.rulesReport || []).length + ' beats (want 3)', (B4.rulesReport || []).length === 3);
+      } catch (eS) { repGX.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (eGX) { repGX.errors.push(String(eGX && eGX.stack || eGX).slice(0, 900)); }
+    D.d = d0GX; D.store.get = stGGX; D.store.set = stSGX; D.music = muGX; window.DS.autoPicks = apGX;
+    var preGX = document.createElement('pre'); preGX.id = 'out'; preGX.textContent = 'BENCH16 ' + JSON.stringify(repGX);
+    document.body.appendChild(preGX);
+    return;
+  }
   // THE GRID'S FIXES OF 11-06 (mode=gridfixes1106; the gridfixes-1106 seat, started by the lanes desk on his fights of 11-05/11-06 -- the grid's rules lane's "2026-11-06 -- his
   // fights of 11-05/11-06 read" and the play records lane's): 1. Sneak Attack once per TURN, any creature's (battle.js Battle.turnKey) -- her opportunity attack before her first
   // turn, and on a foe's turn after her own sneak; twice in one foe's turn, once; Martial Advantage the same; 2. HIDE against blindsight (battle.js spots): SEEN with the reason,

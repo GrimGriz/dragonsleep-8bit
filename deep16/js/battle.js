@@ -336,7 +336,7 @@
       // a burrower (SRD 5.1 burrow; the bulette, 10-01d: js/ai.js burrower): under the ground it is out of reach the way an ethereal one is
       // (ethereal too, for every rule that asks), drawn as its mound (js/ui.js); a fight may start it there (fights.js `under`)
       burrow: d.burrow || 0, under: !!f.under, walkWithin: d.walkWithin || 0,
-      weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0, keenSenses: !!d.keenSenses, /* (keen hearing and smell on a sheet: the winter wolf's, 10-22 -- GreyFang's rule, below) */
+      weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0, keenSenses: !!d.keenSenses, keen: d.keen || null, /* (a sheet's keen senses: data/foes.js KEEN, rules.js RU.keen -- 11-07) */ /* (keen hearing and smell on a sheet: the winter wolf's, 10-22 -- GreyFang's rule, below) */
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
@@ -644,6 +644,11 @@
     return { title: head ? h.replace(/!$/, '').toUpperCase() : 'VICTORY', lines: head ? paid.slice(1) : paid };
   };
 
+  // A FIGHT OVER IN THE MIDDLE OF A MOVE (11-07, the gridfix-1107 seat; his play of 11-06, Gennet on the path: she walked, took Vivian's and Lymen's opportunity attacks to
+  // 16 of 33 -- she yields at half -- and then shot Aurdin, Lymen asked for his opportunity attack and a Divine Smite on her after she had yielded): read after each
+  // opportunity attack and readied strike on a mover, it stops the walk there, asks no more reactions, and ends an AI mover's turn (ai.js AI.turn catches AI.TURN_OVER;
+  // the end itself is read at the turn's end as ever, below)
+  Battle.prototype.overStop = function (u) { if (!this.over()) return false; u.anim = 'idle'; if (this.aiMover === u && D.ai && D.ai.TURN_OVER) throw D.ai.TURN_OVER; return true; };
   Battle.prototype.alive = function (side) { return this.units.filter(function (u) { return u.side === side && !u.dead && u.hp > 0; }); };
   Battle.prototype.over = function () {
     // a fight that must not let them go (the wagon yard: fight.noEscape): one got away, and it is lost
@@ -2139,6 +2144,7 @@
             if (w.kind === 'keeper' && D.keeper && D.keeper.CFG.oaWave) { // (the Keeper's opportunity attack as a wave toward the deep -- not ruled, behind D16.keeper.CFG.oaWave, off: js/keeper.js)
               var pushed = yield* D.keeper.oaWave(this, w, u);
               if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
+              if (this.overStop(u)) return; // (the fight over by it: Battle.overStop, 11-07)
               if (pushed) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
               continue;
             }
@@ -2149,6 +2155,7 @@
             if (u.conds.hidden) { delete u.conds.hidden; delete u.hidTotal; this.card(['{o}' + nameOf(u) + ' gives the position away: no longer hidden.{/}  {g}(an opportunity attack breaks stealth){/}'], 200); } // (10-04, Griz)
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
+            if (this.overStop(u)) return; // (the fight over by it -- a foe that yields at half: no more walk, no more reactions asked, its turn done: Battle.overStop, 11-07)
             // held by the blow (a grip on the hit: the darkmantle's crush, a tendril), or stunned or put down by it: no more walking -- its speed is 0
             // (10-01, Griz in the Fork: the darkmantle's opportunity attack took Barley and he walked on a square, held from 10 ft)
             if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
@@ -2298,7 +2305,7 @@
       if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) {
         var proneR = !!u.conds.prone;
         yield* this.readyHook(u, 'move'); shifted = true;
-        if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
+        if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (this.overStop(u)) return; if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
         // knocked flat by the readied thing (the Cannonball): it stands for half its speed if the walk has that much, else crawls, as after an opportunity attack (10-13)
         if (!proneR && u.conds.prone && o && o.spend && !u.ethereal) { RU.rise(this, u); fell = true; }
         u.anim = gait;
@@ -3226,6 +3233,7 @@
       if (!atk) continue;
       yield* this.attack(w, u, atk, { oa: true });
       if (u.hp <= 0 || u.dead) return;
+      if (this.overStop(u)) return; // (Battle.overStop, 11-07)
     }
   };
   function nameOf(u) { return u.side === 'foe' ? u.name : u.name; }
@@ -4002,8 +4010,8 @@
     if (!simpleH && w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) return 'within ' + Battle.nm(w) + '\'s blindsight (' + w.blindsight + ' ft): it perceives ' + Battle.nm(u) + ' without sight';
     if (!simpleH && w.senseHidden && G.dist(w, u) <= w.senseHidden) return 'within ' + Battle.nm(w) + '\'s ' + w.senseHidden + ' ft: the snake familiar\'s sense';
     var n = this.nearOf(w, u); if (!n || !n.bonus) return null;
-    var pp = w.perception + (w.twoHeads ? 5 : 0) + n.bonus; if (pp <= u.hidTotal) return null;
-    return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
+    var kp = RU.keenPP(this, w, u), pp = w.perception + (w.twoHeads ? 5 : 0) + kp + n.bonus; if (pp <= u.hidTotal) return null; // (kp: a keen sense, rules.js RU.keen -- 11-07)
+    return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + (kp ? ' +5 (' + RU.keen(this, w, u) + ')' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
   };
   // the Search action (SRD 5.1: an action; "you devote your attention to finding something" -- a Wisdom (Perception) check, which is what contests a hider's Stealth, "any creature
   // that actively searches"): d20 + Perception against each hidden enemy it has a clear, lit look at, from where it stands and all round it (no facing: it looks about);
@@ -4019,10 +4027,10 @@
       // session's probe on the AI lane's duel: Vivian, 25 ft off in the bright with a clear line, never rolled against Rascal hidden in a stalagmite's half cover, his or the AI's)
       var sw = D.magic.seeWhy(self, u, w), lw = G.los(u, w, undefined, undefined, true);
       if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !sw.ok || !lw.clear) return;
-      // (u.keenSenses: keen hearing and smell, GreyFang's, 10-08 -- advantage on the roll)
-      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = u.keenSenses ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus - RU.shaken(u), got = tot > held;
+      // (a keen sense -- GreyFang's hearing and smell, 10-08; every sheet's since 11-07, rules.js RU.keen -- advantage on the roll)
+      var kS = RU.keen(self, u, w), n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = kS ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus - RU.shaken(u), got = tot > held;
       any = true;
-      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + Battle.shakenTag(u) + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
+      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + (kS ? ' {n}(' + kS + ': advantage){/}' : '') + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + Battle.shakenTag(u) + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
       if (got) { delete w.conds.hidden; delete w.hidTotal; }
     });
     if (!any && u.side === 'party') this.card(['{g}' + nameOf(u) + ' searches: no one hidden in sight.{/}']);
@@ -4072,7 +4080,7 @@
     } else {
       // the roll hides her outside every foe's watch (its 3x3 and the cone before it); inside, the foe's passive Perception plus its bonus must not beat it -- and each
       // square she moves into after, a fresh roll (Battle.spots)
-      var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + n.bonus : 0; }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
+      var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + RU.keenPP(self, w, u) + n.bonus : 0; }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
       var gd = u.conds.guidance && !u.conds.faerie && !u.conds.pinned && total < worst() && total + 4 >= worst() && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd; u.hidTotal = total;
