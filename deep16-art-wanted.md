@@ -381,32 +381,4 @@ Where: the inn's common room (the lane's Beat 3) and the shore (§6, a guest the
 
 ## 37. Vivian Venn's identity page and talking portrait (added 11-04, the Opus lanes desk) -- SENT 2026-11-04 (`deep16/_src/art-desk/sent/ASK-2026-11-04-vivian-portrait.zip`: the README with the deep dive's sources and the seat's four calls, the paste, six attachments; Griz: *"outbox sent"*), its pages to `deep16/_src/Fresh/` for a cutter -- IN HAND 2026-11-05 (the art desk's VIVIAN-VENN-IDENTITY and VIVIAN-VENN-DIALOGUE-PORTRAITS, sorted to `deep16/_src/vivian/IDENTITY-1104/` and `PORTRAITS-1104/`: HEADs 2-7 cut MIRRORED into `pt_vivian`, idle 6, the four moods, the coin 6, `12a1b6f8`, by cutter-1105, `C.HERO_PT` `vivian_p0`; HEAD 1, the identity page, kept as her reference for later asks, not cut); the block is on `deep16-art-in-hand.md`
 
-## 38. Elsbeth's bucket on the drag, and Gennet's silencing look: two portrait pages for the poison supper's end (added 11-07, the desk of 11-07)
-
-His words, in chat 11-07, on the desk's lean that at her third tier Elsbeth throws a bucket over the lead as the drugged party is dragged out: *"I like it, portrait bucket with bucket tip-over ask?"*, then *"to the extent we show their sleeping drag-out, pop her up like conversation, wake up! you're supposed to stop it, then a silencing look from Ginnet"*, then *"don't we need art request for bucket dumping?"* -- the lane is `..\handoff-2026-10-30-the-halfway-inn-and-the-lake.md` (its 2026-11-07 section, rulings 16 and 19). Two blocks: her bucket, then the inn lady's look. Nothing waits on them: the beat can play on her tub portrait's own rows till they come.
-
-### Elsbeth -- THE BUCKET (one page)
-ATTACH `deep16/_src/elsbeth/INN-TUB-PORTRAITS-1104/KP01-Idle.png` and `KP06-Work.png` (her face and the page's format: the art desk's own Elsbeth at the tub).
-```text
-Attached: two pages of the same girl's talking portrait from the same game -- her face, and the format to match. Draw one more page of her: the same girl, the same framing, the same size, the same pixel style.
-
-ELSBETH -- sixteen, the inn's kitchen girl, as attached: her sleeves rolled, her apron wet, her hair tied back. It is night; one side of her face is lit by a lamp out of frame.
-
-HEAD 7 -- THE BUCKET (6, two bands of three): she comes up into the frame with a heavy wooden bucket held in both hands, water slopping over its lip; she lifts it to her chest, her jaw set; she tips it forward and down toward the viewer -- the water pours out over the bottom edge of the frame, onto someone lying just below the camera; the empty bucket hangs from her hands; her mouth open, shouting; she lowers it. Played once, not a loop.
-
-The page: 16-bit pixel-art cut-scene portrait animation, the attached pages' camera, size and framing; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). One image, 1440 x 810, six frames in two bands of three with clear gutters, a title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
-```
-Where: the drag (`deep16/js/secondact.js` A.drag), her line *"Wake up! You're supposed to stop it!"* over it. Cut as: `tools/portrait-sheet.py` (her `elsbethtub` line) -- a `bucket` row on `pt_elsbethtub`, played once.
-
-### Gennet -- THE SILENCING LOOK (one page)
-ATTACH `deep16/_src/gennet/INN-PORTRAITS-1105/GENNET_HEAD-1_IDLE.png` and `GENNET_HEAD-4_SKEPTICAL.png` (her face and the page's format: the art desk's own Gennet at the bar).
-```text
-Attached: two pages of the same woman's talking portrait from the same game -- her face, and the format to match. Draw one more page of her: the same woman, the same framing, the same size, the same pixel style.
-
-GENNET -- the inn lady, as attached: her linen kerchief, her charcoal wool.
-
-HEAD 7 -- THE LOOK (1): she turns her head and looks at someone just off the frame to the side -- a girl who has spoken out of turn -- with no word at all: the face still, the eyes cold and level, the mouth closed. Not anger: certainty. A look that has stopped people before.
-
-The page: 16-bit pixel-art cut-scene portrait, the attached pages' camera, size and framing; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). One image, 1440 x 810, the one drawing centred, a title kept well clear of it. No scenery, no UI or border.
-```
-Where: the drag, after Elsbeth's line; held a beat, no box. Cut as: `tools/portrait-sheet.py` (her `gennet` line) -- a still `look` on `pt_gennet`.
+## 38. Elsbeth's bucket on the drag, and Gennet's silencing look: two portrait pages for the poison supper's end (added 11-07, the desk of 11-07) -- IN HAND 2026-11-07 (the art desk's ELSBETH_HEAD-7_BUCKET and GENNET_HEAD-7_THE-LOOK, back the same night: cut into `pt_elsbethtub` row `bucket` and `pt_gennet` still `look`, `21cbf224`, by the desk of 11-07); its blocks are on `deep16-art-in-hand.md`

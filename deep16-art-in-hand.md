@@ -7,6 +7,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-07 · Elsbeth's bucket and Gennet's silencing look, art-wanted section 38 (the art desk's ELSBETH_HEAD-7_BUCKET, six frames with its frame map, and GENNET_HEAD-7_THE-LOOK, one still) · `deep16/_src/elsbeth/ART-38-BUCKET-1107/`, `deep16/_src/gennet/ART-38-LOOK-1107/` · cut into `pt_elsbethtub` row `bucket`, played once, and `pt_gennet` still `look`, her bar top bevelled (`tools/portrait-sheet.py`), `21cbf224`, by the desk of 11-07 · his *"don't we need art request for bucket dumping?"*
 - 2026-11-07 · the glamour's goblin for the Halfway Inn, the art desk's own (no art-wanted block; the inn lane's RULED 11-05, *"goblin in the barn if they fail to reveal the illusion"*): HALFWAY-INN-UNARMED-GOBLINS-SELECTED-SOURCES, five views of Idle 4 and Walk 8, every Walk its ART HOLD · `deep16/_src/goblin/INN-UNARMED-1106/` · cut into `goblinchild_p1` (`tools/goblinchild-sheet.py`, the child's 35 px, the snap kept off the gold), `8d25b833`, by the desk of 11-07; the walks on `deep16-dream-polish.md` · his *"also got some illusion goblins"*
 - 2026-11-07 · Signy the rope-maker, art-wanted section 26 (the art desk's ART-123-SIGNY-PORTRAITS, six pages: Idle 6, the four moods, Work 6 -- two cords twisted, pulled taut, let go; and ART-123-SIGNY-TOWN, five views of Idle 4) · `deep16/_src/signy/` · cut into `pt_signy` (`tools/portrait-sheet.py`) and `signy_p1` in all eight facings at `tall` 38, the art desk's own proposal against a keeper's 50 (`tools/keeper-town-sheet.py`), `72298216`, by the desk of 11-07 · his *"we got a request for 'signy' in fresh"*
 - 2026-11-07 · the lamia at the Halfway Inn, art-wanted section 29: Nerisse's talking portrait and the woman's wound (the art desk's ART-125-NERISSE-BATCH-G, seven pages: Idle 6, the four moods, THE BLUE, THE BLUE SPEAKING 6; and ART-125-HUMAN-FLINCH-BATCH-H, five views of Flinch 4, its E frame 4 held by the art desk for the slit pupil) · `deep16/_src/nerisse/`, `deep16/_src/lamia/ART-125-H-FLINCH/` · cut into `pt_nerisse` (`tools/portrait-sheet.py`; the moods and the Blue toned to the idle's sand) and `lamia_p1` row `stillflinch`, held (`tools/lamia-sheet.py`; each page stood by its frame 4 at its view's Disguise 6, toned to its view's still), `72298216`, by the desk of 11-07 · his *"got some more for human form Nerisse in Fresh"*
@@ -2981,3 +2982,34 @@ HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation,
 HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
 ```
 Where: the shaft rows (`signy`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_signy`; `tools/keeper-town-sheet.py` into `signy_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Elsbeth's bucket and Gennet's silencing look (asked 11-07 in art-wanted section 38; drawn by the art desk the same night; CUT 11-07, `21cbf224`)
+
+
+His words, in chat 11-07, on the desk's lean that at her third tier Elsbeth throws a bucket over the lead as the drugged party is dragged out: *"I like it, portrait bucket with bucket tip-over ask?"*, then *"to the extent we show their sleeping drag-out, pop her up like conversation, wake up! you're supposed to stop it, then a silencing look from Ginnet"*, then *"don't we need art request for bucket dumping?"* -- the lane is `..\handoff-2026-10-30-the-halfway-inn-and-the-lake.md` (its 2026-11-07 section, rulings 16 and 19). Two blocks: her bucket, then the inn lady's look. Nothing waits on them: the beat can play on her tub portrait's own rows till they come.
+
+### Elsbeth -- THE BUCKET (one page)
+ATTACH `deep16/_src/elsbeth/INN-TUB-PORTRAITS-1104/KP01-Idle.png` and `KP06-Work.png` (her face and the page's format: the art desk's own Elsbeth at the tub).
+```text
+Attached: two pages of the same girl's talking portrait from the same game -- her face, and the format to match. Draw one more page of her: the same girl, the same framing, the same size, the same pixel style.
+
+ELSBETH -- sixteen, the inn's kitchen girl, as attached: her sleeves rolled, her apron wet, her hair tied back. It is night; one side of her face is lit by a lamp out of frame.
+
+HEAD 7 -- THE BUCKET (6, two bands of three): she comes up into the frame with a heavy wooden bucket held in both hands, water slopping over its lip; she lifts it to her chest, her jaw set; she tips it forward and down toward the viewer -- the water pours out over the bottom edge of the frame, onto someone lying just below the camera; the empty bucket hangs from her hands; her mouth open, shouting; she lowers it. Played once, not a loop.
+
+The page: 16-bit pixel-art cut-scene portrait animation, the attached pages' camera, size and framing; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). One image, 1440 x 810, six frames in two bands of three with clear gutters, a title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+```
+Where: the drag (`deep16/js/secondact.js` A.drag), her line *"Wake up! You're supposed to stop it!"* over it. Cut as: `tools/portrait-sheet.py` (her `elsbethtub` line) -- a `bucket` row on `pt_elsbethtub`, played once.
+
+### Gennet -- THE SILENCING LOOK (one page)
+ATTACH `deep16/_src/gennet/INN-PORTRAITS-1105/GENNET_HEAD-1_IDLE.png` and `GENNET_HEAD-4_SKEPTICAL.png` (her face and the page's format: the art desk's own Gennet at the bar).
+```text
+Attached: two pages of the same woman's talking portrait from the same game -- her face, and the format to match. Draw one more page of her: the same woman, the same framing, the same size, the same pixel style.
+
+GENNET -- the inn lady, as attached: her linen kerchief, her charcoal wool.
+
+HEAD 7 -- THE LOOK (1): she turns her head and looks at someone just off the frame to the side -- a girl who has spoken out of turn -- with no word at all: the face still, the eyes cold and level, the mouth closed. Not anger: certainty. A look that has stopped people before.
+
+The page: 16-bit pixel-art cut-scene portrait, the attached pages' camera, size and framing; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). One image, 1440 x 810, the one drawing centred, a title kept well clear of it. No scenery, no UI or border.
+```
+Where: the drag, after Elsbeth's line; held a beat, no box. Cut as: `tools/portrait-sheet.py` (her `gennet` line) -- a still `look` on `pt_gennet`.
