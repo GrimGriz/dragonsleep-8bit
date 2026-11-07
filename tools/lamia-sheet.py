@@ -181,8 +181,31 @@ HUMAN = {
 }
 for _L, (_p, (_rows, _xs)) in HUMAN.items():
     PAGES[_L] = dict(_p, rows=_rows, xs=_xs, dir='ART-120')
+# her human form struck (11-07, the desk of 11-07, on Griz's "got some more for human form Nerisse in Fresh"): the art desk's
+# ART-125-HUMAN-FLINCH-BATCH-H, art-wanted section 29's third block -- Flinch 4 in every view (impact, recoil and backstep, hand to the side,
+# straighten), the label and numbers boxed as text; each page scaled so its frame 4 (straightened) stands as tall as its view's Disguise 6,
+# as section 24's pages are by their frame 1; toned as drawn, as theirs. SW, W and NW the mirrors (W keeps E's frame 4, its eye held by the art desk)
+FLINCH = {
+  'F1P1': (dict(file='H1-SE-Flinch.png', W=2163, text=[(36, 301, 70, 342), (69, 301, 208, 342)]),
+           R(('stillflinch', (0, 0, 2163, 727), (646, 683), 4, [455, 928, 1398, 1871]))),
+  'F2P1': (dict(file='H2-NE-Flinch.png', W=2172, text=[(56, 317, 93, 361), (93, 317, 181, 361), (211, 317, 249, 361), (180, 329, 212, 361)]),
+           R(('stillflinch', (0, 0, 2172, 724), (613, 660), 4, [480, 952, 1420, 1889]))),
+  'F3P1': (dict(file='H3-S-Flinch.png', W=2172, text=[(31, 307, 67, 351), (69, 307, 153, 351), (151, 308, 222, 351)]),
+           R(('stillflinch', (0, 0, 2172, 724), (638, 677), 4, [469, 923, 1377, 1841]))),
+  'F4P1': (dict(file='H4-E-Flinch.png', W=2172, text=[(111, 264, 180, 316), (41, 267, 107, 316), (217, 267, 260, 316), (179, 279, 216, 316)]),
+           R(('stillflinch', (0, 0, 2172, 724), (622, 668), 4, [471, 919, 1392, 1868]))),
+  'F5P1': (dict(file='H5-N-Flinch.png', W=2172, text=[(27, 295, 211, 337)]),
+           R(('stillflinch', (0, 0, 2172, 724), (627, 671), 4, [477, 950, 1425, 1901]))),
+}
+for _L, (_p, (_rows, _xs)) in FLINCH.items():
+    PAGES[_L] = dict(_p, rows=_rows, xs=_xs, dir='ART-125-H-FLINCH')
+# each page's per-channel tone, measured at game size (its four frames' mean against its view's still 1, then once more on that cut, 11-07)
+FLINCH_TONE = {'F1P1': (0.996, 0.951, 0.894), 'F2P1': (1.067, 1.069, 1.071), 'F3P1': (1.11, 1.14, 1.023), 'F4P1': (0.975, 0.971, 0.972), 'F5P1': (1.183, 1.157, 1.085)}   # (measured twice: the snap is not linear -- the SE's second tone tipped it to the mauve ramp, so its first stands)
+STAND_AT = {'stillflinch': 3}                    # (a page stood by that frame, not its first: Flinch 1 is the blow's recoil)
 HUMAN_V = {'SE': ('X1P2', 'X1P3', 'X1P4')}
 HUMAN_V.update({v: tuple('X%dP%d' % (h, p) for p in (1, 2, 3)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
+for _v, _h in (('SE', 1), ('NE', 2), ('S', 3), ('E', 4), ('N', 5)):
+    HUMAN_V[_v] = HUMAN_V[_v] + ('F%dP1' % _h,)
 VIEWS = {'SE': tuple('H1P%d' % p for p in range(2, 12))}
 VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in range(1, 11)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
 FALL = {v: (ls[8], ls[9]) for v, ls in VIEWS.items()}      # (Fall page, Prone page)
@@ -190,8 +213,8 @@ DISGUISE = {v: ls[6] for v, ls in VIEWS.items()}           # (each view's Disgui
 for _v, _ls in HUMAN_V.items():
     VIEWS[_v] = VIEWS[_v] + _ls
 JOINS = {r + '_b': r for r in ('idle', 'walk', 'attack', 'claw', 'touch', 'cast', 'disguise', 'flinch', 'hurt', 'prone', 'still', 'stillwalk', 'stillcast')}
-ROWS = ['idle', 'walk', 'attack', 'hurt', 'cast', 'reveal', 'flinch', 'claw', 'still', 'prone', 'touch', 'stillwalk', 'stillcast']
-FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'cast': 8, 'reveal': 8, 'flinch': 10, 'claw': 10, 'still': 5, 'prone': 6, 'touch': 8, 'stillwalk': 10, 'stillcast': 8}
+ROWS = ['idle', 'walk', 'attack', 'hurt', 'cast', 'reveal', 'flinch', 'claw', 'still', 'prone', 'touch', 'stillwalk', 'stillcast', 'stillflinch']
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'cast': 8, 'reveal': 8, 'flinch': 10, 'claw': 10, 'still': 5, 'prone': 6, 'touch': 8, 'stillwalk': 10, 'stillcast': 8, 'stillflinch': 10}
 
 
 def targets():
@@ -206,7 +229,8 @@ def targets():
         d6 = (cuts[DISGUISE[v]].get('disguise_b') or cuts[DISGUISE[v]]['disguise'])[-1][0]
         h = AD.tall(fit(d6, K[DISGUISE[v]]))
         for L in ls:
-            out[L] = (PAGES[L]['rows'][0][0], 0, h)
+            r0 = PAGES[L]['rows'][0][0]
+            out[L] = (r0, STAND_AT.get(r0, 0), h)
     print('  targets: ' + ', '.join('%s %d' % (L, t[2]) for L, t in sorted(out.items())))
     return out
 
@@ -243,6 +267,8 @@ def _tones(*a, **k):
         T[ls[5]], T[ls[9]] = T[ls[4]], T[ls[8]]
         for L in HUMAN_V.get(v, ()):                    # (the human pages as drawn: measured against the lion body's idle they would be tinted to it)
             T[L] = (1.0, 1.0, 1.0)
+        for L, t in FLINCH_TONE.items():                # (the Flinch pages toned to their view's `still` 1: the S came out mauve, the N olive, a pop at the blow)
+            T[L] = t
     return T
 AD.tones = _tones
 
@@ -272,6 +298,7 @@ if __name__ == '__main__':
         meta['anims'][an]['fps'] = fps
     for an in ('stillwalk', 'stillcast'):            # (cut, not wired: her encounter is held for a story session -- js/show.js does not ask for them)
         meta['anims'][an]['held'] = 'the human form, not played yet (his "hold for now I\'ll collab with story oriented session")'
+    meta['anims']['stillflinch']['held'] = 'the human form struck (ART-125 batch H, 11-07): not played yet -- a wound wakes her straight to the lion\'s idle; the flinch then the reveal is the lamia lane\'s to wire'
     meta['source'] = 'drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)'
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))

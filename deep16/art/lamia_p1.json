@@ -287,6 +287,16 @@
    "frames": 6,
    "fps": 8,
    "held": "the human form, not played yet (his \"hold for now I'll collab with story oriented session\")"
+  },
+  "stillflinch": {
+   "y": 10816,
+   "fw": 136,
+   "fh": 104,
+   "ax": 68,
+   "ay": 97,
+   "frames": 4,
+   "fps": 10,
+   "held": "the human form struck (ART-125 batch H, 11-07): not played yet -- a wound wakes her straight to the lion's idle; the flinch then the reveal is the lamia lane's to wire"
   }
  },
  "source": "drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)"

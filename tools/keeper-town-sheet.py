@@ -142,6 +142,9 @@ KEEPERS = {
     # Elsbeth the candle girl on Silverton's street, pin 23 (11-04, the cutter of 11-04): the art desk's ART-123-ELSBETH-TOWN, all five views at once (H2P1-Idle-S.png
     # to H2P5-Idle-N.png), her pole held and planted, her tray on its strap
     'elsbethCandles': ('elsbeth/ART-123-ELSBETH-TOWN', 'H2', 'npc:elsbethCandles', {'pat': '%sP%d-*.png', 'views': 'ART-123-ELSBETH-TOWN, 11-04', 'avoid': ['red', 'fire'], 'holes': (14, 60)}),
+    # Signy the rope-maker on Silverton's street, pin 26 (11-07, the desk of 11-07): the art desk's ART-123-SIGNY-TOWN (its batch C), all five views at once
+    # (ART-123-SIGNY_H2P1.png S to H2P5 N), short and broad -- a dwarf: `tall` 38 against a keeper's 50, the art desk's own proposal ("retain short dwarf relation"; the desk's call, his to overrule)
+    'signy': ('signy/ART-123-SIGNY-TOWN', 'ART-123-SIGNY', 'npc:signy', {'pat': '%s_H2P%d.png', 'views': 'ART-123-SIGNY-TOWN, 11-07', 'tall': 38, 'avoid': ['red', 'fire']}),
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),

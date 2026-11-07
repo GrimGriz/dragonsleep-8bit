@@ -8485,7 +8485,7 @@
 }
 },
 "lamia_p1": {
-"image": "art/lamia_p1.png?v=b32646f4a1",
+"image": "art/lamia_p1.png?v=24578399c6",
 "fw": 136,
 "fh": 104,
 "ax": 68,
@@ -8773,6 +8773,16 @@
 "frames": 6,
 "fps": 8,
 "held": "the human form, not played yet (his \"hold for now I'll collab with story oriented session\")"
+},
+"stillflinch": {
+"y": 10816,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 4,
+"fps": 10,
+"held": "the human form struck (ART-125 batch H, 11-07): not played yet -- a wound wakes her straight to the lion's idle; the flinch then the reveal is the lamia lane's to wire"
 }
 },
 "source": "drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)"
@@ -17538,6 +17548,114 @@ true
 "door": "warp:percy",
 "source": "deep16/_src/ned/ART-103 (the art desk's ART-103, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_nerisse": {
+"image": "art/pt_nerisse.png?v=8967d1840e",
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"blue": {
+"y": 775,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"bluespeak": {
+"y": 930,
+"fw": 164,
+"fh": 155,
+"ax": 79,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "H1",
+"door": "the lamia at the Halfway Inn (the lamia lane; no talk wired yet)",
+"source": "deep16/_src/nerisse/ART-125-G-PORTRAITS (the art desk's H1, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_oldhob": {
 "image": "art/pt_oldhob.png?v=a5c725d58b",
 "fw": 183,
@@ -18209,6 +18327,102 @@ true
 "art": "ART-123-SABETH",
 "door": "npc:sabeth",
 "source": "deep16/_src/sabeth/ART-123-SABETH (the art desk's ART-123-SABETH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_signy": {
+"image": "art/pt_signy.png?v=fc6d68a236",
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 157,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 628,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 785,
+"fw": 212,
+"fh": 157,
+"ax": 108,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-SIGNY",
+"door": "npc:signy (Silverton's street, pin 26)",
+"source": "deep16/_src/signy/ART-123-SIGNY-PORTRAITS (the art desk's ART-123-SIGNY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_skarn": {
 "image": "art/pt_skarn.png?v=03c543d878",
@@ -20472,6 +20686,27 @@ true
 }
 },
 "door": "roam:glowseep"
+},
+"signy_p1": {
+"image": "art/signy_p1.png?v=0dce89bea8",
+"fw": 29,
+"fh": 42,
+"ax": 14,
+"ay": 40,
+"top": 37,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 29,
+"fh": 42,
+"ax": 14,
+"ay": 40,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/signy/ART-123-SIGNY-TOWN/ART-123-SIGNY_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-SIGNY-TOWN, 11-07), cut by tools/keeper-town-sheet.py",
+"door": "npc:signy"
 },
 "skarn_p1": {
 "image": "art/skarn_p1.png?v=4e8d9f51c1",

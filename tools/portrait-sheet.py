@@ -38,7 +38,7 @@ BUST = 150                        # px from the head's top to the hands' line at
 MASK_D = 22                       # how far from the navy a channel must be to be figure
 HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
-FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace)
+FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4, 'bluespeak': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace; the Blue speaking through Nerisse, its light pulsing as the mouth moves)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
@@ -240,6 +240,17 @@ PEOPLE = {
     # the Hex boy, Papa's runner (11-04, the cutter of 11-04): the art desk's ART-126-HEXBOY-BATCH-F, art-wanted section 30 -- idle and the four moods, no work
     # page asked; his town figure stays folkchild_p1
     'hexboy': ('hexboy/ART-126-HEXBOY-BATCH-F', 'ART-126_HEXBOY', 'Papa\'s runner (art-wanted section 30)', {'edge': True, 'layout': LAYOUT[:5], 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # Nerisse, the Blue's Tongue, in her human shape at the Halfway Inn's hearth table (11-07, the desk of 11-07, on Griz's "got some more for human form Nerisse in
+    # Fresh"): the art desk's ART-125-NERISSE-BATCH-G, art-wanted section 29 -- H1P1-Idle.png to H1P5-Concerned.png her own face, a cup by her hand; H1P6 `blue`, the
+    # same pose as ATTENTIVE with the eyes gone blue-white and the stone lit, the Blue looking out; H1P7 `bluespeak`, six, the light pulsing as the Blue speaks
+    # through her (the lamia lane's two voices, its §6a.6: the talk's face by the line's `voice` -- not wired; the lane HELD on his "Wait for the inn"). The
+    # stills and the Blue drawn at about 1.5x the idle's scale snapped their sand robe to the gold, a flash at every face: matched to the idle's colours (Pete's way), the Blue to the Blue Speaking (the same light under the skin; matched to the idle or the Attentive it stayed gold)
+    'nerisse': ('nerisse/ART-125-G-PORTRAITS', 'H1', 'the lamia at the Halfway Inn (the lamia lane; no talk wired yet)', {'edge': True, 'pat': '%sP%d-*.png', 'bevel': (2, 3, 4, 5, 6), 'avoid': ['red', 'fire'], 'match': {2: 1, 3: 1, 4: 1, 5: 1, 6: 7},
+                 'layout': LAYOUT[:5] + [(6, [1], ['blue']), (7, [3, 3], ['bluespeak'] * 6)]}),
+    # Signy the rope-maker of the Shaft Rows, pin 26 (11-07, the desk of 11-07, on Griz's "we got a request for 'signy' in fresh"): the art desk's
+    # ART-123-SIGNY-PORTRAITS (its batch B), art-wanted section 26 -- ART-123-SIGNY_H1P1.png to H1P6, the dwarf woman with the grey braid and the leather apron
+    # at a plain wooden ledge; her work two cords twisted into a rope and let go, played once (its own notes: Work 6 holds the finished rope, so no loop)
+    'signy': ('signy/ART-123-SIGNY-PORTRAITS', 'ART-123-SIGNY', 'npc:signy (Silverton\'s street, pin 26)', {'edge': True, 'pat': '%s_H1P%d.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
