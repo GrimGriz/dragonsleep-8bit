@@ -38,7 +38,7 @@ BUST = 150                        # px from the head's top to the hands' line at
 MASK_D = 22                       # how far from the navy a channel must be to be figure
 HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
-FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4, 'bluespeak': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace; the Blue speaking through Nerisse, its light pulsing as the mouth moves)
+FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4, 'bluespeak': 4, 'bucket': 5}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace; the Blue speaking through Nerisse, its light pulsing as the mouth moves)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
@@ -217,7 +217,10 @@ PEOPLE = {
     # section 35 -- the six pages as ever under the art desk's own names (AMARA-HEAD-01-IDLE.png, KP01-Idle.png): Amara's work counts coins into her palm,
     # Elsbeth's is at the kitchen tub, its rim her ledge (the tub kept in her portrait, the art desk's own word)
     'amara': ('amara/INN-PORTRAITS-1104', 'AMARA', 'the Pit road (js/wagon.js: the wagon\'s own picture there now)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
-    'elsbethtub': ('elsbeth/INN-TUB-PORTRAITS-1104', 'K', 'npc:elsbeth (the Halfway Inn, js/inn.js M.talk)', {'edge': True, 'pat': '%sP%02d-*.png', 'avoid': ['red', 'fire']}),
+    # (and her bucket, 11-07, the desk of 11-07: art-wanted section 38's HEAD 7, the art desk's ELSBETH_HEAD-7_BUCKET.png -- she rises with the pail, tips it over the
+    # drugged lead on the drag and shouts; played once, js/secondact.js A.drag; Griz, 11-07: "pop her up like conversation, wake up! you're supposed to stop it")
+    'elsbethtub': ('elsbeth/INN-TUB-PORTRAITS-1104', 'K', 'npc:elsbeth (the Halfway Inn, js/inn.js M.talk)', {'edge': True, 'pat': '%sP%02d-*.png', 'avoid': ['red', 'fire'],
+                   'layout': LAYOUT + [('elsbeth/ART-38-BUCKET-1107/ELSBETH_HEAD-7_BUCKET.png', [3, 3], ['bucket'] * 6)]}),
     # Katarina at the Halfway Inn (11-05, cutter-1105, on the lanes desk's relay of Griz's "cutter has Katarina it doesn't know about yet"): the art desk's
     # HALFWAY-INN-KATARINA-PORTRAITS, art-wanted section 35 -- H01-Idle.png to H06-Work.png, writing in her book at a table by the common room's fire, the table's near
     # edge her ledge (cut off, as a counter's); her work the book written in, blotted and closed over her fingers, played once
@@ -228,7 +231,8 @@ PEOPLE = {
     # Gennet Waterby, the inn lady (11-05, cutter-1105, the same relay): the art desk's HALFWAY-INN-GENNET-PORTRAITS -- GENNET_HEAD-1_IDLE.png to HEAD-6_WORK.png, at the
     # bar in her linen kerchief and charcoal wool, the cloth in her right hand; her work the lantern taken off its hook, opened, trimmed, lit, shut and hung again,
     # played once (the hook and the lantern kept with her: islands inside her frame's box)
-    'gennet': ('gennet/INN-PORTRAITS-1105', 'GENNET', 'npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s_HEAD-%d_*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' bar top bevelled: a sliver of it stood under them)
+    'gennet': ('gennet/INN-PORTRAITS-1105', 'GENNET', 'npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s_HEAD-%d_*.png', 'bevel': (2, 3, 4, 5, 'gennet/ART-38-LOOK-1107/GENNET_HEAD-7_THE-LOOK.png'), 'avoid': ['red', 'fire'],
+               'layout': LAYOUT + [('gennet/ART-38-LOOK-1107/GENNET_HEAD-7_THE-LOOK.png', [1], ['look'])]}),   # (and her silencing look, 11-07: art-wanted section 38, held a beat after Elsbeth's shout on the drag)   # (her stills' bar top bevelled: a sliver of it stood under them)
     'katarina': ('katarina/INN-PORTRAITS-1105', 'H', 'npc:katarina (the Halfway Inn, js/inn.js)', {'edge': True, 'pat': '%s%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' table edge bevelled, as Falstaff's: a sliver of it stood under them)
     # Willem Glass, the illusionist (11-05, the Waterby cutter, on the lanes desk's relay of Griz's "Saw the mention I'd failed to DL them to Fresh and Willem portraits are there
     # now"): the art desk's HALFWAY-INN-WILLEM-PORTRAITS, art-wanted section 35 -- WILLEM_HEAD-1_PAGE-1.png to HEAD-6, at a table in his navy coat, a coin walking his knuckles;

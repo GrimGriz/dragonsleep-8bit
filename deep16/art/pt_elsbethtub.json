@@ -1,18 +1,18 @@
 {
  "image": "art/pt_elsbethtub.png",
- "fw": 154,
- "fh": 158,
+ "fw": 166,
+ "fh": 165,
  "ax": 87,
- "ay": 155,
- "top": 155,
+ "ay": 162,
+ "top": 162,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 154,
-   "fh": 158,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 6,
    "fps": 3,
    "ledge": [
@@ -25,11 +25,11 @@
    ]
   },
   "attentive": {
-   "y": 158,
-   "fw": 154,
-   "fh": 158,
+   "y": 165,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -37,11 +37,11 @@
    ]
   },
   "welcoming": {
-   "y": 316,
-   "fw": 154,
-   "fh": 158,
+   "y": 330,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -49,11 +49,11 @@
    ]
   },
   "skeptical": {
-   "y": 474,
-   "fw": 154,
-   "fh": 158,
+   "y": 495,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -61,11 +61,11 @@
    ]
   },
   "concerned": {
-   "y": 632,
-   "fw": 154,
-   "fh": 158,
+   "y": 660,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 1,
    "fps": 1,
    "ledge": [
@@ -73,11 +73,11 @@
    ]
   },
   "work": {
-   "y": 790,
-   "fw": 154,
-   "fh": 158,
+   "y": 825,
+   "fw": 166,
+   "fh": 165,
    "ax": 87,
-   "ay": 155,
+   "ay": 162,
    "frames": 6,
    "fps": 4,
    "ledge": [
@@ -87,6 +87,23 @@
     false,
     false,
     false
+   ]
+  },
+  "bucket": {
+   "y": 990,
+   "fw": 166,
+   "fh": 165,
+   "ax": 87,
+   "ay": 162,
+   "frames": 6,
+   "fps": 5,
+   "ledge": [
+    false,
+    false,
+    false,
+    true,
+    true,
+    true
    ]
   }
  },

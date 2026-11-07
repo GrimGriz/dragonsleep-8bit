@@ -14632,20 +14632,20 @@ true
 "source": "deep16/_src/elsbeth/ART-123-ELSBETH-PORTRAITS-PARTIAL (the art desk's H1, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_elsbethtub": {
-"image": "art/pt_elsbethtub.png?v=e78c219076",
-"fw": 154,
-"fh": 158,
+"image": "art/pt_elsbethtub.png?v=465dae4016",
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
-"top": 155,
+"ay": 162,
+"top": 162,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 154,
-"fh": 158,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 6,
 "fps": 3,
 "ledge": [
@@ -14658,11 +14658,11 @@ false
 ]
 },
 "attentive": {
-"y": 158,
-"fw": 154,
-"fh": 158,
+"y": 165,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -14670,11 +14670,11 @@ false
 ]
 },
 "welcoming": {
-"y": 316,
-"fw": 154,
-"fh": 158,
+"y": 330,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -14682,11 +14682,11 @@ false
 ]
 },
 "skeptical": {
-"y": 474,
-"fw": 154,
-"fh": 158,
+"y": 495,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -14694,11 +14694,11 @@ false
 ]
 },
 "concerned": {
-"y": 632,
-"fw": 154,
-"fh": 158,
+"y": 660,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -14706,11 +14706,11 @@ false
 ]
 },
 "work": {
-"y": 790,
-"fw": 154,
-"fh": 158,
+"y": 825,
+"fw": 166,
+"fh": 165,
 "ax": 87,
-"ay": 155,
+"ay": 162,
 "frames": 6,
 "fps": 4,
 "ledge": [
@@ -14720,6 +14720,23 @@ false,
 false,
 false,
 false
+]
+},
+"bucket": {
+"y": 990,
+"fw": 166,
+"fh": 165,
+"ax": 87,
+"ay": 162,
+"frames": 6,
+"fps": 5,
+"ledge": [
+false,
+false,
+false,
+true,
+true,
+true
 ]
 }
 },
@@ -15011,8 +15028,8 @@ true
 "source": "deep16/_src/genman/ART-122 (the art desk's ART-122-MAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_gennet": {
-"image": "art/pt_gennet.png?v=c31b78618b",
-"fw": 215,
+"image": "art/pt_gennet.png?v=c923d338b3",
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15021,7 +15038,7 @@ true
 "anims": {
 "idle": {
 "y": 0,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15038,7 +15055,7 @@ true
 },
 "attentive": {
 "y": 156,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15050,7 +15067,7 @@ true
 },
 "welcoming": {
 "y": 312,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15062,7 +15079,7 @@ true
 },
 "skeptical": {
 "y": 468,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15074,7 +15091,7 @@ true
 },
 "concerned": {
 "y": 624,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15086,7 +15103,7 @@ true
 },
 "work": {
 "y": 780,
-"fw": 215,
+"fw": 217,
 "fh": 156,
 "ax": 131,
 "ay": 153,
@@ -15098,6 +15115,18 @@ true,
 true,
 true,
 true,
+true
+]
+},
+"look": {
+"y": 936,
+"fw": 217,
+"fh": 156,
+"ax": 131,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
 true
 ]
 }
