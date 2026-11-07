@@ -3300,6 +3300,50 @@
     document.body.appendChild(preR);
     return;
   }
+  // THE WOUND THAT ENDS A DISGUISE (mode=wound1107; the desk of 11-07 on Griz's "Build it now"): a creature standing in its disguise (a sheet with Still and
+  // Reveal) and wounded plays its Reveal at once -- the lamia's struck woman (`stillflinch`, the art desk's ART-125 batch H) first, ui.js running the one into the
+  // other -- where before the wound woke it straight to its idle and the Reveal waited for a turn begun still (js/battle.js hurt, js/ui.js unitObj, js/show.js)
+  if (get('mode', '') === 'wound1107') {
+    var repWD = { checks: [], errors: [], notes: [] }, muWD = D.music, apWD = window.DS.autoPicks, d0WD = D.d;
+    function okWD(what, v) { repWD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkWD(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function foeWD(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; })[0]; }
+    var cvWD = document.createElement('canvas'); cvWD.width = 640; cvWD.height = 480; var cxWD = cvWD.getContext('2d');
+    function shotWD(Bx, u, when) { var t0 = Bx.t; Bx.t = (u.animT || 0) + when; var o = D.ui.unitObj(Bx, u); if (o) o.draw(cxWD); Bx.t = t0; return (o && o.shown) || {}; }
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1107);
+      // 1. the lamia standing as the robed woman, wounded: struck, then her Reveal, then the lion's idle
+      var B1 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), la = foeWD(B1), st1 = !la.woken && !la.acted, dF = D.spr.duration(la.sheet, 'stillflinch'), dR = D.spr.duration(la.sheet, 'reveal');
+      var s0 = shotWD(B1, la, 0);
+      okWD('1 the lamia stands disguised before the blow (woken ' + !!la.woken + ', drawn ' + s0.anim + ')', st1 && s0.anim === 'still');
+      B1.hurt(la, 3, 'slashing');
+      okWD('1 wounded: her row ' + la.anim + ' (want stillflinch), woken ' + !!la.woken + ', hp ' + la.hp, la.anim === 'stillflinch' && la.woken && la.hp > 0);
+      var sA = shotWD(B1, la, 2), sB = shotWD(B1, la, dF + 2), sC = shotWD(B1, la, dF + dR + 20);
+      repWD.notes.push('1 stillflinch ' + dF + ' ticks, reveal ' + dR);
+      okWD('1 drawn: ' + sA.anim + ' at once, ' + sB.anim + ' after the flinch, ' + sC.anim + ' after both (want stillflinch, reveal, idle)', sA.anim === 'stillflinch' && sB.anim === 'reveal' && sC.anim === 'idle');
+      var aT = la.animT; B1.hurt(la, 2, 'slashing');
+      okWD('1 a second blow mid-flinch leaves it playing (' + la.anim + ', animT kept ' + (la.animT === aT) + ')', la.anim === 'stillflinch' && la.animT === aT);
+      B1.t = aT + dF + dR + 10; B1.hurt(la, 2, 'slashing');
+      okWD('1 a blow after the reveal: her own flinch (' + la.anim + ')', la.anim === 'flinch');
+      // 2. a lamia already awake (she has acted): a blow is the plain flinch, no reveal
+      var B2 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), l2 = foeWD(B2); l2.acted = true; B2.hurt(l2, 3, 'slashing');
+      okWD('2 an awake lamia wounded flinches (' + l2.anim + ')', l2.anim === 'flinch');
+      // 3. a blow that drops her: no reveal row over the fall
+      var B3 = mkWD('?npc=lamia&lvl=5&vs=fighter:5'), l3 = foeWD(B3); B3.hurt(l3, l3.hp + 5, 'slashing');
+      okWD('3 a blow that drops her disguised: no stillflinch (' + l3.anim + ', hp ' + l3.hp + ')', l3.anim !== 'stillflinch' && l3.anim !== 'reveal' && l3.hp <= 0);
+      // 4. the roper's stalagmite (Still and Reveal, no struck row): the wound plays its Reveal
+      var B4 = mkWD('?npc=roper&lvl=5&vs=fighter:5'), r4 = foeWD(B4); B4.hurt(r4, 3, 'slashing');
+      var s4 = shotWD(B4, r4, 2);
+      okWD('4 the roper wounded standing still: ' + r4.anim + ', drawn ' + s4.anim + ' (want reveal)', r4.anim === 'reveal' && s4.anim === 'reveal');
+      // 5. her turn after the wound: no second Reveal (js/ai.js wasStill reads woken)
+      okWD('5 woken by the wound, so her turn plays no Reveal again (woken ' + !!la.woken + ')', !!la.woken);
+    } catch (eWD) { repWD.errors.push(String(eWD && eWD.stack || eWD).slice(0, 900)); }
+    D.d = d0WD; D.music = muWD; window.DS.autoPicks = apWD;
+    var preWD = document.createElement('pre'); preWD.id = 'out'; preWD.textContent = 'BENCH16 ' + JSON.stringify(repWD);
+    document.body.appendChild(preWD);
+    return;
+  }
   // THE GRID'S FIXES OF 11-07 (mode=gridfix1107; the gridfix-1107 seat, started by the lanes desk on his fights of 11-06 evening -- the grid's rules lane's "2026-11-07 -- his
   // fights of 11-06 evening read"): 1. a foe that yields mid-turn stops there (battle.js Battle.overStop, ai.js AI.TURN_OVER) -- no more walk, no more reactions asked, no shot after;
   // 2. a simple fight's Hide against blindsight it will meet in melee (simple.js S.meetsInMelee) -- seen, the card saying why, and a bow keeps the lineup's distance; 3. keen senses in

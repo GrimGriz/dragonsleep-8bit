@@ -3276,6 +3276,7 @@
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
     if (this.castBy != null && this.castLevel != null && D.magic.accountAnswer) D.magic.accountAnswer(this, u, n); // (Called to Account: a called foe's spell that harms another -- js/grimoire.js, 10-30)
+    var wasStill = !u.woken && !u.acted; // (a disguise this wound ends -- its Reveal plays below, not at its turn: js/ai.js wasStill)
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     // Freeze (the water elemental, SRD 5.1: "If the elemental takes cold damage, it partially freezes; its speed is reduced by 20 feet until the end of its next turn" -- grimoire.js onStart)
     if (u.freeze && type === 'cold' && !u.dead) { var fz = !u.conds.frozen; u.conds.frozen = { till: { who: u.id, at: 'end', n: this.active === u ? 2 : 1 } }; if (fz) this.card(['{c}The ' + shortName(u) + ' partially freezes:{/} {g}its speed 20 ft less till the end of its next turn{/}'], 200); }
@@ -3352,7 +3353,12 @@
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
     // a sheet with a hit row flinches (played once, ui.js unitObj) when the blow doesn't drop it and it isn't mid-swing or mid-stride
-    if (u.hp > 0 && (!u.anim || u.anim === 'idle' || u.anim === 'flinch') && D.spr.anim(u.sheet, 'flinch')) { u.anim = 'flinch'; u.animT = this.t; }
+    // the wound that ends a disguise (a sheet with Still and Reveal: the lamia's robed woman, the roper's stalagmite, the gargoyle's statue, the grick's rock) plays
+    // the Reveal at once, the lamia's struck woman (`stillflinch`, the art desk's ART-125 batch H) first -- ui.js runs the one into the other (11-07, Griz: "Build it now");
+    // before, the wound woke it straight to its idle and the Reveal waited for a turn it began still, so a blow popped the disguise with no reveal
+    var spH = function (a) { return D.spr.anim(u.sheet, a) ? D.spr.duration(u.sheet, a) : 0; };
+    if (u.hp > 0 && wasStill && D.spr.anim(u.sheet, 'still') && D.spr.anim(u.sheet, 'reveal')) { u.anim = D.spr.anim(u.sheet, 'stillflinch') ? 'stillflinch' : 'reveal'; u.animT = this.t; }
+    else if (u.hp > 0 && (!u.anim || u.anim === 'idle' || u.anim === 'flinch' || ((u.anim === 'stillflinch' || u.anim === 'reveal') && this.t - (u.animT || 0) > spH('stillflinch') + spH('reveal'))) && D.spr.anim(u.sheet, 'flinch')) { u.anim = 'flinch'; u.animT = this.t; } // (a blow after the reveal has played: the creature's own flinch)
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
     // massive damage (SRD 5.1: "When damage reduces you to 0 hit points and there is damage remaining, you die if the remaining damage equals or exceeds your hit point maximum";

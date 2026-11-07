@@ -298,7 +298,6 @@ if __name__ == '__main__':
         meta['anims'][an]['fps'] = fps
     for an in ('stillwalk', 'stillcast'):            # (cut, not wired: her encounter is held for a story session -- js/show.js does not ask for them)
         meta['anims'][an]['held'] = 'the human form, not played yet (his "hold for now I\'ll collab with story oriented session")'
-    meta['anims']['stillflinch']['held'] = 'the human form struck (ART-125 batch H, 11-07): not played yet -- a wound wakes her straight to the lion\'s idle; the flinch then the reveal is the lamia lane\'s to wire'
     meta['source'] = 'drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)'
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))

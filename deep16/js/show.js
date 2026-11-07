@@ -515,6 +515,7 @@
       var a = blowFor(u, r), m = S.mate, nm = function (x) { return String(x.name || 'blow'); };
       if (a) return { say: 'Its ' + nm(a) + ' at the fighter, ' + (a.ranged ? 'from across the floor' : 'in its reach') + ': the blow lands.', go: function* () { if (standIn(u, a)) yield* blow(u, m, a); else { u.anim = r; u.animT = B.t; } } };
       if (r === 'flinch') return { say: "The fighter's blow at it: it flinches.", go: function* () { if (standIn(u, { reach: 5 })) yield* blow(m, u, m.weapon); } };
+      if (r === 'stillflinch') return { say: "Standing as the robed woman, the fighter's blow at her: struck, she drops the disguise -- her Reveal after the flinch (battle.js hurt).", go: function* () { if (standIn(u, { reach: 5 })) { u.woken = false; u.acted = false; u.anim = 'idle'; yield 30; yield* blow(m, u, m.weapon); } } }; // (11-07, the art desk's ART-125 batch H)
       if (r === 'catch' && u.rockCatch) return { say: 'A stone hurled at it, the d20 pinned so the save holds: it catches it.', go: function* () { if (standIn(u, { ranged: true, range: [20, 60] })) { m.facing = B.faceTo(m, u); yield* blow(m, u, STONE, 20); } } };
       if (r === 'hide' && B.hide) return { say: 'Its Hide, the d20 pinned and a Stealth no eye beats: the row held while it stays hidden.', go: function* () {
         D.rules.startTurn(u); if (u.turn) u.turn.bonus = 1;
