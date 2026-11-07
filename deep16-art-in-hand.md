@@ -7,6 +7,8 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-07 · Signy the rope-maker, art-wanted section 26 (the art desk's ART-123-SIGNY-PORTRAITS, six pages: Idle 6, the four moods, Work 6 -- two cords twisted, pulled taut, let go; and ART-123-SIGNY-TOWN, five views of Idle 4) · `deep16/_src/signy/` · cut into `pt_signy` (`tools/portrait-sheet.py`) and `signy_p1` in all eight facings at `tall` 38, the art desk's own proposal against a keeper's 50 (`tools/keeper-town-sheet.py`), `72298216`, by the desk of 11-07 · his *"we got a request for 'signy' in fresh"*
+- 2026-11-07 · the lamia at the Halfway Inn, art-wanted section 29: Nerisse's talking portrait and the woman's wound (the art desk's ART-125-NERISSE-BATCH-G, seven pages: Idle 6, the four moods, THE BLUE, THE BLUE SPEAKING 6; and ART-125-HUMAN-FLINCH-BATCH-H, five views of Flinch 4, its E frame 4 held by the art desk for the slit pupil) · `deep16/_src/nerisse/`, `deep16/_src/lamia/ART-125-H-FLINCH/` · cut into `pt_nerisse` (`tools/portrait-sheet.py`; the moods and the Blue toned to the idle's sand) and `lamia_p1` row `stillflinch`, held (`tools/lamia-sheet.py`; each page stood by its frame 4 at its view's Disguise 6, toned to its view's still), `72298216`, by the desk of 11-07 · his *"got some more for human form Nerisse in Fresh"*
 - 2026-11-06 · the Halfway Inn's people, asked through the lanes desk (no art-wanted block; the dream list's `doran_p2` idle and `gennet_p2` walk lines of 11-05): Doran's armed idle (the art desk's loose page "Doran Waterby five-view axe idle sheet.png", five views of Idle 4) and Gennet's fight walk (HALFWAY-INN-GENNET-FIGHT-WALK, five views of Walk 8, every MANIFEST sha256 matched) · `deep16/_src/doran/INN-IDLE-1106/`, `deep16/_src/gennet/INN-FIGHT-WALK-1106/` · cut into `doran_p2` idle and `gennet_p2` walk (`tools/doran-sheet.py`, `tools/gennet-sheet.py`), `c91b5cac`, by the cutter of the Waterbys' 11-06 pages
 - 2026-11-05 · the Halfway Inn's people, art-wanted section 35: Willem's talking portrait (the art desk's HALFWAY-INN-WILLEM-PORTRAITS, six pages: Idle 6, the four moods, Work 6) · `deep16/_src/willem/INN-PORTRAITS-1105/` · cut into `pt_willem` (`tools/portrait-sheet.py`), `60dd24b3`, by the Waterby cutter; on the portraits shelf (`js/counter.js` C.VENDORS.willem) -- he speaks nowhere in the second game yet. Section 35 all in hand: its opening words and the portrait's paste below
 - 2026-11-05 · the Halfway Inn's people, art-wanted section 35: Willem's fight figure and his mounted rows (the art desk's HALFWAY-INN-WILLEM-COMBAT-SE and -COMBAT-REMAINING, five views of Idle 6, Walk 8, Run 8, Cast 6, Traces 6, Flinch 4, Fall 4, Prone 1, two pages a view; -MOUNTED, five views of Ride 6 and Halt 1, block 8) · `deep16/_src/willem/INN-COMBAT-SE-1105/`, `INN-COMBAT-1105/`, `INN-MOUNTED-1105/` · cut into `willemglass_p2` and `willemmounted_p1` (`tools/willem-sheet.py`), `b746a94a`, by the Waterby cutter; his figure in every fight with him (`data/foes.js` willem; the class floor's look), his Traces row drawn at the buckles (`js/ui.js`); the mounted rows NOT wired (nothing draws a rider yet). His talking portrait (HEADs 1-6) did not come -- its paste stays on art-wanted. Section 35's people otherwise all in hand
@@ -2914,3 +2916,67 @@ HEAD 6 -- WORK (6, two bands of three): the coin walks across his knuckles, he c
 HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden table edge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the table edge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
 ```
 Where: a word of his wherever the story gives him one. Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_willem`.
+
+### Nerisse's talking portrait and the woman's wound (asked 10-28 in art-wanted section 29; drawn by the art desk, ART-125-NERISSE-BATCH-G and ART-125-HUMAN-FLINCH-BATCH-H, reached Fresh 11-07; CUT 11-07, `72298216`; the flinch row held, not played)
+
+### Nerisse, the Blue's Tongue -- the talking portrait, and the Blue's face
+ATTACH `deep16/_src/lamia/ART-20/ART-20_HEAD-1_PAGE-1.png` (her portrait and turnaround: the face, the hair, the gold circlet with the teal stone) and `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: a foe from the same game, the lamia, whose portrait page shows her face; and two portrait pages from the same game, for the format only. Draw the lamia's face, in her human form, in that format.
+
+NERISSE -- a desert woman at an inn's hearth table, waist-up: long wavy black hair past her shoulders, dark-lined eyes, a fine gold circlet with one teal stone on her brow, small gold earrings, a loose hooded robe of sand-coloured cloth pushed back off her head, a broad brown sash. Calm, watchful, a little too graceful; nothing about her shows what she is.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the table, hands resting on it, a cup by one hand; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth, a courtier's.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of her.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- THE BLUE (1): the same face, the same pose as ATTENTIVE -- but the eyes have gone blue-white from lid to lid, no pupil, the teal stone on her brow is lit from inside, and a pale lightning-coloured light shows faintly under the skin at the temples and the throat. Her expression does not change. Something else is looking out.
+HEAD 7 -- THE BLUE SPEAKING (6, two bands of three): THE BLUE's face as HEAD 6, the light under the skin pulsing slowly brighter and dimmer across the six frames, the stone flickering once; the mouth moves as if speaking; loops cleanly.
+
+HEADs 1-7 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden table edge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the table edge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Where: the Halfway Inn's common room (the lane's Beat 1-4). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_nerisse`, HEADs 1-5 the keepers' faces, HEAD 6 a face `blue`, HEAD 7 an action `bluespeak`; js/counter.js reads the face by the line's `voice` (the lane's §6a.6).
+
+### The woman's wound -- one row more for §24's figure
+ATTACH as §24 (her portrait page and the five Disguise pages; frame 6 of each is the woman).
+```text
+Attached: the same woman as before -- the lamia in her human form, frame 6 of each Disguise sheet. Draw one more row of her, in the same pixel style, the same size.
+
+THE LAMIA IN HER HUMAN FORM, STRUCK -- five sheets, one row each. Flinch (4): she takes a blow, staggers back a half step, one hand to the wound at her side, the hood falling back; on frame 4 she straightens and looks up, and for the first time her eyes are not a woman's -- the pupils gone to slits, a cat's. Nothing else of what she is shows yet.
+
+HEAD 1 -- from the bottom-right, every frame facing toward the bottom-right corner of the image: Flinch (4).
+HEAD 2 -- from the top-right, seen from behind, every frame facing toward the top-right corner: Flinch (4).
+HEAD 3 -- straight from the front, facing the viewer: Flinch (4).
+HEAD 4 -- from the right side in profile, facing right: Flinch (4).
+HEAD 5 -- straight from behind, facing away from the viewer: Flinch (4).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title; rows only, drawn exactly as the attached frame 6 shows her, the same look, colours and size. One labelled row, its name at its left, numbered 1 to 4 under each frame. Every frame stands apart with clear space around it. Feet on one baseline. No scenery.
+```
+Cut as: a row `stillflinch` onto `lamia_p1` (tools/lamia-sheet.py), scaled by the Disguise row's frame 6 of the same view as §24's rows are; it plays on the wound that ends the disguise, before `reveal`.
+
+### Signy the rope-maker (asked 10-28 in art-wanted section 26; drawn by the art desk, ART-123-SIGNY-PORTRAITS and -TOWN, its batches B and C, reached Fresh 11-07; CUT 11-07, `72298216`)
+
+### Signy the rope-maker
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+SIGNY THE ROPE-MAKER -- a dwarf woman grown old-looking among humans: she looks sixty and has not aged in anyone's memory; short and broad as her kind, strong hands, a braid gone grey, a rope-maker's leather apron over the Shaft Rows' plain wool [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): twists two strands of cord together into rope and pulls them tight; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the shaft rows (`signy`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_signy`; `tools/keeper-town-sheet.py` into `signy_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
