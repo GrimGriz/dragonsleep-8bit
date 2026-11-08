@@ -929,7 +929,11 @@
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
     // (which 'field': a floor's random fight on a field of its own, the road's way -- js/mines.js M.fieldFight, 10-22: trig.field its fight def, simple or on the grid by OPTIONS)
     var fd = which === 'field' ? trig.field : null, zoom0 = fd ? D.iso.zoom : null; // (zoom0: the floor's zoom, put back after -- 10-27, his "Going to the Grid Fight changes the zoom on the roam": a town floor's zoom is held, js/ui.js UI.setZoom)
-    var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
+    // the floor's map, grid and camera back the moment the fight is popped -- not two of the floor's frames later, as `while (!done) yield 1` wakes: 11-08, his record,
+    // "there's a second where a small child appears" after the ettercap and "a generic man" after the spiders -- Web Gulch's drummer boy and silk-cutter drawn on the
+    // fight's ground from the fight's camera for those frames (the restore below stays: twice is harmless)
+    var home = function () { D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map; if (zoom0 != null) D.iso.zoom = zoom0; B.focus(R0.token); };
+    var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; home(); } });
     if (fd && fd.record) o.record = fd.record; // (a field's play record in the house: js/record.js, finished below as the fight comes back)
     else if (!fd && R.house()) o.record = { fight: which, name: R.def.name + ': ' + (which === 'keeper' ? 'the Keeper of the Flooded Stair' : 'the Settling'), level: ((R0.members[0] || {}).src || {}).lvl, simple: false }; // (the Settling and the Keeper too, 10-31)
     // (paid on the fight's last card: R.pullPay -- a floor's field and the Keeper's room; the Settling keeps no end card, RULED 09-30c, "no press e, just go", so it pays on the floor it is)
@@ -987,7 +991,7 @@
         var r = up0.apply(this, arguments);
         if (!done && this.flags8 && this.flags8.otyughFed && this.req && this.req.turn && this.units && !this.units.some(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.dormant && !u.fed && !u.left; })) {
           if (D.top() === this) D.pop();
-          done = 'fed';
+          done = 'fed'; home();
         }
         return r;
       };
