@@ -166,7 +166,6 @@
     warrenspete: function () { return 'pt_pete'; } }; // (Warrens Pete in the Hex: his one face, 10-30)
   C.PT = {}; C.OWN = {}; C.SHOPS = {};
   Object.keys(C.VENDORS).forEach(function (id) { var v = C.VENDORS[id]; if (v.sheet) C.PT[id] = v.sheet; if (v.own) C.OWN[id] = 1; if (v.shop) C.SHOPS[id] = v.shop; });
-  if (!C.PT.thrane) C.PT.thrane = 'pt_genman'; // (Thrane's man, the east side's at the council: the generic man's face till he has his own -- 11-08, his note "East Side's Man doesn't fit an NPC we have a portrait of?")
   C.takes = function (id) { var v = C.VENDORS[id]; return !!v && (!!v.script || !!v.shop || !!(v.sheet && D.SHEETS && D.SHEETS[v.sheet])); };
   // a magic item, by the SRD's: a weapon or armour +N, a thing that takes attunement or gives a resistance, an immunity or advantage (a ring, the boots, the
   // periapt), and the SRD's potions and elixir by name -- not the Charm (Lisbet's trinket), plain plate, antitoxin or a diamond

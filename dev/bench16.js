@@ -3491,7 +3491,7 @@
   // pool); 3. the cloaker's turn portrait on its eyes (cloaker_p2 face 41); 4. Black Tentacles: a big one held by an edge square crushed, and seized stepping in by one;
   // a failed save's 3d6 on the card; the break-free line (grimoire.js M.groundOn, magic.js breakFree); 5. no opportunity attack from a familiar, and no card for a swing
   // with nothing to make (battle.js moveAlong); 6. the sphere rammed from beside (grimoire.js); 7. the gear page's dice (js/menu.js gearDesc); 8. Thrane's man's face
-  // (counter.js); 9. Elsbeth's nights to the due (inn.js In.nightsToDue); 10. the floor back the frame its pulled-in fight closes (roam.js R.pullIn0's home): Web
+  // (mode=hours1028 C3 holds it); 9. Elsbeth's nights to the due (inn.js In.nightsToDue); 10. the floor back the frame its pulled-in fight closes (roam.js R.pullIn0's home): Web
   // Gulch's camp people never on the fight's ground. The dice pinned: every d20 a 19 (a 1 where a save must fail), every other die its half
   if (get('mode', '') === 'records1108') {
     var repRB = { checks: [], errors: [], notes: [] }, memRB = {}, stGRB = D.store.get, stSRB = D.store.set, muRB = D.music, apRB = window.DS.autoPicks, d0RB = D.d, GGr = D.grid, RUr = D.rules, MGr = D.magic, simOnRB = D.simple && D.simple.on;
@@ -3599,11 +3599,7 @@
       okRB('7 maul1 "' + m7 + '"; candleknife "' + c7 + '"; longsword1 "' + s7 + '"; dagger "' + d7 + '" (want the dice ahead of the words; the dagger as it was)',
         /^2d6 bludgeoning\. Heavy, two-handed\. \+1 to hit/.test(m7) && /^1d4 piercing\. Finesse, light\. A dagger/.test(c7) && /^1d8 slashing \(1d10 two-handed\)\. \+1 to hit/.test(s7) && d7 === I7.dagger.desc);
       } catch (eS) { repRB.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
-      try {
-      // 8. THRANE'S MAN (his note in Silverton: "East Side's Man doesn't fit an NPC we have a portrait of?")
-      var pt8 = D.counter.PT.thrane;
-      okRB('8 the council\'s Thrane: portrait ' + pt8 + ', its sheet ' + !!(D.SHEETS && D.SHEETS[pt8]) + ' (want pt_genman, true)', pt8 === 'pt_genman' && !!(D.SHEETS && D.SHEETS.pt_genman));
-      } catch (eS) { repRB.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      // (8. THRANE'S MAN on the generic man's face: held by mode=hours1028's C3, the council's own page -- "The east side's man|pt_genman|")
       try {
       // 9. ELSBETH'S "TONIGHT" (his note at the inn, day 15: "elsbeth saying tonight with a girl skipping stones and nothing for multiple days")
       var In9 = D.inn, d9 = In9.dueDay(0), f9 = {}, n9 = [d9 - 3, d9 - 2, d9 - 1, d9].map(function (d) { return In9.nightsToDue(f9, d); });

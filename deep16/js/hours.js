@@ -498,7 +498,7 @@
   // the player at the parties nearest (chronological) rest cycle", "C3 is that any crawler kill trigger or the thinning the herd too much amount", "18 - yes, lantern warning same
   // trigger as council meeting", "17 - yeah, that's good"). The register: Androit, Hessle, Casper Venn, Papa Urtusk, Ottak Harrow, and Merrick when word from outside matters; the
   // lounge under the Big Window; "the scales are lit", the Weigh-House lamp the signal (TarlynsPit/wiki/silverton.md, the-hex.md). One screen for every sitting: the counter's,
-  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the generic man's face, counter.js C.PT.thrane, 11-08; Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C3 plays at the party's next long
+  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the generic man's face, the sitting's own fallback below since 11-08, his "East Side's Man doesn't fit an NPC we have a portrait of?" (not in counter.js C.PT: he is no keeper); Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C3 plays at the party's next long
   // rest after the council sits, over the morning, the party not in the room; C1 since 11-06 at its own hour, wherever the party is (THE PIT'S WORD AT ITS HOUR, below the
   // night's cutscene); C2 is the party called up, at renown 2, played when they reach the third floor. Every line the
   // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
@@ -571,7 +571,7 @@
       for (var i = 0; i < ids.length; i++) {
         var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) { f[cs.flag] = 1; if (cs.opens) f[cs.opens] = 1; if (cs.pin) f.pinWant = cs.pin; } });
         if (!(seen && i === 0) && !cut) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); } // (bare: no one speaking -- over the third floor, the room alone)
-        for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.bare = false; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
+        for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || (who === 'thrane' ? 'pt_genman' : null); s.bare = false; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
         if (cs.end) { s.sheet = null; s.bare = false; s.o.name = H16.BOARD.name; s.o.pic = H16.boardPic({ flags: H16.mergeFlags(flagsets) }); yield s.say(['{g}' + cs.end + '{/}']); s.o.pic = null; s.o.name = 'The council'; }
       }
     })(); } });
