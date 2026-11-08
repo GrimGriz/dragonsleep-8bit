@@ -127,7 +127,7 @@
     var aid = st.cast.aid, at = hs.filter(function (h) { return h.id !== aid.out; }).slice(0, 3), awhy = '';
     if (!ly || !ly.prepared || ly.prepared.indexOf('aid') < 0) awhy = ly && SV.prepPool(ly).indexOf('aid') >= 0 ? 'not prepared' : 'Lymen has it from level 5';
     else if (slotAt(ly, 2) < 0) awhy = 'no 2nd-level slot left';
-    if (aid.on && !awhy) { ly.slots[slotAt(ly, 2)]--; at.forEach(function (h) { h.maxhp += 5; h.hp += 5; h.conds.aid = (h.conds.aid || 0) + 5; }); }
+    if (aid.on && !awhy) { ly.slots[slotAt(ly, 2)]--; at.forEach(function (h) { h.maxhp += 5; h.hp += 5; h.conds.aid = (h.conds.aid || 0) + 5; window.DS.R.pieAid(h); }); }
     info.aid = { why: awhy, targets: at, on: aid.on && !awhy, has: !!ly && SV.prepPool(ly).indexOf('aid') >= 0 };
     info.elemental = { has: false };
     // a torch in hand (Griz, 09-28h: "Can we add 'Aurdin torch' as a campfire prepare?"): lit at the camp, out of the pack, so

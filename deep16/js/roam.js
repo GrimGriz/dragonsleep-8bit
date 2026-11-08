@@ -1018,7 +1018,7 @@
     (b.units || []).forEach(function (u) {
       var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (!w) return;
       if (u.drained) { w.maxhp = Math.max(1, w.maxhp - u.drained); if (w.src) w.src.maxhp = Math.max(1, w.src.maxhp - u.drained); w.drained = (w.drained || 0) + u.drained; }
-      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); if (w.src && w.src.conds) ['light', 'daylight'].forEach(function (k) { if (!w.conds[k]) delete w.src.conds[k]; }); if (w.src) R.flameBack(w.src, u); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {})); // (a Light that ended in there ends on the floor's sheet too: 10-28; the slots and uses back again since 10-29 -- 18137db5's comment had swallowed them, and every field fight gave back its short-rest uses: his "short-rest stuff is recharging without the party taking a short rest (barley)")
+      R.pieBack(w, u); w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); if (w.src && w.src.conds) ['light', 'daylight'].forEach(function (k) { if (!w.conds[k]) delete w.src.conds[k]; }); if (w.src) R.flameBack(w.src, u); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {})); // (a Light that ended in there ends on the floor's sheet too: 10-28; the slots and uses back again since 10-29 -- 18137db5's comment had swallowed them, and every field fight gave back its short-rest uses: his "short-rest stuff is recharging without the party taking a short rest (barley)")
       R.exhaustBack(w, u); // (a level of exhaustion the fight laid on, onto the sheet: R.exhaustBack)
       if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
       if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
@@ -1089,7 +1089,7 @@
     w.conds.exhaustion = JSON.parse(JSON.stringify(h.conds.exhaustion)); w.maxhp = Math.min(w.maxhp, h.maxhp); w.hp = Math.min(w.hp, w.maxhp); if (h.dead) { w.hp = 0; w.ko = true; }
     h.hp = w.hp; return n - had;
   };
-  R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light', 'daylight']; // (daylight: the SRD's hour as the Light's, 10-28 night) // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
+  R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light', 'daylight', 'fortified']; // (daylight: the SRD's hour as the Light's, 10-28 night) // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
   R.lasting = function (c) {
     var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); });
     if (c && c.poisoned && c.poisoned.hour) { o.poisoned = JSON.parse(JSON.stringify(c.poisoned)); if (c.paralyzed && c.paralyzed.hour) o.paralyzed = JSON.parse(JSON.stringify(c.paralyzed)); } // (a spider's poison that dropped one: its hour, 10-29 -- battle.js atk.save.zero)
@@ -1097,7 +1097,15 @@
     var H = D.house, now = H && H.playing && H.cur ? H.clock(H.cur) : null;
     if (now != null) ['light', 'daylight'].forEach(function (k) { if (o[k] && o[k].until == null) o[k].until = now + H.LIGHT_HOURS; });
     if (now != null && o.poisoned && o.poisoned.until == null) { o.poisoned.until = now + 1; if (o.paralyzed) o.paralyzed.until = now + 1; } // (SRD 5.1: "poisoned for 1 hour")
+    if (now != null && o.fortified && o.fortified.until == null) o.fortified.until = now + window.DS.R.PIE.hours; // (a pie eaten in a fight: its hour from now -- 11-08)
     return o;
+  };
+  // a pie eaten in a fight whose figures are not the floor's own (the pulled-in fight, a Hex bout): the floor's figure, and its sheet if the pie is not on it yet, take what
+  // it lent before their hit points are clamped to it (11-08; js/rules.js R.eatPie)
+  R.pieBack = function (w, u) {
+    var f = u && u.conds && u.conds.fortified; if (!f || !w) return; var n = +f.hp || 0;
+    if (!(w.conds && w.conds.fortified)) w.maxhp += n;
+    if (w.src && w.src !== w && !(w.src.conds && w.src.conds.fortified)) { w.src.maxhp += n; w.src.conds = w.src.conds || {}; w.src.conds.fortified = R.lasting({ fortified: f }).fortified; }
   };
   // a Continual Flame back off a grid fight onto a sheet as the weapon it burns on (10-28 night, his "did the continual light on a weapon from the 8-bit make it over?"): the grid
   // keeps it on the figure as { by, from, lv } (deep16/js/magic.js, for a Globe), the sheet as the weapon's id -- the first game's way, and what the mouth reads (js/mines.js

@@ -3816,7 +3816,7 @@
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
     if (use.effect === 'revive') return w.hp <= 0;
     if (use.effect === 'heal') return w.hp < w.maxhp;
-    if (use.effect === 'fortify') return w.hp > 0 && !w.fortified;
+    if (use.effect === 'fortify') return w.hp > 0; // (a second while one holds: eaten, nothing more -- his 11-08, js/rules.js R.eatPie)
     if (use.effect === 'antitoxin') return !w.conds.antitoxin; // (one dose does it: the SRD's, 10-14)
     return true;
   };
@@ -3856,9 +3856,14 @@
       if (use.effect === 'cure') { if (w.conds.paralyzed) { delete w.conds.paralyzed; gone.push('the paralysis'); } gone = gone.concat(D.magic.cureSick ? D.magic.cureSick(w) : []); }
       this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (gone.length ? ': ' + (gone.length > 1 ? gone.slice(0, -1).join(', ') + ' and ' + gone[gone.length - 1] : gone[0]) + ' gone.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10);
     }
-    if (use.effect === 'fortify') {
-      w.fortified = true; w.maxhp += 5; w.hp += 5; if (w.saves) w.saves.con += 1;
-      this.card(['{y}' + (w === u ? u.name + '{/} eats' : u.name + '{/} gives ' + w.name) + ' a ' + it.name + ': {n}+5 HP{/} and +2 CON {g}(+1 to CON saves) for the fight{/}']); FX.sparkle(w, 'moss', 12);
+    if (use.effect === 'fortify') { // (11-08, his: "can we do the pie like a light spell (lasts an hour) and edible outside of combat (with no added benefit for allowed consumed multiples)", then "not to stack with aid, whichever is greater (unless SRD disagrees)" -- the pie is ours, not the SRD's; its nearest rule, temporary hit points, never stacks either)
+      var RP = window.DS.R, Hp = D.house, nowP = Hp && Hp.playing && Hp.cur ? Hp.clock(Hp.cur) : null, whoP = (w === u ? u.name + '{/} eats' : u.name + '{/} gives ' + w.name) + ' a ' + it.name, addP = RP.eatPie(w, nowP);
+      if (addP === false) this.card(['{y}' + whoP + ': {g}nothing more -- the one before still holds.{/}']);
+      else {
+        w.fortified = addP; // (js/embed.js's carry-out, the old seam's)
+        if (nowP != null && w.src && w.src !== w) RP.eatPie(w.src, nowP); // (on the sheet too, so the door's hand-back keeps it: a clockless fight's pie -- the Pocket DM's, the show's -- is the fight's)
+        this.card(['{y}' + whoP + ': {n}+' + addP + ' HP{/} and +2 CON {g}(+1 to CON saves) ' + (nowP != null ? 'for an hour' : 'for the fight') + (addP < RP.PIE.hp ? ' -- Aid\'s ' + (w.conds.aid || 0) + ' the greater' : '') + '{/}']); FX.sparkle(w, 'moss', 12);
+      }
     }
     if (use.effect === 'damage') {
       D.sfx('fire');

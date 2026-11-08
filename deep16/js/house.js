@@ -323,7 +323,7 @@
     party.forEach(function (h) {
       if (h.dead) return; // (the dead stay dead: exhaustion's sixth level, H.exhaust)
       h.conds = h.conds || {}; var ex = h.conds.exhaustion ? JSON.parse(JSON.stringify(h.conds.exhaustion)) : null;
-      if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor;
+      DS.R.pieOff(h); if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor;
       h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); // (bondsBefore: the morning's sheet says what the night bonded -- the first game's EV.longRest, EV.bonds)
       if (ex) { h.conds.exhaustion = ex; H.exhaust(h, -1); h.hp = h.maxhp; lines.push(h.name + (exh(h) ? ' is less worn (exhausted ' + exh(h) + ').' : ' is rested out of the exhaustion.')); } // (the SRD: a long rest takes a level off -- with food and drink, not counted yet)
       h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); // (the SRD: a long rest gives back half the hit dice spent, at least one)
@@ -716,7 +716,7 @@
       // (env.aidOut: the one who goes without, asked as the first game asks it -- the morning's WHO GOES WITHOUT?, H.morning)
       var up3 = (env.aidOut ? env.party.filter(function (x) { return x !== env.aidOut; }) : env.party.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })).slice(0, 3), aN = 5 * Math.max(1, (slot || sp.level) - 1), woke = [];
       spend();
-      up3.forEach(function (x) { x.conds = x.conds || {}; var had = x.conds.aid || 0, more = Math.max(0, aN - had); x.maxhp += more; x.hp = Math.max(0, x.hp) + more; x.conds.aid = Math.max(had, aN); if (x.ko && x.hp > 0) { x.ko = false; woke.push(x); } });
+      up3.forEach(function (x) { x.conds = x.conds || {}; var had = x.conds.aid || 0, more = Math.max(0, aN - had); x.maxhp += more; x.hp = Math.max(0, x.hp) + more; x.conds.aid = Math.max(had, aN); DS.R.pieAid(x); if (x.ko && x.hp > 0) { x.ko = false; woke.push(x); } });
       D.sfx('buff');
       return [say('g.aid', { who: up3.map(function (x) { return x.name; }).join(', '), n: aN })].concat(woke.map(function (x) { return say('g.comesRound', { name: x.name }); }));
     }
@@ -812,6 +812,12 @@
     if (use.effect === 'heal') { if (h.hp >= h.maxhp) return [say('g.fullHP', { name: h.name })]; env.take(id); D.sfx('heal'); return healed(h, FD.heal(h, D.roll(use.dice).total)); }
     if (use.effect === 'cure') { if (!ILLS.some(function (k) { return (h.conds || {})[k]; })) return [say('g.nothingToCure', { name: h.name })]; env.take(id); cure(h); D.sfx('heal'); return [say('g.cured', { name: h.name })]; }
     if (use.effect === 'revive') { if (!down(h)) return [say('g.notDown', { name: h.name })]; env.take(id); h.ko = false; h.hp = use.hp || 1; D.sfx('heal'); return [say('g.revived', { name: h.name })]; }
+    // the bat-wing pie out of a fight (11-08, his: "can we do the pie like a light spell (lasts an hour) and edible outside of combat (with no added benefit for allowed consumed multiples)", then "not to stack with aid, whichever is greater (unless SRD disagrees)" -- the pie is ours, not the SRD's; its nearest rule, temporary hit points, never stacks either): on THE WORLD the save's sheet; on a floor the figure and its sheet both (js/rules.js R.eatPie)
+    if (use.effect === 'fortify') {
+      if (down(h)) return [h.name + ' is down: a ' + it.name + ' is for someone on their feet.'];
+      env.take(id); var nowP = H.playing && H.cur ? H.clock(H.cur) : null, addP = R.eatPie(h, nowP); if (addP !== false && h.src && h.src !== h) R.eatPie(h.src, nowP); D.sfx('heal');
+      return [addP === false ? h.name + ' eats the ' + it.name + ': nothing more -- the one before still holds.' : h.name + ' eats the ' + it.name + ': +' + addP + ' HP and +2 CON (+1 to CON saves) for an hour' + (addP < R.PIE.hp ? ' -- Aid\'s ' + ((h.conds && h.conds.aid) || 0) + ' the greater.' : '.')];
+    }
     if (use.effect === 'rest') { if (!env.tent) return [say('g.noTentHere')]; env.take(id); env.party.forEach(function (x) { if (!down(x)) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); }); return [say('g.tentRest')]; }
     if (use.effect === 'ward') { env.take(id); env.ward(60); D.sfx('magic'); return [say('g.chalk')]; }
     if (use.effect === 'learn') {
@@ -863,9 +869,11 @@
     function out(x, name) { ['light', 'daylight'].forEach(function (k) { var l = x && x.conds && x.conds[k]; if (!l || l.until == null || now < l.until - 1e-9) return; delete x.conds[k]; var s = name + '\'s ' + (k === 'light' ? 'Light' : 'Daylight'); if (name && gone.indexOf(s) < 0) gone.push(s); }); } // (and a Daylight's: 10-28 night)
     // a spider's poison that dropped one (battle.js atk.save.zero, 10-29): its hour up, the poison and the paralysis with it; and a paralysis whose poison is gone, gone
     var freed = []; function shake(x, name) { var c = x && x.conds; if (!c) return; var p = c.poisoned; if (p && p.hour && p.until != null && now >= p.until - 1e-9) { delete c.poisoned; if (name && freed.indexOf(name) < 0) freed.push(name); } if (c.paralyzed && c.paralyzed.poison && !c.poisoned) delete c.paralyzed; }
-    H.cur.party.forEach(function (h) { out(h, h.name); shake(h, h.name); });
-    if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); shake(u.src, u.name); shake(u, u.name); });
-    return gone.map(function (n) { return n + ' goes out: its hour is up.'; }).concat(freed.map(function (n) { return n + ' can move again: the poison\'s hour is up.'; }));
+    // the bat-wing pie's hour (11-08): what it lent off the most, the hurt kept -- on the save's sheets, and a floor's figures and their sheets
+    var worn = []; function wear(x, name) { var f = x && x.conds && x.conds.fortified; if (!f || f.until == null || now < f.until - 1e-9) return; DS.R.pieOff(x); var s = name + '\'s Bat-Wing Pie'; if (name && worn.indexOf(s) < 0) worn.push(s); }
+    H.cur.party.forEach(function (h) { out(h, h.name); shake(h, h.name); wear(h, h.name); });
+    if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); shake(u.src, u.name); shake(u, u.name); wear(u.src, u.name); wear(u, u.name); });
+    return gone.map(function (n) { return n + ' goes out: its hour is up.'; }).concat(freed.map(function (n) { return n + ' can move again: the poison\'s hour is up.'; })).concat(worn.map(function (n) { return n + ' wears off: its hour is up.'; }));
   };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;

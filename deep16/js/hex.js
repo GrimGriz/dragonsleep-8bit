@@ -683,7 +683,7 @@
     // the hero as the bout left them; down, up at 1 on the house (the first game: "if (fighter.ko || fighter.hp <= 0) { fighter.ko = false; fighter.hp = 1; }")
     var bu = (b.units || []).filter(function (u) { return u.side === 'party' && u.id === u0.id; })[0];
     if (bu) {
-      u0.hp = Math.max(1, Math.min(u0.maxhp, bu.hp)); u0.ko = false; u0.conds = R.lasting(bu.conds); u0.slots = (bu.slots || []).slice(); u0.feats = JSON.parse(JSON.stringify(bu.feats || {}));
+      D.roam.pieBack(u0, bu); u0.hp = Math.max(1, Math.min(u0.maxhp, bu.hp)); u0.ko = false; u0.conds = R.lasting(bu.conds); u0.slots = (bu.slots || []).slice(); u0.feats = JSON.parse(JSON.stringify(bu.feats || {}));
       if (R.exhaustBack) { R.exhaustBack(u0, bu); if (!(u0.src && u0.src.dead)) { u0.hp = Math.max(1, u0.hp); u0.ko = false; } } // (a level of exhaustion the bout laid on, onto the sheet: js/roam.js R.exhaustBack -- up at 1 still)
       if (u0.src && bu.src && bu.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in bu.src.equip) u0.src.equip[k] = bu.src.equip[k]; });
       if (u0.src && u0.src.equip) (bu.rustGone || []).forEach(function (id) { ['weapon', 'offhand', 'shield', 'armor'].forEach(function (k) { if (u0.src.equip[k] === id) u0.src.equip[k] = null; }); }); // (a thing the rust monster rusted through in the bout stays gone: js/monsterrules.js, RULED 10-28)

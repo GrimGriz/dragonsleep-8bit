@@ -902,9 +902,27 @@
   R.spellSave = function (h) { var c = h && h.equip && h.equip.cloak && R.bonded(h, h.equip.cloak) ? R.item(h.equip.cloak) : null; return (c && c.cloak && c.cloak.spellSave) || 0; };
   // a Cloak of Displacement worn and bonded (SRD 5.1; the 8-bit battle's advantage reads it, as the grid's rules.js edges do -- 10-08, Dace's thanks had done nothing in the 8-bit)
   R.displaced = function (h) { var c = h && h.equip && h.equip.cloak && R.bonded(h, h.equip.cloak) ? R.item(h.equip.cloak) : null; return !!(c && c.cloak && c.cloak.displacement); };
+  // THE BAT-WING PIE (Marta's) (11-08, his: "can we do the pie like a light spell (lasts an hour) and edible outside of combat (with no added benefit for allowed consumed multiples)", then "not to stack with aid, whichever is greater (unless SRD disagrees)" -- the pie is ours, not the SRD's; its nearest rule, temporary hit points, never stacks either): +5 HP -- the most and the hurt both -- and +2 CON (+1 to CON saves) for an hour on THE WORLD's
+  // clock, as a Light; with Aid on, the greater of the two and never both; a second while one holds is eaten for nothing. conds.fortified { hp: what it lent, until }
+  R.PIE = { hp: 5, hours: 1 };
+  R.pieHp = function (x) { return Math.max(0, R.PIE.hp - (+(x.conds && x.conds.aid) || 0)); };
+  R.eatPie = function (x, now) { // (false: one holds already; else the HP it lent)
+    x.conds = x.conds || {}; if (x.conds.fortified) return false;
+    var n = R.pieHp(x); x.conds.fortified = { hp: n }; if (now != null) x.conds.fortified.until = now + R.PIE.hours;
+    x.maxhp += n; x.hp = Math.max(0, x.hp) + n; if (x.saves) x.saves.con += 1; return n;
+  };
+  R.pieOff = function (x) { // (its hour up, or a long rest: what it lent off the most, the hurt kept)
+    var f = x && x.conds && x.conds.fortified; if (!f) return false; delete x.conds.fortified;
+    x.maxhp = Math.max(1, x.maxhp - (+f.hp || 0)); if (x.hp > x.maxhp) x.hp = x.maxhp; if (x.saves) x.saves.con -= 1; return true;
+  };
+  R.pieAid = function (x) { // (Aid laid on one with a pie in him: the pie's share shrinks as Aid's grows -- the greater, never both)
+    var f = x && x.conds && x.conds.fortified; if (!f) return; var n = R.pieHp(x), d = n - (+f.hp || 0); if (!d) return;
+    f.hp = n; x.maxhp += d; if (x.hp > 0) x.hp = Math.max(1, x.hp + d);
+  };
   R.saveBonus = function (h, ab) {
     var b = DS.mod(h.abil[ab]);
     if (h.saveProf && h.saveProf.indexOf(ab) >= 0) b += R.prof(h.lvl);
+    if (ab === 'con' && h.conds && h.conds.fortified) b += 1; // (the bat-wing pie's +2 CON: a sheet with one in him carries it into a fight -- R.eatPie, 11-08)
     if (h.saveAll) b += h.saveAll; // (a named hero's own bonus to every save: the elder mage's +10, 11-07 -- deep16/js/classes.js NPC.NAMED.eldermage; not the SRD's)
     R.gear(h).forEach(function (g) {
       if (g.ring && g.ring.saveBonus && g.ring.saveBonus[ab]) b += g.ring.saveBonus[ab];
