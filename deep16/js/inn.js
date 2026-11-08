@@ -171,6 +171,10 @@
   In.isDueDay = function (d) { var d0 = In.WAGON.first + In.DUE.after; return d >= d0 && (d - d0) % In.WAGON.every === 0; };
   In.dueCycle = function (d) { return Math.floor((d - In.WAGON.first - In.DUE.after) / In.WAGON.every); };
   In.dueTonightOn = function (f, d) { return In.isDueDay(d) && f.dueCycle !== In.dueCycle(d) && !f.lakeDone; };
+  // nights from day d to the due's next night not yet walked (0: tonight) -- Elsbeth's word with the ring on the hand (11-08)
+  In.nightsToDue = function (f, d) { if (In.dueTonightOn(f, d)) return 0; var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) <= d) c++; return In.dueDay(c) - d; };
+  In.WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
+    'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty'];
   In.setOffering = function (f, c, kind) { f.dueOffC = c; f.dueOff = kind; };
   In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : 'goblin'; };
   In.BARN = [7, 5]; // (the barn's west end stall, the far end from its door)
@@ -1088,7 +1092,12 @@
       if (A && A.wand) { var p = yield sc.ask('At the tub.', ['ASK HER MORE', A.LINES.opts.fraud]); if (p === 1) { yield* A.wand(sc, B, st, f); return; } }
       f.elsbethTold = 1; f.elsbethTier = 2; yield sc.say(L('inn.elsbeth2')); return;
     }
-    f.elsbethTier = 3; yield sc.say(L(In.has(st, 'ringofbinding') ? 'inn.elsbethTonight' : 'inn.elsbeth3'));
+    f.elsbethTier = 3;
+    if (!In.has(st, 'ringofbinding')) { yield sc.say(L('inn.elsbeth3')); return; }
+    // (the ring on the hand: "Tonight" on the due's own night, else how many nights off -- 11-08, his record: "elsbeth saying tonight with a girl skipping stones and
+    // nothing for multiple days": she said it from the wagon's night on, three nights before the lantern walks)
+    var nx = In.nightsToDue(f, In.day(D.roam.q));
+    yield sc.say(nx === 0 ? L('inn.elsbethTonight') : nx === 1 ? L('inn.elsbethTomorrow') : L('inn.elsbethNights', { n: In.WORDS[nx] || String(nx) }));
   };
   // the Snoot's runner: his word, and the Snoot's page on TO THE SNOOT
   In.runnerScene = function* (sc) {

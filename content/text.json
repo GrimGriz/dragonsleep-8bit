@@ -278,6 +278,8 @@
   "inn.elsbeth2": { "t": ["She stops scrubbing. The god is an animal. She has seen it: the size of a wagon, the colour of wet stone, plated, legged, two long soft arms.", "She has decided not to know the rest."], "src": "wiki/halfway-inn-and-lake.md (exactly one person knows the god is an animal); module-halfway-inn.md §5" },
   "inn.elsbeth3": { "t": "She won't talk about it again tonight. The lake is quiet. It is not a feeding night.", "src": "invented: connective" },
   "inn.elsbethTonight": { "t": "She looks at the ring on your hand. Then at the door to the lake. Tonight, she says, and nothing else.", "src": "invented: connective" },
+  "inn.elsbethTomorrow": { "t": "She looks at the ring on your hand. Then at the door to the lake. Tomorrow night, she says, and nothing else.", "src": "invented: connective (11-08, his record: Tonight said days before the due)" },
+  "inn.elsbethNights": { "t": "She looks at the ring on your hand. Then at the door to the lake. In {n} nights, she says, and nothing else.", "src": "invented: connective (11-08, his record: Tonight said days before the due)" },
   "inn.elsbethAfter": { "t": "She says nothing. She keeps washing. Her back is less straight than it was.", "src": "invented: connective" },
 
   "due.night": { "t": "Night at the Halfway Inn.", "src": "invented: connective" },
