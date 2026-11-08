@@ -1196,7 +1196,7 @@
     return true;
   }
   function* brute(B, u) {
-    var T = u.turn, hs = heroes(B, u), grudge = false;
+    var T = u.turn, hs = heroes(B, u), grudge = false, grudgeU = null;
     // one of ours at an edge with a drop of 10 ft or more straight behind it, in reach: the SRD's Shove first, one attack of the routine, and over it goes; the rest of the routine
     // after it (afterShove). Only where its Athletics is a match for the other's best (10-13, Griz: "2 yes", the AI's shove at an edge)
     if (T.action && !T.shoves && !u.noShove) { var edgeW = edgeShove(B, u, hs); if (edgeW) { yield* shoveOff(B, u, edgeW); if (u.dead || u.hp <= 0) return; } }
@@ -1211,7 +1211,7 @@
     }
     if (u.ally && (yield* tieDown(B, u))) return; // (two of ours up top and no rope down: one sets one at the lip -- 10-05)
     // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
-    if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
+    if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; grudgeU = gr; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
     // her man down (10-05, Griz: "and lady giant (rages?) and goes for window if her man goes down"): the roof guard takes up his work -- the glass hers now, whoever stands in her reach
@@ -1504,8 +1504,13 @@
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       else if (u.wantsOffering && !atk.needsHeld && pool.some(function (w) { return w.offering; })) pool = pool.filter(function (w) { return w.offering; }); // (the offering first, in reach: js/secondact.js, 11-05)
       var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)
+      var grudgeP = grudgeU && !atk.needsHeld ? pool.filter(function (w) { return w === grudgeU && G.dist(u, w) <= G.reachOf(u, atk.reach); }) : []; // (the one it turned on, in reach: him, over the vital one and the quarry -- 11-08, his record: "The Cloaker turns on Aurdin.", then bit Vivian with Aurdin in its tail's reach)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (B.fight && B.fight.quarry && !atk.needsHeld) { var qp = pool.filter(function (w) { return w.id === B.fight.quarry && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (qp.length) pool = qp; } // (a fight's quarry, in reach: him first -- GreyFang in his pit, 10-08: "The Harbinger hunts him down")
+      if (grudgeP.length) pool = grudgeP;
+      // (attached and riding -- the SRD's cloaker once its bite takes hold, the darkmantle: "can attack no other creature except the target", SRD 5.1 -- the rest of the
+      // routine at the one it rides, nobody else: the bench of 11-08 had its tail at a wizard 10 ft off the turn its bite fastened on the rogue)
+      if (u.riding && u.attached && u.master) pool = pool.filter(function (w) { return w === u.master; });
       // Called to Account (ours, 10-30; js/grimoire.js, ruled 10-31, Griz: the foes' AI reacts to it, not to a Hunter's Mark): a brute so called takes the caller's radiant for a hit on anyone
       // else, so the caller goes first in its pool when in reach -- unless a hunt of the story (the cloaker's vital one, a fight's quarry) is in reach too: that stays first
       var cqA = u.conds.accounted && !atk.needsHeld ? pool.filter(function (w) { return w.id === u.conds.accounted.by && G.dist(u, w) <= G.reachOf(u, atk.reach); }) : [];
