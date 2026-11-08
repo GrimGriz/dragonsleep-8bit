@@ -2126,7 +2126,7 @@
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var selfO = this, prov = this.units.filter(function (w) {
           return G.hostile(u, w) && !w.bystander && !w.offering && !(w.inClaws && w.inClaws.by === u.id) // (never a bystander -- the inn lady sat yielded as the offering took swings at the party, 11-06, his record; nor one carried in the mover's claws, battle.js clawIn)
-            && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
+            && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !w.familiar && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
             && G.dist(w, u) <= G.armOf(w) && G.dist(w, u, null, null, nx, ny) > G.armOf(w) && !(w.conds.hidden && false) // (a reach weapon's opportunity attack at 10 ft: G.armOf, 10-30)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u) // (a creature you can see: not into or out of darkness; and never at its charmer)
@@ -2148,10 +2148,10 @@
               if (pushed) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
               continue;
             }
-            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + '.']);
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
-            if (!atk) continue;
+            if (!atk) continue; // (no card for a swing it has nothing to make: 11-08, his record -- "Aurdin's owl: an opportunity attack on Willem." and nothing after)
+            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + '.']);
             if (u.conds.hidden) { delete u.conds.hidden; delete u.hidTotal; this.card(['{o}' + nameOf(u) + ' gives the position away: no longer hidden.{/}  {g}(an opportunity attack breaks stealth){/}'], 200); } // (10-04, Griz)
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
@@ -2334,7 +2334,7 @@
     var cidT = onMain ? mc.id : 'twin' + (++this.cardSeq || (this.cardSeq = 1));
     var lineT = function (took) {
       return '{y}+ the ' + off.name.toLowerCase() + '{/}  ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '') +
-        (took !== dr.total ? ', {o}' + took + ' after the ' + (took > dr.total ? 'vulnerability' : took === 0 ? 'immunity' : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
+        (took !== dr.total ? ', {o}' + took + ' after the ' + (blT.transfer ? 'Damage Transfer' : took > dr.total ? 'vulnerability' : took === 0 ? 'immunity' : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
         (onMain ? '  both {r}' + (mc.dealt + took) + '{/}' : '');
     };
     var cardT = function (took) { return onMain ? mc.lines.concat([lineT(took)]) : ['{y}' + nameOf(u) + '{/} ' + lineT(took)]; };
@@ -2746,7 +2746,7 @@
     // the card's total says what lands (11-03 night, his "3 - yes": "= 15" read on the card and "Talmok resists slashing: 8 > 4" on the next line, 11 dealt): the blow re-carded
     // in place with what its parts took (`bl.took`, after resistance, vulnerability, immunity, a ward) -- unless it killed mid-blow, its later parts never dealt
     var sumT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
-    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
+    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.transfer ? 'Damage Transfer' : bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
     if (foundTxt && !tgt.dead && tgt.hp > 0) this.card([foundTxt], 200); // (found by the blow, said under it -- above)
     this.atkCard = { id: cid, lines: atkL, dealt: bl.took }; // (the blow's card as it stands: TWIN STRIKE's second weapon joins it -- Battle.twinOff, 11-05)
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
@@ -3222,7 +3222,7 @@
     var T = u.turn || {}, self = this;
     if (T.disengaged || u.ethereal) return;
     var outAt = function (w) { if (!to) return true; var f0 = u.fz; u.fz = to.fz; try { return G.dist(w, u) > G.armOf(w); } finally { u.fz = f0; } };
-    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.armOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u) && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u)); }); // (Opening Night: 11-03)
+    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !w.familiar && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.armOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u) && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u)); }); // (Opening Night: 11-03)
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
       if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
@@ -3313,7 +3313,7 @@
     // and that creature takes the other half" (SRD 5.1; 11-03 -- till then the cloaker kept the half rounded up, and a single point whole)
     if (u.transfer && ((u.holding && u.holding.length) || (u.attached && u.riding && u.master)) && n > 0) {
       var vic = (u.holding && u.holding[0]) || u.master, keep = Math.floor(n / 2);
-      if (vic && !vic.dead && vic.hp > 0) { var pass = n - keep; n = keep; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, pass, type); if (n <= 0) return; }
+      if (vic && !vic.dead) { var pass = n - keep; n = keep; if (src && src.blow) src.blow.transfer = true; if (vic.hp > 0) { FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, pass, type); } if (n <= 0) return; } // (the half kept with the one it holds lying down too: no death saves here, so the other half goes nowhere -- 11-08, his record: Lymen's blows landed whole on it while Vivian lay at 0)
     }
     // a statue (petrified, SRD 5.1: "resistance to all damage", "immune to poison" -- js/grimoire.js M.petrify, 10-08)
     if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, stone'; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) { noteN(); return; } }
@@ -3745,7 +3745,7 @@
     var hb = this.heldBack(u);
     if (hb) { D.sfx('miss'); this.card(['{o}' + Battle.refuseText(hb) + '{/}'], 260); yield 20; return; }
     if (!T.disengaged) {
-      var prov = this.units.filter(function (w) { return G.hostile(u, w) && !w.bystander && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.armOf(w) && !(w.weapon && w.weapon.ranged); }); // (!bystander: as moveAlong's, 11-06)
+      var prov = this.units.filter(function (w) { return G.hostile(u, w) && !w.bystander && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && !w.familiar && G.dist(w, u) <= G.armOf(w) && !(w.weapon && w.weapon.ranged); }); // (!bystander: as moveAlong's, 11-06)
       for (var k = 0; k < prov.length; k++) {
         var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
         if (!atk) continue;
