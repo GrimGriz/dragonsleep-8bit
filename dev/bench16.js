@@ -3486,6 +3486,76 @@
     document.body.appendChild(preGX);
     return;
   }
+  // THE BAT-WING PIE AS AN HOUR, 11-08 (mode=pie1108; his "can we do the pie like a light spell (lasts an hour) and edible outside of combat (with no added benefit for allowed
+  // consumed multiples)", then "not to stack with aid, whichever is greater (unless SRD disagrees)"): 1. the rules (js/rules.js R.eatPie, R.pieOff, R.pieAid, R.saveBonus);
+  // 2. in a fight with no clock (the Pocket DM's, the show's): the fight's, a second eaten for nothing; 3. on THE WORLD from the menu's rules (house.js FD.item): an hour on its
+  // clock, a second for nothing, Aid the greater, the hour swept (H.lightsOut) and what it lent back off; 4. in a fight in the house: an hour, on the sheet too (R.lasting carries it)
+  if (get('mode', '') === 'pie1108') {
+    var repPI = { checks: [], errors: [], notes: [] }, memPI = {}, stGPI = D.store.get, stSPI = D.store.set, muPI = D.music, apPI = window.DS.autoPicks, d0PI = D.d, RPI = window.DS.R, HPI = D.house, WPI = D.world, RUp = D.rules;
+    function okPI(what, v) { repPI.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPI(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkPI(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function lastPI(Bx) { var c = Bx.cards[Bx.cards.length - 1]; return c ? (c.lines || []).map(function (l) { return window.DS.stripCodes(String(l)); }).join(' / ') : ''; }
+    D.store.get = function (k) { return memPI[k] ? JSON.parse(memPI[k]) : null; }; D.store.set = function (k, v) { memPI[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1108); D.d = function (n) { return n === 20 ? 19 : Math.ceil(n / 2); };
+      try { // (each section its own)
+      // 1. THE RULES
+      var s1 = { maxhp: 30, hp: 20, conds: {}, abil: { str: 10, dex: 10, con: 14, int: 10, wis: 10, cha: 10 }, lvl: 3 }, cb0 = RPI.saveBonus(s1, 'con');
+      var a1 = RPI.eatPie(s1, 10), m1 = [s1.maxhp, s1.hp, s1.conds.fortified && s1.conds.fortified.until, RPI.saveBonus(s1, 'con') - cb0], b1 = RPI.eatPie(s1, 10.5);
+      okPI('1 a pie into one at 20/30, the clock at 10: lent ' + a1 + ', ' + m1[1] + '/' + m1[0] + ', until ' + m1[2] + ', CON saves +' + m1[3] + '; a second: ' + b1 + ', ' + s1.hp + '/' + s1.maxhp + ' (want 5, 25/35, 11, +1; false, 25/35)', a1 === 5 && m1[0] === 35 && m1[1] === 25 && m1[2] === 11 && m1[3] === 1 && b1 === false && s1.maxhp === 35 && s1.hp === 25);
+      s1.hp = 34; var o1 = RPI.pieOff(s1);
+      okPI('1 its hour up at 34/35: ' + o1 + ', ' + s1.hp + '/' + s1.maxhp + ', CON saves +' + (RPI.saveBonus(s1, 'con') - cb0) + ' (want true, 30/30, +0)', o1 && s1.maxhp === 30 && s1.hp === 30 && RPI.saveBonus(s1, 'con') === cb0);
+      var s2 = { maxhp: 35, hp: 35, conds: { aid: 5 } }, a2 = RPI.eatPie(s2, 0);
+      okPI('1 with Aid\'s 5 on: lent ' + a2 + ', ' + s2.hp + '/' + s2.maxhp + ' (want 0, 35/35: the greater, never both)', a2 === 0 && s2.maxhp === 35 && s2.hp === 35);
+      var s3 = { maxhp: 30, hp: 30, conds: {} }; RPI.eatPie(s3, 0); s3.maxhp += 5; s3.hp += 5; s3.conds.aid = 5; RPI.pieAid(s3);
+      okPI('1 a pie, then Aid\'s 5 laid on (as house.js casts it): ' + s3.hp + '/' + s3.maxhp + ', the pie\'s share ' + s3.conds.fortified.hp + ' (want 35/35, 0)', s3.maxhp === 35 && s3.hp === 35 && s3.conds.fortified.hp === 0);
+      RPI.pieOff(s3); s3.maxhp -= s3.conds.aid; delete s3.conds.aid; // (the long rest's order: house.js)
+      okPI('1 the long rest takes both off: ' + s3.maxhp + ' (want 30)', s3.maxhp === 30);
+      } catch (eS) { repPI.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 2. A FIGHT WITH NO CLOCK (the house not playing)
+      HPI.playing = false; HPI.cur = null;
+      var B2 = mkPI('?npc=goblin&vs=fighter:5,wizard:5&lvl=5'), f2 = B2.units.filter(function (w) { return w.cls === 'fighter'; })[0], z2 = B2.units.filter(function (w) { return w.cls === 'wizard'; })[0];
+      B2.inv = [{ id: 'batpie', n: 3 }]; var mx2 = f2.maxhp, sv2 = f2.saves.con;
+      RUp.startTurn(f2); B2.active = f2; runPI(B2.useItem(f2, 'batpie', f2)); var c2 = lastPI(B2), g2 = [f2.maxhp - mx2, f2.saves.con - sv2, B2.inv[0].n];
+      okPI('2 the fighter eats one in a fight with no clock: "' + c2 + '" -- max +' + g2[0] + ', CON saves +' + g2[1] + ', pies left ' + g2[2] + ' (want +5, +1, 2, "for the fight")', g2[0] === 5 && g2[1] === 1 && g2[2] === 2 && /for the fight/.test(c2));
+      z2.x = f2.x + 1; z2.y = f2.y; D.grid.setup(D.grid.map, B2.units); B2.cache = null; // (beside him: a thing handed over is touch, 5 ft)
+      var ok2 = B2.itemTargetOK(z2, 'batpie', f2); RUp.startTurn(z2); B2.active = z2; runPI(B2.useItem(z2, 'batpie', f2)); var c2b = lastPI(B2);
+      okPI('2 the wizard hands him a second: allowed ' + ok2 + ', "' + c2b + '" -- max +' + (f2.maxhp - mx2) + ', pies left ' + B2.inv[0].n + ' (want true, "nothing more", +5, 1)', ok2 === true && /nothing more/.test(c2b) && f2.maxhp - mx2 === 5 && B2.inv[0].n === 1);
+      } catch (eS) { repPI.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 3. THE WORLD: the menu's rules (house.js FD.item, the same a floor reaches by H.fieldOnFloor), its hour, Aid
+      var rec3 = HPI.fresh(); rec3.at = { town: null }; HPI.begin(rec3, 0); var SW3 = WPI.state(), t3 = SW3.t;
+      var b3 = HPI.cur.party.filter(function (h) { return (h.key || h.id) === 'barley'; })[0] || HPI.cur.party[0], env3 = { where: 'world', party: HPI.cur.party, take: function () { env3.took++; }, took: 0 };
+      var m3 = b3.maxhp, cb3 = RPI.saveBonus(b3, 'con'), l3 = HPI.field.item('batpie', b3, env3), l3b = HPI.field.item('batpie', b3, env3);
+      okPI('3 THE WORLD, ' + b3.name + ' eats one: "' + (l3 || []).join(' ') + '", then a second: "' + (l3b || []).join(' ') + '" -- max +' + (b3.maxhp - m3) + ', until ' + (b3.conds.fortified && b3.conds.fortified.until) + ' (the clock ' + t3 + '), CON saves +' + (RPI.saveBonus(b3, 'con') - cb3) + ', eaten ' + env3.took + ' (want "for an hour", "nothing more", +5, the clock + 1, +1, 2)',
+        /for an hour/.test((l3 || []).join(' ')) && /nothing more/.test((l3b || []).join(' ')) && b3.maxhp - m3 === 5 && b3.conds.fortified && Math.abs(b3.conds.fortified.until - (t3 + 1)) < 1e-6 && RPI.saveBonus(b3, 'con') - cb3 === 1 && env3.took === 2);
+      SW3.t = t3 + 0.5; var lo3a = HPI.lightsOut(null); b3.hp = b3.maxhp; SW3.t = t3 + 1.1; var lo3b = HPI.lightsOut(null);
+      okPI('3 half an hour on: "' + lo3a.join(' ') + '"; past the hour: "' + lo3b.join(' ') + '" -- ' + b3.hp + '/' + b3.maxhp + ' (want nothing, then "' + b3.name + '\'s Bat-Wing Pie wears off", back to ' + m3 + '/' + m3 + ')',
+        !lo3a.some(function (l) { return /Pie/.test(l); }) && lo3b.some(function (l) { return /Bat-Wing Pie wears off/.test(l); }) && b3.maxhp === m3 && b3.hp === m3 && !b3.conds.fortified && RPI.saveBonus(b3, 'con') === cb3);
+      b3.conds.aid = 5; b3.maxhp += 5; var l3c = HPI.field.item('batpie', b3, env3);
+      okPI('3 with Aid\'s 5 on him: "' + (l3c || []).join(' ') + '" -- max ' + b3.maxhp + ' (want +0 HP, "Aid\'s 5 the greater", ' + (m3 + 5) + ')', /\+0 HP/.test((l3c || []).join(' ')) && /Aid's 5 the greater/.test((l3c || []).join(' ')) && b3.maxhp === m3 + 5);
+      RPI.pieOff(b3); b3.maxhp -= 5; delete b3.conds.aid;
+      } catch (eS) { repPI.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 4. A FIGHT IN THE HOUSE (the clock running): an hour, on the unit and its sheet, and carried as the Light is
+      var B4 = mkPI('?npc=goblin&vs=fighter:5&lvl=5'), f4 = B4.units.filter(function (w) { return w.cls === 'fighter'; })[0], t4 = HPI.clock(HPI.cur);
+      B4.inv = [{ id: 'batpie', n: 1 }]; var sm4 = f4.src && f4.src.maxhp; RUp.startTurn(f4); B4.active = f4; runPI(B4.useItem(f4, 'batpie', f4)); var c4 = lastPI(B4), lt4 = D.roam.lasting(f4.conds);
+      okPI('4 in a fight with the clock at ' + t4 + ': "' + c4 + '" -- the unit until ' + (f4.conds.fortified && f4.conds.fortified.until) + ', its sheet +' + (f4.src ? f4.src.maxhp - sm4 : '?') + ' with ' + !!(f4.src && f4.src.conds && f4.src.conds.fortified) + '; carried past the fight ' + !!lt4.fortified + ' (want "for an hour", the clock + 1, +5, true, true)',
+        /for an hour/.test(c4) && f4.conds.fortified && Math.abs(f4.conds.fortified.until - (t4 + 1)) < 1e-6 && f4.src && f4.src.maxhp - sm4 === 5 && !!f4.src.conds.fortified && !!lt4.fortified);
+      var lt4b = D.roam.lasting({ fortified: { hp: 5 } });
+      okPI('4 one with no hour yet (eaten in a fight) carried out: until ' + (lt4b.fortified && lt4b.fortified.until) + ' (want the clock + 1)', lt4b.fortified && Math.abs(lt4b.fortified.until - (t4 + 1)) < 1e-6);
+      var w4 = { maxhp: 30, conds: {}, src: { maxhp: 30, conds: {} } }; D.roam.pieBack(w4, { conds: { fortified: { hp: 5, until: t4 + 1 } } });
+      okPI('4 a pulled-in fight\'s figure hands one back to the floor\'s: the figure ' + w4.maxhp + ', its sheet ' + w4.src.maxhp + ' with ' + !!w4.src.conds.fortified + ' (want 35, 35, true)', w4.maxhp === 35 && w4.src.maxhp === 35 && !!w4.src.conds.fortified);
+      } catch (eS) { repPI.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (ePI) { repPI.errors.push(String(ePI && ePI.stack || ePI).slice(0, 900)); }
+    HPI.playing = false; HPI.cur = null; D.d = d0PI; D.store.get = stGPI; D.store.set = stSPI; D.music = muPI; window.DS.autoPicks = apPI;
+    var prePI = document.createElement('pre'); prePI.id = 'out'; prePI.textContent = 'BENCH16 ' + JSON.stringify(repPI);
+    document.body.appendChild(prePI);
+    return;
+  }
   // THE RECORDS' FIXES OF 11-08 (mode=records1108; the lanes desk's read of his record of 11-07/11-08, `handoff-2026-11-03-the-play-records.md`), a check a fix:
   // 1. Damage Transfer with the one it holds lying down: the half kept (battle.js hurt); 2. the cloaker the darts found strikes the one it turned on (ai.js brute's
   // pool); 3. the cloaker's turn portrait on its eyes (cloaker_p2 face 41); 4. Black Tentacles: a big one held by an edge square crushed, and seized stepping in by one;
