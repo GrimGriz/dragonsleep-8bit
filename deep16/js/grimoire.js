@@ -70,6 +70,9 @@
   function caughtIn(B, sq) { return B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); }); }
   // ground a spell leaves (grease, vines, spikes): difficult, and what it does to those who enter it (M.stepInto) or end a turn on it
   M.groundAt = function (B, x, y) { return (B.grounds || []).filter(function (g) { return g.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  // (the ground under a body: at its own square, and Black Tentacles under ANY square of a big one's -- as the cast catches it, caughtIn by G.inArea. 11-08, his record:
+  // the Roper, Large, held by the tentacles at an edge square, was never crushed at its turn's start -- the turn's lookups read its anchor square alone)
+  M.groundOn = function (B, u) { var at = M.groundAt(B, u.x, u.y); return at.concat((B.grounds || []).filter(function (g) { return g.kind === 'tentacles' && at.indexOf(g) < 0 && G.inArea(u, g.sq); })); };
   M.rough = function (B, x, y, u) {
     // (the Globe of Invulnerability, SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" -- a square of a globe a
     // spell was cast from outside of is no part of its ground; M.zoneGlobed. The brief leaned the other way: the cost stays. The SRD's sentence is plain)
@@ -1634,7 +1637,7 @@
       }
       var lt = sphereLight(B, u); if (lt) { lt.x = z.x; lt.y = z.y; } if (B.lightMap) B.lightMap = null;
       D.sfx('fire'); FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 16);
-      B.card(['{y}' + u.name + '{/} rolls the flaming sphere ' + (steps * 5) + ' ft' + (rammed ? ' -- into ' + nm(B, rammed) + '!' : '.')], 240);
+      B.card(['{y}' + u.name + '{/} ' + (rammed && !steps ? 'rams the flaming sphere into ' + nm(B, rammed) + '!' : 'rolls the flaming sphere ' + (steps * 5) + ' ft' + (rammed ? ' -- into ' + nm(B, rammed) + '!' : '.'))], 240); // (from beside it, a ram, not "0 ft": 11-08, his record)
       yield 16;
       if (rammed) { zoneHit(B, z, rammed, 'is rammed by the flaming sphere', true); yield 16; }
     },
@@ -2242,12 +2245,12 @@
   M.onStart = function (B, u) {
     onStartD(B, u);
     M.wardTurn(B, u);
-    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
+    (M.groundOn(B, u) || []).forEach(function (g) {
       if (g.kind !== 'tentacles' || u.hp <= 0 || u.dead) return;
       if (M.zoneShut(B, g, u, 'starts its turn in the tentacles')) return; // (the Globe of Invulnerability)
       var r = u.conds.restrained;
       if (r && r.kind === 'tentacles') { var d0 = D.roll('3d6'); B.card([Nm(B, u) + ' is crushed by the tentacles  3d6 = {r}' + d0.total + '{/}'], 240); B.hurt(u, d0.total, 'bludgeoning', MAGIC); }
-      else if (!RU.immuneTo(u, 'restrained')) { var sv = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' in the tentacles: DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!sv.ok) { var d1 = D.roll('3d6'); B.hurt(u, d1.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; } }
+      else if (!RU.immuneTo(u, 'restrained')) { var sv = RU.save(u, 'dex', g.dc), d1 = sv.ok ? null : D.roll('3d6'); B.card([Nm(B, u) + ' in the tentacles: DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}slips them{/}' : '{o}seized{/}  3d6 = {r}' + d1.total + '{/} bludgeoning')], 240); if (!sv.ok) { B.hurt(u, d1.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; } }
     });
   };
   var onEndD = M.onEnd;
@@ -2268,10 +2271,10 @@
   M.stepInto = function (B, u) {
     var stop = stepD(B, u);
     M.wardTurn(B, u);
-    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
+    (M.groundOn(B, u) || []).forEach(function (g) {
       if (u.hp <= 0 || u.dead || !u.turn) return;
       if (g.kind === 'insects' && !u.turn['bugs' + g.by]) { u.turn['bugs' + g.by] = true; if (M.zoneShut(B, g, u, 'walks into the locusts')) return; var sv = RU.save(u, 'con', g.dc), r = D.roll(g.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' walks into the locusts: CON ' + RU.saveText(sv) + '  {r}' + n + '{/} piercing'], 200); B.hurt(u, n, 'piercing', MAGIC); }
-      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; if (M.zoneShut(B, g, u, 'steps into the tentacles')) return; var s2 = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!s2.ok) { var d2 = D.roll('3d6'); B.hurt(u, d2.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
+      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; if (M.zoneShut(B, g, u, 'steps into the tentacles')) return; var s2 = RU.save(u, 'dex', g.dc), d2 = s2.ok ? null : D.roll('3d6'); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}  3d6 = {r}' + d2.total + '{/} bludgeoning')], 240); if (!s2.ok) { B.hurt(u, d2.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
     });
     return stop || u.hp <= 0;
   };
