@@ -498,7 +498,7 @@
   // the player at the parties nearest (chronological) rest cycle", "C3 is that any crawler kill trigger or the thinning the herd too much amount", "18 - yes, lantern warning same
   // trigger as council meeting", "17 - yeah, that's good"). The register: Androit, Hessle, Casper Venn, Papa Urtusk, Ottak Harrow, and Merrick when word from outside matters; the
   // lounge under the Big Window; "the scales are lit", the Weigh-House lamp the signal (TarlynsPit/wiki/silverton.md, the-hex.md). One screen for every sitting: the counter's,
-  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the plain shape; Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C3 plays at the party's next long
+  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Thrane's man -- the generic man's face, counter.js C.PT.thrane, 11-08; Papa and Harrow on their own faces since 10-29, pt_papa and pt_harrow). C3 plays at the party's next long
   // rest after the council sits, over the morning, the party not in the room; C1 since 11-06 at its own hour, wherever the party is (THE PIT'S WORD AT ITS HOUR, below the
   // night's cutscene); C2 is the party called up, at renown 2, played when they reach the third floor. Every line the
   // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
