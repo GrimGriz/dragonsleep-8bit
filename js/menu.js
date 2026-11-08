@@ -479,6 +479,16 @@
     m.root.choose({ title: row.light ? 'WHO CARRIES IT?' : 'WHO WEARS IT?', sub: it.name, ok: function (h) { return row.light || R().canEquip(h, it) ? true : h.name + ' can\'t use it.'; },
       then: function (h) { var slot = row.light ? 'offhand' : offSlot(R().slotFor(h, it)), ep = m.push(new EquipPage(m, h, slot)), cp = m.push(new CandPage(m, h, slot, ep)); cp.list.i = Math.max(0, cp.list.items.map(function (x) { return x.value; }).indexOf(row.value)); cp.list.fix(); } });
   };
+  // a weapon's dice, range and properties ahead of its words, unless its words already lead with them (the plain SRD weapons do; the story's and the +1s
+  // said only words: 11-08, his note on the gear page)
+  function gearDesc(it) {
+    var d = it.desc || '', w = it.weapon; if (!w || !w.dmg || /^\d+d\d+/.test(d)) return d;
+    var props = (w.props || []).filter(function (p) { return p !== 'ranged' && p !== 'versatile'; }).map(function (p, i) { return i ? p : p.charAt(0).toUpperCase() + p.slice(1); });
+    var head = w.dmg + ' ' + (w.type || '') + (w.versatile ? ' (' + w.versatile + ' two-handed)' : '') + (w.range ? ', ranged (' + w.range[0] + '/' + w.range[1] + ' ft)' : '') + '.'
+      + (props.length ? ' ' + props.join(', ') + '.' : '') + (w.bonus && !/\+\d+ to hit/.test(d) ? ' +' + w.bonus + ' to hit and damage.' : '');
+    return d ? head + ' ' + d : head;
+  }
+  MN.gearDesc = gearDesc; // (dev/bench16.js mode=records1108)
   GearPage.prototype.draw = function (ctx, active) {
     var self = this, host = this.m.host;
     win(ctx, 2, 2, 252, 184);
@@ -488,7 +498,7 @@
     var cur = this.list.cur(), it = cur && item(cur.value);
     if (it) {
       var who = host.party().filter(function (h) { return R().canEquip(h, it); }).map(function (h) { return h.name; });
-      descBox(ctx, it.desc || '', (it.attune ? 'Wants a bond (attunement). ' : '') + (who.length === host.party().length ? '' : who.length ? 'For ' + who.join(', ') + '.' : 'No one here can use it.'));
+      descBox(ctx, gearDesc(it), (it.attune ? 'Wants a bond (attunement). ' : '') + (who.length === host.party().length ? '' : who.length ? 'For ' + who.join(', ') + '.' : 'No one here can use it.'));
     } else descBox(ctx, '◀ ▶ the kinds.');
     if (it && !host.fight) footer(ctx, cur.who ? 'E: ' + cur.who.name + '\'s EQUIP' : 'E: who wears it', 174);
   };
