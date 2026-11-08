@@ -3486,6 +3486,160 @@
     document.body.appendChild(preGX);
     return;
   }
+  // THE RECORDS' FIXES OF 11-08 (mode=records1108; the lanes desk's read of his record of 11-07/11-08, `handoff-2026-11-03-the-play-records.md`), a check a fix:
+  // 1. Damage Transfer with the one it holds lying down: the half kept (battle.js hurt); 2. the cloaker the darts found strikes the one it turned on (ai.js brute's
+  // pool); 3. the cloaker's turn portrait on its eyes (cloaker_p2 face 41); 4. Black Tentacles: a big one held by an edge square crushed, and seized stepping in by one;
+  // a failed save's 3d6 on the card; the break-free line (grimoire.js M.groundOn, magic.js breakFree); 5. no opportunity attack from a familiar, and no card for a swing
+  // with nothing to make (battle.js moveAlong); 6. the sphere rammed from beside (grimoire.js); 7. the gear page's dice (js/menu.js gearDesc); 8. Thrane's man's face
+  // (counter.js); 9. Elsbeth's nights to the due (inn.js In.nightsToDue); 10. the floor back the frame its pulled-in fight closes (roam.js R.pullIn0's home): Web
+  // Gulch's camp people never on the fight's ground. The dice pinned: every d20 a 19 (a 1 where a save must fail), every other die its half
+  if (get('mode', '') === 'records1108') {
+    var repRB = { checks: [], errors: [], notes: [] }, memRB = {}, stGRB = D.store.get, stSRB = D.store.set, muRB = D.music, apRB = window.DS.autoPicks, d0RB = D.d, GGr = D.grid, RUr = D.rules, MGr = D.magic, simOnRB = D.simple && D.simple.on;
+    function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRB(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkRB(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function clsRB(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function foesRB(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; }); }
+    function putRB(Bx, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; }); GGr.setup(GGr.map, Bx.units); Bx.cache = null; }
+    function logRB(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }); }
+    function nRB(Bx) { return (Bx.logEntries || []).length; }
+    function pinRB(d20) { D.d = function (n) { return n === 20 ? d20 : Math.ceil(n / 2); }; }
+    D.store.get = function (k) { return memRB[k] ? JSON.parse(memRB[k]) : null; }; D.store.set = function (k, v) { memRB[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1108); pinRB(19);
+      try { // (each section its own: one that throws hides none after it)
+      // 1. DAMAGE TRANSFER, THE HELD ONE DOWN (his deep gallery, 02:01Z R3: Vivian at 0 in its grip, and Lymen's blows on the cloaker landed whole)
+      var B1 = mkRB('?npc=cloaker&vs=rogue:5,paladin:5&lvl=5'), cl1 = foesRB(B1)[0], ro1 = clsRB(B1, 'rogue');
+      repRB.notes.push('1 the cloaker\'s transfer: ' + cl1.transfer);
+      cl1.holding = [ro1]; cl1.hp = cl1.maxhp = 200; ro1.hp = 30; var bl1 = { took: 0 };
+      B1.hurt(cl1, 20, 'force', { blow: bl1 }); var a1 = [cl1.hp, ro1.hp, !!bl1.transfer];
+      okRB('1 20 force at the cloaker holding the rogue at 30: the cloaker ' + a1[0] + ', the rogue ' + a1[1] + ', the blow marked Damage Transfer ' + a1[2] + ' (want 190, 20, true)', a1[0] === 190 && a1[1] === 20 && a1[2]);
+      ro1.hp = 0; ro1.ko = true; cl1.hp = 200; var bl1b = { took: 0 }; B1.hurt(cl1, 20, 'force', { blow: bl1b });
+      okRB('1 the rogue down at 0 in its grip, 20 force again: the cloaker ' + cl1.hp + ', the rogue ' + ro1.hp + ' (want 190, 0: the half kept, none passed on)', cl1.hp === 190 && ro1.hp === 0);
+      } catch (eS) { repRB.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 2. THE GRUDGE'S BLOWS (his deep gallery, 02:01Z R1: "The Cloaker turns on Aurdin.", then its Bite and Tail at Vivian with Aurdin in its tail's reach)
+      pinRB(19);
+      var B2 = mkRB('?npc=cloaker&vs=wizard:5,rogue:5&lvl=5'), cl2 = foesRB(B2)[0], wz2 = clsRB(B2, 'wizard'), ro2 = clsRB(B2, 'rogue');
+      var fp2 = GGr.foot(cl2), mx2 = Math.max.apply(null, fp2.map(function (q) { return q[0]; }));
+      putRB(B2, [[cl2, 5, 5], [ro2, 5 + (mx2 - cl2.x) + 2, 4], [wz2, 5 + (mx2 - cl2.x) + 2, 5 + 1]]); // (both 10 ft off: its tail reaches them, its bite neither -- no bite to fasten it on anyone)
+      ro2.maxhp = 40; ro2.hp = 30; wz2.maxhp = wz2.hp = 60; cl2.hp = cl2.maxhp = 300; cl2.speed = 0; cl2.fly = 0;
+      repRB.notes.push('2 squares: cloaker ' + JSON.stringify(GGr.foot(cl2)) + ', rogue ' + ro2.x + ',' + ro2.y + ' (' + GGr.dist(cl2, ro2) + ' ft), wizard ' + wz2.x + ',' + wz2.y + ' (' + GGr.dist(cl2, wz2) + ' ft); its attacks ' + Object.keys(cl2.attacks || {}).map(function (k) { return k + ' ' + (cl2.attacks[k].reach || 5); }).join(', '));
+      RUr.startTurn(cl2); if (cl2.turn) cl2.turn.move = 0; cl2.grudge = wz2.id; B2.active = cl2;
+      var n2 = nRB(B2); runRB(D.ai.turn(B2, cl2)); var l2 = logRB(B2, n2);
+      var atW2 = l2.filter(function (l) { return l.indexOf(' > ' + wz2.name) >= 0; }).length, atR2 = l2.filter(function (l) { return l.indexOf(' > ' + ro2.name) >= 0; }).length;
+      okRB('2 the cloaker turned on the wizard, the rogue at 30/40 the weaker, both 10 ft off in its tail\'s reach: blows at the wizard ' + atW2 + ', at the rogue ' + atR2 + ' (want 1, 0) -- ' + l2.join(' | ').slice(0, 420), atW2 === 1 && atR2 === 0 && l2.some(function (l) { return /turns on/.test(l); }));
+      // (and the SRD's cloaker, once its bite fastens on the rogue beside it, strikes no one else that turn -- the wizard at 10 ft the weaker now)
+      var B2b = mkRB('?npc=cloaker&vs=wizard:5,rogue:5&lvl=5'), cl2b = foesRB(B2b)[0], wz2b = clsRB(B2b, 'wizard'), ro2b = clsRB(B2b, 'rogue');
+      putRB(B2b, [[cl2b, 5, 5], [ro2b, 7, 5], [wz2b, 8, 6]]); ro2b.maxhp = ro2b.hp = 40; wz2b.maxhp = 60; wz2b.hp = 10; cl2b.hp = cl2b.maxhp = 300; cl2b.speed = 0; cl2b.fly = 0;
+      RUr.startTurn(cl2b); if (cl2b.turn) cl2b.turn.move = 0; B2b.active = cl2b; runRB(D.ai.turn(B2b, cl2b)); // (its first turn may go on its Moan: the next is its blows)
+      RUr.startTurn(cl2b); if (cl2b.turn) cl2b.turn.move = 0; B2b.active = cl2b;
+      var n2b = nRB(B2b); runRB(D.ai.turn(B2b, cl2b)); var l2b = logRB(B2b, n2b), atW2b = l2b.filter(function (l) { return l.indexOf(' > ' + wz2b.name) >= 0; }).length, att2b = l2b.some(function (l) { return /attaches to/.test(l); });
+      okRB('2 the SRD cloaker\'s bite fastens on the rogue (' + att2b + '): blows after it at the wizard ' + atW2b + ' (want true, 0: "can attack no other creature except the target") -- ' + l2b.join(' | ').slice(0, 360), att2b && atW2b === 0);
+      } catch (eS) { repRB.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 3. THE CLOAKER'S TURN PORTRAIT (his deep gallery: "when it's the cloakers turn, it's his tail showing in the bottom left box")
+      var sh3 = D.SHEETS && D.SHEETS.cloaker_p2, py3 = D.spr.portraitY('cloaker_p2', 0, 38);
+      okRB('3 cloaker_p2\'s face ' + (sh3 && sh3.face) + ', its foot in a 38-px box at ' + py3 + ' (want 41 and 60: the eyes at the box\'s middle, not the tail)', !!sh3 && sh3.face === 41 && py3 === 60);
+      } catch (eS) { repRB.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 4. BLACK TENTACLES (his Pocket DM fights of 11-07: the Ettin "seized" with no damage twice, then "crushed ... 10", 85 hp gone on 64 shown; the Roper, Large,
+      // held at R6 and never crushed; "tears at the web" for the tentacles)
+      pinRB(19);
+      var B4 = mkRB('?npc=ogre&vs=wizard:5,fighter:5&lvl=5'), og4 = foesRB(B4)[0], wz4 = clsRB(B4, 'wizard'), fi4 = clsRB(B4, 'fighter');
+      putRB(B4, [[og4, 5, 5], [wz4, 14, 14], [fi4, 14, 2]]);
+      var ft4 = GGr.foot(og4).slice().sort(function (a, b) { return (b[0] + b[1]) - (a[0] + a[1]); }), e4 = ft4[0];
+      var area4 = [e4, [e4[0] + 1, e4[1]], [e4[0], e4[1] + 1], [e4[0] + 1, e4[1] + 1]];
+      B4.grounds = [{ kind: 'tentacles', sq: area4, dc: 15, by: wz4.id }];
+      repRB.notes.push('4 the ogre ' + og4.x + ',' + og4.y + ' size ' + og4.size + ' foot ' + JSON.stringify(GGr.foot(og4)) + '; the tentacles ' + JSON.stringify(area4));
+      og4.hp = og4.maxhp = 300; og4.conds.restrained = { kind: 'tentacles', dc: 15, by: wz4.id };
+      var n4 = nRB(B4); MGr.onStart(B4, og4); var l4 = logRB(B4, n4).join(' | ');
+      okRB('4 the ogre (Large) held, the tentacles under one corner square, its turn starts: crushed ' + /crushed by the tentacles/.test(l4) + ', hp ' + og4.hp + '/300 (want true, below) -- ' + l4.slice(0, 260), /crushed by the tentacles/.test(l4) && og4.hp < 300);
+      pinRB(1); putRB(B4, [[fi4, area4[3][0], area4[3][1]]]); fi4.hp = fi4.maxhp = 200; delete fi4.conds.restrained;
+      n4 = nRB(B4); MGr.onStart(B4, fi4); l4 = logRB(B4, n4).join(' | ');
+      okRB('4 the fighter starts its turn in them and fails the save: "' + l4.slice(0, 200) + '", hp ' + fi4.hp + '/200 (want "seized  3d6 = 9 bludgeoning" and 191)', /seized\s+3d6 = 9 bludgeoning/.test(l4) && fi4.hp === 191 && !!fi4.conds.restrained);
+      delete og4.conds.restrained; og4.hp = 300; putRB(B4, [[og4, 1, 1], [fi4, 14, 2]]); RUr.startTurn(og4); B4.active = og4;
+      putRB(B4, [[og4, 5, 5]]); // (back where only its far corner is in them, as a step would bring it)
+      var in4 = GGr.inArea(og4, area4), at4 = area4.some(function (q) { return q[0] === og4.x && q[1] === og4.y; });
+      n4 = nRB(B4); MGr.stepInto(B4, og4); l4 = logRB(B4, n4).join(' | ');
+      okRB('4 the ogre steps so one corner is in them (its anchor ' + og4.x + ',' + og4.y + ' outside: ' + !at4 + ', in the area ' + in4 + '), the save failed: "' + l4.slice(0, 200) + '" (want "steps into the tentacles ... seized  3d6 = 9")', !at4 && in4 && /steps into the tentacles.*seized\s+3d6 = 9/.test(l4) && og4.conds.restrained && og4.conds.restrained.kind === 'tentacles');
+      pinRB(19); RUr.startTurn(og4); n4 = nRB(B4); runRB(MGr.breakFree(B4, og4)); l4 = logRB(B4, n4).join(' | ');
+      okRB('4 the ogre breaks free: "' + l4.slice(0, 160) + '" (want "wrestles the tentacles", no web)', /wrestles the tentacles/.test(l4) && !/web/.test(l4));
+      } catch (eS) { repRB.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 5. THE OWL'S OPPORTUNITY ATTACK (his inn fight, 03:11Z R3: "Aurdin's owl: an opportunity attack on Willem." and no roll after it)
+      pinRB(19);
+      var B5 = mkRB('?npc=goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), wz5 = clsRB(B5, 'wizard'), fi5 = clsRB(B5, 'fighter'), g5 = foesRB(B5);
+      putRB(B5, [[fi5, 5, 5], [g5[0], 6, 5], [wz5, 14, 14], [g5[1], 1, 14]]); g5[0].hp = g5[0].maxhp = 300;
+      fi5.familiar = wz5.id; fi5.guest = true; RUr.startTurn(fi5); RUr.startTurn(g5[0]); fi5.reaction = 1; B5.active = g5[0];
+      var n5 = nRB(B5); runRB(B5.moveAlong(g5[0], [[7, 5], [8, 5], [9, 5]], { spend: true })); var l5 = logRB(B5, n5).join(' | ');
+      okRB('5 a goblin walks out of reach of one marked a familiar ("A familiar can\'t attack", SRD 5.1): an opportunity attack ' + /opportunity attack/.test(l5) + ', its reaction ' + fi5.reaction + ' (want false, 1)', !/opportunity attack/.test(l5) && fi5.reaction === 1);
+      delete fi5.familiar; fi5.weapon = null; fi5.attacks = {}; putRB(B5, [[g5[0], 6, 5]]); RUr.startTurn(g5[0]); fi5.reaction = 1; B5.active = g5[0];
+      n5 = nRB(B5); runRB(B5.moveAlong(g5[0], [[7, 5], [8, 5], [9, 5]], { spend: true })); l5 = logRB(B5, n5).join(' | ');
+      okRB('5 the same walk past one with no melee attack at all: a card for one ' + /opportunity attack on/.test(l5) + ' (want false: no card for a swing it has nothing to make)', !/opportunity attack on/.test(l5));
+      } catch (eS) { repRB.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 6. THE SPHERE RAMMED FROM BESIDE (his Keeper fight and the road down the cut: "rolls the flaming sphere 0 ft -- into The Keeper!", eight times)
+      pinRB(19);
+      var B6 = mkRB('?npc=goblin&vs=druid:5&lvl=5'), dr6 = clsRB(B6, 'druid'), gb6 = foesRB(B6)[0];
+      putRB(B6, [[dr6, 3, 3], [gb6, 8, 3]]); gb6.hp = gb6.maxhp = 300;
+      dr6.known = ['flamingsphere']; dr6.slots = [4, 3, 2]; dr6.slotsMax = dr6.slots.slice();
+      var en6 = function () { return MGr.list(B6, dr6).filter(function (e) { return e.id === 'flamingsphere'; })[0]; };
+      B6.round = 1; RUr.startTurn(dr6); B6.active = dr6; var e6 = en6();
+      runRB(B6.exec(dr6, { do: 'cast', id: 'flamingsphere', slot: e6.slot, target: { x: 7, y: 3 } }));
+      var z6 = (B6.zones || []).filter(function (z) { return z.id === 'flamingsphere'; })[0];
+      B6.round = 2; RUr.startTurn(dr6); B6.active = dr6; var e6b = en6();
+      var n6 = nRB(B6); runRB(B6.exec(dr6, { do: 'cast', id: 'flamingsphere', slot: e6b.slot, target: { x: 8, y: 3 } })); var l6 = logRB(B6, n6).filter(function (l) { return /flaming sphere/.test(l); }).join(' | ');
+      okRB('6 the sphere at ' + (z6 && z6.x + ',' + z6.y) + ', beside the goblin, rolled at it: "' + l6.slice(0, 200) + '" (want "rams the flaming sphere into", no "0 ft")', /rams the flaming sphere into/.test(l6) && !/ 0 ft/.test(l6));
+      } catch (eS) { repRB.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 7. THE GEAR PAGE'S DICE (his note in the deep gallery: "on the gear page, some weapons say words and others show weapon damage and useful info")
+      var GD7 = window.DS.MENU.gearDesc, I7 = window.DS.DATA.items, m7 = GD7(I7.maul1), c7 = GD7(I7.candleknife), s7 = GD7(I7.longsword1), d7 = GD7(I7.dagger);
+      okRB('7 maul1 "' + m7 + '"; candleknife "' + c7 + '"; longsword1 "' + s7 + '"; dagger "' + d7 + '" (want the dice ahead of the words; the dagger as it was)',
+        /^2d6 bludgeoning\. Heavy, two-handed\. \+1 to hit/.test(m7) && /^1d4 piercing\. Finesse, light\. A dagger/.test(c7) && /^1d8 slashing \(1d10 two-handed\)\. \+1 to hit/.test(s7) && d7 === I7.dagger.desc);
+      } catch (eS) { repRB.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 8. THRANE'S MAN (his note in Silverton: "East Side's Man doesn't fit an NPC we have a portrait of?")
+      var pt8 = D.counter.PT.thrane;
+      okRB('8 the council\'s Thrane: portrait ' + pt8 + ', its sheet ' + !!(D.SHEETS && D.SHEETS[pt8]) + ' (want pt_genman, true)', pt8 === 'pt_genman' && !!(D.SHEETS && D.SHEETS.pt_genman));
+      } catch (eS) { repRB.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 9. ELSBETH'S "TONIGHT" (his note at the inn, day 15: "elsbeth saying tonight with a girl skipping stones and nothing for multiple days")
+      var In9 = D.inn, d9 = In9.dueDay(0), f9 = {}, n9 = [d9 - 3, d9 - 2, d9 - 1, d9].map(function (d) { return In9.nightsToDue(f9, d); });
+      f9.dueCycle = In9.dueCycle(d9); var w9 = In9.nightsToDue(f9, d9), L9 = String(D.counter.L('inn.elsbethNights', { n: 'two' })), T9 = String(D.counter.L('inn.elsbethTomorrow'));
+      okRB('9 the wagon\'s night to the due (day ' + d9 + '): ' + n9.join(', ') + ' nights; the due walked that night: ' + w9 + ' (want 3, 2, 1, 0; ' + In9.WAGON.every + ')', n9.join() === '3,2,1,0' && w9 === In9.WAGON.every);
+      okRB('9 her lines: "' + L9 + '" / "' + T9 + '" (want "In two nights" and "Tomorrow night")', /In two nights/.test(L9) && /Tomorrow night/.test(T9));
+      } catch (eS) { repRB.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 10. THE FLOOR BACK AS ITS FIGHT CLOSES (his Web Gulch, 11-08 ~03:00Z: "there's a second where a small child appears on the screen?" after the ettercap, and "a generic
+      // man" after the spiders -- the gulch's drummer boy and silk-cutter drawn on the fight's ground from the fight's camera for two frames after E on the last card)
+      pinRB(19);
+      if (D.simple) D.simple.on = function () { return false; };
+      ['spiders', 'ettercap'].forEach(function (which) {
+        var R10 = D.roam, I10 = D.input, B10 = R10.make('?roam=webgulch&hour=9&at=9,84'), k10;
+        D.scenes.length = 0; D.push(B10);
+        for (k10 = 0; k10 < 44; k10++) D.update();
+        var co10 = B10.co; B10.co = (function* () { if (which === 'ettercap') yield* D.gulch.ettercap(B10, false); else yield* D.mines.fieldFight(B10, 'random', { list: ['wolfspider', 'wolfspider', 'wolfspider'], line: 'Wolf spiders.', gap: 'rule' }); yield* co10; })();
+        for (k10 = 0; k10 < 600 && D.top() === B10; k10++) { if (B10.req && B10.req.prompt) { B10.answer(B10.req.prompt.opts[0].value); continue; } D.update(); }
+        var b10 = D.top(); if (b10 === B10) { okRB('10 ' + which + ': no fight came', false); return; }
+        if (b10.baking) { b10.baking = false; b10.enter(); }
+        for (k10 = 0; k10 < 6; k10++) D.update();
+        var v10, r10, m10 = 0;
+        while (b10.co && m10++ < 200000) { r10 = b10.co.next(v10); v10 = undefined; if (r10.done) { b10.co = null; break; } var y10 = r10.value; if (typeof y10 === 'number' || !y10 || y10.fx || y10.entry || y10.scene || y10.victory) continue; if (y10.prompt) { v10 = y10.prompt.opts[0].value; continue; } if (y10.turn) { b10.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v10 = { do: 'end' }; } }
+        b10.req = null; b10.wait = 0; b10.waitFx = false;
+        for (k10 = 0; k10 < 3; k10++) D.update();
+        I10.press('a'); D.update(); I10.release('a');
+        var st10 = [D.top() === B10, D.iso.map === B10.map, GGr.map === B10.map, D.battle === B10];
+        okRB('10 ' + which + ' won, E on the last card ("' + window.DS.stripCodes(String(((b10.cards[b10.cards.length - 1] || {}).lines || [])[0] || '')) + '"), the same frame: the floor on top ' + st10[0] + ', its map drawn ' + st10[1] + ', its grid ' + st10[2] + ', its battle ' + st10[3] + ' (want all true: no frame of its people on the fight\'s ground)', st10.every(Boolean));
+      });
+      } catch (eS) { repRB.errors.push('section 10: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
+    D.d = d0RB; D.store.get = stGRB; D.store.set = stSRB; D.music = muRB; window.DS.autoPicks = apRB; if (D.simple && simOnRB) D.simple.on = simOnRB;
+    var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
+    document.body.appendChild(preRB);
+    return;
+  }
   // THE GRID'S FIXES OF 11-06 (mode=gridfixes1106; the gridfixes-1106 seat, started by the lanes desk on his fights of 11-05/11-06 -- the grid's rules lane's "2026-11-06 -- his
   // fights of 11-05/11-06 read" and the play records lane's): 1. Sneak Attack once per TURN, any creature's (battle.js Battle.turnKey) -- her opportunity attack before her first
   // turn, and on a foe's turn after her own sneak; twice in one foe's turn, once; Martial Advantage the same; 2. HIDE against blindsight (battle.js spots): SEEN with the reason,
@@ -7008,9 +7162,10 @@
       okHw('C1 seen: ' + sN.length + ' pages -- "' + (sN[1] || '').slice(0, 70) + '", Papa "' + (sN.filter(function (s) { return /^Papa Urtusk/.test(s); })[0] || '').slice(0, 50) + '"; its flag (' + !!fC2.councilNotice + ')',
         sN.length >= 10 && /^The council\|-\|That night, in Silverton/.test(sN[0]) && /^Hessle\|pt_hessle\|"Word's come up the road from Tarlyn's Pit/.test(sN[1]) && /^Aldwyn Androit\|pt_androit\|"Plainly, for the record/.test(sN[2]) && /^Papa Urtusk\|pt_papa\|"Enough history, Aldwyn/.test(sN[5]) && /^Merrick\|pt_merrick\|/.test(sN[6]) && /^Aldwyn Androit\|pt_androit\|"Then we post it/.test(sN[7]) && !sN.some(function (s) { return /Lupine|Strike it/.test(s); }) && !!fC2.councilNotice && scN.done); // (10-30, his "we're wasting expository space. What actually came in from newland?": the news, Androit for the record, Papa cutting him off; no Lupine's head)
       // 15. C3, THE HERD'S COUNCIL (his "18 - yes, lantern warning same trigger as council meeting"): the lantern man's flag due at the next morning; and the stock dead, again
+      // (Thrane's man on the generic man's face since 11-08 -- his note "East Side's Man doesn't fit an NPC we have a portrait of?", counter.js C.PT.thrane; till then the plain shape, '-')
       var fH = { herdWarned: 1, councilNotice: 1 }, dH = HWw.councilsDue(fH), sH = sitHw(HWw.sitting(BC2, dH, [fH])), dH2 = HWw.councilsDue(fH); fH.stockDead = 1; var dS = HWw.councilsDue(fH), sS = sitHw(HWw.sitting(BC2, dS, [fH]));
       okHw('C3: the herd thinned, due ' + dH.join(',') + ' -- "' + (sH[1] || '').slice(0, 80) + '" -- then none (' + dH2.length + '); the stock dead, due ' + dS.join(',') + ' -- "' + (sS[1] || '').slice(0, 70) + '"',
-        dH.join() === 'herd' && /^The east side's man\|-\|"Three of the House's stock dead/.test(sH[1]) && !!fH.councilHerd && !dH2.length && dS.join() === 'stock' && /Captain's line/.test(sS[1]) && !!fH.councilStock);
+        dH.join() === 'herd' && /^The east side's man\|pt_genman\|"Three of the House's stock dead/.test(sH[1]) && !!fH.councilHerd && !dH2.length && dS.join() === 'stock' && /Captain's line/.test(sS[1]) && !!fH.councilStock);
       // 16. C2, A NAME MADE (his "17 - yeah, that's good"): renown 2 -- in the Hex the call, once; on the third floor the sitting, once. Since 10-29 (the story window, RULED on
       // his "Leans stand"): the call Papa's runner on his own screen, and the sitting the council's ask -- the ettercap, sworn and pinned -- not a who's-who (mode=story1029b)
       var shotHw = function (B, g) { var v, k = 0, st, pr = null; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { pr = pr || st.value.prompt; v = 0; } else if (typeof st.value === 'number') B.t += st.value; if (D.top() instanceof CHw.Counter) break; } return { g: g, pr: pr }; };
