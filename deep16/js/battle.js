@@ -1053,6 +1053,9 @@
       }
     }
   };
+  // a foe's name with its article: none for a named one (The Keeper) or a name that opens with its own ("The thing in the lake" -- secondact.js; 11-10, his record of 11-09,
+  // his list RULED "fix": "The The thing in the lake falls")
+  Battle.theName = function (u) { var s = shortName(u); return (u.named || /^the /i.test(s) ? '' : 'The ') + s; };
   function shortName(u) { return u.side === 'foe' && !u.fname ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
@@ -2392,7 +2395,7 @@
     var cidT = onMain ? mc.id : 'twin' + (++this.cardSeq || (this.cardSeq = 1));
     var lineT = function (took) {
       return '{y}+ the ' + off.name.toLowerCase() + '{/}  ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '') +
-        (took !== dr.total ? ', {o}' + took + ' after the ' + (blT.transfer ? 'Damage Transfer' : took > dr.total ? 'vulnerability' : took === 0 ? 'immunity' : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
+        (took !== dr.total ? ', {o}' + took + ' after the ' + (blT.transfer ? 'Damage Transfer' : took > dr.total ? 'vulnerability' : took === 0 ? Battle.zeroWhy(blT) : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
         (onMain ? '  both {r}' + (mc.dealt + took) + '{/}' : '');
     };
     var cardT = function (took) { return onMain ? mc.lines.concat([lineT(took)]) : ['{y}' + nameOf(u) + '{/} ' + lineT(took)]; };
@@ -2820,7 +2823,7 @@
     // the card's total says what lands (11-03 night, his "3 - yes": "= 15" read on the card and "Talmok resists slashing: 8 > 4" on the next line, 11 dealt): the blow re-carded
     // in place with what its parts took (`bl.took`, after resistance, vulnerability, immunity, a ward) -- unless it killed mid-blow, its later parts never dealt
     var sumT = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
-    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.transfer ? 'Damage Transfer' : bl.took > sumT ? 'vulnerability' : bl.took === 0 ? 'immunity' : 'resistance') + '{/}'], 300, cid);
+    if (sumT > 0 && bl.took !== sumT && !tgt.dead && tgt.hp > 0) this.card(atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + sumT + '{/}, {o}' + bl.took + ' after the ' + (bl.transfer ? 'Damage Transfer' : bl.took > sumT ? 'vulnerability' : bl.took === 0 ? Battle.zeroWhy(bl) : 'resistance') + '{/}'], 300, cid);
     if (foundTxt && !tgt.dead && tgt.hp > 0) this.card([foundTxt], 200); // (found by the blow, said under it -- above)
     this.atkCard = { id: cid, lines: atkL, dealt: bl.took }; // (the blow's card as it stands: TWIN STRIKE's second weapon joins it -- Battle.twinOff, 11-05)
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
@@ -3340,6 +3343,9 @@
   // its own hurt (resistance by kind), their `blow` banking what u took; then one save, DC 10 or half the sum (SRD 5.1 Concentration: "you make a separate saving
   // throw for each source of damage"). A part after u is dead is not dealt (one down still takes it, as before)
   Battle.prototype.blow = function () { return { took: 0 }; };
+  // what brought a blow to 0, in the card's words: an immunity, or a resistance that rounded it down (11-10, his record of 11-09, his list RULED "fix": a resisted 1 read
+  // "0 after the immunity"). Battle.hurt marks the blow (immune, halved)
+  Battle.zeroWhy = function (bl) { return bl && bl.immune && bl.halved ? 'immunity and resistance' : bl && bl.immune ? 'immunity' : 'resistance'; };
   Battle.prototype.blowEnd = function (u, blow) { if (u.blowIn === blow) delete u.blowIn; if (blow && blow.took > 0 && !u.dead && u.hp > 0) D.magic.concCheck(this, u, blow.took); if (blow) blow.took = 0; };
   Battle.prototype.hurtAll = function (u, parts, src) {
     var bl = this.blow(), s = Object.assign({}, src || {}, { blow: bl });
@@ -3376,6 +3382,7 @@
     var noteN = function () { if (whyN && n !== n0 && self.logEntries) { self.logEntries.push({ id: null, text: 'R' + self.round + ' ' + (u.name || u.id) + ' ' + whyN + ': ' + n0 + ' > ' + Math.max(0, n) }); self.log = self.logEntries.map(function (e) { return e.text; }); } };
     if (u.immune || u.resist || u.vulnerable) {
       var ty = this.typed(u, n, type);
+      if (src && src.blow && ty.why === 'immune') src.blow.immune = true; else if (src && src.blow && ty.why === 'resists') src.blow.halved = true; // (the card's word for a blow that came to 0: Battle.zeroWhy)
       if (ty.why) FX.float(ty.why === 'immune' ? 'immune: ' + type : ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]); // (says to what: the jelly and a blade)
       if (ty.why === 'resists') resisted = true;
       if (ty.why) whyN = ty.why === 'immune' ? 'is immune to ' + type : ty.why + ' ' + type;
@@ -3390,7 +3397,7 @@
       if (vic && !vic.dead) { var pass = n - keep; n = keep; if (src && src.blow) src.blow.transfer = true; if (vic.hp > 0) { FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, pass, type); } if (n <= 0) return; } // (the half kept with the one it holds lying down too: no death saves here, so the other half goes nowhere -- 11-08, his record: Lymen's blows landed whole on it while Vivian lay at 0)
     }
     // a statue (petrified, SRD 5.1: "resistance to all damage", "immune to poison" -- js/grimoire.js M.petrify, 10-08)
-    if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, stone'; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) { noteN(); return; } }
+    if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); if (src && src.blow) src.blow.immune = true; return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, stone'; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) { noteN(); return; } }
     // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
     if (!resisted && u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, Stoneskin'; FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
@@ -3408,6 +3415,7 @@
     // (a blow of two kinds -- Ice Storm's hail and cold, Flame Strike's fire and radiant, a blade and its fire or a bite and its poison -- is one source, one save on the sum:
     // its parts carry one `blow` record and bank what they took, and the caller asks once at the end, Battle.blowEnd -- the grid's rules §2.1, SRD 5.1 "half the damage you take")
     noteN();
+    if (resisted && src && src.blow) src.blow.halved = true;
     var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) { if (src && src.blow) src.blow.took += took; else D.magic.concCheck(B, u, took); } };
     // the hurt hooks read the damage taken as concentration does, a temp-HP soak and a beast's hit points included: a pattern's trance broken, a laughing one's save, FIRST
     // BLOOD's rage, a Turn Undead's terror ended (D.magic.onHurt's chain: grimoire.js, features.js, monsterrules.js) -- once a blow, with the whole of it (11-10, his record of
@@ -3480,9 +3488,9 @@
       // Griz: "i think the regen is there it's just turning off when they die"): it lies there, still a target, and gets up at its turn unless it burned (ai.js AI.turn)
       // (burned since the start of its last turn -- this blow's fire or acid, or an earlier one's: dead at once, RULED 10-06, Griz: "if hp drops to 0 while burning = true,
       // trigger troll death")
-      else if (u.regen > 0 && u.burned) { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls, burning. It will not knit: it is dead.{/}'], 300); if (u.holding && u.holding.length) this.release(u); }
-      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; delete u.knit;this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(fire or acid before its turn, and it is dead){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
-      else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
+      else if (u.regen > 0 && u.burned) { u.dead = true; u.deadT = this.t; this.card(['{y}' + Battle.theName(u) + ' falls, burning. It will not knit: it is dead.{/}'], 300); if (u.holding && u.holding.length) this.release(u); }
+      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; delete u.knit;this.card(['{y}' + Battle.theName(u) + ' falls -- and starts to knit.{/}  {g}(fire or acid before its turn, and it is dead){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
+      else { u.dead = true; u.deadT = this.t; this.card(['{y}' + Battle.theName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02; and a name that opens with one, the lake's: Battle.theName) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)
       this.rideSync();

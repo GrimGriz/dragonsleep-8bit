@@ -94,11 +94,13 @@
   // the Threshing Floor's Hard Ground (a fighter of ours at 3, 10-30 -- js/rules.js R.SUBCLASSES.fighter; Barley's road, "He went down once against Cutter on fight night and got
   // back up"): prone is no trouble -- its own melee blows from the ground at no disadvantage, no advantage for one beside it, and up for 5 ft (RU.riseCost)
   RU.hardGround = function (u) { return !!u && u.subclass === 'the Threshing Floor' && u.cls === 'fighter' && u.lvl >= 3; };
+  // the word for the 5-ft rise, by what gives it (11-10, his record of 11-09, his list RULED "fix": "pit-wise", the Grey Road's, was printed for the Pelt's HAUNCHES)
+  RU.riseWhy = function (u) { return u.subclass === 'the Grey Road' && u.lvl >= 3 ? 'pit-wise' : RU.hardGround(u) ? 'hard ground' : u.conds && u.conds.pelt && u.conds.pelt.parts.indexOf('haunches') >= 0 ? 'the haunches' : 'quick'; };
   RU.rise = function (B, u) {
     var half = RU.riseCost(u);
     if (!u.conds.prone || u.hp <= 0 || !RU.canRise(u) || !u.turn || u.turn.move < half) return false;
     delete u.conds.prone; u.turn.move -= half;
-    if (B) B.card(['{g}' + u.name + ' gets up (' + (half < Math.floor(RU.speedNow(u) / 2) ? half + ' ft of the move: pit-wise' : 'half the move') + ').{/}'], 200);
+    if (B) B.card(['{g}' + u.name + ' gets up (' + (half < Math.floor(RU.speedNow(u) / 2) ? half + ' ft of the move: ' + RU.riseWhy(u) : 'half the move') + ').{/}'], 200);
     return true;
   };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
