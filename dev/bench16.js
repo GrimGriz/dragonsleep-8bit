@@ -3368,6 +3368,143 @@
     document.body.appendChild(preWD);
     return;
   }
+  // THE GRID'S FIXES OF 11-10 (mode=gridfix1110; the grid fixes seat, started by the lanes desk on his record of 11-09 -- the play records lane's "2026-11-10" section and
+  // his rulings, "1 - fix ... 4 - build ... 6-7 fix / 8 - ... spiked shouldn't impact fliers over 5ft unless SRD contradicts"): 1. Hypnotic Pattern lets go -- HELP shakes an
+  // entranced friend (battle.js Battle.helpable, the 'help' exec, features.js the AI's planner), and a blow on temp HP or a beast's shape still counts (Battle.hurt's hooks:
+  // the trance, FIRST BLOOD; once a blow); 2. Shillelagh keeps a magic staff's +N (grimoire.js E.shillelagh.wood); 3. the Dash and the cunning dash add the speed after its
+  // modifiers (Battle.dashFeet), HAUNCHES worn mid-turn adds to the turn's move (features.js peltMove); 4. a thrown spear 1d6 (classes.js); 5. the chuul's tentacles a save
+  // with no roll (Battle.noRollOn); 6. the labels (Battle.zeroWhy, RU.riseWhy, Battle.theName); 7. Spike Growth spares a flier more than 5 ft up (M.overSpikes); 8. the SRD's
+  // thrown property (content/items.json, Battle.offThrow); 9. the show's beats (deep16/?rulesshow&only=gridfix1110). The d20s pinned per check. Each check reads the engine's
+  // own paths (exec, hurt, attack, stepInto), not a new API, so the code before each fix reads RED
+  if (get('mode', '') === 'gridfix1110') {
+    var repGT = { checks: [], errors: [], notes: [] }, memGT = {}, stGGT = D.store.get, stSGT = D.store.set, muGT = D.music, apGT = window.DS.autoPicks, d0GT = D.d, RUt = D.rules, GGt = D.grid, Mt = D.magic;
+    function okGT(what, v) { repGT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGT(g, asked) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { if (asked) asked.push(st.value.prompt.title || ''); v = st.value.prompt.opts[0].value; } } }
+    function mkGT(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function clsGT(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function kindGT(Bx, k) { return Bx.units.filter(function (w) { return w.side === 'foe' && w.kind === k; }); }
+    function putGT(Bx, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; }); GGt.setup(GGt.map, Bx.units); Bx.cache = null; }
+    function logGT(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return e.text; }).join(' | '); }
+    function nGT(Bx) { return (Bx.logEntries || []).length; }
+    function trance(w, by) { w.conds.hypnotized = { by: by }; w.conds.incapacitated = { by: by }; w.conds.charmed = { by: by }; }
+    function tranced(w) { return !!(w.conds.hypnotized || w.conds.incapacitated || w.conds.charmed); }
+    D.store.get = function (k) { return memGT[k] ? JSON.parse(memGT[k]) : null; }; D.store.set = function (k, v) { memGT[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1110);
+      try { // (each section its own, so one that throws hides none after it)
+      // 1. HYPNOTIC PATTERN LETS GO (his stream's fight 2: Vivian entranced five rounds)
+      var B1 = mkGT('?npc=goblin&vs=cleric:5,wizard:5,barbarian:5,druid:5&lvl=5'), cl1 = clsGT(B1, 'cleric'), wz1 = clsGT(B1, 'wizard'), ba1 = clsGT(B1, 'barbarian'), dr1 = clsGT(B1, 'druid'), gb1 = kindGT(B1, 'goblin')[0];
+      putGT(B1, [[cl1, 5, 5], [wz1, 6, 5], [ba1, 9, 9], [dr1, 12, 5], [gb1, 16, 12]]);
+      trance(wz1, gb1.id); var hp1 = D.Battle.helpable(cl1, wz1);
+      RUt.startTurn(cl1); B1.active = cl1; var n1 = nGT(B1);
+      try { runGT(B1.exec(cl1, { do: 'help', target: wz1 })); } finally { B1.active = null; }
+      var l1 = logGT(B1, n1);
+      okGT('1 HELP on the entranced wizard beside the cleric: helpable ' + hp1 + ', after it the trance ' + (tranced(wz1) ? 'HOLDS' : 'gone') + ', the action spent ' + (cl1.turn.action === 0) + ', "' + l1.slice(0, 140) + '"', hp1 && !tranced(wz1) && cl1.turn.action === 0 && /shakes Wizard[^|]* out of the pattern/.test(l1) || hp1 && !tranced(wz1) && cl1.turn.action === 0 && / out of the pattern/.test(l1));
+      // the AI's planner: the shake weighed as a sleeper's
+      trance(wz1, gb1.id); RUt.startTurn(cl1); B1.active = cl1; var plan1 = null;
+      try { D.tactics.ACTIONS.forEach(function (f) { var p; try { p = f(B1, cl1, [gb1], [wz1]); } catch (eA) { p = null; } [].concat(p || []).forEach(function (x) { if (x && x.kind === 'help' && (!plan1 || x.score > plan1.score)) plan1 = x; }); }); } finally { B1.active = null; }
+      okGT('1 the AI\'s plan for the cleric beside the entranced wizard: ' + (plan1 ? '"' + plan1.why + '" ' + Math.round(plan1.score) : 'none') + ' (want "shake ..." at a sleeper\'s weight)', !!plan1 && /^shake /.test(plan1.why));
+      delete wz1.conds.hypnotized; delete wz1.conds.incapacitated; delete wz1.conds.charmed;
+      // a blow its temporary hit points take whole
+      trance(wz1, gb1.id); wz1.temp = 20; var wh1 = wz1.hp; B1.hurt(wz1, 6, 'slashing', {});
+      okGT('1 a 6 on the entranced wizard\'s 20 temporary HP: hp ' + wz1.hp + ' of ' + wh1 + ', temp ' + wz1.temp + ', the trance ' + (tranced(wz1) ? 'HOLDS' : 'broken'), wz1.hp === wh1 && wz1.temp === 14 && !tranced(wz1));
+      wz1.temp = 0;
+      // FIRST BLOOD (the Path of the Sand, 3): stung on temporary hit points, it rages
+      ba1.subclass = 'Path of the Sand'; ba1.feats = ba1.feats || {}; ba1.feats.rage = 2; ba1.reaction = 1; ba1.temp = 20; delete ba1.conds.raging; B1.hurt(ba1, 5, 'slashing', {});
+      okGT('1 FIRST BLOOD on a blow the barbarian\'s temporary HP took: raging ' + !!ba1.conds.raging + ', rage left ' + ba1.feats.rage, !!ba1.conds.raging && ba1.feats.rage === 1);
+      delete ba1.conds.raging; ba1.temp = 0;
+      // a beast's shape: its hit points take it, and the trance still breaks; once a blow when the shape is thrown off (the carried rest calls none)
+      dr1.beast = { hp: 10, keep: {} }; trance(dr1, gb1.id); var dh1 = dr1.hp; B1.hurt(dr1, 3, 'slashing', {}); var bh1 = dr1.beast && dr1.beast.hp, tr1 = tranced(dr1);
+      var oh1 = Mt.onHurt, calls1 = []; Mt.onHurt = function (Bx, u, n, ty) { if (u === dr1) calls1.push(n); return oh1.apply(this, arguments); };
+      try { dr1.beast = { hp: 4, keep: {} }; B1.hurt(dr1, 6, 'slashing', {}); } finally { Mt.onHurt = oh1; }
+      okGT('1 a 3 on the entranced druid in a beast\'s shape (10): the beast at ' + bh1 + ', the druid ' + dh1 + ', the trance ' + (tr1 ? 'HOLDS' : 'broken') + '; then a 6 that throws off a 4-HP shape: the hooks called ' + calls1.length + ' time(s) [' + calls1.join(',') + '] (want once, with the 6), the druid ' + dr1.hp + ' of ' + dh1 + ' (want 2 less)',
+        bh1 === 7 && !tr1 && calls1.join(',') === '6' && dr1.hp === dh1 - 2 && !dr1.beast);
+      } catch (eS) { repGT.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 2. SHILLELAGH AND A MAGIC STAFF (the Staff +2: the +2 stays)
+      var B2 = mkGT('?npc=goblin&vs=druid:5&lvl=5'), dr2 = clsGT(B2, 'druid'), wm2 = D.mod(dr2.abil.wis);
+      dr2.weapon = Object.assign({}, dr2.weapon, { id: 'staff2', name: 'Staff +2' }); var wd2 = Mt.EFFECT.shillelagh.wood(dr2);
+      okGT('2 Shillelagh on a Staff +2: ' + wd2.atk + ' to hit, 1d8+' + wd2.mod + ' (want WIS ' + wm2 + ' + prof ' + dr2.prof + ' + 2 = ' + (wm2 + dr2.prof + 2) + ', and ' + (wm2 + 2) + '); a plain staff ' + Mt.EFFECT.shillelagh.wood(Object.assign({}, dr2, { weapon: Object.assign({}, dr2.weapon, { id: 'quarterstaff' }) })).atk,
+        wd2.atk === wm2 + dr2.prof + 2 && wd2.mod === wm2 + 2 && wd2.dice === '1d8' && Mt.EFFECT.shillelagh.wood(Object.assign({}, dr2, { weapon: Object.assign({}, dr2.weapon, { id: 'quarterstaff' }) })).atk === wm2 + dr2.prof);
+      } catch (eS) { repGT.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 3. THE DASH, AFTER ITS MODIFIERS, AND HAUNCHES WORN MID-TURN
+      var B3 = mkGT('?npc=goblin&vs=druid:5,rogue:5&lvl=5'), dr3 = clsGT(B3, 'druid'), ro3 = clsGT(B3, 'rogue');
+      putGT(B3, [[dr3, 5, 5], [ro3, 5, 9], [kindGT(B3, 'goblin')[0], 18, 12]]);
+      dr3.subclass = 'the Circle of the Pelt'; dr3.feats = dr3.feats || {}; dr3.feats.wildShape = 2; RUt.startTurn(dr3); B3.active = dr3; var mv3a = dr3.turn.move, mv3b, mv3c, mv3d;
+      try { D.features.wearBeast(B3, dr3, ['haunches']); mv3b = dr3.turn.move; runGT(B3.exec(dr3, { do: 'dash' })); mv3c = dr3.turn.move; dr3.turn.bonus = 1; runGT(B3.exec(dr3, { do: 'shedbeast' })); mv3d = dr3.turn.move; } finally { B3.active = null; }
+      okGT('3 the druid (speed ' + dr3.speed + ') wears HAUNCHES on her turn: the move ' + mv3a + ' > ' + mv3b + ' (want +10), the Dash > ' + mv3c + ' (want +40), SHED THE BEAST > ' + mv3d + ' (want -10)', mv3b === mv3a + 10 && mv3c === mv3b + mv3a + 10 && mv3d === mv3c - 10);
+      delete dr3.conds.pelt;
+      ro3.conds.stride = { by: 'x' }; RUt.startTurn(ro3); B3.active = ro3; var mv3e = ro3.turn.move, mv3f;
+      try { runGT(B3.exec(ro3, { do: 'cdash' })); mv3f = ro3.turn.move; } finally { B3.active = null; delete ro3.conds.stride; }
+      okGT('3 the rogue (speed ' + ro3.speed + ') under a broken stride (-10): the turn\'s move ' + mv3e + ', the cunning dash adds ' + (mv3f - mv3e) + ' (want ' + mv3e + ')', mv3e === ro3.speed - 10 && mv3f - mv3e === mv3e);
+      ro3.conds.exhaustion = { n: 2 }; RUt.startTurn(ro3); B3.active = ro3; var mv3g = ro3.turn.move, mv3h;
+      try { runGT(B3.exec(ro3, { do: 'dash' })); mv3h = ro3.turn.move; } finally { B3.active = null; delete ro3.conds.exhaustion; }
+      okGT('3 the rogue at exhaustion 2 (speed halved): the move ' + mv3g + ', the Dash adds ' + (mv3h - mv3g) + ' (want ' + mv3g + ')', mv3g === Math.floor(ro3.speed / 2) && mv3h - mv3g === mv3g);
+      } catch (eS) { repGT.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 4. A THROWN SPEAR (his druid's flew for 1d8)
+      var h4 = D.npc.sheet({ cls: 'druid', lvl: 5 }); h4.alt = 'spear'; h4.equip.shield = null; var u4 = D.npc.unit(h4, 'party');
+      var h4b = D.npc.sheet({ cls: 'barbarian', lvl: 5 }), u4b = D.npc.unit(h4b, 'party');
+      okGT('4 a druid with no shield and a spear to throw: ' + (u4.alt && u4.alt.dice) + ' (want 1d6), thrown ' + !!(u4.alt && u4.alt.thrown) + '; the barbarian\'s handaxe ' + (u4b.alt && u4b.alt.dice), !!u4.alt && u4.alt.dice === '1d6' && u4.alt.thrown && u4b.alt && u4b.alt.dice === '1d6');
+      } catch (eS) { repGT.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 5. THE CHUUL'S TENTACLES: A SAVE, NO ROLL (Protection asked, a nat 1 read HIT)
+      var B5 = mkGT('?npc=chuul&vs=fighter:5,cleric:5&lvl=5'), ch5 = kindGT(B5, 'chuul')[0], fi5 = clsGT(B5, 'fighter'), cl5 = clsGT(B5, 'cleric');
+      putGT(B5, [[ch5, 6, 6], [fi5, 8, 6], [cl5, 8, 7]]); cl5.style = 'protection'; cl5.reaction = 1; ch5.holding = [fi5]; fi5.conds.grappled = { by: ch5.id };
+      D.d = function (n) { return n === 20 ? 1 : Math.ceil(n / 2); }; var asked5 = [], n5 = nGT(B5), fh5 = fi5.hp; RUt.startTurn(ch5); B5.active = ch5;
+      try { runGT(B5.attack(ch5, fi5, ch5.attacks.tentacles), asked5); } finally { D.d = d0GT; B5.active = null; delete ch5.holding; }
+      var l5 = logGT(B5, n5);
+      okGT('5 the tentacles on the held fighter, every d20 a 1, the cleric beside it with Protection: asked [' + asked5.join(', ') + '] (want none), "' + l5.slice(0, 200) + '"; paralyzed ' + !!fi5.conds.paralyzed + ', hp ' + fi5.hp + ' of ' + fh5,
+        !asked5.length && /CON save/.test(l5) && !/\+6 = |MISS|HIT/.test(l5) && !!fi5.conds.paralyzed && fi5.hp === fh5);
+      } catch (eS) { repGT.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 6. THE LABELS: "0 after the immunity" for a resisted 1, "pit-wise" on HAUNCHES, "The The thing in the lake"
+      var B6 = mkGT('?npc=goblin,goblin&vs=fighter:5,druid:5&lvl=5'), fi6 = clsGT(B6, 'fighter'), dr6 = clsGT(B6, 'druid'), gb6 = kindGT(B6, 'goblin');
+      putGT(B6, [[fi6, 6, 6], [gb6[0], 7, 6], [dr6, 12, 6], [gb6[1], 16, 10]]);
+      var pin6 = { name: 'Pin', atk: 30, dice: '1d1', mod: 0, type: 'slashing' }; D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); };
+      gb6[0].resist = ['slashing']; RUt.startTurn(fi6); B6.active = fi6; var n6 = nGT(B6);
+      try { runGT(B6.attack(fi6, gb6[0], pin6)); } finally { B6.active = null; }
+      var l6a = logGT(B6, n6); delete gb6[0].resist; gb6[0].immune = ['slashing']; n6 = nGT(B6); B6.active = fi6;
+      try { runGT(B6.attack(fi6, gb6[0], pin6)); } finally { B6.active = null; D.d = d0GT; delete gb6[0].immune; }
+      var l6b = logGT(B6, n6);
+      okGT('6 a 1 the goblin resists: "' + ((l6a.match(/\d+ after the [a-z ]+/) || [''])[0]) + '" (want "0 after the resistance"); immune: "' + ((l6b.match(/\d+ after the [a-z ]+/) || [''])[0]) + '"', /0 after the resistance/.test(l6a) && !/after the immunity/.test(l6a) && /0 after the immunity/.test(l6b));
+      dr6.conds.pelt = { parts: ['haunches'] }; RUt.startTurn(dr6); dr6.conds.prone = true; n6 = nGT(B6); RUt.rise(B6, dr6);
+      var l6c = logGT(B6, n6); delete dr6.conds.pelt;
+      okGT('6 the druid up off the ground with HAUNCHES: "' + l6c.slice(0, 120) + '" (want "the haunches", not "pit-wise")', /5 ft of the move: the haunches/.test(l6c) && !/pit-wise/.test(l6c));
+      gb6[1].name = 'The thing in the lake'; n6 = nGT(B6); B6.hurt(gb6[1], 999, 'slashing', {});
+      var l6d = logGT(B6, n6);
+      okGT('6 a foe named "The thing in the lake" falls: "' + l6d.slice(0, 120) + '"', /The thing in the lake falls/.test(l6d) && !/The The/.test(l6d));
+      } catch (eS) { repGT.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 7. SPIKE GROWTH AND A FLIER (his harpies spiked as they flew; RULED 11-10, "spiked shouldn't impact fliers over 5ft unless SRD contradicts")
+      var B7 = mkGT('?npc=harpy&vs=wizard:5&lvl=5'), hp7 = kindGT(B7, 'harpy')[0], wz7 = clsGT(B7, 'wizard');
+      putGT(B7, [[hp7, 8, 8], [wz7, 3, 3]]); B7.grounds = [{ kind: 'spikes', sq: [[8, 8]], by: wz7.id, difficult: true }]; hp7.flies = true;
+      var L7 = GGt.LAYER(), gz7 = GGt.groundAt(hp7, 8, 8), h70 = hp7.hp, out7 = [];
+      [[gz7 + 3 * L7, '15 ft'], [gz7 + 2 * L7, '10 ft'], [gz7 + L7, '5 ft'], [null, 'on the surface']].forEach(function (z) { hp7.fz = z[0]; var a = hp7.hp; Mt.stepInto(B7, hp7); out7.push(z[1] + ' ' + (a - hp7.hp)); hp7.hp = h70; });
+      hp7.fz = null;
+      okGT('7 the harpy steps into the spikes: ' + out7.join(', ') + ' (want 0 at 15 and 10 ft, spiked at 5 ft and on the surface)', /^15 ft 0, 10 ft 0, 5 ft [1-9]\d*, on the surface [1-9]\d*$/.test(out7.join(', ')));
+      } catch (eS) { repGT.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 8. THE SRD'S THROWN PROPERTY (his Pocket DM note: thrown weapons from the pack)
+      var IT8 = window.DS.DATA.items, t8 = ['dagger', 'handaxe', 'spear', 'lighthammer', 'dagger1', 'dagger2', 'candleknife', 'greyseamknife'].map(function (k) { var w = IT8[k] && IT8[k].weapon; return k + ':' + (w && (w.props || []).indexOf('thrown') >= 0 && w.thrown ? w.thrown.join('/') : 'none'); });
+      var off8 = ['dagger', 'handaxe'].map(function (k) { var r = D.Battle.offThrow({ src: { equip: { offhand: k } } }); return k + ' ' + (r ? r.range.join('/') : 'none'); });
+      okGT('8 thrown (range): ' + t8.join(', ') + '; OFF HAND throw: ' + off8.join(', '), t8.every(function (s) { return /:20\/60$/.test(s); }) && off8.join(',') === 'dagger 20/60,handaxe 20/60');
+      } catch (eS) { repGT.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 9. THE SHOW'S BEATS (js/eyes.js eyes-gridfix-show-1110, deep16/?rulesshow&only=gridfix1110): staged and run by the engine, headless with &fast
+      D.d = d0GT; var B9 = D.rulesshow.make('?rulesshow&fast&only=gridfix1110'); D.battle = B9; B9.enter();
+      var v9, k9 = 0; while (B9.co && k9++ < 400000) { var r9 = B9.co.next(v9); v9 = undefined; if (r9.done) break; var y9 = r9.value; if (y9 && y9.prompt) v9 = y9.prompt.opts[0].value; }
+      (B9.rulesReport || []).forEach(function (b) { okGT('9 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
+      okGT('9 the show ran ' + (B9.rulesReport || []).length + ' beats (want 3)', (B9.rulesReport || []).length === 3);
+      } catch (eS) { repGT.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    } catch (eGT) { repGT.errors.push(String(eGT && eGT.stack || eGT).slice(0, 900)); }
+    D.d = d0GT; D.store.get = stGGT; D.store.set = stSGT; D.music = muGT; window.DS.autoPicks = apGT;
+    var preGT = document.createElement('pre'); preGT.id = 'out'; preGT.textContent = 'BENCH16 ' + JSON.stringify(repGT);
+    document.body.appendChild(preGT);
+    return;
+  }
   // THE GRID'S FIXES OF 11-07 (mode=gridfix1107; the gridfix-1107 seat, started by the lanes desk on his fights of 11-06 evening -- the grid's rules lane's "2026-11-07 -- his
   // fights of 11-06 evening read"): 1. a foe that yields mid-turn stops there (battle.js Battle.overStop, ai.js AI.TURN_OVER) -- no more walk, no more reactions asked, no shot after;
   // 2. a simple fight's Hide against blindsight it will meet in melee (simple.js S.meetsInMelee) -- seen, the card saying why, and a bow keeps the lineup's distance; 3. keen senses in

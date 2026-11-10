@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -340,6 +340,55 @@
         return [ok, ok ? 'HIDDEN from the bandit (cannot see her); "Seen by: Wolf (18, keen hearing and smell, without sight)"' : l.slice(0, 220)];
       } finally { B.dark = dk0; delete rogue.conds.hidden; delete rogue.hidTotal; }
     }
+    // ---- the grid's fixes of 11-10 (his record of 11-09, the grid's rules lane; &only=gridfix1110): the chuul and a harpy joined the show's foes for them
+    var chuul = kind('chuul'), harpy = kind('harpy');
+    // a generator run as fire() runs it, counting the prompts it asks (each answered with its first option)
+    function* fireAsks(gen, asked) {
+      var v;
+      for (var n = 0; n < 20000; n++) { var r = gen.next(v); v = undefined; if (r.done) return r.value; var y = r.value; if (y && y.prompt) { asked.push(y.prompt.title || ''); v = y.prompt.opts[0].value; continue; } if (y && y.entry) continue; v = yield y; }
+    }
+    function* shakeTrance() {
+      // HELP shakes an entranced friend out of a Hypnotic Pattern (SRD 5.1: "someone else uses an action to shake the creature out of its stupor"), and a blow its temporary hit
+      // points take whole still breaks the trance ("if it takes any damage" -- battle.js Battle.hurt's hooks). The pattern's marks laid as its failed save lays them (grimoire.js)
+      stage([cleric, wizard, bard, gob], [[0, 0], [1, 0], [0, 2], [1, 2]]); setPin(15, null);
+      [wizard, bard].forEach(function (w) { w.conds.hypnotized = { by: gob.id }; w.conds.incapacitated = { by: gob.id }; w.conds.charmed = { by: gob.id }; });
+      bard.temp = 20;
+      say(['The wizard and the bard stand entranced by a Hypnotic Pattern. The cleric, beside the wizard, takes HELP on him: a shake out of the stupor.']); yield W(70);
+      var n = mark(); turn(cleric); yield* fire(B.exec(cleric, { do: 'help', target: wizard })); B.active = null; yield W(50);
+      var woke = !wizard.conds.hypnotized && !wizard.conds.incapacitated && !wizard.conds.charmed;
+      say(['The goblin\'s scimitar at the bard (pinned to hit). The bard has 20 temporary hit points: they take the blow whole.']); yield W(60);
+      var hp0 = bard.hp; turn(gob); yield* fire(B.attack(gob, bard, gob.attacks.scimitar)); B.active = null; yield W(60);
+      var l = since(n), jolt = !bard.conds.hypnotized && !bard.conds.incapacitated && !bard.conds.charmed, soaked = bard.hp === hp0 && bard.temp < 20;
+      return [woke && jolt && soaked && /shakes [^|]* out of the pattern/.test(l) && /jolted out of the pattern/.test(l), (woke ? 'the wizard shaken out of the pattern' : 'the wizard still entranced') + '; ' + (soaked ? 'the bard\'s blow all temporary hit points (' + bard.temp + ' left), ' : 'the blow reached the bard\'s hit points, ') + (jolt ? 'and the bard jolted out of it' : 'and the bard still entranced')];
+    }
+    function* chuulTentacles() {
+      // the chuul's tentacles (SRD 5.1): "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw" -- no attack roll, so nothing that answers one: the
+      // cleric beside the held paladin, a shield on and the Protection style for the beat, is asked nothing; the d20s to hit pinned to 1, the save's die to 4
+      stage([chuul, paladin, cleric], [[0, 0], [2, 0], [2, 1]]); setPin(1, [4]);
+      var st0 = cleric.style; cleric.style = 'protection'; chuul.holding = [paladin]; paladin.conds.grappled = { by: chuul.id };
+      say(['The chuul holds the paladin in a pincer. Its tentacles: a CON save, DC 13 -- no attack roll. The cleric beside the paladin has a shield and the Protection style; every d20 to hit is pinned to 1, the save\'s die to 4.']); yield W(80);
+      var n = mark(), asked = [];
+      try { turn(chuul); yield* fireAsks(B.attack(chuul, paladin, chuul.attacks.tentacles), asked); } finally { B.active = null; cleric.style = st0; delete chuul.holding; }
+      yield W(60);
+      var l = since(n), saved = /CON save/.test(l), roll = /d20 1 /.test(l), held = !!paladin.conds.paralyzed && !!paladin.conds.poisoned;
+      return [saved && !roll && held && !asked.length, (asked.length ? 'asked: ' + asked.join(', ') : 'Protection asked nothing') + '; ' + (roll ? 'a d20 to hit was rolled' : 'no attack roll') + '; ' + (held ? 'the save failed on its 4: POISONED and PARALYZED' : 'the paladin not paralyzed')];
+    }
+    function* spikeFlier() {
+      // Spike Growth is the ground's: a harpy holding 10 ft over it crosses untouched; at 5 ft the thorns reach it (RULED 11-10, Griz: "spiked shouldn't impact fliers over 5ft
+      // unless SRD contradicts" -- grimoire.js M.overSpikes). The spikes laid on three squares of the harpy's line for the beat
+      stage([harpy, wizard], [[0, 0], [0, 5]]); setPin(15, null);
+      var sq = [[cx + 1, cy], [cx + 2, cy], [cx + 3, cy]], g0 = B.grounds, path = [[cx + 1, cy], [cx + 2, cy], [cx + 3, cy], [cx + 4, cy]], L = G.LAYER(), gz = G.groundAt(harpy, cx, cy), fl0 = harpy.flies;
+      B.grounds = (B.grounds || []).concat([{ kind: 'spikes', sq: sq, by: wizard.id, difficult: true }]); harpy.flies = true;
+      try {
+        harpy.fz = gz + 2 * L; say(['Spike Growth on three squares. The harpy flies across them 10 ft up.']); yield W(60);
+        var hp0 = harpy.hp, n = mark(); turn(harpy); yield* fire(B.moveAlong(harpy, path, {})); B.active = null; yield W(40);
+        var high = harpy.hp === hp0 && !/in the spikes/.test(since(n));
+        harpy.x = cx; harpy.y = cy; harpy.fz = gz + L; G.setup(G.map, B.units); say(['Back, and across again 5 ft up: the thorns reach it.']); yield W(60);
+        var n2 = mark(); turn(harpy); yield* fire(B.moveAlong(harpy, path, {})); B.active = null; yield W(50);
+        var hits = (since(n2).match(/in the spikes/g) || []).length, low = hits === 3 && harpy.hp < hp0;
+        return [high && low, (high ? '10 ft up: untouched' : '10 ft up: spiked') + '; 5 ft up: ' + hits + ' squares of spikes (want 3), ' + (hp0 - harpy.hp) + ' piercing'];
+      } finally { B.grounds = g0; harpy.fz = null; harpy.flies = fl0; }
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -358,7 +407,10 @@
       { id: 'yieldstop', group: 'gridfix1107', name: 'A foe that yields stops there', what: 'Gennet yields at half her hit points. She walks off the rogue and the paladin to shoot the wizard; the rogue\'s opportunity attack takes her to half -- her walk stops there, the paladin is asked for no opportunity attack, and the shot never comes. (11-06, his path fight: Gennet took both opportunity attacks below her yield, then shot Aurdin; Lymen was offered a Divine Smite on her.)', run: yieldStop },
       { id: 'meleeblind', group: 'gridfix1107', name: 'A simple fight, blindsight and a blade', what: 'In a simple fight a melee blow is struck from the square beside the target. Hiding from the giant spider (blindsight 10 ft) with a blade in hand: SEEN, the card saying why -- the blow would land inside its blindsight. With a bow in hand: HIDDEN, the lineup\'s 40 ft out of its reach. (11-06, his Web Gulch: HIDDEN from the spider, then a single d20 at it.)', run: meleeBlind },
       { id: 'keenwolves', group: 'gridfix1107', name: 'Keen hearing and smell', what: 'A wolf\'s Keen Hearing and Smell (advantage on Perception that relies on hearing or smell) counts in the Perception that finds a hider: its passive 13 is 18. The rogue hides from two wolves and a goblin, Stealth 15: hidden from the goblin (9), seen by the wolves -- "Wolf x2 (18, keen hearing and smell)". (11-06, his road fight: "Seen by: Wolf x2 (13)".)', run: keenWolves },
-      { id: 'keendark', group: 'gridfix1107', name: 'By ear and nose, in the dark', what: 'A keen hearing or smell finds a hider without sight. In the dark the rogue hides from a wolf and a bandit, Stealth 15: neither can see her; the wolf\'s nose and ears find her by its passive 13 +5, "Wolf (18, keen hearing and smell, without sight)"; the bandit cannot. (11-07, his "yeah - for all the monsters with non-vision senses notes".)', run: keenDark }
+      { id: 'keendark', group: 'gridfix1107', name: 'By ear and nose, in the dark', what: 'A keen hearing or smell finds a hider without sight. In the dark the rogue hides from a wolf and a bandit, Stealth 15: neither can see her; the wolf\'s nose and ears find her by its passive 13 +5, "Wolf (18, keen hearing and smell, without sight)"; the bandit cannot. (11-07, his "yeah - for all the monsters with non-vision senses notes".)', run: keenDark },
+      { id: 'shaketrance', group: 'gridfix1110', name: 'Shaken out of a Hypnotic Pattern', what: 'The wizard and the bard stand entranced. HELP from the cleric beside the wizard shakes him out of the stupor (SRD 5.1: "someone else uses an action to shake the creature out of its stupor"). The goblin\'s blow on the bard lands on 20 temporary hit points: still damage taken, and the trance breaks. (11-09, his stream\'s fight 2: Vivian stood entranced five rounds, friends beside her and a blow on her temporary hit points.)', run: shakeTrance },
+      { id: 'chuultentacles', group: 'gridfix1110', name: 'The chuul\'s tentacles: a save, no roll', what: 'SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed." No attack roll: the cleric\'s Protection is not asked, a d20 of 1 changes nothing, and there is no damage. (11-09, his record: Protection\'s prompt and a nat-1 HIT on the tentacles.)', run: chuulTentacles },
+      { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 10 ft up crosses the spikes untouched; at 5 ft up the thorns reach it, 2d4 a square. (11-10, your ruling: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts" -- the SRD says nothing of height.)', run: spikeFlier }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });
