@@ -993,6 +993,13 @@
           if (D.top() === this) D.pop();
           done = 'fed'; home();
         }
+        // the landlord killed (11-10, Griz on his Settling of 11-09: "fight didn't end when the landlord died leaving turns to feed with bucket"): won, as soon as nothing else is
+        // up -- the next turn that waits on a player, as the peaceful bucket's -- its death flagged (otyughDead) and what fell paid as the Settling's own (R.pullPay reads enemies8)
+        if (!done && this.req && this.req.turn && this.units && D.wet && D.wet.landlordDead && D.wet.landlordDead(this) && !this.units.some(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.dormant && !u.fed && !u.left; })) {
+          if (D.top() === this) D.pop();
+          this.enemies8 = D.wet.markKilled(this);
+          done = 'won'; home();
+        }
         return r;
       };
     }
@@ -1058,7 +1065,7 @@
       }
     }
     B.focus(R0.token);
-    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which === 'wet' && done === 'won' && R0.flags.otyughDead && !b.units.some(function (u) { return u.side === 'party' && u.left; })) B.card(['{y}The landlord is dead.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed' || fd) { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk ' + (fd ? 'the floor' : 'the Wet') + ' again.'], 100000); return; }
     // the gather pays (R.pullPay above): what fell in there -- said here only when the fight had no last card to say it on (the Settling, a fight left by the menu) -- and the

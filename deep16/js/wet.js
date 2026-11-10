@@ -385,6 +385,9 @@
   };
   // USE BUCKET: beside the deep water, or touching the landlord -- fed, it does not fight, and its pictures play
   function landlordOf(B) { return B.units.filter(function (w) { return w.wet === 'landlord' && !w.dead && w.hp > 0; })[0] || null; }
+  // the landlord was here, was never fed, and is dead (11-10, Griz on his Settling of 11-09: "fight didn't end when the landlord died leaving turns to feed with bucket" -- the
+  // Otyugh fell at R6 and a bucket lowered after it "fed" it): nothing under the fall takes a bucket now, and the floor's Settling ends won (js/roam.js R.pullIn0)
+  W.landlordDead = function (B) { return !!(B && B.wet && B.wet.present.landlord && !B.wet.sunk.landlord && !landlordOf(B)); };
   function besideDeep(u) { for (var dy = -1; dy <= u.size; dy++) for (var dx = -1; dx <= u.size; dx++) { var s = G.map.at(u.x + dx, u.y + dy); if (s && s.ch === 'D') return true; } return false; }
   var itemOK0 = BP.itemTargetOK;
   BP.itemTargetOK = function (u, id, w) { if (id === 'bucket') return w === u; return itemOK0.apply(this, arguments); };
@@ -394,6 +397,7 @@
     out.forEach(function (e) {
       if (e.id !== 'bucket' || !e.ok) return;
       if (by && by !== u.id) { var cw = self.units.filter(function (w) { return w.id === by; })[0]; e.ok = false; e.why = (cw ? cw.name : 'another') + ' carries it'; return; } // (the carrier's alone: 09-30g)
+      if (W.landlordDead(self)) { e.ok = false; e.why = 'the landlord is dead: nothing under the fall takes it'; return; } // (11-10)
       if (!(L && G.dist(u, L) <= 5) && !besideDeep(u)) { e.ok = false; e.why = 'nothing here takes it: the deep water under the fall'; }
     });
     return out;
@@ -402,6 +406,7 @@
   BP.useItem = function* (u, id, w) {
     if (id !== 'bucket') { yield* useItem0.apply(this, arguments); return; }
     var L = landlordOf(this), s = this.inv.filter(function (x) { return x.id === 'bucket'; })[0];
+    if (W.landlordDead(this)) { this.card(['{o}The landlord is dead: nothing under the fall takes the bucket.{/}'], 240); return; } // (nothing spent: 11-10)
     u.turn.action = 0; if (s) s.n--;
     D.sfx('splash'); FX.sparkle(L || u, 'moss', 16);
     this.card(['{y}' + u.name + '{/} lowers the bucket into the deep water. ' + (L ? 'The landlord takes it, and settles.' : 'Something below takes it.')], 360);
@@ -527,11 +532,17 @@
     B.units.forEach(function (w) { if (w.wetCrawler && (w.dead || w.hp <= 0) && !w.fled) out.push('crawler'); });
     return out;
   };
+  // the dead stay dead: each of the three by name killed here gets its flag (otyughDead, jellyDead, poolOozeDead) -- the fight's end, and the floor's Settling ended by the
+  // landlord's death (js/roam.js R.pullIn0, 11-10). Returns W.killed
+  W.markKilled = function (B) {
+    var k = W.killed(B), F8 = B.flags8 = B.flags8 || {};
+    Object.keys(FLAG8).forEach(function (r) { if (B.wet.present[r] && !B.wet.sleepers[r] && k.indexOf(ID8[r]) >= 0) F8[FLAG8[r]] = 1; });
+    return k;
+  };
   var finish0 = BP.finish;
   BP.finish = function* (o) {
     if (on(this)) {
-      var k = W.killed(this), F8 = this.flags8, self = this;
-      Object.keys(FLAG8).forEach(function (r) { if (self.wet.present[r] && !self.wet.sleepers[r] && k.indexOf(ID8[r]) >= 0) F8[FLAG8[r]] = 1; });
+      var k = W.markKilled(this);
       if (o === 'escaped' && k.length) o = 'won'; // (walked out with something dead behind them: a win, its XP as they come up)
       this.enemies8 = o === 'won' ? k : null;
       this.exit8 = o === 'lost' ? null : W.exitOf(this);
