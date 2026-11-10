@@ -3804,7 +3804,7 @@
       // 7. THE GEAR PAGE'S DICE (his note in the deep gallery: "on the gear page, some weapons say words and others show weapon damage and useful info")
       var GD7 = window.DS.MENU.gearDesc, I7 = window.DS.DATA.items, m7 = GD7(I7.maul1), c7 = GD7(I7.candleknife), s7 = GD7(I7.longsword1), d7 = GD7(I7.dagger);
       okRB('7 maul1 "' + m7 + '"; candleknife "' + c7 + '"; longsword1 "' + s7 + '"; dagger "' + d7 + '" (want the dice ahead of the words; the dagger as it was)',
-        /^2d6 bludgeoning\. Heavy, two-handed\. \+1 to hit/.test(m7) && /^1d4 piercing\. Finesse, light\. A dagger/.test(c7) && /^1d8 slashing \(1d10 two-handed\)\. \+1 to hit/.test(s7) && d7 === I7.dagger.desc);
+        /^2d6 bludgeoning\. Heavy, two-handed\. \+1 to hit/.test(m7) && /^1d4 piercing\. Finesse, light, thrown\. A dagger/.test(c7) /* (thrown: the SRD's dagger, content/items.json since 11-10 -- mode=gridfix1110) */ && /^1d8 slashing \(1d10 two-handed\)\. \+1 to hit/.test(s7) && d7 === I7.dagger.desc);
       } catch (eS) { repRB.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       // (8. THRANE'S MAN on the generic man's face: held by mode=hours1028's C3, the council's own page -- "The east side's man|pt_genman|")
       try {
