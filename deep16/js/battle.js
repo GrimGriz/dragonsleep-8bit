@@ -1354,7 +1354,7 @@
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
     var helpFoe = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }), helpMate = this.units.some(function (w) { return Battle.helpable(u, w); });
     // (a sleeper beside you named: "shake Aurdin awake" -- 11-06, Griz: "ah yes, the sleeping heroes - 'help' should be the 'shake to wake', like I tried to click")
-    var helpSl = this.units.filter(function (w) { return Battle.helpable(u, w) && w.conds.asleep; }).map(Battle.nm), mateN = helpSl.length ? 'shake ' + helpSl.join(' and ') + ' awake' + (helpSl.length < this.units.filter(function (w) { return Battle.helpable(u, w); }).length ? '; a hand out of a web or a grip' : '') : 'a hand out of a web or a grip';
+    var helpSl = this.units.filter(function (w) { return Battle.helpable(u, w) && Battle.shakable(w); }).map(Battle.nm), mateN = helpSl.length ? 'shake ' + helpSl.join(' and ') + ' awake' + (helpSl.length < this.units.filter(function (w) { return Battle.helpable(u, w); }).length ? '; a hand out of a web or a grip' : '') : 'a hand out of a web or a grip';
     if (helpFoe || helpMate)
       out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: helpFoe && helpMate ? 'a foe beside you: the next ally to swing at it has advantage; a friend beside you: ' + mateN : helpFoe ? 'the next ally to swing at a foe beside you has advantage' : mateN });
     // SHOVE (SRD 5.1, Shoving a Creature: one attack of the Attack action, at one in your reach no more than one size larger; your Athletics against its Athletics or Acrobatics, its
@@ -1426,8 +1426,11 @@
     var left = Math.max(0, (ta && ta.grapple && ta.grapple.max || 6) - (holder.holding || []).length - holder.tendrilsLost);
     this.card(['{n}The tendril is ' + how + ':{/} ' + nameOf(held) + ' is free.  {g}(the ' + shortName(holder) + ' has ' + left + ' tendril' + (left === 1 ? '' : 's') + ' to spare till its next turn){/}'], 280);
   };
-  // a friend u may Help: beside it, asleep (shaken awake) or held in a web or a grip (advantage on its next check to get out)
-  Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
+  // a friend u may Help: beside it, asleep (shaken awake), entranced by a Hypnotic Pattern (shaken out of it -- SRD 5.1: "someone else uses an action to shake the creature
+  // out of its stupor"; 11-10, his record of 11-09: Vivian stood entranced five rounds with friends beside her, RULED "1 - fix") or held in a web or a grip (advantage on its
+  // next check to get out; a hand already lent is the one hand)
+  Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.hypnotized || ((w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck))); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
+  Battle.shakable = function (w) { return !!(w && w.conds && (w.conds.asleep || w.conds.hypnotized)); }; // (Help on these shakes them out of it: the 'help' exec, the ring's words)
   // why a HELP click is turned away, in the card's words (js/ui.js; 11-06, his 17:49:00Z loss, R8: Aurdin's HELP on Vivian six times, "Help: a foe beside you, or a friend beside you
   // asleep or held fast." -- Vivian at 0 hp by then, woken from his Sleep and dropped by a bat's bite. The down are not the asleep: Help wakes no one at 0 hp)
   Battle.helpWhyNot = function (u, w, foe) {
@@ -1436,10 +1439,10 @@
       if (w.dead) return w.name + ' is dead: past any hand.';
       if (w.hp <= 0) return w.name + ' is down, not asleep: a healer\'s kit, a potion or healing gets ' + w.name + ' up.';
       if (G.dist(u, w) > 5) return w.name + ' is ' + G.dist(u, w) + ' ft away: Help is a hand beside you.';
-      if (w.conds.helpedCheck) return w.name + ' has a hand already, on the next check to get free.';
-      if (!(w.conds.asleep || w.conds.restrained || w.conds.attached)) return w.name + ' is awake and free: nothing to help with.';
+      if (w.conds.helpedCheck && !Battle.shakable(w)) return w.name + ' has a hand already, on the next check to get free.';
+      if (!(Battle.shakable(w) || w.conds.restrained || w.conds.attached)) return w.name + ' is awake and free: nothing to help with.';
     }
-    return 'Help: a foe beside you, or a friend beside you asleep or held fast.';
+    return 'Help: a foe beside you, or a friend beside you asleep, entranced or held fast.';
   };
   // the riders u could pull off a friend beside it (a darkmantle attached: PULL IT OFF)
   Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); }; // (the one it rides, too: SRD 5.1, "a creature")
@@ -1997,7 +2000,11 @@
         D.sfx('buff');
         T.action = 0;
         if (!G.hostile(u, c.target)) { // (a friend: 10-01c)
-          if (c.target.conds.asleep) { delete c.target.conds.asleep; FX.float('awake!', c.target, D.PAL.ramps.bone[2]); this.card(['{y}' + u.name + '{/} shakes ' + c.target.name + ' awake' + (c.target.conds.prone ? ' (still down: getting up costs half the move)' : '') + '.']); }
+          if (Battle.shakable(c.target)) { // (asleep, or entranced by a Hypnotic Pattern: the shake ends both -- the pattern's charm and stupor with it, as a hurt does: grimoire.js M.onHurt)
+            var hyS = c.target.conds.hypnotized, slS = c.target.conds.asleep; delete c.target.conds.asleep;
+            if (hyS) { delete c.target.conds.hypnotized; if (c.target.conds.incapacitated && c.target.conds.incapacitated.by === hyS.by) delete c.target.conds.incapacitated; if (c.target.conds.charmed && c.target.conds.charmed.by === hyS.by) delete c.target.conds.charmed; }
+            FX.float(slS ? 'awake!' : 'shaken!', c.target, D.PAL.ramps.bone[2]); this.card(['{y}' + u.name + '{/} shakes ' + c.target.name + (slS ? ' awake' : ' out of the pattern') + (c.target.conds.prone ? ' (still down: getting up costs half the move)' : '') + '.']);
+          }
           else { c.target.conds.helpedCheck = { by: u.id }; this.card(['{y}' + u.name + '{/} lends ' + c.target.name + ' a hand: advantage on the next check to get free.']); }
           FX.sparkle(c.target, 'bone', 8);
           return;
@@ -3382,11 +3389,15 @@
     // its parts carry one `blow` record and bank what they took, and the caller asks once at the end, Battle.blowEnd -- the grid's rules §2.1, SRD 5.1 "half the damage you take")
     noteN();
     var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) { if (src && src.blow) src.blow.took += took; else D.magic.concCheck(B, u, took); } };
+    // the hurt hooks read the damage taken as concentration does, a temp-HP soak and a beast's hit points included: a pattern's trance broken, a laughing one's save, FIRST
+    // BLOOD's rage, a Turn Undead's terror ended (D.magic.onHurt's chain: grimoire.js, features.js, monsterrules.js) -- once a blow, with the whole of it (11-10, his record of
+    // 11-09, RULED "1 - fix": a blow on Vivian's temporary hit points left her entranced; till then a soaked blow, or one a beast's shape took, returned before the hooks)
+    var hooks = function (B) { if (took > 0 && !(src && src.carried) && D.magic.onHurt && u.hp > 0 && !u.dead) D.magic.onHurt(B, u, took, type); };
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
+    if (u.conds.asleep && took > 0) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); } // (a beast's shape asleep wakes too: it took the damage)
     // Wild Shape (js/features.js): the beast's hit points take it first; at 0 the druid comes back with the rest
-    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over, false, type, src); return; } // (the rest lands as the blow's own kind, its magic with it: the grid's rules §2.2)
-    if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
-    if (n <= 0) { conc(this); return; }
+    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); hooks(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over, false, type, src); hooks(this); return; } // (the rest lands as the blow's own kind, its magic with it: the grid's rules §2.2; carried, it calls no hooks of its own -- these are the blow's, after it)
+    if (n <= 0) { conc(this); hooks(this); return; }
     // a troll down at 0 (u.regenDown, below): more blows change nothing but the burning -- fire or acid, and it is dead there and then (RULED 10-06, Griz: "if hp drops to
     // 0 while burning = true, trigger troll death"; his "troll HP = 0 AND fire/acid = True ... trigger troll death" -- ours, not the SRD's wait for the start of its turn)
     if (u.regenDown && !u.dead) {
@@ -3430,13 +3441,13 @@
       // (a half-orc class NPC's Relentless Endurance too: js/classes.js)
       u.feats.relentless = 0; u.hp = 1; FX.ring(u, 'gold', 30); D.sfx('buff');
       this.card(['{y}' + u.name + ' refuses to fall!{/}  {g}(Relentless: once a day, at 1 HP){/}']);
-      conc(this);
+      conc(this); hooks(this); // (hurt, and still up: the hooks as any blow's)
       return;
     }
     // Death Ward (js/grimoire.js): the first fall stops at 1 (Goose's NOT TODAY lends it for a blow and says so itself: js/mpmon.js)
-    if (u.hp <= 0 && u.conds.deathWard) { var dw = u.conds.deathWard; delete u.conds.deathWard; u.hp = 1; if (!dw.notToday) { FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' does not fall: the death ward holds.{/}']); } conc(this); return; }
+    if (u.hp <= 0 && u.conds.deathWard) { var dw = u.conds.deathWard; delete u.conds.deathWard; u.hp = 1; if (!dw.notToday) { FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' does not fall: the death ward holds.{/}']); } conc(this); hooks(this); return; }
     // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
-    if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { conc(this); return; }
+    if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { conc(this); hooks(this); return; }
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
@@ -3461,7 +3472,7 @@
       // anyone can cut him down -- the 8-bit's foeBolt, certain (review 09-28 #11: the wheelwright quest hangs on his getting away)
       if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
     } else conc(this);
-    if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
+    hooks(this); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js -- the hooks above)
     if (u.hp > 0 && u.hang && u.hang.face && G.hanging(u) && !(src && src.fall) && took > 0 && !u.spiderClimb) this.clingSave(u, took); // (a clinging climber hit: the hold, or the fall -- 10-04 night; not one with Spider Climb, whose hold is no check's -- 10-05 night)
   };
   // FLIGHT AT A HEIGHT (the grid's rules §2.17; RULED 10-08, Griz: "Where the mousewheel becomes the vertical selection - yes"; js/grid.js u.fz, G.flyReach): the move to
