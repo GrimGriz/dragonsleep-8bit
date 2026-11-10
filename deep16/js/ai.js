@@ -83,6 +83,7 @@
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
+    delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: Surprise Attack reads it the rest of round 1 -- battle.js Battle.caught, 11-10)
     // a troll down at 0 (battle.js hurt, u.regenDown): its turn starts it knitting -- up at its regeneration, still prone (it stands for half its move) -- or, if it burned since
     // its last turn, it does not, and it dies there (SRD 5.1 Regeneration; 10-05, Griz: "i think the regen is there it's just turning off when they die")
     if (u.regenDown && !u.dead) {

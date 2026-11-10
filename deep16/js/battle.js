@@ -1202,6 +1202,7 @@
     RU.startTurn(u);
     this.focus(u);
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
+    delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: the mark Surprise Attack reads the rest of round 1, after the lost turn -- Battle.caught, 11-10)
     if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
     // charmed by a harpy's Luring Song (js/monsterrules.js, 10-28): incapacitated, the turn is the song's -- the walk to her, the save at its end
     if (D.monsterRules && D.monsterRules.lured(this, u) && (yield* D.monsterRules.luredTurn(this, u))) { yield 20; D.magic.endTurn(this, u); return; }
@@ -2511,7 +2512,7 @@
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       else if (rn > 1 && D.spr.anim(att.sheet, 'attack' + rn)) att.anim = 'attack' + rn; // (a sheet's attack2: the second blow of a turn where no row is named for the weapon -- Extra Attack, or the blow after an Action Surge: Barley's FlailOverhead, ART-75, 10-20)
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
-      if (att.surprise && this.round === 1 && melee && rn === 1 && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush';
+      if (att.surprise && this.round === 1 && melee && rn === 1 && Battle.caught(tgt) && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush'; // (on one it surprised: Battle.caught, 11-10)
       // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
       // turn's Martial Advantage is unspent -- hit or miss, the drill shows either way; its dice are the hit's, below. The hobgoblins' sheets, 10-07)
       if (att.martial && melee && !(att.turn && att.turn.martialUsed) && D.spr.anim(att.sheet, 'martial') && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) att.anim = 'martial';
@@ -2775,9 +2776,11 @@
     if (att.sneak && att.sneakAt !== this.turnKey() && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && !w.bystander && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
       att.sneakAt = this.turnKey(); if (att.turn) att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
     }
-    // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder
+    // Surprise Attack (the bugbears; SRD 5.1: "If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6)
+    // damage" -- RULED 11-10, his "5 - aye"): only on one caught unaware at this fight's start (Battle.caught), in round 1. It was every round-1 hit, the 8-bit game's reading,
+    // till 11-10: his record of 11-09 had a bugbear take a fighter from 36 to 0 in a round with nobody surprised
     if (att.raging && atk.rage) { dmg += atk.rage; parts.push('{o}rage +' + atk.rage + '{/}'); }
-    if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
+    if (att.surprise && this.round === 1 && Battle.caught(tgt)) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}surprise attack ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
     if (att.cls === 'paladin' && melee && (!att.guest || att.classAI) && (att.slots || []).some(function (n) { return n > 0; })) {
       var opts = [], smUF = /^(undead|fiend)$/.test(tgt.type || ''), smN = function (lv) { return Math.min(5, 1 + lv) + (smUF ? 1 : 0); }; // (SRD 5.1: "The damage increases by 1d8 if the target is an undead or a fiend" -- 10-05, Griz: "yes, thought it was there")
@@ -4094,6 +4097,9 @@
     var se = this.stealthEdges(u), supreme = se.supreme, ce = se.ce, hadv = se.hadv, hdis = se.hdis, ra = D.d(20);
     var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0) - RU.shaken(u), shaken: RU.shaken(u), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis }; // (shaken: the fear scale's -2 on every ability check -- RULED 10-15, Battle.shakenTag)
+  // caught unaware at this fight's start (SRD 5.1 Surprise): still waiting on its lost turn (conds.surprised), or past it this round (caughtR1, set as that turn began --
+  // heroTurn, ai.js turnOf); the bugbear's Surprise Attack reads it, in round 1 (attack, 11-10)
+  Battle.caught = function (w) { return !!(w && w.conds && (w.conds.surprised || w.caughtR1)); };
   };
   // w finds u (hidden by B.hide): its passive Perception plus the bonus of where u stands beats the Stealth total u rolled when it hid (held -- Griz 10-04, "the existing
   // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null

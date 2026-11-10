@@ -144,8 +144,8 @@
     abil: { str: 17, dex: 14, con: 14, int: 11, wis: 12, cha: 11 }, init: 2, perception: 11,
     saves: { str: 3, dex: 2, con: 2, int: 0, wis: 1, cha: 0 },
     attacks: { morningstar: { name: 'Morningstar', atk: 5, dice: '2d8', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['morningstar', 'morningstar'], surprise: '2d6',
-    src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks); Surprise Attack as the 8-bit game reads it (+2d6 in the first round)'
+    multi: ['morningstar', 'morningstar'], surprise: '2d6', stealth: 6,
+    src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks, its Stealth +6); Surprise Attack by the SRD since 11-10 (+2d6 on a hit in round 1 at one it surprised: battle.js Battle.caught; till then the 8-bit game\'s reading, every round-1 hit)'
   },
   hobsergeant: {
     name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p2', cr: '3', ac: 18, metalArmor: 'chain mail', shield: true, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
@@ -932,7 +932,7 @@
       morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 },
       javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, count: 2 }
     },
-    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
+    multi: 1, surprise: '2d6', stealth: 6, src: 'SRD 5.1 Bugbear (CR 1; its Stealth +6 on the sheet since 11-10, for the ambush: js/postures.js; Surprise Attack by the SRD since 11-10, battle.js Battle.caught); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
   },
   ogre: {
     name: 'Ogre', type: 'giant', sheet: 'ogre_p2', cr: '2', ac: 11, armor: 'hide armor', hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
