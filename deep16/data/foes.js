@@ -592,6 +592,21 @@
     ironScent: 30, // (Iron Scent: it pinpoints ferrous metal within 30 ft -- a hidden or invisible one carrying it is known to its AI, js/ai.js heroes; it does not see them)
     src: 'SRD 5.1 Rust Monster (CR 1/2, Medium; AC 14, 27 HP, speed 40; darkvision 60): its Bite +3, 1d8+1 piercing; by the block since 10-28 (js/monsterrules.js): Antennae, an action (a nonmagical ferrous metal object it can see within 5 ft, DC 11 DEX to avoid; metal armour or a metal shield -1 to the AC it offers, cumulative, armour at AC 10 or a shield at +0 destroyed; a held metal weapon rusts as Rust Metal) -- its AI reaches for the weapon of the one that last hit it, else the nearest one\'s weapon, armour, then shield (RULED 10-28, Griz: "Weapon first"), and bites only where no metal is near; Rust Metal (a nonmagical metal weapon that hits it -1 to damage after dealing it, cumulative, destroyed at -5; metal ammunition destroyed); Iron Scent (ferrous metal within 30 ft pinpointed: its AI knows a hidden or invisible metal-bearer is there). The SRD\'s "permanent" is the fight\'s here (RULED 10-28, Griz: "yeah, we\'re leaving out wear, but should probably also let rust destroy stuff during the fight the way we did the ooze?"): the -1s hold for the rest of the fight, and a thing rusted through is gone for good, as the gray ooze\'s eaten-through is -- off the house sheet, and off a Pocket DM seat (his "negative. It\'s not \'then\' is \'else\'"). Not the SRD, not on the grid: Gobble -- the art desk\'s drawn row, left uncut. Its Antennae row plays as the antennae reach (cut 10-28, f903094)'
   },
+  // THE KNELLBACK (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "should be an .md in Fresh with proposed knellback statblocks and such", and "credit the
+  // knellback as a ChatGPT invention"): OURS, NOT THE SRD'S -- a ChatGPT invention, the art desk's ART-21 draft (deep16/_src/knellback/ART-21-1110/KNELLBACK.md), built as
+  // written and not yet playtested; invented.json #knellback. A squat cave beast with a bronze bell for a shell; they nest near abandoned mine warning bells. Its sheet
+  // tools/knellback-sheet.py (ART-21, five views); Ram's rider the boar's charge rule (js/traits.js: `charge` ft 15, no more dice, a Large or smaller target); Ring its
+  // own action (js/monsterrules.js MR.ring, `knell`). On the Pocket DM's monstrosity shelf at CR 1. Benched: mode=knellback1110; ?show=knellback
+  knellback: {
+    name: 'Knellback', type: 'monstrosity', sheet: 'knellback_p1', cr: '1', ac: 16, armor: 'natural armor', hp: 45, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 16, dex: 8, con: 16, int: 2, wis: 12, cha: 5 }, init: -1, perception: 11,
+    saves: { str: 3, dex: -1, con: 3, int: -4, wis: 1, cha: -3 },
+    attacks: { ram: { name: 'Ram', atk: 5, dice: '2d8', mod: 3, type: 'bludgeoning', reach: 5 } },
+    multi: 1,
+    charge: { ft: 15, dc: 13, maxSize: 2 }, // (Ram: "If the knellback moved at least 15 feet straight toward the target immediately before the hit, a Large or smaller target must succeed on a DC 13 Strength saving throw or be knocked prone" -- the walk this turn read as the boar's is)
+    knell: { name: 'Ring', r: 10, dc: 13, recharge: 5 }, // (Ring, recharge 5-6: each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn)
+    src: 'a ChatGPT invention, the art desk\'s ART-21 draft (KNELLBACK.md, 11-10) -- ours, not the SRD 5.1\'s; not yet playtested. Medium monstrosity, AC 16 (natural armor), 45 HP (6d8+18), speed 25, darkvision 60, passive Perception 11, CR 1 (200 XP); STR 16 DEX 8 CON 16 INT 2 WIS 12 CHA 5; Ram +5, 2d8+3 bludgeoning -- after 15 ft straight at the target, a Large or smaller one DC 13 STR or prone; Ring (recharge 5-6): each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn'
+  },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
   // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).

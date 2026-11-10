@@ -226,6 +226,12 @@
         u.breathSpent = false; yield* D.magic.breathe(B, u, aimB); u.anim = 'idle';
       }
     }
+    // one with a Ring it has not shown twice, from the end of its second turn (the knellback's, 11-10 -- ours, a ChatGPT invention: the AI rings when two of its foes
+    // stand within 10 ft, or one when it is down to half, and a show seldom brings either): its Ring back, and sounded through the rule's own MR.ring at whoever is near
+    if (u.knell && D.monsterRules && D.spr.anim(u.sheet, 'ring') && ((u.showSeen || {}).ring || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone) {
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ring' + ((u.showSeen || {}).ring ? ' twice' : '') + ' yet. Its Ring back, to hear it.'], 200);
+      u.knellSpent = false; yield* D.monsterRules.ring(B, u); u.anim = 'idle';
+    }
     // one with a catch row it has not shown by the end of its second turn (the stone giant's Rock Catching, 10-08: in a fight only another giant ever throws a rock at
     // her): a rock hurled at it through the engine's own attack -- a fellow's Rock where one stands (its own kind first), else the nearest watcher's stone -- with the
     // d20 pinned to a 20, so the DEX save holds and the catch is seen (js/battle.js attack: CAUGHT, its row)

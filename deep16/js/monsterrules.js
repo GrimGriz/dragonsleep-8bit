@@ -475,4 +475,58 @@
     var c = lured(u);
     if (c && n > 0 && up(u) && !(B.active && B.active.id === c.by)) songSave(B, u, 'hurt');
   };
+  // ================================================================== THE KNELLBACK'S RING (11-10, the cutter of 11-10, on the lanes desk's queue -- ours, NOT the SRD's: a
+  // ChatGPT invention, the art desk's ART-21 draft KNELLBACK.md, as written and not yet playtested; Griz: "credit the knellback as a ChatGPT invention"). "Ring (Recharge
+  // 5-6). The knellback plants its feet and sounds its bell-shell. Each other creature within 10 feet of it that can hear the ring must make a DC 13 Constitution
+  // saving throw. On a failure, the creature is deafened and can't take reactions until the end of its next turn." Its action, on its sheet's `ring` row (the save on
+  // the row's cue, its `release`: the tremor's peak); the deafened never hear it; friend and foe alike are caught. Spent, it comes back on a d6 of 5 or more at the
+  // start of its turns, as a breath does (js/traits.js). Its AI rings when two or more foes are within 10 ft and none of its own, or one when it is down to half.
+  // Its Ram's rider is the boar's charge rule (js/traits.js: 15 ft, no more damage, a Large or smaller one STR or prone). Benched: mode=knellback1110
+  D.traits.FIELDS.push('knell');
+  function hears(w) { return !(w.conds && w.conds.deafened); }
+  MR.ringCaught = function (B, u) {
+    var r = (u.knell && u.knell.r) || 10;
+    return B.units.filter(function (w) { return w !== u && G.present(w) && up(w) && !w.object && G.dist(u, w) <= r && hears(w); });
+  };
+  MR.ring = function* (B, u) {
+    var k = u.knell, dc = k.dc || 13, row = rowOr(u, 'ring', 'idle'), a = D.spr.anim(u.sheet, row);
+    if (u.turn) u.turn.action = 0; u.knellSpent = true;
+    u.anim = row; u.animT = B.t;
+    yield a && a.release != null ? Math.ceil(a.release * 60 / (a.fps || 8)) : 12;          // (the tremor's peak: the row's cue)
+    D.sfx('knell'); FX.ring(u, 'gold', 34);
+    var caught = MR.ringCaught(B, u), lines = ['{r}' + nm(u, true) + '{/} plants its feet and sounds its bell-shell: RING  10 ft  CON DC ' + dc];
+    caught.forEach(function (w) {
+      var sv = RU.save(w, 'con', dc, false, 'deafened');
+      lines.push('  ' + nm(w, true) + ': CON ' + RU.saveText(sv) + '  ' + (sv.ok ? '{n}shakes it off{/}' : '{o}DEAFENED, no reactions{/}'));
+      if (sv.ok) return;
+      w.conds.deafened = { till: { who: w.id, at: 'end', n: 1 }, knell: u.id, endText: '{who} can hear again.' };
+      w.conds.noReact = { till: { who: w.id, at: 'end', n: 1 }, knell: u.id };
+      w.reaction = 0; FX.ring(w, 'gold', 14);
+    });
+    if (!caught.length) lines.push('  {g}no one near enough to hear it{/}');
+    B.card(lines.slice(0, 8), 360);
+    var rest = a ? Math.max(12, Math.ceil(a.frames * 60 / (a.fps || 8)) - Math.ceil((a.release || 0) * 60 / (a.fps || 8))) : 24;
+    yield rest; u.anim = 'idle'; u.animT = B.t;
+  };
+  // its turn: the Ring when it catches two foes or more and none of its own -- or one, when it is down to half -- else the Ram, the brute's way
+  function* ringTurn(B, u) {
+    if (u.knellSpent || !RU.canAct(u) || !u.turn || !u.turn.action) return false;
+    var c = MR.ringCaught(B, u), foes = c.filter(function (w) { return G.hostile(u, w); }).length;
+    if (c.length > foes || !(foes >= 2 || (foes >= 1 && u.hp <= u.maxhp / 2))) return false;
+    yield* MR.ring(B, u);
+    return true;
+  }
+  var trTurnK = D.traits.turn;
+  D.traits.turn = function* (B, u) {
+    if (u.knell) { if (yield* ringTurn(B, u)) return true; if (!up(u)) return true; } // (a foe's turn: js/ai.js asks the traits' turn of foes)
+    return yield* trTurnK.apply(this, arguments);
+  };
+  var startK = RU.startTurn;
+  RU.startTurn = function (u) {
+    startK.apply(this, arguments);
+    if (u.knell && u.knellSpent && up(u)) {
+      var rc = D.d(6), need = u.knell.recharge || 5, back = rc >= need; if (back) u.knellSpent = false;
+      if (D.battle) D.battle.card(['{g}' + nm(u, true) + ': its Ring ' + (back ? 'is back' : 'not yet') + '  (d6 ' + rc + ', ' + need + '-6 brings it back){/}'], 220);
+    }
+  };
 })();

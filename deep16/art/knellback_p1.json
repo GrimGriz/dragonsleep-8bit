@@ -1,0 +1,91 @@
+{
+ "image": "art/knellback_p1.png",
+ "fw": 56,
+ "fh": 64,
+ "ax": 28,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 56,
+   "fh": 64,
+   "ax": 28,
+   "ay": 61,
+   "frames": 6,
+   "fps": 5
+  },
+  "walk": {
+   "y": 512,
+   "fw": 54,
+   "fh": 64,
+   "ax": 27,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  },
+  "attack": {
+   "y": 1024,
+   "fw": 72,
+   "fh": 64,
+   "ax": 36,
+   "ay": 61,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "ring": {
+   "y": 1536,
+   "fw": 58,
+   "fh": 64,
+   "ax": 29,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2048,
+   "fw": 54,
+   "fh": 64,
+   "ax": 27,
+   "ay": 61,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2560,
+   "fw": 62,
+   "fh": 64,
+   "ax": 31,
+   "ay": 61,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3072,
+   "fw": 58,
+   "fh": 64,
+   "ax": 29,
+   "ay": 61,
+   "frames": 3,
+   "fps": 8
+  },
+  "getup": {
+   "y": 3584,
+   "fw": 58,
+   "fh": 64,
+   "ax": 29,
+   "ay": 61,
+   "frames": 2,
+   "fps": 6
+  }
+ },
+ "name": "Knellback",
+ "hold": [
+  "SE Flinch 2 turns front-on during the tuck; SE Fall 4-6 and Prone 1: the far fourth leg cannot be traced (the art desk's own notes)",
+  "NE combat: the head stays hidden and the Ring's two arcs sit together on one side; N Fall 5-6 lose the beak, small warm marks left in the teal underside",
+  "E combat a shallow profile, some poses close to SE; the stride subtle where the far legs are behind the shell (the art desk's own notes)"
+ ],
+ "source": "drawn by the art desk (ART-21-KNELLBACK-IDLE-AND-MOVEMENT and -COMBAT, 11-10), cut by tools/knellback-sheet.py; SW W NW mirrored -- the knellback, a ChatGPT invention (the art desk's ART-21 draft): deep16/data/foes.js knellback"
+}

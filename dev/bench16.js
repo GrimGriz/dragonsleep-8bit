@@ -12636,6 +12636,82 @@
     document.body.appendChild(preF);
     return;
   }
+  // THE KNELLBACK (mode=knellback1110; deep16/data/foes.js knellback, tools/knellback-sheet.py, js/traits.js the charge rule's `ft`/`maxSize`, js/monsterrules.js MR.ring,
+  // js/show.js its Ring staged -- the cutter of 11-10 on the lanes desk's queue, Griz: "credit the knellback as a ChatGPT invention"): ours, a ChatGPT invention (the art desk's
+  // ART-21 draft), built as written. Ram: 15 ft walked and a hit, a Large or smaller one STR 13 or prone (the boar's 20 and its 2d6 as they were); Ring (recharge 5-6): each
+  // other creature within 10 ft that hears it, CON 13 or deafened and no reactions till the end of its next turn; its AI rings at two foes near (or one at half), never on
+  // its own; on the Pocket DM's monstrosity shelf. The d20s pinned in order (the attack's, then the save's)
+  if (get('mode', '') === 'knellback1110') {
+    var repKb = { checks: [], errors: [] }, d0Kb = D.d, qKb = [];
+    function okKb(what, v) { repKb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.d = function (n) { return n === 20 && qKb.length ? qKb.shift() : d0Kb.apply(this, arguments); };
+    function runKb(g) { var k = 0, st; while (k++ < 4000) { st = g.next(); if (st.done) return st.value; } return null; }
+    try {
+      var fK = D.FOES.knellback || {}, sK = D.SHEETS.knellback_p1;
+      var rowsK = sK ? Object.keys(sK.anims).map(function (a) { var x = sK.anims[a]; return a + ' ' + x.frames + (x.release != null ? '/' + x.release : ''); }).join(', ') : 'NONE';
+      // 1. the record and the sheet: the draft's numbers, its credit (ours, a ChatGPT invention, not the SRD's), the rows the pages draw
+      okKb('the knellback: ' + [fK.type, 'CR ' + fK.cr, 'AC ' + fK.ac, fK.hp + ' HP', 'speed ' + fK.speed, 'darkvision ' + fK.darkvision].join(', ') + '; Ram ' + JSON.stringify(fK.attacks && fK.attacks.ram) + '; charge ' + JSON.stringify(fK.charge) + '; ring ' + JSON.stringify(fK.knell) + ' -- credited a ChatGPT invention (' + /ChatGPT invention/.test(fK.src) + '), not the SRD\'s (' + /not the SRD/.test(fK.src) + '); sheet ' + rowsK,
+        fK.type === 'monstrosity' && fK.cr === '1' && fK.ac === 16 && fK.hp === 45 && fK.speed === 25 && fK.size === 1 && fK.darkvision === 60 && fK.abil && fK.abil.str === 16 && fK.abil.con === 16
+        && fK.attacks && fK.attacks.ram && fK.attacks.ram.atk === 5 && fK.attacks.ram.dice === '2d8' && fK.attacks.ram.mod === 3 && fK.charge && fK.charge.ft === 15 && fK.charge.dc === 13 && !fK.charge.dice && fK.charge.maxSize === 2
+        && fK.knell && fK.knell.r === 10 && fK.knell.dc === 13 && fK.knell.recharge === 5 && /ChatGPT invention/.test(fK.src) && /not the SRD/.test(fK.src)
+        && rowsK === 'idle 6, walk 8, attack 6/3, ring 8/3, flinch 4, hurt 6, prone 3, getup 2');
+      var BK = D.npcFight('?npc=knellback&lvl=3&vs=fighter:3,cleric:3,wizard:3', {}); D.battle = BK; BK.enter(); while (!BK.order.length) BK.co.next(); BK.dark = false;
+      var cardsK = [], card0K = BK.card; BK.card = function (ls) { cardsK.push([].concat(ls).join(' ')); return card0K.apply(this, arguments); };
+      var kb = BK.units.filter(function (u) { return u.kind === 'knellback'; })[0], hs = BK.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      var GK = D.grid, freshK = function (u) { u.conds = {}; u.hp = u.maxhp; u.reaction = 1; u.dead = false; u.turn = { action: 1, move: u.speed, bonus: 1, reaction: 1, moved: 0 }; };
+      var putK = function (u, x, y) { u.x = x; u.y = y; u.tween = null; };
+      // a clear stretch of floor: the knellback, then its marks east of it in a row
+      var rowK = null; for (var yK = 2; yK < BK.map.h - 2 && !rowK; yK++) for (var xK = 2; xK < BK.map.w - 9 && !rowK; xK++) { var okR = true; for (var dK = 0; dK <= 7 && okR; dK++) { GK.setup(BK.map, []); okR = GK.canStand(kb, xK + dK, yK) && GK.canStand(kb, xK + dK, yK + 3); } if (okR) rowK = [xK, yK]; }
+      [kb].concat(hs).forEach(freshK); kb.knellSpent = false;
+      putK(kb, rowK[0], rowK[1]); hs.forEach(function (h, i) { putK(h, rowK[0] + 7, rowK[1] + 3 + i * 0); }); putK(hs[1], rowK[0] + 7, rowK[1] + 3); putK(hs[2], rowK[0] + 1, rowK[1] + 3); putK(hs[0], rowK[0] + 1, rowK[1]);
+      GK.setup(BK.map, BK.units);
+      // 2. the Ram's rider by the attack itself: 15 ft walked and a hit -- STR or prone; 10 ft walked -- none; a Huge one -- no save; the boar's 20 ft and 2d6 as before
+      var tgK = hs[0]; kb.turn.moved = 15; cardsK.length = 0; qKb = [19, 2]; runKb(BK.attack(kb, tgK, kb.attacks.ram));
+      var r15 = cardsK.filter(function (c) { return /charges home/.test(c); })[0] || '', p15 = !!tgK.conds.prone;
+      freshK(tgK); kb.turn = { action: 1, move: 25, bonus: 1, reaction: 1, moved: 10 }; cardsK.length = 0; qKb = [19, 2]; runKb(BK.attack(kb, tgK, kb.attacks.ram));
+      var r10 = cardsK.some(function (c) { return /charges home/.test(c); }), p10 = !!tgK.conds.prone;
+      freshK(tgK); var sz0 = tgK.size; tgK.size = 3; kb.turn = { action: 1, move: 25, bonus: 1, reaction: 1, moved: 15 }; cardsK.length = 0; qKb = [19, 2]; runKb(BK.attack(kb, tgK, kb.attacks.ram));
+      var rHuge = cardsK.filter(function (c) { return /charges home/.test(c); })[0] || '', pHuge = !!tgK.conds.prone; tgK.size = sz0; qKb = [];
+      var boar = D.Battle.prototype.makeFoe.call(BK, { id: 'boarK', kind: 'giantboar' }); freshK(tgK); freshK(boar); boar.turn.moved = 20; putK(boar, tgK.x - 1, tgK.y); cardsK.length = 0; qKb = [19, 2]; runKb(BK.attack(boar, tgK, boar.attacks.tusk));
+      var rBoar = cardsK.filter(function (c) { return /charges home/.test(c); })[0] || '', pBoar = !!tgK.conds.prone; qKb = [];
+      okKb('the Ram: 15 ft walked "' + r15.slice(0, 80) + '", prone ' + p15 + '; 10 ft walked a rider ' + r10 + ', prone ' + p10 + '; a Huge one "' + rHuge.slice(0, 70) + '", prone ' + pHuge + '; the giant boar at 20 ft "' + rBoar.slice(0, 60) + '", prone ' + pBoar,
+        /KNOCKED DOWN/.test(r15) && !/\d+d\d+/.test(r15) && p15 && !r10 && !p10 && /too big to knock down/.test(rHuge) && !pHuge && /2d6 \[/.test(rBoar) && /KNOCKED DOWN/.test(rBoar) && pBoar);
+      // 3. its own turn from 20 ft off, the mark alone in a straight run: it walks in and rams with the rider
+      [kb].concat(hs).forEach(freshK); kb.knellSpent = false; putK(kb, rowK[0], rowK[1]); putK(hs[0], rowK[0] + 4, rowK[1]); putK(hs[1], rowK[0] + 7, rowK[1] + 3); putK(hs[2], rowK[0] + 1, rowK[1] + 3);
+      hs.slice(1).forEach(function (h) { h.dead = true; h.hp = 0; }); GK.setup(BK.map, BK.units); cardsK.length = 0; qKb = [19, 2]; // (the other two out of it: its mark alone, 20 ft off)
+      runKb(D.ai.turn(BK, kb)); qKb = [];
+      var walkedK = kb.turn.moved || 0, aiR = cardsK.filter(function (c) { return /charges home/.test(c); })[0] || '';
+      okKb('its own turn, its mark (' + hs[0].name + ') alone 20 ft off in a straight run: walked ' + walkedK + ' ft, then "' + aiR.slice(0, 70) + '", prone ' + !!hs[0].conds.prone + '; rang ' + !!kb.knellSpent, walkedK >= 15 && /charges home/.test(aiR) && !!hs[0].conds.prone && !kb.knellSpent);
+      // 4. the Ring: two foes within 10 ft and a third a step further, one of the two failing CON 13; the deafened never hear it; then a friend near and it rams instead
+      [kb].concat(hs).forEach(freshK); kb.knellSpent = false; putK(kb, rowK[0] + 3, rowK[1] + 1); putK(hs[0], rowK[0] + 4, rowK[1] + 1); putK(hs[1], rowK[0] + 3, rowK[1] + 3); putK(hs[2], rowK[0] + 6, rowK[1] + 1);
+      GK.setup(BK.map, BK.units); var nearK = MRk().ringCaught(BK, kb).map(function (w) { return w.name; });
+      var firstK = MRk().ringCaught(BK, kb)[0]; cardsK.length = 0; qKb = [2, 19]; runKb(D.ai.turn(BK, kb)); qKb = [];
+      var ringCard = cardsK.filter(function (c) { return /RING/.test(c); })[0] || '', dfK = MRk().ringCaught(BK, kb).length, failK = hs.filter(function (h) { return h.conds.deafened; });
+      var fk = failK[0], tillOk = !!fk && fk.conds.deafened.till.who === fk.id && fk.conds.deafened.till.at === 'end' && fk.conds.deafened.till.n === 1 && !!fk.conds.noReact && fk.reaction === 0;
+      okKb('the Ring: within 10 ft ' + nearK.join(', ') + ' (the third 15 ft off, not); rang ' + !!kb.knellSpent + ' "' + ringCard.slice(0, 70) + '"; deafened and no reactions: ' + failK.map(function (h) { return h.name; }).join(', ') + ' (the first caught, its save pinned to 2: ' + (firstK && firstK.name) + '), till the end of its next turn ' + tillOk,
+        nearK.length === 2 && kb.knellSpent && /RING/.test(ringCard) && failK.length === 1 && failK[0] === firstK && tillOk && !hs[2].conds.deafened);
+      // the deafened one can't hear a second ring; the turn's end clears both
+      var hearsNow = MRk().ringCaught(BK, kb).map(function (w) { return w.name; }); D.magic.tick(BK, fk, 'end');
+      okKb('rung again at once, the deafened one does not hear it (' + hearsNow.join(', ') + '); at the end of its next turn it hears and reacts again: deafened ' + !!fk.conds.deafened + ', noReact ' + !!fk.conds.noReact,
+        hearsNow.indexOf(fk.name) < 0 && hearsNow.length === 1 && !fk.conds.deafened && !fk.conds.noReact);
+      [kb].concat(hs).forEach(freshK); kb.knellSpent = false; var pal = D.Battle.prototype.makeFoe.call(BK, { id: 'palK', kind: 'goblin' }); freshK(pal); BK.units.push(pal); putK(pal, kb.x - 1, kb.y); GK.setup(BK.map, BK.units);
+      cardsK.length = 0; qKb = [19, 19]; runKb(D.ai.turn(BK, kb)); qKb = []; var rangPal = !!kb.knellSpent; BK.units.splice(BK.units.indexOf(pal), 1); GK.setup(BK.map, BK.units);
+      okKb('a goblin of its own beside it as well: it does not ring (' + !rangPal + ') -- it rams', !rangPal && cardsK.some(function (c) { return /Ram|ram/.test(c); }));
+      // 5. the recharge, rolled at its turn's start: a 4 not yet, a 5 back
+      kb.knellSpent = true; var d6K = D.d; D.d = function (n) { return n === 6 ? 4 : d6K.apply(this, arguments); }; D.rules.startTurn(kb); var after4 = kb.knellSpent;
+      D.d = function (n) { return n === 6 ? 5 : d6K.apply(this, arguments); }; D.rules.startTurn(kb); var after5 = kb.knellSpent; D.d = d6K;
+      okKb('the recharge at its turn\'s start: on a 4 still spent ' + after4 + ', on a 5 back ' + !after5 + ' (' + (cardsK.filter(function (c) { return /its Ring/.test(c); }).slice(-2).join(' | ').slice(0, 120)) + ')', after4 === true && after5 === false);
+      // 6. the Pocket DM's market: on the monstrosity shelf, at its CR's price
+      var shopK = (D.pocketdm.SHOPS || []).filter(function (s) { return s.id === 'monstrosities'; })[0], shelfK = shopK ? D.pocketdm.shelf(shopK) : [];
+      okKb('on the Pocket DM\'s MONSTROSITIES shelf: ' + (shelfK.indexOf('knellback') >= 0) + ' at ' + D.pocketdm.price('knellback') + ' cp (CR 1)', shelfK.indexOf('knellback') >= 0 && D.pocketdm.price('knellback') > 0);
+      D.scenes.length = 0;
+    } catch (eKb) { repKb.errors.push(String(eKb && eKb.stack || eKb).slice(0, 900)); }
+    D.d = d0Kb;
+    var preKb = document.createElement('pre'); preKb.id = 'out'; preKb.textContent = 'BENCH16 ' + JSON.stringify(repKb);
+    document.body.appendChild(preKb);
+    return;
+  }
+  function MRk() { return D.monsterRules; }
   // THE NAMED ONES IN THEIR OWN FIGURES (mode=rosterlooks1110; js/classes.js NPC.NAMED looks -- the cutter of 11-10, on Griz's "speaking of pocket DM art I think Gennet and
   // another were still using old models"): built by word (the Pocket DM's roster, its cards, the class floor ?npc=, the hex's people) a named one wears its `look`, else its
   // class's stock figure -- Gennet wore the townswoman (folkwoman_p1: idle and walk) and Amara the warlock's, while their bestiary records (data/foes.js, NPC.fromFoe) wore

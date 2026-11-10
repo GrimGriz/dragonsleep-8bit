@@ -350,6 +350,8 @@
     coin: function (t) { tone(sfxBus, 'pulse', 88, t, 0.05, 0.12, 0.25); tone(sfxBus, 'pulse', 93, t + 0.05, 0.12, 0.12, 0.25); },
     save: function (t) { [79, 84, 91].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.09, 0.14, 0.2); }); },
     ring: function (t) { [84, 91, 96, 91, 96, 103].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.05, 0.1, 0.18); }); },
+    // a bell's toll, low and long (DEEP16's knellback sounds its bell-shell, 11-10): the strike, the hum and its partials dying away under it
+    knell: function (t) { noise(sfxBus, t, 0.06, 0.25, 2500, 1); [[43, 1.6, 0.24], [55, 1.3, 0.14], [62, 0.9, 0.09], [67, 0.6, 0.06], [74, 0.35, 0.04]].forEach(function (p) { tone(sfxBus, 'triangle', p[0], t, p[1], p[2]); }); },
     splash: function (t) { noise(sfxBus, t, 0.5, 0.35, 700, 0.4); },
     grab: function (t) { tone(sfxBus, 'pulse', 43, t, 0.12, 0.2, 0.5, 5); noise(sfxBus, t, 0.1, 0.3, 800, 0.6); },
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
