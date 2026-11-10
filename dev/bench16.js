@@ -12444,6 +12444,38 @@
     document.body.appendChild(preF);
     return;
   }
+  // THE NAMED ONES IN THEIR OWN FIGURES (mode=rosterlooks1110; js/classes.js NPC.NAMED looks -- the cutter of 11-10, on Griz's "speaking of pocket DM art I think Gennet and
+  // another were still using old models"): built by word (the Pocket DM's roster, its cards, the class floor ?npc=, the hex's people) a named one wears its `look`, else its
+  // class's stock figure -- Gennet wore the townswoman (folkwoman_p1: idle and walk) and Amara the warlock's, while their bestiary records (data/foes.js, NPC.fromFoe) wore
+  // the art desk's; Katarina, with no record, the cleric's. Each named card of the roster and Gennet now in its own; every build a record builds from matches the record
+  if (get('mode', '') === 'rosterlooks1110') {
+    var repRl = { checks: [], errors: [] };
+    function okRl(what, v) { repRl.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var NPCr = D.npc, PKr = D.pocket;
+      // 1. the roster's named cards (its stock and the DM's) and Gennet: the figure each is built in, and the card's own (NPC.lookOf)
+      var wantRl = { talmok: 'talmok_p2', willem: 'willemglass_p2', katarina: 'katarina_p1', torvald: 'torvald_p0', higertha: 'npcdruid_p0', amara: 'amara_p2', pyro: 'pyro_p0',
+        greyfang: 'greyfang_p1', eldermage: 'eldermage_p1', matriarch: 'gnollmatriarch_p1', matriarchlama: 'gnollmatriarch_p1', gennet: 'gennet_p2',
+        denny: 'denny_p3', beholda: 'beholda_p3', rascal: 'rascal_p2', goose: 'goose_p1' }; // (the Mascots on the DM's roster: js/mpmon.js, their own since 10-07)
+      var onRl = (PKr.STOCK || []).map(function (s) { return s.w; }).filter(function (w) { return NPCr.NAMED[w] && !NPCr.NAMED[w].overlay; }).concat(['gennet']);
+      var gotRl = onRl.map(function (w) { var u = NPCr.build(w, 5, 'foe'), lk = NPCr.lookOf(NPCr.NAMED[w]); return { w: w, sheet: u && u.sheet, card: lk, ok: !!u && u.sheet === wantRl[w] && lk === wantRl[w] && !!D.SHEETS[wantRl[w]] }; });
+      okRl('the named on the roster, built at 5: ' + gotRl.map(function (g) { return g.w + ' ' + g.sheet + (g.card !== g.sheet ? ' (card ' + g.card + ')' : '') + (g.ok ? '' : ' WANT ' + wantRl[g.w]); }).join(', '),
+        gotRl.length === Object.keys(wantRl).length && gotRl.every(function (g) { return g.ok; }));
+      // 2. every named build a bestiary record builds from (data/foes.js `build`): the class floor's figure the record's own
+      var recRl = Object.keys(D.FOES).filter(function (k) { return D.FOES[k].build && NPCr.NAMED[D.FOES[k].build]; }).map(function (k) {
+        var d = D.FOES[k], u = NPCr.build(d.build, 5, 'foe'); return { k: k, b: d.build, rec: d.sheet, built: u && u.sheet };
+      });
+      okRl('built as their records wear them: ' + recRl.map(function (r) { return r.k + (r.b !== r.k ? '(' + r.b + ')' : '') + ' ' + r.built + (r.built === r.rec ? '' : ' RECORD ' + r.rec); }).join(', '),
+        recRl.length >= 8 && recRl.every(function (r) { return r.built === r.rec; }));
+      // 3. the three changed carry what a fight plays: Gennet's figure every row (cast for her spells), Amara's cast for her blasts; Katarina's town figure plays its idle for the rest
+      var rowsRl = function (n) { var s = D.SHEETS[n]; return s ? Object.keys(s.anims).join('/') : 'NONE'; };
+      okRl('their rows: gennet_p2 ' + rowsRl('gennet_p2') + '; amara_p2 ' + rowsRl('amara_p2') + '; katarina_p1 ' + rowsRl('katarina_p1'),
+        !!D.spr.anim('gennet_p2', 'cast') && !!D.spr.anim('gennet_p2', 'attack') && !!D.spr.anim('amara_p2', 'cast') && !!D.spr.anim('katarina_p1', 'idle') && !!D.spr.anim('katarina_p1', 'walk'));
+    } catch (eRl) { repRl.errors.push(String(eRl && eRl.stack || eRl).slice(0, 900)); }
+    var preRl = document.createElement('pre'); preRl.id = 'out'; preRl.textContent = 'BENCH16 ' + JSON.stringify(repRl);
+    document.body.appendChild(preRl);
+    return;
+  }
   // THE BARN AND THE WAGON, THE ANGLE PASS (mode=barnwagon1110; tools/innprops-sheet.py REFIT, PIECES3, rim; js/innprops.js IP.find, IP.dress; js/inn.js In.BEDZ, In.BEDIN;
   // js/ui.js a rider's dx, dy -- the cutter of the art desk's HALFWAY-INN-BARN-WAGON-ANGLE-REVISION, on Griz's "cue the barn wagon stuff in doran's cutter"): the barn's north
   // row the art desk's stall opening onto the aisle as drawn, its south row the reversed stall mirrored (its head wall to the camera), the troughs that stood for its mangers
@@ -12481,6 +12513,11 @@
         bed.length === 2 && InBw.BEDZ === IPb.BEDZ && IPb.BEDZ === 20 && bed[0] === (wB[0] + 3) + ',' + wB[1] + ' gz 20 dy 0.25' && bed[1] === (wB[0] + 3) + ',' + (wB[1] + 1) + ' gz 20 dy -0.25'
         && rimD.indexOf((wB[0] + 3) + ',' + wB[1] + ':' + (wB[0] + 3 + wB[1] + 0.65).toFixed(2)) >= 0 && rimD.indexOf((wB[0] + 3) + ',' + (wB[1] + 1) + ':' + (wB[0] + 4 + wB[1] + 0.65).toFixed(2)) >= 0);
       InBw.yardClear(Bn, YB); D.scenes.length = 0;
+      // 5. the show's door for his eye, ?innshow&beat=wagonyard: the yard on the wagon's night, the wagon laid in its place
+      var bwB = InBw.BEATS.filter(function (b) { return b.id === 'wagonyard'; })[0], wyB = '';
+      if (bwB) { InBw.play(bwB); topBw(); wyB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagonT'; }).map(function (p) { return p[1] + ',' + p[2]; }).join(); D.house.playing = false; D.house.cur = null; InBw.pinned = null; }
+      okBw('the show\'s beat wagonyard (' + !!bwB + '): the wagon laid at ' + (wyB || 'nowhere'), !!bwB && wyB === wB.join());
+      D.scenes.length = 0;
     } catch (eBw) { repBw.errors.push(String(eBw && eBw.stack || eBw).slice(0, 900)); }
     D.store.get = stGBw; D.store.set = stSBw;
     var preBw = document.createElement('pre'); preBw.id = 'out'; preBw.textContent = 'BENCH16 ' + JSON.stringify(repBw);
@@ -12513,11 +12550,6 @@
       uW6.sheet = 'doran_p2'; uW6.conds = {}; uW6.hp = uW6.maxhp = 40; uW6.facing = 6;
       var shotW6 = function (n, anim, at) { var u = n === 'gennet_p2' ? gW6 : uW6; u.sheet = n; u.anim = anim; BW6.t = u.animT + at; var o = D.ui.unitObj(BW6, u); o.draw(cxW6); return o.shown || {}; };
       var t0W6 = BW6.t; uW6.animT = t0W6; var durW6 = D.spr.duration('doran_p2', 'attack');
-      // 5. the show's door for his eye, ?innshow&beat=wagonyard: the yard on the wagon's night, the wagon laid in its place
-      var bwB = InBw.BEATS.filter(function (b) { return b.id === 'wagonyard'; })[0], wyB = '';
-      if (bwB) { InBw.play(bwB); topBw(); wyB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagonT'; }).map(function (p) { return p[1] + ',' + p[2]; }).join(); D.house.playing = false; D.house.cur = null; InBw.pinned = null; }
-      okBw('the show\'s beat wagonyard (' + !!bwB + '): the wagon laid at ' + (wyB || 'nowhere'), !!bwB && wyB === wB.join());
-      D.scenes.length = 0;
       var midW6 = shotW6('doran_p2', 'attack', 5), frW6 = {}, aftW6 = [];
       for (var kW6 = 0; kW6 <= 64; kW6 += 4) { var sW6 = shotW6('doran_p2', 'attack', durW6 + 7 + kW6); aftW6.push(sW6.anim); var fW6 = D.spr.frameAt('doran_p2', sW6.anim, uW6.facing, sW6.t, { once: sW6.once }); if (fW6 && sW6.anim === 'idle') frW6[fW6.fr] = 1; }
       okW6('after the chop (' + durW6 + ' ticks): mid-chop drawn ' + midW6.anim + ' once ' + midW6.once + '; after it ' + aftW6.filter(function (a, i, A) { return A.indexOf(a) === i; }).join('/') + ', the idle frames drawn over a second ' + Object.keys(frW6).sort().join(',') + ' (of ' + dS.anims.idle.frames + ')',

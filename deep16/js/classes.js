@@ -212,10 +212,10 @@
     // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
     // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
     // His domain the Vigil, Dvalgarda's (09-28g, the seat's on Griz's "Sufficiently distinct"; invented.json #the-vigil)
-    // Gennet Waterby, the inn lady on the path (the Halfway Inn lane's §10.2, 11-04): the SRD Cult Fanatic's list as a cleric 4 on WIS -- her figure the townsfolk woman's, her sheet's numbers data/foes.js's
+    // Gennet Waterby, the inn lady on the path (the Halfway Inn lane's §10.2, 11-04): the SRD Cult Fanatic's list as a cleric 4 on WIS -- her figure her own fight figure (gennet_p2, the art desk's since 11-05: 11-10, it had stayed the townsfolk woman's here), her sheet's numbers data/foes.js's
     gennet: { name: 'Gennet Waterby', named: true, cls: 'cleric', lvl: 4, race: 'human', subclass: 'Life Domain',
       abil: { str: 11, dex: 14, con: 12, int: 10, wis: 13, cha: 14 },
-      equip: { weapon: 'dagger', armor: 'leather' }, noPrecast: true, look: 'folkwoman_p1',
+      equip: { weapon: 'dagger', armor: 'leather' }, noPrecast: true, look: 'gennet_p2', // (her bestiary record's figure: data/foes.js gennet -- on the class floor and the hex too, 11-10, Griz: "Gennet and another were still using old models")
       known: ['sacredflame', 'light', 'command', 'inflictwounds', 'shieldoffaith', 'holdperson', 'spiritualweapon'] },
     torvald: { name: 'Torvald', named: true, cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', // (the name for the Pocket DM; his fight's card keeps 'Dwarf Cleric')
       abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
@@ -229,8 +229,8 @@
     // (Mirror's Gaze for Hex, Minor Illusion for Friends; the asking is Command, RULED 09-28); Agonizing Blast; Fiendish Vigor (False
     // Life at will: she walks in with it); the Mirror's eye. Charm Person and Suggestion wait on charm (LATER). Her known spells are
     // the SRD's six at the 5th (TRIMMED 09-28g, Griz: "Trim"): Command in, Gaseous Form (OUT in the game already) off her list
-    amara: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
-      equip: { weapon: 'dagger', armor: 'leather' },
+    amara: { name: 'Amara', cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
+      equip: { weapon: 'dagger', armor: 'leather' }, look: 'amara_p2', // (her own fight figure, as her bestiary record wears it -- the roster's card and its fights wore the warlock's stock figure till 11-10; no attack row: a blow plays her idle)
       known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion', 'counterspell'], // (Counterspell on the ladders: 10-02, Griz, "give it to all of them on the ladders")
       invocations: ['agonizing', 'fiendishvigor'], pact: 'tome' }, // (Pact of the Tome, SRD 5.1 -- RULED 10-17, Griz: "go on those opens, good with your leans": the scholar of the glass, the patrol ladies the Blade)
     // a Dominion patrol lady (10-17, the same ruling; the Snoot lane: "yeah, but the patrol ladies only eldritch blasted"): a warlock of the Mirror at Amara's
@@ -266,8 +266,8 @@
       equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
     matriarchlama: { name: 'Matriarch', named: true, cls: 'cleric', lvl: 6, race: 'human', subclass: 'the Keeping', abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 },
       equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
-    katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true,
-      equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },
+    katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true, look: 'katarina_p1', // (her own figure, the art desk's town figure (11-05), in place of the cleric's stock
+      equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },                                                  // one, 11-10: idle, walk and sit only -- no fight figure is drawn, so a blow or a spell plays her idle)
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
     // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
     // Spiritual Weapon), so the grid reads her as it reads the heroes; the overlay stays only for a sheet still a fighter's
