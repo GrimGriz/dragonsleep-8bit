@@ -625,7 +625,7 @@
     if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
-    if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; u.alt.count = (C[h.cls] && C[h.cls].kit.alt === h.alt && NPC.THROWN_N[h.cls]) || 1; } }
+    if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { var wdT = DS.DATA.items[h.alt] && DS.DATA.items[h.alt].weapon; if (wdT && wdT.versatile && u.alt.dice === wdT.versatile) u.alt.dice = wdT.dmg; /* (thrown, it is one hand's: the versatile die is a two-handed melee blow's -- SRD 5.1 Versatile; 11-10, his record of 11-09: the druid's spear flew for 1d8, R.twoHanded with no shield) */ u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; u.alt.count = (C[h.cls] && C[h.cls].kit.alt === h.alt && NPC.THROWN_N[h.cls]) || 1; } }
     return u;
   };
   // a named foe of the bestiary built by its class (data/foes.js `build`: Torvald, Amara, Willem): the class unit, and everything the
