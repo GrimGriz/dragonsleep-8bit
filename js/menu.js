@@ -860,12 +860,30 @@
       return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : ''), 128) : '—', value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
     });
     // (the LIGHT row of 10-07 -- his "torches cannot be equipped" -- is the OFFHAND's since 10-15: the one in hand there, the pack's lights its choices, as ITEMS lights them)
+    rows.push(altRow(h, host, fight)); // (ALT, last: 11-10)
     this.list.set(rows);
   };
+  // ALT (11-10, his "4 - build", on his Pocket DM note of 11-09: thrown weapons from the pack): the second weapon a hero carries -- the class turn's swap, THROW's weapon
+  // (deep16/js/battle.js Battle.throwable) -- set from the pack to a thrown one (the SRD 5.1's thrown property, content/items.json), thrown from the pack's own stack in a
+  // fight, one gone a throw; nothing leaves the pack for it. Out of a fight only; "(its own)" puts back what the hero carried before
+  function isThrown(it) { var wd = it && it.weapon; return !!(wd && ((wd.props || []).indexOf('thrown') >= 0 || wd.thrown)); }
+  function packN(host, id) { var n = 0; host.pack().forEach(function (s) { if (s.id === id) n += s.n || 0; }); return n; }
+  function altRow(h, host, fight) { var it = item(h.alt); return { label: 'ALT', right: it ? fit(it.name + (h.altPack ? ' x' + packN(host, h.alt) : ''), 128) : '—', value: 'alt', disabled: fight }; }
+  function altCands(h, host) {
+    var rows = [];
+    if (h.altPack && h.altOwn !== undefined) { var own = item(h.altOwn); rows.push({ label: fit('(its own' + (own ? ': ' + own.name : '') + ')', 120), right: own ? 'carried' : 'none', value: '__own' }); }
+    host.pack().forEach(function (s) {
+      var it = item(s.id); if (!it || s.n <= 0 || !isThrown(it) || (h.altPack && h.alt === s.id)) return;
+      rows.push({ label: fit(it.name, 120), right: 'x' + s.n + ', thrown ' + (it.weapon.thrown || it.weapon.range || [20, 60]).join('/'), value: s.id });
+    });
+    return rows;
+  }
+  MN.altCands = altCands;
   EquipPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
     // (ARMOR in a fight, either game: the SRD's minutes -- RULED 10-07, Griz: "SRD everywhere", "(not in a fight) is plenty")
+    if (r === 'refused' && this.list.cur().value === 'alt') { m.say('ALT: chosen out of a fight -- a thrown weapon from the pack.'); return; }
     if (r === 'refused') { m.say(m.host.fight && this.list.cur().value === 'armor' ? 'Armour: not in a fight.' : this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the off hand only.') : emptyWhy(m, h)); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
@@ -895,6 +913,7 @@
   CandPage.prototype.refresh = function () {
     var h = this.h, slot = this.slot, host = this.m.host, lit = !!h.equip.torch, R0 = R(), rows = [];
     if (!this.fo && slot === 'offhand') { this.list.set(offhandCands(h, host)); return; }
+    if (slot === 'alt') { this.list.set(this.fo ? [] : altCands(h, host)); return; } // (11-10)
     if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.short || o.note : o.why, 96), value: o, disabled: !o.ok, color: o.ok ? costCol(o.cost) : null, rightColor: o.ok ? costCol(o.cost) : C.dim }; })); return; } // (lit by its cost, 10-07)
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
@@ -919,6 +938,11 @@
       if (lt0 && lt0.kind === 'light') { m.pop(); m.act('light-off', { h: h }, function () { MN.swap(m, h, sl0, pick === '__none' ? null : pick); again(); }); return; }
       if (MN.swap(m, h, sl0, pick === '__none' ? null : pick)) m.pop();
       return;
+    }
+    if (this.slot === 'alt') { // (the ALT: the pack's stack named, nothing taken from it -- 11-10)
+      if (pick === '__own') { h.alt = h.altOwn; h.altPack = false; m.say(h.name + ' carries ' + (item(h.alt) ? 'the ' + item(h.alt).name.toLowerCase() : 'nothing more') + ' again.'); }
+      else { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = pick; h.altPack = true; m.say(h.name + ' throws the pack\'s ' + item(pick).name.toLowerCase() + 's: THROW in a fight, one gone from the pack a throw.'); }
+      sfx('confirm'); if (this.back && this.back.refresh) this.back.refresh(); m.pop(); return;
     }
     if (this.fo) { m.host.fightSwap(pick); m.close(); return; } // (the grid: the swap spends the action, back to the turn)
     if (MN.swap(m, this.h, this.slot, pick === '__none' ? null : pick)) m.pop();

@@ -133,7 +133,11 @@
     (this.o.itemsTest || []).forEach(function (s) { var st = self.inv.filter(function (x) { return x.id === s[0]; })[0]; if (st) st.n = s[1]; else self.inv.push({ id: s[0], n: s[1] }); }); // (the class floor's &items=: js/classes.js npcFight)
     // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human
     // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")
-    if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
+    // (AN ALT FROM THE PACK, 11-10 -- his "4 - build", on his note of 11-09 "thrown weapons from the pack": EQUIP's ALT row, js/menu.js, the sheet's altPack): the thrown weapon
+    // chosen is thrown from the pack's own stack, its kit's own first when it is the same weapon (u.alt.count, Battle.thrownLeft), at the item's own range (content/items.json
+    // `thrown`, the SRD's property); none in the pack and none of its own, none to throw. Not lent: it is the pack's
+    if (!this.o.embed) { var inv1 = this.inv; party.forEach(function (u) { var a = u.alt, it = a && u.src && u.src.altPack && window.DS.DATA.items[a.id], wd = it && it.weapon; if (!wd || u.side !== 'party') return; var rng = wd.thrown || ((wd.props || []).indexOf('thrown') >= 0 ? wd.range : null) || (D.npc.THROWN || {})[a.id]; if (!rng) return; a.ranged = true; a.thrown = true; a.range = rng.slice(); if (wd.versatile && a.dice === wd.versatile) a.dice = wd.dmg; if (u.src.altOwn !== a.id) a.count = 0; else if (a.count == null) a.count = 1; var stk = inv1.filter(function (s) { return s.id === a.id; })[0]; if (stk) a.stack = stk; }); }
+    if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && !(u.src && u.src.altPack) && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     this.torchBarrel = m.def && m.def.torchBarrel ? m.def.torchBarrel.slice() : null; // (the Edifice's barrel of torches behind the houses south of the street: a lit torch for anyone beside it with a hand for one, free, endless -- 10-05 night, Griz; exec 'barreltorch')
@@ -3660,7 +3664,7 @@
   // put away. Spent in this fight only; the 8-bit battle spends none
   Battle.thrownLeft = function (u, atk) {
     if (!atk || atk.count == null || !atk.ranged || atk.spell) return Infinity;
-    return Math.max(0, atk.count - ((u.thrown || {})[atk.name] || 0));
+    return Math.max(0, atk.count - ((u.thrown || {})[atk.name] || 0)) + (atk.stack ? Math.max(0, atk.stack.n || 0) : 0); // (an ALT from the pack: its stack too -- 11-10)
   };
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
   // the off hand's weapon thrown instead (SRD 5.1, two-weapon fighting: "If either weapon has the thrown property, you can throw the weapon"): its range, or none
@@ -3669,7 +3673,8 @@
   Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
   Battle.prototype.spendThrow = function (u, atk) {
     if (this.thrownLeft(u, atk) === Infinity) return;
-    u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1;
+    if (atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0)) atk.stack.n = Math.max(0, (atk.stack.n || 0) - 1); // (its own thrown first, then the pack's: gone from the pack -- 11-10)
+    else { u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1; }
     if (this.thrownLeft(u, atk) > 0) return;
     if (u.alt && u.alt.ranged && u.alt.name === atk.name) u.alt = null;
     if (u.attacks && typeof u.attacks === 'object') { // (its own copy: the sheet's attacks are every one of its kind's)

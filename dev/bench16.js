@@ -3920,6 +3920,30 @@
       }
       } catch (eS) { repBF.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 600)); }
       try {
+      // 2. EQUIP'S ALT ROW (his Pocket DM note of 11-09: thrown weapons from the pack -- "no way today"; RULED 11-10, "4 - build"): a card's GEAR at the camp, the row's choices
+      // the pack's thrown weapons (the SRD's thrown property, content/items.json), the pick the real CandPage's; then the fight: THROW with the pack's stack, one gone a throw
+      memBF = {}; var P2 = new D.Pocket(); P2.enter(); P2.ask = function () { return true; };
+      P2.st.roster = [{ code: HARLEY, name: 'Harley' }]; P2.st.party = [{ custom: 0 }]; P2.st.pack = [{ id: 'handaxe', n: 3 }, { id: 'longsword', n: 1 }]; P2.st.run = null; P2.cache = {};
+      P2.openGear(0); var m2 = P2.pm, ep2 = m2 && m2.pages[0], h2 = ep2 && ep2.h, row2 = ep2 && ep2.list.items.filter(function (r) { return r.value === 'alt'; })[0];
+      var cp2 = m2.push(new window.DS.MENU.CandPage(m2, h2, 'alt', ep2)), c2 = cp2.list.items.map(function (r) { return r.value; });
+      okBF('2 EQUIP at the camp has an ALT row ("' + (row2 && row2.label) + '  ' + (row2 && row2.right) + '"); its choices from the pack ' + JSON.stringify(c2) + ' (want the row, the handaxe and not the longsword)', !!row2 && c2.indexOf('handaxe') >= 0 && c2.indexOf('longsword') < 0);
+      cp2.list.i = Math.max(0, c2.indexOf('handaxe')); cp2.list.update = function () { return 'pick'; }; cp2.update({});
+      var row2b = ep2.list.items.filter(function (r) { return r.value === 'alt'; })[0]; m2.pop(); // (the GEAR page closed: its card written -- Pocket.gearBack)
+      var s2 = P2.st.party[0], hN2 = PKb.sheetOf(PKb.specOf(P2.st, s2));
+      okBF('2 the handaxe picked: the row "' + (row2b && row2b.right) + '", GEAR ' + JSON.stringify(s2.gear) + ', the pack\'s handaxes ' + packBF(P2.st, 'handaxe') + ', her next sheet\'s ALT ' + (hN2 && hN2.alt) + ' from the pack ' + !!(hN2 && hN2.altPack) + ', her own ' + (hN2 && hN2.altOwn) + ' (want Handaxe x3, alt:handaxe, 3, handaxe, true, scimitar)',
+        !!row2b && /^Handaxe x3/.test(row2b.right) && !!s2.gear && s2.gear.alt === 'alt:handaxe' && packBF(P2.st, 'handaxe') === 3 && !!hN2 && hN2.alt === 'handaxe' && hN2.altPack && hN2.altOwn === 'scimitar');
+      var Bq2 = null; P2.foes = ['goblin']; D.push = function (b) { Bq2 = b; }; try { P2.launch(); } finally { D.push = push0BF; }
+      D.battle = Bq2; Bq2.enter(); for (var g2 = 0; g2 < 400 && !(Bq2.order && Bq2.order.length); g2++) Bq2.co.next();
+      var u2 = Bq2.units.filter(function (w) { return w.side === 'party' && w.name === 'Harley'; })[0], gb2 = Bq2.units.filter(function (w) { return w.side === 'foe'; })[0], th2 = D.Battle.throwable(u2);
+      okBF('2 in the fight: THROW\'s weapon ' + (th2 && th2.name) + ' at ' + (th2 && th2.range && th2.range.join('/')) + ' ft, ' + (th2 ? D.Battle.thrownLeft(u2, th2) : 0) + ' to throw (want Handaxe, 20/60, 3: the pack\'s)', !!th2 && /Handaxe/.test(th2.name) && th2.range[0] === 20 && th2.range[1] === 60 && D.Battle.thrownLeft(u2, th2) === 3);
+      RUb.startTurn(u2); Bq2.active = u2; gb2.hp = gb2.maxhp = 300; var sq2 = freeBF(Bq2, u2, 3); if (sq2) { gb2.x = sq2[0]; gb2.y = sq2[1]; GGb.setup(GGb.map, Bq2.units); }
+      runBF(Bq2.attack(u2, gb2, th2, {}));
+      var stk2 = Bq2.inv.filter(function (s) { return s.id === 'handaxe'; })[0];
+      okBF('2 one thrown: the fight\'s pack ' + (stk2 && stk2.n) + ' handaxes, ' + D.Battle.thrownLeft(u2, th2) + ' to throw (want 2, 2)', !!stk2 && stk2.n === 2 && D.Battle.thrownLeft(u2, th2) === 2);
+      Bq2.o.onDone(null, null);
+      okBF('2 after the fight: the pack\'s handaxes ' + packBF(P2.st, 'handaxe') + ', her ALT still ' + JSON.stringify((P2.st.party[0].gear || {}).alt) + ' (want 2: thrown is gone, no pick-up; alt:handaxe)', packBF(P2.st, 'handaxe') === 2 && (P2.st.party[0].gear || {}).alt === 'alt:handaxe');
+      } catch (eS) { repBF.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
       // 3. STATUS > FEATURES FOR A MADE CHARACTER (his Pocket DM note (B) of 11-09: "Nothing written on the sheet." for every made character)
       var FL3 = window.DS.MENU.featureLines, pal3 = PKb.sheetOf(NPCb.spec('~paladin.3.halfelf.15-11-14-8-12-16.longsword_chainmail_shield_handaxe_____.wut.bless-command-shieldoffaith-calledtoaccount.protection.greenreturn'));
       var l3 = FL3(pal3).map(function (f) { return f.t; }), so3 = window.DS.R.subOpt ? window.DS.R.subOpt('paladin', 'greenreturn') : null;

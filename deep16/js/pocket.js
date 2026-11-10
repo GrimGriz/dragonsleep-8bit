@@ -327,9 +327,12 @@
   // was put down goes to the pack. Before, the thing taken up came off the pack at the fight's end and nothing wrote it on the card. A thing the fight only lent (the armoury's
   // crossbow, js/save.js; a class hero's second weapon, js/battle.js) goes back to the lender: that place keeps what it held before the fight.
   // Returns { d: the pack's change by id, cap: what stays on a hero out of the fight's pack, cards: [{ slot, gear }] } for PK.packBack
-  PK.gearOf = function (st, slot, equip) { // (a card's GEAR for an equip: what its word without GEAR does not wear, and `no<place>` for what it does that is off)
+  // (alt { id, pack }: EQUIP's ALT row, a thrown weapon from the pack -- `alt:<id>`, the pack's stack named, nothing taken from it; left out, the card's ALT stands as it was -- 11-10)
+  PK.gearOf = function (st, slot, equip, alt) { // (a card's GEAR for an equip: what its word without GEAR does not wear, and `no<place>` for what it does that is off)
     var own = slot && PK.bareOf(st, slot); if (!own) return null;
     var g = {};
+    if (alt === undefined) { if (slot.gear && slot.gear.alt) g.alt = slot.gear.alt; }
+    else if (alt && alt.pack && alt.id) g.alt = 'alt:' + alt.id;
     ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
       var now = equip[pl] || null, was = own.equip[pl] || null;
       if (now === was) return;
@@ -372,7 +375,7 @@
   // a card's GEAR in a place a new winning takes: back to the pack (a `no<place>` simply dropped), so the winning is worn and not covered
   PK.gearOff = function (st, slot, place) {
     var g = slot && slot.gear, v = g && place && g[place]; if (!v) return;
-    if (!/^no/.test(v)) PK.packAdd(st, String(v).replace(/^off:/, ''), 1); delete g[place];
+    if (!/^no/.test(v) && !/^alt:/.test(v)) PK.packAdd(st, String(v).replace(/^off:/, ''), 1); delete g[place]; // (an ALT names the pack's own stack: nothing of it left the pack -- 11-10)
   };
   // the card as its word makes it without its GEAR: its own kit and its winnings
   PK.bareOf = function (st, slot) { var g0 = slot.gear; slot.gear = {}; try { return PK.sheetOf(PK.specOf(st, slot)); } finally { slot.gear = g0; } };
@@ -1604,7 +1607,7 @@
     }, h);
   };
   Pocket.prototype.gearBack = function (i, h) {
-    var slot = this.st.party[i], g = slot && PK.gearOf(this.st, slot, h.equip); if (!g) return; // (as its word now makes it: a winning taken off is gone from it -- PK.gearOf, the fight's swaps' too)
+    var slot = this.st.party[i], g = slot && PK.gearOf(this.st, slot, h.equip, { id: h.alt || null, pack: !!h.altPack }); if (!g) return; // (as its word now makes it: a winning taken off is gone from it -- PK.gearOf, the fight's swaps' too; and its ALT, 11-10)
     slot.gear = g; this.cache = {}; this.keep();
   };
 
