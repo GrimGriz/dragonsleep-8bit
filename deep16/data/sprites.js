@@ -7498,7 +7498,7 @@
 },
 "innprops_p2": {
 "_note": "the Halfway Inn's barn, yard and shore, and the rest of the house (tools/innprops-sheet.py, art-wanted section 36 pages 5, 6, 9A and 9B, 2026-11-05): as innprops_p1 -- each piece a box x,y,w,h and its anchor ax,ay, the back corner of its footprint; shore_float four frames on one waterline (1-3 the bob, 4 still). js/innprops.js lays them.",
-"image": "art/innprops_p2.png?v=4a35db1fbc",
+"image": "art/innprops_p2.png?v=749dc76bd0",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -7621,7 +7621,7 @@
 "barn_stallN": "0,491,143,115,72,50",
 "barn_stallS": "144,491,143,116,72,51",
 "yard_wagonT": "288,491,172,157,51,80",
-"yard_wagonRim": "0,649,172,157,51,80"
+"yard_wagonRim": "0,649,67,50,-54,-24"
 },
 "spread": [
 [
