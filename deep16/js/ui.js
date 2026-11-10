@@ -1814,7 +1814,7 @@
         if ((!down || u.cine) && !wet && !u.ethereal && D.looks && D.looks.ripple) D.looks.ripple(ctx, B, u, an0, t, p.x, p.y - lift, body); // (the mirror ripple, over the figure just drawn: js/looks.js, 10-08)
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
-        if (!u.dead && !u.ethereal && (!u.riding || u.attached) && !u.onCounter) { // (a darkmantle on someone keeps its bar, over it; Ned's rat on the counter has none)
+        if (!u.dead && !u.ethereal && (!u.riding || u.attached) && !u.onCounter && !u.laid) { // (a darkmantle on someone keeps its bar, over it; Ned's rat on the counter has none; nor a figure on the DM's lay floor, js/runes.js)
           var top = Math.max(tall, D.looks && D.looks.flameTop ? D.looks.flameTop(u, B) : 0), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5; // (a smouldering troll's bar over its flames, not across them -- facing north its head stands 30 px over `tall`: js/looks.js LK.flameTop, 10-07)
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);
@@ -1902,7 +1902,7 @@
     ooze: { g: ['orc', 3], G: ['orc', 2] }, plant: { M: ['orc', 3], m: ['orc', 2], l: ['leather', 2] }, undead: { w: ['bone', 1], k: ['outline', 0] }
   };
   UI.typeOf = function (u) { return u.type || 'humanoid'; }; // (the class NPCs and the heroes are people)
-  // one chip: 11x11, the glyph centred in it; edge 'gold' | 'grey'; cross: a red X over it; alpha for the faint ones
+  // one chip: 11x11, the glyph centred in it; edge 'gold' | 'grey' | a colour (a rune's posture: js/runes.js, 11-10); cross: a red X over it; alpha for the faint ones
   UI.drawGlyph = function (ctx, type, x, y, o) {
     var rows = GLYPH[type], col = GCOL[type]; if (!rows) return;
     o = o || {}; ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha;
@@ -1913,7 +1913,7 @@
       ctx.restore(); return;
     }
     ctx.fillStyle = R('outline', 0); ctx.fillRect(x - 5, y - 5, 11, 11);
-    ctx.fillStyle = o.edge === 'gold' ? R('gold', 3) : R('silver', 3);
+    ctx.fillStyle = o.edge === 'gold' ? R('gold', 3) : o.edge && o.edge !== 'grey' ? o.edge : R('silver', 3);
     ctx.fillRect(x - 5, y - 6, 11, 1); ctx.fillRect(x - 5, y + 6, 11, 1); ctx.fillRect(x - 6, y - 5, 1, 11); ctx.fillRect(x + 6, y - 5, 1, 11);
     var oy = y - 4 + Math.floor((9 - rows.length) / 2);
     rows.forEach(function (row, j) { for (var i = 0; i < row.length; i++) { var c = col[row[i]]; if (!c) continue; ctx.fillStyle = R(c[0], c[1]); ctx.fillRect(x - 4 + i, oy + j, 1, 1); } });

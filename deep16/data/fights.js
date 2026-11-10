@@ -459,7 +459,8 @@
     return { id: o.id || 'classes', level: level, map: o.map || 'hexfloor', dark: o.dark != null ? o.dark : undefined, name: o.name || 'The Class Floor', // (&map=, &dark: js/classes.js npcFight)
       sub: o.sub || ('the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level), music: o.music || undefined,
       intro: o.intro || 'The floor is swept. Across it, someone in their own colours has come to see what you are made of.',
-      from: o.from || 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: o.won || 'THE FLOOR IS YOURS.', lost: o.lost || (o.defend ? 'THE SKYLIGHT GAVE WAY: THE EDIFICE IS BREACHED.' : 'THE FLOOR IS THEIRS.'), foes: [], wave: null, noFlee: true, defend: !!o.defend, passages: !!o.doors }; // (defend: the map's skylight is the foes' target -- &defend; doors: the passages open -- 10-04 night)
+      from: o.from || 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: o.won || 'THE FLOOR IS YOURS.', lost: o.lost || (o.defend ? 'THE SKYLIGHT GAVE WAY: THE EDIFICE IS BREACHED.' : 'THE FLOOR IS THEIRS.'), foes: [], wave: null, noFlee: true, defend: !!o.defend, passages: !!o.doors, // (defend: the map's skylight is the foes' target -- &defend; doors: the passages open -- 10-04 night)
+      entry: o.entry ? [o.entry.slice()] : undefined }; // (o.entry: the party's way in as the DM moved its rune -- js/runes.js, his 6 of 11-07; js/battle.js seats the rest behind the first)
   };
   // a rung's fights: the Cocoon Gallery first on the top rung (the POC, Denny's), then the 8-bit game's set pieces, then
   // the bestiary's (the Cowork seat's first four, `bestiary`)

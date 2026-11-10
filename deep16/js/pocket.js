@@ -675,10 +675,11 @@
     var words = this.words(), kinds = this.foes.slice(), d = PK.diff(this.levels(), kinds), kn = this.knobs() || {};
     var q = PK.query(kinds, words, L, mapId, this.watch, kn);
     var slot = this.slotOf(run), lastM = !!(slot && run.rung >= run.plan.length); // (a module's fight: its own name and line, the last its boss music -- 10-17)
+    var rn = D.runes && slot ? D.runes.atPlay(slot, kinds, mapId) : null; // (the DM's runes: each unit where he laid it, with its posture, and the party's way in where he moved it -- js/runes.js, js/battle.js seatRunes)
     var name = run ? (slot ? run.module.name + ': ' + this.rungName(run) : this.rungName(run)) : 'THE POCKET DM', sub = (slot && slot.name ? slot.name + ' -- ' : '') + PK.foesText(kinds) + ' -- ' + d.label.toLowerCase() + (d.deadlyX > 1 ? ' x' + d.deadlyX : '');
     var def = D.classFight(L, { id: 'pocket', what: PK.foesText(kinds), map: mapId, name: name, sub: sub, music: (run && run.trial) || lastM ? 'boss' : undefined, dark: kn.dark != null ? kn.dark : undefined,
       intro: slot && slot.intro ? slot.intro : run && run.trial ? (run.dmLadder ? 'The last of the DM\'s ladder, after a night\'s rest.' : 'The last of it. Everything the dark could spare, at once. Win this and the king himself will walk with you.') : 'The Pocket DM sets the table: ' + PK.foesText(kinds) + ', on ' + (D.MAPS[mapId].name || mapId) + '.',
-      won: lastM ? run.module.name + ' IS DONE.' : run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
+      won: lastM ? run.module.name + ' IS DONE.' : run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.', entry: rn && rn.entry ? rn.entry : undefined });
     var started = new Date().toISOString();
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
     // (the camp's light in hand: its bearer holds it lit from the first round, the one in hand not in the fight's pack -- js/battle.js o.torch; back after, Pocket.done)
@@ -687,7 +688,7 @@
     var ltW = ltAt >= 0 ? fw[ltAt] : null, ltId = ltW ? (typeof ltW === 'string' ? 'p' + ltAt + '-' + String(ltW).split(':')[0].split('.')[0].split('+')[0] : ltW.id) : null; // (the unit's id as js/battle.js gives it)
     if (ltId) packIn.forEach(function (s) { if (s.id === lt.id) s.n--; });
     this.lightHeld = ltId ? lt.id : null;
-    var B = new D.Battle({ npc: { foes: kinds, party: fw }, pack: packIn.filter(function (s) { return s.n > 0; }), torch: ltId || undefined, torchKind: ltId ? lt.id : undefined, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
+    var B = new D.Battle({ npc: { foes: kinds, party: fw }, runes: rn && rn.runes ? rn.runes : undefined, pack: packIn.filter(function (s) { return s.n > 0; }), torch: ltId || undefined, torchKind: ltId ? lt.id : undefined, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
       onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
@@ -982,7 +983,13 @@
       var sl = f.slots.filter(ok).slice(0, PK.MODULE_MAX); if (!sl.length) return null;
       var pty = f.party && +f.party.lvl ? { n: Math.max(1, Math.min(6, +f.party.n || 4)), lvl: Math.max(1, Math.min(12, +f.party.lvl)) } : null;
       return { id: str(f.id, 40), name: (str(f.name, 32) || 'A MODULE').toUpperCase(), by: str(f.by, 40), party: pty, about: str(f.about, 400) || '', at: f.at || null,
-        slots: sl.map(function (s) { var r = s.rest || {}; return { map: s.map, foes: s.foes.slice(), name: str(s.name, 40), intro: str(s.intro, 200), rest: { short: r.short !== false, long: !!r.long, market: !!r.market } }; }) };
+        slots: sl.map(function (s) {
+          var r = s.rest || {}, o = { map: s.map, foes: s.foes.slice(), name: str(s.name, 40), intro: str(s.intro, 200), rest: { short: r.short !== false, long: !!r.long, market: !!r.market } };
+          // (the DM's runes and the party's way in, v2 -- js/runes.js: checked, and a rune that does not check out dropped with a line; a v1 file has none and plays as before)
+          var RN = D.runes, rr = RN ? RN.clean(s.runes, s.map, s.foes) : null, en = RN ? RN.cleanEntry(s.entry, s.map) : null;
+          if (rr) o.runes = rr; if (en) o.entry = en;
+          return o;
+        }) };
     }
     return null;
   };

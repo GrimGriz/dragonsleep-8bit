@@ -165,7 +165,7 @@
     if (!run || !run.plan) return false;
     var slot = run.plan[run.trial ? 4 : run.rung - 1]; if (!slot) return false;
     var map = this.mapIds().indexOf(slot.map) >= 0 ? slot.map : this.randomMap();
-    var fresh = !run.module && (this.rerolling || !slot.foes || !slot.foes.length || map !== slot.map); // (a module's foes are its own, whatever floor: js/pocket.js startModule, 10-17)
+    var fresh = !run.module && !(slot.runes && slot.runes.length) && (this.rerolling || !slot.foes || !slot.foes.length || map !== slot.map); // (a module's foes are its own, whatever floor: js/pocket.js startModule, 10-17) (and a laid fight is its runes -- js/runes.js, his 7 of 11-07)
     var f = fresh ? PD.fill(this, map, slot.cr8) : { foes: slot.foes.slice(), mine: slot.mine || 0, units: (slot.units || []).slice() };
     this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine; run.units = f.units;
     return true;
@@ -200,13 +200,24 @@
   PD.takeModule = function (st, mod) {
     var cp = PD.camp(st); if (!mod || cp.modules.length >= PD.MODULES_MAX) return null;
     var m = { id: cp.next++, name: String(mod.name || 'A MODULE').toUpperCase().slice(0, 24), about: mod.about || '', at: Date.now(),
-      slots: mod.slots.map(function (s) { return { map: s.map, cr8: PK.sum8(s.foes), foes: s.foes.slice(), mine: 0, units: [], name: s.name || null, intro: s.intro || null, rest: Object.assign(PD.REST0(), s.rest || {}) }; }) };
+      slots: mod.slots.map(function (s) {
+        var o = { map: s.map, cr8: PK.sum8(s.foes), foes: s.foes.slice(), mine: 0, units: [], name: s.name || null, intro: s.intro || null, rest: Object.assign(PD.REST0(), s.rest || {}) };
+        // (a v2 file's runes and the party's way in, by kind: none of the campaign's units -- the ids never travel -- so each is laid as the file has it, js/runes.js)
+        var RN = D.runes, rr = RN ? RN.clean(s.runes, s.map, s.foes) : null, en = RN ? RN.cleanEntry(s.entry, s.map) : null;
+        if (rr) o.runes = rr.map(function (r) { r.unit = null; return r; }); if (en) o.entry = en;
+        return o;
+      }) };
     cp.modules.push(m); PD.camp(st); return m;
   };
-  // the module as a file (PK.moduleOf reads it at any table: its villains' words build anywhere)
+  // the module as a file (PK.moduleOf reads it at any table: its villains' words build anywhere). v2 since 11-10 (the DM's runes, js/runes.js): a fight's `runes` by kind and
+  // its `entry`, the party's way in -- a marker only, nothing reads `v`; a page from before them drops the two and plays the same creatures seated north, as v1
   PD.moduleFile = function (m) {
-    return { game: 'DRAGONSLEEP', kind: PK.MODULE_KIND, v: 1, at: new Date().toISOString(), name: m.name, by: 'a DM', party: null, about: m.about || ('A module of ' + m.slots.length + ' fight' + (m.slots.length === 1 ? '' : 's') + '.'),
-      slots: m.slots.map(function (s) { var o = { map: s.map, foes: s.foes.slice(), rest: Object.assign(PD.REST0(), s.rest || {}) }; if (s.name) o.name = s.name; if (s.intro) o.intro = s.intro; return o; }) };
+    return { game: 'DRAGONSLEEP', kind: PK.MODULE_KIND, v: 2, at: new Date().toISOString(), name: m.name, by: 'a DM', party: null, about: m.about || ('A module of ' + m.slots.length + ' fight' + (m.slots.length === 1 ? '' : 's') + '.'),
+      slots: m.slots.map(function (s) {
+        var o = { map: s.map, foes: s.foes.slice(), rest: Object.assign(PD.REST0(), s.rest || {}) }; if (s.name) o.name = s.name; if (s.intro) o.intro = s.intro;
+        if (D.runes && s.runes && s.runes.length) o.runes = D.runes.fileRunes(s); if (s.entry) o.entry = s.entry.slice();
+        return o;
+      }) };
   };
   // SAVE TO THE FOLDER (10-17, the two Pocket DMs; his "re 5 - can we when DM saves module store a pointer to a folder" -- "2 yes"): written into the modules folder --
   // picked the first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download.
@@ -791,7 +802,7 @@
   Pocket.prototype.drawBuild = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st), m = PD.editing(st), ids = PD.myMaps(this), per = 11;
     if (!m) { this.go('camp'); return; }
-    head(ctx, 'BUILD A MODULE', 'a map clicked adds a fight at its CR: your newest units first, the rest rolled');
+    head(ctx, 'BUILD A MODULE', 'a map clicked adds a fight at its CR: your newest units first, the rest rolled · W walks a fight\'s floor to lay your runes');
     var from = Math.min(this.scroll, Math.max(0, ids.length - per)); this.scroll = from;
     var dflt = this.crI >= 0 ? this.crI : 5, full = m.slots.length >= PK.MODULE_MAX;
     var b0 = this.btns.length;
@@ -821,9 +832,17 @@
     D.text(ctx, '{g}' + m.slots.length + ' of ' + PK.MODULE_MAX + ' fights · then S short, L long, M market{/}', px + 6, 50, P('stone', 5));
     m.slots.forEach(function (sl, i) {
       var yy = 60 + i * 16, last = i === m.slots.length - 1, rs = sl.rest = sl.rest || PD.REST0();
-      D.text(ctx, '{y}' + (i + 1) + '{/} ' + cut((D.MAPS[sl.map] || {}).name || sl.map, pw - 128) + '  {g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (sl.mine ? ' · ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy, P('bone', 1));
-      D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 104), px + 14, yy + 8, P('stone', 6));
-      self.btn(ctx, 'R', px + pw - 84, yy + 7, 12, 9, function () { var f = PD.fill(self, sl.map, sl.cr8, PD.placed(m.slots, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep(); }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
+      var nR = sl.runes && sl.runes.length ? sl.runes.length : 0; // (the DM's runes laid on it: js/runes.js -- a laid fight is its runes)
+      D.text(ctx, '{y}' + (i + 1) + '{/} ' + cut((D.MAPS[sl.map] || {}).name || sl.map, pw - 128) + '  {g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (nR ? ' · ' + nR + ' rune' + (nR === 1 ? '' : 's') : sl.mine ? ' · ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy, P('bone', 1));
+      D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 118), px + 14, yy + 8, nR ? P('gold', 4) : P('stone', 6));
+      // W: WALK IT -- the fight's floor, the elder mage, LAY THE RUNE (js/runes.js RN.floor; his 11-10, "seats on the DM placing his bound units on specific locations in the map")
+      self.btn(ctx, 'W', px + pw - 98, yy + 7, 12, 9, function () { if (!D.runes || !D.MAPS[sl.map]) return; self.keep(); D.push(D.runes.floor(self, m, i)); }, { small: true, on: !!nR });
+      self.btn(ctx, 'R', px + pw - 84, yy + 7, 12, 9, function () {
+        var ask = self.ask || function (q) { return window.confirm(q); };
+        if (nR && !ask('Fight ' + (i + 1) + ' is its ' + nR + ' rune' + (nR === 1 ? '' : 's') + '. Clear them and roll its CR again?')) return; // (R on a laid fight asks first: it clears the runes -- his 7 of 11-07)
+        if (nR) sl.runes = [];
+        var f = PD.fill(self, sl.map, sl.cr8, PD.placed(m.slots, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep();
+      }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
       self.btn(ctx, 'x', px + pw - 70, yy + 7, 12, 9, function () { m.slots.splice(i, 1); self.keep(); }, { small: true });
       if (!last) [['short', 'S'], ['long', 'L'], ['market', 'M']].forEach(function (q, k) {
         self.btn(ctx, q[1], px + pw - 46 + k * 13, yy + 7, 12, 9, function () { rs[q[0]] = !rs[q[0]]; if (q[0] === 'long' && rs.long) rs.short = false; if (q[0] === 'short' && rs.short) rs.long = false; self.keep(); }, { small: true, on: !!rs[q[0]] }); // (a long rest or a short one, not both)

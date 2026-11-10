@@ -104,10 +104,11 @@
     // (a word that names no class and no named one may name a creature of the bestiary, data/foes.js: ?npc=hyena,hyena,hyena&vs=bard&lvl=3 --
     // the Pocket DM's monsters dropped in, 09-30, first for Hideous Laughter's hyena)
     var missed = [], LURK = { grick: 1, roper: 1, darkmantle: 1, xorn: 1, grimlock: 1, cube: 1, gelatinouscube: 1 }; // (the natural lurkers: the ones the story fights start hidden -- Griz 10-04, the Pocket DM's did not)
-    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; var b = D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w, hidden: !!LURK[w] }) : null); if (!b) missed.push(String(w)); return b; }).filter(Boolean), m, party);
+    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; var b = D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w, hidden: !!LURK[w] }) : null); if (!b) missed.push(String(w)); else b.rword = w; return b; }).filter(Boolean), m, party);
     if (missed.length) console.warn('DEEP16: not a class or a bestiary monster: ' + missed.join(', '));
     if (NB && this.o.foeAt) foes.forEach(function (u, i) { var p = self.o.foeAt[i]; if (p) { u.x = p[0]; u.y = p[1]; } }); // (the class floor's &foeat= and &partyat=: js/classes.js npcFight)
     if (NB && this.o.partyAt && party[0]) { party[0].x = this.o.partyAt[0]; party[0].y = this.o.partyAt[1]; }
+    if (NB && this.o.runes) this.seatRunes(foes, this.o.runes, m, party); // (the DM's runes: each unit where he laid it, its posture on each -- Battle.seatRunes, js/runes.js)
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
@@ -284,6 +285,52 @@
       var s = u.size || 1; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) taken[(at[0] + i) + ',' + (at[1] + j)] = 1;
     });
     return band;
+  };
+  // THE DM'S RUNES AT PLAY (11-10, runes seat A; js/runes.js, the plan's step 4): each rune's members on the squares the DM laid them -- the square he set where its whole
+  // footprint stands free on ground it can hold and a walk from the party reaches it (seatBand's reach), else the nearest such to the rune -- at the rune's height when he laid
+  // every member aloft (u.fz: his 11-10 "else that's the altitude that binding group starts at"), facing as he turned them, and each with the rune's posture. THE SEAM with runes
+  // seat B (the postures in js/ai.js and js/tactics.js): u.post = { kind: 'stand'|'ambush'|'patrol'|'defend', at: [x, y], to: [x, y] (patrol's second square, or defend's
+  // ward), r: ft }. A foe no rune names keeps the square seatBand gave it
+  Battle.prototype.seatRunes = function (foes, runes, m, party) {
+    var used = [], taken = {}, reach = {}, step = (m.def && m.def.step) || 10, out = [];
+    var mark = function (u, x, y) { var s = u.size || 1; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) taken[(x + i) + ',' + (y + j)] = 1; };
+    party.forEach(function (u) { if (!u.riding) taken[u.x + ',' + u.y] = 1; });
+    var fr = party.filter(function (u) { var q = m.at(u.x, u.y); return !u.riding && q && q.walk; }).map(function (u) { return [u.x, u.y]; });
+    fr.forEach(function (p) { reach[p[0] + ',' + p[1]] = 1; });
+    var open = function (x, y) { var q = m.at(x, y); return !!(q && (q.walk || q.deep)); };
+    while (fr.length) { var p0 = fr.shift(); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = p0[0] + d[0], ny = p0[1] + d[1], k = nx + ',' + ny; if (!reach[k] && open(nx, ny)) { reach[k] = 1; fr.push([nx, ny]); } }); }
+    var anyReach = Object.keys(reach).length > 0;
+    var fits = function (u, x, y, aloft) {
+      var s = u.size || 1, lo = 1e9, hi = -1e9;
+      for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) {
+        var q = m.at(x + i, y + j), k = (x + i) + ',' + (y + j);
+        if (!q || taken[k] || (anyReach && !reach[k])) return false;
+        if (!q.walk && !(q.deep && (aloft || u.flies || u.swims || (u.bound && u.bound.indexOf(q.ch) >= 0)))) return false;
+        if (u.bound && u.bound.indexOf(q.ch) < 0) return false;
+        var z = m.gz(x + i, y + j); lo = Math.min(lo, z); hi = Math.max(hi, z);
+      }
+      return s === 1 || hi - lo <= step;
+    };
+    // (the foes seated north by seatBand stand off the squares the runes want, first: the runes' units are picked out of them)
+    var mine = []; runes.forEach(function (r) { (r.foes || []).forEach(function (k) { var u = foes.filter(function (f) { return used.indexOf(f) < 0 && (f.rword || f.kind) === k; })[0]; if (u) { used.push(u); mine.push(u); } }); });
+    foes.forEach(function (u) { if (mine.indexOf(u) < 0) mark(u, u.x, u.y); });
+    used = [];
+    runes.forEach(function (r) {
+      var mem = [];
+      (r.foes || []).forEach(function (k) { var u = foes.filter(function (f) { return used.indexOf(f) < 0 && (f.rword || f.kind) === k; })[0]; if (u) { used.push(u); mem.push(u); } });
+      var aloft = !!r.z && mem.length > 0 && mem.every(function (u) { return u.flies || (u.kind && D.FOES[u.kind] && D.FOES[u.kind].fly); }), fw = r.fw || null, toP = party[0] ? [party[0].x, party[0].y] : null;
+      mem.forEach(function (u, j) {
+        var want = r.sq && r.sq[j], at = want && fits(u, want[0], want[1], aloft) ? want : null;
+        if (!at) { var bd = Infinity; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { if (!fits(u, x, y, aloft)) continue; var d = Math.max(Math.abs(x - r.at[0]), Math.abs(y - r.at[1])) + 0.01 * Math.hypot(x - r.at[0], y - r.at[1]); if (d < bd) { bd = d; at = [x, y]; } } }
+        if (!at) return;
+        u.x = at[0]; u.y = at[1]; mark(u, at[0], at[1]);
+        var f = fw || (toP ? [Math.sign(toP[0] - at[0]), Math.sign(toP[1] - at[1])] : [0, 1]); u.facing = D.spr.facingFor(f[0], f[1]);
+        if (aloft) { var g = 0, s = u.size || 1; for (var jj = 0; jj < s; jj++) for (var ii = 0; ii < s; ii++) g = Math.max(g, m.gz(at[0] + ii, at[1] + jj)); u.fz = g + r.z / 2.5 * step; }
+        u.post = { kind: r.post || 'stand', at: r.at.slice(), to: r.to ? r.to.slice() : null, r: r.r || 15 };
+        out.push(u);
+      });
+    });
+    return out;
   };
   // a story fight: one the 8-bit game sent (this.o.embed), or a story fight's own (data/fights.js `story`) at its door or on the bench -- never the Pocket DM,
   // the class floor or the climb. (10-06, Griz: "Can we successfully differentiate between ... the game grid and the pocket DM grid?")
