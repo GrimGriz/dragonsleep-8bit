@@ -12142,7 +12142,7 @@
     document.body.appendChild(preF);
     return;
   }
-  // THE WATERBYS' 11-06 ROWS (mode=waterby1106; tools/doran-sheet.py doran_p2's idle, tools/gennet-sheet.py gennet_p2's walk -- the cutter of the art desk's 11-06 pages, on his
+  // THE WATERBYS' 11-06 ROWS (mode=waterby1106; tools/doran-sheet.py doran_p2's idle -- and since 11-10 its walk, check 4 --, tools/gennet-sheet.py gennet_p2's walk -- the cutter of the art desk's 11-06 pages, on his
   // "doran didn't seem to return to idle after axe attack, but graphics otherwise approved" and "1 - Doran is in Fresh, Gennet will be soon"): Doran's fight idle is his armed idle
   // loop (four frames, the five-view axe idle page) where it was Attack 1 held, so after a chop the figure the next frame draws plays the loop, not a still pose; Gennet's fight
   // walk (HALFWAY-INN-GENNET-FIGHT-WALK) in place of the lantern walk, which her town figure keeps; every other row as it was. The pixels -- the idle meeting the chop, her head
@@ -12176,6 +12176,13 @@
       var gW6 = BW6.units.filter(function (u) { return u.side === 'party'; })[0]; gW6.conds = {}; gW6.hp = gW6.maxhp = 40; gW6.facing = 1; gW6.animT = BW6.t; var gfW6 = {}, gaW6 = '';
       for (var jW6 = 0; jW6 < 48; jW6 += 3) { var sG6 = shotW6('gennet_p2', 'walk', jW6); gaW6 = sG6.anim; var fG6 = D.spr.frameAt('gennet_p2', sG6.anim, gW6.facing, sG6.t, { once: sG6.once }); if (fG6) gfW6[fG6.fr] = 1; }
       okW6('Gennet walking draws ' + gaW6 + ', frames ' + Object.keys(gfW6).sort().join(',') + ' over 48 ticks at ' + gS.anims.walk.fps + ' fps', gaW6 === 'walk' && Object.keys(gfW6).length === 8);
+      // 4. (11-10, the cutter of his axe walk, on Griz's "move doran to Fresh and then start up it's cutter") Doran walking in a fight draws his axe walk -- the art desk's
+      // axe walk page, all eight frames over a stride, its cells as wide as the axe held out (the bucket walk's were 44); his town figure keeps the bucket walk. The axe
+      // in his hands by its pixels is dev/waterby-probe.py's
+      var pS = D.SHEETS.doran_p1; uW6.facing = 7; uW6.animT = BW6.t; var dfW6 = {}, daW6 = '';
+      for (var jD6 = 0; jD6 < 48; jD6 += 3) { var sD6 = shotW6('doran_p2', 'walk', jD6); daW6 = sD6.anim; var fD6 = D.spr.frameAt('doran_p2', sD6.anim, uW6.facing, sD6.t, { once: sD6.once }); if (fD6) dfW6[fD6.fr] = 1; }
+      okW6('Doran walking draws ' + daW6 + ', frames ' + Object.keys(dfW6).sort().join(',') + ' over 48 ticks, cells ' + dS.anims.walk.fw + ' px -- the walk from the axe walk page (11-10) (' + /axe walk page \(11-10\)/.test(dS.source) + '); doran_p1 keeps the bucket walk (' + /HALFWAY-INN-DORAN-TOWN/.test(pS && pS.source) + ')',
+        daW6 === 'walk' && Object.keys(dfW6).length === 8 && dS.anims.walk.frames === 8 && dS.anims.walk.fw >= 56 && /axe walk page \(11-10\)/.test(dS.source) && isW6('doran_p1', { idle: [4], walk: [8] }) && /HALFWAY-INN-DORAN-TOWN/.test(pS.source) && !/axe walk/.test(pS.source));
       D.scenes.length = 0;
     } catch (eW6) { repW6.errors.push(String(eW6 && eW6.stack || eW6).slice(0, 900)); }
     var preW6 = document.createElement('pre'); preW6.id = 'out'; preW6.textContent = 'BENCH16 ' + JSON.stringify(repW6);

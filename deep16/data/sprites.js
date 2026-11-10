@@ -3750,7 +3750,7 @@
 "source": "drawn by the art desk (HALFWAY-INN-DORAN-TOWN, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored; the inn's floor (js/counter.js C.FIG doranYard, doranIn)"
 },
 "doran_p2": {
-"image": "art/doran_p2.png?v=8ff90790df",
+"image": "art/doran_p2.png?v=b540f53179",
 "fw": 66,
 "fh": 64,
 "ax": 33,
@@ -3768,9 +3768,9 @@
 },
 "walk": {
 "y": 512,
-"fw": 44,
+"fw": 60,
 "fh": 64,
-"ax": 22,
+"ax": 30,
 "ay": 61,
 "frames": 8,
 "fps": 9
@@ -3824,11 +3824,11 @@
 },
 "name": "Doran Waterby",
 "hold": [
-"idle: the armed idle 4 (the art desk's 11-06 page), a guard lower than Attack 1 in E and N -- he rises into the chop and settles back; SE Idle 3 dips the deepest; walk: the town walk, the bucket in his hand (no axe walk was drawn)",
+"idle: the armed idle 4 (the art desk's 11-06 page), a guard lower than Attack 1 in E and N -- he rises into the chop and settles back; SE Idle 3 dips the deepest; walk: the axe walk (the art desk's 11-10 page), the axe in both hands, the head level -- tied to the chop's scale",
 "N fall 4 and prone: nearly face down, not the side-lying asked; N fall 3 sits toward screen right before the collapse (the art desk's own notes)",
 "S fall 4 and prone share the SE side silhouette (the art desk's own note)"
 ],
-"source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the idle from the art desk's five-view axe idle page (11-06), the walk from HALFWAY-INN-DORAN-TOWN; every fight he is in (deep16/data/foes.js doran)"
+"source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the idle from the art desk's five-view axe idle page (11-06), the walk from its axe walk page (11-10); every fight he is in (deep16/data/foes.js doran)"
 },
 "drider_p1": {
 "image": "art/drider_p1.png?v=a0acd18d15",

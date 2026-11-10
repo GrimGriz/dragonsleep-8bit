@@ -12,12 +12,15 @@ art for the waterby inkeeps in Fresh". The art desk's batches, sorted to deep16/
                    (the axe across his knees). Its FRAME-MAP.csv likewise (North's Fall 4 and Prone boxes widened by the art desk to take the axe).
   INN-IDLE-1106    his armed idle (11-06, on Griz's "doran didn't seem to return to idle after axe attack, but graphics otherwise approved"): one loose page,
                    "Doran Waterby five-view axe idle sheet.png", bands SE NE S E N, Idle 4 (the haft across him, a breath); no map -- its boxes in _IB.
+  INN-AXEWALK-1110 his axe walk (11-10, on Griz's "move doran to Fresh and then start up it's cutter"): one loose page, "Corrected pixel-art axe walk cycle
+                   sheet-3.png", bands SE NE S E N, Walk 8 (the woodaxe in both hands, low across him); no map -- its boxes in _WB. The draft before it,
+                   "Doran Waterby's Five-Row Axe Walk Sheet-2.png", sits in deep16/_src/doran/superseded/.
 
 doran_p1 (the inn's floor: doranYard, doranIn -- js/counter.js C.FIG): idle <- Idle 4; walk <- Walk 8 (the bucket).
 
 doran_p2 (every fight he is in: js/data/foes.js doran): idle <- the armed Idle 4 (11-06; till then Attack 1 held, one frame, and after a chop he read as
-stuck), at the fight page's scale times each view's fit to Attack 1 by the head and shoulders (TIE); walk <- the town Walk 8 (the bucket -- no axe walk was drawn:
-deep16-dream-polish.md); attack <- Attack 4 (`release` 2: the low chop on frame 3);
+stuck), at the fight page's scale times each view's fit to Attack 1 by the head and shoulders (TIE); walk <- the axe Walk 8 (11-10; till then the town walk with
+the bucket), tied the same way and stood by its crown (CROWN); attack <- Attack 4 (`release` 2: the low chop on frame 3);
 flinch <- Flinch 4; hurt <- Fall 4 (he dies lying, the axe beside him); prone <- Fall 2-4 then Prone 1 (js/sprites.js S.proneRow: where he lies); sit
 <- Sit 1. Facings (RULED 10-14): S SE E NE N as drawn, SW W NW their mirrors (the bucket's hand mirrors too).
 
@@ -184,7 +187,7 @@ def cut(L, look):
             if (src, fn) not in pages:
                 pg = np.asarray(Image.open(os.path.join(S['folder'], fn)).convert('RGB')).astype(np.float32)
                 fl_ = [(w[1][0], w[1][1], w[1][2], w[2]) for w in S['windows'].values() if w[0] == fn and w[2] is not None]
-                pages[(src, fn)] = (pg, letters(pg, fl_, S.get('tol')))
+                pages[(src, fn)] = (pg, letters(pg, fl_, S.get('tol')) if S.get('letters', True) else np.zeros(pg.shape[:2], bool))   # (`letters` False: no lettering in its windows)
             pg, lt = pages[(src, fn)]; x0, y0, x1, y1 = max(0, x0), max(0, y0), min(pg.shape[1], x1), min(pg.shape[0], y1)
             a = pg[y0:y1, x0:x1]
             m = figure(a, S.get('shadow', False), lt[y0:y1, x0:x1], S.get('below', False), S.get('tol')); ys, xs = np.where(m)
@@ -291,6 +294,19 @@ _IB = {'SE': [(266, 16, 405, 188), (547, 15, 689, 188), (827, 25, 968, 188), (10
        'N': [(259, 807, 406, 969), (541, 805, 688, 969), (816, 807, 967, 969), (1092, 807, 1239, 969)]}
 SOURCES['axeidle'] = dict(folder=os.path.join(_D, 'INN-IDLE-1106'),
                           windows={('idle', i, v): (_IDLE, (b[0] - 3, b[1] - 3, b[2] + 3, b[3] + 3), b[3]) for v, bs in _IB.items() for i, b in enumerate(bs)})
+# his axe walk (11-10, on Griz's "move doran to Fresh and then start up it's cutter"): one loose page, "Corrected pixel-art axe walk cycle sheet-3.png" (the art desk's
+# third draw; sheet-2 superseded), bands SE NE S E N, Walk 1-8, the frame numbers printed ABOVE each band and the row letters at the left -- no map; its boxes in _WB,
+# found as the idle's (the page's figures dilated 4 px, each piece over 60 px tall), padded 3 a side. No lettering pass (`letters` False): every number sits 10 px
+# or more clear of its window, and the pass reads the blade's bright edge as a number -- 45 px of N Walk 7's cutting edge with no floors, the lower bands' steel
+# 50 to 200 px a window with them
+_WALK = 'Corrected pixel-art axe walk cycle sheet-3.png'
+_WB = {'SE': [(134, 42, 250, 194), (324, 43, 434, 189), (507, 42, 618, 192), (683, 42, 801, 191), (866, 42, 977, 194), (1048, 43, 1159, 193), (1222, 42, 1332, 190), (1400, 42, 1513, 194)],
+       'NE': [(140, 240, 262, 389), (322, 240, 440, 383), (509, 240, 626, 389), (690, 240, 807, 384), (870, 240, 984, 385), (1048, 240, 1165, 386), (1225, 240, 1343, 384), (1403, 240, 1518, 388)],
+       'S': [(138, 433, 257, 583), (330, 433, 446, 579), (510, 433, 627, 583), (692, 433, 808, 583), (870, 433, 988, 581), (1051, 434, 1164, 583), (1229, 433, 1345, 581), (1405, 434, 1520, 583)],
+       'E': [(135, 622, 254, 761), (331, 624, 439, 764), (510, 623, 620, 764), (691, 625, 801, 763), (871, 625, 982, 761), (1053, 625, 1162, 764), (1230, 625, 1339, 760), (1407, 625, 1516, 764)],
+       'N': [(135, 814, 261, 972), (323, 814, 449, 967), (506, 814, 632, 967), (684, 814, 809, 970), (867, 814, 993, 972), (1045, 815, 1170, 969), (1222, 814, 1349, 968), (1398, 815, 1524, 970)]}
+SOURCES['axewalk'] = dict(folder=os.path.join(_D, 'INN-AXEWALK-1110'), letters=False,
+                          windows={('walk', i, v): (_WALK, (b[0] - 3, b[1] - 3, b[2] + 3, b[3] + 3), None) for v, bs in _WB.items() for i, b in enumerate(bs)})
 GROUPS = {('town', 'idle'): (['idle'], [('idle', i) for i in range(4)]),
           ('town', 'walk'): (['walk'], [('walk', i) for i in range(8)]),
           ('fight', 'all'): (['attack', 'flinch', 'fall', 'prone', 'sit'], [('attack', 0), ('attack', 3), ('flinch', 0), ('flinch', 3)])}
@@ -298,7 +314,12 @@ GROUND = {('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0), ('f
 # his armed idle at his fight page's scale, times the page-to-page fit of Idle 1 on Attack 1 and on Attack 4 by the top 42% (the head and shoulders, free
 # offset, the best overlap at 0.01 steps; the two fits averaged): the idle is drawn a guard lower than Attack 1 in E and N, so a height measure would swell
 # him there -- the head keeps his size from idle to chop (11-06, the cutter of the Waterbys' 11-06 pages)
-TIE = {('axeidle', 'idle'): ('fight', 'attack', {'SE': 1.005, 'NE': 0.99, 'S': 1.05, 'E': 1.055, 'N': 1.015})}
+TIE = {('axeidle', 'idle'): ('fight', 'attack', {'SE': 1.005, 'NE': 0.99, 'S': 1.05, 'E': 1.055, 'N': 1.015}),
+# his axe walk the same way, by all eight frames (11-10): the medians of Walk 1-8 on Attack 1 and 4 (SE 1.135, NE 1.08, S 1.10, E 1.17, N 1.11) and of Walk 1, 3, 5, 7
+# on Idle 1 and 3 times the idle's own tie (SE 1.095, NE 1.10, S 1.124, E 1.129, N 1.076), the two averaged -- he meets the chop and the guard alike; a single frame's
+# fit swings 5% as the arms cross the band (E Walk 1 1.12, Walk 5 1.19), and the head alone (the top 25%) swings more
+       ('axewalk', 'walk'): ('fight', 'attack', {'SE': 1.115, 'NE': 1.09, 'S': 1.112, 'E': 1.15, 'N': 1.093})}
+CROWN = [('axewalk', 'walk')]  # (the art desk kept his head level through the stride -- every band's crowns within 3 rows on the page, the soles 2 to 6 apart)
 TALL = 51                      # (sole to crown: a big man -- the townsman folkman_p1 50, the keepers 49 to 50, the heroes 49 to 54)
 AVOID = ['red', 'fire']
 _src = ('drawn by the art desk (HALFWAY-INN-DORAN-%s, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored')
@@ -307,19 +328,19 @@ LOOKS = {
                      hold=['walk: the phases uneven and repeated, E\'s legs overlapping, N\'s 7-8 back on the right-side lift early (the art desk\'s own notes)',
                            'idle: the breath slight (the art desk\'s own note)'],
                      source=_src % 'TOWN' + '; the inn\'s floor (js/counter.js C.FIG doranYard, doranIn)'),
-    'doran_p2': dict(rows=[('idle', 4, [('axeidle', 'idle', i) for i in range(4)]), ('walk', 9, [('town', 'walk', i) for i in range(8)]),
+    'doran_p2': dict(rows=[('idle', 4, [('axeidle', 'idle', i) for i in range(4)]), ('walk', 9, [('axewalk', 'walk', i) for i in range(8)]),
                            ('attack', 10, [('fight', 'attack', i) for i in range(4)]), ('flinch', 12, [('fight', 'flinch', i) for i in range(4)]),
                            ('hurt', 8, [('fight', 'fall', i) for i in range(4)]), ('prone', 8, [('fight', 'fall', 1), ('fight', 'fall', 2), ('fight', 'fall', 3), ('fight', 'prone', 0)]),
                            ('sit', 2, [('fight', 'sit', 0)])],
                      release={'attack': 2},
                      hold=['idle: the armed idle 4 (the art desk\'s 11-06 page), a guard lower than Attack 1 in E and N -- he rises into the chop and settles back; '
-                           'SE Idle 3 dips the deepest; walk: the town walk, the bucket in his hand (no axe walk was drawn)',
+                           'SE Idle 3 dips the deepest; walk: the axe walk (the art desk\'s 11-10 page), the axe in both hands, the head level -- tied to the chop\'s scale',
                            'N fall 4 and prone: nearly face down, not the side-lying asked; N fall 3 sits toward screen right before the collapse (the art desk\'s own notes)',
                            'S fall 4 and prone share the SE side silhouette (the art desk\'s own note)'],
-                     source=(_src % 'COMBAT') + ' -- the idle from the art desk\'s five-view axe idle page (11-06), the walk from HALFWAY-INN-DORAN-TOWN; every fight '
+                     source=(_src % 'COMBAT') + ' -- the idle from the art desk\'s five-view axe idle page (11-06), the walk from its axe walk page (11-10); every fight '
                             'he is in (deep16/data/foes.js doran)'),
 }
-DORAN = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, TIE=TIE, TALL=TALL, AVOID=AVOID, LOOKS=LOOKS, NAME='Doran Waterby', SRCDIR='doran')
+DORAN = dict(SOURCES=SOURCES, GROUPS=GROUPS, GROUND=GROUND, TIE=TIE, CROWN=CROWN, TALL=TALL, AVOID=AVOID, LOOKS=LOOKS, NAME='Doran Waterby', SRCDIR='doran')
 
 if __name__ == '__main__':                               # (tools/gennet-sheet.py loads this file for its cutter, and runs its own looks)
     for lk_ in [a for a in sys.argv[1:] if a in LOOKS] or list(LOOKS):

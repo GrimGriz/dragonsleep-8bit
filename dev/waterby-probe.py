@@ -2,6 +2,9 @@
 Doran's armed idle (doran_p2 idle, the five-view axe idle page) is a loop -- not one held frame -- that meets his chop: every idle frame on the attack's ground row,
 its crown within a few rows of Attack 1's and Attack 4's in every facing; Gennet's fight walk (gennet_p2 walk, HALFWAY-INN-GENNET-FIGHT-WALK) keeps her head level
 through the loop, at her idle's height, her feet on the ground line, and carries no lantern (no fire-ramp pixel) while her town walk (gennet_p1) keeps its own.
+And (11-10, the cutter of his axe walk, on Griz's "move doran to Fresh and then start up it's cutter") Doran's fight walk (doran_p2 walk, the art desk's axe walk page)
+carries the axe: every frame reaches out on the axe's side as far as his armed idle does (the bucket walk fell 6 to 13 px short), his head level at the chop's
+height, his soles on the ground line; his town walk (doran_p1) keeps the bucket.
 Quick gate (dev/check.py QUICK_SCRIPTS).   python dev/waterby-probe.py"""
 import json, os, sys
 import numpy as np
@@ -52,6 +55,35 @@ def main():
     ok('doran_p2 idle breathes in every facing (frames not all one picture)%s' % (': held in ' + str(held) if held else ''), not held)
     ok('the chop meets the idle: every idle frame on Attack 1\'s and 4\'s ground row, the crowns within %d rows (the E and N guards drawn lower than Attack 1)%s'
        % (worst, ': ' + '; '.join(off[:4]) if off else ''), not off and worst <= 5)
+
+    # his axe walk (11-10): the axe in his hands while he walks -- the haft and head reach out from his anchor on the axe's side (the side his armed idle reaches
+    # furthest) as far as the idle's within 6 px, every frame of every facing; the head level (crowns one row a facing) at the chop's height; the soles on the line
+    dw, tj = dj['anims']['walk'], json.load(open(os.path.join(ART, 'doran_p1.json'), encoding='utf-8'))
+    ok('doran_p2 walk: %d frames, source names the axe walk page (11-10): %s; doran_p1 (the inn\'s floor) keeps the town walk with the bucket: %s'
+       % (dw['frames'], 'axe walk page (11-10)' in dj['source'], 'DORAN-TOWN' in tj['source'] and 'axe walk' not in tj['source']),
+       dw['frames'] == 8 and 'axe walk page (11-10)' in dj['source'] and 'DORAN-TOWN' in tj['source'] and 'axe walk' not in tj['source'])
+
+    def span(row, f, k):
+        a = dj['anims'][row]
+        c, _ = cell(dj, dp, row, f, k)
+        xs = np.where((c[..., 3] > 0).any(0))[0]
+        return int(xs[0]) - a['ax'], int(xs[-1]) - a['ax']
+    short, lvl, feet = [], [], []
+    for f in range(8):
+        il = min(span('idle', f, k)[0] for k in range(idl['frames'])); ir = max(span('idle', f, k)[1] for k in range(idl['frames']))
+        side = 1 if ir >= -il else 0                         # (the axe's side: where the armed idle reaches furthest from his anchor)
+        need = (ir if side else -il) - 6
+        got = [abs(span('walk', f, k)[side]) for k in range(dw['frames'])]
+        if min(got) < need:
+            short.append('facing %d reaches %d of %d' % (f, min(got), need))
+        cr = [cell(dj, dp, 'walk', f, k)[1] for k in range(dw['frames'])]
+        a0 = cell(dj, dp, 'attack', f, 0)[1][0]
+        lvl.append((f, max(c[0] for c in cr) - min(c[0] for c in cr), int(np.median([c[0] for c in cr])) - a0))
+        feet.append((min(c[1] for c in cr), max(c[1] for c in cr)))
+    ok('the axe in his hands while he walks: every walk frame reaches within 6 px of his armed idle on the axe\'s side%s' % (': ' + '; '.join(short) if short else ''), not short)
+    ok('his head level through the walk (crowns spread %s rows a facing) at the chop\'s height (off Attack 1 %s)' % ([l[1] for l in lvl], [l[2] for l in lvl]),
+       all(l[1] <= 1 and abs(l[2]) <= 2 for l in lvl))
+    ok('his soles on the ground line (ay %d): lowest rows %s' % (dw['ay'], feet), all(dw['ay'] - 3 <= lo and hi <= dw['ay'] + 1 for lo, hi in feet))
 
     gj, gp = sheet('gennet_p2')
     tj, tp = sheet('gennet_p1')
