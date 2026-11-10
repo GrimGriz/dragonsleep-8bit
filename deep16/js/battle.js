@@ -983,6 +983,7 @@
   Battle.prototype.run = function* () {
     var self = this;
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
+    if (D.postures) D.postures.start(this); // (the DM's laid foes, each by its rune's posture: its home, and the ambushers hidden with their Stealth held -- js/postures.js, 11-10)
     if (!this.fight.noCards) yield { entry: true }; // (the wet has none: RULED 09-30c, "no press e, just go")
     if (this.fight.announce) { this.card(this.fight.announce, 720); D.sfx('popup'); yield 90; } // (said as the title card goes: the rings of flying's room -- js/flight-ai.js, 10-08)
     if (this.fight.arrive) yield* this.arrive(); // (the foes walk in and the party comes out, before initiative: the Edifice's, 10-05)
@@ -1020,7 +1021,7 @@
       this.card(lines, 480);
       D.sfx(caught.length ? 'encounter' : 'popup');
       yield 70;
-    }
+    } else if (!this.o.embed && D.postures) yield* D.postures.surprise(this); // (any fight whose foes lie in AMBUSH, the Pocket DM's runes: each hider's own Stealth against each passive Perception -- js/postures.js P.surprise, 11-10)
     if (D.familiar && D.familiar.alarm) yield* D.familiar.alarm(this); // (the frog familiar's croak: its caster is never caught off guard)
     while (true) {
       this.round++;
@@ -1201,8 +1202,8 @@
   Battle.prototype.heroTurn = function* (u) {
     RU.startTurn(u);
     this.focus(u);
-    if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
     delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: the mark Surprise Attack reads the rest of round 1, after the lost turn -- Battle.caught, 11-10)
+    if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
     // charmed by a harpy's Luring Song (js/monsterrules.js, 10-28): incapacitated, the turn is the song's -- the walk to her, the save at its end
     if (D.monsterRules && D.monsterRules.lured(this, u) && (yield* D.monsterRules.luredTurn(this, u))) { yield 20; D.magic.endTurn(this, u); return; }
@@ -2078,7 +2079,10 @@
         }
         this.readying = null;
         var trig = c.trigger || 'near', pk = c.pick || c.what, rd = { trigger: trig };
-        if (pk === 'weapon' || pk === 'alt') {
+        if (pk === 'attack') { // (one of a stat block's own attacks -- the brute's, which has no `weapon`: its blade, or its bow. The postures' Ready, js/postures.js, 11-10)
+          var ra = u.attacks && typeof u.attacks === 'object' ? u.attacks[c.atk] : null; if (!ra || !ra.dice || u.conds.disarmed) return;
+          rd.what = 'weapon'; rd.name = ra.name; rd.wp = ra;
+        } else if (pk === 'weapon' || pk === 'alt') {
           var rw = pk === 'alt' ? u.alt : u.weapon; if (!rw || !rw.name || u.conds.disarmed) return;
           rd.what = 'weapon'; rd.name = rw.name; rd.wp = rw;
         } else if (pk === 'move') {
@@ -2109,6 +2113,7 @@
         if (trig === 'near') rd.had = this.readyHad(u, rd);
         this.readySnap(); // (who stands now: "one of us goes down" is told from it)
         if (rd.what === 'spell') D.magic.concentrate(this, u, 'ready', 'a readied ' + rd.name, function () { if (u.ready && u.ready.what === 'spell') delete u.ready; }); // (concentration broken: the held magic dissipates, and the slot with it)
+        if (u.conds.hidden && u.side === 'foe') { yield 4; return; } // (a foe lying in wait readies unseen: no ring, no word -- the ambush's, js/postures.js, 11-10)
         D.sfx('buff'); FX.ring(u, 'silver', 20);
         this.card(['{y}' + u.name + '{/} readies ' + (rd.what === 'weapon' ? 'the ' + rd.name : rd.what === 'move' ? 'a move' : rd.what === 'cmd' ? rd.name.toUpperCase() : rd.what === 'item' ? 'the ' + rd.name.toLowerCase() : rd.name + (rd.level ? ' (L' + rd.slot + ')' : '')) + ': ' + Battle.readyWhen(rd) + '.  {g}(the turn ends: the reaction, on another\'s turn, before the next){/}']);
         yield 24; return;
@@ -2472,6 +2477,7 @@
   };
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
+    if (D.postures && (att.post || (tgt && tgt.post))) D.postures.blow(this, att, tgt); // (a blow, hit or miss, breaks the striker's posture and its target's -- a defender's never: js/postures.js, 11-10)
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
     if (this.thrownLeft(att, atk) <= 0) { this.card(['{o}' + Battle.nm(att, true) + ' has no ' + atk.name.toLowerCase().replace(/^thrown /, '') + ' left to throw.{/}'], 120); return; } // (thrown weapons run out: spendThrow)
@@ -4091,15 +4097,15 @@
   // THE FEAR SCALE ON CHECKS (RULED 10-15, Griz: "3 - SRD when we can, yes" -- the d20 SRD's shaken: -2 on attack rolls, saving throws, skill checks and ability checks): shaken's -2
   // (rules.js RU.shaken) on every check the grid rolls -- the Hide and the Search, the climbs, the grapple thrown up, PULL IT OFF, PULL OUT, BREAK THE TENDRIL -- as it was on the
   // attacks, the saves, the shove and the break-free; a card that rolls one says so
+  // caught unaware at this fight's start (SRD 5.1 Surprise): still waiting on its lost turn (conds.surprised), or past it this round (caughtR1, set as that turn began --
+  // heroTurn, ai.js turnOf); the bugbear's Surprise Attack reads it, in round 1 (attack, 11-10)
+  Battle.caught = function (w) { return !!(w && w.conds && (w.conds.surprised || w.caughtR1)); };
   Battle.shakenTag = function (u) { var s = RU.shaken(u); return s ? ' {p}-' + s + ' ' + RU.FEAR[RU.fearLvl(u)] + '{/}' : ''; };
   // a Stealth roll for u now: the d20 and the total
   Battle.prototype.stealthRoll = function (u) {
     var se = this.stealthEdges(u), supreme = se.supreme, ce = se.ce, hadv = se.hadv, hdis = se.hdis, ra = D.d(20);
     var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0) - RU.shaken(u), shaken: RU.shaken(u), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis }; // (shaken: the fear scale's -2 on every ability check -- RULED 10-15, Battle.shakenTag)
-  // caught unaware at this fight's start (SRD 5.1 Surprise): still waiting on its lost turn (conds.surprised), or past it this round (caughtR1, set as that turn began --
-  // heroTurn, ai.js turnOf); the bugbear's Surprise Attack reads it, in round 1 (attack, 11-10)
-  Battle.caught = function (w) { return !!(w && w.conds && (w.conds.surprised || w.caughtR1)); };
   };
   // w finds u (hidden by B.hide): its passive Perception plus the bonus of where u stands beats the Stealth total u rolled when it hid (held -- Griz 10-04, "the existing
   // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null

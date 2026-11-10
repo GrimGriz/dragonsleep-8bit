@@ -12,7 +12,9 @@
   function the(B, u) { return (u.named ? '' : 'The ') + B.shortName(u); }
   // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
-  function heroes(B, u) {
+  // (a holder's turn handed over by its posture -- standing, defending: js/postures.js, 11-10 -- goes at the foes of its pool alone, u.postPool, for that turn)
+  function heroes(B, u) { var hs = heroesAll(B, u), pl = u.postPool; return pl ? hs.filter(function (w) { return pl.indexOf(w.id) >= 0; }) : hs; }
+  function heroesAll(B, u) {
     var ch = u.conds && u.conds.charmed, charmer = ch && ch.by; // (charmed: never its charmer -- SRD 5.1; Charm Person, Animal Friendship)
     // (a familiar riding its wizard is no one's target; a darkmantle riding the one it is attached to is -- battle.js mount: the class AI's foes too, tactics.js
     // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
@@ -63,6 +65,7 @@
     catch (eT) { if (eT !== AI.TURN_OVER) throw eT; }
     finally {
       B.aiMover = mover0;
+      delete u.postPool; // (a posture's pool is for its own turn: js/postures.js)
       // a Slam's stun and a Moan's fright last till the end of the foe's next turn
       // (a stun laid with no `fresh` is not this sweep's: a spell's -- Power Word Stun, Divine Word, Symbol -- holds by its own rule, the save at the
       // end of the stunned one's turns, and a monk's Stunning Strike by its own clock, js/features.js; 09-30)
@@ -80,10 +83,10 @@
     // it moaned on its own turn the darts bring no second Moan (magic.js)
     if (u.moan && u.moan.recharge == null) u.moan.ready = true;
     if (u.dead) return;
+    delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: Surprise Attack reads it the rest of round 1 -- battle.js Battle.caught, 11-10)
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
-    delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: Surprise Attack reads it the rest of round 1 -- battle.js Battle.caught, 11-10)
     // a troll down at 0 (battle.js hurt, u.regenDown): its turn starts it knitting -- up at its regeneration, still prone (it stands for half its move) -- or, if it burned since
     // its last turn, it does not, and it dies there (SRD 5.1 Regeneration; 10-05, Griz: "i think the regen is there it's just turning off when they die")
     if (u.regenDown && !u.dead) {
@@ -178,6 +181,10 @@
       if (B.fight.runWhenHurt && !u.flees && D.FOES[u.kind] && D.FOES[u.kind].flees) { B.startRun(u); yield 30; }
       else if (u.traces) { u.traces = false; B.card(['{r}' + u.name + ' lets go of the traces{/} and turns on you.'], 360); yield 30; }
     }
+    // THE POSTURES (the Pocket DM's runes, js/postures.js, 11-10): one the DM laid standing, in ambush, on patrol or defending takes its turn by its posture first -- ahead of the
+    // brute and the class turn alike, so neither's hunt on hearing nor its Search pulls it off its post. Handed over (a foe in its reach, its shot or near its ward; the ambush
+    // sprung, the patrol broken), the turn below goes on as ever -- a holder's at its pool alone (heroes, above), its moves held to its ground (the leash on G.reach)
+    if (u.post && D.postures && (yield* D.postures.turn(B, u))) { D.magic.endTurn(B, u); if (!u.conds.hidden) u.anim = 'idle'; return; }
     // the bestiary's own turn-taking (js/traits.js): the broodmother in the rock
     var handled = u.side === 'foe' && D.traits && D.traits.turn ? yield* D.traits.turn(B, u) : false;
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
@@ -195,6 +202,7 @@
     else if (u.side === 'foe' && u.flies && D.flightAI && D.flightAI.on(B.fight)) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
+    if (u.post && D.postures && !u.dead && u.hp > 0) yield* D.postures.after(B, u); // (a holder's handed-over turn with the action unspent: the Ready -- js/postures.js)
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
     if (u.side === 'foe' && B.fight && B.fight.whistler === u.id && !u.whistled) yield* whistle(B, u); // (the Skylights: Hallvör's call, the turn she first stands on the roof)
     // (the sweep of what it laid till the end of its next turn: AI.turn's `finally`, above -- however the turn ended)
