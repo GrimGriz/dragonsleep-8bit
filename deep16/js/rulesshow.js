@@ -477,6 +477,23 @@
         return [ok, 'at the paladin: ' + (/surprise attack/.test(lp) ? 'the 2d6 (wrong)' : 'no extra') + '; at the cleric: ' + (/surprise attack 2d6/.test(lc) ? 'the 2d6' : 'no extra (wrong)')];
       } finally { unpost([paladin, cleric, bugbear]); }
     }
+    function* realSurprise() {
+      // real surprise in any fight (11-10, his "we should have 'real' surprise"; battle.js Battle.surpriseRoll): a giant spider lurking hidden, no rune -- its Stealth rolled for
+      // the surprise alone, the d20 pinned at 10; then the other side: the rogue hid before the fight (Stealth 25), a goblin alone against her
+      stage([cleric, wizard, spider], [[-1, 3], [1, 3], [0, -3]]); setPin(10, null); freshEars();
+      try {
+        spider.conds.hidden = true;
+        say(['A giant spider lurks unseen in the dark corner -- no rune, no posture. Any fight where someone starts hidden rolls the SRD\'s surprise: its Stealth against each passive Perception (the d20 pinned at 10).']); yield W(90);
+        var n = mark(); var c1 = yield* fire(B.surpriseRoll()); yield W(60); var l1 = since(n), t1 = +((l1.match(/Spider (\d+)/) || [])[1] || 0);
+        var fair = [cleric, wizard].every(function (h) { return !!h.conds.surprised === ((h.perception || 10) < t1); }), plain = spider.conds.hidden && spider.hidTotal == null;
+        var caughtN = [cleric, wizard].filter(function (h) { return h.conds.surprised; }).map(function (h) { return h.name + ' (' + h.perception + ')'; });
+        cleric.conds = {}; wizard.conds = {}; delete spider.conds.hidden;
+        stage([rogue, gob], [[0, 2], [0, -2]]); freshEars(); rogue.conds.hidden = true; rogue.hidTotal = 25;
+        say(['The other side: the rogue hid before the fight began (her Stealth 25). The goblin, alone, has a passive Perception of 9.']); yield W(70);
+        n = mark(); yield* fire(B.surpriseRoll()); yield W(60); var l2 = since(n), gc = !!gob.conds.surprised;
+        return [/AMBUSH/.test(l1) && t1 > 0 && fair && plain && /UNSEEN/.test(l2) && gc, 'the spider\'s Stealth ' + t1 + ': caught ' + (caughtN.join(', ') || 'no one') + ' (' + (fair ? 'those below it, as the rule says' : 'NOT as the rule says') + '), its hide the plain one after ' + plain + '; the rogue unseen: the goblin ' + (gc ? 'caught unaware' : 'not caught (wrong)')];
+      } finally { unpost([cleric, wizard, spider, rogue, gob]); delete rogue.hidTotal; }
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -504,6 +521,7 @@
       { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },
       { id: 'poststand', group: 'postures', name: 'A rune\'s STAND', what: 'A foe laid to stand waits where it was laid with a Ready (SRD 5.1). The first that comes into its reach gets the readied blow; struck or striking, it is in the fight, and fights as any foe.', run: postStand },
       { id: 'surpriseattack', group: 'postures', name: 'The bugbear\'s Surprise Attack', what: 'SRD 5.1: the bugbear\'s extra 2d6 lands on a hit in round 1 at a creature it surprised -- not on every round-1 hit, as it did till 11-10 (his record of 11-09: a fighter 36 to 0 in a round with nobody surprised; his "5 - aye").', run: surpriseAttack },
+      { id: 'realsurprise', group: 'postures', name: 'Real surprise, any fight', what: 'Your "we should have \'real\' surprise": any fight where someone starts hidden -- a lurker, a rune\'s ambush, a story\'s hidden foes, one of ours who hid -- rolls the SRD\'s surprise, each hider\'s Stealth against each passive Perception on the other side; whoever notices no threat takes no turn in round 1. A spider lurking against the cleric and the wizard; then the rogue, hidden, against a goblin.', run: realSurprise },
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });
