@@ -7,6 +7,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-10 · the gnoll's longbow, art-wanted section 7 (the art desk's ART-29-GNOLL-LONGBOW-FACINGS: five views, not the two asked -- SE (its approved horizontal shot), NE, S, E and N, each Idle 4 and Bow 10, the loose on Bow 7) · `deep16/_src/gnoll/ART-29-LONGBOW-2026-11-10/` · cut into `gnoll_p2` and `graykeeping_p2` row `longbow`, release 6 (`tools/gnoll-sheet.py`), `ac02e44c`, by the longbow cutter; the glory-seeker's sheet has no bow (its block has none); NE's handedness and N's quiet loose on `deep16-dream-polish.md` · his *"add bow to art wanted"*
 - 2026-11-10 · Doran's axe walk, asked through the lanes desk (no art-wanted block; the dream list's 11-05 `doran_p2` line): the art desk's loose page "Corrected pixel-art axe walk cycle sheet-3.png", five views of Walk 8, the woodaxe in both hands (its draft "Doran Waterby's Five-Row Axe Walk Sheet-2.png" superseded, not cut) · `deep16/_src/doran/INN-AXEWALK-1110/`, `deep16/_src/doran/superseded/` · cut into `doran_p2` walk (`tools/doran-sheet.py`), `4928a407`, by the cutter of his axe walk; `doran_p1` keeps the bucket walk
 - 2026-11-07 · Elsbeth's bucket and Gennet's silencing look, art-wanted section 38 (the art desk's ELSBETH_HEAD-7_BUCKET, six frames with its frame map, and GENNET_HEAD-7_THE-LOOK, one still) · `deep16/_src/elsbeth/ART-38-BUCKET-1107/`, `deep16/_src/gennet/ART-38-LOOK-1107/` · cut into `pt_elsbethtub` row `bucket`, played once, and `pt_gennet` still `look`, her bar top bevelled (`tools/portrait-sheet.py`), `21cbf224`, by the desk of 11-07 · his *"don't we need art request for bucket dumping?"*
 - 2026-11-07 · the glamour's goblin for the Halfway Inn, the art desk's own (no art-wanted block; the inn lane's RULED 11-05, *"goblin in the barn if they fail to reveal the illusion"*): HALFWAY-INN-UNARMED-GOBLINS-SELECTED-SOURCES, five views of Idle 4 and Walk 8, every Walk its ART HOLD · `deep16/_src/goblin/INN-UNARMED-1106/` · cut into `goblinchild_p1` (`tools/goblinchild-sheet.py`, the child's 35 px, the snap kept off the gold), `8d25b833`, by the desk of 11-07; the walks on `deep16-dream-polish.md` · his *"also got some illusion goblins"*
@@ -3014,3 +3015,20 @@ HEAD 7 -- THE LOOK (1): she turns her head and looks at someone just off the fra
 The page: 16-bit pixel-art cut-scene portrait, the attached pages' camera, size and framing; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). One image, 1440 x 810, the one drawing centred, a title kept well clear of it. No scenery, no UI or border.
 ```
 Where: the drag, after Elsbeth's line; held a beat, no box. Cut as: `tools/portrait-sheet.py` (her `gennet` line) -- a still `look` on `pt_gennet`.
+
+### The gnoll's longbow (asked 10-13 in §7; drawn by the art desk, ART-29 longbow facings, 11-10; CUT 11-10, BUILT FROM THE LIST above)
+
+The block as it stood on `deep16-art-wanted.md`, word for word, kept for a re-roll. The art desk drew five views where two were asked (SE, its approved horizontal shot, then NE, S, E and N), each Idle 4 and Bow 10; its notes are `deep16/_src/gnoll/ART-29-LONGBOW-2026-11-10/FRAME-MAP-AND-CUTTER-NOTES.md`.
+
+#### The gnoll's longbow (today its bow plays the thrown spear's row)
+ATTACH `deep16/_src/gnoll_grok_1.png`
+```text
+Attached: a gnoll from this game's sheet. Draw the same gnoll exactly -- the same hyena-headed build, face, hide, gear and colours, in the same pixel style -- now carrying a longbow and a quiver of arrows at its hip, in the two views below.
+
+HEAD 1 -- THE GNOLL from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (4: standing hunched, the longbow low in one hand, breathing); Bow (10: it pulls an arrow from the quiver at its hip, nocks it, draws to the cheek, looses on frame 7 -- the arrow gone from the string -- and lowers the bow).
+
+HEAD 2 -- THE GNOLL from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. Rows: Idle (4: as HEAD 1, seen from behind); Bow (10: the same draw and loose toward the top-right, looses on frame 7).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game, as in the attached sheet. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale as the attached sheet in every row and on both sheets, the bottom of every frame on one baseline. No scenery.
+```
+Cut as: Bow -> longbow (release on frame 7), Idle to register the look against the attached sheet; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored). `tools/gnoll-sheet.py` takes it beside the grok sheets; the thrown spear keeps its throw row (the SRD gnoll's spear, 20/60 ft).

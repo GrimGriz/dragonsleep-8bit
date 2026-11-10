@@ -188,22 +188,11 @@ By his word 10-08 Astra's draft is NOT the vessel: *"Sheet is going to something
 
 ## 6. GreyFang -- IN HAND 2026-10-14 (the art desk's ART-01 and ART-32, cut into `greyfang_p1`: every row in all five views); the block is on `deep16-art-in-hand.md`
 
-## 7. Rows and props for looks in hand (added 10-13, the notes window)
+## 7. Rows and props for looks in hand -- IN HAND (the camp 2026-10-14, `d27ce82`; the longbow 2026-11-10, `ac02e44c`); the blocks are on `deep16-art-in-hand.md`
 
 His words: *"add bow to art wanted"* (10-13, on his 10-09 *"Gnolls with longbows look like they throw javelins tho"*) and *"'hide tents, bones, a fire' - needed props"* (10-11, the Cut Seal's camp).
 
-### The gnoll's longbow (today its bow plays the thrown spear's row)
-ATTACH `deep16/_src/gnoll_grok_1.png`
-```text
-Attached: a gnoll from this game's sheet. Draw the same gnoll exactly -- the same hyena-headed build, face, hide, gear and colours, in the same pixel style -- now carrying a longbow and a quiver of arrows at its hip, in the two views below.
-
-HEAD 1 -- THE GNOLL from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (4: standing hunched, the longbow low in one hand, breathing); Bow (10: it pulls an arrow from the quiver at its hip, nocks it, draws to the cheek, looses on frame 7 -- the arrow gone from the string -- and lowers the bow).
-
-HEAD 2 -- THE GNOLL from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. Rows: Idle (4: as HEAD 1, seen from behind); Bow (10: the same draw and loose toward the top-right, looses on frame 7).
-
-Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game, as in the attached sheet. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale as the attached sheet in every row and on both sheets, the bottom of every frame on one baseline. No scenery.
-```
-Cut as: Bow -> longbow (release on frame 7), Idle to register the look against the attached sheet; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored). `tools/gnoll-sheet.py` takes it beside the grok sheets; the thrown spear keeps its throw row (the SRD gnoll's spear, 20/60 ft).
+### The gnoll's longbow -- IN HAND 2026-11-10 (the art desk's ART-29 longbow facings, five views, cut into `gnoll_p2` and `graykeeping_p2`, `ac02e44c`); the block is on `deep16-art-in-hand.md`
 
 ### The Cut Seal's camp -- IN HAND 2026-10-14 (the art desk's ART-60, cut into `goblincamp_p1`, `d27ce82`); the block is on `deep16-art-in-hand.md`
 
