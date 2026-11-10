@@ -1411,7 +1411,7 @@
       barrelObjs(B).forEach(function (o) { objs.push(o); }); // the torch barrel's torches (10-05 night)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
-        var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
+        var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2 + (r.dx || 0), r.y + (f[1] - 1) / 2 + (r.dy || 0), r.gz), s = D.iso.toScreen(c.x, c.y); // (dx, dy: a part of its square off its middle -- the two in the wagon's bed, in from its rims: 11-10)
         objs.push({ depth: r.x + r.y + (f[0] - 1) + (f[1] - 1) + 0.6, gz: r.gz, draw: function (ctx) {
           var a = r.anim && r.anim !== 'idle' && D.spr.anim(r.sheet, r.anim) && B.t - r.animT <= D.spr.duration(r.sheet, r.anim) + 6 ? r.anim : 'idle';
           if (f[0] > 1 || f[1] > 1) { ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 20, 7, 0, 0, 7); ctx.fill(); }

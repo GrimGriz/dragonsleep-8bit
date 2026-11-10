@@ -4981,17 +4981,18 @@
       du.rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if ('yKkw'.indexOf(r.charAt(x)) >= 0) { thingsU++; if ('o='.indexOf((unU[y] || '').charAt(x)) >= 0) boardsU++; } });
       okIn('his four notes (11-05): upstairs ' + boardsU + ' of ' + thingsU + ' things on the boards; downstairs under the tub "' + unD[21].charAt(34) + '", the long table "' + unD[15].charAt(21) + '", the woodpile in the yard "' + unD[26].charAt(17) + '"; the small hearth upstairs ' + upN('inn_hearthS') + ' at ' + InI.UPFIRE + ', beds ' + upN('inn_bed') + ' and ' + upN('inn_bed', true) + ' mirrored, the drawer at ' + InI.DRAWER,
         thingsU > 10 && boardsU === thingsU && unD[21].charAt(34) === 'o' && unD[15].charAt(21) === 'o' && unD[26].charAt(17) === ' ' && upN('inn_hearthS') === 1 && upN('inn_bed') === 7 && upN('inn_bed', true) === 3 && InI.DRAWER.join() === '12,2');
-      // 9b3. PAGES 5, 6, 9A AND 9B LAID (11-05, the exteriors seat): the barn's six stalls (the north row whole and mirrored, the south row its partitions and a trough), the
+      // 9b3. PAGES 5, 6, 9A AND 9B LAID (11-05, the exteriors seat): the barn's six stalls (since 11-10 the art desk's angle pass: the north row barn_stallN as drawn, the south row
+      // barn_stallS -- mode=barnwagon1110; till then the north row page 5's stall mirrored and the south row its partitions and a trough), the
       // hay, the yard's rail, trough, well, woodpile and sign, the shore's boat, stone, lantern post and floats, the kitchen's tools and kettle, upstairs' chimney and stair
       // head; out in the yard the house's furniture stays under its roof; the lamp lit by night
       var IPy = D.innprops, cntY = function (L, nm, mir) { return L.pieces.filter(function (p) { return p[0] === nm && (mir == null || !!p[5] === mir); }).length; };
       var fY = IPy.find(InI.ROWS, false, { lit: false }), fYn = IPy.find(InI.ROWS, false, { lit: true }), fU = IPy.find(InI.UPROWS, true);
-      var nmsY = ['barn_stall', 'barn_stallsides', 'yard_trough', 'barn_hay', 'yard_rail', 'yard_well', 'yard_woodpile', 'shore_boat', 'yard_post', 'shore_stone', 'kitchen_tools', 'kitchen_kettle', 'yard_sign', 'shore_float'], wantY = [3, 3, 4, 1, 2, 1, 4, 1, 1, 1, 1, 1, 1, 3];
+      var nmsY = ['barn_stallN', 'barn_stallS', 'yard_trough', 'barn_hay', 'yard_rail', 'yard_well', 'yard_woodpile', 'shore_boat', 'yard_post', 'shore_stone', 'kitchen_tools', 'kitchen_kettle', 'yard_sign', 'shore_float'], wantY = [3, 3, 1, 1, 2, 1, 4, 1, 1, 1, 1, 1, 1, 3];
       var gotY = nmsY.map(function (nm) { return cntY(fY, nm); });
       testIn('?roam=halfway&hour=10&day=5&at=10,22'); var laidY = (IPy.laid ? IPy.laid.pieces : []).map(function (p) { return p[0]; });
       var houseOutY = laidY.filter(function (n) { return /^inn_|^barn_|^kitchen_/.test(n); }).length;
-      okIn('pages 5, 6, 9A and 9B laid (11-05): ' + nmsY.map(function (nm, k) { return nm + ' ' + gotY[k]; }).join(', ') + '; the north stalls mirrored ' + cntY(fY, 'barn_stall', true) + '; the lamp lit by night ' + cntY(fYn, 'yard_postlit') + '; upstairs the chimney ' + cntY(fU, 'up_chimney') + ', the stair head ' + cntY(fU, 'up_stairhead') + '; in the yard by day ' + laidY.length + ' laid, the house\'s and the barn\'s under their roofs (' + houseOutY + ' out)',
-        gotY.join() === wantY.join() && cntY(fY, 'barn_stall', true) === 3 && cntY(fYn, 'yard_postlit') === 1 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
+      okIn('pages 5, 6, 9A and 9B laid (11-05): ' + nmsY.map(function (nm, k) { return nm + ' ' + gotY[k]; }).join(', ') + '; the north stalls as drawn ' + cntY(fY, 'barn_stallN', false) + '; the lamp lit by night ' + cntY(fYn, 'yard_postlit') + '; upstairs the chimney ' + cntY(fU, 'up_chimney') + ', the stair head ' + cntY(fU, 'up_stairhead') + '; in the yard by day ' + laidY.length + ' laid, the house\'s and the barn\'s under their roofs (' + houseOutY + ' out)',
+        gotY.join() === wantY.join() && cntY(fY, 'barn_stallN', false) === 3 && cntY(fYn, 'yard_postlit') === 1 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
       // 9b4. THE SUPPER ON THE TABLES (11-05, the exteriors seat; page 9A): the long spread's dishes along the long table's top and the spread for two, drawn only while
       // the party sits at THE MEAL (In.sit to In.rise)
       var Bsp = testIn('?roam=halfway&hour=18&day=5&inside&at=24,17'), dishSp = ((D.SHEETS.innprops_p2 || {}).spread || []).length, tabSp = IPy.laid ? IPy.laid.tables : [];
@@ -12441,6 +12442,49 @@
     D.store.get = stGF; D.store.set = stSF; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
     document.body.appendChild(preF);
+    return;
+  }
+  // THE BARN AND THE WAGON, THE ANGLE PASS (mode=barnwagon1110; tools/innprops-sheet.py REFIT, PIECES3, rim; js/innprops.js IP.find, IP.dress; js/inn.js In.BEDZ, In.BEDIN;
+  // js/ui.js a rider's dx, dy -- the cutter of the art desk's HALFWAY-INN-BARN-WAGON-ANGLE-REVISION, on Griz's "cue the barn wagon stuff in doran's cutter"): the barn's north
+  // row the art desk's stall opening onto the aisle as drawn, its south row the reversed stall mirrored (its head wall to the camera), the troughs that stood for its mangers
+  // gone; Amara's wagon drawn tail to the camera over its 4 x 2 on its night (the code's wagon given way), its rim drawn again after the two who stand in its bed, who stand
+  // on its floor a quarter square in from their squares' middles. The pixels (the feet on the diamonds' corners, the rim the wagon's own) are dev/barnwagon-probe.py's
+  if (get('mode', '') === 'barnwagon1110') {
+    var repBw = { checks: [], errors: [] }, memBw = {}, stGBw = D.store.get, stSBw = D.store.set, InBw = D.inn, IPb = D.innprops, RBw = D.roam;
+    function okBw(what, v) { repBw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topBw() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) { var k = 0; while (k++ < 2 && s.co) s.co.next(); } return s; }
+    function floorBw(q) { var B = RBw.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topBw(); }
+    D.store.get = function (k) { return memBw[k] ? JSON.parse(memBw[k]) : null; }; D.store.set = function (k, v) { memBw[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1110);
+      // 1. the sheet: the four new pieces, their footprints, the source naming the angle pass
+      var S2 = D.SHEETS.innprops_p2 || { tiles: {}, foot: {} }, nmB = ['barn_stallN', 'barn_stallS', 'yard_wagonT', 'yard_wagonRim'], ftB = ['2,2', '2,2', '4,2', '4,2'];
+      okBw('innprops_p2: ' + nmB.map(function (n) { return n + ' ' + (S2.tiles[n] ? (S2.foot[n] || []).join('x') : 'NONE'); }).join(', ') + ' -- the source names the angle pass (' + /ART-36-ANGLE-REVISION-1110/.test(S2.source) + ')',
+        nmB.every(function (n, k) { return !!S2.tiles[n] && (S2.foot[n] || []).join() === ftB[k]; }) && /ART-36-ANGLE-REVISION-1110/.test(S2.source));
+      // 2. the barn: the north row the new stall as drawn at 6,4 9,4 12,4; the south row the reversed one at 6,7 9,7 12,7; no old stall, partitions or trough in it
+      var fB = IPb.find(InBw.ROWS, false, { lit: false }), atB = function (nm) { return fB.pieces.filter(function (p) { return p[0] === nm; }).map(function (p) { return p[1] + ',' + p[2] + (p[5] ? 'm' : '') + ' ' + p[3] + 'x' + p[4]; }); };
+      var oldB = fB.pieces.filter(function (p) { return p[0] === 'barn_stall' || p[0] === 'barn_stallsides' || (p[0] === 'yard_trough' && p[2] < 10); }).length;
+      okBw('the barn: north row ' + atB('barn_stallN').join(' | ') + '; south row ' + atB('barn_stallS').join(' | ') + '; the 11-05 stall, partitions and mangers\' troughs left ' + oldB,
+        atB('barn_stallN').join() === '6,4 2x2,9,4 2x2,12,4 2x2' && atB('barn_stallS').join() === '6,7 2x2,9,7 2x2,12,7 2x2' && oldB === 0);
+      // 3. the yard by day: no wagon; on the wagon night (its squares on the floor, In.map): the wagon over its 4 x 2 at In.WAGONAT and its rim a depth over it, the code's wagon given way
+      floorBw('?roam=halfway&hour=10&day=5&at=10,22'); var dayB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return /^yard_wagon/.test(p[0]); }).length;
+      var Bn = floorBw('?roam=halfway&hour=23&day=12&at=10,22'), wB = InBw.WAGONAT; Bn.roam.flags.wagonIn = 1; InBw.stage(Bn, [InBw.DOORS.front[0] + 1, InBw.DOORS.front[1]], 'inn'); Bn = topBw();
+      var mB = D.iso.map, wl = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return /^yard_wagon/.test(p[0]); }).map(function (p) { return p[0] + '@' + p[1] + ',' + p[2] + ' ' + p[3] + 'x' + p[4] + (p[7] ? ' +' + p[7] : ''); });
+      var sqB = mB ? mB.props.filter(function (p) { return p.sq && p.sq.x >= wB[0] && p.sq.x < wB[0] + 4 && p.sq.y >= wB[1] && p.sq.y <= wB[1] + 1; }) : [], codeB = sqB.filter(function (p) { return p.kind === 'block' || p.kind === 'rock'; }).length;
+      okBw('the wagon: by day ' + dayB + ' laid; on its night ' + wl.join(', ') + ' (In.WAGONAT ' + wB.join(',') + '), its eight squares ' + sqB.length + ' props, the code\'s blocks left ' + codeB,
+        dayB === 0 && wl.join() === 'yard_wagonT@' + wB.join(',') + ' 4x2,yard_wagonRim@' + wB.join(',') + ' 4x2 +0.15' && codeB === 0 && sqB.length === 16);
+      // 4. the two in the bed: on its floor (In.BEDZ, the drawn bed's) and a quarter square in from their squares' middles; the rim over them (each a depth over its own square's
+      // rider, 0.6) and under one standing past the tail (12,18: its square's 30.5 against the rim's own square 11,19 at 30.65 -- the rim on 11,18 is 29.65)
+      var YB = InBw.yardCast(Bn, Bn.roam.flags), bed = (Bn.riders || []).filter(function (r) { return r.yard && !r.team; }).map(function (r) { return r.x + ',' + r.y + ' gz ' + r.gz + ' dy ' + r.dy; });
+      var rimD = sqB.filter(function (p) { return p.depth % 1 > 0.6; }).map(function (p) { return p.sq.x + ',' + p.sq.y + ':' + p.depth.toFixed(2); }).sort();
+      okBw('the two in the bed: ' + bed.join(' | ') + ' (In.BEDZ ' + InBw.BEDZ + ', IP.BEDZ ' + IPb.BEDZ + '); the rim\'s depths ' + rimD.join(' '),
+        bed.length === 2 && InBw.BEDZ === IPb.BEDZ && IPb.BEDZ === 20 && bed[0] === (wB[0] + 3) + ',' + wB[1] + ' gz 20 dy 0.25' && bed[1] === (wB[0] + 3) + ',' + (wB[1] + 1) + ' gz 20 dy -0.25'
+        && rimD.indexOf((wB[0] + 3) + ',' + wB[1] + ':' + (wB[0] + 3 + wB[1] + 0.65).toFixed(2)) >= 0 && rimD.indexOf((wB[0] + 3) + ',' + (wB[1] + 1) + ':' + (wB[0] + 4 + wB[1] + 0.65).toFixed(2)) >= 0);
+      InBw.yardClear(Bn, YB); D.scenes.length = 0;
+    } catch (eBw) { repBw.errors.push(String(eBw && eBw.stack || eBw).slice(0, 900)); }
+    D.store.get = stGBw; D.store.set = stSBw;
+    var preBw = document.createElement('pre'); preBw.id = 'out'; preBw.textContent = 'BENCH16 ' + JSON.stringify(repBw);
+    document.body.appendChild(preBw);
     return;
   }
   // THE WATERBYS' 11-06 ROWS (mode=waterby1106; tools/doran-sheet.py doran_p2's idle -- and since 11-10 its walk, check 4 --, tools/gennet-sheet.py gennet_p2's walk -- the cutter of the art desk's 11-06 pages, on his

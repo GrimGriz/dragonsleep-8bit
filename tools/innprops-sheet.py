@@ -95,6 +95,47 @@ PIECES2 = {
     'up_chimney':      dict(page='P09A', box=(180, 298, 395, 687), foot=(1, 2), h=170, mirror=True),  # (by its height to the ceiling: a stack of 1 x 2, laid at the hearth's back)
     'yard_sign':       dict(page='P09A', box=(1108, 705, 1390, 1000), foot=(1, 1), h=88, dx=-30, dy=16),
 }
+# THE ANGLE PASS (11-10, the cutter of the barn and wagon revision, on Griz's "cue the barn wagon stuff in doran's cutter"): the art desk's
+# HALFWAY-INN-BARN-WAGON-ANGLE-REVISION, source revisions of pages 5 and 6 (deep16/_src/halfway-inn/ART-36-ANGLE-REVISION-1110/, its zip beside it). Two pages:
+#   R1 STALLS-AND-WAGON -- a stall opening to the lower right (not cut: no row of the barn opens along x), a stall opening to the lower left with its manger on the
+#      back rail (the north row's, as drawn), and Amara's wagon with its long axis down-right, three squares under canvas and the open tail toward the camera;
+#   R2 STALL-OPPOSITE-ENTRY -- the left stall reversed, opening to the upper left, its head wall hiding the manger: mirrored, it opens to the upper right, the
+#      south row's (which opens away from the camera, onto the aisle).
+# Both pages: a faint glow round each drawing at alpha ~14 (cleared under 128). The stalls are drawn on cameras of their own -- the back post is not over the front
+# one, the two spans differ (201 px and 263; R2's 426 and 327), the rails slope 0.52 to 0.69 and do not run parallel to their ground lines -- so no one scale and shear
+# puts four feet on a 2 x 2's corners: each is laid WALL BY WALL (refit): every wall's ground line (between two feet, the posts' lowest points, read off the page)
+# onto its edge of the diamond, verticals kept vertical, its rail made one height (HG, the posts PR times that); each page pixel goes with the front-most wall whose
+# span and height hold it (`down`: how far below its ground line a wall reaches -- the north stall's manger hangs in front of its back wall).
+REV = os.path.join(pix.SRC, 'halfway-inn', 'ART-36-ANGLE-REVISION-1110')
+PAGE.update({'R1': os.path.join(REV, 'STALLS-AND-WAGON.png'), 'R2': os.path.join(REV, 'STALL-OPPOSITE-ENTRY.png')})
+HG, PR = 44, 1.25              # (the rail 44 px over the floor, 5 1/2 ft at the props' 8 px a foot; a post a quarter over it)
+REFIT = {
+    # walls front to back: (from foot, to foot, the rail's height over the ground line at each end in page px, down)
+    'barn_stallN': dict(page='R1', box=(792, 120, 1310, 610), pw=34,
+                        feet=dict(L=(819, 496), F=(1020, 600), R=(1283, 460), B=(1080, 354)),
+                        walls=[('F', 'R', 150, 176, 8), ('B', 'R', 200, 197, 80), ('L', 'B', 165, 193, 14)]),
+    'barn_stallS': dict(page='R2', box=(330, 90, 1180, 890), pw=44, mirror=True,
+                        feet=dict(L=(379, 593), F=(805, 871), R=(1132, 690), B=(676, 402)),
+                        walls=[('L', 'F', 265, 265, 15), ('F', 'R', 262, 262, 10), ('B', 'R', 262, 256, 15)]),
+}
+# the wagon is drawn on the grid's 2:1 (its bed's near bottom edge 0.49, its tail's -0.50): fitted by its bed, four squares long (427 page px across: k 3.34), and
+# registered by its near wheels: the middle of their two ground contacts (1552, 496) and (1765, 608) stands at 1.95 squares along x and 1.8 across from the
+# footprint's back corner (the bed 1.2 squares wide in the middle of the two, the wheels outside it); the open tail then stands over the footprint's last square
+PIECES3 = {'yard_wagonT': dict(page='R1', box=(1460, 70, 2060, 620), foot=(4, 2), k=3.34, reg=(1658.5, 552, 1.95, 1.8), solid=True)}
+# its rim: the open tail's near rail and tailboard (and the far corner post), the rest cleared -- the same box, scale and anchor, so it lays exactly over the wagon;
+# js/innprops.js draws it again after the two who stand in the bed, so the board hides their legs (the bed's floor stands 19 px under its top)
+WAGON_RIM = [(1826, 466), (1903, 503), (1916, 507), (2018, 456), (2018, 430), (2056, 430), (2056, 630), (1826, 630)]
+
+
+def rim(wagon, poly):
+    """the wagon's own finished pixels inside a page polygon (its rim), the rest cleared: no outline of its own along the cut, the wagon's anchor"""
+    from PIL import ImageDraw
+    X0, Y0, k, PX, PY = wagon['xf']; g = wagon['g']
+    m = Image.new('L', (g.shape[1], g.shape[0]), 0)
+    ImageDraw.Draw(m).polygon([((x - X0) / k + PX, (y - Y0) / k + PY) for x, y in poly], fill=255)
+    out = g.copy(); out[np.array(m) == 0] = 0
+    ys, xs = np.where(out[..., 3] > 0); y0, x0 = int(ys.min()), int(xs.min())
+    return dict(wagon, g=out[y0:ys.max() + 1, x0:xs.max() + 1], ax=wagon['ax'] - x0, ay=wagon['ay'] - y0)
 # the floats: four frames on one waterline (the page's 1, 2, 3 bob and 4 still), each cut from the same band so the bob is kept
 FLOATS = dict(page='P09B', band=(735, 860), xs=(338, 701, 1066, 1435), half=60, k=7.0)
 
@@ -233,11 +274,18 @@ def fit(name, spec, a):
         yy, xx = np.where(gf[..., 3] > 0)
         return dict(whole, g=gm[yy.min():yy.max() + 1, xx.min():xx.max() + 1])
     src = blobs_in(a, spec['box'])
+    if spec.get('solid'): src[src[..., 3] < 128] = 0                     # (the page's faint glow round its drawings: the angle pass's, 11-10)
     if spec.get('mirror'): src = src[:, ::-1].copy()
+    sy0, sx0 = [int(v.min()) for v in np.where(src[..., 3] > 0)]
     src = trim(src)
     fa, fb = spec['foot']
     k = spec.get('k') or (src.shape[0] / float(spec['h']) if spec.get('h') else src.shape[1] / (32.0 * (fa + fb)))
-    g = trim(GS.game(src, k))
+    G = GS.game(src, k); gy0, gx0 = [int(v.min()) for v in np.where(G[..., 3] > 0)]; g = trim(G)
+    if spec.get('reg'):                                                  # (`reg`: a page point (px, py) that stands on the ground at (u, v) squares from the footprint's back corner)
+        px, py, u, v = spec['reg']; pad = (G.shape[1] - round(src.shape[1] / k)) / 2.0
+        X0, Y0, PX, PY = spec['box'][0] + sx0, spec['box'][1] + sy0, pad - gx0, pad - gy0   # (a page point -> the piece: (p - X0) / k + PX)
+        gx = (px - X0) / k + PX; gy = (py - Y0) / k + PY
+        return dict(g=g, ax=int(round(gx - 32 * (u - v))), ay=int(round(gy - 16 * (u + v))), k=k, foot=list(spec.get('cut', (fa, fb))), xf=(X0, Y0, k, PX, PY))
     ys, xs = np.where(g[..., 3] > 0)
     cx, yb, w = (xs.min() + xs.max() + 1) / 2.0, ys.max() + 1, xs.max() - xs.min() + 1
     # the drawing's own ground diamond: its middle across, its front corner the lowest point, so its middle w/4 above that; stood on the footprint's middle, whose back
@@ -245,6 +293,49 @@ def fit(name, spec, a):
     ax = cx - 16 * (fa - fb) + spec.get('dx', 0)
     ay = yb - w / 4.0 - 8 * (fa + fb) + spec.get('dy', 0)
     return dict(g=g, ax=int(round(ax)), ay=int(round(ay)), k=k, foot=list(spec.get('cut', (fa, fb))))
+
+
+def refit(spec, a):
+    """(11-10) a 2 x 2 stall drawn on a camera of its own, laid wall by wall onto the grid's: each output pixel (at the page's own scale K, boxed down after) is
+    looked up wall by wall, front to back -- t along the wall's edge of the diamond, its height over that edge -> the same t along the wall's ground line on the page
+    and the height there scaled by the wall's own rail (its HG game px are that end's page px) -- and taken if the page pixel is that wall's (the front-most wall whose
+    span and height hold it). Posts: `pw` page px either side of a foot, up to PR times the rail. The output mirrored if `mirror`; anchor the back corner."""
+    src = blobs_in(a, spec['box']); src[src[..., 3] < 128] = 0
+    bx, by = spec['box'][0], spec['box'][1]
+    F = {k: (x - bx, y - by) for k, (x, y) in spec['feet'].items()}
+    K = ((F['F'][0] - F['L'][0]) + (F['R'][0] - F['F'][0])) / 128.0
+    T = {'B': (0.0, 0.0), 'L': (-64.0 * K, 32.0 * K), 'R': (64.0 * K, 32.0 * K), 'F': (0.0, 64.0 * K)}
+    al = src[..., 3] >= 128; H, W = al.shape
+    walls = []
+    for p, q, h0, h1, down in spec['walls']:
+        P, Q = np.array(F[p], float), np.array(F[q], float)
+        walls.append(dict(P=P, Q=Q, TP=np.array(T[p]), TQ=np.array(T[q]), h0=float(h0), h1=float(h1), down=float(down), mt=spec['pw'] / abs(Q[0] - P[0])))
+
+    def hold(w, t, hg):                                                  # (the wall's span and height, in game px over its ground line)
+        post = (t < w['mt']) | (t > 1 - w['mt'])
+        return (t >= -w['mt']) & (t <= 1 + w['mt']) & (hg >= -w['down'] * HG / ((w['h0'] + w['h1']) / 2)) & (hg <= np.where(post, PR, 1.04) * HG)
+    # whose each page pixel is
+    yy, xx = np.mgrid[0:H, 0:W].astype(float); own = np.full((H, W), -1, int)
+    for i, w in enumerate(walls):
+        t = (xx - w['P'][0]) / (w['Q'][0] - w['P'][0]); hs = w['P'][1] + t * (w['Q'][1] - w['P'][1]) - yy
+        hg = hs * HG / (w['h0'] + t * (w['h1'] - w['h0']))
+        own[(own < 0) & al & hold(w, t, hg)] = i
+    # the output, at the page's scale K: the diamond's corners T, room for the posts over them
+    top, side = int(PR * HG * K) + 8, int(8 * K)
+    oh, ow = top + int(64 * K) + side, int(128 * K) + 2 * side
+    Y, X = np.mgrid[0:oh, 0:ow].astype(float); X -= ow / 2.0; Y -= top
+    out = np.zeros((oh, ow, 4), np.uint8); done = np.zeros((oh, ow), bool)
+    for i, w in enumerate(walls):
+        t = (X - w['TP'][0]) / (w['TQ'][0] - w['TP'][0]); hg = (w['TP'][1] + t * (w['TQ'][1] - w['TP'][1]) - Y) / K
+        hs = hg * (w['h0'] + t * (w['h1'] - w['h0'])) / HG
+        sx = np.rint(w['P'][0] + t * (w['Q'][0] - w['P'][0])).astype(int); sy = np.rint(w['P'][1] + t * (w['Q'][1] - w['P'][1]) - hs).astype(int)
+        inb = (sx >= 0) & (sx < W) & (sy >= 0) & (sy < H); sx, sy = np.clip(sx, 0, W - 1), np.clip(sy, 0, H - 1)
+        take = ~done & hold(w, t, hg) & inb & al[sy, sx] & (own[sy, sx] == i)
+        out[take] = src[sy[take], sx[take]]; done |= take
+    if spec.get('mirror'): out = out[:, ::-1].copy()
+    G = GS.game(out, K); pad = (G.shape[1] - round(ow / K)) / 2.0
+    gy0, gx0 = [int(v.min()) for v in np.where(G[..., 3] > 0)]
+    return dict(g=trim(G), ax=int(round((ow / 2.0) / K + pad - gx0)), ay=int(round(top / K + pad - gy0)), k=K, foot=[2, 2])
 
 
 def lowline(mask):
@@ -384,18 +475,27 @@ def main():
         if spec['page'] not in pages: pages[spec['page']] = page(spec['page'])
         items2.append((nm, ground(spec, pages[spec['page']])))
     items2.append(('ground_rutsX', ground(GROUND['ground_ruts'], pages[GROUND['ground_ruts']['page']], mirror=True)))
+    # the angle pass (11-10): after the rest, so every piece above keeps its box
+    for nm, spec in REFIT.items():
+        if spec['page'] not in pages: pages[spec['page']] = page(spec['page'])
+        got2[nm] = refit(spec, pages[spec['page']]); items2.append((nm, got2[nm]))
+    for nm, spec in PIECES3.items():
+        if spec['page'] not in pages: pages[spec['page']] = page(spec['page'])
+        got2[nm] = fit(nm, spec, pages[spec['page']]); items2.append((nm, got2[nm]))
+    got2['yard_wagonRim'] = rim(got2['yard_wagonT'], WAGON_RIM); items2.append(('yard_wagonRim', got2['yard_wagonRim']))
     sheet2, tiles2 = pack(items2)
     Image.fromarray(sheet2, 'RGBA').save(os.path.join(pix.ART, 'innprops_p2.png'), optimize=True)
     meta2 = {'_note': 'the Halfway Inn\'s barn, yard and shore, and the rest of the house (tools/innprops-sheet.py, art-wanted section 36 pages 5, 6, 9A and 9B, 2026-11-05): '
                       'as innprops_p1 -- each piece a box x,y,w,h and its anchor ax,ay, the back corner of its footprint; shore_float four frames on one waterline (1-3 the bob, '
                       '4 still). js/innprops.js lays them.',
              'image': 'art/innprops_p2.png', 'fw': 64, 'fh': 64, 'ax': 32, 'ay': 48, 'prop': True, 'anims': {},
-             'foot': {nm: got2[nm]['foot'] for nm in PIECES2}, 'fps': {'shore_float': 3}, 'tiles': tiles2,
+             'foot': {nm: got2[nm]['foot'] for nm in list(PIECES2) + list(REFIT) + list(PIECES3) + ['yard_wagonRim']}, 'fps': {'shore_float': 3}, 'tiles': tiles2,
              'spread': [[dsh['along'], dsh['across']] for dsh in dishes],   # (each frame of supper_dish: along the long table 0..1 from its west end, across it -1 far .. 1 near)
-             'source': 'generated by the art desk (2026-11-04, ART-36 pages 5-9: deep16/_src/halfway-inn/ART-36-PAGES-01-09), cut by tools/innprops-sheet.py'}
+             'source': 'generated by the art desk (2026-11-04, ART-36 pages 5-9: deep16/_src/halfway-inn/ART-36-PAGES-01-09; 2026-11-10, its angle pass of pages 5 and 6: '
+                       'ART-36-ANGLE-REVISION-1110 -- barn_stallN, barn_stallS, yard_wagonT and its rim yard_wagonRim), cut by tools/innprops-sheet.py'}
     with open(os.path.join(pix.ART, 'innprops_p2.json'), 'w', encoding='utf-8') as fh:
         json.dump(meta2, fh, indent=1)
-    print('innprops_p2:', sheet2.shape[1], 'x', sheet2.shape[0], '|', ', '.join('%s %dx%d k%.2f' % (nm, got2[nm]['g'].shape[1], got2[nm]['g'].shape[0], got2[nm]['k']) for nm in PIECES2))
+    print('innprops_p2:', sheet2.shape[1], 'x', sheet2.shape[0], '|', ', '.join('%s %dx%d k%.2f' % (nm, got2[nm]['g'].shape[1], got2[nm]['g'].shape[0], got2[nm]['k']) for nm in list(PIECES2) + list(REFIT) + list(PIECES3) + ['yard_wagonRim']))
     if 'check' in sys.argv[1:]: check(items2, 'innprops2-check.png')
 
 

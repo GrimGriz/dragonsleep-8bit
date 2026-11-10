@@ -859,10 +859,11 @@
   // the lead back in front once the house is up (the watcher went first: the wagon night's opening)
   In.leadBack = function (B) { var R0 = B.roam, l0 = R0.lead0; R0.lead0 = null; if (l0 && R0.token !== l0 && R0.members.indexOf(l0) >= 0) In.lead(B, l0); };
   // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
+  In.BEDZ = 12; In.BEDIN = 0; // (the bed's floor, px over the ground, and how far in from its rims the two stand, a part of a square: the code's wagon's; js/innprops.js sets the drawn wagon's, 11-10)
   In.bedRiders = function (B, Y, f, noTeam) { // (the two in the open bed, and the team in its traces unless it is gone)
     var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken);
-    Y.riders = [{ x: w[0] + 3, y: w[1], sheet: seen ? 'kid1_p0' : 'goblin_p2', after: 'kid1_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 },
-      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: 12, foot: [1, 1], anim: 'idle', animT: 0 }].concat(noTeam ? [] : [
+    Y.riders = [{ x: w[0] + 3, y: w[1], sheet: seen ? 'kid1_p0' : 'goblin_p2', after: 'kid1_p0', facing: 3, gz: In.BEDZ, dy: In.BEDIN, foot: [1, 1], anim: 'idle', animT: 0 },
+      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: In.BEDZ, dy: -In.BEDIN, foot: [1, 1], anim: 'idle', animT: 0 }].concat(noTeam ? [] : [
       { x: w[0] - 2, y: w[1], sheet: 'horse_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 },
       { x: w[0] - 2, y: w[1] + 1, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 }]);
     B.riders = (B.riders || []).filter(function (r) { return !r.yard; }).concat(Y.riders.map(function (r) { r.yard = true; return r; })); In.teamBlock(B);

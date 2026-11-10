@@ -16,6 +16,7 @@
   // chimney; innwalls_p1 pages 7, 8 and 9A's walls, roofs and lamps)
   var IP = D.innprops = {}, SHEETS = ['innprops_p1', 'innprops_p2', 'innwalls_p1'], SHEET = SHEETS[0], HW = 32, HH = 16;
   IP.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
+  IP.BEDZ = 20; IP.BEDIN = 0.25; if (IP.on) { In.BEDZ = IP.BEDZ; In.BEDIN = IP.BEDIN; } // (the drawn wagon's bed: its floor px over the ground -- its bottom stands about 18 up -- and its rims a fifth of a square in from its two squares' outer edges: the two in the bed stand on it, a quarter square in from their squares' middles, 11-10)
   function sheet(name) {
     var key = SHEET;
     if (name) { key = null; for (var k = 0; k < SHEETS.length; k++) { var s0 = D.SHEETS && D.SHEETS[SHEETS[k]]; if (s0 && s0.tiles[name]) { key = SHEETS[k]; break; } } }
@@ -83,8 +84,10 @@
       // PAGES 5, 6, 9A AND 9B (11-05, the exteriors seat): the barn, the yard and the shore, the hearth's tools and kettle, upstairs' chimney and stair head
       if (up && c === 'C' && at(x, y - 1) !== 'C' && at(x, y + 1) === 'C') out.push(['up_chimney', x, y, 1, 2]);   // (the stack over the big fire, at the small hearth's back)
       if (up && c === 'D') out.push(['up_stairhead', x, y, 1, 1]);
-      if (c === 'w' && at(x, y - 1) === 'A') out.push(['barn_stall', x, y, 2, 2, true]);                   // (the north row: mirrored, it opens +y onto the aisle, its manger on the north rail)
-      if (c === 'w' && at(x, y + 1) === 'A') { out.push(['barn_stallsides', x, y - 1, 2, 2, true]); out.push(['yard_trough', x, y, 2, 1]); } // (the south row opens away from the camera: its two partitions, and a trough for its manger along the back)
+      // (THE ANGLE PASS, 11-10: the art desk's revision of page 5 -- each row its own drawing, laid wall by wall onto its 2 x 2 by tools/innprops-sheet.py refit; till then
+      // the north row was page 5's stall mirrored, and the south row, which opens away from the camera, that stall's two partitions with a trough for its manger)
+      if (c === 'w' && at(x, y - 1) === 'A') out.push(['barn_stallN', x, y, 2, 2]);                        // (the north row: open +y onto the aisle, its manger on the north rail)
+      if (c === 'w' && at(x, y + 1) === 'A') out.push(['barn_stallS', x, y - 1, 2, 2]);                    // (the south row: open -y onto the aisle, its head wall to the camera hiding the manger)
       if (c === 'a') out.push(['barn_hay', x, y, 1, 1]);
       if (c === 'x' && at(x - 1, y) !== 'x') out.push(['yard_trough', x, y, 2, 1]);
       if (c === '|' && at(x - 1, y) !== '|' && at(x + 1, y) === '|') { n = 0; while (at(x + n, y) === '|') n++; for (var r2 = 0; r2 + 2 <= n; r2 += 2) out.push(['yard_rail', x + r2, y, 2, 1]); } // (the hitching rail, half its four squares a drawing)
@@ -125,6 +128,14 @@
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
     var up = m.def && m.def.key === In.UP, got = IP.find(up ? In.UPROWS : In.ROWS, up, { lit: !!(m.def && (m.def.night || m.def.dusk)) }), mine = {};
+    // AMARA'S WAGON (11-10, the angle pass of page 6: drawn tail to the camera, as it stands on its night): on the yard's ring wherever the night's floor has it (inn.js In.map
+    // writes its squares, U U U V, on In.WAGONAT's two rows -- the loaded floor's rows read them as the grid's own, W W W V) -- the drawing over its 4 x 2, the code's wagon
+    // under it given way; the two in the bed stand on its floor (In.BEDZ)
+    var wr = !up && m.def && m.def.rows, wa = In.WAGONAT, wc = wr && wr[wa[1]] ? wr[wa[1]].charAt(wa[0]) : '';
+    if ((wc === 'U' || wc === 'W') && wr[wa[1]].charAt(wa[0] + 3) === 'V' && D.SHEETS.innprops_p2 && D.SHEETS.innprops_p2.tiles.yard_wagonT) {
+      got.pieces.push(['yard_wagonT', wa[0], wa[1], 4, 2]);
+      got.pieces.push(['yard_wagonRim', wa[0], wa[1], 4, 2, false, null, 0.15]); // (its tail's rail and board again, after the two in the bed (a rider's depth is its square's + 0.6) and before one standing past the tail)
+    }
     // (a house roofed over -- the party outside it, or in another -- keeps its things under its roof: only what stands in the open or in the house the party is in)
     var ins = m.def && m.def.inside || null, seen = function (x, y) { if (up) return true; var b = In.inHouse(x, y); return !b || b === ins; };
     got.pieces = got.pieces.filter(function (pc) { return seen(pc[1], pc[2]); }); got.flames = got.flames.filter(function (fl) { return seen(fl[1], fl[2]); });
@@ -134,7 +145,7 @@
       for (var i = 0; i < pc[3]; i++) for (var j = 0; j < pc[4]; j++) (function (i, j) {
         var sq = m.at(pc[1] + i, pc[2] + j); if (!sq) return;
         mine[sq.x + ',' + sq.y] = 1;
-        m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
+        m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5 + (pc[7] || 0), gz: 0, draw: function (ctx) { // ([7]: a depth of its own over the square's -- the wagon's rim)
           var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
           var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
           var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = pc[0] === 'inn_hearth' && IP.fightOn();
