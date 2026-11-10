@@ -12513,6 +12513,11 @@
       uW6.sheet = 'doran_p2'; uW6.conds = {}; uW6.hp = uW6.maxhp = 40; uW6.facing = 6;
       var shotW6 = function (n, anim, at) { var u = n === 'gennet_p2' ? gW6 : uW6; u.sheet = n; u.anim = anim; BW6.t = u.animT + at; var o = D.ui.unitObj(BW6, u); o.draw(cxW6); return o.shown || {}; };
       var t0W6 = BW6.t; uW6.animT = t0W6; var durW6 = D.spr.duration('doran_p2', 'attack');
+      // 5. the show's door for his eye, ?innshow&beat=wagonyard: the yard on the wagon's night, the wagon laid in its place
+      var bwB = InBw.BEATS.filter(function (b) { return b.id === 'wagonyard'; })[0], wyB = '';
+      if (bwB) { InBw.play(bwB); topBw(); wyB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagonT'; }).map(function (p) { return p[1] + ',' + p[2]; }).join(); D.house.playing = false; D.house.cur = null; InBw.pinned = null; }
+      okBw('the show\'s beat wagonyard (' + !!bwB + '): the wagon laid at ' + (wyB || 'nowhere'), !!bwB && wyB === wB.join());
+      D.scenes.length = 0;
       var midW6 = shotW6('doran_p2', 'attack', 5), frW6 = {}, aftW6 = [];
       for (var kW6 = 0; kW6 <= 64; kW6 += 4) { var sW6 = shotW6('doran_p2', 'attack', durW6 + 7 + kW6); aftW6.push(sW6.anim); var fW6 = D.spr.frameAt('doran_p2', sW6.anim, uW6.facing, sW6.t, { once: sW6.once }); if (fW6 && sW6.anim === 'idle') frW6[fW6.fr] = 1; }
       okW6('after the chop (' + durW6 + ' ticks): mid-chop drawn ' + midW6.anim + ' once ' + midW6.once + '; after it ' + aftW6.filter(function (a, i, A) { return A.indexOf(a) === i; }).join('/') + ', the idle frames drawn over a second ' + Object.keys(frW6).sort().join(',') + ' (of ' + dS.anims.idle.frames + ')',
