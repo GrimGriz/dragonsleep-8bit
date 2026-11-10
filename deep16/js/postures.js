@@ -121,28 +121,9 @@
     });
     return any;
   };
-  // THE SURPRISE (SRD 5.1 Combat, Surprise: "the GM compares the Dexterity (Stealth) checks of anyone hiding with the passive Wisdom (Perception) score of each creature
-  // on the opposing side. Any character or monster that doesn't notice a threat is surprised"): each of ours against every ambusher's held Stealth, and against any foe
-  // not hiding that it can see from where it stands (no one tries to hide: noticed). The surprised take no turn in round 1 (battle.js heroTurn, ai.js turnOf)
-  P.surprise = function* (B) {
-    var amb = B.units.filter(function (w) { return P.kindOf(w) === 'ambush' && w.conds.hidden && w.hidTotal != null; });
-    if (!amb.length) return;
-    var nm = function (w) { return B.shortName ? B.shortName(w) : w.name; }, by = {}, order = [];
-    amb.forEach(function (w) { var k = nm(w); if (!by[k]) { by[k] = []; order.push(k); } by[k].push(w.hidTotal); });
-    var lines = ['{r}AMBUSH{/}: their Stealth ' + order.map(function (k) { return k + ' ' + by[k].join(', '); }).join('; ') + ' against each passive Perception'], caught = 0;
-    B.units.forEach(function (h) {
-      if (h.hp <= 0 || h.dead || h.object || h.look || h.bystander || h.familiar || !G.hostile(h, amb[0])) return;
-      var pp = h.perception || 10, saw = amb.filter(function (a) { return pp >= a.hidTotal; });
-      var plain = B.units.filter(function (f) { return G.hostile(h, f) && G.standing(f) && !f.object && !f.look && !f.bystander && !f.conds.hidden && D.magic.sees(B, h, f) && G.los(h, f).clear; });
-      var ok = saw.length > 0 || plain.length > 0;
-      lines.push('  ' + h.name + ' ' + pp + ': ' + (saw.length ? '{n}sees them coming{/}' : plain.length ? '{n}sees ' + nm(plain[0]) + ' plainly{/}' : '{o}caught unaware{/}'));
-      if (!ok) { h.conds.surprised = true; caught++; }
-    });
-    if (lines.length > 7) lines = lines.slice(0, 7).concat(['  ... and ' + (lines.length - 7) + ' more']);
-    B.card(lines, 480);
-    D.sfx(caught ? 'encounter' : 'popup');
-    yield 70;
-  };
+  // THE SURPRISE: the ambushers hidden above, the roll is the grid's own for any fight (battle.js Battle.surpriseRoll -- each hider's Stealth against each passive
+  // Perception on the other side, an enemy in plain sight noticed; RULED 11-10, "we should have 'real' surprise"). Kept by this name for the rules show's beat
+  P.surprise = function* (B) { return yield* B.surpriseRoll(); };
 
   // ---- the turn: true when the posture took it; false hands it to the AI's own turn (the brute's, the class turn's), with u.postPool for a holder
   P.turn = function* (B, u) {

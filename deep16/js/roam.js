@@ -1770,12 +1770,9 @@
     B.card(['{y}INITIATIVE{/}  ' + B.order.map(function (u) { return B.shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     R.fightCam(B, B.order); // (the camera in on the fight: R.fightCam, 11-05)
     yield 50;
-    // a lurker's ambush (SRD 5.1 surprise; battle.js run's own lines): their Stealth, rolled once, against each passive Perception
-    if (lurk) {
-      var sk = Math.max.apply(null, foes.map(function (w) { return w.stealth || 0; })), sr = D.d(20), st = sr + sk, lines = ['{r}AMBUSH{/}: their Stealth d20 ' + sr + ' ' + (sk >= 0 ? '+' : '') + sk + ' = ' + st + ' against each passive Perception'];
-      B.units.forEach(function (w) { if (w.side !== 'party' || w.hp <= 0) return; var ok = (w.perception || 10) >= st; lines.push('  ' + w.name + ' ' + (w.perception || 10) + ': ' + (ok ? '{n}sees them coming{/}' : '{o}caught unaware{/}')); if (!ok) w.conds.surprised = true; });
-      B.card(lines, 480); yield 70;
-    }
+    // SURPRISE (SRD 5.1; RULED 11-10, "we should have 'real' surprise"): the grid's own roll, battle.js Battle.surpriseRoll -- a lurker lying in wait, or one of ours who
+    // hid on the floor, each hider's Stealth against each passive Perception on the other side. Till 11-10 only a lurker's group, one roll at the best Stealth
+    if (B.surpriseRoll) yield* B.surpriseRoll(B.units.filter(function (u) { return !u.roamAside; }));
     var ours = function () { return foes.filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.fled && !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }); };
     while (true) {
       B.round++;

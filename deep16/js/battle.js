@@ -1004,9 +1004,9 @@
     this.order = this.units.filter(function (u) { return !u.familiar && !u.object && !u.look; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; }); // (!u.look: the street's people waiting at the road's foot take no turns -- 10-05)
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
-    // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
-    // whoever does not notice is caught unaware -- no turn in the first round, no reactions till then
-    // inside the 8-bit game its scene has already said who saw whom (the 8-bit battle's `surprised`: the watch that missed
+    // SURPRISE (RULED 11-10, Griz: "we should have 'real' surprise"): any fight where creatures start hidden -- a lurker, a rune's AMBUSH, a story's hidden foes, one of
+    // ours who hid -- rolls the SRD's (Battle.surpriseRoll, below: each hider's Stealth against each passive Perception on the other side); a story's `ambush` (the sect
+    // blades at the rest) counts every foe as hiding. Inside the 8-bit game its scene has already said who saw whom (the 8-bit battle's `surprised`: the watch that missed
     // the blades, the roper's grab, the crept-up raid), so that side loses the first round and nothing is rolled here
     // (a story fight's own `surprised` at its door or on the bench: GreyFang's pit, 10-08 -- the Harbinger comes for him before anyone can move)
     var sur = (this.o.embed && this.o.embed.surprised) || (!this.o.embed && this.isStory() && this.fight.surprised) || null;
@@ -1016,19 +1016,7 @@
       this.card([sur === 'party' ? '{r}CAUGHT OFF GUARD{/}: they have the first round.' : '{y}THEY NEVER SAW YOU COMING{/}: the first round is yours.'], 360);
       D.sfx(sur === 'party' ? 'encounter' : 'popup');
       yield 60;
-    } else if (this.fight.ambush && !this.o.embed) {
-      var sk = Math.max.apply(null, this.units.filter(function (w) { return w.side === 'foe'; }).map(function (w) { return w.stealth || 0; }));
-      var sr = D.d(20), st = sr + sk, caught = [], lines = ['{r}AMBUSH{/}: their Stealth d20 ' + sr + ' ' + RU.sign(sk) + ' = ' + st + ' against each passive Perception'];
-      this.units.forEach(function (w) {
-        if (w.side !== 'party' || w.hp <= 0) return;
-        var ok = (w.perception || 10) >= st;
-        lines.push('  ' + w.name + ' ' + (w.perception || 10) + ': ' + (ok ? '{n}sees them coming{/}' : '{o}caught unaware{/}'));
-        if (!ok) { w.conds.surprised = true; caught.push(w); }
-      });
-      this.card(lines, 480);
-      D.sfx(caught.length ? 'encounter' : 'popup');
-      yield 70;
-    } else if (!this.o.embed && D.postures) yield* D.postures.surprise(this); // (any fight whose foes lie in AMBUSH, the Pocket DM's runes: each hider's own Stealth against each passive Perception -- js/postures.js P.surprise, 11-10)
+    } else if (!this.o.embed) yield* this.surpriseRoll(null, { allHide: this.fight.ambush ? 'foe' : null }); // (the story's ambush rolled one Stealth, the best bonus, for every foe till 11-10)
     if (D.familiar && D.familiar.alarm) yield* D.familiar.alarm(this); // (the frog familiar's croak: its caster is never caught off guard)
     while (true) {
       this.round++;
@@ -2525,7 +2513,7 @@
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       else if (rn > 1 && D.spr.anim(att.sheet, 'attack' + rn)) att.anim = 'attack' + rn; // (a sheet's attack2: the second blow of a turn where no row is named for the weapon -- Extra Attack, or the blow after an Action Surge: Barley's FlailOverhead, ART-75, 10-20)
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
-      if (att.surprise && this.round === 1 && melee && rn === 1 && Battle.caught(tgt) && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush'; // (on one it surprised: Battle.caught, 11-10)
+      if (att.surprise && this.round === 1 && melee && rn === 1 && Battle.caught(tgt, att) && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush'; // (on one it surprised: Battle.caught, 11-10)
       // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
       // turn's Martial Advantage is unspent -- hit or miss, the drill shows either way; its dice are the hit's, below. The hobgoblins' sheets, 10-07)
       if (att.martial && melee && !(att.turn && att.turn.martialUsed) && D.spr.anim(att.sheet, 'martial') && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) att.anim = 'martial';
@@ -2793,7 +2781,7 @@
     // damage" -- RULED 11-10, his "5 - aye"): only on one caught unaware at this fight's start (Battle.caught), in round 1. It was every round-1 hit, the 8-bit game's reading,
     // till 11-10: his record of 11-09 had a bugbear take a fighter from 36 to 0 in a round with nobody surprised
     if (att.raging && atk.rage) { dmg += atk.rage; parts.push('{o}rage +' + atk.rage + '{/}'); }
-    if (att.surprise && this.round === 1 && Battle.caught(tgt)) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}surprise attack ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
+    if (att.surprise && this.round === 1 && Battle.caught(tgt, att)) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}surprise attack ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
     if (att.cls === 'paladin' && melee && (!att.guest || att.classAI) && (att.slots || []).some(function (n) { return n > 0; })) {
       var opts = [], smUF = /^(undead|fiend)$/.test(tgt.type || ''), smN = function (lv) { return Math.min(5, 1 + lv) + (smUF ? 1 : 0); }; // (SRD 5.1: "The damage increases by 1d8 if the target is an undead or a fiend" -- 10-05, Griz: "yes, thought it was there")
@@ -4108,7 +4096,48 @@
   // attacks, the saves, the shove and the break-free; a card that rolls one says so
   // caught unaware at this fight's start (SRD 5.1 Surprise): still waiting on its lost turn (conds.surprised), or past it this round (caughtR1, set as that turn began --
   // heroTurn, ai.js turnOf); the bugbear's Surprise Attack reads it, in round 1 (attack, 11-10)
-  Battle.caught = function (w) { return !!(w && w.conds && (w.conds.surprised || w.caughtR1)); };
+  // `by`: the attacker -- surprise is a side's (SRD 5.1: the opposing side's Stealth), so one caught unaware was surprised by every enemy of it (the bugbear's "If the bugbear
+  // surprises a creature": one of its side's)
+  Battle.caught = function (w, by) { return !!(w && w.conds && (w.conds.surprised || w.caughtR1) && (!by || G.hostile(by, w))); };
+  // SURPRISE, any fight (SRD 5.1 Combat: "The GM determines who might be surprised. If neither side tries to be stealthy, they automatically notice each other. Otherwise,
+  // the GM compares the Dexterity (Stealth) checks of anyone hiding with the passive Wisdom (Perception) score of each creature on the opposing side. Any character or
+  // monster that doesn't notice a threat is surprised at the start of the encounter." RULED 11-10, Griz: "we should have 'real' surprise"). Either side: the hiders are
+  // whoever is hidden as the fight begins (o.allHide: every one of that side -- a story's `ambush`), each with its own Stealth -- the one it holds (a Hide, the ambush
+  // posture's), else a check rolled now for the surprise alone (a lurker lying in wait keeps the plain rule after it: lostCover); a block with no Stealth checks with its
+  // DEX. Each creature with a hider among its enemies notices a threat when its passive Perception meets one of their totals, or when it can see an enemy not hiding;
+  // the rest are surprised -- no turn in round 1, no reaction till then (heroTurn, ai.js turnOf; rules.js RU.canAct). `units`: the fight's own (the roam's floors are one
+  // Battle: js/roam.js R.fight passes its order); a mark left by a fight before is cleared. battle.js run, and the roam's fights, call it
+  Battle.prototype.stealthCheck = function (u) { var s0 = u.stealth; u.stealth = u.stealth || D.mod(u.abil ? u.abil.dex : 10); try { return this.stealthRoll(u).total; } finally { u.stealth = s0; } };
+  Battle.prototype.surpriseRoll = function* (units, o) {
+    o = o || {}; var self = this;
+    var list = (units || this.units).filter(function (w) { return w && !w.dead && w.hp > 0 && !w.object && !w.look && !w.bystander && !w.away; });
+    list.forEach(function (w) { delete w.caughtR1; });
+    var hiders = list.filter(function (w) { return (w.conds && w.conds.hidden) || (o.allHide && w.side === o.allHide); });
+    if (!hiders.length) return 0;
+    var tot = {}; hiders.forEach(function (w) { tot[w.id] = w.conds.hidden && w.hidTotal != null ? w.hidTotal : self.stealthCheck(w); });
+    var nm = function (w) { return w.side === 'party' ? w.name : shortName(w); }, lines = [], caught = 0, sides = [];
+    hiders.forEach(function (w) { if (sides.indexOf(w.side) < 0) sides.push(w.side); });
+    sides.forEach(function (sd) {
+      var by = {}, order = [];
+      hiders.filter(function (w) { return w.side === sd; }).forEach(function (w) { var k = nm(w); if (!by[k]) { by[k] = []; order.push(k); } by[k].push(tot[w.id]); });
+      lines.push((sd === 'party' ? '{y}UNSEEN{/}: our Stealth ' : '{r}AMBUSH{/}: their Stealth ') + order.map(function (k) { return k + ' ' + by[k].join(', '); }).join('; ') + ' against each passive Perception');
+    });
+    var rows = [];
+    list.forEach(function (h) {
+      var hs = hiders.filter(function (w) { return G.hostile(h, w); }); if (!hs.length) return;
+      var pp = h.perception || 10, saw = hs.filter(function (w) { return pp >= tot[w.id]; });
+      var plain = list.filter(function (f) { return G.hostile(h, f) && hs.indexOf(f) < 0 && !(f.conds && f.conds.hidden) && G.standing(f) && D.magic.sees(self, h, f) && G.los(h, f).clear; });
+      if (!saw.length && !plain.length) { h.conds.surprised = true; caught++; }
+      rows.push({ h: h, line: '  ' + nm(h) + ' ' + pp + ': ' + (saw.length ? '{n}sees them coming{/}' : plain.length ? '{n}sees ' + nm(plain[0]) + ' plainly{/}' : '{o}caught unaware{/}') });
+    });
+    rows.sort(function (a, b) { return (a.h.side === 'party' ? 0 : 1) - (b.h.side === 'party' ? 0 : 1); }); // (ours first: the card's few lines are the party's)
+    var all = lines.concat(rows.map(function (r) { return r.line; }));
+    this.card(all.length > 8 ? all.slice(0, 7).concat(['  ... and ' + (all.length - 7) + ' more (in the log)']) : all, 480);
+    if (all.length > 8) all.slice(7).forEach(function (l) { self.logOnly(l); }); // (the rest in the log: a crowd of foes surprised)
+    D.sfx(caught ? 'encounter' : 'popup');
+    yield 70;
+    return caught;
+  };
   Battle.shakenTag = function (u) { var s = RU.shaken(u); return s ? ' {p}-' + s + ' ' + RU.FEAR[RU.fearLvl(u)] + '{/}' : ''; };
   // a Stealth roll for u now: the d20 and the total
   Battle.prototype.stealthRoll = function (u) {
