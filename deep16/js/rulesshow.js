@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -389,6 +389,94 @@
         return [high && low, (high ? '10 ft up: untouched' : '10 ft up: spiked') + '; 5 ft up: ' + hits + ' squares of spikes (want 3), ' + (hp0 - harpy.hp) + ' piercing'];
       } finally { B.grounds = g0; harpy.fz = null; harpy.flies = fl0; }
     }
+    // ---- the postures (the Pocket DM's runes, 11-10, runes seat B -- js/postures.js; &only=postures): a foe the DM laid on a rune fights by its posture. Each beat lays the posts
+    // as the lay floor's placement will (u.post), D.postures.start as the fight's head does, and the engine plays the turns; the ward's ground and a patrol's squares are drawn on
+    // the floor. The bugbear joined the show's foes for its Surprise Attack
+    var bugbear = kind('bugbear'), postMarks = null, fmP = B.floorMarks;
+    B.floorMarks = function (c) {
+      if (fmP) fmP.apply(this, arguments); if (!postMarks) return;
+      postMarks.forEach(function (m) { D.iso.rhombus(c, m[0], m[1], G.map.gz(m[0], m[1]), 1); c.globalAlpha = m[3] || 0.3; c.fillStyle = m[2]; c.fill(); c.globalAlpha = 1; });
+    };
+    function groundMarks(sq, r, col) { var out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) { var s = G.map.at(x, y); if (s && s.walk && G.dist({ x: x, y: y, size: 1 }, { x: sq[0], y: sq[1], size: 1 }) <= r) out.push([x, y, col, x === sq[0] && y === sq[1] ? 0.55 : 0.22]); } return out; }
+    function unpost(list) { list.forEach(function (w) { ['post', 'postBroke', 'postHome', 'postHp', 'postPool', 'postOff', 'postLeg', 'postRoll', 'caughtR1', 'hidTotal'].forEach(function (k) { delete w[k]; }); if (w.conds) { delete w.conds.hidden; delete w.conds.surprised; } }); postMarks = null; }
+    var freshEars = function () { B.heard = {}; B.seen = {}; }; // (a beat's own: the blows heard and the sights kept from the beat before are not this one's -- battle.js heardOf, lastSeenOf)
+    var walkUp = function* (w, x, y) { turn(w); w.turn.move = Math.max(w.turn.move, 60); var p = G.path(G.reach(w, w.turn.move), x, y); if (p && p.length) yield* fire(B.moveAlong(w, p, { spend: true })); B.active = null; };
+    var aiTurn = function* (w) { B.active = w; yield* fire(D.ai.turn(B, w)); B.active = null; };
+    var sqOf = function (w) { return '(' + w.x + ',' + w.y + ')'; };
+    function* postAmbush() {
+      // a goblin laid in AMBUSH (Stealth +6, the d20 pinned at 15: 21), the wizard and the cleric 30 ft off: hidden from the start; the surprise; its turn -- the wizard in sight,
+      // out of reach: it holds still and readies its scimitar, unseen; the wizard walks up beside it, and the readied blade springs from hiding
+      stage([wizard, cleric, gob], [[0, 3], [2, 3], [0, -3]]); setPin(15, null); wizard.maxhp = wizard.hp = 200; cleric.maxhp = cleric.hp = 200;
+      try {
+        gob.post = { kind: 'ambush', at: [gob.x, gob.y] }; freshEars(); D.postures.start(B); B.round = 0;
+        say(['A goblin laid in AMBUSH: hidden from the start, its own Stealth held (' + gob.hidTotal + '). The SRD\'s surprise: its Stealth against each passive Perception.']); yield W(80);
+        yield* fire(D.postures.surprise(B)); yield W(60); var hid0 = !!gob.conds.hidden, caught = [wizard, cleric].filter(function (w) { return w.conds.surprised; }).map(function (w) { return w.name; });
+        wizard.conds = {}; cleric.conds = {}; B.round = 1; var x0 = gob.x, y0 = gob.y;
+        say(['Its turn: the wizard in sight, 30 ft off, out of reach. It holds still and readies its scimitar -- unseen: no ring, no word.']); yield W(60);
+        yield* aiTurn(gob); yield W(40); var held = gob.x === x0 && gob.y === y0 && !!gob.conds.hidden && !!gob.ready;
+        say(['The wizard walks up beside it (the wizard\'s hit points deep for the show).']); yield W(50);
+        B.round = 2; var n = mark(); yield* walkUp(wizard, gob.x, gob.y + 1); yield W(80); var l = since(n), sprung = /readied/.test(l) && !!gob.postBroke;
+        return [hid0 && caught.length > 0 && held && sprung, 'hidden from the start ' + hid0 + ', caught unaware: ' + (caught.join(', ') || 'no one') + '; its turn: ' + (held ? 'held still, hidden, the scimitar readied' : 'NOT held at ' + sqOf(gob)) + '; the wizard beside it: ' + (sprung ? 'the readied blade from hiding, the ambush sprung' : l.slice(0, 120))];
+      } finally { unpost([gob, wizard, cleric]); }
+    }
+    function* postDefend() {
+      // a wolf laid to DEFEND its square, 15 ft round (drawn): the cleric 35 ft off -- it holds and readies; the cleric at 20 ft from the ward -- it goes at the cleric from inside
+      // its ground; the cleric steps back out -- it holds again. Never further than 15 ft from the ward
+      stage([cleric, wolves[0]], [[0, 4], [0, -3]]); setPin(15, null); cleric.maxhp = cleric.hp = 200; var w = wolves[0], ward = [w.x, w.y], far = [];
+      try {
+        w.post = { kind: 'defend', at: ward.slice(), to: ward.slice(), r: 15 }; freshEars(); D.postures.start(B); postMarks = groundMarks(ward, 15, 'rgb(120,170,255)');
+        var check = function () { var d = G.dist(w, { x: ward[0], y: ward[1], size: 1 }); far.push(d); return d; };
+        say(['A wolf laid to DEFEND the square under it: it holds within 15 ft of that ward (drawn). The cleric 35 ft off.']); yield W(70);
+        yield* aiTurn(w); yield W(40); check(); var rd1 = !!w.ready;
+        say(['The cleric comes to 20 ft from the ward: near enough to reach from inside the wolf\'s ground.']); yield W(50);
+        yield* walkUp(cleric, ward[0], ward[1] + 4); B.round = 2; var n = mark(); yield* aiTurn(w); yield W(60); check(); var bit = /Wolf[^|]*>[^|]*Bite/.test(since(n));
+        say(['The cleric steps back out of its ground.']); yield W(40);
+        yield* walkUp(cleric, ward[0], ward[1] + 7); B.round = 3; yield* aiTurn(w); yield W(60); var dLast = check();
+        var kept = far.every(function (d) { return d <= 15; });
+        return [rd1 && bit && kept && !w.postBroke, 'held and readied at 35 ft ' + rd1 + '; at 20 ft it bit ' + bit + '; the cleric gone, it stayed ' + dLast + ' ft from the ward; its distances ' + far.join(', ') + ' ft (never past 15: ' + kept + ')'];
+      } finally { unpost([w, cleric]); }
+    }
+    function* postPatrol() {
+      // a wolf laid on PATROL in the dark, its rune and its second square drawn: it walks there and back knowing of no one; the light comes up, it sees the cleric, the patrol breaks
+      stage([cleric, wolves[0]], [[0, 5], [-6, -3]]); setPin(15, null); cleric.maxhp = cleric.hp = 200; var w = wolves[0], a = [w.x, w.y], b = [w.x + 11, w.y], dk0 = B.dark, legs = [];
+      try {
+        B.dark = true; w.post = { kind: 'patrol', at: a.slice(), to: b.slice() }; freshEars(); D.postures.start(B); postMarks = [[a[0], a[1], 'rgb(240,200,90)', 0.5], [b[0], b[1], 'rgb(240,200,90)', 0.5]];
+        say(['A wolf laid on PATROL in the dark: from its rune to the second square (both drawn) and back, while it knows of no one. It has no darkvision; the cleric is out there unseen.']); yield W(80);
+        for (var t = 1; t <= 3; t++) { B.round = t; yield* aiTurn(w); legs.push(sqOf(w)); yield W(30); }
+        var walked = legs[1] === sqOf({ x: b[0], y: b[1] }) && w.x < b[0] && !w.postBroke;
+        say(['The light comes up: it sees the cleric.']); yield W(40);
+        B.dark = false; B.round = 4; var d0 = G.dist(w, cleric); yield* aiTurn(w); yield W(60); var broke = /^sees/.test(w.postBroke || '') && G.dist(w, cleric) < d0;
+        return [walked && broke, 'three turns: ' + legs.join(' -> ') + ' (there and turning back: ' + walked + '); in the light: ' + (broke ? 'it broke off ("' + w.postBroke + '") and came on' : 'not broken: ' + (w.postBroke || 'none'))];
+      } finally { B.dark = dk0; unpost([w, cleric]); }
+    }
+    function* postStand() {
+      // a wolf laid to STAND, waiting with a Ready (SRD 5.1): the cleric 30 ft off -- it holds, its bite readied; the cleric walks up -- the readied bite; it is in the fight now,
+      // and when the cleric steps back it comes on
+      stage([cleric, wolves[1]], [[0, 3], [0, -3]]); setPin(15, null); cleric.maxhp = cleric.hp = 200; var w = wolves[1], x0 = w.x, y0 = w.y;
+      try {
+        w.post = { kind: 'stand', at: [w.x, w.y] }; freshEars(); D.postures.start(B); postMarks = [[x0, y0, 'rgb(200,200,210)', 0.45]];
+        say(['A wolf laid to STAND: it waits where it was laid, with a Ready. The cleric 30 ft off.']); yield W(60);
+        yield* aiTurn(w); yield W(40); var held = w.x === x0 && w.y === y0 && !!w.ready;
+        say(['The cleric walks up to it.']); yield W(40);
+        B.round = 2; var n = mark(); yield* walkUp(cleric, x0, y0 + 1); yield W(70); var sprung = /readied/.test(since(n)) && w.postBroke === 'strikes';
+        say(['In the fight now: the cleric steps back, and it comes on.']); yield W(40);
+        yield* walkUp(cleric, x0, y0 + 5); B.round = 3; yield* aiTurn(w); yield W(60); var came = w.x !== x0 || w.y !== y0;
+        return [held && sprung && came, 'held, its bite readied ' + held + '; the cleric beside it: ' + (sprung ? 'the readied bite, the stand broken' : 'no readied bite') + '; the cleric back: it ' + (came ? 'came on to ' + sqOf(w) : 'stayed')];
+      } finally { unpost([w, cleric]); }
+    }
+    function* surpriseAttack() {
+      // the bugbear's Surprise Attack by the SRD (11-10, his "5 - aye"): round 1, its morningstar pinned to hit the paladin (not surprised) and the cleric (caught unaware): the 2d6
+      // on the cleric only
+      stage([paladin, cleric, bugbear], [[-1, 1], [1, 1], [0, 0]]); setPin(18, null); paladin.maxhp = paladin.hp = 200; cleric.maxhp = cleric.hp = 200;
+      try {
+        cleric.conds.surprised = true; B.round = 1;
+        say(['Round 1. The cleric was caught unaware at the fight\'s start; the paladin was not. The bugbear\'s morningstar is pinned to hit both. SRD 5.1: "If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage."']); yield W(110);
+        turn(bugbear); var n = mark(); yield* fire(B.attack(bugbear, paladin, bugbear.attacks.morningstar)); yield W(60); var lp = since(n);
+        turn(bugbear); n = mark(); yield* fire(B.attack(bugbear, cleric, bugbear.attacks.morningstar)); B.active = null; yield W(80); var lc = since(n);
+        var ok = !/surprise attack/.test(lp) && /surprise attack 2d6/.test(lc);
+        return [ok, 'at the paladin: ' + (/surprise attack/.test(lp) ? 'the 2d6 (wrong)' : 'no extra') + '; at the cleric: ' + (/surprise attack 2d6/.test(lc) ? 'the 2d6' : 'no extra (wrong)')];
+      } finally { unpost([paladin, cleric, bugbear]); }
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -410,7 +498,12 @@
       { id: 'keendark', group: 'gridfix1107', name: 'By ear and nose, in the dark', what: 'A keen hearing or smell finds a hider without sight. In the dark the rogue hides from a wolf and a bandit, Stealth 15: neither can see her; the wolf\'s nose and ears find her by its passive 13 +5, "Wolf (18, keen hearing and smell, without sight)"; the bandit cannot. (11-07, his "yeah - for all the monsters with non-vision senses notes".)', run: keenDark },
       { id: 'shaketrance', group: 'gridfix1110', name: 'Shaken out of a Hypnotic Pattern', what: 'The wizard and the bard stand entranced. HELP from the cleric beside the wizard shakes him out of the stupor (SRD 5.1: "someone else uses an action to shake the creature out of its stupor"). The goblin\'s blow on the bard lands on 20 temporary hit points: still damage taken, and the trance breaks. (11-09, his stream\'s fight 2: Vivian stood entranced five rounds, friends beside her and a blow on her temporary hit points.)', run: shakeTrance },
       { id: 'chuultentacles', group: 'gridfix1110', name: 'The chuul\'s tentacles: a save, no roll', what: 'SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed." No attack roll: the cleric\'s Protection is not asked, a d20 of 1 changes nothing, and there is no damage. (11-09, his record: Protection\'s prompt and a nat-1 HIT on the tentacles.)', run: chuulTentacles },
-      { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 10 ft up crosses the spikes untouched; at 5 ft up the thorns reach it, 2d4 a square. (11-10, your ruling: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts" -- the SRD says nothing of height.)', run: spikeFlier }
+      { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 10 ft up crosses the spikes untouched; at 5 ft up the thorns reach it, 2d4 a square. (11-10, your ruling: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts" -- the SRD says nothing of height.)', run: spikeFlier },
+      { id: 'postambush', group: 'postures', name: 'A rune\'s AMBUSH', what: 'The Pocket DM\'s runes (11-10): a foe the DM laid in ambush is hidden from the start, its own Stealth held, and the SRD\'s surprise is rolled -- its Stealth against each passive Perception; caught unaware, no turn in round 1. It holds still: one of ours in sight but out of reach, it readies its blade unseen; one walks up, and the readied blow comes from hiding.', run: postAmbush },
+      { id: 'postdefend', group: 'postures', name: 'A rune\'s DEFEND', what: 'A foe laid to defend holds within 15 ft of its ward (drawn): it readies against what comes, goes at one near the ward from inside its ground, and never chases out of it -- whatever it hears.', run: postDefend },
+      { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },
+      { id: 'poststand', group: 'postures', name: 'A rune\'s STAND', what: 'A foe laid to stand waits where it was laid with a Ready (SRD 5.1). The first that comes into its reach gets the readied blow; struck or striking, it is in the fight, and fights as any foe.', run: postStand },
+      { id: 'surpriseattack', group: 'postures', name: 'The bugbear\'s Surprise Attack', what: 'SRD 5.1: the bugbear\'s extra 2d6 lands on a hit in round 1 at a creature it surprised -- not on every round-1 hit, as it did till 11-10 (his record of 11-09: a fighter 36 to 0 in a round with nobody surprised; his "5 - aye").', run: surpriseAttack },
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

@@ -3627,6 +3627,170 @@
   // consumed multiples)", then "not to stack with aid, whichever is greater (unless SRD disagrees)"): 1. the rules (js/rules.js R.eatPie, R.pieOff, R.pieAid, R.saveBonus);
   // 2. in a fight with no clock (the Pocket DM's, the show's): the fight's, a second eaten for nothing; 3. on THE WORLD from the menu's rules (house.js FD.item): an hour on its
   // clock, a second for nothing, Aid the greater, the hour swept (H.lightsOut) and what it lent back off; 4. in a fight in the house: an hour, on the sheet too (R.lasting carries it)
+  // THE POSTURES, 11-10 (mode=postures; the Pocket DM's runes, step 5 of `cloud-notes/pocket-dm-runes-look-2026-11-07.md`, runes seat B -- js/postures.js): each laid foe's
+  // u.post as runes seat A's placement sets it, and the AI fights by it. 1. the ambush hides its unit at the start and the surprise is rolled (SRD 5.1: each hider's Stealth
+  // against each passive Perception; a foe in plain sight is noticed); 2. AMBUSH holds, unmoved by a blow heard, Readies unseen at a sight, springs on one in reach, breaks when
+  // found, and its unit with it; 3. DEFEND keeps within its radius of the ward, Readies, fights what comes near the ward from inside it, walks back to a far ward, never breaks;
+  // 4. PATROL walks its rune to the second square and back, broken by a blow heard within P.HEAR (not beyond) and by a sight, its unit with it; 5. STAND holds with a Ready,
+  // unmoved by a blow heard, the readied blow springs and it is in the fight, a blow at one of its unit breaks them all, a spell's harm breaks it; 6. the class AI the same
+  // (a class defender, a class ambusher); 7. the bugbear's Surprise Attack by the SRD -- only at one it surprised, in round 1 (his "5 - aye"); 8. the leash on G.reach
+  if (get('mode', '') === 'postures') {
+    var repPO = { checks: [], errors: [], notes: [] }, d0PO = D.d, muPO = D.music, PO = D.postures, G0 = D.grid, D20 = 10;
+    function okPO(what, v) { repPO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPO(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } }
+    function foesPO(Bx) { return Bx.units.filter(function (u) { return u.side === 'foe'; }); }
+    function heroPO(Bx, c) { return Bx.units.filter(function (u) { return u.side === 'party' && !u.familiar && (!c || u.cls === c); })[0]; }
+    // (the posts set as the placement would, before the fight's first step: battle.js run reads them at its head; a STAND's home and a PATROL's place in its file are
+    // where each stands then, so those are seated by the door's &foeat= as the placement seats them)
+    function mkPO(q, posts) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var fs = foesPO(Bx); (posts || []).forEach(function (p, i) { if (p && fs[i]) fs[i].post = JSON.parse(JSON.stringify(p)); }); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); return Bx; }
+    function surpPO(Bx) { var k = 0; while (k++ < 60 && Bx.round === 0 && !(Bx.log || []).some(function (l) { return /AMBUSH/.test(l); })) Bx.co.next(); }
+    function putPO(Bx, u, x, y) { u.x = x; u.y = y; G0.setup(G0.map, Bx.units); Bx.cache = null; }
+    function turnPO(Bx, u) { Bx.active = u; runPO(D.ai.turn(Bx, u)); Bx.active = null; }
+    function walkPO(Bx, h, x, y) { D.rules.startTurn(h); h.turn.move = 60; Bx.active = h; var p = G0.path(G0.reach(h, 60), x, y); if (p && p.length) runPO(Bx.moveAlong(h, p, { spend: true })); Bx.active = null; }
+    function logPO(Bx, n) { return (Bx.log || []).slice(n).join(' | '); }
+    function at(u) { return '(' + u.x + ',' + u.y + ')'; }
+    function ft(a, sq) { return G0.dist(a, { x: sq[0], y: sq[1], size: 1 }); }
+    D.music = function () { };
+    try {
+      D.d = function (n) { return n === 20 ? D20 : Math.ceil(n / 2); };
+      if (!PO) { repPO.errors.push('no D.postures: js/postures.js is not loaded'); PO = { HEAR: 60 }; } // (the sections still run: on the code before the postures, each check says what it does instead)
+      try {
+      // 1. THE AMBUSH AND THE SURPRISE: two goblins in ambush (Stealth +6, the d20 pinned at 10: 16 each); the fighter's passive Perception 11 is caught, the rogue's 18 sees them
+      D20 = 10;
+      var A = { kind: 'ambush', at: [8, 1] }, B1 = mkPO('?npc=goblin,goblin&vs=fighter:5,rogue:5&lvl=5', [A, A]), g1 = foesPO(B1), f1 = heroPO(B1, 'fighter'), r1 = heroPO(B1, 'rogue');
+      okPO('1 two goblins laid in ambush, at the start: hidden ' + g1.map(function (g) { return !!g.conds.hidden; }) + ', their Stealth held ' + g1.map(function (g) { return g.hidTotal; }) + ' (want true,true; 16,16)', g1.every(function (g) { return g.conds.hidden && g.hidTotal === 16; }));
+      surpPO(B1); var l1 = logPO(B1, 0);
+      okPO('1 the surprise: the fighter (PP ' + f1.perception + ') surprised ' + !!f1.conds.surprised + ', the rogue (PP ' + r1.perception + ') ' + !!r1.conds.surprised + ' -- ' + ((l1.match(/AMBUSH[^|]*\|[^|]*\|[^|]*/) || ['no AMBUSH card'])[0]) + ' (want true, false)', f1.conds.surprised === true && !r1.conds.surprised && /AMBUSH/.test(l1) && /caught unaware/.test(l1));
+      var B1b = mkPO('?npc=goblin,wolf&vs=fighter:5&lvl=5', [A, { kind: 'stand', at: [10, 1] }]), f1b = heroPO(B1b, 'fighter'), w1b = foesPO(B1b)[1];
+      putPO(B1b, w1b, 9, 4); surpPO(B1b); var l1b = logPO(B1b, 0);
+      okPO('1 the same with a wolf standing in plain sight at ' + at(w1b) + ': the fighter surprised ' + !!f1b.conds.surprised + ' -- ' + ((l1b.match(/fighter[^|]*plainly[^|]*|Fighter[^|]*plainly[^|]*/i) || ['no "plainly" line'])[0]) + ' (want false: a threat noticed)', !f1b.conds.surprised && /plainly/.test(l1b));
+      } catch (eS) { repPO.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 2. AMBUSH HOLDS AND SPRINGS
+      D20 = 19;
+      // a. the dark: a bandit (no darkvision) in ambush, a blow heard from the fighter 45 ft off -- it holds, unmoved (the hunt on hearing, ai.js brute, would take it there)
+      var B2a = mkPO('?npc=bandit&vs=fighter:5&lvl=5&dark', [{ kind: 'ambush', at: [8, 1] }]), b2 = foesPO(B2a)[0], f2a = heroPO(B2a, 'fighter');
+      putPO(B2a, b2, 8, 1); putPO(B2a, f2a, 8, 10); B2a.round = 2; B2a.noteHeard(f2a); turnPO(B2a, b2);
+      okPO('2a a bandit in ambush in the dark, a blow heard 45 ft off: at ' + at(b2) + ', hidden ' + !!b2.conds.hidden + ', unbroken ' + !b2.postBroke + ' (want (8,1), true, true)', b2.x === 8 && b2.y === 1 && b2.conds.hidden && !b2.postBroke);
+      // b. lit: one of ours in sight, out of reach -- it Readies its blade, unseen (no card), and stays
+      var B2 = mkPO('?npc=goblin,goblin&vs=fighter:5&lvl=5', [A, A]), g2 = foesPO(B2), f2 = heroPO(B2, 'fighter');
+      putPO(B2, g2[0], 8, 1); putPO(B2, g2[1], 10, 1); putPO(B2, f2, 8, 8); f2.facing = 5; B2.round = 2; var n2 = (B2.log || []).length; turnPO(B2, g2[0]); var l2b = logPO(B2, n2);
+      okPO('2b a goblin in ambush sees the fighter 35 ft off: at ' + at(g2[0]) + ', hidden ' + !!g2[0].conds.hidden + ', readied ' + JSON.stringify(g2[0].ready && g2[0].ready.name) + ', no card of it ' + !/readies/.test(l2b) + ' (want (8,1), true, "Scimitar", true)', g2[0].x === 8 && g2[0].y === 1 && g2[0].conds.hidden && g2[0].ready && g2[0].ready.name === 'Scimitar' && !/readies/.test(l2b));
+      // c. the fighter walks up beside it: the readied blade springs, the ambush is sprung -- and the other goblin of its unit with it
+      n2 = (B2.log || []).length; walkPO(B2, f2, 8, 2); var l2c = logPO(B2, n2);
+      okPO('2c the fighter walks up to ' + at(f2) + ': the readied blow ' + /readied/.test(l2c) + ', the ambush broken ' + JSON.stringify(g2[0].postBroke) + ', its unit-mate ' + JSON.stringify(g2[1].postBroke) + ' -- ' + l2c.slice(0, 160), /readied/.test(l2c) && !!g2[0].postBroke && !!g2[1].postBroke);
+      // d. one of ours already in its reach at its turn: it strikes, from hiding
+      var B2d = mkPO('?npc=goblin&vs=fighter:5&lvl=5', [A]), g2d = foesPO(B2d)[0], f2d = heroPO(B2d, 'fighter'); putPO(B2d, g2d, 8, 1); putPO(B2d, f2d, 8, 2); B2d.round = 1;
+      var hp2d = f2d.hp, n2d = (B2d.log || []).length; turnPO(B2d, g2d); var l2d = logPO(B2d, n2d);
+      okPO('2d the fighter beside a goblin in ambush at its turn: it strikes (' + (l2d.match(/Goblin[^|]*>[^|]*/) || ['no blow'])[0].slice(0, 90) + '), hp ' + hp2d + ' -> ' + f2d.hp + ', broken ' + JSON.stringify(g2d.postBroke) + ', hidden still ' + !!g2d.conds.hidden + ' (want a blow, "strikes from hiding", false)', /Goblin[^|]*>/.test(l2d) && /strikes/.test(g2d.postBroke || '') && !g2d.conds.hidden);
+      // e. found (a Search, a watch): the ambush is sprung and it fights as any goblin
+      var B2e = mkPO('?npc=goblin&vs=fighter:5&lvl=5', [A]), g2e = foesPO(B2e)[0], f2e = heroPO(B2e, 'fighter'); putPO(B2e, g2e, 8, 1); putPO(B2e, f2e, 8, 8); B2e.round = 2;
+      delete g2e.conds.hidden; delete g2e.hidTotal; var n2e = (B2e.log || []).length; turnPO(B2e, g2e);
+      okPO('2e a goblin in ambush found before its turn: broken ' + JSON.stringify(g2e.postBroke) + ', it acts -- at ' + at(g2e) + ', ' + logPO(B2e, n2e).slice(0, 120) + ' (want "is found", a move or a shot)', g2e.postBroke === 'is found' && ((g2e.x !== 8 || g2e.y !== 1) || /Goblin[^|]*>/.test(logPO(B2e, n2e))));
+      } catch (eS) { repPO.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 3. DEFEND: a wolf (bite only) holding within 15 ft of the ward at (8,2)
+      D20 = 19;
+      var DF = { kind: 'defend', at: [8, 2], to: [8, 2], r: 15 }, B3 = mkPO('?npc=wolf&vs=fighter:5&lvl=5', [DF]), w3 = foesPO(B3)[0], f3 = heroPO(B3, 'fighter');
+      putPO(B3, w3, 8, 2); putPO(B3, f3, 8, 11); B3.round = 2; turnPO(B3, w3);
+      okPO('3a a wolf defending (8,2) sees the fighter 45 ft off: at ' + at(w3) + ', ' + ft(w3, [8, 2]) + ' ft from the ward, readied ' + JSON.stringify(w3.ready && w3.ready.name) + ' (want <= 15, "Bite")', ft(w3, [8, 2]) <= 15 && w3.ready && w3.ready.name === 'Bite');
+      var B3b = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark', [DF]), w3b = foesPO(B3b)[0], f3b = heroPO(B3b, 'fighter'); putPO(B3b, w3b, 8, 2); putPO(B3b, f3b, 8, 11); B3b.round = 2; B3b.noteHeard(f3b); turnPO(B3b, w3b);
+      okPO('3b in the dark, a blow heard 45 ft off: the defender at ' + at(w3b) + ' (want (8,2): the hunt on hearing does not pull it off its post)', w3b.x === 8 && w3b.y === 2);
+      putPO(B3, f3, 8, 6); B3.round = 3; var hp3 = f3.hp, n3 = (B3.log || []).length; turnPO(B3, w3); var l3 = logPO(B3, n3);
+      okPO('3c the fighter at (8,6), 20 ft from the ward: the wolf goes at him from inside -- at ' + at(w3) + ', ' + ft(w3, [8, 2]) + ' ft from the ward, its bite ' + /Wolf[^|]*>[^|]*Bite/.test(l3) + ' (want <= 15, true)', ft(w3, [8, 2]) <= 15 && /Wolf[^|]*>[^|]*Bite/.test(l3));
+      putPO(B3, f3, 8, 11); f3.conds = {}; B3.round = 4; turnPO(B3, w3);
+      okPO('3d the fighter back at (8,11): the wolf at ' + at(w3) + ', ' + ft(w3, [8, 2]) + ' ft from the ward, unbroken ' + !w3.postBroke + ' (want <= 15, true: it does not chase)', ft(w3, [8, 2]) <= 15 && !w3.postBroke);
+      putPO(B3, f3, w3.x, w3.y + 1); D.rules.startTurn(f3); B3.active = f3; runPO(B3.attack(f3, w3, f3.weapon)); B3.active = null;
+      okPO('3e the fighter strikes the defender: unbroken ' + !w3.postBroke + ' (want true: a defender never leaves its post)', !w3.postBroke);
+      var B3f = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark', [{ kind: 'defend', at: [3, 3], to: [12, 6], r: 15 }]), w3f = foesPO(B3f)[0]; putPO(B3f, w3f, 3, 3); B3f.round = 1; var d3f = ft(w3f, [12, 6]); turnPO(B3f, w3f);
+      okPO('3f laid at (3,3) to defend (12,6), 45 ft off: its first turn walks it to ' + at(w3f) + ', ' + d3f + ' -> ' + ft(w3f, [12, 6]) + ' ft (want <= 15)', ft(w3f, [12, 6]) <= 15);
+      } catch (eS) { repPO.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 4. PATROL: a wolf walks (3,3) to (14,3) and back in the dark, knowing of no one
+      var PT = { kind: 'patrol', at: [3, 3], to: [14, 3] }, B4 = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark&foeat=3,3', [PT]), w4 = foesPO(B4)[0], f4 = heroPO(B4, 'fighter'), xs = [];
+      putPO(B4, w4, 3, 3); putPO(B4, f4, 8, 11);
+      for (var t4 = 1; t4 <= 3; t4++) { B4.round = t4; turnPO(B4, w4); xs.push(at(w4) + ' ' + w4.postLeg); }
+      okPO('4a three turns of patrol: ' + xs.join(', ') + ', unbroken ' + !w4.postBroke + ' (want east along y 3 to (14,3), then back west)', !w4.postBroke && /^\((1[0-3]|[4-9]),3\)/.test(xs[0]) && /^\(14,3\) at/.test(xs[1]) && w4.y === 3 && w4.x < 14);
+      putPO(B4, w4, 6, 3); putPO(B4, f4, 8, 10); B4.round = 5; B4.noteHeard(f4); turnPO(B4, w4);
+      okPO('4b a blow heard 35 ft off: broken ' + JSON.stringify(w4.postBroke) + ', it goes for it -- at ' + at(w4) + ' (want "hears the fight", off the patrol line)', w4.postBroke === 'hears the fight' && w4.y > 3);
+      var B4c = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark&foeat=6,3', [PT]), w4c = foesPO(B4c)[0], f4c = heroPO(B4c, 'fighter'), hear0 = PO.HEAR; putPO(B4c, w4c, 6, 3); putPO(B4c, f4c, 8, 10); B4c.round = 2; B4c.noteHeard(f4c);
+      PO.HEAR = 30; turnPO(B4c, w4c); PO.HEAR = hear0;
+      okPO('4c the same blow beyond its hearing (P.HEAR at 30 for the check: the floor is too small for 60): unbroken ' + !w4c.postBroke + ', on the line at ' + at(w4c) + ' (want true, y 3)', !w4c.postBroke && w4c.y === 3);
+      var B4d = mkPO('?npc=wolf,wolf&vs=fighter:5&lvl=5&foeat=3,3;3,4', [PT, PT]), w4d = foesPO(B4d), f4d = heroPO(B4d, 'fighter'); putPO(B4d, w4d[0], 3, 3); putPO(B4d, w4d[1], 3, 4); putPO(B4d, f4d, 8, 9); B4d.round = 1; turnPO(B4d, w4d[0]);
+      okPO('4d lit, the fighter in sight: the first wolf broken ' + JSON.stringify(w4d[0].postBroke) + ' and goes for him (at ' + at(w4d[0]) + '), its unit-mate broken ' + JSON.stringify(w4d[1].postBroke) + ' (want "sees ...", nearer him, the same)', /^sees/.test(w4d[0].postBroke || '') && G0.dist(w4d[0], f4d) < G0.dist({ x: 3, y: 3, size: 1 }, f4d) && !!w4d[1].postBroke);
+      } catch (eS) { repPO.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 5. STAND: two wolves of one unit standing at (8,2) and (9,2)
+      D20 = 19;
+      var ST = { kind: 'stand', at: [8, 2] }, B5 = mkPO('?npc=wolf,wolf&vs=fighter:5&lvl=5&foeat=8,2;10,2', [ST, ST]), w5 = foesPO(B5), f5 = heroPO(B5, 'fighter');
+      putPO(B5, w5[0], 8, 2); putPO(B5, w5[1], 10, 2); putPO(B5, f5, 8, 9); B5.round = 1; turnPO(B5, w5[0]);
+      okPO('5a a standing wolf sees the fighter 35 ft off: at ' + at(w5[0]) + ', readied ' + JSON.stringify(w5[0].ready && w5[0].ready.name) + ' (want (8,2), "Bite")', w5[0].x === 8 && w5[0].y === 2 && w5[0].ready && w5[0].ready.name === 'Bite');
+      var B5b = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark&foeat=8,2', [ST]), w5b = foesPO(B5b)[0], f5b = heroPO(B5b, 'fighter'); putPO(B5b, w5b, 8, 2); putPO(B5b, f5b, 8, 11); B5b.round = 2; B5b.noteHeard(f5b); turnPO(B5b, w5b);
+      okPO('5b standing in the dark, a blow heard 45 ft off: at ' + at(w5b) + ' (want (8,2))', w5b.x === 8 && w5b.y === 2);
+      var n5 = (B5.log || []).length; walkPO(B5, f5, 8, 3); var l5 = logPO(B5, n5);
+      okPO('5c the fighter walks up to ' + at(f5) + ': the readied bite ' + /readied/.test(l5) + ', the stand broken ' + JSON.stringify(w5[0].postBroke) + ', its unit-mate ' + JSON.stringify(w5[1].postBroke) + ' (want true, "strikes", the same)', /readied/.test(l5) && w5[0].postBroke === 'strikes' && !!w5[1].postBroke);
+      var B5d = mkPO('?npc=wolf,wolf&vs=fighter:5&lvl=5&foeat=8,2;12,4', [ST, ST]), w5d = foesPO(B5d), f5d = heroPO(B5d, 'fighter'); putPO(B5d, w5d[0], 8, 2); putPO(B5d, w5d[1], 12, 4); putPO(B5d, f5d, 8, 3);
+      D.rules.startTurn(f5d); B5d.active = f5d; runPO(B5d.attack(f5d, w5d[0], f5d.weapon)); B5d.active = null; B5d.round = 2; turnPO(B5d, w5d[1]);
+      okPO('5d the fighter strikes one of a standing unit: both broken (' + JSON.stringify(w5d[0].postBroke) + ', ' + JSON.stringify(w5d[1].postBroke) + '), and the other comes on -- at ' + at(w5d[1]) + ' (want "is attacked", the same, off (12,4))', w5d[0].postBroke === 'is attacked' && !!w5d[1].postBroke && (w5d[1].x !== 12 || w5d[1].y !== 4));
+      var B5e = mkPO('?npc=wolf&vs=fighter:5&lvl=5&dark&foeat=8,2', [ST]), w5e = foesPO(B5e)[0]; putPO(B5e, w5e, 8, 2); B5e.round = 2; w5e.hp -= 3; turnPO(B5e, w5e);
+      okPO('5e a spell\'s harm (3 hp) on a standing wolf: broken ' + JSON.stringify(w5e.postBroke) + ' (want "is hurt")', w5e.postBroke === 'is hurt');
+      } catch (eS) { repPO.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 6. THE CLASS AI (tactics.js, through the same hook): a class fighter defending, a class rogue in ambush
+      D20 = 19;
+      var B6 = mkPO('?npc=fighter:5&vs=fighter:5&lvl=5', [DF]), c6 = foesPO(B6)[0], f6 = heroPO(B6, 'fighter'); putPO(B6, c6, 8, 2); putPO(B6, f6, 8, 11); B6.round = 2; turnPO(B6, c6);
+      okPO('6a a class fighter (' + !!c6.classAI + ') defending (8,2), the fighter 45 ft off: at ' + at(c6) + ', ' + ft(c6, [8, 2]) + ' ft from the ward, readied ' + JSON.stringify(c6.ready && c6.ready.what) + ' (want true, <= 15, "weapon")', c6.classAI && ft(c6, [8, 2]) <= 15 && c6.ready && c6.ready.what === 'weapon');
+      var B6b = mkPO('?npc=rogue:5&vs=fighter:5&lvl=5&dark', [{ kind: 'ambush', at: [8, 1] }]), c6b = foesPO(B6b)[0], f6b = heroPO(B6b, 'fighter'), h6b = !!c6b.conds.hidden && c6b.hidTotal != null; putPO(B6b, c6b, 8, 1); putPO(B6b, f6b, 8, 11); B6b.round = 2; B6b.noteHeard(f6b); turnPO(B6b, c6b);
+      okPO('6b a class rogue (' + !!c6b.classAI + ') in ambush, hidden from the start ' + h6b + '; in the dark, a blow heard 50 ft off: at ' + at(c6b) + ', hidden ' + !!c6b.conds.hidden + ', Stealth held ' + c6b.hidTotal + ', unbroken ' + !c6b.postBroke + ' (want true, true, (8,1), true, a number, true)', c6b.classAI && h6b && c6b.x === 8 && c6b.y === 1 && c6b.conds.hidden && c6b.hidTotal != null && !c6b.postBroke);
+      } catch (eS) { repPO.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 7. THE BUGBEAR'S SURPRISE ATTACK (SRD 5.1: "If the bugbear surprises a creature and hits it with an attack during the first round of combat"; his "5 - aye")
+      D20 = 18;
+      var mk7 = function () { var Bx = mkPO('?npc=bugbear&vs=fighter:5&lvl=5', []), bb = foesPO(Bx)[0], fh = heroPO(Bx, 'fighter'); putPO(Bx, bb, 8, 4); putPO(Bx, fh, 8, 5); Bx.round = 1; D.rules.startTurn(bb); Bx.active = bb; return { B: Bx, bb: bb, f: fh }; };
+      var blow7 = function (s) { var n = (s.B.log || []).length, h0 = s.f.hp; runPO(s.B.attack(s.bb, s.f, s.bb.attacks.morningstar)); return { log: logPO(s.B, n), dmg: h0 - s.f.hp }; };
+      var s7a = mk7(), o7a = blow7(s7a);
+      okPO('7a round 1, the fighter not surprised: ' + o7a.dmg + ' damage, the surprise attack ' + /surprise attack/.test(o7a.log) + ' (want no extra 2d6: his record of 11-09 had it on every round-1 hit)', !/surprise attack|first blow/.test(o7a.log));
+      var s7b = mk7(); s7b.f.conds.surprised = true; var o7b = blow7(s7b);
+      okPO('7b round 1, the fighter surprised (his lost turn still to come): ' + o7b.dmg + ' damage, the surprise attack ' + /surprise attack 2d6/.test(o7b.log) + ' (want true, 6 more than 7a\'s ' + o7a.dmg + ')', /surprise attack 2d6/.test(o7b.log) && o7b.dmg - o7a.dmg === 6);
+      var s7c = mk7(); s7c.f.conds.surprised = true; s7c.B.active = s7c.f; runPO(s7c.B.heroTurn(s7c.f)); s7c.B.active = s7c.bb; var sk7 = !s7c.f.conds.surprised, o7c = blow7(s7c);
+      okPO('7c round 1, after his lost turn (surprised gone ' + sk7 + ', the mark ' + !!s7c.f.caughtR1 + '): the surprise attack ' + /surprise attack 2d6/.test(o7c.log) + ' (want true, true, true)', sk7 && s7c.f.caughtR1 && /surprise attack 2d6/.test(o7c.log));
+      s7c.B.round = 2; var o7d = blow7(s7c);
+      okPO('7d round 2, the same fighter: the surprise attack ' + /surprise attack/.test(o7d.log) + ' (want false)', !/surprise attack|first blow/.test(o7d.log));
+      // e. by the ambush: a bugbear laid in ambush beside the fighter, the d20 at 18 (its Stealth +6: 24) -- caught, and struck from hiding in round 1 with the 2d6
+      var B7e = mkPO('?npc=bugbear&vs=fighter:5&lvl=5', [{ kind: 'ambush', at: [8, 4] }]), bb7 = foesPO(B7e)[0], f7e = heroPO(B7e, 'fighter'); putPO(B7e, bb7, 8, 4); putPO(B7e, f7e, 8, 5);
+      surpPO(B7e); var cg7 = !!f7e.conds.surprised; B7e.round = 1; var n7e = (B7e.log || []).length; turnPO(B7e, bb7); var l7e = logPO(B7e, n7e);
+      okPO('7e a bugbear in ambush (Stealth ' + bb7.hidTotal + '): the fighter caught ' + cg7 + ', its round-1 blow from hiding with the surprise attack ' + /surprise attack 2d6/.test(l7e) + ' (want 24, true, true)', bb7.hidTotal === 24 && cg7 && /surprise attack 2d6/.test(l7e));
+      // f. every foe with a Surprise Attack (data/foes.js `surprise`) has a Stealth to surprise by
+      var sf = Object.keys(D.FOES).filter(function (k) { return D.FOES[k].surprise; });
+      okPO('7f every foe with a Surprise Attack: ' + sf.map(function (k) { return k + ' Stealth ' + D.FOES[k].stealth; }).join(', ') + ' (want each a Stealth score)', sf.length >= 2 && sf.every(function (k) { return D.FOES[k].stealth > 0; }));
+      } catch (eS) { repPO.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 8. THE LEASH: a defender's reach map stops nowhere past its radius; anyone else's is as it was
+      var B8 = mkPO('?npc=wolf,wolf&vs=fighter:5&lvl=5', [DF]), w8 = foesPO(B8); putPO(B8, w8[0], 8, 2); putPO(B8, w8[1], 10, 6); D.rules.startTurn(w8[0]); D.rules.startTurn(w8[1]);
+      var rm8 = G0.reach(w8[0], 40), out8 = Object.keys(rm8).filter(function (k) { var e = rm8[k]; return e.stand && ft(e, [8, 2]) > 15; }), rmF = G0.reach(w8[1], 40), farF = Object.keys(rmF).filter(function (k) { var e = rmF[k]; return e.stand && ft(e, [8, 2]) > 15; });
+      okPO('8 the leash: the defender\'s stops past 15 ft of its ward ' + out8.length + ', a free wolf\'s ' + farF.length + ' (want 0, many)', out8.length === 0 && farF.length > 10);
+      } catch (eS) { repPO.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // 9. THE SEAM, END TO END: a fight seated by runes seat A's own placement (battle.js seatRunes, from o.runes as pocket.js hands a module's laid runes over) -- two goblins
+      // laid in ambush and a wolf defending, in the dark: the posts as A sets them, the goblins hidden and the surprise rolled, the wolf holding its ground
+      D20 = 10;
+      var B9 = D.npcFight('?npc=goblin,goblin,wolf&vs=fighter:5,rogue:5&lvl=5&dark', { runes: [{ foes: ['goblin', 'goblin'], at: [8, 2], post: 'ambush' }, { foes: ['wolf'], at: [12, 3], post: 'defend', to: [12, 3], r: 15 }] });
+      D.battle = B9; B9.enter(); var k9 = 0; while (!B9.order.length && k9++ < 400) B9.co.next();
+      var gs9 = foesPO(B9).filter(function (u) { return u.kind === 'goblin'; }), w9 = foesPO(B9).filter(function (u) { return u.kind === 'wolf'; })[0], f9 = heroPO(B9, 'fighter'), r9 = heroPO(B9, 'rogue');
+      okPO('9 seated by the runes: the goblins ' + gs9.map(function (g) { return at(g) + ' ' + JSON.stringify(g.post); }).join(', ') + '; the wolf ' + (w9 && at(w9)) + ' ' + JSON.stringify(w9 && w9.post) + ' (want ambush at [8,2] each, defend to [12,3] r 15)',
+        gs9.length === 2 && gs9.every(function (g) { return g.post && g.post.kind === 'ambush' && g.post.at.join() === '8,2'; }) && w9 && w9.post && w9.post.kind === 'defend' && w9.post.r === 15);
+      surpPO(B9);
+      okPO('9 hidden from the start ' + gs9.map(function (g) { return !!g.conds.hidden + ' ' + g.hidTotal; }).join(', ') + '; the fighter (PP 11) caught ' + !!f9.conds.surprised + ', the rogue (PP 18) ' + !!r9.conds.surprised + ' (want true 16 twice; true, false)',
+        gs9.every(function (g) { return g.conds.hidden && g.hidTotal === 16; }) && f9.conds.surprised === true && !r9.conds.surprised);
+      f9.conds = {}; r9.conds = {}; B9.round = 1; turnPO(B9, w9);
+      okPO('9 the wolf\'s turn: at ' + at(w9) + ', ' + ft(w9, [12, 3]) + ' ft from its ward (want <= 15)', ft(w9, [12, 3]) <= 15);
+      } catch (eS) { repPO.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+    } catch (ePO) { repPO.errors.push(String(ePO && ePO.stack || ePO).slice(0, 900)); }
+    D.d = d0PO; D.music = muPO;
+    var prePO = document.createElement('pre'); prePO.id = 'out'; prePO.textContent = 'BENCH16 ' + JSON.stringify(repPO);
+    document.body.appendChild(prePO);
+    return;
+  }
   if (get('mode', '') === 'pie1108') {
     var repPI = { checks: [], errors: [], notes: [] }, memPI = {}, stGPI = D.store.get, stSPI = D.store.set, muPI = D.music, apPI = window.DS.autoPicks, d0PI = D.d, RPI = window.DS.R, HPI = D.house, WPI = D.world, RUp = D.rules;
     function okPI(what, v) { repPI.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
