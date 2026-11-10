@@ -3634,6 +3634,73 @@
   // 4. PATROL walks its rune to the second square and back, broken by a blow heard within P.HEAR (not beyond) and by a sight, its unit with it; 5. STAND holds with a Ready,
   // unmoved by a blow heard, the readied blow springs and it is in the fight, a blow at one of its unit breaks them all, a spell's harm breaks it; 6. the class AI the same
   // (a class defender, a class ambusher); 7. the bugbear's Surprise Attack by the SRD -- only at one it surprised, in round 1 (his "5 - aye"); 8. the leash on G.reach
+  // THE BESTIARY'S STEALTH AND PASSIVE PERCEPTION BY THE SRD, 11-10 (mode=stealth1110; Griz, after real surprise landed: "also looks like the bestiary entries all need
+  // their stealth added"): the SRD 5.1's own creature blocks read from srd/ (monsters by letter, the misc creatures, the NPCs) -- each one's Skills (Stealth) and Senses
+  // (passive Perception) -- and every foe of D.FOES whose src names an SRD block checked against it: its `stealth` the block's Stealth skill (none where the block has none: a
+  // DEX check, js/postures.js P.bonus), its `perception` the block's passive Perception. A familiar's form (deep16/js/familiar.js) reads the beast it takes the shape of.
+  // Our own (src "ours", "game-original", "the 8-bit game's own", a block named nowhere) are left as they are and counted. A src that names an SRD block the reader cannot
+  // find is a FAIL, so a new foe's misspelt block is caught
+  if (get('mode', '') === 'stealth1110') {
+    var repSB = { checks: [], errors: [], notes: [] };
+    function okSB(what, v) { repSB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var readSB = function (path) { try { var x = new XMLHttpRequest(); x.open('GET', path, false); x.overrideMimeType('text/plain; charset=utf-8'); x.send(); return x.responseText || ''; } catch (e) { return ''; } };
+      var files = 'abcdefghijklmnopqrstuvwxyz'.split('').map(function (c) { return '../srd/monsters/' + c + '.md'; }).concat(['../srd/19-misc-creatures.md', '../srd/20-npcs.md']);
+      var SRDB = {}, normSB = function (n) { return String(n).replace(/’/g, "'").trim().toLowerCase(); }, nfiles = 0;
+      files.forEach(function (f) {
+        var txt = readSB(f); if (!txt) return; nfiles++;
+        var raw = txt.replace(/\r\n/g, '\n').split('\n'), lines = [], buf = null;
+        // (a Skills or Senses line wraps onto the next text line, across a blank, while it does not end in a number: "passive" / "Investigation +5,")
+        raw.forEach(function (x) {
+          var x2 = x.trim();
+          if (/^\*\*(Skills|Senses)\*\*/.test(x2)) { if (buf != null) lines.push(buf); buf = x2; return; }
+          if (buf != null) {
+            if (!x2 && !/\d\s*$/.test(buf)) return;
+            if (x2 && !/\d\s*$/.test(buf) && !/^(\*|#|\|)/.test(x2)) { buf += ' ' + x2; return; }
+            lines.push(buf); buf = null;
+          }
+          lines.push(x);
+        });
+        if (buf != null) lines.push(buf);
+        var cur = null;
+        lines.forEach(function (l, i) {
+          var m = /^#{2,4} (.+?)\s*$/.exec(l);
+          if (m) { var nx = ''; for (var j = i + 1; j < i + 4 && j < lines.length; j++) if (lines[j].trim()) { nx = lines[j].trim(); break; } if (/^\*(Tiny|Small|Medium|Large|Huge|Gargantuan)\b/.test(nx)) { cur = { name: m[1].replace(/’/g, "'"), stealth: null, pp: null }; SRDB[normSB(cur.name)] = cur; } return; }
+          if (!cur) return;
+          if (/^\*\*Skills\*\*/.test(l)) { var s = /Stealth \+(\d+)/.exec(l); cur.stealth = s ? +s[1] : null; }
+          else if (/^\*\*Senses\*\*/.test(l)) { var p = /passive Perception (\d+)/.exec(l); cur.pp = p ? +p[1] : null; }
+        });
+      });
+      var nb = Object.keys(SRDB).length, an = function (k) { var b = SRDB[k]; return b ? (b.stealth == null ? '-' : '+' + b.stealth) + '/' + b.pp : 'missing'; };
+      okSB('the SRD read: ' + nfiles + ' files, ' + nb + ' creature blocks; the Goblin ' + an('goblin') + ', the Spy ' + an('spy') + ', the Giant Spider ' + an('giant spider') + ', the Ankheg ' + an('ankheg') + ', the Wolf ' + an('wolf') + ' (want 25 files, 300+ blocks; +6/9, +4/16, +7/10, -/11, +4/13)',
+        nfiles === 25 && nb >= 300 && an('goblin') === '+6/9' && an('spy') === '+4/16' && an('giant spider') === '+7/10' && an('ankheg') === '-/11' && an('wolf') === '+4/13');
+      // every foe, by its src
+      var OURS = /^ours\b|game-original|the 8-bit game's own|^dominion|^the Snoot mode|OD&D/i, FAMF = { 'owl': 'owl', 'snowy owl': 'owl', 'bat': 'bat', 'rat': 'rat', 'spider': 'spider', 'frog': 'frog', 'snake': 'poisonous snake' }, ALI = { drow: 'elf, drow' };
+      var right = 0, ours = [], wrong = [], lost = [];
+      Object.keys(D.FOES).forEach(function (k) {
+        var d = D.FOES[k], src = d.src || '';
+        if (OURS.test(src)) { ours.push(k); return; }
+        var fm = /^SRD 5\.1 Find Familiar \(a spirit, fey, in the shape of the ([a-z ]+)\)/.exec(src), nm = null;
+        if (fm) nm = FAMF[fm[1]] || fm[1];
+        else { var mm = /SRD 5\.1 ([A-Z][A-Za-z'’ -]+?)(?: \(|;|,|\)|:| made| from| as | in | cut| with|$)/.exec(src); if (mm) { nm = normSB(mm[1]); nm = ALI[nm] || nm; } }
+        if (!nm) { ours.push(k); return; } // (no SRD block named: one of ours)
+        var b = SRDB[nm]; if (!b) { lost.push(k + ' (' + nm + ')'); return; }
+        var st = d.stealth || null, ok = st === b.stealth && d.perception === b.pp;
+        if (ok) right++; else wrong.push(k + ': Stealth ' + (st == null ? 'none' : '+' + st) + ' / passive ' + d.perception + ', the SRD ' + b.name + ' ' + (b.stealth == null ? 'none' : '+' + b.stealth) + ' / ' + b.pp);
+      });
+      okSB('every SRD foe carries its block\'s Stealth and passive Perception: ' + right + ' right, ' + wrong.length + ' not' + (wrong.length ? ' -- ' + wrong.join('; ') : '') + ' (want none not)', wrong.length === 0 && right >= 80);
+      okSB('every src that names an SRD block finds it: ' + (lost.length ? lost.join(', ') : 'all') + ' (want all)', lost.length === 0);
+      repSB.notes.push('ours, left as they are (' + ours.length + '): ' + ours.join(', '));
+      // the field reaches the unit (battle.js makeFoe0) and a familiar's form its own numbers (familiar.js)
+      var Bsb = D.npcFight('?npc=wolf,giantspider&vs=fighter:5&lvl=5', {}); D.battle = Bsb; Bsb.enter(); var ksb = 0; while (!Bsb.order.length && ksb++ < 400) Bsb.co.next();
+      var wsb = Bsb.units.filter(function (u) { return u.kind === 'wolf'; })[0], gsb = Bsb.units.filter(function (u) { return u.kind === 'giantspider'; })[0];
+      okSB('built for a fight: the wolf Stealth ' + (wsb && wsb.stealth) + ', the giant spider ' + (gsb && gsb.stealth) + '; the familiars\' passive Perception owl ' + D.FOES.fam_owl.perception + ', bat ' + D.FOES.fam_bat.perception + ', spider ' + D.FOES.fam_spider.perception + ' Stealth ' + D.FOES.fam_spider.stealth + ' (want 4, 7; 13, 11, 10 +4)',
+        wsb && wsb.stealth === 4 && gsb && gsb.stealth === 7 && D.FOES.fam_owl.perception === 13 && D.FOES.fam_bat.perception === 11 && D.FOES.fam_spider.perception === 10 && D.FOES.fam_spider.stealth === 4);
+    } catch (eSB) { repSB.errors.push(String(eSB && eSB.stack || eSB).slice(0, 900)); }
+    var preSB = document.createElement('pre'); preSB.id = 'out'; preSB.textContent = 'BENCH16 ' + JSON.stringify(repSB);
+    document.body.appendChild(preSB);
+    return;
+  }
   if (get('mode', '') === 'postures') {
     var repPO = { checks: [], errors: [], notes: [] }, d0PO = D.d, muPO = D.music, PO = D.postures, G0 = D.grid, D20 = 10;
     function okPO(what, v) { repPO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
