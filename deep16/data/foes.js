@@ -18,7 +18,7 @@
   },
   phasespider: {
     name: 'Phase Spider', type: 'monstrosity', sheet: 'phasespider_p1', cr: '3', ac: 13, hp: 32, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 60,
-    abil: { str: 15, dex: 15, con: 12, int: 6, wis: 10, cha: 6 }, init: 2, perception: 10,
+    abil: { str: 15, dex: 15, con: 12, int: 6, wis: 10, cha: 6 }, init: 2, perception: 10, stealth: 6,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 0, cha: -2 },
     attacks: {
       bite: { name: 'Bite', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '4d8', type: 'poison', half: true, zero: true } }
@@ -33,7 +33,7 @@
   // (sheet + rider drawn in JS) still works: set rider: 'drow_p0' and sheet: 'phasespider_p1' to get it back.
   drider: {
     name: 'Drider', type: 'monstrosity', sheet: 'drider_p1', cr: '6', ac: 19, hp: 123, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 120,
-    abil: { str: 16, dex: 16, con: 18, int: 13, wis: 14, cha: 12 }, init: 3, perception: 15,
+    abil: { str: 16, dex: 16, con: 18, int: 13, wis: 14, cha: 12 }, init: 3, perception: 15, stealth: 9,
     saves: { str: 3, dex: 3, con: 4, int: 1, wis: 2, cha: 1 },
     attacks: {
       longsword: { name: 'Longsword', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 5 },
@@ -58,7 +58,7 @@
   },
   giantspider: {
     name: 'Giant Spider', type: 'beast', sheet: 'giantspider_p1', cr: '1', ac: 14, hp: 26, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 60, blindsight: 10,
-    abil: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 }, init: 3, perception: 10,
+    abil: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 }, init: 3, perception: 10, stealth: 7,
     saves: { str: 2, dex: 3, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: {
       bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true, zero: true } }
@@ -71,7 +71,7 @@
   // Web in the SRD's form (a ranged attack, where the 8-bit game rolls a DEX save).
   ettercap: {
     name: 'Ettercap', type: 'monstrosity', sheet: 'ettercap_p2', cr: '2', ac: 13, hp: 44, speed: 30, climbs: 30, size: 1, reach: 5, darkvision: 60,
-    abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13,
+    abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13, stealth: 4,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 1, cha: -1 },
     attacks: {
       bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', extra: '1d8', extraType: 'poison', reach: 5, poison: { dc: 11, repeat: true } },
@@ -96,7 +96,7 @@
   },
   wolf: {
     name: 'Wolf', type: 'beast', sheet: 'wolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
-    abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13,
+    abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13, stealth: 4,
     saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11 } },
     multi: 1, packTactics: true,
@@ -190,7 +190,7 @@
   },
   drowling: {
     name: 'Drow', type: 'humanoid', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, metalArmor: 'chain shirt', hp: 13, speed: 30, size: 1, reach: 5, darkvision: 120,
-    abil: { str: 10, dex: 14, con: 10, int: 11, wis: 11, cha: 12 }, init: 2, perception: 12,
+    abil: { str: 10, dex: 14, con: 10, int: 11, wis: 11, cha: 12 }, init: 2, perception: 12, stealth: 4,
     saves: { str: 0, dex: 2, con: 0, int: 0, wis: 0, cha: 1 },
     attacks: {
       shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
@@ -394,8 +394,8 @@
       mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
     },
-    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', cunning: true, stealth: 6, // (the Spy's Sneak Attack 2d6, once a turn: battle.js; its Cunning Action waits to be built whole -- Griz, 10-02: "until it's built translates into 'add a handoff please'": handoff-2026-10-02-the-srd-pass-leftovers.md)
-    src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
+    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', cunning: true, stealth: 4, // (the Spy's Sneak Attack 2d6, once a turn: battle.js; its Cunning Action waits to be built whole -- Griz, 10-02: "until it's built translates into 'add a handoff please'": handoff-2026-10-02-the-srd-pass-leftovers.md)
+    src: 'content/monsters.json wheelwright (the SRD 5.1 Spy; its Stealth +4 by that block since 11-10, 6 before): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
   },
   crewman: {
     name: 'Crewman', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
@@ -514,7 +514,7 @@
   // ------------------------------------------------------------------ batch five (09-27): the snared lad, the grick den, the bulette, the cloaker, the wagon yard
   wolfspider: {
     name: 'Wolf Spider', type: 'beast', sheet: 'wolfspider_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, climbs: 40, size: 1, reach: 5, darkvision: 60, blindsight: 10,
-    abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13,
+    abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13, stealth: 7,
     saves: { str: 1, dex: 3, con: 1, int: -4, wis: 1, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true, zero: true } } },
     multi: 1, webWalker: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
@@ -783,7 +783,7 @@
   // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
   roper: {
     name: 'Roper', type: 'monstrosity', sheet: 'roper_p1', cr: '5', ac: 20, hp: 93, speed: 10, climbs: 10, size: 2, reach: 5, darkvision: 60,
-    abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16,
+    abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16, stealth: 5,
     saves: { str: 4, dex: -1, con: 3, int: -2, wis: 3, cha: -2 },
     attacks: {
       tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 6 }, holdOnly: true, weakens: true, tendril: { ac: 20, hp: 10, immune: ['poison', 'psychic'], breakDC: 15 } }, // (tendril: a thing on the grid, riding the grip -- struck at through the held one's square or broken with a STR check, and the grip ends with it: js/battle.js tendrilOn, strikeTendril, exec breaktendril; 10-02)
@@ -794,7 +794,7 @@
   },
   darkmantle: {
     name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p2', cr: '1/2', ac: 11, hp: 22, speed: 30, fly: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,
-    abil: { str: 16, dex: 12, con: 13, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
+    abil: { str: 16, dex: 12, con: 13, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10, stealth: 3,
     saves: { str: 3, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: { crush: { name: 'Crush', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5, attach: { dc: 13 }, rides: true } }, // (SRD 5.1, RULED 10-01 "go SRD": it attaches -- no grapple, no restraint; it rides the one it is on, battle.js mount; over the head, blinding, when it had advantage on a Medium or smaller; STR 13 to pull it off, an action -- the one it is on, or anyone beside)
     multi: 1, src: 'SRD 5.1 Darkmantle (CR 1/2, fly 30 read as moving 30); content/monsters.json darkmantle'
@@ -810,7 +810,7 @@
   },
   grayooze: {
     name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p2', cr: '1/2', ac: 8, hp: 22, speed: 10, climbs: 10, size: 1, reach: 5, blindsight: 60, blind: true,
-    abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8,
+    abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8, stealth: 2,
     saves: { str: 1, dex: -2, con: 3, int: -5, wis: -2, cha: -4 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
     multi: 1, resist: ['acid', 'cold', 'fire'], corrosive: 'metal', condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
@@ -879,7 +879,7 @@
   // the xorns in the seam (deep.js S.xorn, leg three)
   xorn: {
     name: 'Xorn', type: 'elemental', sheet: 'xorn_p1', cr: '5', ac: 19, hp: 73, speed: 20, size: 1, reach: 5, darkvision: 60, blindsight: 60, tremor: true, // (tremorsense: magic.js seeWhy, 10-08)
-    abil: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 }, init: 0, perception: 16,
+    abil: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 }, init: 0, perception: 16, stealth: 3,
     saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundaneps'], earthGlide: true, burrow: 20, // (SRD 5.1 "burrow 20 ft.": under the floor and up beside you, unseen -- Earth Glide leaves no mound: js/ai.js burrower, 10-01d)
@@ -903,7 +903,7 @@
   },
   giantfrog: {
     name: 'Giant Frog', type: 'beast', sheet: 'giantfrog_p1', cr: '1/4', ac: 11, hp: 18, speed: 30, size: 1, reach: 5, darkvision: 30,
-    abil: { str: 12, dex: 13, con: 11, int: 2, wis: 10, cha: 3 }, init: 1, perception: 12,
+    abil: { str: 12, dex: 13, con: 11, int: 2, wis: 10, cha: 3 }, init: 1, perception: 12, stealth: 3,
     saves: { str: 1, dex: 1, con: 0, int: -4, wis: 0, cha: -4 },
     attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, grapple: { dc: 11, max: 1 } } },
     multi: 1, swims: true, src: 'SRD 5.1 Giant Frog (CR 1/4): the bite grips (escape DC 11); content/monsters.json giantfrog (the Glowseep); Swallow takes a Small or smaller one only: none of the four (09-28)'
@@ -1005,7 +1005,7 @@
   },
   grimlock: {
     name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p2', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,
-    abil: { str: 16, dex: 12, con: 12, int: 9, wis: 8, cha: 6 }, init: 1, perception: 13,
+    abil: { str: 16, dex: 12, con: 12, int: 9, wis: 8, cha: 6 }, init: 1, perception: 13, stealth: 3,
     saves: { str: 3, dex: 1, con: 1, int: -1, wis: -1, cha: -2 },
     attacks: { club: { name: 'Spiked Bone Club', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', extra: '1d4', extraType: 'piercing', reach: 5 } },
     multi: 1, src: 'SRD 5.1 Grimlock (CR 1/4): blind, blindsight 30 ft (nothing past it: light.js seesBy), stone camouflage (it starts hidden); content/monsters.json grimlock (leg three)'

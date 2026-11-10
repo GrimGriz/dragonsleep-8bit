@@ -28,11 +28,15 @@
   var ABIL = { owl: [3, 13, 8, 2, 12, 7], snowyowl: [3, 13, 8, 2, 12, 7], bat: [2, 15, 8, 2, 12, 4], rat: [2, 11, 9, 2, 10, 4],
     spider: [2, 14, 8, 1, 10, 2], frog: [1, 13, 8, 1, 8, 3], snake: [2, 16, 11, 1, 10, 3] };
   var AB = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+  // each form's passive Perception and Stealth, the SRD 5.1 block's (11-10; till then a flat passive 13 for every form, and no Stealth): the Owl's
+  // Perception +3, Stealth +3; the Bat's passive 11; the Rat's 10; the Spider's 10, Stealth +4; the Frog's 11, Stealth +3; the Poisonous Snake's 10.
+  // The snowy owl is the Owl's numbers (our own form, the owl in the snowfield's feathers)
+  var SENSE = { owl: [13, 3], snowyowl: [13, 3], bat: [11, 0], rat: [10, 0], spider: [10, 4], frog: [11, 3], snake: [10, 0] };
   Object.keys(R.FAMILIARS).forEach(function (k) {
     var f = R.FAMILIARS[k], a = ABIL[k] || [2, 12, 8, 2, 10, 4], abil = {}, saves = {};
     AB.forEach(function (s, i) { abil[s] = a[i]; saves[s] = Math.floor((a[i] - 10) / 2); });
     D.FOES['fam_' + k] = { name: f.name, type: 'fey', sheet: f.sheet, cr: '0', ac: f.ac, hp: f.hp, speed: Math.max(f.speed || 0, f.fly || 0), size: 1, reach: 5,
-      darkvision: f.darkvision || 0, blindsight: f.blindsight || 0, abil: abil, saves: saves, init: saves.dex, perception: 13, attacks: {}, multi: 0,
+      darkvision: f.darkvision || 0, blindsight: f.blindsight || 0, abil: abil, saves: saves, init: saves.dex, perception: (SENSE[k] || [13])[0], stealth: (SENSE[k] || [])[1] || undefined, attacks: {}, multi: 0,
       webWalker: !!f.webWalker, src: 'SRD 5.1 Find Familiar (a spirit, fey, in the shape of the ' + f.name + '); js/rules.js R.FAMILIARS' };
   });
   function formOf(f) { return R.FAMILIARS[String(f.kind).replace(/^fam_/, '')]; }
