@@ -9,7 +9,7 @@
   var AI = D.ai = {};
 
   // "The troll", but "Willem" (a foe with a name of its own is `named`)
-  function the(B, u) { return (u.named ? '' : 'The ') + B.shortName(u); }
+  function the(B, u) { return D.Battle && D.Battle.theName ? D.Battle.theName(u) : (u.named ? '' : 'The ') + B.shortName(u); } // (a name that opens with its own article -- the lake's thing -- takes no second: battle.js Battle.theName, 11-10; "The The thing in the lake turns on Barley")
   // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   // (a holder's turn handed over by its posture -- standing, defending: js/postures.js, 11-10 -- goes at the foes of its pool alone, u.postPool, for that turn)
