@@ -3857,6 +3857,131 @@
     document.body.appendChild(prePI);
     return;
   }
+  // THE BUG FIXES OF 11-10 (mode=bugfix1110; the bug fixes seat, on his record of 11-09 and his rulings of 11-10 -- "3 - fix / 4 - build / 5 - fix / 6-7 fix / 8 - fight didn't
+  // end when the landlord died leaving turns to feed with bucket"), a check a fix: 1. the Pocket DM keeps a swap made in the fight (js/pocket.js PK.fightKept, PK.packBack):
+  // a weapon taken up from the pack stays on the card, what came off goes to the pack, a thing the fight lent goes back (his "Bought Harley a scimitar and it's absent on the
+  // camp screen"); 2. EQUIP's ALT row: a thrown weapon from the pack as the hero's throwable, spent from the pack's stack; 3. STATUS > FEATURES for a made character (js/menu.js
+  // featureLines: "Nothing written on the sheet." for every one) -- its class's, its subclass's, its style, its feats, ours marked; 4. the play record: PARTY's slots as carried
+  // in, its gear and the pack; no summons in PARTY END; a foe with the name of one of ours "(foe)"; "AI would" on a watched round-1 turn; 5. the Settling ends won when the
+  // landlord dies, and the bucket feeds no dead one (js/wet.js W.landlordDead, js/roam.js R.pullIn0). The dice pinned: every d20 a 19, every other die its half
+  if (get('mode', '') === 'bugfix1110') {
+    var repBF = { checks: [], errors: [], notes: [] }, memBF = {}, stGBF = D.store.get, stSBF = D.store.set, muBF = D.music, apBF = window.DS.autoPicks, d0BF = D.d, push0BF = D.push, PKb = D.pocket, NPCb = D.npc, RUb = D.rules, GGb = D.grid;
+    function okBF(what, v) { repBF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runBF(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkBF(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function nBF(Bx) { return (Bx.logEntries || []).length; }
+    function logBF(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }); }
+    function freeBF(Bx, u, r) { GGb.setup(GGb.map, Bx.units); for (var d = 1; d <= (r || 6); d++) for (var y = u.y - d; y <= u.y + d; y++) for (var x = u.x - d; x <= u.x + d; x++) { var s = GGb.map.at(x, y); if (s && s.walk && !GGb.occupant(x, y)) return [x, y]; } return null; }
+    D.store.get = function (k) { return memBF[k] ? JSON.parse(memBF[k]) : null; }; D.store.set = function (k, v) { memBF[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    var HARLEY = '~fighter.4.halforc.18-12-15-8-12-10.scimitar_scalemail__scimitar____bootselvenkind_.Harley..twf';
+    // a Pocket DM table with Harley alone on it and this pack; launched, the fight set up to its first turn, Harley's unit on its turn (D.push held: nothing drawn)
+    function tableBF(pack) {
+      memBF = {}; var P = new D.Pocket(); P.enter(); P.ask = function () { return true; };
+      P.st.roster = [{ code: HARLEY, name: 'Harley' }]; P.st.party = [{ custom: 0 }]; P.st.pack = JSON.parse(JSON.stringify(pack)); P.st.run = null; P.foes = ['goblin']; P.cache = {};
+      var Bq = null; D.push = function (b) { Bq = b; }; try { P.launch(); } finally { D.push = push0BF; }
+      if (!Bq) return null;
+      D.battle = Bq; Bq.enter(); for (var g = 0; g < 400 && !(Bq.order && Bq.order.length); g++) Bq.co.next();
+      var u = Bq.units.filter(function (w) { return w.side === 'party' && w.name === 'Harley'; })[0]; RUb.startTurn(u); Bq.active = u;
+      return { P: P, B: Bq, u: u };
+    }
+    function packBF(st, id) { return PKb.packN(st, id); }
+    try {
+      D.seed = +get('seed', 1110); D.d = function (n) { return n === 20 ? 19 : Math.ceil(n / 2); };
+      try {
+      // 1. THE FIGHT'S EQUIP KEPT (his Pocket DM note of 11-09: "Bought Harley a scimitar and it's absent on the camp screen, so its unequipped when we enter the fight. It's not absent
+      // in the fight and has to be equipped" -- the stream's fight 2, R6: "Harley takes up the Scimitar in the off hand (the action)", and the scimitar gone from the pack after)
+      var t1 = tableBF([{ id: 'scimitar', n: 1 }, { id: 'longsword', n: 1 }, { id: 'potion', n: 2 }]);
+      if (!t1) okBF('1 the Pocket DM\'s fight would not launch', false);
+      else {
+        var inv1 = t1.B.inv.filter(function (s) { return s.id === 'potion'; })[0]; if (inv1) inv1.n = 1; // (a potion drunk in the fight: the pack's two come back one -- as before)
+        t1.B.swapGear(t1.u, { kind: 'offhandon', id: 'scimitar' });
+        t1.B.o.onDone(null, null); // (the fight left: the pack and the card are written whatever the result)
+        var s1 = t1.P.st.party[0], h1 = PKb.sheetOf(PKb.specOf(t1.P.st, s1));
+        okBF('1 the scimitar taken up into the off hand in the fight: the card\'s GEAR ' + JSON.stringify(s1.gear) + ', the next fight\'s sheet holds ' + (h1 && h1.equip.offhand) + ' in the off hand; the pack: scimitar ' + packBF(t1.P.st, 'scimitar') + ', longsword ' + packBF(t1.P.st, 'longsword') + ', potion ' + packBF(t1.P.st, 'potion') + ' (want off:scimitar, scimitar; 0, 1, 1)',
+          !!s1.gear && s1.gear.offhand === 'off:scimitar' && !!h1 && h1.equip.offhand === 'scimitar' && packBF(t1.P.st, 'scimitar') === 0 && packBF(t1.P.st, 'longsword') === 1 && packBF(t1.P.st, 'potion') === 1);
+        var fw1 = t1.P.fightWords(), w1 = typeof fw1[0] === 'string' ? fw1[0] : fw1[0].word;
+        okBF('1 her next fight\'s word carries it: "' + String(w1).split('.').slice(-1)[0] + '" (want +off:scimitar)', /\+off:scimitar/.test(w1));
+      }
+      var t1b = tableBF([{ id: 'scimitar', n: 1 }, { id: 'longsword', n: 1 }]);
+      if (t1b) {
+        t1b.B.swapGear(t1b.u, { kind: 'weapon', id: 'longsword' }); t1b.B.o.onDone(null, null);
+        var s1b = t1b.P.st.party[0];
+        okBF('1 the longsword taken up in place of her own scimitar: GEAR ' + JSON.stringify(s1b.gear) + '; the pack: longsword ' + packBF(t1b.P.st, 'longsword') + ', scimitar ' + packBF(t1b.P.st, 'scimitar') + ' (want weapon longsword; 0, 2 -- what came off is the pack\'s, as the camp\'s EQUIP gives it)',
+          !!s1b.gear && s1b.gear.weapon === 'longsword' && packBF(t1b.P.st, 'longsword') === 0 && packBF(t1b.P.st, 'scimitar') === 2);
+      }
+      var t1c = tableBF([{ id: 'scimitar', n: 1 }]);
+      if (t1c) {
+        var lent1 = t1c.B.inv.filter(function (s) { return s.id === 'lightcrossbow' && s.n > 0; }).length;
+        t1c.B.swapGear(t1c.u, { kind: 'weapon', id: 'lightcrossbow' }); t1c.B.o.onDone(null, null);
+        var s1c = t1c.P.st.party[0];
+        okBF('1 the armoury\'s crossbow (lent: ' + lent1 + ') taken up: GEAR ' + JSON.stringify(s1c.gear || {}) + '; the pack: crossbow ' + packBF(t1c.P.st, 'lightcrossbow') + ', scimitar ' + packBF(t1c.P.st, 'scimitar') + ' (want no weapon in GEAR: the loan goes back and her own scimitar stays hers; 0, 1)',
+          lent1 === 1 && !(s1c.gear && s1c.gear.weapon) && packBF(t1c.P.st, 'lightcrossbow') === 0 && packBF(t1c.P.st, 'scimitar') === 1);
+      }
+      } catch (eS) { repBF.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 3. STATUS > FEATURES FOR A MADE CHARACTER (his Pocket DM note (B) of 11-09: "Nothing written on the sheet." for every made character)
+      var FL3 = window.DS.MENU.featureLines, pal3 = PKb.sheetOf(NPCb.spec('~paladin.3.halfelf.15-11-14-8-12-16.longsword_chainmail_shield_handaxe_____.wut.bless-command-shieldoffaith-calledtoaccount.protection.greenreturn'));
+      var l3 = FL3(pal3).map(function (f) { return f.t; }), so3 = window.DS.R.subOpt ? window.DS.R.subOpt('paladin', 'greenreturn') : null;
+      repBF.notes.push('3 the made paladin (' + pal3.id + ', ' + pal3.subclass + '): ' + l3.map(function (t) { return t.split(':')[0]; }).join(' | '));
+      okBF('3 STATUS > FEATURES for a made paladin 3 (' + pal3.id + '): ' + l3.length + ' lines -- Lay on Hands with its pool, Divine Smite, the style Protection and not the register\'s Defense, the oath ' + pal3.subclass + (so3 && !so3.srd ? ' marked ours' : '') + ', no feat it never took (want all)',
+        /^npc-/.test(pal3.id) && l3.length >= 4 && l3.some(function (t) { return /^Lay on Hands, \d+ left/.test(t); }) && l3.some(function (t) { return /^Divine Smite/.test(t); }) && l3.some(function (t) { return /^Fighting Style: Protection/.test(t); }) && !l3.some(function (t) { return /^Fighting Style: Defense/.test(t); }) && !l3.some(function (t) { return /a feat\)/.test(t); }) && (!so3 || so3.srd || l3.some(function (t) { return /\(ours\)/.test(t); })));
+      var har3 = PKb.sheetOf(NPCb.spec(HARLEY + '+^4a:fsymmetric')), lh3 = FL3(har3).map(function (f) { return f.t; });
+      okBF('3 Harley (fighter 4, Two-Weapon Fighting, the feat Symmetric Fighting): ' + lh3.map(function (t) { return t.split(':')[0]; }).join(' | ') + ' (want Second Wind, Action Surge, her style and not the register\'s Great Weapon Fighting, her feat marked ours and no other)',
+        lh3.some(function (t) { return /^Second Wind/.test(t); }) && lh3.some(function (t) { return /^Action Surge/.test(t); }) && lh3.some(function (t) { return /^Fighting Style: Two-Weapon Fighting/.test(t); }) && !lh3.some(function (t) { return /^Fighting Style: Great Weapon/.test(t); }) && lh3.some(function (t) { return /^Symmetric Fighting \(feat\) \(ours\)/.test(t); }) && !lh3.some(function (t) { return /Fortune's Due|Follow-Through/.test(t); }));
+      var bar3 = PKb.sheetOf(PKb.specOf({ roster: [], party: [] }, { w: 'barley', lvl: 3, loot: [] })), lb3 = FL3(bar3).map(function (f) { return f.t; });
+      okBF('3 Barley keeps his own sheet\'s lines: ' + lb3.slice(0, 3).join(' | ') + ' (want "Second Wind 1d10+level", his register\'s words)', lb3.some(function (t) { return t === 'Second Wind 1d10+level'; }));
+      } catch (eS) { repBF.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 4. THE PLAY RECORD (his record of 11-09 read: PARTY's slots the maxima and no gear; Conjure Animals' wolves in PARTY END; "R1 Talmok > Talmok  Battleaxe"; "AI would: the AI
+      // could not weigh this turn: TypeError" on the watched fights' round 1)
+      var B4 = mkBF('?npc=talmok:5&vs=talmok:4,cleric:5&lvl=5'), tF4 = B4.units.filter(function (w) { return w.side === 'foe'; })[0], tP4 = B4.units.filter(function (w) { return w.side === 'party' && w.hero === 'talmok'; })[0] || B4.units.filter(function (w) { return w.side === 'party' && /^Talmok/.test(w.name); })[0], cl4 = B4.units.filter(function (w) { return w.cls === 'cleric'; })[0];
+      okBF('4 Talmok on each side: ours "' + (tP4 && tP4.name) + '", theirs "' + (tF4 && tF4.name) + '" (want "Talmok" and "Talmok (foe)")', !!tP4 && !!tF4 && tP4.name === 'Talmok' && tF4.name === 'Talmok (foe)');
+      cl4.slots = cl4.slotsMax.slice(); cl4.slots[0] = 1; cl4.slots[1] = 0; var sl4 = cl4.slots.slice(); // (a ladder's cleric walks in with two levels of slot spent)
+      B4.inv = [{ id: 'potion', n: 3 }, { id: 'rope', n: 1 }];
+      var sm4 = B4.makeFoe({ kind: 'wolf', side: 'party' }), sq4 = freeBF(B4, cl4, 8); sm4.id = 'conjureanimals-' + cl4.id + '-1-0'; sm4.summon = { by: cl4.id, id: 'conjureanimals', tag: 1 }; sm4.side = 'party'; sm4.conds = sm4.conds || {}; if (sq4) { sm4.x = sq4[0]; sm4.y = sq4[1]; } B4.units.push(sm4); GGb.setup(GGb.map, B4.units);
+      D.rec.start(B4, { fight: 'bench1110', name: 'the record', level: 5 });
+      B4.o.watch = true; B4.round = 1; delete cl4.turn; D.rec.aiTurn(B4, cl4); var ts4 = B4.rec.steps[0] && B4.rec.steps[0].turnStart, ai4 = ts4 ? (ts4.ai || []).map(function (a) { return a.why; }).join(' | ') : 'no step';
+      okBF('4 a watched round-1 turn (no turn begun yet): AI would "' + ai4.slice(0, 160) + '", its turn after ' + (cl4.turn === undefined ? 'still unbegun' : 'set') + ' (want plans, no TypeError, nothing left on it)', !!ts4 && ts4.ai.length > 0 && !/could not weigh/.test(ai4) && cl4.turn === undefined);
+      RUb.startTurn(tF4); B4.active = tF4; var at4 = freeBF(B4, tP4, 1); if (at4) { tF4.x = at4[0]; tF4.y = at4[1]; } GGb.setup(GGb.map, B4.units); var n4 = nBF(B4); runBF(B4.attack(tF4, tP4, tF4.weapon || tF4.attacks[Object.keys(tF4.attacks)[0]], {}));
+      var hd4 = logBF(B4, n4).filter(function (l) { return / > /.test(l); })[0] || '';
+      okBF('4 the foe\'s blow on the card: "' + hd4 + '" (want "Talmok (foe) > Talmok")', /Talmok \(foe\) > Talmok\b/.test(hd4));
+      D.rec.finish(B4, 'won'); var r4 = B4.rec, pc4 = (r4.party || []).filter(function (p) { return p.id === cl4.id; })[0], pe4 = r4.partyEnd || [];
+      okBF('4 PARTY: the cleric\'s slots ' + JSON.stringify(pc4 && pc4.slots) + ' of ' + JSON.stringify(pc4 && pc4.slotsMax) + ', its equip ' + JSON.stringify(pc4 && pc4.equip) + ', the pack ' + JSON.stringify(r4.pack) + ' (want ' + JSON.stringify(sl4) + ', a weapon, potion 3)',
+        !!pc4 && JSON.stringify(pc4.slots) === JSON.stringify(sl4) && !!pc4.slotsMax && !!pc4.equip && !!pc4.equip.weapon && (r4.pack || []).some(function (s) { return s.id === 'potion' && s.n === 3; }));
+      okBF('4 PARTY END: ' + pe4.map(function (p) { return p.id; }).join(', ') + '; the summoned wolf in it ' + pe4.some(function (p) { return /^conjureanimals/.test(p.id); }) + ', in PARTY ' + (r4.party || []).some(function (p) { return /^conjureanimals/.test(p.id); }) + '; the gear at the end ' + !!(pe4[0] && pe4[0].equip) + ', the pack ' + JSON.stringify(r4.packEnd) + ' (want false, false, true, the pack)',
+        !pe4.some(function (p) { return /^conjureanimals/.test(p.id); }) && !(r4.party || []).some(function (p) { return /^conjureanimals/.test(p.id); }) && pe4.length >= 2 && !!pe4[0].equip && Array.isArray(r4.packEnd));
+      } catch (eS) { repBF.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 5. THE LANDLORD KILLED (his Settling of 11-09, 05:10:57Z: "R6 The Otyugh falls.", then "Aurdin lowers the bucket into the deep water. Something below takes it." -- his
+      // "fight didn't end when the landlord died leaving turns to feed with bucket")
+      var BW5 = D.roam.make('?roam=wet&watch&enc=999'); D.scenes.length = 0; D.push(BW5); D.battle = BW5; BW5.enter();
+      var RW5 = BW5.roam, gP5 = D.roam.pullIn(BW5, 'wet', { id: 'landlordStep' }, D.roam.def.from8(8, 8)), st5 = null, k5;
+      for (k5 = 0; k5 < 400 && D.top() === BW5; k5++) st5 = gP5.next();
+      var bP5 = D.top();
+      if (bP5 === BW5) okBF('5 the landlord\'s rim pulls the Settling in', false);
+      else {
+        bP5.enter(); bP5.baking = false;
+        var ll5 = bP5.units.filter(function (w) { return w.wet === 'landlord'; })[0], h5 = bP5.units.filter(function (w) { return w.side === 'party' && !w.familiar; })[0];
+        ll5.dormant = false; ll5.hp = 0; ll5.dead = true; // (it rose, and fell -- his R6)
+        bP5.inv = (bP5.inv || []).concat([{ id: 'bucket', n: 1 }]); bP5.wet.bucketBy = null; RUb.startTurn(h5); bP5.active = h5;
+        var e5 = bP5.itemList(h5).filter(function (e) { return e.id === 'bucket'; })[0];
+        okBF('5 the bucket with the landlord dead: ' + (e5 ? (e5.ok ? 'offered' : 'refused, "' + e5.why + '"') : 'not listed') + ' (want refused: the landlord is dead)', !!e5 && !e5.ok && /landlord is dead/.test(e5.why || ''));
+        runBF(bP5.useItem(h5, 'bucket', h5)); var bk5 = bP5.inv.filter(function (s) { return s.id === 'bucket'; })[0];
+        okBF('5 lowered anyway: the bucket kept (' + (bk5 && bk5.n) + '), the landlord not fed (' + !!(bP5.flags8 && bP5.flags8.otyughFed) + ') (want 1, false)', !!bk5 && bk5.n === 1 && !(bP5.flags8 && bP5.flags8.otyughFed));
+        bP5.req = { turn: h5 }; bP5.update();
+        var back5 = D.top() === BW5; for (k5 = 0; k5 < 600; k5++) { st5 = gP5.next(); if (st5.done) break; }
+        var cd5 = (BW5.cards || []).map(function (c) { return (c.lines || []).map(function (l) { return window.DS.stripCodes(String(l)); }).join(' / '); }).join(' || ');
+        okBF('5 the landlord dead, nothing else up, the next turn that waits on a player: the Settling over (' + (back5 ? 'back on the floor' : 'still in it') + ', ' + RW5.pulled + '), otyughDead ' + !!RW5.flags.otyughDead + ', the floor says "' + cd5.slice(0, 160) + '" (want back, won, true, "The landlord is dead")',
+          back5 && !!st5 && st5.done && RW5.pulled === 'won' && !!RW5.flags.otyughDead && /The landlord is dead/.test(cd5));
+      }
+      } catch (eS) { repBF.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+    } catch (eBF) { repBF.errors.push(String(eBF && eBF.stack || eBF).slice(0, 900)); }
+    D.d = d0BF; D.store.get = stGBF; D.store.set = stSBF; D.music = muBF; window.DS.autoPicks = apBF; D.push = push0BF;
+    var preBF = document.createElement('pre'); preBF.id = 'out'; preBF.textContent = 'BENCH16 ' + JSON.stringify(repBF);
+    document.body.appendChild(preBF);
+    return;
+  }
   // THE RECORDS' FIXES OF 11-08 (mode=records1108; the lanes desk's read of his record of 11-07/11-08, `handoff-2026-11-03-the-play-records.md`), a check a fix:
   // 1. Damage Transfer with the one it holds lying down: the half kept (battle.js hurt); 2. the cloaker the darts found strikes the one it turned on (ai.js brute's
   // pool); 3. the cloaker's turn portrait on its eyes (cloaker_p2 face 41); 4. Black Tentacles: a big one held by an edge square crushed, and seized stepping in by one;
