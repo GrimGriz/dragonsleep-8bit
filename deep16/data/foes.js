@@ -841,7 +841,7 @@
       // climax, we should go fancy. Can we make a successful grab look like a lunge-return to actual position?" -- the desk's lean taken whole: the one a pincer takes hold of is pulled in from its
       // 10-ft reach to its side at the grab, the chuul lunging out and back to its own square, and is carried in its claws -- the SRD's carry, at half speed; it never carries a hero into the
       // deep, only the inn lady goes down (js/battle.js Battle.clawIn, js/secondact.js the take). The SRD's chuul holds at reach and does not pull: the pull is the break)
-      tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 10, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
+      tentacles: { name: 'Tentacles', noRoll: true, atk: 0, dice: '0', mod: 0, type: 'poison', reach: 10, needsHeld: true, paralyze: { dc: 13 } } // (SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw" -- no attack roll, no damage: battle.js Battle.noRollOn; 11-10, his record of 11-09, RULED "fix": it was a +6 attack for 1d1-1)
     },
     multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
     src: 'SRD 5.1 Chuul (CR 4, Large): two pincers (reach 10, grappled, escape DC 14), the tentacles on one it holds (CON 13 or poisoned and paralyzed); content/monsters.json chuul. It swims: the water does not slow it. HOUSE RULE (11-06, his word): the one a pincer grapples is pulled in from its reach and carried in its claws -- never a hero into the deep'

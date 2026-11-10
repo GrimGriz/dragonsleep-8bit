@@ -2451,6 +2451,21 @@
     this.card([pick ? '{y}' + nameOf(att) + '{/} turns on ' + nameOf(pick) + ' instead.' : '{g}' + nameOf(att) + ' lets it go: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160);
     return pick;
   };
+  // an action with no attack roll, on one the creature holds (atk.noRoll: the chuul's tentacles -- SRD 5.1, "One creature grappled by the chuul must succeed on a DC 13 Constitution
+  // saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed"): the save and nothing else -- no d20 to hit, so nothing that answers an attack roll is
+  // asked or rolled (Protection's prompt, Shield, a false image, a 1 or a 20), and no damage. 11-10, his record of 11-09, his list RULED "fix": the tentacles were a +6 attack for
+  // 1d1-1, Protection was asked and a nat 1 read HIT. Its pose and wind-up are the attack's (the chuul's row), and the attack's seams after it (READY, the last-thrown) stand
+  Battle.prototype.noRollOn = function* (att, tgt, atk, o) {
+    var held = (att.holding || []).indexOf(tgt) >= 0 || !!(tgt.conds.grappled && tgt.conds.grappled.by === att.id) || !!(tgt.conds.restrained && tgt.conds.restrained.by === att.id);
+    var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + '  {g}(no attack roll: a save){/}';
+    if (atk.needsHeld && !held) { this.card([head, '{g}' + nameOf(tgt) + ' is not in its grip: nothing.{/}'], 200); return; }
+    var pz = atk.paralyze, why = tgt.dead || tgt.hp <= 0 ? 'down' : !pz ? '' : tgt.conds.paralyzed ? 'paralyzed already' : RU.immuneTo(tgt, 'paralyzed') || RU.immuneTo(tgt, 'poisoned') ? 'cannot be poisoned' : '';
+    if (!pz || why) { this.card([head, '{g}' + nameOf(tgt) + ': ' + (why || 'nothing') + '.{/}'], 200); return; }
+    var ps = RU.save(tgt, 'con', pz.dc, false, 'poisoned'); // (the save is against being poisoned: the paralysis lasts as long as the poison)
+    this.card([head, '{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
+    if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: pz.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
+    yield 30;
+  };
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
@@ -2512,6 +2527,7 @@
     // the row plays on the unstretched clock, so an AI's arrow left a frame late -- the hobgoblin's on its 6th, not its 5th. Battle.unpace asks for the wait the pace will stretch back)
     else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? this.unpace(Math.max(4, relT - (this.t - att.animT))) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
+    if (atk.noRoll) { yield* this.noRollOn(att, tgt, atk, o); yield o.oa ? 16 : 24; att.anim = 'idle'; return; } // (no attack roll: the chuul's tentacles -- Battle.noRollOn)
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     if (!melee && !atk.spell && cover === 2 && D.features && D.features.breathOn && D.features.breathOn(att)) cover = 0; // (Held Breath, a feat of ours: half cover ignored -- 10-30)
     if (att.conc && att.conc.id === 'calledtoaccount' && D.magic.accountedBy && G.hostile(att, tgt)) { var acT0 = D.magic.accountedBy(this, att); if (acT0 && acT0 !== tgt) D.magic.endConc(this, att, 'an attack at another'); } // (Called to Account ends: 10-30)
