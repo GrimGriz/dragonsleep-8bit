@@ -3785,6 +3785,49 @@
       f9.conds = {}; r9.conds = {}; B9.round = 1; turnPO(B9, w9);
       okPO('9 the wolf\'s turn: at ' + at(w9) + ', ' + ft(w9, [12, 3]) + ' ft from its ward (want <= 15)', ft(w9, [12, 3]) <= 15);
       } catch (eS) { repPO.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      // 10. REAL SURPRISE, ANY FIGHT (the desk's addition of 11-10 on his "we should have 'real' surprise": battle.js Battle.surpriseRoll -- any fight where creatures start hidden,
+      // either side, a Pocket DM fight, a floor fight, a story fight): each hider's own Stealth against each passive Perception on the other side
+      var stp10 = function (k) { var d = D.FOES[k] || {}; return D20 + (d.stealth || D.mod(d.abil ? d.abil.dex : 10)); };
+      try {
+      // a. a Pocket DM fight's lurker, no posture: the grick starts hidden (battle.js LURK) and the surprise is rolled for it -- its Stealth for the surprise alone, the plain hide kept
+      D20 = 15;
+      var B10 = mkPO('?npc=grick&vs=fighter:5,rogue:5&lvl=5', []), gk10 = foesPO(B10)[0], f10 = heroPO(B10, 'fighter'), r10 = heroPO(B10, 'rogue'), e10 = stp10('grick');
+      r10.caughtR1 = true; surpPO(B10); var l10 = logPO(B10, 0);
+      okPO('10a a grick lurking in a Pocket DM fight (its Stealth ' + e10 + '): the AMBUSH card ' + /AMBUSH[^|]*Grick/.test(l10) + ', the fighter (PP 11) surprised ' + !!f10.conds.surprised + ', the rogue (PP 18) ' + !!r10.conds.surprised + ', the grick\'s hide still the plain one ' + (gk10.conds.hidden && gk10.hidTotal == null) + ', a mark from a fight before cleared ' + !r10.caughtR1 + ' (want true, ' + (11 < e10) + ', ' + (18 < e10) + ', true, true)',
+        /AMBUSH[^|]*Grick/.test(l10) && !!f10.conds.surprised === (11 < e10) && !!r10.conds.surprised === (18 < e10) && gk10.conds.hidden && gk10.hidTotal == null && !r10.caughtR1);
+      } catch (eS) { repPO.errors.push('section 10a: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // b. either side: the rogue hid before the fight (her Stealth held at 25); two goblins (passive 9) are caught, and the first takes no turn in round 1
+      var B10b = D.npcFight('?npc=goblin,goblin&vs=rogue:5&lvl=5', {}); D.battle = B10b; B10b.enter(); var rg10 = heroPO(B10b, 'rogue'), gb10 = foesPO(B10b);
+      rg10.conds.hidden = true; rg10.hidTotal = 25; var kb = 0; while (!B10b.order.length && kb++ < 400) B10b.co.next(); surpPO(B10b); var l10b = logPO(B10b, 0);
+      var gx = gb10[0].x, gy = gb10[0].y; B10b.round = 1; var n10b = (B10b.log || []).length; turnPO(B10b, gb10[0]); var l10c = logPO(B10b, n10b);
+      okPO('10b the rogue hidden at the start (Stealth 25): the UNSEEN card ' + /UNSEEN[^|]*25/.test(l10b) + ', the goblins surprised ' + gb10.map(function (g) { return !!g.conds.surprised || /caught unaware/.test(l10c) && g === gb10[0]; }) + ', the first goblin\'s round 1: ' + (l10c.match(/caught unaware[^|]*/) || ['it acted'])[0] + ', still at (' + gx + ',' + gy + ') ' + (gb10[0].x === gx && gb10[0].y === gy) + ' (want true; true,true; no turn; true)',
+        /UNSEEN[^|]*25/.test(l10b) && /caught unaware: no turn/.test(l10c) && !!gb10[1].conds.surprised && gb10[0].x === gx && gb10[0].y === gy);
+      } catch (eS) { repPO.errors.push('section 10b: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // c. a story fight's ambush (the sect blades at the rest, data/fights.js blades `ambush`): each blade's own Stealth -- till 11-10 one roll at the best bonus for all
+      D20 = 12;
+      var B10s = new D.Battle({ ladder: true, fight: 'blades', bench: true }); D.battle = B10s; B10s.enter(); var ks = 0; while (!B10s.order.length && ks++ < 400) B10s.co.next(); surpPO(B10s);
+      var l10s = logPO(B10s, 0), am10 = (l10s.match(/AMBUSH: their Stealth ([^|]*) against/) || [])[1] || '', tots10 = (am10.match(/\d+/g) || []).map(Number), fs10 = foesPO(B10s), ps10 = B10s.units.filter(function (u) { return u.side === 'party' && !u.familiar && u.hp > 0; });
+      var min10 = Math.min.apply(null, tots10.length ? tots10 : [0]), fair10 = ps10.every(function (h) { return !!h.conds.surprised === ((h.perception || 10) < min10); }); // (caught: below every blade's total -- one met is a threat noticed)
+      okPO('10c the sect blades\' story ambush: "' + am10 + '" -- ' + tots10.length + ' totals for ' + fs10.length + ' foes; caught ' + ps10.filter(function (h) { return h.conds.surprised; }).map(function (h) { return h.name + ' ' + h.perception; }).join(', ') + ' (want one total a blade, and the caught below every one of them)',
+        tots10.length === fs10.length && fs10.length >= 2 && fair10);
+      } catch (eS) { repPO.errors.push('section 10c: ' + String(eS && eS.stack || eS).slice(0, 700)); }
+      try {
+      // d. a floor fight (js/roam.js R.fight, the Wet's floor): a grick laid hidden beside the party's lead, the fight begun -- the same roll
+      D20 = 15;
+      var stG10 = D.store.get, stS10 = D.store.set, mem10 = {}; D.store.get = function (k) { return mem10[k] ? JSON.parse(mem10[k]) : null; }; D.store.set = function (k, v) { mem10[k] = JSON.stringify(v); return true; };
+      try {
+        var BW10 = D.roam.make('?roam=wet&watch'); D.scenes.length = 0; D.push(BW10); D.battle = BW10; BW10.enter(); for (var kw = 0; kw < 6 && BW10.co; kw++) BW10.co.next();
+        var tk10 = BW10.roam.token, gr10 = BW10.makeFoe({ id: 'bench-grick', kind: 'grick', hidden: true }), sp10 = null;
+        [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1], [2, 0], [0, 2]].some(function (d) { var x = tk10.x + d[0], y = tk10.y + d[1]; if (D.grid.canStand(gr10, x, y) && !D.grid.occupant(x, y)) { sp10 = [x, y]; return true; } return false; });
+        gr10.x = sp10[0]; gr10.y = sp10[1]; gr10.anim = 'idle'; gr10.animT = BW10.t; gr10.reaction = 1; gr10.conds = { hidden: true }; BW10.units.push(gr10); D.grid.setup(D.grid.map, BW10.units);
+        var g10 = D.roam.fight(BW10, [gr10], true), kf = 0, st10; while (kf++ < 80) { st10 = g10.next(); if (st10.done || BW10.round > 0 || (BW10.log || []).some(function (l) { return /AMBUSH/.test(l); })) break; }
+        var e10d = stp10('grick'), ours10 = BW10.order.filter(function (u) { return u.side === 'party'; }), ok10d = ours10.length > 0 && ours10.every(function (h) { return !!h.conds.surprised === ((h.perception || 10) < e10d); });
+        okPO('10d a floor fight on the Wet with a grick lurking (its Stealth ' + e10d + '): the AMBUSH card ' + (BW10.log || []).some(function (l) { return /AMBUSH[^|]*Grick/.test(l); }) + ', caught ' + ours10.filter(function (h) { return h.conds.surprised; }).map(function (h) { return h.name + ' ' + h.perception; }).join(', ') + ' (want true, each below ' + e10d + ')',
+          (BW10.log || []).some(function (l) { return /AMBUSH[^|]*Grick/.test(l); }) && ok10d);
+      } finally { D.store.get = stG10; D.store.set = stS10; D.scenes.length = 0; }
+      } catch (eS) { repPO.errors.push('section 10d: ' + String(eS && eS.stack || eS).slice(0, 700)); }
     } catch (ePO) { repPO.errors.push(String(ePO && ePO.stack || ePO).slice(0, 900)); }
     D.d = d0PO; D.music = muPO;
     var prePO = document.createElement('pre'); prePO.id = 'out'; prePO.textContent = 'BENCH16 ' + JSON.stringify(repPO);
