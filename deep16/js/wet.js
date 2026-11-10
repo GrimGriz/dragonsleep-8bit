@@ -387,7 +387,7 @@
   function landlordOf(B) { return B.units.filter(function (w) { return w.wet === 'landlord' && !w.dead && w.hp > 0; })[0] || null; }
   // the landlord was here, was never fed, and is dead (11-10, Griz on his Settling of 11-09: "fight didn't end when the landlord died leaving turns to feed with bucket" -- the
   // Otyugh fell at R6 and a bucket lowered after it "fed" it): nothing under the fall takes a bucket now, and the floor's Settling ends won (js/roam.js R.pullIn0)
-  W.landlordDead = function (B) { return !!(B && B.wet && B.wet.present.landlord && !B.wet.sunk.landlord && !landlordOf(B)); };
+  W.landlordDead = function (B) { var w = B && B.wet; return !!(w && w.present && w.present.landlord && !(w.sunk && w.sunk.landlord) && !landlordOf(B)); }; // (the floor's own B.wet holds only its bucket: js/roam.js R.bucketProp)
   function besideDeep(u) { for (var dy = -1; dy <= u.size; dy++) for (var dx = -1; dx <= u.size; dx++) { var s = G.map.at(u.x + dx, u.y + dy); if (s && s.ch === 'D') return true; } return false; }
   var itemOK0 = BP.itemTargetOK;
   BP.itemTargetOK = function (u, id, w) { if (id === 'bucket') return w === u; return itemOK0.apply(this, arguments); };
