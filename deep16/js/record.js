@@ -36,21 +36,34 @@
   // block is taken -- at the first answer the player gives, note() below -- and maxhp stands beside it; a fight's rec.hp0 { id: hp }, where REC.start snapshots it, is the
   // hp at the very start and wins when it is there, for a hero struck before that first answer)
   function startHp(u) { var h0 = D.battle && D.battle.rec && D.battle.rec.hp0; return h0 && h0[u.id] != null ? h0[u.id] : u.hp; }
+  // (11-10, his record of 11-09 read: PARTY wrote `slots: u.slotsMax`, the maxima, so a fight entered with slots spent read whole, and no gear at all -- a record could not show what a
+  // ladder carried between its fights. Now `slots` is what it came in with (rec.slots0, as hp0), `slotsMax` beside it, `equip` what it wears, and the fight's pack rides the record)
+  function startSlots(u) { var s0 = D.battle && D.battle.rec && D.battle.rec.slots0; return s0 && s0[u.id] ? s0[u.id].slice() : u.slots && u.slots.slice(); }
+  function worn(u) { var e = u.src && u.src.equip, o = {}; if (!e) return undefined; Object.keys(e).forEach(function (k) { if (e[k]) o[k] = e[k]; }); return o; }
+  function packOf(B) { return (B.inv || []).filter(function (s) { return s && s.n > 0; }).map(function (s) { return { id: s.id, n: s.n }; }); }
+  // ours in the party blocks: the heroes and the guests, a familiar -- not a summoned beast (11-10: Conjure Animals' eight wolves stood in PARTY END as party)
+  function ours(w) { return w.side === 'party' && !w.summon; }
   function sheet(u) {
     return { id: u.id, name: u.name, cls: u.cls, lvl: u.lvl, subclass: u.subclass, hp: startHp(u), maxhp: u.maxhp, ac: D.rules && D.rules.ac ? D.rules.ac(u) : u.baseAC,
-      weapon: u.weapon && u.weapon.id, slots: u.slotsMax && u.slotsMax.slice(), known: (u.known || []).slice(), darkvision: u.darkvision || 0 };
+      weapon: u.weapon && u.weapon.id, slots: startSlots(u), slotsMax: u.slotsMax && u.slotsMax.slice(), equip: worn(u), known: (u.known || []).slice(), darkvision: u.darkvision || 0 };
   }
-  function plans(B, u, bonus, n) {
-    try { return D.tactics.plans(B, u, bonus).slice(0, n).map(function (p) { return { why: p.why, score: Math.round(p.score * 100) / 100 }; }); }
+  function partyBlock(B) { var r = B.rec; r.party = B.units.filter(ours).map(sheet); r.pack = packOf(B); }
+  // (11-10, the LEAD in his record of 11-09: a watched turn's "AI would" read "TypeError: Cannot read properties of undefined (reading 'action')" in round 1 -- REC.aiTurn runs as the
+  // turn comes up, before the AI's own turn begins it (RU.startTurn), so round 1 had no turn and later rounds the last one, spent. `fresh`: weighed on a turn as it begins)
+  function freshTurn(u) { return { move: D.rules && D.rules.speedNow ? D.rules.speedNow(u) : u.speed || 30, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; }
+  function plans(B, u, bonus, n, fresh) {
+    var had = Object.prototype.hasOwnProperty.call(u, 'turn'), T0 = u.turn, swap = fresh || !T0;
+    try { if (swap) u.turn = freshTurn(u); return D.tactics.plans(B, u, bonus).slice(0, n).map(function (p) { return { why: p.why, score: Math.round(p.score * 100) / 100 }; }); }
     catch (e) { return [{ why: 'the AI could not weigh this turn: ' + e, score: 0 }]; }
+    finally { if (swap) { if (had) u.turn = T0; else delete u.turn; } }
   }
   // the state at the start of one of our four's turns, and what the AI would do there
-  function turnStart(B, u) {
+  function turnStart(B, u, fresh) {
     var live = function (w) { return !w.dead && w.hp > 0 && !w.left && !w.fled; };
     var o = { slots: u.slots && u.slots.slice(), conds: Object.keys(u.conds || {}), torch: u.torch && u.torch.lit ? (u.torch.kind === 'lantern' ? (u.torch.hood ? (u.torch.item || 'lantern') + ' (hooded)' : (u.torch.item || 'lantern')) : true) : false,
       foes: B.units.filter(function (w) { return w.side !== u.side && live(w); }).map(function (w) { return brief(B, w, u); }),
       allies: B.units.filter(function (w) { return w.side === u.side && w !== u && live(w); }).map(function (w) { return brief(B, w, u); }),
-      ai: plans(B, u, false, 3), aiBonus: plans(B, u, true, 2) };
+      ai: plans(B, u, false, 3, fresh), aiBonus: plans(B, u, true, 2, fresh) };
     try { o.light = D.light.name(D.light.levelAt(B, u.x, u.y)); } catch (e) { /* (a lit map: nothing to say) */ }
     return o;
   }
@@ -119,7 +132,7 @@
     var u = req.turn || (req.prompt && req.prompt.who) || (req.aim && req.aim.who);
     if (!u || u.side !== 'party') return; // (a prompt of the foes' is the AI's; only ours are the player's)
     flush(B);
-    if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
+    if (!r.party.length) partyBlock(B);
     var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: via() };
     var shown = (B.cards || []).map(function (c) { return (c.lines || []).map(function (l) { return window.DS.stripCodes(String(l)); }).join(' / '); }).filter(Boolean);
     if (shown.length) step.screen = shown; // (the cards on the screen when it was answered: what the player was looking at)
@@ -151,7 +164,7 @@
     flush(B);
     var L = r.last, same = L && L.refused === why && L.who === u.id && L.round === B.round && JSON.stringify(L.clicked || null) === JSON.stringify(at || null);
     if (same) { L.times = (L.times || 1) + 1; return; }
-    if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
+    if (!r.party.length) partyBlock(B);
     var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: via(), refused: why };
     if (at) step.clicked = at;
     if (B.req && B.req.turn === u) {
@@ -193,23 +206,23 @@
     var r = B && B.rec;
     if (!r || r.done || !B.o.watch || !u || u.side !== 'party') return;
     flush(B);
-    if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
+    if (!r.party.length) partyBlock(B);
     var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: 'the AI (watched)', ai: true };
-    r.turnKey = B.round + ':' + u.id; step.turnStart = turnStart(B, u);
+    r.turnKey = B.round + ':' + u.id; step.turnStart = turnStart(B, u, true); // (fresh: the AI's own turn has not begun it yet)
     r.steps.push(step); r.last = step;
   };
 
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
     var n = (B.logEntries || []).length;
-    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, cardAt: {}, hp0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above)
+    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, cardAt: {}, hp0: {}, slots0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above; slots0 its slots, 11-10)
     REC.snap(B);
   };
   // hp0 { id: hp }: written once a unit, never over (11-03, the desk's read of his Hex bout). REC.start runs at the top of Battle.enter, before the units are built, so this runs again as enter returns (below)
   REC.snap = function (B) {
     var r = B && B.rec; if (!r) return;
-    r.hp0 = r.hp0 || {};
-    (B.units || []).forEach(function (w) { if (w.side === 'party' && r.hp0[w.id] == null) r.hp0[w.id] = w.hp; });
+    r.hp0 = r.hp0 || {}; r.slots0 = r.slots0 || {};
+    (B.units || []).forEach(function (w) { if (w.side === 'party' && r.hp0[w.id] == null) r.hp0[w.id] = w.hp; if (w.side === 'party' && w.slots && r.slots0[w.id] == null) r.slots0[w.id] = w.slots.slice(); });
   };
   REC.finish = function (B, result) {
     var r = B.rec;
@@ -231,7 +244,8 @@
     var r = B.rec;
     flush(B);
     r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
-    r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
+    r.partyEnd = B.units.filter(ours).map(function (w) { var o = { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; if (w.slots) o.slots = w.slots.slice(); var e = worn(w); if (e) o.equip = e; return o; }); // (the slots and the gear it ends with, 11-10)
+    r.packEnd = packOf(B);
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
     var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'logFrom' && k !== 'done' && k !== 'seen' && k !== 'cardTxt' && k !== 'cardAt' && k !== 'trying' && k !== 'outcome') out[k] = r[k]; });
@@ -327,7 +341,7 @@
   // fresh sheets. So a record begun at enter takes its hit points again at the fight's first step -- after every enter has done, before the script's first beat -- over the first)
   var step0 = P.step;
   P.step = function () {
-    if (this.recFresh) { this.recFresh = false; if (this.rec && !this.rec.done && !this.rec.steps.length) { this.rec.hp0 = {}; REC.snap(this); } }
+    if (this.recFresh) { this.recFresh = false; if (this.rec && !this.rec.done && !this.rec.steps.length) { this.rec.hp0 = {}; this.rec.slots0 = {}; REC.snap(this); } }
     return step0.apply(this, arguments);
   };
   // the fight's end closes its record where no door of its own does (10-06: ?fight= and ?npc= have no onDone -- the ladder, the climb and the Pocket DM finish

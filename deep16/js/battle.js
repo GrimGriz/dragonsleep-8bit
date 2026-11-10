@@ -112,6 +112,9 @@
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
+    // (11-10, his record of 11-09: Talmok on each side, and the cards read "R1 Talmok > Talmok  Battleaxe" -- a foe that has the name of one of ours is "(foe)" on every card
+    // and in the record; fname: its own name on the cards, not the bestiary's short one -- shortName)
+    var ourNames = party.map(function (u) { return u.name; }); foes.forEach(function (u) { if (u.name && ourNames.indexOf(u.name) >= 0) { u.name += ' (foe)'; u.fname = true; } });
     if (this.o.flyTest) party.forEach(function (u) { if (!u.familiar) u.flies = true; }); // (&fly: the testing room's wings for the party -- flight at a height, 10-08)
     if (this.o.fearTest && foes[0]) { var hfT = party.filter(function (u) { return !u.familiar; })[(+this.o.fearTest || 1) - 1]; if (hfT) hfT.conds.frightened = { by: foes[0].id }; } // (&afraid=<n>: the nth hero frightened of the first foe -- the testing room's, 10-29: the squares the fear refuses, js/ui.js fearSquares)
     if (this.o.spellsTest) party.forEach(function (u) { if (!u.known || !u.slots) return; String(this.o.spellsTest).split(',').forEach(function (id) { if (D.SPELLS && D.SPELLS[id] && u.known.indexOf(id) < 0) u.known.push(id); }); }, this); // (&spells=fly,...: the testing room's casters given those spells to try -- 10-08)
