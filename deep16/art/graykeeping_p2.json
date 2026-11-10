@@ -68,7 +68,17 @@
    "ay": 86,
    "frames": 6,
    "fps": 8
+  },
+  "longbow": {
+   "y": 5504,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 10,
+   "fps": 10,
+   "release": 6
   }
  },
- "source": "drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz's generated sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py, the cloth recoloured to the Gray Keeping's ash-gray"
+ "source": "drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz's generated sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py, the cloth recoloured to the Gray Keeping's ash-gray; the longbow from ART-29's longbow facings (2026-11-10)"
 }

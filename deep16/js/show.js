@@ -97,7 +97,16 @@
   // (nor a cutscene's row: GreyFang's `headless` plays only in his end, js/trophy.js -- 10-14)
   // (nor a row that is another's drawing under a second name, its sheet's `same`: the Harbinger's `kneel` is his `cast`, the row the engine plays for his Kneel -- 10-15)
   // (nor a row the grid never plays: the matriarch's `cackle`, the Snoot mode's own -- 10-15)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && (an[r].same || an[r].held)); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  // (nor a blow's row that only another kind on the sheet strikes with: the Gray Keeping's sheet carries the gnoll's longbow since 11-10, and its glory-seeker
+  // has none -- a row named for an attack, battle.js's way, that this creature's block lacks and another block on the same sheet has)
+  SH.othersBlows = function (sheet, kind) {
+    var mine = kind && D.FOES[kind], rowOf = function (a, k) { return String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); }, own = {}, out = {};
+    if (!mine) return out;
+    Object.keys(mine.attacks || {}).forEach(function (k) { var a = mine.attacks[k]; own[rowOf(a, k)] = 1; if (a.kind) own[a.kind] = 1; });
+    Object.keys(D.FOES).forEach(function (fk) { var d = D.FOES[fk]; if (fk === kind || !d || d.sheet !== sheet) return; Object.keys(d.attacks || {}).forEach(function (k) { var r = rowOf(d.attacks[k], k); if (!own[r]) out[r] = 1; }); });
+    return out;
+  };
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && (an[r].same || an[r].held)) && !ob[r]; }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 

@@ -34,6 +34,16 @@ and its redraw (2026-10-15, Griz's pick after our return: deep16/_src/gnoll/ART-
 and its last rows (2026-10-15, his "so the last old gnoll rows go": deep16/_src/gnoll/ART-29-LASTROWS/) --
   H1P3  ART-29_HEAD-1_PAGE-3.png  SE: Idle 8, Attack 8
   H4P3  ART-29_HEAD-4_PAGE-3.png  E:  Walk 8 (met, as HEAD 1's walk is, to the old side walk's height)
+and its longbow (2026-11-10, his "add bow to art wanted" on "Gnolls with longbows look like they throw javelins tho": deep16/_src/gnoll/
+ART-29-LONGBOW-2026-11-10/, its FRAME-MAP-AND-CUTTER-NOTES.md) -- five pages, a view each, every one Idle 4 on top, Bow 1-5 and Bow 6-10 below:
+  LB1  ART-29-GNOLL-LONGBOW-SE-HORIZONTAL.png  SE    LB2  -NE.png  NE    LB3  -S.png  S    LB4  -E.png  E    LB5  -N.png  N
+Bow 1-10 is the `longbow` row (1 low ready, 2 to the quiver, 3 the arrow out, 4 nock, 5 the draw begun, 6 full draw, 7 the release, 8 follow
+through, 9 lower, 10 ready), its `release` 6 (zero-based: the arrow leaves on frame 7) -- battle.js plays a row named for the attack, so the
+gnoll's Longbow plays it and its Thrown Spear keeps the `attack` row. Each page scaled by its own Idle (the gnoll's 60 px head to sole; the Idle
+plays nothing, it registers the page against the sheet), toned as ART-29's are, the row's frame 1 placed on its torso and every frame after
+it on its feet (planted: the draw doesn't slide the gnoll). On the gnoll's sheets that carry a longbow only (BOW_SHEETS): gnoll_p2 and
+graykeeping_p2 (data/foes.js gnollgray is the gnoll's block); the glory-seeker's has no bow (spear and bite) and the show would want the row.
+The row is written last (pixelate's ANIM_ORDER puts the hobgoblins' longbow before laugh and getup), so no other row moves on the sheet.
 No row plays from the old sheets now: page 1 is read for that walk height and as TONE's colour reference, page 2 not at all. Every other facing of every row is ART-29's (build() prints which view each facing plays). The pages are cut by their labels
 (sheetrows, the CHAN test), scaled each by its standing rows (K, in build()), toned to the old page 1's fur and cloth (TONE, in build()),
 and placed as the old rows are; the attack row's frames are 16 px taller (TALL: the N overhead thrust on the glory-seeker).
@@ -136,6 +146,27 @@ ART29 = {
     'H4P3': dict(file=os.path.join(A29L, 'ART-29_HEAD-4_PAGE-3.png'), text=[(0, 338, 133, 382)],
                  rows=[('walk', (0, 150, 1983, 565), (568, 607), NUM(8))]),       # (from x 0: Walk 1's tail reaches x 125, under the label)
 }
+# the longbow (11-10, ART-29's longbow facings: the docstring). Every page 1536 x 1024, its labels where the others' are (Idle at y 133-170, Bow at
+# 453-490 and 773-810, x 33-135); a band from x 140 down to its numbers' strip, each strip read off the page (the figures' soles 2-9 px above
+# it). numw: Bow 10's two digits stand 41 px wide, so its number box is 24 px each side of the label's middle, not 14
+A29B = os.path.join('gnoll', 'ART-29-LONGBOW-2026-11-10')
+BOWTEXT = [(30, 128, 140, 176), (25, 448, 130, 496), (25, 768, 130, 816)]
+BOWNUM = [str(i + 6) for i in range(5)]
+def bowpage(v, s1, s2):
+    return dict(file=os.path.join(A29B, 'ART-29-GNOLL-LONGBOW-%s.png' % v), text=BOWTEXT, numw=24,
+                rows=[('idle', (140, 20, 1536, 268), (268, 302), NUM(4)),     # (E's Idle soles on row 266, its numbers from 271)
+                      ('bowa', (140, 302, 1536, s1[0]), s1, NUM(5)),
+                      ('bowb', (140, 622, 1536, s2[0]), s2, BOWNUM)])
+ART29.update({
+    'LB1': bowpage('SE-HORIZONTAL', (586, 621), (911, 949)),
+    'LB2': bowpage('NE', (585, 621), (910, 949)),
+    'LB3': bowpage('S', (582, 616), (899, 937)),
+    'LB4': bowpage('E', (588, 621), (910, 949)),
+    'LB5': bowpage('N', (576, 612), (904, 942)),
+})
+BOWVIEW = {'HEAD1': 'LB1', 'HEAD2': 'LB2', 'HEAD3': 'LB3', 'HEAD4': 'LB4', 'HEAD5': 'LB5'}
+BOW_SHEETS = {'gnoll_p2', 'graykeeping_p2'}      # the sheets whose block shoots a longbow (data/foes.js gnoll, gnollgray)
+BOW_RELEASE, BOW_FPS = 6, 10                      # the arrow leaves on Bow 7 (zero-based 6); ten frames at the house's bow rate (the hobgoblin's, the goblin's)
 FIT29 = {('H3P1', 'death')}     # (a row scaled apart from its page: build())
 # a line of pixels cleared (sheetrows' CUT): the E page's Laugh 8 lies with its sole against Laugh 9's toes (x 1530-1531, y 800-818)
 CUT29 = {'H4P2': {'laugh': [[(1531, 799), (1531, 820)]]}}
@@ -148,7 +179,8 @@ def cut29(L, check=False):
     s = ART29[L]
     path = os.path.join(SRC, s['file'])
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
-    nums = [(int(x) - 14, sy0 - 3, int(x) + 14, sy1 + 4) for _, (x0, _, x1, _), (sy0, sy1), _ in s['rows'] for x in SR.label_xs(a, x0, x1, sy0, sy1)]
+    nw = s.get('numw', 14)
+    nums = [(int(x) - nw, sy0 - 3, int(x) + nw, sy1 + 4) for _, (x0, _, x1, _), (sy0, sy1), _ in s['rows'] for x in SR.label_xs(a, x0, x1, sy0, sy1)]
     pad = lambda b: (b[0], b[1] - 4, b[2] + 4, b[3] + 5)          # (a label's drop shadow is figure to CHAN: the boxes a few px wider)
     spec = dict(text=[pad(b) for b in s['text']] + nums, rows=s['rows'], chan=CHAN)
     over = [] if check else None
@@ -334,6 +366,21 @@ def torso_x(a):
     return float(np.median(xs)) if len(xs) else a.shape[1] / 2
 
 
+def feet_x(a):
+    """the middle of the feet: the median opaque column over the figure's lowest tenth (a bow's tip near the floor is thin)"""
+    rows = np.where(a[..., 3].any(axis=1))[0]
+    top, bot = rows[0], rows[-1]
+    ys, xs = np.where(a[bot - max(2, (bot - top) // 10):bot + 1, :, 3] > 0)
+    return float(np.median(xs))
+
+
+def planted(seq):
+    """a shot's frames on one spot (the longbow, 11-10): the first on its torso, as every row is placed, and every one after it moved with its
+    feet -- the gnoll draws and looses standing where it stood (ART-29's longbow notes: the feet the ground anchor)"""
+    x1, f1 = torso_x(seq[0]), feet_x(seq[0])
+    return [place(a, x1 + feet_x(a) - f1) for a in seq]
+
+
 def place(a, x_ref, dy=0, fh=FH, ay=AY):
     out = np.zeros((fh, FW, 4), dtype=np.uint8)
     rows = np.where(a[..., 3].any(axis=1))[0]
@@ -411,6 +458,13 @@ def build(name, recolour):
             if f in (1, 2, 3):
                 seq, src = mirror(seq), src + 'm'
             frames[row].append(seq); took[row].append(src)
+    # the longbow (11-10): Bow 1-5 and 6-10 of each view's page, one row of ten, planted; the facings as every row's
+    if name in BOW_SHEETS:
+        bow = {v: planted([fit(im, K[L], recolour, TONE[L]) for _, im, _ in cuts[L]['bowa'] + cuts[L]['bowb']]) for v, L in BOWVIEW.items()}
+        frames['longbow'], took['longbow'] = [], []
+        for f in range(8):
+            v = {0: 'HEAD3', 4: 'HEAD5', 1: 'HEAD1', 7: 'HEAD1', 3: 'HEAD2', 5: 'HEAD2', 2: 'HEAD4', 6: 'HEAD4'}[f]
+            frames['longbow'].append(mirror(bow[v]) if f in (1, 2, 3) else bow[v]); took['longbow'].append(v + ('m' if f in (1, 2, 3) else ''))
     print('  facings (S SW W NW N NE E SE) <- view (m mirrored): ' + '; '.join('%s %s' % (r, ' '.join(t)) for r, t in took.items()))
     lost = ['%s facing %d frame %d' % (r, f, i) for r, per in frames.items() for f, seq in enumerate(per) for i, fr in enumerate(seq)
             if fr[:, 0, 3].any() or fr[:, -1, 3].any() or fr[0, :, 3].any()]
@@ -418,6 +472,8 @@ def build(name, recolour):
         raise SystemExit('cut off at the frame edges: ' + ', '.join(lost))
     for extra in ('laugh', 'getup'):                                      # (named here, not in pixelate.py: this cutter's own rows)
         if extra not in pix.ANIM_ORDER: pix.ANIM_ORDER.append(extra)
+    if 'longbow' in frames:                                               # (the longbow last: ANIM_ORDER's place for it is before laugh and getup,
+        pix.ANIM_ORDER.remove('longbow'); pix.ANIM_ORDER.append('longbow')  # and every other row keeps its y -- in this run only)
     pix.write_sheet(name, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY),
                     sizes={r: (FW, fh, AX, ay) for r, (fh, ay) in TALL.items()})
     if CHECK:
@@ -426,10 +482,13 @@ def build(name, recolour):
     meta = json.load(open(meta_p))
     meta['anims']['idle']['fps'] = 5; meta['anims']['walk']['fps'] = 10; meta['anims']['attack']['fps'] = 12; meta['anims']['hurt']['fps'] = 8
     meta['anims']['prone']['fps'] = 8; meta['anims']['getup']['fps'] = 8; meta['anims']['laugh']['fps'] = 6   # (the laugh's own beats are grimoire.js M.LAUGH's; fps is for a plain play)
+    if 'longbow' in frames:
+        meta['anims']['longbow']['fps'] = BOW_FPS; meta['anims']['longbow']['release'] = BOW_RELEASE
     meta['source'] = ('drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz\'s generated '
                       'sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py') + {
                       None: ', the Hills\' blue as drawn', red_cloth: ', the cloth recoloured to the Desert tribe\'s red',
-                      gray_cloth: ', the cloth recoloured to the Gray Keeping\'s ash-gray'}[recolour]
+                      gray_cloth: ', the cloth recoloured to the Gray Keeping\'s ash-gray'}[recolour] + (
+                      '; the longbow from ART-29\'s longbow facings (2026-11-10)' if 'longbow' in frames else '')
     json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
@@ -451,7 +510,8 @@ def facings(name, frames):
             dr.line([(0, f * fh + ay + 1), (cv.width, f * fh + ay + 1)], fill=(110, 114, 110, 255))
             dr.text((2, f * fh + 2), FN[f], fill=(255, 255, 255, 255))
         cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'facings-%s-%s.png' % (name, row)))
-    pick = [('idle', 0), ('walk', 0), ('attack', 3), ('hurt', 0), ('hurt', 6), ('prone', 1), ('getup', 0), ('getup', 5), ('laugh', 0), ('laugh', 4)]
+    pick = [('idle', 0), ('walk', 0), ('attack', 3), ('hurt', 0), ('hurt', 6), ('prone', 1), ('getup', 0), ('getup', 5), ('laugh', 0), ('laugh', 4)] + (
+        [('longbow', 0), ('longbow', 5), ('longbow', 6)] if 'longbow' in frames else [])     # (the longbow's ready, its full draw and its release, 11-10)
     CH, CY = max([FH] + [t[0] for t in TALL.values()]), max([AY] + [t[1] for t in TALL.values()])     # a cell holds the tallest row, feet on one line
     cv = Image.new('RGBA', (FW * len(pick), CH * 8), (70, 74, 70, 255))
     dr = ImageDraw.Draw(cv)

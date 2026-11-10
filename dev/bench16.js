@@ -13790,7 +13790,9 @@
     function okRL(what, v) { repRL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function mkRL(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
     try {
-      [['goblin', 'shortbow'], ['hobgoblin', 'longbow']].forEach(function (pr) {
+      // (the gnoll's and the Gray Keeping's longbow since 11-10: ART-29's longbow facings, Bow 1-10 its `longbow` row, the arrow off on Bow 7 -- Griz 10-09, "Gnolls with longbows
+      // look like they throw javelins tho"; before it the shot played the spear's `attack`, no release: FAIL here. Every pair now on the row named for its weapon)
+      [['goblin', 'shortbow'], ['hobgoblin', 'longbow'], ['gnoll', 'longbow'], ['gnollgray', 'longbow']].forEach(function (pr) {
         [1, 1.25, 1.5].forEach(function (P) {
           D.PACE = P;
           var Bx = mkRL('?npc=' + pr[0] + '&lvl=5&vs=fighter:5'), a = Bx.units.filter(function (u) { return u.kind === pr[0]; })[0], f = Bx.units.filter(function (u) { return u.side === 'party'; })[0];
@@ -13803,9 +13805,22 @@
             while (k++ < 400) { st = g.next(v); v = undefined; if (st.done) break; var y = st.value; if (!row && a.anim) row = D.spr.anim(a.sheet, a.anim) ? { name: a.anim, r: D.spr.anim(a.sheet, a.anim) } : null; if (typeof y === 'number') { if (y > 0) Bx.t += Bx.pace(y, true); } else if (y && y.prompt) v = y.prompt.opts[0].value; if (shotAt != null) break; }
           } finally { D.fx.projectile = p0; }
           var fr = row && shotAt != null ? Math.floor(shotAt * (row.r.fps || 8) / 60) : null, want = row && row.r.release;
-          okRL(pr[0] + '\'s ' + pr[1] + ' at the pace ' + P + ': the row ' + (row ? row.name : 'none') + ', the arrow leaves on frame ' + fr + ' (' + shotAt + ' ticks) -- its release frame ' + want, row && want != null && fr === want);
+          okRL(pr[0] + '\'s ' + pr[1] + ' at the pace ' + P + ': the row ' + (row ? row.name : 'none') + ', the arrow leaves on frame ' + fr + ' (' + shotAt + ' ticks) -- its release frame ' + want, row && row.name === pr[1] && want != null && fr === want);
         });
       });
+      // the gnoll's thrown spear keeps the spear's own row, not the bow's (11-10: the art desk's notes, "Keep spear throw routed separately")
+      (function () {
+        var Bx = mkRL('?npc=gnoll&lvl=5&vs=fighter:5'), a = Bx.units.filter(function (u) { return u.kind === 'gnoll'; })[0], f = Bx.units.filter(function (u) { return u.side === 'party'; })[0];
+        a.x = f.x; a.y = Math.max(1, f.y - 3); f.hp = f.maxhp = 300; D.rules.startTurn(a); Bx.active = a;
+        var g = Bx.attack(a, f, a.attacks.throwspear), v, st, k = 0, row = null;
+        while (k++ < 400) { st = g.next(v); v = undefined; if (st.done) break; if (!row && a.anim) row = a.anim; var y = st.value; if (typeof y === 'number') { if (y > 0) Bx.t += Bx.pace(y, true); } else if (y && y.prompt) v = y.prompt.opts[0].value; if (row) break; }
+        okRL('the gnoll\'s thrown spear plays the row ' + row + ' (the spear\'s own; its longbow ' + (D.spr.anim(a.sheet, 'longbow') ? 'has' : 'has NOT') + ' a row of its own)', row === 'attack' && !!D.spr.anim(a.sheet, 'longbow'));
+      })();
+      // the sheets (11-10): the longbow row on the two whose block shoots one -- ten frames at 10 fps, the arrow off on Bow 7 (zero-based 6); the glory-seeker's
+      // none (its block has no bow, and the show would want the row)
+      var bowRL = function (s) { var r = D.spr.anim(s, 'longbow'); return r ? r.frames + '@' + r.fps + '/' + r.release : 'none'; };
+      okRL('the gnolls\' longbow rows: gnoll_p2 ' + bowRL('gnoll_p2') + ', graykeeping_p2 ' + bowRL('graykeeping_p2') + ', gloryseeker_p2 ' + bowRL('gloryseeker_p2'),
+        bowRL('gnoll_p2') === '10@10/6' && bowRL('graykeeping_p2') === '10@10/6' && bowRL('gloryseeker_p2') === 'none');
     } catch (eRL) { repRL.errors.push(String(eRL && eRL.stack || eRL).slice(0, 900)); }
     D.PACE = P0RL;
     if (errs.length) repRL.errors = repRL.errors.concat(errs);
