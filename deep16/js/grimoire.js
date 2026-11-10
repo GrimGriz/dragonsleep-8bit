@@ -284,9 +284,11 @@
     // the wood as the spell makes it (SRD 5.1: "you use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that
     // weapon, and the weapon's damage die becomes a d8"; the druid is proficient with club and quarterstaff, so the proficiency is in): the cast makes it, and the
     // AI's weighing (below) tries it on before it pays for it
-    wood: function (u) { var wm = D.mod(u.abil.wis); return Object.assign({}, u.weapon, { name: u.weapon.name + ' (shillelagh)', atk: wm + u.prof, dice: '1d8', mod: wm, magic: true }); },
+    // (it swaps the ability and the die, and only those: a magic staff keeps its +N to hit and to damage -- 11-10, his record of 11-09, his list RULED "fix": the staff's +N was lost)
+    plus: function (w) { var R = window.DS.R, it = w && w.id && R && R.item ? R.item(w.id) : null; return (it && it.weapon && it.weapon.bonus) || 0; },
+    wood: function (u) { var wm = D.mod(u.abil.wis), pl = E.shillelagh.plus(u.weapon); return Object.assign({}, u.weapon, { name: u.weapon.name + ' (shillelagh)', atk: wm + u.prof + pl, dice: '1d8', mod: wm + pl, magic: true }); },
     cast: function* (B, u, t, slot, head) {
-      var R = window.DS.R, wm = D.mod(u.abil.wis), w = E.shillelagh.wood(u);
+      var R = window.DS.R, w = E.shillelagh.wood(u), wm = w.mod;
       u.conds.shillelagh = { base: u.weapon }; u.weapon = w; FX.sparkle(u, 'moss', 14);
       M.expire(B, u, 'shillelagh', function () { if (u.conds.shillelagh) { if (u.beast && u.beast.keep) u.beast.keep.weapon = u.conds.shillelagh.base; else u.weapon = u.conds.shillelagh.base; delete u.conds.shillelagh; /* (a druid in a beast's shape has the bite in hand: the plain wood goes back to the shape it comes out of) */ B.card(['{g}' + Nm(B, u) + '\'s wood goes back to wood: Shillelagh ends.{/}'], 200); } }); // (SRD 5.1: 1 minute -- it had no end at all; 10-01b, the same sweep)
       B.card([head + ': the wood swells with green life -- {c}+' + w.atk + ' to hit, 1d8' + RU.sign(wm) + '{/}, magical.']); yield 20;
