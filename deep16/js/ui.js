@@ -164,8 +164,8 @@
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
-    var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lz != null) { key += ',fly' + lz; if (B.cache && B.cache.key === key) return B.cache; var dashL = u.conds.restrained ? 0 : u.speed * D.Battle.dashes(u).length; B.cache = { key: key, move: G.flyReach(u, lz, T.move), dash: dashL ? G.flyReach(u, lz, T.move + dashL) : null, hide: null, layer: lz }; return B.cache; } // (flight at a height, 10-08: the move at the layer, and the dash's ring at it -- SRD 5.1 Dash, "extra movement ... equals your speed", flying as walking)
-    var held = !!u.conds.restrained, dash = held ? 0 : u.speed * D.Battle.dashes(u).length; // (both dashes, where it has both: 10-04 -- the action's and a Cunning Action's)
+    var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lz != null) { key += ',fly' + lz; if (B.cache && B.cache.key === key) return B.cache; var dashL = u.conds.restrained ? 0 : D.Battle.dashFeet(u) * D.Battle.dashes(u).length; B.cache = { key: key, move: G.flyReach(u, lz, T.move), dash: dashL ? G.flyReach(u, lz, T.move + dashL) : null, hide: null, layer: lz }; return B.cache; } // (flight at a height, 10-08: the move at the layer, and the dash's ring at it -- SRD 5.1 Dash, "extra movement ... equals your speed", flying as walking)
+    var held = !!u.conds.restrained, dash = held ? 0 : D.Battle.dashFeet(u) * D.Battle.dashes(u).length; // (both dashes, where it has both: 10-04 -- the action's and a Cunning Action's)
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
   }
@@ -180,7 +180,7 @@
     if (rc.fear) return rc.fear;
     rc.fear = {};
     if (!fearOf(B, u) || u.conds.restrained) return rc.fear;
-    var bud = u.turn.move + (rc.dash ? u.speed * D.Battle.dashes(u).length : 0), all = rc.layer != null ? G.flyReach(u, rc.layer, bud, { fearless: true }) : G.reach(u, bud, { fearless: true });
+    var bud = u.turn.move + (rc.dash ? D.Battle.dashFeet(u) * D.Battle.dashes(u).length : 0), all = rc.layer != null ? G.flyReach(u, rc.layer, bud, { fearless: true }) : G.reach(u, bud, { fearless: true });
     Object.keys(all).forEach(function (k) { var e = all[k]; if (e.stand && e.cost > 0 && !(rc.move[k] && rc.move[k].stand) && !(rc.dash && rc.dash[k] && rc.dash[k].stand)) rc.fear[k] = e; });
     return rc.fear;
   }
@@ -773,7 +773,7 @@
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
     // hanging on a rope with the move for a rung up or down (10 ft a 5 ft rung, or an end in reach -- battle.js Battle.ropeSteps, 10-05): a step to take (exec 'ropeclimb'), though no square
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
-    var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
+    var mvH = T.move + D.Battle.dashes(u).length * D.Battle.dashFeet(u); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
     if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
     return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'drawoffhand' && c.id !== 'skipattack' && c.id !== 'letgo' && c.id !== 'endconc'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
   }

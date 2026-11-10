@@ -1324,15 +1324,15 @@
     // DASH, DISENGAGE, DODGE, HELP: the same ACTIONS for all four (Griz, 09-27: "uniform like the paladin"). The rogue's
     // Dash and Disengage are Cunning Action's (the bonus action) while she has the bonus, the plain actions after
     if (cun) {
-      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
+      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + Battle.dashFeet(u) + ' ft this turn', icon: 'dash' });
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     } else {
       if (G.aloft(u) && G.winged(u)) { var ftLd = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); out.push({ id: 'land', label: 'LAND (' + ftLd + ' FT)', cost: 'F', icon: 'move', ok: T.move >= ftLd, why: 'the move left is ' + T.move + ' ft: coming down ' + ftLd + ' ft costs ' + ftLd, note: 'straight down to the ground under you' }); } // (flight at a height: Griz, 10-08, "trouble landing in the square I'm above")
-      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: Battle.acts(T) && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
+      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: Battle.acts(T) && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + Battle.dashFeet(u) + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: Battle.acts(T) && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
       // Expeditious Retreat (SRD 5.1: "as a bonus action on each of your turns until the spell ends, you can take the Dash action"): the mark
       // js/grimoire.js sets each turn (T.bonusDash) while the spell holds -- a second DASH, for the bonus action
-      if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + u.speed + ' ft this turn', icon: 'dash' });
+      if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + Battle.dashFeet(u) + ' ft this turn', icon: 'dash' });
     }
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
@@ -1453,6 +1453,10 @@
   Battle.riderOn = function (u, w, units) { return w && !G.hostile(u, w) ? units.filter(function (r) { return r.attached && r.riding && r.master === w && G.hostile(u, r) && G.standing(r); })[0] || null : null; };
   // the dashes u has left this turn, 'a' and 'b' (10-04, Griz: "If she has dash and cunning dash should she be able to try the steepest climb?"): its action's, while the
   // Attack action is not begun, and a bonus action's -- Cunning Action, Expeditious Retreat; each is its speed more (ui.js reachCache: the squares a click dashes to; exec 'dashmove')
+  // a dash's feet (SRD 5.1 Dash: "The increase equals your speed, after applying any modifiers"): the speed this turn is set from -- RU.speedNow (exhaustion, the
+  // Drillyard's stride, the Pelt's HAUNCHES, a drag) and the turn's own (grimoire.js M.onStart: Ray of Frost, Freeze, Slow, Haste). 11-10, his record of 11-09, his list RULED
+  // "fix": the Dash and the cunning dash added the bare speed, HAUNCHES and the stride and exhaustion missed
+  Battle.dashFeet = function (u) { var c = u.conds || {}, s = RU.speedNow(u); if (c.frosted) s = Math.max(0, s - 10); if (c.frozen) s = Math.max(0, s - 20); if (c.slowed) s = Math.floor(s / 2); if (c.hasted) s *= 2; return s; };
   Battle.dashes = function (u) { var T = u.turn || {}, n = []; if (u.conds.restrained || u.conds.dancing) return n; if (T.action && !T.attacksLeft) n.push('a'); if (T.bonus && ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning || (T.bonusDash && u.conds.retreat))) n.push('b'); return n; };
   // A rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think
   // they'll attack it if that's not an ally)"): the uncut rope fixed at (x, y); who hangs on it; whether u can take it up (on its square or beside it at its height, nobody
@@ -1898,11 +1902,11 @@
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
       case 'dashmove': {
         var flyD = c.fz != null && G.winged(u); // (at a layer: the flight's own reach, and the flight there -- flight at a height, 10-08)
-        var dsh = Battle.dashes(u), rmF = flyD ? G.flyReach(u, c.fz, T.move + u.speed * dsh.length) : G.reach(u, T.move + u.speed * dsh.length), far = rmF[c.x + ',' + c.y], opts = [];
+        var dsh = Battle.dashes(u), dfD = Battle.dashFeet(u), rmF = flyD ? G.flyReach(u, c.fz, T.move + dfD * dsh.length) : G.reach(u, T.move + dfD * dsh.length), far = rmF[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained || u.conds.dancing) return;
         var fLsD = flyD ? [] : this.fallLines(u, G.path(rmF, c.x, c.y) || []); // (a drop or a tall climb on the way: said in the dash's own question -- NOT THAT FAR declines both)
         var bName = (u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'CUNNING DASH' : 'RETREAT DASH', bWhy = bName === 'CUNNING DASH' ? 'Cunning Action' : 'Expeditious Retreat';
-        if (far.cost > T.move + u.speed) { if (dsh.length > 1) opts.push({ label: 'DASH + ' + bName + ' (action and bonus)', value: 'ab' }); } // (it takes both: 10-04, Griz -- the rogue and the 30 ft face)
+        if (far.cost > T.move + dfD) { if (dsh.length > 1) opts.push({ label: 'DASH + ' + bName + ' (action and bonus)', value: 'ab' }); } // (it takes both: 10-04, Griz -- the rogue and the 30 ft face)
         else {
           if (dsh.indexOf('b') >= 0) opts.push({ label: bName + ' (bonus)', value: 'b' }); // (Cunning Action; Expeditious Retreat)
           if (dsh.indexOf('a') >= 0) opts.push({ label: 'DASH (your action)', value: 'a' });
@@ -1912,8 +1916,8 @@
         var how = yield { prompt: { who: u, title: u.name + ': DASH THERE?', lines: ['That square is ' + far.cost + ' ft away; ' + T.move + ' ft of move is left.'].concat(fLsD), opts: opts } };
         if (!how) return;
         if (how.indexOf('b') >= 0) T.bonus = 0; if (how.indexOf('a') >= 0) T.action = 0;
-        T.move += u.speed * how.length;
-        this.card(['{y}' + u.name + '{/}' + (how === 'ab' ? ' dashes twice (Dash and ' + bWhy + ')' : (how === 'b' ? ' (' + bWhy + ')' : '') + ' dashes') + ': {c}+' + u.speed * how.length + ' ft{/}.']);
+        T.move += dfD * how.length;
+        this.card(['{y}' + u.name + '{/}' + (how === 'ab' ? ' dashes twice (Dash and ' + bWhy + ')' : (how === 'b' ? ' (' + bWhy + ')' : '') + ' dashes') + ': {c}+' + dfD * how.length + ' ft{/}.']);
         if (flyD) { yield* this.flyMove(u, c.x, c.y, c.fz); return; }
         var rm2 = G.reach(u, T.move), path2 = G.path(rm2, c.x, c.y);
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
@@ -1922,8 +1926,8 @@
       case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
-      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); Battle.payAction(T); var spD = Math.floor(u.speed * (u.conds.hasted ? 2 : 1) / (u.conds.slowed ? 2 : 1)), dsh = u.carrying ? Math.floor(spD / 10) * 5 : spD; T.move += dsh; this.card(['{y}' + u.name + '{/} dashes: {c}+' + dsh + ' ft{/}' + (u.carrying ? ' (carrying: half)' : '') + '.']); return; // (SRD 5.1 Dash: "your speed, after applying any modifiers" -- Haste's double, Slow's half: 10-13)
-      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); Battle.payAction(T); var spD = Battle.dashFeet(u), dsh = u.carrying ? Math.floor(spD / 10) * 5 : spD; T.move += dsh; this.card(['{y}' + u.name + '{/} dashes: {c}+' + dsh + ' ft{/}' + (u.carrying ? ' (carrying: half)' : '') + '.']); return; // (SRD 5.1 Dash: "your speed, after applying any modifiers" -- Haste's double, Slow's half: 10-13; the rest of them, Battle.dashFeet: 11-10)
+      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; var cdF = Battle.dashFeet(u); T.move += cdF; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + cdF + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); Battle.payAction(T); T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {

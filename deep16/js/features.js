@@ -1219,7 +1219,16 @@
   // The parts go at 0 HP (battle.js) or by SHED THE BEAST (a bonus action). No Wild Shape while a part is worn
   F.pelt = function (u) { return !!(u && u.cls === 'druid' && u.subclass === 'the Circle of the Pelt' && u.lvl >= 2); };
   F.PARTS = { claws: 'CLAWS', hide: 'HIDE', haunches: 'HAUNCHES' };
-  F.wearBeast = function (B, u, parts) {
+  // HAUNCHES put on or shed on the druid's own turn: the speed changes then, and what is left of the turn's move with it (SRD 5.1's way with a speed that changes mid-turn,
+  // as Haste cast on oneself adds its speed at once: grimoire.js; Battle.dashFeet, the speed after modifiers). 11-10, his record of 11-09 -- the beast worn mid-turn added nothing
+  function peltMove(B, u, f) {
+    var T = u.turn, mine0 = !!(T && B && B.active === u && D.Battle && D.Battle.dashFeet), s0 = mine0 ? D.Battle.dashFeet(u) : 0; f();
+    if (!mine0 || u.conds.restrained || u.conds.dancing) return;
+    var dd = D.Battle.dashFeet(u) - s0; if (!dd) return;
+    T.move = Math.max(0, T.move + dd); if (T.moveFull != null) T.moveFull = Math.max(0, T.moveFull + dd); if (B.cache) B.cache = null;
+  }
+  F.wearBeast = function (B, u, parts) { peltMove(B, u, function () { F.wearBeast0(B, u, parts); }); };
+  F.wearBeast0 = function (B, u, parts) {
     if (u.conds.pelt) F.peltOff(B, u, true);
     u.turn.bonus = 0; u.feats.wildShape--;
     u.conds.pelt = { parts: parts.slice(0, u.lvl >= 6 ? 2 : 1) };
@@ -1414,7 +1423,7 @@
         if (picked.length) { F.wearBeast(B, u, picked); yield 10; }
         return;
       }
-      case 'shedbeast': if (u.conds.pelt && u.turn.bonus > 0) { u.turn.bonus = 0; F.peltOff(B, u); yield 8; } return;
+      case 'shedbeast': if (u.conds.pelt && u.turn.bonus > 0) { u.turn.bonus = 0; peltMove(B, u, function () { F.peltOff(B, u); }); yield 8; } return; // (HAUNCHES shed: its 10 ft off what is left of the move)
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');
