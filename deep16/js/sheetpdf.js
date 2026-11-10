@@ -75,6 +75,41 @@
     return out;
   }
 
+  // the features: a story hero's own lines (the 8-bit sheet's, as STATUS shows them); a class card's, the grid's register (D16.FEATURES) to its level
+  // and subclass; then the race's, the choices a level made (metamagic, invocations, the pact, a feat). [{ name, words, lvl, tag, use, ours }] -- `use` a
+  // button the player presses (the register's kind), `ours` past the SRD (the register's "ours:" source; a feat but the SRD's one, Grappler; GreyFang's senses).
+  // The sheet's and, since 11-10, STATUS's for a card with no lines of its own (js/menu.js featureLines -- his record of 11-09: "Nothing written on the sheet."
+  // for every made character)
+  SP.featureList = function (h, hero, race) {
+    var out = [], sub = String(h.subclass || '').toLowerCase(), FE = D.FEATURES || {};
+    if (race === undefined) race = raceOf(h, hero);
+    var reg = Object.keys(FE).map(function (k) { return FE[k]; }).filter(function (f) { return f.cls === h.cls && f.lvl <= h.lvl && (!f.sub || String(f.sub).toLowerCase() === sub); }).sort(function (a, b) { return a.lvl - b.lvl; });
+    // (the register's class-NPC style and its feats are not every card's: the style the card fights by and the feats it took are said below -- 11-10, a made paladin of
+    // Protection read "Fighting Style: Defense", and every fighter at 4 every feat of the register)
+    reg = reg.filter(function (f) { return !/^Fighting Style:/.test(f.name) && !/^ours: a feat/.test(f.src || ''); });
+    var lines = hero && hero.featText && DS.MENU && DS.MENU.featureLines ? DS.MENU.featureLines(h) : null;
+    if (lines && lines.length) lines.forEach(function (f) { // (a hero's line split at its first bracket or colon; one that says only its name takes the register's words -- "Second Wind 1d10+level")
+      var t = plain(f.t), pa = /^([^:(]{2,40}?)\s*\((.*?)\)\s*,?\s*(.*)$/.exec(t), co = /^([^:(]{2,40}?):\s*(.*)$/.exec(t), ft;
+      if (pa) ft = { name: pa[1], words: cap1(pa[2] + (pa[3] ? ', ' + pa[3] : '')) }; else if (co) ft = { name: co[1], words: cap1(co[2]) }; else ft = t.length > 44 ? { name: '', words: t } : { name: t, words: '' };
+      if (!ft.words) { var fr = reg.filter(function (r) { return t.toLowerCase().indexOf(r.name.toLowerCase()) === 0; })[0]; if (fr) ft.words = plain(fr.words); }
+      out.push(ft);
+    });
+    else reg.forEach(function (f) { out.push({ name: f.name, words: plain(f.words), lvl: f.lvl, use: f.kind === 'button', ours: /^ours/.test(f.src || '') }); });
+    var said = function (s) { s = s.toLowerCase(); return out.some(function (g) { return (g.name + ' ' + g.words).toLowerCase().indexOf(s) >= 0; }); }; // (a line already there is not said twice)
+    var st = R.style(h), sty = st && R.STYLES[st];
+    if (sty && !said(sty.name)) out.push({ name: 'Fighting Style: ' + sty.name, words: cap1(sty.words) + '.' });
+    raceLines(h, race, hero).forEach(function (f) { if (!said(f.name)) out.push(f); });
+    (NPC.OPTIONS[h.cls] || []).forEach(function (op) {
+      var cur = h[op.key]; if (!cur) return;
+      (Array.isArray(cur) ? cur : [cur]).forEach(function (id) { var x = op.opts.filter(function (q) { return q.id === id; })[0]; if (x) out.push({ name: x.name, words: cap1(x.desc || '') + '.', tag: op.word }); });
+    });
+    if (h.cls === 'druid' && h.land) out.push({ name: 'Circle of the Land: ' + cap1(h.land), words: 'Its circle spells are always prepared.' });
+    if (h.hunterDef) out.push({ name: { horde: 'Escape the Horde', multiattack: 'Multiattack Defense', steelwill: 'Steel Will' }[h.hunterDef] || h.hunterDef, words: 'Defensive Tactics.' });
+    (h.featIds || []).forEach(function (id) { var ft = R.FEATS && R.FEATS[id]; if (ft) out.push({ name: ft.name + ' (feat)', words: plain(ft.desc), ours: id !== 'grappler' }); }); // (the SRD 5.1 has one feat, Grappler: the rest are ours)
+    out.forEach(function (f) { if (f.name === 'Lupine Senses') f.ours = true; }); // (GreyFang's people: ours)
+    return out;
+  };
+
   SP.model = function (h, o) {
     o = o || {};
     var RC = R.CLASSES[h.cls] || { name: cap1(h.cls), hd: 8, saves: [], armor: [], weapons: [] }, hero = (h.id && DS.DATA.heroes[h.id]) || null, race = raceOf(h, hero);
@@ -121,29 +156,7 @@
       var bond = it.attune ? (R.bonded(h, id) ? 'bonded' : 'bonds at a rest') : null;
       m.gear.push({ place: p[1], name: plain(it.name), words: plain(it.desc || ''), bond: bond });
     });
-    // the features: a story hero's own lines (the 8-bit sheet's, as STATUS shows them); a class card's, the grid's register (D16.FEATURES) to its level
-    // and subclass; then the race's, the choices a level made (metamagic, invocations, the pact, a feat)
-    m.features = [];
-    var sub = String(h.subclass || '').toLowerCase(), FE = D.FEATURES || {};
-    var reg = Object.keys(FE).map(function (k) { return FE[k]; }).filter(function (f) { return f.cls === h.cls && f.lvl <= h.lvl && (!f.sub || String(f.sub).toLowerCase() === sub); }).sort(function (a, b) { return a.lvl - b.lvl; });
-    var lines = hero && hero.featText && DS.MENU && DS.MENU.featureLines ? DS.MENU.featureLines(h) : null;
-    if (lines && lines.length) lines.forEach(function (f) { // (a hero's line split at its first bracket or colon; one that says only its name takes the register's words -- "Second Wind 1d10+level")
-      var t = plain(f.t), pa = /^([^:(]{2,40}?)\s*\((.*?)\)\s*,?\s*(.*)$/.exec(t), co = /^([^:(]{2,40}?):\s*(.*)$/.exec(t), ft;
-      if (pa) ft = { name: pa[1], words: cap1(pa[2] + (pa[3] ? ', ' + pa[3] : '')) }; else if (co) ft = { name: co[1], words: cap1(co[2]) }; else ft = t.length > 44 ? { name: '', words: t } : { name: t, words: '' };
-      if (!ft.words) { var fr = reg.filter(function (r) { return t.toLowerCase().indexOf(r.name.toLowerCase()) === 0; })[0]; if (fr) ft.words = plain(fr.words); }
-      m.features.push(ft);
-    });
-    else reg.forEach(function (f) { m.features.push({ name: f.name, words: plain(f.words), lvl: f.lvl }); });
-    var said = function (s) { s = s.toLowerCase(); return m.features.some(function (g) { return (g.name + ' ' + g.words).toLowerCase().indexOf(s) >= 0; }); }; // (a line already there is not said twice)
-    if (m.style && !said(m.style.name)) m.features.push({ name: 'Fighting Style: ' + m.style.name, words: cap1(m.style.words) + '.' });
-    raceLines(h, race, hero).forEach(function (f) { if (!said(f.name)) m.features.push(f); });
-    (NPC.OPTIONS[h.cls] || []).forEach(function (op) {
-      var cur = h[op.key]; if (!cur) return;
-      (Array.isArray(cur) ? cur : [cur]).forEach(function (id) { var x = op.opts.filter(function (q) { return q.id === id; })[0]; if (x) m.features.push({ name: x.name, words: cap1(x.desc || '') + '.', tag: op.word }); });
-    });
-    if (h.cls === 'druid' && h.land) m.features.push({ name: 'Circle of the Land: ' + cap1(h.land), words: 'Its circle spells are always prepared.' });
-    if (h.hunterDef) m.features.push({ name: { horde: 'Escape the Horde', multiattack: 'Multiattack Defense', steelwill: 'Steel Will' }[h.hunterDef] || h.hunterDef, words: 'Defensive Tactics.' });
-    (h.featIds || []).forEach(function (id) { var ft = R.FEATS && R.FEATS[id]; if (ft) m.features.push({ name: ft.name + ' (feat)', words: plain(ft.desc) }); });
+    m.features = SP.featureList(h, hero, race);
     // the spells: the ability, the save DC and the attack, the slots, the book by level (a prepared caster's day marked)
     m.spells = null;
     if (RC.caster || (h.known && h.known.length)) {

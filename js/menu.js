@@ -1006,7 +1006,21 @@
     });
     var merged = []; // (a name's lines joined: Expertise at 1 and at 6 is one line)
     out.forEach(function (f) { var mm = /^(Expertise):\s*(.*)$/.exec(f.t), prev = mm && merged.filter(function (g) { return g.key === mm[1]; })[0]; if (prev) prev.t += ', ' + mm[2]; else merged.push({ t: f.t, use: f.use, key: mm ? mm[1] : null }); });
+    if (!d.featText) return classFeatureLines(h); // (a card with no sheet of its own: its class's, 11-10)
     return merged;
+  }
+  // a card with no lines written for it -- a made character (`npc-paladin3`), a class card, a guest of a class (11-10, his record of 11-09: STATUS > FEATURES said
+  // "Nothing written on the sheet." for every made character): the character sheet's own list (deep16/js/sheetpdf.js SP.featureList -- the grid's register of class
+  // features to its level and subclass, the fighting style, the race, the choices a level made, the feats), a line each with its words; ours marked as ours
+  function classFeatureLines(h) {
+    var SPx = window.D16 && window.D16.sheetPdf, R0 = R(); if (!SPx || !SPx.featureList || !R0.CLASSES[h.cls]) return [];
+    var fs = []; try { fs = SPx.featureList(h, null); } catch (e) { return []; }
+    return fs.map(function (f) {
+      var nm = f.name || '';
+      if (/^Sneak Attack$/.test(nm) && R0.sneakDice) nm += ' ' + R0.sneakDice(h.lvl);
+      if (/^Lay on Hands$/.test(nm) && h.feats) nm += ', ' + (h.feats.lay || 0) + ' left';
+      return { t: nm + (f.ours ? ' (ours)' : '') + (f.words ? (nm ? ': ' : '') + f.words : ''), use: !!f.use };
+    });
   }
   MN.featureLines = featureLines;
   function StatusPage(m, h) {
