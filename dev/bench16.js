@@ -17645,6 +17645,152 @@
     finishPr();
     return;
   }
+  // THE DM'S RUNES (mode=runes; runes seat A, 11-10 -- Griz: "seats on the DM placing his bound units on specific locations in the map is the big one for our usage window"; the plan
+  // cloud-notes/pocket-dm-runes-look-2026-11-07.md and his 11-10 refinements): the lay floor stands up on any floor with the elder mage aloft and no turns; LAY THE RUNE picks by CR band
+  // as MAGIC by spell level; the aim's refusals (rock, cut off from the way in, dry ground for the water-bound, a Large body with no room); the stomp lays the rune on its ground pulse,
+  // at the floor unless every member flies and then at the mage's height; THE FORMATION; the card's four postures, PATROL's second square, DEFEND's ward and radius; BUY ANOTHER; the
+  // party's way in and its 30 ft warning; a laid fight is its runes, R asks first; the module file v2 and a v1 file; the play placement with u.post (the seam with runes seat B) and
+  // the fliers still aloft into round 1 (battle.js flyCheck); the ?runes door on a scratch table. On a stand-in store
+  if (get('mode', '') === 'runes') {
+    var repRn = { checks: [], errors: [] }, okRn = function (c, s) { repRn.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memRn = {}, stGRn = D.store.get, stSRn = D.store.set, push0Rn = D.push, pop0Rn = D.pop, top0Rn = D.top;
+    D.store.get = function (k) { return memRn[k] ? JSON.parse(memRn[k]) : null; }; D.store.set = function (k, v) { memRn[k] = JSON.stringify(v); return true; };
+    try {
+      var RNb = D.runes, PDr = D.pocketdm, PKr = D.pocket, Gr = D.grid;
+      okRn(!!RNb && typeof RNb.floor === 'function' && typeof D.Battle.prototype.seatRunes === 'function', 'js/runes.js loads (D.runes), and js/battle.js seatRunes');
+      var cvRn = document.createElement('canvas'); cvRn.width = D.W; cvRn.height = D.H; var cxRn = cvRn.getContext('2d');
+      var Pr = new D.Pocket(); Pr.enter(); Pr.ask = function () { return true; }; Pr.st.dm = true; var cpR = PDr.camp(Pr.st); cpR.purse = 100000;
+      var bindR = function (ks) { return PDr.bind(Pr.st, ks.map(function (k) { return PDr.buy(Pr.st, k).receipt.id; })); };
+      var uGob = bindR(['goblin', 'goblin', 'hobgoblin']), uOgre = bindR(['ogre']), uBat = bindR(['giantbat', 'giantbat']), uBug = bindR(['bugbear']);
+      var mR = PDr.newModule(Pr.st, 'RUNES BENCH'), sR = PDr.addSlot(Pr, mR, 'hexfloor', 16); sR.foes = ['goblin', 'goblin']; sR.mine = 0; sR.units = [];
+      var floorR = function (si, o) { var b = RNb.floor(Pr, mR, si, o); D.battle = b; b.enter(); return b; };
+      var tickR = function (B, n) { for (var k = 0; k < n; k++) RNb.tick(B); };
+      // 1. the lay floor: a Battle with no turns on the slot's floor, the elder mage its one figure, aloft, on his hover row
+      var Bq = floorR(0), Lq = Bq.lay, mg = Lq && Lq.mage;
+      okRn(!!Lq && Bq.cine && !Bq.co && !Bq.order.length && Bq.units.length === 1 && mg.sheet === 'eldermage_p1' && mg.fz != null && mg.fz > Gr.groundAt(mg, mg.x, mg.y) && mg.anim === 'hover' && Bq.map.def === D.MAPS.hexfloor,
+        'the lay floor: hexfloor, no turns, the elder mage alone (' + (mg && mg.sheet) + ') aloft ' + RNb.altFt(Bq, mg.x, mg.y) + ' ft on his ' + (mg && mg.anim) + ' row, at the way in ' + Lq.entry);
+      // the mage after the cursor, on his fly row, and up a layer under the ceiling
+      var far = [Math.min(Bq.map.w - 2, mg.x + 4), mg.y]; Lq.cur = { x: far[0], y: far[1] }; tickR(Bq, 2); var flew = mg.anim;
+      tickR(Bq, 60); var z0 = Lq.z; RNb.lift(Bq, 1); var z1 = Lq.z; RNb.lift(Bq, -1);
+      okRn(flew === 'fly' && mg.x === far[0] && mg.y === far[1] && mg.anim === 'hover' && z1 - z0 === Gr.LAYER(), 'he flies to the cursor (' + flew + ', at ' + mg.x + ',' + mg.y + '), hangs on hover there, a layer up is ' + (z1 - z0) + ' px (5 ft)');
+      // 2. the pick: a tab a CR band, as MAGIC a tab a spell level
+      var gs = RNb.groups(Pr.st, sR), tabs = RNb.tabs(gs), labels = tabs.map(function (t) { return t.label; });
+      var bandOf = function (u) { var g = gs.filter(function (x) { return x.units.indexOf(u) >= 0; })[0]; return tabs.filter(function (t) { return t.groups.indexOf(g) >= 0; })[0]; };
+      okRn(labels.join() === 'CR <1,CR 1,CR 2' && bandOf(uBat).label === 'CR <1' && bandOf(uGob).label === 'CR 1' && bandOf(uBug).label === 'CR 1' && bandOf(uOgre).label === 'CR 2',
+        'LAY THE RUNE\'s tabs by CR band: ' + labels.join(' | ') + ' -- the bats under 1, the goblins with their hobgoblin and the bugbear at 1, the ogre at 2');
+      RNb.openPick(Bq); okRn(Lq.mode === 'pick' && RNb.pickState(Bq).tab.label === 'CR <1', 'E opens the pick on the first band with a unit to lay (' + RNb.pickState(Bq).tab.label + ')');
+      // 3. the aim's refusals
+      var gG = gs.filter(function (g) { return g.units.indexOf(uGob) >= 0; })[0], gO = gs.filter(function (g) { return g.units.indexOf(uOgre) >= 0; })[0], gB = gs.filter(function (g) { return g.units.indexOf(uBat) >= 0; })[0];
+      RNb.aim(Bq, gG); var rock = null; for (var yy = 0; yy < Bq.map.h && !rock; yy++) for (var xx = 0; xx < Bq.map.w; xx++) { var qq = Bq.map.at(xx, yy); if (qq && !qq.walk && !qq.deep) { rock = [xx, yy]; break; } }
+      var openSq = []; for (var y2 = 0; y2 < Bq.map.h; y2++) for (var x2 = 0; x2 < Bq.map.w; x2++) { var q2 = Bq.map.at(x2, y2); if (q2 && q2.walk) openSq.push([x2, y2]); }
+      var wR = rock ? RNb.aimAt(Bq, rock[0], rock[1]).why : 'no rock';
+      // a sealed pocket on some floor (the North Cut's back row): cut off from the way in
+      var cutMap = null, cutSq = null; Object.keys(D.MAPS).some(function (id) { var df = D.MAPS[id]; if (!df.entry || !df.rows) return false; var mm = null; try { mm = D.iso.load(df); } catch (eL) { return false; } var rc = RNb.reach(mm, df.entry[0]); for (var y = 0; y < mm.h; y++) for (var x = 0; x < mm.w; x++) { var s = mm.at(x, y); if (s && s.walk && !rc[x + ',' + y]) { cutMap = id; cutSq = [x, y]; return true; } } return false; });
+      D.iso.load(D.MAPS.hexfloor); Gr.setup(Bq.map, Bq.units); D.iso.map = Bq.map;
+      var why0 = function (m0, u, x, y, reach) { return RNb.why(m0, u, x, y, null, reach, false); };
+      var cutWhy = 'no sealed pocket on any floor'; if (cutMap) { var mmC = D.iso.load(D.MAPS[cutMap]); cutWhy = why0(mmC, Lq.pick.us[0], cutSq[0], cutSq[1], RNb.reach(mmC, D.MAPS[cutMap].entry[0])); D.iso.map = Bq.map; Gr.setup(Bq.map, Bq.units); }
+      // the water-bound on dry ground
+      var wk = Object.keys(D.FOES).filter(function (k) { return D.FOES[k].bound && PKr.foe(k); })[0], wu = wk ? RNb.member(Bq, wk, 'wb') : null, dryWhy = wu ? why0(Bq.map, wu, openSq[0][0], openSq[0][1], null) : 'no water-bound kind';
+      // a Large body at the floor's edge where its footprint meets the wall
+      RNb.aim(Bq, gO); var ogre = Lq.pick.us[0], edge = null; openSq.some(function (p) { if (Bq.map.at(p[0] + 1, p[1]) && Bq.map.at(p[0] + 1, p[1]).walk && Bq.map.at(p[0], p[1] + 1) && Bq.map.at(p[0], p[1] + 1).walk) return false; edge = p; return true; });
+      var bigWhy = edge ? why0(Bq.map, ogre, edge[0], edge[1], null) : 'no edge';
+      okRn(wR === 'rock' && /cut off from the party's way in/.test(cutWhy) && /^dry: .*keeps to the water/.test(dryWhy) && !!bigWhy && (ogre.size || 1) === 2,
+        'refused: rock (' + wR + '); on ' + cutMap + ' ' + cutSq + ' (' + cutWhy + '); the ' + wk + ' on dry ground (' + dryWhy + '); the ogre (Large) at ' + edge + ' (' + bigWhy + ')');
+      // 4. the stomp lays the rune on its pulse: the goblins on the floor though the mage is aloft (not all of them fly)
+      RNb.aim(Bq, gG); var at1 = null; openSq.some(function (p) { var ok = RNb.aimAt(Bq, p[0], p[1]); if (!ok.why && Math.abs(p[0] - Lq.entry[0]) + Math.abs(p[1] - Lq.entry[1]) > 14) { at1 = p; return true; } return false; });
+      Lq.cur = { x: at1[0], y: at1[1] }; Lq.stompAt = at1.slice(); Lq.stompPlan = RNb.aimAt(Bq, at1[0], at1[1]); Lq.mode = 'stomp'; Lq.stompT = null;
+      var laidT = null, stT = null; for (var k1 = 0; k1 < 300 && Lq.mode === 'stomp'; k1++) { RNb.tick(Bq); if (stT == null && Lq.stompT != null) stT = Bq.t; if (laidT == null && RNb.list(sR).length) laidT = Bq.t; }
+      var an = D.spr.anim('eldermage_p1', 'stomp'), pulseTicks = Math.round(D.spr.duration('eldermage_p1', 'stomp') * an.pulse / an.frames), r1 = RNb.list(sR)[0];
+      okRn(!!r1 && laidT - stT === pulseTicks && an.pulse === 3 && r1.z === null && r1.at.join() === at1.join() && Lq.mode === 'form',
+        'the stomp: the rune laid ' + (laidT - stT) + ' ticks in (the pulse, frame ' + an.pulse + ' of ' + an.frames + ': ' + pulseTicks + '), at ' + (r1 && r1.at) + ', on the floor (z ' + (r1 && r1.z) + ': the goblins do not fly), then THE FORMATION');
+      var us1 = RNb.formUnits(Bq, r1);
+      okRn(sR.foes.join() === 'goblin,goblin,hobgoblin' && sR.mine === 3 && sR.units.join() === String(uGob.id) && sR.cr8 === PKr.sum8(sR.foes) && us1.length === 3 && us1[0].x === at1[0] && us1[0].y === at1[1] && r1.sq.length === 3 && r1.post === 'stand' && r1.r === 15,
+        'a laid fight is its runes: the goblins\' two drop out, the foes now ' + sR.foes.join(', ') + ' (CR ' + PKr.fmt8(sR.cr8) + ', ' + sR.mine + ' yours), the first on the rune, STAND, 15 ft');
+      // the formation: one moved to a lit square in the box, kept on the rune; a square outside the box refused
+      var mv = us1[2], tgt = null; for (var dy = -2; dy <= 2 && !tgt; dy++) for (var dx = -2; dx <= 2; dx++) { var tx = at1[0] + dx, ty = at1[1] + dy; if (RNb.formLegit(Bq, mv, tx, ty) && !(tx === mv.x && ty === mv.y) && !us1.some(function (u) { return u.x === tx && u.y === ty; })) { tgt = [tx, ty]; break; } }
+      var moved = tgt && RNb.formMove(Bq, mv, tgt[0], tgt[1]), outBox = RNb.formLegit(Bq, mv, at1[0] + 3, at1[1]);
+      okRn(moved && r1.sq[2].join() === tgt.join() && mv.x === tgt[0] && !outBox, 'THE FORMATION: the hobgoblin to ' + tgt + ' (kept on the rune: ' + r1.sq[2] + '); three squares out of the box refused');
+      RNb.formDone(Bq); okRn(Lq.mode === 'card' && Lq.card === r1, 'E when the formation is done: the rune\'s card');
+      // 5. the card: AMBUSH; PATROL and its second square; DEFEND and its ward; the radius
+      RNb.setPost(Bq, r1, 'ambush'); var pA = r1.post;
+      RNb.setPost(Bq, r1, 'patrol'); var modeP = Lq.mode, sec = openSq.filter(function (p) { return Math.max(Math.abs(p[0] - at1[0]), Math.abs(p[1] - at1[1])) === 4; })[0]; RNb.setTo(Bq, r1, sec[0], sec[1]);
+      okRn(pA === 'ambush' && modeP === 'second' && r1.post === 'patrol' && r1.to.join() === sec.join() && Lq.mode === 'card', 'the card: AMBUSH set; PATROL asks its second square (' + modeP + '), ' + sec + ' set: there and back');
+      RNb.setPost(Bq, r1, 'defend'); RNb.setTo(Bq, r1, sec[0] + 1, sec[1]); var defSq = r1.post === 'defend' && r1.to.join() === [sec[0] + 1, sec[1]].join() && !r1.ward;
+      RNb.radius(Bq, r1, 1); var rUp = r1.r; RNb.radius(Bq, r1, -1);
+      // a ward that is a thing: a floor's chest (the Game Show's, by its supply chest) or a door
+      var thMap = Object.keys(D.MAPS).filter(function (id) { return D.MAPS[id].chest || (D.MAPS[id].doors && D.MAPS[id].doors.length); })[0], th = null;
+      if (thMap) { var mT = D.iso.load(D.MAPS[thMap]), dfT = D.MAPS[thMap], tq = dfT.chest || dfT.doors[0]; th = RNb.thingAt(mT, tq[0] + 1, tq[1]); D.iso.map = Bq.map; Gr.setup(Bq.map, Bq.units); }
+      okRn(defSq && rUp === 20 && r1.r === 15 && !!th && /the (chest|door)/.test(th.name), 'DEFEND: a square for its ward (a place), the radius 15 > 20 > 15 ft; on ' + thMap + ' a square beside ' + (th && th.name) + ' wards the thing by name');
+      RNb.setPost(Bq, r1, 'stand');
+      // 6. the bats aloft: all fly, so the rune keeps the mage's height (his "else that's the altitude that binding group starts at")
+      Lq.mode = 'fly'; RNb.lift(Bq, 1); RNb.lift(Bq, 1);
+      RNb.aim(Bq, gB); var at2 = null; openSq.some(function (p) { var ok = RNb.aimAt(Bq, p[0], p[1]); if (!ok.why && Math.max(Math.abs(p[0] - at1[0]), Math.abs(p[1] - at1[1])) > 4 && Math.max(Math.abs(p[0] - Lq.entry[0]), Math.abs(p[1] - Lq.entry[1])) > 6) { at2 = p; return true; } return false; });
+      var ft2 = RNb.altFt(Bq, at2[0], at2[1]);
+      Lq.cur = { x: at2[0], y: at2[1] }; Lq.stompAt = at2.slice(); Lq.stompPlan = RNb.aimAt(Bq, at2[0], at2[1]); Lq.mode = 'stomp'; Lq.stompT = null; for (var k2 = 0; k2 < 300 && Lq.mode === 'stomp'; k2++) RNb.tick(Bq);
+      var r2 = RNb.list(sR)[1], bats = RNb.formUnits(Bq, r2);
+      okRn(!!r2 && r2.z === ft2 && ft2 >= 15 && bats.length === 2 && bats.every(function (u) { return u.flies && u.fz != null && Gr.aloft(u); }), 'the bats laid aloft at the mage\'s ' + ft2 + ' ft (rune.z ' + (r2 && r2.z) + '), both in the air on the lay floor');
+      RNb.formDone(Bq); RNb.closeCard(Bq); RNb.lift(Bq, -1); RNb.lift(Bq, -1);
+      // 7. BUY ANOTHER: every bat unit laid, the row offers another at the market's price for its members and binds it there
+      var gB2 = RNb.groups(Pr.st, sR).filter(function (g) { return g.sig === gB.sig; })[0], free0 = gB2.free.length, purse0 = cpR.purse, nU = cpR.units.length;
+      var got = RNb.buy(Bq, gB2), gB3 = RNb.groups(Pr.st, sR).filter(function (g) { return g.sig === gB.sig; })[0];
+      okRn(free0 === 0 && !!got && cpR.units.length === nU + 1 && RNb.kindsOf(got).join() === 'giantbat,giantbat' && purse0 - cpR.purse === PDr.price('giantbat') * 2 && gB3.free.length === 1 && gB3.units.length === 2,
+        'BUY ANOTHER: the bats all laid (' + free0 + ' free), another bound for ' + PDr.fmt(purse0 - cpR.purse) + ' (two at ' + PDr.fmt(PDr.price('giantbat')) + '), one free to lay now');
+      // 8. the party's way in: moved beside a rune, the warning; away again, none
+      var nearSq = openSq.filter(function (p) { var d = Math.max(Math.abs(p[0] - at1[0]), Math.abs(p[1] - at1[1])); return d >= 4 && d <= 5 && !RNb.runeAt(Bq, p[0], p[1]); })[0];
+      RNb.moveEntry(Bq, nearSq[0], nearSq[1]); var warned = Lq.warn, enS = sR.entry && sR.entry.join();
+      var farSq = openSq.filter(function (p) { return RNb.list(sR).every(function (r) { return Math.max(Math.abs(p[0] - r.at[0]), Math.abs(p[1] - r.at[1])) > 10 && (r.sq || []).every(function (q) { return !q || Math.max(Math.abs(p[0] - q[0]), Math.abs(p[1] - q[1])) > 7; }); }); })[0];
+      RNb.moveEntry(Bq, farSq[0], farSq[1]);
+      okRn(warned && enS === nearSq.join() && !Lq.warn && sR.entry.join() === farSq.join(), 'THE WAY IN: moved to ' + nearSq + ', within 30 ft of the goblins -- warned; to ' + farSq + ', none');
+      // 9. the look: a posture's colour on the chip's edge; the lay floor drawn in each mode
+      var cvG = document.createElement('canvas'); cvG.width = 20; cvG.height = 20; var cg = cvG.getContext('2d'); D.ui.drawGlyph(cg, 'humanoid', 10, 10, { edge: RNb.COL.ambush }); var px = cg.getImageData(10, 4, 1, 1).data;
+      var hexA = '#' + [px[0], px[1], px[2]].map(function (n) { return ('0' + n.toString(16)).slice(-2); }).join('');
+      var drawErr = []; ['fly', 'pick', 'card', 'aim', 'form'].forEach(function (md) { try { if (md === 'pick') RNb.openPick(Bq); else if (md === 'card') RNb.openCard(Bq, r1); else if (md === 'aim') RNb.aim(Bq, gO); else if (md === 'form') RNb.openForm(Bq, r1); else Lq.mode = 'fly'; Bq.paint(cxRn); Bq.paint(cxRn); } catch (eD) { drawErr.push(md + ': ' + eD); } });
+      Lq.mode = 'fly'; Bq.cards = [];
+      okRn(hexA === RNb.COL.ambush && !drawErr.length && RNb.typeOf(['goblin', 'hobgoblin', 'bugbear']) === 'humanoid' && RNb.typeOf(['giantbat', 'ogre']) === 'giant',
+        'the rune\'s chip: its edge the posture\'s colour (' + hexA + '), a mixed unit its highest-CR member\'s type (bat and ogre: ' + RNb.typeOf(['giantbat', 'ogre']) + '); the floor drawn in fly, pick, card, aim and the formation' + (drawErr.length ? ': ' + drawErr.join(' | ') : ''));
+      // 10. the save: the campaign keeps the runes; the module file v2 by kind; read back; a v1 file as today; a bad rune dropped
+      var file = JSON.parse(JSON.stringify(PDr.moduleFile(mR))), fs0 = file.slots[0];
+      var kept = JSON.parse(memRn['deep16.pocket'] || 'null'), keptSlot = kept && kept.camp && kept.camp.modules.filter(function (m) { return m.name === 'RUNES BENCH'; })[0];
+      okRn(file.v === 2 && fs0.runes.length === 2 && fs0.runes.every(function (r) { return r.unit === undefined && r.foes && r.at && r.post; }) && fs0.entry.join() === farSq.join() && !!keptSlot && keptSlot.slots[0].runes.length === 2,
+        'the save: the campaign in this browser keeps both runes; the module file v' + file.v + ' carries them by kind (no unit ids) and the way in ' + fs0.entry);
+      var mod2 = PKr.moduleOf(file), took = PDr.takeModule(Pr.st, mod2), t0s = took && took.slots[0];
+      var v1 = PKr.moduleOf({ game: 'DRAGONSLEEP', kind: PKr.MODULE_KIND, v: 1, name: 'OLD', slots: [{ map: 'hexfloor', foes: ['goblin', 'goblin'], rest: {} }] });
+      var badF = JSON.parse(JSON.stringify(file)); badF.slots[0].runes.push({ foes: ['goblin'], at: [999, 999], post: 'stand' }, { foes: ['ogre'], at: at1.slice(), post: 'stand' }, { foes: ['goblin'], at: rock || [0, 0], post: 'stand' });
+      var warn0 = console.warn, warns = []; console.warn = function (s) { warns.push(String(s)); }; var badM = PKr.moduleOf(badF); console.warn = warn0;
+      okRn(mod2 && mod2.slots[0].runes.length === 2 && mod2.slots[0].entry.join() === farSq.join() && t0s.runes.length === 2 && t0s.runes.every(function (r) { return r.unit === null; }) && v1 && !v1.slots[0].runes && !v1.slots[0].entry && badM.slots[0].runes.length === 2 && warns.length === 3,
+        'read back: the v2 file\'s runes and way in (into the campaign by FROM A FILE, unit-less); a v1 file as today (no runes); three bad runes dropped with a line each: ' + warns.map(function (w) { return w.replace(/^.*-- /, ''); }).join(', '));
+      // 11. R on a laid fight asks first: no keeps the runes
+      Pr.go('build'); Pr.btns = []; Pr.draw(cxRn); var rBtn = Pr.btns.filter(function (b) { return b.label === 'R'; })[0], wBtn = Pr.btns.filter(function (b) { return b.label === 'W'; })[0], asked = 0;
+      Pr.ask = function () { asked++; return false; }; Pr.fire(rBtn); var keptR = RNb.list(sR).length;
+      okRn(!!wBtn && !!rBtn && asked === 1 && keptR === 2 && sR.foes.length === 5, 'BUILD: W on the fight\'s row; R on a laid fight asks first, and no keeps its runes (' + keptR + ', ' + sR.foes.length + ' foes)');
+      Pr.ask = function () { return true; };
+      // 12. the play placement: the module started, the fight launched, each member where he laid it with u.post, the bats aloft into round 1, the party at the way in
+      var modP = PKr.modules(Pr.st).filter(function (m) { return m.name === 'RUNES BENCH'; })[0];
+      Pr.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pr.st.pack = []; Pr.st.light = null; Pr.cache = {};
+      Pr.startModule(modP); Pr.fightMap = 'hexfloor'; Pr.st.run.map = 'hexfloor';
+      var Bp = null; D.push = function (b) { Bp = b; }; try { Pr.launch(); } finally { D.push = push0Rn; }
+      D.battle = Bp; Bp.enter();
+      var foesP = Bp.units.filter(function (u) { return u.side === 'foe'; }), partyP = Bp.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      var placed = RNb.list(sR).every(function (r) { var mem = foesP.filter(function (u) { return u.post && u.post.at.join() === r.at.join(); }); return mem.length === r.foes.length && mem.every(function (u) { return r.sq.some(function (q) { return q && q[0] === u.x && q[1] === u.y; }); }); });
+      var postKeys = foesP[0] && foesP[0].post ? Object.keys(foesP[0].post).join() : '', batsP = foesP.filter(function (u) { return u.kind === 'giantbat'; });
+      okRn(foesP.length === 5 && placed && postKeys === 'kind,at,to,r' && foesP.every(function (u) { return u.post && RNb.POSTS.indexOf(u.post.kind) >= 0 && u.post.r === 15; }) && partyP[0].x === farSq[0] && partyP[0].y === farSq[1],
+        'at play: the five on the squares he laid them, each with u.post { ' + postKeys + ' } (the seam), the party in at ' + partyP[0].x + ',' + partyP[0].y);
+      for (var g1 = 0; g1 < 600 && !(Bp.order && Bp.order.length && Bp.round >= 1); g1++) { Bp.flyCheck(); var nx = Bp.co.next(); if (nx.done) break; if (nx.value && nx.value.turn) break; }
+      Bp.flyCheck();
+      okRn(batsP.length === 2 && batsP.every(function (u) { return u.flies && u.fz != null && Gr.aloft(u) && !u.conds.prone; }) && Bp.round >= 1,
+        'the bats\' height set before round 1 passes flyCheck: both still aloft in round ' + Bp.round + ' (' + batsP.map(function (u) { return Gr.feetUp(u.fz - Gr.groundAt(u, u.x, u.y)) + ' ft'; }).join(', ') + ')');
+      // 13. the last rune off: the fight rolls its CR again
+      D.battle = Bq; D.iso.load(D.MAPS.hexfloor); var nRs = RNb.list(sR).slice(); nRs.forEach(function (r) { RNb.remove(Bq, r); });
+      okRn(!RNb.laid(sR) && sR.foes.length > 0 && !sR.runes.length, 'the last rune off: no runes, the fight rolled again at its CR (' + PKr.foesText(sR.foes) + ')');
+      // 14. the door: ?runes&show on a scratch table -- four runes staged, a posture each, the way in warned; nothing written to this browser's Pocket DM
+      var memB = JSON.stringify(memRn), Bd = null, dPk = RNb.door('?runes&show'); D.push = function (b) { if (b && b.lay !== undefined || (b && b.o && b.o.lay)) { Bd = b; D.battle = b; b.enter(); } else if (b && b.enter) b.enter(); }; try { D.push(dPk); } finally { D.push = push0Rn; }
+      var dr = Bd && Bd.lay ? RNb.list(Bd.lay.slot) : [];
+      okRn(dr.length === 4 && dr.map(function (r) { return r.post; }).join() === 'stand,ambush,patrol,defend' && Bd.lay.warn && JSON.stringify(memRn) === memB, '?runes&show: four runes staged (' + dr.map(function (r) { return r.post + ' ' + PKr.foesText(r.foes); }).join('; ') + '), the way in warned, nothing kept');
+    } catch (eRn) { repRn.errors.push(String(eRn && eRn.stack || eRn).slice(0, 900)); }
+    D.store.get = stGRn; D.store.set = stSRn; D.push = push0Rn;
+    var preRn = document.createElement('pre'); preRn.id = 'out'; preRn.textContent = 'BENCH16 ' + JSON.stringify(repRn); document.body.appendChild(preRn);
+    return;
+  }
   // THE PICK BEHIND THE PAGE (mode=pocketpick1105; the Pocket DM lane, 11-03 night item 3, RULED -- Griz: "for the beasts drawn in the background, it should cycle through special attack
   // animations and show the 'infocard' (at least the same as 'inspect') on the right side"; 11-05: "in monster shops you can highlight/select (other than buy button) and it replaces the
   // background with a gallery of the monster and show's it statbloc/inspect card, with similar notion of background preview version for locations"): in a shop the first row is the pick
