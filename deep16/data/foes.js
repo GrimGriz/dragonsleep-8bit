@@ -1045,8 +1045,11 @@
     multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
     src: 'SRD 5.1 Swarm of Rats (CR 1/4); content/monsters.json ratswarm (the Warrens); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
+  // (the bats', the insects' and the wasps' own sheets since 11-10: the art desk's SWARM-OF-BATS, -INSECTS and -WASPS, five views each, cut by
+  // tools/swarm-sheet.py -- a cloud of bats over its square, a carpet of beetles, a cloud of wasps; batswarm_p1 and insectswarm_p1, one creature
+  // each, kept)
   batswarm: {
-    name: 'Bat Swarm', type: 'beast', sheet: 'batswarm_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, fly: 30, size: 1, reach: 5, blindsight: 60,
+    name: 'Bat Swarm', type: 'beast', sheet: 'batswarm_p2', cr: '1/4', ac: 12, hp: 22, speed: 30, fly: 30, size: 1, reach: 5, blindsight: 60,
     abil: { str: 5, dex: 15, con: 10, int: 2, wis: 12, cha: 4 }, init: 2, perception: 11,
     saves: { str: -3, dex: 2, con: 0, int: -4, wis: 1, cha: -3 },
     attacks: { bites: { name: 'Bites', atk: 4, dice: '2d4', halfHP: '1d4', mod: 0, type: 'piercing', reach: 5 } },
@@ -1054,12 +1057,23 @@
     src: 'SRD 5.1 Swarm of Bats (CR 1/4, fly 30 read as moving 30); content/monsters.json batswarm (the galleries); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   insectswarm: {
-    name: 'Insect Swarm', type: 'beast', sheet: 'insectswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 20, climbs: 20, size: 1, reach: 5, blindsight: 10,
+    name: 'Insect Swarm', type: 'beast', sheet: 'insectswarm_p2', cr: '1/2', ac: 12, hp: 22, speed: 20, climbs: 20, size: 1, reach: 5, blindsight: 10,
     abil: { str: 3, dex: 13, con: 10, int: 1, wis: 7, cha: 1 }, init: 1, perception: 8,
     saves: { str: -4, dex: 1, con: 0, int: -5, wis: -2, cha: -5 },
     attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
     multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
     src: 'SRD 5.1 Swarm of Insects (CR 1/2); content/monsters.json insectswarm (the Glowseep); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
+  },
+  // the Swarm of Wasps (11-10, the art desk's SWARM-OF-WASPS cut on the lanes desk's assignment): the SRD 5.1 Swarm of Insects' own variant, "a walking
+  // speed of 5 feet, a flying speed of 30 feet, and no climbing speed" -- the rest the Swarm of Insects' block. It flies in every fight (js/flight-ai.js),
+  // its Fly row aloft; on the ground it crawls its 5 ft
+  waspswarm: {
+    name: 'Wasp Swarm', type: 'beast', sheet: 'waspswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 5, fly: 30, size: 1, reach: 5, blindsight: 10,
+    abil: { str: 3, dex: 13, con: 10, int: 1, wis: 7, cha: 1 }, init: 1, perception: 8,
+    saves: { str: -4, dex: 1, con: 0, int: -5, wis: -2, cha: -5 },
+    attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
+    src: 'SRD 5.1 Swarm of Insects (CR 1/2), its Variant: Insect Swarms, Swarm of Wasps (walking 5 ft, flying 30 ft, no climb); the sheet the art desk\'s (2026-11-10, tools/swarm-sheet.py waspswarm_p1)', todo: 'sharing a creature\'s space is not read'
   },
   // the clacker (10-01): the realm's hook horror, the colony crowning the crook (TarlynsPit/wiki/the-warrens.md, the clacker cavern;
   // the landlord's fourth picture). Not an SRD creature, so the block is ours, drafted from SRD pieces at a Large monstrosity's CR 3:

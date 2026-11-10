@@ -1853,6 +1853,63 @@
 }
 }
 },
+"batswarm_p2": {
+"image": "art/batswarm_p2.png?v=54675f7285",
+"fw": 80,
+"fh": 72,
+"ax": 40,
+"ay": 56,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 72,
+"ax": 40,
+"ay": 56,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 576,
+"fw": 88,
+"fh": 72,
+"ax": 44,
+"ay": 56,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1152,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 56,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 1728,
+"fw": 112,
+"fh": 72,
+"ax": 56,
+"ay": 56,
+"frames": 8,
+"fps": 10
+},
+"flinch": {
+"y": 2304,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 56,
+"frames": 4,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (2026-11-10, the Swarm of Bats: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle, the flying rows 12 px up"
+},
 "beholda_p2": {
 "image": "art/beholda_p2.png?v=c419133fd1",
 "fw": 96,
@@ -8055,6 +8112,63 @@
 "fps": 12
 }
 }
+},
+"insectswarm_p2": {
+"image": "art/insectswarm_p2.png?v=e7935471af",
+"fw": 80,
+"fh": 64,
+"ax": 40,
+"ay": 36,
+"top": 27,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 64,
+"ax": 40,
+"ay": 36,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 88,
+"fh": 64,
+"ax": 44,
+"ay": 36,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 88,
+"fh": 64,
+"ax": 44,
+"ay": 36,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 1536,
+"fw": 104,
+"fh": 64,
+"ax": 52,
+"ay": 36,
+"frames": 8,
+"fps": 10
+},
+"flinch": {
+"y": 2048,
+"fw": 88,
+"fh": 64,
+"ax": 44,
+"ay": 36,
+"frames": 4,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (2026-11-10, the Swarm of Insects: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle"
 },
 "jory_p1": {
 "image": "art/jory_p1.png?v=db27952872",
@@ -22419,6 +22533,72 @@ true
 },
 "source": "deep16/_src/warda/ART-123-WARDA/ART-123-WARDA_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-WARDA, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "hex:warda"
+},
+"waspswarm_p1": {
+"image": "art/waspswarm_p1.png?v=10193100cc",
+"fw": 80,
+"fh": 80,
+"ax": 40,
+"ay": 60,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 80,
+"ax": 40,
+"ay": 60,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 640,
+"fw": 96,
+"fh": 80,
+"ax": 48,
+"ay": 60,
+"frames": 6,
+"fps": 10
+},
+"attack": {
+"y": 1280,
+"fw": 80,
+"fh": 80,
+"ax": 40,
+"ay": 60,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 1920,
+"fw": 112,
+"fh": 80,
+"ax": 56,
+"ay": 60,
+"frames": 8,
+"fps": 10
+},
+"fly": {
+"y": 2560,
+"fw": 96,
+"fh": 80,
+"ax": 48,
+"ay": 60,
+"frames": 8,
+"fps": 10
+},
+"flinch": {
+"y": 3200,
+"fw": 80,
+"fh": 80,
+"ax": 40,
+"ay": 60,
+"frames": 4,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (2026-11-10, the Swarm of Wasps: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle, the flying rows 12 px up"
 },
 "waterelemental_p2": {
 "image": "art/waterelemental_p2.png?v=f72238e75f",

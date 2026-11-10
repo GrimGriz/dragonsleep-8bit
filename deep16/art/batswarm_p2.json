@@ -1,0 +1,57 @@
+{
+ "image": "art/batswarm_p2.png",
+ "fw": 80,
+ "fh": 72,
+ "ax": 40,
+ "ay": 56,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 80,
+   "fh": 72,
+   "ax": 40,
+   "ay": 56,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 576,
+   "fw": 88,
+   "fh": 72,
+   "ax": 44,
+   "ay": 56,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1152,
+   "fw": 96,
+   "fh": 72,
+   "ax": 48,
+   "ay": 56,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 1728,
+   "fw": 112,
+   "fh": 72,
+   "ax": 56,
+   "ay": 56,
+   "frames": 8,
+   "fps": 10
+  },
+  "flinch": {
+   "y": 2304,
+   "fw": 96,
+   "fh": 72,
+   "ax": 48,
+   "ay": 56,
+   "frames": 4,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (2026-11-10, the Swarm of Bats: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle, the flying rows 12 px up"
+}

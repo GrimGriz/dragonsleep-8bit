@@ -17607,6 +17607,51 @@
     document.body.appendChild(preRs);
     return;
   }
+  // THE THREE SWARMS IN THEIR OWN SHEETS (mode=swarms1110; 11-10, the lanes desk's assignment on Griz's "they can churn through fresh one at a time as they complete at your
+  // discretion as to next cut"): the art desk's SWARM-OF-BATS, -INSECTS and -WASPS cut to batswarm_p2, insectswarm_p2 and waspswarm_p1 (tools/swarm-sheet.py) and worn by
+  // their foes, the wasps new by the SRD's insect-swarm variant (walking 5, flying 30, no climb); each one's rows played where the engine plays them -- its Bites the `attack`
+  // row, the jaws on frame 4; a blow it lives through its Flinch; the blow that kills it its Scatter, never prone; the fliers with wings in a fight, the wasps on their Fly
+  // row aloft (js/ui.js aloftRow) and their Crawl on the ground, the bats on their Hover and Fly rows aloft (no `fly` row: idle and walk)
+  if (get('mode', '') === 'swarms1110') {
+    var repSw = { checks: [], errors: [] };
+    function okSw(what, v) { repSw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkSw(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function runSw(g, u, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seen && seen.indexOf(u.anim) < 0) seen.push(u.anim); if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var SWK = { batswarm: ['batswarm_p2', { idle: 6, walk: 8, attack: 6, hurt: 8, flinch: 4 }], insectswarm: ['insectswarm_p2', { idle: 6, walk: 8, attack: 6, hurt: 8, flinch: 4 }],
+        waspswarm: ['waspswarm_p1', { idle: 6, walk: 6, fly: 8, attack: 6, hurt: 8, flinch: 4 }] };
+      Object.keys(SWK).forEach(function (k) {
+        var sh = SWK[k][0], want = SWK[k][1], S = D.SHEETS && D.SHEETS[sh], got = S ? Object.keys(S.anims) : [];
+        okSw(k + ' wears ' + (D.FOES[k] && D.FOES[k].sheet) + ': ' + (S ? got.map(function (r) { return r + ' ' + S.anims[r].frames; }).join(', ') + ' (the jaws on ' + S.anims.attack.release + '; prone frame ' + D.spr.proneFrame(sh) + ')' : 'NO SHEET ' + sh),
+          !!D.FOES[k] && D.FOES[k].sheet === sh && !!S && got.length === Object.keys(want).length && Object.keys(want).every(function (r) { return S.anims[r] && S.anims[r].frames === want[r] && !S.anims[r].drawn; }) && S.anims.attack.release === 3 && D.spr.proneFrame(sh) < 0);
+      });
+      var Wp = D.FOES.waspswarm, Is = D.FOES.insectswarm, same = Wp && ['ac', 'hp', 'cr', 'size', 'reach', 'blindsight', 'swarm', 'noProne'].every(function (f) { return Wp[f] === Is[f]; }) && JSON.stringify([Wp.abil, Wp.saves, Wp.attacks, Wp.resist, Wp.condImmune]) === JSON.stringify([Is.abil, Is.saves, Is.attacks, Is.resist, Is.condImmune]);
+      okSw('the wasps by the SRD\'s variant: walking ' + (Wp && Wp.speed) + ', flying ' + (Wp && Wp.fly) + ', climbing ' + (Wp && Wp.climbs || 0) + '; the rest the Swarm of Insects\' block ' + !!same, !!Wp && Wp.speed === 5 && Wp.fly === 30 && !Wp.climbs && same);
+      okSw('the stand-ins kept on the shelf: ' + ['batswarm_p1', 'insectswarm_p1'].map(function (s) { return s + ' ' + !!(D.SHEETS && D.SHEETS[s]); }).join(', '), !!(D.SHEETS.batswarm_p1 && D.SHEETS.insectswarm_p1));
+      Object.keys(SWK).forEach(function (k) {
+        var Bw = mkSw('?npc=' + k + '&lvl=3&vs=fighter:3'), fo = Bw.units.filter(function (u) { return u.side === 'foe'; })[0], pf = Bw.units.filter(function (u) { return u.side === 'party'; })[0];
+        fo.hp = fo.maxhp = 400; pf.hp = pf.maxhp = 400; fo.conds = {}; pf.conds = {}; fo.x = pf.x + 1; fo.y = pf.y; fo.anim = 'idle'; fo.fz = null;
+        D.rules.startTurn(fo); var bt = []; runSw(Bw.attack(fo, pf, fo.attacks.bites), fo, bt);
+        okSw(k + ' in the fight wears ' + fo.sheet + ', its Bites plays ' + bt.join('>'), fo.sheet === SWK[k][0] && bt.indexOf('attack') >= 0);
+        fo.anim = 'idle'; Bw.hurt(fo, 4, 'slashing');
+        okSw(k + ': a blow it lives through plays ' + fo.anim, fo.anim === 'flinch');
+        var flier = !!D.FOES[k].fly, G = D.grid;
+        okSw(k + ': wings in the fight ' + !!fo.flies + ' (its block\'s fly ' + (D.FOES[k].fly || 0) + ')', !!fo.flies === flier);
+        if (flier) {
+          var gUp = G.groundAt(fo, fo.x, fo.y), rowsUp, rowsDown;
+          fo.fz = gUp + 4; rowsUp = [D.ui.aloftRow(fo, 'idle'), D.ui.aloftRow(fo, 'walk')]; fo.fz = null; rowsDown = [D.ui.aloftRow(fo, 'idle'), D.ui.aloftRow(fo, 'walk')];
+          var wantUp = D.spr.anim(fo.sheet, 'fly') ? ['fly', 'fly'] : ['idle', 'walk'];
+          okSw(k + ': aloft it plays ' + rowsUp.join(' and ') + ', on the ground ' + rowsDown.join(' and '), rowsUp.join() === wantUp.join() && rowsDown.join() === 'idle,walk' && (k !== 'waspswarm' || rowsUp[0] === 'fly'));
+        }
+        fo.anim = 'idle'; fo.hp = 3; Bw.hurt(fo, 9, 'slashing');
+        okSw(k + ': the blow that kills it: ' + fo.hp + ' hp, plays ' + fo.anim + ' (the Scatter, ' + D.SHEETS[fo.sheet].anims.hurt.frames + ' frames, the last held), prone ' + !!fo.conds.prone, fo.hp <= 0 && fo.anim === 'hurt' && !fo.conds.prone);
+      });
+    } catch (eSw) { repSw.errors.push(String(eSw && eSw.stack || eSw).slice(0, 900)); }
+    if (errs.length) repSw.errors = repSw.errors.concat(errs);
+    var preSw = document.createElement('pre'); preSw.id = 'out'; preSw.textContent = 'BENCH16 ' + JSON.stringify(repSw);
+    document.body.appendChild(preSw);
+    return;
+  }
   // BARLEY IN HIS BATTERED COAT (mode=barley1020; 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"): the art desk's ART-75/76 cut to barley_p2
   // (tools/barley-sheet.py) and worn by the story's Barley; the views the desk left OPEN left out (a row's `drawn`), his walk under barley_p0 (js/sprites.js frameOf: the old walk
   // where the desk has no clean one, the nearest drawn facing for any other row); and his rows played where the engine plays them: the blow `attack`, the turn's second blow

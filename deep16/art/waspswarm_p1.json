@@ -1,0 +1,66 @@
+{
+ "image": "art/waspswarm_p1.png",
+ "fw": 80,
+ "fh": 80,
+ "ax": 40,
+ "ay": 60,
+ "top": 51,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 80,
+   "fh": 80,
+   "ax": 40,
+   "ay": 60,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 640,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 80,
+   "fh": 80,
+   "ax": 40,
+   "ay": 60,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 1920,
+   "fw": 112,
+   "fh": 80,
+   "ax": 56,
+   "ay": 60,
+   "frames": 8,
+   "fps": 10
+  },
+  "fly": {
+   "y": 2560,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 60,
+   "frames": 8,
+   "fps": 10
+  },
+  "flinch": {
+   "y": 3200,
+   "fw": 80,
+   "fh": 80,
+   "ax": 40,
+   "ay": 60,
+   "frames": 4,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (2026-11-10, the Swarm of Wasps: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle, the flying rows 12 px up"
+}

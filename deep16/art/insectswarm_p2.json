@@ -1,0 +1,57 @@
+{
+ "image": "art/insectswarm_p2.png",
+ "fw": 80,
+ "fh": 64,
+ "ax": 40,
+ "ay": 36,
+ "top": 27,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 80,
+   "fh": 64,
+   "ax": 40,
+   "ay": 36,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 512,
+   "fw": 88,
+   "fh": 64,
+   "ax": 44,
+   "ay": 36,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1024,
+   "fw": 88,
+   "fh": 64,
+   "ax": 44,
+   "ay": 36,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 1536,
+   "fw": 104,
+   "fh": 64,
+   "ax": 52,
+   "ay": 36,
+   "frames": 8,
+   "fps": 10
+  },
+  "flinch": {
+   "y": 2048,
+   "fw": 88,
+   "fh": 64,
+   "ax": 44,
+   "ay": 36,
+   "frames": 4,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (2026-11-10, the Swarm of Insects: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle"
+}
