@@ -3652,7 +3652,7 @@
   };
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
   // the off hand's weapon thrown instead (SRD 5.1, two-weapon fighting: "If either weapon has the thrown property, you can throw the weapon"): its range, or none
-  Battle.offThrow = function (u) { var it = u && u.src && u.src.equip && window.DS.R.item(u.src.equip.offhand), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.range || [20, 60] } : null; };
+  Battle.offThrow = function (u) { var it = u && u.src && u.src.equip && window.DS.R.item(u.src.equip.offhand), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.thrown || wd.throw || wd.range || [20, 60] } : null; }; // (the item's own `thrown` range: content/items.json, the SRD's property on every thrown weapon since 11-10)
   // the thrown weapon a unit carries to throw, with one left (the ring's THROW, 10-15): a class hero's `alt` handaxes or daggers
   Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
   Battle.prototype.spendThrow = function (u, atk) {
