@@ -67,7 +67,7 @@
     var it = item(rg.id); if (!it || !it.ring || !it.ring.fly) return;
     var fing = FA.finger(u); if (!fing) return;
     rg.n--; T.freeObj = true; u.flies = true; u.ringFly = rg.id;
-    if (u.src && u.src.equip) u.src.equip[fing] = rg.id; // (on a ring finger, as EQUIP shows it: the standard ring -- 10-13)
+    if (u.src && u.src.equip) { if (!u.equip0) u.equip0 = JSON.parse(JSON.stringify(u.src.equip)); u.src.equip[fing] = rg.id; } // (on a ring finger, as EQUIP shows it: the standard ring -- 10-13; equip0: the Pocket DM keeps it on, js/pocket.js PK.fightKept -- 11-10)
     D.sfx('buff'); if (FX && FX.ring) FX.ring(u, 'glow', 24);
     B.card(['{y}' + u.name + '{/} puts on the ' + it.name + '.  {g}(wings: a flying speed of ' + (u.speed || 30) + ' ft; with MOVE out, Shift+wheel or [ ] picks the height){/}'], 300);
     yield 20;

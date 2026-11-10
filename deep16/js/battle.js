@@ -3709,6 +3709,7 @@
     var R = window.DS.R, h = u.src, B = this;
     function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
+    if (!u.equip0) u.equip0 = JSON.parse(JSON.stringify(h.equip || {})); // (as it stood before the first swap: the Pocket DM keeps what the fight changed, js/pocket.js PK.fightKept -- 11-10)
     Battle.payAction(u.turn); D.sfx('confirm');
     if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }

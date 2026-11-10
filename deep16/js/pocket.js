@@ -310,8 +310,61 @@
   };
   PK.coinFor = function (kinds) { return Math.round(PK.sum8(kinds) / 8 * 100); };
   // what the fight used comes off the pack; a stack the fight lent (the armoury's crossbow and bolts, js/save.js) is not the table's
+  // (and what a swap in the fight changed is kept, PK.fightKept: a thing taken up stays worn, as the card's GEAR; a thing put down is the pack's -- 11-10)
   PK.packBack = function (st, B) {
-    (st.pack || []).slice().forEach(function (s) { var n = 0; (B.inv || []).forEach(function (x) { if (x.id === s.id) n += x.n || 0; }); if (n < s.n) PK.packAdd(st, s.id, n - s.n); });
+    var kept = PK.fightKept(st, B), inv = {}, ids = {};
+    (B.inv || []).forEach(function (x) { inv[x.id] = (inv[x.id] || 0) + (x.n || 0); });
+    (st.pack || []).forEach(function (s) { ids[s.id] = 1; }); Object.keys(kept.d).forEach(function (id) { ids[id] = 1; });
+    Object.keys(ids).forEach(function (id) { // (the pack as it was, give or take what the swaps moved, but never more than the fight left of it: what was spent, thrown or rusted away is gone)
+      var n0 = PK.packN(st, id), want = Math.max(0, Math.min(n0 + (kept.d[id] || 0), (inv[id] || 0) - (kept.cap[id] || 0)));
+      if (want !== n0) PK.packAdd(st, id, want - n0);
+    });
+    kept.cards.forEach(function (k) { k.slot.gear = k.gear; });
+  };
+  // THE FIGHT'S EQUIP KEPT (11-10, Griz's record of 11-09: "There's item loss and what item equip loss going on somewhere. Bought Harley a scimitar and it's absent on the
+  // camp screen, so its unequipped when we enter the fight. It's not absent in the fight and has to be equipped"): a swap in the fight -- the grid's EQUIP (js/battle.js
+  // swapGear), a ring put on to fly (js/flight-ai.js putOn) -- is the card's after it, as the camp's EQUIP is (gearBack): what was taken up is worn into the next fight, what
+  // was put down goes to the pack. Before, the thing taken up came off the pack at the fight's end and nothing wrote it on the card. A thing the fight only lent (the armoury's
+  // crossbow, js/save.js; a class hero's second weapon, js/battle.js) goes back to the lender: that place keeps what it held before the fight.
+  // Returns { d: the pack's change by id, cap: what stays on a hero out of the fight's pack, cards: [{ slot, gear }] } for PK.packBack
+  PK.gearOf = function (st, slot, equip) { // (a card's GEAR for an equip: what its word without GEAR does not wear, and `no<place>` for what it does that is off)
+    var own = slot && PK.bareOf(st, slot); if (!own) return null;
+    var g = {};
+    ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
+      var now = equip[pl] || null, was = own.equip[pl] || null;
+      if (now === was) return;
+      if (now) g[pl] = pl === 'offhand' ? 'off:' + now : now;
+      else g[pl] = 'no' + pl; // (any place: what came off is in the pack, not on the card -- 10-17)
+    });
+    return g;
+  };
+  PK.fightKept = function (st, B) {
+    var out = { d: {}, cap: {}, cards: [] }, places = ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES);
+    var hs = ((B && B.units) || []).filter(function (u) { return u.side === 'party' && u.equip0 && u.src && u.src.equip && !u.familiar && !u.summon && /^p\d+-/.test(u.id || '') && st.party[+/^p(\d+)-/.exec(u.id)[1]]; }); // (u.equip0: as it stood before its first swap)
+    if (!hs.length) return out;
+    var ch = [];
+    hs.forEach(function (u) { places.forEach(function (pl) { var a = u.equip0[pl] || null, b = u.src.equip[pl] || null; if (a !== b) ch.push({ u: u, pl: pl, a: a, b: b, keep: true }); }); });
+    // a thing put on that the table never had in the fight (its pack, and what came off our heroes) was the fight's loan: that place keeps what it held
+    for (var loop = 0; loop < 4; loop++) {
+      var pool = {}, bad = false;
+      (st.pack || []).forEach(function (s) { pool[s.id] = (pool[s.id] || 0) + s.n; });
+      ch.forEach(function (c) { if (c.keep && c.a) pool[c.a] = (pool[c.a] || 0) + 1; });
+      ch.forEach(function (c) { if (!c.keep || !c.b) return; pool[c.b] = (pool[c.b] || 0) - 1; if (pool[c.b] < 0) { pool[c.b]++; c.keep = false; bad = true; } });
+      if (!bad) break;
+    }
+    ch.forEach(function (c) {
+      if (c.keep) { if (c.a) out.d[c.a] = (out.d[c.a] || 0) + 1; if (c.b) out.d[c.b] = (out.d[c.b] || 0) - 1; }
+      else if (c.a) out.cap[c.a] = (out.cap[c.a] || 0) + 1; // (its own, back on it: in the fight's pack at the end, but not the table's)
+    });
+    hs.forEach(function (u) {
+      var slot = st.party[+/^p(\d+)-/.exec(u.id)[1]], eq = Object.assign({}, u.src.equip);
+      ch.forEach(function (c) { if (c.u === u && !c.keep) eq[c.pl] = c.a; });
+      // a winning put down is off the card's record, as the camp's give takes it (PK.dropWin): a stock word's `loot`, a made one's kit back in its place
+      var count = function (e, id) { return places.filter(function (pl) { return e[pl] === id; }).length; };
+      PK.winsOf(st, slot).forEach(function (id) { for (var k = count(u.equip0, id) - count(eq, id); k > 0; k--) PK.dropWin(st, slot, id); });
+      var g = PK.gearOf(st, slot, eq); if (g) out.cards.push({ slot: slot, gear: g });
+    });
+    return out;
   };
   // a card's gear from the pack (his: "add 'gear' button' (symbol?) below the down arrow to swap the characters"): rides its word as `+item`, worn after its
   // winnings (js/classes.js NPC.wear); `noshield` / `noarmor` take the place's own off
@@ -1551,14 +1604,7 @@
     }, h);
   };
   Pocket.prototype.gearBack = function (i, h) {
-    var slot = this.st.party[i], own = slot && PK.bareOf(this.st, slot); if (!slot || !own) return; // (as its word now makes it: a winning taken off is gone from it)
-    var g = {};
-    ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
-      var now = h.equip[pl] || null, was = own.equip[pl] || null;
-      if (now === was) return;
-      if (now) g[pl] = pl === 'offhand' ? 'off:' + now : now;
-      else g[pl] = 'no' + pl; // (any place: what came off is in the pack, not on the card -- 10-17)
-    });
+    var slot = this.st.party[i], g = slot && PK.gearOf(this.st, slot, h.equip); if (!g) return; // (as its word now makes it: a winning taken off is gone from it -- PK.gearOf, the fight's swaps' too)
     slot.gear = g; this.cache = {}; this.keep();
   };
 
