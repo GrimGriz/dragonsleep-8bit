@@ -843,6 +843,7 @@
   if (W && W.DOORS) {
     W.DOORS.solskaft = { roam: SK.KEY, gates: { doors: [0, 1] } };
     W.DOORS.solskaft_cart = { roam: SK.CART, gates: { rampW: [0, 1] } };
+    if (W.APPROACH) { W.APPROACH.solskaft = { mi: 4, z: Infinity }; W.APPROACH.solskaft_cart = { mi: 4, z: Infinity }; } // (as the Warrens' site-less door has: every door's approach the area's closest zoom, js/world.js W.closeZ -- bench world1103)
   }
   SK.vaultOut = function () { var L = (T.laidF && T.laidF[T.SCALE]) || (T.laidF = T.laidF || {}, T.laidF[T.SCALE] = T.lay(null, T.SCALE)), v = L.marks.vault; return v ? [v[0], v[1] + 1] : null; };
   SK.toTown = function* (B) { var at = SK.vaultOut(); SK.lastSaid = 'the vault doors'; yield* M.cross(B, 'silverton', 'south', at, ['{y}The vault doors{/}, out onto the Gate Plaza at the Edifice\'s foot: Silverton.']); };
