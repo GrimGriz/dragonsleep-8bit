@@ -1166,7 +1166,7 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
-    var gth = this.gatherThrown(o); if (gth) { this.card([gth], 260); yield 30; } // (the thrown weapons on a held field back in the pack: 11-10)
+    var gth = Battle.prototype.gatherThrown.call(this, o); if (gth) { this.card([gth], 260); yield 30; } // (the thrown weapons on a held field back in the pack: 11-10; by the prototype -- a bench's stand-in battle runs finish too)
     var RG = window.DS.R.GRIPPING; if (RG) this.units.forEach(function (u) { if (u.src) RG.delete(u.src); }); // (no grip outlives its fight: Battle.gripFor)
     // a trooper left lying when the party got out (escapeEnd): a word for each, and the 8-bit lets them go (embed.js leftBehind -- 10-13, his: "continue with sad note on 'troop' NPCs")
     var lb = o === 'escaped' ? this.units.filter(function (u) { return u.leftBehind; }) : [];
@@ -3721,10 +3721,10 @@
   };
   // the fight's end: on a held field what still lies there comes back (won, the foe yielded or fled); lost or run from, it stays
   Battle.prototype.gatherThrown = function (o) {
-    if (this.flying) this.landThrow();
+    if (this.flying) Battle.prototype.landThrow.call(this);
     var gs = this.ground || []; if (!gs.length) return '';
     if (o !== 'won' && o !== 'yielded' && o !== 'fled') { this.ground = []; return ''; }
-    var self = this, n = {}; gs.forEach(function (g) { self.groundBack(g); n[g.name] = (n[g.name] || 0) + 1; }); this.ground = [];
+    var self = this, n = {}; gs.forEach(function (g) { Battle.prototype.groundBack.call(self, g); n[g.name] = (n[g.name] || 0) + 1; }); this.ground = [];
     return '{g}The thrown weapons are gathered up: ' + Object.keys(n).map(function (k) { return n[k] > 1 ? n[k] + ' ' + k.toLowerCase() + (/s$/.test(k) ? '' : 's') : 'a ' + k.toLowerCase(); }).join(', ') + '.{/}';
   };
   // under the cursor (ui.js, the square's line, bottom right)
