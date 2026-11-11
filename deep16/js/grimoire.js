@@ -203,10 +203,11 @@
       B.hurt(u, d, a.type, MAGIC);
     });
   }
-  // a flier more than 5 ft over the ground under it is over the spikes: Spike Growth is the ground's (SRD 5.1: "The ground in a 20-foot radius ... sprouts hard spikes and
+  // a flier 5 ft or more over the ground under it is over the spikes: Spike Growth is the ground's (SRD 5.1: "The ground in a 20-foot radius ... sprouts hard spikes and
   // thorns"), and RULED 11-10, Griz on his record of 11-09 (the harpies spiked as they flew): "spiked shouldn't impact fliers over 5ft unless SRD contradicts" -- the SRD says
-  // nothing of height. 5 ft up or lower, or on the surface (no layer held), the thorns reach it
-  M.overSpikes = function (u) { return !!(G.aloft && G.aloft(u) && G.feetUp(u.fz - G.groundAt(u, u.x, u.y)) > 5); };
+  // nothing of height -- then, on the seat's call that 5 ft itself was still spiked, "1 - spare 5ft too, head cannon says it's about 3 ft deep": any layer held over the
+  // ground spares it; on the surface (no layer held) the thorns reach it
+  M.overSpikes = function (u) { return !!(G.aloft && G.aloft(u) && G.feetUp(u.fz - G.groundAt(u, u.x, u.y)) >= 5); };
   // stepping onto a spell's ground: grease (DEX or down, the move ends), spikes (2d4 each 5 ft), the guardians' ring
   M.stepInto = function (B, u) {
     var stop = false;
