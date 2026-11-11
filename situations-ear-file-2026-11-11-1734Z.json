@@ -1,0 +1,155 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-11T17:34:03.341Z",
+ "previous_save": "2026-11-07T01:32:01.851Z",
+ "items": [
+  {
+   "id": "eyes-inn-doorcut-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE FRONT DOOR'S CUTAWAY: in off the road, the house's west end see-through by the step, the lantern post lit there (11-11)",
+   "pt": "the Halfway Inn and the lake, the 2026-11-08 section, RULED 11-10 (deep16/js/innprops.js IP.tick, IP.cutOn, IP.drawSee; js/inn.js In.ROWS the post at 17,17; mode=inn1111, dev/innsee-probe.py) · eyes",
+   "url": "deep16/?innshow&beat=doorcut&fresh=1111dc",
+   "verdict": "works",
+   "note": "this is good, the stubby walls could be drawn another tile in each direction (edges visible) if it's not problematic",
+   "at": "2026-11-11T17:33:54.682Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-inn-seethrough-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "SEE-THROUGH WHERE THE PARTY STANDS: the big fire's chimney, the stack upstairs, the house's roof -- no outline (11-11)",
+   "pt": "the Halfway Inn and the lake, his note on eyes-halfwayinn-floor-1105 and his question 5 of 11-08 (deep16/js/innprops.js IP.TALL, IP.tick, IP.covers, IP.drawSee; mode=inn1111, dev/innsee-probe.py) · eyes",
+   "url": "deep16/?innshow&beat=behindfire&fresh=1111bf",
+   "verdict": "works",
+   "note": "barns missing textures, interior is good, front door is good - front goes transparent when you're on the north, north transparency would benefit if we could do those wallstubs, you can't tell from north transparency that you won't be able to click south of him",
+   "at": "2026-11-11T17:32:17.765Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-first-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SUPPER AS RULED: the first supper, a stranger's -- one read and one shaded answer a hero, no dice, the looks as looks (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built (deep16/js/inn.js In.MEAL, In.SUP, In.meal; deep16/js/counter.js Counter.lookAt, the flip's shading; mode=inn1104) · eyes",
+   "url": "deep16/?innshow&beat=room&fresh=1111s",
+   "verdict": "works",
+   "note": "Gennet acting weird after the linen question doesn't match her open (remove open line or vague consistency?) about a wagon coming through every month, good custom. is aurdin asking about dominion at the moot before he'd have reason to (heard rumor, etc)",
+   "at": "2026-11-11T17:27:44.010Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-renown-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SUPPER AT RENOWN 3: warm from the start, the work named, \"who built this place\" down its layers (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built, rulings 26 and 27 (deep16/js/inn.js In.supStart, In.SUP.ASK house, came, fought) · eyes",
+   "url": "deep16/?innshow&beat=supwarm&fresh=1111w",
+   "verdict": "broken",
+   "note": "text is enough options its ending up below the screen. Can we have them wake-up in the room, road end until the big room then the big room",
+   "at": "2026-11-11T17:23:19.851Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-kinds-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE OTHER SUPPERS: a later one, after Amara, Gennet alone, sacrifice night and the bowls (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built, rulings 8, 15, 23, 29, 33 (deep16/js/inn.js In.supKind; deep16/js/secondact.js A.poisonNight reads B.roam.supBowls) · eyes",
+   "url": "deep16/?innshow&beat=suplater&fresh=1111k",
+   "verdict": "unclear",
+   "note": "unclear what I'm supposed to be testing versus the ones i've already seen, not sure how to do multiple beats in this new format",
+   "at": "2026-11-11T17:19:04.740Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-amara-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SUPPER AFTER THE PARTY SAW GENNET WITH AMARA: tense, and no fight in it (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built, ruling 33 (deep16/js/inn.js In.supKind amara) · eyes",
+   "url": "deep16/?innshow&beat=supamara&fresh=1111a",
+   "verdict": "works",
+   "note": "it feels like we're dumping a lot on the history questions, like 3 different answers, or two both with gennet and doran back and forth, like i think in this one they updated all the things they might have said before. We should spread that out, and assume they'll have 3-4 dinners in a normal playthrough. the whole party is getting talking points from a single insight only one character had and didn't talk about (in this one, it seemed only one saw elsbeth take food to the barn but everyone had questions about the food in the barn)",
+   "at": "2026-11-11T17:17:36.604Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-alone-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET ALONE, Doran away: his place laid, and how she came to the inn (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built, ruling 29 and the realm's history (deep16/js/inn.js In.supKind alone) · eyes",
+   "url": "deep16/?innshow&beat=supalone&fresh=1111g",
+   "verdict": "works",
+   "note": "if he's gone with the wagon because they stopped amara and everyone at the table knows that's the wagon he's out with, her answers don't make sense. Not enough fluff/useless conversation options - one could be eat quietly - they don't seem to be able to address her question about the eyes (based on encountering a mirror monster fight?)",
+   "at": "2026-11-11T17:12:43.582Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-sacrifice-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT AS A SUPPER: Elsbeth's look, say it aloud or push the bowl away (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the supper built, rulings 15 and 23 (deep16/js/inn.js In.meal sacrifice; deep16/js/secondact.js A.poisonNight reads B.roam.supBowls; mode=winters1105) · eyes",
+   "url": "deep16/?innshow&beat=supsacr&fresh=1111x",
+   "verdict": "unclear",
+   "note": "can we have elsbeth actually moving to places on the table to put the bowls down? discuss this bit with me. Anyone that doesn't make whatever checks we offer will have eaten from the bowls by the third dialog choice.  having each character choose to eat or not is too much of a tell. a trimmed cut of the portrait from the washbasin rather than what we're using for elsbeth in the overlay visuals. the transition to combat loads while showing the pre-meal set up (pushes chairs back) - could that be the same scene we overlay during the discussion? 'she hasn't filled her bowl' or whatever is an insight result made conversation option? the boys are never around, weird of barley to ask",
+   "at": "2026-11-11T17:08:25.679Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-unseen-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN WITH THE CHILD: Gennet comes running -- the glamour unseen, Doran home (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the barn built, rulings 30 and 34 (deep16/js/inn.js In.barnScene FREE IT, In.barnYard, In.barnTalk, In.BY; mode=inn1104) · eyes",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1111b",
+   "verdict": "works",
+   "note": "combat says the child goes up against the wall - should happen and alter the party formation that falls out of the token, surrender shouldn't pull all but the party token off the screen - doran's post yield talk should be with portraits",
+   "at": "2026-11-11T16:57:16.504Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-seen-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN: the glamour already seen through -- her other story, and the child kept in the open (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the barn built, ruling 30 · eyes",
+   "url": "deep16/?innshow&beat=barnseen&fresh=1111c",
+   "verdict": "works",
+   "note": "the coming and going, gennet for the bag or leaving with the child, etc - should be animated (they disappear and the text says the move) - the transparency seems to work, but the ceiling looks different and the inn walls are missing",
+   "at": "2026-11-11T16:52:28.891Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-away-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, Doran away: Elsbeth says it -- \"It's for the lake. Tell them, or I will.\" (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the barn built, rulings 13 and 29 · eyes",
+   "url": "deep16/?innshow&beat=barnaway&fresh=1111d",
+   "verdict": "works",
+   "note": "text boxes - the 'ok' button being up top by gennet when you're okay text at the bottom is a little weird. Maybe make those pop-ups in the middle? why 'not the pit, the wagon comes from there'?",
+   "at": "2026-11-11T16:48:26.882Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-renown-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN at renown 5: Doran lets the axe hang, and any word to him brings the confession (11-11)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the barn built · eyes",
+   "url": "deep16/?innshow&beat=barnknown&fresh=1111e",
+   "verdict": "works",
+   "note": "some of the texts are escaping their text boxes",
+   "at": "2026-11-11T16:43:57.955Z",
+   "new_since_last_save": true
+  }
+ ]
+}
