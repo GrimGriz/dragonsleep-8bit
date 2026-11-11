@@ -134,9 +134,8 @@
     { id: 'templeE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR DOWN', say: ['Down from the Dormant\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 31, null, [-1, 0]] },
     { id: 'stair', at: [[29, 17], [29, 18]], step: true, title: 'THE GARRISON\'S STAIR', say: ['A stair up into the rock: the garrison\'s, to the armory and the quarters behind the waterfall.'], to: 'the garrison\'s floor behind the falls (not yet built).' },
     { id: 'storeW', at: [[14, 4], [14, 5]], title: 'A TRADE STORE', say: ['A trade store, shut. Get your wagon loaded downstairs while you shop upstairs -- when it is open.'], to: 'the store\'s floor (not yet built); its loading is on the cart level.' },
-    { id: 'lodgeW', at: [[14, 3]], title: 'THE LODGING STAIR', say: ['The outside stair up the store\'s face to the lodging over it.'], to: 'the lodging over the west store.', go: ['solskaft_lodgew', 13, 5, [-1, 0], 'raw'] },
+    { id: 'lodgeW', at: [[14, 3]], title: 'THE LODGING STAIR', say: ['The outside stair up the store\'s face to the one lit window: somebody\'s home up there.'], to: 'Ásdís Scalebeam\'s place over the west store.', go: ['solskaft_asdis', 2, 3, [1, 0], 'raw'] },
     { id: 'storeE', at: [[23, 4], [23, 5], [23, 6]], title: 'A STORE OF FINISHED GOODS', say: ['A store of finished and fashioned things, shut.'], to: 'the store\'s floor (not yet built); its loading is on the cart level.' },
-    { id: 'lodgeE', at: [[25, 3]], title: 'THE LODGING STAIR', say: ['The outside stair up the store\'s face to the lodging over it.'], to: 'the lodging over the east store.', go: ['solskaft_lodgee', 2, 5, [1, 0], 'raw'] }
   ];
   (function () { var S8 = SK.S8, Ln = SK.LINES, o = {}; o[S8.scales] = 'the scales'; o[S8.tariff] = 'the tariff board'; o[S8.throne] = 'the high seat'; o[S8.oath] = 'the oathstone'; o[S8.hero] = 'the hero-wall';
     o[S8.rekknar] = 'Rekknar\'s ledger-stone'; o[S8.dormant] = 'the Dormant\'s cut'; o[Ln.counter] = 'the trade-counter'; o[Ln.ledger] = 'the ledger desk'; o[Ln.trough] = 'the trough'; o[Ln.fodder] = 'the fodder'; o[Ln.window] = 'the lit window'; SK.LABEL = o; })();
@@ -195,7 +194,7 @@
   SK.RAMPH = { w: { 14: 3, 13: 3, 12: 3, 11: 3, 10: 3, 9: 3, 8: 3, 7: 2, 6: 1, 5: 0 }, n: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 1, 6: 0 } };
   SK.sheights = function () { return SK.ROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 3; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPH.w[x]; else if (x === 36 && r >= 2 && r <= 6) h = SK.RAMPH.n[r]; out += String(h); } return out; }); };
   SK.cheights = function () { return SK.CROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 0; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPH.w[x]; else if (x === 36 && r >= 2 && r <= 7) h = r === 7 ? 0 : SK.RAMPH.n[r]; out += String(h); } return out; }); };
-  SK.isFloor = function (key) { return key === SK.KEY || key === SK.CART || key === 'solskaft_below' || key === 'solskaft_lodgew' || key === 'solskaft_lodgee'; };
+  SK.isFloor = function (key) { return key === SK.KEY || key === SK.CART || key === 'solskaft_below' || key === 'solskaft_asdis'; };
   SK.CART = 'solskaft_cart';
   SK.folkOf = function (id) { return (SK.CFOLK_ALL ? SK.CFOLK_ALL() : SK.FOLK.concat(SK.CFOLK || [])).filter(function (p) { return p.id === id; })[0] || null; };
   SK.sheetOf = function (id) { var f = SK.folkOf(id); return f && f.sheet; };
@@ -213,7 +212,7 @@
     var h = hour != null ? hour : M.hourNow(q), first = !flags['seen:' + key]; flags['seen:' + key] = 1; // (the first-visit flag, by floor: the fog's small half -- seen:solskaft, seen:solskaft_cart)
     def.firstVisit = first;
     def.hello = ['{y}SÓLSKAFT{/} -- ' + (lodge ? SK.LODGE[key].name : below ? 'the funerary, under the oathstone' : cart ? 'the cart level' : 'the street level') + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W && W.todAt ? W.todAt(h) : '') + '.']
-      .concat(first ? (lodge ? (key === 'solskaft_lodgew' ? SK.LLINES.arriveW : SK.LLINES.arriveE) : below ? SK.BLINES.arrive : cart ? SK.CLINES.arrive : SK.LINES.arrive) : [], [lodge ? 'A passage and its rooms; the outside stair down to main street at its end.' : below ? SK.BLINES.hello : cart ? SK.CLINES.hello : SK.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
+      .concat(first ? (lodge ? SK.LLINES.arrive : below ? SK.BLINES.arrive : cart ? SK.CLINES.arrive : SK.LINES.arrive) : [], [lodge ? SK.LLINES.hello : below ? SK.BLINES.hello : cart ? SK.CLINES.hello : SK.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
     return def;
   };
   // the HUD's place by where the party stands
@@ -238,7 +237,8 @@
   var fire0 = T.fire;
   T.fire = function* (B, trig) {
     var def = D.roam.def;
-    if (def && SK.isFloor(def.key) && trig.town === 'talk' && SK.WORDS[trig.npc]) {
+    if (def && SK.isFloor(def.key) && trig.town === 'talk' && (SK.WORDS[trig.npc] || trig.npc === 'asdis')) {
+      if (trig.npc === 'asdis' && SK.asdisTalk) { yield* SK.asdisTalk(B, B.units.filter(function (x) { return x.npc === 'asdis'; })[0]); return; } // (her offer, the first game's way)
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = B.roam.token;
       if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
       B.card(D.roam.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(SK.WORDS[trig.npc]())), 420); D.sfx('popup'); yield 20; return;
@@ -376,7 +376,7 @@
     [3, 4, 5, 7].forEach(function (r) { piece(15, r, function () { return SK.pic.face('dark', 'w'); }, { d: -0.35 }); });
     piece(SK.WINDOW[0], SK.WINDOW[1], function () { return SK.pic.face('lit', 'w'); }, { d: -0.35 });
     piece(15, 3, function () { return SK.pic.face('door', 'w'); }, { d: -0.4 });
-    piece(15, 3, function () { return SK.pic.outsideStair('w'); }, { d: -0.3 }); piece(25, 2, function () { return SK.pic.outsideStair('n'); }, { d: -0.3 }); // (the lodging's outside stairs: a way up that reads as one)
+    piece(15, 3, function () { return SK.pic.outsideStair('w'); }, { d: -0.3 }); // (the lodging's outside stairs: a way up that reads as one)
     m.sorted = null;
     return m;
   };
@@ -747,59 +747,61 @@
     { id: 'tiers', key: 'solskaft_below', label: 'THE TIERS: the seven families and the eighth place', note: 'On the west side\'s top tier: walk the tiers down by the stair and E on the niches -- a name, a season-mark, the lamp they fell at, each as the first game reads it; Asmund\'s gear at the base of his wedge, the eighth place waiting north of the stair. Audun\'s shield is on the east side, at the base of the wedge by Geirmund\'s.', at: [9, 9], hour: 10 },
     { id: 'lift', key: 'solskaft_cart', label: 'THE DEAD LIFT beside the smelters', note: 'On the cart level in the smelters: an old shaft in the corner, its frame and chains, the platform down at the bottom (E on it). Nothing else: no quest.', at: [27, 22], hour: 10 }
   ];
-  // ================================================================ THE LODGING OVER THE STORES: partial upper areas (11-11 night, the same seat; RULED 11-11, Griz: "the highway two stories
-  // below the orchard ground ceiling is correct - it might have to be made in partials, second story areas don't equate to an entire floor"; "didn't look like there was an up to get to").
-  // Not a whole second floor: two small own floors, each the rooms over one store block, reached by its own stair -- an outside flight up the store's face from the street, drawn
-  // so it reads as a way up -- as the Halfway Inn's upstairs is its own small floor off its stair (js/inn.js In.UP). Main street stays open two storeys under the orchard's floor.
-  // The west lodging is over the west store and the tollhouse: three rooms off a passage, Ásdís Scalebeam's the east one, over the store, the one lit window on main street (CANON
-  // 11-11: "the above store residences often for clergy and such and she's taking care of ingrith in her way"); the east lodging over the east store and the stable, three rooms, empty.
+  // ================================================================ ÁSDÍS SCALEBEAM'S PLACE OVER THE WEST STORE: the one partial upper area (11-11 night, the same seat). RULED 11-11, Griz: "the
+  // highway two stories below the orchard ground ceiling is correct - it might have to be made in partials, second story areas don't equate to an entire floor"; "didn't look like there
+  // was an up to get to"; narrowed the same night, "we'll only need the upstairs place the scalebeam elder caring for ingrith offers the party i think". So of the lodging over the
+  // stores only her place is walked: a small own floor -- her hearth, her table, her cot by the hearth, the window that is the one lit on main street -- reached by an outside stone
+  // stair drawn up the west store's face (E on the door at its top), as the Halfway Inn's upstairs is its own small floor off its stair (js/inn.js In.UP). The rest of the lodging
+  // stays shut fronts and dark windows from the street. Her words are the first game's (first/js/deep.js S.asdis): her greeting the first time and a line after, then her offer --
+  // EAT AND SLEEP rests the party at her cot (the first game's asdisRest, a rest point; here the floor's long rest, js/mines.js M.sleep), NOT NOW.
+  SK.ASDIS = 'solskaft_asdis';
   SK.LODGE = {
-    solskaft_lodgew: { side: 'w', name: 'the lodging over the west store', rows: [
-      '################',
-      '#k..#..k#.H.T.k#',
-      '#...#...#......#',
-      '#...#...#......#',
-      '##D###D###D#####',
-      '#.............S#',
-      '################'], stair: [14, 5], at: [13, 5], face: [-1, 0], street: [15, 3, [1, 0]], hearth: [10, 1], window: [15, 2],
-      folk: [{ id: 'asdis', at: [11, 2], dir: 'down', kind: 'commonerwoman' }] },
-    solskaft_lodgee: { side: 'e', name: 'the lodging over the east store', rows: [
-      '###############',
-      '#k..#k..#k...k#',
-      '#...#...#.....#',
-      '#...#...#.....#',
-      '##D###D###D####',
-      '#S............#',
-      '###############'], stair: [1, 5], at: [2, 5], face: [1, 0], street: [25, 2, [0, 1]], hearth: null, window: null, folk: [] }
+    solskaft_asdis: { side: 'w', name: 'Ásdís Scalebeam\'s place over the west store', rows: [
+      '########',
+      '#.H.T.k#',
+      '#......#',
+      '#S.....#',
+      '########'], stair: [1, 3], at: [2, 3], face: [1, 0], hearth: [2, 1], window: [7, 2], cot: [6, 1],
+      folk: [{ id: 'asdis', at: [3, 2], dir: 'down', kind: 'commonerwoman' }] }
   };
   SK.isLodge = function (key) { return !!SK.LODGE[key]; };
   SK.LABEL[SK.S8.needles] = 'the touch-needles'; SK.LABEL[SK.S8.weights] = 'the locked case'; SK.LABEL[SK.LINES.rack] = 'the spear rack'; SK.LABEL[SK.LINES.bench] = 'the bench';
-  SK.LLEGEND = { '#': 'dwarfWall', '.': 'dwarfFloor', D: 'doorway', k: 'skBed', H: 'firepit', T: 'skCounter', S: 'skStair' };
+  SK.LLEGEND = { '#': 'dwarfWall', '.': 'dwarfFloor', k: 'skBed', H: 'firepit', T: 'skCounter', S: 'skStair' };
   Object.assign(M.LAY, { skBed: ['k'] });
   SK.LLINES = {
-    arriveW: ['Up the outside stair, over the west store: a passage and three rooms. A light under the far door.'],
-    arriveE: ['Up the outside stair, over the east store: a passage and three rooms, the beds made, nobody home.'],
-    room: 'A lodging-room: a bed, a chest, a peg for a coat. Nobody home.',
+    arrive: ['Up the outside stair, over the west store: one room, a hearth lit, soup on it, and the window onto main street.'],
+    hello: 'Her room: the hearth, the table, the cot by the hearth; the outside stair down to main street by the door.',
+    cot: 'Her cot by the hearth, a blanket folded at its foot.',
     window: 'The window over main street, the light in it hers: the one lit window on the street.',
     hearth: 'Her hearth: a pot on the hook, the fire kept low.',
-    stair: 'The outside stair, down to main street.'
+    stair: 'The outside stair, down to main street.',
+    morning: 'Morning: the lamp still lit in her window, and the street waking under it.'
   };
-  SK.LABEL[SK.LLINES.room] = 'the bed'; SK.LABEL[SK.LLINES.window] = 'the window'; SK.LABEL[SK.LLINES.hearth] = 'the hearth';
-  SK.WORDS.asdis = function () { return [].concat(SK.L('deep.asdis0'), ['{g}(Her supper and her cot are the story\'s, to come.){/}']); };
+  SK.LABEL[SK.LLINES.cot] = 'the cot'; SK.LABEL[SK.LLINES.window] = 'the window'; SK.LABEL[SK.LLINES.hearth] = 'the hearth';
+  // her word, the first game's way (first/js/deep.js S.asdis): the greeting the first time, then one of her three lines in turn; then her offer, and the rest if it is taken (S.asdisRest)
+  SK.asdisTalk = function* (B, u) {
+    var R = D.roam, t = B.roam.token, f = B.roam.flags, i = f.asdisIdx || 0, said = i ? [SK.L(['deep.asdis1', 'deep.asdis2', 'deep.asdis3'][(i - 1) % 3])] : [].concat(SK.L('deep.asdis0'));
+    f.asdisIdx = i + 1; if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
+    D.sfx('popup');
+    var a = yield { prompt: { who: t, title: (u && u.name ? u.name : 'ASDIS SCALEBEAM').toUpperCase(), lines: R.wrap(said.concat([SK.L('deep.asdisAsk')])), opts: [{ label: 'EAT AND SLEEP', value: 0 }, { label: 'NOT NOW', value: 1 }] } };
+    SK.lastSaid = said.join(' ');
+    if (a !== 0) return;
+    f.asdisRested = (f.asdisRested || 0) + 1;
+    B.card(R.wrap([SK.L('deep.asdisRest')]), 240); yield 30;
+    yield* M.sleep(B, { morning: SK.LLINES.morning });
+  };
   SK.LDOORS = [
-    { id: 'lUpW', at: [[14, 5]], step: true, raw: true, title: 'THE OUTSIDE STAIR', say: [SK.LLINES.stair], to: 'main street.', go: ['solskaft', 15, 3, [1, 0]] },
-    { id: 'lUpE', at: [[1, 5]], step: true, raw: true, title: 'THE OUTSIDE STAIR', say: [SK.LLINES.stair], to: 'main street.', go: ['solskaft', 25, 2, [0, 1]] }
+    { id: 'lUpW', at: [[1, 3]], step: true, raw: true, title: 'THE OUTSIDE STAIR', say: [SK.LLINES.stair], to: 'main street.', go: ['solskaft', 15, 3, [1, 0]] }
   ];
   SK.lmap = function (key) {
     var Lg = SK.LODGE[key], trig = [], rows = Lg.rows;
-    rows.forEach(function (row, y) { for (var x = 0; x < row.length; x++) if (row.charAt(x) === 'k' && !(Lg.folk || []).some(function (f) { return f.at[0] === x && f.at[1] === y; })) trig.push({ id: 'lbed' + key + x + '_' + y, rect: [x, y, 1, 1], on: 'use', script: 'sk:sign', text: Lg.side === 'w' && x >= 9 ? 'Her cot, a blanket folded at its foot.' : SK.LLINES.room, label: 'the bed' }); });
-    if (Lg.hearth) trig.push({ id: 'lhearth', rect: [Lg.hearth[0], Lg.hearth[1], 1, 1], on: 'use', script: 'sk:sign', text: SK.LLINES.hearth, label: 'the hearth' });
-    if (Lg.window) trig.push({ id: 'lwindow', rect: [Lg.window[0], Lg.window[1], 1, 1], on: 'use', script: 'sk:sign', text: SK.LLINES.window, label: 'the window' });
-    SK.LDOORS.filter(function (d) { return (Lg.side === 'w') === (d.id === 'lUpW'); }).forEach(function (d) { d.at.forEach(function (q, i) { trig.push({ id: 'door_' + d.id + i, rect: [q[0], q[1], 1, 1], on: 'step', script: 'sk:door', door: d.id, label: 'the outside stair' }); }); });
+    trig.push({ id: 'lcot', rect: [Lg.cot[0], Lg.cot[1], 1, 1], on: 'use', script: 'sk:sign', text: SK.LLINES.cot, label: 'the cot' },
+      { id: 'lhearth', rect: [Lg.hearth[0], Lg.hearth[1], 1, 1], on: 'use', script: 'sk:sign', text: SK.LLINES.hearth, label: 'the hearth' },
+      { id: 'lwindow', rect: [Lg.window[0], Lg.window[1], 1, 1], on: 'use', script: 'sk:sign', text: SK.LLINES.window, label: 'the window' });
+    SK.LDOORS.forEach(function (d) { d.at.forEach(function (q, i) { trig.push({ id: 'door_' + d.id + i, rect: [q[0], q[1], 1, 1], on: 'step', script: 'sk:door', door: d.id, label: 'the outside stair' }); }); });
     trig.forEach(function (t) { if (t.label && D.roam && D.roam.USE_NAME) D.roam.USE_NAME[t.id] = t.label; });
-    var lights = [{ id: 'lkLamp' + Lg.side, kind: 'map', x: Lg.side === 'w' ? 7 : 7, y: 5, bright: 10, dim: 10, color: 'fire', flame: true, seep: true }];
-    if (Lg.hearth) lights.push({ id: 'lkHearth', kind: 'map', x: Lg.hearth[0], y: Lg.hearth[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true });
-    return { id: key, name: 'Sólskaft', rows: rows.slice(), legend: SK.LLEGEND, music: 'dungeon', exits: {}, dark: true, lights: lights,
+    var lights = [{ id: 'lkHearth', kind: 'map', x: Lg.hearth[0], y: Lg.hearth[1], bright: 10, dim: 15, color: 'fire', flame: true, seep: true }];
+    return { id: key, name: 'Sólskaft', rows: rows.slice(), legend: SK.LLEGEND, music: 'inn', exits: {}, dark: true, lights: lights,
       npcs: (Lg.folk || []).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.id, dir: p.dir }; }), triggers: trig, chests: [] };
   };
   Object.keys(SK.LODGE).forEach(function (key) {
@@ -832,8 +834,8 @@
     { id: 'night', label: 'THE STREET BY NIGHT', note: 'Ten at night inside the vault doors: the glass dark, no beam; the street by its lamps, the one lit window over the west store.', at: [18, 3], hour: 22 },
     { id: 'walk', label: 'THE WALK, doors to throne', note: 'The whole of it in one walk from the doors at nine in the morning: click the throne room\'s far end and watch the three stretches go by -- the glass, the light, the rock.', at: [18, 1], hour: 9 }
   ].concat(SK.CBEATS || [], SK.BBEATS || [], [
-    { id: 'lodging', key: 'solskaft', label: 'THE WAY UP: the outside stair to the lodging over the west store', note: 'On main street by the west store: a flight of steps up its face to the lodging. Step on them (E on the door): up to a passage and three rooms; the far one Ásdís Scalebeam\'s, her hearth lit, her window the one lit on the street. The east store has its own stair from the stable\'s apron.', at: [16, 3], hour: 18 },
-    { id: 'asdis', key: 'solskaft_lodgew', label: 'ÁSDÍS SCALEBEAM in her room over the store', note: 'In her room over the west store at dusk, in by the east door off the passage. E on her: her first words, the first game\'s. Her hearth, her table, her cot.', at: [12, 3], hour: 18 },
+    { id: 'lodging', key: 'solskaft', label: 'THE WAY UP: the outside stair to the one lit window', note: 'On main street by the west store at dusk: a flight of steps up its face to the lit window. E on the door at its top: up into Ásdís Scalebeam\'s place, her one room over the store. The rest of the lodging over the stores stays shut fronts and dark windows.', at: [16, 3], hour: 18 },
+    { id: 'asdis', key: 'solskaft_asdis', label: 'ÁSDÍS SCALEBEAM and her offer: a cot by the hearth', note: 'In her room over the west store at dusk. E on her: her first words, the first game\'s, and her offer -- EAT AND SLEEP (soup, bread, the cot by the hearth; the night\'s long rest, and morning) or NOT NOW. Again, and she has another word. Her hearth, her table, her cot, her window.', at: [4, 3], hour: 18 },
     { id: 'crownrooms', key: 'solskaft', label: 'THE CROWN STRETCH: the assay house west, the garrison east', note: 'Past the temples at the court\'s corners: off the crown\'s west wall the assay house (the needles, the weights\' locked case), off its east wall the garrison\'s guardroom with their stair up. The mint and the treasury are down on the cart level by the forge now; the names of the dead on the funerary\'s north wall.', at: [18, 17], hour: 12 },
     { id: 'ramp', key: 'solskaft', label: 'THE RAMP, STEPPED: down to the cart level as the Keeper\'s stair goes down', note: 'At the head of the cart ramp by the doors: walk west down it -- the floor drops a step every few squares (the slope tiles are the art desk\'s) to its mouth and the cart level.', at: [15, 2], hour: 10 }
   ]);
