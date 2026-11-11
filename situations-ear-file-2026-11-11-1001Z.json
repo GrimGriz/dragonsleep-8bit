@@ -1,0 +1,35 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-11T10:01:01.281Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-wagonwatch-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON NIGHT AGAIN: Lymen's feeling on his face, Aurdin at the window and in the yard fight, the ask before the chase, the walk back by its hour (11-11)",
+   "pt": "the Halfway Inn and the lake, items 2 and 3 (deep16/js/inn.js In.lead, In.feelingSay, the yard's ask; deep16/js/chase.js Ch.done, Ch.backLine, Ch.forkLine; mode=inn1111) · eyes",
+   "url": "deep16/?innshow&beat=wagon&fresh=1111w",
+   "verdict": "works",
+   "note": "barley was still hanging out downstairs when lymen called for watch, might as well move the party token upstairs and show it - can we use upstairs on the room overlooking the road with transparency to actually have aurdin or whomever (maybe all 4 the way we set watches...) at the window? insights as portraits talking to themselves that give +1 to vs illusion check - combat results not handing off from inn to gulch",
+   "at": "2026-11-11T10:00:53.553Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-chase-silk-1111",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SILK ACROSS THE ROAD AND THE GREYS: the pair caught in the gulch's webbing midway up the cut, on two dapple greys (11-11)",
+   "pt": "the Halfway Inn and the lake, item 3, RULED 11-11 \"yes to the gulch and greys\" (deep16/js/chase.js Ch.WEB, Ch.webTick, Ch.caught; tools/greys-recolor.py; js/inn.js In.bedRiders, data/fights.js TEAM; mode=inn1111, dev/innsee-probe.py) · eyes",
+   "url": "deep16/?innshow&beat=silk&fresh=1111sk",
+   "verdict": "works",
+   "note": "works - party was too low level/didnt have longstrider couldn't test actually catching them. Prefer instant combat (they're caught in the web at the gulch entrance), if they strike him she'd turn back to fight til he was free, then try to escape  - have them get exit squares like the party does on a roam, and if they hit him dismount them both to fight a round with the horses at the northern exit squares",
+   "at": "2026-11-11T09:51:35.003Z",
+   "new_since_last_save": true
+  }
+ ]
+}
