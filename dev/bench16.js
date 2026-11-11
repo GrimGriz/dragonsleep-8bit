@@ -5552,6 +5552,115 @@
     document.body.appendChild(preKt);
     return;
   }
+  // SÓLSKAFT ON THE GRID: THE STREET LEVEL, 11-11 (mode=solskaft1111; js/solskaft.js -- the Sólskaft build seat, started by the lanes desk on Griz's word: "We should be able to start
+  // the solskaft iso opus now"; his reshaping, TarlynsPit/wiki/solskaft.md §The shape, and his "Go with the leans ... dug out mountain is correct"): the floor on the Edifice's own
+  // squares (its width, the vault doors, the oathstone in the Sunshaft's circle -- each against MAPS.edifice as drawn, RED-proved on a moved circle and a moved door); main street
+  // in his three stretches walked door to throne; every person stood with the first game's words; every sign the first game's verbatim; every door that leads off saying where it
+  // will go and stepping back; the beam by day and not by night; the floor paged; the first-visit flag; the show's beats
+  if (get('mode', '') === 'solskaft1111') {
+    var repSk = { checks: [], errors: [] }, memSk = {}, stGSk = D.store.get, stSSk = D.store.set, muSk = D.music, MSk = D.mines, RSk = D.roam, SKk = D.solskaft, HSk = D.house;
+    function okSk(what, v) { repSk.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveSk(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topSk() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveSk(s.co, null, 2); return s; }
+    function testSk(q) { var B = RSk.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topSk(); }
+    function atSk(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function cardsSk(B) { return ((B && B.cards) || []).map(function (c) { return c.lines.join(' '); }).join(' / '); }
+    function folkSk(B, id) { return ((B && B.units) || []).filter(function (u) { return u.npc === id; })[0] || null; }
+    // E toward a square beside the token: the card it says
+    function useSk(B, from, at) { atSk(B, from[0], from[1], [Math.sign(at[0] - from[0]), Math.sign(at[1] - from[1])]); var R0 = B.roam; B.cards = []; R0.keys.push('use'); driveSk(B.co, function () { return (B.cards || []).length > 0 || D.top() !== B; }, 400); return window.DS.stripCodes(cardsSk(B)); }
+    function stepSk(B, from, to) { atSk(B, from[0], from[1], [to[0] - from[0], to[1] - from[1]]); var t = B.roam.token; t.x = to[0]; t.y = to[1]; B.roam.fw = [to[0] - from[0], to[1] - from[1]]; B.cards = []; driveSk(RSk.arrive(B), null, 400); return { card: window.DS.stripCodes(cardsSk(B)), at: [t.x, t.y] }; }
+    function walkSk(B, to) { var R0 = B.roam, p = RSk.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); var seen = []; driveSk(B.co, function () { var t = R0.token; seen.push([t.x, t.y]); return D.top() !== B || (t.x === to[0] && t.y === to[1] && !(R0.path && R0.path.length)); }, 20000); return { len: p.length, path: p, seen: seen }; }
+    // the floor's squares against the Edifice as drawn: the facade's columns (the plateau's rim row), the vault doors' threshold squares, the Sunshaft's circle -> the stone's square
+    function fitSk(E, rows) {
+      var rim = E.rows[15], x0 = rim.indexOf('='), x1 = rim.lastIndexOf('='), d0 = E.rows[16].indexOf('dd'), sh = E.shaft, Y = function (r) { return rows.length - 1 - r; };
+      var sx = sh[0] - x0, sr = Math.floor(15 - sh[1]); // (the circle's middle in local squares: x from the facade's west column; rows north from the front rim, row 15 there)
+      return { width: x1 - x0 + 1, doors: [d0 - x0, d0 + 1 - x0], stone: [sx, sr],
+        ok: x1 - x0 + 1 === rows[0].length && rows[Y(0)].charAt(d0 - x0) === 'D' && rows[Y(0)].charAt(d0 + 1 - x0) === 'D' && rows[Y(sr)].charAt(Math.floor(sx - 0.5)) === 'O' && rows[Y(sr)].charAt(Math.floor(sx + 0.5)) === 'O' };
+    }
+    D.store.get = function (k) { return memSk[k] ? JSON.parse(memSk[k]) : null; }; D.store.set = function (k, v) { memSk[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1111);
+      var E = D.MAPS.edifice, Es = JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights), Y = SKk.Y;
+      // 1. THE EDIFICE'S OWN SQUARES (his "the width we gave the thing"; the Edifice kept exactly as drawn): the width, the doors, the stone in the circle -- RED on a moved circle and a moved door
+      var fit = fitSk(E, SKk.ROWS), Em = JSON.parse(JSON.stringify({ rows: E.rows, shaft: E.shaft })); Em.shaft = [Em.shaft[0] + 3, Em.shaft[1] + 2, Em.shaft[2]];
+      var Ed = JSON.parse(JSON.stringify({ rows: E.rows, shaft: E.shaft })); Ed.rows[16] = Ed.rows[16].replace('dd', '==').replace(/^(.{25})====/, '$1dd==');
+      var red1 = fitSk(Em, SKk.ROWS).ok, red2 = fitSk(Ed, SKk.ROWS).ok;
+      okSk('the Edifice\'s own squares: the facade ' + fit.width + ' squares (the floor ' + SKk.ROWS[0].length + ' wide), the vault doors at ' + fit.doors + ', the Sunshaft\'s circle (' + E.shaft + ') on the stone\'s squares ' + fit.stone + ' -- ' + fit.ok + '; RED-proved: the circle moved 3 east and 2 south fits ' + red1 + ', the doors moved west fits ' + red2,
+        fit.ok && fit.width === 38 && fit.doors.join() === '18,19' && !red1 && !red2);
+      // 2. ONE FLOOR ON THE DIAMONDS, paged, the grey stone, dark with its own lights; the first visit's flag and its arrival words, and not again
+      var B = testSk('?roam=solskaft&hour=10'), d = RSk.def, f0 = B.roam.flags, hello1 = d.hello.join(' ');
+      var hello2 = MSk.floor('solskaft', '?roam=solskaft&hour=10', f0, 10).hello.join(' '); // (the floor laid again on the house's flags -- a relay, or the next visit)
+      okSk('one floor on the diamonds (' + (d.iso ? 'iso' : d.view) + ', ' + d.w + ' x ' + d.h + ', paged ' + d.page + ', the map paged ' + !!(B.map && B.map.def && B.map.def.page) + ', stone ' + d.stone + ', dark ' + d.dark + ', save ' + d.save + '); the first visit sets seen:solskaft (' + f0['seen:solskaft'] + ', firstVisit ' + d.firstVisit + ') and says the arrival (' + /inside the vault doors/.test(hello1) + '); laid again on the same flags it does not (' + !/inside the vault doors/.test(hello2) + ')',
+        !!d.iso && d.w === 38 && d.h === 32 && d.page === true && d.stone === 'grey' && d.dark && !d.save && f0['seen:solskaft'] === 1 && d.firstVisit === true && /inside the vault doors/.test(hello1) && !/inside the vault doors/.test(hello2));
+      // 3. HIS THREE STRETCHES: south 7 rows under the glass, the court 6 with the stone, the arch in the rim, the crown 6 one storey, the throne room's doors at r21; the throne on the centre line due north of the stone
+      var rowsAt = function (r) { return SKk.ROWS[Y(r)]; }, open = function (r, x) { return '=Dv'.indexOf(rowsAt(r).charAt(x)) >= 0; };
+      var south = [1, 2, 3, 4, 5, 6, 7].every(function (r) { return open(r, 15) && open(r, 22); }), court = [8, 9, 10, 11, 12, 13].every(function (r) { return open(r, 13) && open(r, 24); });
+      var rim = rowsAt(14), arch = rim.slice(16, 22) === '======' && rim.charAt(15) === '#' && rim.charAt(22) === '#', crown = [15, 16, 17, 18, 19, 20].every(function (r) { return open(r, 16) && open(r, 21) && rowsAt(r).charAt(15) === '#'; });
+      var thr = rowsAt(29).indexOf('TT'), sto = rowsAt(10).indexOf('OO'), dr = rowsAt(21).indexOf('DDDD');
+      okSk('his three stretches: the south seven under the glass (' + south + '), the court six (' + court + '), an arch the crown\'s width in the back rim (' + arch + '), the crown six, walled for the hero-wall (' + crown + '); the throne room\'s doors at ' + dr + '-' + (dr + 3) + ', the throne at ' + thr + '-' + (thr + 1) + ', the stone at ' + sto + '-' + (sto + 1) + ' -- one centre line',
+        south && court && arch && crown && thr === 18 && sto === 18 && dr === 17);
+      // 4. THE WALK, doors to throne: from a step inside the vault doors to the foot of the dais, every stretch passed through
+      var Bw = testSk('?roam=solskaft&hour=9'); atSk(Bw, 18, Y(1)); var wk = walkSk(Bw, [18, Y(28)]), rs = (wk && wk.seen || []).map(function (q) { return SKk.H - 1 - q[1]; }), tw = Bw.roam.token;
+      var passed = { glass: rs.some(function (r) { return r >= 1 && r <= 7; }), court: rs.some(function (r) { return r >= 8 && r <= 13; }), arch: rs.indexOf(14) >= 0, crown: rs.some(function (r) { return r >= 15 && r <= 20; }), doors: rs.indexOf(21) >= 0, hall: rs.some(function (r) { return r >= 22; }) };
+      okSk('the walk, doors to throne: ' + (wk ? wk.len : 'NO ROUTE') + ' squares, the token at ' + tw.x + ',' + (SKk.H - 1 - tw.y) + ' (r), through ' + JSON.stringify(passed) + ', no card on the way (' + JSON.stringify(cardsSk(Bw)) + ')',
+        !!wk && wk.len >= 26 && wk.len <= 34 && tw.x === 18 && tw.y === Y(28) && passed.glass && passed.court && passed.arch && passed.crown && passed.doors && passed.hall && !cardsSk(Bw));
+      // 5. THE PEOPLE: every one stood, its figure, and its word -- the first game's (content/npcs.json, first/content: unchanged), the two whose first word is a scene their standing line
+      var Bp = testSk('?roam=solskaft&hour=10'), N8 = window.DS.DATA.npcs, words = [], bad = [];
+      SKk.FOLK.forEach(function (p) {
+        var u = folkSk(Bp, p.id); if (!u || u.x !== p.at[0] || u.y !== Y(p.at[1])) { bad.push(p.id + ' not stood'); return; }
+        var side = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (o) { return [u.x + o[0], u.y + o[1]]; }).filter(function (q) { return D.grid.canStand(Bp.roam.token, q[0], q[1]) && !Bp.units.some(function (v) { return v !== Bp.roam.token && v.x === q[0] && v.y === q[1]; }); })[0];
+        if (!side) { bad.push(p.id + ' unreachable'); return; }
+        var w = useSk(Bp, side, [u.x, u.y]), want = p.id === 'pyro' ? window.DS.DATA.text['deep.pyro1'].t : p.id === 'quartermaster' ? window.DS.DATA.shops.qm.greeting : ((N8[p.id].talk || [])[0] || {}).say;
+        want = [].concat(want || [])[0] || '';
+        if (w.indexOf(want.slice(0, 40)) < 0 || w.indexOf(N8[p.id].name) < 0) bad.push(p.id + ': "' + w.slice(0, 90) + '"'); else words.push(p.id + (u.sheet ? '(' + u.sheet + ')' : '(' + u.kind + ')'));
+      });
+      var py = folkSk(Bp, 'pyro'), ds = folkSk(Bp, 'drillmaster');
+      okSk('the people, each stood and each with the first game\'s word: ' + words.join(', ') + (bad.length ? '; WRONG: ' + bad.join('; ') : '') + '; Pyro wears his own (' + (py && py.sheet) + '), the sergeant the Skylights\' (' + (ds && ds.kind) + ')',
+        !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p0' && ds.kind === 'drillsergeant');
+      // 6. THE SIGNS: the first game's verbatim (first/content/maps/solskaft.json and solskaft_deep.json, first/content/text.json -- the copies the second game reads, content/, held equal); each said by E
+      var m8 = window.DS.DATA.maps.solskaft, m8d = window.DS.DATA.maps.solskaft_deep, texts8 = (m8.signs || []).concat(m8d.signs || []).map(function (s) { return s.text; }).concat([window.DS.DATA.text['deep.treasury'].t]);
+      var notIn = Object.keys(SKk.S8).filter(function (k) { return k !== 'brick' && texts8.indexOf(SKk.S8[k]) < 0; });
+      var signs = d.src8.triggers.filter(function (t) { return t.script === 'sk:sign' && t.on === 'use'; }), sBad = [], sN = 0;
+      var Bs = testSk('?roam=solskaft&hour=10');
+      signs.forEach(function (t) { var x = t.rect[0], y = t.rect[1], from = [[0, 1], [1, 0], [-1, 0], [0, -1]].map(function (o) { return [x + o[0], y + o[1]]; }).filter(function (q) { return D.grid.canStand(Bs.roam.token, q[0], q[1]); })[0]; if (!from) { sBad.push(t.id + ' unreachable'); return; } var w = useSk(Bs, from, [x, y]); if (w.indexOf(t.text.slice(0, 30)) < 0) sBad.push(t.id + ': "' + w.slice(0, 60) + '"'); else sN++; });
+      var names = ['scales', 'tariff', 'throne', 'oath', 'hero', 'rekknar', 'dormant'].filter(function (k) { return !signs.some(function (t) { return t.text === SKk.S8[k]; }); });
+      okSk('the signs: ' + sN + ' of ' + signs.length + ' said by E' + (sBad.length ? ' -- WRONG: ' + sBad.join('; ') : '') + '; the first game\'s words verbatim (' + (notIn.length ? 'NOT: ' + notIn.join(',') : 'all ' + (Object.keys(SKk.S8).length - 1)) + '); the scales, the tariff, the throne, the oathstone, the hero-wall, both temples\' there (' + (names.length ? 'MISSING ' + names : 'yes') + ')',
+        !sBad.length && sN === signs.length && sN >= 20 && !notIn.length && !names.length && signs.every(function (t) { return RSk.USE_NAME[t.id] && !/^sign/.test(RSk.USE_NAME[t.id]); }));
+      // 7. THE DOORS OFF THIS FLOOR: each says where it will go; a step onto a way off steps back; the mint and the treasury their first-game words
+      var Bd = testSk('?roam=solskaft&hour=10'), dOut = [], dBad = [];
+      SKk.DOORS.forEach(function (dd) {
+        var q = dd.at[0], x = q[0], y = Y(q[1]), from = [[0, 1], [1, 0], [-1, 0], [0, -1]].map(function (o) { return [x + o[0], y + o[1]]; }).filter(function (z) { return D.grid.canStand(Bd.roam.token, z[0], z[1]) && !Bd.units.some(function (v) { return v !== Bd.roam.token && v.x === z[0] && v.y === z[1]; }); })[0];
+        if (!from) { dBad.push(dd.id + ' unreachable'); return; }
+        var w, back = true;
+        if (dd.step) { var st = stepSk(Bd, from, [x, y]); w = st.card; back = st.at[0] === from[0] && st.at[1] === from[1]; } else w = useSk(Bd, from, [x, y]);
+        if (!/Where it goes:/.test(w) || !back || w.indexOf(dd.title) < 0) dBad.push(dd.id + ': "' + w.slice(0, 70) + '" back ' + back); else dOut.push(dd.id);
+      });
+      var mintW = SKk.doorSay(SKk.DOORS.filter(function (z) { return z.id === 'mint'; })[0]).join(' '), treW = SKk.doorSay(SKk.DOORS.filter(function (z) { return z.id === 'treasury'; })[0]).join(' ');
+      okSk('the doors off this floor, each saying where it will go: ' + dOut.join(', ') + (dBad.length ? '; WRONG: ' + dBad.join('; ') : '') + '; the ways stepped back from; the mint sealed (' + /The king sealed it/.test(mintW) + '), the treasury open and empty (' + /Open, and empty/.test(treW) + '); no stair cut in either temple (' + !/[uX]/.test(SKk.ROWS.slice(Y(13), Y(8) + 1).map(function (r) { return r.slice(1, 12) + r.slice(26, 37); }).join('')) + ')',
+        !dBad.length && dOut.length === SKk.DOORS.length && /The king sealed it/.test(mintW) && /Open, and empty/.test(treW) && !/[uX]/.test(SKk.ROWS.slice(Y(13), Y(8) + 1).map(function (r) { return r.slice(1, 12) + r.slice(26, 37); }).join('')));
+      // 8. THE LIGHT: by day the beam on the stone (its light and its picture), the south stretch lit from the glass; by night neither, the lamps; the crown lamplit both
+      var Bn = testSk('?roam=solskaft&hour=22'), dn = RSk.def, ld = (d.ownLights || []).map(function (l) { return l.id; }), ln = (dn.ownLights || []).map(function (l) { return l.id; });
+      var beamPic = function (BB) { return ((BB.map && BB.map.props) || []).filter(function (p) { return p.kind === 'sk' && p.sq && p.sq.x === 18 && p.sq.y === Y(10) && p.depth > p.sq.x + p.sq.y + 1.6; }).length; };
+      var Bday = testSk('?roam=solskaft&hour=12'), bpD = beamPic(Bday), Bnt = testSk('?roam=solskaft&hour=22'), bpN = beamPic(Bnt);
+      okSk('the light: by day the beam (' + (ld.indexOf('skBeam') >= 0) + ', its column drawn ' + bpD + ') and the glass (' + ld.filter(function (k) { return /^skGlass/.test(k); }).length + '); by night no beam (' + (ln.indexOf('skBeam') < 0) + ', drawn ' + bpN + '), the court\'s lamps (' + (ln.indexOf('skCourtW') >= 0) + '); the crown\'s lamps day and night (' + ld.filter(function (k) { return /^skCrown/.test(k); }).length + ', ' + ln.filter(function (k) { return /^skCrown/.test(k); }).length + ')',
+        ld.indexOf('skBeam') >= 0 && bpD === 1 && ln.indexOf('skBeam') < 0 && bpN === 0 && ln.indexOf('skCourtW') >= 0 && ld.filter(function (k) { return /^skCrown/.test(k); }).length === 6 && ln.filter(function (k) { return /^skCrown/.test(k); }).length === 6);
+      // 9. THE SHOW (?solskaft): every beat stands up in the house, the party on its square at its hour; the Edifice untouched by any of it
+      var beatsSk = [];
+      SKk.BEATS.forEach(function (bt) {
+        try { D.scenes.length = 0; SKk.play(bt); var Bb = topSk(), tb = Bb && Bb.roam && Bb.roam.token; beatsSk.push(bt.id + (tb && tb.x === bt.at[0] && tb.y === Y(bt.at[1]) && RSk.def.key === 'solskaft' ? '' : ' WRONG at ' + (tb ? tb.x + ',' + tb.y : '-'))); }
+        catch (eB) { beatsSk.push(bt.id + ' THREW ' + String(eB).slice(0, 80)); }
+        HSk.playing = false; HSk.cur = null;
+      });
+      okSk('the show ?solskaft: ' + SKk.BEATS.length + ' beats -- ' + beatsSk.join('; ') + '; the Edifice as drawn (' + (Es === JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights)) + ')',
+        SKk.BEATS.length >= 7 && beatsSk.every(function (o) { return !/WRONG|THREW/.test(o); }) && Es === JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights) && typeof SKk.show === 'function');
+    } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
+    HSk.playing = false; HSk.cur = null;
+    D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;
+    var preSk = document.createElement('pre'); preSk.id = 'out'; preSk.textContent = 'BENCH16 ' + JSON.stringify(repSk);
+    document.body.appendChild(preSk);
+    return;
+  }
   // THE INN SEAT'S 11-11 (mode=inn1111; js/inn.js In.lead, In.feelingSay, the yard's ask; js/chase.js Ch.done, Ch.backLine, Ch.forkLine; js/innprops.js IP.cutOn, the post at the
   // step -- the inn seat, started by the lanes desk on his 11-11 notes on eyes-gulchchase-1104, "Barley was visible downstairs when it said aurdin was at the window - no portrait
   // is used for lymen's line (outside interface) despite being in the inn - aurdin still wasn't in the party ... The 'walk back in the dark' happened after morning in the gulch...",

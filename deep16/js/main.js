@@ -71,6 +71,7 @@
   else if (/[?&]restshow\b/.test(q) && D.hours && D.hours.restShow) D.push(D.hours.restShow(q)); // THE RESTS AND THE WAITS, 11-05: WAIT, the Glowseep's fire, the bunks, the Hex's bar (js/hours.js)
   else if (/[?&]hoursshow\b/.test(q) && D.hours) D.push(D.hours.show(q)); // the story window's 10-28: Silverton's hours and words -- Papa and Lymen, the JOURNAL by words, Lucia, Swann, the bread line, dusk, night, the council (js/hours.js)
   else if (/[?&]houseshow\b/.test(q) && D.counter) D.push(D.counter.houseShow(q)); // the house seat's 10-22: Marta's bat-wing pies, Kasten's shelves, the doors in the walls -- a NEW GAME staged beside her, or at a door (js/counter.js)
+  else if (/[?&]solskaft\b/.test(q) && D.solskaft) D.push(D.solskaft.show(q)); // SÓLSKAFT, 11-11: the street level on the diamonds, doors to the empty throne, a NEW GAME staged by the beat (js/solskaft.js)
   else if (/[?&]roam=/.test(q) && D.roam) D.push(D.roam.make(q)); // the party-token map's feasibility test: the whole Wet walked as one token, its fights made where they fall (js/roam.js, 10-13)
   else if (/[?&]gallery\b/.test(q) && D.oneGallery) D.push(D.oneGallery.door(q)); // THE ONE GALLERY: the spell, feature, Mascot and row galleries as shelves of one tool, one key map (js/onegallery.js, 10-08)
   else if (/[?&]mpgallery\b/.test(q) && D.fxMascots) D.push(D.oneGallery ? D.oneGallery.door(q) : D.fxMascots(q)); // the Mascot gallery: the four's abilities one at a time, up/down the level (js/mpgallery.js, 10-07; also ?fxgallery&mascots)
