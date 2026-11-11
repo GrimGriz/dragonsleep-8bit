@@ -579,6 +579,7 @@
     set(5, 2, 7, 18, '='); set(30, 2, 32, 18, '=');                       // the two hallways
     [9, 11, 13, 15, 22, 24, 26, 28].forEach(function (wx) { set(wx, 2, wx, 18, '='); }); // the tiers' walks
     set(15, 6, 22, 14, '=');                                                // the chamber at the bottom, doorless
+    set(5, 19, 32, 20, '=');                                                // the north hallway across the top of the tiers, every walk opening on it, stepping down with them to the middle (11-11, his walk: "north should be a hallway as well (walks to the end of the row into a wall at present")
     set(8, SK.BSTAIR, 14, SK.BSTAIR, '='); set(23, SK.BSTAIR, 29, SK.BSTAIR, '='); // each hallway's stair down the middle row, through the tiers
     set(18, 10, 19, 10, 'Z'); set(20, 11, 20, 11, 'Y');                     // the bier, under the oathstone; the one lamp, kept
     set(5, 11, 5, 12, 'U'); set(32, 11, 32, 12, 'U');                       // the temples' stairs' feet, each in its own hallway
@@ -641,7 +642,7 @@
   };
   SK.BLINES = {
     arrive: ['The funerary: the tiers going down from the hallway toward a bier at the bottom, and one lamp beside it, kept.'],
-    hello: 'The funerary: a hallway each side, the tiers stepping down between them to the bier; the chapel off the east hallway, the Warrens\' stair at its south end; the closed homes behind the west one.',
+    hello: 'The funerary: a hallway each side and one across the north, the tiers stepping down between them to the bier; the chapel off the east hallway, the Warrens\' stair at its south end; the closed homes behind the west one.',
     grille: 'Through the bars: the closed street, ten doors along it, every one barred. The lintels, in the dark:',
     stair: 'The stair up to the temple on the court.',
     graveGear: '{g}(The law of the line -- what may be taken, by whose warrant -- is the story\'s, to come.){/}'
@@ -707,6 +708,7 @@
   };
   SK.where3 = function (t) {
     var r = SK.H - 1 - t.y;
+    if (r >= 19) return 'the north hallway';
     return t.x >= 33 ? 'the Triad\'s chapel' : t.x >= 30 ? 'the east hallway' : t.x <= 7 ? 'the west hallway' : t.x >= 15 && t.x <= 22 && r >= 6 && r <= 14 ? 'the king\'s chamber, at the bier' : 'the tiers';
   };
   // the dead lifts, on the cart level beside the smelters (RULED 11-11, lean 3: "an old shaft, a sign, nothing more"; his hedge on what they carried kept a hedge)

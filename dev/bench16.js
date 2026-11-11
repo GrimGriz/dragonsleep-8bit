@@ -5764,6 +5764,13 @@
       var ww = JSON.stringify([SKk.FOLK, SKk.CFOLK, SKk.DOORS, SKk.CDOORS, SKk.BDOORS, SKk.LINES, SKk.CLINES, SKk.BLINES]).toLowerCase();
       okSk('the dead lift beside the smelters: "' + lw.slice(0, 70) + '"; its squares\' triggers ' + liftTr.map(function (t) { return t.script; }).join(',') + ' (a sign only); stood in the smelters (' + SKk.LIFT.every(function (q) { return cAt(q[0], q[1]) === 'H'; }) + '); no wheelwright anywhere (' + (ww.indexOf('wheelwright') < 0) + ')',
         /old lift shaft/.test(lw) && liftTr.length === 4 && liftTr.every(function (t) { return t.script === 'sk:sign'; }) && SKk.LIFT.every(function (q) { return cAt(q[0], q[1]) === 'H'; }) && ww.indexOf('wheelwright') < 0);
+      // 21. THE NORTH HALLWAY (11-11, his walk on live: "north should be a hallway as well (walks to the end of the row into a wall at present"): every tier's walk opens on it at its north end, a step at most between them (RED on the floor as piece 3 laid it), and it is walked from the west hallway to the east
+      var walksX = [9, 11, 13, 15, 22, 24, 26, 28], hN = (db.heights || []), hAt = function (x, r) { return parseInt((hN[Y(r)] || '').charAt(x), 36); };
+      var opensOn = function (rows) { return walksX.every(function (x) { var a = rows[Y(18)].charAt(x), b = rows[Y(19)].charAt(x); return a === '=' && b === '=' && Math.abs(hAt(x, 18) - hAt(x, 19)) <= 1; }); };
+      var oldB = BR.map(function (row, y) { var r = SKk.H - 1 - y; return r >= 19 && r <= 20 ? row.slice(0, 5) + new Array(29).join('#') + row.slice(33) : row; });
+      var Bn3 = testSk('?roam=solskaft_below&hour=10'); atSk(Bn3, 6, Y(19)); var wn = walkSk(Bn3, [31, Y(19)]), rsn = (wn && wn.seen || []).map(function (q) { return SKk.H - 1 - q[1]; }), tn = Bn3.roam.token;
+      okSk('the north hallway: every walk opens on it (' + opensOn(BR) + '; RED: the floor as piece 3 laid it ' + opensOn(oldB) + '); walked west to east, ' + (wn ? wn.len : 'NO ROUTE') + ' squares, at ' + tn.x + ',' + (SKk.H - 1 - tn.y) + ' (r), along it (' + rsn.every(function (r) { return r >= 19; }) + '); its steps ' + walksX.map(function (x) { return hAt(x, 19); }).join(''),
+        opensOn(BR) && !opensOn(oldB) && !!wn && tn.x === 31 && tn.y === Y(19) && rsn.every(function (r) { return r >= 19; }));
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;

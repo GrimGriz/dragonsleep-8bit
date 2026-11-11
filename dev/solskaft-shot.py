@@ -23,7 +23,8 @@ window.onerror = function (m, s, l) { var p = document.createElement('pre'); p.t
 var D = window.D16; D.initCanvas(); if (D.audio) D.audio.musicVol = 0;
 var AT = '%s', ZS = '%s';
 D.loadImages(D.spr.images(), function () {
-  D.push(D.solskaft.show('?solskaft&beat=%s'));
+  var BT = '%s', bm = /^at:([a-z_]+):(\\d+),(\\d+):(\\d+)$/.exec(BT); // (beat, or at:<floor>:<x>,<r>:<hour> -- the party stood anywhere, 11-11)
+  if (bm) D.solskaft.play({ key: bm[1], at: [+bm[2], +bm[3]], hour: +bm[4] }); else D.push(D.solskaft.show('?solskaft&beat=' + BT));
   setTimeout(function () {
     for (var i = 0; i < 60; i++) D.update();
     if (ZS !== '' && D.ui && D.ui.zooms) { var Lz = D.ui.zooms(); D.iso.zoom = Lz[Math.min(+ZS, Lz.length - 1)]; }
@@ -46,6 +47,6 @@ finally:
     import shutil; shutil.rmtree(prof, ignore_errors=True)
 os.makedirs(os.path.join(HERE, 'shots'), exist_ok=True)
 for b in re.findall(r'SHOT data:image/png;base64,([A-Za-z0-9+/=]+)', dom):
-    out = os.path.join(HERE, 'shots', 'solskaft-%s%s.png' % (beat, '-' + tag if tag else ''))
+    out = os.path.join(HERE, 'shots', 'solskaft-%s%s.png' % (re.sub(r'[^a-z0-9_]+', '-', beat), '-' + tag if tag else ''))
     open(out, 'wb').write(base64.b64decode(b)); print('wrote', out)
 print(re.findall(r'(?:LOADERR|DONE)[^<]*', dom))
