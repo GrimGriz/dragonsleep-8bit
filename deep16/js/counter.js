@@ -322,7 +322,7 @@
   Counter.prototype.buttons = function () {
     var w = this.wait || {}, out = [], self = this;
     if (this.sub) return this.subButtons();
-    if (this.paging()) { var last = this.page >= this.pages.length - 1; out.push({ x: RX + RW - 70, y: WY + WH - 20, w: 62, h: 15, label: w.say && last ? 'OK' : 'NEXT', go: 'next' }); }
+    if (this.paging()) { var last = this.page >= this.pages.length - 1, lk = w.look && this.o && this.o.open && C.lookBox ? C.lookBox(this) : null; out.push({ x: lk ? lk.x + lk.w - 62 : RX + RW - 70, y: lk ? lk.y + lk.h + 3 : WY + WH - 20, w: 62, h: 15, label: w.say && last ? 'OK' : 'NEXT', go: 'next' }); } // (a look's OK sits under its caption, not up by the face: 11-11)
     if (this.bubbling()) return this.bubbleButtons();
     var yo = 0; // (an option may be { label, color }: Ned's Insight, his "insight text a different color"; one too long for its box wraps onto two lines in a taller one)
     if (w.ask && !this.hero) w.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.textWidth(o.label) > RW - 28 ? D.wrap(o.label, RW - 28) : null, h = ls ? 6 + ls.length * 10 : 16; out.push({ x: RX + 8, y: WY + WH + 8 + k * 19 + yo, w: RW - 16, h: h, label: o.label, lines: ls, color: o.color, off: !!o.off, go: 'opt', k: k }); yo += h - 16; }); // (o.off: greyed, refused -- a long rest inside the 24 hours, 11-05)
@@ -598,6 +598,7 @@
   // just text box"): sc.lookAt(who, lines, at) -- the one looking stands as a speaker does, held, with no words' box and no hero; the one looked at (`at`: a speaker's
   // { name, sheet | unit }) stands on the other side; what passes is a caption along the screen's foot, in the look's colour
   C.LOOK = { col: '#d8c8f0', strip: 'rgba(8,10,28,.72)' };
+  C.lookBox = function (sc) { var rows = (sc.pages && sc.pages[sc.page]) || [], h = 8 + rows.length * 10, x = Math.round((D.W - RW) / 2), y = Math.max(C.openGeo(sc).foot + 22, Math.round((D.H - 14 - h - 20) / 2) + 10); return { x: x, y: y, w: RW, h: h }; }; // (THE LOOK's caption: the middle of the screen, under the faces -- 11-11, Griz: "Maybe make those pop-ups in the middle?"; its OK right under it, Counter.buttons)
   Counter.prototype.lookAt = function (who, lines, at) { var w = this.say(lines); w.who = who; w.look = true; w.at = at || null; w.noHero = true; return w; };
   Counter.prototype.askBy = function (who, prompt, opts, face) { var w = this.ask(prompt, opts, face); w.who = who; return w; };
   Counter.prototype.spk = function () { var w = this.wait || {}; return w.who || null; };
@@ -702,8 +703,7 @@
           if (sh2 || g2.face) C.nameTag(ctx, at2.name, g2.cx, g2.foot + 3);
           w.who = who0;
         }
-        var ly0 = D.H - 14 - 12 - rows.length * 10, lx0 = Math.round((D.W - RW) / 2);
-        ctx.fillStyle = C.LOOK.strip; ctx.fillRect(lx0, ly0, RW, 8 + rows.length * 10); typed(rows, lx0 + 8, ly0 + 4, C.LOOK.col);
+        var lb = C.lookBox(this); ctx.fillStyle = C.LOOK.strip; ctx.fillRect(lb.x, lb.y, lb.w, lb.h); typed(rows, lb.x + 8, lb.y + 4, C.LOOK.col);
       }
       var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
       var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, the rule since 11-06 -- C.heroFull)
@@ -755,7 +755,7 @@
   // and a read "would appear above vivian's conversation options for that turn"): sc.flip(who, prompt, list, at) -- an ask on the open screen whose answers are one hero's at a time,
   // list[i] = { hero, side, key, reads: [lines], opts: [labels] }; the heroes' names in a row at the bubble's head (click one, or left and right), the one shown's silent reads in
   // the insight colour above that hero's answers (never picked); it gives back { at, k, seen: [every i shown while it waited] }. Every other ask is as it was.
-  C.FLIP = { read: '#7CF8E8', off: '#7c7c98', shade: 'rgba(70,110,200,.30)', bar: '#8fb0ff', // (shade, bar: a skill-shaped answer is SHADED, its skill's name at its right, and no die is shown -- RULED 11-07, "have the skill-influenced chat options shaded as such")
+  C.FLIP = { foot: 14, more: '▼ MORE', read: '#7CF8E8', off: '#7c7c98', shade: 'rgba(70,110,200,.30)', bar: '#8fb0ff', // (shade, bar: a skill-shaped answer is SHADED, its skill's name at its right, and no die is shown -- RULED 11-07, "have the skill-influenced chat options shaded as such")
     said: /\s*\((insight|perception|deception|persuasion|history|religion|arcana|survival|intimidation)\)$/i };
   C.flipSaid = function (l) { return String(l).replace(C.FLIP.said, ''); }; // (the line as the hero says it: the check's name off its end)
   Counter.prototype.flip = function (who, prompt, list, at) {
@@ -764,7 +764,7 @@
   };
   Counter.prototype.flipTo = function (k) {
     var w = this.wait || {}, f = w.flip; if (!f) return; var n = f.list.length; k = ((k % n) + n) % n; if (k === f.at) return;
-    f.at = k; f.seen[k] = 1; var e = f.list[k]; w.opts = e.opts; this.hero = e.hero; this.heroSide = e.side;
+    f.at = k; f.seen[k] = 1; f.from = 0; var e = f.list[k]; w.opts = e.opts; this.hero = e.hero; this.heroSide = e.side;
     if (this.typeAt) this.typeAt.t0 = -1e9; // (a flip shows that hero's answers at once: only the first hero's are typed out)
     var bs = this.buttons(), o = bs.filter(function (q) { return q.go === 'opt'; })[0]; this.hov = o ? bs.indexOf(o) : -1; D.sfx('cursor');
   };
@@ -773,7 +773,19 @@
     var tab = function (lb, k, color) { var wd = D.textWidth(lb) + 12; out.push({ x: x, y: y, w: wd, h: 12, label: lb, lines: [lb], go: 'flip', k: k, bubble: true, tab: true, color: color }); x += wd + 1; };
     if (f.list.length > 1) { tab('◀', f.at - 1, C.FLIP.off); f.list.forEach(function (e, i) { tab(e.hero.name, i, i === f.at ? W8.gold : C.FLIP.off); }); tab('▶', f.at + 1, C.FLIP.off); y += 15; }
     (f.list[f.at].reads || []).forEach(function (r) { var ls = D.wrap(r, tw); out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: 4 + ls.length * 10, label: r, lines: ls, go: 'read', off: true, bubble: true, color: C.FLIP.read }); y += 4 + ls.length * 10 + 2; });
-    (w.opts || []).forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, mk = (f.list[f.at].marks || [])[k] || {}, ls = D.wrap(o.label, tw - (mk.tag ? D.textWidth(mk.tag) + 10 : 0)), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, shade: !!mk.shade, tag: mk.tag || null, go: 'opt', k: k, bubble: true }); y += h + 3; });
+    // THE FIT (11-11, Griz at renown 3: "text is enough options its ending up below the screen"): the shown hero's answers are laid from `f.from`; when the rest would
+    // run under the screen's foot (C.FLIP.foot) the list stops short and a MORE row turns to the next of them, round to the first. One read and the names stay on every page
+    var rows = (w.opts || []).map(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, mk = (f.list[f.at].marks || [])[k] || {}, ls = D.wrap(o.label, tw - (mk.tag ? D.textWidth(mk.tag) + 10 : 0)); return { o: o, mk: mk, ls: ls, h: 4 + ls.length * 10, k: k }; });
+    var foot = D.H - C.FLIP.foot, total = rows.reduce(function (a, r) { return a + r.h + 3; }, 0), fits = y + total <= foot, from = 0, n = 0;
+    f.pages = fits ? 1 : 2; // (a bench's: more than one page)
+    var row = function (r) { out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: r.h, label: r.o.label, lines: r.ls, color: r.o.color, shade: !!r.mk.shade, tag: r.mk.tag || null, go: 'opt', k: r.k, bubble: true }); y += r.h + 3; };
+    if (fits) { rows.forEach(row); return out; }
+    // (the last answer -- TO BED at supper -- stays on every page, under MORE)
+    var body = rows.slice(0, -1), tail = rows[rows.length - 1], keep = 15 + tail.h + 3; from = Math.max(0, Math.min(body.length - 1, f.from || 0));
+    for (var i = from; i < body.length; i++) { if (n > 0 && y + body[i].h + 3 + keep > foot) break; row(body[i]); n++; }
+    f.next = from + n >= body.length ? 0 : from + n;
+    out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: 12, label: C.FLIP.more, lines: [C.FLIP.more], color: C.FLIP.off, go: 'more', bubble: true }); y += 15;
+    row(tail);
     return out;
   };
   var bubbleF = Counter.prototype.bubbleButtons;
@@ -784,6 +796,7 @@
     if (!f || !b) return pressF.apply(this, arguments);
     if (b.go === 'flip') { this.flipTo(b.k); return; }
     if (b.go === 'read') return;
+    if (b.go === 'more') { f.from = f.next || 0; var bs2 = this.buttons(), o2 = bs2.filter(function (q) { return q.go === 'opt'; })[0]; this.hov = o2 ? bs2.indexOf(o2) : -1; D.sfx('cursor'); return; }
     if (b.go === 'opt') { D.sfx('cursor'); this.echo = inOpen(this, function () { return D.wrap(C.flipSaid(b.label), BB.w - 20); }, []); this.step({ at: f.at, k: b.k, seen: Object.keys(f.seen).map(Number) }); return; } // (the hero's line stays in the bubble while the hosts answer)
     return pressF.apply(this, arguments);
   };
@@ -804,7 +817,8 @@
     if (I.repeat('left')) { this.flipTo(f.at - 1); return; }
     if (I.repeat('right')) { this.flipTo(f.at + 1); return; }
     var k0 = opts.indexOf(bs[this.hov]);
-    if (I.repeat('down') && opts.length) { this.hov = bs.indexOf(opts[(k0 + 1) % opts.length]); D.sfx('cursor'); }
+    var more = bs.filter(function (q) { return q.go === 'more'; })[0];
+    if (I.repeat('down') && opts.length) { if (more && k0 === opts.length - 1) { this.press(more); return; } this.hov = bs.indexOf(opts[(k0 + 1) % opts.length]); D.sfx('cursor'); } // (down off the last answer shown: the next of them)
     if (I.repeat('up') && opts.length) { this.hov = bs.indexOf(opts[k0 < 0 ? opts.length - 1 : (k0 - 1 + opts.length) % opts.length]); D.sfx('cursor'); }
     if (I.pressed('a')) { var q = bs[this.hov]; this.press(q && (q.go === 'opt' || q.go === 'flip') ? q : opts[0]); }
   };
