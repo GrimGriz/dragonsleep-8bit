@@ -3690,7 +3690,18 @@
       });
       okSB('every SRD foe carries its block\'s Stealth and passive Perception: ' + right + ' right, ' + wrong.length + ' not' + (wrong.length ? ' -- ' + wrong.join('; ') : '') + ' (want none not)', wrong.length === 0 && right >= 80);
       okSB('every src that names an SRD block finds it: ' + (lost.length ? lost.join(', ') : 'all') + ' (want all)', lost.length === 0);
-      repSB.notes.push('ours, left as they are (' + ours.length + '): ' + ours.join(', '));
+      // OUR OWN (11-10, Griz: "go ahead and have it reason a stealth and perception for custom monsters that didn't have it"): every foe of ours carries its reasoned senses
+      // in its src -- "SENSES (ours, 11-10): Stealth +N, because ...; passive Perception M, because ..." (or "Stealth none, its DEX check") -- and its fields are what that says.
+      // A new foe of ours with no such note is a FAIL: reason its senses the SRD way (a skill = its ability modifier + proficiency by CR where it is plausibly proficient)
+      var oursOk = 0, oursBad = [];
+      ours.forEach(function (k) {
+        var d = D.FOES[k], sm = /SENSES \(ours, 11-10\): Stealth (\+\d+|none)[^;]*; passive Perception (\d+)/.exec(d.src || '');
+        if (!sm) { oursBad.push(k + ': no SENSES note'); return; }
+        var wst = sm[1] === 'none' ? null : +sm[1], wpp = +sm[2], st = d.stealth || null;
+        if (st === wst && d.perception === wpp) oursOk++; else oursBad.push(k + ': Stealth ' + (st == null ? 'none' : '+' + st) + ' / passive ' + d.perception + ', its note ' + sm[1] + ' / ' + wpp);
+      });
+      okSB('every one of ours carries its reasoned senses, as its note says: ' + oursOk + ' of ' + ours.length + (oursBad.length ? ' -- ' + oursBad.join('; ') : '') + ' (want all)', oursBad.length === 0 && ours.length >= 25);
+      repSB.notes.push('ours (' + ours.length + '): ' + ours.join(', '));
       // the field reaches the unit (battle.js makeFoe0) and a familiar's form its own numbers (familiar.js)
       var Bsb = D.npcFight('?npc=wolf,giantspider&vs=fighter:5&lvl=5', {}); D.battle = Bsb; Bsb.enter(); var ksb = 0; while (!Bsb.order.length && ksb++ < 400) Bsb.co.next();
       var wsb = Bsb.units.filter(function (u) { return u.kind === 'wolf'; })[0], gsb = Bsb.units.filter(function (u) { return u.kind === 'giantspider'; })[0];
