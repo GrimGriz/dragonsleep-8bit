@@ -13112,6 +13112,57 @@
     document.body.appendChild(preKr);
     return;
   }
+  // GENERAL GRIMLOCK GRIM'S MONOLOGUE (mode=grimmono1111; deep16/js/general.js, its show ?grimshow -- the cutter of 11-10 on the lanes desk's 11-11 queue, Griz: "make the
+  // monologue outside the box like outside for the lymen/urtusk and make sure the gestures show"): the story build's item M, its scene alone -- the counter's OPEN screen
+  // over the floor, as the company scene's (js/hours.js H16.papaScene); his A3 beats in order on his own cues, each one-frame cue held through its line; the whole frame
+  // on the screen at the keepers' size, so the Order's palm and the Accusation's claw are whole (the keeper's panel, 190 px, clipped them), the words never under them;
+  // the show's beat stages a NEW GAME on a cave floor, the monologue over it, and ends where the fight would open (not built: the story review's 7.4)
+  if (get('mode', '') === 'grimmono1111') {
+    var repGm = { checks: [], errors: [] }, memGm = {}, stGGm = D.store.get, stSGm = D.store.set, HGm = D.house, muGm = D.music;
+    function okGm(what, v) { repGm.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topGm() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memGm[k] ? JSON.parse(memGm[k]) : null; }; D.store.set = function (k, v) { memGm[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      var GGm = D.general, CGm = D.counter, OGm = CGm.OPEN, shGm = D.SHEETS.pt_generalgrim;
+      // 1. the beats in his order, each on its cue, a one-frame cue still held long past the counter's own 150
+      var scG = GGm ? GGm.counter(null) : null, seqG = [], heldG = [], kG = 0;
+      while (scG && !scG.done && kG++ < 20) {
+        var wG = scG.wait || {}, fG = scG.face && scG.face.anim; seqG.push(wG.narr ? 'narr' : fG || '?');
+        if (!wG.narr && fG && shGm.anims[fG].frames === 1) heldG.push(fG + ' ' + CGm.frameAt(shGm, scG.face, scG.face.t0 + 1200).anim);
+        if (!wG.narr) {
+          // 2. (each page:) the whole frame on the screen at the keepers' size, the words short of its left edge -- never under his hand
+          var gG = CGm.openGeo(scG), rowsG = [].concat.apply([], scG.pages || []), wideG = Math.max.apply(null, rowsG.map(function (l) { return D.textWidth(String(l).replace(/\{[^}]*\}/g, '')); }).concat([0]));
+          (scG.geoG = scG.geoG || []).push({ sheet: gG.sheet, s: gG.s, left: gG.left, right: gG.right, top: Math.round(gG.foot - shGm.ay * gG.s), text: OGm.words.x + 9 + wideG });
+        }
+        scG.step();
+      }
+      var geoG = (scG && scG.geoG) || [], g0 = geoG[0] || {};
+      okGm('the monologue\'s waits in order: ' + seqG.join(', ') + '; the one-frame cues 1200 frames on: ' + heldG.join(', '),
+        seqG.join() === 'narr,stern,crossing,speaking,accusation,order' && heldG.length === 4 && heldG.every(function (h) { var p = h.split(' '); return p[0] === p[1]; }) && !!scG && scG.done);
+      okGm('on the open screen (' + (scG && scG.o.open) + ', no panel): ' + (g0.sheet) + ' at ' + g0.s + ', the frame ' + g0.left + '..' + g0.right + ' of ' + D.W + ' from y ' + g0.top + ' -- the whole of his 247 (the keeper\'s panel is 190); the words end by x ' + Math.max.apply(null, geoG.map(function (g) { return g.text; }).concat([0])) + ' on every page',
+        !!scG && scG.o.open && scG.o.room && geoG.length === 5 && geoG.every(function (g) { return g.sheet === 'pt_generalgrim' && g.s === OGm.papa.s && g.left >= 0 && g.right <= D.W && g.top >= 0 && g.text <= g.left; }) && shGm.fw === 247);
+      D.scenes.length = 0;
+      // 3. the door: ?grimshow is a show of its beat, &beat= straight in; main.js opens it
+      var xG = new XMLHttpRequest(); xG.open('GET', '../deep16/js/main.js?r=' + Date.now(), false); xG.overrideMimeType('text/plain; charset=utf-8'); xG.send(); var mainG = xG.responseText || '';
+      var shwG = GGm && GGm.show('?grimshow&beat=monologue');
+      okGm('the door: deep16/?grimshow (main.js ' + /grimshow\\b\/\.test\(q\) && D\.general/.test(mainG) + '), a show of ' + (GGm ? GGm.BEATS.map(function (b) { return b.id; }).join() : '-') + ', &beat=monologue straight in (' + (shwG && shwG.pending && shwG.pending.id) + ')',
+        /grimshow\\b\/\.test\(q\) && D\.general/.test(mainG) && !!shwG && shwG.kind === 'grimshow' && !!shwG.pending && shwG.pending.id === 'monologue');
+      // 4. the beat played: a NEW GAME staged on the cave floor, the monologue's screen over it (the floor drawn behind, live), then the card where the fight would open
+      HGm.playing = false; HGm.cur = null; while (D.scenes.length) D.pop();
+      GGm.play(GGm.BEATS[0]); var BG = topGm(), nG = 0, scP = null;
+      while (nG++ < 400 && BG && BG.co) { var tp = D.top(); if (tp && tp.kind === 'counter') { scP = tp; break; } BG.co.next(); }
+      var cvG = document.createElement('canvas'); cvG.width = D.W; cvG.height = D.H; var bgOk = !!(scP && scP.o.bg && scP.o.bg(cvG.getContext('2d'), 0, 0, D.W, D.H, false));
+      var kP = 0; while (scP && !scP.done && kP++ < 20) scP.step();
+      var nC = 0, endG = ''; while (nC++ < 50 && BG && BG.co && !endG) { BG.co.next(); endG = (BG.cards || []).map(function (c) { return [].concat(c.lines || []).join(' '); }).concat(BG.log || []).filter(function (l) { return /fight would open/.test(l); })[0] || ''; }
+      okGm('the show\'s beat: a staged game (' + (HGm.cur && HGm.cur.staged) + ') on ' + GGm.BEATS[0].key + ' (a floor up ' + !!(BG && BG.roam && BG.roam.token) + '), the General\'s screen up (' + (scP && scP.id) + ', the floor drawn behind ' + bgOk + '), played through; then "' + endG.replace(/\{[a-z\/]*\}/g, '').slice(0, 70) + '"',
+        !!HGm.cur && !!HGm.cur.staged && !!scP && scP.id === 'generalgrim' && bgOk && scP.done && /fight would open/.test(endG));
+    } catch (eGm) { repGm.errors.push(String(eGm && eGm.stack || eGm).slice(0, 900)); }
+    HGm.playing = false; HGm.cur = null; D.store.get = stGGm; D.store.set = stSGm; D.music = muGm; D.scenes.length = 0;
+    var preGm = document.createElement('pre'); preGm.id = 'out'; preGm.textContent = 'BENCH16 ' + JSON.stringify(repGm);
+    document.body.appendChild(preGm);
+    return;
+  }
   function MRk() { return D.monsterRules; }
   // GENERAL GRIM'S TALKING PORTRAITS (mode=generalgrim1110; tools/portrait-sheet.py generalgrim, its `cutline`; js/counter.js C.VENDORS.generalgrim and the portraits' show's
   // `allFaces` -- the cutter of 11-10 on the lanes desk's queue, Griz: "they can churn through fresh one at a time as they complete at your discretion as to next cut"): the art
