@@ -1430,6 +1430,11 @@
   // out of its stupor"; 11-10, his record of 11-09: Vivian stood entranced five rounds with friends beside her, RULED "1 - fix") or held in a web or a grip (advantage on its
   // next check to get out; a hand already lent is the one hand)
   Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.hypnotized || ((w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck))); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
+  // THE SELF-CLICK ON A ROPE OR A LIGHT AT ONE'S FEET (11-10, Griz: "the pickup of the lamp prevents mouse-only open of q menu I think" -- it did: standing on a light or a rope's
+  // grapple one can take, every click on oneself asked TAKE IT UP, and NOT NOW opened nothing). The question now has THE RING, and a NOT NOW holds for the turn: the next click
+  // on oneself opens the ring (ui.js actAt reads T.selfNo; the next request's tool is B.nextTool)
+  Battle.SELF_NO = ['{g}(NOT NOW: the next click on yourself this turn opens the ring){/}'];
+  Battle.selfNo = function (B, u, ans) { if (u.turn) u.turn.selfNo = true; if (ans === 'ring') { B.nextTool = 'menu'; D.sfx('popup'); } };
   Battle.shakable = function (w) { return !!(w && w.conds && (w.conds.asleep || w.conds.hypnotized)); }; // (Help on these shakes them out of it: the 'help' exec, the ring's words)
   // why a HELP click is turned away, in the card's words (js/ui.js; 11-06, his 17:49:00Z loss, R8: Aurdin's HELP on Vivian six times, "Help: a foe beside you, or a friend beside you
   // asleep or held fast." -- Vivian at 0 hp by then, woken from his Sleep and dropped by a bat's bite. The down are not the asleep: Help wakes no one at 0 hp)
@@ -1704,8 +1709,9 @@
         var tkT = Battle.canTakeRope(this, u, rT); if (!tkT.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the rope up: ' + tkT.why + '.{/}'], 160); return; }
         if (!byAI(u) && c.x != null && (c.ask || !(u.x === rT.at[0] && u.y === rT.at[1]))) { // (c.ask: the self-click on the grapple's square -- Griz, 10-04 night: "standing on it makes me select character?") // (the click from beside it: take it, or only step onto its square)
           var rmT = G.reach(u, T.move), stepT = !(u.x === rT.at[0] && u.y === rT.at[1]) && !!(rmT[rT.at[0] + ',' + rT.at[1]] || {}).stand;
-          var ansT = yield { prompt: { who: u, title: u.name + ': THE ROPE', lines: ['Take the rope and its grapple up and into the pack (the action)' + (stepT ? ', or just step onto its square.' : '.')], opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepT ? [{ label: 'STEP THERE', value: 'step' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
+          var ansT = yield { prompt: { who: u, title: u.name + ': THE ROPE', lines: ['Take the rope and its grapple up and into the pack (the action)' + (stepT ? ', or just step onto its square.' : '.')].concat(c.ask ? Battle.SELF_NO : []), opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepT ? [{ label: 'STEP THERE', value: 'step' }] : []).concat(c.ask ? [{ label: 'THE RING', value: 'ring' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
           if (ansT === 'step') { var pT = G.path(rmT, rT.at[0], rT.at[1]); if (pT) yield* this.moveAlong(u, pT, { spend: true }); return; }
+          if (c.ask && ansT !== 'take') { Battle.selfNo(this, u, ansT); return; }
           if (ansT !== 'take') return;
         }
         T.action = 0; u.facing = D.spr.facingFor(rT.at[0] - u.x, rT.at[1] - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 10;
@@ -1890,8 +1896,9 @@
         var tkP = D.light.canTake(this, u, tP); if (!tkP.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the ' + D.light.word(tP) + ' up: ' + tkP.why + '.{/}'], 160); return; }
         if (!byAI(u) && c.x != null && (c.ask || !(u.x === lxP && u.y === lyP))) {
           var rmP = G.reach(u, T.move), stepP = !(u.x === lxP && u.y === lyP) && !G.occupant(lxP, lyP) && !!(rmP[lxP + ',' + lyP] || {}).stand;
-          var ansP = yield { prompt: { who: u, title: u.name + ': THE ' + D.light.tag(tP), lines: ['Take the ' + D.light.word(tP) + ' up (free: the hand on an object this turn)' + (stepP ? ', or just step onto its square.' : '.')], opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepP ? [{ label: 'STEP THERE', value: 'step' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
+          var ansP = yield { prompt: { who: u, title: u.name + ': THE ' + D.light.tag(tP), lines: ['Take the ' + D.light.word(tP) + ' up (free: the hand on an object this turn)' + (stepP ? ', or just step onto its square.' : '.')].concat(c.ask ? Battle.SELF_NO : []), opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepP ? [{ label: 'STEP THERE', value: 'step' }] : []).concat(c.ask ? [{ label: 'THE RING', value: 'ring' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
           if (ansP === 'step') { var pP = G.path(rmP, lxP, lyP); if (pP) yield* this.moveAlong(u, pP, { spend: true }); return; }
+          if (c.ask && ansP !== 'take') { Battle.selfNo(this, u, ansP); return; }
           if (ansP !== 'take') return;
         }
         T.freeObj = true; D.light.pickUp(this, u, lxP, lyP); return;

@@ -1149,8 +1149,8 @@
       if (x === u.x && y === u.y && !foe && v === 'ok' && UI.flyer(B) === u) { var fzS = UI.layerZ(B, u); B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzS }); } // (your own square at another layer: up or down in place -- Griz, 10-08: "trouble landing in the square I'm above")
       if (x === u.x && y === u.y && !foe) { // (the self-click: the ring -- or, standing on a rope's grapple, the question first: Griz, 10-04 night: "standing on it makes me select character?")
         if (u.conds.prone && RU.canRise(u) && T.move >= Math.floor(u.speed / 2)) return UI.command(B, u, { do: 'stand' }); // (prone, the half to stand: the click on yourself stands you -- 10-04 night, Griz)
-        var rpSelf = D.Battle.ropeAt(B, x, y); if (rpSelf && D.Battle.canTakeRope(B, u, rpSelf).ok) return UI.command(B, u, { do: 'takerope', x: x, y: y, ask: true });
-        var ltSelf = D.light.torchAt(B, x, y); if (ltSelf && D.light.canTake(B, u, ltSelf).ok) return UI.command(B, u, { do: 'pickuptorch', x: x, y: y, ask: true }); // (standing on a torch: the question first, as on the grapple -- 10-05)
+        var rpSelf = !T.selfNo && D.Battle.ropeAt(B, x, y); if (rpSelf && D.Battle.canTakeRope(B, u, rpSelf).ok) return UI.command(B, u, { do: 'takerope', x: x, y: y, ask: true }); // (T.selfNo: NOT NOW said to it this turn -- the ring now: battle.js Battle.selfNo, 11-10)
+        var ltSelf = !T.selfNo && D.light.torchAt(B, x, y); if (ltSelf && D.light.canTake(B, u, ltSelf).ok) return UI.command(B, u, { do: 'pickuptorch', x: x, y: y, ask: true }); // (standing on a torch: the question first, as on the grapple -- 10-05)
         D.sfx('popup'); B.tool = 'menu'; return;
       }
       if (foe && v === 'ok') return UI.command(B, u, { do: (tool === 'attack' ? B.twin : true) && D.Battle.twinOpen(u) ? 'twinstrike' : 'attack', target: foe }); // (TWIN STRIKE the default click for its pair while it is open; ATTACK picked off the ring swings one -- 11-03 night)
