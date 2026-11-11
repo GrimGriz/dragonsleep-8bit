@@ -2993,6 +2993,7 @@
       // 10. THE SHOW: deep16/?trueshow, each beat staged without a word of error
       var beatsQw = (TWQw.BEATS || []).map(function (b) { try {
         D.scenes.length = 0; TWQw.play(b); var tp = D.top();
+        if (b.council) { var tb = D.top(); if (tb && tb.baking) { tb.baking = false; tb.enter(); } D.battle = tb; driveQw(tb.co, null, 2); if (tb.roam) tb.roam.mode = 'walk'; return 'council: ' + (RQw.def && RQw.def.key) + ', the call due ' + H6Qw.lookDue(tb); }
         if (b.walk) { var mW = tp === WQw.scene && stepQw(WQw.scene); return b.id + ': THE WORLD on day ' + WQw.day() + ', a step south meets them ' + mW + (mW ? ' -- ' + cardQw(WQw.scene).slice(0, 40) : ''); }
         if (b.joke) { var bj = battleQw(), scj = []; if (!bj) return 'joke: no battle'; bj.units.forEach(function (u) { if (u.side === 'party' && u.id !== 'aurdin') { u.classAI = true; u.guest = true; } });
           driveQw(bj.co, function () { return !!(bj.flags8 && bj.flags8.eggJoke) || !!bj.result; }, 30000, scj);
@@ -3000,7 +3001,7 @@
         return b.id + ': ' + (tp instanceof CQw.Counter ? window.DS.stripCodes(answerQw(tp, [])).slice(0, 900) : 'no counter');
       } catch (e3) { return b.id + ': THREW ' + String(e3 && e3.stack || e3).slice(0, 300); } });
       var bq = beatsQw.join(' || ');
-      okQw('?trueshow, ' + beatsQw.length + ' beats: ' + bq.slice(0, 1600), beatsQw.length === 4 && !/THREW|no battle|no counter/.test(bq) && /road: THE WORLD on day 6, a step south meets them true/.test(bq) && /joke: the egg true/.test(bq) && /waist down hyena gnoll yawn joke/.test(bq) &&
+      okQw('?trueshow, ' + beatsQw.length + ' beats: ' + bq.slice(0, 1600), beatsQw.length === 5 && /council: silverton, the call due true/.test(bq) && !/THREW|no battle|no counter/.test(bq) && /road: THE WORLD on day 6, a step south meets them true/.test(bq) && /joke: the egg true/.test(bq) && /waist down hyena gnoll yawn joke/.test(bq) &&
         /won: .*anchor-pin off a Dominion wagoneer.*Renown \+1/.test(bq) && /scales: .*swear to the rest of this.*gains 600 XP/.test(bq) && typeof TWQw.show === 'function');
       HQw.playing = false; HQw.cur = null;
     } catch (eQw) { repQw.errors.push(String(eQw && eQw.stack || eQw).slice(0, 900)); }
