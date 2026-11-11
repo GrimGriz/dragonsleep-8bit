@@ -1406,6 +1406,7 @@
     D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
     try {
       B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
+      UI.liftOverFallen(objs);
       D.light.props(B).forEach(function (o) { objs.push(o); }); // a torch on the floor, dancing lights, a daylight set at a point
       if (D.looks) D.looks.props(B).forEach(function (o) { objs.push(o); });
       if (D.walls) D.walls.props(B).forEach(function (o) { objs.push(o); }); // the walls (js/walls.js) // the floating weapons, the guardian, the spirits' wheel (js/looks.js)
@@ -1601,6 +1602,20 @@
     return { x: p.x, y: p.y, depth: dep, gz: gz };
   }
   UI.unitPos = unitPos;
+  // THE LIVING OVER THE FALLEN (11-11, Griz's Bugbear Ambush: "aurdin (alive) standing on a dead bugbear and the bugbear was drawn over the top of him"): two figures whose
+  // footprints share a square tie on depth (or a Huge one lying has the deeper corner), and the tie fell to the order of B.units. One lying -- dead, at 0, or prone -- is drawn
+  // first: whoever stands on any square of it is drawn just after it. Riders and one held in claws keep their own place (perchPos, clawPos)
+  UI.liftOverFallen = function (objs) {
+    var us = objs.filter(function (o) { return o.unit && !o.unit.riding && !o.unit.inClaws; });
+    var lies = function (u) { return u.dead || u.hp <= 0 || !!(u.conds && u.conds.prone); };
+    var down = us.filter(function (o) { return lies(o.unit); }); if (!down.length) return objs;
+    var meets = function (a, b) { var sa = a.size || 1, sb = b.size || 1; return a.x < b.x + sb && b.x < a.x + sa && a.y < b.y + sb && b.y < a.y + sa; };
+    us.forEach(function (o) {
+      if (lies(o.unit)) return;
+      down.forEach(function (f) { if (meets(o.unit, f.unit) && o.depth <= f.depth) o.depth = f.depth + 0.01 + o.depth * 0.0001; }); // (+ its own depth a hair: two standing on one big body keep their order)
+    });
+    return objs;
+  };
   UI.unitObj = function (B, u) { return unitObj(B, u); }; // (the figure as the next frame draws it -- .shown holds the row and frame it drew: dev/bench16.js mode=goblinhide1007, 10-07)
   // IN ITS CLAWS (battle.js clawIn, 11-06, Griz: "Can we make a successful grab look like a lunge-return to actual position?"): one a claw holds is drawn at the claw's point by the holder's
   // facing (D.Battle.clawPoint), lifted off the ground, in front of the holder or behind it as the claw is; while the lunge goes out (its first two fifths) it still stands where it stood,

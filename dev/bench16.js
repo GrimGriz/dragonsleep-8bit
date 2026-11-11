@@ -11073,6 +11073,62 @@
     document.body.appendChild(preV);
     return;
   }
+  // THE OPUS BUG SEAT OF 11-11 (mode=bugs1111; the play records lane's 2026-11-11 section, his Bugbear Ambush and NOTES): 1 the living drawn over the fallen on one square
+  // ("aurdin (alive) standing on a dead bugbear and the bugbear was drawn over the top of him") -- the frame's figures as UI.drawBattle hands them to D.iso.draw, sorted as it sorts
+  if (get('mode', '') === 'bugs1111') {
+    var repBG = { checks: [], errors: [] }, UIbg = D.ui, GBg = D.grid;
+    function okBG(what, v) { repBG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkBG(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideBG(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function openBG(w, h) { var m = GBg.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    // the order the frame draws its figures in: D.iso.draw caught, its objects sorted as iso.js byDepth sorts them (a stable sort, as the engine's)
+    function drawOrderBG(Bx) {
+      var cap = null, d0 = D.iso.draw, cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H;
+      D.iso.draw = function (ctx, objs) { cap = objs.slice(); };
+      try { UIbg.drawBattle(cv.getContext('2d'), Bx); } finally { D.iso.draw = d0; }
+      return (cap || []).sort(function (a, b) { return a.depth - b.depth || a.gz - b.gz || (a.layer || 0) - (b.layer || 0); }).filter(function (o) { return o.unit; }).map(function (o) { return o.unit; });
+    }
+    function overBG(Bx, top, under) { var ord = drawOrderBG(Bx), a = ord.indexOf(top), b = ord.indexOf(under); return { ok: a >= 0 && b >= 0 && a > b, a: a, b: b }; }
+    try {
+      // 1a. A HERO ALIVE ON A DEAD BUGBEAR'S SQUARE, the hero first in the units (his fight: the party is)
+      var B1 = mkBG('?npc=bugbear,bugbear&vs=cleric:3,fighter:3&lvl=3'), o1 = openBG(8, 8);
+      if (!o1) okBG('1 an open stretch of the class floor', false);
+      else {
+        var X = o1[0] + 1, Y = o1[1] + 1, pa = sideBG(B1, 'party'), fo = sideBG(B1, 'foe'), h = pa[0], h2 = pa[1], bb = fo[0], bb2 = fo[1];
+        bb.x = X + 2; bb.y = Y + 2; bb.hp = 0; bb.dead = true; bb.deadT = B1.t; bb.anim = 'hurt'; bb.animT = B1.t - 200;
+        h.x = bb.x; h.y = bb.y; h2.x = X; h2.y = Y + 5; bb2.x = X + 5; bb2.y = Y; B1.cache = null;
+        var r1 = overBG(B1, h, bb);
+        okBG('1a ' + h.name + ' alive on the dead bugbear\'s square (' + bb.x + ',' + bb.y + '), the hero before it in B.units: drawn at ' + r1.a + ', the bugbear at ' + r1.b + ' (want the hero after)', r1.ok);
+        // 1b. a hero one square behind the body (north-west) is not lifted over it: the body lies in front of its feet
+        h.x = bb.x - 1; h.y = bb.y - 1; B1.cache = null; var r1b = overBG(B1, bb, h);
+        okBG('1b the hero a square north-west of the body: the body drawn at ' + r1b.a + ', the hero at ' + r1b.b + ' (want the body after, in front, as before)', r1b.ok);
+        // 1c. A DOWNED HERO (0 hp) UNDER A STANDING BUGBEAR, the hero first in the units
+        B1.units.splice(B1.units.indexOf(h), 1); B1.units.push(h); // (the hero last in the units now: the tie would fall its way)
+        bb.dead = false; bb.hp = 27; bb.anim = 'idle'; h.x = bb.x; h.y = bb.y; h.hp = 0; h.anim = 'hurt'; h.animT = B1.t - 200; B1.cache = null;
+        var r1c = overBG(B1, bb, h);
+        okBG('1c ' + h.name + ' down at 0 under a standing bugbear, the hero last in B.units:the bugbear drawn at ' + r1c.a + ', the hero at ' + r1c.b + ' (want the bugbear after)', r1c.ok);
+        // 1d. A PRONE HERO (alive) with a standing foe on the square
+        h.hp = h.maxhp; h.anim = 'idle'; h.conds.prone = true; B1.cache = null; var r1d = overBG(B1, bb, h);
+        okBG('1d ' + h.name + ' prone, a bugbear standing on the square: the bugbear drawn at ' + r1d.a + ', the hero at ' + r1d.b + ' (want the bugbear after)', r1d.ok);
+        delete h.conds.prone;
+      }
+      // 1e. A HUGE FALLEN BODY: a stone giant (size 3) dead, a hero standing on its back square -- the body's depth is its front corner's, two ahead of the hero's
+      var B2 = mkBG('?npc=stonegiant&vs=fighter:5&lvl=5'), o2 = openBG(7, 7);
+      if (!o2) okBG('1e an open stretch of the class floor', false);
+      else {
+        var hh = sideBG(B2, 'party')[0], sg = sideBG(B2, 'foe')[0];
+        sg.x = o2[0] + 2; sg.y = o2[1] + 2; sg.hp = 0; sg.dead = true; sg.deadT = B2.t; sg.anim = 'hurt'; sg.animT = B2.t - 200;
+        hh.x = sg.x; hh.y = sg.y; B2.cache = null; var r1e = overBG(B2, hh, sg);
+        okBG('1e ' + hh.name + ' on the back square of a fallen stone giant (size ' + sg.size + '): drawn at ' + r1e.a + ', the giant at ' + r1e.b + ' (want the hero after)', r1e.ok);
+        hh.x = sg.x + 1; hh.y = sg.y + 2; B2.cache = null; var r1f = overBG(B2, hh, sg);
+        okBG('1f and on its middle-front square (' + hh.x + ',' + hh.y + '): drawn at ' + r1f.a + ', the giant at ' + r1f.b + ' (want the hero after)', r1f.ok);
+      }
+      //@@MORE@@
+    } catch (eBG) { repBG.errors.push(String(eBG && eBG.stack || eBG).slice(0, 900)); }
+    var preBG = document.createElement('pre'); preBG.id = 'out'; preBG.textContent = 'BENCH16 ' + JSON.stringify(repBG);
+    document.body.appendChild(preBG);
+    return;
+  }
   // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (mode=aloftclicks1103; 11-03, Griz's Pocket DM notes: "oh, see stirge targetting difficulties fight before this one" and "The 5-foot flight above 4
   // foes targeting (manticore)"; a fix runner on the lanes desk's order): 1 a stirge 5 ft up over a goblin -- the mouse on the stirge is on the stirge (UI.pickUnit ranks a flier aloft over what stands
   // under it; UI.hoverPick tests MOVE's tile at the flier's own height), on the goblin's legs the goblin, and the click goes to whichever (UI.hoveredAt); 2 a manticore 5 ft up over four goblins on its four
