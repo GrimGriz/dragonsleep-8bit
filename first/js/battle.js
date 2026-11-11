@@ -2113,11 +2113,18 @@
       var pose = down(u) ? 'ko' : u.pose ? u.pose : (h.hp < h.maxhp / 4 || incap(u)) ? 'hurt' : 'stand';
       var x = u.x - (act === u ? (u.off || 0) : 0) + sx, y = u.y;
       if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
-      if (u.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < u.images; k++) ctx.drawImage(spr[pose], x + [-8, 8, -4][k], y + [2, -2, 4][k]); ctx.globalAlpha = 1; } // (Mirror Image: his doubles about him, as a foe's phantasms are drawn -- 10-02)
-      if (u.conds.paralyzed) { drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (!u.pose && self.over === 'win' && spr.anim) pose = 'win'; // (a drawn hero's Win row at the victory -- js/heroes8.js, ART-77, 11-11)
+      var img = spr[pose];
+      if (spr.anim && spr.anim[pose]) { // (a drawn hero's two frames: the breath on its own beat, a blow's wind-up then its end, a cast's release -- js/heroes8.js, 11-11)
+        if (u.animPose !== pose) { u.animPose = pose; u.animT = DS.frame; }
+        var age8 = DS.frame - u.animT, fr8 = spr.anim[pose];
+        img = fr8[pose === 'stand' || pose === 'win' ? ((DS.frame + u.idx * 24) >> 5) & 1 : age8 < (pose === 'cast' ? 14 : 8) ? 0 : 1] || img;
+      }
+      if (u.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < u.images; k++) ctx.drawImage(img, x + [-8, 8, -4][k], y + [2, -2, 4][k]); ctx.globalAlpha = 1; } // (Mirror Image: his doubles about him, as a foe's phantasms are drawn -- 10-02)
+      if (u.conds.paralyzed) { drawFallen(ctx, img, x, y, 16, 24, u.lie, 1); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
       else if (u.spin > 0 && !(u.lie > 0)) drawSpun(ctx, spr[pose === 'cast' ? 'stand' : pose], x, y, 16, u.spin); // (a twirl: Searing Scourge's caster turning round, his arms at his sides -- js/spellfx8.js, 10-14)
-      else drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); // (prone: fallen, 10-06)
-      if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(spr[pose]), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }
+      else drawFallen(ctx, img, x, y, 16, 24, u.lie, 1); // (prone: fallen, 10-06)
+      if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(img), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }
       if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }
       if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
       if (u.conds.restrained && !u.conds.grappled) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + 16, y + 18); ctx.moveTo(x + 16, y + 6); ctx.lineTo(x, y + 18); ctx.stroke(); }

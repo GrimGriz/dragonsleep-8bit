@@ -341,7 +341,7 @@
     this.party.forEach(function (h, i) { // lying down, or getting up
       var spr = DS.fighter(DS.LOOKS[h.look], h.weapon);
       if (!waking || self.pt < 40 + i * 25) ctx.drawImage(spr.ko, 70 + i * 36, 140);
-      else { var fr = DS.walker(DS.LOOKS[h.look]); ctx.drawImage(fr.down[0], 76 + i * 36, 132); }
+      else { var fr = DS.walker(DS.LOOKS[h.look]); ctx.drawImage(DS.walkerStill(fr, 'down'), 76 + i * 36, 132); }
     });
     ctx.fillStyle = '#6a4a2a'; ctx.fillRect(146, 142, 8, 3); ctx.fillStyle = '#c8783a'; ctx.fillRect(152, 141, 2, 2); // the pipe
     ctx.save();

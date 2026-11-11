@@ -465,7 +465,7 @@
       take: function (id, n) { G.take(id, n || 1); },
       info: function () { var pq = DS.pinnedQuest && DS.pinnedQuest(); return { silver: G.silver, renown: G.renown, place: DS.field && DS.field.map ? DS.field.map.name : '', time: fmtTime(G.time), steps: G.steps, pin: pq ? pq.name : null }; },
       canSave: function () { return !fight && !!(DS.field && DS.field.map && DS.field.map.src.save !== false); },
-      walker: function (h) { return DS.walker(DS.LOOKS[h.look]).down[0]; },
+      walker: function (h) { return DS.walkerStill(DS.walker(DS.LOOKS[h.look]), 'down'); },
       portrait: function (h) { return DS.fighter(DS.LOOKS[h.look], h.weapon).stand; },
       // a spell sheet no one here can copy: why not ('' when someone can -- RULED 10-01c, "unusable if not")
       whyNot: function (id, h) { var it = DS.DATA.items[id]; return it && it.use && it.use.effect === 'learn' ? DS.EV.learnWhy(id, h || null) : ''; },

@@ -423,7 +423,7 @@
         var lead = G.party[0];
         var fr = DS.walker(DS.LOOKS[lead.look]);
         var step = (self.moving || self.pathWalk) ? ((self.px + self.py) >> 3) & 1 : 0;
-        if (!self.hidePlayer) ctx.drawImage(fr[G.dir][step], self.px - cx, self.py - cy - 2);
+        if (!self.hidePlayer) ctx.drawImage((self.moving || self.pathWalk) ? fr[G.dir][step] : DS.walkerStill(fr, G.dir), self.px - cx, self.py - cy - 2); // (still: a drawn hero's own stand -- js/heroes8.js, 11-11)
       } else if (s.n.def.prop) { // a drawn prop (the wagon): anchored on its lead tile, facing its travel; one with `idle` loops in place till it is `still`
         var pn = s.n, left = pn.dir === 'left', img = DS.propArt(pn.def.prop, pn.moving ? (DS.frame >> 3) : pn.def.idle && !pn.still ? (DS.frame >> 5) : 0, left);
         var ax = pn.def.anchor === 'center' ? pn.px + 8 - (img.width >> 1) : left ? pn.px : pn.px + 16 - img.width;
@@ -431,7 +431,7 @@
       } else {
         var n = s.n, frames = n.frames();
         var st = n.moving ? ((n.px + n.py) >> 3) & 1 : (n.def.idle ? (DS.frame >> 5) & 1 : 0);
-        ctx.drawImage(frames[n.dir][st], n.px - cx, n.py - cy - 2);
+        ctx.drawImage(!n.moving && !n.def.idle ? DS.walkerStill(frames, n.dir) : frames[n.dir][st], n.px - cx, n.py - cy - 2);
         if (n.def.lantern) { ctx.fillStyle = (DS.frame >> 3) & 1 ? '#F8D878' : '#FCA044'; ctx.fillRect(n.px - cx + 13, n.py - cy + 6, 3, 4); }
       }
     });

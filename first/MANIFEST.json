@@ -43,7 +43,7 @@
   "first/data/data.js": "dd0cc5d9ef7f5451",
   "first/js/art.js": "e7cf552356a7d11b",
   "first/js/audio.js": "457233bb63339fec",
-  "first/js/battle.js": "ad8d7746e460e2f3",
+  "first/js/battle.js": "1800eaab4ac54923",
   "first/js/bestiary-art.js": "feff4af2e11ef8b5",
   "first/js/core.js": "1493b4a611f6bfdc",
   "first/js/cradle.js": "6b098ce86ef81c7d",
@@ -52,18 +52,19 @@
   "first/js/events.js": "f6ec6cf59e700a41",
   "first/js/familiar.js": "6ea9e664a149bb3a",
   "first/js/font.js": "86706ebeb201dc12",
+  "first/js/heroes8.js": "cd4c5d405b73fa53",
   "first/js/main.js": "f0bd0958310aa34e",
   "first/js/menu.js": "bafcfee3e6193df5",
   "first/js/pad.js": "f136ba921e4ac857",
   "first/js/pyro.js": "32b2209fa7803a26",
   "first/js/rules.js": "1f9c6a9bfaa6c334",
-  "first/js/scenes.js": "db654ccee7ad918f",
-  "first/js/situations.js": "f85e5cf000fe7401",
-  "first/js/smoke.js": "385b26d212a170cb",
+  "first/js/scenes.js": "790c050d4143f9bf",
+  "first/js/situations.js": "0813fb34b95e2f34",
+  "first/js/smoke.js": "9eba149c0d2f847b",
   "first/js/spellfx8.js": "a565b3390fce46f8",
   "first/js/sprites.js": "198dc27c44ee8d02",
   "first/js/ui.js": "33cd910943a9f760",
-  "first/js/world.js": "83a69c3e45412f09",
-  "index.html": "7a47a60f377776a6"
+  "first/js/world.js": "0ae649ae1ab9e21e",
+  "index.html": "0997474cdfcbe510"
  }
 }
