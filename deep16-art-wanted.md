@@ -395,7 +395,7 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: `tools/frostgiant-sheet.py` over `tools/sheetrows.py` into a new `frostgiant_p1` (HEAD 1 SE, 2 NE, 3 S, 4 E, 5 N; SW, W, NW their mirrors), sized by the stone giant's standing height; Greataxe -> `attack`, Rock -> `throw` (the stone giant's rock, the code drawing the stone in flight), Fall -> hurt. Huge.
 
-## 43. The werewolf, a Black Mountain cleric (the Coldridge route: the pack, by night) (added 11-11, the ART-77 8-bit cutter, from the bestiary on his word) -- ART-130, sent 2026-11-11 -- IN HAND 2026-11-11 (the art desk's ART-130-WEREWOLF-SOURCES, all five views, every row and both shifts: cut into `werewolf_p1` in all eight facings and worn by the SRD Werewolf in its hybrid form, `9b94db53`, by the owlbear cutter; the two shifts cut and held); the block is on `deep16-art-in-hand.md`
+## 43. The werewolf, a Black Mountain cleric (the Coldridge route: the pack, by night) (added 11-11, the ART-77 8-bit cutter, from the bestiary on his word) -- ART-130, sent 2026-11-11 -- IN HAND 2026-11-11 (the art desk's ART-130-WEREWOLF-SOURCES, all five views, every row and both shifts: cut into `werewolf_p1` in all eight facings and worn by the SRD Werewolf in its hybrid form, `2907f7b1`, by the owlbear cutter; the two shifts cut and held); the block is on `deep16-art-in-hand.md`
 
 ## 44. The griffon (the Coldridge route: the flier off the crags, by day) (added 11-11, the ART-77 8-bit cutter, from the bestiary on his word) -- ART-131, IN THE OUTBOX 2026-11-11, waiting to go (`deep16/_src/outbox/ASK-2026-11-11-coldridge-route/`)
 
