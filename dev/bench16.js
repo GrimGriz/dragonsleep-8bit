@@ -4348,6 +4348,27 @@
       okTH('7b a fighter 5 on the AI, a greatsword and two handaxes carried, the goblin 35 ft off and no feet: handaxes ' + hx7 + ' -> ' + hx7b + ', "' + logTH(B7b, n7b).slice(0, 160) + '" (want one thrown: the free draw is one a turn)', hx7 - hx7b === 1);
       } catch (eS) { repTH.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 600)); }
       try {
+      // 9. A FALLEN FOE'S SQUARE TAKES A MOVE (the desk's read of his record of 11-11, R5: "REFUSED: No attack left this turn: the action is spent. -- move at 5,5 (Bugbear)").
+      // The record's own steps: at 5,5 stood f1-bugbear ALIVE (7 hp; Drill's Action Surge felled it two clicks later, clicked at 275,158 against the refusal's 268,162); the one
+      // that had just fallen, f3, lay at 5,6. A guard of both: the fallen one's square, clicked, is a move there (no attack); the living one beside it, clicked with the action and
+      // the bonus spent, is refused "No attack left" (right: it is a foe in reach). UI.pickUnit skips the dead, and the living figure's box never reaches the square in front of it
+      var B9 = mkTH('?npc=bugbear,bugbear&lvl=3&vs=' + DRILL), d9 = partyTH(B9), fs9 = B9.units.filter(function (w) { return w.side === 'foe'; }), f9 = fs9[0], c9 = fs9[1], o9 = openTH(4, 4);
+      B9.units.forEach(function (w) { if (w !== d9 && w !== f9 && w !== c9) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } });
+      d9.x = o9[0]; d9.y = o9[1]; f9.x = o9[0] + 1; f9.y = o9[1]; c9.x = o9[0] + 1; c9.y = o9[1] + 1; c9.hp = 0; c9.dead = true; f9.hp = f9.maxhp = 300;
+      GGth.setup(GGth.map, B9.units.filter(function (w) { return !w.dead; })); B9.cache = null; RUth.startTurn(d9); B9.active = d9; d9.turn.action = 0; d9.turn.bonus = 0;
+      D.iso.lookAt(f9.x, f9.y, GGth.map.gz(f9.x, f9.y));
+      var click9 = function (u) { // (the mouse at the middle of u's square, as the hover finds it: UI.pickUnit, else the floor)
+        var gz = GGth.map.gz(u.x, u.y), cc = D.iso.center(u.x, u.y, gz), p = D.iso.toScreen(cc.x, cc.y), pu = UIt.pickUnit(B9, p.x, p.y), sq = pu ? { x: pu.x, y: pu.y } : D.iso.pick(p.x, p.y, gz);
+        var cmd = [], said = [], cd0 = B9.card, an0 = B9.answer; B9.card = function (ls) { said.push(window.DS.stripCodes([].concat(ls).join(' '))); }; B9.answer = function (c) { cmd.push(c); };
+        B9.hoverUnit = pu; B9.tool = 'move'; try { UIt.actAt(B9, d9, sq.x, sq.y); } finally { B9.card = cd0; B9.answer = an0; }
+        return { pu: pu, sq: sq, cmd: cmd[0] || null, said: said.join(' | ') };
+      };
+      var dead9 = click9(c9), live9 = click9(f9);
+      okTH('9 the fallen bugbear\'s square clicked: picked ' + (dead9.pu ? dead9.pu.name : 'the floor') + ' at ' + dead9.sq.x + ',' + dead9.sq.y + ', ' + (dead9.cmd ? dead9.cmd.do + ' to ' + dead9.cmd.x + ',' + dead9.cmd.y : 'refused "' + dead9.said + '"') + ' (want the floor, a move there)',
+        !dead9.pu && !!dead9.cmd && /move/.test(dead9.cmd.do) && dead9.cmd.x === c9.x && dead9.cmd.y === c9.y);
+      okTH('9 the living one beside it, the action and the bonus spent: ' + (live9.cmd ? live9.cmd.do : 'refused "' + live9.said + '"') + ' (want refused: no attack left -- the record\'s R5 click, which was right)', !live9.cmd && /No attack left/.test(live9.said));
+      } catch (eS) { repTH.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
       // 8. THE SHOW'S BEAT (js/eyes.js, deep16/?rulesshow&only=throw1111): staged and run by the engine, headless with &fast
       D.d = d0TH; var B8 = D.rulesshow.make('?rulesshow&fast&only=throw1111'); D.battle = B8; B8.enter();
       var v8, k8 = 0; while (B8.co && k8++ < 400000) { var r8 = B8.co.next(v8); v8 = undefined; if (r8.done) break; var y8 = r8.value; if (y8 && y8.prompt) v8 = y8.prompt.opts[0].value; }
