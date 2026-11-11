@@ -11094,6 +11094,42 @@
     document.body.appendChild(preV);
     return;
   }
+  // THE SURPRISE ROUND SPENT (mode=ambush1111; RULED 11-11, Griz, "that's my lean too", on the desk's "An ambush that surprises its targets should spend that round, with javelins if
+  // that's all that reaches"): his BUGBEAR AMBUSH (play-records/pocket-module-bugbear-ambush.json, its one rune: ambush at 5,4, r 15, the four on 3,2 5,6 7,4 6,5) on his own
+  // card of 11-11 05:56Z, his party on the squares they stood on, all four caught unaware -- round 1, each bugbear's turn by the posture
+  if (get('mode', '') === 'ambush1111') {
+    var repAM = { checks: [], errors: [] }, dAM = D.d, G9 = D.grid;
+    function okAM(what, v) { repAM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runAM(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } }
+    var Q = '?npc=bugbearchief,bugbear,bugbear,bugbear&vs=~paladin.3.halfelf.15-11-14-8-12-16.longsword_chainmail_shield_handaxe_____.wut.bless-command-shieldoffaith-calledtoaccount.protection.greenreturn,~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger,aurdin:3,ingrith:3&lvl=3&map=breach';
+    var RUNE = { kind: 'ambush', at: [5, 4], r: 15, fw: [0, 1] }, SQ = [[3, 2], [5, 6], [7, 4], [6, 5]];
+    function mkAM(heroSq) {
+      var Bx = D.npcFight(Q, {}); D.battle = Bx; Bx.enter(); var fs = Bx.units.filter(function (u) { return u.side === 'foe'; }); fs.forEach(function (u) { u.post = JSON.parse(JSON.stringify(RUNE)); });
+      var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next();
+      var hs = Bx.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      fs.forEach(function (u, i) { u.x = SQ[i][0]; u.y = SQ[i][1]; }); hs.forEach(function (u, i) { u.x = heroSq[i][0]; u.y = heroSq[i][1]; u.conds.surprised = true; });
+      G9.setup(G9.map, Bx.units); Bx.cache = null; Bx.dark = false; Bx.round = 1; return { B: Bx, fs: fs, hs: hs };
+    }
+    function roundAM(S) { var n = (S.B.log || []).length; S.fs.forEach(function (u) { if (u.dead) return; D.rules.startTurn(u); S.B.active = u; runAM(D.ai.turn(S.B, u)); S.B.active = null; }); return (S.B.log || []).slice(n).join(' | '); }
+    try {
+      D.d = function (s) { return Math.min(s, 15); }; // (every die 15 or its top: a javelin's 15 +4 hits AC 18; its 2d6 is 6+6)
+      // 1. HIS FIGHT: the four where they stood (wut 9,12, Drill 10,12, Aurdin 9,13, the cleric 10,13), the bugbears hidden, all four caught unaware
+      var S1 = mkAM([[9, 12], [10, 12], [9, 13], [10, 13]]), hid1 = S1.fs.every(function (u) { return u.conds.hidden; }); var near1 = S1.fs.map(function (u) { return u.name + ' ' + Math.min.apply(null, S1.hs.map(function (h) { return G9.range(u, h); })) + ' ft'; }).join(', '); var l1 = roundAM(S1);
+      
+      okAM('1 his BUGBEAR AMBUSH, round 1, all four caught unaware (nearest: ' + near1 + '; hidden ' + hid1 + '): a javelin loosed from hiding ' + /Javelin/.test(l1) + ', its surprise attack 2d6 ' + /surprise attack 2d6/.test(l1) + ' -- "' + l1.slice(0, 260) + '" (want true, true)', hid1 && /Javelin/.test(l1) && /surprise attack 2d6/.test(l1));
+      okAM('1b and the ambush sprung by it: ' + /looses from hiding|strikes from hiding/.test(l1) + ' (want true)', /looses from hiding|strikes from hiding/.test(l1));
+      // 2. NOTHING THAT REACHES: the four 45 ft and more from every bugbear (past a javelin's normal 30), still caught unaware -- the ambush holds, no blow, no break
+      var S2 = mkAM([[12, 14], [13, 14], [12, 15], [13, 15]]), d2 = Math.min.apply(null, S2.fs.map(function (u) { return Math.min.apply(null, S2.hs.map(function (h) { return G9.range(u, h); })); })), l2 = roundAM(S2);
+      okAM('2 the four ' + d2 + ' ft off at the nearest, caught unaware: no blow (' + !/ > /.test(l2) + '), no spring (' + !/springs the ambush|looses|strikes from hiding/.test(l2) + '), all still hidden (' + S2.fs.every(function (u) { return u.conds.hidden; }) + ') -- "' + l2.slice(0, 160) + '" (want true, true, true; the nearest past 30 ft)', d2 > 30 && !/ > /.test(l2) && !/springs the ambush|looses|strikes from hiding/.test(l2) && S2.fs.every(function (u) { return u.conds.hidden; }));
+      // 3. NOT CAUGHT: the four where they stood, none surprised -- the ambush holds for them to come on, as before (no shot from hiding at ones who saw it coming)
+      var S3 = mkAM([[9, 12], [10, 12], [9, 13], [10, 13]]); S3.hs.forEach(function (h) { delete h.conds.surprised; }); var l3 = roundAM(S3);
+      okAM('3 none caught unaware: no javelin (' + !/Javelin/.test(l3) + '), no spring (' + !/looses|strikes from hiding/.test(l3) + ') (want true, true)', !/Javelin/.test(l3) && !/looses|strikes from hiding/.test(l3));
+    } catch (eAM) { repAM.errors.push(String(eAM && eAM.stack || eAM).slice(0, 900)); }
+    D.d = dAM;
+    var preAM = document.createElement('pre'); preAM.id = 'out'; preAM.textContent = 'BENCH16 ' + JSON.stringify(repAM);
+    document.body.appendChild(preAM);
+    return;
+  }
   // THE OPUS BUG SEAT OF 11-11 (mode=bugs1111; the play records lane's 2026-11-11 section, his Bugbear Ambush and NOTES): 1 the living drawn over the fallen on one square
   // ("aurdin (alive) standing on a dead bugbear and the bugbear was drawn over the top of him") -- the frame's figures as UI.drawBattle hands them to D.iso.draw, sorted as it sorts
   if (get('mode', '') === 'bugs1111') {

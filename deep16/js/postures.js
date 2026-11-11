@@ -149,6 +149,18 @@
     // its prey: in its reach -- or, one with no blade, in its shot's normal range (a bow readied would loose at the long range, so an archer waits for the near one)
     var prey = sn.filter(function (w) { return mel ? G.dist(u, w) <= arm : shot && G.range(u, w) <= shot && G.los(u, w).clear; });
     if (prey.length) { P.breakOf(B, u, 'strikes from hiding'); return false; }
+    // THE SURPRISE ROUND SPENT (RULED 11-11, Griz, on the desk's lean "An ambush that surprises its targets should spend that round, with javelins if that's all that reaches":
+    // "that's my lean too"; his first word on it, "i bet the ambushers wasted surprised as tasked with protect - if they had ranged though..."): in round 1, one of ours caught
+    // unaware (Battle.caught) and in its shot's NORMAL range with a clear line -- no shot at long range from hiding -- it looses from where it lies hidden, the blow springing the
+    // ambush (P.blow) and Surprise Attack's dice where its sheet has them; a melee blow is the prey above, one already in reach. Nothing that reaches: it holds as before
+    var cgt = B.round === 1 && shot ? sn.filter(function (w) { return D.Battle.caught(w, u) && G.range(u, w) <= shot && G.los(u, w).clear; }) : [];
+    if (cgt.length) {
+      var T = u.turn, ks = Object.keys(u.attacks && typeof u.attacks === 'object' ? u.attacks : {}).filter(function (k) { var a = u.attacks[k]; return a && a.ranged && a.range && a.dice && !a.holdOnly; });
+      if (u.weapon && u.weapon.name || !ks.length || !T || !(T.action > 0)) { P.breakOf(B, u, 'looses from hiding'); return false; } // (a class foe's own turn takes the shot: tactics.js)
+      var tg = cgt.slice().sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0];
+      var k1 = ks.filter(function (k) { return G.range(u, tg) <= u.attacks[k].range[0]; }).sort(function (a, b) { return D.tactics.avg(u.attacks[b].dice) - D.tactics.avg(u.attacks[a].dice); })[0];
+      if (k1) { P.breakOf(B, u, 'looses from hiding'); T.action = 0; yield* B.attack(u, tg, u.attacks[k1]); return true; }
+    }
     if (sn.length && mel) yield* P.ready(B, u); // (one of ours in sight: the blade readied for the first that comes in reach -- unseen, battle.js exec 'ready')
     return true;
   }
