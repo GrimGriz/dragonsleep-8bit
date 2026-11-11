@@ -18587,6 +18587,59 @@
       var memB = JSON.stringify(memRn), Bd = null, dPk = RNb.door('?runes&show'); D.push = function (b) { if (b && b.lay !== undefined || (b && b.o && b.o.lay)) { Bd = b; D.battle = b; b.enter(); } else if (b && b.enter) b.enter(); }; try { D.push(dPk); } finally { D.push = push0Rn; }
       var dr = Bd && Bd.lay ? RNb.list(Bd.lay.slot) : [];
       okRn(dr.length === 4 && dr.map(function (r) { return r.post; }).join() === 'stand,ambush,patrol,defend' && Bd.lay.warn && JSON.stringify(memRn) === memB, '?runes&show: four runes staged (' + dr.map(function (r) { return r.post + ' ' + PKr.foesText(r.foes); }).join('; ') + '), the way in warned, nothing kept');
+      // (11-10 later, his first play of the runes on live -- "module and play record saved in play records. Seems it didn't take the placements or overwrote them - but it crashed when I
+      // backed out of building the module" -- then "add a 'click him' to turn off and on whether he's following the mouse" and "I'd like a wheel-menu version for a mouse-over player")
+      var floorOf = function (q) { var pk = RNb.door(q), fl = null; D.push = function (b) { if (b && b.o && b.o.lay) { fl = b; D.battle = b; b.enter(); } else if (b && b.enter) b.enter(); }; try { D.push(pk); } finally { D.push = push0Rn; } return { pk: pk, B: fl }; };
+      // 15. out of the door's BUILD: the lay floor's DONE to BUILD, BUILD's BACK, and BACK again to the table -- each screen drawn (the scratch table had no roster: it threw on the way out)
+      var boSeen = [], boWhy = '';
+      try {
+        var bo = floorOf('?runes'), drawBo = function () { bo.pk.btns = []; bo.pk.draw(cxRn); boSeen.push(bo.pk.screen); };
+        RNb.leave(bo.B); drawBo();
+        for (var kb = 0; kb < 2; kb++) { var bk = bo.pk.btns.filter(function (x) { return x.label === 'BACK'; })[0]; if (!bk) break; bo.pk.fire(bk); drawBo(); }
+      } catch (eBo) { boWhy = String(eBo && eBo.message || eBo); }
+      okRn(!boWhy && boSeen[0] === 'build' && boSeen.length === 3 && boSeen[2] !== 'build', 'out of the door\'s BUILD: DONE, then BACK twice, each screen drawn (' + boSeen.join(' > ') + ')' + (boWhy ? ' -- THREW: ' + boWhy : ''));
+      // 16. his own v2 file (play-records/pocket-module-the-runes-test.json, fight 1) at a table of his: through FROM A FILE, and through the modules folder's LOAD THIS MODULE -- PLAY, the fight
+      // set: each unit on a square of its rune with its post, the party in at his way in (1,6)
+      var HIS = { game: 'DRAGONSLEEP', kind: 'pocket-dm-module', v: 2, name: 'THE RUNES TEST', by: 'a DM', party: null, about: 'A module of 2 fights.', slots: [{ map: 'hexfloor', foes: ['bugbear', 'goblin', 'goblin', 'hobgoblin', 'ogre'], rest: { short: false, long: true, market: false },
+        runes: [{ foes: ['bugbear'], at: [8, 2], post: 'patrol', r: 15, to: [7, 9], fw: [-1, 0], sq: [[8, 2]] }, { foes: ['goblin', 'goblin', 'hobgoblin'], at: [11, 3], post: 'ambush', r: 15, fw: [-1, 0], sq: [[13, 2], [12, 1], [12, 3]] }, { foes: ['ogre'], at: [13, 10], post: 'stand', r: 15, fw: [-1, 0], sq: [[13, 10]] }], entry: [1, 6] }] };
+      var playHis = function (how) {
+        delete memRn['deep16.pocket'];
+        var pk = new D.Pocket(); pk.enter(); pk.ask = function () { return true; }; pk.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; pk.st.pack = []; pk.st.light = null; pk.cache = {};
+        var mod = null;
+        if (how === 'file') { var mF = pk.readModule(JSON.stringify(HIS)), kF = PKr.keepModule(pk.st, mF); mod = PKr.modules(pk.st).filter(function (x) { return x.key === kF; })[0]; }
+        else { var mD = PKr.moduleOf(JSON.parse(JSON.stringify(HIS))); mD.file = 'pocket-module-the-runes-test.json'; mD.key = 'dir:' + mD.file; mD.inFolder = true; pk.st.moduleKey = PKr.keepModule(pk.st, mD); mod = pk.loadedModule(); } // (THE MODULES' LOAD THIS MODULE: a folder's module kept, then loaded)
+        pk.startModule(mod);
+        var Bh = null; D.push = function (b) { Bh = b; }; try { pk.launch(); } finally { D.push = push0Rn; }
+        D.battle = Bh; Bh.enter();
+        var fs = Bh.units.filter(function (u) { return u.side === 'foe'; }), lead = Bh.units.filter(function (u) { return u.side === 'party' && !u.familiar; })[0];
+        var onRunes = HIS.slots[0].runes.every(function (r) { var mem = fs.filter(function (u) { return u.post && u.post.at.join() === r.at.join() && u.post.kind === r.post; }); return mem.length === r.foes.length && mem.every(function (u) { return r.sq.some(function (q) { return q[0] === u.x && q[1] === u.y; }); }); });
+        return { ok: onRunes && lead.x === 1 && lead.y === 6, say: how + ': ' + fs.map(function (u) { return u.kind + '@' + u.x + ',' + u.y + (u.post ? ' ' + u.post.kind : ''); }).join(' ') + ', the party in at ' + lead.x + ',' + lead.y };
+      };
+      var hisA = null, hisB = null; try { hisA = playHis('file'); hisB = playHis('folder'); } catch (eH) { hisA = hisA || { ok: false, say: 'THREW: ' + eH }; hisB = hisB || { ok: false, say: 'THREW: ' + eH }; }
+      okRn(hisA.ok && hisB.ok, 'his own file at play, each unit on its rune: ' + hisA.say + ' | ' + hisB.say);
+      // 17. HIS WHEEL: a click on the mage opens it round him -- FOLLOW, SPELLS, THE WAY IN, CHANNEL DIVINITY held for the map-shaping variants, DONE; FOLLOW off holds him while the pointer
+      // moves and a click on the floor sends him; SPELLS opens the pick
+      var wSay = '', wOk = false, Mw = D.input.mouse, mw0 = { x: Mw.x, y: Mw.y, inside: Mw.inside, inWin: Mw.inWin, click: Mw.click, moved: Mw.moved };
+      try {
+        var wf = floorOf('?runes'), wB = wf.B, Lw = wB.lay, mgw = Lw.mage; tickR(wB, 2); wB.paint(cxRn);
+        var pw = D.ui.unitPos(wB, mgw), topw = D.spr.unitTop(mgw) * D.iso.zoom;
+        Object.assign(Mw, { x: Math.round(pw.x), y: Math.round(pw.y - topw / 2), inside: true, inWin: true, click: true, moved: false });
+        var onMw = RNb.onMage(wB); RNb.tick(wB); Mw.click = false; var opened = Lw.mode === 'wheel';
+        var itsW = RNb.wheelItems(wB), idsW = itsW.map(function (e) { return e.id; }).join(), chOff = itsW.filter(function (e) { return e.id === 'channel'; })[0].ok === false;
+        RNb.wheelPick(wB, itsW[0]); var offW = Lw.follow === false && Lw.mode === 'fly';
+        var atW = [mgw.x, mgw.y], tW = [Math.max(1, atW[0] - 3), Math.max(1, atW[1] - 3)]; Lw.cur = { x: tW[0], y: tW[1] }; tickR(wB, 40); var stayed = mgw.x === atW[0] && mgw.y === atW[1];
+        var cW = D.iso.center(tW[0], tW[1], Lw.z), sW = D.iso.toScreen(cW.x, cW.y); Object.assign(Mw, { x: sW.x, y: sW.y, click: true, moved: true }); RNb.tick(wB); Mw.click = false; Mw.moved = false; var parkW = Lw.park ? Lw.park.join() : '';
+        tickR(wB, 80); var sent = mgw.x === Lw.park[0] && mgw.y === Lw.park[1] && Lw.mode === 'fly';
+        RNb.openWheel(wB); RNb.wheelPick(wB, RNb.wheelItems(wB)[1]); var pickW = Lw.mode === 'pick';
+        wOk = onMw && opened && idsW === 'follow,runes,wayin,channel,done' && chOff && offW && stayed && parkW === tW.join() && sent && pickW;
+        wSay = 'the click on him ' + (onMw ? 'hits him' : 'misses him') + ' and ' + (opened ? 'opens' : 'does not open') + ' the wheel (' + idsW + ', CHANNEL DIVINITY ' + (chOff ? 'held' : 'open') + '); FOLLOW off: ' + (stayed ? 'he stays as the pointer moves' : 'he moved') + ', a floor click sends him to ' + parkW + (sent ? ' and he flies there' : ' -- he did not get there') + '; SPELLS ' + (pickW ? 'opens the pick' : 'does not open the pick');
+      } catch (eW) { wSay = 'THREW: ' + String(eW && eW.message || eW); }
+      Object.assign(Mw, mw0);
+      okRn(wOk, 'HIS WHEEL: ' + wSay);
+      // 18. runes left behind by a page from before them (its R rolled the fight again and left the runes on the slot): dropped on the next read of the campaign, the roll kept
+      var stSt = { dm: true, roster: [], camp: { modules: [{ id: 1, name: 'OLD R', slots: [{ map: 'hexfloor', foes: ['ogre', 'snake'], runes: [{ unit: 3, foes: ['bugbear'], at: [8, 2], post: 'stand', r: 15, sq: [[8, 2]] }] }, { map: 'hexfloor', foes: ['bugbear'], runes: [{ unit: 3, foes: ['bugbear'], at: [8, 2], post: 'stand', r: 15, sq: [[8, 2]] }] }] }] } };
+      PDr.camp(stSt); var sSt = stSt.camp.modules[0].slots;
+      okRn(!sSt[0].runes.length && sSt[0].foes.join() === 'ogre,snake' && sSt[1].runes.length === 1, 'an older page\'s R under laid runes: the stale runes dropped, the roll kept (' + sSt[0].foes.join(',') + '); a fight that is its runes keeps them');
     } catch (eRn) { repRn.errors.push(String(eRn && eRn.stack || eRn).slice(0, 900)); }
     D.store.get = stGRn; D.store.set = stSRn; D.push = push0Rn;
     var preRn = document.createElement('pre'); preRn.id = 'out'; preRn.textContent = 'BENCH16 ' + JSON.stringify(repRn); document.body.appendChild(preRn);
