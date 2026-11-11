@@ -445,7 +445,7 @@
     this.units.push(n);
     this.order.splice(this.order.indexOf(u) + 1, 0, n);
     FX.sparkle(n, 'stone', 16); FX.sparkle(u, 'stone', 16); D.sfx('poison');
-    this.card(['{r}The ' + shortName(u) + ' splits in two!{/}  {g}(' + half + ' HP each, one size smaller){/}'], 360);
+    this.card(['{r}' + Battle.theName(u) + ' splits in two!{/}  {g}(' + half + ' HP each, one size smaller){/}'], 360);
   };
   // let go of whatever u holds (it fell, or its grip was out of reach)
   Battle.prototype.release = function (u, only) {
@@ -502,7 +502,7 @@
     u.x = best ? best[0] : hx; u.y = best ? best[1] : hy;
     u.tween = { fx: hx, fy: hy, fz: 18, t: 0, dur: this.pace(12, true) };
     this.forced(u); // (set down by another's doing: the readied strikes are asked when the action is done -- readyForced, the grid's rules §2.5)
-    if (host && !u.dead && u.hp > 0) this.card(['{g}The ' + shortName(u) + ' drops off ' + nameOf(host) + ' to the floor beside.{/}'], 220);
+    if (host && !u.dead && u.hp > 0) this.card(['{g}' + Battle.theName(u) + ' drops off ' + nameOf(host) + ' to the floor beside.{/}'], 220);
   };
   // a creature's size where a rule names one (SRD 5.1: Tiny 0, Small 1, Medium 2, Large 3, Huge 4, Gargantuan 5): its body's squares (one Medium, two Large, three Huge,
   // four Gargantuan); a one-square body Small by its race (a halfling, a gnome) or a split ooze's `sizeClass`, Tiny a familiar; a beast's shape its own size (Wild Shape and
@@ -529,7 +529,7 @@
       var u = this.units[i]; if (!u.attached || !u.riding) continue;
       var h = u.master, at = h && Battle.attOf(h, u);
       if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || h.ethereal || u.ethereal || h.conds.banished || u.conds.banished || u.conds.prone || !G.hostile(u, h)) { this.dismount(u); continue; }
-      if (!at.big && Battle.overMedium(h)) { this.card(['{g}' + nameOf(h) + ' swells past it: the ' + shortName(u) + ' is thrown off.{/}'], 240); this.dismount(u); }
+      if (!at.big && Battle.overMedium(h)) { this.card(['{g}' + nameOf(h) + ' swells past it: ' + Battle.theWord(u) + ' is thrown off.{/}'], 240); this.dismount(u); }
     }
   };
 
@@ -1052,6 +1052,7 @@
   // a foe's name with its article: none for a named one (The Keeper) or a name that opens with its own ("The thing in the lake" -- secondact.js; 11-10, his record of 11-09,
   // his list RULED "fix": "The The thing in the lake falls")
   Battle.theName = function (u) { var s = shortName(u); return (u.named || /^the /i.test(s) ? '' : 'The ') + s; };
+  Battle.theWord = function (u) { var s = shortName(u); return u.named ? s : /^the /i.test(s) ? 'the ' + s.slice(4) : 'the ' + s; }; // (the same mid-line: "swing at the thing in the lake", "at The Keeper" -- 11-10, his record: HELP's "at the The thing in the lake")
   function shortName(u) { return u.side === 'foe' && !u.fname ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
@@ -1284,7 +1285,7 @@
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
     var mirH = u.cls === 'rogue' ? Battle.mirrorOn(this, u) : []; // (the Mirror's eye on her: HIDE greyed, the why said -- 11-03 night, his "2 - fair")
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && !mirH.length && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : mirH.length ? 'the mirror on the ' + shortName(mirH[0]) + ' has you: nothing hides in front of the Mirror\'s eye' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && !mirH.length && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : mirH.length ? 'the mirror on ' + Battle.theWord(mirH[0]) + ' has you: nothing hides in front of the Mirror\'s eye' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -1386,7 +1387,7 @@
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
-    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': the ' + shortName(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
+    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': ' + Battle.theWord(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
     // PULL OUT (SRD 5.1 Water Elemental, Whelm: anyone within 5 ft of the elemental, a DC 14 STR check as an action): a friend it holds (10-14)
     var drowning = Battle.whelmed(u, this.units);
     if (drowning.length) out.push({ id: 'pullout', label: 'PULL OUT', cost: 'A', icon: 'free', tool: 'pullout', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + drowning[0].conds.restrained.dc + ': a friend out of the water elemental, the elemental beside you' });
@@ -1424,7 +1425,7 @@
     FX.sparkle(held, 'bone', 10); D.sfx('hit');
     var ta = Object.keys(holder.attacks || {}).map(function (k) { return holder.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0];
     var left = Math.max(0, (ta && ta.grapple && ta.grapple.max || 6) - (holder.holding || []).length - holder.tendrilsLost);
-    this.card(['{n}The tendril is ' + how + ':{/} ' + nameOf(held) + ' is free.  {g}(the ' + shortName(holder) + ' has ' + left + ' tendril' + (left === 1 ? '' : 's') + ' to spare till its next turn){/}'], 280);
+    this.card(['{n}The tendril is ' + how + ':{/} ' + nameOf(held) + ' is free.  {g}(' + Battle.theWord(holder) + ' has ' + left + ' tendril' + (left === 1 ? '' : 's') + ' to spare till its next turn){/}'], 280);
   };
   // a friend u may Help: beside it, asleep (shaken awake), entranced by a Hypnotic Pattern (shaken out of it -- SRD 5.1: "someone else uses an action to shake the creature
   // out of its stupor"; 11-10, his record of 11-09: Vivian stood entranced five rounds with friends beside her, RULED "1 - fix") or held in a web or a grip (advantage on its
@@ -2021,19 +2022,19 @@
           return;
         }
         c.target.conds.helped = { by: u.id, side: u.side };
-        this.card(['{y}' + u.name + '{/} helps: the next ally to swing at the ' + shortName(c.target) + ' does it with advantage.']);
+        this.card(['{y}' + u.name + '{/} helps: the next ally to swing at ' + Battle.theWord(c.target) + ' does it with advantage.']);
         FX.sparkle(c.target, 'bone', 8);
         return;
       }
       case 'detach': { // PULL IT OFF: a darkmantle off a friend (SRD 5.1: "a successful DC 13 Strength check as an action"; Athletics, as breakFree reads it)
         var rd = c.target, host = rd && rd.riding && rd.master; if (!host) return;
         var hr = Battle.attOf(host, rd), dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
-        if (dc <= 1) { T.action = 0; RU.spendHelp(u); D.sfx('run'); this.card(['{y}' + u.name + '{/} pulls the ' + shortName(rd) + (host === u ? '' : ' off ' + host.name) + ' {n}OFF{/}  {g}(no check: SRD 5.1, an action){/}']); this.release(rd, host); this.dismount(rd, u); yield 30; return; } // (the stirge: "a creature, including the target, can use its action to detach the stirge")
+        if (dc <= 1) { T.action = 0; RU.spendHelp(u); D.sfx('run'); this.card(['{y}' + u.name + '{/} pulls ' + Battle.theWord(rd) + (host === u ? '' : ' off ' + host.name) + ' {n}OFF{/}  {g}(no check: SRD 5.1, an action){/}']); this.release(rd, host); this.dismount(rd, u); yield 30; return; } // (the stirge: "a creature, including the target, can use its action to detach the stirge")
         var adv1 = !!(en1 && !en1.down) || ce1.adv.length > 0, dis1 = !!(u.conds.poisoned || u.conds.frightened || (en1 && en1.down)) || ce1.dis.length > 0;
         var a1 = D.d(20), a2 = D.d(20), d20 = adv1 && !dis1 ? Math.max(a1, a2) : dis1 && !adv1 ? Math.min(a1, a2) : a1;
         var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
         T.action = 0; RU.spendHelp(u); D.sfx('run');
-        this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + (host === u ? '' : ' on ' + host.name) + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
+        this.card(['{y}' + u.name + '{/} gets hold of ' + Battle.theWord(rd) + (host === u ? '' : ' on ' + host.name) + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
         if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
         yield 30; return;
       }
@@ -2044,7 +2045,7 @@
         var b1 = D.d(20), b2 = D.d(20), e20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
         var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), pt2 = e20 + pb2;
         T.action = 0; RU.spendHelp(u); D.sfx('run');
-        this.card(['{y}' + u.name + '{/} reaches into the ' + shortName(ph) + ' for ' + pw.name + ' and pulls: STR d20 ' + e20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + ' = ' + pt2 + ' vs DC ' + pr.dc + '  ' + (pt2 >= pr.dc ? '{n}OUT{/}' : '{g}the water holds on{/}')]);
+        this.card(['{y}' + u.name + '{/} reaches into ' + Battle.theWord(ph) + ' for ' + pw.name + ' and pulls: STR d20 ' + e20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + ' = ' + pt2 + ' vs DC ' + pr.dc + '  ' + (pt2 >= pr.dc ? '{n}OUT{/}' : '{g}the water holds on{/}')]);
         if (pt2 >= pr.dc) { this.release(ph, pw); FX.sparkle(pw, 'blue', 12); }
         yield 30; return;
       }
@@ -2679,7 +2680,7 @@
       if (nat === 1 && host && G.standing(host) && !G.hostile(att, host) && atk.dice) {
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', host, D.PAL.ramps.fire[2]);
-        this.card(['{o}A natural 1:{/} the blow meant for the ' + shortName(tgt) + ' lands on ' + nameOf(host) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
+        this.card(['{o}A natural 1:{/} the blow meant for ' + Battle.theWord(tgt) + ' lands on ' + nameOf(host) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
         this.hurt(host, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
         yield o.oa ? 16 : 30; att.anim = 'idle'; return;
       }
@@ -3370,7 +3371,7 @@
     var wasStill = !u.woken && !u.acted; // (a disguise this wound ends -- its Reveal plays below, not at its turn: js/ai.js wasStill)
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     // Freeze (the water elemental, SRD 5.1: "If the elemental takes cold damage, it partially freezes; its speed is reduced by 20 feet until the end of its next turn" -- grimoire.js onStart)
-    if (u.freeze && type === 'cold' && !u.dead) { var fz = !u.conds.frozen; u.conds.frozen = { till: { who: u.id, at: 'end', n: this.active === u ? 2 : 1 } }; if (fz) this.card(['{c}The ' + shortName(u) + ' partially freezes:{/} {g}its speed 20 ft less till the end of its next turn{/}'], 200); }
+    if (u.freeze && type === 'cold' && !u.dead) { var fz = !u.conds.frozen; u.conds.frozen = { till: { who: u.id, at: 'end', n: this.active === u ? 2 : 1 } }; if (fz) this.card(['{c}' + Battle.theName(u) + ' partially freezes:{/} {g}its speed 20 ft less till the end of its next turn{/}'], 200); }
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     // an object with a damage threshold (SRD 5.1 Objects: a blow under it is superficial) and resistance to everything (the skylight, 10-04 night)
     if (u.threshold && n < u.threshold) { FX.float('glances off', u, D.PAL.ramps.silver[5]); return; }
@@ -3441,7 +3442,7 @@
     // 0 while burning = true, trigger troll death"; his "troll HP = 0 AND fire/acid = True ... trigger troll death" -- ours, not the SRD's wait for the start of its turn)
     if (u.regenDown && !u.dead) {
       u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]);
-      if (/fire|acid/.test(type || '')) { delete u.regenDown; u.dead = true; u.deadT = this.t; D.sfx('die'); this.card(['{o}The ' + shortName(u) + ' burns where it lies. It is dead.{/}'], 260); }
+      if (/fire|acid/.test(type || '')) { delete u.regenDown; u.dead = true; u.deadT = this.t; D.sfx('die'); this.card(['{o}' + Battle.theName(u) + ' burns where it lies. It is dead.{/}'], 260); }
       return;
     }
     var hp0 = u.hp; u.hp = Math.max(0, u.hp - n);
@@ -3968,7 +3969,7 @@
       D.sfx('fire');
       FX.projectile(u, w, 'fire'); yield { fx: 1 };
       var sv = RU.save(w, use.save || 'dex', use.dc || 10), dmg = sv.ok ? 0 : D.roll(String(use.dice)).total;
-      this.card(['{y}' + u.name + '{/} throws the ' + it.name + ' at the ' + shortName(w) + ': DEX ' + RU.saveText(sv) + ' vs DC ' + (use.dc || 10) + '  ' + (sv.ok ? '{n}dodged{/}' : '{o}burning: ' + dmg + ' fire{/}')]);
+      this.card(['{y}' + u.name + '{/} throws the ' + it.name + ' at ' + Battle.theWord(w) + ': DEX ' + RU.saveText(sv) + ' vs DC ' + (use.dc || 10) + '  ' + (sv.ok ? '{n}dodged{/}' : '{o}burning: ' + dmg + ' fire{/}')]);
       if (dmg) this.hurt(w, dmg, 'fire');
     }
     yield 30;
