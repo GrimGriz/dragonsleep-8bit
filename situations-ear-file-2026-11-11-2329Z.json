@@ -1,0 +1,83 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-11T23:29:25.154Z",
+ "previous_save": "2026-11-11T17:34:03.341Z",
+ "items": [
+  {
+   "id": "eyes-supper-alone-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET ALONE, re-cut: she says which wagon; (Eat quietly.); her question about the eyes can be answered (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-supper-alone-1111 · eyes",
+   "url": "deep16/?innshow&beat=supalone&fresh=1111r",
+   "verdict": "broken",
+   "note": "doran has a line when I ask her 'no. tell it' and he's supposed to be gone",
+   "at": "2026-11-11T23:23:42.199Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-unseen-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, re-cut: everyone WALKS; the fight's field; Doran speaks on portraits after the yield (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, rulings 37 and 38 (deep16/js/inn.js In.barnYard; mode=inn1104 \"the yard fight's field\") · eyes",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1111r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-11T23:29:21.520Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-seen-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, seen through, re-cut: Gennet walks the child in to the house (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-barn-seen-1111 · eyes",
+   "url": "deep16/?innshow&beat=barnseen&fresh=1111r",
+   "verdict": "broken",
+   "note": "narrative says she's carried, animation is walks in first - can we rotate/mirror the back door lamp?",
+   "at": "2026-11-11T23:21:28.223Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-away-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, Doran away, re-cut: Elsbeth walks out; she sends them to the PIT; the OK under its line (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, ruling 40 · eyes",
+   "url": "deep16/?innshow&beat=barnaway&fresh=1111r",
+   "verdict": "works",
+   "note": "art request for girl and goblin (or did I ask already) - did she pull the knife then grab the child? - barley 'steps between' narratively but does not- we're using a cut of the tub portrait for elsbeth in scenes like this aren't we? - with girl in tow, no inn-stay (if you're not back in x days)",
+   "at": "2026-11-11T23:17:32.440Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-renown-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN at renown 5, re-cut: the words stay in their boxes (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-barn-renown-1111 · eyes",
+   "url": "deep16/?innshow&beat=barnknown&fresh=1111r",
+   "verdict": "broken",
+   "note": "'raise her as mine', i'll take it to the fight and see if that records this part - also one in  last card note",
+   "at": "2026-11-11T23:12:21.345Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-exits-1111c",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN: nobody vanishes -- each walks out through a door -- and the child follows beside the token (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night (deep16/js/inn.js In.barnYard exits, In.follow, D.roam.step; mode=inn1104 \"nobody vanishes\", \"the child follows\") · eyes",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1111x",
+   "verdict": "works",
+   "note": "i'll raise her as mine falls out her text box, check for other spills, room and board line given a 'tell me more' button, worth 'doran with an axe' portraits - outbox a request please - have the walks animate when the message comes up (i.e. doran back to the woodpile) - line 'child is asked her name' use char player used as party voice most often during encounter or vivian and do that bit in portraits by the door (line says 'at the road) - doran's default 'click on him' should be axe portrait with a line, that line should change after this encounter (the girl will be safest at the pit, come back in x nights) - have elsbeth point them toward the pit when they have the child, make it a dialog with option to ask her to come, staying with father just be back in x days - probably need to have g",
+   "at": "2026-11-11T23:10:25.434Z",
+   "new_since_last_save": true
+  }
+ ]
+}
