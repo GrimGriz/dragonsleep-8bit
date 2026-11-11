@@ -1166,6 +1166,7 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    var gth = this.gatherThrown(o); if (gth) { this.card([gth], 260); yield 30; } // (the thrown weapons on a held field back in the pack: 11-10)
     var RG = window.DS.R.GRIPPING; if (RG) this.units.forEach(function (u) { if (u.src) RG.delete(u.src); }); // (no grip outlives its fight: Battle.gripFor)
     // a trooper left lying when the party got out (escapeEnd): a word for each, and the 8-bit lets them go (embed.js leftBehind -- 10-13, his: "continue with sad note on 'troop' NPCs")
     var lb = o === 'escaped' ? this.units.filter(function (u) { return u.leftBehind; }) : [];
@@ -2362,6 +2363,7 @@
       if (!u.ethereal && D.magic.sleetCatch(this, u)) { if (o && o.spend) T.move = 0; yield 24; break; }
       // a spell's ground (09-28, js/grimoire.js): grease underfoot, spikes, the guardians' ring -- a fall ends the move there
       if (!u.ethereal && D.magic.stepInto) { var si = D.magic.stepInto(this, u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (si) { if (o && o.spend) T.move = 0; yield 24; break; } }
+      if (this.ground && this.ground.length) this.groundStep(u); // (a thrown weapon on this square: taken up on the way -- Battle.groundStep, 11-10)
       // out of a Globe of Invulnerability that held a spell off it (10-01c): a hold, a sleep, a web's grip, a dance takes hold again on the square it steps
       // out onto, and the walk ends there (filming it, the fighter walked on a square held)
       if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
@@ -2501,7 +2503,7 @@
     }
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
-    this.spendThrow(att, atk); // (out of the hand, hit or miss)
+    this.spendThrow(att, atk, tgt); // (out of the hand, hit or miss)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (att.side === 'foe') (this.logTail = this.logTail || {})[cid] = Battle.atkTail(att, tgt, atk, melee); // (the log's: where each stood, 11-05)
     this.turnTo(att, faceTo(att, tgt));
@@ -2669,6 +2671,7 @@
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
+    if (this.flying && this.flying.u === att && this.flying.atk === atk) this.flying.hit = hit; // (where a thrown weapon lands: Battle.landThrow)
     // (the card said after the blow's own: the attack's card is re-carded in place with its damage below, and a re-carded card goes to the log's foot -- so said here, the found
     // line read above the blow that found her, under the last MISS. 11-06, his 21:43:45Z R2 the Crawler, read by the lanes desk. foundTxt: said where the blow's card is done)
     var foundTxt = null;
@@ -3015,7 +3018,7 @@
     var held = st.held, holder = st.by, t = held.conds.restrained && held.conds.restrained.tendril;
     if (!t || !G.standing(held) || !G.standing(holder) || held.conds.restrained.by !== holder.id) return;
     if (this.thrownLeft(att, atk) <= 0) return;
-    this.spendThrow(att, atk); // (a handaxe thrown at a tendril is thrown: spendThrow)
+    this.spendThrow(att, atk, holder); // (a handaxe thrown at a tendril is thrown: spendThrow)
     if (!o.oa && !o.ready) this.noteHeard(att);
     var melee = !atk.ranged, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (held !== att) this.turnTo(att, faceTo(att, held));
@@ -3248,6 +3251,7 @@
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     var throws0 = this.thrownLeft(att, atk);
     yield* attack0.call(this, att, tgt, atk, o);
+    if (this.flying && this.flying.u === att) this.landThrow(); // (the thrown weapon on the floor, or gone: 11-10)
     if (throws0 > 0 && throws0 !== Infinity && !this.thrownLeft(att, atk)) this.card(['{g}(' + Battle.nm(att) + ' has thrown ' + (att.side === 'foe' && !att.named ? 'its' : 'the') + ' last ' + atk.name.toLowerCase().replace(/^thrown /, '') + '){/}'], 160); // (spendThrow)
     yield* this.readyForced();
     if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); // (WHAT FALLS, FEEDS: a player's Green Return paladin is asked once the blow that dropped one is done -- js/features.js F.greenAsk; a seam here since 11-03, F.greenHook wrapped this from outside)
@@ -3667,10 +3671,92 @@
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
   // the off hand's weapon thrown instead (SRD 5.1, two-weapon fighting: "If either weapon has the thrown property, you can throw the weapon"): its range, or none
   Battle.offThrow = function (u) { var it = u && u.src && u.src.equip && window.DS.R.item(u.src.equip.offhand), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.thrown || wd.throw || wd.range || [20, 60] } : null; }; // (the item's own `thrown` range: content/items.json, the SRD's property on every thrown weapon since 11-10)
+  // THROWN WEAPONS ARE PICKED UP (RULED 11-10, Griz: "pickup with auto-pack ground items at fight end (with an exception flag for metal items thrown into the ooze or jelly that
+  // destroys them, rustmonster, etc - some projectiles won't be retrieval - probably probe the SRD for which we should apply that to)"; before, every throw was spent, his 10-06
+  // "pickup is bound to be a headache (art)"). One of ours throws (spendThrow notes it, `flying`); the roll read (attack), it lands (landThrow): a hit at the target's feet, a miss
+  // on the square past it from the thrower (or at its feet, where that is no floor); on deep water or nothing it is lost. On the floor it is `B.ground`, drawn there (groundObjs)
+  // and named under the cursor (groundLine). One of the four walking onto it takes it up with the turn's free object interaction (groundStep: the pack's stack, the class kit's
+  // count, the off hand -- back to whoever threw it); with that spent, it says so once and lies there. The fight won, or the foe yielded or fled, what still lies there is gathered
+  // into the pack (gatherThrown, Battle.finish); a fight lost or run from leaves it. THE EXCEPTION (the SRD 5.1's three): a nonmagical weapon that HITS the gray ooze (Corrode
+  // Metal, metal) or the rust monster (Rust Metal, metal) or the black pudding (Corrosive Form, metal or wood) is gone -- the SRD corrodes a weapon (-1, gone at -5) and destroys
+  // ammunition; a stack keeps no one dagger's wear, so here it is destroyed, his flag. The ochre jelly and the gelatinous cube eat nothing that hits them (the SRD's blocks)
+  Battle.eatsThrown = function (t, f) {
+    var it = f.id && window.DS.R.item(f.id), wd = (it && it.weapon) || {}; if (!t || f.atk.magic || wd.bonus || wd.magic) return '';
+    var metal = !/club|staff|sling|dart|whip|net\b/i.test(f.id || f.atk.name || '');
+    if (t.corrosive === 'form') return 'is eaten in ' + Battle.theWord(t);
+    if ((t.corrosive === 'metal' || t.corrosive === 'rust' || t.rustMetal) && metal) return t.rustMetal || t.corrosive === 'rust' ? 'rusts to nothing in ' + Battle.theWord(t) : 'is eaten in ' + Battle.theWord(t);
+    return '';
+  };
+  Battle.floorAt = function (x, y) { var s = G.map && G.map.at(x, y); return !!(s && s.walk); }; // (a thrown weapon can lie there: not deep water, not a wall)
+  Battle.prototype.landThrow = function () {
+    var f = this.flying; this.flying = null; if (!f) return;
+    var u = f.u, t = f.tgt, nmF = (f.id && window.DS.R.item(f.id) ? window.DS.R.item(f.id).name : f.atk.name || 'weapon').replace(/^Thrown /, ''), lc = nmF.toLowerCase();
+    var eat = f.hit && Battle.eatsThrown(t, f);
+    if (eat) { this.card(['{o}The ' + lc + ' ' + eat + '.{/}  {g}(gone: a nonmagical weapon that hits it is not picked up -- SRD 5.1){/}'], 220); return; }
+    var sq = null;
+    if (t) {
+      var dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y), sz = t.size || 1, past = [dx > 0 ? t.x + sz : dx < 0 ? t.x - 1 : t.x, dy > 0 ? t.y + sz : dy < 0 ? t.y - 1 : t.y];
+      sq = !f.hit && Battle.floorAt(past[0], past[1]) ? past : Battle.floorAt(t.x, t.y) ? [t.x, t.y] : null;
+    } else if (Battle.floorAt(u.x, u.y)) sq = [u.x, u.y];
+    if (!sq) { this.card(['{g}The ' + lc + ' is lost' + (t && G.map.at(t.x, t.y) && G.map.at(t.x, t.y).deep ? ' in the deep water' : '') + '.{/}'], 200); return; }
+    (this.ground = this.ground || []).push({ id: f.id, name: nmF, x: sq[0], y: sq[1], by: u.id, how: f.how, atk: f.atk, alt: f.alt });
+    this.logOnly(['R' + this.round + ' ' + (u.name || u.id) + '\'s ' + lc + ' lies at ' + sq[0] + ',' + sq[1] + (f.hit ? ' (a hit: at its feet)' : ' (a miss)')]);
+  };
+  // the one thrown back where it came from: the pack's stack, the class kit's count, the off hand -- the thrower's again, whoever took it up
+  Battle.prototype.groundBack = function (g) {
+    var by = this.units.filter(function (w) { return w.id === g.by; })[0];
+    if (g.how === 'pack') { var st = (g.atk && g.atk.stack) || (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (st) { st.n = (st.n || 0) + 1; if ((this.inv || []).indexOf(st) < 0) (this.inv = this.inv || []).push(st); } else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
+    else if (by && by.thrown && g.atk && by.thrown[g.atk.name]) by.thrown[g.atk.name]--;
+    if (by && g.how === 'off') delete by.offhandThrown;
+    if (by && g.how !== 'off' && !by.alt && g.alt) by.alt = g.alt; // (thrown to the last, its ALT put away: spendThrow -- back in hand)
+  };
+  // walking onto it: taken up with the turn's free object interaction (moveAlong, each square)
+  Battle.prototype.groundStep = function (u) {
+    if (!this.ground || !this.ground.length || !Battle.isHero(u) || this.active !== u || !u.turn || u.dead || u.hp <= 0) return;
+    var here = this.ground.filter(function (g) { return g.x === u.x && g.y === u.y; }); if (!here.length) return;
+    var g = here[0], by = this.units.filter(function (w) { return w.id === g.by; })[0], whose = by && by !== u ? by.name + '\'s ' : 'the ';
+    if (u.turn.freeObj) { if (!u.turn.groundSaid) { u.turn.groundSaid = true; this.card(['{g}' + u.name + ' passes over ' + whose + g.name.toLowerCase() + ': the hand on an object is spent this turn.{/}'], 180); } return; }
+    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); this.groundBack(g); D.sfx('confirm');
+    this.card(['{y}' + u.name + '{/} takes up ' + whose + g.name.toLowerCase() + ' on the way.  {g}(free: the hand on an object' + (g.how === 'pack' ? '; back in the pack' : '') + '){/}'], 200);
+  };
+  // the fight's end: on a held field what still lies there comes back (won, the foe yielded or fled); lost or run from, it stays
+  Battle.prototype.gatherThrown = function (o) {
+    if (this.flying) this.landThrow();
+    var gs = this.ground || []; if (!gs.length) return '';
+    if (o !== 'won' && o !== 'yielded' && o !== 'fled') { this.ground = []; return ''; }
+    var self = this, n = {}; gs.forEach(function (g) { self.groundBack(g); n[g.name] = (n[g.name] || 0) + 1; }); this.ground = [];
+    return '{g}The thrown weapons are gathered up: ' + Object.keys(n).map(function (k) { return n[k] > 1 ? n[k] + ' ' + k.toLowerCase() + (/s$/.test(k) ? '' : 's') : 'a ' + k.toLowerCase(); }).join(', ') + '.{/}';
+  };
+  // under the cursor (ui.js, the square's line, bottom right)
+  Battle.groundLine = function (B, u, x, y) {
+    var gs = (B.ground || []).filter(function (g) { return g.x === x && g.y === y; }); if (!gs.length) return '';
+    var by = B.units.filter(function (w) { return w.id === gs[0].by; })[0];
+    return '{y}' + (by ? by.name + '\'s ' : 'a ') + gs[0].name.toLowerCase() + (gs.length > 1 ? ' and ' + (gs.length - 1) + ' more' : '') + ' on the floor{/}  ' + (u && Battle.isHero(u) ? (u.turn && u.turn.freeObj ? '{g}walked over, it waits: the hand on an object is spent this turn{/}' : '{n}walk over it: taken up (free: the hand on an object){/}') : '{g}picked up by one of the party walking over it{/}');
+  };
+  // drawn on its square: a tiny blade, axe, hammer or spear (ui.js, the floor's objects)
+  var GLYPH = { blade: [[0, 0, 's'], [1, -1, 's'], [2, -2, 's'], [-1, 1, 'h'], [-2, 2, 'h'], [-1, -1, 'g'], [1, 1, 'g']], axe: [[-2, 2, 'h'], [-1, 1, 'h'], [0, 0, 'h'], [1, -1, 'h'], [2, -2, 's'], [1, -2, 's'], [2, -1, 's'], [3, -2, 's'], [2, -3, 's']],
+    hammer: [[-2, 2, 'h'], [-1, 1, 'h'], [0, 0, 'h'], [1, -1, 's'], [2, -2, 's'], [0, -2, 's'], [2, 0, 's']], spear: [[-3, 3, 'h'], [-2, 2, 'h'], [-1, 1, 'h'], [0, 0, 'h'], [1, -1, 'h'], [2, -2, 's'], [3, -3, 's']] };
+  Battle.groundObjs = function (B) {
+    var P = D.PAL.ramps;
+    return (B.ground || []).map(function (g, i) {
+      var k = /axe/i.test(g.id || g.name) ? 'axe' : /hammer/i.test(g.id || g.name) ? 'hammer' : /spear|javelin|trident/i.test(g.id || g.name) ? 'spear' : 'blade', gz = G.map.gz(g.x, g.y);
+      return { depth: g.x + g.y + 0.2, gz: gz, layer: 1, draw: function (ctx) {
+        var c = D.iso.center(g.x, g.y, gz), p = D.iso.toScreen(c.x, c.y), ox = Math.round(p.x) + (i % 3) * 2 - 2, oy = Math.round(p.y) + (i % 2) * 2;
+        var sc = Math.max(1, Math.round((D.iso.zoom || 1) * 0.6)); // (a pixel of it a pixel far out, more as the camera comes in)
+        ctx.fillStyle = P.outline[0]; GLYPH[k].forEach(function (q) { ctx.fillRect(ox + q[0] * sc - 1, oy + q[1] * sc - 1, sc + 2, sc + 2); });
+        GLYPH[k].forEach(function (q) { ctx.fillStyle = q[2] === 's' ? P.silver[5] : q[2] === 'g' ? P.gold[4] : P.leather[3]; ctx.fillRect(ox + q[0] * sc, oy + q[1] * sc, sc, sc); });
+      } };
+    });
+  };
   // the thrown weapon a unit carries to throw, with one left (the ring's THROW, 10-15): a class hero's `alt` handaxes or daggers
   Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
-  Battle.prototype.spendThrow = function (u, atk) {
+  Battle.prototype.spendThrow = function (u, atk, tgt) {
     if (this.thrownLeft(u, atk) === Infinity) return;
+    if (u.side === 'party' && atk.thrown && !atk.spell) { // (the throw in flight: where it lands once the roll is read -- Battle.landThrow, 11-10)
+      if (this.flying) this.landThrow();
+      var howF = atk.offhandSwing ? 'off' : atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0) ? 'pack' : 'kit';
+      this.flying = { u: u, atk: atk, tgt: tgt || null, how: howF, id: howF === 'off' ? (u.src && u.src.equip && u.src.equip.offhand) || null : atk.id || null, alt: u.alt, hit: false };
+    }
     if (atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0)) atk.stack.n = Math.max(0, (atk.stack.n || 0) - 1); // (its own thrown first, then the pack's: gone from the pack -- 11-10)
     else { u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1; }
     if (this.thrownLeft(u, atk) > 0) return;

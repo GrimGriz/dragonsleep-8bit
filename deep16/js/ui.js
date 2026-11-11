@@ -1407,6 +1407,7 @@
       wallWebs(B).forEach(function (o) { objs.push(o); }); // the silk up the walls behind a map's webs, and its corner webs
       webObjs(B).forEach(function (o) { objs.push(o); }); // the webs themselves, each piece in the round at its hub
       ropeObjs(B).forEach(function (o) { objs.push(o); }); // the ropes down the faces, a tiny grapple at each top (10-04)
+      if (D.Battle.groundObjs) D.Battle.groundObjs(B).forEach(function (o) { objs.push(o); }); // the thrown weapons on the floor (battle.js, 11-10)
       bucketObjs(B).forEach(function (o) { objs.push(o); }); // the rope bucket's coil (10-04 night)
       barrelObjs(B).forEach(function (o) { objs.push(o); }); // the torch barrel's torches (10-05 night)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
@@ -2449,6 +2450,7 @@
         else lines.push('{y}the rope\'s grapple{/}  ' + (tkT.ok ? '{n}click: take it up into the pack (the action)' + (B.cursor.x === u.x && B.cursor.y === u.y ? ' -- TAKE THE ROPE on the ring' : '') + '{/}' : '{g}' + tkT.why + '{/}'));
       }
       var ltT = D.light.torchAt(B, B.cursor.x, B.cursor.y); // (a light on the floor under the cursor: what the click does, as the grapple's line -- 10-05, Griz: "torch listed on bottom right?")
+      var gdT = D.Battle.groundLine && D.Battle.groundLine(B, u, B.cursor.x, B.cursor.y); if (gdT) lines.push(gdT); // (a thrown weapon on the floor: battle.js, 11-10)
       var olT = D.oil && D.oil.lineAt(B, B.cursor.x, B.cursor.y); if (olT) lines.push(olT); // (oil on the ground, or burning: js/oil.js, 10-05)
       if (ltT) { var tkL = D.light.canTake(B, u, ltT), occL = G.occupant(B.cursor.x, B.cursor.y), selfL = B.cursor.x === u.x && B.cursor.y === u.y; lines.push('{y}a ' + D.light.word(ltT) + ' on the floor, burning{/}  ' + (tkL.ok && (selfL || !occL) ? '{n}click: take it up (free: the hand on an object)' + (selfL ? ' -- TAKE UP on the ring' : '') + '{/}' : '{g}' + (tkL.ok ? 'someone stands on it' : tkL.why) + '{/}')); }
       if (B.ropePick) { var rg = B.ropePick, rgFt = (rg.z - G.map.gz(rg.rope.foot[0], rg.rope.foot[1])) / G.map.def.step * 2.5; lines.push('{y}the rope{/}: ' + (rg.ground ? 'down to the ground' : (rg.up ? 'climb to ' : 'let down to ') + rgFt + ' ft up it and hang there') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent ? rg.spent + ' ft to its ' + (rg.up ? 'foot' : 'top') + ', then ' : '') + rg.cost + ' ft of movement' + (rg.ok ? '' : ' -- ' + rg.why) + '{/}'); } // (a rung of a rope the mouse is on: ropeRung, 10-04 night)

@@ -121,6 +121,7 @@
     if (owh) yield* owh.apply(this, arguments);
     if (tgt.antennae && att && atk && !atk.spell) tgt.lastHitBy = att.id; // (the weapon swinging at it: its antennae go there first -- rustTurn)
     if (!tgt.rustMetal || !atk || atk.magic || atk.spell || att.dead) return;
+    if (atk.thrown && att.side === 'party') return; // (one of ours thrown: it rusts to nothing in the wound and is not picked up -- battle.js Battle.landThrow, 11-10)
     if (atk.ammo || (atk.ranged && /bow/i.test(atk.id || atk.name || ''))) { B.card(['{g}The ' + (/cross/i.test(atk.id || atk.name || '') ? 'bolt' : 'arrow') + ' rusts to nothing in the wound.{/}'], 160); return; }
     if (!metalName(atk) || atk.name === 'Unarmed Strike') return;
     yield* rustWeapon(B, att, atk);
