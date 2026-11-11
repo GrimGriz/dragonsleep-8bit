@@ -2485,7 +2485,7 @@
       this.pager(ctx, px + 6, py + ph - 13, rows.length, per, from); // (five a page when ^ v stand under them, 10-27)
     } else if (c) {
       D.text(ctx, '{y}' + c.h.name + '{/}: ' + c.prepared.length + ' of ' + c.pi.n + ' prepared  {g}(cantrips' + ((c.pi.always || []).length ? ' and the always-ready' : '') + ' need none){/}', px + 6, py + 5, P('bone', 1));
-      var pool = c.pi.pool, per = 26, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from;
+      var pool = c.pi.pool, per = 16, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from; // (16 a page, eight rows of two, since 11-11: the words' panel under them)
       var b0p = this.btns.length;
       pool.slice(from, from + per).forEach(function (id, k) {
         var sp = SV.spell(id) || { name: id, level: '?' }, on = c.prepared.indexOf(id) >= 0, col = k % 2, rw = Math.floor(k / 2);
@@ -2496,6 +2496,12 @@
         }, { on: on, small: true });
       });
       this.listRows(b0p, py + 18, 12, pool.length, per, from, 'scroll', 2); // (two spells a row: a row is two to the scroll, 10-27)
+      // the spell under the mouse, else the one the keys are on: its words, in the realm game's panel (js/core.js D.descPanel -- 11-11, Griz: "same with camp spell prep - I don't
+      // think descriptions are shown in this one and they are on spell selection in the realm game. menu consistency where we can.")
+      var shown = pool.slice(from, from + per), hv = -1; for (var q = 0; q < shown.length; q++) if (hit(this.btns[b0p + q])) hv = q;
+      if (hv < 0 && this.ksel >= b0p && this.ksel < b0p + shown.length) hv = this.ksel - b0p;
+      var spD = hv >= 0 ? (DS.DATA.spells[shown[hv]] || SV.spell(shown[hv]) || {}) : null; this.prepDesc = spD ? spD.desc || '' : null; // (prepDesc: what the panel says -- dev/bench16.js mode=bugs1111)
+      if (!D.descPanel(ctx, px + 4, py + 18 + 8 * 12 + 4, pw - 8, this.prepDesc)) D.text(ctx, '{g}a spell under the mouse or the keys: its words here{/}', px + 6, py + 18 + 8 * 12 + 8, P('stone', 5));
       this.pager(ctx, px + 6, py + ph - 13, pool.length, per, from);
       if ((c.pi.always || []).length) D.text(ctx, fitText('always ready: ' + c.pi.always.map(function (id) { return (SV.spell(id) || { name: id }).name; }).join(', '), pw - 12), px + 6, py + ph - (pool.length > per ? 20 : 10), P('silver', 5));
     } else D.text(ctx, 'nobody here prepares spells: the rest is the rest', px + pw / 2, py + 80, P('stone', 5), 'center');

@@ -446,6 +446,14 @@
     ctx.fillStyle = W8.mid; ctx.fillRect(x + 2, y + 1, w - 4, h - 2); ctx.fillRect(x + 1, y + 2, w - 2, h - 4);
     ctx.fillStyle = bg || W8.bg; ctx.fillRect(x + 3, y + 2, w - 6, h - 4); ctx.fillRect(x + 2, y + 3, w - 4, h - 6);
   };
+  // the row's words under a list in that window, three lines (the realm game's morning, js/house.js Morning -- where its spells are prepared -- and the Pocket DM's
+  // LONG REST, js/pocket.js drawMorning: 11-11, Griz, "same with camp spell prep - I don't think descriptions are shown in this one and they are on spell selection in
+  // the realm game. menu consistency where we can."). said: a line the page just said, in green, in place of the row's
+  D.descPanel = function (ctx, x, y, w, tx, said) {
+    if (!tx) return false;
+    D.win8(ctx, x, y, w, 44); D.wrap(tx, w - 20).slice(0, 3).forEach(function (l, i) { D.text(ctx, l, x + 10, y + 7 + i * 10, said ? '#b8f8b8' : '#e0c8a0'); });
+    return true;
+  };
   var GT = /\{:([a-z]+)\}/g, GW = 10;
   function glyphSplit(s) { var out = [], last = 0, m; GT.lastIndex = 0; while ((m = GT.exec(s))) { out.push(s.slice(last, m.index)); out.push({ g: m[1] }); last = GT.lastIndex; } out.push(s.slice(last)); return out; }
   D.text = function (ctx, s, x, y, color, align) {

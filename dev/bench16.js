@@ -11141,6 +11141,19 @@
         okBG('2c the Pocket DM camp\'s menu: walker ' + a4.walker + ', portrait ' + a4.portrait + '; Lymen\'s slot asks for ' + JSON.stringify(a4.asked) + ' (want both, pt_lymen)', a4.walker === 'fn' && a4.portrait === 'fn' && a4.asked.indexOf('pt_lymen') >= 0);
         okBG('2d and a made cleric (no portrait drawn) asks for its figure: ' + JSON.stringify(a5.asked) + ' (want one sheet, not a pt_)', a5.asked.length >= 1 && !/^pt_/.test(a5.asked[0]));
         Pc.pm = null; }
+      // 3. THE POCKET DM'S SPELL PREP SAYS WHAT A SPELL IS ("same with camp spell prep - I don't think descriptions are shown in this one and they are on spell selection in the realm
+      // game. menu consistency where we can."): THE LONG REST's prep, the keys on a spell, draws its words in the realm game's panel (js/core.js D.descPanel)
+      var Pr = new D.Pocket(); Pr.enter(); Pr.keep = function () { }; Pr.st.party = [{ w: 'cleric', lvl: 4, loot: [] }, { w: 'wizard', lvl: 4, loot: [] }]; Pr.cache = {}; Pr.go('morning');
+      var cvR = document.createElement('canvas'); cvR.width = D.W; cvR.height = D.H; var cxR = cvR.getContext('2d'), panR = [], wp0 = D.win8;
+      Pr.btns = []; Pr.draw(cxR); var spB = Pr.btns.map(function (b, i) { return [b, i]; }).filter(function (q) { return /^\[[x ]\] /.test(q[0].label); });
+      if (!spB.length) okBG('3 THE LONG REST lists a caster\'s spells', false);
+      else {
+        var nmR = spB[0][0].label.replace(/^\[[x ]\] /, '').replace(/\s+L\d.*$/, '').trim(), idR = Object.keys(DS.DATA.spells).filter(function (k) { return DS.DATA.spells[k].name === nmR; })[0] || Object.keys(D.SPELLS || {}).filter(function (k) { var s = D.save.spell(k); return s && s.name === nmR; })[0];
+        var wantR = idR ? ((DS.DATA.spells[idR] || D.save.spell(idR) || {}).desc || '') : '';
+        Pr.ksel = spB[0][1]; D.win8 = function (c, x, y, w, h) { panR.push([Math.round(x), Math.round(y), Math.round(w), Math.round(h)]); return wp0.apply(this, arguments); };
+        try { Pr.btns = []; Pr.draw(cxR); } finally { D.win8 = wp0; }
+        okBG('3 THE LONG REST, the keys on ' + nmR + ' (' + idR + '): the page says "' + String(Pr.prepDesc).slice(0, 60) + '" in a win8 panel of ' + JSON.stringify(panR.filter(function (p) { return p[3] === 44; })) + ' (want its words, "' + wantR.slice(0, 40) + '", in the realm game\'s 44-high panel)', !!wantR && Pr.prepDesc === wantR && panR.some(function (p) { return p[3] === 44; }));
+      }
       //@@MORE@@
     } catch (eBG) { repBG.errors.push(String(eBG && eBG.stack || eBG).slice(0, 900)); }
     var preBG = document.createElement('pre'); preBG.id = 'out'; preBG.textContent = 'BENCH16 ' + JSON.stringify(repBG);

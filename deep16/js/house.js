@@ -608,7 +608,7 @@
     if (this.scroll > 0) D.text(ctx, '▲', b.x + b.w - 12, b.y + 8, '#c8d0e8');
     if (this.scroll + b.vis < L.rows.length) D.text(ctx, '▼', b.x + b.w - 12, b.y + b.h - 10, '#c8d0e8');
     var cur = L.rows[this.i], tx = this.msg ? this.msg.join(' ') : cur && cur.desc || '', dy = b.y + b.h + 6;
-    if (tx) { D.win8(ctx, b.x, dy, b.w, 44); D.wrap(tx, b.w - 20).slice(0, 3).forEach(function (l, i) { D.text(ctx, l, b.x + 10, dy + 7 + i * 10, self.msg ? '#b8f8b8' : '#e0c8a0'); }); }
+    D.descPanel(ctx, b.x, dy, b.w, tx, !!this.msg); // (the row's words: js/core.js D.descPanel, the Pocket DM's LONG REST draws its spells' by it too)
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17);
     D.hint(ctx, 'click a row · arrows choose · E pick · X ' + (this.sub ? 'back' : this.phase === 'save' ? 'no' : 'done'), D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
