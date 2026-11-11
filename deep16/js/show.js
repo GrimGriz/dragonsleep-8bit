@@ -228,9 +228,32 @@
     }
     // one with a Ring it has not shown twice, from the end of its second turn (the knellback's, 11-10 -- ours, a ChatGPT invention: the AI rings when two of its foes
     // stand within 10 ft, or one when it is down to half, and a show seldom brings either): its Ring back, and sounded through the rule's own MR.ring at whoever is near
+    // -- and the resonance (11-11, Griz: "i think i want resonance where it hitting other knellbacks makes it worse for non-knellbacks"; js/monsterrules.js MR.ringReach): at
+    // its second Ring, when no kin stands within 10 ft yet, the nearest other knellback up is walked in first (the show's, never a rule) -- to a square within 10 ft of
+    // it, one that also brings in a watcher the Ring alone would miss where it can -- so its shell rings back and the watchers save at the higher DC, the Ring carried
     if (u.knell && D.monsterRules && D.spr.anim(u.sheet, 'ring') && ((u.showSeen || {}).ring || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone) {
+      var MRs = D.monsterRules, rr = MRs.ringReach;
+      if ((u.showSeen || {}).ring && !B.showRes && rr && !rr(B, u).res.length) {
+        var kin = B.units.filter(function (w) { return w !== u && w.knell && !w.dead && w.hp > 0 && RU.canAct(w) && !w.conds.prone && w.speed > 0; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+        if (kin) {
+          var rk2 = (u.knell.r || 10), wat = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; }), rmk = D.grid.reach(kin, 60), bk = null, bs = -1;
+          Object.keys(rmk).forEach(function (kk) {
+            var c = rmk[kk]; if (!c.stand || D.grid.dist(kin, u, c.x, c.y) > rk2) return;
+            var len = c.prev ? D.grid.path(rmk, c.x, c.y).length : 0;
+            var more = wat.filter(function (w) { return D.grid.dist(u, w) > rk2 && D.grid.dist(kin, w, c.x, c.y) <= rk2; }).length, sc = more * 100 - len;
+            if (sc > bs) { bs = sc; bk = c; }
+          });
+          if (bk) {
+            B.card(['{c}THE SHOW{/}: the other ' + kin.name + ' comes within 10 ft of it, to hear the two shells ring together: the RESONANCE.'], 220);
+            if (bk.prev) yield* B.moveAlong(kin, D.grid.path(rmk, bk.x, bk.y), { noOA: true });
+            kin.anim = 'idle';
+          }
+        }
+      }
+      var resN = rr ? rr(B, u).res.length : 0;
       B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ring' + ((u.showSeen || {}).ring ? ' twice' : '') + ' yet. Its Ring back, to hear it.'], 200);
-      u.knellSpent = false; yield* D.monsterRules.ring(B, u); u.anim = 'idle';
+      u.knellSpent = false; yield* MRs.ring(B, u); u.anim = 'idle';
+      if (resN) B.showRes = (B.showRes || 0) + 1;
     }
     // one with a catch row it has not shown by the end of its second turn (the stone giant's Rock Catching, 10-08: in a fight only another giant ever throws a rock at
     // her): a rock hurled at it through the engine's own attack -- a fellow's Rock where one stands (its own kind first), else the nearest watcher's stone -- with the

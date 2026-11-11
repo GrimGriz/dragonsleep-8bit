@@ -483,19 +483,39 @@
   // the row's cue, its `release`: the tremor's peak); the deafened never hear it; friend and foe alike are caught. Spent, it comes back on a d6 of 5 or more at the
   // start of its turns, as a breath does (js/traits.js). Its AI rings when two or more foes are within 10 ft and none of its own, or one when it is down to half.
   // Its Ram's rider is the boar's charge rule (js/traits.js: 15 ft, no more damage, a Large or smaller one STR or prone). Benched: mode=knellback1110
+  //   THE RESONANCE (11-11, Griz: "i think i want resonance where it hitting other knellbacks makes it worse for non-knellbacks" -- the cutter of 11-10's draft, ours like
+  // the knellback, his to overrule; invented.json #knellback-resonance): another knellback the Ring catches makes no save -- its own shell rings back, RESONATES: not
+  // deafened, its reactions kept (the shell rings, not the ear: a deafened one rings back too). Each one resonating raises the Ring's DC by 2 for every creature that is
+  // not a knellback, and carries the Ring 10 ft around itself: one within 10 ft of the ringer OR of a resonating knellback is caught, once, one save. One step, no chain --
+  // a knellback only a resonating one stands near does not ring back. Its AI: kin near never hold it back (they resonate), the foes it counts are the whole reach's, and
+  // one foe is enough when a kin rings back. Benched: mode=knellres1111; ?show=knellback brings the other one near for its second Ring
   D.traits.FIELDS.push('knell');
   function hears(w) { return !(w.conds && w.conds.deafened); }
-  MR.ringCaught = function (B, u) {
-    var r = (u.knell && u.knell.r) || 10;
-    return B.units.filter(function (w) { return w !== u && G.present(w) && up(w) && !w.object && G.dist(u, w) <= r && hears(w); });
+  MR.RESONANCE = 2;                                                                        // (the DC each resonating knellback adds)
+  MR.ringReach = function (B, u) {
+    var r = (u.knell && u.knell.r) || 10, near = function (a, w) { return G.dist(a, w) <= r; };
+    var all = B.units.filter(function (w) { return w !== u && G.present(w) && up(w) && !w.object; });
+    var res = all.filter(function (w) { return w.knell && near(u, w); });
+    var hit = all.filter(function (w) { return !w.knell && hears(w) && (near(u, w) || res.some(function (k) { return near(k, w); })); });
+    return { res: res, hit: hit, dc: ((u.knell && u.knell.dc) || 13) + MR.RESONANCE * res.length };
   };
+  MR.ringCaught = function (B, u) { var R = MR.ringReach(B, u); return R.res.concat(R.hit); };
   MR.ring = function* (B, u) {
     var k = u.knell, dc = k.dc || 13, row = rowOr(u, 'ring', 'idle'), a = D.spr.anim(u.sheet, row);
     if (u.turn) u.turn.action = 0; u.knellSpent = true;
     u.anim = row; u.animT = B.t;
     yield a && a.release != null ? Math.ceil(a.release * 60 / (a.fps || 8)) : 12;          // (the tremor's peak: the row's cue)
     D.sfx('knell'); FX.ring(u, 'gold', 34);
-    var caught = MR.ringCaught(B, u), lines = ['{r}' + nm(u, true) + '{/} plants its feet and sounds its bell-shell: RING  10 ft  CON DC ' + dc];
+    var R = MR.ringReach(B, u), caught = R.hit; dc = R.dc;
+    var lines = ['{r}' + nm(u, true) + '{/} plants its feet and sounds its bell-shell: RING  10 ft  CON DC ' + dc + (R.res.length ? '  {o}(RESONANCE +' + (dc - (k.dc || 13)) + '){/}' : '')];
+    if (R.res.length) {                                                                    // (the kin ring back a beat after: the second toll)
+      yield 8; D.sfx('knell');
+      R.res.forEach(function (w) {
+        FX.ring(w, 'gold', 34); w.resonating = true;
+        if (!(w.conds && w.conds.prone) && D.spr.anim(w.sheet, 'ring')) { w.anim = 'ring'; w.animT = B.t; }
+        lines.push('  ' + (nm(w) === nm(u) ? 'The other ' + w.name : nm(w, true)) + ': {o}RESONATES{/} -- its shell rings back (DC +' + MR.RESONANCE + ', the Ring carried 10 ft around it)');
+      });
+    }
     caught.forEach(function (w) {
       var sv = RU.save(w, 'con', dc, false, 'deafened');
       lines.push('  ' + nm(w, true) + ': CON ' + RU.saveText(sv) + '  ' + (sv.ok ? '{n}shakes it off{/}' : '{o}DEAFENED, no reactions{/}'));
@@ -505,15 +525,17 @@
       w.reaction = 0; FX.ring(w, 'gold', 14);
     });
     if (!caught.length) lines.push('  {g}no one near enough to hear it{/}');
-    B.card(lines.slice(0, 8), 360);
+    B.card(lines.slice(0, 8 + R.res.length), 360);
     var rest = a ? Math.max(12, Math.ceil(a.frames * 60 / (a.fps || 8)) - Math.ceil((a.release || 0) * 60 / (a.fps || 8))) : 24;
     yield rest; u.anim = 'idle'; u.animT = B.t;
+    R.res.forEach(function (w) { delete w.resonating; if (w.anim === 'ring') { w.anim = 'idle'; w.animT = B.t; } });
   };
-  // its turn: the Ring when it catches two foes or more and none of its own -- or one, when it is down to half -- else the Ram, the brute's way
+  // its turn: the Ring when it catches two foes or more and none of its own -- or one, when it is down to half or a kin rings back (11-11: the resonance; kin near never
+  // hold it back) -- else the Ram, the brute's way
   function* ringTurn(B, u) {
     if (u.knellSpent || !RU.canAct(u) || !u.turn || !u.turn.action) return false;
-    var c = MR.ringCaught(B, u), foes = c.filter(function (w) { return G.hostile(u, w); }).length;
-    if (c.length > foes || !(foes >= 2 || (foes >= 1 && u.hp <= u.maxhp / 2))) return false;
+    var R = MR.ringReach(B, u), foes = R.hit.filter(function (w) { return G.hostile(u, w); }).length;
+    if (R.hit.length > foes || !(foes >= 2 || (foes >= 1 && (u.hp <= u.maxhp / 2 || R.res.length)))) return false;
     yield* MR.ring(B, u);
     return true;
   }

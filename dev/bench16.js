@@ -13050,6 +13050,68 @@
     document.body.appendChild(preKb);
     return;
   }
+  // THE RING'S RESONANCE (mode=knellres1111; js/monsterrules.js MR.ringReach, MR.ring, its AI's ringTurn; js/show.js the second Ring staged with kin near -- the cutter
+  // of 11-10 on the lanes desk's 11-11 queue, Griz: "i think i want resonance where it hitting other knellbacks makes it worse for non-knellbacks"): ours like the
+  // knellback, the cutter's draft, his to overrule. Another knellback the Ring catches makes no save and rings back (RESONATES: not deafened, its reactions kept); each
+  // one adds 2 to the DC for the rest and carries the Ring 10 ft around itself; one step, no chain; its AI rings at one foe when a kin rings back, and kin never hold
+  // it back. The d20s pinned in the order the saves are rolled
+  if (get('mode', '') === 'knellres1111') {
+    var repKr = { checks: [], errors: [] }, d0Kr = D.d, qKr = [];
+    function okKr(what, v) { repKr.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.d = function (n) { return n === 20 && qKr.length ? qKr.shift() : d0Kr.apply(this, arguments); };
+    try {
+      var MRr = D.monsterRules, reachR = function (B, u) { return MRr.ringReach ? MRr.ringReach(B, u) : { res: [], hit: MRr.ringCaught(B, u), dc: 13 }; };
+      var BR = D.npcFight('?npc=knellback&lvl=3&vs=fighter:3,cleric:3,wizard:3', {}); D.battle = BR; BR.enter(); while (!BR.order.length) BR.co.next(); BR.dark = false;
+      var cardsR = [], card0R = BR.card; BR.card = function (ls) { cardsR.push([].concat(ls).join(' ')); return card0R.apply(this, arguments); };
+      var GR = D.grid, k1 = BR.units.filter(function (u) { return u.kind === 'knellback'; })[0], hR = BR.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      var k2 = D.Battle.prototype.makeFoe.call(BR, { id: 'kbR2', kind: 'knellback' }), k3 = D.Battle.prototype.makeFoe.call(BR, { id: 'kbR3', kind: 'knellback' }); BR.units.push(k2, k3);
+      var freshR = function (u) { u.conds = {}; u.hp = u.maxhp; u.reaction = 1; u.dead = false; u.anim = 'idle'; u.turn = { action: 1, move: u.speed, bonus: 1, reaction: 1, moved: 0 }; };
+      var putR = function (u, x, y) { u.x = x; u.y = y; u.tween = null; }, awayR = function (u) { u.dead = true; u.hp = 0; };
+      var bonR = function (w) { return (w.saves ? w.saves.con : D.mod(w.abil.con)) + D.rules.aura(w); };
+      // a clear stretch of floor, 8 squares long and 3 deep
+      var rowR = null; for (var yR = 2; yR < BR.map.h - 4 && !rowR; yR++) for (var xR = 2; xR < BR.map.w - 10 && !rowR; xR++) { var okRr = true; GR.setup(BR.map, []); for (var dR = 0; dR <= 8 && okRr; dR++) for (var eR = 0; eR <= 3 && okRr; eR++) okRr = GR.canStand(k1, xR + dR, yR + eR); if (okRr) rowR = [xR, yR]; }
+      var x0 = rowR[0], y0 = rowR[1], all = [k1, k2, k3].concat(hR);
+      function lay(spots) { all.forEach(function (u) { freshR(u); awayR(u); }); spots.forEach(function (s) { freshR(s[0]); putR(s[0], x0 + s[1], y0 + s[2]); }); [k1, k2, k3].forEach(function (k) { k.knellSpent = false; }); GR.setup(BR.map, BR.units); }
+      // 1. the reach: k2 10 ft from the ringer rings back; A 10 ft from the ringer, B 20 ft off but 10 ft from k2 (carried), C 25 ft from k2 (not); DC 13 + 2
+      var A = hR[0], Bh = hR[1], C = hR[2];
+      lay([[k1, 0, 0], [k2, 2, 0], [A, 0, 2], [Bh, 4, 0], [C, 7, 3]]);
+      var R1 = reachR(BR, k1), hitN = R1.hit.map(function (w) { return w.name; }).sort().join(', ');
+      okKr('the reach with a kin 10 ft off: rings back ' + R1.res.map(function (w) { return w.id; }).join(', ') + '; caught ' + hitN + ' (' + Bh.name + ' 20 ft off, carried by the kin; ' + C.name + ' 25 ft from either, not); DC ' + R1.dc,
+        R1.res.length === 1 && R1.res[0] === k2 && R1.hit.length === 2 && R1.hit.indexOf(A) >= 0 && R1.hit.indexOf(Bh) >= 0 && R1.hit.indexOf(C) < 0 && R1.dc === 15);
+      // 2. the Ring itself: A's CON pinned to 13 in all (fails 15; would hold at 13), B's to 15 (holds); k2 not deafened, its reaction kept, its ring row playing
+      cardsR.length = 0; qKr = R1.hit.map(function (w) { return (w === A ? 13 : 15) - bonR(w); });
+      var gR = MRr.ring(BR, k1), stR, nR = 0, sawRing = false; while (nR++ < 4000) { stR = gR.next(); if (k2.anim === 'ring') sawRing = true; if (stR.done) break; } qKr = [];
+      var cR = cardsR.filter(function (c) { return /RING/.test(c); })[0] || '';
+      okKr('the Ring with the kin: "' + cR.replace(/\{[a-z\/]*\}/g, '').slice(0, 150) + '" -- ' + A.name + ' (13) deafened ' + !!A.conds.deafened + ', ' + Bh.name + ' (15) ' + !!Bh.conds.deafened + ', ' + C.name + ' ' + !!C.conds.deafened + '; the kin deafened ' + !!k2.conds.deafened + ', reaction ' + k2.reaction + ', its ring row played ' + sawRing + ', back to ' + k2.anim,
+        /CON DC 15/.test(cR) && /RESONANCE \+2/.test(cR) && /RESONATES/.test(cR) && !!A.conds.deafened && !!A.conds.noReact && !Bh.conds.deafened && !C.conds.deafened && !k2.conds.deafened && !k2.conds.noReact && k2.reaction === 1 && sawRing && k2.anim === 'idle');
+      // 3. the same without the kin: A's 13 holds at DC 13, B 20 ft off is not caught -- the resonance is what made it worse
+      lay([[k1, 0, 0], [A, 0, 2], [Bh, 4, 0], [C, 7, 3]]);
+      var R3 = reachR(BR, k1); cardsR.length = 0; qKr = R3.hit.map(function (w) { return 13 - bonR(w); }); var g3 = MRr.ring(BR, k1), n3 = 0; while (n3++ < 4000 && !g3.next().done); qKr = [];
+      var c3 = cardsR.filter(function (c) { return /RING/.test(c); })[0] || '';
+      okKr('without the kin: DC ' + R3.dc + ', caught ' + R3.hit.map(function (w) { return w.name; }).join(', ') + '; ' + A.name + ' (13) deafened ' + !!A.conds.deafened + ' -- "' + c3.replace(/\{[a-z\/]*\}/g, '').slice(0, 80) + '"',
+        R3.dc === 13 && R3.res.length === 0 && R3.hit.length === 1 && R3.hit[0] === A && !A.conds.deafened && /CON DC 13/.test(c3) && !/RESONANCE/.test(c3));
+      // 4. one step, no chain: k3 10 ft from k2 but 20 ft from the ringer does not ring back; a watcher 10 ft from k3 alone is not caught; two kin near the ringer: DC 17
+      lay([[k1, 0, 0], [k2, 2, 0], [k3, 4, 0], [A, 6, 0]]); var R4 = reachR(BR, k1);
+      lay([[k1, 0, 1], [k2, 2, 0], [k3, 2, 2], [A, 4, 1]]); var R4b = reachR(BR, k1);
+      okKr('no chain: k3 (20 ft from the ringer, 10 from the kin) rings back ' + (R4.res.indexOf(k3) >= 0) + ', ' + A.name + ' 10 ft from k3 alone caught ' + (R4.hit.indexOf(A) >= 0) + ', DC ' + R4.dc + '; two kin within 10 ft: DC ' + R4b.dc + ', ' + A.name + ' (20 ft off, 10 from each kin) caught once ' + (R4b.hit.filter(function (w) { return w === A; }).length === 1),
+        R4.res.length === 1 && R4.res[0] === k2 && R4.hit.length === 0 && R4.dc === 15 && R4b.res.length === 2 && R4b.dc === 17 && R4b.hit.length === 1 && R4b.hit[0] === A);
+      // 5. its AI: one foe 5 ft off at full hit points and a kin 10 ft off -- it rings (a kin rings back; a kin never holds it back); the kin away, the same foe -- it rams
+      lay([[k1, 0, 1], [k2, 2, 1], [A, 1, 1]]); cardsR.length = 0; qKr = [19, 19, 19]; var gA = D.ai.turn(BR, k1), nA = 0; while (nA++ < 4000 && !gA.next().done); qKr = [];
+      var rangA = !!k1.knellSpent, resA = cardsR.some(function (c) { return /RESONATES/.test(c); });
+      lay([[k1, 0, 1], [A, 1, 1]]); cardsR.length = 0; qKr = [19, 19, 19]; var gB = D.ai.turn(BR, k1), nB = 0; while (nB++ < 4000 && !gB.next().done); qKr = [];
+      var rangB = !!k1.knellSpent, ramB = cardsR.some(function (c) { return /Ram/.test(c); });
+      okKr('its AI: one foe beside it, a kin 10 ft off -- rings ' + rangA + ' (the kin resonating ' + resA + '); alone with the one foe at full -- rings ' + rangB + ', rams ' + ramB,
+        rangA && resA && !rangB && ramB);
+      // 6. the show stages it: at a knellback's second Ring, the other is walked within 10 ft first (js/show.js; the director's code a closure, so its source as served)
+      var xhr = new XMLHttpRequest(); xhr.open('GET', '../deep16/js/show.js?r=' + Date.now(), false); xhr.overrideMimeType('text/plain; charset=utf-8'); xhr.send(); var shT = xhr.responseText || '';
+      okKr('the show: the second Ring brings the other knellback near first (' + /ringReach/.test(shT) + ', "the RESONANCE" card ' + /the RESONANCE/.test(shT) + ')', /rr\(B, u\)\.res\.length/.test(shT) && /the RESONANCE/.test(shT) && /B\.showRes/.test(shT));
+      D.scenes.length = 0;
+    } catch (eKr) { repKr.errors.push(String(eKr && eKr.stack || eKr).slice(0, 900)); }
+    D.d = d0Kr;
+    var preKr = document.createElement('pre'); preKr.id = 'out'; preKr.textContent = 'BENCH16 ' + JSON.stringify(repKr);
+    document.body.appendChild(preKr);
+    return;
+  }
   function MRk() { return D.monsterRules; }
   // GENERAL GRIM'S TALKING PORTRAITS (mode=generalgrim1110; tools/portrait-sheet.py generalgrim, its `cutline`; js/counter.js C.VENDORS.generalgrim and the portraits' show's
   // `allFaces` -- the cutter of 11-10 on the lanes desk's queue, Griz: "they can churn through fresh one at a time as they complete at your discretion as to next cut"): the art
