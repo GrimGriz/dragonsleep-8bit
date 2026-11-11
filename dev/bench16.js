@@ -6078,13 +6078,20 @@
         /You.ll be wanting your beds/.test(sm) && !/FIGHT|INITIATIVE/.test(sm) && cm.f.supAmara === 1 && cm.f.innRegard === 0 && /MORNING/.test(sm) && !!bowl && /\|/.test(bowlWho) && bowlWho.split('|').every(function (g) { return g === '' || g === bowl; }) && bowlWho.replace(/\|/g, '') === bowl);
       // OUT OF THE BARN WITH THE CHILD (11-11, the supper seat: js/inn.js In.barnYard, In.barnTalk, In.BY; the inn lane's rulings 30 and 34): every end walked. The yard staged
       // on day 13 with the child freed, the talk driven by 'hero:id' picks; a fight ends as won with both Waterbys standing (Doran's yield)
+      var vanIn = [];
       var barnIn = function (fl, pins, picks, ren) {
         CIn.testRenown = ren || 0; var Bx = testIn('?roam=halfway&hour=10&day=' + ((fl && fl.day) || 13) + '&at=15,6&flags=reachedInn,gennetNamed,mealHad,katGone'), fx = Bx.roam.flags; if (fl && fl.day) { fl = Object.assign({}, fl); delete fl.day; }
         fx.wagonCycle = 0; fx.wagonOutcome = 'quiet'; fx.barnFreed = 1; fx.dueOffC = 0; fx.dueOff = 'none'; Object.keys(fl || {}).forEach(function (k) { fx[k] = fl[k]; }); if (fl && fl.doranAway) Bx.units = Bx.units.filter(function (u) { return u.npc !== 'doranYard'; });
         Bx.roam.silver = 30; InI.pinned = pins; var n0 = flipsIn.length, field = null, unit0 = InI.unit; InI.BY.spy = function (B2) { field = B2.units.map(function (u) { return (u.npc || u.scripted || u.id || u.name) + '@' + u.x + ',' + u.y; }); };
         InI.unit = function (B, o) { var u = unit0.apply(this, arguments); if (o.kind === 'doran') u.hp = u.maxhp = 400; if (o.kind === 'gennet') u.hp = u.maxhp = 400; return u; };
-        runIn(Bx, InI.barnYard(Bx)); var seen = flowIn(Bx, picks, 'won', false, true); CIn.testRenown = 0; InI.pinned = null; InI.BY.spy = null; InI.unit = unit0;
-        return { B: Bx, f: fx, seen: seen + ' / ' + cardsIn(Bx), flips: flipsIn.slice(n0), off: InI.offering(fx, 0), field: field };
+        var gone0 = InI.gone, went = []; InI.gone = function (B, u) { if (u && B.units.indexOf(u) >= 0) went.push({ id: u.scripted || u.npc || u.id, x: u.x, y: u.y }); return gone0.apply(this, arguments); }; InI.BY.exits = null;
+        runIn(Bx, InI.barnYard(Bx)); var seen = flowIn(Bx, picks, 'won', false, true); CIn.testRenown = 0; InI.pinned = null; InI.BY.spy = null; InI.unit = unit0; InI.gone = gone0;
+        // NOBODY VANISHES: a figure is taken off the yard only in a doorway (the house's, the barn's), at the road's edge, or swapped in place for its other figure
+        var HD = InI.DOORS.front, BD = InI.DOORS.barn, ex = InI.BY.exits || [], swapAt = ex.filter(function (e) { return e.how === 'swap'; }).map(function (e) { return e.x + ',' + e.y; });
+        var bad = went.filter(function (w) { var at = w.x + ',' + w.y; return !(at === HD.join(',') || at === BD.join(',') || w.x <= 1 || swapAt.indexOf(at) >= 0); }).map(function (w) { return w.id + '@' + w.x + ',' + w.y; });
+        var left = Bx.units.filter(function (u) { return /^(barnKid|gennetYard|elsbethYard|doranYard2|gennetBarn|doranBarn)$/.test(String(u.scripted || '')) && !u.follower; }).map(function (u) { return u.scripted + '@' + u.x + ',' + u.y; });
+        vanIn.push({ end: fx.barnEnd, bad: bad, left: left, n: went.length, fol: Bx.roam.follower || null });
+        return { B: Bx, f: fx, seen: seen + ' / ' + cardsIn(Bx), flips: flipsIn.slice(n0), off: InI.offering(fx, 0), field: field, went: went, bad: bad, left: left };
       };
       var bA = barnIn({}, hi.slice(), ['aurdin:raise', 'aurdin:let1']);
       okIn('OUT OF THE BARN, END A, the glamour unseen: ' + bA.seen.slice(0, 1500) + ' -- end ' + bA.f.barnEnd + ', let ' + bA.f.barnLet + ', freed ' + bA.f.barnFreed + ', the offering ' + bA.off + ', the regard ' + bA.f.innRegard,
@@ -6119,6 +6126,16 @@
       okIn('END E, Doran away: Elsbeth at her third tier (' + bW3.seen.slice(bW3.seen.indexOf('Elsbeth! The word'), bW3.seen.indexOf('Elsbeth! The word') + 700) + ' -- the child ' + bW3.f.childGuest + '); below it and a knife shown (no room again ' + bW0.f.innShut + ')',
         /So you've seen what she is under it/.test(bW3.seen) && /That's why I knew to keep her\. Poor innocent thing\./.test(bW3.seen) && /Elsbeth! The word! Say the word!/.test(bW3.seen) && !/"Doran!"/.test(bW3.seen) && /It's for the lake\. Tell them, or I will\./.test(bW3.seen) && /Elsbeth has come out into the yard/.test(bW3.seen) && /Take her to the Pit\. Not Silverton\. Silverton's where the wagon was going\./.test(bW3.seen) && !/Not the Pit/.test(bW3.seen) && /"Nell\."/.test(bW3.seen) && bW3.f.barnEnd === 'e' && bW3.f.childGuest === 'child' && bW3.f.elsbethSaidLake === 1 && !bW3.f.doranConfessed &&
         /Nobody comes out of the house/.test(bW0.seen) && /put a knife to an innkeeper's wife in her own yard/.test(bW0.seen) && bW0.f.barnEnd === 'e' && bW0.f.innShut === 1 && !bW0.f.barnFight);
+      // NOBODY VANISHES FROM THE YARD (RULED 11-11 night, Griz: "the narration is that they leave, so they should walk and go through the inn door or something rather than
+      // disappear"), over every end walked above; and THE CHILD FOLLOWS, a figure of her own beside the token ("let's not have the kid join the party token")
+      var vBad = vanIn.filter(function (v) { return v.bad.length || v.left.length; }).map(function (v) { return v.end + ': off the floor at ' + (v.bad.join(' ') || '-') + ', left standing ' + (v.left.join(' ') || '-'); });
+      okIn('NOBODY VANISHES: ' + vanIn.length + ' yard scenes, ends ' + vanIn.map(function (v) { return v.end; }).join('') + ', ' + vanIn.reduce(function (a, v) { return a + v.n; }, 0) + ' figures taken off the floor, every one in a doorway, at the road, or swapped in place (' + (vBad.join(' | ') || 'none otherwise') + ')',
+        vanIn.length >= 10 && ['a', 'b', 'c', 'd', 'e'].every(function (k) { return vanIn.some(function (v) { return v.end === k; }); }) && !vBad.length);
+      var folB = bE.B, fo = folB.roam.follower, tk = folB.roam.token, near0 = fo ? Math.max(Math.abs(fo.x - tk.x), Math.abs(fo.y - tk.y)) : -1, was = [tk.x, tk.y], to = [tk.x + 1, tk.y + 1];
+      if (fo) { driveIn(RIn.step(folB, tk, to), null, 60); }
+      var ccd = vanIn.filter(function (v) { return /[cde]/.test(v.end); }), abn = vanIn.filter(function (v) { return /[ab]/.test(v.end); });
+      okIn('THE CHILD FOLLOWS: after ends C, D and E she is a figure beside the token (' + ccd.filter(function (v) { return v.fol; }).length + ' of ' + ccd.length + '), never in it; after A and B there is none (' + abn.filter(function (v) { return !v.fol; }).length + ' of ' + abn.length + '); a step of the token from ' + was + ' to ' + to + ' and she stands on ' + (fo ? fo.x + ',' + fo.y : '-') + ', a party figure may walk onto her square (' + (fo ? !D.grid.occupant(fo.x, fo.y, tk) : '-') + ')',
+        !!fo && near0 === 1 && folB.units.indexOf(fo) >= 0 && fo.x === was[0] && fo.y === was[1] && ccd.length >= 5 && ccd.every(function (v) { return !!v.fol; }) && abn.length >= 4 && abn.every(function (v) { return !v.fol; }) && !D.grid.occupant(fo.x, fo.y, tk));
       // THE RULES, over every opening of every supper above and of the yard's talk: one read and one shaded answer a hero; a read ONE hero's; a line about the glass said
       // to Katarina; nothing drawn under the screen's foot
       var allIn = [], twoR = [], twoS = [], shared = []; flipsIn.forEach(function (l) { var had = {}; l.forEach(function (x) { allIn.push(x); if (x.reads > 1) twoR.push(x.key); if (x.shaded > 1) twoS.push(x.key + ':' + x.ids.join(',')); if (x.rt) { if (had[x.rt]) shared.push(had[x.rt] + '+' + x.key); had[x.rt] = x.key; } }); });

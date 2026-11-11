@@ -1396,7 +1396,7 @@
   // (a hero speaks to HIM); E the child a guest with the party. Every end is the seat's proposal, built as the page has it, standing for his overrule (the lane's 11-11 section)
   In.BY = { silver: [80, 300], DC: { Persuasion: 12 }, at: { party: [15, 6], child: [16, 7], from: [18, 17], gennet: [17, 8], wood: [16, 26], doran: [19, 10], door: [18, 18], doorBy: [18, 17], purse: [17, 9], out: [18, 12], wall: [15, 4], form: [[16, 5], [17, 6], [16, 6], [17, 7]], boys: [[20, 17], [20, 19]] }, // (wall: where the child backs to when it comes to blows; form: the four as they fall out of the token then; boys: Orrin and Pell inside, behind Elsbeth at the door -- ruling 37)
     freedIt: 'The pin comes out. It does not run: it takes a hand and holds on.',
-    seam: '{g}(The child walks with the party from here. The road with her is not built yet.){/}', // (short: a long line ran out of the floor's card -- 11-11, Griz at renown 5: "some of the texts are escaping their text boxes")
+    seam: '{g}(The child walks beside the party from here, a figure of her own. The road with her past this yard is not built yet.){/}', // (short: a long line ran out of the floor's card -- 11-11, Griz at renown 5: "some of the texts are escaping their text boxes")
     ledNight: 'Past midnight Doran Waterby knocks with the shore-lantern lit. "It\'s the night. Come on, if you\'re coming."',
     shut: '{y}Gennet Waterby:{/} "Not to you. Not tonight, and not again."',
     hint: 'She does not turn round. "That\'s no goblin in our barn. Put your hand on it."' };
@@ -1490,20 +1490,21 @@
     // what is said as each end falls (the fight itself, and what the house does after, are In.barnYard's)
     BY.END = function (S, k) {
       if (k === 'a') { S.look('gennet', `Gennet takes the child up onto her hip, the way a woman does who has carried many.`, 'child'); S.by('gennet', S.seen ? `"There. You've good sense, the lot of you. She'll want for nothing."` : `"There. You've good sense, the lot of you. It'll want for nothing."`);
-        S.look('child', (S.seen ? `The child` : `The goblin`) + ` looks back at ` + S.holder + ` over Gennet's shoulder, all the way to the ` + (S.seen ? `house door.` : `barn.`)); S.by('gennet', `"Supper's at eight. There's fish."`); }
+        S.by('gennet', `"Supper's at eight. There's fish."`); S.look('child', (S.seen ? `The child` : `The goblin`) + ` looks back at ` + S.holder + ` over Gennet's shoulder, all the way to the ` + (S.seen ? `house door.` : `barn door.`) + ` Elsbeth goes in.`); }
       else if (k === 'b') { S.look('gennet', S.big ? `Gennet puts the green purse into the party's hands without counting it.` : `Gennet counts the old silver out, coin by coin.`); S.by('gennet', `"There. And nobody's the worse."`);
-        S.look('gennet', `Gennet takes the child by the wrist and walks ` + it(S) + ` back to the barn. The child does not pull.`, 'child'); if (S.tier >= 1) S.look('elsbeth', `Elsbeth is in the house door. She has seen the coin change hands. She goes in.`); }
+        S.look('elsbeth', `Elsbeth is in the house door. She has seen the coin change hands. She goes in.`); S.look('gennet', `Gennet takes the child by the wrist and walks ` + it(S) + (S.seen ? ` in at the house door.` : ` back into the barn.`) + ` The child does not pull.`, 'child'); }
       else if (k === 'c') { S.narr(`Gennet lets go of the child. The child backs up against the barn wall.`); S.look('elsbeth', `Elsbeth is in the house door with the wand in her hand. Orrin and Pell are inside, behind her.`); } // (ruling 13: with the boys, the wand on nobody who does not come at them)
       else if (k === 'd') { S.look('doranIn', `Doran looks at the child's arm in Gennet's hands for a long breath.`, 'gennet'); S.by('doranIn', `"Gen. Let go."`); S.look('gennet', `Gennet lets go. She does not look at him.`, 'doranIn'); BY.confession(S);
-        S.by('gennet', `"You've killed us. You know that. It'll come up hungry."`); S.by('doranIn', `"It comes up anyway."`); S.look('gennet', `Gennet walks back to the house and shuts the door.`); }
+        S.by('gennet', `"You've killed us. You know that. It'll come up hungry."`); S.by('doranIn', `"It comes up anyway."`); S.look('gennet', `Gennet walks back to the house. Elsbeth lets her by, and goes in after her.`); S.look('doranIn', S.byDay ? `Doran picks the axe up by its head and carries it back to the woodpile.` : `Doran picks the axe up by its head and goes in.`); S.look('child', (S.seen ? `The child` : `The goblin`) + ` has not let go of ` + S.holder + `'s hand.`); }
       else { // e: the child goes with the party
-        if (S.doran) { S.look('doranIn', `Doran looks at the child's arm in Gennet's hands.`, 'gennet'); S.by('doranIn', `"Gen. Let go."`); S.look('gennet', `Gennet lets go.`); S.look('doranIn', `Doran says nothing else. He takes the axe back to the woodpile.`); }
+        if (S.doran) { S.look('doranIn', `Doran looks at the child's arm in Gennet's hands.`, 'gennet'); S.by('doranIn', `"Gen. Let go."`); S.look('gennet', `Gennet lets go.`); S.look('doranIn', S.byDay ? `Doran says nothing else. He takes the axe back to the woodpile.` : `Doran says nothing else. He takes the axe back inside.`); }
         else if (S.tier >= 3) { S.look('elsbeth', `Elsbeth has come out into the yard. The wand stays in her apron.`); S.by('elsbeth', `"No."`); S.by('elsbeth', `"It's for the lake. Tell them, or I will."`); S.f.elsbethSaidLake = 1; S.look('gennet', `Gennet lets go of the child as if the arm had burned her.`, 'elsbeth'); }
         else if (S.tier === 2) { S.look('elsbeth', `Elsbeth is in the house door, Orrin and Pell behind her, the wand held down at her side. She does not say the word.`); S.look('gennet', `Gennet waits for it. Then she lets go.`, 'elsbeth'); }
         else { S.narr(`Nobody comes out of the house.`); S.look('gennet', `Gennet lets go.`); }
         if (S.drew && !S.doran) S.by('gennet', `"You'd put a knife to an innkeeper's wife in her own yard. Go on, then. Take ` + it(S) + `."`);
         S.by('gennet', S.nights === 0 ? `"It comes up tonight, with ` + it(S) + ` or without. You think on who'll be in this house when it does."` : `"It comes up ` + BY.nights(S.nights) + `, with ` + it(S) + ` or without. You think on who'll be in this house when it does."`);
-        if (S.tier >= 3) S.by('elsbeth', `"Take her to the Pit. Not Silverton. Silverton's where the wagon was going."`); // (RULED 11-11, ruling 40, Griz: "The pit is where we return the wagon of kids, weird for her to suggest silverton where the wagon was going"; the route is the realm's: TarlynsPit/wiki/halfway-inn-and-lake.md, the wagon's month)
+        if (S.tier >= 3) S.by('elsbeth', `"Take her to the Pit. Not Silverton. Silverton's where the wagon was going."`);
+        S.look('gennet', `Gennet goes back across the yard and in at the house door.` + (S.tier >= 2 || S.doran ? ` Elsbeth goes in after her.` : ` Elsbeth, who has watched from the door, goes in after her.`)); S.look('child', (S.seen ? `The child` : `The goblin`) + ` has not let go of ` + S.holder + `'s hand.`); // (RULED 11-11, ruling 40, Griz: "The pit is where we return the wagon of kids, weird for her to suggest silverton where the wagon was going"; the route is the realm's: TarlynsPit/wiki/halfway-inn-and-lake.md, the wagon's month)
       }
     };
   })();
@@ -1511,7 +1512,7 @@
   In.barnS = function (B, Y, four) {
     if (Y.S) return Y.S;
     var f = B.roam.flags, d = In.day(D.roam.q), BY = In.BY, SO = D.counter.SHEETOF;
-    var S = Y.S = { f: f, seen: !!f.glamourBroken, renown: In.renown(), doran: !!Y.doran, tier: f.elsbethTier || 0, nights: In.nightsToDue(f, d), know: !!(f.elsbethTold || f.heardLakeTake || f.heardLamp), holder: four[0].hero.name, stage: 'open', rolls: {}, out: [], did: {}, pending: null, endPending: null };
+    var S = Y.S = { f: f, seen: !!f.glamourBroken, renown: In.renown(), doran: !!Y.doran || !!Y.night, byDay: !Y.night, tier: f.elsbethTier || 0, nights: In.nightsToDue(f, d), know: !!(f.elsbethTold || f.heardLakeTake || f.heardLamp), holder: four[0].hero.name, stage: 'open', rolls: {}, out: [], did: {}, pending: null, endPending: null };
     S.who = function (id) { var u = id === 'gennet' ? Y.gennet : id === 'doranIn' ? Y.doran : id === 'child' ? Y.child : Y.elsbeth; return { name: id === 'gennet' ? In.named(f) : id === 'doranIn' ? 'Doran' : id === 'elsbeth' ? 'Elsbeth' : S.seen ? 'The child' : 'The goblin', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: (id === 'gennet' || id === 'doranIn') && SO && SO[id] ? SO[id]({ flags: f }) : null }; };
     S.by = function (id, line) { S.out.push({ by: id, line: line }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.look = function (id, line, at) { S.out.push({ look: id, line: line, at: at || null }); };
     S.made = function (e, skill) { var k = e.key + ':' + skill; if (S.rolls[k] == null) { var r = In.d20(), v = DS.R.skill(e.h, skill, In.AB[skill]); S.rolls[k] = r + v >= BY.DC[skill]; In.trail(e.hero.name + ' ' + skill + ' ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + (r + v) + ' vs DC ' + BY.DC[skill] + (S.rolls[k] ? ', made' : ', missed') + ' (silent)'); } return S.rolls[k]; };
@@ -1556,12 +1557,11 @@
   In.barnYard = function* (B) {
     var Rm = D.roam, R0 = B.roam, f = R0.flags, BY = In.BY, A = D.secondact, C = D.counter, c = In.cycle(In.day(Rm.q)), Y = {}, P = BY.at;
     In.stage(B, P.party, null);
-    B.units.filter(function (u) { return u.npc === 'snootRunner'; }).forEach(function (u) { In.gone(B, u); }); // (ruling 38: the moot's runner has no place in this scene)
     var kid = function (at) { return In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? 'commonerchild' : 'glamourgoblin', at: (at || P.child).slice(), name: f.glamourBroken ? 'The child' : 'The goblin', face: [1, 1] }); };
-    Y.child = kid(); Y.swap = function () { var at = [Y.child.x, Y.child.y]; In.gone(B, Y.child); Y.child = kid(at); };
+    BY.exits = []; Y.child = kid(); Y.swap = function () { var at = [Y.child.x, Y.child.y]; BY.exits.push({ id: 'barnKid', x: at[0], y: at[1], how: 'swap' }); In.gone(B, Y.child); Y.child = kid(at); }; // (the glamour breaking: the goblin's figure for the child's, on its own square)
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: P.from.slice(), name: In.named(f), face: [-1, -1] });
     var dy = B.units.filter(function (u) { return u.npc === 'doranYard'; })[0] || null;
-    Y.doran = f.doranAway || f.doranDead ? null : dy || In.unit(B, { id: 'doranYard', kind: 'commoner', at: P.wood.slice(), name: 'Doran Waterby', face: [0, -1] });
+    Y.doran = f.doranAway || f.doranDead ? null : dy || null; Y.night = !dy && !f.doranAway && !f.doranDead; // (by day the lay's own Doran at the woodpile; after dark he is in the house, and comes out of its door when he is called -- `doran` below)
     Y.elsbeth = f.elsbethGone ? null : In.unit(B, { id: 'elsbethYard', kind: 'commonerwoman', at: P.door.slice(), name: 'Elsbeth', face: [-1, -1] }); // (in the house door, watching)
     yield* In.walk(B, Y.gennet, P.gennet, [-1, -1]);
     var four = [R0.token].concat(R0.rest || []).filter(function (u) { return u && u.src && !u.src.guest && u.hp > 0; }).slice(0, 4).map(function (u) { return { u: u, h: u.src, key: u.src.key || u.src.id, hero: In.heroOf(u) }; });
@@ -1570,29 +1570,46 @@
     var walks = {
       purseSelf: function* () { yield* In.walk(B, Y.gennet, P.doorBy); yield 24; yield* In.walk(B, Y.gennet, P.gennet, [-1, -1]); },
       purseEls: function* () { if (!Y.elsbeth) return; yield* In.walk(B, Y.elsbeth, P.purse); yield 24; yield* In.walk(B, Y.elsbeth, P.door, [-1, -1]); },
-      doran: function* () { if (Y.doran) yield* In.walk(B, Y.doran, P.doran, [-1, -1]); },
+      doran: function* () { if (!Y.doran && Y.night) Y.doran = In.unit(B, { id: 'doranYard2', kind: 'commoner', at: In.DOORS.front.slice(), name: 'Doran Waterby', face: [-1, -1] }); if (Y.doran) yield* In.walk(B, Y.doran, P.doran, [-1, -1]); }, // (stood in the doorway as he comes out of it, after dark)
       elsbethOut: function* () { if (Y.elsbeth) yield* In.walk(B, Y.elsbeth, P.out, [-1, -1]); }
     };
     R0.barnEnd = null;
     for (var g = 0; g < 8 && !R0.barnEnd; g++) { yield* talk(null); var w = Y.S && Y.S.pending; if (!w) break; Y.S.pending = null; if (walks[w]) yield* walks[w](); }
-    var E = R0.barnEnd || { end: 'e' }, st = C.state(B), reg = f.innRegard == null ? 1 : f.innRegard;
-    var clear = function () { [Y.child, Y.gennet, Y.elsbeth].forEach(function (u) { if (u) In.gone(B, u); }); if (Y.doran && Y.doran !== dy) In.gone(B, Y.doran); In.lay(B, null, true); };
+    var E = R0.barnEnd || { end: 'e' }, st = C.state(B), reg = f.innRegard == null ? 1 : f.innRegard, HOUSE = In.DOORS.front, BARN = In.DOORS.barn, byDay = !!dy;
+    // NOBODY VANISHES (RULED 11-11 night, Griz: "the narration is that they leave, so they should walk and go through the inn door or something rather than disappear"):
+    // every figure the scene stood on the yard leaves ON FOOT -- in at the house door, in at the barn's, into the party's token -- and is taken off the floor only there;
+    // or it stands where the inn's own lay stands it (Doran at the woodpile by day) and is handed to the lay in place. BY.exits keeps where each left the floor (a bench's)
+    var gone = function (u, how) { if (!u || B.units.indexOf(u) < 0) return; BY.exits.push({ id: u.scripted || u.npc || u.id, x: u.x, y: u.y, how: how }); In.gone(B, u); };
+    var out = function* (u, door, how) { if (!u || B.units.indexOf(u) < 0) return; yield* In.walk(B, u, door); gone(u, how || 'door'); };
+    var elsIn = function* () { yield* out(Y.elsbeth, HOUSE); Y.elsbeth = null; }; // (she steps back inside)
+    var doranOff = function* () { // (back to the woodpile by day, where the lay stands him; by night in at the house door)
+      if (!Y.doran) return;
+      if (byDay) { yield* In.walk(B, Y.doran, P.wood, [1, 0]); if (Y.doran.npc !== 'doranYard') gone(Y.doran, 'swap'); } // (the scene's own figure of him, after a fight: the lay's stands on that square the same frame)
+      else yield* out(Y.doran, HOUSE);
+      Y.doran = null;
+    };
+    // THE CHILD WALKS BESIDE THE PARTY, a figure of her own, never into the token (RULED 11-11 night, Griz: "let's not have the kid join the party token, constant reminder
+    // they're on an escort mission now"): she walks to a square by the token and from then on takes the square the token just left (In.follow; D.roam.step below)
+    var join = function* () { if (!Y.child) return; var t = R0.token, q = In.beside(B, Y.child, t); yield* In.walk(B, Y.child, q, [t.x - q[0], t.y - q[1]]); Y.child.follower = true; Y.child.name = f.glamourBroken ? 'Nell' : 'The goblin'; R0.follower = Y.child; BY.exits.push({ id: 'barnKid', x: q[0], y: q[1], how: 'follows' }); Y.child = null; };
+    var hand = function () { In.lay(B, null, true); }; // (the yard back to the inn's lay: nothing of the scene's is left on it to remove)
     var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; }; // (the due has no offering; the child counted with the party -- the road with her is not built: BY.seam)
     f.barnEnd = E.end;
     if (E.end === 'a' || E.end === 'b') { // (she keeps the child: back on the chain while it looks a goblin; in the open, the raising feigned, once it is seen through -- ruling 30)
       delete f.barnFreed; if (E.seen) { In.setOffering(f, c, 'kept'); f.kidAtInn = 1; f.barnC = null; } else { In.setOffering(f, c, 'goblin'); f.barnLet = 1; }
       if (E.end === 'a') f.innRegard = Math.min(2, reg + 1);
       else { st.silver(BY.silver[E.big ? 1 : 0]); D.sfx('coin'); f.barnBribe = E.big ? 2 : 1; f.innFree = E.big ? 99 : 2; if (E.big) f.bigRoom = 1; f.elsbethSilent = 1; f.innRegard = 2; }
-      var dest = E.seen ? P.door : In.DOORS.barn; // (walked: Gennet to the child, then the two of them to the house, or back into the barn)
-      yield* In.walk(B, Y.gennet, [Y.child.x + 1, Y.child.y]); yield* off(Y.child, dest); Y.child = null; yield* off(Y.gennet, dest); Y.gennet = null;
-      clear(); return;
+      var dest = E.seen ? HOUSE : BARN; // (walked: Gennet to the child, then the two of them in at the house door, or back in at the barn's)
+      yield* In.walk(B, Y.gennet, [Y.child.x + 1, Y.child.y]); yield* out(Y.child, dest); Y.child = null; yield* out(Y.gennet, dest); Y.gennet = null;
+      yield* elsIn(); if (Y.doran && Y.doran.npc !== 'doranYard') yield* doranOff(); // (Doran was never called: by day he has not left the woodpile)
+      hand(); return;
     }
     if (E.end === 'c') { // (blows: to the first yield -- Doran the Thug yields at half, ruling 18; Gennet beside him)
       var gAt = [Y.gennet.x, Y.gennet.y], dAt = Y.doran ? [Y.doran.x, Y.doran.y] : P.doran.slice();
-      In.gone(B, Y.gennet); if (Y.doran) { if (Y.doran === dy) dy = null; In.gone(B, Y.doran); }
-      Y.child.x = P.wall[0]; Y.child.y = P.wall[1]; Y.child.tween = null; // (the child up against the barn wall, as the words say: 11-11, Griz: "combat says the child goes up against the wall - should happen")
-      if (Y.elsbeth) { Y.elsbeth.x = In.DOORS.front[0]; Y.elsbeth.y = In.DOORS.front[1]; Y.elsbeth.tween = null; } // (in the doorway, the wand out; Orrin and Pell inside behind her -- ruling 37, his "gathered behind her (in the inn room?) with her at the door")
-      B.units.filter(function (u) { return u.npc === 'orrin' || u.npc === 'pell'; }).forEach(function (u, k) { var q = P.boys[k % P.boys.length]; u.x = q[0]; u.y = q[1]; u.tween = null; });
+      var run = B.units.filter(function (u) { return u.npc === 'snootRunner'; })[0]; if (run) { yield* In.walk(B, run, [1, run.y]); gone(run, 'road'); } // (ruling 38: the moot's runner is no part of this -- he is off down the road before a blow lands)
+      gone(Y.gennet, 'swap'); if (Y.doran) { if (Y.doran === dy) dy = null; gone(Y.doran, 'swap'); } // (the two as foes now, each on its own square)
+      yield* In.walk(B, Y.child, P.wall); // (the child up against the barn wall, as the words say: 11-11, Griz: "combat says the child goes up against the wall - should happen")
+      if (Y.elsbeth) yield* In.walk(B, Y.elsbeth, HOUSE, [-1, -1]); // (into the doorway, the wand out; Orrin and Pell inside behind her -- ruling 37)
+      B.units.filter(function (u) { return u.npc === 'orrin' || u.npc === 'pell'; }).forEach(function (u, k) { var q = P.boys[k % P.boys.length]; u.x = q[0]; u.y = q[1]; u.tween = null; }); // (called in from the shore: they stand by the lake, far off the yard's screen, and under the house's roof from here)
       var G = In.unit(B, { id: 'gennetBarn', kind: 'gennet', at: gAt, name: In.named(f), face: [-1, -1], foe: true }), Dn = In.unit(B, { id: 'doranBarn', kind: 'doran', at: dAt, name: 'Doran Waterby', face: [-1, -1], foe: true });
       G.yields = true; G.flees = false; Dn.yields = true; Dn.flees = false; Y.gennet = null; Y.doran = null;
       f.barnFight = 1; R0.fights++; R0.lastOutcome = null; try { D.music('boss'); } catch (e0) { }
@@ -1605,26 +1622,51 @@
       if (/^(lost|lose|dead|ko)$/.test(String(R0.lastOutcome)) || (A && A.wiped(B))) return;
       var up = function (u) { return B.units.indexOf(u) >= 0 && u.hp > 0 && !u.dead; }, dUp = up(Dn), gUp = up(G);
       if (!gUp) f.gennetDead = 1; if (!dUp) f.doranDead = 1;
-      // the yield: nobody is pulled off the yard -- the two stand where the fight left them, and what is said is said on portraits (11-11, Griz: "surrender shouldn't pull all
-      // but the party token off the screen - doran's post yield talk should be with portraits")
-      var gq = [G.x, G.y], dq = [Dn.x, Dn.y]; [G, Dn].forEach(function (u) { In.gone(B, u); });
+      // the yield: nobody is pulled off the yard -- the two stand where the fight left them (each foe's figure swapped for its own on the same square), what is said is
+      // said on portraits, and then each walks off (11-11, Griz: "surrender shouldn't pull all but the party token off the screen - doran's post yield talk should be with portraits")
+      var gq = [G.x, G.y], dq = [Dn.x, Dn.y]; [G, Dn].forEach(function (u) { gone(u, 'swap'); });
       if (gUp) Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: gq, name: In.named(f), face: [-1, -1] });
       if (dUp) Y.doran = In.unit(B, { id: 'doranYard2', kind: 'commoner', at: dq, name: 'Doran Waterby', face: [-1, -1] });
       withParty(); f.innRegard = 0; f.innShut = 1;
-      if (dUp) { f.doranConfessed = 1; yield* talk(function (S) { S.look('doranIn', `Doran lowers the axe.`, gUp ? 'gennet' : null); BY.confession(S); }); }
-      else if (gUp) yield* talk(function (S) { S.look('gennet', `Gennet sits down in the dirt of the yard.`); S.by('gennet', `"It gave back. It always gave back."`); });
-      else { f.elsbethGone = 1; yield* In.card(B, ['Elsbeth says the word, and is gone out the back with the boys, down the road to the Pit.'], 420); } // (rulings 17 and 20: out of the game)
-      if (gUp) { yield* off(Y.gennet, P.door); Y.gennet = null; }
+      var after = function (S) { // (what each then does, said as it is about to happen)
+        if (gUp) S.look('gennet', `Gennet goes back across the yard and in at the house door.` + (Y.elsbeth ? ` Elsbeth lets her by, and goes in after her.` : ``));
+        else if (Y.elsbeth && dUp) S.look('elsbeth', `Elsbeth goes back inside.`);
+        if (dUp) S.look('doranIn', byDay ? `Doran picks the axe up by its head and carries it back to the woodpile.` : `Doran picks the axe up by its head and goes in.`);
+        S.look('child', (S.seen ? `The child` : `The goblin`) + ` comes away from the wall and takes ` + S.holder + `'s hand again.`);
+      };
+      if (dUp) { f.doranConfessed = 1; yield* talk(function (S) { S.look('doranIn', `Doran lowers the axe.`, gUp ? 'gennet' : null); BY.confession(S); after(S); }); }
+      else if (gUp) yield* talk(function (S) { S.look('gennet', `Gennet sits down in the dirt of the yard.`); S.by('gennet', `"It gave back. It always gave back."`); after(S); });
+      else { f.elsbethGone = 1; yield* talk(function (S) { S.look('elsbeth', `Elsbeth says the word from the doorway, and goes in. She will be out the back with the boys before anyone reaches the door, and down the road to the Pit.`); after(S); }); } // (rulings 17 and 20: out of the game)
+      if (gUp) { yield* out(Y.gennet, HOUSE); Y.gennet = null; }
+      yield* elsIn(); yield* doranOff(); yield* join();
       if (Y.S.seen) yield* In.card(B, ['The child is asked her name. "Nell."'], 360);
-      yield* In.card(B, [BY.seam], 420); clear(); return;
+      yield* In.card(B, [BY.seam], 420); hand(); return;
     }
-    // D and E: the child goes with the party
+    // D and E: the child goes with the party; the Waterbys go where the last words sent them
     withParty();
-    if (E.end === 'd') { f.doranConfessed = 1; f.innRegard = 0; if (A) A.trail('Doran confesses in the yard: the thing in the lake'); yield* off(Y.gennet, P.door); Y.gennet = null; } // (she walks back to the house and shuts the door)
+    if (E.end === 'd') { f.doranConfessed = 1; f.innRegard = 0; if (A) A.trail('Doran confesses in the yard: the thing in the lake'); }
     else { f.innRegard = 0; if (E.drew && !E.doran) f.innShut = 1; }
+    yield* out(Y.gennet, HOUSE); Y.gennet = null; yield* elsIn(); yield* doranOff(); yield* join();
     if (E.seen) yield* In.card(B, ['At the road\'s edge the child is asked her name. "Nell."'], 360); // (the name is the seat's, his to give: the lane's call 9)
-    yield* In.card(B, [BY.seam], 420); clear();
+    yield* In.card(B, [BY.seam], 420); hand();
   };
+  // A FOLLOWER BESIDE THE TOKEN (11-11 night, the supper seat; Griz: "let's not have the kid join the party token, constant reminder they're on an escort mission now"): the
+  // roam had nothing that trails the token on a floor, so this is the smallest honest one, for the inn's map -- B.roam.follower, a figure of its own that takes the square
+  // the token just left at every step (D.roam.step), is no obstacle to the party (D.grid.occupant: the party's own may walk onto her square, and she swaps behind), and
+  // stands by the token again after the floor sets it somewhere (In.stage). She is on this floor till the party leaves it: the road with her is not built
+  In.beside = function (B, u, t) { var G = D.grid, ds = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]; for (var i = 0; i < ds.length; i++) { var q = [t.x + ds[i][0], t.y + ds[i][1]]; if ((u.x === q[0] && u.y === q[1]) || G.canStand(u, q[0], q[1])) return q; } return [t.x, t.y]; };
+  In.follow = function (B) { var fo = B.roam && B.roam.follower, t = B.roam && B.roam.token; if (!fo || !t || B.units.indexOf(fo) < 0) return; if (Math.max(Math.abs(fo.x - t.x), Math.abs(fo.y - t.y)) <= 1 && !(fo.x === t.x && fo.y === t.y)) return; var q = In.beside(B, fo, t); fo.x = q[0]; fo.y = q[1]; fo.tween = null; D.grid.setup(B.map, B.units); B.cache = null; };
+  (function () {
+    var Rm = D.roam, G = D.grid, step0 = Rm.step, occ0 = G.occupant, stage0 = In.stage;
+    Rm.step = function* (B, u, to) {
+      var fo = B.roam && u === B.roam.token ? B.roam.follower : null; if (fo && (B.units.indexOf(fo) < 0 || fo.dead)) fo = null;
+      if (fo) { var fx = u.x, fy = u.y; if (!(fo.x === fx && fo.y === fy)) { fo.tween = { fx: fo.x, fy: fo.y, fz: G.gzAt(fo, fo.x, fo.y), t: 0, dur: In.PACE, mode: null }; fo.facing = D.spr.facingFor(fx - fo.x, fy - fo.y); if (fo.anim !== 'walk') { fo.anim = 'walk'; fo.animT = B.t; } fo.x = fx; fo.y = fy; } }
+      yield* step0.call(this, B, u, to);
+      if (fo) { fo.anim = 'idle'; fo.animT = B.t; G.setup(B.map, B.units); B.cache = null; }
+    };
+    G.occupant = function (x, y, except, o) { var r = occ0.apply(this, arguments); return r && r.follower && except && except.side === 'party' && !except.follower ? null : r; };
+    In.stage = function (B, at, inside) { var r = stage0.apply(this, arguments); In.follow(B); return r; };
+  })();
   In.toSnoot = function () { In.left = '../snoot-mode/?from=inn'; if (!In.stay) window.location.href = In.left; }; // (In.stay: a bench's, the page kept)
   var fire0 = T.fire;
   T.fire = function* (B, trig, at) {
