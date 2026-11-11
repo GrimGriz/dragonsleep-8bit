@@ -619,6 +619,21 @@
     knell: { name: 'Ring', r: 10, dc: 13, recharge: 5 }, // (Ring, recharge 5-6: each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn)
     src: 'a ChatGPT invention, the art desk\'s ART-21 draft (KNELLBACK.md, 11-10) -- ours, not the SRD 5.1\'s; not yet playtested. Medium monstrosity, AC 16 (natural armor), 45 HP (6d8+18), speed 25, darkvision 60, passive Perception 11, CR 1 (200 XP); STR 16 DEX 8 CON 16 INT 2 WIS 12 CHA 5; Ram +5, 2d8+3 bludgeoning -- after 15 ft straight at the target, a Large or smaller one DC 13 STR or prone; Ring (recharge 5-6): each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn -- SENSES (ours, 11-10): Stealth none, its DEX check (-1), because a bronze bell on its back and DEX 8: nothing about it is quiet; passive Perception 11, because its designer block as written: 10 + WIS +1'
   },
+  // THE OWLBEAR (11-11, the owlbear cutter, on the desk's relay of Griz's "have an opus seat start on the owlbear in fresh please"; asked in art-wanted section 46,
+  // ART-133, for the Coldridge route's random encounters -- his "add owlbear"): the SRD 5.1 Owlbear as written, on the art desk's ART-133 cut into owlbear_p1
+  // (tools/owlbear-sheet.py: idle, walk, beak, claws, flinch, fall, prone in all eight facings). Its Beak and Claws play their own rows (js/battle.js: the row named
+  // for the attack). Keen Sight and Smell: the KEEN table below
+  owlbear: {
+    name: 'Owlbear', type: 'monstrosity', sheet: 'owlbear_p1', cr: '3', ac: 13, armor: 'natural armor', hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 20, dex: 12, con: 17, int: 3, wis: 12, cha: 7 }, init: 1, perception: 13,
+    saves: { str: 5, dex: 1, con: 3, int: -4, wis: 1, cha: -2 },
+    attacks: {
+      beak: { name: 'Beak', atk: 7, dice: '1d10', mod: 5, type: 'piercing', reach: 5 },
+      claws: { name: 'Claws', atk: 7, dice: '2d8', mod: 5, type: 'slashing', reach: 5 }
+    },
+    multi: ['beak', 'claws'],
+    src: 'SRD 5.1 Owlbear (CR 3, 700 XP; Large monstrosity, unaligned): AC 13 (natural armor), 59 HP (7d10 + 21), speed 40; STR 20 DEX 12 CON 17 INT 3 WIS 12 CHA 7; Perception +3, darkvision 60, passive Perception 13; Keen Sight and Smell (advantage on Perception by sight or smell: js/rules.js RU.keen, the KEEN table); Multiattack, one Beak (+7, 1d10 + 5 piercing) and one Claws (+7, 2d8 + 5 slashing). No Stealth in its block'
+  },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
   // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).
@@ -1190,9 +1205,9 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 // KEEN SENSES (RULED 11-07, Griz: "they bothered to put it in text, should be reflected in their perception stat or something - compare theirs to other monsters"; js/rules.js
 // RU.keen): every sheet here whose SRD 5.1 block has a Keen trait, the senses it names -- hearing and smell find a hider, sight only where it sees one. The winter wolf's
 // `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
-// hound, the owlbear, the weres...) have no sheet yet: a new sheet of one takes its line here
+// hound, the weres...) have no sheet yet; the owlbear took its line 11-11: a new sheet of one takes its line here
 (function (F) {
-  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing' };
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell' };
   Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,
