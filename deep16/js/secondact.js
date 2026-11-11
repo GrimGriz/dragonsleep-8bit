@@ -152,6 +152,7 @@
     f.dueCycle = c; ['duePaid', 'dueTonight', 'secondActDone', 'lanternWalks', 'pathStand'].forEach(function (k) { delete f[k]; }); f.warmup = 0;
     delete f.doranAway; // (Doran back from Newland by the due: the seat's call)
     A.trail('the due night, day ' + d + ': the offering ' + off);
+    if (off === 'none' && f.doranConfessed && !f.doranDead) { yield* A.ledNight(B, d); return; } // (Doran confessed in the yard, the barn's END D or C: no draught -- he leads the party to the stone, 11-11)
     if (off === 'none') { yield* A.poisonNight(B, d); return; }
     f.dueTonight = 1; f.kidTaken = 1; if (off === 'kept') { f.glamourBroken = 1; f.glamourSeen = 1; }
     In.stage(B, [24, 17], 'inn'); In.passTo(B, A.DUE_HOUR);
@@ -178,6 +179,16 @@
   // stone each saves with its bonus as the water heaves and again each round; everyone who makes it wakes, each with its own bonus till it does (RULED 11-05, his "Everyone who makes it"; POISON.firstOnly false); three rounds with
   // nobody awake and it takes one. No supper, no tell and nobody asleep: the lake goes unfed. The seat's drafts: invented.json halfway-poison-dinner-1105
   A.POISON = { dc: 13, taste: 13, watch: 15, dragMin: 10, dragEvery: 2, perSuccess: 1, cut: 3, firstOnly: false };
+  // THE NIGHT DORAN LEADS (11-11, the supper seat: out of the barn with the child, js/inn.js In.barnYard): he confessed in the yard days before, so on the due's night nobody is
+  // poisoned -- he knocks with the shore-lantern, and it goes as his confession's end at the supper goes (A.supperFight's tail): the path, the stone, the rise
+  A.ledNight = function* (B, d) {
+    var Rm = R(), f = B.roam.flags; A.trail('the due night, Doran confessed in the yard: he leads the party to the stone');
+    In.stage(B, [24, 17], 'inn'); In.passTo(B, A.DUE_HOUR); yield* In.card(B, [In.BY.ledNight], 420);
+    yield* Rm.walkTo(B, A.PATH.head); if (!f.gennetDead) yield* In.card(B, [A.LINES.confessLead], 360);
+    yield* Rm.walkTo(B, [A.STONE[0] - 2, A.STONE[1]]);
+    yield* A.rise(B, {}); if (A.wiped(B)) return;
+    yield* A.dueMorning(B, 'none');
+  };
   A.poisonSave = function (u, bonus, adv) { var h = u.src || u, r = In.d20(), r2 = adv ? In.d20() : null, roll = adv ? Math.max(r, r2) : r, b = DS.R.saveBonus(h, 'con') + (bonus || 0), ok = roll + b >= A.POISON.dc; In.trail((h.name || u.name) + ' CON save ' + (adv ? '[' + r + ',' + r2 + ']>' : '') + roll + ' + ' + b + ' vs DC ' + A.POISON.dc + ' (the draught)' + (ok ? ', made' : ', failed')); return ok; };
   A.passive = function (u, skill, ab) { return 10 + DS.R.skill(u.src || u, skill, ab); };
   A.poisonNight = function* (B, d) {

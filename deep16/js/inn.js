@@ -784,13 +784,14 @@
     yield sc.say(f.gennetTaken ? In.LINES.noCook : In.LINES.late); return 'bed';
   };
   In.gennet = function* (sc, B) {
-    var st = sc.st, f = st.flags, cost = In.PRICE * In.heads(B), A = D.secondact;
+    var st = sc.st, f = st.flags, cost = f.innFree > 0 ? 0 : In.PRICE * In.heads(B), A = D.secondact; // (innFree: the barn's bribe -- the rooms and the board hers, 11-11)
+    if (f.innShut) { yield sc.say([].concat(M.words(B, 'gennet'), [In.BY.shut])); return false; } // (the child taken out of her yard at knifepoint, or after blows: no room from her)
     if (f.dueStopped && A) { yield sc.say([].concat(M.words(B, 'gennet'), [A.LINES.gaveBack, A.LINES.noRoom])); return false; } // (the due stopped on the path: no room from her; Doran sells)
     var d = In.day(D.roam.q), soon = !In.isWagonDay(d) && f.wagonCycle == null && !f.wagonNamed ? [In.WN.soon] : []; // (any other night: the month's wagon named without being named -- the lane's 11-04 §3 (d))
     if (soon.length) f.wagonNamed = 1;
     if (!f.gennetNamed) { f.gennetNamed = 1; yield sc.say([].concat(M.words(B, 'gennet'), [In.LINES.name], soon)); }
     else yield sc.say([].concat(M.words(B, 'gennet'), soon));
-    return yield* In.room(sc, B, cost); // (by the hour, In.REST: the first room with supper is THE MEAL -- its own screen over the room, In.mealScene, then the bed line there)
+    var rr = yield* In.room(sc, B, cost); if (rr && f.innFree > 0 && f.innFree < 99) f.innFree--; return rr; // (by the hour, In.REST: the first room with supper is THE MEAL -- its own screen over the room, In.mealScene, then the bed line there)
   };
   // ---------------------------------------------------------------- KATARINA AT THE FIRE (11-05, the Katarina seat, kat-1105: the lane's item 10, built whole with the wagon's
   // move; the first game's S.katarina -- RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
@@ -1287,6 +1288,7 @@
     if (f.lakeDone) { yield sc.say(L('inn.elsbethAfter')); return; }
     if (f.wandOut) { yield sc.say(A ? A.LINES.elsbethSilentWand : L('inn.elsbethSilent')); return; }
     if (f.elsbethSilent) { yield sc.say(L('inn.elsbethSilent')); return; }
+    if (f.barnLet && !f.glamourBroken && !f.barnHinted && ((f.elsbethTier || 0) >= 1 || In.renown() >= 5)) { f.barnHinted = 1; yield sc.say([In.BY.hint]); return; } // (the party let Gennet keep what it took for a goblin: one more chance before the due -- 11-11, the barn's END A)
     if (f.doranAway && !In.has(st, 'ringofbinding')) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); return; }
     if (f.chuulSeen && (f.elsbethTier || 0) < 3) { f.dishes = 1; f.elsbethTold = 1; f.elsbethTier = 3; yield sc.say([].concat(L('inn.elsbeth2'), L('inn.elsbeth3'))); return; } // (the god seen: her third tier for nothing)
     if (!f.dishes && !f.mealWrong) { // (THE MEAL's hard Insight opens her first tier without the dishes: the lane's 11-04 §4)
@@ -1335,14 +1337,216 @@
     yield sc.say([BL.goblin]);
     var opts = ['LOOK CLOSER', 'TOUCH IT'], acts = ['look', 'touch'];
     if (st.party.some(function (h) { return (h.key || h.id) === 'aurdin' && !h.dead; })) { opts.push('DETECT MAGIC'); acts.push('magic'); }
-    opts.push('LEAVE IT'); acts.push('leave');
+    opts.push('FREE IT'); acts.push('free'); opts.push('LEAVE IT'); acts.push('leave'); // (FREE IT, 11-11: freed as the goblin it looks -- his "freeing the barn child as a goblin"; then the yard, In.barnYard)
     var act = acts[yield sc.ask(BL.ask, opts)];
     if (act === 'leave') return;
+    if (act === 'free') { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.barnC = c; D.sfx('confirm'); In.trail('the barn: freed as a goblin, the glamour unseen'); yield sc.say([In.BY.freedIt]); return; }
     var ok = act === 'magic' || In.read(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12);
     if (!ok) { yield sc.say([act === 'look' ? BL.lookNo : BL.touchNo]); return; }
     f.glamourBroken = 1; f.glamourSeen = 1; In.setOffering(f, c, 'kept'); f.barnC = c; In.trail('the barn: the glamour seen through (' + act + ')');
     yield sc.say([act === 'look' ? BL.lookYes : act === 'touch' ? BL.touchYes : BL.magic, BL.child]);
     yield* freeAsk();
+  };
+  // ---------------------------------------------------------------- OUT OF THE BARN WITH THE CHILD: Gennet comes running (11-11, the supper seat; the inn lane's rulings 30 and
+  // 34 and the reading page he asked for, the-lab's barn-mockup-2026-11-11.html; Griz: "have the supper mockup seat cue a similar one for gennet running up when they exit the barn
+  // with the kid with proposed dialog", then "include it's barn stuff to the live ship"). His words for it: "freeing the barn child as a goblin would have to risk violence with
+  // Gennet, she'd start with 'that's why i knew to keep it, poor innocent thing, yada yada' but the party could end up having the kid as a guest in the party on the road - she'd
+  // also try bribery if they didn't let her raise it. I suppose a Doran confession to prevent violence might be the way to go as well."; "bribe is only if they don't just 'let her
+  // raise it'". The pin pulled (In.barnScene: FREE IT while it still looks a goblin, FREE HER once seen through), the party steps into the yard and the talk goes by STAGES -- her
+  // opener, her ask, the first offer, the second and the threat, the breaking point -- the four flipped at each (js/counter.js THE FLIP), one silent read and one skill-shaded
+  // answer a hero a stage, no die shown, to one of five ENDS: A they let her raise it; B the bribe taken; C blows (only if a hero draws; to the first yield); D Doran's confession
+  // (a hero speaks to HIM); E the child a guest with the party. Every end is the seat's proposal, built as the page has it, standing for his overrule (the lane's 11-11 section)
+  In.BY = { silver: [80, 300], DC: { Persuasion: 12 }, at: { party: [15, 6], child: [16, 7], from: [18, 17], gennet: [17, 8], wood: [16, 26], doran: [18, 10], door: [18, 18] },
+    freedIt: 'The pin comes out. It does not run: it takes a hand and holds on.',
+    seam: '{g}(The child walks with the party from here. The road with her -- the first camp, where she is set down -- is not built yet: she is counted with the party, and nothing more happens for her until it is.){/}',
+    ledNight: 'Past midnight Doran Waterby knocks with the shore-lantern lit. "It\'s the night. Come on, if you\'re coming."',
+    shut: '{y}Gennet Waterby:{/} "Not to you. Not tonight, and not again."',
+    hint: 'She does not turn round. "That\'s no goblin in our barn. Put your hand on it."' };
+  In.BY.READS = { // (a hero's ONE read a stage: the first of these that hero's passive reaches)
+    touch: { stage: 'open', skill: 'Perception', dc: 12, opens: 'turn', ok: function (S) { return !S.seen; }, text: function (S) { return `(perception) The hand in ` + S.holder + `'s hand has no claws in it. It grips the way a child's does.`; } },
+    glamour: { stage: 'open', skill: 'Arcana', dc: 13, opens: 'name', ok: function (S) { return !S.seen; }, text: function () { return `(arcana) The whole of it hums with an illusion, laid close as a skin.`; } },
+    watched: { stage: 'open', skill: 'Insight', dc: 12, text: function () { return `(insight) She came out of the house already running. She was watching the barn.`; } },
+    notlook: { stage: 'ask', skill: 'Insight', dc: 12, text: function () { return `(insight) The child has not looked at Gennet once.`; } },
+    price: { stage: 'bribe1', skill: 'Insight', dc: 12, text: function () { return `(insight) She has not asked what the party wants with the child. She has only named a price.`; } },
+    purse: { stage: 'bribe2', skill: 'Perception', dc: 13, text: function () { return `(perception) Old coin, green from the water, the same strike as her change for the rooms. She is offering the house's luck.`; } }
+  };
+  (function () {
+    var BY = In.BY, it = function (S) { return S.seen ? 'her' : 'it'; }, It = function (S) { return S.seen ? 'She' : 'It'; }, sub = function (S) { return S.seen ? 'she' : 'it'; };
+    BY.nights = function (n) { return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; };
+    var seenSpeech = function (S) { S.by('gennet', `"Somebody put a goblin's face on a child and sent her down this road. Who takes that in, if I don't?"`); S.by('gennet', `"I chain her so she'll not walk out among drovers looking like that. They'd not stop to ask."`); };
+    var breakIt = function (S, how) { S.seen = true; S.f.glamourBroken = 1; S.f.glamourSeen = 1; S.broke = how; In.trail('the barn\'s yard: the glamour broken by ' + how); S.swap(); S.look('gennet', `Gennet stops with her mouth open on the next word.`); S.by('gennet', `"Well. Then you know why I couldn't have her in the house."`); seenSpeech(S); };
+    // what Doran says when he says it (END D, and END C when he yields): the built confession (js/secondact.js A.LINES confess1-3), in the yard and of the child
+    BY.confession = function (S) {
+      S.look('doranIn', `Doran sets the woodaxe down in the dirt of the yard.`);
+      S.by('doranIn', `"There's a thing in the lake. It came down out of the bogs in my time here. Every month it's fed, and every month the lake gives back: the fish, the old coin, her."`);
+      S.look('doranIn', `He does not look at Gennet.`, 'gennet');
+      S.by('doranIn', S.nights === 0 ? `"Tonight is the night. That child was tonight."` : `"It's due ` + BY.nights(S.nights) + `. That child was for it."`);
+      S.by('doranIn', S.nights === 0 ? `"It comes up anyway. It always comes up. If you mean to stop it, come out back. I'll show you the stone."` : `"It comes up anyway. It always comes up. If you mean to stop it, be in this house ` + BY.nights(S.nights) + `. I'll show you the stone."`);
+    };
+    BY.STAGES = {
+      open: { lines: function (S) {
+          S.narr(S.seen ? `The pin is out. The child does not run. She has ` + S.holder + `'s hand, and the party walks her out of the barn into the yard.` : `The pin is out. The goblin does not run. It has ` + S.holder + `'s hand, and the party walks it out of the barn into the yard.`);
+          S.look('gennet', `Gennet comes across the yard from the house at a run, wiping her hands on her apron, and stops a pace short of the child.`);
+          if (S.seen) { S.by('gennet', `"So you've seen what she is under it."`); S.by('gennet', `"That's why I knew to keep her. Poor innocent thing."`); seenSpeech(S); }
+          else { S.by('gennet', `"Oh, you've found it. There, now. There."`); S.by('gennet', `"That's why I knew to keep it. Poor innocent thing."`); // (his: "that's why i knew to keep it, poor innocent thing")
+            S.by('gennet', `"A carter had it in with her goods like a sack of meal. Somebody would have put a boot on it before the Gulch. So I said, leave it with me."`);
+            if (S.renown >= 3) S.by('gennet', `"You're Hessle's people. You know what gets done to a goblin for a board's silver."`); else S.by('gennet', `"It's not their fault what they're born."`); } },
+        opts: [
+          { id: 'turn', read: 'touch', skill: function () { return 'Perception'; }, say: function () { return `Let me see that hand.`; }, pre: function (S, e) { return e.hero.name + ` takes the small hand and turns it over.`; },
+            run: function (S, e) { S.narr(`Under ` + e.hero.name + `'s thumb the hide is not there: a thin arm, a sleeve, a child's wrist.`); breakIt(S, e.hero.name + '\'s hand'); }, go: 'ask' },
+          { id: 'name', read: 'glamour', skill: function () { return 'Arcana'; }, say: function () { return `That is no goblin. That is a glamour, laid close as a skin.`; },
+            run: function (S, e) { S.narr(`A child stands in the yard with a chain-gall on one ankle, eyes on ` + e.hero.name + `.`); breakIt(S, e.hero.name + '\'s word'); }, go: 'ask' },
+          { id: 'chain', who: ['lymen'], say: function (S) { return It(S) + ` was chained by the ankle.`; }, run: function (S) { S.by('gennet', S.seen ? `"She bolts. The first month they all bolt. Would you have her on the road, looking like that, for the first drover's dog?"` : `"It bolts. The first month they all bolt. Would you have it out on the road for the first drover's dog?"`); }, go: 'ask' },
+          { id: 'raise', who: ['aurdin'], say: function (S) { return S.seen ? `You mean to raise her. Here.` : `You mean to raise a goblin. In an inn.`; }, run: function (S) { S.by('gennet', S.seen ? `"As mine. She'll have a bed in the kitchen by winter, when the look has worn off her."` : `"Why not? It'll carry water by spring. They work, if you start them small and feed them regular."`); }, go: 'ask' },
+          { id: 'sold', who: ['barley'], say: function (S) { return `Who sold ` + it(S) + ` to you?`; }, run: function (S) { S.by('gennet', `"Nobody sold anything. The carter couldn't feed ` + it(S) + `."`); S.look('gennet', `Gennet keeps her smile where it was.`); }, go: 'ask' },
+          { id: 'whose', who: ['vivian'], say: function (S) { return S.seen ? `Whose is she?` : `Whose is it?`; }, run: function (S) { S.by('gennet', `"Mine, since the carter left. Whose else?"`); }, go: 'ask' },
+          { id: 'hush', any: true, say: function () { return `Easy. Nobody's hurt.`; }, run: function (S) { S.by('gennet', `"No. And nobody will be."`); }, go: 'ask' }
+        ] },
+      ask: { lines: function (S) { S.look('child', (S.seen ? `The child` : `The goblin`) + ` holds on harder to ` + S.holder + `'s hand.`); S.by('gennet', S.seen ? `"Give her here, now. She's had a fright, and she knows my voice. I'll raise her as mine."` : `"Give it here, now. It's had a fright, and it knows my voice. I'll raise it right."`); },
+        opts: [
+          { id: 'let1', who: ['aurdin'], say: function (S) { return `It's your house, and your charge. Raise ` + it(S) + ` well.`; }, run: function () { }, end: 'a' },
+          { id: 'let2', who: ['lymen'], say: function (S) { return `If ` + sub(S) + `'s cared for here, then here is where ` + sub(S) + ` stays.`; }, run: function () { }, end: 'a' },
+          { id: 'lake', who: ['lymen'], ok: function (S) { return S.know; }, say: function (S) { return `Raise ` + it(S) + ` until which night?`; }, run: function (S) { S.named = 1; S.look('gennet', `Gennet goes still. Her hands come out of her apron.`); }, go: 'break' },
+          { id: 'no', who: ['barley'], say: function () { return `No.`; }, run: function (S, e) { S.look('gennet', `Gennet looks at ` + e.hero.name + `, and then at the others, to see who else means it.`); }, go: 'bribe1' },
+          { id: 'rather', who: ['vivian'], say: function () { return `And if we'd rather not?`; }, run: function (S) { S.by('gennet', `"Then we'll come to something. People do, in my yard."`); }, go: 'bribe1' },
+          { id: 'with', who: ['lymen'], say: function (S) { return It(S) + ` was on a chain. ` + It(S) + ` comes with us.`; }, run: function (S) { S.by('gennet', `"On what road? To what? You've a council's errand, not a nursery."`); }, go: 'bribe1' },
+          { id: 'keep', any: true, say: function (S) { return `Keep ` + it(S) + `, then.`; }, run: function () { }, end: 'a' }
+        ] },
+      bribe1: { lines: function (S) { S.by('gennet', `"You've a road to pay for. Call the rooms and the board mine, this stay and the next."`); S.look('gennet', `Gennet takes old silver out of her apron pocket and holds it flat on her palm.`); S.by('gennet', `"And this on top. For your trouble, and no more said about it."`); },
+        opts: [
+          { id: 'take1', who: ['vivian'], say: function () { return `Count it out.`; }, run: function () { }, end: 'b' },
+          { id: 'lot', who: ['barley'], say: function () { return `That's a lot of silver for a kindness.`; }, run: function (S) { S.by('gennet', `"Kindness costs. Ask anyone who's done one."`); }, go: 'bribe2' },
+          { id: 'nosilver', who: ['lymen'], say: function () { return `Keep your silver.`; }, run: function (S) { S.look('gennet', `Gennet closes her hand on the coin.`); }, go: 'bribe2' },
+          { id: 'worth', who: ['aurdin'], say: function () { return `What is one foundling worth to an inn?`; }, run: function (S) { S.by('gennet', `"My word. I told the carter I'd keep ` + it(S) + `. I keep what I say."`); }, go: 'bribe2' },
+          { id: 'take1x', any: true, say: function () { return `Done.`; }, run: function () { }, end: 'b' }
+        ] },
+      bribe2: { lines: function (S) {
+          S.by('gennet', `"Elsbeth! The green purse, from under the stair."`);
+          if (S.tier >= 2) { S.look('elsbeth', `Elsbeth stands in the house door. She does not go for it.`); S.narr(`Gennet goes in for the purse herself, and is back before anyone has moved.`); } else S.look('elsbeth', `Elsbeth brings it out with her eyes down, and goes back in.`);
+          S.by('gennet', `"This came up out of the lake the year we wed. Every coin of it is yours. And the big room, any night you're on this road, for as long as I keep the house."`);
+          S.by('gennet', `"Or walk on with ` + it(S) + `, and find this well shut to you. It's the only one between Silverton and the Pit."`); },
+        opts: [
+          { id: 'take2', who: ['vivian'], say: function () { return `All of it, then.`; }, run: function (S) { S.big = 1; }, end: 'b' },
+          { id: 'no2', who: ['barley'], say: function () { return `No.`; }, run: function () { }, go: 'break' },
+          { id: 'well', who: ['lymen'], say: function () { return `The well's not yours to shut. And the child's not yours to keep.`; }, run: function () { }, go: 'break' },
+          { id: 'gets', who: ['aurdin'], say: function () { return `You'd give the lake's own gift for one foundling. What does the lake get?`; }, run: function (S) { S.named = 1; S.look('gennet', `Gennet does not answer that.`); }, go: 'break' },
+          { id: 'no2x', any: true, say: function () { return `No.`; }, run: function () { }, go: 'break' }
+        ] },
+      'break': { lines: function (S) {
+          S.look('gennet', `Gennet takes the child's free arm in both hands.`, 'child'); S.by('gennet', `"Then you'll not carry ` + it(S) + ` off my yard."`);
+          if (S.doran) { S.by('gennet', `"Doran!"`); S.walkDoran(); S.look('doranIn', S.renown >= 5 ? `Doran comes round the barn from the woodpile with the woodaxe, sees who is in the yard, and lets the axe hang.` : `Doran comes round the barn from the woodpile with the woodaxe, and stops when he sees whose arm she has.`, 'gennet'); S.by('gennet', `"They mean to take ` + it(S) + `."`); }
+          else S.by('gennet', `"Elsbeth! The word! Say the word!"`); },
+        opts: [
+          { id: 'doranP', who: ['lymen'], ok: function (S) { return S.doran; }, skill: function (S, e) { return S.made(e, 'Persuasion') ? 'Persuasion' : null; }, say: function (S, e) { return S.made(e, 'Persuasion') ? `Doran. Look at whose arm that is, and tell me what she's kept for.` : `Doran. Tell her to let go.`; }, run: function () { }, endFn: function (S, e) { return S.made(e, 'Persuasion') || S.renown >= 5 ? 'd' : 'e'; } },
+          { id: 'axe', who: ['barley'], ok: function (S) { return S.doran; }, say: function () { return `Put the axe down. Nobody here wants it used.`; }, run: function () { }, endFn: function (S) { return S.renown >= 5 ? 'd' : 'e'; } },
+          { id: 'hands', who: ['aurdin'], ok: function (S) { return S.doran; }, say: function () { return `Mistress Waterby. Take your hands off the child.`; }, run: function () { }, endFn: function (S) { return S.renown >= 5 ? 'd' : 'e'; } },
+          { id: 'steel', who: ['vivian'], ok: function (S) { return S.doran; }, say: function () { return `Steel, then.`; }, pre: function (S, e) { return e.hero.name + ` has the knife out.`; }, run: function (S) { S.drew = 1; }, end: 'c' },
+          { id: 'draw', any: true, ok: function (S) { return S.doran; }, say: function () { return `Then it's steel.`; }, run: function (S) { S.drew = 1; }, end: 'c' },
+          { id: 'letgo', who: ['lymen'], ok: function (S) { return !S.doran; }, say: function (S) { return `Let go of ` + it(S) + `.`; }, run: function () { }, end: 'e' },
+          { id: 'between', who: ['barley'], ok: function (S) { return !S.doran; }, say: function () { return `That's enough.`; }, pre: function (S, e) { return e.hero.name + ` steps between Gennet and the child.`; }, run: function () { }, end: 'e' },
+          { id: 'word', who: ['aurdin'], ok: function (S) { return !S.doran; }, say: function () { return `What word, Mistress Waterby? Whose?`; }, run: function () { }, end: 'e' },
+          { id: 'knife', who: ['vivian'], ok: function (S) { return !S.doran; }, say: function () { return `Hands off.`; }, pre: function (S, e) { return e.hero.name + ` has a hand on the knife.`; }, run: function (S) { S.drew = 1; }, end: 'e' },
+          { id: 'off', any: true, ok: function (S) { return !S.doran; }, say: function (S) { return `Let ` + it(S) + ` go.`; }, run: function () { }, end: 'e' }
+        ] }
+    };
+    // what is said as each end falls (the fight itself, and what the house does after, are In.barnYard's)
+    BY.END = function (S, k) {
+      if (k === 'a') { S.look('gennet', `Gennet takes the child up onto her hip, the way a woman does who has carried many.`, 'child'); S.by('gennet', S.seen ? `"There. You've good sense, the lot of you. She'll want for nothing."` : `"There. You've good sense, the lot of you. It'll want for nothing."`);
+        S.look('child', (S.seen ? `The child` : `The goblin`) + ` looks back at ` + S.holder + ` over Gennet's shoulder, all the way to the ` + (S.seen ? `house door.` : `barn.`)); S.by('gennet', `"Supper's at eight. There's fish."`); }
+      else if (k === 'b') { S.look('gennet', S.big ? `Gennet puts the green purse into the party's hands without counting it.` : `Gennet counts the old silver out, coin by coin.`); S.by('gennet', `"There. And nobody's the worse."`);
+        S.look('gennet', `Gennet takes the child by the wrist and walks ` + it(S) + ` back to the barn. The child does not pull.`, 'child'); if (S.tier >= 1) S.look('elsbeth', `Elsbeth is in the house door. She has seen the coin change hands. She goes in.`); }
+      else if (k === 'c') { S.narr(`Gennet lets go of the child. The child backs against the barn door.`); S.look('elsbeth', `Elsbeth is in the house door with the wand in her hand, Orrin and Pell behind her.`); } // (ruling 13: with the boys, the wand on nobody who does not come at them)
+      else if (k === 'd') { S.look('doranIn', `Doran looks at the child's arm in Gennet's hands for a long breath.`, 'gennet'); S.by('doranIn', `"Gen. Let go."`); S.look('gennet', `Gennet lets go. She does not look at him.`, 'doranIn'); BY.confession(S);
+        S.by('gennet', `"You've killed us. You know that. It'll come up hungry."`); S.by('doranIn', `"It comes up anyway."`); S.look('gennet', `Gennet walks back to the house and shuts the door.`); }
+      else { // e: the child goes with the party
+        if (S.doran) { S.look('doranIn', `Doran looks at the child's arm in Gennet's hands.`, 'gennet'); S.by('doranIn', `"Gen. Let go."`); S.look('gennet', `Gennet lets go.`); S.look('doranIn', `Doran says nothing else. He takes the axe back to the woodpile.`); }
+        else if (S.tier >= 3) { S.look('elsbeth', `Elsbeth comes out into the yard. The wand stays in her apron.`); S.by('elsbeth', `"No."`); S.by('elsbeth', `"It's for the lake. Tell them, or I will."`); S.f.elsbethSaidLake = 1; S.look('gennet', `Gennet lets go of the child as if the arm had burned her.`, 'elsbeth'); }
+        else if (S.tier === 2) { S.look('elsbeth', `Elsbeth is in the house door, Orrin and Pell behind her, the wand held down at her side. She does not say the word.`); S.look('gennet', `Gennet waits for it. Then she lets go.`, 'elsbeth'); }
+        else { S.narr(`Nobody comes out of the house.`); S.look('gennet', `Gennet lets go.`); }
+        if (S.drew && !S.doran) S.by('gennet', `"You'd put a knife to an innkeeper's wife in her own yard. Go on, then. Take ` + it(S) + `."`);
+        S.by('gennet', S.nights === 0 ? `"It comes up tonight, with ` + it(S) + ` or without. You think on who'll be in this house when it does."` : `"It comes up ` + BY.nights(S.nights) + `, with ` + it(S) + ` or without. You think on who'll be in this house when it does."`);
+        if (S.tier >= 3) S.by('elsbeth', `"Not the Pit. That's where the wagon comes from."`);
+      }
+    };
+  })();
+  In.barnTalk = function* (sc, B, Y, four) {
+    var st = sc.st, f = st.flags, d = In.day(D.roam.q), BY = In.BY, SO = D.counter.SHEETOF;
+    var S = { f: f, seen: !!f.glamourBroken, renown: In.renown(), doran: !!Y.doran, tier: f.elsbethTier || 0, nights: In.nightsToDue(f, d), know: !!(f.elsbethTold || f.heardLakeTake || f.heardLamp), holder: four[0].hero.name, stage: 'open', rolls: {}, out: [] };
+    var who = function (id) { var u = id === 'gennet' ? Y.gennet : id === 'doranIn' ? Y.doran : id === 'child' ? Y.child : Y.elsbeth; return { name: id === 'gennet' ? In.named(f) : id === 'doranIn' ? 'Doran' : id === 'elsbeth' ? 'Elsbeth' : S.seen ? 'The child' : 'The goblin', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: (id === 'gennet' || id === 'doranIn') && SO && SO[id] ? SO[id]({ flags: f }) : null }; };
+    S.by = function (id, line) { S.out.push({ by: id, line: line }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.look = function (id, line, at) { S.out.push({ look: id, line: line, at: at || null }); };
+    S.made = function (e, skill) { var k = e.key + ':' + skill; if (S.rolls[k] == null) { var r = In.d20(), v = DS.R.skill(e.h, skill, In.AB[skill]); S.rolls[k] = r + v >= BY.DC[skill]; In.trail(e.hero.name + ' ' + skill + ' ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + (r + v) + ' vs DC ' + BY.DC[skill] + (S.rolls[k] ? ', made' : ', missed') + ' (silent)'); } return S.rolls[k]; };
+    S.swap = function () { if (Y.swap) Y.swap(); }; S.walkDoran = function () { if (Y.callDoran) Y.callDoran(); };
+    var wait = function (o) { return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(who(o.look), [o.line], o.at ? who(o.at) : null) : sc.by(who(o.by), [o.line]); }, i;
+    var readOf = function (e) { return Object.keys(BY.READS).filter(function (id) { var r = BY.READS[id]; return r.stage === S.stage && (!r.ok || r.ok(S)) && In.passive(e.h, r.skill) >= r.dc; })[0] || null; };
+    var optsOf = function (e, rid) {
+      var ok = BY.STAGES[S.stage].opts.filter(function (o) { if (o.read) return rid === o.read; if (o.any ? In.SUP.FOUR.indexOf(e.key) >= 0 : o.who.indexOf(e.key) < 0) return false; return !o.ok || o.ok(S, e); });
+      var out = [], shaded = 0; ok.forEach(function (o) { var sk = o.skill ? o.skill(S, e) : null; if (sk) { if (shaded) return; shaded++; } if (out.length < In.MEAL.CAP) out.push({ o: o, label: o.say(S, e), shade: !!sk, tag: sk || null }); });
+      return out;
+    };
+    In.trail('out of the barn: the glamour ' + (S.seen ? 'seen through' : 'unseen') + ', renown ' + S.renown + ', Doran ' + (S.doran ? 'home' : 'away') + ', Elsbeth\'s tier ' + S.tier + ', the due ' + BY.nights(S.nights));
+    var end = null, at0 = 0;
+    for (var n = 0; n < 8 && !end; n++) {
+      S.out = []; BY.STAGES[S.stage].lines(S);
+      var prompt = S.out.pop(); for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
+      var list = four.map(function (e) { var rid = readOf(e), ops = optsOf(e, rid); return { e: e, hero: e.hero, side: 'left', key: e.key, rid: rid, reads: rid ? [BY.READS[rid].text(S)] : [], ops: ops, opts: ops.map(function (p) { return p.label; }), marks: ops.map(function (p) { return p.shade ? { shade: true, tag: p.tag } : null; }), ids: ops.map(function (p) { return p.o.id; }), shaded: ops.filter(function (p) { return p.shade; }).length }; }).filter(function (x) { return x.ops.length; });
+      if (!list.length) { end = 'e'; break; }
+      list.forEach(function (x) { if (x.rid) In.trail(x.hero.name + ' passive ' + BY.READS[x.rid].skill + ' ' + In.passive(x.e.h, BY.READS[x.rid].skill) + ' vs DC ' + BY.READS[x.rid].dc + ', read: ' + x.rid); });
+      at0 = Math.max(0, list.map(function (x) { return x.key; }).indexOf(S.lastKey));
+      var pk = yield sc.flip(who(prompt.by || 'gennet'), [prompt.line], list, at0), x = list[pk && pk.at != null ? pk.at : at0] || list[0], p = x.ops[pk && pk.k != null ? pk.k : 0] || x.ops[0], o = p.o, e = x.e;
+      S.lastKey = x.key; S.out = []; sc.hero = e.hero; sc.heroSide = 'left'; In.trail(e.hero.name + ': ' + p.label);
+      if (o.pre) yield sc.narr([o.pre(S, e)]);
+      o.run(S, e); for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
+      end = o.endFn ? o.endFn(S, e) : o.end || null; if (!end) S.stage = o.go;
+    }
+    sc.echo = null; sc.hero = null; S.out = []; BY.END(S, end); for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
+    B.roam.barnEnd = { end: end, big: !!S.big, drew: !!S.drew, seen: S.seen, doran: S.doran, tier: S.tier, nights: S.nights }; In.trail('out of the barn: END ' + end.toUpperCase());
+  };
+  // the yard's scene round the talk: the party at the barn's step, the child at hand, Gennet from the house, Doran from the woodpile when he is called; then what the end does
+  In.barnYard = function* (B) {
+    var Rm = D.roam, R0 = B.roam, f = R0.flags, BY = In.BY, A = D.secondact, C = D.counter, c = In.cycle(In.day(Rm.q)), Y = {}, P = BY.at;
+    In.stage(B, P.party, null);
+    var kid = function () { return In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? 'commonerchild' : 'glamourgoblin', at: P.child.slice(), name: f.glamourBroken ? 'The child' : 'The goblin', face: [1, 1] }); };
+    Y.child = kid(); Y.swap = function () { In.gone(B, Y.child); Y.child = kid(); };
+    Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: P.from.slice(), name: In.named(f), face: [-1, -1] });
+    var dy = B.units.filter(function (u) { return u.npc === 'doranYard'; })[0] || null;
+    Y.doran = f.doranAway || f.doranDead ? null : dy || In.unit(B, { id: 'doranYard', kind: 'commoner', at: P.wood.slice(), name: 'Doran Waterby', face: [0, -1] });
+    Y.callDoran = function () { if (Y.doran) { Y.doran.x = P.doran[0]; Y.doran.y = P.doran[1]; Y.doran.tween = null; D.grid.setup(B.map, B.units); B.cache = null; } };
+    yield* In.walk(B, Y.gennet, P.gennet, [-1, -1]);
+    Y.elsbeth = f.elsbethGone ? null : In.unit(B, { id: 'elsbethYard', kind: 'commonerwoman', at: P.door.slice(), name: 'Elsbeth', face: [-1, -1] }); // (in the house door, watching)
+    var four = [R0.token].concat(R0.rest || []).filter(function (u) { return u && u.src && !u.src.guest && u.hp > 0; }).slice(0, 4).map(function (u) { return { u: u, h: u.src, key: u.src.key || u.src.id, hero: In.heroOf(u) }; });
+    var sc = new C.Counter(B, { id: 'barnyard', name: In.named(f), place: 'The Halfway Inn', what: 'the yard, by the barn', room: true, open: true, bg: In.roomShot(B), script: function (s) { return In.barnTalk(s, B, Y, four); } });
+    D.push(sc); while (!sc.done) yield 1;
+    var E = R0.barnEnd || { end: 'e' }, st = C.state(B), reg = f.innRegard == null ? 1 : f.innRegard;
+    var clear = function () { [Y.child, Y.gennet, Y.elsbeth].forEach(function (u) { if (u) In.gone(B, u); }); if (Y.doran && Y.doran !== dy) In.gone(B, Y.doran); if (dy) { dy.x = P.wood[0]; dy.y = P.wood[1]; } In.lay(B, null, true); };
+    var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; }; // (the due has no offering; the child counted with the party -- the road with her is not built: BY.seam)
+    f.barnEnd = E.end;
+    if (E.end === 'a' || E.end === 'b') { // (she keeps the child: back on the chain while it looks a goblin; in the open, the raising feigned, once it is seen through -- ruling 30)
+      delete f.barnFreed; if (E.seen) { In.setOffering(f, c, 'kept'); f.kidAtInn = 1; f.barnC = null; } else { In.setOffering(f, c, 'goblin'); f.barnLet = 1; }
+      if (E.end === 'a') f.innRegard = Math.min(2, reg + 1);
+      else { st.silver(BY.silver[E.big ? 1 : 0]); D.sfx('coin'); f.barnBribe = E.big ? 2 : 1; f.innFree = E.big ? 99 : 2; if (E.big) f.bigRoom = 1; f.elsbethSilent = 1; f.innRegard = 2; }
+      clear(); return;
+    }
+    if (E.end === 'c') { // (blows: to the first yield -- Doran the Thug yields at half, ruling 18; Gennet beside him)
+      In.gone(B, Y.gennet); if (Y.doran) { if (Y.doran === dy) dy = null; In.gone(B, Y.doran); }
+      var G = In.unit(B, { id: 'gennetBarn', kind: 'gennet', at: P.gennet.slice(), name: In.named(f), face: [-1, -1], foe: true }), Dn = In.unit(B, { id: 'doranBarn', kind: 'doran', at: P.doran.slice(), name: 'Doran Waterby', face: [-1, -1], foe: true });
+      G.yields = true; G.flees = false; Dn.yields = true; Dn.flees = false; Y.gennet = null; Y.doran = null;
+      f.barnFight = 1; R0.fights++; R0.lastOutcome = null; try { D.music('boss'); } catch (e0) { }
+      yield* Rm.engage(B, { foes: [G, Dn], why: 'barn', zone: null }, false, 'barn');
+      if (/^(lost|lose|dead|ko)$/.test(String(R0.lastOutcome)) || (A && A.wiped(B))) return;
+      var up = function (u) { return B.units.indexOf(u) >= 0 && u.hp > 0 && !u.dead; }, dUp = up(Dn), gUp = up(G);
+      if (!gUp) f.gennetDead = 1; if (!dUp) f.doranDead = 1; [G, Dn].forEach(function (u) { In.gone(B, u); });
+      withParty(); f.innRegard = 0; f.innShut = 1;
+      if (dUp) { f.doranConfessed = 1; yield* In.card(B, [A.LINES.confess1.split('down on the table').join('down in the dirt of the yard')], 480); yield* In.card(B, [BY.nights(E.nights) === 'tonight' ? '"Tonight is the night. That child was tonight."' : '"It\'s due ' + BY.nights(E.nights) + '. That child was for it. If you mean to stop it, be in this house that night. I\'ll show you the stone."'], 420); }
+      else if (!gUp) { f.elsbethGone = 1; yield* In.card(B, ['Elsbeth says the word, and is gone out the back with the boys, down the road to the Pit.'], 420); } // (rulings 17 and 20: out of the game)
+      clear(); yield* In.card(B, [BY.seam], 420); return;
+    }
+    // D and E: the child goes with the party
+    withParty();
+    if (E.end === 'd') { f.doranConfessed = 1; f.innRegard = 0; if (A) A.trail('Doran confesses in the yard: the thing in the lake'); }
+    else { f.innRegard = 0; if (E.drew && !E.doran) f.innShut = 1; }
+    clear();
+    if (E.seen) yield* In.card(B, ['At the road\'s edge the child is asked her name. "Nell."'], 360); // (the name is the seat's, his to give: the lane's call 9)
+    yield* In.card(B, [BY.seam], 420);
   };
   In.toSnoot = function () { In.left = '../snoot-mode/?from=inn'; if (!In.stay) window.location.href = In.left; }; // (In.stay: a bench's, the page kept)
   var fire0 = T.fire;
@@ -1361,6 +1565,7 @@
     if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'barnGoblin') { // (the one handed over, in the barn's end stall: found and revealed there -- In.barnScene, 11-05)
       yield* M.talk(B, 'barnGoblin', function (sc) { return In.barnScene(sc, B); }, B.roam.flags.glamourBroken ? 'A child, chained' : 'A goblin, chained');
       if (B.roam.flags.barnFreed) In.lay(B, In.inside, true);
+      if (B.roam.flags.barnFreed && B.roam.flags.barnTalkC !== In.cycle(In.day(D.roam.q))) { B.roam.flags.barnTalkC = In.cycle(In.day(D.roam.q)); yield* In.barnYard(B); } // (out of the barn with the child: Gennet comes running -- 11-11)
       return;
     }
     if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { // (her talk at the fire: In.katScene -- she looks up at whoever speaks, still sat, as js/town.js T.fire turns a figure drawn all round)
@@ -1417,6 +1622,11 @@
     { id: 'supamara', label: 'THE SUPPER AFTER THE PARTY SAW GENNET WITH AMARA: tense, and no fight in it', note: 'Day 13, the wagon come and gone in the night with the party watching. "You were up late. I heard the stair." Three openings, the table civil and unable to rise; a pointed question turns it cold and the house sends you to bed. Nothing said here starts a fight. Vivian may lie that the party slept through it (shaded).', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1 } },
     { id: 'supalone', label: 'GENNET ALONE, Doran away: his place laid all the same', note: 'Day 13, Doran gone down the road with a load. Gennet alone at the long table. Barley\'s "You lay his place when he\'s gone." warms her; Vivian asks how she came to the inn; with the table warm, the read on "without him" opens "You saw what took him." She closes with "Oh, heroes. Take the big room."', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, doranAway: 1, katGone: 1 } },
     { id: 'supsacr', label: 'SACRIFICE NIGHT: a supper like the others, and the bowls', note: 'Day 15, the due\'s own night, the wagon stopped on the road and no offering in the house. The lake lamp is lit. Elsbeth sets the bowls down hard and holds a look at the party (her full tell). Two openings; a hero with a read (a bitterness under the fish; Gennet has not filled her own bowl), or with her tell, may say it aloud -- the fight, nobody asleep -- or at the end push the bowl away and say nothing. Whoever eats may sleep; then the house\'s night as built.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15, 2, 2, 19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', wagonStopped: 'c0', dueOffC: 0, dueOff: 'none' } },
+    // OUT OF THE BARN WITH THE CHILD (11-11): a beat a state, each a step from the chained one in the barn's end stall on day 13 -- E on it, FREE IT (or FREE HER), and Gennet comes running
+    { id: 'barnunseen', label: 'OUT OF THE BARN: the glamour unseen, Doran home, renown 3', note: 'Day 13 in the barn, the wagon come and gone, the one it left chained in the end stall and looking a goblin. E on it: FREE IT. The party steps into the yard with it and Gennet comes running from the house: "That\'s why I knew to keep it. Poor innocent thing." Five stages -- her opener, her ask, the first offer, the green purse and the threat, the breaking point -- the four flipped at each. Vivian\'s read on the hand (or Aurdin\'s on the glamour) breaks the glamour in the yard and her story changes. LET HER RAISE IT ends it at her ask; refuse and she offers silver, then the green purse; refuse again and she takes the child\'s arm and calls Doran: speak to DORAN (Lymen, shaded when it lands) and he confesses in the yard; draw (Vivian) and it is a fight to the first yield; otherwise "Gen. Let go." and the child goes with the party.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
+    { id: 'barnseen', label: 'OUT OF THE BARN: the glamour seen through, Doran home', note: 'The same morning, the glamour seen through on the wagon night: a child chained in the stall. FREE HER. Gennet\'s other story: "Somebody put a goblin\'s face on a child and sent her down this road. Who takes that in, if I don\'t?" Let her and the child is brought into the house, the raising feigned until the night.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
+    { id: 'barnaway', label: 'OUT OF THE BARN: Doran away, Elsbeth at her third tier', note: 'Doran gone down the road: nobody for Gennet to call but Elsbeth. At the breaking point she calls for "the word"; Elsbeth comes out, the wand in her apron: "No. It\'s for the lake. Tell them, or I will." The child goes with the party. (At her second tier she stands in the door and does not say it; below that nobody comes out.)', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 1, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, doranAway: 1, elsbethTier: 3, dishes: 1, elsbethTold: 1 } },
+    { id: 'barnknown', label: 'OUT OF THE BARN: renown 5, a low Persuasion, the party knows of the lake\'s nights', note: 'The corridor\'s own. Lymen may ask at her ask "Raise it until which night?" and go straight to the breaking point; Doran comes round the barn and lets the axe hang, and any hero\'s word to him brings the confession. The dice are low: at lower renown the same word gets only "Gen. Let go."', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 5, dice: [2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'kat', label: 'DAY 7: THE TRAVELER BY THE FIRE, Barley with a bottle of ink (11-05)', note: 'Six in the evening on day 7, the four in the common room, a bottle of ink from Lisbet\'s in the pack. E on the traveler at her table by the fire: Barley -- "You\'re with the Dominion." -- and she breaks in: her deity gave her a vision and it used up all her ink. The bottle set by her book; the vision, Aurdin laughing in the dust with the tribe that laughs; the page torn free: the Sheet: Hideous Laughter in the pack. E on her again: her talk at the fire -- what she is, the road south, what she saw (the vision told: both tiers). Then M, ITEMS, the sheet on Aurdin: he copies it into his book.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, inv: ['ink'] },
     { id: 'katbook', label: 'DAY 13: HER LAST MORNING, the wagon stopped (11-05)', note: 'Eight in the morning on day 13, the wagon stopped in the yard last night (the pair down or run, the children freed), Barley\'s word given her days ago and a bottle of ink in the pack. E on the traveler by the fire: she closes her book, opens it, slides it across -- her book; the ink set by it and the vision with it, the sheet; ask her about Amara, and what she carried (the read at the greeting caught them); LET HER GO: she pays out her nights and walks south toward the Pit, and the fire\'s table is empty.', key: In.KEY, at: [25, 20], hour: 8, day: 13, inside: true, inv: ['ink'],
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', glamourBroken: 1, kidAtInn: 1, doranAway: 1, katInk: 1, katLooked: 1, katKnewAmara: 1 } },
