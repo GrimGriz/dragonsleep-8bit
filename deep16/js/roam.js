@@ -1048,7 +1048,9 @@
     (R0.relevelDue || []).forEach(function (r) { R.relevel(B, r.u, r.feats); }); R0.relevelDue = [];
     if (done === 'won' && !fd) R0.spent[trig.id] = 1;
     if (done === 'won' && fd) { if (fd.flag) R0.flags[fd.flag] = 1; [].concat(fd.trig || []).forEach(function (id) { R0.spent[id] = 1; }); } // (a set fight's flag: the rescue's -- js/mines.js M.rescue)
-    if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
+    // (a won Settling spends the landlord's rim; the jelly's and the pool ooze's are triggers of their own on the floor, spent only when that one died in there -- 11-10, Griz: "ooze and
+    // jelly are separate triggers"; since the floor's first build of 10-13 every win spent all four, and the landlord killed left the jelly and the ooze asleep for good)
+    if (which === 'wet' && done === 'won') { R0.spent.landlordStep = 1; if (R0.flags.jellyDead) { R0.spent.jelly = 1; R0.spent.jellyNorth = 1; } if (R0.flags.poolOozeDead) R0.spent.poolOoze = 1; }
     if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; }
     if (which === 'keeper' && done !== 'won' && done !== 'lost') R0.flags.keeperAwake = 1; // (a run leaves it awake and unbeaten: the rope then fights it by the rune -- the 8-bit's, 10-04)
     // the Settling's squares are the floor's own: the token back where the party left it -- a square past the one who got out (off the Settling's ground, the way
