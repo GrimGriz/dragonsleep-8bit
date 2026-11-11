@@ -1200,6 +1200,7 @@
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN
   Battle.prototype.heroTurn = function* (u) {
     RU.startTurn(u);
+    this.reloadAtStart(u); // (the off hand thrown with the free draw spent: drawn again now, by this turn's -- the throw, 11-11)
     this.focus(u);
     delete u.caughtR1; if (u.conds.surprised) u.caughtR1 = true; // (caught unaware at the fight's start: the mark Surprise Attack reads the rest of round 1, after the lost turn -- Battle.caught, 11-10)
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
@@ -1373,9 +1374,18 @@
     // averted from a gazer, a free look -- the save at once, and then it sees it (js/traits.js M.lookAt); a blow at it asks the same (exec 'attack')
     var avU = u.conds.averted, gzU = avU ? this.units.filter(function (m) { return m.gaze && G.standing(m) && avU.from.indexOf(m.id) >= 0; })[0] : null;
     if (gzU) out.push({ id: 'lookat', label: 'LOOK AT ' + Battle.nm(gzU, true).toUpperCase(), cost: 'F', icon: 'search', ok: true, why: '', note: 'your eyes are averted: look now, and the gaze save at once (' + (gzU.gaze.ab || 'con').toUpperCase() + ' DC ' + gzU.gaze.dc + '); then you see it' });
-    var thW = Battle.throwable(u);
-    if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
-      out.push({ id: 'throw', label: 'THROW ' + thW.name.toUpperCase().replace(/^THROWN /, ''), cost: 'A', icon: 'attack', ok: (T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0) && thIn, why: !thIn ? 'no foe within ' + thW.range[1] + ' ft in sight' : 'no attack left', tool: 'throw', note: 'one attack of the Attack action: a ranged attack, ' + thW.range[0] + ' ft, out to ' + thW.range[1] + ' at disadvantage -- ' + thN + (thN === 1 ? ' left' : ' left to throw') + ', none picked up' }); }
+    // THROW (RULED 11-11 -- Battle.throwSrcs): under ACTIONS, what can be thrown and from where, each its own pick; once one is thrown in a fight it is remembered (u.throwPick)
+    // and sits on the first ring beside ATTACK as THROW <IT> (his "it adds throw to the wheel next to attack"), till it runs out (the desk's lean 1, approved: "approve leans 1 & 2")
+    var thSs = Battle.throwSrcs(this, u), thAtk = T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0, B0t = this;
+    if (u.throwPick && !this.throwKept(u)) delete u.throwPick;
+    var thItem = function (s) {
+      var thIn = B0t.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= s.atk.range[1] && G.los(u, w).clear; });
+      return { id: 'throw', src: s.key, label: 'THROW ' + Battle.throwLabel(s), cost: 'A', icon: 'attack', tool: 'throw', ok: s.ok && thAtk && thIn, why: !s.ok ? s.why : !thAtk ? 'no attack left' : 'no foe within ' + s.atk.range[1] + ' ft in sight',
+        note: 'one attack of the Attack action' + (s.carried ? ', drawn with the free draw' : s.from === 'off' ? ', the off hand empty after it' : s.from === 'main' ? ', the hand empty after it' : '') + ': ' + s.atk.range[0] + ' ft, out to ' + s.atk.range[1] + ' at disadvantage -- it lands, and walking over it takes it up' };
+    };
+    if (thSs.length) { var thIt = thSs.map(thItem); out.push({ id: 'throw', label: 'THROW', cost: 'A', icon: 'attack', ok: thIt.some(function (x) { return x.ok; }), why: (thIt.filter(function (x) { return !x.ok; })[0] || {}).why || '', sub: 'throw', items: thIt, note: 'a thrown weapon: from a hand, or drawn with the free draw into a free hand' }); }
+    if (u.throwPick) { var thP = Battle.throwSrc(this, u, u.throwPick); var thPi = thP ? thItem(thP) : { id: 'throw', src: u.throwPick, label: 'THROW ' + u.offhand.name.toUpperCase(), cost: 'A', icon: 'attack', tool: 'throw', ok: false, why: 'the off hand is empty: another is drawn with the next free draw' };
+      out.push(Object.assign({}, thPi, { id: 'throwpick', label: 'THROW ' + (thP ? thP.name.toUpperCase().replace(/^THROWN /, '') : u.offhand.name.toUpperCase()) })); }
     // GRAPPLE (a hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)")): with DODGE and HELP, shown only with an empty hand and a foe beside no more than one size
     // larger; the SRD's special melee attack -- one attack of the Attack action, the rest left (ATTACK (n) says so); LET GO, free ("no action required")
     var grT = !u.grappling && D.light.handsFree(u) > 0 && this.units.some(function (w) { return Battle.grabbable(u, w); });
@@ -1877,10 +1887,13 @@
         var odX = window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)), atkX = Object.assign({}, u.offhand, { dice: odX.dice, mod: odX.mod, offhandSwing: true });
         var thX = G.dist(u, tgX) > G.reachOf(u) ? Battle.offThrow(u) : null;
         if (G.dist(u, tgX) > G.reachOf(u) && !thX) return;
-        if (thX) atkX = Object.assign(atkX, { ranged: true, range: thX.range, thrown: true, count: 1, name: u.offhand.name });
+        // (thrown: a hand's throw, no count -- before 11-11 it was `count: 1` under the weapon's name, and Drill's off-hand dagger spent his carried ALT dagger of the same name)
+        if (thX) atkX = Object.assign(atkX, { ranged: true, range: thX.range, thrown: true, hand: 'off', count: null, id: u.src.equip.offhand, name: u.offhand.name });
+        var srcX = thX ? Battle.throwSrc(this, u, 'off') : null;
+        if (srcX && !byAI(u)) { var wX = this.throwWarn(u, srcX); if (wX.length) { var aX = yield { prompt: { who: u, title: u.name + ': THROW THE ' + u.offhand.name.toUpperCase() + '?', lines: ['The bonus action: the off hand\'s ' + u.offhand.name.toLowerCase() + ' at ' + Battle.theWord(tgX) + ', ' + G.range(u, tgX) + ' ft.'].concat(wX), opts: [{ label: 'THROW', value: true }, { label: 'NOT NOW', value: false }] } }; if (!aX) return; } } // (the warnings, 11-11)
         T.bonus = 0; T.offhandDone = true;
         yield* this.attack(u, tgX, atkX);
-        if (thX) { u.offhandThrown = true; this.card(['{g}(the ' + u.offhand.name.toLowerCase() + ' is thrown: the off hand empty till the fight is done){/}'], 160); }
+        if (thX) this.throwAfter(u, srcX || { from: 'off', atk: atkX, name: u.offhand.name });
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
@@ -1967,12 +1980,29 @@
         return;
       }
       case 'throw': { // (a hand's throw of its thrown weapon, one attack of the Attack action -- the grid's rules §2.21, 10-15)
-        var thw = Battle.throwable(u), tht = c.target; if (!thw || !tht || tht.dead || (tht.hp <= 0 && !tht.regenDown)) return;
+        // (11-11: `src` the pick -- main, off, alt, pack:<id> (Battle.throwSrcs); none named, the one remembered, else the first that can go; `ask`: the click on a foe out of
+        // reach, asked first; the warnings and the ask one prompt, a player's only -- an AI's throw is the AI's own pick)
+        var thSs2 = Battle.throwSrcs(this, u), thK = c.src || u.throwPick, ths = thSs2.filter(function (s) { return s.key === thK; })[0] || (!c.src ? thSs2.filter(function (s) { return s.ok; })[0] : null), tht = c.target;
+        if (!ths || !tht || tht.dead || (tht.hp <= 0 && !tht.regenDown)) return;
+        var thw = ths.atk;
+        if (!ths.ok) { this.card(['{o}Throw the ' + ths.name.toLowerCase() + ': ' + ths.why + '.{/}'], 160); return; }
         if (RU.charmedBy(u, tht)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tht.side === 'foe' ? Battle.nm(tht) : tht.name) + '.{/}'], 200); return; }
         if (G.range(u, tht) > thw.range[1] || !G.los(u, tht).clear) { this.card(['{o}Throw: a foe within ' + thw.range[1] + ' ft, in sight.{/}'], 160); return; }
+        if (!(T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0)) return;
+        if (!byAI(u)) {
+          var thWarn = this.throwWarn(u, ths);
+          if (thWarn.length || c.ask) {
+            var thR = G.range(u, tht), thL = (c.ask ? ['At ' + Battle.theWord(tht) + ', ' + thR + ' ft' + (thR > thw.range[0] ? ' (past ' + thw.range[0] + ': at disadvantage)' : '') + ' -- one attack' + (ths.carried ? ', drawn with the free draw' : '') + '.'] : []).concat(thWarn);
+            var thA = yield { prompt: { who: u, title: u.name + ': THROW THE ' + ths.name.toUpperCase().replace(/^THROWN /, '') + '?', lines: thL, opts: [{ label: 'THROW', value: true }, { label: 'NOT NOW', value: false }] } };
+            if (!thA) return;
+          }
+        }
         if (!Battle.openAttack(u)) return;
         T.attacksLeft--;
+        if (ths.carried) T.freeObj = true; // (the draw: the turn's one free object interaction)
+        u.throwPick = ths.key; // (remembered for the fight: THROW beside ATTACK -- his "once a player digs into action to do a throw (each fight)")
         yield* this.attack(u, tht, thw);
+        this.throwAfter(u, ths);
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
@@ -3707,9 +3737,14 @@
   Battle.prototype.groundBack = function (g) {
     var by = this.units.filter(function (w) { return w.id === g.by; })[0];
     if (g.how === 'pack') { var st = (g.atk && g.atk.stack) || (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (st) { st.n = (st.n || 0) + 1; if ((this.inv || []).indexOf(st) < 0) (this.inv = this.inv || []).push(st); } else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
+    else if (g.how === 'off' || g.how === 'main') { // (a hand's: back in the hand it left -- or, that hand filled again since (the off hand's draw, 11-11), with what is carried)
+      if (by && g.how === 'off' && by.offhandThrown) delete by.offhandThrown;
+      else if (by && g.how === 'main' && by.mainThrown) { by.weapon = by.mainThrown; delete by.mainThrown; }
+      else if (by && (by.alt || g.alt) && (by.alt || g.alt).id === g.id && by.thrown && by.thrown[(by.alt || g.alt).name] > 0) { var aH = by.alt || g.alt; by.thrown[aH.name]--; by.alt = aH; } // (the ALT it was drawn from, back)
+      else { var stH = (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (stH) stH.n = (stH.n || 0) + 1; else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
+    }
     else if (by && by.thrown && g.atk && by.thrown[g.atk.name]) by.thrown[g.atk.name]--;
-    if (by && g.how === 'off') delete by.offhandThrown;
-    if (by && g.how !== 'off' && !by.alt && g.alt) by.alt = g.alt; // (thrown to the last, its ALT put away: spendThrow -- back in hand)
+    if (by && g.how !== 'off' && g.how !== 'main' && !by.alt && g.alt) by.alt = g.alt; // (thrown to the last, its ALT put away: spendThrow -- back in hand)
   };
   // walking onto it: taken up with the turn's free object interaction (moveAlong, each square)
   Battle.prototype.groundStep = function (u) {
@@ -3751,23 +3786,120 @@
   };
   // the thrown weapon a unit carries to throw, with one left (the ring's THROW, 10-15): a class hero's `alt` handaxes or daggers
   Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
-  Battle.prototype.spendThrow = function (u, atk, tgt) {
-    if (this.thrownLeft(u, atk) === Infinity) return;
-    if (u.side === 'party' && atk.thrown && !atk.spell) { // (the throw in flight: where it lands once the roll is read -- Battle.landThrow, 11-10)
-      if (this.flying) this.landThrow();
-      var howF = atk.offhandSwing ? 'off' : atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0) ? 'pack' : 'kit';
-      this.flying = { u: u, atk: atk, tgt: tgt || null, how: howF, id: howF === 'off' ? (u.src && u.src.equip && u.src.equip.offhand) || null : atk.id || null, alt: u.alt, hit: false };
+  // THE THROW (RULED 2026-11-11, Griz to the desk, on his play of the bugbear ambush -- "couldn't figure out how to throw a dagger with drill, and I don't think I like the 'alt'
+  // thing (which lacked a 'none' option to prevent accidental throwing)"; then "if offhand or pack contains throwable weapon (dagger, handaxe, etc) and hand is empty, in the wheel
+  // under actions is 'throw', if offhand warn 'throw your offhand weapon'?", "1 -yes", "2 - swapping weapons is an action due to putting away, if offhand throw + more in-pack
+  // auto-reload?", "3 - yes", "What about once a player digs into action to do a throw (each fight), it adds throw to the wheel next to attack and makes that click offering",
+  // "approve leans 1 & 2 re throw"). By the SRD 5.1 (srd/08-combat.md: one free object interaction a turn -- "draw or sheathe a sword"; two-weapon fighting: "If either weapon has
+  // the thrown property, you can throw the weapon"; srd/04-equipment.md Thrown): a throw is an attack -- one of the Attack action's, or the two-weapon bonus attack -- and the DRAW
+  // of a carried one is the turn's free object interaction. What can be thrown (Battle.throwSrcs): the weapon in the main hand, the one in the off hand, or one CARRIED -- the
+  // ALT (a class kit's handaxes, a card's second weapon, EQUIP's ALT from the pack) or a thrown weapon in the party's pack -- with a hand free to draw it (a two-handed weapon
+  // lets one go, as a light is carried: js/light.js) and the free draw unspent
+  Battle.isThrownItem = function (id) { var it = id && window.DS.R.item(id), wd = it && it.weapon; return !!(wd && (wd.thrown || (wd.props || []).indexOf('thrown') >= 0)); };
+  Battle.thrownRange = function (id) { var it = id && window.DS.R.item(id), wd = (it && it.weapon) || {}; return (wd.thrown || wd.throw || (D.npc && D.npc.THROWN || {})[id] || [20, 60]).slice(); };
+  Battle.drawHand = function (u) { var h = D.light.handsUsed(u); return D.light.handsFree(u) > 0 || (h.two && !h.torch && !h.off && !h.sh); };
+  // a weapon in hand made a throw: its own die (a versatile die is a two-handed melee blow's), its range, `hand` -- counted by no count: it leaves the hand (Battle.throwAfter)
+  function handThrowAtk(w, hand, id) {
+    var it = id && window.DS.R.item(id), wd = (it && it.weapon) || {};
+    var a = Object.assign({}, w, { ranged: true, thrown: true, range: Battle.thrownRange(id), hand: hand, id: id, count: null });
+    if (wd.versatile && a.dice === wd.versatile) a.dice = wd.dmg;
+    if (hand === 'off') a.offhandSwing = true; // (the off hand's item: js/monsterrules.js reads which weapon it was)
+    return a;
+  }
+  // a pack's thrown weapon as an attack, built as the class sheet builds its ALT (js/classes.js NPC.unit): one a stack, kept on the unit for the fight
+  Battle.packThrowAtk = function (u, s) {
+    u.packThrows = u.packThrows || {};
+    var a = u.packThrows[s.id];
+    if (!a) {
+      var h = u.src, it = window.DS.R.item(s.id), two = it && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0;
+      a = D.save.weaponOf(Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: s.id, shield: two ? null : h.equip.shield }) }));
+      a = handThrowAtk(a, null, s.id); delete a.hand; a.count = 0; a.packThrow = true;
+      u.packThrows[s.id] = a;
     }
+    a.stack = s; return a;
+  };
+  // the carried reserve of an item: the ALT when it is that weapon, and the pack's stack of it (one of the four's)
+  Battle.prototype.reserveOf = function (u, id) {
+    var n = 0; if (!id) return 0;
+    if (u.alt && u.alt.thrown && u.alt.id === id) n += Battle.thrownLeft(u, u.alt);
+    if (Battle.isHero(u)) (this.inv || []).forEach(function (s) { if (s.id === id && !(u.alt && u.alt.stack === s)) n += Math.max(0, s.n || 0); });
+    return n === Infinity ? 99 : n;
+  };
+  Battle.throwSrcs = function (B, u) {
+    var out = [], T = u && u.turn || {}; if (!u || !u.src || !u.src.equip || u.guest || (u.conds && u.conds.disarmed)) return out;
+    var drawWhy = !Battle.drawHand(u) ? D.light.handsWhy(u) : T.freeObj ? 'the free draw is spent this turn' : '';
+    if (u.weapon && u.weapon.id && u.weapon.id !== 'unarmed' && !u.sheathed && !u.mainThrown && Battle.isThrownItem(u.weapon.id)) out.push({ key: 'main', from: 'main', atk: handThrowAtk(u.weapon, 'main', u.weapon.id), name: u.weapon.name, n: 1, ok: true, why: '' });
+    var oid = u.src.equip.offhand;
+    if (u.offhand && !u.offhandSheathed && !u.offhandThrown && Battle.offThrow(u)) out.push({ key: 'off', from: 'off', atk: handThrowAtk(u.offhand, 'off', oid), name: u.offhand.name, n: 1, ok: true, why: '' });
+    if (u.alt && u.alt.thrown && u.alt.ranged && u.alt.range && Battle.thrownLeft(u, u.alt) > 0) { var nA = Battle.thrownLeft(u, u.alt); out.push({ key: 'alt', from: 'alt', carried: true, atk: u.alt, name: u.alt.name, n: nA === Infinity ? 99 : nA, ok: !drawWhy, why: drawWhy }); }
+    if (B && Battle.isHero(u)) (B.inv || []).forEach(function (s) {
+      if (!(s.n > 0) || !Battle.isThrownItem(s.id) || (u.alt && u.alt.stack === s)) return;
+      var a = Battle.packThrowAtk(u, s); out.push({ key: 'pack:' + s.id, from: 'pack', carried: true, atk: a, name: a.name, n: s.n, ok: !drawWhy, why: drawWhy });
+    });
+    return out;
+  };
+  Battle.throwSrc = function (B, u, key) { return key ? Battle.throwSrcs(B, u).filter(function (s) { return s.key === key; })[0] || null : null; };
+  // what the source is called on the wheel: "DAGGER (OFF HAND)", "HANDAXE (PACK, 2)"
+  Battle.throwLabel = function (s) { var nm = s.name.toUpperCase().replace(/^THROWN /, ''); return nm + (s.from === 'off' ? ' (OFF HAND)' : s.from === 'main' ? ' (IN HAND)' : s.from === 'pack' ? ' (PACK, ' + s.n + ')' : ' (CARRIED, ' + s.n + ')'); };
+  // the remembered throw still there to throw this fight: its source, or an off hand that the next draw refills, or a hand's weapon with more carried
+  Battle.prototype.throwKept = function (u) {
+    var k = u.throwPick; if (!k) return false;
+    if (Battle.throwSrc(this, u, k)) return true;
+    if (k === 'off' && u.offhand && u.offhandThrown && this.reserveOf(u, u.src.equip.offhand) > 0) return true;
+    return false;
+  };
+  // the warnings (his "if offhand warn 'throw your offhand weapon'?", "if the weapon from the pack wasn't in offhand but is magical or 'last' also warn?"): the lines, or none
+  Battle.prototype.throwWarn = function (u, s) {
+    var out = [], nm = s.name.toLowerCase().replace(/^thrown /, ''), id = s.atk.id;
+    if (s.from === 'off') out.push('Throw your off-hand ' + nm + '? No off-hand swing until another is drawn.');
+    if (s.from === 'main') out.push('Throw the ' + nm + ' in your hand? The hand is empty after it: an unarmed strike till it is taken up.');
+    var left = s.carried ? s.n - 1 : this.reserveOf(u, id);
+    if (left <= 0) out.push('Your last ' + nm + '.');
+    if (s.atk.magic) out.push('A magic weapon: it lies where it lands until picked up.');
+    return out;
+  };
+  // the off hand drawn again from the carried (his "if offhand throw + more in-pack auto-reload?", the desk's lean 2 approved: not with the free draw spent -- then at the turn's
+  // start, by that turn's free draw): one of the reserve into the off hand, the free draw spent, said in the log
+  Battle.prototype.reloadOff = function (u, atStart) {
+    if (!u || !u.offhandThrown || !u.offhand || !u.turn || u.turn.freeObj || u.dead || u.hp <= 0) return false;
+    var id = u.src && u.src.equip && u.src.equip.offhand; if (!id || this.reserveOf(u, id) <= 0) return false;
+    var st = Battle.isHero(u) ? (this.inv || []).filter(function (s) { return s.id === id && s.n > 0 && !(u.alt && u.alt.stack === s); })[0] : null;
+    if (st) st.n--; else if (u.alt && u.alt.id === id) this.takeCarried(u, u.alt); else return false;
+    delete u.offhandThrown; u.turn.freeObj = true;
+    this.card(['{y}' + Battle.nm(u, true) + '{/} draws another ' + u.offhand.name.toLowerCase() + ' into the off hand.  {g}(the free draw' + (atStart ? ' of this turn' : '') + '){/}'], 180);
+    return true;
+  };
+  Battle.prototype.reloadAtStart = function (u) { if (u && u.offhandThrown) this.reloadOff(u, true); };
+  // one of a counted thrown weapon taken (a throw, or the off hand's draw): its own first, then the pack's stack; with none left, gone from the choices
+  Battle.prototype.takeCarried = function (u, atk) {
     if (atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0)) atk.stack.n = Math.max(0, (atk.stack.n || 0) - 1); // (its own thrown first, then the pack's: gone from the pack -- 11-10)
     else { u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1; }
     if (this.thrownLeft(u, atk) > 0) return;
-    if (u.alt && u.alt.ranged && u.alt.name === atk.name) u.alt = null;
+    if (u.alt && u.alt.ranged && u.alt.name === atk.name && !(Battle.thrownLeft(u, u.alt) > 0)) u.alt = null;
     if (u.attacks && typeof u.attacks === 'object') { // (its own copy: the sheet's attacks are every one of its kind's)
       var own = Object.assign({}, u.attacks);
       Object.keys(own).forEach(function (k) { var a = own[k]; if (a && a.ranged && a.name === atk.name) delete own[k]; });
       if (atk.twin) delete own[atk.twin];
       u.attacks = own;
     }
+  };
+  // after a hand's throw: the hand empty (the off hand till the next draw; the main hand an unarmed strike till it is taken up)
+  Battle.prototype.throwAfter = function (u, s) {
+    if (s.from === 'off') { u.offhandThrown = true; if (!this.reloadOff(u)) this.card(['{g}(the ' + u.offhand.name.toLowerCase() + ' is thrown: the off hand empty' + (this.reserveOf(u, s.atk.id) > 0 ? ' -- another is drawn at the next free draw' : ' till it is taken up') + '){/}'], 160); }
+    if (s.from === 'main' && !u.mainThrown) { u.mainThrown = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) })); }
+  };
+  Battle.prototype.spendThrow = function (u, atk, tgt) {
+    if (atk.hand) { // (a weapon in hand thrown: no count -- it leaves the hand (throwAfter), lands, and the hand it left takes it back: groundBack)
+      if (u.side === 'party' && !atk.spell) { if (this.flying) this.landThrow(); this.flying = { u: u, atk: atk, tgt: tgt || null, how: atk.hand, id: atk.id || null, alt: u.alt, hit: false }; }
+      return;
+    }
+    if (this.thrownLeft(u, atk) === Infinity) return;
+    if (u.side === 'party' && atk.thrown && !atk.spell) { // (the throw in flight: where it lands once the roll is read -- Battle.landThrow, 11-10)
+      if (this.flying) this.landThrow();
+      var howF = atk.offhandSwing ? 'off' : atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0) ? 'pack' : 'kit';
+      this.flying = { u: u, atk: atk, tgt: tgt || null, how: howF, id: howF === 'off' ? (u.src && u.src.equip && u.src.equip.offhand) || null : atk.id || null, alt: u.alt, hit: false };
+    }
+    this.takeCarried(u, atk);
   };
   Battle.prototype.gearOptions = function (u) {
     var R = window.DS.R, h = u.src, T = u.turn, B = this, out = [];

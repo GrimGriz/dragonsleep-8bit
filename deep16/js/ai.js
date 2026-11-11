@@ -79,6 +79,7 @@
   var turnOf = function* (B, u) {
     var wasStill = !u.acted && !u.woken; // (the roper's False Appearance: a stalagmite till its first turn or a wound -- js/ui.js)
     RU.startTurn(u);
+    if (B.reloadAtStart) B.reloadAtStart(u); // (the off hand drawn again by this turn's free draw: battle.js, the throw 11-11)
     // the cloaker's Moan has no recharge (SRD 5.1, 11-03): its action at will, `ready` again as each of its turns begins -- the mark the darkness's cutscene reads, so the round
     // it moaned on its own turn the darts bring no second Moan (magic.js)
     if (u.moan && u.moan.recharge == null) u.moan.ready = true;

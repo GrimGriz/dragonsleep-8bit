@@ -225,7 +225,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1, pin: 1, endconc: 1 }; // (endconc: END <the spell held>, free, beside LET GO -- 10-17) // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, throw: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1, pin: 1, endconc: 1 }; // (endconc: END <the spell held>, free, beside LET GO -- 10-17) // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -292,7 +292,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['twinstrike', 'attack', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (offhand: two-weapon fighting's swing beside the Attack, 10-15)
+    ['twinstrike', 'attack', 'throwpick', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (throwpick: THROW <it> beside ATTACK once one is thrown in the fight -- the throw, 11-11) (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
@@ -307,7 +307,7 @@
   // beside one, the again, the fronted features), the situational ones (HIDE, BREAK FREE, PULL IT OFF ...), SPELLS, then ACTIONS and BONUSES -- every command that costs the action on
   // the one ring (the yellow A the bar counts), every one that costs the bonus action or is free on the other (the blue B) -- then END TURN. The two labels carry a Mascot's pools. The
   // ring wears the colour while it is open (cmdRing). The classes keep the first ring under RING ("I don't think the class ones are monster party weird"); RING2 in the menu puts them on it
-  var FIRST2 = { attack: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1 }; // (SPELLS on ACTIONS and BONUSES since 10-15: cmds2)
+  var FIRST2 = { attack: 1, throwpick: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1 }; // (SPELLS on ACTIONS and BONUSES since 10-15: cmds2)
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
@@ -334,7 +334,7 @@
     if (spA.length) A.unshift({ id: 'spells', label: 'SPELLS', cost: 'A', time: 'A', ok: spA.some(function (e) { return e.ok; }), why: 'nothing to cast with the action now', sub: 'spells', icon: 'spell', note: 'the spells that take the action, by level' });
     if (spB.length) Bn.unshift({ id: 'bspells', label: 'SPELLS', cost: 'B', time: 'B', ok: spB.some(function (e) { return e.ok; }), why: 'nothing to cast with the bonus action now', sub: 'spells', icon: 'spell', note: 'the spells that take the bonus action, by level' });
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['twinstrike', 'attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['twinstrike', 'attack', 'throwpick', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
@@ -833,7 +833,7 @@
       B.list = { kind: c.sub, items: items, sel: first, back: back || null }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.twin = !!c.twin; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwable(u); if (thK) B.card([D.keys('{g}THROW: a foe in sight within ' + thK.range[1] + ' ft (past ' + thK.range[0] + ', at disadvantage) -- ' + D.Battle.thrownLeft(u, thK) + ' left.  X back{/}')], 100000); } if (c.tool === 'help') { var hsN = B.units.filter(function (w) { return D.Battle.helpable(u, w) && D.Battle.shakable(w); }).map(D.Battle.nm); B.card([hsN.length ? '{g}HELP: shake ' + hsN.join(' and ') + ' awake -- click ' + (hsN.length > 1 ? 'the one to shake' : hsN[0]) + '; or a foe beside you, and the next ally to swing at it has advantage.{/}' : '{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake or an entranced one out of the pattern, or a hand out of a web or a grip.{/}'], 200); } /* (a sleeper beside you named, 11-06: his "'help' should be the 'shake to wake'") */ if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.twin = !!c.twin; B.toolSrc = c.src || null; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick); if (thK) B.card([D.keys('{g}THROW THE ' + thK.name.toUpperCase() + ': a foe in sight within ' + thK.atk.range[1] + ' ft (past ' + thK.atk.range[0] + ', at disadvantage)' + (thK.carried ? ' -- ' + thK.n + ' carried' : '') + '.  X back{/}')], 100000); } if (c.tool === 'help') { var hsN = B.units.filter(function (w) { return D.Battle.helpable(u, w) && D.Battle.shakable(w); }).map(D.Battle.nm); B.card([hsN.length ? '{g}HELP: shake ' + hsN.join(' and ') + ' awake -- click ' + (hsN.length > 1 ? 'the one to shake' : hsN[0]) + '; or a foe beside you, and the next ally to swing at it has advantage.{/}' : '{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake or an entranced one out of the pattern, or a hand out of a web or a grip.{/}'], 200); } /* (a sleeper beside you named, 11-06: his "'help' should be the 'shake to wake'") */ if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u, time) { // (time 'A' or 'B': only the spells cast with the action, or the bonus action -- RING2's two SPELLS, 10-15)
@@ -963,7 +963,7 @@
       return 'no';
     }
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
-    if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.range(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
+    if (tool === 'throw') { var thS = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick), thV = thS && thS.atk; return foe && thV && G.standing(foe) && G.range(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
     if (tool === 'grapple') return foe && D.Battle.grabbable(u, foe) ? 'ok' : 'no'; // (a hero's grapple: a foe beside, no more than one size larger -- 10-15)
     if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.range(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
@@ -1161,10 +1161,15 @@
           var ohC = B.commands(u).filter(function (k) { return k.id === 'offhand'; })[0];
           if (ohC && ohC.ok && u.offhand) return UI.command(B, u, { do: 'offhand', target: foe }, ['{y}OFF HAND:{/} the action is spent, so the ' + u.offhand.name.toLowerCase() + ' in the off hand swings at the ' + B.shortName(foe) + ' on the bonus action.']);
         }
+        // (a foe out of reach, a throw remembered this fight (battle.js u.throwPick): the throw offered, asked in the DASH THERE? shape -- his "makes that click offering"; none
+        // remembered yet, the refusal names the way to one -- the throw, 11-11)
+        var thR = !(u.weapon && u.weapon.ranged) && u.throwPick ? D.Battle.throwSrc(B, u, u.throwPick) : null;
+        if (thR && thR.ok && !D.rules.charmedBy(u, foe) && !B.canHit(u, foe) && (T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && G.range(u, foe) <= thR.atk.range[1] && G.los(u, foe).clear) { D.sfx('popup'); return UI.command(B, u, { do: 'throw', target: foe, src: thR.key, ask: true }); }
         D.sfx('error');
         if (D.rules.charmedBy(u, foe)) return B.card(['{o}' + u.name + ' is charmed: no raising a hand to the ' + B.shortName(foe) + '.{/}'], 160);
         if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
-        return B.card(['{o}' + D.Battle.nm(foe, true) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}'], 120);
+        var thWay = !(u.weapon && u.weapon.ranged) && D.Battle.throwSrcs(B, u).length ? '  {g}To throw: ACTIONS > THROW.{/}' : '';
+        return B.card(['{o}' + D.Battle.nm(foe, true) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}' + thWay], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
       if (v === 'no' && fearSquares(B, u)[x + ',' + y]) { var fsA = fearOf(B, u); D.sfx('error'); return B.card(['{p}' + u.name + ' is frightened of ' + (fsA.side === u.side ? fsA.name : D.Battle.nm(fsA)) + ': not one step nearer it.{/}'], 140); } // (a square the fear refuses says so: fearSquares)
@@ -1174,7 +1179,7 @@
       return;
     }
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
-    if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe }); var thC = D.Battle.throwable(u); return B.card(['{o}Throw: a foe within ' + (thC ? thC.range[1] : 60) + ' ft, in sight.{/}'], 120); }
+    if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe, src: B.toolSrc || u.throwPick || null }); var thC = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick); return B.card(['{o}Throw: a foe within ' + (thC ? thC.atk.range[1] : 60) + ' ft, in sight.{/}'], 120); }
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
     if (tool === 'grapple') { if (v === 'ok') return UI.command(B, u, { do: 'grapple', target: foe }); return B.card(['{o}Grapple: a foe beside you, no more than one size larger.{/}'], 120); }
     if (tool === 'offhand') { if (v === 'ok') return UI.command(B, u, { do: 'offhand', target: foe }); return B.card(['{o}Off hand: a foe in your reach' + (D.Battle.offThrow(u) ? ', or one to throw it at' : '') + '.{/}'], 120); }
@@ -2316,7 +2321,7 @@
         }
       }
     }
-    if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.range(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
+    if (tool === 'throw') { var thDs = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick), thD = thDs && thDs.atk; if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.range(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
     if (tool === 'grapple') B.units.forEach(function (w) { if (D.Battle.grabbable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes a grapple may seize: 10-15)
     if (tool === 'offhand') B.units.forEach(function (w) { if (UI.valid(B, u, w.x, w.y) === 'ok') G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes the off hand may reach: 10-15)
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
