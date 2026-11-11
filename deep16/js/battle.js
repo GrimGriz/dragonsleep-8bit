@@ -129,15 +129,17 @@
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.o.pack || this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }); // (o.pack: the Pocket DM's party pack, 10-17)
-    this.inv = this.o.embed || this.o.house ? pack : D.save.armoury(pack); // (the second game's house: its party carries what it owns, no loan -- js/house.js)
+    // (NO LOANS, 11-10 -- Griz: "just pull the lends straight out and have the doors put stuff in the pack if they need to?", then "yes": the fight lends nothing. A door that
+    // wants the crossbow, the bolts, the arrows and the rope puts them in its own pack -- the ladder's, the class floor's, ?fight= and the shows' party is the fixture's,
+    // armed by save.js SV.fixture (SV.armoury); the Pocket DM's party carries what the table owns, its kit's ammunition given at MAKE -- js/pocket.js)
+    this.inv = pack;
     (this.o.itemsTest || []).forEach(function (s) { var st = self.inv.filter(function (x) { return x.id === s[0]; })[0]; if (st) st.n = s[1]; else self.inv.push({ id: s[0], n: s[1] }); }); // (the class floor's &items=: js/classes.js npcFight)
-    // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human
-    // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")
+    // (a class hero's second weapon is no longer put in the fight's pack (10-01c, the rogue's shortbow): it is carried -- EQUIP offers it as the hero's own and a swap
+    // trades the two, gearOptions and swapGear below -- 11-10, the loans pulled)
     // (AN ALT FROM THE PACK, 11-10 -- his "4 - build", on his note of 11-09 "thrown weapons from the pack": EQUIP's ALT row, js/menu.js, the sheet's altPack): the thrown weapon
     // chosen is thrown from the pack's own stack, its kit's own first when it is the same weapon (u.alt.count, Battle.thrownLeft), at the item's own range (content/items.json
     // `thrown`, the SRD's property); none in the pack and none of its own, none to throw. Not lent: it is the pack's
     if (!this.o.embed) { var inv1 = this.inv; party.forEach(function (u) { var a = u.alt, it = a && u.src && u.src.altPack && window.DS.DATA.items[a.id], wd = it && it.weapon; if (!wd || u.side !== 'party') return; var rng = wd.thrown || ((wd.props || []).indexOf('thrown') >= 0 ? wd.range : null) || (D.npc.THROWN || {})[a.id]; if (!rng) return; a.ranged = true; a.thrown = true; a.range = rng.slice(); if (wd.versatile && a.dice === wd.versatile) a.dice = wd.dmg; if (u.src.altOwn !== a.id) a.count = 0; else if (a.count == null) a.count = 1; var stk = inv1.filter(function (s) { return s.id === a.id; })[0]; if (stk) a.stack = stk; }); }
-    if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && !(u.src && u.src.altPack) && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     this.torchBarrel = m.def && m.def.torchBarrel ? m.def.torchBarrel.slice() : null; // (the Edifice's barrel of torches behind the houses south of the street: a lit torch for anyone beside it with a hand for one, free, endless -- 10-05 night, Griz; exec 'barreltorch')
@@ -3692,6 +3694,14 @@
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
       out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
     });
+    // THE SECOND WEAPON CARRIED (11-10, the loans pulled -- it was put in the fight's pack, 10-01c): the hero's own `alt` (not an ALT named from the pack), and a swap trades
+    // the two -- the carried one in hand, the one in hand carried (swapGear; kept after a Pocket DM fight, js/pocket.js PK.fightKept). The action, as any swap (his "2 - hold")
+    var aIt = h.alt && !h.altPack && h.alt !== h.equip.weapon ? window.DS.DATA.items[h.alt] : null, aWd = aIt && aIt.kind === 'weapon' && aIt.weapon;
+    if (aWd && R.canEquip(h, aIt) && !out.some(function (o) { return o.kind === 'weapon' && o.id === h.alt; })) {
+      var aTwo = (aWd.props || []).indexOf('two-handed') >= 0, aWhy = busy || (aTwo && h.equip.shield ? 'two hands: the shield comes off first' : aTwo && h.equip.offhand ? 'two hands: the off hand empties first' : '');
+      var aAmmo = aWd.ammo ? ', ' + (packOf(B, aWd.ammo) ? packOf(B, aWd.ammo).n : 0) + ' ' + B.itemName(aWd.ammo).toLowerCase() : '';
+      out.push({ kind: 'weapon', id: h.alt, own: true, label: aIt.name + ' (carried)', note: aWd.dmg + ' ' + aWd.type + (aWd.range ? ', ' + aWd.range.join('/') + ' ft' : ', melee') + aAmmo + '; the ' + (R.item(h.equip.weapon) || { name: 'hand' }).name.toLowerCase() + ' carried', ok: !aWhy, why: aWhy });
+    }
     // armour: never in a fight (SRD 5.1, Getting Into and Out of Armor: a minute or more to don or doff, a shield an action -- RULED 10-07, Griz: "SRD everywhere",
     // "I suspect my ladder exception was prior to the camp or an oversight"; the ladder's ARMOUR OFF and WEAR of 09-27 cut, and with them the ?fight= doors' that
     // rode on its mark). The camp's EQUIP changes it before a rung, free
@@ -3709,13 +3719,23 @@
     });
     return out;
   };
+  // the unit's second weapon as the grid reads it, after a trade (js/classes.js NPC.unit builds it at the start: the same reading -- held for the swing, a thrown one at the
+  // item's own range with its one-handed die; one of it carried)
+  Battle.altUnit = function (h) {
+    var it = h.alt && window.DS.DATA.items[h.alt], wd = it && it.weapon; if (!wd) return null;
+    var two = (wd.props || []).indexOf('two-handed') >= 0, a = D.save.weaponOf(Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: two ? null : h.equip.shield }) }));
+    var rng = wd.thrown || ((wd.props || []).indexOf('thrown') >= 0 ? wd.range : null) || (D.npc.THROWN || {})[h.alt];
+    if (rng) { a.ranged = true; a.thrown = true; a.range = rng.slice(); if (wd.versatile && a.dice === wd.versatile) a.dice = wd.dmg; a.count = 1; }
+    return a;
+  };
   Battle.prototype.swapGear = function (u, o) {
     var R = window.DS.R, h = u.src, B = this;
     function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
-    if (!u.equip0) u.equip0 = JSON.parse(JSON.stringify(h.equip || {})); // (as it stood before the first swap: the Pocket DM keeps what the fight changed, js/pocket.js PK.fightKept -- 11-10)
+    if (!u.equip0) { u.equip0 = JSON.parse(JSON.stringify(h.equip || {})); u.alt0 = h.altPack ? undefined : (h.alt || null); } // (as it stood before the first swap: the Pocket DM keeps what the fight changed, js/pocket.js PK.fightKept -- 11-10; alt0: its own second weapon)
     Battle.payAction(u.turn); D.sfx('confirm');
-    if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
+    if (o.kind === 'weapon' && o.own) { var held = h.equip.weapon || null; h.equip.weapon = h.alt; h.alt = held; u.alt = Battle.altUnit(h); delete u.conds.ablaze; } // (the carried one in hand, the one in hand carried: 11-10)
+    else if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
     if (o.kind === 'offhandoff') { give(h.equip.offhand); h.equip.offhand = null; }

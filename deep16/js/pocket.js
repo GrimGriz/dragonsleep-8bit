@@ -311,15 +311,29 @@
   PK.coinFor = function (kinds) { return Math.round(PK.sum8(kinds) / 8 * 100); };
   // what the fight used comes off the pack; a stack the fight lent (the armoury's crossbow and bolts, js/save.js) is not the table's
   // (and what a swap in the fight changed is kept, PK.fightKept: a thing taken up stays worn, as the card's GEAR; a thing put down is the pack's -- 11-10)
-  PK.packBack = function (st, B) {
-    var kept = PK.fightKept(st, B), inv = {}, ids = {};
+  // (won: HALF THE AMMUNITION BACK, 11-10 -- Griz: "yes 20 at 'make' into the party pack and half back for arrows and crossbow bolts"; SRD 5.1 Ammunition: "At the end of the
+  // battle, you can recover half your expended ammunition by taking a minute to search the battlefield" -- a won field, rounded down; returns { id: n } recovered)
+  PK.packBack = function (st, B, won) {
+    var kept = PK.fightKept(st, B), inv = {}, ids = {}, back = {};
     (B.inv || []).forEach(function (x) { inv[x.id] = (inv[x.id] || 0) + (x.n || 0); });
     (st.pack || []).forEach(function (s) { ids[s.id] = 1; }); Object.keys(kept.d).forEach(function (id) { ids[id] = 1; });
     Object.keys(ids).forEach(function (id) { // (the pack as it was, give or take what the swaps moved, but never more than the fight left of it: what was spent, thrown or rusted away is gone)
-      var n0 = PK.packN(st, id), want = Math.max(0, Math.min(n0 + (kept.d[id] || 0), (inv[id] || 0) - (kept.cap[id] || 0)));
+      var n0 = PK.packN(st, id), was = n0 + (kept.d[id] || 0), want = Math.max(0, Math.min(was, (inv[id] || 0) - (kept.cap[id] || 0)));
+      var it = DS.DATA.items[id], half = won && it && it.kind === 'ammo' && was > want ? Math.floor((was - want) / 2) : 0;
+      if (half > 0) { want += half; back[id] = half; }
       if (want !== n0) PK.packAdd(st, id, want - n0);
     });
     kept.cards.forEach(function (k) { k.slot.gear = k.gear; });
+    return back;
+  };
+  // A CARD'S KIT AMMUNITION AT MAKE (11-10, Griz: "yes 20 at 'make' into the party pack"; the fight lends none since then -- js/battle.js): a bow or a crossbow in its kit
+  // (the weapon, the second weapon, the off hand) brings twenty of what it shoots into the party's pack, once, as the SRD 5.1's starting kits do ("a longbow and a quiver
+  // of 20 arrows", "a light crossbow and 20 bolts"). Returns { id: n } given
+  PK.kitAmmo = function (st, sp) {
+    var got = {}, eq = (sp && sp.equip) || {};
+    [eq.weapon, sp && sp.alt, eq.offhand].forEach(function (id) { var wd = id && DS.DATA.items[id] && DS.DATA.items[id].weapon; if (wd && wd.ammo && DS.DATA.items[wd.ammo] && !got[wd.ammo]) got[wd.ammo] = 20; });
+    Object.keys(got).forEach(function (a) { PK.packAdd(st, a, got[a]); });
+    return got;
   };
   // THE FIGHT'S EQUIP KEPT (11-10, Griz's record of 11-09: "There's item loss and what item equip loss going on somewhere. Bought Harley a scimitar and it's absent on the
   // camp screen, so its unequipped when we enter the fight. It's not absent in the fight and has to be equipped"): a swap in the fight -- the grid's EQUIP (js/battle.js
@@ -333,6 +347,7 @@
     var g = {};
     if (alt === undefined) { if (slot.gear && slot.gear.alt) g.alt = slot.gear.alt; }
     else if (alt && alt.pack && alt.id) g.alt = 'alt:' + alt.id;
+    else if (alt && (alt.id || null) !== (own.alt || null)) g.alt = alt.id ? 'altown:' + alt.id : 'noalt'; // (its own second weapon traded in a fight: the one it carries now -- 11-10)
     ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
       var now = equip[pl] || null, was = own.equip[pl] || null;
       if (now === was) return;
@@ -347,6 +362,8 @@
     if (!hs.length) return out;
     var ch = [];
     hs.forEach(function (u) { places.forEach(function (pl) { var a = u.equip0[pl] || null, b = u.src.equip[pl] || null; if (a !== b) ch.push({ u: u, pl: pl, a: a, b: b, keep: true }); }); });
+    // (its own second weapon traded -- the carried one in hand, the one in hand carried, js/battle.js swapGear: the second place a change of its own, so the two balance -- 11-10)
+    hs.forEach(function (u) { if (u.alt0 === undefined || u.src.altPack) return; var a = u.alt0 || null, b = u.src.alt || null; if (a !== b) ch.push({ u: u, pl: 'alt', a: a, b: b, keep: true }); });
     // a thing put on that the table never had in the fight (its pack, and what came off our heroes) was the fight's loan: that place keeps what it held
     for (var loop = 0; loop < 4; loop++) {
       var pool = {}, bad = false;
@@ -360,12 +377,12 @@
       else if (c.a) out.cap[c.a] = (out.cap[c.a] || 0) + 1; // (its own, back on it: in the fight's pack at the end, but not the table's)
     });
     hs.forEach(function (u) {
-      var slot = st.party[+/^p(\d+)-/.exec(u.id)[1]], eq = Object.assign({}, u.src.equip);
-      ch.forEach(function (c) { if (c.u === u && !c.keep) eq[c.pl] = c.a; });
+      var slot = st.party[+/^p(\d+)-/.exec(u.id)[1]], eq = Object.assign({}, u.src.equip), altC = null;
+      ch.forEach(function (c) { if (c.u !== u) return; if (c.pl === 'alt') altC = c; else if (!c.keep) eq[c.pl] = c.a; });
       // a winning put down is off the card's record, as the camp's give takes it (PK.dropWin): a stock word's `loot`, a made one's kit back in its place
-      var count = function (e, id) { return places.filter(function (pl) { return e[pl] === id; }).length; };
-      PK.winsOf(st, slot).forEach(function (id) { for (var k = count(u.equip0, id) - count(eq, id); k > 0; k--) PK.dropWin(st, slot, id); });
-      var g = PK.gearOf(st, slot, eq); if (g) out.cards.push({ slot: slot, gear: g });
+      var count = function (e, id) { return places.filter(function (pl) { return e[pl] === id; }).length; }, alt1 = altC ? (altC.keep ? altC.b : altC.a) : null;
+      PK.winsOf(st, slot).forEach(function (id) { for (var k = count(u.equip0, id) + (altC && altC.a === id ? 1 : 0) - count(eq, id) - (alt1 === id ? 1 : 0); k > 0; k--) PK.dropWin(st, slot, id); }); // (a winning traded to the carried place is still the card's)
+      var g = PK.gearOf(st, slot, eq, altC ? { id: altC.keep ? altC.b : altC.a, own: true } : undefined); if (g) out.cards.push({ slot: slot, gear: g });
     });
     return out;
   };
@@ -375,7 +392,7 @@
   // a card's GEAR in a place a new winning takes: back to the pack (a `no<place>` simply dropped), so the winning is worn and not covered
   PK.gearOff = function (st, slot, place) {
     var g = slot && slot.gear, v = g && place && g[place]; if (!v) return;
-    if (!/^no/.test(v) && !/^alt:/.test(v)) PK.packAdd(st, String(v).replace(/^off:/, ''), 1); delete g[place]; // (an ALT names the pack's own stack: nothing of it left the pack -- 11-10)
+    if (!/^no/.test(v) && !/^alt(own)?:/.test(v)) PK.packAdd(st, String(v).replace(/^off:/, ''), 1); delete g[place]; // (an ALT names the pack's own stack, a traded one is the card's own: nothing of it left the pack -- 11-10)
   };
   // the card as its word makes it without its GEAR: its own kit and its winnings
   PK.bareOf = function (st, slot) { var g0 = slot.gear; slot.gear = {}; try { return PK.sheetOf(PK.specOf(st, slot)); } finally { slot.gear = g0; } };
@@ -395,6 +412,7 @@
   // a card swapped off a seat: what it wore from the pack back to it, and a stock word's winnings with them (a made character keeps its own in its code)
   PK.slotToPack = function (st, slot) {
     if (!slot) return;
+    var g0 = slot.gear || {}; if (/^altown:/.test(g0.alt || '') && g0.weapon && /^altown:/.test(g0.alt)) { var bare0 = PK.bareOf(st, slot); if (bare0 && bare0.alt === g0.weapon) { delete g0.weapon; delete g0.alt; } } // (its own two weapons traded in a fight: both its kit's -- nothing to the pack, 11-10)
     Object.keys(slot.gear || {}).forEach(function (pl) { PK.gearOff(st, slot, pl); });
     if (slot.custom == null) (slot.loot || []).forEach(function (id) { PK.packAdd(st, id, 1); });
   };
@@ -778,7 +796,8 @@
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
     this.st.fights.unshift(rec); while (this.st.fights.length > KEEP) this.st.fights.pop();
     this.result = { res: res, rec: rec, end: end, loot: null };
-    PK.packBack(this.st, B); // (what the fight used comes off the pack, 10-17)
+    var ammoBack = PK.packBack(this.st, B, res === 'won'); // (what the fight used comes off the pack, 10-17; won, half the arrows and bolts shot come back -- 11-10)
+    if (Object.keys(ammoBack).length) { this.result.ammoBack = ammoBack; rec.ammoBack = Object.keys(ammoBack).map(function (id) { return ammoBack[id] + ' ' + (DS.DATA.items[id] || { name: id }).name.toLowerCase(); }).join(', '); }
     if (this.lightHeld) { if (!B.lampReturned) PK.packAdd(this.st, this.lightHeld, 1); this.lightHeld = null; } // (the light in hand back to the pack: it was never the fight's to spend -- a lantern nobody could take up came back by the fight's own pack)
     if (res === 'won') {
       var coin = PK.coinFor(info.kinds); this.st.purse = (this.st.purse == null ? 100 : this.st.purse) + coin; this.result.coin = coin; rec.coin = coin; // (100 sp a CR beaten)
@@ -1503,7 +1522,7 @@
     if (was) { if (was.mark) rec.mark = was.mark; if (was.dm) rec.dm = true; if (typeof was.xp === 'number' && was.lvl === rec.lvl) rec.xp = was.xp; } // (its mark kept, and its XP while its level is the same -- 10-17)
     else if (this.mk.villain) { rec.dm = true; rec.mark = 'villain'; } // (MAKE in THE VILLAINS: the DM's, on the shelf -- js/pocketdm.js)
     if (was) this.st.roster[this.mk.editing] = rec;
-    else { this.st.roster.push(rec); this.mk.editing = this.st.roster.length - 1; }
+    else { this.st.roster.push(rec); this.mk.editing = this.st.roster.length - 1; if (!this.mk.villain) { var am = PK.kitAmmo(this.st, sp); if (Object.keys(am).length) this.say(sp.name + '\'s kit: ' + Object.keys(am).map(function (a) { return am[a] + ' ' + (DS.DATA.items[a] || { name: a }).name.toLowerCase(); }).join(', ') + ' into the pack', 300); } } // (MAKE: a bow or crossbow's twenty, once -- 11-10)
     if (!this.mk.villain) this.st.party[this.mk.slot] = { custom: this.mk.editing };
     this.cache = {}; var kept = this.keep();
     D.sfx(kept ? 'levelup' : 'error'); // (not written: the message says so, and stays through the screen change)
@@ -1607,7 +1626,7 @@
     }, h);
   };
   Pocket.prototype.gearBack = function (i, h) {
-    var slot = this.st.party[i], g = slot && PK.gearOf(this.st, slot, h.equip, { id: h.alt || null, pack: !!h.altPack }); if (!g) return; // (as its word now makes it: a winning taken off is gone from it -- PK.gearOf, the fight's swaps' too; and its ALT, 11-10)
+    var slot = this.st.party[i], g = slot && PK.gearOf(this.st, slot, h.equip, { id: h.alt || null, pack: !!h.altPack, own: !h.altPack }); if (!g) return; // (as its word now makes it: a winning taken off is gone from it -- PK.gearOf, the fight's swaps' too; and its ALT, 11-10)
     slot.gear = g; this.cache = {}; this.keep();
   };
 
@@ -2041,6 +2060,7 @@
     var yy = y + 44;
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
     if (r.coin || r.xp || r.noXP) { yy += 4; D.text(ctx, '{y}' + [r.coin ? '+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp)' : '', r.xp ? '+' + r.xp + ' XP each' : '', r.noXP ? 'no XP: WATCH was on' : ''].filter(Boolean).join('  ·  ') + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17: the coin, and the XP -- none for a fight WATCH ran, Pocket.xpOn)
+    if (r.rec && r.rec.ammoBack) { yy += 4; D.text(ctx, 'searched the field: ' + r.rec.ammoBack + ' back in the pack', D.W / 2, yy, P('silver', 5), 'center'); yy += 6; } // (half the arrows and bolts shot, a won fight -- 11-10)
     if (r.levels && r.levels.length) { yy += 4; D.wrap('{y}' + r.levels.join(' ') + '{/}' + (this.st.editLevels ? ' The choices next (LEVEL-UPS: EDIT).' : ''), w - 30).slice(0, 2).forEach(function (t) { D.text(ctx, t, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); }
     if (r.loot) { // (into the pack; PUT IT ON is the player's word -- 10-17, his "rewards should go into pack and not-auto equip unless player confirms equip")
       var lg = r.loot, lit = DS.DATA.items[lg.item], lst = this.st;

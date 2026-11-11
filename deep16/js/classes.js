@@ -492,6 +492,7 @@
   NPC.wear = function (h, ids) {
     (ids || []).forEach(function (id) {
       var off = /^no(weapon|armor|shield|offhand|ring|ring2|cloak|feet|neck)$/.exec(id); if (off) { h.equip[off[1]] = null; return; } // (a card's GEAR: the place's own taken off, 10-17; any worn place too, his "removing it from barley doesn't take - doesn't go in pack, is on him again when you hit 'gear'")
+      var ao = /^altown:(.+)$/.exec(id); if (ao) { if (DS.DATA.items[ao[1]] && DS.DATA.items[ao[1]].weapon) { h.alt = ao[1]; h.altPack = false; } return; } if (id === 'noalt') { h.alt = null; return; } // (its own second weapon, traded in a fight: js/battle.js swapGear -- 11-10)
       var al = /^alt:(.+)$/.exec(id); if (al) { var ia = DS.DATA.items[al[1]]; if (ia && ia.weapon) { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = al[1]; h.altPack = true; } return; } // (EQUIP's ALT row: a thrown weapon from the pack, thrown from its stack -- js/battle.js; altOwn: what the word carried -- 11-10)
       var oh = /^off:(.+)$/.exec(id); if (oh) { var io = DS.DATA.items[oh[1]]; if (io && R.offhandWeapon && R.offhandWeapon(io) && R.canEquip(h, io)) { h.equip.offhand = oh[1]; h.equip.shield = null; } return; } // (a weapon in the off hand: the second sword)
       var it = DS.DATA.items[id], slot = it && R.slotFor(h, it);
