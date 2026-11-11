@@ -1655,10 +1655,22 @@
   // the token just left at every step (D.roam.step), is no obstacle to the party (D.grid.occupant: the party's own may walk onto her square, and she swaps behind), and
   // stands by the token again after the floor sets it somewhere (In.stage). She is on this floor till the party leaves it: the road with her is not built
   In.beside = function (B, u, t) { var G = D.grid, ds = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]; for (var i = 0; i < ds.length; i++) { var q = [t.x + ds[i][0], t.y + ds[i][1]]; if ((u.x === q[0] && u.y === q[1]) || G.canStand(u, q[0], q[1])) return q; } return [t.x, t.y]; };
-  In.follow = function (B) { var fo = B.roam && B.roam.follower, t = B.roam && B.roam.token; if (!fo || !t || B.units.indexOf(fo) < 0) return; if (Math.max(Math.abs(fo.x - t.x), Math.abs(fo.y - t.y)) <= 1 && !(fo.x === t.x && fo.y === t.y)) return; var q = In.beside(B, fo, t); fo.x = q[0]; fo.y = q[1]; fo.tween = null; D.grid.setup(B.map, B.units); B.cache = null; };
+  In.follow = function (B) { if (In.layFollower && B.roam && (!B.roam.follower || B.units.indexOf(B.roam.follower) < 0)) In.layFollower(B); var fo = B.roam && B.roam.follower, t = B.roam && B.roam.token; if (!fo || !t || B.units.indexOf(fo) < 0) return; if (Math.max(Math.abs(fo.x - t.x), Math.abs(fo.y - t.y)) <= 1 && !(fo.x === t.x && fo.y === t.y)) return; var q = In.beside(B, fo, t); fo.x = q[0]; fo.y = q[1]; fo.tween = null; D.grid.setup(B.map, B.units); B.cache = null; };
   (function () {
-    var Rm = D.roam, G = D.grid, step0 = Rm.step, occ0 = G.occupant, stage0 = In.stage;
+    var Rm = D.roam, G = D.grid, step0 = Rm.step, occ0 = G.occupant, stage0 = In.stage, people0 = T.people;
+    // LAID FROM THE FLAG (11-11 late, the supper seat; ruling 42, Griz: "let's not have the kid join the party token, constant reminder they're on an escort mission now"):
+    // she was a figure only on the floor the scene ran on, so a load, the stair, or any floor built anew lost her while f.childGuest stayed set. Now wherever one of the
+    // inn's floors (the yard and house, upstairs) stands its people -- js/town.js T.people, the one place a floor is laid or laid again -- she is stood beside the token
+    // from the flag; and the first step on a floor that had no token yet at its laying stands her too. Never twice: one already on the floor is kept
+    In.layFollower = function (B) {
+      var R0 = B && B.roam, def = Rm.def, f = R0 && R0.flags, t = R0 && R0.token; if (!f || !f.childGuest || !t || !def || (def.key !== In.KEY && def.key !== In.UP)) return null;
+      var have = B.units.filter(function (u) { return u.follower || u.scripted === 'barnKid'; }); if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
+      var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? 'commonerchild' : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
+      u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u;
+    };
+    T.people = function (B) { var r = people0.apply(this, arguments); In.layFollower(B); return r; };
     Rm.step = function* (B, u, to) {
+      if (B.roam && u === B.roam.token && (!B.roam.follower || B.units.indexOf(B.roam.follower) < 0)) In.layFollower(B);
       var fo = B.roam && u === B.roam.token ? B.roam.follower : null; if (fo && (B.units.indexOf(fo) < 0 || fo.dead)) fo = null;
       if (fo) { var fx = u.x, fy = u.y; if (!(fo.x === fx && fo.y === fy)) { fo.tween = { fx: fo.x, fy: fo.y, fz: G.gzAt(fo, fo.x, fo.y), t: 0, dur: In.PACE, mode: null }; fo.facing = D.spr.facingFor(fx - fo.x, fy - fo.y); if (fo.anim !== 'walk') { fo.anim = 'walk'; fo.animT = B.t; } fo.x = fx; fo.y = fy; } }
       yield* step0.call(this, B, u, to);
