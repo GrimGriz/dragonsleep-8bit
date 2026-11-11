@@ -37,8 +37,23 @@
   // a promise that settles when every named sheet's image has loaded (or failed); names a sheet set doesn't have are passed over
   S.ensure = function (names, low) { return Promise.all(srcsOf(names).map(function (s) { return S.load(s, low); })); };
   S.ensureAll = function () { return S.prefetch(Object.keys(D.SHEETS || {})); }; // (every sheet, behind what a scene waits on: the spell gallery's, any creature a spell may call)
+  // A HERO IN A MENU SLOT (js/menu.js host.walker 20x32 and host.portrait 32x48; one copy for THE WORLD's menu, the grid's and the Pocket DM camp's -- 11-11, Griz's NOTES:
+  // "not seeing player portraits in their 'm' menu slots"): the hero's own talking portrait where the art desk made one (js/counter.js C.HERO_PT, by the sheet worn), its
+  // idle still, the head and shoulders in the slot and the bust in STATUS; else the sheet's own figure standing, facing out, as the panel drew it since 10-07. The sheet or
+  // portrait is fetched the first time it is asked for, and null comes back till it is in (the menu draws every frame). cache: the host's own
+  S.menuFigure = function (name, w, hh, cache) {
+    if (!name) return null;
+    var C = D.counter, pt = C && C.HERO_PT && C.HERO_PT[name], ps = pt && D.SHEETS && D.SHEETS[pt];
+    var k = (ps ? pt : name) + ':' + w + 'x' + hh; if (cache[k]) return cache[k];
+    var want = ps ? pt : name;
+    if (!S.has(want)) { if (S.prefetch && !cache['?' + want]) { cache['?' + want] = 1; S.prefetch([want]); } return null; }
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
+    if (ps) { var s = hh < 40 ? 0.5 : hh / ps.fh; C.drawPortraitAt(cv.getContext('2d'), pt, 'idle', 0, w / 2 - ps.fw * s / 2 + ps.ax * s, ps.ay * s, s); } // (the frame's middle on the slot's, its top at the slot's top)
+    else S.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? S.drawnTop(name) + 2 : S.portraitY(name, 0, hh), { frame: 0 }); // (STATUS's portrait: the head in it, a tall one's too -- GreyFang's, 10-14)
+    return (cache[k] = cv);
+  };
   // true when every named sheet is settled (or there is nothing to fetch)
-  S.ready = function (names) { return S.offline || srcsOf(names).every(settled); };
+  S.ready =function (names) { return S.offline || srcsOf(names).every(settled); };
   S.failed = function (name) { var s = srcOf(name), im = s && D.images[s]; return !!(im && settled(s) && !im.naturalWidth); };
   // what may be wanted later (a fight's summons, the camp's coming fight): fetched behind, at low priority, once what a scene is
   // waiting on has come

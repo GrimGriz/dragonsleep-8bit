@@ -11123,6 +11123,24 @@
         hh.x = sg.x + 1; hh.y = sg.y + 2; B2.cache = null; var r1f = overBG(B2, hh, sg);
         okBG('1f and on its middle-front square (' + hh.x + ',' + hh.y + '): drawn at ' + r1f.a + ', the giant at ' + r1f.b + ' (want the hero after)', r1f.ok);
       }
+      // 2. THE HEROES IN THEIR M MENU SLOTS ("not seeing player portraits in their 'm' menu slots"): each host's walker (the panel's slot) and portrait (STATUS) ask for the
+      // hero's talking portrait where the art desk made one (js/counter.js C.HERO_PT) -- THE WORLD's menu (js/house.js), the grid's (js/ui.js gridHost), the Pocket DM camp's (js/pocket.js,
+      // which had no figure at all). Asked with nothing loaded: what each one fetches is what it would draw
+      var has0BG = D.spr.has, pre0BG = D.spr.prefetch, askedBG = [];
+      function asksBG(host, h) { askedBG = []; D.spr.has = function () { return false; }; D.spr.prefetch = function (n) { askedBG = askedBG.concat(n); return Promise.resolve(); };
+        try { var w = host.walker ? host.walker(h) : 'none', p = host.portrait ? host.portrait(h) : 'none'; return { walker: host.walker ? 'fn' : 'none', portrait: host.portrait ? 'fn' : 'none', asked: askedBG.slice() }; } finally { D.spr.has = has0BG; D.spr.prefetch = pre0BG; } }
+      var Hh = D.house, rec2 = Hh.fresh(), cur2 = Hh.cur; Hh.cur = rec2; var sc2 = {};
+      try { Hh.openMenu(sc2); var hs2 = sc2.pm.host, au2 = hs2.party().filter(function (h) { return h.id === 'aurdin'; })[0], a2 = asksBG(hs2, au2);
+        okBG('2a THE WORLD\'s menu, Aurdin\'s slot and STATUS ask for ' + JSON.stringify(a2.asked) + ' (want his portrait, pt_aurdin_red -- he wears the Red Mantle out of robes)', a2.asked.indexOf('pt_aurdin_red') >= 0);
+      } finally { Hh.cur = cur2; }
+      var B3 = mkBG('?npc=goblin&vs=barley,vivian&lvl=3'); D.ui.openMenu(B3); var gh3 = B3.menu.m.host, vv3 = gh3.party().filter(function (h) { return /vivian/i.test(h.name); })[0], a3 = vv3 ? asksBG(gh3, vv3) : { asked: [] }; B3.menu = null;
+      okBG('2b the grid\'s menu (a fight, M), Vivian\'s slot asks for ' + JSON.stringify(a3.asked) + ' (want pt_vivian)', a3.asked.indexOf('pt_vivian') >= 0);
+      var Pc = new D.Pocket(); Pc.enter(); Pc.st.party = [{ w: 'lymen', lvl: 4, loot: [] }, { w: 'cleric', lvl: 4, loot: [] }]; Pc.cache = {}; Pc.go && Pc.go('hub'); Pc.openMenu(); var pc4 = Pc.pm && Pc.pm.host;
+      if (!pc4) okBG('2c the Pocket DM camp\'s menu opens', false);
+      else { var pb4 = pc4.party()[0], a4 = asksBG(pc4, pb4), a5 = pc4.party()[1] ? asksBG(pc4, pc4.party()[1]) : { asked: [] };
+        okBG('2c the Pocket DM camp\'s menu: walker ' + a4.walker + ', portrait ' + a4.portrait + '; Lymen\'s slot asks for ' + JSON.stringify(a4.asked) + ' (want both, pt_lymen)', a4.walker === 'fn' && a4.portrait === 'fn' && a4.asked.indexOf('pt_lymen') >= 0);
+        okBG('2d and a made cleric (no portrait drawn) asks for its figure: ' + JSON.stringify(a5.asked) + ' (want one sheet, not a pt_)', a5.asked.length >= 1 && !/^pt_/.test(a5.asked[0]));
+        Pc.pm = null; }
       //@@MORE@@
     } catch (eBG) { repBG.errors.push(String(eBG && eBG.stack || eBG).slice(0, 900)); }
     var preBG = document.createElement('pre'); preBG.id = 'out'; preBG.textContent = 'BENCH16 ' + JSON.stringify(repBG);

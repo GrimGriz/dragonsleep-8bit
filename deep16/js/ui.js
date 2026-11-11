@@ -1255,11 +1255,7 @@
     // head and shoulders in the panel's 20x32 (as the old PARTY panel cut it) and head to foot in STATUS's 32x48; drawn once its image is in, null till then
     var figs = {};
     function figure(h, w, hh) {
-      var u = unitOf(h), name = u && u.sheet; if (!name || !D.spr.has(name)) return null;
-      var k = name + ':' + w; if (figs[k]) return figs[k];
-      var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
-      D.spr.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? D.spr.drawnTop(name) + 2 : D.spr.portraitY(name, 0, hh), { frame: 0 }); // (STATUS's portrait: the head in it, a tall one's too -- GreyFang's, 10-14)
-      return (figs[k] = cv);
+      var u = unitOf(h); return D.spr.menuFigure(u && u.sheet, w, hh, figs); // (the hero's portrait where one was drawn, else the figure: js/sprites.js S.menuFigure, 11-11)
     }
     var gu = gearHero(B), turn = gu ? sheet(gu) : null, COSTW = { A: 'the action', B: 'the bonus action', F: 'free', M: 'movement' };
     return {

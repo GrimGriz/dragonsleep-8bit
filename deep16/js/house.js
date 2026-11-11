@@ -912,13 +912,9 @@
   // Pocket DM's camp hands one, its own state), the field's rules (H.field)
   H.openMenu = function (scene) {
     var rec = H.cur, R = DS.R, figs = {};
-    function figure(h, w, hh) { // (the grid's own figure in the panel and STATUS, as deep16/js/ui.js gridHost draws it; the sheet fetched the first time it is asked for)
-      var lk = D.save.look ? D.save.look(h.id, null, h) : null, name = (lk && lk.sheet) || h.id + '_p0';
-      if (!D.spr.has(name)) { if (D.spr.prefetch && !figs['?' + name]) { figs['?' + name] = 1; D.spr.prefetch([name]); } return null; }
-      var k = name + ':' + w; if (figs[k]) return figs[k];
-      var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
-      D.spr.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? D.spr.drawnTop(name) + 2 : D.spr.portraitY(name, 0, hh), { frame: 0 });
-      return (figs[k] = cv);
+    function figure(h, w, hh) { // (the hero's portrait, or the grid's own figure, in the panel and STATUS: js/sprites.js S.menuFigure, the one copy)
+      var lk = D.save.look ? D.save.look(h.id, null, h) : null;
+      return D.spr.menuFigure((lk && lk.sheet) || h.id + '_p0', w, hh, figs);
     }
     scene.pm = DS.MENU.open({
       party: function () { return rec.party; },

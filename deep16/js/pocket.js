@@ -2282,8 +2282,10 @@
     var wins = at.map(function (i) { return PK.winsOf(st, st.party[i]); }), wornN = function (h, id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
     var give = function (id, n) { for (var k = 0; k < hs.length; k++) if (wornN(hs[k], id) >= 1) { var wk = wins[k].indexOf(id); if (wk >= 0 && wornN(hs[k], id) <= 1 && PK.dropWin(st, st.party[at[k]], id)) wins[k].splice(wk, 1); break; } PK.packAdd(st, id, n || 1); };
     var lh = this.lightHost(hs, at, give), was = hs.map(PK.campSnap); // (was: each sheet as the menu opened it -- what its close writes back is what changed)
+    var looks = at.map(function (i) { return PK.lookOf(specs[i]); }), figs = {}, figOf = function (h, w, hh) { var k = hs.indexOf(h); return k < 0 ? null : D.spr.menuFigure(looks[k], w, hh, figs); };
     this.pm = DS.MENU.open({
       party: function () { return hs; },
+      walker: function (h) { return figOf(h, 20, 32); }, portrait: function (h) { return figOf(h, 32, 48); }, // (the heroes in their slots and STATUS, as THE WORLD's menu has them: their portrait or their figure -- js/sprites.js S.menuFigure, 11-11; the camp's had none)
       pack: function () { return self.campPack(); },
       give: give,
       take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
