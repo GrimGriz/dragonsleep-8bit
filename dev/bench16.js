@@ -4210,6 +4210,156 @@
     document.body.appendChild(prePI);
     return;
   }
+  // THE THROW (mode=throw1111; the grid throw seat, 11-11, on his play of 11-11 -- "couldn't figure out how to throw a dagger with drill, and I don't think I like the 'alt' thing
+  // (which lacked a 'none' option to prevent accidental throwing)" -- and the desk's ruled build of the same day): 1. THROW on every menu (RING and WINDOW lost it); 2. who can throw:
+  // a weapon in the main hand, in the off hand, or carried (the ALT, the pack) with a hand free to draw it, the draw the turn's free object interaction; the off hand's as the
+  // Attack's attack too, and its throw no longer spends the ALT of the same name; 3. a throw picked is remembered for the fight: THROW on the first ring, a click on a foe out of
+  // reach asks it; 4. the warnings, one prompt; 5. the off hand drawn again from the carried, by the free draw, or at the next turn's start; 6. NONE in EQUIP's ALT row;
+  // 7. the class AI throws a carried weapon only with a hand and the free draw, once a turn, and swings at one beside it
+  if (get('mode', '') === 'throw1111') {
+    var repTH = { checks: [], errors: [], notes: [] }, memTH = {}, stGTH = D.store.get, stSTH = D.store.set, muTH = D.music, apTH = window.DS.autoPicks, d0TH = D.d, push0TH = D.push, UIt = D.ui, RUth = D.rules, GGth = D.grid, BTt = D.Battle, style0TH = UIt.opts.style;
+    function okTH(what, v) { repTH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    // run a command's coroutine; a THROW prompt kept in `asked` and answered by `pick`, every other (a Drillyard play on the hit) by its first option
+    function runTH(g, asked, pick) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { var p = st.value.prompt; var thp = /THROW/.test(p.title || ''); if (asked && thp) asked.push({ title: p.title || '', lines: (p.lines || []).join(' / ') }); v = pick && thp ? pick(p) : p.opts[0].value; } } }
+    function mkTH(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function partyTH(Bx) { return Bx.units.filter(function (w) { return w.side === 'party'; })[0]; }
+    function foeTH(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; })[0]; }
+    function nTH(Bx) { return (Bx.logEntries || []).length; }
+    function logTH(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '); }
+    function openTH(w, h) { var m = GGth.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    // the hero and the foe dx squares apart on open ground, everyone else far off; the hero's turn begun
+    function standTH(Bx, u, f, dx) { var o = openTH(dx + 2, 2); Bx.units.forEach(function (w, i) { if (w !== u && w !== f) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } }); u.x = o[0]; u.y = o[1]; f.x = o[0] + dx; f.y = o[1]; f.hp = f.maxhp = 300; GGth.setup(GGth.map, Bx.units.filter(function (w) { return !w.dead; })); Bx.cache = null; RUth.startTurn(u); Bx.active = u; return o; }
+    function srcTH(Bx, u, key) { return BTt.throwSrcs ? BTt.throwSrcs(Bx, u).filter(function (s) { return s.key === key; })[0] : null; }
+    function keysTH(Bx, u) { return BTt.throwSrcs ? BTt.throwSrcs(Bx, u).map(function (s) { return s.key + (s.ok ? '' : '(x: ' + s.why + ')'); }).join(', ') : 'no Battle.throwSrcs'; }
+    function ringTH(Bx, u, st) { UIt.opts.style = st; try { return st === 'ring2' ? UIt.cmds2(Bx, u) : UIt.cmds(Bx, u); } finally { UIt.opts.style = style0TH; } }
+    function subTH(r, id) { var g = r.filter(function (c) { return c.id === id; })[0]; return g && g.items ? g.items.map(function (x) { return x.id; }) : []; }
+    var DRILL = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger'; // (his card, the play records lane's 2026-11-11 section)
+    var PELL = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Pell..twf.drillyard+shortsword'; // (a shortsword and an empty off hand, his ALT a dagger)
+    var KIT = '~fighter.3.human.16-14-15-9-13-11.dagger_chainmail_______.Kit..twf.drillyard'; // (a dagger in the main hand, nothing else)
+    D.store.get = function (k) { return memTH[k] ? JSON.parse(memTH[k]) : null; }; D.store.set = function (k, v) { memTH[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); }; // (every d20 a 15, every other die its half: a throw at the bugbear hits)
+    try {
+      try {
+      // 1. THROW ON EVERY MENU: Drill's THROW (the engine's) under ACTIONS on RING, WINDOW and RING2 -- RING and WINDOW drew `top` by name and `throw` was none of them
+      var B1 = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d1 = partyTH(B1), g1 = foeTH(B1); standTH(B1, d1, g1, 5);
+      var en1 = (B1.commands(d1) || []).map(function (c) { return c.id; }), r1 = subTH(ringTH(B1, d1, 'ring'), 'actions'), w1 = subTH(ringTH(B1, d1, 'window'), 'actions'), q1 = subTH(ringTH(B1, d1, 'ring2'), 'actions');
+      okTH('1 Drill 25 ft from the bugbear: the engine offers throw ' + (en1.indexOf('throw') >= 0) + '; ACTIONS holds THROW on RING ' + (r1.indexOf('throw') >= 0) + ', WINDOW ' + (w1.indexOf('throw') >= 0) + ', RING2 ' + (q1.indexOf('throw') >= 0) + ' (want all four true)',
+        en1.indexOf('throw') >= 0 && r1.indexOf('throw') >= 0 && w1.indexOf('throw') >= 0 && q1.indexOf('throw') >= 0);
+      var th1 = (B1.commands(d1) || []).filter(function (c) { return c.id === 'throw'; })[0], it1 = th1 && th1.items ? th1.items.map(function (x) { return x.src + ':' + x.label; }).join(', ') : 'none';
+      okTH('1 THROW lists what can be thrown and from where: ' + it1 + ' (want the off hand\'s dagger, and the carried dagger named)', !!th1 && !!th1.items && th1.items.some(function (x) { return x.src === 'off' && /OFF HAND/.test(x.label); }) && th1.items.some(function (x) { return x.src === 'alt'; }));
+      } catch (eS) { repTH.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 2. WHO CAN THROW: in hand, or carried with a hand free to draw it (the free draw)
+      var B2 = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d2 = partyTH(B2), g2 = foeTH(B2); standTH(B2, d2, g2, 5);
+      var a2 = srcTH(B2, d2, 'alt'), o2 = srcTH(B2, d2, 'off');
+      okTH('2a Drill (a shortsword, a dagger in the off hand, a dagger carried): ' + keysTH(B2, d2) + ' (want the off hand\'s to throw; the carried one refused: no free hand)', !!o2 && o2.ok && !!a2 && !a2.ok && /free hand/.test(a2.why || ''));
+      var B2b = mkTH('?npc=bugbear&lvl=3&vs=paladin:3'), p2 = partyTH(B2b); standTH(B2b, p2, foeTH(B2b), 5); var a2b = srcTH(B2b, p2, 'alt');
+      okTH('2b a paladin with sword and shield, a handaxe carried: ' + keysTH(B2b, p2) + ' (want the handaxe refused: no free hand)', !!a2b && !a2b.ok);
+      var B2c = mkTH('?npc=bugbear&lvl=3&vs=' + PELL), e2 = partyTH(B2c), g2c = foeTH(B2c); standTH(B2c, e2, g2c, 5); B2c.inv = [{ id: 'handaxe', n: 2 }];
+      var a2c = srcTH(B2c, e2, 'alt'), k2c = srcTH(B2c, e2, 'pack:handaxe');
+      okTH('2c a shortsword and an empty off hand, a dagger carried, two handaxes in the pack: ' + keysTH(B2c, e2) + ' (want both to throw)', !!a2c && a2c.ok && !!k2c && k2c.ok && k2c.n === 2);
+      e2.turn.freeObj = true; var a2d = srcTH(B2c, e2, 'alt');
+      okTH('2c the free draw already spent this turn: the carried dagger ' + (a2d ? (a2d.ok ? 'offered' : 'refused: ' + a2d.why) : 'missing') + ' (want refused, the draw named)', !!a2d && !a2d.ok && /draw/.test(a2d.why || ''));
+      e2.turn.freeObj = false; var n2 = nTH(B2c);
+      runTH(B2c.exec(e2, { do: 'throw', target: g2c, src: 'pack:handaxe' }));
+      var st2 = B2c.inv.filter(function (s) { return s.id === 'handaxe'; })[0];
+      okTH('2d the pack\'s handaxe thrown: the stack ' + (st2 && st2.n) + ', the free draw spent ' + e2.turn.freeObj + ', the action ' + e2.turn.action + ', "' + logTH(B2c, n2).slice(0, 120) + '" (want 1, true, 0)', !!st2 && st2.n === 1 && e2.turn.freeObj === true && e2.turn.action === 0);
+      var B2e = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d2e = partyTH(B2e), g2e = foeTH(B2e); standTH(B2e, d2e, g2e, 5); d2e.turn.freeObj = true; // (no draw: no reload this turn)
+      var al2e = BTt.thrownLeft(d2e, d2e.alt);
+      runTH(B2e.exec(d2e, { do: 'throw', target: g2e, src: 'off' }));
+      okTH('2e the off hand\'s dagger thrown as the Attack\'s attack: the off hand empty ' + !!d2e.offhandThrown + ', the action ' + d2e.turn.action + ', the bonus ' + d2e.turn.bonus + ', the carried dagger ' + (d2e.alt ? BTt.thrownLeft(d2e, d2e.alt) : 'GONE') + ' of ' + al2e + ' (want true, 0, 1, 1 of 1: the off hand\'s throw spends no ALT of the same name)',
+        !!d2e.offhandThrown && d2e.turn.action === 0 && d2e.turn.bonus === 1 && !!d2e.alt && BTt.thrownLeft(d2e, d2e.alt) === 1);
+      var B2f = mkTH('?npc=bugbear&lvl=3&vs=' + KIT), k2f = partyTH(B2f), g2f = foeTH(B2f); standTH(B2f, k2f, g2f, 5);
+      var m2f = srcTH(B2f, k2f, 'main');
+      runTH(B2f.exec(k2f, { do: 'throw', target: g2f, src: 'main' }));
+      var gr2f = (B2f.ground || [])[0], hand2f = k2f.weapon && k2f.weapon.id;
+      if (gr2f) { B2f.groundBack(gr2f); B2f.ground = []; }
+      okTH('2f a dagger in the main hand: offered ' + !!(m2f && m2f.ok) + '; thrown, the hand ' + (hand2f || 'empty') + ', on the floor ' + (gr2f ? gr2f.how : 'nothing') + '; taken up, the hand ' + (k2f.weapon && k2f.weapon.id) + ' (want true, empty, main, dagger)',
+        !!(m2f && m2f.ok) && hand2f !== 'dagger' && !!gr2f && gr2f.how === 'main' && k2f.weapon && k2f.weapon.id === 'dagger');
+      } catch (eS) { repTH.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 3. REMEMBERED FOR THE FIGHT (his "once a player digs into action to do a throw (each fight), it adds throw to the wheel next to attack and makes that click offering")
+      var B3 = mkTH('?npc=bugbear&lvl=3&vs=' + PELL), e3 = partyTH(B3), g3 = foeTH(B3); standTH(B3, e3, g3, 5); B3.inv = [{ id: 'handaxe', n: 2 }];
+      var cards3 = [], cmds3 = [], cardTH0 = B3.card, ansTH0 = B3.answer; B3.card = function (ls) { cards3.push(window.DS.stripCodes([].concat(ls).join(' '))); }; B3.answer = function (c) { cmds3.push(c); };
+      var top3a = ringTH(B3, e3, 'ring').map(function (c) { return c.id; });
+      B3.tool = 'attack'; UIt.actAt(B3, e3, g3.x, g3.y);
+      var said3 = cards3.join(' | '); cards3.length = 0;
+      okTH('3a before any throw: the first ring ' + top3a.join(' ') + '; a click on the bugbear 25 ft off: ' + (cmds3.length ? 'a command' : 'refused') + ', "' + said3 + '" (want no THROW up front, refused, the way named: ACTIONS > THROW)', top3a.indexOf('throwpick') < 0 && !cmds3.length && /ACTIONS > THROW/.test(said3));
+      B3.card = cardTH0; B3.answer = ansTH0;
+      runTH(B3.exec(e3, { do: 'throw', target: g3, src: 'pack:handaxe' }));
+      RUth.startTurn(e3); B3.active = e3; var top3b = ringTH(B3, e3, 'ring'), tp3 = top3b.filter(function (c) { return c.id === 'throwpick'; })[0], top3q = ringTH(B3, e3, 'ring2').map(function (c) { return c.id; });
+      okTH('3b thrown once from ACTIONS: remembered ' + e3.throwPick + '; the next turn\'s first ring ' + top3b.map(function (c) { return c.id; }).join(' ') + ' ("' + (tp3 && tp3.label) + '"), RING2\'s ' + top3q.join(' ') + ' (want pack:handaxe, THROW HANDAXE beside ATTACK on both)',
+        e3.throwPick === 'pack:handaxe' && !!tp3 && /HANDAXE/.test(tp3.label) && top3b.map(function (c) { return c.id; }).indexOf('throwpick') === top3b.map(function (c) { return c.id; }).indexOf('attack') + 1 && top3q.indexOf('throwpick') >= 0);
+      B3.card = function (ls) { cards3.push(window.DS.stripCodes([].concat(ls).join(' '))); }; B3.answer = function (c) { cmds3.push(c); };
+      B3.tool = 'attack'; UIt.actAt(B3, e3, g3.x, g3.y); var c3 = cmds3[0];
+      B3.card = cardTH0; B3.answer = ansTH0;
+      okTH('3c then a click on the bugbear out of reach: ' + JSON.stringify(c3 ? { do: c3.do, src: c3.src, ask: c3.ask } : null) + ' (want the throw with the handaxe, asked)', !!c3 && c3.do === 'throw' && c3.src === 'pack:handaxe' && !!c3.ask);
+      var asked3 = [];
+      if (c3) runTH(B3.exec(e3, c3), asked3);
+      var st3 = B3.inv.filter(function (s) { return s.id === 'handaxe'; })[0];
+      okTH('3c the click\'s throw asks once (' + JSON.stringify(asked3) + ') and throws: the stack ' + (st3 && st3.n) + ' (want one prompt, THROW in its title; 0)', asked3.length === 1 && /THROW/.test(asked3[0].title) && !!st3 && st3.n === 0);
+      RUth.startTurn(e3); var top3d = ringTH(B3, e3, 'ring').map(function (c) { return c.id; });
+      okTH('3d the last handaxe thrown: remembered ' + e3.throwPick + ', the first ring ' + top3d.join(' ') + ' (want none remembered, no THROW up front -- his d-1)', !e3.throwPick && top3d.indexOf('throwpick') < 0);
+      } catch (eS) { repTH.errors.push('section 3: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 4. THE WARNINGS: one prompt, only when true
+      var B4 = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d4 = partyTH(B4), g4 = foeTH(B4); standTH(B4, d4, g4, 5); var asked4 = [];
+      runTH(B4.exec(d4, { do: 'throw', target: g4, src: 'off' }), asked4, function () { return false; });
+      okTH('4a the off hand\'s dagger, NOT NOW: asked ' + JSON.stringify(asked4) + '; after it the off hand empty ' + !!d4.offhandThrown + ', the action ' + d4.turn.action + ' (want one prompt naming the off-hand dagger; false, 1)', asked4.length === 1 && /off-hand dagger/i.test(asked4[0].lines + asked4[0].title) && !d4.offhandThrown && d4.turn.action === 1);
+      var B4b = mkTH('?npc=bugbear&lvl=3&vs=' + PELL), e4 = partyTH(B4b), g4b = foeTH(B4b); standTH(B4b, e4, g4b, 5); B4b.inv = [{ id: 'dagger1', n: 1 }, { id: 'handaxe', n: 3 }]; var asked4b = [];
+      runTH(B4b.exec(e4, { do: 'throw', target: g4b, src: 'pack:dagger1' }), asked4b);
+      okTH('4b the pack\'s one Dagger +1: asked ' + JSON.stringify(asked4b) + ' (want one prompt: the last, and a magic weapon)', asked4b.length === 1 && /last/i.test(asked4b[0].lines) && /magic/i.test(asked4b[0].lines));
+      RUth.startTurn(e4); var asked4c = [];
+      runTH(B4b.exec(e4, { do: 'throw', target: g4b, src: 'pack:handaxe' }), asked4c);
+      okTH('4c one of three plain handaxes: asked ' + asked4c.length + ' (want 0: nothing to warn of)', asked4c.length === 0);
+      } catch (eS) { repTH.errors.push('section 4: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 5. THE OFF HAND DRAWN AGAIN from the carried: by the free draw at once, or the next turn's
+      var B5 = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d5 = partyTH(B5), g5 = foeTH(B5); standTH(B5, d5, g5, 5); var n5 = nTH(B5);
+      runTH(B5.exec(d5, { do: 'throw', target: g5, src: 'off' }));
+      var l5 = logTH(B5, n5);
+      okTH('5a the off hand\'s dagger thrown, the free draw unspent: the off hand ' + (d5.offhandThrown ? 'EMPTY' : 'filled') + ', the carried dagger ' + (d5.alt ? BTt.thrownLeft(d5, d5.alt) : 0) + ', the free draw spent ' + d5.turn.freeObj + ', "' + (l5.match(/[^|]*draws another[^|]*/) || [''])[0].trim() + '" (want filled, 0, true, the line)', !d5.offhandThrown && !(d5.alt && BTt.thrownLeft(d5, d5.alt) > 0) && d5.turn.freeObj === true && /draws another dagger/.test(l5));
+      var won5 = B5.gatherThrown('won');
+      okTH('5a the fight won: "' + window.DS.stripCodes(won5 || '') + '"; the thrown one back with what is carried: ' + (d5.alt ? BTt.thrownLeft(d5, d5.alt) : 'no ALT') + ', the off hand ' + (d5.offhandThrown ? 'EMPTY' : 'filled') + ' (want 1, filled)', !!d5.alt && BTt.thrownLeft(d5, d5.alt) === 1 && !d5.offhandThrown);
+      var B5b = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d5b = partyTH(B5b), g5b = foeTH(B5b); standTH(B5b, d5b, g5b, 5); d5b.turn.freeObj = true;
+      runTH(B5b.exec(d5b, { do: 'throw', target: g5b, src: 'off' }));
+      var mid5 = !!d5b.offhandThrown; RUth.startTurn(d5b); var n5b = nTH(B5b); if (B5b.reloadAtStart) B5b.reloadAtStart(d5b);
+      okTH('5b the free draw spent before the throw: the off hand empty after it ' + mid5 + '; the next turn begins: the off hand ' + (d5b.offhandThrown ? 'EMPTY' : 'filled') + ', its free draw spent ' + d5b.turn.freeObj + ', "' + logTH(B5b, n5b).slice(0, 120) + '" (want true, filled, true, said -- his d-2)', mid5 && !d5b.offhandThrown && d5b.turn.freeObj === true && /draw/.test(logTH(B5b, n5b)));
+      } catch (eS) { repTH.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 6. NONE IN EQUIP'S ALT ROW (his "lacked a 'none' option to prevent accidental throwing")
+      var HARLEY = '~fighter.4.halforc.18-12-15-8-12-10.scimitar_scalemail__scimitar____bootselvenkind_.Harley..twf', PKt = D.pocket;
+      memTH = {}; var P6 = new D.Pocket(); P6.enter(); P6.ask = function () { return true; };
+      P6.st.roster = [{ code: HARLEY, name: 'Harley' }]; P6.st.party = [{ custom: 0 }]; P6.st.pack = [{ id: 'handaxe', n: 3 }]; P6.st.run = null; P6.cache = {};
+      P6.openGear(0); var m6 = P6.pm, ep6 = m6 && m6.pages[0], h6 = ep6 && ep6.h;
+      var cp6 = m6.push(new window.DS.MENU.CandPage(m6, h6, 'alt', ep6)), c6 = cp6.list.items.map(function (r) { return r.value; });
+      cp6.list.i = Math.max(0, c6.indexOf('__none')); cp6.list.update = function () { return 'pick'; }; cp6.update({});
+      var alt6 = h6.alt; m6.pop(); var s6 = P6.st.party[0], hN6 = PKt.sheetOf(PKt.specOf(P6.st, s6));
+      okTH('6 EQUIP\'s ALT row offers ' + JSON.stringify(c6) + '; NONE picked: the hero\'s ALT ' + alt6 + ', the card\'s GEAR ' + JSON.stringify(s6.gear) + ', the next sheet\'s ALT ' + (hN6 && hN6.alt) + ' (want __none there; null, alt noalt, null)', c6.indexOf('__none') >= 0 && !alt6 && !!s6.gear && s6.gear.alt === 'noalt' && !!hN6 && !hN6.alt);
+      } catch (eS) { repTH.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 7. THE AI: a class hero beside its foe swings (a throw within 5 ft is at disadvantage); a carried weapon thrown once a turn, by the free draw
+      var B7 = mkTH('?npc=bugbear&lvl=3&vs=' + DRILL), d7 = partyTH(B7), g7 = foeTH(B7); standTH(B7, d7, g7, 1); var n7 = nTH(B7), al7 = BTt.thrownLeft(d7, d7.alt);
+      runTH(D.ai.turn(B7, d7)); var l7 = logTH(B7, n7);
+      okTH('7a Drill on the AI beside the bugbear: the carried dagger ' + (d7.alt ? BTt.thrownLeft(d7, d7.alt) : 0) + ' of ' + al7 + ', the off hand ' + (d7.offhandThrown ? 'THROWN' : 'kept') + ', on the floor ' + (B7.ground || []).length + ', "' + l7.slice(0, 160) + '" (want 1 of 1, kept, 0)', !!d7.alt && BTt.thrownLeft(d7, d7.alt) === 1 && !d7.offhandThrown && !(B7.ground || []).length);
+      var B7b = mkTH('?npc=goblin&lvl=5&vs=fighter:5'), f7 = partyTH(B7b), g7b = foeTH(B7b); standTH(B7b, f7, g7b, 7); f7.speed = 0; var hx7 = BTt.thrownLeft(f7, f7.alt), n7b = nTH(B7b);
+      runTH(D.ai.turn(B7b, f7)); var hx7b = f7.alt ? BTt.thrownLeft(f7, f7.alt) : 0;
+      okTH('7b a fighter 5 on the AI, a greatsword and two handaxes carried, the goblin 35 ft off and no feet: handaxes ' + hx7 + ' -> ' + hx7b + ', "' + logTH(B7b, n7b).slice(0, 160) + '" (want one thrown: the free draw is one a turn)', hx7 - hx7b === 1);
+      } catch (eS) { repTH.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 8. THE SHOW'S BEAT (js/eyes.js, deep16/?rulesshow&only=throw1111): staged and run by the engine, headless with &fast
+      D.d = d0TH; var B8 = D.rulesshow.make('?rulesshow&fast&only=throw1111'); D.battle = B8; B8.enter();
+      var v8, k8 = 0; while (B8.co && k8++ < 400000) { var r8 = B8.co.next(v8); v8 = undefined; if (r8.done) break; var y8 = r8.value; if (y8 && y8.prompt) v8 = y8.prompt.opts[0].value; }
+      (B8.rulesReport || []).forEach(function (b) { okTH('8 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1200)), b.ok); });
+      okTH('8 the show ran ' + (B8.rulesReport || []).length + ' beat (want 1)', (B8.rulesReport || []).length === 1);
+      } catch (eS) { repTH.errors.push('section 8: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+    } catch (eTH) { repTH.errors.push(String(eTH && eTH.stack || eTH).slice(0, 900)); }
+    D.d = d0TH; D.store.get = stGTH; D.store.set = stSTH; D.music = muTH; window.DS.autoPicks = apTH; D.push = push0TH; UIt.opts.style = style0TH;
+    var preTH = document.createElement('pre'); preTH.id = 'out'; preTH.textContent = 'BENCH16 ' + JSON.stringify(repTH);
+    document.body.appendChild(preTH);
+    return;
+  }
   // THE BUG FIXES OF 11-10 (mode=bugfix1110; the bug fixes seat, on his record of 11-09 and his rulings of 11-10 -- "3 - fix / 4 - build / 5 - fix / 6-7 fix / 8 - fight didn't
   // end when the landlord died leaving turns to feed with bucket"), a check a fix: 1. the Pocket DM keeps a swap made in the fight (js/pocket.js PK.fightKept, PK.packBack):
   // a weapon taken up from the pack stays on the card, what came off goes to the pack, a thing the fight lent goes back (his "Bought Harley a scimitar and it's absent on the
