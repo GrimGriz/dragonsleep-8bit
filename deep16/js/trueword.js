@@ -6,7 +6,7 @@
      - its 2026-11-05 design, his words: "It seems like 'true word' is going to be completable with various levels of thoroughness (i.e. whether they got certain
        information from the waterby's (or mirror beast encounters) and the traditional mission complete on ye'olde hideous laughter - and whether they deliver kat's book
        before collecting - and that while the gold-pay out should be static, xp should increase for story info completeness".
-   THE MEETING (the seat's leans, his to overrule -- the lane's 2026-11-11 section): on THE WORLD's Pit road south of the Halfway Inn (more than TW.CLEAR miles south of the inn's
+   THE MEETING (RULED 11-11, Griz to the lanes desk: "1 - lean, happens once doesn't apply to 'back away' / 2 - lean / 3 - hessle / 4 - lean / 5 - the easy way and I'll look at it / 6 - both" -- the seat's six as leaned; the clock lane's 2026-11-11 section): on THE WORLD's Pit road south of the Halfway Inn (more than TW.CLEAR miles south of the inn's
    mile and short of the Pit by as much), by day (TW.HOURS), from day TW.FROM_DAY (the Gray Keeping's young blood harry the edge farms first, RULED 11-04 item 3; the farmers reach
    the inn on day 7), the first step the party takes there -- the first game's card (road.snoot), FIGHT or BACK AWAY (back up the road a hex, as the first game's run walked
    back; met again on the next step south). The fight is the grid's own `snoot` (data/fights.js, the map snootroad), the house's: the joke egg can come up in it
@@ -22,7 +22,7 @@
   var L = function (k, o) { return C.L(k, o); };
   var K = function (q, r) { return q + ',' + r; };
 
-  // ---------------------------------------------------------------- where and when (the seat's leans)
+  // ---------------------------------------------------------------- where and when (RULED 11-11, his "1 - lean": once a save, BACK AWAY not counted)
   TW.FROM_DAY = 5;       // (THE WORLD's day, W.day: Day 1 the sunrise after the moot -- the young blood out after the edge farms from the first making day)
   TW.HOURS = [7, 19];    // (the challenge by day: seven to seven, the cart's hours -- js/wagon.js Wg.CART)
   TW.CLEAR = 2;          // (miles: past the inn's yard, short of the Pit's edge)
@@ -109,14 +109,14 @@
     { id: 'book', label: 'Katarina\'s book, in Androit\'s hands', has: function (f) { return !!f.katBookAndroit; },
       told: '"Androit has her book already? Then he\'ll swear to the rest of this." He turns back a page and adds a line.' }
   ];
-  TW.XP = 150; // (each one standing, a piece -- the seat's lean, his to tune; the gold is static)
+  TW.XP = 150; // (each one standing, a piece -- RULED 11-11, his "4 - lean"; the gold is static, at Hessle's scales: "3 - hessle")
   TW.gathered = function (f) { f = f || {}; return TW.PIECES.filter(function (p) { return p.has(f); }); };
   TW.TEXT = 'Fifty gold on Hessle\'s board for true word of the gnolls, sworn before Androit: what lit the Snoot, and who stood by when it caught. Their young blood are on the road south past the Halfway Inn, by day. Whatever else you learn of it, Hessle writes down.';
   TW.MISSION = { id: 'trueword', name: 'True Word of the Gnolls', show: 'flag:heardTrueWord|flag:snootDone|has:anchorpin', done: 'flag:snootWord',
     text: function (st) { var g = TW.gathered(st && st.flags); return TW.TEXT + ' Brought back so far: ' + (g.length ? g.map(function (p) { return p.label; }).join('; ') : 'nothing yet') + '.'; },
     doneText: 'Hessle weighed the pin, wrote down all you brought back of the gnolls, and paid the fifty gold.',
     steps: [{ 'if': 'has:anchorpin', key: 'pin', door: 'hessle', where: 'Take the anchor-pin to Hessle at the Weigh-House, on Fountain Street. Tell him the rest there: the scales pay the same gold, but he writes down everything.' },
-      { 'if': '!flag:snootDone', site: 'inn', where: 'The Pit road south of the Halfway Inn, toward Tarlyn\'s Pit: the Snoot\'s young blood are on it by day. Out of Silverton by the east gate, down the road past the fork, through Web Gulch to the inn, then on south.' }] };
+      { 'if': '!flag:snootDone', site: 'inn', where: 'THE SNOOT\'S YOUNG BLOOD: gnoll glory-seekers range south of the Halfway Inn. The challenge by day. The Pit road south of the inn, toward Tarlyn\'s Pit: the Snoot\'s young blood are on it by day. Out of Silverton by the east gate, down the road past the fork, through Web Gulch to the inn, then on south.' }] };
   if (D.hours && D.hours.GATE_TO && !D.hours.GATE_TO.inn) D.hours.GATE_TO.inn = 'east'; // (the street's arrow for the step on the road past the inn: the east gate, as Web Gulch's -- js/hours.js H16.pinSq)
   C.OWN_QUESTS = C.OWN_QUESTS.filter(function (q) { return q.id !== 'trueword'; }).concat([TW.MISSION]);
   if (C.QUESTS.indexOf('trueword') < 0) { var ie = C.QUESTS.indexOf('ettercap'); C.QUESTS.splice(ie >= 0 ? ie + 1 : C.QUESTS.length, 0, 'trueword'); }
@@ -134,7 +134,7 @@
 
   // ---------------------------------------------------------------- THE COUNCIL SENDS FOR YOU AGAIN (RULED 11-04, the clock lane's item 4, his "yes, and a quest for it in their
   // journal": the council points the party down the road past the inn for a true word; Merrick at C2 had said it, "After the gulch, the gnolls ... When it's time, we'll send for
-  // you again"). The seat's lean, his to overrule: once the council has looked them over (C2, councilSeen) and the gulch's fangs are paid (ettercapDone), Papa's runner again --
+  // you again"). RULED 11-11, his "2 - lean" (both ways in, one quest): once the council has looked them over (C2, councilSeen) and the gulch's fangs are paid (ettercapDone), Papa's runner again --
   // on Silverton's street or the Hex's ground floor -- and up on the third floor the council at the long table swears them to the true word: TRUE WORD OF THE GNOLLS opened and
   // pinned (councilWord). Not once the true word is paid (snootWord). The same machine as C2 (js/hours.js H16.lookDue, H16.lookPlay, H16.atTable, H16.sitting); the lines the
   // seat's drafts (invented.json trueword-council-1111)
@@ -171,6 +171,16 @@
     TW.MISSION.show = 'flag:heardTrueWord|flag:wordCalled|flag:snootDone|has:anchorpin';
     TW.MISSION.steps.unshift({ 'if': 'flag:wordCalled & !flag:councilWord & !flag:snootDone', map: 'hex', hex3: true, where: 'The Hex, in the plaza at the heart of town: the council has sent for you again. In at its front doors, then up the spiral stair to the third floor.' });
   }
+
+  // THE SNOOT'S TABLE ON THE ROAD SOUTH (RULED 11-11, Griz to the lanes desk, "6 - both", on the seat's sixth: the first game's Snoot overlay -- content/encounters.json
+  // `snoot`, gnoll packs, hyenas, worgs -- in place of the road south's own on the Pit road's hexes south of the Halfway Inn, from the day the young blood are out; and "The
+  // Snoot's Young Blood" a step of the true word, below). A hex on the Pit road whose zone was `south` (js/world.js W.zoneOf: past the inn), from TW.FROM_DAY
+  var zoneOf0 = W.zoneOf;
+  TW.SNOOT_ZONE = 'snoot';
+  W.zoneOf = function (e) {
+    var z = zoneOf0.apply(this, arguments); if (z !== 'south' || !e || W.day() < TW.FROM_DAY) return z;
+    var m = W.M(), P = m && m.road && m.road[K(e.q, e.r)]; return P && P.id === 'pitroad' ? TW.SNOOT_ZONE : z;
+  };
 
   // the mirror-made met on the road (js/world.js World.encounter: THE MIRROR-MADE, p.mirror) -- the piece is seen, not won
   var enc0 = W.World.prototype.encounter;

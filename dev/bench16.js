@@ -2922,7 +2922,7 @@
       var scD = stageQw(dayQw(3, 10), sMid, { councilNotice: 1 }), stD = CQw.state(null), q0 = questQw(), gD = H6Qw.boardPlay(null); gD.next(); var bdD = D.top(), oD = bdD instanceof CQw.Counter ? answerQw(bdD, ['LEAVE']) : 'no board'; driveQw(gD, null, 200);
       var qD = questQw(), fD = HQw.cur.flags, upD = H6Qw.papers(fD).some(function (p) { return p.id === 'snoot'; });
       okQw('the board read with the notice up: "' + oD.slice(0, 300) + '" -- heardTrueWord ' + fD.heardTrueWord + ', pinned ' + fD.pin + '/' + fD.pinWant + ', the paper still up ' + upD + '; the quest before ' + !!q0 + ', after "' + (qD && qD.text || '').slice(-80) + '"',
-        /FIFTY GOLD for true word on the Snoot/.test(oD) && /goes in your JOURNAL all the same/.test(oD) && fD.heardTrueWord === 1 && upD && !q0 && !!qD && !qD.done && /Brought back so far: nothing yet\./.test(qD.text) && /road south past the Halfway Inn/.test(qD.text) && /Pit road south of the Halfway Inn/.test(qD.where || ''));
+        /FIFTY GOLD for true word on the Snoot/.test(oD) && /goes in your JOURNAL all the same/.test(oD) && fD.heardTrueWord === 1 && upD && !q0 && !!qD && !qD.done && /Brought back so far: nothing yet\./.test(qD.text) && /road south past the Halfway Inn/.test(qD.text) && /^THE SNOOT'S YOUNG BLOOD: gnoll glory-seekers range south of the Halfway Inn\. The challenge by day\. The Pit road south of the inn/.test(qD.where || ''));
       var pin0D = fD.pin; fD.pin = 'trueword'; var siteD = H6Qw.pinSite(stD), gateD = H6Qw.GATE_TO.inn; fD.pin = pin0D;
       okQw('pinned, its step on THE WORLD at the site ' + siteD + ' (Silverton\'s street arrow to the ' + gateD + ' gate)', siteD === 'inn' && gateD === 'east');
       var gD2 = H6Qw.boardPlay(null); gD2.next(); var bdD2 = D.top(), oD2 = bdD2 instanceof CQw.Counter ? answerQw(bdD2, ['LEAVE']) : ''; driveQw(gD2, null, 200);
@@ -2988,8 +2988,17 @@
       var s11j = s11.join(' / '), q11b = questBQw(B11), risen11 = !B11.units.some(function (u) { return /^council/.test(u.npc || ''); });
       okQw('up on the third floor (' + RQw.def.hexIn + '): the council at the table for the word (' + at11 + ': ' + seat11 + '), sat (' + due11h + '): "' + s11j.slice(0, 560) + '" -- councilWord ' + f11.councilWord + ', heardTrueWord ' + f11.heardTrueWord + ', risen ' + risen11 + ', the step now "' + String(q11b && q11b.where).slice(0, 60) + '"; again ' + H6Qw.lookDue(B11),
         RQw.def.hexIn === 3 && at11 === 'word' && /merrick/.test(seat11) && due11h && /^Papa Urtusk\|"The gulch is clear/.test(s11[0] || '') && /Merrick\|"I said we'd send for you again/.test(s11j) && /Hessle\|"Bring me something I can weigh/.test(s11j) && /Ottak Harrow\|"Past the Halfway Inn the farms run out/.test(s11j)
-          && f11.councilWord === 1 && f11.heardTrueWord === 1 && risen11 && !!q11b && /Pit road south of the Halfway Inn/.test(q11b.where || '') && !H6Qw.lookDue(B11));
+          && f11.councilWord === 1 && f11.heardTrueWord === 1 && risen11 && !!q11b && /^THE SNOOT'S YOUNG BLOOD: gnoll glory-seekers range south of the Halfway Inn\. The challenge by day\. The Pit road south of the inn/.test(q11b.where || '') && !H6Qw.lookDue(B11));
       D.scenes.length = 0; HQw.playing = false; HQw.cur = null;
+      // 12. THE SNOOT'S TABLE ON THE ROAD SOUTH (RULED 11-11, "6 - both"): the Pit road's hexes south of the inn are the first game's `snoot` zone from day 5 -- gnolls,
+      // hyenas, worgs; before day 5 the road south's own; off the road, and north of the inn, as they were
+      var scZ = stageQw(dayQw(6, 10), sMid, {}), MZ = WQw.M(), SZ = WQw.state(), eZ = MZ.hex[WQw.K(SZ.at[0], SZ.at[1])], z6 = WQw.zoneOf(eZ); SZ.t = dayQw(4, 10); var z4 = WQw.zoneOf(eZ); SZ.t = dayQw(6, 10);
+      var offZ = null; Object.keys(MZ.hex).some(function (k) { var e = MZ.hex[k]; if (MZ.road[k] || !e) return false; if (WQw.zoneOf(e) === 'south') { offZ = k; return true; } return false; });
+      var eN = (function () { var pN = WgQw.pt(RQ0.inn + 6), hN = WQw.hexOf(pN[0], pN[1]); return MZ.hex[WQw.K(hN[0], hN[1])]; })(), zN = eN ? WQw.zoneOf(eN) : null;
+      var kindsZ = {}; for (var iz = 0; iz < 40; iz++) { var pz = WQw.pick('snoot', iz % 2 === 1); (pz && pz.list || []).forEach(function (k) { kindsZ[k] = 1; }); }
+      okQw('the Snoot\'s table on the Pit road south of the inn: day 6 ' + z6 + ', day 4 ' + z4 + '; a hex off the road there ' + (offZ ? 'south' : 'none found') + '; the road north of the inn ' + zN + '; what it sends: ' + Object.keys(kindsZ).sort().join(','),
+        z6 === 'snoot' && z4 === 'south' && !!offZ && zN !== 'snoot' && Object.keys(kindsZ).length >= 2 && Object.keys(kindsZ).every(function (k) { return /^(gnoll|hyena|worg|mirrorhyena)$/.test(k); }));
+      HQw.playing = false; HQw.cur = null;
       // 10. THE SHOW: deep16/?trueshow, each beat staged without a word of error
       var beatsQw = (TWQw.BEATS || []).map(function (b) { try {
         D.scenes.length = 0; TWQw.play(b); var tp = D.top();
