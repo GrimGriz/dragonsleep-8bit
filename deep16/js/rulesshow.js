@@ -419,6 +419,32 @@
         return [miss === '4,0' && took && hitAt === '3,0' && /gathered up: a handaxe/.test(gl), 'the miss lay at ' + miss + ' (past the goblin at 3,0); ' + (took ? 'taken up on the walk' : 'not taken up') + '; the hit at ' + hitAt + '; ' + gl.replace(/\{\/?[a-z]*\}/g, '')];
       } finally { paladin.alt = alt0; if (th0) paladin.thrown = th0; else delete paladin.thrown; B.ground = gr0; }
     }
+    function* throwWheel() {
+      // THE THROW (RULED 11-11, his play of the bugbear ambush: "couldn't figure out how to throw a dagger with drill"; battle.js Battle.throwSrcs, throwWarn, ui.js UI.cmds): the
+      // rogue, a rapier in one hand and the other free, two daggers in the pack. What ACTIONS > THROW lists; the throw drawn with the free draw (no prompt: nothing to warn of);
+      // the next turn THROW DAGGER on the first ring beside ATTACK; the last dagger asked first, its warning shown; then THROW gone from the first ring. The goblin deep in hit points
+      stage([rogue, gob], [[0, 0], [5, 0]]); gob.maxhp = gob.hp = 200; var gr0 = B.ground; B.ground = []; B.inv = [{ id: 'dagger', n: 2 }]; delete rogue.throwPick; delete rogue.packThrows;
+      var ring = function () { return D.ui.cmds(B, rogue).map(function (c) { return c.label; }).join(' · '); };
+      try {
+        turn(rogue);
+        var th = (B.commands(rogue) || []).filter(function (c) { return c.id === 'throw'; })[0];
+        if (!th || !th.items) return [false, 'no THROW under ACTIONS'];
+        var first0 = ring();
+        say(['The rogue: a rapier, a hand free, two daggers in the pack. The first ring: ' + first0 + '.', 'ACTIONS > THROW lists: ' + th.items.map(function (x) { return x.label; }).join(', ') + '.']); yield W(110);
+        say(['THROW DAGGER (PACK) at the goblin 25 ft off: drawn with the free draw, one attack of the Attack action. Nothing to warn of -- one more is in the pack.']); yield W(80);
+        setPin(15, null); yield* fire(B.exec(rogue, { do: 'throw', target: gob, src: 'pack:dagger' })); B.active = null; yield W(60);
+        turn(rogue); var first1 = ring();
+        say(['The next turn. The first ring: ' + first1 + ' -- the throw remembered for the fight, beside ATTACK. A click on a foe out of reach now asks the throw.']); yield W(110);
+        var s = D.Battle.throwSrc(B, rogue, 'pack:dagger'), warn = s ? B.throwWarn(rogue, s) : [];
+        say(['The click on the goblin asks: "' + rogue.name + ': THROW THE DAGGER?"', 'At the goblin, 25 ft (past 20: at disadvantage) -- one attack, drawn with the free draw.'].concat(warn)); yield W(120);
+        yield* fire(B.exec(rogue, { do: 'throw', target: gob, src: 'pack:dagger', ask: true })); B.active = null; yield W(60);
+        turn(rogue); var first2 = ring();
+        say(['None left in the pack: the first ring is ' + first2 + ' again -- THROW comes back when one is chosen from ACTIONS.']); yield W(100);
+        var gl = B.gatherThrown('won'); say([gl.replace(/\{\/?[a-z]*\}/g, '')]); yield W(70);
+        var ok = !/THROW/.test(first0) && /THROW DAGGER/.test(first1) && !/THROW/.test(first2) && warn.some(function (l) { return /last dagger/.test(l); }) && /2 daggers/.test(gl);
+        return [ok, 'first ring before: ' + first0 + '; after a throw: ' + first1 + '; after the last: ' + first2 + '; the warning: ' + warn.join(' ') + '; ' + gl.replace(/\{\/?[a-z]*\}/g, '')];
+      } finally { B.ground = gr0; delete rogue.throwPick; delete rogue.packThrows; }
+    }
     // ---- the postures (the Pocket DM's runes, 11-10, runes seat B -- js/postures.js; &only=postures): a foe the DM laid on a rune fights by its posture. Each beat lays the posts
     // as the lay floor's placement will (u.post), D.postures.start as the fight's head does, and the engine plays the turns; the ward's ground and a patrol's squares are drawn on
     // the floor. The bugbear joined the show's foes for its Surprise Attack
@@ -547,6 +573,7 @@
       { id: 'chuultentacles', group: 'gridfix1110', name: 'The chuul\'s tentacles: a save, no roll', what: 'SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed." No attack roll: the cleric\'s Protection is not asked, a d20 of 1 changes nothing, and there is no damage. (11-09, his record: Protection\'s prompt and a nat-1 HIT on the tentacles.)', run: chuulTentacles },
       { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 5 ft up crosses the spikes untouched; on the surface, no height held, the thorns reach it, 2d4 a square. (11-10, your rulings: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts", then "spare 5ft too, head cannon says it\'s about 3 ft deep".)', run: spikeFlier },
       { id: 'thrownpickup', group: 'gridfix1110', name: 'A thrown weapon picked up', what: 'A thrown weapon lands: a miss on the square past the target, a hit at its feet. Walked onto, one of the party takes it up (the hand on an object, free); the fight won, what still lies there is gathered into the pack. (11-10, your "pickup with auto-pack ground items at fight end".)', run: thrownPickup },
+      { id: 'throwwheel', group: 'throw1111', name: 'THROW on the wheel', what: 'Your play of 11-11 ("couldn\'t figure out how to throw a dagger with drill") and your rulings that day: THROW under ACTIONS lists what can be thrown and from where -- a hand, or carried with a hand free, drawn with the turn\'s free draw. Thrown once, it sits on the first ring beside ATTACK for the fight and a click on a foe out of reach asks it; the last one, a magic one or the off hand\'s is warned first; none left, it drops off the first ring.', run: throwWheel },
       { id: 'postambush', group: 'postures', name: 'A rune\'s AMBUSH', what: 'The Pocket DM\'s runes (11-10): a foe the DM laid in ambush is hidden from the start, its own Stealth held, and the SRD\'s surprise is rolled -- its Stealth against each passive Perception; caught unaware, no turn in round 1. It holds still: one of ours in sight but out of reach, it readies its blade unseen; one walks up, and the readied blow comes from hiding.', run: postAmbush },
       { id: 'postdefend', group: 'postures', name: 'A rune\'s DEFEND', what: 'A foe laid to defend holds within 15 ft of its ward (drawn): it readies against what comes, goes at one near the ward from inside its ground, and never chases out of it -- whatever it hears.', run: postDefend },
       { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },
