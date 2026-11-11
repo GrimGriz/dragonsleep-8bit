@@ -2642,6 +2642,7 @@
         var sl = slotFor(tgt, 1); tgt.slots[sl - 1]--; tgt.reaction = 0; tgt.conds.shield = true;
         FX.ring(tgt, 'glow', 50); D.sfx('buff');
         if (D.spr.anim(tgt.sheet, 'defend')) { tgt.anim = 'defend'; tgt.animT = this.t; } // (a sheet's Defend row as the barrier goes up: Aurdin's ART-72, 10-18)
+        else if (D.spr.anim(tgt.sheet, 'castup')) { tgt.anim = 'castup'; tgt.animT = this.t; } // (or its gesture for a spell aimed at no one creature: the General's Hand Weave, 11-10)
         ac += 5; hit = false; crit = false;
         line += '  {c}SHIELD +5{/}';
       }

@@ -326,6 +326,18 @@
     multi: ['bow', 'bow'], build: 'greyfang',
     src: 'ours, 10-08: TarlynsPit/wiki/greyfang.md; js/classes.js NPC.NAMED greyfang (ranger 11, the Grey Road); invented.json #greyfang -- SENSES (ours, 11-10): Stealth +8, because a ranger of the Grey Road, Stealth-proficient at his 11th level (+4): DEX +4; passive Perception 17, because Perception-proficient at his level: 10 + WIS +3 + 4'
   },
+  // General Grimlock Grim (11-10, RULED, Griz to the longbow cutter -- the story build's item M, his block): a wizard 5 of abjuration only, built by his class from
+  // js/classes.js NPC.NAMED generalgrim (the specialist's slots 5/4/3, his abjurations, the grimlock's senses on a half-elf, claw, claw, bite, two actions a turn).
+  // The numbers below are what the build gives, for whatever reads a bestiary block; the build is what fights. CR 4 is the seat's call (a wizard's 35 HP and AC 14
+  // under Mage Armor, against two claw, claw, bites a round at +6). No story fight places him yet: deep16/?show=generalgrim
+  generalgrim: {
+    named: true, name: 'General Grimlock Grim', type: 'humanoid', sheet: 'generalgrim_p1', cr: '4', ac: 14, hp: 35, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 13, con: 13, int: 11, wis: 8, cha: 8 }, init: 1, perception: 9, darkvision: 60, blindsight: 30,
+    saves: { str: 3, dex: 1, con: 1, int: 3, wis: 2, cha: -1 },
+    attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '1d8', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['claw', 'claw', 'bite'], build: 'generalgrim',
+    src: 'ours, 11-10 (Griz: "Let\'s make him a 5th level abjurationist ... with a claw/claw/bite and whatever enhanced senses the grimlock get - start half-elf then give a grimlock twist"): js/classes.js NPC.NAMED generalgrim; the SRD 5.1 grimlock\'s scores and senses on a half-elf wizard; the Abjurationist ours; invented.json #general-grim-block -- SENSES (ours, 11-10): Stealth none, because a wizard not proficient in it (DEX +1, the grimlock\'s Stone Camouflage on his record with no mechanic); passive Perception 9, because not proficient: 10 + WIS -1 (Keen Hearing and Smell\'s advantage, as the SRD grimlock\'s block, adds nothing to the passive score)'
+  },
   // the Harbinger (10-08, Griz: "He's yours my dude. Take the seat."): the made gnoll -- a gnoll Mr. Ripples thumbed on his walk to the Doors,
   // his mirror eyes in both sockets (TarlynsPit/wiki/the-trickster.md, the making). Ours, from SRD pieces; his kit by the seat on his leans
   // (..\handoff-2026-10-05-the-bestiary-after-the-bugs.md §9-§11): Backhand twice (the second on `backhand2`); POUNCE, the SRD lion's shape --

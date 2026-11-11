@@ -22,8 +22,8 @@ with the mirror).
 Rows: idle 4; walk 8; run 8; attack 4 (Right Claw, `release` 2: the reach on frame 3); attack2 4 (Left Claw, `release` 2 -- battle.js plays it for
 a turn's second blow); bite 4 (`release` 2: the jaws close on frame 3 -- a blow named Bite plays it); cast 4 (Point, `release` 2 -- magic.js plays
 `cast` for a spell aimed at someone); castup 4 (Hand Weave -- magic.js plays `castup` for one aimed at no one creature); flinch 4; hurt 4 (Fall, he
-dies lying); prone 4 (Fall 2-4 then Prone 1: js/sprites.js S.proneRow). HELD (meta `held`, the show leaves them out): the rows no block plays yet --
-run, attack2, bite, cast, castup -- till the story build gives him his block (the General's cut); a grimlock wearing the sheet plays the rest.
+dies lying); prone 4 (Fall 2-4 then Prone 1: js/sprites.js S.proneRow). HELD (meta `held`, the show leaves it out): the run, which no gait on the grid
+plays yet. His block (11-10, data/foes.js generalgrim, his class build) plays the rest: claw, claw, bite on attack, attack2 and bite, his spells on cast and castup.
 """
 import importlib.util, json, os, re, sys
 import numpy as np
@@ -119,7 +119,7 @@ GROUND = {('b', 'fall', 2), ('b', 'fall', 3), ('b', 'prone', 0)}
 LIFT = ('run',)
 TALL = 50                      # (sole to crown: a grimlock stood straight -- grimlock_p2's idle 48-54 with the outline, the house's men 49-53)
 AVOID = ['red', 'fire']        # (his grey-brown skin, the leather and the fur: no red, no fire)
-HELD = ['run', 'attack2', 'bite', 'cast', 'castup']
+HELD = ['run']                 # (no gait plays a run on the grid yet; his claws, bite and casts play since his block, 11-10: data/foes.js generalgrim)
 LOOKS = {
     'generalgrim_p1': dict(rows=[('idle', 4, [('b', 'idle', i) for i in range(4)]), ('walk', 9, [('b', 'walk', i) for i in range(8)]),
                                  ('run', 12, [('b', 'run', i) for i in range(8)]),
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     p = os.path.join(ROOT, 'deep16', 'art', 'generalgrim_p1.json')
     meta = json.load(open(p, encoding='utf-8'))
     for r in HELD:                                         # (cut, not played yet: the show leaves them out -- js/show.js SH.wanted)
-        meta['anims'][r]['held'] = 'not played yet: his block is the story build\'s (the General\'s cut)'
+        meta['anims'][r]['held'] = 'not played yet: no gait on the grid plays a run'
     with open(p, 'w', encoding='utf-8', newline='\n') as f_:
         json.dump(meta, f_, indent=1)
     if 'check' in sys.argv:

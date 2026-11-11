@@ -164,7 +164,7 @@
   }
   function isRanged(wp) { return !!(wp && wp.ranged); }
   // the Attack action's swings: Extra Attack, a loading weapon's one; Haste's one more, Slow's one only (js/grimoire.js)
-  function attacksWith(u, wp) { var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return Math.min(D.Battle.thrownLeft(u, wp), n + (u.turn && u.turn.hasteAction ? 1 : 0)); } // (no more throws than handaxes: battle.js spendThrow)
+  function attacksWith(u, wp) { if (u.combo && wp === u.combo[0]) return u.turn && u.turn.slowed ? 1 : u.combo.length; /* (a combo's every swing, the General's claw, claw, bite -- 11-10) */ var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return Math.min(D.Battle.thrownLeft(u, wp), n + (u.turn && u.turn.hasteAction ? 1 : 0)); } // (no more throws than handaxes: battle.js spendThrow)
   // one swing's worth at t from square (x, y): the hit chance with what the square gives (flank, the dark, long range), the
   // dice, a rogue's sneak, a smite in hand
   function swing(B, u, t, wp, x, y) {
@@ -196,6 +196,7 @@
           if (wp.ranged && !G.los(u, t, e.x, e.y).clear) return;
           var near = G.foesNear(u, e.x, e.y, 5).length;
           var s = swing(B, u, t, wp, e.x, e.y), dmg = n * s.p * s.d + s.p * s.sneak;
+          if (u.combo && wp === u.combo[0]) dmg = u.combo.slice(0, n).reduce(function (a, w) { var sw = swing(B, u, t, w, e.x, e.y); return a + sw.p * sw.d; }, 0); // (claw, claw, bite: each swing its own dice)
           var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not
           sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0);
@@ -223,8 +224,9 @@
       var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return (b.id === caller) - (a.id === caller) || a.hp - b.hp; })[0];
       first = false;
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
+      var wNow = u.combo && wp === u.combo[0] ? u.combo[Math.max(0, u.combo.length - T.attacksLeft)] || wp : wp; // (the combo's swing in its order: claw, claw, bite)
       T.attacksLeft--;
-      yield* B.attack(u, t, wp);
+      yield* B.attack(u, t, wNow);
       if (u.conds.hidden) delete u.conds.hidden;
     }
     T.attacksLeft = 0;
@@ -619,6 +621,14 @@
     for (var i = 0; i < TX.FIRST.length; i++) { yield* TX.FIRST[i](B, u); if (u.dead || u.hp <= 0 || B.over()) return; }
     yield* act(B, u);
     if (u.dead || u.hp <= 0 || B.over()) return;
+    // two actions a turn (the General, 11-10, RULED, Griz: "He gets two 'actions' per turn and can double claw/claw/bite or do one combo and one spell (not casting two spells
+    // with the two actions)"): the action again, every turn, while a foe stands -- no spell in it when the first was one (TX.plans reads T.noSpell)
+    if (u.twoActions && !T.action && !T.attacksLeft && !T.twoDone && foesOf(B, u).length) {
+      T.twoDone = true; T.noSpell = !!T.spellAction; T.action = 1;
+      yield* act(B, u);
+      T.noSpell = false;
+      if (u.dead || u.hp <= 0 || B.over()) return;
+    }
     // Action Surge (the fighter): the action again, once, while there is someone to hit
     if (u.cls === 'fighter' && u.lvl >= 2 && u.feats && u.feats.actionSurge > 0 && !T.action && !T.attacksLeft && foesOf(B, u).some(function (t) { return (u.weapon.ranged ? G.range : G.dist)(u, t) <= (u.weapon.ranged ? u.weapon.range[1] : 5 + T.move); }) && (!u.src || !u.src.wounded)) {
       u.feats.actionSurge = 0; T.action = 1; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: a second action){/}']); yield 16;
@@ -633,7 +643,7 @@
   // every plan for u's action weighed, best first; `bonus`: the bonus-action spells instead (the play record reads both: js/record.js)
   TX.plans = function (B, u, bonus) {
     var fs = foesOf(B, u), allies = alliesOf(B, u), sp = spellPlans(B, u, fs, allies);
-    var plans = bonus ? sp.filter(function (p) { return p.bonus; }) : weaponPlans(B, u, fs).concat(sp.filter(function (p) { return !p.bonus; }));
+    var plans = bonus ? sp.filter(function (p) { return p.bonus; }) : weaponPlans(B, u, fs).concat(sp.filter(function (p) { return !p.bonus && !(u.turn && u.turn.noSpell); })); // (noSpell: the General's second action after a spell, 11-10)
     if (!bonus) TX.ACTIONS.forEach(function (f) { var p = f(B, u, fs, allies); if (p) plans = plans.concat(p); });
     return plans.sort(function (a, b) { return b.score - a.score; });
   };

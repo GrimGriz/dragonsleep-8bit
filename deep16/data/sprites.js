@@ -5077,7 +5077,7 @@
 "ay": 61,
 "frames": 8,
 "fps": 12,
-"held": "not played yet: his block is the story build's (the General's cut)"
+"held": "not played yet: no gait on the grid plays a run"
 },
 "attack": {
 "y": 1536,
@@ -5097,8 +5097,7 @@
 "ay": 61,
 "frames": 4,
 "fps": 10,
-"release": 2,
-"held": "not played yet: his block is the story build's (the General's cut)"
+"release": 2
 },
 "bite": {
 "y": 2560,
@@ -5108,8 +5107,7 @@
 "ay": 61,
 "frames": 4,
 "fps": 10,
-"release": 2,
-"held": "not played yet: his block is the story build's (the General's cut)"
+"release": 2
 },
 "cast": {
 "y": 3072,
@@ -5119,8 +5117,7 @@
 "ay": 61,
 "frames": 4,
 "fps": 8,
-"release": 2,
-"held": "not played yet: his block is the story build's (the General's cut)"
+"release": 2
 },
 "castup": {
 "y": 3584,
@@ -5129,8 +5126,7 @@
 "ax": 25,
 "ay": 61,
 "frames": 4,
-"fps": 8,
-"held": "not played yet: his block is the story build's (the General's cut)"
+"fps": 8
 },
 "flinch": {
 "y": 4096,

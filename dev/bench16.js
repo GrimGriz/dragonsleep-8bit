@@ -18022,6 +18022,55 @@
     document.body.appendChild(preSw);
     return;
   }
+  // GENERAL GRIMLOCK GRIM'S BLOCK (mode=general1110; 11-10, RULED, Griz to the longbow cutter: "Let's make him a 5th level abjurationist (5th level wizard with only abjuration
+  // spells, +1 slot per level) with a claw/claw/bite and whatever enhanced senses the grimlock get - start half-elf then give a grimlock twist", then "He gets two 'actions' per
+  // turn and can double claw/claw/bite or do one combo and one spell (not casting two spells with the two actions)"): his sheet as built (js/classes.js NPC.NAMED generalgrim),
+  // his unit's senses and natural weapons, and his turns -- two combos, or a spell then the combo, never two spells
+  if (get('mode', '') === 'general1110') {
+    var repGn = { checks: [], errors: [] };
+    function okGn(what, v) { repGn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var NPCg = D.npc, specG = NPCg && NPCg.NAMED && NPCg.NAMED.generalgrim, hG = specG ? NPCg.sheet(Object.assign({}, specG)) : null;
+      okGn('his sheet: ' + (hG ? hG.cls + ' ' + hG.lvl + ', ' + hG.subclass + ', ' + hG.race + '; STR ' + hG.abil.str + ' DEX ' + hG.abil.dex + ' CON ' + hG.abil.con + ' INT ' + hG.abil.int + ' WIS ' + hG.abil.wis + ' CHA ' + hG.abil.cha + '; ' + hG.maxhp + ' HP' : 'NONE'),
+        !!hG && hG.cls === 'wizard' && hG.lvl === 5 && hG.subclass === 'the Abjurationist' && hG.race === 'halfelf' && JSON.stringify(hG.abil) === JSON.stringify({ str: 16, dex: 13, con: 13, int: 11, wis: 8, cha: 8 }) && hG.maxhp === 35);
+      var schoolG = function (id) { var s = D.magic.data(id); return s && s.school; };
+      okGn('his slots ' + (hG && JSON.stringify(hG.slotsMax)) + ' (the class\'s 4/3/2 and one more a level, the specialist), ' + (hG && JSON.stringify(hG.slots)) + ' left after his Mage Armor; his spells ' + (hG && hG.known.join(' ')) + ' -- every one abjuration, no cantrip',
+        !!hG && JSON.stringify(hG.slotsMax) === '[5,4,3]' && JSON.stringify(hG.slots) === '[4,4,3]' && !!hG.conds.mageArmor && hG.known.length === 6 && hG.known.every(function (id) { return schoolG(id) === 'abjuration' && D.magic.data(id).level > 0; }));
+      var hW = NPCg.sheet({ cls: 'wizard', lvl: 5, race: 'halfelf' });
+      okGn('a made half-elf wizard 5, for his compare: STR ' + hW.abil.str + ' DEX ' + hW.abil.dex + ' CON ' + hW.abil.con + ' INT ' + hW.abil.int + ' WIS ' + hW.abil.wis + ' CHA ' + hW.abil.cha + ', slots ' + JSON.stringify(hW.slotsMax || hW.slots), JSON.stringify(hW.slotsMax || hW.slots) === '[4,3,2]');
+      var Bn = D.npcFight('?npc=generalgrim&lvl=3&vs=fighter:3', {}); D.battle = Bn; Bn.enter(); while (!Bn.order.length) Bn.co.next(); Bn.dark = false;
+      var gu = Bn.units.filter(function (u) { return u.side === 'foe'; })[0], fu = Bn.units.filter(function (u) { return u.side === 'party'; })[0];
+      okGn('in a fight: ' + (gu && gu.name) + ' wears ' + (gu && gu.sheet) + '; blindsight ' + (gu && gu.blindsight) + ', darkvision ' + (gu && gu.darkvision) + ', keen senses ' + !!(gu && gu.keenSenses) + ', Fey Ancestry ' + !!(gu && gu.fey) + '; AC ' + (gu && D.rules.ac(gu)) + '; in hand ' + (gu && gu.weapon && gu.weapon.name + ' +' + gu.weapon.atk + ' ' + gu.weapon.dice + '+' + gu.weapon.mod) + ', the combo ' + (gu && gu.combo ? gu.combo.map(function (w) { return w.name; }).join(', ') : 'none'),
+        !!gu && gu.sheet === 'generalgrim_p1' && gu.blindsight === 30 && gu.darkvision >= 60 && !!gu.keenSenses && !!gu.fey && D.rules.ac(gu) === 14 && gu.weapon.name === 'Claw' && gu.weapon.atk === 6 && gu.weapon.mod === 3 && !!gu.combo && gu.combo.map(function (w) { return w.name; }).join() === 'Claw,Claw,Bite' && !!gu.twoActions);
+      // a turn beside the fighter: the combo twice (six swings, rows attack, attack2, bite), no spell
+      var swingsG = [], rowsG = [], at0 = Bn.attack;
+      Bn.attack = function* (a, t, w, o) { if (a === gu) { swingsG.push(w && w.name); rowsG.push(null); var g0 = at0.call(this, a, t, w, o), st, v; while (true) { st = g0.next(v); v = undefined; if (gu.anim && rowsG[rowsG.length - 1] == null) rowsG[rowsG.length - 1] = gu.anim; if (st.done) return st.value; v = yield st.value; } } return yield* at0.call(this, a, t, w, o); };
+      var runG = function (g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+      try {
+        gu.hp = gu.maxhp = 400; fu.hp = fu.maxhp = 900; fu.conds = {}; gu.conds = { mageArmor: 1 }; gu.x = fu.x + 1; gu.y = fu.y;
+        D.rules.startTurn(gu); Bn.active = gu; runG(D.tactics.turn(Bn, gu));
+        okGn('his turn beside the fighter: ' + swingsG.join(', ') + ' on rows ' + rowsG.join(' ') + ' -- the combo twice', swingsG.join() === 'Claw,Claw,Bite,Claw,Claw,Bite' && rowsG.slice(0, 3).join() === 'attack,attack2,bite');
+        // never two spells: a spell worth casting set before him (Protection from Energy's evaluator scoring it 99, for the check), his plans at a turn's start, then as his
+        // second action after a spell
+        var MG = D.magic, pfe = MG.EFFECT && MG.EFFECT.protectionfromenergy, ev0 = D.tactics.EVAL.protectionfromenergy;
+        var fakeEv = function () { return { score: 99, t: gu, why: 'the check', go: function* () { } }; };
+        if (MG.EFFECT) MG.EFFECT.protectionfromenergy = Object.assign({}, pfe || {}, { ai: fakeEv }); D.tactics.EVAL.protectionfromenergy = fakeEv;
+        try {
+          var spellish = function (p) { return p.kind !== 'weapon' && /Protection from Energy/.test(p.why || ''); };
+          D.rules.startTurn(gu); gu.turn.action = 1;
+          var plansY = D.tactics.plans(Bn, gu), spY = plansY.filter(spellish);
+          gu.turn.spellAction = 'leveled'; gu.turn.noSpell = true;
+          var plansN = D.tactics.plans(Bn, gu), spN = plansN.filter(spellish);
+          okGn('a spell worth casting: his plans at a turn\'s start, best ' + (plansY[0] && plansY[0].why) + ' (that spell ' + spY.length + '); as his second action after a spell, best ' + (plansN[0] && plansN[0].why) + ' (that spell ' + spN.length + ')',
+            spY.length === 1 && spellish(plansY[0]) && spN.length === 0 && plansN.some(function (p) { return p.kind === 'weapon'; }));
+        } finally { if (MG.EFFECT) { if (pfe) MG.EFFECT.protectionfromenergy = pfe; else delete MG.EFFECT.protectionfromenergy; } if (ev0) D.tactics.EVAL.protectionfromenergy = ev0; else delete D.tactics.EVAL.protectionfromenergy; gu.turn.noSpell = false; }
+      } finally { Bn.attack = at0; }
+    } catch (eGn) { repGn.errors.push(String(eGn && eGn.stack || eGn).slice(0, 900)); }
+    if (errs.length) repGn.errors = repGn.errors.concat(errs);
+    var preGn = document.createElement('pre'); preGn.id = 'out'; preGn.textContent = 'BENCH16 ' + JSON.stringify(repGn);
+    document.body.appendChild(preGn);
+    return;
+  }
   // GENERAL GRIMLOCK GRIM'S WORLD FIGURE (mode=generalgrimworld1110; 11-10, the lanes desk's queue on Griz's "they can churn through fresh one at a time" -- his portrait's
   // bench is generalgrim1110): the art desk's GENERAL-GRIM-WORLD pages cut to generalgrim_p1 (tools/generalgrim-sheet.py) -- every row in all eight facings, the blows'
   // contact frames, the rows no block plays yet held (the show leaves them out); worn by a grimlock, its rows play where the engine plays them: its blow `attack`, a
@@ -18032,11 +18081,11 @@
     function runGg(g, u, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seen && seen.indexOf(u.anim) < 0) seen.push(u.anim); if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     try {
       var Sg = D.SHEETS && D.SHEETS.generalgrim_p1, wantGg = { idle: 4, walk: 8, run: 8, attack: 4, attack2: 4, bite: 4, cast: 4, castup: 4, flinch: 4, hurt: 4, prone: 4 };
-      var relGg = { attack: 2, attack2: 2, bite: 2, cast: 2 }, heldGg = ['run', 'attack2', 'bite', 'cast', 'castup'];
+      var relGg = { attack: 2, attack2: 2, bite: 2, cast: 2 }, heldGg = ['run']; // (his claws, bite and casts played since his block, 11-10: mode=general1110)
       okGg('generalgrim_p1 rows: ' + (Sg ? Object.keys(Sg.anims).map(function (r) { var a = Sg.anims[r]; return r + ' ' + a.frames + (a.release != null ? '/' + a.release : '') + (a.held ? ' held' : ''); }).join(', ') : 'NO SHEET'),
         !!Sg && Object.keys(Sg.anims).length === Object.keys(wantGg).length && Object.keys(wantGg).every(function (r) { var a = Sg.anims[r]; return a && a.frames === wantGg[r] && a.fh * 8 > 0 && (relGg[r] == null ? a.release == null : a.release === relGg[r]) && !!a.held === (heldGg.indexOf(r) >= 0); }));
-      okGg('the sheet stands ' + (Sg && Sg.top) + ' (sole to crown), its name ' + (Sg && Sg.name) + '; the show wants ' + (Sg ? D.show.wanted('generalgrim_p1', 'grimlock').join(' ') : '-'),
-        !!Sg && Sg.top === 50 && Sg.name === 'General Grimlock Grim' && D.show.wanted('generalgrim_p1', 'grimlock').join() === 'idle,walk,attack,flinch,hurt,prone');
+      okGg('the sheet stands ' + (Sg && Sg.top) + ' (sole to crown), its name ' + (Sg && Sg.name) + '; the show wants of him ' + (Sg ? D.show.wanted('generalgrim_p1', 'generalgrim').join(' ') : '-'),
+        !!Sg && Sg.top === 50 && Sg.name === 'General Grimlock Grim' && D.show.wanted('generalgrim_p1', 'generalgrim').join() === 'idle,walk,attack,attack2,bite,cast,castup,flinch,hurt,prone');
       var Bg = D.npcFight('?npc=grimlock&lvl=3&vs=fighter:3', {}); D.battle = Bg; Bg.enter(); while (!Bg.order.length) Bg.co.next(); Bg.dark = false;
       var go = Bg.units.filter(function (u) { return u.side === 'foe'; })[0], gp = Bg.units.filter(function (u) { return u.side === 'party'; })[0];
       go.sheet = 'generalgrim_p1'; go.hp = go.maxhp = 400; gp.hp = gp.maxhp = 400; go.conds = {}; gp.conds = {}; go.x = gp.x + 1; go.y = gp.y; go.anim = 'idle'; delete go.still;

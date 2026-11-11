@@ -291,6 +291,21 @@
     // (the DM table's cap), a gnome (Small, the SRD's; the art draws him a child's height), the School of Evocation, +10 to every save for his "+10 resistances" -- not the SRD's
     eldermage: { name: 'The Elder Mage', named: true, cls: 'wizard', lvl: 12, maxLvl: 12, race: 'gnome', subclass: 'School of Evocation', look: 'eldermage_p1', saveAll: 10,
       abil: { str: 8, dex: 14, con: 14, int: 20, wis: 13, cha: 10 }, equip: { weapon: 'quarterstaff', ring: 'ringofflying', cloak: 'cloakdisplacement' } },
+    // General Grimlock Grim (11-10, RULED, Griz to the longbow cutter: "Let's make him a 5th level abjurationist (5th level wizard with only abjuration spells, +1 slot per level)
+    // with a claw/claw/bite and whatever enhanced senses the grimlock get - start half-elf then give a grimlock twist"; the story build's item M, his block). Ours: "the
+    // Abjurationist" (the SRD's one wizard school is Evocation) -- abjuration spells only, one more slot at each spell level for it (`specialist`: his "+1 slot per level for only
+    // taking from one school", his lean for specialist NPCs), no cantrips (the SRD wizard has no abjuration cantrip: "Boss fight, lack of cantrips doesn't hurt"). A half-elf
+    // (darkvision 60, Fey Ancestry) with the grimlock's senses (`grimlock`: blindsight 30 ft, keen hearing and smell; Stone Camouflage kept on his record). His scores: the SRD
+    // grimlock's (STR 16 DEX 12 CON 12 INT 9 WIS 8 CHA 6) with the half-elf's +2 CHA, +1 CON, +1 DEX as his first, raised as a wizard levels (`asis`: +2 INT at 4) -- "compare
+    // 'the array' a made half-elf gets versus grimlock stats and give him stat bonuses at appropriate levels as if he leveled up as a grimlock wizard" (a made half-elf wizard 5
+    // stands STR 8 DEX 14 CON 15 INT 17 WIS 12 CHA 12). Claw, claw, bite one action (`combo`, STR and his proficiency); two actions a turn (`twoActions`: "can double
+    // claw/claw/bite or do one combo and one spell (not casting two spells with the two actions)" -- js/tactics.js TX.turn); "we'll not mess with legendary yet". The
+    // General's Grimoire (Tiny Hut, the two Scourges) he carries, never learned: the story build's reward. The max hit die a level, a boss (the seat's call)
+    generalgrim: { name: 'General Grimlock Grim', named: true, cls: 'wizard', lvl: 5, maxLvl: 5, race: 'halfelf', subclass: 'the Abjurationist', look: 'generalgrim_p1',
+      abil: { str: 16, dex: 13, con: 13, int: 9, wis: 8, cha: 8 }, asis: true, maxhp: true, specialist: 'abjuration',
+      known: ['mageArmor', 'shield', 'protectionfromevilandgood', 'dispelmagic', 'counterspell', 'protectionfromenergy'],
+      equip: { weapon: null, armor: null }, alt: null, grimlock: true, twoActions: true,
+      naturals: { claw: { name: 'Claw', dice: '1d6', type: 'slashing' }, bite: { name: 'Bite', dice: '1d8', type: 'piercing' } }, combo: ['claw', 'claw', 'bite'] },
     ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
@@ -403,7 +418,8 @@
       saveAll: spec.saveAll || 0, // (the elder mage's +10 to every save, 11-07 -- js/rules.js R.saveBonus; his "+10 resistances", read as saves)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
       featIds: featsW.length ? featsW.slice() : undefined, // (the feats a word's picks took: R.hasFeat, 10-15)
-      script: spec.script || null // (a named one's own turn: js/pyro.js)
+      script: spec.script || null, // (a named one's own turn: js/pyro.js)
+      grimlock: !!spec.grimlock, twoActions: !!spec.twoActions, naturals: spec.naturals || null, combo: spec.combo || null // (the General's, 11-10: NPC.unit reads them)
     };
     // a druid in a word's metal armour (one made or won before 10-21's ruling: R.canEquip) wears its kit's instead -- the Pocket DM puts the metal one in the pack (PK.druidMetal)
     if (cls === 'druid' && h.equip.armor && !R.canEquip(h, DS.DATA.items[h.equip.armor])) h.equip.armor = c.kit.armor || null;
@@ -415,6 +431,8 @@
     R.refresh(h, true);
     if (!(race.relentless)) delete h.feats.relentless; // (R.refresh gives every paladin Lymen's half-orc Relentless)
     else h.feats.relentless = 1;
+    // a specialist (11-10, Griz: "+1 slot per level for only taking from one school" -- the General first, his lean for specialist NPCs): one more slot at each spell level it has
+    if (spec.specialist && h.slots) { var sm0 = (h.slotsMax || h.slots).slice(); h.slots = h.slots.map(function (n) { return n > 0 ? n + 1 : n; }); h.slotsMax = sm0.map(function (n) { return n > 0 ? n + 1 : n; }); h.specialist = spec.specialist; }
     // the class features past the 8-bit game's refresh (09-30; js/features.js): the Fiend's Dark One's Own Luck (6; a short rest), the
     // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
     // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
@@ -611,6 +629,15 @@
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
     if (h.lupine) { u.darkvision = Math.max(u.darkvision || 0, 60); u.keenSenses = true; u.raceName = 'Lupine'; } // (a Lupine, GreyFang's people, 10-08: darkvision 60, keen hearing and smell -- battle.js search)
+    if (h.grimlock) { u.blindsight = Math.max(u.blindsight || 0, 30); u.keenSenses = true; u.raceName = 'Half-elf, grimlock-made'; } // (the General's grimlock twist, 11-10: the SRD grimlock's blindsight 30 ft and Keen Hearing and Smell)
+    // natural weapons (the General's claws and bite, 11-10): STR and his proficiency, the first in hand; `combo` the Attack action's swings in order (js/tactics.js attacksWith, swingAll)
+    if (h.naturals) {
+      var nat = {}, sm = DS.mod(h.abil.str);
+      Object.keys(h.naturals).forEach(function (k) { var n = h.naturals[k]; nat[k] = { id: null, name: n.name, atk: R.prof(h.lvl) + sm, dice: n.dice, mod: sm, type: n.type, props: [], natural: true, fx: 'bolt', reach: null, ranged: false, range: null }; });
+      var combo = (h.combo || [Object.keys(nat)[0]]).map(function (k) { return nat[k]; });
+      u.weapon = combo[0]; u.combo = combo.length > 1 ? combo : null; u.alt = null;
+    }
+    if (h.twoActions) u.twoActions = true; // (two actions a turn, never two spells: js/tactics.js TX.turn)
     u.plays = h.plays || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
     // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
     if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
