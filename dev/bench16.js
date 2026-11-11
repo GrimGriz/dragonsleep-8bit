@@ -2923,6 +2923,8 @@
       var qD = questQw(), fD = HQw.cur.flags, upD = H6Qw.papers(fD).some(function (p) { return p.id === 'snoot'; });
       okQw('the board read with the notice up: "' + oD.slice(0, 300) + '" -- heardTrueWord ' + fD.heardTrueWord + ', pinned ' + fD.pin + '/' + fD.pinWant + ', the paper still up ' + upD + '; the quest before ' + !!q0 + ', after "' + (qD && qD.text || '').slice(-80) + '"',
         /FIFTY GOLD for true word on the Snoot/.test(oD) && /goes in your JOURNAL all the same/.test(oD) && fD.heardTrueWord === 1 && upD && !q0 && !!qD && !qD.done && /Brought back so far: nothing yet\./.test(qD.text) && /road south past the Halfway Inn/.test(qD.text) && /Pit road south of the Halfway Inn/.test(qD.where || ''));
+      var pin0D = fD.pin; fD.pin = 'trueword'; var siteD = H6Qw.pinSite(stD), gateD = H6Qw.GATE_TO.inn; fD.pin = pin0D;
+      okQw('pinned, its step on THE WORLD at the site ' + siteD + ' (Silverton\'s street arrow to the ' + gateD + ' gate)', siteD === 'inn' && gateD === 'east');
       var gD2 = H6Qw.boardPlay(null); gD2.next(); var bdD2 = D.top(), oD2 = bdD2 instanceof CQw.Counter ? answerQw(bdD2, ['LEAVE']) : ''; driveQw(gD2, null, 200);
       okQw('read again: no second journal line (' + !/JOURNAL all the same/.test(oD2) + ')', !/JOURNAL all the same/.test(oD2) && /stays up/.test(oD2));
       var stepsD = [['meal', function (f) { f.heardDominion = 'wrong'; }, false], ['meal', function (f) { f.heardTribes = 'true'; }, true], ['mirror', function (f) { f.sawMirror = 1; }, true], ['vision', function (f) { f.katVision = 1; }, true], ['book', function (f) { f.katBookAndroit = 1; }, true]];

@@ -98,6 +98,7 @@
     "heardPete": "set: content/rumors.json, js/events.js, js/scenes.js; read: content/quests.json",
     "heardPinned": "set: js/deep.js, js/situations.js; read: content/quests.json",
     "heardSnoot": "set: content/rumors.json, js/scenes.js; read: content/quests.json",
+    "heardTribes": "set: deep16/js/inn.js In.MEAL (THE MEAL's news by the day, set by each band's id, true or wrong -- its kin heardMoot, heardDominion, heardFarmers, heardReach, heardHarbinger, heardMade, heardPit are set the same way and read by id); read: deep16/js/trueword.js TW.PIECES (the Waterbys' word), its show TW.play",
     "heardTrueWord": "set: deep16/js/hours.js H16.boardPlay (the Snoot's paper read), deep16/js/trueword.js TW.afterFight (the glory-seekers beaten); read: deep16/js/trueword.js TW.MISSION (TRUE WORD OF THE GNOLLS shown)",
     "heardWarrens": "set: content/npcs.json, content/rumors.json, js/scenes.js; read: content/quests.json",
     "heardWinters": "set: content/rumors.json, js/scenes.js; read: content/quests.json",

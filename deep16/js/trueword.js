@@ -117,6 +117,7 @@
     doneText: 'Hessle weighed the pin, wrote down all you brought back of the gnolls, and paid the fifty gold.',
     steps: [{ 'if': 'has:anchorpin', key: 'pin', door: 'hessle', where: 'Take the anchor-pin to Hessle at the Weigh-House, on Fountain Street. Tell him the rest there: the scales pay the same gold, but he writes down everything.' },
       { 'if': '!flag:snootDone', site: 'inn', where: 'The Pit road south of the Halfway Inn, toward Tarlyn\'s Pit: the Snoot\'s young blood are on it by day. Out of Silverton by the east gate, down the road past the fork, through Web Gulch to the inn, then on south.' }] };
+  if (D.hours && D.hours.GATE_TO && !D.hours.GATE_TO.inn) D.hours.GATE_TO.inn = 'east'; // (the street's arrow for the step on the road past the inn: the east gate, as Web Gulch's -- js/hours.js H16.pinSq)
   C.OWN_QUESTS = C.OWN_QUESTS.filter(function (q) { return q.id !== 'trueword'; }).concat([TW.MISSION]);
   if (C.QUESTS.indexOf('trueword') < 0) { var ie = C.QUESTS.indexOf('ettercap'); C.QUESTS.splice(ie >= 0 ? ie + 1 : C.QUESTS.length, 0, 'trueword'); }
 
