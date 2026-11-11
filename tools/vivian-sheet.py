@@ -131,17 +131,28 @@ def cut(look):
         crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
     scale = {}
+    MT, SA = L.get('match') or {}, L.get('scaleas') or {}
     for pg in set(pageof.values()):
         mine = [c for c, p in pageof.items() if p == pg]
         idle = [crops[c][1].shape[0] for c in mine if c[1] == 'idle']
         stag = [crops[c][1].shape[0] for c in mine if c[1] == 'hurt' and c[2] == 0]
-        scale[pg] = L.get('tall', TALL) / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag else None   # (`tall`: a figure's own height -- the inn's women stand 47)
-    for pg in [p for p in scale if scale[p] is None and L.get('match')]:   # (`match`: a page of one row drawn bigger -- the candle sale -- scaled so its first frame stands as tall as the view's frame it names)
-        c0 = [c for c, p in pageof.items() if p == pg and c[1] in L['match'] and c[2] == 0]
-        if c0:
-            v, row = c0[0][0], c0[0][1]; tgt = (v, L['match'][row][0], L['match'][row][1])
-            if scale.get(pageof.get(tgt)):
-                scale[pg] = crops[tgt][1].shape[0] * scale[pageof[tgt]] / float(crops[c0[0]][1].shape[0])
+        own = any(c[1] in MT or c[1] in SA for c in mine)   # (a page the look scales itself: no stagger rule -- katarina_p2's fall)
+        scale[pg] = L.get('tall', TALL) / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag and not own else None   # (`tall`: a figure's own height -- the inn's women stand 47)
+    for _ in range(4):   # (in turn: a page matched to a page matched in its turn -- katarina_p2's prone to the fall, the fall to the attack, the attack to the idle)
+        for pg in [p for p in scale if scale[p] is None and (MT or SA)]:
+            mine = [c for c, p in pageof.items() if p == pg]
+            sa = [c for c in mine if c[1] in SA]   # (`scaleas`: a page drawn at another page's size -- katarina_p2's fall at its attack's, the one-action pages of one call)
+            if sa:
+                k = [scale[p] for c, p in pageof.items() if c[1] == SA[sa[0][1]] and c[0] == sa[0][0] and scale.get(p)]
+                if k:
+                    scale[pg] = k[0]; continue
+            # `match`: a page of one row drawn bigger -- the candle sale -- scaled so its first frame stands as tall as the view's frame it names; or (11-11, katarina_p2) its own
+            # frame of another number, by width ('w') where the figure lies -- (row, frame[, own frame[, 'w']])
+            c0 = [c for c in mine if c[1] in MT and c[2] == (MT[c[1]][2] if len(MT[c[1]]) > 2 else 0)]
+            if c0:
+                v, row = c0[0][0], c0[0][1]; tgt = (v, MT[row][0], MT[row][1]); dim = 1 if len(MT[row]) > 3 and MT[row][3] == 'w' else 0
+                if scale.get(pageof.get(tgt)):
+                    scale[pg] = crops[tgt][1].shape[dim] * scale[pageof[tgt]] / float(crops[c0[0]][1].shape[dim])
     for pg in [p for p in scale if scale[p] is None]:   # (a page of one re-drawn frame -- vivian_p2's SE-CONTACT-SOURCE, attack 4: its batch's page of the same view)
         v = [c[0] for c, p in pageof.items() if p == pg][0]
         scale[pg] = [scale[p] for c, p in pageof.items() if p[0] == pg[0] and c[0] == v and scale.get(p)][0]
@@ -149,7 +160,7 @@ def cut(look):
     for c, (rgb, m) in crops.items():
         o = to1x(rgb, m, scale[pageof[c]], L.get('avoid'))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
-        if (c[1], c[2]) in GROUND:
+        if (c[1], c[2]) in L.get('ground', GROUND):   # (`ground`: a look's own lying frames -- katarina_p2's fall and prone)
             cx = ndimage.center_of_mass(al)[1]
         else:
             top = al.copy(); top[ys[0] + int((ys[-1] - ys[0]) * 0.55):] = False
@@ -176,8 +187,8 @@ def cut(look):
                 sub = o[sy:sy + hh, sx:sx + ww]; dst = blk[cy0:cy0 + hh, cx0:cx0 + ww]
                 put = sub[..., 3] > 0; dst[put] = sub[put]
         a = dict(y=y, fw=fw, fh=FH, ax=ax, ay=AY, frames=n, fps=fps)
-        if name in RELEASE:
-            a['release'] = RELEASE[name]
+        if name in L.get('release', RELEASE):   # (`release`: a look's own cue frames -- katarina_p2's blow lands on frame 3, her mirror out on 4)
+            a['release'] = L.get('release', RELEASE)[name]
         if len(fs) < 8:
             a['drawn'] = fs                          # (SE and its mirror: js/sprites.js shows the nearest drawn facing)
         anims[name] = a; blocks.append(blk); y += 8 * FH

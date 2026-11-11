@@ -266,8 +266,8 @@
       equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
     matriarchlama: { name: 'Matriarch', named: true, cls: 'cleric', lvl: 6, race: 'human', subclass: 'the Keeping', abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 },
       equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
-    katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true, look: 'katarina_p1', // (her own figure, the art desk's town figure (11-05), in place of the cleric's stock
-      equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },                                                  // one, 11-10: idle, walk and sit only -- no fight figure is drawn, so a blow or a spell plays her idle)
+    katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true, look: 'katarina_p2', // (her own fight figure since 11-11: the art desk's KATARINA-COMBAT-HEAD-1-SE, tools/katarina-sheet.py
+      equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },                                                  // -- SE drawn, SW its mirror, the other facings the nearer of the two till NE, S, E and N come; her town walk every facing. Before, 11-10: her town figure katarina_p1, idle, walk and sit only)
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
     // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
     // Spiritual Weapon), so the grid reads her as it reads the heroes; the overlay stays only for a sheet still a fighter's

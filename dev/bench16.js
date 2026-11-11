@@ -13176,6 +13176,42 @@
     document.body.appendChild(preGm);
     return;
   }
+  // KATARINA'S FIGHT FIGURE (mode=katfight1111; tools/katarina-sheet.py katarina_p2 over tools/vivian-sheet.py, its `match`/`scaleas`/`ground`/`release`; js/classes.js
+  // NPC.NAMED katarina -- the cutter of 11-10 on the lanes desk's relay, Griz 11-11: "art request cleric-appropriate fight poses for Katarina in the outbox", then
+  // "first Kat SE should be in fresh"): the art desk's HEAD 1, SE only -- idle (armed), attack, cast, cast up, flinch, the fall, prone -- each row drawn [SW, SE], her town
+  // walk every facing copied whole; the Pocket DM's Katarina wears it, and in a fight of her own on the class floor what she plays are its rows
+  if (get('mode', '') === 'katfight1111') {
+    var repKf = { checks: [], errors: [] };
+    function okKf(what, v) { repKf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var sKf2 = D.SHEETS.katarina_p2, sKf1 = D.SHEETS.katarina_p1, FIGHTKf = ['idle', 'attack', 'cast', 'castup', 'flinch', 'hurt', 'prone'];
+      var rowsKf = sKf2 ? Object.keys(sKf2.anims).map(function (a) { var x = sKf2.anims[a]; return a + ' ' + x.frames + (x.release != null ? '/' + x.release : '') + (x.drawn ? ' [' + x.drawn.join(',') + ']' : ''); }).join(', ') : 'NONE';
+      var w2 = sKf2 && sKf2.anims.walk, w1 = sKf1 && sKf1.anims.walk;
+      // 1. the sheet: the seven rows as drawn, SE and its mirror only; her town walk every facing, the same frames
+      okKf('katarina_p2: ' + rowsKf + '; the walk her town walk (' + (w2 && w1 && w2.frames === w1.frames && w2.fw === w1.fw && w2.fps === w1.fps) + '), the prone row the fall\'s end (' + (D.spr.proneFrame('katarina_p2') >= 0) + ')',
+        rowsKf === 'idle 4 [1,7], walk 8, attack 6/2 [1,7], cast 6/3 [1,7], castup 6/3 [1,7], flinch 4 [1,7], hurt 6 [1,7], prone 1 [1,7]' && !!w2 && !w2.drawn && w2.frames === w1.frames && w2.fw === w1.fw && w2.fps === w1.fps && D.spr.proneFrame('katarina_p2') >= 0 && sKf2.top === 47);
+      // 2. the Pocket DM's Katarina is built in it (the roster's card too)
+      var NPCk = D.npc, uK = NPCk.build('katarina', 3, 'party');
+      okKf('the Pocket DM\'s Katarina built at 3: ' + (uK && uK.sheet) + ', her card ' + NPCk.lookOf(NPCk.NAMED.katarina) + ' (' + (uK && uK.cls) + ', ' + (uK && uK.weapon && uK.weapon.name) + ')',
+        !!uK && uK.sheet === 'katarina_p2' && NPCk.lookOf(NPCk.NAMED.katarina) === 'katarina_p2');
+      // 3. a fight of her own on the class floor, her class AI: every row she plays is one of hers, and a blow or a spell plays its own row (on katarina_p1 it played her idle)
+      var playedKf = {}, foughtKf = [];
+      [1111, 2222, 3333].forEach(function (sd) {
+        D.seed = sd; var BKf = D.npcFight('?npc=goblin,goblin&lvl=3&vs=katarina:3', { bench: true }); D.battle = BKf; BKf.enter();
+        var me = BKf.units.filter(function (u) { return u.side === 'party' && !u.familiar; })[0]; if (!me) return;
+        me.guest = true; me.classAI = true;
+        var cur = me.anim; Object.defineProperty(me, 'anim', { configurable: true, enumerable: true, get: function () { return cur; }, set: function (v) { cur = v; playedKf[v] = (playedKf[v] || 0) + 1; } });
+        foughtKf.push(sd + ' ' + me.sheet + ' ' + drive(BKf));
+      });
+      var setKf = Object.keys(playedKf), notHers = setKf.filter(function (r) { return !sKf2.anims[r]; });
+      okKf('three fights on the class floor (goblin, goblin vs Katarina 3; ' + foughtKf.join(', ') + '): she played ' + setKf.map(function (r) { return r + ' ' + playedKf[r]; }).join(', ') + (notHers.length ? ' -- NOT HERS: ' + notHers.join(', ') : ''),
+        foughtKf.length === 3 && foughtKf.every(function (f) { return / katarina_p2 /.test(f); }) && !notHers.length && ['attack', 'cast', 'castup'].some(function (r) { return playedKf[r] > 0; }));
+      D.scenes.length = 0;
+    } catch (eKf) { repKf.errors.push(String(eKf && eKf.stack || eKf).slice(0, 900)); }
+    var preKf = document.createElement('pre'); preKf.id = 'out'; preKf.textContent = 'BENCH16 ' + JSON.stringify(repKf);
+    document.body.appendChild(preKf);
+    return;
+  }
   function MRk() { return D.monsterRules; }
   // GENERAL GRIM'S TALKING PORTRAITS (mode=generalgrim1110; tools/portrait-sheet.py generalgrim, its `cutline`; js/counter.js C.VENDORS.generalgrim and the portraits' show's
   // `allFaces` -- the cutter of 11-10 on the lanes desk's queue, Griz: "they can churn through fresh one at a time as they complete at your discretion as to next cut"): the art
@@ -13218,7 +13254,7 @@
     try {
       var NPCr = D.npc, PKr = D.pocket;
       // 1. the roster's named cards (its stock and the DM's) and Gennet: the figure each is built in, and the card's own (NPC.lookOf)
-      var wantRl = { talmok: 'talmok_p2', willem: 'willemglass_p2', katarina: 'katarina_p1', torvald: 'torvald_p0', higertha: 'npcdruid_p0', amara: 'amara_p2', pyro: 'pyro_p0',
+      var wantRl = { talmok: 'talmok_p2', willem: 'willemglass_p2', katarina: 'katarina_p2', torvald: 'torvald_p0', higertha: 'npcdruid_p0', amara: 'amara_p2', pyro: 'pyro_p0',
         greyfang: 'greyfang_p1', eldermage: 'eldermage_p1', matriarch: 'gnollmatriarch_p1', matriarchlama: 'gnollmatriarch_p1', gennet: 'gennet_p2',
         denny: 'denny_p3', beholda: 'beholda_p3', rascal: 'rascal_p2', goose: 'goose_p1' }; // (the Mascots on the DM's roster: js/mpmon.js, their own since 10-07)
       var onRl = (PKr.STOCK || []).map(function (s) { return s.w; }).filter(function (w) { return NPCr.NAMED[w] && !NPCr.NAMED[w].overlay; }).concat(['gennet']);
@@ -13231,10 +13267,10 @@
       });
       okRl('built as their records wear them: ' + recRl.map(function (r) { return r.k + (r.b !== r.k ? '(' + r.b + ')' : '') + ' ' + r.built + (r.built === r.rec ? '' : ' RECORD ' + r.rec); }).join(', '),
         recRl.length >= 8 && recRl.every(function (r) { return r.built === r.rec; }));
-      // 3. the three changed carry what a fight plays: Gennet's figure every row (cast for her spells), Amara's cast for her blasts; Katarina's town figure plays its idle for the rest
+      // 3. the three changed carry what a fight plays: Gennet's figure every row (cast for her spells), Amara's cast for her blasts; Katarina's fight figure since 11-11 (katarina_p2: mode=katfight1111)
       var rowsRl = function (n) { var s = D.SHEETS[n]; return s ? Object.keys(s.anims).join('/') : 'NONE'; };
-      okRl('their rows: gennet_p2 ' + rowsRl('gennet_p2') + '; amara_p2 ' + rowsRl('amara_p2') + '; katarina_p1 ' + rowsRl('katarina_p1'),
-        !!D.spr.anim('gennet_p2', 'cast') && !!D.spr.anim('gennet_p2', 'attack') && !!D.spr.anim('amara_p2', 'cast') && !!D.spr.anim('katarina_p1', 'idle') && !!D.spr.anim('katarina_p1', 'walk'));
+      okRl('their rows: gennet_p2 ' + rowsRl('gennet_p2') + '; amara_p2 ' + rowsRl('amara_p2') + '; katarina_p2 ' + rowsRl('katarina_p2'),
+        !!D.spr.anim('gennet_p2', 'cast') && !!D.spr.anim('gennet_p2', 'attack') && !!D.spr.anim('amara_p2', 'cast') && !!D.spr.anim('katarina_p2', 'attack') && !!D.spr.anim('katarina_p2', 'cast') && !!D.spr.anim('katarina_p2', 'walk'));
     } catch (eRl) { repRl.errors.push(String(eRl && eRl.stack || eRl).slice(0, 900)); }
     var preRl = document.createElement('pre'); preRl.id = 'out'; preRl.textContent = 'BENCH16 ' + JSON.stringify(repRl);
     document.body.appendChild(preRl);
