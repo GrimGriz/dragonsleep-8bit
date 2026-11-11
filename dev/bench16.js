@@ -4222,11 +4222,9 @@
       }
       var t1c = tableBF([{ id: 'scimitar', n: 1 }]);
       if (t1c) {
-        var lent1 = t1c.B.inv.filter(function (s) { return s.id === 'lightcrossbow' && s.n > 0; }).length;
-        t1c.B.swapGear(t1c.u, { kind: 'weapon', id: 'lightcrossbow' }); t1c.B.o.onDone(null, null);
-        var s1c = t1c.P.st.party[0];
-        okBF('1 the armoury\'s crossbow (lent: ' + lent1 + ') taken up: GEAR ' + JSON.stringify(s1c.gear || {}) + '; the pack: crossbow ' + packBF(t1c.P.st, 'lightcrossbow') + ', scimitar ' + packBF(t1c.P.st, 'scimitar') + ' (want no weapon in GEAR: the loan goes back and her own scimitar stays hers; 0, 1)',
-          lent1 === 1 && !(s1c.gear && s1c.gear.weapon) && packBF(t1c.P.st, 'lightcrossbow') === 0 && packBF(t1c.P.st, 'scimitar') === 1);
+        var inv1c = t1c.B.inv.filter(function (s) { return s.n > 0; }).map(function (s) { return s.id + ' ' + s.n; }).join(', ');
+        okBF('1 the fight\'s pack holds only the table\'s: ' + inv1c + ' (want scimitar 1: no crossbow, bolts, arrows or rope lent -- his "just pull the lends straight out", 11-10)', inv1c === 'scimitar 1');
+        t1c.B.o.onDone(null, null);
       }
       } catch (eS) { repBF.errors.push('section 1: ' + String(eS && eS.stack || eS).slice(0, 600)); }
       try {
@@ -4315,6 +4313,42 @@
           !!RW5.spent.landlordStep && !RW5.spent.jelly && !RW5.spent.jellyNorth && !RW5.spent.poolOoze && !RW5.flags.jellyDead && !RW5.flags.poolOozeDead);
       }
       } catch (eS) { repBF.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // 6. THE LOANS PULLED (11-10, Griz: "just pull the lends straight out and have the doors put stuff in the pack if they need to?", then "yes 20 at 'make' into the party
+      // pack and half back for arrows and crossbow bolts"): MAKE gives a kit's bow or crossbow its twenty; a Pocket DM fight lends nothing; a hero's own second weapon is
+      // offered in EQUIP and a swap trades the two, kept after; a won fight gives back half the arrows shot, a lost one none
+      memBF = {}; var P6 = new D.Pocket(); P6.enter(); P6.ask = function () { return true; }; P6.st.roster = []; P6.st.pack = []; P6.st.run = null; P6.say = function () { };
+      P6.makeNew(0, null); P6.mk.cls = 'ranger'; P6.kitUp(); P6.mk.name = 'Quiver'; P6.saveMade();
+      var ar6 = packBF(P6.st, 'arrows');
+      P6.makeNew(1, null); P6.mk.cls = 'fighter'; P6.kitUp(); P6.mk.name = 'Greatblade'; P6.saveMade();
+      var ar6b = packBF(P6.st, 'arrows'), bo6 = packBF(P6.st, 'bolts');
+      P6.makeNew(2, null); P6.mk.cls = 'sorcerer'; P6.kitUp(); P6.mk.name = 'Boltcaster'; P6.saveMade();
+      okBF('6 MAKE: a ranger (longbow) puts ' + ar6 + ' arrows in the party pack; then a fighter (greatsword, handaxe) ' + (ar6b - ar6) + ' more and ' + bo6 + ' bolts; a sorcerer (light crossbow) ' + packBF(P6.st, 'bolts') + ' bolts (want 20; 0, 0; 20)',
+        ar6 === 20 && ar6b === 20 && bo6 === 0 && packBF(P6.st, 'bolts') === 20);
+      // a made rogue (rapier, her second weapon the shortbow) alone at the table with twenty arrows
+      function rogueTable6(pack) {
+        memBF = {}; var P = new D.Pocket(); P.enter(); P.ask = function () { return true; }; P.say = function () { }; P.st.roster = []; P.st.pack = []; P.st.run = null;
+        P.makeNew(0, null); P.mk.cls = 'rogue'; P.kitUp(); P.mk.name = 'Fletch'; P.saveMade(); P.st.party = [{ custom: 0 }]; P.st.pack = JSON.parse(JSON.stringify(pack)); P.foes = ['goblin']; P.cache = {};
+        var Bq = null; D.push = function (bb) { Bq = bb; }; try { P.launch(); } finally { D.push = push0BF; }
+        D.battle = Bq; Bq.enter(); for (var g = 0; g < 400 && !(Bq.order && Bq.order.length); g++) Bq.co.next();
+        var u = Bq.units.filter(function (w) { return w.side === 'party' && w.name === 'Fletch'; })[0]; RUb.startTurn(u); Bq.active = u;
+        return { P: P, B: Bq, u: u };
+      }
+      var t6 = rogueTable6([{ id: 'arrows', n: 20 }]), inv6 = t6.B.inv.filter(function (s) { return s.n > 0; }).map(function (s) { return s.id + ' ' + s.n; }).join(', ');
+      var op6 = t6.B.gearOptions(t6.u).filter(function (o) { return o.kind === 'weapon' && o.id === 'shortbow'; })[0];
+      okBF('6 a Pocket DM fight: its pack ' + inv6 + '; EQUIP offers "' + (op6 && op6.label) + '" (' + (op6 && op6.own ? 'her own, carried' : 'from the pack') + ') (want arrows 20 alone; Shortbow (carried), her own)', inv6 === 'arrows 20' && !!op6 && !!op6.own && /carried/.test(op6.label));
+      if (op6) t6.B.swapGear(t6.u, op6);
+      var src6 = t6.u.src;
+      okBF('6 the swap trades the two: in hand ' + src6.equip.weapon + ', carried ' + src6.alt + ', the unit\'s second weapon ' + (t6.u.alt && t6.u.alt.name) + ' (want shortbow, rapier, Rapier)', src6.equip.weapon === 'shortbow' && src6.alt === 'rapier' && !!t6.u.alt && /Rapier/.test(t6.u.alt.name));
+      var st6 = t6.B.inv.filter(function (s) { return s.id === 'arrows'; })[0]; st6.n -= 7; // (seven shot)
+      t6.B.o.onDone('won', null);
+      var s6 = t6.P.st.party[0], h6 = PKb.sheetOf(PKb.specOf(t6.P.st, s6));
+      okBF('6 won, seven arrows shot: the pack holds ' + packBF(t6.P.st, 'arrows') + ' (half back, rounded down: 13 + 3), the card says "' + ((t6.P.result || {}).rec || {}).ammoBack + '"; GEAR ' + JSON.stringify(s6.gear) + ', her next sheet: ' + (h6 && h6.equip.weapon) + ' in hand, ' + (h6 && h6.alt) + ' carried (want 16; weapon shortbow and altown:rapier; shortbow, rapier)',
+        packBF(t6.P.st, 'arrows') === 16 && !!s6.gear && s6.gear.weapon === 'shortbow' && s6.gear.alt === 'altown:rapier' && !!h6 && h6.equip.weapon === 'shortbow' && h6.alt === 'rapier');
+      var t6b = rogueTable6([{ id: 'arrows', n: 20 }]), st6b = t6b.B.inv.filter(function (s) { return s.id === 'arrows'; })[0]; st6b.n -= 6;
+      t6b.B.o.onDone('lost', null);
+      okBF('6 lost, six arrows shot: the pack holds ' + packBF(t6b.P.st, 'arrows') + ' (want 14: no field to search)', packBF(t6b.P.st, 'arrows') === 14);
+      } catch (eS) { repBF.errors.push('section 6: ' + String(eS && eS.stack || eS).slice(0, 600)); }
     } catch (eBF) { repBF.errors.push(String(eBF && eBF.stack || eBF).slice(0, 900)); }
     D.d = d0BF; D.store.get = stGBF; D.store.set = stSBF; D.music = muBF; window.DS.autoPicks = apBF; D.push = push0BF;
     var preBF = document.createElement('pre'); preBF.id = 'out'; preBF.textContent = 'BENCH16 ' + JSON.stringify(repBF);
@@ -19969,9 +20003,9 @@
         var cm = D.ui.cmds(Br, me), labels = cm.map(function (x) { return x.label; }), w = WANT[cl], acts = (cm.filter(function (x) { return x.id === 'actions'; })[0] || { items: [] }).items.map(function (x) { return x.id; });
         var sw = /^ATTACK/.test(labels[1]), ok = w[1] === 'q' ? labels[1] === w[0] && acts.indexOf('attack') >= 0 : w[1] === 'b' ? sw && new RegExp('^(' + w[0] + ')$').test(labels[2]) : sw;
         repR1.checks.push((ok ? 'ok   ' : 'FAIL ') + cl + ': ' + labels.slice(0, 5).join(' / ') + (w[1] === 'q' ? '  (the swing in ACTIONS: ' + (acts.indexOf('attack') >= 0) + ')' : ''));
-        if (cl === 'rogue') { // (10-01c, Griz: 'yes' -- the shortbow in a player's pack; bows take arrows, the SRD)
-          var bow = (Br.inv || []).some(function (x) { return x.id === 'shortbow'; });
-          repR1.checks.push((bow ? 'ok   ' : 'FAIL ') + 'the rogue\'s shortbow in the pack for a player\'s hand: ' + bow);
+        if (cl === 'rogue') { // (10-01c, Griz: 'yes' -- the shortbow for a player's hand; since 11-10 her own, carried, not lent into the pack: his "just pull the lends straight out"; bows take arrows, the SRD)
+          var bowO = (Br.gearOptions(me) || []).filter(function (o) { return o.kind === 'weapon' && o.id === 'shortbow'; })[0], bow = !!(bowO && bowO.own) && !(Br.inv || []).some(function (x) { return x.id === 'shortbow'; });
+          repR1.checks.push((bow ? 'ok   ' : 'FAIL ') + 'the rogue\'s shortbow for a player\'s hand, her own and carried (EQUIP: "' + (bowO && bowO.label) + '"), not in the pack: ' + bow);
           var arr = function () { var a = (Br.inv || []).filter(function (x) { return x.id === 'arrows'; })[0]; return a ? a.n : 0; }, a0 = arr(), gb = Br.units.filter(function (u) { return u.side === 'foe'; })[0];
           me.weapon = me.alt; me.x = gb.x; me.y = gb.y + 4; var gr = Br.exec(me, { do: 'attack', target: gb }), sr; do { sr = gr.next(sr && sr.value && sr.value.prompt ? sr.value.prompt.opts[0].value : undefined); } while (!sr.done);
           repR1.checks.push((a0 === 20 && arr() === 19 ? 'ok   ' : 'FAIL ') + 'arrows in the pack (' + a0 + '), one spent on the shortbow\'s shot (' + arr() + ')');
