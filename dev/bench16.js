@@ -13209,6 +13209,24 @@
       var setKf = Object.keys(playedKf), notHers = setKf.filter(function (r) { return !sKf2.anims[r]; });
       okKf('three fights on the class floor (goblin, goblin vs Katarina 3; ' + foughtKf.join(', ') + '): she played ' + setKf.map(function (r) { return r + ' ' + playedKf[r]; }).join(', ') + (notHers.length ? ' -- NOT HERS: ' + notHers.join(', ') : ''),
         foughtKf.length === 3 && foughtKf.every(function (f) { return / katarina_p2 /.test(f); }) && !notHers.length && ['attack', 'cast', 'castup'].some(function (r) { return playedKf[r] > 0; }));
+      // 4. the Pocket DM's Katarina in every facing (11-11, the lanes desk on Griz's "cutter has the full Katarina sprite pages - make sure those go over to the pocket GM too when
+      // they land"): her roster unit (NPC.build, the class floor's and the roster's path -- 7622967c) faced each of the eight ways, and every fight row the frame js/sprites.js
+      // draws for it is that facing's own block of her sheet -- S SE E NE N as drawn, SW W NW their mirrors (tools/vivian-sheet.py MIRROR) -- never another facing's stand-in.
+      // (The benches load no images: D.spr.has is answered yes and a blank canvas stands for her sheet's image, for the frame's choice alone)
+      var uPd = NPCk.build('katarina', 5, 'party'), shPd = uPd && D.SHEETS[uPd.sheet], has0Pd = D.spr.has, img0Pd = shPd && D.images[shPd.image], badPd = [], nPd = 0;
+      if (shPd) {
+        D.spr.has = function () { return true; }; if (!D.images[shPd.image]) D.images[shPd.image] = document.createElement('canvas');
+        try {
+          ['idle', 'attack', 'cast', 'castup', 'flinch', 'hurt', 'prone'].forEach(function (r) {
+            for (var f = 0; f < 8; f++) {
+              uPd.facing = f; uPd.anim = r; var fr = D.spr.frameAt(uPd.sheet, uPd.anim, uPd.facing, 0, {}); nPd++;
+              if (!fr || fr.facing !== f || fr.anim !== r || fr.sy !== shPd.anims[r].y + f * shPd.fh) badPd.push(r + '@' + f + (fr ? '->' + fr.anim + '@' + fr.facing : ' none'));
+            }
+          });
+        } finally { D.spr.has = has0Pd; if (img0Pd) D.images[shPd.image] = img0Pd; else delete D.images[shPd.image]; }
+      }
+      okKf('the Pocket DM\'s Katarina (built at 5, ' + (uPd && uPd.sheet) + ') faced all eight ways: ' + nPd + ' frames, each its own facing\'s block -- S SE E NE N drawn, SW W NW mirrored' + (badPd.length ? '; STAND-INS: ' + badPd.slice(0, 8).join(', ') : ''),
+        !!uPd && uPd.sheet === 'katarina_p2' && nPd === 56 && !badPd.length);
       D.scenes.length = 0;
     } catch (eKf) { repKf.errors.push(String(eKf && eKf.stack || eKf).slice(0, 900)); }
     var preKf = document.createElement('pre'); preKf.id = 'out'; preKf.textContent = 'BENCH16 ' + JSON.stringify(repKf);
