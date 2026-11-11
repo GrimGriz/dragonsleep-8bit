@@ -8399,28 +8399,24 @@
 "source": "drawn by the art desk (HALFWAY-INN-KATARINA-TOWN, 11-05: art-wanted section 35, her town figure in five views), cut by tools/katarina-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "katarina_p2": {
-"image": "art/katarina_p2.png?v=1d8686aae3",
-"fw": 28,
+"image": "art/katarina_p2.png?v=5790846ccd",
+"fw": 34,
 "fh": 64,
-"ax": 14,
+"ax": 17,
 "ay": 61,
 "top": 47,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 28,
+"fw": 34,
 "fh": 64,
-"ax": 14,
+"ax": 17,
 "ay": 61,
 "frames": 4,
-"fps": 4,
-"drawn": [
-1,
-7
-]
+"fps": 4
 },
 "walk": {
-"y": 3584,
+"y": 3072,
 "fw": 32,
 "fh": 64,
 "ax": 16,
@@ -8430,96 +8426,71 @@
 },
 "attack": {
 "y": 512,
-"fw": 38,
+"fw": 48,
 "fh": 64,
-"ax": 19,
+"ax": 24,
 "ay": 61,
 "frames": 6,
 "fps": 10,
-"release": 2,
-"drawn": [
-1,
-7
-]
+"release": 2
 },
 "cast": {
 "y": 1024,
-"fw": 40,
+"fw": 42,
 "fh": 64,
-"ax": 20,
+"ax": 21,
 "ay": 61,
 "frames": 6,
 "fps": 10,
-"release": 3,
-"drawn": [
-1,
-7
-]
+"release": 3
 },
 "castup": {
-"y": 1536,
-"fw": 32,
+"y": 1024,
+"fw": 42,
 "fh": 64,
-"ax": 16,
+"ax": 21,
 "ay": 61,
 "frames": 6,
 "fps": 10,
-"release": 3,
-"drawn": [
-1,
-7
-]
+"release": 3
 },
 "flinch": {
-"y": 2048,
-"fw": 32,
+"y": 1536,
+"fw": 36,
 "fh": 64,
-"ax": 16,
+"ax": 18,
 "ay": 61,
 "frames": 4,
-"fps": 12,
-"drawn": [
-1,
-7
-]
+"fps": 12
 },
 "hurt": {
-"y": 2560,
-"fw": 54,
+"y": 2048,
+"fw": 62,
 "fh": 64,
-"ax": 27,
+"ax": 31,
 "ay": 61,
 "frames": 6,
-"fps": 8,
-"drawn": [
-1,
-7
-]
+"fps": 8
 },
 "prone": {
-"y": 3072,
-"fw": 56,
+"y": 2560,
+"fw": 62,
 "fh": 64,
-"ax": 28,
+"ax": 31,
 "ay": 61,
 "frames": 1,
-"fps": 1,
-"drawn": [
-1,
-7
-]
+"fps": 1
 }
 },
 "name": "Katarina",
 "hold": [
-"SE only (HEAD 1): NE, S, E and N still open with the art desk -- every row drawn [SW, SE], another facing shows the nearer of the two",
-"idle: breath and head height vary a little, the jerkin seam and belt pouches drift; no registered loop claimed (the art desk's own note)",
-"attack: the strike path is short between frames 2 and 3 (the art desk's own note)",
-"cast up: frame 6 leaves her hand near her throat, not back behind the shield, into the idle (the art desk's own note)",
-"fall and prone: she ends lying head to screen-left, feet to screen-right -- across the screen, not along a diagonal (the art desk's own note)",
+"cast and castup: one sequence, the Mace Up, as he ruled -- the mirror casts lost",
+"idle: breath and head height vary a little, the jerkin seam and belt pouches drift; the rear idles barely move; no registered loop claimed (the art desk's own note)",
+"attack: NE strikes out to the right more than its feet face; N's frame 3 keeps the mace high, the downstroke reads on 4 (the art desk's own note)",
+"fall and prone: SE, S and E end lying head left, feet right; NE the same from behind; N head right -- across the screen, not along each diagonal (the art desk's own note)",
 "palette: snapped to the 64 here; the art desk's pages were not (its PALETTE-AUDIT)"
 ],
-"source": "drawn by the art desk (KATARINA-COMBAT-HEAD-1-SE, 11-11: art-wanted section 39, HEAD 1 SE of five), cut by tools/katarina-sheet.py over tools/vivian-sheet.py; SW mirrored; her walk her town walk (katarina_p1), every facing"
+"source": "drawn by the art desk (KATARINA-COMBAT-FULL-SHEETS, 11-11: art-wanted section 39, all five views, the Mace Up for both casts on his word), cut by tools/katarina-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; her walk her town walk (katarina_p1), every facing"
 },
 "keeper_p1": {
 "image": "art/keeper_p1.png?v=c43ca0ef06",

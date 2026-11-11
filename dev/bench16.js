@@ -13178,8 +13178,9 @@
   }
   // KATARINA'S FIGHT FIGURE (mode=katfight1111; tools/katarina-sheet.py katarina_p2 over tools/vivian-sheet.py, its `match`/`scaleas`/`ground`/`release`; js/classes.js
   // NPC.NAMED katarina -- the cutter of 11-10 on the lanes desk's relay, Griz 11-11: "art request cleric-appropriate fight poses for Katarina in the outbox", then
-  // "first Kat SE should be in fresh"): the art desk's HEAD 1, SE only -- idle (armed), attack, cast, cast up, flinch, the fall, prone -- each row drawn [SW, SE], her town
-  // walk every facing copied whole; the Pocket DM's Katarina wears it, and in a fight of her own on the class floor what she plays are its rows
+  // "first Kat SE should be in fresh", then "the mirror cast was really bad, so i had the art do a 'raised mace' cast move instead, in Fresh"): the art desk's full sheets,
+  // all five views -- idle (armed), attack, the Mace Up as both cast and cast up, flinch, the fall, prone -- her town walk every facing copied whole; the Pocket DM's
+  // Katarina wears it, and in a fight of her own on the class floor what she plays are its rows
   if (get('mode', '') === 'katfight1111') {
     var repKf = { checks: [], errors: [] };
     function okKf(what, v) { repKf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -13187,9 +13188,11 @@
       var sKf2 = D.SHEETS.katarina_p2, sKf1 = D.SHEETS.katarina_p1, FIGHTKf = ['idle', 'attack', 'cast', 'castup', 'flinch', 'hurt', 'prone'];
       var rowsKf = sKf2 ? Object.keys(sKf2.anims).map(function (a) { var x = sKf2.anims[a]; return a + ' ' + x.frames + (x.release != null ? '/' + x.release : '') + (x.drawn ? ' [' + x.drawn.join(',') + ']' : ''); }).join(', ') : 'NONE';
       var w2 = sKf2 && sKf2.anims.walk, w1 = sKf1 && sKf1.anims.walk;
+      // (11-11 later, his "the mirror cast was really bad, so i had the art do a 'raised mace' cast move instead": all five views, and cast and castup one sequence -- the Mace Up -- the same block of the sheet, frame for frame)
+      var sameKf = !!sKf2 && !!sKf2.anims.castup && JSON.stringify(sKf2.anims.cast) === JSON.stringify(sKf2.anims.castup);
       // 1. the sheet: the seven rows as drawn, SE and its mirror only; her town walk every facing, the same frames
       okKf('katarina_p2: ' + rowsKf + '; the walk her town walk (' + (w2 && w1 && w2.frames === w1.frames && w2.fw === w1.fw && w2.fps === w1.fps) + '), the prone row the fall\'s end (' + (D.spr.proneFrame('katarina_p2') >= 0) + ')',
-        rowsKf === 'idle 4 [1,7], walk 8, attack 6/2 [1,7], cast 6/3 [1,7], castup 6/3 [1,7], flinch 4 [1,7], hurt 6 [1,7], prone 1 [1,7]' && !!w2 && !w2.drawn && w2.frames === w1.frames && w2.fw === w1.fw && w2.fps === w1.fps && D.spr.proneFrame('katarina_p2') >= 0 && sKf2.top === 47);
+        rowsKf === 'idle 4, walk 8, attack 6/2, cast 6/3, castup 6/3, flinch 4, hurt 6, prone 1' && Object.keys(sKf2.anims).every(function (a) { return !sKf2.anims[a].drawn; }) && sameKf && !!w2 && !w2.drawn && w2.frames === w1.frames && w2.fw === w1.fw && w2.fps === w1.fps && D.spr.proneFrame('katarina_p2') >= 0 && sKf2.top === 47);
       // 2. the Pocket DM's Katarina is built in it (the roster's card too)
       var NPCk = D.npc, uK = NPCk.build('katarina', 3, 'party');
       okKf('the Pocket DM\'s Katarina built at 3: ' + (uK && uK.sheet) + ', her card ' + NPCk.lookOf(NPCk.NAMED.katarina) + ' (' + (uK && uK.cls) + ', ' + (uK && uK.weapon && uK.weapon.name) + ')',

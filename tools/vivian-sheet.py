@@ -87,7 +87,7 @@ def windows(look):
     return out
 
 
-def figure(a, trim=False):
+def figure(a, trim=False, box=None):
     bg = np.median(np.concatenate([a[:, :4].reshape(-1, 3), a[:, -4:].reshape(-1, 3), a[:4].reshape(-1, 3), a[-4:].reshape(-1, 3)]), axis=0)
     near = np.linalg.norm(a - bg, axis=2) < BG_TOL
     lab, n = ndimage.label(near)
@@ -100,6 +100,9 @@ def figure(a, trim=False):
     if trim:                                          # (`trim`: windows cut on approximate boundaries -- a neighbour's edge reaching in at the side goes, the frame's own pieces stay)
         big = int(np.argmax(sz)) + 1; objs = ndimage.find_objects(fl)
         keep = [k for k in keep if k == big or (objs[k - 1][1].start > 0 and objs[k - 1][1].stop < a.shape[1])]
+    if box is not None:                               # (`box`: the art desk's own box round the drawing, in the window's terms -- a piece that touches it stays, a printed
+        bx0, by0, bx1, by1 = box; objs = ndimage.find_objects(fl)   # label or a frame number beside it goes: katarina_p2's FRAME-MAP diagnostic boxes, 11-11)
+        keep = [k for k in keep if objs[k - 1][1].start < bx1 and objs[k - 1][1].stop > bx0 and objs[k - 1][0].start < by1 and objs[k - 1][0].stop > by0]
     return np.isin(fl, keep)
 
 
@@ -122,11 +125,13 @@ def cut(look):
     L = LOOKS[look]
     pages, crops, pageof = {}, {}, {}
     src = os.path.join(pix.SRC, L['src']) if L.get('src') else SRC      # (`src`: another figure's folder under _src -- Katarina's)
-    for batch, view, row, i, fn, (x0, y0, x1, y1) in windows(look):
+    for w in windows(look):
+        batch, view, row, i, fn, (x0, y0, x1, y1) = w[:6]
         if (batch, fn) not in pages:
             pages[(batch, fn)] = np.asarray(Image.open(os.path.join(src, batch, fn)).convert('RGB')).astype(np.float32)
         a = pages[(batch, fn)][y0:y1, x0:x1]
-        m = figure(a, L.get('trim', False)); ys, xs = np.where(m)
+        nb = (w[6][0] - x0, w[6][1] - y0, w[6][2] - x0, w[6][3] - y0) if len(w) > 6 and w[6] else None   # (a window's 7th: the drawing's own box on the page, katarina_p2)
+        m = figure(a, L.get('trim', False), nb); ys, xs = np.where(m)
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
         crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
