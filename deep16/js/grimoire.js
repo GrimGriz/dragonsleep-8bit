@@ -617,6 +617,12 @@
     // and a give him a little hehehe that plays once showing him - then zoom on idol face living gnoll, then idle 6 with the sound (with the text overlaying
     // as appropriate) then zoomed back out and the effects we currently have start" -- "oh, hehehe from aurdin again on the still face of the hyena")
     var pfA = D.spr ? D.spr.proneFrame(u.sheet) : -1, gnF = gn.filter(function (w) { return w.kind === 'gnoll'; })[0] || gn[0];
+    // ON THE MAP'S CAMERA (11-11, the trueword seat, on the lanes desk's brief -- "the egg's cutscene on the map's camera (Battle.camTo, not a portrait on a field)" -- and his
+    // 10-05 on the Dunking Booth, "I mean zoom on the game map if possible"): the field's own camera eases in on Aurdin as he goes off, his 10-02 close-ups between (his
+    // words name them: "Aurdin waist up", "zoom on idol face living gnoll"), then "zoomed back out" on the field onto the ones going down laughing, and back to the
+    // fight's own view for the egg
+    var iso = D.iso, cam0 = iso && iso.cam && B.camTo ? { cam: { x: iso.cam.x, y: iso.cam.y }, zoom: iso.zoom } : null;
+    if (cam0) { yield* B.camTo(u, 3, 26); yield 24; }
     // (the framings by the figures' heights -- S.top: Aurdin's 53 px, the hyena's 36, the gnoll's 60 -- at 480 x 270: waist up, then faces)
     yield { scene: { who: u, face: true, faceAt: 0.65, scale: 5.5, bob: true, frames: 120, caption: 'AURDIN CRACKS UP AT HIS OWN JOKE.', tick: function (t) { if (t === 1) D.sfx('guffaw'); }, joke: 'waist' } };
     yield { scene: { who: u, anim: pfA >= 0 ? D.spr.proneRow(u.sheet) : 'idle', frame: pfA >= 0 ? pfA : null, scale: 4, bob: true, pan: 90, panDur: 46, frames: 130, caption: 'AND GOES DOWN LAUGHING.', tick: function (t) { if (t === 62) D.sfx('hehehe'); }, joke: 'down' } };
@@ -625,6 +631,7 @@
       yield { scene: { who: gnF, face: true, faceAt: 0.73, scale: 7, zoomFrom: 2.4, frames: 70, joke: 'gnoll' } };
       yield { scene: { who: gnF, anim: 'laugh', frame: 0, face: true, faceAt: 0.73, scale: 7, frames: 150, outro: 40, caption: gn.length > 1 ? 'THE GNOLLS KNOW THAT LAUGH.' : 'THE GNOLL KNOWS THAT LAUGH.', tick: function (t) { if (t === 1) D.sfx('gnollaugh'); }, joke: 'yawn' } };
     }
+    if (cam0 && (gnF || hy[0])) yield* B.camTo(gnF || hy[0], 2.4, 24); // (back out on the field: the gnolls and the hyenas going down, on the map)
     hy.forEach(function (w) { // till the end of its next turn (M.tick), no save
       w.conds.laughing = { by: u.id, joke: true, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} gets its breath back.', onEnd: function (x) { delete x.conds.incapacitated; } };
       w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
@@ -639,6 +646,7 @@
     delete u.conds.laughing; delete u.conds.incapacitated;
     B.card(['{g}Aurdin\'s fit passes. He is still on the floor -- up again as his turn ends.{/}'], 260);
     yield 30;
+    if (cam0) yield* B.camTo(cam0, cam0.zoom, 24); // (the fight's own view again, for the egg)
     yield* M.egg(B, 'joke'); // (and from here on, his own square is no target of it: M.jokeReady)
   }
   M.joke = joke;

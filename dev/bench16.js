@@ -2954,10 +2954,13 @@
       var scE = stageQw(dayQw(9, 9), sMid, { katVision: 1, katInk: 1 }, carryQw); var metE = stepQw(scE); D.seed = +get('eseed', 7); pressQw(scE, 'FIGHT'); var bE = battleQw(), auE = bE && bE.units.filter(function (u) { return u.id === 'aurdin'; })[0];
       var readyE = !!(bE && MQw.jokeReady(bE, auE)); D.battle = bE; RUQw.startTurn(auE); bE.active = auE;
       var eE = MQw.list(bE, auE).filter(function (x) { return x.id === 'hideouslaughter'; })[0], selfE = !!(eE && MQw.targetOK(bE, auE, eE.g, auE));
+      var camsE = [], ct0E = bE.camTo, z0E = D.iso.zoom, c0E = D.iso.cam.x + ',' + D.iso.cam.y; bE.camTo = function* (at, z, t) { camsE.push((at.cam ? 'view' : at.kind || at.id) + '@' + z); yield* ct0E.call(this, at, z, t); }; // (the map's camera: js/grimoire.js joke, 11-11)
       var scenesE = []; driveQw(bE.exec(auE, { do: 'cast', id: 'hideouslaughter', slot: 1, target: auE }), null, 4000, scenesE); bE.active = null;
+      var camOkE = camsE.length === 3 && camsE[0] === 'aurdin@3' && /^(gnoll|gloryseeker|hyena)@2\.4$/.test(camsE[1]) && camsE[2] === 'view@' + z0E && D.iso.zoom === z0E && D.iso.cam.x + ',' + D.iso.cam.y === c0E;
+
       var beatsE = scenesE.map(function (s) { return s.joke || s.egg || '?'; }).join(' '), laughE = bE.units.filter(function (w) { return MQw.gnoll(w) && w.conds.laughing; }).length;
-      okQw('on the road south with the vision and the spell carried: met ' + metE + ', the joke ready ' + readyE + ', his own square a target ' + selfE + '; cast -- the beats ' + beatsE + ', ' + laughE + ' gnolls laughing, the egg flag ' + JSON.stringify(bE.flags8),
-        metE === true && readyE && selfE && /joke$/.test(beatsE) && /waist/.test(beatsE) && laughE >= 4 && !!bE.flags8 && bE.flags8.eggJoke === 1);
+      okQw('on the road south with the vision and the spell carried: met ' + metE + ', the joke ready ' + readyE + ', his own square a target ' + selfE + '; cast -- the map\'s camera ' + camsE.join(' > ') + ' (back to the fight\'s view ' + camOkE + '), the beats ' + beatsE + ', ' + laughE + ' gnolls laughing, the egg flag ' + JSON.stringify(bE.flags8),
+        metE === true && readyE && selfE && camOkE && /joke$/.test(beatsE) && /waist/.test(beatsE) && laughE >= 4 && !!bE.flags8 && bE.flags8.eggJoke === 1);
       var fE = finishQw(bE); if (!HQw.cur) throw new Error('the joke fight ended ' + fE.res + ' in ' + fE.rounds + ' rounds, the save gone');
       okQw('the fight to its end (' + fE.res + ' in ' + fE.rounds + '), the egg kept in the save: eggJoke ' + HQw.cur.flags.eggJoke + ', the pin ' + CQw.count(CQw.state(null), 'anchorpin'), fE.res === 'won' && HQw.cur.flags.eggJoke === 1 && CQw.count(CQw.state(null), 'anchorpin') === 1);
       var bE2 = TWQw.fight(WQw.scene); bE2 = battleQw(); var auE2 = bE2 && bE2.units.filter(function (u) { return u.id === 'aurdin'; })[0], readyE2 = !!(bE2 && MQw.jokeReady(bE2, auE2));
