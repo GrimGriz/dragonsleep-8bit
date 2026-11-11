@@ -871,7 +871,8 @@
   function altRow(h, host, fight) { var it = item(h.alt); return { label: 'ALT', right: it ? fit(it.name + (h.altPack ? ' x' + packN(host, h.alt) : ''), 128) : '—', value: 'alt', disabled: fight }; }
   function altCands(h, host) {
     var rows = [];
-    if (h.altPack && h.altOwn !== undefined) { var own = item(h.altOwn); rows.push({ label: fit('(its own' + (own ? ': ' + own.name : '') + ')', 120), right: own ? 'carried' : 'none', value: '__own' }); }
+    if (h.alt) rows.push({ label: 'NONE', right: 'nothing carried to throw', value: '__none' }); // (his "lacked a 'none' option to prevent accidental throwing", 11-11: the card's `noalt`, js/classes.js NPC.wear)
+    if ((h.altPack || h.altNone) && h.altOwn !== undefined) { var own = item(h.altOwn); rows.push({ label: fit('(its own' + (own ? ': ' + own.name : '') + ')', 120), right: own ? 'carried' : 'none', value: '__own' }); }
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!it || s.n <= 0 || !isThrown(it) || (h.altPack && h.alt === s.id)) return;
       rows.push({ label: fit(it.name, 120), right: 'x' + s.n + ', thrown ' + (it.weapon.thrown || it.weapon.range || [20, 60]).join('/'), value: s.id });
@@ -940,8 +941,9 @@
       return;
     }
     if (this.slot === 'alt') { // (the ALT: the pack's stack named, nothing taken from it -- 11-10)
-      if (pick === '__own') { h.alt = h.altOwn; h.altPack = false; m.say(h.name + ' carries ' + (item(h.alt) ? 'the ' + item(h.alt).name.toLowerCase() : 'nothing more') + ' again.'); }
-      else { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = pick; h.altPack = true; m.say(h.name + ' throws the pack\'s ' + item(pick).name.toLowerCase() + 's: THROW in a fight, one gone from the pack a throw.'); }
+      if (pick === '__none') { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = null; h.altPack = false; h.altNone = true; m.say(h.name + ' carries no second weapon: nothing to throw but what is in hand.'); }
+      else if (pick === '__own') { h.alt = h.altOwn; h.altPack = false; h.altNone = false; m.say(h.name + ' carries ' + (item(h.alt) ? 'the ' + item(h.alt).name.toLowerCase() : 'nothing more') + ' again.'); }
+      else { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = pick; h.altPack = true; h.altNone = false; m.say(h.name + ' throws the pack\'s ' + item(pick).name.toLowerCase() + 's: THROW in a fight, one gone from the pack a throw.'); }
       sfx('confirm'); if (this.back && this.back.refresh) this.back.refresh(); m.pop(); return;
     }
     if (this.fo) { m.host.fightSwap(pick); m.close(); return; } // (the grid: the swap spends the action, back to the turn)
