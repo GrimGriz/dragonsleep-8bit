@@ -302,7 +302,11 @@
       try { yield* fire(D.ai.turn(B, gennet)); } finally { D.tactics.turn = tx0; gennet.classAI = ai0; }
       B.active = null; yield W(90);
       var l = since(n), oas = (l.match(/an opportunity attack on/g) || []).length, shot = wizard.hp < wz0 || l.indexOf(gennet.name + ' > ') >= 0, over = B.over();
-      return [oas === 1 && !shot && over === 'yielded' && gennet.hp <= 100, oas + ' opportunity attack' + (oas === 1 ? '' : 's') + ' (want 1: the paladin asked nothing once she yields); ' + (shot ? 'her shot came: wrong' : 'no shot') + '; the fight ' + (over || 'not over') + ' (' + gennet.hp + ' of 200)'];
+      // the fight ended yielded: she sits on her Sit row, as Battle.finish has her do (Battle.sitYielded, 11-05) -- 11-11, his note on the show: "doesn't yielding use 'sit' if they
+      // have one" (the beat stopped short of it)
+      var canSit = !!D.spr.anim(gennet.sheet, 'sit'); if (over === 'yielded') { D.Battle.sitYielded(B); say([canSit ? 'Gennet yields: she sits down where she stands (her Sit row).' : 'Gennet yields (no Sit row on her sheet).']); yield W(100); }
+      var sat = !canSit || gennet.anim === 'sit';
+      return [oas === 1 && !shot && over === 'yielded' && gennet.hp <= 100 && sat, (canSit ? (sat ? 'she sits; ' : 'she does NOT sit; ') : 'no Sit row; ') + oas + ' opportunity attack' + (oas === 1 ? '' : 's') + ' (want 1: the paladin asked nothing once she yields); ' + (shot ? 'her shot came: wrong' : 'no shot') + '; the fight ' + (over || 'not over') + ' (' + gennet.hp + ' of 200)'];
     }
     function* meleeBlind() {
       // a simple fight strikes a melee blow from the square beside its target, inside the giant spider's 10 ft of blindsight: a hider with a blade in hand is seen by it, the card
@@ -363,15 +367,22 @@
     }
     function* chuulTentacles() {
       // the chuul's tentacles (SRD 5.1): "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw" -- no attack roll, so nothing that answers one: the
-      // cleric beside the held paladin, a shield on and the Protection style for the beat, is asked nothing; the d20s to hit pinned to 1, the save's die to 4
-      stage([chuul, paladin, cleric], [[0, 0], [2, 0], [2, 1]]); setPin(1, [4]);
-      var st0 = cleric.style; cleric.style = 'protection'; chuul.holding = [paladin]; paladin.conds.grappled = { by: chuul.id };
-      say(['The chuul holds the paladin in a pincer. Its tentacles: a CON save, DC 13 -- no attack roll. The cleric beside the paladin has a shield and the Protection style; every d20 to hit is pinned to 1, the save\'s die to 4.']); yield W(80);
-      var n = mark(), asked = [];
-      try { turn(chuul); yield* fireAsks(B.attack(chuul, paladin, chuul.attacks.tentacles), asked); } finally { B.active = null; cleric.style = st0; delete chuul.holding; }
-      yield W(60);
+      // cleric beside the held paladin, a shield on and the Protection style for the beat, is asked nothing; the d20s to hit pinned to 1, the save's die to 4. The hold is the fight's
+      // own (11-11, his note on the show: "i thought we had a graphic of held in a chuul claw more visibly in the claw, but the tentacle mechanics works" -- the beat had set the
+      // grip by hand, the paladin left standing beside it): its pincer pinned to hit first, the lunge and the carry in its claw (battle.js Battle.clawIn), then the tentacles
+      stage([chuul, paladin, cleric], [[0, 0], [2, 0], [2, 1]]); setPin(15, null);
+      var st0 = cleric.style;
+      say(['The chuul\'s pincer at the paladin, pinned to hit: the lunge, and the paladin carried in its claw.']); yield W(70);
+      try {
+        turn(chuul); yield* fire(B.attack(chuul, paladin, chuul.attacks.pincer)); B.active = null; yield W(70);
+        var inClaw = !!(paladin.inClaws && paladin.inClaws.by === chuul.id) && paladin.x === chuul.x && paladin.y === chuul.y;
+        say(['Its tentacles on the one in its claw: a CON save, DC 13 -- no attack roll. The cleric beside them has a shield and the Protection style; every d20 to hit is pinned to 1, the save\'s die to 4.']); yield W(80);
+        cleric.style = 'protection'; cleric.reaction = 1; setPin(1, [4]); var n = mark(), asked = []; // (Protection from here on: the grab's own roll was an attack, and nothing is asked of it)
+        turn(chuul); yield* fireAsks(B.attack(chuul, paladin, chuul.attacks.tentacles), asked); B.active = null; yield W(80);
+      } finally { B.active = null; cleric.style = st0; }
       var l = since(n), saved = /CON save/.test(l), roll = /d20 1 /.test(l), held = !!paladin.conds.paralyzed && !!paladin.conds.poisoned;
-      return [saved && !roll && held && !asked.length, (asked.length ? 'asked: ' + asked.join(', ') : 'Protection asked nothing') + '; ' + (roll ? 'a d20 to hit was rolled' : 'no attack roll') + '; ' + (held ? 'the save failed on its 4: POISONED and PARALYZED' : 'the paladin not paralyzed')];
+      if (B.release) B.release(chuul); delete chuul.holding; delete paladin.inClaws; delete chuul.clawing; // (let go for the next beat)
+      return [inClaw && saved && !roll && held && !asked.length, (inClaw ? 'the paladin in its claw; ' : 'the paladin NOT in its claw; ') + (asked.length ? 'asked: ' + asked.join(', ') : 'Protection asked nothing') + '; ' + (roll ? 'a d20 to hit was rolled' : 'no attack roll') + '; ' + (held ? 'the save failed on its 4: POISONED and PARALYZED' : 'the paladin not paralyzed')];
     }
     function* spikeFlier() {
       // Spike Growth is the ground's: a harpy holding 5 ft over it crosses untouched; on the surface the thorns reach it (RULED 11-10, Griz: "spiked shouldn't impact fliers over 5ft
