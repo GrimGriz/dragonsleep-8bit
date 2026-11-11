@@ -7,8 +7,8 @@
 (function () {
   var D = window.D16 = window.D16 || {};
   // the wagon's team (the inn yard; Griz 09-27: "add horses to the wagon"): hitched in front of the wagon, which faces +gx,
-  // under the rail; a bay and a grey, each two squares nose to tail. Scenery: they hold their squares and startle when the run begins
-  var TEAM = [{ at: [8, 3], sheet: 'horse_p1', facing: 7, foot: [2, 1], blocks: true, team: true },
+  // under the rail; two greys, each two squares nose to tail (11-11, RULED: "yes to the gulch and greys" -- a bay and a grey till then; the team is "the greys" in every word). Scenery: they hold their squares and startle when the run begins
+  var TEAM = [{ at: [8, 3], sheet: 'horsegrey_p1', facing: 7, foot: [2, 1], blocks: true, team: true },
               { at: [8, 4], sheet: 'horsegrey_p1', facing: 7, foot: [2, 1], blocks: true, team: true }];
   D.FIGHTS = [
     // the first rungs (09-27, the Cowork seat, on Griz's "proceed with 4"): the 8-bit game's own creatures on the one map,
@@ -194,7 +194,7 @@
       from: 'the Halfway Inn lane, the Inn seat\'s §3 (a): the wagon met on the road by day; the 8-bit\'s S.wagonFight for the pair', won: 'IT IS OVER ON THE ROAD.', escaped: 'THEY ARE AWAY NORTH ON THE GREYS.',
       foes: [{ id: 'amara', kind: 'amara', at: [8, 9] }, { id: 'willem', kind: 'willem', at: [11, 9] }], wave: null,
       riders: [{ at: [9, 7], sheet: 'goblin_p2', after: 'kid1_p0', gz: 12 }, { at: [10, 7], sheet: 'goblin_p2', after: 'kid2_p0', gz: 12 },
-               { at: [9, 2], sheet: 'horse_p1', facing: 5, foot: [1, 2], blocks: true, team: true }, { at: [10, 2], sheet: 'horsegrey_p1', facing: 5, foot: [1, 2], blocks: true, team: true }] },
+               { at: [9, 2], sheet: 'horsegrey_p1', facing: 5, foot: [1, 2], blocks: true, team: true }, { at: [10, 2], sheet: 'horsegrey_p1', facing: 5, foot: [1, 2], blocks: true, team: true }] },
     // the cleric at Deepholm's door (deep.js EV.torvald, HOLD HIM; Griz 09-28: "given the weight of the scene ... redo it in 16"):
     // a story fight (no level: off the ladder). He yields at half his hit points (foes.js torvald `yields`): the fight ends
     // 'yielded', his own words on the card (the 8-bit's yieldText), and the 8-bit game asks what you do with him
