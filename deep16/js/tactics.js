@@ -159,12 +159,16 @@
     var out = [];
     if (u.conds.disarmed) return out; // (dropped: Command's DROP, Fear, Heat Metal)
     if (u.weapon && u.weapon.name) out.push(u.weapon);
-    if (u.alt && u.alt.name) out.push(u.alt);
+    if (u.alt && u.alt.name && !(carriedThrow(u, u.alt) && !canDraw(u))) out.push(u.alt);
     return out;
   }
+  // a carried weapon thrown (the ALT: the kit's handaxes, a card's dagger) is drawn first -- a hand free for it and the turn's one free object interaction (the throw, RULED 11-11,
+  // battle.js Battle.throwSrcs): the AI pays what a player pays, one carried throw a turn
+  function carriedThrow(u, wp) { return !!(wp && wp.thrown && wp === u.alt); }
+  function canDraw(u) { return D.Battle.drawHand(u) && !(u.turn && u.turn.freeObj); }
   function isRanged(wp) { return !!(wp && wp.ranged); }
   // the Attack action's swings: Extra Attack, a loading weapon's one; Haste's one more, Slow's one only (js/grimoire.js)
-  function attacksWith(u, wp) { if (u.combo && wp === u.combo[0]) return u.turn && u.turn.slowed ? 1 : u.combo.length; /* (a combo's every swing, the General's claw, claw, bite -- 11-10) */ var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return Math.min(D.Battle.thrownLeft(u, wp), n + (u.turn && u.turn.hasteAction ? 1 : 0)); } // (no more throws than handaxes: battle.js spendThrow)
+  function attacksWith(u, wp) { if (u.combo && wp === u.combo[0]) return u.turn && u.turn.slowed ? 1 : u.combo.length; /* (a combo's every swing, the General's claw, claw, bite -- 11-10) */ var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; if (carriedThrow(u, wp)) return 1; /* (one draw a turn: the throw, 11-11) */ return Math.min(D.Battle.thrownLeft(u, wp), n + (u.turn && u.turn.hasteAction ? 1 : 0)); } // (no more throws than handaxes: battle.js spendThrow)
   // one swing's worth at t from square (x, y): the hit chance with what the square gives (flank, the dark, long range), the
   // dice, a rogue's sneak, a smite in hand
   function swing(B, u, t, wp, x, y) {
@@ -224,6 +228,7 @@
       var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return (b.id === caller) - (a.id === caller) || a.hp - b.hp; })[0];
       first = false;
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
+      if (carriedThrow(u, wp)) { if (T.freeObj) break; T.freeObj = true; } // (its draw, the turn's free one: one carried throw a turn -- the throw, 11-11)
       var wNow = u.combo && wp === u.combo[0] ? u.combo[Math.max(0, u.combo.length - T.attacksLeft)] || wp : wp; // (the combo's swing in its order: claw, claw, bite)
       T.attacksLeft--;
       yield* B.attack(u, t, wNow);
