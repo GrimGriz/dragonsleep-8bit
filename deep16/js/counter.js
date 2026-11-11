@@ -594,6 +594,11 @@
   // shows the face of the figure they wear on the floor (C.drawUnitFace), as a hero without one does. The company scene's shape (speaker right, hero left) is the default
   C.OPEN.papa.left = 2;
   Counter.prototype.by = function (who, lines, face) { var w = this.say(lines, face); w.who = who; return w; };
+  // THE LOOK (11-11, the supper seat; Griz on the built supper: "feel like 'gennet looks at him' and 'see's you noticing and eats no more' should get actual looks instead of
+  // just text box"): sc.lookAt(who, lines, at) -- the one looking stands as a speaker does, held, with no words' box and no hero; the one looked at (`at`: a speaker's
+  // { name, sheet | unit }) stands on the other side; what passes is a caption along the screen's foot, in the look's colour
+  C.LOOK = { col: '#d8c8f0', strip: 'rgba(8,10,28,.72)' };
+  Counter.prototype.lookAt = function (who, lines, at) { var w = this.say(lines); w.who = who; w.look = true; w.at = at || null; w.noHero = true; return w; };
   Counter.prototype.askBy = function (who, prompt, opts, face) { var w = this.ask(prompt, opts, face); w.who = who; return w; };
   Counter.prototype.spk = function () { var w = this.wait || {}; return w.who || null; };
   Counter.prototype.spSide = function () { var sp = this.spk(); return sp && sp.side === 'left' ? 'left' : 'right'; };
@@ -683,12 +688,23 @@
     if (w.narr) { D.win8(ctx, RX, WY, RW, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (a narration: the middle, no one standing)
     else {
       var g = C.openGeo(this), sp = this.spk(), spL = g.side === 'left', tx = spL ? RX : O.words.x;
-      D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', tx, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, tx, 21, '#9c9cb4');
-      if (rows.length) { D.win8(ctx, spL ? RX - O.under : RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (the box runs under the one speaking's edge, whichever side)
+      if (!(w.look && w.at)) { D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', tx, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, tx, 21, '#9c9cb4'); } // (a look at someone: both top corners are faces)
+      if (rows.length && !w.look) { D.win8(ctx, spL ? RX - O.under : RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (the box runs under the one speaking's edge, whichever side)
       var sh = g.sheet && D.SHEETS[g.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right -- or top left, by their side -- over their box's edge)
       if (sh) C.drawPortraitAt(ctx, g.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
       else if (g.face) C.drawUnitFace(ctx, sp.unit, g.left + 4, g.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, spL); // (no talking portrait yet: the face of the figure they wear)
       C.nameTag(ctx, sp && sp.name ? sp.name : this.o.name, g.cx, g.foot + 3);
+      if (w.look) { // (THE LOOK: the one looked at on the other side, the caption along the foot)
+        if (w.at) {
+          var who0 = w.who, at2 = {}; Object.keys(w.at).forEach(function (k) { at2[k] = w.at[k]; }); at2.side = g.side === 'left' ? 'right' : 'left'; w.who = at2;
+          var g2 = C.openGeo(this), sh2 = g2.sheet && D.SHEETS[g2.sheet];
+          if (sh2) C.drawPortraitAt(ctx, g2.sheet, 'idle', 0, g2.x, g2.foot, g2.s); else if (g2.face) C.drawUnitFace(ctx, at2.unit, g2.left + 4, g2.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, g2.side === 'left');
+          if (sh2 || g2.face) C.nameTag(ctx, at2.name, g2.cx, g2.foot + 3);
+          w.who = who0;
+        }
+        var ly0 = D.H - 14 - 12 - rows.length * 10, lx0 = Math.round((D.W - RW) / 2);
+        ctx.fillStyle = C.LOOK.strip; ctx.fillRect(lx0, ly0, RW, 8 + rows.length * 10); typed(rows, lx0 + 8, ly0 + 4, C.LOOK.col);
+      }
       var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
       var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, the rule since 11-06 -- C.heroFull)
       var hsh = pt && D.SHEETS[pt], hfoot = hfu ? D.H - 14 : BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
@@ -700,7 +716,7 @@
           if (hfu) bubbleSide(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR, my); // (at the bust he stands beside it: the tail off its side at his mouth)
           else bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
-          else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
+          else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (q.shade && C.FLIP && !hov) { ctx.fillStyle = C.FLIP.shade; ctx.fillRect(q.x, q.y, q.w, q.h); } if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } if (q.shade && C.FLIP) { ctx.fillStyle = C.FLIP.bar; ctx.fillRect(q.x, q.y, 3, q.h); if (q.tag && done) D.text(ctx, q.tag, q.x + q.w - 4, q.y + 2, C.FLIP.bar, 'right'); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
         }
         if (hsh) { if (hR) { ctx.save(); ctx.translate(hL + hW, 0); ctx.scale(-1, 1); C.drawPortraitAt(ctx, pt, 'idle', 0, hsh.ax * hs, hfoot, hs); ctx.restore(); } else C.drawPortraitAt(ctx, pt, 'idle', 0, hL + hsh.ax * hs, hfoot, hs); C.nameTag(ctx, h.name, hL + hW / 2, D.H - 28); }
         else { var hx = hR ? D.W - 8 - HB.w : HB.x; D.win8(ctx, hx, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(hx + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, hx + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t, hR); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', hx + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
@@ -739,7 +755,8 @@
   // and a read "would appear above vivian's conversation options for that turn"): sc.flip(who, prompt, list, at) -- an ask on the open screen whose answers are one hero's at a time,
   // list[i] = { hero, side, key, reads: [lines], opts: [labels] }; the heroes' names in a row at the bubble's head (click one, or left and right), the one shown's silent reads in
   // the insight colour above that hero's answers (never picked); it gives back { at, k, seen: [every i shown while it waited] }. Every other ask is as it was.
-  C.FLIP = { read: '#7CF8E8', off: '#7c7c98', said: /\s*\((insight|perception|deception|persuasion|history|religion|arcana|survival|intimidation)\)$/i };
+  C.FLIP = { read: '#7CF8E8', off: '#7c7c98', shade: 'rgba(70,110,200,.30)', bar: '#8fb0ff', // (shade, bar: a skill-shaped answer is SHADED, its skill's name at its right, and no die is shown -- RULED 11-07, "have the skill-influenced chat options shaded as such")
+    said: /\s*\((insight|perception|deception|persuasion|history|religion|arcana|survival|intimidation)\)$/i };
   C.flipSaid = function (l) { return String(l).replace(C.FLIP.said, ''); }; // (the line as the hero says it: the check's name off its end)
   Counter.prototype.flip = function (who, prompt, list, at) {
     var f = { list: list, at: Math.max(0, Math.min(list.length - 1, at || 0)), seen: {} }, w = this.askBy(who, prompt, list[f.at].opts);
@@ -756,7 +773,7 @@
     var tab = function (lb, k, color) { var wd = D.textWidth(lb) + 12; out.push({ x: x, y: y, w: wd, h: 12, label: lb, lines: [lb], go: 'flip', k: k, bubble: true, tab: true, color: color }); x += wd + 1; };
     if (f.list.length > 1) { tab('◀', f.at - 1, C.FLIP.off); f.list.forEach(function (e, i) { tab(e.hero.name, i, i === f.at ? W8.gold : C.FLIP.off); }); tab('▶', f.at + 1, C.FLIP.off); y += 15; }
     (f.list[f.at].reads || []).forEach(function (r) { var ls = D.wrap(r, tw); out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: 4 + ls.length * 10, label: r, lines: ls, go: 'read', off: true, bubble: true, color: C.FLIP.read }); y += 4 + ls.length * 10 + 2; });
-    (w.opts || []).forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.wrap(o.label, tw), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k, bubble: true }); y += h + 3; });
+    (w.opts || []).forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, mk = (f.list[f.at].marks || [])[k] || {}, ls = D.wrap(o.label, tw - (mk.tag ? D.textWidth(mk.tag) + 10 : 0)), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, shade: !!mk.shade, tag: mk.tag || null, go: 'opt', k: k, bubble: true }); y += h + 3; });
     return out;
   };
   var bubbleF = Counter.prototype.bubbleButtons;
