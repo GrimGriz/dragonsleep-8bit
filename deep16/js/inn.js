@@ -121,6 +121,7 @@
     inside: 'Inside the Halfway Inn: the common room round the big fire, the bar under the stair, the kitchen beyond the fire, two bedrooms off the kitchen.',
     barn: 'The barn: six stalls either side of the aisle, mangers at their heads.',
     name: '"Gennet. Waterby, since the wedding. The lake\'s older than either."',
+    elsbethWagon: 'She does not turn round. "A wagon comes in {n} night{s}. Be in the house that night."', elsbethWagon0: 'She does not turn round. "A wagon comes tonight. Be in the house."', // (11-11: the word for the party that saw her counting and kept quiet)
     bed: 'A room under the eaves.', // (its watch line cut 11-04, Griz: "The nobody stands watch can just go unmentioned since we violate it on wagon night")
     morning: 'Morning on Halfway Lake: mist off the water, the well\'s chain, the boys already down at the shore.',
     night: 'Night at the Halfway Inn. The lamps are lit in the common room; past the point the lake is black.',
@@ -324,42 +325,7 @@
     return atOf0.apply(this, arguments);
   };
 
-  // ---------------------------------------------------------------- THE MEAL: supper at the long table, the first room taken (the lane's 11-04 §4-5)
-  // the news by the day the party comes (the inn the road's ear): each word true or heard wrong by the asker's History, shown
-  // THE SUPPER BY WHOSE EYES (11-05, the supper seat, on his word -- the inn lane's 2026-11-05 section, items 1-15): a turned conversation, five turns, the opener and four; at each
-  // of the party's openings the player flips through the four (js/counter.js THE FLIP) and picks who answers and what; each hero's own silent reads (passives) above that hero's
-  // answers that turn; one answer warms or cools the table (warm, civil, cold; cold ends supper), and the warmth lets the Waterbys go deepest; Lymen's tasked focus the gnolls
-  In.MEAL = {
-    open: 'Supper is lake fish at the long table. The Waterbys eat with their guests; it is that kind of house. Elsbeth carries and does not sit.',
-    bands: [ // (RULED 11-05, his "rumors about the dominion involvement and the tribe movements before day 10": the Dominion at the moot, the tribes moving, the farmers harried
-      // (RULED 11-04, days 7-9); from day 10 the farmers' stories of the made things (his "stories from farmers who found them staring at them when they woke"). RETIRED: the
-      // one-eyed chief "came down out of the hills" on day 4 and the drover's "pack behind him, every one with the same eyes" -- he walks a beeline 26 mi off (the clock lane 11-05);
-      // the day-8 reach re-cut to his "They've never snooted this far north" (Web Gulch is north of the inn: the Snoot north of it is the rumor heard wrong)
-      { day: 1, id: 'heardMoot', who: 'Doran', ok: '"Gnolls held a moot up in the hills. Every tribe under one moon. Their king told the Dominion no, and they say he burned for it."',
-        wrong: '"Gnolls had a moot in the hills. Fought among themselves, the drovers say, and the old king lost. Good riddance to him."' },
-      { day: 2, id: 'heardDominion', who: 'Gennet', ok: '"They say there were Dominion people at that moot. Up there among them, under the moon. Nobody can tell me why."',
-        wrong: '"Some say the Dominion paid the gnolls to fight each other. Drovers will say anything."' },
-      { day: 4, id: 'heardTribes', who: 'Doran', ok: '"The tribes broke up after. One lot went south in a hurry, toward the Pit road. The rest went back up into the hills."',
-        wrong: '"The tribes have all gone home, the drovers say. Back up into the hills, and good."' },
-      { day: 7, id: 'heardFarmers', who: 'Doran', ok: '"Farmers off the edge farms came through, everything on one cart. Gnolls in the barley, they said. Young ones, and no chief with them."',
-        wrong: '"Farmers running from wolves, by the sound of it. Farm folk would."' },
-      { day: 8, id: 'heardReach', who: 'Doran', ok: '"The snooting parties are all going south now, toward the Pit. The silk-cutters at the Gulch have pulled in off the webs anyway."',
-        wrong: '"A gnoll band is raiding up past the Gulch, they say. The silk-cutters have pulled in off the webs."' },
-      { day: 8, id: 'heardHarbinger', who: 'Gennet', ok: '"Three men at that well this week told me of the same thing, and not one of them would put a name to it."' },
-      { day: 10, id: 'heardMade', who: 'Doran', ok: '"Farm folk up Silverton way woke to find things standing over their beds. Like big dogs, they say, with eyes that throw your own face back at you. Just staring. The ones they stared at can barely stand."' },
-      { day: 14, id: 'heardPit', who: 'Doran', ok: '"The Snoot\'s at the Pit. The road south is shut. Hessle in Silverton is paying gold for a true word of it."',
-        wrong: '"There\'s trouble at the Pit, something with the gnolls. It\'ll blow over. It always does."' }
-    ],
-    mirror: { ok: '{y}The hand-mirror on her belt is a Dominion mender\'s: the glass they set bones by.{/} She sees you see it, and eats no more.',
-      no: 'A small mirror on her belt, the kind a careful woman carries. She covers it with her hand.' },
-    bed: 'TO BED',
-    opener: '"What brings you down the road?"', // (RULED 11-05, the lean: his "one of the innkeeps asking why the party is coming")
-    more: ['"Eat. Ask what you like; the whole road comes through this door."', '"More fish? There\'s plenty."', '"There\'s bread, if the fish is done."'], // (when the last answer ends on no one speaking)
-    tell: { cool: 'Gennet\'s smile stays where it was.', warm: 'Gennet fills the cups again.', cold: '"You\'ll want your beds. It\'s an early road, whichever way you\'re going."' }, // (the warmth shown by a line, never a number)
-    close: 'The fire is let down. Gennet takes the lamp from its hook by the lake door and hangs it again, the way a person touches wood.',
-    TURNS: 5, CAP: 4, // (five turns, the opener and four; four answers a hero at most, and TO BED)
-    DC: { History: 10, Persuasion: 12, Religion: 13, Arcana: 13, lie: 11 } // (lie: Gennet's passive Insight, WIS 13 -- data/foes.js gennet)
-  };
+  // ---------------------------------------------------------------- THE MEAL: supper at the long table (its words and its turns are below, THE SUPPER AS RULED, 11-11)
   In.AB = { History: 'int', Insight: 'wis', Persuasion: 'cha', Religion: 'int', Perception: 'wis', Deception: 'cha', Arcana: 'int' };
   In.pinned = null; // (a show's dice, pinned: js/inn.js In.BEATS)
   // THE MEAL'S TABLE (11-04, the lanes desk; Griz at the pane: "Have the dinner reworked. It's returned to the default solid blue background and boxes. The council scene and
@@ -393,7 +359,7 @@
   };
   In.heroOf = function (u) { var k = u.src ? (u.src.key || u.src.id) : u.id; return { id: k, key: k, name: u.name }; };
   In.unitOf = function (seat, h) { return h ? seat.four.filter(function (u) { return u.src === h || (u.src && (u.src.key || u.src.id) === (h.key || h.id)); })[0] : null; };
-  In.speaker = function (seat, id) { var u = seat.folk[id], SO = D.counter && D.counter.SHEETOF; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right', sheet: (SO && SO[id] && SO[id]({ flags: seat.flags || {} })) || null }; }; // (sheet: the one speaking's drawn face where they have one -- js/counter.js C.SHEETOF, Doran's and Gennet's, Katarina's by In.FACE -- else their figure's, as before: 11-05, cutter-1105, on the lanes desk's word)
+  In.speaker = function (seat, id) { var u = seat.folk[id], SO = D.counter && D.counter.SHEETOF; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : id === 'elsbeth' ? 'Elsbeth' : (seat.flags || {}).katLooked ? 'Katarina' : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right', sheet: (SO && SO[id] && SO[id]({ flags: seat.flags || {} })) || null }; }; // (sheet: the one speaking's drawn face where they have one -- js/counter.js C.SHEETOF, Doran's and Gennet's, Katarina's by In.FACE -- else their figure's, as before: 11-05, cutter-1105, on the lanes desk's word)
   In.mealScene = function* (B) { // (the first room taken: supper on the open screen over the room, then the bed)
     var C = D.counter, seat = In.sit(B), st = C.state(B); seat.flags = st.flags;
     if (D.house && D.house.trail) D.house.trail('talk', 'meal');
@@ -413,120 +379,335 @@
   };
   // a silent read: the party's best passive score against the DC, nothing on the screen but what it opens
   In.read = function (st, skill, dc) { var b = In.best(st, skill), p = b ? 10 + b.v : 0, ok = p >= dc; In.trail('passive ' + skill + ' ' + p + ' vs DC ' + dc + (ok ? ', read' : ', not read')); return ok; };
-  // THE SUPPER'S READS: silent passives -- a hero whose 10 + skill reaches the DC sees it above that hero's answers the turn it comes (RULED 11-05: "would appear above vivian's
-  // conversation options for that turn"); it opens that hero's follow-up (`opens`), and puts its mark on the save (`fx`) only if the player flipped to that hero while it showed.
-  // The words are DRAFTS but where the game had them (the inn lane's 2026-11-05 section): his to cut in the show
-  In.SUP = { FOUR: ['lymen', 'aurdin', 'vivian', 'barley'] };
-  In.SUP.READS = {
-    counted: { skill: 'Perception', dc: 15, opens: 'girl', text: '(perception) The girl in the kitchen doorway has counted you twice.', fx: function (S) { S.f.mealWrong = 1; } }, // (RULED 11-05: Perception 15, Vivian's 16 -- it was Insight 15, which no hero reached; Elsbeth at the tub without the dishes, M.SCENES.elsbeth)
-    rich: { skill: 'Insight', dc: 12, opens: 'regular', text: '(insight) The house is too well kept for the traffic on this road. Somebody pays for it.' }, // (the game's, 11-04, as it was)
-    coin: { skill: 'Perception', dc: 14, opens: 'coin', text: '(perception) Gennet\'s change for the rooms was old coin, older than any mint on this road.' }, // (the green purse, the lake's founding gift: TarlynsPit/wiki/halfway-inn-and-lake.md)
-    pen: { skill: 'Insight', dc: 12, kat: true, text: '(insight) At "write it down right", the woman at the table for two stops her pen.', fx: function (S) { S.f.katPenSeen = 1; } }, // (his: "an insight regarding her if Aurdin says 'someone should write it down right'")
-    years: { skill: 'Insight', dc: 13, opens: 'before', text: '(insight) Doran\'s story goes from the well to the wedding. There were years in between he leaves out.' },
-    ring: { skill: 'Perception', dc: 14, opens: 'ring', text: '(perception) The ring on Gennet\'s hand is old, and was cut for a smaller finger.' }, // (Anwen's ring on Gennet's hand: the realm's, CANON 08-26)
-    rite: { skill: 'Religion', dc: 13, opens: 'rite', text: '(religion) "The lake gives back" is not a saying. It is a response: the line a congregation says back.' } // (the lane's "Gennet's it gives back is theology, not talk")
+  // THE SUPPER AS RULED (11-11, the supper seat; the inn lane's 2026-11-07 and 2026-11-11 sections, rulings 1-34, and the reading page he ruled from, the-lab's
+  // supper-mockup-2026-11-11.html; Griz: "let the supper mockup go ahead and build it in"). Its laws, each his: ONE silent read a hero an opening and ONE skill-shaded
+  // answer a hero an opening ("i'm still seeing multiple insights/rolls per character"); no die on the screen ("I think we can quit showing die rolls and have the
+  // skill-influenced chat options shaded as such") -- every check is rolled silently into the play record (In.trail); History never changes what the Waterbys know, it
+  // sharpens the asker's question ("the waterby wouldn't know different things based on Aurdin's history check, it'd help him ask better questions maybe"); the glass is
+  // Katarina's, at her neck, and a line about it is said to her and only with her at the table for two ("still talks at Kat (your neck) unless we've given Gennet a
+  // menders mirror"); a look is a look (js/counter.js Counter.lookAt: the portraits held, no box); the lines the seat's own ("free to re-write entire"). FIVE SUPPERS
+  // (In.supKind): the first, a later one, the one after the party saw Gennet with Amara, Gennet alone with Doran away, sacrifice night. The regard (f.innRegard, one
+  // hidden scale with the table's warmth: rulings 1 and 21) carries from supper to supper; renown sets the first (ruling 27)
+  In.MEAL = {
+    bed: 'TO BED', CAP: 4, TURNS: { first: 5, later: 3, amara: 3, alone: 3, sacrifice: 2 },
+    DC: { History: 10, Persuasion: 12, Religion: 13, Arcana: 13, lie: 11 }, // (lie: Gennet's passive Insight, WIS 13 -- data/foes.js gennet)
+    // the news by the day: a garbled first telling for `lag` days, then what they had wrong (for four days more), then the settled word; the three newest are told
+    bands: [
+      { day: 1, lag: 3, id: 'heardMoot', who: 'doranIn', garble: `"The gnolls had a moot, up in the hills. A fight over who's king, the first drover said, and the old one lost."`,
+        fix: `"The first man through called it a fight over the kingship. It wasn't that."`, ok: `"Every tribe of them in one place, under one moon. Their king told the Dominion no. They say he burned for it."` },
+      { day: 2, lag: 3, id: 'heardDominion', who: 'gennet', garble: `"There's talk the Dominion paid for that moot. I'd not repeat it."`,
+        fix: `"I told people the Dominion paid for it. Nobody says that now."`, ok: `"There were Dominion people at it. Standing among gnolls, under the moon. Nobody who tells it can say what for."` },
+      { day: 4, lag: 3, id: 'heardTribes', who: 'doranIn', garble: `"They've gone home. Back up into the hills, every tribe."`,
+        fix: `"Not all of them went home. We had that wrong."`, ok: `"They split, after. One lot came south fast, over on the Pit road side. The rest went up into the hills."` },
+      { day: 7, lag: 2, id: 'heardFarmers', who: 'doranIn', garble: `"Farm folk came through with everything on one cart. Wolves, I took it for."`,
+        fix: `"It wasn't wolves that moved those farmers."`, ok: `"Farmers off the edge farms, everything on one cart. Gnolls in the barley. Young ones, and no chief over them."` },
+      { day: 8, lag: 2, id: 'heardReach', who: 'doranIn', garble: `"There's a band raiding up by the Gulch, they say. The silk-cutters have come in off the webs."`,
+        fix: `"Nothing came to the Gulch. That was fright talking."`, ok: `"It's all going south, every party of them, at the Pit. The silk-cutters came in off the webs for nothing."` },
+      { day: 8, id: 'heardHarbinger', who: 'gennet', ok: `"Three men at that well this week told me of the same thing, and not one of them would put a name to it."` },
+      { day: 10, lag: 2, id: 'heardMade', who: 'doranIn', garble: `"Farm folk up Silverton way woke with things standing over their beds. Big as dogs, and bigger. Eyes that give you your own face. They don't bite. They stand there, and come morning the one they stood over can't lift a bucket."`,
+        ok: `"Not dogs. We said dogs at first. It's whatever was out there already, a boar, a thing off the bog, made big and given those eyes. And they don't keep. Three days and they're hide and bone, unless they've stood over somebody."` },
+      { day: 14, lag: 2, id: 'heardPit', who: 'doranIn', garble: `"Some trouble at the Pit, with the gnolls. It blows over. It always has."`,
+        fix: `"It hasn't blown over."`, ok: `"The Snoot's at the Pit. The south road is shut. Hessle's paying gold in Silverton for one true word of it."` }
+    ],
+    SHOWN: 3, FIXDAYS: 4, PROMPT: 150,
+    witness: `"See it? None of them. Every word at this table is one man telling what another man told him."`,
+    more: [`"Eat. Ask what you like; the whole road comes through this door."`, `"There's more fish. The lake doesn't stint."`, `"There's bread, if the fish is done."`], // (when an opening comes with no one speaking)
+    tell: { cool: `Gennet's smile stays where it was.`, warm: `Gennet fills the cups again.`, cold: `"You'll be wanting your beds. It's an early road, whichever way you take it."` }, // (the warmth shown by a look, never a number)
+    close: [`The fire is let down.`, `Gennet takes the lamp from its hook by the lake door, looks at it, and hangs it again.`]
   };
-  // THE SUPPER'S ANSWERS: `turn1` the opener's alone, else the turns after; `who` the heroes who may say it (none: any); `say` the words by hero (`any` for one not of the four;
-  // a function of the state for words that change); `read` a follow-up opened by that read, for the hero who read it; `when` open by the state; `first` put at the head of the
-  // hero's list; `check` the asker's own die (`auto` a hero who needs none); `run` what the Waterbys say back (S.by, S.narr, S.reads, S.f); `warm` the step it moves the table.
-  // Lymen's tasked focus (his: "always asking about the gnoll stuff"): the gnolls' answers are his, and the news anyone's
-  In.SUP.ASK = [
-    { id: 'council', turn1: true, who: ['lymen'], say: { lymen: 'Papa\'s council wants a true word on the gnolls. I\'m to carry it home.' },
-      run: function (S) { S.f.mealTold = 'council'; S.by('doranIn', '"A true word." He sets his cup down. "There\'s none at this table. Rumors, all you like."'); } },
-    { id: 'trade', turn1: true, who: ['vivian'], say: { vivian: 'We trade. Rope and cloth, down to the Pit and back. (deception)' }, check: { skill: 'Deception', dc: 'lie' },
-      run: function (S, e, ok) { S.f.mealLie = ok ? 'held' : 'caught'; S.by('gennet', ok ? '"Traders. The Pit\'s good custom, when it\'s quiet."' : '"Traders." She looks at the swords, then at you. "Of course."'); }, warm: function (S, ok) { return ok ? 0 : -1; } },
-    { id: 'work', turn1: true, who: ['barley'], say: { barley: 'Work. Wherever it is.' },
-      run: function (S) { S.by('doranIn', '"Then you\'ve come down the wrong road." He likes the answer, all the same.'); } },
-    { id: 'write', turn1: true, who: ['aurdin'], say: { aurdin: 'The moot. Someone should write it down right.' },
-      run: function (S) { S.by('doranIn', '"Write it down? You\'d want the drovers, then, and no two of them tell it the same."'); S.reads(['pen']); } },
-    { id: 'pass', turn1: true, say: { any: 'Passing through.' }, when: function (S, e) { return In.SUP.FOUR.indexOf(e.key) < 0; }, run: function (S) { S.by('gennet', '"Most do."'); } },
-    // the gnolls: the road's news by the day (the asker's History: Lymen's or Aurdin's), then Lymen's steps
-    { id: 'news', who: ['lymen', 'aurdin'], say: { lymen: 'What does the road say about the gnolls? (history)', aurdin: 'What do the drovers say of the hills since the moot? (history)' }, // (Lymen's focus, Aurdin's History: flip to the one who knows the hills to hear it right)
-      check: { skill: 'History', dc: 'History' }, run: function (S, e, ok) { In.MEAL.bands.forEach(function (b) { if (S.d < b.day) return; var t = ok || !b.wrong; S.f[b.id] = t ? 'true' : 'wrong'; S.by(b.who === 'Doran' ? 'doranIn' : 'gennet', t ? b.ok : b.wrong); }); } },
-    { id: 'come', who: ['lymen'], say: { lymen: 'Will they come this far?' }, when: function (S) { return !!S.asked.news; },
-      run: function (S) { S.by('doranIn', S.d >= 14 ? '"They\'re at the Pit. They\'ve never come this far north, and now they\'ve less reason than ever."' : S.d >= 8 ? '"They\'ve never come this far north. It\'s the farms round the Pit they harry, and it\'s all south now, more every week."' : '"They\'ve never come this far north. It\'s the farms round the Pit they harry; there\'s more of them down there."'); S.by('gennet', '"The lake keeps us safe."'); } }, // (his: "They've never snooted this far north ... that gets increasingly true over time, the lake will keep us safe")
-    { id: 'take', who: ['lymen'], say: { lymen: 'And if they do come?' }, when: function (S) { return !!S.asked.come && S.warm >= 2; },
-      run: function (S) { S.f.heardLakeTake = 1; S.by('gennet', '"If they come, the lake will take them."'); S.narr('Doran looks at his plate.'); } }, // (his deepest: "if they come the lake will take them")
-    { id: 'word', who: ['lymen'], say: { lymen: 'Papa\'s council wants a true word on the Snoot. Where do I get one?' },
-      run: function (S, e) { S.f.pointedSouth = 1; S.by('doranIn', S.d >= 14 ? '"The road south is shut. If there\'s a true word, it\'s inside the Pit, and the Pit\'s asking for every blade."' : S.d >= 8 ? '"South. The drovers up from the Pit don\'t stop to water any more. That\'s your true word: they don\'t stop."' : '"Not here, not yet. Whatever\'s true comes up from the Pit first, and the Pit\'s a long day south. Go and look, if your father wants it true."'); } }, // (RULED 11-04: the council's true word south past the inn; Doran backs it)
-    { id: 'mend', who: ['lymen'], say: { lymen: 'Forgive us. It\'s a long road, and we\'ve forgotten our table manners. (persuasion)' }, first: function () { return true; }, when: function (S) { return S.warm < 2; }, check: { skill: 'Persuasion', dc: 'Persuasion' },
-      run: function (S, e, ok) { S.asked.mend = 0; if (ok) S.by('gennet', '"There\'s nothing to forgive. Eat."'); else S.by('doranIn', '"Mm."'); }, warm: function (S, ok) { return ok ? 1 : 0; } }, // (his: "maybe he gets a persuasion response if the 'innkeeper friendly' starts to drift south"; asked again whenever it drifts)
-    { id: 'eyes', who: ['aurdin'], say: { aurdin: 'Eyes that throw your face back? That isn\'t a dog. (arcana)' }, when: function (S) { return S.f.heardMade === 'true'; }, check: { skill: 'Arcana', dc: 'Arcana' },
-      run: function (S, e, ok) { if (ok) { S.f.eyesMade = 1; S.narr('{c}(arcana) Eyes that give your own face back are not an animal\'s. Something was made, or made over.{/}'); S.by('gennet', '"Not on this side of the water."'); } else S.narr('Nobody at the table has an answer for that.'); } },
-    // the inn: the house, then what the reads open (his: "they 'could' find out about him losing his wife and son, the lake providing a new wife, her way with 'local spirits'")
-    { id: 'girl', read: 'counted', say: { vivian: 'Your girl counts heads.', any: 'Your girl keeps a tally of us.' },
-      run: function (S) { S.f.mealWrong = 1; S.by('gennet', '"She counts plates."'); S.narr('Elsbeth takes the plates through to the tub and stays there. Alone, she might say more.'); } }, // (RULED 11-05: she counts who will be in the house the night the wagon comes; the tub is where she says it)
-    { id: 'coin', read: 'coin', say: { vivian: 'Old silver, that change. Where\'s it from?', any: 'Old coin, that. Where\'s it from?' },
-      run: function (S) { S.f.heardCoin = 1; S.by('gennet', '"The lake gives back."'); S.reads(['rite']); } },
-    { id: 'ring', read: 'ring', say: { vivian: 'That\'s an old ring.', any: 'That\'s an old ring you wear.' },
-      run: function (S) { S.f.heardRing = 1; S.by('gennet', '"It came back out of the lake. The lake gives back."'); if (S.warm >= 2) S.by('gennet', '"It was his first wife\'s. It came up on the flat stone the morning after the wedding."'); S.reads(['rite']); } },
-    { id: 'before', read: 'years', say: { barley: 'You\'ve lost someone.', any: 'There was someone before Gennet.' },
-      run: function (S) { S.f.heardAnwen = 1; S.by('doranIn', '"Anwen. My first. Gone the third night." He drinks. "And our Tobin. Fourteen."'); if (S.warm >= 2) { S.f.heardLakeWife = 1; S.by('gennet', 'Her hand on his. "The lake took them. And it gave him me."'); } } }, // (Anwen and Tobin the realm's, CANON 08-26; the lake giving him a wife his, 11-05)
-    { id: 'rite', read: 'rite', say: { aurdin: 'That\'s a response, "it gives back." What do you say it to?', any: 'You say that like a prayer.' },
-      run: function (S) { S.f.heardRite = 1; S.by('gennet', '"Someone has to speak to the spirits here, or they speak to you."'); if (S.warm >= 2) { S.f.heardLamp = 1; S.by('gennet', '"The lamp by the lake door is for it. On its nights, we light it."'); } } }, // (the Due's lantern: the realm's, CANON 08-27)
-    // the traveler (his: "questions pointed at Kat cool the conversation"): her mirror, the game's, at the cost of a step -- ahead of the house and the Dominion in a hero's four
-    { id: 'mirror', who: ['barley', 'aurdin', 'vivian'], say: { barley: 'That glass on your belt. You\'re with the Dominion.', aurdin: 'Is that a scrying glass on your belt? (religion)', vivian: 'Nice glass. Not a vain woman\'s, though. (religion)', any: 'That\'s a fine glass on your belt. (religion)' },
-      when: function (S) { return S.kat; }, check: { skill: 'Religion', dc: 'Religion' }, auto: function (S, e) { return e.key === 'barley' ? '{y}Barley knows it on sight.{/}' : null; }, // (Barley knows a Dominion mender's glass: he was one of theirs)
-      run: function (S, e, ok) { if (ok) S.f.katMirror = 1; S.by('katarina', ok ? In.MEAL.mirror.ok : In.MEAL.mirror.no); }, warm: -1 },
-    { id: 'house', who: ['barley', 'aurdin', 'vivian'], say: { barley: 'Good stone. Who built the place?', aurdin: 'How old is the house?', vivian: 'How long have you kept the place?', any: 'Tell us about the inn.' },
-      run: function (S) { S.by('doranIn', '"The lake was here first, and named the place. The only well on the road: everyone stops."'); S.by('gennet', '"Waterby, since the wedding."'); S.reads(['years', 'ring']); } },
-    // the Dominion (his: "met with all become naught but travelers at the half-way inn, or they aren't welcomed back - to deepest arrangements are sometimes made with repeat guests on schedules")
-    { id: 'dom', who: ['barley', 'aurdin', 'vivian'], say: { barley: 'I was one of theirs, once. Does the Dominion stop here?', aurdin: 'There were Dominion at the moot, they say. Any come this way?', vivian: 'Any Dominion custom out here?', any: 'Does the Dominion come through here?' },
-      run: function (S, e) { S.by('gennet', '"There\'s no Dominion under this roof, and no Hex. All are naught but travelers at the Halfway Inn, or they\'re not welcome back."'); if (e.key === 'barley' && S.kat) { S.f.katHeardBarley = 1; S.narr('At the table for two, the traveler\'s pen stops.'); } } },
-    { id: 'regular', who: ['barley', 'aurdin', 'vivian'], say: function (S, e) { return !S.asked.dom ? 'Somebody keeps this house in coin.' : e.key === 'vivian' ? 'Not even the ones who pay?' : 'Not even the regulars?'; },
-      when: function (S, e) { return !!S.asked.dom || !!(S.opened[e.key] || {}).regular; }, first: function (S, e) { return !S.asked.dom; },
-      run: function (S) { if (S.warm >= 2) { S.f.heardArrangements = 1; S.by('doranIn', '"Arrangements get made, sometimes. With guests who come back regular, on a schedule."'); S.narr('Gennet looks at him, and he says no more.'); } else S.by('doranIn', '"Travelers do. Everyone stops at the only well."'); } }
-  ];
+  In.AB.Medicine = 'wis';
+  In.renown = function () { var H = D.house; return H && H.playing && H.cur ? (H.cur.renown || 0) : ((D.counter && D.counter.testRenown) || 0); };
+  // which supper tonight: the due's own night; Gennet alone (Doran not in the house: f.doranAway, ruling 29); the one after the wagon came and went with the party
+  // watching (f.wagonOutcome 'quiet': the party saw her deal with Amara -- ruling 33), once; a later one; the first
+  In.supKind = function (f, d, seat) {
+    if (In.dueTonightOn(f, d)) return 'sacrifice';
+    if (!seat.folk.doranIn) return 'alone';
+    if (f.wagonOutcome === 'quiet' && !f.supAmara) return 'amara';
+    return f.supCount ? 'later' : 'first';
+  };
+  // where the table starts: the first by renown (3 or better warm, else civil); after it by the regard, never below civil at the start (a cold regard holds it at civil
+  // all night); the bribe taken is warm (the party is in on it: the 11-07 table); after Amara it is civil and cannot rise
+  In.supStart = function (f, kind) {
+    var reg = f.innRegard == null ? 1 : f.innRegard, cap = kind === 'amara' || reg <= 0 ? 1 : 2;
+    var start = kind === 'first' ? (In.renown() >= 3 ? 2 : 1) : kind === 'amara' ? 1 : kind === 'sacrifice' ? Math.min(1, Math.max(1, reg)) : Math.max(1, reg);
+    if (f.wagonOutcome === 'bribe' && kind !== 'amara') { start = 2; cap = 2; }
+    return { warm: Math.min(start, cap), cap: cap };
+  };
+  In.SUP = { FOUR: ['lymen', 'aurdin', 'vivian', 'barley'], KEPT: ['house', 'came', 'dom', 'regular', 'boys', 'fought', 'before', 'ring', 'coin', 'rite', 'girl', 'mirror'] }; // (KEPT: the avenues that stay asked from supper to supper -- the news is asked afresh each night)
+  // THE READS: silent passives. A hero whose 10 + skill reaches the DC may be shown it -- ONE a hero an opening, the oldest waiting first, the rest held for the next
+  // opening; it opens that hero's follow-up (`opens`), and leaves its mark (`fx`) only if the player flipped to a hero while it showed
+  In.SUP.READS = {
+    counted: { skill: 'Perception', dc: 15, opens: 'girl', text: `(perception) The girl in the kitchen doorway has counted you twice.` }, // (RULED 11-05: Perception 15, Vivian's; kept quiet it is the way to her, In.meal's end)
+    rich: { skill: 'Insight', dc: 12, opens: 'coinq', text: `(insight) The linen is new and the pewter matches. This road does not pay for that.` },
+    coin: { skill: 'Perception', dc: 14, opens: 'coin', text: `(perception) Gennet made change for the rooms in old coin. No mint on this road struck it.` }, // (the green purse, the lake's founding gift: the realm's)
+    pen: { skill: 'Insight', dc: 12, ok: function (S) { return S.kat; }, text: function (S) { return S.f.katLooked ? `(insight) At "write it down right", Katarina's pen stops.` : `(insight) At "write it down right", the traveler at the table for two stops writing.`; }, fx: function (S) { S.f.katPenSeen = 1; } },
+    years: { skill: 'Insight', dc: 13, opens: 'before', text: `(insight) Doran's telling stops the day the inn came to him and starts again at the wedding. There are years between.` },
+    ring: { skill: 'Perception', dc: 14, opens: 'ring', text: `(perception) The ring on Gennet's hand is old, and was cut for a smaller finger.` }, // (Anwen's ring: the realm's, CANON 08-26)
+    rite: { skill: 'Religion', dc: 13, opens: 'rite', text: `(religion) "The lake gives back." She says it the way a congregation answers.` },
+    fought: { skill: 'Insight', dc: 13, opens: 'fought', text: `(insight) Doran sits with his back to the wall and the door in front of him. Somebody taught him to.` },
+    barnbowl: { skill: 'Perception', dc: 13, opens: 'barnq', ok: function (S) { return !S.glam; }, text: `(perception) Elsbeth carried a bowl out by the yard door before she carried any to the table.` },
+    noname: { skill: 'Insight', dc: 12, opens: 'nameq', ok: function (S) { return S.glam; }, text: `(insight) Nobody at this table has called the child by a name.` },
+    sawit: { skill: 'Insight', dc: 12, opens: 'sawq', text: `(insight) "Without him." She watched it happen, or some of it.` },
+    taste: { skill: 'Medicine', dc: function () { return (D.secondact && D.secondact.POISON && D.secondact.POISON.taste) || 13; }, opens: 'bowl', ok: function (S) { return S.offer === 'none'; }, text: `(medicine) A bitterness under the fish, before the second spoonful.` }, // (js/secondact.js A.POISON.taste)
+    watch: { skill: 'Insight', dc: function () { return (D.secondact && D.secondact.POISON && D.secondact.POISON.watch) || 15; }, opens: 'bowl', ok: function (S) { return S.offer === 'none'; }, text: `(insight) Gennet has filled every bowl but her own.`, fx: function (S) { S.watch = 1; } }, // (A.POISON.watch: the rest save with advantage)
+    faint: { skill: 'Perception', dc: 13, opens: 'bowl', ok: function (S) { return S.offer === 'none' && S.tell === 'faint'; }, text: `(perception) Elsbeth looked at the bowls before she looked at anyone.` },
+    lamp: { skill: 'Perception', dc: 12, opens: 'lampq', ok: function (S) { return S.offer !== 'none'; }, text: `(perception) The lamp by the lake door is lit. It has not been lit on any other night.` }
+  };
+  In.SUP.dc = function (r) { return typeof r.dc === 'function' ? r.dc() : r.dc; }; // (the taste and the watch are the second act's own numbers: js/secondact.js A.POISON)
+  In.SUP.news = function (S) { // (the same words whoever asks and however well: ruling 4)
+    var MD = In.MEAL, shown = MD.bands.filter(function (b) { return S.d >= b.day; }).slice(-MD.SHOWN);
+    shown.forEach(function (b) {
+      var garble = !!b.garble && S.d < b.day + b.lag;
+      if (!garble && b.fix && S.d < b.day + b.lag + MD.FIXDAYS) S.by(b.who, b.fix);
+      S.f[b.id] = garble ? 'wrong' : 'true'; S.by(b.who, garble ? b.garble : b.ok);
+    });
+  };
+  In.SUP.regular = function (S) {
+    if (S.warm >= 2) { S.f.heardArrangements = 1; S.by('doranIn', `"Arrangements get made, sometimes. With guests who come back. On a schedule."`); S.look('gennet', `Gennet looks at Doran. He says no more.`, 'doranIn'); }
+    else S.by('doranIn', `"Everyone pays. It's the only well."`);
+  };
+  // THE ANSWERS: `kinds` the suppers it belongs to (none: the first and a later one); `t1` true the first opening's alone, false the openings after, none any; `who` the
+  // heroes who may say it; `read` opened by that read for the hero who read it; `ok` by the state, `needs` by the talk so far; `lead` put at the head of the hero's list;
+  // `skill` the check that shapes it (it is SHADED, one a hero an opening; S.made rolls it silently); `to` said to Katarina across the room; `run` what comes back
+  // (S.by, S.narr, S.look, S.reads); `warm` the step it moves the table; `end` it ends supper
+  (function () {
+    var SU = In.SUP, sharp = function (S, e) { return S.made(e, 'History'); }, toKat = function (S) { return '(to ' + (S.f.katLooked ? 'Katarina' : 'the traveler') + ', across the room) '; };
+    var kn = function (S) { return S.f.katLooked ? 'Katarina' : 'The traveler'; }, LATE = ['later'], BOTH = ['first', 'later'];
+    var news = { id: 'news', t1: false, who: ['lymen', 'aurdin'], skill: function (S, e) { return sharp(S, e) ? 'History' : null; },
+      say: function (S, e) { return e.key === 'lymen' ? (sharp(S, e) ? `What does the road say about the gnolls? And which of it did the teller see?` : `What does the road say about the gnolls?`) : (sharp(S, e) ? `What do the drovers say of the hills since the moot? And which of them were there?` : `What do the drovers say of the hills since the moot?`); },
+      run: function (S, e) { SU.news(S); if (sharp(S, e)) { S.f.newsHearsay = 1; S.by('doranIn', In.MEAL.witness); } } }; // (the sharper question's own answer: none of it is witnessed)
+    var mend = { id: 'mend', t1: false, who: ['lymen'], lead: true, skill: function () { return 'Persuasion'; }, needs: function (S) { return S.cooled && S.warm < S.cap; },
+      say: function () { return `We've been poor guests. I'm sorry for it.`; },
+      run: function (S, e) { if (S.made(e, 'Persuasion', null, true)) S.by('gennet', `"You've been hungry ones. Eat."`); else S.by(S.doran ? 'doranIn' : 'gennet', `"Mm."`); }, warm: function (S, e) { return S.made(e, 'Persuasion') ? 1 : 0; } }; // (his: "maybe he gets a persuasion response if the 'innkeeper friendly' starts to drift south"; once for each time it drifts)
+    var K = function (o, kinds, more) { var c = {}; Object.keys(o).forEach(function (k) { c[k] = o[k]; }); c.kinds = kinds; Object.keys(more || {}).forEach(function (k) { c[k] = more[k]; }); return c; };
+    SU.ASK = [
+      // ---- the first supper's opener (RULED 11-05: Gennet's "What brings you down the road?")
+      { id: 'council', kinds: ['first'], t1: true, who: ['lymen'], say: function () { return `Papa's council wants a true word on the gnolls. I'm to carry it home.`; },
+        run: function (S) { S.f.mealTold = 'council'; S.by('doranIn', `"A true word."`); S.look('doranIn', `Doran sets his cup down.`); S.by('doranIn', `"You'll not get one here. Rumor, all you can carry."`); } },
+      { id: 'trade', kinds: ['first'], t1: true, who: ['vivian'], skill: function () { return 'Deception'; }, say: function () { return `We trade. Rope and cloth, down to the Pit and back.`; },
+        run: function (S, e) {
+          if (S.renown >= 3) { S.f.mealLie = 'caught'; S.by('gennet', `"Traders."`); S.look('gennet', `Gennet looks at Doran, and back.`, 'doranIn'); S.by('gennet', `"Hessle pays traders off his board now, does he?"`); return; } // (the road knows the party's work: the lie cannot hold)
+          var ok = S.made(e, 'Deception', 'lie'); S.f.mealLie = ok ? 'held' : 'caught';
+          if (ok) S.by('gennet', `"Traders. The Pit buys well, when it's quiet."`); else { S.by('gennet', `"Traders."`); S.look('gennet', `Gennet looks at the swords, then at ` + e.hero.name + `.`); S.by('gennet', `"Of course."`); } },
+        warm: function (S) { return S.f.mealLie === 'caught' ? -1 : 0; } },
+      { id: 'work', kinds: ['first'], t1: true, who: ['barley'], say: function () { return `Work. Wherever it is.`; },
+        run: function (S, e) { S.by('doranIn', `"Then you've come down the wrong road."`); S.look('doranIn', `Doran laughs once through his nose, and pushes the bread toward ` + e.hero.name + `.`); }, warm: function () { return 1; } },
+      { id: 'write', kinds: ['first'], t1: true, who: ['aurdin'], say: function () { return `The moot. Someone should write it down right.`; }, // (his: "if Aurdin says 'someone should write it down right'")
+        run: function (S) { S.by('doranIn', `"Write it down? Ask the drovers, then. You'll get a different moot from each."`); S.reads(['pen']); } },
+      { id: 'pass', kinds: ['first'], t1: true, any: true, say: function () { return `Passing through.`; }, run: function (S) { S.by('gennet', `"Most do."`); } }, // (one not of the four)
+      // ---- a later supper's opener ("What did the road show you?")
+      { id: 'l1', kinds: LATE, t1: true, who: ['lymen'], say: function () { return `Gnoll sign, and no gnolls. What's come up the road since?`; }, run: function (S) { S.asked.news = 1; SU.news(S); } },
+      { id: 'l2', kinds: LATE, t1: true, who: ['barley'], say: function () { return `Nothing I'd pay to see twice.`; }, run: function (S) { S.by('doranIn', `"That's the road."`); }, warm: function () { return 1; } },
+      { id: 'l3', kinds: LATE, t1: true, who: ['vivian'], say: function () { return `Less than your drovers will have told you.`; }, run: function (S) { S.by('gennet', `"They do talk."`); } },
+      { id: 'l4', kinds: LATE, t1: true, who: ['aurdin'], say: function () { return `Enough to fill a page. Not enough to fill two.`; }, run: function (S) { S.by('doranIn', `"Then eat. The page will keep."`); } },
+      { id: 'lpass', kinds: LATE, t1: true, any: true, say: function () { return `Road, and more road.`; }, run: function (S) { S.by('gennet', `"It's that or stay home."`); } },
+      // ---- the openings after: Lymen's the gnolls (his: "always asking about the gnoll stuff")
+      K(mend, BOTH), K(news, BOTH),
+      { id: 'come', t1: false, who: ['lymen'], needs: function (S) { return !!S.asked.news; }, say: function () { return `Will they come this far?`; },
+        run: function (S) { S.by('doranIn', S.d >= 14 ? `"They're at the Pit. They've never snooted this far north, and they've less cause now than ever."` : S.d >= 8 ? `"They've never snooted this far north. And it's all running south now, more of it each week."` : `"They've never snooted this far north. It's the farms round the Pit they go at. There's more farms."`); S.by('gennet', `"The lake will keep us safe."`); } }, // (his: "They've never snooted this far north ... the lake will keep us safe")
+      { id: 'take', t1: false, who: ['lymen'], needs: function (S) { return !!S.asked.come && S.warm >= 2; }, say: function () { return `And if they do come?`; },
+        run: function (S) { S.f.heardLakeTake = 1; S.by('gennet', `"If they come, the lake will take them."`); S.look('doranIn', `Doran looks at his plate.`); } }, // (his deepest: "if they come the lake will take them")
+      { id: 'word', t1: false, who: ['lymen'], say: function () { return `The council wants its true word. Where do I go for one?`; },
+        run: function (S) { S.f.pointedSouth = 1; S.by('doranIn', S.d >= 14 ? `"The south road's shut. The true word is inside the Pit, and the Pit wants every blade it can get."` : S.d >= 8 ? `"South. The drovers coming up from the Pit don't stop to water now. Take that for your true word."` : `"Not here. What's true comes up from the Pit, and that's a long day south. If your father wants it true, go and look."`); } }, // (RULED 11-04: the council's true word south past the inn)
+      { id: 'boys', t1: false, who: ['lymen'], say: function () { return `Your boys. How old are they?`; },
+        run: function (S) { S.by('gennet', `"Orrin's fourteen. Pell's eleven."`); S.look('doranIn', `Doran does not look up from his plate.`); S.reads(['years']); } }, // (Tobin was fourteen: the realm's)
+      { id: 'eyes', t1: false, who: ['aurdin'], ok: function (S) { return S.d >= 10; }, skill: function (S, e) { return S.made(e, 'Arcana') ? 'Arcana' : null; },
+        say: function (S, e) { return S.made(e, 'Arcana') ? `Eyes that give your own face back. Nothing is born with those. Who is making them?` : `Eyes that give your face back? No dog has those.`; },
+        run: function (S, e) { if (S.made(e, 'Arcana')) { S.f.eyesMade = 1; S.by('gennet', `"Not on this side of the water."`); } else S.narr(`Nobody at the table answers that.`); } },
+      // ---- what the reads open
+      { id: 'girl', t1: false, read: 'counted', say: function () { return `Your girl counts heads.`; },
+        run: function (S) { S.f.mealGirlSaid = 1; S.by('gennet', `"She counts plates."`); S.look('gennet', `Gennet looks to the kitchen doorway. Elsbeth takes the plates through and does not come back.`, 'elsbeth'); }, warm: function () { return -1; } }, // (RULED 11-11, his "10 was the fumble": said aloud, Elsbeth gives nothing free after)
+      { id: 'coin', t1: false, read: 'coin', say: function () { return `Old silver, this change. Who struck it?`; }, run: function (S) { S.f.heardCoin = 1; S.by('gennet', `"The lake gives back."`); S.reads(['rite']); } },
+      { id: 'coinq', key: 'regular', t1: false, read: 'rich', needs: function (S) { return !S.asked.dom; }, say: function () { return `New linen. Somebody keeps this house in coin.`; }, run: function (S) { SU.regular(S); } },
+      { id: 'ring', t1: false, read: 'ring', say: function () { return `That's an old ring.`; },
+        run: function (S) { S.f.heardRing = 1; S.by('gennet', `"It came up out of the lake. The lake gives back."`); if (S.warm >= 2) S.by('gennet', `"It was his first wife's. It was on the flat stone the morning after we wed."`); S.reads(['rite']); } },
+      { id: 'before', t1: false, read: 'years', say: function () { return `You've lost someone.`; },
+        run: function (S) { S.f.heardAnwen = 1; S.by('doranIn', `"Anwen. My first. She went the third night."`); S.look('doranIn', `Doran drinks.`); S.by('doranIn', `"And our Tobin. He was fourteen."`);
+          if (S.warm >= 2) { S.f.heardLakeWife = 1; S.look('gennet', `Gennet puts her hand on his.`, 'doranIn'); S.by('gennet', `"The lake took them. And it gave him me."`); } } }, // (Anwen and Tobin the realm's; the lake giving him a wife his, 11-05)
+      { id: 'rite', t1: false, read: 'rite', say: function () { return `"It gives back." You say that like an answer. What's the asking?`; },
+        run: function (S) { S.f.heardRite = 1; S.by('gennet', `"Someone has to speak to the spirits here, or they speak to you."`); if (S.warm >= 2) { S.f.heardLamp = 1; S.by('gennet', `"The lamp by the lake door is the asking. On its nights we light it."`); } } }, // (the Due's lantern: the realm's)
+      { id: 'fought', t1: false, read: 'fought', say: function () { return `Nobody gives a man an inn.`; },
+        run: function (S) { if (S.warm >= 2) { S.f.heardDoranPast = 1; S.by('doranIn', `"He'd won more than the inn, betting on me. I was owned, and I fought until I wasn't. He said the house was my share of it."`); S.by('doranIn', `"Where is no matter now."`); } else S.by('doranIn', `"This one did."`); } }, // (the realm's history, CANON 11-11; where and whose are unpoured, so he does not say)
+      // ---- Katarina's glass: said to her, across the room, and only with her at the table for two; gone once the ink is done (the party knows what she is)
+      { id: 'mirror', t1: false, who: ['barley', 'aurdin', 'vivian'], to: true, ok: function (S) { return S.kat && !S.f.katInk; }, skill: function (S, e) { return e.key !== 'barley' && S.made(e, 'Religion') ? 'Religion' : null; },
+        say: function (S, e) { var t = toKat(S); return e.key === 'barley' ? t + `You, by the fire. That glass at your neck. You're with the Dominion.` : e.key === 'aurdin' ? (S.made(e, 'Religion') ? t + `Madam. That glass at your neck is a mender's. The Dominion sets bones by those.` : t + `Madam. Is that a scrying glass at your neck?`) : (S.made(e, 'Religion') ? t + `You, by the fire. Nice glass. A mender's, isn't it? Dominion work.` : t + `You, by the fire. Nice glass. Not a vain woman's, though.`); },
+        pre: function (S, e) { return e.hero.name + ` turns in the chair, away from the Waterbys, to the table for two.`; },
+        run: function (S, e) { var knows = e.key === 'barley' || S.made(e, 'Religion'); // (Barley knows a Dominion mender's glass: he was one of theirs)
+          if (knows) { S.f.katMirror = 1; S.look('katarina', kn(S) + `'s hand goes to the glass at her neck. She puts her spoon down and eats no more.`); } else S.look('katarina', kn(S) + ` covers the glass at her neck with her hand.`);
+          S.look('gennet', `Gennet looks at ` + e.hero.name + `, a beat too long.`); }, warm: function () { return -1; } }, // (his: "questions pointed at Kat cool the conversation")
+      // ---- the house: who built this place, as deep as the table's warmth allows (the realm's history, TarlynsPit/wiki/halfway-inn-and-lake.md, CANON 11-11)
+      { id: 'house', t1: false, who: ['barley', 'aurdin', 'vivian'], skill: function (S, e) { return e.key === 'aurdin' && sharp(S, e) ? 'History' : null; },
+        say: function (S, e) { return e.key === 'barley' ? `Good stone. Who built the place?` : e.key === 'vivian' ? `How long have you kept the place?` : sharp(S, e) ? `That cellar is older than the walls over it. What was here before it was an inn?` : `How old is the house?`; },
+        run: function (S, e) {
+          var trader = `"A trader paid for it. He'd got rich keeping his goods in the cellar here, when the cellar was all there was. The Half-Cellar. The drovers still say it."`;
+          var deep = function (all) { if (S.warm < 2) return; S.f.heardBuilt = 2; if (all) S.by('doranIn', `"A road friend of his kept it first, and that man's son after. The grandson lost it at dice the year the old man died. Nobody can tell you their name now."`); S.by('doranIn', `"It was falling in when it came to me."`); };
+          S.f.heardBuilt = 1;
+          if (e.key === 'barley') { S.by('doranIn', `"Slaves. Who else?"`); S.by('doranIn', trader); deep(true); } // (his: "'slaves, who else?' can be one layer answer")
+          else if (e.key === 'vivian') { S.by('gennet', `"Waterby, since the wedding."`); S.by('doranIn', `"Longer, me."`); deep(false); }
+          else if (sharp(S, e)) { S.by('doranIn', trader); deep(true); } // (the sharper question starts past "slaves")
+          else { S.by('doranIn', `"The lake's older. It named the place. The house is three men's lifetimes, and the cellar under it is older than that."`); deep(true); }
+          S.reads(['years', 'ring']); }, warm: function (S, e) { return e.key === 'barley' ? 1 : 0; } },
+      { id: 'came', t1: false, who: ['barley', 'aurdin', 'vivian'], needs: function (S) { return !!S.asked.house && S.warm >= 2; },
+        say: function (S, e) { return e.key === 'barley' ? `How does a house like this come to a man?` : e.key === 'aurdin' ? `And after the grandson?` : `Who had it before you?`; },
+        run: function (S) { S.by('doranIn', `"A man won it at dice and had no use for an inn. He gave it to me."`); S.reads(['fought']); } },
+      // ---- the Dominion (his: "all become naught but travelers at the half-way inn, or they aren't welcomed back ... arrangements are sometimes made with repeat guests on schedules")
+      { id: 'dom', t1: false, who: ['barley', 'aurdin', 'vivian'], say: function (S, e) { return e.key === 'barley' ? `I was one of theirs, once. Does the Dominion stop here?` : e.key === 'aurdin' ? `Dominion at a gnoll moot. Do they come this way?` : `Any Dominion custom out here?`; },
+        run: function (S, e) { S.f.heardTravelers = 1; S.by('gennet', `"No Dominion under this roof, and no Hex. All are naught but travelers at the Halfway Inn. Them that can't be aren't welcomed back."`);
+          if (e.key === 'barley' && S.kat && !S.f.katInk) { S.f.katHeardBarley = 1; S.look('katarina', `At the table for two, ` + (S.f.katLooked ? `Katarina's` : `the traveler's`) + ` pen stops.`); } } },
+      { id: 'regular', t1: false, who: ['barley', 'aurdin', 'vivian'], needs: function (S) { return !!S.asked.dom; }, say: function (S, e) { return e.key === 'vivian' ? `Not even the ones who pay?` : `Not even the regulars?`; }, run: function (S) { SU.regular(S); } },
+      // ---- the supper after the party saw Gennet with Amara (ruling 33): tense, and nothing in it starts a fight
+      { id: 'a1', kinds: ['amara'], t1: true, who: ['lymen'], say: function () { return `Who was the woman with the wagon?`; }, run: function (S) { S.by('gennet', `"A carter. She waters here every month. She pays for her rooms, like you."`); } },
+      { id: 'a2', kinds: ['amara'], t1: true, who: ['barley'], say: function () { return `What did she pay you?`; }, run: function (S) { S.look('doranIn', `Doran looks at his plate.`); S.by('gennet', `"For rooms and feed. The same as you will, in the morning."`); }, warm: function () { return -1; } },
+      { id: 'a3', kinds: ['amara'], t1: true, who: ['vivian'], skill: function () { return 'Deception'; }, say: function () { return `We heard a wagon. We didn't get up.`; },
+        run: function (S, e) { if (S.made(e, 'Deception', 'lie')) { S.f.supSlept = 1; S.by('gennet', `"No. Why would you."`); S.look('gennet', `Gennet lets her shoulders down.`); } else S.by('gennet', `"I heard the stair."`); }, warm: function (S, e) { return S.made(e, 'Deception', 'lie') ? 0 : -1; } },
+      { id: 'a4', kinds: ['amara'], t1: true, who: ['aurdin'], say: function () { return `It's your house. We're guests in it.`; }, run: function (S, e) { S.by('gennet', `"That's right."`); S.look('doranIn', `Doran looks up at ` + e.hero.name + `, for the first time tonight.`); } },
+      { id: 'apass', kinds: ['amara'], t1: true, any: true, say: function () { return `We sleep light.`; }, run: function (S) { S.by('gennet', `"So I heard."`); } },
+      { id: 'a5', kinds: ['amara'], t1: false, who: ['vivian'], ok: function (S) { return S.glam; }, say: function () { return `The little one. Whose is she?`; },
+        run: function (S) { S.by('gennet', `"Mine, now. The carter couldn't keep her. Somebody has to raise them."`); S.look('elsbeth', `Elsbeth looks at Gennet's back, and holds it.`, 'gennet'); } }, // (ruling 30: the glamour broken, she keeps the child in the open and feigns raising her)
+      { id: 'a6', kinds: ['amara'], t1: false, who: ['lymen'], ok: function (S) { return S.glam; }, say: function () { return `She'll stay here, then? The child.`; },
+        run: function (S) { S.by('gennet', `"Where else?"`); S.by('doranIn', `"Until she's grown."`); S.look('doranIn', `Doran says it to the table.`); } },
+      { id: 'nameq', kinds: ['amara'], t1: false, read: 'noname', say: function () { return `What do you call her?`; }, run: function (S) { S.look('gennet', `Gennet takes a breath before she answers.`); S.by('gennet', `"We've not settled on it."`); }, warm: function () { return -1; } },
+      { id: 'a7', kinds: ['amara'], t1: false, who: ['lymen'], ok: function (S) { return !S.glam; }, say: function () { return `What did she leave in your barn?`; }, run: function (S) { S.by('gennet', `"Feed for her greys. She'll want it on her way back."`); }, warm: function () { return -1; } },
+      { id: 'barnq', kinds: ['amara'], t1: false, read: 'barnbowl', say: function () { return `Who eats in the barn?`; }, run: function (S) { S.by('gennet', `"The cat. Elsbeth spoils it."`); S.look('elsbeth', `Elsbeth stops in the kitchen doorway, then goes on.`); }, warm: function () { return -1; } },
+      { id: 'a8', kinds: ['amara'], t1: false, who: ['barley'], say: function () { return `Good fish. I'll say that for the house.`; }, run: function (S) { S.by('doranIn', `"It's the lake's."`); } },
+      K(news, ['amara'], { who: ['aurdin'] }), K(mend, ['amara']),
+      // ---- Gennet alone, Doran away two days (ruling 29); her own road told only here (the realm's history, CANON 11-11)
+      { id: 'g1', kinds: ['alone'], who: ['lymen'], say: function () { return `What load goes down to the Pit at night?`; }, run: function (S) { S.by('gennet', `"A carter's wagon wanted a driver. He's obliging, my husband."`); }, warm: function () { return -1; } },
+      { id: 'g2', kinds: ['alone'], who: ['barley'], say: function () { return `You lay his place when he's gone.`; }, run: function (S) { S.by('gennet', `"He comes back. That one always comes back."`); }, warm: function () { return 1; } },
+      { id: 'g3', kinds: ['alone'], who: ['vivian'], say: function () { return `How did you come to the inn?`; },
+        run: function (S) { S.f.heardGennetRoad = 1; S.by('gennet', `"On foot, with two boys. My first man was taking us down the road. He stopped at the lake to fish."`); S.look('gennet', `Gennet looks at the lake door.`); S.by('gennet', `"I came on to the inn without him."`); S.reads(['sawit']); } },
+      { id: 'sawq', kinds: ['alone'], read: 'sawit', say: function () { return `You saw what took him.`; },
+        run: function (S) { if (S.warm >= 2) { S.f.heardGennetSaw = 1; S.by('gennet', `"I saw the water take him. I saw enough."`); S.by('gennet', `"And then the same water gave me a roof and a husband. You tell me what does that, if it isn't a god."`); } else S.by('gennet', `"I saw a man go fishing."`); } },
+      { id: 'g4', kinds: ['alone'], who: ['aurdin'], say: function () { return `You keep the lake's nights. Who taught you how?`; }, run: function (S) { S.f.heardRite = 1; S.by('gennet', `"Nobody. I worked it out. Somebody had to."`); S.by('gennet', `"Someone has to speak to the spirits here, or they speak to you."`); } },
+      { id: 'gpass', kinds: ['alone'], any: true, say: function () { return `It's a quiet house tonight.`; }, run: function (S) { S.by('gennet', `"It's a quiet road."`); } },
+      K(news, ['alone'], { t1: undefined, who: ['lymen'] }), K(mend, ['alone'], { t1: undefined }),
+      // ---- sacrifice night (ruling 23: the poison dinner is the due's own night, a supper like the others): the bowls are In.meal's end
+      { id: 's1', kinds: ['sacrifice'], who: ['lymen'], say: function () { return `You're quiet tonight.`; }, run: function (S) { S.by(S.doran ? 'doranIn' : 'gennet', `"Long day."`); } },
+      { id: 's2', kinds: ['sacrifice'], who: ['barley'], say: function () { return `Where are the boys?`; }, run: function (S) { S.by('gennet', `"Fed, and in the kitchen. They'll be abed before you are."`); } },
+      { id: 's3', kinds: ['sacrifice'], who: ['aurdin'], say: function () { return `What's the night, that the good bread's out?`; }, run: function (S) { S.by('gennet', `"A night like any. Eat."`); if (S.doran) S.look('doranIn', `Doran looks at the lake door, and away.`); } },
+      { id: 's4', kinds: ['sacrifice'], who: ['vivian'], say: function () { return `You've salted it tonight.`; }, run: function (S) { S.by('gennet', `"A bit."`); } },
+      { id: 'spass', kinds: ['sacrifice'], any: true, say: function () { return `Good stew.`; }, run: function (S) { S.by('gennet', `"Eat it, then."`); } },
+      { id: 'lampq', kinds: ['sacrifice'], read: 'lamp', say: function () { return `You've lit the lake lamp.`; }, run: function (S) { S.f.heardLamp = 1; S.by('gennet', `"On its nights we light it."`); S.by('gennet', `"Early beds tonight. All of you."`); } },
+      { id: 'aloud', kinds: ['sacrifice'], lead: true, end: 'aloud', ok: function (S) { return S.offer === 'none'; }, needs: function (S, e) { return S.canPush(e); },
+        say: function (S, e) { return { lymen: `Put the spoons down. All of you.`, aurdin: `There's something in this.`, vivian: `She hasn't filled her own.`, barley: `Don't eat it.` }[e.key] || `Don't eat that.`; },
+        run: function (S) { S.narr(`Every chair at the long table goes back at once.`); } }
+    ];
+  })();
   In.passive = function (h, skill) { return 10 + DS.R.skill(h, skill, In.AB[skill]); };
-  In.meal = function* (sc, B, seat) {
+  // what opens a supper, by its kind: the room, who is in it, what the house says before the question -- then the question (the last line is the flip's prompt)
+  In.SUP.open = function (S, kind) {
+    var f = S.f, kat = function () { if (!S.kat) return; if (f.katLooked) { S.narr(`Katarina is at the table for two by the fire, a pen in her hand and her plate pushed to one side.`); S.look('katarina', `Katarina nods to the party, and goes back to her page.`); } else S.narr(`At the table for two by the fire a traveler eats alone, a pen in her hand.`); };
+    var made = function () { if (S.d >= 10) S.by('gennet', `"Have you seen one? The things with the eyes. Everyone through that door has a cousin who has."`); }; // (ruling 8: from day 10 they raise the made things themselves)
+    if (kind === 'first') {
+      S.narr(`Lake fish, at the long table. The Waterbys sit down with their guests. Elsbeth carries, and does not sit.`); kat();
+      if (S.renown >= 5) S.by('doranIn', `"The corridor's own, the drovers are calling you. Sit down, sit down."`); else if (S.renown >= 3) S.by('doranIn', `"You're the ones off Hessle's board. The drovers tell it at this table before their coats are off."`); // (ruling 27: renown 3 or better, the work named)
+      made(); S.by('gennet', `"What brings you down the road?"`);
+    } else if (kind === 'later') {
+      S.narr(`Supper again at the long table: lake fish, and the bread is fresh.`); kat(); made();
+      S.by('gennet', S.warm >= 2 ? `"Back again, and whole. Sit. What did the road show you?"` : `"You'll be wanting supper. What did the road show you?"`);
+    } else if (kind === 'amara') {
+      S.narr(`Supper at the long table. Nobody has said anything about last night.`);
+      if (S.glam) S.narr(`There is a child at the kitchen table with a bowl, small, in a dress too big for her. Elsbeth feeds her.`);
+      kat(); S.by('gennet', `"You were up late. I heard the stair."`);
+    } else if (kind === 'alone') {
+      S.narr(`Supper at the long table. Doran's chair is empty. Gennet has laid his place all the same.`); S.narr(`Elsbeth carries. With her father gone she is slower about it.`); made();
+      S.by('gennet', `"Doran's gone down the road with a load. Two days, he said. So you've only me to talk at."`);
+    } else {
+      S.narr(S.doran ? `Supper at the long table: lake fish, a stew, Gennet's bread. Doran pours, and the bowls go round.` : `Supper at the long table: lake fish, a stew, Gennet's bread. The bowls go round.`); S.narr(`The lamp by the lake door is lit.`);
+      if (S.offer !== 'none' || S.tell === 'none') S.narr(`Elsbeth carries and does not sit.`);
+      else if (S.tell === 'full') S.look('elsbeth', `Elsbeth sets the party's bowls down hard, one after another, and holds a look at the party until Gennet says her name.`, 'gennet'); // (ruling 15: the full tell when the party stopped the wagon)
+      else S.look('elsbeth', `Elsbeth sets the last bowl down. Her eyes go to it, then to the party, then away.`); // (the faint one at her second tier)
+      S.by('gennet', S.offer === 'none' ? `"Eat while it's hot. You've an early road, I expect."` : `"Eat up. It's early beds tonight."`);
+    }
+  };
+  In.meal = function* (sc, B, seat, kind) {
     var st = sc.st, f = st.flags, d = In.day(D.roam.q), MD = In.MEAL, SU = In.SUP, who = function (id) { return In.speaker(seat, id); };
+    kind = kind || In.supKind(f, d, seat);
     var four = seat.four.filter(function (u) { return u.src && !u.src.dead && !u.src.ko; }).map(function (u) { return { u: u, h: u.src, key: u.src.key || u.src.id, hero: In.heroOf(u), side: In.sideOf(u.x) }; });
-    var S = { f: f, d: d, warm: 2, asked: {}, opened: {}, cur: ['counted', 'rich', 'coin'], out: [], kat: In.katHere(f, d) && !!seat.folk.katarina, at: 0, turn: 0, done: {} };
-    S.by = function (id, line) { S.out.push({ by: id, line: line }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.reads = function (ids) { S.cur = S.cur.concat(ids); };
-    f.mealHad = 1; f.mealDay = d;
-    yield sc.narr([MD.open]);
-    var readsOf = function (e) { // (this turn's reads that hero sees; each opens its follow-up for that hero)
-      return S.cur.map(function (id) { return { id: id, r: SU.READS[id] }; }).filter(function (x) { return x.r && (!x.r.kat || S.kat) && In.passive(e.h, x.r.skill) >= x.r.dc; })
-        .map(function (x) { if (x.r.opens) (S.opened[e.key] = S.opened[e.key] || {})[x.r.opens] = 1; return x; });
-    };
-    var optsOf = function (e) { // (the hero's answers this turn: the follow-ups first, at most MD.CAP, then TO BED)
+    var st0 = In.supStart(f, kind), c = In.dueCycle(d);
+    var S = { f: f, d: d, kind: kind, warm: st0.warm, cap: st0.cap, asked: {}, opened: {}, q: [], qd: {}, cur: {}, seen: {}, out: [], rolls: {}, turn: 0, cooled: false, renown: In.renown(),
+      kat: kind !== 'alone' && kind !== 'sacrifice' && In.katHere(f, d) && !!seat.folk.katarina, doran: !!seat.folk.doranIn, glam: !!f.glamourBroken,
+      offer: kind === 'sacrifice' ? (In.offering(f, c) === 'none' ? 'none' : 'kept') : null, tell: f.wagonStopped ? 'full' : (f.elsbethTier || 0) >= 2 ? 'faint' : 'none', push: {} };
+    S.by = function (id, line) { S.out.push({ by: id, line: line }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.look = function (id, line, at) { S.out.push({ look: id, line: line, at: at || null }); };
+    S.reads = function (ids) { ids.forEach(function (id) { if (!S.qd[id]) { S.qd[id] = 1; S.q.push(id); } }); };
+    // a check, rolled once a hero a skill a supper, silently: the play record has it, the screen never (ruling 4)
+    S.made = function (e, skill, dc) { var k = e.key + ':' + skill; if (S.rolls[k] == null) { var r = In.d20(), v = DS.R.skill(e.h, skill, In.AB[skill]), need = MD.DC[dc || skill]; S.rolls[k] = r + v >= need; In.trail(e.hero.name + ' ' + skill + ' ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + (r + v) + ' vs DC ' + need + (S.rolls[k] ? ', made' : ', missed') + ' (silent)'); } return S.rolls[k]; };
+    S.canPush = function (e) { return S.offer === 'none' && (S.tell === 'full' || !!(S.opened[e.key] || {}).bowl); };
+    var wait = function (o) { return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(who(o.look), [o.line], o.at ? who(o.at) : null) : sc.by(who(o.by), [o.line]); };
+    f.mealHad = 1; f.mealDay = d; f.supCount = (f.supCount || 0) + 1; f.supKind = kind; if (kind === 'amara') f.supAmara = 1; if (kind === 'alone') f.supAlone = 1;
+    In.trail('supper: ' + kind + ', day ' + d + ', renown ' + S.renown + ', the table ' + ['cold', 'civil', 'warm'][S.warm]);
+    if (kind === 'first' || kind === 'later') { var had = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (had[k]) S.asked[k] = 1; }); var rd0 = f.supReads || {}; ['counted', 'rich', 'coin'].forEach(function (id) { if (!rd0[id]) S.reads([id]); else S.qd[id] = 1; }); }
+    else S.reads({ amara: ['barnbowl', 'noname'], alone: [], sacrifice: ['taste', 'watch', 'faint', 'lamp'] }[kind]);
+    SU.open(S, kind);
+    var prompt = S.out.pop(), i; for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
+    var reach = function (e, id) { var r = SU.READS[id]; return !!r && (!r.ok || r.ok(S)) && In.passive(e.h, r.skill) >= SU.dc(r); };
+    var optsOf = function (e) { // (the hero's answers this opening: what a read opened first, MD.CAP at most, ONE skill-shaded -- the rest hold)
       var ok = SU.ASK.filter(function (o) {
-        if (!!o.turn1 !== (S.turn === 1) || S.asked[o.id]) return false;
-        if (o.who && o.who.indexOf(e.key) < 0) return false;
-        if (o.read && !(S.opened[e.key] || {})[o.id]) return false; // (opened by its read: READS[o.read].opens is this answer's id)
-        if (o.when && !o.when(S, e)) return false;
-        return !!(typeof o.say === 'function' ? o.say(S, e) : o.say[e.key] || o.say.any);
+        if ((o.kinds || ['first', 'later']).indexOf(kind) < 0) return false;
+        if (o.t1 === true && S.turn !== 1) return false; if (o.t1 === false && S.turn === 1) return false;
+        if (S.asked[o.key || o.id]) return false;
+        if (o.any ? SU.FOUR.indexOf(e.key) >= 0 : o.who && o.who.indexOf(e.key) < 0) return false;
+        if (o.read && !(S.opened[e.key] || {})[o.id]) return false;
+        if (o.ok && !o.ok(S, e)) return false; if (o.needs && !o.needs(S, e)) return false;
+        return true;
       });
-      var lead = ok.filter(function (o) { return o.read || (o.first && o.first(S, e)); }), rest = ok.filter(function (o) { return lead.indexOf(o) < 0; });
-      return lead.concat(rest).slice(0, MD.CAP).map(function (o) { return { o: o, label: typeof o.say === 'function' ? o.say(S, e) : o.say[e.key] || o.say.any }; }).concat([{ o: null, label: MD.bed }]);
+      var lead = ok.filter(function (o) { return o.read || o.lead; }), rest = ok.filter(function (o) { return lead.indexOf(o) < 0; }), out = [], shaded = 0;
+      lead.concat(rest).forEach(function (o) { if (out.length >= MD.CAP) return; var sk = o.skill ? o.skill(S, e) : null; if (sk) { if (shaded) return; shaded++; } out.push({ o: o, label: o.say(S, e), shade: !!sk, tag: sk || null }); });
+      return out.concat([{ o: null, label: MD.bed }]);
     };
-    var prompt = { by: 'gennet', line: MD.opener }, fill = 0;
-    for (S.turn = 1; S.turn <= MD.TURNS && four.length; S.turn++) {
-      var list = four.map(function (e) { var rs = readsOf(e); return { e: e, rs: rs, hero: e.hero, side: e.side, key: e.key, reads: rs.map(function (x) { return x.r.text; }), opts: [] }; });
-      list.forEach(function (x) { x.ops = optsOf(x.e); x.opts = x.ops.map(function (p) { return p.label; }); x.ids = x.ops.map(function (p) { return p.o ? p.o.id : 'bed'; }); }); // (ids: a bench's 'hero:id' pick -- dev/bench16.js flipPick)
-      list.forEach(function (x) { x.rs.forEach(function (y) { In.trail(x.e.hero.name + ' passive ' + y.r.skill + ' ' + In.passive(x.e.h, y.r.skill) + ' vs DC ' + y.r.dc + ', read: ' + y.id); }); });
-      var pk = yield sc.flip(who(prompt.by), [prompt.line], list, S.at), x = list[pk && pk.at != null ? pk.at : S.at] || list[0], p = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
-      ((pk && pk.seen) || [S.at]).forEach(function (i) { (list[i] ? list[i].rs : []).forEach(function (y) { if (y.r.fx && !S.done[y.id]) { S.done[y.id] = 1; y.r.fx(S); } }); }); // (a read's mark only where the player looked)
-      S.at = list.indexOf(x); S.cur = [];
-      if (!p.o) break; // (TO BED: the turns left are lost)
-      var o = p.o, e = x.e, ok = true; S.asked[o.id] = 1; S.out = []; sc.hero = e.hero; sc.heroSide = e.side;
-      In.trail(e.hero.name + ': ' + D.counter.flipSaid(p.label));
-      if (o.check) {
-        var au = o.auto && o.auto(S, e), ck = o.check, dc = typeof ck.dc === 'string' ? MD.DC[ck.dc] : ck.dc;
-        var chk = au ? { ok: true, line: au } : In.check(st, ck.skill, dc, { h: e.h, v: DS.R.skill(e.h, ck.skill, In.AB[ck.skill]) });
-        ok = chk.ok; sc.echo = (sc.echo || []).concat(chk.line ? [chk.line] : []); // (the die in the bubble under the hero's words)
-      }
-      o.run(S, e, ok);
-      var dw = typeof o.warm === 'function' ? o.warm(S, ok, e) : (o.warm || 0), w0 = S.warm; S.warm = Math.max(0, Math.min(2, S.warm + dw));
-      if (S.warm !== w0) { In.trail('the table ' + ['cold', 'civil', 'warm'][S.warm]); if (S.warm > 0) S.narr(S.warm > w0 ? MD.tell.warm : MD.tell.cool); }
+    var fill = 0, turns = MD.TURNS[kind], ended = null;
+    for (S.turn = 1; S.turn <= turns && four.length; S.turn++) {
+      // ONE read a hero: the oldest waiting that hero reaches; a read no hero reaches, or whose moment is not this state's, is dropped
+      S.q = S.q.filter(function (id) { return four.some(function (e) { return reach(e, id); }); }); S.cur = {};
+      four.forEach(function (e) { var id = S.q.filter(function (x) { return reach(e, x); })[0]; if (!id) return; S.cur[e.key] = id; var r = SU.READS[id]; if (r.opens) (S.opened[e.key] = S.opened[e.key] || {})[r.opens] = 1; });
+      var list = four.map(function (e) { var id = S.cur[e.key], r = id && SU.READS[id], ops = optsOf(e); return { e: e, hero: e.hero, side: e.side, key: e.key, rid: id || null, reads: r ? [typeof r.text === 'function' ? r.text(S) : r.text] : [], ops: ops,
+        opts: ops.map(function (p) { return p.label; }), marks: ops.map(function (p) { return p.shade ? { shade: true, tag: p.tag } : null; }), ids: ops.map(function (p) { return p.o ? p.o.id : 'bed'; }), shaded: ops.filter(function (p) { return p.shade; }).length }; }); // (ids, shaded: a bench's -- dev/bench16.js flipPick, the two rules' checks)
+      list.forEach(function (x) { if (x.rid) In.trail(x.hero.name + ' passive ' + SU.READS[x.rid].skill + ' ' + In.passive(x.e.h, SU.READS[x.rid].skill) + ' vs DC ' + SU.dc(SU.READS[x.rid]) + ', read: ' + x.rid); });
+      var at0 = Math.max(0, list.map(function (x) { return x.key; }).indexOf(S.lastKey));
+      var pk = yield sc.flip(who(prompt.by), [prompt.line], list, at0), x = list[pk && pk.at != null ? pk.at : at0] || list[0], p = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
+      ((pk && pk.seen) || [at0]).forEach(function (k) { var y = list[k]; if (!y || !y.rid) return; S.seen[y.rid] = 1; var r = SU.READS[y.rid]; if (r.fx) r.fx(S); }); // (a read's mark only where the player looked)
+      Object.keys(S.cur).forEach(function (k) { var id = S.cur[k]; S.q = S.q.filter(function (y) { return y !== id; }); });
+      S.lastKey = x.key;
+      if (!p.o) break; // (TO BED: the openings left are lost)
+      var o = p.o, e = x.e; S.asked[o.key || o.id] = 1; S.out = []; sc.hero = e.hero; sc.heroSide = e.side;
+      In.trail(e.hero.name + ': ' + p.label);
+      if (o.pre) yield sc.narr([o.pre(S, e)]);
+      o.run(S, e);
+      var dw = o.warm ? o.warm(S, e) : 0, w0 = S.warm; S.warm = Math.max(0, Math.min(S.cap, S.warm + dw));
+      if (S.warm < w0) { S.cooled = true; delete S.asked.mend; }
+      if (S.warm !== w0) { In.trail('the table ' + ['cold', 'civil', 'warm'][S.warm]); if (S.warm > 0) S.look('gennet', S.warm > w0 ? MD.tell.warm : MD.tell.cool); }
       f.mealWarm = S.warm;
-      var last = S.turn < MD.TURNS && S.warm > 0 && !o.check && S.out.length && S.out[S.out.length - 1].by ? S.out.pop() : null; // (the last word the next turn's question, the reads on it -- but a die's answer said whole, the die in the bubble beside it)
-      for (var i = 0; i < S.out.length; i++) yield S.out[i].narr ? sc.narr([S.out[i].narr]) : sc.by(who(S.out[i].by), [S.out[i].line]);
-      if (S.warm <= 0) { sc.echo = null; yield sc.by(who('gennet'), [MD.tell.cold]); break; } // (cold: supper ends early)
+      if (o.end) { ended = o.end; for (i = 0; i < S.out.length; i++) yield wait(S.out[i]); break; }
+      var lo = S.out[S.out.length - 1], last = S.turn < turns && S.warm > 0 && lo && lo.by && lo.line.length <= MD.PROMPT ? S.out.pop() : null; // (the last word the next opening's question, the reads on it -- a short one: a long line is said whole on its own pages, and Gennet's filler asks)
+      for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
+      if (S.warm <= 0) { sc.echo = null; yield sc.by(who('gennet'), [MD.tell.cold]); ended = 'cold'; break; } // (cold: supper ends early)
       prompt = last || { by: 'gennet', line: MD.more[fill++ % MD.more.length] };
     }
-    sc.hero = null; sc.echo = null;
-    yield sc.narr([MD.close, In.LINES.bed]);
+    sc.echo = null;
+    // what the supper leaves on the save: the regard, what was asked, the reads had, and the counting -- seen and kept quiet it is the way to Elsbeth, alone, at
+    // another hour (RULED 11-11, his "the insight is to approach her privately, that's to be at not-dinner times"); said aloud it is the fumble, and she gives nothing free
+    f.innRegard = S.warm; f.mealWarm = S.warm;
+    var kept = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (S.asked[k]) kept[k] = 1; }); f.supAsked = kept;
+    var rds = f.supReads || {}; Object.keys(S.seen).forEach(function (k) { rds[k] = 1; }); f.supReads = rds;
+    if (S.seen.counted && !f.mealGirlSaid) f.mealWrong = 1; if (f.mealGirlSaid) delete f.mealWrong;
+    if (kind === 'sacrifice') {
+      var rec = { cycle: c, aloud: ended === 'aloud', push: [], watch: !!S.watch, offer: S.offer };
+      if (S.offer === 'none' && !rec.aloud) {
+        // THE BOWLS: a hero with a read, or with Elsbeth's full tell, may push the bowl away and say nothing (the 11-07 lean, ruling 15); the rest eat
+        for (i = 0; i < four.length; i++) { var eb = four[i]; if (!S.canPush(eb)) continue; sc.hero = eb.hero; sc.heroSide = eb.side;
+          var a = yield sc.askBy(who('gennet'), [`The bowl in front of ` + eb.hero.name + `.`], ['EAT', 'PUSH THE BOWL AWAY']); if (a === 1) { rec.push.push(eb.key); In.trail(eb.hero.name + ' pushes the bowl away'); yield sc.narr([eb.hero.name + ` moves the bowl a hand's width off and eats bread.`]); } }
+      }
+      if (S.offer !== 'none') yield sc.narr([`The house goes to bed early. The lamp by the lake door stays lit.`]);
+      B.roam.supBowls = rec; sc.hero = null; return; // (the night is the due's own from here: js/secondact.js A.dueNight, A.poisonNight)
+    }
+    sc.hero = null;
+    if (ended !== 'cold') {
+      if (kind === 'alone') yield sc.by(who('gennet'), [`"Oh, heroes. Take the big room."`]); // (his line, 11-11; it may belong to the night of the chase)
+      if (kind === 'amara') { yield sc.narr([`Nobody has raised a voice. The fire is let down early.`]); yield sc.lookAt(who('gennet'), [`Gennet takes the lamp from its hook by the lake door, and does not hang it back until the party is on the stair.`]); }
+      else { yield sc.narr([MD.close[0]]); yield sc.lookAt(who('gennet'), [MD.close[1]]); }
+    }
+    if (f.mealGirlSaid && S.asked.girl) yield sc.lookAt(who('gennet'), [`Gennet stands in the kitchen doorway until the party has gone up.`], who('elsbeth'));
+    yield sc.narr([In.LINES.bed]);
   };
 
   // ---------------------------------------------------------------- the people: the inn lady's room, Elsbeth at the tub (the first game's S.gennet, S.elsbeth on the counter screen)
@@ -598,7 +779,8 @@
     }
     B.roam.stay = { t0: In.clock(B), hours: hours || In.nightHours(kind), kind: kind, long: long };
     if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours' + (long ? '' : ', no long rest') + (hours ? ', till rested' : ''));
-    if (kind === 'dinner') { if (!f.mealHad && !noMeal) return 'meal'; yield sc.say(In.LINES.dinner); return 'dinner'; } // (the first room with supper: THE MEAL's screen, then the bed line there)
+    if (kind === 'dinner') { if (!noMeal && !f.doranDead && !f.gennetDead && !f.doranConfessed && !f.lakeDone) return 'meal'; // (the second act's ends: the supper as a line -- the welcome's own words are those scenes')
+      yield sc.say(In.LINES.dinner); return 'dinner'; } // (every room with supper is a supper at the long table since 11-11 -- In.supKind: the first, a later one, after Amara, Gennet alone, sacrifice night; Doran's rooms after the second act keep the line)
     yield sc.say(f.gennetTaken ? In.LINES.noCook : In.LINES.late); return 'bed';
   };
   In.gennet = function* (sc, B) {
@@ -1111,7 +1293,11 @@
       var a = yield sc.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']);
       if (a !== 0) return;
     }
-    if (!f.dishes) { f.dishes = 1; f.elsbethTier = 1; yield sc.say(L('inn.elsbeth1')); return; }
+    if (!f.dishes) { // (the counting seen at supper and kept quiet: found alone at another hour, she adds the wagon's night -- RULED 11-11, his "the insight is to approach her privately, that's to be at not-dinner times"; In.meal's end)
+      var dW = In.day(D.roam.q), nW = In.WAGON.first - dW, word = f.mealWrong && !f.mealGirlSaid && nW >= 0 && f.wagonCycle == null ? [nW === 0 ? In.LINES.elsbethWagon0 : In.LINES.elsbethWagon.split('{n}').join(In.WORDS[nW] || String(nW)).split('{s}').join(nW === 1 ? '' : 's')] : [];
+      if (word.length) f.elsbethWagonWord = 1;
+      f.dishes = 1; f.elsbethTier = 1; yield sc.say([].concat(L('inn.elsbeth1'), word)); return;
+    }
     if (!f.elsbethTold) {
       if (A && A.wand) { var p = yield sc.ask('At the tub.', ['ASK HER MORE', A.LINES.opts.fraud]); if (p === 1) { yield* A.wand(sc, B, st, f); return; } }
       f.elsbethTold = 1; f.elsbethTier = 2; yield sc.say(L('inn.elsbeth2')); return;
@@ -1221,9 +1407,16 @@
   In.BEATS = [
     { id: 'yard', label: 'THE YARD BY DAY, in off the Pit road', note: 'Ten in the morning in the yard off the Pit road (the road down the west side, as the Gulch\'s): the well, the hitching rail, the barn for six horses, Doran by the woodpile, the boys down at the point. The inn two stories under its roof, its one-story wing behind. Walk to the front door.', key: In.KEY, at: [10, 22], hour: 10 },
     { id: 'door', label: 'THROUGH THE FRONT DOOR: the walls go see-through', note: 'A step short of the front door. One step into the doorway: the roofs come off the house and its wing and every wall drops to a stub -- the common room round the big fire, the bar under the stair, the kitchen beyond, the two bedrooms, its people in them. A step back out roofs it again. The barn does the same at its own door.', key: In.KEY, at: [18, 18], hour: 18 },
-    { id: 'room', label: 'THE COMMON ROOM at dusk: the inn lady\'s room and THE MEAL at the long table', note: 'Inside at six in the evening, day 5. The inn lady by the hearth (plated THE INN LADY till she gives her name), Doran behind the bar under the stair\'s high end, the traveler by the fire (she is here days 4 to 12), Elsbeth at the kitchen tub. E on the inn lady: a room at five silver a head, then supper -- everyone sits along the long table, the traveler at the table for two, and the talk plays over the room: the one speaking on the side they sit, the hero whose die it was on theirs with the die in their bubble. Supper by whose eyes (11-05): Gennet asks what brings you down the road, and at each of the party\'s five openings LEFT and RIGHT flip the four -- each hero\'s own reads above their own answers (Vivian sees the girl count you twice), Lymen always on the gnolls; one answer warms or cools the table; then the night.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, dice: [14, 12, 15] },
-    { id: 'meal8', label: 'THE MEAL ON DAY 10: the farmers\' stories', note: 'The same supper on day 10: the road\'s rumors -- the Dominion at the moot, the tribes, the farmers harried, the parties going south -- and from today the farmers up Silverton way who woke to mirror-eyed things over their beds. The first die is low: whoever asks the news hears it wrong (flip to Aurdin, the best at History, and it is still a 3). Aurdin may ask about the eyes (Arcana). The traveler is still at her table for two (she waits till the wagon, day 12): her mirror cools the table.', key: In.KEY, at: [24, 17], hour: 18, day: 10, inside: true, dice: [3, 15, 16] },
-    { id: 'meal14', label: 'THE MEAL ON DAY 15: the Snoot at the Pit', note: 'Supper on day 15: everything the road has said, and the worst of it -- the Snoot at the Pit, the road south shut. The dice high: the news heard true; Lymen\'s questions down to the lake\'s deepest while the table stays warm.', key: In.KEY, at: [24, 17], hour: 18, day: 15, inside: true, dice: [18, 17, 17] },
+    // THE SUPPER AS RULED (11-11): a beat a supper. E on the inn lady, STAY THE NIGHT, and the supper plays over the room: LEFT and RIGHT flip the four at each opening,
+    // one silent read above a hero's answers, a blue-shaded answer one a skill shapes (no die anywhere), the looks as portraits held
+    { id: 'room', label: 'THE FIRST SUPPER, a stranger\'s (renown 0): the table starts civil', note: 'Inside at six in the evening, day 5, the party unknown on this road. E on the inn lady: a room, then supper at the long table, the traveler at the table for two. Gennet asks what brings you down the road; five openings. Flip the four: each hero has ONE read at most above the answers (Vivian sees the girl count you twice) and ONE blue-shaded answer at most (a skill shapes it; no die is shown). Barley\'s "Work. Wherever it is." warms the table; Vivian\'s lie caught cools it; the looks are portraits held with a line along the foot. A line about the glass is said to the traveler, across the room.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, renown: 0, dice: [14, 12, 15, 14, 12, 15, 14, 12] },
+    { id: 'supwarm', label: 'THE FIRST SUPPER at renown 3: warm, and the work named', note: 'The same evening with a name on Hessle\'s board (renown 3). Doran names it before Gennet asks, and the table starts warm: Vivian\'s trader lie cannot hold; "Good stone. Who built the place?" goes down its layers ("Slaves. Who else?", the trader and the Half-Cellar, the first innkeep\'s family and the dice); then "How does a house like this come to a man?", and Barley\'s read on how Doran sits.', key: In.KEY, at: [24, 17], hour: 18, day: 5, inside: true, renown: 3, dice: [14, 12, 15, 14, 12, 15, 14, 12] },
+    { id: 'meal8', label: 'THE FIRST SUPPER ON DAY 10: they raise the made things themselves', note: 'Day 10: Gennet asks whether you have seen one before she asks anything else. The news is the three newest words: what they had wrong about the Gulch, the parties going south, the thing three men would not name, and the first telling of the things over the beds ("big as dogs"). Lymen or Aurdin with a made History asks which of it the teller saw, and Doran answers that too. Aurdin on the eyes (Arcana, shaded).', key: In.KEY, at: [24, 17], hour: 18, day: 10, inside: true, dice: [16, 15, 16, 16, 15, 16, 16, 15] },
+    { id: 'meal14', label: 'THE FIRST SUPPER ON DAY 15: the Pit', note: 'Day 15 (the due\'s own night here is marked had, so this is a plain first supper): the Pit\'s trouble in its first telling, "it blows over"; Lymen\'s true word south.', key: In.KEY, at: [24, 17], hour: 18, day: 15, inside: true, dice: [18, 17, 17, 18, 17, 17, 18, 17], flags: { dueCycle: 0 } },
+    { id: 'suplater', label: 'A LATER SUPPER: three openings, her fresh opener', note: 'The next evening, the regard warm, the house already asked about. "Back again, and whole. Sit. What did the road show you?" Three openings; what was asked before is gone from the answers; Lymen\'s opener gets the day\'s news.', key: In.KEY, at: [24, 17], hour: 18, day: 6, inside: true, renown: 3, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, innRegard: 2, supAsked: { house: 1 }, supReads: { counted: 1, rich: 1 } } },
+    { id: 'supamara', label: 'THE SUPPER AFTER THE PARTY SAW GENNET WITH AMARA: tense, and no fight in it', note: 'Day 13, the wagon come and gone in the night with the party watching. "You were up late. I heard the stair." Three openings, the table civil and unable to rise; a pointed question turns it cold and the house sends you to bed. Nothing said here starts a fight. Vivian may lie that the party slept through it (shaded).', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1 } },
+    { id: 'supalone', label: 'GENNET ALONE, Doran away: his place laid all the same', note: 'Day 13, Doran gone down the road with a load. Gennet alone at the long table. Barley\'s "You lay his place when he\'s gone." warms her; Vivian asks how she came to the inn; with the table warm, the read on "without him" opens "You saw what took him." She closes with "Oh, heroes. Take the big room."', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, doranAway: 1, katGone: 1 } },
+    { id: 'supsacr', label: 'SACRIFICE NIGHT: a supper like the others, and the bowls', note: 'Day 15, the due\'s own night, the wagon stopped on the road and no offering in the house. The lake lamp is lit. Elsbeth sets the bowls down hard and holds a look at the party (her full tell). Two openings; a hero with a read (a bitterness under the fish; Gennet has not filled her own bowl), or with her tell, may say it aloud -- the fight, nobody asleep -- or at the end push the bowl away and say nothing. Whoever eats may sleep; then the house\'s night as built.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15, 2, 2, 19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', wagonStopped: 'c0', dueOffC: 0, dueOff: 'none' } },
     { id: 'kat', label: 'DAY 7: THE TRAVELER BY THE FIRE, Barley with a bottle of ink (11-05)', note: 'Six in the evening on day 7, the four in the common room, a bottle of ink from Lisbet\'s in the pack. E on the traveler at her table by the fire: Barley -- "You\'re with the Dominion." -- and she breaks in: her deity gave her a vision and it used up all her ink. The bottle set by her book; the vision, Aurdin laughing in the dust with the tribe that laughs; the page torn free: the Sheet: Hideous Laughter in the pack. E on her again: her talk at the fire -- what she is, the road south, what she saw (the vision told: both tiers). Then M, ITEMS, the sheet on Aurdin: he copies it into his book.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, inv: ['ink'] },
     { id: 'katbook', label: 'DAY 13: HER LAST MORNING, the wagon stopped (11-05)', note: 'Eight in the morning on day 13, the wagon stopped in the yard last night (the pair down or run, the children freed), Barley\'s word given her days ago and a bottle of ink in the pack. E on the traveler by the fire: she closes her book, opens it, slides it across -- her book; the ink set by it and the vision with it, the sheet; ask her about Amara, and what she carried (the read at the greeting caught them); LET HER GO: she pays out her nights and walks south toward the Pit, and the fire\'s table is empty.', key: In.KEY, at: [25, 20], hour: 8, day: 13, inside: true, inv: ['ink'],
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', glamourBroken: 1, kidAtInn: 1, doranAway: 1, katInk: 1, katLooked: 1, katKnewAmara: 1 } },
@@ -1245,7 +1438,8 @@
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
   ];
   In.play = function (bt) {
-    var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({ councilNotice: 1, councilSeen: 1 }, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60); // (Silverton's council night sat already: a show of the inn -- 11-04, his "these previews are all firing the council discussion")
+    var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; if (bt.renown != null) rec.renown = bt.renown; // (a supper's beat: the renown the Waterbys have heard)
+    rec.flags = Object.assign({ councilNotice: 1, councilSeen: 1 }, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60); // (Silverton's council night sat already: a show of the inn -- 11-04, his "these previews are all firing the council discussion")
     (bt.inv || []).forEach(function (id) { H.add(rec.inv, id, 1); }); // (what the beat's pack holds: the traveler's ink, 11-05)
     var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === In.SITE; })[0] : null;
     H.begin(rec, 0, site ? '?world&at=' + site.hex[0] + ',' + site.hex[1] : null);

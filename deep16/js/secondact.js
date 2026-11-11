@@ -82,8 +82,9 @@
     poisonNothing: 'Supper ends. Nobody feels a thing they would put a name to. The house goes to bed.',
     poisonDrop: '{names} go down at the table, face to the boards, breathing slow.',
     poisonRise: 'The rest of you are up, and the inn lady\'s chair goes back.',
+    poisonUp: 'Every chair at the long table goes back at once.',
     poisonNoConfess: 'Nobody in the house says anything after. Out back the lantern post stands unlit.',
-    confess1: '{y}Doran Waterby{/} sets the woodaxe down on the table. "There\'s a thing in the lake. It was there before the inn. Every month it\'s fed, and every month the lake gives back -- the fish, the old coin, her."',
+    confess1: '{y}Doran Waterby{/} sets the woodaxe down on the table. "There\'s a thing in the lake. It came down out of the bogs in my time here. Every month it\'s fed, and every month the lake gives back -- the fish, the old coin, her."',
     confess2: 'He does not look at the inn lady. "Tonight was the night. You were tonight."',
     confessBucket: 'He takes the bucket from the hearth and throws it over whoever still sleeps.',
     confess3: '"It comes up anyway. It always comes up. If you mean to stop it, come out back. I\'ll show you the stone."',
@@ -184,6 +185,20 @@
     if (!stay || stay.kind !== 'dinner') { f.dueUnfed = c; A.trail('the due night with no offering, no supper: the lake unfed'); yield* In.sleep(B); return; }
     f.poisonNight = c;
     var party = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; });
+    // SACRIFICE NIGHT AS A SUPPER (11-11, the supper seat; RULED 11-07, Griz on this dinner: "it should happen like the regular dinner happens", and 11-11: "poison dinner is
+    // 'sacrifice night'"): the supper at the long table has been played (js/inn.js In.meal, kind 'sacrifice') -- the taste and the watch its silent reads, Elsbeth's tell by
+    // her tier, each warned hero's own bowl eaten or pushed away, or the thing said aloud. What it left (B.roam.supBowls) settles who sleeps: said aloud, nobody; else each
+    // who ate saves (with advantage if the watch was read). No supper record (a bench's bare night): the cards as they were
+    var sb = R0.supBowls && R0.supBowls.cycle === c ? R0.supBowls : null; delete R0.supBowls;
+    if (sb) {
+      In.stage(B, [24, 17], 'inn');
+      var keyOf = function (u) { return u.src.key || u.src.id; }, eat2 = sb.aloud ? [] : party.filter(function (u) { return sb.push.indexOf(keyOf(u)) < 0; });
+      var asleep2 = eat2.filter(function (u) { return !A.poisonSave(u, 0, !!sb.watch); }), awake2 = party.filter(function (u) { return asleep2.indexOf(u) < 0; });
+      A.trail('sacrifice night: ' + (sb.aloud ? 'said aloud' : (sb.push.join(', ') || 'nobody') + ' pushed the bowl away') + '; ' + (asleep2.map(function (u) { return u.name; }).join(', ') || 'nobody') + ' asleep');
+      if (!asleep2.length && !sb.aloud && !sb.push.length) { f.dueUnfed = c; yield* In.card(B, [A.LINES.poisonNothing], 360); yield* In.sleep(B); return; }
+      if (!awake2.length) { yield* A.drag(B, party); return; }
+      yield* A.supperFight(B, asleep2, awake2); return;
+    }
     var taster = party.filter(function (u) { return A.passive(u, 'Medicine', 'wis') >= P.taste; })[0] || null, watcher = party.filter(function (u) { return A.passive(u, 'Insight', 'wis') >= P.watch; })[0] || null;
     In.stage(B, [24, 17], 'inn');
     yield* In.card(B, [A.LINES.poisonSupper], 360);
@@ -205,7 +220,8 @@
   // some asleep: the sleepers drop at the table, the awake rise -- the fight in the common room to submission; Doran confesses and leads them out back
   A.supperFight = function* (B, asleep, awake) {
     var Rm = R(), R0 = B.roam, f = R0.flags, Y = {};
-    yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')), A.LINES.poisonRise], 420);
+    if (asleep.length) yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')).split(' go down').join(asleep.length === 1 ? ' goes down' : ' go down'), A.LINES.poisonRise], 420); // (one asleep: "goes" -- 11-11)
+    else yield* In.card(B, [A.LINES.poisonUp], 420); // (nobody asleep: said aloud at the supper, or every bowl pushed away -- 11-11)
     B.units.filter(function (u) { return u.npc === 'gennet' || u.npc === 'doranIn'; }).forEach(function (u) { In.gone(B, u); }); // (the two at the table, as foes now)
     // AT THE TABLE (11-06, Griz on the fight: "the fight should break out from a dinner thing, with them in dinner positions"): the Waterbys up from their own places at the long table
     // -- the inn lady on its north side, Doran at its west end (js/inn.js In.TABLE, the meal's seats) -- and the party at theirs once the fight spills them (A.seatFight): the sleepers
