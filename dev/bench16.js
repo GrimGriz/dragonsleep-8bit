@@ -5633,6 +5633,7 @@
         var q = dd.at[0], x = q[0], y = Y(q[1]), from = [[0, 1], [1, 0], [-1, 0], [0, -1]].map(function (o) { return [x + o[0], y + o[1]]; }).filter(function (z) { return D.grid.canStand(Bd.roam.token, z[0], z[1]) && !Bd.units.some(function (v) { return v !== Bd.roam.token && v.x === z[0] && v.y === z[1]; }); })[0];
         if (!from) { dBad.push(dd.id + ' unreachable'); return; }
         var w, back = true;
+        if (dd.go) { dOut.push(dd.id + ' (to ' + dd.go[0] + ')'); return; }
         if (dd.step) { var st = stepSk(Bd, from, [x, y]); w = st.card; back = st.at[0] === from[0] && st.at[1] === from[1]; } else w = useSk(Bd, from, [x, y]);
         if (!/Where it goes:/.test(w) || !back || w.indexOf(dd.title) < 0) dBad.push(dd.id + ': "' + w.slice(0, 70) + '" back ' + back); else dOut.push(dd.id);
       });
@@ -5648,12 +5649,52 @@
       // 9. THE SHOW (?solskaft): every beat stands up in the house, the party on its square at its hour; the Edifice untouched by any of it
       var beatsSk = [];
       SKk.BEATS.forEach(function (bt) {
-        try { D.scenes.length = 0; SKk.play(bt); var Bb = topSk(), tb = Bb && Bb.roam && Bb.roam.token; beatsSk.push(bt.id + (tb && tb.x === bt.at[0] && tb.y === Y(bt.at[1]) && RSk.def.key === 'solskaft' ? '' : ' WRONG at ' + (tb ? tb.x + ',' + tb.y : '-'))); }
+        try { D.scenes.length = 0; SKk.play(bt); var Bb = topSk(), tb = Bb && Bb.roam && Bb.roam.token; beatsSk.push(bt.id + (tb && tb.x === bt.at[0] && tb.y === Y(bt.at[1]) && RSk.def.key === (bt.key || 'solskaft') ? '' : ' WRONG at ' + (tb ? tb.x + ',' + tb.y : '-'))); }
         catch (eB) { beatsSk.push(bt.id + ' THREW ' + String(eB).slice(0, 80)); }
         HSk.playing = false; HSk.cur = null;
       });
       okSk('the show ?solskaft: ' + SKk.BEATS.length + ' beats -- ' + beatsSk.join('; ') + '; the Edifice as drawn (' + (Es === JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights)) + ')',
-        SKk.BEATS.length >= 7 && beatsSk.every(function (o) { return !/WRONG|THREW/.test(o); }) && Es === JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights) && typeof SKk.show === 'function');
+        SKk.BEATS.length >= 12 && beatsSk.every(function (o) { return !/WRONG|THREW/.test(o); }) && Es === JSON.stringify(E.rows) + JSON.stringify(E.shaft) + JSON.stringify(E.heights) && typeof SKk.show === 'function');
+      // ================= THE CART LEVEL (piece 2, 11-11)
+      var CR = SKk.CROWS, cAt = function (x, r) { return CR[Y(r)].charAt(x); }, sAt = function (x, r) { return SKk.ROWS[Y(r)].charAt(x); }, isOpenC = function (c) { return '=DvUn'.indexOf(c) >= 0; };
+      // 10. ONE FLOOR ON THE DIAMONDS UNDER THE STREET, paged, its own first-visit flag; the stack: the holding under the tollhouse, the lanes under the two stores, the drum under the court with the stone over its middle, the forge behind it
+      var Bc = testSk('?roam=solskaft_cart&hour=10'), dc = RSk.def, fc = Bc.roam.flags, hc1 = dc.hello.join(' '), hc2 = MSk.floor('solskaft_cart', '?roam=solskaft_cart&hour=10', fc, 10).hello.join(' ');
+      var hold = true, laneW = true, laneE = true, xx, rr;
+      for (rr = 3; rr <= 7; rr++) { for (xx = 1; xx <= 8; xx++) if (!isOpenC(cAt(xx, rr)) && cAt(xx, rr) !== 'W' && cAt(xx, rr) !== 'k') hold = false; for (xx = 10; xx <= 13; xx++) if (!isOpenC(cAt(xx, rr)) || sAt(xx, rr) !== 'S') laneW = false; for (xx = 24; xx <= 27; xx++) if (!isOpenC(cAt(xx, rr)) || sAt(xx, rr) !== 'S') laneE = false; }
+      var tollOver = [[5, 4], [8, 6], [2, 5]].every(function (q) { return sAt(q[0], q[1]) !== '#'; });
+      var drum = SKk.DRUM(), dcx = drum.reduce(function (a, q) { return a + q[0]; }, 0) / drum.length, dcr = drum.reduce(function (a, q) { return a + (SKk.H - 1 - q[1]); }, 0) / drum.length;
+      var forgeN = cAt(17, 22) === 'A' && cAt(17, 25) === 'b' && dcr < 19;
+      okSk('the cart level on the diamonds (' + (dc.iso ? 'iso' : dc.view) + ', ' + dc.w + ' x ' + dc.h + ', paged ' + dc.page + ', dark ' + dc.dark + '), its own first-visit flag (seen:solskaft_cart ' + fc['seen:solskaft_cart'] + ', the arrival said ' + /Under the street: the cart road/.test(hc1) + ', not again ' + !/Under the street/.test(hc2) + '); the stack: the holding under the tollhouse (' + (hold && tollOver) + '), the west lane under the west store (' + laneW + '), the east lane under the east store (' + laneE + '), the drum\'s middle ' + dcx.toFixed(1) + ',' + dcr.toFixed(1) + ' under the stone (18.5, 10), the forge behind it (' + forgeN + ')',
+        !!dc.iso && dc.w === 38 && dc.h === 32 && dc.page === true && dc.dark && fc['seen:solskaft_cart'] === 1 && /Under the street: the cart road/.test(hc1) && !/Under the street/.test(hc2) && hold && tollOver && laneW && laneE && Math.abs(dcx - 18.5) < 0.01 && Math.abs(dcr - 10.5) < 0.6 && forgeN);
+      // 11. THE DRUM IS A WALL and THE LOOP goes round it: nothing inside the ring open (nothing of the funerary seen), no door in it; the walk from the holding to the narrow ramp's foot north round behind it
+      var inside = 0; for (rr = 8; rr <= 13; rr++) for (xx = 16; xx <= 21; xx++) if (cAt(xx, rr) !== 'Q') inside++;
+      var Bl = testSk('?roam=solskaft_cart&hour=10'); atSk(Bl, 6, Y(4)); var wl = walkSk(Bl, [36, Y(7)]), rsl = (wl && wl.seen || []).map(function (q) { return [q[0], SKk.H - 1 - q[1]]; }), tl = Bl.roam.token;
+      var viaW = rsl.some(function (q) { return q[0] >= 9 && q[0] <= 13 && q[1] >= 8; }), viaN = rsl.some(function (q) { return q[1] >= 15; }), viaE = rsl.some(function (q) { return q[0] >= 24 && q[0] <= 28 && q[1] >= 8 && q[1] <= 14; });
+      okSk('the drum a carved wall, its inside solid (' + inside + ' open squares in it), its faces to the east carved (' + ((Bc.map && Bc.map.props) || []).filter(function (p) { return p.kind === 'sk' && p.sq && SKk.CROWS[p.sq.y].charAt(p.sq.x - 1) === 'Q'; }).length + '); the loop from the holding to the narrow ramp\'s foot: ' + (wl ? wl.len : 'NO ROUTE') + ' squares, at ' + tl.x + ',' + (SKk.H - 1 - tl.y) + ' (r), up the west lane ' + viaW + ', behind the drum ' + viaN + ', down the east lane ' + viaE,
+        inside === 0 && !!wl && tl.x === 36 && tl.y === Y(7) && viaW && viaN && viaE);
+      // 12. THE WORKS' PEOPLE: each stood with the first game's word (the smith's the Copperbottom shop's greeting, the gate watch's the gate shut; the trooper and the shroom-farmer their own)
+      var Bcp = testSk('?roam=solskaft_cart&hour=10'), cw = [], cb = [];
+      SKk.CFOLK.forEach(function (p) {
+        var u = folkSk(Bcp, p.id); if (!u || u.x !== p.at[0] || u.y !== Y(p.at[1])) { cb.push(p.id + ' not stood'); return; }
+        var side = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (o) { return [u.x + o[0], u.y + o[1]]; }).filter(function (q) { return D.grid.canStand(Bcp.roam.token, q[0], q[1]) && !Bcp.units.some(function (v) { return v !== Bcp.roam.token && v.x === q[0] && v.y === q[1]; }); })[0];
+        if (!side) { cb.push(p.id + ' unreachable'); return; }
+        var w = useSk(Bcp, side, [u.x, u.y]), want = p.id === 'smith' ? window.DS.DATA.shops.copperbottom.greeting : p.id === 'gatewatch' ? window.DS.DATA.text['deep.gateShut'].t : [].concat(((N8[p.id].talk || [])[0] || {}).say || [])[0] || '';
+        if (w.indexOf(want.slice(0, 40)) < 0 || w.indexOf(N8[p.id].name) < 0) cb.push(p.id + ': "' + w.slice(0, 90) + '"'); else cw.push(p.id);
+      });
+      okSk('the works\' people, each stood with the first game\'s word: ' + cw.join(', ') + (cb.length ? '; WRONG: ' + cb.join('; ') : ''), !cb.length && cw.length === SKk.CFOLK.length);
+      // 13. THE WORKS' SIGNS: each said by E, its HUD name; the first game's verbatim (the smelters, the cupel-hearth, the ledger-lamp rack, the trade hall, the Forge-Father's anvil, the shroom farm)
+      var cNot = Object.keys(SKk.CS8).filter(function (k) { return texts8.indexOf(SKk.CS8[k]) < 0; });
+      var csg = dc.src8.triggers.filter(function (t) { return t.script === 'sk:sign' && t.on === 'use'; }), cBad = [], cN = 0, Bcs = testSk('?roam=solskaft_cart&hour=10');
+      csg.forEach(function (t) { var x = t.rect[0], y = t.rect[1], from = [[0, 1], [1, 0], [-1, 0], [0, -1]].map(function (o) { return [x + o[0], y + o[1]]; }).filter(function (q) { return D.grid.canStand(Bcs.roam.token, q[0], q[1]) && !Bcs.units.some(function (v) { return v !== Bcs.roam.token && v.x === q[0] && v.y === q[1]; }); })[0]; if (!from) { cBad.push(t.id + ' unreachable'); return; } var w = useSk(Bcs, from, [x, y]); if (w.indexOf(t.text.slice(0, 30)) < 0 || !RSk.USE_NAME[t.id]) cBad.push(t.id + ': "' + w.slice(0, 60) + '"'); else cN++; });
+      okSk('the works\' signs: ' + cN + ' of ' + csg.length + ' said by E' + (cBad.length ? ' -- WRONG: ' + cBad.join('; ') : '') + '; the first game\'s verbatim (' + (cNot.length ? 'NOT: ' + cNot.join(',') : 'all ' + Object.keys(SKk.CS8).length) + ')',
+        !cBad.length && cN === csg.length && cN >= 20 && !cNot.length);
+      // 14. THE RAMPS JOIN THE FLOORS, both ways, each landing where its other end is; the gate and the trade hall say where they will go; NO LIFT built (OPEN: where the dead ones stand)
+      var hop = function (key, from, to) { var Bh = testSk('?roam=' + key + '&hour=10'); var st = stepSk(Bh, from, to); var Bn2 = topSk(), t2 = Bn2 && Bn2.roam && Bn2.roam.token; return { key: RSk.def.key, at: t2 ? [t2.x, SKk.H - 1 - t2.y] : null }; };
+      var h1 = hop('solskaft', [6, Y(1)], [5, Y(1)]), h2 = hop('solskaft_cart', [13, Y(2)], [14, Y(2)]), h3 = hop('solskaft', [36, Y(5)], [36, Y(6)]), h4 = hop('solskaft_cart', [36, Y(3)], [36, Y(2)]);
+      var Bg = testSk('?roam=solskaft_cart&hour=10'), gw = useSk(Bg, [32, Y(25)], [32, Y(26)]), tw2 = useSk(Bg, [31, Y(22)], [30, Y(22)]);
+      var lifts = Object.keys(SKk.LEGEND).concat(Object.keys(SKk.CLEGEND)).map(function (k) { return (SKk.LEGEND[k] || SKk.CLEGEND[k] || '').toLowerCase(); }).filter(function (n) { return /lift/.test(n); });
+      okSk('the ramps join the floors: down the cart ramp to ' + h1.key + ' ' + h1.at + ', up it to ' + h2.key + ' ' + h2.at + ', down the narrow ramp to ' + h3.key + ' ' + h3.at + ', up it to ' + h4.key + ' ' + h4.at + '; the gate "' + gw.slice(0, 50) + '" (' + /Where it goes: the highway/.test(gw) + '), the trade hall (' + /NO SURFACE FOLK/.test(tw2) + '); no lift laid (' + lifts.length + ')',
+        h1.key === 'solskaft_cart' && h1.at && h1.at.join() === '5,1' && h2.key === 'solskaft' && h2.at && h2.at.join() === '15,2' && h3.key === 'solskaft_cart' && h3.at && h3.at.join() === '36,7' && h4.key === 'solskaft' && h4.at && h4.at.join() === '36,1' && /Where it goes: the highway/.test(gw) && /NO SURFACE FOLK/.test(tw2) && !lifts.length);
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;
