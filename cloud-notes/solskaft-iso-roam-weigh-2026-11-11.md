@@ -230,3 +230,100 @@ House costs to name: Sólskaft's floors want `save: true` on the street and cart
 - **The task's brief said the Edifice is 60 x 33; it is 60 x 39** (`rows` and `heights` each 39 long; the probe's `m.w`, `m.h` agree).
 - **Not verified by me:** every line marked *(reader)*; the fetch cost of figure sheets on a first visit; whether `content/maps/burial.json` and `solskaft_deep.json` (the second game's copies) match the first game's; anything about how the top view would look for these floors.
 - **Lanes this touches:** the story build (`..\handoff-2026-10-14-the-story-build.md`, a pointer section added today); the party-token map lane §4.6 (the road's converter) and §7 (fog, HELD -- Report 2 is its Sólskaft half); the warrens-and-galleries lane's 10-29 "probably top down for solskaft"; the realm page `..\TarlynsPit\wiki\solskaft.md` §The shape (the placements here that go past the wiki's are this seat's and PROPOSED: the cistern on the second floor, the temples flanking the oathstone, the ramp and stable along the front wall, the four sealed doors read as the access points, the stair's place).
+
+---
+
+# 2026-11-11, later -- his thirty feet of main street between the stone and the throne
+
+room: solskaft-weigh, the same seat (config echo claude-fable-5-2), on the lanes desk's message "Griz answered your two gating questions on Sólskaft" relaying his two answers; worktree `.claude/worktrees/solskaft-weigh2` off `origin/main` `5c8e611f`, removed at the close. Notes only.
+
+His words, verbatim, through the desk: *"6 - deserves iso tbh"* -- **RULED: iso** (question 1 of 1.7; the 10-29 "probably top down for solskaft" is superseded). And on question 2: *"7 - what if we put another 30 feet of mainstreet between the stone and the throne? Does the wall thickness buy us the lean?"*
+
+## The squares, read again off `MAPS.edifice` (`deep16/data/maps.js:1433-1450`, the rows; `:1387-1391`)
+
+- Row 0: the mountain's face, rock, the falls painted down it at columns 28-31. Row 1: **the back rim, one square**, the intake pool in it at 28-31. Rows 2-14: the glass, 13 rows. Row 15: **the front rim, one square**, merlons on it. Row 16: the street, with the door's two threshold squares at 29-30 standing *outside* the wall.
+- The Sunshaft's circle: centre (29.5, 4.8), radius 2.8 -- its north edge is at 2.0, **exactly the glass's north edge**. The light's ring touches the back rim.
+- A correction to 1.2 above: counting the square inside the doors, the south stretch is **seven** squares (35 ft), not six, before the ring (rows 14 down to 8); the court under the ring is six (rows 7 to 2).
+
+## 1. Does his 30 ft fit with the Edifice left exactly as drawn? Yes, wholly.
+
+Everything north of row 1 is rock on the Skylights map and is never seen from outside: six squares of street running on north under the mountain take nothing from it. **No change to the Skylights map, its bench or its show.**
+
+What passes over the new stretch, and whether it collides:
+- **The intake pool is straight over its first square** (the rim, columns 28-31 -- the same four columns as a four-square street). The water cannot fall into the street. The fit: it drops through the rim into **a flume at second-floor height that runs north over the stretch's ceiling** to the wheel behind the throne. That is his own earlier word made exact (*"behind the throne on the second and orchard levels"*) and it means **the north stretch is one storey high, 15 ft, under rock** -- not open to the orchard's floor as the south stretch is.
+- **The garrison behind the waterfall** (armory, sleeping quarters, the way out by the intake pool) sits on the second and orchard levels directly over the stretch. Good: its stair comes down into the stretch, so the king's guard lives over the king's street.
+- **Nothing collides.** The one cost is that the north stretch has a low roof; I think that is a gain (section 4).
+
+## 2. "Does the wall thickness buy us the lean?"
+
+How I drew them: **front wall one square (5 ft), back rim one square, side walls one square each** -- that is what the Edifice's own rim rows are, so the block under the glass is 36 x 13 inside. Two readings of his sentence, both answered:
+
+- **The outer walls' thickness (the desk's reading).** It buys nothing and costs nothing: the walls are already the thinnest the grid has (a wall is a whole square), and the door's threshold is already outside the wall. A thicker front wall at street level than the rim above it would *cost* a row of the south stretch. The back rim is the useful one: at street level it need not be a wall at all -- **an arch through it, the street's width, joins the court to his six squares.**
+- **The mountain's face as the wall (how I read him).** The thirty feet *is* a wall's thickness: the street goes through the back of the building and through the rock the falls come down, and comes out in the throne room. Read that way the answer is **yes -- the rock behind the glass is free ground, the one direction the Edifice does not fix, and spending it there is exactly what lets the Edifice stay as drawn.** His proposal is the lean, made better.
+
+**What his 30 ft does to my lean: it stands, and one part of it gets easier.** Still kept: the Edifice untouched; the ramp and the stable along the front wall in the wings; the two temples flanking the oathstone. Changed: the crown's rooms and the hero-wall no longer have to crowd the court or hide off the throne room's side -- they get a street of their own. The cross arcade in each wing becomes optional (question 2 below).
+
+Where thickness does cost, for the record: **every inside wall is a 5-ft square too.** A store front on a seven-square street is two walls and five squares of shop; that is why the south stretch holds one deep front a side and not three.
+
+## 3. The street in two stretches -- my lean for the split
+
+**South of the stone, under the glass: the trade. The court: the faith. North of the stone, under the rock: the crown.**
+
+Street level, local squares (x 0-37 west to east, doors at 18-19; rows counted north from the front wall):
+
+```
+ r32  +--------------------------------------+   back of the throne room (the wheel behind it is a floor up)
+ r23..|            THRONE ROOM               |   the dais and the empty seat at the north end
+ r22  +---------------[doors]----------------+
+ r21  | assay      |  NORTH STRETCH   | stair down to the funerary
+ r20  | mint       |  six squares,    | (past the forge)
+ r19  | (sealed)   |  30 ft, 15 ft    |
+ r18  | treasury   |  ceiling, lamps  | the garrison's stair up
+ r17  | (open,     |  HERO-WALL on    | (to the quarters behind
+ r16  |  empty)    |  both walls      |  the fall)
+ r15  |            |  x 17-20         |
+ r14  +===========[ arch in the rim ]========+   the back of the glass; the intake pool is over this square
+ r13..| REKKNAR'S  |  THE OATHSTONE   | THE DORMANT'S
+ r8   | temple     |  under the light | temple          (the court, six squares; the orchard's hole over it)
+ r7   | west store |                  | east store
+ r6-3 | (trade     |  SOUTH STRETCH   | (finished goods; one deep front a side,
+ r2   |  stores)   |  seven squares   |  lodging over both)
+ r1   | TOLLHOUSE, ramp down west     | STABLE, the narrow ramp up at the east wall
+ r0   +===========[  VAULT DOORS  ]==========+   Pyro, Ketil
+```
+
+- **South stretch (35 ft):** the tollhouse at the ramp's head and the stable, both along the front wall in the wings; one store front a side on the street, the stores running deep into the wings under their lodging. His stores and his ramp and stable, as he poured them.
+- **The court (30 ft):** the oathstone on its pedestal in the light, a temple on each side facing it. His *"two of the dwarven deities temples would be on main street"*, at the place on it that matters most.
+- **North stretch (his 30 ft):** **the hero-wall down both sides** -- the highway's dead cut in rows, walked past on the way to the king; on the west the doors of **assay, mint (sealed) and treasury (open, empty)**, which the wiki had "beside the throne on the west" and which now front the street instead of hiding behind the hall; on the east **the stair down to the funerary** (question 6 of 1.7, answered by this: it opens off the north stretch) and the garrison's stair up. Then the throne room's doors.
+
+**What it does below:**
+- **The loading lanes do not move.** They run under the stores, and the stores are all still under the glass.
+- **The loop gets room at its far end.** The funerary's drum stays under the court; the road's north leg passes behind it, and **the forge, the smelters, the Forge-Father's temple and the highway's mouth get six more rows of depth** under the north stretch and the throne room, instead of being pressed against the drum. The loop is about 60 ft longer round.
+- **One thing to keep apart:** the stair from the street comes down on the east side of the north stretch and must reach the level below the road without crossing it. It goes down in its own well beside the road's north-east corner and passes under the east lane -- a stairwell block on the cart level, not a crossing.
+- **The third level below** is unchanged; the passage joining the two hallways' north ends lies under the start of the north stretch, where the stair wants to land.
+
+## 4. The processional, doors to throne, both ways
+
+| | as I weighed it | with his 30 ft |
+|---|---|---|
+| doors to the stone's centre | 51 ft (10 squares) | 51 ft |
+| the stone's centre to the throne room's doors | 19 ft (4 squares: half the court and the rim) | 49 ft (10 squares) |
+| **doors to the throne room's doors** | **70 ft, 14 squares** | **100 ft, 20 squares** |
+| the throne room, doors to the seat | about 45 ft (9 squares, mine) | the same |
+| **doors to the high seat** | **about 115 ft** | **about 145 ft** |
+
+**How each reads on the diamonds.** At the closest zoom the screen (480 x 270; a square is 64 x 32 px, `deep16/js/iso.js:7`, `deep16/js/core.js:5`) shows about **15 squares along a street**, roughly seven either side of the party.
+- **As weighed (14 squares):** the whole street fits in one view from its middle. The stone sits ten squares in with the throne's doors four squares behind it -- the stone reads as standing on the throne's doorstep, and the walk is over almost as it starts. A hall, not a street.
+- **With his 30 ft (20 squares):** it never fits in one view at the closest zoom, and that is the point: from the doors the party sees the street running up toward the light; at the stone the doors are behind them and the throne's doors are just out of sight up a darker, lower street lined with the dead's names; then the throne room. **Three beats instead of one, and the stone sits ten squares from each end -- exactly centred on the walk.** One step of the far zoom shows all of it.
+- **The light is what sells it.** The north stretch is under rock: if the street level is a dark floor lit from the glass by the hour and by lamps under the rock (the working gallery is already a dark floor lit only from its mouth, `deep16/js/mines.js:101-104`), the party walks from daylight into lamplight to reach the king, and by night the whole street is lamps. S-M on top of the floor; not needed to walk it.
+
+## My answer, short
+
+**Yes to his 30 ft.** It fits with the Edifice untouched, it uses the rock instead of the roof, it centres the oathstone on the processional, and it gives the crown's rooms and the hero-wall a street. My lean stands with it; the first build is unchanged in size (street level M -- six more rows of floor is nothing).
+
+## Questions
+
+1. **The north stretch one storey high (15 ft, under rock, the flume and the garrison over it), the south stretch open to the orchard's floor?** Lean: **yes** -- the water has to cross over it somewhere, and the low lamplit approach to the throne is the better walk.
+2. **The cross arcade in each wing** (more store fronts off the south stretch): still wanted, or is one deep store a side enough now? Lean: **drop the arcades** -- stores west and east, lodging over them, as he poured it.
+3. **The hero-wall on the north stretch's two walls**, and assay, mint and treasury with their doors on its west side? Lean: **yes**.
+4. **"Wall thickness":** did he mean the mountain's face as the wall the street goes through (how I read it), or the facade's own walls (the desk's reading)? Either way the thirty feet fits and the lean stands; it only matters if he meant something a wall should *do*.
