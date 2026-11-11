@@ -1035,7 +1035,9 @@
   }
   // a card with no lines written for it -- a made character (`npc-paladin3`), a class card, a guest of a class (11-10, his record of 11-09: STATUS > FEATURES said
   // "Nothing written on the sheet." for every made character): the character sheet's own list (deep16/js/sheetpdf.js SP.featureList -- the grid's register of class
-  // features to its level and subclass, the fighting style, the race, the choices a level made, the feats), a line each with its words; ours marked as ours
+  // features to its level and subclass, the fighting style, the race, the choices a level made, the feats), a line each with its words; ours flagged `ours`, and STATUS
+  // shows it by its colour (11-10, Griz: "things should have a flag 'ours' for the back end and do need a player-facing side, but I'd much rather do it with a font-color change")
+  MN.OURS_COLOR = C.cyan;
   function classFeatureLines(h) {
     var SPx = window.D16 && window.D16.sheetPdf, R0 = R(); if (!SPx || !SPx.featureList || !R0.CLASSES[h.cls]) return [];
     var fs = []; try { fs = SPx.featureList(h, null); } catch (e) { return []; }
@@ -1043,10 +1045,10 @@
       var nm = f.name || '';
       if (/^Sneak Attack$/.test(nm) && R0.sneakDice) nm += ' ' + R0.sneakDice(h.lvl);
       if (/^Lay on Hands$/.test(nm) && h.feats) nm += ', ' + (h.feats.lay || 0) + ' left';
-      return { t: nm + (f.ours ? ' (ours)' : '') + (f.words ? (nm ? ': ' : '') + f.words : ''), use: !!f.use };
+      return { t: nm + (f.words ? (nm ? ': ' : '') + f.words : ''), use: !!f.use, ours: !!f.ours };
     });
   }
-  MN.featureLines = featureLines;
+  MN.featureLines = featureLines; MN.StatusPage = StatusPage; // (dev/bench16.js bugfix1110 reads the page's lines and their colours)
   function StatusPage(m, h) {
     this.m = m; this.h = h; this.scroll = 0;
     var guest = m.host.party().indexOf(h) < 0;
@@ -1060,7 +1062,8 @@
     if (pg.k === 'feat') {
       var fs = featureLines(h);
       if (!fs.length) add('Nothing written on the sheet.', C.grey);
-      fs.forEach(function (f) { add('· ' + f.t, f.use ? C.gold : C.pale); });
+      fs.forEach(function (f) { add('· ' + f.t, f.ours ? MN.OURS_COLOR : f.use ? C.gold : C.pale); });
+      if (fs.some(function (f) { return f.ours; })) { out.push({ t: '', c: C.dim }); add('In blue: ours, past the SRD 5.1.', MN.OURS_COLOR); } // (the key to the colour, under the list -- 11-10)
       if (d.note) { out.push({ t: '', c: C.dim }); add(d.note, C.dim); }
     }
     if (pg.k === 'spells') {
