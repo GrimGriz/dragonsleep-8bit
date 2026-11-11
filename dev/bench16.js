@@ -5678,7 +5678,7 @@
       // THE WAGON NIGHT PLAYED ON THE FLOOR (11-04 later, his word at the pane): the floor's own script driven on -- each prompt answered from `ans` by its label (none left, the
       // last option), the watches picker begun with Lymen on the second watch, every card's lines seen once, each morning woken, a counter answered; the fight on the floor runs
       // by the class AI (&watch), the pair's hit points set as the choice is made (foeHp: 1 and no speed for a sure win, 999 for the run)
-      function nightIn(B, ans, foeHp) {
+      function nightIn(B, ans, foeHp, blow) { // (blow: a party blow on Willem at the traces the moment the fight opens -- 11-11, the watcher now fights too and the class AI's targets moved; the run on foot is what #14 asks, the AI's aim is not)
         var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
         B.cards = []; B.roam.keys.push('use');
         for (var k = 0; k < 60000 && quiet < 200; k++) {
@@ -5688,6 +5688,7 @@
           if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); seen.push('WATCHES: ' + Object.keys(s.asg).map(function (id) { return id + ' ' + s.asg[id]; }).join(', ')); s.go('begin'); continue; }
           if (s !== B) { D.pop(); continue; }
           (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } });
+          if (blow && B.roam.mode === 'fight' && !B.blowDone) { B.blowDone = true; B.hitAtTraces = true; }
           var st = co.next(v); v = undefined;
           if (st.done) break;
           if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
@@ -5713,7 +5714,7 @@
         !fw.katGone && InI.katHere(fw, WDI + 1) && !InI.katHere(fw, WDI + 2)); // (11-05: the wagon stopped, she has no ride -- the morning after is her last day, In.katLast)
       // 14. THE WAGON NIGHT, steel and away: the pair past hurting (999), a blow on Willem at the traces and both break for the road down the west edge -- on foot -- and either on it ends it;
       // the wagon and its seven left in the yard, the children freed all the same, no book
-      var Bf = testIn('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bf.roam.silver = 30; atIn(Bf, 24, 17, [0, -1]); InI.pinned = [18]; var of = nightIn(Bf, [0, 'TO BED', 'WAKE THE PARTY'], 999), ff = Bf.roam.flags, stf = CIn.state(Bf), fi = of.indexOf('lets go of the traces');
+      var Bf = testIn('?roam=halfway&hour=18&day=' + D.inn.WAGON.first + '&at=24,17'); Bf.roam.silver = 30; atIn(Bf, 24, 17, [0, -1]); InI.pinned = [18]; var of = nightIn(Bf, [0, 'TO BED', 'WAKE THE PARTY'], 999, true), ff = Bf.roam.flags, stf = CIn.state(Bf), fi = of.indexOf('lets go of the traces');
       okIn('THE WAGON NIGHT, away on foot: ' + of.slice(Math.max(0, fi - 300), fi + 700) + ' -- fled ' + ff.wagonFled + ', the outcome ' + ff.wagonOutcome + ', no book (' + !CIn.count(stf, 'willembook') + '), the children still freed (' + ff.kidAtInn + '), stopped ' + ff.wagonStopped,
         /lets go of the traces/.test(of) && /breaks for the road, on foot/.test(of) && /is gone/.test(of) && /They are away north up the road on foot/.test(of) && /the traces cut|the team still in its traces/.test(of) && /seven children/.test(of) && /MORNING/.test(of) && ff.wagonFled === 'foot' && ff.wagonOutcome === 'fled' && !CIn.count(stf, 'willembook') && ff.kidAtInn === 1 && ff.wagonStopped === 'c0');
       // 15. THE TRACES (RULED 11-04 §1): three turns at the harness unbothered and the team is loose, the pair mounted; a blow first and they run on foot as before
