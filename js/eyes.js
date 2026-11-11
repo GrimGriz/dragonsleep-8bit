@@ -17,6 +17,11 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE MAIN HEROES DRAWN IN THE FIRST GAME (11-11, the ART-77 8-bit cutter, on his "thaw out the 8-bit freeze long enough to replace the main hero 8-bit graphics";
+    // first/js/heroes8.js from tools/heroes8-sheet.py) -- a show: the 8-bit fight plays itself
+    'eyes-heroes8-1111': { pri: 2, group: G2, title: 'THE FIRST GAME: Lymen and Vivian drawn -- the art desk\'s ART-77 8-bit figures in the battle and on the map (11-11)', pt: 'the first game lane (the thaw for the main heroes\' graphics, 11-11)',
+      url: '?at=heroes8',
+      look: 'Pick Lymen (or Vivian) as the lead. A fight that plays itself: two gnolls and a worg, the four on the AI. Lymen and Vivian are the drawn figures now (Barley and Aurdin still the typed ones): a breath while they stand; a wind-up, then the blow\'s end, when they strike; hands up, then the release (Lymen\'s blade flashes); a reel when hit; lying head to the right, weapon beside, on the standing ground line when down; the sword or knife raised at the victory. Lymen: sword in his right hand, the round shield on his left arm. After it, walk: a stand of its own when still, the feet swapping as the lead walks, LEFT the RIGHT mirrored. Should look: the same size and ground as before, no jump between poses.' },
     // SWANN'S READING (the Swann tour seat, 11-11, on his 11-10 ask and his 11-11 "2 go"; mode=swann1111) -- a live door for his hands: the first deck itself
     'eyes-swann-cards-1111': { pri: 1, group: G2, title: 'SWANN\'S READING: Sylvia deals these rows six at a time -- her bar over each door, one key an answer, her table at the deck\'s end (11-11)', pt: 'the eyes lane, the Swann tour seat 11-11 (js/tour.js DS.TOUR: the deck, the store, the bar; deep16/js/swann.js: her table and her booth\'s READ THE CARDS; mode=swann1111) · eyes',
       url: 'deep16/?cards&fresh=1111',

@@ -373,3 +373,20 @@ Where: the inn's common room (the lane's Beat 3) and the shore (§6, a guest the
 ## 38. Elsbeth's bucket on the drag, and Gennet's silencing look: two portrait pages for the poison supper's end (added 11-07, the desk of 11-07) -- IN HAND 2026-11-07 (the art desk's ELSBETH_HEAD-7_BUCKET and GENNET_HEAD-7_THE-LOOK, back the same night: cut into `pt_elsbethtub` row `bucket` and `pt_gennet` still `look`, `21cbf224`, by the desk of 11-07); its blocks are on `deep16-art-in-hand.md`
 
 ## 39. Katarina fighting: a cleric's fight poses for her figure, five views (added 11-11, the cutter of 11-10, on the lanes desk's queue) -- SENT 2026-11-11 (`deep16/_src/art-desk/sent/ASK-2026-11-11-katarina-fight-poses.md`; his *"outbox has all been sent as of timestamp of kat return in Fresh"*) -- **IN HAND 2026-11-11, all five views** (the art desk's KATARINA-COMBAT-FULL-SHEETS: the Mace Up for both casts on his word to the art desk, *"lose the mirror casts and just do the mace-up one"*; cut into `katarina_p2` in every facing and worn, `d03383c1`, by the cutter of 11-10; the morning's SE checkpoint, `ede51136`, superseded) -- SECTION 39 ALL IN HAND; its block is on `deep16-art-in-hand.md`
+
+## 40. ON HOLD pending positioning modeling: the 16-bit tactical poses (added 11-11, the ART-77 8-bit cutter, from the art desk's own note) -- a dependency record, NOT an ask and NOT the dream list
+
+The art desk's `OPEN-ART-FIXES-FOR-DREAM-LIST.md` (2026-11-11, sorted to `deep16/_src/art-desk/OPEN-ART-FIXES-FOR-DREAM-LIST-2026-11-11.md`) asks that this list stay *"with the art queue as a dependency record"* and be kept off the dream list. No future pose work on these until positioning is modeled; where the dream list already records a defect, its line keeps the frame-level history. Nothing here is pasted.
+
+- ART-MC-LYMEN, 16-bit tactical: the base equipment and action suite started as a study; wait for positioning before production.
+- ART-MC-VIVIAN, 16-bit tactical: the original and 3B combat walks and S/N attacks under review holds; the 3B rear studded panel under an appearance hold.
+- ART-76 / 77, Barley's original coat: SE/NE/E Walk 8 repeat a lead leg; SE Get Up cut from pass 3.
+- ART-109 and §34, Barley in mail: the selected broken-attempt rows in use; the longsword mannequin pass's N frame 5 hand change, NE 5 blade hidden, short blades SE 4 and E 5 (on the dream list).
+- ART-117, the gargoyle: SE Walk replacement declined; NE/E walks cut with gait concerns.
+- ART-20, the lamia: true-form NE/N arm and weapon continuity; ART-120's human-form Walk and Cast held with the encounter work.
+- ART-56, the harpy: N Walk, Claws and Club.
+- ART-55 the manticore's E Walk (parked after a failed finishing pass); ART-118 the aboleth's S/N Fall, N Prone, Tail and anatomy.
+- ART-123 Talmok and Dace, ART-119 the Keeper; ART-29 the gnoll longbow, the Knellback, the swarms, General Grim; the Halfway Inn's fight and mounted poses (Amara, Doran, Gennet, Willem); §39 Katarina's NE attack direction, N contact timing, rear idle and fall: each already on the dream list.
+- The Pocket DM's sleep posture: future pose art (on the dream list), held with the rest.
+
+Also from the note: Mr. Ripples stays on his own design hold; ART-124's fountains are closed; the 8-bit world-tile reskin is shelved (§18).
