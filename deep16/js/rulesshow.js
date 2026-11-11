@@ -374,20 +374,39 @@
       return [saved && !roll && held && !asked.length, (asked.length ? 'asked: ' + asked.join(', ') : 'Protection asked nothing') + '; ' + (roll ? 'a d20 to hit was rolled' : 'no attack roll') + '; ' + (held ? 'the save failed on its 4: POISONED and PARALYZED' : 'the paladin not paralyzed')];
     }
     function* spikeFlier() {
-      // Spike Growth is the ground's: a harpy holding 10 ft over it crosses untouched; at 5 ft the thorns reach it (RULED 11-10, Griz: "spiked shouldn't impact fliers over 5ft
-      // unless SRD contradicts" -- grimoire.js M.overSpikes). The spikes laid on three squares of the harpy's line for the beat
+      // Spike Growth is the ground's: a harpy holding 5 ft over it crosses untouched; on the surface the thorns reach it (RULED 11-10, Griz: "spiked shouldn't impact fliers over 5ft
+      // unless SRD contradicts", then "spare 5ft too, head cannon says it's about 3 ft deep" -- grimoire.js M.overSpikes). The spikes laid on three squares of its line for the beat
       stage([harpy, wizard], [[0, 0], [0, 5]]); setPin(15, null);
       var sq = [[cx + 1, cy], [cx + 2, cy], [cx + 3, cy]], g0 = B.grounds, path = [[cx + 1, cy], [cx + 2, cy], [cx + 3, cy], [cx + 4, cy]], L = G.LAYER(), gz = G.groundAt(harpy, cx, cy), fl0 = harpy.flies;
       B.grounds = (B.grounds || []).concat([{ kind: 'spikes', sq: sq, by: wizard.id, difficult: true }]); harpy.flies = true;
       try {
-        harpy.fz = gz + 2 * L; say(['Spike Growth on three squares. The harpy flies across them 10 ft up.']); yield W(60);
+        harpy.fz = gz + L; say(['Spike Growth on three squares. The harpy flies across them 5 ft up.']); yield W(60);
         var hp0 = harpy.hp, n = mark(); turn(harpy); yield* fire(B.moveAlong(harpy, path, {})); B.active = null; yield W(40);
         var high = harpy.hp === hp0 && !/in the spikes/.test(since(n));
-        harpy.x = cx; harpy.y = cy; harpy.fz = gz + L; G.setup(G.map, B.units); say(['Back, and across again 5 ft up: the thorns reach it.']); yield W(60);
+        harpy.x = cx; harpy.y = cy; harpy.fz = null; G.setup(G.map, B.units); say(['Back, and across again on the surface, no height held: the thorns reach it.']); yield W(60);
         var n2 = mark(); turn(harpy); yield* fire(B.moveAlong(harpy, path, {})); B.active = null; yield W(50);
         var hits = (since(n2).match(/in the spikes/g) || []).length, low = hits === 3 && harpy.hp < hp0;
-        return [high && low, (high ? '10 ft up: untouched' : '10 ft up: spiked') + '; 5 ft up: ' + hits + ' squares of spikes (want 3), ' + (hp0 - harpy.hp) + ' piercing'];
+        return [high && low, (high ? '5 ft up: untouched' : '5 ft up: spiked') + '; on the surface: ' + hits + ' squares of spikes (want 3), ' + (hp0 - harpy.hp) + ' piercing'];
       } finally { B.grounds = g0; harpy.fz = null; harpy.flies = fl0; }
+    }
+    function* thrownPickup() {
+      // a thrown weapon picked up (RULED 11-10, Griz: "pickup with auto-pack ground items at fight end"; battle.js Battle.landThrow, groundStep, gatherThrown): the paladin's handaxe
+      // at the goblin, pinned to miss -- it lands past it; the paladin walks over it and takes it up (the free object); thrown again, pinned to hit -- at the goblin's feet; the
+      // fight's end gathers it. The goblin's hit points deep for the beat
+      stage([paladin, gob], [[0, 0], [3, 0]]); gob.maxhp = gob.hp = 200; var alt0 = paladin.alt, th0 = paladin.thrown, gr0 = B.ground; delete paladin.thrown; B.ground = [];
+      try {
+        var ax = paladin.alt; if (!ax || !ax.thrown) return [false, 'the paladin has no handaxe to throw'];
+        say(['The paladin throws the handaxe at the goblin 15 ft off, pinned to miss: it lands on the square past it.']); yield W(70);
+        setPin(2, null); turn(paladin); yield* fire(B.attack(paladin, gob, ax)); B.active = null; yield W(50);
+        var miss = (B.ground || []).map(function (g) { return g.x - cx + ',' + (g.y - cy); }).join(' ');
+        say(['The paladin walks round the goblin and over it: taken up on the way (the hand on an object, free).']); yield W(60);
+        var n = mark(); turn(paladin); yield* fire(B.moveAlong(paladin, [[cx + 1, cy + 1], [cx + 2, cy + 1], [cx + 3, cy + 1], [cx + 4, cy]], {})); B.active = null; yield W(50);
+        var took = /takes up the handaxe on the way/.test(since(n)) && !(B.ground || []).length && !!paladin.alt;
+        say(['Thrown again from beside it, pinned to hit: at the goblin\'s feet. Then the fight is over and won.']); yield W(60);
+        setPin(15, null); turn(paladin); yield* fire(B.attack(paladin, gob, paladin.alt)); B.active = null; yield W(40);
+        var hitAt = (B.ground || []).map(function (g) { return g.x - cx + ',' + (g.y - cy); }).join(' '), gl = B.gatherThrown('won'); say([gl.replace(/\{\/?[a-z]*\}/g, '')]); yield W(80);
+        return [miss === '4,0' && took && hitAt === '3,0' && /gathered up: a handaxe/.test(gl), 'the miss lay at ' + miss + ' (past the goblin at 3,0); ' + (took ? 'taken up on the walk' : 'not taken up') + '; the hit at ' + hitAt + '; ' + gl.replace(/\{\/?[a-z]*\}/g, '')];
+      } finally { paladin.alt = alt0; if (th0) paladin.thrown = th0; else delete paladin.thrown; B.ground = gr0; }
     }
     // ---- the postures (the Pocket DM's runes, 11-10, runes seat B -- js/postures.js; &only=postures): a foe the DM laid on a rune fights by its posture. Each beat lays the posts
     // as the lay floor's placement will (u.post), D.postures.start as the fight's head does, and the engine plays the turns; the ward's ground and a patrol's squares are drawn on
@@ -515,7 +534,8 @@
       { id: 'keendark', group: 'gridfix1107', name: 'By ear and nose, in the dark', what: 'A keen hearing or smell finds a hider without sight. In the dark the rogue hides from a wolf and a bandit, Stealth 15: neither can see her; the wolf\'s nose and ears find her by its passive 13 +5, "Wolf (18, keen hearing and smell, without sight)"; the bandit cannot. (11-07, his "yeah - for all the monsters with non-vision senses notes".)', run: keenDark },
       { id: 'shaketrance', group: 'gridfix1110', name: 'Shaken out of a Hypnotic Pattern', what: 'The wizard and the bard stand entranced. HELP from the cleric beside the wizard shakes him out of the stupor (SRD 5.1: "someone else uses an action to shake the creature out of its stupor"). The goblin\'s blow on the bard lands on 20 temporary hit points: still damage taken, and the trance breaks. (11-09, his stream\'s fight 2: Vivian stood entranced five rounds, friends beside her and a blow on her temporary hit points.)', run: shakeTrance },
       { id: 'chuultentacles', group: 'gridfix1110', name: 'The chuul\'s tentacles: a save, no roll', what: 'SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed." No attack roll: the cleric\'s Protection is not asked, a d20 of 1 changes nothing, and there is no damage. (11-09, his record: Protection\'s prompt and a nat-1 HIT on the tentacles.)', run: chuulTentacles },
-      { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 10 ft up crosses the spikes untouched; at 5 ft up the thorns reach it, 2d4 a square. (11-10, your ruling: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts" -- the SRD says nothing of height.)', run: spikeFlier },
+      { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 5 ft up crosses the spikes untouched; on the surface, no height held, the thorns reach it, 2d4 a square. (11-10, your rulings: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts", then "spare 5ft too, head cannon says it\'s about 3 ft deep".)', run: spikeFlier },
+      { id: 'thrownpickup', group: 'gridfix1110', name: 'A thrown weapon picked up', what: 'A thrown weapon lands: a miss on the square past the target, a hit at its feet. Walked onto, one of the party takes it up (the hand on an object, free); the fight won, what still lies there is gathered into the pack. (11-10, your "pickup with auto-pack ground items at fight end".)', run: thrownPickup },
       { id: 'postambush', group: 'postures', name: 'A rune\'s AMBUSH', what: 'The Pocket DM\'s runes (11-10): a foe the DM laid in ambush is hidden from the start, its own Stealth held, and the SRD\'s surprise is rolled -- its Stealth against each passive Perception; caught unaware, no turn in round 1. It holds still: one of ours in sight but out of reach, it readies its blade unseen; one walks up, and the readied blow comes from hiding.', run: postAmbush },
       { id: 'postdefend', group: 'postures', name: 'A rune\'s DEFEND', what: 'A foe laid to defend holds within 15 ft of its ward (drawn): it readies against what comes, goes at one near the ward from inside its ground, and never chases out of it -- whatever it hears.', run: postDefend },
       { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },

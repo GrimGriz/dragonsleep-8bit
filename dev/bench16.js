@@ -3651,7 +3651,7 @@
       var L7 = GGt.LAYER(), gz7 = GGt.groundAt(hp7, 8, 8), h70 = hp7.hp, out7 = [];
       [[gz7 + 3 * L7, '15 ft'], [gz7 + 2 * L7, '10 ft'], [gz7 + L7, '5 ft'], [null, 'on the surface']].forEach(function (z) { hp7.fz = z[0]; var a = hp7.hp; Mt.stepInto(B7, hp7); out7.push(z[1] + ' ' + (a - hp7.hp)); hp7.hp = h70; });
       hp7.fz = null;
-      okGT('7 the harpy steps into the spikes: ' + out7.join(', ') + ' (want 0 at 15 and 10 ft, spiked at 5 ft and on the surface)', /^15 ft 0, 10 ft 0, 5 ft [1-9]\d*, on the surface [1-9]\d*$/.test(out7.join(', ')));
+      okGT('7 the harpy steps into the spikes: ' + out7.join(', ') + ' (want 0 at 15, 10 and 5 ft -- his "spare 5ft too" -- and spiked on the surface)', /^15 ft 0, 10 ft 0, 5 ft 0, on the surface [1-9]\d*$/.test(out7.join(', ')));
       } catch (eS) { repGT.errors.push('section 7: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
       // 8. THE SRD'S THROWN PROPERTY (his Pocket DM note: thrown weapons from the pack)
@@ -3664,7 +3664,7 @@
       D.d = d0GT; var B9 = D.rulesshow.make('?rulesshow&fast&only=gridfix1110'); D.battle = B9; B9.enter();
       var v9, k9 = 0; while (B9.co && k9++ < 400000) { var r9 = B9.co.next(v9); v9 = undefined; if (r9.done) break; var y9 = r9.value; if (y9 && y9.prompt) v9 = y9.prompt.opts[0].value; }
       (B9.rulesReport || []).forEach(function (b) { okGT('9 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
-      okGT('9 the show ran ' + (B9.rulesReport || []).length + ' beats (want 3)', (B9.rulesReport || []).length === 3);
+      okGT('9 the show ran ' + (B9.rulesReport || []).length + ' beats (want 4)', (B9.rulesReport || []).length === 4);
       } catch (eS) { repGT.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
       // 10. THE SELF-CLICK ON A LIGHT AT ONE'S FEET (11-10, Griz: "the pickup of the lamp prevents mouse-only open of q menu I think"): the question has THE RING, and a NOT NOW holds
@@ -3688,6 +3688,39 @@
       var l11 = logGT(B11, n11);
       okGT('11 HELP at a foe named "The thing in the lake": "' + l11.slice(0, 140) + '"', /swing at the thing in the lake does it/.test(l11) && !/the The/.test(l11));
       } catch (eS) { repGT.errors.push('section 11: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 12. THROWN WEAPONS PICKED UP (RULED 11-10, "pickup with auto-pack ground items at fight end (with an exception flag for metal items thrown into the ooze or jelly ...)"):
+      // a hit lands at the target's feet, a miss past it; walked onto, taken up with the free object interaction (once a turn); the fight won, the rest gathered; lost, left;
+      // a nonmagical metal one that hits the gray ooze is gone (battle.js Battle.landThrow, groundStep, gatherThrown, eatsThrown)
+      var B12 = mkGT('?npc=goblin,grayooze&vs=fighter:5,rogue:5&lvl=5'), fi12 = clsGT(B12, 'fighter'), ro12 = clsGT(B12, 'rogue'), gb12 = kindGT(B12, 'goblin')[0], oz12 = kindGT(B12, 'grayooze')[0];
+      putGT(B12, [[fi12, 5, 6], [gb12, 9, 6], [ro12, 5, 10], [oz12, 9, 10]]); gb12.maxhp = gb12.hp = 200; oz12.maxhp = oz12.hp = 200; B12.ground = [];
+      var ax12 = fi12.alt, left12a = D.Battle.thrownLeft(fi12, ax12); RUt.startTurn(fi12); B12.active = fi12;
+      try { D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); }; runGT(B12.attack(fi12, gb12, ax12)); D.d = function (n) { return n === 20 ? 2 : Math.ceil(n / 2); }; runGT(B12.attack(fi12, gb12, ax12)); } finally { D.d = d0GT; B12.active = null; }
+      var g12 = (B12.ground || []).map(function (g) { return g.name + '@' + g.x + ',' + g.y; }).join(' ');
+      okGT('12 the fighter throws both handaxes (' + left12a + ') at the goblin 20 ft off, a hit then a miss: on the floor "' + g12 + '" (want Handaxe@9,6 at its feet and Handaxe@10,6 past it), the ALT put away ' + !fi12.alt, g12 === 'Handaxe@9,6 Handaxe@10,6' && !fi12.alt);
+      var cv12 = document.createElement('canvas'); cv12.width = 480; cv12.height = 270; var cx12 = cv12.getContext('2d'), dr12 = null, ob12 = D.Battle.groundObjs ? D.Battle.groundObjs(B12) : [], ln12 = D.Battle.groundLine ? D.Battle.groundLine(B12, fi12, 10, 6) : '';
+      try { if (get('shots', '')) { D.iso.zoom = 3; D.iso.lookAt(9.5, 6, GGt.map.gz(9, 6)); } ob12.forEach(function (o) { o.draw(cx12); }); D.ui.drawBattle(cx12, B12); } catch (eD) { dr12 = String(eD && eD.stack || eD).slice(0, 300); }
+      if (get('shots', '')) { var sp12 = (B12.ground || []).map(function (g) { var c = D.iso.center(g.x, g.y, GGt.map.gz(g.x, g.y)), p = D.iso.toScreen(c.x, c.y); return Math.round(p.x) + ',' + Math.round(p.y); }); repGT.notes.push('12 shot at ' + sp12.join(' ') + ' ' + cv12.toDataURL('image/png')); }
+      okGT('12 the two on the floor drawn (' + ob12.length + ' glyphs, the battle drawn' + (dr12 ? ': threw ' + dr12 : ' clean') + '); under the cursor at 10,6: "' + ln12 + '"', ob12.length === 2 && !dr12 && /Fighter 5\'s handaxe on the floor/.test(ln12) && /walk over it: taken up/.test(ln12));
+      putGT(B12, [[gb12, 9, 2]]); RUt.startTurn(fi12); B12.active = fi12; var n12 = nGT(B12);
+      try { runGT(B12.moveAlong(fi12, [[6, 6], [7, 6], [8, 6], [9, 6], [10, 6]], { spend: true })); } finally { B12.active = null; }
+      var l12 = logGT(B12, n12), left12b = fi12.alt ? D.Battle.thrownLeft(fi12, fi12.alt) : 0;
+      okGT('12 the fighter walks over both: "' + l12.slice(0, 220) + '"; one taken up (the free object), the other left ' + (B12.ground || []).length + ', the ALT back with ' + left12b + ' to throw', /takes up the handaxe on the way/.test(l12) && /passes over the handaxe: the hand on an object is spent/.test(l12) && (B12.ground || []).length === 1 && left12b === 1);
+      var gl12 = B12.gatherThrown ? B12.gatherThrown('won') : '', left12c = fi12.alt ? D.Battle.thrownLeft(fi12, fi12.alt) : 0;
+      okGT('12 the fight won: "' + gl12 + '", the floor ' + (B12.ground || []).length + ', the fighter has ' + left12c + ' to throw', /gathered up: a handaxe/.test(gl12) && !(B12.ground || []).length && left12c === 2);
+      // the pack's own (EQUIP's ALT row): three daggers in the pack, one thrown; the fight lost, it is left
+      var st12 = { id: 'dagger', n: 3 }; B12.inv = (B12.inv || []).filter(function (s) { return s.id !== 'dagger'; }).concat([st12]);
+      ro12.alt = { id: 'dagger', name: 'Dagger', atk: 6, dice: '1d4', mod: 3, type: 'piercing', props: ['finesse', 'light', 'thrown'], ranged: true, thrown: true, range: [20, 60], count: 0, stack: st12 };
+      putGT(B12, [[gb12, 9, 6]]); RUt.startTurn(ro12); B12.active = ro12;
+      try { D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); }; runGT(B12.attack(ro12, gb12, ro12.alt)); } finally { D.d = d0GT; B12.active = null; }
+      var n12d = st12.n, fl12 = (B12.ground || []).length, gl12b = B12.gatherThrown ? B12.gatherThrown('lost') : 'none';
+      okGT('12 a dagger from the pack\'s three, thrown: the stack ' + n12d + ', on the floor ' + fl12 + '; the fight lost: "' + gl12b + '", the stack ' + st12.n + ' (want 2, 1, nothing gathered, 2)', n12d === 2 && fl12 === 1 && !gl12b && st12.n === 2 && !(B12.ground || []).length);
+      // the gray ooze's Corrode Metal: a plain handaxe that hits it is gone
+      delete fi12.thrown; fi12.alt = ax12; putGT(B12, [[fi12, 5, 10]]); RUt.startTurn(fi12); B12.active = fi12; var n12e = nGT(B12);
+      try { D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); }; runGT(B12.attack(fi12, oz12, ax12)); } finally { D.d = d0GT; B12.active = null; }
+      var l12e = logGT(B12, n12e);
+      okGT('12 a plain handaxe that hits the gray ooze: "' + ((l12e.match(/The handaxe [^|]*/) || [''])[0]) + '", on the floor ' + (B12.ground || []).length, /The handaxe is eaten in the gray ooze/i.test(l12e) && !(B12.ground || []).length);
+      } catch (eS) { repGT.errors.push('section 12: ' + String(eS && eS.stack || eS).slice(0, 500)); }
     } catch (eGT) { repGT.errors.push(String(eGT && eGT.stack || eGT).slice(0, 900)); }
     D.d = d0GT; D.store.get = stGGT; D.store.set = stSGT; D.music = muGT; window.DS.autoPicks = apGT;
     var preGT = document.createElement('pre'); preGT.id = 'out'; preGT.textContent = 'BENCH16 ' + JSON.stringify(repGT);
