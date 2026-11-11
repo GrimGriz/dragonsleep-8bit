@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE SURPRISE ROUND SPENT (the Opus bug seat, 11-11, RULED on his "that's my lean too"; mode=ambush1111) -- a live door: his own module, by his hands
+    'eyes-ambush-r1-1111': { pri: 1, group: G2, title: 'AN AMBUSH THAT SURPRISES SPENDS ROUND 1: your BUGBEAR AMBUSH's bugbears loose javelins from hiding at the caught (11-11)', pt: 'the play records lane, 2026-11-11 (the Opus bug seat; deep16/js/postures.js ambushTurn)',
+      url: 'deep16/?pocket&fresh=1111a',
+      look: 'Your "i bet the ambushers wasted surprised as tasked with protect - if they had ranged though...". Load BUGBEAR AMBUSH and play it: when their Stealth catches your four unaware, a bugbear with one of yours within 30 ft (a javelin's normal range) throws from hiding in round 1 -- the ambush sprung, its surprise attack 2d6 on a hit; one with no one in 30 ft holds as before. If they see it coming, nobody throws from hiding.' },
     // THE OPUS BUG SEAT OF 11-11 (started by the realm-and-game desk on his "opus seat the plain bugs please"; mode=bugs1111): the living over the fallen a show; the
     // portraits and the camp's spell words live doors, for his hands
     'eyes-fallen-1111': { pri: 2, group: G2, title: 'THE LIVING OVER THE FALLEN: a hero on a dead bugbear drawn over it, a downed hero under a standing foe, a fighter on a fallen giant (11-11)', pt: 'the play records lane, 2026-11-11 (the Opus bug seat; js/ui.js UI.liftOverFallen)',
