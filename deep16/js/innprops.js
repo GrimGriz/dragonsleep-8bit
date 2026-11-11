@@ -124,6 +124,70 @@
   // walking, it stands whole as before. Its squares still block as a wall does
   IP.SEE = 0.35;
   IP.fightOn = function () { var B = D.battle; return !!(B && B.roam && B.roam.mode === 'fight'); };
+  // THE SEE-THROUGH BY THE PARTY'S PRESENCE (11-11, the inn seat; his note on eyes-halfwayinn-floor-1105: "all good but we'll need to transparency the chimney when the players walk
+  // the squares behind it on the first floor"; his question 5 on the front door's cutaway, "the parties presence should determine transparency and wouldn't need outline?", his lean
+  // taken as the one rule): what stands between the eye and one of the party -- the token walking, each of the four on the floor in a fight (js/roam.js R.occlude's own) -- goes
+  // see-through while they are behind it. The big fire's chimney and the stack upstairs go faint whole (IP.SEE, as in a fight since 11-06); a building's walls and roof, drawn as
+  // one picture (IP.walls), open a window round the one hidden. "Behind" is the sort's own: the piece drawn after the figure (its depth past the figure's, js/ui.js unitPos), and
+  // its pixels over the figure (IP.covers: its head, its middle, its feet). THE FRONT DOOR'S CUTAWAY (RULED 11-10, his six answers, the inn lane's 2026-11-08 section): with the
+  // party outside within 6 squares of the front step, the house's west end goes see-through over the rows three each side of the door (y 15-21), from the door out toward the
+  // road (x 13-19), as high as a figure stands -- the walls only: the west wall's stubs along the door's line, the doorway a gap in them, nothing of the room (its things and
+  // its people are under the roof, IP.dress); a lantern post at the step (In.ROWS 'l' at 17,17)
+  IP.TALL = { inn_hearth: 1, up_chimney: 1 };
+  IP.CUT = { step: [18, 18], near: 6, x0: 13, x1: 19, y0: 15, y1: 21, h: 84, see: 0.22 };
+  IP.WIN = { rx: 22, ry: 40, up: 26, h: 56 }; // (a figure's window: an ellipse round it, its middle `up` px over the feet; a figure's height where the sheet does not say)
+  IP.seeing = { figs: [], cut: false, groups: [] };
+  IP.who = function (B) { var R0 = B && B.roam; if (!R0 || !R0.token) return []; return R0.mode === 'fight' ? R0.members.filter(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0; }) : B.units.indexOf(R0.token) >= 0 ? [R0.token] : []; };
+  IP.cutOn = function (B) { var def = D.roam && D.roam.def, t = B && B.roam && B.roam.token, C0 = IP.CUT; if (!def || def.key !== In.KEY || def.inside || !t) return false; return Math.max(Math.abs(t.x - C0.step[0]), Math.abs(t.y - C0.step[1])) <= C0.near; };
+  IP.fig = function (B, u) { // (where a figure stands on the screen, as drawn: its feet, its top, its depth in the sort)
+    var p = D.ui && D.ui.unitPos ? D.ui.unitPos(B, u) : null; if (!p) { var c = iso.center(u.x, u.y, 0), s = iso.toScreen(c.x, c.y); p = { x: s.x, y: s.y, depth: u.x + u.y + 0.6 }; }
+    var top = D.spr && D.spr.unitTop ? D.spr.unitTop(u) * 0.45 : 0; return { u: u, x: p.x, y: p.y, h: top > 20 ? top : IP.WIN.h, depth: p.depth };
+  };
+  function alphaOf(cv) { if (cv._a !== undefined) return cv._a; try { cv._a = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; } catch (e) { cv._a = null; } return cv._a; } // (a page that may not read its own pixels: the picture's box counts whole)
+  // does a picture drawn at (x0, y0) cover the figure: its points (the head and the middle, each at both shoulders, and the feet's top) on its opaque pixels -- two or more, so a
+  // figure half behind a corner counts (upstairs the stack's only square behind it, 9,6, hides half the one there)
+  IP.covers = function (cv, x0, y0, f) {
+    var pts = [[f.x - 5, f.y - f.h + 8], [f.x + 5, f.y - f.h + 8], [f.x - 5, f.y - f.h * 0.5], [f.x + 5, f.y - f.h * 0.5], [f.x, f.y - 8]], a = alphaOf(cv), n = 0;
+    pts.forEach(function (q) { var lx = Math.round(q[0] - x0), ly = Math.round(q[1] - y0); if (lx < 0 || ly < 0 || lx >= cv.width || ly >= cv.height) return; if (!a || a[(ly * cv.width + lx) * 4 + 3] > 96) n++; });
+    return n >= 2;
+  };
+  IP.at = function (sq, sl) { var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y); return { x: Math.round(s.x - sl.ax), y: Math.round(s.y - sl.ay) }; }; // (a slice's corner on the screen)
+  // the frame's look (called each frame with js/roam.js R.occlude): who of the party is where, which tall piece hides one, which figures a building hides, the door's cutaway
+  IP.tick = function (B) {
+    var S = IP.seeing, m = iso.map; S.figs = []; S.cut = false; S.groups.forEach(function (g) { g.hide = false; });
+    if (!m || !m.def || (m.def.key !== In.KEY && m.def.key !== In.UP) || !B || !B.roam) return S;
+    var figs = IP.who(B).map(function (u) { return IP.fig(B, u); });
+    S.groups.forEach(function (g) { g.hide = figs.some(function (f) { return g.parts.some(function (p) { var sl = p.sl(); if (!sl || p.depth <= f.depth) return false; var o = IP.at(p.sq, sl); return IP.covers(sl.canvas, o.x, o.y, f); }); }); });
+    S.figs = figs.filter(function (f) { return (m.props || []).some(function (p) { if (p.kind !== 'innhouse' || p.depth <= f.depth) return false; var o = IP.at(p.sq, p.sl); return IP.covers(p.sl.canvas, o.x, o.y, f); }); });
+    S.cut = IP.cutOn(B); PLACED.key = ''; // (placed again at the next draw)
+    return S;
+  };
+  // the windows' shapes on the screen, one path: each hidden figure's ellipse; the cutaway's hexagon, the ground's rows from the door to the road lifted as high as a figure
+  IP.winPath = function (ctx, figs, cut) {
+    ctx.beginPath();
+    figs.forEach(function (f) { ctx.moveTo(f.x + IP.WIN.rx, f.y - IP.WIN.up); ctx.ellipse(f.x, f.y - IP.WIN.up, IP.WIN.rx, IP.WIN.ry, 0, 0, Math.PI * 2); });
+    if (cut) { var C0 = IP.CUT, P = function (gx, gy, z) { var c = iso.center(gx - 0.5, gy - 0.5, 0), s = iso.toScreen(c.x, c.y); return [s.x, s.y - (z || 0)]; }, x0 = C0.x0, y0 = C0.y0, x1 = C0.x1 + 1, y1 = C0.y1 + 1, h = C0.h;
+      [P(x0, y0, h), P(x1, y0, h), P(x1, y0), P(x1, y1), P(x0, y1), P(x0, y1, h)].forEach(function (q, k) { if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }); ctx.closePath(); }
+  };
+  // a building's slice drawn with its windows: the pixels in a window of a figure it stands in front of, or in the cutaway (the house's own), at the window's alpha
+  var SCR = null, PLACED = { key: '', figs: [] };
+  IP.placed = function () { // (the hidden figures where they are drawn this frame: the camera may have moved since the look -- placed again when it or the clock moves)
+    var B = D.battle, S = IP.seeing, key = iso.cam.x + ',' + iso.cam.y + ',' + (B && B.t) + ',' + S.figs.length;
+    if (PLACED.key !== key) { PLACED.key = key; PLACED.figs = S.figs.map(function (f) { return B ? IP.fig(B, f.u) : f; }); }
+    return PLACED.figs;
+  };
+  IP.drawSee = function (ctx, cv, x, y, depth, house) {
+    var S = IP.seeing, figs = S.figs.length ? IP.placed().filter(function (f) { return f.depth < depth; }) : [], cut = house && S.cut;
+    if (!figs.length && !cut) { ctx.drawImage(cv, x, y); return false; }
+    SCR = SCR || document.createElement('canvas'); if (SCR.width < cv.width) SCR.width = cv.width; if (SCR.height < cv.height) SCR.height = cv.height;
+    var sx = SCR.getContext('2d'); sx.globalCompositeOperation = 'source-over'; sx.clearRect(0, 0, SCR.width, SCR.height); sx.drawImage(cv, 0, 0);
+    sx.save(); sx.translate(-x, -y); sx.globalCompositeOperation = 'destination-out';
+    if (figs.length) { sx.fillStyle = 'rgba(0,0,0,' + (1 - IP.SEE) + ')'; IP.winPath(sx, figs, false); sx.fill(); }
+    if (cut) { sx.fillStyle = 'rgba(0,0,0,' + (1 - IP.CUT.see) + ')'; IP.winPath(sx, [], true); sx.fill(); }
+    sx.restore(); sx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(SCR, 0, 0, cv.width, cv.height, x, y, cv.width, cv.height);
+    return true;
+  };
   // the pieces laid on the loaded floor: each square of each a prop of its own, sorted with the figures; the code's block and the chimney's rock under them let go
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
@@ -140,16 +204,19 @@
     var ins = m.def && m.def.inside || null, seen = function (x, y) { if (up) return true; var b = In.inHouse(x, y); return !b || b === ins; };
     got.pieces = got.pieces.filter(function (pc) { return seen(pc[1], pc[2]); }); got.flames = got.flames.filter(function (fl) { return seen(fl[1], fl[2]); });
     m.props = m.props.filter(function (p) { return !p.innProp; });
+    IP.seeing.groups = [];
     got.pieces.forEach(function (pc) {
       var anim = pc[6] != null, fps = anim ? ((sheet(pc[0]) || { sh: {} }).sh.fps || {})[pc[0]] || 3 : 0; // (a piece with a phase plays its frames: the floats' bob, 1-2-3)
+      var grp = IP.TALL[pc[0]] ? { name: pc[0], x: pc[1], y: pc[2], parts: [], hide: false } : null; if (grp) IP.seeing.groups.push(grp); // (a tall piece: see-through whole while it hides one of the party -- IP.tick)
       for (var i = 0; i < pc[3]; i++) for (var j = 0; j < pc[4]; j++) (function (i, j) {
         var sq = m.at(pc[1] + i, pc[2] + j); if (!sq) return;
         mine[sq.x + ',' + sq.y] = 1;
+        if (grp) grp.parts.push({ sq: sq, depth: sq.x + sq.y + 0.5, sl: function () { var sl = IP.slices(pc[0], 0, pc[3], pc[4], pc[5]); return sl && sl[i + ',' + j]; } });
         m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5 + (pc[7] || 0), gz: 0, draw: function (ctx) { // ([7]: a depth of its own over the square's -- the wagon's rim)
           var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
           var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
-          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = pc[0] === 'inn_hearth' && IP.fightOn();
-          if (see) { ctx.save(); ctx.globalAlpha = IP.SEE; } // (the big fire's chimney see-through while a fight is on the floor: IP.fightOn, 11-06)
+          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = (pc[0] === 'inn_hearth' && IP.fightOn()) || !!(grp && grp.hide);
+          if (see) { ctx.save(); ctx.globalAlpha = IP.SEE; } // (the big fire's chimney see-through while a fight is on the floor: IP.fightOn, 11-06; and walking, while it hides the party: IP.tick, 11-11)
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
           if (see) ctx.restore();
         } });
@@ -229,11 +296,18 @@
       for (var x = r[0]; x <= r[2]; x++) for (var y = r[1]; y <= r[3]; y++) mine[x + ',' + y] = 1;
       Object.keys(h.slices).forEach(function (k) {
         var ij = k.split(',').map(Number), sq = m.at(r[0] + ij[0], r[1] + ij[1]), sl = h.slices[k]; if (!sq) return;
-        m.props.push({ innProp: true, kind: 'innhouse', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
-          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y); ctx.drawImage(sl.canvas, Math.round(s.x - sl.ax), Math.round(s.y - sl.ay));
+        m.props.push({ innProp: true, kind: 'innhouse', mat: mat, sq: sq, sl: sl, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
+          var o = IP.at(sq, sl); IP.drawSee(ctx, sl.canvas, o.x, o.y, this.depth, mat === 'house'); // (its windows: the party behind it, the front door's cutaway -- 11-11)
         } });
       });
     });
+    // THE FRONT DOOR'S CUTAWAY's walls (RULED 11-10, "try not to reveal more than the walls of the room"): the house roofed, the west wall's stubs along the door's line in the
+    // cutaway's rows, the doorway a gap in them -- drawn only while the cutaway is on (IP.tick), under the house's see-through picture
+    if (!up && ins !== 'inn') for (var yc = IP.CUT.y0; yc <= IP.CUT.y1; yc++) (function (y) {
+      var x = In.DOORS.front[0], rows0 = In.ROWS; if (rows0[y].charAt(x) !== 'B') return; var sq = m.at(x, y); if (!sq) return;
+      var runs = IP.stubRuns(rows0, x, y).filter(function (rn) { return rn[0] === 'y'; });
+      m.props.push({ innProp: true, kind: 'innstubcut', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) { if (IP.seeing.cut) IP.drawStub(ctx, sq, 'wing', runs); } });
+    })(yc);
     // the stubs: every wall square of the house the party is in, or of the floor upstairs
     var rows = up ? In.UPROWS : In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; };
     for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++) {
@@ -243,20 +317,21 @@
       var mat = c === 'A' ? 'barn' : 'wing', runs = IP.stubRuns(rows, x, y);
       mine[x + ',' + y] = 1;
       (function (sq, mat, runs) {
-        m.props.push({ innProp: true, kind: 'innstub', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) {
-          var S = wsheet(); if (!S) return;
-          runs.forEach(function (rn) {
-            var b = boxes(mat + '_stub_' + rn[0]); if (!b) return; var q = b[0];
-            var pt = function (u) { var c = rn[0] === 'x' ? iso.center(sq.x + u - 0.5, sq.y, 0) : iso.center(sq.x, sq.y + u - 0.5, 0); return iso.toScreen(c.x, c.y); }; // (a point along the square's middle line)
-            var a0 = pt(0), p0 = pt(rn[1]), p1 = pt(rn[2]), cx0, cx1;
-            if (rn[0] === 'x') { cx0 = p0.x - (rn[1] ? 1 : 0); cx1 = p1.x + (rn[2] === 1 ? 14 : 1); } else { cx0 = p1.x - (rn[2] === 1 ? 14 : 1); cx1 = p0.x + (rn[1] ? 1 : 0); }
-            ctx.save(); ctx.beginPath(); ctx.rect(cx0, -99999, cx1 - cx0, 199999); ctx.clip();
-            ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(a0.x - q[4]), Math.round(a0.y - q[5]), q[2], q[3]);
-            ctx.restore();
-          });
-        } });
+        m.props.push({ innProp: true, kind: 'innstub', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) { IP.drawStub(ctx, sq, mat, runs); } });
       })(sq, mat, runs);
     }
+  };
+  IP.drawStub = function (ctx, sq, mat, runs) { // (a wall square's stub, its runs along the square's middle -- page 7's)
+    var S = wsheet(); if (!S) return;
+    runs.forEach(function (rn) {
+      var b = boxes(mat + '_stub_' + rn[0]); if (!b) return; var q = b[0];
+      var pt = function (u) { var c = rn[0] === 'x' ? iso.center(sq.x + u - 0.5, sq.y, 0) : iso.center(sq.x, sq.y + u - 0.5, 0); return iso.toScreen(c.x, c.y); }; // (a point along the square's middle line)
+      var a0 = pt(0), p0 = pt(rn[1]), p1 = pt(rn[2]), cx0, cx1;
+      if (rn[0] === 'x') { cx0 = p0.x - (rn[1] ? 1 : 0); cx1 = p1.x + (rn[2] === 1 ? 14 : 1); } else { cx0 = p1.x - (rn[2] === 1 ? 14 : 1); cx1 = p0.x + (rn[1] ? 1 : 0); }
+      ctx.save(); ctx.beginPath(); ctx.rect(cx0, -99999, cx1 - cx0, 199999); ctx.clip();
+      ctx.drawImage(S.im, q[0], q[1], q[2], q[3], Math.round(a0.x - q[4]), Math.round(a0.y - q[5]), q[2], q[3]);
+      ctx.restore();
+    });
   };
   // a wall square's stub: along x where a wall (or a doorway, or the hearth in it) is east or west of it, along y where one is north or south, each from the
   // square's middle to the side that carries on -> [[axis, from, to]] along the square, 0..1
@@ -296,6 +371,8 @@
     if (def && def.key === In.KEY && IP.on) def.groundArt = function (x, y, m) { var nm = IP.groundAt(x, y); return nm ? IP.groundTile(nm, m) : null; };
     var m = load0.apply(this, arguments); if (def && (def.key === In.KEY || def.key === In.UP)) IP.dress(m); return m; // (the yard, the barn and the shore too since 11-05)
   };
+  var occ0 = D.roam && D.roam.occlude; // (the see-through's look each frame, beside the floor's own wall cut: js/roam.js R.occlude -- 11-11)
+  if (occ0) D.roam.occlude = function (B) { var r = occ0.apply(this, arguments); IP.tick(B); return r; };
   // ELSBETH AT HOME (11-04, Griz to this seat: "please wire in elsbeth and her tub"): at the inn she wears the art desk's figure of her at home (elsbethhome_p1, art-wanted
   // section 35 block 6, cut by cutter-1104 -- her alone, its tub-fused views held), standing at page 3's tub (inn_tub, the square east of hers, the way she faces), in place of
   // the townswoman stand-in; her name, her talk and her scenes as they were. Elsewhere (Silverton's street) she is still the candle girl
