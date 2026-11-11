@@ -178,7 +178,7 @@
   var zoneOf0 = W.zoneOf;
   TW.SNOOT_ZONE = 'snoot';
   W.zoneOf = function (e) {
-    var z = zoneOf0.apply(this, arguments); if (z !== 'south' || !e || W.day() < TW.FROM_DAY) return z;
+    var z = zoneOf0.apply(this, arguments), S = W.state && W.state(); if (z !== 'south' || !e || !S || S.t == null || W.day() < TW.FROM_DAY) return z; // (no clock yet -- a bench's map read before THE WORLD has a state: the road's own)
     var m = W.M(), P = m && m.road && m.road[K(e.q, e.r)]; return P && P.id === 'pitroad' ? TW.SNOOT_ZONE : z;
   };
 
