@@ -5043,6 +5043,132 @@
 },
 "source": "drawn by the art desk (ART-18 FINAL, all five views, 10-21; its ART-117 repairs for E fly, E reveal, E walk, NE attack, NE fly, NE walk, 10-28), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)"
 },
+"generalgrim_p1": {
+"image": "art/generalgrim_p1.png?v=1731d8a1c2",
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 44,
+"fh": 64,
+"ax": 22,
+"ay": 61,
+"frames": 8,
+"fps": 9
+},
+"run": {
+"y": 1024,
+"fw": 58,
+"fh": 64,
+"ax": 29,
+"ay": 61,
+"frames": 8,
+"fps": 12,
+"held": "not played yet: his block is the story build's (the General's cut)"
+},
+"attack": {
+"y": 1536,
+"fw": 56,
+"fh": 64,
+"ax": 28,
+"ay": 61,
+"frames": 4,
+"fps": 10,
+"release": 2
+},
+"attack2": {
+"y": 2048,
+"fw": 58,
+"fh": 64,
+"ax": 29,
+"ay": 61,
+"frames": 4,
+"fps": 10,
+"release": 2,
+"held": "not played yet: his block is the story build's (the General's cut)"
+},
+"bite": {
+"y": 2560,
+"fw": 54,
+"fh": 64,
+"ax": 27,
+"ay": 61,
+"frames": 4,
+"fps": 10,
+"release": 2,
+"held": "not played yet: his block is the story build's (the General's cut)"
+},
+"cast": {
+"y": 3072,
+"fw": 60,
+"fh": 64,
+"ax": 30,
+"ay": 61,
+"frames": 4,
+"fps": 8,
+"release": 2,
+"held": "not played yet: his block is the story build's (the General's cut)"
+},
+"castup": {
+"y": 3584,
+"fw": 50,
+"fh": 64,
+"ax": 25,
+"ay": 61,
+"frames": 4,
+"fps": 8,
+"held": "not played yet: his block is the story build's (the General's cut)"
+},
+"flinch": {
+"y": 4096,
+"fw": 58,
+"fh": 64,
+"ax": 29,
+"ay": 61,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 4608,
+"fw": 84,
+"fh": 64,
+"ax": 42,
+"ay": 61,
+"frames": 4,
+"fps": 8
+},
+"prone": {
+"y": 5120,
+"fw": 84,
+"fh": 64,
+"ax": 42,
+"ay": 61,
+"frames": 4,
+"fps": 8
+}
+},
+"name": "General Grimlock Grim",
+"hold": [
+"Walk 1 and 5 lead alike (SE, E, NE), and Run 1 and 5 repeat the stride shape (S, E) -- the art desk's own notes",
+"NE Fall 4 and Prone 1 settle closer to an east-facing axis than northeast (the art desk's own note)",
+"N Run 8 keeps a bright right-side mark and Run 5 a plain right pauldron absent from its neighbours (the art desk: held for insignia cleanup)",
+"SW, W and NW are mirrors: the rank teeth, on his anatomical left as drawn, change side there"
+],
+"source": "drawn by the art desk (GENERAL-GRIM-WORLD-B1-SE, -B2, -B3, -ACTIONS-SE and -ACTIONS-OTHER-FACINGS, 11-10), cut by tools/generalgrim-sheet.py; SW W NW mirrored -- General Grimlock Grim, of the road's redraft (no foe wears it yet)"
+},
 "gennet_p1": {
 "image": "art/gennet_p1.png?v=4e0a012377",
 "fw": 34,

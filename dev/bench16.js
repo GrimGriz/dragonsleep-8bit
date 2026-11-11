@@ -17789,6 +17789,38 @@
     document.body.appendChild(preSw);
     return;
   }
+  // GENERAL GRIMLOCK GRIM'S WORLD FIGURE (mode=generalgrimworld1110; 11-10, the lanes desk's queue on Griz's "they can churn through fresh one at a time" -- his portrait's
+  // bench is generalgrim1110): the art desk's GENERAL-GRIM-WORLD pages cut to generalgrim_p1 (tools/generalgrim-sheet.py) -- every row in all eight facings, the blows'
+  // contact frames, the rows no block plays yet held (the show leaves them out); worn by a grimlock, its rows play where the engine plays them: its blow `attack`, a
+  // blow lived through `flinch`, the death `hurt`, the fall `prone`
+  if (get('mode', '') === 'generalgrimworld1110') {
+    var repGg = { checks: [], errors: [] };
+    function okGg(what, v) { repGg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGg(g, u, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seen && seen.indexOf(u.anim) < 0) seen.push(u.anim); if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var Sg = D.SHEETS && D.SHEETS.generalgrim_p1, wantGg = { idle: 4, walk: 8, run: 8, attack: 4, attack2: 4, bite: 4, cast: 4, castup: 4, flinch: 4, hurt: 4, prone: 4 };
+      var relGg = { attack: 2, attack2: 2, bite: 2, cast: 2 }, heldGg = ['run', 'attack2', 'bite', 'cast', 'castup'];
+      okGg('generalgrim_p1 rows: ' + (Sg ? Object.keys(Sg.anims).map(function (r) { var a = Sg.anims[r]; return r + ' ' + a.frames + (a.release != null ? '/' + a.release : '') + (a.held ? ' held' : ''); }).join(', ') : 'NO SHEET'),
+        !!Sg && Object.keys(Sg.anims).length === Object.keys(wantGg).length && Object.keys(wantGg).every(function (r) { var a = Sg.anims[r]; return a && a.frames === wantGg[r] && a.fh * 8 > 0 && (relGg[r] == null ? a.release == null : a.release === relGg[r]) && !!a.held === (heldGg.indexOf(r) >= 0); }));
+      okGg('the sheet stands ' + (Sg && Sg.top) + ' (sole to crown), its name ' + (Sg && Sg.name) + '; the show wants ' + (Sg ? D.show.wanted('generalgrim_p1', 'grimlock').join(' ') : '-'),
+        !!Sg && Sg.top === 50 && Sg.name === 'General Grimlock Grim' && D.show.wanted('generalgrim_p1', 'grimlock').join() === 'idle,walk,attack,flinch,hurt,prone');
+      var Bg = D.npcFight('?npc=grimlock&lvl=3&vs=fighter:3', {}); D.battle = Bg; Bg.enter(); while (!Bg.order.length) Bg.co.next(); Bg.dark = false;
+      var go = Bg.units.filter(function (u) { return u.side === 'foe'; })[0], gp = Bg.units.filter(function (u) { return u.side === 'party'; })[0];
+      go.sheet = 'generalgrim_p1'; go.hp = go.maxhp = 400; gp.hp = gp.maxhp = 400; go.conds = {}; gp.conds = {}; go.x = gp.x + 1; go.y = gp.y; go.anim = 'idle'; delete go.still;
+      D.rules.startTurn(go); var bg = []; runGg(Bg.attack(go, gp, go.attacks.club), go, bg);
+      okGg('a grimlock in his figure: its Spiked Bone Club plays ' + bg.join('>') + ' (the Right Claw, the reach on frame 3)', bg.indexOf('attack') >= 0);
+      go.anim = 'idle'; Bg.hurt(go, 4, 'slashing');
+      okGg('a blow it lives through plays ' + go.anim, go.anim === 'flinch');
+      okGg('its fall row ' + D.spr.proneRow('generalgrim_p1') + ', lying at frame ' + D.spr.proneFrame('generalgrim_p1') + '; its cast rows for a spell aimed at someone and at no one: ' + !!D.spr.anim('generalgrim_p1', 'cast') + ', ' + !!D.spr.anim('generalgrim_p1', 'castup'),
+        D.spr.proneRow('generalgrim_p1') === 'prone' && D.spr.proneFrame('generalgrim_p1') === 3 && !!D.spr.anim('generalgrim_p1', 'cast') && !!D.spr.anim('generalgrim_p1', 'castup'));
+      go.anim = 'idle'; go.hp = 3; Bg.hurt(go, 9, 'slashing');
+      okGg('the blow that kills it: ' + go.hp + ' hp, plays ' + go.anim, go.hp <= 0 && go.anim === 'hurt');
+    } catch (eGg) { repGg.errors.push(String(eGg && eGg.stack || eGg).slice(0, 900)); }
+    if (errs.length) repGg.errors = repGg.errors.concat(errs);
+    var preGg = document.createElement('pre'); preGg.id = 'out'; preGg.textContent = 'BENCH16 ' + JSON.stringify(repGg);
+    document.body.appendChild(preGg);
+    return;
+  }
   // BARLEY IN HIS BATTERED COAT (mode=barley1020; 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"): the art desk's ART-75/76 cut to barley_p2
   // (tools/barley-sheet.py) and worn by the story's Barley; the views the desk left OPEN left out (a row's `drawn`), his walk under barley_p0 (js/sprites.js frameOf: the old walk
   // where the desk has no clean one, the nearest drawn facing for any other row); and his rows played where the engine plays them: the blow `attack`, the turn's second blow
