@@ -3375,7 +3375,8 @@
   // modifiers (Battle.dashFeet), HAUNCHES worn mid-turn adds to the turn's move (features.js peltMove); 4. a thrown spear 1d6 (classes.js); 5. the chuul's tentacles a save
   // with no roll (Battle.noRollOn); 6. the labels (Battle.zeroWhy, RU.riseWhy, Battle.theName); 7. Spike Growth spares a flier more than 5 ft up (M.overSpikes); 8. the SRD's
   // thrown property (content/items.json, Battle.offThrow); 9. the show's beats (deep16/?rulesshow&only=gridfix1110). The d20s pinned per check. Each check reads the engine's
-  // own paths (exec, hurt, attack, stepInto), not a new API, so the code before each fix reads RED
+  // own paths (exec, hurt, attack, stepInto), not a new API, so the code before each fix reads RED. Since his word on them, 11-10 later: 10. the self-click on a light at one's feet
+  // (THE RING, and a NOT NOW for the turn); 11. the article mid-line (Battle.theWord)
   if (get('mode', '') === 'gridfix1110') {
     var repGT = { checks: [], errors: [], notes: [] }, memGT = {}, stGGT = D.store.get, stSGT = D.store.set, muGT = D.music, apGT = window.DS.autoPicks, d0GT = D.d, RUt = D.rules, GGt = D.grid, Mt = D.magic;
     function okGT(what, v) { repGT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -3499,6 +3500,28 @@
       (B9.rulesReport || []).forEach(function (b) { okGT('9 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
       okGT('9 the show ran ' + (B9.rulesReport || []).length + ' beats (want 3)', (B9.rulesReport || []).length === 3);
       } catch (eS) { repGT.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 10. THE SELF-CLICK ON A LIGHT AT ONE'S FEET (11-10, Griz: "the pickup of the lamp prevents mouse-only open of q menu I think"): the question has THE RING, and a NOT NOW holds
+      // for the turn -- the next click on oneself opens the ring (battle.js Battle.selfNo, ui.js actAt)
+      var B10 = mkGT('?npc=goblin&vs=rogue:5&lvl=5'), ro10 = clsGT(B10, 'rogue'); putGT(B10, [[ro10, 6, 6], [kindGT(B10, 'goblin')[0], 16, 12]]);
+      ro10.torch = { lit: true }; D.light.dropTorch(B10, ro10, true); RUt.startTurn(ro10); B10.active = ro10;
+      var lt10 = D.light.torchAt(B10, 6, 6), can10 = lt10 && D.light.canTake(B10, ro10, lt10).ok, opts10 = [], pick10 = function (lab) { return function* (g) { var v, k = 0, st; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var op = st.value.prompt.opts; opts10 = op.map(function (o) { return o.label; }); var m = op.filter(function (o) { return o.label === lab; })[0] || op[op.length - 1]; v = m.value; } } }; };
+      B10.nextTool = null; try { var gr10 = pick10('THE RING')(B10.exec(ro10, { do: 'pickuptorch', x: 6, y: 6, ask: true })); while (!gr10.next().done) { } } finally { }
+      var ring10 = B10.nextTool === 'menu', no10 = !!ro10.turn.selfNo, kept10 = !!D.light.torchAt(B10, 6, 6) && !ro10.torch;
+      delete ro10.turn.selfNo; B10.nextTool = null; var gn10 = pick10('NOT NOW')(B10.exec(ro10, { do: 'pickuptorch', x: 6, y: 6, ask: true })); while (!gn10.next().done) { }
+      var no10b = !!ro10.turn.selfNo, cmd10 = null, ans0 = B10.answer; B10.tool = 'move'; B10.answer = function (c) { cmd10 = c; };
+      try { D.ui.actAt(B10, ro10, 6, 6); } finally { B10.answer = ans0; B10.active = null; }
+      okGT('10 the rogue stands on the torch she dropped (takeable ' + can10 + '): the self-click\'s question [' + opts10.join(', ') + ']; THE RING opens the ring next ' + ring10 + ', the torch left on the floor ' + kept10 + '; NOT NOW holds for the turn ' + no10b + ', and the next click on herself: ' + (cmd10 ? 'a command, ' + cmd10.do : 'the ring, tool ' + B10.tool),
+        can10 && opts10.indexOf('THE RING') >= 0 && ring10 && no10 && kept10 && no10b && !cmd10 && B10.tool === 'menu');
+      } catch (eS) { repGT.errors.push('section 10: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
+      // 11. THE ARTICLE MID-LINE (his record: "helps: the next ally to swing at the The thing in the lake"; battle.js Battle.theWord)
+      var B11 = mkGT('?npc=goblin&vs=fighter:5&lvl=5'), fi11 = clsGT(B11, 'fighter'), gb11 = kindGT(B11, 'goblin')[0]; putGT(B11, [[fi11, 6, 6], [gb11, 7, 6]]);
+      gb11.name = 'The thing in the lake'; RUt.startTurn(fi11); B11.active = fi11; var n11 = nGT(B11);
+      try { runGT(B11.exec(fi11, { do: 'help', target: gb11 })); } finally { B11.active = null; }
+      var l11 = logGT(B11, n11);
+      okGT('11 HELP at a foe named "The thing in the lake": "' + l11.slice(0, 140) + '"', /swing at the thing in the lake does it/.test(l11) && !/the The/.test(l11));
+      } catch (eS) { repGT.errors.push('section 11: ' + String(eS && eS.stack || eS).slice(0, 500)); }
     } catch (eGT) { repGT.errors.push(String(eGT && eGT.stack || eGT).slice(0, 900)); }
     D.d = d0GT; D.store.get = stGGT; D.store.set = stSGT; D.music = muGT; window.DS.autoPicks = apGT;
     var preGT = document.createElement('pre'); preGT.id = 'out'; preGT.textContent = 'BENCH16 ' + JSON.stringify(repGT);
