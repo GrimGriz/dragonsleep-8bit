@@ -42,6 +42,7 @@
   try {
   if (/[?&]broke\b/.test(q) && !D.embed.on) D.push(new D.BrokeCard(new Error('a sample -- the page that broke says its own error here'))); // (the card, shown: ?broke)
   else if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
+  else if (/[?&]cards\b/.test(q) && D.swann) D.push(D.swann.door(q)); // SYLVIA SWANN'S TABLE, 11-11: the eyes rows dealt six at a time, each card a door with her bar over it (js/swann.js, ../js/tour.js)
   else if (D.sit16 && D.sit16.id(q)) D.sit16.open(D.sit16.id(q)); // a situation from a link: ?at=five16 -- a whole save from the door's words, opened as CONTINUE, kept in no slot (js/situations16.js, 10-30)
   else if (/[?&]runes\b/.test(q) && D.runes) D.push(D.runes.door(q)); // the DM's runes on a scratch table, nothing kept: the lay floor of a one-fight module, &map= its floor, &show the look staged (js/runes.js, 11-10)
   else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)

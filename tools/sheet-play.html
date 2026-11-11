@@ -18,6 +18,10 @@
 <h1 id="t">Sheet player</h1>
 <p id="sub"></p>
 <div id="rows"></div>
+<!-- Swann's bar (../js/tour.js, 11-11): a card of her deck on this page when its address carries &tour=<card> -- an eyes row's door here is a card she deals -->
+<script>window.DS = window.DS || {};</script>
+<script src="../js/eyes.js"></script>
+<script src="../js/tour.js"></script>
 <script>
 (function () {
   var q = new URLSearchParams(location.search), sheet = q.get('sheet') || 'goose_p1', ref = q.get('ref'), Z = +q.get('z') || 3;

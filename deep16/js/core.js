@@ -116,7 +116,7 @@
   D.fit = function () {
     // a phone keeps room for the pad (below the screen upright, both sides when turned), and takes a fractional scale
     // under 2x: at 1.1x the board is still bigger than at 1x
-    var c = D.canvas, touch = !!D.touch, aw = window.innerWidth, ah = window.innerHeight - (touch ? 0 : 24);
+    var c = D.canvas, touch = !!D.touch, aw = window.innerWidth, ah = window.innerHeight - (touch ? 0 : 24) - (D.barH || 0); // (D.barH: Swann's bar over the page, ../js/tour.js, 11-11)
     if (touch) { if (ah > aw) ah -= Math.min(250, ah * 0.42); else aw -= 320; }
     var s = Math.min(aw / D.W, ah / D.H);
     s = s >= (touch ? 2 : 1) ? Math.floor(s) : s; // integer scale: 2x = 960x540, 4x = 1920x1080
