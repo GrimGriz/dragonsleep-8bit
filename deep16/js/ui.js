@@ -1612,6 +1612,28 @@
     });
     return objs;
   };
+  // the door to see it (deep16/?fallenshow, an eyes row's, 11-11): the class floor staged once the fight is set -- the cleric standing on a dead bugbear, the wizard down
+  // under a standing one, the fighter on the back square of a fallen stone giant; a goblin far off keeps the fight open, and the turn is yours
+  UI.fallenShow = function () {
+    var B = D.npcFight('?npc=bugbear,bugbear,stonegiant,goblin&vs=cleric:3,wizard:3,fighter:5&lvl=3', {}), en = B.enter;
+    B.enter = function () {
+      en.apply(this, arguments); while (!this.order.length) this.co.next(); this.dark = false;
+      var m = G.map, at = null;
+      for (var y = 1; y + 8 < m.h && !at; y++) for (var x = 1; x + 9 < m.w && !at; x++) { var z = m.gz(x, y), ok = true; for (var j = 0; j < 8 && ok; j++) for (var i = 0; i < 9 && ok; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) ok = false; } if (ok) at = [x, y]; }
+      if (!at) return;
+      var X = at[0], Y = at[1], us = this.units, of = function (side, k, n) { return us.filter(function (u) { return u.side === side && (u.kind === k || u.cls === k); })[n || 0]; };
+      var kill = function (u, B0) { u.hp = 0; u.dead = true; u.deadT = B0.t - 60; u.anim = 'hurt'; u.animT = B0.t - 200; };
+      var b1 = of('foe', 'bugbear'), b2 = of('foe', 'bugbear', 1), sg = of('foe', 'stonegiant'), gb = of('foe', 'goblin'), cl = of('party', 'cleric'), wz = of('party', 'wizard'), fg = of('party', 'fighter');
+      b1.x = X + 1; b1.y = Y + 1; kill(b1, this); cl.x = b1.x; cl.y = b1.y;
+      b2.x = X + 4; b2.y = Y + 1; wz.x = b2.x; wz.y = b2.y; wz.hp = 0; wz.anim = 'hurt'; wz.animT = this.t - 200; wz.conds.stable = true;
+      sg.x = X + 1; sg.y = Y + 4; kill(sg, this); fg.x = sg.x; fg.y = sg.y;
+      gb.x = X + 8; gb.y = Y + 7; this.cache = null; G.setup(m, us); D.iso.lookAt(X + 3, Y + 3, m.gz(X, Y));
+      this.card(['{y}THE LIVING OVER THE FALLEN (11-11){/}', 'The cleric stands on a dead bugbear, the wizard lies at 0 under a standing one,', 'the fighter stands on the back square of a fallen stone giant: each drawn over what is under it.', '{g}held still to look: E or a click plays the fight on{/}']);
+      var up = this.update, held = true, I0 = D.input; // (the staged moment held -- the bugbear's turn is first: E or a click lets the fight go on)
+      this.update = function () { if (held) { this.t++; if (I0.pressed('a') || I0.mouse.click) { held = false; I0.clear && I0.clear(); } return; } return up.apply(this, arguments); };
+    };
+    return B;
+  };
   UI.unitObj = function (B, u) { return unitObj(B, u); }; // (the figure as the next frame draws it -- .shown holds the row and frame it drew: dev/bench16.js mode=goblinhide1007, 10-07)
   // IN ITS CLAWS (battle.js clawIn, 11-06, Griz: "Can we make a successful grab look like a lunge-return to actual position?"): one a claw holds is drawn at the claw's point by the holder's
   // facing (D.Battle.clawPoint), lifted off the ground, in front of the holder or behind it as the claw is; while the lunge goes out (its first two fifths) it still stands where it stood,

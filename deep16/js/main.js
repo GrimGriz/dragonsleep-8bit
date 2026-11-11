@@ -52,6 +52,7 @@
   else if (/[?&]dacefail\b/.test(q) && D.mines) D.push(new D.mines.DaceFail()); // Corwen Dace fallen in a fight he walked into with the party: the run's end, shown (js/mines.js, 10-28)
   else if (/[?&]rulesshow\b/.test(q) && D.rulesshow) D.push(D.rulesshow.make(q)); // the grid's rules, shown: the antitoxin, the pudding's acid, Heat Metal's end, the dice pinned, ENTER again (js/rulesshow.js, 10-21 night)
   else if (/[?&]barleyshow\b/.test(q) && D.barleyshow) D.push(D.barleyshow.make(q)); // Barley's new sheet, shown: its rows played where the engine plays them, slow, ENTER again (js/barleyshow.js, 10-20)
+  else if (/[?&]fallenshow\b/.test(q)) D.push(D.ui.fallenShow(q)); // THE LIVING OVER THE FALLEN, 11-11: a hero on a body, a body under a foe, a hero on a giant's back square (js/ui.js UI.fallenShow)
   else if (/[?&]skyshow\b/.test(q) && D.skyshow) D.push(D.skyshow.make(q)); // the Skylights, shown: today's beats of the Edifice fight, one after another (js/skyshow.js, 10-05 night)
   else if (/[?&]gameshow\b/.test(q) && D.gameshow) D.push(D.gameshow.make(q)); // the Monster Party Game Show: the lighthouse, the circles, Third Lamp (js/gameshow.js, 10-07)
   else if (/[?&]world\b/.test(q) && D.world) { if (D.house && D.house.worldDoor && !/[?&]bare\b/.test(q)) D.house.worldDoor(q); else D.push(D.world.make(q)); } // THE WORLD: the second game's world map, his hex map's 5-mile hexes walked as one token (js/world.js, 10-20); since 10-22 a NEW GAME's four on it (js/house.js H.worldDoor), &bare the door with no party

@@ -17,6 +17,17 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE OPUS BUG SEAT OF 11-11 (started by the realm-and-game desk on his "opus seat the plain bugs please"; mode=bugs1111): the living over the fallen a show; the
+    // portraits and the camp's spell words live doors, for his hands
+    'eyes-fallen-1111': { pri: 2, group: G2, title: 'THE LIVING OVER THE FALLEN: a hero on a dead bugbear drawn over it, a downed hero under a standing foe, a fighter on a fallen giant (11-11)', pt: 'the play records lane, 2026-11-11 (the Opus bug seat; js/ui.js UI.liftOverFallen)',
+      url: 'deep16/?fallenshow&fresh=1111',
+      look: 'Your "aurdin (alive) standing on a dead bugbear and the bugbear was drawn over the top of him". The class floor staged and held still: the cleric standing on a dead bugbear\'s square -- the cleric whole, the body under the feet; the wizard down at 0 under a standing bugbear -- the bugbear over the wizard; the fighter on the back square of a fallen stone giant -- the fighter over the giant\'s body, not hidden by it. E or a click lets the fight go on (the bugbear\'s turn is first).' },
+    'eyes-mportraits-1111': { pri: 2, group: G2, title: 'THE HEROES\' PORTRAITS IN THEIR M MENU SLOTS: the talking busts in the party panel and STATUS, on THE WORLD, the floors and the Pocket DM camp (11-11)', pt: 'the play records lane, 2026-11-11 (the Opus bug seat; deep16/js/sprites.js S.menuFigure)',
+      url: 'deep16/?world&fresh=1111m',
+      look: 'Your "not seeing player portraits in their \'m\' menu slots". M: each of the four in the panel is the head and shoulders of the talking portrait the art desk drew (the busts at the counters), not the grid figure cropped; STATUS (a hero, then STATUS) the bust. Barley in mail and Aurdin in robes wear their own cut where one exists (Barley\'s mail has none yet: his figure stands in). The same in a town floor\'s M, and in the Pocket DM camp\'s THE MENU (M), which had no figures at all; a made character with no portrait shows its figure.' },
+    'eyes-campprep-1111': { pri: 2, group: G2, title: 'THE POCKET DM\'S SPELL PREP SAYS WHAT A SPELL IS: the realm game\'s words panel under THE LONG REST\'s list (11-11)', pt: 'the play records lane, 2026-11-11 (the Opus bug seat; deep16/js/core.js D.descPanel)',
+      url: 'deep16/?pocket&fresh=1111p',
+      look: 'Your "same with camp spell prep - I don\'t think descriptions are shown in this one and they are on spell selection in the realm game. menu consistency where we can." A party with a caster, THE CAMP, LONG REST: on THE DAY\'S SPELLS, the spell under the mouse (or the keys) shows its words in the blue box under the list -- the same box the realm game\'s morning shows its spells in. Eight rows of two a page now (was thirteen), to make the room.' },
     // THE MAIN HEROES DRAWN IN THE FIRST GAME (11-11, the ART-77 8-bit cutter, on his "thaw out the 8-bit freeze long enough to replace the main hero 8-bit graphics";
     // first/js/heroes8.js from tools/heroes8-sheet.py) -- a show: the 8-bit fight plays itself
     'eyes-heroes8-1111': { pri: 2, group: G2, title: 'THE FIRST GAME: Lymen, Vivian and Aurdin drawn -- the art desk\'s 8-bit figures (ART-77, ART-72) in the battle and on the map; Barley still typed (11-11)', pt: 'the first game lane (the thaw for the main heroes\' graphics, 11-11)',
