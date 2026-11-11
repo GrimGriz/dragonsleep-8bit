@@ -132,6 +132,46 @@
   };
   TW.NONE = '"The pin\'s enough to pay on. It isn\'t much of a story." He writes one line.';
 
+  // ---------------------------------------------------------------- THE COUNCIL SENDS FOR YOU AGAIN (RULED 11-04, the clock lane's item 4, his "yes, and a quest for it in their
+  // journal": the council points the party down the road past the inn for a true word; Merrick at C2 had said it, "After the gulch, the gnolls ... When it's time, we'll send for
+  // you again"). The seat's lean, his to overrule: once the council has looked them over (C2, councilSeen) and the gulch's fangs are paid (ettercapDone), Papa's runner again --
+  // on Silverton's street or the Hex's ground floor -- and up on the third floor the council at the long table swears them to the true word: TRUE WORD OF THE GNOLLS opened and
+  // pinned (councilWord). Not once the true word is paid (snootWord). The same machine as C2 (js/hours.js H16.lookDue, H16.lookPlay, H16.atTable, H16.sitting); the lines the
+  // seat's drafts (invented.json trueword-council-1111)
+  var H16 = D.hours;
+  if (H16 && H16.COUNCIL && H16.lookDue && H16.lookPlay && H16.atTable && H16.sitting) {
+    H16.COUNCIL.word = { flag: 'councilWord', card: 'The council sits at the long table again. Warda shows the party in. Hessle has the board\'s sealed paper in front of him.', opens: 'heardTrueWord', pin: 'trueword', lines: [
+      ['papa', 'The gulch is clear and the wagons are moving. You did that. Now the other thing.'],
+      ['androit', 'Fifty gold for true word of the gnolls, sworn before me. Not what the drovers say: what lit the Snoot, and who stood by when it caught.'],
+      ['harrow', 'Past the Halfway Inn the farms run out to the edge of the hills. If the gnolls come north, those farms see them first.'],
+      ['merrick', 'I said we\'d send for you again. Down the road past the inn, south. That\'s where they are.'],
+      ['hessle', 'Bring me something I can weigh. Whatever else you hear on the way, bring that too. I write it all down.'],
+      ['papa', 'That\'s all this was. Go on.']] };
+    TW.wordDue = function (f) { return !!(f && f.councilSeen && f.ettercapDone && !f.councilWord && !f.snootWord); };
+    TW.wordCallDue = function (B) {
+      var R = D.roam, R0 = B && B.roam, def = R.def; if (!R0 || !def || !R.house || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+      var street = def.key === 'silverton' && def.town && !def.room && !def.hexIn && !def.cut; if (!def.hexIn && !street) return false;
+      var f = R0.flags; if (!TW.wordDue(f)) return false;
+      return def.hexIn === 3 ? def.councilAt === 'word' : ((street || def.hexIn === 1) && !f.wordCalled);
+    };
+    var atTable0 = H16.atTable;
+    H16.atTable = function (flags) { var at = atTable0.apply(this, arguments); if (at) return at; return TW.wordDue(flags || {}) ? { why: 'word', who: ['papa', 'androit', 'hessle', 'casper', 'harrow', 'merrick'] } : null; };
+    var lookDue0 = H16.lookDue;
+    H16.lookDue = function (B) { return lookDue0.apply(this, arguments) || TW.wordCallDue(B); };
+    var lookPlay0 = H16.lookPlay;
+    H16.lookPlay = function* (B) {
+      var R0 = B.roam, f = R0.flags;
+      if (!f.councilSeen || !TW.wordCallDue(B)) { yield* lookPlay0.apply(this, arguments); return; } // (C2 first, as ever)
+      if (D.roam.def.hexIn !== 3) { yield* H16.runner(B); f.wordCalled = 1; f.pinWant = 'trueword'; delete f['q:trueword']; return; } // (the Hex boy again; the true word in the JOURNAL, its first step the third floor)
+      yield* H16.tableShot(B, H16.COUNCIL.word.card);
+      var sc = H16.sitting(B, ['word'], [f, D.house && D.house.cur && D.house.cur.flags], true, false, true); while (!sc.done) yield 1;
+      H16.rise(B);
+    };
+    (H16.BEATS || []).forEach(function (bt) { if (bt.due === lookDue0) bt.due = H16.lookDue; if (bt.play === lookPlay0) bt.play = H16.lookPlay; }); // (the floor's beats hold the functions themselves: js/hours.js H16.BEATS)
+    TW.MISSION.show = 'flag:heardTrueWord|flag:wordCalled|flag:snootDone|has:anchorpin';
+    TW.MISSION.steps.unshift({ 'if': 'flag:wordCalled & !flag:councilWord & !flag:snootDone', map: 'hex', hex3: true, where: 'The Hex, in the plaza at the heart of town: the council has sent for you again. In at its front doors, then up the spiral stair to the third floor.' });
+  }
+
   // the mirror-made met on the road (js/world.js World.encounter: THE MIRROR-MADE, p.mirror) -- the piece is seen, not won
   var enc0 = W.World.prototype.encounter;
   W.World.prototype.encounter = function (p) { if (p && p.mirror && W.house()) D.house.cur.flags.sawMirror = 1; return enc0.apply(this, arguments); };

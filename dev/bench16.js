@@ -2968,6 +2968,28 @@
       var bE2 = TWQw.fight(WQw.scene); bE2 = battleQw(); var auE2 = bE2 && bE2.units.filter(function (u) { return u.id === 'aurdin'; })[0], readyE2 = !!(bE2 && MQw.jokeReady(bE2, auE2));
       okQw('once a save: another fight with gnolls in that save -- the joke ready ' + readyE2 + ' (the egg found ' + MQw.eggFound(bE2, 'joke') + ')', bE2 && !readyE2 && MQw.eggFound(bE2, 'joke'));
       if (D.top() === bE2) D.pop(); HQw.playing = false; HQw.cur = null;
+      // 11. THE COUNCIL SENDS FOR YOU AGAIN (RULED 11-04 item 4, the seat's lean on when): C2 seen and the gulch's fangs paid -- Papa's runner on Silverton's street, the true word in
+      // the JOURNAL with the third floor its step; up there the council at the long table swears them to it, councilWord, pinned; not before the gulch is paid, nor after the word is
+      var readQw = function (sc) { var out = [], k = 0, w0 = null; while (!sc.done && k++ < 80) { var w = sc.wait || {}, bs = sc.buttons(); if (w.say) { if (w !== w0) out.push(sc.o.name + '|' + window.DS.stripCodes(w.say.join(' '))); w0 = w; sc.press(bs.filter(function (q) { return q.go === 'next'; })[0]); } else if (w.ask) { var os = bs.filter(function (q) { return q.go === 'opt'; }); sc.press(os[os.length - 1]); } else break; } return out; };
+      var houseQw = function (flags) { HQw.playing = false; HQw.cur = null; D.scenes.length = 0; var rec = HQw.fresh('barley'); Object.assign(rec.flags, { qSeen: 1 }, flags || {}); rec.renown = 3; HQw.begin(rec, 0); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; driveQw(B.co, null, 2); B.roam.mode = 'walk'; return B; };
+      var questBQw = function (B) { return CQw.quests(CQw.state(B)).filter(function (q) { return q.id === 'trueword'; })[0] || null; };
+      var c2Qw = { councilSeen: 1, councilCalled: 1, councilNotice: 1, heardEttercap: 1 };
+      var dNo = H6Qw.lookDue(houseQw(c2Qw)), dPaid = H6Qw.lookDue(houseQw(Object.assign({ ettercapDone: 1, snootWord: 1 }, c2Qw)));
+      var B11 = houseQw(Object.assign({ ettercapDone: 1 }, c2Qw)), due11 = H6Qw.lookDue(B11), g11 = H6Qw.lookPlay(B11), boy11 = null;
+      driveQw(g11, function () { boy11 = boy11 || B11.units.filter(function (u) { return u.npc === 'hexboy'; })[0] || null; return D.top() instanceof CQw.Counter; }, 3000);
+      var r11 = D.top() instanceof CQw.Counter ? readQw(D.top()) : []; driveQw(g11, null, 3000);
+      var f11 = B11.roam.flags; if (H6Qw.missionDue(B11)) driveQw(H6Qw.missionCard(B11), null, 600); var q11 = questBQw(B11);
+      okQw('the gulch\'s fangs paid after C2, on Silverton\'s street: the call due ' + due11 + ' (not before the fangs ' + dNo + ', not after the true word ' + dPaid + '); the Hex boy (' + !!boy11 + ') "' + (r11[0] || '').slice(0, 90) + '"; wordCalled ' + f11.wordCalled + ', pinned ' + f11.pin + ', the step "' + String(q11 && q11.where).slice(0, 70) + '"',
+        due11 && !dNo && !dPaid && !!boy11 && /Papa Urtusk wants you on the Hex's third floor/.test(r11[0] || '') && f11.wordCalled === 1 && f11.pin === 'trueword' && !!q11 && !q11.done && /sent for you again/.test(q11.where || ''));
+      var tr11 = (RQw.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; if (tr11) driveQw(D.town.fire(B11, tr11), null, 3000);
+      var HXq = D.hex, spq = HXq.spiralSq()[0], rwq = HXq.rows(3), atq = HXq.near(rwq, [spq[0], spq[1] + 1]) || HXq.near(rwq, spq); HXq.lay(B11, 3, atq, [0, 1]);
+      var at11 = RQw.def.councilAt, seat11 = B11.units.filter(function (u) { return /^council/.test(u.npc || ''); }).map(function (u) { return u.npc.slice(7); }).join(','), due11h = H6Qw.lookDue(B11), g11h = due11h ? H6Qw.lookPlay(B11) : null, s11 = [];
+      if (g11h) { driveQw(g11h, function () { return D.top() instanceof CQw.Counter; }, 3000); if (D.top() instanceof CQw.Counter) s11 = readQw(D.top()); driveQw(g11h, null, 3000); }
+      var s11j = s11.join(' / '), q11b = questBQw(B11), risen11 = !B11.units.some(function (u) { return /^council/.test(u.npc || ''); });
+      okQw('up on the third floor (' + RQw.def.hexIn + '): the council at the table for the word (' + at11 + ': ' + seat11 + '), sat (' + due11h + '): "' + s11j.slice(0, 560) + '" -- councilWord ' + f11.councilWord + ', heardTrueWord ' + f11.heardTrueWord + ', risen ' + risen11 + ', the step now "' + String(q11b && q11b.where).slice(0, 60) + '"; again ' + H6Qw.lookDue(B11),
+        RQw.def.hexIn === 3 && at11 === 'word' && /merrick/.test(seat11) && due11h && /^Papa Urtusk\|"The gulch is clear/.test(s11[0] || '') && /Merrick\|"I said we'd send for you again/.test(s11j) && /Hessle\|"Bring me something I can weigh/.test(s11j) && /Ottak Harrow\|"Past the Halfway Inn the farms run out/.test(s11j)
+          && f11.councilWord === 1 && f11.heardTrueWord === 1 && risen11 && !!q11b && /Pit road south of the Halfway Inn/.test(q11b.where || '') && !H6Qw.lookDue(B11));
+      D.scenes.length = 0; HQw.playing = false; HQw.cur = null;
       // 10. THE SHOW: deep16/?trueshow, each beat staged without a word of error
       var beatsQw = (TWQw.BEATS || []).map(function (b) { try {
         D.scenes.length = 0; TWQw.play(b); var tp = D.top();
