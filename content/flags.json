@@ -339,6 +339,7 @@
     "supThreads": "set: deep16/js/inn.js In.SUP.thread (the road's gossip had at supper, a thread a supper: moot, gnolls, made -> the day it was told); read: deep16/js/inn.js In.SUP.threadOpen",
     "mirrorFought": "set: deep16/js/world.js (a mirror-made fight opened on THE WORLD); read: deep16/js/inn.js In.SUP.fought (the answer to Gennet's question about the eyes)",
     "toldMirrorFought": "set: deep16/js/inn.js In.SUP.ASK seen (the party told the Waterbys it has fought a made thing); read: deep16/js/inn.js In.SUP.open (she does not ask again)",
+    "elsbethWater": "set: deep16/js/secondact.js A.drag (Elsbeth threw the kitchen bucket over the sleepers on the stone: the bonus save was at advantage); read: the same",
     "wordBelow": "set: js/deep.js, js/situations.js; read: content/quests.json, js/deep.js, maps/highway_3.json",
     "wPaid": "set: content/npcs.json, js/scenes.js; read: js/events.js",
     "wSealed": "set: content/npcs.json, js/scenes.js; read: content/npcs.json, content/quests.json, js/events.js",

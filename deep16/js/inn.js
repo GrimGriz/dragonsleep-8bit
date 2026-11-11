@@ -359,13 +359,88 @@
   };
   In.heroOf = function (u) { var k = u.src ? (u.src.key || u.src.id) : u.id; return { id: k, key: k, name: u.name }; };
   In.unitOf = function (seat, h) { return h ? seat.four.filter(function (u) { return u.src === h || (u.src && (u.src.key || u.src.id) === (h.key || h.id)); })[0] : null; };
-  In.speaker = function (seat, id) { var u = seat.folk[id], SO = D.counter && D.counter.SHEETOF; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : id === 'elsbeth' ? 'Elsbeth' : (seat.flags || {}).katLooked ? 'Katarina' : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right', sheet: (SO && SO[id] && SO[id]({ flags: seat.flags || {} })) || null }; }; // (sheet: the one speaking's drawn face where they have one -- js/counter.js C.SHEETOF, Doran's and Gennet's, Katarina's by In.FACE -- else their figure's, as before: 11-05, cutter-1105, on the lanes desk's word)
+  In.speaker = function (seat, id) { var u = seat.folk[id], SO = D.counter && D.counter.SHEETOF; return { name: id === 'doranIn' ? 'Doran' : id === 'gennet' ? In.named(seat.flags) : id === 'elsbeth' ? 'Elsbeth' : (seat.flags || {}).katLooked ? 'Katarina' : 'The traveler', unit: u || null, side: u ? In.sideOf(u.x) : 'right', sheet: id === 'elsbeth' ? In.elsbethCut() : (SO && SO[id] && SO[id]({ flags: seat.flags || {} })) || null }; }; // (sheet: the one speaking's drawn face where they have one -- js/counter.js C.SHEETOF, Doran's and Gennet's, Katarina's by In.FACE -- else their figure's, as before: 11-05, cutter-1105, on the lanes desk's word)
+  // Elsbeth's overlay (11-11, Griz on sacrifice night: "a trimmed cut of the portrait from the washbasin rather than what we're using for elsbeth in the overlay visuals"):
+  // the art desk's tub portrait (pt_elsbethtub: 166 x 165 frames) cut above the tub's rim, and its bucket row for the water on the stone -- the art in hand, no new ask
+  In.elsbethCut = function (bucket) {
+    var S0 = D.SHEETS && D.SHEETS.pt_elsbethtub, k = bucket ? 'pt_elsbethbucket' : 'pt_elsbethcut'; if (!S0) return null;
+    if (!D.SHEETS[k]) { var h = bucket ? 165 : 118, y = bucket ? 990 : 0; D.SHEETS[k] = { image: S0.image, fw: 166, fh: h, ax: 87, ay: bucket ? 162 : h, top: h, portrait: true, anims: { idle: { y: y, fw: 166, fh: h, ax: 87, ay: bucket ? 162 : h, frames: bucket ? 3 : 6, fps: 3 } } }; }
+    return k;
+  };
   In.mealScene = function* (B) { // (the first room taken: supper on the open screen over the room, then the bed)
-    var C = D.counter, seat = In.sit(B), st = C.state(B); seat.flags = st.flags;
+    var C = D.counter, seat = In.sit(B), st = C.state(B), f = st.flags, d = In.day(D.roam.q); seat.flags = f;
     if (D.house && D.house.trail) D.house.trail('talk', 'meal');
-    var sc = new C.Counter(B, { id: 'meal', name: 'The Waterbys', place: 'The Halfway Inn', what: 'supper at the long table', room: true, open: true, bg: In.roomShot(B), script: function (s) { return In.meal(s, B, seat); } });
-    D.push(sc); while (!sc.done) yield 1;
-    In.rise(B, seat);
+    var draught = In.supKind(f, d, seat) === 'sacrifice' && In.offering(f, In.dueCycle(d)) === 'none';
+    var talk = function* () { var sc = new C.Counter(B, { id: 'meal', name: 'The Waterbys', place: 'The Halfway Inn', what: 'supper at the long table', room: true, open: true, bg: In.roomShot(B), script: function (s) { return draught ? In.sacMeal(s, B, seat) : In.meal(s, B, seat); } }); D.push(sc); while (!sc.done) yield 1; };
+    if (!draught) { yield* talk(); In.rise(B, seat); return; }
+    // SACRIFICE NIGHT, the house with no offering: the talk steps aside while Elsbeth walks the bowls round (S.pending), and opens again where it stopped
+    var els = seat.folk.elsbeth, home = els ? [els.x, els.y] : null, T = In.TABLE;
+    var stops = seat.four.map(function (u) { return [u.x, u.y < T.y ? u.y - 1 : u.y + 1]; }); // (behind each hero's chair: the north side from the north, the south from the south)
+    var walks = {
+      bowls: function* () { if (!els) return; for (var i = 0; i < stops.length; i++) { yield* In.walk(B, els, stops[i], [0, stops[i][1] < T.y ? 1 : -1]); yield 14; } },
+      kitchen: function* () { if (els) yield* In.walk(B, els, home, [1, 0]); }
+    };
+    for (var g = 0; g < 8; g++) { yield* talk(); var w = seat.S && seat.S.pending; if (!w) break; seat.S.pending = null; if (walks[w]) yield* walks[w](); }
+    B.roam.supSeat = seat; // (nobody rises: the table as it is set is the fight's own scene -- js/secondact.js A.poisonNight, A.supperFight; In.rise there when there is no fight)
+  };
+  // SACRIFICE NIGHT WITH THE DRAUGHT (11-11 night, the supper seat; RULED, the inn lane's rulings 43-50; Griz: "first round is pre-eating any, chance to notice on at least one
+  // hero, the notice stops the eating at that point, 2nd round is one dose. Signaling by nearest on the grid stops them from taking the next bite. 3rd round saves roll.
+  // (perception re Elsbeth bowl delivery?)"; "keep quiet and eat nothing not an option, give them standard conversation fare (player not paying attention) but they don't eat
+  // anymore. Warning under the table with a particular character serves as 'keeping quiet'"; "having each character choose to eat or not is too much of a tell").
+  // THREE ROUNDS. One: nobody has eaten; how Elsbeth set the bowls down is a Perception read by her tell (full DC 10, faint DC 15, none: no read), ONE hero's, and that hero
+  // has stopped eating. Two: everyone still eating takes one dose; the taste (Medicine) and the watch (Insight: Gennet's own bowl empty) are that round's reads, each one
+  // hero's. Three: those still eating take the second bite; then the saves (js/secondact.js A.poisonNight: one bite DC 13 with advantage, two DC 15). Nobody is asked to
+  // eat. A hero who has noticed may SAY IT ALOUD (the fight, then and there), WARN THE NEAREST at the table (who stops eating), or just talk
+  In.SAC = { DC: { full: 10, faint: 15 }, TURNS: 3,
+    talk: { lymen: [`You're quiet tonight.`, 'doranIn', `"Long day."`], aurdin: [`What's the night, that the good bread's out?`, 'gennet', `"A night like any. Eat."`], vivian: [`You've salted it tonight.`, 'gennet', `"A bit."`], barley: [`Good stew.`, 'gennet', `"Eat it, then."`] },
+    aloud: { lymen: `Put the spoons down. All of you.`, aurdin: `There's something in this.`, vivian: `Nobody eat any more of this.`, barley: `Don't eat it.` },
+    his: `"If you'd just eaten this wouldn't have been so messy."`, // (HIS, 11-11: "A gennet line 'If you'd just eaten this wouldn't have been so messy' between the hero saying the fight trigger and the fight")
+    prompts: [`"Eat while it's hot. You've an early road, I expect."`, `"There's more in the pot."`, `"Is it not to your taste?"`, `"Good. Eat up."`] };
+  In.sacMeal = function* (sc, B, seat) {
+    var st = sc.st, f = st.flags, d = In.day(D.roam.q), c = In.dueCycle(d), SC = In.SAC, A = D.secondact, P = (A && A.POISON) || { taste: 13, watch: 15 }, who = function (id) { return In.speaker(seat, id); }, i;
+    var four = seat.four.filter(function (u) { return u.src && !u.src.dead && !u.src.ko; }).map(function (u) { return { u: u, h: u.src, key: u.src.key || u.src.id, hero: In.heroOf(u), side: In.sideOf(u.x) }; });
+    var S = seat.S; if (!S) { S = seat.S = { phase: 0, round: 0, stopped: {}, dose: {}, read: {}, saw: {}, asked: {}, aloud: 0, pending: null, tell: f.wagonStopped ? 'full' : (f.elsbethTier || 0) >= 2 ? 'faint' : 'none', doran: !!seat.folk.doranIn };
+      f.mealHad = 1; f.mealDay = d; f.supCount = (f.supCount || 0) + 1; f.supKind = 'sacrifice'; four.forEach(function (e) { S.dose[e.key] = 0; }); In.trail('supper: sacrifice night, the draught in the bowls; Elsbeth\'s tell ' + S.tell); }
+    var eating = function (e) { return !S.stopped[e.key]; };
+    if (S.phase === 0) { S.phase = 1; yield sc.narr([S.doran ? `Supper at the long table: lake fish, a stew, Gennet's bread. Doran pours. Elsbeth brings the bowls round.` : `Supper at the long table: lake fish, a stew, Gennet's bread. Elsbeth brings the bowls round.`]); S.pending = 'bowls'; return; }
+    if (S.phase === 1) { S.phase = 2;
+      if (S.tell === 'full') yield sc.lookAt(who('elsbeth'), [`Elsbeth has set the party's bowls down hard, one after another. She holds a look at the party until Gennet says her name.`], who('gennet')); // (ruling 15: her full tell, the party stopped the wagon)
+      else if (S.tell === 'faint') yield sc.lookAt(who('elsbeth'), [`Elsbeth sets the last of the party's bowls down. Her eyes go to it, then to the party, then away.`]);
+      yield sc.narr([`She takes the last two bowls through to the kitchen.`]); // (ruling 48: narration, not a read)
+      S.pending = 'kitchen'; return; }
+    // the nearest hero at the table still eating: who a warning under the table can reach (ruling 44: one neighbour)
+    var nearest = function (e) { var best = null; four.forEach(function (o) { if (o === e || !eating(o)) return; var dd = Math.abs(o.u.x - e.u.x) + Math.abs(o.u.y - e.u.y); if (!best || dd < best.d) best = { e: o, d: dd }; }); return best && best.e; };
+    var give = function (id, skill, dc, text, pool) { // (a read is ONE hero's: the best passive among those it could be)
+      var best = null; pool.forEach(function (e) { if (S.read[e.key]) return; var pv = In.passive(e.h, skill); if (pv >= dc && (!best || pv > best.pv)) best = { e: e, pv: pv }; });
+      if (best) { S.read[best.e.key] = { id: id, text: text }; S.stopped[best.e.key] = 1; In.trail(best.e.hero.name + ' passive ' + skill + ' ' + best.pv + ' vs DC ' + dc + ', read: ' + id + ' -- stops eating'); } };
+    var ended = null;
+    while (S.round < SC.TURNS && !ended) {
+      S.round++; var r = S.round;
+      if (r === 2 || r === 3) four.forEach(function (e) { if (eating(e)) S.dose[e.key] = r - 1; }); // (round two: one dose; round three: the second bite)
+      if (r >= 2) In.trail('round ' + r + ': the doses ' + four.map(function (e) { return e.hero.name + ' ' + S.dose[e.key]; }).join(', '));
+      if (r === 1 && S.tell !== 'none') give('bowls', 'Perception', SC.DC[S.tell], S.tell === 'full' ? `(perception) Elsbeth put those bowls down like a warning. This one is not being eaten.` : `(perception) Elsbeth looked at the bowls before she looked at anyone. This one is not being eaten.`, four);
+      if (r === 2) { give('taste', 'Medicine', P.taste, `(medicine) A bitterness under the fish. The spoon goes down.`, four.filter(eating)); give('watch', 'Insight', P.watch, `(insight) Gennet has filled every bowl but her own. The spoon goes down.`, four.filter(eating)); }
+      var anyStop = four.some(function (e) { return !eating(e); }), prompt = r === 1 ? SC.prompts[0] : r === 2 ? SC.prompts[1] : anyStop ? SC.prompts[2] : SC.prompts[3];
+      var list = four.map(function (e) {
+        var rd = S.read[e.key], ops = [], tk = SC.talk[e.key] || [`Good stew.`, 'gennet', `"Eat it, then."`], nb = eating(e) ? null : nearest(e);
+        if (!eating(e)) { ops.push({ id: 'aloud', label: rd && rd.id === 'watch' ? `She hasn't filled her own bowl.` : SC.aloud[e.key] || `Don't eat that.`, shade: !!(rd && rd.id === 'watch'), tag: rd && rd.id === 'watch' ? 'Insight' : null }); // (his: "'she hasn't filled her bowl' or whatever is an insight result made conversation option?")
+          if (nb) ops.push({ id: 'warn', label: `(A boot against ` + nb.hero.name + `'s, under the table.)`, to: nb }); }
+        if (!S.asked[e.key]) ops.push({ id: 'talk', label: tk[0], tk: tk });
+        ops.push(eating(e) ? { id: 'eat', label: `(Eat quietly.)` } : { id: 'bread', label: `More bread, if there is any.` });
+        return { e: e, hero: e.hero, side: e.side, key: e.key, reads: rd && !S.saw[e.key + rd.id + r] ? [rd.text] : [], ops: ops, opts: ops.map(function (o) { return o.label; }), marks: ops.map(function (o) { return o.shade ? { shade: true, tag: o.tag } : null; }), ids: ops.map(function (o) { return o.id; }), shaded: ops.filter(function (o) { return o.shade; }).length };
+      });
+      var at0 = Math.max(0, list.map(function (x) { return x.key; }).indexOf(S.lastKey));
+      var pk = yield sc.flip(who('gennet'), [prompt], list, at0), x = list[pk && pk.at != null ? pk.at : at0] || list[0], op = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1], e = x.e;
+      S.lastKey = x.key; sc.hero = e.hero; sc.heroSide = e.side; In.trail(e.hero.name + ': ' + op.label);
+      if (op.id === 'aloud') { S.aloud = r; ended = 'aloud'; yield sc.narr([`Every spoon at the long table stops.`]); yield sc.by(who('gennet'), [SC.his]); }
+      else if (op.id === 'warn') { S.stopped[op.to.key] = 1; S.warned = (S.warned || []).concat([op.to.key]); In.trail(op.to.hero.name + ' is warned under the table: no more bites'); yield sc.narr([op.to.hero.name + `'s spoon stops halfway, and goes down.`]); }
+      else if (op.id === 'talk') { S.asked[e.key] = 1; yield sc.by(who(op.tk[1] === 'doranIn' && !S.doran ? 'gennet' : op.tk[1]), [op.tk[2]]); }
+      else if (op.id === 'bread') yield sc.by(who('gennet'), [`"There's always bread."`]);
+      else yield sc.narr([`Spoons on bowls. Nobody says anything for a while.`]);
+    }
+    sc.echo = null; sc.hero = null; f.mealWarm = f.innRegard = 0;
+    B.roam.supBowls = { cycle: c, offer: 'none', aloud: !!S.aloud, round: S.aloud || 3, dose: S.dose, stopped: S.stopped, warned: S.warned || [], reads: Object.keys(S.read).map(function (k) { return k + ':' + S.read[k].id; }) };
+    In.trail('the bowls: ' + four.map(function (e) { return e.hero.name + ' ' + (S.dose[e.key] === 2 ? 'the full dose' : S.dose[e.key] === 1 ? 'a partial dose' : 'none'); }).join(', ') + (S.aloud ? '; said aloud in round ' + S.aloud : '; nobody said it'));
   };
   In.d20 = function () { return In.pinned && In.pinned.length ? In.pinned.shift() : D.roll('1d20').total; };
   In.best = function (st, skill) { var R = DS.R, b = null; st.party.forEach(function (h) { if (h.dead || h.ko) return; var v = R.skill(h, skill, In.AB[skill]); if (!b || v > b.v) b = { h: h, v: v }; }); return b; };
@@ -390,7 +465,7 @@
   // hidden scale with the table's warmth: rulings 1 and 21) carries from supper to supper; renown sets the first (ruling 27)
   In.MEAL = {
     bed: 'TO BED', CAP: 5, // (five a hero since 11-11, with EAT QUIETLY and TO BED under them: the flip pages what will not fit -- js/counter.js THE FIT)
-    TURNS: { first: 5, later: 3, amara: 3, alone: 3, sacrifice: 2 },
+    TURNS: { first: 5, later: 3, amara: 3, alone: 3, sacrifice: 2 }, // (sacrifice: the kept-child night's two; the night with the draught is In.sacMeal's three rounds)
     DC: { History: 10, Persuasion: 12, Religion: 13, Arcana: 13, lie: 11 }, // (lie: Gennet's passive Insight, WIS 13 -- data/foes.js gennet)
     // the news by the day: a garbled first telling for `lag` days, then what they had wrong (for four days more), then the settled word; the three newest are told
     bands: [
@@ -449,10 +524,7 @@
     barnbowl: { skill: 'Perception', dc: 13, opens: 'barnq', ok: function (S) { return !S.glam; }, text: `(perception) Elsbeth carried a bowl out by the yard door before she carried any to the table.` },
     noname: { skill: 'Insight', dc: 12, opens: 'nameq', ok: function (S) { return S.glam; }, text: `(insight) Nobody at this table has called the child by a name.` },
     sawit: { skill: 'Insight', dc: 12, opens: 'sawq', text: `(insight) "Without him." She watched it happen, or some of it.` },
-    taste: { skill: 'Medicine', dc: function () { return (D.secondact && D.secondact.POISON && D.secondact.POISON.taste) || 13; }, opens: 'bowl', ok: function (S) { return S.offer === 'none'; }, text: `(medicine) A bitterness under the fish, before the second spoonful.` }, // (js/secondact.js A.POISON.taste)
-    watch: { skill: 'Insight', dc: function () { return (D.secondact && D.secondact.POISON && D.secondact.POISON.watch) || 15; }, opens: 'bowl', ok: function (S) { return S.offer === 'none'; }, text: `(insight) Gennet has filled every bowl but her own.`, fx: function (S) { S.watch = 1; } }, // (A.POISON.watch: the rest save with advantage)
-    faint: { skill: 'Perception', dc: 13, opens: 'bowl', ok: function (S) { return S.offer === 'none' && S.tell === 'faint'; }, text: `(perception) Elsbeth looked at the bowls before she looked at anyone.` },
-    lamp: { skill: 'Perception', dc: 12, opens: 'lampq', ok: function (S) { return S.offer !== 'none'; }, text: `(perception) The lamp by the lake door is lit. It has not been lit on any other night.` }
+    never: { skill: 'Perception', dc: 99, text: `` } // (sacrifice night's reads are In.sacMeal's own: the bowls, the taste, the watch)
   };
   In.SUP.dc = function (r) { return typeof r.dc === 'function' ? r.dc() : r.dc; }; // (the taste and the watch are the second act's own numbers: js/secondact.js A.POISON)
   // THE ROAD'S GOSSIP IN THREE THREADS, ONE A SUPPER (RULED 11-11, ruling 36, Griz: "it's like there's 3 threads of answer and they're given current road-gossip for all 3 pieces,
@@ -620,14 +692,9 @@
       K(news, ['alone'], { t1: undefined, who: ['lymen'] }), { id: 'gidle', idle: true, kinds: ['alone'], who: ['aurdin', 'vivian', 'barley', 'lymen'], say: function (S, e) { return e.key === 'barley' ? `Good bread.` : e.key === 'vivian' ? `The boys are quiet tonight.` : e.key === 'aurdin' ? `It's a still night on the water.` : `Thank you for the supper.`; }, run: function (S, e) { S.by('gennet', e.key === 'barley' ? `"Elsbeth's. I showed her once."` : e.key === 'vivian' ? `"They're fed and abed. They miss him."` : e.key === 'aurdin' ? `"It's always still. That's how you know it's listening."` : `"You paid for it."`); } }, K(mend, ['alone'], { t1: undefined }),
       // ---- sacrifice night (ruling 23: the poison dinner is the due's own night, a supper like the others): the bowls are In.meal's end
       { id: 's1', kinds: ['sacrifice'], who: ['lymen'], say: function () { return `You're quiet tonight.`; }, run: function (S) { S.by(S.doran ? 'doranIn' : 'gennet', `"Long day."`); } },
-      { id: 's2', kinds: ['sacrifice'], who: ['barley'], say: function () { return `Where are the boys?`; }, run: function (S) { S.by('gennet', `"Fed, and in the kitchen. They'll be abed before you are."`); } },
       { id: 's3', kinds: ['sacrifice'], who: ['aurdin'], say: function () { return `What's the night, that the good bread's out?`; }, run: function (S) { S.by('gennet', `"A night like any. Eat."`); if (S.doran) S.look('doranIn', `Doran looks at the lake door, and away.`); } },
       { id: 's4', kinds: ['sacrifice'], who: ['vivian'], say: function () { return `You've salted it tonight.`; }, run: function (S) { S.by('gennet', `"A bit."`); } },
-      { id: 'spass', kinds: ['sacrifice'], any: true, say: function () { return `Good stew.`; }, run: function (S) { S.by('gennet', `"Eat it, then."`); } },
-      { id: 'lampq', kinds: ['sacrifice'], read: 'lamp', say: function () { return `You've lit the lake lamp.`; }, run: function (S) { S.f.heardLamp = 1; S.by('gennet', `"On its nights we light it."`); S.by('gennet', `"Early beds tonight. All of you."`); } },
-      { id: 'aloud', kinds: ['sacrifice'], lead: true, end: 'aloud', ok: function (S) { return S.offer === 'none'; }, needs: function (S, e) { return S.canPush(e); },
-        say: function (S, e) { return { lymen: `Put the spoons down. All of you.`, aurdin: `There's something in this.`, vivian: `She hasn't filled her own.`, barley: `Don't eat it.` }[e.key] || `Don't eat that.`; },
-        run: function (S) { S.narr(`Every chair at the long table goes back at once.`); } }
+      { id: 'spass', kinds: ['sacrifice'], any: true, say: function () { return `Good stew.`; }, run: function (S) { S.by('gennet', `"Eat it, then."`); } }
     ];
   })();
   In.passive = function (h, skill) { return 10 + DS.R.skill(h, skill, In.AB[skill]); };
@@ -650,11 +717,13 @@
       S.narr(`Supper at the long table. Doran's chair is empty. Gennet has laid his place all the same.`); S.narr(`Elsbeth carries. With her father gone she is slower about it.`); made();
       S.by('gennet', S.wagonKnown ? `"Doran's taken that wagon down to the Pit, and the little ones in it. Two days, he said. So you've only me to talk at."` : `"Doran's gone down the road with a load. Two days, he said. So you've only me to talk at."`);
     } else {
-      S.narr(S.doran ? `Supper at the long table: lake fish, a stew, Gennet's bread. Doran pours, and the bowls go round.` : `Supper at the long table: lake fish, a stew, Gennet's bread. The bowls go round.`); S.narr(`The lamp by the lake door is lit.`);
-      if (S.offer !== 'none' || S.tell === 'none') S.narr(`Elsbeth carries and does not sit.`);
-      else if (S.tell === 'full') S.look('elsbeth', `Elsbeth sets the party's bowls down hard, one after another, and holds a look at the party until Gennet says her name.`, 'gennet'); // (ruling 15: the full tell when the party stopped the wagon)
-      else S.look('elsbeth', `Elsbeth sets the last bowl down. Her eyes go to it, then to the party, then away.`); // (the faint one at her second tier)
-      S.by('gennet', S.offer === 'none' ? `"Eat while it's hot. You've an early road, I expect."` : `"Eat up. It's early beds tonight."`);
+      // THE KEPT-CHILD NIGHT (RULED 11-11, ruling 50, Griz: "kept child night Gennet would be super happy, elsbeth with the bowls as a stand out anyway - re-affirms parties
+      // where she told them it was tonight. Doran nervous, assuming the party will always be in the big room at this point - he'll reassure them they should sleep well in it";
+      // "pretty sure we script the lantern after they go to bed"): no draught, no lamp at supper -- the singing wakes them after (js/secondact.js A.dueNight)
+      S.narr(`Supper at the long table: lake fish, a stew, the good bread. Gennet hums as she ladles.`);
+      S.look('elsbeth', `Elsbeth sets each bowl down as if it might break, and looks at nobody.`);
+      if (S.doran) { S.look('doranIn', `Doran has not touched his own bowl.`); S.by('doranIn', S.f.bigRoom ? `"You'll sleep well in the big room tonight. Nothing carries up there."` : `"You'll sleep well tonight. Nothing carries up to the rooms."`); }
+      S.by('gennet', `"Eat up, eat up. It's a good night."`);
     }
   };
   In.meal = function* (sc, B, seat, kind) {
@@ -674,7 +743,7 @@
     f.mealHad = 1; f.mealDay = d; f.supCount = (f.supCount || 0) + 1; f.supKind = kind; if (kind === 'amara') f.supAmara = 1; if (kind === 'alone') f.supAlone = 1;
     In.trail('supper: ' + kind + ', day ' + d + ', renown ' + S.renown + ', the table ' + ['cold', 'civil', 'warm'][S.warm]);
     if (kind === 'first' || kind === 'later') { var had = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (had[k]) S.asked[k] = 1; }); var rd0 = f.supReads || {}; ['counted', 'rich', 'coin'].forEach(function (id) { if (!rd0[id]) S.reads([id]); else S.qd[id] = 1; }); }
-    else S.reads({ amara: ['barnbowl', 'noname'], alone: [], sacrifice: ['taste', 'watch', 'faint', 'lamp'] }[kind]);
+    else S.reads({ amara: ['barnbowl', 'noname'], alone: [], sacrifice: [] }[kind]);
     SU.open(S, kind);
     var prompt = S.out.pop(), i; for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
     var reach = function (e, id) { var r = SU.READS[id]; return !!r && (!r.ok || r.ok(S)) && In.passive(e.h, r.skill) >= SU.dc(r); };
@@ -728,15 +797,9 @@
     var kept = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (S.asked[k]) kept[k] = 1; }); f.supAsked = kept;
     var rds = f.supReads || {}; Object.keys(S.seen).forEach(function (k) { rds[k] = 1; }); f.supReads = rds;
     if (S.seen.counted && !f.mealGirlSaid) f.mealWrong = 1; if (f.mealGirlSaid) delete f.mealWrong;
-    if (kind === 'sacrifice') {
-      var rec = { cycle: c, aloud: ended === 'aloud', push: [], watch: !!S.watch, offer: S.offer };
-      if (S.offer === 'none' && !rec.aloud) {
-        // THE BOWLS: a hero with a read, or with Elsbeth's full tell, may push the bowl away and say nothing (the 11-07 lean, ruling 15); the rest eat
-        for (i = 0; i < four.length; i++) { var eb = four[i]; if (!S.canPush(eb)) continue; sc.hero = eb.hero; sc.heroSide = eb.side;
-          var a = yield sc.askBy(who('gennet'), [`The bowl in front of ` + eb.hero.name + `.`], ['EAT', 'PUSH THE BOWL AWAY']); if (a === 1) { rec.push.push(eb.key); In.trail(eb.hero.name + ' pushes the bowl away'); yield sc.narr([eb.hero.name + ` moves the bowl a hand's width off and eats bread.`]); } }
-      }
-      if (S.offer !== 'none') yield sc.narr([`The house goes to bed early. The lamp by the lake door stays lit.`]);
-      B.roam.supBowls = rec; sc.hero = null; return; // (the night is the due's own from here: js/secondact.js A.dueNight, A.poisonNight)
+    if (kind === 'sacrifice') { // (the kept-child night: In.sacMeal has the night with the draught)
+      yield sc.narr([`Gennet has the table cleared before the bowls are cold. "Early beds tonight. All of you."`]);
+      B.roam.supBowls = { cycle: c, offer: 'kept', dose: {}, stopped: {} }; sc.hero = null; return; // (the night is the due's own from here: js/secondact.js A.dueNight)
     }
     sc.hero = null;
     if (ended !== 'cold') {
@@ -1752,7 +1815,11 @@
     { id: 'suplater', label: 'A LATER SUPPER: three openings, her fresh opener', note: 'The next evening, the regard warm, the house already asked about. "Back again, and whole. Sit. What did the road show you?" Three openings; what was asked before is gone from the answers; Lymen\'s opener gets the day\'s news.', key: In.KEY, at: [24, 17], hour: 18, day: 6, inside: true, renown: 3, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, innRegard: 2, supAsked: { house: 1 }, supReads: { counted: 1, rich: 1 } } },
     { id: 'supamara', label: 'THE SUPPER AFTER THE PARTY SAW GENNET WITH AMARA: tense, and no fight in it', note: 'Day 13, the wagon come and gone in the night with the party watching. "You were up late. I heard the stair." Three openings, the table civil and unable to rise; a pointed question turns it cold and the house sends you to bed. Nothing said here starts a fight. Vivian may lie that the party slept through it (shaded).', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1 } },
     { id: 'supalone', label: 'GENNET ALONE, Doran away: his place laid all the same', note: 'Day 13, Doran gone down the road with a load. Gennet alone at the long table. Barley\'s "You lay his place when he\'s gone." warms her; Vivian asks how she came to the inn; with the table warm, the read on "without him" opens "You saw what took him." She closes with "Oh, heroes. Take the big room."', key: In.KEY, at: [24, 17], hour: 18, day: 13, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1 } },
-    { id: 'supsacr', label: 'SACRIFICE NIGHT: a supper like the others, and the bowls', note: 'Day 15, the due\'s own night, the wagon stopped on the road and no offering in the house. The lake lamp is lit. Elsbeth sets the bowls down hard and holds a look at the party (her full tell). Two openings; a hero with a read (a bitterness under the fish; Gennet has not filled her own bowl), or with her tell, may say it aloud -- the fight, nobody asleep -- or at the end push the bowl away and say nothing. Whoever eats may sleep; then the house\'s night as built.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15, 2, 2, 19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', wagonStopped: 'c0', dueOffC: 0, dueOff: 'none' } },
+    // SACRIFICE NIGHT (11-11 night, rulings 43-50): a beat a state -- her tell full, faint, none; and the kept-child night. E on the inn lady, STAY THE NIGHT
+    { id: 'supsacr', label: 'SACRIFICE NIGHT, her FULL tell: Elsbeth walks the bowls round; three rounds; say it aloud in round one', note: 'The due\'s own night, the wagon stopped by the party, no offering in the house. Elsbeth WALKS the bowls round the table and sets the party\'s down hard; then takes the last two to the kitchen. ROUND ONE: nobody has eaten. One hero (the best eyes) has the read on how she set the bowls down and has stopped eating: flip to that hero -- SAY IT ALOUD, or a boot against the nearest hero\'s under the table, or just talk. Nobody is asked to eat. Said aloud: Gennet\'s "If you\'d just eaten this wouldn\'t have been so messy.", and the fight is this same table, nobody jumping to it. After the yield Doran confesses on portraits and walks out by the lake door with the lantern; Gennet walks back to the fire.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15, 19, 19, 19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', dueOffC: 0, dueOff: 'none', wagonStopped: 'c0' } },
+    { id: 'sacfaint', label: 'SACRIFICE NIGHT, her FAINT tell (second tier): harder to notice in round one', note: 'The same night with Elsbeth at her second tier and the wagon not stopped by the party: her eyes go to the last bowl, then to the party, then away. The round-one read needs sharper eyes (Perception 15). If nobody has it, round two: everyone takes one bite, and the taste (Medicine) or Gennet\'s own empty bowl (Insight -- that hero\'s own shaded answer, "She hasn\'t filled her own bowl.") may stop one hero. Round three: whoever is still eating takes the second bite, then the saves are rolled out of sight: one bite, an easier save; two, a harder one.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15, 2, 19, 2, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', dueOffC: 0, dueOff: 'none', elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
+    { id: 'sacnone', label: 'SACRIFICE NIGHT, NO tell: eat quietly three times -- the table tilts, the drag, Elsbeth\'s water on the stone', note: 'Elsbeth below her second tier: no tell, no round-one read. Choose (Eat quietly.) at each round with the dice low: everyone goes under, and wakes (or not) on the flat stone -- Elsbeth with the kitchen bucket, "Wake up! You\'re supposed to stop it!", Gennet\'s look that silences her, and one more save each with the water on them. A night that ends in a reload is meant to be possible here.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2, 2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'road', dueOffC: 0, dueOff: 'none' } },
+    { id: 'sackept', label: 'THE KEPT-CHILD NIGHT: no draught -- Gennet glad, Elsbeth with the bowls, Doran\'s "you\'ll sleep well"', note: 'The due\'s own night with the child she kept in the house. No draught and no lamp at supper: Gennet hums, Elsbeth sets each bowl down as if it might break, Doran has not touched his own and tells the party it will sleep well. Early beds. Then the night as built: past midnight the singing, the lantern, the walk.', key: In.KEY, at: [24, 17], hour: 18, day: In.WAGON.first + In.DUE.after, inside: true, dice: [14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1 } },
     // OUT OF THE BARN WITH THE CHILD (11-11): a beat a state, each a step from the chained one in the barn's end stall on day 13 -- E on it, FREE IT (or FREE HER), and Gennet comes running
     { id: 'barnunseen', label: 'OUT OF THE BARN: the glamour unseen, Doran home, renown 3', note: 'Day 13 in the barn, the wagon come and gone, the one it left chained in the end stall and looking a goblin. E on it: FREE IT. The party steps into the yard with it and Gennet comes running from the house: "That\'s why I knew to keep it. Poor innocent thing." Five stages -- her opener, her ask, the first offer, the green purse and the threat, the breaking point -- the four flipped at each. Vivian\'s read on the hand (or Aurdin\'s on the glamour) breaks the glamour in the yard and her story changes. LET HER RAISE IT ends it at her ask; refuse and she offers silver, then the green purse; refuse again and she takes the child\'s arm and calls Doran: speak to DORAN (Lymen, shaded when it lands) and he confesses in the yard; draw (Vivian) and it is a fight to the first yield; otherwise "Gen. Let go." and the child goes with the party.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'barnseen', label: 'OUT OF THE BARN: the glamour seen through, Doran home', note: 'The same morning, the glamour seen through on the wagon night: a child chained in the stall. FREE HER. Gennet\'s other story: "Somebody put a goblin\'s face on a child and sent her down this road. Who takes that in, if I don\'t?" Let her and the child is brought into the house, the raising feigned until the night.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },

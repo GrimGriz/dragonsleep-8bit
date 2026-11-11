@@ -598,7 +598,7 @@
   // just text box"): sc.lookAt(who, lines, at) -- the one looking stands as a speaker does, held, with no words' box and no hero; the one looked at (`at`: a speaker's
   // { name, sheet | unit }) stands on the other side; what passes is a caption along the screen's foot, in the look's colour
   C.LOOK = { col: '#d8c8f0', strip: 'rgba(8,10,28,.72)' };
-  C.lookBox = function (sc) { var rows = (sc.pages && sc.pages[sc.page]) || [], h = 8 + rows.length * 10, x = Math.round((D.W - RW) / 2), y = Math.max(C.openGeo(sc).foot + 22, Math.round((D.H - 14 - h - 20) / 2) + 10); return { x: x, y: y, w: RW, h: h }; }; // (THE LOOK's caption: the middle of the screen, under the faces -- 11-11, Griz: "Maybe make those pop-ups in the middle?"; its OK right under it, Counter.buttons)
+  C.lookBox = function (sc) { var rows = (sc.pages && sc.pages[sc.page]) || [], h = 8 + rows.length * 10, x = Math.round((D.W - RW) / 2), y = Math.max(Math.max(C.openGeo(sc).foot, 128) + 22, Math.round((D.H - 14 - h - 20) / 2) + 10); return { x: x, y: y, w: RW, h: h }; }; // (THE LOOK's caption: the middle of the screen, under the faces -- 11-11, Griz: "Maybe make those pop-ups in the middle?"; its OK right under it, Counter.buttons)
   Counter.prototype.lookAt = function (who, lines, at) { var w = this.say(lines); w.who = who; w.look = true; w.at = at || null; w.noHero = true; return w; };
   Counter.prototype.askBy = function (who, prompt, opts, face) { var w = this.ask(prompt, opts, face); w.who = who; return w; };
   Counter.prototype.spk = function () { var w = this.wait || {}; return w.who || null; };
