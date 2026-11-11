@@ -5380,6 +5380,111 @@
     document.body.appendChild(preKt);
     return;
   }
+  // THE INN SEAT'S 11-11 (mode=inn1111; js/inn.js In.lead, In.feelingSay, the yard's ask; js/chase.js Ch.done, Ch.backLine, Ch.forkLine; js/innprops.js IP.cutOn, the post at the
+  // step -- the inn seat, started by the lanes desk on his 11-11 notes on eyes-gulchchase-1104, "Barley was visible downstairs when it said aurdin was at the window - no portrait
+  // is used for lymen's line (outside interface) despite being in the inn - aurdin still wasn't in the party ... The 'walk back in the dark' happened after morning in the gulch...",
+  // and on eyes-halfwayinn-floor-1105, "we'll need to transparency the chimney when the players walk the squares behind it on the first floor"; the front door's cutaway RULED
+  // 11-10): the second watch's watcher on the floor at the window and in the yard fight, the lead back after; Lymen's line on his face; the yard's ask that does not chase before it
+  // asks; the walk back worded by its hour and spent off the gulch; the fork by its hour; the cutaway's waking by the step and the post at the step. The see-through's pixels (the
+  // chimney, the stack upstairs, the house's window, the cutaway) are dev/innsee-probe.py's: the benches load no art
+  if (get('mode', '') === 'inn1111') {
+    var repK = { checks: [], errors: [] }, memK = {}, stGK = D.store.get, stSK = D.store.set, HK = D.house, CK = D.counter, RK = D.roam, InK = D.inn, ChK = D.chase, IPK = D.innprops, muK = D.music;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveK(g, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function topK() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function testK(q) { var B = RK.make(q + '&watch'); D.scenes.length = 0; D.push(B); topK(); driveK(D.top().co, 2); return D.top(); }
+    function atK(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function wakeK() { var s = D.top(), ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } return 'MORNING: ' + ls.join(' '); }
+    function lookK(B) { var t = B.roam.token; return { token: t && t.name, onFloor: !!t && B.units.indexOf(t) >= 0, figs: B.units.filter(function (u) { return u.src && !u.npc && !u.scripted && u.side === 'party'; }).map(function (u) { return u.name; }).sort().join(',') }; }
+    function hourK(B) { return +(+InK.hourOf(B)).toFixed(2); }
+    // a floor's own script driven on: each counter, card and prompt kept with the floor's look then; prompts answered by label from `ans` (none left, the last); the pair's hit points
+    // set as a choice is made (foeHp); a new floor on top ends it
+    function nightK(B, ans, foeHp) {
+      var seen = [], at = {}, qq = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {};
+      B.cards = []; B.roam.keys.push('use');
+      for (var k = 0; k < 80000 && quiet < 200; k++) {
+        var s = D.top();
+        if (s instanceof CK.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { var a0 = qq.length && typeof qq[0] === 'number' ? qq.shift() : w.opts.indexOf(qq[0]) >= 0 ? w.opts.indexOf(qq.shift()) : w.opts.length - 1; seen.push({ kind: 'ask', id: s.o.id, text: w.ask.join(' ') + ' > ' + w.opts[a0] }); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a0; })[0]); } else if (w.say) { seen.push({ kind: 'say', id: s.o.id, open: !!s.o.open, who: w.who ? w.who.name : null, sheet: w.who ? w.who.sheet : null, text: w.say.join(' ') }); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof HK.Morning) { quiet = 0; seen.push({ kind: 'morning', text: wakeK() }); continue; }
+        if (s && s.kind === 'housewatches') { quiet = 0; seen.push({ kind: 'watches', text: Object.keys(s.asg).map(function (id) { return id + ' ' + s.asg[id]; }).join(', ') }); s.go('begin'); continue; }
+        if (s !== B && s instanceof D.Battle && s.roam) { seen.push({ kind: 'floor', text: RK.def.key }); return { seen: seen, B: s, at: at }; }
+        if (s !== B) { D.pop(); continue; }
+        (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push({ kind: 'card', text: window.DS.stripCodes(c.lines.join(' ')), look: lookK(B), hour: hourK(B) }); } });
+        if (B.roam.mode === 'fight' && !at.fight) at.fight = lookK(B);
+        var st = co.next(v); v = undefined;
+        if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) { var p = st.value.prompt, a = qq.length ? qq.shift() : null, i = typeof a === 'string' ? p.opts.map(function (o) { return o.label; }).indexOf(a) : a; if (i == null || i < 0) i = p.opts.length - 1; seen.push({ kind: 'prompt', title: p.title, text: window.DS.stripCodes(p.lines.join(' ')) + ' > ' + p.opts[i].label, look: lookK(B) }); v = p.opts[i].value; quiet = 0; if (foeHp) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = foeHp; if (foeHp === 1) u.speed = 0; } }); continue; }
+        quiet = 0;
+      }
+      return { seen: seen, B: B, at: at };
+    }
+    function climbK(B, steps, lastHp) { // (up the gulch's road a square at a time, each square's business run: Ch.tick's)
+      var seen = [], cardsSeen = {}, t = B.roam.token, k = 0;
+      var see = function () { (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push({ kind: 'card', text: window.DS.stripCodes(c.lines.join(' ')), hour: hourK(B) }); } }); };
+      for (; k < steps; k++) {
+        var c = ChK.state(B); if (!c || !c.on || D.top() !== B) break;
+        var y1 = t.y - 1; atK(B, ChK.roadX(y1), y1, [0, -1]); B.roam.steps++;
+        var g = RK.arrive(B), v, st, n = 0;
+        while (n++ < 60000) { st = g.next(v); v = undefined; see(); if (st.done) break; if (typeof st.value === 'number') { B.t += Math.max(1, st.value); continue; } if (st.value && st.value.prompt) { var p = st.value.prompt, i = p.opts.map(function (o) { return o.label; }).indexOf(ChK.LINES.opts.north); if (i < 0) i = 0; v = p.opts[i].value; if (lastHp) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') u.hp = u.maxhp = lastHp; }); } }
+        if (D.top() !== B) break;
+      }
+      see(); return seen;
+    }
+    var blK = function (h) { return ChK.backLine ? ChK.backLine(h) : null; }, flK = function (c, h) { return ChK.forkLine ? ChK.forkLine(c, h) : ''; }, cutK = function (B) { return IPK.cutOn ? IPK.cutOn(B) : null; }, CUTK = IPK.CUT || {}, TALLK = IPK.TALL || {};
+    function W8night(h) { return D.world.todAt(h) === 'night'; }
+    var textK = function (seen, kinds) { return seen.filter(function (e) { return !kinds || kinds.indexOf(e.kind) >= 0; }).map(function (e) { return e.text; }).join(' / '); };
+    D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1111); InK.stay = true; var WDK = InK.WAGON.first;
+      // 1. THE SECOND WATCH, the watches as the picker gives them (Barley 1, Aurdin 2, Vivian 3, Lymen 1): Aurdin at the window -- his figure on the floor, Barley's inside the token;
+      // WAKE THE PARTY, the yard fight on the floor's squares with all four on the field (the pair at one hit point and rooted); the lead back after -- Barley's figure, Aurdin's in
+      var B1 = testK('?roam=halfway&hour=18&day=' + WDK + '&at=24,17'); B1.roam.silver = 30; atK(B1, 24, 17, [0, -1]); InK.pinned = [18, 18];
+      var n1 = nightK(B1, [0, 'TO BED', 'WAKE THE PARTY'], 1), s1 = n1.seen;
+      var win1 = s1.filter(function (e) { return e.kind === 'card' && /at the window on the second watch/.test(e.text); })[0], pr1 = s1.filter(function (e) { return e.kind === 'prompt' && e.title === 'THE SECOND WATCH'; })[0];
+      var aft1 = s1.filter(function (e) { return e.kind === 'card' && /The wagon stands in the yard/.test(e.text); })[0], wat1 = s1.filter(function (e) { return e.kind === 'watches'; })[0];
+      okK('the second watch (the watches ' + (wat1 && wat1.text) + '): at "' + (win1 ? win1.text.slice(0, 40) : 'none') + '" the token ' + JSON.stringify(win1 && win1.look) + '; at the window\'s choice ' + JSON.stringify(pr1 && pr1.look),
+        !!wat1 && /aurdin 2/.test(wat1.text) && !!win1 && /^Aurdin, at the window/.test(win1.text) && win1.look.token === 'Aurdin' && win1.look.onFloor && win1.look.figs === 'Aurdin' && !!pr1 && pr1.look.token === 'Aurdin' && pr1.look.onFloor && pr1.look.figs === 'Aurdin');
+      okK('the yard fight: the four on the field ' + JSON.stringify(n1.at.fight) + '; after it the lead back in front ' + JSON.stringify(aft1 && aft1.look),
+        !!n1.at.fight && n1.at.fight.figs === 'Aurdin,Barley,Lymen,Vivian' && !!aft1 && aft1.look.token === 'Barley' && aft1.look.onFloor && aft1.look.figs === 'Barley');
+      // 2. LYMEN'S LINE ON HIS FACE: inside, on the open screen over the room -- his name and his talking portrait at the keepers' bust; no card for it on the floor
+      var ly1 = s1.filter(function (e) { return /Something sits wrong with me tonight/.test(e.text); });
+      okK('Lymen\'s feeling: ' + JSON.stringify(ly1.map(function (e) { return { kind: e.kind, id: e.id, open: e.open, who: e.who, sheet: e.sheet }; })),
+        ly1.length === 1 && ly1[0].kind === 'say' && ly1[0].id === 'wagonNight' && ly1[0].open && ly1[0].who === 'Lymen' && ly1[0].sheet === (D.SHEETS.pt_lymen_full ? 'pt_lymen_full' : 'pt_lymen'));
+      // 3. THE YARD'S ASK and AFTER THEM, the pair past hurting (999) and away: the ask hears them go and asks, "You go after them" said once the chase is chosen; the gulch's floor
+      var B2 = testK('?roam=halfway&hour=18&day=' + WDK + '&at=24,17'); B2.roam.silver = 30; atK(B2, 24, 17, [0, -1]); InK.pinned = [18, 18];
+      var n2 = nightK(B2, [0, 'TO BED', 'WAKE THE PARTY', ChK.LINES.opts.after], 999), s2 = n2.seen;
+      var ask2 = s2.filter(function (e) { return e.kind === 'prompt' && e.title === 'THE YARD'; })[0], go2 = s2.filter(function (e) { return e.kind === 'card' && /The Pit road north in the dark/.test(e.text); })[0];
+      okK('the yard\'s ask: "' + (ask2 && ask2.text) + '"; then "' + (go2 && go2.text.slice(0, 120)) + '"; on to ' + (n2.B !== B2 ? RK.def.key : 'no floor'),
+        !!ask2 && /going hard in the dark/.test(ask2.text) && !/You go after/.test(ask2.text) && /> AFTER THEM$/.test(ask2.text) && !!go2 && /You go after (them|Amara|Willem)/.test(go2.text) && n2.B !== B2 && RK.def.key === 'webgulch');
+      // 4. THE WALK BACK: the chase up the cut to its end (the class AI's fights; the last catch at one hit point), the walk's line by the hour it sets out, no gulch morning said
+      // before a line that walks back in the dark, the inn's floor laid at the hour they come in (the walk's 2.7 hours on)
+      var B3 = n2.B; topK(); driveK(B3.co, 400); var cl = climbK(B3, 400, 1), c3 = ChK.state(B3) || {}, B4 = D.top(), s4 = [];
+      if (B4 && B4.roam && B4 !== B3) { topK(); s4 = nightK(B4, []).seen; }
+      var all4 = cl.concat(s4), iBack = -1; all4.forEach(function (e, k) { if (iBack < 0 && /The long walk back down the road/.test(e.text)) iBack = k; });
+      var back4 = iBack >= 0 ? all4[iBack] : null, mornBefore = all4.slice(0, Math.max(0, iBack)).some(function (e) { return /Morning comes down the gulch/.test(e.text); });
+      var inn4 = s4.filter(function (e) { return e.kind === 'card' && e.hour != null; })[0], fork4 = all4.filter(function (e) { return /The north mouth/.test(e.text); })[0];
+      var dark4 = !!back4 && /in the dark/.test(back4.text), want4 = c3.backAt != null ? ((c3.backAt + ChK.WALK_HOURS) % 24) : null;
+      okK('the walk back: set out at ' + c3.backAt + ' -- "' + (back4 && back4.text) + '" (a gulch morning said before it: ' + mornBefore + '); the north mouth "' + (fork4 && fork4.text.slice(0, 70)) + '" at ' + (fork4 && fork4.hour) + '; at the inn at ' + (inn4 && inn4.hour) + ' (' + want4 + ' wanted)',
+        !!back4 && back4.text === blK(c3.backAt) && !(mornBefore && dark4) && !!inn4 && want4 != null && Math.abs(inn4.hour - want4) < 0.06 && (!fork4 || (W8night(fork4.hour) === /in the dark/.test(fork4.text))));
+      okK('the walk\'s line by its hour: at 2 "' + blK(2) + '", at 5.5 "' + blK(5.5) + '", at 9 "' + blK(9) + '"; the fork at 2.5 "' + flK({}, 2.5).slice(0, 60) + '", at 5.5 "' + flK({}, 5.5).slice(0, 60) + '"',
+        blK(2) === CK.L('wagon.back') && !!ChK.LINES.backDawn && blK(5.5) === ChK.LINES.backDawn && blK(9) === ChK.LINES.backDay && /fork beyond it in the dark\./.test(flK({}, 2.5)) && /in the first grey of the dawn/.test(flK({}, 5.5)));
+      // 5. THE FRONT DOOR'S CUTAWAY wakes by the step (RULED 11-10: within 6 squares of it, the party outside); the post at the step, lit at dusk and by night, the step's pool under it
+      var B5 = testK('?roam=halfway&hour=18&day=5'), cut5 = [[18, 18], [12, 18], [11, 18], [18, 12], [18, 25], [24, 24]].map(function (q) { atK(B5, q[0], q[1]); return q.join(',') + ' ' + cutK(B5); });
+      atK(B5, 18, 18, [1, 0]); atK(B5, 19, 18); driveK(RK.arrive(B5), 400); var in5 = RK.def.inside, cutIn5 = cutK(B5);
+      var lit5 = IPK.find(InK.ROWS, false, { lit: true }).pieces.filter(function (p) { return p[0] === 'yard_postlit'; }).map(function (p) { return p[1] + ',' + p[2]; }), pool5 = (RK.def.skyLights || []).some(function (l) { return l.x === 18 && l.y === 18; });
+      okK('the cutaway by the step: ' + cut5.join('; ') + '; in the doorway (' + in5 + ') ' + cutIn5 + '; rows ' + CUTK.y0 + '-' + CUTK.y1 + ' from x ' + CUTK.x0 + ' to the door; the posts lit ' + lit5.join(' ') + ', the step\'s pool ' + pool5,
+        cut5.join(';') === '18,18 true;12,18 true;11,18 false;18,12 true;18,25 false;24,24 true' && in5 === 'inn' && cutIn5 === false && CUTK.y0 === 15 && CUTK.y1 === 21 && CUTK.x1 === 19 && lit5.join() === '42,15,17,17' && InK.ROWS[17].charAt(17) === 'l' && pool5);
+      okK('the tall pieces see-through by presence: ' + Object.keys(TALLK).join(', ') + '; the look each frame with the floor\'s wall cut (D.roam.occlude wraps IP.tick: ' + /IP\.tick/.test(String(RK.occlude)) + ')',
+        TALLK.inn_hearth === 1 && TALLK.up_chimney === 1 && /IP\.tick/.test(String(RK.occlude)) && typeof IPK.drawSee === 'function');
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    HK.playing = false; HK.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
+    D.store.get = stGK; D.store.set = stSK; D.music = muK;
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // THE HALFWAY INN ON THE GRID, 11-04 (mode=inn1104; js/inn.js -- the Inn build seat, started by the lanes desk on Griz's word: "alright, did a story-plot review for the
   // inn, we're ready to start adding it back to the world"; re-cut on his "I'd like to try to have the inn exist only as an iso - if we can properly manage the interior
   // interaction (perma transparent walls when party-token inside?)" and "then it can build the interior around the dinner scene, make the inn a more proper place than
@@ -5531,12 +5636,12 @@
       // head; out in the yard the house's furniture stays under its roof; the lamp lit by night
       var IPy = D.innprops, cntY = function (L, nm, mir) { return L.pieces.filter(function (p) { return p[0] === nm && (mir == null || !!p[5] === mir); }).length; };
       var fY = IPy.find(InI.ROWS, false, { lit: false }), fYn = IPy.find(InI.ROWS, false, { lit: true }), fU = IPy.find(InI.UPROWS, true);
-      var nmsY = ['barn_stallN', 'barn_stallS', 'yard_trough', 'barn_hay', 'yard_rail', 'yard_well', 'yard_woodpile', 'shore_boat', 'yard_post', 'shore_stone', 'kitchen_tools', 'kitchen_kettle', 'yard_sign', 'shore_float'], wantY = [3, 3, 1, 1, 2, 1, 4, 1, 1, 1, 1, 1, 1, 3];
+      var nmsY = ['barn_stallN', 'barn_stallS', 'yard_trough', 'barn_hay', 'yard_rail', 'yard_well', 'yard_woodpile', 'shore_boat', 'yard_post', 'shore_stone', 'kitchen_tools', 'kitchen_kettle', 'yard_sign', 'shore_float'], wantY = [3, 3, 1, 1, 2, 1, 4, 1, 2, 1, 1, 1, 1, 3]; // (yard_post 2 since 11-11: the point's and the front step's, mode=inn1111)
       var gotY = nmsY.map(function (nm) { return cntY(fY, nm); });
       testIn('?roam=halfway&hour=10&day=5&at=10,22'); var laidY = (IPy.laid ? IPy.laid.pieces : []).map(function (p) { return p[0]; });
       var houseOutY = laidY.filter(function (n) { return /^inn_|^barn_|^kitchen_/.test(n); }).length;
       okIn('pages 5, 6, 9A and 9B laid (11-05): ' + nmsY.map(function (nm, k) { return nm + ' ' + gotY[k]; }).join(', ') + '; the north stalls as drawn ' + cntY(fY, 'barn_stallN', false) + '; the lamp lit by night ' + cntY(fYn, 'yard_postlit') + '; upstairs the chimney ' + cntY(fU, 'up_chimney') + ', the stair head ' + cntY(fU, 'up_stairhead') + '; in the yard by day ' + laidY.length + ' laid, the house\'s and the barn\'s under their roofs (' + houseOutY + ' out)',
-        gotY.join() === wantY.join() && cntY(fY, 'barn_stallN', false) === 3 && cntY(fYn, 'yard_postlit') === 1 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
+        gotY.join() === wantY.join() && cntY(fY, 'barn_stallN', false) === 3 && cntY(fYn, 'yard_postlit') === 2 && cntY(fYn, 'yard_post') === 0 && cntY(fU, 'up_chimney') === 1 && cntY(fU, 'up_stairhead') === 1 && laidY.length > 10 && houseOutY === 0);
       // 9b4. THE SUPPER ON THE TABLES (11-05, the exteriors seat; page 9A): the long spread's dishes along the long table's top and the spread for two, drawn only while
       // the party sits at THE MEAL (In.sit to In.rise)
       var Bsp = testIn('?roam=halfway&hour=18&day=5&inside&at=24,17'), dishSp = ((D.SHEETS.innprops_p2 || {}).spread || []).length, tabSp = IPy.laid ? IPy.laid.tables : [];
