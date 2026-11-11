@@ -2400,7 +2400,7 @@
   function tooltip(ctx, B, u) {
     if (B.inspect || B.list || (B.req && ((B.req.prompt && !B.req.prompt.pick) || B.req.entry))) return; // (a pick on the grid keeps the tooltip)
     var w = underCursor(B), lines = []; // (a darkmantle on a head the mouse is on, or the one the attack cued would strike)
-    if (w && w !== B.active) {
+    if (w && w !== B.active && !w.noTip) { // (noTip: the DM's elder mage on the lay floor -- his wheel's words sit where his card would, js/runes.js)
       lines.push((w.side === 'foe' ? '{r}' : '{c}') + w.name + '{/}  HP ' + w.hp + '/' + w.maxhp + '  AC ' + RU.ac(w) + conds(w));
       if (w.hang && w.hang.face && G.hanging(w)) { var clZ = G.map.gz(w.hang.foot[0], w.hang.foot[1]), clS = G.map.def.step, clUp = Math.round((w.hang.z - clZ) / clS * 5) / 2, clTop = Math.round((G.map.gz(w.hang.face[0], w.hang.face[1]) - w.hang.z) / clS * 5) / 2; lines.push('{y}on the face{/}: ' + clUp + ' ft up, ' + clTop + ' ft to the top'); } // (a clinger: the rope's line for a face -- 10-05, Griz: "ensure 5 foot")
       if (u && G.hostile(u, w) && !w.dead) {

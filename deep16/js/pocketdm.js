@@ -64,6 +64,9 @@
     }
     // (a map a module already stands on is the campaign's, paid nothing: what was built before THE LOCATIONS keeps its floors)
     c.modules.forEach(function (m) { (m.slots || []).forEach(function (s) { if (s && s.map && D.MAPS[s.map] && !c.maps.some(function (x) { return x.id === s.map; })) c.maps.push({ id: s.map, paid: 0, at: Date.now() }); }); });
+    // (a fight whose runes are no longer its foes -- R on a page from before the runes rolled it again and left them on the slot, 11-10: the runes dropped, the roll kept; a laid
+    // fight is its runes, js/runes.js)
+    if (D.runes && D.runes.stale) c.modules.forEach(function (m) { (m.slots || []).forEach(function (s) { if (D.runes.stale(s)) s.runes = []; }); });
     return c;
   };
   PD.price = function (kind) { var f = PK.foe(kind); if (!f) return 0; var e = PK.cr8(f.cr); return e > 0 ? e * PD.CP8 : PD.CP0; }; // (a villain's word at its level's CR, js/pocket.js PK.foe)

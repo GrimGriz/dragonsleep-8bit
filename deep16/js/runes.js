@@ -61,6 +61,12 @@
     slot.foes = foes; slot.units = units; slot.mine = mine; slot.cr8 = PK.sum8(foes);
     return slot;
   };
+  // runes left behind: a slot's runes whose creatures, joined, are no longer exactly its foes (an older page's R rolled the fight again under them) -- js/pocketdm.js PD.camp drops them
+  RN.stale = function (slot) {
+    if (!RN.laid(slot) || !Array.isArray(slot.foes)) return false;
+    var ks = []; slot.runes.forEach(function (r) { ks = ks.concat(r && Array.isArray(r.foes) ? r.foes : []); });
+    return RN.sig(ks) !== RN.sig(slot.foes);
+  };
   // the type a rune shows: its highest-CR member's (the lean, 11-07: "A unit of mixed types shows its highest-CR member's type")
   RN.typeOf = function (kinds) {
     var best = null, b8 = -1;
@@ -231,14 +237,14 @@
     B.units = B.units.filter(function (u) { return u === mage; }); // (a familiar the wizard's sheet brings stays home)
     var en = RN.cleanEntry(slot.entry, slot.map) || (B.entrySq && B.entrySq[0]) || m.def.entry[0];
     var L = B.lay = { pk: pk, mod: mod, si: si, slot: slot, o: o, mage: mage, mode: 'fly', entry: en.slice(), cur: { x: en[0], y: en[1] }, hover: null, floorHover: null, btns: [], card: null, pick: null, tab: 0, row: 0,
-      msg: null, step: (m.def.step || 10), t0: B.t, moveT: -99 };
-    mage.flies = true; mage.laid = true; mage.name = 'The Elder Mage'; mage.x = en[0]; mage.y = en[1]; mage.facing = 1; mage.anim = 'hover'; mage.animT = 0; mage.torch = null;
+      msg: null, step: (m.def.step || 10), t0: B.t, moveT: -99, follow: true, park: null, wheel: null };
+    mage.flies = true; mage.laid = true; mage.noTip = true; mage.name = 'The Elder Mage'; mage.x = en[0]; mage.y = en[1]; mage.facing = 1; mage.anim = 'hover'; mage.animT = 0; mage.torch = null;
     L.z = m.gz(en[0], en[1]) + 2 * G.LAYER(); mage.fz = L.z;
     RN.list(slot).forEach(function (r, i) { RN.seatRune(B, r, i); });
     G.setup(m, B.units);
     D.spr.ensure([mage.sheet]);
     B.focus(mage);
-    B.card(['{y}' + F_name(B) + '{/}: the floor as the party will find it.', '{g}E: LAY THE RUNE -- a unit of yours, by its CR. A click on a rune: its posture; on the pale one, the party\'s way in. Shift+wheel or [ ]: the mage up and down. X: back to BUILD.{/}'], 420, 'lay');
+    B.card(['{y}' + F_name(B) + '{/}: the floor as the party will find it.', '{g}A click on him (or Q): his wheel -- FOLLOW, SPELLS, THE WAY IN. E: LAY THE RUNE -- a unit of yours, by its CR. A click on a rune: its posture; on the pale one, the party\'s way in. Shift+wheel or [ ]: the mage up and down. X: back to BUILD.{/}'], 420, 'lay');
     RN.warnCheck(B, true);
     if (o.show) RN.stage(B);
   };
@@ -292,7 +298,7 @@
     var dz = (m.wheel && m.wheelShift && m.inside ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') ? 1 : 0);
     if (m.wheel && m.wheelShift) m.wheel = 0;
     if (dz && L.mode !== 'stomp') RN.lift(B, dz);
-    var btnHit = RN.readButtons(B);
+    var btnHit = L.mode === 'wheel' ? false : RN.readButtons(B); // (the wheel reads its own icons: RN.wheelInput)
     if (!btnHit) RN.input(B);
     RN.mageStep(B);
     RN.tickStomp(B);
@@ -307,7 +313,7 @@
   RN.altFt = function (B, x, y) { var L = B.lay, g = RN.groundOf(B.map, L.mage, x, y); return Math.max(0, Math.round((L.z - g) / L.step * 2.5 / 5) * 5); };
   // the mage after the cursor, a square at a time, flying; hanging still when it stops
   RN.mageStep = function (B) {
-    var L = B.lay, mg = L.mage, tgt = L.stompAt || [L.cur.x, L.cur.y];
+    var L = B.lay, mg = L.mage, tgt = L.stompAt || (L.follow && L.mode !== 'wheel' ? [L.cur.x, L.cur.y] : L.park || [mg.x, mg.y]); // (following the pointer, or staying where his wheel left him: RN.WHEEL's FOLLOW)
     if (L.mode === 'stomp' && L.stompT != null) { mg.fz = L.z > G.groundAt(mg, mg.x, mg.y) ? L.z : null; return; }
     var dx = Math.sign(tgt[0] - mg.x), dy = Math.sign(tgt[1] - mg.y), g = G.groundAt(mg, mg.x, mg.y);
     if ((dx || dy) && !mg.tween && B.t - (L.moveT || 0) >= 3) {
@@ -353,11 +359,17 @@
       var cc = D.iso.center(L.cur.x, L.cur.y, B.map.gz(L.cur.x, L.cur.y)), sp = D.iso.toScreen(cc.x, cc.y); // (the keys' cursor kept on the screen)
       if (sp.x < 48 || sp.x > D.W - 48 || sp.y < 36 || sp.y > D.H - 44) { D.iso.lookAt(L.cur.x, L.cur.y, B.map.gz(L.cur.x, L.cur.y)); D.ui.clampCam(); }
     });
+    if (L.mode === 'wheel') return RN.wheelInput(B);
     if (L.mode === 'fly') {
       if (a) return RN.openPick(B);
       if (b) return RN.leave(B);
+      if (I.pressed('ring')) return RN.openWheel(B); // (Q, the ring's key on the grid)
       if (m.click && L.floorHover) { var hr = RN.runeAt(B, L.floorHover.x, L.floorHover.y); if (hr === 'entry') return RN.openEntry(B); if (hr) return RN.openCard(B, hr); }
-      if (m.click && L.hover) { var hr2 = RN.runeAt(B, L.hover.x, L.hover.y); if (hr2 === 'entry') return RN.openEntry(B); if (hr2) return RN.openCard(B, hr2); }
+      // CLICK HIM (11-10, Griz: "add a 'click him' to turn off and on whether he's following the mouse, we'll do more with this later"; "I'd like a wheel-menu version for a
+      // mouse-over player, so incorporate the above into a wheel-like mode select"): a click on his figure -- or anywhere off a rune while he follows the pointer, since he is
+      // under it -- opens his wheel; staying, a click on the floor sends him there
+      if (m.click && (RN.onMage(B) || L.follow)) return RN.openWheel(B);
+      if (m.click && L.hover && !L.follow) { L.park = [L.hover.x, L.hover.y]; D.sfx('cursor'); return; }
       return;
     }
     if (L.mode === 'aim') {
@@ -377,6 +389,78 @@
       if (L.mode === 'moveEntry') return RN.moveEntry(B, at.x, at.y);
       return RN.setTo(B, L.card, at.x, at.y);
     }
+  };
+  // ------------------------------------------------------------------ HIS WHEEL (11-10, Griz: "I'd like a wheel-menu version for a mouse-over player, so incorporate the above into
+  // a wheel-like mode select. While spells will be unit runes, he'll get channel divinity or something that shapes the map itself in future variants"): a click on him opens it
+  // round him, as the grid's ring opens round a hero (js/ui.js cmdRing) -- the icon under the pointer comes to the front, a click takes it; the arrows turn it, E takes the front
+  // one, X or a right click puts it away. FOLLOW (the click-him toggle: he follows the pointer, or stays and a click on the floor sends him), SPELLS (the unit runes: LAY THE
+  // RUNE), THE WAY IN, CHANNEL DIVINITY (held for the variants that shape the map itself), DONE. He holds still while it is open
+  RN.WHEEL = [
+    { id: 'follow', icon: 'move' },
+    { id: 'runes', icon: 'spell', tint: 'force', label: 'SPELLS: LAY THE RUNE', note: 'a unit of yours, by its CR band -- then its square, the stomp, the formation' },
+    { id: 'wayin', icon: 'group', label: 'THE WAY IN', note: 'move the party\'s rune: where they come in' },
+    { id: 'channel', icon: 'sacred', label: 'CHANNEL DIVINITY', note: 'shaping the map itself', ok: false, why: 'not yet: a later variant shapes the map itself' },
+    { id: 'done', icon: 'end', label: 'DONE: BACK TO BUILD', note: 'every rune is kept as laid' }
+  ];
+  RN.wheelItems = function (B) {
+    var L = B.lay;
+    return RN.WHEEL.map(function (w) {
+      var e = Object.assign({ ok: true }, w);
+      if (w.id === 'follow') { e.label = L.follow ? 'FOLLOW THE POINTER: ON' : 'FOLLOW THE POINTER: OFF'; e.note = L.follow ? 'he flies after the pointer -- take it, and he stays where he is' : 'he stays; a click on the floor sends him -- take it, and he follows again'; }
+      if (w.id === 'runes' && !RN.groups(L.pk.st, L.slot).length) { e.ok = false; e.why = 'no units bound yet: THE CAMPAIGN\'s shops, then BIND'; }
+      return e;
+    });
+  };
+  RN.onMage = function (B) { var m = I.mouse, mg = B.lay.mage; return !!(m.inside && D.ui.pickUnit && D.ui.pickUnit(B, m.x, m.y, function (u) { return u === mg ? 2 : 0; }) === mg); };
+  RN.openWheel = function (B) { var L = B.lay; L.wheel = { sel: 0, still: false, ang: null, from: [L.cur.x, L.cur.y] }; if (L.follow) L.park = [L.mage.x, L.mage.y]; L.mode = 'wheel'; D.sfx('popup'); };
+  RN.closeWheel = function (B) { var L = B.lay; L.wheel = null; L.mode = 'fly'; };
+  RN.wheelInput = function (B) {
+    var L = B.lay, W = L.wheel, its = RN.wheelItems(B), n = its.length, m = I.mouse;
+    if (I.repeat('right') || I.repeat('down')) { W.sel = (W.sel + 1) % n; W.still = false; D.sfx('cursor'); }
+    if (I.repeat('left') || I.repeat('up')) { W.sel = (W.sel - 1 + n) % n; W.still = false; D.sfx('cursor'); }
+    var over = (W.hits || []).filter(function (h) { return inR(h, m); })[0];
+    if (over && m.moved && over.i !== W.sel) { W.sel = over.i; W.still = true; D.sfx('cursor'); } // (the pointer picks: the ring holds still while it does, as the grid's)
+    if (I.pressed('a') || (m.click && over)) return RN.wheelPick(B, its[over && m.click ? over.i : W.sel]);
+    if (I.pressed('b') || I.pressed('ring') || m.rclick || (m.click && !over)) { D.sfx('cancel'); RN.closeWheel(B); }
+  };
+  RN.wheelPick = function (B, e) {
+    var L = B.lay; if (!e) return;
+    if (!e.ok) { D.sfx('error'); L.msg = { text: e.label + ': ' + (e.why || 'not now'), t: 220 }; return; }
+    D.sfx('confirm'); RN.closeWheel(B);
+    if (e.id === 'follow') {
+      L.follow = !L.follow; L.park = L.follow ? null : [L.mage.x, L.mage.y];
+      B.card([L.follow ? '{y}FOLLOW{/}: he flies after the pointer again.' : '{y}STAY{/}: he holds here. A click on the floor sends him; a click on him, his wheel.'], 240, 'layfollow');
+      return;
+    }
+    if (e.id === 'runes') return RN.openPick(B);
+    if (e.id === 'wayin') return RN.openEntry(B);
+    if (e.id === 'done') return RN.leave(B);
+  };
+  RN.drawWheel = function (c, B) {
+    var L = B.lay, W = L.wheel; if (!W) return;
+    var its = RN.wheelItems(B), n = its.length, mg = L.mage, p = D.ui.unitPos(B, mg), cx = p.x, cy = Math.round(p.y - 26 * D.iso.zoom), rx = Math.max(52, n * 9), ry = Math.max(28, n * 5);
+    var target = -W.sel * (Math.PI * 2 / n); if (W.ang == null) W.ang = target;
+    var dA = target - W.ang; while (dA > Math.PI) dA -= Math.PI * 2; while (dA < -Math.PI) dA += Math.PI * 2;
+    if (!W.still) W.ang += dA * 0.35;
+    L.panels.push({ x: cx - rx - 16, y: cy - ry - 16, w: 2 * rx + 32, h: 2 * ry + 32 });
+    c.fillStyle = 'rgba(28,12,40,.55)'; c.beginPath(); c.ellipse(cx, cy, rx + 12, ry + 12, 0, 0, 7); c.fill();
+    c.save(); c.globalAlpha = 0.7; c.lineWidth = 1.5; c.strokeStyle = RN.COL.ambush; c.beginPath(); c.ellipse(cx, cy, rx + 12, ry + 12, 0, 0, 7); c.stroke(); c.restore();
+    var order = its.map(function (e, i) { var a = Math.PI / 2 + W.ang + i * Math.PI * 2 / n; return { e: e, i: i, x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry, z: Math.sin(a) }; });
+    order.sort(function (a, b) { return a.z - b.z; });
+    W.hits = [];
+    order.forEach(function (o) {
+      var front = o.i === W.sel, s = front ? 2 : 1, ic = D.icon(o.e.icon, o.e.tint), bx = Math.round(o.x - 6 * s), by = Math.round(o.y - 6 * s);
+      W.hits.push({ i: o.i, x: bx - 2, y: by - 2, w: 12 * s + 4, h: 12 * s + 4 });
+      c.fillStyle = front ? P('gold', 1) : P('stone', 1); c.fillRect(bx - 2, by - 2, 12 * s + 4, 12 * s + 4);
+      c.strokeStyle = front ? P('gold', 4) : o.e.ok ? P('silver', 3) : P('stone', 3); c.strokeRect(bx - 1.5, by - 1.5, 12 * s + 3, 12 * s + 3);
+      c.globalAlpha = o.e.ok ? 1 : 0.4; c.drawImage(ic, bx, by, 12 * s, 12 * s); c.globalAlpha = 1;
+      if (o.e.id === 'follow' && !L.follow) { c.strokeStyle = RN.COL.bad; c.lineWidth = 1.5; c.beginPath(); c.moveTo(bx, by + 12 * s); c.lineTo(bx + 12 * s, by); c.stroke(); c.lineWidth = 1; } // (off: struck through)
+    });
+    var cur = its[W.sel], lab = cur.label, lw = D.textWidth(lab) + 10, ly = Math.min(D.H - 46, cy + ry + 18);
+    c.fillStyle = 'rgba(8,8,20,.88)'; c.fillRect(Math.round(cx - lw / 2), ly, lw, 12); c.strokeStyle = P('gold', 3); c.strokeRect(Math.round(cx - lw / 2) + 0.5, ly + 0.5, lw - 1, 11);
+    D.text(c, lab, cx, ly + 2, cur.ok ? P('bone', 2) : P('stone', 4), 'center');
+    var sub = !cur.ok && cur.why ? cur.why : cur.note || '';
+    if (sub) { var sw = D.textWidth(sub) + 8; c.fillStyle = 'rgba(8,8,20,.8)'; c.fillRect(Math.round(cx - sw / 2), ly + 13, sw, 11); D.text(c, '{g}' + sub + '{/}', cx, ly + 15, P('bone', 2), 'center'); }
   };
   RN.runeAt = function (B, x, y) {
     var L = B.lay; if (L.entry[0] === x && L.entry[1] === y) return 'entry';
@@ -644,7 +728,7 @@
       RN.btn(B, c, 'LAY THE RUNE (E)', 6, by, 112, 14, function () { RN.openPick(B); }, { on: false });
       RN.btn(B, c, 'THE WAY IN', 122, by, 80, 14, function () { RN.openEntry(B); });
       RN.btn(B, c, 'DONE (X)', D.W - 76, by, 70, 14, function () { RN.leave(B); });
-      D.text(c, 'THE MAGE ' + (ft ? '{c}' + ft + ' FT UP{/}' : 'ON THE FLOOR') + '  {g}Shift+wheel or [ ]{/}', 210, by + 4, P('bone', 2));
+      D.text(c, 'THE MAGE ' + (ft ? '{c}' + ft + ' FT UP{/}' : 'ON THE FLOOR') + (L.follow ? '' : ' {o}STAYS{/}') + '  {g}Shift+wheel [ ]{/}', 210, by + 4, P('bone', 2));
     }
     if (L.mode === 'aim') {
       var p = L.pick; D.text(c, '{y}AIM{/} ' + RN.name(p.g.kinds) + (p.flies ? (RN.altFt(B, L.cur.x, L.cur.y) ? '  {c}laid aloft at ' + RN.altFt(B, L.cur.x, L.cur.y) + ' ft (all of them fly){/}' : '  {g}all fly: lift the mage to lay them aloft{/}') : '') + (L.aimWhy ? '   {o}' + L.aimWhy + '{/}' : '   {g}click: the stomp lays the rune{/}'), 6, by - 10, P('bone', 1));
@@ -656,6 +740,7 @@
       RN.btn(B, c, 'BACK (X)', D.W - 76, by, 70, 14, function () { L.mode = L.mode === 'moveEntry' ? 'fly' : 'card'; B.cards = B.cards.filter(function (q) { return q.id !== 'laysecond' && q.id !== 'layentry'; }); });
     }
     if (L.mode === 'pick') RN.drawPick(c, B);
+    if (L.mode === 'wheel') RN.drawWheel(c, B);
     if (L.mode === 'card' && L.card) RN.drawCard(c, B, L.card);
     if (L.msg) D.text(c, '{o}' + L.msg.text + '{/}', D.W / 2, D.H - 32, P('bone', 1), 'center');
   };
@@ -723,7 +808,8 @@
   // fight on &map= (the Hex floor by default), its lay floor open; &show stages the look: four runes, one a posture, the party's way in warned (the eyes rows' doors)
   RN.SCRATCH = [['goblin', 'goblin', 'hobgoblin'], ['ogre'], ['giantbat', 'giantbat'], ['wolf', 'wolf', 'wolf'], ['bugbear']];
   RN.scratch = function (q) {
-    var mp = (/[?&]map=([a-z0-9_]+)/.exec(q || '') || [])[1], st = { dm: true, party: PK.defaultParty ? PK.defaultParty() : null };
+    // (a whole table's state, as js/pocket.js PK.load fills a saved one: without its roster, BUILD's BACK to THE CAMP threw on st.roster -- his first play of the door, 11-10)
+    var mp = (/[?&]map=([a-z0-9_]+)/.exec(q || '') || [])[1], st = { dm: true, party: PK.defaultParty ? PK.defaultParty() : null, roster: [], fights: [], pyro: false, run: null, purse: 100, pack: [] };
     var cp = PD.camp(st); cp.purse = 50000;
     RN.SCRATCH.forEach(function (ks) { if (!ks.every(function (k) { return PK.foe(k); })) return; var ids = ks.map(function (k) { return PD.buy(st, k).receipt.id; }); PD.bind(st, ids); });
     var map = mp && D.MAPS[mp] ? mp : 'hexfloor';
