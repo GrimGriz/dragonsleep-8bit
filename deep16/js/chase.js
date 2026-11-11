@@ -105,24 +105,84 @@
   };
   Ch.clear = function (B) { [Ch.amara, Ch.willem].forEach(function (u) { if (u && B.units.indexOf(u) >= 0) In.gone(B, u); }); Ch.amara = Ch.willem = null; };
   Ch.pair = function (B) { return [Ch.amara, Ch.willem].filter(function (u) { return u && B.units.indexOf(u) >= 0 && u.hp > 0 && !u.dead; }); };
+  // THE SILK ACROSS THE ROAD (RULED 11-11, Griz: "yes to the gulch and greys", on the inn seat's lean to his 11-06 ask on eyes-wagonwatch-1105, "chase needs work (either the
+  // horseback or not runners get stuck in webbing/jumped by a spider) or something that sensibly slows them down", and his 11-11 "like with a note to have amara and/or willem
+  // caught in webbing at the gulch"; for the gulch it supersedes 11-04's "with horses losing them there is losing them"): midway up the cut, where the gulch's own webs come
+  // down to the road (js/gulch.js Gu.ROWS 53-55), silk is strung across it -- on the chase's night the road's squares on that row are webbing (the floor's look, walked as
+  // the bed). The pair run into it, on the greys or on foot, and are caught: restrained as by the SRD's Web, a Strength check at DC 12 to tear free, one try a turn (the
+  // floor's turn, six of the party's steps -- js/roam.js R.tickGroups' round). One torn free runs on up the cut toward the fork; both torn free, the chase goes on as it was
+  // (the greys lost at the north mouth). The party within two squares of one still caught: the catch is there, the one caught restrained in the fight (the grid's web: it
+  // tears at it with its action, js/ai.js) -- and after it, the one who ran on is chased to the fork as after any catch. The seat's lines: invented.json halfway-chase-web
+  Ch.WEB = { y: 55, dc: 12, round: 6 };
+  Ch.WEBL = {
+    caught: 'Midway up the cut the silk is strung across the road, and they run straight into it: caught fast.',
+    caughtHorses: 'Midway up the cut the silk is strung across the road, and the greys run straight into it, screaming: the pair caught fast in the saddle.',
+    caughtOne: 'Midway up the cut the silk is strung across the road, and {name} runs straight into it: caught fast.',
+    free: '{name} tears free of the silk and is away up the cut.',
+    both: 'Free of the silk, and away up the cut again.',
+    catch: 'You come up on them where the silk holds them.',
+    catchOne: 'You come up on {name} where the silk holds.'
+  };
+  Ch.strMod = function (u) { var a = u.abil || (D.FOES[u.kind] || {}).abil || {}; return Math.floor(((a.str != null ? a.str : 10) - 10) / 2); };
+  Ch.webbed = function (B) { return Ch.pair(B).filter(function (u) { return u.webbed; }); };
+  Ch.webCaught = function* (B, c, pair) {
+    c.webbed = true; c.web = { on: true, steps: 0, ahead: null };
+    pair.forEach(function (u) { u.webbed = true; u.anim = 'idle'; u.animT = B.t; if (D.fx) D.fx.sparkle(u, 'bone', 12); });
+    if (D.house && D.house.trail) D.house.trail('chase', 'the pair caught in the silk across the road, row ' + Ch.WEB.y);
+    D.sfx('miss');
+    yield* In.card(B, [pair.length > 1 ? (c.horses ? Ch.WEBL.caughtHorses : Ch.WEBL.caught) : Ch.WEBL.caughtOne.split('{name}').join(pair[0].name)], 420);
+  };
+  // a turn at the strand: each one caught tries its Strength once (the party's six steps); the one torn free runs on out of sight, or both on together
+  Ch.webTick = function* (B, c) {
+    var w = c.web; w.steps++;
+    if (w.steps % Ch.WEB.round) return;
+    var stuck = Ch.webbed(B), freed = [];
+    stuck.forEach(function (u) {
+      var r = In.d20(), m = Ch.strMod(u), ok = r + m >= Ch.WEB.dc;
+      if (D.house && D.house.trail) D.house.trail('check', 'the silk: ' + u.name + ' Strength ' + r + (m < 0 ? ' - ' : ' + ') + Math.abs(m) + ' vs DC ' + Ch.WEB.dc + (ok ? ', torn free' : ', held'));
+      if (ok) { u.webbed = false; freed.push(u); }
+    });
+    if (!freed.length) return;
+    if (!Ch.webbed(B).length) { // (none held now: on up the cut, the one who ran on first with them)
+      w.on = false; if (w.ahead) Ch.place(B, c, c.y);
+      yield* In.card(B, [stuck.length + (w.ahead ? 1 : 0) > 1 ? Ch.WEBL.both : Ch.WEBL.free.split('{name}').join(freed[0].name)], 360); return;
+    }
+    freed.forEach(function (u) { w.ahead = u.name; In.gone(B, u); }); // (out of sight up the cut: Ch.willem or Ch.amara kept, still up, for the chase after the catch)
+    yield* In.card(B, freed.map(function (u) { return Ch.WEBL.free.split('{name}').join(u.name); }), 360);
+  };
+  // the strand on the floor while the chase is on (the gulch's own webbing on the road's squares of its row)
+  var gmap0 = M.FLOORS[Gu.KEY] && M.FLOORS[Gu.KEY].map;
+  if (gmap0) M.FLOORS[Gu.KEY].map = function (hour, flags) {
+    var d = gmap0.apply(this, arguments), c = flags && flags.wagonChase; if (!c || c.back || !d || !d.rows) return d;
+    d.rows = d.rows.map(function (r, y) { return y === Ch.WEB.y ? r.replace(/,/g, 'x') : r; });
+    return d;
+  };
   // each square the party walks up the road: the pair take their share, in sight or not; closed to two squares, the catch; the north mouth reached, the fork or the loss
   Ch.tick = function* (B) {
     var R0 = B.roam, f = R0.flags, c = f.wagonChase, t = R0.token; if (!c || !c.on) return null;
     R0.encIn = 1e9; c.steps++;
-    var pair = Ch.pair(B); if (!pair.length) { c.on = false; return null; }
+    var pair = Ch.pair(B); if (!pair.length && !(c.web && c.web.on && c.web.ahead)) { c.on = false; return null; }
+    if (c.web && c.web.on) { // (held in the silk: they stay; a turn's try; the party up to them, the catch there)
+      yield* Ch.webTick(B, c);
+      if (c.web.on) { if (t.y - c.y <= Ch.CATCH) { yield* Ch.caught(B, c, true); return 'chase'; } return null; }
+      pair = Ch.pair(B);
+    }
     c.acc += Ch.pace(B, c); var n = Math.floor(c.acc + 1e-9); c.acc -= n;
-    var y1 = Math.max(1, c.y - n);
+    var y1 = Math.max(1, c.y - n), web = !c.webbed && c.y > Ch.WEB.y && y1 <= Ch.WEB.y; if (web) y1 = Ch.WEB.y; // (the strand stops them on its row)
     if (y1 !== c.y) { var x1 = Ch.roadX(y1); pair.forEach(function (u, i) { u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(0, -1); u.anim = D.spr.anim(u.sheet, 'run') ? 'run' : 'walk'; u.animT = B.t; if ((u.size || 1) > 1) { u.x = Ch.roadX(y1 + 2 * i); u.y = y1 + 2 * i; } else { u.x = x1 + i; u.y = y1; } }); /* (a rider on a grey a 2x2 on the two-square road, one behind the other) */ c.y = y1; D.grid.setup(B.map, B.units); B.cache = null; } // (the pair's own run row where the sheet has one -- Amara's amara_p2; 11-04, Griz: "sure")
+    if (web) { yield* Ch.webCaught(B, c, pair); if (t.y - c.y <= Ch.CATCH) { yield* Ch.caught(B, c, true); return 'chase'; } return null; }
     if (t.y - c.y <= Ch.CATCH) { yield* Ch.caught(B, c); return 'chase'; }
     if (c.y <= 1) { yield* Ch.mouth(B, c); return 'chase'; }
     return null;
   };
   // the catch: a fight on the floor's own squares. The first: the pair run again from the first turn, and the road eight squares on is the way off; the last: nowhere left to run
-  Ch.caught = function* (B, c) {
-    var R = D.roam, R0 = B.roam, f = R0.flags, F = B.fight, keep = {}, pair = Ch.pair(B), last = c.leg >= 2;
+  // (web: the catch at the silk -- the ones held there restrained in the fight, never the last catch; one who tore free and ran on is chased after it, Ch.webTick)
+  Ch.caught = function* (B, c, web) {
+    var R = D.roam, R0 = B.roam, f = R0.flags, F = B.fight, keep = {}, pair = Ch.pair(B), last = c.leg >= 2 && !web, ahead = web && c.web ? c.web.ahead : null;
     ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
-    c.on = false;
-    yield* In.card(B, [last ? Ch.ln(c, 'caught2', L('wagon.caught2')) : Ch.ln(c, 'caught1', L('wagon.caught1'))], 360);
+    c.on = false; if (c.web) c.web.on = false;
+    yield* In.card(B, [web ? (pair.length > 1 ? Ch.WEBL.catch : Ch.WEBL.catchOne.split('{name}').join(pair[0] ? pair[0].name : '')) : last ? Ch.ln(c, 'caught2', L('wagon.caught2')) : Ch.ln(c, 'caught1', L('wagon.caught1'))], 360);
+    if (web) pair.forEach(function (u) { if (u.webbed) { u.conds = u.conds || {}; u.conds.restrained = { dc: Ch.WEB.dc, by: 'web', kind: 'web' }; } u.webbed = false; }); // (the grid's web: it tears at it with its action, js/ai.js)
     var exits = [];
     if (!last) { for (var y = Math.max(0, c.y - Ch.AWAY - 3); y <= Math.max(0, c.y - Ch.AWAY); y++) { var x = Ch.roadX(y); exits.push([x, y], [x + 1, y]); } }
     F.runWhenHurt = null; F.fledEnds = !last; F.loosen = null; F.exit = exits; F.noFlee = last;
@@ -134,7 +194,7 @@
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     if (Ch.willem && (Ch.willem.hp <= 0 || Ch.willem.dead) && !Ch.willem.fled) c.willemDead = true;
     if (/^(lost|lose|dead|ko)$/.test(String(o))) return; // (the title: js/roam.js R.after)
-    if (o === 'won' || (last && o !== 'escaped')) { yield* Ch.done(B, c, 'road'); return; }
+    if ((o === 'won' && !ahead) || (last && o !== 'escaped')) { yield* Ch.done(B, c, 'road'); return; } // (won at the silk with one run on ahead: after that one, below)
     if (o === 'escaped') { yield* In.card(B, [Ch.ln(c, 'lostEscaped', Ch.LINES.lostEscaped)], 420); yield* Ch.done(B, c, 'fled'); return; }
     // away again: up the cut toward the fork, square for square (the first game's chase2)
     c.leg = 2; c.willem = !!(Ch.willem && Ch.willem.hp > 0 && (!Ch.willem.dead || Ch.willem.fled)); c.amara = !!(Ch.amara && Ch.amara.hp > 0 && (!Ch.amara.dead || Ch.amara.fled)); c.acc = 0; // (away off the floor is `dead` to the grid and `fled`: still up; the one killed in the first catch is not placed again -- 11-06)
