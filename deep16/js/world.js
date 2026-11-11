@@ -923,7 +923,7 @@
       // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x) -- in the simple fight
       // across the screen, the four to its left and the foes to its right (js/simple.js S.FACE)
       this.units.forEach(function (u) { var f = simple ? D.simple.FACE[u.side === 'party' ? 0 : 1] : [u.side === 'party' ? -1 : 1, 0]; u.facing = D.spr.facingFor(f[0], f[1]); });
-      if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } });
+      if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } }); if (p.mirror && D.house && D.house.cur && D.house.cur.flags) D.house.cur.flags.mirrorFought = 1; // (the supper asks: js/inn.js In.SUP.fought, 11-11)
     };
     D.push(b);
   };

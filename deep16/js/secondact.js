@@ -234,6 +234,7 @@
     if (asleep.length) yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')).split(' go down').join(asleep.length === 1 ? ' goes down' : ' go down'), A.LINES.poisonRise], 420); // (one asleep: "goes" -- 11-11)
     else yield* In.card(B, [A.LINES.poisonUp], 420); // (nobody asleep: said aloud at the supper, or every bowl pushed away -- 11-11)
     B.units.filter(function (u) { return u.npc === 'gennet' || u.npc === 'doranIn'; }).forEach(function (u) { In.gone(B, u); }); // (the two at the table, as foes now)
+    B.units.filter(function (u) { return u.npc === 'snootRunner'; }).forEach(function (u) { In.gone(B, u); }); // (RULED 11-11, ruling 38, Griz: "that's a moot trigger fella, irrelevant to these scenes" -- off the field)
     // AT THE TABLE (11-06, Griz on the fight: "the fight should break out from a dinner thing, with them in dinner positions"): the Waterbys up from their own places at the long table
     // -- the inn lady on its north side, Doran at its west end (js/inn.js In.TABLE, the meal's seats) -- and the party at theirs once the fight spills them (A.seatFight): the sleepers
     // slumped where they sat, the awake up beside their places. It had opened with the party stood below the table and the pair at 24,16 and 26,16
