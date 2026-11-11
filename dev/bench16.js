@@ -18264,6 +18264,114 @@
     document.body.appendChild(prePq);
     return;
   }
+  // SWANN'S READING (mode=swann1111; 11-11, the Swann tour seat -- Griz, 11-10: "I think I'm going to need the coordinating seat to try to string together a walkthrough
+  // of what's on the eyerows, some kind of gamification. Loading up the situations page doesn't seem a good way to get me to do it"; 11-11: "2 go", "4 yes"): the deck
+  // dealt from js/eyes.js by priority and place, the doors off the grid and her own table left out (../js/tour.js T.order, T.deal, T.count); the bar's keys writing the
+  // store situations.html reads (T.mount: 1 works and on, 2 broken with the note at once, N a note that stays, P PASS's note "passed", 3 then Esc, the arrows; the game
+  // deaf while the card is up and its own keys again when it is down; the last answer to her table); the ear file carrying them (js/onegallery.js OG.earFile); the
+  // deck's end at her table (js/swann.js S.Table: the six turned face up, her line from his words, the owl's count, DEAL SIX MORE, TURN THE NEXT CARD); her booth's
+  // READ THE CARDS with the tester switch on and never off (js/hours.js C.SCRIPTS.swann). On a stand-in eyes list and this page's store, put back after
+  if (get('mode', '') === 'swann1111') {
+    var repW = { checks: [], errors: [] }, okW = function (c, s) { repW.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var TW = window.DS && window.DS.TOUR, keepW = ['dsl-situations-feedback:v1', 'dsl-situations-lastsave', 'dsl-swann-deck:v1', 'deep16.tester'], lsW = {}, eyes0W = window.DS && window.DS.EYES, nav0W = TW && TW.nav, dl0W = TW && TW.navDelay;
+    keepW.forEach(function (k) { try { lsW[k] = localStorage.getItem(k); } catch (e) { lsW[k] = null; } });
+    try {
+      okW(!!TW && !!D.swann && !!D.swann.Table, 'the deck (../js/tour.js DS.TOUR) and her table (js/swann.js D.swann) are on the page');
+      if (!TW || !D.swann) throw new Error('no DS.TOUR or D.swann on the page: nothing to bench');
+      var EW = {
+        'eyes-inn-a-1106': { pri: 2, title: 'inn a', pt: 'the inn', look: 'the yard', url: 'deep16/?innshow&beat=barn&fresh=1' },
+        'eyes-npc-a-1105': { pri: 2, title: 'npc a', pt: 'the floor', look: 'a goblin', url: 'deep16/?npc=goblin&lvl=3' },
+        'eyes-inn-b-1104': { pri: 2, title: 'inn b', pt: 'the inn', look: 'the yard', url: 'deep16/?innshow&beat=yard' },
+        'eyes-gal-a-1107': { pri: 1, title: 'gallery a', pt: 'the gallery', look: 'a fireball', url: 'deep16/?gallery&shelf=spells&spell=fireball' },
+        'eyes-snoot-1101': { pri: 1, title: 'snoot', pt: 'the snoot', look: '', url: 'snoot-mode/?fresh' },
+        'eyes-first-1031': { pri: 1, title: 'first', pt: 'the first game', look: '', url: 'index.html?fresh=1' },
+        'eyes-table-1111': { pri: 1, title: 'her table', pt: 'the eyes', look: '', url: 'deep16/?cards&fresh=1111' },
+        'eyes-inn-c-1110': { pri: 2, title: 'inn c', pt: 'the inn', look: 'a room', url: 'deep16/?innshow&beat=room' },
+        'eyes-npc-b-1109': { pri: 2, title: 'npc b', pt: 'the floor', look: 'two goblins', url: 'deep16/?npc=goblin,goblin&lvl=5' },
+        'eyes-sheet-1031': { pri: 3, title: 'sheet', pt: 'the art', look: 'a stirge', url: 'tools/sheet-play.html?sheet=stirge_p1' },
+        'eyes-gal-b-1101': { pri: 1, title: 'gallery b', pt: 'the gallery', look: 'a cube', url: 'deep16/?rows=cube' },
+        'eyes-npc-c-1108': { pri: 2, title: 'npc c', pt: 'the floor', look: 'a troll', url: 'deep16/?npc=troll&lvl=5' },
+        'eyes-roam-1105': { pri: 2, title: 'roam', pt: 'the maps', look: 'the gallery floor', url: 'deep16/?roam=galleries_g2&at=1,1' },
+        'eyes-inn-d-1105': { pri: 2, title: 'inn d', pt: 'the inn', look: 'the shore', url: 'deep16/?innshow&beat=shore' },
+        'eyes-done-1104': { pri: 1, title: 'already noted', pt: 'the pocket', look: '', url: 'deep16/?pocket' }
+      };
+      window.DS.EYES = EW;
+      localStorage.setItem('dsl-situations-feedback:v1', JSON.stringify({ 'eyes-inn-d-1105': { v: 'works', at: '2026-11-10T01:00:00.000Z' }, 'eyes-done-1104': { v: '', note: 'seen it', at: '2026-11-10T01:00:00.000Z' } }));
+      localStorage.removeItem('dsl-swann-deck:v1'); localStorage.removeItem('deep16.tester'); localStorage.removeItem('dsl-situations-lastsave');
+      // THE DECK: pri 1 first, a place's rows together (the biggest place of a priority first, counted over the whole list), the newest first; nothing noted, nothing off the grid, not her own table
+      var wantW = ['eyes-gal-a-1107', 'eyes-gal-b-1101', 'eyes-inn-c-1110', 'eyes-inn-a-1106', 'eyes-inn-b-1104', 'eyes-npc-b-1109', 'eyes-npc-c-1108', 'eyes-npc-a-1105', 'eyes-roam-1105', 'eyes-sheet-1031'], ordW = TW.order();
+      okW(ordW.join() === wantW.join(), 'the order she deals in: ' + ordW.join(', '));
+      var cW = TW.count();
+      okW(cW.seen === 2 && cW.all === 15 && cW.left === 10 && cW.elsewhere === 2, 'the owl\'s count: seen ' + cW.seen + ' of ' + cW.all + ', ' + cW.left + ' to deal, ' + cW.elsewhere + ' off the grid (the situations page\'s)');
+      okW(TW.place('deep16/?roam=galleries_g2&at=1,1').name === 'the Guano Galleries' && TW.place('deep16/?rows=cube').k === 'gallery' && TW.place('deep16/?gallery&shelf=spells').k === 'gallery' && TW.place('deep16/?innshow&beat=room').name === 'the Halfway Inn' &&
+        TW.place('deep16/?npc=goblin').name === 'the class floor' && TW.place('tools/sheet-play.html?sheet=x').name === 'the sheet player' && !TW.dealable(EW['eyes-table-1111']) && !TW.dealable(EW['eyes-snoot-1101']),
+        'the places: a roam by its map (galleries_g2 -> ' + TW.place('deep16/?roam=galleries_g2').name + '), the gallery\'s doors one place, the inn, the class floor, the sheet player; her table and snoot-mode/ never dealt');
+      var dW = TW.deal();
+      okW(!!dW && dW.no === 1 && dW.ids.join() === wantW.slice(0, 6).join() && TW.deck() && TW.deck().ids.join() === dW.ids.join(), 'the first deck: six, held on this device (' + (dW && dW.ids.join(', ')) + ')');
+      // THE BAR: its keys into situations.html's store
+      var navW = [], IW = D.input; TW.nav = function (h) { navW.push(h); }; TW.navDelay = 0;
+      var kdn = function (code, k) { document.body.dispatchEvent(new KeyboardEvent('keydown', { code: code, key: k, bubbles: true })); }, kup = function (code, k) { document.body.dispatchEvent(new KeyboardEvent('keyup', { code: code, key: k, bubbles: true })); }, key = function (code, k) { kdn(code, k); kup(code, k); }; // (typed at the page, as a keyboard's keys come -- at its focused element, past the window on the way: a key sent at the window itself meets the game's listener first, by the order they were added)
+      var FBW = function () { return JSON.parse(localStorage.getItem('dsl-situations-feedback:v1') || '{}'); }, ends = function (h, s) { return !!h && h.slice(-s.length) === s; };
+      var BW = TW.mount(0), barEl = document.getElementById('swann-bar'), cardEl = document.getElementById('swann-card');
+      okW(!!barEl && !!cardEl && /CARD 1\/6/.test(barEl.textContent) && /gallery a/.test(barEl.textContent) && cardEl.className === '' && /a fireball/.test(cardEl.textContent) && BW.up,
+        'the bar over the page: CARD 1/6 and its title; the card up, its look ("' + (cardEl && cardEl.querySelector('.look') ? cardEl.querySelector('.look').textContent : '-') + '")');
+      IW.clear(); kdn('Digit1', '1'); var deaf = !IW.edge.n1; kup('Digit1', '1'); IW.clear();
+      okW(deaf && FBW()['eyes-gal-a-1107'] && FBW()['eyes-gal-a-1107'].v === 'works' && navW.length === 1 && ends(navW[0], 'deep16/?rows=cube&tour=2'), '1 with the card up: works in the store, the game heard nothing (' + deaf + '), on to card 2: ' + navW[0]);
+      BW = TW.mount(1); navW.length = 0;
+      key('Enter', 'Enter'); var downW = !BW.up && document.getElementById('swann-card').className === 'down'; IW.clear();
+      kdn('Digit1', '1'); var heard = !!IW.edge.n1; kup('Digit1', '1'); IW.clear(); var untouched = !FBW()['eyes-gal-b-1101'] && !navW.length;
+      key('KeyH', 'h'); var upAgain = BW.up; IW.clear();
+      okW(downW && heard && untouched && upAgain, 'Enter lays the card down (' + downW + '), and 1 is the game\'s again (' + heard + ', the store untouched: ' + untouched + '); H brings it back (' + upAgain + ')');
+      key('Digit2', '2'); var nEl = document.getElementById('swann-note'), noteOpen = !!nEl && !!BW.noting && !navW.length;
+      if (nEl) { nEl.value = 'the beam stops short'; nEl.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', key: 'Enter', bubbles: true })); }
+      var fb2 = FBW()['eyes-gal-b-1101'] || {};
+      okW(noteOpen && fb2.v === 'broken' && fb2.note === 'the beam stops short' && navW.length === 1 && ends(navW[0], 'deep16/?innshow&beat=room&tour=3'), '2: broken, the note open at once (' + noteOpen + '), Enter keeps "' + fb2.note + '" and goes on: ' + navW[0]);
+      BW = TW.mount(2); navW.length = 0; key('KeyP', 'p'); var fb3 = FBW()['eyes-inn-c-1110'] || {};
+      okW(fb3.note === 'passed' && !fb3.v && navW.length === 1 && ends(navW[0], 'deep16/?innshow&beat=barn&fresh=1&tour=4'), 'P PASS: the note "' + fb3.note + '", no verdict, and on: ' + navW[0]);
+      BW = TW.mount(3); navW.length = 0; key('KeyN', 'n'); var nEl4 = document.getElementById('swann-note');
+      if (nEl4) { nEl4.value = 'looks right'; nEl4.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', key: 'Enter', bubbles: true })); }
+      var stay4 = !navW.length && BW.up && !BW.noting && /looks right/.test(document.getElementById('swann-card').textContent); key('ArrowRight', 'ArrowRight');
+      okW((FBW()['eyes-inn-a-1106'] || {}).note === 'looks right' && stay4 && navW.length === 1 && ends(navW[0], 'deep16/?innshow&beat=yard&tour=5'), 'N: a note kept on the card, which stays (' + stay4 + '); the arrow on: ' + navW[0]);
+      BW = TW.mount(4); navW.length = 0; key('Digit3', '3'); var nEl5 = document.getElementById('swann-note'); if (nEl5) nEl5.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }));
+      var esc5 = (FBW()['eyes-inn-b-1104'] || {}).v === 'unclear' && !navW.length && BW.up && !BW.noting; key('Digit4', '4');
+      okW(esc5 && (FBW()['eyes-inn-b-1104'] || {}).v === 'hard' && navW.length === 1 && ends(navW[0], 'deep16/?npc=goblin,goblin&lvl=5&tour=6'), '3 then Esc: unclear kept, no note, the card stays (' + esc5 + '); 4 too hard and on: ' + navW[0]);
+      BW = TW.mount(5); navW.length = 0; key('Digit5', '5');
+      okW((FBW()['eyes-npc-b-1109'] || {}).v === 'easy' && navW.length === 1 && ends(navW[0], 'deep16/?cards') && TW.done(TW.deck()), '5 too easy on the last card face down: to her table (' + navW[0] + '), the deck done');
+      TW.unmount(); okW(!document.getElementById('swann-bar') && !document.getElementById('swann-card') && !D.barH, 'the bar comes off the page whole');
+      // situations.html's store, as it reads it, and the ear file
+      var FBs = FBW(), notedS = function (id) { var f = FBs[id]; return !!(f && (f.v || (f.note || '').trim())); };
+      okW(dW.ids.every(notedS) && Object.keys(FBs).every(function (id) { var f = FBs[id]; return Object.keys(f).every(function (k) { return k === 'v' || k === 'note' || k === 'at'; }) && typeof f.at === 'string'; }),
+        'every card answered is a row noted as situations.html reads its store (' + dW.ids.filter(notedS).length + ' of 6), each { v, note, at } as it writes them');
+      var earW = D.oneGallery.earFile('2026-11-11T02:00:00.000Z'), passW = earW.items.filter(function (i) { return i.id === 'eyes-inn-c-1110'; })[0];
+      okW(earW.items.length === 8 && !!passW && passW.note === 'passed' && passW.verdict === '' && earW.items.filter(function (i) { return i.id === 'eyes-gal-b-1101'; })[0].note === 'the beam stops short',
+        'the ear file carries the six and the two noted before (' + earW.items.length + '); the pass\'s note verbatim, "' + (passW && passW.note) + '": a noted row, cut at the fold');
+      // HER TABLE: the deck's end
+      var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var cxW = cvW.getContext('2d'), tbW = new D.swann.Table({ from: 'door' });
+      okW(tbW.state === 'end' && tbW.line.indexOf(TW.endLine(1)) === 0 && /And 2 aren't mine to deal/.test(tbW.line) && tbW.flips.length === 6, 'the deck\'s end at her table: "' + tbW.line + '" -- six to turn over (' + tbW.flips.length + ')');
+      var midW = null; for (var fw = 0; fw < 6 * 22 + 40; fw++) { tbW.update(); IW.clear(); if (fw === 40) midW = tbW.cards().filter(function (q, k) { var p = tbW.flipAt(k); return p != null && p >= 1; }).length; }
+      tbW.draw(cxW);
+      okW(midW > 0 && midW < 6 && !tbW.flips.length && (TW.deck().shown || []).length === 6 && tbW.face && tbW.face.anim === 'stretch', 'the cards turn over one after another (' + midW + ' over at frame 40), all six kept face up, and the owl stretches');
+      okW(TW.owl(TW.count()) === 'The owl has seen 8 of 15.', 'the owl\'s count: "' + TW.owl(TW.count()) + '"');
+      var dealB = tbW.buttons().filter(function (q) { return q.go === 'deal'; })[0]; tbW.press(dealB);
+      okW(tbW.state === 'deck' && tbW.d.no === 2 && tbW.d.ids.join() === wantW.slice(6).join() && tbW.line === TW.LINES.deal, 'DEAL SIX MORE: deck 2, what is left (' + tbW.d.ids.join(', ') + ')');
+      navW.length = 0; tbW.press(tbW.buttons().filter(function (q) { return q.go === 'next'; })[0]); tbW.draw(cxW);
+      okW(navW.length === 1 && ends(navW[0], 'deep16/?npc=troll&lvl=5&tour=1'), 'TURN THE NEXT CARD: the first card\'s door, ' + navW[0]);
+      // HER BOOTH: READ THE CARDS with the tester switch on, and never off
+      var CW2 = D.counter, scW = function () { return { st: { flags: { swannMet: 1 }, silver: function () { return 20; } }, ask: function (q, o) { return { ask: [].concat(q), opts: o }; }, say: function (l) { return { say: [].concat(l) }; } }; };
+      TW.setTester(false); var s0 = scW(), g0 = CW2.SCRIPTS.swann(s0, null, 'sylvia'), a0 = g0.next().value;
+      okW(a0 && a0.opts && a0.opts.indexOf('READ THE CARDS') < 0 && a0.opts.join() === 'READ (5 SP),LEAVE' && g0.next(1).done, 'the switch off: her booth is the cup alone (' + (a0 && a0.opts && a0.opts.join(', ')) + ')');
+      TW.setTester(true); var s1 = scW(), g1 = CW2.SCRIPTS.swann(s1, null, 'sylvia'), a1 = g1.next().value, b1 = g1.next(1).value, e1 = g1.next();
+      var gn = s1.next && s1.next(), top0 = D.top(); if (gn) gn.next(); var tbB = D.top(), atB = tbB && tbB.kind === 'swanntable' && tbB.o.from === 'booth';
+      if (atB) tbB.press(tbB.buttons().filter(function (q) { return q.go === 'leave'; })[0]); var outB = gn && gn.next().done && D.top() === top0;
+      okW(a1 && a1.opts.join() === 'THE CUP (5 SP),READ THE CARDS,LEAVE' && b1 && b1.say[0] === TW.LINES.booth && e1.done && atB && outB, 'the switch on: THE CUP or READ THE CARDS; the cards, her line, and her table over the walk (' + atB + '), LEAVE back to it (' + outB + ')');
+    } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 800)); }
+    try { if (TW) { TW.unmount(); TW.nav = nav0W; TW.navDelay = dl0W; } } catch (e) { }
+    if (window.DS) window.DS.EYES = eyes0W;
+    keepW.forEach(function (k) { try { if (lsW[k] == null) localStorage.removeItem(k); else localStorage.setItem(k, lsW[k]); } catch (e) { } });
+    var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
+    document.body.appendChild(preW);
+    return;
+  }
   // SAVE IN THE GALLERY AND M ON THE POCKET DM'S FRONT PAGE (mode=keys1028; 10-28, Griz: "I just 'marked' everything in rows - doesn't seem to give me a save a
   // file for you option", "the S doesn't have to be S but we need a save button", "allow pressing 'm' on the pocket DM front page get you to the option menu to
   // turn off the music"): S presses SAVE beside WASD's down (js/core.js KEYALSO); the gallery's ear file is situations.html's to the field (js/onegallery.js
