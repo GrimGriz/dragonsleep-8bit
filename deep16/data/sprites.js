@@ -15144,6 +15144,215 @@ true
 "door": "keeper:falstaff",
 "source": "deep16/_src/falstaff/ART-123-FALSTAFF (the art desk's ART-123-FALSTAFF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_generalgrim": {
+"image": "art/pt_generalgrim.png?v=ba95af2ce5",
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 160,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 320,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 480,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 640,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stern": {
+"y": 800,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"amused": {
+"y": 960,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"angry": {
+"y": 1120,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"surprised": {
+"y": 1280,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"weary": {
+"y": 1440,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"speaking": {
+"y": 1600,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 6,
+"fps": 6,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"command": {
+"y": 1760,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"crossing": {
+"y": 1920,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"accusation": {
+"y": 2080,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"order": {
+"y": 2240,
+"fw": 247,
+"fh": 160,
+"ax": 151,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "H1",
+"door": "General Grimlock Grim (the road redraft, no scene yet: js/counter.js C.VENDORS.generalgrim)",
+"source": "deep16/_src/generalgrim (the art desk's H1, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_genman": {
 "image": "art/pt_genman.png?v=b220b445a8",
 "fw": 285,

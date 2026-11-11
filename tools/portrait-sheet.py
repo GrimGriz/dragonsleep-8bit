@@ -38,7 +38,7 @@ BUST = 150                        # px from the head's top to the hands' line at
 MASK_D = 22                       # how far from the navy a channel must be to be figure
 HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
-FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4, 'bluespeak': 4, 'bucket': 5}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace; the Blue speaking through Nerisse, its light pulsing as the mouth moves)
+FPS = {'idle': 3, 'work': 4, 'stretch': 4, 'coin': 4, 'sale': 4, 'bluespeak': 4, 'bucket': 5, 'speaking': 6, 'command': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap; Vivian's coin and her candle sale a work's pace; the Blue speaking through Nerisse, its light pulsing as the mouth moves)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
@@ -265,6 +265,21 @@ PEOPLE = {
                'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', 'red'], 'drivespear': ['fire', 'red']}}),
     'genwoman': ('genwoman/ART-122', 'ART-122-WOMAN', 'the unnamed (js/counter.js C.GENERIC)', {'propfree': True, 'layout': GENERIC,
                  'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', '#e8624a', '#b83428']}}),
+    # GENERAL GRIMLOCK GRIM (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "they can churn through fresh one at a time as they complete at your discretion
+    # as to next cut"; the General of the road redraft from his Beholda stream table, his 10-28 "was decided re: General Grimlock Grim beholda scripting for road redraft"):
+    # the art desk's GENERAL-GRIM-PORTRAITS-A1, -A2 and -A3-MONOLOGUE, sorted to deep16/_src/generalgrim/PORTRAITS-*-1110/ -- a close dialogue bust with no counter, so
+    # `noledge` and `cutline`: each frame stands on the torso's clean cut (one below its lowest row as wide as half its widest), and what hangs below it -- Command 5's
+    # hand -- is kept, in a cell made deep enough. Idle 6 (the blink across its two bands), the eight stills of A1 and A2's Skeptical as moods, SPEAKING 6 and COMMAND 6
+    # (the hand reaching wide on 3-4, low on 5: one scale for the row, by the head and torso), and the monologue's three cue stills (A3: THE CROSSING, THE ACCUSATION,
+    # THE ORDER -- his clawed fingertips, the revised sources). No scene speaks on him yet (the story build's): js/counter.js C.VENDORS.generalgrim, the portraits' show his door
+    'generalgrim': ('generalgrim', 'H1', 'General Grimlock Grim (the road redraft, no scene yet: js/counter.js C.VENDORS.generalgrim)', {'edge': True, 'noledge': True, 'cutline': True,
+                    'layout': [('generalgrim/PORTRAITS-A1-1110/sources/H1P1-Idle.png', [3, 3], ['idle'] * 6)]
+                    + [('generalgrim/PORTRAITS-A%d-1110/sources/H1P%d-%s.png' % (a, n, f), [1], [act]) for a, n, f, act in [
+                        (1, 2, 'Attentive', 'attentive'), (1, 3, 'Welcoming', 'welcoming'), (2, 12, 'Skeptical', 'skeptical'), (1, 4, 'Concerned', 'concerned'),
+                        (1, 5, 'Stern', 'stern'), (1, 6, 'Amused', 'amused'), (1, 7, 'Angry', 'angry'), (1, 8, 'Surprised', 'surprised'), (1, 9, 'Weary', 'weary')]]
+                    + [('generalgrim/PORTRAITS-A2-1110/sources/H1P10-Speaking.png', [3, 3], ['speaking'] * 6), ('generalgrim/PORTRAITS-A2-1110/sources/H1P11-Command.png', [3, 3], ['command'] * 6)]
+                    + [('generalgrim/PORTRAITS-A3-MONOLOGUE-1110/sources/H1P%d-%s.png' % (n, f), [1], [act]) for n, f, act in [
+                        (13, 'The-Crossing', 'crossing'), (14, 'The-Accusation', 'accusation'), (15, 'The-Order', 'order')]]}),
 }
 
 
@@ -483,6 +498,12 @@ def ledge_top(piece, box):
     return rows[k + run - 1][0]
 
 
+def cut_line(m, frac=0.5):
+    """the bust's clean cut: one below the lowest row as wide as `frac` of its widest (a hand hanging below the torso is narrow, and stays below it)"""
+    w = m.sum(axis=1); ys = np.where(w >= frac * w.max())[0]
+    return int(ys.max()) + 1
+
+
 def cut_person(name):
     folder, art, door, ov = PEOPLE[name]
     raw, order = {}, []                                          # action -> [(rgba crop at source size, anchor x, anchor y, bust, ledge)]
@@ -592,7 +613,8 @@ def cut_person(name):
             top = ys.min()
             meas = keep & ~gm if gm is not None else keep           # (the real body's measure, its ghost left out: the bust, the head, the anchor -- the cut keeps both)
             mtop = np.where(meas.any(axis=1))[0].min()
-            bust = foot - mtop
+            aline = cut_line(meas) if ov.get('cutline') else foot   # (`cutline`: the torso's clean cut, not the drawing's foot -- a hand below it kept: General Grim's Command 5)
+            bust = aline - mtop
             head = meas[mtop:mtop + int(bust * 0.22)]
             if ov.get('propfree'):                               # (the head's own top: the figure over the torso's middle, a raised prop beside it left out of the measure)
                 lo = np.where(meas[(top + foot) // 2:foot])[1]
@@ -612,7 +634,7 @@ def cut_person(name):
                 rgba[..., :3] = reskin(rgba[..., :3], keep[top:foot, cx0:cx1], **ov['reskin'])
             if act not in raw:
                 raw[act] = []; order.append(act)
-            raw[act].append((rgba, hx - cx0, foot - top, bust, foot < y1))
+            raw[act].append((rgba, hx - cx0, aline - top, bust, foot < y1))
     # each page by its own bust (the stills are drawn bigger): the page's median to BUST
     small = {}
     for act, fr in raw.items():
@@ -632,6 +654,7 @@ def cut_person(name):
     # one box for every frame, round the anchor
     L = max(f[1] for fr in small.values() for f in fr) + 2; R = max(f[0].shape[1] - f[1] for fr in small.values() for f in fr) + 2
     T = max(f[2] for fr in small.values() for f in fr) + 2; B = 2
+    if ov.get('cutline'): B = max(2, max(f[0].shape[0] - f[2] for fr in small.values() for f in fr) + 2)   # (room under the cut for what hangs below it)
     fw, fh, axx, ayy = int(np.ceil(L + R)), int(np.ceil(T + B)), int(round(L)), int(round(T))
     rows = len(order); cols = max(len(small[a]) for a in order)
     sheet = np.zeros((rows * fh, cols * fw, 4), np.uint8)

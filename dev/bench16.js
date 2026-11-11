@@ -12818,6 +12818,37 @@
     return;
   }
   function MRk() { return D.monsterRules; }
+  // GENERAL GRIM'S TALKING PORTRAITS (mode=generalgrim1110; tools/portrait-sheet.py generalgrim, its `cutline`; js/counter.js C.VENDORS.generalgrim and the portraits' show's
+  // `allFaces` -- the cutter of 11-10 on the lanes desk's queue, Griz: "they can churn through fresh one at a time as they complete at your discretion as to next cut"): the art
+  // desk's GENERAL-GRIM-PORTRAITS-A1, -A2 and -A3-MONOLOGUE cut whole -- idle 6, nine moods, speaking 6, command 6, the monologue's three -- on the portraits shelf, the show
+  // playing every row of his (the keepers' six as before); no scene speaks on him yet (the story build's). The pixels' registration (the heads on one anchor, every bust on
+  // the cut line, Command 5's hand kept under it) was seen by the cutter at 2x; the benches fetch no images
+  if (get('mode', '') === 'generalgrim1110') {
+    var repGg = { checks: [], errors: [] };
+    function okGg(what, v) { repGg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var sGg = D.SHEETS.pt_generalgrim, CGg = D.counter, WANTG = 'idle 6, attentive 1, welcoming 1, skeptical 1, concerned 1, stern 1, amused 1, angry 1, surprised 1, weary 1, speaking 6, command 6, crossing 1, accusation 1, order 1';
+      var rowsGg = sGg ? Object.keys(sGg.anims).map(function (a) { return a + ' ' + sGg.anims[a].frames; }).join(', ') : 'NONE';
+      okGg('pt_generalgrim: ' + rowsGg + (sGg ? ' -- ' + sGg.fw + 'x' + sGg.fh + ', the anchor ' + sGg.ax + ',' + sGg.ay + ' (' + (sGg.fh - sGg.ay) + ' px under the cut for a hand), idle ' + sGg.anims.idle.fps + ' fps, speaking ' + sGg.anims.speaking.fps + ', command ' + sGg.anims.command.fps : ''),
+        !!sGg && sGg.portrait && rowsGg === WANTG && sGg.anims.idle.fps === 3 && sGg.anims.speaking.fps === 6 && sGg.anims.command.fps === 4 && sGg.fh - sGg.ay > 2 && sGg.ay >= 140 && sGg.ay <= 160);
+      var vGg = CGg.VENDORS.generalgrim || {};
+      okGg('on the portraits shelf: C.VENDORS.generalgrim ' + vGg.sheet + ' (' + vGg.name + ', every row ' + !!vGg.allFaces + '); C.PT ' + CGg.PT.generalgrim + '; no shop, no script, no door (' + (!vGg.shop && !vGg.script) + ')',
+        vGg.sheet === 'pt_generalgrim' && vGg.name === 'General Grimlock Grim' && vGg.allFaces === true && CGg.PT.generalgrim === 'pt_generalgrim' && !vGg.shop && !vGg.script);
+      // the show by name plays his fifteen; a keeper's show the six as ever (Winters)
+      var facesOf = function (who) {
+        var ps = CGg.portraitShow('?portraits&who=' + who), out = [];
+        D.scenes.length = 0; D.push(ps); ps.update(); var cu = ps.cur, o = cu && (cu.o || cu.opts || {});
+        if (o && o.script) { var g = o.script({ say: function (ls, f) { out.push(f); return 0; } }), k = 0; while (k++ < 60 && !g.next().done) { } }
+        if (cu) cu.done = true; D.scenes.length = 0; return { ids: ps.ids.join(), sheet: cu && (cu.sheet || CGg.PT[who]), faces: out };
+      };
+      var gF = facesOf('generalgrim'), wF = facesOf('winters');
+      okGg('the portraits\' show, who=generalgrim (' + gF.ids + '): ' + gF.faces.length + ' faces, ' + gF.faces.join(' ') + '; who=winters: ' + wF.faces.join(' '),
+        gF.ids === 'generalgrim' && gF.faces.join(', ') === Object.keys(sGg.anims).join(', ') && gF.faces.length === 15 && wF.faces.join() === CGg.FACES.join());
+    } catch (eGg) { repGg.errors.push(String(eGg && eGg.stack || eGg).slice(0, 900)); }
+    var preGg = document.createElement('pre'); preGg.id = 'out'; preGg.textContent = 'BENCH16 ' + JSON.stringify(repGg);
+    document.body.appendChild(preGg);
+    return;
+  }
   // THE NAMED ONES IN THEIR OWN FIGURES (mode=rosterlooks1110; js/classes.js NPC.NAMED looks -- the cutter of 11-10, on Griz's "speaking of pocket DM art I think Gennet and
   // another were still using old models"): built by word (the Pocket DM's roster, its cards, the class floor ?npc=, the hex's people) a named one wears its `look`, else its
   // class's stock figure -- Gennet wore the townswoman (folkwoman_p1: idle and walk) and Amara the warlock's, while their bestiary records (data/foes.js, NPC.fromFoe) wore
