@@ -17,7 +17,7 @@
   try {
     // ---------------------------------------------------------------- the Spy
     var B = battle('crew'), ww = foes(B).filter(function (u) { return u.kind === 'wheelwright'; })[0];
-    ok('the Spy carries cunning, stealth ' + (ww && ww.stealth), ww && ww.cunning === true && ww.stealth === 6);
+    ok('the Spy carries cunning, stealth ' + (ww && ww.stealth), ww && ww.cunning === true && ww.stealth === 4); // (SRD 5.1 Spy: Stealth +4; 98b1a555 set it from the SRD block, it had said 6)
     foes(B).filter(function (u) { return u !== ww; }).forEach(function (u) { u.hp = 0; u.dead = true; }); ww.bolts = null; // (alone, and not running for the stair: Hask's fall would send him)
     var ps = party(B), hero = ps[0], hx = hero.x, hy = hero.y; ps.slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });
     var cs;

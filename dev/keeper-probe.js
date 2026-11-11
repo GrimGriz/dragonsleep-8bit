@@ -552,7 +552,9 @@
       }
       function said(d) { return d.length ? d.length + ' differ: ' + d.slice(0, 3).join('; ') : 'none differ'; }
       ok('origin/main\'s records read at ' + M.ref + ' (foe ' + !!M.foe + ', map ' + !!M.map + ', fight ' + !!M.fight + ', sheet ' + !!M.sheet + ', rung ' + !!M.rung3 + (M.err ? ', ' + M.err : '') + ')', !M.err && M.foe && M.map && M.fight && M.sheet && M.rung3);
-      var FO = D.FOES.keeperold, df = diffs(FO, M.foe);
+      var FO = D.FOES.keeperold, FOc = Object.assign({}, FO); // (dde874f7, 11-10: stealth and the src's SENSES note were added after the pin (perception 10 was already there); leave exactly those out of the diff)
+      delete FOc.stealth; FOc.src = String(FOc.src).replace(/ -- SENSES \(ours, 11-10\):.*$/, '');
+      var df = diffs(FOc, M.foe);
       ok('the ladder\'s foe (foes.js keeperold) against main\'s keeper, field for field: ' + said(df) + ' (' + FO.hp + ' HP, ' + Object.keys(FO.attacks).join(' and ') + ', ' + FO.sheet + ')', !df.length && FO.hp === 58 && FO.attacks.constrict && FO.attacks.drown && FO.sheet === 'keeper_p1');
       var MO = D.MAPS['floodstair-old'], dm = diffs(MO, M.map);
       ok('the ladder\'s map (floodstair-old) against main\'s floodstair: ' + said(dm) + '; its rows ' + (M.map && MO.rows.join('/') === M.map.rows.join('/') ? 'the same, ' + MO.rows.length + ' of them' : 'NOT the same') + ', no geo, no rune light (' + !MO.geo + ', ' + !MO.lights + ')', !dm.length && M.map && MO.rows.join('/') === M.map.rows.join('/') && !MO.geo && !MO.lights);
