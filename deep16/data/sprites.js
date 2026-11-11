@@ -7351,7 +7351,7 @@
 }
 },
 "horsegrey_p1": {
-"image": "art/horsegrey_p1.png?v=e57d29636a",
+"image": "art/horsegrey_p1.png?v=541d533770",
 "fw": 120,
 "fh": 150,
 "ax": 60,
@@ -23414,7 +23414,7 @@ true
 "source": "drawn by the art desk (HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING, 11-05: art-wanted section 35, his fight figure in five views, two pages a view), cut by tools/willem-sheet.py over tools/doran-sheet.py; SW W NW mirrored; willemglass_p1 (the mannequin render) kept beside it"
 },
 "willemmounted_p1": {
-"image": "art/willemmounted_p1.png?v=31f1fa08cc",
+"image": "art/willemmounted_p1.png?v=40950741ad",
 "fw": 104,
 "fh": 116,
 "ax": 52,
