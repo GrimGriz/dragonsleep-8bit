@@ -2781,6 +2781,7 @@
     // the party up the gulch's road a square at a time, each square's business run (the chase's tick: js/chase.js Ch.tick -- the pair's move, the catch, the mouth); the fights by the class
     // AI; a prompt answered from `ans`; stops when the chase is off, the floor changed, or `steps` are walked. Returns what was seen
     function climbCh(B, steps, ans, lastHp) {
+      var cW = ChB.state(B); if (cW && !cW.webbed) cW.webbed = true; // (past the silk across the road, RULED 11-11 -- these checks walk the run to the fork as 11-04 built it; the silk is mode=inn1111's)
       var seen = [], q = (ans || []).slice(), cardsSeen = {}, t = B.roam.token, k = 0;
       var see = function () { (B.cards || []).forEach(function (c) { var key = c.t0 + ':' + c.lines.join('|'); if (!cardsSeen[key]) { cardsSeen[key] = 1; seen.push(c.lines.join(' ')); } }); };
       for (; k < steps; k++) {
@@ -5470,6 +5471,38 @@
         !!back4 && back4.text === blK(c3.backAt) && !(mornBefore && dark4) && !!inn4 && want4 != null && Math.abs(inn4.hour - want4) < 0.06 && (!fork4 || (W8night(fork4.hour) === /in the dark/.test(fork4.text))));
       okK('the walk\'s line by its hour: at 2 "' + blK(2) + '", at 5.5 "' + blK(5.5) + '", at 9 "' + blK(9) + '"; the fork at 2.5 "' + flK({}, 2.5).slice(0, 60) + '", at 5.5 "' + flK({}, 5.5).slice(0, 60) + '"',
         blK(2) === CK.L('wagon.back') && !!ChK.LINES.backDawn && blK(5.5) === ChK.LINES.backDawn && blK(9) === ChK.LINES.backDay && /fork beyond it in the dark\./.test(flK({}, 2.5)) && /in the first grey of the dawn/.test(flK({}, 5.5)));
+      // 4b. THE SILK ACROSS THE ROAD (RULED 11-11, his "yes to the gulch and greys"): the chase on the greys from the gulch's south mouth, the Strength tries pinned -- both held
+      // and the catch at the silk, the two restrained in it (the grid's web); one torn free (Amara) and away, Willem caught at the silk, then Amara chased on and lost at the north
+      // mouth on her grey; both torn free and the pair away up the cut, lost at the mouth. The strand on the floor's road while the chase is on
+      var GuK = D.gulch, WEBK = ChK.WEB || {}, webLineK = function (rows) { return rows[WEBK.y || 55]; };
+      var rowsOn = (D.mines.FLOORS[GuK.KEY].map(2, { wagonChase: { on: true } }) || {}).rows || [], rowsOff = (D.mines.FLOORS[GuK.KEY].map(2, {}) || {}).rows || [];
+      okK('the strand: row ' + WEBK.y + ' on the chase\'s night "' + (webLineK(rowsOn) || '').slice(15, 26) + '", any other night "' + (webLineK(rowsOff) || '').slice(15, 26) + '" (the gulch\'s own webbing, walked as the bed: ' + JSON.stringify(D.mines.LAY.webFloor) + ')',
+        WEBK.y === 55 && WEBK.dc === 12 && /x/.test(webLineK(rowsOn)) && !/,/.test(webLineK(rowsOn)) && /,,/.test(webLineK(rowsOff)));
+      function silkK(pins) { // (a chase on the greys from the south mouth, the tries' dice pinned; what was seen, and the foes' conds as each catch's fight opened)
+        var Bg = testK('?roam=webgulch&hour=2'), eng0 = RK.engage, conds = [];
+        atK(Bg, 22, 109, [0, -1]); Bg.roam.flags.wagonChase = { horses: true, willem: true, amara: true, leg: 1, gap: ChK.START.horses, acc: 0, on: false, steps: 0, back: null };
+        RK.engage = function* (B, grp) { conds.push((grp.foes || []).map(function (u) { return u.name + ':' + (u.conds && u.conds.restrained ? u.conds.restrained.kind || 'held' : 'free'); }).join(',')); yield* eng0.apply(this, arguments); };
+        InK.pinned = pins.slice(); var seen = [];
+        try {
+          var g = ChK.run(Bg), v, st, n = 0; while (n++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number') Bg.t += Math.max(1, st.value); }
+          (Bg.cards || []).forEach(function (c) { seen.push({ kind: 'card', text: window.DS.stripCodes(c.lines.join(' ')) }); });
+          seen = seen.concat(climbK(Bg, 160, 1));
+        } finally { RK.engage = eng0; InK.pinned = null; }
+        return { seen: seen, conds: conds, text: textK(seen), c: Bg.roam.flags.wagonChase || {} };
+      }
+      var sk1 = silkK([1, 1, 1, 1, 1, 1]), sk2 = silkK([20, 1, 1, 1, 1, 1]), sk3 = silkK([20, 20]);
+      var at1 = function (t, re) { var m = t.match(re); return m ? t.indexOf(m[0]) : -1; };
+      okK('both held in the silk: "' + sk1.text.slice(Math.max(0, at1(sk1.text, /Midway up the cut/)), Math.max(0, at1(sk1.text, /Midway up the cut/)) + 150) + '" ... the catch\'s foes ' + JSON.stringify(sk1.conds) + '; the north mouth never reached (' + !/greys take them up out of the cut/.test(sk1.text) + ')',
+        /the greys run straight into it/.test(sk1.text) && /You come up on them where the silk holds them/.test(sk1.text) && sk1.conds.length >= 1 && /Amara:web/.test(sk1.conds[0]) && /Willem Glass:web/.test(sk1.conds[0]) && !/greys take them up out of the cut/.test(sk1.text));
+      okK('one torn free: ' + sk2.text.slice(Math.max(0, at1(sk2.text, /tears free/) - 10), Math.max(0, at1(sk2.text, /tears free/)) + 420) + ' -- the catches\' foes ' + JSON.stringify(sk2.conds),
+        /Amara tears free of the silk and is away up the cut/.test(sk2.text) && /You come up on Willem Glass where the silk holds/.test(sk2.text) && sk2.conds[0] === 'Willem Glass:web' && /Amara is away again|the grey takes Amara up out of the cut/.test(sk2.text));
+      okK('both torn free: ' + sk3.text.slice(Math.max(0, at1(sk3.text, /Free of the silk/) - 10), Math.max(0, at1(sk3.text, /Free of the silk/)) + 260) + ' -- no catch at the silk (' + JSON.stringify(sk3.conds) + ')',
+        /Free of the silk, and away up the cut again/.test(sk3.text) && !/where the silk holds/.test(sk3.text) && /greys take them up out of the cut and away/.test(sk3.text) && sk3.conds.length === 0);
+      // 4c. THE GREYS (RULED 11-11): the yard's team two greys, on the floor and in the yard's own fight's map (the art's grey: dev/innsee-probe.py)
+      var YK = {}; InK.bedRiders({ riders: [], units: [], map: { at: function () { return null; } } }, YK, {}, false);
+      var teamK = (YK.riders || []).filter(function (r) { return r.team; }).map(function (r) { return r.sheet; }), fightTeam = ((D.fight('wagonnight') || {}).riders || []).filter(function (r) { return r.team; }).map(function (r) { return r.sheet; });
+      okK('the team two greys: in the yard ' + teamK.join(', ') + '; the yard\'s fight map ' + fightTeam.join(', '),
+        teamK.length === 2 && teamK.every(function (s) { return s === 'horsegrey_p1'; }) && fightTeam.length === 2 && fightTeam.every(function (s) { return s === 'horsegrey_p1'; }));
       // 5. THE FRONT DOOR'S CUTAWAY wakes by the step (RULED 11-10: within 6 squares of it, the party outside); the post at the step, lit at dusk and by night, the step's pool under it
       var B5 = testK('?roam=halfway&hour=18&day=5'), cut5 = [[18, 18], [12, 18], [11, 18], [18, 12], [18, 25], [24, 24]].map(function (q) { atK(B5, q[0], q[1]); return q.join(',') + ' ' + cutK(B5); });
       atK(B5, 18, 18, [1, 0]); atK(B5, 19, 18); driveK(RK.arrive(B5), 400); var in5 = RK.def.inside, cutIn5 = cutK(B5);

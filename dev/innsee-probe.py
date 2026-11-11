@@ -93,7 +93,17 @@ def main():
     r = row('upstairs', (9, 6)); ok(CASES[4][2] + ': ' + say(r), r['frac'] >= 0.85 and r['st'].get('hide') == ['up_chimney'])
     r = row('yard', (27, 12)); ok(CASES[5][2] + ': ' + say(r), r['frac'] >= 0.3 and r['st'].get('figs') == ['Barley'])
     r = row('yard', (25, 26)); ok(CASES[6][2] + ': ' + say(r), r['frac'] >= 0.9 and r['st'].get('figs') == [])
-    print('\n' + ('RED  %d' % bad if bad else 'GREEN'))
+    # THE GREYS (RULED 11-11, his "yes to the gulch and greys"; tools/greys-recolor.py): the team's horse and Willem's no cream left on their coats -- the lower half of every row
+    # of Willem's sheet (the horse's) under 200 px of the cream horse's three colours, as it was a thousand and more; Amara's grey as it was
+    from PIL import Image
+    coat = {(216, 212, 196), (180, 154, 124), (148, 121, 95)}
+    def coat_left(name, fh):
+        im = Image.open(os.path.join(ROOT, 'deep16', 'art', name + '.png')).convert('RGBA'); W, Ht = im.size; px = im.load(); out = []
+        for fy in range(0, Ht, fh):
+            out.append(sum(1 for y in range(fy + int(fh * 0.55), min(Ht, fy + fh)) for x in range(W) if px[x, y][3] and px[x, y][:3] in coat))
+        return out
+    g, w = coat_left('horsegrey_p1', 150), coat_left('willemmounted_p1', 116)
+    ok('the greys: the team\'s horse (horsegrey_p1) %d px of cream coat left; Willem\'s horse by row %s' % (sum(g), w), sum(g) == 0 and max(w) < 200)
     return 1 if bad else 0
 
 
