@@ -634,6 +634,22 @@
     multi: ['beak', 'claws'],
     src: 'SRD 5.1 Owlbear (CR 3, 700 XP; Large monstrosity, unaligned): AC 13 (natural armor), 59 HP (7d10 + 21), speed 40; STR 20 DEX 12 CON 17 INT 3 WIS 12 CHA 7; Perception +3, darkvision 60, passive Perception 13; Keen Sight and Smell (advantage on Perception by sight or smell: js/rules.js RU.keen, the KEEN table); Multiattack, one Beak (+7, 1d10 + 5 piercing) and one Claws (+7, 2d8 + 5 slashing). No Stealth in its block'
   },
+  // THE WEREWOLF (11-11, the owlbear cutter, on the desk's relay of Griz's "Cut the werewolf"; asked in art-wanted section 43, ART-130, for the Coldridge route's
+  // random encounters, the pack by night): the SRD 5.1 Werewolf as written, in its hybrid form -- the art desk's ART-130 cut into werewolf_p1 (tools/werewolf-sheet.py:
+  // idle, walk, bite, claws, flinch, the fall that ends as the priest, prone, in all eight facings; the two shifts cut and held). Immune to plain steel (js/battle.js,
+  // `immune: ['mundane']`: silvered weapons are not in the game yet); its Bite's curse rolled and carded, not kept (js/battle.js atk.curse). Keen Hearing and Smell:
+  // the KEEN table below
+  werewolf: {
+    name: 'Werewolf', type: 'humanoid', sheet: 'werewolf_p1', cr: '3', ac: 12, armor: 'natural armor', hp: 58, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 14, stealth: 3,
+    saves: { str: 2, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5, curse: { dc: 12, name: 'werewolf lycanthropy' } },
+      claws: { name: 'Claws', atk: 4, dice: '2d4', mod: 2, type: 'slashing', reach: 5 }
+    },
+    multi: ['bite', 'claws'], immune: ['mundane'], shapechanger: true, form: 'hybrid',
+    src: 'SRD 5.1 Werewolf (CR 3, 700 XP; Medium humanoid (human, shapechanger), chaotic evil), in its hybrid form: AC 12 (natural armor; 11 as the man), 58 HP (9d8 + 18), speed 30 (40 as the wolf); STR 15 DEX 13 CON 14 INT 10 WIS 11 CHA 10; Perception +4, Stealth +3, passive Perception 14; immune to bludgeoning, piercing and slashing from nonmagical attacks not made with silvered weapons (the game has no silvered weapons yet: every plain weapon is turned); Shapechanger (not played yet: the hybrid fights, the man and the wolf are looks; it dies as the priest, its true form); Keen Hearing and Smell; Multiattack (hybrid) one Bite (+4, 1d8 + 2 piercing; a humanoid DC 12 CON or cursed with werewolf lycanthropy) and one Claws (+4, 2d4 + 2 slashing). The realm: Rhollor feeds off the prayers to the Empty Seat and gives the Black Mountain clerics the werewolf\'s shift (TarlynsPit/wiki/the-doors.md, The Empty Chair) -- no cleric spells: the SRD block only'
+  },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
   // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).
@@ -1205,9 +1221,9 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 // KEEN SENSES (RULED 11-07, Griz: "they bothered to put it in text, should be reflected in their perception stat or something - compare theirs to other monsters"; js/rules.js
 // RU.keen): every sheet here whose SRD 5.1 block has a Keen trait, the senses it names -- hearing and smell find a hider, sight only where it sees one. The winter wolf's
 // `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
-// hound, the weres...) have no sheet yet; the owlbear took its line 11-11: a new sheet of one takes its line here
+// hound, the weres...) have no sheet yet; the owlbear took its line 11-11, the werewolf the same day: a new sheet of one takes its line here
 (function (F) {
-  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell' };
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell' };
   Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,

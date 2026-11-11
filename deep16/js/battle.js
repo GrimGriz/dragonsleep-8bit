@@ -2856,6 +2856,13 @@
     if (tgt.resist && (tgt.resist.indexOf('mundane') >= 0 || (tgt.resist.indexOf('mundaneps') >= 0 && /piercing|slashing/.test(atk.type))) && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
       var cut = dmg - Math.floor(dmg / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
+    // IMMUNITY to non-magical weapons (the werewolf, 11-11, the owlbear cutter: SRD 5.1 "bludgeoning, piercing, and slashing from nonmagical attacks not made with
+    // silvered weapons"): a weapon's own bludgeoning, piercing or slashing comes to nothing unless the weapon is magic. Silvered weapons are not in the game yet, so
+    // a silvered blade is turned like any plain one -- the question is Griz's (the bestiary lane, 2026-11-11 werewolf section)
+    if (tgt.immune && tgt.immune.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type) && dmg + (/bludgeoning|piercing|slashing/.test(atk.extraType || atk.type) ? ext : 0) > 0) {
+      var nulled = dmg + (/bludgeoning|piercing|slashing/.test(atk.extraType || atk.type) ? ext : 0); dmg = 0; if (/bludgeoning|piercing|slashing/.test(atk.extraType || atk.type)) ext = 0;
+      parts.push('{g}-' + nulled + ': immune to plain steel{/}'); FX.float('immune: plain steel', tgt, D.PAL.ramps.silver[5]);
+    }
     var atkL = [head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'];
     this.card(atkL, 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
@@ -3007,6 +3014,15 @@
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
       if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
       yield 30;
+    }
+    // the werewolf's curse (11-11, the owlbear cutter: SRD 5.1 Bite, "If the target is a humanoid, it must succeed on a DC 12 Constitution saving throw or be cursed
+    // with werewolf lycanthropy"): the save is rolled and the card says how it went; nothing lasts past the fight -- what the curse does to one of ours is Griz's
+    // question (the bestiary lane, 2026-11-11 werewolf section). A fallen one is still a target ("the target"), so it rolls at 0 HP too
+    if (atk.curse && !tgt.dead && D.magic.humanoid && D.magic.humanoid(tgt)) {
+      var cs = RU.save(tgt, 'con', atk.curse.dc, false, null);
+      this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(cs) + ' vs DC ' + cs.dc + '  ' + (cs.ok ? '{n}SAVED{/} {g}(the curse of ' + atk.curse.name + ' does not take){/}' : '{p}FAILED: cursed with ' + atk.curse.name + '{/} {g}(the curse is not played past this fight yet){/}')]);
+      if (!cs.ok) { tgt.cursedBy = tgt.cursedBy || []; tgt.cursedBy.push(atk.curse.name); FX.sparkle(tgt, 'moss', 10); }
+      yield 24;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, atk.save.type === 'poison' && RU.vsPoison(tgt), null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)

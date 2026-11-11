@@ -1,0 +1,111 @@
+{
+ "image": "art/werewolf_p1.png",
+ "fw": 50,
+ "fh": 76,
+ "ax": 25,
+ "ay": 70,
+ "top": 56,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 50,
+   "fh": 76,
+   "ax": 25,
+   "ay": 70,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 608,
+   "fw": 52,
+   "fh": 76,
+   "ax": 26,
+   "ay": 70,
+   "frames": 8,
+   "fps": 9
+  },
+  "bite": {
+   "y": 1216,
+   "fw": 72,
+   "fh": 76,
+   "ax": 36,
+   "ay": 70,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "claws": {
+   "y": 1824,
+   "fw": 64,
+   "fh": 76,
+   "ax": 32,
+   "ay": 70,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "flinch": {
+   "y": 2432,
+   "fw": 54,
+   "fh": 76,
+   "ax": 27,
+   "ay": 70,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3040,
+   "fw": 74,
+   "fh": 76,
+   "ax": 37,
+   "ay": 70,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3648,
+   "fw": 70,
+   "fh": 76,
+   "ax": 35,
+   "ay": 70,
+   "frames": 2,
+   "fps": 6
+  },
+  "getup": {
+   "y": 4256,
+   "fw": 70,
+   "fh": 76,
+   "ax": 35,
+   "ay": 70,
+   "frames": 3,
+   "fps": 6
+  },
+  "shift": {
+   "y": 4864,
+   "fw": 40,
+   "fh": 76,
+   "ax": 20,
+   "ay": 70,
+   "frames": 8,
+   "fps": 8,
+   "held": true
+  },
+  "towolf": {
+   "y": 5472,
+   "fw": 54,
+   "fh": 76,
+   "ax": 27,
+   "ay": 70,
+   "frames": 7,
+   "fps": 8,
+   "held": true
+  }
+ },
+ "name": "Werewolf",
+ "hold": [
+  "walk: SE, NE and E repeat the lead and passing poses in the second half -- a half-cycle twice, not an alternating stride (the art desk's own notes; held for a redraw there, cut as drawn here)",
+  "N prone a little oblique and the N fallen priest diagonal; S Bite and N Bite read as a dip of the head and shoulders (the art desk's own notes)",
+  "shift and towolf cut, HELD: no foe changes shape on the grid yet; towolf ends one frame short of wolf_p1's own idle cell"
+ ],
+ "source": "drawn by the art desk (ART-130-WEREWOLF-SOURCES, 11-11: art-wanted section 43), cut by tools/werewolf-sheet.py; SW W NW mirrored -- the SRD 5.1 Werewolf in its hybrid form: deep16/data/foes.js werewolf"
+}
