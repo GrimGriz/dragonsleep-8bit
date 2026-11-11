@@ -52,10 +52,12 @@
     // THE COURT (r8-r13): the oathstone under the light; a temple each side
     set(13, 8, 24, 13, '=');
     set(18, 10, 19, 10, 'O');                                // the pedestal and the oathstone, in the Sunshaft's circle
-    set(1, 8, 11, 13, '='); set(12, 10, 12, 11, 'D');        // Rekknar's temple (west), its doors on the court
-    set(6, 13, 6, 13, 'L');                                  // his ledger-stone against the back wall
+    set(7, 9, 11, 13, '='); set(12, 11, 12, 11, 'D');        // Rekknar's temple (west), a closed hall at its corner of the court, one door on the court (RULED 11-11 night, his "temples as suggested")
+    [[8, 9], [10, 9], [8, 13], [10, 13]].forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); }); set(6, 12, 6, 12, 'D'); // its pillars; the door in its back wall to the stair
+    set(7, 11, 7, 11, 'L');                                  // his ledger-stone against the back wall
     set(5, 11, 5, 12, 'X');                                  // the stairs down to the funerary, one in each temple (RULED 11-11, his "approve the solskaft iso seat's leans")
-    set(26, 8, 36, 13, '='); set(25, 10, 25, 11, 'D');       // the Dormant's temple (east); the empty cut is in its back wall (SK.CUT)
+    set(26, 9, 30, 13, '='); set(25, 11, 25, 11, 'D');       // the Dormant's temple (east), the same; the empty cut in its north wall (SK.CUT)
+    [[27, 9], [29, 9], [27, 13], [29, 13]].forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); }); set(31, 12, 31, 12, 'D');
     set(32, 11, 32, 12, 'X');                                // its stair down, the west one's twin
     // THE BACK RIM (r14): an arch the crown's width
     set(16, 14, 21, 14, '=');
@@ -71,17 +73,20 @@
     return g.map(function (row) { return row.join(''); });
   };
   SK.ROWS = SK.build();
-  SK.LEGEND = { '#': 'dwarfWall', '=': 'dwarfFloor', D: 'doorway', v: 'skRamp', X: 'skMouth', u: 'skStair', K: 'skCounter', l: 'skDesk', s: 'skScales', S: 'skStore', n: 'skCounter', w: 'skScales',
+  SK.LEGEND = { '#': 'dwarfWall', '=': 'dwarfFloor', D: 'doorway', v: 'skRamp', X: 'skMouth', p: 'skPillar', u: 'skStair', K: 'skCounter', l: 'skDesk', s: 'skScales', S: 'skStore', n: 'skCounter', w: 'skScales',
     R: 'skRackS', m: 'skManger', t: 'skTrough', h: 'skFodder', O: 'skOathstone', L: 'skLedgerStone', T: 'skThrone', b: 'firepit' };
   Object.assign(M.LAY, { doorway: M.LAY.doorway || ['d'], skRamp: ['='], skMouth: ['d', 'X'], skStair: ['d', 'X'], skCounter: ['K'], skDesk: ['K'], skScales: ['k'], skManger: ['k'],
-    skTrough: ['w'], skFodder: ['k'], skRackS: ['S'], skOathstone: ['k'], skLedgerStone: ['k'], skThrone: ['k'] });
+    skTrough: ['w'], skFodder: ['k'], skRackS: ['S'], skPillar: ['k'], skOathstone: ['k'], skLedgerStone: ['k'], skThrone: ['k'] });
   Object.assign(M.ROOF, { skStore: 'U' });
   SK.ROOFS = { U: { h: 9, roof: 'stone', wall: 'stone' } }; // (the stores two storeys over the token, their lodging the upper one: as the inn's house -- js/inn.js In.ROOFS)
 
   // ---------------------------------------------------------------- where things are (x, r)
-  SK.STONE = [18.5, 10];      // (the oathstone's middle: the Sunshaft's circle on MAPS.edifice, centre 29.5, 4.8 = local 18.5, 10.2)
+  SK.STONE = [18.5, 10];
+  SK.PILLARS = [[8, 9], [10, 9], [8, 13], [10, 13], [27, 9], [29, 9], [27, 13], [29, 13]]; // (down the halls' two long sides, clear of the walk from the door to the god's piece)
+  SK.TEMPLEWALLS = [[6, 8, 12, 14], [25, 8, 31, 14]]; // (x0 r0 x1 r1: each temple hall and its walls)
+  SK.WHOLE = true;      // (the oathstone's middle: the Sunshaft's circle on MAPS.edifice, centre 29.5, 4.8 = local 18.5, 10.2)
   SK.DAIS = [14, 27, 23, 30]; // (the dais, x0 r0 x1 r1: drawn, not raised -- a step of height on the grid is ten feet)
-  SK.CUT = [31, 13];          // (the Dormant's empty cut, in the back wall over this square)
+  SK.CUT = [28, 13];          // (the Dormant's empty cut, in the back wall over this square)
   SK.WINDOW = [15, 6];        // (the lit window, high on the west store's face over this street square: Ásdís's)
   SK.FOLK = [ // the first game's people who belong on this floor, with its looks (first/content/maps/solskaft.json), stood where the street puts them
     { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p0' },     // (at the vault door, always -- CANON 07-24)
@@ -118,8 +123,8 @@
     trough: 'The trough. Its water comes down from the cistern over the stable, the same as the fountains\' out front.',
     fodder: 'The fodder: a forkful or two, gone grey. Nobody has stabled a horse here in a long time.',
     window: 'Up over the west store, one window lit. Somebody lives in the lodging.',
-    rekknarIn: 'Rekknar\'s temple: the Reckoner\'s, the ledger-stone against the back wall.',
-    dormantIn: 'The Dormant\'s temple: bare walls, and a cut in the back one with nothing in it.',
+    rekknarIn: 'Rekknar\'s temple: a hall of pillars, lamplit, the ledger-stone against the back wall; a door beside it to the stair down.',
+    dormantIn: 'The Dormant\'s temple: a hall of pillars, bare walls, a cut in the far one with nothing in it; a door at the back to the stair down.',
     assayIn: 'The assay house: the needles laid out, the weights locked away, nobody at the table.',
     guardIn: 'The garrison\'s guardroom at the foot of their stair: a rack of spears, a bench, the stair going up into the rock.',
     rack: 'A rack of spears, every one oiled.',
@@ -127,7 +132,7 @@
   };
   // the doors that lead off this floor, drawn and marked: where each will go (none of them opens yet)
   SK.DOORS = [
-    { id: 'vault', at: [[18, 0], [19, 0]], step: true, title: 'THE VAULT DOORS', say: ['Out through the vault doors: Fountain Street and the fountains.'], to: 'Silverton\'s Fountain Street (the doors join it later; this floor is reached by its own test door for now).' },
+    { id: 'vault', at: [[18, 0], [19, 0]], step: true, title: 'THE VAULT DOORS', say: ['Out through the vault doors: Fountain Street and the fountains.'], to: 'Silverton, the Gate Plaza at the Edifice\'s foot.', cross: true },
     { id: 'rampW', at: [[5, 1], [5, 2]], step: true, title: 'THE CART RAMP', say: ['The cart ramp goes down under the west stores: the wagon holding and the loading lane.'], to: 'the cart level.', go: ['solskaft_cart', 5, null, [-1, 0]] },
     { id: 'rampE', at: [[36, 6]], step: true, title: 'THE NARROW RAMP', say: ['The narrow ramp up from the cart road\'s loop, coming out beside the stable.'], to: 'the cart level.', go: ['solskaft_cart', 36, 7, [0, -1]] },
     { id: 'templeW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR DOWN', say: ['Down from Rekknar\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 6, null, [1, 0]] },
@@ -164,7 +169,7 @@
     } else { lamp('skCourtW', 15, 10); lamp('skCourtE', 22, 10); lamp('skStreetW', 15, 4); lamp('skStreetE', 22, 4); }
     lamp('skDoorW', 16, 1); lamp('skDoorE', 21, 1);                                   // (the vault doors' lamps)
     lamp('skToll', 5, 5, 5, 10); lamp('skLedger', 2, 5, 5, 5); lamp('skStable', 31, 4, 5, 10);
-    lamp('skRekknar', 6, 11, 5, 10); lamp('skDormant', 31, 11, 5, 10);
+    lamp('skRekknar', 9, 11, 10, 10); lamp('skDormant', 28, 11, 10, 10); // (the halls lamplit inside)
     [15, 17, 19].forEach(function (r) { lamp('skCrownW' + r, 16, r, 5, 10); }); [16, 18, 20].forEach(function (r) { lamp('skCrownE' + r, 21, r, 5, 10); }); // (the crown under the rock: lamplight, day and night)
     lamp('skThrone', 18, 27, 10, 15); lamp('skHallW', 9, 25, 5, 10); lamp('skHallE', 28, 25, 5, 10);
     return out;
@@ -174,22 +179,22 @@
   SK.map = function (hour) {
     var trig = [], Y = SK.Y;
     trig.push(SK.sign(8, 4, SK.S8.scales), SK.sign(7, 7, SK.S8.tariff), SK.sign(18, 10, SK.S8.oath), SK.sign(19, 10, SK.S8.oath), SK.sign(18, 29, SK.S8.throne), SK.sign(19, 29, SK.S8.throne),
-      SK.sign(6, 13, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(2, 4, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
+      SK.sign(7, 11, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(2, 4, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
     for (var x = 5; x <= 7; x++) trig.push(SK.sign(x, 3, SK.LINES.counter));
     trig.push(SK.sign(11, 19, SK.S8.needles), SK.sign(13, 16, SK.S8.weights), SK.sign(23, 20, SK.LINES.rack), SK.sign(24, 20, SK.LINES.rack), SK.sign(25, 20, SK.LINES.rack), SK.sign(26, 16, SK.LINES.bench), SK.sign(27, 16, SK.LINES.bench)); // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
     trig.push({ id: 'skAssay', rect: [15, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.assayIn, once: true }, { id: 'skGuard', rect: [22, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.guardIn, once: true });
     trig.push(SK.sign(14, SK.WINDOW[1], SK.LINES.window), SK.sign(14, 7, SK.LINES.window));
     SK.DOORS.forEach(function (d) { d.at.forEach(function (q, i) { trig.push({ id: 'door_' + d.id + i, rect: [q[0], Y(q[1]), 1, 1], on: d.step ? 'step' : 'use', script: 'sk:door', door: d.id }); }); });
     trig.push({ id: 'skStable', rect: [31, Y(3), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.stable, once: true },
-      { id: 'skRekknar', rect: [12, Y(11), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.rekknarIn, once: true },
-      { id: 'skDormant', rect: [25, Y(11), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.dormantIn, once: true });
+      { id: 'skRekknar', rect: [12, Y(11), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.rekknarIn, once: true },
+      { id: 'skDormant', rect: [25, Y(11), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.dormantIn, once: true });
     trig.forEach(function (t) { var d0 = t.door && SK.DOORS.filter(function (z) { return z.id === t.door; })[0], lb = t.label || (d0 && d0.title.toLowerCase().replace(/^(?!the )/, 'the ')); if (lb && D.roam && D.roam.USE_NAME) D.roam.USE_NAME[t.id] = lb; });
     var npcs = SK.FOLK.map(function (p) { return { id: p.id, x: p.at[0], y: Y(p.at[1]), look: p.id, dir: p.dir }; });
     return { id: SK.KEY, name: 'Sólskaft', rows: SK.ROWS.slice(), legend: SK.LEGEND, music: 'dungeon', exits: {}, dark: true, lights: SK.lights(hour), npcs: npcs, triggers: trig, chests: [] };
   };
-  M.FLOORS[SK.KEY] = { src: SK.KEY, own: true, map: SK.map, door: null, place: 'Sólskaft', sub: 'the street level: main street', save: false, clock: true, iso: true,
+  M.FLOORS[SK.KEY] = { src: SK.KEY, own: true, map: SK.map, door: 'solskaft', place: 'Sólskaft', sub: 'the street level: main street', save: true, clock: true, iso: true,
     rate: { squaresPerHour: 500, fightHours: 0.25 }, phase: M.seepPhase, phaseLine: function (h) { return M.night(h) ? 'Night in Sólskaft: the glass is dark, and the street goes by its lamps.' : 'Day on the glass: the light comes down the shaft onto the stone.'; },
-    gates: { doors: [18, SK.Y(1), [0, -1]], court: [18, SK.Y(8), [0, -1]], crown: [18, SK.Y(15), [0, -1]], throne: [18, SK.Y(26), [0, -1]], rampW: [15, SK.Y(1), [1, 0]], rampE: [36, SK.Y(1), [0, 1]], templeW: [6, SK.Y(11), [1, 0]], templeE: [31, SK.Y(11), [-1, 0]] } }; // (save: false -- no way in from THE WORLD yet, so a SAVE here would have no door to stand the party at)
+    gates: { doors: [18, SK.Y(1), [0, -1]], court: [18, SK.Y(8), [0, -1]], crown: [18, SK.Y(15), [0, -1]], throne: [18, SK.Y(26), [0, -1]], rampW: [15, SK.Y(1), [1, 0]], rampE: [36, SK.Y(1), [0, 1]], templeW: [9, SK.Y(11), [-1, 0]], templeE: [28, SK.Y(11), [1, 0]] } }; // (save: false -- no way in from THE WORLD yet, so a SAVE here would have no door to stand the party at)
   // (the ramps stepped as the Keeper's flooded stair is, 11-11 night: SK.sheights / SK.cheights -- js/iso.js `heights`, a step a square at most, the grid walks it)
   SK.RAMPH = { w: { 14: 3, 13: 3, 12: 3, 11: 3, 10: 3, 9: 3, 8: 3, 7: 2, 6: 1, 5: 0 }, n: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 1, 6: 0 } };
   SK.sheights = function () { return SK.ROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 3; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPH.w[x]; else if (x === 36 && r >= 2 && r <= 6) h = SK.RAMPH.n[r]; out += String(h); } return out; }); };
@@ -255,6 +260,7 @@
     else if (s === 'sk:door') {
       var d = SK.doorById(trig.door);
       if (d && d.go && M.FLOORS[d.go[0]]) { var t = B.roam.token, rr = d.go[2] == null ? SK.H - 1 - t.y : d.go[2]; SK.lastSaid = d.title; yield* M.go(B, d.go[0], [d.go[1], d.go[4] === 'raw' ? d.go[2] : SK.Y(rr)], d.go[3]); return; } // (a ramp between the floors built: down or up it, on the same row of the ramp where it is two wide)
+      if (d && d.cross) { yield* SK.toTown(B); return; }
       if (d) say = SK.doorSay(d); if (trig.on === 'step') M.stepBack(B);
     }
     if (!say.length) return;
@@ -279,6 +285,11 @@
   };
   var canvas = function (w, h) { var cv = document.createElement('canvas'); cv.width = w; cv.height = h; return cv; };
   SK.pic = {
+    pillar: function () { // (a temple's pillar: a squared column of dressed stone, a plinth and a capital)
+      var cv = canvas(64, 150), cx = cv.getContext('2d'), ox = 32, oy = 126, st = D.iso.ramp('stone');
+      box(cx, ox, oy, -0.3, -0.3, 0.3, 0.3, 0, 8, st); box(cx, ox, oy, -0.2, -0.2, 0.2, 0.2, 8, 100, st, [0.9, 0.65, 0.45]); box(cx, ox, oy, -0.3, -0.3, 0.3, 0.3, 100, 108, st);
+      return { canvas: cv, ax: ox, ay: oy };
+    },
     oathstone: function () { // (a pedestal two squares wide, the stone on it, a band of gold worn bright at hand height)
       var cv = canvas(160, 140), cx = cv.getContext('2d'), ox = 80, oy = 104, st = D.iso.ramp('stone'), gd = D.iso.ramp('gold') || st;
       box(cx, ox, oy, -0.9, -0.42, 0.9, 0.42, 0, 10, st);
@@ -365,7 +376,9 @@
     off(sq(18, 29), 'the high seat'); off(sq(19, 29), 'the high seat');
     var dz = sq(SK.DAIS[0], SK.DAIS[3]); if (dz) add({ kind: 'decal', sq: dz, depth: dz.x + dz.y - 0.6, gz: dz.gz, layer: -1 }, function () { return SK.pic.dais(SK.DAIS[2] - SK.DAIS[0] + 1, SK.DAIS[3] - SK.DAIS[1] + 1); });
     piece(18, 29, SK.pic.throne, { fx: 19, fy: Y(29) + 0.5, d: 1.5 });
-    off(sq(6, 13), 'Rekknar\'s ledger-stone'); piece(6, 13, SK.pic.stele);
+    off(sq(7, 11), 'Rekknar\'s ledger-stone'); piece(7, 11, SK.pic.stele);
+    SK.PILLARS.forEach(function (q) { off(sq(q[0], q[1]), 'a pillar'); piece(q[0], q[1], SK.pic.pillar); });
+    if (SK.WHOLE) SK.TEMPLEWALLS.forEach(function (b) { for (var x2 = b[0]; x2 <= b[2]; x2++) for (var r2 = b[1]; r2 <= b[3]; r2++) { var w2 = sq(x2, r2); if (w2 && !w2.open && w2.rock === 'near') { w2.rock = 'far'; w2.skWhole = true; } } }); // (the temples' walls whole: the draw cut any wall with open floor behind it to a stub, and the halls read as roofless yards -- 'far' stands it whole, the occluder (js/roam.js R.occlude) still opening it while it hides the party)
     piece(SK.CUT[0], SK.CUT[1], SK.pic.cut, { d: -0.4 });
     off(sq(8, 4), 'the scales'); piece(8, 4, SK.pic.scales);
     // the ramps' runs
@@ -499,7 +512,7 @@
     var npcs = SK.CFOLK.map(function (p) { return { id: p.id, x: p.at[0], y: Y(p.at[1]), look: p.id, dir: p.dir }; });
     return { id: SK.CART, name: 'Sólskaft', rows: SK.CROWS.slice(), legend: SK.CLEGEND, music: 'dungeon', exits: {}, dark: true, lights: SK.clights(), npcs: npcs, triggers: trig, chests: [] };
   };
-  M.FLOORS[SK.CART] = { src: SK.CART, own: true, map: SK.cmap, door: null, place: 'Sólskaft', sub: 'the cart level: the road round the drum', save: false, clock: true, iso: true,
+  M.FLOORS[SK.CART] = { src: SK.CART, own: true, map: SK.cmap, door: 'solskaft_cart', place: 'Sólskaft', sub: 'the cart level: the road round the drum', save: true, clock: true, iso: true,
     rate: { squaresPerHour: 500, fightHours: 0.25 }, phase: M.seepPhase, phaseLine: function () { return ''; },
     gates: { rampW: [5, SK.Y(1), [-1, 0]], rampE: [36, SK.Y(7), [0, -1]], forge: [18, SK.Y(16), [0, -1]], gate: [32, SK.Y(22), [0, -1]] } }; // (save: false, as the street's)
   // its pieces: the ramps' runs, the drum's carving on the faces the eye sees, the hoist-traps, the anvils, the cold furnaces and the cupel, the lamp rack
@@ -661,8 +674,8 @@
     graveGear: '{g}(The law of the line -- what may be taken, by whose warrant -- is the story\'s, to come.){/}'
   };
   SK.BDOORS = [
-    { id: 'bUpW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR UP', say: ['Up to Rekknar\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 6, null, [1, 0]] },
-    { id: 'bUpE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR UP', say: ['Up to the Dormant\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 31, null, [-1, 0]] },
+    { id: 'bUpW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR UP', say: ['Up to Rekknar\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 6, 12, [1, 0]] },
+    { id: 'bUpE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR UP', say: ['Up to the Dormant\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 31, 12, [-1, 0]] },
     { id: 'bWarrens', at: [[31, 1]], step: true, title: 'THE FLOODED STAIR', say: ['The stair from the Warrens comes in here, through a cut seal: down it, the water.'], to: 'the Wet, under the Crawler Warrens (the drained stair\'s coming up this way is the story\'s, to come).' }
   ];
   SK.blights = function () { var Y = SK.Y; return [{ id: 'bkBier', kind: 'map', x: 20, y: Y(11), bright: 10, dim: 25, color: 'fire', flame: true, seep: true }, { id: 'bkChapel', kind: 'map', x: 34, y: Y(8), bright: 5, dim: 15, color: 'fire', flame: true, seep: true }]; };
@@ -740,7 +753,7 @@
   };
 
   SK.BBEATS = [
-    { id: 'templestair', key: 'solskaft', label: 'THE TEMPLE STAIR: down from Rekknar\'s temple', note: 'In Rekknar\'s temple on the court, beside the stair cut in its floor by the west wall (the Dormant\'s has its own, the same, by the east). Step onto it: down past the cart level through the rock -- nothing of it seen from the cart road -- to the west hallway of the funerary.', at: [7, 11], hour: 10 },
+    { id: 'templestair', key: 'solskaft', label: 'THE TEMPLE STAIR: down from Rekknar\'s temple', note: 'In Rekknar\'s temple, a closed hall of pillars at its corner of the court: the door in its back wall beside the ledger-stone opens on the stair down (the Dormant\'s the same). Through it: down past the cart level through the rock -- nothing of it seen from the cart road -- to the west hallway of the funerary.', at: [9, 11], hour: 10 },
     { id: 'chamber', key: 'solskaft_below', label: 'THE FUNERARY: the chamber and the empty bier', note: 'At the bottom, beside the bier under the oathstone: Pyro\'s chamber, doorless, nobody on the bier, one lamp kept (E on each). The tiers rise away to the west and the east, a step a tier, the niches in their walls; a stair down the middle row from each hallway.', at: [17, 10], hour: 10 },
     { id: 'easthall', key: 'solskaft_below', label: 'THE EAST HALLWAY: the shrines, the Warrens\' stair', note: 'In the east hallway by the Triad\'s chapel: the grave-anvil, Rekknar\'s ledger-stone, the Dormant\'s empty cut, the lamp, the kneeling-stone (E on each). South down the hallway, at its end, the flooded stair from the Warrens through its cut seal: it says where it goes and steps you back. Geirmund\'s wedge is the nearest, its top niches pried.', at: [31, 6], hour: 10 },
     { id: 'westhall', key: 'solskaft_below', label: 'THE WEST HALLWAY: the sealed doors, the closed street through the bars', note: 'In the west hallway: four warranted doors, sealed, on its west wall, and between them a grille -- through it the closed street in the dark, ten doors, every one barred (E on the grille: the lintels). The Scalebeam door barred with the rest: Ásdís lives over the stores now.', at: [6, 8], hour: 10 },
@@ -823,6 +836,29 @@
     return { canvas: cv, ax: ox, ay: oy };
   };
 
+  // ---------------------------------------------------------------- THE VAULT DOORS JOINED (RULED 11-11 night, his "go ahead and build your leans 1-3": the street joined to Silverton's
+  // vault doors, saving on). Out: the vault doors onto the Gate Plaza a step south of the Edifice's threshold (js/town.js marks.vault). In: E at that threshold, Silverton's floor, to a
+  // step inside the doors. A save on the street or the cart level names its own door (W.DOORS solskaft, solskaft_cart: no site of their own, as the Warrens' mouth camp) and a load
+  // stands the party on the square it saved on (js/house.js H.atOf, H.toTown)
+  if (W && W.DOORS) {
+    W.DOORS.solskaft = { roam: SK.KEY, gates: { doors: [0, 1] } };
+    W.DOORS.solskaft_cart = { roam: SK.CART, gates: { rampW: [0, 1] } };
+  }
+  SK.vaultOut = function () { var L = (T.laidF && T.laidF[T.SCALE]) || (T.laidF = T.laidF || {}, T.laidF[T.SCALE] = T.lay(null, T.SCALE)), v = L.marks.vault; return v ? [v[0], v[1] + 1] : null; };
+  SK.toTown = function* (B) { var at = SK.vaultOut(); SK.lastSaid = 'the vault doors'; yield* M.cross(B, 'silverton', 'south', at, ['{y}The vault doors{/}, out onto the Gate Plaza at the Edifice\'s foot: Silverton.']); };
+  var tfloor0 = T.floor;
+  T.floor = function (q, flags) {
+    var def = tfloor0.apply(this, arguments), v = def && def.marks && def.marks.vault; if (!v) return def;
+    var row = def.rows[v[1]] || '', x0 = v[0], x1 = v[0]; while (x0 > 0 && row.charAt(x0 - 1) === 'd') x0--; while (x1 < row.length - 1 && row.charAt(x1 + 1) === 'd') x1++;
+    def.src8.triggers.push({ id: 'vault:solskaft', on: 'use', rect: [x0, v[1], x1 - x0 + 1, 1], town: 'door', door: { id: 'vault:solskaft', name: 'The vault doors of Sólskaft' } });
+    if (D.roam && D.roam.USE_NAME) D.roam.USE_NAME['vault:solskaft'] = 'the vault doors';
+    return def;
+  };
+  var fire1 = T.fire;
+  T.fire = function* (B, trig) {
+    if (trig && trig.id === 'vault:solskaft') { SK.lastSaid = 'in'; yield* M.go(B, SK.KEY, [18, SK.Y(1)], [0, -1], ['{y}SÓLSKAFT{/}, through the vault doors.']); return; }
+    yield* fire1.apply(this, arguments);
+  };
   // ---------------------------------------------------------------- SÓLSKAFT, shown (deep16/?solskaft -- the eyes row's door): a NEW GAME's four staged on the street level by the beat
   SK.BEATS = [
     { id: 'doors', label: 'THE VAULT DOORS: in off Fountain Street', note: 'Ten in the morning, a step inside the vault doors: Pyro on the left of them, Ketil on the right, facing in. Main street runs north up the screen\'s right: the cart ramp going down on the west along the front wall, the stable\'s apron on the east with the drill on it, the two shut stores, and the light on the oathstone ahead. Step back onto the doors: they say where they will go.', at: [18, 1], hour: 10 },
