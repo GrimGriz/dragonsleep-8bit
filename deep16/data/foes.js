@@ -7,14 +7,14 @@
 (window.D16 = window.D16 || {}).FOES = {
   drow: {
     name: 'Drow Captain', type: 'humanoid', sheet: 'drow_p0', cr: '5', ac: 18, hp: 71, speed: 30, size: 1, reach: 5, darkvision: 120,
-    abil: { str: 13, dex: 18, con: 14, int: 11, wis: 13, cha: 12 }, init: 4, perception: 14,
+    abil: { str: 13, dex: 18, con: 14, int: 11, wis: 13, cha: 12 }, init: 4, perception: 14, stealth: 7,
     saves: { str: 1, dex: 4, con: 2, int: 0, wis: 1, cha: 1 },
     attacks: {
       shortsword: { name: 'Shortsword', atk: 7, dice: '1d6', mod: 4, type: 'piercing', extra: '2d6', extraType: 'poison', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 7, dice: '1d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true, poison: { dc: 13 } }
     },
     multi: 2, faerieFire: { dc: 12, range: 60, cube: 4 }, darkness: { r: 15, range: 60, chance: 0.3 }, lightSensitive: true, fey: true, // (innate Darkness once on the 8-bit's chance; sunlight sensitivity: crossed 09-28; fey: Fey Ancestry, no magic puts it to sleep -- 10-06, Eyebite could)
-    src: 'content/monsters.json drowcaptain (game-original, CR 5) + SRD 5.1 Drow (hand crossbow, poison, Faerie Fire)'
+    src: 'content/monsters.json drowcaptain (game-original, CR 5) + SRD 5.1 Drow (hand crossbow, poison, Faerie Fire) -- SENSES (ours, 11-10): Stealth +7, because drow are Stealth-proficient as the SRD Drow (+4): DEX +4, proficiency +3 at CR 5; passive Perception 14, because Perception-proficient as the SRD Drow: 10 + WIS +1 + 3'
   },
   phasespider: {
     name: 'Phase Spider', type: 'monstrosity', sheet: 'phasespider_p1', cr: '3', ac: 13, hp: 32, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 60,
@@ -130,13 +130,13 @@
   // the nest (deep.js S.brood): the one that bred the phase spiders. Huge (the Cowork seat's map: the spider at 3 squares)
   broodmother: {
     name: 'Broodmother', type: 'monstrosity', sheet: 'broodmother_p1', cr: '6', ac: 15, hp: 120, speed: 30, size: 3, reach: 5, darkvision: 60,
-    abil: { str: 19, dex: 15, con: 16, int: 7, wis: 12, cha: 6 }, init: 2, perception: 11,
+    abil: { str: 19, dex: 15, con: 16, int: 7, wis: 12, cha: 6 }, init: 2, perception: 11, stealth: 8,
     saves: { str: 4, dex: 2, con: 3, int: -2, wis: 1, cha: -2 },
     attacks: {
       bite: { name: 'Bite', atk: 7, dice: '2d10', mod: 4, type: 'piercing', reach: 5, save: { ab: 'con', dc: 14, dice: '6d8', type: 'poison', half: true } }
     },
     multi: ['bite', 'bite'], web: { atk: 7, range: [30, 60], dc: 14, recharge: 5 }, webWalker: true, jaunt: { rounds: 4, text: 'folds herself into the rock.' },
-    src: 'content/monsters.json broodmother (game-original from the SRD 5.1 Phase Spider at CR 6); its Web in the SRD\'s attack form; the jaunt when bloodied, once, four turns in the rock, out beside the weakest (js/traits.js, 09-28)'
+    src: 'content/monsters.json broodmother (game-original from the SRD 5.1 Phase Spider at CR 6); its Web in the SRD\'s attack form; the jaunt when bloodied, once, four turns in the rock, out beside the weakest (js/traits.js, 09-28) -- SENSES (ours, 11-10): Stealth +8, because kin to the Phase Spider, whose Stealth is expertise (+6 at CR 3): DEX +2, proficiency +3 twice; passive Perception 11, because 10 + WIS +1, as the Phase Spider, no Perception skill'
   },
   // the cut seal camp (deep.js S.cutSeal): budgeted hard for four at 5
   bugbearchief: {
@@ -145,7 +145,7 @@
     saves: { str: 3, dex: 2, con: 2, int: 0, wis: 1, cha: 0 },
     attacks: { morningstar: { name: 'Morningstar', atk: 5, dice: '2d8', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['morningstar', 'morningstar'], surprise: '2d6', stealth: 6,
-    src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks, its Stealth +6); Surprise Attack by the SRD since 11-10 (+2d6 on a hit in round 1 at one it surprised: battle.js Battle.caught; till then the 8-bit game\'s reading, every round-1 hit)'
+    src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks, its Stealth +6); Surprise Attack by the SRD since 11-10 (+2d6 on a hit in round 1 at one it surprised: battle.js Battle.caught; till then the 8-bit game\'s reading, every round-1 hit) -- SENSES (ours, 11-10): Stealth +6, because the SRD Bugbear Stealth, expertise, its kind: DEX +2, proficiency +2 twice; passive Perception 11, because 10 + WIS +1, as the Bugbear'
   },
   hobsergeant: {
     name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p2', cr: '3', ac: 18, metalArmor: 'chain mail', shield: true, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
@@ -153,7 +153,7 @@
     saves: { str: 2, dex: 2, con: 2, int: 1, wis: 0, cha: 1 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
     multi: ['longsword', 'longsword'], martial: '2d6',
-    src: 'content/monsters.json hobsergeant (game-original from SRD 5.1 pieces: the Hobgoblin and the Veteran); Martial Advantage'
+    src: 'content/monsters.json hobsergeant (game-original from SRD 5.1 pieces: the Hobgoblin and the Veteran); Martial Advantage -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a drilled soldier of Hobgoblin and Veteran pieces, neither stealthy; passive Perception 10, because 10 + WIS +0'
   },
   hobgoblin: {
     name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p2', cr: '1/2', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
@@ -178,7 +178,7 @@
   // the plain drow fight by brute() (a blade in reach, else the hand crossbow). Their Darkness and light sensitivity are not read.
   spellweaver: {
     name: 'Drow Spell-Weaver', type: 'humanoid', sheet: 'spellweaver_p1', cr: '6', ac: 12, hp: 45, speed: 30, size: 1, reach: 5, darkvision: 120,
-    abil: { str: 9, dex: 14, con: 11, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
+    abil: { str: 9, dex: 14, con: 11, int: 17, wis: 12, cha: 11 }, init: 2, perception: 14, stealth: 5,
     saves: { str: -1, dex: 2, con: 0, int: 3, wis: 1, cha: 0 },
     attacks: { firebolt: { name: 'Fire Bolt', atk: 6, dice: '2d10', mod: 0, type: 'fire', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
     multi: 1, fey: true,
@@ -186,7 +186,7 @@
     // a 9th-level caster, INT, DC 14, +6 -- cast through the real spells by the class tactics (js/tactics.js); the old weave retired
     caster: { lvl: 9, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 1], known: ['firebolt', 'light', 'magicmissile', 'shield', 'mageArmor', 'mistystep', 'holdperson', 'lightningbolt', 'greaterinvisibility', 'icestorm', 'coneofcold'] },
     darkness: { r: 15, range: 60, chance: 0.35 }, lightSensitive: true, // (the 8-bit's `darkness` special, once; sunlight sensitivity: crossed 09-28)
-    src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)'
+    src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn) -- SENSES (ours, 11-10): Stealth +5, because a drow, Stealth-proficient as the SRD Drow: DEX +2, proficiency +3 at CR 6; passive Perception 14, because a drow, Perception-proficient as the SRD Drow: 10 + WIS +1 + 3 (11 before)'
   },
   drowling: {
     name: 'Drow', type: 'humanoid', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, metalArmor: 'chain shirt', hp: 13, speed: 30, size: 1, reach: 5, darkvision: 120,
@@ -282,7 +282,7 @@
       crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [80, 320], ranged: true }
     },
     multi: 1, secondWind: '1d10+2', actionSurge: true, // (ai.js brute: once each; review 09-28 #16)
-    src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320)'
+    src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because a line soldier in heavy armour (AC 19); passive Perception 10, because 10 + WIS +0, no Perception skill'
   },
   veteran: {
     name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 30, size: 1, reach: 5,
@@ -301,7 +301,7 @@
     abil: { str: 16, dex: 12, con: 13, int: 7, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { spear: { name: 'Spear', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['spear', 'bite'], src: 'content/monsters.json gloryseeker (the 8-bit game\'s own: the Snoot\'s young blood, from the SRD gnoll)'
+    multi: ['spear', 'bite'], src: 'content/monsters.json gloryseeker (the 8-bit game\'s own: the Snoot\'s young blood, from the SRD gnoll) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because the young blood of the SRD Gnoll, which has no Stealth; passive Perception 10, because 10 + WIS +0, the Gnoll passive'
   },
   gnoll: {
     name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p2', cr: '1/2', ac: 15, armor: 'hide armor', shield: true, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
@@ -320,11 +320,11 @@
   // numbers below are what the build gives, for whatever reads a bestiary block (the Pocket DM's list); the build is what fights
   greyfang: {
     named: true, name: 'GreyFang', type: 'humanoid', sheet: 'greyfang_p1', cr: '8', ac: 15, speed: 30, size: 1, reach: 5,
-    abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, init: 4, perception: 17, darkvision: 60,
+    abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, init: 4, perception: 17, stealth: 8, darkvision: 60,
     saves: { str: 5, dex: 8, con: 2, int: 0, wis: 3, cha: 0 },
     attacks: { bow: { name: "GreyFang's Bow +1", atk: 11, dice: '1d8', mod: 5, type: 'piercing', ranged: true, range: [150, 600] }, sword: { name: 'Shortsword', atk: 8, dice: '1d6', mod: 4, type: 'piercing', reach: 5 } },
     multi: ['bow', 'bow'], build: 'greyfang',
-    src: 'ours, 10-08: TarlynsPit/wiki/greyfang.md; js/classes.js NPC.NAMED greyfang (ranger 11, the Grey Road); invented.json #greyfang'
+    src: 'ours, 10-08: TarlynsPit/wiki/greyfang.md; js/classes.js NPC.NAMED greyfang (ranger 11, the Grey Road); invented.json #greyfang -- SENSES (ours, 11-10): Stealth +8, because a ranger of the Grey Road, Stealth-proficient at his 11th level (+4): DEX +4; passive Perception 17, because Perception-proficient at his level: 10 + WIS +3 + 4'
   },
   // the Harbinger (10-08, Griz: "He's yours my dude. Take the seat."): the made gnoll -- a gnoll Mr. Ripples thumbed on his walk to the Doors,
   // his mirror eyes in both sockets (TarlynsPit/wiki/the-trickster.md, the making). Ours, from SRD pieces; his kit by the seat on his leans
@@ -335,7 +335,7 @@
   // readies Mirror Strike for the first to step in. The mirror eyes are the Mirror's (no hiding before him in light, magic.js inMirror).
   harbinger: {
     name: 'Harbinger', type: 'monstrosity', sheet: 'mirrorgnoll_p1', cr: '13', ac: 18, hp: 155, speed: 40, size: 2, reach: 10, darkvision: 60,
-    abil: { str: 24, dex: 14, con: 20, int: 10, wis: 14, cha: 17 }, init: 4, perception: 17,
+    abil: { str: 24, dex: 14, con: 20, int: 10, wis: 14, cha: 17 }, init: 4, perception: 17, stealth: 7,
     saves: { str: 7, dex: 2, con: 10, int: 0, wis: 7, cha: 8 },
     attacks: { backhand: { name: 'Backhand', atk: 11, dice: '2d10', mod: 7, type: 'bludgeoning', reach: 10 } },
     multi: 3, mirrorEye: true, condImmune: ['charmed', 'frightened'],
@@ -348,7 +348,7 @@
     // "from the mirror realm and has purple in the eyes ... some fraction (1/2, 1/4 - not variable by party threat) of HP and attack damage": under `under` he toys, over `over` his mirror double)
     toy: { under: 20 }, double: { over: 32, frac: 0.25 }, // (frac: a quarter, RULED -- Griz, 10-08: "1/4 looks great"; the four at 9th with 8 hyenas, 20 fights a cell: party wins 15 with none, 11 at 1/4, 8 at 1/2)
     ripple: { region: 'mane', every: 150, dur: 54, held: true, heldEvery: 90 }, // (the mirror ripple on his mane, frames at 60 Hz: deep16/js/ripple.js, the SRD seat's, 052e833 -- Griz, 10-08: "he's made by mr. ripples but is a lesser being -ripples will get it full body"; the Pounce ripples him whole, js/traits.js)
-    src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; seeds 1-5 at n=20, the swarm of four mirror hyenas at 34 HP and bite +5 2d4+2, his 155 HP, the ladder fight on the Gnoll Hills: 47 of 100 against the four at 7th (about 7 rounds, 17 Kneels), 18 at 8th, 6 at 9th, dev/bench16.py x fight=harbinger flvl=N -- Griz: "Do Mirror Hyena bite +5 for 2d4+2 and call it good") -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py'
+    src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; seeds 1-5 at n=20, the swarm of four mirror hyenas at 34 HP and bite +5 2d4+2, his 155 HP, the ladder fight on the Gnoll Hills: 47 of 100 against the four at 7th (about 7 rounds, 17 Kneels), 18 at 8th, 6 at 9th, dev/bench16.py x fight=harbinger flvl=N -- Griz: "Do Mirror Hyena bite +5 for 2d4+2 and call it good") -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py -- SENSES (ours, 11-10): Stealth +7, because the made gnoll is a hunter that comes before anyone can move: DEX +2, proficiency +5 at CR 13; passive Perception 17, because a hunter, Perception-proficient: 10 + WIS +2 + 5'
   },
   // the mirror hyena (10-08, ours): the SRD Giant Hyena as Mr. Ripples makes things -- mirror eyes (the Mirror's eye, as the Harbinger's) and the
   // ripple over its whole body; the Harbinger calls three as he rises (js/traits.js rise). The hyena's sheet drawn half again as big (Large)
@@ -605,7 +605,7 @@
     multi: 1,
     charge: { ft: 15, dc: 13, maxSize: 2 }, // (Ram: "If the knellback moved at least 15 feet straight toward the target immediately before the hit, a Large or smaller target must succeed on a DC 13 Strength saving throw or be knocked prone" -- the walk this turn read as the boar's is)
     knell: { name: 'Ring', r: 10, dc: 13, recharge: 5 }, // (Ring, recharge 5-6: each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn)
-    src: 'a ChatGPT invention, the art desk\'s ART-21 draft (KNELLBACK.md, 11-10) -- ours, not the SRD 5.1\'s; not yet playtested. Medium monstrosity, AC 16 (natural armor), 45 HP (6d8+18), speed 25, darkvision 60, passive Perception 11, CR 1 (200 XP); STR 16 DEX 8 CON 16 INT 2 WIS 12 CHA 5; Ram +5, 2d8+3 bludgeoning -- after 15 ft straight at the target, a Large or smaller one DC 13 STR or prone; Ring (recharge 5-6): each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn'
+    src: 'a ChatGPT invention, the art desk\'s ART-21 draft (KNELLBACK.md, 11-10) -- ours, not the SRD 5.1\'s; not yet playtested. Medium monstrosity, AC 16 (natural armor), 45 HP (6d8+18), speed 25, darkvision 60, passive Perception 11, CR 1 (200 XP); STR 16 DEX 8 CON 16 INT 2 WIS 12 CHA 5; Ram +5, 2d8+3 bludgeoning -- after 15 ft straight at the target, a Large or smaller one DC 13 STR or prone; Ring (recharge 5-6): each other creature within 10 ft that can hear it, DC 13 CON or deafened and no reactions till the end of its next turn -- SENSES (ours, 11-10): Stealth none, its DEX check (-1), because a bronze bell on its back and DEX 8: nothing about it is quiet; passive Perception 11, because its designer block as written: 10 + WIS +1'
   },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
@@ -712,7 +712,7 @@
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
     multi: ['blast', 'blast'], mirrorEye: true, build: 'patrolladyw', // (10-17: built as a warlock 5 of the Mirror with the Pact of the Blade and a list of her own, js/classes.js NPC.NAMED; the attack above stands if the build cannot)
-    src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid'
+    src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a warlock in chain mail; passive Perception 10, because 10 + WIS +0'
   },
   amara: {
     named: true, name: 'Amara', type: 'humanoid', sheet: 'amara_p2', cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, // (sheet: the art desk's HALFWAY-INN-AMARA-COMBAT since 11-04, art-wanted section 35, tools/amara-sheet.py -- idle, walk, run, cast, flinch, fall, prone in eight facings; amara_p1, the old render, kept beside it) (hp: warlock 5 at a max d8+1 a level, RULED 09-28; the speed, size and reach sat behind this comment from e8435b3 to 09-28, so she had none)
@@ -720,7 +720,7 @@
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
     multi: ['blast', 'blast'], flees: true, darkness: { r: 15, range: 60 }, mirrorEye: true, build: 'amara', // (09-28: built as warlock 5 of the Mirror with her register's spells, js/classes.js NPC.NAMED; this sheet's numbers stand) // (the Mirror's eye: RULED 09-28, all the Mirror's warlocks; magic.js inMirror)
-    src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone'
+    src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because she runs behind Darkness, not by sneaking; passive Perception 10, because 10 + WIS +0'
   },
   willem: {
     named: true, name: 'Willem Glass', type: 'humanoid', sheet: 'willemglass_p2', cr: '3', ac: 12, hp: 35, speed: 30, size: 1, reach: 5, // (sheet: the art desk's HALFWAY-INN-WILLEM-COMBAT-SE and -REMAINING since 11-05, art-wanted section 35, tools/willem-sheet.py -- idle, walk, run, cast, traces, flinch, fall, prone in eight facings; willemglass_p1, the mannequin render, kept beside it) (hp: wizard 5 at a max d6+1 a level, RULED 09-28; the same lost line as Amara's)
@@ -728,7 +728,7 @@
     saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
     attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },
     multi: 1, flees: true, phantasms: 'start', build: 'willem', // (09-28: built as wizard 5 with his register's spells -- Mirror Image is the spell now, js/classes.js)
-    src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); he gives ground toward the horses, shooting', todo: 'the ray\'s slow is not read'
+    src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); he gives ground toward the horses, shooting -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because an illusionist hides by his Phantasms, not by Stealth; passive Perception 11, because 10 + WIS +1', todo: 'the ray\'s slow is not read'
   },
   // the cleric at Deepholm's door (the 8-bit game's deep.js EV.torvald, HOLD HIM; Griz 09-28: "under most circumstances it
   // shouldn't end in a fight, but given the weight of the scene ... redo it in 16"): a remedy in his pack for someone sick up
@@ -741,7 +741,7 @@
     multi: 1, yields: true, resist: ['poison'], build: 'torvald', // (09-28: built as cleric 5 with the SRD Priest's list, js/classes.js NPC.NAMED)
     // the cleric's kit (review 09-28 #1) was a stand-in weave (the spirits as a line, Hold once); since 09-28 he casts the real spells:
     // Spirit Guardians as the ring, Spiritual Weapon, Sanctuary, Guiding Bolt, Sacred Flame, Hold Person (js/classes.js NPC.NAMED.torvald)
-    src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, mace +4 1d6+2; Spirit Guardians 3d8 radiant WIS 13 half recharge 5; Hold once WIS 13; poison resistance; yields at half, the 8-bit battle.js)'
+    src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, mace +4 1d6+2; Spirit Guardians 3d8 radiant WIS 13 half recharge 5; Hold once WIS 13; poison resistance; yields at half, the 8-bit battle.js) -- SENSES (ours, 11-10): Stealth none, its DEX check (+0), because a dwarf cleric in armour; passive Perception 13, because 10 + WIS +3, no Perception skill'
   },
   // ------------------------------------------------------------------ batch six (09-27): the causeway, the cut, the roper, the settling pools
   // the spirit naga (deep.js S.naga, leg four): "Halfway over, the water stands up." It keeps to the black water (bound '~'),
@@ -821,7 +821,7 @@
   // the Keeper of the flooded stair (events.js S.stair, Pete's Five): "It never left its water; it only let go."
   keeper: {
     name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p2', cr: '3', ac: 13, hp: 100, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
-    abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
+    abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10, stealth: 7,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     // 10-03, Griz's design (handoff-2026-10-02-the-keeper.md; js/keeper.js): above the water a Slam (his "knock prone%": a DC 15 STR save, "using himself is more
     // forceful than the wave") and, every round as a bonus action, the Wave; Constrict and Drag Under are retired ("wave replaces grab-and-drag")
@@ -829,21 +829,21 @@
       slam: { name: 'Slam', atk: 5, dice: '2d6', mod: 3, type: 'bludgeoning', reach: 10, prone: 15 }
     },
     multi: ['slam'], resist: ['fire'], immune: ['poison'], condImmune: ['prone'], bound: '~', // (RULED 10-04, Griz: "if water elementals are immune, he would be as well" -- the SRD water elemental and water weird are immune to prone; his Slam and Wave still knock the party down)
-    src: 'ours (invented.json #the-keeper): the 8-bit game\'s Keeper, once the SRD 5.1 Water Weird\'s numbers (AC 13, 58 HP, blindsight 30, reach 10), now its own: 100 HP (benched 10-03: at 58 the four at levels 3-5 kill it in 2.5-3.6 rounds, before the deep comes into play), Slam (DC 15 STR or prone), the Wave (bonus action, DC 13 STR; the backwash sweeps the prone toward the deep), washes one into the deep and floods it (AC 10 in the water), the Ice Wall (3 uses) -- js/keeper.js; the signature rules are not the SRD\'s'
+    src: 'ours (invented.json #the-keeper): the 8-bit game\'s Keeper, once the SRD 5.1 Water Weird\'s numbers (AC 13, 58 HP, blindsight 30, reach 10), now its own: 100 HP (benched 10-03: at 58 the four at levels 3-5 kill it in 2.5-3.6 rounds, before the deep comes into play), Slam (DC 15 STR or prone), the Wave (bonus action, DC 13 STR; the backwash sweeps the prone toward the deep), washes one into the deep and floods it (AC 10 in the water), the Ice Wall (3 uses) -- js/keeper.js; the signature rules are not the SRD\'s -- SENSES (ours, 11-10): Stealth +7, because a thing of the water that starts unseen in it: expertise, DEX +3, proficiency +2 twice; passive Perception 10, because 10 + WIS +0, its blindsight 30 does its watching'
   },
   // THE LADDER'S KEEPER (10-03, Griz: the ladder's fight is the old fight unchanged): the record of `keeper` as it is on origin/main before the Keeper work landed (ed7be2a),
   // word for word but for its key -- Constrict and Drag Under, 58 HP, the keeper_p1 stand-in -- so none of js/keeper.js (which keys on kind `keeper`) touches it. Only data/fights.js
   // keeper-ladder fields it; the Pocket DM keeps it out (js/pocket.js PK.NAMED_OUT); dev/keeper-probe.py diffs it against main's.
   keeperold: {
     name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p1', cr: '3', ac: 13, hp: 58, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
-    abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
+    abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10, stealth: 7,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
       constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1 }, pull: true },
       drown: { name: 'Drag Under', atk: 5, dice: '2d6', mod: 0, type: 'bludgeoning', reach: 10, needsHeld: true, autoHitHeld: true, pull: true }
     },
     multi: ['constrict', 'drown'], resist: ['fire'], immune: ['poison'], bound: '~',
-    src: 'content/monsters.json keeper (the 8-bit game\'s own, the SRD 5.1 Water Weird\'s numbers): Constrict grips (escape DC 13), Drag Under always lands on the one it holds; it keeps to its water and starts unseen in it'
+    src: 'content/monsters.json keeper (the 8-bit game\'s own, the SRD 5.1 Water Weird\'s numbers): Constrict grips (escape DC 13), Drag Under always lands on the one it holds; it keeps to its water and starts unseen in it -- SENSES (ours, 11-10): Stealth +7, because a thing of the water that starts unseen in it: expertise, DEX +3, proficiency +2 twice; passive Perception 10, because 10 + WIS +0, its blindsight 30 does its watching'
   },
   // the chuul off the point (events.js S.lakeFight, the base game's capstone): it comes up out of the deep and can come ashore
   chuul: {
@@ -867,14 +867,14 @@
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { fists: { name: 'Fists', atk: 3, dice: '1d4', mod: 1, type: 'bludgeoning', reach: 5 } },
-    multi: 1, src: 'content/monsters.json brawler (the Hex floor)'
+    multi: 1, src: 'content/monsters.json brawler (the Hex floor) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because tavern muscle; passive Perception 10, because 10 + WIS +0'
   },
   cardbruiser: {
     name: 'Card Bruiser', type: 'humanoid', sheet: 'crewman_p1', cr: '1/4', ac: 12, armor: 'leather armor', hp: 22, speed: 30, size: 1, reach: 5,
     abil: { str: 14, dex: 12, con: 13, int: 9, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 1, int: -1, wis: 0, cha: 0 },
     attacks: { club: { name: 'Cudgel', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, src: 'content/monsters.json cardbruiser (the Hex card\'s first bout); the crewman\'s sheet'
+    multi: 1, src: 'content/monsters.json cardbruiser (the Hex card\'s first bout); the crewman\'s sheet -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because tavern muscle on the crewman (Thug) sheet, which has no Stealth; passive Perception 10, because 10 + WIS +0'
   },
   // the xorns in the seam (deep.js S.xorn, leg three)
   xorn: {
@@ -983,7 +983,7 @@
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
     attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', reach: 5, rage: 2, prone: 13 } },
     multi: ['fists', 'fists'], reckless: true, rageOnHit: true,
-    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists 1d4+3 (+2 raging; a flat 4 till 09-28h, the SRD unarmed strike: the Path of the Sand and its PIT FISTS give them the die), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13)'
+    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists 1d4+3 (+2 raging; a flat 4 till 09-28h, the SRD unarmed strike: the Path of the Sand and its PIT FISTS give them the die), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13) -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a pit fighter, raging in the open; passive Perception 11, because 10 + WIS +1'
   },
   berserker: {
     name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, armor: 'hide armor', hp: 67, speed: 30, size: 1, reach: 5,
@@ -1031,7 +1031,7 @@
       jaws: { name: 'Mandibles', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5 }
     },
     multi: ['feelers', 'jaws'],
-    src: 'content/monsters.json crawler (the 8-bit game\'s own, the Warrens\' crawler -- the cradle\'s): feelers at 10 ft, CON 13 or poisoned and paralyzed (a save each turn), then the mandibles'
+    src: 'content/monsters.json crawler (the 8-bit game\'s own, the Warrens\' crawler -- the cradle\'s): feelers at 10 ft, CON 13 or poisoned and paralyzed (a save each turn), then the mandibles -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because a watcher by its feelers, not a hider; passive Perception 13, because Perception-proficient by its feelers: 10 + WIS +1 + 2'
   },
   // ------------------------------------------------------------------ swarms (09-27): resist blades and blows, bite for less at half their hit
   // points (halfHP), never knocked down; one creature's sheet stands for the cloud -- but the rats' own since 10-20: ratswarm_p1, the art desk's
@@ -1085,7 +1085,7 @@
     saves: { str: 4, dex: 0, con: 2, int: -2, wis: 1, cha: -2 },
     attacks: { hook: { name: 'Hook', atk: 6, dice: '1d10', mod: 4, type: 'piercing', reach: 10 } },
     multi: 2, clacks: true,
-    src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s two Grok sheets (clacker_p2, 10-01; the GPT one retired); its climb (as the hook horror: climb 30) read as `climbs` since 10-04: any cliff on a map that lets them be climbed'
+    src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s two Grok sheets (clacker_p2, 10-01; the GPT one retired); its climb (as the hook horror: climb 30) read as `climbs` since 10-04: any cliff on a map that lets them be climbed -- SENSES (ours, 11-10): Stealth none, its DEX check (+0), because the hook horror clacks to see: never quiet; passive Perception 13, because the hook horror Perception: 10 + WIS +1 + 2'
   }
 };
 
@@ -1121,7 +1121,7 @@ window.D16.FOES.gnollmatriarcheldest = {
   // tuned on the bench with her three bodyguards and eight matriarchs: the four at 8 win 25 of 40, 28% of their HP left, about two downs a fight):
   // the staff, a cantrip, and RHOLLOR'S CALL (ours: she cackles, and the death-watch within 30 ft spends its reactions to close in and strike)
   legendary: { n: 3, acts: [{ name: 'Skull-Staff', cost: 1, atk: 'weapon' }, { name: 'Sacred Flame', cost: 1, cast: 'sacredflame' }, { name: 'Rhollor\'s Call', cost: 2, call: 30 }] }, legendaryResist: 3,
-  src: 'ours (invented.json #gray-keeping-matriarchs): the death-watch\'s eldest, a cleric 9 of the Keeping (js/classes.js NPC.NAMED matriarch) -- OD&D Book I\'s Patriarch of 9th, "Superhero - 1"; this block is her sheet as the class builds it (cleric 9 at the average: 66 HP, AC 14 in a chain shirt)'
+  src: 'ours (invented.json #gray-keeping-matriarchs): the death-watch\'s eldest, a cleric 9 of the Keeping (js/classes.js NPC.NAMED matriarch) -- OD&D Book I\'s Patriarch of 9th, "Superhero - 1"; this block is her sheet as the class builds it (cleric 9 at the average: 66 HP, AC 14 in a chain shirt) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because a cleric of the Keeping; passive Perception 14, because 10 + WIS +4, no Perception skill'
 };
 // the death-watch's bodyguards (10-16, Griz: "approve 3 leans above"): OD&D Book II's gnoll king keeps "1-4 bodyguards" who fight as trolls without the
 // regeneration -- the Mane's watch keeps three (tuned: four made it 9 of 20 for the four), the SRD 5.1 Troll's numbers on her sheet, no Regeneration, her size; its
@@ -1129,14 +1129,14 @@ window.D16.FOES.gnollmatriarcheldest = {
 window.D16.FOES.gnollmatriarchguard = Object.assign({}, window.D16.FOES.troll, { name: 'Matriarch of the Watch', type: 'humanoid', sheet: 'gnollmatriarch_p1', size: 1, climbs: 0, regen: 0, seatAs: 'gnoll',
   attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 5 }, staff: { name: 'Skull-Staff', atk: 7, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 5 } },
   multi: ['bite', 'staff', 'staff'],
-  src: 'OD&D Book II (a gnoll king\'s bodyguards "as Trolls" without the regeneration) on the SRD 5.1 Troll (CR 5): AC 15, 84 HP, bite and two blows; ours, invented.json #gray-keeping-matriarchs' });
+  src: 'OD&D Book II (a gnoll king\'s bodyguards "as Trolls" without the regeneration) on the SRD 5.1 Troll (CR 5): AC 15, 84 HP, bite and two blows; ours, invented.json #gray-keeping-matriarchs -- SENSES (ours, 11-10): Stealth none, its DEX check, because as Trolls, and the SRD Troll has no Stealth; passive Perception 12, because the SRD Troll Perception: 10 + WIS -1 + 3' });
 window.D16.FOES.gnollmatriarchlama = {
   name: 'Matriarch', type: 'humanoid', sheet: 'gnollmatriarch_p1', cr: '3', ac: 14, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
   abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 }, init: 1, perception: 13,
   saves: { str: 2, dex: 1, con: 1, int: 0, wis: 6, cha: 3 },
   attacks: { staff: { name: 'Skull-Staff', atk: 5, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
   multi: 1, build: 'matriarchlama',
-  src: 'ours (invented.json #gray-keeping-matriarchs): a matriarch with the Gray Keeping\'s band, a cleric 6 of the Keeping (js/classes.js NPC.NAMED matriarchlama) -- OD&D Book I\'s Lama, "Hero"; this block is her sheet as the class builds it (cleric 6 at the average: 39 HP, AC 14)'
+  src: 'ours (invented.json #gray-keeping-matriarchs): a matriarch with the Gray Keeping\'s band, a cleric 6 of the Keeping (js/classes.js NPC.NAMED matriarchlama) -- OD&D Book I\'s Lama, "Hero"; this block is her sheet as the class builds it (cleric 6 at the average: 39 HP, AC 14) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because a cleric of the Keeping; passive Perception 13, because 10 + WIS +3, no Perception skill'
 };
 // the townsfolk (10-27, the monster cutter seat on Griz's "spin up a cutter for the leftovers in fresh, everything in the outbox has been sent"; his
 // 10-14: "the villagers are for the edifice fight I think"): the SRD 5.1 Commoner on the art desk's three looks of the street's people, ART-09 and
