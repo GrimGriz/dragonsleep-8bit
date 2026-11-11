@@ -4290,8 +4290,12 @@
       runBF(Bq2.attack(u2, gb2, th2, {}));
       var stk2 = Bq2.inv.filter(function (s) { return s.id === 'handaxe'; })[0];
       okBF('2 one thrown: the fight\'s pack ' + (stk2 && stk2.n) + ' handaxes, ' + D.Battle.thrownLeft(u2, th2) + ' to throw (want 2, 2)', !!stk2 && stk2.n === 2 && D.Battle.thrownLeft(u2, th2) === 2);
-      Bq2.o.onDone(null, null);
-      okBF('2 after the fight: the pack\'s handaxes ' + packBF(P2.st, 'handaxe') + ', her ALT still ' + JSON.stringify((P2.st.party[0].gear || {}).alt) + ' (want 2: thrown is gone, no pick-up; alt:handaxe)', packBF(P2.st, 'handaxe') === 2 && (P2.st.party[0].gear || {}).alt === 'alt:handaxe');
+      // (the fight won and ended as a fight ends -- Battle.finish, then its onDone with the result, as ui.js hands it on: the thrown handaxe on the floor is gathered into the pack
+      // first. 11-11, the grid fixes seat, for the archived bug fixes seat on the desk's word: this check read "thrown is gone, no pick-up" and skipped finish; RULED 11-10, Griz:
+      // "pickup with auto-pack ground items at fight end" -- battle.js Battle.gatherThrown)
+      var gd2 = (Bq2.ground || []).length, fin2 = Bq2.finish('won'); for (var f2 = 0; f2 < 300; f2++) { if (fin2.next().done) break; }
+      Bq2.o.onDone(Bq2.result);
+      okBF('2 after the fight, won: the thrown handaxe on the floor ' + gd2 + ', the pack\'s handaxes ' + packBF(P2.st, 'handaxe') + ', her ALT still ' + JSON.stringify((P2.st.party[0].gear || {}).alt) + ' (want 1; 3: gathered on a held field -- the pickup, RULED 11-10; alt:handaxe)', gd2 === 1 && packBF(P2.st, 'handaxe') === 3 && (P2.st.party[0].gear || {}).alt === 'alt:handaxe');
       } catch (eS) { repBF.errors.push('section 2: ' + String(eS && eS.stack || eS).slice(0, 600)); }
       try {
       // 3. STATUS > FEATURES FOR A MADE CHARACTER (his Pocket DM note (B) of 11-09: "Nothing written on the sheet." for every made character)
