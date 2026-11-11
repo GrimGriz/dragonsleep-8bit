@@ -1024,7 +1024,8 @@
     if (!hb) { f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1; }
     if (count(st, 'ettercapfangs') > 0) { take(st, 'ettercapfangs', 1); st.silver(500); f.ettercapDone = 1; D.sfx('coin'); paid = true; yield sc.say(L('hessle.ettercapPaid'), 'work'); yield* major('renown.ettercap'); }
     if (count(st, 'cloakertail') > 0) { take(st, 'cloakertail', 1); f.cloakerDone = 1; paid = true; yield sc.say(L('hessle.cloakerDrawer'), 'work'); st.silver(400); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 400 }), 'welcoming'); yield* major('renown.cloaker'); }
-    if (count(st, 'anchorpin') > 0) { take(st, 'anchorpin', 1); f.snootWord = 1; paid = true; yield sc.say(L('hessle.snootWord'), 'work'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
+    if (count(st, 'anchorpin') > 0) { take(st, 'anchorpin', 1); f.snootWord = 1; paid = true; yield sc.say(L('hessle.snootWord'), 'work'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming');
+      if (D.trueword) yield sc.say(D.trueword.turnIn(st), 'work'); } // (11-11: TRUE WORD OF THE GNOLLS turned in -- the gold static, each piece the party brings written down and its XP banked: js/trueword.js TW.turnIn)
     if (count(st, 'wagonorder') > 0) { take(st, 'wagonorder', 1); f.orderWord = 1; paid = true; yield sc.say(L('hessle.orderWord'), 'skeptical'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
     if (hb) { if (!paid && !D.hours.papers(f).length) yield sc.say(L('hessle.boardClear'), 'attentive'); } // (nothing brought and nothing left on the board outside)
     else {

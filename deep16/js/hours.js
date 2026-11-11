@@ -1238,7 +1238,7 @@
     name: 'Hessle\'s board', what: 'the Weigh-House wall, Fountain Street', size: [0.78, 0.5], tip: ['Hessle\'s board', 'The town\'s bounties: take a paper down'],
     head: ['Hessle\'s board, on the Weigh-House wall: the town\'s bounties, each one nailed up and sworn before notary.', 'Take a paper down and the job is yours. Bring proof to Hessle inside, and the scales pay it.'],
     ask: 'Which paper do you take down?', took: 'You take the paper down off its nail. It goes in your JOURNAL.',
-    snoot: 'That one stays up: true word is brought to Hessle, whoever brings it.',
+    snoot: 'That one stays up: true word is brought to Hessle, whoever brings it.', snootJournal: 'It goes in your JOURNAL all the same.', // (the latter 11-11: js/trueword.js)
     papers: [ // (the order nailed up; `mission` its JOURNAL line, `flag` the word that opens it; `done` paid at the scales)
       { id: 'ettercap', label: 'FORTY GOLD: THE WEB GULCH ETTERCAP', text: 'hessle.boardEttercap', flag: 'heardEttercap', mission: 'ettercap', done: 'ettercapDone', ink: '#e8e0c8' },
       { id: 'cloaker', label: 'FORTY GOLD: THE CLOAKER IN THE GUANO MINE', text: 'hessle.boardCloaker', flag: 'heardCloaker', mission: 'tail', done: 'cloakerDone', ink: '#c8b088' },
@@ -1305,6 +1305,9 @@
       while (true) {
         var ps = H16.papers(f), take = ps.filter(function (p) { return !p.stays; }), stay = ps.filter(function (p) { return p.stays; });
         var pre = stay.length ? [].concat(C.L(stay[0].text), [W.snoot]) : [];
+        // (11-11, the trueword seat: the Snoot's paper read opens TRUE WORD OF THE GNOLLS in the JOURNAL, its ground built -- THE WORLD's Pit road south of the inn,
+        // js/trueword.js; his 10-28 "16 yes", a paper a mission once its ground is built. It stays up; the first time, its card and pin as a paper taken down)
+        if (stay.length && !f.heardTrueWord && D.trueword) { C.flagOn(st, 'heardTrueWord'); f.pinWant = 'trueword'; delete f['q:trueword']; took = true; pre.push(W.snootJournal); }
         if (!take.length) { yield s.say(pre.concat(C.L('hessle.boardClear'))); return; }
         var a = yield s.ask(pre.concat([W.ask]), take.map(function (p) { return 'TAKE: ' + p.label; }).concat(['LEAVE']));
         if (a == null || a >= take.length) return;

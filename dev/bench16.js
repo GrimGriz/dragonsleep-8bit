@@ -2845,6 +2845,144 @@
     document.body.appendChild(preCh);
     return;
   }
+  // THE GLORY-SEEKERS ON THE ROAD AND TRUE WORD OF THE GNOLLS, 11-11 (mode=trueword1111; deep16/js/trueword.js, js/hours.js H16.boardPlay, js/counter.js C.hessle -- the trueword
+  // seat, started by the lanes desk on Griz's "A priority for this new 5-hours window will be the gnoll fight/true word/hideous easter egg port over"): the fight's reach on THE
+  // WORLD's Pit road south of the inn (by day, from day 5; not by night, not before, not north of the inn, not after it is won); BACK AWAY a hex up the road; FIGHT the grid's
+  // `snoot`, the house's own; won by the engine -- snootDone, the anchor-pin, renown 1, no second meeting; the quest from the board's Snoot paper, its pieces shown as gathered;
+  // the turn-in at the scales at no depth and at all four (the gold static, the XP by the pieces); the joke egg in that fight -- Kat's ink errand, the sheet learned, the
+  // spell carried, Aurdin at himself among the glory-seekers, the egg kept in the save, and not again; the show's beats
+  if (get('mode', '') === 'trueword1111') {
+    var repQw = { checks: [], errors: [] }, memQw = {}, stGQw = D.store.get, stSQw = D.store.set, HQw = D.house, CQw = D.counter, WQw = D.world, RQw = D.roam, InQw = D.inn, WgQw = D.wagon, TWQw = D.trueword, MQw = D.magic, RUQw = D.rules, H6Qw = D.hours, muQw = D.music;
+    function okQw(what, v) { repQw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveQw(g, until, cap, scenes) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.scene && scenes) scenes.push(st.value.scene); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topQw() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveQw(s.co, null, 2); return s; }
+    function answerQw(sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 80 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); if (!sc.page) seen = seen.concat(w.say || w.ask || []); if (w.ask) { seen.push('[' + w.opts.join(' | ') + ']'); var a = ans.length ? ans.shift() : null, i = typeof a === 'string' ? w.opts.indexOf(a) : a; if (i == null || i < 0) i = w.opts.length - 1; seen.push('> ' + w.opts[i]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i; })[0]); } else sc.press(bs[0]); } var ws = WQw.scene; if (ws && ws.pend && D.top() === ws) { var p = ws.pend; ws.pend = null; p.call(ws); } return window.DS.stripCodes(seen.join(' / ')); }
+    function dayQw(d, h) { return (d - 1) * 24 + h; } // (THE WORLD's clock: Day 1 from S.t 0, js/world.js W.day)
+    function heroQw(rec, id) { return rec.party.filter(function (h) { return (h.key || h.id) === id; })[0] || null; }
+    // a new game on the Pit road at mile s (from the Pit), the clock at t, the flags given; the hex a step north of it behind them
+    function stageQw(t, s, flags, fix) {
+      var rec = HQw.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, flags || {}); rec.silver = 60; if (fix) fix(rec);
+      HQw.begin(rec, 0, '?world&fresh&noenc&nowagon'); var S = WQw.state(); S.t = t; S.today = 0; S.todayHex = 0;
+      var pt = WgQw.pt(s), pt0 = WgQw.pt(s + WQw.M().w); S.pos = pt.slice(); if (WQw.place(pt)) WQw.scene.onMap(); S.from = WQw.hexOf(pt0[0], pt0[1]); S.rv = null; WQw.save();
+      return WQw.scene;
+    }
+    function stepQw(scene, mi) { // (a step along the road -- south is less: the miles run from the Pit -- the hours at its pace, THE WORLD's step hook asked)
+      var S = WQw.state(), m = WQw.M(), s0 = WgQw.roadS(WQw.restPt()).s, d = mi == null ? -m.w : mi, pt = WgQw.pt(s0 + d), st = { h: Math.abs(d) / WQw.PACE, mi: Math.abs(d), road: true };
+      var was = S.at.slice(); S.pos = pt.slice(); if (WQw.place(pt)) scene.onMap(); S.from = was; S.t += st.h; WQw.save();
+      return WQw.onStep(scene, st);
+    }
+    function cardQw(scene) { var c = scene.cards && scene.cards[0]; return c ? window.DS.stripCodes(c.lines.join(' ')) + ' [' + (c.keys || []).map(function (k) { return k[2]; }).join(' | ') + ']' : ''; }
+    function pressQw(scene, label) { var c = scene.cards.shift(), k = (c.keys || []).filter(function (x) { return x[2] === label; })[0]; if (k) k[1](); return !!k; }
+    function battleQw() { var b = D.top(); if (b && b.baking) { b.baking = false; b.enter(); } if (!(b instanceof D.Battle)) return null; D.battle = b; var k = 0; while (!b.order.length && k++ < 400) b.co.next(); return b; }
+    function finishQw(b, scenes) { // (the rest of the fight by the engine: the four by the class AI) -- then its own way back, the screen it leaves read through
+      b.units.forEach(function (u) { if (u.side === 'party') { u.classAI = true; u.guest = true; } }); // (as wagon1104: the four by the class AI, no command awaited)
+      driveQw(b.co, function () { return !!b.result; }, 40000, scenes); var res = b.result, od = b.o.onDone; if (D.top() === b) D.pop(); od(res);
+      var sc = D.top(), said = sc instanceof CQw.Counter ? answerQw(sc, []) : ''; return { res: res, said: said, rounds: b.round };
+    }
+    function hessleQw() { var sc = new CQw.Counter(null, { id: 'hessle', name: 'Hessle', place: 'The Weigh-House', what: 'Fountain Street', script: function (s) { return CQw.hessle(s); } }); D.push(sc); var o = answerQw(sc, []); if (D.top() === sc) D.pop(); return o; }
+    function questQw() { var st = CQw.state(null); return CQw.quests(st).filter(function (q) { return q.id === 'trueword'; })[0] || null; }
+    D.store.get = function (k) { return memQw[k] ? JSON.parse(memQw[k]) : null; }; D.store.set = function (k, v) { memQw[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1111); if (InQw) InQw.stay = true;
+      var xQw = new XMLHttpRequest(); xQw.open('GET', '../deep16/data/world-near.js', false); xQw.send(); (0, eval)(xQw.responseText);
+      WQw.index();
+      var RQ0 = WgQw.route(), sMid = RQ0.inn - 8; // (eight miles south of the inn's mile, toward the Pit)
+      okQw('the file is in: D.trueword ' + !!TWQw + ', the meeting from day ' + (TWQw && TWQw.FROM_DAY) + ' by day ' + (TWQw && TWQw.HOURS.join('-')) + '; the inn at mile ' + RQ0.inn.toFixed(1) + ' from the Pit', !!TWQw && TWQw.FROM_DAY === 5 && TWQw.HOURS[0] === 7 && TWQw.HOURS[1] === 19);
+      // 1. THE REACH: a step south down the Pit road from eight miles south of the inn at ten on day 6 -- the first game's card; not on day 4, not at night, not north of the inn, not once won
+      var scA = stageQw(dayQw(6, 10), sMid, {}), metA = stepQw(scA), cA = cardQw(scA);
+      okQw('day 6 at ten, a step south on the Pit road: met ' + metA + ' -- "' + cA.slice(0, 260) + '"; snootMet ' + HQw.cur.flags.snootMet,
+        metA === true && /glory-seekers of the Snoot/.test(cA) && /The challenge, by day/.test(cA) && /FIGHT \| BACK AWAY/.test(cA) && HQw.cur.flags.snootMet === 1);
+      HQw.playing = false; HQw.cur = null;
+      var notQw = function (t, s, f) { var sc = stageQw(t, s, f || {}), m = stepQw(sc); var out = m + (sc.cards && sc.cards.length ? ' ' + cardQw(sc).slice(0, 40) : ''); HQw.playing = false; HQw.cur = null; return out; };
+      var n4 = notQw(dayQw(4, 10), sMid), nN = notQw(dayQw(6, 22), sMid), nNo = notQw(dayQw(6, 10), RQ0.inn + 6), nW = notQw(dayQw(6, 10), sMid, { snootDone: 1 });
+      okQw('no meeting on day 4 (' + n4 + '), at ten at night (' + nN + '), on the road north of the inn (' + nNo + '), once won (' + nW + ')', !/glory/.test(n4 + nN + nNo + nW) && !/^true/.test(n4) && !/^true/.test(nN) && !/^true/.test(nNo) && !/^true/.test(nW));
+      // 2. BACK AWAY: a hex back up the road; the next step south meets them again
+      var scB = stageQw(dayQw(6, 10), sMid, {}); stepQw(scB); var atB = WQw.state().at.slice(), sB0 = WgQw.roadS(WQw.restPt()).s; pressQw(scB, 'BACK AWAY'); var sB1 = WgQw.roadS(WQw.restPt()).s, msgB = scB.msg && scB.msg.s;
+      var metB = stepQw(scB);
+      okQw('BACK AWAY: from mile ' + sB0.toFixed(1) + ' back up to ' + sB1.toFixed(1) + ' ("' + msgB + '"), no fight (' + !(D.top() instanceof D.Battle) + '); the next step south meets them again (' + metB + ', met ' + HQw.cur.flags.snootMet + ')',
+        sB1 > sB0 + 1 && /falls back up the road/.test(msgB || '') && !(D.top() instanceof D.Battle) && metB === true && HQw.cur.flags.snootMet === 2 && !HQw.cur.flags.snootDone);
+      HQw.playing = false; HQw.cur = null;
+      // 3. FIGHT: the grid's `snoot` on snootroad, the house's own -- the joke egg's main game; won by the engine; the pin, renown 1, snootDone; no second meeting
+      var lv3Qw = function (rec) { rec.party = D.save.fixture(3).party; }; // (the four at 3rd: the fight is the first game's HARD for four at 3 -- data/fights.js snoot)
+      var scC = stageQw(dayQw(6, 10), sMid, {}, lv3Qw); stepQw(scC); var rn0 = HQw.cur.renown || 0; D.seed = +get('fseed', 7); pressQw(scC, 'FIGHT'); var bC = battleQw(); // (the fight's dice by a seed the four win at 3rd: the path is this bench's, the balance the difficulty lane's)
+      okQw('FIGHT: the battle ' + (bC && bC.fight && bC.fight.id) + ' on ' + (bC && bC.fight && bC.fight.map) + ', the house\'s (' + !!(bC && bC.o.house) + '), the main game for the joke (' + !!(bC && MQw.jokeMain(bC)) + '), its foes ' + (bC ? bC.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }).join(',') : '') + ', recorded as ' + (bC && bC.rec && bC.rec.fight),
+        !!bC && bC.fight.id === 'snoot' && bC.fight.map === 'snootroad' && bC.o.house && MQw.jokeMain(bC) && bC.units.filter(function (u) { return u.side === 'foe'; }).length === 7 && !!(bC.rec && bC.rec.fight === 'snoot'));
+      var fC = finishQw(bC); if (!HQw.cur) throw new Error('the fight ended ' + fC.res + ' in ' + fC.rounds + ' rounds, the save gone (a loss: the title)'); var flC = HQw.cur.flags, stC = CQw.state(null), qC = questQw();
+      okQw('run by the engine: ' + fC.res + ' in ' + fC.rounds + ' rounds; after -- "' + fC.said.slice(0, 520) + '"; snootDone ' + flC.snootDone + ', the pin ' + CQw.count(stC, 'anchorpin') + ', renown ' + rn0 + ' -> ' + HQw.cur.renown + '; the quest ' + (qC ? qC.name + ' (step: ' + (qC.where || '').slice(0, 60) + ')' : 'none'),
+        fC.res === 'won' && /breaks and runs south/.test(fC.said) && /anchor-pin off a Dominion wagoneer/.test(fC.said) && /Renown \+1/.test(fC.said) && flC.snootDone === 1 && CQw.count(stC, 'anchorpin') === 1 && HQw.cur.renown === rn0 + 1 && !!qC && /anchor-pin to Hessle/.test(qC.where || ''));
+      var againC = stepQw(scC);
+      okQw('a step on south after the win: no second meeting (' + againC + ', met ' + flC.snootMet + ')', againC === false && flC.snootMet === 1);
+      // 4. THE TURN-IN AT NO DEPTH: the pin alone -- the board's gold, the one line, no XP; done
+      var sv4 = HQw.cur.silver, xp4 = HQw.cur.party.map(function (h) { return h.xp || 0; }), o4 = hessleQw(), q4 = questQw();
+      okQw('the pin alone at the scales: "' + o4.slice(0, 420) + '" -- the purse ' + sv4 + ' -> ' + HQw.cur.silver + ', XP ' + xp4.join() + ' -> ' + HQw.cur.party.map(function (h) { return h.xp || 0; }).join() + ', pieces ' + HQw.cur.flags.trueWordPieces + ', the quest done ' + !!(q4 && q4.done),
+        /So they were there when the king died/.test(o4) && /\+500 silver/.test(o4) && /isn't much of a story/.test(o4) && HQw.cur.silver === sv4 + 500 && HQw.cur.party.every(function (h, i) { return (h.xp || 0) === xp4[i]; }) && HQw.cur.flags.trueWordPieces === 'none' && !!q4 && q4.done && HQw.cur.flags.snootWord === 1);
+      HQw.playing = false; HQw.cur = null;
+      // 5. THE QUEST FROM THE BOARD: the Snoot's paper read (the notice up) opens TRUE WORD OF THE GNOLLS, pinned; it stays up; the pieces shown as they are gathered
+      var scD = stageQw(dayQw(3, 10), sMid, { councilNotice: 1 }), stD = CQw.state(null), q0 = questQw(), gD = H6Qw.boardPlay(null); gD.next(); var bdD = D.top(), oD = bdD instanceof CQw.Counter ? answerQw(bdD, ['LEAVE']) : 'no board'; driveQw(gD, null, 200);
+      var qD = questQw(), fD = HQw.cur.flags, upD = H6Qw.papers(fD).some(function (p) { return p.id === 'snoot'; });
+      okQw('the board read with the notice up: "' + oD.slice(0, 300) + '" -- heardTrueWord ' + fD.heardTrueWord + ', pinned ' + fD.pin + '/' + fD.pinWant + ', the paper still up ' + upD + '; the quest before ' + !!q0 + ', after "' + (qD && qD.text || '').slice(-80) + '"',
+        /FIFTY GOLD for true word on the Snoot/.test(oD) && /goes in your JOURNAL all the same/.test(oD) && fD.heardTrueWord === 1 && upD && !q0 && !!qD && !qD.done && /Brought back so far: nothing yet\./.test(qD.text) && /road south past the Halfway Inn/.test(qD.text) && /Pit road south of the Halfway Inn/.test(qD.where || ''));
+      var gD2 = H6Qw.boardPlay(null); gD2.next(); var bdD2 = D.top(), oD2 = bdD2 instanceof CQw.Counter ? answerQw(bdD2, ['LEAVE']) : ''; driveQw(gD2, null, 200);
+      okQw('read again: no second journal line (' + !/JOURNAL all the same/.test(oD2) + ')', !/JOURNAL all the same/.test(oD2) && /stays up/.test(oD2));
+      var stepsD = [['meal', function (f) { f.heardDominion = 'wrong'; }, false], ['meal', function (f) { f.heardTribes = 'true'; }, true], ['mirror', function (f) { f.sawMirror = 1; }, true], ['vision', function (f) { f.katVision = 1; }, true], ['book', function (f) { f.katBookAndroit = 1; }, true]];
+      var shownD = stepsD.map(function (x) { x[1](fD); var t = questQw().text; return x[0] + ':' + /Brought back so far: (.*)\.$/.exec(t)[1]; });
+      okQw('the pieces in the JOURNAL as gathered: ' + shownD.join(' | '), /^meal:nothing yet$/.test(shownD[0]) && /^meal:what the Waterbys told at their table$/.test(shownD[1]) && /the mirror-made, met on the road$/.test(shownD[2]) && /vision of the moot$/.test(shownD[3]) && /Katarina's book, in Androit's hands$/.test(shownD[4]));
+      // 6. THE TURN-IN AT ALL FOUR: the same gold, four lines in Hessle's hand, 150 XP a piece to each one standing
+      CQw.give(stD, 'anchorpin', 1); fD.snootDone = 1; var sv6 = HQw.cur.silver, xp6 = HQw.cur.party.map(function (h) { return h.xp || 0; }), o6 = hessleQw(), xpA = HQw.cur.party.map(function (h) { return h.xp || 0; });
+      okQw('the pin and all four at the scales: "' + o6.slice(0, 700) + '" -- the purse +' + (HQw.cur.silver - sv6) + ', XP ' + xp6.join() + ' -> ' + xpA.join() + ', pieces ' + fD.trueWordPieces,
+        /\+500 silver/.test(o6) && /hears the whole road/.test(o6) && /The council hears that first/.test(o6) && /walked away north/.test(o6) && /swear to the rest of this/.test(o6) && /gains 600 XP/.test(o6) && HQw.cur.silver === sv6 + 500 && xpA.every(function (x, i) { return x === xp6[i] + 600; }) && fD.trueWordPieces === 'meal,mirror,vision,book');
+      HQw.playing = false; HQw.cur = null;
+      // 7. ANDROIT TAKES HER BOOK: the piece's flag set by his talk (content/npcs.json)
+      var anQw = (window.DS.DATA.npcs.androit.talk || [])[0] || {};
+      okQw('Androit\'s talk with her book sets katBookAndroit (' + anQw.set + '), takes it (' + anQw.take + '), renown ' + anQw.renown, anQw.set === 'katBookAndroit' && anQw.take === 'katbook' && anQw.renown === 2);
+      // 8. THE MIRROR-MADE MET: a mirror-made road fight's card sets the piece (THE WORLD's encounter)
+      var scM = stageQw(dayQw(9, 10), RQ0.inn + 6, {}), eM = WQw.M().hex[WQw.K(WQw.state().at[0], WQw.state().at[1])]; scM.encounter({ zone: 'north', list: ['mirrorhyena'], mirror: true, grp: { mirror: true } }, eM);
+      okQw('a mirror-made road fight met: sawMirror ' + HQw.cur.flags.sawMirror + ' -- "' + cardQw(scM).slice(0, 80) + '"', HQw.cur.flags.sawMirror === 1 && /MIRROR-MADE/.test(cardQw(scM)));
+      HQw.playing = false; HQw.cur = null;
+      // 9. THE JOKE EGG IN THAT FIGHT, BY THE REAL PATH: Kat's ink errand at the inn (Barley with a bottle on day 7: the vision, the sheet), Aurdin copies it into his book (the field's
+      // use), carries it among the day's (set by hand: the morning's picks are the player's), then THE WORLD's road south, the card, FIGHT -- his own square a target, the cast at
+      // himself, the cutscene and the egg; the fight to its end; the egg kept in the save; and a second fight in that save with gnolls: no joke
+      var BkQ = RQw.make('?roam=halfway&hour=18&day=7&inside&at=25,20&watch'); D.scenes.length = 0; D.push(BkQ); topQw(); var stK = CQw.state(BkQ); CQw.give(stK, 'ink', 1);
+      var tK = BkQ.roam.token; tK.x = 25; tK.y = 20; tK.tween = null; BkQ.roam.fw = [1, 0]; BkQ.roam.path = null; D.grid.setup(BkQ.map, BkQ.units); BkQ.cards = []; BkQ.roam.keys.push('use');
+      driveQw(BkQ.co, function () { return D.top() instanceof CQw.Counter; }, 400); var kSc = D.top(), kSaid = kSc instanceof CQw.Counter ? answerQw(kSc, []) : 'no talk';
+      var auK = heroQw(stK, 'aurdin'), envK = { where: 'floor', party: stK.party, has: function (id) { return CQw.count(stK, id) > 0; }, take: function (id) { CQw.take(stK, id, 1); } }, lnK = HQw.field.item('sheet_hideouslaughter', auK, envK) || [];
+      var visK = BkQ.roam.flags.katVision, knownK = (auK.known || []).slice();
+      okQw('the errand: Barley at her table with the ink -- vision ' + visK + ' ("' + kSaid.slice(Math.max(0, kSaid.indexOf('I saw Aurdin')), kSaid.indexOf('I saw Aurdin') + 60) + '"); Aurdin: "' + lnK.join(' ').slice(0, 80) + '"', visK === 1 && /I saw Aurdin laughing/.test(kSaid) && knownK.indexOf('hideouslaughter') >= 0);
+      D.scenes.length = 0;
+      var carryQw = function (rec) { lv3Qw(rec); var au = heroQw(rec, 'aurdin'); au.known = (au.known || []).filter(function (id) { return id !== 'hideouslaughter'; }).concat(['hideouslaughter']); if (Array.isArray(au.prepared)) au.prepared = au.prepared.filter(function (id) { return id !== 'hideouslaughter'; }).slice(0, -1).concat(['hideouslaughter']); };
+      var scE = stageQw(dayQw(9, 9), sMid, { katVision: 1, katInk: 1 }, carryQw); var metE = stepQw(scE); D.seed = +get('eseed', 7); pressQw(scE, 'FIGHT'); var bE = battleQw(), auE = bE && bE.units.filter(function (u) { return u.id === 'aurdin'; })[0];
+      var readyE = !!(bE && MQw.jokeReady(bE, auE)); D.battle = bE; RUQw.startTurn(auE); bE.active = auE;
+      var eE = MQw.list(bE, auE).filter(function (x) { return x.id === 'hideouslaughter'; })[0], selfE = !!(eE && MQw.targetOK(bE, auE, eE.g, auE));
+      var scenesE = []; driveQw(bE.exec(auE, { do: 'cast', id: 'hideouslaughter', slot: 1, target: auE }), null, 4000, scenesE); bE.active = null;
+      var beatsE = scenesE.map(function (s) { return s.joke || s.egg || '?'; }).join(' '), laughE = bE.units.filter(function (w) { return MQw.gnoll(w) && w.conds.laughing; }).length;
+      okQw('on the road south with the vision and the spell carried: met ' + metE + ', the joke ready ' + readyE + ', his own square a target ' + selfE + '; cast -- the beats ' + beatsE + ', ' + laughE + ' gnolls laughing, the egg flag ' + JSON.stringify(bE.flags8),
+        metE === true && readyE && selfE && /joke$/.test(beatsE) && /waist/.test(beatsE) && laughE >= 4 && !!bE.flags8 && bE.flags8.eggJoke === 1);
+      var fE = finishQw(bE); if (!HQw.cur) throw new Error('the joke fight ended ' + fE.res + ' in ' + fE.rounds + ' rounds, the save gone');
+      okQw('the fight to its end (' + fE.res + ' in ' + fE.rounds + '), the egg kept in the save: eggJoke ' + HQw.cur.flags.eggJoke + ', the pin ' + CQw.count(CQw.state(null), 'anchorpin'), fE.res === 'won' && HQw.cur.flags.eggJoke === 1 && CQw.count(CQw.state(null), 'anchorpin') === 1);
+      var bE2 = TWQw.fight(WQw.scene); bE2 = battleQw(); var auE2 = bE2 && bE2.units.filter(function (u) { return u.id === 'aurdin'; })[0], readyE2 = !!(bE2 && MQw.jokeReady(bE2, auE2));
+      okQw('once a save: another fight with gnolls in that save -- the joke ready ' + readyE2 + ' (the egg found ' + MQw.eggFound(bE2, 'joke') + ')', bE2 && !readyE2 && MQw.eggFound(bE2, 'joke'));
+      if (D.top() === bE2) D.pop(); HQw.playing = false; HQw.cur = null;
+      // 10. THE SHOW: deep16/?trueshow, each beat staged without a word of error
+      var beatsQw = (TWQw.BEATS || []).map(function (b) { try {
+        D.scenes.length = 0; TWQw.play(b); var tp = D.top();
+        if (b.walk) { var mW = tp === WQw.scene && stepQw(WQw.scene); return b.id + ': THE WORLD on day ' + WQw.day() + ', a step south meets them ' + mW + (mW ? ' -- ' + cardQw(WQw.scene).slice(0, 40) : ''); }
+        if (b.joke) { var bj = battleQw(), scj = []; if (!bj) return 'joke: no battle'; bj.units.forEach(function (u) { if (u.side === 'party' && u.id !== 'aurdin') { u.classAI = true; u.guest = true; } });
+          driveQw(bj.co, function () { return !!(bj.flags8 && bj.flags8.eggJoke) || !!bj.result; }, 30000, scj);
+          return 'joke: the egg ' + !!(bj.flags8 && bj.flags8.eggJoke) + ' in round ' + bj.round + ', the seed ' + TWQw.SEED + ', beats ' + scj.map(function (x) { return x.joke || x.egg || '?'; }).join(' '); }
+        return b.id + ': ' + (tp instanceof CQw.Counter ? window.DS.stripCodes(answerQw(tp, [])).slice(0, 900) : 'no counter');
+      } catch (e3) { return b.id + ': THREW ' + String(e3 && e3.stack || e3).slice(0, 300); } });
+      var bq = beatsQw.join(' || ');
+      okQw('?trueshow, ' + beatsQw.length + ' beats: ' + bq.slice(0, 1600), beatsQw.length === 4 && !/THREW|no battle|no counter/.test(bq) && /road: THE WORLD on day 6, a step south meets them true/.test(bq) && /joke: the egg true/.test(bq) && /waist down hyena gnoll yawn joke/.test(bq) &&
+        /won: .*anchor-pin off a Dominion wagoneer.*Renown \+1/.test(bq) && /scales: .*swear to the rest of this.*gains 600 XP/.test(bq) && typeof TWQw.show === 'function');
+      HQw.playing = false; HQw.cur = null;
+    } catch (eQw) { repQw.errors.push(String(eQw && eQw.stack || eQw).slice(0, 900)); }
+    HQw.playing = false; HQw.cur = null; if (InQw) InQw.stay = false;
+    D.store.get = stGQw; D.store.set = stSQw; D.music = muQw;
+    var preQw = document.createElement('pre'); preQw.id = 'out'; preQw.textContent = 'BENCH16 ' + JSON.stringify(repQw);
+    document.body.appendChild(preQw);
+    return;
+  }
   // THE WAGON ON THE ROAD, 11-04 (mode=wagon1104; js/wagon.js -- the Inn build seat 2, on the Inn seat's §3 "The wagon on the clock", RULED 11-04, his "in on your above leans
   // as well"): the wagon's clock on THE WORLD's road (the realm's 17 miles a cart-day, the inn at dusk on WAGON DAY), its mark drawn on both views, THE ROAD BY DAY south of the
   // inn (the talk on the counter screen, the silent read, the lie and the second look, seen through, Lymen's word, the fight on southroad with the pair away on the greys, the
