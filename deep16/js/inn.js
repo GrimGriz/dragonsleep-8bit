@@ -814,8 +814,15 @@
   In.ask = function* (B, title, lines, opts) { D.sfx('popup'); return yield { prompt: { who: B.roam.token, title: title, lines: D.roam.wrap([].concat(lines)), opts: opts.map(function (l, i) { return { label: l, value: i }; }) } }; };
   In.lead = function (B, u) { // (one of the four to the front of the token: the watcher goes out alone, as ORDER's "the leader to lead" -- js/roam.js)
     var R0 = B.roam, t = R0.token; if (!u || u === t) return;
-    u.x = t.x; u.y = t.y; u.facing = t.facing; u.tween = null; R0.token = u; R0.members = [u].concat(R0.members.filter(function (m) { return m !== u; })); R0.rest = R0.members.slice(1);
-    D.grid.setup(B.map, B.units); B.focus(u);
+    u.x = t.x; u.y = t.y; u.facing = t.facing; u.tween = null; u.anim = 'idle'; u.animT = B.t;
+    // (the figure on the floor is the token's (11-11, his note on eyes-gulchchase-1104: "Barley was visible downstairs when it said aurdin was at the window", "aurdin still wasn't
+    // in the party"): the one come to the front stands on the floor in the old one's place, and the old one goes inside the token with the rest (js/roam.js R.into) -- the token
+    // had changed and the figure had not, so the lead stood in the room through the watcher's scene, and the fight's spill (R.spill: the rest out of the token) never put the
+    // watcher, the token, on the field)
+    var j = B.units.indexOf(t), k = B.units.indexOf(u);
+    if (k < 0) { if (j >= 0) B.units.splice(j, 1, u); else B.units.push(u); } else if (j >= 0) B.units.splice(j, 1);
+    R0.token = u; R0.members = [u].concat(R0.members.filter(function (m) { return m !== u; })); R0.rest = R0.members.slice(1);
+    D.grid.setup(B.map, B.units); B.cache = null; B.focus(u);
   };
   In.teamBlock = function (B) { (B.riders || []).forEach(function (r) { if (!r.team) return; for (var j = 0; j < r.foot[1]; j++) for (var i = 0; i < r.foot[0]; i++) { var s = B.map.at(r.x + i, r.y + j); if (s) { if (!s.teamHeld) s.teamHeld = { walk: s.walk }; s.walk = false; } } }); }; // (the greys hold their squares, as a fight's riders do -- and give them back when they go: js/battle.js Battle.teamAway, 11-05)
   // THE WORLD's camp picker on the floor (his word): who stands which watch -- js/house.js H.Watches, with these sheets; null if backed out of
@@ -855,6 +862,18 @@
     var by = [1, 2, 3].map(function (k) { return party.filter(function (u) { return asg[keyOf(u)] === k; }).map(function (u) { return u.name; }); });
     var put = function (s, ns) { return ns.length ? s.split('{names}').join(ns.length > 1 ? ns.slice(0, -1).join(', ') + ' and ' + ns[ns.length - 1] : ns[0]).split('{has}').join(ns.length > 1 ? 'have' : 'has').split('{sleeps}').join(ns.length > 1 ? 'sleep' : 'sleeps') : ''; };
     return [put(In.WN.rested1, by[0]), put(In.WN.rested2, by[1]), put(In.WN.rested3, by[2])].filter(function (s) { return s; }).join(' ');
+  };
+  // LYMEN'S FEELING ON HIS OWN FACE (11-11, his note on eyes-gulchchase-1104: "no portrait is used for lymen's line (outside interface) despite being in the inn"): inside the
+  // house, the line on the open screen over the common room as supper is told (In.mealScene, js/counter.js THE SIDES) -- the one saying it top left on their talking portrait,
+  // the keepers' bust where they have it (C.heroFull), their figure's face where they have none; out of the house, the floor's card as before
+  In.feelingSay = function* (B, u, line) {
+    var C = D.counter, def = D.roam.def;
+    if (!u || !C || !C.Counter || !def || def.key !== In.KEY || def.inside !== 'inn') { yield* In.card(B, [u && u.name === 'Lymen' ? In.who('Lymen', line) : line], 420); return; }
+    var pt = C.heroPortrait(In.heroOf(u)), who = { name: u.name, unit: u, side: 'left', sheet: C.heroFull(pt) || pt || null };
+    if (D.house && D.house.trail) D.house.trail('talk', 'wagonNight');
+    var sc = new C.Counter(B, { id: 'wagonNight', name: u.name, place: 'The Halfway Inn', what: 'the common room, after supper', room: true, open: true, bg: In.roomShot(B),
+      script: function (s) { return (function* () { yield s.by(who, [line]); })(); } });
+    D.push(sc); while (!sc.done) yield 1;
   };
   // the lead back in front once the house is up (the watcher went first: the wagon night's opening)
   In.leadBack = function (B) { var R0 = B.roam, l0 = R0.lead0; R0.lead0 = null; if (l0 && R0.token !== l0 && R0.members.indexOf(l0) >= 0) In.lead(B, l0); };
@@ -905,7 +924,7 @@
     var keyOf = function (u) { return u.src ? (u.src.key || u.src.id) : u.id; };
     // 1. Lymen's feeling, and the watches (his word, 11-04): the camp's picker; the one on the second watch has the window
     var ly = party.filter(function (u) { return keyOf(u) === 'lymen'; })[0];
-    yield* In.card(B, [ly ? In.who('Lymen', In.WN.feeling) : In.WN.feelingLead.split('{name}').join(lead.name)], 420);
+    yield* In.feelingSay(B, ly || lead, ly ? In.WN.feeling : In.WN.feelingLead.split('{name}').join(lead.name));
     var sheets = party.map(function (u) { return { key: keyOf(u), name: u.name, hp: u.hp, maxhp: u.maxhp }; });
     var asg = (yield* In.watches(B, sheets)) || H.watchDefault(sheets);
     var watcher = party.filter(function (u) { return asg[keyOf(u)] === 2; })[0] || party[0];
@@ -1002,7 +1021,9 @@
       } else f.wagonOutcome = 'inn';
       var act = null;
       In.setOffering(f, In.cycle(d), 'kept'); // (the yard stopped: the one she took at the greeting is the one they kept -- the second act is the due's own night since 11-05, js/secondact.js A.dueNight)
-      if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [D.chase.ln ? D.chase.ln({ amara: In.lastFight.amaraUp, willem: In.lastFight.willemUp }, 'chase1', L('wagon.chase1')) : L('wagon.chase1')], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
+      // (the ask hears them go and asks: "You go after them" is said once AFTER THEM is picked -- js/chase.js Ch.start; 11-06, his note on eyes-wagonwatch-1105: "Text says you do
+      // give chase then offers to chase or not")
+      if (out === 'fled' && D.chase && D.chase.start) { var go = yield* In.ask(B, 'THE YARD', [D.chase.ln({ amara: In.lastFight.amaraUp, willem: In.lastFight.willemUp }, 'heard', D.chase.LINES.heard)], [D.chase.LINES.opts.after, D.chase.LINES.opts.let]); if (go === 0) act = 'after'; }
       if (act === 'after') { delete f.katYard; In.yardClear(B, Y); yield* D.chase.start(B, { horses: In.lastFight.loose, willem: In.lastFight.willemUp, amara: In.lastFight.amaraUp, willemDead: In.lastFight.willemDead }); return; } // (THE CATCH ON THE GULCH ROAM, item 3 -- js/chase.js: the night walk to the cut, the chase up it, the walk back to this yard's own after)
       yield* In.yardAfter(B, st, f, In.lastFight.willemDead, In.lastFight.loose);
       morning = L('wagon.morning.inn');

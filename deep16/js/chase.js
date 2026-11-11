@@ -27,6 +27,7 @@
   // one -- the seat's drafts (invented.json halfway-chase-one-away). Willem's trick at the fork keeps its own lines: a pair of runners made of nothing is his to make, alone or not
   Ch.ONE = {
     chase1: 'Running feet, north up the road: one shape going hard in the dark. You go after {name}.',
+    heard: 'Running feet, north up the road: one shape going hard in the dark -- {name}.', // (the yard's ask: heard, not yet chased -- 11-11)
     mouth: 'Web Gulch, the south mouth, and ahead up the cut one shape on the road, going hard: {name}.',
     foot: '{g}On foot {name} is slower than you: every three squares of yours, two. Run {name} down.{/}',
     horses: '{g}On a grey {name} is as fast as you are, and the north mouth is the end of it unless you are faster.{/}',
@@ -43,7 +44,11 @@
   Ch.one = function (c) { return !c ? null : c.amara !== false && !c.willem ? 'Amara' : c.amara === false && c.willem ? 'Willem' : null; };
   Ch.ln = function (c, k, dflt) { var n = Ch.one(c); return n && Ch.ONE[k] ? Ch.ONE[k].split('{name}').join(n) : dflt; };
   Ch.LINES = { // (the seat's drafts beside the first game's wagon.* lines: invented.json halfway-gulch-chase)
-    walk: 'The Pit road north in the dark, at a run where the road allows it: two hours and more to where the cut opens. Nothing on the road but the road.',
+    heard: 'Running feet, north up the road: two shapes going hard in the dark.', // (the yard's ask, AFTER THEM or LET THEM GO: heard, not yet chased -- wagon.chase1 without its "You go after them", which Ch.start says once it is chosen; 11-11, on his 11-06 "Text says you do give chase then offers to chase or not")
+    // the walk back by the hour it sets out (11-11, his note on eyes-gulchchase-1104: "The 'walk back in the dark' happened after morning in the gulch..."): the dark's is wagon.back
+    backDawn: 'The long walk back down the road in the first grey of the morning, to the inn.',
+    backDay: 'The long walk back down the road in the morning, to the inn.',
+    walk:'The Pit road north in the dark, at a run where the road allows it: two hours and more to where the cut opens. Nothing on the road but the road.',
     mouth: 'Web Gulch, the south mouth, and ahead up the cut two shapes on the road, going hard.',
     foot: '{g}On foot they are slower than you: every three squares of yours they make two. Run them down.{/}',
     horses: '{g}On the greys they are as fast as you are, and the north mouth is the end of it unless you are faster.{/}',
@@ -142,7 +147,7 @@
     var R0 = B.roam, f = R0.flags, t = R0.token;
     c.on = false;
     if (c.horses) { yield* In.card(B, [Ch.ln(c, 'lostHorses', Ch.LINES.lostHorses)], 480); f.towerFled = 1; Ch.clear(B); yield* Ch.done(B, c, 'fled'); return; }
-    yield* In.card(B, [Ch.ln(c, 'fork', Ch.LINES.fork)], 360);
+    yield* In.card(B, [Ch.forkLine(c, M.hourNow(D.roam.q, B))], 360);
     if (c.willem) {
       yield* In.card(B, [Ch.LINES.forkTwo], 360);
       var a = yield* In.ask(B, 'THE FORK', [Ch.LINES.forkTwo], [Ch.LINES.opts.north, Ch.LINES.opts.west]);
@@ -154,14 +159,26 @@
     yield* Ch.caught(B, c);
   };
   // the end, either way: the hours the chase took, the walk back to the inn's one lit window, the yard's own aftermath there (In.chaseBack)
+  // (11-11, his note on eyes-gulchchase-1104: "The 'walk back in the dark' happened after morning in the gulch...": the walk's own hours had been passed on the gulch's floor
+  // with the chase's -- its morning said there, the party still in it -- and then the dark's line. Now the chase's hours on the gulch, the walk back's line by the hour it sets
+  // out, and the walk's hours spent off the gulch's floor: the inn's floor is laid at the hour they come in (M.go, the house's clock or the test door's &hour))
+  Ch.backLine = function (h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'morning'); return tod === 'night' ? L('wagon.back') : tod === 'dawn' ? Ch.LINES.backDawn : Ch.LINES.backDay; };
+  Ch.forkLine = function (c, h) { var ln = Ch.ln(c, 'fork', Ch.LINES.fork), tod = W.todAt ? W.todAt(h) : 'dawn'; return tod === 'night' ? ln.replace(' in the first grey of the dawn', ' in the dark') : ln; }; // (the fork by its hour too: the chase is often there by three in the morning)
+  Ch.passWalk = function (B, hrs) { // (the clock on with no floor laid for it -- the party walking off this one; a Light's hour up said at the inn: js/house.js H.lightsOut)
+    var S = W.state && W.state(), R0 = B.roam;
+    if (D.roam.house() && S && S.t != null) { S.t += hrs; W.save(); } else R0.hour = ((R0.hour != null ? R0.hour : M.hourNow(D.roam.q, B)) + hrs) % 24;
+    return D.roam.house() && D.house.lightsOut ? D.house.lightsOut(B) : [];
+  };
   Ch.done = function* (B, c, how) {
     var R0 = B.roam, f = R0.flags;
     c.on = false; c.back = how; f.wagonOutcome = how === 'road' ? 'road' : 'fled';
     Ch.clear(B);
     if (how === 'road') yield* In.card(B, [Ch.LINES.done], 420);
-    yield* M.pass(B, Math.round((c.steps / Ch.SQ_HOUR + Ch.WALK_HOURS) * 10) / 10);
-    yield* In.card(B, [L('wagon.back')], 360);
-    yield* M.go(B, In.KEY, [In.WAGONAT[0] + 6, In.WAGONAT[1] + 2], [-1, 0]);
+    yield* M.pass(B, Math.round(c.steps / Ch.SQ_HOUR * 10) / 10);
+    c.backAt = M.hourNow(D.roam.q, B);
+    yield* In.card(B, [Ch.backLine(c.backAt)], 360);
+    var lo = Ch.passWalk(B, Ch.WALK_HOURS);
+    yield* M.go(B, In.KEY, [In.WAGONAT[0] + 6, In.WAGONAT[1] + 2], [-1, 0], lo.length ? ['{g}' + lo.join(' ') + '{/}'] : null);
   };
 
   // ---------------------------------------------------------------- the floors' scripts: the chase first on the gulch floor; the walk back's yard first on the inn's
