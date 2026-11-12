@@ -344,6 +344,7 @@
     "childGuest": "set: deep16/js/inn.js In.barnYard (the child counted with the party, as 'child' or still looking a 'goblin'); read: deep16/js/inn.js In.noStay, In.doranYard, M.SCENES.elsbeth, In.layFollower (the road with her is not built)",
     "childGuestDay": "set: deep16/js/inn.js In.barnYard (the day the child joined the party); read: nothing yet",
     "childDue": "set: deep16/js/inn.js In.childTaken (ruling 59: the day of the NEXT due's night, a month on from the one she was taken before); read: deep16/js/inn.js In.CHILD.left (Doran's and Elsbeth's 'x nights'), In.childLate",
+    "nightCarry": "set: deep16/js/inn.js In.carrySync (a played night mid-way -- the due from the big room, the watch upstairs -- mirrored from memory so a save holds it); read: deep16/js/inn.js In.carryBack (taken up again on the first floor after a load)",
     "childCamp": "set: deep16/js/inn.js In.childCamp (the first camp with the child had: she asked for water), In.childPit; read: deep16/js/inn.js the house's night (H.runNight's wrap)",
     "childAtPit": "set: deep16/js/inn.js In.childPit (the day the child was set down at GreyFang's house at the Pit); read: deep16/js/inn.js In.doranYard",
     "doranPitHeard": "set: deep16/js/inn.js In.doranYard (his one line on the child set down at the Pit, said); read: the same",

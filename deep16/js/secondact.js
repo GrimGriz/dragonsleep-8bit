@@ -377,6 +377,7 @@
     // she stands at the water's edge by the stone, the words she says to the lake heard on the black; ruling 19's silencing look goes back in after Elsbeth's bucket; then she
     // finishes and walks back up the path, in at the lake door, before the thing is on the rocks (the seat's call, kept small: no rite is staged, and she is not in the fight)
     if (!f.gennetDead && !f.gennetTaken) { Y.genStone = In.unit(B, { id: 'gennetStone', kind: 'gennet', at: A.GEN_STONE.slice(), name: In.named(f), face: [1, 0] }); Y.genStone.bystander = true; }
+    A.sing(A.WINDOW.vol.stone, false); // ("Somebody is saying the same few words over": the singing, once, on the black)
     In.fadeSay(B, [A.LINES.dragStone]); yield 150;
     yield* In.fade(B, 0, 50);
     yield* A.surface(B, Y);
@@ -440,19 +441,45 @@
   // point, the lantern off its post and the two on the path) and back to the lake door -- then the fork, THE LANTERN or LET IT BE. THE LANTERN: down the stair,
   // and the path as built (A.path). LET IT BE: the due at the stone, watched from the window. A party that walks down the stair instead sees it from where it
   // stands. Asleep through the singing: the walk as the night's cutscene, as built. In.duePlay carries the night from floor to floor ('room', then 'lake')
-  A.WINDOW = { x: 16, cam: [35, 16] }; // (the big room's squares along its east wall, upstairs; the same window on the house's floor: the kitchen's lake wall)
+  A.WINDOW = { x: 16, cam: [35, 16], at: [35, 16], up: 46, look: [40, 17], vol: { boards: 0.45, window: 1, stone: 0.8 } }; // (the big room's squares along its east wall, upstairs; the same window on the house's floor: the kitchen's lake wall)
+  // THE RITE, HEARD AND SEEN FROM THE BIG ROOM (RULED 11-12, Griz, on whether Gennet's rite is only heard or staged: "if 'rite' is the weird singing, I was hoping we'd make
+  // some - with the camera on the party in the big room with transparency out so they are 'overlooking' (player gets what character sees through window) the lake"; on who
+  // makes it, "game synth like we did with 'food' and 'kneel'"). THE SINGING is a clip made by that recipe (deep16/audio/lake_singing.mp3: tools/voice-clip.ps1, Windows' Zira
+  // slowed and lowered, then ffmpeg -- a voice a fifth above under it for the boys, one an octave below, a slow vibrato, a hall's echo; the command is in the inn lane's
+  // 11-12 section). A.sing(vol, loop) plays it, A.sing() stops it: through the boards as it wakes the party in the big room, whole at the window, once on the black of the
+  // no-tell night. No clip, or a page that will not play one: silence, and the cards carry it as before. THE WINDOW: the party's token stood on the house's own floor at
+  // the kitchen's lake wall and drawn a storey up (u.upZ, js/ui.js unitPos: a drawing, no rule) -- the see-through by presence opens the roof and wall round it -- and the
+  // camera held between the window and the point, so the lake is what they overlook; the one camera move out and back is gone on this night (a party that walked down the
+  // stair keeps it). WHICH NIGHTS, the seat's call for his overrule: the watched ones -- a due's night with an offering kept, the party woken in the big room and gone to
+  // its window; asleep through it, the walk is the night's cutscene as built, with no singing
+  A.sing = function (vol, loop) {
+    if (A.singA) { try { A.singA.pause(); } catch (e) { } A.singA = null; }
+    if (vol == null) return null;
+    A.sang = (A.sang || 0) + 1; A.sangVol = vol;
+    var a = D.clip ? D.clip('audio/lake_singing.mp3') : null; if (a) { try { a.volume = Math.max(0, Math.min(1, a.volume * vol)); a.loop = !!loop; } catch (e2) { } A.singA = a; }
+    return a;
+  };
+  A.wideZoom = function () { var zs = D.ui && D.ui.zooms ? D.ui.zooms() : [], i = zs.indexOf(D.iso.zoom); if (A.zoom0 == null) A.zoom0 = D.iso.zoom; return i >= 0 && i + 1 < zs.length ? zs[i + 1] : D.iso.zoom; }; // (one step wider, so the window and the point are on one screen; A.atWindow(B, false) gives the zoom back)
+  A.atWindow = function (B, on) {
+    var t = B.roam.token;
+    if (on) { In.stage(B, A.WINDOW.at, null); if (B.units.indexOf(t) < 0) In.offFloor(B, false); /* (laid as from outside: the house under its roof, opened round the party by their presence) */ t.upZ = A.WINDOW.up; t.facing = D.spr.facingFor(1, 0); t.anim = 'idle'; B.roam.atWindow = true; }
+    else { delete t.upZ; B.roam.atWindow = false; if (A.zoom0 != null) { D.iso.zoom = A.zoom0; A.zoom0 = null; } }
+    B.cache = null;
+  };
   A.dueRoom = function* (B) {
     var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B); if (P.stay) R0.stay = P.stay;
     In.passTo(B, A.DUE_HOUR);
     if (!In.read(st, 'Perception', A.DUE_WAKE)) { P.stage = 'lake'; P.asleep = true; yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'up'; } // (slept through: the walk, on the yard's floor)
     f.warmup = 2; P.woke = true; A.trail('the due night: woken in the big room by the singing');
+    A.sing(A.WINDOW.vol.boards, true); // (up through the boards)
     yield* In.card(B, [A.LINES.roomWoke], 360);
     yield* In.card(B, [A.LINES.roomWindow], 300);
   };
   A.dueLake = function* (B) {
     var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B), up = P.stage === 'lake', goblin = !(f.glamourBroken || f.glamourSeen), lake = In.DOORS.lake;
     In.duePlay = null; if (P.stay) R0.stay = P.stay;
-    if (up) { In.stage(B, In.WATCH.down, 'inn'); In.offFloor(B, true); } // (at the window upstairs: nobody of the party on this floor)
+    var win = up && !P.asleep; // (at the big room's window, awake: the party drawn there, overlooking -- A.atWindow)
+    if (win) A.atWindow(B, true); else if (up) { In.stage(B, In.WATCH.down, 'inn'); In.offFloor(B, true); } // (asleep upstairs: nobody of the party on this floor)
     if (P.asleep) {
       yield* In.card(B, [A.LINES.dueNight], 300);
       yield* In.dueWalk(B, goblin ? 'goblin' : 'kid'); f.duePaid = 1; if (A.hasRing(B)) In.offFloor(B, false); // (asleep upstairs: nobody downstairs unless the ring calls them down)
@@ -461,27 +488,29 @@
     }
     // THE ONE CAMERA MOVE: out from the window to the stilling lake, and back to the lake door
     var sign = function (i) { var s = A.SIGNS[i], got = s.dc == null || In.read(st, 'Perception', s.dc); return got && s.read ? s.read : s.sign; };
-    yield* B.camTo({ gx: A.WINDOW.cam[0], gy: A.WINDOW.cam[1], gz: 0 }, D.iso.zoom, 1);
-    yield* B.camTo({ gx: A.POST[0], gy: A.POST[1], gz: 0 }, D.iso.zoom, 70);
+    if (win) { A.sing(A.WINDOW.vol.window, true); A.trail('the rite from the big room\'s window: the singing, the camera held on the party and the lake'); yield* B.camTo({ gx: A.WINDOW.look[0], gy: A.WINDOW.look[1], gz: 0 }, A.wideZoom(), 1); yield 60; }
+    else { yield* B.camTo({ gx: A.WINDOW.cam[0], gy: A.WINDOW.cam[1], gz: 0 }, D.iso.zoom, 1);
+    yield* B.camTo({ gx: A.POST[0], gy: A.POST[1], gz: 0 }, D.iso.zoom, 70); }
     yield* In.card(B, [sign(3)], 280);
-    yield* B.camTo({ gx: A.DEEP[0], gy: A.DEEP[1], gz: 0 }, D.iso.zoom, 50);
+    if (!win) yield* B.camTo({ gx: A.DEEP[0], gy: A.DEEP[1], gz: 0 }, D.iso.zoom, 50);
     if (D.fx) D.fx.sparkle({ x: A.DEEP[0] + 2, y: A.DEEP[1], size: 1 }, 'blue', 40);
     yield* In.card(B, [sign(4)], 280);
     var Y = A.cast(B, f, [lake[0] + 1, lake[1]]);
-    yield* B.camTo({ gx: A.PATH.head[0], gy: A.PATH.head[1], gz: 0 }, D.iso.zoom, 70);
+    if (!win) yield* B.camTo({ gx: A.PATH.head[0], gy: A.PATH.head[1], gz: 0 }, D.iso.zoom, 70);
     yield* A.walkAll(B, Y, A.PATH.half);
     f.warmup = A.SIGNS.length; f.lanternWalks = 1;
     var a = yield* In.ask(B, 'THE LANTERN WALKS', [A.LINES.fork].concat(goblin ? [A.LINES.forkGoblin] : []), [A.LINES.opts.lantern, A.LINES.opts.let]);
     A.trail('the fork, from the big room\'s window: ' + (a === 0 ? 'the lantern' : 'let it be'));
-    if (a === 0) { if (up) { In.offFloor(B, false); yield* In.card(B, [A.LINES.roomDown], 240); } yield* A.path(B, Y); if (A.wiped(B)) return; return yield* A.dueMorning(B, P.off); }
+    if (a === 0) { A.sing(); if (win) { A.atWindow(B, false); var tW = B.roam.token; tW.x = In.WATCH.down[0]; tW.y = In.WATCH.down[1]; tW.tween = null; D.grid.setup(B.map, B.units); B.cache = null; yield* In.card(B, [A.LINES.roomDown], 240); } else if (up) { In.offFloor(B, false); yield* In.card(B, [A.LINES.roomDown], 240); } yield* A.path(B, Y); if (A.wiped(B)) return; return yield* A.dueMorning(B, P.off); }
     // LET IT BE: the due at the stone, seen from the window; only she comes back
     yield* A.walkAll(B, Y, [A.STONE[0] - 1, A.STONE[1]]);
-    yield* B.camTo({ gx: A.STONE[0], gy: A.STONE[1], gz: 0 }, D.iso.zoom, 24);
-    yield* In.card(B, [goblin ? A.LINES.stoneGoblin : A.LINES.stone], 480); D.sfx('splash');
+    if (!win) yield* B.camTo({ gx: A.STONE[0], gy: A.STONE[1], gz: 0 }, D.iso.zoom, 24);
+    yield* In.card(B, [goblin ? A.LINES.stoneGoblin : A.LINES.stone], 480); A.sing(); D.sfx('splash'); // (the singing stops with the water)
     if (Y.kid) { if (D.fx) D.fx.sparkle(Y.kid, 'blue', 24); In.gone(B, Y.kid); Y.kid = null; }
     f.duePaid = 1; f.dueSeen = 1; A.trail('the due paid at the stone, watched from the window'); yield 40;
     yield* In.walk(B, Y.gennet, [lake[0], lake[1]]); A.clear(B, Y);
-    if (A.hasRing(B)) In.offFloor(B, false);
+    if (win) { A.atWindow(B, false); if (!A.hasRing(B)) In.offFloor(B, true); } // (back from the window: off this floor again, as the night was before 11-12, unless the ring calls them down)
+    else if (A.hasRing(B)) In.offFloor(B, false);
     if ((yield* A.ringWarm(B, {})) === 'lost' || A.wiped(B)) return;
     return yield* A.dueMorning(B, P.off);
   };

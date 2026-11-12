@@ -275,8 +275,9 @@
   // laid as the thing, and the open air's earth was painted under it. Every square in a house that is not its wall, a doorway, its chimney or its stair takes the house's
   // boards under it, a hearth's own square and the stone before its mouth dressed stone (js/iso.js `under`)
   In.UNDER = { h: '=', f: '=' };
+  // (a knee-shallow square, W: the shore's own sand painted beneath the water's sheet -- the ground's tiling under the fluid, his word of 11-12, js/innprops.js)
   In.under = function (rows, inside, open) { // (open(x, y): the square's house is the one the party is in -- its walls cut to stubs stand on its boards, js/innprops.js, 11-05)
-    return rows.map(function (r, y) { return r.split('').map(function (c, x) { return !inside(x, y) || 'DCoSu'.indexOf(c) >= 0 ? ' ' : c === 'B' || c === 'A' ? (open && open(x, y) ? 'o' : ' ') : In.UNDER[c] || 'o'; }).join(''); });
+    return rows.map(function (r, y) { return r.split('').map(function (c, x) { return c === 'W' ? '.' : !inside(x, y) || 'DCoSu'.indexOf(c) >= 0 ? ' ' : c === 'B' || c === 'A' ? (open && open(x, y) ? 'o' : ' ') : In.UNDER[c] || 'o'; }).join(''); });
   };
   var floor0 = M.floor;
   M.floor = function (key, q, flags, hour) {
@@ -1363,6 +1364,21 @@
   // nights are slept where the party stands (In.sleepsHere)
   In.WATCH = { at: [2, 2], face: [-1, 0], window: [1, 2], down: [In.STAIR[0], In.STAIR[1] - 1],
     heard: '{y}{name}{/} has the window of the road-end room on the second watch. The yard below is dark. Then harness, and iron tyres on the road.' };
+  // THE OTHERS ASLEEP IN THE ROOM while one has the window (11-12, the inn seat: the lane's known gap -- "the other three are not shown asleep in the road-end room during
+  // the watch"): each a figure of its own on a free square of the room near the bed, lying asleep, in the hero's own sheet; figures only (`look`), gone with the floor
+  In.abed = function (B, heroes) {
+    var G = D.grid, t = B.roam.token, at = In.WATCH.at, win = In.WATCH.window, out = [], spots = [];
+    for (var dy = -2; dy <= 4; dy++) for (var dx = -2; dx <= 4; dx++) spots.push([at[0] + dx, at[1] + dy]);
+    spots.sort(function (a, b) { return (Math.abs(a[0] - at[0]) + Math.abs(a[1] - at[1])) - (Math.abs(b[0] - at[0]) + Math.abs(b[1] - at[1])); });
+    B.units.filter(function (u) { return u.abed; }).forEach(function (u) { In.gone(B, u); });
+    (heroes || []).forEach(function (h, i) {
+      var u = In.unit(B, { id: 'abed' + i, kind: 'commoner', at: [t.x, t.y], name: h.name, face: [0, 1] });
+      var q = spots.filter(function (q0) { return !(q0[0] === t.x && q0[1] === t.y) && !(q0[0] === win[0] && q0[1] === win[1]) && !(q0[0] === at[0] && q0[1] === at[1]) && G.canStand(u, q0[0], q0[1]) && !B.units.some(function (w) { return w !== u && w.x === q0[0] && w.y === q0[1]; }); })[0];
+      if (!q) { In.gone(B, u); return; }
+      u.x = q[0]; u.y = q[1]; u.abed = true; u.bystander = true; if (h.sheet) u.sheet = h.sheet; u.conds.asleep = { by: 'night' }; u.conds.prone = true; out.push(u);
+    });
+    G.setup(B.map, B.units); B.cache = null; return out;
+  };
   In.offFloor = function (B, off) { var t = B.roam.token, i = B.units.indexOf(t); if (off && i >= 0) B.units.splice(i, 1); if (!off && i < 0) B.units.push(t); B.roam.tokenOff = !!off; D.grid.setup(B.map, B.units); B.cache = null; };
   In.wagonNight = function* (B, d, W2) {
     var R = D.roam, R0 = B.roam, f = R0.flags, st = D.counter.state(B), H = D.house, W = D.world, upstairs = !!W2, onUp = R.def && R.def.key === In.UP;
@@ -1390,6 +1406,7 @@
     yield* In.lieDown(B, nightH / (H.WATCHES || 3) * 1.5, 'THE SECOND WATCH', [L('wagon.night'), In.restedLine(party, asg, keyOf)], asg);
     In.lead(B, watcher); R0.lead0 = lead0;
     if (onUp) { // (at the window on the road; then down to the yard's floor for what the window shows)
+      In.abed(B, party.filter(function (u) { return u !== watcher; })); // (the others asleep in the room behind the one at the window, 11-12: a gap the last seats named)
       yield* R.walkTo(B, In.WATCH.window); R0.token.facing = D.spr.facingFor(-1, 0); R0.token.anim = 'idle';
       yield* In.card(B, [In.WATCH.heard.split('{name}').join(watcher.name)], 360);
       In.watching = { stage: 'yard', d: d, stay: R0.stay, watcher: keyOf(watcher), lead0: keyOf(lead0) };
@@ -2080,7 +2097,13 @@
     if (scene) { scene.walk = null; scene.plan = null; }
     return In.roadTalk(scene, { id: 'pitHouse', name: 'GreyFang\'s house', place: 'Tarlyn\'s Pit', what: 'the door back of the fighting pit',
       script: function (sc) { return (function* () {
+        // A STAND-IN FACE (RULED 11-12, Griz, on the door having no face: "5 - quick and dirty for now"; and on the house, "lowest usage cost stand-in to keep the realm-story
+        // game playable"): from what the game has, no art asked -- the unnamed man in the guard's costume for the watch on the road, the unnamed woman in the barkeep's for
+        // the one at the chalked door (js/counter.js C.GENERIC's sheets, pt_genman and pt_genwoman)
+        var face = function (who, look, name) { var k = 'pt_gen' + who; if (D.SHEETS && D.SHEETS[k]) { sc.sheet = k; sc.look = look; } sc.o.name = name; };
+        face('man', 'guard', 'The watch on the road');
         yield sc.narr(R.pitRoad);
+        face('woman', 'barkeep', "GreyFang's house");
         yield sc.say(R.pitDoor.concat([f.doranPit ? R.pitSeven : R.pitOne]));
         if (!f.glamourBroken) { f.glamourBroken = 1; f.glamourSeen = 1; D.sfx('magic'); yield sc.say(R.pitGoblin); }
         yield sc.say(R.pitLeave);
@@ -2112,6 +2135,29 @@
     };
     WP.here = function () { var f = In.roadFlags(); if (f && f.childGuest && In.atPit()) { In.childPit(this); return; } return here0.apply(this, arguments); };
     WP.fight = function (p, e, o) { var r = fight0.apply(this, arguments), b = D.top(); if (b && b !== this && b.fight && b.fight.camp) { try { In.campKid(b); } catch (eK) { /* (a figure must never stop a fight) */ } } return r; };
+  })();
+  // A PLAYED NIGHT KEPT IN THE SAVE (11-12, the inn seat: the lane's known gap -- "the kept-child night and the watch upstairs are carried between floors in memory (In.duePlay,
+  // In.watching), not in the save: a save and load mid-night loses the rest of that night"). The two are mirrored into the house's flags as they stand (f.nightCarry: the
+  // stage, the day, the offering or the watcher, the room's stay -- plain values), at every floor's laying and every step; gone from the flags when both are done. On the
+  // FIRST floor laid after a game is begun or loaded, with neither in memory and one in the flags, it is taken up again: the floor's own script finds it as it would have
+  // (the wake in the big room said again, the watches picked again -- the night resumes from its stage, not from its line). In.bedding, a plain night's sleep, is not kept:
+  // loaded upstairs before the morning, the party is in its room and takes the night again from the inn lady
+  In.carrySync = function (B) {
+    var f = B && B.roam && B.roam.flags; if (!f) return;
+    var dp = In.duePlay, wt = In.watching, c = dp ? { due: { stage: dp.stage, d: dp.d, off: dp.off, woke: !!dp.woke, asleep: !!dp.asleep, stay: dp.stay || null } } : wt ? { watch: { stage: wt.stage, d: wt.d, watcher: wt.watcher || null, lead0: wt.lead0 || null, stay: wt.stay || null } } : null;
+    if (c) f.nightCarry = c; else if (f.nightCarry) delete f.nightCarry;
+  };
+  In.carryBack = function (B) {
+    var f = B && B.roam && B.roam.flags, c = f && f.nightCarry; if (!c || In.duePlay || In.watching) return false;
+    if (c.due) In.duePlay = JSON.parse(JSON.stringify(c.due)); else if (c.watch) In.watching = JSON.parse(JSON.stringify(c.watch)); else return false;
+    if (D.house && D.house.trail) D.house.trail('check', 'a played night taken up again from the save: ' + (c.due ? 'the due, ' + c.due.stage : 'the watch, ' + c.watch.stage));
+    return true;
+  };
+  (function () {
+    var Hs = D.house, people1 = T.people, arrive1 = D.roam.arrive;
+    if (Hs && Hs.begin) { var begin0 = Hs.begin; Hs.begin = function () { In.carryFresh = true; return begin0.apply(this, arguments); }; }
+    T.people = function (B) { var r = people1.apply(this, arguments); if (In.carryFresh) { In.carryFresh = false; In.carryBack(B); } In.carrySync(B); return r; };
+    D.roam.arrive = function* (B) { var ev = yield* arrive1.apply(this, arguments); In.carrySync(B); return ev; };
   })();
   In.toSnoot = function () { In.left = '../snoot-mode/?from=inn'; if (!In.stay) window.location.href = In.left; }; // (In.stay: a bench's, the page kept)
   var fire0 = T.fire;
@@ -2236,7 +2282,9 @@
     { id: 'childpit', label: 'THE CHILD\'S ROAD: Tarlyn\'s Pit, the chalked door of GreyFang\'s house (11-12)', note: 'Day 15, three in the afternoon, the party on the Pit\'s hex with the girl. The scene plays at once: the watch on the road, the door back of the fighting pit with the wolf\'s head chalked on it, the woman\'s count (Doran drove seven down: "That\'s eight, then."), and the girl is set down. After it E on the hex is the Pit as before (its map is not built). Back at the inn Doran has one line for it at the woodpile.', world: true, site: 'pit', hour: 15, day: 15, run: function (sc) { In.childPit(sc); },
       flags: { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'quiet', barnFreed: 1, barnEnd: 'd', doranConfessed: 1, doranPit: 1, glamourBroken: 1, glamourSeen: 1, childGuest: 'child', childGuestDay: 13, childCamp: 1, childDue: 43, dueCycle: 0, dueOffC: 0, dueOff: 'none' } },
     { id: 'elsbethnoon', label: 'ELSBETH AFTER MIDDAY: Gennet in from the well, "Not now." (11-12)', note: 'One in the afternoon on day 6, renown 3. Gennet is by the fire: her hours at the well are the mornings, seven to midday. E on Elsbeth at the tub: "Not now. In the morning, when she\'s out at the well."', key: In.KEY, at: [32, 21], hour: 13, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
-    { id: 'lakeedge', label: 'THE LAKE\'S EDGE: four of knee-deep off the stone, then the deep (11-12)', note: 'Two in the afternoon on the flat stone. East of the rock the water is knee-deep for four squares -- the bed stepped down under it, a step a square -- and then the deep. Wade out: each square costs double; the legs go under by the step. The same four run the whole coast, north and south.', key: In.KEY, at: [45, 18], hour: 14 },
+    { id: 'lakeedge', label: 'THE LAKE\'S EDGE: four of knee-deep off the stone, then the deep (11-12)', note: 'Two in the afternoon on the flat stone. East of the rock the water is knee-deep for four squares, one depth, the shore\'s ground showing through one sheet of water; then the deep at once. Wade out: each square costs double, and a figure stands in it to the knee. The same four run the whole coast, north and south.', key: In.KEY, at: [45, 18], hour: 14 },
+    { id: 'rite', label: 'THE RITE FROM THE BIG ROOM\'S WINDOW: the singing, the party overlooking the lake (11-12)', note: 'The due\'s own night with the child they kept, past midnight, the party woken in the big room and gone to its window. It plays at once: the party stands at the window upstairs, the roof and wall open round them, and the camera holds on them and the lake below. THE SINGING plays (sound on: a made voice, slow, with two more under it). The signs on the water, Gennet and the child out by the lake door with the lantern, the fork: THE LANTERN (down the stair) or LET IT BE (the due at the stone, watched from here; the singing stops with the water).', key: In.KEY, at: [35, 16], hour: 1, day: In.WAGON.first + In.DUE.after + 1, inside: true, dice: [14, 12, 15, 14], due: { stage: 'lake', d: In.WAGON.first + In.DUE.after, off: 'kept', woke: true },
+      flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1, dueCycle: 0, dueTonight: 1, kidTaken: 1, bigRoom: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
@@ -2250,6 +2298,7 @@
     var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? (bt.day - 1) * 24 : Math.floor((S.t || 0) / 24) * 24) + bt.hour;
     if (bt.world) { if (bt.run && W.scene) bt.run(W.scene); return; } // (bt.run: a scene staged on THE WORLD and run at once -- the child's road, 11-12)
     In.pinned = bt.dice ? bt.dice.slice() : null;
+    In.carryFresh = false; In.duePlay = bt.due ? Object.assign({}, bt.due) : In.duePlay && bt.key ? null : In.duePlay; // (bt.due: a beat that opens inside the due's played night -- the rite at the window, 11-12; any other floor beat starts clean)
     var nb = R.make('?roam=' + bt.key + (bt.inside === 'barn' ? '&at=' + bt.at.join(',') : bt.inside ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true });
     D.push(nb);
   };
