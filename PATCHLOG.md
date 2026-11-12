@@ -3,6 +3,7 @@
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
 ## 2026-11-12
+- 2026-11-12 · `c5788f35` · the story build · Sólskaft's cart level, funerary and Ásdís Scalebeam's room drawn from the art desk's ART-136, 137 and 138 (`deep16/js/skart.js`, the look only); art-wanted 47-51 all in hand · *"Think there's stuff for an opus cutter in Fresh"*
 - 2026-11-12 · `39a5767f` · the story build · Sólskaft's street level drawn from the art desk's ART-134 and 135 (all five returns, 432 cells, VERIFIED and cut onto five sheets by `tools/solskaft-sheet.py`; laid by `deep16/js/skart.js`, the look only) · *"Think there's stuff for an opus cutter in Fresh"*
 
 ## 2026-11-11
