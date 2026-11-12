@@ -5703,7 +5703,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       });
       var py = folkSk(Bp, 'pyro'), ds = SKk.folkOf('drillmaster'); // (the drill on the cart level since 11-12: section 12 stands it and has its word, section 27 where)
       okSk('the people, each stood and each with the first game\'s word: ' + words.join(', ') + (bad.length ? '; WRONG: ' + bad.join('; ') : '') + '; Pyro wears his own (' + (py && py.sheet) + '), the sergeant the Skylights\' (' + (ds && ds.kind) + ')',
-        !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p0' && ds.kind === 'drillsergeant');
+        !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p1' && ds.kind === 'drillsergeant'); // (his own town figure since 11-12, cutter-pyro: ART-141; his fights keep pyro_p0)
       // 6. THE SIGNS: the first game's verbatim (first/content/maps/solskaft.json and solskaft_deep.json, first/content/text.json -- the copies the second game reads, content/, held equal); each said by E
       var m8 = window.DS.DATA.maps.solskaft, m8d = window.DS.DATA.maps.solskaft_deep, texts8 = (m8.signs || []).concat(m8d.signs || []).map(function (s) { return s.text; }).concat([window.DS.DATA.text['deep.treasury'].t]);
       var notIn = Object.keys(SKk.S8).filter(function (k) { return k !== 'brick' && texts8.indexOf(SKk.S8[k]) < 0; });
