@@ -17,6 +17,16 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE INN SEAT, ART-139 HOOKED (11-12: keptchild_p1, pt_keptchild, pt_glamourgoblin, pt_doranaxe's axelow)
+    'eyes-keptchild-carry-1112': { pri: 1, group: G2, title: 'THE KEPT CHILD IN HER OWN FIGURE: carried over Gennet\'s shoulders (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; ART-139 hooked: deep16/js/inn.js In.keptKind, acts.carry) -- your "Can probably just attach girl sprite to Gennet sprite with head/shoulders appearing over gennet"',
+      url: 'deep16/?innshow&beat=barnseen&fresh=1112s',
+      look: 'NEW: the girl is her own drawn figure now (the art desk\'s, cut tonight), in the stall, in the yard and in the talk\'s portrait top left. FREE HER, then let Gennet raise her (Lymen: "If she\'s cared for here..."). As "Gennet takes the child up onto her hip" comes up, the girl\'s figure is attached behind Gennet\'s with her head showing over Gennet\'s, and rides to the house door. How much of her shows over Gennet is one number: say higher or lower.' },
+    'eyes-keptchild-faces-1112': { pri: 1, group: G2, title: 'HER FACE ON THE PORTRAITS: the goblin while the glamour holds, the girl once it breaks, looking up when asked her name (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; ART-139 hooked: deep16/js/inn.js In.childFace) -- your "art request for girl and goblin"',
+      url: 'deep16/?innshow&beat=barnunseen&fresh=1112t',
+      look: 'NEW: FREE IT. At "The goblin holds on harder" the top-left face is the goblin\'s own portrait (it was the floor figure\'s face blown up). Vivian: "Let me see that hand." -- the glamour breaks and from then the face is the girl\'s portrait, her afraid look where the line is her fear. Refuse Gennet through to the end and take the child with you: by the barn door she looks UP at whoever asks her name.' },
+    'eyes-keptchild-tow-1112': { pri: 2, group: G2, title: 'THE CHILD IN TOW in her own figure; Doran lets the axe hang (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; ART-139 hooked) -- your "worth \'doran with an axe\' portraits"',
+      url: 'deep16/?innshow&beat=childtow&fresh=1112u',
+      look: 'NEW: the girl beside you is her own figure, and follows as you walk. E on Doran at the woodpile: his axe portrait, and for "Doran lets the axe hang" its axe-low pose. (His words and Elsbeth\'s count the nights to the due: two, on this day.)' },
     // THE INN SEAT, HIS ANSWERS OF 11-12 BUILT (the lamp, the code-drawn buildings)
     'eyes-lakedoor-lamp-1112': { pri: 2, group: G2, title: 'THE LAKE DOOR\'S LAMP sits against the wall (and the barn door\'s) (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/innprops.js IP.houseSpec) -- your "the door out of the kitchen to the lake looked like it was rotated 90 degrees from sitting proper against the wall... not sure if mirroring it would fix"',
       url: 'deep16/?innshow&beat=shore&fresh=1112q',
