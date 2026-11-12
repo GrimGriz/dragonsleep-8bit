@@ -2582,7 +2582,7 @@
     // attack's name (claw, bite), and its second and third use in a turn the numbered rows (claw2, claw3: a blow from each of its arms)
     if (!posing && att.anim === 'attack' && atk.name) {
       // (atk.row: a blow that names its row -- Sweep the Ring plays `whirlwind`, 10-08)
-      var rk = atk.row || (atk.twin && D.spr.anim(att.sheet, 'twinstrike') ? 'twinstrike' : String(atk.name).toLowerCase().replace(/[^a-z]/g, '')); // (a TWIN STRIKE blow plays the sheet's `twinstrike` row where it has one: Pyro's pyro_p2, 11-12)
+      var rk = atk.row || (atk.twin === true && D.spr.anim(att.sheet, 'twinstrike') ? 'twinstrike' : String(atk.name).toLowerCase().replace(/[^a-z]/g, '')); // (a TWIN STRIKE blow plays the sheet's `twinstrike` row where it has one: Pyro's pyro_p2, 11-12)
       // (a named weapon plays its sort's row where the sheet has none by its name: GreyFang's Bow +1 is a longbow, and every arrow of his played the
       // `attack` fallback, his sword's slash, till 10-14 -- the show of his sheet found it: longbow 0, attack 26; js/save.js weaponOf carries the kind)
       if (!atk.row && atk.kind && !D.spr.anim(att.sheet, rk) && D.spr.anim(att.sheet, atk.kind)) rk = atk.kind;
@@ -2696,7 +2696,7 @@
     var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
-    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin ? ' {c}(twin strike: ' + (atk.twinPay === 'swings' ? 'two swings' : 'a swing and the bonus') + '){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
+    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin === true /* (a TWIN STRIKE blow; a foe's `twin: 'spear'` names its other attack -- data/foes.js the gnoll, 11-12, his record: "Thrown Spear (twin strike: a swing and the bonus)") */ ? ' {c}(twin strike: ' + (atk.twinPay === 'swings' ? 'two swings' : 'a swing and the bonus') + '){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever

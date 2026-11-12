@@ -1,0 +1,83 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-12T22:03:10.948Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-child-camp-1112h",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CHILD'S ROAD, the first camp: \"Water. Please.\" -- a girl's voice, and the glamour off (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second; RULED by your answers to the reading page: ruling 59, \"go with the leans, we'll deal with calendar issues down the road\"; deep16/js/inn.js In.childCamp, In.ROAD)",
+   "url": "deep16/?innshow&beat=childcamp&fresh=1112hb",
+   "verdict": "works",
+   "note": "what happens in fights wrt to her? game over if she dies built in?",
+   "at": "2026-11-12T21:49:04.248Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-child-pit-1112h",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CHILD'S ROAD, the Pit: the chalked door of GreyFang's house (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second; ruling 59; your \"greyfang can be the associated name\"; deep16/js/inn.js In.childPit, In.ROAD, In.childTaken)",
+   "url": "deep16/?innshow&beat=childpit&fresh=1112hc",
+   "verdict": "works",
+   "note": "generic npc woman in portrait box?",
+   "at": "2026-11-12T21:47:28.548Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-lake-edge-1112h",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE LAKE'S EDGE: four of knee-deep the whole coast, the bed stepped down under the water (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second; RULED: rulings 60 and 62, and your \"knee deep water done like keeper stairs, current tiles in kneedeep are bad\"; deep16/js/inn.js In.ROWS, js/innprops.js IP.band, IP.bedTile, the sheet; js/ui.js UI.wading)",
+   "url": "deep16/?innshow&beat=lakeedge&fresh=1112he",
+   "verdict": "broken",
+   "note": "discussed with lanes session",
+   "at": "2026-11-12T21:43:10.749Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-sacrifice-notell-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, NO TELL: \"Good. They're drifting off.\", the black, asleep on the stone, the girl with the bucket (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; deep16/js/secondact.js A.drag; js/inn.js In.fade) -- your \"do gennet saying 'good, they're drifting off' then fade to black, any necessary narration, then fade from black with barley asleep (he falls asleep after at present), just the girl with the bucket in the dark maybe, viv was standing with a z above her head, narration says elsbeth and the gennet are there but they aren't - back in by the front door and to bed excess narration\"",
+   "url": "deep16/?innshow&beat=sacnone&fresh=1112fc",
+   "verdict": "unclear",
+   "note": "did elsbeth teleport in from outside before serving the food? portrait centered on screen for 'wake up' with text an 'ok' popup, switch to cut without barrel after narration says 'puts bucket down' or edit narration, have chuul treat part member on stone like Gennet (i.e. grabs and takes deep unless interrupted) (went after diff target on my fight) - please make future doors with a lvl 3 party",
+   "at": "2026-11-12T22:03:06.238Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-sacrifice-kept-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE KEPT-CHILD NIGHT, PLAYED: woken in the big room, the window, one camera move to the lake and back (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; deep16/js/secondact.js A.dueRoom, A.dueLake; RULED, your \"4-5-6 yes\") -- your \"the 30 minutes of being narrated to doesn't work. Doran can't talk about it not carrying if the singing is supposed to wake them, those narrations can be played. Stilling water camera zoom, etc.\"",
+   "url": "deep16/?innshow&beat=sackept&fresh=1112fd",
+   "verdict": "unclear",
+   "note": "see previous vs second floor render - camera shows barley downstairs before panning, try scene one zoom further out - have the disappearance of the girl be the chuul's lunge animation actually grabbing her  with a quick scuttle backwards to disappear at the deep",
+   "at": "2026-11-12T21:55:25.024Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-upstairs-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON NIGHT: the watch kept from the road-end room upstairs, nobody in the common room (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; deep16/js/inn.js In.wagonNight, In.WATCH, In.offFloor) -- your \"watch from upstairs room not big room where kat and gennet are still posted\" and \"might as well move the party token upstairs and show it\"",
+   "url": "deep16/?innshow&beat=wagon&fresh=1112fe",
+   "verdict": "broken",
+   "note": "can we not overlay the second floor on top of the first floor, there's a view of the first floor with a second Gennet in her usual position",
+   "at": "2026-11-12T21:51:27.285Z",
+   "new_since_last_save": true
+  }
+ ]
+}
