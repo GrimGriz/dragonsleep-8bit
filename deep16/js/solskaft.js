@@ -8,7 +8,7 @@
    x 0-37 here, the vault doors at 18-19 on its own squares), the front wall at the south row, and main street running north in his three stretches --
      SOUTH, under the glass, seven squares (35 ft) -- trade: inside the doors the cart ramp going down on the west (along the front wall, its mouth at the west end) and the
        guest stable on the east (ready, long empty, a little old fodder), the narrow ramp up at the east wall beside it; the tollhouse in the front-west corner at the ramp
-       (the trade-counter facing it, the scales under their cloth, the tariff board, Ingrith's ledger-room, the quartermaster's counter); one deep store a side, shut,
+       (the trade-counter facing it, the scales under their cloth, the tariff board, the quartermaster's counter -- Ingrith's ledger-room off the hallway since PASS TWO, 11-12); one deep store a side, shut,
        two storeys -- the lodging over -- and one window lit over the west one (Ásdís Scalebeam's, CANON 11-11).
      THE COURT, under the light, six squares (30 ft) -- faith: the oathstone on its pedestal where the Sunshaft's circle on MAPS.edifice puts it (centre 29.5, 4.8 there =
        18.5, 10.2 here), the beam on it by day; Rekknar's temple on the west, the Dormant's on the east (the realm page's reading); each drawn with room for a stair and
@@ -32,8 +32,10 @@
   // nobody stands in it): a block six squares by three against the room's north and west walls, laid from its south-west square SK.ASSAY (x, r), so the room can move whole.
   // Each piece [the cell, dx, dr, its word's key, its squares along x]; the walls' pieces [the cell, dx along the north wall | dr up the west wall, its word's key]. The door side
   // (dx 5) and the middle row (dr 1) kept clear: every piece is reached from an open square beside it. Its furnace cold (the assay closed seventy years).
-  SK.ASSAY = [9, 18];
-  SK.ASSAYLAY = [['muffle_furnace_cold', 0, 2, 'furnace'], ['standard_ledger', 2, 2, 'ledger'], ['touch_needle_table', 3, 2, 'needles'], ['dwarf_stool', 4, 2, null],
+  SK.ASSAY = [9, 19]; // (PASS TWO, 11-12: the assay house off the hallway's west wall, its door at his (16, 11) -- r20)
+  SK.PILLARS = [[10, 15], [12, 15], [10, 17], [12, 17], [25, 15], [27, 15], [25, 17], [27, 17]]; // (down the temple halls' two long sides, clear of the walk from the door to the god's piece -- PASS TWO, 11-12)
+  SK.HALLBENCH = [[16, 17], [16, 21], [21, 17], [21, 21]]; // (the hallway's stone benches, each two squares up the wall from x, r -- PASS TWO, his "hallway can be empty with benches")
+  SK.ASSAYLAY = [['muffle_furnace_cold', 0, 2, 'furnace'], ['standard_ledger', 2, 2, 'assayLedger'], ['touch_needle_table', 3, 2, 'needles'], ['dwarf_stool', 4, 2, null],
     ['assay_balance', 0, 0, 'balance'], ['stone_bench_x', 1, 0, null, 2], ['assay_buttons_and_ingots', 3, 0, 'buttons'], ['locked_weights_case', 4, 0, 'weights']];
   SK.ASSAYWALL = { L: [['guilds_mark_x', 1, 'mark'], ['crucibles_and_cupels_x', 5, 'shelf']], R: [['crucibles_and_cupels_y', 1, 'shelf']] };
   SK.assayWord = function (k) { return SK.S8[k] || SK.LINES[k]; }; // (the needles and the weights the first game's, the rest the seat's)
@@ -48,9 +50,8 @@
     set(15, 1, 22, 7, '=');
     set(6, 1, 14, 2, 'v'); set(5, 1, 5, 2, 'X');            // the cart ramp down, west along the front wall; its mouth at the west end (to the cart level)
     set(5, 3, 7, 3, 'K'); set(8, 3, 8, 3, '=');              // the tollhouse's trade-counter facing the ramp, its gate at the east end (west of it, rock: the ramp's cut)
-    set(1, 4, 3, 6, '='); set(2, 4, 2, 4, 'l');              // Ingrith's ledger-room, its desk
-    set(4, 5, 4, 5, 'D');                                    // its door off the tollhouse
-    set(5, 4, 8, 6, '='); set(5, 6, 5, 6, 's');              // the tollhouse; the scales under their cloth, in its corner by the quartermaster (moved 11-12 off the gate's one square in: they had shut him in -- his "no way to talk to the assay guy")
+    set(1, 4, 8, 6, '='); set(5, 6, 5, 6, 's');              // the tollhouse, the ledger-room's corner its own since PASS TWO (11-12, his "to make room for toll-booth area": Ingrith's room is off the hallway)
+                 // the tollhouse; the scales under their cloth, in its corner by the quartermaster (moved 11-12 off the gate's one square in: they had shut him in -- his "no way to talk to the assay guy")
     set(6, 5, 7, 5, 'K');                                    // the quartermaster's counter (the clerk behind it, to the north)
     set(10, 3, 14, 7, 'S');                                  // the west store, shut, its lodging over (two storeys)
     set(23, 3, 27, 7, 'S');                                  // the east store, the same
@@ -63,23 +64,33 @@
     set(13, 8, 24, 13, '=');
     set(18, 10, 19, 10, 'O');                                // the pedestal and the oathstone, in the Sunshaft's circle
     [[16, 1], [21, 1], [15, 7], [22, 7], [15, 10], [22, 10]].forEach(function (q) { set(q[0], q[1], q[0], q[1], 'i'); }); // the lamp standards (SK.LAMPS, 11-12)
-    set(7, 9, 11, 13, '='); set(12, 11, 12, 11, 'D');        // Rekknar's temple (west), a closed hall at its corner of the court, one door on the court (RULED 11-11 night, his "temples as suggested")
-    [[8, 9], [10, 9], [8, 13], [10, 13]].forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); }); set(6, 12, 6, 12, 'D'); // its pillars; the door in its back wall to the stair
-    set(7, 11, 7, 11, 'L');                                  // his ledger-stone against the back wall
-    set(5, 11, 5, 12, 'X');                                  // the stairs down to the funerary, one in each temple (RULED 11-11, his "approve the solskaft iso seat's leans")
-    set(26, 9, 30, 13, '='); set(25, 11, 25, 11, 'D');       // the Dormant's temple (east), the same; the empty cut in its north wall (SK.CUT)
-    [[27, 9], [29, 9], [27, 13], [29, 13]].forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); }); set(31, 12, 31, 12, 'D');
-    set(32, 11, 32, 12, 'X');                                // its stair down, the west one's twin
-    // THE BACK RIM (r14): an arch the crown's width
+    // (the court stands alone with the stone since PASS TWO, 11-12: the temples are off the hallway now, his "west temple corner at 16, 16")
+    // THE BACK RIM (r14): an arch the hallway's width
     set(16, 14, 21, 14, '=');
-    // THE CROWN (r15-r20): his thirty feet under the rock, 6 wide; the garrison's stair off the east wall
-    set(16, 15, 21, 20, '=');
-    set(15, 17, 15, 18, 'D'); set(9, 16, 14, 20, '='); // the assay house off the crown's west wall (RE-CUT 11-11 night: the assay west)
-    SK.ASSAYLAY.forEach(function (p) { var a = SK.assayAt(p[1], p[2]); set(a[0], a[1], a[0] + (p[4] || 1) - 1, a[1], p[3] === 'needles' ? 'n' : 'w'); }); // its furniture (SK.ASSAYLAY, ART-140 and ART-135)
-    set(22, 17, 22, 18, 'D'); set(23, 16, 29, 20, '='); set(29, 17, 29, 18, 'u'); set(23, 20, 25, 20, 'R'); set(26, 16, 27, 16, 'K'); // the garrison's guardroom off its east wall, the stair up at its back, a spear rack, a bench
-    // THE THRONE ROOM (r21 its doors, r22-r30)
-    set(17, 21, 20, 21, 'D');
-    set(1, 22, 36, 30, '=');                                 // the throne room the whole width (RE-CUT 11-11 night)
+    // THE HALLWAY (r15-r24, PASS TWO 11-12 -- his "I still expected/wanted hallway ... hallway can be empty with benches"): main street on under the rock, 6 wide, its rooms
+    // either side behind walls (x15 west, x22 east), a door each; four stone benches along its walls clear of the doors (SK.HALLBENCH)
+    set(16, 15, 21, 24, '=');
+    SK.HALLBENCH.forEach(function (b) { set(b[0], b[1], b[0], b[1] + 1, 'w'); });
+    // WEST: Rekknar's temple at the hallway's first corner (his "west temple corner at 16, 16"), a closed hall, its door on the hallway; four pillars; his ledger-stone
+    // against the back wall; the door in the back wall to the stair down (through the cart level's rock to the funerary's west hallway)
+    set(8, 15, 14, 17, '='); set(15, 16, 15, 16, 'D');
+    SK.PILLARS.filter(function (q) { return q[0] < 18; }).forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); });
+    set(8, 16, 8, 16, 'L'); set(7, 15, 7, 15, 'D'); set(7, 13, 7, 14, 'X');
+    // the assay house (his "assay at 16, 11": its door r20), furnished (SK.ASSAYLAY, ART-140 and ART-135)
+    set(9, 19, 14, 21, '='); set(15, 20, 15, 20, 'D');
+    SK.ASSAYLAY.forEach(function (p) { var a = SK.assayAt(p[1], p[2]); set(a[0], a[1], a[0] + (p[4] || 1) - 1, a[1], p[3] === 'needles' ? 'n' : 'w'); });
+    // Ingrith's ledger-room, off the hallway's west side (his "or get to ingrinths from hallway door west side?"), her desk
+    set(11, 23, 14, 24, '='); set(15, 23, 15, 23, 'D'); set(12, 24, 12, 24, 'l');
+    // EAST, the mirror: the Dormant's temple (the empty cut in its north wall, SK.CUT), its stair down; the garrison's guardroom, their stair up at its back, a spear rack,
+    // a bench; the petitioners' room, a bench, nobody waiting (the "something symmetric")
+    set(23, 15, 29, 17, '='); set(22, 16, 22, 16, 'D');
+    SK.PILLARS.filter(function (q) { return q[0] > 18; }).forEach(function (q) { set(q[0], q[1], q[0], q[1], 'p'); });
+    set(30, 15, 30, 15, 'D'); set(30, 13, 30, 14, 'X');
+    set(23, 19, 28, 21, '='); set(22, 20, 22, 20, 'D'); set(28, 20, 28, 21, 'u'); set(23, 21, 25, 21, 'R'); set(25, 19, 26, 19, 'K');
+    set(23, 23, 26, 24, '='); set(22, 23, 22, 23, 'D'); set(24, 24, 25, 24, 'w');
+    // THE THRONE ROOM further back and narrower (PASS TWO, his "throne room further back as needed - not so wide of a throne room"): its doors r25, the room r26-r30
+    set(17, 25, 20, 25, 'D');
+    set(10, 26, 27, 30, '=');
     set(18, 29, 19, 29, 'T');                                // the high seat on its dais (SK.DAIS)
     set(15, 28, 15, 28, 'b'); set(22, 28, 22, 28, 'b');      // braziers either side of the dais
     return g.map(function (row) { return row.join(''); });
@@ -94,12 +105,12 @@
 
   // ---------------------------------------------------------------- where things are (x, r)
   SK.STONE = [18.5, 10];
-  SK.PILLARS = [[8, 9], [10, 9], [8, 13], [10, 13], [27, 9], [29, 9], [27, 13], [29, 13]]; // (down the halls' two long sides, clear of the walk from the door to the god's piece)
-  SK.TEMPLEWALLS = [[6, 8, 12, 14], [25, 8, 31, 14]]; // (x0 r0 x1 r1: each temple hall and its walls)
+  SK.TEMPLEWALLS = [[7, 14, 15, 18], [22, 14, 30, 18]]; // (x0 r0 x1 r1: each temple hall and its walls; SK.PILLARS and SK.HALLBENCH are set before the floor is carved, above)
+  SK.ROOMSAT = { templeW: [8, 15, 14, 17], templeE: [23, 15, 29, 17], assay: [9, 19, 14, 21], guard: [23, 19, 28, 21], ledger: [11, 23, 14, 24], petition: [23, 23, 26, 24], hall: [16, 15, 21, 24], throne: [10, 26, 27, 30] }; // (x0 r0 x1 r1, PASS TWO)
   SK.LAMPS = [[16, 1, 'door'], [21, 1, 'door'], [15, 7, 'night'], [22, 7, 'night'], [15, 10, 'night'], [22, 10, 'night']]; // (11-12, his "not seeing the light sources on either side at the night scene": a lamp standard on each lamp's square -- the vault doors' burn always, the street's and the court's by night)
   SK.WHOLE = true;      // (the oathstone's middle: the Sunshaft's circle on MAPS.edifice, centre 29.5, 4.8 = local 18.5, 10.2)
   SK.DAIS = [14, 27, 23, 30]; // (the dais, x0 r0 x1 r1: drawn, not raised -- a step of height on the grid is ten feet)
-  SK.CUT = [28, 13];          // (the Dormant's empty cut, in the back wall over this square)
+  SK.CUT = [26, 17];          // (the Dormant's empty cut, in the hall's north wall over this square -- PASS TWO, 11-12)
   SK.WINDOW = [15, 3];        // (the lit window, high on the west store's face over this street square: Ásdís's -- over the lodging door since 11-12, the way up)
   SK.FOLK = [ // the first game's people who belong on this floor, with its looks (first/content/maps/solskaft.json), stood where the street puts them
     { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p0' },     // (at the vault door, always -- CANON 07-24)
@@ -126,23 +137,27 @@
   };
   SK.LINES = {
     arrive: ['Sólskaft, inside the vault doors: main street runs straight back into the mountain -- the stores under the glass, the oathstone in the light, and past it, under the rock, the way to the throne.'],
-    hello: 'Main street: the ramp down on the left, the stable on the right, the court and the oathstone ahead; the crown and the throne room past the arch.',
+    hello: 'Main street: the ramp down on the left, the stable on the right, the court and the oathstone ahead; past the arch the hallway, the temples and the rooms off it, and the throne room.',
     counter: 'The trade-counter: a cart going down the ramp paid here.',
     ledger: 'Ingrith\'s ledger-room: a desk, a lamp, and the ledger.',
     stable: 'The guest stable: stalls swept and ready, mangers empty. There is a little fodder, and it is old.',
     trough: 'The trough. Its water comes down from the cistern over the stable, the same as the fountains\' out front.',
     fodder: 'The fodder: a forkful or two, gone grey. Nobody has stabled a horse here in a long time.',
     window: 'Up over the west store, one window lit. Somebody lives in the lodging.',
-    rekknarIn: 'Rekknar\'s temple: a hall of pillars, lamplit, the ledger-stone against the back wall; a door beside it to the stair down.',
+    rekknarIn: 'Rekknar\'s temple: a hall of pillars, lamplit, the ledger-stone against the back wall; a door in its corner to the stair down.',
     dormantIn: 'The Dormant\'s temple: a hall of pillars, bare walls, a cut in the far one with nothing in it; a door at the back to the stair down.',
     assayIn: 'The assay house: the needles laid out, the weights locked away, nobody at the table.',
+    hallBench: 'A stone bench along the hallway wall, where folk sat to wait on the high seat.',
+    ledgerIn: 'Ingrith\'s ledger-room, off the hallway: a desk, a lamp, and the ledger.',
+    petitionIn: 'The petitioners\' room: a bench along the wall, where folk waited to be called before the high seat. Nobody is waiting.',
+    petitionBench: 'The petitioners\' bench, worn hollow in two places.',
     guardIn: 'The garrison\'s guardroom at the foot of their stair: a rack of spears, a bench, the stair going up into the rock.',
     rack: 'A rack of spears, every one oiled.',
     bench: 'A bench worn smooth by a season of waiting for the relief.',
     // (the assay house's other pieces, 11-12: the seat's words -- invented.json solskaft-assay-words)
     furnace: 'The muffle furnace, cold. Its iron door is shut on old grey ash.',
     balance: 'The assay balance in its glass case: a brass beam and two pans, hanging level. Nothing has been weighed on it in seventy years.',
-    ledger: 'The standard ledger, shut on its lectern. Every mark the assay stamped is in it, and the house it stamped it for.',
+    assayLedger: 'The standard ledger, shut on its lectern. Every mark the assay stamped is in it, and the house it stamped it for.', // (its own key since 11-12 PASS TWO: as `ledger` it had taken Ingrith's desk's line)
     buttons: 'Silver buttons in two rows, each cupelled and weighed, and three ingots with the assay\'s stamp -- left on the table the day it closed.',
     mark: 'The assayers\' mark, cut in a dressed panel: a balance over a mountain.',
     shelf: 'A shelf of clay crucibles and bone-ash cupels, dry, stacked, waiting for silver.'
@@ -152,9 +167,9 @@
     { id: 'vault', at: [[18, 0], [19, 0]], step: true, title: 'THE VAULT DOORS', say: ['Out through the vault doors: Fountain Street and the fountains.'], to: 'Silverton, the Gate Plaza at the Edifice\'s foot.', cross: true },
     { id: 'rampW', at: [[5, 1], [5, 2]], step: true, title: 'THE CART RAMP', say: ['The cart ramp goes down under the west stores: the wagon holding and the loading lane.'], to: 'the cart level.', go: ['solskaft_cart', 5, null, [-1, 0]] },
     { id: 'rampE', at: [[36, 6]], step: true, title: 'THE NARROW RAMP', say: ['The narrow ramp up from the cart road\'s loop, coming out beside the stable.'], to: 'the cart level.', go: ['solskaft_cart', 36, 7, [0, -1]] },
-    { id: 'templeW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR DOWN', say: ['Down from Rekknar\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 6, null, [1, 0]] },
-    { id: 'templeE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR DOWN', say: ['Down from the Dormant\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 31, null, [-1, 0]] },
-    { id: 'stair', at: [[29, 17], [29, 18]], step: true, title: 'THE GARRISON\'S STAIR', say: ['A stair up into the rock: the garrison\'s, to the armory and the quarters behind the waterfall.'], to: 'the garrison\'s floor behind the falls (not yet built).' },
+    { id: 'templeW', at: [[7, 13], [7, 14]], step: true, title: 'THE STAIR DOWN', say: ['Down from Rekknar\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 6, null, [0, 1]] },
+    { id: 'templeE', at: [[30, 13], [30, 14]], step: true, title: 'THE STAIR DOWN', say: ['Down from the Dormant\'s temple to the funerary.'], to: 'the funerary.', go: ['solskaft_below', 31, null, [0, 1]] },
+    { id: 'stair', at: [[28, 20], [28, 21]], step: true, title: 'THE GARRISON\'S STAIR', say: ['A stair up into the rock: the garrison\'s, to the armory and the quarters behind the waterfall.'], to: 'the garrison\'s floor behind the falls (not yet built).' },
     { id: 'storeW', at: [[14, 4], [14, 5]], title: 'A TRADE STORE', say: ['A trade store, shut. Get your wagon loaded downstairs while you shop upstairs -- when it is open.'], to: 'the store\'s floor (not yet built); its loading is on the cart level.' },
     { id: 'lodgeW', at: [[14, 3]], title: 'THE LODGING DOOR', say: ['The lodging door, the one lit window over it: somebody\'s home up there, up the stair inside.'], to: 'Ásdís Scalebeam\'s place over the west store.', go: ['solskaft_asdis', 2, 3, [1, 0], 'raw'] },
     { id: 'storeE', at: [[23, 4], [23, 5], [23, 6]], title: 'A STORE OF FINISHED GOODS', say: ['A store of finished and fashioned things, shut.'], to: 'the store\'s floor (not yet built); its loading is on the cart level.' },
@@ -185,10 +200,10 @@
       [[18, 4], [12, 5], [25, 5], [18, 7]].forEach(function (q, i) { out.push({ id: 'skGlass' + i, kind: 'map', x: q[0], y: SK.Y(q[1]), bright: 10, dim: 20, color: 'bone', flame: false, seep: true }); }); // (the south stretch, open up to the orchard's floor: its light from the glass by day)
     } else { lamp('skCourtW', 15, 10); lamp('skCourtE', 22, 10); lamp('skStreetW', 15, 7); lamp('skStreetE', 22, 7); }
     lamp('skDoorW', 16, 1); lamp('skDoorE', 21, 1);                                   // (the vault doors' lamps)
-    lamp('skToll', 5, 5, 5, 10); lamp('skLedger', 2, 5, 5, 5); lamp('skStable', 31, 4, 5, 10);
-    lamp('skRekknar', 9, 11, 10, 10); lamp('skDormant', 28, 11, 10, 10); // (the halls lamplit inside)
-    [15, 17, 19].forEach(function (r) { lamp('skCrownW' + r, 16, r, 5, 10); }); [16, 18, 20].forEach(function (r) { lamp('skCrownE' + r, 21, r, 5, 10); }); // (the crown under the rock: lamplight, day and night)
-    lamp('skThrone', 18, 27, 10, 15); lamp('skHallW', 9, 25, 5, 10); lamp('skHallE', 28, 25, 5, 10);
+    lamp('skToll', 5, 5, 5, 10); lamp('skLedger', 13, 24, 5, 5); lamp('skStable', 31, 4, 5, 10);
+    lamp('skRekknar', 11, 16, 10, 10); lamp('skDormant', 26, 16, 10, 10); lamp('skAssayL', 12, 20, 5, 10); lamp('skGuardL', 25, 20, 5, 10); // (the halls and the rooms lamplit inside)
+    [15, 19, 24].forEach(function (r) { lamp('skHallwayW' + r, 16, r, 5, 10); }); [15, 19, 24].forEach(function (r) { lamp('skHallwayE' + r, 21, r, 5, 10); }); // (the hallway under the rock: lamplight, day and night -- PASS TWO)
+    lamp('skThrone', 18, 27, 10, 15); lamp('skHallW', 11, 27, 5, 10); lamp('skHallE', 26, 27, 5, 10);
     return out;
   };
   SK.LABEL = SK.LABEL || {}; // (the HUD's name for each sign by its words: js/roam.js R.USE_NAME)
@@ -196,24 +211,26 @@
   SK.map = function (hour) {
     var trig = [], Y = SK.Y;
     trig.push(SK.sign(5, 6, SK.S8.scales), SK.sign(7, 7, SK.S8.tariff), SK.sign(18, 10, SK.S8.oath), SK.sign(19, 10, SK.S8.oath), SK.sign(18, 29, SK.S8.throne), SK.sign(19, 29, SK.S8.throne),
-      SK.sign(7, 11, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(2, 4, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
+      SK.sign(8, 16, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(12, 24, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
     for (var x = 5; x <= 7; x++) trig.push(SK.sign(x, 3, SK.LINES.counter));
     SK.ASSAYLAY.forEach(function (p) { if (!p[3]) return; for (var i = 0; i < (p[4] || 1); i++) { var a = SK.assayAt(p[1] + i, p[2]); trig.push(SK.sign(a[0], a[1], SK.assayWord(p[3]))); } }); // (the assay house's pieces, 11-12)
     SK.ASSAYWALL.L.forEach(function (w) { var a = SK.assayAt(w[1], 3); trig.push(SK.sign(a[0], a[1], SK.assayWord(w[2]))); }); SK.ASSAYWALL.R.forEach(function (w) { var a = SK.assayAt(-1, w[1]); trig.push(SK.sign(a[0], a[1], SK.assayWord(w[2]))); });
-    trig.push(SK.sign(23, 20, SK.LINES.rack), SK.sign(24, 20, SK.LINES.rack), SK.sign(25, 20, SK.LINES.rack), SK.sign(26, 16, SK.LINES.bench), SK.sign(27, 16, SK.LINES.bench)); // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
-    trig.push({ id: 'skAssay', rect: [15, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.assayIn, once: true }, { id: 'skGuard', rect: [22, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.guardIn, once: true });
+    trig.push(SK.sign(23, 21, SK.LINES.rack), SK.sign(24, 21, SK.LINES.rack), SK.sign(25, 21, SK.LINES.rack), SK.sign(25, 19, SK.LINES.bench), SK.sign(26, 19, SK.LINES.bench));
+    SK.HALLBENCH.forEach(function (b) { trig.push(SK.sign(b[0], b[1], SK.LINES.hallBench), SK.sign(b[0], b[1] + 1, SK.LINES.hallBench)); }); trig.push(SK.sign(24, 24, SK.LINES.petitionBench), SK.sign(25, 24, SK.LINES.petitionBench)); // (the hallway's benches, the petitioners' -- PASS TWO) // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
+    trig.push({ id: 'skAssay', rect: [15, Y(20), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.assayIn, once: true }, { id: 'skGuard', rect: [22, Y(20), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.guardIn, once: true },
+      { id: 'skLedgerIn', rect: [15, Y(23), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.ledgerIn, once: true }, { id: 'skPetition', rect: [22, Y(23), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.petitionIn, once: true });
     // (the lit window's signs gone 11-12: the window is over the lodging door, whose E names it -- "the one lit window over it" -- and a lamp standard stands at row 7)
     SK.DOORS.forEach(function (d) { d.at.forEach(function (q, i) { trig.push({ id: 'door_' + d.id + i, rect: [q[0], Y(q[1]), 1, 1], on: d.step ? 'step' : 'use', script: 'sk:door', door: d.id }); }); });
     trig.push({ id: 'skStable', rect: [31, Y(3), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.stable, once: true },
-      { id: 'skRekknar', rect: [12, Y(11), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.rekknarIn, once: true },
-      { id: 'skDormant', rect: [25, Y(11), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.dormantIn, once: true });
+      { id: 'skRekknar', rect: [15, Y(16), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.rekknarIn, once: true },
+      { id: 'skDormant', rect: [22, Y(16), 1, 1], on: 'step', script: 'sk:sign', text: SK.LINES.dormantIn, once: true });
     trig.forEach(function (t) { var d0 = t.door && SK.DOORS.filter(function (z) { return z.id === t.door; })[0], lb = t.label || (d0 && d0.title.toLowerCase().replace(/^(?!the )/, 'the ')); if (lb && D.roam && D.roam.USE_NAME) D.roam.USE_NAME[t.id] = lb; });
     var npcs = SK.FOLK.map(function (p) { return { id: p.id, x: p.at[0], y: Y(p.at[1]), look: p.id, dir: p.dir }; });
     return { id: SK.KEY, name: 'Sólskaft', rows: SK.ROWS.slice(), legend: SK.LEGEND, music: 'dungeon', exits: {}, dark: true, lights: SK.lights(hour), npcs: npcs, triggers: trig, chests: [] };
   };
   M.FLOORS[SK.KEY] = { src: SK.KEY, own: true, map: SK.map, door: 'solskaft', place: 'Sólskaft', sub: 'the street level: main street', save: true, clock: true, iso: true,
     rate: { squaresPerHour: 500, fightHours: 0.25 }, phase: M.seepPhase, phaseLine: function (h) { return M.night(h) ? 'Night in Sólskaft: the glass is dark, and the street goes by its lamps.' : 'Day on the glass: the light comes down the shaft onto the stone.'; },
-    gates: { doors: [18, SK.Y(1), [0, -1]], court: [18, SK.Y(8), [0, -1]], crown: [18, SK.Y(15), [0, -1]], throne: [18, SK.Y(26), [0, -1]], rampW: [15, SK.Y(1), [1, 0]], rampE: [36, SK.Y(1), [0, 1]], templeW: [9, SK.Y(11), [-1, 0]], templeE: [28, SK.Y(11), [1, 0]] } }; // (save: false -- no way in from THE WORLD yet, so a SAVE here would have no door to stand the party at)
+    gates: { doors: [18, SK.Y(1), [0, -1]], court: [18, SK.Y(8), [0, -1]], crown: [18, SK.Y(15), [0, -1]], throne: [18, SK.Y(27), [0, -1]], rampW: [15, SK.Y(1), [1, 0]], rampE: [36, SK.Y(1), [0, 1]], templeW: [9, SK.Y(16), [-1, 0]], templeE: [28, SK.Y(16), [1, 0]] } }; // (save: false -- no way in from THE WORLD yet, so a SAVE here would have no door to stand the party at)
   // (the ramps stepped as the Keeper's flooded stair is, 11-11 night: SK.sheights / SK.cheights -- js/iso.js `heights`, a step a square at most, the grid walks it)
   SK.RAMPC = { 14: 3, 13: 2, 12: 1, 11: 0, 10: 0, 9: 0, 8: 0, 7: 0, 6: 0, 5: 0 }; // (the cart level's west ramp, 11-12: at the holding's and the lane's level from its foot, rising its last three squares to its head under the street -- it had stood three steps up the whole way past the lane, a ledge with its stair at the holding's end)
   SK.RAMPH = { w: { 14: 3, 13: 3, 12: 3, 11: 3, 10: 3, 9: 3, 8: 3, 7: 2, 6: 1, 5: 0 }, n: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 1, 6: 0 } };
@@ -247,7 +264,10 @@
     if (SK.isLodge && SK.isLodge(key)) return SK.LODGE[key].name;
     if (key === SK.BELOW) return SK.where3(t);
     if (key === SK.CART) return r <= 7 && t.x <= 8 ? 'the wagon holding' : r <= 2 && t.x <= 14 ? 'the cart ramp' : t.x === 36 && r <= 6 ? 'the narrow ramp' : r <= 14 && t.x >= 9 && t.x <= 13 ? 'the west loading lane' : r <= 14 && t.x >= 24 && t.x <= 28 ? 'the east loading lane' : r <= 14 && t.x <= 8 ? 'the shroom farm' : r <= 14 && t.x >= 29 ? 'the road to the narrow ramp' : r <= 14 ? 'the road round the drum' : r <= 17 && t.x <= 30 ? 'the road behind the drum' : t.x >= 31 ? 'the highway\'s mouth' : t.x <= 10 ? 'the Forge-Father\'s temple' : t.x <= 22 ? 'the forge' : 'the smelters';
-    return r <= 0 ? 'the vault doors' : r <= 7 ? (t.x <= 9 && r >= 3 ? 'the tollhouse' : t.x >= 28 && r >= 3 ? 'the guest stable' : 'main street, under the glass') : r <= 13 ? (t.x <= 12 ? 'Rekknar\'s temple' : t.x >= 25 ? 'the Dormant\'s temple' : 'the court of the oathstone') : r <= 20 ? (t.x >= 22 ? 'the garrison\'s stair' : 'the crown, under the rock') : 'the throne room';
+    if (r >= 13 && r <= 15 && (t.x === 7 || t.x === 30)) return 'the stair down';
+    var rm = function (k) { var b = SK.ROOMSAT[k]; return t.x >= b[0] && t.x <= b[2] && r >= b[1] && r <= b[3]; }; // (PASS TWO, 11-12: the hallway and the rooms off it)
+    if (r >= 15 && r <= 24) return rm('templeW') ? 'Rekknar\'s temple' : rm('templeE') ? 'the Dormant\'s temple' : rm('assay') ? 'the assay house' : rm('guard') ? 'the garrison\'s guardroom' : rm('ledger') ? 'Ingrith\'s ledger-room' : rm('petition') ? 'the petitioners\' room' : 'the hallway, under the rock';
+    return r <= 0 ? 'the vault doors' : r <= 7 ? (t.x <= 9 && r >= 3 ? 'the tollhouse' : t.x >= 28 && r >= 3 ? 'the guest stable' : 'main street, under the glass') : r <= 14 ? 'the court of the oathstone' : 'the throne room';
   };
   // the people's figures: the garrison's trooper and sergeant (data/foes.js), Pyro his own sheet (js/classes.js pyro_p0)
   var people0 = T.people;
@@ -402,7 +422,7 @@
     off(sq(18, 29), 'the high seat'); off(sq(19, 29), 'the high seat');
     var dz = sq(SK.DAIS[0], SK.DAIS[3]); if (dz) add({ kind: 'decal', sq: dz, depth: dz.x + dz.y - 0.6, gz: dz.gz, layer: -1 }, function () { return SK.pic.dais(SK.DAIS[2] - SK.DAIS[0] + 1, SK.DAIS[3] - SK.DAIS[1] + 1); });
     piece(18, 29, SK.pic.throne, { fx: 19, fy: Y(29) + 0.5, d: 1.5 });
-    off(sq(7, 11), 'Rekknar\'s ledger-stone'); piece(7, 11, SK.pic.stele);
+    off(sq(8, 16), 'Rekknar\'s ledger-stone'); piece(8, 16, SK.pic.stele);
     SK.PILLARS.forEach(function (q) { off(sq(q[0], q[1]), 'a pillar'); piece(q[0], q[1], SK.pic.pillar); });
     if (SK.WHOLE) SK.TEMPLEWALLS.forEach(function (b) { for (var x2 = b[0]; x2 <= b[2]; x2++) for (var r2 = b[1]; r2 <= b[3]; r2++) { var w2 = sq(x2, r2); if (w2 && !w2.open && w2.rock === 'near') { w2.rock = 'far'; w2.skWhole = true; } } }); // (the temples' walls whole: the draw cut any wall with open floor behind it to a stub, and the halls read as roofless yards -- 'far' stands it whole, the occluder (js/roam.js R.occlude) still opening it while it hides the party)
     piece(SK.CUT[0], SK.CUT[1], SK.pic.cut, { d: -0.4 });
@@ -702,12 +722,12 @@
     arrive: ['The funerary: the tiers going down from the hallway toward a bier at the bottom, and one lamp beside it, kept.'],
     hello: 'The funerary: a hallway each side and one across the north, the tiers stepping down between them to the bier; the chapel off the east hallway, the Warrens\' stair at its south end; the closed homes behind the west one.',
     grille: 'Through the bars: the closed street, ten doors along it, every one barred. The lintels, in the dark:',
-    stair: 'The stair up to the temple on the court.',
+    stair: 'The stair up to the temple off the hallway.',
     graveGear: '{g}(The law of the line -- what may be taken, by whose warrant -- is the story\'s, to come.){/}'
   };
   SK.BDOORS = [
-    { id: 'bUpW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR UP', say: ['Up to Rekknar\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 6, 12, [1, 0]] },
-    { id: 'bUpE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR UP', say: ['Up to the Dormant\'s temple on the court.'], to: 'the street level.', go: ['solskaft', 31, 12, [-1, 0]] },
+    { id: 'bUpW', at: [[5, 11], [5, 12]], step: true, title: 'THE STAIR UP', say: ['Up to Rekknar\'s temple off the hallway.'], to: 'the street level.', go: ['solskaft', 8, 15, [1, 0]] }, // (PASS TWO, 11-12: the temples off the street's hallway; the stair's foot here unchanged)
+    { id: 'bUpE', at: [[32, 11], [32, 12]], step: true, title: 'THE STAIR UP', say: ['Up to the Dormant\'s temple off the hallway.'], to: 'the street level.', go: ['solskaft', 29, 15, [-1, 0]] },
     { id: 'bWarrens', at: [[31, 1]], step: true, title: 'THE FLOODED STAIR', say: ['The stair from the Warrens comes in here, through a cut seal: down it, the water.'], to: 'the Wet, under the Crawler Warrens (the drained stair\'s coming up this way is the story\'s, to come).' }
   ];
   SK.blights = function () { var Y = SK.Y; return [{ id: 'bkBier', kind: 'map', x: 20, y: Y(11), bright: 10, dim: 25, color: 'fire', flame: true, seep: true }, { id: 'bkChapel', kind: 'map', x: 34, y: Y(8), bright: 5, dim: 15, color: 'fire', flame: true, seep: true }]; };
@@ -785,7 +805,7 @@
   };
 
   SK.BBEATS = [
-    { id: 'templestair', key: 'solskaft', label: 'THE TEMPLE STAIR: down from Rekknar\'s temple', note: 'In Rekknar\'s temple, a closed hall of pillars at its corner of the court: the door in its back wall beside the ledger-stone opens on the stair down (the Dormant\'s the same). Through it: down past the cart level through the rock -- nothing of it seen from the cart road -- to the west hallway of the funerary.', at: [9, 11], hour: 10 },
+    { id: 'templestair', key: 'solskaft', label: 'THE TEMPLE STAIR: down from Rekknar\'s temple', note: 'In Rekknar\'s temple, a closed hall of pillars off the hallway\'s first corner (PASS TWO): the door in its back corner beside the ledger-stone opens on the stair down (the Dormant\'s the same). Through it: down past the cart level through the rock -- nothing of it seen from the cart road -- to the west hallway of the funerary.', at: [9, 16], hour: 10 },
     { id: 'chamber', key: 'solskaft_below', label: 'THE FUNERARY: the chamber and the empty bier', note: 'At the bottom, beside the bier under the oathstone: Pyro\'s chamber, doorless, nobody on the bier, one lamp kept (E on each). The tiers rise away to the west and the east, a step a tier, the niches in their walls; a stair down the middle row from each hallway.', at: [17, 10], hour: 10 },
     { id: 'easthall', key: 'solskaft_below', label: 'THE EAST HALLWAY: the shrines, the Warrens\' stair', note: 'In the east hallway by the Triad\'s chapel: the grave-anvil, Rekknar\'s ledger-stone, the Dormant\'s empty cut, the lamp, the kneeling-stone (E on each). South down the hallway, at its end, the flooded stair from the Warrens through its cut seal: it says where it goes and steps you back. Geirmund\'s wedge is the nearest, its top niches pried.', at: [31, 6], hour: 10 },
     { id: 'westhall', key: 'solskaft_below', label: 'THE WEST HALLWAY: the sealed doors, the closed street through the bars', note: 'In the west hallway: four warranted doors, sealed, on its west wall, and between them a grille -- through it the closed street in the dark, ten doors, every one barred (E on the grille: the lintels). The Scalebeam door barred with the rest: Ásdís lives over the stores now.', at: [6, 8], hour: 10 },
@@ -811,7 +831,7 @@
   };
   SK.isLodge = function (key) { return !!SK.LODGE[key]; };
   SK.LABEL[SK.S8.needles] = 'the touch-needles'; SK.LABEL[SK.S8.weights] = 'the locked case'; SK.LABEL[SK.LINES.furnace] = 'the furnace'; SK.LABEL[SK.LINES.balance] = 'the balance';
-  SK.LABEL[SK.LINES.ledger] = 'the standard ledger'; SK.LABEL[SK.LINES.buttons] = 'the buttons and ingots'; SK.LABEL[SK.LINES.mark] = 'the assayers\' mark'; SK.LABEL[SK.LINES.shelf] = 'the crucible shelf'; SK.LABEL[SK.LINES.rack] = 'the spear rack'; SK.LABEL[SK.LINES.bench] = 'the bench';
+  SK.LABEL[SK.LINES.assayLedger] = 'the standard ledger'; SK.LABEL[SK.LINES.hallBench] = 'the bench'; SK.LABEL[SK.LINES.petitionBench] = 'the petitioners\' bench'; SK.LABEL[SK.LINES.buttons] = 'the buttons and ingots'; SK.LABEL[SK.LINES.mark] = 'the assayers\' mark'; SK.LABEL[SK.LINES.shelf] = 'the crucible shelf'; SK.LABEL[SK.LINES.rack] = 'the spear rack'; SK.LABEL[SK.LINES.bench] = 'the bench';
   SK.LLEGEND = { '#': 'dwarfWall', '.': 'dwarfFloor', k: 'skBed', H: 'firepit', T: 'skCounter', S: 'skStair' };
   Object.assign(M.LAY, { skBed: ['k'] });
   SK.LLINES = {
@@ -902,17 +922,17 @@
   // ---------------------------------------------------------------- SÓLSKAFT, shown (deep16/?solskaft -- the eyes row's door): a NEW GAME's four staged on the street level by the beat
   SK.BEATS = [
     { id: 'doors', label: 'THE VAULT DOORS: in off Fountain Street', note: 'Ten in the morning, a step inside the vault doors: Pyro on the left of them, Ketil on the right, facing in. Main street runs north up the screen\'s right: the cart ramp going down on the west along the front wall, the stable\'s apron on the east, the two shut stores, and the light on the oathstone ahead. Step back onto the doors: they say where they will go.', at: [18, 1], hour: 10 },
-    { id: 'toll', label: 'THE TOLLHOUSE at the ramp', note: 'In the tollhouse in the front-west corner: the trade-counter facing the ramp, the scales under their cloth (E), the tariff board on the north wall (E from below it), the quartermaster behind his counter, Ingrith\'s ledger-room through the door on the west. Down the ramp\'s run to its mouth at the west end: the cart level.', at: [7, 4], hour: 10 },
+    { id: 'toll', label: 'THE TOLLHOUSE at the ramp', note: 'In the tollhouse in the front-west corner: the trade-counter facing the ramp, the scales under their cloth (E), the tariff board on the north wall (E from below it), the quartermaster behind his counter, the whole corner the tollhouse\'s (Ingrith\'s ledger-room is off the hallway since PASS TWO). Down the ramp\'s run to its mouth at the west end: the cart level.', at: [7, 4], hour: 10 },
     { id: 'stable', label: 'THE GUEST STABLE', note: 'On the apron by the stable door (the drill-sergeant and his four drill down in the wagon holding now). Into the stable: the stalls swept, the mangers empty, a forkful of old fodder, the trough off the cistern. The narrow ramp up at the east wall comes out here.', at: [31, 2], hour: 10 },
-    { id: 'court', label: 'THE COURT AT NOON: the oathstone in the beam', note: 'Noon in the court: the oathstone on its pedestal in the Sunshaft\'s light (E on it), the trooper who watches the light, Rekknar\'s temple through the doors west (his ledger-stone), the Dormant\'s east (the empty cut in its back wall). In each temple a stair down to the funerary (RULED 11-11).', at: [18, 9], hour: 12 },
-    { id: 'crown', label: 'THE CROWN: under the rock, the hero-wall', note: 'Through the arch in the back rim: thirty feet of street under the rock, one storey, lamp-lit. The hero-wall down both walls (E on either), the treasury, the mint (sealed) and the assay house\'s doors on the west, the garrison\'s stair up on the east. The throne room\'s doors ahead.', at: [18, 15], hour: 12 },
+    { id: 'court', label: 'THE COURT AT NOON: the oathstone in the beam', note: 'Noon in the court: the oathstone on its pedestal in the Sunshaft\'s light (E on it), the trooper who watches the light. Past the arch north, the hallway: the temples at its first corners (PASS TWO, 11-12).', at: [18, 9], hour: 12 },
+    { id: 'crown', label: 'THE HALLWAY: under the rock, the temples at its corners', note: 'Through the arch in the back rim (PASS TWO, 11-12, his "I still expected/wanted hallway"): main street on under the rock, fifty feet, lamp-lit, stone benches down its walls. West: Rekknar\'s temple at the first corner, the assay house, Ingrith\'s ledger-room; east: the Dormant\'s temple, the garrison\'s guardroom, the petitioners\' room. The throne room\'s doors at its end.', at: [18, 15], hour: 12 },
     { id: 'throne', label: 'THE THRONE ROOM: the empty seat', note: 'In the throne room, a few steps from its doors: the dais, the braziers, the high seat of the Silversands, empty (E on it). Walk back out: the oathstone sits straight down the street from the throne, and the doors beyond it.', at: [18, 26], hour: 12 },
     { id: 'night', label: 'THE STREET BY NIGHT', note: 'Ten at night inside the vault doors: the glass dark, no beam; the street by its lamps, the one lit window over the west store.', at: [18, 3], hour: 22 },
     { id: 'walk', label: 'THE WALK, doors to throne', note: 'The whole of it in one walk from the doors at nine in the morning: click the throne room\'s far end and watch the three stretches go by -- the glass, the light, the rock.', at: [18, 1], hour: 9 }
   ].concat(SK.CBEATS || [], SK.BBEATS || [], [
     { id: 'lodging', key: 'solskaft', label: 'THE WAY UP: the lodging door under the one lit window', note: 'On main street by the west store at dusk: the lodging door in its face, the lit window over it. E on the door: up into Ásdís Scalebeam\'s place, her one room over the store. The rest of the lodging over the stores stays shut fronts and dark windows.', at: [16, 3], hour: 18 },
     { id: 'asdis', key: 'solskaft_asdis', label: 'ÁSDÍS SCALEBEAM and her offer: a cot by the hearth', note: 'In her room over the west store at dusk. E on her: her first words, the first game\'s, and her offer -- EAT AND SLEEP (soup, bread, the cot by the hearth; the night\'s long rest, and morning) or NOT NOW. Again, and she has another word. Her hearth, her table, her cot, her window.', at: [4, 3], hour: 18 },
-    { id: 'crownrooms', key: 'solskaft', label: 'THE CROWN STRETCH: the assay house west, the garrison east', note: 'Past the temples at the court\'s corners: off the crown\'s west wall the assay house (the needles, the weights\' locked case), off its east wall the garrison\'s guardroom with their stair up. The mint and the treasury are down on the cart level by the forge now; the names of the dead on the funerary\'s north wall.', at: [18, 17], hour: 12 },
+    { id: 'crownrooms', key: 'solskaft', label: 'THE HALLWAY\'S ROOMS: the assay house and Ingrith\'s west, the garrison and the petitioners east', note: 'Half way up the hallway: the assay house\'s door west (furnished from ART-140, nobody in it), the guardroom\'s east with the garrison\'s stair up; further, Ingrith\'s ledger-room west and the petitioners\' room east. The throne room ahead, narrower, further back.', at: [18, 19], hour: 12 },
     { id: 'ramp', key: 'solskaft', label: 'THE RAMP, STEPPED: down to the cart level as the Keeper\'s stair goes down', note: 'At the head of the cart ramp by the doors: walk west down it -- the floor drops a step every few squares (the slope tiles are the art desk\'s) to its mouth and the cart level.', at: [15, 2], hour: 10 }
   ]);
   SK.play = function (bt) {
