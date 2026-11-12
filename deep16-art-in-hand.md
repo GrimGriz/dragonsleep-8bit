@@ -3318,3 +3318,29 @@ PAGE 1 -- THE ASSAY HOUSE'S THINGS:
 7. THE GUILD'S MARK: a carved panel of the assayers' mark (a balance over a mountain), a wall module, both facings, + stub.
 Transparent cells, no matte; a CUTTER-NOTES.md and a CELLS.json as the Sólskaft pages had.
 ```
+
+### Pyronimus "Pyro" Silversands, King of Sólskaft -- a talking portrait and a town figure in all five views (art-wanted section 54) -- IN HAND 2026-11-12, `be0727ab`
+ATTACH `deep16/art/pyro_p0.png` (the game's own Pyro, his fight figure: draw the SAME dwarf -- the crown, the white beard, the plate), `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face), `deep16/art/folkman_p1.png` (a town figure from the same game: the walking style and the camera) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (a grown human figure's size, for scale: a dwarf stands about three quarters of it and broader).
+```text
+Attached: the sheet of a dwarf king who fights in the same game -- the figure this portrait and walking figure are of; draw this same dwarf. Two portrait pages from the same game, for the format only. A town figure from the same game and a size reference, for the walking figure's style, camera and scale.
+
+PYRONIMUS “PYRO” SILVERSANDS, King of Sólskaft. A dwarf, ancient even by dwarven count: a soldier of the Orc War eighty years gone, who fought it beside men long since dead of old age, and has stood guard at the same vault door for the seventy years since. Short and enormously broad through the shoulders and neck, built like the door he keeps, and not stooped by any of it. Long full white beard and white hair. A deeply lined, weathered face with old battle scars gone pale, heavy brows, deep-set steady pale eyes that have watched friends age and die. A plain gold crown with short points, worn low, like something put on after the soldier was already finished. Heavy dwarven plate in dark blue-grey steel, superbly kept but visibly old, with a king’s grey mantle over the shoulders. A short-hafted hand mace at each hip, the off-hand one burning white when drawn. Grave, patient and warm under it: he likes adventurers because he was one. Seventy years of standing in one place is in his face, and none of it is boredom.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing square with his hands resting on the heads of the two maces at his belt; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, head a little to one side, eyes on the speaker.
+HEAD 3 -- WELCOMING (1): a slow, warm smile in the beard; one hand lifted a little, open.
+HEAD 4 -- GRAVE (1): brows down, mouth set, looking past the speaker at something long ago.
+HEAD 5 -- STERN (1): chin up, the king's look; a hand closed on a mace haft.
+HEAD 6 -- GRIEVED (1): eyes lowered, the crown tipped forward with his head.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south). Rows: Idle (4: standing at his post, hands on the mace heads, a small breath); Walk (8: a heavy, unhurried walk toward the viewer, the mantle moving; animate in place, not travelling across the sheet).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 7.
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HIS eye level (a dwarf: do not draw him looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions: about three quarters the height of the attached human figure and broader (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+```
+Where: Sólskaft's vault doors, where he stands (`deep16/js/solskaft.js` SK.PEOPLE `pyro`, today on `pyro_p0`), his meeting at the door (the story build's scene, to come), and wherever the king walks. Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_pyro`; the town figure into `pyro_p1` in all eight facings.
