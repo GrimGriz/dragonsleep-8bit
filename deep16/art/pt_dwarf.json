@@ -1,0 +1,163 @@
+{
+ "image": "art/pt_dwarf.png",
+ "fw": 173,
+ "fh": 157,
+ "ax": 92,
+ "ay": 154,
+ "top": 154,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "trooper": {
+   "y": 157,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "sergeant": {
+   "y": 314,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "gatewatch": {
+   "y": 471,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "quartermaster": {
+   "y": 628,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "smith": {
+   "y": 785,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "smelter": {
+   "y": 942,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "yardhand": {
+   "y": 1099,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "shaftwatch": {
+   "y": 1256,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "shroom": {
+   "y": 1413,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "lampwarden": {
+   "y": 1570,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "mason": {
+   "y": 1727,
+   "fw": 173,
+   "fh": 157,
+   "ax": 92,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  }
+ },
+ "art": "ART-141-DWARF",
+ "door": "Solskaft's unnamed (js/solskaft.js SK.DWARF)",
+ "source": "deep16/_src/dwarf/PORTRAITS/sources (the art desk's ART-141-DWARF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

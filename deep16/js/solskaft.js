@@ -282,7 +282,7 @@
   var fire0 = T.fire;
   T.fire = function* (B, trig) {
     var def = D.roam.def;
-    if (def && SK.isFloor(def.key) && trig.town === 'talk' && (SK.WORDS[trig.npc] || trig.npc === 'asdis')) {
+    if (def && SK.isFloor(def.key) && trig.town === 'talk' && (SK.WORDS[trig.npc] || trig.npc === 'asdis') && !(SK.DWARF && SK.DWARF[trig.npc] && D.counter && D.counter.takes(trig.npc))) { // (a dwarf in costume: the counter's screen, below)
       if (trig.npc === 'asdis' && SK.asdisTalk) { yield* SK.asdisTalk(B, B.units.filter(function (x) { return x.npc === 'asdis'; })[0]); return; } // (her offer, the first game's way)
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = B.roam.token;
       if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
@@ -507,6 +507,22 @@
     { id: 'drill3', at: [1, 4], dir: 'right', kind: 'trooper' }, { id: 'drill4', at: [3, 4], dir: 'right', kind: 'trooper' },
     { id: 'drillmaster', at: [5, 4], dir: 'left', kind: 'drillsergeant' }
   ];
+  // THE GENERIC DWARF (11-12, the Ingrith cutter on the lanes desk's relay; art-wanted section 54, his "include a 'generic dwarf' like we did for generic NPC, various
+  // costumes"): the art desk's ART-141-DWARF, one face, each of Solskaft's unnamed in the costume of the job they stand at -- pt_dwarf (tools/portrait-sheet.py dwarf),
+  // its still held the whole talk on the counter's screen, the generic man's way (js/counter.js C.GENERIC: added here, not there); their word the first game's as before
+  // (C.words), the quartermaster's his standing line (SK.WORDS). Those who are not soldiers walk on the dwarf's own town figure, folkdwarf_p1 (tools/folkdwarf-town-sheet.py);
+  // the drill and the gate watch keep the garrison's. Ketil is named and keeps his card. Drawn looking screen left: mirrored on the left (C.FACES_LEFT)
+  SK.DWARF = { quartermaster: 'quartermaster', yardhand: 'yardhand', shaftwatch: 'shaftwatch', smith: 'smith', smelterhand: 'smelter', gatewatch: 'gatewatch', shroomer: 'shroom',
+    drill1: 'trooper', drill2: 'trooper', drill3: 'trooper', drill4: 'trooper', drillmaster: 'sergeant' };
+  SK.DWARFWALK = ['quartermaster', 'yardhand', 'shaftwatch', 'smith', 'smelterhand', 'shroomer'];
+  SK.FOLK.concat(SK.CFOLK).forEach(function (p) { if (SK.DWARFWALK.indexOf(p.id) >= 0 && !p.sheet) p.sheet = 'folkdwarf_p1'; });
+  (function () {
+    var C = D.counter; if (!C || !C.VENDORS) return;
+    Object.keys(SK.DWARF).forEach(function (id) { if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_dwarf', look: SK.DWARF[id], wait: '' }; });
+    if (C.FACES_LEFT) C.FACES_LEFT.pt_dwarf = 1;
+    var words0 = C.words; // (a dwarf with a standing line of the floor's own says it on the counter's screen, as on his card)
+    C.words = function (B, id) { return SK.DWARF[id] && SK.WORDS[id] ? SK.WORDS[id]() : words0.apply(this, arguments); };
+  })();
   SK.CS8 = { // (the first game's words, verbatim: first/content/maps/solskaft_deep.json, solskaft.json)
     smelters: 'The smelters. Cold a long time. The slag-tip beside them has grown a skin of moss.',
     cupel: 'The cupel-hearth: a shallow bowl of bone-ash. This is where silver is parted from lead. The ash came from the knacker\'s yard across the river, once.',

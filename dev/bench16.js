@@ -5660,7 +5660,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function cardsSk(B) { return ((B && B.cards) || []).map(function (c) { return c.lines.join(' '); }).join(' / '); }
     function folkSk(B, id) { return ((B && B.units) || []).filter(function (u) { return u.npc === id; })[0] || null; }
     // E toward a square beside the token: the card it says
-    function useSk(B, from, at) { atSk(B, from[0], from[1], [Math.sign(at[0] - from[0]), Math.sign(at[1] - from[1])]); var R0 = B.roam; B.cards = []; R0.keys.push('use'); driveSk(B.co, function () { return (B.cards || []).length > 0 || D.top() !== B; }, 400); return window.DS.stripCodes(cardsSk(B)); }
+    function useSk(B, from, at) {
+      atSk(B, from[0], from[1], [Math.sign(at[0] - from[0]), Math.sign(at[1] - from[1])]); var R0 = B.roam; B.cards = []; R0.keys.push('use'); driveSk(B.co, function () { return (B.cards || []).length > 0 || D.top() !== B; }, 400);
+      var sc = D.top(); // (a dwarf in costume speaks on the counter's screen since 11-12, the generic dwarf -- js/solskaft.js SK.DWARF: its name and its word read there, the screen closed)
+      if (D.counter && sc instanceof D.counter.Counter) {
+        var said = ((((window.DS.DATA.npcs || {})[sc.id] || {}).name) || sc.id) + ' [' + sc.sheet + ':' + sc.look + '] ' + (sc.wait && sc.wait.say ? sc.wait.say.join(' / ') : '');
+        sc.close(); driveSk(B.co, function () { return D.top() === B; }, 60); return window.DS.stripCodes(said);
+      }
+      return window.DS.stripCodes(cardsSk(B));
+    }
     function stepSk(B, from, to) { atSk(B, from[0], from[1], [to[0] - from[0], to[1] - from[1]]); var t = B.roam.token; t.x = to[0]; t.y = to[1]; B.roam.fw = [to[0] - from[0], to[1] - from[1]]; B.cards = []; driveSk(RSk.arrive(B), null, 400); return { card: window.DS.stripCodes(cardsSk(B)), at: [t.x, t.y] }; }
     function walkSk(B, to) { var R0 = B.roam, p = RSk.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); var seen = []; driveSk(B.co, function () { var t = R0.token; seen.push([t.x, t.y]); return D.top() !== B || (t.x === to[0] && t.y === to[1] && !(R0.path && R0.path.length)); }, 20000); return { len: p.length, path: p, seen: seen }; }
     // the floor's squares against the Edifice as drawn: the facade's columns (the plateau's rim row), the vault doors' threshold squares, the Sunshaft's circle -> the stone's square

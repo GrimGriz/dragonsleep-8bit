@@ -283,6 +283,18 @@ PEOPLE = {
                'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', 'red'], 'drivespear': ['fire', 'red']}}),
     'genwoman': ('genwoman/ART-122', 'ART-122-WOMAN', 'the unnamed (js/counter.js C.GENERIC)', {'propfree': True, 'layout': GENERIC,
                  'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', '#e8624a', '#b83428']}}),
+    # the generic dwarf of Solskaft (11-12, the Ingrith cutter on the lanes desk's relay; art-wanted section 54, his "include a 'generic dwarf' like we did for
+    # generic NPC, various costumes"): the art desk's ART-141-DWARF, one face, sorted to deep16/_src/dwarf/PORTRAITS/sources/ -- his own clothes' idle (6, the red
+    # quilted tunic, thumbs in the belt, the blink on 4) and a still for each job's costume, the genman's way (`propfree`: the gate watch's spear and the smelter
+    # hand's broom stand over the head). Fire and the lightest red left out as theirs (the art desk's "avoid fire oranges in ash or skin"), save the two lamps'
+    # glow (the gate watch's, the lamp warden's). Worn by Solskaft's unnamed in the job they stand at (deep16/js/solskaft.js SK.DWARF)
+    'dwarf': ('dwarf/PORTRAITS/sources', 'ART-141-DWARF', 'Solskaft\'s unnamed (js/solskaft.js SK.DWARF)', {'propfree': True, 'pat': 'ART-141-DWARF_HEAD-%02d_PAGE-%d_%s.png',
+              'layout': [('dwarf/PORTRAITS/sources/ART-141-DWARF_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
+              + [('dwarf/PORTRAITS/sources/ART-141-DWARF_HEAD-%02d_PAGE-1_%s.png' % (h, pg), [1], [act]) for h, pg, act in [
+                  (2, 'TROOPER', 'trooper'), (3, 'DRILL-SERGEANT', 'sergeant'), (4, 'GATE-WATCH', 'gatewatch'), (5, 'QUARTERMASTER', 'quartermaster'),
+                  (6, 'SMITH', 'smith'), (7, 'SMELTER-HAND', 'smelter'), (8, 'YARD-HAND', 'yardhand'), (9, 'SHAFT-WATCH', 'shaftwatch'),
+                  (10, 'SHROOM-FARMER', 'shroom'), (11, 'LAMP-WARDEN', 'lampwarden'), (12, 'MASON', 'mason')]],
+              'avoid': {'*': ['fire', '#e8624a'], 'gatewatch': ['#e8624a'], 'lampwarden': ['#e8624a']}}),
     # GENERAL GRIMLOCK GRIM (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "they can churn through fresh one at a time as they complete at your discretion
     # as to next cut"; the General of the road redraft from his Beholda stream table, his 10-28 "was decided re: General Grimlock Grim beholda scripting for road redraft"):
     # the art desk's GENERAL-GRIM-PORTRAITS-A1, -A2 and -A3-MONOLOGUE, sorted to deep16/_src/generalgrim/PORTRAITS-*-1110/ -- a close dialogue bust with no counter, so

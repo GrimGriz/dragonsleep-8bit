@@ -4849,6 +4849,39 @@
 },
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
+"folkdwarf_p1": {
+"image": "art/folkdwarf_p1.png?v=f6792a90c8",
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 9
+}
+},
+"name": "Dwarf",
+"hold": [
+"walk: S returns abruptly to a longer stride in a few transitions; SE's chest more frontal than its travel; the rear NE lead change subtle (the art desk's own notes)"
+],
+"source": "drawn by the art desk (ART-141-DWARF-TOWN, 11-12: art-wanted section 54, the generic dwarf's town figure in five views), cut by tools/folkdwarf-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "folkman_p1": {
 "image": "art/folkman_p1.png?v=d056a0dd43",
 "fw": 72,
@@ -15313,6 +15346,169 @@ false
 "art": "ART-139-DORAN",
 "door": "npc:doranYard (the Halfway Inn woodpile, js/inn.js In.doranYard; js/counter.js C.SHEETOF.doranYard)",
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_dwarf": {
+"image": "art/pt_dwarf.png?v=c6f2dd13f6",
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"trooper": {
+"y": 157,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"sergeant": {
+"y": 314,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"gatewatch": {
+"y": 471,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"quartermaster": {
+"y": 628,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"smith": {
+"y": 785,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"smelter": {
+"y": 942,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"yardhand": {
+"y": 1099,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"shaftwatch": {
+"y": 1256,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"shroom": {
+"y": 1413,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"lampwarden": {
+"y": 1570,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"mason": {
+"y": 1727,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+}
+},
+"art": "ART-141-DWARF",
+"door": "Solskaft's unnamed (js/solskaft.js SK.DWARF)",
+"source": "deep16/_src/dwarf/PORTRAITS/sources (the art desk's ART-141-DWARF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_edric": {
 "image": "art/pt_edric.png?v=75d20c5d54",
