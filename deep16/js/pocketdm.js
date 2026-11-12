@@ -705,7 +705,7 @@
     var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
     // two kinds of one name on a shelf (the trooper and the trooper with the crossbow) are told apart by their first blow
     var nmN = {}; list.forEach(function (k) { var n = D.FOES[k].name; nmN[n] = (nmN[n] || 0) + 1; });
-    var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks)[0]]; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
+    var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks).slice(-1)[0]] /* (its LAST blow: both troopers' first is the spear, and both rows read "Trooper (Spear)" -- 11-12) */; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
     // (the columns closer since 11-05: the picked creature's card stands on the right, past 290)
     D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}creature{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 236, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 258, 34, P('stone', 5));
     var b0 = this.btns.length, prow = [], pw = PD.picked(this, pkey);

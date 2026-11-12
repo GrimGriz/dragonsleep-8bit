@@ -3787,6 +3787,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var v9b, k9b = 0; while (B9b.co && k9b++ < 400000) { var r9b = B9b.co.next(v9b); v9b = undefined; if (r9b.done) break; var y9b = r9b.value; if (y9b && y9b.prompt) v9b = y9b.prompt.opts[0].value; }
       (B9b.rulesReport || []).forEach(function (b) { okGT('9b the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
       okGT('9b the show ran ' + (B9b.rulesReport || []).length + ' beat (want 1)', (B9b.rulesReport || []).length === 1);
+      try {
+      /* 9c. THE TROOPER ON THE FOES' SIDE IS THE GUARD (11-12, his "what's up with these troopers?"): the bare word builds data/foes.js's row, not the first game's guest */
+      var B9c = mkGT('?npc=trooper,trooperxbow&vs=fighter:5&lvl=5'), tr9 = kindGT(B9c, 'trooper')[0], tx9 = kindGT(B9c, 'trooperxbow')[0];
+      okGT('9c the trooper a foe: ' + (tr9 ? 'HP ' + tr9.maxhp + ', ' +Object.keys(tr9.attacks || {}).join('+') : 'NOT the foe row') + '; with the crossbow: ' + (tx9 ? Object.keys(tx9.attacks || {}).join('+') : 'none'), !!tr9 && tr9.maxhp === 11 && !!tr9.attacks.spear && !!tx9 && !!tx9.attacks.crossbow);
+      } catch (eS) { repGT.errors.push('section 9c: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       } catch (eS) { repGT.errors.push('section 9b: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
       // 10. THE SELF-CLICK ON A LIGHT AT ONE'S FEET (11-10, Griz: "the pickup of the lamp prevents mouse-only open of q menu I think"): the question has THE RING, and a NOT NOW holds

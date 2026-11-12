@@ -837,6 +837,9 @@
     // (a word, a spec, or { word, hpLeft, slotsLeft, featsLeft, ... }: the Pocket DM's carry between rungs rides on the word's spec)
     var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word && word.word ? Object.assign({}, NPC.spec(word.word, lvl) || {}, word) : word;
     if (!sp || (!sp.cls && !sp.hero)) return null;
+    /* a bare word that names a monster's row is the monster on the foes' side (11-12, Griz at the Pocket DM's shelf: "what's up with these troopers?" -- the Trooper, the SRD Guard
+       at CR 1/8, came out as the first game's guest trooper, a fighter of the fight's level: 48 HP and a warhammer for 12 sp); the guest is still `trooper:5` and the roster's */
+    if (sp.hero && side === 'foe' && typeof word === 'string' && D.FOES && D.FOES[word]) return null;
     if (sp.hero) return NPC.heroUnit(sp, side, o);
     var h = NPC.sheet(sp);
     var u = NPC.unit(h, side || 'foe', Object.assign({ named: sp.named, sheet: sp.look || null }, o || {})); // (a named one's own figure: Talmok's)
