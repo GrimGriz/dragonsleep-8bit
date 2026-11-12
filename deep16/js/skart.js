@@ -17,7 +17,7 @@
   var D = window.D16, iso = D.iso, SK = D.solskaft, M = D.mines; if (!iso || !SK || !M) return;
   var A = SK.art = {}, HW = 32, HH = 16;
   A.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
-  A.SHEETS = ['skstone_p1', 'skstreet_p1', 'skcart_p1', 'skfun_p1', 'sklodge_p1'];
+  A.SHEETS = ['skstone_p1', 'skstreet_p1', 'skcart_p1', 'skfun_p1', 'sklodge_p1', 'skassay_p1']; // (skassay_p1: ART-140, the assay house's props, 11-12)
   A.USED = {}; // (every tile a floor names, by floor -- the bench's check that each has a cell on a sheet: dev/bench16.js mode=solskaft1111)
   var use = function (key, names) { A.USED[key] = (A.USED[key] || []).concat(names); return names; };
   function where(name) { for (var i = 0; i < A.SHEETS.length; i++) { var sh = D.SHEETS && D.SHEETS[A.SHEETS[i]]; if (sh && sh.tiles[name]) return A.SHEETS[i]; } return null; }
@@ -99,6 +99,10 @@
   // the module on a rock square's face: what hangs there, a lamp by a lamp-lit square, plain stone
   ST.HANG = { L: { '7,7': 'tariff_board_x', '29,7': 'manger_x', '30,7': 'manger_x', '31,7': 'manger_x', '32,7': 'manger_x', '23,21': 'spear_rack_x', '24,21': 'spear_rack_x',
     '25,21': 'spear_rack_x', '27,21': 'watch_slate_x', '28,14': 'dormant_cut_x' }, R: {} };
+  // (the assay house's walls, from its block's square -- js/solskaft.js SK.ASSAYWALL, ART-140: the assayers' mark and the crucible shelves)
+  SK.ASSAYWALL.L.forEach(function (w) { var a = SK.assayAt(w[1], 3); ST.HANG.L[a[0] + ',' + a[1]] = w[0]; });
+  SK.ASSAYWALL.R.forEach(function (w) { var a = SK.assayAt(-1, w[1]); ST.HANG.R[a[0] + ',' + a[1]] = w[0]; });
+  use('solskaft', ['guilds_mark_x', 'crucibles_and_cupels_x', 'crucibles_and_cupels_y']);
   use('solskaft', ['tariff_board_x', 'manger_x', 'spear_rack_x', 'watch_slate_x', 'dormant_cut_x', 'plain_x', 'plain_y', 'wall_lamp_lit_x', 'wall_lamp_lit_y']);
   ST.wall = function (s, side) {
     var r = R(s.y), h = ST.HANG[side][s.x + ',' + r]; if (h) return h;
@@ -120,10 +124,11 @@
   use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'temple_pillar']);
   // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
   ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 2, 4], ['water_trough_x', 33, 6], ['old_fodder', 34, 5],
-    ['touch_needle_table', 11, 19], ['locked_weights_case', 13, 16], ['guardroom_bench_x', 26, 16]];
-  A.FOOT = { trade_counter_x: [3, 1], quartermaster_counter_x: [2, 1], guardroom_bench_x: [2, 1] }; // (known before the sheets come: the blocks given way at the floor's laying)
+    ['guardroom_bench_x', 26, 16]].concat(SK.ASSAYLAY.map(function (p) { var a = SK.assayAt(p[1], p[2]); return [p[0], a[0], a[1]]; })); // (the assay house's: SK.ASSAYLAY, 11-12)
+  A.FOOT = { trade_counter_x: [3, 1], quartermaster_counter_x: [2, 1], guardroom_bench_x: [2, 1], stone_bench_x: [2, 1] }; // (known before the sheets come: the blocks given way at the floor's laying)
   ST.OFF = [[29, 6], [30, 6], [31, 6], [32, 6], [23, 20], [24, 20], [25, 20], [15, 28], [22, 28]]; // (the mangers' and the rack's code blocks: their modules are on the wall behind; the braziers'; the counter's third square)
   ST.BRAZIERS = [[15, 28], [22, 28]];
+  use('solskaft', SK.ASSAYLAY.map(function (p) { return p[0]; }));
   use('solskaft', ['trade_counter_x', 'quartermaster_counter_x', 'ledger_desk', 'water_trough_x', 'old_fodder', 'touch_needle_table', 'locked_weights_case', 'guardroom_bench_x',
     'brazier_lit_1', 'brazier_lit_2', 'brazier_lit_3', 'brazier_lit_4', 'dais_centre', 'dais_n', 'dais_e', 'dais_s', 'dais_w', 'dais_ne', 'dais_se', 'dais_sw', 'dais_nw']);
   ST.dais = function (x, r) { var D0 = SK.DAIS, n = r === D0[3], s = r === D0[1], w = x === D0[0], e = x === D0[2]; return 'dais_' + ((n ? 'n' : s ? 's' : '') + (w ? 'w' : e ? 'e' : '') || 'centre'); };
@@ -322,7 +327,7 @@
   A.dress = function (m, fl) {
     m.props = m.props.filter(function (p) { return !p.skArt; });
     var Y = SK.Y, sq = function (x, r) { return m.at(x, Y(r)); };
-    var lay = function (s, name, opt, d) { if (!s) return; m.props.push({ skArt: true, kind: 'sk', sq: s, depth: s.x + s.y + (d == null ? 0.5 : d), gz: s.gz, make: function () { return A.cell(name, opt) || A.blank(); } }); };
+    var lay = function (s, name, opt, d) { if (!s) return; m.props.push({ skArt: true, kind: 'sk', skName: name, sq: s, depth: s.x + s.y + (d == null ? 0.5 : d), gz: s.gz, make: function () { return A.cell(name, opt) || A.blank(); } }); };
     if (fl === ST) {
       ST.OFF.forEach(function (q) { off(m, sq(q[0], q[1])); });
       [[5, 11], [5, 12], [32, 11], [32, 12]].forEach(function (q) { var s = sq(q[0], q[1]); if (s) m.props.push({ skArt: true, kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, make: function () { return A.cell('stair_down_x', { first: true }) || A.blank(); } }); }); // (the stairs down marked: 11-12, his "might need a 'stairs down' 'stairs up' tile, hard to tell they're there")

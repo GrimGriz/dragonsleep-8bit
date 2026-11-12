@@ -5785,7 +5785,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 22. THE RE-CUT OF 11-11 NIGHT (his "the throne room takes the entire width now ... the temples would start the corners of a mainstreet expansion with more east and west store after them (or the assay west and garrison right ...) - mint and treasury can go under by the forge"; "yes on the name wall and north highway, for the ramps I was thinking functionally like the keepers stairs"; "second story areas don't equate to an entire floor"):
       // the throne room the whole width; the assay house and the guardroom off the crown, walked into; the mint and the treasury down by the forge; the names of the dead on the funerary's north wall and nowhere on the street; the ramps stepped a step a square at most, the street three above the cart level's foot
       var thrWide = rowsAt(25).slice(1, 37) === new Array(37).join('=');
-      var Bx = testSk('?roam=solskaft&hour=12'); atSk(Bx, 17, Y(17)); var toAssay = RSk.walkRoute(Bx.roam.token, [11, Y(18)]), toGuard = RSk.walkRoute(Bx.roam.token, [27, Y(18)]);
+      var Bx = testSk('?roam=solskaft&hour=12'); atSk(Bx, 17, Y(17)); var toAssay = RSk.walkRoute(Bx.roam.token, SKk.assayAt ? [SKk.assayAt(4, 1)[0], Y(SKk.assayAt(4, 1)[1])] : [11, Y(18)]) /* (11-12: a square of the furnished block's clear row) */, toGuard = RSk.walkRoute(Bx.roam.token, [27, Y(18)]);
       var heroStreet = d.src8.triggers.filter(function (t) { return t.text === SKk.S8.hero; }).length, heroBelow = db.src8.triggers.filter(function (t) { return t.text === SKk.S8.hero && t.rect[1] === Y(21); }).length;
       var Bm = testSk('?roam=solskaft_cart&hour=10'), mw = useSk(Bm, [11, Y(17)], [11, Y(18)]), tw3 = useSk(Bm, [12, Y(17)], [12, Y(18)]);
       var sh = SKk.sheights(), ch = SKk.cheights(), hAtS = function (x, r) { return +sh[Y(r)].charAt(x); }, hAtC = function (x, r) { return +ch[Y(r)].charAt(x); };
@@ -5866,6 +5866,29 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okSk('his second walk of 11-12: (1) out by the vault doors to ' + (outAt28 ? RSk.def.key + ' ' + outAt28 : '-') + ' (the plaza square ' + vo28 + '); (3) the outside stair ' + outStair28 + ', the lit window at the lodging door r' + SKk.WINDOW[1] + '; (4, 6) the street\'s walls a storey (' + S28.map.def.wallFt + ' ft), stubs between rooms ' + near28 + ', shop bays on the east store\'s back ' + shut28 + '; (5) in Rekknar\'s temple ' + cut28.length + ' cut, the ring of ' + ring28.length + ' its walls toward the eye: ' + ringOk + '; the stairs down marked ' + stairs28 + ' of 4; (8) lamp standards ' + lamps28 + ' of ' + SKk.LAMPS.length,
         outOk && outStair28 === 0 && SKk.WINDOW[1] === 3 && S28.map.def.wallFt === 15 && near28 === 0 && shut28 === 0 && ringOk && stairs28 === 4 && lamps28 === SKk.LAMPS.length);
       } catch (e28) { okSk('his second walk of 11-12: THREW ' + String(e28).slice(0, 120), false); }
+      // 29. THE ASSAY HOUSE FURNISHED (11-12, the Solskaft seat of the reset: ART-140, art-wanted 53; his "2 - props alone", nobody stands in it; js/solskaft.js SK.ASSAYLAY,
+      // js/skart.js): every piece on its squares and none walkable, each laid as its own cell (the code's block let go) and named on a sheet; every piece's word read by E from an
+      // open square beside it that the crown reaches; the walls' pieces on the faces the street's walls name; nobody in the room (RED on the old file: no SK.ASSAYLAY)
+      try {
+      var LA29 = SKk.ASSAYLAY, B29 = testSk('?roam=solskaft&hour=10'), m29 = B29.map, bad29 = [], words29 = 0, keyed29 = 0, laid29 = 0, sheet29 = 0, reach29 = 0, from29 = [18, Y(17)];
+      LA29.forEach(function (p) {
+        for (var i = 0; i < (p[4] || 1); i++) { var a = SKk.assayAt(p[1] + i, p[2]), s = m29.at(a[0], Y(a[1])); if (!s || s.walk) bad29.push(p[0] + ' walkable at ' + a); }
+        var a0 = SKk.assayAt(p[1], p[2]), s0 = m29.at(a0[0], Y(a0[1]));
+        if (m29.props.some(function (q) { return q.skName === p[0] && q.sq === s0; })) laid29++; else bad29.push(p[0] + ' not laid');
+        if (SKk.art.has(p[0])) sheet29++; else bad29.push(p[0] + ' on no sheet');
+        if (!p[3]) return; keyed29++;
+        var nb = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (d) { return [a0[0] + d[0], a0[1] + d[1]]; }).filter(function (q) { var s = m29.at(q[0], Y(q[1])); return s && s.walk; })[0];
+        if (nb) { atSk(B29, from29[0], from29[1]); if (RSk.walkRoute(B29.roam.token, [nb[0], Y(nb[1])])) reach29++; else bad29.push(p[3] + ' unreached'); }
+        var w = nb ? useSk(B29, [nb[0], Y(nb[1])], [a0[0], Y(a0[1])]) : '';
+        if (w.indexOf(SKk.assayWord(p[3]).slice(0, 30)) >= 0) words29++; else bad29.push(p[3] + ' says "' + w.slice(0, 40) + '"');
+      });
+      var ST29 = SKk.art.FLOOR.solskaft, walls29 = SKk.ASSAYWALL.L.filter(function (w) { var a = SKk.assayAt(w[1], 3); return ST29.wall({ x: a[0], y: Y(a[1]) }, 'L') === w[0] && SKk.art.has(w[0]); }).length
+        + SKk.ASSAYWALL.R.filter(function (w) { var a = SKk.assayAt(-1, w[1]); return ST29.wall({ x: a[0], y: Y(a[1]) }, 'R') === w[0] && SKk.art.has(w[0]); }).length;
+      var room29 = SKk.art.ROOMS.filter(function (b) { return /assay/.test(b[4]); })[0], folk29 = room29 ? B29.units.filter(function (u) { var r = SKk.H - 1 - u.y; return u.npc && u.x >= room29[0] && u.x <= room29[2] && r >= room29[1] && r <= room29[3]; }).length : -1;
+      var nW29 = SKk.ASSAYWALL.L.length + SKk.ASSAYWALL.R.length;
+      okSk('the assay house furnished (ART-140): ' + LA29.length + ' pieces, ' + laid29 + ' laid as their cells, ' + sheet29 + ' on a sheet, ' + words29 + ' of ' + keyed29 + ' words read (' + reach29 + ' reached from the crown), the walls\' pieces ' + walls29 + ' of ' + nW29 + ', folk in the room ' + folk29 + (bad29.length ? '; ' + bad29.join('; ') : ''),
+        LA29.length >= 8 && laid29 === LA29.length && sheet29 === LA29.length && words29 === keyed29 && reach29 === keyed29 && walls29 === nW29 && folk29 === 0 && !bad29.length);
+      } catch (e29) { okSk('the assay house furnished: THREW ' + String(e29).slice(0, 120), false); }
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;

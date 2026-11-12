@@ -38,7 +38,7 @@ pix = IP.pix
 SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(ROOT))) if '.claude' in ROOT.split(os.sep) else ROOT, 'deep16', '_src')
 if not os.path.isdir(os.path.join(SRC, 'ART-134-SOLSKAFT')): SRC = pix.SRC
 SHEETS = [('skstone_p1', 'ART-134-SOLSKAFT'), ('skstreet_p1', 'ART-135-SOLSKAFT'), ('skcart_p1', 'ART-136-SOLSKAFT'), ('skfun_p1', 'ART-137-SOLSKAFT'),
-          ('sklodge_p1', 'ART-138-SOLSKAFT')]
+          ('sklodge_p1', 'ART-138-SOLSKAFT'), ('skassay_p1', 'ART-140-SOLSKAFT')]   # (ART-140, the assay house's props, art-wanted 53: one page, unpacked flat -- 11-12, the Solskaft seat of the reset)
 HW, HH = 32, 16
 
 
@@ -50,6 +50,7 @@ def is_wall(c):
     """a wall module (its anchor the face's foot at its run-start): its facing names the face the camera sees, or it is a turn of the drum -- not page 5 of
     ART-134, whose oathstone and throne say "face lower-left" for the side they show but are props on their footprint's centre"""
     f = (c.get('facing') or '').lower()
+    if c.get('_art') == 'ART-140-SOLSKAFT': return c.get('wall_height_px') is not None   # (its floor props name a facing too -- "along y / face lower-right" -- and stand by their top vertex)
     if c.get('_art') == 'ART-134-SOLSKAFT' and c.get('_page', '').startswith('PAGE-05') and c.get('wall_height_px') is None: return False
     return 'face lower' in f or 'turn-' in f or c.get('wall_height_px') is not None
 
@@ -114,11 +115,11 @@ def main():
     total = {'cells': 0, 'verified': 0, 'snapped_px': 0}
     for sheet_name, art in SHEETS:
         items, cells_meta, art_dir = [], {}, os.path.join(SRC, art)
-        pages = sorted(d for d in os.listdir(art_dir) if d.startswith('PAGE-'))
+        pages = sorted(d for d in os.listdir(art_dir) if d.startswith('PAGE-')) or ['PAGE-01']   # (a one-page answer may come flat: CELLS.json at the folder's root)
         for pg in pages:
-            pdir = os.path.join(art_dir, pg)
+            pdir = os.path.join(art_dir, pg) if os.path.isdir(os.path.join(art_dir, pg)) else art_dir
             cl = json.load(open(os.path.join(pdir, 'CELLS.json'), encoding='utf-8'))
-            sheetpng = [f for f in os.listdir(pdir) if f.startswith(art[:7]) and f.endswith('.png')]
+            sheetpng = sorted(f for f in os.listdir(pdir) if f.startswith(art[:7]) and f.endswith('.png') and 'REVIEW' not in f)
             page_img = np.array(Image.open(os.path.join(pdir, sheetpng[0])).convert('RGBA'))
             moved = 0; nver = 0; fails = []
             for c in cl:

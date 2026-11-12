@@ -28,6 +28,16 @@
   SK.W = 38; SK.H = 32;
   SK.Y = function (r) { return SK.H - 1 - r; }; // (r counted north from the front wall, as the weigh counts: r0 the facade, r14 the back rim, r21 the throne room's doors)
 
+  // ---------------------------------------------------------------- THE ASSAY HOUSE FURNISHED (11-12, the Solskaft seat of the reset: ART-140, art-wanted 53, his "2 - props alone" --
+  // nobody stands in it): a block six squares by three against the room's north and west walls, laid from its south-west square SK.ASSAY (x, r), so the room can move whole.
+  // Each piece [the cell, dx, dr, its word's key, its squares along x]; the walls' pieces [the cell, dx along the north wall | dr up the west wall, its word's key]. The door side
+  // (dx 5) and the middle row (dr 1) kept clear: every piece is reached from an open square beside it. Its furnace cold (the assay closed seventy years).
+  SK.ASSAY = [9, 18];
+  SK.ASSAYLAY = [['muffle_furnace_cold', 0, 2, 'furnace'], ['standard_ledger', 2, 2, 'ledger'], ['touch_needle_table', 3, 2, 'needles'], ['dwarf_stool', 4, 2, null],
+    ['assay_balance', 0, 0, 'balance'], ['stone_bench_x', 1, 0, null, 2], ['assay_buttons_and_ingots', 3, 0, 'buttons'], ['locked_weights_case', 4, 0, 'weights']];
+  SK.ASSAYWALL = { L: [['guilds_mark_x', 1, 'mark'], ['crucibles_and_cupels_x', 5, 'shelf']], R: [['crucibles_and_cupels_y', 1, 'shelf']] };
+  SK.assayWord = function (k) { return SK.S8[k] || SK.LINES[k]; }; // (the needles and the weights the first game's, the rest the seat's)
+  SK.assayAt = function (dx, dr) { return [SK.ASSAY[0] + dx, SK.ASSAY[1] + dr]; };
   // ---------------------------------------------------------------- the floor, carved: rock everywhere, then the rooms cut out of it (x west to east, r south to north)
   SK.build = function () {
     var g = [], x, r, Y = SK.Y;
@@ -64,7 +74,8 @@
     set(16, 14, 21, 14, '=');
     // THE CROWN (r15-r20): his thirty feet under the rock, 6 wide; the garrison's stair off the east wall
     set(16, 15, 21, 20, '=');
-    set(15, 17, 15, 18, 'D'); set(9, 16, 14, 20, '='); set(11, 19, 11, 19, 'n'); set(13, 16, 13, 16, 'w'); // the assay house off the crown's west wall (RE-CUT 11-11 night: the assay west), its needles' table and the weights' locked case
+    set(15, 17, 15, 18, 'D'); set(9, 16, 14, 20, '='); // the assay house off the crown's west wall (RE-CUT 11-11 night: the assay west)
+    SK.ASSAYLAY.forEach(function (p) { var a = SK.assayAt(p[1], p[2]); set(a[0], a[1], a[0] + (p[4] || 1) - 1, a[1], p[3] === 'needles' ? 'n' : 'w'); }); // its furniture (SK.ASSAYLAY, ART-140 and ART-135)
     set(22, 17, 22, 18, 'D'); set(23, 16, 29, 20, '='); set(29, 17, 29, 18, 'u'); set(23, 20, 25, 20, 'R'); set(26, 16, 27, 16, 'K'); // the garrison's guardroom off its east wall, the stair up at its back, a spear rack, a bench
     // THE THRONE ROOM (r21 its doors, r22-r30)
     set(17, 21, 20, 21, 'D');
@@ -127,7 +138,14 @@
     assayIn: 'The assay house: the needles laid out, the weights locked away, nobody at the table.',
     guardIn: 'The garrison\'s guardroom at the foot of their stair: a rack of spears, a bench, the stair going up into the rock.',
     rack: 'A rack of spears, every one oiled.',
-    bench: 'A bench worn smooth by a season of waiting for the relief.'
+    bench: 'A bench worn smooth by a season of waiting for the relief.',
+    // (the assay house's other pieces, 11-12: the seat's words -- invented.json solskaft-assay-words)
+    furnace: 'The muffle furnace, cold. Its iron door is shut on old grey ash.',
+    balance: 'The assay balance in its glass case: a brass beam and two pans, hanging level. Nothing has been weighed on it in seventy years.',
+    ledger: 'The standard ledger, shut on its lectern. Every mark the assay stamped is in it, and the house it stamped it for.',
+    buttons: 'Silver buttons in two rows, each cupelled and weighed, and three ingots with the assay\'s stamp -- left on the table the day it closed.',
+    mark: 'The assayers\' mark, cut in a dressed panel: a balance over a mountain.',
+    shelf: 'A shelf of clay crucibles and bone-ash cupels, dry, stacked, waiting for silver.'
   };
   // the doors that lead off this floor, drawn and marked: where each will go (none of them opens yet)
   SK.DOORS = [
@@ -180,7 +198,9 @@
     trig.push(SK.sign(5, 6, SK.S8.scales), SK.sign(7, 7, SK.S8.tariff), SK.sign(18, 10, SK.S8.oath), SK.sign(19, 10, SK.S8.oath), SK.sign(18, 29, SK.S8.throne), SK.sign(19, 29, SK.S8.throne),
       SK.sign(7, 11, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(2, 4, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
     for (var x = 5; x <= 7; x++) trig.push(SK.sign(x, 3, SK.LINES.counter));
-    trig.push(SK.sign(11, 19, SK.S8.needles), SK.sign(13, 16, SK.S8.weights), SK.sign(23, 20, SK.LINES.rack), SK.sign(24, 20, SK.LINES.rack), SK.sign(25, 20, SK.LINES.rack), SK.sign(26, 16, SK.LINES.bench), SK.sign(27, 16, SK.LINES.bench)); // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
+    SK.ASSAYLAY.forEach(function (p) { if (!p[3]) return; for (var i = 0; i < (p[4] || 1); i++) { var a = SK.assayAt(p[1] + i, p[2]); trig.push(SK.sign(a[0], a[1], SK.assayWord(p[3]))); } }); // (the assay house's pieces, 11-12)
+    SK.ASSAYWALL.L.forEach(function (w) { var a = SK.assayAt(w[1], 3); trig.push(SK.sign(a[0], a[1], SK.assayWord(w[2]))); }); SK.ASSAYWALL.R.forEach(function (w) { var a = SK.assayAt(-1, w[1]); trig.push(SK.sign(a[0], a[1], SK.assayWord(w[2]))); });
+    trig.push(SK.sign(23, 20, SK.LINES.rack), SK.sign(24, 20, SK.LINES.rack), SK.sign(25, 20, SK.LINES.rack), SK.sign(26, 16, SK.LINES.bench), SK.sign(27, 16, SK.LINES.bench)); // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
     trig.push({ id: 'skAssay', rect: [15, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.assayIn, once: true }, { id: 'skGuard', rect: [22, Y(18), 1, 2], on: 'step', script: 'sk:sign', text: SK.LINES.guardIn, once: true });
     // (the lit window's signs gone 11-12: the window is over the lodging door, whose E names it -- "the one lit window over it" -- and a lamp standard stands at row 7)
     SK.DOORS.forEach(function (d) { d.at.forEach(function (q, i) { trig.push({ id: 'door_' + d.id + i, rect: [q[0], Y(q[1]), 1, 1], on: d.step ? 'step' : 'use', script: 'sk:door', door: d.id }); }); });
@@ -790,7 +810,8 @@
       folk: [{ id: 'asdis', at: [3, 2], dir: 'down', kind: 'commonerwoman' }] }
   };
   SK.isLodge = function (key) { return !!SK.LODGE[key]; };
-  SK.LABEL[SK.S8.needles] = 'the touch-needles'; SK.LABEL[SK.S8.weights] = 'the locked case'; SK.LABEL[SK.LINES.rack] = 'the spear rack'; SK.LABEL[SK.LINES.bench] = 'the bench';
+  SK.LABEL[SK.S8.needles] = 'the touch-needles'; SK.LABEL[SK.S8.weights] = 'the locked case'; SK.LABEL[SK.LINES.furnace] = 'the furnace'; SK.LABEL[SK.LINES.balance] = 'the balance';
+  SK.LABEL[SK.LINES.ledger] = 'the standard ledger'; SK.LABEL[SK.LINES.buttons] = 'the buttons and ingots'; SK.LABEL[SK.LINES.mark] = 'the assayers\' mark'; SK.LABEL[SK.LINES.shelf] = 'the crucible shelf'; SK.LABEL[SK.LINES.rack] = 'the spear rack'; SK.LABEL[SK.LINES.bench] = 'the bench';
   SK.LLEGEND = { '#': 'dwarfWall', '.': 'dwarfFloor', k: 'skBed', H: 'firepit', T: 'skCounter', S: 'skStair' };
   Object.assign(M.LAY, { skBed: ['k'] });
   SK.LLINES = {
