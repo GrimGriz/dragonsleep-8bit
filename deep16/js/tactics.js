@@ -219,7 +219,7 @@
   function* swingAll(B, u, wp, t0) {
     var T = u.turn;
     if (u.dead || u.hp <= 0) return;
-    if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); T.hasteAction = 0; } // (the AI takes Haste's one with its Attack: attacksWith counts it)
+    if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); T.hasteAction = 0; T.atkN = (T.atkN || 0) + 1; } // (the AI takes Haste's one with its Attack: attacksWith counts it)
     var keep = u.weapon; u.weapon = wp; T.swung = wp; // (T.swung: the weapon of the Attack action -- the off hand's swing wants the main one, melee: TX.offhandAfter)
     var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), first = true, caller = u.conds.accounted && u.conds.accounted.by; // (caller: Called to Account -- the blows after the first go at the one that called it, in reach)
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
@@ -230,6 +230,10 @@
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
       if (carriedThrow(u, wp)) { if (T.freeObj) break; T.freeObj = true; } // (its draw, the turn's free one: one carried throw a turn -- the throw, 11-11)
       var wNow = u.combo && wp === u.combo[0] ? u.combo[Math.max(0, u.combo.length - T.attacksLeft)] || wp : wp; // (the combo's swing in its order: claw, claw, bite)
+      // TWIN STRIKE where it can be paid (11-12, the twin strike seat: the class AI swung ATTACK then OFF HAND since 11-03 night -- the lane's lean, "teach it TWIN STRIKE when the bench
+      // says it pays": the desk's numbers, one weapon's damage d at a 65% hit, two-weapon fighting 2.6 d, a Twin Strike and a swing 2.8 d, two Twin Strikes 3.0 d). The main weapon of the pair,
+      // in melee: the strike takes the bonus and a swing, or two swings for three attacks (battle.js Battle.twinPay); the exec spends them
+      if (wp === keep && !wp.ranged && D.Battle.twinOpen(u)) { var al = T.attacksLeft; yield* B.exec(u, { do: 'twinstrike', target: t }); if (u.conds.hidden) delete u.conds.hidden; if (T.attacksLeft === al) break; continue; } // (nothing spent -- charmed at it: no loop)
       T.attacksLeft--;
       yield* B.attack(u, t, wNow);
       if (u.conds.hidden) delete u.conds.hidden;

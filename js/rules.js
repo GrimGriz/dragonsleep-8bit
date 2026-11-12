@@ -88,6 +88,7 @@
       skills: d.skills || {}, saveProf: d.saveProf || R.CLASSES[d.cls].saves, attuned: [] // (the kit bonds at the refresh below)
     };
     h.subclass = d.subclassStart || null;
+    if (d.featIds) h.featIds = d.featIds.slice(); // (a register's own feats: Pyro's Symmetric Fighting, 11-12)
     R.refresh(h, true);
     while (level && h.lvl < level) { h.xp = R.XP_LEVEL[h.lvl + 1]; R.levelUp(h); }
     R.settlePicks(h); // (a hero made at a level stands with the build's picks; an archetype still waits, as it always has)
@@ -368,7 +369,7 @@
   // shows it greyed till its prerequisite is met; `any`, a feat any class may take, offered on another class's pick only when it can be taken (R.featOn). Every feat is
   // `any` since 10-30, as the PHB's are -- gated by a score, never a class (the leveling lane §2.2, Griz: "approaching SRD compliance silences this issue"))
   R.FEATS = {
-    symmetric: { name: 'Symmetric Fighting', str: 17, style: 'twf', cls: ['fighter'], any: true, desc: 'Prerequisite: the Two-Weapon Fighting style. Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.) TWIN STRIKE: both weapons in one attack at +2 -- one roll, and a hit lands each weapon\'s own damage, STR on both; it takes the Attack\'s swing and the bonus action, once a turn. ATTACK swings one weapon, and OFF HAND follows it.' }, // (his words, 10-15; TWIN STRIKE his design of 11-03 night)
+    symmetric: { name: 'Symmetric Fighting', str: 17, style: 'twf', cls: ['fighter'], any: true, desc: 'Prerequisite: the Two-Weapon Fighting style. Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.) TWIN STRIKE: both weapons in one attack at +2 -- one roll, and a hit lands each weapon\'s own damage, STR on both; it takes the Attack\'s swing and the bonus action, once a turn. With three attacks (the fighter\'s 11th), two swings of one Attack action may pay for it instead, once an Attack action -- so a turn is two Twin Strikes, and Action Surge brings another. ATTACK swings one weapon, and OFF HAND follows it.' }, // (his words, 10-15; TWIN STRIKE his design of 11-03 night)
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
     // Follow-Through (ours, 10-30 -- the leveling lane, leveling-srd-by-class.md 6.3; RULED, Griz: "take leveling's leans and it can start building"): the role of the PHB's
     // Great Weapon Master, ours -- the heavy blow's carry and the WIDE SWING (deep16/js/battle.js, features.js). `second`: the second game's alone, never on the first game's pick

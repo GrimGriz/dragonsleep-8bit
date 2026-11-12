@@ -1253,8 +1253,10 @@
     var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
     // TWIN STRIKE (11-03 night, his design of Symmetric Fighting): with the feat and a pair in hand, the default -- both weapons in one attack at +2, the Attack's swing and the
     // bonus action together, once a turn; ATTACK beside it swings one, and OFF HAND follows that (Battle.twinOK, twinOpen; exec 'twinstrike'; ui.js actAt's default click)
-    var twinC = Battle.twinOK(u), twinO = twinC && Battle.twinOpen(u);
-    if (twinC) out.push({ id: 'twinstrike', twin: true, icon: (u.weapon && u.weapon.icon) || null, label: 'TWIN STRIKE', cost: 'A', ok: twinO && (foeNear || canWalk), why: !twinO ? (T.twinDone ? 'once a turn' : !(T.bonus > 0) || T.offhandDone ? 'the bonus action is spent' : 'the action is spent') : 'no foe in reach, and no feet left', tool: 'attack', note: 'both weapons in one attack at +2 -- one roll, each weapon\'s own damage; the bonus action with it' });
+    // (11-12: on the ring only while something can pay for it -- Battle.twinPay; his 11-07 "pull twin-strike from the wheel once the bonus action is gone ... when it can't be used
+    // pull from the wheel" -- and back when two swings can; its note names the cost)
+    var twinC = Battle.twinOK(u), twinP = twinC && Battle.twinPay(u);
+    if (twinP) out.push({ id: 'twinstrike', twin: true, pay: twinP, icon: (u.weapon && u.weapon.icon) || null, label: 'TWIN STRIKE', cost: 'A', ok: foeNear || canWalk, why: 'no foe in reach, and no feet left', tool: 'attack', note: 'both weapons in one attack at +2 -- one roll, each weapon\'s own damage; ' + (twinP === 'swings' ? 'it takes two of the Attack\'s swings' : 'it takes a swing and the bonus action') });
     out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : !T.action && T.hasteAction ? 'ATTACK (HASTE)' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
     // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
@@ -1866,14 +1868,15 @@
       }
       case 'twinstrike': { // TWIN STRIKE (11-03 night, his design of Symmetric Fighting; his answers "1 - one strike roll at +2, damage individual swings combined", "2&3 - yes"): one
         // attack roll with the main weapon at +2; a hit lands each weapon's own damage -- the second through Battle.twinOff, its own type and magic, STR on both; the Attack's
-        // swing and the bonus action spent together, once a turn (the Attack's other swings, Extra Attack's, are one weapon each)
-        var tgW = c.target;
-        if (!tgW || tgW.dead || (tgW.hp <= 0 && !tgW.regenDown) || !Battle.twinOpen(u)) return;
+        // swing and the bonus action spent together, once a turn (the Attack's other swings, Extra Attack's, are one weapon each) -- or, with three attacks, two swings (11-12: Battle.twinPay)
+        var tgW = c.target, payW = Battle.twinPay(u);
+        if (!tgW || tgW.dead || (tgW.hp <= 0 && !tgW.regenDown) || !payW) return;
         if (RU.charmedBy(u, tgW)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tgW.side === 'foe' ? Battle.nm(tgW) : tgW.name) + '.{/}'], 200); return; }
         if (!Battle.openAttack(u, true)) return;
-        T.attacksLeft--; T.bonus = 0; T.offhandDone = true; T.twinDone = true;
-        var RW = window.DS.R, offW = RW.item(u.src.equip.offhand), oxW = RW.damageExpr(u.src, offW), hitW = null, critW = false;
-        var mainW = Object.assign({}, u.weapon, { atk: (u.weapon.atk || 0) + 2, twin: true });
+        if (payW === 'swings') { T.attacksLeft -= 2; T.twinSwing = T.atkN; } // (two of this Attack action's swings, one such strike an action: Action Surge's is another)
+        else { T.attacksLeft--; T.bonus = 0; T.offhandDone = true; T.twinDone = true; }
+        var RW = window.DS.R, offW = RW.item((u.offhand && u.offhand.id) || u.src.equip.offhand), oxW = RW.damageExpr(u.src, offW), hitW = null, critW = false;
+        var mainW = Object.assign({}, u.weapon, { atk: (u.weapon.atk || 0) + 2, twin: true, twinPay: payW }); // (offW: the weapon in the off hand now -- Pyro's flip puts the plain mace there, 11-12)
         this.atkCard = null; // (the strike's own card, set in attack -- the second weapon's line goes on it)
         yield* this.attack(u, tgW, mainW, { onHit: function (w, cr) { hitW = w; critW = !!cr; } });
         if (hitW && !tgW.dead && (tgW.hp > 0 || tgW.regenDown)) yield* this.twinOff(u, tgW, offW, oxW, critW);
@@ -2426,7 +2429,19 @@
   // the Attack opened: by the action (its attacks, or Slow's one), else by Haste's (one weapon attack). notHaste: a shove, which Haste's action cannot be
   // TWIN STRIKE (js/rules.js R.twinPair): a hero holding the pair, both in hand; open while the Attack's swing (not Haste's) and the bonus action are there, once a turn
   Battle.twinOK = function (u) { return !!(u && u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown && !u.sheathed && !(u.conds && u.conds.disarmed) && window.DS.R.twinPair(u.src)); };
-  Battle.twinOpen = function (u) { var T = u && u.turn; return !!(T && Battle.twinOK(u) && T.bonus > 0 && !T.offhandDone && !T.twinDone && !T.hasteAttack && (T.attacksLeft > 0 || T.action > 0)); };
+  // What pays for it (11-12, RULED -- Griz: "they can do a twin-strike with 2 attacks the way they can with an attack and a bonus"; "3 attack only (can only use 2 attacks to do it if
+  // you're doing twin strike #2? whichever way is cleanest mechanically)"; the three leans agreed: three attacks only, one such an Attack action, so Action Surge allows another):
+  // 'bonus' -- a swing of the Attack (not Haste's) and the bonus action, once a turn, as since 11-03 night; else 'swings' -- with three attacks (the fighter's Extra Attack (2), 11),
+  // two swings of one Attack action, once that action. The bonus first while it is there, the swings for EITHER strike (the seat's pick of his open hand: a turn whose bonus went to
+  // Second Wind still has its Twin Strike, and nothing need count which strike is the second). null: nothing can pay for it now (the ring drops it)
+  Battle.twinPay = function (u) {
+    var T = u && u.turn; if (!T || !Battle.twinOK(u)) return null;
+    var fresh = !T.attacksLeft && T.action > 0, inAct = T.attacksLeft > 0 && !T.hasteAttack; // (fresh: the strike opens a new Attack action)
+    if (T.bonus > 0 && !T.offhandDone && !T.twinDone && (inAct || fresh)) return 'bonus';
+    if ((u.attacks || 0) >= 3 && ((inAct && T.attacksLeft >= 2 && T.twinSwing !== T.atkN) || (fresh && !T.slowed))) return 'swings';
+    return null;
+  };
+  Battle.twinOpen = function (u) { return !!Battle.twinPay(u); };
   // TWIN STRIKE's second weapon on the one hit: its dice (doubled on the crit), STR and its own bonus (his "str bonuses would apply per weapon"), its type and its magic -- so a
   // resistance or an immunity reads each weapon as itself (his "a longsword+2 paired with a longsword vs immune to non-magic weapon targets")
   // The second weapon's line goes in the strike's own box (11-05, his "The card for twin-strike puts the second blade on its own line for some reason, see why it isn't the box with
@@ -2451,7 +2466,7 @@
   Battle.openAttack = function (u, notHaste) {
     var T = u.turn;
     if (T.attacksLeft) return !(notHaste && T.hasteAttack);
-    if (T.action) { T.action = 0; T.attackAction = true; T.hasteAttack = false; T.attacksLeft = T.slowed ? 1 : u.attacks; return true; }
+    if (T.action) { T.action = 0; T.attackAction = true; T.hasteAttack = false; T.attacksLeft = T.slowed ? 1 : u.attacks; T.atkN = (T.atkN || 0) + 1; return true; } // (atkN: which Attack action this turn -- TWIN STRIKE's swings, one strike an action: twinPay)
     if (T.hasteAction && !notHaste) { T.hasteAction = 0; T.hasteAttack = true; T.attacksLeft = 1; return true; }
     return false;
   };
@@ -2660,7 +2675,7 @@
     var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
-    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin ? ' {c}(twin strike){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
+    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin ? ' {c}(twin strike: ' + (atk.twinPay === 'swings' ? 'two swings' : 'a swing and the bonus') + '){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
