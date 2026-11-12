@@ -966,9 +966,54 @@
   if (D.counter && D.counter.SHEETOF) D.counter.SHEETOF.katarina = function () { var ns = In.FACE.katarina || []; for (var i = 0; i < ns.length; i++) if (D.SHEETS && D.SHEETS[ns[i]]) return ns[i]; return null; };
   In.barleyIn =function (st) { return st.party.some(function (h) { return (h.key || h.id) === 'barley' && !h.dead && !h.ko && !h.guest; }); };
   // what she will be asked now (each once a visit): what she saw while there is more to hear, Amara once the wagon is known, the message once it has come and the read caught them
+  // KATARINA'S FRONT END (RULED 11-12, ruling 57, Griz on the reading page's three leans for her: "all leans"; ruling 32: "Kat should be open after the ink, but before
+  // that we should have them either skill check roll or conversationally navigate that info out somehow"; his "Kat spills all the beans immediately"). BEFORE THE INK
+  // IS GIVEN (f.katVision) she is closed, and a visit to her table is ONE opening on the flip, as at supper: each hero has at most one shaded line, a line opens ONE
+  // thing, and that is the visit -- Barley, who was one of theirs, his "You're with the Dominion." (what she is; it starts the ink errand as before); Aurdin's read of
+  // the glass (passive Religion) the same by another door; Lymen's Persuasion the road south; Vivian's Insight, once the wagon is known, that she and Amara have met.
+  // No die on the screen; the checks go to the play record. WHAT SHE SAW AT THE MOOT is held until after the ink (In.katOpts). A question about her glass asked
+  // across the room at supper (f.katMirror) opens "what she is" the next time they sit down with her, and nothing more. AFTER THE INK her list is open, no checks
+  // (In.katScene, as it was). The seat's lines: invented.json halfway-katarina-front-end-1112
+  In.KV = { DC: { road: 12, glass: 13, amara: 13 },
+    lines: { barley: `You're with the Dominion.`, aurdin: `That is a mender's token you wear.`, /* (no "glass", no "your neck": the supper's law reads every flip's lines for those -- dev/bench16.js mode=inn1104) */ lymen: `You came up from the south. How is that road?`, vivian: `You and the woman on that wagon have met before.` },
+    idle: { lymen: `Is the fire warm enough for you, there?`, aurdin: `What is the book?`, vivian: `Good evening.`, barley: `(A nod.)` }, idleBack: 'She does not look up from the page.',
+    leave: `(Leave her to her book.)`, glassBack: 'She looks up before anyone has sat. "You asked about the glass, across the room. Ask it here."', close: 'She finds her place on the page with one finger. That is all she gives today.' };
+  In.katHad = function (f) { return f.katHad || (f.katHad = {}); };
+  In.katOpen = function (f, d, st) { return In.katLast(f, d) || !!f.katVision || (!!f.katInk && D.counter.count(st, 'ink') > 0); }; // (her last day, the ink given, or the ink in hand: the talk as built)
+  In.katVisit = function* (B) {
+    var C = D.counter, R0 = B.roam, st = C.state(B), f = st.flags, KL = In.KL, KV = In.KV, had = In.katHad(f), began = false;
+    var ku = B.units.filter(function (u) { return u.npc === 'katarina'; })[0];
+    var who = { name: f.katLooked ? 'Katarina' : 'The traveler', unit: ku || null, side: 'right', sheet: C.SHEETOF && C.SHEETOF.katarina ? C.SHEETOF.katarina() : null };
+    var four = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0; }).map(function (u) { return { u: u, h: u.src, key: u.src.key || u.src.id, hero: In.heroOf(u), side: 'left' }; });
+    var made = function (e, skill, dc) { var r = In.d20(), v = DS.R.skill(e.h, skill, In.AB[skill]), ok = r + v >= dc; In.trail('THE TRAVELER: ' + e.hero.name + ' ' + skill + ' ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + (r + v) + ' vs DC ' + dc + (ok ? ', made' : ', missed')); return ok; };
+    if (D.house && D.house.trail) D.house.trail('talk', 'katarina');
+    var sc = new C.Counter(B, { id: 'katarina', name: who.name, place: 'The Halfway Inn', what: 'the table for two by the fire', room: true, open: true, bg: In.roomShot(B), script: function (s) { return (function* () {
+      if (!f.katLooked) { f.katLooked = 1; yield s.by(who, [KL.look]); }
+      if (f.katMirror && !had.what) { had.what = 1; In.trail('THE TRAVELER: the glass asked about at supper -- what she is, and nothing more'); yield s.by(who, [KV.glassBack]); yield s.by(who, [KL.what]); yield s.narr([KV.close]); return; }
+      if (f.katInk && !f.katVision) yield s.by(who, [L('kat.inkWait')]);
+      var list = four.map(function (e) {
+        var ops = [], k = e.key;
+        if (k === 'barley' && !f.katInk && f.wagonCycle == null) ops.push({ id: 'dominion', label: KV.lines.barley, shade: true, tag: 'One of theirs' });
+        else if (k === 'aurdin' && !had.what && In.passive(e.h, 'Religion') >= KV.DC.glass) ops.push({ id: 'what', label: KV.lines.aurdin, shade: true, tag: 'Religion' });
+        else if (k === 'lymen' && !had.road && made(e, 'Persuasion', KV.DC.road)) ops.push({ id: 'road', label: KV.lines.lymen, shade: true, tag: 'Persuasion' });
+        else if (k === 'vivian' && !had.amara && (f.katKnewAmara || f.wagonCycle != null) && In.passive(e.h, 'Insight') >= KV.DC.amara) ops.push({ id: 'amara', label: KV.lines.vivian, shade: true, tag: 'Insight' });
+        ops.push({ id: 'idle', label: KV.idle[k] || `Good evening.` }); ops.push({ id: 'leave', label: KV.leave });
+        return { e: e, hero: e.hero, side: e.side, key: k, reads: [], ops: ops, opts: ops.map(function (o) { return o.label; }), marks: ops.map(function (o) { return o.shade ? { shade: true, tag: o.tag } : null; }), ids: ops.map(function (o) { return o.id; }), shaded: ops.filter(function (o) { return o.shade; }).length };
+      });
+      if (!list.length) return;
+      var pk = yield s.flip(who, [KL.prompt], list, 0), x = list[pk && pk.at != null ? pk.at : 0] || list[0], op = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
+      s.hero = x.e.hero; s.heroSide = x.e.side; In.trail('THE TRAVELER: ' + x.e.hero.name + ': ' + op.label);
+      if (op.id === 'leave') return;
+      if (op.id === 'idle') { yield s.narr([KV.idleBack]); return; }
+      if (op.id === 'dominion') { f.katInk = 1; had.what = 1; began = true; yield s.by(who, [].concat(L('kat.ink'))); return; } // (his lines, RULED 10-01c; the ink errand begun)
+      had[op.id] = 1; yield s.by(who, [KL[op.id]]); yield s.narr([KV.close]);
+    })(); } });
+    D.push(sc); while (!sc.done) yield 1;
+    if (began && D.counter.count(st, 'ink') > 0) yield* M.talk(B, 'katarina', function (s2) { return In.katVision(s2, st, f); }); // (the bottle already in the pack: the vision at once, as it was)
+  };
   In.katOpts = function (f, asked) {
     var free = f.katVision ? 2 : f.katInk ? 1 : 0, out = ['what', 'road'];
-    if (f.katSaw == null || free > f.katSaw) out.push('saw');
+    if (f.katVision && (f.katSaw == null || free > f.katSaw)) out.push('saw'); // (RULED 11-12, ruling 57: what she saw at the moot is held until after the ink -- the ink's reward, with the vision)
     if (f.wagonMet || f.wagonCycle != null) out.push('amara');
     if (f.katKnewAmara && f.wagonCycle != null) out.push('message');
     return out.filter(function (a) { return !asked[a]; });
@@ -1980,6 +2025,7 @@
     }
     if (def && def.key === In.KEY && trig.town === 'talk' && trig.npc === 'katarina') { // (her talk at the fire: In.katScene -- she looks up at whoever speaks, still sat, as js/town.js T.fire turns a figure drawn all round)
       var ku = B.units.filter(function (u) { return u.npc === 'katarina'; })[0], tk = B.roam && B.roam.token; if (ku && tk && !ku.holdFacing) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y);
+      if (!In.katOpen(B.roam.flags, In.day(D.roam.q), D.counter.state(B))) { yield* In.katVisit(B); return; } // (before the ink: one thing a visit, on the flip -- ruling 57)
       yield* M.talk(B, 'katarina', function (sc) { return In.katScene(sc, B); }); return;
     }
     if (def && def.key === In.KEY && trig.town === 'talk' && (trig.npc === 'gennet' || trig.npc === 'snootRunner')) {

@@ -271,6 +271,7 @@
     "doranPit": "set: deep16/js/inn.js In.yardAfter, In.chaseBack (Doran drove the wagon and the seven down to the Pit); read: In.meal (his first supper home, ruling 56)",
     "doranPitSaid": "set: deep16/js/inn.js In.meal (his two lines said at his first supper home); read: the same",
     "wagonChased": "set: deep16/js/inn.js In.chaseBack (the party chased: c<cycle>; the wagon's reward lost, ruling 52); read: In.giftId (the Cloak of the Manta Ray, ruling 53)",
+    "katHad": "set: deep16/js/inn.js In.katVisit (what Katarina has given before the ink, a visit a thing: what, road, amara); read: the same",
     "doranOut": "set: deep16/js/secondact.js A.supperFight (Doran out by the lake door with the shore-lantern after his confession: nobody behind the bar, 11-12); read: deep16/js/inn.js In.FOLK; let go: A.dueMorning, the morning's lay",
     "doranWaits": "set: deep16/js/secondact.js A.supperFight (he waits at the path's head for the party to follow: the due's cycle + 1, 11-12); read: deep16/js/secondact.js A.followDoran, the floor's people",
     "doranStopped": "set: deep16/js/secondact.js A.supperFight (the party left the supper's fight and Doran stopped it at the door, 11-12); read: the record",
