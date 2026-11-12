@@ -173,6 +173,12 @@
   In.dueDay = function (c) { return In.WAGON.first + c * In.WAGON.every + In.DUE.after; };
   In.isDueDay = function (d) { var d0 = In.WAGON.first + In.DUE.after; return d >= d0 && (d - d0) % In.WAGON.every === 0; };
   In.dueCycle = function (d) { return Math.floor((d - In.WAGON.first - In.DUE.after) / In.WAGON.every); };
+  // DORAN'S TWO DAYS (RULED 11-11, ruling 29, Griz: "agreed on timing of absence" -- "Doran gone two days, back the evening before sacrifice night, Gennet alone at the
+  // table"): away with the wagon from its night, he is home from In.DORAN.backHour on the day before that wagon's due (the wagon the 12th, the due the 15th: away the
+  // 13th and the 14th's day, at the bar again that evening). The floor lets the flag go as it is laid at or after that hour (M.floor, below); the due's own night
+  // lets it go as before (js/secondact.js A.dueNight)
+  In.DORAN = { backHour: 17 };
+  In.doranBack = function (f, d, h) { var due = In.dueDay(Math.max(0, f.wagonCycle || 0)); return d > due - 1 || (d === due - 1 && (h == null ? 0 : h) >= In.DORAN.backHour); };
   In.dueTonightOn = function (f, d) { return In.isDueDay(d) && f.dueCycle !== In.dueCycle(d) && !f.lakeDone; };
   // nights from day d to the due's next night not yet walked (0: tonight) -- Elsbeth's word with the ring on the hand (11-08)
   In.nightsToDue = function (f, d) { if (In.dueTonightOn(f, d)) return 0; var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) <= d) c++; return In.dueDay(c) - d; };
@@ -269,7 +275,8 @@
     }
     if (key !== In.KEY) return floor0.apply(this, arguments);
     In.inside = In.state !== undefined ? In.state : In.qInside(q); In.q = q || '';
-    var h = hour != null ? hour : M.hourNow(q), def = floor0.call(this, key, q, flags, h); flags = flags || {};
+    var h = hour != null ? hour : M.hourNow(q); if (flags && flags.doranAway && In.doranBack(flags, In.day(q), h)) { delete flags.doranAway; In.trail('Doran is back from the Pit road'); } // (ruling 29: home the evening before sacrifice night)
+    var def = floor0.call(this, key, q, flags, h); flags = flags || {};
     def.under = In.under(In.ROWS, In.inHouse, function (x, y) { return !!In.inside && In.inHouse(x, y) === In.inside; }); // (the boards under the things inside, and under the walls of the house the party is in: In.under)
     def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
@@ -1066,6 +1073,7 @@
     bribeTaken: 'Amara counts it into your hand. "Sleep well," she says. The wagon does not stay the night.',
     bribeGone: 'The young woman from upstairs comes down with a bag over her shoulder and climbs up on the bench beside Amara. The wagon turns in the yard and is gone up the road.',
     back: 'Back in by the front door, and up to bed.',
+    katRides: '{who} is up on the wagon\'s bench beside Doran when it goes. The table for two by the fire is cleared.', // (ruling 28, 11-12: the seat's line)
     quietNight: 'The fair-haired man takes the horses round to the stable. The lamps go out one by one, all but one, and the house sleeps.' // (11-05: the lantern walks three nights on -- wagon.quietNight had it leave its post tonight)
   };
   // the wagon's tail on the counter screen in the portrait's place: what is chained there to the eye -- goblins, till the glamour breaks (RULED 09-24: no words; the player sees it)
@@ -1410,6 +1418,9 @@
     var Y = {}; In.bedRiders(B, Y, f, !!c.horses);
     yield* In.card(B, [In.WN.fledYard], 300);
     yield* In.yardAfter(B, st, f, !!c.willemDead, !!c.horses);
+    // KATARINA RIDES WITH THE WAGON WHEN THE PARTY CHASES (RULED 11-11, ruling 28, Griz: "2- right" -- "Kat rides to the Pit on the wagon Doran drives, in place of walking
+    // south, and her warning reaches the party through the book's letter in the big room"): gone from her table by the fire, her book and its letter in the drawer
+    if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives'); yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The traveler in the brown dress')], 360); }
     var morning = L('wagon.morning.inn'); // (the lantern walks three nights on since 11-05: no ring cold the morning after the chase)
     delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn');

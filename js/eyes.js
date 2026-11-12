@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE INN SEAT, THE CHASE'S TWO RULED PIECES (11-12; rulings 28 and 29; mode=inn1104 68 ok)
+    'eyes-chase-return-1112': { pri: 2, group: G2, title: 'BACK FROM THE CHASE: Katarina rode with the wagon; Doran home the evening before the due (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.chaseBack, In.doranBack) -- rulings 28 ("2- right") and 29 ("agreed on timing of absence")',
+      url: 'deep16/?innshow&beat=silk&fresh=1112m',
+      look: 'NEW, two small ruled things; the rest of the chase is on the reading page (the-lab, inn-second-act-reading-2026-11-12.html). Play the silk beat through and walk back to the inn. (1) In the yard, after the strongbox, a new card: the traveler is up on the wagon\'s bench beside Doran when it goes, and her table by the fire is cleared -- so her book and her letter are in the big room\'s drawer. (2) Doran is away the 13th and the day of the 14th and is behind the bar again from five on the 14th, the evening before the due (he used to come back only as the due\'s night began). NOT changed: the wagon still stands in the yard when you come back and the strongbox is still yours -- whether Doran has already gone with it is question 1 on the page.' },
     // THE INN SEAT, WAKING IN THE ROOM (11-12; deep16/js/inn.js In.sleep, In.ROOM; mode=inn1104 66 ok): a row a beat
     'eyes-wake-room-1112': { pri: 1, group: G2, title: 'THEY WAKE IN THEIR ROOM: up the stair to bed, morning in the road-end room (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.sleep, In.ROOM) -- your "Can we have them wake-up in the room, road end until the big room then the big room"',
       url: 'deep16/?innshow&beat=room&fresh=1112j',
