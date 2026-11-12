@@ -91,9 +91,10 @@
     confess3: '"It comes up anyway. It always comes up. If you mean to stop it, come out back. I\'ll show you the stone."',
     confessLead: 'Doran stops at the path\'s head with the shore-lantern. The inn lady stays by the fire.',
     poisonAll: 'The table tilts away. The last thing: the inn lady\'s hand taking the spoon out of yours.',
-    dragStone: 'Cold. Wet stone under a cheek, and the lake\'s breath.', // (11-12: it had named a lantern and two shapes at the path's head that were not on the floor -- his "narration says elsbeth and the gennet are there but they aren't")
+    dragStone: 'Cold. Wet stone under a cheek, and the lake\'s breath. Somebody is saying the same few words over, low, to the water.', // (11-12: it had named a lantern and two shapes at the path's head that were not on the floor -- his "narration says elsbeth and the gennet are there but they aren't")
     drifting: '"Good. They\'re drifting off."', // (HIS, 11-12 0043Z: "do gennet saying 'good, they're drifting off' then fade to black")
     elsbethRuns: 'Elsbeth sets the bucket down on the stone, and goes back up the path at a run.',
+    gennetLook: '{name} stops in the middle of a word and looks at her. Elsbeth\'s mouth shuts.', gennetGoes: '{name} says the last of it to the water, and walks back up the path without hurrying.', // (11-12: Gennet at the stone again, his "her being there to help Doran with the dragging and doing her pyscho-religious stuff makes sense" -- the seat's lines)
     doranStops: 'Doran is across the room with a hand flat on the door before {name} is through it. The woodaxe is still on the table.', doranStopsSays: '"Not out there. Not tonight. Hear me first."', // (11-12: "needs him to run over and 'stops 'character' at the door' (then confess)")
     doranWaits: '{g}Doran stands at the path\'s head with the shore-lantern lit. Out by the lake door, to follow.{/}',
     followOut: 'Doran lifts the shore-lantern and goes ahead down the path.', followGennet: 'The inn lady stays by the fire.', followStone: 'He stops short of the rocks and holds the light up. He comes no nearer the stone.',
@@ -353,7 +354,7 @@
   // door and to bed excess narration"): the table stays as it is set while Gennet says her line on her portrait; the screen goes to black (js/inn.js In.fade); the
   // table is undone, the clock moved and the party laid on the stone UNDER the black, already asleep and lying; the one line of narration is said on the black and
   // names nobody; the black lifts on the stone in the dark with Elsbeth alone beside it, the kitchen bucket in her hands (her figure on the floor: A.ELS_STONE)
-  A.ELS_STONE = [43, 19];
+  A.ELS_STONE = [43, 19]; A.GEN_STONE = [45, 17]; // (Gennet at the water's edge by the stone on the no-tell night, 11-12)
   A.wakeLine = function (us) { return A.LINES.dragWake.split('{names}').join(us.map(function (u) { return u.name; }).join(' and ')).split(' come awake').join(us.length === 1 ? ' comes awake' : ' come awake'); }; // (one "comes", two "come": it had said "Vivian come awake", 11-12)
   A.drag = function* (B, party, seat) {
     var R0 = B.roam, f = R0.flags, P = A.POISON, n = Math.round(P.dragMin / P.dragEvery), bonus = {}, C3 = D.counter, SO3 = C3 && C3.SHEETOF;
@@ -372,6 +373,10 @@
     party.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; }); // (asleep before the black lifts: he fell asleep after it, 11-12)
     var Y = {}, water = !f.elsbethSilent && !f.elsbethGone;
     if (water) { Y.elsStone = In.unit(B, { id: 'elsbethStone', kind: 'commonerwoman', at: A.ELS_STONE.slice(), name: 'Elsbeth', face: [1, -1] }); Y.elsStone.bystander = true; var es = D.innprops && D.innprops.ELSBETH; if (es && D.SHEETS && D.SHEETS[es]) Y.elsStone.sheet = es; } // (her own figure at home: js/innprops.js IP.ELSBETH)
+    // GENNET IS AT THE STONE (RULED 11-12, Griz, on the seat's cut of her look: "her being there to help Doran with the dragging and doing her pyscho-religious stuff makes sense"):
+    // she stands at the water's edge by the stone, the words she says to the lake heard on the black; ruling 19's silencing look goes back in after Elsbeth's bucket; then she
+    // finishes and walks back up the path, in at the lake door, before the thing is on the rocks (the seat's call, kept small: no rite is staged, and she is not in the fight)
+    if (!f.gennetDead && !f.gennetTaken) { Y.genStone = In.unit(B, { id: 'gennetStone', kind: 'gennet', at: A.GEN_STONE.slice(), name: In.named(f), face: [1, 0] }); Y.genStone.bystander = true; }
     In.fadeSay(B, [A.LINES.dragStone]); yield 150;
     yield* In.fade(B, 0, 50);
     yield* A.surface(B, Y);
@@ -383,19 +388,20 @@
     };
     // ELSBETH'S WATER (RULED 11-07, rulings 16 and 19: "pop her up like conversation, wake up! you're supposed to stop it, then a silencing look from Ginnet"; 11-11, ruling 49,
     // Griz: "no drag-feint but apply save bonuses to water-splash event as a bonus save ... failed save reload is acceptable"): her portrait with the bucket, her words --
-    // and the sleepers' save here is the BONUS one: each with the drag's bonus, at advantage. Nobody is woken for free. GENNET'S LOOK IS CUT FROM THE STONE (11-12, the
-    // seat's call on his "narration says elsbeth and the gennet are there but they aren't" and "just the girl with the bucket in the dark maybe"): Gennet is not on the
-    // point, so no line says she is; Elsbeth sets the bucket down and goes back up the path on her own feet, in at the lake door, before the thing is on the rocks
+    // and the sleepers' save here is the BONUS one: each with the drag's bonus, at advantage. Nobody is woken for free. Gennet's look was cut 11-12 and is back the same day
+    // (above: GENNET IS AT THE STONE)
     if (water) {
       var lead = party[0], ew = { name: 'Elsbeth', unit: Y.elsStone || null, side: 'left', sheet: In.elsbethCut(true) };
       var sc3 = new C3.Counter(B, { id: 'dragwater', name: 'Elsbeth', place: 'The point', what: 'the flat stone', room: true, open: true, bg: In.roomShot(B), script: function (s3) { return (function* () {
         yield s3.lookAt(ew, ['Elsbeth, with the kitchen bucket. All of it, over ' + lead.name + '.']);
         yield s3.by(ew, ['"Wake up! You\'re supposed to stop it!"']);
+        if (Y.genStone) { var SO3g = C3.SHEETOF, gw = { name: In.named(f), unit: Y.genStone, side: 'right', sheet: SO3g && SO3g.gennet ? SO3g.gennet({ flags: f }) : null }; yield s3.lookAt(gw, [A.LINES.gennetLook.split('{name}').join(In.named(f))], ew); } /* (ruling 19's look, back 11-12) */
         yield s3.lookAt(ew, [A.LINES.elsbethRuns]);
       })(); } });
       D.push(sc3); while (!sc3.done) yield 1; f.elsbethWater = 1;
       if (Y.elsStone) { yield* In.walk(B, Y.elsStone, [In.DOORS.lake[0], In.DOORS.lake[1]]); In.gone(B, Y.elsStone); Y.elsStone = null; }
     }
+    if (Y.genStone) { yield* In.card(B, [A.LINES.gennetGoes.split('{name}').join(In.named(f))], 300); yield* In.walk(B, Y.genStone, [In.DOORS.lake[0], In.DOORS.lake[1]]); In.gone(B, Y.genStone); Y.genStone = null; }
     var first = (function () { var woke = []; party.forEach(function (u) { if (u.conds && u.conds.asleep && A.poisonSave(u, bonus[u.id], !!f.elsbethWater)) { delete u.conds.asleep; woke.push(u); } }); return woke; })(); // (as the water heaves -- hers and the lake's: the bonus save, at advantage when she threw it)
     if (first.length) yield* In.card(B, [A.wakeLine(first)], 360);
     var turn0 = D.ai.turn, lastR = 0, quiet = 0, chuul = Y.chuul;
@@ -657,16 +663,20 @@
   // ---------------------------------------------------------------- THE TAKE's pieces (11-06; the ruling at A.lakeFight below)
   // the deep: every square of its body on the grid's deep water (the 'Y' off the point -- js/inn.js; the lake knee-shallow elsewhere)
   A.inDeep = function (u, x, y) { return G.foot(u, x == null ? u.x : x, y == null ? u.y : y).every(function (q) { var s = G.map.at(q[0], q[1]); return !!(s && s.deep); }); };
-  // struck at on the way, or hurt: the offering refused -- it lets her fall from the claw beside it (js/battle.js clawDrop), and from now it is the chuul of the SRD, fighting the party
+  // DISTURBED ON THE WAY (RULED 11-12, ruling 61, Griz: "only killing for drop, hit is the technicality that if they don't injure it after it grabs gennet it'll just take her to
+  // the deep unless interruptions (we've clarified the ones other than attack elsewhere, should be in its code)"; then, on what a hurt one does with her: "the only 'back to the
+  // deep' is if it has it's offering and no one has disturbed it"): the take is off and it is the chuul of the SRD, fighting the party where it stands -- AND IT DOES NOT LET
+  // HER GO. She is no offering now but the one in its claw: its ordinary turn has her (js/ai.js, the desk's 5ae29d30 -- the tentacles at one held and not yet paralyzed,
+  // a pincer at one held and paralyzed), which that code leaves an `offering` out of, so here she stops being one: on the party's side for the fight, no bystander, no turn
+  // of her own (roamAside). Only its death opens the claw (js/battle.js sweep). Before the grab there is nobody in the claw: it turns from her and she sits on as she was.
+  // It was 11-06's "lets her fall from the claw" till this ruling
   A.turned = function (B, Y, by) {
     var c = Y.chuul, g = Y.gennet; if (!c || !c.take || c.take.off) return;
     c.take.off = true; c.script = null; c.wantsOffering = false;
     var held = !!(g && g.inClaws && g.inClaws.by === c.id);
-    if (g && g.conds.restrained && g.conds.restrained.by === c.id) B.release(c, g);
-    if (g && g.inClaws && g.inClaws.by === c.id) { B.clawDrop(g); c.holding = (c.holding || []).filter(function (w) { return w !== g; }); } // (out of the claws whatever holds her now -- a Web over the two of them takes her restrained for its own, 11-06 evening)
-    if (g && D.spr.anim(g.sheet, 'sit')) { g.anim = 'sit'; g.animT = B.t; } // (she sits where she fell, yielded still)
-    A.trail('the thing in the lake struck at on the way' + (held ? ', Gennet in its claws: it dropped her' : '') + ' -- it fights');
-    B.card(['{r}The thing in the lake{/} ' + (held ? 'lets {y}' + g.name + '{/} fall from its claw' : 'turns from the offering') + (by && by.name && by !== g ? ' and turns on {y}' + (by.side === 'foe' ? D.Battle.nm(by, true) : by.name) + '{/}.' : ' and turns on you.')], 320);
+    if (held) { delete g.offering; g.bystander = false; g.side = 'party'; g.ally = true; g.heldOffering = true; }
+    A.trail('the thing in the lake disturbed on the way' + (held ? ', Gennet in its claws: it keeps her, and fights' : ': it fights'));
+    B.card(['{r}The thing in the lake{/} ' + (held ? 'does not let go of {y}' + g.name + '{/}. It' : 'turns from the offering and') + (by && by.name && by !== g ? ' turns on {y}' + (by.side === 'foe' ? D.Battle.nm(by, true) : by.name) + '{/}.' : ' turns on you.')], 320);
   };
   // in the deep with her, never struck at: the offering taken -- the card and the splash, and the two go down together, faded out where they went (js/ui.js unitObj: `fled` with its hit
   // points, never drawn lying), she still in its claws
@@ -749,7 +759,7 @@
     // with her at half speed, square by square, the party's opportunity attacks as it goes. In the deep unattacked: taken (`gennetTaken`), the card and the splash, and it goes down with her
     // -- off the screen, never drawn dying (`fled` set only then). Struck at on the way (A.turned): it lets her fall from the claw and fights the party. A party Fireball that kills her is the
     // first ending's (`gennetDead`), as before
-    var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside } : null, hurt0 = B.hurt, self = B, c = Y.chuul;
+    var gn = A.standing(B, Y.gennet) ? Y.gennet : null, gKeep = gn ? { side: gn.side, bystander: gn.bystander, yields: gn.yields, script: gn.script, roamAside: gn.roamAside, ally: gn.ally } : null, hurt0 = B.hurt, self = B, c = Y.chuul;
     var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, ownExec = B.hasOwnProperty('exec'), exec0 = B.exec, RUx = D.rules, save0 = RUx.save;
     if (gn) {
       gn.side = 'offering'; gn.bystander = true; gn.offering = true; gn.yields = false; gn.script = null; gn.roamAside = true; // (roamAside: no turn of hers in the floor's fight -- js/roam.js R.fight's initiative; she sits)
@@ -767,15 +777,15 @@
       B.hurt = function (u, n) {
         if (u === c && n > 0 && on()) A.turned(self, Y, self.active !== c ? self.active : null); // (a blow that lands from anything -- a spell's save, a fire, a flask)
         var r = hurt0.apply(this, arguments);
-        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight (not by it)'); } // (the party's own -- a Fireball catches her: killed, the first ending's; it fights on)
+        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight' + (gn.heldOffering ? ', in its claw' : ' (not by it)')); } // (the party's own -- a Fireball catches her -- or, disturbed with her in its claw, its own pincer: killed, the first ending's; it fights on)
         return r;
       };
       // ONLY KILLING IT MAKES IT DROP HER (RULED 11-12, ruling 61, Griz: "only killing for drop, hit is the technicality that if they don't injure it after it grabs gennet it'll just
       // take her to the deep unless interruptions (we've clarified the ones other than attack elsewhere, should be in its code)"). BUILT of it, 11-12, only what his open question
       // does not change (hurt but not killed with her in its claws: carry on to the deep fighting, or stand and fight holding her -- not ruled): ONCE SHE IS IN ITS CLAWS A BLOW
       // THAT DOES NOT WOUND IT IS NOTHING TO IT -- a miss, an opportunity attack that misses, and it walks on. Before the grab an attack at it turns it as before (11-06: "returns to
-      // the water without being attacked"). A WOUND with her in its claws still goes by the 11-06 build below (A.turned: it lets her fall) UNTIL HE ANSWERS: that is the part
-      // ruling 61 changes and question 1 shapes, left as it was and named in the lane
+      // the water without being attacked"). A WOUND with her in its claws, or a spell that lays a condition on it or makes it save (11-06, "2 - count them"), DISTURBS it: it
+      // stays and fights with her still in its claw (A.turned, his answer of 11-12: "the only 'back to the deep' is if it has it's offering and no one has disturbed it")
       var holds = function () { return !!(gn.inClaws && gn.inClaws.by === c.id); };
       B.attack = function* (att, tgt) { if (tgt === c && att !== c && on() && !holds()) A.turned(self, Y, att); return yield* atk0.apply(this, arguments); }; // (before the grab, hit or miss: struck at -- an opportunity attack as it walks up too)
       // A SPELL THAT ONLY LAYS A CONDITION ON IT counts as striking at it too (RULED 11-06 evening, Griz to the lanes desk on the seat's call 3: "2 - count them"; read by the desk: anything cast
@@ -796,7 +806,7 @@
     var o = R0.lastOutcome;
     B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0; if (RUx.save !== save0) RUx.save = save0;
     if (c) { if (c.take && c.take.unhold) c.take.unhold(); delete c.take; if (c.script === 'lakeTake') c.script = null; }
-    if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; delete gn.inClaws; delete gn.goneDown; if (gn.conds.restrained && c && gn.conds.restrained.by === c.id) delete gn.conds.restrained; } // (she lives: back on the path as she sat)
+    if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; delete gn.ally; delete gn.heldOffering; delete gn.conds.paralyzed; delete gn.conds.poisoned; delete gn.inClaws; delete gn.goneDown; if (gn.conds.restrained && c && gn.conds.restrained.by === c.id) delete gn.conds.restrained; } // (she lives: back on the path as she sat)
     else if (gn) { In.gone(B, gn); Y.gennet = null; }
     B.taunt = null; if (ring) { if (ring.saves && con0 != null) ring.saves.con = con0; delete ring.ring; }
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
