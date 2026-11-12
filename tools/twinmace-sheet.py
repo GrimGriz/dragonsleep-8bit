@@ -1,0 +1,70 @@
+"""The twin-mace mannequin's modeling poses laid out for the art desk (11-12): tools/twinmace-blend.py renders, this writes the reference strips.
+Plain Python (Pillow).
+
+    python tools/twinmace-sheet.py
+
+Reads deep16/_src/twinmace/ (model/ the striker with the target, render/ the striker alone, meta.json; gitignored); writes deep16/art-src/twinmace/:
+    twinmace-<S|SE|E|NE|N>.png   one strip a drawn facing: the six frames large on the art desk's navy, the target standing in each, numbered
+                                 1-6 under the feet line, the release frame's number gold with HIT under it.
+    twinmace-alone-<...>.png     the same six without the target: the striker's own silhouette, for the sprite.
+    twinmace-all.png             the five facings on one page, half the size: the whole motion at a glance.
+"""
+import json, os
+from PIL import Image, ImageDraw, ImageFont
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(ROOT, 'deep16', '_src', 'twinmace')
+OUT = os.path.join(ROOT, 'deep16', 'art-src', 'twinmace')
+NAVY, GOLD, INK, LINE = (12, 20, 40), (240, 196, 64), (226, 232, 244), (120, 140, 176)
+NAMES = {'S': 'FRONT (S)', 'SE': 'FRONT-RIGHT (SE)', 'E': 'RIGHT SIDE (E)', 'NE': 'BACK-RIGHT (NE)', 'N': 'BACK (N)'}
+
+
+def font(px):
+    for f in ('consolab.ttf', 'consola.ttf', 'DejaVuSansMono-Bold.ttf'):
+        for d in ('C:/Windows/Fonts', '/usr/share/fonts/truetype/dejavu'):
+            try:
+                return ImageFont.truetype(os.path.join(d, f), px)
+            except OSError:
+                pass
+    return ImageFont.load_default(px)
+
+
+def strip(kind, M, f, n, rel, zoom, title):
+    """one facing's frames in a row: each render (ss x the cell) drawn at `zoom` x the cell."""
+    fw, fh, ay = M['fw'], M['fh'], M['ay']
+    cw, ch = fw * zoom, fh * zoom; top, foot = 16 * zoom, 14 * zoom
+    pg = Image.new('RGBA', (cw * n + 4 * zoom, top + ch + foot), NAVY + (255,)); d = ImageDraw.Draw(pg)
+    F1, F2 = font(5 * zoom), font(4 * zoom)
+    d.text((pg.width // 2, 7 * zoom), title, font=F1, fill=INK, anchor='mm')
+    fy = top + (ay + 1) * zoom
+    d.line([(2 * zoom, fy), (pg.width - 2 * zoom, fy)], fill=LINE, width=max(1, zoom // 4))
+    for i in range(n):
+        im = Image.open(os.path.join(SRC, kind, 'twinmace', '%s_%02d.png' % (f, i))).convert('RGBA').resize((cw, ch), Image.LANCZOS)
+        pg.alpha_composite(im, (2 * zoom + i * cw, top))
+        x = 2 * zoom + i * cw + cw // 2
+        d.text((x, fy + 4 * zoom), str(i + 1), font=F1, fill=GOLD if i == rel else INK, anchor='mm')
+        if i == rel:
+            d.text((x, fy + 9 * zoom), 'HIT', font=F2, fill=GOLD, anchor='mm')
+    return pg
+
+
+def main():
+    meta = json.load(open(os.path.join(SRC, 'render', 'meta.json')))
+    os.makedirs(OUT, exist_ok=True)
+    n = meta['rows']['twinmace']['frames']; rel = meta['rows']['twinmace']['release']; small = []
+    for f in meta['facings']:
+        a = strip('model', meta['model']['twinmace'], f, n, rel, 4, 'MANNEQUIN - TWIN STRIKE, TWO MACES - %s' % NAMES[f])
+        a.convert('RGB').save(os.path.join(OUT, 'twinmace-%s.png' % f), optimize=True)
+        b = strip('render', meta['rows']['twinmace'], f, n, rel, 4, 'MANNEQUIN - TWIN STRIKE, TWO MACES - %s - the striker alone' % NAMES[f])
+        b.convert('RGB').save(os.path.join(OUT, 'twinmace-alone-%s.png' % f), optimize=True)
+        small.append(strip('model', meta['model']['twinmace'], f, n, rel, 2, NAMES[f]))
+    W = max(s.width for s in small); H = sum(s.height for s in small)
+    pg = Image.new('RGB', (W, H), NAVY); y = 0
+    for s in small:
+        pg.paste(s.convert('RGB'), ((W - s.width) // 2, y)); y += s.height
+    pg.save(os.path.join(OUT, 'twinmace-all.png'), optimize=True)
+    print('twinmace-sheet: %s -- twinmace-{%s}.png, twinmace-alone-*.png, twinmace-all.png' % (OUT, ','.join(meta['facings'])))
+
+
+if __name__ == '__main__':
+    main()

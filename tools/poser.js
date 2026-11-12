@@ -36,7 +36,7 @@ class Rig {
       this.POSE0[b.n] = M4(b.pose0); this.P0t[b.n] = posOf(this.POSE0[b.n]);
       this.P0rot[b.n] = M4(b.pose0).setPosition(0, 0, 0);
     }
-    const r = D.roles; Object.assign(this, { SPINE: r.spine, NECK: r.neck, HEAD: r.head, JAW: r.jaw, ARM: r.arm, LEG: r.leg, ROOTS: r.roots, FOOT: r.foot, FING: r.fing, KPOLE: r.kpole, EPOLE: r.epole });
+    const r = D.roles; Object.assign(this, { SPINE: r.spine, NECK: r.neck, HEAD: r.head, JAW: r.jaw, ARM: r.arm, LEG: r.leg, ROOTS: r.roots, FOOT: r.foot, FING: r.fing, KPOLE: r.kpole, EPOLE: r.epole, STILL: new Set(r.still || []) });
   }
   dir0(n) { return new THREE.Vector3(0, this.len[n], 0).applyMatrix4(this.POSE0[n]).sub(this.P0t[n]); }
   accG(d, name) {
@@ -85,7 +85,7 @@ class Rig {
       const p = this.parent[n];
       const g = (p ? G[p].clone() : I()).multiply(d[n] || I()); G[n] = g;
       const R = new THREE.Matrix4().makeRotationFromQuaternion(g).multiply(this.P0rot[n]);
-      const head = p ? posOf(M[p].clone().multiply(this.RESTinv[p]).multiply(this.REST[n])) : this.P0t[n].clone().add(new THREE.Vector3(sway, shift, lift));
+      const head = p ? posOf(M[p].clone().multiply(this.RESTinv[p]).multiply(this.REST[n])) : this.STILL.has(n) ? this.P0t[n].clone() : this.P0t[n].clone().add(new THREE.Vector3(sway, shift, lift));
       M[n] = R.setPosition(head);
     }
     return M;

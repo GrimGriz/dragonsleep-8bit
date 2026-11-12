@@ -71,6 +71,7 @@ class Rig:
         self.LEG = {'a': names['leg_a'], 'b': names['leg_b']}
         self.FING = {'a': names.get('fing_a', []), 'b': names.get('fing_b', [])}
         self.ROOTS = names['roots']
+        self.STILL = set(names.get('still', []))       # (root bones the hip's moves leave where they are: a target stood in front, the mannequin's twin strike 11-12)
         self.FOOT = {s: tuple(self.LEG[s][3:6]) for s in 'ab'}         # the ankle bone, the foot, the toe
         self.KPOLE = {'a': (0.3, -1, 0.15), 'b': (-0.3, -1, 0.15)}       # a knee bends forward and a little out
         self.EPOLE = {'a': (0.6, 1, 0), 'b': (-0.6, 1, 0)}              # an elbow points back and out
@@ -177,7 +178,7 @@ class Rig:
             if p:
                 C = M[p] @ self.REST[p].inverted() @ self.REST[n]; head = C.translation
             else:
-                C = self.REST[n]; head = self.POSE0[n].translation + Vector((sway, shift, lift))
+                C = self.REST[n]; head = self.POSE0[n].translation + (Vector((0, 0, 0)) if n in self.STILL else Vector((sway, shift, lift)))
             M[n] = Matrix.Translation(head) @ R.to_4x4()
             out[n] = C.inverted() @ M[n]
         return (out, M) if mats else out
@@ -464,7 +465,7 @@ class Rig:
             R.append(dict(name=name, engine=(engine or {}).get(name, name.lower()), n=n, loop=loop, how=how, fps=(fps or {}).get((engine or {}).get(name, name.lower()), 10), frames=frames))
         roles = dict(spine=self.SPINE, neck=self.NECK, head=self.HEAD, jaw=self.JAW, arm=self.ARM, leg=self.LEG, roots=self.ROOTS, foot=self.FOOT,
                      fing={s: [self.chain(f) for f in self.FING[s]] for s in 'ab'}, ank0={s: list(self.ANK0[s]) for s in 'ab'},
-                     kpole=self.KPOLE, epole=self.EPOLE)
+                     kpole=self.KPOLE, epole=self.EPOLE, still=sorted(self.STILL))
         out = dict(fig=fig, floor=self.FLOOR, bones=bones, roles=roles, rows=R, check=checks, held=held,
                    mesh=dict(n=nv, pos=B64(pos, '<f4'), tri=B64(np.array(tris).ravel(), '<u4'), col=B64(np.round(srgb * 255), 'u1'),
                              wofs=B64(wofs, '<u4'), widx=B64(widx, '<u2'), wval=B64(wval, '<f4')))
