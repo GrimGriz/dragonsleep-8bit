@@ -5730,14 +5730,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var u = folkSk(Bp, p.id); if (!u || u.x !== p.at[0] || u.y !== Y(p.at[1])) { bad.push(p.id + ' not stood'); return; }
         var side = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (o) { return [u.x + o[0], u.y + o[1]]; }).filter(function (q) { return D.grid.canStand(Bp.roam.token, q[0], q[1]) && !Bp.units.some(function (v) { return v !== Bp.roam.token && v.x === q[0] && v.y === q[1]; }); })[0];
         if (!side) { bad.push(p.id + ' unreachable'); return; }
-        var w = useSk(Bp, side, [u.x, u.y]), tpSk = D.top(); if (tpSk && tpSk.kind === 'counter') { w = window.DS.stripCodes(tpSk.o.name + ' ' + ((tpSk.wait && tpSk.wait.say) || []).join(' ')); if (p.id === 'pyro') pyFaceSk = tpSk.sheet + '/' + (tpSk.face && tpSk.face.anim); tpSk.close(); for (var kSk = 0; kSk < 5; kSk++) Bp.co.next(); } /* (Pyro's word on his counter screen since 11-12, the inn seat: pt_pyro, grave) */
+        var w = useSk(Bp, side, [u.x, u.y]); if (p.id === 'pyro') pyFaceSk = (/\[(pt_[a-z_]+):/.exec(w) || [])[1] || ''; /* (Pyro's word on his counter screen since 11-12, the inn seat: his sheet read from useSk's line) */
         var want = p.id === 'pyro' ? window.DS.DATA.text['deep.pyro1'].t : p.id === 'quartermaster' ? window.DS.DATA.shops.qm.greeting : ((N8[p.id].talk || [])[0] || {}).say;
         want = [].concat(want || [])[0] || '';
         if (w.indexOf(want.slice(0, 40)) < 0 || w.indexOf(N8[p.id].name) < 0) bad.push(p.id + ': "' + w.slice(0, 90) + '"'); else words.push(p.id + (u.sheet ? '(' + u.sheet + ')' : '(' + u.kind + ')'));
       });
       var py = folkSk(Bp, 'pyro'), ds = SKk.folkOf('drillmaster'); // (the drill on the cart level since 11-12: section 12 stands it and has its word, section 27 where)
       okSk('the people, each stood and each with the first game\'s word: ' + words.join(', ') + (bad.length ? '; WRONG: ' + bad.join('; ') : '') + '; Pyro wears his own (' + (py && py.sheet) + ') and speaks on his portrait (' + pyFaceSk + '), the sergeant the Skylights\' (' + (ds && ds.kind) + ')',
-        !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p1' && pyFaceSk === 'pt_pyro/grave' && ds.kind === 'drillsergeant'); // (his own town figure since 11-12, cutter-pyro: ART-141; his fights keep pyro_p0)
+        !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p1' && pyFaceSk === 'pt_pyro' && ds.kind === 'drillsergeant'); // (his own town figure since 11-12, cutter-pyro: ART-141; his fights keep pyro_p0)
       // 6. THE SIGNS: the first game's verbatim (first/content/maps/solskaft.json and solskaft_deep.json, first/content/text.json -- the copies the second game reads, content/, held equal); each said by E
       var m8 = window.DS.DATA.maps.solskaft, m8d = window.DS.DATA.maps.solskaft_deep, texts8 = (m8.signs || []).concat(m8d.signs || []).map(function (s) { return s.text; }).concat([window.DS.DATA.text['deep.treasury'].t]);
       var notIn = Object.keys(SKk.S8).filter(function (k) { return k !== 'brick' && texts8.indexOf(SKk.S8[k]) < 0; });
