@@ -1416,9 +1416,12 @@
     // 3. the yard: the wagon in, the party at the window, the figures; the inn lady out to meet it with her lantern; the greetings
     var paid = !!(D.wagon && f.wagonBribed === 'c' + In.cycle(d)); // (Amara's gold taken on the road that day: the night kept to the room, as paid -- js/wagon.js)
     f.wagonIn = 1; if (In.katHere(f, d)) f.katYard = 1;
-    if (upstairs) { In.stage(B, In.WATCH.down, 'inn'); In.offFloor(B, true); } // (the party is upstairs: nobody of it in the common room while the yard plays)
+    // (11-12, his note on eyes-wagon-upstairs-1112f: "can we not overlay the second floor on top of the first floor, there's a view of the first floor with a second Gennet in her
+    // usual position" -- the house's floor had been laid as its open inside for this, the fireside Gennet in it while the scene's own walked out to the wagon. Watched from
+    // upstairs the house is laid as from OUTSIDE, under its roof: the yard is what the window shows; and whichever way it is laid, the floor's own Gennet goes while the scene's is out)
+    if (upstairs) { In.stage(B, In.WATCH.down, null); In.offFloor(B, true); } // (the party is upstairs: nobody of it on this floor while the yard plays)
     else In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn');
-    var Y = In.yardCast(B, f), w = In.WAGONAT;
+    var Y = In.yardCast(B, f), w = In.WAGONAT; B.units.filter(function (u) { return u.npc === 'gennet'; }).forEach(function (u) { In.gone(B, u); }); // (one Gennet: the scene's)
     yield* In.cam(B, [w[0] + 2, w[1]], 30);
     yield* In.card(B, [In.WN.turnsIn.split('{name}').join(watcher.name)], 420);
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: In.named(f), face: [-1, 0], lantern: true });

@@ -479,7 +479,7 @@
     var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B), up = P.stage === 'lake', goblin = !(f.glamourBroken || f.glamourSeen), lake = In.DOORS.lake;
     In.duePlay = null; if (P.stay) R0.stay = P.stay;
     var win = up && !P.asleep; // (at the big room's window, awake: the party drawn there, overlooking -- A.atWindow)
-    if (win) A.atWindow(B, true); else if (up) { In.stage(B, In.WATCH.down, 'inn'); In.offFloor(B, true); } // (asleep upstairs: nobody of the party on this floor)
+    if (win) A.atWindow(B, true); else if (up) { In.stage(B, In.WATCH.down, null); In.offFloor(B, true); } // (asleep upstairs: nobody of the party on this floor -- laid as from outside, under its roof, 11-12: his "can we not overlay the second floor on top of the first floor")
     if (P.asleep) {
       yield* In.card(B, [A.LINES.dueNight], 300);
       yield* In.dueWalk(B, goblin ? 'goblin' : 'kid'); f.duePaid = 1; if (A.hasRing(B)) In.offFloor(B, false); // (asleep upstairs: nobody downstairs unless the ring calls them down)
