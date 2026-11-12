@@ -510,6 +510,7 @@
         fix: `"It hasn't blown over."`, ok: `"The Snoot's at the Pit. The south road is shut. Hessle's paying gold in Silverton for one true word of it."` }
     ],
     SHOWN: 3, FIXDAYS: 4, PROMPT: 150,
+    pit: [`"The Pit's people took them. All seven."`, `"It's getting worse down there. The Snoot. I came north a day ahead of it."`], // (ruling 56: his first supper home)
     witness: `"See it? None of them. Every word at this table is one man telling what another man told him."`,
     more: [`"Eat. Ask what you like; the whole road comes through this door."`, `"There's more fish. The lake doesn't stint."`, `"There's bread, if the fish is done."`], // (when an opening comes with no one speaking)
     tell: { cool: `Gennet's smile stays where it was.`, warm: `Gennet fills the cups again.`, cold: `"You'll be wanting your beds. It's an early road, whichever way you take it."` }, // (the warmth shown by a look, never a number)
@@ -773,6 +774,9 @@
     if (kind === 'first' || kind === 'later') { var had = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (had[k]) S.asked[k] = 1; }); var rd0 = f.supReads || {}; ['counted', 'rich', 'coin'].forEach(function (id) { if (!rd0[id]) S.reads([id]); else S.qd[id] = 1; }); }
     else S.reads({ amara: ['barnbowl', 'noname'], alone: [], sacrifice: [] }[kind]);
     SU.open(S, kind);
+    // DORAN'S FIRST SUPPER HOME (RULED 11-12, ruling 56, Griz on the lean "one line, that the Pit's people took them": "add in 'snoot getting worse' line as well"): the
+    // first table he sits at after driving the wagon down, two lines of his before Gennet's opener, once
+    if (S.doran && f.doranPit && !f.doranPitSaid) { f.doranPitSaid = 1; S.out.splice(Math.max(0, S.out.length - 1), 0, { by: 'doranIn', line: MD.pit[0] }, { by: 'doranIn', line: MD.pit[1] }); In.trail('Doran\'s first supper home: the Pit\'s people took them; the Snoot getting worse'); }
     var prompt = S.out.pop(), i; for (i = 0; i < S.out.length; i++) yield wait(S.out[i]);
     var reach = function (e, id) { var r = SU.READS[id]; return !!r && (!r.ok || r.ok(S)) && In.passive(e.h, r.skill) >= SU.dc(r); };
     var optsOf = function (e) { // (the hero's answers this opening: what a read opened first, MD.CAP at most, ONE skill-shaded -- the rest hold)
@@ -831,7 +835,7 @@
     }
     sc.hero = null;
     if (ended !== 'cold') {
-      if (kind === 'alone') { yield sc.by(who('gennet'), [`"Oh, heroes. Take the big room."`]); f.bigRoom = 1; } // (his line, 11-11; it may belong to the night of the chase. THE BIG ROOM IS THEIRS from this word: they wake in it, In.roomOf -- 11-12)
+      if (kind === 'alone' && !f.bigRoom) { yield sc.by(who('gennet'), [`"Oh, heroes. Take the big room."`]); f.bigRoom = 1; } // (his line, 11-11; it may belong to the night of the chase. THE BIG ROOM IS THEIRS from this word: they wake in it, In.roomOf -- 11-12)
       if (kind === 'amara') { yield sc.narr([`Nobody has raised a voice. The fire is let down early.`]); yield sc.lookAt(who('gennet'), [`Gennet takes the lamp from its hook by the lake door, and does not hang it back until the party is on the stair.`]); }
       else { yield sc.narr([MD.close[0]]); yield sc.lookAt(who('gennet'), [MD.close[1]]); }
     }
@@ -1094,6 +1098,8 @@
     bribeTaken: 'Amara counts it into your hand. "Sleep well," she says. The wagon does not stay the night.',
     bribeGone: 'The young woman from upstairs comes down with a bag over her shoulder and climbs up on the bench beside Amara. The wagon turns in the yard and is gone up the road.',
     back: 'Back in by the front door, and up to bed.',
+    chaseYard: 'The yard is empty. Ruts turn out of it onto the road and go south. The wagon is gone, and the seven that were in it.',
+    chaseGone: '"He\'s away with it. Down to the Pit, and the little ones with him. Two days, if the road lets him."', chaseKat: '"{who} went up on the bench beside him. Paid her nights out and never looked back."', bigRoom: '"Oh, heroes. Take the big room."',
     katRides: '{who} is up on the wagon\'s bench beside Doran when it goes. The table for two by the fire is cleared.', // (ruling 28, 11-12: the seat's line)
     quietNight: 'The fair-haired man takes the horses round to the stable. The lamps go out one by one, all but one, and the house sleeps.' // (11-05: the lantern walks three nights on -- wagon.quietNight had it leave its post tonight)
   };
@@ -1463,7 +1469,7 @@
   In.yardAfter = function* (B, st, f, willemDead, loose) {
     var pay = [], book = willemDead && !In.has(st, 'willembook');
     if (book) { D.counter.give(st, 'willembook', 1); pay.push(L('g.got', { item: DS.DATA.items.willembook.name })); } // (his book when the party kills him, not when he yields or runs: the house lane's item 7, 09-30c)
-    st.silver(600); D.counter.give(st, 'wagonorder', 1); f.doranAway = 1; f.kidAtInn = 1; f.wagonGift = 1;
+    st.silver(600); D.counter.give(st, 'wagonorder', 1); f.doranAway = 1; f.doranPit = 1; f.kidAtInn = 1; f.wagonGift = 1;
     pay.push(L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name }));
     yield* In.card(B, [loose ? In.WN.abandonedLoose : In.WN.abandoned], 420);
     if (book) yield* In.card(B, [In.WN.book], 360);
@@ -1474,17 +1480,34 @@
     yield { victory: { title: 'THE WAGON', lines: pay } };
     yield* In.card(B, [L('wagon.doranTakes')], 420);
   };
-  // back from the chase (js/chase.js Ch.done: the inn's floor again, at the yard, the floor's script running this first): the wagon where they left it, the yard's own aftermath, the morning
+  // BACK FROM THE CHASE, RE-CUT (RULED 11-12, rulings 51-54; Griz, 11-11: "If the party chases she'd have the girl on standby with doran having taken the wagon and
+  // the other kids down to the Pit ... and their like to lose most of the reward they find in the wagon, Kat would probably take that wagon, Gennet be like 'oh
+  // heroes, take the big room'", and on the reading page's leans: "1 - yes, 2 - a, 3 yes, 4 - at return, heroes get it once kat is gone and wagon isn't coming"):
+  // the yard is EMPTY -- Doran left with the wagon and the seven while they ran (51); the strongbox's 600 silver and the wagon's order went with it, and only
+  // Willem's book is theirs, if he fell on the chase (52); Katarina rode on that wagon (ruling 28); Gennet meets them at the front step, says where he has gone, and
+  // gives the big room there and then (54: said once Katarina is gone and no wagon is coming back); Elsbeth's gift the next morning is the Cloak of the Manta Ray
+  // for this party (53: f.wagonChased, In.giftId). The renown for the eight is kept (the seat's call: it was not in the strongbox)
   In.chaseBack = function* (B) {
     var R0 = B.roam, f = R0.flags, c = f.wagonChase, st = D.counter.state(B); if (!c || !c.back) return;
-    var Y = {}; In.bedRiders(B, Y, f, !!c.horses);
-    yield* In.card(B, [In.WN.fledYard], 300);
-    yield* In.yardAfter(B, st, f, !!c.willemDead, !!c.horses);
-    // KATARINA RIDES WITH THE WAGON WHEN THE PARTY CHASES (RULED 11-11, ruling 28, Griz: "2- right" -- "Kat rides to the Pit on the wagon Doran drives, in place of walking
-    // south, and her warning reaches the party through the book's letter in the big room"): gone from her table by the fire, her book and its letter in the drawer
-    if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives'); yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The traveler in the brown dress')], 360); }
+    delete f.wagonIn; delete f.katYard; In.lay(B, null, true); // (the yard laid without the wagon)
+    yield* In.card(B, [In.WN.chaseYard], 360);
+    if (c.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.card(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 420); } // (his book when the party kills him: the house lane's item 7, 09-30c)
+    f.doranAway = 1; f.doranPit = 1; f.kidAtInn = 1; f.wagonGift = 1; f.wagonChased = 'c' + (f.wagonCycle || 0); In.trail('back from the chase: the yard empty, the strongbox and the order gone with the wagon');
+    var rn = D.counter.renown(st, 1, 'renown.wagon'); if (rn && rn.length) yield* In.card(B, rn, 360);
+    var kat = !f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from;
+    if (kat) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives'); }
+    // Gennet at the front step, on her own face
+    var step = In.STEP.front, g = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: [In.DOORS.front[0], In.DOORS.front[1]], name: In.named(f), face: [-1, 0], lantern: true });
+    yield* In.walk(B, g, [step[0], step[1]], [-1, 0]);
+    yield* D.roam.walkTo(B, [step[0] - 2, step[1]]);
+    yield* M.talk(B, 'gennet', function (sc) { return (function* () {
+      yield sc.say([In.WN.chaseGone]);
+      if (kat) yield sc.say([In.WN.chaseKat.split('{who}').join(f.katLooked ? 'Katarina' : 'The one with the pen')]);
+      if (!f.bigRoom) { f.bigRoom = 1; yield sc.say([In.WN.bigRoom]); } // (HIS line, at the return: ruling 54)
+    })(); }, In.named(f));
+    yield* In.walk(B, g, [In.DOORS.front[0], In.DOORS.front[1]]); In.gone(B, g);
     var morning = L('wagon.morning.inn'); // (the lantern walks three nights on since 11-05: no ring cold the morning after the chase)
-    delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
+    delete f.wagonChase; In.yardClear(B, {});
     In.stage(B, [24, 17], 'inn');
     if ((yield* In.sleep(B, morning)) === 'up') return;
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
@@ -1496,7 +1519,7 @@
     yield* finish0.apply(this, arguments);
   };
   // Elsbeth's gift, the morning after the wagon was stopped (the first game's EV.wagonGift): the lead's armour one better, or a ring of protection
-  In.giftId = function (st) { var lead = st.party[0], arm = lead && lead.equip && lead.equip.armor; return arm && DS.DATA.items[arm + '1'] ? arm + '1' : 'ringofprotection'; };
+  In.giftId = function (st) { var fg = st.flags || {}; if (fg.wagonChased && fg.wagonChased === 'c' + (fg.wagonCycle || 0) && DS.DATA.items.cloakmantaray) return 'cloakmantaray'; /* (RULED 11-12, ruling 53: the party that chased and lost the wagon's reward gets the Cloak of the Manta Ray in place of her usual gift) */ var lead = st.party[0], arm = lead && lead.equip && lead.equip.armor; return arm && DS.DATA.items[arm + '1'] ? arm + '1' : 'ringofprotection'; };
   In.gift = function* (sc, B) {
     var st = sc.st, f = st.flags; delete f.wagonGift;
     var id = In.giftId(st); yield sc.say(L('wagon.gift'));
@@ -2040,6 +2063,11 @@
     { id: 'behindhouse', label: 'BEHIND THE HOUSE: a window in the roof round you (11-11)', note: 'The yard by day, on the grass off the house\'s north wall. Walk along it, a square or two out: wherever the roof hides you, a window opens in it round you -- no outline. Walk round to the south side and nothing opens: there nothing hides you.', key: In.KEY, at: [26, 10], hour: 10 },
     { id: 'silk', label: 'THE SILK ACROSS THE ROAD: after the pair up Web Gulch on the greys (11-11)', note: 'Two in the morning at Web Gulch\'s south mouth, the wagon pair ahead up the cut on the greys (the yard\'s AFTER THEM). Walk north up the road. Midway up the cut, silk is strung across it where the gulch\'s webs come down: the greys run into it and the pair are caught fast. The tries pinned: Amara tears free and is away up the cut; Willem is still held when you come up -- the catch at the silk, Willem restrained in the fight. Then after Amara: on her grey, she is lost at the north mouth. The walk back by its hour, and the yard.', key: 'webgulch', at: [22, 109], hour: 2, day: 12, dice: [20, 1, 1, 1, 1, 1],
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, wagonChase: { horses: true, willem: true, amara: true, leg: 1, gap: 10, acc: 0, on: false, steps: 0, back: null } } },
+    // THE CHASE RE-CUT (11-12, rulings 51-55): the catch at the south mouth; and the walk back into an empty yard
+    { id: 'southmouth', label: 'THE CATCH AT THE SOUTH MOUTH: Willem fast in the silk, Amara running (11-12)', note: 'Two in the morning, in at Web Gulch\'s south gate after the wagon pair on the greys. The fight opens AT ONCE: silk is strung across the road five squares in, Willem\'s grey fast in it, Amara through and riding for the pale squares north (their way off). Leave Willem alone and she is away. STRIKE AT WILLEM and she comes down off her grey and turns back to fight; both are on foot, the two greys standing at the north exit squares. When Willem tears out of the silk the two make for the greys. Whoever gets away is chased up the cut as before (on a grey: lost at the north mouth).', key: 'webgulch', at: [22, 109], hour: 2, day: 12,
+      flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, wagonChase: { horses: true, willem: true, amara: true, leg: 1, gap: 10, acc: 0, on: false, steps: 0, back: null } } },
+    { id: 'chaseback', label: 'BACK FROM THE CHASE: the yard empty, Gennet at the step, the big room (11-12)', note: 'Four in the morning, back in the inn\'s yard from the chase, Willem dead on the road. The yard is EMPTY: Doran has driven the wagon and the seven south. Only Willem\'s book is yours (no strongbox, no order). Gennet comes out to the front step with her lantern: where he has gone, that the traveler rode with him, and "Oh, heroes. Take the big room." You wake in the big room; her book and its letter are in the drawer; Elsbeth\'s gift in the morning is the Cloak of the Manta Ray.', key: In.KEY, at: [14, 20], hour: 4, day: 13,
+      flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, supCount: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, katLooked: 1, dueOffC: 0, dueOff: 'kept', wagonChase: { horses: false, willem: true, amara: true, leg: 2, on: false, steps: 40, back: 'road', willemDead: true } } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }

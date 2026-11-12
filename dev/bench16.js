@@ -2834,6 +2834,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // square to the north mouth, the fork and Willem's false pair, the last catch to the end; back to the yard's own after and the morning. With the greys, lost at the mouth, the
   // Tower in words. The first catch won outright; the west road taken; LET THEM GO is the yard's as it was (inn1104)
   if (get('mode', '') === 'chase1104') {
+    if (D.chase) D.chase.OLD_SILK = true; // (11-12, ruling 55: the game's chase opens with the catch at the south mouth -- mode=inn1111's; this mode's checks walk the run up the cut, the fork and the walk back as 11-04 built them, the way a chase goes on after that catch)
     var repCh = { checks: [], errors: [] }, memCh = {}, stGCh = D.store.get, stSCh = D.store.set, HCh = D.house, CCh = D.counter, RCh = D.roam, InCh = D.inn, ChB = D.chase, GuCh = D.gulch, MCh = D.mines, muCh = D.music;
     function okCh(what, v) { repCh.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function driveCh(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
@@ -2901,20 +2902,20 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. back at the inn: the wagon where they left it, the yard's own aftermath (seven in the bed, the strongbox, the order, Doran's drive), the morning, Elsbeth's gift; the chase's record gone
       var Bi = topCh(), o5 = flowCh(Bi, []), f5 = Bi.roam.flags, st5 = CCh.state(Bi);
       okCh('back at the inn: ' + o5.slice(0, 900) + ' -- flags outcome ' + f5.wagonOutcome + ', chase ' + JSON.stringify(f5.wagonChase) + ', Doran away ' + f5.doranAway + ', the one kept ' + f5.kidAtInn + ', the gift ' + !!f5.lakeGiftGot + ', the tower ' + f5.towerFled + '; the purse ' + Bi.roam.silver + ', the order ' + CCh.count(st5, 'wagonorder'),
-        /In the yard the wagon stands where they left it/.test(o5) && /seven children/.test(o5) && /Under the driver's bench, a strongbox/.test(o5) && /drives the children back down the road to Newland/.test(o5) && /MORNING/.test(o5) && /Doran is gone, and the wagon with him/.test(o5) && f5.wagonOutcome === 'road' && !f5.wagonChase && f5.doranAway === 1 && f5.kidAtInn === 1 && !!f5.lakeGiftGot && !f5.towerFled && CCh.count(st5, 'wagonorder') === 1 && Bi.roam.silver === 10 + 600);
+        /The yard is empty\. Ruts turn out of it onto the road and go south/.test(o5) && !/wagon stands where they left it|strongbox|\+600 silver/.test(o5) && /Received: Willem's Book/.test(o5) && /Renown \+1/.test(o5) && /He's away with it\. Down to the Pit, and the little ones with him/.test(o5) && /Oh, heroes\. Take the big room/.test(o5) && /MORNING/.test(o5) && /Doran is gone, and the wagon with him/.test(o5) && /Cloak of the Manta Ray/.test(o5) && f5.wagonOutcome === 'road' && !f5.wagonChase && f5.doranAway === 1 && f5.doranPit === 1 && f5.kidAtInn === 1 && f5.bigRoom === 1 && f5.wagonChased === 'c0' && !!f5.lakeGiftGot && !f5.towerFled && CCh.count(st5, 'wagonorder') === 0 && CCh.count(st5, 'cloakmantaray') === 1 && Bi.roam.silver === 10); // (RULED 11-12, rulings 51-54: the yard empty, the 600 silver and the order gone with the wagon, his book theirs, the big room at the return, the Cloak of the Manta Ray)
       // 5. WITH THE GREYS: square for square from ten, never closing; the north mouth is the end -- the Tower in words, back to the yard: the traces cut, the children freed all the same
       var B6 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B6.roam.silver = 30; atCh(B6, 14, 18, [-1, 0]);
       var co6 = B6.co; B6.co = (function* () { yield* ChB.start(B6, { horses: true, willem: true }); yield* co6; })(); var o6 = flowCh(B6, []), Bg6 = topCh(); driveCh(Bg6.co, function () { return !!(ChB.state(Bg6) && ChB.state(Bg6).on); }, 600);
       var c6 = ChB.state(Bg6), r6 = climbCh(Bg6, 130, []), f6 = (topCh() && topCh().roam && topCh().roam.flags) || {};
       var Bi6 = D.top(), o7 = Bi6 && Bi6.roam ? flowCh(Bi6, []) : 'no inn floor', f7 = Bi6 && Bi6.roam ? Bi6.roam.flags : {};
       okCh('with the greys: ' + o6.slice(0, 300) + ' ... the gap ' + (c6 && c6.gap) + ' held (' + r6.seen.slice(Math.max(0, r6.seen.indexOf('The north mouth') - 20), r6.seen.indexOf('The north mouth') + 400) + ') after ' + r6.steps + ' squares; back: ' + o7.slice(0, 400) + ' -- outcome ' + f7.wagonOutcome + ', the tower ' + f7.towerFled + ', Doran away ' + f7.doranAway,
-        !!c6 && c6.horses && c6.gap === 10 && /The north mouth, and the greys take them up out of the cut/.test(r6.seen) && !/INITIATIVE/.test(r6.seen) && r6.steps >= 90 && /the traces cut, the team gone north with them/.test(o7) && /seven children/.test(o7) && /MORNING/.test(o7) && f7.wagonOutcome === 'fled' && f7.towerFled === 1 && f7.doranAway === 1);
+        !!c6 && c6.horses && c6.gap === 10 && /The north mouth, and the greys take them up out of the cut/.test(r6.seen) && !/INITIATIVE/.test(r6.seen) && r6.steps >= 90 && /The yard is empty/.test(o7) && !/strongbox/.test(o7) && !/Willem's Book/.test(o7) && /MORNING/.test(o7) && f7.wagonOutcome === 'fled' && f7.towerFled === 1 && f7.doranAway === 1 && f7.bigRoom === 1);
       // 6. THE WEST ROAD at the fork: the false pair followed -- your hand goes through them; lost, the Tower in words
       var B8 = testCh('?roam=halfway&hour=22&day=' + D.inn.WAGON.first + '&at=14,18&flags=wagonIn,glamourBroken,wagonStopped'); B8.roam.silver = 30; atCh(B8, 14, 18, [-1, 0]);
       var co8 = B8.co; B8.co = (function* () { yield* ChB.start(B8, { horses: false, willem: true }); yield* co8; })(); flowCh(B8, []); var Bg8 = topCh(); driveCh(Bg8.co, function () { return !!(ChB.state(Bg8) && ChB.state(Bg8).on); }, 600);
       pairHp(Bg8, 999); var r8 = climbCh(Bg8, 140, ['THE PAIR GOING WEST']), Bi8 = topCh(), o9 = Bi8 && Bi8.roam ? flowCh(Bi8, []) : 'no inn floor', f9 = Bi8 && Bi8.roam ? Bi8.roam.flags : {};
       okCh('the west road at the fork: ' + r8.seen.slice(Math.max(0, r8.seen.indexOf('> THE PAIR GOING WEST') - 100), r8.seen.indexOf('> THE PAIR GOING WEST') + 500) + ' -- outcome ' + f9.wagonOutcome + ', the tower ' + f9.towerFled + '; back: ' + /seven children/.test(o9),
-        /> THE PAIR GOING WEST/.test(r8.seen) && /Your hand goes through them/.test(r8.seen) && /The real pair are gone north/.test(r8.seen) && f9.wagonOutcome === 'fled' && f9.towerFled === 1 && /seven children/.test(o9) && /MORNING/.test(o9));
+        /> THE PAIR GOING WEST/.test(r8.seen) && /Your hand goes through them/.test(r8.seen) && /The real pair are gone north/.test(r8.seen) && f9.wagonOutcome === 'fled' && f9.towerFled === 1 && /The yard is empty/.test(o9) && /MORNING/.test(o9));
       // 7. THE FIRST CATCH WON: the pair at a hit point, run down and dropped where the road climbs; over on the road, the walk back, Willem's book in the yard's after
       // (its own dice from here, 11-05, the Katarina seat: the check rode on what the earlier ones had rolled -- seed 7 lost it on main, and the wagon night's short rest by the
       // watch, rolling its hit dice, moved it the same way: Willem's Hypnotic Pattern held the party and he was never dropped)
@@ -2927,7 +2928,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       HCh.playing = false; HCh.cur = null;
     } catch (eCh) { repCh.errors.push(String(eCh && eCh.stack || eCh).slice(0, 900)); }
     HCh.playing = false; HCh.cur = null; if (InCh) { InCh.stay = false; InCh.pinned = null; }
-    D.store.get = stGCh; D.store.set = stSCh; D.music = muCh;
+    if (D.chase) D.chase.OLD_SILK = false; D.store.get = stGCh; D.store.set = stSCh; D.music = muCh;
     var preCh = document.createElement('pre'); preCh.id = 'out'; preCh.textContent = 'BENCH16 ' + JSON.stringify(repCh);
     document.body.appendChild(preCh);
     return;
@@ -6087,27 +6088,31 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var GuK = D.gulch, WEBK = ChK.WEB || {}, webLineK = function (rows) { return rows[WEBK.y || 55]; };
       var rowsOn = (D.mines.FLOORS[GuK.KEY].map(2, { wagonChase: { on: true } }) || {}).rows || [], rowsOff = (D.mines.FLOORS[GuK.KEY].map(2, {}) || {}).rows || [];
       okK('the strand: row ' + WEBK.y + ' on the chase\'s night "' + (webLineK(rowsOn) || '').slice(15, 26) + '", any other night "' + (webLineK(rowsOff) || '').slice(15, 26) + '" (the gulch\'s own webbing, walked as the bed: ' + JSON.stringify(D.mines.LAY.webFloor) + ')',
-        WEBK.y === 55 && WEBK.dc === 12 && /x/.test(webLineK(rowsOn)) && !/,/.test(webLineK(rowsOn)) && /,,/.test(webLineK(rowsOff)));
-      function silkK(pins) { // (a chase on the greys from the south mouth, the tries' dice pinned; what was seen, and the foes' conds as each catch's fight opened)
-        var Bg = testK('?roam=webgulch&hour=2'), eng0 = RK.engage, conds = [];
-        atK(Bg, 22, 109, [0, -1]); Bg.roam.flags.wagonChase = { horses: true, willem: true, amara: true, leg: 1, gap: ChK.START.horses, acc: 0, on: false, steps: 0, back: null };
-        RK.engage = function* (B, grp) { conds.push((grp.foes || []).map(function (u) { return u.name + ':' + (u.conds && u.conds.restrained ? u.conds.restrained.kind || 'held' : 'free'); }).join(',')); yield* eng0.apply(this, arguments); };
-        InK.pinned = pins.slice(); var seen = [];
-        try {
-          var g = ChK.run(Bg), v, st, n = 0; while (n++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number') Bg.t += Math.max(1, st.value); }
-          (Bg.cards || []).forEach(function (c) { seen.push({ kind: 'card', text: window.DS.stripCodes(c.lines.join(' ')) }); });
-          seen = seen.concat(climbK(Bg, 160, 1));
-        } finally { RK.engage = eng0; InK.pinned = null; }
-        return { seen: seen, conds: conds, text: textK(seen), c: Bg.roam.flags.wagonChase || {} };
+        WEBK.y === 104 && WEBK.dc === 12 && /x/.test(webLineK(rowsOn)) && !/,/.test(webLineK(rowsOn)) && /,,/.test(webLineK(rowsOff)));
+      // THE CATCH AT THE SOUTH MOUTH (RULED 11-12, ruling 55; his 10:01Z shape -- it supersedes the silk midway up the cut): the fight opens at once as the party comes in
+      // at the south gate. The fight itself is stood in for: what stands as it opens, a blow at Willem (the hurt hook), Willem out of the silk, and the two away
+      function mouthK(horses, strike) {
+        var Bg = testK('?roam=webgulch&hour=2'), eng0 = RK.engage, sn = null, seen = [];
+        atK(Bg, 22, 109, [0, -1]); Bg.roam.flags.wagonChase = { horses: horses, willem: true, amara: true, leg: 1, gap: ChK.START.horses, acc: 0, on: false, steps: 0, back: null };
+        RK.engage = function* (B, grp) {
+          var S = ChK.mouthS, w = S.held, a = S.other, one = function (u) { return u ? u.name + '@' + u.x + ',' + u.y + ':' + (u.conds && u.conds.restrained ? u.conds.restrained.kind : 'free') + (u.mounted ? ':mounted' : ':afoot') + (u.flees ? ':flees' : ':stands') : null; };
+          var st = function () { return { w: one(w), a: one(a), greys: (B.riders || []).filter(function (r) { return r.chase; }).map(function (r) { return r.x + ',' + r.y; }).join(' ') }; };
+          sn = { card: (B.cards || []).map(function (c) { return window.DS.stripCodes(c.lines.join(' ')); }).join(' / '), open: st(), exits: (B.fight.exit || []).map(function (q) { return q.join(','); }).join(' '), foes: grp.foes.length };
+          if (strike) { B.active = B.roam.members[0]; B.hurt(w, 1, 'slashing', B.active); B.active = null; sn.struck = st(); }
+          delete w.conds.restrained; S.check(); sn.free = st();
+          [w, a].forEach(function (u) { if (u) { u.fled = true; u.dead = true; } }); B.roam.lastOutcome = 'fled'; yield 1;
+        };
+        try { var g = ChK.run(Bg), v, st2, n = 0; while (n++ < 4000) { st2 = g.next(v); v = undefined; if (st2.done) break; if (typeof st2.value === 'number') Bg.t += Math.max(1, st2.value); } } finally { RK.engage = eng0; }
+        (Bg.cards || []).forEach(function (c) { seen.push(window.DS.stripCodes(c.lines.join(' '))); });
+        return { sn: sn || {}, text: ((sn && sn.card) || '') + ' / ' + seen.join(' / '), c: Bg.roam.flags.wagonChase || {} };
       }
-      var sk1 = silkK([1, 1, 1, 1, 1, 1]), sk2 = silkK([20, 1, 1, 1, 1, 1]), sk3 = silkK([20, 20]);
-      var at1 = function (t, re) { var m = t.match(re); return m ? t.indexOf(m[0]) : -1; };
-      okK('both held in the silk: "' + sk1.text.slice(Math.max(0, at1(sk1.text, /Midway up the cut/)), Math.max(0, at1(sk1.text, /Midway up the cut/)) + 150) + '" ... the catch\'s foes ' + JSON.stringify(sk1.conds) + '; the north mouth never reached (' + !/greys take them up out of the cut/.test(sk1.text) + ')',
-        /the greys run straight into it/.test(sk1.text) && /You come up on them where the silk holds them/.test(sk1.text) && sk1.conds.length >= 1 && /Amara:web/.test(sk1.conds[0]) && /Willem Glass:web/.test(sk1.conds[0]) && !/greys take them up out of the cut/.test(sk1.text));
-      okK('one torn free: ' + sk2.text.slice(Math.max(0, at1(sk2.text, /tears free/) - 10), Math.max(0, at1(sk2.text, /tears free/)) + 420) + ' -- the catches\' foes ' + JSON.stringify(sk2.conds),
-        /Amara tears free of the silk and is away up the cut/.test(sk2.text) && /You come up on Willem Glass where the silk holds/.test(sk2.text) && sk2.conds[0] === 'Willem Glass:web' && /Amara is away again|the grey takes Amara up out of the cut/.test(sk2.text));
-      okK('both torn free: ' + sk3.text.slice(Math.max(0, at1(sk3.text, /Free of the silk/) - 10), Math.max(0, at1(sk3.text, /Free of the silk/)) + 260) + ' -- no catch at the silk (' + JSON.stringify(sk3.conds) + ')',
-        /Free of the silk, and away up the cut again/.test(sk3.text) && !/where the silk holds/.test(sk3.text) && /greys take them up out of the cut and away/.test(sk3.text) && sk3.conds.length === 0);
+      var mk1 = mouthK(true, true), mk2 = mouthK(false, false), WY = ChK.WEB.y;
+      okK('THE CATCH AT THE SOUTH MOUTH, on the greys: "' + mk1.text.slice(0, 170) + '" -- as it opens ' + JSON.stringify(mk1.sn.open) + ', their ways off ' + mk1.sn.exits + '; Willem struck at ' + JSON.stringify(mk1.sn.struck) + '; out of the silk ' + JSON.stringify(mk1.sn.free) + '; then leg ' + mk1.c.leg + ', the chase on ' + mk1.c.on,
+        /Web Gulch, the south mouth\. Silk is strung across the road, and Willem's grey is fast in it/.test(mk1.text) && !/Midway up the cut/.test(mk1.text) && mk1.sn.foes === 2 && mk1.sn.open.w === 'Willem Glass@22,' + WY + ':web:mounted:stands' && mk1.sn.open.a === 'Amara@22,' + (WY - 3) + ':free:mounted:flees' && mk1.sn.open.greys === '' &&
+        mk1.sn.exits.indexOf('22,' + (WY - ChK.AWAY)) >= 0 && mk1.sn.exits.indexOf('23,' + (WY - ChK.AWAY - 3)) >= 0 && /:web:afoot:stands$/.test(mk1.sn.struck.w) && /:free:afoot:stands$/.test(mk1.sn.struck.a) && mk1.sn.struck.greys === '22,' + (WY - ChK.AWAY - 1) + ' 22,' + (WY - ChK.AWAY - 3) &&
+        /Amara comes down off her grey and turns back for him/.test(mk1.text) && /:free:afoot:flees$/.test(mk1.sn.free.w) && /:flees$/.test(mk1.sn.free.a) && /Willem Glass is out of the silk\. They make for the greys/.test(mk1.text) && mk1.c.leg === 2 && mk1.c.on === true && mk1.c.webbed === true);
+      okK('THE CATCH AT THE SOUTH MOUTH, on foot, Willem never struck: "' + mk2.text.slice(0, 150) + '" -- as it opens ' + JSON.stringify(mk2.sn.open) + '; out of the silk ' + JSON.stringify(mk2.sn.free),
+        /Willem Glass is fast in it\. Amara is three strides past it, and running/.test(mk2.text) && /:web:afoot:stands$/.test(mk2.sn.open.w) && /:free:afoot:flees$/.test(mk2.sn.open.a) && !mk2.sn.struck && !/turns back for him/.test(mk2.text) && /:free:afoot:flees$/.test(mk2.sn.free.w) && /They make for the road north/.test(mk2.text) && mk2.c.leg === 2);
       // 4c. THE GREYS (RULED 11-11): the yard's team two greys, on the floor and in the yard's own fight's map (the art's grey: dev/innsee-probe.py)
       var YK = {}; InK.bedRiders({ riders: [], units: [], map: { at: function () { return null; } } }, YK, {}, false);
       var teamK = (YK.riders || []).filter(function (r) { return r.team; }).map(function (r) { return r.sheet; }), fightTeam = ((D.fight('wagonnight') || {}).riders || []).filter(function (r) { return r.team; }).map(function (r) { return r.sheet; });
@@ -6535,8 +6540,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         dbk === '13@18 false, 14@10 false, 14@17 true, 15@9 true' && a13 === true && in13 === false && a14a === true && a14 === false && in14 === true);
       var Bcb = testIn('?roam=halfway&hour=4&day=13&at=14,19&flags=reachedInn,gennetNamed,mealHad,wagonIn,katLooked'), fcb = Bcb.roam.flags; fcb.wagonCycle = 0; fcb.wagonStopped = 'c0'; fcb.glamourBroken = 1; fcb.glamourSeen = 1; fcb.wagonChase = { horses: false, willem: true, amara: true, back: 1, willemDead: false };
       Bcb.roam.silver = 10; runIn(Bcb, InI.chaseBack(Bcb)); var cbS = flowIn(Bcb, [], 'won', false, true) + ' / ' + cardsIn(Bcb), trC = ((HIn.cur && HIn.cur.trail) || []).map(function (e) { return e.s; }).join(' | ');
-      okIn('KATARINA RIDES WITH THE WAGON when the party chased (ruling 28): back in the yard -- rode ' + fcb.katRode + ', gone ' + fcb.katGone + ', Doran away ' + fcb.doranAway + '; her book in the drawer (' + (InI.bookInDrawer ? InI.bookInDrawer(fcb, 13, null) : '-') + '); said: ' + (cbS.match(/Katarina is up on the wagon[^/]*/) || ['nothing'])[0],
-        fcb.katRode === 1 && fcb.katGone === 1 && fcb.doranAway === 1 && InI.bookInDrawer(fcb, 13, null) === true && /Katarina is up on the wagon's bench beside Doran when it goes\. The table for two by the fire is cleared\./.test(cbS));
+      // DORAN'S FIRST SUPPER HOME (RULED 11-12, ruling 56: "add in 'snoot getting worse' line as well"): two lines of his before Gennet's opener, once
+      var Bdp = testIn('?roam=halfway&hour=18&day=14&at=24,17&flags=reachedInn,gennetNamed,mealHad,katGone'); Object.assign(Bdp.roam.flags, { supCount: 1, doranPit: 1, wagonCycle: 0, wagonOutcome: 'fled', dueOffC: 0, dueOff: 'kept' }); Bdp.roam.silver = 30; atIn(Bdp, 24, 17, [0, -1]); var dp1 = useIn(Bdp, [24, 16], [0]);
+      var Bdq = testIn('?roam=halfway&hour=18&day=14&at=24,17&flags=reachedInn,gennetNamed,mealHad,katGone'); Object.assign(Bdq.roam.flags, { supCount: 1, doranPit: 1, doranPitSaid: 1, wagonCycle: 0, wagonOutcome: 'fled', dueOffC: 0, dueOff: 'kept' }); Bdq.roam.silver = 30; atIn(Bdq, 24, 17, [0, -1]); var dp2 = useIn(Bdq, [24, 16], [0]);
+      okIn('DORAN\'S FIRST SUPPER HOME: ' + (dp1.seen.match(/The Pit's people took them[^>]*/) || ['nothing'])[0].slice(0, 150) + ' (said ' + Bdp.roam.flags.doranPitSaid + '); at the next supper again: ' + /The Pit's people took them/.test(dp2.seen),
+        /"The Pit's people took them\. All seven\."/.test(dp1.seen) && /"It's getting worse down there\. The Snoot\. I came north a day ahead of it\."/.test(dp1.seen) && Bdp.roam.flags.doranPitSaid === 1 && !/The Pit's people took them/.test(dp2.seen));
+      okIn('KATARINA RIDES WITH THE WAGON when the party chased (ruling 28): back in the yard -- rode ' + fcb.katRode + ', gone ' + fcb.katGone + ', Doran away ' + fcb.doranAway + '; her book in the drawer (' + (InI.bookInDrawer ? InI.bookInDrawer(fcb, 13, null) : '-') + '); said: ' + (cbS.match(/Katarina went up on the bench[^/]*/) || ['nothing'])[0] + '; the big room ' + fcb.bigRoom,
+        fcb.katRode === 1 && fcb.katGone === 1 && fcb.doranAway === 1 && InI.bookInDrawer(fcb, 13, null) === true && /Katarina went up on the bench beside him\. Paid her nights out and never looked back\./.test(cbS) && /Oh, heroes\. Take the big room/.test(cbS) && fcb.bigRoom === 1);
       HIn.playing = false; HIn.cur = null;
       // A PORTRAIT FACES INTO THE SCREEN (11-12; Griz, 0043Z: "mirror gennet portrait so she's facing the correct direction"): Gennet's, drawn looking screen left, is
       // mirrored when a look stands her top left; nobody else's is, and hers is not on the right

@@ -61,7 +61,7 @@
     west: 'Down the west road after them, and your hand goes through them. Willem\'s trick: a pair of runners made of nothing. The real pair are gone north, and the Tower\'s door opens for them.',
     lostHorses: 'The north mouth, and the greys take them up out of the cut and away. By morning they will be in Silverton, and the Tower\'s door opens for them.',
     lostEscaped: 'You let them go. North, and gone; by morning the Tower\'s door opens for them.',
-    done: 'It is over on the road. Behind you, back at the inn, the wagon and its seven wait in the yard.',
+    done: 'It is over on the road. The inn is a long walk behind you.', // (11-12, ruling 51: it had said the wagon and its seven wait in the yard -- Doran has driven them off by now)
     opts: { north: 'THE PAIR GOING NORTH', west: 'THE PAIR GOING WEST', after: 'AFTER THEM', let: 'LET THEM GO' }
   };
   Ch.state = function (B) { return B && B.roam && B.roam.flags && B.roam.flags.wagonChase || null; };
@@ -87,6 +87,7 @@
     var R = D.roam, R0 = B.roam, f = R0.flags, c = f.wagonChase, t = R0.token;
     if (!c || c.on || c.back) return;
     R0.encIn = 1e9; // (no spiders in the chase: the pair ahead have stirred the silk, and the party is running)
+    if (c.leg === 1 && !c.webbed && !Ch.OLD_SILK) { yield* Ch.mouthCatch(B, c); B.focus(t); return; } // (RULED 11-12, ruling 55: the catch at the south mouth -- the run up the cut from here is only for a chase already past its strand)
     Ch.place(B, c, Math.max(1, t.y - c.gap));
     c.on = true;
     yield* B.camTo({ gx: Ch.roadX(t.y - Math.floor(c.gap / 2)), gy: t.y - Math.floor(c.gap / 2), gz: 0 }, D.iso.zoom, 30);
@@ -113,7 +114,7 @@
   // floor's turn, six of the party's steps -- js/roam.js R.tickGroups' round). One torn free runs on up the cut toward the fork; both torn free, the chase goes on as it was
   // (the greys lost at the north mouth). The party within two squares of one still caught: the catch is there, the one caught restrained in the fight (the grid's web: it
   // tears at it with its action, js/ai.js) -- and after it, the one who ran on is chased to the fork as after any catch. The seat's lines: invented.json halfway-chase-web
-  Ch.WEB = { y: 55, dc: 12, round: 6 };
+  Ch.WEB = { y: 104, dc: 12, round: 6 }; // (y: the strand's row -- the south mouth since 11-12, five squares in from the gate, ruling 55; it was 55, midway up the cut)
   Ch.WEBL = {
     caught: 'Midway up the cut the silk is strung across the road, and they run straight into it: caught fast.',
     caughtHorses: 'Midway up the cut the silk is strung across the road, and the greys run straight into it, screaming: the pair caught fast in the saddle.',
@@ -199,6 +200,75 @@
     // away again: up the cut toward the fork, square for square (the first game's chase2)
     c.leg = 2; c.willem = !!(Ch.willem && Ch.willem.hp > 0 && (!Ch.willem.dead || Ch.willem.fled)); c.amara = !!(Ch.amara && Ch.amara.hp > 0 && (!Ch.amara.dead || Ch.amara.fled)); c.acc = 0; // (away off the floor is `dead` to the grid and `fled`: still up; the one killed in the first catch is not placed again -- 11-06)
     var t = R0.token; Ch.place(B, c, Math.max(1, t.y - Ch.START.foot));
+    yield* In.card(B, [Ch.ln(c, 'chase2', L('wagon.chase2')), Ch.ln(c, 'again', Ch.LINES.again)], 420);
+    c.on = true;
+  };
+  // THE CATCH AT THE SOUTH MOUTH (RULED 11-12, ruling 55, Griz on the reading page's lean "build your 10:01Z shape as written, the fight opening at the gulch's south
+  // mouth ... once Willem is free the two make for the horses at the north exit squares": "yes"; his 10:01Z note of 11-11 on the silk: "Prefer instant combat (they're
+  // caught in the web at the gulch entrance), if they strike him she'd turn back to fight til he was free, then try to escape - have them get exit squares like the
+  // party does on a roam, and if they hit him dismount them both to fight a round with the horses at the northern exit squares"). It supersedes the silk midway up the
+  // cut (11-11): the strand is strung at the south mouth (Ch.WEB.y), the party comes in on it and the fight opens AT ONCE. Willem is fast in the silk (the grid's web:
+  // restrained, he tears at it with his action); Amara is past it and RUNS for the pair's exit squares, the road eight squares on -- unless Willem is struck at: then
+  // she turns back and fights until he is free (on the greys, both come down to fight and the greys stand at the north exit squares); once he is out of the silk the
+  // two make for the exits, and one who gets there is away. After it, whoever got away is chased up the cut as after any catch (the fork; on a grey, the north mouth).
+  // With only one of them on the road, that one is the one caught
+  Ch.MOUTHL = {
+    caught: 'Web Gulch, the south mouth. Silk is strung across the road, and Willem Glass is fast in it. Amara is three strides past it, and running.',
+    caughtHorses: 'Web Gulch, the south mouth. Silk is strung across the road, and Willem\'s grey is fast in it, screaming. Amara\'s is through, and she does not look back.',
+    caughtOne: 'Web Gulch, the south mouth. Silk is strung across the road, and {name} is fast in it.',
+    turn: '{r}Amara{/} turns back for him.', turnHorses: '{r}Amara{/} comes down off her grey and turns back for him. The greys go on up the road, and stand.',
+    free: '{r}{name}{/} is out of the silk. They make for the road north.', freeHorses: '{r}{name}{/} is out of the silk. They make for the greys.', freeOne: '{r}{name}{/} is out of the silk, and runs.'
+  };
+  Ch.mouthCatch = function* (B, c) {
+    var R = D.roam, R0 = B.roam, f = R0.flags, F = B.fight, G = D.grid, keep = {}, t = R0.token, y = Ch.WEB.y, x = Ch.roadX(y), mt = !!c.horses;
+    ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
+    c.webbed = true; c.on = false; c.y = y; Ch.clear(B);
+    Ch.willem = c.willem ? In.unit(B, { id: 'chaseWillem', kind: 'willem', at: [x, y], name: 'Willem Glass', face: [0, -1], foe: true }) : null;
+    Ch.amara = c.amara !== false ? In.unit(B, { id: 'chaseAmara', kind: 'amara', at: Ch.willem ? [Ch.roadX(y - 3), y - 3] : [x, y], name: 'Amara', face: [0, -1], foe: true }) : null;
+    var held = Ch.willem || Ch.amara, other = held === Ch.willem ? Ch.amara : null; if (!held) return;
+    if (mt) [Ch.amara, Ch.willem].forEach(function (u) { if (u) D.Battle.mountUp(B, u, 40); });
+    held.conds = held.conds || {}; held.conds.restrained = { dc: Ch.WEB.dc, by: 'web', kind: 'web' };
+    if (D.house && D.house.trail) D.house.trail('chase', 'the catch at the south mouth: ' + held.name + ' in the silk' + (other ? ', ' + other.name + ' running' : ''));
+    yield* B.camTo({ gx: x, gy: y - 1, gz: 0 }, D.iso.zoom, 30);
+    yield* In.card(B, [other ? (mt ? Ch.MOUTHL.caughtHorses : Ch.MOUTHL.caught) : Ch.MOUTHL.caughtOne.split('{name}').join(held.name)], 420);
+    var exits = [], ey; for (ey = Math.max(0, y - Ch.AWAY - 3); ey <= Math.max(0, y - Ch.AWAY); ey++) { var ex = Ch.roadX(ey); exits.push([ex, ey], [ex + 1, ey]); }
+    F.runWhenHurt = null; F.fledEnds = true; F.loosen = null; F.exit = exits; F.noFlee = false;
+    held.flees = false; delete held.roamAside; if (other) { other.flees = true; delete other.roamAside; }
+    var S = Ch.mouthS = { held: held, other: other, struck: false, freed: false, exits: exits, riders: [] }, self = B;
+    S.turn = function () { // (struck at: she turns back; on the greys both come down, and the greys stand at the north exit squares)
+      if (S.struck || S.freed) return; S.struck = true;
+      if (other && G.standing(other)) { other.flees = false; other.fleeing = false; }
+      if (mt) {
+        [held, other].forEach(function (u) { if (u && u.mounted) D.Battle.dismount(self, u); });
+        S.riders = [0, 2].map(function (k) { var ry = Math.max(0, y - Ch.AWAY - 1 - k); return { x: Ch.roadX(ry), y: ry, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], chase: true, anim: 'idle', animT: 0 }; }).slice(0, other ? 2 : 1);
+        self.riders = (self.riders || []).concat(S.riders);
+      }
+      G.setup(self.map, self.units); self.cache = null;
+      if (other && G.standing(other)) self.card([mt ? Ch.MOUTHL.turnHorses : Ch.MOUTHL.turn], 300);
+      if (D.house && D.house.trail) D.house.trail('chase', held.name + ' struck at in the silk' + (other ? ': ' + other.name + ' turns back' : ''));
+    };
+    S.check = function () { // (out of the silk: the two make for the exits)
+      if (S.freed || !G.standing(held) || (held.conds && held.conds.restrained)) return; S.freed = true;
+      held.flees = true; if (other && G.standing(other)) other.flees = true;
+      self.card([(other && G.standing(other) ? (mt ? Ch.MOUTHL.freeHorses : Ch.MOUTHL.free) : Ch.MOUTHL.freeOne).split('{name}').join(held.name)], 300);
+    };
+    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, hurt0 = B.hurt, turn0 = D.ai.turn;
+    B.attack = function* (att, tgt) { if (tgt === held && att && att.side === 'party') S.turn(); return yield* atk0.apply(this, arguments); };
+    B.hurt = function (u, n) { if (u === held && n > 0 && self.active && self.active.side === 'party') S.turn(); return hurt0.apply(this, arguments); };
+    D.ai.turn = function* (Bf, u) { if (Bf === self) S.check(); yield* turn0.apply(this, arguments); if (Bf === self) S.check(); };
+    R0.fights++; R0.lastOutcome = null;
+    try { D.music('boss'); } catch (e) { }
+    try { yield* R.engage(B, { foes: [held].concat(other ? [other] : []), why: 'chase', zone: null }, false, 'chase'); }
+    finally { if (!ownAtk) delete B.attack; else B.attack = atk0; B.hurt = hurt0; D.ai.turn = turn0; B.riders = (B.riders || []).filter(function (r) { return !r.chase; }); Ch.mouthS = null; }
+    var o = R0.lastOutcome;
+    Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
+    if (Ch.willem && (Ch.willem.hp <= 0 || Ch.willem.dead) && !Ch.willem.fled) c.willemDead = true;
+    if (/^(lost|lose|dead|ko)$/.test(String(o))) return;
+    if (o === 'won') { yield* Ch.done(B, c, 'road'); return; }
+    if (o === 'escaped') { yield* In.card(B, [Ch.ln(c, 'lostEscaped', Ch.LINES.lostEscaped)], 420); yield* Ch.done(B, c, 'fled'); return; }
+    // away: up the cut toward the fork, as after any catch
+    c.leg = 2; c.willem = !!(Ch.willem && Ch.willem.hp > 0 && (!Ch.willem.dead || Ch.willem.fled)); c.amara = !!(Ch.amara && Ch.amara.hp > 0 && (!Ch.amara.dead || Ch.amara.fled)); c.acc = 0;
+    Ch.place(B, c, Math.max(1, t.y - Ch.START.foot));
     yield* In.card(B, [Ch.ln(c, 'chase2', L('wagon.chase2')), Ch.ln(c, 'again', Ch.LINES.again)], 420);
     c.on = true;
   };
