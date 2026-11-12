@@ -8,6 +8,7 @@ help as I recall it)".
     & "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --python tools/twinmace-blend.py -- build [hero=barley_p3] [ss=8]
     ... -- poser        the same, and deep16/_src/twinmace/poser.json for tools/poser.html?fig=twinmace (gitignored)
     ... -- hit          no renders: where each mace's head is at THE HIT against the target's shoulders, and each wrist's angle
+    ... -- poser kit=sword                the ONE-HANDED SLASH re-posed on this figure (below): deep16/_src/slash1h/, ?fig=slash1h
     ... -- poser build=dwarf target=0     the DWARF-proportioned striker and no target (his 11-12: "remove the mannequin target and do a set
                         with the position mannequin with dwarf proportions"): deep16/_src/twinmace-dwarf/, tools/poser.html?fig=twinmace-dwarf;
                         sized to pyro_p0's idle unless hero= says otherwise
@@ -50,6 +51,10 @@ BP = MQ.BP
 U, lin, FACINGS, PAD, K = MQ.U, MQ.lin, MQ.FACINGS, MQ.PAD, MQ.K
 MODE, SS = MQ.MODE, MQ.SS
 LOG = '[twinmace]'
+KIT = MQ.OPT.get('kit', 'maces')          # maces: a mace a fist, the twin strike. sword: one blade in the right fist, the one-handed slash (11-12)
+ROW = 'twinmace' if KIT == 'maces' else 'slash'
+if KIT == 'sword':
+    WORK = os.path.join(ROOT, 'deep16', '_src', 'slash1h'); LOG = '[slash1h]'
 DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
 TARGET = MQ.OPT.get('target', '1') != '0'
 if DWARF:
@@ -83,6 +88,7 @@ HEADC = 0.47             # (the head's middle, along the hand bone from the fist
 HEADR = 0.078
 MACE = [('pommel', 'grip', -0.075, -0.055, 0.030), ('grip', 'grip', -0.055, 0.06, 0.022), ('haft', 'haft', 0.06, 0.40, 0.022),
         ('head', 'HEAD', 0.40, 0.54, HEADR), ('cap', 'cap', 0.54, 0.57, 0.034)]
+BLADE = 0.95             # (the sword's tip, along the hand bone from the fist: mannequin-blend's SWORD)
 SHO = (0.19, 1.42, 0.065)          # the target's shoulder: half its width, its height, the bar's radius (the striker's own numbers)
 
 # ------------------------------------------------------------------ the bones: the slash's, with both hands a fist on a wrist, and the target's
@@ -174,11 +180,11 @@ def build():
     body.parent = arm; body.parent_type = 'OBJECT'
     mod = body.modifiers.new('arm', 'ARMATURE'); mod.object = arm
 
-    # ---- a mace in each fist: its own object on the hand bone (its frame is the bone's, from the bone's tail)
+    # ---- the weapons: its own object on the hand bone (its frame is the bone's, from the bone's tail) -- a mace a fist, or one sword in the right
     maces = {}
-    for s in 'LR':
+    for s in ('LR' if KIT == 'maces' else 'R'):
         bm = bmesh.new(); mm = []; L = ad.bones['hand.' + s].length
-        for name, colour, y0, y1, r in MACE:
+        for name, colour, y0, y1, r in (MACE if KIT == 'maces' else MQ.SWORD):
             colour = 'head' + s if colour == 'HEAD' else colour
             rot = Matrix.Rotation(math.radians(-90), 4, 'X')
             res = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=16, radius1=r * U, radius2=r * U, depth=(y1 - y0) * U,
@@ -206,7 +212,7 @@ def build():
 
 
 # ------------------------------------------------------------------ the rows
-def rows(R):
+def rows_maces(R):
     """His words on the first pass (11-12), the motion's law: "wrists essentially lock at position 1 / hands to the ears is mostly elbow
     retraction while shoulders raise the arms / then shoulders further up as torso starts leaning forward as knees lower torso / then the strike
     is elbows extending and shoulders coming down while the hips and legs start pulling the torso back on the way to return to idle".
@@ -249,7 +255,80 @@ def rows(R):
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), ('twinmace', 6, False, mk('twinmace', TWIN), 'ik')]
 
 
-ROWS_META = {'idle': dict(fps=6), 'twinmace': dict(fps=12, release=3)}
+NECK = (-0.07, 1.50)     # the slash's first mark on the target: its neck between its LEFT shoulder and its chin (the striker's right), x and z
+ANKLE = (0.10, 0.12)     # and its last: the target's RIGHT ankle (the striker's left)
+REACH = 0.70             # how far along the blade from the fist the neck is met
+SLASH = {}               # (what rows_slash works out for main: how far in front the target stands)
+
+
+def rows_slash(R):
+    """The one-handed slash, re-posed (11-12). His words: "slash (single right handed) is pretty bad as I recall. the right arm should be doing
+    about the same as with the mace, but the hip turns putting the left side forward with the left arm extending forward / on 3, knees dropped
+    about 3 inches, waist twisted back forward as the arm extends the slash, left to right aiming at the neck between 'attackers right'/targets
+    left shoulder and chin / at 4 the hips would be twisted beyond midline the other way, with the blade approaching targets right ankle, with
+    the knees starting back toward idle".
+    A frame is the hips' turn (`yaw`: - puts his LEFT side forward) and the waist's on top of it (`twist`), each arm's angles (`up` the upper
+    arm and `fo` the forearm, degrees above the level; `az` which way that arm points on the floor, + toward his left), and the blade: LOCK
+    degrees off its forearm in the arm's own plane, as the maces are -- except on 3 and 4, where it is laid on the target's marks (`at`) and
+    the wrist's angle is printed for the eye."""
+    za, zb = R.ANK0['a'].z, R.ANK0['b'].z
+    L1, L2 = R.BN['arm.L'].length / U, R.BN['fore.L'].length / U
+    rad = math.radians
+
+    def arm(sg, up, fo, az, out):
+        fw = (math.sin(rad(az)), -math.cos(rad(az)))
+        u = (fw[0] * math.cos(rad(up)), fw[1] * math.cos(rad(up)), math.sin(rad(up)))
+        f = (fw[0] * math.cos(rad(fo)), fw[1] * math.cos(rad(fo)), math.sin(rad(fo)))
+        w = tuple((u[k] * L1 + f[k] * L2) * U for k in range(3)); w = (w[0] + sg * out * U, w[1], w[2])
+        pole = (sg * 0.22 + u[0], u[1], u[2]) if abs(fo - up) > 40 else (sg * 0.30, 0.3, -1.0)
+        return w, pole
+
+    def P(lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, heel=0, sh=0, R_=(-62, 18, 0), L_=(-70, -25, 8), at=None):
+        wr, pr = arm(-1, R_[0], R_[1], R_[2], 0.02); wl, pl = arm(1, L_[0], L_[1], L_[2], 0.03)
+        return dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupb=sh,
+                    legs={'a': (0.13 * XK * U, -0.12 * U, za, 10, 0), 'b': (-0.13 * XK * U, 0.10 * U, zb, 28, heel)},
+                    arms={'a': wl, 'b': wr}, epolea=pl, epoleb=pr, _at=at)
+
+    IN3 = 0.076                                                       # (three inches)
+    SL = [
+        P(-0.04, lean=3),                                                                                            # 1 POSITION ONE: the blade up in front, as the maces are held
+        P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-12, 2, -4)),                 # 2 the hips turned, his LEFT side forward and the left arm out ahead; the right hand to the ear
+        P(-0.04 - IN3, shift=-0.04, lean=9, yaw=-4, twist=4, head=3, sh=6, R_=(-36, -20, -8), L_=(-55, -12, 14), at='neck'),      # 3 the knees down three inches, the waist back to the front, the arm out: THE CUT at the neck
+        P(-0.04 - IN3 * 0.6, shift=-0.05, lean=14, yaw=30, twist=14, head=8, hyaw=-18, R_=(-88, -80, 30), L_=(-78, -40, 26), at='ankle'),   # 4 the hips past the middle the other way, the blade down by the target's right ankle, the knees starting up
+        P(-0.05, shift=-0.02, lean=7, yaw=12, twist=5, hyaw=-6, R_=(-66, -8, 16), L_=(-72, -30, 14)),                 # 5 on the way back
+        P(-0.04, lean=3, yaw=2, R_=(-63, 14, 3)),                                                                     # 6 nearly idle
+    ]
+    IDLE = [P(-0.04, lean=3)]
+
+    def fist(P):
+        Q = {k: v for k, v in P.items() if k != '_at'}
+        d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]
+        return Q, M, M['hand.R'].translation.copy()
+
+    # where the target stands: the neck REACH along the blade from the fist at 3
+    _, _, F3 = fist(SL[2]); dx, dz = NECK[0] * U - F3.x, NECK[1] * U - F3.z
+    SLASH['ty'] = (F3.y - math.sqrt(max((REACH * U) ** 2 - dx * dx - dz * dz, 0.0))) / U
+    MARK = {'neck': Vector((NECK[0], SLASH['ty'], NECK[1])) * U, 'ankle': Vector((ANKLE[0], SLASH['ty'], ANKLE[1])) * U}
+
+    def aim(P, tag):
+        Q, M, F = fist(P)
+        if P.get('_at'):
+            b = (MARK[P['_at']] - F).normalized()
+        else:
+            u = (M['fore.R'].translation - M['arm.R'].translation).normalized()
+            f = (M['fore.R'] @ Vector((0, R.BN['fore.R'].length, 0)) - M['fore.R'].translation).normalized()
+            n = u.cross(f); n = n.normalized() if n.length > 1e-4 else Vector((-1, 0, 0))
+            b = Matrix.Rotation(math.radians(LOCK), 3, n) @ f
+        return dict(Q, hands={'b': tuple(b)})
+    mk = lambda name, F: (lambda i, n: (aim(dict(F[i]), '%s %d' % (name, i + 1)), 0))
+    return [('idle', 1, False, mk('idle', IDLE), 'ik'), ('slash', 6, False, mk('slash', SL), 'ik')]
+
+
+def rows(R):
+    return rows_maces(R) if KIT == 'maces' else rows_slash(R)
+
+
+ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3 if KIT == 'maces' else 2)}     # (the slash's cut meets the neck on its frame 3)
 
 
 def heads(arm):
@@ -266,27 +345,35 @@ def main():
     rowdefs = rows(R)
     R.key_rows(rowdefs)
 
-    # ---- the target stood where the hit lands: its shoulder line under the two heads at THE HIT
-    R.use('twinmace'); scene.frame_set(ROWS_META['twinmace']['release'] + 1); bpy.context.view_layer.update()
-    H = heads(arm); hw, hz, hr = SHO
-    ty = float((H['L'][0][1] + H['R'][0][1]) / 2)
+    R.use(ROW); scene.frame_set(ROWS_META[ROW]['release'] + 1); bpy.context.view_layer.update()
+    if KIT == 'maces':     # ---- the target stood where the hit lands: its shoulder line under the two heads at THE HIT
+        H = heads(arm); hw, hz, hr = SHO
+        ty = float((H['L'][0][1] + H['R'][0][1]) / 2)
+        top = hz + 0.01 + 0.075                       # the pad's top
+        for s, x in (('L', 1), ('R', -1)):
+            h = H[s][0]
+            print('%s THE HIT %s: the head at x %.3f y %.3f z %.3f -- the shoulder %.3f across, its pad\'s top %.3f: off by %.3f across, %.3f up (the head\'s underside to the pad)'
+                  % (LOG, s, h[0], h[1], h[2], hw * x, top, h[0] - hw * x, h[2] - HEADR - top))
+    else:                  # ---- the target stood where the cut meets its neck (rows_slash worked it out)
+        ty = SLASH['ty']
+        for fr, mark, nm in ((3, NECK, 'its neck'), (4, ANKLE, 'its right ankle')):
+            scene.frame_set(fr); bpy.context.view_layer.update()
+            M = arm.pose.bones['hand.R'].matrix; f0 = np.array(M @ Vector((0, 0, 0))) / U; tip = np.array(M @ Vector((0, BLADE * U, 0))) / U
+            m = np.array((mark[0], ty, mark[1])); d = tip - f0; t = float(np.dot(m - f0, d) / np.dot(d, d))
+            print('%s frame %d: the fist at (%.2f, %.2f, %.2f), the tip at (%.2f, %.2f, %.2f); %s is %.3f from the blade\'s line, %.2f m along it from the fist (the tip at %.2f)'
+                  % (LOG, fr, f0[0], f0[1], f0[2], tip[0], tip[1], tip[2], nm, float(np.linalg.norm(f0 + d * t - m)), t * BLADE, BLADE))
     dummy.matrix_world = Matrix.Translation((0, ty * U, 0)); bpy.context.view_layer.update()
-    top = hz + 0.01 + 0.075                       # the pad's top
-    for s, x in (('L', 1), ('R', -1)):
-        h = H[s][0]
-        print('%s THE HIT %s: the head at x %.3f y %.3f z %.3f -- the shoulder %.3f across, its pad\'s top %.3f: off by %.3f across, %.3f up (the head\'s underside to the pad)'
-              % (LOG, s, h[0], h[1], h[2], hw * x, top, h[0] - hw * x, h[2] - HEADR - top))
     print('%s the target stands %.3f m in front (toe to toe about %.2f)' % (LOG, -ty, -ty - 0.17 - 0.155))
     for name, n, loop, fn, how in rowdefs:
         R.use(name)
         for i in range(n):
             scene.frame_set(i + 1); bpy.context.view_layer.update()
             a = []
-            for s in 'LR':
+            for s in maces:
                 fo, hd = arm.pose.bones['fore.' + s], arm.pose.bones['hand.' + s]
                 a.append('%s %.0f' % (s, math.degrees((fo.tail - fo.head).angle(hd.tail - hd.head))))
             hz_ = ['%s %.3f' % (sd, (arm.pose.bones['foot.' + sd].head.z - R.ANK0['a' if sd == 'L' else 'b'].z) / U) for sd in 'LR']
-            print('%s wrists %s %d: the mace off the forearm %s | each ankle risen (m) %s' % (LOG, name, i + 1, ', '.join(a), ', '.join(hz_)))
+            print('%s wrists %s %d: the weapon off the forearm %s | each ankle risen (m) %s' % (LOG, name, i + 1, ', '.join(a), ', '.join(hz_)))
     if MODE == 'hit':
         return
 
@@ -350,9 +437,9 @@ def main():
                     sc = lambda w: [round(float(v), 2) for v in (MQ.screen(cam, np.array([w]))[0] + np.array([M['ax'], oy]))]
                     if kind == 'render':
                         q = {}
-                        for sd in 'LR':
+                        for sd in maces:
                             Mw = arm.matrix_world @ arm.pose.bones['hand.' + sd].matrix
-                            q['fist' + sd] = sc(np.array(Mw @ Vector((0, 0, 0)))); q['head' + sd] = sc(np.array(Mw @ Vector((0, HEADC * U, 0))))
+                            q['fist' + sd] = sc(np.array(Mw @ Vector((0, 0, 0)))); q['head' + sd] = sc(np.array(Mw @ Vector((0, (HEADC if KIT == 'maces' else BLADE) * U, 0))))
                         wb = MQ.world_pts(body, 1); q['crown'] = sc(wb[MQ.screen(cam, wb)[:, 1].argmin()])
                         sl = MQ.soles(body, R); left = sl @ np.array(arm.matrix_world.to_3x3().col[0]) > 0
                         if left.any() and (~left).any():
@@ -369,7 +456,7 @@ def main():
     if MODE == 'poser':
         hide([dummy], not TARGET); arm.scale = (1, 1, 1); arm.rotation_euler = (0, 0, 0); bpy.context.view_layer.update()
         R.export_poser(os.path.join(WORK, 'poser.json'), rowdefs, col=vcol, fig=os.path.basename(WORK), fps={k: v['fps'] for k, v in ROWS_META.items()},
-                       extras=[(maces['L'], COL['headL']), (maces['R'], COL['headR'])] + ([(dummy, COL['dummy'])] if TARGET else []))
+                       extras=[(maces[k], COL['head' + k] if KIT == 'maces' else COL['blade']) for k in maces] + ([(dummy, COL['dummy'])] if TARGET else []))
 
 
 if __name__ == '__main__':
