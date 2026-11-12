@@ -276,7 +276,7 @@
     // (invented.json #hammer-and-tongs); +3 dwarven plate and the King's Mantle (RULED 09-30b). His turn is his own (js/pyro.js): on the
     // Pocket DM (?npc=pyro) and as a foe he fights at full. Past the class's 9 by name only (maxLvl: 09-30, "past 9 for special NPCs")
     pyro: { name: 'Pyro', named: true, cls: 'fighter', lvl: 12, maxLvl: 12, race: 'dwarf', subclass: 'Champion', look: 'pyro_p2', script: 'measure', /* (11-12, cutter-pyro: his own fight sheet, the art desk's ART-141 combat and twin strike, tools/pyro-fight-sheet.py -- pyro_p0 before; standing for his overrule) */
-      abil: { str: 20, dex: 14, con: 16, int: 11, wis: 13, cha: 15 }, hp: 112, noPrecast: true,
+      abil: { str: 20, dex: 14, con: 16, int: 11, wis: 13, cha: 15 }, hp: 112, noPrecast: true, style: 'twf', feats: ['symmetric'], // (11-12, RULED: Symmetric Fighting and the Two-Weapon Fighting style -- his ordinary turn two Twin Strikes, js/pyro.js twinTurn)
       equip: { weapon: 'mace', offhand: 'macedisruption', armor: 'kingsplate', shield: null, cloak: 'kingsmantle' } },
     // GreyFang (TarlynsPit/wiki/greyfang.md: the wolf-headed Lupine of the Gemorax fragment, a survivor of Rhollor's people from the Orc War, who runs the
     // fighting pit dug at the bunker-converted building and the Promenade's errands -- Griz, 10-08). A ranger of our own way, the Grey Road (Griz, 10-08: "If we
@@ -417,7 +417,7 @@
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
       saveAll: spec.saveAll || 0, // (the elder mage's +10 to every save, 11-07 -- js/rules.js R.saveBonus; his "+10 resistances", read as saves)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
-      featIds: featsW.length ? featsW.slice() : undefined, // (the feats a word's picks took: R.hasFeat, 10-15)
+      featIds: featsW.length || spec.feats ? featsW.concat((spec.feats || []).filter(function (f) { return featsW.indexOf(f) < 0; })) : undefined, // (the feats a word's picks took: R.hasFeat, 10-15) (spec.feats: a named one's own -- Pyro's Symmetric Fighting, 11-12)
       script: spec.script || null, // (a named one's own turn: js/pyro.js)
       grimlock: !!spec.grimlock, twoActions: !!spec.twoActions, naturals: spec.naturals || null, combo: spec.combo || null // (the General's, 11-10: NPC.unit reads them)
     };

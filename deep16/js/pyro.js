@@ -15,6 +15,9 @@
      and full level 12 to the end -- Extra Attack's three, one off-hand strike in the Attack action (Hammer and Tongs, our style at
      his 10th, invented.json #hammer-and-tongs), the off-hand's own bonus-action strike, Action Surge, Second Wind; then the
      player loads from a save.
+   SINCE 11-12 (RULED -- Griz on the lanes desk's leans: "Agree with your leans"): Symmetric Fighting and the Two-Weapon Fighting style
+     (his Additional Fighting Style at 10) -- with both maces out each blow is a TWIN STRIKE (twinTurn): phase 2 one, phase 3 two (a
+     swing and the bonus, then two swings), and a third on Action Surge. Hammer and Tongs' swing in the action is not in his turn now.
    Down: the fight ends there (over: 'pyro'), and the player loads from a save.
    He holds back only where he is taking the party's measure: inside the 8-bit game (B.o.embed) or a bench that says so
    (B.o.measure). On the grid's own ladders, and as a foe, he fights at full from the first round. */
@@ -163,6 +166,7 @@
       if (full && (yield* S.axe(B, u))) return; // (his handaxe, thrown, at full -- not while he is taking the party's measure: 10-05)
       B.card(['{g}' + u.name + ' cannot reach any of them from here.{/}'], 160); yield 16; return; // (said, not silent -- 10-05: he stood at the vault ten rounds with no word, the foes all up the face)
     }
+    if (P.phase >= 2 && D.Battle.twinOK(u)) { yield* twinTurn(B, u, P, tgt, full); return; } // (his maces paired: TWIN STRIKE -- 11-12, below)
     T.action = 0;
     var n = u.attacksBase || 3, plan;
     if (P.phase === 1) plan = [main];
@@ -186,6 +190,32 @@
     }
     if (!full) T.move = 0; // (holding back: his swing, and that's his turn)
   };
+  // TWIN STRIKE, his (11-12, RULED -- Griz on the lanes desk's three leans: "Agree with your leans"; the third, Pyro takes Symmetric Fighting and the Two-Weapon Fighting style, his
+  // Additional Fighting Style at 10 -- STR 20, mace and mace -- so his ordinary turn is two Twin Strikes and his sheet's `twinstrike` row plays): with both maces out (phase 2 on),
+  // each blow both maces at once, paid as battle.js Battle.twinPay says -- the first a swing and the bonus action, the second two swings, so his three attacks are two strikes. At full,
+  // Action Surge (two or more in his reach) is the Attack again: one more Twin Strike on two swings, the third swing one mace. Phase 2 holds back as it did (his "two attacks": one
+  // strike, a mace in each hand, and the rest let go). Hammer and Tongs' off-hand swing in the action (invented.json #hammer-and-tongs) is not in this turn: the style he takes is
+  // Two-Weapon Fighting
+  function* twinTurn(B, u, P, tgt, full) {
+    var T = u.turn, first = true;
+    var pick = function () { var rs = inReach(B, u); var t = first && G.standing(tgt) && rs.indexOf(tgt) >= 0 ? tgt : rs.sort(function (a, b) { return a.hp - b.hp; })[0]; first = false; return t; };
+    var blows = function* (cap) {
+      var n = 0;
+      while (!B.over() && !u.dead && u.hp > 0 && (T.attacksLeft > 0 || T.action > 0) && (cap == null || n < cap)) {
+        var t = pick(); if (!t) break;
+        var al = T.attacksLeft, ac = T.action;
+        yield* B.exec(u, { do: D.Battle.twinOpen(u) ? 'twinstrike' : 'attack', target: t }); n++;
+        if (T.attacksLeft === al && T.action === ac) break; // (nothing spent: charmed at it -- no loop)
+      }
+    };
+    if (P.phase === 2) { yield* blows(1); T.attacksLeft = 0; T.bonus = 0; T.move = 0; return; } // (holding back: the one strike, both maces)
+    yield* blows();
+    if (full && u.feats && u.feats.actionSurge > 0 && !T.action && !T.attacksLeft && inReach(B, u).length >= 2 && !u.dead && u.hp > 0 && !B.over()) {
+      u.feats.actionSurge = 0; T.action = 1; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the attacks again){/}']); yield 16;
+      yield* blows();
+    }
+    T.attacksLeft = 0;
+  }
 
   // ------------------------------------------------------------------ the King's Mantle: +5 to saving throws against spells (RULED 09-30b)
   // B.spellNow for the length of a cast; RU.save adds the cloak's number to the save it rolls then (js/rules.js R.spellSave)
