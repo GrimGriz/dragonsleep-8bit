@@ -307,6 +307,15 @@ PEOPLE = {
         ('ART-141-PYRO/PORTRAITS/sources/ART-141-PYRO_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
         + [('ART-141-PYRO/PORTRAITS/sources/ART-141-PYRO_HEAD-%02d_PAGE-1_%s.png' % (h, act.upper()), [1], [act]) for h, act in [
             (2, 'attentive'), (3, 'welcoming'), (4, 'grave'), (5, 'stern'), (6, 'grieved')]]}),
+    # INGRITH SCALEBEAM, cleric of Solskaft and captain of its ledger (11-12, cutter-ingrith, on the lanes desk's relay of Griz's word that her pages were in Fresh;
+    # art-wanted section 54, "Ingrith just as her role in the story shows on her, I'm less picky."): the art desk's ART-141-INGRITH portraits, sorted to
+    # deep16/_src/ingrith/PORTRAITS/source/ -- Idle 6 (the closed ledger held to her chest, the blink on 4-5) and five moods: attentive, welcoming, skeptical (the
+    # ledger half open), grave (a hand closed over the token at her throat), weary. Waist-up with no counter, so `noledge` and `cutline` (Pyro's way); looks screen
+    # left. The reds kept, unlike Pyro's: left out, her auburn hair and burgundy sleeves snapped brown (the welcoming still's ledger flecks red, the lesser cost). No scene speaks on her yet: the story's scenes with her are the story build lane's
+    'ingrith': ('ingrith/PORTRAITS/source', 'ART-141-INGRITH', 'npc:ingrith (Solskaft, Ingrith\'s ledger-room; js/counter.js not wired)', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [
+        ('ingrith/PORTRAITS/source/ART-141-INGRITH_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
+        + [('ingrith/PORTRAITS/source/ART-141-INGRITH_HEAD-%02d_PAGE-1_%s.png' % (h, act.upper()), [1], [act]) for h, act in [
+            (2, 'attentive'), (3, 'welcoming'), (4, 'skeptical'), (5, 'grave'), (6, 'weary')]]}),
 }
 
 

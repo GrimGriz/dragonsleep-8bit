@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_ingrith.png",
+ "fw": 145,
+ "fh": 158,
+ "ax": 73,
+ "ay": 154,
+ "top": 154,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 158,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 316,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 474,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grave": {
+   "y": 632,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "weary": {
+   "y": 790,
+   "fw": 145,
+   "fh": 158,
+   "ax": 73,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-141-INGRITH",
+ "door": "npc:ingrith (Solskaft, Ingrith's ledger-room; js/counter.js not wired)",
+ "source": "deep16/_src/ingrith/PORTRAITS/source (the art desk's ART-141-INGRITH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

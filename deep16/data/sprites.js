@@ -7674,6 +7674,40 @@
 }
 }
 },
+"ingrith_p1": {
+"image": "art/ingrith_p1.png?v=eb7cf8ec1e",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 8,
+"fps": 9
+}
+},
+"name": "Ingrith",
+"hold": [
+"walk: SE and E -- the overlapping boots make the lead-foot switch at 1 and 5 ambiguous (the art desk's own note)",
+"the camera is shallower than the grid's on some pages; the E profile shows the ledger as an edge (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-141-INGRITH-TOWN, 11-12: art-wanted section 54, her town figure in five views), cut by tools/ingrith-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "innprops_p1": {
 "_note": "the Halfway Inn's props (tools/innprops-sheet.py, the art desk's return of art-wanted section 36, 2026-11-04): each piece a box x,y,w,h and its anchor ax,ay -- the back corner of its footprint on the ground; `foot` its squares along the grid's x and y; the flames each a frame over its hearth, the hearth's own anchor. js/innprops.js lays them on the inn's floor and cuts each a square at a time for the sort.",
 "image": "art/innprops_p1.png?v=34a31c17da",
@@ -16860,6 +16894,97 @@ true
 "art": "ART-123-IDONY",
 "door": "npc:idony",
 "source": "deep16/_src/idony/ART-123-IDONY (the art desk's ART-123-IDONY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_ingrith": {
+"image": "art/pt_ingrith.png?v=0f0c49376f",
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 158,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 316,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 474,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 632,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"weary": {
+"y": 790,
+"fw": 145,
+"fh": 158,
+"ax": 73,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-141-INGRITH",
+"door": "npc:ingrith (Solskaft, Ingrith's ledger-room; js/counter.js not wired)",
+"source": "deep16/_src/ingrith/PORTRAITS/source (the art desk's ART-141-INGRITH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_jory": {
 "image": "art/pt_jory.png?v=7d41d84d38",

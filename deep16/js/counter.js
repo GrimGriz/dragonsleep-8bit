@@ -631,7 +631,7 @@
   // A PORTRAIT FACES INTO THE SCREEN (11-12, the inn seat; Griz on sacrifice night's full tell, 11-12 0043Z, at the look "until Gennet says her name": "mirror gennet
   // portrait so she's facing the correct direction"): Gennet's portrait is drawn looking screen left -- right when she stands top right, and backwards when a look puts
   // her top LEFT (the one looked at stands opposite the one looking: Elsbeth, come round the table to the right). A portrait named in C.FACES_LEFT is mirrored on the left
-  C.FACES_LEFT = { pt_gennet: 1 };
+  C.FACES_LEFT = { pt_gennet: 1, pt_ingrith: 1 };   // (pt_ingrith, 11-12, cutter-ingrith: the art desk's ART-141 drew her looking screen left)
   C.faceFlip = function (name, side) { return side === 'left' && !!C.FACES_LEFT[name]; };
   C.drawFacing = function (ctx, g, anim, frame) {
     if (!C.faceFlip(g.sheet, g.side)) return C.drawPortraitAt(ctx, g.sheet, anim, frame, g.x, g.foot, g.s);

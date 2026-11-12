@@ -1,0 +1,34 @@
+{
+ "image": "art/ingrith_p1.png",
+ "fw": 32,
+ "fh": 64,
+ "ax": 16,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 32,
+   "fh": 64,
+   "ax": 16,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 8,
+   "fps": 9
+  }
+ },
+ "name": "Ingrith",
+ "hold": [
+  "walk: SE and E -- the overlapping boots make the lead-foot switch at 1 and 5 ambiguous (the art desk's own note)",
+  "the camera is shallower than the grid's on some pages; the E profile shows the ledger as an edge (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-141-INGRITH-TOWN, 11-12: art-wanted section 54, her town figure in five views), cut by tools/ingrith-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
