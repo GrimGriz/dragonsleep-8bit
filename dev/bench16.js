@@ -20035,8 +20035,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       Pq.st.run = { rung: 1, plan: [] }; Pq.msg = null; Pq.dropMade(1); var whyRun = Pq.msg && Pq.msg.text; Pq.st.run = null;
       Pq.ask = function () { return false; }; Pq.dropMade(1); var keptNo = Pq.st.roster.length;
       okPq('refused while a ladder holds Cy C (' + whyRun + '); a NO to the ask keeps them (' + keptNo + ' on the roster)', Pq.st.roster.length === 2 && /under way/.test(whyRun || '') && keptNo === 2);
-      Pq.ask = function () { return true; }; Pq.go('party'); drawPq(Pq, 'party'); var drops = Pq.btns.filter(function (b) { return b.label === 'DROP'; });
-      if (drops[1]) Pq.fire(drops[1]); drawPq(Pq, 'party after');
+      Pq.ask = function () { return true; }; Pq.go('party'); Pq.seatI = 0; Pq.go('seat'); Pq.seatI = 0; Pq.scroll = 99; drawPq(Pq, 'the roster'); var drops = Pq.btns.filter(function (b) { return b.label === 'DROP'; }); // (DROP is on THE ROSTER's row since 11-12: the card's row holds its level arrows)
+      if (drops[1]) Pq.fire(drops[1]); Pq.scroll = 99; drawPq(Pq, 'the roster after');
       okPq('DROP on Cy C\'s card: off the roster (' + Pq.st.roster.map(function (c) { return c.name; }).join(', ') + '), the seat the ? (' + JSON.stringify(Pq.st.party[1]) + '), the winning and the seat\'s shield in the pack (' + JSON.stringify(Pq.st.pack) + '), one DROP left (' + Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length + ')',
         drops.length === 2 && Pq.st.roster.length === 1 && Pq.st.party[1].w === 'new' && PKq.packN(Pq.st, 'longsword1') === 1 && PKq.packN(Pq.st, 'shield') === 1 && Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length === 1);
       // (3) his 10-18 leads, each probed against his records (play-records/pocket-dm-fights-2026-10-18-1306.json): what was a bug by the SRD, fixed; what works as the SRD says, kept so
@@ -20887,6 +20887,77 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     finally { D.store.get = stGPm; D.store.set = stSPm; D.push = push0Pm; HTMLAnchorElement.prototype.click = clk0Pm; D.scenes.length = 0; sc0Pm.forEach(function (s) { D.scenes.push(s); }); }
     var prePm = document.createElement('pre'); prePm.id = 'out'; prePm.textContent = 'BENCH16 ' + JSON.stringify(repPm);
     document.body.appendChild(prePm);
+    return;
+  }
+  // A MADE CARD LIKE THE REST OF THE ROSTER (mode=pocketmade1112; the Pocket DM lane, 11-12, Griz: "can we force 'made' spell entry into a box that let's us fix the guess for
+  // anything made after today? it'd be really handy to have one interface once the characters are in the roster, I say build"): a made card's level arrows; the box (r.got)
+  // written by a level's defaults, by its page and by the maker's save, and a level given back taking exactly it; the guess for a card with no box; EDIT and DROP on THE
+  // ROSTER's rows. On a stand-in store
+  if (get('mode', '') === 'pocketmade1112') {
+    var repMd = { checks: [], errors: [] }, okMd = function (c, s) { repMd.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memMd = {}, stGMd = D.store.get, stSMd = D.store.set, sc0Md = D.scenes.slice();
+    D.store.get = function (k) { return memMd[k] ? JSON.parse(memMd[k]) : null; }; D.store.set = function (k, v) { memMd[k] = JSON.stringify(v); return true; };
+    try {
+      var cvMd = document.createElement('canvas'); cvMd.width = D.W; cvMd.height = D.H; var cxMd = cvMd.getContext('2d');
+      var PKd = D.pocket, NPd = D.npc, Pz = new D.Pocket(); Pz.enter(); Pz.ask = function () { return true; };
+      D.scenes.length = 0; D.scenes.push(Pz);
+      var drawMd = function () { Pz.btns = []; Pz.draw(cxMd); return Pz.btns.map(function (b) { return b.label; }); };
+      var btnMd = function (re, k) { return Pz.btns.filter(function (b) { return re.test(b.label); })[k || 0] || null; };
+      var KMd = function (b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; };
+      var knownOf = function (r) { return (NPd.decode(r.code).known || []).slice(); };
+      var make = function (seat, cls, lvl, name) { Pz.makeNew(seat, null); Pz.mk.cls = cls; Pz.kitUp(); Pz.mk.lvl = lvl; Pz.mk.walked = lvl; Pz.mk.name = name; var inf = Pz.spellInfo(); if (inf) Pz.mk.known = inf.defC.concat(inf.def); Pz.saveMade(); return Pz.st.roster[Pz.st.roster.length - 1]; };
+      Pz.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'new' }, { w: 'new' }]; Pz.st.roster = []; Pz.st.run = null; Pz.st.editLevels = false; Pz.cache = {};
+      var wz = make(1, 'wizard', 1, 'Zed'), ft = make(2, 'fighter', 3, 'Brokk'); Pz.egg = null; // (Denny on the first character made: let go)
+      Pz.go('party'); var L1 = drawMd();
+      // 1. the card: the level arrows, no EDIT, no DROP
+      okMd(L1.filter(function (l) { return l === '<'; }).length === 3 && L1.filter(function (l) { return l === '>'; }).length === 3 && L1.indexOf('EDIT') < 0 && L1.indexOf('DROP') < 0, '1 THE PARTY, Barley and two made cards: < and > under all three, no EDIT or DROP on a card (' + L1.filter(function (l) { return /^(<|>|EDIT|DROP)$/.test(l); }).join(' ') + ')');
+      // 2. DEFAULTS: up twice, NEXT -- the class's own spells, each level's in its box
+      var k1 = knownOf(wz); Pz.levelSlot(1, 1); Pz.levelSlot(1, 1); var dueW = (wz.due || []).join(), L2 = drawMd();
+      okMd(wz.lvl === 3 && dueW === '2,3' && !Pz.pm && knownOf(wz).join() === k1.join() && L2.indexOf('NEXT: THE CAMP') >= 0, '2a Zed the wizard 1 to 3 by the arrows: level 3, levels 2 and 3 owed on his roster record (' + dueW + '), his list not yet grown');
+      Pz.fire(btnMd(/^NEXT: THE CAMP$/)); var k3 = knownOf(wz), g2 = (wz.got || {})[2] || [], g3 = (wz.got || {})[3] || [];
+      okMd(Pz.screen === 'hub' && !wz.due && g2.length > 0 && g3.length > 0 && k3.length === k1.length + g2.length + g3.length && g2.concat(g3).every(function (id) { return k3.indexOf(id) >= 0 && k1.indexOf(id) < 0; }),
+        '2b NEXT with DEFAULTS: the class\'s own for each level, in its box -- level 2 gave ' + g2.join(', ') + '; level 3 gave ' + g3.join(', ') + ' (' + k1.length + ' spells to ' + k3.length + ')');
+      // 3. a level given back takes exactly its box
+      Pz.go('party'); Pz.levelSlot(1, -1); var kB2 = knownOf(wz);
+      okMd(wz.lvl === 2 && kB2.join() === k1.concat(g2).join() && !(wz.got || {})[3] && !!(wz.got || {})[2] && !!PKd.sheetOf(NPd.spec(wz.code)), '3a 3 back to 2: exactly level 3\'s spells gone, level 2\'s kept, the sheet builds');
+      Pz.levelSlot(1, -1); var kB1 = knownOf(wz);
+      okMd(wz.lvl === 1 && kB1.join() === k1.join() && !wz.got && wz.xp === DS.R.XP_LEVEL[1], '3b 2 back to 1: the list he was made with, to the spell (' + kB1.length + '), the box empty');
+      // 4. EDIT: the level's page at NEXT, its picks in the box
+      Pz.st.editLevels = true; Pz.levelSlot(1, 1); var L4 = drawMd(), nb = btnMd(/^NEXT: THE LEVEL-UPS$/); if (nb) Pz.fire(nb);
+      var pgN = null; for (var gM = 0; gM < 20 && Pz.screen === 'party'; gM++) { Pz.update(); if (Pz.pm) { var mM = Pz.pm; if (mM.toast) mM.update(KMd('a')); var pM = mM.top(); pgN = pM.h.name + ' ' + pM.h.lvl;
+        var confMd = function () { var pg = mM.top(); pg.list.i = pg.list.items.findIndex(function (it) { return it.confirm; }); pg.list.fix(); mM.update(KMd('a')); if (mM.toast) mM.update(KMd('a')); return Pz.pm !== mM || mM.closed; };
+        var doneMd = confMd(); // (a made wizard's level: two spells of his own choosing -- a row at a time till the page lets go)
+        for (var rw = 0; !doneMd && rw < 30; rw++) { var pg2 = mM.top(); if (rw >= pg2.list.items.length) break; if (pg2.list.items[rw].confirm) continue; pg2.list.i = rw; pg2.list.fix(); mM.update(KMd('a')); if (mM.toast) mM.update(KMd('a')); doneMd = confMd(); }
+        if (!doneMd) { repMd.errors.push('the page would not confirm'); break; } } }
+      var g2e = (wz.got || {})[2] || [];
+      okMd(!!nb && pgN === 'Zed 2' && Pz.screen === 'hub' && wz.lvl === 2 && g2e.length > 0 && g2e.every(function (id) { return knownOf(wz).indexOf(id) >= 0; }), '4 EDIT, Zed 1 to 2: NEXT: THE LEVEL-UPS opens his page (' + pgN + '), its spells in level 2\'s box (' + g2e.join(', ') + '), then THE CAMP');
+      // 5. the guess: a card with no box (made before 11-12) -- past the lower level's reach first, then the last learned, to the level's counts
+      Pz.st.editLevels = false; Pz.go('party'); Pz.levelSlot(1, 1); Pz.fire((drawMd(), btnMd(/^NEXT: THE CAMP$/))); Pz.go('party');
+      var k3o = knownOf(wz); delete wz.got; Pz.levelSlot(1, -1); var k2g = knownOf(wz), spec2 = NPd.decode(wz.code), inf2 = NPd.prepInfo(Object.assign({}, spec2, { known: null }));
+      var lev2 = k2g.filter(function (id) { return (D.magic.data(id) || {}).level > 0; });
+      okMd(wz.lvl === 2 && k2g.length < k3o.length && k2g.every(function (id, q) { return k3o[q] === id || k3o.indexOf(id) >= 0; }) && lev2.length <= inf2.n && lev2.every(function (id) { return D.magic.data(id).level <= inf2.top; }) && !!PKd.sheetOf(NPd.spec(wz.code)),
+        '5 no box (an older card), 3 back to 2: the guess -- ' + k3o.length + ' spells to ' + k2g.length + ', none past a level-2 wizard\'s reach, ' + lev2.length + ' of ' + inf2.n + ' at most, the first learned kept');
+      // 6. a fighter: the increase and the subclass go with their levels
+      Pz.levelSlot(2, 1); Pz.fire((drawMd(), btnMd(/^NEXT: THE CAMP$/))); Pz.go('party');
+      var f4 = NPd.decode(ft.code), s4 = PKd.sheetOf(NPd.spec(ft.code)); Pz.levelSlot(2, -1); Pz.levelSlot(2, -1); var f2 = NPd.decode(ft.code), s2 = PKd.sheetOf(NPd.spec(ft.code));
+      okMd(f4.lvl === 4 && ft.lvl === 2 && f2.lvl === 2 && !f2.subclass && !(f2.picks && (f2.picks[3] || f2.picks[4])) && !!s4 && !!s2 && s2.lvl === 2 && s2.maxhp < s4.maxhp, '6 Brokk the fighter 3 to 4 and back to 2: no subclass below 3, no level-4 increase kept, the sheet a level 2\'s (HP ' + (s4 && s4.maxhp) + ' to ' + (s2 && s2.maxhp) + ')');
+      // 7. a run under way: a made card's arrows stand, as SWAP and OUT do
+      Pz.st.run = { rung: 1, plan: [], foes: ['goblin'], map: Pz.mapIds()[0] }; Pz.levelSlot(2, 1);
+      okMd(ft.lvl === 2 && /under way/.test(Pz.msg.text), '7 a ladder under way: a made card\'s arrows say why and change nothing'); Pz.st.run = null;
+      // 8. the maker's save keeps the box for the levels it did not walk again
+      wz.got = { 2: knownOf(wz).slice(-1) }; var keepId = wz.got[2][0]; Pz.makeNew(1, wz); Pz.mk.name = 'Zedd'; Pz.saveMade(); var wz2 = Pz.st.roster[Pz.st.party[1].custom];
+      okMd(wz2.name === 'Zedd' && !!wz2.got && (wz2.got[2] || []).join() === keepId, '8 EDIT in the maker (a new name), saved: the box kept (level 2: ' + ((wz2.got || {})[2] || []).join() + ')');
+      // 9. THE ROSTER: EDIT and DROP on a made row
+      Pz.go('party'); drawMd(); Pz.fire(btnMd(/^SWAP$/, 0)); Pz.scroll = 99; var L9 = drawMd(), ed = L9.filter(function (l) { return l === 'EDIT'; }).length, dr = L9.filter(function (l) { return l === 'DROP'; }).length;
+      okMd(Pz.screen === 'seat' && ed === 2 && dr === 2, '9a THE ROSTER: EDIT and DROP on each of the two made rows (' + ed + ', ' + dr + ')');
+      Pz.fire(btnMd(/^EDIT$/, 1));
+      okMd(Pz.screen === 'maker' && Pz.mk.editing === Pz.st.party[2].custom && Pz.mk.slot === 2 && Pz.mk.name === 'Brokk', '9b EDIT on Brokk\'s row (he sits in seat 3): the maker, for him, in his own seat');
+      Pz.go('party'); drawMd(); Pz.fire(btnMd(/^SWAP$/, 0)); Pz.scroll = 99; drawMd(); var n0 = Pz.st.roster.length; Pz.fire(btnMd(/^DROP$/, 0)); Pz.scroll = 99; var L9c = drawMd();
+      okMd(Pz.st.roster.length === n0 - 1 && Pz.screen === 'seat' && L9c.filter(function (l) { return l === 'DROP'; }).length === 1 && Pz.st.party[1].w === 'new' && Pz.st.party[2].custom === 0, '9c DROP on Zedd\'s row: off the roster, his seat the ?, Brokk still seated, the list drawn again');
+    } catch (eMd) { repMd.errors.push(String(eMd && eMd.stack || eMd).slice(0, 800)); }
+    finally { D.store.get = stGMd; D.store.set = stSMd; D.scenes.length = 0; sc0Md.forEach(function (s) { D.scenes.push(s); }); }
+    var preMd = document.createElement('pre'); preMd.id = 'out'; preMd.textContent = 'BENCH16 ' + JSON.stringify(repMd);
+    document.body.appendChild(preMd);
     return;
   }
   // THE CAMP'S RESTS (mode=camprest1105; the Pocket DM lane, 11-03 night, Griz: "Let's do the 'short rest' or 'long rest' as options that happen at the camp / ... if a short or long

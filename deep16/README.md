@@ -453,6 +453,14 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   (`Pocket.partyNext`). With DEFAULTS nothing is asked, as before. **The maker's THE SPELLS** says the words of the spell under the mouse or the keys
   (`D.descPanel`, 16 a page), as THE LONG REST's page does since 11-11. **Bench:** `mode=pocketmenu1112` (in both gates; `&shot=1` the screens as PNGs), the
   M key and the list's keys by dispatched KeyboardEvents.
+- **A made card like the rest of the roster** (11-12, Griz: *"can we force 'made' spell entry into a box that let's us fix the guess for anything made after
+  today? it'd be really handy to have one interface once the characters are in the roster, I say build"*): a made card has `< L >` under it as a stock one
+  does, from 1 to the cap; EDIT and DROP moved to its row of THE ROSTER (SWAP). Up sets the level and owes its page, kept on its roster record (`r.due`,
+  `PK.dueBox`): NEXT with EDIT asks it, with DEFAULTS takes the class's own (`PK.levelMade`). **The box** is `r.got`, `{ level: [the spells it gave] }`, written
+  by every way a level is gained from 11-12 on (a level's page or defaults, the maker's walk at `Pocket.saveMade`; it rides SAVE CAMPAIGN with the roster).
+  Down (`PK.unlevelMade`) takes exactly what the level's box holds, its increase, and the subclass below the class's level for it. A level with no box -- a
+  card made before 11-12, or a list changed by hand on the maker's THE SPELLS -- is the guess: what is past the lower level's reach, then the last learned,
+  down to that level's counts. The arrows stand while a ladder or module is under way. **Bench:** `mode=pocketmade1112` (in both gates).
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 

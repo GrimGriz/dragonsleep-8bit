@@ -1239,13 +1239,47 @@
       ch = {}; ((a && a.asks) || []).forEach(function (q) { if (q.kind !== 'asi' && q.kind !== 'archetype') ch[R.askKey(q)] = q.took; });
     }
     var got = [].concat(ch.spells || [], ch.cantrip || []);
-    if (got.length) { var k = sp.known || PK.madeBase(Object.assign({}, sp, { lvl: L - 1 })); sp.known = k.concat(got.filter(function (id) { return k.indexOf(id) < 0; })); }
+    if (got.length) { var k = sp.known || PK.madeBase(Object.assign({}, sp, { lvl: L - 1 })); (r.got = r.got || {})[L] = got.filter(function (id) { return k.indexOf(id) < 0; }); sp.known = k.concat(r.got[L]); } // (r.got: the spells by the level that gave them -- PK.unlevelMade's, 11-12)
     if (ch.asi) { sp.picks = sp.picks || {}; sp.picks[L] = Object.assign({}, sp.picks[L] || {}, { asi: ch.asi }); }
     if (ch.archetype != null) sp.subclass = ch.archetype;
     R.PICK_OPTS.forEach(function (k) { if (ch[k] != null) sp[k] = ch[k]; });
     sp.lvl = top; r.lvl = top; r.code = NPC.code(sp);
     return r;
   };
+
+  // A MADE CARD LIKE THE REST OF THE ROSTER (11-12, Griz: "once a character is 'made' can we do them like the rest of the roster instead of the edit button, or is there
+  // downside?"; told the downside -- a made card's word keeps one spell list, not a list a level, so a level given back had to guess -- "can we force 'made' spell entry into
+  // a box that let's us fix the guess for anything made after today? it'd be really handy to have one interface once the characters are in the roster, I say build"): a made
+  // card has the level arrows of a stock one. THE BOX is r.got on its roster record: { level: [the spells that level gave] }, written by every way a level is gained from
+  // 11-12 on -- the maker's walk (Pocket.saveMade), a level's page or its defaults (PK.levelMade). A level given back takes exactly what its box holds, its increase
+  // (picks[L]) and, below the class's own level for it, the subclass. A level with no box (a card made before 11-12, or a list changed by hand on the maker's THE SPELLS)
+  // is the guess: what is past the lower level's reach goes, then the last learned, down to that level's counts. A blank list is the class's own and shrinks by itself
+  PK.unlevelMade = function (r, L) {
+    var sp = null; try { sp = NPC.decode(r.code); } catch (e) { sp = null; }
+    var from = r.lvl || (sp && sp.lvl) || 1; L = Math.max(1, L);
+    if (!sp || L >= from) return r;
+    for (var K = from; K > L; K--) {
+      var g = (r.got || {})[K] || [];
+      if (sp.known && g.length) sp.known = sp.known.filter(function (id) { return g.indexOf(id) < 0; });
+      if (r.got) delete r.got[K];
+      if (sp.picks) delete sp.picks[K];
+    }
+    var scl = R.SUBCLASSES && R.SUBCLASSES[sp.cls]; if (scl && L < scl.at) delete sp.subclass;
+    sp.lvl = L;
+    if (sp.known) { // (the guess, for what no box accounts for)
+      var c = NPC.CLASSES[sp.cls], info = null; try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e2) { info = null; }
+      var cpool = (c.spells && c.spells[0]) || [], nc = c.cantrips ? c.cantrips[L - 1] || 0 : 0, can = [], lev = [];
+      sp.known.forEach(function (id) { if (cpool.indexOf(id) >= 0) can.push(id); else lev.push(id); });
+      if (info) { lev = lev.filter(function (id) { var d = D.magic.data(id); return !d || (d.level || 0) <= info.top; }); lev = lev.slice(0, Math.max(0, info.n)); }
+      sp.known = can.slice(0, nc).concat(lev);
+    }
+    if (r.got && !Object.keys(r.got).length) delete r.got;
+    r.lvl = L; r.code = NPC.code(sp); r.xp = R.XP_LEVEL[L] || 0;
+    if (r.due) { r.due = r.due.filter(function (k) { return k <= L; }); if (!r.due.length) delete r.due; }
+    return r;
+  };
+  // where a card's owed levels are kept: a stock card's on its seat, a made one's on its roster record (it is owed them wherever it sits, or if it sits nowhere)
+  PK.dueBox = function (st, slot) { return slot && slot.custom != null ? st.roster[slot.custom] || null : slot; };
 
   // ------------------------------------------------------------------ THE LONG REST (10-17, the two Pocket DMs, step B; Griz: "For ladder and module play, long rest and daily
   // spells/pre-cast (aid, mage armor) then go to fight. For single fight, map and CR setting, then long rest spell selection"): the day's spells of each card that
@@ -1521,6 +1555,10 @@
   Pocket.prototype.saveMade = function () {
     var sp = this.mkSpec(), code = NPC.code(sp), rec = { code: code, name: sp.name, cls: sp.cls, lvl: sp.lvl, made: Date.now() };
     var was = this.mk.editing != null ? this.st.roster[this.mk.editing] : null;
+    // (THE BOX, 11-12: the spells by the level that gave them -- this sitting's walk, and an edited card's own for the levels the walk did not go over again; only what is still on the list)
+    var gotM = {}, knownM = sp.known || [], mkG = this.mk.got || {}, wasG = (was && was.got) || {};
+    for (var gl = 1; gl <= sp.lvl; gl++) { var gS = mkG[gl] || wasG[gl]; if (gS) { gS = gS.filter(function (id) { return knownM.indexOf(id) >= 0; }); if (gS.length) gotM[gl] = gS; } }
+    if (Object.keys(gotM).length) rec.got = gotM;
     if (was) { if (was.mark) rec.mark = was.mark; if (was.dm) rec.dm = true; if (typeof was.xp === 'number' && was.lvl === rec.lvl) rec.xp = was.xp; } // (its mark kept, and its XP while its level is the same -- 10-17)
     else if (this.mk.villain) { rec.dm = true; rec.mark = 'villain'; } // (MAKE in THE VILLAINS: the DM's, on the shelf -- js/pocketdm.js)
     if (was) this.st.roster[this.mk.editing] = rec;
@@ -1711,24 +1749,38 @@
       var yy = 36 + k * 16;
       self.btn(ctx, fitText(r.name, 126), 14, yy, 136, 14, function () { self.seatPick(r); }, { small: true, on: r.at === i });
       D.text(ctx, fitText((r.e.locked ? '{r}LOCKED{/} win the trial' : r.what) + (r.at === i ? '   {y}in this seat{/}' : r.at >= 0 ? '   {o}in seat ' + (r.at + 1) + ': trades{/}' : ''), D.W - 260), 158, yy + 3, P('bone', 1));
-      if (r.group) D.text(ctx, r.group, D.W - 20, yy + 3, P('stone', 5), 'right');
+      if (r.e.kind === 'custom') { // (EDIT and DROP, off the card since 11-12: its level arrows stand there now)
+        self.btn(ctx, 'EDIT', D.W - 92, yy + 1, 34, 12, function () { self.seatEdit(r); }, { small: true }).tip = 'EDIT: the maker, for ' + r.name + ' -- race, scores, gear, spells, name';
+        self.btn(ctx, 'DROP', D.W - 54, yy + 1, 34, 12, function () { self.dropMade(r.e.i); }, { small: true }).tip = 'DROP: ' + r.name + ' off the roster for good (asked first)';
+      } else if (r.group) D.text(ctx, r.group, D.W - 20, yy + 3, P('stone', 5), 'right');
     });
     this.listRows(b0, 36, 16, rows.length, per, from);
     this.pager(ctx, 14, 36 + per * 16, rows.length, per, from);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'TAKE SEAT ' + (i + 1) + ' OUT', D.W - 150, 236, 130, 15, function () { if (self.seatOut(i)) { self.go('party'); self.say(cur + ' is out: the party is ' + st.party.length, 300); } }, { dis: st.party.length <= 1, why: 'the party wants one seat at least' });
-    D.hint(ctx, 'up/down choose · E seats it · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
+    var kbS = this.btns[this.ksel]; D.hint(ctx, kbS && kbS.tip ? kbS.tip : 'up/down choose · E seats it · one of your own: EDIT, DROP on its row · X back', D.W / 2, 224, kbS && kbS.tip ? P('bone', 1) : P('stone', 4), 'center');
+  };
+  // EDIT on a made row: the maker for it, in the seat it sits in -- or, not seated, in this seat (the card here put away first, as a pick does)
+  Pocket.prototype.seatEdit = function (row) {
+    var i = this.seatI, c = this.st.roster[row.e.i]; if (!c) return;
+    if (row.at < 0) this.seatPut(i, row.e);
+    this.makeNew(row.at >= 0 ? row.at : i, c);
   };
   // THE LEVEL-UPS AT NEXT (11-12, Griz: "Also want to change the way leveling on the party screen works." / "If a player chooses to edit level-ups, have it happen once
   // they hit the 'next' button, then it walks through the leveling for that character (if it changed from party state before they got to that screen?)"): a card's level
   // arrows only set the number now (till 11-12 each press up with EDIT on opened that level's page at once). Each level raised by hand is owed its page (slot.due, kept on
   // the card -- it rides a seat trade and a reload); one given back is owed nothing. NEXT, with LEVEL-UPS: EDIT, walks them: card by card in seat order, each card's levels
   // from the lowest, a page a level (Pocket.askLevel), then THE CAMP. With DEFAULTS, NEXT asks nothing and the levels keep their own picks, as before
-  PK.dueOf = function (st, slot) { var L = PK.lvlOf(st, slot); return ((slot && slot.due) || []).filter(function (k) { return k <= L; }).sort(function (a, b) { return a - b; }); };
+  PK.dueOf = function (st, slot) { var L = PK.lvlOf(st, slot), bx = PK.dueBox(st, slot); return ((bx && bx.due) || []).filter(function (k) { return k <= L; }).sort(function (a, b) { return a - b; }); };
   Pocket.prototype.duesSaid = function () { var st = this.st, sh = this.sheets(), out = []; st.party.forEach(function (slot, i) { var d = PK.dueOf(st, slot); if (d.length && sh[i] && sh[i].h) out.push(sh[i].h.name + ' ' + d.join(', ')); }); return out; };
   Pocket.prototype.partyNext = function () {
     var st = this.st, self = this, q = [];
-    st.party.forEach(function (slot, i) { var d = PK.dueOf(st, slot); delete slot.due; if (st.editLevels) d.forEach(function (L) { q.push([i, L]); }); });
+    st.party.forEach(function (slot, i) {
+      var d = PK.dueOf(st, slot), bx = PK.dueBox(st, slot); if (bx) delete bx.due;
+      if (st.editLevels) d.forEach(function (L) { q.push([i, L]); });
+      else if (slot.custom != null && bx) d.forEach(function (L) { PK.levelMade(bx, L, null); }); // (a made card's level takes its class's own here: its spells are in its word, not laid over it)
+    });
+    this.cache = {};
     this.keep();
     if (!q.length) { this.go('hub'); return; }
     this.levelQueue = (this.levelQueue || []).concat(q); this.afterLevels = function () { self.cache = {}; self.keep(); self.go('hub'); };
@@ -1743,7 +1795,17 @@
     this.cache = {}; this.keep(); D.sfx('cursor'); this.say(r.name + ' is off the roster' + (r.wins.length ? ': ' + r.wins.length + ' to the pack' : ''), 240);
   };
   Pocket.prototype.levelSlot = function (i, dir) {
-    var slot = this.st.party[i], e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; if (!e || e.king) return;
+    var slot = this.st.party[i];
+    if (slot && slot.custom != null) { // (a made card, 11-12: up, the level alone till NEXT -- its page with EDIT, its class's own with DEFAULTS; down, PK.unlevelMade)
+      var r = this.st.roster[slot.custom]; if (!r) return;
+      var held = this.seatsHeld(), L0 = r.lvl || 1, Lm = Math.max(1, Math.min(PK.cap(this.st), L0 + dir));
+      if (held) { D.sfx('error'); this.say(held, 300); return; }
+      if (Lm === L0) { D.sfx('error'); return; }
+      if (dir > 0) { r.lvl = Lm; r.code = PK.codeAt(r.code, Lm); r.xp = R.XP_LEVEL[Lm] || 0; r.due = (r.due || []).filter(function (k) { return k < Lm; }).concat([Lm]); }
+      else PK.unlevelMade(r, Lm);
+      this.cache = {}; this.keep(); D.sfx('cursor'); return;
+    }
+    var e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; if (!e || e.king) return;
     var L = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(this.st), (slot.lvl || e.lo) + dir));
     if (L === slot.lvl) { D.sfx('error'); return; }
     slot.lvl = L; slot.xp = R.XP_LEVEL[L] || 0; this.cache = {}; this.keep(); D.sfx('cursor'); // (the XP to the level's floor: the arrows set a level by hand, 10-17)
@@ -1844,7 +1906,7 @@
       var x = x0 + i * (cw + gap), slot = s.slot, isNew = slot.w === 'new', e = isNew ? null : PK.STOCK.filter(function (q) { return q.w === slot.w; })[0];
       var locked = !!(e && e.king && !PK.kingOpen(st)), custom = slot.custom != null;
       self.btn(ctx, '^', x, top, 20, 11, function () { self.cycle(i, -1); }, { small: true });
-      self.btn(ctx, 'SWAP', x + 22, top, cw - 22, 11, function () { self.seatI = i; self.go('seat'); self.seatI = i; }, { small: true, dis: !!held, why: held }).tip = 'SWAP: THE ROSTER, to seat another here or trade seats with one seated'; // (11-12: Pocket.drawSeat)
+      self.btn(ctx, 'SWAP', x + 22, top, cw - 22, 11, function () { self.seatI = i; self.go('seat'); self.seatI = i; }, { small: true, dis: !!held, why: held }).tip = custom ? 'SWAP: THE ROSTER -- another for this seat, a trade of seats, and EDIT or DROP for one of your own' : 'SWAP: THE ROSTER, to seat another here or trade seats with one seated'; // (11-12: Pocket.drawSeat)
       ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(x, top + 13, cw, 118);
       ctx.strokeStyle = locked ? P('stone', 2) : isNew ? P('gold', 2) : P('stone', 3); ctx.strokeRect(x + 0.5, top + 13.5, cw - 1, 117);
       if (isNew) {
@@ -1862,8 +1924,7 @@
         else {
           var wn = R.weaponOf(s.h); D.text(ctx, 'HP ' + s.h.maxhp + ' AC ' + R.ac(s.h), x + cw / 2, top + 93, P('silver', 5), 'center');
           D.text(ctx, wn ? (wn.name.length > 13 ? wn.name.slice(0, 13) : wn.name) : '', x + cw / 2, top + 102, P('stone', 5), 'center');
-          if (custom) { self.btn(ctx, 'EDIT', x + 5, top + 113, 30, 12, function () { self.makeNew(i, st.roster[slot.custom]); }, { small: true }); self.btn(ctx, 'DROP', x + 37, top + 113, 28, 12, function () { self.dropMade(slot.custom); }, { small: true }); } // (DROP: off the roster for good, asked first -- 10-21)
-          else if (e && e.king) D.text(ctx, 'the king\'s own gear', x + cw / 2, top + 115, P('stone', 4), 'center');
+          if (e && e.king) D.text(ctx, 'the king\'s own gear', x + cw / 2, top + 115, P('stone', 4), 'center');
           else { self.btn(ctx, '<', x + 8, top + 113, 14, 12, function () { self.levelSlot(i, -1); }, { small: true }); D.text(ctx, 'L' + s.h.lvl, x + cw / 2, top + 115, P('gold', 4), 'center'); self.btn(ctx, '>', x + cw - 22, top + 113, 14, 12, function () { self.levelSlot(i, 1); }, { small: true }); }
         }
       } else { D.text(ctx, '(no sheet)', x + cw / 2, top + 60, P('red', 4), 'center'); }
