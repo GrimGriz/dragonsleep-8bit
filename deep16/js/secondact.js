@@ -73,6 +73,7 @@
     // (the due three nights on, 11-05: invented.json halfway-due-moved-1105)
     dueNight: 'Past midnight at the Halfway Inn. The house is dark, and the lake door shut.',
     dueWoke: 'Something wakes you: low singing, somewhere in the house. Two boys\' voices under a woman\'s.',
+    roomWoke: 'Something wakes you: low singing, up through the boards of the big room. Two boys\' voices under a woman\'s.', roomWindow: '{g}The window on the lake is the east wall.{/}', roomDown: 'Down the stair, and out by the lake door.', // (11-12: the night played from the big room)
     mornDue: 'Morning. The inn lady hums at the stove. Out on the point the lantern hangs cold on its post.',
     mornDueKept: 'Morning. The inn lady hums at the stove. Out back, nobody is skipping stones.',
     // (the poison dinner, 11-05: invented.json halfway-poison-dinner-1105)
@@ -90,7 +91,12 @@
     confess3: '"It comes up anyway. It always comes up. If you mean to stop it, come out back. I\'ll show you the stone."',
     confessLead: 'Doran stops at the path\'s head with the shore-lantern. The inn lady stays by the fire.',
     poisonAll: 'The table tilts away. The last thing: the inn lady\'s hand taking the spoon out of yours.',
-    dragStone: 'Cold. Wet stone under your cheek, and the lake\'s breath. The lantern is at the path\'s head, and two shapes stand by it.',
+    dragStone: 'Cold. Wet stone under a cheek, and the lake\'s breath.', // (11-12: it had named a lantern and two shapes at the path's head that were not on the floor -- his "narration says elsbeth and the gennet are there but they aren't")
+    drifting: '"Good. They\'re drifting off."', // (HIS, 11-12 0043Z: "do gennet saying 'good, they're drifting off' then fade to black")
+    elsbethRuns: 'Elsbeth sets the bucket down on the stone, and goes back up the path at a run.',
+    doranStops: 'Doran is across the room with a hand flat on the door before {name} is through it. The woodaxe is still on the table.', doranStopsSays: '"Not out there. Not tonight. Hear me first."', // (11-12: "needs him to run over and 'stops 'character' at the door' (then confess)")
+    doranWaits: '{g}Doran stands at the path\'s head with the shore-lantern lit. Out by the lake door, to follow.{/}',
+    followOut: 'Doran lifts the shore-lantern and goes ahead down the path.', followGennet: 'The inn lady stays by the fire.', followStone: 'He stops short of the rocks and holds the light up. He comes no nearer the stone.',
     dragWake: '{names} come awake on the stone.',
     dragTaken: 'It takes {name} off the stone, and the water closes. The cold of it wakes the rest of you.',
     mornPoison: 'Morning. Doran Waterby at the counter, the bucket by his boots. The inn lady keeps to the kitchen.',
@@ -155,6 +161,7 @@
     if (off === 'none' && f.doranConfessed && !f.doranDead) { yield* A.ledNight(B, d); return; } // (Doran confessed in the yard, the barn's END D or C: no draught -- he leads the party to the stone, 11-11)
     if (off === 'none') { yield* A.poisonNight(B, d); return; }
     f.dueTonight = 1; f.kidTaken = 1; if (off === 'kept') { f.glamourBroken = 1; f.glamourSeen = 1; }
+    if (!In.sleepsHere() && D.roam.def && D.roam.def.key === In.KEY) { In.duePlay = { stage: 'room', d: d, off: off, stay: R0.stay }; A.trail('the due night: up to the big room'); yield* M.go(B, In.UP, In.ROOM.big.at, In.ROOM.big.face); return 'up'; } // (PLAYED from the big room: A.dueRoom, below -- a bench's page keeps the night on one floor, as its nights are slept where the party stands)
     In.stage(B, [24, 17], 'inn'); In.passTo(B, A.DUE_HOUR);
     yield* In.card(B, [A.LINES.dueNight], 360);
     if (In.read(st, 'Perception', A.DUE_WAKE)) {
@@ -207,7 +214,7 @@
       A.trail('sacrifice night: ' + (sb.aloud ? 'said aloud in round ' + sb.round : 'nobody said it') + '; asleep: ' + (asleep2.map(function (u) { return u.name; }).join(', ') || 'nobody'));
       var noticed = Object.keys(sb.stopped || {}).length > 0;
       if (!asleep2.length && !sb.aloud && !noticed) { if (seat) In.rise(B, seat); f.dueUnfed = c; yield* In.card(B, [A.LINES.poisonNothing], 360); yield* In.sleep(B); return; }
-      if (!awake2.length) { if (seat) In.rise(B, seat); yield* A.drag(B, party); return; }
+      if (!awake2.length) { yield* A.drag(B, party, seat); return; } // (the table kept as set for Gennet's line: A.drag undoes it under the black)
       yield* A.supperFight(B, asleep2, awake2, seat, !!sb.aloud); return;
     }
     var taster = party.filter(function (u) { return A.passive(u, 'Medicine', 'wis') >= P.taste; })[0] || null, watcher = party.filter(function (u) { return A.passive(u, 'Insight', 'wis') >= P.watch; })[0] || null;
@@ -231,9 +238,10 @@
   // some asleep: the sleepers drop at the table, the awake rise -- the fight in the common room to submission; Doran confesses and leads them out back
   A.supperFight = function* (B, asleep, awake, seat, aloud) {
     var Rm = R(), R0 = B.roam, f = R0.flags, Y = {}, T = In.TABLE, C = D.counter, SO = C.SHEETOF;
+    A.backRoom(B);
     if (!aloud) { if (asleep.length) yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')).split(' go down').join(asleep.length === 1 ? ' goes down' : ' go down'), A.LINES.poisonRise], 420); else yield* In.card(B, [A.LINES.poisonUp], 420); } // (said aloud: Gennet's own line at the table was the turn -- js/inn.js In.SAC.his)
     B.units.filter(function (u) { return u.npc === 'snootRunner'; }).forEach(function (u) { In.gone(B, u); }); // (RULED 11-11, ruling 38: the moot's runner is no part of this; he is outdoors, out of the room's sight)
-    var els = B.units.filter(function (u) { return u.npc === 'elsbeth'; })[0] || null; if (els) yield* In.walk(B, els, A.ELS_DOOR, [-1, 0]); // (to the kitchen's side of the big fire, the wand out: rulings 13 and 37 -- the boys are abed by this hour and are not on the floor)
+    var els = B.units.filter(function (u) { return u.npc === 'elsbeth'; })[0] || null; if (els) yield* In.walk(B, els, A.ELS_BACK, [0, -1]); // (RULED 11-12, Griz: "back room with children" -- off the field, in the wing's west bedroom with the boys behind her, no wand out: A.backRoom; she had stood at the kitchen's side of the big fire, A.ELS_DOOR)
     // the Waterbys rise from their own places: with the supper's seating kept (js/inn.js In.mealScene) they are AT the table already, so each is swapped for its fighting
     // figure on its own square and nobody jumps (11-11, Griz: the fault this seat named -- "nobody pops")
     var gN = B.units.filter(function (u) { return u.npc === 'gennet'; })[0], dN = B.units.filter(function (u) { return u.npc === 'doranIn'; })[0];
@@ -244,23 +252,35 @@
     asleep.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; });
     f.poisonFight = 1; R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
-    yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper');
+    // (the ways out of this fight are the house's two doors, so a hero who LEAVES THE FIGHT is at a door when Doran reaches them -- 11-12; js/roam.js R.setExits is the floor's rule)
+    var set0 = Rm.setExits; Rm.setExits = function (B2, u) { set0.apply(this, arguments); if (B2 === B) B2.exits = [In.DOORS.front.slice(), In.DOORS.lake.slice()]; };
+    try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; }
     var o = R0.lastOutcome;
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
     var doranUp = A.standing(B, Y.doran), gennetUp = A.standing(B, Y.gennet);
     if (!gennetUp) f.gennetDead = 1; if (!doranUp) f.doranDead = 1;
-    if (!doranUp) { A.clear(B, Y); In.lay(B, 'inn', true); yield* In.card(B, [A.LINES.poisonNoConfess], 420); f.dueUnfed = In.dueCycle(In.day(D.roam.q)); yield* A.dueMorning(B, 'none'); return; }
-    // THE YIELD: the two stand where the fight left them (each foe's figure swapped for its own on the same square); Doran's confession is on PORTRAITS; then each goes
-    // on foot -- Gennet to her place by the fire, where the house's lay stands her; Doran out at the lake door with the lantern; Elsbeth back to the tub (ruling 41)
+    if (!doranUp) { A.clear(B, Y); A.backRoomClear(B); In.lay(B, 'inn', true); yield* In.card(B, [A.LINES.poisonNoConfess], 420); f.dueUnfed = In.dueCycle(In.day(D.roam.q)); yield* A.dueMorning(B, 'none'); return; }
+    // THE YIELD (re-cut 11-12 on his 0043Z notes, the inn seat of 11-12; Griz on the faint tell: "reverts to old models after yield, then pops scene to standing regular
+    // positions, no 'following doran outside', he does go outside"; on the full tell: "confession triggered 'leave the fight', which works but needs him to run over and
+    // 'stops 'character' at the door' (then confess)"): each foe's figure is swapped on its own square for the Waterbys' OWN drawn figures (doran_p1, gennet_p1 --
+    // js/counter.js C.FIG; they had been the plain townsfolk, the "old models"); a party that LEFT THE FIGHT is stopped at the door by Doran, who crosses the room to
+    // them, and the confession is said there; it is on PORTRAITS; then each goes on foot -- Gennet to her place by the fire, Elsbeth out of the back room to the tub,
+    // Doran out at the lake door with the shore-lantern, where he WAITS at the path's head (A.waitDoran) and the party follows him out when it will (A.followDoran, on
+    // the step out of the lake door). Nobody is stood back at a usual place: the bar stays empty while he is out (f.doranOut)
     A.exits = [];
-    var out = function (u, how) { if (u && B.units.indexOf(u) >= 0) { A.exits.push({ id: u.scripted || u.npc || u.id, x: u.x, y: u.y, how: how }); In.gone(B, u); } };
+    var out = function (u, how) { if (u && B.units.indexOf(u) >= 0) { A.exits.push({ id: u.scripted || u.npc || u.id, x: u.x, y: u.y, how: how, sheet: u.sheet }); In.gone(B, u); } };
+    var own =function (id, fig, at, name, face) { var u = In.unit(B, { id: id, kind: fig === 'gennet' ? 'commonerwoman' : 'commoner', at: at, name: name, face: face }); if (D.counter.dress && D.counter.dress(u, fig)) u.facing = D.spr.facingFor(face[0], face[1]); u.bystander = true; return u; };
     var gq = [Y.gennet.x, Y.gennet.y], dq = [Y.doran.x, Y.doran.y]; out(Y.doran, 'swap'); if (gennetUp) out(Y.gennet, 'swap'); else A.clear(B, { gennet: Y.gennet });
-    var G2 = gennetUp ? In.unit(B, { id: 'gennetAfter', kind: 'commonerwoman', at: gq, name: In.named(f), face: [0, 1] }) : null, D2 = In.unit(B, { id: 'doranAfter', kind: 'commoner', at: dq, name: 'Doran Waterby', face: [1, 0] });
+    R0.groups = (R0.groups || []).filter(function (g) { return !(g.foes || []).some(function (u) { return u === Y.doran || u === Y.gennet; }); }); // (a party that got out leaves the two standing as a pursuit -- js/roam.js R.after: they are done)
+    var G2 = gennetUp ? own('gennetAfter', 'gennet', gq, In.named(f), [0, 1]) : null, D2 = own('doranAfter', 'doranIn', dq, 'Doran Waterby', [1, 0]);
     var who = function (id) { var u = id === 'gennet' ? G2 : id === 'elsbeth' ? els : D2; return { name: id === 'gennet' ? In.named(f) : id === 'elsbeth' ? 'Elsbeth' : 'Doran', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: id === 'elsbeth' ? In.elsbethCut() : SO && SO[id === 'doran' ? 'doranIn' : id] ? SO[id === 'doran' ? 'doranIn' : id]({ flags: f }) : null }; };
+    var left = String(o) === 'escaped' ? ((R0.last && R0.last.outBy) || R0.token.name) : null; // (LEAVE THE FIGHT: who went out -- js/roam.js R.after keeps the name)
+    if (left) { var tk = R0.token, sq = In.beside(B, D2, tk); yield* In.walk(B, D2, sq, [tk.x - sq[0], tk.y - sq[1]]); f.doranStopped = 1; A.trail('the fight left: Doran crosses the room and stops ' + left + ' at the door'); }
     f.doranConfessed = 1; A.trail('Doran confesses: the thing in the lake');
     var slept = R0.members.some(function (u) { return u.conds && u.conds.asleep; });
-    var sc = new C.Counter(B, { id: 'supperafter', name: 'Doran Waterby', place: 'The Halfway Inn', what: 'the long table', room: true, open: true, bg: In.roomShot(B), script: function (s2) { return (function* () {
-      yield s2.lookAt(who('doran'), ['Doran sets the woodaxe down on the table.'], gennetUp ? who('gennet') : null);
+    var sc = new C.Counter(B, { id: 'supperafter', name: 'Doran Waterby', place: 'The Halfway Inn', what: left ? 'the door' : 'the long table', room: true, open: true, bg: In.roomShot(B), script: function (s2) { return (function* () {
+      if (left) { yield s2.lookAt(who('doran'), [A.LINES.doranStops.split('{name}').join(left)]); yield s2.by(who('doran'), [A.LINES.doranStopsSays]); }
+      else yield s2.lookAt(who('doran'), ['Doran sets the woodaxe down on the table.'], gennetUp ? who('gennet') : null);
       yield s2.by(who('doran'), ['"There\'s a thing in the lake. It came down out of the bogs in my time here. Every month it\'s fed, and every month the lake gives back: the fish, the old coin, her."']);
       if (gennetUp) yield s2.lookAt(who('doran'), ['He does not look at Gennet.'], who('gennet'));
       yield s2.by(who('doran'), ['"Tonight was the night. You were tonight."']);
@@ -271,48 +291,113 @@
     D.push(sc); while (!sc.done) yield 1;
     R0.members.forEach(function (u) { if (u.conds && u.conds.asleep) { delete u.conds.asleep; delete u.conds.prone; } }); // (his bucket: everyone up)
     if (G2) { yield* In.walk(B, G2, A.HEARTH); out(G2, 'swap'); } // (her own place by the fire: the lay's Gennet stands on that square as hers leaves it)
+    f.doranOut = 1; f.doranWaits = (f.poisonNight || 0) + 1; // (out with the lantern, and waiting: no Doran behind the bar -- js/inn.js In.FOLK; the due's cycle + 1)
     yield* In.walk(B, D2, In.DOORS.lake); out(D2, 'door');
     if (els) yield* In.walk(B, els, A.TUB, [1, 0]);
-    In.lay(B, 'inn', true);
+    In.lay(B, 'inn', true); A.waitDoran(B);
+    yield* In.card(B, [A.LINES.doranWaits], 300);
+  };
+  // DORAN WAITS AT THE PATH'S HEAD, AND THE PARTY FOLLOWS (11-12, Griz: "no 'following doran outside', he does go outside"): after his confession he stands outside
+  // the lake door with the shore-lantern lit (his own figure, doran_p1), and the floor is the player's again. A step out onto the path by the lake door is the
+  // following (D.roam.arrive, below): he goes ahead down the path and stops short of the rocks with the light up; the party to the stone; the rise; after it he walks
+  // back in at the lake door. A party that does not follow sleeps the night as any other (a room of Gennet's): by morning he is in, the lake unfed (f.dueUnfed).
+  // The flag is the due's cycle + 1; the figure is laid from it wherever the inn's floor stands its people (a load, a relay)
+  A.WAIT_AT = [39, 18]; A.LEAD_AT = [41, 19];
+  A.waitDoran = function (B) {
+    var have = B.units.filter(function (u) { return u.scripted === 'doranWait'; })[0]; if (have) return have;
+    var u = In.unit(B, { id: 'doranWait', kind: 'commoner', at: A.WAIT_AT.slice(), name: 'Doran Waterby', face: [-1, 0], lantern: true });
+    if (D.counter.dress && D.counter.dress(u, 'doranYard')) u.facing = D.spr.facingFor(-1, 0); u.bystander = true; return u;
+  };
+  A.waitLive = function (f, d, h) { var c = (f.doranWaits || 0) - 1; return c >= 0 && ((d === In.dueDay(c) && h >= 17) || (d === In.dueDay(c) + 1 && h < 6)); };
+  A.followDoran = function* (B) {
+    var Rm = R(), R0 = B.roam, f = R0.flags, dw = A.waitDoran(B), Y = {};
+    delete f.doranWaits; A.trail('the party follows Doran out by the lake door');
     In.passTo(B, A.DUE_HOUR);
-    yield* Rm.walkTo(B, A.PATH.head); yield* In.card(B, [A.LINES.confessLead], 360);
+    yield* In.card(B, [A.LINES.followOut + (f.gennetDead ? '' : ' ' + A.LINES.followGennet)], 300);
+    yield* In.walk(B, dw, A.LEAD_AT, [1, 0]);
     yield* Rm.walkTo(B, [A.STONE[0] - 2, A.STONE[1]]);
-    yield* A.rise(B, {}); // (cheated, at the shore: it fights, ring or not -- Gennet by the fire, no offering on the path)
+    yield* In.card(B, [A.LINES.followStone], 300);
+    yield* A.rise(B, Y, function* () { if (B.units.indexOf(dw) >= 0) { yield* In.walk(B, dw, [In.DOORS.lake[0], In.DOORS.lake[1]]); In.gone(B, dw); } }); // (cheated, at the shore: it fights, ring or not -- Gennet by the fire, no offering on the path)
     if (A.wiped(B)) return;
     yield* A.dueMorning(B, 'none');
   };
+  var arriveA0 = D.roam.arrive;
+  D.roam.arrive = function* (B) {
+    var ev = yield* arriveA0.apply(this, arguments), def = D.roam.def, R0 = B.roam, t = R0 && R0.token;
+    if (!ev && def && def.key === In.UP && In.duePlay && In.duePlay.stage === 'room' && In.duePlay.woke && t && t.x >= A.WINDOW.x && t.x <= A.WINDOW.x + 1 && t.y <= 9) { In.duePlay.stage = 'lake'; A.trail('the due night: at the big room\'s window'); yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'window'; } // (the window on the lake: the camera's one move is on the house's own floor)
+    if (!ev && def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && t && t.x >= In.STEP.lake[0] && Math.abs(t.y - In.DOORS.lake[1]) <= 3 && !In.inHouse(t.x, t.y)) { yield* A.followDoran(B); return 'followed'; }
+    return ev;
+  };
+  var peopleA0 = D.town.people;
+  D.town.people = function (B) { // (laid from the flag; let go by the morning)
+    var r = peopleA0.apply(this, arguments), def = D.roam && D.roam.def, f = B.roam && B.roam.flags;
+    if (!def || def.key !== In.KEY || !f || !f.doranWaits) return r;
+    if (A.waitLive(f, In.day(D.roam.q), In.hourOf(B))) A.waitDoran(B);
+    else { f.dueUnfed = f.doranWaits - 1; delete f.doranWaits; delete f.doranOut; B.units.filter(function (u) { return u.scripted === 'doranWait'; }).forEach(function (u) { In.gone(B, u); }); A.trail('nobody followed Doran out: the lake unfed'); }
+    return r;
+  };
+  // THE BACK ROOM (RULED 11-12, Griz, asked the readied wand or the back room: "back room with children"): in the supper's fight Elsbeth is off the field, in the
+  // wing's west bedroom with Orrin and Pell behind her -- the boys stood there as the fight opens and taken off the floor once the party is out of the house
+  A.ELS_BACK = [31, 25]; A.BOYS_BACK = [[30, 27], [32, 27]];
+  A.backRoom = function (B) {
+    if (B.units.some(function (u) { return u.scripted === 'orrinBack'; })) return;
+    B.units.filter(function (u) { return u.npc === 'orrin' || u.npc === 'pell'; }).forEach(function (u) { In.gone(B, u); }); // (never two of each: by supper's hour they are in, and the floor's own are laid only by daylight)
+    A.BOYS_BACK.forEach(function (q, i) { var u = In.unit(B, { id: i ? 'pellBack' : 'orrinBack', kind: 'commonerchild', at: q.slice(), name: i ? 'Pell' : 'Orrin', face: [0, -1] }); u.bystander = true; });
+  };
+  A.backRoomClear = function (B) { B.units.filter(function (u) { return u.scripted === 'orrinBack' || u.scripted === 'pellBack'; }).forEach(function (u) { In.gone(B, u); }); };
   A.ELS_DOOR = [31, 18]; A.HEARTH = [24, 16]; A.TUB = [33, 21]; // (the kitchen's side of the big fire; Gennet's place by the hearth and Elsbeth's at the tub, as js/inn.js In.FOLK stands them)
   // all asleep: the drag -- ten minutes of it, a save every two, each success +1 to the save at the stone; on the stone the rise, and the saves again each round
-  A.drag = function* (B, party) {
-    var R0 = B.roam, f = R0.flags, P = A.POISON, n = Math.round(P.dragMin / P.dragEvery), bonus = {};
-    yield* In.card(B, [A.LINES.poisonAll], 420);
+  // THE NO-TELL CLOSE, IN HIS ORDER (11-12 0043Z, Griz on the no-tell night: "the close of table goes back to barley standing in front of the lady, do gennet saying
+  // 'good, they're drifting off' then fade to black, any necessary narration, then fade from black with barley asleep (he falls asleep after at present), just the girl
+  // with the bucket in the dark maybe, viv was standing with a z above her head, narration says elsbeth and the gennet are there but they aren't - back in by the front
+  // door and to bed excess narration"): the table stays as it is set while Gennet says her line on her portrait; the screen goes to black (js/inn.js In.fade); the
+  // table is undone, the clock moved and the party laid on the stone UNDER the black, already asleep and lying; the one line of narration is said on the black and
+  // names nobody; the black lifts on the stone in the dark with Elsbeth alone beside it, the kitchen bucket in her hands (her figure on the floor: A.ELS_STONE)
+  A.ELS_STONE = [43, 19];
+  A.wakeLine = function (us) { return A.LINES.dragWake.split('{names}').join(us.map(function (u) { return u.name; }).join(' and ')).split(' come awake').join(us.length === 1 ? ' comes awake' : ' come awake'); }; // (one "comes", two "come": it had said "Vivian come awake", 11-12)
+  A.drag = function* (B, party, seat) {
+    var R0 = B.roam, f = R0.flags, P = A.POISON, n = Math.round(P.dragMin / P.dragEvery), bonus = {}, C3 = D.counter, SO3 = C3 && C3.SHEETOF;
+    if (seat && C3 && C3.Counter) { // (her line at the table, nobody risen)
+      var gT = { name: In.named(f), unit: seat.folk.gennet || null, side: seat.folk.gennet ? In.sideOf(seat.folk.gennet.x) : 'right', sheet: SO3 && SO3.gennet ? SO3.gennet({ flags: f }) : null };
+      var sc0 = new C3.Counter(B, { id: 'dragtable', name: In.named(f), place: 'The Halfway Inn', what: 'the long table', room: true, open: true, bg: In.roomShot(B), script: function (s0) { return (function* () { yield s0.by(gT, [A.LINES.drifting]); })(); } });
+      D.push(sc0); while (!sc0.done) yield 1;
+    } else yield* In.card(B, [A.LINES.poisonAll], 420);
+    yield* In.fade(B, 1, 40);
+    if (seat) In.rise(B, seat);
+    A.backRoomClear(B);
     party.forEach(function (u) { var s = 0; for (var i = 0; i < n; i++) if (A.poisonSave(u, 0, false)) s++; bonus[u.id] = s * P.perSuccess; });
     A.trail('the drag: ' + party.map(function (u) { return u.name + ' +' + bonus[u.id]; }).join(', '));
     f.poisonDrag = 1; In.passTo(B, A.DUE_HOUR);
     var t = R0.token; t.x = A.STONE[0]; t.y = A.STONE[1]; t.tween = null; R0.path = null; In.lay(B, null, true);
-    yield* In.card(B, [A.LINES.dragStone], 420);
-    var Y = {}; yield* A.surface(B, Y);
-    party.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; });
+    party.forEach(function (u) { u.conds.asleep = { by: 'draught' }; u.conds.prone = true; }); // (asleep before the black lifts: he fell asleep after it, 11-12)
+    var Y = {}, water = !f.elsbethSilent && !f.elsbethGone;
+    if (water) { Y.elsStone = In.unit(B, { id: 'elsbethStone', kind: 'commonerwoman', at: A.ELS_STONE.slice(), name: 'Elsbeth', face: [1, -1] }); Y.elsStone.bystander = true; var es = D.innprops && D.innprops.ELSBETH; if (es && D.SHEETS && D.SHEETS[es]) Y.elsStone.sheet = es; } // (her own figure at home: js/innprops.js IP.ELSBETH)
+    In.fadeSay(B, [A.LINES.dragStone]); yield 150;
+    yield* In.fade(B, 0, 50);
+    yield* A.surface(B, Y);
     var wake = function (Bf, why) { // (each sleeper's save with its bonus; who makes it wakes -- or only the first, P.firstOnly)
       var woke = [];
       party.forEach(function (u) { if (!u.conds || !u.conds.asleep || u.dead || u.hp <= 0) return; if ((!P.firstOnly || !woke.length) && A.poisonSave(u, bonus[u.id], false)) { delete u.conds.asleep; woke.push(u); } });
-      if (woke.length && Bf && Bf.card) Bf.card(D.roam.wrap([A.LINES.dragWake.split('{names}').join(woke.map(function (u) { return u.name; }).join(' and ')) + (why ? ' ' + why : '')]), 360);
+      if (woke.length && Bf && Bf.card) Bf.card(D.roam.wrap([A.wakeLine(woke) + (why ? ' ' + why : '')]), 360);
       return woke;
     };
     // ELSBETH'S WATER (RULED 11-07, rulings 16 and 19: "pop her up like conversation, wake up! you're supposed to stop it, then a silencing look from Ginnet"; 11-11, ruling 49,
-    // Griz: "no drag-feint but apply save bonuses to water-splash event as a bonus save ... failed save reload is acceptable"): her portrait with the bucket, her words,
-    // Gennet's look -- and the sleepers' save here is the BONUS one: each with the drag's bonus, at advantage. Nobody is woken for free
-    if (!f.elsbethSilent && !f.elsbethGone) {
-      var C3 = D.counter, SO3 = C3.SHEETOF, lead = party[0], ew = { name: 'Elsbeth', unit: null, side: 'left', sheet: In.elsbethCut(true) }, gw = { name: In.named(f), unit: Y.gennet || null, side: 'right', sheet: SO3 && SO3.gennet ? SO3.gennet({ flags: f }) : null };
+    // Griz: "no drag-feint but apply save bonuses to water-splash event as a bonus save ... failed save reload is acceptable"): her portrait with the bucket, her words --
+    // and the sleepers' save here is the BONUS one: each with the drag's bonus, at advantage. Nobody is woken for free. GENNET'S LOOK IS CUT FROM THE STONE (11-12, the
+    // seat's call on his "narration says elsbeth and the gennet are there but they aren't" and "just the girl with the bucket in the dark maybe"): Gennet is not on the
+    // point, so no line says she is; Elsbeth sets the bucket down and goes back up the path on her own feet, in at the lake door, before the thing is on the rocks
+    if (water) {
+      var lead = party[0], ew = { name: 'Elsbeth', unit: Y.elsStone || null, side: 'left', sheet: In.elsbethCut(true) };
       var sc3 = new C3.Counter(B, { id: 'dragwater', name: 'Elsbeth', place: 'The point', what: 'the flat stone', room: true, open: true, bg: In.roomShot(B), script: function (s3) { return (function* () {
         yield s3.lookAt(ew, ['Elsbeth, with the kitchen bucket. All of it, over ' + lead.name + '.']);
         yield s3.by(ew, ['"Wake up! You\'re supposed to stop it!"']);
-        yield s3.lookAt(gw, [In.named(f) + ' looks at her. Elsbeth puts the bucket down, and says nothing more.'], ew);
+        yield s3.lookAt(ew, [A.LINES.elsbethRuns]);
       })(); } });
       D.push(sc3); while (!sc3.done) yield 1; f.elsbethWater = 1;
+      if (Y.elsStone) { yield* In.walk(B, Y.elsStone, [In.DOORS.lake[0], In.DOORS.lake[1]]); In.gone(B, Y.elsStone); Y.elsStone = null; }
     }
     var first = (function () { var woke = []; party.forEach(function (u) { if (u.conds && u.conds.asleep && A.poisonSave(u, bonus[u.id], !!f.elsbethWater)) { delete u.conds.asleep; woke.push(u); } }); return woke; })(); // (as the water heaves -- hers and the lake's: the bonus save, at advantage when she threw it)
-    if (first.length) yield* In.card(B, [A.LINES.dragWake.split('{names}').join(first.map(function (u) { return u.name; }).join(' and '))], 360);
+    if (first.length) yield* In.card(B, [A.wakeLine(first)], 360);
     var turn0 = D.ai.turn, lastR = 0, quiet = 0, chuul = Y.chuul;
     D.ai.turn = function* (Bf, u) {
       if (u === chuul && Bf.round !== lastR) {
@@ -333,12 +418,66 @@
     yield* A.dueMorning(B, 'none');
   };
   A.dueMorning = function* (B, off) {
-    var f = B.roam.flags, st = D.counter.state(B);
+    var f = B.roam.flags, st = D.counter.state(B); delete f.doranOut; delete f.doranWaits; A.backRoomClear(B);
     var morning = A.morning(f) || (f.poisonFight || f.poisonDrag ? A.LINES.mornPoison : off === 'kept' ? A.LINES.mornDueKept : A.LINES.mornDue);
     if (f.poisonTaken && !f.poisonTakenSaid) { f.poisonTakenSaid = 1; morning = 'Morning. ' + f.poisonTaken + ' is not with you. ' + morning.replace(/^Morning\.\s*/, ''); } // (the drag's three rounds with nobody up: one taken)
     if ((f.duePaid || f.gennetTaken) && !f.lakeDone && In.has(st, 'ringofbinding')) morning = morning + ' ' + L('wagon.ringCold');
-    In.stage(B, [24, 17], 'inn');
-    yield* In.sleep(B, morning);
+    In.stage(B, [24, 17], 'inn'); if (B.roam.tokenOff) In.offFloor(B, true); // (still upstairs: nobody stood in the common room on the way to the morning)
+    return yield* In.sleep(B, morning);
+  };
+  // THE KEPT-CHILD NIGHT, PLAYED (RULED 11-12, Griz on the kept-child night: "the 30 minutes of being narrated to doesn't work. Doran can't talk about it not carrying
+  // if the singing is supposed to wake them, those narrations can be played. Stilling water camera zoom, etc."; then "4-5-6 yes" to the seat's three: the half hour
+  // played in the big room with the singing heard through the floor; Doran's "Nothing carries up there" cut; one camera move from the window to the stilling lake
+  // and back). After supper the night goes up to the big room (In.ROOM.big). Past midnight the singing comes up through the boards and wakes the party if its best
+  // passive Perception makes A.DUE_WAKE; the room is the player's, and the window is the east wall. At the window: down onto the house's own floor with nobody of
+  // the party on it (In.offFloor), and ONE camera move -- from over the big room's window out to the point (the floats still, the water flat, what moves past the
+  // point, the lantern off its post and the two on the path) and back to the lake door -- then the fork, THE LANTERN or LET IT BE. THE LANTERN: down the stair,
+  // and the path as built (A.path). LET IT BE: the due at the stone, watched from the window. A party that walks down the stair instead sees it from where it
+  // stands. Asleep through the singing: the walk as the night's cutscene, as built. In.duePlay carries the night from floor to floor ('room', then 'lake')
+  A.WINDOW = { x: 16, cam: [35, 16] }; // (the big room's squares along its east wall, upstairs; the same window on the house's floor: the kitchen's lake wall)
+  A.dueRoom = function* (B) {
+    var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B); if (P.stay) R0.stay = P.stay;
+    In.passTo(B, A.DUE_HOUR);
+    if (!In.read(st, 'Perception', A.DUE_WAKE)) { P.stage = 'lake'; P.asleep = true; yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'up'; } // (slept through: the walk, on the yard's floor)
+    f.warmup = 2; P.woke = true; A.trail('the due night: woken in the big room by the singing');
+    yield* In.card(B, [A.LINES.roomWoke], 360);
+    yield* In.card(B, [A.LINES.roomWindow], 300);
+  };
+  A.dueLake = function* (B) {
+    var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B), up = P.stage === 'lake', goblin = !(f.glamourBroken || f.glamourSeen), lake = In.DOORS.lake;
+    In.duePlay = null; if (P.stay) R0.stay = P.stay;
+    if (up) { In.stage(B, In.WATCH.down, 'inn'); In.offFloor(B, true); } // (at the window upstairs: nobody of the party on this floor)
+    if (P.asleep) {
+      yield* In.card(B, [A.LINES.dueNight], 300);
+      yield* In.dueWalk(B, goblin ? 'goblin' : 'kid'); f.duePaid = 1; if (A.hasRing(B)) In.offFloor(B, false); // (asleep upstairs: nobody downstairs unless the ring calls them down)
+      if ((yield* A.ringWarm(B, {})) === 'lost' || A.wiped(B)) return;
+      return yield* A.dueMorning(B, P.off);
+    }
+    // THE ONE CAMERA MOVE: out from the window to the stilling lake, and back to the lake door
+    var sign = function (i) { var s = A.SIGNS[i], got = s.dc == null || In.read(st, 'Perception', s.dc); return got && s.read ? s.read : s.sign; };
+    yield* B.camTo({ gx: A.WINDOW.cam[0], gy: A.WINDOW.cam[1], gz: 0 }, D.iso.zoom, 1);
+    yield* B.camTo({ gx: A.POST[0], gy: A.POST[1], gz: 0 }, D.iso.zoom, 70);
+    yield* In.card(B, [sign(3)], 280);
+    yield* B.camTo({ gx: A.DEEP[0], gy: A.DEEP[1], gz: 0 }, D.iso.zoom, 50);
+    if (D.fx) D.fx.sparkle({ x: A.DEEP[0] + 2, y: A.DEEP[1], size: 1 }, 'blue', 40);
+    yield* In.card(B, [sign(4)], 280);
+    var Y = A.cast(B, f, [lake[0] + 1, lake[1]]);
+    yield* B.camTo({ gx: A.PATH.head[0], gy: A.PATH.head[1], gz: 0 }, D.iso.zoom, 70);
+    yield* A.walkAll(B, Y, A.PATH.half);
+    f.warmup = A.SIGNS.length; f.lanternWalks = 1;
+    var a = yield* In.ask(B, 'THE LANTERN WALKS', [A.LINES.fork].concat(goblin ? [A.LINES.forkGoblin] : []), [A.LINES.opts.lantern, A.LINES.opts.let]);
+    A.trail('the fork, from the big room\'s window: ' + (a === 0 ? 'the lantern' : 'let it be'));
+    if (a === 0) { if (up) { In.offFloor(B, false); yield* In.card(B, [A.LINES.roomDown], 240); } yield* A.path(B, Y); if (A.wiped(B)) return; return yield* A.dueMorning(B, P.off); }
+    // LET IT BE: the due at the stone, seen from the window; only she comes back
+    yield* A.walkAll(B, Y, [A.STONE[0] - 1, A.STONE[1]]);
+    yield* B.camTo({ gx: A.STONE[0], gy: A.STONE[1], gz: 0 }, D.iso.zoom, 24);
+    yield* In.card(B, [goblin ? A.LINES.stoneGoblin : A.LINES.stone], 480); D.sfx('splash');
+    if (Y.kid) { if (D.fx) D.fx.sparkle(Y.kid, 'blue', 24); In.gone(B, Y.kid); Y.kid = null; }
+    f.duePaid = 1; f.dueSeen = 1; A.trail('the due paid at the stone, watched from the window'); yield 40;
+    yield* In.walk(B, Y.gennet, [lake[0], lake[1]]); A.clear(B, Y);
+    if (A.hasRing(B)) In.offFloor(B, false);
+    if ((yield* A.ringWarm(B, {})) === 'lost' || A.wiped(B)) return;
+    return yield* A.dueMorning(B, P.off);
   };
   // the fork (beat 1, on the due's own night now): the lantern has left its post -- THE LANTERN (the path) or LET IT BE (the walk, the due paid, the ring warm)
   A.dueFork = function* (B) {
@@ -351,10 +490,10 @@
     return 'path';
   };
   // ---------------------------------------------------------------- BEAT 2: the path -- round the inn's end to the footpath; ahead in the lantern's light the four of them; her line; the choice
-  A.path = function* (B) {
+  A.path = function* (B, Y0) { // (Y0: the two already on the path -- the night played from the big room, A.dueLake)
     var Rm = R(), R0 = B.roam, f = R0.flags, st = D.counter.state(B);
     f.pathStand = 1;
-    var Y = A.cast(B, f, A.PATH.half);
+    var Y = Y0 || A.cast(B, f, A.PATH.half);
     if (A.elsbethState(f) === 'earned') { Y.elsbeth = In.unit(B, { id: 'elsbethPath', kind: 'commonerwoman', at: [In.DOORS.lake[0] + 1, In.DOORS.lake[1] + 1], name: 'Elsbeth', face: [1, 0], lantern: true }); Y.elsbeth.bystander = true; f.elsbethLantern = 1; }
     yield* Rm.walkTo(B, A.PATH.head);
     yield* B.camTo({ gx: A.PATH.half[0], gy: A.PATH.half[1], gz: 0 }, D.iso.zoom, 24);
@@ -490,18 +629,18 @@
     if ((yield* A.ringWarm(B, Y, true)) === 'lost') return; // (the ring warm after the take: GO DOWN TO THE POINT -- the party stood out of the light on the path)
     yield* A.ends(B);
   };
-  A.rise = function* (B, Y) {
+  A.rise = function* (B, Y, after) { // (after: a walk-off before the ends -- Doran with the lantern, A.followDoran)
     var R0 = B.roam, f = R0.flags, t = R0.token;
     yield* A.surface(B, Y);
     var near = Math.max(Math.abs(t.x - A.STONE[0]), Math.abs(t.y - A.STONE[1])) <= A.SHORE, ring = near ? A.hasRing(B) : null;
-    if (!near) { yield* In.card(B, [A.LINES.riseNone].concat(Y.elsbeth ? [A.LINES.elsbethThat] : []), 420); A.trail('the lake rose: nobody at the shore'); In.gone(B, Y.chuul); Y.chuul = null; A.clear(B, Y); yield* A.ends(B); return; }
+    if (!near) { yield* In.card(B, [A.LINES.riseNone].concat(Y.elsbeth ? [A.LINES.elsbethThat] : []), 420); A.trail('the lake rose: nobody at the shore'); In.gone(B, Y.chuul); Y.chuul = null; A.clear(B, Y); if (after) yield* after(); yield* A.ends(B); return; }
     // at the shore it fights, ring or not (RULED 11-05, his "Yes, the leans", on the seat's lean to his note "I don't think the chuul would back down because the party isn't
     // ready"): no ring, the warning (the first game's own, lake.risesNoRing's "and you are not ready for it") and the fight as the SRD has the chuul and its frog -- the ring's
     // rounds are the party's edge, not the gate; getting clear of the water ends it (the floor's way out, A.lakeFight's noFlee off)
     if (!ring) { yield* In.card(B, [A.LINES.riseNoRing], 480); A.trail('the lake rose: no ring, it came up onto the point'); }
     else yield* In.card(B, [A.LINES.riseRing], 360);
     if ((yield* A.meet(B, Y, ring)) === 'lost') return;
-    A.clear(B, Y);
+    A.clear(B, Y); if (after) yield* after();
     yield* A.ends(B);
   };
   // the chuul met (the rise at the shore, the ring warm after the due, the rowboat): the fight, and what it leaves -- won, the deep is only water and the corpse's gift; 'lost' the
@@ -705,8 +844,7 @@
   A.ends = function* (B) {
     var Rm = R(), R0 = B.roam, f = R0.flags;
     f.secondActDone = 1;
-    yield* Rm.walkTo(B, [In.DOORS.lake[0] + 1, In.DOORS.lake[1]]);
-    yield* In.card(B, [In.WN.back], 240);
+    yield* Rm.walkTo(B, [In.DOORS.lake[0] + 1, In.DOORS.lake[1]]); // (11-12, Griz on the no-tell night: "back in by the front door and to bed excess narration" -- the card is cut: this is the lake door, and the morning says the rest)
     In.stage(B, [24, 17], 'inn');
   };
   A.morning = function (f) { // (the morning's line by the end: the due paid is the wagon's own mornings, js/inn.js)
@@ -787,6 +925,9 @@
   var script0 = D.roam.script;
   D.roam.script = function* (B) {
     var def = D.roam.def; if (def && def.key === In.KEY && B.roam && B.roam.flags && B.roam.flags.secondAct) yield* A.resume(B);
+    var dp = In.duePlay; // (the due's night played from the big room: A.dueRoom upstairs, A.dueLake on the house's floor -- at the window, or down the stair on their own feet)
+    if (dp && def && B.roam && def.key === In.UP && dp.stage === 'room' && !dp.woke) { if ((yield* A.dueRoom(B)) === 'up') return; }
+    else if (dp && def && B.roam && def.key === In.KEY) { if ((yield* A.dueLake(B)) === 'up') return; }
     yield* script0.apply(this, arguments);
   };
 })();

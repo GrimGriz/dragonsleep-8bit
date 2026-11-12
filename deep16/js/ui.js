@@ -1785,6 +1785,7 @@
         else if (!down && u.conds.laughing && has('laugh')) { anim = 'laugh'; o.frame = D.magic.laughFrame(B, u); }
         // one laughing with no fall frame and no rofl or laugh row: on its side (the gnolls stood there laughing, 10-02, before their sheet's own rows were cut)
         else if (!down && u.conds.laughing && pf < 0) { anim = 'idle'; o.lie = true; t = B.t + (u.id ? u.id.length * 7 : 0); o.rock = Math.sin(t / 3.5) * 0.14 * (Math.sin(t / 23) > -0.3 ? 1 : 0.3); } // (shaking with it, in fits)
+        else if (!down && u.conds.asleep && u.conds.prone && pf < 0) { anim = 'idle'; o.lie = true; } // (asleep on the ground with no fall frame of its own: on its side, the laughing's way -- 11-12, Griz on the stone at the Halfway Inn: "viv was standing with a z above her head")
         else if (pf >= 0 && !down && u.proneT != null) {
           var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, prow).fps || 8) / 60);
           if (u.proneLook) { anim = prow; o.frame = Math.min(pk, pf); }

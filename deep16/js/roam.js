@@ -1815,7 +1815,7 @@
       B.card(['{r}The party has fallen in the Wet.{/}  R to walk it again.'], 100000);
       return;
     }
-    var outBy = R0.members.filter(function (u) { return u.left; })[0];
+    var outBy = R0.members.filter(function (u) { return u.left; })[0]; (R0.last = R0.last || {}).outBy = outBy ? outBy.name : null; // (who got out, by name, for a floor's own script after the fight: js/secondact.js A.supperFight, 11-12)
     var fell = R.fallen(B, foes, grp && grp.zone); // (XP banked and the tally kept at the fall, won or got away: paid at the gather below)
     var took = R.takeUpLights(B);
     var still = (foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.summon; }); // (a foe's summoning goes with the fight)
