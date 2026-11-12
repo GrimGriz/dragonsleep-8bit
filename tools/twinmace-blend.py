@@ -13,7 +13,7 @@ Then `python tools/twinmace-sheet.py` lays the reference strips (deep16/art-src/
 
 What is new on the slash's mannequin (its bones, capsules and colours are tools/mannequin-blend.py's, imported):
   - BOTH hands are fists on a wrist: each hand runs on from the wrist along the forearm to the fist, its hand bone starts at the fist and points
-    along the weapon, and each weapon is held to WRIST degrees off its forearm (the slash's rule, now a side each).
+    along the weapon, and each mace sits LOCK degrees off its forearm on every frame (the wrists lock; his word on the first pass).
   - The wrists and the ankles are MARKED: a yellow ball at each, so the joint reads on the page and the art desk sees the hand turn on the
     forearm and the foot on the shin. The ankles work in this row: the heels come up at the top of the draw (legs' `pitch`) and drop at the hit.
   - A mace in each fist: a dark haft and a round head, his LEFT mace's head gold and his RIGHT's magenta (the sides must read: the cutter mirrors).
@@ -23,10 +23,10 @@ What is new on the slash's mannequin (its bones, capsules and colours are tools/
 
 Rows (blender_pose frames: the feet placed, each wrist placed from its shoulder, each hand aimed along a world direction, the elbows' poles):
     IDLE 1      the stance, both maces lowered, heads forward and down.
-    TWINMACE 6  1 guard (both heads up in front), 2 the draw (both arms rising, the elbows reeled in close under the fists), 3 THE TOP (the
-                fists by the ears, the elbows in and forward, the heads back over the shoulders, up on the balls of the feet), 4 THE HIT (the
-                release frame, index 3: both arms thrown out straight, the heads down on the target's two shoulders, the heels down), 5 the
-                rebound (the heads come up off the shoulders, the arms still out), 6 back to guard. 12 fps.
+    TWINMACE 6  1 POSITION ONE (both maces up in front; the wrists set here and LOCKED for the whole row), 2 hands to the ears (the elbows fold,
+                the shoulders raise the arms; the heads go back over the shoulders), 3 the shoulders further up as the torso starts forward and
+                the knees lower it, 4 THE STRIKE (the release frame, index 3: the elbows extend and the shoulders come down, a head on each of
+                the target's shoulders, the hips and legs already pulling the torso back), 5 on the way back, 6 nearly idle. 12 fps.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -50,7 +50,7 @@ LOG = '[twinmace]'
 
 COL = dict(MQ.COL, joint='#ffe14a', haft='#a8763e', headL='#ffd23c', headR='#ff2ed2', cap='#f4f0e0', dummy='#8fa89a', pad='#e6f2ea', dnose='#5f7a6c')
 HAND = MQ.HAND
-WRIST = (25, 115)        # (a mace's angle off the forearm a one-hand grip reaches, degrees: nearer the arm's line at the hit than a blade)
+LOCK = 64                # (each mace's angle off its forearm, degrees, the same on every frame: his "wrists essentially lock at position 1")
 HEADC = 0.47             # (the head's middle, along the hand bone from the fist)
 HEADR = 0.078
 MACE = [('pommel', 'grip', -0.075, -0.055, 0.030), ('grip', 'grip', -0.055, 0.06, 0.022), ('haft', 'haft', 0.06, 0.40, 0.022),
@@ -179,39 +179,45 @@ def build():
 
 # ------------------------------------------------------------------ the rows
 def rows(R):
+    """His words on the first pass (11-12), the motion's law: "wrists essentially lock at position 1 / hands to the ears is mostly elbow
+    retraction while shoulders raise the arms / then shoulders further up as torso starts leaning forward as knees lower torso / then the strike
+    is elbows extending and shoulders coming down while the hips and legs start pulling the torso back on the way to return to idle".
+    So a frame is each arm's two angles -- `up` the upper arm and `fo` the forearm, degrees above the level, forward -- and the mace is never
+    aimed: it sits LOCK degrees off its forearm in the arm's own plane (the way the elbow folds), on every frame of every row."""
     za, zb = R.ANK0['a'].z, R.ANK0['b'].z
-    m = lambda v: tuple(x * U for x in v)       # (the numbers below in metres)
+    L1, L2 = R.BN['arm.L'].length / U, R.BN['fore.L'].length / U
     mir = lambda v: (-v[0], v[1], v[2])
+    rad = math.radians
 
-    def P(lift, shift=0.0, lean=0, head=0, w=(0, 0, -0.4), d=(0, -1, 0), pole=(0.6, 1, 0), heel=0, sh=0, fw=0, wR=None, dR=None):
-        """one frame, both arms alike (w a wrist from its shoulder, d the mace's way, pole the elbow's -- the LEFT's, the right's mirrored)."""
+    def P(lift, shift=0.0, lean=0, head=0, up=-60, fo=20, out=0.03, heel=0, sh=0, fw=0):
+        u = (0.0, -math.cos(rad(up)), math.sin(rad(up))); f = (0.0, -math.cos(rad(fo)), math.sin(rad(fo)))
+        w = (out, (u[1] * L1 + f[1] * L2), (u[2] * L1 + f[2] * L2))               # the wrist from its shoulder, metres
+        pole = (0.22, u[1], u[2]) if abs(fo - up) > 40 else (0.04, 0.3, -1.0)      # the elbow where the upper arm points, a little out; an arm near straight keeps its elbow under it (its fold stays fore-and-aft)
         return dict(lift=lift * U, shift=shift * U, lean=lean, head=head, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
                     legs={'a': (0.13 * U, -0.10 * U, za, 12, heel), 'b': (-0.13 * U, 0.08 * U, zb, 20, heel)},
-                    arms={'a': m(w), 'b': m(wR or mir(w))}, hands={'a': d, 'b': dR or mir(d)}, epolea=pole, epoleb=mir(pole))
+                    arms={'a': tuple(x * U for x in w), 'b': tuple(x * U for x in mir(w))}, epolea=pole, epoleb=mir(pole))
 
-    IDLE = [P(-0.04, lean=2, w=(0.05, -0.16, -0.44), d=(0.10, -0.80, -0.59), pole=(0.6, 1, 0))]
     TWIN = [
-        P(-0.05, lean=4, w=(0.05, -0.30, -0.20), d=(0.06, -0.34, 0.94), pole=(0.55, 0.45, -0.70)),                              # 1 guard
-        P(-0.04, shift=0.02, lean=-3, head=-2, heel=8, sh=6, w=(0.07, -0.13, 0.03), d=(0.12, 0.22, 0.97), pole=(0.30, 0.25, -0.92)),  # 2 the draw: the elbows reeled in under the fists
-        P(0.00, shift=0.04, lean=-11, head=-6, heel=28, sh=14, fw=-6, w=(0.09, -0.01, 0.20), d=(0.16, 0.66, 0.73), pole=(0.28, -0.92, -0.26)),  # 3 THE TOP: the fists by the ears, the elbows in and forward
-        P(-0.12, shift=-0.10, lean=12, head=6, heel=0, sh=10, fw=10, w=(0.02, -0.42, 0.28), d=(0.01, -0.98, -0.19), pole=(0.80, 0.20, -0.55)),   # 4 THE HIT: both arms out straight
-        P(-0.10, shift=-0.07, lean=9, head=4, heel=0, sh=6, fw=6, w=(0.03, -0.37, 0.27), d=(0.02, -0.97, 0.22), pole=(0.80, 0.25, -0.50)),            # 5 the rebound: the heads come up off the shoulders, the arms still out
-        P(-0.07, shift=-0.03, lean=9, head=2, w=(0.04, -0.33, -0.15), d=(0.05, -0.50, 0.86), pole=(0.55, 0.45, -0.70)),                       # 6 recover
+        P(-0.04, lean=3, up=-62, fo=18),                                               # 1 POSITION ONE: the maces up in front; the wrists as they will stay
+        P(-0.04, shift=0.01, lean=0, head=-2, up=22, fo=128, sh=10, out=0.05),         # 2 hands to the ears: the elbows fold, the shoulders raise the arms
+        P(-0.11, shift=-0.05, lean=11, head=2, up=48, fo=138, sh=18, out=0.05, heel=10),   # 3 the shoulders further up, the torso starting forward, the knees lowering it
+        P(-0.085, shift=-0.035, lean=7, head=6, up=-17, fo=-12, sh=6, fw=6, out=0.02),   # 4 THE STRIKE: the elbows extend, the shoulders come down; the hips and legs already pulling the torso back
+        P(-0.06, shift=-0.01, lean=4, head=2, up=-36, fo=-2, sh=2),                     # 5 on the way back
+        P(-0.045, lean=3, up=-52, fo=14),                                              # 6 nearly idle
     ]
+    IDLE = [P(-0.04, lean=3, up=-62, fo=18)]                                           # (the idle is position one: the strike leaves from it and comes back to it)
 
-    def wrist(P, tag):
-        """each mace held to what a wrist can do: WRIST degrees off its forearm at most and least, turned in the plane of the two."""
-        Q = {k: v for k, v in P.items() if k != 'hands'}
-        d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]; hands = {}
-        for s, fore in (('a', 'fore.L'), ('b', 'fore.R')):
-            f = (M[fore] @ Vector((0, R.BN[fore].length, 0)) - M[fore].translation).normalized(); b = Vector(P['hands'][s]).normalized()
-            th = math.degrees(f.angle(b)); t = min(max(th, WRIST[0]), WRIST[1])
-            if abs(t - th) > 0.5:
-                q = (b - f * b.dot(f)).normalized(); b = f * math.cos(math.radians(t)) + q * math.sin(math.radians(t))
-                print('%s %s %s: the aim asked the wrist %.0f degrees off the forearm; held to %.0f' % (LOG, tag, s, th, t))
-            hands[s] = tuple(b)
+    def lock(P, tag):
+        """each mace LOCK degrees off its forearm, turned the way its elbow folds (about the arm's own hinge: the upper arm x the forearm)."""
+        d, lift, shift, sway = R.pose_d(P); M = R.solve(d, lift, shift, sway, mats=True)[1]; hands = {}
+        for s_, arm_, fore in (('a', 'arm.L', 'fore.L'), ('b', 'arm.R', 'fore.R')):
+            u = (M[fore].translation - M[arm_].translation).normalized()
+            f = (M[fore] @ Vector((0, R.BN[fore].length, 0)) - M[fore].translation).normalized()
+            n = u.cross(f)
+            n = n.normalized() if n.length > 1e-4 else Vector((1 if s_ == 'a' else -1, 0, 0))
+            hands[s_] = tuple(Matrix.Rotation(math.radians(LOCK), 3, n) @ f)
         return dict(P, hands=hands)
-    mk = lambda name, F: (lambda i, n: (wrist(dict(F[i]), '%s %d' % (name, i + 1)), 0))
+    mk = lambda name, F: (lambda i, n: (lock(dict(F[i]), '%s %d' % (name, i + 1)), 0))
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), ('twinmace', 6, False, mk('twinmace', TWIN), 'ik')]
 
 
