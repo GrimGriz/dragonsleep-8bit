@@ -38,6 +38,12 @@
     barn: { parts: [{ r: [5, 3, 14, 9], roof: 'Q' }], walls: 'A' }                                           // (the barn: six stalls either side of an aisle)
   };
   In.HOUSE = In.BUILDINGS.inn.parts[0].r; // (the house's main block, for the upstairs over it)
+  // THE KEPT CHILD'S OWN FIGURE AND FACES (11-12, ART-139, cut by cutter-art139; Griz: "art request for girl and goblin"): the child Gennet keeps wears `keptchild`
+  // (keptchild_p1, eight facings) wherever she is shown as she is -- in the barn's stall and the wagon's bed once seen through, in the yard, beside the token, at
+  // the kitchen table, on the due's walk -- in place of the townsfolk child (Orrin and Pell keep that one); and in the yard's talk her face is pt_keptchild, or
+  // pt_glamourgoblin while the party still takes her for a goblin (In.childFace)
+  In.keptKind = function () { return D.FOES && D.FOES.keptchild ? 'keptchild' : 'commonerchild'; };
+  In.childFace = function (seen) { var k = seen ? 'pt_keptchild' : 'pt_glamourgoblin'; return D.SHEETS && D.SHEETS[k] ? k : null; };
   In.DOORS = { front: [19, 18], lake: [36, 18], barn: [14, 6] }; // (the front door on the yard and the road, the lake door from the kitchen, the barn's on the yard)
   In.STEP = { front: [18, 18, 'left'], lake: [37, 18, 'right'], barn: [15, 6, 'right'] }; // (a step out of each, and the way it faces)
   In.STUB = 1;                // (the walls' height while the party is inside, a roof's own measure: a knee-high stub -- js/iso.js roofCanvas)
@@ -107,7 +113,7 @@
   ];
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
-    orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'commonerchild', snootRunner: 'commoner',
+    orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'keptchild', snootRunner: 'commoner',
     amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'glamourgoblin', barnGoblin: 'glamourgoblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35 -- the Waterbys and Katarina wear their own over them since 11-05, js/counter.js C.FIG)
   In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
@@ -281,7 +287,7 @@
     def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
-    def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = 'commonerchild'; }); // (the chained one a child once the glamour is seen through)
+    def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = In.keptKind(); }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
     var first = !flags.reachedInn; flags.reachedInn = 1;
     def.hello = ['{y}THE HALFWAY INN{/} -- ' + def.sub + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(h) : '') + '.']
@@ -1125,7 +1131,7 @@
     doranRoom: ['"Not tonight. Get her down to the Pit first."'] };
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
   In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
-  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f)); return; } yield sc.say(In.CHILD.doranIdle); };
+  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
   M.tell2 = function (w, lines) { if (w && lines && lines.length) w.tell = [].concat(lines); return w; }; // (a line's own TELL ME ABOUT IT given as words, not a text key: js/mines.js M.tell)
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
   In.stage = function (B, at, inside) { var t = B.roam.token; t.x = at[0]; t.y = at[1]; t.tween = null; B.roam.path = null; In.lay(B, inside, true); };
@@ -1250,14 +1256,14 @@
   In.breakGlamour = function* (B, st, f, Y) {
     if (!In.saw(st, f)) return;
     (B.riders || []).forEach(function (r) { if (r.yard && r.after) { r.sheet = r.after; if (D.fx) D.fx.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
-    if (Y && Y.kid && B.units.indexOf(Y.kid) >= 0) { var kd = D.FOES.commonerchild; if (kd) { Y.kid.sheet = kd.sheet; Y.kid.kind = 'commonerchild'; Y.kid.name = 'A child, chained'; if (D.fx) D.fx.sparkle(Y.kid, 'gold', 14); } }
+    if (Y && Y.kid && B.units.indexOf(Y.kid) >= 0) { var kd = D.FOES[In.keptKind()]; if (kd) { Y.kid.sheet = kd.sheet; Y.kid.kind = In.keptKind(); Y.kid.name = 'A child, chained'; if (D.fx) D.fx.sparkle(Y.kid, 'gold', 14); } }
     yield 40;
   };
   // the due's walk, the night's cutscene on the map's camera (the first game's EV.dueWalk): the inn lady out of the lake door with her lantern and the one she took, down the path to the point, the lake flat; only she comes back
   In.dueWalk = function* (B, look) {
     var f = B.roam.flags, lake = In.DOORS.lake, stone = [43, 18];
     var lady = In.unit(B, { id: 'dueLady', kind: 'commonerwoman', at: [lake[0] + 1, lake[1]], name: In.named(f), face: [1, 0], lantern: true });
-    var kid = In.unit(B, { id: 'dueKid', kind: look === 'goblin' ? 'glamourgoblin' : 'commonerchild', at: [lake[0] + 1, lake[1] + 1], name: look === 'goblin' ? 'A goblin' : 'A child', face: [1, 0] });
+    var kid = In.unit(B, { id: 'dueKid', kind: look === 'goblin' ? 'glamourgoblin' : In.keptKind(), at: [lake[0] + 1, lake[1] + 1], name: look === 'goblin' ? 'A goblin' : 'A child', face: [1, 0] });
     yield* In.cam(B, [40, 18], 40);
     yield* In.card(B, [L(look === 'goblin' ? 'due.walkGoblin' : 'due.walk')], 360);
     yield* In.walk(B, lady, [stone[0], stone[1] + 1], [1, 0]); yield* In.walk(B, kid, [stone[0] + 1, stone[1]], [1, 0]);
@@ -1632,7 +1638,7 @@
     BY.NAMEQ = { lymen: `What's your name, little one?`, aurdin: `Have you a name?`, vivian: `What do they call you?`, barley: `What's your name?` };
     BY.asker = function (S, four) { var best = 0, at = null; four.forEach(function (e) { var n = S.said[e.key] || 0; if (n > best) { best = n; at = e; } else if (n === best) at = null; }); return at || four.filter(function (e) { return e.key === 'vivian'; })[0] || four[0]; };
     BY.nameAsk = function (S, four) { var e = BY.asker(S, four); In.trail('her name asked by ' + e.hero.name); S.heroAsk(e, `The child looks up at ` + e.hero.name + `.`, BY.NAMEQ[e.key] || BY.NAMEQ.barley, 'child'); S.by('child', `"Nell."`); };
-    BY.hip = 32; // (how far up Gennet's figure the carried child is drawn, in pixels)
+    BY.hip = 36; // (how far up Gennet's figure the carried child is drawn, in pixels)
     BY.endWalk = function (S, k) { return k === 'e' && !S.doran && S.tier >= 3 ? 'elsbethOut' : null; }; // (a walk that comes before an end's words)
     // what is said as each end falls (the fight itself, and what the house does after, are In.barnYard's)
     BY.END = function (S, k) {
@@ -1660,7 +1666,7 @@
     if (Y.S) return Y.S;
     var f = B.roam.flags, d = In.day(D.roam.q), BY = In.BY, SO = D.counter.SHEETOF;
     var S = Y.S = { f: f, seen: !!f.glamourBroken, renown: In.renown(), doran: !!Y.doran || !!Y.night, byDay: !Y.night, tier: f.elsbethTier || 0, nights: In.nightsToDue(f, d), know: !!(f.elsbethTold || f.heardLakeTake || f.heardLamp), holder: four[0].hero.name, stage: 'open', rolls: {}, out: [], did: {}, pending: null, endPending: null };
-    S.who = function (id) { var u = id === 'gennet' ? Y.gennet : id === 'doranIn' ? Y.doran : id === 'child' ? Y.child || Y.kid : Y.elsbeth; return { name: id === 'gennet' ? In.named(f) : id === 'doranIn' ? 'Doran' : id === 'elsbeth' ? 'Elsbeth' : S.seen ? 'The child' : 'The goblin', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: id === 'elsbeth' ? In.elsbethCut() : (id === 'gennet' || id === 'doranIn') && SO && SO[id] ? SO[id]({ flags: f }) : null }; }; // (Elsbeth on the tub portrait's cut, as at the supper -- 11-12, Griz: "we're using a cut of the tub portrait for elsbeth in scenes like this aren't we?": the yard was showing her figure's face)
+    S.who = function (id) { var u = id === 'gennet' ? Y.gennet : id === 'doranIn' ? Y.doran : id === 'child' ? Y.child || Y.kid : Y.elsbeth; return { name: id === 'gennet' ? In.named(f) : id === 'doranIn' ? 'Doran' : id === 'elsbeth' ? 'Elsbeth' : S.seen ? 'The child' : 'The goblin', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: id === 'elsbeth' ? In.elsbethCut() : id === 'child' ? In.childFace(S.seen) : (id === 'gennet' || id === 'doranIn') && SO && SO[id] ? SO[id]({ flags: f }) : null }; }; // (Elsbeth on the tub portrait's cut, as at the supper -- 11-12, Griz: "we're using a cut of the tub portrait for elsbeth in scenes like this aren't we?": the yard was showing her figure's face)
     S.by = function (id, line, tell) { S.out.push({ by: id, line: line, tell: tell || null }); }; // (tell: the line's own TELL ME ABOUT IT -- js/hours.js H16.TELL_RULE)
     S.narr = function (line, walk) { S.out.push({ narr: line, walk: walk || null }); }; S.look = function (id, line, at, walk) { S.out.push({ look: id, line: line, at: at || null, walk: walk || null }); }; // (walk: what moves on the yard as the line is said -- In.barnYard's acts)
     S.said = {}; S.heroAsk = function (e, prompt, say, of) { S.out.push({ heroAsk: e, line: prompt, say: say, of: of }); }; // (said: how many times each hero has spoken for the party; heroAsk: a hero's one line, in the bubble, to the one named)
@@ -1675,7 +1681,8 @@
     var BY = In.BY, S = In.barnS(B, Y, four), i;
     var wait = function (o) {
       if (o.walk && Y.go) Y.go(o.walk); // (the figure sets off as its line comes up)
-      if (o.heroAsk) { sc.hero = o.heroAsk.hero; sc.heroSide = 'left'; return sc.askBy(S.who(o.of), [o.line], [o.say]); }
+      if (o.heroAsk) { sc.hero = o.heroAsk.hero; sc.heroSide = 'left'; return sc.askBy(S.who(o.of), [o.line], [o.say], o.of === 'child' ? 'lookingup' : null); } // (her face tipped up to the one asking: pt_keptchild's `lookingup`)
+      if (o.look === 'child' && /holds on harder|backs up|has not let go/.test(o.line)) { var wl = sc.lookAt(S.who(o.look), [o.line], o.at ? S.who(o.at) : null); wl.face = 'afraid'; return wl; } // (her `afraid` row where the line is her fear)
       return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(S.who(o.look), [o.line], o.at ? S.who(o.at) : null) : M.tell2(sc.by(S.who(o.by), [o.line]), o.tell);
     };
     var done = function (end) { B.roam.barnEnd = { end: end, big: !!S.big, drew: !!S.drew, seen: S.seen, doran: S.doran, tier: S.tier, nights: S.nights }; In.trail('out of the barn: END ' + end.toUpperCase()); };
@@ -1710,7 +1717,7 @@
   In.barnYard = function* (B) {
     var Rm = D.roam, R0 = B.roam, f = R0.flags, BY = In.BY, A = D.secondact, C = D.counter, c = In.cycle(In.day(Rm.q)), Y = {}, P = BY.at;
     In.stage(B, P.party, null);
-    var kid = function (at) { return In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? 'commonerchild' : 'glamourgoblin', at: (at || P.child).slice(), name: f.glamourBroken ? 'The child' : 'The goblin', face: [1, 1] }); };
+    var kid = function (at) { return In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: (at || P.child).slice(), name: f.glamourBroken ? 'The child' : 'The goblin', face: [1, 1] }); };
     BY.exits = []; BY.stoodAt = null; Y.child = Y.kid = kid(); Y.swap = function () { var at = [Y.child.x, Y.child.y]; BY.exits.push({ id: 'barnKid', x: at[0], y: at[1], how: 'swap' }); In.gone(B, Y.child); Y.child = Y.kid = kid(at); }; // (the glamour breaking: the goblin's figure for the child's, on its own square; Y.kid: her figure kept for a face after she has joined the party)
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: P.from.slice(), name: In.named(f), face: [-1, -1] });
     var dy = B.units.filter(function (u) { return u.npc === 'doranYard'; })[0] || null;
@@ -1862,7 +1869,7 @@
     In.layFollower = function (B) {
       var R0 = B && B.roam, def = Rm.def, f = R0 && R0.flags, t = R0 && R0.token; if (!f || !f.childGuest || !t || !def || (def.key !== In.KEY && def.key !== In.UP)) return null;
       var have = B.units.filter(function (u) { return u.follower || u.scripted === 'barnKid'; }); if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
-      var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? 'commonerchild' : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
+      var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
       u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u;
     };
     T.people = function (B) { var r = people0.apply(this, arguments); In.layFollower(B); return r; };
