@@ -517,3 +517,44 @@ All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dar
 Where: Sólskaft's troopers on the street, who walk today as the dwarf in his own clothes (`deep16/js/solskaft.js`; `deep16/js/counter.js` C.FIG). Cut as: `trooper_p1` in all eight facings, SW, W and NW mirrored.
 
 **Order, if it helps:** block 1 (two stills) first, then block 2 once the guides are with you, then 4, then 3.
+
+## 56. Sólskaft's garrison, a follow-up: the road patrol (a portrait still and a fight sheet in all five views) and the file leader's mark (a portrait still) (added 11-12, the lanes desk, on his word) -- a follow-up to ART-142, IN THE OUTBOX 2026-11-12, waiting to go (`deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/` and its `.zip`)
+
+The same generic dwarf as ART-141 and ART-142, in two more of the garrison's ranks. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 56.
+
+His words, to the lanes desk 2026-11-12, on the garrison seat's question whether the road patrol and a mark for the file leader should be asked: *"5 - ask follow up, does also have melee weapon?"* It does: the road patrol is the SRD's Scout as a dwarf, a longbow and a shortsword.
+
+What is in the game (11-12, `deep16/data/foes.js`): six ranks. The Gate Watch (your spear sheet), the Trooper and the Crossbow Trooper (ART-142), the Drill-sergeant, and two with no art of their own, both standing in on an old helmed sheet: the ROAD PATROL (leather armour, two shortsword blows or two longbow shots) and the FILE LEADER (a trooper who leads four: the trooper's kit, two battleaxe blows).
+
+### 1. The road patrol and the file leader -- two portrait stills on the generic dwarf
+ATTACH `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/ART-141-DWARF_HEAD-01_PAGE-1_IDLE.png` (the dwarf: the same face, beard and build), `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/ART-141-DWARF_HEAD-02_PAGE-1_TROOPER.png` (the series' format and size; the trooper as first drawn -- the file leader wears the trooper's kit as ART-142 block 1 redraws it: a battleaxe, a full coat of mail).
+```text
+Attached: two pages you drew of one dwarf -- in his own clothes, and as a garrison trooper. Add two pages to the same series. The face, beard, build, camera and size do not change.
+
+HEAD 1 -- THE ROAD PATROL (1): the same dwarf as the hold's ranger of the road, dressed to walk and watch for days: a studded brown leather jerkin over a wool shirt, a weather-stained hooded travelling cloak in dull green-grey thrown back off the shoulders, no helm (the hood down, his hair tied back as always), a strung LONGBOW in his left hand standing taller than he is, a quiver of arrows at his right hip, a SHORTSWORD in a plain scabbard at his left hip. Wind-burned, narrow-eyed, looking out past the viewer at the road.
+HEAD 2 -- THE FILE LEADER (1): the garrison trooper again, in the trooper's kit as redrawn for ART-142 -- the steel cap with its riveted band, a full coat of chain mail to the elbow and mid-thigh, quilted red sleeves, the round shield on his left arm, the one-handed BATTLEAXE upright in his right fist, two throwing axes at the belt -- with a leader's two marks: a low BRASS COMB running front to back along the crown of the steel cap, and a red cloth band round his upper right arm with ONE yellow chevron (the drill sergeant's band has two). Chin up, a man used to being followed by four others.
+
+Both: 16-bit pixel-art cut-scene portrait, comparable to the attached pages and the same size as them. Waist-up, NO counter: the dwarf stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at the DWARF's eye level (do not draw the dwarf looked down on), looking screen left at someone just beside the camera. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, one still drawing an image. A title kept well clear of the drawing. No scenery, no UI or border.
+```
+Where: two new rows of `pt_dwarf`, `roadpatrol` and `fileleader`. The file leader's marks are the engine side's own (a brass comb, one chevron): say if a different mark reads better at small size. No fight sheet is asked for the file leader: the cutter paints the brass comb onto the trooper's sheets.
+
+### 2. The road patrol fighting -- in all five views
+ATTACH `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/ART-141-GATE-WATCH-E-IDLE.png`, `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/ART-141-GATE-WATCH-E-ATTACK.png` (the fight sheet you drew of this dwarf with a spear: the same format, the same camera and THE SAME SIZE), `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/REF-2026-10-21-town-figure-size.png` (a grown human figure's size, for scale), `deep16/_src/outbox/ASK-2026-11-12-solskaft-road-patrol-and-file-leader/attach/PALETTE-2026-10-28-deep16-64-colours.png` (the game's 64 colours). The mannequin guide `GUIDE-2026-11-12-one-handed-slash` (the dwarf build), already with you, is the Attack row's guide.
+```text
+Attached: two pages of a fight sheet you drew of this same dwarf with a spear, for the format, the camera and the size; a size reference; the game's palette. The one-handed slash pose guide you already have (the dwarf build) is the guide for the Attack row: follow its six beats in every view, the cut landing on frame 4.
+
+THE ROAD PATROL, fighting: the same dwarf -- short and broad, the braided brown beard with a little grey -- in a studded brown leather jerkin, a hooded travelling cloak in dull green-grey thrown back behind his shoulders, no helm, heavy boots. A quiver at his right hip. He fights two ways and the sheet shows both: a SHORTSWORD in his right hand with the longbow slung across his back, and a LONGBOW in both hands with the shortsword sheathed at his left hip.
+
+SIZE: exactly the size of the attached spear sheet's figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down. The same scale in every row and on every sheet. The longbow is taller than he is.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: the shortsword drawn and low, the bow on his back, weight forward, a small breath); Walk (8: a quick, quiet, short-legged walk, the sword low; animate in place); Attack (8: the shortsword cut -- the guide's six beats with one frame of settle before and after, the blade landing on frame 4); Shoot (6: the longbow in both hands, the sword sheathed -- nock, draw to the cheek, LOOSE on frame 4, the string's snap and the bow arm's follow-through, lower); Flinch (4: struck, rocked back, recovering); Fall (6: knocked down); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. The sword is in his RIGHT hand and the bow is held in his LEFT in every view, the views seen from behind included. No scenery.
+```
+Where: the Road Patrol foe (`deep16/data/foes.js` roadpatrol), in the Pocket DM and on the road. Cut as: a fight sheet `roadpatrol_p2` in the shape of `gatewatch_p2`, SW, W and NW mirrored from SE, E and NE, the `shoot` row its longbow shots.
+
+**Order, if it helps:** after ART-142's own blocks; block 1's two stills first.
