@@ -1497,7 +1497,7 @@
     // a blow that only follows another's hit (the grick, SRD 5.1: "makes one attack with its tentacles. If that attack hits, the grick
     // can make one beak attack against the same target" -- data/foes.js `afterHit`, 10-02): who each of its blows landed on this turn
     var landed = {};
-    var heldHit = false; // (the chuul's one pincer a turn at the one it carries, below)
+    var heldQ = (u.holding || []).filter(function (w) { return !w.offering; }).sort(function (a, b) { return (a.conds.paralyzed ? 0 : 1) - (b.conds.paralyzed ? 0 : 1) || a.hp - b.hp; }); // (the ones the chuul carries as its turn starts: a pincer each, below)
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
@@ -1539,9 +1539,13 @@
       // (particularly held in claws makes sense). I'm thinking 'if target held and paralyzed, pincer held, pincer new - hopefully tentacles new on successful new target pincer)"):
       // one pincer a turn goes at the one it carries once the poison has that one (a hit from within 5 ft is a critical hit, SRD 5.1: battle.js), the other reaches for someone
       // new as before; data/foes.js `grapple.claws`, the chuul's row alone
-      if (atk.grapple && atk.grapple.claws && !heldHit) {
-        var hp0 = pool.filter(function (w) { return (u.holding || []).indexOf(w) >= 0 && w.conds.paralyzed && !w.offering && G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
-        if (hp0) { t = hp0; heldHit = true; }
+      // A PINCER THAT HOLDS STRIKES ONLY WHAT IT HOLDS (the same day, later, on the desk's call that an unpoisoned one held left both pincers free: "my issue is that if it's
+      // holding someone in it's pincers letting it attack someone else with those pincers is fishy"): paralyzed or not, each one it carried as its turn began takes one
+      // pincer, and only a pincer left over reaches for someone new
+      if (atk.grapple && atk.grapple.claws) {
+        var hp0 = null;
+        while (heldQ.length && !hp0) { var hq = heldQ.shift(); if (pool.indexOf(hq) >= 0 && (u.holding || []).indexOf(hq) >= 0 && G.standing(hq) && G.dist(u, hq) <= G.reachOf(u, atk.reach)) hp0 = hq; }
+        if (hp0) t = hp0;
       }
       if (!t) continue;
       // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every

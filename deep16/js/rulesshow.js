@@ -401,7 +401,20 @@
       } finally { B.active = null; }
       var l = since(n), crit = /CRITICAL/.test(l) && paladin.hp < ph, both = !!(cleric.inClaws && cleric.inClaws.by === chuul.id) && cleric.hp < ch, saves = (l.match(/: CON save/g) || []).length, cPara = !!cleric.conds.paralyzed, stillP = !!paladin.conds.paralyzed;
       if (B.release) B.release(chuul); delete chuul.holding; delete paladin.inClaws; delete cleric.inClaws; delete chuul.clawing; // (let go for the next beat)
-      return [crit && both && saves === 1 && cPara && stillP, (crit ? 'a CRITICAL pincer on the paladin in its claw; ' : 'NO critical pincer on the held paladin; ') + (both ? 'the cleric taken by the other; ' : 'the cleric NOT taken; ') + saves + ' CON save' + (saves === 1 ? '' : 's') + ' asked (want 1, the cleric\'s); ' + (cPara ? 'the cleric poisoned and paralyzed' : 'the cleric not paralyzed')];
+      /* the same with the one it holds NOT poisoned (his word the same day: "if it's holding someone in it's pincers letting it attack someone else with those pincers is fishy"):
+         the grab alone, then its own turn, the saves' die pinned to 20 so the tentacles take nobody -- the holding pincer at the paladin, a plain hit, the free one at the cleric */
+      stage([chuul, paladin, cleric], [[0, 0], [2, 0], [2, 1]]); setPin(15, [20]);
+      say(['Again, the paladin held and NOT poisoned: the pincer that holds him strikes him and nobody else; only the free pincer reaches for the cleric.']); yield W(80);
+      var n2 = 0, ph2 = 0, ch2 = 0;
+      try {
+        turn(chuul); yield* fire(B.attack(chuul, paladin, chuul.attacks.pincer)); B.active = null; yield W(50);
+        ph2 = paladin.hp; ch2 = cleric.hp; n2 = mark(); RU.startTurn(chuul); B.active = chuul;
+        yield* fire(D.ai.turn(B, chuul)); B.active = null; yield W(90);
+      } finally { B.active = null; }
+      var l2 = since(n2), own = paladin.hp < ph2 && !/CRITICAL/.test(l2), other = cleric.hp < ch2 && !!(cleric.inClaws && cleric.inClaws.by === chuul.id), pins = (l2.match(/  Pincer  /g) || []).length;
+      if (B.release) B.release(chuul); delete chuul.holding; delete paladin.inClaws; delete cleric.inClaws; delete chuul.clawing;
+      if (!(own && other && pins === 2)) return [false, 'held and not poisoned: ' + (own ? 'its holding pincer hit the paladin; ' : 'the paladin it holds NOT struck (or a critical on one not paralyzed); ') + (other ? 'the free pincer took the cleric; ' : 'the cleric NOT taken; ') + pins + ' pincers (want 2)'];
+      return [crit && both && saves === 1 && cPara && stillP, 'held and not poisoned: a pincer at the paladin, a pincer at the cleric; then, poisoned: ' + (crit ? 'a CRITICAL pincer on the paladin in its claw; ' : 'NO critical pincer on the held paladin; ') + (both ? 'the cleric taken by the other; ' : 'the cleric NOT taken; ') + saves + ' CON save' + (saves === 1 ? '' : 's') + ' asked (want 1, the cleric\'s); ' + (cPara ? 'the cleric poisoned and paralyzed' : 'the cleric not paralyzed')];
     }
     function* spikeFlier() {
       // Spike Growth is the ground's: a harpy holding 5 ft over it crosses untouched; on the surface the thorns reach it (RULED 11-10, Griz: "spiked shouldn't impact fliers over 5ft
