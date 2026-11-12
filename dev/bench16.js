@@ -2576,6 +2576,7 @@
     var pairDown = function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); };
     var sl = function (o, re, n) { var i = o.search(re); return i < 0 ? o.slice(0, n || 400) : o.slice(Math.max(0, i - 60), i + (n || 900)); };
     D.store.get = function (k) { return memWn[k] ? JSON.parse(memWn[k]) : null; }; D.store.set = function (k, v) { memWn[k] = JSON.stringify(v); return true; };
+    var boxWn = boxWatch(CWn); // (EVERY LINE IN ITS BOX, 11-12: the due's night, sacrifice night's supper and its fight's talk, drawn and measured as they step)
     window.DS.autoPicks = true; D.music = function () { };
     var unit0Wn = InWn.unit, In0legend = function () { return D.inn.LEGEND.W; };
     try {
@@ -2763,7 +2764,9 @@
       var o26 = flowWn(B26, [0]), f26 = B26.roam.flags; InWn.unit = unit0Wn;
       okWn('THE NIGHT DORAN LEADS (he confessed in the yard): ' + sl(o26, /Past midnight Doran Waterby knocks/, 700) + ' -- no draught ' + !f26.poisonNight + ', the lake done ' + f26.lakeDone,
         /Past midnight Doran Waterby knocks with the shore-lantern lit/.test(o26) && !/What brings you down the road|What did the road show you|Eat while it's hot/.test(o26) && !/The table tilts away|goes? down at the table/.test(o26) && /It comes halfway up/.test(o26) && /INITIATIVE/.test(o26) && !f26.poisonNight && f26.lakeDone === 1);
+      okWn('EVERY LINE IN ITS BOX, the night of the due and sacrifice night: ' + boxWn.n + ' lines of text drawn over ' + boxWn.waits + ' waits; outside its box: ' + (boxWn.bad.slice(0, 12).join(' | ') || 'none') + (boxWn.bad.length > 12 ? ' ... and ' + (boxWn.bad.length - 12) + ' more' : ''), boxWn.n > 300 && !boxWn.bad.length);
     } catch (eWn) { repWn.errors.push(String(eWn && eWn.stack || eWn).slice(0, 900)); }
+    boxWn.off();
     InWn.unit = unit0Wn; HWn.playing = false; HWn.cur = null; if (InWn) { InWn.stay = false; InWn.pinned = null; }
     D.store.get = stGWn; D.store.set = stSWn; D.music = muWn;
     var preWn = document.createElement('pre'); preWn.id = 'out'; preWn.textContent = 'BENCH16 ' + JSON.stringify(repWn);
@@ -5971,6 +5974,52 @@
     document.body.appendChild(preK);
     return;
   }
+  // EVERY LINE IN ITS BOX (11-12, the inn seat; Griz at Sylvia's table, 11-11 2329Z: "i'll raise her as mine falls out her text box, check for other spills"): every wait of
+  // an open counter screen (the supper, the barn's yard, sacrifice night) is DRAWN as it steps -- each page of the one speaking's words, each hero of a flip and each page
+  // of that hero's answers -- into a canvas whose fills and paths are kept, and every line of text the screen draws must lie inside one of the boxes drawn under it (a
+  // words' box, a look's strip, a hero's bubble, a button, a name's tag, the foot's strip). The place and its sub-line, top corner, stand on no box by design
+  function boxWatch(C) {
+    var rep = { n: 0, waits: 0, bad: [], seen: {} }, step0 = C.Counter.prototype.step, cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H;
+    var ctx = cv.getContext('2d'), rects = [], path = null, texts = [];
+    var fr0 = ctx.fillRect.bind(ctx), bp0 = ctx.beginPath.bind(ctx), mt0 = ctx.moveTo.bind(ctx), lt0 = ctx.lineTo.bind(ctx), fl0 = ctx.fill.bind(ctx);
+    ctx.fillRect = function (x, y, w, h) { if (!(w >= D.W && h >= D.H)) rects.push([x, y, x + w, y + h]); return fr0(x, y, w, h); }; // (the screen's own ground is no box)
+    ctx.beginPath = function () { path = [1e9, 1e9, -1e9, -1e9]; return bp0(); };
+    var pt = function (x, y) { if (path) { path[0] = Math.min(path[0], x); path[1] = Math.min(path[1], y); path[2] = Math.max(path[2], x); path[3] = Math.max(path[3], y); } };
+    ctx.moveTo = function (x, y) { pt(x, y); return mt0(x, y); }; ctx.lineTo = function (x, y) { pt(x, y); return lt0(x, y); };
+    ctx.fill = function () { if (path && path[2] > path[0]) rects.push(path.slice()); return fl0.apply(null, arguments); };
+    var drawOne = function (sc, what) {
+      rects = []; texts = []; var tx0 = D.text, bg0 = sc.o.bg; sc.o.bg = null;
+      D.text = function (c, s, x, y, color, align) { if (c === ctx) { var w = D.textWidth(s), x0 = align === 'center' ? x - Math.round(w / 2) : align === 'right' ? x - w : x; texts.push({ s: window.DS.stripCodes(String(s)), x: x0, y: y, w: w, k: rects.length }); } return tx0.apply(this, arguments); };
+      try { if (sc.typeSync) sc.typeSync().t0 = -1e9; sc.draw(ctx); } catch (e) { rep.bad.push('threw ' + e + ' at ' + what); } finally { D.text = tx0; sc.o.bg = bg0; }
+      var head = [sc.o.place || sc.o.name, sc.o.what].map(function (s) { return window.DS.stripCodes(String(s || '')); });
+      texts.forEach(function (t) {
+        if (!t.s.trim() || (t.y <= 21 && head.indexOf(t.s) >= 0)) return; rep.n++;
+        var ok = rects.slice(0, t.k).some(function (r) { return t.x >= r[0] - 1 && t.y >= r[1] - 1 && t.x + t.w <= r[2] + 1 && t.y + 8 <= r[3] + 1; });
+        if (!ok && !rep.seen[t.s]) { rep.seen[t.s] = 1; rep.bad.push('"' + t.s + '" drawn at ' + Math.round(t.x) + '..' + Math.round(t.x + t.w) + ',' + t.y + ' (' + what + ')'); }
+      });
+    };
+    var measure = function (sc) {
+      var w = sc.wait; if (sc.done || !sc.o || !sc.o.open || !w || !(w.say || w.ask)) return;
+      rep.waits++; var ta0 = sc.typeAt, page0 = sc.page, hov0 = sc.hov, f = w.flip, what = (w.look ? 'a look' : w.narr ? 'a narration' : f ? 'a flip' : w.ask ? 'an ask' : 'a line') + ': ' + window.DS.stripCodes([].concat(w.say || w.ask).join(' ')).slice(0, 60);
+      for (var p = 0; p < (sc.pages || [[]]).length; p++) { sc.page = p; sc.typeAt = null; drawOne(sc, what); }
+      if (f) { var at0 = f.at, seen0 = {}, hero0 = sc.hero, side0 = sc.heroSide; Object.keys(f.seen).forEach(function (k) { seen0[k] = f.seen[k]; });
+        f.list.forEach(function (e, i) { sc.flipTo(i); for (var pg = 0; pg < 6; pg++) { sc.typeAt = null; drawOne(sc, what + ' -- ' + e.key + (pg ? ', page ' + (pg + 1) : '')); var mb = sc.buttons().filter(function (b) { return b.go === 'more'; })[0]; if (!mb) break; press0.call(sc, mb); if (!f.from) break; } f.from = 0; });
+        f.at = at0; f.from = 0; f.seen = seen0; w.opts = f.list[at0].opts; sc.hero = hero0; sc.heroSide = side0; }
+      sc.page = page0; sc.hov = hov0; sc.typeAt = ta0;
+    };
+    // a press as the game makes it: from inside the screen's own update, which runs with the open screen's places swapped in for the wait that is UP (js/counter.js
+    // inOpen) -- so the wait it steps to is paged while the last one's places still stand. The screen's draw takes the same swap: the press rides it. What it steps to
+    // is measured once the press is back out
+    var press0 = C.Counter.prototype.press, nest = 0, pend = [];
+    C.Counter.prototype.press = function () {
+      var sc = this, a = arguments, r; if (!sc.o || !sc.o.open || nest) return press0.apply(sc, a);
+      nest++; sc.drawOpen = function () { delete sc.drawOpen; r = press0.apply(sc, a); }; try { sc.draw(ctx); } finally { delete sc.drawOpen; nest--; }
+      var q = pend; pend = []; q.forEach(measure); return r;
+    };
+    C.Counter.prototype.step = function () { var r = step0.apply(this, arguments); if (nest) { if (pend.indexOf(this) < 0) pend.push(this); } else measure(this); return r; };
+    rep.off = function () { C.Counter.prototype.step = step0; C.Counter.prototype.press = press0; };
+    return rep;
+  }
   // THE HALFWAY INN ON THE GRID, 11-04 (mode=inn1104; js/inn.js -- the Inn build seat, started by the lanes desk on Griz's word: "alright, did a story-plot review for the
   // inn, we're ready to start adding it back to the world"; re-cut on his "I'd like to try to have the inn exist only as an iso - if we can properly manage the interior
   // interaction (perma transparent walls when party-token inside?)" and "then it can build the interior around the dinner scene, make the inn a more proper place than
@@ -6052,6 +6101,7 @@
       // 5. THE SUPPER AS RULED (11-11, the supper seat: js/inn.js In.meal, In.SUP; the inn lane's rulings 1-34). Every flip is recorded for the two rules he caught
       // ("i'm still seeing multiple insights/rolls per character", "still talks at Kat (your neck)"): ONE read and ONE skill-shaded answer a hero an opening; a line
       // about the glass only with Katarina at the table for two, and marked as said to her. No die is on the screen: the checks are in the record
+      var boxIn = boxWatch(CIn); // (EVERY LINE IN ITS BOX: every open screen from here on is drawn and measured as it steps)
       var flipsIn = [], flip0In = CIn.Counter.prototype.flip;
       CIn.Counter.prototype.flip = function (who, prompt, list) { flipsIn.push(list.map(function (x) { return { key: x.key, rt: (x.reads || []).join(' '), reads: (x.reads || []).length, shaded: (x.marks || []).filter(Boolean).length, ids: (x.ids || []).slice(), labels: (x.opts || []).map(String) }; })); return flip0In.apply(this, arguments); };
       var noDieIn = function (s) { return !/(History|Arcana|Deception|Persuasion|Religion|Insight|Perception|Medicine) \d+ ?[+-]/.test(s); };
@@ -6221,6 +6271,8 @@
       var badG = []; flipsIn.forEach(function (l) { l.forEach(function (x) { x.labels.forEach(function (lb, k) { if (/glass|mirror|your neck|your belt/i.test(lb) && !(x.ids[k] === 'mirror' && /^\(to (Katarina|the traveler), across the room\) /.test(lb))) badG.push(x.key + ': ' + lb); }); }); });
       okIn('A LINE ABOUT THE GLASS is said to Katarina, and marked so: ' + (badG.join(' | ') || 'every one'), !badG.length && mirL.length > 0);
       okIn('NOTHING UNDER THE SCREEN\'S FOOT: ' + fitIn.n + ' rows of the flips drawn, the lowest edge at ' + fitIn.low + ' of ' + D.H + ' (the strip at ' + (D.H - 14) + '); ' + fitIn.paged + ' lists ran to a second page (MORE)', fitIn.n > 100 && fitIn.low <= D.H - 14 && fitIn.paged > 0);
+      boxIn.off();
+      okIn('EVERY LINE IN ITS BOX: ' + boxIn.n + ' lines of text drawn over ' + boxIn.waits + ' waits of the supper\'s and the yard\'s screens (every page, every hero of a flip); outside its box: ' + (boxIn.bad.slice(0, 12).join(' | ') || 'none') + (boxIn.bad.length > 12 ? ' ... and ' + (boxIn.bad.length - 12) + ' more' : ''), boxIn.n > 1500 && boxIn.waits > 200 && !boxIn.bad.length);
       CIn.Counter.prototype.flip = flip0In;
       Bm.roam.silver = 30; var Bm3 = testIn('?roam=halfway&hour=18&day=15&at=24,17'); Bm3.roam.silver = 4; atIn(Bm3, 24, 17, [0, -1]); var g4 = useIn(Bm3, [24, 16], [0]);
       okIn('four silver for four: "' + g4.seen.slice(-30) + '", no supper, no night', /Not enough silver/.test(g4.seen) && !/Supper/.test(g4.seen) && !/MORNING/.test(g4.seen));

@@ -655,6 +655,15 @@
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
   function inOpen(sc, f, args) { if (!sc.o || !sc.o.open || SAVED) return f.apply(sc, args); openOn(sc); try { return f.apply(sc, args); } finally { openOff(); } }
   ['paginate', 'buttons', 'bubbleButtons'].forEach(function (k) { var f = Counter.prototype[k]; Counter.prototype[k] = function () { return inOpen(this, f, arguments); }; });
+  // A NEW WAIT IS PAGED IN ITS OWN BOX (11-12, the inn seat; Griz at Sylvia's table on the barn's yard: "i'll raise her as mine falls out her text box, check for other
+  // spills"): a press comes from inside the screen's update, where the places of the wait that is UP are swapped in -- so the wait it stepped to was wrapped to the LAST
+  // speaker's box (the child's look, a face and a wide box, then Gennet's words in her narrower one: her line ran out past her portrait). The step lays the old places
+  // down first, pages the new wait in its own, and leaves the new wait's places standing for whatever the caller does next
+  var stepOpen = Counter.prototype.step;
+  Counter.prototype.step = function () {
+    if (!this.o || !this.o.open || !SAVED) return stepOpen.apply(this, arguments);
+    openOff(); try { return stepOpen.apply(this, arguments); } finally { if (!SAVED) openOn(this); }
+  };
   // the typing: from a page's first frame, C.OPEN.cps characters a frame, the keeper's words then the hero's answers
   Counter.prototype.openRows = function () { var w = this.wait || {}; return w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : []; };
   Counter.prototype.typeSync = function () { var ta = this.typeAt; if (!ta || ta.w !== this.wait || ta.page !== this.page) this.typeAt = { w: this.wait, page: this.page, t0: this.t, doneT: null }; return this.typeAt; };
