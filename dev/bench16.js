@@ -12075,6 +12075,102 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // TWIN STRIKE PAID WITH TWO ATTACKS (mode=twin1112; the twin strike seat, 11-12 -- RULED, Griz on the lanes desk's leans: "Agree with your leans, 3 attack only (can only use 2 attacks
+  // to do it if you're doing twin strike #2? whichever way is cleanest mechanically)"; then "nah, it's live in pocket DM let's Opus seat this"). Battle.twinPay: the bonus and a swing first,
+  // else two swings of one Attack action for three attacks, once that action. The dice pinned (the d20 a 12, every other die a 4): 1 a fighter 11 with the feat and a pair -- two Twin
+  // Strikes in a turn (the bonus, then two swings), TWIN STRIKE off the ring after, a third on Action Surge and a last swing of one sword; the cards name the cost; 2 a fighter 5 -- one,
+  // paid as before, and none on its surge; 3 a fighter 11 whose bonus went first (Second Wind) -- its one strike on two swings; 4 the class AI's fighter 11 strikes twice; 5 Pyro -- his
+  // ordinary turn two Twin Strikes, his sheet's `twinstrike` row played for each, and on Action Surge a third and one mace
+  if (get('mode', '') === 'twin1112') {
+    var repTW = { checks: [], errors: [] }, d0TW = D.d;
+    function okTW(what, v) { repTW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runTW(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkTW(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideTW(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function pinTW() { D.d = function (n) { return n === 20 ? 12 : 4; }; }
+    var specTW = function (lv) { return '~fighter.' + lv + '.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric'; };
+    // one fighter, one ogre beside him (AC 5, 300 HP), his turn begun
+    // (a made fighter stops at 9 on the Pocket DM -- deep16/js/classes.js NPC.MAXLVL; Pyro alone stands at 12 -- so the fighter 11 is a 9 given the 11th's Extra Attack (2), his three attacks, by hand)
+    var mkF = function (lv) { var Bx = mkTW('?npc=ogre&vs=' + specTW(Math.min(9, lv)) + '&lvl=' + Math.min(9, lv)), f = sideTW(Bx, 'party')[0], os = sideTW(Bx, 'foe'), o = os[0]; if (lv >= 11) { f.lvl = f.src.lvl = lv; f.attacks = f.attacksBase = 3; } os.slice(1).forEach(function (w) { w.dead = true; w.hp = 0; }); o.x = f.x + 1; o.y = f.y; o.baseAC = 5; o.ac = 5; o.hp = o.maxhp = 300; Bx.cache = null; D.grid.setup(D.grid.map, Bx.units); D.rules.startTurn(f); Bx.active = f; Bx.req = { turn: f }; Bx.tool = 'move'; Bx.cards = []; return { B: Bx, f: f, o: o }; };
+    var twC = function (Bx, f) { return Bx.commands(f).filter(function (c) { return c.id === 'twinstrike'; })[0] || null; };
+    var cardTW = function (Bx) { return (Bx.cards || []).map(function (c) { return window.DS.stripCodes(c.lines.join(' / ')); }).filter(function (t) { return /twin strike/.test(t); }); };
+    var exTW = function (Bx, f, c) { pinTW(); try { runTW(Bx.exec(f, c)); } finally { D.d = d0TW; } };
+    try {
+      // 1. THE FIGHTER 11
+      var s1 = mkF(11), f1 = s1.f, T1 = f1.turn, md1 = D.mod(f1.src.abil.str), per1 = 2 * (4 + md1), hp1 = s1.o.hp, c1a = twC(s1.B, f1);
+      okTW('1 fighter 11: attacks ' + f1.attacks + ', R.twinPair ' + window.DS.R.twinPair(f1.src) + '; TWIN STRIKE on the ring, paid "' + (c1a && c1a.pay) + '": ' + (c1a && c1a.note) + ' (want 3, true, bonus)', f1.attacks === 3 && window.DS.R.twinPair(f1.src) && !!c1a && c1a.pay === 'bonus' && !!c1a.ok);
+      exTW(s1.B, f1, { do: 'twinstrike', target: s1.o });
+      var c1b = twC(s1.B, f1);
+      okTW('1 the first strike: the ogre lost ' + (hp1 - s1.o.hp) + ' (want ' + per1 + '); the bonus ' + T1.bonus + ', attacks left ' + T1.attacksLeft + '; TWIN STRIKE again, paid "' + (c1b && c1b.pay) + '": ' + (c1b && c1b.note) + ' (want 0, 2, swings)',
+        hp1 - s1.o.hp === per1 && T1.bonus === 0 && T1.attacksLeft === 2 && !!c1b && c1b.pay === 'swings' && /two of the Attack/.test(c1b.note || ''));
+      s1.B.cards = []; var hp1b = s1.o.hp; exTW(s1.B, f1, { do: 'twinstrike', target: s1.o });
+      var cd1 = cardTW(s1.B)[0] || '', ids1 = s1.B.commands(f1).map(function (c) { return c.id; });
+      okTW('1 the second strike: the ogre lost ' + (hp1b - s1.o.hp) + ' (want ' + per1 + '); attacks left ' + T1.attacksLeft + '; the card "' + cd1.slice(0, 90) + '"; TWIN STRIKE on the ring ' + (ids1.indexOf('twinstrike') >= 0) + ', SURGE ' + (ids1.indexOf('surge') >= 0) + ' (want 0, "two swings", false, true)',
+        hp1b - s1.o.hp === per1 && T1.attacksLeft === 0 && /twin strike: two swings/.test(cd1) && ids1.indexOf('twinstrike') < 0 && ids1.indexOf('surge') >= 0);
+      var r1 = D.ui.cmds(s1.B, f1).map(function (c) { return c.id; });
+      okTW('1 the ring with nothing to pay: ' + r1.slice(0, 3).join(',') + ' (want ATTACK back after MOVE, no TWIN STRIKE)', r1[1] === 'attack' && r1.indexOf('twinstrike') < 0);
+      exTW(s1.B, f1, { do: 'surge' }); var c1c = twC(s1.B, f1);
+      okTW('1 Action Surge: the action ' + T1.action + '; TWIN STRIKE back, paid "' + (c1c && c1c.pay) + '" (want 1, swings)', T1.action === 1 && !!c1c && c1c.pay === 'swings');
+      var hp1c = s1.o.hp; exTW(s1.B, f1, { do: 'twinstrike', target: s1.o });
+      var c1d = twC(s1.B, f1), lost1c = hp1c - s1.o.hp;
+      okTW('1 the third strike: the ogre lost ' + lost1c + ' (want ' + per1 + '); attacks left ' + T1.attacksLeft + '; TWIN STRIKE again ' + !!c1d + ' (want 1, false: one on swings an Attack action)', lost1c === per1 && T1.attacksLeft === 1 && !c1d);
+      var hp1d = s1.o.hp; exTW(s1.B, f1, { do: 'attack', target: s1.o });
+      okTW('1 the last swing, one longsword: the ogre lost ' + (hp1d - s1.o.hp) + ' (want ' + (4 + md1) + '); attacks left ' + T1.attacksLeft + ' (want 0)', hp1d - s1.o.hp === 4 + md1 && T1.attacksLeft === 0);
+    } catch (eTW1) { repTW.errors.push('1: ' + String(eTW1 && eTW1.stack || eTW1).slice(0, 400)); }
+    try {
+      // 2. THE FIGHTER 5: one, as before
+      var s2 = mkF(5), f2 = s2.f, T2 = f2.turn, c2a = twC(s2.B, f2);
+      okTW('2 fighter 5: attacks ' + f2.attacks + ', TWIN STRIKE paid "' + (c2a && c2a.pay) + '" (want 2, bonus)', f2.attacks === 2 && !!c2a && c2a.pay === 'bonus');
+      exTW(s2.B, f2, { do: 'twinstrike', target: s2.o });
+      var cd2 = cardTW(s2.B)[0] || '', r2 = D.ui.cmds(s2.B, f2).map(function (c) { return c.id; });
+      okTW('2 after it: the bonus ' + T2.bonus + ', attacks left ' + T2.attacksLeft + '; the card "' + cd2.slice(0, 80) + '"; the ring ' + r2.slice(0, 3).join(',') + ' (want 0, 1, "a swing and the bonus", ATTACK after MOVE and no TWIN STRIKE)',
+        T2.bonus === 0 && T2.attacksLeft === 1 && /twin strike: a swing and the bonus/.test(cd2) && r2[1] === 'attack' && r2.indexOf('twinstrike') < 0);
+      exTW(s2.B, f2, { do: 'attack', target: s2.o }); exTW(s2.B, f2, { do: 'surge' });
+      okTW('2 Action Surge at 5: the action ' + T2.action + ', TWIN STRIKE ' + !!twC(s2.B, f2) + ' (want 1, false: two attacks pay as before)', T2.action === 1 && !twC(s2.B, f2));
+    } catch (eTW2) { repTW.errors.push('2: ' + String(eTW2 && eTW2.stack || eTW2).slice(0, 400)); }
+    try {
+      // 3. THE BONUS GONE FIRST: Second Wind, then the strike on two swings
+      var s3 = mkF(11), f3 = s3.f, T3 = f3.turn; f3.hp = 10; exTW(s3.B, f3, { do: 'secondwind' }); var b3 = T3.bonus;
+      if (b3 > 0) T3.bonus = 0; // (should SECOND WIND's id differ, the bonus spent by hand: the payment is the thing tested)
+      var c3 = twC(s3.B, f3); exTW(s3.B, f3, { do: 'twinstrike', target: s3.o });
+      okTW('3 the bonus spent first (SECOND WIND: the bonus ' + b3 + '): TWIN STRIKE paid "' + (c3 && c3.pay) + '"; after it attacks left ' + T3.attacksLeft + ', TWIN STRIKE again ' + !!twC(s3.B, f3) + ' (want swings, 1, false)', !!c3 && c3.pay === 'swings' && T3.attacksLeft === 1 && !twC(s3.B, f3));
+    } catch (eTW3) { repTW.errors.push('3: ' + String(eTW3 && eTW3.stack || eTW3).slice(0, 400)); }
+    try {
+      // 4. THE CLASS AI'S FIGHTER 11
+      var s4 = mkF(11), f4 = s4.f, do4 = [], ex4 = s4.B.exec; f4.guest = true; f4.classAI = true; f4.feats.actionSurge = 0;
+      s4.B.exec = function (u, c) { if (u === f4) do4.push(c.do); return ex4.apply(this, arguments); };
+      pinTW(); try { runTW(D.ai.turn(s4.B, f4)); } finally { D.d = d0TW; delete s4.B.exec; }
+      var tw4 = do4.filter(function (x) { return x === 'twinstrike'; }).length;
+      okTW('4 the class AI\'s fighter 11 (no surge): ' + (do4.join(',') || 'nothing') + ' -- Twin Strikes ' + tw4 + ', attacks left ' + f4.turn.attacksLeft + ' (want 2, 0)', tw4 === 2 && !f4.turn.attacksLeft);
+    } catch (eTW4) { repTW.errors.push('4: ' + String(eTW4 && eTW4.stack || eTW4).slice(0, 400)); }
+    try {
+      // 5. PYRO: his sheet, his turn, his row
+      var mkP = function (n) {
+        var Bx = mkTW('?npc=' + (n > 1 ? 'ogre,ogre' : 'ogre') + '&vs=pyro&lvl=12'), p = sideTW(Bx, 'party').filter(function (u) { return u.script === 'measure'; })[0], os = sideTW(Bx, 'foe');
+        os.forEach(function (w, i) { if (i >= n) { w.dead = true; w.hp = 0; return; } w.x = p.x + 1; w.y = p.y + i; w.baseAC = 5; w.ac = 5; w.hp = w.maxhp = 400; });
+        Bx.cache = null; D.grid.setup(D.grid.map, Bx.units); return { B: Bx, p: p, os: os.slice(0, n) };
+      };
+      var s5 = mkP(1), p5 = s5.p;
+      okTW('5 Pyro: Symmetric Fighting ' + window.DS.R.hasFeat(p5.src, 'symmetric') + ', the style ' + window.DS.R.style(p5.src) + ', R.twinPair ' + window.DS.R.twinPair(p5.src) + ', attacks ' + p5.attacks + ', his sheet ' + p5.sheet + ' with a `twinstrike` row ' + !!D.spr.anim(p5.sheet, 'twinstrike') + ' (want true, twf, true, 3, true)',
+        window.DS.R.hasFeat(p5.src, 'symmetric') && window.DS.R.style(p5.src) === 'twf' && window.DS.R.twinPair(p5.src) && p5.attacks === 3 && !!D.spr.anim(p5.sheet, 'twinstrike'));
+      var run5 = function (s) {
+        var p = s.p, dos = [], ex = s.B.exec; s.B.exec = function (u, c) { if (u === p) dos.push(c.do); return ex.apply(this, arguments); };
+        D.rules.startTurn(p); s.B.active = p; var hp0 = s.os.reduce(function (a, w) { return a + w.hp; }, 0);
+        pinTW(); try { runTW(D.ai.turn(s.B, p)); } finally { D.d = d0TW; delete s.B.exec; }
+        return { dos: dos, rows: (p.turn.rowN || {}).twinstrike || 0, lost: hp0 - s.os.reduce(function (a, w) { return a + w.hp; }, 0), T: p.turn };
+      };
+      var md5 = D.mod(20), r5 = run5(s5), per5 = 0;
+      okTW('5 his ordinary turn (one ogre): ' + (r5.dos.join(',') || 'nothing') + '; the `twinstrike` row played ' + r5.rows + 'x; the bonus ' + r5.T.bonus + ', attacks left ' + r5.T.attacksLeft + '; the ogre lost ' + r5.lost + ' (want twinstrike,twinstrike; 2; 0, 0)',
+        r5.dos.join(',') === 'twinstrike,twinstrike' && r5.rows === 2 && !r5.T.bonus && !r5.T.attacksLeft && r5.lost > 0);
+      var s5b = mkP(2), r5b = run5(s5b);
+      okTW('5 two ogres in his reach, Action Surge: ' + (r5b.dos.join(',') || 'nothing') + '; the row ' + r5b.rows + 'x; surge left ' + s5b.p.feats.actionSurge + ' (want twinstrike x3 then attack; 3; 0)',
+        r5b.dos.join(',') === 'twinstrike,twinstrike,twinstrike,attack' && r5b.rows === 3 && !s5b.p.feats.actionSurge);
+    } catch (eTW5) { repTW.errors.push('5: ' + String(eTW5 && eTW5.stack || eTW5).slice(0, 400)); }
+    D.d = d0TW;
+    var preTW = document.createElement('pre'); preTW.id = 'out'; preTW.textContent = 'BENCH16 ' + JSON.stringify(repTW);
+    document.body.appendChild(preTW);
+    return;
+  }
   // HIS 18 FIGHTS OF 11-03, READ THAT NIGHT (mode=fights1103; the lanes desk): 1 the Mirror's eye -- HIDE greyed before it with the why (his "2 - fair"), the class AI's rogue strikes
   // instead of hiding into it (his Harbinger fight: ten "tries to hide" and no blow), and an AI hider spends nothing on it; 2 Drink Light -- no levelled spell of 3rd or under into a
   // Harbinger who can drink it, and back once his reaction is spent (his "casting a fireball after he drank someone elses spell would be good tactic"); 3 a grappler's versatile
@@ -19240,9 +19336,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var wF = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric', shF = D.npc.sheet ? D.npc.sheet(D.npc.spec(wF)) : null;
       okFt('the door’s word: STR ' + (shF && shF.abil.str) + ', feats ' + JSON.stringify(shF && shF.featIds) + ', ' + (shF && shF.equip.weapon) + ' and ' + (shF && shF.equip.offhand) + ', a pair ' + (shF && RF.twoWeapon(shF).ok),
         !!shF && shF.abil.str === 17 && (shF.featIds || []).indexOf('symmetric') >= 0 && shF.equip.offhand === 'longsword' && RF.twoWeapon(shF).ok);
-      // Pyro: no feat, his maces his script's (twf1015 holds the rest)
+      // Pyro: Symmetric Fighting and the Two-Weapon Fighting style since 11-12 (RULED, the lanes desk's third lean agreed): his mace and Mace of Disruption a pair (twin1112 holds his turn)
       var pyF = JSON.parse(JSON.stringify(window.DS.DATA.heroes.pyro));
-      okFt('Pyro (no feat): his mace and Mace of Disruption a pair? ' + RF.twoWeapon(pyF).ok, !RF.twoWeapon(pyF).ok);
+      okFt('Pyro (Symmetric Fighting, 11-12): his mace and Mace of Disruption a pair? ' + RF.twoWeapon(pyF).ok + ' by ' + RF.twoWeapon(pyF).by, RF.twoWeapon(pyF).ok && RF.twoWeapon(pyF).by === 'symmetric');
     } catch (eFt) { repFt.errors.push(String(eFt && eFt.stack || eFt).slice(0, 900)); }
     if (errs.length) repFt.errors = repFt.errors.concat(errs);
     var preFt = document.createElement('pre'); preFt.id = 'out'; preFt.textContent = 'BENCH16 ' + JSON.stringify(repFt);
@@ -19303,7 +19399,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.battle = Bt;
       // Pyro: two maces, his script's -- no swing offered here
       var py = window.DS.DATA.heroes.pyro, pyS = py && JSON.parse(JSON.stringify(py)); var pyT = pyS && pyS.equip ? RS.twoWeapon(pyS) : null;
-      okTw('Pyro\'s two maces (' + (pyS && pyS.equip ? pyS.equip.weapon + ' and ' + pyS.equip.offhand : 'no sheet') + '): two-weapon fighting ' + (pyT && pyT.ok) + ' (' + (pyT && pyT.why) + ')', !!pyT && !pyT.ok && /not light/.test(pyT.why));
+      okTw('Pyro\'s two maces (' + (pyS && pyS.equip ? pyS.equip.weapon + ' and ' + pyS.equip.offhand : 'no sheet') + '): two-weapon fighting ' + (pyT && pyT.ok) + ' by ' + (pyT && pyT.by) + ' -- want true by symmetric: his Symmetric Fighting since 11-12, RULED (mode=twin1112)', !!pyT && pyT.ok && pyT.by === 'symmetric');
     } catch (eTw) { repTw.errors.push(String(eTw && eTw.stack || eTw).slice(0, 900)); }
     window.DS.DATA.items = items0; D.ui.opts.menu = menuTw0; D.ui.urlMenu = urlTw0;
     if (errs.length) repTw.errors = repTw.errors.concat(errs);

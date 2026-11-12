@@ -9,7 +9,7 @@
   function sheet() { var R = DS.R, dd = DS.DATA.heroes.pyro, h = R.makeHero('pyro', dd.level); h.attacks = dd.attacks; h.resist = dd.resist; h.guest = true; h.surgeAI = !!dd.surgeAI; h.script = dd.script; h.key = 'pyro'; return h; }
   function battle(fid, o) { var d = D.save.fixture(o.lvl || 5); d.guests = [sheet()]; var B = new D.Battle(Object.assign({ fight: fid, data: d, bench: true }, o)); D.battle = B; B.enter(); return B; }
   function king(B) { return B.units.filter(function (u) { return u.script === 'measure'; })[0]; }
-  function swings(B) { var n = []; var a0 = B.attack; B.attack = function* (att, tgt, atk) { if (att.script === 'measure') n.push(atk.id || atk.name); return yield* a0.apply(this, arguments); }; return n; }
+  function swings(B) { var n = []; var a0 = B.attack; B.attack = function* (att, tgt, atk) { if (att.script === 'measure') n.push((atk.twin ? 'twin:' : '') + (atk.id || atk.name)); return yield* a0.apply(this, arguments); }; return n; }
   function cardsOf(B) { var got = []; var c0 = B.card; B.card = function (lines) { got.push((lines || []).join(' | ')); return c0.apply(this, arguments); }; return got; }
   // stand him beside a foe (and make that foe hard to kill, so every swing has somewhere to go)
   function beside(B, P, f) {
@@ -39,17 +39,18 @@
     var ls = D.light.carried(P).map(function (l) { return [l.bright, l.dim, l.kind]; });
     ok('the white mace drawn, and lit: ' + JSON.stringify(ls), ls.some(function (l) { return l[0] === 20 && l[1] === 20 && l[2] === 'weapon'; }));
     sw.length = 0; D.rules.startTurn(P); drain(D.scripts.measure(B, P));
-    ok('phase 2: two swings, one a hand (' + sw.join(',') + ')', sw.length === 2 && sw[0] === 'mace' && sw[1] === 'macedisruption');
+    // (11-12, RULED: Symmetric Fighting and the Two-Weapon Fighting style -- his maces one Twin Strike a blow, the second mace's damage on the same roll: deep16/js/pyro.js twinTurn, mode=twin1112)
+    ok('phase 2: one Twin Strike, a mace in each hand (' + sw.join(',') + ')', sw.length === 1 && sw[0] === 'twin:mace');
     ours[1].left = true; ours[1].dead = true;
     drain(D.scripts.watch(B));
     ok('phase 3 when one has left the fight: phase ' + B.pyro.phase + ', main ' + P.weapon.id + ', off ' + P.offhand.id, B.pyro.phase === 3 && P.weapon.id === 'macedisruption' && P.offhand.id === 'mace');
     sw.length = 0; D.rules.startTurn(P); P.feats.actionSurge = 0; drain(D.scripts.measure(B, P));
-    ok('phase 3: five swings -- three white, the plain one in the action, the plain one the bonus (' + sw.join(',') + ')', sw.length === 5 && sw.slice(0, 3).every(function (s) { return s === 'macedisruption'; }) && sw[3] === 'mace' && sw[4] === 'mace');
+    ok('phase 3: two Twin Strikes, the white mace leading -- the first a swing and the bonus, the second two swings (' + sw.join(',') + ')', sw.length === 2 && sw.every(function (s) { return s === 'twin:macedisruption'; }));
     // Action Surge with two in reach
     var foe2 = B.units.filter(function (u) { return u.side === 'foe' && u !== foe; })[0], G = D.grid, placed = false;
     for (var dx = -1; dx <= 1 && !placed; dx++) for (var dy = -1; dy <= 1 && !placed; dy++) { var x = P.x + dx, y = P.y + dy; if ((dx || dy) && !(x === foe.x && y === foe.y) && G.canStand(foe2, x, y)) { foe2.x = x; foe2.y = y; placed = true; } }
     sw.length = 0; D.rules.startTurn(P); P.feats.actionSurge = 1; drain(D.scripts.measure(B, P));
-    ok('phase 3 with two in reach: Action Surge, nine swings (' + sw.length + ')', placed && sw.length === 9 && P.feats.actionSurge === 0);
+    ok('phase 3 with two in reach: Action Surge, three Twin Strikes and one white mace (' + sw.join(',') + ')', placed && sw.join(',') === 'twin:macedisruption,twin:macedisruption,twin:macedisruption,macedisruption' && P.feats.actionSurge === 0);
     // the Mantle
     P.feats.indomitable = 0; B.spellNow = true; var s1 = D.rules.save(P, 'wis', 30); B.spellNow = false; var s2 = D.rules.save(P, 'wis', 30);
     ok('the Mantle: +5 on a save against a spell (' + s1.bonus + ' against ' + s2.bonus + ')', s1.bonus - s2.bonus === 5 && s1.cloak === 5);
