@@ -100,8 +100,8 @@
     { id: 'pell', at: [43, 24], look: 'kid', dir: 'right', cond: '!flag:dueSeen', when: 'light', out: true },            // (skimming stones off the shore)
     { id: 'adoptedKid', at: [43, 12], look: 'girl', dir: 'right', cond: 'flag:kidAtInn & !flag:dueSeen', when: 'light', out: true },
     { id: 'doranIn', at: [24, 23], look: 'worker', dir: 'up', cond: '!flag:doranAway & !flag:doranDead & !flag:doranOut', when: 'evening' },                // (behind the bar, under the stair's high end, where the headroom is)
-    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone & !flag:gennetDead & !flag:gennetTaken', when: 'evening' },
-    { id: 'gennet', at: [10, 15], look: 'innlady', dir: 'right', cond: '!flag:lakeDone & !flag:gennetDead & !flag:gennetTaken', when: 'day', out: true }, // (by day she is out at the well: RULED 11-12, ruling 58, Griz: "daytime private (gennet outside) is good" -- Elsbeth's private hour)
+    { id: 'gennet', at: [24, 16], look: 'innlady', dir: 'down', cond: '!flag:lakeDone & !flag:gennetDead & !flag:gennetTaken', when: 'home' },
+    { id: 'gennet', at: [10, 15], look: 'innlady', dir: 'right', cond: '!flag:lakeDone & !flag:gennetDead & !flag:gennetTaken', when: 'morning', out: true }, // (out at the well: RULED 11-12, ruling 58, Griz: "daytime private (gennet outside) is good" -- Elsbeth's private hour; THE MORNINGS ONLY since his answer the same day, on whether the whole day: "she's normally how the people sleep, have her go there for the mornings til midday" -- In.WELL, seven to twelve; by the fire from midday)
     { id: 'gennetGrief', at: [21, 18], look: 'innlady', dir: 'down', cond: 'flag:lakeDone & !flag:gennetDead & !flag:gennetTaken' },
     { id: 'elsbeth', at: [33, 21], look: 'elsbeth', dir: 'right', cond: '!flag:postgame' },                              // (at the tub, her back to the room)
     { id: 'katarina', at: [26, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }                                   // (writing by the fire)
@@ -116,7 +116,8 @@
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
     orrin: 'commonerchild', pell: 'commonerchild', adoptedKid: 'keptchild', snootRunner: 'commoner',
     amaraYard: 'amara', willemYard: 'willem', wagonGoblin: 'glamourgoblin', barnGoblin: 'glamourgoblin', gennetYard: 'commonerwoman', katYard: 'commonerwoman' }; // (the townsfolk's figures till the art desk's come back: deep16-art-wanted.md §35 -- the Waterbys and Katarina wear their own over them since 11-05, js/counter.js C.FIG)
-  In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
+  In.WELL = { from: 7, to: 12 }; In.atWell = function (h) { return h >= In.WELL.from && h < In.WELL.to; }; // (Gennet's mornings at the well, till midday)
+  In.when = function (w, h) { var tod = W.todAt ? W.todAt(h) : (M.night(h) ? 'night' : 'day'); return !w || (w === 'morning' ? In.atWell(h) : w === 'home' ? !In.atWell(h) : w === 'day' ? h >= 7 && h < 17 : w === 'evening' ? !(h >= 7 && h < 17) : w === 'light' ? tod !== 'night' : true); };
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
   In.NAME = { gennet: In.named, gennetGrief: In.named, gennetYard: In.named, snootRunner: function () { return 'A runner from the Pit'; },
     amaraYard: function () { return 'Amara'; }, willemYard: function () { return 'Willem Glass'; }, katYard: function () { return 'A traveler'; },
@@ -511,7 +512,7 @@
         fix: `"It hasn't blown over."`, ok: `"The Snoot's at the Pit. The south road is shut. Hessle's paying gold in Silverton for one true word of it."` }
     ],
     SHOWN: 3, FIXDAYS: 4, PROMPT: 150,
-    pit: [`"The Pit's people took them. All seven."`, `"It's getting worse down there. The Snoot. I came north a day ahead of it."`], // (ruling 56: his first supper home)
+    pit: [`"GreyFang's house at the Pit took them. All seven."`, `"It's getting worse down there. The Snoot. I came north a day ahead of it."`], // (ruling 56: his first supper home)
     witness: `"See it? None of them. Every word at this table is one man telling what another man told him."`,
     more: [`"Eat. Ask what you like; the whole road comes through this door."`, `"There's more fish. The lake doesn't stint."`, `"There's bread, if the fish is done."`], // (when an opening comes with no one speaking)
     tell: { cool: `Gennet's smile stays where it was.`, warm: `Gennet fills the cups again.`, cold: `"You'll be wanting your beds. It's an early road, whichever way you take it."` }, // (the warmth shown by a look, never a number)
@@ -1183,7 +1184,7 @@
   // NO INN-STAY: with her beside the token nobody takes a room from Gennet or from Doran -- except on the due's own night, when the house's night is the scene itself
   // (Doran's "be in this house": js/secondact.js A.ledNight, A.poisonNight). Her road to the Pit and where she is set down are not built: the seam
   In.CHILD = {
-    left: function (f, d) { return In.nightsToDue(f || {}, d == null ? In.day(D.roam.q) : d); },
+    left: function (f, d) { f = f || {}; d = d == null ? In.day(D.roam.q) : d; return f.childDue != null && f.childDue >= d ? f.childDue - d : In.nightsToDue(f, d); }, // (ruling 59: counted to the NEXT due, f.childDue -- In.childTaken; a save from before it, to the nearest)
     nights: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; },
     days: function (f, d) { return In.CHILD.nights(f, d); }, // (RULED 11-12, Griz: "time til due in days or nights as needed, night preferred" -- Elsbeth counts nights too)
     doranIdle: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"The well\'s for drinking. Nobody draws from the lake."'], // (the realm's words for him, content/npcs.json doranYard, the second half now said by him)
@@ -1193,9 +1194,16 @@
     elsbethStay: function (f, d) { return ['"No. I\'m staying with Father."', '"Just be back ' + In.CHILD.days(f, d) + '."']; }, // (HIS: "staying with father just be back in x days")
     gennet: ['Gennet looks at the child at the party\'s side before she looks at anyone else. "A room? Of course. And a cot for the little one, by the kitchen."', '{g}Not with her in tow. Nobody sleeps under this roof tonight.{/}'],
     doranRoom: ['"Not tonight. Get her down to the Pit first."'] };
+  // THE COUNT IS TO THE NEXT DUE (RULED 11-12, ruling 59, Griz: "go with the leans, we'll deal with calendar issues down the road" -- the leans: "the nights until the due; late
+  // costs only the night itself, the lake unfed as it is built" and "(a) the days are counted to the NEXT due, a month on, and this one passes unfed"): f.childDue is the due a
+  // month on from the one she was taken before, and Doran's and Elsbeth's "x nights" count to it. THIS ONE PASSES UNFED for a party that is down the road with her, as it is
+  // built: nothing fires away from the house. THE SEAT'S CALL, for his overrule: the due is not struck off as she leaves the yard -- a party that is in the house on this
+  // due's own night all the same gets that night as built (Doran's confession in the yard, "be in this house", stands; In.noStay lets that one night in). Late for the next
+  // one costs only that night
+  In.childTaken = function (f, d) { var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) < d) c++; f.childDue = In.dueDay(c + 1); return f.childDue; };
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
   In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
-  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
+  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
   M.tell2 = function (w, lines) { if (w && lines && lines.length) w.tell = [].concat(lines); return w; }; // (a line's own TELL ME ABOUT IT given as words, not a text key: js/mines.js M.tell)
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
   In.stage = function (B, at, inside) { var t = B.roam.token; t.x = at[0]; t.y = at[1]; t.tween = null; B.roam.path = null; In.lay(B, inside, true); };
@@ -1577,7 +1585,7 @@
   // (her three tiers as the first game had them, each a flag now -- elsbethTier 1, 2, 3: the second act reads EARNED at 3; the god seen and not fought gives the third for nothing;
   // the push -- Gennet named a fraud to her face -- is the wand, in the kitchen only, and she is done for the night: js/secondact.js A.wand, the lane's §10.4)
   In.elsOpen = function (f) { return In.renown() >= 3 || !!(f.mealWrong && !f.mealGirlSaid); }; // (she will talk: the supper's renown, or the counting seen and kept quiet)
-  In.ELS = { renown: 3, work: 'The girl focuses on her work.', notNow: 'She does not turn round. "Not now. By day, when she\'s out at the well."', monsters: '"You\'re the people stopping the monsters."' }; // (work and monsters: HIS words, ruling 58; notNow the seat's)
+  In.ELS = { renown: 3, work: 'The girl focuses on her work.', notNow: 'She does not turn round. "Not now. In the morning, when she\'s out at the well."', monsters: '"You\'re the people stopping the monsters."' }; // (work and monsters: HIS words, ruling 58; notNow the seat's)
   M.SCENES.elsbeth = function* (sc, B) {
     var st = sc.st, f = st.flags, A = D.secondact;
     if (f.lakeDone) { yield sc.say(L('inn.elsbethAfter')); return; }
@@ -1599,7 +1607,7 @@
     // cover of the dishes, with him away straight out, and the wagon's night with it. Only BY DAY, Gennet out at the well (In.FOLK). With neither, "The girl focuses
     // on her work." The walk-up-and-do-the-dishes opening is gone (ruling 31)
     if (!f.dishes) {
-      var EL = In.ELS, known = In.renown() >= EL.renown, noticed = !!(f.mealWrong && !f.mealGirlSaid), hr = In.hourOf(B), byDay = hr >= 7 && hr < 17;
+      var EL = In.ELS, known = In.renown() >= EL.renown, noticed = !!(f.mealWrong && !f.mealGirlSaid), hr = In.hourOf(B), byDay = In.atWell(hr); // (her private hour is Gennet's at the well: the mornings till midday, his answer of 11-12)
       if (!known && !noticed) { yield sc.say([EL.work]); return; }
       if (!byDay) { yield sc.say([EL.notNow]); return; }
       if (!known && !f.doranAway && !f.doranDead) { var a = yield sc.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']); if (a !== 0) return; }
@@ -1668,7 +1676,7 @@
   // (a hero speaks to HIM); E the child a guest with the party. Every end is the seat's proposal, built as the page has it, standing for his overrule (the lane's 11-11 section)
   In.BY = { silver: [80, 300], DC: { Persuasion: 12 }, at: { party: [15, 6], child: [16, 7], from: [18, 17], gennet: [17, 8], wood: [16, 26], doran: [19, 10], door: [18, 18], doorBy: [18, 17], purse: [17, 9], out: [18, 12], wall: [15, 4], form: [[16, 5], [17, 6], [16, 6], [17, 7]], boys: [[20, 17], [20, 19]] }, // (wall: where the child backs to when it comes to blows; form: the four as they fall out of the token then; boys: Orrin and Pell inside, behind Elsbeth at the door -- ruling 37)
     freedIt: 'The pin comes out. It does not run: it takes a hand and holds on.',
-    seam: '{g}(The child walks beside the party from here, a figure of her own. The road with her past this yard is not built yet.){/}', // (short: a long line ran out of the floor's card -- 11-11, Griz at renown 5: "some of the texts are escaping their text boxes")
+    seam: '{g}(The child walks beside the party from here, a figure of her own: on floors and at the camp\'s fire, down the road to the Pit.){/}', // (short: a long line ran out of the floor's card -- 11-11, Griz at renown 5: "some of the texts are escaping their text boxes")
     ledNight: 'Past midnight Doran Waterby knocks with the shore-lantern lit. "It\'s the night. Come on, if you\'re coming."',
     shut: '{y}Gennet Waterby:{/} "Not to you. Not tonight, and not again."',
     hint: 'She does not turn round. "That\'s no goblin in our barn. Put your hand on it."' };
@@ -1920,7 +1928,7 @@
     yield* settle();
     var E = R0.barnEnd || { end: 'e' }, st = C.state(B), reg = f.innRegard == null ? 1 : f.innRegard;
     var hand = function () { In.lay(B, null, true); }; // (the yard back to the inn's lay: nothing of the scene's is left on it to remove)
-    var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; f.childGuestDay = In.day(Rm.q); f.childDue = f.childGuestDay + In.nightsToDue(f, f.childGuestDay); }; // (the due has no offering; the child counted with the party from this day -- the road with her is not built: BY.seam)
+    var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; f.childGuestDay = In.day(Rm.q); In.childTaken(f, f.childGuestDay); }; // (the due has no offering; the child counted with the party from this day -- the road with her is not built: BY.seam)
     // the close of the ends she leaves with the party: the hero who stepped out of the token walks back to it; then HER NAME, asked on portraits where they stand by the
     // barn's door (11-12; Griz: "line 'child is asked her name' use char player used as party voice most often during encounter or vivian and do that bit in portraits by
     // the door (line says 'at the road)") -- BY.nameAsk; then the seam's line
@@ -1997,7 +2005,7 @@
     // inn's floors (the yard and house, upstairs) stands its people -- js/town.js T.people, the one place a floor is laid or laid again -- she is stood beside the token
     // from the flag; and the first step on a floor that had no token yet at its laying stands her too. Never twice: one already on the floor is kept
     In.layFollower = function (B) {
-      var R0 = B && B.roam, def = Rm.def, f = R0 && R0.flags, t = R0 && R0.token; if (!f || !f.childGuest || !t || !def || (def.key !== In.KEY && def.key !== In.UP)) return null;
+      var R0 = B && B.roam, def = Rm.def, f = R0 && R0.flags, t = R0 && R0.token; if (!f || !f.childGuest || !t || !def) return null; // (ruling 59, 11-12: on every floor the party walks, not the inn's two alone -- "her figure on floors and in camps, one marker on the map")
       var have = B.units.filter(function (u) { return u.follower || u.scripted === 'barnKid'; }); if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
       var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
       u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u;
@@ -2012,6 +2020,92 @@
     };
     G.occupant = function (x, y, except, o) { var r = occ0.apply(this, arguments); return r && r.follower && except && except.side === 'party' && !except.follower ? null : r; };
     In.stage = function (B, at, inside) { var r = stage0.apply(this, arguments); In.follow(B); return r; };
+  })();
+  // ---------------------------------------------------------------- THE CHILD'S ROAD (RULED 11-12, ruling 59, Griz on the reading page's five leans: "go with the leans, we'll
+  // deal with calendar issues down the road"; the Pit house's one name, to the lanes desk: "greyfang can be the associated name"). The leans, as the page had them: "The same
+  // house that took Doran's seven; one name, yours to give"; the first camp, "her asking for water in a girl's voice breaks the glamour for a party that had not seen through
+  // it"; "Floors and camps. One marker on the map"; "The nights until the due; late costs only the night itself, the lake unfed as it is built"; "(a) the days are counted to
+  // the NEXT due, a month on, and this one passes unfed".
+  // BUILT: the count (In.childTaken, above: to the next due, this one not struck off -- the seat's call); her figure on every floor (In.layFollower) and by the fire in a camp's fight on the grid (In.campKid) -- THE WORLD shows the
+  // party's one marker; THE FIRST CAMP with her, before its watches (In.childCamp: a counter screen over THE WORLD on her face); and THE PIT -- its map is not built, so the
+  // hand-off is a scene at its hex on THE WORLD (In.childPit): the house back of GreyFang's fighting pit, his by association (the realm's wiki/greyfang.md: he "runs the
+  // fighting pit dug into the ground at the bunker-converted building"), kept by a woman at its door -- he is not at the door in any line, the Snoot's days being his own
+  // trouble (wiki/the-snoot.md: "GreyFang is the walking jackpot"). The seat's words throughout, drafts for his overrule: invented.json halfway-childs-road-1112
+  In.ROAD = {
+    campGoblin: ['The fire is lit. The goblin has not let go of the nearest hand since the yard, and has eaten nothing that somebody else did not eat first.'],
+    campAsk: '"Water. Please."',
+    campBreak: ['A girl\'s voice. Not a goblin\'s.', 'The glamour comes off her with the words, and a child sits by the fire in a dress too big for her, holding the cup in both hands.'],
+    campChild: ['The fire is lit. The girl has not let go of the nearest hand since the yard, and has eaten nothing that somebody else did not eat first.'],
+    campAfter: ['She drinks. She counts the party, lips moving, and then she sleeps.'],
+    pitRoad: ['Tarlyn\'s Pit. The watch on the road looks at the child before it looks at the party.', '"That one goes to GreyFang\'s house. Back of the fighting pit. The door with the wolf\'s head chalked on it."'],
+    pitDoor: ['A woman opens the chalked door with a ladle in her hand, and small faces crowd the passage behind her.'],
+    pitSeven: '"Seven came down from the Waterbys\' on a wagon. That\'s eight, then."', pitOne: '"From the Halfway road? There\'s a bed."',
+    pitGoblin: ['"That\'s no goblin. Who told you that was a goblin?" She says it to the child, not to the party, and the child answers her in a girl\'s voice.', 'The glamour comes off her with the words: a girl in a dress too big for her.'],
+    pitLeave: ['The girl counts the party once more, lips moving, and lets go of the hand.', '"She\'s under GreyFang\'s name now. Nobody takes a child out of this house that he hasn\'t looked at first."'],
+    pitSaid: 'The child is at GreyFang\'s house at the Pit',
+    doranBack: function (f) { return ['Doran lets the axe hang.', '"She\'s at GreyFang\'s house? Good. Nobody takes one out of there." He looks at the lake. "Be here ' + In.CHILD.nights(f) + '."']; }
+  };
+  In.roadFlags = function () { return W.house && W.house() && D.house.cur ? (D.house.cur.flags = D.house.cur.flags || {}) : In.testRoadFlags || null; };
+  In.atPit = function () { var S = W.state && W.state(), Mp = W.M && W.M(); return !!(S && Mp && ((Mp.siteAt || {})[W.K(S.at[0], S.at[1])] || []).some(function (s) { return s.id === 'pit'; })); };
+  In.roadTalk = function (scene, o, then) { // (a counter screen over THE WORLD, and what follows once it is down: the world's own next frame -- js/wagon.js Wg.then)
+    var C = D.counter, sc = new C.Counter(null, o); D.push(sc); In.roadSc = sc;
+    if (scene) scene.pend = function () { In.roadSc = null; if (then) then(); };
+    return sc;
+  };
+  // THE FIRST CAMP: before the watches are stood. A party that had not seen through it hears a girl ask for water, and the glamour is broken from there (f.glamourBroken,
+  // the name of her kind on f.childGuest); one that had, the same asking and no more. Once (f.childCamp)
+  In.childCamp = function (scene, then) {
+    var f = In.roadFlags(), R = In.ROAD, seen = !!f.glamourBroken;
+    f.childCamp = 1; if (D.house && D.house.trail) D.house.trail('talk', 'the first camp with the child: she asks for water' + (seen ? '' : ' in a girl\'s voice, and the glamour breaks'));
+    return In.roadTalk(scene, { id: 'childRoad', name: seen ? 'The girl' : 'The goblin', place: 'The camp', what: 'the first night on the road with her',
+      script: function (sc) { return (function* () {
+        yield sc.narr(seen ? R.campChild : R.campGoblin);
+        yield sc.say([R.campAsk], 'afraid');
+        if (!seen) { f.glamourBroken = 1; f.glamourSeen = 1; f.childGuest = 'child'; sc.sheet = In.childFace(true) || sc.sheet; sc.o.name = 'The girl'; sc.setFace('lookingup'); D.sfx('magic'); yield sc.narr(R.campBreak); }
+        yield sc.narr(R.campAfter);
+        if (W.save) W.save();
+      })(); } }, then);
+  };
+  if (D.counter && D.counter.SHEETOF) D.counter.SHEETOF.childRoad = function (st) { return In.childFace(!!(st && st.flags && st.flags.glamourBroken)); };
+  // THE PIT: the party on its hex with her. The watch's word, the chalked door, the woman's count (the seven, where Doran drove them down -- f.doranPit), the glamour off her
+  // at the door if no camp took it, and she is set down: f.childGuest gone, f.childAtPit the day
+  In.childPit = function (scene) {
+    var f = In.roadFlags(), R = In.ROAD; if (!f || !f.childGuest) return null;
+    if (scene) { scene.walk = null; scene.plan = null; }
+    return In.roadTalk(scene, { id: 'pitHouse', name: 'GreyFang\'s house', place: 'Tarlyn\'s Pit', what: 'the door back of the fighting pit',
+      script: function (sc) { return (function* () {
+        yield sc.narr(R.pitRoad);
+        yield sc.say(R.pitDoor.concat([f.doranPit ? R.pitSeven : R.pitOne]));
+        if (!f.glamourBroken) { f.glamourBroken = 1; f.glamourSeen = 1; D.sfx('magic'); yield sc.say(R.pitGoblin); }
+        yield sc.say(R.pitLeave);
+        delete f.childGuest; f.childAtPit = In.day(null); f.childCamp = 1;
+        if (D.house && D.house.trail) D.house.trail('talk', 'the child set down at GreyFang\'s house at the Pit, day ' + f.childAtPit);
+      })(); } }, function () { if (W.save) W.save(); if (scene && scene.say) scene.say(R.pitSaid + ', ' + W.timeOfDay() + '.'); });
+  };
+  // BY THE FIRE in a camp's fight on the grid: her figure a square behind the fire, nobody's target (a `look`, as the floor's figures are)
+  In.campKid = function (b) {
+    var f = In.roadFlags(), cp = b && b.fight && b.fight.camp; if (!f || !f.childGuest || !cp || !b.units || b.o.simple || b.units.some(function (u) { return u.scripted === 'campKid'; })) return null;
+    var G = D.grid, spots = [[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]].map(function (o) { return [cp[0] + o[0], cp[1] + o[1]]; });
+    var u = In.unit(b, { id: 'campKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [cp[0], cp[1]], name: f.glamourBroken ? 'The girl' : 'The goblin', face: [-1, 0] });
+    var q = spots.filter(function (q0) { return G.canStand(u, q0[0], q0[1]) && !b.units.some(function (w) { return w !== u && w.x === q0[0] && w.y === q0[1]; }); })[0];
+    if (!q) { In.gone(b, u); return null; }
+    u.x = q[0]; u.y = q[1]; u.bystander = true; G.setup(b.map, b.units); b.cache = null; return u;
+  };
+  (function () {
+    var Hs = D.house, WP = W.World && W.World.prototype; if (!Hs || !WP) return;
+    var runNight0 = Hs.runNight, arrive0 = WP.arrive, here0 = WP.here, fight0 = WP.fight;
+    Hs.runNight = function (scene, asg) {
+      var f = In.roadFlags(), self = this;
+      if (!f || !f.childGuest || f.childCamp || !D.counter || !scene) return runNight0.apply(this, arguments);
+      In.childCamp(scene, function () { runNight0.call(self, scene, asg); });
+    };
+    WP.arrive = function (st) {
+      var r = arrive0.apply(this, arguments), f = In.roadFlags();
+      if (f && f.childGuest && D.top() === this && !this.cards.length && In.atPit()) In.childPit(this);
+      return r;
+    };
+    WP.here = function () { var f = In.roadFlags(); if (f && f.childGuest && In.atPit()) { In.childPit(this); return; } return here0.apply(this, arguments); };
+    WP.fight = function (p, e, o) { var r = fight0.apply(this, arguments), b = D.top(); if (b && b !== this && b.fight && b.fight.camp) { try { In.campKid(b); } catch (eK) { /* (a figure must never stop a fight) */ } } return r; };
   })();
   In.toSnoot = function () { In.left = '../snoot-mode/?from=inn'; if (!In.stay) window.location.href = In.left; }; // (In.stay: a bench's, the page kept)
   var fire0 = T.fire;
@@ -2100,8 +2194,8 @@
     { id: 'barnseen', label: 'OUT OF THE BARN: the glamour seen through, Doran home', note: 'The same morning, the glamour seen through on the wagon night: a child chained in the stall. FREE HER. Gennet\'s other story: "Somebody put a goblin\'s face on a child and sent her down this road. Who takes that in, if I don\'t?" Let her and the child is brought into the house, the raising feigned until the night.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'barnaway', label: 'OUT OF THE BARN: Doran away, Elsbeth at her third tier', note: 'Doran gone down the road: nobody for Gennet to call but Elsbeth. At the breaking point she calls for "the word"; Elsbeth comes out, the wand in her apron: "No. It\'s for the lake. Tell them, or I will." The child goes with the party. (At her second tier she stands in the door and does not say it; below that nobody comes out.)', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 1, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, doranAway: 1, elsbethTier: 3, dishes: 1, elsbethTold: 1 } },
     { id: 'barnknown', label: 'OUT OF THE BARN: renown 5, a low Persuasion, the party knows of the lake\'s nights', note: 'The corridor\'s own. Lymen may ask at her ask "Raise it until which night?" and go straight to the breaking point; Doran comes round the barn and lets the axe hang, and any hero\'s word to him brings the confession. The dice are low: at lower renown the same word gets only "Gen. Let go."', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 5, dice: [2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
-    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The nights and days they say are counted to the due\'s night: two, on day 13.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
-      flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, barnFreed: 1, barnEnd: 'd', doranConfessed: 1, childGuest: 'child', childGuestDay: 13, innRegard: 0, elsbethTier: 3, dishes: 1, elsbethTold: 1, dueOffC: 0, dueOff: 'none' } },
+    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The nights they say are counted to the NEXT due, a month on (ruling 59): thirty, on day 13.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
+      flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, barnFreed: 1, barnEnd: 'd', doranConfessed: 1, childGuest: 'child', childGuestDay: 13, childDue: 43, innRegard: 0, elsbethTier: 3, dishes: 1, elsbethTold: 1, dueOffC: 0, dueOff: 'none' } },
     { id: 'bigroom', label: 'THE BIG ROOM, theirs: morning by the good bed, her letter in the drawer (11-12)', note: 'Day 14, eight in the morning, in the big room over the kitchen: Gennet gave it at her supper alone, and Katarina rode out on the wagon. You stand where you would wake, by the good bed. E on the table by the bed: her letter, read as if she were saying it, then her book into the pack.', key: In.UP, at: [13, 2], hour: 8, day: 14,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, supAlone: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1, katRode: 1, katLooked: 1, bigRoom: 1 } },
     { id: 'kat', label: 'DAY 7: THE TRAVELER BY THE FIRE, Barley with a bottle of ink (11-05)', note: 'Six in the evening on day 7, the four in the common room, a bottle of ink from Lisbet\'s in the pack. E on the traveler at her table by the fire: Barley -- "You\'re with the Dominion." -- and she breaks in: her deity gave her a vision and it used up all her ink. The bottle set by her book; the vision, Aurdin laughing in the dust with the tribe that laughs; the page torn free: the Sheet: Hideous Laughter in the pack. E on her again: her talk at the fire -- what she is, the road south, what she saw (the vision told: both tiers). Then M, ITEMS, the sheet on Aurdin: he copies it into his book.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, inv: ['ink'] },
@@ -2130,6 +2224,12 @@
     { id: 'katvisit', label: 'KATARINA BEFORE THE INK: one thing a visit, on the flip (11-12)', note: 'Six in the evening on day 7, at her table by the fire, no ink in the pack. E on the traveler: she is closed. With Barley in the party his "You\'re with the Dominion." and her ask for ink come first, at once, as before. Then flip the four: each has at most ONE blue-shaded line (Aurdin on what she wears, Lymen on the road south, Vivian only once the wagon is known), a line of small talk, and (Leave her to her book.). One shaded line gets ONE thing, and the visit is over; E on her again for another. WHAT SHE SAW is not offered until the ink is given.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, dice: [19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, katInk: 1, katLooked: 1 } },
     { id: 'elsbethday', label: 'ELSBETH BY DAY at renown 3: "You\'re the people stopping the monsters." (11-12)', note: 'Ten in the morning on day 6, inside by the tub, a name on Hessle\'s board (renown 3). Gennet is OUT AT THE WELL by day (look for her there). E on Elsbeth: "You\'re the people stopping the monsters." and her first telling, with no dishes. With no renown and nothing noticed at supper she only works ("The girl focuses on her work."); in the evening she says not now.', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
     { id: 'elsbethdishes', label: 'ELSBETH BY DAY, the counting seen and kept quiet, her father home: the dishes (11-12)', note: 'Ten in the morning on day 6, renown 0, Vivian saw the girl count the party at supper and said nothing. E on Elsbeth: HELP WITH THE DISHES is the cover, her father being in the house; her first telling, and the wagon\'s night. (With Doran away she tells it with no dishes.)', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 0, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, mealWrong: 1 } },
+    // THE CHILD'S ROAD (ruling 59, 11-12): the first camp and the Pit, each staged on THE WORLD and run at once
+    { id: 'childcamp', label: 'THE CHILD\'S ROAD: the first camp -- "Water. Please." (11-12)', note: 'Day 13 at dusk, a camp on the Pit road south of the inn, the one out of the barn still a goblin to the party. The scene plays at once, on its face: it asks for water in a girl\'s voice, the glamour comes off, and the face is the girl\'s from there. In the game it plays before the first camp\'s watches are stood, once. (A party that had seen through it gets the asking and no more.)', world: true, hour: 19, day: 13, run: function (sc) { In.childCamp(sc, function () { sc.say('The watches are stood from here, as at any camp.'); }); },
+      flags: { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'quiet', barnFreed: 1, barnEnd: 'e', childGuest: 'goblin', childGuestDay: 13, childDue: 43, dueOffC: 0, dueOff: 'none' } },
+    { id: 'childpit', label: 'THE CHILD\'S ROAD: Tarlyn\'s Pit, the chalked door of GreyFang\'s house (11-12)', note: 'Day 15, three in the afternoon, the party on the Pit\'s hex with the girl. The scene plays at once: the watch on the road, the door back of the fighting pit with the wolf\'s head chalked on it, the woman\'s count (Doran drove seven down: "That\'s eight, then."), and the girl is set down. After it E on the hex is the Pit as before (its map is not built). Back at the inn Doran has one line for it at the woodpile.', world: true, site: 'pit', hour: 15, day: 15, run: function (sc) { In.childPit(sc); },
+      flags: { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'quiet', barnFreed: 1, barnEnd: 'd', doranConfessed: 1, doranPit: 1, glamourBroken: 1, glamourSeen: 1, childGuest: 'child', childGuestDay: 13, childCamp: 1, childDue: 43, dueCycle: 0, dueOffC: 0, dueOff: 'none' } },
+    { id: 'elsbethnoon', label: 'ELSBETH AFTER MIDDAY: Gennet in from the well, "Not now." (11-12)', note: 'One in the afternoon on day 6, renown 3. Gennet is by the fire: her hours at the well are the mornings, seven to midday. E on Elsbeth at the tub: "Not now. In the morning, when she\'s out at the well."', key: In.KEY, at: [32, 21], hour: 13, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
@@ -2138,10 +2238,10 @@
     var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; if (bt.renown != null) rec.renown = bt.renown; // (a supper's beat: the renown the Waterbys have heard)
     rec.flags = Object.assign({ councilNotice: 1, councilSeen: 1 }, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60); // (Silverton's council night sat already: a show of the inn -- 11-04, his "these previews are all firing the council discussion")
     (bt.inv || []).forEach(function (id) { H.add(rec.inv, id, 1); }); // (what the beat's pack holds: the traveler's ink, 11-05)
-    var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === In.SITE; })[0] : null;
+    var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === (bt.site || In.SITE); })[0] : null; // (bt.site: another place on THE WORLD -- the Pit, 11-12)
     H.begin(rec, 0, site ? '?world&at=' + site.hex[0] + ',' + site.hex[1] : null);
     var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? (bt.day - 1) * 24 : Math.floor((S.t || 0) / 24) * 24) + bt.hour;
-    if (bt.world) return;
+    if (bt.world) { if (bt.run && W.scene) bt.run(W.scene); return; } // (bt.run: a scene staged on THE WORLD and run at once -- the child's road, 11-12)
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var nb = R.make('?roam=' + bt.key + (bt.inside === 'barn' ? '&at=' + bt.at.join(',') : bt.inside ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true });
     D.push(nb);
