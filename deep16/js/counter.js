@@ -48,6 +48,7 @@
     talmok: { sheet: 'pt_talmok', wait: '' }, // (Talmok, the Hex's champion by the sand: the art desk's ART-123-TALMOK, 10-29, on the lanes desk's "Take Talmok after Dace" -- his word in the Hex on his face, js/town.js T.fire by C.takes; he keeps no shop, and fights in his own talmok_p1)
     papa: { sheet: 'pt_papa', wait: '' }, // (Papa Urtusk in the Hex's front door: the art desk's ART-123-URTUSK, 10-29, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter" -- the council's sittings speak on his face (js/hours.js H16.sitting: C.PT), and his word at the door; no counter line, he keeps no shop)
     falstaff: { sheet: 'pt_falstaff' }, // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
+    pyro: { sheet: 'pt_pyro', script: 'pyro', allFaces: true }, // (Pyro, King of Solskaft, at his vault doors: the art desk's ART-141, cut 11-12 by cutter-pyro, tools/portrait-sheet.py pyro -- idle 6, attentive, welcoming, grave, stern, grieved; wired 11-12 by the inn seat on the lanes desk's relay: his word at the doors on his face, js/solskaft.js C.SCRIPTS.pyro -- his meeting is the story build's)
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
@@ -631,7 +632,7 @@
   // A PORTRAIT FACES INTO THE SCREEN (11-12, the inn seat; Griz on sacrifice night's full tell, 11-12 0043Z, at the look "until Gennet says her name": "mirror gennet
   // portrait so she's facing the correct direction"): Gennet's portrait is drawn looking screen left -- right when she stands top right, and backwards when a look puts
   // her top LEFT (the one looked at stands opposite the one looking: Elsbeth, come round the table to the right). A portrait named in C.FACES_LEFT is mirrored on the left
-  C.FACES_LEFT = { pt_gennet: 1, pt_ingrith: 1 };   // (pt_ingrith, 11-12, cutter-ingrith: the art desk's ART-141 drew her looking screen left)
+  C.FACES_LEFT = { pt_gennet: 1, pt_ingrith: 1, pt_pyro: 1 };   // (pt_ingrith, 11-12, cutter-ingrith: the art desk's ART-141 drew her looking screen left; pt_pyro: he looks screen left as cut, 11-12)
   C.faceFlip = function (name, side) { return side === 'left' && !!C.FACES_LEFT[name]; };
   C.drawFacing = function (ctx, g, anim, frame) {
     if (!C.faceFlip(g.sheet, g.side)) return C.drawPortraitAt(ctx, g.sheet, anim, frame, g.x, g.foot, g.s);

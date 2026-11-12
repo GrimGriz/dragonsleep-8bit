@@ -286,10 +286,13 @@
       if (trig.npc === 'asdis' && SK.asdisTalk) { yield* SK.asdisTalk(B, B.units.filter(function (x) { return x.npc === 'asdis'; })[0]); return; } // (her offer, the first game's way)
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = B.roam.token;
       if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
+      if (trig.npc === 'pyro' && D.counter && D.counter.takes('pyro') && D.SHEETS && D.SHEETS.pt_pyro) { yield* D.counter.talk(B, 'pyro'); return; } // (11-12, the inn seat on the lanes desk's relay: the king's word on his talking portrait, pt_pyro -- js/counter.js C.VENDORS.pyro)
       B.card(D.roam.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(SK.WORDS[trig.npc]())), 420); D.sfx('popup'); yield 20; return;
     }
     yield* fire0.apply(this, arguments);
   };
+  // Pyro's word on his face (js/counter.js C.talk): the line grave -- "a compliment, and a warning" -- then the note that his meeting is to come, attentive
+  if (D.counter && D.counter.SCRIPTS) D.counter.SCRIPTS.pyro = function* (sc) { var w = SK.WORDS.pyro(); yield sc.say([w[0]], 'grave'); yield sc.say([w[1]], 'attentive'); };
   // the squares: the signs, and the doors that say where they will go (a step onto a way off steps back)
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
