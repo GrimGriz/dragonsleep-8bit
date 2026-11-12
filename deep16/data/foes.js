@@ -1233,3 +1233,8 @@ window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { na
 // HALFWAY-INN-UNARMED-GOBLINS, tools/goblinchild-sheet.py); when the glamour breaks the unit becomes `commonerchild` (js/inn.js) and only the body changes
 window.D16.FOES.glamourgoblin = Object.assign({}, window.D16.FOES.commonerchild, { name: 'Goblin',
   sheet: 'goblinchild_p1', src: window.D16.FOES.commonerchild.src + '; under a glamour, a goblin to the eye (goblinchild_p1, 11-07): the inn lane\'s child given up at the wagon' });
+// the kept child as she is (11-12, cutter-art139, on the lanes desk's relay of Griz's "Fresh refilled"; art-wanted section 52, his "art request for girl and
+// goblin"): the townsfolk's child's block in her own figure (keptchild_p1, the art desk's ART-139, tools/keptchild-sheet.py) -- ruling 42, a figure of her own; for
+// her alone, in place of `commonerchild` once the glamour is seen through (js/inn.js, js/secondact.js: the inn seat's to swap)
+window.D16.FOES.keptchild = Object.assign({}, window.D16.FOES.commonerchild, { name: 'Child',
+  sheet: 'keptchild_p1', src: window.D16.FOES.commonerchild.src + '; the kept child\'s own look (keptchild_p1, 11-12)' });

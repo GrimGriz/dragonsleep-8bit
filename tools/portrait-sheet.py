@@ -233,6 +233,24 @@ PEOPLE = {
     # played once (the hook and the lantern kept with her: islands inside her frame's box)
     'gennet': ('gennet/INN-PORTRAITS-1105', 'GENNET', 'npc:gennet, gennetGrief, gennetYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)', {'edge': True, 'pat': '%s_HEAD-%d_*.png', 'bevel': (2, 3, 4, 5, 'gennet/ART-38-LOOK-1107/GENNET_HEAD-7_THE-LOOK.png'), 'avoid': ['red', 'fire'],
                'layout': LAYOUT + [('gennet/ART-38-LOOK-1107/GENNET_HEAD-7_THE-LOOK.png', [1], ['look'])]}),   # (and her silencing look, 11-07: art-wanted section 38, held a beat after Elsbeth's shout on the drag)   # (her stills' bar top bevelled: a sliver of it stood under them)
+    # Doran with the woodaxe at the yard's chopping block (11-12, cutter-art139, on the lanes desk's relay of Griz's "Fresh refilled"; asked as art-wanted section 52 on his
+    # "doran's default 'click on him' should be axe portrait with a line"): the art desk's ART-139 DORAN pages, sorted to deep16/_src/ART-139/source/ -- Idle 6, Attentive,
+    # Axe Low, Concerned, Work 6 (the axe set down on the block and both hands leant on the haft, played once, held). The chopping block KEPT in every frame (`noledge`,
+    # the art desk's ART-139 notes: "Keep the chopping block with the portrait"; the ledge's find took it on the work page only), each frame on the block's foot;
+    # js/counter.js C.SHEETOF.doranYard takes pt_doranaxe by name. `axelow` is a mood of his own (no scene names it yet: the screen's idle where it is not asked)
+    'doranaxe': ('ART-139/source', 'ART-139-DORAN', 'npc:doranYard (the Halfway Inn woodpile, js/inn.js In.doranYard; js/counter.js C.SHEETOF.doranYard)', {'edge': True, 'noledge': True, 'avoid': ['red', 'fire'], 'layout': [
+        ('ART-139/source/ART-139-DORAN-HEAD-1-IDLE.png', [3, 3], ['idle'] * 6), ('ART-139/source/ART-139-DORAN-HEAD-2-ATTENTIVE.png', [1], ['attentive']),
+        ('ART-139/source/ART-139-DORAN-HEAD-3-AXE-LOW.png', [1], ['axelow']), ('ART-139/source/ART-139-DORAN-HEAD-4-CONCERNED.png', [1], ['concerned']),
+        ('ART-139/source/ART-139-DORAN-HEAD-5-WORK.png', [3, 3], ['work'] * 6)]}),
+    # the kept child, Nell, as she is, and the same child under the glamour (11-12, cutter-art139, the same relay; art-wanted section 52, his "art request for girl and goblin"):
+    # the art desk's ART-139 NELL heads 1-3 and GLAMOUR heads 1-2 -- waist-up with no counter, so `noledge` and `cutline` (each frame on the torso's clean cut, as General
+    # Grim's), looking screen right (she speaks from the left of the screen in the yard's talk). The two cut alike so the glamour's break swaps one for the other in place;
+    # each page by its width at the idle's scale (`onescale`: the AFRAID hunches, and by its own bust it came out a head bigger), the AFRAID page's warmer colours matched to the idle's
+    'keptchild': ('ART-139/source', 'ART-139-NELL', 'the kept child as she is (js/inn.js In.barnYard, the yard talk once the glamour is seen through; no id wears it yet)', {'edge': True, 'noledge': True, 'cutline': True, 'onescale': True, 'match': {'ART-139/source/ART-139-NELL-HEAD-2-AFRAID.png': 'ART-139/source/ART-139-NELL-HEAD-1-IDLE.png'}, 'avoid': ['red', 'fire'], 'layout': [
+        ('ART-139/source/ART-139-NELL-HEAD-1-IDLE.png', [3, 3], ['idle'] * 6), ('ART-139/source/ART-139-NELL-HEAD-2-AFRAID.png', [1], ['afraid']),
+        ('ART-139/source/ART-139-NELL-HEAD-3-LOOKING-UP.png', [1], ['lookingup'])]}),
+    'glamourgoblin': ('ART-139/source', 'ART-139-GLAMOUR', 'the kept child under the glamour (js/inn.js In.barnS, S.who of the child; no id wears it yet)', {'edge': True, 'noledge': True, 'cutline': True, 'onescale': True, 'match': {'ART-139/source/ART-139-GLAMOUR-HEAD-2-AFRAID.png': 'ART-139/source/ART-139-GLAMOUR-HEAD-1-IDLE.png'}, 'avoid': ['red', 'fire'], 'layout': [
+        ('ART-139/source/ART-139-GLAMOUR-HEAD-1-IDLE.png', [3, 3], ['idle'] * 6), ('ART-139/source/ART-139-GLAMOUR-HEAD-2-AFRAID.png', [1], ['afraid'])]}),
     'katarina': ('katarina/INN-PORTRAITS-1105', 'H', 'npc:katarina (the Halfway Inn, js/inn.js)', {'edge': True, 'pat': '%s%02d-*.png', 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (her stills' table edge bevelled, as Falstaff's: a sliver of it stood under them)
     # Willem Glass, the illusionist (11-05, the Waterby cutter, on the lanes desk's relay of Griz's "Saw the mention I'd failed to DL them to Fresh and Willem portraits are there
     # now"): the art desk's HALFWAY-INN-WILLEM-PORTRAITS, art-wanted section 35 -- WILLEM_HEAD-1_PAGE-1.png to HEAD-6, at a table in his navy coat, a coin walking his knuckles;
@@ -638,7 +656,9 @@ def cut_person(name):
     # each page by its own bust (the stills are drawn bigger): the page's median to BUST
     small = {}
     for act, fr in raw.items():
-        k = ov.get('bust', BUST) / float(np.median([f[3] for f in fr]))   # (`bust`: a person's own -- a hero's bust in the counter's hero box, js/counter.js HB, Aurdin's size: Lymen's, 10-30)
+        k = ov.get('bust', BUST) / float(np.median([f[3] for f in fr]))
+        if ov.get('onescale'):   # (`onescale`: a page by the idle's scale times the idle's width over its own -- a still that hunches keeps the idle's size, not blown up to its bust; its page may be drawn at another size: the kept child's AFRAID, twice the idle's on the page, 11-12)
+            k = ov.get('bust', BUST) / float(np.median([f[3] for f in raw['idle']])) * float(np.median([f[0].shape[1] for f in raw['idle']])) / float(np.median([f[0].shape[1] for f in fr]))   # (`bust`: a person's own -- a hero's bust in the counter's hero box, js/counter.js HB, Aurdin's size: Lymen's, 10-30)
         out = []
         for rgba, ax, ay, bust, ledge in fr:
             im = Image.fromarray(rgba, 'RGBA').convert('RGBa')

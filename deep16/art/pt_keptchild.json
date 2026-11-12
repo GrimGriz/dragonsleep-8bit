@@ -1,0 +1,55 @@
+{
+ "image": "art/pt_keptchild.png",
+ "fw": 91,
+ "fh": 156,
+ "ax": 42,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 91,
+   "fh": 156,
+   "ax": 42,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "afraid": {
+   "y": 156,
+   "fw": 91,
+   "fh": 156,
+   "ax": 42,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "lookingup": {
+   "y": 312,
+   "fw": 91,
+   "fh": 156,
+   "ax": 42,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-139-NELL",
+ "door": "the kept child as she is (js/inn.js In.barnYard, the yard talk once the glamour is seen through; no id wears it yet)",
+ "source": "deep16/_src/ART-139/source (the art desk's ART-139-NELL, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

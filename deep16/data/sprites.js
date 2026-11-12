@@ -8783,6 +8783,35 @@
 }
 }
 },
+"keptchild_p1": {
+"image": "art/keptchild_p1.png?v=15e93bad82",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 35,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn and cut by the art desk (ART-139, 11-11: five views of Idle 4 and Walk 8, the S, SE, NE and N walks its ART HOLD), verified and sheeted by tools/keptchild-sheet.py (11-12)"
+},
 "kess_p1": {
 "image": "art/kess_p1.png?v=3339bf6bc0",
 "fw": 33,
@@ -15067,6 +15096,90 @@ true
 "door": "npc:doranIn, doranYard (the Halfway Inn, js/inn.js M.talk; js/counter.js C.SHEETOF)",
 "source": "deep16/_src/doran/INN-PORTRAITS-1105 (the art desk's H, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_doranaxe": {
+"image": "art/pt_doranaxe.png?v=9dbf565004",
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"axelow": {
+"y": 310,
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 465,
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 620,
+"fw": 193,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-139-DORAN",
+"door": "npc:doranYard (the Halfway Inn woodpile, js/inn.js In.doranYard; js/counter.js C.SHEETOF.doranYard)",
+"source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_edric": {
 "image": "art/pt_edric.png?v=75d20c5d54",
 "fw": 227,
@@ -16142,6 +16255,49 @@ true
 "door": "the unnamed (js/counter.js C.GENERIC)",
 "source": "deep16/_src/genwoman/ART-122 (the art desk's ART-122-WOMAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_glamourgoblin": {
+"image": "art/pt_glamourgoblin.png?v=b3237bf8d8",
+"fw": 90,
+"fh": 155,
+"ax": 43,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 90,
+"fh": 155,
+"ax": 43,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"afraid": {
+"y": 155,
+"fw": 90,
+"fh": 155,
+"ax": 43,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-139-GLAMOUR",
+"door": "the kept child under the glamour (js/inn.js In.barnS, S.who of the child; no id wears it yet)",
+"source": "deep16/_src/ART-139/source (the art desk's ART-139-GLAMOUR, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_gull": {
 "image": "art/pt_gull.png?v=7071820dad",
 "fw": 221,
@@ -16988,6 +17144,61 @@ true
 "art": "H",
 "door": "npc:katarina (the Halfway Inn, js/inn.js)",
 "source": "deep16/_src/katarina/INN-PORTRAITS-1105 (the art desk's H, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_keptchild": {
+"image": "art/pt_keptchild.png?v=6d1171d12c",
+"fw": 91,
+"fh": 156,
+"ax": 42,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 91,
+"fh": 156,
+"ax": 42,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"afraid": {
+"y": 156,
+"fw": 91,
+"fh": 156,
+"ax": 42,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"lookingup": {
+"y": 312,
+"fw": 91,
+"fh": 156,
+"ax": 42,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-139-NELL",
+"door": "the kept child as she is (js/inn.js In.barnYard, the yard talk once the glamour is seen through; no id wears it yet)",
+"source": "deep16/_src/ART-139/source (the art desk's ART-139-NELL, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_kess": {
 "image": "art/pt_kess.png?v=ea60a1473d",
@@ -24426,7 +24637,7 @@ true
 },
 "skstone_p1": {
 "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-134-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
-"image": "art/skstone_p1.png?v=04e8ce957d",
+"image": "art/skstone_p1.png?v=136ffa491a",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -24570,7 +24781,9 @@ true
 "temple_lamp_unlit": "494,1110,15,51,7,31",
 "temple_lamp_lit": "510,1110,15,51,7,31",
 "kneeling_bench_x": "526,1110,40,36,20,11",
-"kneeling_bench_y": "567,1110,40,36,19,11"
+"kneeling_bench_y": "567,1110,40,36,19,11",
+"temple_pillar": "608,1110,64,152,32,120",
+"temple_pillar_stub": "673,1110,64,44,32,12"
 },
 "cells": {
 "flags_1": {
@@ -26079,6 +26292,28 @@ true
 "facing": "along y",
 "wall": null,
 "geometry": null
+},
+"temple_pillar": {
+"page": "PAGE-06-TEMPLE-PILLAR",
+"id": "TEMPLE-PILLAR",
+"foot": [
+1,
+1
+],
+"facing": "isometric square, two visible faces",
+"wall": null,
+"geometry": "full"
+},
+"temple_pillar_stub": {
+"page": "PAGE-06-TEMPLE-PILLAR",
+"id": "TEMPLE-PILLAR-STUB",
+"foot": [
+1,
+1
+],
+"facing": "isometric square, two visible faces",
+"wall": null,
+"geometry": "stub"
 }
 },
 "source": "generated by the art desk (2026-11-11, ART-134-SOLSKAFT: deep16/_src/ART-134-SOLSKAFT), cut by tools/solskaft-sheet.py"

@@ -1,0 +1,43 @@
+{
+ "image": "art/pt_glamourgoblin.png",
+ "fw": 90,
+ "fh": 155,
+ "ax": 43,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 90,
+   "fh": 155,
+   "ax": 43,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "afraid": {
+   "y": 155,
+   "fw": 90,
+   "fh": 155,
+   "ax": 43,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-139-GLAMOUR",
+ "door": "the kept child under the glamour (js/inn.js In.barnS, S.who of the child; no id wears it yet)",
+ "source": "deep16/_src/ART-139/source (the art desk's ART-139-GLAMOUR, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

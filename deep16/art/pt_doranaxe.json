@@ -1,0 +1,84 @@
+{
+ "image": "art/pt_doranaxe.png",
+ "fw": 193,
+ "fh": 155,
+ "ax": 92,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 193,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 155,
+   "fw": 193,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "axelow": {
+   "y": 310,
+   "fw": 193,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 465,
+   "fw": 193,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 620,
+   "fw": 193,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "ART-139-DORAN",
+ "door": "npc:doranYard (the Halfway Inn woodpile, js/inn.js In.doranYard; js/counter.js C.SHEETOF.doranYard)",
+ "source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
