@@ -127,7 +127,111 @@
     'brazier_lit_1', 'brazier_lit_2', 'brazier_lit_3', 'brazier_lit_4', 'dais_centre', 'dais_n', 'dais_e', 'dais_s', 'dais_w', 'dais_ne', 'dais_se', 'dais_sw', 'dais_nw']);
   ST.dais = function (x, r) { var D0 = SK.DAIS, n = r === D0[3], s = r === D0[1], w = x === D0[0], e = x === D0[2]; return 'dais_' + ((n ? 'n' : s ? 's' : '') + (w ? 'w' : e ? 'e' : '') || 'centre'); };
 
-  A.FLOOR = { solskaft: ST };
+  // a floor's dressed flags with their edges where it meets a wall (the funerary's, her room's): rows as the floor's own
+  var flagsAt = function (x, y, m, worn) {
+    var rk = function (dx, dy) { var s = m.at(x + dx, y + dy); return !s || !s.open; }, v = 1 + ((x * 7 + y * 13) % 4);
+    if (rk(0, -1)) return ['edge_x_' + v]; if (rk(-1, 0)) return ['edge_y_' + v]; if (rk(0, 1)) return ['edge_x_' + v, 1]; if (rk(1, 0)) return ['edge_y_' + v, 1];
+    return [(worn || 'flags_') + v];
+  };
+  // an animated piece on a square (a fire, a flame): its frames by name, `fps`, anchored at its first square (o.d: its depth over the square's; o.lift)
+  var animAt = function (m, s, frames, fps, o) {
+    if (!s) return; o = o || {};
+    m.props.push({ skArt: true, kind: 'sk', sq: s, depth: s.x + s.y + (o.d == null ? 0.5 : o.d), gz: s.gz, draw: function (ctx) {
+      if (!A.ready()) return; var t = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000, c = A.cell(frames[Math.floor(t * fps + s.x * 0.7) % frames.length], { first: true, lift: o.lift });
+      if (!c) return; var p = iso.center(s.x, s.y, s.gz), q = iso.toScreen(p.x, p.y); ctx.drawImage(c.canvas, Math.round(q.x - c.ax), Math.round(q.y - c.ay)); } });
+  };
+  var noFire = function (m, list) { if (m.isoFire) m.isoFire = m.isoFire.filter(function (q) { return !list.some(function (b) { return q[0] === b[0] && q[1] === b[1]; }); }); };
+
+  // ================================================================ THE CART LEVEL (ART-136)
+  var CA = {};
+  // the cart road's ruts on the loop the carts take: down the ramp, north up the west lane, east behind the drum, south down the east lane to the road out to the narrow ramp; the
+  // highway's lane north from the road. Elsewhere the floor is the raw cut rock
+  CA.PATH = (function () {
+    var o = {}, set = function (x0, r0, x1, r1, n) { for (var x = x0; x <= x1; x++) for (var r = r0; r <= r1; r++) o[x + ',' + r] = n; };
+    set(5, 1, 14, 2, 'x'); set(11, 3, 11, 15, 'y'); o['11,16'] = 'turn_xp_yp'; set(12, 16, 31, 16, 'x'); o['32,16'] = 'turn_xn_yn'; set(32, 17, 32, 30, 'y');
+    set(26, 9, 26, 15, 'y'); o['26,8'] = 'turn_xp_yn'; set(27, 8, 35, 8, 'x'); o['36,8'] = 'turn_xn_yp'; set(36, 3, 36, 7, 'y');
+    return o;
+  })();
+  CA.ground = function (x, y, m) {
+    var c = (SK.CROWS[y] || '').charAt(x); if (c === '#' || c === 'Q') return null;
+    var p = CA.PATH[x + ',' + R(y)], v = 1 + ((x * 5 + y * 11) % 4);
+    return p ? ['floor_' + p + '_' + v] : ['floor_raw_' + v];
+  };
+  ['x', 'y', 'turn_xp_yp', 'turn_xn_yn', 'turn_xp_yn', 'turn_xn_yp', 'raw'].forEach(function (k) { use('solskaft_cart', [1, 2, 3, 4].map(function (v) { return 'floor_' + k + '_' + v; })); });
+  CA.HANG = { R: { '12,20': 'armory_rack_y', '12,21': 'armory_rack_y', '12,22': 'armory_rack_y', '12,23': 'armory_rack_y', '12,24': 'armory_rack_y', '30,22': 'trade_hall_boarded_y', '30,25': 'ledger_lamp_rack_y' },
+    L: { '11,18': 'mint_sealed_x', '12,18': 'treasury_open_x' } };
+  use('solskaft_cart', ['armory_rack_y', 'trade_hall_boarded_y', 'ledger_lamp_rack_y', 'mint_sealed_x', 'treasury_open_x', 'drum_straight_x', 'drum_straight_y', 'cut_rock_plain_x', 'cut_rock_plain_y']);
+  CA.wall = function (s, side) {
+    var r = R(s.y), h = CA.HANG[side][s.x + ',' + r]; if (h) return h;
+    if ((SK.CROWS[s.y] || '').charAt(s.x) === 'Q') return side === 'L' ? 'drum_straight_x' : 'drum_straight_y';   // (the drum, carved its whole length: the lamp-bearers and the litter in relief)
+    return side === 'L' ? 'cut_rock_plain_x' : 'cut_rock_plain_y';
+  };
+  CA.PIC = { anvil: ['anvil'], furnace: ['cold_furnace'], cupel: ['cupel_hearth'], trap: ['hoist_trap_overhead', { first: true }] };
+  use('solskaft_cart', ['anvil', 'cold_furnace', 'cupel_hearth', 'hoist_trap_overhead', 'dead_lift_well', 'dead_lift_rear', 'dead_lift_near', 'forge_fire_01', 'forge_fire_02', 'forge_fire_03',
+    'forge_fire_04', 'forge_fire_05', 'forge_fire_06', 'hand_cart_x_loaded', 'crate_tall', 'crate_low', 'barrel', 'highway_gate_x_down', 'shroom_bed_1', 'shroom_bed_2', 'shroom_bed_3']);
+  var LIFT = null;
+  CA.pic = function (nm, args) {
+    if (nm === 'rack' || nm === 'carve' || nm === 'chevron' || nm === 'face') return A.blank();      // (the lamp rack, the drum's carving and the mint's and treasury's doors are modules on the walls; the floor's ruts)
+    if (nm === 'lift') { // (the dead lift: the well, the rear frame, the near frame, one anchor -- the 2 x 2's top vertex; composed, set at its middle as the code's was)
+      if (LIFT) return LIFT; var L0 = ['dead_lift_well', 'dead_lift_rear', 'dead_lift_near'].map(function (n) { return A.box(n); }); if (L0.some(function (b) { return !b || !img(b.k); })) return null;
+      var x0 = Math.min.apply(null, L0.map(function (b) { return -b.ax; })), y0 = Math.min.apply(null, L0.map(function (b) { return -b.ay; })), x1 = Math.max.apply(null, L0.map(function (b) { return b.w - b.ax; })), y1 = Math.max.apply(null, L0.map(function (b) { return b.h - b.ay; }));
+      var cv = document.createElement('canvas'); cv.width = x1 - x0; cv.height = y1 - y0; var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+      L0.forEach(function (b) { cx.drawImage(img(b.k), b.x, b.y, b.w, b.h, -b.ax - x0, -b.ay - y0, b.w, b.h); });
+      return (LIFT = { canvas: cv, ax: -x0, ay: -y0 + 2 * HH });
+    }
+    return null;
+  };
+  CA.dress = function (m, sq, lay) {
+    [[17, 25], [18, 25], [2, 5], [3, 5], [4, 5], [7, 7], [8, 7], [31, 26], [32, 26], [33, 26], [34, 26], [13, 20], [13, 21], [13, 22], [13, 23], [13, 24]].forEach(function (q) { off(m, sq(q[0], q[1])); });
+    noFire(m, [[17, SK.Y(25)], [18, SK.Y(25)]]);
+    animAt(m, sq(17, 25), ['forge_fire_01', 'forge_fire_02', 'forge_fire_03', 'forge_fire_04', 'forge_fire_05', 'forge_fire_06'], 8, { d: 1.5 });  // (the forge, its fire in its mouth)
+    lay(sq(2, 5), 'hand_cart_x_loaded', { first: true }, 1.5); lay(sq(4, 5), 'crate_tall', { first: true }); lay(sq(7, 7), 'crate_low', { first: true }); lay(sq(8, 7), 'barrel', { first: true });
+    lay(sq(31, 26), 'highway_gate_x_down', { first: true }, -0.4);                                                                              // (the gate, down and barred, across the lane)
+    for (var y = 0; y < SK.H; y++) for (var x = 0; x < SK.W; x++) if ((SK.CROWS[y] || '').charAt(x) === 'n') (function (s, k) { if (s) m.props.push({ skArt: true, kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, make: function () { return A.cell('shroom_bed_' + k, { first: true }) || A.blank(); } }); })(m.at(x, y), 1 + ((x + y) % 3));
+  };
+
+  // ================================================================ THE FUNERARY (ART-137)
+  var BE = {};
+  BE.ground = function (x, y, m) { var c = (SK.BROWS[y] || '').charAt(x); if (c === '#' || c === 'N' || c === 'K' || c === '$') return null; return flagsAt(x, y, m); };
+  BE.KIND = { row: 'niche_sealed', patron: 'niche_patron', pried: 'niche_pried', waits: 'niche_awaits' };
+  BE.wall = function (s, side) {
+    var r = R(s.y), k = s.x + ',' + r, n = SK.NICHE[k];
+    if (n) { // (a niche's face toward the bier: the west tiers' east faces; the east tiers' faces turn away, their backs blank stone)
+      if (side === 'R' && s.x < 18) { var nm = n.kind === 'gear' ? (n.wi === 1 ? 'niche_gear_shield' : 'niche_gear_hammer') : BE.KIND[n.kind] || 'niche_sealed'; return nm + '_y'; }
+      return side === 'L' ? 'niche_blank_x' : 'niche_blank_y';
+    }
+    if (side === 'L' && r === 21 && s.x >= 5 && s.x <= 32) return s.x === 24 ? 'name_wall_x_short_row' : 'name_wall_x_repeat';     // (the wall of the dead's names, one row stopping short)
+    if (side === 'L' && s.x === SK.BCUT[0] && r === SK.BCUT[1] + 1) return 'dormants_cut_x';
+    if (side === 'R' && s.x === 4 && SK.ACCESS.indexOf(r) >= 0) return 'warranted_seal_whole_y';                                   // (the four warranted doors into the closed homes)
+    if (side === 'R' && s.x === 30 && r === 1) return 'flooded_stair_cut_seal_y';                                                    // (the Warrens' stair through its cut seal)
+    return side === 'L' ? 'plain_x' : 'plain_y';
+  };
+  use('solskaft_below', ['niche_sealed_y', 'niche_patron_y', 'niche_pried_y', 'niche_awaits_y', 'niche_gear_shield_y', 'niche_gear_hammer_y', 'niche_blank_x', 'niche_blank_y',
+    'name_wall_x_repeat', 'name_wall_x_short_row', 'dormants_cut_x', 'warranted_seal_whole_y', 'flooded_stair_cut_seal_y', 'plain_x', 'plain_y', 'bier_x', 'grave_anvil', 'chapel_ledger_stone',
+    'kneeling_stone', 'barred_door_y', 'grille_y', 'kept_lamp_01', 'kept_lamp_02', 'kept_lamp_03', 'kept_lamp_04', 'flags_1', 'flags_2', 'flags_3', 'flags_4', 'edge_x_1', 'edge_y_1']);
+  BE.PIC = { bier: ['bier_x'], anvil: ['grave_anvil'], stele: ['chapel_ledger_stone'], kneel: ['kneeling_stone', { first: true }], closedDoor: ['barred_door_y', { first: true }] };
+  BE.pic = function (nm, args) { if (nm === 'niches' || nm === 'face' || nm === 'cut' || nm === 'tombLamp') return A.blank(); return null; };
+  BE.dress = function (m, sq, lay) {
+    [[20, 11], [34, 8]].forEach(function (q) { animAt(m, sq(q[0], q[1]), ['kept_lamp_01', 'kept_lamp_02', 'kept_lamp_03', 'kept_lamp_04'], 5); });   // (the two kept lamps, burning)
+    [9, 10].forEach(function (r) { off(m, sq(4, r)); lay(sq(5, r), 'grille_y', { first: true }, -0.4); });                                 // (the grille, the closed street through its bars)
+  };
+
+  // ================================================================ ÁSDÍS SCALEBEAM'S ROOM (ART-138): her hearth in the north wall, the crockery shelf, the lit window, the narrow door by the stair
+  var LO = {};
+  LO.ground = function (x, y, m) { var c = (SK.LODGE.solskaft_asdis.rows[y] || '').charAt(x); if (c === '#') return null; return flagsAt(x, y, m); };
+  LO.HANG = { L: { '2,0': 'hearth_x_cold', '4,0': 'crockery_shelf_x', '5,0': 'window_x_lit' }, R: { '0,3': 'narrow_door_y' } };
+  LO.wall = function (s, side) { return LO.HANG[side][s.x + ',' + s.y] || (side === 'L' ? 'plain_x' : 'plain_y'); };
+  use('solskaft_asdis', ['hearth_x_cold', 'crockery_shelf_x', 'window_x_lit', 'narrow_door_y', 'plain_x', 'plain_y', 'table', 'cot_x', 'stair_head_y',
+    'hearth_x_lit_01', 'hearth_x_lit_02', 'hearth_x_lit_03', 'hearth_x_lit_04', 'flags_1', 'edge_x_1']);
+  LO.dress = function (m, sq, lay) {
+    [[2, 1], [4, 1], [6, 1]].forEach(function (q) { off(m, m.at(q[0], q[1])); });
+    noFire(m, [[2, 1]]);
+    animAt(m, m.at(2, 1), ['hearth_x_lit_01', 'hearth_x_lit_02', 'hearth_x_lit_03', 'hearth_x_lit_04'], 6, { d: -0.4 });   // (her hearth, the fire kept low, in the north wall over its square)
+    lay(m.at(4, 1), 'table', { first: true }); lay(m.at(6, 1), 'cot_x', { first: true }, 0.5);
+    var st = m.at(1, 3); if (st) m.props.push({ skArt: true, kind: 'decal', sq: st, depth: st.x + st.y, gz: st.gz, layer: -1, make: function () { return A.cell('stair_head_y', { first: true }) || A.blank(); } });
+  };
+
+  A.FLOOR = { solskaft: ST, solskaft_cart: CA, solskaft_below: BE, solskaft_asdis: LO };
 
   // ---------------------------------------------------------------- the code's pieces give way: SK.pic's makers return the cell when it has come (made again when it does)
   var cur = function () { return iso.map && iso.map.def && iso.map.def.key; };
