@@ -470,3 +470,93 @@ PAGE 1 -- THE ASSAY HOUSE'S THINGS:
 7. THE GUILD'S MARK: a carved panel of the assayers' mark (a balance over a mountain), a wall module, both facings, + stub.
 Transparent cells, no matte; a CUTTER-NOTES.md and a CELLS.json as the Sólskaft pages had.
 ```
+
+## 54. Pyro, Ingrith and the generic dwarf: a talking portrait and a town (world) figure each, in all five views; the generic dwarf a costume a job (added 11-12, the lanes desk, on his word) -- proposed ART-141, IN THE OUTBOX 2026-11-12, waiting to go (`deep16/_src/outbox/ASK-2026-11-12-pyro-and-ingrith/` and its `.zip`)
+
+His words, to the lanes desk 2026-11-12: *"I suspect we'll need the art requests for ingrith and pyro shortly, a dwarf portrait and world figure art request to the outbox please (zip)"*. Checked before asking (11-12): each has a FIGHT figure in the game (`deep16/art/pyro_p0.png`, `deep16/art/ingrith_p0.png`) and nothing else -- no talking portrait (`pt_*`) and no walking figure of their own (`*_p1`); Pyro stands at Sólskaft's vault doors on his fight sheet. Two blocks, each a talking portrait and a town (world) figure in all five drawn views (RULED 10-14: S, SE, E, NE, N; the cutter mirrors SE, E and NE to SW, W and NW). The words on manner are the desk's, marked [seat]; the looks are the game's own sheets and the realm's pages (`TarlynsPit/wiki/solskaft.md`, `deepholm-and-the-edifice.md`).
+
+### Pyronimus "Pyro" Silversands, King of Sólskaft -- a talking portrait and a town figure in all five views
+ATTACH `deep16/art/pyro_p0.png` (the game's own Pyro, his fight figure: draw the SAME dwarf -- the crown, the white beard, the plate), `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face), `deep16/art/folkman_p1.png` (a town figure from the same game: the walking style and the camera) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (a grown human figure's size, for scale: a dwarf stands about three quarters of it and broader).
+```text
+Attached: the sheet of a dwarf king who fights in the same game -- the figure this portrait and walking figure are of; draw this same dwarf. Two portrait pages from the same game, for the format only. A town figure from the same game and a size reference, for the walking figure's style, camera and scale.
+
+PYRONIMUS "PYRO" SILVERSANDS -- a DWARF, the old king of a dwarven hold cut into a mountain, and the only king it has ever had: short and very broad, a long full white beard and white hair, a weathered face with heavy brows, steady pale eyes; a plain gold crown with short points, worn low; heavy dwarven plate armour in dark blue-grey steel with a king's mantle over the shoulders; a short-hafted hand mace hung at each hip (he fights with one in each hand). He stands guard at his own doors beside his soldiers. Grave, patient and kind under it: a king who has buried many and still stands his watch [seat: the manner].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing square with his hands resting on the heads of the two maces at his belt; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, head a little to one side, eyes on the speaker.
+HEAD 3 -- WELCOMING (1): a slow, warm smile in the beard; one hand lifted a little, open.
+HEAD 4 -- GRAVE (1): brows down, mouth set, looking past the speaker at something long ago.
+HEAD 5 -- STERN (1): chin up, the king's look; a hand closed on a mace haft.
+HEAD 6 -- GRIEVED (1): eyes lowered, the crown tipped forward with his head.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south). Rows: Idle (4: standing at his post, hands on the mace heads, a small breath); Walk (8: a heavy, unhurried walk toward the viewer, the mantle moving; animate in place, not travelling across the sheet).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 7.
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HIS eye level (a dwarf: do not draw him looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions: about three quarters the height of the attached human figure and broader (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+```
+Where: Sólskaft's vault doors, where he stands (`deep16/js/solskaft.js` SK.PEOPLE `pyro`, today on `pyro_p0`), his meeting at the door (the story build's scene, to come), and wherever the king walks. Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_pyro`; the town figure into `pyro_p1` in all eight facings.
+
+### Ingrith Scalebeam, cleric of Sólskaft and captain of its ledger -- a talking portrait and a town figure in all five views
+ATTACH `deep16/art/ingrith_p0.png` (the game's own Ingrith, her fight figure: draw the SAME dwarf woman -- the dark red-brown hair, the grey mail, the mace), `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face), `deep16/art/folkman_p1.png` (a town figure from the same game: the walking style and the camera) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (a grown human figure's size, for scale).
+```text
+Attached: the sheet of a dwarf woman who fights in the same game -- the figure this portrait and walking figure are of; draw this same dwarf. Two portrait pages from the same game, for the format only. A town figure from the same game and a size reference, for the walking figure's style, camera and scale.
+
+INGRITH SCALEBEAM -- a DWARF WOMAN, a young cleric of a dwarven hold and the keeper of its ledger: short and sturdy, dark red-brown hair worn back off her face, a square honest face, dark eyes, ink on her fingers; a grey chain mail shirt over a plain work tunic, a round shield slung at her back, a mace at her belt, and a small holy token on a cord at her throat. Careful, exact and warm: she counts everything and misses nothing [seat: the manner].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with a closed ledger held against her chest in both arms; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, eyes up from the ledger, pen hand still.
+HEAD 3 -- WELCOMING (1): a quick, real smile; the ledger lowered.
+HEAD 4 -- SKEPTICAL (1): one brow up, mouth to one side, the ledger half open as if to check what she was just told.
+HEAD 5 -- GRAVE (1): the smile gone, eyes steady, a hand closed over the token at her throat.
+HEAD 6 -- WEARY (1): shoulders down, eyes shut for a moment, the ledger resting on her hip.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south). Rows: Idle (4: standing with the ledger under one arm, a small breath); Walk (8: a brisk, even walk toward the viewer, the ledger under her arm; animate in place, not travelling across the sheet).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image (the round shield on her back). Rows: Idle (4) and Walk (8), as HEAD 7.
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer (the round shield on her back). Rows: Idle (4) and Walk (8), as HEAD 7.
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: she stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HER eye level (a dwarf: do not draw her looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions: about three quarters the height of the attached human figure and broader (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+```
+Where: Sólskaft's street -- her ledger-room, and Ásdís Scalebeam's place over the west store -- and the story's scenes with her, to come (the story build lane). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_ingrith`; the town figure into `ingrith_p1` in all eight facings.
+
+### The generic dwarf -- one face, in a costume for every kind of dwarf Sólskaft holds, and a town figure in all five views
+His words, the same hour: *"include a 'generic dwarf' like we did for generic NPC, various costumes"* -- the shape of art-wanted section 25 (the generic man and woman, ART-122: one identity, each job a costume where the named have their moods). Today every unnamed dwarf of Sólskaft stands on the garrison's trooper figure and speaks on a plain card (`deep16/js/solskaft.js`: the quartermaster, the yard hand, the shaft watch, the smith, the smelter hand, the gate watch, the shroom farmer, the drill and its sergeant). The list of costumes is the desk's, from who stands there now, with two more the floors will want [seat: the lamp warden, the mason].
+
+ATTACH `deep16/art/trooper_p0.png` (the game's own dwarf soldier: a dwarf's build and the garrison's gear), `deep16/art/pyro_p0.png` (another dwarf of the same hold, for the people's look -- NOT this face), `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face), `deep16/art/folkman_p1.png` (a town figure from the same game: the walking style and the camera) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (a grown human figure's size, for scale).
+```text
+Attached: a dwarf soldier and a dwarf king from the same game, for a dwarf's build and this hold's gear -- not this dwarf's face. Two portrait pages from the same game, for the format only. A town figure from the same game and a size reference, for the walking figure's style, camera and scale.
+
+THE GENERIC DWARF -- one ordinary dwarf of a garrisoned mountain hold, and the same dwarf on every page: short and broad, a thick braided brown beard with a little grey in it, brown hair tied back, a blunt weathered face with a broken-and-set nose, steady brown eyes, about middle age for a dwarf. On HEAD 1 in the dwarf's own clothes: a quilted wool tunic in dull red, a wide leather belt with a plain steel buckle, rolled sleeves, heavy boots. On every later HEAD dressed for a different job: a costume over the same face, beard and build, the beard tucked or tied as a job wants, never changed; only the clothes and what is in the hands change. Nobody heroic, nobody grotesque.
+
+HEAD 1 -- IDLE (6, two bands of three): in the dwarf's own clothes, a breathing and blink loop, thumbs hooked in the belt; loops cleanly.
+HEAD 2 -- THE TROOPER (1): the garrison's soldier as the attached sheet has him: a steel cap and mail, a round shield on the arm, a short axe at the belt, standing to.
+HEAD 3 -- THE DRILL SERGEANT (1): the same mail with a sergeant's band on the arm, a drill staff under one arm, mouth open on a count.
+HEAD 4 -- THE GATE WATCH (1): a heavy cloak over mail, a hooded lamp held up, a spear at the shoulder, looking out past the viewer.
+HEAD 5 -- THE QUARTERMASTER (1): no helm, sleeve-guards over a padded jack, a tally slate and a ring of keys, weighing the viewer up.
+HEAD 6 -- THE SMITH (1): a scorched leather apron over bare forearms, a hammer in one fist, tongs in the other, soot to the elbows.
+HEAD 7 -- THE SMELTER HAND (1): a long leather apron and a cloth tied round the brow, a broom in both hands, grey with cold ash.
+HEAD 8 -- THE YARD HAND (1): a stable hand of the hold: a canvas smock, a bucket in one hand, straw on the shoulders.
+HEAD 9 -- THE SHAFT WATCH (1): a watcher under the light shaft: a pale cloak, a hand shading the eyes, face lit from above.
+HEAD 10 -- THE SHROOM FARMER (1): a damp leather hood pushed back, a shallow basket of pale mushrooms, earth on the hands, eyes used to the dark.
+HEAD 11 -- THE LAMP WARDEN (1): a warden of a lamp on the deep road: travel-worn mail under a waxed cloak, a ledger-lamp hung at the chest, a long day behind the eyes.
+HEAD 12 -- THE MASON (1): a stone carver of the funerary: a dust-white apron, a mallet and a fine chisel, stone dust in the beard.
+
+HEAD 13 -- THE TOWN FIGURE in the dwarf's own clothes (HEAD 1's), from the front, facing the viewer (south). Rows: Idle (4: standing, thumbs in the belt, a small breath); Walk (8: a steady, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 14 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 13.
+HEAD 15 -- THE TOWN FIGURE from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 13.
+HEAD 16 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 13.
+HEAD 17 -- THE TOWN FIGURE straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 13.
+
+HEADs 1-12 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: the dwarf stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at the DWARF's eye level (do not draw the dwarf looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border. HEADs 2 to 12 are one still drawing each: the dwarf of HEAD 1, the face unchanged, in that HEAD's costume, looking screen left as if just spoken to.
+
+HEADs 13-17 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions: about three quarters the height of the attached human figure and broader (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+```
+Where: every unnamed dwarf of Sólskaft who talks (`deep16/js/solskaft.js` SK.PEOPLE and the cart level's and the drill's), each in the costume of the job stood at; the town figure for the ones who are not soldiers. Cut as: `tools/portrait-sheet.py` into `pt_dwarf` (a row a costume); the town figure into `folkdwarf_p1` in all eight facings.
