@@ -17,7 +17,8 @@ THE ANCHOR, one convention on every sheet (as js/innprops.js reads its atlas): a
 a wall module's is its face's foot at its run-start (the left end of an `_x` face, the right end of a `_y` one) -- the art desk's own for walls. ART-134 drew its
 floors and props by their footprint's CENTRE; those are moved to the top vertex here: top = centre - ((a - b) * 16, (a + b) * 8) for a footprint a x b.
 
-Sheets (deep16/art/): skstone_p1 (ART-134, the stone: floors, walls one and two storeys, doors, the court and the temples), skstreet_p1 (ART-135: the ramps and
+Sheets (deep16/art/): skstone_p1 (ART-134, the stone: floors, walls one and two storeys, doors, the court and the temples; page 06, the temple pillar and its stub,
+came 11-12 by its own top-vertex anchor -- sorted to _src/ART-134-SOLSKAFT/PAGE-06-TEMPLE-PILLAR/ by the ART-139 cutter), skstreet_p1 (ART-135: the ramps and
 stairs, the tollhouse and the stable, the crown stretch), skcart_p1 (ART-136: the road and the drum, the works, the hand-cart and the gate), skfun_p1 (ART-137: the
 niche walls, the name wall, the chamber, the chapel and the seals), sklodge_p1 (ART-138: Ásdís Scalebeam's room). Each tile's name is the cell's id in lower case,
 '-' to '_'; its foot, facing, wall height and the page are in the sheet's `cells`.
@@ -103,7 +104,7 @@ def anchor(c):
     if is_wall(c): return ax, ay
     note = (c.get('notes') or '').lower()
     fa, fb = (c.get('footprint') or [1, 1])[:2]
-    if c['_art'] == 'ART-134-SOLSKAFT' and not is_wall(c):   # (ART-134 drew its floors and props by the footprint's centre)
+    if c['_art'] == 'ART-134-SOLSKAFT' and not is_wall(c) and not (c.get('anchor_kind') or '').startswith('top vertex'):   # (ART-134 drew its floors and props by the footprint's centre; page 06, the temple pillar, came by the top vertex already -- its CELLS.json `anchor_kind`)
         return ax - (fa - fb) * HW // 2, ay - (fa + fb) * HH // 2
     return ax, ay
 

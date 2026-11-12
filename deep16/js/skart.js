@@ -115,8 +115,8 @@
   };
   use('solskaft', ['lodging_door_with_window_dark_y', 'store_shut_y', 'store_shut_with_window_lit_y', 'window_dark_y', 'plain_tall_y', 'store_shut_with_window_dark_x', 'window_dark_x', 'plain_tall_x']);
   // the pieces the code drew that the cells take over (the code's own when no sheet has come)
-  ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'] };
-  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'lodging_stair_y']);
+  ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'], pillar: ['temple_pillar'] }; // (the pillar: ART-134 page 06, 11-12 -- the temples' four a side)
+  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'lodging_stair_y', 'temple_pillar']);
   // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
   ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 2, 4], ['water_trough_x', 33, 6], ['old_fodder', 34, 5],
     ['touch_needle_table', 11, 19], ['locked_weights_case', 13, 16], ['guardroom_bench_x', 26, 16]];
