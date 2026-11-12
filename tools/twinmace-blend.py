@@ -13,6 +13,10 @@ help as I recall it)".
                         with the position mannequin with dwarf proportions"): deep16/_src/twinmace-dwarf/, tools/poser.html?fig=twinmace-dwarf;
                         sized to pyro_p0's idle unless hero= says otherwise
 
+    ... -- poser kit=axe+shield build=dwarf     THE GARRISON'S THREE (11-12, below): the battleaxe cut behind a round shield
+    ... -- poser kit=handaxe build=dwarf        (deep16/_src/axeshield-dwarf/), the handaxe throw (handaxe-dwarf/) and the heavy crossbow
+    ... -- poser kit=crossbow build=dwarf       shot (crossbow-dwarf/); sized to gatewatch_p2's idle; target=0 leaves the target out
+
 Then `python tools/twinmace-sheet.py` lays the reference strips (deep16/art-src/twinmace/).
 
 What is new on the slash's mannequin (its bones, capsules and colours are tools/mannequin-blend.py's, imported):
@@ -31,6 +35,19 @@ Rows (blender_pose frames: the feet placed, each wrist placed from its shoulder,
                 the shoulders raise the arms; the heads go back over the shoulders), 3 the shoulders further up as the torso starts forward and
                 the knees lower it, 4 THE STRIKE (the release frame, index 3: the elbows extend and the shoulders come down, a head on each of
                 the target's shoulders, the hips and legs already pulling the torso back), 5 on the way back, 6 nearly idle. 12 fps.
+
+THE GARRISON'S KITS (11-12, Griz to the lanes desk: "have a fable seat start the mannequin maker for the attacks we're asking for, it has a
+one-handed slash already"): Solskaft's trooper re-kitted -- a one-handed battleaxe and a round shield, handaxes to throw, a heavy crossbow for
+the wall. Three kits beside `maces` and `sword`, each a row of six with the hit on frame 4 (rows_garrison):
+    AXECUT 6    kit=axe+shield  the one-handed slash's frames with a battleaxe in the right fist and a round shield on the left forearm, held
+                between him and the target the whole way. The axe is LOCKED off its forearm on every frame, the cut included: the target is
+                stood where the edge comes down.
+    THROW 6     kit=handaxe     overhand, the shield still on the left arm: from the hip, back past the ear, a short step, RELEASED on 4 (the
+                axe is in the fist on 1-4 and gone on 5 and 6), the follow-through, the foot drawn back.
+    SHOOT 6     kit=crossbow    both hands, the shield slung on his back: low and ready, up, the stock settled to the right shoulder and
+                sighted, LOOSED on 4 (the bolt gone, the string forward), the kick, lowered. The crossbow is held level.
+What they add to the figure: a hand can be ROLLED about its aim (blender_pose's `handsup`: an axe's edge and a crossbow's bow must face
+somewhere; a bar and a ball did not care), and a held thing can be there on some frames and gone on others (its size keyed).
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -55,12 +72,15 @@ KIT = MQ.OPT.get('kit', 'maces')          # maces: a mace a fist, the twin strik
 ROW = 'twinmace' if KIT == 'maces' else 'slash'
 if KIT == 'sword':
     WORK = os.path.join(ROOT, 'deep16', '_src', 'slash1h'); LOG = '[slash1h]'
+GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot')}     # the garrison's kits (11-12): the folder and the row
+if KIT in GARR:
+    WORK = os.path.join(ROOT, 'deep16', '_src', GARR[KIT][0]); ROW = GARR[KIT][1]; LOG = '[%s]' % GARR[KIT][0]
 DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
 TARGET = MQ.OPT.get('target', '1') != '0'
 if DWARF:
     WORK += '-dwarf'
     if 'hero' not in MQ.OPT:
-        MQ.HERO = 'pyro_p0'
+        MQ.HERO = 'gatewatch_p2' if KIT in GARR else 'pyro_p0'     # (the garrison's troopers wear the gate watch's fight figure)
 # a dwarf on the same bones: the legs much shorter, the trunk a little shorter and a good deal wider and deeper, the limbs thick, the head big
 LEGK, TRUNK, XK, YK, RK, HEADK, HK = (0.56, 0.90, 1.24, 1.18, 1.30, 1.14, 0.74) if DWARF else (1, 1, 1, 1, 1, 1, 1)
 
@@ -81,7 +101,8 @@ def piece(kind, bone, colour, a):
         return (kind, bone, colour, (pm(a[0]), tuple(r * k for r in a[1])))
     return (kind, bone, colour, (pm(a[0]), pm(a[1]), a[2] * k))
 
-COL = dict(MQ.COL, joint='#ffe14a', haft='#a8763e', headL='#ffd23c', headR='#ff2ed2', cap='#f4f0e0', dummy='#8fa89a', pad='#e6f2ea', dnose='#5f7a6c')
+COL = dict(MQ.COL, joint='#ffe14a', haft='#a8763e', headL='#ffd23c', headR='#ff2ed2', cap='#f4f0e0', dummy='#8fa89a', pad='#e6f2ea', dnose='#5f7a6c',
+           shield='#3fb9a4', boss='#1f6f66', string='#f4f0e0', bolt='#ffd23c')
 HAND = MQ.HAND
 LOCK = 64                # (each mace's angle off its forearm, degrees, the same on every frame: his "wrists essentially lock at position 1")
 HEADC = 0.47             # (the head's middle, along the hand bone from the fist)
@@ -107,6 +128,40 @@ for s, x in (('L', 1), ('R', -1)):
                ('egg', 'hand.' + s, 'hand' + s, (g, (0.052 * RK,) * 3)),                    # the fist round the grip
                ('egg', 'fore.' + s, 'joint', (w, (0.050 * RK,) * 3)),                       # THE WRIST, marked
                ('egg', 'calf.' + s, 'joint', (pm((0.10 * x, 0.0, 0.09)), (0.058 * RK,) * 3))]   # THE ANKLE, marked
+
+# the garrison's round shield (11-12): a domed disc strapped on the outside of the LEFT forearm (it faces the way the forearm's back does: across
+# his front when the forearm lies across him), or slung flat on his back for the crossbow. A piece of the body, on its bone.
+SHIELD_R = 0.215
+if KIT in ('axe+shield', 'handaxe'):
+    _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
+    PIECES += [('egg', 'fore.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),
+               ('egg', 'fore.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
+elif KIT == 'crossbow':
+    _c = pm((0, 0.0, 1.27))
+    PIECES += [('egg', 'spine2', 'shield', ((0, _c[1] + 0.185, _c[2]), (SHIELD_R, 0.026, SHIELD_R))),
+               ('egg', 'spine2', 'boss', ((0, _c[1] + 0.208, _c[2]), (0.062, 0.030, 0.062)))]
+
+# the garrison's weapons, in the right hand bone's frame, metres from the fist: y along the weapon, z the way its EDGE faces (an axe) or its
+# TOP (the crossbow), x across. ('rod', colour, p0, p1, r) a round bar; ('slab', colour, outline [(y, z)], thickness) a flat plate.
+AXE = [('rod', 'grip', (0, -0.07, 0), (0, 0.05, 0), 0.022), ('rod', 'haft', (0, 0.05, 0), (0, 0.42, 0), 0.024),
+       ('slab', 'blade', [(0.245, 0.0), (0.385, 0.0), (0.455, 0.185), (0.37, 0.210), (0.25, 0.210), (0.150, 0.185), (0.230, 0.075)], 0.036),   # the bearded head: its edge 0.30 long, the beard hanging toward the fist
+       ('slab', 'tip', [(0.280, -0.02), (0.350, -0.02), (0.334, -0.070), (0.296, -0.070)], 0.036)]                                           # the poll behind it
+HATCHET = [('rod', 'grip', (0, -0.05, 0), (0, 0.04, 0), 0.020), ('rod', 'haft', (0, 0.04, 0), (0, 0.30, 0), 0.020),
+           ('slab', 'blade', [(0.185, 0.0), (0.275, 0.0), (0.315, 0.125), (0.24, 0.135), (0.165, 0.120), (0.195, 0.045)], 0.032)]                            # a throwing axe: plainly smaller
+XBOW = [('rod', 'haft', (0, -0.235, 0), (0, 0.47, 0), 0.034),                                                         # the stock, the butt behind the fist
+        ('rod', 'grip', (0, -0.235, 0), (0, -0.19, 0), 0.046),                                                         # the butt's end
+        ('rod', 'blade', (0, 0.43, 0.012), (0.285, 0.365, 0.012), 0.027), ('rod', 'blade', (0, 0.43, 0.012), (-0.285, 0.365, 0.012), 0.027),   # the bow, as wide as his shoulders
+        ('rod', 'tip', (0.285, 0.365, 0.012), (0.300, 0.36, 0.012), 0.032), ('rod', 'tip', (-0.285, 0.365, 0.012), (-0.300, 0.36, 0.012), 0.032),
+        ('rod', 'guard', (0, 0.47, 0), (0, 0.515, 0), 0.040)]                                                          # the stirrup at its nose
+XSPAN = [('rod', 'string', (0.290, 0.362, 0.03), (0, 0.105, 0.045), 0.009), ('rod', 'string', (-0.290, 0.362, 0.03), (0, 0.105, 0.045), 0.009)]   # the string drawn to the nut
+XBOLT = [('rod', 'bolt', (0, 0.105, 0.052), (0, 0.50, 0.052), 0.013)]
+XLOOSE = [('rod', 'string', (0.290, 0.362, 0.03), (-0.290, 0.362, 0.03), 0.009)]                                       # the string gone forward
+HELD = {'axe+shield': AXE, 'handaxe': HATCHET, 'crossbow': XBOW}
+GONE = {'handaxe': {'R': (4, 5)}, 'crossbow': {'span': (3, 4, 5), 'bolt': (3, 4, 5), 'loose': (0, 1, 2)}}     # the row's frames (from 0) a held thing is NOT there on
+EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0)}                        # the edge's middle (y, z): what the points file calls the head
+FORE = 0.27              # the crossbow's fore-stock, from the right fist: where the left hand holds it
+BELT = (-0.15, 0.95)     # the battleaxe's mark on the target: its hip on its LEFT side (the striker's right), x and z -- as high as a dwarf's cut comes down on a grown man
+GARRISON = {}            # (what rows_garrison works out for main: how far in front the target stands)
 
 
 def target_pieces():
@@ -182,7 +237,7 @@ def build():
 
     # ---- the weapons: its own object on the hand bone (its frame is the bone's, from the bone's tail) -- a mace a fist, or one sword in the right
     maces = {}
-    for s in ('LR' if KIT == 'maces' else 'R'):
+    for s in ('' if KIT in GARR else 'LR' if KIT == 'maces' else 'R'):
         bm = bmesh.new(); mm = []; L = ad.bones['hand.' + s].length
         for name, colour, y0, y1, r in (MACE if KIT == 'maces' else MQ.SWORD):
             colour = 'head' + s if colour == 'HEAD' else colour
@@ -193,6 +248,38 @@ def build():
         ob, _ = finish(bm, 'mace' + s, mm)
         ob.parent = arm; ob.parent_type = 'BONE'; ob.parent_bone = 'hand.' + s; ob.matrix_parent_inverse = Matrix.Identity(4)
         maces[s] = ob
+
+    if KIT in GARR:        # ---- the garrison's: an axe, a throwing axe or a crossbow in the right fist (rods and plates in the hand's frame)
+        L = ad.bones['hand.R'].length; off = Vector((0, L, 0))
+
+        def held(name, parts):
+            bm = bmesh.new(); mm = []
+            for kind, colour, *a in parts:
+                if kind == 'rod':
+                    p0, p1, r = Vector(a[0]), Vector(a[1]), a[2]
+                    rot = Vector((0, 0, 1)).rotation_difference((p1 - p0).normalized()).to_matrix().to_4x4()
+                    vs = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=14, radius1=r * U, radius2=r * U, depth=(p1 - p0).length * U,
+                                               matrix=Matrix.Translation((p0 + p1) / 2 * U - off) @ rot)['verts']
+                else:
+                    prof, t = a; n = len(prof)
+                    side = [[bm.verts.new(Vector((sx * t / 2, y, z)) * U - off) for y, z in prof] for sx in (-1, 1)]
+                    bm.faces.new(side[0]); bm.faces.new(side[1][::-1])
+                    for i in range(n):
+                        bm.faces.new((side[0][i], side[1][i], side[1][(i + 1) % n], side[0][(i + 1) % n]))
+                    vs = side[0] + side[1]
+                paint(vs, mm, colour)
+            bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+            ob, _ = finish(bm, name, mm)
+            ob.parent = arm; ob.parent_type = 'BONE'; ob.parent_bone = 'hand.R'; ob.matrix_parent_inverse = Matrix.Identity(4)
+            gone = GONE.get(KIT, {}).get(name, ())
+            if gone:               # (there on some frames and gone on others: its size keyed, a frame a key)
+                for i in range(6):
+                    ob.scale = (1e-4,) * 3 if i in gone else (1, 1, 1); ob.keyframe_insert('scale', frame=i + 1)
+            return ob
+        maces['R'] = held('R', HELD[KIT])
+        if KIT == 'crossbow':
+            for nm, parts in (('span', XSPAN), ('bolt', XBOLT), ('loose', XLOOSE)):
+                maces[nm] = held(nm, parts)
 
     # ---- the target, on its own still bone
     bm = bmesh.new(); dm = []
@@ -326,8 +413,92 @@ def rows_slash(R):
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), ('slash', 6, False, mk('slash', SL), 'ik')]
 
 
+def rows_garrison(R):
+    """Solskaft's trooper (11-12): the battleaxe cut behind a shield, the handaxe throw, the heavy crossbow shot. The rig's laws are the two
+    rows' above: a frame is each arm's angles, the hips' turn (`yaw`: - puts his LEFT side forward), the waist's twist on it, the lean and the
+    knees' drop; the weapon sits LOCK degrees off its forearm on every frame and is never aimed -- the axe's edge turned the way the lock
+    leans it (forward, away from the fold of the arm). An arm is (up, fo, az[, faz]): the upper arm's and the forearm's degrees above the level,
+    which way the upper arm points on the floor (+ toward his left) and, when the forearm lies across him, which way IT points (the shield arm).
+    The crossbow is the one held thing placed whole: the right wrist from its shoulder (`wR`, metres), the stock's line (`bore`: az, degrees
+    above the level), its top up; the left hand goes under the fore-stock wherever that puts it."""
+    za, zb = R.ANK0['a'].z, R.ANK0['b'].z
+    L1, L2 = R.BN['arm.L'].length / U, R.BN['fore.L'].length / U
+    rad = math.radians
+    dr = lambda az, el: Vector((math.sin(rad(az)) * math.cos(rad(el)), -math.cos(rad(az)) * math.cos(rad(el)), math.sin(rad(el))))
+
+    def arm(sg, a, out):
+        up, fo, az = a[:3]; u, f = dr(az, up), dr(a[3] if len(a) > 3 else az, fo)
+        w = (u * L1 + f * L2) * U; w.x += sg * out * U
+        pole = (sg * 0.22 + u.x, u.y, u.z) if math.degrees(u.angle(f)) > 40 else (sg * 0.30, 0.3, -1.0)
+        return tuple(w), pole
+
+    GUARD = (-66, 4, 22, -62)          # the shield arm: the elbow down at his left side, the forearm level across his front, the shield's face to the target
+
+    def P(lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, hroll=0, heel=0, sh=0, R_=(-62, 18, 0), L_=GUARD, step=(0, 0, 0), wR=None, bore=None, at=None):
+        wr, pr = arm(-1, R_, 0.02); wl, pl = arm(1, L_, 0.03)
+        if wR:
+            wr, pr = tuple(x * U for x in wR), (-1.0, 0.25, -0.75)             # (the trigger arm: the elbow out to his right and down)
+        return dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, hroll=hroll, shupb=sh,
+                    legs={'a': (0.13 * XK * U, (-0.12 - step[0]) * U, za + step[1] * U, 10, step[2]), 'b': (-0.13 * XK * U, 0.10 * U, zb, 28, heel)},
+                    arms={'a': wl, 'b': wr}, epolea=pl, epoleb=pr, _bore=bore, _at=at)
+
+    IN3 = 0.076                                                       # (three inches)
+    if KIT == 'axe+shield':
+        F = [
+            P(-0.04, lean=3),                                                                                  # 1 POSITION ONE: the axe up in front of his right shoulder, the shield across his front
+            P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-58, 6, 14, -52)),  # 2 the hips turned, his LEFT side and the shield forward; the right hand to the ear, the head back over the shoulder
+            P(-0.04 - IN3 * 0.5, shift=-0.015, lean=5, yaw=-18, twist=-5, hyaw=15, sh=9, R_=(28, 78, -13), L_=(-62, 5, 18, -58)),   # 3 coming round: the hips turning back, the knees going down, the elbow leading and the head still high
+            P(-0.04 - IN3, shift=-0.04, lean=9, yaw=-4, twist=4, head=3, sh=6, R_=(-8, 8, 6), L_=(-64, 4, 20, -62), at=BELT),             # 4 THE CUT: the knees down three inches, the waist to the front, the arm out and the head's weight down ahead of the fist
+            P(-0.04 - IN3 * 0.6, shift=-0.05, lean=13, yaw=18, twist=10, head=7, hyaw=-12, R_=(-62, -74, 24), L_=(-60, 6, 6, -76)),    # 5 the finish: the hips past the middle, the axe down and across by his left knee, the shield still forward
+            P(-0.04, lean=3, yaw=2, R_=(-63, 14, 3)),                                                          # 6 nearly idle
+        ]
+    elif KIT == 'handaxe':
+        F = [
+            P(-0.04, lean=3, R_=(-74, -24, 0)),                                                                # 1 the throwing axe just out of the belt, low at his right hip
+            P(-0.04, shift=0.03, yaw=-34, twist=-16, hyaw=34, sh=12, R_=(26, 126, -16), L_=(-58, 6, 14, -52)),  # 2 the draw: his left side and the shield forward, the weight back, the hand past the ear and the axe back over the shoulder
+            P(-0.06, shift=-0.01, lean=4, yaw=-20, twist=-4, hyaw=18, sh=14, R_=(46, 104, -10), L_=(-62, 5, 18, -58), step=(0.07, 0.05, -8)),   # 3 the step: the left foot off the floor and going forward, the elbow coming over the top
+            P(-0.10, shift=-0.08, lean=12, yaw=2, twist=8, head=4, sh=10, heel=10, R_=(34, 14, -4), L_=(-64, 4, 20, -62), step=(0.13, 0, 0)),   # 4 THE RELEASE: the foot down, the weight on it, the arm out high and forward, the axe upright at the fingers
+            P(-0.10, shift=-0.09, lean=20, yaw=16, twist=14, head=8, hyaw=-12, heel=14, R_=(-46, -66, 18), L_=(-60, 6, 8, -74), step=(0.13, 0, 0)),   # 5 the follow-through: the empty hand down and across, the hips past the middle
+            P(-0.05, shift=-0.02, lean=5, yaw=4, R_=(-66, 4, 2), step=(0.04, 0, 0)),                           # 6 the foot drawn back, the empty hand at the belt again
+        ]
+    else:
+        LOW = (-70, -30, 10)           # (the left arm's angles are only where it starts: the hand goes to the fore-stock)
+        F = [
+            P(-0.04, lean=3, yaw=-20, hyaw=18, wR=(0.11, -0.09, -0.36), bore=(20, -30), L_=LOW),                # 1 low and ready: the crossbow across his body, its nose down and to his left
+            P(-0.04, lean=2, yaw=-30, hyaw=27, sh=4, wR=(0.09, -0.14, -0.18), bore=(9, -12), L_=LOW),           # 2 bringing it up
+            P(-0.05, lean=4, yaw=-36, hyaw=33, hroll=-8, head=3, sh=6, wR=(0.075, -0.165, -0.035), bore=(0, 0), L_=LOW),      # 3 the stock settled to the right shoulder, his cheek to it, sighting: level
+            P(-0.05, lean=4, yaw=-36, hyaw=33, hroll=-8, head=3, sh=6, wR=(0.075, -0.165, -0.035), bore=(0, 0), L_=LOW),      # 4 LOOSED: nothing of him moves; the bolt is gone and the string is forward
+            P(-0.045, shift=0.022, lean=-2, yaw=-38, hyaw=34, hroll=-4, sh=9, wR=(0.075, -0.150, -0.020), bore=(0, 7), L_=LOW),   # 5 the kick: back through the shoulder, the nose thrown up a little
+            P(-0.04, lean=2, yaw=-25, hyaw=22, sh=2, wR=(0.10, -0.11, -0.28), bore=(14, -22), L_=LOW),          # 6 lowering it
+        ]
+    IDLE = [dict(F[0])]
+
+    def fin(P, tag):
+        Q = {k: v for k, v in P.items() if not k.startswith('_')}
+        d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]
+        if P.get('_bore'):          # the crossbow: its line and its top; then the left hand under the fore-stock
+            b = dr(*P['_bore']); top = Vector((0, 0, 1)); top = (top - b * top.dot(b)).normalized()
+            fist = M['hand.R'].translation; sho = M['arm.L'].translation
+            pt = fist + (b * FORE - top * 0.062) * U; w = pt + (sho - pt).normalized() * HAND * U
+            Q['arms'] = dict(Q['arms'], a=tuple(w - sho)); Q['epolea'] = (0.35, 0.15, -1.0)
+            return dict(Q, hands={'b': tuple(b)}, handsup={'b': tuple(top)})
+        u = (M['fore.R'].translation - M['arm.R'].translation).normalized()
+        f = (M['fore.R'] @ Vector((0, R.BN['fore.R'].length, 0)) - M['fore.R'].translation).normalized()
+        n = u.cross(f); n = n.normalized() if n.length > 1e-4 else Vector((-1, 0, 0))
+        b = Matrix.Rotation(math.radians(LOCK), 3, n) @ f; e = Matrix.Rotation(math.radians(-90), 3, n) @ b
+        if P.get('_at'):            # THE CUT: the edge's middle laid on the target's mark (the one frame the axe is aimed, as the sword is at its cut); the target stands where that reaches
+            fist = M['hand.R'].translation; ey, ez = EDGE[KIT]; r = math.hypot(ey, ez) * U; dx, dz = P['_at'][0] * U - fist.x, P['_at'][1] * U - fist.z
+            mark = Vector((P['_at'][0] * U, fist.y - math.sqrt(max(r * r - dx * dx - dz * dz, 0.0)), P['_at'][1] * U)); GARRISON['ty'] = mark.y / U - 0.08
+            v = (mark - fist).normalized(); e = (e - v * e.dot(v)).normalized(); al = math.atan2(ez, ey)
+            b, e = v * math.cos(al) - e * math.sin(al), v * math.sin(al) + e * math.cos(al)
+            return dict(Q, hands={'b': tuple(b)}, handsup={'b': tuple(e)})
+        return dict(Q, hands={'b': tuple(b)}, handsup={'b': tuple(Matrix.Rotation(math.radians(-90), 3, n) @ b)})     # (the edge: square to the haft in the arm's plane, on the side away from the fold)
+    mk = lambda name, FR: (lambda i, n: (fin(dict(FR[i]), '%s %d' % (name, i + 1)), 0))
+    return [('idle', 1, False, mk('idle', IDLE), 'ik'), (ROW, 6, False, mk(ROW, F), 'ik')]
+
+
 def rows(R):
-    return rows_maces(R) if KIT == 'maces' else rows_slash(R)
+    return rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
 
 
 ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3)}     # (frame 4 is the hit in both: his "4 is supposed to be the cut", 11-12)
@@ -356,6 +527,11 @@ def main():
             h = H[s][0]
             print('%s THE HIT %s: the head at x %.3f y %.3f z %.3f -- the shoulder %.3f across, its pad\'s top %.3f: off by %.3f across, %.3f up (the head\'s underside to the pad)'
                   % (LOG, s, h[0], h[1], h[2], hw * x, top, h[0] - hw * x, h[2] - HEADR - top))
+    elif KIT in GARR:      # ---- the garrison's: the axe is not aimed, so the target is stood where its edge comes down; a throw and a shot have it a few paces off
+        Mh = arm.pose.bones['hand.R'].matrix; ed = np.array(Mh @ Vector((0, EDGE[KIT][0] * U, EDGE[KIT][1] * U))) / U
+        ty = GARRISON.get('ty', -1.45)
+        print('%s THE HIT: the edge\'s middle at x %.3f y %.3f z %.3f (the fist at %s); the weapon points %s; the mark %s' % (LOG, ed[0], ed[1], ed[2],
+              np.round(np.array(Mh.translation) / U, 3), np.round(np.array(Mh.to_3x3().col[1]), 2), BELT if KIT == 'axe+shield' else None))
     else:                  # ---- the target stood where the cut meets its neck (rows_slash worked it out)
         ty = SLASH['ty']
         for fr, mark, nm in ((4, NECK, 'its neck'), (5, ANKLE, 'its right ankle')):
@@ -371,7 +547,7 @@ def main():
         for i in range(n):
             scene.frame_set(i + 1); bpy.context.view_layer.update()
             a = []
-            for s in maces:
+            for s in [k for k in maces if k in 'LR']:
                 fo, hd = arm.pose.bones['fore.' + s], arm.pose.bones['hand.' + s]
                 a.append('%s %.0f' % (s, math.degrees((fo.tail - fo.head).angle(hd.tail - hd.head))))
             hz_ = ['%s %.3f' % (sd, (arm.pose.bones['foot.' + sd].head.z - R.ANK0['a' if sd == 'L' else 'b'].z) / U) for sd in 'LR']
@@ -439,9 +615,9 @@ def main():
                     sc = lambda w: [round(float(v), 2) for v in (MQ.screen(cam, np.array([w]))[0] + np.array([M['ax'], oy]))]
                     if kind == 'render':
                         q = {}
-                        for sd in maces:
+                        for sd in [k for k in maces if k in 'LR']:
                             Mw = arm.matrix_world @ arm.pose.bones['hand.' + sd].matrix
-                            q['fist' + sd] = sc(np.array(Mw @ Vector((0, 0, 0)))); q['head' + sd] = sc(np.array(Mw @ Vector((0, (HEADC if KIT == 'maces' else BLADE) * U, 0))))
+                            q['fist' + sd] = sc(np.array(Mw @ Vector((0, 0, 0)))); q['head' + sd] = sc(np.array(Mw @ Vector((0, (HEADC if KIT == 'maces' else EDGE[KIT][0] if KIT in GARR else BLADE) * U, 0))))
                         wb = MQ.world_pts(body, 1); q['crown'] = sc(wb[MQ.screen(cam, wb)[:, 1].argmin()])
                         sl = MQ.soles(body, R); left = sl @ np.array(arm.matrix_world.to_3x3().col[0]) > 0
                         if left.any() and (~left).any():
@@ -457,8 +633,10 @@ def main():
 
     if MODE == 'poser':
         hide([dummy], not TARGET); arm.scale = (1, 1, 1); arm.rotation_euler = (0, 0, 0); bpy.context.view_layer.update()
+        if KIT in GARR:        # (the page carries a held thing whole on every frame: the loosed string stays off it, and the rest go as they are on frame 1)
+            R.use(ROW); scene.frame_set(1); bpy.context.view_layer.update(); maces.pop('loose', None)
         R.export_poser(os.path.join(WORK, 'poser.json'), rowdefs, col=vcol, fig=os.path.basename(WORK), fps={k: v['fps'] for k, v in ROWS_META.items()},
-                       extras=[(maces[k], COL['head' + k] if KIT == 'maces' else COL['blade']) for k in maces] + ([(dummy, COL['dummy'])] if TARGET else []))
+                       extras=[(maces[k], COL['head' + k] if KIT == 'maces' else COL.get({'span': 'string', 'bolt': 'bolt'}.get(k), COL['blade'])) for k in maces] + ([(dummy, COL['dummy'])] if TARGET else []))
 
 
 if __name__ == '__main__':

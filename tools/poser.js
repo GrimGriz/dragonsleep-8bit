@@ -133,7 +133,14 @@ class Rig {
         const sh = posOf(M[this.ARM[s][1]]); J['sh' + s] = sh; J['wr' + s] = sh.clone().add(V(w));
         J['elb' + s] = this.ik2(d, M, this.ARM[s][1], this.ARM[s][2], J['wr' + s], P['epole' + s] || this.EPOLE[s]);
       }
-      for (const [s, v] of Object.entries(P.hands || {})) this.aim(d, [this.ARM[s][3]], [v]);
+      for (const [s, v] of Object.entries(P.hands || {})) {
+        this.aim(d, [this.ARM[s][3]], [v]);
+        const up = (P.handsup || {})[s];      // the hand rolled about its aim (blender_pose.py's handsup): its own Z as near `up` as the aim allows
+        if (up) {
+          const n = this.ARM[s][3], z0 = new THREE.Vector3().setFromMatrixColumn(this.P0rot[n], 2);
+          this.orient(d, n, new THREE.Quaternion().setFromRotationMatrix(frame3(V(v), V(up)).multiply(frame3(this.dir0(n), z0).transpose())));
+        }
+      }
       if (P.grip2) {     // two hands on one held thing (blender_pose.py's grip2): this hand's wrist onto the other hand's club, f of the way from its grip to its head
         const M2 = this.solve(d, lift, shift, sway);
         for (const [s, f] of Object.entries(P.grip2)) {

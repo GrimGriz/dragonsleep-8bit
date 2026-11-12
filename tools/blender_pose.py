@@ -21,7 +21,8 @@ A frame P, two ways (they mix):
     and toes names [None, thigh, calf, foot, toes, toes] (the ankle bone is the one a planted foot turns, the next its forward, the last its tip).
   - limbs placed (the second posing's way): legs={'a': (x, y, z, yaw, pitch)} an ankle where it stands (a planted foot keeps the artist's flat
     sole, `yaw` its toes out, `pitch` its toes down), arms={'a': (dx, dy, dz)} a wrist from its shoulder joint in world axes (an arm rides the
-    body), kpolea/epolea the way a knee or elbow points, hands={'a': (x, y, z)} a hand aimed along a world direction. `stance()` builds one
+    body), kpolea/epolea the way a knee or elbow points, hands={'a': (x, y, z)} a hand aimed along a world direction (and handsup={'a': (x, y, z)}
+    that hand rolled about its aim: its own Z as near that direction as the aim allows -- an axe's edge, a crossbow's top). `stance()` builds one
     from a figure's standing numbers. Every limb placed by `ik2`, the two-bone solve: both bones turned whole, so the sculpt's own knee or elbow
     keeps bending the way it was made to.
   - lift/shift/sway move the hip (z, y, x).
@@ -260,6 +261,9 @@ class Rig:
                 self.ik2(d, M, ARM[s][1], ARM[s][2], M[ARM[s][1]].translation + Vector((x, y, z)), P.get('epole' + s, self.EPOLE[s]))
             for s, v in (P.get('hands') or {}).items():          # a hand pointed along a world direction
                 self.aim(d, [ARM[s][3]], [v])
+                up = (P.get('handsup') or {}).get(s)      # ...and ROLLED about that aim (11-12, the garrison's axe and crossbow): the hand bone's own Z turned as near `up` as the aim allows -- an edge, a bow's top
+                if up:
+                    n = ARM[s][3]; self.orient(d, n, (frame3(Vector(v), Vector(up)) @ frame3(self.dir0(n), self.POSE0[n].to_3x3().col[2]).transposed()).to_quaternion())
             if P.get('grip2'):      # two hands on one held thing (the male stone giant's club, 10-04): this hand's wrist goes onto the other's club, f of the way from its grip to its head
                 _, M2 = self.solve(d, lift, shift, sway, mats=True)
                 for s, f in P['grip2'].items():
