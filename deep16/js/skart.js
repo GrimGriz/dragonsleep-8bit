@@ -248,8 +248,12 @@
   // a room's walls toward the eye: the row under its south edge and the column past its east edge, corners and all
   A.roomFront = function (m, b) { var out = [], add = function (x, r) { var q = m.at(x, SK.Y(r)); if (q && !q.open) out.push(q); };
     for (var x = b[0] - 1; x <= b[2] + 1; x++) add(x, b[1] - 1); for (var r = b[1]; r <= b[3] + 1; r++) add(b[2] + 1, r); return out; };
-  var occ1 = D.roam && D.roam.occlude;
-  if (occ1) D.roam.occlude = function (B) {
+  // (installed when the street is first laid, wrapping whatever see-through the house has then -- the inn's, js/innprops.js IP.tick -- so a page that never
+  // comes to Sólskaft keeps its own chain as it was)
+  A.hookSee = function () {
+  if (A.hooked || !D.roam || !D.roam.occlude) return; A.hooked = true;
+  var occ1 = D.roam.occlude;
+  D.roam.occlude = function (B) {
     var res = occ1.apply(this, arguments), m = B && B.map, R0 = B && B.roam, def = D.roam.def; if (!m || !m.sq || !R0 || !R0.token || !def || def.key !== SK.KEY) return res;
     var t = R0.token, b = A.roomAt(t.x, t.y); A.inRoom = b ? b[4] : null; if (!b) return res;
     var want = {}, dirty = {}; A.roomFront(m, b).forEach(function (q) { want[q.x + ',' + q.y] = q; });
@@ -259,6 +263,7 @@
     m.occCut = Object.keys(want).map(function (k) { return want[k]; });
     Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; });
     return res;
+  };
   };
 
   A.FLOOR = { solskaft: ST, solskaft_cart: CA, solskaft_below: BE, solskaft_asdis: LO };
@@ -308,7 +313,7 @@
       };
     }
     var m = load0.apply(this, arguments);
-    if (def && def.key === SK.KEY) A.whole(m);
+    if (def && def.key === SK.KEY) { A.whole(m); A.hookSee(); }
     if (fl) { A.dress(m, fl); A.fetch(m); }
     return m;
   };
