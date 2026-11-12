@@ -492,9 +492,9 @@
   // the garrison of Sólskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
   // the first bang hits the skylight"): the 8-bit's Drill-sergeant (content/npcs.json drillmaster) as the SRD 5.1 Veteran, his troopers as the SRD Guard, dwarves (speed 25, darkvision,
   // poison resistance: SRD 5.1 Dwarf). Their looks LPC-composed as the 8-bit's dwarves are (10-05, Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar"): the troopers
-  // on the garrison trooper's sheet (`trooper_p0`, composed 09-27: nasal helm, chainmail, a brown beard), the sergeant on his own (`drillsergeant_p0`: a bronze helm, armoured arms, a black beard)
+  // on the garrison trooper's sheet (`trooper_p0`, composed 09-27: nasal helm, chainmail, a brown beard -- since 11-12 the art desk's gate watch, `gatewatch_p2`: ART-141-GATE-WATCH-COMBAT, a bare-headed dwarf in mail with a spear, every fight row drawn, tools/gatewatch-fight-sheet.py), the sergeant on his own (`drillsergeant_p0`: a bronze helm, armoured arms, a black beard)
   trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
@@ -503,7 +503,7 @@
   // the first two out of the falls carry crossbows (10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the Trooper, and the SRD light crossbow (80/320, 1d8)
   // at the Guard's +3 (DEX 12, proficient) -- from the roof at whatever climbs the face, the spear for one who makes the top
   trooperxbow: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 }, crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', ranged: true, range: [80, 320] } },

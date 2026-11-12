@@ -1,0 +1,72 @@
+{
+ "image": "art/gatewatch_p2.png",
+ "fw": 54,
+ "fh": 80,
+ "ax": 27,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 54,
+   "fh": 80,
+   "ax": 27,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 56,
+   "fh": 80,
+   "ax": 28,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 64,
+   "fh": 80,
+   "ax": 32,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 2
+  },
+  "flinch": {
+   "y": 1920,
+   "fw": 54,
+   "fh": 80,
+   "ax": 27,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2560,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3200,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Gate watch",
+ "hold": [
+  "attack: SE's first reach shallower than its second; in rear NE and E the forward hand and shaft overlap the far hand at full reach; N's overhead close to its thrust (the art desk's own notes)",
+  "walk: some in-between poses alike, the lead change at 1 and 5 subtle in the profile and diagonal walks (the art desk's own note)",
+  "N: Flinch and Fall begin with the spear steeper than its Idle (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-141-GATE-WATCH-COMBAT, 11-12: the generic dwarf's gate watch in five views), cut by tools/gatewatch-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
