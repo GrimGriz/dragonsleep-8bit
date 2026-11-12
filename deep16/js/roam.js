@@ -2288,24 +2288,36 @@
     o = o || {}; this.kind = o.kind || 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = o.beats || R.WET_BEATS; this.title = o.title || null; this.play = o.play || R.wetPlay;
     var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
   }
-  WetShow.prototype.buttons = function () { var st = Math.min(34, Math.floor((D.H - 40) / Math.max(1, this.beats.length))); return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * st, w: D.W - 24, h: st - 3, bt: bt }; }); }; // (rows tighter past six: ?isoshow's seven)
+  // (11-12, his screenshot of Solskaft's twenty-seven beats drawn eight pixels apiece, "this is how list of beats ends up looking...": a list past nine is PAGED, nine a page --
+  //  up/down walk every beat and the page follows, left/right or a click on the foot's arrows turns it; each button carries its own place in the list, k)
+  WetShow.prototype.per = function () { var n = this.beats.length; return n <= Math.floor((D.H - 40) / 24) ? Math.max(1, n) : Math.floor((D.H - 54) / 24); };
+  WetShow.prototype.pages = function () { return Math.ceil(this.beats.length / this.per()); };
+  WetShow.prototype.buttons = function () { var per = this.per(), paged = this.pages() > 1, from = Math.floor(this.hov / per) * per, st = Math.min(34, Math.floor((D.H - (paged ? 54 : 40)) / per));
+    return this.beats.slice(from, from + per).map(function (bt, i) { return { x: 12, y: 26 + i * st, w: D.W - 24, h: st - 3, bt: bt, k: from + i }; }); }; // (rows tighter past six: ?isoshow's seven)
+  WetShow.prototype.turn = function (d) { var per = this.per(), n = this.beats.length, pg = (Math.floor(this.hov / per) + d + this.pages()) % this.pages(); this.hov = Math.min(n - 1, pg * per); };
+  WetShow.prototype.foot = function () { return { y: D.H - 28, h: 12, lx: D.W / 2 - 125, rx: D.W / 2 + 90, w: 40 }; };
   WetShow.prototype.update = function () {
     this.t++; var m = I.mouse;
     if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
     var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
-    if (m.moved || m.click) this.hov = hit ? bs.indexOf(hit) : this.hov;
-    if (I.repeat('down')) this.hov = (this.hov + 1) % bs.length; if (I.repeat('up')) this.hov = (this.hov - 1 + bs.length) % bs.length;
-    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); this.play((hit || bs[this.hov]).bt); return; }
+    if (m.moved || m.click) this.hov = hit ? hit.k : this.hov;
+    var n = this.beats.length; if (I.repeat('down')) this.hov = (this.hov + 1) % n; if (I.repeat('up')) this.hov = (this.hov - 1 + n) % n;
+    if (this.pages() > 1) { var f = this.foot(), inF = m.inside && m.y >= f.y - 2 && m.y < f.y + f.h;
+      if (I.repeat('right') || (m.click && inF && m.x >= f.rx && m.x < f.rx + f.w)) { D.sfx('cursor'); this.turn(1); return; }
+      if (I.repeat('left') || (m.click && inF && m.x >= f.lx && m.x < f.lx + f.w)) { D.sfx('cursor'); this.turn(-1); return; } }
+    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); this.play(hit ? hit.bt : this.beats[this.hov]); return; }
     if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); }
   };
   WetShow.prototype.draw = function (ctx) {
     var self = this, W8 = D.WIN8; ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
     D.text(ctx, this.title || '{y}THE WET ON THE HOUSE, 10-22{/} -- a NEW GAME staged on the floor; the rest is yours (a show)', 10, 10, W8.text);
     this.buttons().forEach(function (q, k) {
-      var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
+      var on = q.k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
-      var tight = q.h < 31; D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + (tight ? 11 : 12) + i * (tight ? 8 : 9), '#9c9cb4'); });
+      var tight = q.h < 31; D.wrap(q.bt.note, q.w - 16).slice(0, q.h < 26 ? 1 : 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + (tight ? 11 : 12) + i * (tight ? 8 : 9), '#9c9cb4'); });
     });
+    if (this.pages() > 1) { var f = this.foot(), pg = Math.floor(this.hov / this.per()) + 1;
+      D.text(ctx, '{y}< BACK{/}', f.lx, f.y, W8.text); D.hint(ctx, 'page ' + pg + ' of ' + this.pages() + ' · ' + this.beats.length + ' beats', D.W / 2, f.y, '#9c9cb4', 'center'); D.text(ctx, '{y}NEXT >{/}', f.rx, f.y, W8.text); }
     D.hint(ctx, 'click a beat · on the floor: click to walk, E beside a thing · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   R.WetShow = WetShow;
