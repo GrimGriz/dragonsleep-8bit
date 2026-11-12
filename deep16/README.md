@@ -434,6 +434,25 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   big caster runs to a second page. Built bare (`PK.bareSpec`): nothing cast ahead and nothing a ladder's fight took. No library -- the PDF is written in
   the file (Helvetica and Courier, two of the fourteen every reader has; Helvetica's widths in it for the wrap). **Bench:** `mode=sheetpdf1026` (in the quick
   gate): every sheet whole by the PDF's own rules, the engine's numbers on it, the buttons, a press's download.
+- **The same menu on M, the seats, the level-ups at NEXT** (11-12; his notes of 11-11 on his Bugbear Ambush fight's card). **NOTES on the M menu** (*"still
+  looking for the 'same menu' (with a notes section) on the 'm' key"*): the M menu of THE CAMP, of THE PARTY (M opens it there too now) and of every Pocket DM
+  fight carries NOTES after SAVE, as the story game's does, and it opens the story game's own box (`js/house.js` H.Notes, which takes a source now:
+  H.NOTES_SRC the house's, `js/pocketdm.js` PD.notesSrc the table's) on SITUATIONS' draft (`st.feedback.draft`) -- one set of notes, whichever door wrote
+  them. Each opening stamps a line, `-- the Pocket DM · <UTC> · in the fight <name>, round N (started <the record's started>) · <the module or rung> --`, an
+  empty one not kept; SAVE writes `hero_situations_feedback-<UTC>.json` as SITUATIONS' SAVE does, with `from: 'the Pocket DM'` and `now` (the screen, the run,
+  the fight's name, round and `started`, by which `dev/records.py` pairs a note with its transcript). A class-floor URL opened by itself has no table and no
+  NOTES. **The seats** (*"if I want to take a single person out of the party and swap it out for another character, it's very complicated using the 'remove
+  seat'/'add seat' method"*): each card has **SWAP** and **OUT** beside its arrows. SWAP opens **THE ROSTER** for that seat -- every card the arrows reach in
+  one list, its class, level, HP and AC as it would sit, who is seated where: one not seated takes the seat (the card there put away, its gear to the pack,
+  as the arrows do), one seated elsewhere **trades seats** with it as the two are; the ? goes to the maker for that seat. OUT (and THE ROSTER's TAKE SEAT n
+  OUT) takes that seat out, whichever it is. The light in hand and THE LONG REST's picks go with their cards (`PK.reseat`). With a ladder or module under
+  way the seats stand, and SWAP and OUT say so. **The level-ups at NEXT** (*"If a player chooses to edit level-ups, have it happen once they hit the 'next'
+  button, then it walks through the leveling for that character"*): a card's level arrows only set the number; each level raised by hand is owed its page
+  (`slot.due`, on the card: it rides a trade and a reload; a level given back is owed nothing). With LEVEL-UPS: EDIT the button reads NEXT: THE LEVEL-UPS,
+  the hint line says whose and which, and NEXT walks them -- seat by seat, each card's levels from the lowest, a page a level -- then THE CAMP
+  (`Pocket.partyNext`). With DEFAULTS nothing is asked, as before. **The maker's THE SPELLS** says the words of the spell under the mouse or the keys
+  (`D.descPanel`, 16 a page), as THE LONG REST's page does since 11-11. **Bench:** `mode=pocketmenu1112` (in both gates; `&shot=1` the screens as PNGs), the
+  M key and the list's keys by dispatched KeyboardEvents.
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 
