@@ -3794,7 +3794,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       try {
       /* 9c. THE TROOPER ON THE FOES' SIDE IS THE GUARD (11-12, his "what's up with these troopers?"): the bare word builds data/foes.js's row, not the first game's guest */
       var B9c = mkGT('?npc=trooper,trooperxbow&vs=fighter:5&lvl=5'), tr9 = kindGT(B9c, 'trooper')[0], tx9 = kindGT(B9c, 'trooperxbow')[0];
-      okGT('9c the trooper a foe: ' + (tr9 ? 'HP ' + tr9.maxhp + ', ' +Object.keys(tr9.attacks || {}).join('+') : 'NOT the foe row') + '; with the crossbow: ' + (tx9 ? Object.keys(tx9.attacks || {}).join('+') : 'none'), !!tr9 && tr9.maxhp === 11 && !!tr9.attacks.spear && !!tx9 && !!tx9.attacks.crossbow);
+      okGT('9c the trooper a foe: ' + (tr9 ? 'HP ' + tr9.maxhp + ', ' +Object.keys(tr9.attacks || {}).join('+') : 'NOT the foe row') + '; with the crossbow: ' + (tx9 ? Object.keys(tx9.attacks || {}).join('+') : 'none'), !!tr9 && tr9.maxhp === 11 && !!tr9.attacks.battleaxe && !!tx9 && !!tx9.attacks.crossbow /* (the hold's kit since 11-12, garrison1112: the battleaxe, the heavy crossbow) */);
       } catch (eS) { repGT.errors.push('section 9c: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       } catch (eS) { repGT.errors.push('section 9b: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
@@ -12251,6 +12251,96 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // SÓLSKAFT'S GARRISON IN ITS KIT (mode=garrison1112; the garrison seat, 11-12, started by the lanes desk on Griz's "go on the level and kit for pyros folk"; "we'll leave off on skylight
+  // specific"): each row of the garrison (data/foes.js gatewatch, trooper, trooperxbow, fileleader, drillsergeant, roadpatrol) against the SRD 5.1 numbers its src cites -- the sheet's own
+  // numbers, then built in a Pocket DM fight (AC by the rules, HP, speed, the dwarf's senses and resilience); the handaxes' count running out (two thrown, a third turn none); the heavy
+  // crossbow's one shot a turn (the crossbow trooper and the drill-sergeant at range); the file leader's two attacks, the drill-sergeant's three, the road patrol's two arrows; and the
+  // HUMANOIDS shelf: every row on it, priced from its CR, the two Troopers told apart. The d20 pinned at 15 (every blow lands on an AC 5 mark), every other die a 1
+  if (get('mode', '') === 'garrison1112') {
+    var repGA = { checks: [], errors: [] }, d0GA = D.d, F = D.FOES;
+    function okGA(what, v) { repGA.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGA(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkGA(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function openGA(w, h) { var m = D.grid.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    var atkS = function (a) { return a ? a.atk + ' ' + a.dice + '+' + a.mod + (a.range ? ' ' + a.range.join('/') : '') + (a.count != null ? ' x' + a.count : '') : 'none'; };
+    // 1. THE SHEETS, by the SRD (srd/20-npcs.md Guard, Thug, Veteran, Scout; srd/04-equipment.md the weapons and the armour; srd/01-races.md the Dwarf)
+    var WANT = {
+      gatewatch: { cr: '1/8', ac: 16, hp: 11, armor: 'chain shirt', shield: true, atk: { spear: '3 1d6+1' }, multi: 1 },
+      trooper: { cr: '1/4', ac: 18, hp: 11, armor: 'chain mail', shield: true, atk: { battleaxe: '3 1d8+1', handaxe: '3 1d6+1 20/60 x2' }, multi: 1 },
+      trooperxbow: { cr: '1/4', ac: 16, hp: 11, armor: 'chain mail', shield: false, atk: { battleaxe: '3 1d8+1', crossbow: '3 1d10+1 100/400' }, multi: 1 },
+      fileleader: { cr: '1', ac: 18, hp: 32, armor: 'chain mail', shield: true, atk: { battleaxe: '4 1d8+2', handaxe: '4 1d6+2 20/60 x2' }, multi: 'battleaxe,battleaxe' },
+      drillsergeant: { cr: '3', ac: 17, hp: 58, armor: 'splint', shield: false, atk: { longsword: '5 1d8+3', shortsword: '5 1d6+3', crossbow: '3 1d10+1 100/400' }, multi: 'longsword,longsword,shortsword' },
+      roadpatrol: { cr: '1/2', ac: 13, hp: 16, armor: 'leather armor', shield: false, atk: { shortsword: '4 1d6+2', longbow: '4 1d8+2 150/600' }, multi: 'shortsword,shortsword', rangedMulti: 'longbow,longbow' }
+    };
+    try {
+      Object.keys(WANT).forEach(function (k) {
+        var f = F[k], w = WANT[k]; if (!f) { okGA('1 ' + k + ': no row', false); return; }
+        var atkOk = Object.keys(w.atk).every(function (a) { return atkS(f.attacks[a]) === w.atk[a]; }) && Object.keys(f.attacks).length === Object.keys(w.atk).length;
+        var multi = Array.isArray(f.multi) ? f.multi.join(',') : f.multi, rm = Array.isArray(f.rangedMulti) ? f.rangedMulti.join(',') : undefined;
+        okGA('1 ' + k + ' (' + f.name + '): CR ' + f.cr + ', AC ' + f.ac + ' (' + (f.metalArmor || f.armor) + (f.shield ? ', shield' : '') + '), HP ' + f.hp + ', speed ' + f.speed + ', darkvision ' + f.darkvision + '; ' +
+          Object.keys(f.attacks).map(function (a) { return a + ' ' + atkS(f.attacks[a]); }).join('; ') + '; multi ' + multi + (rm ? ', ranged ' + rm : '') + '; poison: resist ' + ((f.resist || []).indexOf('poison') >= 0) + ', resilient ' + !!f.resilient,
+          f.cr === w.cr && f.ac === w.ac && f.hp === w.hp && (f.metalArmor || f.armor) === w.armor && !!f.shield === w.shield && atkOk && String(multi) === String(w.multi) && rm === w.rangedMulti &&
+          f.speed === 25 && f.darkvision === 60 && (f.resist || []).indexOf('poison') >= 0 && !!f.resilient && f.type === 'humanoid');
+      });
+      okGA('1 the crossbows load (heavy crossbow: loading, SRD 5.1): trooperxbow ' + !!F.trooperxbow.attacks.crossbow.loading + ', drill-sergeant ' + !!F.drillsergeant.attacks.crossbow.loading + '; the road patrol keen ' + F.roadpatrol.keen + ', passive ' + F.roadpatrol.perception + ', Stealth +' + F.roadpatrol.stealth,
+        !!F.trooperxbow.attacks.crossbow.loading && !!F.drillsergeant.attacks.crossbow.loading && F.roadpatrol.keen === 'hearing and sight' && F.roadpatrol.perception === 15 && F.roadpatrol.stealth === 6);
+    } catch (eGA1) { repGA.errors.push('1: ' + String(eGA1 && eGA1.stack || eGA1).slice(0, 400)); }
+    // 2. BUILT IN A FIGHT (the Pocket DM's own door, ?npc=): AC by the rules, HP, speed, the dwarf's traits on the unit
+    try {
+      var B2 = mkGA('?npc=gatewatch,trooper,trooperxbow,fileleader,drillsergeant,roadpatrol&vs=fighter:5&lvl=5');
+      Object.keys(WANT).forEach(function (k) {
+        var u = B2.units.filter(function (w) { return w.side === 'foe' && w.kind === k; })[0];
+        okGA('2 ' + k + ' in the fight: AC ' + (u && D.rules.ac(u)) + ', HP ' + (u && u.maxhp) + ', speed ' + (u && u.speed) + ', resilient ' + !!(u && u.resilient) + ', sheet ' + (u && u.sheet) + ' (want AC ' + WANT[k].ac + ', HP ' + WANT[k].hp + ', 25, true)',
+          !!u && D.rules.ac(u) === WANT[k].ac && u.maxhp === WANT[k].hp && u.speed === 25 && !!u.resilient && !!D.spr && !!u.sheet);
+      });
+    } catch (eGA2) { repGA.errors.push('2: ' + String(eGA2 && eGA2.stack || eGA2).slice(0, 400)); }
+    // one of the garrison alone against one fighter (AC 5, 500 HP), `dx` squares off, rooted (speed 0) when it should not close: its AI turns, the blows it threw
+    var duel = function (k, dx, rooted, turns) {
+      var Bx = mkGA('?npc=' + k + '&vs=fighter:5&lvl=5'), h = Bx.units.filter(function (w) { return w.side === 'party'; })[0], u = Bx.units.filter(function (w) { return w.side === 'foe' && w.kind === k; })[0], out = [];
+      Bx.units.forEach(function (w) { if (w !== h && w !== u) { w.dead = true; w.hp = 0; } });
+      var o = openGA(14, 1); if (o) { h.x = o[0]; h.y = o[1]; }
+      h.baseAC = 5; h.ac = 5; h.hp = h.maxhp = 500; u.x = h.x + dx; u.y = h.y; Bx.cache = null; D.grid.setup(D.grid.map, Bx.units);
+      var at0 = Bx.attack; Bx.attack = function (a, t, atk) { if (a === u) out[out.length - 1].push(atk && atk.name); return at0.apply(this, arguments); };
+      D.d = function (n) { return n === 20 ? 15 : 1; };
+      try { for (var i = 0; i < turns; i++) { out.push([]); if (rooted) u.speed = 0; D.rules.startTurn(u); Bx.active = u; runGA(D.ai.turn(Bx, u)); u.x = h.x + dx; u.y = h.y; } }
+      finally { D.d = d0GA; Bx.attack = at0; }
+      return { B: Bx, u: u, h: h, turns: out };
+    };
+    // 3. THE HANDAXES RUN OUT: two to throw (data/foes.js count 2); rooted 15 ft off, a throw a turn, then none
+    try {
+      var d3 = duel('trooper', 3, true, 3), t3 = d3.turns.map(function (t) { return t.join('+') || 'none'; });
+      okGA('3 the trooper rooted 15 ft off, three turns: ' + t3.join(' / ') + '; handaxes left ' + D.Battle.thrownLeft(d3.u, F.trooper.attacks.handaxe) + ', the handaxe on its sheet ' + !!d3.u.attacks.handaxe + ' (want Thrown Handaxe / Thrown Handaxe / none, 0, false)',
+        t3[0] === 'Thrown Handaxe' && t3[1] === 'Thrown Handaxe' && t3[2] === 'none' && D.Battle.thrownLeft(d3.u, F.trooper.attacks.handaxe) === 0 && !d3.u.attacks.handaxe);
+      var d3b = duel('fileleader', 3, true, 3), t3b = d3b.turns.map(function (t) { return t.join('+') || 'none'; });
+      okGA('3 the file leader the same: ' + t3b.join(' / ') + ' (want one handaxe a turn -- the Thug\'s Multiattack is two MELEE attacks -- then none)', t3b[0] === 'Thrown Handaxe' && t3b[1] === 'Thrown Handaxe' && t3b[2] === 'none');
+    } catch (eGA3) { repGA.errors.push('3: ' + String(eGA3 && eGA3.stack || eGA3).slice(0, 400)); }
+    // 4. THE HEAVY CROSSBOW: one shot a turn (SRD 5.1 Loading), 60 ft off; the road patrol's Multiattack two arrows
+    try {
+      var d4 = duel('trooperxbow', 12, true, 2), d4b = duel('drillsergeant', 12, true, 2), d4c = duel('roadpatrol', 12, true, 1);
+      var j4 = function (d) { return d.turns.map(function (t) { return t.join('+') || 'none'; }).join(' / '); };
+      okGA('4 the crossbow trooper 60 ft off, two turns: ' + j4(d4) + ' (want Heavy Crossbow / Heavy Crossbow); the fighter lost ' + (500 - d4.h.hp) + ' (want 4: 1d10+1 at a 1, twice)', j4(d4) === 'Heavy Crossbow / Heavy Crossbow' && 500 - d4.h.hp === 4);
+      okGA('4 the drill-sergeant 60 ft off: ' + j4(d4b) + ' (want Heavy Crossbow / Heavy Crossbow -- one shot, his Multiattack is the swords)', j4(d4b) === 'Heavy Crossbow / Heavy Crossbow');
+      okGA('4 the road patrol 60 ft off: ' + j4(d4c) + ' (want Longbow+Longbow: the Scout\'s two ranged attacks)', j4(d4c) === 'Longbow+Longbow');
+    } catch (eGA4) { repGA.errors.push('4: ' + String(eGA4 && eGA4.stack || eGA4).slice(0, 400)); }
+    // 5. THE MELEE: beside the fighter
+    try {
+      var j5 = function (d) { return d.turns.map(function (t) { return t.join('+') || 'none'; }).join(' / '); };
+      var d5 = duel('fileleader', 1, false, 1), d5b = duel('drillsergeant', 1, false, 1), d5c = duel('trooper', 1, false, 1), d5d = duel('trooperxbow', 1, false, 1), d5e = duel('gatewatch', 1, false, 1);
+      okGA('5 the file leader beside him: ' + j5(d5) + ', the fighter lost ' + (500 - d5.h.hp) + ' (want Battleaxe+Battleaxe, 6: 1d8+2 at a 1, twice)', j5(d5) === 'Battleaxe+Battleaxe' && 500 - d5.h.hp === 6);
+      okGA('5 the drill-sergeant beside him: ' + j5(d5b) + ' (want Longsword+Longsword+Shortsword: the SRD Veteran with his shortsword drawn)', j5(d5b) === 'Longsword+Longsword+Shortsword');
+      okGA('5 the trooper: ' + j5(d5c) + '; the crossbow trooper: ' + j5(d5d) + '; the gate watch: ' + j5(d5e) + ' (want Battleaxe, Battleaxe, Spear)', j5(d5c) === 'Battleaxe' && j5(d5d) === 'Battleaxe' && j5(d5e) === 'Spear');
+    } catch (eGA5) { repGA.errors.push('5: ' + String(eGA5 && eGA5.stack || eGA5).slice(0, 400)); }
+    // 6. THE HUMANOIDS SHELF: every row on it, priced 100 sp a CR, the two of one name told apart (pocketdm.js drawShop's label: a kind's LAST blow)
+    try {
+      var PDg = D.pocketdm, shG = PDg.SHOPS.filter(function (s) { return s.id === 'humanoids'; })[0], lsG = PDg.shelf(shG, 'cheap'), ksG = Object.keys(WANT);
+      var nmG = {}; lsG.forEach(function (k) { nmG[F[k].name] = (nmG[F[k].name] || 0) + 1; });
+      var lab = function (k) { var f = F[k], a = f.attacks[Object.keys(f.attacks).slice(-1)[0]]; return nmG[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
+      var labs = ksG.map(lab), prices = ksG.map(function (k) { return PDg.price(k); });
+      okGA('6 on the HUMANOIDS shelf: ' + ksG.map(function (k, i) { return labs[i] + ' ' + PDg.fmt(prices[i]); }).join(', ') + ' (want all six, the labels all different, 13 / 25 / 25 / 100 / 300 / 50 sp)',
+        ksG.every(function (k) { return lsG.indexOf(k) >= 0; }) && labs.filter(function (l, i) { return labs.indexOf(l) === i; }).length === labs.length && prices.join() === [PDg.price('guard'), PDg.price('goblin'), PDg.price('goblin'), PDg.price('bugbear'), PDg.price('veteran'), PDg.price('thug')].join());
+    } catch (eGA6) { repGA.errors.push('6: ' + String(eGA6 && eGA6.stack || eGA6).slice(0, 400)); }
+    var preGA = document.createElement('pre'); preGA.id = 'out'; preGA.textContent = 'BENCH16 ' + JSON.stringify(repGA); document.body.appendChild(preGA); return;
+  }
   // TWIN STRIKE PAID WITH TWO ATTACKS (mode=twin1112; the twin strike seat, 11-12 -- RULED, Griz on the lanes desk's leans: "Agree with your leans, 3 attack only (can only use 2 attacks
   // to do it if you're doing twin strike #2? whichever way is cleanest mechanically)"; then "nah, it's live in pocket DM let's Opus seat this"). Battle.twinPay: the bonus and a swing first,
   // else two swings of one Attack action for three attacks, once that action. The dice pinned (the d20 a 12, every other die a 4): 1 a fighter 11 with the feat and a pair -- two Twin
@@ -18855,7 +18945,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var male = byIdK(Bq, 'giant2'), fem = byIdK(Bq, 'giant1');
       okK('the cards name them: ' + D.Battle.nm(male, true) + ' and ' + D.Battle.nm(fem, true) + ' (the kinds ' + male.kind + ', ' + fem.kind + ')', /Steinarr/.test(D.Battle.nm(male, true)) && /Hallvör/.test(D.Battle.nm(fem, true)) && !/^the /.test(D.Battle.nm(male, true)));
       var sgt = byIdK(Bq, 'sgt'), xb1 = byIdK(Bq, 'tr1');
-      okK('the Drill-sergeant: ' + sgt.name + ', ' + sgt.hp + ' HP, AC ' + sgt.baseAC + ', ' + (Array.isArray(sgt.multi) ? sgt.multi.length : sgt.multi) + ' blows, ours ' + (sgt.side === 'party' && sgt.ally) + '; a crossbowman: ' + Object.keys(xb1.attacks).join(',') + ' (' + xb1.attacks.crossbow.range.join('/') + ' ft)', sgt.hp === 58 && sgt.baseAC === 17 && sgt.multi.length === 2 && sgt.side === 'party' && sgt.ally && !!xb1.attacks.crossbow && xb1.attacks.crossbow.ranged);
+      okK('the Drill-sergeant: ' + sgt.name + ', ' + sgt.hp + ' HP, AC ' + sgt.baseAC + ', ' + (Array.isArray(sgt.multi) ? sgt.multi.length : sgt.multi) + ' blows, ours ' + (sgt.side === 'party' && sgt.ally) + '; a crossbowman: ' + Object.keys(xb1.attacks).join(',') + ' (' + xb1.attacks.crossbow.range.join('/') + ' ft)', sgt.hp === 58 && sgt.baseAC === 17 && sgt.multi.length === 3 && sgt.side === 'party' && sgt.ally && !!xb1.attacks.crossbow && xb1.attacks.crossbow.ranged && xb1.attacks.crossbow.range[0] === 100); // (the SRD Veteran's three blows with his shortsword drawn, and the crossbowmen's heavy crossbow, since 11-12: garrison1112)
       var offRoof = G.stepCost(sgt, 29, 15, 29, 16), onRoof = G.stepCost(sgt, 29, 3, 29, 4), fgOff = G.stepCost(byIdK(Bq, 'barley'), 29, 15, 29, 16);
       okK('the garrison keeps the roof: the sergeant\'s step off the rim ' + offRoof + ', along the glass ' + onRoof + '; Barley\'s step off the rim ' + fgOff + ' (a drop, his to take)', sgt.keepLevel === true && offRoof === Infinity && onRoof === 5 && fgOff < Infinity);
       // the late ones onto squares already taken (10-05, his play at 6: the walk-in stalled twenty seconds when a trooper's square was taken): the round-4 seats on the roof taken, Pyro on a

@@ -4031,7 +4031,7 @@
   // TX.retreatTurn), picking up whoever falls after and carrying them out at half speed; at the end a story guest or one of the four left on the floor loses the fight, a trooper is
   // left behind with a word
   Battle.isHero = function (u) { return u.side === 'party' && !u.ally && !u.summon && !u.familiar && !u.object && !(u.src && u.src.guest); }; // (one of the four: not the 8-bit's guest, not a fight's ally)
-  var TROOP = /^(trooper|trooperxbow|drillsergeant|stablefighter|guard)$/; // (the 8-bit's troopers, the Skylights' garrison and Bloodsnout's men; the street's folk by their ids)
+  var TROOP = /^(trooper|trooperxbow|drillsergeant|gatewatch|fileleader|roadpatrol|stablefighter|guard)$/; // (the garrison's other ranks since 11-12: data/foes.js) // (the 8-bit's troopers, the Skylights' garrison and Bloodsnout's men; the street's folk by their ids)
   Battle.isTroop = function (u) { return !Battle.isHero(u) && ((u.src && u.src.id === 'trooper') || TROOP.test(u.kind || '') || /^folk/.test(u.id || '')); };
   Battle.boundBy = function (u) {
     var c = u.conds || {}, r = c.restrained;

@@ -489,32 +489,98 @@
     attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
     multi: ['spear', 'spear'], src: 'content/monsters.json stablefighter (SRD 5.1 Thug: a stable man the owner wants bled; wiki/the-hex.md), on the Crewman sheet'
   },
-  // the garrison of Sólskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
+  // the garrison of SÃ³lskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
   // the first bang hits the skylight"): the 8-bit's Drill-sergeant (content/npcs.json drillmaster) as the SRD 5.1 Veteran, his troopers as the SRD Guard, dwarves (speed 25, darkvision,
   // poison resistance: SRD 5.1 Dwarf). Their looks LPC-composed as the 8-bit's dwarves are (10-05, Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar"): the troopers
   // on the garrison trooper's sheet (`trooper_p0`, composed 09-27: nasal helm, chainmail, a brown beard -- since 11-12 the art desk's gate watch, `gatewatch_p2`: ART-141-GATE-WATCH-COMBAT, a bare-headed dwarf in mail with a spear, every fight row drawn, tools/gatewatch-fight-sheet.py), the sergeant on his own (`drillsergeant_p0`: a bronze helm, armoured arms, a black beard)
-  trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+  // THE GARRISON IN THE HOLD'S KIT (11-12, the garrison seat, started by the lanes desk; Griz, as Pyro's folk: "go on the level and kit for pyros folk, with an art request first to fix this
+  // portrait (that better not be a battle axe, let's hope not and request one) - and then the combat posings we'll need (world model revision?)"; then "we'll leave off on skylight specific,
+  // but go ahead and add the heavy crossbow to the art ask"): every rank off the SRD 5.1's own NPCs (srd/20-npcs.md), the kit off its tables (srd/04-equipment.md: chain mail AC 16 Str 13,
+  // a shield +2, the battleaxe 1d8 versatile, the handaxe 1d6 thrown 20/60, the heavy crossbow 1d10 100/400 loading, leather AC 11 + Dex, the shortsword 1d6, the longbow 1d8 150/600),
+  // the dwarf off srd/01-races.md (speed 25, darkvision 60, Dwarven Resilience: advantage on saves against poison -- `resilient`, RU.vsPoison -- and resistance to its damage; Dwarven
+  // Combat Training: the battleaxe and the handaxe). A CR the SRD gives is the SRD's; a row it does not give takes its CR beside the SRD's own blocks (the DMG's table is not in the SRD),
+  // each named in its src. Until the art desk's ART-142 comes back (art-wanted section 55: `trooper_p2`, `trooperxbow_p2`, `trooper_p1`) the troopers fight on the gate watch's figure,
+  // the spear in his hands while the row swings an axe -- known. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
+  // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own
+  gatewatch: {
+    name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
-    multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8), a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
+    multi: 1, resist: ['poison'], resilient: true, src: 'SRD 5.1 Guard (CR 1/8: AC 16 chain shirt and shield, 11 HP, the spear +3 1d6+1), a dwarf of the garrison at the gate; the trooper\'s row before 11-12 (content/npcs.json gatewatch)'
   },
-  // the first two out of the falls carry crossbows (10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the Trooper, and the SRD light crossbow (80/320, 1d8)
-  // at the Guard's +3 (DEX 12, proficient) -- from the roof at whatever climbs the face, the spear for one who makes the top
-  trooperxbow: {
-    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+  // THE TROOPER, the rank and file: the Guard's body (srd/20-npcs.md: STR 13 DEX 12 CON 12, 11 HP, +3 to hit) in the hold's kit -- chain mail and a shield, AC 18; the battleaxe in one hand,
+  // +3 1d8+1; two handaxes to throw, +3 1d6+1 20/60, two and then none (battle.js spendThrow). CR 1/4, set beside the SRD's blocks: the Guard (1/8) is this body at AC 16 and 1d6+1; the
+  // Hobgoblin (1/2) is the same 11 HP and +3, AC 18 chain mail and shield, the longsword 1d8+1 -- and Martial Advantage's 2d6 besides, which the trooper has not; between them, 1/4
+  trooper: {
+    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/4', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
-    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 }, crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', ranged: true, range: [80, 320] } },
-    multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8) with the SRD light crossbow, a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
+    attacks: {
+      battleaxe: { name: 'Battleaxe', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
+      handaxe: { name: 'Thrown Handaxe', atk: 3, dice: '1d6', mod: 1, type: 'slashing', range: [20, 60], ranged: true, count: 2 } // (two; thrown, gone -- battle.js spendThrow)
+    },
+    multi: 1, resist: ['poison'], resilient: true,
+    src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +3 1d8+1, two handaxes thrown +3 1d6+1 20/60 (srd/04-equipment.md); CR 1/4 beside the Guard and the Hobgoblin; content/npcs.json drill1-4 (the Troopers)'
   },
+  // THE CROSSBOW TROOPER (the first two out of the falls carry crossbows -- 10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the trooper with the shield slung
+  // on his back (no shield bonus: chain mail, AC 16), the HEAVY crossbow two-handed (11-12, the hold's kit; srd/04-equipment.md: 1d10, 100/400, loading -- one bolt an action, whatever the
+  // attacks) at the Guard's +3 (DEX 12, proficient: 1d10+1, as the SRD Veteran's own +3 1d10+1), the battleaxe for one who makes the top. CR 1/4 as the trooper: the Thug's heavy crossbow
+  // +2 1d10 in an AC 11 CR 1/2 body of 32 HP; this one has AC 16 and 11 HP
+  trooperxbow: {
+    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      battleaxe: { name: 'Battleaxe', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
+      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true } // (one shot a turn: ai.js volley, no ranged Multiattack)
+    },
+    multi: 1, resist: ['poison'], resilient: true,
+    src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail AC 16 (the shield slung), the heavy crossbow +3 1d10+1 100/400 loading, the battleaxe +3 1d8+1 (srd/04-equipment.md); CR 1/4 as the trooper; content/npcs.json drill1-4 (the Troopers)'
+  },
+  // THE FILE LEADER, over one to four troopers (11-12): between the Guard and the Veteran, built of SRD pieces only -- the SRD 5.1 Thug's body (srd/20-npcs.md: STR 15 DEX 11 CON 14
+  // INT 10 WIS 10 CHA 11, 32 HP 5d8+10, Multiattack "two melee attacks" at +4) without its Pack Tactics (an enforcer's, not a drilled file's), in the trooper's kit (chain mail and a
+  // shield AC 18 -- STR 15 carries chain mail's Str 13 -- the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60), the dwarf. CR 1, beside the SRD's: the Thug (1/2) is these HP and two
+  // blows at AC 11; the Knight (3) is AC 18 with 52 HP and two 2d6+3 blows; the Bugbear (1) is AC 16, 27 HP, one 2d8+2 blow -- the file leader stands with the Bugbear
+  fileleader: {
+    name: 'File Leader', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1', ac: 18, metalArmor: 'chain mail', shield: true, hp: 32, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      battleaxe: { name: 'Battleaxe', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 },
+      handaxe: { name: 'Thrown Handaxe', atk: 4, dice: '1d6', mod: 2, type: 'slashing', range: [20, 60], ranged: true, count: 2 }
+    },
+    multi: ['battleaxe', 'battleaxe'], resist: ['poison'], resilient: true,
+    src: 'SRD 5.1 Thug (CR 1/2) for the body (32 HP, two melee attacks at +4; no Pack Tactics) as a dwarf in the trooper\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60; CR 1 beside the Thug, the Bugbear and the Knight; on the garrison trooper\'s old helmed sheet (trooper_p0)'
+  },
+  // THE DRILL-SERGEANT: the SRD 5.1 Veteran as he is (srd/20-npcs.md: AC 17 splint, 58 HP, Multiattack two longswords "If it has a shortsword drawn, it can also make a shortsword
+  // attack", the longsword +5 1d8+3, the shortsword +5 1d6+3, the heavy crossbow +3 1d10+1 100/400) -- till 11-12 he carried the longswords alone; the garrison seat gave him the
+  // block's shortsword and heavy crossbow (one bolt a turn: no ranged Multiattack)
   drillsergeant: {
     name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
-    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 } },
-    multi: ['longsword', 'longsword'], resist: ['poison'], src: 'SRD 5.1 Veteran (CR 3: AC 17, 58 HP, Multiattack: two longsword +5 1d8+3; the shortsword and the heavy crossbow not given), a dwarf; content/npcs.json drillmaster'
+    attacks: {
+      longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 },
+      shortsword: { name: 'Shortsword', atk: 5, dice: '1d6', mod: 3, type: 'piercing', reach: 5 },
+      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true }
+    },
+    multi: ['longsword', 'longsword', 'shortsword'], resist: ['poison'], resilient: true,
+    src: 'SRD 5.1 Veteran (CR 3: AC 17, 58 HP; Multiattack two longswords +5 1d8+3 and the shortsword +5 1d6+3; the heavy crossbow +3 1d10+1 100/400 -- the last two his since 11-12), a dwarf; content/npcs.json drillmaster'
+  },
+  // THE ROAD PATROL (11-12, the garrison seat): the SRD 5.1 Scout as a dwarf (srd/20-npcs.md: AC 13 leather, 16 HP, Perception +5 (passive 15), Stealth +6, Keen Hearing and Sight,
+  // Multiattack two melee or two ranged, the shortsword +4 1d6+2, the longbow +4 1d8+2 150/600; CR 1/2), speed 25, darkvision 60, Dwarven Resilience as the troopers. No look of its
+  // own yet: the garrison trooper's old helmed sheet (trooper_p0), as the file leader
+  roadpatrol: {
+    name: 'Road Patrol', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 11, dex: 14, con: 12, int: 11, wis: 13, cha: 11 }, init: 2, perception: 15, stealth: 6, keen: 'hearing and sight',
+    saves: { str: 0, dex: 2, con: 1, int: 0, wis: 1, cha: 0 },
+    attacks: {
+      shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
+      longbow: { name: 'Longbow', atk: 4, dice: '1d8', mod: 2, type: 'piercing', ranged: true, range: [150, 600] }
+    },
+    multi: ['shortsword', 'shortsword'], rangedMulti: ['longbow', 'longbow'], resist: ['poison'], resilient: true,
+    src: 'SRD 5.1 Scout (CR 1/2: AC 13 leather, 16 HP, Perception +5, Stealth +6, Keen Hearing and Sight, two shortswords +4 1d6+2 or two longbow arrows +4 1d8+2 150/600) as a dwarf of the road; on trooper_p0 till a look of its own'
   },
   robber: {
     name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, armor: 'leather armor', hp: 11, speed: 30, size: 1, reach: 5,
