@@ -14081,7 +14081,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           var cv = TVF.edStrip(mE, i), px = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
           for (var Y = rowsH; Y < cv.height; Y++) for (var X = 0; X < cv.width; X++) {
             var u = eF.fx0 + (i * TVF.EDSTRIP + X) / kx, h = (Hf - (Y - rowsH)) / kv, dv = u - eF.ax; if (h >= 29.3) continue;
-            if (spF.some(function (sx) { return Math.hypot(u - sx, h - 12) < 1.3; }) || Math.hypot(Math.abs(dv) - 27.5, h - 12) < 1.5) continue; seen++;
+            if (spF.some(function (sx) { return Math.hypot(u - sx, h - 12) < 1.3; }) || Math.hypot(TVF.VAULTLEAVES === 1 ? dv : Math.abs(dv) - 27.5, h - 12) < 1.5) continue; seen++; // (the ring's dark boss: one door's at the middle since 11-12, js/topview.js TV.VAULTLEAVES; each of the two leaves' before)
             var o = (Y * cv.width + X) * 4; if (darks.indexOf([px[o], px[o + 1], px[o + 2]].join()) >= 0) n++;
           }
         }
