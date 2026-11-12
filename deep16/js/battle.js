@@ -2447,20 +2447,41 @@
   // The second weapon's line goes in the strike's own box (11-05, his "The card for twin-strike puts the second blade on its own line for some reason, see why it isn't the box with
   // the main strike (too wordy?)" -- it was given a card id of its own, so it drew as a box of its own after the strike's): one line more on the strike's card, both weapons' total at its
   // end; its own box only when another card came between (a feature's rider on the hit)
+  // ...and its own riders (11-12, RULED -- Griz: "Important bug found undersold, should be no penalty to the second weapon attacks, we've made the player spend a style and a feat"):
+  // what the weapon does on a hit of its own it does here, read off the weapon in the off hand as attack() reads a blow (js/save.js weaponOf) -- a Flame Tongue alight its fire, the
+  // Mace of Disruption its radiant on a fiend or undead and, one left at its number or fewer, the save; the Winnower's critical, prone. Its magic bonus is in its damage (R.damageExpr).
+  // (A Sneak Attack's poison and the attacker's own riders -- a mark, a smite, Stunning Strike -- belong to the one attack, and ride the strike's roll in attack())
   Battle.prototype.twinOff = function* (u, tgt, off, ox, crit) {
-    var mag = !!(off && off.weapon && (off.weapon.bonus || off.weapon.magic)), dr = RU.damage(ox.dice, ox.mod, { crit: crit }), blT = this.blow();
+    var ob = u.offhand || {}, mag = !!(ob.magic || (off && off.weapon && (off.weapon.bonus || off.weapon.magic))), dr = RU.damage(ox.dice, ox.mod, { crit: crit }), blT = this.blow();
+    var rides = [], partsT = [];
+    if (ob.flame && u.conds.ablaze) { var flT = D.roll(ob.flame, { crit: crit }); rides.push([flT.total, 'fire']); partsT.push('{o}flame ' + ob.flame + ' ' + RU.fmtRolls(flT.rolls) + ' = ' + flT.total + ' fire{/}'); }
+    var disT = ob.disrupt && ob.disrupt.vs.indexOf(tgt.type || '') >= 0 ? ob.disrupt : null;
+    if (disT) { var drT = D.roll(disT.dice, { crit: crit }); rides.push([drT.total, 'radiant']); partsT.push('{y}disruption ' + disT.dice + ' ' + RU.fmtRolls(drT.rolls) + ' = ' + drT.total + ' radiant{/}'); }
+    var all = dr.total + rides.reduce(function (a, r) { return a + r[0]; }, 0);
     var mc = this.atkCard, lastT = this.cards[this.cards.length - 1], onMain = !!(mc && lastT && lastT.id === mc.id);
     var cidT = onMain ? mc.id : 'twin' + (++this.cardSeq || (this.cardSeq = 1));
     var lineT = function (took) {
-      return '{y}+ the ' + off.name.toLowerCase() + '{/}  ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + ' = {r}' + dr.total + '{/} ' + (ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '') +
-        (took !== dr.total ? ', {o}' + took + ' after the ' + (blT.transfer ? 'Damage Transfer' : took > dr.total ? 'vulnerability' : took === 0 ? Battle.zeroWhy(blT) : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
+      return '{y}+ the ' + off.name.toLowerCase() + '{/}  ' + ox.dice + RU.sign(ox.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(ox.mod) + (partsT.length ? ' + ' + partsT.join(' + ') : '') + ' = {r}' + all + '{/} ' + (rides.length ? '' : ox.type || '') + (crit ? '  {y}CRITICAL{/}' : '') +
+        (took !== all ? ', {o}' + took + ' after the ' + (blT.transfer ? 'Damage Transfer' : took > all ? 'vulnerability' : took === 0 ? Battle.zeroWhy(blT) : 'resistance') + '{/}' : '') + // (what lands, as the main blow's card says it)
         (onMain ? '  both {r}' + (mc.dealt + took) + '{/}' : '');
     };
     var cardT = function (took) { return onMain ? mc.lines.concat([lineT(took)]) : ['{y}' + nameOf(u) + '{/} ' + lineT(took)]; };
-    this.card(cardT(dr.total), 300, cidT);
-    this.hurt(tgt, dr.total, ox.type, { magic: mag, blow: blT });
-    if (dr.total > 0 && blT.took !== dr.total && !tgt.dead && tgt.hp > 0) this.card(cardT(blT.took), 300, cidT);
+    this.card(cardT(all), 300, cidT);
+    var self = this;
+    rides.forEach(function (r) { if (!tgt.dead) self.hurt(tgt, r[0], r[1], { magic: true, blow: blT }); }); // (the riders their own kind, as attack()'s)
+    if (!tgt.dead) this.hurt(tgt, dr.total, ox.type, { magic: mag, blow: blT });
+    if (all > 0 && blT.took !== all && !tgt.dead && tgt.hp > 0) this.card(cardT(blT.took), 300, cidT);
     this.blowEnd(tgt, blT);
+    if (disT && !tgt.dead && tgt.hp > 0 && tgt.hp <= disT.hp) { // (the disruption's save, as attack()'s)
+      var dsT = RU.save(tgt, 'wis', disT.dc, false, 'frightened');
+      this.card(['  {y}the mace of disruption{/}: ' + nameOf(tgt) + ' WIS ' + RU.saveText(dsT) + ' vs DC ' + disT.dc + '  ' + (dsT.ok ? '{o}FRIGHTENED{/}' : '{y}DESTROYED{/}')], 260);
+      FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 18);
+      if (!dsT.ok) this.hurt(tgt, tgt.hp, 'radiant');
+      else if (!RU.immuneTo(tgt, 'frightened')) tgt.conds.frightened = { by: u.id, fresh: true };
+    }
+    if (crit && ob.onCrit === 'prone' && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) { // (the Winnower's critical, as attack()'s)
+      if (!(D.features && D.features.holdGround && D.features.holdGround(this, tgt, 'prone'))) { tgt.conds.prone = true; this.card(['  {o}' + nameOf(tgt) + ' is threshed flat: PRONE{/}'], 220); }
+    }
     yield 20;
   };
   Battle.openAttack = function (u, notHaste) {

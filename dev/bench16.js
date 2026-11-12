@@ -12230,6 +12230,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okTW('5 two ogres in his reach, Action Surge: ' + (r5b.dos.join(',') || 'nothing') + '; the row ' + r5b.rows + 'x; surge left ' + s5b.p.feats.actionSurge + ' (want twinstrike x3 then attack; 3; 0)',
         r5b.dos.join(',') === 'twinstrike,twinstrike,twinstrike,attack' && r5b.rows === 3 && !s5b.p.feats.actionSurge);
     } catch (eTW5) { repTW.errors.push('5: ' + String(eTW5 && eTW5.stack || eTW5).slice(0, 400)); }
+    try {
+      // 6. THE SECOND WEAPON TAKES NO PENALTY (11-12, RULED -- Griz: "Important bug found undersold, should be no penalty to the second weapon attacks, we've made the player spend a style and a
+      // feat"): Pyro unflipped (his script not run: the plain mace in the main hand, the Mace of Disruption in the off) at a skeleton (its bludgeoning vulnerability taken off, 300 HP) --
+      // a Twin Strike lands the off mace's 2d6 radiant; a skeleton at 30 HP is left at 25 or fewer and the disruption's save destroys it; OFF HAND after an ATTACK lands it too
+      var mkS = function (hp) {
+        var Bx = mkTW('?npc=skeleton&vs=pyro&lvl=12'), p = sideTW(Bx, 'party').filter(function (u) { return u.script === 'measure'; })[0], os = sideTW(Bx, 'foe'), k = os[0];
+        os.slice(1).forEach(function (w) { w.dead = true; w.hp = 0; }); k.x = p.x + 1; k.y = p.y; k.baseAC = 5; k.ac = 5; k.hp = k.maxhp = hp; k.vulnerable = []; delete k.vuln;
+        p.offhandSheathed = false; Bx.cache = null; D.grid.setup(D.grid.map, Bx.units); D.rules.startTurn(p); Bx.active = p; Bx.cards = []; return { B: Bx, p: p, k: k };
+      };
+      var s6 = mkS(300), p6 = s6.p, m6 = D.mod(20), hp6 = s6.k.hp;
+      okTW('6 Pyro unflipped: main ' + p6.weapon.id + ', off ' + (p6.offhand && p6.offhand.id) + ' with its disruption ' + !!(p6.offhand && p6.offhand.disrupt) + ' (want mace, macedisruption, true)', p6.weapon.id === 'mace' && !!p6.offhand && p6.offhand.id === 'macedisruption' && !!p6.offhand.disrupt);
+      exTW(s6.B, p6, { do: 'twinstrike', target: s6.k });
+      var lost6 = hp6 - s6.k.hp, cd6 = cardTW(s6.B)[0] || '', want6 = 2 * (4 + m6) + 8;
+      okTW('6 a Twin Strike at the skeleton: it lost ' + lost6 + ' (want ' + want6 + ': both maces, STR on each, and the off mace\'s 2d6 radiant); the card names the disruption ' + /disruption 2d6/.test(cd6) + ' -- ' + cd6.slice(-120), lost6 === want6 && /disruption 2d6/.test(cd6));
+      var s6b = mkS(30); exTW(s6b.B, s6b.p, { do: 'twinstrike', target: s6b.k });
+      var all6b = (s6b.B.cards || []).map(function (c) { return window.DS.stripCodes(c.lines.join(' / ')); }).join(' | ');
+      okTW('6 a skeleton at 30: the strike leaves it at 25 or fewer and the off mace\'s save -- dead ' + !!s6b.k.dead + ', "DESTROYED" ' + /DESTROYED/.test(all6b) + ' (want true, true)', !!s6b.k.dead && /DESTROYED/.test(all6b));
+      var s6c = mkS(300), p6c = s6c.p; exTW(s6c.B, p6c, { do: 'attack', target: s6c.k }); var hp6c = s6c.k.hp; exTW(s6c.B, p6c, { do: 'offhand', target: s6c.k });
+      var lost6c = hp6c - s6c.k.hp, want6c = 4 + m6 + 8;
+      okTW('6 OFF HAND after one ATTACK, the Mace of Disruption: the skeleton lost ' + lost6c + ' (want ' + want6c + ': the mace, STR by the style, and its 2d6 radiant -- the off hand\'s blow goes through attack(), no loss)', lost6c === want6c);
+    } catch (eTW6) { repTW.errors.push('6: ' + String(eTW6 && eTW6.stack || eTW6).slice(0, 400)); }
     D.d = d0TW;
     var preTW = document.createElement('pre'); preTW.id = 'out'; preTW.textContent = 'BENCH16 ' + JSON.stringify(repTW);
     document.body.appendChild(preTW);
