@@ -1,0 +1,208 @@
+/* DEEP16 -- SÓLSKAFT DRAWN FROM ITS ART (11-12, the Sólskaft cutter, started by the lanes desk on Griz's word: "Think there's stuff for an opus cutter in Fresh"). The art desk's
+   ART-134 to ART-138 (art-wanted sections 47-51; the ask: deep16/_src/art-desk/sent/ASK-2026-11-11-solskaft-tiles-and-props/, his "we're going to need a boatload of sprite
+   tiling"), cut by tools/solskaft-sheet.py into deep16/art/skstone_p1 (the stone), skstreet_p1 (the rest of the street), skcart_p1 (the cart level), skfun_p1 (the funerary),
+   sklodge_p1 (Ásdís Scalebeam's room). THE LOOK ONLY: no square, door or way of js/solskaft.js changes -- the floors' rows, heights, doors and words are as built.
+     THE FLOORS: each square's tile painted into the floor as it is baked (js/iso.js `groundArt`, on the raised squares too: `groundArtZ`) -- the dressed flags in four
+       variants, worn down main street's walk, the grit strip where a floor meets a wall's foot, the cart road's ruts.
+     THE WALLS: a rock square's faces the camera sees laid with the wall modules over the code's own (js/iso.js `rockArt`): a far wall's module from its foot, 120 px of a
+       storey, fading into the dark above as the code's face does; a near wall cut to the stub carries the module's foot courses. The wall-mounted things are modules on the
+       face they hang on: the tariff board, the mangers, the spear rack and the watch's slate, the Dormant's cut, the lamps by the lit squares.
+     THE STORES: the two shut stores stand their two storeys (30 ft, 240 px -- the art's; the code's were 9 ft) with the art's fronts (js/iso.js `roofArt`): shut store bays,
+       the lodging's windows, the one lit window over the west one (Ásdís's).
+     THE PROPS: the code's stand-ins (SK.pic) give way to the cells -- the oathstone, the throne on the dais's tiles, the braziers burning, Rekknar's ledger-stone, the covered
+       scales, the counters, the trough and the fodder, the needles' table and the weights' case, the bench, the outside stair.
+   Until a sheet has come (the sheets load as the floor is first laid) the code draws as before, and the floor is painted again when they land. `&props=code` keeps the code's. */
+'use strict';
+(function () {
+  var D = window.D16, iso = D.iso, SK = D.solskaft, M = D.mines; if (!iso || !SK || !M) return;
+  var A = SK.art = {}, HW = 32, HH = 16;
+  A.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
+  A.SHEETS = ['skstone_p1', 'skstreet_p1', 'skcart_p1', 'skfun_p1', 'sklodge_p1'];
+  A.USED = {}; // (every tile a floor names, by floor -- the bench's check that each has a cell on a sheet: dev/bench16.js mode=solskaft1111)
+  var use = function (key, names) { A.USED[key] = (A.USED[key] || []).concat(names); return names; };
+  function where(name) { for (var i = 0; i < A.SHEETS.length; i++) { var sh = D.SHEETS && D.SHEETS[A.SHEETS[i]]; if (sh && sh.tiles[name]) return A.SHEETS[i]; } return null; }
+  A.has = function (name) { return !!where(name); };
+  function img(k) { var sh = D.SHEETS && D.SHEETS[k], i = sh && D.images && D.images[sh.image]; return i && i.naturalWidth ? i : null; }
+  A.ready = function () { return A.on && A.SHEETS.every(function (k) { return !(D.SHEETS && D.SHEETS[k]) || img(k); }); };
+  var BOX = {};
+  A.box = function (name) {
+    if (BOX[name]) return BOX[name]; var k = where(name); if (!k) return null;
+    var b = D.SHEETS[k].tiles[name].split(' ')[0].split(',').map(Number), c = (D.SHEETS[k].cells || {})[name] || {};
+    return (BOX[name] = { k: k, x: b[0], y: b[1], w: b[2], h: b[3], ax: b[4], ay: b[5], foot: c.foot || [1, 1] });
+  };
+  // a cell on its own canvas, anchored for a piece set at a square's middle: the middle of its footprint (opt.first: of its first square only), lifted opt.lift px
+  var CV = {};
+  A.cell = function (name, opt) {
+    opt = opt || {}; var key = name + '|' + (opt.first ? 'f' : '') + (opt.lift || 0); if (CV[key]) return CV[key];
+    var b = A.box(name), I = b && img(b.k); if (!I) return null;
+    var cv = document.createElement('canvas'); cv.width = b.w; cv.height = b.h; var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+    cx.drawImage(I, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+    var fa = opt.first ? 1 : b.foot[0], fb = opt.first ? 1 : b.foot[1];
+    return (CV[key] = { canvas: cv, ax: b.ax + (fa - fb) * HW / 2, ay: b.ay + (fa + fb) * HH / 2 + (opt.lift || 0) });
+  };
+  var BLANK = null; A.blank = function () { if (!BLANK) { var cv = document.createElement('canvas'); cv.width = cv.height = 1; BLANK = { canvas: cv, ax: 0, ay: 0 }; } return BLANK; };
+  // a floor tile's pixels, the 64 x 32 diamond (rot: turned half round -- a grit strip on the square's front edge)
+  var PX = {};
+  A.px = function (name, rot) {
+    var key = name + (rot ? '|r' : ''); if (PX[key] !== undefined) return PX[key];
+    var b = A.box(name), I = b && img(b.k); if (!I) return null;
+    var cv = document.createElement('canvas'); cv.width = 64; cv.height = 32; var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+    if (rot) { cx.translate(64, 32); cx.rotate(Math.PI); }
+    cx.drawImage(I, b.x, b.y, b.w, b.h, 32 - b.ax, -b.ay, b.w, b.h);
+    try { return (PX[key] = { data: cx.getImageData(0, 0, 64, 32).data, w: 64, h: 32 }); } catch (e) { return (PX[key] = null); }
+  };
+  // a wall module laid on a rock square's face: 'L' its +gy face (a wall along x, the module's _x), 'R' its +gx face (along y, _y); its foot `base` px up (the floor in front);
+  // `fade` (a far wall): darkened up the face as the code's face goes into the dark (js/iso.js rockCanvas: pow(up, 1.6) * 0.62 of the ramp); `clip` px: only this much of the
+  // face's top -- a near wall's stub, the module's foot courses set at the top of the cut
+  var FADED = {};
+  function faded(name, span) {
+    var key = name + '|' + span; if (FADED[key]) return FADED[key];
+    var b = A.box(name), I = b && img(b.k); if (!I) return null;
+    var cv = document.createElement('canvas'); cv.width = b.w; cv.height = b.h; var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+    cx.drawImage(I, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+    cx.globalCompositeOperation = 'source-atop';
+    for (var y = 0; y < b.h; y++) { var j = Math.max(0, b.ay - y), a = Math.min(0.92, Math.pow(j / span, 1.6) * 0.62 / 0.46); if (a <= 0.01) continue; cx.fillStyle = 'rgba(0,0,0,' + a.toFixed(3) + ')'; cx.fillRect(0, y, b.w, 1); }
+    return (FADED[key] = { cv: cv, b: b });
+  }
+  A.face = function (cx, name, side, ox, oy, base, o) {
+    o = o || {}; var b = A.box(name), I = b && img(b.k); if (!I) return false;
+    var fx = side === 'L' ? ox - HW : ox + HW, fy = oy - base, src = I, sx = b.x, sy = b.y;
+    if (o.fade) { var F = faded(name, o.fade); if (F) { src = F.cv; sx = 0; sy = 0; } }
+    cx.save();
+    if (o.clip != null) { // (the stub's face: from its foot up to its cut top, the module's foot set at the top)
+      cx.beginPath(); if (side === 'L') { cx.moveTo(ox - HW, oy); cx.lineTo(ox, oy + HH); cx.lineTo(ox, oy + HH - o.clip); cx.lineTo(ox - HW, oy - o.clip); }
+      else { cx.moveTo(ox, oy + HH); cx.lineTo(ox + HW, oy); cx.lineTo(ox + HW, oy - o.clip); cx.lineTo(ox, oy + HH - o.clip); } cx.closePath(); cx.clip();
+      fy = oy - o.clip + 12;
+    }
+    cx.imageSmoothingEnabled = false;
+    cx.drawImage(src, sx, sy, b.w, b.h, Math.round(fx - b.ax), Math.round(fy - b.ay), b.w, b.h);
+    cx.restore(); return true;
+  };
+  var R = function (y) { return SK.H - 1 - y; }; // (a grid row -> r, counted north from the front wall)
+  var lampsOf = function (lights) { var o = {}; (lights || []).forEach(function (l) { if (l.flame) o[l.x + ',' + l.y] = 1; }); return o; };
+
+  // ================================================================ THE STREET LEVEL
+  var ST = {};
+  ST.LAMPS = null;
+  ST.ground = function (x, y, m) {
+    var row = SK.ROWS[y] || '', c = row.charAt(x), r = R(y); if (c === '#' || c === 'S' || c === 'p') return null;
+    if (c === 'v') return x === 36 ? ['floor_y_' + (1 + (y % 4))] : ['floor_x_' + (1 + (x % 4))];            // (the ramps: the cart road's ruts down them)
+    var rk = function (dx, dy) { var s = m.at(x + dx, y + dy); return !s || !s.open; };
+    var v = 1 + ((x * 7 + y * 13) % 4);
+    if (rk(0, -1)) return ['edge_x_' + v]; if (rk(-1, 0)) return ['edge_y_' + v]; if (rk(0, 1) && c !== 'D') return ['edge_x_' + v, 1]; if (rk(1, 0)) return ['edge_y_' + v, 1];
+    if ((x === 18 || x === 19) && r >= 1 && r <= 26) return ['worn_y_' + v];                                  // (the walk, doors to throne, worn down the middle)
+    return ['flags_' + v];
+  };
+  use('solskaft', ['floor_x_1', 'floor_x_2', 'floor_x_3', 'floor_x_4', 'floor_y_1', 'floor_y_2', 'floor_y_3', 'floor_y_4', 'edge_x_1', 'edge_x_2', 'edge_x_3', 'edge_x_4',
+    'edge_y_1', 'edge_y_2', 'edge_y_3', 'edge_y_4', 'worn_y_1', 'worn_y_2', 'worn_y_3', 'worn_y_4', 'flags_1', 'flags_2', 'flags_3', 'flags_4']);
+  // the module on a rock square's face: what hangs there, a lamp by a lamp-lit square, plain stone
+  ST.HANG = { L: { '7,7': 'tariff_board_x', '29,7': 'manger_x', '30,7': 'manger_x', '31,7': 'manger_x', '32,7': 'manger_x', '23,21': 'spear_rack_x', '24,21': 'spear_rack_x',
+    '25,21': 'spear_rack_x', '27,21': 'watch_slate_x', '28,14': 'dormant_cut_x' }, R: {} };
+  use('solskaft', ['tariff_board_x', 'manger_x', 'spear_rack_x', 'watch_slate_x', 'dormant_cut_x', 'plain_x', 'plain_y', 'wall_lamp_lit_x', 'wall_lamp_lit_y']);
+  ST.wall = function (s, side) {
+    var r = R(s.y), h = ST.HANG[side][s.x + ',' + r]; if (h) return h;
+    var L0 = ST.LAMPS || (ST.LAMPS = lampsOf(SK.lights(22))), nx = side === 'L' ? s.x : s.x + 1, ny = side === 'L' ? s.y + 1 : s.y;
+    if (L0[nx + ',' + ny]) return side === 'L' ? 'wall_lamp_lit_x' : 'wall_lamp_lit_y';
+    return side === 'L' ? 'plain_x' : 'plain_y';
+  };
+  // the stores' faces: the west store's front on main street (its east face, x 14), its south face over the ramp; the east store's south face on the apron and its east face
+  ST.STORE = function (s, side) {
+    var r = R(s.y), x = s.x;
+    if (side === 'R' && x === 14) return { 3: 'lodging_door_with_window_dark_y', 4: 'store_shut_y', 5: 'store_shut_y', 6: 'store_shut_with_window_lit_y', 7: 'window_dark_y' }[r] || 'plain_tall_y';
+    if (side === 'L' && x >= 23) return x === 24 || x === 26 ? 'store_shut_with_window_dark_x' : 'window_dark_x';
+    if (side === 'L') return x % 2 ? 'window_dark_x' : 'plain_tall_x';
+    return r % 2 ? 'window_dark_y' : 'plain_tall_y';
+  };
+  use('solskaft', ['lodging_door_with_window_dark_y', 'store_shut_y', 'store_shut_with_window_lit_y', 'window_dark_y', 'plain_tall_y', 'store_shut_with_window_dark_x', 'window_dark_x', 'plain_tall_x']);
+  // the pieces the code drew that the cells take over (the code's own when no sheet has come)
+  ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'] };
+  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'lodging_stair_y']);
+  // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
+  ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 2, 4], ['water_trough_x', 33, 6], ['old_fodder', 34, 5],
+    ['touch_needle_table', 11, 19], ['locked_weights_case', 13, 16], ['guardroom_bench_x', 26, 16]];
+  A.FOOT = { trade_counter_x: [3, 1], quartermaster_counter_x: [2, 1], guardroom_bench_x: [2, 1] }; // (known before the sheets come: the blocks given way at the floor's laying)
+  ST.OFF = [[29, 6], [30, 6], [31, 6], [32, 6], [23, 20], [24, 20], [25, 20], [15, 28], [22, 28]]; // (the mangers' and the rack's code blocks: their modules are on the wall behind; the braziers'; the counter's third square)
+  ST.BRAZIERS = [[15, 28], [22, 28]];
+  use('solskaft', ['trade_counter_x', 'quartermaster_counter_x', 'ledger_desk', 'water_trough_x', 'old_fodder', 'touch_needle_table', 'locked_weights_case', 'guardroom_bench_x',
+    'brazier_lit_1', 'brazier_lit_2', 'brazier_lit_3', 'brazier_lit_4', 'dais_centre', 'dais_n', 'dais_e', 'dais_s', 'dais_w', 'dais_ne', 'dais_se', 'dais_sw', 'dais_nw']);
+  ST.dais = function (x, r) { var D0 = SK.DAIS, n = r === D0[3], s = r === D0[1], w = x === D0[0], e = x === D0[2]; return 'dais_' + ((n ? 'n' : s ? 's' : '') + (w ? 'w' : e ? 'e' : '') || 'centre'); };
+
+  A.FLOOR = { solskaft: ST };
+
+  // ---------------------------------------------------------------- the code's pieces give way: SK.pic's makers return the cell when it has come (made again when it does)
+  var cur = function () { return iso.map && iso.map.def && iso.map.def.key; };
+  var F = function () { var k = cur(); return A.ready() && A.FLOOR[k] ? A.FLOOR[k] : null; };
+  Object.keys(SK.pic).forEach(function (nm) {
+    var f0 = SK.pic[nm];
+    SK.pic[nm] = function () {
+      var fl = F(); if (!fl) return f0.apply(this, arguments);
+      var p = fl.PIC && fl.PIC[nm]; if (p) { var c = A.cell(p[0], p[1]); if (c) return c; }
+      if (fl.pic) { var r = fl.pic(nm, arguments); if (r) return r; }
+      return f0.apply(this, arguments);
+    };
+  });
+  ST.pic = function (nm, args) {
+    if (nm === 'dais' || nm === 'chevron' || nm === 'cut') return A.blank();                       // (the dais's tiles, the floor's ruts and the Dormant's module stand for these)
+    if (nm === 'face' && /^(shutter|dark|lit|door)$/.test(args[0])) return A.blank();               // (the store's front is its two storeys' modules now)
+    if (nm === 'outsideStair') return A.cell('lodging_stair_y', { first: true });
+    return null;
+  };
+
+  // ---------------------------------------------------------------- laid as a floor loads
+  var load0 = iso.load;
+  iso.load = function (def) {
+    var fl = def && A.on && A.FLOOR[def.key];
+    if (fl) {
+      if (fl.roofs) Object.keys(fl.roofs).forEach(function (k) { if (def.roofs && def.roofs[k]) def.roofs[k] = Object.assign({}, def.roofs[k], fl.roofs[k]); });
+      def.groundArtZ = true;
+      def.groundArt = function (x, y, m) { if (!A.ready()) return null; var g = fl.ground(x, y, m); return g ? A.px(g[0], g[1]) : null; };
+      def.rockArt = function (cx, m, s, o) {
+        if (!A.ready() || !fl.wall) return;
+        ['L', 'R'].forEach(function (side) {
+          var foot = side === 'L' ? o.fL : o.fR; if (o.far && foot == null) return;
+          var nm = fl.wall(s, side, m); if (!nm) return;
+          if (o.far) A.face(cx, nm, side, o.ox, o.oy, foot, { fade: o.top - foot });
+          else if (o.top > 0) A.face(cx, nm, side, o.ox, o.oy, 0, { clip: o.top });
+        });
+      };
+      if (fl.store) def.roofArt = function (cx, m, s, o) {
+        if (!A.ready() || o.cut) return;
+        if (o.fL) A.face(cx, fl.store(s, 'L', m), 'L', o.ox, o.oy, 0);
+        if (o.fR) A.face(cx, fl.store(s, 'R', m), 'R', o.ox, o.oy, 0);
+      };
+    }
+    var m = load0.apply(this, arguments);
+    if (fl) { A.dress(m, fl); A.fetch(m); }
+    return m;
+  };
+  ST.roofs = { U: { h: 30 } }; ST.store = ST.STORE; // (the stores' two storeys: 30 ft, the art's 240 px)
+  var off = function (m, s) { if (!s) return; m.props = m.props.filter(function (p) { return p.sq !== s || p.kind !== 'block'; }); };
+  A.dress = function (m, fl) {
+    m.props = m.props.filter(function (p) { return !p.skArt; });
+    var Y = SK.Y, sq = function (x, r) { return m.at(x, Y(r)); };
+    var lay = function (s, name, opt, d) { if (!s) return; m.props.push({ skArt: true, kind: 'sk', sq: s, depth: s.x + s.y + (d == null ? 0.5 : d), gz: s.gz, make: function () { return A.cell(name, opt) || A.blank(); } }); };
+    if (fl === ST) {
+      ST.OFF.forEach(function (q) { off(m, sq(q[0], q[1])); });
+      ST.THINGS.forEach(function (t) { // (each laid on its first square, anchored there; its depth the far end's, so what stands beside it sorts right; every square's code block let go)
+        var s = sq(t[1], t[2]), n = (SK.art.FOOT[t[0]] || [1, 1])[0]; for (var i = 0; i < n; i++) off(m, sq(t[1] + i, t[2]));
+        lay(s, t[0], Object.assign({ first: true }, t[3]), n > 1 ? n - 0.5 : 0.5); });
+      for (var x = SK.DAIS[0]; x <= SK.DAIS[2]; x++) for (var r = SK.DAIS[1]; r <= SK.DAIS[3]; r++) (function (s, nm) { if (s && s.open) m.props.push({ skArt: true, kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, make: function () { return A.cell(nm) || A.blank(); } }); })(sq(x, r), ST.dais(x, r));
+      if (m.isoFire) m.isoFire = m.isoFire.filter(function (q) { return !ST.BRAZIERS.some(function (b) { return q[0] === b[0] && q[1] === SK.Y(b[1]); }); }); // (the code's campfire in the brazier's square gives way: the brazier burns its own)
+      ST.BRAZIERS.forEach(function (q) { var s = sq(q[0], q[1]); if (!s) return; s.stands = 'a brazier';
+        m.props.push({ skArt: true, kind: 'sk', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, draw: function (ctx) {
+          var c = A.ready() && A.cell('brazier_lit_' + (1 + Math.floor(((typeof performance !== 'undefined' ? performance.now() : Date.now()) / 150 + s.x) % 4)), { lift: 8 }); if (!c) return;
+          var p = iso.center(s.x, s.y, s.gz), o = iso.toScreen(p.x, p.y); ctx.drawImage(c.canvas, Math.round(o.x - c.ax), Math.round(o.y - c.ay)); } }); });
+    }
+    if (fl.dress) fl.dress(m, sq, lay);
+    m.sorted = null;
+  };
+  // the sheets asked for as the floor is first laid; when they come, the floor painted again and every picture made again
+  A.fetch = function (m) {
+    if (!A.on || A.ready() || !D.spr || !D.spr.load || D.spr.offline) return;
+    Promise.all(A.SHEETS.map(function (k) { var sh = D.SHEETS && D.SHEETS[k]; return sh ? D.spr.load(sh.image) : null; })).then(function () {
+      if (iso.map !== m || !A.ready()) return;
+      m.rockImgs = {}; m.roofImgs = {}; m.props.forEach(function (p) { if (p.make) p.img = null; });
+      iso.rebake(m); m.sorted = null;
+    });
+  };
+})();

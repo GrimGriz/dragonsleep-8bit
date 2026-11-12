@@ -21606,6 +21606,1293 @@ true
 "source": "deep16/_src/skarn/ART-123-SKARN/ART-123-SKARN_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-SKARN, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:skarn"
 },
+"skcart_p1": {
+"_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-136-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+"image": "art/skcart_p1.png?v=f174f252f0",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 48,
+"prop": true,
+"anims": {},
+"tiles": {
+"floor_x_1": "0,0,64,32,32,0",
+"floor_x_2": "65,0,64,32,32,0",
+"floor_x_3": "130,0,64,32,32,0",
+"floor_x_4": "195,0,64,32,32,0",
+"floor_y_1": "260,0,64,32,32,0",
+"floor_y_2": "325,0,64,32,32,0",
+"floor_y_3": "390,0,64,32,32,0",
+"floor_y_4": "455,0,64,32,32,0",
+"floor_turn_xp_yp_1": "520,0,64,32,32,0",
+"floor_turn_xp_yp_2": "585,0,64,32,32,0",
+"floor_turn_xp_yp_3": "650,0,64,32,32,0",
+"floor_turn_xp_yp_4": "715,0,64,32,32,0",
+"floor_turn_xn_yp_1": "780,0,64,32,32,0",
+"floor_turn_xn_yp_2": "845,0,64,32,32,0",
+"floor_turn_xn_yp_3": "910,0,64,32,32,0",
+"floor_turn_xn_yp_4": "0,33,64,32,32,0",
+"floor_turn_xp_yn_1": "65,33,64,32,32,0",
+"floor_turn_xp_yn_2": "130,33,64,32,32,0",
+"floor_turn_xp_yn_3": "195,33,64,32,32,0",
+"floor_turn_xp_yn_4": "260,33,64,32,32,0",
+"floor_turn_xn_yn_1": "325,33,64,32,32,0",
+"floor_turn_xn_yn_2": "390,33,64,32,32,0",
+"floor_turn_xn_yn_3": "455,33,64,32,32,0",
+"floor_turn_xn_yn_4": "520,33,64,32,32,0",
+"floor_raw_1": "585,33,64,32,32,0",
+"floor_raw_2": "650,33,64,32,32,0",
+"floor_raw_3": "715,33,64,32,32,0",
+"floor_raw_4": "780,33,64,32,32,0",
+"cut_rock_plain_x": "845,33,33,137,0,120",
+"cut_rock_plain_x_stub": "879,33,40,32,0,15",
+"cut_rock_outer_x": "920,33,33,141,0,124",
+"cut_rock_outer_x_stub": "954,33,40,33,0,16",
+"cut_rock_inner_x": "0,175,33,141,0,120",
+"cut_rock_inner_x_stub": "34,175,40,36,0,15",
+"drum_straight_x": "75,175,33,137,0,120",
+"drum_straight_x_stub": "109,175,41,33,0,16",
+"drum_turn_xp_yp_x": "151,175,17,153,0,120",
+"drum_turn_xp_yp_x_stub": "169,175,17,45,0,12",
+"drum_turn_xp_yn_x": "187,175,65,121,0,120",
+"drum_turn_xp_yn_x_stub": "253,175,65,21,0,20",
+"drum_turn_xn_yn_x": "319,175,17,153,16,152",
+"drum_turn_xn_yn_x_stub": "337,175,17,45,16,44",
+"drum_turn_xn_yp_x": "355,175,65,121,64,120",
+"drum_turn_xn_yp_x_stub": "421,175,65,13,64,12",
+"cut_rock_plain_y": "487,175,33,137,32,120",
+"cut_rock_plain_y_stub": "521,175,40,32,39,15",
+"cut_rock_outer_y": "562,175,33,141,32,124",
+"cut_rock_outer_y_stub": "596,175,40,33,39,16",
+"cut_rock_inner_y": "637,175,33,141,32,120",
+"cut_rock_inner_y_stub": "671,175,40,36,39,15",
+"drum_straight_y": "712,175,33,137,32,120",
+"drum_straight_y_stub": "746,175,41,33,40,16",
+"drum_turn_xp_yp_y": "788,175,17,153,16,120",
+"drum_turn_xp_yp_y_stub": "806,175,17,45,16,12",
+"drum_turn_xp_yn_y": "824,175,65,121,64,120",
+"drum_turn_xp_yn_y_stub": "890,175,65,21,64,20",
+"drum_turn_xn_yn_y": "956,175,17,153,0,152",
+"drum_turn_xn_yn_y_stub": "974,175,17,45,0,44",
+"drum_turn_xn_yp_y": "0,329,65,121,0,120",
+"drum_turn_xn_yp_y_stub": "66,329,65,13,0,12",
+"hoist_trap_overhead": "132,329,49,57,24,116",
+"forge_cold": "182,329,89,110,26,64",
+"forge_fire_01": "272,329,89,110,26,64",
+"forge_fire_02": "362,329,89,110,26,64",
+"forge_fire_03": "452,329,89,110,26,64",
+"forge_fire_04": "542,329,89,110,26,64",
+"forge_fire_05": "632,329,89,110,26,64",
+"forge_fire_06": "722,329,89,110,26,64",
+"anvil": "812,329,33,45,15,20",
+"armory_rack_x": "846,329,37,138,5,120",
+"armory_rack_x_stub": "884,329,47,35,5,17",
+"armory_rack_y": "932,329,38,138,32,120",
+"armory_rack_y_stub": "971,329,48,35,42,17",
+"cold_furnace": "0,468,51,59,25,28",
+"cupel_hearth": "52,468,46,27,22,-1",
+"dead_lift_well": "99,468,129,68,64,3",
+"dead_lift_rear": "229,468,71,103,10,69",
+"dead_lift_near": "301,468,117,123,59,64",
+"mint_sealed_x": "419,468,34,135,0,120",
+"mint_sealed_x_stub": "454,468,42,32,0,17",
+"mint_sealed_y": "497,468,33,135,33,120",
+"mint_sealed_y_stub": "531,468,42,32,42,17",
+"treasury_open_x": "574,468,32,135,0,120",
+"treasury_open_x_stub": "607,468,42,32,0,17",
+"treasury_open_y": "650,468,32,135,32,120",
+"treasury_open_y_stub": "683,468,42,32,42,17",
+"hand_cart_x_empty": "726,468,79,47,22,12",
+"hand_cart_x_loaded": "806,468,79,53,22,18",
+"hand_cart_y_empty": "886,468,79,47,56,12",
+"hand_cart_y_loaded": "0,604,79,53,56,18",
+"crate_low": "80,604,42,35,20,8",
+"crate_tall": "123,604,47,45,23,17",
+"barrel": "171,604,25,30,11,9",
+"highway_gate_x_down": "197,604,138,190,9,120",
+"highway_gate_x_raised": "336,604,138,190,9,120",
+"ledger_lamp_rack_x": "475,604,37,135,5,120",
+"ledger_lamp_rack_x_stub": "513,604,42,32,0,17",
+"ledger_lamp_rack_y": "556,604,38,135,32,120",
+"ledger_lamp_rack_y_stub": "595,604,42,32,42,17",
+"trade_hall_boarded_x": "638,604,33,137,1,120",
+"trade_hall_boarded_x_stub": "672,604,42,34,0,17",
+"trade_hall_boarded_y": "715,604,34,137,32,120",
+"trade_hall_boarded_y_stub": "750,604,42,34,42,17",
+"shroom_bed_1": "793,604,64,38,32,6",
+"shroom_bed_2": "858,604,64,38,32,6",
+"shroom_bed_3": "923,604,64,38,32,6"
+},
+"cells": {
+"floor_x_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-X-1",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"floor_x_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-X-2",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"floor_x_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-X-3",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"floor_x_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-X-4",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"floor_y_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-Y-1",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"floor_y_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-Y-2",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"floor_y_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-Y-3",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"floor_y_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-Y-4",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yp_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YP-1",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yp_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YP-2",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yp_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YP-3",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yp_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YP-4",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yp_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YP-1",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yp_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YP-2",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yp_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YP-3",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yp_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YP-4",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yn_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YN-1",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yn_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YN-2",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yn_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YN-3",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xp_yn_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XP-YN-4",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yn_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YN-1",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yn_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YN-2",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yn_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YN-3",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN",
+"wall": null,
+"geometry": null
+},
+"floor_turn_xn_yn_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-TURN-XN-YN-4",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN",
+"wall": null,
+"geometry": null
+},
+"floor_raw_1": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-RAW-1",
+"foot": [
+1,
+1
+],
+"facing": "RAW",
+"wall": null,
+"geometry": null
+},
+"floor_raw_2": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-RAW-2",
+"foot": [
+1,
+1
+],
+"facing": "RAW",
+"wall": null,
+"geometry": null
+},
+"floor_raw_3": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-RAW-3",
+"foot": [
+1,
+1
+],
+"facing": "RAW",
+"wall": null,
+"geometry": null
+},
+"floor_raw_4": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "FLOOR-RAW-4",
+"foot": [
+1,
+1
+],
+"facing": "RAW",
+"wall": null,
+"geometry": null
+},
+"cut_rock_plain_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-PLAIN-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"cut_rock_plain_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-PLAIN-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"cut_rock_outer_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-OUTER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"cut_rock_outer_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-OUTER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"cut_rock_inner_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-INNER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"cut_rock_inner_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-INNER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"drum_straight_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-STRAIGHT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"drum_straight_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-STRAIGHT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yp_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YP-X",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yp_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YP-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yn_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YN-X",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yn_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YN-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yn_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YN-X",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yn_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YN-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yp_x": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YP-X",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yp_x_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YP-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP \u00b7 X local axes",
+"wall": null,
+"geometry": null
+},
+"cut_rock_plain_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-PLAIN-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cut_rock_plain_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-PLAIN-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cut_rock_outer_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-OUTER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cut_rock_outer_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-OUTER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cut_rock_inner_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-INNER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cut_rock_inner_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "CUT-ROCK-INNER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"drum_straight_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-STRAIGHT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"drum_straight_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-STRAIGHT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yp_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YP-Y",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yp_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YP-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YP \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yn_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YN-Y",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xp_yn_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XP-YN-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XP-YN \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yn_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YN-Y",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yn_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YN-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YN \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yp_y": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YP-Y",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"drum_turn_xn_yp_y_stub": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "DRUM-TURN-XN-YP-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "TURN-XN-YP \u00b7 Y local axes",
+"wall": null,
+"geometry": null
+},
+"hoist_trap_overhead": {
+"page": "PAGE-01-ROAD-AND-DRUM",
+"id": "HOIST-TRAP-OVERHEAD",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_cold": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-COLD",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_01": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-01",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_02": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-02",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_03": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-03",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_04": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-04",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_05": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-05",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"forge_fire_06": {
+"page": "PAGE-02-THE-WORKS",
+"id": "FORGE-FIRE-06",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"anvil": {
+"page": "PAGE-02-THE-WORKS",
+"id": "ANVIL",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"armory_rack_x": {
+"page": "PAGE-02-THE-WORKS",
+"id": "ARMORY-RACK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"armory_rack_x_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "ARMORY-RACK-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"armory_rack_y": {
+"page": "PAGE-02-THE-WORKS",
+"id": "ARMORY-RACK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"armory_rack_y_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "ARMORY-RACK-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"cold_furnace": {
+"page": "PAGE-02-THE-WORKS",
+"id": "COLD-FURNACE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"cupel_hearth": {
+"page": "PAGE-02-THE-WORKS",
+"id": "CUPEL-HEARTH",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"dead_lift_well": {
+"page": "PAGE-02-THE-WORKS",
+"id": "DEAD-LIFT-WELL",
+"foot": [
+2,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"dead_lift_rear": {
+"page": "PAGE-02-THE-WORKS",
+"id": "DEAD-LIFT-REAR",
+"foot": [
+2,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"dead_lift_near": {
+"page": "PAGE-02-THE-WORKS",
+"id": "DEAD-LIFT-NEAR",
+"foot": [
+2,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"mint_sealed_x": {
+"page": "PAGE-02-THE-WORKS",
+"id": "MINT-SEALED-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"mint_sealed_x_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "MINT-SEALED-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"mint_sealed_y": {
+"page": "PAGE-02-THE-WORKS",
+"id": "MINT-SEALED-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"mint_sealed_y_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "MINT-SEALED-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"treasury_open_x": {
+"page": "PAGE-02-THE-WORKS",
+"id": "TREASURY-OPEN-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"treasury_open_x_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "TREASURY-OPEN-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"treasury_open_y": {
+"page": "PAGE-02-THE-WORKS",
+"id": "TREASURY-OPEN-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"treasury_open_y_stub": {
+"page": "PAGE-02-THE-WORKS",
+"id": "TREASURY-OPEN-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hand_cart_x_empty": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HAND-CART-X-EMPTY",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"hand_cart_x_loaded": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HAND-CART-X-LOADED",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"hand_cart_y_empty": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HAND-CART-Y-EMPTY",
+"foot": [
+1,
+2
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"hand_cart_y_loaded": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HAND-CART-Y-LOADED",
+"foot": [
+1,
+2
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"crate_low": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "CRATE-LOW",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"crate_tall": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "CRATE-TALL",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"barrel": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "BARREL",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"highway_gate_x_down": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HIGHWAY-GATE-X-DOWN",
+"foot": [
+4,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"highway_gate_x_raised": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "HIGHWAY-GATE-X-RAISED",
+"foot": [
+4,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ledger_lamp_rack_x": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "LEDGER-LAMP-RACK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ledger_lamp_rack_x_stub": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "LEDGER-LAMP-RACK-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ledger_lamp_rack_y": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "LEDGER-LAMP-RACK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ledger_lamp_rack_y_stub": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "LEDGER-LAMP-RACK-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"trade_hall_boarded_x": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "TRADE-HALL-BOARDED-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"trade_hall_boarded_x_stub": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "TRADE-HALL-BOARDED-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"trade_hall_boarded_y": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "TRADE-HALL-BOARDED-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"trade_hall_boarded_y_stub": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "TRADE-HALL-BOARDED-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"shroom_bed_1": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "SHROOM-BED-1",
+"foot": [
+1,
+1
+],
+"facing": "floor overlay",
+"wall": null,
+"geometry": null
+},
+"shroom_bed_2": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "SHROOM-BED-2",
+"foot": [
+1,
+1
+],
+"facing": "floor overlay",
+"wall": null,
+"geometry": null
+},
+"shroom_bed_3": {
+"page": "PAGE-03-HAND-CART-AND-GATE",
+"id": "SHROOM-BED-3",
+"foot": [
+1,
+1
+],
+"facing": "floor overlay",
+"wall": null,
+"geometry": null
+}
+},
+"source": "generated by the art desk (2026-11-11, ART-136-SOLSKAFT: deep16/_src/ART-136-SOLSKAFT), cut by tools/solskaft-sheet.py"
+},
 "skeleton_p1": {
 "image": "art/skeleton_p1.png?v=34ba1eeb45",
 "fw": 96,
@@ -21642,6 +22929,3978 @@ true
 "fps": 12
 }
 }
+},
+"skfun_p1": {
+"_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-137-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+"image": "art/skfun_p1.png?v=6e1b6e8cd8",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 48,
+"prop": true,
+"anims": {},
+"tiles": {
+"niche_sealed_x": "0,0,33,77,0,60",
+"niche_sealed_x_stub": "34,0,39,32,0,15",
+"niche_patron_x": "74,0,33,77,0,60",
+"niche_patron_x_stub": "108,0,39,32,0,15",
+"niche_gear_shield_x": "148,0,33,77,0,60",
+"niche_gear_shield_x_stub": "182,0,39,32,0,15",
+"niche_gear_hammer_x": "222,0,33,77,0,60",
+"niche_gear_hammer_x_stub": "256,0,39,32,0,15",
+"niche_pried_x": "296,0,33,78,0,60",
+"niche_pried_x_stub": "330,0,39,32,0,15",
+"niche_awaits_x": "370,0,33,77,0,60",
+"niche_awaits_x_stub": "404,0,39,32,0,15",
+"niche_blank_x": "444,0,33,77,0,60",
+"niche_blank_x_stub": "478,0,39,32,0,15",
+"tier_edge_x": "518,0,33,29,0,0",
+"niche_sealed_y": "552,0,33,77,32,60",
+"niche_sealed_y_stub": "586,0,39,32,38,15",
+"niche_patron_y": "626,0,33,77,32,60",
+"niche_patron_y_stub": "660,0,39,32,38,15",
+"niche_gear_shield_y": "700,0,33,77,32,60",
+"niche_gear_shield_y_stub": "734,0,39,32,38,15",
+"niche_gear_hammer_y": "774,0,33,77,32,60",
+"niche_gear_hammer_y_stub": "808,0,39,32,38,15",
+"niche_pried_y": "848,0,33,78,32,60",
+"niche_pried_y_stub": "882,0,39,32,38,15",
+"niche_awaits_y": "922,0,33,77,32,60",
+"niche_awaits_y_stub": "956,0,39,32,38,15",
+"niche_blank_y": "0,79,33,77,32,60",
+"niche_blank_y_stub": "34,79,39,32,38,15",
+"tier_edge_y": "74,79,33,29,32,0",
+"name_wall_x_repeat": "108,79,32,135,0,120",
+"name_wall_x_repeat_stub": "141,79,42,32,0,17",
+"name_wall_x_short_row": "184,79,32,135,0,120",
+"name_wall_x_short_row_stub": "217,79,42,32,0,17",
+"parapet_x_head": "260,79,39,43,0,26",
+"parapet_x_head_stub": "300,79,39,32,0,15",
+"parapet_x_middle": "340,79,39,55,0,26",
+"parapet_x_middle_stub": "380,79,39,44,0,15",
+"parapet_x_foot": "420,79,39,55,0,26",
+"parapet_x_foot_stub": "460,79,39,44,0,15",
+"name_wall_y_repeat": "500,79,32,135,32,120",
+"name_wall_y_repeat_stub": "533,79,42,32,42,17",
+"name_wall_y_short_row": "576,79,32,135,32,120",
+"name_wall_y_short_row_stub": "609,79,42,32,42,17",
+"parapet_y_head": "652,79,39,43,38,26",
+"parapet_y_head_stub": "692,79,39,32,38,15",
+"parapet_y_middle": "732,79,39,55,38,26",
+"parapet_y_middle_stub": "772,79,39,44,38,15",
+"parapet_y_foot": "812,79,39,55,38,26",
+"parapet_y_foot_stub": "852,79,39,44,38,15",
+"bier_x": "892,79,82,59,24,15",
+"kept_lamp_01": "975,79,32,54,16,29",
+"kept_lamp_02": "0,215,32,54,16,29",
+"kept_lamp_03": "33,215,32,54,16,29",
+"kept_lamp_04": "66,215,32,54,16,29",
+"kneeling_stone": "99,215,46,27,22,-1",
+"grave_anvil": "146,215,41,46,20,18",
+"chapel_ledger_stone": "188,215,44,62,21,33",
+"dormants_cut_x": "233,215,32,135,0,120",
+"dormants_cut_x_stub": "266,215,42,32,0,17",
+"warranted_seal_whole_x": "309,215,32,135,0,120",
+"warranted_seal_whole_x_stub": "342,215,42,32,0,17",
+"warranted_seal_cut_x": "385,215,32,135,0,120",
+"warranted_seal_cut_x_stub": "418,215,42,32,0,17",
+"flooded_stair_cut_seal_x": "461,215,44,141,0,120",
+"flooded_stair_cut_seal_x_stub": "506,215,44,38,0,17",
+"grille_x": "551,215,32,135,0,120",
+"grille_x_stub": "584,215,42,32,0,17",
+"dormants_cut_y": "627,215,32,135,32,120",
+"dormants_cut_y_stub": "660,215,42,32,42,17",
+"warranted_seal_whole_y": "703,215,32,135,32,120",
+"warranted_seal_whole_y_stub": "736,215,42,32,42,17",
+"warranted_seal_cut_y": "779,215,32,135,32,120",
+"warranted_seal_cut_y_stub": "812,215,42,32,42,17",
+"flooded_stair_cut_seal_y": "855,215,43,141,43,120",
+"flooded_stair_cut_seal_y_stub": "899,215,43,38,43,17",
+"grille_y": "943,215,32,135,32,120",
+"grille_y_stub": "976,215,42,32,42,17"
+},
+"cells": {
+"niche_sealed_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-SEALED-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_sealed_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-SEALED-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_patron_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PATRON-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_patron_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PATRON-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_gear_shield_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-SHIELD-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_gear_shield_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-SHIELD-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_gear_hammer_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-HAMMER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_gear_hammer_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-HAMMER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_pried_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PRIED-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_pried_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PRIED-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_awaits_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-AWAITS-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_awaits_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-AWAITS-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_blank_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-BLANK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_blank_x_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-BLANK-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"tier_edge_x": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "TIER-EDGE-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"niche_sealed_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-SEALED-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_sealed_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-SEALED-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_patron_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PATRON-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_patron_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PATRON-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_gear_shield_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-SHIELD-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_gear_shield_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-SHIELD-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_gear_hammer_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-HAMMER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_gear_hammer_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-GEAR-HAMMER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_pried_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PRIED-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_pried_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-PRIED-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_awaits_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-AWAITS-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_awaits_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-AWAITS-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_blank_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-BLANK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"niche_blank_y_stub": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "NICHE-BLANK-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"tier_edge_y": {
+"page": "PAGE-01-NICHE-WALLS",
+"id": "TIER-EDGE-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"name_wall_x_repeat": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-X-REPEAT",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"name_wall_x_repeat_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-X-REPEAT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"name_wall_x_short_row": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-X-SHORT-ROW",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"name_wall_x_short_row_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-X-SHORT-ROW-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_head": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_head_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_middle": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_middle_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_foot": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"parapet_x_foot_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-X-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"name_wall_y_repeat": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-Y-REPEAT",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"name_wall_y_repeat_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-Y-REPEAT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"name_wall_y_short_row": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-Y-SHORT-ROW",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"name_wall_y_short_row_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "NAME-WALL-Y-SHORT-ROW-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_head": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_head_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_middle": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_middle_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_foot": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"parapet_y_foot_stub": {
+"page": "PAGE-02-NAME-WALL",
+"id": "PARAPET-Y-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"bier_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "BIER-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"kept_lamp_01": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "KEPT-LAMP-01",
+"foot": [
+1,
+1
+],
+"facing": "freestanding",
+"wall": null,
+"geometry": null
+},
+"kept_lamp_02": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "KEPT-LAMP-02",
+"foot": [
+1,
+1
+],
+"facing": "freestanding",
+"wall": null,
+"geometry": null
+},
+"kept_lamp_03": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "KEPT-LAMP-03",
+"foot": [
+1,
+1
+],
+"facing": "freestanding",
+"wall": null,
+"geometry": null
+},
+"kept_lamp_04": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "KEPT-LAMP-04",
+"foot": [
+1,
+1
+],
+"facing": "freestanding",
+"wall": null,
+"geometry": null
+},
+"kneeling_stone": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "KNEELING-STONE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"grave_anvil": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "GRAVE-ANVIL",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"chapel_ledger_stone": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "CHAPEL-LEDGER-STONE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"dormants_cut_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "DORMANTS-CUT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"dormants_cut_x_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "DORMANTS-CUT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_whole_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-WHOLE-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_whole_x_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-WHOLE-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_cut_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-CUT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_cut_x_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-CUT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"flooded_stair_cut_seal_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "FLOODED-STAIR-CUT-SEAL-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"flooded_stair_cut_seal_x_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "FLOODED-STAIR-CUT-SEAL-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"grille_x": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "GRILLE-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"grille_x_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "GRILLE-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"dormants_cut_y": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "DORMANTS-CUT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"dormants_cut_y_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "DORMANTS-CUT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_whole_y": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-WHOLE-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_whole_y_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-WHOLE-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_cut_y": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-CUT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"warranted_seal_cut_y_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "WARRANTED-SEAL-CUT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"flooded_stair_cut_seal_y": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "FLOODED-STAIR-CUT-SEAL-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"flooded_stair_cut_seal_y_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "FLOODED-STAIR-CUT-SEAL-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"grille_y": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "GRILLE-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"grille_y_stub": {
+"page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+"id": "GRILLE-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+}
+},
+"source": "generated by the art desk (2026-11-11, ART-137-SOLSKAFT: deep16/_src/ART-137-SOLSKAFT), cut by tools/solskaft-sheet.py"
+},
+"sklodge_p1": {
+"_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-138-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+"image": "art/sklodge_p1.png?v=ee7d4c5b2d",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 48,
+"prop": true,
+"anims": {},
+"tiles": {
+"hearth_x_cold": "0,0,41,142,9,120",
+"hearth_x_lit_01": "42,0,41,142,9,120",
+"hearth_x_lit_02": "84,0,41,142,9,120",
+"hearth_x_lit_03": "126,0,41,142,9,120",
+"hearth_x_lit_04": "168,0,41,142,9,120",
+"hearth_x_cold_stub": "210,0,51,39,9,17",
+"hearth_x_lit_01_stub": "262,0,51,39,9,17",
+"hearth_x_lit_02_stub": "314,0,51,39,9,17",
+"hearth_x_lit_03_stub": "366,0,51,39,9,17",
+"hearth_x_lit_04_stub": "418,0,51,39,9,17",
+"hearth_y_cold": "470,0,42,142,32,120",
+"hearth_y_lit_01": "513,0,42,142,32,120",
+"hearth_y_lit_02": "556,0,42,142,32,120",
+"hearth_y_lit_03": "599,0,42,142,32,120",
+"hearth_y_lit_04": "642,0,42,142,32,120",
+"hearth_y_cold_stub": "685,0,52,39,42,17",
+"hearth_y_lit_01_stub": "738,0,52,39,42,17",
+"hearth_y_lit_02_stub": "791,0,52,39,42,17",
+"hearth_y_lit_03_stub": "844,0,52,39,42,17",
+"hearth_y_lit_04_stub": "897,0,52,39,42,17",
+"table": "950,0,54,48,27,21",
+"stool_square": "0,143,33,28,17,5",
+"stool_round": "34,143,21,24,10,3",
+"cot_x": "56,143,82,56,25,11",
+"bed_x": "139,143,82,68,25,23",
+"chest": "222,143,46,40,22,12",
+"crockery_shelf_x": "269,143,39,135,7,120",
+"crockery_shelf_x_stub": "309,143,42,32,0,17",
+"crockery_shelf_y": "352,143,40,135,32,120",
+"crockery_shelf_y_stub": "393,143,42,32,42,17",
+"window_x_dark": "436,143,37,135,5,120",
+"window_x_lit": "474,143,37,135,5,120",
+"window_x_dark_stub": "512,143,42,32,0,17",
+"window_x_lit_stub": "555,143,42,32,0,17",
+"window_y_dark": "598,143,38,135,32,120",
+"window_y_lit": "637,143,38,135,32,120",
+"window_y_dark_stub": "676,143,42,32,42,17",
+"window_y_lit_stub": "719,143,42,32,42,17",
+"narrow_door_x": "762,143,32,136,0,120",
+"narrow_door_x_stub": "795,143,42,32,0,17",
+"narrow_door_y": "838,143,32,136,32,120",
+"narrow_door_y_stub": "871,143,42,32,42,17",
+"stair_head_x": "914,143,64,48,32,16",
+"stair_head_y": "0,280,64,48,32,16"
+},
+"cells": {
+"hearth_x_cold": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-COLD",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_01": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-01",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_02": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-02",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_03": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-03",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_04": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-04",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_cold_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-COLD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_01_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-01-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_02_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-02-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_03_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-03-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_x_lit_04_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-X-LIT-04-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"hearth_y_cold": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-COLD",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_01": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-01",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_02": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-02",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_03": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-03",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_04": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-04",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_cold_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-COLD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_01_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-01-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_02_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-02-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_03_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-03-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"hearth_y_lit_04_stub": {
+"page": "PAGE-01-LODGING",
+"id": "HEARTH-Y-LIT-04-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"table": {
+"page": "PAGE-01-LODGING",
+"id": "TABLE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"stool_square": {
+"page": "PAGE-01-LODGING",
+"id": "STOOL-SQUARE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"stool_round": {
+"page": "PAGE-01-LODGING",
+"id": "STOOL-ROUND",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"cot_x": {
+"page": "PAGE-01-LODGING",
+"id": "COT-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"bed_x": {
+"page": "PAGE-01-LODGING",
+"id": "BED-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"chest": {
+"page": "PAGE-01-LODGING",
+"id": "CHEST",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"crockery_shelf_x": {
+"page": "PAGE-01-LODGING",
+"id": "CROCKERY-SHELF-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"crockery_shelf_x_stub": {
+"page": "PAGE-01-LODGING",
+"id": "CROCKERY-SHELF-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"crockery_shelf_y": {
+"page": "PAGE-01-LODGING",
+"id": "CROCKERY-SHELF-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"crockery_shelf_y_stub": {
+"page": "PAGE-01-LODGING",
+"id": "CROCKERY-SHELF-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"window_x_dark": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-X-DARK",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"window_x_lit": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-X-LIT",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"window_x_dark_stub": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-X-DARK-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"window_x_lit_stub": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-X-LIT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"window_y_dark": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-Y-DARK",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"window_y_lit": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-Y-LIT",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"window_y_dark_stub": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-Y-DARK-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"window_y_lit_stub": {
+"page": "PAGE-01-LODGING",
+"id": "WINDOW-Y-LIT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"narrow_door_x": {
+"page": "PAGE-01-LODGING",
+"id": "NARROW-DOOR-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"narrow_door_x_stub": {
+"page": "PAGE-01-LODGING",
+"id": "NARROW-DOOR-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"narrow_door_y": {
+"page": "PAGE-01-LODGING",
+"id": "NARROW-DOOR-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"narrow_door_y_stub": {
+"page": "PAGE-01-LODGING",
+"id": "NARROW-DOOR-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"stair_head_x": {
+"page": "PAGE-01-LODGING",
+"id": "STAIR-HEAD-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"stair_head_y": {
+"page": "PAGE-01-LODGING",
+"id": "STAIR-HEAD-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+}
+},
+"source": "generated by the art desk (2026-11-11, ART-138-SOLSKAFT: deep16/_src/ART-138-SOLSKAFT), cut by tools/solskaft-sheet.py"
+},
+"skstone_p1": {
+"_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-134-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+"image": "art/skstone_p1.png?v=04e8ce957d",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 48,
+"prop": true,
+"anims": {},
+"tiles": {
+"flags_1": "0,0,64,32,32,0",
+"flags_2": "65,0,64,32,32,0",
+"flags_3": "130,0,64,32,32,0",
+"flags_4": "195,0,64,32,32,0",
+"worn_x_1": "260,0,64,32,32,0",
+"worn_x_2": "325,0,64,32,32,0",
+"worn_x_3": "390,0,64,32,32,0",
+"worn_x_4": "455,0,64,32,32,0",
+"worn_y_1": "520,0,64,32,32,0",
+"worn_y_2": "585,0,64,32,32,0",
+"worn_y_3": "650,0,64,32,32,0",
+"worn_y_4": "715,0,64,32,32,0",
+"edge_x_1": "780,0,64,32,32,0",
+"edge_x_2": "845,0,64,32,32,0",
+"edge_x_3": "910,0,64,32,32,0",
+"edge_x_4": "0,33,64,32,32,0",
+"edge_y_1": "65,33,64,32,32,0",
+"edge_y_2": "130,33,64,32,32,0",
+"edge_y_3": "195,33,64,32,32,0",
+"edge_y_4": "260,33,64,32,32,0",
+"plain_x": "325,33,32,136,0,120",
+"plain_x_stub": "358,33,43,39,0,23",
+"wall_lamp_unlit_x": "402,33,32,136,0,120",
+"wall_lamp_unlit_x_stub": "435,33,43,39,0,23",
+"wall_lamp_lit_x": "479,33,32,136,0,120",
+"wall_lamp_lit_x_stub": "512,33,43,39,0,23",
+"outer_corner_x": "556,33,32,136,0,120",
+"outer_corner_x_stub": "589,33,43,39,0,23",
+"inner_corner_x": "633,33,32,136,0,120",
+"inner_corner_x_stub": "666,33,43,39,0,23",
+"arch_left_x": "710,33,32,136,0,120",
+"arch_left_x_stub": "743,33,43,39,0,23",
+"arch_left_soffit_x": "787,33,64,152,0,120",
+"arch_middle_x": "852,33,32,136,0,120",
+"arch_middle_x_stub": "885,33,43,39,0,23",
+"arch_middle_soffit_x": "929,33,64,152,0,120",
+"arch_right_x": "0,186,32,136,0,120",
+"arch_right_x_stub": "33,186,43,39,0,23",
+"arch_right_soffit_x": "77,186,64,152,0,120",
+"plain_y": "142,186,32,136,32,120",
+"plain_y_stub": "175,186,43,39,43,23",
+"wall_lamp_unlit_y": "219,186,32,136,32,120",
+"wall_lamp_unlit_y_stub": "252,186,43,39,43,23",
+"wall_lamp_lit_y": "296,186,32,136,32,120",
+"wall_lamp_lit_y_stub": "329,186,43,39,43,23",
+"outer_corner_y": "373,186,32,136,32,120",
+"outer_corner_y_stub": "406,186,43,39,43,23",
+"inner_corner_y": "450,186,32,136,32,120",
+"inner_corner_y_stub": "483,186,43,39,43,23",
+"arch_left_y": "527,186,32,136,32,120",
+"arch_left_y_stub": "560,186,43,39,43,23",
+"arch_left_soffit_y": "604,186,64,152,64,120",
+"arch_middle_y": "669,186,32,136,32,120",
+"arch_middle_y_stub": "702,186,43,39,43,23",
+"arch_middle_soffit_y": "746,186,64,152,64,120",
+"arch_right_y": "811,186,32,136,32,120",
+"arch_right_y_stub": "844,186,43,39,43,23",
+"arch_right_soffit_y": "888,186,64,152,64,120",
+"store_shut_x": "953,186,32,256,0,240",
+"store_shut_x_stub": "0,443,43,39,0,23",
+"window_dark_x": "44,443,32,256,0,240",
+"window_dark_x_stub": "77,443,43,39,0,23",
+"window_lit_x": "121,443,32,256,0,240",
+"window_lit_x_stub": "154,443,43,39,0,23",
+"lodging_door_x": "198,443,32,256,0,240",
+"lodging_door_x_stub": "231,443,43,39,0,23",
+"plain_tall_x": "275,443,32,256,0,240",
+"plain_tall_x_stub": "308,443,43,39,0,23",
+"tall_corner_x": "352,443,32,256,0,240",
+"tall_corner_x_stub": "385,443,43,39,0,23",
+"parapet_x": "429,443,32,256,0,240",
+"parapet_x_stub": "462,443,43,39,0,23",
+"parapet_cap_x": "506,443,32,34,0,0",
+"store_shut_y": "539,443,32,256,32,240",
+"store_shut_y_stub": "572,443,43,39,43,23",
+"window_dark_y": "616,443,32,256,32,240",
+"window_dark_y_stub": "649,443,43,39,43,23",
+"window_lit_y": "693,443,32,256,32,240",
+"window_lit_y_stub": "726,443,43,39,43,23",
+"lodging_door_y": "770,443,32,256,32,240",
+"lodging_door_y_stub": "803,443,43,39,43,23",
+"plain_tall_y": "847,443,32,256,32,240",
+"plain_tall_y_stub": "880,443,43,39,43,23",
+"tall_corner_y": "924,443,32,256,32,240",
+"tall_corner_y_stub": "957,443,43,39,43,23",
+"parapet_y": "0,700,32,256,32,240",
+"parapet_y_stub": "33,700,43,39,43,23",
+"parapet_cap_y": "77,700,32,34,32,0",
+"store_shut_with_window_dark_x": "110,700,32,256,0,240",
+"store_shut_with_window_lit_x": "143,700,32,256,0,240",
+"lodging_door_with_window_dark_x": "176,700,32,256,0,240",
+"lodging_door_with_window_lit_x": "209,700,32,256,0,240",
+"store_shut_with_window_dark_y": "242,700,32,256,32,240",
+"store_shut_with_window_lit_y": "275,700,32,256,32,240",
+"lodging_door_with_window_dark_y": "308,700,32,256,32,240",
+"lodging_door_with_window_lit_y": "341,700,32,256,32,240",
+"oak_door_x": "374,700,32,136,0,120",
+"oak_door_x_stub": "407,700,43,39,0,23",
+"barred_door_x": "451,700,32,136,0,120",
+"barred_door_x_stub": "484,700,43,39,0,23",
+"throne_double_open_x": "528,700,92,152,0,120",
+"throne_double_open_x_stub": "621,700,75,55,0,23",
+"vault_open_x": "697,700,92,152,0,120",
+"vault_open_x_stub": "790,700,75,55,0,23",
+"oak_door_y": "866,700,32,136,32,120",
+"oak_door_y_stub": "899,700,43,39,43,23",
+"barred_door_y": "943,700,32,136,32,120",
+"barred_door_y_stub": "976,700,43,39,43,23",
+"throne_double_open_y": "0,957,92,152,92,120",
+"throne_double_open_y_stub": "93,957,75,55,75,23",
+"vault_open_y": "169,957,92,152,92,120",
+"vault_open_y_stub": "262,957,75,55,75,23",
+"oathstone": "338,957,85,73,26,27",
+"throne": "424,957,86,99,26,53",
+"dais_centre": "511,957,65,41,32,8",
+"dais_n": "577,957,64,37,32,4",
+"dais_e": "642,957,64,40,32,8",
+"dais_s": "707,957,64,40,31,8",
+"dais_w": "772,957,64,37,31,4",
+"dais_ne": "837,957,62,36,32,4",
+"dais_se": "900,957,63,40,31,8",
+"dais_sw": "0,1110,62,36,29,4",
+"dais_nw": "63,1110,63,36,31,3",
+"brazier_unlit": "127,1110,33,39,16,17",
+"brazier_lit_1": "161,1110,33,39,16,17",
+"brazier_lit_2": "195,1110,33,39,16,17",
+"brazier_lit_3": "229,1110,33,39,16,17",
+"brazier_lit_4": "263,1110,33,39,16,17",
+"rekknar_ledger_stone": "297,1110,42,68,21,41",
+"dormant_cut_x": "340,1110,32,136,0,120",
+"dormant_cut_x_stub": "373,1110,43,39,0,23",
+"dormant_cut_y": "417,1110,32,136,32,120",
+"dormant_cut_y_stub": "450,1110,43,39,43,23",
+"temple_lamp_unlit": "494,1110,15,51,7,31",
+"temple_lamp_lit": "510,1110,15,51,7,31",
+"kneeling_bench_x": "526,1110,40,36,20,11",
+"kneeling_bench_y": "567,1110,40,36,19,11"
+},
+"cells": {
+"flags_1": {
+"page": "PAGE-01-FLOORS",
+"id": "FLAGS-1",
+"foot": [
+1,
+1
+],
+"facing": "none",
+"wall": null,
+"geometry": null
+},
+"flags_2": {
+"page": "PAGE-01-FLOORS",
+"id": "FLAGS-2",
+"foot": [
+1,
+1
+],
+"facing": "none",
+"wall": null,
+"geometry": null
+},
+"flags_3": {
+"page": "PAGE-01-FLOORS",
+"id": "FLAGS-3",
+"foot": [
+1,
+1
+],
+"facing": "none",
+"wall": null,
+"geometry": null
+},
+"flags_4": {
+"page": "PAGE-01-FLOORS",
+"id": "FLAGS-4",
+"foot": [
+1,
+1
+],
+"facing": "none",
+"wall": null,
+"geometry": null
+},
+"worn_x_1": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-X-1",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"worn_x_2": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-X-2",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"worn_x_3": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-X-3",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"worn_x_4": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-X-4",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"worn_y_1": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-Y-1",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"worn_y_2": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-Y-2",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"worn_y_3": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-Y-3",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"worn_y_4": {
+"page": "PAGE-01-FLOORS",
+"id": "WORN-Y-4",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"edge_x_1": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-X-1",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"edge_x_2": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-X-2",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"edge_x_3": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-X-3",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"edge_x_4": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-X-4",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"edge_y_1": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-Y-1",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"edge_y_2": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-Y-2",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"edge_y_3": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-Y-3",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"edge_y_4": {
+"page": "PAGE-01-FLOORS",
+"id": "EDGE-Y-4",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+},
+"plain_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "PLAIN-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"plain_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "PLAIN-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"wall_lamp_unlit_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-UNLIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"wall_lamp_unlit_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-UNLIT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"wall_lamp_lit_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-LIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"wall_lamp_lit_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-LIT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"outer_corner_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "OUTER-CORNER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"outer_corner_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "OUTER-CORNER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"inner_corner_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "INNER-CORNER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"inner_corner_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "INNER-CORNER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"arch_left_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"arch_left_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"arch_left_soffit_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-SOFFIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"arch_middle_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"arch_middle_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"arch_middle_soffit_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-SOFFIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"arch_right_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"arch_right_x_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"arch_right_soffit_x": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-SOFFIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"plain_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "PLAIN-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"plain_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "PLAIN-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"wall_lamp_unlit_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-UNLIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"wall_lamp_unlit_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-UNLIT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"wall_lamp_lit_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-LIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"wall_lamp_lit_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "WALL-LAMP-LIT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"outer_corner_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "OUTER-CORNER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"outer_corner_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "OUTER-CORNER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"inner_corner_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "INNER-CORNER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"inner_corner_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "INNER-CORNER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"arch_left_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"arch_left_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"arch_left_soffit_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-LEFT-SOFFIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"arch_middle_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"arch_middle_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"arch_middle_soffit_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-MIDDLE-SOFFIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"arch_right_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"arch_right_y_stub": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"arch_right_soffit_y": {
+"page": "PAGE-02-ONE-STOREY-WALLS",
+"id": "ARCH-RIGHT-SOFFIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": "wall-depth overlay"
+},
+"store_shut_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"store_shut_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"window_dark_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-DARK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"window_dark_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-DARK-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"window_lit_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-LIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"window_lit_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-LIT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"lodging_door_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"lodging_door_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"plain_tall_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PLAIN-TALL-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"plain_tall_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PLAIN-TALL-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"tall_corner_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "TALL-CORNER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"tall_corner_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "TALL-CORNER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"parapet_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 240,
+"geometry": "full"
+},
+"parapet_x_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"parapet_cap_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-CAP-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": "wall-top overlay"
+},
+"store_shut_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"store_shut_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"window_dark_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-DARK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"window_dark_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-DARK-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"window_lit_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-LIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"window_lit_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "WINDOW-LIT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"lodging_door_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"lodging_door_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"plain_tall_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PLAIN-TALL-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"plain_tall_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PLAIN-TALL-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"tall_corner_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "TALL-CORNER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"tall_corner_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "TALL-CORNER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"parapet_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 240,
+"geometry": "full"
+},
+"parapet_y_stub": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"parapet_cap_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "PARAPET-CAP-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": "wall-top overlay"
+},
+"store_shut_with_window_dark_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-WITH-WINDOW-DARK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"store_shut_with_window_lit_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-WITH-WINDOW-LIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"lodging_door_with_window_dark_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-WITH-WINDOW-DARK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"lodging_door_with_window_lit_x": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-WITH-WINDOW-LIT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"store_shut_with_window_dark_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-WITH-WINDOW-DARK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"store_shut_with_window_lit_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "STORE-SHUT-WITH-WINDOW-LIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"lodging_door_with_window_dark_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-WITH-WINDOW-DARK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"lodging_door_with_window_lit_y": {
+"page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+"id": "LODGING-DOOR-WITH-WINDOW-LIT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"oak_door_x": {
+"page": "PAGE-04-DOORS",
+"id": "OAK-DOOR-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"oak_door_x_stub": {
+"page": "PAGE-04-DOORS",
+"id": "OAK-DOOR-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"barred_door_x": {
+"page": "PAGE-04-DOORS",
+"id": "BARRED-DOOR-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"barred_door_x_stub": {
+"page": "PAGE-04-DOORS",
+"id": "BARRED-DOOR-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"throne_double_open_x": {
+"page": "PAGE-04-DOORS",
+"id": "THRONE-DOUBLE-OPEN-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": null
+},
+"throne_double_open_x_stub": {
+"page": "PAGE-04-DOORS",
+"id": "THRONE-DOUBLE-OPEN-X-STUB",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": null
+},
+"vault_open_x": {
+"page": "PAGE-04-DOORS",
+"id": "VAULT-OPEN-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": null
+},
+"vault_open_x_stub": {
+"page": "PAGE-04-DOORS",
+"id": "VAULT-OPEN-X-STUB",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": null
+},
+"oak_door_y": {
+"page": "PAGE-04-DOORS",
+"id": "OAK-DOOR-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"oak_door_y_stub": {
+"page": "PAGE-04-DOORS",
+"id": "OAK-DOOR-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"barred_door_y": {
+"page": "PAGE-04-DOORS",
+"id": "BARRED-DOOR-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"barred_door_y_stub": {
+"page": "PAGE-04-DOORS",
+"id": "BARRED-DOOR-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"throne_double_open_y": {
+"page": "PAGE-04-DOORS",
+"id": "THRONE-DOUBLE-OPEN-Y",
+"foot": [
+1,
+2
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": null
+},
+"throne_double_open_y_stub": {
+"page": "PAGE-04-DOORS",
+"id": "THRONE-DOUBLE-OPEN-Y-STUB",
+"foot": [
+1,
+2
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": null
+},
+"vault_open_y": {
+"page": "PAGE-04-DOORS",
+"id": "VAULT-OPEN-Y",
+"foot": [
+1,
+2
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": null
+},
+"vault_open_y_stub": {
+"page": "PAGE-04-DOORS",
+"id": "VAULT-OPEN-Y-STUB",
+"foot": [
+1,
+2
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": null
+},
+"oathstone": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "OATHSTONE",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"throne": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "THRONE",
+"foot": [
+2,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"dais_centre": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-CENTRE",
+"foot": [
+1,
+1
+],
+"facing": "map centre",
+"wall": null,
+"geometry": null
+},
+"dais_n": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-N",
+"foot": [
+1,
+1
+],
+"facing": "map n",
+"wall": null,
+"geometry": null
+},
+"dais_e": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-E",
+"foot": [
+1,
+1
+],
+"facing": "map e",
+"wall": null,
+"geometry": null
+},
+"dais_s": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-S",
+"foot": [
+1,
+1
+],
+"facing": "map s",
+"wall": null,
+"geometry": null
+},
+"dais_w": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-W",
+"foot": [
+1,
+1
+],
+"facing": "map w",
+"wall": null,
+"geometry": null
+},
+"dais_ne": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-NE",
+"foot": [
+1,
+1
+],
+"facing": "map ne",
+"wall": null,
+"geometry": null
+},
+"dais_se": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-SE",
+"foot": [
+1,
+1
+],
+"facing": "map se",
+"wall": null,
+"geometry": null
+},
+"dais_sw": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-SW",
+"foot": [
+1,
+1
+],
+"facing": "map sw",
+"wall": null,
+"geometry": null
+},
+"dais_nw": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DAIS-NW",
+"foot": [
+1,
+1
+],
+"facing": "map nw",
+"wall": null,
+"geometry": null
+},
+"brazier_unlit": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "BRAZIER-UNLIT",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"brazier_lit_1": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "BRAZIER-LIT-1",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"brazier_lit_2": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "BRAZIER-LIT-2",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"brazier_lit_3": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "BRAZIER-LIT-3",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"brazier_lit_4": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "BRAZIER-LIT-4",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"rekknar_ledger_stone": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "REKKNAR-LEDGER-STONE",
+"foot": [
+1,
+1
+],
+"facing": "face lower-left",
+"wall": null,
+"geometry": null
+},
+"dormant_cut_x": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DORMANT-CUT-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 120,
+"geometry": "full"
+},
+"dormant_cut_x_stub": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DORMANT-CUT-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": 12,
+"geometry": "full"
+},
+"dormant_cut_y": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DORMANT-CUT-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 120,
+"geometry": "full"
+},
+"dormant_cut_y_stub": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "DORMANT-CUT-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": 12,
+"geometry": "full"
+},
+"temple_lamp_unlit": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "TEMPLE-LAMP-UNLIT",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"temple_lamp_lit": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "TEMPLE-LAMP-LIT",
+"foot": [
+1,
+1
+],
+"facing": "front / centred",
+"wall": null,
+"geometry": null
+},
+"kneeling_bench_x": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "KNEELING-BENCH-X",
+"foot": [
+1,
+1
+],
+"facing": "along x",
+"wall": null,
+"geometry": null
+},
+"kneeling_bench_y": {
+"page": "PAGE-05-COURT-AND-TEMPLES",
+"id": "KNEELING-BENCH-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y",
+"wall": null,
+"geometry": null
+}
+},
+"source": "generated by the art desk (2026-11-11, ART-134-SOLSKAFT: deep16/_src/ART-134-SOLSKAFT), cut by tools/solskaft-sheet.py"
+},
+"skstreet_p1": {
+"_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-135-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+"image": "art/skstreet_p1.png?v=e2dea57005",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 48,
+"prop": true,
+"anims": {},
+"tiles": {
+"ramp_x_head": "0,0,94,60,63,0",
+"ramp_x_middle": "95,0,94,60,63,0",
+"ramp_x_foot": "190,0,94,60,63,0",
+"ramp_x_far_head": "285,0,37,51,0,22",
+"ramp_x_far_head_stub": "323,0,37,43,0,14",
+"ramp_x_far_middle": "361,0,37,51,0,22",
+"ramp_x_far_middle_stub": "399,0,37,43,0,14",
+"ramp_x_far_foot": "437,0,37,45,0,16",
+"ramp_x_far_foot_stub": "475,0,37,37,0,8",
+"ramp_x_near_head": "513,0,37,51,4,20",
+"ramp_x_near_head_stub": "551,0,37,43,4,12",
+"ramp_x_near_middle": "589,0,37,51,4,20",
+"ramp_x_near_middle_stub": "627,0,37,43,4,12",
+"ramp_x_near_foot": "665,0,37,45,4,14",
+"ramp_x_near_foot_stub": "703,0,37,37,4,6",
+"stair_down_x": "741,0,62,32,31,0",
+"stair_up_x": "804,0,45,144,13,120",
+"stair_up_x_stub": "850,0,55,41,13,17",
+"lodging_stair_x": "906,0,82,171,24,128",
+"ramp_y_head": "0,172,62,44,31,0",
+"ramp_y_middle": "63,172,62,44,31,0",
+"ramp_y_foot": "126,172,62,44,31,0",
+"ramp_y_far_head": "189,172,37,51,36,22",
+"ramp_y_far_head_stub": "227,172,37,43,36,14",
+"ramp_y_far_middle": "265,172,37,51,36,22",
+"ramp_y_far_middle_stub": "303,172,37,43,36,14",
+"ramp_y_far_foot": "341,172,37,45,36,16",
+"ramp_y_far_foot_stub": "379,172,37,37,36,8",
+"ramp_y_near_head": "417,172,37,51,32,20",
+"ramp_y_near_head_stub": "455,172,37,43,32,12",
+"ramp_y_near_middle": "493,172,37,51,32,20",
+"ramp_y_near_middle_stub": "531,172,37,43,32,12",
+"ramp_y_near_foot": "569,172,37,45,32,14",
+"ramp_y_near_foot_stub": "607,172,37,37,32,6",
+"stair_down_y": "645,172,62,32,31,0",
+"stair_up_y": "708,172,46,144,32,120",
+"stair_up_y_stub": "755,172,56,41,42,17",
+"lodging_stair_y": "812,172,82,171,57,128",
+"trade_counter_x": "895,172,118,87,26,27",
+"quartermaster_counter_x": "0,344,91,87,30,40",
+"covered_assay_scales": "92,344,55,52,26,25",
+"tariff_board_x": "148,344,34,135,2,120",
+"tariff_board_x_stub": "183,344,42,32,0,17",
+"tariff_board_y": "226,344,35,135,32,120",
+"tariff_board_y_stub": "262,344,42,32,42,17",
+"ledger_desk": "305,344,47,54,24,26",
+"manger_x": "353,344,45,143,13,120",
+"manger_x_stub": "399,344,55,40,13,17",
+"manger_y": "455,344,46,143,32,120",
+"manger_y_stub": "502,344,56,40,42,17",
+"water_trough_x": "559,344,43,32,20,6",
+"old_fodder": "603,344,29,18,13,-7",
+"stall_partition_x": "633,344,38,47,5,27",
+"stall_partition_x_stub": "672,344,38,32,5,12",
+"stall_partition_y": "711,344,38,47,32,27",
+"stall_partition_y_stub": "750,344,38,32,32,12",
+"touch_needle_table": "789,344,53,48,25,21",
+"locked_weights_case": "843,344,45,37,21,10",
+"spear_rack_x": "889,344,36,136,4,120",
+"spear_rack_x_stub": "926,344,46,33,4,17",
+"spear_rack_y": "973,344,37,136,32,120",
+"spear_rack_y_stub": "0,488,47,33,42,17",
+"guardroom_bench_x": "48,488,81,52,23,11",
+"watch_slate_x": "130,488,33,135,1,120",
+"watch_slate_x_stub": "164,488,42,32,0,17",
+"watch_slate_y": "207,488,34,135,32,120",
+"watch_slate_y_stub": "242,488,42,32,42,17"
+},
+"cells": {
+"ramp_x_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-HEAD",
+"foot": [
+1,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_x_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-MIDDLE",
+"foot": [
+1,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_x_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FOOT",
+"foot": [
+1,
+2
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_head_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_middle_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_far_foot_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-FAR-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_head_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_middle_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_x_near_foot_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-X-NEAR-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"stair_down_x": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-DOWN-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"stair_up_x": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-UP-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"stair_up_x_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-UP-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"lodging_stair_x": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "LODGING-STAIR-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_y_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_y_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_head_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_middle_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_far_foot_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-FAR-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_head": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-HEAD",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_head_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-HEAD-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_middle": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-MIDDLE",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_middle_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-MIDDLE-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_foot": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-FOOT",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ramp_y_near_foot_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "RAMP-Y-NEAR-FOOT-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"stair_down_y": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-DOWN-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"stair_up_y": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-UP-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"stair_up_y_stub": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "STAIR-UP-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"lodging_stair_y": {
+"page": "PAGE-01-RAMPS-AND-STAIRS",
+"id": "LODGING-STAIR-Y",
+"foot": [
+1,
+2
+],
+"facing": "along y / lower-left",
+"wall": null,
+"geometry": null
+},
+"trade_counter_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "TRADE-COUNTER-X",
+"foot": [
+3,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"quartermaster_counter_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "QUARTERMASTER-COUNTER-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"covered_assay_scales": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "COVERED-ASSAY-SCALES",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"tariff_board_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "TARIFF-BOARD-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"tariff_board_x_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "TARIFF-BOARD-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"tariff_board_y": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "TARIFF-BOARD-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"tariff_board_y_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "TARIFF-BOARD-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"ledger_desk": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "LEDGER-DESK",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"manger_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "MANGER-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"manger_x_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "MANGER-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"manger_y": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "MANGER-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"manger_y_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "MANGER-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"water_trough_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "WATER-TROUGH-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"old_fodder": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "OLD-FODDER",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"stall_partition_x": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "STALL-PARTITION-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"stall_partition_x_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "STALL-PARTITION-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"stall_partition_y": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "STALL-PARTITION-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"stall_partition_y_stub": {
+"page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+"id": "STALL-PARTITION-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"touch_needle_table": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "TOUCH-NEEDLE-TABLE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"locked_weights_case": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "LOCKED-WEIGHTS-CASE",
+"foot": [
+1,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"spear_rack_x": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "SPEAR-RACK-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"spear_rack_x_stub": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "SPEAR-RACK-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"spear_rack_y": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "SPEAR-RACK-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"spear_rack_y_stub": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "SPEAR-RACK-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"guardroom_bench_x": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "GUARDROOM-BENCH-X",
+"foot": [
+2,
+1
+],
+"facing": "along x / lower-right",
+"wall": null,
+"geometry": null
+},
+"watch_slate_x": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "WATCH-SLATE-X",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"watch_slate_x_stub": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "WATCH-SLATE-X-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along x / face lower-left",
+"wall": null,
+"geometry": null
+},
+"watch_slate_y": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "WATCH-SLATE-Y",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+},
+"watch_slate_y_stub": {
+"page": "PAGE-03-CROWN-STRETCH",
+"id": "WATCH-SLATE-Y-STUB",
+"foot": [
+1,
+1
+],
+"facing": "along y / face lower-right",
+"wall": null,
+"geometry": null
+}
+},
+"source": "generated by the art desk (2026-11-11, ART-135-SOLSKAFT: deep16/_src/ART-135-SOLSKAFT), cut by tools/solskaft-sheet.py"
 },
 "snake_p1": {
 "image": "art/snake_p1.png?v=316939a6ba",

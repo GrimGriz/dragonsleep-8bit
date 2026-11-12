@@ -174,7 +174,7 @@
       var gch = (m.def.under && m.def.under[s.y] && m.def.under[s.y].charAt(s.x)) || ' '; if (gch === ' ') gch = s.ch;
       // a tile painted into the floor (11-05, the exteriors seat; art-wanted 36 page 9B: the lake's shallows, the wagon ruts): a map's `groundArt(x, y)` gives a drawn square's
       // pixels, { data, w: 64, h: 32 } -- its top as drawn, the diamond -- or null; where they are opaque they stand for the code's own, the map's edge still fading them
-      var gArt = m.def.groundArt && !s.gz ? m.def.groundArt(s.x, s.y, m) : null;
+      var gArt = m.def.groundArt && (!s.gz || m.def.groundArtZ) ? m.def.groundArt(s.x, s.y, m) : null; // (groundArtZ: on raised squares too -- Sólskaft's floors stand on heights, js/skart.js, 11-12)
       var c = iso.center(s.x, s.y, s.gz), ox = c.x - minX, oy = c.y - minY;
       // (no rock within reach of any of its pixels' look-round -- three squares, the pixel's own square one off the square's at the rhombus edge: nearRock is 9 for each, so skip
       // its 25 looks a pixel; the same pixels, for the town's streets and plazas a fifth of the time -- 10-20)
@@ -556,7 +556,7 @@
     var RF = m.def.roofs[s.ch], isR = function (x, y) { var n = m.at(x, y); return !!(n && !n.open && n.ch === s.ch); }; // (a wall shows where this building ends -- the next one along another height, its own)
     var fR = !isR(s.x + 1, s.y), fL = !isR(s.x, s.y + 1), cut = !!s.occCut, v0 = h2(s.x, s.y, 41) * 3 | 0;
     var side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0; if (side > 3) side -= 3; // (the roof's side: 1 toward the light, 2 away, 3 the ridge -- a map's `slope`, js/town.js; 4-6 the same with the ridge north-south)
-    var key = s.ch + (fR ? 'R' : '') + (fL ? 'L' : '') + (cut ? 'c' : '') + v0 + 's' + side;
+    var key = s.ch + (fR ? 'R' : '') + (fL ? 'L' : '') + (cut ? 'c' : '') + v0 + 's' + side + (m.def.roofArt ? '@' + s.x + ',' + s.y : ''); // (a floor whose roofs carry drawn faces: one picture a square -- js/skart.js)
     m.roofImgs = m.roofImgs || {}; if (m.roofImgs[key]) return m.roofImgs[key];
     var top = cut ? STUB : iso.roofPx(m, s.ch), W = TW, H = TH + top + 2, ox = HW, oy = top + HH;
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -586,6 +586,7 @@
       }
     }
     cx.putImageData(img, 0, 0);
+    if (m.def.roofArt) m.def.roofArt(cx, m, s, { fR: fR, fL: fL, cut: cut, top: top, ox: ox, oy: oy }); // (its drawn faces over the code's: Sólskaft's stores, js/skart.js, 11-12)
     return (m.roofImgs[key] = { canvas: cv, ax: ox, ay: oy });
   }
   // a cut stub stands a little above the highest open floor around it (so a stub beside the ledge is cut at the ledge)
@@ -650,6 +651,7 @@
       }
     }
     cx.putImageData(img, 0, 0);
+    if (m.def.rockArt) m.def.rockArt(cx, m, s, { far: far, fR: fR, fL: fL, top: top, ox: ox, oy: oy }); // (a floor's drawn wall modules over the code's faces: Sólskaft's, js/skart.js, 11-12)
     var out = { canvas: cv, ax: ox, ay: oy };
     m.rockImgs[key] = out;
     return out;

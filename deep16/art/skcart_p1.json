@@ -1,0 +1,1287 @@
+{
+ "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-136-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+ "image": "art/skcart_p1.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 48,
+ "prop": true,
+ "anims": {},
+ "tiles": {
+  "floor_x_1": "0,0,64,32,32,0",
+  "floor_x_2": "65,0,64,32,32,0",
+  "floor_x_3": "130,0,64,32,32,0",
+  "floor_x_4": "195,0,64,32,32,0",
+  "floor_y_1": "260,0,64,32,32,0",
+  "floor_y_2": "325,0,64,32,32,0",
+  "floor_y_3": "390,0,64,32,32,0",
+  "floor_y_4": "455,0,64,32,32,0",
+  "floor_turn_xp_yp_1": "520,0,64,32,32,0",
+  "floor_turn_xp_yp_2": "585,0,64,32,32,0",
+  "floor_turn_xp_yp_3": "650,0,64,32,32,0",
+  "floor_turn_xp_yp_4": "715,0,64,32,32,0",
+  "floor_turn_xn_yp_1": "780,0,64,32,32,0",
+  "floor_turn_xn_yp_2": "845,0,64,32,32,0",
+  "floor_turn_xn_yp_3": "910,0,64,32,32,0",
+  "floor_turn_xn_yp_4": "0,33,64,32,32,0",
+  "floor_turn_xp_yn_1": "65,33,64,32,32,0",
+  "floor_turn_xp_yn_2": "130,33,64,32,32,0",
+  "floor_turn_xp_yn_3": "195,33,64,32,32,0",
+  "floor_turn_xp_yn_4": "260,33,64,32,32,0",
+  "floor_turn_xn_yn_1": "325,33,64,32,32,0",
+  "floor_turn_xn_yn_2": "390,33,64,32,32,0",
+  "floor_turn_xn_yn_3": "455,33,64,32,32,0",
+  "floor_turn_xn_yn_4": "520,33,64,32,32,0",
+  "floor_raw_1": "585,33,64,32,32,0",
+  "floor_raw_2": "650,33,64,32,32,0",
+  "floor_raw_3": "715,33,64,32,32,0",
+  "floor_raw_4": "780,33,64,32,32,0",
+  "cut_rock_plain_x": "845,33,33,137,0,120",
+  "cut_rock_plain_x_stub": "879,33,40,32,0,15",
+  "cut_rock_outer_x": "920,33,33,141,0,124",
+  "cut_rock_outer_x_stub": "954,33,40,33,0,16",
+  "cut_rock_inner_x": "0,175,33,141,0,120",
+  "cut_rock_inner_x_stub": "34,175,40,36,0,15",
+  "drum_straight_x": "75,175,33,137,0,120",
+  "drum_straight_x_stub": "109,175,41,33,0,16",
+  "drum_turn_xp_yp_x": "151,175,17,153,0,120",
+  "drum_turn_xp_yp_x_stub": "169,175,17,45,0,12",
+  "drum_turn_xp_yn_x": "187,175,65,121,0,120",
+  "drum_turn_xp_yn_x_stub": "253,175,65,21,0,20",
+  "drum_turn_xn_yn_x": "319,175,17,153,16,152",
+  "drum_turn_xn_yn_x_stub": "337,175,17,45,16,44",
+  "drum_turn_xn_yp_x": "355,175,65,121,64,120",
+  "drum_turn_xn_yp_x_stub": "421,175,65,13,64,12",
+  "cut_rock_plain_y": "487,175,33,137,32,120",
+  "cut_rock_plain_y_stub": "521,175,40,32,39,15",
+  "cut_rock_outer_y": "562,175,33,141,32,124",
+  "cut_rock_outer_y_stub": "596,175,40,33,39,16",
+  "cut_rock_inner_y": "637,175,33,141,32,120",
+  "cut_rock_inner_y_stub": "671,175,40,36,39,15",
+  "drum_straight_y": "712,175,33,137,32,120",
+  "drum_straight_y_stub": "746,175,41,33,40,16",
+  "drum_turn_xp_yp_y": "788,175,17,153,16,120",
+  "drum_turn_xp_yp_y_stub": "806,175,17,45,16,12",
+  "drum_turn_xp_yn_y": "824,175,65,121,64,120",
+  "drum_turn_xp_yn_y_stub": "890,175,65,21,64,20",
+  "drum_turn_xn_yn_y": "956,175,17,153,0,152",
+  "drum_turn_xn_yn_y_stub": "974,175,17,45,0,44",
+  "drum_turn_xn_yp_y": "0,329,65,121,0,120",
+  "drum_turn_xn_yp_y_stub": "66,329,65,13,0,12",
+  "hoist_trap_overhead": "132,329,49,57,24,116",
+  "forge_cold": "182,329,89,110,26,64",
+  "forge_fire_01": "272,329,89,110,26,64",
+  "forge_fire_02": "362,329,89,110,26,64",
+  "forge_fire_03": "452,329,89,110,26,64",
+  "forge_fire_04": "542,329,89,110,26,64",
+  "forge_fire_05": "632,329,89,110,26,64",
+  "forge_fire_06": "722,329,89,110,26,64",
+  "anvil": "812,329,33,45,15,20",
+  "armory_rack_x": "846,329,37,138,5,120",
+  "armory_rack_x_stub": "884,329,47,35,5,17",
+  "armory_rack_y": "932,329,38,138,32,120",
+  "armory_rack_y_stub": "971,329,48,35,42,17",
+  "cold_furnace": "0,468,51,59,25,28",
+  "cupel_hearth": "52,468,46,27,22,-1",
+  "dead_lift_well": "99,468,129,68,64,3",
+  "dead_lift_rear": "229,468,71,103,10,69",
+  "dead_lift_near": "301,468,117,123,59,64",
+  "mint_sealed_x": "419,468,34,135,0,120",
+  "mint_sealed_x_stub": "454,468,42,32,0,17",
+  "mint_sealed_y": "497,468,33,135,33,120",
+  "mint_sealed_y_stub": "531,468,42,32,42,17",
+  "treasury_open_x": "574,468,32,135,0,120",
+  "treasury_open_x_stub": "607,468,42,32,0,17",
+  "treasury_open_y": "650,468,32,135,32,120",
+  "treasury_open_y_stub": "683,468,42,32,42,17",
+  "hand_cart_x_empty": "726,468,79,47,22,12",
+  "hand_cart_x_loaded": "806,468,79,53,22,18",
+  "hand_cart_y_empty": "886,468,79,47,56,12",
+  "hand_cart_y_loaded": "0,604,79,53,56,18",
+  "crate_low": "80,604,42,35,20,8",
+  "crate_tall": "123,604,47,45,23,17",
+  "barrel": "171,604,25,30,11,9",
+  "highway_gate_x_down": "197,604,138,190,9,120",
+  "highway_gate_x_raised": "336,604,138,190,9,120",
+  "ledger_lamp_rack_x": "475,604,37,135,5,120",
+  "ledger_lamp_rack_x_stub": "513,604,42,32,0,17",
+  "ledger_lamp_rack_y": "556,604,38,135,32,120",
+  "ledger_lamp_rack_y_stub": "595,604,42,32,42,17",
+  "trade_hall_boarded_x": "638,604,33,137,1,120",
+  "trade_hall_boarded_x_stub": "672,604,42,34,0,17",
+  "trade_hall_boarded_y": "715,604,34,137,32,120",
+  "trade_hall_boarded_y_stub": "750,604,42,34,42,17",
+  "shroom_bed_1": "793,604,64,38,32,6",
+  "shroom_bed_2": "858,604,64,38,32,6",
+  "shroom_bed_3": "923,604,64,38,32,6"
+ },
+ "cells": {
+  "floor_x_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-X-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_x_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-X-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_x_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-X-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_x_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-X-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_y_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-Y-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_y_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-Y-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_y_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-Y-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_y_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-Y-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yp_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YP-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yp_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YP-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yp_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YP-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yp_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YP-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yp_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YP-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yp_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YP-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yp_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YP-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yp_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YP-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yn_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YN-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yn_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YN-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yn_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YN-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xp_yn_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XP-YN-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yn_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YN-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yn_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YN-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yn_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YN-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_turn_xn_yn_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-TURN-XN-YN-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_raw_1": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-RAW-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "RAW",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_raw_2": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-RAW-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "RAW",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_raw_3": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-RAW-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "RAW",
+   "wall": null,
+   "geometry": null
+  },
+  "floor_raw_4": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "FLOOR-RAW-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "RAW",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_plain_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-PLAIN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_plain_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-PLAIN-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_outer_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-OUTER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_outer_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-OUTER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_inner_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-INNER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_inner_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-INNER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_straight_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-STRAIGHT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_straight_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-STRAIGHT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yp_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YP-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yp_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YP-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yn_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yn_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YN-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yn_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yn_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YN-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yp_x": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YP-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yp_x_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YP-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP \u00b7 X local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_plain_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-PLAIN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_plain_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-PLAIN-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_outer_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-OUTER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_outer_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-OUTER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_inner_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-INNER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cut_rock_inner_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "CUT-ROCK-INNER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_straight_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-STRAIGHT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_straight_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-STRAIGHT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yp_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YP-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yp_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YP-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YP \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yn_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xp_yn_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XP-YN-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XP-YN \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yn_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yn_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YN-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YN \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yp_y": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YP-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "drum_turn_xn_yp_y_stub": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "DRUM-TURN-XN-YP-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "TURN-XN-YP \u00b7 Y local axes",
+   "wall": null,
+   "geometry": null
+  },
+  "hoist_trap_overhead": {
+   "page": "PAGE-01-ROAD-AND-DRUM",
+   "id": "HOIST-TRAP-OVERHEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_cold": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-COLD",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_01": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-01",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_02": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-02",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_03": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-03",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_04": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-04",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_05": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-05",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "forge_fire_06": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "FORGE-FIRE-06",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "anvil": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "ANVIL",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "armory_rack_x": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "ARMORY-RACK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "armory_rack_x_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "ARMORY-RACK-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "armory_rack_y": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "ARMORY-RACK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "armory_rack_y_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "ARMORY-RACK-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cold_furnace": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "COLD-FURNACE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cupel_hearth": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "CUPEL-HEARTH",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "dead_lift_well": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "DEAD-LIFT-WELL",
+   "foot": [
+    2,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "dead_lift_rear": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "DEAD-LIFT-REAR",
+   "foot": [
+    2,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "dead_lift_near": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "DEAD-LIFT-NEAR",
+   "foot": [
+    2,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "mint_sealed_x": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "MINT-SEALED-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "mint_sealed_x_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "MINT-SEALED-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "mint_sealed_y": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "MINT-SEALED-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "mint_sealed_y_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "MINT-SEALED-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "treasury_open_x": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "TREASURY-OPEN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "treasury_open_x_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "TREASURY-OPEN-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "treasury_open_y": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "TREASURY-OPEN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "treasury_open_y_stub": {
+   "page": "PAGE-02-THE-WORKS",
+   "id": "TREASURY-OPEN-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hand_cart_x_empty": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HAND-CART-X-EMPTY",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hand_cart_x_loaded": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HAND-CART-X-LOADED",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hand_cart_y_empty": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HAND-CART-Y-EMPTY",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hand_cart_y_loaded": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HAND-CART-Y-LOADED",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "crate_low": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "CRATE-LOW",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "crate_tall": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "CRATE-TALL",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "barrel": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "BARREL",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "highway_gate_x_down": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HIGHWAY-GATE-X-DOWN",
+   "foot": [
+    4,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "highway_gate_x_raised": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "HIGHWAY-GATE-X-RAISED",
+   "foot": [
+    4,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ledger_lamp_rack_x": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "LEDGER-LAMP-RACK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ledger_lamp_rack_x_stub": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "LEDGER-LAMP-RACK-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ledger_lamp_rack_y": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "LEDGER-LAMP-RACK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ledger_lamp_rack_y_stub": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "LEDGER-LAMP-RACK-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "trade_hall_boarded_x": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "TRADE-HALL-BOARDED-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "trade_hall_boarded_x_stub": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "TRADE-HALL-BOARDED-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "trade_hall_boarded_y": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "TRADE-HALL-BOARDED-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "trade_hall_boarded_y_stub": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "TRADE-HALL-BOARDED-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "shroom_bed_1": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "SHROOM-BED-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "floor overlay",
+   "wall": null,
+   "geometry": null
+  },
+  "shroom_bed_2": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "SHROOM-BED-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "floor overlay",
+   "wall": null,
+   "geometry": null
+  },
+  "shroom_bed_3": {
+   "page": "PAGE-03-HAND-CART-AND-GATE",
+   "id": "SHROOM-BED-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "floor overlay",
+   "wall": null,
+   "geometry": null
+  }
+ },
+ "source": "generated by the art desk (2026-11-11, ART-136-SOLSKAFT: deep16/_src/ART-136-SOLSKAFT), cut by tools/solskaft-sheet.py"
+}

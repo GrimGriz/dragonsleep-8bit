@@ -1,0 +1,543 @@
+{
+ "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-138-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+ "image": "art/sklodge_p1.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 48,
+ "prop": true,
+ "anims": {},
+ "tiles": {
+  "hearth_x_cold": "0,0,41,142,9,120",
+  "hearth_x_lit_01": "42,0,41,142,9,120",
+  "hearth_x_lit_02": "84,0,41,142,9,120",
+  "hearth_x_lit_03": "126,0,41,142,9,120",
+  "hearth_x_lit_04": "168,0,41,142,9,120",
+  "hearth_x_cold_stub": "210,0,51,39,9,17",
+  "hearth_x_lit_01_stub": "262,0,51,39,9,17",
+  "hearth_x_lit_02_stub": "314,0,51,39,9,17",
+  "hearth_x_lit_03_stub": "366,0,51,39,9,17",
+  "hearth_x_lit_04_stub": "418,0,51,39,9,17",
+  "hearth_y_cold": "470,0,42,142,32,120",
+  "hearth_y_lit_01": "513,0,42,142,32,120",
+  "hearth_y_lit_02": "556,0,42,142,32,120",
+  "hearth_y_lit_03": "599,0,42,142,32,120",
+  "hearth_y_lit_04": "642,0,42,142,32,120",
+  "hearth_y_cold_stub": "685,0,52,39,42,17",
+  "hearth_y_lit_01_stub": "738,0,52,39,42,17",
+  "hearth_y_lit_02_stub": "791,0,52,39,42,17",
+  "hearth_y_lit_03_stub": "844,0,52,39,42,17",
+  "hearth_y_lit_04_stub": "897,0,52,39,42,17",
+  "table": "950,0,54,48,27,21",
+  "stool_square": "0,143,33,28,17,5",
+  "stool_round": "34,143,21,24,10,3",
+  "cot_x": "56,143,82,56,25,11",
+  "bed_x": "139,143,82,68,25,23",
+  "chest": "222,143,46,40,22,12",
+  "crockery_shelf_x": "269,143,39,135,7,120",
+  "crockery_shelf_x_stub": "309,143,42,32,0,17",
+  "crockery_shelf_y": "352,143,40,135,32,120",
+  "crockery_shelf_y_stub": "393,143,42,32,42,17",
+  "window_x_dark": "436,143,37,135,5,120",
+  "window_x_lit": "474,143,37,135,5,120",
+  "window_x_dark_stub": "512,143,42,32,0,17",
+  "window_x_lit_stub": "555,143,42,32,0,17",
+  "window_y_dark": "598,143,38,135,32,120",
+  "window_y_lit": "637,143,38,135,32,120",
+  "window_y_dark_stub": "676,143,42,32,42,17",
+  "window_y_lit_stub": "719,143,42,32,42,17",
+  "narrow_door_x": "762,143,32,136,0,120",
+  "narrow_door_x_stub": "795,143,42,32,0,17",
+  "narrow_door_y": "838,143,32,136,32,120",
+  "narrow_door_y_stub": "871,143,42,32,42,17",
+  "stair_head_x": "914,143,64,48,32,16",
+  "stair_head_y": "0,280,64,48,32,16"
+ },
+ "cells": {
+  "hearth_x_cold": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-COLD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_01": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-01",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_02": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-02",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_03": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-03",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_04": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-04",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_cold_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-COLD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_01_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-01-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_02_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-02-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_03_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-03-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_x_lit_04_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-X-LIT-04-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_cold": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-COLD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_01": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-01",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_02": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-02",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_03": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-03",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_04": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-04",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_cold_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-COLD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_01_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-01-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_02_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-02-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_03_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-03-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "hearth_y_lit_04_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "HEARTH-Y-LIT-04-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "table": {
+   "page": "PAGE-01-LODGING",
+   "id": "TABLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stool_square": {
+   "page": "PAGE-01-LODGING",
+   "id": "STOOL-SQUARE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stool_round": {
+   "page": "PAGE-01-LODGING",
+   "id": "STOOL-ROUND",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "cot_x": {
+   "page": "PAGE-01-LODGING",
+   "id": "COT-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "bed_x": {
+   "page": "PAGE-01-LODGING",
+   "id": "BED-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "chest": {
+   "page": "PAGE-01-LODGING",
+   "id": "CHEST",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "crockery_shelf_x": {
+   "page": "PAGE-01-LODGING",
+   "id": "CROCKERY-SHELF-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "crockery_shelf_x_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "CROCKERY-SHELF-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "crockery_shelf_y": {
+   "page": "PAGE-01-LODGING",
+   "id": "CROCKERY-SHELF-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "crockery_shelf_y_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "CROCKERY-SHELF-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "window_x_dark": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-X-DARK",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "window_x_lit": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-X-LIT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "window_x_dark_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-X-DARK-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "window_x_lit_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-X-LIT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "window_y_dark": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-Y-DARK",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "window_y_lit": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-Y-LIT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "window_y_dark_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-Y-DARK-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "window_y_lit_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "WINDOW-Y-LIT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "narrow_door_x": {
+   "page": "PAGE-01-LODGING",
+   "id": "NARROW-DOOR-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "narrow_door_x_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "NARROW-DOOR-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "narrow_door_y": {
+   "page": "PAGE-01-LODGING",
+   "id": "NARROW-DOOR-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "narrow_door_y_stub": {
+   "page": "PAGE-01-LODGING",
+   "id": "NARROW-DOOR-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_head_x": {
+   "page": "PAGE-01-LODGING",
+   "id": "STAIR-HEAD-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_head_y": {
+   "page": "PAGE-01-LODGING",
+   "id": "STAIR-HEAD-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  }
+ },
+ "source": "generated by the art desk (2026-11-11, ART-138-SOLSKAFT: deep16/_src/ART-138-SOLSKAFT), cut by tools/solskaft-sheet.py"
+}

@@ -5819,6 +5819,14 @@
       }
       okSk('the vault doors joined: Silverton\'s threshold (' + !!vt + ') in to ' + (inTo ? inTo.key + ' ' + inTo.at : '-') + '; out by the vault doors to ' + (outTo ? outTo.key + ' ' + outTo.at + ' (the plaza a step south of the threshold, ' + outTo.want + ')' : '-') + '; saving: ' + saveOk,
         !!vt && inTo && inTo.key === 'solskaft' && inTo.at && inTo.at.join() === '18,1' && outTo && outTo.key === 'silverton' && outTo.at && outTo.at[0] === outTo.want[0] && outTo.at[1] === outTo.want[1] && !/WRONG|THREW/.test(saveOk));
+      // 26. THE ART ON THE FLOORS (11-12, the Sólskaft cutter; art-wanted 47-51, ART-134 to ART-138, tools/solskaft-sheet.py, js/skart.js): every tile a floor names has its cell on a
+      // sheet (RED on a name the sheets lack -- a cell renamed or a sheet not built), each floor that is drawn carries its hooks (the floor's tiles, the walls' modules), and the
+      // look changed nothing the rules read: the street's rows and heights as the build laid them
+      var SA = SKk.art, usedA = SA ? Object.keys(SA.USED) : [], missA = [], nA = 0, hooksA = [];
+      usedA.forEach(function (k) { SA.USED[k].forEach(function (nm) { nA++; if (!SA.has(nm) && missA.indexOf(nm) < 0) missA.push(nm); }); });
+      usedA.forEach(function (k) { testSk(SKk.isLodge(k) ? '?roam=' + k : '?roam=' + k + '&hour=10'); var d26 = RSk.def, f26 = MSk.floor(k, null, {}, 10); hooksA.push(k + ':' + !!(d26.groundArt && d26.rockArt) + ':' + (d26.rows.join('') === f26.rows.join('') && JSON.stringify(d26.heights || null) === JSON.stringify(f26.heights || null))); });
+      okSk('the art on the floors: ' + usedA.length + ' floors drawn (' + usedA.join(', ') + '), ' + nA + ' tiles named, missing from the sheets: ' + (missA.join(' ') || 'none') + '; hooks and rows as built: ' + hooksA.join(' '),
+        !!SA && usedA.indexOf('solskaft') >= 0 && nA > 0 && !missA.length && hooksA.every(function (h) { return /:true:true$/.test(h); }));
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;

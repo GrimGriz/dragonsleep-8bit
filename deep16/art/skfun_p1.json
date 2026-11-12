@@ -1,0 +1,951 @@
+{
+ "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-137-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+ "image": "art/skfun_p1.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 48,
+ "prop": true,
+ "anims": {},
+ "tiles": {
+  "niche_sealed_x": "0,0,33,77,0,60",
+  "niche_sealed_x_stub": "34,0,39,32,0,15",
+  "niche_patron_x": "74,0,33,77,0,60",
+  "niche_patron_x_stub": "108,0,39,32,0,15",
+  "niche_gear_shield_x": "148,0,33,77,0,60",
+  "niche_gear_shield_x_stub": "182,0,39,32,0,15",
+  "niche_gear_hammer_x": "222,0,33,77,0,60",
+  "niche_gear_hammer_x_stub": "256,0,39,32,0,15",
+  "niche_pried_x": "296,0,33,78,0,60",
+  "niche_pried_x_stub": "330,0,39,32,0,15",
+  "niche_awaits_x": "370,0,33,77,0,60",
+  "niche_awaits_x_stub": "404,0,39,32,0,15",
+  "niche_blank_x": "444,0,33,77,0,60",
+  "niche_blank_x_stub": "478,0,39,32,0,15",
+  "tier_edge_x": "518,0,33,29,0,0",
+  "niche_sealed_y": "552,0,33,77,32,60",
+  "niche_sealed_y_stub": "586,0,39,32,38,15",
+  "niche_patron_y": "626,0,33,77,32,60",
+  "niche_patron_y_stub": "660,0,39,32,38,15",
+  "niche_gear_shield_y": "700,0,33,77,32,60",
+  "niche_gear_shield_y_stub": "734,0,39,32,38,15",
+  "niche_gear_hammer_y": "774,0,33,77,32,60",
+  "niche_gear_hammer_y_stub": "808,0,39,32,38,15",
+  "niche_pried_y": "848,0,33,78,32,60",
+  "niche_pried_y_stub": "882,0,39,32,38,15",
+  "niche_awaits_y": "922,0,33,77,32,60",
+  "niche_awaits_y_stub": "956,0,39,32,38,15",
+  "niche_blank_y": "0,79,33,77,32,60",
+  "niche_blank_y_stub": "34,79,39,32,38,15",
+  "tier_edge_y": "74,79,33,29,32,0",
+  "name_wall_x_repeat": "108,79,32,135,0,120",
+  "name_wall_x_repeat_stub": "141,79,42,32,0,17",
+  "name_wall_x_short_row": "184,79,32,135,0,120",
+  "name_wall_x_short_row_stub": "217,79,42,32,0,17",
+  "parapet_x_head": "260,79,39,43,0,26",
+  "parapet_x_head_stub": "300,79,39,32,0,15",
+  "parapet_x_middle": "340,79,39,55,0,26",
+  "parapet_x_middle_stub": "380,79,39,44,0,15",
+  "parapet_x_foot": "420,79,39,55,0,26",
+  "parapet_x_foot_stub": "460,79,39,44,0,15",
+  "name_wall_y_repeat": "500,79,32,135,32,120",
+  "name_wall_y_repeat_stub": "533,79,42,32,42,17",
+  "name_wall_y_short_row": "576,79,32,135,32,120",
+  "name_wall_y_short_row_stub": "609,79,42,32,42,17",
+  "parapet_y_head": "652,79,39,43,38,26",
+  "parapet_y_head_stub": "692,79,39,32,38,15",
+  "parapet_y_middle": "732,79,39,55,38,26",
+  "parapet_y_middle_stub": "772,79,39,44,38,15",
+  "parapet_y_foot": "812,79,39,55,38,26",
+  "parapet_y_foot_stub": "852,79,39,44,38,15",
+  "bier_x": "892,79,82,59,24,15",
+  "kept_lamp_01": "975,79,32,54,16,29",
+  "kept_lamp_02": "0,215,32,54,16,29",
+  "kept_lamp_03": "33,215,32,54,16,29",
+  "kept_lamp_04": "66,215,32,54,16,29",
+  "kneeling_stone": "99,215,46,27,22,-1",
+  "grave_anvil": "146,215,41,46,20,18",
+  "chapel_ledger_stone": "188,215,44,62,21,33",
+  "dormants_cut_x": "233,215,32,135,0,120",
+  "dormants_cut_x_stub": "266,215,42,32,0,17",
+  "warranted_seal_whole_x": "309,215,32,135,0,120",
+  "warranted_seal_whole_x_stub": "342,215,42,32,0,17",
+  "warranted_seal_cut_x": "385,215,32,135,0,120",
+  "warranted_seal_cut_x_stub": "418,215,42,32,0,17",
+  "flooded_stair_cut_seal_x": "461,215,44,141,0,120",
+  "flooded_stair_cut_seal_x_stub": "506,215,44,38,0,17",
+  "grille_x": "551,215,32,135,0,120",
+  "grille_x_stub": "584,215,42,32,0,17",
+  "dormants_cut_y": "627,215,32,135,32,120",
+  "dormants_cut_y_stub": "660,215,42,32,42,17",
+  "warranted_seal_whole_y": "703,215,32,135,32,120",
+  "warranted_seal_whole_y_stub": "736,215,42,32,42,17",
+  "warranted_seal_cut_y": "779,215,32,135,32,120",
+  "warranted_seal_cut_y_stub": "812,215,42,32,42,17",
+  "flooded_stair_cut_seal_y": "855,215,43,141,43,120",
+  "flooded_stair_cut_seal_y_stub": "899,215,43,38,43,17",
+  "grille_y": "943,215,32,135,32,120",
+  "grille_y_stub": "976,215,42,32,42,17"
+ },
+ "cells": {
+  "niche_sealed_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-SEALED-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_sealed_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-SEALED-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_patron_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PATRON-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_patron_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PATRON-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_shield_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-SHIELD-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_shield_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-SHIELD-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_hammer_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-HAMMER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_hammer_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-HAMMER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_pried_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PRIED-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_pried_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PRIED-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_awaits_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-AWAITS-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_awaits_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-AWAITS-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_blank_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-BLANK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_blank_x_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-BLANK-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "tier_edge_x": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "TIER-EDGE-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_sealed_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-SEALED-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_sealed_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-SEALED-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_patron_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PATRON-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_patron_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PATRON-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_shield_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-SHIELD-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_shield_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-SHIELD-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_hammer_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-HAMMER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_gear_hammer_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-GEAR-HAMMER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_pried_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PRIED-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_pried_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-PRIED-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_awaits_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-AWAITS-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_awaits_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-AWAITS-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_blank_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-BLANK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "niche_blank_y_stub": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "NICHE-BLANK-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "tier_edge_y": {
+   "page": "PAGE-01-NICHE-WALLS",
+   "id": "TIER-EDGE-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_x_repeat": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-X-REPEAT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_x_repeat_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-X-REPEAT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_x_short_row": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-X-SHORT-ROW",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_x_short_row_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-X-SHORT-ROW-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_head": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_head_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_middle": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_middle_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_foot": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_x_foot_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-X-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_y_repeat": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-Y-REPEAT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_y_repeat_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-Y-REPEAT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_y_short_row": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-Y-SHORT-ROW",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "name_wall_y_short_row_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "NAME-WALL-Y-SHORT-ROW-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_head": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_head_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_middle": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_middle_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_foot": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "parapet_y_foot_stub": {
+   "page": "PAGE-02-NAME-WALL",
+   "id": "PARAPET-Y-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "bier_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "BIER-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "kept_lamp_01": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "KEPT-LAMP-01",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "freestanding",
+   "wall": null,
+   "geometry": null
+  },
+  "kept_lamp_02": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "KEPT-LAMP-02",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "freestanding",
+   "wall": null,
+   "geometry": null
+  },
+  "kept_lamp_03": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "KEPT-LAMP-03",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "freestanding",
+   "wall": null,
+   "geometry": null
+  },
+  "kept_lamp_04": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "KEPT-LAMP-04",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "freestanding",
+   "wall": null,
+   "geometry": null
+  },
+  "kneeling_stone": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "KNEELING-STONE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "grave_anvil": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "GRAVE-ANVIL",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "chapel_ledger_stone": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "CHAPEL-LEDGER-STONE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "dormants_cut_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "DORMANTS-CUT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "dormants_cut_x_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "DORMANTS-CUT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_whole_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-WHOLE-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_whole_x_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-WHOLE-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_cut_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-CUT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_cut_x_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-CUT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "flooded_stair_cut_seal_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "FLOODED-STAIR-CUT-SEAL-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "flooded_stair_cut_seal_x_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "FLOODED-STAIR-CUT-SEAL-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "grille_x": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "GRILLE-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "grille_x_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "GRILLE-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "dormants_cut_y": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "DORMANTS-CUT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "dormants_cut_y_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "DORMANTS-CUT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_whole_y": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-WHOLE-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_whole_y_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-WHOLE-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_cut_y": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-CUT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "warranted_seal_cut_y_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "WARRANTED-SEAL-CUT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "flooded_stair_cut_seal_y": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "FLOODED-STAIR-CUT-SEAL-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "flooded_stair_cut_seal_y_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "FLOODED-STAIR-CUT-SEAL-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "grille_y": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "GRILLE-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "grille_y_stub": {
+   "page": "PAGE-03-CHAMBER-CHAPEL-AND-SEALS",
+   "id": "GRILLE-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  }
+ },
+ "source": "generated by the art desk (2026-11-11, ART-137-SOLSKAFT: deep16/_src/ART-137-SOLSKAFT), cut by tools/solskaft-sheet.py"
+}

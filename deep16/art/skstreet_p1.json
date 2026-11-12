@@ -1,0 +1,819 @@
+{
+ "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-135-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+ "image": "art/skstreet_p1.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 48,
+ "prop": true,
+ "anims": {},
+ "tiles": {
+  "ramp_x_head": "0,0,94,60,63,0",
+  "ramp_x_middle": "95,0,94,60,63,0",
+  "ramp_x_foot": "190,0,94,60,63,0",
+  "ramp_x_far_head": "285,0,37,51,0,22",
+  "ramp_x_far_head_stub": "323,0,37,43,0,14",
+  "ramp_x_far_middle": "361,0,37,51,0,22",
+  "ramp_x_far_middle_stub": "399,0,37,43,0,14",
+  "ramp_x_far_foot": "437,0,37,45,0,16",
+  "ramp_x_far_foot_stub": "475,0,37,37,0,8",
+  "ramp_x_near_head": "513,0,37,51,4,20",
+  "ramp_x_near_head_stub": "551,0,37,43,4,12",
+  "ramp_x_near_middle": "589,0,37,51,4,20",
+  "ramp_x_near_middle_stub": "627,0,37,43,4,12",
+  "ramp_x_near_foot": "665,0,37,45,4,14",
+  "ramp_x_near_foot_stub": "703,0,37,37,4,6",
+  "stair_down_x": "741,0,62,32,31,0",
+  "stair_up_x": "804,0,45,144,13,120",
+  "stair_up_x_stub": "850,0,55,41,13,17",
+  "lodging_stair_x": "906,0,82,171,24,128",
+  "ramp_y_head": "0,172,62,44,31,0",
+  "ramp_y_middle": "63,172,62,44,31,0",
+  "ramp_y_foot": "126,172,62,44,31,0",
+  "ramp_y_far_head": "189,172,37,51,36,22",
+  "ramp_y_far_head_stub": "227,172,37,43,36,14",
+  "ramp_y_far_middle": "265,172,37,51,36,22",
+  "ramp_y_far_middle_stub": "303,172,37,43,36,14",
+  "ramp_y_far_foot": "341,172,37,45,36,16",
+  "ramp_y_far_foot_stub": "379,172,37,37,36,8",
+  "ramp_y_near_head": "417,172,37,51,32,20",
+  "ramp_y_near_head_stub": "455,172,37,43,32,12",
+  "ramp_y_near_middle": "493,172,37,51,32,20",
+  "ramp_y_near_middle_stub": "531,172,37,43,32,12",
+  "ramp_y_near_foot": "569,172,37,45,32,14",
+  "ramp_y_near_foot_stub": "607,172,37,37,32,6",
+  "stair_down_y": "645,172,62,32,31,0",
+  "stair_up_y": "708,172,46,144,32,120",
+  "stair_up_y_stub": "755,172,56,41,42,17",
+  "lodging_stair_y": "812,172,82,171,57,128",
+  "trade_counter_x": "895,172,118,87,26,27",
+  "quartermaster_counter_x": "0,344,91,87,30,40",
+  "covered_assay_scales": "92,344,55,52,26,25",
+  "tariff_board_x": "148,344,34,135,2,120",
+  "tariff_board_x_stub": "183,344,42,32,0,17",
+  "tariff_board_y": "226,344,35,135,32,120",
+  "tariff_board_y_stub": "262,344,42,32,42,17",
+  "ledger_desk": "305,344,47,54,24,26",
+  "manger_x": "353,344,45,143,13,120",
+  "manger_x_stub": "399,344,55,40,13,17",
+  "manger_y": "455,344,46,143,32,120",
+  "manger_y_stub": "502,344,56,40,42,17",
+  "water_trough_x": "559,344,43,32,20,6",
+  "old_fodder": "603,344,29,18,13,-7",
+  "stall_partition_x": "633,344,38,47,5,27",
+  "stall_partition_x_stub": "672,344,38,32,5,12",
+  "stall_partition_y": "711,344,38,47,32,27",
+  "stall_partition_y_stub": "750,344,38,32,32,12",
+  "touch_needle_table": "789,344,53,48,25,21",
+  "locked_weights_case": "843,344,45,37,21,10",
+  "spear_rack_x": "889,344,36,136,4,120",
+  "spear_rack_x_stub": "926,344,46,33,4,17",
+  "spear_rack_y": "973,344,37,136,32,120",
+  "spear_rack_y_stub": "0,488,47,33,42,17",
+  "guardroom_bench_x": "48,488,81,52,23,11",
+  "watch_slate_x": "130,488,33,135,1,120",
+  "watch_slate_x_stub": "164,488,42,32,0,17",
+  "watch_slate_y": "207,488,34,135,32,120",
+  "watch_slate_y_stub": "242,488,42,32,42,17"
+ },
+ "cells": {
+  "ramp_x_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-HEAD",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-MIDDLE",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FOOT",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_head_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_middle_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_far_foot_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-FAR-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_head_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_middle_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_x_near_foot_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-X-NEAR-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_down_x": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-DOWN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_up_x": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-UP-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_up_x_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-UP-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_stair_x": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "LODGING-STAIR-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_head_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_middle_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_far_foot_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-FAR-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_head": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-HEAD",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_head_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-HEAD-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_middle": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-MIDDLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_middle_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-MIDDLE-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_foot": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-FOOT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ramp_y_near_foot_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "RAMP-Y-NEAR-FOOT-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_down_y": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-DOWN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_up_y": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-UP-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stair_up_y_stub": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "STAIR-UP-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_stair_y": {
+   "page": "PAGE-01-RAMPS-AND-STAIRS",
+   "id": "LODGING-STAIR-Y",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "trade_counter_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "TRADE-COUNTER-X",
+   "foot": [
+    3,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "quartermaster_counter_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "QUARTERMASTER-COUNTER-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "covered_assay_scales": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "COVERED-ASSAY-SCALES",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "tariff_board_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "TARIFF-BOARD-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "tariff_board_x_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "TARIFF-BOARD-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "tariff_board_y": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "TARIFF-BOARD-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "tariff_board_y_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "TARIFF-BOARD-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "ledger_desk": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "LEDGER-DESK",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "manger_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "MANGER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "manger_x_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "MANGER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "manger_y": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "MANGER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "manger_y_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "MANGER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "water_trough_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "WATER-TROUGH-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "old_fodder": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "OLD-FODDER",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stall_partition_x": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "STALL-PARTITION-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "stall_partition_x_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "STALL-PARTITION-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "stall_partition_y": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "STALL-PARTITION-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "stall_partition_y_stub": {
+   "page": "PAGE-02-TOLLHOUSE-AND-STABLE",
+   "id": "STALL-PARTITION-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "touch_needle_table": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "TOUCH-NEEDLE-TABLE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "locked_weights_case": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "LOCKED-WEIGHTS-CASE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "spear_rack_x": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "SPEAR-RACK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "spear_rack_x_stub": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "SPEAR-RACK-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "spear_rack_y": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "SPEAR-RACK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "spear_rack_y_stub": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "SPEAR-RACK-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "guardroom_bench_x": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "GUARDROOM-BENCH-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "watch_slate_x": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "WATCH-SLATE-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "watch_slate_x_stub": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "WATCH-SLATE-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "watch_slate_y": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "WATCH-SLATE-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "watch_slate_y_stub": {
+   "page": "PAGE-03-CROWN-STRETCH",
+   "id": "WATCH-SLATE-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  }
+ },
+ "source": "generated by the art desk (2026-11-11, ART-135-SOLSKAFT: deep16/_src/ART-135-SOLSKAFT), cut by tools/solskaft-sheet.py"
+}

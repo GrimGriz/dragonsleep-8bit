@@ -1,0 +1,1659 @@
+{
+ "_note": "S\u00f3lskaft's tiles and props (tools/solskaft-sheet.py, the art desk's ART-134-SOLSKAFT, art-wanted sections 47-51, 2026-11-11): each cell a box x,y,w,h and its anchor ax,ay -- a prop's the top vertex of its footprint on the ground, a wall module's its face's foot at its run-start; `cells` names each tile's page, footprint, facing and wall height.",
+ "image": "art/skstone_p1.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 48,
+ "prop": true,
+ "anims": {},
+ "tiles": {
+  "flags_1": "0,0,64,32,32,0",
+  "flags_2": "65,0,64,32,32,0",
+  "flags_3": "130,0,64,32,32,0",
+  "flags_4": "195,0,64,32,32,0",
+  "worn_x_1": "260,0,64,32,32,0",
+  "worn_x_2": "325,0,64,32,32,0",
+  "worn_x_3": "390,0,64,32,32,0",
+  "worn_x_4": "455,0,64,32,32,0",
+  "worn_y_1": "520,0,64,32,32,0",
+  "worn_y_2": "585,0,64,32,32,0",
+  "worn_y_3": "650,0,64,32,32,0",
+  "worn_y_4": "715,0,64,32,32,0",
+  "edge_x_1": "780,0,64,32,32,0",
+  "edge_x_2": "845,0,64,32,32,0",
+  "edge_x_3": "910,0,64,32,32,0",
+  "edge_x_4": "0,33,64,32,32,0",
+  "edge_y_1": "65,33,64,32,32,0",
+  "edge_y_2": "130,33,64,32,32,0",
+  "edge_y_3": "195,33,64,32,32,0",
+  "edge_y_4": "260,33,64,32,32,0",
+  "plain_x": "325,33,32,136,0,120",
+  "plain_x_stub": "358,33,43,39,0,23",
+  "wall_lamp_unlit_x": "402,33,32,136,0,120",
+  "wall_lamp_unlit_x_stub": "435,33,43,39,0,23",
+  "wall_lamp_lit_x": "479,33,32,136,0,120",
+  "wall_lamp_lit_x_stub": "512,33,43,39,0,23",
+  "outer_corner_x": "556,33,32,136,0,120",
+  "outer_corner_x_stub": "589,33,43,39,0,23",
+  "inner_corner_x": "633,33,32,136,0,120",
+  "inner_corner_x_stub": "666,33,43,39,0,23",
+  "arch_left_x": "710,33,32,136,0,120",
+  "arch_left_x_stub": "743,33,43,39,0,23",
+  "arch_left_soffit_x": "787,33,64,152,0,120",
+  "arch_middle_x": "852,33,32,136,0,120",
+  "arch_middle_x_stub": "885,33,43,39,0,23",
+  "arch_middle_soffit_x": "929,33,64,152,0,120",
+  "arch_right_x": "0,186,32,136,0,120",
+  "arch_right_x_stub": "33,186,43,39,0,23",
+  "arch_right_soffit_x": "77,186,64,152,0,120",
+  "plain_y": "142,186,32,136,32,120",
+  "plain_y_stub": "175,186,43,39,43,23",
+  "wall_lamp_unlit_y": "219,186,32,136,32,120",
+  "wall_lamp_unlit_y_stub": "252,186,43,39,43,23",
+  "wall_lamp_lit_y": "296,186,32,136,32,120",
+  "wall_lamp_lit_y_stub": "329,186,43,39,43,23",
+  "outer_corner_y": "373,186,32,136,32,120",
+  "outer_corner_y_stub": "406,186,43,39,43,23",
+  "inner_corner_y": "450,186,32,136,32,120",
+  "inner_corner_y_stub": "483,186,43,39,43,23",
+  "arch_left_y": "527,186,32,136,32,120",
+  "arch_left_y_stub": "560,186,43,39,43,23",
+  "arch_left_soffit_y": "604,186,64,152,64,120",
+  "arch_middle_y": "669,186,32,136,32,120",
+  "arch_middle_y_stub": "702,186,43,39,43,23",
+  "arch_middle_soffit_y": "746,186,64,152,64,120",
+  "arch_right_y": "811,186,32,136,32,120",
+  "arch_right_y_stub": "844,186,43,39,43,23",
+  "arch_right_soffit_y": "888,186,64,152,64,120",
+  "store_shut_x": "953,186,32,256,0,240",
+  "store_shut_x_stub": "0,443,43,39,0,23",
+  "window_dark_x": "44,443,32,256,0,240",
+  "window_dark_x_stub": "77,443,43,39,0,23",
+  "window_lit_x": "121,443,32,256,0,240",
+  "window_lit_x_stub": "154,443,43,39,0,23",
+  "lodging_door_x": "198,443,32,256,0,240",
+  "lodging_door_x_stub": "231,443,43,39,0,23",
+  "plain_tall_x": "275,443,32,256,0,240",
+  "plain_tall_x_stub": "308,443,43,39,0,23",
+  "tall_corner_x": "352,443,32,256,0,240",
+  "tall_corner_x_stub": "385,443,43,39,0,23",
+  "parapet_x": "429,443,32,256,0,240",
+  "parapet_x_stub": "462,443,43,39,0,23",
+  "parapet_cap_x": "506,443,32,34,0,0",
+  "store_shut_y": "539,443,32,256,32,240",
+  "store_shut_y_stub": "572,443,43,39,43,23",
+  "window_dark_y": "616,443,32,256,32,240",
+  "window_dark_y_stub": "649,443,43,39,43,23",
+  "window_lit_y": "693,443,32,256,32,240",
+  "window_lit_y_stub": "726,443,43,39,43,23",
+  "lodging_door_y": "770,443,32,256,32,240",
+  "lodging_door_y_stub": "803,443,43,39,43,23",
+  "plain_tall_y": "847,443,32,256,32,240",
+  "plain_tall_y_stub": "880,443,43,39,43,23",
+  "tall_corner_y": "924,443,32,256,32,240",
+  "tall_corner_y_stub": "957,443,43,39,43,23",
+  "parapet_y": "0,700,32,256,32,240",
+  "parapet_y_stub": "33,700,43,39,43,23",
+  "parapet_cap_y": "77,700,32,34,32,0",
+  "store_shut_with_window_dark_x": "110,700,32,256,0,240",
+  "store_shut_with_window_lit_x": "143,700,32,256,0,240",
+  "lodging_door_with_window_dark_x": "176,700,32,256,0,240",
+  "lodging_door_with_window_lit_x": "209,700,32,256,0,240",
+  "store_shut_with_window_dark_y": "242,700,32,256,32,240",
+  "store_shut_with_window_lit_y": "275,700,32,256,32,240",
+  "lodging_door_with_window_dark_y": "308,700,32,256,32,240",
+  "lodging_door_with_window_lit_y": "341,700,32,256,32,240",
+  "oak_door_x": "374,700,32,136,0,120",
+  "oak_door_x_stub": "407,700,43,39,0,23",
+  "barred_door_x": "451,700,32,136,0,120",
+  "barred_door_x_stub": "484,700,43,39,0,23",
+  "throne_double_open_x": "528,700,92,152,0,120",
+  "throne_double_open_x_stub": "621,700,75,55,0,23",
+  "vault_open_x": "697,700,92,152,0,120",
+  "vault_open_x_stub": "790,700,75,55,0,23",
+  "oak_door_y": "866,700,32,136,32,120",
+  "oak_door_y_stub": "899,700,43,39,43,23",
+  "barred_door_y": "943,700,32,136,32,120",
+  "barred_door_y_stub": "976,700,43,39,43,23",
+  "throne_double_open_y": "0,957,92,152,92,120",
+  "throne_double_open_y_stub": "93,957,75,55,75,23",
+  "vault_open_y": "169,957,92,152,92,120",
+  "vault_open_y_stub": "262,957,75,55,75,23",
+  "oathstone": "338,957,85,73,26,27",
+  "throne": "424,957,86,99,26,53",
+  "dais_centre": "511,957,65,41,32,8",
+  "dais_n": "577,957,64,37,32,4",
+  "dais_e": "642,957,64,40,32,8",
+  "dais_s": "707,957,64,40,31,8",
+  "dais_w": "772,957,64,37,31,4",
+  "dais_ne": "837,957,62,36,32,4",
+  "dais_se": "900,957,63,40,31,8",
+  "dais_sw": "0,1110,62,36,29,4",
+  "dais_nw": "63,1110,63,36,31,3",
+  "brazier_unlit": "127,1110,33,39,16,17",
+  "brazier_lit_1": "161,1110,33,39,16,17",
+  "brazier_lit_2": "195,1110,33,39,16,17",
+  "brazier_lit_3": "229,1110,33,39,16,17",
+  "brazier_lit_4": "263,1110,33,39,16,17",
+  "rekknar_ledger_stone": "297,1110,42,68,21,41",
+  "dormant_cut_x": "340,1110,32,136,0,120",
+  "dormant_cut_x_stub": "373,1110,43,39,0,23",
+  "dormant_cut_y": "417,1110,32,136,32,120",
+  "dormant_cut_y_stub": "450,1110,43,39,43,23",
+  "temple_lamp_unlit": "494,1110,15,51,7,31",
+  "temple_lamp_lit": "510,1110,15,51,7,31",
+  "kneeling_bench_x": "526,1110,40,36,20,11",
+  "kneeling_bench_y": "567,1110,40,36,19,11"
+ },
+ "cells": {
+  "flags_1": {
+   "page": "PAGE-01-FLOORS",
+   "id": "FLAGS-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "none",
+   "wall": null,
+   "geometry": null
+  },
+  "flags_2": {
+   "page": "PAGE-01-FLOORS",
+   "id": "FLAGS-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "none",
+   "wall": null,
+   "geometry": null
+  },
+  "flags_3": {
+   "page": "PAGE-01-FLOORS",
+   "id": "FLAGS-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "none",
+   "wall": null,
+   "geometry": null
+  },
+  "flags_4": {
+   "page": "PAGE-01-FLOORS",
+   "id": "FLAGS-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "none",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_x_1": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-X-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_x_2": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-X-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_x_3": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-X-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_x_4": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-X-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_y_1": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-Y-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_y_2": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-Y-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_y_3": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-Y-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "worn_y_4": {
+   "page": "PAGE-01-FLOORS",
+   "id": "WORN-Y-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_x_1": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-X-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_x_2": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-X-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_x_3": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-X-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_x_4": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-X-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_y_1": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-Y-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_y_2": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-Y-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_y_3": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-Y-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "edge_y_4": {
+   "page": "PAGE-01-FLOORS",
+   "id": "EDGE-Y-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  },
+  "plain_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "PLAIN-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "plain_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "PLAIN-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "wall_lamp_unlit_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-UNLIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "wall_lamp_unlit_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-UNLIT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "wall_lamp_lit_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-LIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "wall_lamp_lit_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-LIT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "outer_corner_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "OUTER-CORNER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "outer_corner_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "OUTER-CORNER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "inner_corner_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "INNER-CORNER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "inner_corner_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "INNER-CORNER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_left_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_left_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_left_soffit_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-SOFFIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "arch_middle_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_middle_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_middle_soffit_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-SOFFIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "arch_right_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_right_x_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_right_soffit_x": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-SOFFIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "plain_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "PLAIN-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "plain_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "PLAIN-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "wall_lamp_unlit_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-UNLIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "wall_lamp_unlit_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-UNLIT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "wall_lamp_lit_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-LIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "wall_lamp_lit_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "WALL-LAMP-LIT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "outer_corner_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "OUTER-CORNER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "outer_corner_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "OUTER-CORNER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "inner_corner_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "INNER-CORNER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "inner_corner_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "INNER-CORNER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_left_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_left_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_left_soffit_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-LEFT-SOFFIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "arch_middle_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_middle_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_middle_soffit_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-MIDDLE-SOFFIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "arch_right_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "arch_right_y_stub": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "arch_right_soffit_y": {
+   "page": "PAGE-02-ONE-STOREY-WALLS",
+   "id": "ARCH-RIGHT-SOFFIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": "wall-depth overlay"
+  },
+  "store_shut_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "store_shut_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "window_dark_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-DARK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "window_dark_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-DARK-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "window_lit_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-LIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "window_lit_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-LIT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "lodging_door_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "lodging_door_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "plain_tall_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PLAIN-TALL-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "plain_tall_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PLAIN-TALL-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "tall_corner_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "TALL-CORNER-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "tall_corner_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "TALL-CORNER-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "parapet_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "parapet_x_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "parapet_cap_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-CAP-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": "wall-top overlay"
+  },
+  "store_shut_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "store_shut_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "window_dark_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-DARK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "window_dark_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-DARK-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "window_lit_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-LIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "window_lit_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "WINDOW-LIT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "lodging_door_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "lodging_door_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "plain_tall_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PLAIN-TALL-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "plain_tall_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PLAIN-TALL-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "tall_corner_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "TALL-CORNER-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "tall_corner_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "TALL-CORNER-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "parapet_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 240,
+   "geometry": "full"
+  },
+  "parapet_y_stub": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "parapet_cap_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "PARAPET-CAP-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": "wall-top overlay"
+  },
+  "store_shut_with_window_dark_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-WITH-WINDOW-DARK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "store_shut_with_window_lit_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-WITH-WINDOW-LIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_door_with_window_dark_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-WITH-WINDOW-DARK-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_door_with_window_lit_x": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-WITH-WINDOW-LIT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "store_shut_with_window_dark_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-WITH-WINDOW-DARK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "store_shut_with_window_lit_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "STORE-SHUT-WITH-WINDOW-LIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_door_with_window_dark_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-WITH-WINDOW-DARK-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "lodging_door_with_window_lit_y": {
+   "page": "PAGE-03-TWO-STOREY-STOREFRONTS",
+   "id": "LODGING-DOOR-WITH-WINDOW-LIT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": null,
+   "geometry": null
+  },
+  "oak_door_x": {
+   "page": "PAGE-04-DOORS",
+   "id": "OAK-DOOR-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "oak_door_x_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "OAK-DOOR-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "barred_door_x": {
+   "page": "PAGE-04-DOORS",
+   "id": "BARRED-DOOR-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "barred_door_x_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "BARRED-DOOR-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "throne_double_open_x": {
+   "page": "PAGE-04-DOORS",
+   "id": "THRONE-DOUBLE-OPEN-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": null
+  },
+  "throne_double_open_x_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "THRONE-DOUBLE-OPEN-X-STUB",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": null
+  },
+  "vault_open_x": {
+   "page": "PAGE-04-DOORS",
+   "id": "VAULT-OPEN-X",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": null
+  },
+  "vault_open_x_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "VAULT-OPEN-X-STUB",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": null
+  },
+  "oak_door_y": {
+   "page": "PAGE-04-DOORS",
+   "id": "OAK-DOOR-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "oak_door_y_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "OAK-DOOR-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "barred_door_y": {
+   "page": "PAGE-04-DOORS",
+   "id": "BARRED-DOOR-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "barred_door_y_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "BARRED-DOOR-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "throne_double_open_y": {
+   "page": "PAGE-04-DOORS",
+   "id": "THRONE-DOUBLE-OPEN-Y",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": null
+  },
+  "throne_double_open_y_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "THRONE-DOUBLE-OPEN-Y-STUB",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": null
+  },
+  "vault_open_y": {
+   "page": "PAGE-04-DOORS",
+   "id": "VAULT-OPEN-Y",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": null
+  },
+  "vault_open_y_stub": {
+   "page": "PAGE-04-DOORS",
+   "id": "VAULT-OPEN-Y-STUB",
+   "foot": [
+    1,
+    2
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": null
+  },
+  "oathstone": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "OATHSTONE",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "throne": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "THRONE",
+   "foot": [
+    2,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_centre": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-CENTRE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map centre",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_n": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-N",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map n",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_e": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-E",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map e",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_s": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-S",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map s",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_w": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-W",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map w",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_ne": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-NE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map ne",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_se": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-SE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map se",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_sw": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-SW",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map sw",
+   "wall": null,
+   "geometry": null
+  },
+  "dais_nw": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DAIS-NW",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "map nw",
+   "wall": null,
+   "geometry": null
+  },
+  "brazier_unlit": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "BRAZIER-UNLIT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "brazier_lit_1": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "BRAZIER-LIT-1",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "brazier_lit_2": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "BRAZIER-LIT-2",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "brazier_lit_3": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "BRAZIER-LIT-3",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "brazier_lit_4": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "BRAZIER-LIT-4",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "rekknar_ledger_stone": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "REKKNAR-LEDGER-STONE",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "face lower-left",
+   "wall": null,
+   "geometry": null
+  },
+  "dormant_cut_x": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DORMANT-CUT-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "dormant_cut_x_stub": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DORMANT-CUT-X-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x / face lower-left",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "dormant_cut_y": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DORMANT-CUT-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 120,
+   "geometry": "full"
+  },
+  "dormant_cut_y_stub": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "DORMANT-CUT-Y-STUB",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y / face lower-right",
+   "wall": 12,
+   "geometry": "full"
+  },
+  "temple_lamp_unlit": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "TEMPLE-LAMP-UNLIT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "temple_lamp_lit": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "TEMPLE-LAMP-LIT",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "front / centred",
+   "wall": null,
+   "geometry": null
+  },
+  "kneeling_bench_x": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "KNEELING-BENCH-X",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along x",
+   "wall": null,
+   "geometry": null
+  },
+  "kneeling_bench_y": {
+   "page": "PAGE-05-COURT-AND-TEMPLES",
+   "id": "KNEELING-BENCH-Y",
+   "foot": [
+    1,
+    1
+   ],
+   "facing": "along y",
+   "wall": null,
+   "geometry": null
+  }
+ },
+ "source": "generated by the art desk (2026-11-11, ART-134-SOLSKAFT: deep16/_src/ART-134-SOLSKAFT), cut by tools/solskaft-sheet.py"
+}
