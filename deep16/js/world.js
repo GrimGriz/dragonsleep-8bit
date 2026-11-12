@@ -817,16 +817,18 @@
   // weight of the mirror-made entry on a zone's table is THE FALLOFF -- 6 (the old cap) at a making's place, falling straight to 0 at its reach; the reach 10 mi on its day
   // and 6 mi more each day after (made things wandering from it, half his pace), to 40 at most; the strongest making counts. The ground he has not reached is clean; his
   // trail stays dangerous: a point whose nearest stretch of his road he has not walked yet weighs nothing. The day-5 making's reach meets the inn's 26 mi on day 8, when the reports do. Near them the road's fights also come more often: the count runs
-  // (1 + W.VESSEL.rate * weight / 6) times as fast, 1.5 at a making. AFTER DAY 12 (RULED 11-07, his "gets his butt kicked at the warded place, he'll head down to the
-  // underground route after licking his wounds for a while"; how long, where: OPEN, his, HELD on the 11-12 word): he is held where dusk of day 12 leaves him (the Doors'
-  // hex, the last switchbacks), no making after day 11, and no reach grows after day 12. The seat's numbers, his to tune; the show: deep16/?world&far&fresh&noenc&vessel
+  // (1 + W.VESSEL.rate * weight / 6) times as fast, 1.5 at a making. THE WARDED FORT (RULED 11-12, Griz: "1 - he's supposed to hold at the warded fort"): he walks the Route at the table's pace
+  // to the Warded Fort's mark (W.VESSEL.hold, read off the map) and is held THERE from that hour; no making after it, no reach grows after it; he never goes on to the Doors. What comes after (RULED 11-07,
+  // his "gets his butt kicked at the warded place, he'll head down to the underground route after licking his wounds for a while"): how long, where -- OPEN, his. Made things
+  // never fade (RULED 11-12, "2 - for now"). NOTHING OF IT IS PLAYER VISIBLE (RULED 11-12, Griz: "vessel's road - should be nothing to watch, this is all background to
+  // determine random encounters and achieve for party, nothing player visible"): only the weights; the drawing below is a seats' debug view behind the &vessel flag alone
   W.VESSEL = {
-    from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, held: 12,
-    makings: [5, 7, 9, 11], makeHour: 12, reach: [10, 6, 40], peak: 6, rate: 0.5,
+    from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
+    makings: [5, 7, 9, 11, 13], makeHour: 12, reach: [10, 6, 40], peak: 6, rate: 0.5,
     // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
-    // as the table; 9 to 11 a hex behind it (the climb slower); dusk of 12 in the Doors' hex as the table, the Doors' own mark -- the table's "late on day 12" -- 2 mi on
+    // as the table; 9 to 11 a hex behind it (the climb slower); then held at the Warded Fort from 12:30 on day 11 (the table walked him on to the Doors late on day 12)
     table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
-      9: [[19, 7], [19, 6]], 10: [[19, 6], [18, 6]], 11: [[18, 6], [17, 6]], 12: [[17, 6], [17, 5]] }
+      9: [[19, 7], [19, 6]], 10: [[19, 6], [18, 6]], 11: [[18, 6], [17, 6]], 12: [[17, 6], [17, 6]] }
   };
   var VR = { src: null, pts: null };
   W.vesselRoad = function () { // (his road as one line of miles on THE WORLD: [x, y, the walk's miles to here] -- the ground's going counted in)
@@ -840,40 +842,43 @@
     }
     var rp = (RP.pts || []).filter(function (p) { return Array.isArray(p); }), go = RP.going || (RP.difficult ? 2 : 1);
     for (var j = 1; j < rp.length; j++) { eff += Math.hypot(rp[j][0] - px, rp[j][1] - py) * go; px = rp[j][0]; py = rp[j][1]; pts.push([px, py, eff]); }
-    VR.src = MW; VR.pts = pts; return pts;
+    var fs = MW.sites.filter(function (s) { return s.id === V.hold; })[0], hE = eff, hd = 1e9; // (THE WARDED FORT: the walk-miles where his road passes nearest its mark)
+    if (fs) for (var k = 1; k < pts.length; k++) { var p0 = pts[k - 1], p1 = pts[k], vx = p1[0] - p0[0], vy = p1[1] - p0[1], L2 = vx * vx + vy * vy, u = L2 ? Math.max(0, Math.min(1, ((fs.x - p0[0]) * vx + (fs.y - p0[1]) * vy) / L2)) : 0, dk = Math.hypot(fs.x - p0[0] - u * vx, fs.y - p0[1] - u * vy); if (dk < hd) { hd = dk; hE = p0[2] + (p1[2] - p0[2]) * u; } }
+    VR.src = MW; VR.pts = pts; VR.holdE = hE; VR.holdOff = hd; return pts;
   };
-  W.vesselMiles = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk, held from dusk of day 12)
+  W.vesselMiles = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk; vesselAt holds him at the Warded Fort)
     var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24;
-    if (d < V.day0) return 0; if (d > V.held) { d = V.held; h = V.dusk; }
+    if (d < V.day0) return 0; // (no cap here: vesselAt holds him at the Warded Fort -- RULED 11-12, "1 - he's supposed to hold at the warded fort")
     return (d - V.day0) * V.mpd + V.mpd * Math.max(0, Math.min(1, (h - V.dawn) / (V.dusk - V.dawn)));
   };
   W.vesselAt = function (t) { // (where he is at S.t (default now): his point in miles, his hex on THE WORLD, the walk's miles, held or not)
     if (t == null) t = S ? S.t : 0; var pts = W.vesselRoad(); if (!pts) return null;
-    var e = Math.min(W.vesselMiles(t), pts[pts.length - 1][2]), p = pts[pts.length - 1];
+    var e = Math.min(W.vesselMiles(t), VR.holdE), p = pts[pts.length - 1];
     for (var i = 1; i < pts.length; i++) if (pts[i][2] >= e) { var a = pts[i - 1], b = pts[i], f = b[2] > a[2] ? (e - a[2]) / (b[2] - a[2]) : 0; p = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; break; }
-    return { pt: [p[0], p[1]], hex: atw(p[0], p[1], MS.world.w), mi: e, held: Math.floor(t / 24) + 1 > W.VESSEL.held, end: pts[pts.length - 1][2] };
+    return { pt: [p[0], p[1]], hex: atw(p[0], p[1], MS.world.w), mi: e, held: e >= VR.holdE, end: VR.holdE, fortOff: VR.holdOff };
   };
+  W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var E = VR.holdE, n = Math.floor(E / V.mpd); return (V.day0 + n - 1) * 24 + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }; // (S.t at the Warded Fort: he is held from it)
   W.makings = function (t) { // (the makings made by S.t: each its day, its place, its reach now)
-    if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tg = Math.min(t, V.held * 24);
-    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
+    if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tA = W.vesselArrives(), tg = Math.min(t, tA);
+    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
   };
   W.partyPt = function () { return S && M ? hc(S.at[0], S.at[1]) : null; }; // (the party's hex's middle in miles: one plane for both maps)
   W.mirrorWeight = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now))
     pt = pt || W.partyPt(); if (!pt) return 0; var V = W.VESSEL, w = 0, pts = W.vesselRoad(); if (!pts) return 0;
     var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
-    if (pts[bi][2] > W.vesselMiles(t == null ? (S ? S.t : 0) : t) + 1) return 0; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
+    if (pts[bi][2] > W.vesselAt(t).mi + 1) return 0; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
     W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) w = Math.max(w, V.peak * (1 - d / m.reach)); });
     return w;
   };
   W.mirrorRate = function (pt, t) { return 1 + W.VESSEL.rate * W.mirrorWeight(pt, t) / W.VESSEL.peak; }; // (the road's count runs this much faster near the made things)
-  // THE SHOW (deep16/?world&far&fresh&noenc&vessel, his eye: a look): his road drawn on THE WORLD, the day's dusk marks, his mark now, each making's reach as a ring;
+  // THE DEBUG VIEW (deep16/?world&far&fresh&noenc&vessel, a seat's, never a player's: W.VESSEL.show is set only by that flag, World.enter): his road drawn on THE WORLD, the day's dusk marks, his mark now, each making's reach as a ring;
   // &vessel plays day 2 to day 14 over and over (two seconds a day), &vessel=<day> holds that day's noon
   W.drawVessel = function (g, cam, t) {
     var sv = W.VESSEL.show; if (!sv || !W.groundAt) return; var pts = W.vesselRoad(); if (!pts) return;
     if (sv.play) { S.t = 24 + (Math.floor(t * 12 / 120) % (13 * 12)) * 2; } // (from 00:00 of day 2, two hours a frame-tick of 10)
     var gp = function (x, y) { return W.groundAt(cam, x, y); };
     g.strokeStyle = 'rgba(200,120,255,.55)'; g.lineWidth = 2; g.beginPath(); pts.forEach(function (p, i) { var q = gp(p[0], p[1]); if (!i) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }); g.stroke(); g.lineWidth = 1;
-    for (var d = W.VESSEL.day0; d <= W.VESSEL.held; d++) { var a = W.vesselAt((d - 1) * 24 + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
+    for (var d = W.VESSEL.day0; d <= 13; d++) { var a = W.vesselAt((d - 1) * 24 + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
     W.makings().forEach(function (m) {
       g.strokeStyle = 'rgba(232,80,200,.8)'; g.fillStyle = 'rgba(232,80,200,.12)'; g.beginPath();
       for (var k = 0; k <= 36; k++) { var an = k / 36 * Math.PI * 2, q = gp(m.pt[0] + Math.cos(an) * m.reach, m.pt[1] + Math.sin(an) * m.reach); if (!k) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }
@@ -881,7 +886,7 @@
     });
     var v = W.vesselAt(), p = gp(v.pt[0], v.pt[1]), x = Math.round(p[0]), y = Math.round(p[1]);
     g.strokeStyle = '#ff60e0'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 4, y - 4); g.lineTo(x + 4, y + 4); g.moveTo(x + 4, y - 4); g.lineTo(x - 4, y + 4); g.stroke(); g.lineWidth = 1;
-    var hr = Math.floor(W.hour()), cap = 'THE VESSEL\'S ROAD -- day ' + W.day() + ', ' + (hr < 10 ? '0' : '') + hr + ':00 -- at ' + v.hex.join(',') + (v.held ? ' (held: past day 12 is his)' : '') + ' -- the made things here: ' + W.mirrorWeight().toFixed(1);
+    var hr = Math.floor(W.hour()), cap = 'THE VESSEL\'S ROAD -- day ' + W.day() + ', ' + (hr < 10 ? '0' : '') + hr + ':00 -- at ' + v.hex.join(',') + (v.held ? ' (held at the Warded Fort)' : '') + ' -- the made things here: ' + W.mirrorWeight().toFixed(1);
     D.win8(g, 4, D.H - 66, D.textWidth(cap) + 10, 14); D.text(g, cap, 9, D.H - 63, '#ffb0f0');
     W.VESSEL.drawn = { x: x, y: y, day: W.day(), makings: W.makings().length }; // (for the bench's eye)
   };

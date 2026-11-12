@@ -8357,8 +8357,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     return;
   }
   // THE VESSEL'S ROAD, 11-12 (mode=vessel1112; the vessel-road seat -- Griz: "Only thing we really need in there is the vessel's road to determine made creature spawn and
-  // encounter rates - rest can hold"): his hex by the day against the 11-05 table as re-walked (js/world.js W.VESSEL.table), held past day 12; the makings where he was;
-  // the ground ahead of him clean; the road's fights by his trail, the dice pinned; the show door draws
+  // encounter rates - rest can hold"): his hex by the day against the 11-05 table as re-walked (js/world.js W.VESSEL.table), on to the Doors and held there from day 14 (his "1 - hold at 14"); the makings where he was;
+  // the ground ahead of him clean; the road's fights by his trail, the dice pinned; nothing drawn without the debug flag
   if (get('mode', '') === 'vessel1112') {
     var repVR = { checks: [], errors: [] }, memVR = {}, stGVR = D.store.get, stSVR = D.store.set, WR = D.world;
     function okVR(what, v) { repVR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -8367,16 +8367,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.seed = +get('seed', 1112); WR.index(); WR.use('world'); var SR = WR.load('?fresh&far'), VR = WR.VESSEL, MR = WR.M(), hcR = function (h) { return WR.hc(h[0], h[1]); };
       var tR = function (d, h) { return (d - 1) * 24 + h; }, hexR = function (d, h) { return WR.vesselAt(tR(d, h)).hex.join(','); };
       // 1. his hex at dawn and dusk against the table: days 2, 4, 7, 12 named, and the rest
-      [2, 4, 7, 12].forEach(function (d) { var got = [hexR(d, VR.dawn), hexR(d, VR.dusk)], want = VR.table[d].map(function (h) { return h.join(','); });
+      [2, 4, 7, 12].filter(function (d) { return VR.table[d]; }).forEach(function (d) { var got = [hexR(d, VR.dawn), hexR(d, VR.dusk)], want = VR.table[d].map(function (h) { return h.join(','); });
         okVR('day ' + d + ': dawn ' + got[0] + ', dusk ' + got[1] + ' (the table: ' + want.join(' to ') + ')', got[0] === want[0] && got[1] === want[1]); });
-      var badR = []; for (var dR = 2; dR <= 12; dR++) if (hexR(dR, VR.dawn) !== VR.table[dR][0].join(',') || hexR(dR, VR.dusk) !== VR.table[dR][1].join(',')) badR.push(dR);
-      var aR = WR.vesselAt(0), endR = WR.vesselAt(tR(12, 18));
-      okVR('every day 2 to 12 as the table (' + (badR.length ? 'off on ' + badR.join(', ') : 'all') + '); day 1 and pre-dawn of day 2 under the trees at ' + aR.hex + '; the whole road ' + endR.end.toFixed(1) + ' walk-miles (the Doors\' mark on day ' + (VR.day0 + Math.floor(endR.end / VR.mpd)) + ' by the pace), dusk of 12 at ' + endR.mi.toFixed(1),
-        !badR.length && aR.hex.join() === '7,15' && hexR(2, 5) === '7,15' && endR.mi === 132);
-      // 2. past day 12: held, no new making, no reach grows
-      var h13 = WR.vesselAt(tR(13, 12)), h30 = WR.vesselAt(tR(30, 9)), m12 = WR.makings(tR(12, 23)), m30 = WR.makings(tR(30, 9));
-      okVR('past day 12 held: day 13 at ' + h13.hex + ' (held ' + h13.held + '), day 30 at ' + h30.hex + '; makings ' + m12.map(function (m) { return m.day + '@' + m.hex + ' ' + m.reach.toFixed(0) + 'mi'; }).join(', ') + ' -- on day 30 ' + m30.map(function (m) { return m.reach.toFixed(0); }).join('/'),
-        h13.held && h13.hex.join() === endR.hex.join() && h30.pt[0] === endR.pt[0] && h30.pt[1] === endR.pt[1] && m30.length === 4 && m12.length === 4 && m30.every(function (m, i) { return Math.abs(m.reach - WR.makings(tR(13, 0))[i].reach) < 1e-9; }));
+      var badR = []; for (var dR = 2; dR <= 12; dR++) if (VR.table[dR] && (hexR(dR, VR.dawn) !== VR.table[dR][0].join(',') || hexR(dR, VR.dusk) !== VR.table[dR][1].join(','))) badR.push(dR);
+      var aR = WR.vesselAt(0), tA = WR.vesselAt(tR(30, 9)), whole = WR.vesselRoad();
+      okVR('every day of the table as walked (' + (badR.length ? 'off on ' + badR.join(', ') : 'all') + '); day 1 and pre-dawn of day 2 under the trees at ' + aR.hex + '; to the Warded Fort ' + tA.end.toFixed(1) + ' walk-miles (the road on to the Doors ' + whole[whole.length - 1][2].toFixed(1) + ', never walked)',
+        !badR.length && aR.hex.join() === '7,15' && hexR(2, 5) === '7,15');
+      // 2. held at the Warded Fort (RULED 11-12, Griz: "1 - he's supposed to hold at the warded fort"): walked up the Route to it, held from that hour, no making past it,
+      // no reach grown after it, the Doors never reached
+      var tF = WR.vesselArrives(), hF = WR.vesselAt(tF), h30 = WR.vesselAt(tR(30, 9)), mF = WR.makings(tF), m30 = WR.makings(tR(30, 9)), fsR = MR.sites.filter(function (s) { return s.id === 'smvbkn0zk'; })[0], dsR = MR.sites.filter(function (s) { return s.id === 'smvbknjci'; })[0];
+      okVR('held at the Warded Fort (' + fsR.hex + '): arrives day ' + (Math.floor(tF / 24) + 1) + ' at ' + (tF % 24).toFixed(2) + 'h in ' + hF.hex + ', ' + Math.hypot(hF.pt[0] - fsR.x, hF.pt[1] - fsR.y).toFixed(2) + ' mi from its mark (the Route ' + hF.fortOff.toFixed(2) + ' mi from it at its nearest), held ' + hF.held + ' (an hour before ' + WR.vesselAt(tF - 1).held + '), day 30 the same point, the Doors\' mark ' + Math.hypot(h30.pt[0] - dsR.x, h30.pt[1] - dsR.y).toFixed(1) + ' mi off; makings ' + mF.map(function (m) { return m.day + '@' + m.hex + ' ' + m.reach.toFixed(0) + 'mi'; }).join(', ') + ' -- on day 30 ' + m30.map(function (m) { return m.reach.toFixed(0); }).join('/'),
+        hF.held && !WR.vesselAt(tF - 1).held && hF.hex.join() === fsR.hex.join() && Math.hypot(hF.pt[0] - fsR.x, hF.pt[1] - fsR.y) < 1 && h30.pt[0] === hF.pt[0] && h30.pt[1] === hF.pt[1] &&
+        m30.length === mF.length && m30.every(function (m, i) { return Math.abs(m.reach - mF[i].reach) < 1e-9 && m.t <= tF; }) && WR.makings(tR(30, 9)).length === WR.makings(tF + 0.01).length);
       // 3. the makings where he was: nothing before day 5 anywhere; the day-5 and day-7 places full after
       var mk = function (d) { return WR.makings(tR(d, 13)).filter(function (m) { return m.day === d; })[0]; }, m5 = mk(5), m7 = mk(7);
       var w = function (p, d, h) { return WR.mirrorWeight(p, tR(d, h)); };
@@ -8390,7 +8392,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. a far road before he has passed: the Coldridge's top below the Doors, ahead of him till he climbs; the inn's road till the reports come (day 8); the Pit never
       var doorsR = MR.sites.filter(function (s) { return s.id === 'smvbknjci'; })[0], dpt = [doorsR.x + 1.5, doorsR.y + 1.5], innR = MR.sites.filter(function (s) { return s.id === 'inn'; })[0], ipt = [innR.x, innR.y], pitR = MR.sites.filter(function (s) { return s.id === 'pit'; })[0];
       var p11 = WR.vesselAt(tR(11, 12)).pt, r7 = WR.makings(tR(10, 12))[1], d7 = Math.hypot(p11[0] - r7.pt[0], p11[1] - r7.pt[1]);
-      okVR('the Route by the Warded Fort (' + WR.vesselAt(tR(11, 12)).hex + ', his day-11 making\'s place): day 10 ' + w(p11, 10, 12).toFixed(1) + ' though the day-7 making\'s reach is ' + r7.reach.toFixed(0) + ' mi and it ' + d7.toFixed(0) + ' mi off (he not there yet), day 11 at 13:00 ' + w(p11, 11, 13).toFixed(1) + '; the Doors\' mark, a stretch he is held short of, day 30 ' + w(dpt, 30, 12).toFixed(1),
+      okVR('the Route by the Warded Fort (' + WR.vesselAt(tR(11, 12)).hex + ', his day-11 making\'s place): day 10 ' + w(p11, 10, 12).toFixed(1) + ' though the day-7 making\'s reach is ' + r7.reach.toFixed(0) + ' mi and it ' + d7.toFixed(0) + ' mi off (he not there yet), day 11 at 13:00 ' + w(p11, 11, 13).toFixed(1) + '; by the Doors\' mark, past the Fort and never walked, day 30 ' + w(dpt, 30, 12).toFixed(1),
         d7 < r7.reach && w(p11, 10, 12) === 0 && w(p11, 11, 13) === 6 && w(dpt, 30, 12) === 0);
       okVR('the Halfway Inn (' + innR.hex + ', 26 mi from his day-5 making): day 7 ' + w(ipt, 7, 23).toFixed(2) + ', day 8 noon ' + w(ipt, 8, 12).toFixed(2) + ', day 10 ' + w(ipt, 10, 12).toFixed(2) + '; the Pit (' + pitR.hex + ') day 30 ' + w([pitR.x, pitR.y], 30, 12).toFixed(2),
         w(ipt, 7, 23) === 0 && w(ipt, 8, 12) > 0 && w(ipt, 10, 12) > w(ipt, 8, 12) && w([pitR.x, pitR.y], 30, 12) === 0);
@@ -8403,9 +8405,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 6. the pick at a point: the mirror-made entry there, none far
       D.seed = 1112; var pk = 0, pf = 0; SR.t = tR(9, 12); for (var iP = 0; iP < 200; iP++) { var a1 = WR.pick('glowseep', false, m5.pt), a2 = WR.pick('glowseep', false, [pitR.x, pitR.y]); if (a1 && a1.mirror) pk++; if (a2 && a2.mirror) pf++; }
       okVR('200 picks of the Glowseep\'s table on day 9: ' + pk + ' mirror-made at the day-5 making\'s place, ' + pf + ' by the Pit', pk > 40 && pf === 0);
-      // 7. the show door draws
+      // 7. nothing player visible (RULED 11-12, Griz: "vessel's road - should be nothing to watch, this is all background to determine random encounters and achieve for party,
+      // nothing player visible"): THE WORLD's door without the flag draws none of it, even on day 9; the seats' debug flag draws it
+      D.house.worldDoor('?world&fresh&noenc&far'); var sc0 = D.top(); WR.state().t = tR(9, 12); var cv0 = document.createElement('canvas'); cv0.width = D.W; cv0.height = D.H; VR.drawn = null; sc0.draw(cv0.getContext('2d')); var drawn0 = VR.drawn, show0 = VR.show;
       D.house.worldDoor('?world&fresh&noenc&far&vessel=9'); var scR = D.top(), cvR = document.createElement('canvas'); cvR.width = D.W; cvR.height = D.H; VR.drawn = null; scR.draw(cvR.getContext('2d'));
-      okVR('the show door deep16/?world&far&fresh&noenc&vessel=9: day ' + WR.day() + ', the mark drawn at ' + (VR.drawn && [VR.drawn.x, VR.drawn.y]) + ', ' + (VR.drawn && VR.drawn.makings) + ' makings ringed', !!VR.drawn && VR.drawn.day === 9 && VR.drawn.makings === 3 && VR.drawn.x > 0 && VR.drawn.x < D.W && VR.drawn.y > 0 && VR.drawn.y < D.H);
+      okVR('nothing drawn for a player (THE WORLD\'s door on day 9: show ' + show0 + ', drawn ' + drawn0 + '); the debug flag &vessel=9: day ' + WR.day() + ', the mark at ' + (VR.drawn && [VR.drawn.x, VR.drawn.y]) + ', ' + (VR.drawn && VR.drawn.makings) + ' makings ringed',
+        show0 === null && drawn0 === null && !!VR.drawn && VR.drawn.day === 9 && VR.drawn.makings === 3 && VR.drawn.x > 0 && VR.drawn.x < D.W && VR.drawn.y > 0 && VR.drawn.y < D.H);
       VR.show = null;
     } catch (eVR) { repVR.errors.push(String(eVR && eVR.stack || eVR).slice(0, 900)); }
     D.store.get = stGVR; D.store.set = stSVR; if (D.house) { D.house.playing = false; D.house.cur = null; }
