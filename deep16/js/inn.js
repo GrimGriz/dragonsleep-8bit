@@ -807,7 +807,7 @@
     }
     sc.hero = null;
     if (ended !== 'cold') {
-      if (kind === 'alone') yield sc.by(who('gennet'), [`"Oh, heroes. Take the big room."`]); // (his line, 11-11; it may belong to the night of the chase)
+      if (kind === 'alone') { yield sc.by(who('gennet'), [`"Oh, heroes. Take the big room."`]); f.bigRoom = 1; } // (his line, 11-11; it may belong to the night of the chase. THE BIG ROOM IS THEIRS from this word: they wake in it, In.roomOf -- 11-12)
       if (kind === 'amara') { yield sc.narr([`Nobody has raised a voice. The fire is let down early.`]); yield sc.lookAt(who('gennet'), [`Gennet takes the lamp from its hook by the lake door, and does not hang it back until the party is on the stair.`]); }
       else { yield sc.narr([MD.close[0]]); yield sc.lookAt(who('gennet'), [MD.close[1]]); }
     }
@@ -913,6 +913,13 @@
   In.KL = {
     look: 'She does not look up. "The room over the kitchen is mine till I\'m fetched. Paid ahead. I don\'t want anything."', // (the lane's §7 first look, re-drafted for the longer stay: it was "till the morning after next")
     prompt: 'She keeps her place in the book with one finger.',
+    // HER LETTER in the big room's drawer (RULED 11-11, ruling 28: "her warning -- Silverton, then the dwarves -- comes to the party by her book's letter in the big room"; Griz:
+    // "hope they click on the end-table and get Kat's book (with a letter pop-up as if she's speaking it that doesn't have to become inventory)"): the seat's draft, his to re-word
+    letter: ['A folded sheet lies on the manuscript, in the same fair hand. It reads as she would say it.',
+      '"To whoever is given this room after me. I meant to put this in your hands and say it aloud, and I am gone before I could."',
+      '"What I told you at the fire was not all of it. The thing they made at the moot went north. It is going to Silverton."',
+      '"After Silverton, the dwarves under the mountain. That is the order I heard it given in, and I have not known those people to change an order."',
+      '"The book is the rest. Read it or burn it. But carry that much north, and say a mender wrote it down right."'],
     asks: { what: 'ASK WHAT SHE IS', road: 'ASK ABOUT THE ROAD SOUTH', saw: 'ASK WHAT SHE SAW', amara: 'ASK ABOUT AMARA', message: 'ASK WHAT SHE CARRIED', leave: 'LEAVE HER TO HER BOOK', go: 'LET HER GO' },
     what: '"A mender. I set bones and I write things down." A beat. "Those are the same work, mostly."',
     road: '"Seven off the last farm walked with us a day. Bound for the Pit, they said, as if it were a place you could be bound for." She closes the book over her hand.',
@@ -995,16 +1002,34 @@
   // the night: the house's bed to the morning (the first night's wagon is the lane's item 2), the floor laid at the morning's hour under the morning card
   // (11-05: a room taken by In.room sleeps its night's hours -- eleven from the hour it was taken with supper, eight without, the wagon night's hours already spent counted
   // off -- and wakes to the card the hour says (MORNING, or NIGHT for a room taken at three); a night with no room behind it, to the next morning as before)
+  // THEY WAKE IN THEIR ROOM (11-12, the inn seat; Griz on the supper at renown 3, 11-11 1734Z: "Can we have them wake-up in the room, road end until the big room then the
+  // big room"): a night at the inn is slept UPSTAIRS -- up the stair as the night begins, the morning's page over the guest floor, and the party stood by its bed: the small
+  // room at the road's end (the west room, over the front door) until the big room is theirs (f.bigRoom: Gennet's "Oh, heroes. Take the big room.", or the green purse),
+  // then the big room over the kitchen, by the good bed and its table. The night's hours and its page as before (In.bedding carries them up the stair; the guest floor's
+  // script takes them up as it starts, and Elsbeth's gift the morning after with them). In.bedHere, In.stay, D.benchPage: a bench's -- the night slept where they stand, as it was
+  In.ROOM = { road: { at: [2, 2], face: [0, 1] }, big: { at: [13, 2], face: [-1, 0] } };
+  In.roomOf = function (f) { return f && f.bigRoom ? 'big' : 'road'; };
+  In.sleepsHere = function () { return In.bedHere != null ? !!In.bedHere : !!(In.stay || D.benchPage); }; // (D.benchPage: dev/bench16.js's own page)
   In.sleep = function* (B, line) {
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
-    yield* D.house.sleepOnFloor(B, { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn', before: function () { M.lightNow(B); } }); // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
+    var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
+    var def = D.roam.def, rm = In.ROOM[In.roomOf(B.roam.flags)];
+    if (def && def.key === In.KEY && !In.sleepsHere()) { In.bedding = { o: o, room: In.roomOf(B.roam.flags) }; In.trail('to bed upstairs: the ' + (In.bedding.room === 'big' ? 'big room' : 'road-end room')); yield* M.go(B, In.UP, rm.at, rm.face); return 'up'; }
+    o.before = function () { M.lightNow(B); };
+    yield* D.house.sleepOnFloor(B, o);
+  };
+  var scriptBed0 = D.roam.script;
+  D.roam.script = function* (B) { // (the guest floor as it starts with a night to sleep: the morning there, then Elsbeth's gift if it is owed)
+    var def = D.roam.def, bd = In.bedding;
+    if (def && def.key === In.UP && bd && B.roam) { In.bedding = null; bd.o.before = function () { M.lightNow(B); }; In.woke = bd.room; yield* D.house.sleepOnFloor(B, bd.o); if (B.roam.flags.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
+    yield* scriptBed0.apply(this, arguments);
   };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
     var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; }
     if (D.secondact && D.secondact.dueNight && In.dueTonightOn(f, d)) { yield* D.secondact.dueNight(B, d); return; } // (the due's own night, three on from the wagon's: 11-05)
-    yield* In.sleep(B);
+    if ((yield* In.sleep(B)) === 'up') return; // (gone up to the room: the guest floor's script has the morning and the gift -- In.bedding)
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); // (the morning after the wagon came in off the road, stopped by day: js/wagon.js, In.wagonIn)
   };
   // the wagon brought in off the road (js/wagon.js: a day's fight on the Pit road, the pair down or away on the greys, the wagon turned for the nearest roof): the yard's
@@ -1346,7 +1371,7 @@
     // js/secondact.js A.dueNight; this night keeps the yard, the watch, the handover and the chase)
     delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn'); // (to bed: the morning in the common room)
-    yield* In.sleep(B, morning);
+    if ((yield* In.sleep(B, morning)) === 'up') return;
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
   // the yard fight on the floor's own squares (one map for the floor and the fight): the roam's fight with the yard's rules laid on the floor's fight def for its length --
@@ -1388,7 +1413,7 @@
     var morning = L('wagon.morning.inn'); // (the lantern walks three nights on since 11-05: no ring cold the morning after the chase)
     delete f.wagonChase; delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
     In.stage(B, [24, 17], 'inn');
-    yield* In.sleep(B, morning);
+    if ((yield* In.sleep(B, morning)) === 'up') return;
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
   // what a fight at the inn left behind: who lay dead (his book), whether the team came loose
@@ -1885,7 +1910,9 @@
     else if (s === 'inn:stair') { yield* M.go(B, In.UP, [In.UPSTAIR[0], In.UPSTAIR[1] - 1], [0, -1]); return; } // (up to the guest rooms, a step off the stair head)
     else if (s === 'inn:down') { yield* M.go(B, In.KEY, [In.STAIR[0], In.STAIR[1] - 1], [0, -1]); return; } // (down by the bar, a step off the stair's foot into the room: the house laid open, js/inn.js In.qInside)
     else if (s === 'inn:drawer') {
-      if (In.bookInDrawer(f, In.day(D.roam.q), st)) { f.katBookTaken = 1; D.counter.give(st, 'katbook', 1); D.sfx('chest'); say = [L('inn.drawerBook'), L('g.got', { item: DS.DATA.items.katbook.name })]; } // (she rode out with the wagon: the book left in the drawer -- the lane's item 10)
+      if (In.bookInDrawer(f, In.day(D.roam.q), st)) { f.katBookTaken = 1; f.katLetter = 1; D.counter.give(st, 'katbook', 1); D.sfx('chest');
+        yield* M.talk(B, 'katarina', function (sc) { return (function* () { yield sc.say(In.KL.letter); })(); }, 'Katarina'); // (HER LETTER, as if she were saying it -- ruling 28; not an item)
+        say = [L('inn.drawerBook'), L('g.got', { item: DS.DATA.items.katbook.name })]; } // (she rode out with the wagon: the book left in the drawer -- the lane's item 10)
       else say = [In.katHere(f, In.day(D.roam.q)) ? In.LINES.drawerShut : In.LINES.drawerEmpty]; // (her room while she has it; after, the book if she left it, else nothing)
     }
     if (!say.length) return;
@@ -1921,6 +1948,8 @@
     { id: 'barnknown', label: 'OUT OF THE BARN: renown 5, a low Persuasion, the party knows of the lake\'s nights', note: 'The corridor\'s own. Lymen may ask at her ask "Raise it until which night?" and go straight to the breaking point; Doran comes round the barn and lets the axe hang, and any hero\'s word to him brings the confession. The dice are low: at lower renown the same word gets only "Gen. Let go."', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 5, dice: [2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The number of nights and days said is a PLACEHOLDER.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, barnFreed: 1, barnEnd: 'd', doranConfessed: 1, childGuest: 'child', childGuestDay: 13, innRegard: 0, elsbethTier: 3, dishes: 1, elsbethTold: 1, dueOffC: 0, dueOff: 'none' } },
+    { id: 'bigroom', label: 'THE BIG ROOM, theirs: morning by the good bed, her letter in the drawer (11-12)', note: 'Day 14, eight in the morning, in the big room over the kitchen: Gennet gave it at her supper alone, and Katarina rode out on the wagon. You stand where you would wake, by the good bed. E on the table by the bed: her letter, read as if she were saying it, then her book into the pack.', key: In.UP, at: [13, 2], hour: 8, day: 14,
+      flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, supAlone: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1, katRode: 1, katLooked: 1, bigRoom: 1 } },
     { id: 'kat', label: 'DAY 7: THE TRAVELER BY THE FIRE, Barley with a bottle of ink (11-05)', note: 'Six in the evening on day 7, the four in the common room, a bottle of ink from Lisbet\'s in the pack. E on the traveler at her table by the fire: Barley -- "You\'re with the Dominion." -- and she breaks in: her deity gave her a vision and it used up all her ink. The bottle set by her book; the vision, Aurdin laughing in the dust with the tribe that laughs; the page torn free: the Sheet: Hideous Laughter in the pack. E on her again: her talk at the fire -- what she is, the road south, what she saw (the vision told: both tiers). Then M, ITEMS, the sheet on Aurdin: he copies it into his book.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, inv: ['ink'] },
     { id: 'katbook', label: 'DAY 13: HER LAST MORNING, the wagon stopped (11-05)', note: 'Eight in the morning on day 13, the wagon stopped in the yard last night (the pair down or run, the children freed), Barley\'s word given her days ago and a bottle of ink in the pack. E on the traveler by the fire: she closes her book, opens it, slides it across -- her book; the ink set by it and the vision with it, the sheet; ask her about Amara, and what she carried (the read at the greeting caught them); LET HER GO: she pays out her nights and walks south toward the Pit, and the fire\'s table is empty.', key: In.KEY, at: [25, 20], hour: 8, day: 13, inside: true, inv: ['ink'],
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', glamourBroken: 1, kidAtInn: 1, doranAway: 1, katInk: 1, katLooked: 1, katKnewAmara: 1 } },

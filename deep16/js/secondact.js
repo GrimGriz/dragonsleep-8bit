@@ -782,7 +782,7 @@
     else if (s.beat === 'poison') { R0.stay = { t0: In.clock(B), hours: In.REST.dinnerHours, kind: 'dinner', long: true }; yield* A.poisonNight(B, In.day(D.roam.q)); return; } // (the poison dinner: a room with supper on the due's night, no offering)
     else if (s.beat === 'offer') { var Yo = A.cast(B, f, A.PATH.half); Yo.gennet.hp = Math.floor(Yo.gennet.maxhp / 2); Yo.gennet.anim = 'idle'; In.gone(B, Yo.kid); Yo.kid = null; f.offeringSaved = 1; f.dueStopped = 1; A.holdShow = !!s.hold; try { yield* A.offerGennet(B, Yo); } finally { A.holdShow = false; } } // (Gennet yielded on the path, the child taken: the nearest offering; the show's `hold`: the take with the four's hands held, A.lakeFight)
     var mornA = A.morning(f);
-    if (f.secondActDone) { var mornL = mornA || A.LINES.mornDueKept; if (f.duePaid && !f.lakeDone && In.has(D.counter.state(B), 'ringofbinding')) mornL = mornL + ' ' + L('wagon.ringCold'); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); yield* In.sleep(B, mornL); if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
+    if (f.secondActDone) { var mornL = mornA || A.LINES.mornDueKept; if (f.duePaid && !f.lakeDone && In.has(D.counter.state(B), 'ringofbinding')) mornL = mornL + ' ' + L('wagon.ringCold'); delete f.wagonIn; In.stage(B, [24, 17], 'inn'); if ((yield* In.sleep(B, mornL)) === 'up') return; if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
   };
   var script0 = D.roam.script;
   D.roam.script = function* (B) {

@@ -4,6 +4,7 @@
    js/classes.js NPC.spec reads them) · vs=wizard:5 (a band instead of the four) · lvl=5 · n=20 · seed=1 · log=1 (one
    fight's log) */
 'use strict';
+if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's nights are slept where the party stands unless a check asks for the room -- deep16/js/inn.js In.sleepsHere, 11-12)
 (function () {
   var D = window.D16, q = location.search;
   function get(k, d) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : d; }
@@ -6310,6 +6311,33 @@
       var dueD = InI.dueDay(Math.max(0, InI.dueCycle(13))), fNs = { childGuest: 'child', childGuestDay: 13 }; while (dueD < 13) dueD = InI.dueDay(InI.dueCycle(dueD) + 1);
       okIn('WITH THE CHILD IN TOW, NO INN-STAY: "' + ns.seen.slice(-190) + '" -- no supper, no night (' + !/Supper|MORNING/.test(ns.seen) + '), the purse ' + Bns.roam.silver + '; but on the due\'s own night (day ' + dueD + ') the house is open (' + (InI.noStay ? !InI.noStay(fNs, dueD) : '-') + '); late after ' + xw + ' days: day ' + (13 + (InI.CHILD ? InI.CHILD.back : 0)) + ' ' + (InI.childLate ? InI.childLate(fNs, 13 + InI.CHILD.back) : '-') + ', the day after ' + (InI.childLate ? InI.childLate(fNs, 14 + InI.CHILD.back) : '-') + ' (a PLACEHOLDER: nothing reads it)',
         /Not with her in tow\. Nobody sleeps under this roof tonight\./.test(ns.seen) && !/Supper|MORNING/.test(ns.seen) && Bns.roam.silver === 30 && !!InI.noStay && InI.noStay(fNs, 13) === true && InI.noStay(fNs, dueD) === false && InI.childLate(fNs, 13 + InI.CHILD.back) === false && InI.childLate(fNs, 14 + InI.CHILD.back) === true);
+      // THEY WAKE IN THEIR ROOM (11-12; Griz, 11-11 1734Z: "Can we have them wake-up in the room, road end until the big room then the big room"): a night taken from
+      // the inn lady with the bench's sleep-where-they-stand off -- up the stair as the night begins, the morning on the guest floor, the party by its bed: the road-end
+      // room; with the big room theirs, the big room; and Gennet's "Oh, heroes. Take the big room." makes it theirs. Then HER LETTER at the big room's drawer (ruling 28)
+      var bedIn = function (q, setup, ans) {
+        InI.bedHere = false; InI.woke = null; var Bx = testIn(q); Bx.roam.silver = 30; InI.pinned = hi.slice(); atIn(Bx, 24, 17, [0, -1]); if (setup) setup(Bx);
+        var seen = [], qa = (ans || []).slice(), Bu = null; Bx.cards = []; Bx.roam.keys.push('use');
+        for (var k = 0; k < 6000; k++) { var s = D.top(); if (!s) break;
+          if (s instanceof CIn.Counter) { var w = s.wait || {}, bs = s.buttons(); if (w.ask) { var a = flipPick(s, qa.length ? qa.shift() : w.opts.length - 1, seen); bs = s.buttons(); seen.push('> ' + s.wait.opts[a]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else if (s.update) s.update(); continue; }
+          if (s instanceof HIn.Morning) { Bu = D.scenes.filter(function (z) { return z && z.roam; }).pop(); seen.push(wakeIn(Bu)); break; }
+          if (s.baking) { s.baking = false; s.enter(); continue; }
+          if (s.roam && s.co) { s.co.next(); continue; }
+          D.pop();
+        }
+        InI.bedHere = null; InI.pinned = null; var Bt = Bu || D.top(), t = Bt && Bt.roam ? Bt.roam.token : { x: -1, y: -1 };
+        return { B: Bt, key: RIn.def && RIn.def.key, at: [t.x, t.y], woke: InI.woke, seen: window.DS.stripCodes(seen.join(' / ')), f: Bt && Bt.roam ? Bt.roam.flags : {} };
+      };
+      var w1 = bedIn('?roam=halfway&hour=18&day=5&at=24,17', null, [0, 'lymen:council']);
+      var w2 = bedIn('?roam=halfway&hour=18&day=6&at=24,17&flags=reachedInn,gennetNamed,mealHad', function (Bx) { Bx.roam.flags.supCount = 1; Bx.roam.flags.bigRoom = 1; }, [0]);
+      var w3 = bedIn(aQ, aSet, [0, 'lymen:g1']), RMw = InI.ROOM || { road: { at: [] }, big: { at: [] } };
+      okIn('THEY WAKE IN THEIR ROOM: a first night -- on ' + w1.key + ' at ' + w1.at + ' (the road-end room ' + RMw.road.at + '), ' + (w1.seen.match(/MORNING[^/]{0,60}/) || [''])[0] + '; the big room theirs -- on ' + w2.key + ' at ' + w2.at + ' (the big room ' + RMw.big.at + '); Gennet alone, "Oh, heroes. Take the big room." -- theirs ' + w3.f.bigRoom + ', woken at ' + w3.at + ' in the ' + w3.woke + ' room',
+        w1.key === InI.UP && w1.at.join() === RMw.road.at.join() && w1.woke === 'road' && /MORNING/.test(w1.seen) && /Lake fish, at the long table/.test(w1.seen) && w2.key === InI.UP && w2.at.join() === RMw.big.at.join() && w2.woke === 'big' && /MORNING/.test(w2.seen) &&
+        /Oh, heroes\. Take the big room\./.test(w3.seen) && w3.f.bigRoom === 1 && w3.key === InI.UP && w3.at.join() === RMw.big.at.join() && w3.woke === 'big');
+      HIn.playing = false; HIn.cur = null;
+      InI.play({ key: InI.UP, at: [13, 2], hour: 9, day: 14, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, katRode: 1, katGone: 1, bigRoom: 1 } }); var Bkl = topIn(); atIn(Bkl, 13, 2, [-1, 0]); var kl = useIn(Bkl, [12, 2], []), stKl = CIn.state(Bkl);
+      okIn('HER LETTER at the big room\'s drawer, as if she were saying it (' + kl.name + '): ' + kl.seen.slice(0, 520) + ' -- then the card "' + cardsIn(Bkl).slice(0, 120) + '"; the book in the pack ' + CIn.count(stKl, 'katbook') + ', read ' + Bkl.roam.flags.katLetter,
+        kl.name === 'Katarina' && /A folded sheet lies on the manuscript/.test(kl.seen) && /It is going to Silverton/.test(kl.seen) && /After Silverton, the dwarves under the mountain/.test(kl.seen) && /finished manuscript/.test(cardsIn(Bkl)) && CIn.count(stKl, 'katbook') === 1 && Bkl.roam.flags.katLetter === 1 && Bkl.roam.flags.katBookTaken === 1);
+      HIn.playing = false; HIn.cur = null;
       // THE CHILD IS LAID FROM THE FLAG (11-11 late; ruling 42): wherever one of the inn's floors is built with f.childGuest set -- the house's own floor as a load makes
       // it, the yard, inside the house, upstairs -- she stands beside the token, a figure of her own, and never twice (a floor laid again, a step, a staging)
       var folOf = function (B) { var us = B.units.filter(function (u) { return u.follower; }), t = B.roam.token, u = us[0]; return { n: us.length, near: u ? Math.max(Math.abs(u.x - t.x), Math.abs(u.y - t.y)) : -1, name: u ? u.name : '-', at: u ? u.x + ',' + u.y : '-', is: !!u && B.roam.follower === u }; };
