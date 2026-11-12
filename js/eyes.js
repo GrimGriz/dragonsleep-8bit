@@ -17,6 +17,13 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE INN SEAT, TWO OF HIS 0043Z NOTES ON SACRIFICE NIGHT (11-12; the rest of that ear file is NOT built: the lane's 2026-11-12 inn-seat section)
+    'eyes-sacrifice-full-1112': { pri: 2, group: G2, title: 'SACRIFICE NIGHT, her full tell: Gennet faces Elsbeth at the look (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/counter.js C.drawFacing) -- your "until Gennet says her name - mirror gennet portrait so she\'s facing the correct direction"',
+      url: 'deep16/?innshow&beat=supsacr&fresh=1112n',
+      look: 'NEW, one thing: E on the inn lady, stay the night. At "She holds a look at the party until Gennet says her name." Gennet stands top left and now looks RIGHT, at Elsbeth (her portrait is drawn looking left, and was backwards there). NOT changed from your other notes on this row: the room going dark (dinner is at eight; the clock moves from six to eight as supper begins and the floor is lit for night), Elsbeth and the kitchen, and the confession after LEAVE THE FIGHT.' },
+    'eyes-sacrifice-faint-1112': { pri: 2, group: G2, title: 'SACRIFICE NIGHT, her faint tell: her look and the two bowls in one box (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.sacMeal) -- your "weird elsbeth line in a black box then a blue one for taking the two bowls to the kitch, black line in blue box as addition above two bowls"',
+      url: 'deep16/?innshow&beat=sacfaint&fresh=1112p',
+      look: 'NEW, one thing: after Elsbeth has walked the bowls round, her faint tell ("Her eyes go to it, then to the party, then away.") and "She takes the last two bowls through to the kitchen." come up together in ONE blue box, a line each, in place of a dark strip and then a box. NOT changed from the rest of your note: the figures after the yield, the scene popping to its standing places, and following Doran outside.' },
     // THE INN SEAT, THE CHASE'S TWO RULED PIECES (11-12; rulings 28 and 29; mode=inn1104 68 ok)
     'eyes-chase-return-1112': { pri: 2, group: G2, title: 'BACK FROM THE CHASE: Katarina rode with the wagon; Doran home the evening before the due (11-12)', pt: 'the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.chaseBack, In.doranBack) -- rulings 28 ("2- right") and 29 ("agreed on timing of absence")',
       url: 'deep16/?innshow&beat=silk&fresh=1112m',
