@@ -3300,3 +3300,21 @@ HEAD 2 -- AFRAID (1): shoulders up, chin down, ears back, looking out from under
 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait page. Waist-up, NO counter: it stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at ITS eye level, looking screen right at someone just beside the camera; the head and body the same size on both pages. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
 ```
 Where: the yard's talk while the party still takes her for a goblin (`deep16/js/inn.js` In.barnS S.who('child')). Cut as: `tools/portrait-sheet.py` into `pt_glamourgoblin`. It should sit at the same size and height in the frame as the girl's portrait above: the glamour breaks mid-talk and the one is swapped for the other.
+
+## 53. Sólskaft's assay house, furnished: the balance, the muffle furnace, crucibles and cupels, the standard ledger, buttons and ingots, a stool and a bench, the guild's mark (added 11-12, the Sólskaft cutter, on his walk: "looks like assay room needs a prop request") -- proposed ART-140, sent 2026-11-12 (`deep16/_src/art-desk/sent/ASK-2026-11-12-solskaft-assay-props.md`), one page -- IN HAND 2026-11-12 (the art desk's ART-140: `skassay_p1`, 18 cells, laid in the assay house, `3fc22979`, by the Sólskaft seat of the reset)
+
+ATTACH: `PROJECTION-GUIDE.png`, `trooper_p0.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, and ART-135 page 3 (the touch-needles' table and the locked case, which stay).
+
+```text
+SÓLSKAFT, THE ASSAY HOUSE -- PROPS for an isometric tactics grid, the same set as ART-134 to ART-138 (grey dressed granite, dwarven, sober; neutral daylight, the game lights it). The assay house is a dwarven hall where silver was proved and weighed, closed seventy years: neat, dusty, everything still in its place. Draw at the garrison dwarf's scale (38 px tall), on the 64 x 32 floor diamond, 1 px up per 2 across; each piece names its long axis and the face the camera sees (the lower-left and lower-right).
+
+PAGE 1 -- THE ASSAY HOUSE'S THINGS:
+1. THE ASSAY BALANCE, uncovered: a fine brass beam balance in a glass-fronted case on a stone bench, 1 square.
+2. THE MUFFLE FURNACE, cold: a small squared stone furnace with an iron door and a chimney collar, the assayer's, 1 square (and lit, 4 frames, the fire inside the door only).
+3. CRUCIBLES AND CUPELS: a wall shelf of small clay crucibles and bone-ash cupels, a wall module one square wide, BOTH facings (along x, face lower-left; along y, face lower-right), and each as a 12 px stub.
+4. THE STANDARD LEDGER: a stone lectern with a great closed ledger on it, 1 square.
+5. ASSAY BUTTONS AND INGOTS: a low stone table with small silver buttons in rows and three stamped ingots, 1 square.
+6. A STOOL and A BENCH: a dwarf's stool (1 square) and a long stone bench (2 x 1 along x).
+7. THE GUILD'S MARK: a carved panel of the assayers' mark (a balance over a mountain), a wall module, both facings, + stub.
+Transparent cells, no matte; a CUTTER-NOTES.md and a CELLS.json as the Sólskaft pages had.
+```

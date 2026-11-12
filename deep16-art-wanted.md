@@ -453,24 +453,6 @@ Cut as: `tools/wyvern-sheet.py` over `tools/sheetrows.py` into a new `wyvern_p1`
 
 ## 52. The Halfway Inn, the barn's yard: Doran with the woodaxe (a talking portrait), and the kept child -- as the girl she is and as the goblin the glamour shows (talking portraits, and the girl's own town figure) (added 11-12, the inn seat) -- proposed ART-139, sent 2026-11-12 (`deep16/_src/art-desk/sent/ASK-2026-11-12-doran-axe-and-the-kept-child.md`) -- IN HAND 2026-11-12 (the art desk's ART-139: `pt_doranaxe`, `pt_keptchild`, `pt_glamourgoblin`, `keptchild_p1`, `3aa3b160`, by the ART-139 cutter); the block is on `deep16-art-in-hand.md`
 
-## 53. Sólskaft's assay house, furnished: the balance, the muffle furnace, crucibles and cupels, the standard ledger, buttons and ingots, a stool and a bench, the guild's mark (added 11-12, the Sólskaft cutter, on his walk: "looks like assay room needs a prop request") -- proposed ART-140, in the outbox 2026-11-12 (`deep16/_src/outbox/ASK-2026-11-12-solskaft-assay-props.md`), one page
-
-ATTACH: `PROJECTION-GUIDE.png`, `trooper_p0.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, and ART-135 page 3 (the touch-needles' table and the locked case, which stay).
-
-```text
-SÓLSKAFT, THE ASSAY HOUSE -- PROPS for an isometric tactics grid, the same set as ART-134 to ART-138 (grey dressed granite, dwarven, sober; neutral daylight, the game lights it). The assay house is a dwarven hall where silver was proved and weighed, closed seventy years: neat, dusty, everything still in its place. Draw at the garrison dwarf's scale (38 px tall), on the 64 x 32 floor diamond, 1 px up per 2 across; each piece names its long axis and the face the camera sees (the lower-left and lower-right).
-
-PAGE 1 -- THE ASSAY HOUSE'S THINGS:
-1. THE ASSAY BALANCE, uncovered: a fine brass beam balance in a glass-fronted case on a stone bench, 1 square.
-2. THE MUFFLE FURNACE, cold: a small squared stone furnace with an iron door and a chimney collar, the assayer's, 1 square (and lit, 4 frames, the fire inside the door only).
-3. CRUCIBLES AND CUPELS: a wall shelf of small clay crucibles and bone-ash cupels, a wall module one square wide, BOTH facings (along x, face lower-left; along y, face lower-right), and each as a 12 px stub.
-4. THE STANDARD LEDGER: a stone lectern with a great closed ledger on it, 1 square.
-5. ASSAY BUTTONS AND INGOTS: a low stone table with small silver buttons in rows and three stamped ingots, 1 square.
-6. A STOOL and A BENCH: a dwarf's stool (1 square) and a long stone bench (2 x 1 along x).
-7. THE GUILD'S MARK: a carved panel of the assayers' mark (a balance over a mountain), a wall module, both facings, + stub.
-Transparent cells, no matte; a CUTTER-NOTES.md and a CELLS.json as the Sólskaft pages had.
-```
-
 ## 54. Pyro, Ingrith and the generic dwarf: a talking portrait and a town (world) figure each, in all five views; the generic dwarf a costume a job (added 11-12, the lanes desk, on his word) -- proposed ART-141, IN THE OUTBOX 2026-11-12, waiting to go (`deep16/_src/outbox/ASK-2026-11-12-pyro-and-ingrith/` and its `.zip`)
 
 His words, to the lanes desk 2026-11-12: *"I suspect we'll need the art requests for ingrith and pyro shortly, a dwarf portrait and world figure art request to the outbox please (zip)"*. Checked before asking (11-12): each has a FIGHT figure in the game (`deep16/art/pyro_p0.png`, `deep16/art/ingrith_p0.png`) and nothing else -- no talking portrait (`pt_*`) and no walking figure of their own (`*_p1`); Pyro stands at Sólskaft's vault doors on his fight sheet. Two blocks, each a talking portrait and a town (world) figure in all five drawn views (RULED 10-14: S, SE, E, NE, N; the cutter mirrors SE, E and NE to SW, W and NW). Pyro's description is HIS, pasted whole 11-12 (*"had a chat fable add a couple things re pyro"*; *"Pyro is old school."*). Ingrith's is only what her role puts on her (his *"Ingrith just as her role in the story shows on her, I'm less picky."*): her kit from the first game's sheet (cleric, mace, chain mail, shield), her hair from her fight sheet, nothing else invented.
