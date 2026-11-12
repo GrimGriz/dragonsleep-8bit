@@ -8,6 +8,9 @@ help as I recall it)".
     & "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --python tools/twinmace-blend.py -- build [hero=barley_p3] [ss=8]
     ... -- poser        the same, and deep16/_src/twinmace/poser.json for tools/poser.html?fig=twinmace (gitignored)
     ... -- hit          no renders: where each mace's head is at THE HIT against the target's shoulders, and each wrist's angle
+    ... -- poser build=dwarf target=0     the DWARF-proportioned striker and no target (his 11-12: "remove the mannequin target and do a set
+                        with the position mannequin with dwarf proportions"): deep16/_src/twinmace-dwarf/, tools/poser.html?fig=twinmace-dwarf;
+                        sized to pyro_p0's idle unless hero= says otherwise
 
 Then `python tools/twinmace-sheet.py` lays the reference strips (deep16/art-src/twinmace/).
 
@@ -47,6 +50,31 @@ BP = MQ.BP
 U, lin, FACINGS, PAD, K = MQ.U, MQ.lin, MQ.FACINGS, MQ.PAD, MQ.K
 MODE, SS = MQ.MODE, MQ.SS
 LOG = '[twinmace]'
+DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
+TARGET = MQ.OPT.get('target', '1') != '0'
+if DWARF:
+    WORK += '-dwarf'
+    if 'hero' not in MQ.OPT:
+        MQ.HERO = 'pyro_p0'
+# a dwarf on the same bones: the legs much shorter, the trunk a little shorter and a good deal wider and deeper, the limbs thick, the head big
+LEGK, TRUNK, XK, YK, RK, HEADK, HK = (0.56, 0.90, 1.24, 1.18, 1.30, 1.14, 0.74) if DWARF else (1, 1, 1, 1, 1, 1, 1)
+
+
+def zmap(z):
+    """a height on the slash's figure, on this build: the boot as it is (to the ankle, 0.09), the leg by LEGK to the hip (0.95), the rest by TRUNK."""
+    hip = 0.09 + (0.95 - 0.09) * LEGK
+    return z if z <= 0.09 else 0.09 + (z - 0.09) * LEGK if z <= 0.95 else hip + (z - 0.95) * TRUNK
+
+
+def pm(v):
+    return (v[0] * XK, v[1] * (YK if v[2] > 0.09 else 1), zmap(v[2]))
+
+
+def piece(kind, bone, colour, a):
+    k = HEADK if colour in ('head', 'nose') else 1.0 if colour.startswith('foot') else RK
+    if kind == 'egg':
+        return (kind, bone, colour, (pm(a[0]), tuple(r * k for r in a[1])))
+    return (kind, bone, colour, (pm(a[0]), pm(a[1]), a[2] * k))
 
 COL = dict(MQ.COL, joint='#ffe14a', haft='#a8763e', headL='#ffd23c', headR='#ff2ed2', cap='#f4f0e0', dummy='#8fa89a', pad='#e6f2ea', dnose='#5f7a6c')
 HAND = MQ.HAND
@@ -58,21 +86,21 @@ MACE = [('pommel', 'grip', -0.075, -0.055, 0.030), ('grip', 'grip', -0.055, 0.06
 SHO = (0.19, 1.42, 0.065)          # the target's shoulder: half its width, its height, the bar's radius (the striker's own numbers)
 
 # ------------------------------------------------------------------ the bones: the slash's, with both hands a fist on a wrist, and the target's
-BONES = [b for b in MQ.BONES if not b[0].startswith('hand.')]
+BONES = [(n, pm(h), pm(t), par) for n, h, t, par in MQ.BONES if not n.startswith('hand.')]
 GRIPS = {}
 for s, x in (('L', 1), ('R', -1)):
-    e, w = Vector((0.21 * x, 0.02, 1.14)), Vector((0.22 * x, -0.04, 0.89)); g = w + (w - e).normalized() * HAND
+    e, w = Vector(pm((0.21 * x, 0.02, 1.14))), Vector(pm((0.22 * x, -0.04, 0.89))); g = w + (w - e).normalized() * HAND
     GRIPS[s] = (tuple(w), tuple(g))
     BONES.append(('hand.' + s, tuple(g), (g[0], g[1] - 0.08, g[2]), 'fore.' + s))
 BONES.append(('dummy', (0, 0, 0), (0, 0, 0.30), None))
 
-PIECES = [p for p in MQ.PIECES if 'hand' not in p[2]]
+PIECES = [piece(*p) for p in MQ.PIECES if 'hand' not in p[2]]
 for s, x in (('L', 1), ('R', -1)):
     w, g = GRIPS[s]
-    PIECES += [('cap', 'fore.' + s, 'hand' + s, (w, g, 0.04)),                              # the back of the hand, on the forearm's line
-               ('egg', 'hand.' + s, 'hand' + s, (g, (0.052, 0.052, 0.052))),                # the fist round the grip
-               ('egg', 'fore.' + s, 'joint', (w, (0.050, 0.050, 0.050))),                   # THE WRIST, marked
-               ('egg', 'calf.' + s, 'joint', ((0.10 * x, 0.0, 0.09), (0.058, 0.058, 0.058)))]   # THE ANKLE, marked
+    PIECES += [('cap', 'fore.' + s, 'hand' + s, (w, g, 0.04 * RK)),                         # the back of the hand, on the forearm's line
+               ('egg', 'hand.' + s, 'hand' + s, (g, (0.052 * RK,) * 3)),                    # the fist round the grip
+               ('egg', 'fore.' + s, 'joint', (w, (0.050 * RK,) * 3)),                       # THE WRIST, marked
+               ('egg', 'calf.' + s, 'joint', (pm((0.10 * x, 0.0, 0.09)), (0.058 * RK,) * 3))]   # THE ANKLE, marked
 
 
 def target_pieces():
@@ -193,15 +221,15 @@ def rows(R):
         u = (0.0, -math.cos(rad(up)), math.sin(rad(up))); f = (0.0, -math.cos(rad(fo)), math.sin(rad(fo)))
         w = (out, (u[1] * L1 + f[1] * L2), (u[2] * L1 + f[2] * L2))               # the wrist from its shoulder, metres
         pole = (0.22, u[1], u[2]) if abs(fo - up) > 40 else (0.04, 0.3, -1.0)      # the elbow where the upper arm points, a little out; an arm near straight keeps its elbow under it (its fold stays fore-and-aft)
-        return dict(lift=lift * U, shift=shift * U, lean=lean, head=head, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
-                    legs={'a': (0.13 * U, -0.10 * U, za, 12, heel), 'b': (-0.13 * U, 0.08 * U, zb, 20, heel)},
+        return dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, head=head, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
+                    legs={'a': (0.13 * XK * U, -0.10 * U, za, 12, heel), 'b': (-0.13 * XK * U, 0.08 * U, zb, 20, heel)},
                     arms={'a': tuple(x * U for x in w), 'b': tuple(x * U for x in mir(w))}, epolea=pole, epoleb=mir(pole))
 
     TWIN = [
         P(-0.04, lean=3, up=-62, fo=18),                                               # 1 POSITION ONE: the maces up in front; the wrists as they will stay
         P(-0.04, shift=0.01, lean=0, head=-2, up=22, fo=128, sh=10, out=0.05),         # 2 hands to the ears: the elbows fold, the shoulders raise the arms
-        P(-0.11, shift=-0.05, lean=11, head=2, up=48, fo=138, sh=18, out=0.05, heel=10),   # 3 the shoulders further up, the torso starting forward, the knees lowering it
-        P(-0.085, shift=-0.035, lean=7, head=6, up=-17, fo=-12, sh=6, fw=6, out=0.02),   # 4 THE STRIKE: the elbows extend, the shoulders come down; the hips and legs already pulling the torso back
+        P(-0.11, shift=-0.05, lean=11, head=3, up=27, fo=88, sh=14, fw=2, out=0.04, heel=8),   # 3 the same a few frames on toward the strike (his "3 a few frames further along on the path to frame four"): the knees down, the arms already coming over
+        P(-0.125, shift=-0.035, lean=7, head=6, up=-14, fo=-10, sh=6, fw=6, out=0.02),  # 4 THE STRIKE: the elbows extend, the shoulders come down; the hips and legs already pulling the torso back (the torso "a wee bit lower", his word)
         P(-0.06, shift=-0.01, lean=4, head=2, up=-36, fo=-2, sh=2),                     # 5 on the way back
         P(-0.045, lean=3, up=-52, fo=14),                                              # 6 nearly idle
     ]
@@ -305,7 +333,7 @@ def main():
         return D, Mx
 
     meta = dict(hero=MQ.HERO, hero_rows=want, scale=SCALE, ss=SS, k=K, facings=[f for f, _ in FACINGS], rows={}, model={}, points={})
-    for kind, extra in (('render', []), ('model', [dummy])):       # the sprite's cells (the striker alone), then the modeling poses (the target in)
+    for kind, extra in (('render', []), ('model', [dummy])) if TARGET else (('render', []),):       # the sprite's cells (the striker alone), then the modeling poses (the target in)
         hide([dummy], not extra)
         D, Mx = cells(extra); meta['rows' if kind == 'render' else 'model'] = Mx
         for name, n, loop, fn, how in rowdefs:
@@ -339,9 +367,9 @@ def main():
     print('%s ok: %s' % (LOG, os.path.join(WORK, 'render', 'meta.json')))
 
     if MODE == 'poser':
-        hide([dummy], False); arm.scale = (1, 1, 1); arm.rotation_euler = (0, 0, 0); bpy.context.view_layer.update()
-        R.export_poser(os.path.join(WORK, 'poser.json'), rowdefs, col=vcol, fig='twinmace', fps={k: v['fps'] for k, v in ROWS_META.items()},
-                       extras=[(maces['L'], COL['headL']), (maces['R'], COL['headR']), (dummy, COL['dummy'])])
+        hide([dummy], not TARGET); arm.scale = (1, 1, 1); arm.rotation_euler = (0, 0, 0); bpy.context.view_layer.update()
+        R.export_poser(os.path.join(WORK, 'poser.json'), rowdefs, col=vcol, fig=os.path.basename(WORK), fps={k: v['fps'] for k, v in ROWS_META.items()},
+                       extras=[(maces['L'], COL['headL']), (maces['R'], COL['headR'])] + ([(dummy, COL['dummy'])] if TARGET else []))
 
 
 if __name__ == '__main__':

@@ -1,7 +1,8 @@
 """The twin-mace mannequin's modeling poses laid out for the art desk (11-12): tools/twinmace-blend.py renders, this writes the reference strips.
 Plain Python (Pillow).
 
-    python tools/twinmace-sheet.py
+    python tools/twinmace-sheet.py            the human striker (with the target, and alone)
+    python tools/twinmace-sheet.py dwarf      the dwarf-proportioned striker, no target (deep16/_src/twinmace-dwarf/ -> twinmace-dwarf-*.png)
 
 Reads deep16/_src/twinmace/ (model/ the striker with the target, render/ the striker alone, meta.json; gitignored); writes deep16/art-src/twinmace/:
     twinmace-<S|SE|E|NE|N>.png   one strip a drawn facing: the six frames large on the art desk's navy, the target standing in each, numbered
@@ -9,11 +10,12 @@ Reads deep16/_src/twinmace/ (model/ the striker with the target, render/ the str
     twinmace-alone-<...>.png     the same six without the target: the striker's own silhouette, for the sprite.
     twinmace-all.png             the five facings on one page, half the size: the whole motion at a glance.
 """
-import json, os
+import json, os, sys
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'deep16', '_src', 'twinmace')
+DWARF = 'dwarf' in sys.argv[1:]
+SRC = os.path.join(ROOT, 'deep16', '_src', 'twinmace-dwarf' if DWARF else 'twinmace')
 OUT = os.path.join(ROOT, 'deep16', 'art-src', 'twinmace')
 NAVY, GOLD, INK, LINE = (12, 20, 40), (240, 196, 64), (226, 232, 244), (120, 140, 176)
 NAMES = {'S': 'FRONT (S)', 'SE': 'FRONT-RIGHT (SE)', 'E': 'RIGHT SIDE (E)', 'NE': 'BACK-RIGHT (NE)', 'N': 'BACK (N)'}
@@ -53,6 +55,11 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     n = meta['rows']['twinmace']['frames']; rel = meta['rows']['twinmace']['release']; small = []
     for f in meta['facings']:
+        if DWARF:      # (no target: the striker's own strips, and the page of all five)
+            b = strip('render', meta['rows']['twinmace'], f, n, rel, 4, 'DWARF MANNEQUIN - TWIN STRIKE, TWO MACES - %s' % NAMES[f])
+            b.convert('RGB').save(os.path.join(OUT, 'twinmace-dwarf-%s.png' % f), optimize=True)
+            small.append(strip('render', meta['rows']['twinmace'], f, n, rel, 2, NAMES[f]))
+            continue
         a = strip('model', meta['model']['twinmace'], f, n, rel, 4, 'MANNEQUIN - TWIN STRIKE, TWO MACES - %s' % NAMES[f])
         a.convert('RGB').save(os.path.join(OUT, 'twinmace-%s.png' % f), optimize=True)
         b = strip('render', meta['rows']['twinmace'], f, n, rel, 4, 'MANNEQUIN - TWIN STRIKE, TWO MACES - %s - the striker alone' % NAMES[f])
@@ -62,7 +69,7 @@ def main():
     pg = Image.new('RGB', (W, H), NAVY); y = 0
     for s in small:
         pg.paste(s.convert('RGB'), ((W - s.width) // 2, y)); y += s.height
-    pg.save(os.path.join(OUT, 'twinmace-all.png'), optimize=True)
+    pg.save(os.path.join(OUT, 'twinmace-dwarf-all.png' if DWARF else 'twinmace-all.png'), optimize=True)
     print('twinmace-sheet: %s -- twinmace-{%s}.png, twinmace-alone-*.png, twinmace-all.png' % (OUT, ','.join(meta['facings'])))
 
 
