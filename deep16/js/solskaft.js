@@ -40,11 +40,11 @@
     set(5, 3, 7, 3, 'K'); set(8, 3, 8, 3, '=');              // the tollhouse's trade-counter facing the ramp, its gate at the east end (west of it, rock: the ramp's cut)
     set(1, 4, 3, 6, '='); set(2, 4, 2, 4, 'l');              // Ingrith's ledger-room, its desk
     set(4, 5, 4, 5, 'D');                                    // its door off the tollhouse
-    set(5, 4, 8, 6, '='); set(8, 4, 8, 4, 's');              // the tollhouse; the scales under their cloth
+    set(5, 4, 8, 6, '='); set(5, 6, 5, 6, 's');              // the tollhouse; the scales under their cloth, in its corner by the quartermaster (moved 11-12 off the gate's one square in: they had shut him in -- his "no way to talk to the assay guy")
     set(6, 5, 7, 5, 'K');                                    // the quartermaster's counter (the clerk behind it, to the north)
     set(10, 3, 14, 7, 'S');                                  // the west store, shut, its lodging over (two storeys)
     set(23, 3, 27, 7, 'S');                                  // the east store, the same
-    set(23, 1, 36, 2, '=');                                  // the stable's apron by the doors (the drill's ground)
+    set(23, 1, 36, 2, '=');                                  // the stable's apron by the doors (the drill drills on the cart level since 11-12)
     set(36, 2, 36, 5, 'v'); set(36, 6, 36, 6, 'X');          // the narrow ramp up from below at the east wall (its mouth at the north end)
     set(31, 3, 31, 3, 'D');                                  // the stable's door
     set(29, 4, 34, 6, '=');                                  // the stable
@@ -92,9 +92,6 @@
     { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p0' },     // (at the vault door, always -- CANON 07-24)
     { id: 'ketil', at: [20, 1], dir: 'up', kind: 'trooper' },                       // (beside him: "I stand beside him and count who goes by")
     { id: 'quartermaster', at: [6, 6], dir: 'down', kind: 'trooper' },              // (behind the quartermaster's counter, in the tollhouse)
-    { id: 'drill1', at: [24, 1], dir: 'right', kind: 'trooper' }, { id: 'drill2', at: [26, 1], dir: 'right', kind: 'trooper' },
-    { id: 'drill3', at: [24, 2], dir: 'right', kind: 'trooper' }, { id: 'drill4', at: [26, 2], dir: 'right', kind: 'trooper' },
-    { id: 'drillmaster', at: [28, 1], dir: 'left', kind: 'drillsergeant' },        // (they drill by the tollhouse and the stables -- CANON 11-11)
     { id: 'yardhand', at: [33, 5], dir: 'up', kind: 'trooper' },                    // (by the stable's trough: his word is the wheel and the fountains)
     { id: 'shaftwatch', at: [21, 12], dir: 'left', kind: 'trooper' }                // (by the oathstone: his word is the light)
   ];
@@ -178,7 +175,7 @@
   SK.sign = function (x, r, text) { var lb = SK.LABEL[text]; return { id: 'sign' + x + '_' + r, rect: [x, SK.Y(r), 1, 1], on: 'use', script: 'sk:sign', text: text, label: lb }; };
   SK.map = function (hour) {
     var trig = [], Y = SK.Y;
-    trig.push(SK.sign(8, 4, SK.S8.scales), SK.sign(7, 7, SK.S8.tariff), SK.sign(18, 10, SK.S8.oath), SK.sign(19, 10, SK.S8.oath), SK.sign(18, 29, SK.S8.throne), SK.sign(19, 29, SK.S8.throne),
+    trig.push(SK.sign(5, 6, SK.S8.scales), SK.sign(7, 7, SK.S8.tariff), SK.sign(18, 10, SK.S8.oath), SK.sign(19, 10, SK.S8.oath), SK.sign(18, 29, SK.S8.throne), SK.sign(19, 29, SK.S8.throne),
       SK.sign(7, 11, SK.S8.rekknar), SK.sign(SK.CUT[0], SK.CUT[1] + 1, SK.S8.dormant), SK.sign(2, 4, SK.LINES.ledger), SK.sign(33, 6, SK.LINES.trough), SK.sign(34, 5, SK.LINES.fodder));
     for (var x = 5; x <= 7; x++) trig.push(SK.sign(x, 3, SK.LINES.counter));
     trig.push(SK.sign(11, 19, SK.S8.needles), SK.sign(13, 16, SK.S8.weights), SK.sign(23, 20, SK.LINES.rack), SK.sign(24, 20, SK.LINES.rack), SK.sign(25, 20, SK.LINES.rack), SK.sign(26, 16, SK.LINES.bench), SK.sign(27, 16, SK.LINES.bench)); // (the assay house and the guardroom; the hero-wall gone down to the funerary's north hallway, RE-CUT 11-11 night)
@@ -196,9 +193,10 @@
     rate: { squaresPerHour: 500, fightHours: 0.25 }, phase: M.seepPhase, phaseLine: function (h) { return M.night(h) ? 'Night in Sólskaft: the glass is dark, and the street goes by its lamps.' : 'Day on the glass: the light comes down the shaft onto the stone.'; },
     gates: { doors: [18, SK.Y(1), [0, -1]], court: [18, SK.Y(8), [0, -1]], crown: [18, SK.Y(15), [0, -1]], throne: [18, SK.Y(26), [0, -1]], rampW: [15, SK.Y(1), [1, 0]], rampE: [36, SK.Y(1), [0, 1]], templeW: [9, SK.Y(11), [-1, 0]], templeE: [28, SK.Y(11), [1, 0]] } }; // (save: false -- no way in from THE WORLD yet, so a SAVE here would have no door to stand the party at)
   // (the ramps stepped as the Keeper's flooded stair is, 11-11 night: SK.sheights / SK.cheights -- js/iso.js `heights`, a step a square at most, the grid walks it)
+  SK.RAMPC = { 14: 3, 13: 2, 12: 1, 11: 0, 10: 0, 9: 0, 8: 0, 7: 0, 6: 0, 5: 0 }; // (the cart level's west ramp, 11-12: at the holding's and the lane's level from its foot, rising its last three squares to its head under the street -- it had stood three steps up the whole way past the lane, a ledge with its stair at the holding's end)
   SK.RAMPH = { w: { 14: 3, 13: 3, 12: 3, 11: 3, 10: 3, 9: 3, 8: 3, 7: 2, 6: 1, 5: 0 }, n: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 1, 6: 0 } };
   SK.sheights = function () { return SK.ROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 3; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPH.w[x]; else if (x === 36 && r >= 2 && r <= 6) h = SK.RAMPH.n[r]; out += String(h); } return out; }); };
-  SK.cheights = function () { return SK.CROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 0; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPH.w[x]; else if (x === 36 && r >= 2 && r <= 7) h = r === 7 ? 0 : SK.RAMPH.n[r]; out += String(h); } return out; }); };
+  SK.cheights = function () { return SK.CROWS.map(function (row, y) { var r = SK.H - 1 - y, out = ''; for (var x = 0; x < row.length; x++) { var h = 0; if ((r === 1 || r === 2) && x >= 5 && x <= 14) h = SK.RAMPC[x]; else if (x === 36 && r >= 2 && r <= 7) h = r === 7 ? 0 : SK.RAMPH.n[r]; out += String(h); } return out; }); };
   SK.isFloor = function (key) { return key === SK.KEY || key === SK.CART || key === 'solskaft_below' || key === 'solskaft_asdis'; };
   SK.CART = 'solskaft_cart';
   SK.folkOf = function (id) { return (SK.CFOLK_ALL ? SK.CFOLK_ALL() : SK.FOLK.concat(SK.CFOLK || [])).filter(function (p) { return p.id === id; })[0] || null; };
@@ -380,7 +378,7 @@
     SK.PILLARS.forEach(function (q) { off(sq(q[0], q[1]), 'a pillar'); piece(q[0], q[1], SK.pic.pillar); });
     if (SK.WHOLE) SK.TEMPLEWALLS.forEach(function (b) { for (var x2 = b[0]; x2 <= b[2]; x2++) for (var r2 = b[1]; r2 <= b[3]; r2++) { var w2 = sq(x2, r2); if (w2 && !w2.open && w2.rock === 'near') { w2.rock = 'far'; w2.skWhole = true; } } }); // (the temples' walls whole: the draw cut any wall with open floor behind it to a stub, and the halls read as roofless yards -- 'far' stands it whole, the occluder (js/roam.js R.occlude) still opening it while it hides the party)
     piece(SK.CUT[0], SK.CUT[1], SK.pic.cut, { d: -0.4 });
-    off(sq(8, 4), 'the scales'); piece(8, 4, SK.pic.scales);
+    off(sq(5, 6), 'the scales'); piece(5, 6, SK.pic.scales);
     // the ramps' runs
     for (var x = 6; x <= 14; x++) [1, 2].forEach(function (r) { var s = sq(x, r); if (s) add({ kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1 }, function () { return SK.pic.chevron('w'); }); });
     for (var r = 2; r <= 5; r++) { var s2 = sq(36, r); if (s2) add({ kind: 'decal', sq: s2, depth: s2.x + s2.y, gz: s2.gz, layer: -1 }, function () { return SK.pic.chevron('n'); }); }
@@ -453,7 +451,12 @@
     { id: 'smith', at: [19, 22], dir: 'left', kind: 'trooper' },            // (the Copperbottom smith at the forge -- "AT THE FORGE" on the family's bar)
     { id: 'smelterhand', at: [27, 23], dir: 'down', kind: 'trooper' },      // (sweeping the cold smelters: "Orders.")
     { id: 'gatewatch', at: [33, 24], dir: 'down', kind: 'trooper' },        // (the gate watch, inside the highway's gate)
-    { id: 'shroomer', at: [4, 11], dir: 'down', kind: 'trooper' }           // (in the shroom farm's dark)
+    { id: 'shroomer', at: [4, 11], dir: 'down', kind: 'trooper' },          // (in the shroom farm's dark)
+    // the drill, down in the wagon holding by its lamp (moved 11-12 off the street's apron, where it shut the way to the narrow ramp -- his "they could drill down here by the
+    // wagon and mysterious glow (3, 28)-ish"; it had stood by the tollhouse and the stables, CANON 11-11)
+    { id: 'drill1', at: [1, 3], dir: 'right', kind: 'trooper' }, { id: 'drill2', at: [3, 3], dir: 'right', kind: 'trooper' },
+    { id: 'drill3', at: [1, 4], dir: 'right', kind: 'trooper' }, { id: 'drill4', at: [3, 4], dir: 'right', kind: 'trooper' },
+    { id: 'drillmaster', at: [5, 4], dir: 'left', kind: 'drillsergeant' }
   ];
   SK.CS8 = { // (the first game's words, verbatim: first/content/maps/solskaft_deep.json, solskaft.json)
     smelters: 'The smelters. Cold a long time. The slag-tip beside them has grown a skin of moss.',
@@ -862,9 +865,9 @@
   };
   // ---------------------------------------------------------------- SÓLSKAFT, shown (deep16/?solskaft -- the eyes row's door): a NEW GAME's four staged on the street level by the beat
   SK.BEATS = [
-    { id: 'doors', label: 'THE VAULT DOORS: in off Fountain Street', note: 'Ten in the morning, a step inside the vault doors: Pyro on the left of them, Ketil on the right, facing in. Main street runs north up the screen\'s right: the cart ramp going down on the west along the front wall, the stable\'s apron on the east with the drill on it, the two shut stores, and the light on the oathstone ahead. Step back onto the doors: they say where they will go.', at: [18, 1], hour: 10 },
+    { id: 'doors', label: 'THE VAULT DOORS: in off Fountain Street', note: 'Ten in the morning, a step inside the vault doors: Pyro on the left of them, Ketil on the right, facing in. Main street runs north up the screen\'s right: the cart ramp going down on the west along the front wall, the stable\'s apron on the east, the two shut stores, and the light on the oathstone ahead. Step back onto the doors: they say where they will go.', at: [18, 1], hour: 10 },
     { id: 'toll', label: 'THE TOLLHOUSE at the ramp', note: 'In the tollhouse in the front-west corner: the trade-counter facing the ramp, the scales under their cloth (E), the tariff board on the north wall (E from below it), the quartermaster behind his counter, Ingrith\'s ledger-room through the door on the west. Down the ramp\'s run to its mouth at the west end: the cart level.', at: [7, 4], hour: 10 },
-    { id: 'stable', label: 'THE GUEST STABLE and the drill', note: 'On the apron by the stable door: the drill-sergeant and his four. Into the stable: the stalls swept, the mangers empty, a forkful of old fodder, the trough off the cistern. The narrow ramp up at the east wall comes out here.', at: [31, 2], hour: 10 },
+    { id: 'stable', label: 'THE GUEST STABLE', note: 'On the apron by the stable door (the drill-sergeant and his four drill down in the wagon holding now). Into the stable: the stalls swept, the mangers empty, a forkful of old fodder, the trough off the cistern. The narrow ramp up at the east wall comes out here.', at: [31, 2], hour: 10 },
     { id: 'court', label: 'THE COURT AT NOON: the oathstone in the beam', note: 'Noon in the court: the oathstone on its pedestal in the Sunshaft\'s light (E on it), the trooper who watches the light, Rekknar\'s temple through the doors west (his ledger-stone), the Dormant\'s east (the empty cut in its back wall). In each temple a stair down to the funerary (RULED 11-11).', at: [18, 9], hour: 12 },
     { id: 'crown', label: 'THE CROWN: under the rock, the hero-wall', note: 'Through the arch in the back rim: thirty feet of street under the rock, one storey, lamp-lit. The hero-wall down both walls (E on either), the treasury, the mint (sealed) and the assay house\'s doors on the west, the garrison\'s stair up on the east. The throne room\'s doors ahead.', at: [18, 15], hour: 12 },
     { id: 'throne', label: 'THE THRONE ROOM: the empty seat', note: 'In the throne room, a few steps from its doors: the dais, the braziers, the high seat of the Silversands, empty (E on it). Walk back out: the oathstone sits straight down the street from the throne, and the doors beyond it.', at: [18, 26], hour: 12 },

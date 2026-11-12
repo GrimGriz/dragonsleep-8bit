@@ -5647,7 +5647,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         want = [].concat(want || [])[0] || '';
         if (w.indexOf(want.slice(0, 40)) < 0 || w.indexOf(N8[p.id].name) < 0) bad.push(p.id + ': "' + w.slice(0, 90) + '"'); else words.push(p.id + (u.sheet ? '(' + u.sheet + ')' : '(' + u.kind + ')'));
       });
-      var py = folkSk(Bp, 'pyro'), ds = folkSk(Bp, 'drillmaster');
+      var py = folkSk(Bp, 'pyro'), ds = SKk.folkOf('drillmaster'); // (the drill on the cart level since 11-12: section 12 stands it and has its word, section 27 where)
       okSk('the people, each stood and each with the first game\'s word: ' + words.join(', ') + (bad.length ? '; WRONG: ' + bad.join('; ') : '') + '; Pyro wears his own (' + (py && py.sheet) + '), the sergeant the Skylights\' (' + (ds && ds.kind) + ')',
         !bad.length && words.length === SKk.FOLK.length && !!py && py.sheet === 'pyro_p0' && ds.kind === 'drillsergeant');
       // 6. THE SIGNS: the first game's verbatim (first/content/maps/solskaft.json and solskaft_deep.json, first/content/text.json -- the copies the second game reads, content/, held equal); each said by E
@@ -5831,6 +5831,23 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       usedA.forEach(function (k) { testSk(SKk.isLodge(k) ? '?roam=' + k : '?roam=' + k + '&hour=10'); var d26 = RSk.def, f26 = MSk.floor(k, null, {}, 10); hooksA.push(k + ':' + !!(d26.groundArt && d26.rockArt) + ':' + (d26.rows.join('') === f26.rows.join('') && JSON.stringify(d26.heights || null) === JSON.stringify(f26.heights || null))); });
       okSk('the art on the floors: ' + usedA.length + ' floors drawn (' + usedA.join(', ') + '), ' + nA + ' tiles named, missing from the sheets: ' + (missA.join(' ') || 'none') + '; hooks and rows as built: ' + hooksA.join(' '),
         !!SA && usedA.indexOf('solskaft') >= 0 && nA > 0 && !missA.length && hooksA.every(function (h) { return /:true:true$/.test(h); }));
+      // 27. HIS WALK OF THE DRAWN FLOORS (11-12, his notes through the lanes desk; the Sólskaft cutter): (1) the cart level's ramp level with the holding and the lane beside it,
+      // rising at its head -- "9, 26 in the basement makes it seem level with 9, 27 - and yet the stairs go down at 6, 30 - 5, 30" (RED: three steps up past the lane); (2) the way
+      // from the doors to the narrow ramp open, the drill down in the wagon holding -- "ramp on the right is blocked by drilling troopers, they could drill down here by the wagon"
+      // (RED: no route); (3) the quartermaster by the covered assay scales reached from the street and the tollhouse left again -- "no way to talk to the assay guy" (RED: the
+      // scales in the gate's square); (4) a stub's face from the floor in front of it, not hanging below it -- "walls running up and down most of 6 that i just walk through"
+      // (RED: the west hallway's wall at 4,14 opaque under the hallway's floor)
+      var ch27 = SKk.cheights(), hc27 = function (x, r) { return +ch27[Y(r)].charAt(x); }, ledge27 = [];
+      for (var x27 = 5; x27 <= 12; x27++) if (Math.abs(hc27(x27, 2) - hc27(x27, 3)) > 1) ledge27.push(x27);
+      var B27 = testSk('?roam=solskaft&hour=10'); atSk(B27, 18, Y(1)); var toNarrow = RSk.walkRoute(B27.roam.token, [36, Y(5)]), toQm = RSk.walkRoute(B27.roam.token, [7, Y(6)]);
+      var qm27 = useSk(B27, [7, Y(6)], [6, Y(6)]); atSk(B27, 7, Y(4)); var outToll = RSk.walkRoute(B27.roam.token, [18, Y(1)]);
+      var drillSt = SKk.FOLK.filter(function (p) { return /^drill/.test(p.id); }).length, drillC = SKk.CFOLK.filter(function (p) { return /^drill/.test(p.id) && p.at[0] <= 8 && p.at[1] <= 7; }).length;
+      var F27 = testSk('?roam=solskaft_below&hour=10'), cv27 = document.createElement('canvas'); cv27.width = 480; cv27.height = 270; D.iso.lookAt(5, 14);
+      try { D.iso.draw(cv27.getContext('2d'), []); } catch (e27) { }
+      var ri27 = F27.map.rockImgs && F27.map.rockImgs['4,14'], aLo = -1, aHi = -1;
+      if (ri27) { var c27 = ri27.canvas.getContext('2d'); aLo = c27.getImageData(ri27.ax + 8, ri27.ay + 11, 1, 1).data[3]; aHi = c27.getImageData(ri27.ax + 8, ri27.ay - 34, 1, 1).data[3]; }
+      okSk('his walk of 11-12: (1) the cart ramp beside the holding and the lane a step at most (' + (ledge27.join(',') || 'none over') + '), 0 at its foot and 3 at its head (' + hc27(5, 1) + ', ' + hc27(14, 1) + '); (2) doors to the narrow ramp ' + (toNarrow ? toNarrow.length + ' squares' : 'NO ROUTE') + ', the drill ' + drillSt + ' on the street, ' + drillC + ' in the cart\'s holding; (3) the street to the quartermaster ' + (toQm ? toQm.length : 'NO ROUTE') + ', his word "' + qm27.slice(0, 50) + '", out of the tollhouse ' + (outToll ? outToll.length : 'NO ROUTE') + '; (4) the funerary\'s west wall stub under the floor alpha ' + aLo + ', over it ' + aHi,
+        !ledge27.length && hc27(5, 1) === 0 && hc27(14, 1) === 3 && !!toNarrow && drillSt === 0 && drillC === 5 && !!toQm && /Garrison stores/.test(qm27) && !!outToll && aLo === 0 && aHi === 255);
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;

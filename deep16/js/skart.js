@@ -70,9 +70,10 @@
     if (o.fade) { var F = faded(name, o.fade); if (F) { src = F.cv; sx = 0; sy = 0; } }
     cx.save();
     if (o.clip != null) { // (the stub's face: from its foot up to its cut top, the module's foot set at the top)
-      cx.beginPath(); if (side === 'L') { cx.moveTo(ox - HW, oy); cx.lineTo(ox, oy + HH); cx.lineTo(ox, oy + HH - o.clip); cx.lineTo(ox - HW, oy - o.clip); }
-      else { cx.moveTo(ox, oy + HH); cx.lineTo(ox + HW, oy); cx.lineTo(ox + HW, oy - o.clip); cx.lineTo(ox, oy + HH - o.clip); } cx.closePath(); cx.clip();
-      fy = oy - o.clip + 12;
+      var oyb = oy - base; // (the face's foot: `base` px up)
+      cx.beginPath(); if (side === 'L') { cx.moveTo(ox - HW, oyb); cx.lineTo(ox, oyb + HH); cx.lineTo(ox, oyb + HH - o.clip); cx.lineTo(ox - HW, oyb - o.clip); }
+      else { cx.moveTo(ox, oyb + HH); cx.lineTo(ox + HW, oyb); cx.lineTo(ox + HW, oyb - o.clip); cx.lineTo(ox, oyb + HH - o.clip); } cx.closePath(); cx.clip();
+      fy = o.clip >= 20 ? oyb : oyb - o.clip + 12; // (a tall stub -- a niche's tier over the walk below it -- shows the module from its own foot; a knee stub, its foot courses at the cut)
     }
     cx.imageSmoothingEnabled = false;
     cx.drawImage(src, sx, sy, b.w, b.h, Math.round(fx - b.ax), Math.round(fy - b.ay), b.w, b.h);
@@ -256,6 +257,7 @@
   var load0 = iso.load;
   iso.load = function (def) {
     var fl = def && A.on && A.FLOOR[def.key];
+    if (def && SK.isFloor(def.key)) def.nearFoot = true; // (a stub's face from the floor in front of it, not the ground -- js/iso.js rockCanvas; 11-12, his "walls running up and down most of 6 that i just walk through", the code's look and the art's alike)
     if (fl) {
       if (fl.roofs) Object.keys(fl.roofs).forEach(function (k) { if (def.roofs && def.roofs[k]) def.roofs[k] = Object.assign({}, def.roofs[k], fl.roofs[k]); });
       def.groundArtZ = true;
@@ -266,7 +268,7 @@
           var foot = side === 'L' ? o.fL : o.fR; if (o.far && foot == null) return;
           var nm = fl.wall(s, side, m); if (!nm) return;
           if (o.far) A.face(cx, nm, side, o.ox, o.oy, foot, { fade: o.top - foot });
-          else if (o.top > 0) A.face(cx, nm, side, o.ox, o.oy, 0, { clip: o.top });
+          else { var b0 = (o.base && o.base[side]) || 0; if (o.top - b0 > 0) A.face(cx, nm, side, o.ox, o.oy, b0, { clip: o.top - b0 }); } // (a stub: from its foot -- the floor in front, iso.js nearFoot -- up to its cut)
         });
       };
       if (fl.store) def.roofArt = function (cx, m, s, o) {

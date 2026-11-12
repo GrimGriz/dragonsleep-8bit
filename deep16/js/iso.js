@@ -618,9 +618,13 @@
     if (built) stone = iso.ramp('silver');
     function put(ix, iy, c, a) { if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = a == null ? 255 : a; }
     // faces: the +gx face (lower-right) and the +gy face (lower-left), each from its neighbour's floor up to the top
+    var nb = { L: 0, R: 0 }; // (each face's foot, for the drawn modules over it: m.def.rockArt)
     [['R', fR], ['L', fL]].forEach(function (f) {
       var right = f[0] === 'R';
-      var base = far ? (f[1] == null ? (right ? fL : fR) || 0 : f[1]) : 0;
+      // (a near stub on a floor with heights -- m.def.nearFoot, Sólskaft's, js/skart.js, 11-12, Griz on the funerary: "walls running up and down most of 6 that i just walk through
+      // ... as downward from 4 (negative vertical)": a stub's face from the ground hung down over a raised floor in front of it -- its foot the floor in front, or only its cut top)
+      var base = far ? (f[1] == null ? (right ? fL : fR) || 0 : f[1]) : m.def.nearFoot ? (f[1] != null ? Math.min(f[1], top) : Math.max(0, top - STUB)) : 0;
+      nb[f[0]] = base;
       if (far && f[1] == null) return; // a face toward more rock is never seen
       for (var k = 0; k < HW; k++) {
         var fx = right ? ox + k : ox - HW + k;
@@ -657,7 +661,7 @@
       }
     }
     cx.putImageData(img, 0, 0);
-    if (m.def.rockArt) m.def.rockArt(cx, m, s, { far: far, fR: fR, fL: fL, top: top, ox: ox, oy: oy }); // (a floor's drawn wall modules over the code's faces: Sólskaft's, js/skart.js, 11-12)
+    if (m.def.rockArt) m.def.rockArt(cx, m, s, { far: far, fR: fR, fL: fL, top: top, ox: ox, oy: oy, base: nb }); // (a floor's drawn wall modules over the code's faces: Sólskaft's, js/skart.js, 11-12)
     var out = { canvas: cv, ax: ox, ay: oy };
     m.rockImgs[key] = out;
     return out;
