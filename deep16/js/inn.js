@@ -980,7 +980,7 @@
     idle: { lymen: `Is the fire warm enough for you, there?`, aurdin: `What is the book?`, vivian: `Good evening.`, barley: `(A nod.)` }, idleBack: 'She does not look up from the page.',
     leave: `(Leave her to her book.)`, glassBack: 'She looks up before anyone has sat. "You asked about the glass, across the room. Ask it here."', close: 'She finds her place on the page with one finger. That is all she gives today.' };
   In.katHad = function (f) { return f.katHad || (f.katHad = {}); };
-  In.katOpen = function (f, d, st) { return In.katLast(f, d) || !!f.katVision || (!!f.katInk && D.counter.count(st, 'ink') > 0); }; // (her last day, the ink given, or the ink in hand: the talk as built)
+  In.katOpen = function (f, d, st) { return In.katLast(f, d) || !!f.katVision || (!!f.katInk && D.counter.count(st, 'ink') > 0) || (!f.katInk && f.wagonCycle == null && In.barleyIn(st)); }; // (... or Barley's first time at her table: his "You're with the Dominion." and the ink errand are said at once, as RULED 10-01c -- not a choice on the flip) // (her last day, the ink given, or the ink in hand: the talk as built)
   In.katVisit = function* (B) {
     var C = D.counter, R0 = B.roam, st = C.state(B), f = st.flags, KL = In.KL, KV = In.KV, had = In.katHad(f), began = false;
     var ku = B.units.filter(function (u) { return u.npc === 'katarina'; })[0];
@@ -994,8 +994,7 @@
       if (f.katInk && !f.katVision) yield s.by(who, [L('kat.inkWait')]);
       var list = four.map(function (e) {
         var ops = [], k = e.key;
-        if (k === 'barley' && !f.katInk && f.wagonCycle == null) ops.push({ id: 'dominion', label: KV.lines.barley, shade: true, tag: 'One of theirs' });
-        else if (k === 'aurdin' && !had.what && In.passive(e.h, 'Religion') >= KV.DC.glass) ops.push({ id: 'what', label: KV.lines.aurdin, shade: true, tag: 'Religion' });
+        if (k === 'aurdin' && !had.what && In.passive(e.h, 'Religion') >= KV.DC.glass) ops.push({ id: 'what', label: KV.lines.aurdin, shade: true, tag: 'Religion' });
         else if (k === 'lymen' && !had.road && made(e, 'Persuasion', KV.DC.road)) ops.push({ id: 'road', label: KV.lines.lymen, shade: true, tag: 'Persuasion' });
         else if (k === 'vivian' && !had.amara && (f.katKnewAmara || f.wagonCycle != null) && In.passive(e.h, 'Insight') >= KV.DC.amara) ops.push({ id: 'amara', label: KV.lines.vivian, shade: true, tag: 'Insight' });
         ops.push({ id: 'idle', label: KV.idle[k] || `Good evening.` }); ops.push({ id: 'leave', label: KV.leave });
@@ -1006,7 +1005,6 @@
       s.hero = x.e.hero; s.heroSide = x.e.side; In.trail('THE TRAVELER: ' + x.e.hero.name + ': ' + op.label);
       if (op.id === 'leave') return;
       if (op.id === 'idle') { yield s.narr([KV.idleBack]); return; }
-      if (op.id === 'dominion') { f.katInk = 1; had.what = 1; began = true; yield s.by(who, [].concat(L('kat.ink'))); return; } // (his lines, RULED 10-01c; the ink errand begun)
       had[op.id] = 1; yield s.by(who, [KL[op.id]]); yield s.narr([KV.close]);
     })(); } });
     D.push(sc); while (!sc.done) yield 1;
@@ -2129,7 +2127,7 @@
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, supCount: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, katLooked: 1, dueOffC: 0, dueOff: 'kept', wagonChase: { horses: false, willem: true, amara: true, leg: 2, on: false, steps: 40, back: 'road', willemDead: true } } },
     { id: 'doranhome', label: 'DORAN\'S FIRST SUPPER HOME: the Pit\'s people took them, the Snoot getting worse (11-12)', note: 'Day 14 at six, Doran back from the Pit this evening. E on the inn lady, a room, supper: two lines of his before her opener, once.', key: In.KEY, at: [24, 17], hour: 18, day: 14, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'fled', wagonStopped: 'c0', katGone: 1, katRode: 1, doranPit: 1, bigRoom: 1, dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1 } },
     // KATARINA'S AND ELSBETH'S FRONT ENDS (11-12, rulings 57 and 58)
-    { id: 'katvisit', label: 'KATARINA BEFORE THE INK: one thing a visit, on the flip (11-12)', note: 'Six in the evening on day 7, at her table by the fire, no ink in the pack. E on the traveler: she is closed. Flip the four: each has at most ONE blue-shaded line (Barley "You\'re with the Dominion.", Aurdin on what she wears, Lymen on the road south, Vivian only once the wagon is known), a line of small talk, and (Leave her to her book.). One shaded line gets ONE thing, and the visit is over; E on her again for another. WHAT SHE SAW is not offered until the ink is given.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, dice: [19, 19, 19, 19] },
+    { id: 'katvisit', label: 'KATARINA BEFORE THE INK: one thing a visit, on the flip (11-12)', note: 'Six in the evening on day 7, at her table by the fire, no ink in the pack. E on the traveler: she is closed. With Barley in the party his "You\'re with the Dominion." and her ask for ink come first, at once, as before. Then flip the four: each has at most ONE blue-shaded line (Aurdin on what she wears, Lymen on the road south, Vivian only once the wagon is known), a line of small talk, and (Leave her to her book.). One shaded line gets ONE thing, and the visit is over; E on her again for another. WHAT SHE SAW is not offered until the ink is given.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, dice: [19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, katInk: 1, katLooked: 1 } },
     { id: 'elsbethday', label: 'ELSBETH BY DAY at renown 3: "You\'re the people stopping the monsters." (11-12)', note: 'Ten in the morning on day 6, inside by the tub, a name on Hessle\'s board (renown 3). Gennet is OUT AT THE WELL by day (look for her there). E on Elsbeth: "You\'re the people stopping the monsters." and her first telling, with no dishes. With no renown and nothing noticed at supper she only works ("The girl focuses on her work."); in the evening she says not now.', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
     { id: 'elsbethdishes', label: 'ELSBETH BY DAY, the counting seen and kept quiet, her father home: the dishes (11-12)', note: 'Ten in the morning on day 6, renown 0, Vivian saw the girl count the party at supper and said nothing. E on Elsbeth: HELP WITH THE DISHES is the cover, her father being in the house; her first telling, and the wagon\'s night. (With Doran away she tells it with no dishes.)', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 0, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, mealWrong: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
