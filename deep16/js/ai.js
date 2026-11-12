@@ -1497,6 +1497,7 @@
     // a blow that only follows another's hit (the grick, SRD 5.1: "makes one attack with its tentacles. If that attack hits, the grick
     // can make one beak attack against the same target" -- data/foes.js `afterHit`, 10-02): who each of its blows landed on this turn
     var landed = {};
+    var heldHit = false; // (the chuul's one pincer a turn at the one it carries, below)
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
@@ -1527,10 +1528,21 @@
       if (cqA.length && !pool.some(function (w) { return w !== cqA[0] && G.dist(u, w) <= G.reachOf(u, atk.reach) && ((u.kind === 'cloaker' && w.vital) || (B.fight && B.fight.quarry && w.id === B.fight.quarry)); })) pool = cqA;
       if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
       if (u.noGlass) pool = pool.filter(function (w) { return !w.object; }); // (the roof guard strikes no glass -- 10-05)
+      // its tentacles only at one it holds that the poison does not have yet -- the one a pincer took this turn -- and not at all when every one held is paralyzed already
+      // (the same ruling: he watched it "re-tentacling" a paralyzed Aurdin, which does nothing)
+      if (atk.needsHeld && atk.paralyze) pool = pool.filter(function (w) { return !w.conds.paralyzed; });
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;
       })[0];
+      // IN ITS CLAW AND PARALYZED (RULED 2026-11-12, Griz, on the chuul that held Aurdin and kept its pincers for everyone else: "paralyze normally gives free crit, doesn't it?
+      // (particularly held in claws makes sense). I'm thinking 'if target held and paralyzed, pincer held, pincer new - hopefully tentacles new on successful new target pincer)"):
+      // one pincer a turn goes at the one it carries once the poison has that one (a hit from within 5 ft is a critical hit, SRD 5.1: battle.js), the other reaches for someone
+      // new as before; data/foes.js `grapple.claws`, the chuul's row alone
+      if (atk.grapple && atk.grapple.claws && !heldHit) {
+        var hp0 = pool.filter(function (w) { return (u.holding || []).indexOf(w) >= 0 && w.conds.paralyzed && !w.offering && G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+        if (hp0) { t = hp0; heldHit = true; }
+      }
       if (!t) continue;
       // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every
       // tendril taken (SRD 5.1: "the roper can't use the same tendril on another target"; grapple.max, its six)

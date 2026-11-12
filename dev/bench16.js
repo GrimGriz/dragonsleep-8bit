@@ -3764,6 +3764,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okGT('9 the show ran ' + (B9.rulesReport || []).length + ' beats (want 4)', (B9.rulesReport || []).length === 4);
       } catch (eS) { repGT.errors.push('section 9: ' + String(eS && eS.stack || eS).slice(0, 500)); }
       try {
+      /* 9b. IN THE CHUUL'S CLAW AND PARALYZED (2026-11-12, the lanes desk on his ruling; js/ai.js the routine, deep16/?rulesshow&only=chuulheld): the show's beat, the AI's own turn */
+      D.d = d0GT; var B9b = D.rulesshow.make('?rulesshow&fast&only=chuulheld'); D.battle = B9b; B9b.enter();
+      var v9b, k9b = 0; while (B9b.co && k9b++ < 400000) { var r9b = B9b.co.next(v9b); v9b = undefined; if (r9b.done) break; var y9b = r9b.value; if (y9b && y9b.prompt) v9b = y9b.prompt.opts[0].value; }
+      (B9b.rulesReport || []).forEach(function (b) { okGT('9b the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1600)), b.ok); });
+      okGT('9b the show ran ' + (B9b.rulesReport || []).length + ' beat (want 1)', (B9b.rulesReport || []).length === 1);
+      } catch (eS) { repGT.errors.push('section 9b: ' + String(eS && eS.stack || eS).slice(0, 500)); }
+      try {
       // 10. THE SELF-CLICK ON A LIGHT AT ONE'S FEET (11-10, Griz: "the pickup of the lamp prevents mouse-only open of q menu I think"): the question has THE RING, and a NOT NOW holds
       // for the turn -- the next click on oneself opens the ring (battle.js Battle.selfNo, ui.js actAt)
       var B10 = mkGT('?npc=goblin&vs=rogue:5&lvl=5'), ro10 = clsGT(B10, 'rogue'); putGT(B10, [[ro10, 6, 6], [kindGT(B10, 'goblin')[0], 16, 12]]);
