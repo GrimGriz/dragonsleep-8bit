@@ -1440,11 +1440,12 @@
     P.buttons = function () {
       var bs = buttons0.apply(this, arguments); if (!this.aboutable()) return bs;
       var b = { x: Lw[0] + 8, y: Lw[1] + Lw[3] - 20, w: 124, h: 15, label: H16.ABOUT_BTN, go: 'about' };
+      if (this.o && this.o.open) { var nx = bs.filter(function (q) { return q.go === 'next'; })[0]; if (nx) { b.x = nx.x - b.w - 6; b.y = nx.y; } } // (an open screen, over the room: beside the words' own OK, in the speaker's box -- the inn's yard, 11-12)
       if ((this.wait || {}).ask) bs.splice(Math.max(0, bs.length - 1), 0, b); else bs.push(b); // (on a question before its last answer: back is still LEAVE)
       return bs;
     };
     P.press = function (q) {
-      if (q && q.go === 'about') { D.sfx('confirm'); this.aboutBack = { wait: this.wait, pages: this.pages, page: this.page, hov: this.hov }; this.wait = { say: this.tellOf().slice(), face: 'welcoming', about: true }; this.pages = this.paginate(this.wait.say); this.page = 0; this.hov = -1; if (this.setFace) this.setFace('welcoming'); return; }
+      if (q && q.go === 'about') { D.sfx('confirm'); this.aboutBack = { wait: this.wait, pages: this.pages, page: this.page, hov: this.hov }; this.wait = this.o && this.o.open ? { say: this.tellOf().slice(), about: true, who: this.wait.who } : { say: this.tellOf().slice(), face: 'welcoming', about: true }; this.pages = this.paginate(this.wait.say); this.page = 0; this.hov = -1; if (this.setFace && !(this.o && this.o.open)) this.setFace('welcoming'); return; }
       if (q && q.go === 'next' && this.aboutBack && this.page >= this.pages.length - 1) { var a = this.aboutBack; this.aboutBack = null; this.wait = a.wait; this.pages = a.pages; this.page = a.page; this.hov = a.hov; D.sfx('cursor'); return; }
       return press0.apply(this, arguments);
     };

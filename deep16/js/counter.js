@@ -161,7 +161,8 @@
   // displacement on his face (pt_dacedisp, ART-123-DACE-DISPLACEMENT) till the party takes it off his back after the cloaker (js/mines.js M.daceDeep, THE CLOAK: flags.daceCloak),
   // the plain look after -- THE PAGE leaves it on him. C.PT keeps the plain one, for the portraits' show
   C.SHEETOF = { dace: function (st) { return st && st.flags && st.flags.daceCloak ? 'pt_dace' : 'pt_dacedisp'; },
-    doranIn: function () { return D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, doranYard: function () { return D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, gennet: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetGrief: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetYard: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, // (Doran Waterby behind his bar and at the woodpile, and Gennet in the common room, after the lake and in the yard: every word on their own counter screens -- js/inn.js M.talk -- on the art desk's HALFWAY-INN-DORAN- and -GENNET-PORTRAITS, 11-05, cutter-1105; by C.SHEETOF, not C.VENDORS, so no counter takes their talk from the inn's)
+    doranIn: function () { return D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, doranYard: function () { return D.SHEETS && D.SHEETS.pt_doranaxe ? 'pt_doranaxe' : D.SHEETS && D.SHEETS.pt_doran ? 'pt_doran' : null; }, // (pt_doranaxe: Doran with the woodaxe, asked 11-12 -- art-wanted section 52; it drops in by name)
+     gennet: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetGrief: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, gennetYard: function () { return D.SHEETS && D.SHEETS.pt_gennet ? 'pt_gennet' : null; }, // (Doran Waterby behind his bar and at the woodpile, and Gennet in the common room, after the lake and in the yard: every word on their own counter screens -- js/inn.js M.talk -- on the art desk's HALFWAY-INN-DORAN- and -GENNET-PORTRAITS, 11-05, cutter-1105; by C.SHEETOF, not C.VENDORS, so no counter takes their talk from the inn's)
     jorypens: function () { return 'pt_jory'; }, // (Jory Slade at the pens: his one face, not a second line in C.PT -- the portraits' show lists him once, 10-30)
     hobCamp: function () { return 'pt_oldhob'; }, hobB: function () { return 'pt_oldhob'; }, hobC: function () { return 'pt_oldhob'; }, // (Old Hob at his kitchen, the pens and the deep stalls: his one face, 10-30)
     warrenspete: function () { return 'pt_pete'; } }; // (Warrens Pete in the Hex: his one face, 10-30)
@@ -680,6 +681,7 @@
   var update0 = Counter.prototype.update;
   Counter.prototype.update = function () {
     if (!this.o || !this.o.open) return update0.apply(this, arguments);
+    if (this.o.tick) this.o.tick(this); // (o.tick: what moves on the floor under an open screen while its words are up -- the floor's own frame does not run under a screen: js/inn.js In.barnYard, 11-12)
     if (!this.typed()) { // (typing: a click or a key finishes it, and goes no further)
       this.t++; var m = I.mouse;
       if ((m.click && m.inside) || I.pressed('a') || I.pressed('b') || m.rclick) this.typeAt.t0 = -1e9;
