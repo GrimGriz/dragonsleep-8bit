@@ -581,14 +581,15 @@
     if (this.egg) { this.eggUpdate(); return; } // (an egg on the screen holds the table till it is let go: js/pocketdm.js)
     if (this.pm) { this.pm.update(D.ui.menuKeys()); return; } // (a card's level picks: the one pick page holds the table till CONFIRM, 10-14)
     if (this.levelQueue && this.levelQueue.length) { var lq = this.levelQueue.shift(); this.askLevel(lq[0], lq[1]); return; } // (XP's level-ups with EDIT on: a card's page at a time, 10-17)
-    if (this.screen === 'hub' && I.pressed('menu') && !D.typing && this.ready()) { this.openMenu(); return; } // (THE CAMP's M: the regular menu, 10-17)
+    if (this.afterLevels) { var al = this.afterLevels; this.afterLevels = null; al(); return; } // (NEXT's level-ups walked: on to where NEXT goes, 11-12)
+    if ((this.screen === 'hub' || this.screen === 'party') && I.pressed('menu') && !D.typing) { if (this.ready()) this.openMenu(); else { D.sfx('error'); this.say('every seat at THE PARTY wants a character', 300); } return; } // (THE CAMP's M: the regular menu, 10-17; THE PARTY's too, 11-12 -- his "still looking for the 'same menu' (with a notes section) on the 'm' key")
     if (this.screen === 'title' && I.pressed('menu') && !D.typing && DS.MENU && DS.MENU.openOptions) { var selfT = this; D.sfx('confirm'); this.pm = DS.MENU.openOptions({ close: function () { selfT.pm = null; } }); return; } // (the front page's M: OPTIONS, the music off with E on MUSIC -- 10-28, Griz: "allow pressing 'm' on the pocket DM front page get you to the option menu to turn off the music"; the second game's title's own OPTIONS page, js/menu.js MN.openOptions)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'fights' && I.pressed('rec') && !D.typing) { this.saveRecord(); return; } // (R, as on the ladder: THE RECORD to a file, 11-06)
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || s === 'morning' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || s === 'morning' || s === 'seat' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
       var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -603,6 +604,7 @@
     if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
     if (s === 'title') { location.href = './'; return; } // (X: the Story Realm Game's title, as the button -- the 8-bit's till 11-06)
     if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
+    if (s === 'seat') { this.go('party'); return; } // (a seat's pick from the roster: back to the cards, 11-12)
     if (s === 'modules') { this.keep(); this.go('hub'); return; } // (LOAD MODULE is THE CAMP's)
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go(this.mk && this.mk.villain ? 'villains' : 'party'); return; } // (a villain's maker came from THE VILLAINS, 10-17)
     if (s === 'map') { this.go('hub'); return; } // (THE MAP is SINGLE FIGHT's, from THE CAMP since 10-17)
@@ -1634,13 +1636,102 @@
   Pocket.prototype.cycle = function (i, dir) {
     var es = PK.entries(this.st), slot = this.st.party[i], at = -1;
     es.forEach(function (e, k) { if (slot.custom != null ? (e.kind === 'custom' && e.i === slot.custom) : slot.w === 'new' ? e.kind === 'new' : (e.kind === 'stock' && e.w === slot.w)) at = k; });
-    var e = es[(at + dir + es.length) % es.length];
+    this.seatPut(i, es[(at + dir + es.length) % es.length], slot.lvl || 3); D.sfx('cursor');
+  };
+  // a roster entry into seat i, the card that sat there put away (the arrows' step, and THE ROSTER's pick); lvl: the level a stock card comes in at, held to its own range
+  Pocket.prototype.seatPut = function (i, e, lvl) {
+    var slot = this.st.party[i];
     PK.slotToPack(this.st, slot); // (its GEAR and a stock word's winnings into the pack, not lost with the card -- 10-17)
     if (this.st.light && this.st.light.seat === i) this.st.light = null; // (its light in hand stays in the pack, 10-17)
-    if (e.kind === 'stock') this.st.party[i] = { w: e.w, lvl: Math.max(e.lo, Math.min(e.hi, slot.lvl || 3)), loot: [] };
+    if (e.kind === 'stock') this.st.party[i] = { w: e.w, lvl: Math.max(e.lo, Math.min(e.hi, lvl || 3)), loot: [] };
     else if (e.kind === 'custom') this.st.party[i] = { custom: e.i };
     else this.st.party[i] = { w: 'new' };
-    this.cache = {}; this.keep(); D.sfx('cursor');
+    this.cache = {}; this.keep();
+  };
+  // THE SEATS (11-12, Griz, on his Pocket DM fight's card: "also need to be able to move seats around or something (consult UI best practices) - but if I want to take a single
+  // person out of the party and swap it out for another character, it's very complicated using the 'remove seat'/'add seat' method"): each card has SWAP and OUT beside its
+  // arrows. SWAP opens THE ROSTER for that seat -- every card of the roster in one list, who is seated where said on its row: one not seated takes the seat (the card that sat
+  // there put away, its gear to the pack, as the arrows do), one seated in another seat trades seats with this one (the two cards as they are: gear, winnings, level). OUT takes
+  // that seat out of the party, whichever it is ('- a seat' took only the last). What goes by seat number goes with the card: the light in hand, THE LONG REST's picks.
+  // With a ladder or a module under way the seats stand (its wounds and rests are kept by seat): SWAP and OUT say so
+  // to[old seat] = its new seat, -1 gone
+  PK.reseat = function (st, to) {
+    var mv = function (k) { return to[k] == null ? k : to[k]; };
+    if (st.light) { var ls = mv(st.light.seat); if (ls < 0) st.light = null; else st.light.seat = ls; }
+    var m = st.morning; if (!m) return;
+    if (m.prep) { var np = {}; Object.keys(m.prep).forEach(function (k) { var t = mv(+k); if (t >= 0) np[t] = m.prep[k]; }); m.prep = np; }
+    Object.keys(m.cast || {}).forEach(function (id) { var c = m.cast[id]; if (!c) return; if (Array.isArray(c.who)) c.who = c.who.map(mv).filter(function (t) { return t >= 0; }); if (c.by != null) { var b = mv(c.by); if (b < 0) delete c.by; else c.by = b; } });
+  };
+  Pocket.prototype.seatsHeld = function () { var run = this.st.run; return run ? (run.module ? run.module.name : 'the ladder') + ' is under way and keeps its seats: PUT IT AWAY at THE CAMP first' : ''; };
+  Pocket.prototype.seatTrade = function (i, j) {
+    var st = this.st, p = st.party, to = {}; if (i === j || !p[i] || !p[j]) return;
+    var t = p[i]; p[i] = p[j]; p[j] = t; to[i] = j; to[j] = i; PK.reseat(st, to);
+    this.cache = {}; this.keep();
+  };
+  Pocket.prototype.seatOut = function (i) {
+    var st = this.st, p = st.party, to = {}; if (p.length <= 1 || !p[i]) return false;
+    PK.slotToPack(st, p[i]); // (its GEAR and winnings to the pack, as the arrows')
+    for (var k = 0; k < p.length; k++) to[k] = k < i ? k : k === i ? -1 : k - 1;
+    p.splice(i, 1); PK.reseat(st, to);
+    this.cache = {}; this.keep(); return true;
+  };
+  PK.GROUPS = ['the four', 'a guest', 'the named', 'the king', 'your own'];
+  // THE ROSTER's rows for a seat: every entry the arrows would reach, with its name, class and level as it would sit, and the seat it is in now (-1 none)
+  Pocket.prototype.seatRows = function () {
+    var st = this.st, i = this.seatI, here = st.party[i], c = this.cache;
+    if (c.seatRows) return c.seatRows;
+    var same = function (slot, e) { return slot.custom != null ? (e.kind === 'custom' && e.i === slot.custom) : slot.w === 'new' ? false : (e.kind === 'stock' && e.w === slot.w); };
+    var words = PK.STOCK.map(function (q) { return q.w; }), L0 = (here && here.lvl) || 3;
+    c.seatRows = PK.entries(st).map(function (e) {
+      var at = -1; st.party.forEach(function (slot, k) { if (at < 0 && same(slot, e)) at = k; });
+      if (e.kind === 'new') return { e: e, at: -1, name: '?  A NEW CHARACTER', what: 'the maker: a race, a class, the scores, the gear, a name', group: '' };
+      var slot = at >= 0 ? st.party[at] : e.kind === 'custom' ? { custom: e.i } : { w: e.w, lvl: Math.max(e.lo, Math.min(e.hi, L0)), loot: [] };
+      var h = PK.sheetOf(PK.specOf(st, slot)), si = e.kind === 'stock' ? words.indexOf(e.w) : -1;
+      return { e: e, at: at, name: h ? h.name : e.name || e.w, what: h ? R.CLASSES[h.cls].name + ' ' + h.lvl + '  HP ' + h.maxhp + ' AC ' + R.ac(h) : '', group: e.kind === 'custom' ? PK.GROUPS[4] : e.king ? PK.GROUPS[3] : si < 4 ? PK.GROUPS[0] : si < 10 ? PK.GROUPS[1] : PK.GROUPS[2] };
+    });
+    return c.seatRows;
+  };
+  Pocket.prototype.seatPick = function (row) {
+    var i = this.seatI, e = row.e, sh = this.sheets(), was = sh[i] && sh[i].h ? sh[i].h.name : 'the ?', L0 = (this.st.party[i] && this.st.party[i].lvl) || 3;
+    if (row.at === i) { this.go('party'); return; }
+    if (e.locked) { D.sfx('error'); this.say('Pyro is LOCKED: win the trial', 300); return; }
+    if (row.at >= 0) { this.seatTrade(i, row.at); this.go('party'); this.say(row.name + ' and ' + was + ' trade seats: ' + (i + 1) + ' and ' + (row.at + 1), 300); return; }
+    this.seatPut(i, e, L0);
+    if (e.kind === 'new') { this.makeNew(i, null); return; }
+    this.go('party'); this.say(row.name + ' takes seat ' + (i + 1) + (was !== 'the ?' ? ': ' + was + ' steps out, the gear to the pack' : ''), 300);
+  };
+  Pocket.prototype.drawSeat = function (ctx) {
+    var self = this, st = this.st, i = this.seatI, per = 11;
+    if (i == null || !st.party[i]) { this.go('party'); return; }
+    var rows = this.seatRows(), sh = this.sheets(), cur = sh[i] && sh[i].h ? sh[i].h.name : 'the ?';
+    head(ctx, 'THE ROSTER', 'who sits in seat ' + (i + 1) + ' of ' + st.party.length + '? now: ' + cur + ' · one seated elsewhere trades seats with it');
+    var from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
+    rows.slice(from, from + per).forEach(function (r, k) {
+      var yy = 36 + k * 16;
+      self.btn(ctx, fitText(r.name, 126), 14, yy, 136, 14, function () { self.seatPick(r); }, { small: true, on: r.at === i });
+      D.text(ctx, fitText((r.e.locked ? '{r}LOCKED{/} win the trial' : r.what) + (r.at === i ? '   {y}in this seat{/}' : r.at >= 0 ? '   {o}in seat ' + (r.at + 1) + ': trades{/}' : ''), D.W - 260), 158, yy + 3, P('bone', 1));
+      if (r.group) D.text(ctx, r.group, D.W - 20, yy + 3, P('stone', 5), 'right');
+    });
+    this.listRows(b0, 36, 16, rows.length, per, from);
+    this.pager(ctx, 14, 36 + per * 16, rows.length, per, from);
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'TAKE SEAT ' + (i + 1) + ' OUT', D.W - 150, 236, 130, 15, function () { if (self.seatOut(i)) { self.go('party'); self.say(cur + ' is out: the party is ' + st.party.length, 300); } }, { dis: st.party.length <= 1, why: 'the party wants one seat at least' });
+    D.hint(ctx, 'up/down choose · E seats it · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
+  };
+  // THE LEVEL-UPS AT NEXT (11-12, Griz: "Also want to change the way leveling on the party screen works." / "If a player chooses to edit level-ups, have it happen once
+  // they hit the 'next' button, then it walks through the leveling for that character (if it changed from party state before they got to that screen?)"): a card's level
+  // arrows only set the number now (till 11-12 each press up with EDIT on opened that level's page at once). Each level raised by hand is owed its page (slot.due, kept on
+  // the card -- it rides a seat trade and a reload); one given back is owed nothing. NEXT, with LEVEL-UPS: EDIT, walks them: card by card in seat order, each card's levels
+  // from the lowest, a page a level (Pocket.askLevel), then THE CAMP. With DEFAULTS, NEXT asks nothing and the levels keep their own picks, as before
+  PK.dueOf = function (st, slot) { var L = PK.lvlOf(st, slot); return ((slot && slot.due) || []).filter(function (k) { return k <= L; }).sort(function (a, b) { return a - b; }); };
+  Pocket.prototype.duesSaid = function () { var st = this.st, sh = this.sheets(), out = []; st.party.forEach(function (slot, i) { var d = PK.dueOf(st, slot); if (d.length && sh[i] && sh[i].h) out.push(sh[i].h.name + ' ' + d.join(', ')); }); return out; };
+  Pocket.prototype.partyNext = function () {
+    var st = this.st, self = this, q = [];
+    st.party.forEach(function (slot, i) { var d = PK.dueOf(st, slot); delete slot.due; if (st.editLevels) d.forEach(function (L) { q.push([i, L]); }); });
+    this.keep();
+    if (!q.length) { this.go('hub'); return; }
+    this.levelQueue = (this.levelQueue || []).concat(q); this.afterLevels = function () { self.cache = {}; self.keep(); self.go('hub'); };
   };
   // DROP on a made card (10-21): asked first, then off the roster for good (PK.dropMade)
   Pocket.prototype.dropMade = function (i) {
@@ -1657,7 +1748,9 @@
     if (L === slot.lvl) { D.sfx('error'); return; }
     slot.lvl = L; slot.xp = R.XP_LEVEL[L] || 0; this.cache = {}; this.keep(); D.sfx('cursor'); // (the XP to the level's floor: the arrows set a level by hand, 10-17)
     if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > L) delete slot.picks[k]; }); // (a level given back takes its picks with it)
-    if (dir > 0 && this.st.editLevels) this.askLevel(i, L); // (EDIT off: the level's defaults, no page -- 10-17, his "or it always takes defaults (unlike Aurdin now)")
+    // (the level's page is NEXT's now, 11-12: Pocket.partyNext -- till then a press up with EDIT on opened it here; EDIT off: the level's defaults, no page -- 10-17, his "or it always takes defaults (unlike Aurdin now)")
+    var due = (slot.due || []).filter(function (k) { return dir > 0 ? k < L : k <= L; }); if (dir > 0) due.push(L);
+    if (due.length) slot.due = due; else delete slot.due;
   };
   // a card's level up asks that level's choices (10-14, Griz: "I just clicked brann from L5 to L6 and expected choices"): the 8-bit's heroes and guests, made by
   // js/rules.js R.makeHero, on the one pick page (js/menu.js MN.openPicks) where the grid's M menu stands, as the climb asks them -- every spell offered (the
@@ -1701,6 +1794,7 @@
     else if (s === 'hub') this.drawHub(ctx);
     else if (s === 'morning') this.drawMorning(ctx);
     else if (s === 'party') this.drawParty(ctx);
+    else if (s === 'seat') this.drawSeat(ctx);
     else if (s === 'maker') this.drawMaker(ctx);
     else if (s === 'map') this.drawMap(ctx);
     else if (s === 'cr') this.drawCR(ctx);
@@ -1743,13 +1837,14 @@
   // (USEFULS, the release's eight doors, is DOORS since 10-17: js/pocketdm.js PD.PUBLIC, the same rows in DOORS' list)
   // the party: the slots across, arrows above and below (his words), the level beneath
   Pocket.prototype.drawParty = function (ctx) {
-    var self = this, st = this.st, sh = this.sheets(), n = st.party.length;
+    var self = this, st = this.st, sh = this.sheets(), n = st.party.length, held = this.seatsHeld();
     head(ctx, 'THE PARTY', n + ' of 6 · arrows cycle the roster · the ? makes a new one · level cap ' + PK.cap(st) + (PK.kingOpen(st) ? ' · Pyro at his 12' : ''));
     var cw = 70, gap = 6, x0 = Math.round((D.W - (n * cw + (n - 1) * gap)) / 2), top = 40;
     sh.forEach(function (s, i) {
       var x = x0 + i * (cw + gap), slot = s.slot, isNew = slot.w === 'new', e = isNew ? null : PK.STOCK.filter(function (q) { return q.w === slot.w; })[0];
       var locked = !!(e && e.king && !PK.kingOpen(st)), custom = slot.custom != null;
-      self.btn(ctx, '^', x + cw / 2 - 12, top, 24, 11, function () { self.cycle(i, -1); }, { small: true });
+      self.btn(ctx, '^', x, top, 20, 11, function () { self.cycle(i, -1); }, { small: true });
+      self.btn(ctx, 'SWAP', x + 22, top, cw - 22, 11, function () { self.seatI = i; self.go('seat'); self.seatI = i; }, { small: true, dis: !!held, why: held }).tip = 'SWAP: THE ROSTER, to seat another here or trade seats with one seated'; // (11-12: Pocket.drawSeat)
       ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(x, top + 13, cw, 118);
       ctx.strokeStyle = locked ? P('stone', 2) : isNew ? P('gold', 2) : P('stone', 3); ctx.strokeRect(x + 0.5, top + 13.5, cw - 1, 117);
       if (isNew) {
@@ -1772,7 +1867,8 @@
           else { self.btn(ctx, '<', x + 8, top + 113, 14, 12, function () { self.levelSlot(i, -1); }, { small: true }); D.text(ctx, 'L' + s.h.lvl, x + cw / 2, top + 115, P('gold', 4), 'center'); self.btn(ctx, '>', x + cw - 22, top + 113, 14, 12, function () { self.levelSlot(i, 1); }, { small: true }); }
         }
       } else { D.text(ctx, '(no sheet)', x + cw / 2, top + 60, P('red', 4), 'center'); }
-      self.btn(ctx, 'v', x + cw / 2 - 12, top + 134, 24, 11, function () { self.cycle(i, 1); }, { small: true });
+      self.btn(ctx, 'v', x, top + 134, 20, 11, function () { self.cycle(i, 1); }, { small: true });
+      self.btn(ctx, 'OUT', x + 22, top + 134, cw - 22, 11, function () { var nm = s.h ? s.h.name : 'the ?'; if (self.seatOut(i)) self.say(nm + ' is out: the party is ' + st.party.length, 300); }, { small: true, dis: !!held || n <= 1, why: held || 'the party wants one seat at least' }).tip = 'OUT: takes this seat out of the party, its gear to the pack'; // (11-12)
       if (!isNew && s.h && !locked && !(e && e.king)) { // (10-17: below the down arrow, his word)
         self.btn(ctx, 'GEAR', x + 4, top + 147, 33, 11, function () { self.openGear(i); }, { small: true });
         self.btn(ctx, 'PDF', x + 39, top + 147, cw - 43, 11, function () { self.cardPdf(i); }, { small: true }).tip = 'PDF: saves ' + s.h.name + '\'s character sheet, to print or keep'; // (10-26: the card's sheet as a file, js/sheetpdf.js; the hint line says it when chosen)
@@ -1783,14 +1879,15 @@
     this.btn(ctx, '+ a seat', 96, 200, 70, 14, function () { if (st.party.length < 6) { st.party.push({ w: 'new' }); self.cache = {}; self.keep(); } }, { dis: n >= 6 });
     // the cards' level arrows (10-17, Griz: "For the named characters let's add an edit toggle on the level select screen, where they get full edit of torvald
     // and aurdin and such, or it always takes defaults (unlike Aurdin now)"): EDIT, each level up opens its pick page (Pocket.askLevel); DEFAULTS, none does
-    this.btn(ctx, st.editLevels ? 'LEVEL-UPS: EDIT' : 'LEVEL-UPS: DEFAULTS', 172, 200, 132, 14, function () { st.editLevels = !st.editLevels; self.keep(); D.sfx('cursor'); }, { on: !!st.editLevels, why: 'EDIT: a card\'s level up asks its choices; DEFAULTS: it takes its own' });
+    this.btn(ctx, st.editLevels ? 'LEVEL-UPS: EDIT' : 'LEVEL-UPS: DEFAULTS', 172, 200, 132, 14, function () { st.editLevels = !st.editLevels; self.keep(); D.sfx('cursor'); }, { on: !!st.editLevels, why: 'EDIT: a card\'s level-ups are asked at NEXT; DEFAULTS: it takes its own' }).tip = st.editLevels ? 'EDIT: NEXT walks each level you raised, a page a level' : 'DEFAULTS: a level raised takes its own picks, nothing asked';
     this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', 312, 200, 148, 14, function () { self.openMarket('party'); }); // (10-17)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE THE PARTY', 88, 236, 114, 15, function () { self.saveParty(); }); // (the party's file, 10-17 -- his "Player saves are current party and pack"; SAVE CAMPAIGN till then, the campaign's file now the roster and the DM's, on the title)
     this.btn(ctx, 'LOAD A PARTY', 208, 236, 114, 15, function () { self.loadParty(); });
-    this.btn(ctx, 'NEXT: THE CAMP', D.W - 150, 236, 130, 15, function () { self.keep(); self.go('hub'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' }); // (THE CAMP at both tables, 10-17: TO THE CAMPAIGN and NEXT: THE MAP till then)
+    var dues = st.editLevels ? this.duesSaid() : [];
+    this.btn(ctx, dues.length ? 'NEXT: THE LEVEL-UPS' : 'NEXT: THE CAMP', D.W - 150, 236, 130, 15, function () { self.keep(); self.partyNext(); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' }); // (THE CAMP at both tables, 10-17: TO THE CAMPAIGN and NEXT: THE MAP till then)
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
-    else { var kb = this.btns[this.ksel]; if (kb && kb.tip) D.hint(ctx, kb.tip, D.W / 2, 222, P('bone', 1), 'center'); else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center'); } // (a chosen button with a tip says what it does: a card's PDF, 10-26)
+    else { var kb = this.btns[this.ksel]; if (kb && kb.tip) D.hint(ctx, kb.tip, D.W / 2, 222, P('bone', 1), 'center'); else if (dues.length) D.hint(ctx, fitText('{y}NEXT asks the level-ups, then THE CAMP:{/} ' + dues.join(' · '), D.W - 40), D.W / 2, 222, P('bone', 1), 'center'); else D.hint(ctx, '^ v cycle the roster · SWAP picks from it · OUT takes the seat out · M the menu · X back', D.W / 2, 222, P('stone', 4), 'center'); } // (a chosen button with a tip says what it does: a card's PDF, 10-26)
   };
   // the maker, step by step
   Pocket.prototype.drawMaker = function (ctx) {
@@ -1928,7 +2025,8 @@
         tabs2.forEach(function (tb, i) { self.btn(ctx, tb[0], 20 + i * 120, y, 114, 13, function () { m.spellTab = tb[1]; self.scroll = 0; }, { on: m.spellTab === tb[1], small: true }); });
         this.btn(ctx, 'THE CLASS\'S OWN', 270, y, 120, 13, function () { m.known = info.defC.concat(info.def); }, { small: true });
         var pool = m.spellTab ? info.pool : info.cpool, cap = m.spellTab ? info.n : info.nc, have = m.spellTab ? picked : pickedC;
-        var per2 = 22, cols = 2, from2 = Math.min(this.scroll * cols, Math.max(0, pool.length - per2)); this.scroll = Math.floor(from2 / cols);
+        // (16 a page, 22 till 11-12: the spell's words under the list, as THE LONG REST's and the realm game's -- Griz, 11-11: "menu consistency where we can")
+        var per2 = 16, cols = 2, from2 = Math.min(this.scroll * cols, Math.max(0, pool.length - per2)); this.scroll = Math.floor(from2 / cols);
         var b0s = this.btns.length;
         pool.slice(from2, from2 + per2).forEach(function (id, i) {
           var sd = D.magic.data(id), col = i % cols, row = Math.floor(i / cols), yy = y + 18 + row * 15, on = m.known.indexOf(id) >= 0;
@@ -1939,13 +2037,17 @@
           }, { on: on, small: true });
         });
         this.listRows(b0s, y + 18, 15, Math.ceil(pool.length / cols), per2 / cols, Math.ceil(from2 / cols)); // (by rows of two, as the scroll counts here; an odd count's last page starts mid-row, read as the end)
-        if (pool.length > per2) { // (^ v by rows of two, the wheel as before: 10-27)
-          var yP = y + 18 + 11 * 15 - 2;
-          this.btn(ctx, '^', 20, yP, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per2 / cols); }, { small: true, dis: from2 <= 0, nokey: true });
-          this.btn(ctx, 'v', 38, yP, 16, 12, function () { self.scroll += per2 / cols; }, { small: true, dis: from2 + per2 >= pool.length, nokey: true });
-          D.text(ctx, (from2 + 1) + '-' + Math.min(pool.length, from2 + per2) + ' of ' + pool.length, 60, yP + 3, P('stone', 5));
+        // the spell under the mouse, else the one the keys are on: its words (js/core.js D.descPanel; mkDesc: what the panel says -- dev/bench16.js mode=pocketmenu1112)
+        var shown5 = pool.slice(from2, from2 + per2), hv5 = -1; for (var q5 = 0; q5 < shown5.length; q5++) if (hit(this.btns[b0s + q5])) hv5 = q5;
+        if (hv5 < 0 && this.ksel >= b0s && this.ksel < b0s + shown5.length) hv5 = this.ksel - b0s;
+        var sp5 = hv5 >= 0 ? (DS.DATA.spells[shown5[hv5]] || SV.spell(shown5[hv5]) || D.magic.data(shown5[hv5]) || {}) : null; this.mkDesc = sp5 ? sp5.desc || '' : null;
+        if (!D.descPanel(ctx, 20, y + 18 + 8 * 15 + 2, D.W - 40, this.mkDesc)) D.text(ctx, '{g}a spell under the mouse or the keys: its words here{/}', 26, y + 18 + 8 * 15 + 8, P('stone', 5));
+        if (pool.length > per2) { // (^ v by rows of two, the wheel as before: 10-27; beside the tabs since 11-12, the words where they were)
+          this.btn(ctx, '^', 396, y, 16, 13, function () { self.scroll = Math.max(0, self.scroll - per2 / cols); }, { small: true, dis: from2 <= 0, nokey: true });
+          this.btn(ctx, 'v', 414, y, 16, 13, function () { self.scroll += per2 / cols; }, { small: true, dis: from2 + per2 >= pool.length, nokey: true });
+          D.text(ctx, (from2 + 1) + '-' + Math.min(pool.length, from2 + per2) + '/' + pool.length, 434, y + 3, P('stone', 5));
         }
-        if (info.always.length) D.text(ctx, 'always ready: ' + info.always.map(function (id) { return D.magic.data(id).name; }).join(', '), 20, y + 18 + 11 * 15 + 10, P('moss', 2));
+        if (info.always.length) D.text(ctx, fitText('always ready: ' + info.always.map(function (id) { return D.magic.data(id).name; }).join(', '), D.W - 40), 20, y + 18 + 8 * 15 + 48, P('moss', 2));
       }
     } else if (step === 6) {
       D.text(ctx, 'a name (letters and numbers; 24 at most)', D.W / 2, y, P('silver', 5), 'center');
@@ -2257,7 +2359,7 @@
       D.text(ctx, 'a ladder: four rungs at a third again each, short rests between, a long rest and the trial', D.W / 2, 212, P('stone', 5), 'center');
     }
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    D.hint(ctx, 'M the menu · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
+    D.hint(ctx, 'M the menu, NOTES in it · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
   };
   // THE MENU at the camp: the regular one over the party (EQUIP, ITEMS, MAGIC, SKILLS, STATUS -- the same pages as everywhere), on PK's pack; what comes off goes into
   // the pack and each card's word keeps what it wears, as GEAR's (gearBack). The order is THE PARTY's (its arrows). 11-03 (Griz, his module BUILDING, fight 2: "it allowed me to go to the
@@ -2290,7 +2392,8 @@
       give: give,
       take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
       canSave: function () { return false; },
-      order: function () { self.say('the order is THE PARTY\'s: its arrows', 240); },
+      notes: D.pocketdm && D.pocketdm.notes ? function () { D.pocketdm.notes(null, self); } : null, // (NOTES after SAVE, the story game's box on the table's own notes: js/pocketdm.js PD.notes, 11-12)
+      order: function () { self.say('the order is THE PARTY\'s: SWAP trades two seats', 240); },
       light: lh.light,
       // a spell sheet is read on the road (the field's learn: js/house.js FD.item), not at this table: the page asks first, and a line says so
       whyNot: function (id) { var it = DS.DATA.items[id]; return it && it.use && it.use.effect === 'learn' ? 'A spell sheet is copied into a book on the road: the Pocket DM keeps no spellbook.' : ''; },

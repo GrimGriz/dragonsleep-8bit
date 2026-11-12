@@ -20593,6 +20593,147 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     finishPp();
     return;
   }
+  // THE POCKET DM'S MENU AND PARTY SCREEN (mode=pocketmenu1112; the Pocket DM lane, his notes of 11-11 on his Bugbear Ambush fight's card): 1 "still looking for the 'same
+  // menu' (with a notes section) on the 'm' key" -- NOTES after SAVE on the M menu of THE CAMP, THE PARTY and a Pocket DM fight, the story game's box on the table's own notes,
+  // stamped with the fight and its round, saved as hero_situations_feedback; a class-floor fight with no table has none. 4 "take a single person out of the party and swap it
+  // out for another character" -- SWAP and OUT on each card, THE ROSTER's pick, a seated one trading seats, what goes by seat going with the card. 3/5 "have it happen once
+  // they hit the 'next' button, then it walks through the leveling for that character" -- the arrows only set the number, NEXT walks the levels raised, a page a level.
+  // The M key and the list's keys by dispatched KeyboardEvents. On a stand-in store
+  if (get('mode', '') === 'pocketmenu1112') {
+    var repPm = { checks: [], errors: [] }, okPm = function (c, s) { repPm.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memPm = {}, stGPm = D.store.get, stSPm = D.store.set, push0Pm = D.push, sc0Pm = D.scenes.slice(), clk0Pm = HTMLAnchorElement.prototype.click;
+    D.store.get = function (k) { return memPm[k] ? JSON.parse(memPm[k]) : null; }; D.store.set = function (k, v) { memPm[k] = JSON.stringify(v); return true; };
+    try {
+      var cvPm = document.createElement('canvas'); cvPm.width = D.W; cvPm.height = D.H; var cxPm = cvPm.getContext('2d');
+      var PDm = D.pocketdm, PKm2 = D.pocket, Pq = new D.Pocket(); Pq.enter(); Pq.ask = function () { return true; }; Pq.xpAlways = true;
+      D.scenes.length = 0; D.scenes.push(Pq);
+      var four = function () { Pq.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pq.st.pack = []; Pq.st.light = null; Pq.st.morning = null; Pq.st.run = null; Pq.cache = {}; };
+      var drawPm = function () { Pq.btns = []; Pq.draw(cxPm); return Pq.btns.map(function (b) { return b.label; }); };
+      var btnPm = function (re, k) { return Pq.btns.filter(function (b) { return re.test(b.label); })[k || 0] || null; };
+      var keyPm = function (code) { window.dispatchEvent(new KeyboardEvent('keydown', { code: code, bubbles: true })); Pq.update(); window.dispatchEvent(new KeyboardEvent('keyup', { code: code, bubbles: true })); D.input.clear(); };
+      var KPm = function (b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; };
+      var who = function () { return Pq.st.party.map(function (s) { return s.custom != null ? 'c' + s.custom : s.w; }).join(','); };
+      four(); Pq.st.feedback = {};
+      // ---- 1. NOTES on the M menu
+      Pq.go('hub'); drawPm(); keyPm('KeyM');
+      var m1 = Pq.pm, e1 = m1 ? m1.root.entries.map(function (e) { return e[0]; }) : [];
+      okPm(!!m1 && e1.indexOf('NOTES') === e1.indexOf('SAVE') + 1 && e1.join() === 'ITEMS,GEAR,MAGIC,SKILLS,EQUIP,STATUS,ORDER,JOURNAL,SAVE,NOTES,OPTIONS,CREDITS,EXIT', '1a THE CAMP, the M key: the regular menu, NOTES after SAVE as the story game\'s (' + e1.join(' ') + ')');
+      if (m1) m1.root.go('notes');
+      var n1 = D.top(), isN = !!(n1 && D.house.Notes && n1 instanceof D.house.Notes);
+      okPm(isN && !Pq.pm && PDm.NOTE_RE.test((n1.text || '').trim().split('\n').pop()) && /THE CAMP/.test(n1.text), '1b NOTES closes the menu and opens the story game\'s notes box over the camp, a stamp on its last line: "' + (isN ? n1.text.trim().split('\n').pop() : '-') + '"');
+      var saidN = null, fileN = null;
+      if (isN) {
+        n1.text += 'the camp note'; n1.keep();
+        HTMLAnchorElement.prototype.click = function () { saidN = this.download; };
+        var nameN = n1.save(); fileN = n1.src.file(D.house.unstamp(n1.text, n1.src.re));
+        HTMLAnchorElement.prototype.click = clk0Pm;
+        okPm(/^hero_situations_feedback-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(nameN || '') && saidN === nameN && fileN.kind === 'hero-situations-feedback' && /the camp note/.test(fileN.notes) && fileN.from === 'the Pocket DM' && fileN.now && fileN.now.screen === 'hub' && fileN.campaign.party.length === 4 && Pq.st.feedback.n === 1 && !!Pq.egg,
+          '1c SAVE writes ' + nameN + ': kind ' + fileN.kind + ', the note and the party in it, now.screen ' + (fileN.now && fileN.now.screen) + ', counted as SITUATIONS\' saves are, Goose on the first');
+        Pq.egg = null; // (the egg let go)
+        n1.close();
+        okPm(D.top() === Pq && /the camp note/.test(Pq.st.feedback.draft) && PDm.NOTE_RE.test(Pq.st.feedback.draft.split('\n')[0]), '1d BACK: the table again; the draft is SITUATIONS\' own (st.feedback.draft), the stamp kept over what was written');
+        var d0 = Pq.st.feedback.draft; Pq.st.feedback.draft = d0 + '\n\n-- the Pocket DM · 2026-01-01 00:00Z · THE PARTY --\n'; PDm.notes(null, Pq); var n2 = D.top(); n2.close();
+        okPm(Pq.st.feedback.draft === d0, '1e a stamp with nothing written under it is not kept (an older opening\'s, and this one\'s)');
+      }
+      Pq.go('party'); drawPm(); keyPm('KeyM');
+      okPm(!!Pq.pm && Pq.pm.root.entries.some(function (e) { return e[0] === 'NOTES'; }), '1f THE PARTY, the M key: the same menu, NOTES in it');
+      if (Pq.pm) Pq.pm.close();
+      Pq.st.party.push({ w: 'new' }); Pq.cache = {}; drawPm(); keyPm('KeyM');
+      okPm(!Pq.pm && !!Pq.msg && /wants a character/.test(Pq.msg.text), '1g THE PARTY with an empty seat: M says why, no menu ("' + (Pq.msg && Pq.msg.text) + '")');
+      four();
+      // a Pocket DM fight: the grid's M menu
+      Pq.fightMap = Pq.mapIds()[0]; Pq.foes = ['goblin', 'goblin']; Pq.go('cr');
+      var Bq = null; D.push = function (b) { Bq = b; }; try { Pq.launch(); } finally { D.push = push0Pm; }
+      if (Bq) { D.scenes.push(Bq); D.battle = Bq; Bq.enter(); for (var gP = 0; gP < 300 && !(Bq.order && Bq.order.length); gP++) Bq.co.next(); }
+      okPm(!!Bq && !!Bq.o.pocket, '1h a Pocket DM fight set (' + (Bq ? Bq.units.length + ' on the floor' : 'none') + ')');
+      if (Bq) {
+        D.ui.openMenu(Bq); var m3 = Bq.menu && Bq.menu.m, e3 = m3 ? m3.root.entries.map(function (e) { return e[0]; }) : [];
+        okPm(e3.indexOf('NOTES') === e3.indexOf('SAVE') + 1 && e3.indexOf('NOTES') > 0, '1i the fight\'s M menu: NOTES after SAVE (' + e3.join(' ') + ')');
+        if (m3) m3.root.go('notes');
+        var n3 = D.top(), isN3 = !!(n3 && n3 instanceof D.house.Notes), st3 = isN3 ? n3.text.trim().split('\n').pop() : '', f3 = isN3 ? n3.src.file('x') : null;
+        okPm(isN3 && !Bq.menu && /in the fight .*, round \d+/.test(st3) && f3.now.screen === 'fight' && !!f3.now.fight && (!Bq.rec || !Bq.rec.started || (f3.now.fight.started === Bq.rec.started && st3.indexOf(Bq.rec.started) > 0)),
+          '1j NOTES in the fight: the box over the floor, stamped with the fight, its round and its record\'s started: "' + st3 + '"');
+        if (isN3) { n3.text += 'the fight note'; n3.keep(); n3.close(); }
+        okPm(D.top() === Bq && /the camp note/.test(Pq.st.feedback.draft) && /the fight note/.test(Pq.st.feedback.draft), '1k BACK: the fight again; the camp\'s note and the fight\'s in the one draft');
+        D.scenes.pop();
+      }
+      // a class-floor fight opened by itself: no table, no NOTES (and the story game's own NOTES are js/house.js's, untouched: mode=notes1028)
+      D.scenes.length = 0; var Bf = D.npcFight('?npc=goblin&vs=fighter:3&lvl=3', {}); D.scenes.push(Bf); D.battle = Bf; Bf.enter(); for (var gF = 0; gF < 300 && !(Bf.order && Bf.order.length); gF++) Bf.co.next();
+      D.ui.openMenu(Bf); var e4 = Bf.menu.m.root.entries.map(function (e) { return e[0]; });
+      okPm(e4.indexOf('NOTES') < 0, '1l the class floor by itself (no Pocket DM table): no NOTES (' + e4.join(' ') + ')');
+      Bf.menu = null; D.scenes.length = 0; D.scenes.push(Pq);
+      // ---- 2. THE SEATS: SWAP, OUT, THE ROSTER
+      var shotPm = function (k) { if (get('shot', '')) { drawPm(); (repPm.shots = repPm.shots || {})[k] = cvPm.toDataURL('image/png'); } }; // (&shot=1: the screens as PNGs, for a seat's own eyes)
+      four(); Pq.go('party'); var L2 = drawPm(); shotPm('party');
+      okPm(L2.filter(function (l) { return l === 'SWAP'; }).length === 4 && L2.filter(function (l) { return l === 'OUT'; }).length === 4 && L2.filter(function (l) { return l === '^'; }).length === 4, '2a THE PARTY: SWAP and OUT on each of the four cards, the arrows still there');
+      Pq.fire(btnPm(/^SWAP$/, 1)); var Lr2 = drawPm(), rows2 = Pq.seatRows(); shotPm('roster');
+      okPm(Pq.screen === 'seat' && Pq.seatI === 1 && rows2.length === PKm2.entries(Pq.st).length && rows2.filter(function (r) { return r.at >= 0; }).length === 4 && rows2[1].at === 1 && Lr2.indexOf('TAKE SEAT 2 OUT') >= 0,
+        '2b SWAP on seat 2: THE ROSTER, ' + rows2.length + ' rows (every card the arrows reach), the four marked seated, TAKE SEAT 2 OUT');
+      // the keys: down to Brann (the fifth row), E
+      for (var kd = 0; kd < 4; kd++) { drawPm(); keyPm('ArrowDown'); }
+      drawPm(); var onB = Pq.btns[Pq.ksel] && Pq.btns[Pq.ksel].label; keyPm('KeyE');
+      var s1 = Pq.st.party[1];
+      okPm(onB === 'Brann' && Pq.screen === 'party' && who() === 'barley,brann,vivian,lymen' && s1.lvl === 5, '2c the keys: four down to ' + onB + ', E -- Brann in seat 2 at his 5, the others where they were (' + who() + '); "' + (Pq.msg && Pq.msg.text) + '"');
+      // a seated one trades seats; the light in hand and THE LONG REST's picks go with the cards
+      Pq.st.light = { seat: 0, id: 'torch' }; Pq.st.morning = { prep: { 0: ['a'], 2: ['b'] }, cast: { aid: { who: [0, 1, 2], by: 2 } } };
+      Pq.st.party[0].gear = { ring: 'ringprot' }; var slot0 = Pq.st.party[0];
+      drawPm(); Pq.fire(btnPm(/^SWAP$/, 0)); drawPm(); var rV = Pq.seatRows().filter(function (r) { return r.e.w === 'vivian'; })[0]; Pq.seatPick(rV);
+      var mo = Pq.st.morning;
+      okPm(who() === 'vivian,brann,barley,lymen' && Pq.st.party[2] === slot0 && slot0.gear.ring === 'ringprot' && Pq.st.light.seat === 2 && JSON.stringify(mo.prep) === '{"0":["b"],"2":["a"]}' && mo.cast.aid.who.join() === '2,1,0' && mo.cast.aid.by === 0,
+        '2d SWAP on seat 1, Vivian (seat 3) picked: the two trade seats as they are (' + who() + '), Barley\'s gear still his, the light and the morning\'s picks with their cards');
+      // OUT: that seat, whichever it is
+      drawPm(); Pq.fire(btnPm(/^OUT$/, 1));
+      okPm(who() === 'vivian,barley,lymen' && Pq.st.light.seat === 1 && JSON.stringify(Pq.st.morning.prep) === '{"0":["b"],"1":["a"]}' && Pq.st.morning.cast.aid.who.join() === '1,0', '2e OUT on seat 2: Brann out, three left in order (' + who() + '), the seats after it closed up');
+      // the ? row goes to the maker; a made card is a row of your own
+      Pq.st.roster.push({ name: 'Brokk', code: '~fighter.3.dwarf.16-14-16-10-12-8.greatsword_chainmail___handaxe__.Brokk', lvl: 3, loot: [] }); Pq.cache = {};
+      drawPm(); Pq.fire(btnPm(/^SWAP$/, 2)); drawPm(); var rsM = Pq.seatRows(), rM = rsM.filter(function (r) { return r.e.kind === 'custom'; })[0], rQ = rsM[rsM.length - 1];
+      okPm(!!rM && rM.name === 'Brokk' && rM.group === 'your own' && /Fighter 3/.test(rM.what) && rQ.e.kind === 'new', '2f a made card is a row of the roster (' + (rM && rM.name + ', ' + rM.what + ', ' + rM.group) + '), the ? the last row');
+      Pq.seatPick(rM);
+      okPm(who() === 'vivian,barley,c' + (Pq.st.roster.length - 1) && Pq.screen === 'party', '2g Brokk picked for seat 3: ' + who());
+      drawPm(); Pq.fire(btnPm(/^SWAP$/, 0)); drawPm(); Pq.seatPick(Pq.seatRows().slice(-1)[0]);
+      okPm(Pq.screen === 'maker' && Pq.st.party[0].w === 'new' && Pq.mk && Pq.mk.slot === 0, '2h the ? picked for seat 1: the maker, for that seat');
+      // (his note 2, "menu consistency where we can": the maker's THE SPELLS says the spell's words, as THE LONG REST's page does since 11-11)
+      Pq.mk.cls = 'wizard'; Pq.kitUp(); Pq.mk.lvl = 3; Pq.mk.step = 5; Pq.mk.spellTab = 1; Pq.scroll = 0; drawPm();
+      var b5 = Pq.btns.findIndex(function (b) { return /^L1 /.test(b.label); }); Pq.ksel = b5; drawPm(); var d5 = Pq.mkDesc, n5 = Pq.btns.filter(function (b) { return /^L\d /.test(b.label); }).length;
+      Pq.ksel = b5 + 1; drawPm(); shotPm('makerspells');
+      okPm(b5 >= 0 && !!d5 && d5.length > 20 && !!Pq.mkDesc && Pq.mkDesc !== d5 && n5 <= 16, '2h2 the maker\'s THE SPELLS: the spell the keys are on says its words (' + (Pq.btns[b5] ? Pq.btns[b5].label : '-') + ': "' + String(d5).slice(0, 60) + '..."), ' + n5 + ' a page');
+      // a ladder or a module under way keeps its seats; the last seat stays
+      four(); Pq.go('party'); Pq.st.run = { rung: 1, plan: [], foes: ['goblin'], map: Pq.mapIds()[0] }; drawPm();
+      var sH = btnPm(/^SWAP$/, 0), oH = btnPm(/^OUT$/, 0); Pq.fire(sH);
+      okPm(sH.dis && oH.dis && Pq.screen === 'party' && /under way/.test(Pq.msg.text), '2i a ladder under way: SWAP and OUT greyed, and say why ("' + Pq.msg.text + '")');
+      Pq.st.run = null; Pq.st.party = [{ w: 'barley', lvl: 3, loot: [] }]; Pq.cache = {}; drawPm();
+      okPm(btnPm(/^OUT$/, 0).dis && !btnPm(/^SWAP$/, 0).dis, '2j a party of one: OUT greyed, SWAP open');
+      // ---- 3. THE LEVEL-UPS AT NEXT
+      four(); Pq.st.party[1] = { w: 'brann', lvl: 5, loot: [] }; Pq.st.editLevels = true; Pq.go('party'); drawPm();
+      Pq.levelSlot(0, 1); var noPg = !Pq.pm; Pq.levelSlot(0, 1);
+      okPm(noPg && !Pq.pm && Pq.st.party[0].lvl === 5 && (Pq.st.party[0].due || []).join() === '4,5', '3a EDIT on, Barley 3 to 5 by the arrows: no page opens, levels 4 and 5 owed (' + (Pq.st.party[0].due || []).join() + ')');
+      Pq.levelSlot(0, -1); var dDn = (Pq.st.party[0].due || []).join(); Pq.levelSlot(0, 1); Pq.levelSlot(1, 1);
+      var L3 = drawPm(); Pq.ksel = 99; shotPm('levels');
+      okPm(dDn === '4' && Pq.st.party[0].due.join() === '4,5' && Pq.st.party[1].due.join() === '6' && L3.indexOf('NEXT: THE LEVEL-UPS') >= 0 && L3.indexOf('NEXT: THE CAMP') < 0 && Pq.duesSaid().join(' · ') === 'Barley 4, 5 · Brann 6',
+        '3b a level given back is owed nothing (' + dDn + '), raised again owed again; Brann 5 to 6; NEXT reads NEXT: THE LEVEL-UPS (' + Pq.duesSaid().join(' · ') + ')');
+      Pq.fire(btnPm(/^NEXT: THE LEVEL-UPS$/));
+      var pages = [], stillParty = Pq.screen === 'party';
+      for (var gW = 0; gW < 40 && Pq.screen === 'party'; gW++) {
+        Pq.update();
+        if (Pq.pm) { var mW = Pq.pm; if (mW.toast) mW.update(KPm('a')); var pgW = mW.top(); pages.push(pgW.h.name + ' ' + (pgW.h.lvl)); pgW.list.i = pgW.list.items.findIndex(function (it) { return it.confirm; }); pgW.list.fix(); mW.update(KPm('a')); if (mW.toast) mW.update(KPm('a')); if (Pq.pm === mW && !mW.closed) { repPm.errors.push('a page would not confirm: ' + pages.join()); break; } }
+      }
+      okPm(stillParty && pages.length >= 2 && pages[0] === 'Barley 4' && pages[pages.length - 1] === 'Brann 6' && pages.every(function (p, k) { return k === 0 || p.split(' ')[0] !== 'Barley' || pages[k - 1].split(' ')[0] === 'Barley'; }) && Pq.screen === 'hub',
+        '3c NEXT walks them, a page a level, card by card from the lowest: ' + pages.join(', ') + ' -- then THE CAMP');
+      okPm(!Pq.st.party[0].due && !Pq.st.party[1].due && !!(Pq.st.party[0].picks && Pq.st.party[0].picks[4]) && !!(Pq.st.party[1].picks && Pq.st.party[1].picks[6]), '3d the picks are on the cards\' words (Barley\'s 4: ' + JSON.stringify((Pq.st.party[0].picks || {})[4]) + ', Brann\'s 6: ' + JSON.stringify((Pq.st.party[1].picks || {})[6]) + '), nothing owed');
+      Pq.go('party'); var L3e = drawPm(); Pq.fire(btnPm(/^NEXT: THE CAMP$/));
+      okPm(L3e.indexOf('NEXT: THE CAMP') >= 0 && Pq.screen === 'hub' && !Pq.pm && !(Pq.levelQueue && Pq.levelQueue.length), '3e back at THE PARTY with nothing raised: NEXT: THE CAMP, straight on');
+      // DEFAULTS: nothing asked, what was owed dropped
+      Pq.st.editLevels = false; Pq.go('party'); Pq.levelSlot(2, 1); var L3f = drawPm(); Pq.fire(btnPm(/^NEXT: THE CAMP$/)); Pq.update();
+      okPm(L3f.indexOf('NEXT: THE CAMP') >= 0 && Pq.screen === 'hub' && !Pq.pm && Pq.st.party[2].lvl === 4 && !Pq.st.party[2].due, '3f LEVEL-UPS: DEFAULTS, Vivian 3 to 4: NEXT: THE CAMP asks nothing, her level\'s own picks stand');
+      // a level raised, then EDIT turned on before NEXT: asked; and what is owed rides a seat trade
+      Pq.go('party'); Pq.levelSlot(3, 1); Pq.st.editLevels = true; var slL = Pq.st.party[3]; Pq.seatTrade(3, 0); drawPm();
+      okPm(Pq.st.party[0] === slL && (slL.due || []).join() === '4' && Pq.duesSaid().join() === 'Lymen 4' && !!btnPm(/^NEXT: THE LEVEL-UPS$/), '3g Lymen raised under DEFAULTS, EDIT turned on, his seat traded: still owed at NEXT (' + Pq.duesSaid().join() + ')');
+    } catch (ePm) { repPm.errors.push(String(ePm && ePm.stack || ePm).slice(0, 800)); }
+    finally { D.store.get = stGPm; D.store.set = stSPm; D.push = push0Pm; HTMLAnchorElement.prototype.click = clk0Pm; D.scenes.length = 0; sc0Pm.forEach(function (s) { D.scenes.push(s); }); }
+    var prePm = document.createElement('pre'); prePm.id = 'out'; prePm.textContent = 'BENCH16 ' + JSON.stringify(repPm);
+    document.body.appendChild(prePm);
+    return;
+  }
   // THE CAMP'S RESTS (mode=camprest1105; the Pocket DM lane, 11-03 night, Griz: "Let's do the 'short rest' or 'long rest' as options that happen at the camp / ... if a short or long
   // rest is available, go to camp - where they can short rest (over above continue fight?) or market as needed. If no SR or LR or Market available, continuing ladder would go to next
   // ladder fight"), with the lead of his 18 fights of 11-03 (fight 1 of 5 ended Drill 49/57 and Aurdin 17/29, fight 2 began all four full: his CR 2-3's first slot is a long rest and the
@@ -21132,14 +21273,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       PKc.levelSlot(0, 1); var noPgD = !PKc.pm, shD = PKP.sheetOf(PKP.specOf(PKc.st, PKc.st.party[0])); PKc.levelSlot(0, -1);
       okLp('LEVEL-UPS: DEFAULTS (the table\'s own): Brann 5 -> 6 opens no page (' + noPgD + ') and takes his own increase (STR ' + shD.abil.str + ', want ' + b6L.abil.str + ')', noPgD && !PKc.st.editLevels && shD.abil.str === b6L.abil.str);
       PKc.st.editLevels = true;
-      PKc.levelSlot(0, 1); var pmB = PKc.pm, lvB = pmB && pmB.toast ? pmB.toast.lines.join(' | ') : ''; if (pmB && pmB.toast) pmB.update(KLp('a')); var pgB = pmB && pmB.top();
+      PKc.levelSlot(0, 1); PKc.partyNext(); PKc.update(); /* (the page is NEXT's since 11-12: Pocket.partyNext) */ var pmB = PKc.pm, lvB = pmB && pmB.toast ? pmB.toast.lines.join(' | ') : ''; if (pmB && pmB.toast) pmB.update(KLp('a')); var pgB = pmB && pmB.top();
       okLp('EDIT: Brann\'s level lines over his page first: "' + lvB + '"', /Brann is now level 6/.test(lvB));
       okLp('THE CARD 5 -> 6: the pick page over the table (' + !!pmB + '), Brann\'s scores, the build\'s ' + (pgB ? JSON.stringify(pgB.groups[0].marks) : '-') + ' marked', !!pmB && pgB.h.id === 'brann' && JSON.stringify(pgB.groups[0].marks) === '{"str":2}');
       if (pmB) { hitLp(pmB, 'str'); hitLp(pmB, 'con'); hitLp(pmB, 'con'); confLp(pmB); }
       var slB = PKc.st.party[0], wB = PKP.wordOf(PKc.st, slB), shB = PKP.sheetOf(PKP.specOf(PKc.st, slB));
       okLp('CON +2 FOR STR: the page gone (' + !PKc.pm + '), the card\'s word ' + wB + ', its sheet STR ' + shB.abil.str + ' (want ' + b5L.abil.str + '), CON ' + shB.abil.con + ' (want ' + (b5L.abil.con + 2) + '), max HP ' + shB.maxhp + ' (want ' + (b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con))) + ')',
         !PKc.pm && /\+\^6a:con2$/.test(wB) && shB.abil.str === b5L.abil.str && shB.abil.con === b5L.abil.con + 2 && shB.maxhp === b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con)));
-      PKc.levelSlot(1, 1); var pmA = PKc.pm; if (pmA && pmA.toast) pmA.update(KLp('a'));
+      PKc.levelSlot(1, 1); PKc.partyNext(); PKc.update(); /* (the page is NEXT's since 11-12: Pocket.partyNext) */ var pmA = PKc.pm; if (pmA && pmA.toast) pmA.update(KLp('a'));
       if (pmA) { hitLp(pmA, 'web'); hitLp(pmA, 'blur'); confLp(pmA); }
       var slA = PKc.st.party[1], wA = PKP.wordOf(PKc.st, slA), shA = PKP.sheetOf(PKP.specOf(PKc.st, slA));
       okLp('AURDIN\'S CARD 3 -> 4: Blur for Web -- the word ' + wA + ', the book: blur ' + (shA.known.indexOf('blur') >= 0) + ', web ' + (shA.known.indexOf('web') >= 0) + ', the day ' + (shA.prepared || []).length + ' of ' + RL.prepCount(shA),
@@ -21154,7 +21295,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okLp('THE MAKER\'S INCREASES (a fighter at 6): ' + labsF.join(', ') + '; L4 to CON +2 on the page (' + !!pmF + '): STR ' + sF0.abil.str + ' -> ' + sF.abil.str + ', CON ' + sF0.abil.con + ' -> ' + sF.abil.con + '; the word ' + wF.slice(-12) + ' builds it back (CON ' + sF2.abil.con + ')',
         labsF.length === 2 && !!pmF && sF.abil.con === sF0.abil.con + 2 && sF.abil.str === sF0.abil.str - 2 && /\+\^4a:con2$/.test(wF) && sF2.abil.con === sF.abil.con && JSON.stringify(PKl.mk.picks) === '{"4":{"asi":{"con":2}}}');
       var PKt = new D.Pocket(); PKt.enter(); PKt.st.dm = true; PKt.st.party[0] = { w: 'talmok', lvl: 3, loot: [] };
-      PKt.st.editLevels = true; var tal3 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0])); PKt.levelSlot(0, 1); var pmT = PKt.pm; if (pmT && pmT.toast) pmT.update(KLp('a'));
+      PKt.st.editLevels = true; var tal3 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0])); PKt.levelSlot(0, 1); PKt.partyNext(); PKt.update(); /* (the page is NEXT's since 11-12: Pocket.partyNext) */ var pmT = PKt.pm; if (pmT && pmT.toast) pmT.update(KLp('a'));
       if (pmT) { hitLp(pmT, 'str'); hitLp(pmT, 'dex'); hitLp(pmT, 'dex'); walkLp(PKt); } // (the whole level now: CONFIRM walks its tabs, 10-17)
       var wT = PKP.wordOf(PKt.st, PKt.st.party[0]), tal4 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0]));
       okLp('TALMOK\'S CARD 3 -> 4 asks his increase (' + !!pmT + '): DEX ' + tal3.abil.dex + ' -> ' + tal4.abil.dex + ', STR ' + tal3.abil.str + ' -> ' + tal4.abil.str + ', the word ' + wT,
@@ -21171,7 +21312,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okLp('BACK TO 3 on THE LEVEL: walked ' + PKl.mk.walked + ', the level-4 spells gone (' + sN3 + ' of ' + inf3.n + '), its increase gone (' + !(PKl.mk.picks || {})[4] + ')', PKl.mk.walked === 3 && sN3 === inf3.n && !(PKl.mk.picks || {})[4]);
       // i. a named caster's card with EDIT on asks the whole level (10-17, "full edit of torvald and aurdin and such"): Torvald 3 -> 4, a spell swapped, the word, the sheet
       var PKv = new D.Pocket(); PKv.enter(); PKv.st.dm = true; PKv.st.editLevels = true; PKv.st.party[0] = { w: 'torvald', lvl: 3, loot: [] };
-      PKv.levelSlot(0, 1); var pmV = PKv.pm, lvV = pmV && pmV.toast ? pmV.toast.lines.join(' | ') : ''; if (pmV && pmV.toast) pmV.update(KLp('a'));
+      PKv.levelSlot(0, 1); PKv.partyNext(); PKv.update(); /* (the page is NEXT's since 11-12: Pocket.partyNext) */ var pmV = PKv.pm, lvV = pmV && pmV.toast ? pmV.toast.lines.join(' | ') : ''; if (pmV && pmV.toast) pmV.update(KLp('a'));
       var pgV = pmV && pmV.top(), tabsV = pgV ? pgV.tabs.map(function (t) { return t.label; }).join('/') : '-', grV = pgV && pgV.groups.filter(function (x) { return x.ask.kind === 'spells'; })[0];
       var outV = grV ? Object.keys(grV.marks)[0] : null, inV = grV ? (grV.rows.filter(function (r) { return !grV.marks[r.id] && !r.off; })[0] || {}).id : null;
       if (grV && outV) hitLp(pmV, outV); if (grV && inV) hitLp(pmV, inV); if (pmV) walkLp(PKv);
