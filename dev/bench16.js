@@ -6349,6 +6349,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okIn('KATARINA RIDES WITH THE WAGON when the party chased (ruling 28): back in the yard -- rode ' + fcb.katRode + ', gone ' + fcb.katGone + ', Doran away ' + fcb.doranAway + '; her book in the drawer (' + (InI.bookInDrawer ? InI.bookInDrawer(fcb, 13, null) : '-') + '); said: ' + (cbS.match(/Katarina is up on the wagon[^/]*/) || ['nothing'])[0],
         fcb.katRode === 1 && fcb.katGone === 1 && fcb.doranAway === 1 && InI.bookInDrawer(fcb, 13, null) === true && /Katarina is up on the wagon's bench beside Doran when it goes\. The table for two by the fire is cleared\./.test(cbS));
       HIn.playing = false; HIn.cur = null;
+      // A PORTRAIT FACES INTO THE SCREEN (11-12; Griz, 0043Z: "mirror gennet portrait so she's facing the correct direction"): Gennet's, drawn looking screen left, is
+      // mirrored when a look stands her top left; nobody else's is, and hers is not on the right
+      var ff = CIn.faceFlip ? ['pt_gennet:left', 'pt_gennet:right', 'pt_doran:left', 'pt_elsbethcut:left'].map(function (k) { var q = k.split(':'); return k + ' ' + CIn.faceFlip(q[0], q[1]); }).join(', ') : 'no rule';
+      okIn('A PORTRAIT FACES INTO THE SCREEN: mirrored -- ' + ff, ff === 'pt_gennet:left true, pt_gennet:right false, pt_doran:left false, pt_elsbethcut:left false' && typeof CIn.drawFacing === 'function');
       // THE CHILD IS LAID FROM THE FLAG (11-11 late; ruling 42): wherever one of the inn's floors is built with f.childGuest set -- the house's own floor as a load makes
       // it, the yard, inside the house, upstairs -- she stands beside the token, a figure of her own, and never twice (a floor laid again, a step, a staging)
       var folOf = function (B) { var us = B.units.filter(function (u) { return u.follower; }), t = B.roam.token, u = us[0]; return { n: us.length, near: u ? Math.max(Math.abs(u.x - t.x), Math.abs(u.y - t.y)) : -1, name: u ? u.name : '-', at: u ? u.x + ',' + u.y : '-', is: !!u && B.roam.follower === u }; };

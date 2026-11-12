@@ -412,8 +412,9 @@
     if (S.phase === 0) { S.phase = 1; yield sc.narr([S.doran ? `Supper at the long table: lake fish, a stew, Gennet's bread. Doran pours. Elsbeth brings the bowls round.` : `Supper at the long table: lake fish, a stew, Gennet's bread. Elsbeth brings the bowls round.`]); S.pending = 'bowls'; return; }
     if (S.phase === 1) { S.phase = 2;
       if (S.tell === 'full') yield sc.lookAt(who('elsbeth'), [`Elsbeth has set the party's bowls down hard, one after another. She holds a look at the party until Gennet says her name.`], who('gennet')); // (ruling 15: her full tell, the party stopped the wagon)
-      else if (S.tell === 'faint') yield sc.lookAt(who('elsbeth'), [`Elsbeth sets the last of the party's bowls down. Her eyes go to it, then to the party, then away.`]);
-      yield sc.narr([`She takes the last two bowls through to the kitchen.`]); // (ruling 48: narration, not a read)
+      // (her faint tell and the two bowls in ONE box, a line each -- 11-12 0043Z, Griz: "weird elsbeth line in a black box then a blue one for taking the two bowls to the kitch, black line in blue box as addition above two bowls")
+      if (S.tell === 'faint') yield sc.narr([`Elsbeth sets the last of the party's bowls down. Her eyes go to it, then to the party, then away.`, `She takes the last two bowls through to the kitchen.`]);
+      else yield sc.narr([`She takes the last two bowls through to the kitchen.`]); // (ruling 48: narration, not a read)
       S.pending = 'kitchen'; return; }
     // the nearest hero at the table still eating: who a warning under the table can reach (ruling 44: one neighbour)
     var nearest = function (e) { var best = null; four.forEach(function (o) { if (o === e || !eating(o)) return; var dd = Math.abs(o.u.x - e.u.x) + Math.abs(o.u.y - e.u.y); if (!best || dd < best.d) best = { e: o, d: dd }; }); return best && best.e; };

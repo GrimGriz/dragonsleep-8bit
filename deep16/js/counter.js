@@ -628,6 +628,15 @@
     ctx.drawImage(im, (frame % a.frames) * sh.fw, a.y, sh.fw, sh.fh, Math.round(x - sh.ax * s), Math.round(y - sh.ay * s), Math.round(sh.fw * s), Math.round(sh.fh * s));
     return true;
   };
+  // A PORTRAIT FACES INTO THE SCREEN (11-12, the inn seat; Griz on sacrifice night's full tell, 11-12 0043Z, at the look "until Gennet says her name": "mirror gennet
+  // portrait so she's facing the correct direction"): Gennet's portrait is drawn looking screen left -- right when she stands top right, and backwards when a look puts
+  // her top LEFT (the one looked at stands opposite the one looking: Elsbeth, come round the table to the right). A portrait named in C.FACES_LEFT is mirrored on the left
+  C.FACES_LEFT = { pt_gennet: 1 };
+  C.faceFlip = function (name, side) { return side === 'left' && !!C.FACES_LEFT[name]; };
+  C.drawFacing = function (ctx, g, anim, frame) {
+    if (!C.faceFlip(g.sheet, g.side)) return C.drawPortraitAt(ctx, g.sheet, anim, frame, g.x, g.foot, g.s);
+    ctx.save(); ctx.translate(g.left + g.right, 0); ctx.scale(-1, 1); var r = C.drawPortraitAt(ctx, g.sheet, anim, frame, g.x, g.foot, g.s); ctx.restore(); return r;
+  };
   C.nameTag = function (ctx, name, x, y) { var w = D.textWidth(name) + 10; ctx.fillStyle = 'rgba(11,20,48,.85)'; ctx.fillRect(Math.round(x - w / 2), y - 2, w, 12); D.text(ctx, '{y}' + name + '{/}', x, y, D.WIN8.text, 'center'); };
   C.typeLen = function (l) { return String(l).replace(/\{[^}]*\}/g, '').length; };
   C.typeCut = function (l, n) { var out = '', k = 0, i = 0; l = String(l); while (i < l.length && k < n) { if (l[i] === '{') { var j = l.indexOf('}', i); if (j < 0) j = l.length - 1; out += l.slice(i, j + 1); i = j + 1; continue; } out += l[i]; k++; i++; } return out; };
@@ -703,14 +712,14 @@
       if (!(w.look && w.at)) { D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', tx, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, tx, 21, '#9c9cb4'); } // (a look at someone: both top corners are faces)
       if (rows.length && !w.look) { D.win8(ctx, spL ? RX - O.under : RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (the box runs under the one speaking's edge, whichever side)
       var sh = g.sheet && D.SHEETS[g.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right -- or top left, by their side -- over their box's edge)
-      if (sh) C.drawPortraitAt(ctx, g.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
+      if (sh) C.drawFacing(ctx, g, fr.anim, fr.frame);
       else if (g.face) C.drawUnitFace(ctx, sp.unit, g.left + 4, g.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, spL); // (no talking portrait yet: the face of the figure they wear)
       C.nameTag(ctx, sp && sp.name ? sp.name : this.o.name, g.cx, g.foot + 3);
       if (w.look) { // (THE LOOK: the one looked at on the other side, the caption along the foot)
         if (w.at) {
           var who0 = w.who, at2 = {}; Object.keys(w.at).forEach(function (k) { at2[k] = w.at[k]; }); at2.side = g.side === 'left' ? 'right' : 'left'; w.who = at2;
           var g2 = C.openGeo(this), sh2 = g2.sheet && D.SHEETS[g2.sheet];
-          if (sh2) C.drawPortraitAt(ctx, g2.sheet, 'idle', 0, g2.x, g2.foot, g2.s); else if (g2.face) C.drawUnitFace(ctx, at2.unit, g2.left + 4, g2.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, g2.side === 'left');
+          if (sh2) C.drawFacing(ctx, g2, 'idle', 0); else if (g2.face) C.drawUnitFace(ctx, at2.unit, g2.left + 4, g2.foot - (HB.h - 20), HB.w, HB.h - 20, this.t, g2.side === 'left');
           if (sh2 || g2.face) C.nameTag(ctx, at2.name, g2.cx, g2.foot + 3);
           w.who = who0;
         }
