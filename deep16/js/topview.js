@@ -322,11 +322,13 @@
 
   // ------------------------------------------------------------------ the Edifice, drawn whole (10-28, Griz, of Silverton from above: "edifice looks like a mountain flattened
   // at 10 ft tall"): the dwarves' building as the realm has it (deepholm-and-the-edifice.md, "The face, as the game builds it": three dwarven floors of 15 ft, the facade some
-  // 45 ft; arches every four columns along its foot, their tops at 15 ft; the fountains along the wall; the two vault doors at its foot -- planked wood, a dark X of braces
-  // corner to corner, a gold ring on a dark boss; the roof skylight glass with a stone rim and merlons, the third-floor orchard seen through it, the falls run down its middle
+  // 45 ft; arches every four columns along its foot, their tops at 15 ft; the fountains along the wall; the vault's door at its foot -- planked wood, a dark X of braces
+  // corner to corner, a gold ring on a dark boss (ONE door since 11-12, Griz: "1 vault doors - from the outside, there are two doors, from the inside there's one door,
+  // match the outside to the inside" -- inside Solskaft the vault is one doorway: TV.VAULTLEAVES, the two leaves it had before); the roof skylight glass with a stone rim and merlons, the third-floor orchard seen through it, the falls run down its middle
   // in a channel), in place of the cliff it was drawn as. Its squares stay rock to the rules (js/town.js def.edifice). Its height is the houses' by the foot -- 45 ft where a
   // two-floor house's face is 20 (TV.faceOf), on any face setting -- and it is painted in strips as the camera comes to them (at 5 ft a square it is 12,000 px wide)
   TV.EDFT = 45; TV.EDSTRIP = 512;
+  TV.VAULTLEAVES = 1; // (the vault's door: one leaf the arch's width, its X and its ring once -- 2, the two leaves of before 11-12)
   TV.isEdSq = function (m, s) { var e = m.def.edifice; return !!e && s.ch === '#' && s.x >= e.x0 && s.x <= e.x1 && s.y >= e.y0 && s.y <= e.y1; };
   TV.edH = function (m) { return Math.round(TV.faceOf(m, { ch: 'b' }) * TV.EDFT / ((D.town && D.town.ROOFS && D.town.ROOFS.b.h) || 20)); };
   TV.edStrip = function (m, i) {
@@ -369,8 +371,8 @@
           var vr = Math.abs(dv) / vaultR, archTop = 30 - 8 * vr * vr;
           if (h < archTop) {
             c = h > archTop - 1 ? silver[5] : h > archTop - 2 ? NZ.rampPick(silver, 0.18, gx, Y) : NZ.rampPick(silver, 0.32 + n * 0.08 - (course || joint ? 0.14 : 0), gx, Y); // (round the doors the arch's stone in the shade, not black: since 10-29 night, as the arcade's)
-            var lf = Math.abs(dv) > 3 && Math.abs(dv) < 52 && h < 24; if (lf) {
-              var la = dv < 0 ? -52 : 3, lb = dv < 0 ? -3 : 52, fu = (dv - la) / (lb - la), fh = h / 24, brace = Math.abs(fu - fh) < 0.035 || Math.abs(fu - (1 - fh)) < 0.035, cu = (la + lb) / 2, ring = Math.hypot(dv - cu, h - 12);
+            var two = TV.VAULTLEAVES === 2, lf = (two ? Math.abs(dv) > 3 : true) && Math.abs(dv) < 52 && h < 24; if (lf) { // (one leaf since 11-12: the door's span undivided)
+              var la = !two ? -52 : dv < 0 ? -52 : 3, lb = !two ? 52 : dv < 0 ? -3 : 52, fu = (dv - la) / (lb - la), fh = h / 24, brace = Math.abs(fu - fh) < 0.035 || Math.abs(fu - (1 - fh)) < 0.035, cu = (la + lb) / 2, ring = Math.hypot(dv - cu, h - 12);
               c = brace ? leather[0] : NZ.rampPick(leather, 0.32 + ((Math.abs(dv) % 3) < 0.35 ? -0.18 : 0) + n * 0.06, gx, Y); // (planks, the X of braces)
               if (ring < 1.3) c = stone[0]; else if (ring < 2.6 && ring > 1.9) c = gold[4]; // (a gold ring on a dark boss)
             }

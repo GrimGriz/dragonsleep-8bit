@@ -5889,6 +5889,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okSk('the assay house furnished (ART-140): ' + LA29.length + ' pieces, ' + laid29 + ' laid as their cells, ' + sheet29 + ' on a sheet, ' + words29 + ' of ' + keyed29 + ' words read (' + reach29 + ' reached from the crown), the walls\' pieces ' + walls29 + ' of ' + nW29 + ', folk in the room ' + folk29 + (bad29.length ? '; ' + bad29.join('; ') : ''),
         LA29.length >= 8 && laid29 === LA29.length && sheet29 === LA29.length && words29 === keyed29 && reach29 === keyed29 && walls29 === nW29 && folk29 === 0 && !bad29.length);
       } catch (e29) { okSk('the assay house furnished: THREW ' + String(e29).slice(0, 120), false); }
+      // 30. SILVERTON'S VAULT DOORS MATCH THE INSIDE (11-12, his "1 vault doors - from the outside, there are two doors, from the inside there's one door, match the outside
+      // to the inside"; js/topview.js TV.VAULTLEAVES): the Edifice's face painted as the town paints it (TV.edStrip, code-drawn), and the door's gold rings counted across it --
+      // one door, one ring (RED on the old file: two leaves, two rings); inside, the vault still one doorway of two squares
+      try {
+      var B30 = testSk('?roam=silverton&gate=south&hour=12'), vt30 = RSk.def.src8.triggers.filter(function (t) { return t.id === 'vault:solskaft'; })[0], t30 = B30.roam.token;
+      t30.x = vt30.rect[0] + Math.floor(vt30.rect[2] / 2); t30.y = vt30.rect[1] + 3; t30.tween = null; D.grid.setup(B30.map, B30.units);
+      var m30 = B30.map, e30 = m30.def.edifice, TV30 = D.topview, eW30 = e30 ? (e30.x1 - e30.x0 + 1) * TV30.TS : 0, cols30 = {}; if (!m30.top) m30.top = {}; // (the facade as the town paints it, strip by strip -- code-drawn, no art: js/topview.js TV.edStrip)
+      for (var si30 = 0; si30 * TV30.EDSTRIP < eW30; si30++) { var st30 = TV30.edStrip(m30, si30), d30 = st30.getContext('2d').getImageData(0, 0, st30.width, st30.height).data;
+        for (var i30 = 0; i30 < d30.length; i30 += 4) { var r30 = d30[i30], g30 = d30[i30 + 1], b30 = d30[i30 + 2]; if (Math.abs(r30 - 248) < 12 && Math.abs(g30 - 214) < 12 && Math.abs(b30 - 122) < 12) cols30[si30 * TV30.EDSTRIP + ((i30 / 4) % st30.width)] = 1; } } // (the rings' gold, the palette's gold[4]: 248,214,122)
+      var xs30 = Object.keys(cols30).map(Number).sort(function (a, b) { return a - b; }), rings30 = 0;
+      xs30.forEach(function (x, k) { if (k === 0 || x - xs30[k - 1] > 12) rings30++; });
+      var inDoor30 = SKk.ROWS[SKk.Y(0)].replace(/[^D]/g, '').length;
+      okSk('Silverton\'s vault doors match the inside: from the plaza, ' + rings30 + ' door ring(s) on the Edifice\'s face (gold in ' + xs30.length + ' columns' + (xs30.length ? ', ' + xs30[0] + '-' + xs30[xs30.length - 1] : '') + ', across its face of ' + eW30 + ' px); inside, one doorway of ' + inDoor30 + ' squares',
+        rings30 === 1 && inDoor30 === 2);
+      } catch (e30) { okSk('Silverton\'s vault doors: THREW ' + String(e30).slice(0, 120), false); }
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;
