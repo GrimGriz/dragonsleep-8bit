@@ -396,7 +396,7 @@
           else R.tooFar(B);
           continue;
         }
-        var dc = !mk && R.def.town && D.town && D.town.doorClick ? D.town.doorClick(B, ck.x, ck.y) : null; // (a click on a door drawn in its wall: in by it, from beside its threshold -- js/town.js)
+        var dc = !mk && R.def.town && D.town && D.town.doorClick ? D.town.doorClick(B, ck.x, ck.y) : !mk && R.def.doorClick ? R.def.doorClick(B, ck.x, ck.y) : null; // (a click on a door drawn in its wall: in by it, from beside its threshold -- js/town.js; a floor's own on the diamonds, def.doorClick -- js/solskaft.js, 11-12)
         if (dc) { yield* R.walkInto(B, dc.trig, dc.sq); continue; }
         // someone clicked by their figure where the square under the pointer holds nothing (10-28, his "Higertha isn't clickable interface (had to keyboard)": she stands
         // behind Mama's hatch on a wall square, and iso.pick picks only open ones): walked beside them -- beside their hatch, if they keep one -- and the word had (R.folkAt)

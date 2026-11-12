@@ -125,14 +125,15 @@
   ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'], pillar: ['temple_pillar'] }; // (the pillar: ART-134 page 06, 11-12 -- the temples' four a side)
   use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'temple_pillar']);
   // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
-  ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 12, 24], ['water_trough_x', 33, 6], ['old_fodder', 34, 5],
+  ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 12, 24], ['water_trough_x', 33, 6], ['old_fodder', 34, 5], ['old_fodder', 29, 4],
+    ['stall_partition_x', 29, 3], ['stall_partition_x', 30, 3], ['stall_partition_x', 33, 3], ['stall_partition_x', 34, 3], // (the stable's half-wall on the apron, the art desk's stall partition: 11-12, his "stable area with half-wall (hallway side, top open for ventilation) and a 2-square wide opening, small amount of hay somewhere")
     ['guardroom_bench_x', 25, 19], ['stone_bench_x', 24, 24]].concat(SK.HALLBENCH.map(function (b) { return ['stone_bench_x', b[0], b[1] + 1, { flip: true, alongY: 2 }]; })).concat(SK.ASSAYLAY.map(function (p) { var a = SK.assayAt(p[1], p[2]); return [p[0], a[0], a[1]]; })); // (the assay house's: SK.ASSAYLAY, 11-12; PASS TWO: Ingrith's desk off the hallway, the guardroom's bench, the petitioners', the hallway's four along its walls)
   A.FOOT = { trade_counter_x: [3, 1], quartermaster_counter_x: [2, 1], guardroom_bench_x: [2, 1], stone_bench_x: [2, 1] }; // (known before the sheets come: the blocks given way at the floor's laying)
   ST.OFF = [[29, 6], [30, 6], [31, 6], [32, 6], [23, 21], [24, 21], [25, 21], [15, 28], [22, 28]]; // (the mangers' and the rack's code blocks: their modules are on the wall behind; the braziers'; the counter's third square)
   ST.BRAZIERS = [[15, 28], [22, 28]];
   ST.STAIRS = SK.DOORS.filter(function (d) { return /^temple/.test(d.id); }).reduce(function (o, d) { return o.concat(d.at); }, []); // (the temples' stairs down, marked: his "might need a 'stairs down' 'stairs up' tile")
   use('solskaft', SK.ASSAYLAY.map(function (p) { return p[0]; }));
-  use('solskaft', ['trade_counter_x', 'quartermaster_counter_x', 'ledger_desk', 'water_trough_x', 'old_fodder', 'touch_needle_table', 'locked_weights_case', 'guardroom_bench_x',
+  use('solskaft', ['trade_counter_x', 'quartermaster_counter_x', 'ledger_desk', 'water_trough_x', 'old_fodder', 'stall_partition_x', 'touch_needle_table', 'locked_weights_case', 'guardroom_bench_x',
     'brazier_lit_1', 'brazier_lit_2', 'brazier_lit_3', 'brazier_lit_4', 'dais_centre', 'dais_n', 'dais_e', 'dais_s', 'dais_w', 'dais_ne', 'dais_se', 'dais_sw', 'dais_nw']);
   ST.dais = function (x, r) { var D0 = SK.DAIS, n = r === D0[3], s = r === D0[1], w = x === D0[0], e = x === D0[2]; return 'dais_' + ((n ? 'n' : s ? 's' : '') + (w ? 'w' : e ? 'e' : '') || 'centre'); };
 
@@ -205,7 +206,7 @@
   BE.KIND = { row: 'niche_sealed', patron: 'niche_patron', pried: 'niche_pried', waits: 'niche_awaits' };
   BE.wall = function (s, side) {
     var r = R(s.y), k = s.x + ',' + r, n = SK.NICHE[k];
-    if (side === 'R' && s.x === 4 && r === 12) return 'stair_up_y'; // (the stair up to Rekknar's temple marked on the west hallway's wall: 11-12, his "'stairs down' 'stairs up' tile")
+    if (side === 'R' && s.x === 4 && SK.BDOORS[0].at.some(function (q) { return q[1] === r; })) return 'stair_up_y'; // (the stair up to Rekknar's temple marked on the west hallway's wall beside its foot: 11-12, his "'stairs down' 'stairs up' tile"; the foot at r13-14 since his "no stairs I just came down to go back up")
     if (n) { // (a niche's face toward the bier: the west tiers' east faces; the east tiers' faces turn away, their backs blank stone)
       if (side === 'R' && s.x < 18) { var nm = n.kind === 'gear' ? (n.wi === 1 ? 'niche_gear_shield' : 'niche_gear_hammer') : BE.KIND[n.kind] || 'niche_sealed'; return nm + '_y'; }
       return side === 'L' ? 'niche_blank_x' : 'niche_blank_y';
