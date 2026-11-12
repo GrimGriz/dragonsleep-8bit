@@ -64,6 +64,7 @@ D.loadImages(D.spr.images(), function () {
       X.seeStubs = see.length; X.byMat = {}; see.forEach(function (p) { X.byMat[p.mat] = (X.byMat[p.mat] || 0) + 1; });
       var cx6 = document.createElement('canvas').getContext('2d');
       put(B6, [30, 12]); X.hidden = IP.seeing.figs.length; var s0 = IP.stubSeen || 0; see.forEach(function (p) { p.draw(cx6); }); X.drawn = (IP.stubSeen || 0) - s0;
+      X.lamps = []; IP.PARTS().forEach(function (pt) { var sp = IP.houseSpec(pt[0], pt[1], false); (sp && sp.extras || []).forEach(function (e) { X.lamps.push(pt[0] + ' ' + e[0]); }); });
       put(B6, [30, 8]); X.hiddenFar = IP.seeing.figs.length; var s1 = IP.stubSeen || 0; see.forEach(function (p) { p.draw(cx6); }); X.drawnFar = (IP.stubSeen || 0) - s1;
     } catch (e) { X.err = String(e && e.stack || e).slice(0, 400); }
     var p2 = document.createElement('pre'); p2.textContent = 'INNSEE2 ' + JSON.stringify(X) + ' END2'; document.body.appendChild(p2);
@@ -128,6 +129,9 @@ def main():
            all(0 <= f.get(k, -1) < 1 for k in ('house', 'wing', 'barn')))  # (2.8 to 6.4 before)
         ok('the cutaway\'s stubs a square more each way: rows %s; the walls in a figure\'s window: %d outer-wall stubs laid %s, on 30,12 behind the house (hidden %d) %d drawn, out on the grass at 30,8 (hidden %d) %d' % (X['cutRows'], X['seeStubs'], json.dumps(X['byMat']), X['hidden'], X['drawn'], X['hiddenFar'], X['drawnFar']),
            len(X['cutRows']) >= 2 and X['cutRows'][0] == 14 and X['cutRows'][-1] == 22 and X['seeStubs'] > 40 and X['hidden'] == 1 and 3 <= X['drawn'] <= 24 and X['hiddenFar'] == 0 and X['drawnFar'] == 0)
+        # the door lamps sit against their wall (11-12, his "the door out of the kitchen to the lake looked like it was rotated 90 degrees from sitting proper against the wall"):
+        # an east wall's lamp is the piece as drawn, plate on the wall (`_x`), not its mirror
+        ok('the door lamps on the east walls: %s' % ', '.join(X.get('lamps', [])), len(X.get('lamps', [])) >= 2 and all(l.endswith('lamp_x') for l in X['lamps']))
     # THE GREYS (RULED 11-11, his "yes to the gulch and greys"; tools/greys-recolor.py): the team's horse and Willem's no cream left on their coats -- the lower half of every row
     # of Willem's sheet (the horse's) under 200 px of the cream horse's three colours, as it was a thousand and more; Amara's grey as it was
     from PIL import Image

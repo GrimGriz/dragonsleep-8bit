@@ -1115,7 +1115,7 @@
   In.CHILD = {
     left: function (f, d) { return In.nightsToDue(f || {}, d == null ? In.day(D.roam.q) : d); },
     nights: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; },
-    days: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow' : 'in ' + (In.WORDS[n] || n) + ' days'; },
+    days: function (f, d) { return In.CHILD.nights(f, d); }, // (RULED 11-12, Griz: "time til due in days or nights as needed, night preferred" -- Elsbeth counts nights too)
     doranIdle: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"The well\'s for drinking. Nobody draws from the lake."'], // (the realm's words for him, content/npcs.json doranYard, the second half now said by him)
     doranGirl: function (f, d) { return ['Doran lets the axe hang, and looks at the child before he looks at the party.', '"The girl will be safest at the Pit. Take her down. Come back ' + In.CHILD.nights(f, d) + '."']; }, // (HIS: "the girl will be safest at the pit, come back in x nights")
     elsbeth: ['Elsbeth looks at the child, and then at the yard door.', '"Take her to the Pit. Not Silverton. Silverton\'s where the wagon was going."'], // (ruling 40, her yard line said again at the tub)
@@ -1632,7 +1632,7 @@
     BY.NAMEQ = { lymen: `What's your name, little one?`, aurdin: `Have you a name?`, vivian: `What do they call you?`, barley: `What's your name?` };
     BY.asker = function (S, four) { var best = 0, at = null; four.forEach(function (e) { var n = S.said[e.key] || 0; if (n > best) { best = n; at = e; } else if (n === best) at = null; }); return at || four.filter(function (e) { return e.key === 'vivian'; })[0] || four[0]; };
     BY.nameAsk = function (S, four) { var e = BY.asker(S, four); In.trail('her name asked by ' + e.hero.name); S.heroAsk(e, `The child looks up at ` + e.hero.name + `.`, BY.NAMEQ[e.key] || BY.NAMEQ.barley, 'child'); S.by('child', `"Nell."`); };
-    BY.hip = 11; // (how far up Gennet's figure the carried child is drawn, in pixels)
+    BY.hip = 32; // (how far up Gennet's figure the carried child is drawn, in pixels)
     BY.endWalk = function (S, k) { return k === 'e' && !S.doran && S.tier >= 3 ? 'elsbethOut' : null; }; // (a walk that comes before an end's words)
     // what is said as each end falls (the fight itself, and what the house does after, are In.barnYard's)
     BY.END = function (S, k) {
@@ -1749,7 +1749,7 @@
         var g = Y.gennet, k = Y.child; if (!onFloor(g) || !onFloor(k)) return;
         if (!near(g, k)) { var q = In.beside(B, g, k); yield* In.walk(B, g, q); }
         g.facing = D.spr.facingFor(k.x - g.x, k.y - g.y); yield 8;
-        BY.exits.push({ id: 'barnKid', x: g.x, y: g.y, how: 'carried' }); k.lift = BY.hip; k.onCounter = true; k.x = g.x; k.y = g.y; k.tween = null; k.anim = 'idle'; B.units = B.units.filter(function (u) { return u !== k; }).concat([k]); D.grid.setup(B.map, B.units); B.cache = null; yield 12; // (up onto her hip: drawn over her, raised, and still)
+        BY.exits.push({ id: 'barnKid', x: g.x, y: g.y, how: 'carried' }); k.lift = BY.hip; k.onCounter = true; k.x = g.x; k.y = g.y; k.tween = null; k.anim = 'idle'; B.units = [k].concat(B.units.filter(function (u) { return u !== k; })); D.grid.setup(B.map, B.units); B.cache = null; yield 12; // (up in her arms: drawn BEHIND her and raised, the head and shoulders over Gennet's -- 11-12, Griz: "Can probably just attach girl sprite to Gennet sprite with head/shoulders appearing over gennet")
         yield* In.walk(B, g, dest(), null, k); gone(k, 'door'); Y.child = null; gone(g, 'door'); Y.gennet = null;
       },
       pair: function* () {

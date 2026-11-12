@@ -273,7 +273,8 @@
     var S = wsheet(); if (!S) return null;
     var H0 = (S.sh.height || {})[mat], rows = In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; }, cfg = IP.HOUSE[mat], fn = IP.faceNames(mat, r, lit);
     var lamps = [];
-    for (var y = r[1]; y <= r[3]; y++) if (at(r[2], y) === 'D') lamps.push([(lit ? 'lamplit' : 'lamp') + '_y', r[2] + 1, y - 0.12, Math.round(H0 * (mat === 'barn' ? 0.62 : 0.5))]);
+    for (var y = r[1]; y <= r[3]; y++) if (at(r[2], y) === 'D') lamps.push([(lit ? 'lamplit' : 'lamp') + '_x', r[2] + 1, y - 0.12, // (`_x`, the piece as drawn: its plate on the wall and the lamp hung out over the yard. It was `_y`, the mirror, which stood the plate edge-on with the arm back along the wall -- 11-12, Griz: "the door out of the kitchen to the lake looked like it was rotated 90 degrees from sitting proper against the wall")
+        Math.round(H0 * (mat === 'barn' ? 0.62 : 0.5))]);
     return { x0: r[0], y0: r[1], x1: r[2], y1: r[3], H: H0, R: cfg.R, base: cfg.base,
       piece: function (nm) { var b = boxes(nm); if (!b) return null; var q = b[0]; return { img: S.im, x: q[0], y: q[1], w: q[2], h: q[3], ax: q[4], ay: q[5] }; },
       pts: function (nm) { var c = (S.sh.roofpts || {})[nm]; return c ? { minx: c.minx, maxx: c.maxx, miny: c.miny, maxy: c.maxy } : null; },
@@ -288,10 +289,15 @@
     return (HC[key] = { pic: pic, slices: iso.slices(pic, r[2] - r[0] + 1, r[3] - r[1] + 1) });
   };
   IP.wallsWait = false;
+  // THE WALLS' SHEET COME (11-12, the inn seat; Griz on what "missing textures" was: "the one a code-drawn roof was there and no walls (inn), second was same but code
+  // walls and roof on barn"): a door that opens INSIDE a building lays the floor twice before the walls' sheet has loaded (the floor, then the building opened under
+  // the party). The sheet's coming dressed only the map that had asked for it -- the first, already replaced -- so the floor on the screen kept the code's roofs and
+  // walls for every building until the next door. It dresses the floor that is UP now
+  IP.wallsCome = function (ready) { IP.wallsWait = false; var cur = iso.map, k = cur && cur.def && cur.def.key; if ((ready || wsheet()) && (k === In.KEY || k === In.UP)) { IP.dress(cur); return cur; } return null; };
   IP.walls = function (m, mine, up, ins) {
     if (!wsheet()) { // (its sheet not come yet: the code's walls and roofs this time, and the floor dressed again when it comes)
       var src = D.SHEETS && D.SHEETS[WALLS] && D.SHEETS[WALLS].image;
-      if (src && D.spr && D.spr.load && !IP.wallsWait) { IP.wallsWait = true; D.spr.load(src).then(function () { IP.wallsWait = false; if (iso.map === m && wsheet()) IP.dress(m); }); }
+      if (src && D.spr && D.spr.load && !IP.wallsWait) { IP.wallsWait = true; D.spr.load(src).then(function () { IP.wallsCome(); }); }
       return;
     }
     var lit = !!(m.def && (m.def.night || m.def.dusk));
