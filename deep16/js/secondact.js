@@ -20,7 +20,7 @@
   if (!M || !W || !In) return;
   var L = function (k, o) { return D.counter.L(k, o); };
   var R = function () { return D.roam; };
-  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [46, 17]; // (the deep: off the point, 11-05 -- it had been 44,16, a rock of the point; the lake knee-shallow elsewhere, js/inn.js) // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
+  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [50, 17]; // (four further out since 11-12, ruling 60: four of knee-shallow between the stone and the deep -- it was 46,17) // (the deep: off the point, 11-05 -- it had been 44,16, a rock of the point; the lake knee-shallow elsewhere, js/inn.js) // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
   A.SHORE = 5; // (squares from the stone: "a party at the shore" -- the point's end; the path's head by the lake door, seven off, is not)
   // ---------------------------------------------------------------- §10.1 the clock: six signs, each a card with its read beside it (the §4 shape: the house reads in silence)
   A.SIGNS = [
@@ -694,7 +694,7 @@
     g.conds.restrained = { dc: pin.grapple.dc, by: c.id, grapple: true, only: true };
     c.holding = (c.holding || []).concat([g]);
     D.sfx('poison'); if (D.fx && D.fx.ring) D.fx.ring(g, 'bone', 26);
-    B.card(['{r}The thing in the lake{/} has {y}' + g.name + '{/}: {o}IN ITS CLAWS{/}  {g}(it makes for the deep with her: strike at it, or the lake has its offering){/}'], 300);
+    B.card(['{r}The thing in the lake{/} has {y}' + g.name + '{/}: {o}IN ITS CLAWS{/}  {g}(it makes for the deep with her: wound it, or the lake has its offering){/}'], 300);
     yield* B.clawIn(c, g);
   };
   (D.scripts = D.scripts || {}).lakeTake = function* (B, u) {
@@ -770,7 +770,14 @@
         if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight (not by it)'); } // (the party's own -- a Fireball catches her: killed, the first ending's; it fights on)
         return r;
       };
-      B.attack = function* (att, tgt) { if (tgt === c && att !== c && on()) A.turned(self, Y, att); return yield* atk0.apply(this, arguments); }; // (hit or miss: struck at -- an opportunity attack as it walks too)
+      // ONLY KILLING IT MAKES IT DROP HER (RULED 11-12, ruling 61, Griz: "only killing for drop, hit is the technicality that if they don't injure it after it grabs gennet it'll just
+      // take her to the deep unless interruptions (we've clarified the ones other than attack elsewhere, should be in its code)"). BUILT of it, 11-12, only what his open question
+      // does not change (hurt but not killed with her in its claws: carry on to the deep fighting, or stand and fight holding her -- not ruled): ONCE SHE IS IN ITS CLAWS A BLOW
+      // THAT DOES NOT WOUND IT IS NOTHING TO IT -- a miss, an opportunity attack that misses, and it walks on. Before the grab an attack at it turns it as before (11-06: "returns to
+      // the water without being attacked"). A WOUND with her in its claws still goes by the 11-06 build below (A.turned: it lets her fall) UNTIL HE ANSWERS: that is the part
+      // ruling 61 changes and question 1 shapes, left as it was and named in the lane
+      var holds = function () { return !!(gn.inClaws && gn.inClaws.by === c.id); };
+      B.attack = function* (att, tgt) { if (tgt === c && att !== c && on() && !holds()) A.turned(self, Y, att); return yield* atk0.apply(this, arguments); }; // (before the grab, hit or miss: struck at -- an opportunity attack as it walks up too)
       // A SPELL THAT ONLY LAYS A CONDITION ON IT counts as striking at it too (RULED 11-06 evening, Griz to the lanes desk on the seat's call 3: "2 - count them"; read by the desk: anything cast
       // at it, or catching it in an area, that it must save against or that lays a condition on it, damage or not -- Web, Hypnotic Pattern and their kind): a save it makes while it takes her
       // (D.rules.save, whoever's turn it is -- a web it walks into is the party's spell catching it), and a cast by another after which it carries a condition it did not have (Sleep, no save)

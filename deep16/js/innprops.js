@@ -389,15 +389,69 @@
   };
   IP.groundAt = function (x, y) {
     var r = In.ROWS[y], c = r ? r.charAt(x) : '', T = IP.TRACK;
-    if (c === 'W') return 'ground_shallows';
     if (c === ',' && x <= 2) return 'ground_ruts';
     if (c === '.' && x >= T.x0 && x <= T.x1 && T.rows.indexOf(y) >= 0) return 'ground_rutsX';
     return null;
   };
+  // THE KNEE-DEEP WATER, DRAWN AS THE KEEPER'S STAIR IS (RULED 11-12, Griz on the lake's edge: "knee deep water done like keeper stairs, current tiles in kneedeep are bad"; the
+  // Flooded Stair, js/keeper.js: "the floor steps down a step a square ... the water is one flat sheet ... the steps showing through it"). The page 9B shallows tile is off
+  // the knee-shallow squares. In its place: THE BED, painted into the floor as it is baked -- four steps out from the shore (IP.band: 1 against the land, 4 at the deep's
+  // edge), each a shade further down, a riser's shadow along the edge it steps down from; THE SHEET, one flat translucent diamond a square over it with a slow glint, drawn
+  // each frame under the figures (D.walls.props, as the Keeper's); and THE WADING, a figure's legs under by the step it stands on (IP.WADE px: the knee at the fourth).
+  // Code-drawn, no art asked; the deep (Y) is the code's own black water as before
+  IP.WADE = [0, 4, 6, 9, 11];
+  IP.BED = [null, [146, 134, 100], [120, 118, 98], [96, 102, 96], [76, 88, 92]];
+  IP.SHEETCOL = { fill: '#2c5f9a', glint: '#bfe0ff', a0: 0.20, da: 0.06 };
+  var BANDS = null, isLake = function (c) { return c === 'W' || c === 'Y' || c === 'p'; };
+  IP.band = function (x, y) {
+    if (!BANDS || BANDS.rows !== In.ROWS) {
+      BANDS = { rows: In.ROWS, at: {}, list: [] };
+      for (var yy = 0; yy < In.ROWS.length; yy++) for (var xx = 0; xx < In.ROWS[yy].length; xx++) {
+        if (In.ROWS[yy].charAt(xx) !== 'W') continue;
+        var best = 99; for (var dy = -5; dy <= 5; dy++) for (var dx = -5; dx <= 5; dx++) { var r = In.ROWS[yy + dy], c = r ? r.charAt(xx + dx) : ''; if (c && !isLake(c)) best = Math.min(best, Math.sqrt(dx * dx + dy * dy)); }
+        var b = Math.max(1, Math.min(4, Math.round(best))); BANDS.at[xx + ',' + yy] = b; BANDS.list.push([xx, yy, b]);
+      }
+    }
+    return BANDS.at[x + ',' + y] || 0;
+  };
+  IP.shallows = function () { IP.band(0, 0); return BANDS.list; };
+  var BEDS = {};
+  IP.bedTile = function (x, y) {
+    var b = IP.band(x, y); if (!b) return null;
+    // the step a neighbour stands on: the land 0 (the bank), a shallower step its own, the deep 5 -- a riser's shadow along each edge this square steps DOWN from
+    var nb = function (dx, dy) { var r = In.ROWS[y + dy], c = r ? r.charAt(x + dx) : ''; return !c ? b : c === 'Y' ? 5 : c === 'W' ? IP.band(x + dx, y + dy) : c === 'p' ? b : 0; };
+    var up = [nb(-1, 0) < b, nb(1, 0) < b, nb(0, -1) < b, nb(0, 1) < b], lip = [nb(-1, 0) > b, nb(1, 0) > b, nb(0, -1) > b, nb(0, 1) > b], vr = (x * 7 + y * 13) % 3, key = b + ':' + up.map(Number).join('') + lip.map(Number).join('') + ':' + vr;
+    if (BEDS[key]) return BEDS[key];
+    var w = 64, h = 32, data = new Uint8ClampedArray(w * h * 4), col = IP.BED[b];
+    var hash = function (i, j) { var n = Math.sin(i * 127.1 + j * 311.7 + vr * 74.7) * 43758.5453; return n - Math.floor(n); };
+    for (var py = 0; py < h; py++) for (var px = 0; px < w; px++) {
+      var dx = px - 32 + 0.5, dy = py - 16 + 0.5; if (Math.abs(dx) / 32 + Math.abs(dy) / 16 > 1) continue;
+      var u = (dx / 32 + dy / 16) / 2, v = (dy / 16 - dx / 32) / 2, k = 1, n = hash(px >> 1, py), E = 0.13;
+      if ((up[0] && u < -0.5 + E) || (up[1] && u > 0.5 - E) || (up[2] && v < -0.5 + E) || (up[3] && v > 0.5 - E)) k = 0.66;          // the riser's shadow
+      else if ((lip[0] && u < -0.5 + 0.05) || (lip[1] && u > 0.5 - 0.05) || (lip[2] && v < -0.5 + 0.05) || (lip[3] && v > 0.5 - 0.05)) k = 1.12; // the step's lip, where it drops away
+      if (n > 0.93) k *= 0.82; else if (n < 0.06) k *= 1.1;                                                                         // pebbles
+      var o = (py * w + px) * 4; data[o] = col[0] * k; data[o + 1] = col[1] * k; data[o + 2] = col[2] * k; data[o + 3] = 255;
+    }
+    return (BEDS[key] = { data: data, w: w, h: h });
+  };
+  var propsW = D.walls && D.walls.props;
+  if (propsW) D.walls.props = function (B) {
+    var out = propsW.apply(this, arguments), def = B && B.map && B.map.def;
+    if (!def || def.key !== In.KEY || !IP.on) return out;
+    IP.shallows().forEach(function (q) {
+      out.push({ depth: q[0] + q[1] + 0.12, gz: 0, layer: 0, sheet: true, draw: function (ctx) {
+        var c = iso.center(q[0], q[1], 0), s2 = iso.toScreen(c.x, c.y), hw = iso.TW / 2, hh = iso.TH / 2, t = B.t / 40, S = IP.SHEETCOL;
+        ctx.globalAlpha = S.a0 + S.da * q[2]; ctx.fillStyle = S.fill; ctx.beginPath(); ctx.moveTo(s2.x, s2.y - hh); ctx.lineTo(s2.x + hw, s2.y); ctx.lineTo(s2.x, s2.y + hh); ctx.lineTo(s2.x - hw, s2.y); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 0.28; ctx.strokeStyle = S.glint; ctx.lineWidth = 1; ctx.beginPath(); var sx = Math.sin(t + q[0] * 1.7 + q[1]) * 6; ctx.moveTo(s2.x - 10 + sx, s2.y - 1); ctx.lineTo(s2.x + 2 + sx, s2.y - 1); ctx.stroke(); ctx.globalAlpha = 1;
+      } });
+    });
+    return out;
+  };
   var load0 = iso.load;
   iso.load = function (def) {
     if (def && (def.key === In.KEY || def.key === In.UP) && IP.on) IP.prefetch(); // (the inn's sheets asked for as its floor is first laid: walls, roofs and props come with it)
-    if (def && def.key === In.KEY && IP.on) def.groundArt = function (x, y, m) { var nm = IP.groundAt(x, y); return nm ? IP.groundTile(nm, m) : null; };
+    if (def && def.key === In.KEY && IP.on) def.groundArt = function (x, y, m) { var bd = IP.band(x, y); if (bd) return IP.bedTile(x, y); var nm = IP.groundAt(x, y); return nm ? IP.groundTile(nm, m) : null; }; // (the lake's bed first, 11-12: IP.bedTile)
+    if (def && def.key === In.KEY) def.wadeAt = function (x, y) { var bd = IP.band(x, y); return bd ? IP.WADE[bd] : 3; }; // (how far up a figure the water stands, by the step it is on: js/ui.js UI.wading)
     var m = load0.apply(this, arguments); if (def && (def.key === In.KEY || def.key === In.UP)) IP.dress(m); return m; // (the yard, the barn and the shore too since 11-05)
   };
   var occ0 = D.roam && D.roam.occlude; // (the see-through's look each frame, beside the floor's own wall cut: js/roam.js R.occlude -- 11-11)

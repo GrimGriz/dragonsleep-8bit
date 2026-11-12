@@ -62,27 +62,32 @@
   // was; js/innprops.js lays it lit at dusk and by night, the step's own pool of light under it)
   // (11-06, the innfights seat: the two crates at the long table's ends -- 20,14 and 27,14 -- moved a square east and to the shelf's end, 28,14 and 35,14: they sealed the table's
   // north side between the wall and the board, and the supper's fight opens with two of the party sat there -- js/secondact.js A.seatFight; the grid lets nobody squeeze a corner)
+  // THE LAKE'S EDGE (RULED 11-12, ruling 60, Griz: "they are 6 now, with 4 cut out as the deep by the stone. 4 total shallow the hole shore across should be good"; then, asked
+  // which gives: "the difference between the deep and the knee-shallow shoreline is the problem. The deep can move further from the shore, with 4 knee-shallow squares the
+  // entire coast (including where the deep currently breaks that pattern)"): the floor is four columns wider to the east (54 x 40); every lake square within four of the
+  // land -- the sand, the reeds, the point's rocks -- is knee-shallow (W), and the deep (Y) is everything past that: from x 48 along the coast, from x 50 off the point,
+  // rounded where the point meets the shore. The chuul comes up at the deep's edge and wades the four to the stone (js/secondact.js A.DEEP)
   In.ROWS = [
-    ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWWW', ',,,".............."""""""""""""""""""""""""nWWWWWW',
-    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWWW',
-    ',,,..Awo|wo|woA...."""t""""""""""""""""""""eWWWWWW', ',,,..Aoo|oo|ooA...."""""""""""t""""""""""""eWWWWWW',
-    ',,,..AaoooooooD...."""""""""""""""""""t""""eWWWWWW', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWWW',
-    ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWWW', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWWW',
-    ',,,................"""""""""""""""t""""""""nWWWWWW', ',,,................""""""""""""""""""""""""nWWWWWW',
-    ',,,..||||.........."""""""""""""""""""""t""nWWWWWW', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWYYYY',
-    ',,,................BoooooooocooHHHHcB""""""nWWYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWYYYY',
-    ',,,................BooooooooooooKKooB"""""rrrrYYYY', ',,,s.............l.BooooooooCCjoooooB"""""rrrrYYYY',
-    ',,,................DooooobohCChoooooD,,,,,rrirYYYY', ',,,................BooooobohCChoooooB"""""rrirYYYY',
-    ',,,................BoomKmoooCCjoooooB"""""rrrrYYYY', ',,,................BooooooooooooooToB"""""rrrrYYYY',
-    ',,,................BoKKKKoooooooooooB""""""nWpYYYY', ',,,................BuSSSSSooooooooocB""""""nWWYYYY',
-    ',,,................BBBBBBBBBBBBoBBoBB""""""nWWWWWW', ',,,................""""""""""BoocBooB""t"""nWWWWWW',
-    ',,,..............kk""""""""""BoooBooB""""""nWWWWWW', ',,,..............kk"""""t""""BooofooB""""""eWWWWWW',
-    ',,,................"t""""""""BoooBooB""""""eWWWWWW', ',,,................""""""""""BzooBozB""""""eWWWWWW',
-    ',,,................""""""""""BBBBBBBB""""""eWWWWWW', ',,,................"""""""""""""""""""""t""eWWWWWW',
-    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,................""t"""""""""""""""""""""eWWWWWW',
-    ',,,................""""""""""""""""t"""""""eWWWWWW', ',,,................""""""""t"""""""""""""""eWWWWWW',
-    ',,,................""""""""""""""""""""""""eWWWWWW', ',,,................""""""""""""""""""""""""nWWWWWW',
-    ',,,".............."""""""""""""""""""""""""nWWWWWW', ',,,"""""t"""""""t""""""""""""""""""""""""""nWWWWWW'
+    ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWYYYYYY', ',,,".............."""""""""""""""""""""""""nWWWWYYYYYY',
+    ',,,................""""""""""""""""""""""""eWWWWYYYYYY', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWYYYYYY',
+    ',,,..Awo|wo|woA...."""t""""""""""""""""""""eWWWWYYYYYY', ',,,..Aoo|oo|ooA...."""""""""""t""""""""""""eWWWWYYYYYY',
+    ',,,..AaoooooooD...."""""""""""""""""""t""""eWWWWYYYYYY', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWYYYYYY',
+    ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWYYYYYY', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWYYYYYY',
+    ',,,................"""""""""""""""t""""""""nWWWWYYYYYY', ',,,................""""""""""""""""""""""""nWWWWYYYYYY',
+    ',,,..||||.........."""""""""""""""""""""t""nWWWWYYYYYY', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWWWWYYYYY',
+    ',,,................BoooooooocooHHHHcB""""""nWWWWWYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWWWWWYYYY',
+    ',,,................BooooooooooooKKooB"""""rrrrWWWWYYYY', ',,,s.............l.BooooooooCCjoooooB"""""rrrrWWWWYYYY',
+    ',,,................DooooobohCChoooooD,,,,,rrirWWWWYYYY', ',,,................BooooobohCChoooooB"""""rrirWWWWYYYY',
+    ',,,................BoomKmoooCCjoooooB"""""rrrrWWWWYYYY', ',,,................BooooooooooooooToB"""""rrrrWWWWYYYY',
+    ',,,................BoKKKKoooooooooooB""""""nWpWWWWYYYY', ',,,................BuSSSSSooooooooocB""""""nWWWWWYYYYY',
+    ',,,................BBBBBBBBBBBBoBBoBB""""""nWWWWWYYYYY', ',,,................""""""""""BoocBooB""t"""nWWWWYYYYYY',
+    ',,,..............kk""""""""""BoooBooB""""""nWWWWYYYYYY', ',,,..............kk"""""t""""BooofooB""""""eWWWWYYYYYY',
+    ',,,................"t""""""""BoooBooB""""""eWWWWYYYYYY', ',,,................""""""""""BzooBozB""""""eWWWWYYYYYY',
+    ',,,................""""""""""BBBBBBBB""""""eWWWWYYYYYY', ',,,................"""""""""""""""""""""t""eWWWWYYYYYY',
+    ',,,................""""""""""""""""""""""""eWWWWYYYYYY', ',,,................""t"""""""""""""""""""""eWWWWYYYYYY',
+    ',,,................""""""""""""""""t"""""""eWWWWYYYYYY', ',,,................""""""""t"""""""""""""""eWWWWYYYYYY',
+    ',,,................""""""""""""""""""""""""eWWWWYYYYYY', ',,,................""""""""""""""""""""""""nWWWWYYYYYY',
+    ',,,".............."""""""""""""""""""""""""nWWWWYYYYYY', ',,,"""""t"""""""t""""""""""""""""""""""""""nWWWWYYYYYY'
   ];
   In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', k: 'woodpile', w: 'manger', c: 'crate', B: 'innWall', A: 'barnWall', o: 'floorWood',
     D: 'doorway', K: 'table', b: 'bench', m: 'chair', C: 'chimney', H: 'shelf', z: 'bed', h: 'firepit', f: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks',
@@ -93,6 +98,7 @@
     tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'], hay: ['k'], trough: ['w'], tools: ['k'], sign: ['f'], // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
     shallows: ['~'] }); // (the lake KNEE-SHALLOW, as its words say -- "Knee-shallow forty paces out; then, off the point, it goes." -- the grid's pool: waded, difficult ground; the deep (Y) off the point the grid's deep water, only a swimmer's (11-05, Griz: "we also need to make the water knee deep for 40 paces or what-have-you for the fight (seeded in dialog but not true)"; it had been the deep, D, all of it -- the page 9B shallows painted over what nobody could wade)
   Object.assign(M.ROOF, { innRoof: 'I', wingRoof: 'J', barnRoof: 'Z', innWall: 'v', barnWall: 'v' });
+  if (D.roam && D.roam.USE_NAME) { D.roam.USE_NAME.thedeep = 'the water off the point'; D.roam.USE_NAME.rowboat = 'the rowboat'; } // (the HUD's names for the shore's two E squares: it read "E: thedeep" -- 11-12)
   // where the people stand, by the hour and the floor's flags (the first game's conditions): the yard's by day, the house's inside it -- seen while the party is in
   In.FOLK = [
     { id: 'doranYard', at: [16, 26], look: 'worker', dir: 'right', cond: '!flag:doranAway & !flag:doranDead', when: 'day', out: true },   // (by the woodpile)
@@ -218,7 +224,7 @@
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
     if (In.barnGoblinOn(flags || {}, dd)) npcs.push({ id: 'barnGoblin', x: In.BARN[0], y: In.BARN[1], look: 'goblin', dir: 'down' }); // (the one handed over, chained in the end stall till the due: 11-05)
-    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 4, 19], on: 'use', script: 'inn:point' },
+    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 8, 19], on: 'use', script: 'inn:point' }, /* (the water off the point, as before: four columns wider with the floor, 11-12 -- E from the stone still reads the deep) */
       { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' },
       { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
     if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
@@ -2230,6 +2236,7 @@
     { id: 'childpit', label: 'THE CHILD\'S ROAD: Tarlyn\'s Pit, the chalked door of GreyFang\'s house (11-12)', note: 'Day 15, three in the afternoon, the party on the Pit\'s hex with the girl. The scene plays at once: the watch on the road, the door back of the fighting pit with the wolf\'s head chalked on it, the woman\'s count (Doran drove seven down: "That\'s eight, then."), and the girl is set down. After it E on the hex is the Pit as before (its map is not built). Back at the inn Doran has one line for it at the woodpile.', world: true, site: 'pit', hour: 15, day: 15, run: function (sc) { In.childPit(sc); },
       flags: { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'quiet', barnFreed: 1, barnEnd: 'd', doranConfessed: 1, doranPit: 1, glamourBroken: 1, glamourSeen: 1, childGuest: 'child', childGuestDay: 13, childCamp: 1, childDue: 43, dueCycle: 0, dueOffC: 0, dueOff: 'none' } },
     { id: 'elsbethnoon', label: 'ELSBETH AFTER MIDDAY: Gennet in from the well, "Not now." (11-12)', note: 'One in the afternoon on day 6, renown 3. Gennet is by the fire: her hours at the well are the mornings, seven to midday. E on Elsbeth at the tub: "Not now. In the morning, when she\'s out at the well."', key: In.KEY, at: [32, 21], hour: 13, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
+    { id: 'lakeedge', label: 'THE LAKE\'S EDGE: four of knee-deep off the stone, then the deep (11-12)', note: 'Two in the afternoon on the flat stone. East of the rock the water is knee-deep for four squares -- the bed stepped down under it, a step a square -- and then the deep. Wade out: each square costs double; the legs go under by the step. The same four run the whole coast, north and south.', key: In.KEY, at: [45, 18], hour: 14 },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
