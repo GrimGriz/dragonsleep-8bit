@@ -372,7 +372,13 @@
     // courses down the slope and along the ridge, over the slope's own colour so no gap between two pieces shows through; clipped to the roof's face
     var slope = function (nm, eaveY, base) {
       var q = S.piece(nm), c = S.pts(nm); if (!q || !c) return;
-      var rW = c.miny, rE = c.maxx, eW = c.minx, fallS = len(rW, eW), ridgeS = len(rW, rE);
+      var rW = c.miny, rE = c.maxx, eW = c.minx;
+      // A WEDGE IS LAID BY THE PARALLELOGRAM INSIDE IT (11-12, the inn seat; Griz at the inn, 11-11: "barns missing textures", "the ceiling looks different"): the far
+      // slope's piece is drawn as page 8 saw it over the ridge -- its eave side much shorter than its ridge side -- and laid corner to corner as a parallelogram half of
+      // every piece was bare, the slope's flat colour showing in a row of triangles. Where a piece's fourth corner is far from where a parallelogram would put it, its
+      // ridge edge is taken as long as its eave edge (maxy - minx): the parallelogram that lies wholly on the piece
+      if (c.maxy && len([rE[0] + eW[0] - rW[0], rE[1] + eW[1] - rW[1]], c.maxy) > 0.25 * len(rW, rE)) rE = [rW[0] + c.maxy[0] - eW[0], rW[1] + c.maxy[1] - eW[1]];
+      var fallS = len(rW, eW), ridgeS = len(rW, rE);
       var top = P(S.x0, mid, H + R), foot = P(S.x0, eaveY, H), tF = [foot[0] - top[0], foot[1] - top[1]];
       var nf = Math.max(1, Math.round(Math.hypot(tF[0], tF[1]) / (fallS * TS))), Lm = Math.max(0.5, ridgeS * TS / Math.hypot(HW, HH));
       ctx.save(); poly([P(S.x0, mid, H + R), P(E, mid, H + R), P(E, eaveY, H), P(S.x0, eaveY, H)]); ctx.clip();

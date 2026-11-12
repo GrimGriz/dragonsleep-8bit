@@ -133,9 +133,14 @@
   // party outside within 6 squares of the front step, the house's west end goes see-through over the rows three each side of the door (y 15-21), from the door out toward the
   // road (x 13-19), as high as a figure stands -- the walls only: the west wall's stubs along the door's line, the doorway a gap in them, nothing of the room (its things and
   // its people are under the roof, IP.dress); a lantern post at the step (In.ROWS 'l' at 17,17)
-  IP.TALL = { inn_hearth: 1, up_chimney: 1 };
-  IP.CUT = { step: [18, 18], near: 6, x0: 13, x1: 19, y0: 15, y1: 21, h: 84, see: 0.22 };
-  IP.WIN = { rx: 22, ry: 40, up: 26, h: 56 }; // (a figure's window: an ellipse round it, its middle `up` px over the feet; a figure's height where the sheet does not say)
+  IP.TALL = { inn_hearth: 1, up_chimney: 1, yard_wagonT: 1, yard_wagonRim: 1 };
+  // THE WAGON SEE-THROUGH (11-12, the inn seat; Griz to the desk, 11-11: "forgot to mention we're gonna have to transparency the wagon during the inn fight"): Amara's
+  // wagon stands four squares long under its canvas in the middle of the yard's fight. In a fight on the floor it is drawn faint, as the big fire's chimney is (IP.fightOn),
+  // and walking it goes faint while it hides the party (its canvas and its tail's rail together)
+  IP.WAGON = { yard_wagonT: 1, yard_wagonRim: 1 };
+  IP.wagonHid = function () { return IP.seeing.groups.some(function (g) { return IP.WAGON[g.name] && g.hide; }); };
+  IP.CUT = { step: [18, 18], near: 6, x0: 13, x1: 19, y0: 15, y1: 21, h: 84, see: 0.22, more: 1 };
+  IP.WIN = { rx: 46, ry: 50, up: 18, h: 56, near: 5 }; // (wider and lower since 11-12, 22 x 40 at 26 up before: the window takes in the squares beside the figure and the one south of it, so the wall's stubs in it can be seen) // (a figure's window: an ellipse round it, its middle `up` px over the feet; a figure's height where the sheet does not say)
   IP.seeing = { figs: [], cut: false, groups: [] };
   IP.who = function (B) { var R0 = B && B.roam; if (!R0 || !R0.token) return []; return R0.mode === 'fight' ? R0.members.filter(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0; }) : B.units.indexOf(R0.token) >= 0 ? [R0.token] : []; };
   IP.cutOn = function (B) { var def = D.roam && D.roam.def, t = B && B.roam && B.roam.token, C0 = IP.CUT; if (!def || def.key !== In.KEY || def.inside || !t) return false; return Math.max(Math.abs(t.x - C0.step[0]), Math.abs(t.y - C0.step[1])) <= C0.near; };
@@ -212,10 +217,10 @@
         var sq = m.at(pc[1] + i, pc[2] + j); if (!sq) return;
         mine[sq.x + ',' + sq.y] = 1;
         if (grp) grp.parts.push({ sq: sq, depth: sq.x + sq.y + 0.5, sl: function () { var sl = IP.slices(pc[0], 0, pc[3], pc[4], pc[5]); return sl && sl[i + ',' + j]; } });
-        m.props.push({ innProp: true, kind: 'innprop', sq: sq, depth: sq.x + sq.y + 0.5 + (pc[7] || 0), gz: 0, draw: function (ctx) { // ([7]: a depth of its own over the square's -- the wagon's rim)
+        m.props.push({ innProp: true, kind: 'innprop', piece: pc[0], sq: sq, depth: sq.x + sq.y + 0.5 + (pc[7] || 0), gz: 0, draw: function (ctx) { // ([7]: a depth of its own over the square's -- the wagon's rim)
           var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
           var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
-          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = (pc[0] === 'inn_hearth' && IP.fightOn()) || !!(grp && grp.hide);
+          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = ((pc[0] === 'inn_hearth' || IP.WAGON[pc[0]]) && IP.fightOn()) || !!(grp && grp.hide) || (IP.WAGON[pc[0]] && IP.wagonHid());
           if (see) { ctx.save(); ctx.globalAlpha = IP.SEE; } // (the big fire's chimney see-through while a fight is on the floor: IP.fightOn, 11-06; and walking, while it hides the party: IP.tick, 11-11)
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
           if (see) ctx.restore();
@@ -301,10 +306,28 @@
         } });
       });
     });
+    // THE WALLS IN A FIGURE'S WINDOW (11-12, the inn seat; Griz, 11-11: "north transparency would benefit if we could do those wallstubs, you can't tell from north
+    // transparency that you won't be able to click south of him"; on the barn's scene, "the inn walls are missing"): a building roofed over opens a window round one of
+    // the party it hides (IP.drawSee) -- and through the window there was only ground. Its OUTER walls' stubs are drawn in the window now, a doorway a gap in them: the
+    // line the party cannot walk through, seen. Only inside a hidden figure's own window (clipped to it), only the walls within IP.WIN.near squares of that figure
+    if (!up) IP.PARTS().forEach(function (pt) {
+      var mat = pt[0], r = pt[1], rows0 = In.ROWS; if (pt[2] === ins) return;
+      for (var x = r[0]; x <= r[2]; x++) for (var y = r[1]; y <= r[3]; y++) (function (x, y) {
+        if (x !== r[0] && x !== r[2] && y !== r[1] && y !== r[3]) return; var c = rows0[y] ? rows0[y].charAt(x) : ''; if (c !== 'B' && c !== 'A') return;
+        var sq = m.at(x, y); if (!sq) return; var runs = IP.stubRuns(rows0, x, y), stub = c === 'A' ? 'barn' : 'wing';
+        m.props.push({ innProp: true, kind: 'innstubsee', mat: mat, sq: sq, depth: sq.x + sq.y + 0.51, gz: 0, draw: function (ctx) {
+          var S = IP.seeing; if (!S.figs.length) return;
+          var figs = IP.placed().filter(function (f) { return Math.max(Math.abs(f.u.x - x), Math.abs(f.u.y - y)) <= IP.WIN.near; }); if (!figs.length) return;
+          ctx.save(); IP.winPath(ctx, figs, false); ctx.clip(); IP.drawStub(ctx, sq, stub, runs); ctx.restore(); IP.stubSeen = (IP.stubSeen || 0) + 1;
+        } });
+      })(x, y);
+    });
     // THE FRONT DOOR'S CUTAWAY's walls (RULED 11-10, "try not to reveal more than the walls of the room"): the house roofed, the west wall's stubs along the door's line in the
     // cutaway's rows, the doorway a gap in them -- drawn only while the cutaway is on (IP.tick), under the house's see-through picture
-    if (!up && ins !== 'inn') for (var yc = IP.CUT.y0; yc <= IP.CUT.y1; yc++) (function (y) {
-      var x = In.DOORS.front[0], rows0 = In.ROWS; if (rows0[y].charAt(x) !== 'B') return; var sq = m.at(x, y); if (!sq) return;
+    // (a square more each way than the cutaway's own rows -- 11-12, Griz: "the stubby walls could be drawn another tile in each direction (edges visible) if it's not
+    // problematic": the stub line ran to the last row of the window and stopped in it, its cut end showing; it carries on under the roof's edge now)
+    if (!up && ins !== 'inn') for (var yc = IP.CUT.y0 - IP.CUT.more; yc <= IP.CUT.y1 + IP.CUT.more; yc++) (function (y) {
+      var x = In.DOORS.front[0], rows0 = In.ROWS; if (!rows0[y] || rows0[y].charAt(x) !== 'B') return; var sq = m.at(x, y); if (!sq) return;
       var runs = IP.stubRuns(rows0, x, y).filter(function (rn) { return rn[0] === 'y'; });
       m.props.push({ innProp: true, kind: 'innstubcut', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) { if (IP.seeing.cut) IP.drawStub(ctx, sq, 'wing', runs); } });
     })(yc);

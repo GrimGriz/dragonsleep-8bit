@@ -44,6 +44,29 @@ D.loadImages(D.spr.images(), function () {
         out.push({ beat: cs[0], at: cs[1], seen: seen, whole: whole, frac: whole ? seen / whole : 0, noise: noise, st: st });
       } catch (e) { out.push({ beat: cs[0], at: cs[1], err: String(e && e.stack || e).slice(0, 400) }); }
     });
+    // THE SEE-THROUGH FIXES OF 11-12 (the inn seat): the wagon faint in a fight and while it hides the party; the roofs' far slope laid whole; the cutaway's stubs a
+    // square more each way; the outer walls' stubs in a hidden figure's window
+    var X = {}, IP = D.innprops;
+    try {
+      var alphaOf = function (p) { var seen = [], fx = { globalAlpha: 1, save: function () { }, restore: function () { fx.globalAlpha = 1; }, drawImage: function () { seen.push(fx.globalAlpha); } }; p.draw(fx); return seen.length ? seen[0] : null; };
+      var put = function (B, q) { var t = B.roam.token; t.x = q[0]; t.y = q[1]; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); for (var i = 0; i < 4; i++) D.update(); D.roam.occlude(B); };
+      D.scenes.length = 0; D.push(D.inn.show('?innshow&beat=wagonyard')); for (var i = 0; i < 60; i++) D.update();
+      var Bw = D.battle, mw = D.iso.map, wag = mw.props.filter(function (p) { return p.piece === 'yard_wagonT'; }), rim = mw.props.filter(function (p) { return p.piece === 'yard_wagonRim'; }), WA = D.inn.WAGONAT;
+      put(Bw, [WA[0] + 1, WA[1] + 4]); X.wag = wag.length; X.rim = rim.length; X.walk = wag.length ? alphaOf(wag[0]) : null;
+      var mode0 = Bw.roam.mode; Bw.roam.mode = 'fight'; X.fight = wag.length ? alphaOf(wag[0]) : null; X.fightRim = rim.length ? alphaOf(rim[0]) : null; Bw.roam.mode = mode0;
+      X.hidAt = null; [[WA[0] + 1, WA[1] - 1], [WA[0] + 2, WA[1] - 1], [WA[0], WA[1] - 1], [WA[0] + 3, WA[1] - 1], [WA[0] + 1, WA[1] - 2], [WA[0] - 1, WA[1]], [WA[0] - 1, WA[1] - 1]].forEach(function (q) { if (X.hidAt || !D.grid.canStand(Bw.roam.token, q[0], q[1])) return; put(Bw, q); if (IP.wagonHid && IP.wagonHid()) X.hidAt = q; });
+      X.hid = X.hidAt && wag.length ? alphaOf(wag[0]) : null; X.see = IP.SEE;
+      X.flat = {}; IP.PARTS().forEach(function (pt) { var h = IP.house(pt[0], pt[1], false), cfg = IP.HOUSE[pt[0]], base = cfg && cfg.base && cfg.base[1]; if (!h || !base) { X.flat[pt[0]] = -1; return; }
+        var cv = h.pic.canvas, tmp = document.createElement('canvas'); tmp.width = tmp.height = 1; var tx = tmp.getContext('2d'); tx.fillStyle = base; tx.fillRect(0, 0, 1, 1); var bc = tx.getImageData(0, 0, 1, 1).data;
+        var d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data, n = 0, all = 0; for (var i = 0; i < d.length; i += 4) if (d[i + 3] > 200) { all++; if (d[i] === bc[0] && d[i + 1] === bc[1] && d[i + 2] === bc[2]) n++; } X.flat[pt[0]] = Math.round(1000 * n / Math.max(1, all)) / 10; });
+      D.scenes.length = 0; D.push(D.inn.show('?innshow&beat=yard')); for (var i3 = 0; i3 < 60; i3++) D.update();
+      var B6 = D.battle, m6 = D.iso.map, see = m6.props.filter(function (p) { return p.kind === 'innstubsee'; }); X.cutRows = m6.props.filter(function (p) { return p.kind === 'innstubcut'; }).map(function (p) { return p.sq.y; }).sort(function (a, b) { return a - b; });
+      X.seeStubs = see.length; X.byMat = {}; see.forEach(function (p) { X.byMat[p.mat] = (X.byMat[p.mat] || 0) + 1; });
+      var cx6 = document.createElement('canvas').getContext('2d');
+      put(B6, [30, 12]); X.hidden = IP.seeing.figs.length; var s0 = IP.stubSeen || 0; see.forEach(function (p) { p.draw(cx6); }); X.drawn = (IP.stubSeen || 0) - s0;
+      put(B6, [30, 8]); X.hiddenFar = IP.seeing.figs.length; var s1 = IP.stubSeen || 0; see.forEach(function (p) { p.draw(cx6); }); X.drawnFar = (IP.stubSeen || 0) - s1;
+    } catch (e) { X.err = String(e && e.stack || e).slice(0, 400); }
+    var p2 = document.createElement('pre'); p2.textContent = 'INNSEE2 ' + JSON.stringify(X) + ' END2'; document.body.appendChild(p2);
     var p = document.createElement('pre'); p.textContent = 'INNSEE ' + JSON.stringify(out); document.body.appendChild(p);
   }, 2500);
 });
@@ -93,6 +116,18 @@ def main():
     r = row('upstairs', (9, 6)); ok(CASES[4][2] + ': ' + say(r), r['frac'] >= 0.85 and r['st'].get('hide') == ['up_chimney'])
     r = row('yard', (27, 12)); ok(CASES[5][2] + ': ' + say(r), r['frac'] >= 0.3 and r['st'].get('figs') == ['Barley'])
     r = row('yard', (25, 26)); ok(CASES[6][2] + ': ' + say(r), r['frac'] >= 0.9 and r['st'].get('figs') == [])
+    # THE SEE-THROUGH FIXES OF 11-12 (the inn seat; his 11-11 1734Z notes and his word to the desk): "we're gonna have to transparency the wagon during the inn fight";
+    # "barns missing textures" / "the ceiling looks different" (the far slope's pieces are wedges, laid as parallelograms half of each was the slope's bare flat colour, a
+    # row of triangles); "the stubby walls could be drawn another tile in each direction (edges visible)"; "north transparency would benefit if we could do those wallstubs"
+    m2 = re.search(r'INNSEE2 (\{.*\}) END2', dom, re.S); X = json.loads(H.unescape(m2.group(1))) if m2 else {'err': 'no result'}
+    if X.get('err'): ok('the fixes of 11-12: ' + X['err'], False)
+    else:
+        ok('the wagon see-through: %d squares of its canvas and %d of its rail; walking in the open drawn whole (%s); in a fight on the floor faint (%s, its rail %s); walking behind it at %s faint (%s)' % (X['wag'], X['rim'], X['walk'], X['fight'], X['fightRim'], X['hidAt'], X['hid']),
+           X['wag'] == 8 and X['rim'] == 8 and X['walk'] == 1 and X['fight'] == X['see'] and X['fightRim'] == X['see'] and X['hidAt'] and X['hid'] == X['see'])
+        f = X['flat']; ok('the far slope laid whole: of each building\'s picture, the share that is the far slope\'s bare flat colour -- the house %s%%, the wing %s%%, the barn %s%%' % (f.get('house'), f.get('wing'), f.get('barn')),
+           all(0 <= f.get(k, -1) < 1 for k in ('house', 'wing', 'barn')))  # (2.8 to 6.4 before)
+        ok('the cutaway\'s stubs a square more each way: rows %s; the walls in a figure\'s window: %d outer-wall stubs laid %s, on 30,12 behind the house (hidden %d) %d drawn, out on the grass at 30,8 (hidden %d) %d' % (X['cutRows'], X['seeStubs'], json.dumps(X['byMat']), X['hidden'], X['drawn'], X['hiddenFar'], X['drawnFar']),
+           len(X['cutRows']) >= 2 and X['cutRows'][0] == 14 and X['cutRows'][-1] == 22 and X['seeStubs'] > 40 and X['hidden'] == 1 and 3 <= X['drawn'] <= 24 and X['hiddenFar'] == 0 and X['drawnFar'] == 0)
     # THE GREYS (RULED 11-11, his "yes to the gulch and greys"; tools/greys-recolor.py): the team's horse and Willem's no cream left on their coats -- the lower half of every row
     # of Willem's sheet (the horse's) under 200 px of the cream horse's three colours, as it was a thousand and more; Amara's grey as it was
     from PIL import Image

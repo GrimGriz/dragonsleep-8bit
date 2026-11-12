@@ -5967,6 +5967,8 @@
         cut5.join(';') === '18,18 true;12,18 true;11,18 false;18,12 true;18,25 false;24,24 true' && in5 === 'inn' && cutIn5 === false && CUTK.y0 === 15 && CUTK.y1 === 21 && CUTK.x1 === 19 && lit5.join() === '42,15,17,17' && InK.ROWS[17].charAt(17) === 'l' && pool5);
       okK('the tall pieces see-through by presence: ' + Object.keys(TALLK).join(', ') + '; the look each frame with the floor\'s wall cut (D.roam.occlude wraps IP.tick: ' + /IP\.tick/.test(String(RK.occlude)) + ')',
         TALLK.inn_hearth === 1 && TALLK.up_chimney === 1 && /IP\.tick/.test(String(RK.occlude)) && typeof IPK.drawSee === 'function');
+      okK('the wagon a tall piece too, canvas and rail (11-12: faint in a fight on the floor and while it hides the party -- the pixels are dev/innsee-probe.py\'s): ' + Object.keys(TALLK).join(', ') + '; the cutaway\'s stubs ' + (CUTK.more || 0) + ' square more each way; a figure\'s window ' + JSON.stringify(IPK.WIN),
+        TALLK.yard_wagonT === 1 && TALLK.yard_wagonRim === 1 && typeof IPK.wagonHid === 'function' && CUTK.more === 1 && !!IPK.WIN && IPK.WIN.near === 5);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     HK.playing = false; HK.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
     D.store.get = stGK; D.store.set = stSK; D.music = muK;
