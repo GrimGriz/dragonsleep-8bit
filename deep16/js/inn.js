@@ -1105,22 +1105,26 @@
   // THE CHILD IN TOW (11-12, the inn seat; Griz at Sylvia's table, 11-11 2329Z: "doran's default 'click on him' should be axe portrait with a line, that line should
   // change after this encounter (the girl will be safest at the pit, come back in x nights)"; "have elsbeth point them toward the pit when they have the child, make it
   // a dialog with option to ask her to come, staying with father just be back in x days"; "with girl in tow, no inn-stay (if you're not back in x days)").
-  // X IS NOT RULED: In.CHILD.back is a PLACEHOLDER, the one number all three read -- his to give. What happens to a party that is NOT back in x days is not ruled
-  // either (his note was cut short in the save) and nothing is built on it: the day she joined is kept (f.childGuestDay) and In.childLate says when the days are up.
+  // X IS THE NIGHTS TO THE DUE (RULED 11-11 night, Griz, on what the number is: "the night the chuul comes up vs current game day"): not a constant -- counted from the
+  // game's day to the due's night as the line is said (In.nightsToDue; In.CHILD.nights, In.CHILD.days word it: tonight, tomorrow, in N). What happens to a party that is
+  // NOT back by then is not ruled and nothing is built on it (the end of his note was lost: "I've lost the context required to remember" -- nothing owed): the due's day
+  // as she joined is kept (f.childDue) and In.childLate says when it has passed.
   // NO INN-STAY: with her beside the token nobody takes a room from Gennet or from Doran -- except on the due's own night, when the house's night is the scene itself
   // (Doran's "be in this house": js/secondact.js A.ledNight, A.poisonNight). Her road to the Pit and where she is set down are not built: the seam
-  In.CHILD = { back: 4, // PLACEHOLDER for his "x": nights (Doran) and days (Elsbeth) are this one number
-    n: function () { return In.WORDS[In.CHILD.back] || In.CHILD.back; },
+  In.CHILD = {
+    left: function (f, d) { return In.nightsToDue(f || {}, d == null ? In.day(D.roam.q) : d); },
+    nights: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; },
+    days: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow' : 'in ' + (In.WORDS[n] || n) + ' days'; },
     doranIdle: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"The well\'s for drinking. Nobody draws from the lake."'], // (the realm's words for him, content/npcs.json doranYard, the second half now said by him)
-    doranGirl: function () { return ['Doran lets the axe hang, and looks at the child before he looks at the party.', '"The girl will be safest at the Pit. Take her down. Come back in ' + In.CHILD.n() + ' nights."']; }, // (HIS: "the girl will be safest at the pit, come back in x nights")
+    doranGirl: function (f, d) { return ['Doran lets the axe hang, and looks at the child before he looks at the party.', '"The girl will be safest at the Pit. Take her down. Come back ' + In.CHILD.nights(f, d) + '."']; }, // (HIS: "the girl will be safest at the pit, come back in x nights")
     elsbeth: ['Elsbeth looks at the child, and then at the yard door.', '"Take her to the Pit. Not Silverton. Silverton\'s where the wagon was going."'], // (ruling 40, her yard line said again at the tub)
     elsbethAsk: '"Go today. Don\'t sleep here with her."', come: 'ASK HER TO COME', go: 'GO',
-    elsbethStay: function () { return ['"No. I\'m staying with Father."', '"Just be back in ' + In.CHILD.n() + ' days."']; }, // (HIS: "staying with father just be back in x days")
+    elsbethStay: function (f, d) { return ['"No. I\'m staying with Father."', '"Just be back ' + In.CHILD.days(f, d) + '."']; }, // (HIS: "staying with father just be back in x days")
     gennet: ['Gennet looks at the child at the party\'s side before she looks at anyone else. "A room? Of course. And a cot for the little one, by the kitchen."', '{g}Not with her in tow. Nobody sleeps under this roof tonight.{/}'],
     doranRoom: ['"Not tonight. Get her down to the Pit first."'] };
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
-  In.childLate = function (f, d) { return !!f.childGuest && f.childGuestDay != null && d > f.childGuestDay + In.CHILD.back; }; // (nothing reads it yet: what lateness costs is his to rule)
-  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl()); return; } yield sc.say(In.CHILD.doranIdle); };
+  In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
+  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f)); return; } yield sc.say(In.CHILD.doranIdle); };
   M.tell2 = function (w, lines) { if (w && lines && lines.length) w.tell = [].concat(lines); return w; }; // (a line's own TELL ME ABOUT IT given as words, not a text key: js/mines.js M.tell)
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
   In.stage = function (B, at, inside) { var t = B.roam.token; t.x = at[0]; t.y = at[1]; t.tween = null; B.roam.path = null; In.lay(B, inside, true); };
@@ -1454,7 +1458,7 @@
     if (f.elsbethSilent) { yield sc.say(L('inn.elsbethSilent')); return; }
     if (f.childGuest && !f.elsbethGone) { // (the child with the party: she sends them to the Pit; ASK HER TO COME, and she stays with her father -- In.CHILD, 11-12)
       var EC = In.CHILD; f.elsbethPit = 1; yield sc.say(EC.elsbeth);
-      var ea = yield sc.ask(EC.elsbethAsk, [EC.come, EC.go]); if (ea === 0) { f.elsbethAsked = 1; yield sc.say(EC.elsbethStay()); }
+      var ea = yield sc.ask(EC.elsbethAsk, [EC.come, EC.go]); if (ea === 0) { f.elsbethAsked = 1; yield sc.say(EC.elsbethStay(f)); }
       return;
     }
     if (f.barnLet && !f.glamourBroken && !f.barnHinted && ((f.elsbethTier || 0) >= 1 || In.renown() >= 5)) { f.barnHinted = 1; yield sc.say([In.BY.hint]); return; } // (the party let Gennet keep what it took for a goblin: one more chance before the due -- 11-11, the barn's END A)
@@ -1778,7 +1782,7 @@
     yield* settle();
     var E = R0.barnEnd || { end: 'e' }, st = C.state(B), reg = f.innRegard == null ? 1 : f.innRegard;
     var hand = function () { In.lay(B, null, true); }; // (the yard back to the inn's lay: nothing of the scene's is left on it to remove)
-    var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; f.childGuestDay = In.day(Rm.q); }; // (the due has no offering; the child counted with the party from this day -- the road with her is not built: BY.seam)
+    var withParty = function () { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.childGuest = f.glamourBroken ? 'child' : 'goblin'; f.childGuestDay = In.day(Rm.q); f.childDue = f.childGuestDay + In.nightsToDue(f, f.childGuestDay); }; // (the due has no offering; the child counted with the party from this day -- the road with her is not built: BY.seam)
     // the close of the ends she leaves with the party: the hero who stepped out of the token walks back to it; then HER NAME, asked on portraits where they stand by the
     // barn's door (11-12; Griz: "line 'child is asked her name' use char player used as party voice most often during encounter or vivian and do that bit in portraits by
     // the door (line says 'at the road)") -- BY.nameAsk; then the seam's line
@@ -1957,7 +1961,7 @@
     { id: 'barnseen', label: 'OUT OF THE BARN: the glamour seen through, Doran home', note: 'The same morning, the glamour seen through on the wagon night: a child chained in the stall. FREE HER. Gennet\'s other story: "Somebody put a goblin\'s face on a child and sent her down this road. Who takes that in, if I don\'t?" Let her and the child is brought into the house, the raising feigned until the night.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'barnaway', label: 'OUT OF THE BARN: Doran away, Elsbeth at her third tier', note: 'Doran gone down the road: nobody for Gennet to call but Elsbeth. At the breaking point she calls for "the word"; Elsbeth comes out, the wand in her apron: "No. It\'s for the lake. Tell them, or I will." The child goes with the party. (At her second tier she stands in the door and does not say it; below that nobody comes out.)', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 1, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, doranAway: 1, elsbethTier: 3, dishes: 1, elsbethTold: 1 } },
     { id: 'barnknown', label: 'OUT OF THE BARN: renown 5, a low Persuasion, the party knows of the lake\'s nights', note: 'The corridor\'s own. Lymen may ask at her ask "Raise it until which night?" and go straight to the breaking point; Doran comes round the barn and lets the axe hang, and any hero\'s word to him brings the confession. The dice are low: at lower renown the same word gets only "Gen. Let go."', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 5, dice: [2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
-    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The number of nights and days said is a PLACEHOLDER.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
+    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The nights and days they say are counted to the due\'s night: two, on day 13.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, barnFreed: 1, barnEnd: 'd', doranConfessed: 1, childGuest: 'child', childGuestDay: 13, innRegard: 0, elsbethTier: 3, dishes: 1, elsbethTold: 1, dueOffC: 0, dueOff: 'none' } },
     { id: 'bigroom', label: 'THE BIG ROOM, theirs: morning by the good bed, her letter in the drawer (11-12)', note: 'Day 14, eight in the morning, in the big room over the kitchen: Gennet gave it at her supper alone, and Katarina rode out on the wagon. You stand where you would wake, by the good bed. E on the table by the bed: her letter, read as if she were saying it, then her book into the pack.', key: In.UP, at: [13, 2], hour: 8, day: 14,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, supAlone: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1, katRode: 1, katLooked: 1, bigRoom: 1 } },
