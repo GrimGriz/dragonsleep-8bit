@@ -984,10 +984,11 @@
   // a stamp with nothing written under it before the next stamp or the end is not kept (10-29, Griz: "notes stamps whenever i open it, even if I close it after without typing
   // - that's the empty"): dropped as the box opens, as it closes, and from what SAVE writes
   H.STAMP_RE = /^-- day .* --$/;
-  H.unstamp = function (text) {
+  H.unstamp = function (text, re) { // (re: another box's stamp -- the Pocket DM's, js/pocketdm.js PD.notes, 11-12)
+    re = re || H.STAMP_RE;
     var ls = String(text || '').replace(/\r\n/g, '\n').split('\n'), out = [];
     for (var i = 0; i < ls.length; i++) {
-      if (H.STAMP_RE.test(ls[i])) { var j = i + 1, said = false; while (j < ls.length && !H.STAMP_RE.test(ls[j])) { if (ls[j].trim()) { said = true; break; } j++; } if (!said) continue; }
+      if (re.test(ls[i])) { var j = i + 1, said = false; while (j < ls.length && !re.test(ls[j])) { if (ls[j].trim()) { said = true; break; } j++; } if (!said) continue; }
       out.push(ls[i]);
     }
     return out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\s+/, '').replace(/\s+$/, '');
@@ -1009,14 +1010,24 @@
       game2: rec ? H.summary(rec) : null, trail: rec ? (rec.trail || []) : [], save: rec ? JSON.parse(JSON.stringify(rec)) : null };
   };
   H.notes = function () { if (H.cur) D.push(new Notes()); };
-  function Notes() {
-    this.kind = 'housenotes'; this.opaque = false; this.t = 0; this.msg = null; this.el = null;
-    var d = D.store.get(H.NKEY), text = H.unstamp(d && typeof d.draft === 'string' ? d.draft : ''), st = H.stamp(); // (an earlier opening's empty stamp gone first)
+  // THE ONE NOTES BOX (11-12, Griz, on his Pocket DM fight's card: "still looking for the 'same menu' (with a notes section) on the 'm' key"): the box is the house's; another
+  // table hands it a src of its own -- { get(), set(text), stamp(), re, file(text), name(), title, saved(name) } -- and its notes are written, stamped and saved the same
+  // way (the Pocket DM's: js/pocketdm.js PD.notes). No src: the second game's, as it was
+  H.NOTES_SRC = {
+    get: function () { var d = D.store.get(H.NKEY); return d && typeof d.draft === 'string' ? d.draft : ''; },
+    set: function (text) { D.store.set(H.NKEY, { draft: text }); },
+    stamp: function () { return H.stamp(); }, re: H.STAMP_RE,
+    file: function (text) { return H.notesFile(text); }, name: function () { return H.notesName(); },
+    title: '{y}NOTES{/}  what did you notice? the day, the hour and the place go with it'
+  };
+  function Notes(src) {
+    this.kind = 'housenotes'; this.opaque = false; this.t = 0; this.msg = null; this.el = null; this.src = src || H.NOTES_SRC;
+    var text = H.unstamp(this.src.get(), this.src.re), st = this.src.stamp(); // (an earlier opening's empty stamp gone first)
     if (text.indexOf(st) < 0) text = (text.replace(/\s+$/, '') + (text.trim() ? '\n\n' : '') + st + '\n'); // (each opening its own stamp; the same place and minute, once)
     this.text = text; this.keep();
   }
-  Notes.prototype.keep = function () { D.store.set(H.NKEY, { draft: this.text }); };
-  Notes.prototype.keepClosed = function () { D.store.set(H.NKEY, { draft: H.unstamp(this.text) }); }; // (shut with nothing typed under this opening's stamp: the stamp not kept)
+  Notes.prototype.keep = function () { this.src.set(this.text); };
+  Notes.prototype.keepClosed = function () { this.src.set(H.unstamp(this.text, this.src.re)); }; // (shut with nothing typed under this opening's stamp: the stamp not kept)
   Notes.prototype.box = function () { return { x: 12, y: 10, w: D.W - 24, h: D.H - 20 }; };
   Notes.prototype.btns = function () { var b = this.box(), y = b.y + b.h - 20; return [{ id: 'back', l: 'BACK', x: b.x + 8, y: y, w: 56, h: 14 }, { id: 'save', l: 'SAVE', x: b.x + b.w - 72, y: y, w: 64, h: 14 }]; };
   Notes.prototype.field = function () {
@@ -1041,13 +1052,14 @@
   Notes.prototype.close = function () { this.drop(); this.keepClosed(); D.sfx('cancel'); D.pop(); };
   Notes.prototype.save = function () {
     if (!this.text.replace(/^--.*--$/gm, '').trim()) { D.sfx('error'); this.msg = 'Nothing written yet: type what you noticed, then SAVE.'; return null; }
-    var name = H.notesName();
+    var name = this.src.name();
     try {
-      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(H.notesFile(H.unstamp(this.text)), null, 1)], { type: 'application/json' }));
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(this.src.file(H.unstamp(this.text, this.src.re)), null, 1)], { type: 'application/json' }));
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     } catch (e) { D.sfx('error'); this.msg = 'Could not write the file: ' + e; return null; }
     D.sfx('confirm'); this.msg = 'Saved ' + name + ' where your browser puts downloads.';
+    if (this.src.saved) this.src.saved(name);
     return name;
   };
   Notes.prototype.update = function () {
@@ -1063,7 +1075,7 @@
     var b = this.box(), self = this;
     ctx.fillStyle = 'rgba(4,3,10,.7)'; ctx.fillRect(0, 0, D.W, D.H);
     D.win8(ctx, b.x, b.y, b.w, b.h);
-    D.text(ctx, '{y}NOTES{/}  what did you notice? the day, the hour and the place go with it', b.x + 8, b.y + 8, D.WIN8.text);
+    D.text(ctx, this.src.title, b.x + 8, b.y + 8, D.WIN8.text);
     this.btns().forEach(function (k) {
       if (self.hot === k.id) { ctx.fillStyle = D.WIN8.sel; ctx.fillRect(k.x, k.y, k.w, k.h); }
       ctx.strokeStyle = '#6e6e98'; ctx.strokeRect(k.x + 0.5, k.y + 0.5, k.w - 1, k.h - 1);

@@ -962,6 +962,44 @@
     if (goose) PD.egg(this, 'goose');
     return name;
   };
+  // NOTES ON THE M MENU (11-12, Griz, on his Bugbear Ambush fight's card: "still looking for the 'same menu' (with a notes section) on the 'm' key"; to the lanes desk:
+  // "the 'same menu on M' in the pocket DM lane gets us the 'notes' in the menu the story realm hand, that's handy"): the M menu of a Pocket DM fight, of THE CAMP and of
+  // THE PARTY carries NOTES after SAVE, as the story game's does, and it opens the story game's own box (js/house.js H.Notes) on SITUATIONS' draft -- one set of notes,
+  // whichever door wrote them. Each opening stamps a line: the hour (UTC), the table's screen or the fight with its round and its record's `started` (dev/records.py
+  // pairs a note with that fight's transcript by it). SAVE writes the same hero_situations_feedback-<UTC>.json SITUATIONS' SAVE does, with `now`: where it was written
+  PD.NOTE_RE = /^-- the Pocket DM .* --$/;
+  PD.tableOf = function () { var pk = null; (D.scenes || []).forEach(function (s) { if (s instanceof Pocket) pk = s; }); return pk; };
+  PD.SCREENS = { hub: 'THE CAMP', party: 'THE PARTY', result: 'a fight\'s result', rest: 'the short rest', morning: 'THE LONG REST', market: 'THE MARKET', cr: 'THE FOES', map: 'THE MAP' };
+  PD.nowOf = function (pk, B) {
+    var run = pk && pk.st.run, F = D.house && D.house.fightNow ? D.house.fightNow() : null, rec = (B && B.rec && B.rec.started ? B.rec : null) || F;
+    return {
+      screen: B ? 'fight' : pk ? pk.screen : null,
+      run: run ? (run.module ? run.module.name + ', fight ' + run.rung + ' of ' + run.plan.length : 'the ladder, ' + (run.trial ? 'the trial' : 'rung ' + run.rung)) : null,
+      fight: B ? { name: String((rec && (rec.name || rec.fight)) || (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || 'a fight'), started: rec ? rec.started : null, round: B.round || 0 } : null
+    };
+  };
+  PD.noteStamp = function (pk, B) {
+    var n = PD.nowOf(pk, B), d = new Date(), p = function (v) { return (v < 10 ? '0' : '') + v; };
+    var where = n.fight ? 'in the fight ' + n.fight.name.replace(/\s*--\s*/g, ' ').slice(0, 48) + ', round ' + n.fight.round + (n.fight.started ? ' (started ' + n.fight.started + ')' : '') : (PD.SCREENS[n.screen] || n.screen || 'the table');
+    return '-- the Pocket DM · ' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + 'Z · ' + where + (n.run ? ' · ' + n.run : '') + ' --';
+  };
+  PD.notesSrc = function (pk, B) {
+    var st = pk.st, fb = function () { return st.feedback = st.feedback || {}; };
+    return {
+      get: function () { return String(fb().draft || ''); },
+      set: function (text) { fb().draft = text; pk.keep(); },
+      stamp: function () { return PD.noteStamp(pk, B); }, re: PD.NOTE_RE,
+      file: function (text) { var f = PD.feedbackFile(pk); f.notes = String(text || ''); f.from = 'the Pocket DM'; f.now = PD.nowOf(pk, B); f.page = location.origin + location.pathname + location.search; return f; },
+      name: function () { return PD.feedbackName(); },
+      title: '{y}NOTES{/}  what did you notice? the hour, the fight and its round go with it',
+      saved: function () { var f = fb(); f.saved = new Date().toISOString(); f.n = (f.n || 0) + 1; var goose = MP && MP.unlock ? MP.unlock(st, 'goose') : false; pk.keep(); if (goose && !B) PD.egg(pk, 'goose'); } // (Goose on the first notes saved, as SITUATIONS'; shown at the table, not over a fight)
+    };
+  };
+  // B: the fight the M menu was opened in (js/ui.js gridHost), none at the table. False when there is no table to keep them (a class-floor URL opened by itself)
+  PD.notes = function (B, pk) {
+    pk = pk || PD.tableOf(); if (!pk || !D.house || !D.house.Notes) return false;
+    D.push(new D.house.Notes(PD.notesSrc(pk, B || null))); return true;
+  };
   Pocket.prototype.drawFeedback = function (ctx) {
     var self = this, st = this.st, fb = st.feedback = st.feedback || {};
     head(ctx, 'SITUATIONS', 'what did you notice? what broke, what surprised you, what felt right or wrong -- in your own words');
