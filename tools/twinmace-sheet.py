@@ -4,6 +4,7 @@ Plain Python (Pillow).
     python tools/twinmace-sheet.py            the human striker (with the target, and alone)
     python tools/twinmace-sheet.py dwarf      the dwarf-proportioned striker, no target (deep16/_src/twinmace-dwarf/ -> twinmace-dwarf-*.png)
     python tools/twinmace-sheet.py sword [dwarf]   the one-handed slash (deep16/_src/slash1h[-dwarf]/ -> deep16/art-src/slash1h/slash1h-*.png)
+    python tools/twinmace-sheet.py longbow|stab dwarf           the road patrol's two (deep16/art-src/longbow/, stab/), laid the same way
     python tools/twinmace-sheet.py axe|handaxe|crossbow dwarf   the garrison's three (11-12: deep16/_src/<axeshield|handaxe|crossbow>-dwarf/ ->
                                               deep16/art-src/<name>/<name>-dwarf-<view>.png the striker alone, <name>-dwarf-target-<view>.png with
                                               the target, and a page of all five views of each)
@@ -25,7 +26,8 @@ ROW = 'slash' if SWORD else 'twinmace'
 MOVE = 'ONE-HANDED SLASH' if SWORD else 'TWIN STRIKE, TWO MACES'
 HIT = 'THE CUT' if SWORD else 'HIT'
 GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT'), 'handaxe': ('handaxe', 'throw', 'HANDAXE THROW', 'RELEASE'),
-        'crossbow': ('crossbow', 'shoot', 'HEAVY CROSSBOW SHOT', 'LOOSE')}          # the garrison's three (11-12)
+        'crossbow': ('crossbow', 'shoot', 'HEAVY CROSSBOW SHOT', 'LOOSE'),           # the garrison's three (11-12)
+        'longbow': ('longbow', 'shoot', 'LONGBOW SHOT', 'LOOSE'), 'stab': ('stab', 'stab', 'SHORTSWORD STAB', 'THE STAB')}      # the road patrol's two
 for _k in GARR:
     if _k in sys.argv[1:]:
         NAME, ROW, MOVE, HIT = GARR[_k]
