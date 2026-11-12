@@ -1,0 +1,203 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-12T00:43:46.130Z",
+ "previous_save": "2026-11-12T00:38:56.586Z",
+ "items": [
+  {
+   "id": "eyes-yard-end-1106",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE YARD'S END: one of the pair away and the other still fighting -- the fight goes on; the one away fades off the road (11-06)",
+   "pt": "the Halfway Inn and the lake, 11-06 items 3 and 4, RULED 11-06 \"4 - lean\" (deep16/js/battle.js over, deep16/js/roam.js R.fight, deep16/js/inn.js In.yardFight, deep16/js/chase.js the lone runner, deep16/js/ui.js a fled one drawn; mode=innfights1106) · eyes",
+   "url": "deep16/?innshow&beat=wagon&fresh=1106y",
+   "verdict": "broken",
+   "note": "wagon reward should be like 'victory' at fight end",
+   "at": "2026-11-12T00:38:52.544Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-first-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE FIRST SUPPER, re-cut: no wagon opener, ONE thread of gossip, a read is one hero's (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, rulings 35 and 36 (deep16/js/inn.js In.SUP.thread, In.meal; mode=inn1104) · eyes",
+   "url": "deep16/?innshow&beat=room&fresh=1111r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-12T00:32:50.005Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-renown-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SUPPER AT RENOWN 3, re-cut: nothing runs under the screen now (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his BROKEN on eyes-supper-renown-1111 (deep16/js/counter.js THE FIT; mode=inn1104 \"nothing under the screen's foot\") · eyes",
+   "url": "deep16/?innshow&beat=supwarm&fresh=1111r",
+   "verdict": "",
+   "note": "passed",
+   "at": "2026-11-12T00:31:43.295Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-later-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "A LATER SUPPER: the second night -- a thread of gossip not yet had (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, ruling 36 · eyes",
+   "url": "deep16/?innshow&beat=suplater&fresh=1111r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-12T00:31:11.135Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-amara-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "AFTER AMARA, re-cut: no gossip dump; the bowl to the barn is one hero's to ask about (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-supper-amara-1111 · eyes",
+   "url": "deep16/?innshow&beat=supamara&fresh=1111r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-12T00:29:18.933Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-supper-alone-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET ALONE, re-cut: she says which wagon; (Eat quietly.); her question about the eyes can be answered (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-supper-alone-1111 · eyes",
+   "url": "deep16/?innshow&beat=supalone&fresh=1111r",
+   "verdict": "broken",
+   "note": "doran has a line when I ask her 'no. tell it' and he's supposed to be gone",
+   "at": "2026-11-11T23:23:42.199Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-barn-unseen-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, re-cut: everyone WALKS; the fight's field; Doran speaks on portraits after the yield (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, rulings 37 and 38 (deep16/js/inn.js In.barnYard; mode=inn1104 \"the yard fight's field\") · eyes",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1111r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-11T23:29:21.520Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-barn-seen-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, seen through, re-cut: Gennet walks the child in to the house (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-barn-seen-1111 · eyes",
+   "url": "deep16/?innshow&beat=barnseen&fresh=1111r",
+   "verdict": "broken",
+   "note": "narrative says she's carried, animation is walks in first - can we rotate/mirror the back door lamp?",
+   "at": "2026-11-11T23:21:28.223Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-barn-away-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, Doran away, re-cut: Elsbeth walks out; she sends them to the PIT; the OK under its line (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, ruling 40 · eyes",
+   "url": "deep16/?innshow&beat=barnaway&fresh=1111r",
+   "verdict": "works",
+   "note": "art request for girl and goblin (or did I ask already) - did she pull the knife then grab the child? - barley 'steps between' narratively but does not- we're using a cut of the tub portrait for elsbeth in scenes like this aren't we? - with girl in tow, no inn-stay (if you're not back in x days)",
+   "at": "2026-11-11T23:17:32.440Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-barn-renown-1111b",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN at renown 5, re-cut: the words stay in their boxes (11-11 evening)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 the re-cut, his note on eyes-barn-renown-1111 · eyes",
+   "url": "deep16/?innshow&beat=barnknown&fresh=1111r",
+   "verdict": "broken",
+   "note": "'raise her as mine', i'll take it to the fight and see if that records this part - also one in  last card note",
+   "at": "2026-11-11T23:12:21.345Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-barn-exits-1111c",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN: nobody vanishes -- each walks out through a door -- and the child follows beside the token (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night (deep16/js/inn.js In.barnYard exits, In.follow, D.roam.step; mode=inn1104 \"nobody vanishes\", \"the child follows\") · eyes",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1111x",
+   "verdict": "works",
+   "note": "i'll raise her as mine falls out her text box, check for other spills, room and board line given a 'tell me more' button, worth 'doran with an axe' portraits - outbox a request please - have the walks animate when the message comes up (i.e. doran back to the woodpile) - line 'child is asked her name' use char player used as party voice most often during encounter or vivian and do that bit in portraits by the door (line says 'at the road) - doran's default 'click on him' should be axe portrait with a line, that line should change after this encounter (the girl will be safest at the pit, come back in x nights) - have elsbeth point them toward the pit when they have the child, make it a dialog with option to ask her to come, staying with father just be back in x days - probably need to have g",
+   "at": "2026-11-11T23:10:25.434Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-sacrifice-full-1111d",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, her full tell: Elsbeth walks the bowls round; three rounds; nobody asked to eat; the fight from the table (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night, rulings 43-48 (deep16/js/inn.js In.sacMeal, In.mealScene; deep16/js/secondact.js A.supperFight; mode=winters1105) · eyes",
+   "url": "deep16/?innshow&beat=supsacr&fresh=1111n",
+   "verdict": "broken",
+   "note": "until Gennet says her name - mirror gennet portrait so she's facing the correct direction - why does it 'get dark' - is dinner during sunup? can we 'if and only if' party goes to the kitchen elsbeth had a readied action and fear wand? if not at least put her in the back room with the children, - confession triggered 'leave the fight' , which works but needs him to run over and 'stops 'character' at the door' (then confess)",
+   "at": "2026-11-12T00:27:42.674Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-sacrifice-faint-1111d",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, her faint tell: round two's bite, the taste and \"she hasn't filled her own bowl\", the warning under the table (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night, rulings 43-46 · eyes",
+   "url": "deep16/?innshow&beat=sacfaint&fresh=1111n",
+   "verdict": "broken",
+   "note": "weird elsbeth line in a black box then a blue one for taking the two bowls to the kitch, black line in blue box as addition above two bowls - reverts to old models after yield, then pops scene to standing regular positions, no 'following doran outside', he does go outside - otherwise working",
+   "at": "2026-11-12T00:22:05.395Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-sacrifice-none-1111d",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, no tell: everyone under, the drag, Elsbeth's bucket on the stone (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night, ruling 49 and rulings 16, 19 (deep16/js/secondact.js A.drag) · eyes",
+   "url": "deep16/?innshow&beat=sacnone&fresh=1111n",
+   "verdict": "works",
+   "note": "the close of table goes back to barley standing in front of the lady, do gennet saying 'good, they're drifting off' then fade to black, any necessary narration, then fade from black with barley asleep (he falls asleep after at present), just the girl with the bucket in the dark maybe, viv was standing with a z above her head, narration says elsbeth and the gennet are there but they aren't - back in by the front door and to bed excess narration",
+   "at": "2026-11-12T00:15:53.923Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-sacrifice-kept-1111d",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE KEPT-CHILD NIGHT: no draught, no lamp at supper; then the singing after bed (11-11 night)",
+   "pt": "the Halfway Inn and the lake, 2026-11-11 night, ruling 50 · eyes",
+   "url": "deep16/?innshow&beat=sackept&fresh=1111n",
+   "verdict": "broken",
+   "note": "the 30 minutes of being narrated to doesn't work. Doran can't talk about it not carrying if the singing is supposed to wake them, those narrations can be played.  Stilling water camera zoom, etc. Lake edge needs to be reworked some anyway - discuss",
+   "at": "2026-11-12T00:06:20.653Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-wagonnight-played-1104",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON NIGHT played on the inn's own floor: Lymen's feeling and the watches, the wagon in, the handover at the greeting, the yard fight where you stand (11-04)",
+   "pt": "the Halfway Inn and the lake, item 2 reworked on your \"all menu interaction and feels like a downgrade\" and \"battle map for the fight needs to be re-worked for a finalized inn\" (deep16/js/inn.js In.wagonNight) · eyes",
+   "url": "deep16/?innshow&beat=wagon&fresh=1104f",
+   "verdict": "broken",
+   "note": "wagon revision also needs see through, watch from upstairs room not big room where kat and gennet are still posted",
+   "at": "2026-11-12T00:42:53.645Z",
+   "new_since_last_save": true
+  }
+ ]
+}
