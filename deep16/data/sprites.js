@@ -19320,6 +19320,97 @@ true
 "door": "npc:pete",
 "source": "deep16/_src/pete/ART-123-PETE (the art desk's ART-123-PETE, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_pyro": {
+"image": "art/pt_pyro.png?v=5f42202ad6",
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 468,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stern": {
+"y": 624,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grieved": {
+"y": 780,
+"fw": 200,
+"fh": 156,
+"ax": 115,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-141-PYRO",
+"door": "npc:pyro (Solskaft's vault doors, js/solskaft.js SK.PEOPLE pyro; js/counter.js not wired)",
+"source": "deep16/_src/ART-141-PYRO/PORTRAITS/sources (the art desk's ART-141-PYRO, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_sabeth": {
 "image": "art/pt_sabeth.png?v=f729b20776",
 "fw": 236,
@@ -21227,6 +21318,40 @@ true
 "fps": 10
 }
 }
+},
+"pyro_p1": {
+"image": "art/pyro_p1.png?v=02368f2be6",
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 42,
+"fh": 64,
+"ax": 21,
+"ay": 61,
+"frames": 8,
+"fps": 9
+}
+},
+"name": "Pyro",
+"hold": [
+"walk: the passing poses are close and the arm swing restrained; SE frames 2-3 close; E 7-8 close; the rear NE cape hides the weight transfer (the art desk's own notes)",
+"the rear views: the gold clasp toward screen right (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-141-PYRO-TOWN, 11-12: art-wanted section 54, his town figure in five views), cut by tools/pyro-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "rascal_p2": {
 "image": "art/rascal_p2.png?v=afa3b8bee0",

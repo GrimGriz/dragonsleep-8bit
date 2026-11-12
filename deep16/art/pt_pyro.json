@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_pyro.png",
+ "fw": 200,
+ "fh": 156,
+ "ax": 115,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 312,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grave": {
+   "y": 468,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "stern": {
+   "y": 624,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grieved": {
+   "y": 780,
+   "fw": 200,
+   "fh": 156,
+   "ax": 115,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-141-PYRO",
+ "door": "npc:pyro (Solskaft's vault doors, js/solskaft.js SK.PEOPLE pyro; js/counter.js not wired)",
+ "source": "deep16/_src/ART-141-PYRO/PORTRAITS/sources (the art desk's ART-141-PYRO, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

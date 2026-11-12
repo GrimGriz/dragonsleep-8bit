@@ -113,7 +113,7 @@
   SK.CUT = [26, 17];          // (the Dormant's empty cut, in the hall's north wall over this square -- PASS TWO, 11-12)
   SK.WINDOW = [15, 3];        // (the lit window, high on the west store's face over this street square: Ásdís's -- over the lodging door since 11-12, the way up)
   SK.FOLK = [ // the first game's people who belong on this floor, with its looks (first/content/maps/solskaft.json), stood where the street puts them
-    { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p0' },     // (at the vault door, always -- CANON 07-24)
+    { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p1' },     // (at the vault door, always -- CANON 07-24; 11-12, cutter-pyro: on his own town figure, pyro_p1, the art desk's ART-141 in all eight facings -- tools/pyro-town-sheet.py; his fight sheet pyro_p0 is his fights')
     { id: 'ketil', at: [20, 1], dir: 'up', kind: 'trooper' },                       // (beside him: "I stand beside him and count who goes by")
     { id: 'quartermaster', at: [6, 6], dir: 'down', kind: 'trooper' },              // (behind the quartermaster's counter, in the tollhouse)
     { id: 'yardhand', at: [33, 5], dir: 'up', kind: 'trooper' },                    // (by the stable's trough: his word is the wheel and the fountains)
@@ -269,7 +269,7 @@
     if (r >= 15 && r <= 24) return rm('templeW') ? 'Rekknar\'s temple' : rm('templeE') ? 'the Dormant\'s temple' : rm('assay') ? 'the assay house' : rm('guard') ? 'the garrison\'s guardroom' : rm('ledger') ? 'Ingrith\'s ledger-room' : rm('petition') ? 'the petitioners\' room' : 'the hallway, under the rock';
     return r <= 0 ? 'the vault doors' : r <= 7 ? (t.x <= 9 && r >= 3 ? 'the tollhouse' : t.x >= 28 && r >= 3 ? 'the guest stable' : 'main street, under the glass') : r <= 14 ? 'the court of the oathstone' : 'the throne room';
   };
-  // the people's figures: the garrison's trooper and sergeant (data/foes.js), Pyro his own sheet (js/classes.js pyro_p0)
+  // the people's figures: the garrison's trooper and sergeant (data/foes.js), Pyro his own town figure (pyro_p1, 11-12; his fight sheet js/classes.js pyro_p0)
   var people0 = T.people;
   T.people = function (B) {
     people0.apply(this, arguments);

@@ -298,6 +298,15 @@ PEOPLE = {
                     + [('generalgrim/PORTRAITS-A2-1110/sources/H1P10-Speaking.png', [3, 3], ['speaking'] * 6), ('generalgrim/PORTRAITS-A2-1110/sources/H1P11-Command.png', [3, 3], ['command'] * 6)]
                     + [('generalgrim/PORTRAITS-A3-MONOLOGUE-1110/sources/H1P%d-%s.png' % (n, f), [1], [act]) for n, f, act in [
                         (13, 'The-Crossing', 'crossing'), (14, 'The-Accusation', 'accusation'), (15, 'The-Order', 'order')]]}),
+    # PYRONIMUS "PYRO" SILVERSANDS, King of Solskaft (11-12, cutter-pyro, on the lanes desk's relay of Griz's "pyro first pieces (and a griffon) are in fresh";
+    # art-wanted section 54, his description, "Pyro is old school"): the art desk's ART-141-PYRO portraits, sorted to deep16/_src/ART-141-PYRO/PORTRAITS/sources/ --
+    # Idle 6 (hands on the two mace heads, the blink on 4-5) and five moods: attentive, welcoming (the right hand lifted open), grave, stern (a hand closed on a
+    # haft), grieved (eyes lowered). Waist-up with no counter, so `noledge` and `cutline` (General Grim's way); looks screen left. No scene speaks on him yet:
+    # js/counter.js is the inn seat's, its C.SHEETOF / C.VENDORS line for `pyro` relayed by the desk
+    'pyro': ('ART-141-PYRO/PORTRAITS/sources', 'ART-141-PYRO', 'npc:pyro (Solskaft\'s vault doors, js/solskaft.js SK.PEOPLE pyro; js/counter.js not wired)', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['red', 'fire'], 'layout': [
+        ('ART-141-PYRO/PORTRAITS/sources/ART-141-PYRO_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
+        + [('ART-141-PYRO/PORTRAITS/sources/ART-141-PYRO_HEAD-%02d_PAGE-1_%s.png' % (h, act.upper()), [1], [act]) for h, act in [
+            (2, 'attentive'), (3, 'welcoming'), (4, 'grave'), (5, 'stern'), (6, 'grieved')]]}),
 }
 
 

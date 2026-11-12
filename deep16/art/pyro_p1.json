@@ -1,0 +1,34 @@
+{
+ "image": "art/pyro_p1.png",
+ "fw": 38,
+ "fh": 64,
+ "ax": 19,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 38,
+   "fh": 64,
+   "ax": 19,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 42,
+   "fh": 64,
+   "ax": 21,
+   "ay": 61,
+   "frames": 8,
+   "fps": 9
+  }
+ },
+ "name": "Pyro",
+ "hold": [
+  "walk: the passing poses are close and the arm swing restrained; SE frames 2-3 close; E 7-8 close; the rear NE cape hides the weight transfer (the art desk's own notes)",
+  "the rear views: the gold clasp toward screen right (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-141-PYRO-TOWN, 11-12: art-wanted section 54, his town figure in five views), cut by tools/pyro-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
