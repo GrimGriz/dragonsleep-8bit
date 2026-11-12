@@ -21453,6 +21453,98 @@ true
 ],
 "source": "drawn by the art desk (ART-141-PYRO-TOWN, 11-12: art-wanted section 54, his town figure in five views), cut by tools/pyro-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"pyro_p2": {
+"image": "art/pyro_p2.png?v=c1ada1723a",
+"fw": 48,
+"fh": 100,
+"ax": 24,
+"ay": 92,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 100,
+"ax": 24,
+"ay": 92,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 800,
+"fw": 58,
+"fh": 100,
+"ax": 29,
+"ay": 92,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1600,
+"fw": 74,
+"fh": 100,
+"ax": 37,
+"ay": 92,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"twinstrike": {
+"y": 2400,
+"fw": 64,
+"fh": 100,
+"ax": 32,
+"ay": 92,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 3200,
+"fw": 56,
+"fh": 100,
+"ax": 28,
+"ay": 92,
+"frames": 4,
+"fps": 10
+},
+"hurt": {
+"y": 4000,
+"fw": 84,
+"fh": 100,
+"ax": 42,
+"ay": 92,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 4800,
+"fw": 84,
+"fh": 100,
+"ax": 42,
+"ay": 92,
+"frames": 3,
+"fps": 8
+},
+"getup": {
+"y": 5600,
+"fw": 84,
+"fh": 100,
+"ax": 42,
+"ay": 92,
+"frames": 3,
+"fps": 8
+}
+},
+"name": "Pyro",
+"hold": [
+"attack: one right-hand mace, the left kept in guard -- a mild blow, kept as drawn on his word (\"the regular attack is weak-sauce but fits his time with the party in the story so it's kind of funny\")",
+"twinstrike: SE frame 4 projects the near mace a little flatter than the mannequin; E's near guard mace sits lower than the mannequin's (the art desk's own notes)",
+"walk: his town walk (ART-141-PYRO-TOWN) cut at the fight's size; the town figure carries the maces belted, as every walk of his does",
+"fall and prone: the maces let go and lie beside him; getup is the fall run back, the maces back in hand at the idle"
+],
+"source": "drawn by the art desk (ART-141-PYRO-COMBAT-COMPLETE and ART-141-PYRO-TWIN-STRIKE-COMPLETE, 11-12, the twin strike over the dwarf mannequin; the walk from ART-141-PYRO-TOWN), cut by tools/pyro-fight-sheet.py; SW W NW mirrored -- worn in his fights (js/classes.js NPC.NAMED pyro look)"
+},
 "rascal_p2": {
 "image": "art/rascal_p2.png?v=afa3b8bee0",
 "fw": 96,

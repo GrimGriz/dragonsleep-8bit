@@ -2546,7 +2546,7 @@
     // attack's name (claw, bite), and its second and third use in a turn the numbered rows (claw2, claw3: a blow from each of its arms)
     if (!posing && att.anim === 'attack' && atk.name) {
       // (atk.row: a blow that names its row -- Sweep the Ring plays `whirlwind`, 10-08)
-      var rk = atk.row || String(atk.name).toLowerCase().replace(/[^a-z]/g, '');
+      var rk = atk.row || (atk.twin && D.spr.anim(att.sheet, 'twinstrike') ? 'twinstrike' : String(atk.name).toLowerCase().replace(/[^a-z]/g, '')); // (a TWIN STRIKE blow plays the sheet's `twinstrike` row where it has one: Pyro's pyro_p2, 11-12)
       // (a named weapon plays its sort's row where the sheet has none by its name: GreyFang's Bow +1 is a longbow, and every arrow of his played the
       // `attack` fallback, his sword's slash, till 10-14 -- the show of his sheet found it: longbow 0, attack 26; js/save.js weaponOf carries the kind)
       if (!atk.row && atk.kind && !D.spr.anim(att.sheet, rk) && D.spr.anim(att.sheet, atk.kind)) rk = atk.kind;
