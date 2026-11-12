@@ -650,6 +650,21 @@
     multi: ['bite', 'claws'], immune: ['mundane'], shapechanger: true, form: 'hybrid',
     src: 'SRD 5.1 Werewolf (CR 3, 700 XP; Medium humanoid (human, shapechanger), chaotic evil), in its hybrid form: AC 12 (natural armor; 11 as the man), 58 HP (9d8 + 18), speed 30 (40 as the wolf); STR 15 DEX 13 CON 14 INT 10 WIS 11 CHA 10; Perception +4, Stealth +3, passive Perception 14; immune to bludgeoning, piercing and slashing from nonmagical attacks not made with silvered weapons (the game has no silvered weapons yet: every plain weapon is turned); Shapechanger (not played yet: the hybrid fights, the man and the wolf are looks; it dies as the priest, its true form); Keen Hearing and Smell; Multiattack (hybrid) one Bite (+4, 1d8 + 2 piercing; a humanoid DC 12 CON or cursed with werewolf lycanthropy) and one Claws (+4, 2d4 + 2 slashing). The realm: Rhollor feeds off the prayers to the Empty Seat and gives the Black Mountain clerics the werewolf\'s shift (TarlynsPit/wiki/the-doors.md, The Empty Chair) -- no cleric spells: the SRD block only'
   },
+  // THE GRIFFON (11-12, cutter-pyro, on the lanes desk's relay of Griz's "pyro first pieces (and a griffon) are in fresh"; asked in art-wanted section 44, ART-131,
+  // for the Coldridge route's random encounters, the flier off the crags by day): the SRD 5.1 Griffon as written, on the art desk's ART-131 cut into griffon_p1
+  // (tools/griffon-sheet.py: idle, walk, fly, beak, claws (the Talons page), flinch, fall, prone in all eight facings). Its fly 80 the grid's wings, as the
+  // manticore's and the harpy's (js/flight-ai.js; aloft it plays its fly row, js/ui.js UI.aloftRow); its Beak and Claws their own rows. Keen Sight: the KEEN table below
+  griffon: {
+    name: 'Griffon', type: 'monstrosity', sheet: 'griffon_p1', cr: '2', ac: 12, hp: 59, speed: 30, fly: 80, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 18, dex: 15, con: 16, int: 2, wis: 13, cha: 8 }, init: 2, perception: 15,
+    saves: { str: 4, dex: 2, con: 3, int: -4, wis: 1, cha: -1 },
+    attacks: {
+      beak: { name: 'Beak', atk: 6, dice: '1d8', mod: 4, type: 'piercing', reach: 5 },
+      claws: { name: 'Claws', atk: 6, dice: '2d6', mod: 4, type: 'slashing', reach: 5 }
+    },
+    multi: ['beak', 'claws'],
+    src: 'SRD 5.1 Griffon (CR 2, 450 XP; Large monstrosity, unaligned): AC 12, 59 HP (7d10 + 21), speed 30, fly 80 (wings in every fight, js/flight-ai.js); STR 18 DEX 15 CON 16 INT 2 WIS 13 CHA 8; Perception +5, darkvision 60, passive Perception 15; Keen Sight (advantage on Perception by sight: js/rules.js RU.keen, the KEEN table); Multiattack, one Beak (+6, 1d8 + 4 piercing) and one Claws (+6, 2d6 + 4 slashing). No Stealth in its block'
+  },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
   // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).
@@ -1221,9 +1236,9 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 // KEEN SENSES (RULED 11-07, Griz: "they bothered to put it in text, should be reflected in their perception stat or something - compare theirs to other monsters"; js/rules.js
 // RU.keen): every sheet here whose SRD 5.1 block has a Keen trait, the senses it names -- hearing and smell find a hider, sight only where it sees one. The winter wolf's
 // `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
-// hound, the weres...) have no sheet yet; the owlbear took its line 11-11, the werewolf the same day: a new sheet of one takes its line here
+// hound, the weres...) have no sheet yet; the owlbear took its line 11-11, the werewolf the same day, the griffon 11-12: a new sheet of one takes its line here
 (function (F) {
-  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell' };
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell', griffon: 'sight' };
   Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,

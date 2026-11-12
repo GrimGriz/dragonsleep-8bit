@@ -6567,6 +6567,106 @@
 }
 }
 },
+"griffon_p1": {
+"image": "art/griffon_p1.png?v=489dcc4bef",
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 90,
+"top": 58,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 90,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 816,
+"fw": 96,
+"fh": 102,
+"ax": 48,
+"ay": 90,
+"frames": 8,
+"fps": 8
+},
+"fly": {
+"y": 1632,
+"fw": 112,
+"fh": 102,
+"ax": 56,
+"ay": 90,
+"frames": 6,
+"fps": 10
+},
+"beak": {
+"y": 2448,
+"fw": 94,
+"fh": 102,
+"ax": 47,
+"ay": 90,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"claws": {
+"y": 3264,
+"fw": 116,
+"fh": 102,
+"ax": 58,
+"ay": 90,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"flinch": {
+"y": 4080,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 90,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 4896,
+"fw": 126,
+"fh": 102,
+"ax": 63,
+"ay": 90,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 5712,
+"fw": 128,
+"fh": 102,
+"ax": 64,
+"ay": 90,
+"frames": 3,
+"fps": 8
+},
+"getup": {
+"y": 6528,
+"fw": 128,
+"fh": 102,
+"ax": 64,
+"ay": 90,
+"frames": 2,
+"fps": 6
+}
+},
+"name": "Griffon",
+"hold": [
+"walk: SE leans toward profile in some poses, its rear-paw contacts subtle; the rear NE four-beat gait to check against SE (the art desk's own notes)",
+"flinch drawn larger than the idle on its one-band page, brought down to it here; prone 1 matched to fall 6 by width",
+"N talons: the front talon emerges high on frame 3 (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-131-COLDRIDGE-GRIFFON-SOURCE-SHEETS, 11-12: art-wanted section 44), cut by tools/griffon-sheet.py; SW W NW mirrored -- the SRD 5.1 Griffon: deep16/data/foes.js griffon"
+},
 "grimlock_p1": {
 "image": "art/grimlock_p1.png?v=e3b71eac52",
 "fw": 96,
