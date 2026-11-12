@@ -610,7 +610,11 @@
     // a face's foot: the open neighbour's floor, or the top of a cut stub in front of it; a face toward solid rock is never seen
     function foot(x, y) { var n = m.at(x, y); return !n ? null : n.open ? n.gz : n.rock === 'near' ? stubTop(m, n) : null; }
     var fR = foot(s.x + 1, s.y), fL = foot(s.x, s.y + 1);
-    var top = far ? WALL + Math.max(fR || 0, fL || 0) : stubTop(m, s);
+    // (a floor of built rooms -- m.def.wallFt, Sólskaft's street, js/skart.js, 11-12, Griz: "The way we're doing transparency ... is weird - wall stub method instead?": its walls
+    // stand their storey with a dressed top, not up into the dark; a wall with floor only behind it still shows its top)
+    var wallPx = m.def.wallFt ? Math.round(m.def.wallFt / 2.5 * m.def.step) : 0, zB = 0;
+    if (wallPx) [[-1, 0], [0, -1], [-1, -1], [1, 0], [0, 1], [1, 1], [1, -1], [-1, 1]].forEach(function (d) { var n = m.at(s.x + d[0], s.y + d[1]); if (n && n.open) zB = Math.max(zB, n.gz); });
+    var top = far ? (wallPx ? wallPx + Math.max(fR || 0, fL || 0, fR == null && fL == null ? zB : 0) : WALL + Math.max(fR || 0, fL || 0)) : stubTop(m, s);
     var W = TW, H = TH + top + 2, ox = HW, oy = top + HH; // canvas-local centre of the square's ground rhombus
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
@@ -641,7 +645,7 @@
           var band = vnoise(k * 0.08 + s.x * 3.1, (y + s.y * 11) * 0.22, seed) * 0.5 + vnoise(k * 0.3, y * 0.05, seed + 4) * 0.5;
           var v = (right ? 0.26 : 0.46) + (band - 0.5) * 0.36;
           if (built) { var course = Math.floor((j + s.y * 3) / 5), joint = (k + (course % 2) * 6) % 12 === 0; v = (right ? 0.34 : 0.56) + (vnoise(k * 0.5 + course * 7, course, seed) - 0.5) * 0.18 - ((j % 5 === 0 || joint) ? 0.22 : 0); } // a building: coursed stone
-          if (far) v -= Math.pow(up, 1.6) * 0.62;                 // into the dark above
+          if (far && !wallPx) v -= Math.pow(up, 1.6) * 0.62;      // into the dark above (a built room's wall stands lit to its top: m.def.wallFt)
           if (j === 0) v -= 0.12;                                  // the foot of the wall
           if (!far && j === span - 1) v += 0.18;                   // the cut edge catches the light
           if (v < 0.02 && far && up > 0.7) { if (dith(fx, y) < (up - 0.7) * 3) continue; }
@@ -649,8 +653,8 @@
         }
       }
     });
-    // the near stub's top: the cut section, lighter, so the eye reads it as a wall cut away
-    if (!far) {
+    // the near stub's top: the cut section, lighter, so the eye reads it as a wall cut away (and a built room's whole wall its dressed top: m.def.wallFt)
+    if (!far || wallPx) {
       for (var dy = -HH; dy < HH; dy++) {
         var half = HW - Math.abs(dy + 0.5) * 2;
         for (var dx = -Math.floor(half); dx < half; dx++) {

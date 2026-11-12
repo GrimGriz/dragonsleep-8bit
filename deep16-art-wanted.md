@@ -452,3 +452,21 @@ Cut as: `tools/wyvern-sheet.py` over `tools/sheetrows.py` into a new `wyvern_p1`
 ## 51. Sólskaft, batch 5: Ásdís Scalebeam's room over the west store, the one upstairs room walked (added 11-11, the Sólskaft build seat, on his walk: "we're going to need a boatload of sprite tiling ... prop request with the tile request", and on the desk's list, "that's all good stuff") -- ART-138, DRAFT IN THE OUTBOX 2026-11-11 (`deep16/_src/outbox/ASK-2026-11-11-solskaft-tiles-and-props/`, its zip beside it; the whole list counted by floor and family in its TILE-AND-PROP-INDEX.md, the rules in pixels at its head), waiting on his answers to its README's six questions -- IN HAND 2026-11-12 (the art desk's ART-138-SOLSKAFT, `c5788f35`, by the Sólskaft cutter); the block is on `deep16-art-in-hand.md`
 
 ## 52. The Halfway Inn, the barn's yard: Doran with the woodaxe (a talking portrait), and the kept child -- as the girl she is and as the goblin the glamour shows (talking portraits, and the girl's own town figure) (added 11-12, the inn seat) -- proposed ART-139, sent 2026-11-12 (`deep16/_src/art-desk/sent/ASK-2026-11-12-doran-axe-and-the-kept-child.md`) -- IN HAND 2026-11-12 (the art desk's ART-139: `pt_doranaxe`, `pt_keptchild`, `pt_glamourgoblin`, `keptchild_p1`, `3aa3b160`, by the ART-139 cutter); the block is on `deep16-art-in-hand.md`
+
+## 53. Sólskaft's assay house, furnished: the balance, the muffle furnace, crucibles and cupels, the standard ledger, buttons and ingots, a stool and a bench, the guild's mark (added 11-12, the Sólskaft cutter, on his walk: "looks like assay room needs a prop request") -- proposed ART-140, in the outbox 2026-11-12 (`deep16/_src/outbox/ASK-2026-11-12-solskaft-assay-props.md`), one page
+
+ATTACH: `PROJECTION-GUIDE.png`, `trooper_p0.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, and ART-135 page 3 (the touch-needles' table and the locked case, which stay).
+
+```text
+SÓLSKAFT, THE ASSAY HOUSE -- PROPS for an isometric tactics grid, the same set as ART-134 to ART-138 (grey dressed granite, dwarven, sober; neutral daylight, the game lights it). The assay house is a dwarven hall where silver was proved and weighed, closed seventy years: neat, dusty, everything still in its place. Draw at the garrison dwarf's scale (38 px tall), on the 64 x 32 floor diamond, 1 px up per 2 across; each piece names its long axis and the face the camera sees (the lower-left and lower-right).
+
+PAGE 1 -- THE ASSAY HOUSE'S THINGS:
+1. THE ASSAY BALANCE, uncovered: a fine brass beam balance in a glass-fronted case on a stone bench, 1 square.
+2. THE MUFFLE FURNACE, cold: a small squared stone furnace with an iron door and a chimney collar, the assayer's, 1 square (and lit, 4 frames, the fire inside the door only).
+3. CRUCIBLES AND CUPELS: a wall shelf of small clay crucibles and bone-ash cupels, a wall module one square wide, BOTH facings (along x, face lower-left; along y, face lower-right), and each as a 12 px stub.
+4. THE STANDARD LEDGER: a stone lectern with a great closed ledger on it, 1 square.
+5. ASSAY BUTTONS AND INGOTS: a low stone table with small silver buttons in rows and three stamped ingots, 1 square.
+6. A STOOL and A BENCH: a dwarf's stool (1 square) and a long stone bench (2 x 1 along x).
+7. THE GUILD'S MARK: a carved panel of the assayers' mark (a balance over a mountain), a wall module, both facings, + stub.
+Transparent cells, no matte; a CUTTER-NOTES.md and a CELLS.json as the Sólskaft pages had.
+```

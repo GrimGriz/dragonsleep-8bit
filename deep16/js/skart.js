@@ -109,15 +109,15 @@
   // the stores' faces: the west store's front on main street (its east face, x 14), its south face over the ramp; the east store's south face on the apron and its east face
   ST.STORE = function (s, side) {
     var r = R(s.y), x = s.x;
-    if (side === 'R' && x === 14) return { 3: 'lodging_door_with_window_dark_y', 4: 'store_shut_y', 5: 'store_shut_y', 6: 'store_shut_with_window_lit_y', 7: 'window_dark_y' }[r] || 'plain_tall_y';
-    if (side === 'L' && x >= 23) return x === 24 || x === 26 ? 'store_shut_with_window_dark_x' : 'window_dark_x';
+    if (side === 'R' && x === 14) return { 3: 'lodging_door_with_window_lit_y', 4: 'store_shut_y', 5: 'store_shut_y', 6: 'store_shut_with_window_dark_y', 7: 'window_dark_y' }[r] || 'plain_tall_y'; // (her lit window over the lodging door, the way up: 11-12)
+    if (side === 'L' && x >= 23) return x % 2 ? 'window_dark_x' : 'plain_tall_x'; // (the east store's back onto the apron: no shop bays -- 11-12, his "southern doors (decorative) dont' make sense")
     if (side === 'L') return x % 2 ? 'window_dark_x' : 'plain_tall_x';
     return r % 2 ? 'window_dark_y' : 'plain_tall_y';
   };
-  use('solskaft', ['lodging_door_with_window_dark_y', 'store_shut_y', 'store_shut_with_window_lit_y', 'window_dark_y', 'plain_tall_y', 'store_shut_with_window_dark_x', 'window_dark_x', 'plain_tall_x']);
+  use('solskaft', ['lodging_door_with_window_lit_y', 'store_shut_y', 'store_shut_with_window_dark_y', 'window_dark_y', 'plain_tall_y', 'window_dark_x', 'plain_tall_x', 'temple_lamp_lit', 'temple_lamp_unlit', 'stair_down_x']);
   // the pieces the code drew that the cells take over (the code's own when no sheet has come)
   ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'], pillar: ['temple_pillar'] }; // (the pillar: ART-134 page 06, 11-12 -- the temples' four a side)
-  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'lodging_stair_y', 'temple_pillar']);
+  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'temple_pillar']);
   // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
   ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 2, 4], ['water_trough_x', 33, 6], ['old_fodder', 34, 5],
     ['touch_needle_table', 11, 19], ['locked_weights_case', 13, 16], ['guardroom_bench_x', 26, 16]];
@@ -197,6 +197,7 @@
   BE.KIND = { row: 'niche_sealed', patron: 'niche_patron', pried: 'niche_pried', waits: 'niche_awaits' };
   BE.wall = function (s, side) {
     var r = R(s.y), k = s.x + ',' + r, n = SK.NICHE[k];
+    if (side === 'R' && s.x === 4 && r === 12) return 'stair_up_y'; // (the stair up to Rekknar's temple marked on the west hallway's wall: 11-12, his "'stairs down' 'stairs up' tile")
     if (n) { // (a niche's face toward the bier: the west tiers' east faces; the east tiers' faces turn away, their backs blank stone)
       if (side === 'R' && s.x < 18) { var nm = n.kind === 'gear' ? (n.wi === 1 ? 'niche_gear_shield' : 'niche_gear_hammer') : BE.KIND[n.kind] || 'niche_sealed'; return nm + '_y'; }
       return side === 'L' ? 'niche_blank_x' : 'niche_blank_y';
@@ -207,7 +208,7 @@
     if (side === 'R' && s.x === 30 && r === 1) return 'flooded_stair_cut_seal_y';                                                    // (the Warrens' stair through its cut seal)
     return side === 'L' ? 'plain_x' : 'plain_y';
   };
-  use('solskaft_below', ['niche_sealed_y', 'niche_patron_y', 'niche_pried_y', 'niche_awaits_y', 'niche_gear_shield_y', 'niche_gear_hammer_y', 'niche_blank_x', 'niche_blank_y',
+  use('solskaft_below', ['stair_up_y', 'niche_sealed_y', 'niche_patron_y', 'niche_pried_y', 'niche_awaits_y', 'niche_gear_shield_y', 'niche_gear_hammer_y', 'niche_blank_x', 'niche_blank_y',
     'name_wall_x_repeat', 'name_wall_x_short_row', 'dormants_cut_x', 'warranted_seal_whole_y', 'flooded_stair_cut_seal_y', 'plain_x', 'plain_y', 'bier_x', 'grave_anvil', 'chapel_ledger_stone',
     'kneeling_stone', 'barred_door_y', 'grille_y', 'kept_lamp_01', 'kept_lamp_02', 'kept_lamp_03', 'kept_lamp_04', 'flags_1', 'flags_2', 'flags_3', 'flags_4', 'edge_x_1', 'edge_y_1']);
   BE.PIC = { bier: ['bier_x'], anvil: ['grave_anvil'], stele: ['chapel_ledger_stone'], kneel: ['kneeling_stone', { first: true }], closedDoor: ['barred_door_y', { first: true }] };
@@ -232,6 +233,34 @@
     var st = m.at(1, 3); if (st) m.props.push({ skArt: true, kind: 'decal', sq: st, depth: st.x + st.y, gz: st.gz, layer: -1, make: function () { return A.cell('stair_head_y', { first: true }) || A.blank(); } });
   };
 
+  // ---------------------------------------------------------------- THE STREET'S WALLS AND THE SEE-THROUGH (11-12, his walk: "The way we're doing transparency (i.e. around 24, 22)
+  // is weird - wall stub method instead? when standing at 8, 20 transparency should but off for everything but what makes the temple interior visible"; "looks like external wall got
+  // moved and put on the floor ... near stables"; "looks like i'm walking through walls 16, 14 to 18, 14"): the grid cut every wall with open floor behind it to a knee stub, and on
+  // the raised street a stub reads as a slab on the floor -- between rooms (the crown's both walls, the stable's front) the walls were not there. Now every wall of the street stands
+  // whole, a storey with its dressed top (WALLFT), and is cut to its stub only by the party's presence: standing in a room, that room's walls toward the eye (its south and east
+  // walls, the camera's side) and nothing else; out on the street, as before, the faces between the eye and the party. The front wall (the facade) stays a stub, the doors in it
+  A.WALLFT = 15;
+  A.whole = function (m) { if (!SK.WHOLE) return; m.sq.forEach(function (q) { if (!q.open && q.rock === 'near' && R(q.y) > 0) q.rock = 'far'; }); m.rockImgs = {}; };
+  A.ROOMS = [ // (x0 r0 x1 r1: each walled room's floor, its name)
+    [7, 9, 11, 13, 'Rekknar\'s temple'], [26, 9, 30, 13, 'the Dormant\'s temple'], [1, 4, 8, 6, 'the tollhouse'], [29, 4, 34, 6, 'the stable'], [9, 16, 14, 20, 'the assay house'],
+    [23, 16, 29, 20, 'the guardroom'], [16, 15, 21, 20, 'the crown'], [1, 22, 36, 30, 'the throne room']];
+  A.roomAt = function (x, y) { var r = R(y); for (var i = 0; i < A.ROOMS.length; i++) { var b = A.ROOMS[i]; if (x >= b[0] && x <= b[2] && r >= b[1] && r <= b[3]) return b; } return null; };
+  // a room's walls toward the eye: the row under its south edge and the column past its east edge, corners and all
+  A.roomFront = function (m, b) { var out = [], add = function (x, r) { var q = m.at(x, SK.Y(r)); if (q && !q.open) out.push(q); };
+    for (var x = b[0] - 1; x <= b[2] + 1; x++) add(x, b[1] - 1); for (var r = b[1]; r <= b[3] + 1; r++) add(b[2] + 1, r); return out; };
+  var occ1 = D.roam && D.roam.occlude;
+  if (occ1) D.roam.occlude = function (B) {
+    var res = occ1.apply(this, arguments), m = B && B.map, R0 = B && B.roam, def = D.roam.def; if (!m || !m.sq || !R0 || !R0.token || !def || def.key !== SK.KEY) return res;
+    var t = R0.token, b = A.roomAt(t.x, t.y); A.inRoom = b ? b[4] : null; if (!b) return res;
+    var want = {}, dirty = {}; A.roomFront(m, b).forEach(function (q) { want[q.x + ',' + q.y] = q; });
+    var mark = function (q) { for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) dirty[(q.x + xx) + ',' + (q.y + yy)] = 1; };
+    (m.occCut || []).forEach(function (q) { if (!want[q.x + ',' + q.y]) { q.rock = q.occWas; delete q.occCut; delete q.occWas; mark(q); } }); // (in a room: nothing else cut)
+    Object.keys(want).forEach(function (k) { var q = want[k]; if (!q.occCut) { q.occWas = q.rock; q.rock = 'near'; q.occCut = true; mark(q); } });
+    m.occCut = Object.keys(want).map(function (k) { return want[k]; });
+    Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; });
+    return res;
+  };
+
   A.FLOOR = { solskaft: ST, solskaft_cart: CA, solskaft_below: BE, solskaft_asdis: LO };
 
   // ---------------------------------------------------------------- the code's pieces give way: SK.pic's makers return the cell when it has come (made again when it does)
@@ -249,7 +278,7 @@
   ST.pic = function (nm, args) {
     if (nm === 'dais' || nm === 'chevron' || nm === 'cut') return A.blank();                       // (the dais's tiles, the floor's ruts and the Dormant's module stand for these)
     if (nm === 'face' && /^(shutter|dark|lit|door)$/.test(args[0])) return A.blank();               // (the store's front is its two storeys' modules now)
-    if (nm === 'outsideStair') return A.cell('lodging_stair_y', { first: true });
+    if (nm === 'lamp') return A.cell(args[0] ? 'temple_lamp_lit' : 'temple_lamp_unlit', { first: true }); // (the lamp standards on the lamps' squares: 11-12, his "not seeing the light sources")
     return null;
   };
 
@@ -257,6 +286,7 @@
   var load0 = iso.load;
   iso.load = function (def) {
     var fl = def && A.on && A.FLOOR[def.key];
+    if (def && def.key === SK.KEY) def.wallFt = SK.art.WALLFT; // (the street's walls a storey with a dressed top, not up into the dark: 11-12, his "wall stub method instead?")
     if (def && SK.isFloor(def.key)) def.nearFoot = true; // (a stub's face from the floor in front of it, not the ground -- js/iso.js rockCanvas; 11-12, his "walls running up and down most of 6 that i just walk through", the code's look and the art's alike)
     if (fl) {
       if (fl.roofs) Object.keys(fl.roofs).forEach(function (k) { if (def.roofs && def.roofs[k]) def.roofs[k] = Object.assign({}, def.roofs[k], fl.roofs[k]); });
@@ -267,7 +297,7 @@
         ['L', 'R'].forEach(function (side) {
           var foot = side === 'L' ? o.fL : o.fR; if (o.far && foot == null) return;
           var nm = fl.wall(s, side, m); if (!nm) return;
-          if (o.far) A.face(cx, nm, side, o.ox, o.oy, foot, { fade: o.top - foot });
+          if (o.far) A.face(cx, nm, side, o.ox, o.oy, foot, m.def.wallFt ? {} : { fade: o.top - foot }); // (a built room's wall stands lit to its top: iso.js wallFt)
           else { var b0 = (o.base && o.base[side]) || 0; if (o.top - b0 > 0) A.face(cx, nm, side, o.ox, o.oy, b0, { clip: o.top - b0 }); } // (a stub: from its foot -- the floor in front, iso.js nearFoot -- up to its cut)
         });
       };
@@ -278,6 +308,7 @@
       };
     }
     var m = load0.apply(this, arguments);
+    if (def && def.key === SK.KEY) A.whole(m);
     if (fl) { A.dress(m, fl); A.fetch(m); }
     return m;
   };
@@ -289,6 +320,7 @@
     var lay = function (s, name, opt, d) { if (!s) return; m.props.push({ skArt: true, kind: 'sk', sq: s, depth: s.x + s.y + (d == null ? 0.5 : d), gz: s.gz, make: function () { return A.cell(name, opt) || A.blank(); } }); };
     if (fl === ST) {
       ST.OFF.forEach(function (q) { off(m, sq(q[0], q[1])); });
+      [[5, 11], [5, 12], [32, 11], [32, 12]].forEach(function (q) { var s = sq(q[0], q[1]); if (s) m.props.push({ skArt: true, kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, make: function () { return A.cell('stair_down_x', { first: true }) || A.blank(); } }); }); // (the stairs down marked: 11-12, his "might need a 'stairs down' 'stairs up' tile, hard to tell they're there")
       ST.THINGS.forEach(function (t) { // (each laid on its first square, anchored there; its depth the far end's, so what stands beside it sorts right; every square's code block let go)
         var s = sq(t[1], t[2]), n = (SK.art.FOOT[t[0]] || [1, 1])[0]; for (var i = 0; i < n; i++) off(m, sq(t[1] + i, t[2]));
         lay(s, t[0], Object.assign({ first: true }, t[3]), n > 1 ? n - 0.5 : 0.5); });
