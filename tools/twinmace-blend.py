@@ -269,8 +269,10 @@ def rows_slash(R):
     the knees starting back toward idle".
     A frame is the hips' turn (`yaw`: - puts his LEFT side forward) and the waist's on top of it (`twist`), each arm's angles (`up` the upper
     arm and `fo` the forearm, degrees above the level; `az` which way that arm points on the floor, + toward his left), and the blade: LOCK
-    degrees off its forearm in the arm's own plane, as the maces are -- except on 3 and 4, where it is laid on the target's marks (`at`) and
-    the wrist's angle is printed for the eye."""
+    degrees off its forearm in the arm's own plane, as the maces are -- except at the cut and the finish, where it is laid on the target's marks
+    (`at`) and the wrist's angle is printed for the eye.
+    Re-ordered the same day on his look ("4 is supposed to be the cut. pull 5, make 3 4, and find an intermediate between the current 2 and 3 to be
+    the new 3"): his 3 and 4 above are this row's frames 4 and 5; the old 5 is gone; a new 3 sits between the draw and the cut."""
     za, zb = R.ANK0['a'].z, R.ANK0['b'].z
     L1, L2 = R.BN['arm.L'].length / U, R.BN['fore.L'].length / U
     rad = math.radians
@@ -293,9 +295,9 @@ def rows_slash(R):
     SL = [
         P(-0.04, lean=3),                                                                                            # 1 POSITION ONE: the blade up in front, as the maces are held
         P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-12, 2, -4)),                 # 2 the hips turned, his LEFT side forward and the left arm out ahead; the right hand to the ear
-        P(-0.04 - IN3, shift=-0.04, lean=9, yaw=-4, twist=4, head=3, sh=6, R_=(-36, -20, -8), L_=(-55, -12, 14), at='neck'),      # 3 the knees down three inches, the waist back to the front, the arm out: THE CUT at the neck
-        P(-0.04 - IN3 * 0.6, shift=-0.05, lean=14, yaw=30, twist=14, head=8, hyaw=-18, R_=(-88, -80, 30), L_=(-78, -40, 26), at='ankle'),   # 4 the hips past the middle the other way, the blade down by the target's right ankle, the knees starting up
-        P(-0.05, shift=-0.02, lean=7, yaw=12, twist=5, hyaw=-6, R_=(-66, -8, 16), L_=(-72, -30, 14)),                 # 5 on the way back
+        P(-0.04 - IN3 * 0.5, shift=-0.015, lean=5, yaw=-18, twist=-5, hyaw=15, sh=8, R_=(-8, 56, -13), L_=(-34, -5, 5)),            # 3 between the draw and the cut (his 11-12: "find an intermediate between the current 2 and 3 to be the new 3"): the hips coming round, the knees going down, the arm unfolding
+        P(-0.04 - IN3, shift=-0.04, lean=9, yaw=-4, twist=4, head=3, sh=6, R_=(-36, -20, -8), L_=(-55, -12, 14), at='neck'),      # 4 the knees down three inches, the waist back to the front, the arm out: THE CUT at the neck
+        P(-0.04 - IN3 * 0.6, shift=-0.05, lean=14, yaw=30, twist=14, head=8, hyaw=-18, R_=(-88, -80, 30), L_=(-78, -40, 26), at='ankle'),   # 5 the hips past the middle the other way, the blade down by the target's right ankle, the knees starting up
         P(-0.04, lean=3, yaw=2, R_=(-63, 14, 3)),                                                                     # 6 nearly idle
     ]
     IDLE = [P(-0.04, lean=3)]
@@ -305,8 +307,8 @@ def rows_slash(R):
         d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]
         return Q, M, M['hand.R'].translation.copy()
 
-    # where the target stands: the neck REACH along the blade from the fist at 3
-    _, _, F3 = fist(SL[2]); dx, dz = NECK[0] * U - F3.x, NECK[1] * U - F3.z
+    # where the target stands: the neck REACH along the blade from the fist at THE CUT (frame 4)
+    _, _, F3 = fist(SL[3]); dx, dz = NECK[0] * U - F3.x, NECK[1] * U - F3.z
     SLASH['ty'] = (F3.y - math.sqrt(max((REACH * U) ** 2 - dx * dx - dz * dz, 0.0))) / U
     MARK = {'neck': Vector((NECK[0], SLASH['ty'], NECK[1])) * U, 'ankle': Vector((ANKLE[0], SLASH['ty'], ANKLE[1])) * U}
 
@@ -328,7 +330,7 @@ def rows(R):
     return rows_maces(R) if KIT == 'maces' else rows_slash(R)
 
 
-ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3 if KIT == 'maces' else 2)}     # (the slash's cut meets the neck on its frame 3)
+ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3)}     # (frame 4 is the hit in both: his "4 is supposed to be the cut", 11-12)
 
 
 def heads(arm):
@@ -356,7 +358,7 @@ def main():
                   % (LOG, s, h[0], h[1], h[2], hw * x, top, h[0] - hw * x, h[2] - HEADR - top))
     else:                  # ---- the target stood where the cut meets its neck (rows_slash worked it out)
         ty = SLASH['ty']
-        for fr, mark, nm in ((3, NECK, 'its neck'), (4, ANKLE, 'its right ankle')):
+        for fr, mark, nm in ((4, NECK, 'its neck'), (5, ANKLE, 'its right ankle')):
             scene.frame_set(fr); bpy.context.view_layer.update()
             M = arm.pose.bones['hand.R'].matrix; f0 = np.array(M @ Vector((0, 0, 0))) / U; tip = np.array(M @ Vector((0, BLADE * U, 0))) / U
             m = np.array((mark[0], ty, mark[1])); d = tip - f0; t = float(np.dot(m - f0, d) / np.dot(d, d))
