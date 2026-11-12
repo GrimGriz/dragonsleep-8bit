@@ -250,7 +250,7 @@
       S.t = t0 + (k - 0.5) * wh; // (the clock at the watch's middle: its sky and its fight's are that hour's)
       var sky = W.todAt(S.t % 24), night = sky === 'night', lit = night ? 'the dark' : sky === 'dawn' || sky === 'dusk' ? 'the half-light' : 'the daylight';
       if (S.zone !== zone || S.count == null) W.resetCount(zone);
-      S.count -= wh * W.PACE * (night ? W.NIGHTX : 1) * H.WATCHX;
+      S.count -= wh * W.PACE * (night ? W.NIGHTX : 1) * H.WATCHX * (W.mirrorRate ? W.mirrorRate() : 1); // (near the made things the count runs faster: js/world.js THE VESSEL'S ROAD)
       var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, night)) : null;
       if (!p || !p.list.length) { next(); return; }
       var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });

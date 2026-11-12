@@ -310,6 +310,8 @@
     if (/[?&]hairpin\b/.test(this.q) && M.near) { var cP = M.paths.filter(function (P) { return /coldridge/i.test(P.name || '') && P.at && P.hexes.length > 1; })[0]; if (cP) { S.at = cP.hexes[1].slice(); S.rv = [cP.id, 1]; S.pos = W.passPt(S.rv); W.closeIn(); } } // (&hairpin: the party on the Coldridge's first hairpin -- not &climb, the Pocket DM's own door, js/main.js at the closest zoom -- THE ROAD FOLLOWED's door, js/eyes.js eyes-roadfollow-1103)
     else if (/[?&]glowseep\b/.test(this.q) && M.near && M.pathById.mile) { S.at = M.pathById.mile.hexes[0].slice(); S.rv = ['mile', 0]; S.pos = W.passPt(S.rv); W.closeIn(); } // (&glowseep: the party at the fork on the mile, the Glowseep's door a hex up the road -- its door on the road since 11-05, tools/hexmap.js seedGlowseepRoad; js/eyes.js eyes-glowseep-road-1105)
     else if (/[?&]close\b/.test(this.q)) W.closeIn(); // (&close: open at the area's closest zoom, the built squares' show door -- js/eyes.js eyes-edifice-1103)
+    var vq = /[?&]vessel(?:=(\d+))?\b/.exec(this.q); W.VESSEL.show = vq ? { play: !vq[1] } : null; // (&vessel: THE VESSEL'S ROAD's show, above -- the clock his, the camera on the junction)
+    if (vq) { if (vq[1]) S.t = (+vq[1] - 1) * 24 + 12; var vj = MS.world.sites.filter(function (s) { return s.id === W.VESSEL.to; })[0]; if (vj && !M.near) { this.cam = { cx: vj.x - 15, cy: vj.y + 12 }; this.zi = 1; this.zBasePx = this.zooms()[this.zi]; } }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
@@ -729,7 +731,7 @@
     var fine = this.fineDoor && W.FINE.live(); // (THE FINE LAND, a trial: js/worldfine.js; the hex view as it was without its door)
     if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
     W.drawWays(ctx, cam); if (fine && W.FINE.ringsAt(cam.z) < 0) W.FINE.builtN = W.FINE.built(ctx, cam); // (the closest zoom: his squares built on, over the roads and rivers, 11-03)
-    W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); if (W.drawWagon) W.drawWagon(ctx, cam, this.t); GH = VIS = null; // (the wagon on the road while it runs: js/wagon.js, 11-04)
+    W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); if (W.drawWagon) W.drawWagon(ctx, cam, this.t); W.drawVessel(ctx, cam, this.t); GH = VIS = null; // (the wagon on the road while it runs: js/wagon.js, 11-04)
     // the party: a banner on the hex's top, bobbing as it walks
     var onLand = fine && W.FINE.ringsAt(cam.z) < 0, pa = onLand || M.near ? W.restPt() : hc(S.at[0], S.at[1]), ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : hexTopH(S.at[0], S.at[1]); // (at the closest zoom its hex is the land: the banner on the ground at its own spot; on the area at its spot, a road's own point)
     if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], u = this.walk.f / STEPF; pa = M.near ? W.walkPt(this.walk, u) : (function (pb) { return [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; })(hc(nx[0], nx[1])); ph = onLand ? W.FINE.groundH(pa[0], pa[1]) : ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
@@ -806,16 +808,92 @@
     if (e.t === 'verge') return 'verge';
     return inn && hc(e.q, e.r)[1] > inn.y + 2 ? 'south' : 'north';
   };
-  W.mirrorWeight = function () { return Math.max(0, Math.min(6, (W.day() - 1) * 0.5)); };
+  // THE VESSEL'S ROAD (RULED 11-12, Griz: "Only thing we really need in there is the vessel's road to determine made creature spawn and encounter rates - rest can hold";
+  // ..\handoff-2026-10-13-the-clock.md, the vessel-road seat): Mr. Ripples walks the 11-05 beeline -- RULED, "I don't see the old-one as bothering to calculate terrain with a
+  // b-line from one or two hexes north of the moot (where he was created)" -- from (7,15) straight to the Galleries junction, then up the Coldridge Route as THE WORLD draws it,
+  // at half a man's pace (the SRD's 24 mi a day halved: 12, dawn to dusk, from dawn of day 2), the ground slowing his feet as THE WORLD's walk does (a difficult hex at half,
+  // a road at its own going). THE MAKINGS (RULED 11-04, his "lean": days 5 and 7 and every second day after, he turns the area's random-encounter monsters into his mirrored
+  // abominations; reports reach places from day 8, by where he was at each making) are made WHERE HE IS at noon of a making day, and a made thing stays where it was made: the
+  // weight of the mirror-made entry on a zone's table is THE FALLOFF -- 6 (the old cap) at a making's place, falling straight to 0 at its reach; the reach 10 mi on its day
+  // and 6 mi more each day after (made things wandering from it, half his pace), to 40 at most; the strongest making counts. The ground he has not reached is clean; his
+  // trail stays dangerous: a point whose nearest stretch of his road he has not walked yet weighs nothing. The day-5 making's reach meets the inn's 26 mi on day 8, when the reports do. Near them the road's fights also come more often: the count runs
+  // (1 + W.VESSEL.rate * weight / 6) times as fast, 1.5 at a making. AFTER DAY 12 (RULED 11-07, his "gets his butt kicked at the warded place, he'll head down to the
+  // underground route after licking his wounds for a while"; how long, where: OPEN, his, HELD on the 11-12 word): he is held where dusk of day 12 leaves him (the Doors'
+  // hex, the last switchbacks), no making after day 11, and no reach grows after day 12. The seat's numbers, his to tune; the show: deep16/?world&far&fresh&noenc&vessel
+  W.VESSEL = {
+    from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, held: 12,
+    makings: [5, 7, 9, 11], makeHour: 12, reach: [10, 6, 40], peak: 6, rate: 0.5,
+    // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
+    // as the table; 9 to 11 a hex behind it (the climb slower); dusk of 12 in the Doors' hex as the table, the Doors' own mark -- the table's "late on day 12" -- 2 mi on
+    table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
+      9: [[19, 7], [19, 6]], 10: [[19, 6], [18, 6]], 11: [[18, 6], [17, 6]], 12: [[17, 6], [17, 5]] }
+  };
+  var VR = { src: null, pts: null };
+  W.vesselRoad = function () { // (his road as one line of miles on THE WORLD: [x, y, the walk's miles to here] -- the ground's going counted in)
+    var MW = MS.world; if (!MW) return null; if (VR.src === MW) return VR.pts;
+    var V = W.VESSEL, a = hcw(V.from[0], V.from[1], MW.w), js = MW.sites.filter(function (s) { return s.id === V.to; })[0], RP = MW.pathById[V.route];
+    if (!js || !RP) return null;
+    var b = [js.x, js.y], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(L / 0.05), pts = [[a[0], a[1], 0]], eff = 0, px = a[0], py = a[1];
+    for (var i = 1; i <= n; i++) {
+      var x = a[0] + (b[0] - a[0]) * i / n, y = a[1] + (b[1] - a[1]) * i / n, hq = atw((x + px) / 2, (y + py) / 2, MW.w), he = MW.hex[K(hq[0], hq[1])], T = he && MW.terr[he.t];
+      eff += Math.hypot(x - px, y - py) * (T && +T.cost && T.diff ? 2 : 1); px = x; py = y; pts.push([x, y, eff]);
+    }
+    var rp = (RP.pts || []).filter(function (p) { return Array.isArray(p); }), go = RP.going || (RP.difficult ? 2 : 1);
+    for (var j = 1; j < rp.length; j++) { eff += Math.hypot(rp[j][0] - px, rp[j][1] - py) * go; px = rp[j][0]; py = rp[j][1]; pts.push([px, py, eff]); }
+    VR.src = MW; VR.pts = pts; return pts;
+  };
+  W.vesselMiles = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk, held from dusk of day 12)
+    var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24;
+    if (d < V.day0) return 0; if (d > V.held) { d = V.held; h = V.dusk; }
+    return (d - V.day0) * V.mpd + V.mpd * Math.max(0, Math.min(1, (h - V.dawn) / (V.dusk - V.dawn)));
+  };
+  W.vesselAt = function (t) { // (where he is at S.t (default now): his point in miles, his hex on THE WORLD, the walk's miles, held or not)
+    if (t == null) t = S ? S.t : 0; var pts = W.vesselRoad(); if (!pts) return null;
+    var e = Math.min(W.vesselMiles(t), pts[pts.length - 1][2]), p = pts[pts.length - 1];
+    for (var i = 1; i < pts.length; i++) if (pts[i][2] >= e) { var a = pts[i - 1], b = pts[i], f = b[2] > a[2] ? (e - a[2]) / (b[2] - a[2]) : 0; p = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; break; }
+    return { pt: [p[0], p[1]], hex: atw(p[0], p[1], MS.world.w), mi: e, held: Math.floor(t / 24) + 1 > W.VESSEL.held, end: pts[pts.length - 1][2] };
+  };
+  W.makings = function (t) { // (the makings made by S.t: each its day, its place, its reach now)
+    if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tg = Math.min(t, V.held * 24);
+    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
+  };
+  W.partyPt = function () { return S && M ? hc(S.at[0], S.at[1]) : null; }; // (the party's hex's middle in miles: one plane for both maps)
+  W.mirrorWeight = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now))
+    pt = pt || W.partyPt(); if (!pt) return 0; var V = W.VESSEL, w = 0, pts = W.vesselRoad(); if (!pts) return 0;
+    var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
+    if (pts[bi][2] > W.vesselMiles(t == null ? (S ? S.t : 0) : t) + 1) return 0; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
+    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) w = Math.max(w, V.peak * (1 - d / m.reach)); });
+    return w;
+  };
+  W.mirrorRate = function (pt, t) { return 1 + W.VESSEL.rate * W.mirrorWeight(pt, t) / W.VESSEL.peak; }; // (the road's count runs this much faster near the made things)
+  // THE SHOW (deep16/?world&far&fresh&noenc&vessel, his eye: a look): his road drawn on THE WORLD, the day's dusk marks, his mark now, each making's reach as a ring;
+  // &vessel plays day 2 to day 14 over and over (two seconds a day), &vessel=<day> holds that day's noon
+  W.drawVessel = function (g, cam, t) {
+    var sv = W.VESSEL.show; if (!sv || !W.groundAt) return; var pts = W.vesselRoad(); if (!pts) return;
+    if (sv.play) { S.t = 24 + (Math.floor(t * 12 / 120) % (13 * 12)) * 2; } // (from 00:00 of day 2, two hours a frame-tick of 10)
+    var gp = function (x, y) { return W.groundAt(cam, x, y); };
+    g.strokeStyle = 'rgba(200,120,255,.55)'; g.lineWidth = 2; g.beginPath(); pts.forEach(function (p, i) { var q = gp(p[0], p[1]); if (!i) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }); g.stroke(); g.lineWidth = 1;
+    for (var d = W.VESSEL.day0; d <= W.VESSEL.held; d++) { var a = W.vesselAt((d - 1) * 24 + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
+    W.makings().forEach(function (m) {
+      g.strokeStyle = 'rgba(232,80,200,.8)'; g.fillStyle = 'rgba(232,80,200,.12)'; g.beginPath();
+      for (var k = 0; k <= 36; k++) { var an = k / 36 * Math.PI * 2, q = gp(m.pt[0] + Math.cos(an) * m.reach, m.pt[1] + Math.sin(an) * m.reach); if (!k) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }
+      g.fill(); g.stroke(); var c = gp(m.pt[0], m.pt[1]); D.text(g, 'day ' + m.day + ' made', Math.round(c[0]) - 18, Math.round(c[1]) + 4, '#ffb0f0');
+    });
+    var v = W.vesselAt(), p = gp(v.pt[0], v.pt[1]), x = Math.round(p[0]), y = Math.round(p[1]);
+    g.strokeStyle = '#ff60e0'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 4, y - 4); g.lineTo(x + 4, y + 4); g.moveTo(x + 4, y - 4); g.lineTo(x - 4, y + 4); g.stroke(); g.lineWidth = 1;
+    var hr = Math.floor(W.hour()), cap = 'THE VESSEL\'S ROAD -- day ' + W.day() + ', ' + (hr < 10 ? '0' : '') + hr + ':00 -- at ' + v.hex.join(',') + (v.held ? ' (held: past day 12 is his)' : '') + ' -- the made things here: ' + W.mirrorWeight().toFixed(1);
+    D.win8(g, 4, D.H - 66, D.textWidth(cap) + 10, 14); D.text(g, cap, 9, D.H - 63, '#ffb0f0');
+    W.VESSEL.drawn = { x: x, y: y, day: W.day(), makings: W.makings().length }; // (for the bench's eye)
+  };
   function tables() { return ((window.DS || {}).DATA || {}).encounters || {}; }
   W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS * 5; S.zone = zone; }; // (in miles: a hex 5, a tile half of one)
   // THE NIGHT (RULED 10-21, Griz: "Random encounter tables increase encounter activity at night (selected appropriate monsters)"): after dark the road's count runs
   // W.NIGHTX as fast, and a group with a creature of the night in it weighs twice, one of the day's alone half (the seat's picks from the zones' tables, his to tune)
   W.NIGHTX = 2; W.NIGHT_KINDS = ['wolf', 'worg', 'hyena', 'gnoll', 'giantrat', 'stirge', 'giantspider', 'wolfspider', 'wisp', 'giantbat']; W.DAY_KINDS = ['bandit', 'axebeak', 'giantboar'];
   W.isNight = function () { return W.timeOfDay() === 'night'; };
-  W.pick = function (zone, night) {
+  W.pick = function (zone, night, pt) {
     var Z = tables()[zone]; if (!Z) return null;
-    var gs = Z.groups.filter(function (g) { return !g.cond; }).map(function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }), mw = W.mirrorWeight(); if (!gs.length) return null;
+    var gs = Z.groups.filter(function (g) { return !g.cond; }).map(function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }), mw = W.mirrorWeight(pt); if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
     if (mw > 0) gs.push({ w: mw, mirror: true });
     var tot = 0; gs.forEach(function (g) { tot += g.w || 1; });
     var r = D.rand() * tot, grp = gs[0]; for (var i = 0; i < gs.length; i++) { r -= gs[i].w || 1; if (r < 0) { grp = gs[i]; break; } }
@@ -827,7 +905,7 @@
     if (/[?&]noenc\b/.test(scene.q)) return false;
     var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e);
     if (S.zone !== zone || S.count == null) W.resetCount(zone);
-    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1) * (W.isNight() ? W.NIGHTX : 1); W.save(); // (after dark the count runs faster: THE NIGHT, above)
+    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1) * (W.isNight() ? W.NIGHTX : 1) * W.mirrorRate(); W.save(); // (after dark the count runs faster: THE NIGHT, above; and near the made things: THE VESSEL'S ROAD)
     if (S.count > 0) return false;
     W.resetCount(zone); W.save();
     var p = W.pick(zone, W.isNight()); if (!p || !p.list.length) return false;
