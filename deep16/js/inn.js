@@ -200,6 +200,17 @@
   In.nightsToDue = function (f, d) { if (In.dueTonightOn(f, d)) return 0; var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) <= d) c++; return In.dueDay(c) - d; };
   In.WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
     'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty'];
+  // HER WORD ABOUT THE NIGHT, MADE TRUE (11-13, Griz, from Sylvia's table: "elsbeth said it wasn't a fight night at 4 am, did a long sleep and doran woke me up for the fight";
+  // then "what does she say the day after the chuul fight? something 'not tonight' ?"). Her closing line was fixed text, content/text.json inn.elsbeth3 -- "She won't talk
+  // about it again tonight. The lake is quiet. It is not a feeding night." -- said whatever the calendar held, on the due's own day too. Now the sentence about the lake
+  // reads the count her ring-line reads (In.nightsToDue): a feeding night tonight, tomorrow's, or how many nights off; with the thing dead, only that the lake is quiet.
+  // Her refusal to say more stays. The seat's words, his to re-word
+  In.elsbethQuiet = function (f, d) {
+    f = f || {}; var head = "She won't talk about it again tonight. ";
+    if (f.lakeDone) return head + 'The lake is quiet.';
+    var n = In.nightsToDue(f, d);
+    return head + (n === 0 ? 'Tonight is a feeding night.' : n === 1 ? 'The lake is quiet. Tomorrow is a feeding night.' : 'The lake is quiet. It is not a feeding night: that is ' + (In.WORDS[n] || n) + ' nights off.');
+  };
   In.setOffering = function (f, c, kind) { f.dueOffC = c; f.dueOff = kind; };
   In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : 'goblin'; };
   In.BARN = [7, 5]; // (the barn's west end stall, the far end from its door)
@@ -1735,7 +1746,7 @@
     }
     if (f.barnLet && !f.glamourBroken && !f.barnHinted && ((f.elsbethTier || 0) >= 1 || In.renown() >= 5)) { f.barnHinted = 1; yield sc.say([In.BY.hint]); return; } // (the party let Gennet keep what it took for a goblin: one more chance before the due -- 11-11, the barn's END A)
     if (f.doranAway && !In.has(st, 'ringofbinding') && (f.dishes || !In.elsOpen(f))) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); return; } // (her first telling comes before her word of Winters where she will tell at all: his "same stuff without dishes when he's gone", ruling 58)
-    if (f.chuulSeen && (f.elsbethTier || 0) < 3) { f.dishes = 1; f.elsbethTold = 1; f.elsbethTier = 3; yield sc.say([].concat(L('inn.elsbeth2'), L('inn.elsbeth3'))); return; } // (the god seen: her third tier for nothing)
+    if (f.chuulSeen && (f.elsbethTier || 0) < 3) { f.dishes = 1; f.elsbethTold = 1; f.elsbethTier = 3; yield sc.say([].concat(L('inn.elsbeth2'), In.elsbethQuiet(f, In.day(D.roam.q)))); return; } // (the god seen: her third tier for nothing)
     // HER FRONT END, HIS SHAPE (RULED 11-12, ruling 58, Griz: "at the renown that the supper acknowledges, she'll talk without mentioning dish help with \"you're the people
     // stopping the monsters\" after viv notices at dinner (if she doesn't mention noticing to gennet) they get the dishes stuff when they talk to her when her father
     // is there, same stuff without dishes when he's gone.  daytime private. Without renown she'll \"the girl focuses on her work\" until after first supper." and
@@ -1760,7 +1771,7 @@
       f.elsbethTold = 1; f.elsbethTier = 2; yield sc.say(L('inn.elsbeth2')); return;
     }
     f.elsbethTier = 3;
-    if (!In.has(st, 'ringofbinding')) { yield sc.say(L('inn.elsbeth3')); return; }
+    if (!In.has(st, 'ringofbinding')) { yield sc.say(In.elsbethQuiet(f, In.day(D.roam.q))); return; }
     // (the ring on the hand: "Tonight" on the due's own night, else how many nights off -- 11-08, his record: "elsbeth saying tonight with a girl skipping stones and
     // nothing for multiple days": she said it from the wagon's night on, three nights before the lantern walks)
     var nx = In.nightsToDue(f, In.day(D.roam.q));
