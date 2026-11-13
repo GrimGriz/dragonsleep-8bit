@@ -62,8 +62,9 @@ LYMEN'S SLASH (11-13, Griz to the lanes desk: "default lymen is shield and longs
     ... -- poser kit=sword+shield         the ONE-HANDED SLASH above, its frames as they are, with Lymen's round shield on the LEFT forearm
                         (deep16/_src/slashshield/, tools/poser.html?fig=slashshield; the human build, sized to barley_p3). The shield is
                         the one his fight sheet carries (deep16/art/lymen_p0.png: round, rimmed and bossed, shoulder to hip -- LYSHIELD_R),
-                        bigger than the garrison's. Only the left arm differs from kit=sword: it holds the shield between him and the
-                        target on every frame (SHIELDARM), and the cut goes over its rim and down outside it.
+                        bigger than the garrison's. RE-POSED the same day to his gist (rows_slash, the SWSH frames): the hips twist
+                        and the shield goes forward as the sword arm rises; the hips swing back the other way as the sword comes down;
+                        the hit opens the target's torso from its left shoulder to its right hip.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -393,6 +394,8 @@ def rows_maces(R):
 
 NECK = (-0.07, 1.50)     # the slash's first mark on the target: its neck between its LEFT shoulder and its chin (the striker's right), x and z
 ANKLE = (0.10, 0.12)     # and its last: the target's RIGHT ankle (the striker's left)
+LSHO = (-0.17, 1.46)     # Lymen's cut (11-13): in at the target's LEFT shoulder (the striker's right), on top of it ...
+RHIP = (0.13, 0.93)      # ... and out at its RIGHT hip (the striker's left): the torso opened corner to corner
 REACH = 0.70             # how far along the blade from the fist the neck is met
 SLASH = {}               # (what rows_slash works out for main: how far in front the target stands)
 
@@ -423,19 +426,16 @@ def rows_slash(R):
         pole = (sg * 0.22 + u[0], u[1], u[2]) if (abs(fo - up) > 40 or faz is not None) else (sg * 0.30, 0.3, -1.0)
         return w, pole
 
-    def P(lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, heel=0, sh=0, R_=(-62, 18, 0), L_=(-70, -25, 8), at=None):
-        if SWSH:                       # (Lymen's: this frame's left arm is the shield arm's, whatever the free hand did)
-            L_ = SHIELDARM[len(SEEN)]; SEEN.append(1)
+    def P(lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, heel=0, sh=0, R_=(-62, 18, 0), L_=(-70, -25, 8), at=None, fw=None):
         wr, pr = arm(-1, R_[0], R_[1], R_[2], 0.02); wl, pl = arm(1, L_[0], L_[1], L_[2], 0.03, *L_[3:])
-        return dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupb=sh,
-                    legs={'a': (0.13 * XK * U, -0.12 * U, za, 10, 0), 'b': (-0.13 * XK * U, 0.10 * U, zb, 28, heel)},
-                    arms={'a': wl, 'b': wr}, epolea=pl, epoleb=pr, _at=at)
+        d = dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupb=sh,
+                 legs={'a': (0.13 * XK * U, -0.12 * U, za, 10, 0), 'b': (-0.13 * XK * U, 0.10 * U, zb, 28, heel)},
+                 arms={'a': wl, 'b': wr}, epolea=pl, epoleb=pr, _at=at)
+        if fw:                         # (Lymen's: each shoulder rolled forward (+) or drawn back, left then right)
+            d.update(shfwa=fw[0], shfwb=fw[1])
+        return d
 
     IN3 = 0.076                                                       # (three inches)
-    # the shield arm, a frame (11-13): (up, fo, az, faz) -- the elbow down at his left side, the forearm level across his front, the shield's
-    # face to the target. It holds its place: the numbers move only to undo what the hips' turn would do to it. The seventh is the idle's.
-    GUARD = (-80, 4, 10, -72)          # (the upper arm nearly straight down: the shield stands near upright, its top a little back toward his shoulder)
-    SHIELDARM = [GUARD, (-74, 6, 6, -66), (-78, 5, 8, -70), GUARD, (-72, 6, 35, -45), GUARD, GUARD]; SEEN = []      # (5, his 11-13: "the left arm needs to move away from body center more than a shield raise (to the side of the arm it's in)" -- the elbow out to his left, the shield carried clear of the blade's path)
     SL = [
         P(-0.04, lean=3),                                                                                            # 1 POSITION ONE: the blade up in front, as the maces are held
         P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-12, 2, -4)),                 # 2 the hips turned, his LEFT side forward and the left arm out ahead; the right hand to the ear
@@ -445,6 +445,25 @@ def rows_slash(R):
         P(-0.04, lean=3, yaw=2, R_=(-63, 14, 3)),                                                                     # 6 nearly idle
     ]
     IDLE = [P(-0.04, lean=3)]
+    if SWSH:
+        # LYMEN'S, behind the shield (11-13). First built as the slash above with a shield arm; he re-posed it on the poser page and then gave
+        # the gist to pose to: "There's a hip twist with the striking arm raise where you put your shield more forward and the slash is the hip
+        # swinging the other way while you bring the sword down (arm and a bit of torso) - the 'hit' would be essentially trying to slice the
+        # opponents torso open from target left shoulder to right hip". And of the shield arm at the finish, the same day: "the left arm needs
+        # to move away from body center more than a shield raise (to the side of the arm it's in)".
+        # The shield arm is (up, fo, az, faz): the elbow down, the forearm level across his front, the shield's face to the target; a less
+        # steep upper arm pushes the shield out ahead of him.
+        GUARD = (-74, 5, 6, -70)
+        SL = [
+            P(-0.04, lean=3, yaw=-8, twist=-18, hyaw=24, fw=(20, -12), L_=GUARD),                                                         # 1 POSITION ONE, bladed: the left shoulder and the shield leading, the right shoulder drawn back, the blade up in front
+            P(-0.04, shift=0.015, yaw=-36, twist=-16, hyaw=42, sh=10, fw=(24, -10), R_=(22, 128, -18), L_=(-58, 8, 0, -62)),               # 2 THE WIND-UP: the hips twist, his left side and the shield go further forward as the sword arm rises to the ear
+            P(-0.04 - IN3 * 0.5, shift=-0.02, lean=11, yaw=0, twist=-12, hyaw=10, sh=9, fw=(12, 0), R_=(14, 74, -10), L_=(-70, 6, 4, -68)),  # 3 THE HIPS LEAD: they have swung back to square while the shoulders still lag; the sword arm starting over, the blade high
+            P(-0.04 - IN3, shift=-0.05, lean=19, yaw=24, twist=6, head=-11, hyaw=-24, sh=4, fw=(0, 12), R_=(-24, -8, -4), L_=(-74, 5, 16, -66), at='shoulder'),   # 4 THE HIT: the right hip driven through, the arm and a bit of the torso bringing the blade down onto the target's LEFT shoulder
+            P(-0.04 - IN3 * 0.6, shift=-0.05, lean=10, yaw=34, twist=4, head=0, hyaw=-28, fw=(0, 18), R_=(-58, -38, 34), L_=(-72, 6, 35, -45), at='hip'),          # 5 THROUGH: the blade has opened the torso down to the target's RIGHT hip and is leaving it; the shield arm out to his own left
+            P(-0.04, lean=2, yaw=-6, twist=-10, hyaw=14, fw=(10, -6), R_=(-63, 14, 3), L_=GUARD),                                            # 6 nearly back to position one
+        ]
+        IDLE = [P(-0.04, lean=3, yaw=-8, twist=-18, hyaw=24, fw=(20, -12), L_=GUARD)]
+    HITMARK = LSHO if SWSH else NECK
 
     def fist(P):
         Q = {k: v for k, v in P.items() if k != '_at'}
@@ -452,9 +471,10 @@ def rows_slash(R):
         return Q, M, M['hand.R'].translation.copy()
 
     # where the target stands: the neck REACH along the blade from the fist at THE CUT (frame 4)
-    _, _, F3 = fist(SL[3]); dx, dz = NECK[0] * U - F3.x, NECK[1] * U - F3.z
+    _, _, F3 = fist(SL[3]); dx, dz = HITMARK[0] * U - F3.x, HITMARK[1] * U - F3.z
     SLASH['ty'] = (F3.y - math.sqrt(max((REACH * U) ** 2 - dx * dx - dz * dz, 0.0))) / U
-    MARK = {'neck': Vector((NECK[0], SLASH['ty'], NECK[1])) * U, 'ankle': Vector((ANKLE[0], SLASH['ty'], ANKLE[1])) * U}
+    MARK = {'neck': Vector((NECK[0], SLASH['ty'], NECK[1])) * U, 'ankle': Vector((ANKLE[0], SLASH['ty'], ANKLE[1])) * U,
+            'shoulder': Vector((LSHO[0], SLASH['ty'], LSHO[1])) * U, 'hip': Vector((RHIP[0], SLASH['ty'], RHIP[1])) * U}
 
     def aim(P, tag):
         Q, M, F = fist(P)
@@ -619,7 +639,7 @@ def main():
               np.round(np.array(Mh.translation) / U, 3), np.round(np.array(Mh.to_3x3().col[1]), 2), BELT if KIT == 'axe+shield' else BELLY if KIT == 'stab' else None))
     else:                  # ---- the target stood where the cut meets its neck (rows_slash worked it out)
         ty = SLASH['ty']
-        for fr, mark, nm in ((4, NECK, 'its neck'), (5, ANKLE, 'its right ankle')):
+        for fr, mark, nm in ((4, LSHO, 'its left shoulder'), (5, RHIP, 'its right hip')) if SWSH else ((4, NECK, 'its neck'), (5, ANKLE, 'its right ankle')):
             scene.frame_set(fr); bpy.context.view_layer.update()
             M = arm.pose.bones['hand.R'].matrix; f0 = np.array(M @ Vector((0, 0, 0))) / U; tip = np.array(M @ Vector((0, BLADE * U, 0))) / U
             m = np.array((mark[0], ty, mark[1])); d = tip - f0; t = float(np.dot(m - f0, d) / np.dot(d, d))
