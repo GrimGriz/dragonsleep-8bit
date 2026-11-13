@@ -204,7 +204,7 @@ def build():
     _use = R.use
 
     def use(name):
-        _use(name); troot.scale = (1, 1, 1) if name == 'idle' else (1e-4,) * 3; bpy.context.view_layer.update()
+        _use(name); troot.scale = (1, 1, 1) if name in ('idle', 'walk') else (1e-4,) * 3          # (the walk too, 11-13, his "the tendrils would do their thing while he's walking too": the same eight frames of them over the stride); bpy.context.view_layer.update()
     R.use = use
     return scene, arm, body, tend, dummy, R, vcol
 
@@ -227,7 +227,7 @@ def rows(R):
                     legs={'a': (0.155 * XK * U, -0.07 * U, za, 16, 0), 'b': (-0.155 * XK * U, 0.07 * U, zb, 24, 0)},
                     arms={'a': (0.10 * U, (-0.16 - 0.02 * br) * U, -hang), 'b': (-0.10 * U, (-0.13 + 0.02 * br) * U, -hang)},
                     epolea=(0.5, 0.6, -0.6), epoleb=(-0.5, 0.6, -0.6))
-    S = 0.20          # THE WALK (11-13, his "we'll need a walk as well i think"): eight frames, a loop, in place -- a foot slides back under him over four frames and swings through lifted over four; the hips bob twice, the shoulders turn against the hips, the long arms swing against the legs; hunched lower and further forward than he stands. No tendrils.
+    S = 0.20          # THE WALK (11-13, his "we'll need a walk as well i think"): eight frames, a loop, in place -- a foot slides back under him over four frames and swings through lifted over four; the hips bob twice, the shoulders turn against the hips, the long arms swing against the legs; hunched lower and further forward than he stands. The tendrils unspool and lash over the stride as they do over the idle, frame for frame.
 
     def foot(ph, sx, z0, yaw):
         ph %= 1.0

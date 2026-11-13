@@ -22289,7 +22289,7 @@ true
 "source": "drawn by the art desk (2026-10-19, ART-74: five views, six rows each), cut and snapped by tools/ratswarm-sheet.py; each frame's swarm middle on its square's middle"
 },
 "ripples_blend_p1": {
-"image": "art/ripples_blend_p1.png?v=9be1fcb719",
+"image": "art/ripples_blend_p1.png?v=9cf3f5cf49",
 "fw": 148,
 "fh": 114,
 "ax": 74,
@@ -22307,17 +22307,17 @@ true
 },
 "walk": {
 "y": 912,
-"fw": 70,
-"fh": 102,
-"ax": 35,
-"ay": 90,
+"fw": 148,
+"fh": 110,
+"ax": 74,
+"ay": 97,
 "frames": 8,
 "fps": 10
 }
 },
 "name": "Mr. Ripples (Blender: idle, walk)",
 "hold": [
-"a review sheet: Mr. Ripples' idle with his two tendrils (out of the shoulder blades on 2, a full-square lash on 4 and 5, gone by 8) and his walk (no tendrils), for Griz's eye and the art desk's paint-over -- worn by nobody; no foe row exists for him",
+"a review sheet: Mr. Ripples' idle with his two tendrils (out of the shoulder blades on 2, a full-square lash on 4 and 5, gone by 8) and his walk (the same tendrils over the stride), for Griz's eye and the art desk's paint-over -- worn by nobody; no foe row exists for him",
 "his size (80 rows, the gnoll matriarch's), which socket is empty (his left), no kit, the gold eye are the seat's leans, put to Griz"
 ],
 "source": "built and rendered by tools/ripples-blend.py on the mannequin's bones (11-13), snapped and outlined by tools/pixelate.py; the hide and the stars laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored"

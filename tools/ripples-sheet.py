@@ -92,7 +92,7 @@ def main():
     pix.write_sheet('ripples_blend_p1', frames, M['fw'], M['fh'], M['ax'], M['ay'], tall, {r: (R[r]['fw'], R[r]['fh'], R[r]['ax'], R[r]['ay']) for r in ROWS})
     p = os.path.join(ART, 'ripples_blend_p1.json'); j = json.load(open(p, encoding='utf-8'))
     j.update(name='Mr. Ripples (Blender: idle, walk)',
-             hold=['a review sheet: Mr. Ripples\' idle with his two tendrils (out of the shoulder blades on 2, a full-square lash on 4 and 5, gone by 8) and his walk (no tendrils), '
+             hold=['a review sheet: Mr. Ripples\' idle with his two tendrils (out of the shoulder blades on 2, a full-square lash on 4 and 5, gone by 8) and his walk (the same tendrils over the stride), '
                    'for Griz\'s eye and the art desk\'s paint-over -- worn by nobody; no foe row exists for him',
                    'his size (80 rows, the gnoll matriarch\'s), which socket is empty (his left), no kit, the gold eye are the seat\'s leans, put to Griz'],
              source='built and rendered by tools/ripples-blend.py on the mannequin\'s bones (11-13), snapped and outlined by tools/pixelate.py; the hide and '
@@ -119,7 +119,7 @@ def main():
                 ims = [Image.open(os.path.join(SRC, r, '%s_%02d.png' % (v, i))).convert('RGBA') for i in range(n)]
                 w, h = ims[0].size; pgm = Image.new('RGBA', (w * n, h + 40), (96, 104, 120, 255)); dd = ImageDraw.Draw(pgm)
                 for i, im in enumerate(ims):
-                    mark = r == 'idle' and i in TEND
+                    mark = i in TEND
                     pgm.alpha_composite(im, (i * w, 0)); dd.text((i * w + w // 2, h + 20), str(i + 1) + (' TENDRILS' if mark else ''), font=font(22), fill=(240, 196, 64) if mark else (226, 232, 244), anchor='mm')
                 pgm.convert('RGB').save(os.path.join(D, 'ripples-%s-model-%s.png' % (r, v)), optimize=True)
                 s = Image.fromarray(np.concatenate(C[r][v], axis=1), 'RGBA'); bg = Image.new('RGBA', s.size, NAVY + (255,)); bg.alpha_composite(s)
