@@ -105,6 +105,7 @@
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
       h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; ['light', 'daylight'].forEach(function (k) { if (!(u.conds && u.conds[k])) delete h.conds[k]; }); if (D.roam && D.roam.flameBack) D.roam.flameBack(h, u); // (a Light that ended in the fight -- cast again on another -- off the sheet too: 10-28; a Continual Flame back as its weapon, 10-28 night)
+      if (u.slain) { h.dead = true; h.hp = 0; h.ko = true; } // (dead for good in the fight -- battle.js lostForGood, 11-13: the sheet says so; before, one killed outright came back merely down, and the next rest healed them)
       var ue = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; if (ue > exh(h)) H.exhaust(h, ue - exh(h)); // (a level the fight laid on, kept on the sheet: js/rules.js RU.exhaust)
       byId[h.key || h.id] = h;
     });
@@ -196,16 +197,19 @@
   // after a step: the day's hexes counted, the forced march's saves for each hex past. Returns the lines, or null if the march killed them all (the title)
   H.marchStep = function (st) {
     var R = DS.R, S = D.world.state(), before = S.todayHex || 0, cost = H.marchCost(st), lines = [];
-    S.todayHex = before + cost;
+    S.todayHex = before + cost; var died = [];
     for (var n = Math.floor(before + 1e-9) + 1; n <= Math.floor(before + cost + 1e-9); n++) { // (each whole hex the step completes: a tile's tenths add up to one)
       var past = n - H.DAYHEX; if (past <= 0) continue;
       var dc = 10 + past;
       H.cur.party.forEach(function (h) {
         if (h.dead || down(h)) return; // (the fallen are carried)
         var r = D.roll('1d20').total + R.saveBonus(h, 'con');
-        if (r < dc && H.exhaust(h, 1)) lines.push(h.name + ' fails the march (' + r + ' vs DC ' + dc + '): exhausted ' + exh(h) + (exh(h) >= 6 ? ' -- dead.' : ', ' + H.EXH[exh(h)] + '.'));
+        if (r < dc && H.exhaust(h, 1)) { lines.push(h.name + ' fails the march (' + r + ' vs DC ' + dc + '): exhausted ' + exh(h) + (exh(h) >= 6 ? ' -- dead.' : ', ' + H.EXH[exh(h)] + '.')); if (exh(h) >= 6) died.push(h); }
       });
     }
+    // one of the party dead of the march is dead for good, and the game is over on that one's line (11-13, Griz: "check for that with permadeath from massive damage or
+    // what-have-you as well" -- js/seep.js S.gameOver; before, the rest walked on without them and only all four dead ended it)
+    if (died.length && D.seep && D.seep.gameOver) { D.seep.gameOver(D.seep.LINES.march(died[0].name)); return null; }
     if (H.cur.party.every(function (h) { return h.dead; })) { H.lost(); return null; }
     return lines;
   };

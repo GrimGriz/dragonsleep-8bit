@@ -447,18 +447,41 @@
     },
     multi: ['sword', 'dagger'], src: 'content/monsters.json merc (SRD 5.1 Bandit Captain cut down to a merc between contracts: two attacks, 40 HP; Griz 09-27: the blade was harder than Talmok); on the Hired Sword sheet'
   },
-  // the will-o'-wisp (10-05, Griz: "lets see how cool wisps can look"; "Let's try code drawn"): the sheet is drawn in code (tools/wisp-sheet.py). SRD 5.1 Will-o'-Wisp, CR 2, Tiny, fly 50.
-  // Its light is `glow` (js/light.js L.carried: bright 10, dim 10 of the SRD's 5-20 Variable Illumination; it goes out with it when it turns invisible).
-  // Invisibility is at will, an action, ending on an attack (SRD; Griz 10-05: "we SRD when we can"; ai.js brute, `invisibility: 'atwill'`). NOT BUILT: Consume Life (bonus action, a creature at 0 HP within 5 ft dies,
-  // the wisp heals 3d6), Incorporeal Movement (through creatures and objects, 1d10 force if it ends inside), flight (it goes round, not over, like the bat).
+  // the will-o'-wisp (10-05, Griz: "lets see how cool wisps can look"; "Let's try code drawn"): the sheet is drawn in code (tools/wisp-sheet.py). SRD 5.1 Will-o'-Wisp, CR 2, Tiny,
+  // speed 0, fly 50 (hover). Invisibility is at will, an action, ending on an attack or its Consume Life (SRD; Griz 10-05: "we SRD when we can"). Its four traits since 11-13
+  // (js/seep.js, the wisp's own turn S.turn): `fly` (the fliers' wings in every fight, js/flight-ai.js), `incorporeal` (through creatures and objects as difficult terrain, 1d10
+  // force if it ends its turn inside an object: js/grid.js), `consume` (Consume Life: a bonus action, one at 0 hit points and alive within 5 ft, CON DC 10 or dead -- for good, and
+  // the game is over: Griz, 11-13, "they get a save against consume life, coz - build it and have it end the game 'character was lost the seep'"; `grace`: the seat's call, it
+  // takes only one who was already down as its turn began -- a round to get them up) and `glow.vary` (Variable Illumination, a bonus action: bright 20 as it hunts, 5 as it lurks,
+  // dim as far again -- the lane's lean; its light goes out with it when it turns invisible, js/light.js L.carried)
   wisp: {
-    name: "Will-o'-Wisp", type: 'undead', sheet: 'wisp_p1', cr: '2', ac: 19, hp: 22, speed: 50, size: 1, reach: 5, darkvision: 120, invisibility: 'atwill', glow: { bright: 10, dim: 10, color: 'glow' },
+    name: "Will-o'-Wisp", type: 'undead', sheet: 'wisp_p1', cr: '2', ac: 19, hp: 22, speed: 50, fly: 50, hover: true, incorporeal: true, size: 1, reach: 5, darkvision: 120, invisibility: 'atwill',
+    glow: { bright: 5, dim: 5, color: 'glow', vary: [5, 20] },
+    consume: { what: 'life', name: 'Consume Life', dc: 10, ab: 'con', heal: '3d6', grace: true },
     abil: { str: 1, dex: 28, con: 10, int: 13, wis: 14, cha: 11 }, init: 9, perception: 12,
     saves: { str: -5, dex: 9, con: 0, int: 1, wis: 2, cha: 0 },
     attacks: { shock: { name: 'Shock', atk: 4, dice: '2d8', mod: 0, type: 'lightning', reach: 5 } },
     multi: 1, immune: ['lightning', 'poison'], resist: ['acid', 'cold', 'fire', 'necrotic', 'thunder', 'mundane'],
     condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
-    src: "SRD 5.1 Will-o'-Wisp (CR 2); content/monsters.json wisp; a figure drawn in code (tools/wisp-sheet.py)"
+    src: "SRD 5.1 Will-o'-Wisp (CR 2): Consume Life, Incorporeal Movement, Variable Illumination, fly 50 (hover), Shock, Invisibility -- all read since 11-13 (js/seep.js); Ephemeral has nothing to read here; content/monsters.json wisp; a figure drawn in code (tools/wisp-sheet.py)"
+  },
+  // THE MIRROR WISP (11-13, ours; Griz: "also make a mirror version that consumes magic (eats spell slots)"): the will-o'-wisp as Mr. Ripples makes things along his road -- the
+  // wisp's whole SRD frame (AC 19, 22 HP, fly 50 and hover, Incorporeal Movement, Invisibility, Variable Illumination, Shock) with its hunger turned from life to magic. CONSUME
+  // MAGIC, set beside Consume Life word for word: a bonus action, one creature it can see within 5 ft that has a spell slot left, CON DC 10 "against this magic" or its highest
+  // slot left is gone, and the mirror wisp regains 1d6 a level of the slot (a 3rd-level slot is Consume Life's own 3d6). Nobody dies of it. It goes for the one with the most
+  // magic left (js/seep.js S.turn). The house look: the mirror eye and the ripple over its body; its figure the wisp's, drawn in code in the mirror's silver and violet
+  // (tools/mirrorwisp-sheet.py), its light violet. Every number the seat's call, for his overrule
+  mirrorwisp: {
+    name: 'Mirror Wisp', type: 'undead', sheet: 'mirrorwisp_p1', cr: '2', ac: 19, hp: 22, speed: 50, fly: 50, hover: true, incorporeal: true, size: 1, reach: 5, darkvision: 120, invisibility: 'atwill',
+    glow: { bright: 5, dim: 5, color: 'violet', vary: [5, 20] },
+    consume: { what: 'magic', name: 'Consume Magic', dc: 10, ab: 'con', healPer: '1d6' },
+    abil: { str: 1, dex: 28, con: 10, int: 13, wis: 14, cha: 11 }, init: 9, perception: 12,
+    saves: { str: -5, dex: 9, con: 0, int: 1, wis: 2, cha: 0 },
+    attacks: { shock: { name: 'Shock', atk: 4, dice: '2d8', mod: 0, type: 'lightning', reach: 5 } },
+    multi: 1, immune: ['lightning', 'poison'], resist: ['acid', 'cold', 'fire', 'necrotic', 'thunder', 'mundane'],
+    condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
+    mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
+    src: "ours (11-13): the SRD 5.1 Will-o'-Wisp made over by Mr. Ripples -- Consume Magic for Consume Life (a bonus action, within 5 ft, CON DC 10 or the highest spell slot left is eaten; it regains 1d6 a slot level), the mirror eye, the ripple; drawn in code (tools/mirrorwisp-sheet.py)"
   },
   // the three bugs of the 8-bit's Glowseep (10-05, Griz: "Let's try code drawn"; tools/bugs-sheet.py), SRD 5.1 blocks as content/monsters.json has them
   stirge: {
@@ -466,7 +489,20 @@
     abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
     saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
     attacks: { drain: { name: 'Blood Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true } }, // (SRD 5.1: it attaches -- ai.js, a latched stirge drains 1d4+3 at the start of each of its turns and lets go at 10 drained; "a creature can use its action to detach it", so any check serves: dc 1)
-    multi: 1, src: 'SRD 5.1 Stirge (CR 1/8, Tiny, fly 40: here it moves 40 on the ground); content/monsters.json stirge; the attach is the darkmantle machinery without the blinding (battle.js `stinger`)', todo: 'flight is not read (it goes round, not over)'
+    multi: 1, src: 'SRD 5.1 Stirge (CR 1/8, Tiny, fly 40: it flies in every fight since 10-21, js/flight-ai.js); content/monsters.json stirge; the attach is the darkmantle machinery without the blinding (battle.js `stinger`)'
+  },
+  // THE MIRROR STIRGE (11-13, ours; Griz: "Let's mirror version of the stirge similar (drains spell slots)"): the stirge as Mr. Ripples makes things -- the SRD frame whole (AC 14,
+  // 2 HP, fly 40, the bite that attaches), and what it drinks is magic. Latched, at the start of each of its turns it eats the LOWEST spell slot its host has left, and the host
+  // loses no blood; a slot counts 5 a level toward the 10 that fills it (two 1st-level slots, or one of 2nd or higher), then it lets go. A host with no slot left it drinks as
+  // any stirge does, blood (js/ai.js, the stirge's own branch: `stinger.slots`). It goes for the one with magic (js/seep.js). The look is a STAND-IN: the stirge's own sheet
+  // under the mirror ripple, the mirror eye (its art asked of the art desk 11-13: deep16-art-wanted.md, the outbox's ART-MIRROR-STIRGE). The seat's calls, for his overrule
+  mirrorstirge: {
+    name: 'Mirror Stirge', type: 'beast', sheet: 'stirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, fly: 40, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
+    saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
+    attacks: { drain: { name: 'Magic Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true, slots: true } },
+    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
+    src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on the stirge sheet as a stand-in'
   },
   firebeetle: {
     name: 'Fire Beetle', type: 'beast', sheet: 'firebeetle_p1', cr: '0', ac: 13, hp: 4, speed: 30, size: 1, reach: 5, blindsight: 30, glow: { bright: 10, dim: 10, color: 'fire' },
@@ -480,7 +516,7 @@
     abil: { str: 5, dex: 14, con: 12, int: 1, wis: 7, cha: 3 }, init: 2, perception: 8,
     saves: { str: -3, dex: 2, con: 1, int: -5, wis: -2, cha: -4 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '3d6', type: 'poison', half: false, zero: true } } },
-    multi: 1, src: 'SRD 5.1 Giant Centipede (CR 1/4); content/monsters.json centipede', todo: 'the SRD poison rule that drops a target to 0 HP leaves it stable, poisoned and paralysed for an hour: not read'
+    multi: 1, src: 'SRD 5.1 Giant Centipede (CR 1/4); content/monsters.json centipede; its poison that drops one to 0 hit points leaves them stable, poisoned for an hour and paralyzed while it lasts (`zero`: battle.js attack, since 10-29)'
   },
   stablefighter: {
     name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,

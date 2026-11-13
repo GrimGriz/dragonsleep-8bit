@@ -201,12 +201,14 @@
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
+    else if (D.seep && D.seep.wispy(u)) yield* D.seep.turn(B, u); // (the will-o'-wisp and its mirror: Consume Life or Consume Magic, the Shock, the fade, its light -- js/seep.js, 11-13)
     else if (u.side === 'foe' && u.flies && D.flightAI && D.flightAI.on(B.fight)) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     if (u.post && D.postures && !u.dead && u.hp > 0) yield* D.postures.after(B, u); // (a holder's handed-over turn with the action unspent: the Ready -- js/postures.js)
     if (D.aidark && !u.dead && u.hp > 0) yield* D.aidark.after(B, u); // (a light burning on the floor beside one that wants the dark: stamped out -- js/aidark.js, 11-13)
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
+    if (u.incorporeal && D.seep && D.seep.endTurn(B, u)) yield 24; // (Incorporeal Movement: 1d10 force for a turn ended inside an object -- js/seep.js, 11-13)
     if (u.side === 'foe' && B.fight && B.fight.whistler === u.id && !u.whistled) yield* whistle(B, u); // (the Skylights: Hallvör's call, the turn she first stands on the roof)
     // (the sweep of what it laid till the end of its next turn: AI.turn's `finally`, above -- however the turn ended)
     D.magic.endTurn(B, u);
@@ -1384,6 +1386,9 @@
       // a stirge (SRD 5.1 Blood Drain: the target takes 1d4+3 piercing at the start of each of the stirge's turns, and it lets go after 10 HP drunk or the target's fall)
       if (ra && ra.stinger) {
         if (!host || !G.standing(host)) { B.dismount(u); return; }
+        // (the mirror stirge, `slots`: it drinks magic -- the lowest spell slot its host has left, 5 a level toward its 10, and no blood; a host with no slot left it
+        // drinks as any stirge does -- js/seep.js S.drinkSlot, 11-13, Griz: "Let's mirror version of the stirge similar (drains spell slots)")
+        if (ra.slots && D.seep && D.seep.drinkSlot(B, u, host)) { yield 20; if (u.drained >= 10) { B.card(['{g}' + the(B, u) + ' lets go, glutted on it.{/}'], 160); B.dismount(u); } return; }
         var dn = ra.dice ? D.roll(ra.dice).total + (ra.mod || 0) : 5;
         u.drained = (u.drained || 0) + dn; // (counted with this drink: the line read "7 piercing ... (5 of 10 so far)" before it, then "lets go" -- his fight of 11-03, read that night)
         B.card(['{r}' + the(B, u) + '{/} drinks: ' + dn + ' piercing from ' + host.name + '.  {g}(' + Math.min(10, u.drained) + ' of 10' + (u.drained >= 10 ? ': full' : ' so far') + '){/}'], 120); FX.sparkle(host, 'red', 8); D.sfx('poison');

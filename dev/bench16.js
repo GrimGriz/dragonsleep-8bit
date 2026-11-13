@@ -18681,6 +18681,66 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preC);
     return;
   }
+  // THE SEEP'S OWN (mode=seep1113; the wisp-and-stirge seat, 2026-11-13, on his words to the lanes desk: "they get a save against consume life ... build it and have it end the
+  // game 'character was lost the seep' - check for that with permadeath from massive damage or what-have-you as well"; "also make a mirror version that consumes magic";
+  // "Let's mirror version of the stirge similar (drains spell slots)"). 1. the show's beats (deep16/?seepshow&fast, headless): the wisp's Consume Life saved and failed, the
+  // Death Ward, the round's grace and its light, the fade, Incorporeal Movement, the mirror wisp, the mirror stirge, the stirge's latch and PULL IT OFF's line. 2. dead for good
+  // ends the game where one is being played: massive damage, the sixth level of exhaustion and Consume Life each lose the fight on their own line (Battle.endsGame with the
+  // house playing; on the class floor the fight goes on); the game-over card. 3. the blocks: the wisp's fly 50, the mirrors' look. Each failed on the code before it
+  if (get('mode', '') === 'seep1113') {
+    var repS = { checks: [], errors: [] }, d0S = D.d;
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkS(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function runS(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function logS(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1. THE SHOW
+      if (!D.seepshow) okS('1 the show: deep16/js/seepshow.js is loaded', false);
+      else {
+        var BS = D.seepshow.make('?seepshow&fast'); D.battle = BS; BS.enter();
+        var vS, kS = 0;
+        while (BS.co && kS++ < 400000) { var rS = BS.co.next(vS); vS = undefined; if (rS.done) break; var yS = rS.value; if (yS && yS.prompt) vS = yS.prompt.opts[0].value; }
+        (BS.seepReport || []).forEach(function (b) { okS('1 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+        okS('1 the show ran ' + (BS.seepReport || []).length + ' beats (want 9)', (BS.seepReport || []).length === 9);
+      }
+      D.d = d0S;
+      // 2. DEAD FOR GOOD ENDS THE GAME
+      var H = D.house, was = H.playing;
+      var B2 = mkS('?npc=ogre&lvl=3&vs=fighter:3,cleric:3'), f2 = B2.units.filter(function (u) { return u.cls === 'fighter'; })[0], c2 = B2.units.filter(function (u) { return u.cls === 'cleric'; })[0], og = B2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      B2.active = og; var n2 = (B2.log || []).length; B2.hurt(f2, f2.hp + f2.maxhp, 'bludgeoning', {});
+      okS('2a massive damage on the class floor: dead and slain (' + !!f2.dead + ', ' + !!f2.slain + '), the fight goes on (over ' + B2.over() + ', want null), no game ends', f2.dead && f2.slain && !B2.slainLost && B2.over() == null);
+      try {
+        H.playing = true; var o0 = B2.o.npc; B2.o.npc = null; // (as a road's or a floor's fight in a game being played: not the class floor)
+        okS('2b a game being played: Battle.endsGame says yes for a hero (' + (D.Battle.endsGame ? D.Battle.endsGame(B2, c2) : 'no such function') + ')', !!D.Battle.endsGame && D.Battle.endsGame(B2, c2) === true);
+        n2 = (B2.log || []).length; B2.hurt(c2, c2.hp + c2.maxhp, 'bludgeoning', {});
+        okS('2c massive damage there: the fight is lost (' + B2.over() + '), its line "' + B2.slainLine + '" (want "' + c2.name + ' was killed outright.")', B2.over() === 'lost' && B2.slainLine === c2.name + ' was killed outright.');
+        var B3 = mkS('?npc=ogre&lvl=3&vs=fighter:3,cleric:3'), f3 = B3.units.filter(function (u) { return u.cls === 'fighter'; })[0]; B3.o.npc = null;
+        D.rules.exhaust(B3, f3, 6, 'the bench');
+        okS('2d the sixth level of exhaustion: dead, slain, the fight lost on "' + B3.slainLine + '" (want "' + f3.name + ' died of exhaustion.")', f3.dead && f3.slain && B3.over() === 'lost' && B3.slainLine === f3.name + ' died of exhaustion.');
+        var B4 = mkS('?npc=wisp&lvl=3&vs=fighter:3,cleric:3'), f4 = B4.units.filter(function (u) { return u.cls === 'fighter'; })[0], w4 = B4.units.filter(function (u) { return u.kind === 'wisp'; })[0]; B4.o.npc = null;
+        okS('3a the wisp flies 50 ft and hovers, incorporeal, its light its own (flies ' + !!w4.flies + ', speed ' + w4.speed + ', hover ' + !!w4.hover + ', incorporeal ' + !!w4.incorporeal + ', glow ' + (w4.glow && w4.glow.bright) + ', its own ' + (w4.glow !== D.FOES.wisp.glow) + ')', w4.flies && w4.speed === 50 && w4.hover && w4.incorporeal && w4.glow && w4.glow.bright === 5 && w4.glow !== D.FOES.wisp.glow);
+        f4.hp = 0; f4.ko = true; w4.x = f4.x + 1; w4.y = f4.y; D.grid.setup(D.grid.map, B4.units); D.rules.startTurn(w4); B4.active = w4;
+        D.d = function (n) { return n === 20 ? 2 : d0S(n); };
+        runS(D.seep.consumeLife(B4, w4, f4)); D.d = d0S;
+        okS('2e Consume Life failed in a game being played: the fight lost on "' + B4.slainLine + '" (want "' + f4.name + ' was lost to the Seep.")', f4.dead && f4.slain && B4.over() === 'lost' && B4.slainLine === f4.name + ' was lost to the Seep.');
+        // the fight's end: the last card is the line, and then the game-over card, CONTINUE FROM A SAVE or TITLE
+        var sc0 = D.scenes.slice(); H.playing = true; H.cur = H.cur || { party: [], flags: {} };
+        runS(B4.finish('lost'));
+        var top = D.scenes[D.scenes.length - 1];
+        okS('2f the fight\'s end: the game-over card is up (' + (top && top.kind) + ', want slainfail), its line "' + (top && top.line) + '", the house no longer playing (' + !H.playing + ')', !!top && top.kind === 'slainfail' && top.line === f4.name + ' was lost to the Seep.' && !H.playing);
+        D.scenes.length = 0; sc0.forEach(function (s) { D.scenes.push(s); });
+      } finally { H.playing = was; D.d = d0S; }
+      // 3. THE BLOCKS
+      var F = D.FOES;
+      okS('3b the mirror wisp: Consume Magic, the mirror eye, the ripple, its own sheet (' + (F.mirrorwisp && F.mirrorwisp.consume && F.mirrorwisp.consume.what) + ', ' + !!(F.mirrorwisp && F.mirrorwisp.mirrorEye) + ', ' + !!(F.mirrorwisp && F.mirrorwisp.ripple) + ', ' + !!(D.SHEETS && D.SHEETS.mirrorwisp_p1) + ')', !!F.mirrorwisp && F.mirrorwisp.consume.what === 'magic' && F.mirrorwisp.mirrorEye && !!F.mirrorwisp.ripple && !!(D.SHEETS && D.SHEETS.mirrorwisp_p1));
+      okS('3c the mirror stirge: its bite drinks slots, the mirror eye, the ripple (' + !!(F.mirrorstirge && F.mirrorstirge.attacks.drain.slots) + ')', !!F.mirrorstirge && F.mirrorstirge.attacks.drain.slots === true && F.mirrorstirge.mirrorEye && !!F.mirrorstirge.ripple);
+      okS('3d the stale todos are off the stirge and the centipede (' + !F.stirge.todo + ', ' + !F.centipede.todo + ')', !F.stirge.todo && !F.centipede.todo);
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); D.d = d0S; }
+    if (errs.length) repS.errors = repS.errors.concat(errs);
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // the grid's rules lane, 10-21 night (mode=rules1021b; the lanes desk's order on his "Get that Grid lane going please, that's the important fixes", from his ear file of
   // 10-21: "heat metal concentration continues after target dies / bane can't be cast on a single target / antitoxin not tested", and the pudding's door's magic weapons);
   // 1 and 2 failed on the code before them; 3 is deep16/js/rulesshow.js run headless, a FAIL for a beat that did not show

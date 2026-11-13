@@ -111,7 +111,16 @@
   function walkable(x, y, u) { var s = G.map.at(x, y); return !!(s && (s.walk || (s.deep && u && (u.flies || u.swims || (u.bound && u.bound.indexOf(s.ch) >= 0))))); }
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
   // on open ground (pass: a square it may go through)
-  function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && u.earthGlide && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
+  // (Incorporeal Movement, the will-o'-wisp's and its mirror's, SRD 5.1: "can move through other creatures and objects as if they were difficult terrain" -- 11-13: the same
+  // rock and stalagmites, at twice the feet (G.stepCost), and through a foe's square (G.canPass); it stands only on open ground, so it never ends a turn inside one by its own
+  // choice -- the 1d10 force for one that does is js/seep.js S.endTurn)
+  function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && (u.earthGlide || u.incorporeal) && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
+  // is (x, y) inside something for an incorporeal mover: a square of rock, or another creature's body at the height it would be
+  G.inside = function (u, x, y) {
+    var f = G.foot(u, x, y), bz = G.bodyAt(u, x, y);
+    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if (s && !s.walk && !s.deep) return 'rock'; var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && !w.object) return 'creature'; }
+    return null;
+  };
   // worked stone underfoot (a map's `noBurrow`: true, the whole floor; `noBurrowAt`, rects [x, y, w, h] of its squares (the Wet's rim, 10-04); or a string of the squares' characters, '=' the made road where it is
   // whole -- data/maps.js's header, 10-01d): nothing burrows under it or comes up through it
   G.solidFloor = function (x, y) {
@@ -150,7 +159,7 @@
     if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
     var f = G.foot(u, x, y), bz = G.bodyAt(u, x, y);
-    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && G.hostile(u, w) && !G.passBy(u, w)) return false; }
+    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && G.hostile(u, w) && !G.passBy(u, w) && !u.incorporeal) return false; } // (incorporeal: through any creature, 11-13)
     return true;
   };
   // through a foe two sizes from yours (SRD 5.1, Moving Around Other Creatures: "you can move through a hostile creature's space only if the creature is at least two sizes larger or
@@ -164,6 +173,7 @@
     // feared -- the grid-UI seat's find, his "go with Grid's leans"; dev/bench16.js gridclicks1029 1b)
     var fr = u.conds && u.conds.frightened;
     if (fr && fr.by && !(o && o.fearless)) { var src = G.units.filter(function (w) { return w.id === fr.by; })[0]; if (src && G.standing(src) && G.dist(u, src, x1, y1) < G.dist(u, src, x0, y0)) return Infinity; }
+    if (u.incorporeal && G.inside(u, x1, y1)) return G.winged(u) && u.fz != null && !u.floats && u.fz > G.ceilAt(u, x1, y1) ? Infinity : 10; // (Incorporeal Movement: a creature's space or an object's is difficult terrain, on wings or not -- 11-13)
     if (u.fz != null && G.winged(u)) return G.groundAt(u, x1, y1) > u.fz || (!u.floats && u.fz > G.ceilAt(u, x1, y1)) ? Infinity : 5; // (and not up into a lower ceiling: a map's `skies`, 10-13) // (holding a layer: level over anything lower, not into anything higher -- flight at a height, 10-08)
     if (u.floats && G.winged(u)) return G.groundAt(u, x1, y1) - G.groundAt(u, x0, y0) > G.LAYER() ? Infinity : 5; // (a floater: up one layer at most, down any -- it hovers, RULED 10-06)
     if (G.winged(u)) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)

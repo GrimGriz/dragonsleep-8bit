@@ -59,7 +59,9 @@
     u.conds.exhaustion = { n: now };
     if (now >= 4 && was < 4) { u.exhaustCut = Math.floor(u.maxhp / 2); u.maxhp -= u.exhaustCut; if (u.hp > u.maxhp) u.hp = u.maxhp; }
     if (B) B.card(['{o}' + nm + ' is exhausted, level ' + now + (why ? ' (' + why + ')' : '') + '.{/}  {g}(' + RU.EXHAUSTION.slice(1, now + 1).join(', ') + '){/}'], 260);
-    if (now >= 6) { u.hp = 0; u.dead = true; u.ko = true; u.deadT = B ? B.t : 0; u.anim = 'hurt'; u.animT = B ? B.t : 0; if (u.side === 'party' && !u.summon && !u.familiar && !u.ally) u.slain = true; if (u.conc && D.magic) D.magic.endConc(B, u, 'dead'); }
+    // (the sixth level: dead for good, and in a game being played the game is over on its own line -- battle.js lostForGood, 11-13; before, dead for the fight and the fight went on)
+    if (now >= 6 && B && B.lostForGood && u.side === 'party' && !u.summon && !u.familiar && !u.ally && !u.object) B.lostForGood(u, u.name + ' died of exhaustion.');
+    else if (now >= 6) { u.hp = 0; u.dead = true; u.ko = true; u.deadT = B ? B.t : 0; u.anim = 'hurt'; u.animT = B ? B.t : 0; if (u.conc && D.magic) D.magic.endConc(B, u, 'dead'); }
     return now - was;
   };
   // THE FEAR SCALE (10-08, Griz, the GreyFang window: "No fear scale currently exists in the game, check SRD, there's frightened and then more severe versions / panicked might

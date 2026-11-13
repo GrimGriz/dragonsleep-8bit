@@ -1188,7 +1188,10 @@
     if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : this.roostBroken === 'fire' ? 'Fire' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); FX.swarm(); this.shakeT = 170; for (var sk = 0; sk < 17; sk++) { D.sfx('miss'); yield 10; } yield 30; }
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
-    var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : this.slainLost && this.slainLine ? this.slainLine : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    // one of the party dead for good in a game being played (Battle.prototype.lostForGood): the game is over on a card of its own, the line by name, then CONTINUE FROM A
+    // SAVE or the title -- whatever fight it was, a story's, the road's, a floor's (js/seep.js S.gameOver; 11-13, Griz: "build it and have it end the game")
+    if (o === 'lost' && this.slainLost && this.slainLine && D.seep && D.seep.gameOver && D.seep.playing()) { this.card([head], 1e9, 'fightend'); yield this.pace ? this.pace(150) : 150; D.seep.gameOver(this.slainLine); return; }
     // the victory on this last card, the XP and the spoils (RULED 10-29, Griz: "Leans stand" -- his "can we do victory (xp rewards, etc) on the fight screen instead of the
     // roam screen after return from the fight?"): a host that pays its fights pays here (o.payNow: a floor's, js/roam.js R.pullPay; the road's and the night's watches', js/house.js H.payFight)
     var paid = this.o.payNow ? [].concat(this.o.payNow(this, o) || []) : [];
@@ -1407,7 +1410,7 @@
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
-    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': ' + Battle.theWord(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
+    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: (((Battle.attOf(pulls[0].master, pulls[0]) || pulls[0].master.conds.attached || {}).dc || 13) > 1 ? 'a STR check, DC ' + ((Battle.attOf(pulls[0].master, pulls[0]) || pulls[0].master.conds.attached || {}).dc || 13) : 'an action, no check') + ': ' + Battle.theWord(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) }); // (a stirge comes off for the action alone, SRD 5.1: the note said "a STR check, DC 1" -- the bestiary lane's 2.2, 11-13; the rider's own record, not the first one's: Battle.attOf)
     // PULL OUT (SRD 5.1 Water Elemental, Whelm: anyone within 5 ft of the elemental, a DC 14 STR check as an action): a friend it holds (10-14)
     var drowning = Battle.whelmed(u, this.units);
     if (drowning.length) out.push({ id: 'pullout', label: 'PULL OUT', cost: 'A', icon: 'free', tool: 'pullout', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + drowning[0].conds.restrained.dc + ': a friend out of the water elemental, the elemental beside you' });
@@ -3031,7 +3034,7 @@
       if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(' + (atk.attach.dc > 1 ? 'DC ' + atk.attach.dc + ' STR to pull it off' : 'no check to pull it off') + ', an action: ' + nameOf(tgt) + ', or anyone beside){/}']);
-      this.mount(att, tgt); if (atk.stinger) att.drained = 5; // (the stirge: the hit's average counts toward the 10 it drinks)
+      this.mount(att, tgt); if (atk.stinger) att.drained = atk.slots ? 0 : 5; // (the stirge: the hit's average counts toward the 10 it drinks; the mirror stirge drinks magic, and its bite's blood counts for nothing -- 11-13)
       yield 30;
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
@@ -3574,15 +3577,10 @@
     // story fights"). Foes fall at 0 as ever
     var past = hp0 > 0 ? n - hp0 : n;
     if (u.hp <= 0 && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && !u.conds.deathWard && !u.dead && !u.fated && past >= u.maxhp) {
-      var story = this.isStory();
-      u.hp = 0; u.dead = true; u.slain = true; u.ko = true; u.deadT = this.t; u.anim = 'hurt'; u.animT = this.t; delete u.conds.ablaze;
-      D.sfx('ko'); FX.ring(u, 'red', 30); if (D.light && D.light.fell) D.light.fell(this, u);
+      var story = Battle.endsGame(this, u);
       this.card(['{r}' + u.name + ' is killed outright.{/}  {g}(' + past + ' past 0, against ' + u.maxhp + ' hit points: massive damage' + (story ? ' -- the story cannot go on without them' : '') + '){/}'], 400);
+      this.lostForGood(u, u.name + ' was killed outright.');
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u);
-      if (u.holding && u.holding.length) this.release(u);
-      this.rideSync();
-      if (u.conc) D.magic.endConc(this, u, 'dead');
-      if (story) this.slainLost = u;
       return;
     }
     if (u.hp <= 0 && (u.side === 'party' && !u.guest || u.npc) && u.feats && u.feats.relentless > 0) {
@@ -3730,6 +3728,21 @@
       var d = -Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [x, y]; }
     }
     return best;
+  };
+  // DEAD FOR GOOD (11-13, Griz, on the wisp's Consume Life: "build it and have it end the game 'character was lost the seep' - check for that with permadeath from massive
+  // damage or what-have-you as well"): every way one of the party dies outright comes through here -- massive damage (hurt, above), the sixth level of exhaustion (js/rules.js
+  // RU.exhaust), Consume Life (js/seep.js) -- dead, not down, and no healing reaches them (heal, below). Where a game is being played the fight is lost there and then
+  // (over: slainLost) and its last card is `line`, the death's own by name (finish; in the house's game the game-over card after it, js/seep.js S.gameOver). Before 11-13 only a
+  // story fight ended on it, and on the fight's own words; a road's or a floor's fight went on, and the dead one came back to the save merely down (js/house.js H.takeBack read
+  // no death), healed by the next rest. On the Pocket DM's table and the class floor nothing is at stake past the fight: dead for the fight, and it goes on
+  Battle.endsGame = function (B, u) { return !!(u && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && (B.isStory() || (D.seep && D.seep.playing() && !B.o.pocket && !B.o.npc))); };
+  Battle.prototype.lostForGood = function (u, line) {
+    u.hp = 0; u.dead = true; u.slain = true; u.ko = true; u.deadT = this.t; u.anim = 'hurt'; u.animT = this.t; delete u.conds.ablaze; u.slainLine = line;
+    D.sfx('ko'); FX.ring(u, 'red', 30); if (D.light && D.light.fell) D.light.fell(this, u);
+    if (u.holding && u.holding.length) this.release(u);
+    this.rideSync();
+    if (u.conc) D.magic.endConc(this, u, 'dead');
+    if (Battle.endsGame(this, u)) { this.slainLost = u; this.slainLine = line; }
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;
