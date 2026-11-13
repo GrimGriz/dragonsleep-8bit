@@ -6502,8 +6502,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // (11-13, the inn seat of 11-13, third: bedafter BUILT on his ruling and cut -- "refused with Doran's waiting for you, back to normal if they return ...": js/inn.js In.gennet, js/secondact.js THE BED WITH DORAN WAITING)
     };
     if (BARNK) KNOWN = { // (11-13, the barn walk's findings -- filed in the inn lane under its room line; cut a line here when it is fixed)
-      doranfrom: "Out of the barn before Doran is at the woodpile (dawn, or after dark), Gennet calls him and he comes out of the HOUSE door -- and the words say 'Doran comes round the barn from the woodpile with the woodaxe'. Lead: js/inn.js In.BY.STAGES.break's lines read S.renown only; S.byDay is there to read (the walk 'doran' stands him in the front doorway when Y.night). The words for the night are the inn seat's or his.",
-      stallname: "In the barn's end stall, after DETECT MAGIC (or a look, or a touch) has shown the child, the screen is still named 'A goblin, chained' over her own face, through 'A child sits chained in the stall' and FREE HER. Lead: js/inn.js In.barnScene -- the screen's name is given once as it opens (M.talk's name) and only its sheet is swapped at the reveal."
+      doranfrom: "Out of the barn before Doran is at the woodpile (dawn, or after dark), Gennet calls him and he comes out of the HOUSE door -- and the words say 'Doran comes round the barn from the woodpile with the woodaxe'. Lead: js/inn.js In.BY.STAGES.break's lines read S.renown only; S.byDay is there to read (the walk 'doran' stands him in the front doorway when Y.night). The words for the night are the inn seat's or his."
+      // (11-13, the barn walk seat: stallname FIXED and cut -- js/inn.js In.barnScene names the screen 'A child, chained' at the reveal)
     };
     function okK(id, what, v) { var kn = KNOWN[id]; repK.checks.push(!v && kn ? 'KNOWN RED [' + id + '] ' + what + ' -- the finding: ' + kn : (v ? 'ok   ' : 'FAIL ') + '[' + id + '] ' + what + (v && kn ? ' (KNOWN RED ' + id + ' passes now: cut it from KNOWN)' : '')); }
     function noteK(s) { repK.notes.push(s); }
