@@ -470,11 +470,16 @@
   In.fade = function* (B, to, ticks) { var F = B.innFade || (B.innFade = { k: 0, lines: [] }), k0 = F.k, n = Math.max(1, ticks || 30); for (var i = 1; i <= n; i++) { F.k = k0 + (to - k0) * i / n; yield 1; } F.k = to; if (!to) F.lines = []; };
   In.fadeSay = function (B, lines) { var F = B.innFade || (B.innFade = { k: 0, lines: [] }); F.lines = [].concat(lines || []); if (D.house && D.house.trail) D.house.trail('act', 'ON THE BLACK: ' + F.lines.join(' ')); };
   if (D.ui && D.ui.drawBattle) { var drawF0 = D.ui.drawBattle; D.ui.drawBattle = function (ctx, B) {
-    var r = drawF0.apply(this, arguments), F = B && B.innFade; if (!F || !(F.k > 0)) return r;
+    var r = drawF0.apply(this, arguments), F = B && B.innFade, SP = B && B.innSplash;
+    // (A PORTRAIT SPLASHED MID-SCREEN over the floor, 11-13: B.innSplash { sheet, t0, s } -- Elsbeth with the bucket, his "have the portrait centered mid-screen, it plays before
+    // the text comes up"; its row played once and held on its last frame; In.splash sets it, In.splash(B) takes it down)
+    if (SP && D.SHEETS && D.SHEETS[SP.sheet] && D.counter && D.counter.drawPortraitAt) { var sh = D.SHEETS[SP.sheet], an = sh.anims.idle, k = SP.s || 1, fr = Math.min(an.frames - 1, Math.floor((B.t - SP.t0) / 14)), left = Math.round((D.W - sh.fw * k) / 2), foot = Math.round(D.H / 2 + sh.fh * k / 2) - 6; D.counter.drawPortraitAt(ctx, SP.sheet, 'idle', fr, left + sh.ax * k, foot - (sh.fh - sh.ay) * k, k); SP.drawn = (SP.drawn || 0) + 1; SP.at = [left, foot]; }
+    if (!F || !(F.k > 0)) return r;
     ctx.save(); ctx.globalAlpha = Math.min(1, F.k); ctx.fillStyle = '#05060c'; ctx.fillRect(0, 0, D.W, D.H);
     if (F.k >= 1 && F.lines.length) { ctx.globalAlpha = 1; var ls = []; F.lines.forEach(function (l) { D.wrap(l, D.W - 80).forEach(function (x) { ls.push(x); }); }); ls.forEach(function (l, i) { D.text(ctx, l, Math.round(D.W / 2), Math.round(D.H / 2 - ls.length * 6 + i * 12), '#c8c8d8', 'center'); }); }
     ctx.restore(); return r;
   }; }
+  In.splash = function (B, sheet, s) { if (!sheet) { delete B.innSplash; return null; } B.innSplash = { sheet: sheet, t0: B.t, s: s || 0.9 }; if (D.spr && D.spr.load && D.SHEETS[sheet] && !D.spr.offline) D.spr.load(D.SHEETS[sheet].image); return B.innSplash; };
   In.d20 = function () { return In.pinned && In.pinned.length ? In.pinned.shift() : D.roll('1d20').total; };
   In.best = function (st, skill) { var R = DS.R, b = null; st.party.forEach(function (h) { if (h.dead || h.ko) return; var v = R.skill(h, skill, In.AB[skill]); if (!b || v > b.v) b = { h: h, v: v }; }); return b; };
   In.trail = function (s) { if (D.house && D.house.trail) D.house.trail('check', 'THE MEAL: ' + s); };
@@ -1210,7 +1215,7 @@
   In.childTaken = function (f, d) { var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) < d) c++; f.childDue = In.dueDay(c + 1); return f.childDue; };
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
   In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
-  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
+  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childDead && !f.childDeadSaid) { f.childDeadSaid = 1; yield sc.say(In.ROAD.doranDead, 'axelow'); return; } /* (the child killed on the road: once, 11-12) */ if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
   M.tell2 = function (w, lines) { if (w && lines && lines.length) w.tell = [].concat(lines); return w; }; // (a line's own TELL ME ABOUT IT given as words, not a text key: js/mines.js M.tell)
   In.say = function* (B, lines, title) { var done = false; yield* M.talk(B, 'wagonNight', function (sc) { return (function* () { yield sc.say(lines); done = true; })(); }, title || 'THE WAGON NIGHT', In.tailPic(B)); return done; };
   In.stage = function (B, at, inside) { var t = B.roam.token; t.x = at[0]; t.y = at[1]; t.tween = null; B.roam.path = null; In.lay(B, inside, true); };
@@ -1379,6 +1384,10 @@
     });
     G.setup(B.map, B.units); B.cache = null; return out;
   };
+  // DOWN FROM UPSTAIRS (11-13; his note on eyes-watch-yard-roofed-1112m: "the problem with what the card loads, can't move anyone" -- a figure on a lit square at the edge of
+  // the roof, "a way out: LEAVE THE FIGHT from here"): a scene watched from upstairs is laid with the house under its roof (11-12), and the party coming down was stood at
+  // the stair's foot on THAT lay -- inside a roofed house, where the grid gives no way to walk. Coming down, the house is laid as its inside again, the token at the stair's foot
+  In.comeDown = function (B) { In.offFloor(B, false); In.stage(B, In.WATCH.down, 'inn'); };
   In.offFloor = function (B, off) { var t = B.roam.token, i = B.units.indexOf(t); if (off && i >= 0) B.units.splice(i, 1); if (!off && i < 0) B.units.push(t); B.roam.tokenOff = !!off; D.grid.setup(B.map, B.units); B.cache = null; };
   In.wagonNight = function* (B, d, W2) {
     var R = D.roam, R0 = B.roam, f = R0.flags, st = D.counter.state(B), H = D.house, W = D.world, upstairs = !!W2, onUp = R.def && R.def.key === In.UP;
@@ -1445,7 +1454,7 @@
     var how = 'quiet', outside = [], morning = null;
     if (a !== 2) {
       outside = a === 0 ? [watcher] : party.slice();
-      if (upstairs) In.offFloor(B, false); // (down the stair: the token at its foot, and out by the front door)
+      if (upstairs) In.comeDown(B); // (down the stair: the token at its foot, and out by the front door)
       if (a === 0 && watcher !== R0.token) In.lead(B, watcher); // (the watcher's figure goes out alone: the token is the watcher's from here)
       yield* In.card(B, [L(a === 0 ? 'wagon.investigate' : 'wagon.wake', { name: watcher.name })], 300);
       yield* R.walkTo(B, [w[0] + 6, w[1]]); // (out the front door into the yard: a step out roofs the house as ever)
@@ -2032,13 +2041,15 @@
     // from the flag; and the first step on a floor that had no token yet at its laying stands her too. Never twice: one already on the floor is kept
     In.layFollower = function (B) {
       var R0 = B && B.roam, def = Rm.def, f = R0 && R0.flags, t = R0 && R0.token; if (!f || !f.childGuest || !t || !def) return null; // (ruling 59, 11-12: on every floor the party walks, not the inn's two alone -- "her figure on floors and in camps, one marker on the map")
-      var have = B.units.filter(function (u) { return u.follower || u.scripted === 'barnKid'; }); if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
+      var have = B.units.filter(function (u) { return u.follower || u.scripted === 'barnKid'; });
+      if (have.length && have[0].follower && have[0].bystander && have[0].hp <= 0) { /* (hit points gone: a scene's own swap of her figure is not a death) */ In.gone(B, have[0]); R0.follower = null; In.childLost(f, function (l) { B.card(D.roam.wrap([l]), 420); }); return null; } // (killed in a fight on this floor: the errand is over -- In.childLost)
+      if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
       var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
-      u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u;
+      u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; u.bystander = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u; // (bystander: nobody's target in a fight, RULED 11-12 -- an area still catches her)
     };
     T.people = function (B) { var r = people0.apply(this, arguments); In.layFollower(B); return r; };
     Rm.step = function* (B, u, to) {
-      if (B.roam && u === B.roam.token && (!B.roam.follower || B.units.indexOf(B.roam.follower) < 0)) In.layFollower(B);
+      if (B.roam && u === B.roam.token && (!B.roam.follower || B.units.indexOf(B.roam.follower) < 0 || B.roam.follower.hp <= 0)) In.layFollower(B); // (hp gone: her death is found at the party's next step -- In.childLost)
       var fo = B.roam && u === B.roam.token ? B.roam.follower : null; if (fo && (B.units.indexOf(fo) < 0 || fo.dead)) fo = null;
       if (fo) { var fx = u.x, fy = u.y; if (!(fo.x === fx && fo.y === fy)) { fo.tween = { fx: fo.x, fy: fo.y, fz: G.gzAt(fo, fo.x, fo.y), t: 0, dur: In.PACE, mode: null }; fo.facing = D.spr.facingFor(fx - fo.x, fy - fo.y); if (fo.anim !== 'walk') { fo.anim = 'walk'; fo.animT = B.t; } fo.x = fx; fo.y = fy; } }
       yield* step0.call(this, B, u, to);
@@ -2111,6 +2122,12 @@
         if (!f.glamourBroken) { f.glamourBroken = 1; f.glamourSeen = 1; D.sfx('magic'); yield sc.say(R.pitGoblin); }
         yield sc.say(R.pitLeave);
         delete f.childGuest; f.childAtPit = In.day(null); f.childCamp = 1;
+        if (!f.childReward) { // (RULED 11-12: "add 250 xp and magic item reward (seat's choice from SRD) to the successful delivery of the child to the house")
+          f.childReward = 1; var RW = In.ROAD.REWARD, Hs2 = D.house, st2 = D.counter.state(null), alive = Hs2 && Hs2.cur ? Hs2.cur.party.filter(function (h) { return !h.dead && h.hp > 0; }) : [], nm = (DS.DATA.items[RW.item] || {}).name || RW.item;
+          D.counter.give(st2, RW.item, 1); var bk = Hs2 && Hs2.bank ? Hs2.bank(RW.xp * alive.length, alive, 0) : { each: 0 }; D.sfx('chest');
+          if (Hs2 && Hs2.trail) Hs2.trail('check', 'the child delivered: ' + nm + ', ' + bk.each + ' XP each');
+          yield sc.say([R.reward, D.counter.L('g.got', { item: nm }), '{g}Each one standing gains ' + bk.each + ' XP.{/}']);
+        }
         if (D.house && D.house.trail) D.house.trail('talk', 'the child set down at GreyFang\'s house at the Pit, day ' + f.childAtPit);
       })(); } }, function () { if (W.save) W.save(); if (scene && scene.say) scene.say(R.pitSaid + ', ' + W.timeOfDay() + '.'); });
   };
@@ -2121,18 +2138,30 @@
     var u = In.unit(b, { id: 'campKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [cp[0], cp[1]], name: f.glamourBroken ? 'The girl' : 'The goblin', face: [-1, 0] });
     var q = spots.filter(function (q0) { return G.canStand(u, q0[0], q0[1]) && !b.units.some(function (w) { return w !== u && w.x === q0[0] && w.y === q0[1]; }); })[0];
     if (!q) { In.gone(b, u); return null; }
-    u.x = q[0]; u.y = q[1]; u.bystander = true; G.setup(b.map, b.units); b.cache = null; return u;
+    u.x = q[0]; u.y = q[1]; u.bystander = true; G.setup(b.map, b.units); b.cache = null; In.campKidU = u; return u;
   };
+  // THE CHILD IN A FIGHT (RULED 11-12, Griz, on "what happens in fights wrt to her? game over if she dies built in?" and the seat's lean: "1 - lean, add 250 xp and magic
+  // item reward (seat's choice from SRD) to the successful delivery of the child to the house"): she is NOBODY'S TARGET anywhere (a bystander on a floor as by a camp's
+  // fire: js/ai.js heroes); AN AREA CAN STILL KILL HER; and HER DEATH ENDS THE ERRAND, NOT THE GAME -- f.childGuest gone, f.childDead the day, one line where it is
+  // found (the floor's next step, the world's next arrival or camp), and Doran's one line for it at the woodpile. THE REWARD, set down alive at GreyFang's house: 250
+  // XP each to those standing (the seat's reading of "250 xp": a quest's, not a kill's share) and the Boots of Elvenkind (SRD 5.1, uncommon, no attunement; the game's
+  // bootselvenkind) -- the seat's choice: the house that moves children quietly gives quiet feet; it is in the game already, so no new rule rides on the gift
+  In.ROAD.dead = 'The child is dead. There is no errand to the Pit now.';
+  In.ROAD.doranDead = ['Doran reads it off the party before anyone speaks. He sets the axe head down on the block.', '"Then it was for nothing. Twice over."'];
+  In.ROAD.reward = '"GreyFang pays what the house owes. These were a runner\'s. They don\'t make a sound."';
+  In.ROAD.REWARD = { xp: 250, item: 'bootselvenkind' };
+  In.childLost = function (f, say) { if (!f || !f.childGuest) return false; delete f.childGuest; f.childDead = In.day(null); In.campKidU = null; if (D.house && D.house.trail) D.house.trail('check', 'the child killed: the errand to the Pit is over'); if (say) say(In.ROAD.dead); return true; };
+  In.campKidCheck = function (scene) { var u = In.campKidU, f = In.roadFlags(); if (!u) return false; In.campKidU = null; if (f && f.childGuest && (u.dead || u.hp <= 0)) return In.childLost(f, function (l) { if (scene && scene.card) scene.card(D.roam ? D.roam.wrap([l]) : [l]); else if (scene && scene.say) scene.say(l); }); return false; };
   (function () {
     var Hs = D.house, WP = W.World && W.World.prototype; if (!Hs || !WP) return;
     var runNight0 = Hs.runNight, arrive0 = WP.arrive, here0 = WP.here, fight0 = WP.fight;
     Hs.runNight = function (scene, asg) {
-      var f = In.roadFlags(), self = this;
+      In.campKidCheck(scene); var f = In.roadFlags(), self = this;
       if (!f || !f.childGuest || f.childCamp || !D.counter || !scene) return runNight0.apply(this, arguments);
       In.childCamp(scene, function () { runNight0.call(self, scene, asg); });
     };
     WP.arrive = function (st) {
-      var r = arrive0.apply(this, arguments), f = In.roadFlags();
+      var r = arrive0.apply(this, arguments), f = In.roadFlags(); In.campKidCheck(this);
       if (f && f.childGuest && D.top() === this && !this.cards.length && In.atPit()) In.childPit(this);
       return r;
     };
@@ -2292,8 +2321,13 @@
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }
   ];
+  In.SHOW_LVL = 3;
   In.play = function (bt) {
-    var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; if (bt.renown != null) rec.renown = bt.renown; // (a supper's beat: the renown the Waterbys have heard)
+    var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; if (bt.renown != null) rec.renown = bt.renown;
+    // A LEVEL 3 PARTY ON EVERY DOOR (RULED 11-12, Griz, on his 2203Z notes: "please make future doors with a lvl 3 party"): the show's four are raised to In.SHOW_LVL as
+    // a headless page would raise them -- a max hit die a level, the first archetype, the defaults (js/rules.js R.levelUp, R.autoPicks) -- whole and rested; a beat's own
+    // `lvl` says otherwise. The gear is a new game's: nothing is bought for them
+    var RL = DS.R, lv = bt.lvl != null ? bt.lvl : In.SHOW_LVL; rec.party.forEach(function (h) { for (var g = 0; g < 20 && h.lvl < lv; g++) { RL.levelUp(h); RL.autoPicks(h); } if (RL.XP_LEVEL && RL.XP_LEVEL[h.lvl] != null) h.xp = Math.max(h.xp || 0, RL.XP_LEVEL[h.lvl]); h.hp = h.maxhp; if (h.slotsMax) h.slots = h.slotsMax.slice(); }); // (a supper's beat: the renown the Waterbys have heard)
     rec.flags = Object.assign({ councilNotice: 1, councilSeen: 1 }, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60); // (Silverton's council night sat already: a show of the inn -- 11-04, his "these previews are all firing the council discussion")
     (bt.inv || []).forEach(function (id) { H.add(rec.inv, id, 1); }); // (what the beat's pack holds: the traveler's ink, 11-05)
     var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === (bt.site || In.SITE); })[0] : null; // (bt.site: another place on THE WORLD -- the Pit, 11-12)
