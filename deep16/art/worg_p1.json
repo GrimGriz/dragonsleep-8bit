@@ -4,7 +4,7 @@
  "fh": 122,
  "ax": 60,
  "ay": 98,
- "top": 59,
+ "top": 66,
  "anims": {
   "idle": {
    "y": 0,
@@ -31,7 +31,9 @@
    "ax": 60,
    "ay": 98,
    "frames": 8,
-   "fps": 12
+   "fps": 12,
+   "release": 2
   }
- }
+ },
+ "source": "drawn by the art desk (WORG-SOURCE-SHEETS, 11-13: Idle 8, Walk 8, Bite 8 in five views), cut by tools/worg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- the SRD 5.1 Worg: deep16/data/foes.js worg"
 }
