@@ -944,15 +944,21 @@
   In.longShut = function (kind) { var H = D.house; return !!(H && H.longOpen && !H.longOpen(In.nightHours(kind))); };
   In.tillRested = function (kind) { var H = D.house, wake = H.longWake(In.nightHours(kind)); return { wake: wake, hours: wake - H.now() }; };
   In.bothOpts = function (kind) { var H = D.house, tr = In.tillRested(kind), nh = In.nightHours(kind); return [In.LINES.opts.till.split('{when}').join(H.clockAt(tr.wake).toUpperCase()).split('{n}').join(Math.round(tr.hours * 10) / 10), In.LINES.opts.night.split('{n}').join(nh)]; };
+  // ONE FREE STAY A MONTH (RULED 11-13, Griz, on the barn walk's catch -- a party too poor for the due's supper missed the poisoned dinner: "nice catch, if they can't
+  // afford it (not if they can) - as \"we're trying a new marketing strategy of one free stay a month, congratulations!\""): on the due's night with no offering, a
+  // party that cannot pay is given the room and its supper for nothing, on that line. THE SEAT'S READING, his to overrule: only the night the house needs them at
+  // its table (no offering); a party that can pay pays; any other night is "Not enough silver." as before
+  In.FREE_STAY = `"We're trying a new marketing strategy of one free stay a month. Congratulations!"`;
   In.room = function* (sc, B, cost, noMeal) {
     // (the lake took the inn lady: no more suppers at the Waterbys' -- 11-05, his "dinners are over"; a room by Doran, eight hours)
-    var st = sc.st, f = st.flags, kind = f.gennetTaken ? 'late' : In.restKind(In.hourOf(B)), pay = function () { if (st.silver() < cost) { D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
+    var st = sc.st, f = st.flags, kind = f.gennetTaken ? 'late' : In.restKind(In.hourOf(B)), dF = In.day(D.roam.q), freeNight = !f.gennetTaken && In.dueTonightOn(f, dF) && In.offering(f, In.dueCycle(dF)) === 'none', free = false, pay = function () { if (st.silver() < cost) { if (freeNight) { free = true; D.sfx('confirm'); if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: the due\'s night, the party short of ' + cost + ' silver -- one free stay a month'); return true; } D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
     var H = D.house, long = true, hours = null, both = function () { return In.bothOpts(kind); }; // (long: the night a long rest; hours: SLEEP TILL RESTED's own)
     if (kind === 'day') {
       var a = yield sc.ask(In.LINES.dinnerAt8.split('{n}').join(cost), [In.LINES.opts.short, In.LINES.opts.wait, In.LINES.opts.notNow]);
       if (a === 0) { var ls = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls)); return false; }
       if (a !== 1) return false;
       if (!pay()) { yield sc.say(L('g.poor')); return false; }
+      if (free) { free = false; yield sc.say([In.FREE_STAY]); }
       In.waitTo(B, In.REST.dinnerAt); kind = 'dinner';
       yield sc.say(In.LINES.waited);
       if (In.longShut(kind)) { var a1 = yield sc.ask([In.LINES.shut, H.longWhy(In.nightHours(kind), false)], both()); long = a1 === 0; if (long) hours = In.tillRested(kind).hours; } // (the room paid at supper: which sleep)
@@ -967,6 +973,7 @@
       if (a2 !== 0) return false;
       if (!pay()) { yield sc.say(L('g.poor')); return false; }
     }
+    if (free) { free = false; yield sc.say([In.FREE_STAY]); }
     B.roam.stay = { t0: In.clock(B), hours: hours || In.nightHours(kind), kind: kind, long: long };
     if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: a room at ' + In.hourOf(B) + ':00, ' + (kind === 'dinner' ? 'supper and ' : 'no supper, ') + B.roam.stay.hours + ' hours' + (long ? '' : ', no long rest') + (hours ? ', till rested' : ''));
     if (kind === 'dinner') { if (!noMeal && !f.doranDead && !f.gennetDead && !f.doranConfessed && !f.lakeDone) return 'meal'; // (the second act's ends: the supper as a line -- the welcome's own words are those scenes')
@@ -2017,7 +2024,7 @@
         ] },
       'break': { pre: function (S) { S.look('gennet', `Gennet takes the child's free arm in both hands.`, 'child'); S.by('gennet', `"Then you'll not carry ` + it(S) + ` off my yard."`); if (S.doran) { S.by('gennet', `"Doran!"`); return 'doran'; } return null; },
         lines: function (S) {
-          if (S.doran) { S.look('doranIn', S.renown >= 5 ? `Doran comes round the barn from the woodpile with the woodaxe, sees who is in the yard, and lets the axe hang.` : `Doran comes round the barn from the woodpile with the woodaxe, and stops when he sees whose arm she has.`, 'gennet'); S.by('gennet', `"They mean to take ` + it(S) + `."`); }
+          if (S.doran) { S.look('doranIn', S.renown >= 5 ? `Doran comes ${S.byDay ? 'round the barn from the woodpile' : 'out at the house door'} with the woodaxe, sees who is in the yard, and lets the axe hang.` : `Doran comes ${S.byDay ? 'round the barn from the woodpile' : 'out at the house door'} with the woodaxe, and stops when he sees whose arm she has.`, 'gennet'); S.by('gennet', `"They mean to take ` + it(S) + `."`); }
           else S.by('gennet', `"Elsbeth! The word! Say the word!"`); },
         opts: [
           { id: 'doranP', who: ['lymen'], ok: function (S) { return S.doran; }, skill: function (S, e) { return S.made(e, 'Persuasion') ? 'Persuasion' : null; }, say: function (S, e) { return S.made(e, 'Persuasion') ? `Doran. Look at whose arm that is, and tell me what she's kept for.` : `Doran. Tell her to let go.`; }, run: function () { }, endFn: function (S, e) { return S.made(e, 'Persuasion') || S.renown >= 5 ? 'd' : 'e'; } },
