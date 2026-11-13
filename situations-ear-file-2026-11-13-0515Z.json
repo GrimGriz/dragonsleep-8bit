@@ -1,0 +1,155 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-13T05:15:48.873Z",
+ "previous_save": "2026-11-13T04:04:27.643Z",
+ "items": [
+  {
+   "id": "eyes-supper-kitchen-1113e",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT: Elsbeth walks out of the kitchen, no pop-in; Doran's wait ends when you go to bed (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13, second round; your 0404Z note on eyes-supper-kitchen-1113b; deep16/js/inn.js In.mealScene, In.sleep; js/secondact.js A.waitOver)",
+   "url": "deep16/?innshow&beat=supsacr&fresh=1113r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T05:00:42.965Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-world-innroad-1113d",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE ROAD TO THE PIT: out on the road at the inn, the road taken, the Pit's scene after a fight (level 3) (11-13)",
+   "pt": "the world map lane, 2026-11-13 (the world map seat \"world-leads\"; your note on eyes-child-in-tow-1112; deep16/js/world.js W.ROADSIDE, W.planTo, World.prototype.arrive)",
+   "url": "deep16/?innshow&beat=childtow&fresh=1113wl",
+   "verdict": "works",
+   "note": "works - possible to deliver kid and make it back to fight, elsbeth said it wasn't a fight night at 4 am, did a long sleep and doran woke me up for the fight - i don't suppose we record world map travel, i clicked on the halfway inn hex at a zoom too far out and it took me to two hexes west of the inn on a closer zoom (when i got there)",
+   "at": "2026-11-13T04:47:12.550Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-southmouth-turn-1113c",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SOUTH MOUTH: strike Willem and Amara turns back on her own next turn; his book on the gulch's VICTORY (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13; your 0327Z note on eyes-chase-southmouth-1112f; deep16/js/chase.js Ch.onlookers, Ch.bookPay; deep16/js/battle.js Battle.dismount)",
+   "url": "deep16/?innshow&beat=southmouth&fresh=1113j",
+   "verdict": "works",
+   "note": "should amara go back to running if willem falls?",
+   "at": "2026-11-13T04:57:49.100Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-chase-eight-1113c",
+   "eyes": true,
+   "pri": 1,
+   "title": "BACK FROM THE CHASE: the eight's XP in a victory box before Gennet talks (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13; your 0327Z note on eyes-chase-southmouth-1112f; deep16/js/inn.js In.chaseBack)",
+   "url": "deep16/?innshow&beat=chaseback&fresh=1113k",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T04:52:40.043Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-kat-letter-1113c",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA'S LETTER, re-worded: north is all she knows; warn Silverton, warn the dwarves (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13; your 0327Z note on eyes-chase-back-1112f; deep16/js/inn.js In.KL.letter)",
+   "url": "deep16/?innshow&beat=bigroom&fresh=1113l",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T04:51:03.369Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-kat-today-1113c",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA BEFORE THE INK: \"that is all she gives today\" made true; Lymen's question presumes nothing (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13; your 0327Z note on eyes-kat-visit-1112f; deep16/js/inn.js In.katVisit, In.KV)",
+   "url": "deep16/?innshow&beat=katvisit&fresh=1113m",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T04:50:08.614Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-child-nearer-night-1113c",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CHILD IN TOW: Doran and Elsbeth count to the nearer night, two, not thirty (level 3) (11-13)",
+   "pt": "the inn lane, 2026-11-13 (the inn seat of 11-13; your 0327Z note on eyes-child-in-tow-1112; deep16/js/inn.js In.CHILD.left, In.childTaken)",
+   "url": "deep16/?innshow&beat=childtow&fresh=1113o",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T04:47:48.163Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-bigroom-letter-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE BIG ROOM, theirs: waking by the good bed, and Katarina's letter at the drawer (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.roomOf, In.KL.letter) -- ruling 28 and your \"Gennet be like 'oh heroes, take the big room' and we can put them there and hope they click on the end-table and get Kat's book (with a letter pop-up as if she's speaking it that doesn't have to become inventory)\"",
+   "url": "deep16/?innshow&beat=bigroom&fresh=1112k",
+   "verdict": "works",
+   "note": "works, falsified setup (not built has been)",
+   "at": "2026-11-13T05:15:40.775Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-seethrough-north-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "BEHIND THE HOUSE: the roofs laid whole, and the wall's stubs in your window (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/iso.js iso.house, deep16/js/innprops.js IP.walls) -- your \"barns missing textures\", \"the ceiling looks different and the inn walls are missing\", \"north transparency would benefit if we could do those wallstubs, you can't tell from north transparency that you won't be able to click south of him\"",
+   "url": "deep16/?innshow&beat=behindhouse&fresh=1112g",
+   "verdict": "works",
+   "note": "much better - though it looks like the stubs are in the middle of their tile and that they'd be at the edge to match what's there when it's not transparent",
+   "at": "2026-11-13T05:12:40.189Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-seethrough-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON SEE-THROUGH: faint while it hides you, and all through the yard fight (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/innprops.js IP.WAGON) -- your \"forgot to mention we're gonna have to transparency the wagon during the inn fight\"",
+   "url": "deep16/?innshow&beat=wagonyard&fresh=1112i",
+   "verdict": "works",
+   "note": "Bribe dialog should use portraits, Kat goes with the wagon as when we return from chase, have elsbeth walk to the party when they come downstairs (finds the party sends to winters bit)",
+   "at": "2026-11-13T05:10:31.704Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-supper-alone-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET ALONE: nobody speaks who is not in the house (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.meal) -- your \"doran has a line when I ask her 'no. tell it' and he's supposed to be gone\"",
+   "url": "deep16/?innshow&beat=supalone&fresh=1112a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T05:03:34.084Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-carried-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, seen through: she is CARRIED in, and her words stay in her box (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.barnYard acts.carry; js/counter.js Counter.step) -- your \"narrative says she's carried, animation is walks in first\" and \"i'll raise her as mine falls out her text box, check for other spills\"",
+   "url": "deep16/?innshow&beat=barnseen&fresh=1112b",
+   "verdict": "",
+   "note": "works but plays early, gennet leaves and then still says things",
+   "at": "2026-11-13T05:02:20.700Z",
+   "new_since_last_save": true
+  }
+ ]
+}
