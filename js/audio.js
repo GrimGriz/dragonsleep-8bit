@@ -358,6 +358,10 @@
     // (Elsbeth's kitchen bucket emptied over the sleepers on the stone, 11-13: the throw's hiss, the slap of it landing, the run-off -- the Bucket List egg, deep16/js/secondact.js A.drag)
     bucket: function (t) { noise(sfxBus, t, 0.2, 0.16, 2200, 0.9); tone(sfxBus, 'triangle', 38, t + 0.19, 0.1, 0.28, null, -10); noise(sfxBus, t + 0.19, 0.14, 0.5, 480, 0.6); noise(sfxBus, t + 0.25, 0.7, 0.3, 950, 0.5); noise(sfxBus, t + 0.5, 0.9, 0.1, 3000, 1.3); },
     grab: function (t) { tone(sfxBus, 'pulse', 43, t, 0.12, 0.2, 0.5, 5); noise(sfxBus, t, 0.1, 0.3, 800, 0.6); },
+    // the eyes go to mirrors (the second game's, deep16/js/ripplesfight.js -- 11-13, Griz: "at climax of zoom mirror-eye PC face zoom with an audio indicator"): a low knock, glass
+    // ringing up out of it and held, a hiss of light; `mirroreye2` the short one, for each face after the first
+    mirroreye: function (t) { tone(sfxBus, 'triangle', 33, t, 0.5, 0.3, null, -7); noise(sfxBus, t, 0.5, 0.22, 6500, 2.5); tone(sfxBus, 'soft', 89, t + 0.02, 1.3, 0.16); tone(sfxBus, 'soft', 96, t + 0.1, 1.2, 0.13); tone(sfxBus, 'soft', 100, t + 0.2, 1.1, 0.1); tone(sfxBus, 'triangle', 108, t + 0.02, 0.5, 0.07, null, 12); tone(sfxBus, 'pulse', 101, t + 0.3, 0.9, 0.035, 0.125); },
+    mirroreye2: function (t) { tone(sfxBus, 'triangle', 36, t, 0.14, 0.24, null, -5); noise(sfxBus, t, 0.16, 0.14, 6500, 2.5); tone(sfxBus, 'soft', 96, t, 0.32, 0.14); tone(sfxBus, 'soft', 103, t + 0.04, 0.3, 0.1); },
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
     error: function (t) { tone(sfxBus, 'pulse', 50, t, 0.12, 0.14, 0.5); },
     popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); },

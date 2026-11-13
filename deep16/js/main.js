@@ -52,6 +52,7 @@
   else if (/[?&]slainfail\b/.test(q) && D.seep && D.seep.door(q)) D.push(D.seep.door(q)); // one of the party dead for good: the game over on that one's line, shown (js/seep.js, 11-13; &line=<the words>)
   else if (/[?&]seepshow\b/.test(q) && D.seepshow) D.push(D.seepshow.make(q)); // the wisp, the stirge and their mirrors, shown a beat at a time, the dice pinned (js/seepshow.js, 11-13)
   else if (/[?&]madeshow\b/.test(q) && D.madeshow) D.push(D.madeshow.make(q)); // the mirror wolf and the mirror worg, the made things of the Coldridge, shown a beat at a time, the dice pinned (js/madeshow.js, 11-13)
+  else if (/[?&]ripplesshow\b/.test(q) && D.ripples) D.push(D.ripples.make(q)); // the Walking Old One met on his road: the fight that is a cut and a game over, shown, the dice pinned (&first: he wins the initiative; js/ripplesfight.js, 11-13)
   else if (/[?&]dacefail\b/.test(q) && D.mines) D.push(new D.mines.DaceFail()); // Corwen Dace fallen in a fight he walked into with the party: the run's end, shown (js/mines.js, 10-28)
   else if (/[?&]rulesshow\b/.test(q) && D.rulesshow) D.push(D.rulesshow.make(q)); // the grid's rules, shown: the antitoxin, the pudding's acid, Heat Metal's end, the dice pinned, ENTER again (js/rulesshow.js, 10-21 night)
   else if (/[?&]barleyshow\b/.test(q) && D.barleyshow) D.push(D.barleyshow.make(q)); // Barley's new sheet, shown: its rows played where the engine plays them, slow, ENTER again (js/barleyshow.js, 10-20)

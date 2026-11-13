@@ -9652,6 +9652,100 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preMK);
     return;
   }
+  // THE WALKING OLD ONE, MET, 11-13 (mode=ripples1113; the ripples-fight seat -- Griz: "the random encounter (grid only) 'fight' with Mr. Ripples, where he does nothing if wins
+  // initiative, on first player initiative a cutscreen back and forth between zooming in on mr. ripples (south-facing with idle) juxtaposed with a slow zoom on player
+  // character face, at climax of zoom mirror-eye PC face zoom with an audio indicator, and then rapid 3-frame zoom and mirror-eye on the other PC faces - "The Party Found
+  // the Walking Old One! (two lines and a beat) Game Over."): 1. his row; 2. he wins the initiative: his turn is nothing, then the cut at the first hero's turn, no menu
+  // offered, every hero mirror-eyed, the card's lines in order, the game over reached; 3. a hero first: the cut at once, he never acts; 4. the road: met only where he
+  // stands, on the grid whatever OPTIONS says, and nowhere else is a die moved; 5. an ordinary road fight: the menu at the first hero's turn, nothing of his run
+  if (get('mode', '') === 'ripples1113') {
+    var repRP = { checks: [], errors: [], notes: [] }, memRP = {}, stGRP = D.store.get, stSRP = D.store.set, d0RP = D.d;
+    function okRP(what, v) { repRP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memRP[k] ? JSON.parse(memRP[k]) : null; }; D.store.set = function (k, v) { memRP[k] = JSON.stringify(v); return true; };
+    try {
+      var RP = D.ripples, FR = D.FOES.ripples;
+      okRP('1 js/ripplesfight.js is loaded and his row stands (data/foes.js ripples): on ' + (FR && FR.sheet) + ', no blow (' + (FR && Object.keys(FR.attacks || {}).length) + '), src says his kit is not ruled',
+        !!RP && !!FR && FR.sheet === 'ripples_blend_p1' && !!D.SHEETS[FR.sheet] && Object.keys(FR.attacks || {}).length === 0 && /NOT RULED/.test(FR.src || ''));
+      if (!RP) throw new Error('no D.ripples: the rest cannot run');
+      // (a fight driven by hand to the card: what it asked on the way, and where it stopped)
+      var driveRP = function (B) {
+        var asks = [], v, k = 0, stop = 'ran out';
+        while (B.co && k++ < 200000) { var r = B.co.next(v); v = undefined; if (r.done) { stop = 'done'; break; } var y = r.value; if (y === 1e9) { stop = 'held'; break; } if (y && typeof y === 'object' && !y.fx) { if (y.entry) continue; asks.push(Object.keys(y).join('+')); if (y.turn) { stop = 'menu'; break; } if (y.prompt) v = y.prompt.opts[0].value; } }
+        return { asks: asks, stop: stop };
+      };
+      var showRP = function (q, tag, first) {
+        D.seed = 1113; D.scenes.length = 0; var B = RP.make(q); D.push(B); D.battle = B;
+        var hero0 = B.units.filter(function (u) { return u.side === 'party'; }), r0 = B.units.filter(function (u) { return u.kind === 'ripples'; })[0];
+        var dr = driveRP(B); if (B.ripplesUnpin) B.ripplesUnpin(); D.d = d0RP;
+        var L = B.ripplesLog || [], ord = (B.order || []).map(function (u) { return u.name; }), firstHero = (B.order || []).filter(function (u) { return u.side === 'party'; })[0];
+        var idle = L.filter(function (x) { return /^idle:/.test(x); }).length, cutAt = L.indexOf('cut:' + (firstHero && firstHero.name));
+        okRP(tag + ' the order: ' + (B.order || []).map(function (u) { return u.name + ' ' + u.initRoll; }).join(', ') + ' (he is ' + (first ? 'first' : 'last') + ')', !!r0 && (first ? ord[0] === r0.name : ord[ord.length - 1] === r0.name));
+        okRP(tag + (first ? ' his turn: nothing -- one idle turn before the cut (' + idle + '), no blow struck (the heroes whole: ' + hero0.map(function (u) { return u.hp + '/' + u.maxhp; }).join(' ') + '), he stands where he stood facing south (' + r0.facing + ')'
+          : ' he never has a turn (' + idle + ' idle turns), the heroes whole'), (first ? idle === 1 && L[0] === 'idle:' + r0.name && cutAt === 1 : idle === 0 && cutAt === 0) && hero0.every(function (u) { return u.hp === u.maxhp; }) && r0.facing === 0 && r0.anim === 'idle');
+        okRP(tag + ' the cut starts at the first hero\'s turn (' + (firstHero && firstHero.name) + '), no menu offered (asked on the way: ' + (dr.asks.join(',') || 'nothing') + '; stopped: ' + dr.stop + ')', cutAt >= 0 && dr.asks.length === 0 && dr.stop === 'held');
+        var shots = L.filter(function (x) { return /^shot:/.test(x); }), alt = shots.every(function (x, i) { return x === (i % 2 ? 'shot:face' : 'shot:him'); });
+        okRP(tag + ' the cut goes back and forth, him then the face, ' + shots.length + ' shots (want ' + RP.T.shots.length + ', alternating: ' + alt + ')', shots.length === RP.T.shots.length && alt);
+        var mi = L.indexOf('mirror:' + (firstHero && firstHero.name)), rest = hero0.filter(function (u) { return u !== firstHero; });
+        var z3 = rest.every(function (u) { var a = L.indexOf('zoom3:' + u.name), b = L.indexOf('mirror:' + u.name); return a > mi && b === a + 1; });
+        okRP(tag + ' at the top ' + (firstHero && firstHero.name) + '\'s eyes go to mirrors after the last shot (' + (mi === L.lastIndexOf(shots[shots.length - 1]) + 1) + '), then each other hero\'s three frames and mirrors (' + z3 + '); every hero mirror-eyed: ' + hero0.map(function (u) { return u.name + ' ' + !!u.mirrorEye; }).join(', '),
+          mi === L.lastIndexOf(shots[shots.length - 1]) + 1 && z3 && hero0.length === 4 && hero0.every(function (u) { return u.mirrorEye === true; }));
+        var T = D.top(), cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var cx = cv.getContext('2d');
+        var isCard = !!T && T.kind === 'ripplesfound' && D.scenes.length === 1;
+        okRP(tag + ' the game over is reached: the card alone on the scenes (' + (T && T.kind) + ', ' + D.scenes.length + '), the log ends on it (' + L[L.length - 1] + '), no game being played after (' + !(D.house && D.house.playing) + ')', isCard && L[L.length - 1] === 'gameover' && !(D.house && D.house.playing));
+        if (isCard) {
+          T.t = RP.T.beat - 1; T.draw(cx); var before = (T.shown || []).slice(); T.t = RP.T.beat + 30; T.draw(cx); var after = (T.shown || []).slice();
+          okRP(tag + ' the card: "' + before.join(' | ') + '" through the beat, then "' + after.join(' | ') + '" (the found line, two lines, Game Over.)',
+            JSON.stringify(before) === JSON.stringify(['The Party Found the Walking Old One!', '', '']) && JSON.stringify(after) === JSON.stringify(['The Party Found the Walking Old One!', '', '', 'Game Over.']));
+          okRP(tag + ' its rows are the game over\'s: CONTINUE FROM A SAVE or the title (js/mines.js RoostFail\'s go, js/seep.js S.gameOver\'s way)', T.go === D.mines.RoostFail.prototype.go && T instanceof D.mines.RoostFail);
+        }
+        var f1 = RP.faceOf(firstHero);
+        repRP.notes.push(tag + ' faces: ' + hero0.map(function (u) { var f = RP.faceOf(u); return u.name + ' ' + f.sheet; }).join(', '));
+        okRP(tag + ' the four have their portraits for faces (' + hero0.map(function (u) { return RP.faceOf(u).sheet; }).join(', ') + ')', hero0.every(function (u) { var f = RP.faceOf(u); return /^pt_/.test(f.sheet) && !!D.SHEETS[f.sheet] && f.eyes.length === 2; }) && !!f1);
+        D.scenes.length = 0;
+      };
+      showRP('?ripplesshow&first&fast', '2 he wins the initiative:', true);
+      showRP('?ripplesshow&fast', '3 a hero first:', false);
+      // 4. the road
+      var WK = D.world; D.seed = 1113; WK.index(); WK.use('world'); var SK = WK.load('?fresh&far'), MK = WK.M(), tRP = function (d, h) { return (d - 1) * 24 + h; };
+      SK.t = tRP(6, 12); var vR = WK.vesselAt(SK.t), eR = MK.hex[WK.K(vR.hex[0], vR.hex[1])], zR = WK.zoneOf(eR), odds0 = RP.ODDS;
+      var tallyRP = function (pt, n) { var c = 0, any = 0; for (var i = 0; i < n; i++) { var p = WK.pick(zR, false, pt); if (p) { any++; if (p.ripples) c++; } } return [c, any]; };
+      RP.ODDS = 1; var pR = WK.pick(zR, false, vR.pt);
+      okRP('4 where he stands (day 6 noon, hex ' + vR.hex + ', table ' + zR + '), at odds 1: the road\'s fight is him alone (' + (pR && pR.list) + ')', !!pR && pR.ripples === true && pR.list.join() === 'ripples' && !pR.mirror);
+      RP.ODDS = odds0; D.seed = 77; var tH = tallyRP(vR.pt, 300);
+      okRP('4 at the seat\'s odds (' + odds0 + '): ' + tH[0] + ' of ' + tH[1] + ' fights rolled there are him', tH[1] === 300 && Math.abs(tH[0] / tH[1] - odds0) < 0.12);
+      var farPt = [vR.pt[0] + 12, vR.pt[1] + 9]; D.seed = 77; var tF = tallyRP(farPt, 300), seedOn = D.seed; RP.ODDS = 0; D.seed = 77; var tF0 = tallyRP(farPt, 300), seedOff = D.seed; RP.ODDS = odds0;
+      okRP('4 fifteen miles off: never him (' + tF[0] + ' of ' + tF[1] + '), and not a die moved by it (the dice after 300 picks the same with his odds at 0: ' + (seedOn === seedOff) + ')', tF[0] === 0 && tF[1] === 300 && seedOn === seedOff);
+      okRP('4 in his own hex but 2 miles from him: still him (here: ' + RP.here([vR.pt[0] + 2, vR.pt[1]], SK.t) + '); 4 miles: not (' + RP.here([vR.pt[0] + 4, vR.pt[1]], SK.t) + '); before he sets out, day 2 at 05:00, at his feet: not (' + RP.here(WK.vesselAt(tRP(2, 5)).pt, tRP(2, 5)) + ')',
+        RP.here([vR.pt[0] + 2, vR.pt[1]], SK.t) === true && RP.here([vR.pt[0] + 4, vR.pt[1]], SK.t) === false && RP.here(WK.vesselAt(tRP(2, 5)).pt, tRP(2, 5)) === false);
+      // (the encounter's card and the fight it opens, OPTIONS' RANDOM FIGHTS at SIMPLE)
+      D.house.worldDoor('?world&fresh&noenc&far'); var scR = D.top(), S2 = WK.state(); S2.t = tRP(6, 12); S2.at = vR.hex.slice(); var M2 = WK.M(), e2 = M2.hex[WK.K(S2.at[0], S2.at[1])];
+      var simple0 = D.simple && D.simple.on();
+      scR.cards.length = 0; scR.encounter(pR, e2); var cdR = scR.cards[scR.cards.length - 1], txtR = cdR ? cdR.lines.join(' | ') : '';
+      okRP('4 the encounter\'s card names no one and offers one way on (' + (cdR && cdR.keys ? cdR.keys.length : 0) + ' key): ' + txtR.replace(/\{\/?[a-z]*\}/g, ''), !!cdR && cdR.keys.length === 1 && /A gnoll, alone/.test(txtR) && !/Ripples/.test(txtR));
+      if (cdR) { scR.cards.length = 0; cdR.keys[0][1](); }
+      var bR = D.top();
+      okRP('4 it opens on the grid with OPTIONS\' RANDOM FIGHTS at ' + (simple0 ? 'SIMPLE' : 'GRID') + ' (the fight simple: ' + (bR && bR.o && bR.o.simple) + '), him alone on the field (' + (bR && bR.units ? bR.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }) : '') + '), the house\'s party across from him',
+        !!bR && bR !== scR && !!bR.o && bR.o.simple === false && bR.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }).join() === 'ripples' && bR.units.some(function (u) { return u.side === 'party'; }));
+      if (bR && bR !== scR) {
+        bR.ripplesFast = true; D.battle = bR; var drR = driveRP(bR), LR = bR.ripplesLog || [];
+        okRP('4 and that fight is the cut and the game over (log ' + LR[0] + ' ... ' + LR[LR.length - 1] + '; asked: ' + (drR.asks.join(',') || 'nothing') + '; the card up: ' + (D.top() && D.top().kind) + '; the game no longer played: ' + !D.house.playing + ')',
+          LR[LR.length - 1] === 'gameover' && drR.asks.length === 0 && D.top() && D.top().kind === 'ripplesfound' && !D.house.playing && bR.units.filter(function (u) { return u.side === 'party'; }).every(function (u) { return u.mirrorEye; }));
+      }
+      // 5. an ordinary road fight, untouched: the same door, a pick with him nowhere near
+      D.scenes.length = 0; D.house.worldDoor('?world&fresh&noenc&far'); var scO = D.top(), S3 = WK.state(); S3.t = tRP(6, 12); var M3 = WK.M(), e3 = M3.hex[WK.K(S3.at[0], S3.at[1])];
+      D.seed = 5; var pO = WK.pick(WK.zoneOf(e3), false);
+      okRP('5 an ordinary pick where the party starts (hex ' + S3.at + ', not his: ' + !RP.here() + '): ' + (pO && pO.list) + ', no word of him', !!pO && !pO.ripples && pO.list.indexOf('ripples') < 0 && !RP.here());
+      scO.cards.length = 0; scO.encounter(pO, e3); var cdO = scO.cards[scO.cards.length - 1];
+      okRP('5 its card offers both ways as ever (' + (cdO && cdO.keys ? cdO.keys.map(function (k) { return k[2]; }).join(' / ') : '') + ')', !!cdO && cdO.keys.length === 2 && cdO.keys[0][2] === 'FIGHT');
+      scO.fight(pO, e3, { simple: false }); var bO = D.top(); D.battle = bO; var drO = driveRP(bO);
+      okRP('5 its fight on the grid comes to a hero\'s menu as ever (stopped: ' + drO.stop + ', asked: ' + drO.asks.slice(-1) + '), nothing of the cut run (' + JSON.stringify(bO.ripplesLog || null) + ', ' + !bO.ripplesFight + '), nobody mirror-eyed by it',
+        drO.stop === 'menu' && !bO.ripplesLog && !bO.ripplesFight && bO.units.filter(function (u) { return u.side === 'party'; }).every(function (u) { return !u.mirrorEye; }));
+    } catch (eRP) { repRP.errors.push(String(eRP && eRP.stack || eRP).slice(0, 900)); }
+    D.d = d0RP; D.store.get = stGRP; D.store.set = stSRP; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preRP = document.createElement('pre'); preRP.id = 'out'; preRP.textContent = 'BENCH16 ' + JSON.stringify(repRP);
+    document.body.appendChild(preRP);
+    return;
+  }
   // THE ROAD FROM THE HALFWAY INN TO TARLYN'S PIT, 11-13 (mode=world1113; the world map seat "world-leads" -- his ear file of 11-13 0327Z on eyes-child-in-tow-1112: "road to
   // the world puts me on a hex west of half-way inni - clicking travel to tarlyn's pit still goes the the long way around the lake, is the road not less travel? do you have
   // to enter the pit hex from a certain side (took me 3 tries)"): the inn's road edge out onto THE WORLD; the way to the Pit as THE WORLD counts it; the Pit's hex by every side

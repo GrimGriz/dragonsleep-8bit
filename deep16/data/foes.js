@@ -364,6 +364,18 @@
   },
   // the mirror hyena (10-08, ours): the SRD Giant Hyena as Mr. Ripples makes things -- mirror eyes (the Mirror's eye, as the Harbinger's) and the
   // ripple over its whole body; the Harbinger calls three as he rises (js/traits.js rise). The hyena's sheet drawn half again as big (Large)
+  // MR. RIPPLES, THE WALKING OLD ONE (11-13, the ripples-fight seat; Griz that day: "the random encounter (grid only) 'fight' with Mr. Ripples, where he does nothing if
+  // wins initiative, on first player initiative a cutscreen ..."): a row so he can stand on the grid for that one meeting (js/ripplesfight.js), and nothing more. HIS KIT IS
+  // NOT RULED: no blow, no power, no number of his own. The body's numbers are the SRD 5.1 Gnoll's, there so the engine has a row; initiative is his DEX's roll as any
+  // creature's, and nothing else of the block is read before the fight is over. On his review sheet (ripples_blend_p1), the ripple over his whole body (Griz, 10-08:
+  // "ripples will get it full body")
+  ripples: {
+    name: 'Mr. Ripples', named: true, sheet: 'ripples_blend_p1', cr: '?', ac: 15, hp: 22, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 }, init: 1, perception: 10,
+    saves: { str: 2, dex: 1, con: 0, int: -2, wis: 0, cha: -2 },
+    attacks: {}, multi: 0, mirrorEye: true, ripple: { region: 'body', every: 150, dur: 54 },
+    src: 'ours (11-13): Mr. Ripples as he is met on his road -- the name, the review sheet, the ripple; HIS KIT IS NOT RULED and none is here; the body numbers are the SRD 5.1 Gnoll\'s as a stand-in, unread (the fight is a cut and a game over: js/ripplesfight.js)'
+  },
   mirrorhyena: {
     name: 'Mirror Hyena', type: 'beast', sheet: 'hyena_p2', cr: '1/2', ac: 12, hp: 34, speed: 50, size: 1, reach: 5, drawScale: 1.25,
     abil: { str: 16, dex: 14, con: 14, int: 2, wis: 12, cha: 7 }, init: 2, perception: 13,
