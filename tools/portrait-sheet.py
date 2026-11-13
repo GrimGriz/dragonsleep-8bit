@@ -291,9 +291,14 @@ PEOPLE = {
     'dwarf': ('dwarf/PORTRAITS/sources', 'ART-141-DWARF', 'Solskaft\'s unnamed (js/solskaft.js SK.DWARF)', {'propfree': True, 'pat': 'ART-141-DWARF_HEAD-%02d_PAGE-%d_%s.png',
               'layout': [('dwarf/PORTRAITS/sources/ART-141-DWARF_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
               + [('dwarf/PORTRAITS/sources/ART-141-DWARF_HEAD-%02d_PAGE-1_%s.png' % (h, pg), [1], [act]) for h, pg, act in [
-                  (2, 'TROOPER', 'trooper'), (3, 'DRILL-SERGEANT', 'sergeant'), (4, 'GATE-WATCH', 'gatewatch'), (5, 'QUARTERMASTER', 'quartermaster'),
+                  (3, 'DRILL-SERGEANT', 'sergeant'), (4, 'GATE-WATCH', 'gatewatch'), (5, 'QUARTERMASTER', 'quartermaster'),
                   (6, 'SMITH', 'smith'), (7, 'SMELTER-HAND', 'smelter'), (8, 'YARD-HAND', 'yardhand'), (9, 'SHAFT-WATCH', 'shaftwatch'),
-                  (10, 'SHROOM-FARMER', 'shroom'), (11, 'LAMP-WARDEN', 'lampwarden'), (12, 'MASON', 'mason')]],
+                  (10, 'SHROOM-FARMER', 'shroom'), (11, 'LAMP-WARDEN', 'lampwarden'), (12, 'MASON', 'mason')]]
+              # the garrison in its real kit (11-13, the garrison cutter; art-wanted section 55, his "that better not be a battle axe, let's hope not and request one"):
+              # the art desk's ART-142, sorted to deep16/_src/ART-142-GARRISON-PORTRAITS-AND-TOWN/ -- the trooper redrawn with a bearded battleaxe, two throwing axes and
+              # the full coat of mail (in place of ART-141's HEAD 2, the short axe, now in dwarf/PORTRAITS/superseded/), and the crossbowman, the shield slung, a heavy crossbow
+              + [('ART-142-GARRISON-PORTRAITS-AND-TOWN/sources/portraits/ART-142-HEAD-%02d-PAGE-1-%s.png' % (h, pg), [1], [act]) for h, pg, act in [
+                  (1, 'TROOPER', 'trooper'), (2, 'CROSSBOWMAN', 'crossbowman')]],
               'avoid': {'*': ['fire', '#e8624a'], 'gatewatch': ['#e8624a'], 'lampwarden': ['#e8624a']}}),
     # GENERAL GRIMLOCK GRIM (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "they can churn through fresh one at a time as they complete at your discretion
     # as to next cut"; the General of the road redraft from his Beholda stream table, his 10-28 "was decided re: General Grimlock Grim beholda scripting for road redraft"):

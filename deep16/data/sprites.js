@@ -15420,7 +15420,7 @@ false
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dwarf": {
-"image": "art/pt_dwarf.png?v=c6f2dd13f6",
+"image": "art/pt_dwarf.png?v=8b4db3af1c",
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15445,7 +15445,7 @@ false,
 false
 ]
 },
-"trooper": {
+"sergeant": {
 "y": 157,
 "fw": 173,
 "fh": 157,
@@ -15457,7 +15457,7 @@ false
 false
 ]
 },
-"sergeant": {
+"gatewatch": {
 "y": 314,
 "fw": 173,
 "fh": 157,
@@ -15469,7 +15469,7 @@ false
 false
 ]
 },
-"gatewatch": {
+"quartermaster": {
 "y": 471,
 "fw": 173,
 "fh": 157,
@@ -15481,7 +15481,7 @@ false
 false
 ]
 },
-"quartermaster": {
+"smith": {
 "y": 628,
 "fw": 173,
 "fh": 157,
@@ -15493,20 +15493,8 @@ false
 false
 ]
 },
-"smith": {
-"y": 785,
-"fw": 173,
-"fh": 157,
-"ax": 92,
-"ay": 154,
-"frames": 1,
-"fps": 1,
-"ledge": [
-false
-]
-},
 "smelter": {
-"y": 942,
+"y": 785,
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15518,7 +15506,7 @@ true
 ]
 },
 "yardhand": {
-"y": 1099,
+"y": 942,
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15530,7 +15518,7 @@ false
 ]
 },
 "shaftwatch": {
-"y": 1256,
+"y": 1099,
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15542,7 +15530,7 @@ false
 ]
 },
 "shroom": {
-"y": 1413,
+"y": 1256,
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15554,7 +15542,7 @@ true
 ]
 },
 "lampwarden": {
-"y": 1570,
+"y": 1413,
 "fw": 173,
 "fh": 157,
 "ax": 92,
@@ -15566,6 +15554,18 @@ false
 ]
 },
 "mason": {
+"y": 1570,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"trooper": {
 "y": 1727,
 "fw": 173,
 "fh": 157,
@@ -15575,6 +15575,18 @@ false
 "fps": 1,
 "ledge": [
 true
+]
+},
+"crossbowman": {
+"y": 1884,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
 ]
 }
 },
@@ -29071,6 +29083,39 @@ true
 ]
 }
 }
+},
+"trooper_p1": {
+"image": "art/trooper_p1.png?v=43d3e32f7f",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 8,
+"fps": 9
+}
+},
+"name": "Trooper",
+"hold": [
+"walk: the rear NE lead change subtle (boot overlap); E and SE several close passing silhouettes; N distinguishes the trailing soles at 1 and 5 (the art desk's own notes)"
+],
+"source": "drawn by the art desk (ART-142-GARRISON-PORTRAITS-AND-TOWN, 11-12: art-wanted section 55 block 4, the garrison trooper's town figure in five views), cut by tools/trooper-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "venhale_p1": {
 "image": "art/venhale_p1.png?v=457e065ec2",

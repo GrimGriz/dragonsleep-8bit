@@ -116,7 +116,7 @@
   SK.WINDOW = [15, 3];        // (the lit window, high on the west store's face over this street square: Ásdís's -- over the lodging door since 11-12, the way up)
   SK.FOLK = [ // the first game's people who belong on this floor, with its looks (first/content/maps/solskaft.json), stood where the street puts them
     { id: 'pyro', at: [17, 1], dir: 'up', kind: 'trooper', sheet: 'pyro_p1' },     // (at the vault door, always -- CANON 07-24; 11-12, cutter-pyro: on his own town figure, pyro_p1, the art desk's ART-141 in all eight facings -- tools/pyro-town-sheet.py; his fight sheet pyro_p2 is his fights')
-    { id: 'ketil', at: [20, 1], dir: 'up', kind: 'trooper' },                       // (beside him: "I stand beside him and count who goes by")
+    { id: 'ketil', at: [20, 1], dir: 'up', kind: 'trooper', sheet: 'trooper_p1' }, // (beside him: "I stand beside him and count who goes by"; 11-13, the garrison cutter: on the trooper's town figure, trooper_p1, ART-142)
     { id: 'quartermaster', at: [6, 6], dir: 'down', kind: 'trooper' },              // (behind the quartermaster's counter, in the tollhouse)
     { id: 'yardhand', at: [33, 5], dir: 'up', kind: 'trooper' },                    // (by the stable's trough: his word is the wheel and the fountains)
     { id: 'shaftwatch', at: [21, 12], dir: 'left', kind: 'trooper' }                // (by the oathstone: his word is the light)
@@ -541,19 +541,20 @@
   SK.CFOLK = [
     { id: 'smith', at: [19, 22], dir: 'left', kind: 'trooper' },            // (the Copperbottom smith at the forge -- "AT THE FORGE" on the family's bar)
     { id: 'smelterhand', at: [27, 23], dir: 'down', kind: 'trooper' },      // (sweeping the cold smelters: "Orders.")
-    { id: 'gatewatch', at: [33, 24], dir: 'down', kind: 'trooper' },        // (the gate watch, inside the highway's gate)
+    { id: 'gatewatch', at: [33, 24], dir: 'down', kind: 'trooper', sheet: 'gatewatch_p2' }, // (the gate watch, inside the highway's gate; on his own drawn spear, gatewatch_p2, now the trooper's foe fights on trooper_p2)
     { id: 'shroomer', at: [4, 11], dir: 'down', kind: 'trooper' },          // (in the shroom farm's dark)
     // the drill, down in the wagon holding by its lamp (moved 11-12 off the street's apron, where it shut the way to the narrow ramp -- his "they could drill down here by the
     // wagon and mysterious glow (3, 28)-ish"; it had stood by the tollhouse and the stables, CANON 11-11)
-    { id: 'drill1', at: [1, 3], dir: 'right', kind: 'trooper' }, { id: 'drill2', at: [3, 3], dir: 'right', kind: 'trooper' },
-    { id: 'drill3', at: [1, 4], dir: 'right', kind: 'trooper' }, { id: 'drill4', at: [3, 4], dir: 'right', kind: 'trooper' },
+    // (11-13, the garrison cutter: the drill's four on the trooper's town figure, trooper_p1 -- art-wanted section 55 block 4, the art desk's ART-142, tools/trooper-town-sheet.py)
+    { id: 'drill1', at: [1, 3], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' }, { id: 'drill2', at: [3, 3], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' },
+    { id: 'drill3', at: [1, 4], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' }, { id: 'drill4', at: [3, 4], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' },
     { id: 'drillmaster', at: [5, 4], dir: 'left', kind: 'drillsergeant' }
   ];
   // THE GENERIC DWARF (11-12, the Ingrith cutter on the lanes desk's relay; art-wanted section 54, his "include a 'generic dwarf' like we did for generic NPC, various
   // costumes"): the art desk's ART-141-DWARF, one face, each of Solskaft's unnamed in the costume of the job they stand at -- pt_dwarf (tools/portrait-sheet.py dwarf),
   // its still held the whole talk on the counter's screen, the generic man's way (js/counter.js C.GENERIC: added here, not there); their word the first game's as before
   // (C.words), the quartermaster's his standing line (SK.WORDS). Those who are not soldiers walk on the dwarf's own town figure, folkdwarf_p1 (tools/folkdwarf-town-sheet.py);
-  // the drill and the gate watch keep the garrison's. Ketil is named and keeps his card. Drawn looking screen left: mirrored on the left (C.FACES_LEFT)
+  // the drill and the gate watch keep the garrison's (11-13: the drill and Ketil on the trooper's town figure, trooper_p1; the gate watch on his spear, gatewatch_p2). Ketil is named and keeps his card. Drawn looking screen left: mirrored on the left (C.FACES_LEFT)
   SK.DWARF = { quartermaster: 'quartermaster', yardhand: 'yardhand', shaftwatch: 'shaftwatch', smith: 'smith', smelterhand: 'smelter', gatewatch: 'gatewatch', shroomer: 'shroom',
     drill1: 'trooper', drill2: 'trooper', drill3: 'trooper', drill4: 'trooper', drillmaster: 'sergeant' };
   SK.DWARFWALK = ['quartermaster', 'yardhand', 'shaftwatch', 'smith', 'smelterhand', 'shroomer'];

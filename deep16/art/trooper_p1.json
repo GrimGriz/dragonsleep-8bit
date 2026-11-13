@@ -1,0 +1,33 @@
+{
+ "image": "art/trooper_p1.png",
+ "fw": 32,
+ "fh": 64,
+ "ax": 16,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 32,
+   "fh": 64,
+   "ax": 16,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 8,
+   "fps": 9
+  }
+ },
+ "name": "Trooper",
+ "hold": [
+  "walk: the rear NE lead change subtle (boot overlap); E and SE several close passing silhouettes; N distinguishes the trailing soles at 1 and 5 (the art desk's own notes)"
+ ],
+ "source": "drawn by the art desk (ART-142-GARRISON-PORTRAITS-AND-TOWN, 11-12: art-wanted section 55 block 4, the garrison trooper's town figure in five views), cut by tools/trooper-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
