@@ -193,7 +193,7 @@
   // table"): away with the wagon from its night, he is home from In.DORAN.backHour on the day before that wagon's due (the wagon the 12th, the due the 15th: away the
   // 13th and the 14th's day, at the bar again that evening). The floor lets the flag go as it is laid at or after that hour (M.floor, below); the due's own night
   // lets it go as before (js/secondact.js A.dueNight)
-  In.DORAN = { backHour: 17 };
+  In.DORAN = { backHour: 17 }; In.DUE_EVE = 12; // (the due's night is the night that FOLLOWS its day: a bed taken from noon on -- In.night)
   In.doranBack = function (f, d, h) { var due = In.dueDay(Math.max(0, f.wagonCycle || 0)); return d > due - 1 || (d === due - 1 && (h == null ? 0 : h) >= In.DORAN.backHour); };
   In.dueTonightOn = function (f, d) { return In.isDueDay(d) && f.dueCycle !== In.dueCycle(d) && !f.lakeDone; };
   // nights from day d to the due's next night not yet walked (0: tonight) -- Elsbeth's word with the ring on the hand (11-08)
@@ -922,6 +922,9 @@
     var W = D.world, S = W.state && W.state(), now = In.hourOf(B); if (hour <= now) return;
     if (D.roam.house() && D.house.playing && S) { D.house.fromFloor(B); S.t += hour - now; W.save(); } else B.roam.hour = hour;
     M.lightNow(B);
+    // (THE EVENING'S PEOPLE, 11-13, the poison-dinner walk's finding `dorantable`: a supper waited for from the day hours was sat by the people the floor stood when the party
+    // asked -- Doran, behind the bar only from evening, was not at it. The floor is laid again by the hour waited to, its people stood by that hour, the house as it was laid)
+    var defW = D.roam.def; if (defW && defW.key === In.KEY && B.roam && B.roam.token) { In.relaying = 'inn'; /* (the house laid OPEN for the supper, whatever door the party asked at: the inn lady is at the well of a morning, and a roofed house stands nobody of its inside -- Doran, the fireside) */ try { M.relay(B, hour, true); } finally { In.relaying = undefined; } var tW = B.roam.token; tW.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); B.cache = null; B.map.occKey = null; if (In.teamBlock) In.teamBlock(B); In.trail('the wait to ' + hour + ':00: the people of the floor stood by that hour'); }
   };
   // a short rest at the inn: an hour by the fire, the hit dice spent -- the house's one short rest on a floor since 11-05 (js/house.js H.shortRestOnFloor)
   In.shortRest = function (B) {
@@ -1173,7 +1176,9 @@
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
     var f = B.roam.flags, d = In.day(D.roam.q); if (In.wagonTonight(f, d)) { yield* In.wagonNight(B, d); return; }
-    if (D.secondact && D.secondact.dueNight && In.dueTonightOn(f, d)) { yield* D.secondact.dueNight(B, d); return; } // (the due's own night, three on from the wagon's: 11-05)
+    // (THE DUE WAITS FOR ITS EVENING, 11-13, the inn seat's find on the walkthrough bench: a bed taken after midnight on the due's own calendar day played the due's night at
+    // once, at one that morning, a day before its evening -- In.dueTonightOn asks only the day. A bed taken before noon is the tail of the night before: a plain sleep)
+    if (D.secondact && D.secondact.dueNight && In.dueTonightOn(f, d) && In.hourOf(B) >= In.DUE_EVE) { yield* D.secondact.dueNight(B, d); return; } // (the due's own night, three on from the wagon's: 11-05)
     if ((yield* In.sleep(B)) === 'up') return; // (gone up to the room: the guest floor's script has the morning and the gift -- In.bedding)
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); // (the morning after the wagon came in off the road, stopped by day: js/wagon.js, In.wagonIn)
   };

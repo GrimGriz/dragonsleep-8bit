@@ -238,6 +238,20 @@
     Gd.setup(Gd.map, B.units); B.cache = null;
   };
   // some asleep: the sleepers drop at the table, the awake rise -- the fight in the common room to submission; Doran confesses and leads them out back
+  A.offSeat = function (B, q, u, to, not) { // (q if it is floor; else the square beside it that is floor, free, and has the shortest way to `to`)
+    var at = function (x, y) { return B.map && B.map.at ? B.map.at(x, y) : null; }, c = at(q[0], q[1]); if (c && c.walk !== false) return q;
+    var best = null, x0 = u.x, y0 = u.y;
+    [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(function (d) {
+      var n = [q[0] + d[0], q[1] + d[1]], cn = at(n[0], n[1]); if (!cn || cn.walk === false || (not && not[0] === n[0] && not[1] === n[1]) || B.units.some(function (w) { return w !== u && w.x === n[0] && w.y === n[1] && w.hp > 0; })) return;
+      u.x = n[0]; u.y = n[1]; var w = null; try { w = In.walkWay(u, to); } catch (e) { w = null; } u.x = x0; u.y = y0;
+      if (w && w.length && (!best || w.length < best.n)) best = { q: n, n: w.length };
+    });
+    if (best) A.trail((u.name || 'a figure') + ' off the seat at ' + q.join(',') + ' onto the floor at ' + best.q.join(','));
+    return best ? best.q : q;
+  };
+  A.stepOff = function* (B, u, to) { // (one step off a seat onto the floor, as the walk begins: the seat is not floor by the time the confession is over, whatever it was at the swap)
+    var q = A.offSeat(B, [u.x, u.y], u, to); if (q[0] === u.x && q[1] === u.y) return; In.hop(B, u, q); G.setup(B.map, B.units); yield In.PACE;
+  };
   A.supperFight = function* (B, asleep, awake, seat, aloud) {
     var Rm = R(), R0 = B.roam, f = R0.flags, Y = {}, T = In.TABLE, C = D.counter, SO = C.SHEETOF;
     A.backRoom(B);
@@ -256,7 +270,10 @@
     try { D.music('boss'); } catch (e) { }
     // (the ways out of this fight are the house's two doors, so a hero who LEAVES THE FIGHT is at a door when Doran reaches them -- 11-12; js/roam.js R.setExits is the floor's rule)
     var set0 = Rm.setExits; Rm.setExits = function (B2, u) { set0.apply(this, arguments); if (B2 === B) B2.exits = [In.DOORS.front.slice(), In.DOORS.lake.slice()]; };
-    try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; }
+    // (DORAN'S BUCKET, 11-13, the poison-dinner walk's finding `bucket`: the fight's end kept only the lasting conditions, so every sleeper was up before he spoke and his
+    // bucket was never thrown. For this fight the draught's sleep lasts past its end -- js/roam.js R.LASTING -- and his bucket is what wakes whoever still sleeps)
+    var last0 = Rm.LASTING; Rm.LASTING = last0.concat(['asleep']);
+    try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; Rm.LASTING = last0; }
     var o = R0.lastOutcome;
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
     try { D.music((D.roam.def && D.roam.def.music) || 'inn'); A.musicBack = (A.musicBack || 0) + 1; } catch (eM) { } // (11-13, his "Combat music that starts at dinner should turn off at yield (and start back up when party token breaks to fight monster)": the house's own again; the thing's fight starts its own, A.lakeFight)
@@ -273,12 +290,14 @@
     A.exits = [];
     var out = function (u, how) { if (u && B.units.indexOf(u) >= 0) { A.exits.push({ id: u.scripted || u.npc || u.id, x: u.x, y: u.y, how: how, sheet: u.sheet }); In.gone(B, u); } };
     var own =function (id, fig, at, name, face) { var u = In.unit(B, { id: id, kind: fig === 'gennet' ? 'commonerwoman' : 'commoner', at: at, name: name, face: face }); if (D.counter.dress && D.counter.dress(u, fig)) u.facing = D.spr.facingFor(face[0], face[1]); u.bystander = true; return u; };
-    var gq = [Y.gennet.x, Y.gennet.y], dq = [Y.doran.x, Y.doran.y]; out(Y.doran, 'swap'); if (gennetUp) out(Y.gennet, 'swap'); else A.clear(B, { gennet: Y.gennet });
+    // (11-13, the poison-dinner walk's finding `supperpops`: a fight that ends with the two still at their places has them on their SEATS, squares that are not floor, and
+    // no walk leaves one -- each was set at the fire and the lake door. Their own figures are stood on the floor beside the seat, a step off the chair: A.offSeat)
+    var gq = A.offSeat(B, [Y.gennet.x, Y.gennet.y], Y.gennet, A.HEARTH), dq = A.offSeat(B, [Y.doran.x, Y.doran.y], Y.doran, In.DOORS.lake, gq); out(Y.doran, 'swap'); if (gennetUp) out(Y.gennet, 'swap'); else A.clear(B, { gennet: Y.gennet });
     R0.groups = (R0.groups || []).filter(function (g) { return !(g.foes || []).some(function (u) { return u === Y.doran || u === Y.gennet; }); }); // (a party that got out leaves the two standing as a pursuit -- js/roam.js R.after: they are done)
     var G2 = gennetUp ? own('gennetAfter', 'gennet', gq, In.named(f), [0, 1]) : null, D2 = own('doranAfter', 'doranIn', dq, 'Doran Waterby', [1, 0]);
     var who = function (id) { var u = id === 'gennet' ? G2 : id === 'elsbeth' ? els : D2; return { name: id === 'gennet' ? In.named(f) : id === 'elsbeth' ? 'Elsbeth' : 'Doran', unit: u || null, side: id === 'gennet' ? 'right' : 'left', sheet: id === 'elsbeth' ? In.elsbethCut() : SO && SO[id === 'doran' ? 'doranIn' : id] ? SO[id === 'doran' ? 'doranIn' : id]({ flags: f }) : null }; };
     var left = String(o) === 'escaped' ? ((R0.last && R0.last.outBy) || R0.token.name) : null; // (LEAVE THE FIGHT: who went out -- js/roam.js R.after keeps the name)
-    if (left) { var tk = R0.token, sq = In.beside(B, D2, tk); yield* In.walk(B, D2, sq, [tk.x - sq[0], tk.y - sq[1]]); f.doranStopped = 1; A.trail('the fight left: Doran crosses the room and stops ' + left + ' at the door'); }
+    if (left) { var tk = R0.token, sq = In.beside(B, D2, tk); yield* A.stepOff(B, D2, sq); yield* In.walk(B, D2, sq, [tk.x - sq[0], tk.y - sq[1]]); f.doranStopped = 1; A.trail('the fight left: Doran crosses the room and stops ' + left + ' at the door'); }
     f.doranConfessed = 1; A.trail('Doran confesses: the thing in the lake');
     var slept = R0.members.some(function (u) { return u.conds && u.conds.asleep; });
     var sc = new C.Counter(B, { id: 'supperafter', name: 'Doran Waterby', place: 'The Halfway Inn', what: left ? 'the door' : 'the long table', room: true, open: true, bg: In.roomShot(B), script: function (s2) { return (function* () {
@@ -292,10 +311,10 @@
       yield s2.lookAt(who('doran'), ['Doran takes the shore-lantern down and goes out by the lake door.' + (gennetUp ? ' Gennet goes back to the fire, and stays by it.' : '')], gennetUp ? who('gennet') : null);
     })(); } });
     D.push(sc); while (!sc.done) yield 1;
-    R0.members.forEach(function (u) { if (u.conds && u.conds.asleep) { delete u.conds.asleep; delete u.conds.prone; } }); // (his bucket: everyone up)
-    if (G2) { yield* In.walk(B, G2, A.HEARTH); out(G2, 'swap'); } // (her own place by the fire: the lay's Gennet stands on that square as hers leaves it)
+    R0.members.forEach(function (u) { if (u.conds && u.conds.asleep) { delete u.conds.asleep; delete u.conds.prone; } if (u.src && u.src.conds && u.src.conds.asleep) delete u.src.conds.asleep; }); // (his bucket: everyone up -- on the figure and on the sheet)
+    if (G2) { yield* A.stepOff(B, G2, A.HEARTH); yield* In.walk(B, G2, A.HEARTH); out(G2, 'swap'); } // (her own place by the fire: the lay's Gennet stands on that square as hers leaves it)
     f.doranOut = 1; f.doranWaits = (f.poisonNight || 0) + 1; // (out with the lantern, and waiting: no Doran behind the bar -- js/inn.js In.FOLK; the due's cycle + 1)
-    yield* In.walk(B, D2, In.DOORS.lake); out(D2, 'door');
+    yield* A.stepOff(B, D2, In.DOORS.lake); yield* In.walk(B, D2, In.DOORS.lake); out(D2, 'door');
     if (els) yield* In.walk(B, els, A.TUB, [1, 0]);
     In.lay(B, 'inn', true); A.waitDoran(B);
     yield* In.card(B, [A.LINES.doranWaits], 300);
