@@ -33,7 +33,7 @@
   // (life: his words were "character was lost the seep"; "was lost to the Seep" is the lanes desk's reading of them -- his to reword)
   S.LINES = {
     life: function (n) { return n + ' was lost to the Seep.'; },
-    massive: function (n) { return n + ' was killed outright.'; },
+    massive: function (n) { return n + ' was killed by MASSIVE DAMAGE.'; }, // (RULED 11-13, Griz: "if MASSIVE DAMAGE is the only 'outright' go with MASSIVE DAMAGE"; battle.js hurt says it)
     exhaustion: function (n) { return n + ' died of exhaustion.'; },
     march: function (n) { return n + ' died of exhaustion on the march.'; }
   };

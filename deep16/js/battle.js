@@ -3578,8 +3578,8 @@
     var past = hp0 > 0 ? n - hp0 : n;
     if (u.hp <= 0 && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && !u.conds.deathWard && !u.dead && !u.fated && past >= u.maxhp) {
       var story = Battle.endsGame(this, u);
-      this.card(['{r}' + u.name + ' is killed outright.{/}  {g}(' + past + ' past 0, against ' + u.maxhp + ' hit points: massive damage' + (story ? ' -- the story cannot go on without them' : '') + '){/}'], 400);
-      this.lostForGood(u, u.name + ' was killed outright.');
+      this.card(['{r}' + u.name + ' is killed by MASSIVE DAMAGE.{/}  {g}(' + past + ' past 0, against ' + u.maxhp + ' hit points' + (story ? ' -- the story cannot go on without them' : '') + '){/}'], 400); // (RULED 11-13, Griz: "if MASSIVE DAMAGE is the only 'outright' go with MASSIVE DAMAGE" -- it is the only path that said "killed outright"; the card and the game-over line name it)
+      this.lostForGood(u, u.name + ' was killed by MASSIVE DAMAGE.');
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u);
       return;
     }

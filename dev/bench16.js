@@ -18729,7 +18729,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         H.playing = true; var o0 = B2.o.npc; B2.o.npc = null; // (as a road's or a floor's fight in a game being played: not the class floor)
         okS('2b a game being played: Battle.endsGame says yes for a hero (' + (D.Battle.endsGame ? D.Battle.endsGame(B2, c2) : 'no such function') + ')', !!D.Battle.endsGame && D.Battle.endsGame(B2, c2) === true);
         n2 = (B2.log || []).length; B2.hurt(c2, c2.hp + c2.maxhp, 'bludgeoning', {});
-        okS('2c massive damage there: the fight is lost (' + B2.over() + '), its line "' + B2.slainLine + '" (want "' + c2.name + ' was killed outright.")', B2.over() === 'lost' && B2.slainLine === c2.name + ' was killed outright.');
+        okS('2c massive damage there: the fight is lost (' + B2.over() + '), its line "' + B2.slainLine + '" (want "' + c2.name + ' was killed by MASSIVE DAMAGE."), the card says it too (' + /is killed by MASSIVE DAMAGE\./.test(logS(B2, n2)) + '), nothing says "outright" (' + !/outright/.test(logS(B2, n2)) + ')', B2.over() === 'lost' && B2.slainLine === c2.name + ' was killed by MASSIVE DAMAGE.' && /is killed by MASSIVE DAMAGE\./.test(logS(B2, n2)) && !/outright/.test(logS(B2, n2)));
         var B3 = mkS('?npc=ogre&lvl=3&vs=fighter:3,cleric:3'), f3 = B3.units.filter(function (u) { return u.cls === 'fighter'; })[0]; B3.o.npc = null;
         D.rules.exhaust(B3, f3, 6, 'the bench');
         okS('2d the sixth level of exhaustion: dead, slain, the fight lost on "' + B3.slainLine + '" (want "' + f3.name + ' died of exhaustion.")', f3.dead && f3.slain && B3.over() === 'lost' && B3.slainLine === f3.name + ' died of exhaustion.');
