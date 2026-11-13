@@ -1137,6 +1137,7 @@
   In.roomOf = function (f) { return f && f.bigRoom ? 'big' : 'road'; };
   In.sleepsHere = function () { return In.bedHere != null ? !!In.bedHere : !!(In.stay || D.benchPage); }; // (D.benchPage: dev/bench16.js's own page)
   In.sleep = function* (B, line) {
+    if (B.roam.flags.invest && In.investOf(B)) return yield* In.investGo(B, 'to a bed'); // (INVESTIGATE's wait, and a bed taken instead: the night as watched -- its own morning and sleep, In.wagonRest)
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
     if (D.secondact && D.secondact.waitOver) D.secondact.waitOver(B, 'the party went to bed'); // (Doran's wait by the lake door ends with the party's night, not at six: js/secondact.js A.waitOver, 11-13)
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
@@ -1188,6 +1189,10 @@
   // ---------------------------------------------------------------- THE WAGON NIGHT (the lane's item 2: the first game's S.wagonNight, its words content/text.json wagon.*, the
   // second game's way -- the night as talk on the counter screen over the yard on the diamonds, the yard fight the grid's `wagonnight` on its own map, the traces as RULED 11-04 §1)
   In.WN = {
+    // (INVESTIGATE's wait, 11-13: the seat's drafts, his to re-word -- the old card, content/text.json wagon.investigate, said "and out into the yard" before the party had gone)
+    investWait: '{name} slips down the stair. Through the front door the wagon is still in the yard, the team in the traces. Out by the door for a closer look, or back up the stair to the window.',
+    investOut: '{name} steps out into the yard.',
+    investBack: '{name} goes back up the stair to the window.',
     fledHorses: 'They have the team loose and are away north up the road on the greys, into the dark toward Web Gulch.',
     fledFoot: 'They are away north up the road on foot, into the dark toward Web Gulch.',
     fledYard: 'In the yard the wagon stands where they left it.',
@@ -1560,12 +1565,31 @@
     if (!paid && In.perceives(watcher.src, 15, f.glamourSuspect ? 5 : 0)) yield* In.breakGlamour(B, st, f, Y);
     // 4. the choice, as the first game asked it: INVESTIGATE, WAKE THE PARTY, KEEP WATCH (a night already paid for on the road keeps to the room)
     var a = paid ? 2 : yield* In.ask(B, 'THE SECOND WATCH', [L('wagon.ask', { name: watcher.name })], ['INVESTIGATE', 'WAKE THE PARTY', 'KEEP WATCH']);
+    var C = { B: B, d: d, Y: Y, w: w, st: st, party: party, watcher: watcher, keyOf: keyOf, paid: paid, upstairs: upstairs, a: a };
+    // INVESTIGATE: THE NIGHT WAITS (RULED 11-13, Griz, on the inn seat's lean -- "the watcher is stood in the common room with the wagon still turning in, and the night WAITS:
+    // nothing more happens until the party steps out the front door (the greeting plays in front of them, with the choices the yard has) or goes back up the stair (KEEP WATCH,
+    // the night runs on as watched)": "run with the leans, I'll complain on playthrough if they land wrong or something :)"; his 0404Z note was "investigate let me roam around
+    // downstairs but apparently willem put the horses away and they stayed the night without me interacting as aurdin downstairs"). The scene stops here with the watcher at the
+    // stair's foot and the floor handed back; what the rest needs is kept (In.invest, and f.invest for a save); In.wagonRest plays it from a step out of the house, or the quiet
+    // night from the stair or from a bed taken (the D.roam.arrive wrap, T.fire's inn:stair, In.sleep)
+    if (a === 0) {
+      if (upstairs) In.comeDown(B); // (down the stair: the token at its foot)
+      if (watcher !== R0.token) In.lead(B, watcher); // (the watcher's figure alone: the token is the watcher's from here)
+      yield* In.card(B, [In.WN.investWait.split('{name}').join(watcher.name)], 360);
+      In.invest = C; f.invest = { d: d, watcher: keyOf(watcher), lead0: R0.lead0 ? keyOf(R0.lead0) : null, paid: paid, stay: R0.stay || null };
+      In.trail('INVESTIGATE: ' + watcher.name + ' is down in the common room; the night waits on a step out of the house or back up the stair');
+      return 'wait';
+    }
+    return yield* In.wagonRest(B, C);
+  };
+  // the night's rest (C: what In.wagonNight had in hand at the choice; back: the watcher went back up the stair, or to a bed -- the night as watched, quiet)
+  In.wagonRest = function* (B, C, back) {
+    var R = D.roam, R0 = B.roam, f = R0.flags, st = C.st, d = C.d, Y = C.Y, w = C.w, party = C.party, watcher = C.watcher, keyOf = C.keyOf, paid = C.paid, upstairs = C.upstairs, a = C.a;
     var how = 'quiet', outside = [], morning = null;
-    if (a !== 2) {
+    if (a !== 2 && !back) {
       outside = a === 0 ? [watcher] : party.slice();
-      if (upstairs) In.comeDown(B); // (down the stair: the token at its foot, and out by the front door)
-      if (a === 0 && watcher !== R0.token) In.lead(B, watcher); // (the watcher's figure goes out alone: the token is the watcher's from here)
-      yield* In.card(B, [L(a === 0 ? 'wagon.investigate' : 'wagon.wake', { name: watcher.name })], 300);
+      if (a !== 0) { if (upstairs) In.comeDown(B); yield* In.card(B, [L('wagon.wake', { name: watcher.name })], 300); } // (WAKE THE PARTY: down the stair together and out; INVESTIGATE came down before its wait)
+      else yield* In.card(B, [In.WN.investOut.split('{name}').join(watcher.name)], 240);
       yield* R.walkTo(B, [w[0] + 6, w[1]]); // (out the front door into the yard: a step out roofs the house as ever)
       if (!f.glamourSeen && outside.some(function (u) { return In.perceives(u.src, 12, f.glamourSuspect ? 5 : 0); })) yield* In.breakGlamour(B, st, f, Y);
       if (!f.glamourSeen) {
@@ -1643,6 +1667,36 @@
     if ((yield* In.sleep(B, morning)) === 'up') return 'up';
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
+  // INVESTIGATE's wait taken up: In.invest while this floor stands; from a save (f.invest) the yard's cast is stood again and the watcher put in front
+  In.investOf = function (B) {
+    var R0 = B && B.roam, f = R0 && R0.flags, def = D.roam.def, v = f && f.invest; if (!v || !def || def.key !== In.KEY) return null;
+    if (In.invest && In.invest.B === B) return In.invest;
+    if (In.day(D.roam.q) > v.d + 1) { delete f.invest; In.invest = null; return null; } // (a wait left over from another night: let go)
+    var keyOf = function (u) { return u.src ? (u.src.key || u.src.id) : u.id; }, party = R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; });
+    var watcher = party.filter(function (u) { return keyOf(u) === v.watcher; })[0] || party[0] || R0.token, l0 = party.filter(function (u) { return keyOf(u) === v.lead0; })[0] || R0.token;
+    if (v.stay && !R0.stay) R0.stay = v.stay; if (watcher !== R0.token) In.lead(B, watcher); R0.lead0 = l0; f.wagonIn = 1;
+    In.invest = { B: B, d: v.d, Y: In.yardCast(B, f), w: In.WAGONAT, st: D.counter.state(B), party: party, watcher: watcher, keyOf: keyOf, paid: !!v.paid, upstairs: false, a: 0 };
+    In.trail('INVESTIGATE\'s wait taken up again from the save: ' + watcher.name + ' downstairs, the wagon in the yard');
+    return In.invest;
+  };
+  In.investGo = function* (B, back) { // (the wait over: out of the house -- the rest in front of the watcher; back -- the quiet night)
+    var C = In.investOf(B); if (!C) return null; In.invest = null; delete B.roam.flags.invest;
+    In.trail('INVESTIGATE: the wait over, ' + (back ? 'back ' + back + ': the night as watched' : 'a step out of the house: the yard'));
+    if (back === 'up the stair') yield* In.card(B, [In.WN.investBack.split('{name}').join(C.watcher.name)], 240);
+    return (yield* In.wagonRest(B, C, !!back)) || 'done';
+  };
+  (function () {
+    var arriveI0 = D.roam.arrive, scriptI0 = D.roam.script;
+    D.roam.arrive = function* (B) {
+      var ev = yield* arriveI0.apply(this, arguments), def = D.roam.def, R0 = B.roam, t = R0 && R0.token;
+      if (!ev && def && def.key === In.KEY && t && D.battle === B && R0.flags && R0.flags.invest && !In.inHouse(t.x, t.y) && In.investOf(B)) return yield* In.investGo(B, null);
+      return ev;
+    };
+    D.roam.script = function* (B) { // (a game loaded in the wait: the yard's cast stood again before the floor is the party's)
+      var def = D.roam.def; if (def && def.key === In.KEY && B.roam && B.roam.flags && B.roam.flags.invest && !(In.invest && In.invest.B === B)) In.investOf(B);
+      yield* scriptI0.apply(this, arguments);
+    };
+  })();
   // the yard fight on the floor's own squares (one map for the floor and the fight): the roam's fight with the yard's rules laid on the floor's fight def for its length --
   // Willem at the traces, the pair run when he is hit (runWhenHurt), the fight over once neither stands on the field and one is away on the road (fledEnds, js/battle.js over -- RULED 11-06,
   // his "4 - lean": till then the one left fights on; the road down the west edge the ways off; the chase goes after whoever got away), three turns unbothered
@@ -2375,6 +2429,7 @@
     else if (s === 'inn:point') say = [L(f.lakeDone ? 'lake.quiet' : 'lake.deep')];
     else if (s === 'inn:sign') say = [trig.text || ''];
     else if (s === 'inn:rowboat') { if (D.secondact && D.secondact.sound) yield* D.secondact.sound(B); return; } // (the rowboat: LEAVE IT, or sound the deep -- the chuul by day, 11-05)
+    else if (s === 'inn:stair' && f.invest && In.investOf(B)) { yield* In.investGo(B, 'up the stair'); return; } // (INVESTIGATE's wait: back up the stair, the night runs on as watched)
     else if (s === 'inn:stair') { yield* M.go(B, In.UP, [In.UPSTAIR[0], In.UPSTAIR[1] - 1], [0, -1]); return; } // (up to the guest rooms, a step off the stair head)
     else if (s === 'inn:down') { yield* M.go(B, In.KEY, [In.STAIR[0], In.STAIR[1] - 1], [0, -1]); return; } // (down by the bar, a step off the stair's foot into the room: the house laid open, js/inn.js In.qInside)
     else if (s === 'inn:drawer') {
