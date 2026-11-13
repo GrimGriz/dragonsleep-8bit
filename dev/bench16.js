@@ -8539,6 +8539,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var c4 = HT.cur && HT.cur.flags && HT.cur.flags.childGuest;
       okT('4. the door, &beat=childtow: the party level ' + lvT.join('/') + ', the child ' + (fT && fT.childGuest || 'not') + ' in tow; RETURN off the road edge: ' + (WT.M() && WT.M().near ? 'the area\'s ' : 'THE WORLD\'s ') + (S4 && S4.at) + ', ' + (rd4.length ? 'on ' + rd4.join(', ') : 'off every road') + ', the child ' + (c4 || 'not') + ' in tow',
         lvT.length === 4 && lvT.every(function (l) { return l === 3; }) && !!fT && !!fT.childGuest && !!S4 && S4.at.join() === innN.hex.join() && rd4.indexOf('pitroad') >= 0 && !!c4);
+      // 5. THE FAR-ZOOM CLICK (11-13 later; his note on eyes-world-innroad-1113d: "i clicked on the halfway inn hex at a zoom too far out and it took me to two hexes west of
+      // the inn on a closer zoom (when i got there)"): every place on the area, at every zoom, the camera on it; a click on its drawn icon -- the hex the walk is planned to
+      D.scenes.length = 0; D.house.worldDoor('?world&fresh&noenc'); scT = D.top(); ST = WT.state(); WT.use('near'); ST.map = 'near'; scT.onMap();
+      var Zs5 = scT.zooms(), miss5 = [], n5 = 0, pick5 = scT.pickPlace ? 'pickPlace' : 'pick';
+      var skip5 = 0;
+      MN.sites.forEach(function (s) {
+        if (!MN.hex[KT(s.hex[0], s.hex[1])]) { skip5++; return; } // (a place off the area's hexes: its mark not drawn on the area)
+        Zs5.forEach(function (z, zi) {
+          scT.zi = zi; scT.cam.cx = s.x; scT.cam.cy = s.y; var cam = scT.camObj(), p = WT.groundAt(cam, s.x, s.y), mx = Math.round(p[0]), my = Math.round(p[1]);
+          if (!WT.visAt(p, s.y)) return; // (behind a ridge: not drawn)
+          var pl = scT.pickPlace ? scT.pickPlace(mx, my) : null, hv = pl ? pl.hex : scT.pick(mx, my); n5++;
+          if (!hv || hv.join() !== s.hex.join()) miss5.push(s.id + ' at ' + z + ' px/mi: ' + hv + ' (its ' + s.hex + ')');
+        });
+      });
+      okT('5. a click on each place\'s drawn mark, ' + (MN.sites.length - skip5) + ' places on the area x ' + Zs5.length + ' zooms, where drawn (' + pick5 + '): ' + (n5 - miss5.length) + ' of ' + n5 + ' to the place\'s own hex' + (miss5.length ? '; off: ' + miss5.slice(0, 12).join('; ') + (miss5.length > 12 ? ' ...' : '') : ''), n5 > 0 && !miss5.length);
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     WT.onStep = onStepT; D.store.get = stGT; D.store.set = stST; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
     delete D.WORLD_NEAR; if (WT.use) WT.use('world');

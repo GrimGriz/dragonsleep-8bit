@@ -372,6 +372,20 @@
   World.prototype.camObj = function () { var ZS = this.zooms(); if (this.zi > ZS.length - 1) this.zi = ZS.length - 1; var z = ZS[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
   function proj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
   function hexTopH(q, r) { var e = M.hex[K(q, r)]; if (e) return e.h; if (M.near) { var c = hc(q, r), pw = atw(c[0], c[1], MS.world.w), ew = MS.world.hex[K(pw[0], pw[1])]; if (ew) return ew.h; } return 0; } // (past the area's edge: THE WORLD's hex there)
+  // A CLICK ON A PLACE (11-13 later, the world map seat; his note on eyes-world-innroad-1113d: "i clicked on the halfway inn hex at a zoom too far out and it took me to two
+  // hexes west of the inn on a closer zoom (when i got there)"): the hex under the pixel is read on the raised land, and a place's mark is drawn on the ground at its own point,
+  // so at the far zooms the two parted -- 47 of the area's 234 place-and-zoom clicks went to another hex. A click within a few pixels of a place's drawn mark, or on its name,
+  // is that place: its own hex, the walk to its mark (World.prototype.update)
+  World.prototype.pickPlace = function (mx, my) {
+    var cam = this.camObj(), best = null, bd = 1e9, r = Math.max(6, Math.min(12, cam.z * 0.6));
+    for (var i = 0; i < M.sites.length; i++) {
+      var s = M.sites[i], p = groundAt(cam, s.x, s.y); if (VIS && !VIS(p, s.y)) continue;
+      var d = Math.hypot(p[0] - mx, p[1] - my), nm = (BIG[s.kind] || cam.z >= 8) ? s.name.replace(/ \(.*\)$/, '') : '', nx = Math.round(p[0]) + 6, ny = Math.round(p[1]) - 4;
+      if (nm && mx >= nx - 1 && mx <= nx + D.textWidth(nm) + 1 && my >= ny - 1 && my <= ny + 9) d = Math.min(d, r * 0.9); // (its name, as W.drawPlaces writes it)
+      if (d <= r && d < bd) { bd = d; best = s; }
+    }
+    return best && M.hex[K(best.hex[0], best.hex[1])] ? best : null;
+  };
   World.prototype.pick = function (mx, my) {
     if (this.fineDoor && W.FINE.live()) { var fp = W.FINE.pick(mx, my); if (fp) return fp; } // (THE FINE LAND: the hex under the pixel)
     var cam = this.camObj(), x = (mx - cam.W / 2) / cam.z + cam.cx, y = cam.cy, h = 0;
@@ -424,8 +438,8 @@
     }
     if (m.click && this.hudBtns) for (var hb = 0; hb < this.hudBtns.length; hb++) { var hbt = this.hudBtns[hb]; if (m.x >= hbt.x && m.x < hbt.x + hbt.w && m.y >= hbt.y && m.y < hbt.y + hbt.h) { D.sfx('confirm'); hbt.go(); return; } } // (the keys as buttons: his 10-21 "playable by mouse only")
     // where the mouse points: the hex, and the way there
-    var hv = m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) : null;
-    if (hk !== (this.hov ? K(this.hov[0], this.hov[1]) : null)) { this.hov = hv; this.plan = hv ? W.planTo(hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
+    var pp = m.inside ? this.pickPlace(m.x, m.y) : null, hv = pp ? pp.hex.slice() : m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) + (pp ? '|' + pp.id : '') : null; // (a place's mark or name: that place -- pickPlace)
+    if (hk !== this.hovK) { this.hovK = hk; this.hov = hv; this.plan = hv ? W.planTo(pp ? [pp.x, pp.y] : hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.plan = null; D.sfx('confirm'); return; }
     if (I.pressed('a')) this.here();
     if (I.pressed('end') && W.house()) { this.campCard(); return; }

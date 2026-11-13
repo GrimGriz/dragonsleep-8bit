@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE WORLD MAP SEAT OF 11-13 (world-leads), later: his far-zoom click (deep16/js/world.js pickPlace)
+    'eyes-world-placeclick-1113f': { pri: 2, group: G2, title: 'A CLICK ON A PLACE at any zoom goes to that place (11-13)', pt: 'the world map lane, 2026-11-13 (world-leads, later; your note on eyes-world-innroad-1113d; deep16/js/world.js World.prototype.pickPlace)',
+      url: 'deep16/?world&fresh=1113f&noenc',
+      look: 'A LIVE DOOR on THE WORLD. Your "i clicked on the halfway inn hex at a zoom too far out and it took me to two hexes west of the inn on a closer zoom": the hex under the pointer is read on the raised land, and at the far zooms a place's mark and that hex parted (47 of the area's place-and-zoom clicks went elsewhere). Now a click within a few pixels of a place's mark, or on its name, is that place. Wheel out to the farthest zoom and click the Halfway Inn (or any place): the way drawn ends on its own hex, and walking it you arrive there. JUDGE: that a click just beside a place still reaches a hex beside it.' },
     // THE INN SEAT OF 11-13, second round: his 0404Z notes, on level 3 doors
     'eyes-lake-box48-1113e': { pri: 2, group: G2, title: 'THE LAKE\'S EDGE: the click box on column 48\'s four, the ones that stick out (level 3) (11-13)', pt: 'the inn lane, 2026-11-13 (the inn seat of 11-13, second round; your 0404Z note on eyes-lake-rock-1113b; deep16/js/inn.js the thedeep trigger)',
       url: 'deep16/?innshow&beat=lakeedge&fresh=1113q',
