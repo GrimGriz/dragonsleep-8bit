@@ -501,22 +501,3 @@ HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corn
 All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of the attached pages; the whole figure head to foot; flat dark navy background (a deep blue, not grey and not black); labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the sword in his RIGHT hand and the shield on his LEFT arm in every view. No scenery.
 ```
 Where: Lymen's fight sheet `lymen_p2`, rows keyed `layonhands`, `divinesmite`, `greenagain`, `whatfallsfeeds`, `relentless`, and the standard `flinch`, `prone`, `getup`, `defend`, `useitem`, `victory`, `interact`, `attack2`. Cut as the standard ask. The engine plays the standard extras already (as Barley's); it does not yet play a row for any of his own five -- the wiring is a seat's job when they come back.
-
-## 60. Mr. Ripples' idle, the other four views: S, E, rear NE and N, skinned as the SE view was (added 11-13, the cutter of 1113c, a follow-up to GUIDE-2026-11-13-mr-ripples-idle) -- IN THE OUTBOX 2026-11-13, waiting to go (`deep16/_src/outbox/ASK-2026-11-13-mr-ripples-idle-other-views/`); HOLD IT if the Blender seat's newer guide (`GUIDE-2026-11-13b-mr-ripples-tendrils`) replaces this idle -- the lanes desk's call
-
-From the engine side (the cutter of 1113c, for the lanes desk), for the art desk. Your "Mr. Ripples restored eight-frame idle sprite sheet" is in hand: one page, the south-east view, eight frames, cut into the review row `ripples_p1` (`4d70e60a`). The guide (GUIDE-2026-11-13-mr-ripples-idle) held five views; the other four are asked here. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-mr-ripples-idle-other-views/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 60.
-
-What holds and is KEPT: the SE page as you drew it -- the hyena's head, the one gold eye, the crest, the clawed hands, the black hide with the stars.
-
-### 1. Mr. Ripples' idle in S, E, rear NE and N -- four pages, eight frames each
-ATTACH `MR-RIPPLES-IDLE-SE-AS-DRAWN.png` (your SE page: the look to match), `ripples-idle-model-S.png`, `ripples-idle-model-E.png`, `ripples-idle-model-NE.png`, `ripples-idle-model-N.png` (the Blender figure's eight frames in each view, flat violet shapes: the silhouette, pose and timing to keep; violet is a guide colour, not his), `ripples-idle-as-he-is-S-6x.png`, `-E-6x.png`, `-NE-6x.png`, `-N-6x.png` (the same frames as the game shows them today), `PALETTE-2026-10-28-deep16-64-colours.png`.
-```text
-Attached: the south-east idle page of MR. RIPPLES you drew, and the same eight-frame idle of the 3D guide figure in four more views: from the front (S), from the right side (E), from behind at the top-right (NE) and straight from behind (N). Paint over each of the four views exactly as you did the south-east one: keep every frame's silhouette, pose, size and position; eight frames a view, a looping idle; one page a view, the frames numbered 1 to 8.
-
-The same Mr. Ripples as your page: a gnoll possessed by an Old One, a hyena's head, the crest down his back, long clawed hands. His hide is black that gives back no light: no highlights, no rim light. Stars show inside his outline and stay fixed in place while he moves, as if he were a window. ONE eye, his RIGHT, gold; his LEFT is a knit, empty socket -- so from the front both sides of the face show, one eye and one socket; from the right side (E) the eye shows; from behind no eye shows. Nothing silver in his face. He wears nothing.
-
-On frames 5, 6 and 7 a band of small mirror facets climbs him -- at the knees on 5, the belly on 6, the head on 7, gone on 8 (your south-east page left it out; the marked frames of the guide show where it goes). If it is easier, leave the band out of all four as on the south-east page: the game can lay its own.
-
-Use only the attached 64 colours. Flat slate background as on your page. Every frame apart, the feet on one line, the frame number under each.
-```
-Where: `ripples_p1` (tools/ripples-drawn-sheet.py), the four views beside SE; SW, W and NW mirrored. Cut as: each page scaled so frame 1 stands as tall as `ripples_blend_p1`'s frame 1 in that view, each frame set by its feet.

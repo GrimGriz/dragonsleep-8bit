@@ -22322,35 +22322,6 @@ true
 ],
 "source": "built and rendered by tools/ripples-blend.py on the mannequin's bones (11-13), snapped and outlined by tools/pixelate.py; the hide and the stars laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored"
 },
-"ripples_p1": {
-"image": "art/ripples_p1.png?v=03ac91e9dd",
-"fw": 58,
-"fh": 94,
-"ax": 29,
-"ay": 89,
-"top": 80,
-"anims": {
-"idle": {
-"y": 0,
-"fw": 58,
-"fh": 94,
-"ax": 29,
-"ay": 89,
-"frames": 8,
-"fps": 6,
-"drawn": [
-1,
-7
-]
-}
-},
-"name": "Mr. Ripples (the art desk's skin: idle, SE)",
-"hold": [
-"a review row: his idle as the art desk skinned the Blender figure, the SOUTH-EAST view only (SW its mirror) -- worn by nobody; no foe row exists for him",
-"the other four views (S, E, NE, N) did not come back; nor did the mirror band on frames 5 to 7 (the engine's own ripple can lay it: js/ripple.js 'body')"
-],
-"source": "drawn by the art desk over GUIDE-2026-11-13-mr-ripples-idle (the Blender seat's ripples_blend_p1), 11-13, one page, the SE view; cut by tools/ripples-drawn-sheet.py; SW mirrored"
-},
 "roadpatrol_p2": {
 "image": "art/roadpatrol_p2.png?v=c495b24cde",
 "fw": 48,
