@@ -6488,8 +6488,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // NOT WALKED (later walks): hiring the three (a NEW GAME's lead alone and Silverton's hires); the supper's other kinds (alone, amara, later); the wagon night and its yard;
   // the chase; the poison dinner (the wagon stopped: no offering) with its supper fight, the yield and Doran's wait -- the 11-13 Elsbeth's walk and Doran's morning are THAT
   // night's; LET IT BE and STAND ASIDE; the kept child's night (the barn, the glamour); the child's road to the Pit. What it asserts at every join is the head of KNOWN below.
-  if (get('mode', '') === 'walk1113' || get('mode', '') === 'walkpoison1113') {
+  // THE BARN'S ROAD TO THE DINNER is walked by mode=walkbarn1113, this same block (BARNK): its head is at THE BARN WALK below.
+  if (get('mode', '') === 'walk1113' || get('mode', '') === 'walkpoison1113' || get('mode', '') === 'walkbarn1113') {
     var POISK = get('mode', '') === 'walkpoison1113'; // (the poison-dinner walk, 11-13: the same road to the inn, then its own -- its head is at THE POISON DINNER WALK below)
+    var BARNK = get('mode', '') === 'walkbarn1113'; // (the barn walk, 11-13: the same road to the inn, then the barn's -- its head is at THE BARN WALK below)
     var repK = { checks: [], errors: [], notes: [] }, memK = {}, stGK = D.store.get, stSK = D.store.set, HK = D.house, CK = D.counter, RK = D.roam, WK = D.world, InK = D.inn, AK = D.secondact, TK = D.town, HXK = D.hex, H6K = D.hours, muK = D.music, walk0K = InK.walk, gone0K = InK.gone, rkFight0K = D.roam.fight;
     // the known REDs: a check that fails with its finding's words named here prints KNOWN RED, not FAIL (the bench lands; the inn seat fixes it; never a skip)
     var KNOWN = { // (11-13, the walkthrough bench seat's findings -- filed in the inn lane under its room line; the inn seat fixes them and cuts the line here)
@@ -6498,6 +6500,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     if (POISK) KNOWN = { // (11-13, the poison-dinner walk's findings -- filed in the inn lane under its room line; cut a line here when it is fixed)
       // (11-13, the inn seat of 11-13, third: dorantable, bucket and supperpops FIXED and cut -- js/inn.js In.waitTo lays the house open by the hour waited to; js/secondact.js the draught's sleep lasts past the supper fight's end, A.offSeat / A.stepOff)
       // (11-13, the inn seat of 11-13, third: bedafter BUILT on his ruling and cut -- "refused with Doran's waiting for you, back to normal if they return ...": js/inn.js In.gennet, js/secondact.js THE BED WITH DORAN WAITING)
+    };
+    if (BARNK) KNOWN = { // (11-13, the barn walk's findings -- filed in the inn lane under its room line; cut a line here when it is fixed)
+      doranfrom: "Out of the barn before Doran is at the woodpile (dawn, or after dark), Gennet calls him and he comes out of the HOUSE door -- and the words say 'Doran comes round the barn from the woodpile with the woodaxe'. Lead: js/inn.js In.BY.STAGES.break's lines read S.renown only; S.byDay is there to read (the walk 'doran' stands him in the front doorway when Y.night). The words for the night are the inn seat's or his.",
+      stallname: "In the barn's end stall, after DETECT MAGIC (or a look, or a touch) has shown the child, the screen is still named 'A goblin, chained' over her own face, through 'A child sits chained in the stall' and FREE HER. Lead: js/inn.js In.barnScene -- the screen's name is given once as it opens (M.talk's name) and only its sheet is swapped at the reveal."
     };
     function okK(id, what, v) { var kn = KNOWN[id]; repK.checks.push(!v && kn ? 'KNOWN RED [' + id + '] ' + what + ' -- the finding: ' + kn : (v ? 'ok   ' : 'FAIL ') + '[' + id + '] ' + what + (v && kn ? ' (KNOWN RED ' + id + ' passes now: cut it from KNOWN)' : '')); }
     function noteK(s) { repK.notes.push(s); }
@@ -6704,7 +6710,184 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okK('load1', 'SAVE and LOAD the morning after the first supper (' + sv1 + '): the same after it -- ' + (df1.length ? df1.join('; ') : 'all of it (' + s1b.key + ' ' + s1b.at + ', day ' + s1b.day + ' ' + s1b.clock + ', ' + s1b.due + ' to the due, ' + s1b.party + ', guests ' + s1b.guests + ', ' + Object.keys(s1b.flags).length + ' flags)'), !df1.length);
       okK('load1clock', 'the LOAD keeps the clock, the count to the due, the party, its guests, its purse and every flag (the place aside) -- ' + (df1.filter(function (s) { return !/^(key|at) /.test(s); }).join('; ') || 'all the same'), !df1.filter(function (s) { return !/^(key|at) /.test(s); }).length);
       var mvL1 = canMoveK(topK()); okK('moveload1', 'after the LOAD the party can move' + (mvL1 ? ': ' + mvL1 : ''), !mvL1);
-      if (POISK) {
+      if (BARNK) {
+      // ================================================================ THE BARN WALK, 11-13 (mode=walkbarn1113; the barn walk seat, started by the lanes desk on Griz's word
+      // of 11-13, asked whether to start a seat on the barn's road walk: "6 yes, let's benchwalk that as well"). The same save and the same road as walk1113 to the first
+      // morning at the inn (beats 1 to 8 above), then the road the poison walk named and could not take: the party away from the yard on the wagon's night (the handover
+      // made: 'goblin', chained in the barn's end stall till the due); camped on the road till THE DUE'S OWN MORNING (with her in tow nobody sleeps under this roof but on
+      // the due's night -- js/inn.js In.noStay -- so the child is freed on the due's day); in by the north gate; SAVE (slot 3, and SAVE and LOAD on slot 1) before the barn;
+      // the barn's end stall, DETECT MAGIC (Aurdin's ritual: the glamour seen through), FREE HER; OUT OF THE BARN WITH THE CHILD (In.barnYard) to END E -- no, no, no, and
+      // the breaking point with nobody drawing: the child a guest beside the token, her name asked; SAVE and LOAD with the child freed; into the house, SAVE to slot 2 and
+      // SAVE and LOAD on slot 1 before the supper. THE SUPPER on the due's night with no offering and Elsbeth's tell NONE (the wagon never stopped, her tier under two):
+      // nobody is asked to eat and nobody reads the bowls -- if nobody tastes it or sees Gennet's empty bowl, the dice alone decide it. THE DRAG (the saves pinned low: all
+      // four asleep, the black, the stone, Elsbeth's bucket, the Bucket List egg, the saves on the water, the thing killed -- stubbed -- and the Cloak of the Manta Ray), the
+      // morning; SAVE and LOAD; then the same supper again from slot 2 after a LOAD and compared; and NOTHING (slot 2, every save made: "Supper ends.", the house to bed,
+      // the lake unfed), its morning, SAVE and LOAD. THE BARN'S OTHER ENDS, each begun from slot 3 (the yard before the barn): FREE IT (the glamour unseen) to END A (she
+      // keeps it); FREE HER to END B (the bribe); END C (steel: the fight in the yard, stubbed: yielded); END D (Lymen's word to Doran, the die pinned high: his confession).
+      // NOT WALKED: her FAINT tell (Elsbeth's second tier wants renown 3 or the counting seen at supper, and two mornings at the tub before the child is freed); the night
+      // Doran leads after END C or D (A.ledNight); the child's road to the Pit and a camp with her; a hero taken off the stone; a fight lost; the ring.
+      var dueY = InK.dueDay(0), POIY = AK.POISON, trailY = [], trail0Y = HK.trail, resY = 'yielded';
+      HK.trail = function (k, s) { trailY.push(String(s)); return trail0Y.apply(this, arguments); };
+      // the floor's own fights: the Waterbys (the yard's, the table's) by `resY`, the thing from the lake killed
+      RK.fight = function* (B, foes) {
+        var us = (foes || B.units.filter(function (u) { return u.side === 'foe'; })).filter(function (u) { return !!u; }), ks = us.map(function (u) { return u.kind || u.id; }), r = resY;
+        if (ks.join(',').indexOf('chuul') >= 0) { r = 'won'; B.units.forEach(function (u) { if (u.side === 'foe' && /chuul|frog/.test(u.kind || '')) { u.hp = 0; u.dead = true; } }); }
+        B.round = 1; fightsK.push('floor:' + ks.join(',') + ':' + r); yield 1; return r;
+      };
+      var ROOMY = /^WAIT TIL DINNER$|^STAY THE NIGHT$|^SLEEP TILL/;
+      var downY = function () { if (RK.def.key === InK.UP) { var st = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (st) { atTrigK(topK(), st, { until: function () { return RK.def.key === InK.KEY; } }); playK({ quiet: 60 }); } } return topK(); };
+      var whoY = function (B) { var o = {}; ((B && B.units) || []).forEach(function (u) { var id = u.npc || u.scripted || ''; if (/gennet|doran|elsbeth/i.test(id) && !u.dead && u.hp > 0) o[id] = u.x + ',' + u.y; }); return Object.keys(o).map(function (k) { return k + '@' + o[k]; }).join(' '); };
+      var sinceY = function (t0, re) { return trailY.slice(t0).filter(function (s) { return re.test(s); }); };
+      // THE CHILD: every figure of her on the floor (the chained one, the scene's, the one beside the token) -- one child, one figure, and beside the token once she is a guest
+      var kidY = function (B) { var t = B && B.roam && B.roam.token, ks = ((B && B.units) || []).filter(function (u) { return u.follower || u.scripted === 'barnKid' || u.npc === 'barnGoblin'; }); return { n: ks.length, beside: ks.length === 1 && !!ks[0].follower && !!t && Math.max(Math.abs(ks[0].x - t.x), Math.abs(ks[0].y - t.y)) <= 1, s: ks.map(function (u) { return (u.name || u.npc) + (u.follower ? ' (follows)' : u.npc ? ' (chained)' : ' (the scene)') + '@' + u.x + ',' + u.y; }).join(' ') || 'no figure of her' }; };
+      var invY = function (id) { var B = topK(); return B && B.roam ? CK.count(CK.state(B), id) : -1; };
+      var chgY = function (f0, fn) { var chg = []; Object.keys(fn).concat(Object.keys(f0)).filter(function (k, i, a) { return a.indexOf(k) === i; }).forEach(function (k) { if (JSON.stringify(fn[k]) !== JSON.stringify(f0[k]) && !/^(nightCarry|trig:|warmup$|steps)/.test(k)) chg.push(k + '=' + String(JSON.stringify(fn[k])).slice(0, 30)); }); return chg.sort(); };
+      var stepY = InK.STEP.front[0] + ',' + InK.STEP.front[1], restY = function (df) { return df.filter(function (s) { return !/^at /.test(s); }); };
+      // ---------------------------------------------------------------- 9B. OUT ONTO THE ROAD, and camped by the inn till THE DUE'S OWN MORNING (the wagon's night passed away from the yard)
+      var By0 = downY(); if (RK.def.inside) { goK(By0, InK.DOORS.front, { until: function () { return !RK.def.inside; } }); goK(topK(), [InK.DOORS.front[0] - 1, InK.DOORS.front[1]], { once: true }); By0 = topK(); }
+      var roadY = null; for (var yy = 20; yy < RK.def.h && !roadY; yy++) if (RK.def.rows[yy] && RK.def.rows[yy].charAt(0) !== '#' && RK.walkRoute(By0.roam.token, [0, yy])) roadY = [0, yy];
+      var depY = goK(By0, roadY || [0, 25], { dflt: /^RETURN$|^FIGHT$/, until: function () { return D.top() === WK.scene; } });
+      // (up to Silverton first, as walk1113 goes: the fangs paid at Hessle's scales -- a fresh save's purse will not buy the due's supper without it -- and back down to the inn's hex)
+      var toTownY = worldK('silverton', { res: 'won' }), hsTY = trigK('keeper:hessle'); if (hsTY) atTrigK(topK(), hsTY, { until: function () { return RK.def.room === 'keeper:hessle'; } });
+      var hsTalkY = trigK('talk:hessle'), hsSeenY = hsTalkY ? atTrigK(topK(), hsTalkY, { quiet: 120 }) : 'no talk:hessle';
+      okK('hessleB', 'UP TO SILVERTON (' + toTownY.slice(0, 80) + '): the fangs paid at the scales -- ettercapDone ' + topK().roam.flags.ettercapDone + ', renown ' + HK.cur.renown + ', ' + topK().roam.silver + ' silver, day ' + HK.day() + ' -- ' + hsSeenY.slice(0, 200), topK().roam.flags.ettercapDone === 1 && topK().roam.silver >= 20);
+      if (RK.def.room) goK(topK(), RK.def.doors[0], { until: function () { return !RK.def.room; } });
+      var wnY = RK.def.wayName || {}, southY = Object.keys(wnY).filter(function (k) { var q = k.split(',').map(Number); return q[1] >= RK.def.h - 2 && !/feed track/.test(wnY[k]); }).map(function (k) { return k.split(',').map(Number); }).sort(function (a, b) { return a[0] - b[0]; }), southSqY = southY[Math.floor(southY.length / 2)];
+      goK(topK(), southSqY, { dflt: /^RETURN$|^FIGHT$/, res: 'won', until: function () { return D.top() === WK.scene; } });
+      var toInnY = worldK('inn', { res: 'won', stayOut: true });
+      var scY = WK.scene, campY = 0;
+      for (var ky = 0; ky < 6000 && (HK.day() < dueY || (HK.day() === dueY && HK.now() % 24 < 5)) && campY < 24; ky++) {
+        var twY = topK();
+        if (twY !== scY) { playK({ res: 'won', until: function () { return D.top() === scY; } }); continue; }
+        if (scY.cards.length) { var ccY = scY.cards.shift(); if (ccY.keys && ccY.keys.length) { var lvY = ccY.keys.filter(function (k) { return !k[3]; }), pcY = null; [/^THE NIGHT$/, /TILL A LONG REST/, /^WAIT$/].some(function (re) { pcY = lvY.filter(function (k) { return re.test(k[2] || ''); })[0]; return !!pcY; }); (pcY || lvY[0] || ccY.keys[0])[1](); } else if (ccY.then) ccY.then(); continue; }
+        campY++; scY.campCard();
+      }
+      okK('dueday', "CAMPED BY THE INN TILL THE DUE'S OWN MORNING: off the road edge (" + roadY + '), ' + campY + ' camps, day ' + HK.day() + ' ' + HK.clockAt(HK.now()) + ' (WAGON DAY was ' + InK.WAGON.first + ', the due is day ' + dueY + '), the wagon day passed away from the yard (wagonOutcome ' + HK.cur.flags.wagonOutcome + ') -- ' + depY.slice(-120), D.top() === scY && HK.day() === dueY);
+      // ---------------------------------------------------------------- 10B. IN BY THE NORTH GATE on the due's day: the one handed over is in the barn; SAVE (slot 3), SAVE and LOAD (slot 1) BEFORE THE BARN
+      var backY = worldK('inn', { res: 'won' }); playK({ quiet: 120 }); var Bb = topK(), fb = Bb.roam ? Bb.roam.flags : {}, woodY = !!folkK(Bb, 'doranYard'), dorY = !fb.doranAway && !fb.doranDead;
+      okK('barnday', "THE DUE'S DAY ON THE YARD: on " + (RK.def && RK.def.key) + (RK.def && RK.def.inside ? ' (' + RK.def.inside + ')' : ' (roofed)') + ' at ' + (Bb.roam ? Bb.roam.token.x + ',' + Bb.roam.token.y : '-') + ', day ' + HK.day() + ' ' + HK.clockAt(HK.now()) + "; what they keep for the stone: '" + InK.offering(fb, 0) + "', the one in the barn's end stall (" + InK.barnGoblinOn(fb, HK.day()) + '), the due tonight (' + InK.dueTonightOn(fb, HK.day()) + '); Doran ' + (woodY ? 'at the woodpile' : 'not on the yard') + ' (doranAway ' + fb.doranAway + "); Elsbeth's tier " + (fb.elsbethTier || 0) + ', renown ' + HK.cur.renown + ' -- ' + backY.slice(0, 160),
+        !!Bb.roam && RK.def.key === InK.KEY && !RK.def.inside && InK.offering(fb, 0) === 'goblin' && InK.barnGoblinOn(fb, HK.day()) && InK.dueTonightOn(fb, HK.day()) && !(fb.elsbethTier >= 2) && !fb.wagonStopped);
+      var sv3Y = saveK(3), svY0 = saveK(), aY0 = snapK(topK()), BlY0 = loadK(), bY0 = BlY0 && BlY0.roam ? snapK(BlY0) : null, dfY0 = bY0 ? diffK(aY0, bY0) : ['no load']; playK({ quiet: 60 });
+      var mvY0 = canMoveK(topK());
+      okK('loadB0', 'SAVE and LOAD before the barn (slot 3: ' + sv3Y.slice(-24) + '; slot 1: ' + svY0.slice(-24) + '): the same after it -- ' + (dfY0.join('; ') || 'all of it (' + bY0.key + ' ' + bY0.at + ', day ' + bY0.day + ' ' + bY0.clock + ', ' + bY0.due + ' to the due, ' + Object.keys(bY0.flags).length + ' flags)') + (mvY0 ? '; ' + mvY0 : '; the party can move'), !dfY0.length && !mvY0 && !/greyed/.test(sv3Y + svY0));
+      // THE BARN: in at its door, E on the chained one, the answers (the stall's asks by their words, the yard's by 'hero:id' on the flip); played till the floor is the party's
+      var yardY = function (ans, o) {
+        o = o || {}; var B = topK(); if (RK.def.inside !== 'barn') { goK(B, InK.DOORS.barn, { until: function () { return RK.def.inside === 'barn'; } }); playK({ quiet: 40 }); B = topK(); }
+        var tr = trigK('talk:barnGoblin'), t0 = trailY.length, fi0 = fightsK.length, p0 = popsK.length, l0 = layBad.length, m0 = missK.length, sil0 = B.roam.silver, f0 = JSON.parse(JSON.stringify(B.roam.flags)), in0 = RK.def.inside || 'roofed', kid0 = kidY(B);
+        InK.pinned = o.dice ? o.dice.slice() : null; resY = o.fight || 'yielded';
+        var seen = tr ? atTrigK(B, tr, { ans: ans, quiet: o.quiet || 300 }) : 'no talk:barnGoblin on ' + RK.def.key + ' (' + in0 + ')';
+        InK.pinned = null; resY = 'yielded';
+        var Bn = topK(), f = Bn.roam ? Bn.roam.flags : {};
+        return { seen: seen, f: f, B: Bn, in0: in0, kid0: kid0, kid: kidY(Bn), trail: trailY.slice(t0), fights: fightsK.slice(fi0), pops: popsK.slice(p0), bad: layBad.slice(l0), miss: missK.slice(m0), noans: (seen.match(/NO (HERO|ANSWER|FLIP)[^/]*/g) || []).join('; '), silver: sil0 + ' -> ' + (Bn.roam ? Bn.roam.silver : '-'), dsil: (Bn.roam ? Bn.roam.silver : sil0) - sil0, chg: chgY(f0, f),
+          end: (trailY.slice(t0).filter(function (s) { return /out of the barn: END/.test(s); })[0] || 'NO END').replace(/^.*out of the barn: /, ''), at: RK.def.key + ' ' + (Bn.roam ? Bn.roam.token.x + ',' + Bn.roam.token.y : '-') + (RK.def.inside ? ' (' + RK.def.inside + ')' : ' (roofed)'), who: whoY(Bn), mv: Bn.roam ? canMoveK(Bn) : 'not on a floor' };
+      };
+      // ---------------------------------------------------------------- 11B. THE BARN: DETECT MAGIC, FREE HER; out of the barn with the child to END E (the child a guest beside the token)
+      var breakY = dorY ? 'barley:axe' : 'barley:between';
+      var rF = yardY([/^DETECT MAGIC$/, /^FREE HER$/, 'barley:sold', 'barley:no', 'lymen:nosilver', 'barley:no2', breakY]), fF = rF.f;
+      noteK('11B. the barn and the yard, seen: ' + rF.seen.slice(0, 3200)); noteK('11B. its trail: ' + rF.trail.join(' | ').slice(0, 1500));
+      okK('stall', "THE BARN'S END STALL: in at the barn's door (" + rF.in0 + '), the one chained there (' + rF.kid0.s + "); DETECT MAGIC -- Aurdin's ritual, the glamour seen through (glamourBroken " + fF.glamourBroken + ') -- and FREE HER (' + (rF.trail.filter(function (s) { return /the barn: /.test(s); }).join(' | ').replace(/[^|]*the barn: /g, '') || 'NOTHING IN THE RECORD') + ')',
+        rF.in0 === 'barn' && rF.kid0.n === 1 && fF.glamourBroken === 1 && rF.trail.some(function (s) { return /glamour seen through \(magic\)/.test(s); }) && rF.trail.some(function (s) { return /the child freed/.test(s); }) && /hums with an illusion/.test(rF.seen));
+      okK('freeher', 'OUT OF THE BARN WITH THE CHILD, FREE HER end to end: ' + (rF.trail.filter(function (s) { return /out of the barn: the glamour/.test(s); })[0] || 'THE YARD NOT OPENED').replace(/^.*out of the barn: /, '') + '; the answers who sold her, no, keep your silver, no, ' + breakY.split(':')[1] + ' -> ' + rF.end + ' (barnEnd ' + fF.barnEnd + "); the child a guest (childGuest " + fF.childGuest + ', childDue ' + fF.childDue + "), the due has no offering ('" + InK.offering(fF, 0) + "'), no confession (" + !fF.doranConfessed + '), the house not shut to them (' + !fF.innShut + '); her name asked (' + /Nell/.test(rF.seen) + '); then on ' + rF.at + ', ' + rF.who + (rF.mv ? '; ' + rF.mv : '; the party can move') + (rF.noans ? '; ' + rF.noans : '') + (rF.miss.length ? '; ANSWERS NOT FOUND ' + rF.miss.join('; ') : ''),
+        fF.barnEnd === 'e' && fF.childGuest === 'child' && InK.offering(fF, 0) === 'none' && !fF.doranConfessed && !fF.innShut && /Nell/.test(rF.seen) && !rF.mv && !rF.noans && !rF.miss.length && RK.def.key === InK.KEY);
+      okK('kidbeside', 'THE CHILD WALKS BESIDE THE PARTY, one figure of her: ' + rF.kid.s + ' (the party at ' + rF.at + '); nobody popped in the yard (' + (rF.pops.join('; ') || 'none') + '), nobody twice or off the floor (' + (rF.bad.join('; ') || 'none') + ')', rF.kid.n === 1 && rF.kid.beside && !rF.pops.length && !rF.bad.length);
+      okK('doranfrom', "DORAN COMES FROM WHERE HE IS: called at the breaking point he was " + (woodY ? 'at the woodpile' : 'in the house (' + HK.clockAt(HK.now()) + ', not on the yard)') + ', and the words have him -- ' + (rF.seen.match(/Doran comes [^/]*/) || ['NO SUCH LINE'])[0].slice(0, 120), woodY || !/from the woodpile/.test(rF.seen));
+      okK('stallname', "THE STALL'S SCREEN NAMES WHAT IS SEEN: once the glamour is seen through, the one freed is not still named a goblin -- " + (rF.seen.match(/[^/]*The pin comes out[^/]*/) || ['-'])[0].slice(0, 110), !/A goblin, chained: The pin comes out\. She/.test(rF.seen));
+      popsK.length -= rF.pops.length; // (told once, here)
+      // ---------------------------------------------------------------- 12B. SAVE AND LOAD WITH THE CHILD FREED
+      var svY1 = saveK(), aY1 = snapK(topK()), BlY1 = loadK(), bY1 = BlY1 && BlY1.roam ? snapK(BlY1) : null, dfY1 = bY1 ? diffK(aY1, bY1) : ['no load']; playK({ quiet: 60 });
+      var kidL1 = kidY(topK()), mvY1 = canMoveK(topK());
+      okK('loadB1', 'SAVE and LOAD with the child freed (' + svY1.slice(-24) + '): the same after it -- ' + (dfY1.join('; ') || 'all of it (' + bY1.key + ' ' + bY1.at + ', day ' + bY1.day + ' ' + bY1.clock + ', guests ' + bY1.guests + ', ' + Object.keys(bY1.flags).length + ' flags)') + '; the child after the LOAD: ' + kidL1.s + (mvY1 ? '; ' + mvY1 : '; the party can move'), !dfY1.length && kidL1.n === 1 && kidL1.beside && !mvY1 && !/greyed/.test(svY1));
+      // a walk off and back with her: across the yard to the well and into the house -- she keeps to the party's side, one figure
+      var inY = function () { var B = topK(); if (RK.def.inside !== 'inn') goK(B, InK.DOORS.front, { until: function () { return RK.def.inside === 'inn'; } }); playK({ quiet: 60 }); return topK(); };
+      var Bh2 = inY(), kidH = kidY(Bh2), fh2 = Bh2.roam.flags;
+      // ---------------------------------------------------------------- 13B. INTO THE HOUSE, BEFORE THE SUPPER: SAVE to slot 2 in the common room; SAVE and LOAD on slot 1
+      var passY = Bh2.roam.members.filter(function (u) { return u.src && !u.src.guest; }).map(function (u) { return u.name + ' Perception ' + InK.passive(u.src, 'Perception') + ' Medicine ' + InK.passive(u.src, 'Medicine') + ' Insight ' + InK.passive(u.src, 'Insight'); }).join(', ');
+      var sv2Y = saveK(2), svY2 = saveK(), aY2 = snapK(topK()), BlY2 = loadK(), bY2 = BlY2 && BlY2.roam ? snapK(BlY2) : null, dfY2 = bY2 ? diffK(aY2, bY2) : ['no load']; playK({ quiet: 60 });
+      var kidL2 = kidY(topK());
+      okK('beforeB', "BEFORE THE SUPPER, in the common room with the child (" + aY2.key + ' ' + aY2.at + '), day ' + aY2.day + ' ' + aY2.clock + ': the due tonight (' + InK.dueTonightOn(fh2, aY2.day) + "), what they keep '" + InK.offering(fh2, 0) + "', a bed to be had tonight for all she is in tow (noStay " + InK.noStay(fh2, aY2.day) + '); the child ' + kidH.s + '; in the house ' + whoY(Bh2) + "; the party's passives against the draught's reads (taste: Medicine " + POIY.taste + ', the watch: Insight ' + POIY.watch + '): ' + passY,
+        aY2.day === dueY && InK.dueTonightOn(fh2, aY2.day) && InK.offering(fh2, 0) === 'none' && !InK.noStay(fh2, aY2.day) && kidH.n === 1 && kidH.beside);
+      okK('loadB2', 'SAVE and LOAD before the supper (slot 2: ' + sv2Y.slice(-24) + '; slot 1: ' + svY2.slice(-24) + '): the party a step out of the front door (' + (bY2 ? bY2.at : '-') + ', the step ' + stepY + ') and the rest the same -- ' + (restY(dfY2).join('; ') || 'all of it (' + bY2.key + ', day ' + bY2.day + ' ' + bY2.clock + ', ' + Object.keys(bY2.flags).length + ' flags)') + '; the child after the LOAD: ' + kidL2.s, !!bY2 && bY2.at === stepY && !restY(dfY2).length && kidL2.n === 1 && kidL2.beside && !/greyed/.test(sv2Y + svY2));
+      // THE SUPPER from wherever the party stands: the inn lady, a room with supper; `dice` the inn's d20s pinned (the saves at the table, the drag's, the stone's)
+      var supperY = function (o) {
+        o = o || {}; var B = downY(); B = inY();
+        var g = trigK('talk:gennet'), t0 = trailY.length, fi0 = fightsK.length, p0 = popsK.length, l0 = layBad.length, n0 = noWayK.length, m0 = missK.length, f0 = JSON.parse(JSON.stringify(B.roam.flags)), sil0 = B.roam.silver, cloak0 = invY('cloakmantaray');
+        InK.pinned = (o.dice || []).slice(); resY = 'yielded';
+        var seen = g ? atTrigK(B, g, { ans: o.ans || [], dflt: ROOMY, quiet: o.quiet || 400 }) : 'no talk:gennet on ' + RK.def.key + ' at ' + HK.clockAt(HK.now()) + ' (' + whoY(B) + ')';
+        var left = InK.pinned ? InK.pinned.length : 0; InK.pinned = null;
+        var Bn = topK(), f = Bn.roam ? Bn.roam.flags : {}, tr = trailY.slice(t0);
+        return { seen: seen, f: f, B: Bn, trail: tr, fights: fightsK.slice(fi0), pops: popsK.slice(p0), bad: layBad.slice(l0), noway: noWayK.slice(n0), miss: missK.slice(m0), diceLeft: left, chg: chgY(f0, f), silver: sil0 + ' -> ' + (Bn.roam ? Bn.roam.silver : '-'), cloak: cloak0 + ' -> ' + invY('cloakmantaray'), cloakN: invY('cloakmantaray') - cloak0,
+          at: RK.def.key + ' ' + (Bn.roam ? Bn.roam.token.x + ',' + Bn.roam.token.y : '-') + (RK.def.inside ? ' (' + RK.def.inside + ')' : ''), day: HK.day(), clock: HK.clockAt(HK.now()), kid: kidY(Bn), mv: Bn.roam ? canMoveK(Bn) : 'not on a floor',
+          tell: (tr.filter(function (s) { return /Elsbeth.s tell/.test(s); })[0] || '').replace(/^.*tell /, ''), reads: tr.filter(function (s) { return /read: (bowls|taste|watch)/.test(s); }).map(function (s) { return s.replace(/^.*THE MEAL: /, ''); }).join(' | '), bowls: (tr.filter(function (s) { return /the bowls: /.test(s); })[0] || '').replace(/^.*the bowls: /, ''), night: (tr.filter(function (s) { return /sacrifice night: /.test(s); })[0] || '').replace(/^.*sacrifice night: /, ''),
+          eggs: tr.filter(function (s) { return /THE BUCKET LIST/.test(s); }).length, stone: (tr.filter(function (s) { return /: on the stone: [A-Z]\w+$/.test(s); })[0] || 'NOBODY ON THE STONE').replace(/^.*on the stone: /, 'on the stone: '),
+          asleep: (Bn.roam ? Bn.roam.members : []).filter(function (u) { return u.conds && u.conds.asleep; }).map(function (u) { return u.name; }).join(', '), morning: /MORNING/.test(seen), who: whoY(Bn) };
+      };
+      var lineY = function (r) { return 'her tell ' + (r.tell || '-') + '; read at the table: ' + (r.reads || 'nothing') + '; the bowls: ' + (r.bowls || '-') + '; ' + (r.night || '-') + '; the fights ' + (r.fights.join(' ') || 'none') + '; then on ' + r.at + ', day ' + r.day + ' ' + r.clock + (r.morning ? ' (a morning)' : '') + '; the child ' + r.kid.s + '; in the house ' + r.who; };
+      // ---------------------------------------------------------------- 14B. THE SUPPER, HER TELL NONE: all four asleep -- THE DRAG, the stone, her bucket, the Bucket List egg, the cloak; the morning
+      var diceG = [1, 1, 1, 1]; for (var dg = 0; dg < 20; dg++) diceG.push(2); for (var dh = 0; dh < 40; dh++) diceG.push(20);
+      var rG = supperY({ dice: diceG }), fG = rG.f;
+      noteK('14B. the drag, seen: ' + rG.seen.slice(0, 1400) + ' ... ' + rG.seen.slice(-1800)); noteK('14B. the drag, its trail: ' + rG.trail.join(' | ').slice(0, 2400));
+      okK('notell', "THE SUPPER ON THE DUE'S NIGHT WITH THE CHILD FREED (supper " + fG.supCount + ', ' + fG.supKind + "): her tell none, and nobody at the table reads the draught -- " + lineY(rG), fG.supKind === 'sacrifice' && /none/.test(rG.tell) && !rG.reads && /nobody said it/.test(rG.night) && fG.poisonNight === 0);
+      okK('dragB', 'ALL FOUR ASLEEP, THE DRAG (the saves pinned low): no fight at the table (' + !fG.poisonFight + '), the drag (poisonDrag ' + fG.poisonDrag + '), ' + rG.stone + ", Elsbeth's bucket (elsbethWater " + fG.elsbethWater + ', "over the party" ' + /All of it, over the party/.test(rG.seen) + ', her words ' + /Wake up!/.test(rG.seen) + '), the thing killed (' + rG.fights.join(' ') + ', lakeDone ' + fG.lakeDone + '), taken ' + (fG.poisonTaken || 'nobody') + '; a morning (' + rG.morning + ') on ' + rG.at + ', day ' + rG.day + ' ' + rG.clock + (rG.mv ? '; ' + rG.mv : '; the party can move') + '; still asleep: ' + (rG.asleep || 'nobody'),
+        fG.poisonDrag === 1 && !fG.poisonFight && fG.elsbethWater === 1 && /Wake up!/.test(rG.seen) && /All of it, over the party/.test(rG.seen) && /on the stone: \w/.test(rG.stone) && rG.fights.some(function (s) { return /chuul.*:won/.test(s); }) && fG.lakeDone === 1 && rG.morning && rG.day === dueY + 1 && !rG.mv && !rG.asleep);
+      okK('eggB', 'THE BUCKET LIST on its night: the egg played once (' + rG.eggs + ' in the record), its flag in the save (eggBucket ' + fG.eggBucket + '), the mark the kill reads (bucketNight ' + fG.bucketNight + '); THE CLOAK OF THE MANTA RAY when the thing is killed (' + rG.cloak + ' in the pack, lakeGiftGot ' + fG.lakeGiftGot + ')', rG.eggs === 1 && fG.eggBucket === 1 && fG.bucketNight === 1 && rG.cloakN === 1);
+      okK('dragkid', 'THE CHILD THROUGH THE DRAG AND THE MORNING: one figure of her, beside the party where it wakes (' + rG.kid.s + '; the party on ' + rG.at + '); still a guest (childGuest ' + fG.childGuest + '); nobody popped (' + (rG.pops.join('; ') || 'none') + '), nobody twice or off the floor (' + (rG.bad.join('; ') || 'none') + '), no walk with no way (' + (rG.noway.join('; ') || 'none') + ')', rG.kid.n === 1 && rG.kid.beside && fG.childGuest === 'child' && !rG.pops.length && !rG.bad.length && !rG.noway.length);
+      popsK.length -= rG.pops.length; layBad.length -= rG.bad.length; noWayK.length -= rG.noway.length; // (told once, here)
+      // ---------------------------------------------------------------- 15B. THE MORNING AFTER THE DRAG: SAVE and LOAD -- the egg, the cloak and the child kept, none of them twice
+      var BmY = topK(), fmY = BmY.roam.flags, svY3 = saveK(), aY3 = snapK(topK()), clk3 = invY('cloakmantaray'), BlY3 = loadK(), bY3 = BlY3 && BlY3.roam ? snapK(BlY3) : null, dfY3 = bY3 ? diffK(aY3, bY3) : ['no load']; playK({ quiet: 120 });
+      var kidL3 = kidY(topK()), mvY3 = canMoveK(topK()), fL3 = topK().roam.flags, eggsT = HK.eggsOf ? JSON.stringify(HK.eggsOf(HK.read(1)) || null) : 'no H.eggsOf';
+      okK('loadB3', 'SAVE and LOAD the morning after the drag (' + svY3.slice(-24) + '): the same after it -- ' + (dfY3.join('; ') || 'all of it (' + bY3.key + ' ' + bY3.at + ', day ' + bY3.day + ' ' + bY3.clock + ', ' + bY3.party + ')') + '; the egg kept (eggBucket ' + fL3.eggBucket + '), the cloak ' + clk3 + ' -> ' + invY('cloakmantaray') + ', the child ' + kidL3.s + (mvY3 ? '; ' + mvY3 : '; the party can move') + '; nothing of the night kept (poisonNight ' + fL3.poisonNight + ' is the cycle; doranOut ' + fL3.doranOut + ', doranWaits ' + fL3.doranWaits + ', duePlay ' + JSON.stringify(InK.duePlay) + '); ' + InK.nightsToDue(fL3, HK.day()) + ' nights to the next due',
+        !dfY3.length && fL3.eggBucket === 1 && clk3 === 1 && invY('cloakmantaray') === 1 && kidL3.n === 1 && kidL3.beside && !mvY3 && fL3.doranOut === undefined && fL3.doranWaits === undefined && !InK.duePlay);
+      noteK('15B. the title\'s eggs from slot 1: ' + eggsT);
+      // ---------------------------------------------------------------- 16B. THE SAME SUPPER AGAIN from slot 2 after a LOAD, the same dice: what follows a reload behaves as it did before it
+      var slot2Y = function () { loadK(2); playK({ quiet: 60 }); return topK(); };
+      slot2Y(); var rG2 = supperY({ dice: diceG }), fG2 = rG2.f;
+      okK('loaddrag', 'THE DRAG AFTER A LOAD (slot 2, the common room before the supper) behaves as it did played straight on: ' + [['A, played straight on', rG], ['B, after the LOAD', rG2]].map(function (p) { var r = p[1]; return p[0] + ': ' + (r.night || '-') + ', ' + r.stone + ', the fights ' + r.fights.join(' ') + ', the egg ' + r.eggs + ', the cloak ' + r.cloak + ', morning ' + r.morning + ' on ' + r.at + ' day ' + r.day + ' ' + r.clock + ', the child ' + r.kid.s + ', set ' + r.chg.join(' '); }).join(' || '),
+        rG.chg.join() === rG2.chg.join() && rG.at === rG2.at && rG.day === rG2.day && rG.morning === rG2.morning && rG.fights.join() === rG2.fights.join() && rG.eggs === rG2.eggs && rG.cloakN === rG2.cloakN && rG.kid.n === rG2.kid.n);
+      popsK.length -= rG2.pops.length; layBad.length -= rG2.bad.length; noWayK.length -= rG2.noway.length; // (the same road as A: told there)
+      // ---------------------------------------------------------------- 17B. NOTHING (slot 2, every save made): no one asleep, no one the wiser; the house to bed, the lake unfed; the morning; SAVE and LOAD
+      slot2Y(); var diceN = []; for (var dn2 = 0; dn2 < 16; dn2++) diceN.push(20);
+      var rN = supperY({ dice: diceN }), fN = rN.f;
+      noteK('17B. the nothing supper, seen: ' + rN.seen.slice(-1500)); noteK('17B. its trail: ' + rN.trail.join(' | ').slice(0, 1200));
+      okK('nothingB', 'NOTHING (slot 2, every save made): ' + lineY(rN) + '; no fight (' + !fN.poisonFight + '), no drag (' + !fN.poisonDrag + '), the lake unfed (dueUnfed ' + fN.dueUnfed + '), no egg (' + !fN.eggBucket + '), no cloak (' + rN.cloak + ') -- ' + (rN.seen.match(/Supper ends[^/]*/) || ['ITS CARD NOT SEEN'])[0].slice(0, 100) + (rN.mv ? '; ' + rN.mv : '; the party can move'),
+        /none/.test(rN.tell) && !rN.reads && /asleep: nobody/.test(rN.night) && !rN.fights.length && !fN.poisonFight && !fN.poisonDrag && fN.dueUnfed === 0 && !fN.eggBucket && rN.cloakN === 0 && rN.morning && rN.day === dueY + 1 && /Supper ends/.test(rN.seen) && !rN.mv);
+      okK('nothingkid', 'THE CHILD THROUGH THE NOTHING SUPPER AND ITS MORNING: ' + rN.kid.s + ' (the party on ' + rN.at + '); still a guest (childGuest ' + fN.childGuest + '); nobody popped (' + (rN.pops.join('; ') || 'none') + '), nobody twice or off the floor (' + (rN.bad.join('; ') || 'none') + ')', rN.kid.n === 1 && rN.kid.beside && fN.childGuest === 'child' && !rN.pops.length && !rN.bad.length);
+      popsK.length -= rN.pops.length; layBad.length -= rN.bad.length;
+      var svY4 = saveK(), aY4 = snapK(topK()), BlY4 = loadK(), bY4 = BlY4 && BlY4.roam ? snapK(BlY4) : null, dfY4 = bY4 ? diffK(aY4, bY4) : ['no load']; playK({ quiet: 120 });
+      var kidL4 = kidY(topK()), mvY4 = canMoveK(topK()), fL4 = topK().roam.flags;
+      okK('loadB4', 'SAVE and LOAD the morning after the nothing supper (' + svY4.slice(-24) + '): the same after it -- ' + (dfY4.join('; ') || 'all of it (' + bY4.key + ' ' + bY4.at + ', day ' + bY4.day + ' ' + bY4.clock + ', ' + bY4.party + ')') + '; the child ' + kidL4.s + (mvY4 ? '; ' + mvY4 : '; the party can move') + '; the lake unfed still (dueUnfed ' + fL4.dueUnfed + '), ' + InK.nightsToDue(fL4, HK.day()) + ' nights to the next due, the thing alive (' + !fL4.lakeDone + ')',
+        !dfY4.length && kidL4.n === 1 && kidL4.beside && !mvY4 && fL4.dueUnfed === 0 && !fL4.lakeDone && InK.nightsToDue(fL4, HK.day()) > 20);
+      // the morning's word with the inn lady, the child in tow: no bed (ruling 59's NO INN-STAY), and nothing of the night armed
+      var BwY = downY(), gW = trigK('talk:gennet'), d0W = HK.day(), fi0W = fightsK.length, wordW = gW ? atTrigK(BwY, gW, { dflt: ROOMY, quiet: 200 }) : 'no talk:gennet (' + whoY(BwY) + ')';
+      okK('nextday', 'THE DAY AFTER, a word with the inn lady with the child in tow: no bed taken (day ' + d0W + ' -> ' + HK.day() + '), no fight (' + (fightsK.length === fi0W) + ') -- ' + wordW.slice(0, 260), HK.day() === d0W && fightsK.length === fi0W && !/MORNING/.test(wordW));
+      // ================================================================ THE BARN'S OTHER ENDS, each begun from slot 3 (the yard on the due's day, before the barn)
+      var slot3Y = function () { loadK(3); playK({ quiet: 60 }); return topK(); };
+      var endY = function (r) { return r.end + ' (barnEnd ' + r.f.barnEnd + "); what they keep '" + InK.offering(r.f, 0) + "'; " + (r.trail.filter(function (s) { return /the barn: |out of the barn: the glamour/.test(s); }).map(function (s) { return s.replace(/^.*(the barn: |out of the barn: )/, ''); }).join(' | ') || 'NOTHING IN THE RECORD') + '; the purse ' + r.silver + '; the fights ' + (r.fights.join(' ') || 'none') + '; the child ' + r.kid.s + '; then on ' + r.at + ', ' + r.who + (r.mv ? '; ' + r.mv : '') + (r.noans ? '; ' + r.noans : '') + (r.miss.length ? '; ANSWERS NOT FOUND ' + r.miss.join('; ') : '') + (r.bad.length ? '; ' + r.bad.join('; ') : ''); };
+      // ---------------------------------------------------------------- 18B. FREE IT (the glamour unseen) to END A: she keeps it, back on its chain
+      slot3Y(); var rA = yardY([/^FREE IT$/, 'barley:sold', 'aurdin:let1']), fA = rA.f;
+      goK(topK(), InK.DOORS.barn, { until: function () { return RK.def.inside === 'barn'; } }); playK({ quiet: 40 }); var kidA = kidY(topK());
+      okK('freeit', 'FREE IT (slot 3), the glamour unseen, to END A: ' + endY(rA) + '; into the barn again: ' + kidA.s + ' (barnLet ' + fA.barnLet + ', barnFreed ' + fA.barnFreed + ', glamourBroken ' + fA.glamourBroken + ')',
+        rA.trail.some(function (s) { return /freed as a goblin, the glamour unseen/.test(s); }) && rA.trail.some(function (s) { return /out of the barn: the glamour unseen/.test(s); }) && fA.barnEnd === 'a' && InK.offering(fA, 0) === 'goblin' && fA.barnLet === 1 && !fA.barnFreed && !fA.childGuest && !rA.kid.s.match(/follows|the scene/) && kidA.n === 1 && /chained/.test(kidA.s) && !rA.mv && !rA.noans && !rA.miss.length && !rA.bad.length);
+      popsK.length -= rA.pops.length;
+      // ---------------------------------------------------------------- 19B. FREE HER to END B: the bribe taken, the child kept in the open
+      slot3Y(); var rB = yardY([/^DETECT MAGIC$/, /^FREE HER$/, 'barley:sold', 'barley:no', 'vivian:take1']), fB = rB.f;
+      okK('endb', 'FREE HER (slot 3) to END B, the bribe: ' + endY(rB) + ' (barnBribe ' + fB.barnBribe + ', kidAtInn ' + fB.kidAtInn + ', innFree ' + fB.innFree + ')', fB.barnEnd === 'b' && rB.dsil === InK.BY.silver[0] && fB.barnBribe === 1 && fB.kidAtInn === 1 && InK.offering(fB, 0) === 'kept' && !fB.childGuest && rB.kid.n === 0 && !rB.mv && !rB.noans && !rB.miss.length && !rB.bad.length);
+      popsK.length -= rB.pops.length;
+      // ---------------------------------------------------------------- 20B. END C: steel -- the fight in the yard (stubbed: yielded), Doran's confession, the house shut, the child with the party
+      slot3Y(); var rC = yardY([/^DETECT MAGIC$/, /^FREE HER$/, 'barley:sold', 'barley:no', 'lymen:nosilver', 'barley:no2', dorY ? 'vivian:steel' : 'vivian:knife'], { stubPops: true }), fC = rC.f;
+      okK('endc', (dorY ? 'END C (slot 3), steel: ' : 'Doran not on the yard: a hand on the knife, END E with the house shut (slot 3): ') + endY(rC) + ' (barnFight ' + fC.barnFight + ', doranConfessed ' + fC.doranConfessed + ', innShut ' + fC.innShut + ', childGuest ' + fC.childGuest + ')',
+        (dorY ? fC.barnEnd === 'c' && fC.barnFight === 1 && fC.doranConfessed === 1 && rC.fights.some(function (s) { return /gennet.*doran|doran.*gennet/.test(s); }) : fC.barnEnd === 'e') && fC.innShut === 1 && fC.childGuest === 'child' && InK.offering(fC, 0) === 'none' && rC.kid.n === 1 && rC.kid.beside && !rC.mv && !rC.noans && !rC.miss.length && !rC.bad.filter(function (s) { return !/^(orrin|pell) on /.test(s); }).length);
+      rC.bad.filter(function (s) { return /^(orrin|pell) on /.test(s); }).forEach(function (s) { layBad.splice(layBad.indexOf(s), 1); }); // (ruling 37: the boys called in behind Elsbeth, under the house's roof while the yard fights -- by design)
+      popsK.length -= rC.pops.length; // (the fight ended by the stub where it began: the walks after it are the stub's)
+      // ---------------------------------------------------------------- 21B. END D: Lymen's word to Doran, the die pinned high -- his confession in the yard
+      if (dorY) {
+        slot3Y(); var rD = yardY([/^DETECT MAGIC$/, /^FREE HER$/, 'barley:sold', 'barley:no', 'lymen:nosilver', 'barley:no2', 'lymen:doranP'], { dice: [20, 20, 20, 20] }), fD = rD.f;
+        okK('endd', "END D (slot 3), Lymen's word to Doran (" + (rD.trail.filter(function (s) { return /Persuasion/.test(s); })[0] || 'NO ROLL IN THE RECORD').replace(/^.*: /, '') + '): ' + endY(rD) + ' (doranConfessed ' + fD.doranConfessed + ', no fight ' + !fD.barnFight + ', childGuest ' + fD.childGuest + ') -- ' + (rD.seen.match(/There.s a thing in the lake[^/]*/) || ['HIS WORDS NOT SEEN'])[0].slice(0, 80),
+          fD.barnEnd === 'd' && fD.doranConfessed === 1 && !fD.barnFight && fD.childGuest === 'child' && InK.offering(fD, 0) === 'none' && /There.s a thing in the lake/.test(rD.seen) && rD.kid.n === 1 && rD.kid.beside && !rD.mv && !rD.noans && !rD.miss.length && !rD.bad.length);
+        popsK.length -= rD.pops.length;
+      } else noteK('21B. END D not begun: Doran is not on the yard on the due\'s day (doranAway ' + fb.doranAway + ')');
+      HK.trail = trail0Y;
+      repK.notes.push('TRAIL (the barn walk, its last 60) ' + trailY.slice(-60).join(' | ').slice(0, 3000));
+      } else if (POISK) {
       // ================================================================ THE POISON DINNER WALK, 11-13 (mode=walkpoison1113; the poison walk seat, started by the lanes desk on
       // Griz's word of 11-13: "start a seat on the poison dinner walk"). The same save and the same road as walk1113 to the first morning at the inn (beats 1 to 8 above), then
       // its own: HOW THE POISON DINNER COMES ABOUT, as he ruled it 11-05 -- "a poison dinner (likely fight) if they interrupt the wagon before it gets there and happen to be
