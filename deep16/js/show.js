@@ -464,7 +464,7 @@
   // A name in rows= that is a sheet and no creature (`?rows=aurdin_p4`) is worn by a stand-in (SH.STANDIN: a plain man's block, his club the blow its
   // attack row is staged as); &beside stands every figure asked side by side, each row played on all of them at once and turned together -- a look set
   // beside the one it was made from (10-28, the code-drawn mantle: `?rows=aurdin_p4,aurdin_p3&beside`, Aurdin's star mantle by his Red Mantle)
-  SH.STANDIN = 'commoner';
+  SH.STANDIN = 'commoner'; SH.FAINT = 0.35; // (FAINT: the staged fighter where it stands between the eye and the creature -- standIn)
   SH.rows = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(1, Math.min(9, +get('lvl') || 3));
@@ -524,21 +524,26 @@
     function rowName(a, k) { return String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); }
     function blowFor(u, r) { // the blow a row is the look of: the one of its own name, or for `attack` the first blow with no row of its own
       var ks = Object.keys(u.attacks || {}).filter(function (k) { return !u.attacks[k].spell && !u.attacks[k].needsHeld; });
-      var own = ks.filter(function (k) { return rowName(u.attacks[k], k) === r; })[0];
+      var own = ks.filter(function (k) { var n = rowName(u.attacks[k], k); return n === r || n + 's' === r || n === r + 's'; })[0]; // (a row named for the blow in the plural, the aboleth's `tentacles` for its Tentacle: 11-13, it played bare)
       if (own) return u.attacks[own];
       if (r !== 'attack') return null;
       var plain = ks.filter(function (k) { return !D.spr.anim(u.sheet, rowName(u.attacks[k], k)); })[0];
       return plain ? u.attacks[plain] : ks[0] ? u.attacks[ks[0]] : null;
     }
     function standIn(u, a) { // the fighter on the square the blow wants, straight out from the way the creature faces
-      var d = STEP[S.face], m = S.mate, sz = u.size || 1, reach = a.reach || u.reach || 5, far = a.ranged ? Math.min(30, (a.range && a.range[0]) || 30) : reach;
+      var d = STEP[S.face], m = S.mate, sz = u.size || 1, reach = a.reach || u.reach || 5, far = a.ranged ? Math.min(30, (a.range && a.range[0]) || 30) : reach, last = null;
+      // THE FIGHTER SEEN THROUGH (11-13, his eye on the staged blows, 10-10: BROKEN, no note -- by a seat's headless shots the fighter stood over the blow): in the facings
+      // toward the screen (S, SW, SE) the fighter stands nearer the eye than the creature and at the shelf's closeness covers the row being judged, so there he is drawn
+      // faint (js/ui.js, a unit's `faint`); beside it or behind it he is solid
+      var set = function () { D.grid.setup(D.grid.map, B.units); u.facing = S.face; m.facing = B.faceTo(m, u); m.faint = d[0] + d[1] > 0 ? SH.FAINT : null; return true; };
       for (var k = 1; k <= 14; k++) {
         var x = S.home[0] + d[0] * k + (d[0] > 0 ? sz - 1 : 0), y = S.home[1] + d[1] * k + (d[1] > 0 ? sz - 1 : 0);
         if (x >= u.x && x < u.x + sz && y >= u.y && y < u.y + sz) continue;
         if (!D.grid.canStand(m, x, y)) continue;
-        m.x = x; m.y = y; var ft = D.grid.dist(u, m);
-        if (a.ranged ? ft >= far || k === 14 : ft <= reach) { D.grid.setup(D.grid.map, B.units); u.facing = S.face; m.facing = B.faceTo(m, u); return true; }
+        m.x = x; m.y = y; var ft = D.grid.dist(u, m); last = [x, y];
+        if (a.ranged ? ft >= far || k === 14 : ft <= reach) return set();
       }
+      if (a.ranged && last) { m.x = last[0]; m.y = last[1]; return set(); } // (a shot with the floor's edge nearer than its 30 ft: from the last square that way -- the stone giant's rock facing SE said "the blow lands" and threw nothing)
       return false;
     }
     function* fire(gen) { var v; for (var k = 0; k < 20000; k++) { var r = gen.next(v); v = undefined; if (r.done) return r.value; var y = r.value; if (y && y.prompt) { v = y.prompt.opts[0].value; continue; } v = yield y; } }
@@ -577,7 +582,7 @@
       if (S.beside) { yield* together(it); return; }
       var u = it.u; S.upAt = null;
       B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u);
-      var mt = S.mate; mt.x = S.home[0] - 2; mt.y = S.home[1] + 1; mt.facing = 6; mt.hp = mt.maxhp; mt.conds = {}; mt.dead = false; mt.ko = false; mt.anim = 'idle'; mt.animT = B.t; // (the fighter back where it stood, whole)
+      var mt = S.mate; mt.x = S.home[0] - 2; mt.y = S.home[1] + 1; mt.facing = 6; mt.hp = mt.maxhp; mt.conds = {}; mt.dead = false; mt.ko = false; mt.faint = null; mt.anim = 'idle'; mt.animT = B.t; // (the fighter back where it stood, whole)
       D.grid.setup(D.grid.map, B.units);
       var r = it.row, at = r === 'clamp' || r === 'latched' ? S.mate : u; // (the camera on where it will be: on the fighter's head for those two)
       if (S.lastKind !== u.kind) { S.lastKind = u.kind; var sz = Math.max(u.size || 1, r === 'clamp' || r === 'latched' ? 1 : 0); D.iso.zoom = Math.max(S.zoom0, sz >= 3 ? 1.0 : sz === 2 ? 1.4 : 2.4); } // (a new creature, its own closeness; within one, the wheel's is kept)

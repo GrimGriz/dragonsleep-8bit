@@ -1802,6 +1802,7 @@
         else if (u.under && !down) { o.alpha = 0.3; o.tint = R('leather', 2); o.tintAlpha = 0.9; }
         else if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
+        if (u.faint) o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, u.faint); // (the one gallery's staged fighter in front of the row it is struck by: js/show.js standIn, 11-13)
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.33 : 0.5; // (inside the darkness: a shape, if that -- 0.33, not 0.2: 10-01, Griz, "if that's always true it's fine 20% - if not let's bump to 33%" -- the dashed ring that marks one the hero can't see shows only on a hero's own turn, and the darkmantle beside Aurdin looked dead)
         // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
         if (B.dark && u.side === 'foe' && !down && !u.flash) { var ps = D.light.partySees(B, u); if (ps < 2) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, ps === 1 ? 0.85 : 0.6); o.tint = R('stone', 3); o.tintAlpha = ps === 1 ? 0.3 : 0.5; } }

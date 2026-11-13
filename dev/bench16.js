@@ -24121,6 +24121,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         SC.i = SC.list.map(function (it) { return it.row; }).indexOf('morningstar'); var facesO = [];
         for (var fO = 0; fO < 8; fO++) { OGB.act(BC, 'again'); runO(BC); facesO.push(SC.face + ':' + D.grid.dist(SC.list[SC.i].u, SC.mate)); OGB.act(BC, 'turn', 1); }
         okO('the morningstar turned through the eight facings, the fighter in its reach each time (facing:ft ' + facesO.join(' ') + ')', facesO.length === 8 && facesO.every(function (s) { return +s.split(':')[1] <= 5; }) && facesO.map(function (s) { return s.split(':')[0]; }).filter(function (f, i, a) { return a.indexOf(f) === i; }).length === 8);
+        // ---- THE FIGHTER SEEN THROUGH (11-13, his eye on the staged blows: BROKEN -- the fighter stood over the blow in the facings toward the screen): faint there, solid beside
+        var faintO = []; for (var fF = 0; fF < 8; fF++) { SC.face = fF; OGB.act(BC, 'again'); runO(BC); faintO.push(SC.mate.faint ? 1 : 0); }
+        okO('the staged fighter is drawn faint in the three facings toward the screen (S, SW, SE) and solid in the rest (' + faintO.join('') + ', faint ' + D.show.FAINT + ')', faintO.join('') === '11000001' && D.show.FAINT > 0 && D.show.FAINT < 1);
+        SC.i = SC.list.map(function (it) { return it.row; }).indexOf('idle'); OGB.act(BC, 'again'); runO(BC);
+        okO('and solid again on a row that is no blow (idle: faint ' + SC.mate.faint + ')', !SC.mate.faint);
+        // ---- a row named in the plural for its blow, and a shot with the floor's edge nearer than its range
+        var BA = OGB.door('?gallery&shelf=creatures&rows=aboleth'); D.battle = BA; BA.enter(); runO(BA); var SA = BA.rowGallery, preA = (BA.logEntries || []).slice();
+        SA.i = SA.list.map(function (it) { return it.row; }).indexOf('tentacles'); OGB.act(BA, 'again'); runO(BA); var sA = since(BA, preA);
+        okO('the aboleth\'s `tentacles` row is its Tentacle at the fighter (' + (/Tentacle.*vs AC/.exec(sA) ? 'struck' : 'played bare') + ')', SA.i >= 0 && /Aboleth > .*Tentacle/.test(sA) && /vs AC/.test(sA));
+        var BG2 = OGB.door('?gallery&shelf=creatures&rows=stonegiant'); D.battle = BG2; BG2.enter(); runO(BG2); var SG2 = BG2.rowGallery, preG = (BG2.logEntries || []).slice();
+        SG2.i = SG2.list.map(function (it) { return it.row; }).indexOf('rock'); SG2.face = 7; OGB.act(BG2, 'again'); runO(BG2); var sG = since(BG2, preG);
+        okO('the stone giant\'s rock facing SE is thrown, from the floor\'s edge (' + D.grid.dist(SG2.list[SG2.i].u, SG2.mate) + ' ft off)', SG2.i >= 0 && /Rock/.test(sG) && /vs AC/.test(sG));
         okO('nothing logged an error' + (D.lastError ? ' (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')' : ''), !D.lastError);
       }
     } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
