@@ -654,6 +654,73 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // rogue's cover play (pol=hide, js/tactics.js TX.rogueCover: shoot from a square where no foe sees her clearly, then Hide again with Cunning Action -- a foe that cannot
   // see its target does nothing, js/ai.js heroes), her kite (pol=kite, TX.rogueKite: shoot, then run out of reach of the melee foes) and both (pol=new, as it ships).
   // &set=brute,pack,gobs,rats,chief,hobs,troll,ogres,asfoe  &lv=3,4,5  &n=30  &pol=ai,new  &seed=1  &log=lost|won|all (&logn=2 of them, their logs)  &map=  &dark=1  &party=
+  // THE HEADLESS FIGHT (11-13, deep16/js/headless.js): two groups on the made field, their ranks 75 to 105 ft apart, unseen.  &a= &b= (kind*n words)  &an= &bn=  &am= &bm= (morale)
+  // &n=  &seed=  &lv=  &log=1 (the first fight's)
+  if (get('mode', '') === 'headless1113') {
+    var repH = { errors: [], fights: [], logs: [] };
+    try {
+      var HL = D.headless, aH = HL.words(get('a', 'paladin:4*3,guard*12')), bH = HL.words(get('b', 'gloryseeker*3,gnoll*9,hyena*6'));
+      for (var kH = 0; kH < +get('n', 5); kH++) {
+        var rH = HL.run({ a: { name: get('an', 'Newland'), list: aH, morale: +get('am', 5) }, b: { name: get('bn', 'the band'), list: bH, morale: +get('bm', 7) }, level: +get('lv', 4), seed: seed0 * 7919 + kH * 104729 });
+        if (get('log', '') && !repH.logs.length) repH.logs.push(rH.log.join(String.fromCharCode(10)));
+        delete rH.log; repH.fights.push(rH);
+      }
+    } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+    if (errs.length) repH.errors = repH.errors.concat(errs.slice(0, 5));
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
+  // THREE CORNERS (11-13, the lanes desk; Griz: "a combat sim of a party of NPCs (talmok, willem, amara + your choice) the dominion wagon group from the snoot, and a
+  // gnoll band ... equidistant start points from each other, gnolls non-hostile to the dominion"): the NPC four the party, the Snoot's Dominion wagon (the patrol lady
+  // and her dozen) and its war-band (3 glory-seekers, 9 gnolls, 6 hyenas) both the foe's side, so neither strikes the other; each group seated round one corner of a
+  // triangle on the map.  &map=  &n=  &seed=  &lv=  &vs=  &log=1
+  if (get('mode', '') === 'tri1113') {
+    var repT = { errors: [], maps: {}, fights: [], logs: [] };
+    try {
+      Object.keys(D.MAPS).forEach(function (k) { var mm = D.MAPS[k]; var rw = mm && (mm.rows || mm.grid || mm.tiles); if (rw && rw.length && rw.length * rw[0].length >= 900) repT.maps[k] = rw[0].length + 'x' + rw.length; else if (mm && !rw && get('keys', '')) repT.maps[k] = Object.keys(mm).slice(0, 12).join(' '); });
+      var lvT = +get('lv', 5), mapT = get('map', 'gnollhills'), NT = +get('n', 5);
+      // &map=field (&fw= &fh= squares): an open field made here, flat earth with a rock every so often -- the hills' own def with its rows and heights swapped
+      if (mapT === 'field') { var fwT = +get('fw', 132), fhT = +get('fh', 132), rwsT = [], hgsT = []; for (var yT = 0; yT < fhT; yT++) { var rT = ''; for (var xT = 0; xT < fwT; xT++) rT += ((xT * 7 + yT * 13) % 97 === 0 ? 'r' : '.'); rwsT.push(rT); hgsT.push(new Array(fwT + 1).join('0')); } D.MAPS.field = Object.assign({}, D.MAPS.gnollhills, { name: 'The Open Field', sub: 'three corners', rows: rwsT, heights: hgsT }); }
+      var DOM = ['patrollady']; for (var dT = 0; dT < 12; dT++) DOM.push('dominion');
+      var GN = ['gloryseeker', 'gloryseeker', 'gloryseeker']; for (var gT = 0; gT < 9; gT++) GN.push('gnoll'); for (var hT = 0; hT < 6; hT++) GN.push('hyena');
+      var vsT = get('vs', 'talmok,willem,amara,torvald');
+      for (var kT = 0; kT < NT; kT++) {
+        D.seed = seed0 * 7919 + kT * 104729; D.lastError = null;
+        var smT = !!get('simple', ''), fsT = get('foes', '') ? get('foes', '').split(',') : DOM.concat(GN); // (&simple=1: the simple fight's own field and lines, js/simple.js -- no corners; &foes=: another foe list, then counted as one group)
+        var Bt = D.npcFight('?npc=' + fsT.join(',') + '&lvl=' + lvT + '&vs=' + vsT + (smT ? '' : '&map=' + mapT), smT ? { bench: true, simple: true } : { bench: true }); D.battle = Bt; Bt.enter(); if (smT && !Bt.simple && D.simple) D.simple.setup(Bt);
+        var mT = Bt.map, PT = Bt.units.filter(function (u) { return u.side === 'party'; }), FT = Bt.units.filter(function (u) { return u.side === 'foe'; });
+        PT.forEach(function (u) { u.guest = true; u.classAI = true; });
+        var domU = FT.slice(0, DOM.length), gnU = FT.slice(DOM.length);
+        // the triangle: the widest the map holds with its corners the same count of squares apart, the three groups' middles on them
+        var sT = Math.floor(Math.min(mT.w - 8, mT.h - 8)), cxT = mT.w / 2, cyT = mT.h / 2, hT2 = sT; // (as tall as it is wide: on the grid a diagonal step is 5 ft too, so the three are the same count of squares apart)
+        var CN = [[cxT, cyT - hT2 / 2], [cxT - sT / 2, cyT + hT2 / 2], [cxT + sT / 2, cyT + hT2 / 2]].map(function (p) { return [Math.round(p[0]), Math.round(p[1])]; });
+        var takenT = {}, seatT = function (us, c) {
+          us.forEach(function (u) { u.x = -99; u.y = -99; });
+          us.forEach(function (u) {
+            for (var r = 0; r < 14; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+              if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+              var x = c[0] + dx, y = c[1] + dy, sq = mT.at(x, y); if (!sq || !sq.walk || takenT[x + ',' + y]) continue;
+              takenT[x + ',' + y] = 1; u.x = x; u.y = y; return;
+            }
+          });
+        };
+        Bt.units.forEach(function (u) { if (PT.indexOf(u) < 0 && FT.indexOf(u) < 0) takenT[u.x + ',' + u.y] = 1; });
+        if (!smT) { seatT(PT, CN[0]); seatT(domU, CN[1]); seatT(gnU, CN[2]); Bt.cache = null; }
+        var mid = function (us) { var a = us.filter(function (u) { return u.x > -90; }); return [Math.round(a.reduce(function (s, u) { return s + u.x; }, 0) / a.length), Math.round(a.reduce(function (s, u) { return s + u.y; }, 0) / a.length)]; };
+        var m0 = [mid(PT), mid(domU), mid(gnU)], dist = function (a, b) { return Math.round(5 * Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]))); };
+        var rsT = drive(Bt), up = function (us) { return us.filter(function (u) { return !u.dead && u.hp > 0 && !u.fled; }).length; }, fl = function (us) { return us.filter(function (u) { return u.fled; }).length; };
+        repT.fights.push({ seed: D.seed, result: rsT, rounds: Bt.round, map: mapT + ' ' + mT.w + 'x' + mT.h, side: sT * 5 + ' ft', starts: { party: m0[0], dominion: m0[1], gnolls: m0[2] }, apartFt: [dist(m0[0], m0[1]), dist(m0[0], m0[2]), dist(m0[1], m0[2])],
+          party: PT.map(function (u) { return u.name + ' ' + Math.max(0, u.hp) + '/' + u.maxhp + (u.fled ? ' fled' : ''); }).join(', '),
+          dominionUp: up(domU) + '/' + domU.length + (fl(domU) ? ' (' + fl(domU) + ' fled)' : ''), gnollsUp: up(gnU) + '/' + gnU.length + (fl(gnU) ? ' (' + fl(gnU) + ' fled)' : ''), unseated: Bt.units.filter(function (u) { return u.x < -90; }).length, simple: !!Bt.simple, foes: FT.length, stacked: (function () { var c = {}, n = 0; Bt.units.forEach(function (u) { var k = u.x + ',' + u.y; if (c[k]) n++; c[k] = 1; }); return n; })() });
+        if (get('log', '') && !repT.logs.length) repT.logs.push((Bt.log || []).join('\n'));
+      }
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    if (errs.length) repT.errors = repT.errors.concat(errs.slice(0, 5));
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   if (get('mode', '') === 'rogue4') {
     var repQ = { checks: [], errors: [], table: {}, logs: [] };
     var SETQ = { brute: 'bugbear', pack: 'wolf,wolf,goblin', gobs: 'goblin,goblin', rats: 'giantrat,giantrat,giantrat', chief: 'bugbearchief', hobs: 'hobgoblin,hobgoblin,gnoll', troll: 'troll', ogres: 'ogre,bugbear,bugbear' }, LVQ = get('lv', '3,4,5').split(',').map(Number), NQ = +get('n', 30), POLQ = get('pol', 'ai,new').split(','), WHQ = get('set', 'brute,pack').split(',');
