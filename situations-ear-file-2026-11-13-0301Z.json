@@ -1,0 +1,83 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-13T03:01:58.896Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-watch-yard-roofed-1112m",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WATCH FROM UPSTAIRS: the yard under the house's roof, one Gennet (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second; your note on eyes-wagon-upstairs-1112f; deep16/js/inn.js In.wagonNight, js/secondact.js A.dueLake)",
+   "url": "deep16/?innshow&beat=wagon&fresh=1112ma",
+   "verdict": "broken",
+   "note": "noted directly in seat chat",
+   "at": "2026-11-13T02:41:36.573Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-rite-window-1112k",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE RITE FROM THE BIG ROOM: the party at the window overlooking the lake, and THE SINGING (sound on) (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second, resumed; RULED, your \"if 'rite' is the weird singing, I was hoping we'd make some - with the camera on the party in the big room with transparency out so they are 'overlooking' (player gets what character sees through window) the lake\" and \"game synth like we did with 'food' and 'kneel'\"; deep16/js/secondact.js A.sing, A.atWindow, A.dueLake; deep16/audio/lake_singing.mp3)",
+   "url": "deep16/?innshow&beat=rite&fresh=1112ka",
+   "verdict": "",
+   "note": "the singing should stop just before she brings the girl outside alone, that view works as from the big room window, but check with what's being made for wagon night that might be better",
+   "at": "2026-11-13T02:50:19.947Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-lake-water-1112k",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE LAKE'S EDGE, RE-CUT: one depth, the ground showing through one sheet of water, the deep at once (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12 second, resumed; RE-CUT on your note on eyes-lake-edge-1112h; deep16/js/innprops.js the sheet, IP.WADE; js/inn.js In.under)",
+   "url": "deep16/?innshow&beat=lakeedge&fresh=1112kd",
+   "verdict": "broken",
+   "note": "can we knee-deep the 44 and 45 squares around the rock and get rid of the brown line between the shallow and deep, and then make only the 4 squares straight out from the rock do the 'yellow box click popup' about things not coming up from the deep?",
+   "at": "2026-11-13T02:46:48.867Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-elsbeth-day-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "ELSBETH BY DAY: \"You're the people stopping the monsters.\", and Gennet out at the well (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; RULED by your answers to the reading page: ruling 58, your shape; deep16/js/inn.js M.SCENES.elsbeth, In.FOLK) -- your \"at the renown that the supper acknowledges, she'll talk without mentioning dish help with \"you're the people stopping the monsters\"\" and \"daytime private (gennet outside) is good.\"",
+   "url": "deep16/?innshow&beat=elsbethday&fresh=1112fk",
+   "verdict": "works",
+   "note": "until after the first dinner, there should be no follow up to \"stopping the monsters\", but the stopping the monsters and Gennet outside works as aimed",
+   "at": "2026-11-13T03:01:53.662Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-sacrifice-yield-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, the fight and the yield: Elsbeth in the back room, their own figures, FOLLOW DORAN OUT (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; deep16/js/secondact.js A.supperFight, A.backRoom, A.waitDoran, A.followDoran) -- your \"back room with children\" and \"reverts to old models after yield, then pops scene to standing regular positions, no 'following doran outside', he does go outside\"",
+   "url": "deep16/?innshow&beat=supsacr&fresh=1112fa",
+   "verdict": "broken",
+   "note": "elsbeth starts serving dinner from the wall behind the table, should come from the kitchen and maybe walk a little slower. gennet did let the party sleep, doran was still out back in the morning and timetraveled back into the night to the fight when the party approached the next morning. Combat music that starts at dinner should turn off at yield (and start back up when party token breaks to fight monster)",
+   "at": "2026-11-13T02:59:56.160Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-sacrifice-leave-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "SACRIFICE NIGHT, LEAVE THE FIGHT: Doran crosses the room and stops the hero at the door, then confesses (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; deep16/js/secondact.js A.supperFight; js/roam.js R.after) -- your \"confession triggered 'leave the fight', which works but needs him to run over and 'stops 'character' at the door' (then confess)\"",
+   "url": "deep16/?innshow&beat=supsacr&fresh=1112fb",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T02:55:01.477Z",
+   "new_since_last_save": true
+  }
+ ]
+}
