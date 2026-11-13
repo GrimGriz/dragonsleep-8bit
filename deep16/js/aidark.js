@@ -33,7 +33,7 @@
   function sideOf(B, side) { return B.units.filter(function (u) { return u.side === side && member(u); }); }
   function roost(B) { return !!(B.fight && B.fight.roost); }
   function nm(B, u) { return u.side === 'foe' ? AI.the(B, u) : u.name; }
-  function aiRun(u) { return u.side === 'foe' || !!(u.guest || u.classAI || u.ally || u.summon); }
+  function aiRun(u) { return u.side === 'foe' || !!(u.guest || u.ally || u.summon); } // (`guest` is the mark of one of ours the AI plays: a class hero the player plays -- the Pocket DM's band -- is classAI and no guest)
   function ownKit(u) { return u.side === 'foe' || !!u.ally; } // (its own torch on its belt; one of ours the AI runs takes from the party's pack)
   // eyes for the dark: darkvision, truesight, a blindsight that reaches a fight, or no eyes at all (the grimlock)
   AD.darkSighted = function (u) { return !!(u.darkvision || u.truesight || u.blind || (u.blindsight || 0) >= 30); };
@@ -203,6 +203,7 @@
   AD.first = function* (B, u) {
     if (!on() || !B.dark || u.classAI || !u.turn || !up(u) || u.familiar || u.script) return;
     if (yield* goDark(B, u)) return;
+    if (yield* stampOut(B, u)) return; // (before it walks off from it: the free hand)
     var T = u.turn; if (!T.action || !AD.canStrike(B, u)) return;
     var k = AD.kit(B, u), r = AD.radii(B, k);
     if (!AD.blindTo(B, u, r.bright + r.dim).length) return;
@@ -211,7 +212,7 @@
   // after any AI turn: a light on the floor beside it stamped out
   AD.after = function* (B, u) { if (on() && B.dark && u.turn && !u.familiar) yield* stampOut(B, u); };
   if (TX) {
-    TX.FIRST.push(function* (B, u) { if (on() && B.dark) yield* goDark(B, u); });
+    TX.FIRST.push(function* (B, u) { if (on() && B.dark && !(yield* goDark(B, u))) yield* stampOut(B, u); });
     TX.ACTIONS.push(function (B, u) {
       var T = u.turn; if (!on() || !B.dark || !T || !T.action || T.attacksLeft || !AD.canStrike(B, u)) return null;
       var k = AD.kit(B, u), r = AD.radii(B, k), s = AD.worth(B, u, u, r.bright + r.dim);

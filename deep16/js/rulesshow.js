@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures,ailights1113 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear', 'bandit', 'robber', 'thug'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -582,6 +582,71 @@
         return [/AMBUSH/.test(l1) && t1 > 0 && fair && plain && /UNSEEN/.test(l2) && gc, 'the spider\'s Stealth ' + t1 + ': caught ' + (caughtN.join(', ') || 'no one') + ' (' + (fair ? 'those below it, as the rule says' : 'NOT as the rule says') + '), its hide the plain one after ' + plain + '; the rogue unseen: the goblin ' + (gc ? 'caught unaware' : 'not caught (wrong)')];
       } finally { unpost([cleric, wizard, spider, rogue, gob]); delete rogue.hidTotal; }
     }
+    // ---- the AI lights up (11-13, the ai-lights seat, the AI and the dark 2.1-2.5 -- js/aidark.js; &only=ailights1113): a second bandit, a robber and a thug joined the
+    // show's foes for them. Each beat makes the floor dark for itself and lit again after (darkOn)
+    var AD = D.aidark, bandit1 = kind('bandit'), bandit2 = foes.filter(function (w) { return w.kind === 'bandit'; })[1], robber = kind('robber'), thug = kind('thug');
+    function darkOn(yes) {
+      B.dark = !!yes; B.lights = []; B.lightMap = null; B.partyMap = null; B.viewMap = null; B.prelit = {};
+      all.forEach(function (w) { delete w.torch; delete w.lightKit; });
+      if (!yes) delete B.fight.roost;
+    }
+    // one of the show's own run by the class AI for a turn
+    function* aiTurn(w) { var c0 = w.classAI; w.classAI = true; try { turn(w); yield* fire(D.ai.turn(B, w)); } finally { w.classAI = c0; B.active = null; } }
+    function* aiLit() {
+      stage([bandit1, bandit2, cleric, wizard], [[0, -2], [1, -2], [0, 2], [1, 2]]); darkOn(true);
+      say(['Dark ground. Two bandits, human: no eyes for the dark. A side the AI runs that needs a light walks in with one -- here a torch, in the free hand of the one nearest you. The other keeps his on his belt.']); yield W(60);
+      AD.prelight(B); yield W(100);
+      var held = [bandit1, bandit2].filter(function (w) { return w.torch && w.torch.lit; }), how = B.prelit.foe && B.prelit.foe.how;
+      var yours = !B.prelit.party && !cleric.torch && !wizard.torch && !cleric.conds.light && !wizard.conds.light;
+      stage([hob, gob, cleric, wizard], [[0, -2], [1, -2], [0, 2], [1, 2]]); darkOn(true);
+      say(['A hobgoblin and a goblin: both see in the dark, so they bring no light at all. Your own four are never lit for you -- the torch, the lantern and the Light are yours to choose.']); yield W(60);
+      AD.prelight(B); yield W(100);
+      yours = yours && !B.prelit.party && !cleric.conds.light && !wizard.conds.light; // (in the dark with nobody else's torch near: still nothing lit for you)
+      var dark2 = !B.prelit.foe && !hob.torch && !gob.torch && !(B.lights || []).length;
+      darkOn(false);
+      return [held.length === 1 && how === 'torch' && yours && dark2, 'the bandits: ' + held.length + ' torch in a hand; the hobgoblin and the goblin: ' + (dark2 ? 'no light' : 'A LIGHT') + '; yours: ' + (yours ? 'left to you' : 'LIT FOR YOU')];
+    }
+    function* aiStrike() {
+      stage([hob, cleric, paladin], [[0, -3], [0, 1], [1, 1]]); darkOn(true); setPin(15, [15]);
+      say(['A one-sided dark: the hobgoblin sees the cleric and the paladin, and they do not see it. By the SRD every blow at it is at disadvantage and every blow of its at advantage. The cleric knows Light, and this turn is the AI\'s own.']); yield W(70);
+      var n = mark(); yield* aiTurn(cleric); yield W(90);
+      var glow = [cleric, paladin].filter(function (w) { return w.conds.light; }).length, sees = D.magic.sees(B, paladin, hob) || D.magic.sees(B, cleric, hob), l1 = since(n);
+      stage([hob, bard, paladin], [[0, -3], [0, 1], [1, 1]]); darkOn(true); setPin(15, [15]);
+      bard.known = bard.known.filter(function (id) { return id !== 'light' && id !== 'dancinglights'; }); bard.slots = bard.slots.map(function () { return 0; }); B.inv = [{ id: 'torch', n: 1 }];
+      say(['The same dark; a bard with no Light and no spell left, and one torch in the pack. The AI weighs the torch against a blow at something it cannot see: the torch, its action.']); yield W(70);
+      var n2 = mark(); yield* aiTurn(bard); yield W(90);
+      var torch = !!(bard.torch && bard.torch.lit), pack = D.light.inPack(B, 'torch'), l2 = since(n2);
+      darkOn(false);
+      return [glow >= 1 && sees && torch && pack === 0, 'the cleric: Light on ' + glow + ' of them, the hobgoblin seen ' + sees + '; the bard: a torch in hand ' + torch + ', the pack ' + pack + (torch ? '' : ' [' + l2.slice(0, 200) + ']') + (glow ? '' : ' [' + l1.slice(0, 200) + ']')];
+    }
+    function* aiDarkOut() {
+      stage([hob, cleric, wizard], [[0, -1], [0, 3], [1, 3]]); darkOn(true); setPin(15, [15]);
+      B.lights = [{ id: 'torchshow', kind: 'torch', x: hob.x + 1, y: hob.y, bright: 20, dim: 20, color: 'gold', flame: true, by: cleric.id }]; B.lightMap = null;
+      say(['Going dark. A torch of yours burns on the floor beside a hobgoblin. It sees in the dark and you do not, and nobody on its side needs that light: it stamps the torch out -- the turn\'s free hand on an object -- and then comes for you in the dark.']); yield W(80);
+      var n = mark(), lv0 = D.light.levelOf(B, hob); turn(hob); yield* fire(D.ai.turn(B, hob)); B.active = null; yield W(100);
+      var l = since(n), out = !(B.lights || []).length && /stamps out the torch/.test(l);
+      stage([bandit1, cleric, wizard], [[0, -1], [0, 3], [1, 3]]); darkOn(true); setPin(15, [15]); bandit1.lightKit = null;
+      B.lights = [{ id: 'torchshow2', kind: 'torch', x: bandit1.x + 1, y: bandit1.y, bright: 20, dim: 20, color: 'gold', flame: true, by: cleric.id }]; B.lightMap = null;
+      say(['A bandit beside the same torch: he needs it as much as you do, and leaves it burning.']); yield W(60);
+      turn(bandit1); yield* fire(D.ai.turn(B, bandit1)); B.active = null; yield W(80);
+      var kept = (B.lights || []).length === 1;
+      darkOn(false);
+      return [out && kept && lv0 === 2, 'the hobgoblin: the torch ' + (out ? 'stamped out' : 'STILL BURNING') + '; the bandit: ' + (kept ? 'left burning' : 'PUT OUT')];
+    }
+    function* aiLantern() {
+      stage([robber, bandit1, cleric], [[0, -2], [1, -2], [0, 2]]); darkOn(true); B.fight.roost = true;
+      say(['Under a roost: no fire, and bright light wakes it. The bandit\'s torch stays on his belt. The night crew carry a hooded lantern, and it walks in with the hood down: dim light 5 ft, and the roof sleeps.']); yield W(60);
+      AD.prelight(B); yield W(100);
+      var lt = robber.torch, hooded = !!(lt && lt.lit && D.light.kindOf(lt) === 'lantern' && lt.hood), noTorch = !bandit1.torch;
+      delete B.fight.roost;
+      stage([thug, cleric], [[0, -4], [0, 3]]); darkOn(true); setPin(15, [15]); thug.torch = { lit: true }; B.lightMap = null;
+      say(['A light costs the AI the hand it costs you. A thug with a torch in one hand raises his heavy crossbow, which wants both: the torch falls, and burns where it fell.']); yield W(70);
+      turn(thug); yield* fire(B.attack(thug, cleric, thug.attacks.crossbow)); B.active = null; yield W(90);
+      var fell = !thug.torch && (B.lights || []).some(function (l) { return l.kind === 'torch' && l.x === thug.x && l.y === thug.y; });
+      var shield = AD.hand(hob), free = AD.hand(bandit1);
+      darkOn(false);
+      return [hooded && noTorch && fell && !shield && free, 'under the roost: the lantern ' + (hooded ? 'hood down' : 'NOT HOODED') + ', the torch ' + (noTorch ? 'unlit' : 'LIT') + '; the crossbow: the torch ' + (fell ? 'let fall' : 'STILL IN HAND') + '; a hand for a light: the hobgoblin with its shield ' + shield + ', a bandit ' + free];
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -612,6 +677,10 @@
       { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },
       { id: 'poststand', group: 'postures', name: 'A rune\'s STAND', what: 'A foe laid to stand waits where it was laid with a Ready (SRD 5.1). The first that comes into its reach gets the readied blow; struck or striking, it is in the fight, and fights as any foe.', run: postStand },
       { id: 'surpriseattack', group: 'postures', name: 'The bugbear\'s Surprise Attack', what: 'SRD 5.1: the bugbear\'s extra 2d6 lands on a hit in round 1 at a creature it surprised -- not on every round-1 hit, as it did till 11-10 (his record of 11-09: a fighter 36 to 0 in a round with nobody surprised; his "5 - aye").', run: surpriseAttack },
+      { id: 'ailit', group: 'ailights1113', name: 'The AI walks in lit', what: 'Your 09-29 word: "if the fight happens in the dark, involves those without darkvision, and doesn\'t have another reason not to, the various participants should already be holding torch, lantern, or someone glowing with Light as logical." A side the AI runs with anyone who cannot see in the dark walks in with one light; a side that all sees in the dark brings none; your own four are yours to light.', run: aiLit },
+      { id: 'aistrike', group: 'ailights1113', name: 'A light struck in a one-sided dark', what: 'The AI may strike a light, its action, as a hero does -- and weighs it. Only where the dark is one-sided (they see us, we do not see them): with both sides blind the SRD\'s disadvantage and advantage cancel, and no light is worth an action. The Light cantrip first, costing no hand; else a torch or a lantern out of the pack.', run: aiStrike },
+      { id: 'aidarkout', group: 'ailights1113', name: 'Going dark', what: 'Your "definitely" (the AI knows when to go without light). One that sees in the dark, with nobody on its side needing the light and someone on yours blinded without it, puts out a light it holds and stamps out one burning on the floor beside it (the turn\'s free hand on an object). One that needs the light leaves it be.', run: aiDarkOut },
+      { id: 'ailantern', group: 'ailights1113', name: 'The lantern, the roost, and both hands', what: 'A hooded lantern in the AI\'s hands is lit hood down under a roost (dim 5 ft, and the roof sleeps) and hood up anywhere else. A light costs the AI the hand it costs you: none with a shield or a second weapon, and a crossbow, a bow or a two-handed weapon lets it fall.', run: aiLantern },
       { id: 'realsurprise', group: 'postures', name: 'Real surprise, any fight', what: 'Your "we should have \'real\' surprise": any fight where someone starts hidden -- a lurker, a rune\'s ambush, a story\'s hidden foes, one of ours who hid -- rolls the SRD\'s surprise, each hider\'s Stealth against each passive Perception on the other side; whoever notices no threat takes no turn in round 1. A spider lurking against the cleric and the wizard; then the rogue, hidden, against a goblin.', run: realSurprise },
     ];
 

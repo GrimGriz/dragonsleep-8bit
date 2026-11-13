@@ -396,6 +396,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var bm4 = k4('bandit'); bm4.torch = { lit: true }; putA(B4, bm4, 10, 4); var tg5 = oursA(B4)[1]; putA(B4, tg5, 10, 5);
       D.rules.startTurn(bm4); B4.active = bm4; runA(B4.attack(bm4, tg5, bm4.attacks.scimitar)); B4.active = null;
       okA('4c a scimitar in one hand: the torch stays in the other: ' + JSON.stringify(bm4.torch || null), !!(bm4.torch && bm4.torch.lit));
+      // ---- 5. the show's beats (js/eyes.js, deep16/?rulesshow&only=ailights1113): staged and run by the engine, headless with &fast
+      var B5 = D.rulesshow.make('?rulesshow&fast&only=ailights1113'); D.battle = B5; B5.enter();
+      var v5, k5 = 0; while (B5.co && k5++ < 400000) { var r5 = B5.co.next(v5); v5 = undefined; if (r5.done) break; var y5 = r5.value; if (y5 && y5.prompt) v5 = y5.prompt.opts[0].value; }
+      (B5.rulesReport || []).forEach(function (b) { okA('5 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 1200)), b.ok); });
+      okA('5 the show ran ' + (B5.rulesReport || []).length + ' beats (want 4), and left the floor lit: dark ' + B5.dark, (B5.rulesReport || []).length === 4 && !B5.dark);
     } catch (eA) { repA.errors.push(String(eA && eA.stack || eA).slice(0, 900)); }
     D.AIDARK = undefined;
     if (D.lastError) repA.errors.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
