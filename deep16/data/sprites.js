@@ -9689,6 +9689,41 @@
 "source": "deep16/_src/lucia/ART-110/ART-110_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "shop:lucia"
 },
+"lymen_blend_p2": {
+"image": "art/lymen_blend_p2.png?v=f74dafa320",
+"fw": 38,
+"fh": 66,
+"ax": 19,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 38,
+"fh": 66,
+"ax": 19,
+"ay": 61,
+"frames": 1,
+"fps": 1
+},
+"attack": {
+"y": 528,
+"fw": 96,
+"fh": 70,
+"ax": 48,
+"ay": 64,
+"frames": 6,
+"fps": 10,
+"release": 3
+}
+},
+"name": "Lymen (Blender, on the mannequin)",
+"hold": [
+"a review sheet: the EXPERIMENT of 11-13 -- Lymen modelled on the mannequin's own bones and rendered from the rig, to judge beside the art desk's drawn row -- worn by nobody",
+"the rows are the rig's as it stands on main (his gist, re-posed after the art desk drew its checkpoint): the poses differ a little from the drawn row's"
+],
+"source": "built and rendered by tools/lymen-blend.py over tools/twinmace-blend.py kit=sword+shield (11-13), snapped and outlined by tools/pixelate.py, laid by tools/lymen-blend-sheet.py; S SE E NE N rendered, SW W NW mirrored"
+},
 "lymen_check_p2": {
 "image": "art/lymen_check_p2.png?v=7960b8c425",
 "fw": 84,
