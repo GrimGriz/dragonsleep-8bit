@@ -52,3 +52,18 @@ Both sides always run the one class AI (`deep16/js/tactics.js`). "The four" are 
 | ... plain and average HP | 5 -> 4 | 3.4 -> 4.3 | 2% -> 8% | 3.75 -> 3.63 |
 
 **Reading the rerun.** The AI is still even-handed (generic against generic, 17 to 23). What moved is the four's own sheets: every row where Barley, Aurdin, Vivian and Lymen play as themselves wins more and longer than on 09-28 -- the mirror 29 to 35, the mirror stripped of gear and HP 11 to 20 -- while the fights where both sides are generic stand still. The heroes' sheets have gained on the NPC builds since 09-28; the fights read against the difficulty sentence (RULED 10-28: about 75% won with a down or two, against the player's hand) should be tuned by their foes, not by the AI.
+
+## The dark, 2026-11-13 (the AI lights up: the AI and the dark 2.6, `07a8eca2`)
+
+Twelve fights each, seed 3, the bench's four run by the class AI and carrying no torch (the fixture's pack has none); before = `4dbea953`, after = the AI's light and dark in (`deep16/js/aidark.js`; `aidark=0` on a bench line is the before). Won-lost, party HP left. Only the two in bold moved past the noise: the Siphon Stair's crew now carry a light and the thugs' Pack Tactics is advantage again; Amara and Willem walk in lit and fewer get away. The full table, the reading and the seat's calls are in `..\handoff-2026-10-04-the-ai-and-the-dark.md`, its 2026-11-13 section.
+
+| fight | before | after |
+|---|---|---|
+| the Breach (bulette) | 10-2, 64% | 10-2, 71% |
+| the Fork (roper) | 12-0, 72% | 12-0, 71% |
+| the gricks | 12-0, 76% | 12-0, 82% |
+| the crew (the Burial) | 11-1, 45% | 11-1, 45% |
+| **the Siphon Stair** | **12-0, 79%** | **10-2, 52%** |
+| the night crew | 8-4, 44% | 8-4, 44% |
+| **the road catch** | **6 won, 6 got away** | **10 won, 2 got away** |
+| the Skylights, the Keeper, the cloaker, the blades, the Cut Seal, the captain, the goblins, the chuul, the giant, the rescue | unmoved | unmoved |
