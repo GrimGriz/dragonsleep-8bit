@@ -905,7 +905,7 @@
   // determine random encounters and achieve for party, nothing player visible"): only the weights; the drawing below is a seats' debug view behind the &vessel flag alone
   W.VESSEL = {
     from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
-    makings: [5, 7, 9, 11, 13], makeHour: 12, reach: [10, 6, 40], peak: 6, rate: 0.5,
+    makings: [3, 5, 7, 9, 11, 13], makeHour: 12, /* (3: THE HARBINGER'S DAY, a making like the rest -- THE MAKINGS BY THEIR GROUND, below) */ reach: [10, 6, 40], peak: 6, rate: 0.5,
     // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
     // as the table; 9 to 11 a hex behind it (the climb slower); then held at the Warded Fort from 12:30 on day 11 (the table walked him on to the Doors late on day 12)
     table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
@@ -961,7 +961,12 @@
   // counts (and the night's), each turned to its mirror (data/foes.js) -- IN PLACE OF a group of the party's own zone with the Mirror in its eyes, which is still what a
   // making on a ground with no list here leaves (none of the four is). So a party in the foothills by the Coldridge meets mirror wolves, and one on the plains by the marsh
   // mirror stirges: the ground he made on, not the ground they walk. Nothing of it is player visible but the fight itself
-  W.MADE = { glowseep: { wisp: 'mirrorwisp', stirge: 'mirrorstirge' }, doors: { wolf: 'mirrorwolf', worg: 'mirrorworg' } };
+  // THE HARBINGER'S DAY (RULED 11-13, Griz, on the mirror hyena no longer met by the road: "count the making of the harbinger day as a making like a tile making day also,
+  // should bring mirror hyena back (if not harbinger fight still has them)"): day 3 (RULED 11-04, "day 3 harbinger essentially tries to get through to the old chief and
+  // gets made by the old one instead") is a making like the four -- at noon, where he stands that day, in the hills (the gnoll hills' table), the same reach and falloff.
+  // What it leaves by the road is the mirror hyena: the gnoll he made over that day is the Harbinger himself, one of a kind and no road's fight, so the hills' list is
+  // the hyena alone (the seat's reading of "should bring mirror hyena back")
+  W.MADE = { glowseep: { wisp: 'mirrorwisp', stirge: 'mirrorstirge' }, doors: { wolf: 'mirrorwolf', worg: 'mirrorworg' }, gnollhills: { hyena: 'mirrorhyena' } };
   W.makingZone = function (m) { var MW = MS.world, e = MW && m && MW.hex[K(m.hex[0], m.hex[1])]; return e ? W.zoneOf(e, MW) : null; }; // (the table of the ground he stood on)
   W.madeAt = function (pt, t) { // (the making that counts at a point, its ground's table, the two made on it and that table's groups of them: null where a ground has no list)
     var a = W.mirrorAt(pt, t); if (!a.m) return null; var zone = W.makingZone(a.m), mk = W.MADE[zone], Z = tables()[zone]; if (!mk || !Z) return null;
