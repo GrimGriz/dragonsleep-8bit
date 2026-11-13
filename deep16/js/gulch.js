@@ -235,6 +235,16 @@
     ws.enter = function () { en.apply(this, arguments); M.carryClock(R0, hr); W.inDoor = { site: Gu.site() || site, gate: sd }; Gu.place(Gu.ptOut(def, sq), line); };
     M.off(B); D.push(ws);
   };
+  // THE GULCH'S CHILDREN ARE NOBODY'S TARGET, AND NO AREA CATCHES THEM (RULED 11-13, Griz, on the inn seat's question after his fight of 03:09Z, where Amara ran up the cut at
+  // the lit children: "1 - have it auto-sculpt them out of areas, making them viable targets isn't worth the effort and scripting"): everyone the gulch's floor stands as
+  // its own people (js/town.js T.people: the boy at the drum, the silk-cutter) is a `bystander` -- no foe's target, no turn (js/ai.js heroesAll) -- and `noArea`: left out of
+  // every area by the one test every area asks (js/grid.js G.inArea), as an evoker's Sculpt Spells leaves an ally out. Always, not only in a catch on the road
+  // (js/chase.js Ch.onlookers set the first half for those fights, 11-13). The child in tow is NOT this: an area can still kill her (ruled 11-12)
+  if (D.town && D.town.people) { var peopleGu0 = D.town.people; D.town.people = function (B) {
+    var r = peopleGu0.apply(this, arguments), def = D.roam && D.roam.def;
+    if (def && def.key === Gu.KEY && B && B.units) B.units.forEach(function (u) { if (u.side === 'party' && u.look && typeof u.npc === 'string' && /^town\d+$/.test(String(u.id))) { u.bystander = true; u.noArea = true; } });
+    return r;
+  }; }
   var edgeOut0 = M.edgeOut;
   M.edgeOut = function* (B, sq) { if (D.roam.def && D.roam.def.key === Gu.KEY) { yield* Gu.out(B, sq); return; } yield* edgeOut0.apply(this, arguments); };
 })();

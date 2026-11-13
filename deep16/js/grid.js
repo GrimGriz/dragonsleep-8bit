@@ -418,6 +418,7 @@
   };
   // (an area by height -- js/magic.js M.area, the grid's rules §2.19, 10-15 -- carries `sq.inZ`: a square under it counts only where the area meets the body's height there)
   G.inArea = function (u, sq) {
+    if (u && u.noArea) return false; // (one left out of every area, whoever lays it: the gulch's children -- js/gulch.js, 11-13, Griz: "have it auto-sculpt them out of areas")
     var f = G.foot(u), lo = sq.inZ ? G.gzAt(u, u.x, u.y) : 0, hi = sq.inZ ? lo + G.bodyH(u) * G.map.def.step : 0;
     for (var i = 0; i < f.length; i++) for (var j = 0; j < sq.length; j++) if (f[i][0] === sq[j][0] && f[i][1] === sq[j][1] && (!sq.inZ || sq.inZ(f[i][0], f[i][1], lo, hi))) return true;
     return false;
