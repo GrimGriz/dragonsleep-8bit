@@ -1188,6 +1188,7 @@
     chaseYard: 'The yard is empty. Ruts turn out of it onto the road and go south. The wagon is gone, and the seven that were in it.',
     chaseGone: '"He\'s away with it. Down to the Pit, and the little ones with him. Two days, if the road lets him."', chaseKat: '"{who} went up on the bench beside him. Paid her nights out and never looked back."', bigRoom: '"Oh, heroes. Take the big room."',
     katRides: '{who} is up on the wagon\'s bench beside Doran when it goes. The table for two by the fire is cleared.', // (ruling 28, 11-12: the seat's line)
+    katRides: '{who} comes out with her bag over her shoulder and goes up on the bench beside him. She does not look back at the house.',
     quietNight: 'The fair-haired man takes the horses round to the stable. The lamps go out one by one, all but one, and the house sleeps.' // (11-05: the lantern walks three nights on -- wagon.quietNight had it leave its post tonight)
   };
   // the wagon's tail on the counter screen in the portrait's place: what is chained there to the eye -- goblins, till the glamour breaks (RULED 09-24: no words; the player sees it)
@@ -1658,6 +1659,10 @@
     In.trail('the wagon\'s reward: ' + pay.join(' / '));
     yield { victory: { title: 'THE WAGON', lines: pay } };
     yield* In.card(B, [L('wagon.doranTakes')], 420);
+    // KATARINA GOES WITH THE WAGON (11-13, his 0515Z note on eyes-wagon-seethrough-1112: "Kat goes with the wagon as when we return from chase"): with the wagon stopped in
+    // the yard she had stayed the night and given her book across the table the next day; now she rides south on the bench beside Doran, as she does when the party
+    // chases (ruling 28) -- her table cleared, her book and its letter in the big room's drawer (In.bookInDrawer reads f.katRode)
+    if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives (the yard)'); yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The one with the pen')], 360); }
   };
   // BACK FROM THE CHASE, RE-CUT (RULED 11-12, rulings 51-54; Griz, 11-11: "If the party chases she'd have the girl on standby with doran having taken the wagon and
   // the other kids down to the Pit ... and their like to lose most of the reward they find in the wagon, Kat would probably take that wagon, Gennet be like 'oh
