@@ -500,7 +500,8 @@
   // the dwarf off srd/01-races.md (speed 25, darkvision 60, Dwarven Resilience: advantage on saves against poison -- `resilient`, RU.vsPoison -- and resistance to its damage; Dwarven
   // Combat Training: the battleaxe and the handaxe). A CR the SRD gives is the SRD's; a row it does not give takes its CR beside the SRD's own blocks (the DMG's table is not in the SRD),
   // each named in its src. Since 11-13 the art desk's ART-142 (art-wanted section 55): the Trooper and the File Leader fight on `trooper_p2` (battleaxe and shield, the
-  // handaxe's `throw` row; tools/trooper-fight-sheet.py), the town's troopers walk on `trooper_p1`; till then they fought on the gate watch's spear. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
+  // handaxe's `throw` row; tools/trooper-fight-sheet.py), the crossbow Trooper on `trooperxbow_p2` (the heavy crossbow's `shoot` row; tools/trooperxbow-fight-sheet.py),
+  // the town's troopers walk on `trooper_p1`; till then they fought on the gate watch's spear. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
   // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own
   gatewatch: {
     name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
@@ -528,12 +529,12 @@
   // attacks) at the Guard's +3 (DEX 12, proficient: 1d10+1, as the SRD Veteran's own +3 1d10+1), the battleaxe for one who makes the top. CR 1/4 as the trooper: the Thug's heavy crossbow
   // +2 1d10 in an AC 11 CR 1/2 body of 32 HP; this one has AC 16 and 11 HP
   trooperxbow: {
-    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooperxbow_p2', humanoid: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
       battleaxe: { name: 'Battleaxe', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
-      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true } // (one shot a turn: ai.js volley, no ranged Multiattack)
+      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true, row: 'shoot' } // (one shot a turn: ai.js volley, no ranged Multiattack; trooperxbow_p2's `shoot` row, loosed on frame 4, 11-13 -- its `span` row is on the sheet and played nowhere)
     },
     multi: 1, resist: ['poison'], resilient: true,
     src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail AC 16 (the shield slung), the heavy crossbow +3 1d10+1 100/400 loading, the battleaxe +3 1d8+1 (srd/04-equipment.md); CR 1/4 as the trooper; content/npcs.json drill1-4 (the Troopers)'

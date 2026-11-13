@@ -12348,6 +12348,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var SH = D.SHEETS || {}, an5 = function (s, r) { return SH[s] && SH[s].anims && SH[s].anims[r]; }, th5 = an5('trooper_p2', 'throw');
       okGA('5b the sheets: trooper ' + F.trooper.sheet + ', file leader ' + F.fileleader.sheet + ', gate watch ' + F.gatewatch.sheet + '; trooper_p2 throw ' + (th5 ? th5.frames + ' frames, release ' + th5.release : 'MISSING') + ', the handaxes name ' + F.trooper.attacks.handaxe.row + '/' + F.fileleader.attacks.handaxe.row + ' (want trooper_p2, trooper_p2, gatewatch_p2; 6 frames, release 3; throw/throw)',
         F.trooper.sheet === 'trooper_p2' && F.fileleader.sheet === 'trooper_p2' && F.gatewatch.sheet === 'gatewatch_p2' && !!th5 && th5.frames === 6 && th5.release === 3 && F.trooper.attacks.handaxe.row === 'throw' && F.fileleader.attacks.handaxe.row === 'throw');
+      var sh5 = an5('trooperxbow_p2', 'shoot'), sp5 = an5('trooperxbow_p2', 'span'), rows5 = ['idle', 'walk', 'attack', 'flinch', 'hurt', 'prone'].filter(function (r) { return !an5('trooperxbow_p2', r); });
+      okGA('5b the crossbow trooper on ' + F.trooperxbow.sheet + ': shoot ' + (sh5 ? sh5.frames + ' frames, release ' + sh5.release : 'MISSING') + ', span ' + (sp5 ? sp5.frames : 'MISSING') + ', rows missing [' + rows5.join() + '], the crossbow names ' + F.trooperxbow.attacks.crossbow.row + ' (want trooperxbow_p2; 6, release 3; 6; []; shoot)',
+        F.trooperxbow.sheet === 'trooperxbow_p2' && !!sh5 && sh5.frames === 6 && sh5.release === 3 && !!sp5 && sp5.frames === 6 && !rows5.length && F.trooperxbow.attacks.crossbow.row === 'shoot');
     } catch (eGA5b) { repGA.errors.push('5b: ' + String(eGA5b && eGA5b.stack || eGA5b).slice(0, 400)); }
     // 6. THE HUMANOIDS SHELF: every row on it, priced 100 sp a CR, the two of one name told apart (pocketdm.js drawShop's label: a kind's LAST blow)
     try {

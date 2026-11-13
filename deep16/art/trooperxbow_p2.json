@@ -1,0 +1,92 @@
+{
+ "image": "art/trooperxbow_p2.png",
+ "fw": 46,
+ "fh": 80,
+ "ax": 23,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 46,
+   "fh": 80,
+   "ax": 23,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 52,
+   "fh": 80,
+   "ax": 26,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "shoot": {
+   "y": 1280,
+   "fw": 44,
+   "fh": 80,
+   "ax": 22,
+   "ay": 74,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "span": {
+   "y": 1920,
+   "fw": 58,
+   "fh": 80,
+   "ax": 29,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8,
+   "held": "the span between shots: cut, not played yet (no place in the engine between shots; new machinery not asked)"
+  },
+  "attack": {
+   "y": 2560,
+   "fw": 50,
+   "fh": 80,
+   "ax": 25,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3200,
+   "fw": 42,
+   "fh": 80,
+   "ax": 21,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3840,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4480,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Trooper (crossbow)",
+ "hold": [
+  "shoot: North hides much of the bolt and string, its stock foreshortened with the prod over the cap; other views vary in how clearly the bolt and string state shows (the art desk's own notes)",
+  "span: on the sheet, played nowhere (no place in the engine between shots); NE Span 5 one stock in the bolt-placement pose; stirrup and bolt overlaps hard to read at 42 px (the art desk's own notes)",
+  "attack, flinch, hurt, prone: the battleaxe sheet's, the shield on his arm and the axe in hand, as the ask said"
+ ],
+ "source": "drawn by the art desk (ART-142-CROSSBOW-COMBAT, 11-12: art-wanted section 55 block 3, the garrison crossbowman in five views, the Shoot over the mannequin's guide; flinch, fall and prone from ART-142-TROOPER-COMBAT), cut by tools/trooperxbow-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
