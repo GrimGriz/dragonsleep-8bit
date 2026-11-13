@@ -534,7 +534,7 @@
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
       battleaxe: { name: 'Battleaxe', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
-      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true, row: 'shoot' } // (one shot a turn: ai.js volley, no ranged Multiattack; trooperxbow_p2's `shoot` row, loosed on frame 4, 11-13 -- its `span` row is on the sheet and played nowhere)
+      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true, row: 'shoot' } // (one shot a turn: ai.js volley, no ranged Multiattack; trooperxbow_p2's `shoot` row, loosed on frame 4, 11-13 -- then its `span` row in the same turn, a look only: js/battle.js the span after the shot)
     },
     multi: 1, resist: ['poison'], resilient: true,
     src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail AC 16 (the shield slung), the heavy crossbow +3 1d10+1 100/400 loading, the battleaxe +3 1d8+1 (srd/04-equipment.md); CR 1/4 as the trooper; content/npcs.json drill1-4 (the Troopers)'

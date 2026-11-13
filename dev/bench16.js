@@ -12332,6 +12332,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var d4 = duel('trooperxbow', 12, true, 2), d4b = duel('drillsergeant', 12, true, 2), d4c = duel('roadpatrol', 12, true, 1);
       var j4 = function (d) { return d.turns.map(function (t) { return t.join('+') || 'none'; }).join(' / '); };
       okGA('4 the crossbow trooper 60 ft off, two turns: ' + j4(d4) + ' (want Heavy Crossbow / Heavy Crossbow); the fighter lost ' + (500 - d4.h.hp) + ' (want 4: 1d10+1 at a 1, twice)', j4(d4) === 'Heavy Crossbow / Heavy Crossbow' && 500 - d4.h.hp === 4);
+      // (11-13, his "It'd be during the turn and not a separate turn": the span after each shot, inside the turn -- js/battle.js; the drill-sergeant's sheet has none)
+      okGA('4 the crossbow trooper spans after each shot: ' + (d4.u.spans || 0) + ' spans in two turns, still two shots; the drill-sergeant ' + (d4b.u.spans || 0) + ' (want 2, 0)', (d4.u.spans || 0) === 2 && !d4b.u.spans);
       okGA('4 the drill-sergeant 60 ft off: ' + j4(d4b) + ' (want Heavy Crossbow / Heavy Crossbow -- one shot, his Multiattack is the swords)', j4(d4b) === 'Heavy Crossbow / Heavy Crossbow');
       okGA('4 the road patrol 60 ft off: ' + j4(d4c) + ' (want Longbow+Longbow: the Scout\'s two ranged attacks)', j4(d4c) === 'Longbow+Longbow');
     } catch (eGA4) { repGA.errors.push('4: ' + String(eGA4 && eGA4.stack || eGA4).slice(0, 400)); }
@@ -12351,7 +12353,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         F.trooper.sheet === 'trooper_p2' && F.fileleader.sheet === 'trooper_p2' && F.gatewatch.sheet === 'gatewatch_p2' && !!th5 && th5.frames === 6 && th5.release === 3 && F.trooper.attacks.handaxe.row === 'throw' && F.fileleader.attacks.handaxe.row === 'throw');
       var sh5 = an5('trooperxbow_p2', 'shoot'), sp5 = an5('trooperxbow_p2', 'span'), rows5 = ['idle', 'walk', 'attack', 'flinch', 'hurt', 'prone'].filter(function (r) { return !an5('trooperxbow_p2', r); });
       okGA('5b the crossbow trooper on ' + F.trooperxbow.sheet + ': shoot ' + (sh5 ? sh5.frames + ' frames, release ' + sh5.release : 'MISSING') + ', span ' + (sp5 ? sp5.frames : 'MISSING') + ', rows missing [' + rows5.join() + '], the crossbow names ' + F.trooperxbow.attacks.crossbow.row + ' (want trooperxbow_p2; 6, release 3; 6; []; shoot)',
-        F.trooperxbow.sheet === 'trooperxbow_p2' && !!sh5 && sh5.frames === 6 && sh5.release === 3 && !!sp5 && sp5.frames === 6 && !rows5.length && F.trooperxbow.attacks.crossbow.row === 'shoot');
+        F.trooperxbow.sheet === 'trooperxbow_p2' && !!sh5 && sh5.frames === 6 && sh5.release === 3 && !!sp5 && sp5.frames === 6 && !sp5.held && !rows5.length && F.trooperxbow.attacks.crossbow.row === 'shoot');
     } catch (eGA5b) { repGA.errors.push('5b: ' + String(eGA5b && eGA5b.stack || eGA5b).slice(0, 400)); }
     // 6. THE HUMANOIDS SHELF: every row on it, priced 100 sp a CR, the two of one name told apart (pocketdm.js drawShop's label: a kind's LAST blow)
     try {

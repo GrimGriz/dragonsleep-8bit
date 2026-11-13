@@ -29241,8 +29241,7 @@ true
 "ax": 29,
 "ay": 74,
 "frames": 6,
-"fps": 8,
-"held": "the span between shots: cut, not played yet (no place in the engine between shots; new machinery not asked)"
+"fps": 8
 },
 "attack": {
 "y": 2560,
@@ -29285,7 +29284,7 @@ true
 "name": "Trooper (crossbow)",
 "hold": [
 "shoot: North hides much of the bolt and string, its stock foreshortened with the prod over the cap; other views vary in how clearly the bolt and string state shows (the art desk's own notes)",
-"span: on the sheet, played nowhere (no place in the engine between shots); NE Span 5 one stock in the bolt-placement pose; stirrup and bolt overlaps hard to read at 42 px (the art desk's own notes)",
+"span: NE Span 5 one stock in the bolt-placement pose; stirrup and bolt overlaps hard to read at 42 px (the art desk's own notes)",
 "attack, flinch, hurt, prone: the battleaxe sheet's, the shield on his arm and the axe in hand, as the ask said"
 ],
 "source": "drawn by the art desk (ART-142-CROSSBOW-COMBAT, 11-12: art-wanted section 55 block 3, the garrison crossbowman in five views, the Shoot over the mannequin's guide; flinch, fall and prone from ART-142-TROOPER-COMBAT), cut by tools/trooperxbow-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"

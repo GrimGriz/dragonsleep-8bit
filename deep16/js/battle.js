@@ -3081,6 +3081,18 @@
     att.anim = 'idle';
     if (!o.ready && !o.oa && this.units.some(function (w) { return w.ready && w.reaction > 0; })) yield* this.readyHook(att); // (a blow from hiding, or from the invisible, gives its maker away: the readied strikes, 10-02)
   };
+  // THE SPAN AFTER THE SHOT (11-13, the garrison cutter; Griz to the lanes desk: "we can do without the animation playing during the turn, but if the animation shows up
+  // we can run it. It'd be during the turn and not a separate turn if SRD says 1 per turn, the reload wouldn't add one"): a loading weapon's shot, from a sheet with a
+  // `span` row (trooperxbow_p2, ART-142), is followed in the same turn by the span -- a boot in the stirrup, the string drawn, a bolt laid. A look only: no rule, no
+  // cost, no step in the turn's order (SRD 5.1 Loading is one shot a turn and nothing more); a sheet with no `span` row, or a shooter down or posed otherwise, skips it
+  var attackUnspanned = Battle.prototype.attack;
+  Battle.prototype.attack = function* (att, tgt, atk, o) {
+    yield* attackUnspanned.apply(this, arguments);
+    if (!atk || !atk.loading || !att || att.dead || att.hp <= 0 || att.anim !== 'idle' || !D.spr.anim(att.sheet, 'span')) return;
+    att.anim = 'span'; att.animT = this.t; att.spans = (att.spans || 0) + 1;
+    yield D.spr.duration(att.sheet, 'span') || 24;
+    if (att.anim === 'span') att.anim = 'idle';
+  };
   // the lamia's Intoxicating Touch (SRD 5.1: "The target is magically cursed for 1 hour. Until the curse ends, the target has disadvantage on Wisdom saving throws and
   // all ability checks" -- 10-27): an hour is the fight; rules.js RU.save (traits.js RU.saveDis) and RU.checkEdges read `intoxicated`, Greater Restoration lifts it (grimoire.js)
   Battle.prototype.intoxicate = function* (att, tgt) {

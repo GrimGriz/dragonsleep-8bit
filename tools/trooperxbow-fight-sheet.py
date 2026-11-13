@@ -14,8 +14,8 @@ Flinch, Fall and Prone (and a melee Attack) were not asked of this sheet: the as
 The cut is tools/trooper-fight-sheet.py's (tools/vivian-sheet.py): `trim`, the idle page by its idle's median to 42 -- the gate watch's and the axe trooper's --
 the walk, shoot and span pages matched to their view's Idle 1; the battleaxe sheet's Idle (`tidle`) matched to this Idle 1, its Attack to that, its Fall scaled
 as its Attack, its Prone to Fall 6 by width (`tidle` is not on the sheet; the Attack is, for the battleaxe he carries at the belt -- the ask gave him none of his own). SW W NW the mirrors of SE E NE (RULED 10-14). Rows: idle 4,
-walk 8, shoot 6 (`release` 3), span 6, attack 8 (the axe sheet's, `release` 3), flinch 4, hurt 6, prone 1. `span` is ON THE SHEET AND PLAYED NOWHERE: the engine has no place for a row between shots
-(a loading weapon is one shot a turn and no more -- js/ai.js volley), and new machinery for it was not asked; the gallery shows it (deep16/?rows=trooperxbow_p2).
+walk 8, shoot 6 (`release` 3), span 6, attack 8 (the axe sheet's, `release` 3), flinch 4, hurt 6, prone 1. `span` plays after each shot in the same turn
+(js/battle.js, the span after the shot, 11-13 on his word: "It'd be during the turn and not a separate turn"): a look only, no cost -- SRD 5.1 Loading is one shot a turn.
 Worn by the crossbow Trooper (deep16/data/foes.js trooperxbow; its Heavy Crossbow names `row: 'shoot'`).
 """
 import importlib.util, json, os, sys
@@ -53,14 +53,10 @@ VS.LOOKS['trooperxbow_p2'] = dict(
            'prone': ('hurt', 5, 0, 'w')},
     scaleas={'hurt': 'attack'}, ground={('hurt', 3), ('hurt', 4), ('hurt', 5), ('prone', 0)}, release={'shoot': 3, 'attack': 3},
     hold=["shoot: North hides much of the bolt and string, its stock foreshortened with the prod over the cap; other views vary in how clearly the bolt and string state shows (the art desk's own notes)",
-          "span: on the sheet, played nowhere (no place in the engine between shots); NE Span 5 one stock in the bolt-placement pose; stirrup and bolt overlaps hard to read at 42 px (the art desk's own notes)",
+          "span: NE Span 5 one stock in the bolt-placement pose; stirrup and bolt overlaps hard to read at 42 px (the art desk's own notes)",
           "attack, flinch, hurt, prone: the battleaxe sheet's, the shield on his arm and the axe in hand, as the ask said"],
     source="drawn by the art desk (ART-142-CROSSBOW-COMBAT, 11-12: art-wanted section 55 block 3, the garrison crossbowman in five views, the Shoot over the "
            "mannequin's guide; flinch, fall and prone from ART-142-TROOPER-COMBAT), cut by tools/trooperxbow-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored")
 
 if __name__ == '__main__':
     VS.cut('trooperxbow_p2')
-    p = os.path.join(ROOT, 'deep16', 'art', 'trooperxbow_p2.json'); m = json.load(open(p, encoding='utf-8'))
-    m['anims']['span']['held'] = 'the span between shots: cut, not played yet (no place in the engine between shots; new machinery not asked)'   # (js/show.js SH.wanted leaves a held row out)
-    with open(p, 'w', encoding='utf-8', newline='\n') as f_:
-        json.dump(m, f_, indent=1)
