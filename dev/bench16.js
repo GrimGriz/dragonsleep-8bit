@@ -8426,6 +8426,93 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preVR);
     return;
   }
+  // THE ROAD FROM THE HALFWAY INN TO TARLYN'S PIT, 11-13 (mode=world1113; the world map seat "world-leads" -- his ear file of 11-13 0327Z on eyes-child-in-tow-1112: "road to
+  // the world puts me on a hex west of half-way inni - clicking travel to tarlyn's pit still goes the the long way around the lake, is the road not less travel? do you have
+  // to enter the pit hex from a certain side (took me 3 tries)"): the inn's road edge out onto THE WORLD; the way to the Pit as THE WORLD counts it; the Pit's hex by every side
+  if (get('mode', '') === 'world1113') {
+    var repT = { checks: [], errors: [], notes: [] }, memT = {}, stGT = D.store.get, stST = D.store.set, WT = D.world, InT = D.inn, onStepT = WT.onStep;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memT[k] ? JSON.parse(memT[k]) : null; }; D.store.set = function (k, v) { memT[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; WT.onStep = null;
+    try {
+      D.seed = +get('seed', 1113);
+      var xt = new XMLHttpRequest(); xt.open('GET', '../deep16/data/world-near.js', false); xt.send(); (0, eval)(xt.responseText);
+      WT.index(); var MN = WT.map('near'), MW = WT.map('world'), KT = WT.K, siteN = function (m, id) { return m.sites.filter(function (s) { return s.id === id; })[0]; };
+      var innN = siteN(MN, 'inn'), innW = siteN(MW, 'inn'), pitW = siteN(MW, 'pit'), DIRT = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+      D.house.worldDoor('?world&fresh&noenc'); var scT = D.top(), ST = WT.state(), HT = D.house;
+      var flagsT = HT.cur.flags = HT.cur.flags || {};
+      var clearT = function () { while (D.scenes.length && D.top() !== scT) D.pop(); scT.cards = []; scT.walk = null; scT.plan = null; InT.roadSc = null; ST.today = 0; ST.todayHex = 0; ST.pushing = true; };
+      var drive = function (n) { // (the walk run on, every card's first choice taken -- PUSH ON, OK -- till it ends, a scene is pushed over THE WORLD, or n frames)
+        for (var k = 0; k < (n || 20000); k++) { if (D.top() !== scT) return 'pushed'; if (scT.cards.length) { var cd = scT.cards.shift(); if (cd.keys) cd.keys[0][1](); else if (cd.then) cd.then(); continue; } if (!scT.walk) return 'stopped'; scT.update(); }
+        return 'frames';
+      };
+      // 1. THE ROAD EDGE OUT: the inn's floor, its west rim the Pit road's own squares; a step off it onto THE WORLD
+      var defT = D.roam.make('?roam=' + InT.KEY); D.scenes.length = 0; D.push(defT); if (defT.baking) { defT.baking = false; defT.enter(); } var dfT = D.roam.def;
+      D.scenes.length = 0; D.house.worldDoor('?world&fresh&noenc'); scT = D.top(); ST = WT.state(); flagsT = HT.cur.flags = HT.cur.flags || {};
+      var sqT = [0, 25], rowT = dfT.rows[sqT[1]], chT = rowT && rowT[sqT[0]], sdT = D.mines.sideOf(dfT, sqT);
+      WT.inDoor = { site: innN, gate: sdT }; WT.leaveTown(sdT);
+      var onRdT = (WT.passHere(ST.at) || []).map(function (p) { return p[0].id; });
+      okT('1. off the inn\'s road edge (the floor\'s ' + sqT + ', \'' + chT + '\', ' + (dfT.legend || {})[chT] + ', the ' + sdT + ' side): the party on ' + (WT.M().near ? 'the area\'s ' : 'THE WORLD\'s ') + ST.at + ' (the inn\'s ' + innN.hex + '), ' + (onRdT.length ? 'on ' + onRdT.join(', ') : 'off every road') + (ST.rv ? ' at its pass ' + ST.rv.join(' ') : ''),
+        WT.M().near && ST.at.join() === innN.hex.join() && onRdT.indexOf('pitroad') >= 0 && !!ST.rv && ST.rv[0] === 'pitroad');
+      // 2. THE WAY TO THE PIT, as THE WORLD counts it: the road's own hexes from the inn's, and the way the walk picks
+      var prT = MW.pathById.pitroad, iI = prT.hexes.findIndex(function (h) { return h.join() === innW.hex.join(); }), iP = prT.hexes.findIndex(function (h) { return h.join() === pitW.hex.join(); });
+      var mk0T, legT = prT.hexes.slice(Math.min(iI, iP), Math.max(iI, iP) + 1), mk0T = WT.mapKey; WT.use('world'); var badT = legT.filter(function (h) { return !WT.walkable(MW.hex[KT(h[0], h[1])]); }); WT.use(mk0T);
+      var roadH = 0; for (var iR = 1; iR < legT.length; iR++) { var sR = WT.stepHours(legT[iR - 1], legT[iR], MW); roadH = sR ? roadH + sR.h : NaN; }
+      var rtW = WT.route(innW.hex, pitW.hex, MW), onW = rtW ? rtW.hexes.filter(function (h, i) { var a = i ? rtW.hexes[i - 1] : innW.hex; return !!MW.link[KT(a[0], a[1]) + '|' + KT(h[0], h[1])]; }).length : 0;
+      repT.notes.push('THE WORLD: the Pit road inn to Pit ' + (legT.length - 1) + ' hexes x 5 mi = ' + ((legT.length - 1) * 5) + ' mi, ' + (isNaN(roadH) ? 'not walkable (' + badT.map(function (h) { return h + ' ' + MW.hex[KT(h[0], h[1])].t; }).join('; ') + ')' : roadH.toFixed(1) + ' h') + '; the way picked ' + (rtW ? rtW.hexes.length + ' hexes, ' + rtW.hours.toFixed(1) + ' h, ' + onW + ' on the road: ' + rtW.hexes.join(' ') : 'none'));
+      okT('2. THE WORLD walks the Pit road inn to Pit: ' + (legT.length - 1) + ' hexes, ' + (isNaN(roadH) ? 'blocked at ' + badT.map(function (h) { return h + ' (' + MW.hex[KT(h[0], h[1])].t + ')'; }).join(', ') : roadH.toFixed(1) + ' h') + '; the walk takes ' + (rtW ? rtW.hexes.length + ' hexes, ' + rtW.hours.toFixed(1) + ' h, ' + onW + ' of them on the road' : 'no way'),
+        !badT.length && !!rtW && rtW.hexes.length === legT.length - 1 && onW === rtW.hexes.length && Math.abs(rtW.hours - roadH) < 1e-6);
+      // the click from the inn on the area: the plan to the Pit's point across the area's edge, as he clicked it
+      clearT(); WT.use('near'); ST.map = 'near'; ST.at = innN.hex.slice(); ST.pos = WT.passPt(['pitroad', MN.pathById.pitroad.hexes.findIndex(function (h) { return h.join() === innN.hex.join(); })], MN) || [innN.x, innN.y]; ST.rv = null; ST.from = null; scT.onMap();
+      var plT = WT.planTo([pitW.x, pitW.y]);
+      var exT = plT && plT.hexes[plT.hexes.length - 1], pwT = exT && MN.exitAt[KT(exT[0], exT[1])], arT = plT ? plT.hexes.slice(0, -1) : [], arRd = arT.filter(function (h) { return h.rv && h.rv[0] === 'pitroad'; }).length;
+      var rwT = pwT ? WT.route(pwT, pitW.hex, MW) : null, wRd = rwT ? rwT.hexes.filter(function (h, i) { var a = i ? rwT.hexes[i - 1] : pwT; return !!MW.link[KT(a[0], a[1]) + '|' + KT(h[0], h[1])]; }).length : 0, pwRd = pwT && prT.hexes.some(function (h) { return h.join() === pwT.join(); });
+      okT('2b. the click on the Pit from the inn\'s hex: ' + (plT ? arT.length + ' hexes on the area (' + arRd + ' along the Pit road), off its edge onto THE WORLD\'s ' + pwT + (pwRd ? ' (the road\'s)' : ' (off the road)') + ', then ' + (rwT ? rwT.hexes.length : '?') + ' hexes (' + wRd + ' on the road); ' + plT.hours.toFixed(1) + ' h in all -- 16.9 h round the lake before' : 'no way'),
+        !!plT && arRd === arT.length && pwRd && !!rwT && wRd === rwT.hexes.length && plT.hours < 12);
+      repT.notes.push('the plan: area ' + (plT ? plT.hexes.join(' ') + ', ' + plT.hours.toFixed(2) + ' h, THE WORLD from ' + pwT + ': ' + (rwT ? rwT.hexes.join(' ') + ' ' + rwT.hours.toFixed(2) + ' h' : '-') : '-'));
+      // the walk itself, on to the Pit with the child: does her scene play on arrival?
+      flagsT.childGuest = 'child'; flagsT.glamourBroken = 1; flagsT.childCamp = 1;
+      if (plT) { scT.walk = { path: plT.hexes.slice(), f: 0, goal: plT.goal }; }
+      var endT = drive(), atT = ST.at.slice(), mapT = WT.mapKey, pushedT = D.top() !== scT && InT.roadSc && InT.roadSc.o && InT.roadSc.o.id;
+      okT('3a. the walk from the inn to the Pit with the child: ended ' + endT + ' on ' + mapT + ' ' + atT + ' (the Pit THE WORLD\'s ' + pitW.hex + '), ' + (pushedT ? 'her scene played (' + pushedT + ')' : 'no scene'),
+        mapT === 'world' && atT.join() === pitW.hex.join() && pushedT === 'pitHouse');
+      // 3. the Pit's hex by every side, a step in from each walkable neighbour; by a fight on the step in; by E
+      var sidesT = [];
+      DIRT.forEach(function (dd) {
+        var nb = [pitW.hex[0] + dd[0], pitW.hex[1] + dd[1]], e = MW.hex[KT(nb[0], nb[1])]; clearT(); WT.use('world'); ST.map = null;
+        if (!e || !WT.walkable(e)) { sidesT.push(nb + ' ' + (e ? e.t : 'off the map') + ': not walkable'); return; }
+        ST.at = nb.slice(); ST.pos = WT.hc(nb[0], nb[1]); ST.rv = null; ST.from = null; flagsT.childGuest = 'child'; delete flagsT.childAtPit; scT.onMap();
+        var st0 = WT.stepHours(nb, pitW.hex, MW); if (!st0) { sidesT.push(nb + ' ' + e.t + ': no step in'); return; }
+        scT.walk = { path: [pitW.hex.slice()], f: 0 }; var r = drive(), got = D.top() !== scT && InT.roadSc && InT.roadSc.o && InT.roadSc.o.id === 'pitHouse';
+        sidesT.push(nb + ' ' + e.t + ': ' + (got ? 'her scene' : 'NOTHING (' + r + ', at ' + ST.at + ', cards ' + scT.cards.length + ')'));
+      });
+      okT('3b. a step onto the Pit\'s hex from each side with the child: ' + sidesT.join('; '), sidesT.every(function (s) { return /her scene|not walkable/.test(s); }) && sidesT.some(function (s) { return /her scene/.test(s); }));
+      // a fight on the step in (the road's chance): the fight won, back on THE WORLD on the Pit's hex -- does her scene play?
+      var nbF = null; DIRT.some(function (dd) { var nb = [pitW.hex[0] + dd[0], pitW.hex[1] + dd[1]], e = MW.hex[KT(nb[0], nb[1])]; if (e && WT.walkable(e) && WT.stepHours(nb, pitW.hex, MW)) { nbF = nb; return true; } return false; });
+      clearT(); WT.use('world'); ST.map = null; ST.at = nbF.slice(); ST.pos = WT.hc(nbF[0], nbF[1]); ST.rv = null; flagsT.childGuest = 'child'; delete flagsT.childAtPit; scT.onMap();
+      var foughtT = 0; WT.onStep = function (sc, st) { if (foughtT) return false; foughtT = 1; sc.say('A fight.'); D.push({ update: function () { }, draw: function () { } }); return true; };
+      scT.walk = { path: [pitW.hex.slice()], f: 0 }; drive(); WT.onStep = null;
+      D.pop(); scT.afterFight('won', null, null); var msgF = scT.msg && scT.msg.s, r3c = 'frames'; for (var kF = 0; kF < 3 && D.top() === scT; kF++) scT.update(); if (D.top() !== scT) r3c = 'pushed'; var gotF = D.top() !== scT && InT.roadSc && InT.roadSc.o && InT.roadSc.o.id === 'pitHouse';
+      okT('3c. a fight on the step onto the Pit\'s hex (from ' + nbF + '), won, back on THE WORLD at ' + ST.at + ': ' + (gotF ? 'her scene plays' : 'NOTHING (' + r3c + ')'), foughtT === 1 && ST.at.join() === pitW.hex.join() && gotF);
+      clearT(); flagsT.childGuest = 'child'; scT.here(); var gotE = D.top() !== scT && InT.roadSc && InT.roadSc.o && InT.roadSc.o.id === 'pitHouse';
+      okT('3d. E on the Pit\'s hex with the child: ' + (gotE ? 'her scene' : 'nothing'), gotE);
+      clearT(); delete flagsT.childGuest;
+      // 4. HIS DOOR (js/eyes.js eyes-world-innroad-1113): the child-in-tow beat, a level 3 party with her; out by the road edge through the floor's own RETURN
+      D.scenes.length = 0; var btT = InT.BEATS.filter(function (b) { return b.id === 'childtow'; })[0]; InT.play(btT);
+      var BT = D.top(), fT = BT && BT.roam && BT.roam.flags, lvT = HT.cur ? HT.cur.party.map(function (h) { return h.lvl; }) : [], gT = D.mines.edgeOut(BT, [0, 25]), pT = gT.next(), aT = pT.done ? null : gT.next(0);
+      for (var kT = 0; kT < 50 && aT && !aT.done; kT++) aT = gT.next();
+      var wsT = WT.scene, S4 = WT.state(), rd4 = S4 ? (WT.passHere(S4.at) || []).map(function (p) { return p[0].id; }) : [];
+      for (var k4 = 0; k4 < 3 && wsT && D.top() !== wsT; k4++) if (D.top() && D.top().enter && D.top() !== wsT) { var tp4 = D.top(); if (tp4.update) tp4.update(); }
+      var c4 = HT.cur && HT.cur.flags && HT.cur.flags.childGuest;
+      okT('4. the door, &beat=childtow: the party level ' + lvT.join('/') + ', the child ' + (fT && fT.childGuest || 'not') + ' in tow; RETURN off the road edge: ' + (WT.M() && WT.M().near ? 'the area\'s ' : 'THE WORLD\'s ') + (S4 && S4.at) + ', ' + (rd4.length ? 'on ' + rd4.join(', ') : 'off every road') + ', the child ' + (c4 || 'not') + ' in tow',
+        lvT.length === 4 && lvT.every(function (l) { return l === 3; }) && !!fT && !!fT.childGuest && !!S4 && S4.at.join() === innN.hex.join() && rd4.indexOf('pitroad') >= 0 && !!c4);
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    WT.onStep = onStepT; D.store.get = stGT; D.store.set = stST; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    delete D.WORLD_NEAR; if (WT.use) WT.use('world');
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   // THE GLOWSEEP'S DOOR ON THE ROAD, THE STORES ON THE TOWN'S MAP, 11-05 (mode=world1105; tuesday-world -- his Tuesday 26, "the Glowseep Hex and location start is
   // one-hex off road while the road runs through it, indicating the entrance/map position should be road adjacent", and 29, "Can we make the L map show icons for
   // stores, or render a version that can instead of the tile accurate 8bit or whatever we're using"; the desk's leans RULED 11-05, his "5 - yes"): the area read

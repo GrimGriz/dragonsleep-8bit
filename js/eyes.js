@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE WORLD MAP SEAT OF 11-13 (world-leads): his three on the road from the Halfway Inn to the Pit (deep16/js/world.js)
+    'eyes-world-innroad-1113d': { pri: 1, group: G2, title: 'THE ROAD TO THE PIT: out on the road at the inn, the road taken, the Pit\'s scene after a fight (level 3) (11-13)', pt: 'the world map lane, 2026-11-13 (the world map seat "world-leads"; your note on eyes-child-in-tow-1112; deep16/js/world.js W.ROADSIDE, W.planTo, World.prototype.arrive)',
+      url: 'deep16/?innshow&beat=childtow&fresh=1113wl',
+      look: 'A LIVE DOOR for your feet: the child-in-tow morning, a level 3 party with her. Walk west onto the road (the three columns down the yard\'s west side) and step off its edge, RETURN. (1) Your "road to the world puts me on a hex west of half-way inn": you are on the inn\'s own hex now, on the Pit road -- off the north or south end of the road you land on it too, about a mile up or down. (2) Click Tarlyn\'s Pit: the way drawn runs down the Pit road, 10.3 hours -- it had planned 16.9 round the lake (your "is the road not less travel?": yes, by 6.6 hours). (3) Your "do you have to enter the pit hex from a certain side (took me 3 tries)": no side -- every one played her scene -- but a road fight on the step onto the Pit ate it till E; now, the fight over, her scene plays where you stand. JUDGE: the spot you land on; that the walk keeps to the road.' },
     // THE INN SEAT OF 11-12 (second), fifth run: his 0301Z notes, on level 3 doors
     'eyes-lake-rock-1113b': { pri: 1, group: G2, title: 'THE LAKE\'S EDGE again: the rock\'s squares knee-deep, no brown line, the click box on the four only (level 3) (11-13)', pt: 'the inn lane, 2026-11-13 (the inn seat of 11-12 second; your note on eyes-lake-water-1112k; deep16/js/inn.js In.ROWS, the thedeep trigger; js/iso.js noPoolEdge)',
       url: 'deep16/?innshow&beat=lakeedge&fresh=1113f',
