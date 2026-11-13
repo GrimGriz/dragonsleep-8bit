@@ -419,15 +419,25 @@
   // words (Battle.readyWhen) and where the held thing goes below it while it is the highlighted one; on the pick the card says what is next, and the ring turns to
   // readyRing (WHAT?), X from there back to WHEN?. Keys, the pad and the sticks are the other rings' (listInput); in WINDOW it is the window's list, as theirs are
   function readyWhenText(trig) { return D.Battle.readyWhen({ trigger: trig }); }
+  // TWO CHOICES, THEN THEIR RING (11-13 evening, Griz, the ring of eight in his hands: "perfect - kick down a ring behind two choices 'when a friend' and 'when a foe'
+  // (rephrasing allowed)"): WHEN? asks WHEN A FOE... or WHEN A FRIEND... first, and the pick opens that side's triggers (whenSide: three of a foe's, five of a friend's,
+  // each by its short name under the side's own), X back to the two; a trigger's pick goes on to WHAT? as before
+  var WHEN_SIDES = [
+    { id: 'foe', icon: 'claw', label: 'WHEN A FOE...', note: 'A foe comes in reach, attacks one of us, or casts a spell.' },
+    { id: 'friend', icon: 'help', label: 'WHEN A FRIEND...', note: 'A friend goes down, strikes a foe, casts a spell, harries a foe, or ends their turn: the follow-up, the team combo.' }
+  ];
   function whenRing(B, u) {
-    var items = D.Battle.READY_TRIGGERS.map(function (t) { var w = readyWhenText(t.id); return { kind: 'readywhen', id: t.id, icon: t.icon, tint: t.tint || '', name: t.label, label: t.label, ok: true, note: w.charAt(0).toUpperCase() + w.slice(1) + (t.hint ? ' -- ' + t.hint : '') + '.' }; });
-    return { kind: 'when', items: items, sel: 0, title: 'READY: WHEN?' };
+    return { kind: 'when', items: WHEN_SIDES.map(function (s) { return { kind: 'readyside', id: s.id, icon: s.icon, name: s.label, label: s.label, ok: true, note: s.note }; }), sel: 0, title: 'READY: WHEN?' };
   }
-  UI.whenRing = whenRing; // (dev/bench16.js ready1002b)
+  function whenSide(B, u, side) {
+    var items = D.Battle.READY_TRIGGERS.filter(function (t) { return t.side === side; }).map(function (t) { var w = readyWhenText(t.id); return { kind: 'readywhen', id: t.id, icon: t.icon, tint: t.tint || '', name: t.short || t.label, label: t.short || t.label, ok: true, note: w.charAt(0).toUpperCase() + w.slice(1) + (t.hint ? ' -- ' + t.hint : '') + '.' }; });
+    return { kind: 'when', side: side, items: items, sel: 0, title: 'READY: ' + (side === 'friend' ? 'WHEN A FRIEND...' : 'WHEN A FOE...') };
+  }
+  UI.whenRing = whenRing; UI.whenSide = whenSide; // (dev/bench16.js ready1002b, ready1113)
   // the card over READY's two rings: what is asked now, and after WHEN?'s pick what is next
   function readyCard(B) {
     B.clearCards();
-    B.card([D.keys(B.readying && B.readying.trigger ? '{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- {y}now: what you hold for it.{/}  {g}X back to WHEN?{/}' : '{y}READY{/}: when? Pick what springs it -- then what you hold for it.  {g}Readied, your turn ends.  X back{/}')], 100000);
+    B.card([D.keys(B.readying && B.readying.trigger ? '{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- {y}now: what you hold for it.{/}  {g}X back to WHEN?{/}' : '{y}READY{/}: when? A foe\'s doing or a friend\'s -- then what you hold.  {g}Readied, your turn ends.  X back{/}')], 100000);
   }
   // X (or the right button) out of a ring: back on WHEN? from WHAT?, the trigger is unpicked and the card says so
   function readyBack(B) { if (B.readying && B.list && B.list.kind === 'when' && B.readying.trigger) { B.readying.trigger = null; B.ringB = null; readyCard(B); } }
@@ -886,6 +896,7 @@
     B.list.sel = i;
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
     // READY's WHEN? (whenRing, 11-13): the trigger kept, the card says what is next, and the ring turns to what can be held -- X from there comes back here
+    if (B.readying && e.kind === 'readyside') { D.sfx('confirm'); var ws = whenSide(B, u, e.id); ws.back = B.list; B.list = ws; B.ringB = null; B.ringStill = false; return; } // (a foe's, or a friend's: that side's triggers)
     if (B.readying && e.kind === 'readywhen') { D.sfx('confirm'); B.readying.trigger = e.id; var wr = readyRing(B, u); wr.back = B.list; B.list = wr; B.ringB = null; B.ringStill = false; readyCard(B); return; }
     // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
     if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }

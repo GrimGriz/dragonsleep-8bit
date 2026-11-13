@@ -3219,16 +3219,19 @@
   // attack hits one -- the held thing goes at that foe), A FRIEND CASTS ('fcast': after the friend's spell resolves), A FRIEND HARRIES A FOE ('harry': a friend lands a
   // condition on a foe, shoves or grapples it -- at that foe), A FRIEND ENDS THEIR TURN ('turn': as that friend's turn closes). Told at the same seams as the old three
   // (readyAfter; harryTold); never on the readier's own turn (RULED 10-05). The readings are the seat's, standing for his overrule; heroes only -- no AI picks them.
+  // TWO CHOICES FIRST (11-13 evening, Griz, with the ring of eight in his hands: "perfect - kick down a ring behind two choices 'when a friend' and 'when a foe' (rephrasing
+  // allowed)"): `side` says which of the two a trigger sits behind -- a foe's doing, or a friend's (ONE OF US DOWN with the friends, as GOES DOWN: the seat's call) -- and
+  // `short` is its name on that ring, the side's name over it (js/ui.js whenRing, whenSide)
   // Eight do not fit a row of buttons: WHEN? is a ring (js/ui.js whenRing), each with its icon, its long words (readyWhen) and where the held thing goes (`hint`)
   Battle.READY_TRIGGERS = [
-    { id: 'near', label: 'A FOE IN REACH', icon: 'move', hint: 'at the one that comes' },
-    { id: 'ally', label: 'A FOE ATTACKS US', icon: 'claw', hint: 'at the attacker, if it is in your reach' },
-    { id: 'down', label: 'ONE OF US DOWN', icon: 'secondwind', hint: 'for the healers: on the one who fell' },
-    { id: 'cast', label: 'A FOE CASTS', icon: 'spell', tint: 'fire', hint: 'at the caster, or at what the spell did' },
-    { id: 'strike', label: 'A FRIEND STRIKES A FOE', icon: 'attack', hint: 'the follow-up: at the foe your friend hit' },
-    { id: 'fcast', label: 'A FRIEND CASTS', icon: 'spell', tint: 'buff', hint: 'once the spell is done: aimed where you like' },
-    { id: 'harry', label: 'A FRIEND HARRIES A FOE', icon: 'shove', hint: 'at the foe put down, held or shoved' },
-    { id: 'turn', label: 'A FRIEND ENDS THEIR TURN', icon: 'end', hint: 'right after the next friend to act: aimed where you like' }
+    { id: 'near', side: 'foe', short: 'COMES IN REACH', label: 'A FOE IN REACH', icon: 'move', hint: 'at the one that comes' },
+    { id: 'ally', side: 'foe', short: 'ATTACKS ONE OF US', label: 'A FOE ATTACKS US', icon: 'claw', hint: 'at the attacker, if it is in your reach' },
+    { id: 'down', side: 'friend', short: 'GOES DOWN', label: 'ONE OF US DOWN', icon: 'secondwind', hint: 'for the healers: on the one who fell' },
+    { id: 'cast', side: 'foe', short: 'CASTS A SPELL', label: 'A FOE CASTS', icon: 'spell', tint: 'fire', hint: 'at the caster, or at what the spell did' },
+    { id: 'strike', side: 'friend', short: 'STRIKES A FOE', label: 'A FRIEND STRIKES A FOE', icon: 'attack', hint: 'the follow-up: at the foe your friend hit' },
+    { id: 'fcast', side: 'friend', short: 'CASTS A SPELL', label: 'A FRIEND CASTS', icon: 'spell', tint: 'buff', hint: 'once the spell is done: aimed where you like' },
+    { id: 'harry', side: 'friend', short: 'HARRIES A FOE', label: 'A FRIEND HARRIES A FOE', icon: 'shove', hint: 'at the foe put down, held or shoved' },
+    { id: 'turn', side: 'friend', short: 'ENDS THEIR TURN', label: 'A FRIEND ENDS THEIR TURN', icon: 'end', hint: 'right after the next friend to act: aimed where you like' }
   ];
   Battle.readyWhen = function (rd) {
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';

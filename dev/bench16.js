@@ -1193,9 +1193,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B1 = mkZ('?npc=goblin&lvl=5&vs=cleric,fighter'), cl = B1.units.filter(function (u) { return u.side === 'party' && u.cls === 'cleric'; })[0];
       // (11-13: WHEN? is a ring, js/ui.js whenRing -- no popup; the exec leaves B.readying with no trigger, the ring's pick names it and turns to the wheel. mode=ready1113 has the ring's own checks)
       D.rules.startTurn(cl); var g1 = B1.exec(cl, { do: 'ready' }), s1 = g1.next(), pr = s1.value && s1.value.prompt;
-      B1.list = D.ui.whenRing(B1, cl); var wh1 = B1.list.items.map(function (o) { return o.id; });
-      okZ('READY asks WHEN on a ring, no popup (' + !pr + ', done ' + !!s1.done + '): ' + wh1.join(','), !pr && !!s1.done && !!B1.readying && B1.readying.trigger === null && wh1.length === 8 && wh1[2] === 'down');
-      D.ui.pickList(B1, cl, 2);
+      // (11-13 evening: two choices first, a foe's or a friend's -- ONE OF US DOWN behind the friend's)
+      B1.list = D.ui.whenRing(B1, cl); var top1 = B1.list.items.map(function (o) { return o.id; }); D.ui.pickList(B1, cl, 1); var wh1 = B1.list.items.map(function (o) { return o.id; });
+      okZ('READY asks WHEN on a ring, no popup (' + !pr + ', done ' + !!s1.done + '): ' + top1.join(',') + ' -> ' + wh1.join(','), !pr && !!s1.done && !!B1.readying && B1.readying.trigger === null && top1.join() === 'foe,friend' && wh1.length === 5 && wh1[0] === 'down');
+      D.ui.pickList(B1, cl, 0);
       okZ('the trigger kept for the wheel: ' + JSON.stringify(B1.readying && { who: B1.readying.who.name, trigger: B1.readying.trigger }) + ', the action still there ' + (cl.turn.action === 1), !!B1.readying && B1.readying.trigger === 'down' && cl.turn.action === 1 && !cl.ready);
       // 2 one of us goes down: the readied Cure Wounds (a player's: it asks to aim, and is aimed at the fallen)
       var ft = B1.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], gb = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
@@ -1310,7 +1311,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       // 1 the eight, each with its words
       var TR = D.Battle.READY_TRIGGERS || [], ids = TR.map(function (t) { return t.id; }), words = ids.map(function (id) { return D.Battle.readyWhen({ trigger: id }); });
-      okQ('eight triggers: ' + TR.map(function (t) { return t.label; }).join(' / '), ids.join() === 'near,ally,down,cast,strike,fcast,harry,turn' && TR[4].label === 'A FRIEND STRIKES A FOE' && TR[5].label === 'A FRIEND CASTS' && TR[6].label === 'A FRIEND HARRIES A FOE' && TR[7].label === 'A FRIEND ENDS THEIR TURN' && words.every(function (w, i) { return /^when /.test(w) && words.indexOf(w) === i; }));
+      okQ('eight triggers: ' + TR.map(function (t) { return t.label; }).join(' / ') + '; by side ' + TR.map(function (t) { return t.side + ' ' + t.short; }).join(' / '), TR.filter(function (t) { return t.side === 'foe'; }).length === 3 && TR.filter(function (t) { return t.side === 'friend'; }).length === 5 && TR.every(function (t) { return !!t.short; }) && ids.join() === 'near,ally,down,cast,strike,fcast,harry,turn' && TR[4].label === 'A FRIEND STRIKES A FOE' && TR[5].label === 'A FRIEND CASTS' && TR[6].label === 'A FRIEND HARRIES A FOE' && TR[7].label === 'A FRIEND ENDS THEIR TURN' && words.every(function (w, i) { return /^when /.test(w) && words.indexOf(w) === i; }));
       // 2 WHEN? is a ring: READY picked on a hero's turn asks no popup; the ring holds the eight, draws them with the long words under the highlighted one; the pick's card says what
       // is next and the wheel is up, X's way back to WHEN? kept; the wheel's pick readies it and ends the turn
       var o2 = mkQ(null), B2 = o2.B, f2 = o2.f; B2.active = f2;
@@ -1319,26 +1320,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var noPop = !st.done && !!st.value.turn && !st.value.prompt, rdg = B2.readying && B2.readying.trigger;
       B2.req = st.value; D.ui.onRequest(B2, st.value);
       var L2 = B2.list || {}, cardQ = function () { return (B2.cards || []).map(function (c) { return [].concat(c.lines).join(' '); }).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }, c2a = cardQ();
-      okQ('READY on a hero\'s turn: no popup ' + noPop + ', nothing spent (action ' + f2.turn.action + '), the ring up: ' + L2.kind + ' "' + L2.title + '" of ' + (L2.items || []).length + ' -- card: ' + c2a.slice(0, 110), noPop && rdg === null && f2.turn.action === 1 && L2.kind === 'when' && L2.title === 'READY: WHEN?' && (L2.items || []).length === 8 && /when\?/i.test(c2a));
+      okQ('READY on a hero\'s turn: no popup ' + noPop + ', nothing spent (action ' + f2.turn.action + '), the ring up: ' + L2.kind + ' "' + L2.title + '" of ' + (L2.items || []).length + ' -- card: ' + c2a.slice(0, 110), noPop && rdg === null && f2.turn.action === 1 && L2.kind === 'when' && L2.title === 'READY: WHEN?' && (L2.items || []).length === 2 && /when\?/i.test(c2a));
       var cvQ = document.createElement('canvas'); cvQ.width = D.W; cvQ.height = D.H; var saidQ = [], tx0Q = D.text, um0 = D.ui.urlMenu;
       function drawQ(style, sel) { saidQ = []; D.ui.urlMenu = style; if (B2.list) B2.list.sel = sel; D.text = function (c, s) { saidQ.push(String(s).replace(/\{\/?[a-z]*\}/g, '')); return tx0Q.apply(this, arguments); }; var er = ''; try { D.ui.drawBattle(cvQ.getContext('2d'), B2); } catch (eD) { er = String(eD && eD.message || eD).slice(0, 160); } D.text = tx0Q; D.ui.urlMenu = um0; if (get('shots', '')) (repQ.shots = repQ.shots || {})[style + sel] = cvQ.toDataURL('image/png'); return er; }
-      var e2a = drawQ('ring', 0), btn0 = (B2.buttons || []).filter(function (b) { return b.list != null; }).length, s0 = saidQ.join(' ');
-      var e2b = drawQ('ring', 4), s4 = saidQ.join(' ');
-      okQ('the ring drawn (' + (e2a || e2b || 'no error') + '): ' + btn0 + ' icons; on the first, "A FOE IN REACH" and its long words ' + /within reach/.test(s0) + '; on the fifth, "A FRIEND STRIKES A FOE" ' + (s4.indexOf('A FRIEND STRIKES A FOE') >= 0) + ' and its long words ' + /friend's attack hits a foe/i.test(s4) + ', where it goes ' + /at the foe your friend hit/.test(s4) + '; the title ' + (s4.indexOf('READY: WHEN?') >= 0),
-        !e2a && !e2b && btn0 === 8 && s0.indexOf('A FOE IN REACH') >= 0 && /within reach/.test(s0) && s4.indexOf('A FRIEND STRIKES A FOE') >= 0 && /friend's attack hits a foe/i.test(s4) && /at the foe your friend hit/.test(s4) && s4.indexOf('READY: WHEN?') >= 0 && s0.indexOf('A FRIEND STRIKES A FOE') < 0);
-      var e2w = drawQ('window', 6), sw = saidQ.join(' '), rowsW = TR.filter(function (t) { return sw.indexOf(t.label) >= 0; }).length;
-      okQ('in WINDOW it is the window\'s list (' + (e2w || 'no error') + '): ' + rowsW + ' rows of 8, the seventh\'s words ' + /lays a condition on a foe/.test(sw), !e2w && rowsW === 8 && /lays a condition on a foe/.test(sw));
-      D.ui.pickList(B2, f2, 4);
+      // (11-13 evening, Griz: "kick down a ring behind two choices 'when a friend' and 'when a foe' (rephrasing allowed)": two first, then that side's -- three of a foe's, five of a friend's)
+      var e2t = drawQ('ring', 0), btnT = (B2.buttons || []).filter(function (b) { return b.list != null; }).length, sT = saidQ.join(' ');
+      D.ui.pickList(B2, f2, 0); var foeIds = (B2.list.items || []).map(function (o) { return o.id; }).join(), foeBack = B2.list.back && B2.list.back.items.length, e2a = drawQ('ring', 0), s0 = saidQ.join(' ');
+      B2.list = B2.list.back; D.ui.pickList(B2, f2, 1); var frIds = (B2.list.items || []).map(function (o) { return o.id; }).join();
+      okQ('two choices first (' + (e2t || 'no error') + '): ' + btnT + ' icons, "WHEN A FOE..." ' + (sT.indexOf('WHEN A FOE...') >= 0) + ' with its words ' + /comes in reach, attacks one of us, or casts/.test(sT) + '; a foe\'s: ' + foeIds + ' (the two behind it: ' + foeBack + '); a friend\'s: ' + frIds,
+        !e2t && btnT === 2 && sT.indexOf('WHEN A FOE...') >= 0 && /comes in reach, attacks one of us, or casts/.test(sT) && foeIds === 'near,ally,cast' && foeBack === 2 && frIds === 'down,strike,fcast,harry,turn');
+      var e2b = drawQ('ring', 1), btn0 = (B2.buttons || []).filter(function (b) { return b.list != null; }).length, s4 = saidQ.join(' ');
+      okQ('the ring drawn (' + (e2a || e2b || 'no error') + '): a foe\'s first, "COMES IN REACH" and its long words ' + /within reach/.test(s0) + '; a friend\'s, ' + btn0 + ' icons, on the second "STRIKES A FOE" ' + (s4.indexOf('STRIKES A FOE') >= 0) + ' and its long words ' + /friend's attack hits a foe/i.test(s4) + ', where it goes ' + /at the foe your friend hit/.test(s4) + '; the title ' + (s4.indexOf('READY: WHEN A FRIEND...') >= 0),
+        !e2a && !e2b && btn0 === 5 && s0.indexOf('COMES IN REACH') >= 0 && /within reach/.test(s0) && s0.indexOf('READY: WHEN A FOE...') >= 0 && s4.indexOf('STRIKES A FOE') >= 0 && /friend's attack hits a foe/i.test(s4) && /at the foe your friend hit/.test(s4) && s4.indexOf('READY: WHEN A FRIEND...') >= 0 && s0.indexOf('STRIKES A FOE') < 0);
+      var e2w = drawQ('window', 3), sw = saidQ.join(' '), rowsW = TR.filter(function (t) { return t.side === 'friend' && sw.indexOf(t.short) >= 0; }).length;
+      okQ('in WINDOW it is the window\'s list (' + (e2w || 'no error') + '): ' + rowsW + ' rows of 5, the fourth\'s words ' + /lays a condition on a foe/.test(sw), !e2w && rowsW === 5 && /lays a condition on a foe/.test(sw));
+      D.ui.pickList(B2, f2, 1);
       var L2b = B2.list || {}, c2b = cardQ();
       okQ('the pick: the trigger kept (' + (B2.readying && B2.readying.trigger) + '), nothing spent (action ' + f2.turn.action + '), the wheel up "' + L2b.title + '" with WHEN? behind it (' + (L2b.back && L2b.back.kind) + '), the card says what is next -- ' + c2b.slice(0, 130),
         !!B2.readying && B2.readying.trigger === 'strike' && f2.turn.action === 1 && L2b.kind === 'ready' && L2b.title === 'READY: WHAT?' && !!L2b.back && L2b.back.kind === 'when' && /now: what you hold for it/.test(c2b) && /friend's attack hits a foe/.test(c2b));
       // (the keys, as the other rings': X from the wheel is back on WHEN? with the trigger unpicked and its card; left and right step the ring; E picks -- the pad's d-pad and A are these)
       var pr0 = D.input.pressed, rp0 = D.input.repeat, keyQ = function (k, rpt) { D.input.pressed = function (b) { return !rpt && b === k; }; D.input.repeat = function (b) { return !!rpt && b === k; }; try { D.ui.input(B2, B2.req); } finally { D.input.pressed = pr0; D.input.repeat = rp0; } };
-      keyQ('b'); var kb = { kind: B2.list && B2.list.kind, trig: B2.readying && B2.readying.trigger, card: cardQ() };
+      keyQ('b'); var kb = { kind: B2.list && B2.list.kind, side: B2.list && B2.list.side, trig: B2.readying && B2.readying.trigger, card: cardQ() };
       keyQ('left', true); var selL = B2.list && B2.list.sel; keyQ('right', true); var selR = B2.list && B2.list.sel;
+      keyQ('b'); var kt = { n: B2.list && B2.list.items.length, sel: B2.list && B2.list.sel }; keyQ('a'); var ks = { side: B2.list && B2.list.side, n: B2.list && B2.list.items.length }; B2.list.sel = 1;
       keyQ('a'); var ka = { kind: B2.list && B2.list.kind, trig: B2.readying && B2.readying.trigger };
-      okQ('the keys: X from the wheel -> ' + kb.kind + ', trigger ' + kb.trig + ', card "' + kb.card.slice(0, 40) + '"; left ' + selL + ', right ' + selR + '; E -> ' + ka.kind + ', trigger ' + ka.trig,
-        kb.kind === 'when' && kb.trig === null && /when\?/i.test(kb.card) && selL === 5 && selR === 4 && ka.kind === 'ready' && ka.trig === 'strike');
+      okQ('the keys: X from the wheel -> ' + kb.kind + ' (' + (kb.side || '') + '), trigger ' + kb.trig + ', card "' + kb.card.slice(0, 40) + '"; left ' + selL + ', right ' + selR + '; X again -> the two (' + kt.n + ', on ' + kt.sel + '); E -> ' + ks.side + ' of ' + ks.n + '; E -> ' + ka.kind + ', trigger ' + ka.trig,
+        kb.kind === 'when' && kb.trig === null && /when\?/i.test(kb.card) && selL === 2 && selR === 1 && kt.n === 2 && kt.sel === 1 && ks.side === 'friend' && ks.n === 5 && ka.kind === 'ready' && ka.trig === 'strike');
       var ansQ = null; B2.answer = function (v) { ansQ = v; }; D.ui.pickList(B2, f2, 0); delete B2.answer;
       st = ht.next(ansQ); k2 = 0; while (!st.done && k2++ < 400 && !(st.value && st.value.turn)) st = ht.next();
       okQ('the wheel\'s pick: ' + JSON.stringify(ansQ) + ' -> readied ' + JSON.stringify(f2.ready && { trigger: f2.ready.trigger, what: f2.ready.what }) + ', the turn ended ' + !!st.done, !!ansQ && ansQ.do === 'ready' && ansQ.trigger === 'strike' && !!f2.ready && f2.ready.trigger === 'strike' && f2.ready.what === 'weapon' && !!st.done);
