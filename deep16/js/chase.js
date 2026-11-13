@@ -190,7 +190,8 @@
     pair.forEach(function (u) { u.flees = !last; if (c.horses) D.Battle.mountUp(B, u, 40); delete u.roamAside; u.facing = D.spr.facingFor(0, 1); });
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
-    yield* R.engage(B, { foes: pair, why: 'chase', zone: null }, false, 'chase');
+    var unBook = Ch.bookPay(B, c), unBy = Ch.onlookers(B);
+    try { yield* R.engage(B, { foes: pair, why: 'chase', zone: null }, false, 'chase'); } finally { unBook(); unBy(); }
     var o = R0.lastOutcome;
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     if (Ch.willem && (Ch.willem.hp <= 0 || Ch.willem.dead) && !Ch.willem.fled) c.willemDead = true;
@@ -218,6 +219,28 @@
     caughtOne: 'Web Gulch, the south mouth. Silk is strung across the road, and {name} is fast in it.',
     turn: '{r}Amara{/} turns back for him.', turnHorses: '{r}Amara{/} comes down off her grey and turns back for him. The greys go on up the road, and stand.',
     free: '{r}{name}{/} is out of the silk. They make for the road north.', freeHorses: '{r}{name}{/} is out of the silk. They make for the greys.', freeOne: '{r}{name}{/} is out of the silk, and runs.'
+  };
+  // HIS BOOK ON THE FIGHT'S OWN VICTORY (11-13, Griz on eyes-chase-southmouth-1112f, 0327Z: "the book reward should come in the gulch as part of the victory screen"): Willem
+  // killed in a catch on the road, his book is a line of that fight's VICTORY panel (js/roam.js R.pay's lines, the gather's) and in the pack there and then -- not a card back
+  // in the inn's yard. One killed in the yard before the chase began (c.willemDead as it starts) is still the yard's to give, at the walk back (In.chaseBack's panel)
+  Ch.bookPay = function (B, c) {
+    var R = D.roam, pay0 = R.pay;
+    R.pay = function (Bp) {
+      var ls = pay0.apply(this, arguments) || [], st = D.counter.state(Bp), w = Ch.willem;
+      if (Bp === B && w && (w.hp <= 0 || w.dead) && !w.fled && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); c.willemDead = true; c.bookRoad = 1; In.trail("his book, on the road: a line of that fight's own VICTORY"); ls = ls.concat([In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })]); }
+      return ls;
+    };
+    return function () { R.pay = pay0; };
+  };
+  // NOBODY ELSE ON THE ROAD IS THE PAIR'S TO GO AT (11-13, Griz on eyes-chase-southmouth-1112f, 0327Z: "amara turned back the round after willem was hit (her turn that round
+  // she ran past the horses)"; his fight of 03:09Z, R1: struck at, the card said she turned back, and on her own turn she dashed 80 ft north). What it was: in the gulch's
+  // dark she saw none of the four, and did see the children by the ettercap's fire at the far end of the cut -- the party's side, lit, 490 ft off -- so "close on the
+  // nearest" (js/tactics.js act) took her up the road toward them. For a catch on the road those who are not the party's own are onlookers (js/ai.js `bystander`): with
+  // nobody seen she goes by ear at the nearest of the four, the turn she is given
+  Ch.onlookers = function (B) {
+    var ms = (B.roam && B.roam.members) || [], set = B.units.filter(function (u) { return u.side === 'party' && ms.indexOf(u) < 0 && !u.bystander && !u.summon && !u.familiar; });
+    set.forEach(function (u) { u.bystander = true; });
+    return function () { set.forEach(function (u) { delete u.bystander; }); };
   };
   Ch.mouthCatch = function* (B, c) {
     var R = D.roam, R0 = B.roam, f = R0.flags, F = B.fight, G = D.grid, keep = {}, t = R0.token, y = Ch.WEB.y, x = Ch.roadX(y), mt = !!c.horses;
@@ -252,14 +275,14 @@
       held.flees = true; if (other && G.standing(other)) other.flees = true;
       self.card([(other && G.standing(other) ? (mt ? Ch.MOUTHL.freeHorses : Ch.MOUTHL.free) : Ch.MOUTHL.freeOne).split('{name}').join(held.name)], 300);
     };
-    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, hurt0 = B.hurt, turn0 = D.ai.turn;
+    var ownAtk = B.hasOwnProperty('attack'), atk0 = B.attack, hurt0 = B.hurt, turn0 = D.ai.turn, unBook = Ch.bookPay(B, c), unBy = Ch.onlookers(B);
     B.attack = function* (att, tgt) { if (tgt === held && att && att.side === 'party') S.turn(); return yield* atk0.apply(this, arguments); };
     B.hurt = function (u, n) { if (u === held && n > 0 && self.active && self.active.side === 'party') S.turn(); return hurt0.apply(this, arguments); };
     D.ai.turn = function* (Bf, u) { if (Bf === self) S.check(); yield* turn0.apply(this, arguments); if (Bf === self) S.check(); };
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
     try { yield* R.engage(B, { foes: [held].concat(other ? [other] : []), why: 'chase', zone: null }, false, 'chase'); }
-    finally { if (!ownAtk) delete B.attack; else B.attack = atk0; B.hurt = hurt0; D.ai.turn = turn0; B.riders = (B.riders || []).filter(function (r) { return !r.chase; }); Ch.mouthS = null; }
+    finally { if (!ownAtk) delete B.attack; else B.attack = atk0; B.hurt = hurt0; D.ai.turn = turn0; B.riders = (B.riders || []).filter(function (r) { return !r.chase; }); Ch.mouthS = null; unBook(); unBy(); }
     var o = R0.lastOutcome;
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     if (Ch.willem && (Ch.willem.hp <= 0 || Ch.willem.dead) && !Ch.willem.fled) c.willemDead = true;

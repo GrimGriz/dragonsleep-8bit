@@ -670,6 +670,7 @@
   Battle.mountSheet = function (u) { var s = (u && (Battle.MOUNTED[u.kind] || u.kind + 'mounted_p1')) || null; return s && D.SHEETS && D.SHEETS[s] ? s : null; };
   Battle.mountUp = function (B, u, speed) {
     if (!u) return u;
+    if (u.footSpeed == null) u.footSpeed = u.speed || 30; /* (its own speed kept for the ground: Battle.dismount, 11-13) */
     u.mounted = true; u.speed = Math.max(u.speed || 30, speed || 40);
     var s = Battle.mountSheet(u); if (!s) return u;
     if (u.sheet !== s) { u.footSheet = u.footSheet || u.sheet; u.sheet = s; if (D.spr.prefetch) D.spr.prefetch([s]); }
@@ -691,6 +692,7 @@
     if (!u || !u.mounted) return;
     if (u.footSheet) { u.sheet = u.footSheet; delete u.footSheet; }
     if (u.footSize) { u.size = u.footSize === 1 ? undefined : u.footSize; if (u.size === undefined) delete u.size; delete u.footSize; }
+    if (u.footSpeed != null) { u.speed = u.footSpeed; delete u.footSpeed; } /* (11-13, his fight of 03:09Z: Amara, come down off her grey at the south mouth, dashed 80 ft -- the grey's 40 a stride was still hers on foot) */
     u.mounted = false; if (B) B.cache = null;
   };
   // the VICTORY panel's request from a fight's pay lines (theirs start with the head, '{y}Victory!{/}' or '{y}What fell{/}'): null when there is no pay to show (js/ui.js victory)

@@ -964,8 +964,8 @@
     // "hope they click on the end-table and get Kat's book (with a letter pop-up as if she's speaking it that doesn't have to become inventory)"): the seat's draft, his to re-word
     letter: ['A folded sheet lies on the manuscript, in the same fair hand. It reads as she would say it.',
       '"To whoever is given this room after me. I meant to put this in your hands and say it aloud, and I am gone before I could."',
-      '"What I told you at the fire was not all of it. The thing they made at the moot went north. It is going to Silverton."',
-      '"After Silverton, the dwarves under the mountain. That is the order I heard it given in, and I have not known those people to change an order."',
+      '"What I told you at the fire was not all of it. The thing they made at the moot went north. North is all I know of it: not where it is bound, and not what for."',
+      '"Warn Silverton. Warn the dwarves under the mountain. I would not write that down for a small thing."', // (RE-WORDED 11-13, Griz on eyes-chase-back-1112f, 0327Z: "Kat's letter says the thing is going specific places - north is all she knows. warn silverton... warn the dwarves - is good for how serious a threat it is without her knowing it's intent (which is technically the seat not silverton)" -- it had said "It is going to Silverton. After Silverton, the dwarves under the mountain. That is the order I heard it given in")
       '"The book is the rest. Read it or burn it. But carry that much north, and say a mender wrote it down right."'],
     asks: { what: 'ASK WHAT SHE IS', road: 'ASK ABOUT THE ROAD SOUTH', saw: 'ASK WHAT SHE SAW', amara: 'ASK ABOUT AMARA', message: 'ASK WHAT SHE CARRIED', leave: 'LEAVE HER TO HER BOOK', go: 'LET HER GO' },
     what: '"A mender. I set bones and I write things down." A beat. "Those are the same work, mostly."',
@@ -994,9 +994,12 @@
   // across the room at supper (f.katMirror) opens "what she is" the next time they sit down with her, and nothing more. AFTER THE INK her list is open, no checks
   // (In.katScene, as it was). The seat's lines: invented.json halfway-katarina-front-end-1112
   In.KV = { DC: { road: 12, glass: 13, amara: 13 },
-    lines: { barley: `You're with the Dominion.`, aurdin: `That is a mender's token you wear.`, /* (no "glass", no "your neck": the supper's law reads every flip's lines for those -- dev/bench16.js mode=inn1104) */ lymen: `You came up from the south. How is that road?`, vivian: `You and the woman on that wagon have met before.` },
+    lines: { barley: `You're with the Dominion.`, aurdin: `That is a mender's token you wear.`, /* (no "glass", no "your neck": the supper's law reads every flip's lines for those -- dev/bench16.js mode=inn1104) */ lymen: `We mean to take the road south. What is on it?`, /* (RE-WORDED 11-13, Griz on eyes-kat-visit-1112f, 0327Z: "lymen's 'you came from the south road' is a presumption and silly if she was traveling with people who then turned around and went to the pit (his question differently could keep the same answer)" -- it was "You came up from the south. How is that road?"; her answer stands) */ vivian: `You and the woman on that wagon have met before.` },
     idle: { lymen: `Is the fire warm enough for you, there?`, aurdin: `What is the book?`, vivian: `Good evening.`, barley: `(A nod.)` }, idleBack: 'She does not look up from the page.',
-    leave: `(Leave her to her book.)`, glassBack: 'She looks up before anyone has sat. "You asked about the glass, across the room. Ask it here."', close: 'She finds her place on the page with one finger. That is all she gives today.' };
+    leave: `(Leave her to her book.)`, glassBack: 'She looks up before anyone has sat. "You asked about the glass, across the room. Ask it here."', close: 'She finds her place on the page with one finger. That is all she gives today.', spent: 'She has given what she gives today. Her finger is on her place in the book.' };
+  // "THAT IS ALL SHE GIVES TODAY", MADE TRUE (11-13, Griz on eyes-kat-visit-1112f, 0327Z, BROKEN: "'that's all she gives today' (unless you talk to her again immediately
+  // with the other real question(lymen then aurdin in this case)"): the day she gave a thing is kept (f.katGaveDay), and on that day no hero has a shaded line at her
+  // table -- the small talk and the leaving only, under a line that says so. The next day her table is open to one more
   In.katHad = function (f) { return f.katHad || (f.katHad = {}); };
   In.katOpen = function (f, d, st) { return In.katLast(f, d) || !!f.katVision || (!!f.katInk && D.counter.count(st, 'ink') > 0) || (!f.katInk && f.wagonCycle == null && In.barleyIn(st)); }; // (... or Barley's first time at her table: his "You're with the Dominion." and the ink errand are said at once, as RULED 10-01c -- not a choice on the flip) // (her last day, the ink given, or the ink in hand: the talk as built)
   In.katVisit = function* (B) {
@@ -1008,22 +1011,23 @@
     if (D.house && D.house.trail) D.house.trail('talk', 'katarina');
     var sc = new C.Counter(B, { id: 'katarina', name: who.name, place: 'The Halfway Inn', what: 'the table for two by the fire', room: true, open: true, bg: In.roomShot(B), script: function (s) { return (function* () {
       if (!f.katLooked) { f.katLooked = 1; yield s.by(who, [KL.look]); }
-      if (f.katMirror && !had.what) { had.what = 1; In.trail('THE TRAVELER: the glass asked about at supper -- what she is, and nothing more'); yield s.by(who, [KV.glassBack]); yield s.by(who, [KL.what]); yield s.narr([KV.close]); return; }
+      var today = In.day(D.roam.q), spent = f.katGaveDay != null && f.katGaveDay === today;
+      if (f.katMirror && !had.what && !spent) { had.what = 1; f.katGaveDay = today; In.trail('THE TRAVELER: the glass asked about at supper -- what she is, and nothing more'); yield s.by(who, [KV.glassBack]); yield s.by(who, [KL.what]); yield s.narr([KV.close]); return; }
       if (f.katInk && !f.katVision) yield s.by(who, [L('kat.inkWait')]);
       var list = four.map(function (e) {
         var ops = [], k = e.key;
-        if (k === 'aurdin' && !had.what && In.passive(e.h, 'Religion') >= KV.DC.glass) ops.push({ id: 'what', label: KV.lines.aurdin, shade: true, tag: 'Religion' });
+        if (spent) { /* (nothing more today) */ } else if (k === 'aurdin' && !had.what && In.passive(e.h, 'Religion') >= KV.DC.glass) ops.push({ id: 'what', label: KV.lines.aurdin, shade: true, tag: 'Religion' });
         else if (k === 'lymen' && !had.road && made(e, 'Persuasion', KV.DC.road)) ops.push({ id: 'road', label: KV.lines.lymen, shade: true, tag: 'Persuasion' });
         else if (k === 'vivian' && !had.amara && (f.katKnewAmara || f.wagonCycle != null) && In.passive(e.h, 'Insight') >= KV.DC.amara) ops.push({ id: 'amara', label: KV.lines.vivian, shade: true, tag: 'Insight' });
         ops.push({ id: 'idle', label: KV.idle[k] || `Good evening.` }); ops.push({ id: 'leave', label: KV.leave });
         return { e: e, hero: e.hero, side: e.side, key: k, reads: [], ops: ops, opts: ops.map(function (o) { return o.label; }), marks: ops.map(function (o) { return o.shade ? { shade: true, tag: o.tag } : null; }), ids: ops.map(function (o) { return o.id; }), shaded: ops.filter(function (o) { return o.shade; }).length };
       });
       if (!list.length) return;
-      var pk = yield s.flip(who, [KL.prompt], list, 0), x = list[pk && pk.at != null ? pk.at : 0] || list[0], op = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
+      var pk = yield s.flip(who, [spent ? KV.spent : KL.prompt], list, 0), x = list[pk && pk.at != null ? pk.at : 0] || list[0], op = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
       s.hero = x.e.hero; s.heroSide = x.e.side; In.trail('THE TRAVELER: ' + x.e.hero.name + ': ' + op.label);
       if (op.id === 'leave') return;
       if (op.id === 'idle') { yield s.narr([KV.idleBack]); return; }
-      had[op.id] = 1; yield s.by(who, [KL[op.id]]); yield s.narr([KV.close]);
+      had[op.id] = 1; f.katGaveDay = today; yield s.by(who, [KL[op.id]]); yield s.narr([KV.close]);
     })(); } });
     D.push(sc); while (!sc.done) yield 1;
     if (began && D.counter.count(st, 'ink') > 0) yield* M.talk(B, 'katarina', function (s2) { return In.katVision(s2, st, f); }); // (the bottle already in the pack: the vision at once, as it was)
@@ -1201,7 +1205,7 @@
   // NO INN-STAY: with her beside the token nobody takes a room from Gennet or from Doran -- except on the due's own night, when the house's night is the scene itself
   // (Doran's "be in this house": js/secondact.js A.ledNight, A.poisonNight). Her road to the Pit and where she is set down are not built: the seam
   In.CHILD = {
-    left: function (f, d) { f = f || {}; d = d == null ? In.day(D.roam.q) : d; return f.childDue != null && f.childDue >= d ? f.childDue - d : In.nightsToDue(f, d); }, // (ruling 59: counted to the NEXT due, f.childDue -- In.childTaken; a save from before it, to the nearest)
+    left: function (f, d) { f = f || {}; d = d == null ? In.day(D.roam.q) : d; return In.nightsToDue(f, d); }, // (THE NEARER NIGHT, RULED 11-13, Griz on eyes-child-in-tow-1112, 0327Z: "the 30 nights is too weird, use the closer night if it hasn't happened yet" -- the nights to the nearest due not yet walked, whatever f.childDue a save carries; it supersedes ruling 59's lean (a), the count to the due a month on)
     nights: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; },
     days: function (f, d) { return In.CHILD.nights(f, d); }, // (RULED 11-12, Griz: "time til due in days or nights as needed, night preferred" -- Elsbeth counts nights too)
     doranIdle: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"The well\'s for drinking. Nobody draws from the lake."'], // (the realm's words for him, content/npcs.json doranYard, the second half now said by him)
@@ -1217,7 +1221,7 @@
   // built: nothing fires away from the house. THE SEAT'S CALL, for his overrule: the due is not struck off as she leaves the yard -- a party that is in the house on this
   // due's own night all the same gets that night as built (Doran's confession in the yard, "be in this house", stands; In.noStay lets that one night in). Late for the next
   // one costs only that night
-  In.childTaken = function (f, d) { var c = Math.max(0, In.dueCycle(d)); while (In.dueDay(c) < d) c++; f.childDue = In.dueDay(c + 1); return f.childDue; };
+  In.childTaken = function (f, d) { f.childDue = d + In.nightsToDue(f, d); return f.childDue; }; // (11-13: the nearer due, not the one a month on -- his "use the closer night if it hasn't happened yet")
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
   In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
   In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childDead && !f.childDeadSaid) { f.childDeadSaid = 1; yield sc.say(In.ROAD.doranDead, 'axelow'); return; } /* (the child killed on the road: once, 11-12) */ if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
@@ -1396,12 +1400,23 @@
   // stood on it (In.upShot, taken as they leave it), square for square over the house (the guest floor's 0,0 is the house's In.UPAT) -- with the party ON it as figures: the
   // one at the window the token itself, the others lying where they slept, each drawn a storey up and after the roof (u.upZ: js/ui.js unitPos). A drawing: no rule reads
   // it. NOT DRAWN YET: the guest floor's beds, its wall stubs and its chimney (the floor's props are laid by another map's dressing; the boards and the figures only)
-  In.UPAT = [19, 13];
-  In.upZ = function () { var m = D.iso.map, px = m && D.iso.roofPx ? D.iso.roofPx(m, 'I') : 0; return px ? Math.round(px / 2) : 44; };
+  In.UPAT = [19, 13]; In.UPPAD = 96;
+  In.upZ =function () { var m = D.iso.map, px = m && D.iso.roofPx ? D.iso.roofPx(m, 'I') : 0; return px ? Math.round(px / 2) : 44; };
   In.upShot = function () {
     var m = D.iso.map, bk = m && m.bake; In.upPic = null;
     if (!m || !m.def || m.def.key !== In.UP || !bk || bk.paged || !bk.canvas || !bk.canvas.getContext) return null;
-    try { var cv = document.createElement('canvas'); cv.width = bk.canvas.width; cv.height = bk.canvas.height; cv.getContext('2d').drawImage(bk.canvas, 0, 0); In.upPic = { canvas: cv, x: bk.x, y: bk.y }; } catch (e) { In.upPic = null; }
+    // ITS BEDS, WALL STUBS AND CHIMNEY TOO (11-13, the inn seat of 11-13; the last seat's question to him, "does it want its beds, wall stubs and chimney drawn to read as
+    // rooms", built on the desk's brief): the picture is the guest floor as the game draws it with nobody on it -- its baked boards and every prop of the map (the knee-high
+    // stubs, the beds, the tables, the stack; js/iso.js iso.draw with no figures) -- drawn once into a canvas of its own, the camera set so the boards land where the bare
+    // copy had them and In.UPPAD of room left above for what stands up off the floor. A still: the stack's fire does not move in it
+    var iso = D.iso, pad = In.UPPAD, W0 = D.W, H0 = D.H, z0 = iso.zoom, w0 = iso.inWorld, cx0 = iso.cam.x, cy0 = iso.cam.y, whole = false;
+    try {
+      var cv = document.createElement('canvas'); cv.width = bk.canvas.width; cv.height = bk.canvas.height + pad; var cx = cv.getContext('2d');
+      try { D.W = cv.width; D.H = cv.height; iso.zoom = 1; iso.inWorld = false; iso.cam.x = bk.x + cv.width / 2; iso.cam.y = bk.y - pad + cv.height / 2; iso.draw(cx, [], null); whole = true; }
+      catch (e2) { cx.clearRect(0, 0, cv.width, cv.height); cx.drawImage(bk.canvas, 0, pad); } // (the boards alone, as it was)
+      finally { D.W = W0; D.H = H0; iso.zoom = z0; iso.inWorld = w0; iso.cam.x = cx0; iso.cam.y = cy0; }
+      In.upPic = { canvas: cv, x: bk.x, y: bk.y - pad, whole: whole, props: (m.props || []).filter(function (p) { return p.innProp || p.kind === 'rock'; }).length };
+    } catch (e) { In.upPic = null; }
     return In.upPic;
   };
   In.upView = function (B, o) { // (o.at: the token's square on the guest floor; o.abed: [{ name, sheet, x, y }] the sleepers there)
@@ -1620,9 +1635,14 @@
     var R0 = B.roam, f = R0.flags, c = f.wagonChase, st = D.counter.state(B); if (!c || !c.back) return;
     delete f.wagonIn; delete f.katYard; In.lay(B, null, true); // (the yard laid without the wagon)
     yield* In.card(B, [In.WN.chaseYard], 360);
-    if (c.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); D.sfx('chest'); yield* In.card(B, [In.WN.book, L('g.got', { item: DS.DATA.items.willembook.name })], 420); } // (his book when the party kills him: the house lane's item 7, 09-30c)
+    // THE CHILDREN'S XP IN A VICTORY BOX BEFORE GENNET TALKS (11-13, Griz on eyes-chase-southmouth-1112f, 0327Z: "if the children rescue xp happens at return to inn it should
+    // go in victory box before gennet talks"): the renown for the eight and its XP, one panel in the middle of the screen (js/ui.js UI.victory, as THE WAGON's), E closes it,
+    // and then she comes to the step. His book is the gulch fight's own VICTORY line now (js/chase.js Ch.bookPay); one killed in the yard before the chase is given here, in this panel
+    var pay = [];
+    if (c.willemDead && !In.has(st, 'willembook')) { D.counter.give(st, 'willembook', 1); yield* In.card(B, [In.WN.book], 360); pay.push(L('g.got', { item: DS.DATA.items.willembook.name })); } // (his book when the party kills him: the house lane's item 7, 09-30c)
     f.doranAway = 1; f.doranPit = 1; f.kidAtInn = 1; f.wagonGift = 1; f.wagonChased = 'c' + (f.wagonCycle || 0); In.trail('back from the chase: the yard empty, the strongbox and the order gone with the wagon');
-    var rn = D.counter.renown(st, 1, 'renown.wagon'); if (rn && rn.length) yield* In.card(B, rn, 360);
+    pay = (D.counter.renown(st, 1, 'renown.wagon') || []).concat(pay); D.sfx('chest');
+    if (pay.length) { if (B.logOnly) B.logOnly(['{y}The eight{/}'].concat(pay)); In.trail('back from the chase, the panel: ' + pay.join(' / ')); yield { victory: { title: 'THE EIGHT', lines: pay } }; }
     var kat = !f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from;
     if (kat) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives'); }
     // Gennet at the front step, on her own face
@@ -1729,7 +1749,7 @@
       yield sc.say([BL.freed]);
     };
     if (f.glamourBroken) { yield sc.say([BL.child]); yield* freeAsk(); return; }
-    yield sc.say([BL.goblin]);
+    yield sc.say([BL.goblin]); // (on its own face, pt_glamourgoblin: C.SHEETOF.barnGoblin below -- 11-13, Griz on eyes-barn-between-1112, 0327Z: "only note is goblin portrait in the box on first interaction")
     var opts = ['LOOK CLOSER', 'TOUCH IT'], acts = ['look', 'touch'];
     if (st.party.some(function (h) { return (h.key || h.id) === 'aurdin' && !h.dead; })) { opts.push('DETECT MAGIC'); acts.push('magic'); }
     opts.push('FREE IT'); acts.push('free'); opts.push('LEAVE IT'); acts.push('leave'); // (FREE IT, 11-11: freed as the goblin it looks -- his "freeing the barn child as a goblin"; then the yard, In.barnYard)
@@ -1738,10 +1758,11 @@
     if (act === 'free') { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.barnC = c; D.sfx('confirm'); In.trail('the barn: freed as a goblin, the glamour unseen'); yield sc.say([In.BY.freedIt]); return; }
     var ok = act === 'magic' || In.read(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12);
     if (!ok) { yield sc.say([act === 'look' ? BL.lookNo : BL.touchNo]); return; }
-    f.glamourBroken = 1; f.glamourSeen = 1; In.setOffering(f, c, 'kept'); f.barnC = c; In.trail('the barn: the glamour seen through (' + act + ')');
+    f.glamourBroken = 1; f.glamourSeen = 1; In.setOffering(f, c, 'kept'); f.barnC = c; In.trail('the barn: the glamour seen through (' + act + ')'); sc.sheet = In.childFace(true) || sc.sheet; /* (the child's own face from here) */
     yield sc.say([act === 'look' ? BL.lookYes : act === 'touch' ? BL.touchYes : BL.magic, BL.child]);
     yield* freeAsk();
   };
+  if (D.counter && D.counter.SHEETOF) D.counter.SHEETOF.barnGoblin = function (st) { return In.childFace(!!(st && st.flags && st.flags.glamourBroken)); };
   // ---------------------------------------------------------------- OUT OF THE BARN WITH THE CHILD: Gennet comes running (11-11, the supper seat; the inn lane's rulings 30 and
   // 34 and the reading page he asked for, the-lab's barn-mockup-2026-11-11.html; Griz: "have the supper mockup seat cue a similar one for gennet running up when they exit the barn
   // with the kid with proposed dialog", then "include it's barn stuff to the live ship"). His words for it: "freeing the barn child as a goblin would have to risk violence with
@@ -2320,7 +2341,7 @@
     { id: 'barnseen', label: 'OUT OF THE BARN: the glamour seen through, Doran home', note: 'The same morning, the glamour seen through on the wagon night: a child chained in the stall. FREE HER. Gennet\'s other story: "Somebody put a goblin\'s face on a child and sent her down this road. Who takes that in, if I don\'t?" Let her and the child is brought into the house, the raising feigned until the night.', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 3, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
     { id: 'barnaway', label: 'OUT OF THE BARN: Doran away, Elsbeth at her third tier', note: 'Doran gone down the road: nobody for Gennet to call but Elsbeth. At the breaking point she calls for "the word"; Elsbeth comes out, the wand in her apron: "No. It\'s for the lake. Tell them, or I will." The child goes with the party. (At her second tier she stands in the door and does not say it; below that nobody comes out.)', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 1, dice: [16, 16, 16, 16], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, doranAway: 1, elsbethTier: 3, dishes: 1, elsbethTold: 1 } },
     { id: 'barnknown', label: 'OUT OF THE BARN: renown 5, a low Persuasion, the party knows of the lake\'s nights', note: 'The corridor\'s own. Lymen may ask at her ask "Raise it until which night?" and go straight to the breaking point; Doran comes round the barn and lets the axe hang, and any hero\'s word to him brings the confession. The dice are low: at lower renown the same word gets only "Gen. Let go."', key: In.KEY, at: [8, 5], hour: 10, day: 13, inside: 'barn', renown: 5, dice: [2, 2, 2, 2], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, elsbethTier: 2, dishes: 1, elsbethTold: 1 } },
-    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The nights they say are counted to the NEXT due, a month on (ruling 59): thirty, on day 13.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
+    { id: 'childtow', label: 'THE CHILD IN TOW: Doran at the woodpile, Elsbeth at the tub, no room (11-12)', note: 'Day 13, ten in the morning, by the woodpile: the child came out of the barn with the party and Doran has confessed. She stands beside you, a figure of her own. E on Doran: his face and his line -- the girl is safest at the Pit. Then in at the front door to the kitchen tub, E on Elsbeth: she sends you to the Pit; ASK HER TO COME and she stays with her father. Then E on Gennet: no room with the child in tow. The nights they say are counted to the nearer due not yet walked (11-13): two, on day 13.', key: In.KEY, at: [15, 25], hour: 10, day: 13,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, supAmara: 1, wagonCycle: 0, wagonOutcome: 'quiet', katGone: 1, katRode: 1, glamourBroken: 1, glamourSeen: 1, barnFreed: 1, barnEnd: 'd', doranConfessed: 1, childGuest: 'child', childGuestDay: 13, childDue: 43, innRegard: 0, elsbethTier: 3, dishes: 1, elsbethTold: 1, dueOffC: 0, dueOff: 'none' } },
     { id: 'bigroom', label: 'THE BIG ROOM, theirs: morning by the good bed, her letter in the drawer (11-12)', note: 'Day 14, eight in the morning, in the big room over the kitchen: Gennet gave it at her supper alone, and Katarina rode out on the wagon. You stand where you would wake, by the good bed. E on the table by the bed: her letter, read as if she were saying it, then her book into the pack.', key: In.UP, at: [13, 2], hour: 8, day: 14,
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, supAlone: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1, katRode: 1, katLooked: 1, bigRoom: 1 } },
@@ -2343,11 +2364,11 @@
     // THE CHASE RE-CUT (11-12, rulings 51-55): the catch at the south mouth; and the walk back into an empty yard
     { id: 'southmouth', label: 'THE CATCH AT THE SOUTH MOUTH: Willem fast in the silk, Amara running (11-12)', note: 'Two in the morning, in at Web Gulch\'s south gate after the wagon pair on the greys. The fight opens AT ONCE: silk is strung across the road five squares in, Willem\'s grey fast in it, Amara through and riding for the pale squares north (their way off). Leave Willem alone and she is away. STRIKE AT WILLEM and she comes down off her grey and turns back to fight; both are on foot, the two greys standing at the north exit squares. When Willem tears out of the silk the two make for the greys. Whoever gets away is chased up the cut as before (on a grey: lost at the north mouth).', key: 'webgulch', at: [22, 109], hour: 2, day: 12,
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, wagonChase: { horses: true, willem: true, amara: true, leg: 1, gap: 10, acc: 0, on: false, steps: 0, back: null } } },
-    { id: 'chaseback', label: 'BACK FROM THE CHASE: the yard empty, Gennet at the step, the big room (11-12)', note: 'Four in the morning, back in the inn\'s yard from the chase, Willem dead on the road. The yard is EMPTY: Doran has driven the wagon and the seven south. Only Willem\'s book is yours (no strongbox, no order). Gennet comes out to the front step with her lantern: where he has gone, that the traveler rode with him, and "Oh, heroes. Take the big room." You wake in the big room; her book and its letter are in the drawer; Elsbeth\'s gift in the morning is the Cloak of the Manta Ray.', key: In.KEY, at: [14, 20], hour: 4, day: 13,
+    { id: 'chaseback', label: 'BACK FROM THE CHASE: the yard empty, Gennet at the step, the big room (11-12)', note: 'Four in the morning, back in the inn\'s yard from the chase, Willem dead on the road. The yard is EMPTY: Doran has driven the wagon and the seven south (no strongbox, no order). A panel in the middle of the screen, THE EIGHT: the renown and its XP (the book was a line of the gulch fight\'s own VICTORY, 11-13). E closes it, and only then Gennet comes out to the front step with her lantern: where he has gone, that the traveler rode with him, and "Oh, heroes. Take the big room." You wake in the big room; her book and its letter are in the drawer; Elsbeth\'s gift in the morning is the Cloak of the Manta Ray.', key: In.KEY, at: [14, 20], hour: 4, day: 13,
       flags: { reachedInn: 1, mealHad: 1, gennetNamed: 1, supCount: 1, wagonCycle: 0, wagonIn: 1, glamourBroken: 1, glamourSeen: 1, wagonStopped: 'c0', kidTaken: 1, katLooked: 1, dueOffC: 0, dueOff: 'kept', wagonChase: { horses: false, willem: true, amara: true, leg: 2, on: false, steps: 40, back: 'road', willemDead: true } } },
     { id: 'doranhome', label: 'DORAN\'S FIRST SUPPER HOME: the Pit\'s people took them, the Snoot getting worse (11-12)', note: 'Day 14 at six, Doran back from the Pit this evening. E on the inn lady, a room, supper: two lines of his before her opener, once.', key: In.KEY, at: [24, 17], hour: 18, day: 14, inside: true, dice: [14, 12, 15, 14, 12, 15], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, wagonCycle: 0, wagonOutcome: 'fled', wagonStopped: 'c0', katGone: 1, katRode: 1, doranPit: 1, bigRoom: 1, dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1 } },
     // KATARINA'S AND ELSBETH'S FRONT ENDS (11-12, rulings 57 and 58)
-    { id: 'katvisit', label: 'KATARINA BEFORE THE INK: one thing a visit, on the flip (11-12)', note: 'Six in the evening on day 7, at her table by the fire, no ink in the pack. E on the traveler: she is closed. With Barley in the party his "You\'re with the Dominion." and her ask for ink come first, at once, as before. Then flip the four: each has at most ONE blue-shaded line (Aurdin on what she wears, Lymen on the road south, Vivian only once the wagon is known), a line of small talk, and (Leave her to her book.). One shaded line gets ONE thing, and the visit is over; E on her again for another. WHAT SHE SAW is not offered until the ink is given.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, dice: [19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, katInk: 1, katLooked: 1 } },
+    { id: 'katvisit', label: 'KATARINA BEFORE THE INK: one thing a visit, on the flip (11-12)', note: 'Six in the evening on day 7, at her table by the fire, no ink in the pack. E on the traveler: she is closed. With Barley in the party his "You\'re with the Dominion." and her ask for ink come first, at once, as before. Then flip the four: each has at most ONE blue-shaded line (Aurdin on what she wears, Lymen on the road south, Vivian only once the wagon is known), a line of small talk, and (Leave her to her book.). One shaded line gets ONE thing, and that is the day: E on her again and nobody has a shaded line till tomorrow (11-13). WHAT SHE SAW is not offered until the ink is given.', key: In.KEY, at: [25, 20], hour: 18, day: 7, inside: true, dice: [19, 19, 19, 19], flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, katInk: 1, katLooked: 1 } },
     { id: 'elsbethday', label: 'ELSBETH BY DAY at renown 3: "You\'re the people stopping the monsters." (11-12)', note: 'Ten in the morning on day 6, inside by the tub, a name on Hessle\'s board (renown 3). Gennet is OUT AT THE WELL by day (look for her there). E on Elsbeth: "You\'re the people stopping the monsters." and her first telling, with no dishes. With no renown and nothing noticed at supper she only works ("The girl focuses on her work."); in the evening she says not now.', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
     { id: 'elsbethdishes', label: 'ELSBETH BY DAY, the counting seen and kept quiet, her father home: the dishes (11-12)', note: 'Ten in the morning on day 6, renown 0, Vivian saw the girl count the party at supper and said nothing. E on Elsbeth: HELP WITH THE DISHES is the cover, her father being in the house; her first telling, and the wagon\'s night. (With Doran away she tells it with no dishes.)', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 0, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, mealWrong: 1 } },
     // THE CHILD'S ROAD (ruling 59, 11-12): the first camp and the Pit, each staged on THE WORLD and run at once
