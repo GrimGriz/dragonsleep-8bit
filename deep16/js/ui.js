@@ -2644,7 +2644,7 @@
     var u = hero || B.active, st = UI.style(B);
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, BAR_Y, D.W, D.H - BAR_Y);
     ctx.fillStyle = R('silver', 2); ctx.fillRect(0, BAR_Y, D.W, 1);
-    if (!u) return;
+    if (!u || (B.one && B.one.shelf === 'creatures')) return; // (the one gallery's CREATURES shelf: a staged blow's striker is no one's turn -- its name showed through at the column's foot and "its turn" beside it, 11-13)
     ctx.fillStyle = R('stone', 1); ctx.fillRect(4, BAR_Y + 4, 36, 38);
     ctx.save(); ctx.beginPath(); ctx.rect(4, BAR_Y + 4, 36, 38); ctx.clip();
     var face = u.rider || u.sheet; // (a drider's portrait is its rider's face)
