@@ -501,3 +501,60 @@ HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corn
 All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of the attached pages; the whole figure head to foot; flat dark navy background (a deep blue, not grey and not black); labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the sword in his RIGHT hand and the shield on his LEFT arm in every view. No scenery.
 ```
 Where: Lymen's fight sheet `lymen_p2`, rows keyed `layonhands`, `divinesmite`, `greenagain`, `whatfallsfeeds`, `relentless`, and the standard `flinch`, `prone`, `getup`, `defend`, `useitem`, `victory`, `interact`, `attack2`. Cut as the standard ask. The engine plays the standard extras already (as Barley's); it does not yet play a row for any of his own five -- the wiring is a seat's job when they come back.
+
+## 61. The Mirror Stirge (new, ART-143) and the Stirge's front and back views (a fix on ART-48) -- one package (added 11-13, the wisp-and-stirge seat, on his word to the lanes desk: *"Let's mirror version of the stirge similar (drains spell slots) and include the art fix request with it's art request as a zip to the outbox"*) -- IN THE OUTBOX 2026-11-13, waiting to go (`deep16/_src/outbox/ASK-2026-11-13-mirror-stirge-and-stirge-front-wings/` and its `.zip`)
+
+From the engine side (the wisp-and-stirge seat, for the lanes desk), for the art desk. Two asks in one package, the fix first because the new creature is drawn on it. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-mirror-stirge-and-stirge-front-wings/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 61.
+
+What holds and is KEPT: your ART-48 stirge -- the front and rear three-quarter views (SE, NE) in every row, and the latch you drew from the front and from behind. They are in the game as you drew them (`stirge_p1`).
+
+What is in the game today (`deep16/data/foes.js`): the Stirge (SRD 5.1: Tiny, it flies, its bite attaches and it drinks blood till it is full or pulled off) and, new on 11-13, the MIRROR STIRGE -- the same creature as Mr. Ripples, the Vessel, makes things along his road: it latches the same way and drinks MAGIC, a spell slot a turn, and no blood. It wears the stirge's own sheet today with the game's moving mirror facets laid over it: a stand-in.
+
+### 1. THE FIX -- the Stirge from the front (S) and from behind (N): idle, fly, blood drain and flinch, with wings that have depth
+ATTACH `stirge-as-it-is-S-6x.png`, `stirge-as-it-is-N-6x.png` (the game's front and back views today: drawn by code, the wings lie FLAT, like a paper cutout seen face-on -- this is what is wrong), `stirge-as-it-is-SE-6x.png`, `stirge-as-it-is-NE-6x.png` (your own three-quarter views as cut: the look, the size and the wing-beat to match), `ART-48_HEAD-1_PAGE-1.png`, `ART-48_HEAD-1_PAGE-2.png`, `ART-48_HEAD-2_PAGE-1.png`, `ART-48_HEAD-2_PAGE-2.png`, `ART-48_HEAD-3_PAGE-1.png`, `ART-48_HEAD-5_PAGE-1.png` (your ART-48 pages as you sent them), `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: your own stirge pages (ART-48), the same stirge as the game shows it today in four views, and the game's 64 colours. Your three-quarter views are in the game and are kept. The straight-on front view and the straight-on back view were drawn by code and their wings lie flat, like paper. Redraw those two views to match your three-quarter views.
+
+THE STIRGE: your creature exactly -- a Tiny flying bloodsucker about the size of a house cat: a tufted, rust-brown body, four small hooked legs tucked under it, two pairs of leathery bat-like wings, and a long straight needle of a proboscis in place of a mouth. Same colours, same size, same proportions as your pages.
+
+Four rows, in each of the two views:
+Idle (8: hovering in place, the wings beating -- on the down-beat the wings sweep forward and down toward the viewer, on the up-beat up and back, so the beat shows DEPTH, never a flat left-right flap; the body bobs a little);
+Fly (8: flying forward, the same beat faster and wider, the body tipped forward, the proboscis leading);
+Blooddrain (8: the strike -- it draws back on 1 to 3, the proboscis cocked, then darts forward and stabs on 5, the wings thrown back, and recovers to the hover on 8);
+Flinch (6: struck -- knocked back and tumbling a quarter turn, wings splayed, recovering to the hover on 6).
+
+HEAD 1 -- from the front, the stirge facing the viewer (south): the proboscis points toward the viewer and down, foreshortened; both wing pairs spread to the sides AND angled toward or away from the viewer as they beat.
+HEAD 2 -- straight from behind, the stirge facing away (north): its back and the tuft of its rump toward the viewer, the proboscis hidden or just showing past the head.
+
+And one check, no new drawing unless it is needed: in your Latched row seen from behind (ART-48 HEAD 5), the stirge clings to the BACK of a shoulder of someone who faces away from the viewer -- its back to us, the proboscis in. If your page already shows that, say so and send nothing; if it shows the stirge's front, redraw that one row (8 frames: clinging, the body pulsing as it drinks, a slow swell from 1 to 8).
+
+Both views: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of your pages; the whole creature in every frame, hovering, with no ground shadow; flat slate background as on your pages; labelled rows, numbered frames, every number once; every frame apart; the hover at one height along a row. Use only the attached 64 colours. No scenery.
+```
+Where: `stirge_p1` (`tools/bugs-sheet.py` `art48`), rows `idle`, `walk` (the fly), `attack`, `flinch`, views S and N; SW, W and NW stay mirrored from your three-quarter views; `latched` N only if redrawn. Cut as ART-48 was: each view scaled to your SE idle's frame 1, each frame set by its hover line.
+
+### 2. THE MIRROR STIRGE (ART-143) -- a new creature on the stirge's frame, in all five views
+ATTACH everything of part 1, and `mirror-colours-the-mirror-wisp-6x.png` (the mirror-made colours as the game's code draws them on another creature: bright silver with a violet edge -- a colour reference only, not a shape), `mirror-hyena-base-sheet-SE-6x.png` (how a mirror-made creature sits beside its original: the mirror hyena wears the hyena's own drawing, and the game lays small moving mirror facets over it).
+```text
+Attached: your stirge pages, the stirge as the game shows it, a colour reference, and the game's 64 colours. Draw a new creature on the stirge's exact frame: THE MIRROR STIRGE.
+
+THE MIRROR STIRGE: a stirge remade by a thing that turns living creatures into mirrors. Same size, same body plan and same poses as your stirge, frame for frame -- but it is no longer flesh:
+- its body is dark polished glass-black with a hard silver sheen, as if cast in smoked mirror, the fur tuft now a ridge of small flat mirror facets (little squares and shards, two or three pixels each) that catch the light at different angles;
+- its wings are thin panes: translucent grey-silver membranes with bright silver ribs, a glint running along one pane each beat;
+- its proboscis is a needle of bright silver glass;
+- its EYES are violet and lit -- two small bright violet points, the one warm note on it; where a view shows the eyes, they must read at small size;
+- it drinks MAGIC, not blood: on the strike's stab frame and all through the Latched row, a thin thread of violet light runs up the needle into its body, and its belly facets light violet one by one as it fills (frames 1 to 8 of Latched: dark, then one facet lit, then more, the belly glowing violet on 8). No red anywhere on it, no blood.
+Nothing soft or furry is left on it; nothing gold. It should read at a glance as the stirge's mirror twin: same silhouette, silver-black and violet where the stirge is rust-brown.
+
+Rows, in each view:
+Idle (8: hovering, the pane wings beating with depth as in part 1, a glint crossing a wing once a loop);
+Fly (8: flying forward, faster and wider, the needle leading);
+Magicdrain (8: the strike -- drawn back on 1 to 3, the stab on 5 with the violet thread starting up the needle, recovering on 8);
+Flinch (6: struck -- knocked back, a few small mirror chips flying off it on 2 and 3, recovering on 6);
+Death (8: it cracks -- a split across the body on 2, the panes shattering on 4, and it falls as a small scatter of dark glass and silver shards lying still on 8);
+Latched (8: clinging to a shoulder, the needle in, the body swelling a little and its belly facets lighting violet from 1 to 8, as above).
+
+HEAD 1 -- from the front, facing the viewer (south). HEAD 2 -- from the bottom-right, front three-quarter, every frame facing the bottom-right corner (the view of your ART-48 HEAD 1 pages). HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind (your ART-48 rear three-quarter). HEAD 5 -- straight from behind, facing away. The same rows each; the Latched row from behind shows its back, clinging to the back of a shoulder.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of your stirge pages; the whole creature in every frame, hovering, no ground shadow; flat slate background; labelled rows, numbered frames, every number once; every frame apart; the hover at one height along a row; the same size as your stirge in every view. Use only the attached 64 colours: its blacks and greys from the silver ramp, its lights from the violet ramp and white. No scenery.
+```
+Where: a new sheet `mirrorstirge_p1` (a cutter's `tools/` script over `tools/sheetrows.py`, as ART-48's), rows `idle`, `walk`, `attack`, `flinch`, `hurt` (the death), `latched`; `deep16/data/foes.js` `mirrorstirge` moves from `stirge_p1` to it, and its `ripple` (the game's own moving facets) stays or goes on his eye. Cut as: each view scaled so its idle frame 1 is the stirge's idle frame 1 in that view, each frame set by its hover line.
