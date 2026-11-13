@@ -695,6 +695,15 @@ def with_fb(name, rows):
         for v, an_rows in dg.items():
             for an, fr in an_rows.items():
                 out[an][v] = fr
+        # ART-48's repair (11-13, art-wanted section 61; the cutter of the wolves): the front and the back DRAWN -- S and N idle, walk (Fly), attack
+        # (Blood Drain) and flinch from the art desk's pages in place of the code's flat front and back (his "the stirge's front and back views ...
+        # wings that have depth"). Their Latched (ART-48's own, kept on the art desk's word) and their fall (his GPT sheet) are as they were.
+        import importlib.util
+        _sp = importlib.util.spec_from_file_location('stirgepages', os.path.join(ca.ROOT, 'tools', 'stirgepages.py'))
+        SP = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(SP)
+        for v, an_rows in SP.repair().items():
+            for an, fr in an_rows.items():
+                out[an][v] = fr
     return out
 
 
@@ -710,7 +719,7 @@ if __name__ == '__main__':
         if 'preview' in sys.argv:
             ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
         else:
-            src = 'drawn in code by tools/bugs-sheet.py (10-05)' + {'stirge': '; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)',
+            src = 'drawn in code by tools/bugs-sheet.py (10-05)' + {'stirge': '; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21); S and N idle, walk, attack and flinch by its repair (11-13, tools/stirgepages.py)',
                                                                     'firebeetle': '; SE and NE every row drawn by the art desk (ART-49, 10-21)',
                                                                     'centipede': '; SE and NE every row drawn by the art desk (ART-50, 10-22)'}.get(nm, '')
             sh, meta = ca.lay(rows, FW, FH48 if nm == 'stirge' else FH, AX, AY, top, src, out, fps_of=fps)

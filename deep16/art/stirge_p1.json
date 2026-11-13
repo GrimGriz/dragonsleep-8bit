@@ -5,7 +5,7 @@
  "ax": 48,
  "ay": 84,
  "top": 62,
- "source": "drawn in code by tools/bugs-sheet.py (10-05); SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)",
+ "source": "drawn in code by tools/bugs-sheet.py (10-05); SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21); S and N idle, walk, attack and flinch by its repair (11-13, tools/stirgepages.py)",
  "anims": {
   "idle": {
    "y": 0,
