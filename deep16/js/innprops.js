@@ -324,7 +324,7 @@
         m.props.push({ innProp: true, kind: 'innstubsee', mat: mat, sq: sq, depth: sq.x + sq.y + 0.51, gz: 0, draw: function (ctx) {
           var S = IP.seeing; if (!S.figs.length) return;
           var figs = IP.placed().filter(function (f) { return Math.max(Math.abs(f.u.x - x), Math.abs(f.u.y - y)) <= IP.WIN.near; }); if (!figs.length) return;
-          ctx.save(); IP.winPath(ctx, figs, false); ctx.clip(); IP.drawStub(ctx, sq, stub, runs); ctx.restore(); IP.stubSeen = (IP.stubSeen || 0) + 1;
+          ctx.save(); IP.winPath(ctx, figs, false); ctx.clip(); IP.drawStub(ctx, sq, stub, runs, IP.stubOff(r, x, y)); ctx.restore(); IP.stubSeen = (IP.stubSeen || 0) + 1; IP.stubEdge = IP.stubOff(r, x, y);
         } });
       })(x, y);
     });
@@ -335,7 +335,7 @@
     if (!up && ins !== 'inn') for (var yc = IP.CUT.y0 - IP.CUT.more; yc <= IP.CUT.y1 + IP.CUT.more; yc++) (function (y) {
       var x = In.DOORS.front[0], rows0 = In.ROWS; if (!rows0[y] || rows0[y].charAt(x) !== 'B') return; var sq = m.at(x, y); if (!sq) return;
       var runs = IP.stubRuns(rows0, x, y).filter(function (rn) { return rn[0] === 'y'; });
-      m.props.push({ innProp: true, kind: 'innstubcut', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) { if (IP.seeing.cut) IP.drawStub(ctx, sq, 'wing', runs); } });
+      m.props.push({ innProp: true, kind: 'innstubcut', sq: sq, depth: sq.x + sq.y + 0.5, gz: 0, draw: function (ctx) { if (IP.seeing.cut) IP.drawStub(ctx, sq, 'wing', runs, { x: -0.5, y: 0 }); } }); // (the west wall's outer edge, 11-13)
     })(yc);
     // the stubs: every wall square of the house the party is in, or of the floor upstairs
     var rows = up ? In.UPROWS : In.ROWS, at = function (x, y) { var w = rows[y]; return w ? w.charAt(x) : ''; };
@@ -350,11 +350,17 @@
       })(sq, mat, runs);
     }
   };
-  IP.drawStub = function (ctx, sq, mat, runs) { // (a wall square's stub, its runs along the square's middle -- page 7's)
-    var S = wsheet(); if (!S) return;
-    runs.forEach(function (rn) {
+  // AT THE TILE'S OUTER EDGE, seen through a roof (11-13, his 0515Z note on eyes-seethrough-north-1112: "much better - though it looks like the stubs are in the middle of
+  // their tile and that they'd be at the edge to match what's there when it's not transparent"): `off` { x, y } moves a run half a square to the building's outer side --
+  // an x-run north or south by off.y, a y-run west or east by off.x -- and at a corner each run is carried on to the outer corner, where the two meet. The stubs the party
+  // sees from INSIDE a house (no `off`) stay on the square's middle, as page 7 drew them
+  IP.stubOff = function (r, x, y) { return { x: x === r[0] ? -0.5 : x === r[2] ? 0.5 : 0, y: y === r[1] ? -0.5 : y === r[3] ? 0.5 : 0 }; };
+  IP.drawStub = function (ctx, sq, mat, runs, off) { // (a wall square's stub, its runs along the square's middle -- page 7's)
+    var S = wsheet(); if (!S) return; var ox = off ? off.x : 0, oy = off ? off.y : 0;
+    runs.forEach(function (rn0) {
+      var rn = rn0.slice(), perp = rn[0] === 'x' ? ox : oy; if (perp < 0 && rn[1] === 0.5) rn[1] = 0; if (perp > 0 && rn[2] === 0.5) rn[2] = 1; // (to the outer corner)
       var b = boxes(mat + '_stub_' + rn[0]); if (!b) return; var q = b[0];
-      var pt = function (u) { var c = rn[0] === 'x' ? iso.center(sq.x + u - 0.5, sq.y, 0) : iso.center(sq.x, sq.y + u - 0.5, 0); return iso.toScreen(c.x, c.y); }; // (a point along the square's middle line)
+      var pt = function (u) { var c = rn[0] === 'x' ? iso.center(sq.x + u - 0.5, sq.y + oy, 0) : iso.center(sq.x + ox, sq.y + u - 0.5, 0); return iso.toScreen(c.x, c.y); }; // (a point along the square's middle line, or its outer edge)
       var a0 = pt(0), p0 = pt(rn[1]), p1 = pt(rn[2]), cx0, cx1;
       if (rn[0] === 'x') { cx0 = p0.x - (rn[1] ? 1 : 0); cx1 = p1.x + (rn[2] === 1 ? 14 : 1); } else { cx0 = p1.x - (rn[2] === 1 ? 14 : 1); cx1 = p0.x + (rn[1] ? 1 : 0); }
       ctx.save(); ctx.beginPath(); ctx.rect(cx0, -99999, cx1 - cx0, 199999); ctx.clip();
