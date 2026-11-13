@@ -1,0 +1,66 @@
+{
+ "image": "art/mirrorstirge_p1.png",
+ "fw": 96,
+ "fh": 112,
+ "ax": 48,
+ "ay": 84,
+ "top": 63,
+ "source": "drawn by the art desk (ART-143, 11-13: art-wanted section 61 -- Idle 8, Fly 8, Magicdrain 8, Flinch 6, Death 8, Latched 8 in five views), cut by tools/mirrorstirge-sheet.py through tools/stirgepages.py; SW W NW mirrored -- deep16/data/foes.js mirrorstirge",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 8,
+   "fps": 8
+  },
+  "walk": {
+   "y": 896,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1792,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 8,
+   "fps": 12,
+   "release": 4
+  },
+  "flinch": {
+   "y": 2688,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10
+  },
+  "hurt": {
+   "y": 3584,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 8,
+   "fps": 8
+  },
+  "latched": {
+   "y": 4480,
+   "fw": 96,
+   "fh": 112,
+   "ax": 48,
+   "ay": 84,
+   "frames": 8,
+   "fps": 6
+  }
+ }
+}

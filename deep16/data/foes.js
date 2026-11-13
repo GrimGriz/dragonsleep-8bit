@@ -509,12 +509,12 @@
   // any stirge does, blood (js/ai.js, the stirge's own branch: `stinger.slots`). It goes for the one with magic (js/seep.js). The look is a STAND-IN: the stirge's own sheet
   // under the mirror ripple, the mirror eye (its art asked of the art desk 11-13: deep16-art-wanted.md, the outbox's ART-MIRROR-STIRGE). The seat's calls, for his overrule
   mirrorstirge: {
-    name: 'Mirror Stirge', type: 'beast', sheet: 'stirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, fly: 40, size: 1, reach: 5, darkvision: 60,
+    name: 'Mirror Stirge', type: 'beast', sheet: 'mirrorstirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, fly: 40, size: 1, reach: 5, darkvision: 60,
     abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
     saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
     attacks: { drain: { name: 'Magic Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true, slots: true } },
     multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
-    src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on the stirge sheet as a stand-in -- SENSES (ours, 11-10): Stealth none, its DEX check (+3), because the SRD Stirge it is made from has no Stealth; passive Perception 9, because it is the stirge, made over: 10 + WIS -1'
+    src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on its own sheet since 11-13, mirrorstirge_p1 (the art desk\'s ART-143: smoked glass and silver, cut by tools/mirrorstirge-sheet.py) -- SENSES (ours, 11-10): Stealth none, its DEX check (+3), because the SRD Stirge it is made from has no Stealth; passive Perception 9, because it is the stirge, made over: 10 + WIS -1'
   },
   // THE MIRROR WOLF and THE MIRROR WORG (11-13, ours; the makings seat, on Griz's "choose two creatures from each random encounter list to have him mirror-make": the two of
   // the Doors' table, where he makes on days 9 and 11 -- js/world.js W.MADE). THE FAMILY'S RULE, the one the mirror wisp and the mirror stirge were built by: the SRD block
