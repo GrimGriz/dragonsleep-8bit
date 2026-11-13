@@ -83,6 +83,7 @@
   else if (/[?&]rows=/.test(q)) D.push(D.oneGallery ? D.oneGallery.door(q) : D.show.rows(q)); // the row gallery: ?rows=cube -- every row of a sheet one at a time, left/right, up/down turns it, E again (js/show.js, 10-08)
   else if (/[?&]show=secondact\b/.test(q) && D.secondact && D.secondact.show) D.push(D.secondact.show(q)); // THE SECOND ACT, 11-04: the signs, the fork, the path, Gennet's fight, the rise, the wand (js/secondact.js)
   else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
+  else if (/[?&]headlessrun(&|$)/.test(q) && D.headless) D.push(D.headless.serve()); // the Snoot's ask: a headless fight fought for the page that holds this frame (js/headless.js H.serve)
   else if (/[?&]headless(&|$)/.test(q) && D.headless) D.push(D.headless.door(q)); // the headless fight's janky head (11-13): two of the Snoot's groups on a field with no map, both run by the AI, to be watched -- ?headless&a=paladin:4,guard*12&b=gnoll*9,hyena*6 (js/headless.js)
   else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q, D.npcRecord(q))); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js); recorded since 10-06
   else if (/[?&]keeperfight\b/.test(q) && D.keeper) D.push(D.keeper.fight(q)); // the Keeper of the Flooded Stair (js/keeper.js)

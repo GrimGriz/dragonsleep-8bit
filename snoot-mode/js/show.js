@@ -15,7 +15,8 @@
   var W0 = 960, H0 = 540, CX = 480; // (the screen's own size for the dice, the banners and the rosters; the canvas scales it)
   // how long each beat holds the screen, in seconds; a round's dice roll together (CHAINMAIL's melee is simultaneous, p.14), as do its casualties,
   // its fire balls and its duels -- one beat each -- and a later round goes quicker: about five seconds a fight (RULED 10-14 night)
-  var DUR = { evade: 1.1, walls: 1.0, menrun: 0.8, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4, pray: 1.3, held: 0.6 };
+  var DUR = { evade: 1.1, walls: 1.0, menrun: 0.8, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4, pray: 1.3, held: 0.6, hbeat: 1.0, hend: 3.0 };
+  var HIDLE = 0.25; // (the headless fight's beat: this long standing before the swing and after it)
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
   var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
@@ -127,6 +128,12 @@
         case 'grid': if (now) sc.banner = { big: b.kind === 'harbinger' ? 'THE FOUR AND THE HARBINGER' : 'THE FOUR ON THE GRID', small: { won: 'won', yielded: 'won', fled: 'won', escaped: 'the four got out of it', lost: 'the four went down' }[b.res] + (b.kind === 'band' ? ' -- ' + Math.round(b.share * 100) + '% of the band down' : ''), p: p }; break;
         case 'night': if (now) { sc.dark = Math.min(1, p * 2) * 0.45; sc.banner = { big: 'NIGHT FALLS', small: 'no one ends the day on a shared hex: one side backs off', p: p }; } else sc.dark = 0; break;
         case 'head': sc.head = { b: b, p: p, local: local, now: now }; break;
+        // the headless fight's beats (11-13, js/headless.js; Griz: "one beat would probably be x seconds of idle, appropriate attack animation, x seconds of idle"):
+        // a run of one group's turns on the grid -- its figures stand, swing together, stand; what a turn did without a blow (a spell, a prayer) as a word over them
+        case 'hbeat': if (now && U) { if (local >= HIDLE && local <= DUR.hbeat - HIDLE) { U.anim = 'attack'; U.animT = local - HIDLE; }
+            if (b.words && b.words.length) sc.fx.push({ kind: 'word', u: b.u, text: b.words[0], p: p });
+            sc.banner = { big: '', small: b.name + ': ' + b.n + (b.n > 1 ? ' act' : ' acts') + (b.swings ? ' -- ' + b.hits + ' of ' + b.swings + ' blows land' : ''), p: p, quick: true }; } break;
+        case 'hend': if (now) sc.banner = { big: b.big, small: b.small, p: p }; break;
       }
     }
     return sc;

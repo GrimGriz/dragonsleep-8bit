@@ -175,6 +175,19 @@
     if (!err && !H.men(B, 'a').some(up) && !H.men(B, 'b').some(up)) res = 'both'; // (the last of each down or away in the one round: nobody's)
     return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, beats: B.hl.beats || [], log: B.log || [] };
   };
+  // THE SNOOT'S ASK (deep16/?headlessrun, in a frame nobody sees: snoot-mode/js/headless.js HL.ask): 'd16h:ready' up to the page that holds the frame; its
+  // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
+  H.serve = function () {
+    var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
+    var side = function (u) { return { name: u.name, list: H.listOf(u), morale: u.rating, never: !!u.never }; };
+    window.addEventListener('message', function (e) {
+      var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
+      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed }); delete r.log; post({ type: 'd16h:done', id: m.id, res: r }); }
+      catch (err) { post({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); }
+    });
+    setTimeout(function () { post({ type: 'd16h:ready' }); }, 0);
+    return { update: function () { }, draw: function () { } };
+  };
   // THE JANKY HEAD: the same fight on the screen, both groups run by the AI --
   //   deep16/?headless&a=paladin:4,guard*12&b=gloryseeker*3,gnoll*9,hyena*6&seed=7   (&an= &bn= their names, &am= &bm= their morale ratings, &gap= ft, &lvl=)
   H.door = function (q) {
