@@ -481,6 +481,10 @@
   In.fadeSay = function (B, lines) { var F = B.innFade || (B.innFade = { k: 0, lines: [] }); F.lines = [].concat(lines || []); if (D.house && D.house.trail) D.house.trail('act', 'ON THE BLACK: ' + F.lines.join(' ')); };
   if (D.ui && D.ui.drawBattle) { var drawF0 = D.ui.drawBattle; D.ui.drawBattle = function (ctx, B) {
     var r = drawF0.apply(this, arguments), F = B && B.innFade, SP = B && B.innSplash;
+    // (THE BLACK HELD OVER A FLOOR'S FIRST FRAMES, 11-13, his 0404Z note on eyes-watch-down-1113: "when the scene starts playing, it flashes to aurdin downstairs before panning
+    // the camera to the scene (despite the aurdin upstairs now)" -- the yard's floor is laid with the token at the stair's foot, and was drawn so for a frame or more before the
+    // scene stood him upstairs. In.blackHold counts frames down and is let go by the scene once its picture is set: In.wagonNight)
+    if (In.blackHold > 0 && B && B.roam) { In.blackHold--; In.blackDrawn = (In.blackDrawn || 0) + 1; ctx.save(); ctx.fillStyle = '#05060c'; ctx.fillRect(0, 0, D.W, D.H); ctx.restore(); return r; }
     // (A PORTRAIT SPLASHED MID-SCREEN over the floor, 11-13: B.innSplash { sheet, t0, s } -- Elsbeth with the bucket, his "have the portrait centered mid-screen, it plays before
     // the text comes up"; its row played once and held on its last frame; In.splash sets it, In.splash(B) takes it down)
     if (SP && D.SHEETS && D.SHEETS[SP.sheet] && D.counter && D.counter.drawPortraitAt) { var sh = D.SHEETS[SP.sheet], an = sh.anims.idle, k = SP.s || 1, fr = Math.min(an.frames - 1, Math.floor((B.t - SP.t0) / 14)), left = Math.round((D.W - sh.fw * k) / 2), foot = Math.round(D.H / 2 + sh.fh * k / 2) - 6; D.counter.drawPortraitAt(ctx, SP.sheet, 'idle', fr, left + sh.ax * k, foot - (sh.fh - sh.ay) * k, k); SP.drawn = (SP.drawn || 0) + 1; SP.at = [left, foot]; if (B.req && B.req.prompt && D.ui.drawReq) { D.ui.drawReq(ctx, B, { prompt: B.req.prompt }); SP.boxOver = (SP.boxOver || 0) + 1; } /* (11-13, his 0404Z note on eyes-stone-take-1113: "water bucket popup on the layer on top of the portrait" -- the box that takes the OK is drawn again after the portrait, so it lies over it) */ }
@@ -1482,6 +1486,7 @@
       yield* In.card(B, [In.WATCH.heard.split('{name}').join(watcher.name)], 360);
       In.upShot(); // (the guest floor's picture, for the yard: In.upView)
       In.watching = { stage: 'yard', d: d, stay: R0.stay, watcher: keyOf(watcher), lead0: keyOf(lead0), win: [R0.token.x, R0.token.y], abed: B.units.filter(function (u) { return u.abed; }).map(function (u) { return { name: u.name, sheet: u.sheet, x: u.x, y: u.y }; }) };
+      In.blackHold = 120; // (black until the yard's scene has the party stood upstairs and the camera on it: the draw wrap above; two seconds at most if nothing lets it go)
       yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'up';
     }
     }
@@ -1493,6 +1498,7 @@
     // upstairs the house is laid as from OUTSIDE, under its roof: the yard is what the window shows; and whichever way it is laid, the floor's own Gennet goes while the scene's is out)
     if (upstairs) { In.stage(B, In.WATCH.down, null); if (In.upPic) In.upView(B, { at: W2.win || In.WATCH.window, face: [-1, 0], abed: W2.abed || [] }); else In.offFloor(B, true); } // (the party is upstairs: drawn there, over the house -- In.upView; with no picture of the floor, nobody of it on this floor)
     else In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn');
+    if (upstairs && R0.upView) B.focus(R0.token); In.blackHold = 0; // (the camera on the one at the window before the first frame he sees, then the pan to the wagon)
     var Y = In.yardCast(B, f), w = In.WAGONAT; B.units.filter(function (u) { return u.npc === 'gennet'; }).forEach(function (u) { In.gone(B, u); }); // (one Gennet: the scene's)
     yield* In.cam(B, [w[0] + 2, w[1]], 30);
     yield* In.card(B, [In.WN.turnsIn.split('{name}').join(watcher.name)], 420);
@@ -1534,9 +1540,16 @@
         var ly2 = outside.filter(function (u) { return keyOf(u) === 'lymen'; })[0];
         if (ly2) { yield* In.card(B, [In.who('Lymen', L('wagon.lymen'))], 420); how = 'fight'; }
         else {
-          yield* In.card(B, [In.who(outside[0].name, L('wagon.confront'))], 360);
-          var b = yield* In.ask(B, 'AMARA', [In.who('Amara', L('wagon.bribe'))], ['TAKE THE GOLD', 'REFUSE']);
-          if (b === 0) how = 'bribe'; else { yield* In.card(B, [In.who(outside[0].name, L('wagon.refuse'))], 300); how = 'fight'; }
+          // (THE BRIBE ON PORTRAITS, 11-13, his 0515Z note on eyes-wagon-seethrough-1112: "Bribe dialog should use portraits" -- the hero's word, her offer and the choice on
+          // Amara's own screen and face, pt_amara, js/counter.js C.PT.amara; it had been cards and a floor prompt)
+          var b = 1, sayer = outside[0].name;
+          yield* M.talk(B, 'amara', function (sc) { return (function* () {
+            yield sc.say([In.who(sayer, L('wagon.confront'))]);
+            b = yield sc.ask('"' + L('wagon.bribe') + '"', ['TAKE THE GOLD', 'REFUSE']);
+            if (b !== 0) yield sc.say([In.who(sayer, L('wagon.refuse'))]);
+          })(); }, 'Amara');
+          In.trail('the bribe on her own screen: ' + (b === 0 ? 'taken' : 'refused'));
+          if (b === 0) how = 'bribe'; else how = 'fight';
         }
       }
     }

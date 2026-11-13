@@ -396,6 +396,7 @@
     In.fadeSay(B, [A.LINES.dragStone]); yield 150;
     yield* In.fade(B, 0, 50);
     yield* A.surface(B, Y);
+    if (!water) { A.sing(); A.trail('the singing stops as the water heaves: nobody with a bucket'); } // (11-13: with no Elsbeth at the stone it had run on into the fight)
     var wake = function (Bf, why) { // (each sleeper's save with its bonus; who makes it wakes -- or only the first, P.firstOnly)
       var woke = [];
       party.forEach(function (u) { if (!u.conds || !u.conds.asleep || u.dead || u.hp <= 0) return; if ((!P.firstOnly || !woke.length) && A.poisonSave(u, bonus[u.id], false)) { delete u.conds.asleep; woke.push(u); } });
