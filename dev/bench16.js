@@ -36,9 +36,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   var card0 = B0.card; stats.climbs = {};
   B0.card = function (lines) { (lines || []).forEach(function (s) { var m = /^\{y\}(.+?)\{\/\} climbs: .*\{(n|o)\}(UP|SLIPS)/.exec(String(s)), f = /^\{o\}(.+?) (?:drops|falls) ([\d.]+) ft/.exec(String(s)); if (m) stats.climbs[m[1] + ' ' + m[3]] = (stats.climbs[m[1] + ' ' + m[3]] || 0) + 1; if (f) stats.climbs[f[1] + ' FALLS'] = (stats.climbs[f[1] + ' FALLS'] || 0) + 1; }); return card0.apply(this, arguments); };
   function drive(B) {
-    var v, guard = 0;
+    var v, guard = 0, quietAt = null;
     while (B.co && guard++ < 400000) {
       var r;
+      // the Wet keeps the party till one of them walks off it (deep16/js/wet.js BP.over, RULED 09-30d): nothing dead, asleep or quiet ends it, and a hero the AI runs is never
+      // asked LEAVE THE AREA? -- so fight=wet ran to the step guard every time, 12 of 12 unended (found 11-13). The bench walks out as a player would: two rounds with nothing
+      // awake and standing against them, and the first hero on their feet has left (the walk-out's own flag; the fight's ending counts what died, a win, or a run). The
+      // landlord asleep in its pool is theirs to wake or leave: with only sleepers left on the grid the bench gives them ten rounds to strike one, then goes
+      if (B.fight && B.fight.settling && B.wet && !B.result) {
+        var liveW = B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !w.sunk && !w.fled; });
+        if (liveW.some(function (w) { return !w.dormant; })) quietAt = null;
+        else if (quietAt == null) quietAt = B.round || 0;
+        else if ((B.round || 0) >= quietAt + (liveW.length ? 10 : 2)) { var goer = B.units.filter(function (w) { return w.side === 'party' && !w.summon && !w.familiar && !w.dead && w.hp > 0 && !w.left; })[0]; if (goer) goer.left = true; quietAt = null; }
+      }
       try { r = B.co.next(v); } catch (e) { errs.push(String(e && e.stack || e).slice(0, 600)); return 'error'; }
       v = undefined;
       if (r.done) break;
