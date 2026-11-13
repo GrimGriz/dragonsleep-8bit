@@ -97,6 +97,7 @@
       if (k === 'buff' || k === 'teleport') return D.icon('spell', 'buff');
       return D.icon('spell', { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || 'force');
     }
+    if (e.kind === 'readywhen') return D.icon(e.icon, e.tint); // (READY's WHEN? ring: a trigger's glyph, a foe's spell in fire and a friend's in blue -- js/ui.js whenRing, 11-13)
     if (e.kind === 'level') return D.icon('spell', ['thunder', 'cold', 'acid', 'lightning', 'fire', 'fire', 'force', 'force', 'force', 'force'][e.level] || 'force');
     if (e.kind === 'item') { // (an item with a glyph of its own -- by its id, the torch, the lantern, the bucket; or by its use, the rope -- else the flask in its effect's colours)
       var it = e.e || e, own = MAPS[it.id] ? it.id : it.use && MAPS[it.use.effect] ? it.use.effect : null;

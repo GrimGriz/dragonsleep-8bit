@@ -2120,8 +2120,10 @@
         // or you choose to move up to your speed in response to it"
         if (!T.action || T.attacksLeft || u.ready) return;
         if (!c.trigger && !c.pick) {
-          var tp = byAI(u) ? 0 : yield { prompt: { who: u, title: u.name + ': READY -- WHEN?', lines: ['Reach is sight for a bow or a spell. Readied, your turn ends.'], opts: Battle.READY_TRIGGERS.map(function (t) { return { label: t.label, value: t.id }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
-          if (tp) this.readying = { who: u, trigger: tp }; // (nothing spent yet: the wheel takes it from here)
+          // WHEN? IS A RING (11-13; his 10-06 "if you put ready on the ring, the expanded text shows below when it highlights, when the person picks the thing that text
+          // could have the 'next' instruction"): no popup -- B.readying is left with no trigger yet, and js/ui.js opens the ring of Battle.READY_TRIGGERS (whenRing), then
+          // readyRing for what is held. Nothing spent till the second pick
+          if (!byAI(u)) this.readying = { who: u, trigger: null };
           return;
         }
         this.readying = null;
@@ -2750,6 +2752,7 @@
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (this.flying && this.flying.u === att && this.flying.atk === atk) this.flying.hit = hit; // (where a thrown weapon lands: Battle.landThrow)
+    o.struck = hit ? tgt : null; // (the one this blow hit, for READY's "a friend strikes a foe": the attack's seam below reads it -- 11-13)
     // (the card said after the blow's own: the attack's card is re-carded in place with its damage below, and a re-carded card goes to the log's foot -- so said here, the found
     // line read above the blow that found her, under the last MISS. 11-06, his 21:43:45Z R2 the Crawler, read by the lanes desk. foundTxt: said where the blow's card is done)
     var foundTxt = null;
@@ -3211,16 +3214,31 @@
   // trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger"
   // (short, so the prompt is one row of buttons under one line, as the others are -- 10-06, a pad player: "trigger renders text box above selection, unlike
   // other options (3 rows of text instead of 1 or 2)"; it stood three rows tall over the hero. The long words are Battle.readyWhen's, on the card after)
+  // FOUR MORE, SPRUNG BY A FRIEND'S ACTION (11-13, Griz, from play: "During playthough I realized we need a set of readied actions triggered by friendly actions (other
+  // than being downed) - at a table readied is often to follow up or set up a team combo"; the four names his plan's): A FRIEND STRIKES A FOE ('strike': a friend's
+  // attack hits one -- the held thing goes at that foe), A FRIEND CASTS ('fcast': after the friend's spell resolves), A FRIEND HARRIES A FOE ('harry': a friend lands a
+  // condition on a foe, shoves or grapples it -- at that foe), A FRIEND ENDS THEIR TURN ('turn': as that friend's turn closes). Told at the same seams as the old three
+  // (readyAfter; harryTold); never on the readier's own turn (RULED 10-05). The readings are the seat's, standing for his overrule; heroes only -- no AI picks them.
+  // Eight do not fit a row of buttons: WHEN? is a ring (js/ui.js whenRing), each with its icon, its long words (readyWhen) and where the held thing goes (`hint`)
   Battle.READY_TRIGGERS = [
-    { id: 'near', label: 'A FOE IN REACH' },
-    { id: 'ally', label: 'A FOE ATTACKS US' },
-    { id: 'down', label: 'ONE OF US DOWN' },
-    { id: 'cast', label: 'A FOE CASTS' }
+    { id: 'near', label: 'A FOE IN REACH', icon: 'move', hint: 'at the one that comes' },
+    { id: 'ally', label: 'A FOE ATTACKS US', icon: 'claw', hint: 'at the attacker, if it is in your reach' },
+    { id: 'down', label: 'ONE OF US DOWN', icon: 'secondwind', hint: 'for the healers: on the one who fell' },
+    { id: 'cast', label: 'A FOE CASTS', icon: 'spell', tint: 'fire', hint: 'at the caster, or at what the spell did' },
+    { id: 'strike', label: 'A FRIEND STRIKES A FOE', icon: 'attack', hint: 'the follow-up: at the foe your friend hit' },
+    { id: 'fcast', label: 'A FRIEND CASTS', icon: 'spell', tint: 'buff', hint: 'once the spell is done: aimed where you like' },
+    { id: 'harry', label: 'A FRIEND HARRIES A FOE', icon: 'shove', hint: 'at the foe put down, held or shoved' },
+    { id: 'turn', label: 'A FRIEND ENDS THEIR TURN', icon: 'end', hint: 'right after the next friend to act: aimed where you like' }
   ];
   Battle.readyWhen = function (rd) {
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';
     if (rd.trigger === 'down') return 'when one of us goes down';
     if (rd.trigger === 'cast') return 'when you see a foe cast a spell';
+    if (rd.trigger === 'strike') return 'when a friend\'s attack hits a foe';
+    if (rd.trigger === 'fcast') return 'when a friend casts a spell';
+    if (rd.trigger === 'harry') return 'when a friend lays a condition on a foe, shoves it or grapples it';
+    if (rd.trigger === 'turn') return 'when a friend ends their turn';
+    if (!rd.what) return 'when a foe comes within reach (a bow or a spell: into sight, or one in sight moves)'; // (the ring's, before what is held is picked)
     return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) || rd.see ?'into sight, or one in sight moves' : 'within reach');
   };
   Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
@@ -3238,6 +3256,32 @@
     if (ctx.kind === 'ally' && ctx.foe && ctx.ally) yield* this.readyOn('ally', { foe: ctx.foe, ally: ctx.ally, why: Battle.nm(ctx.foe, true) + ' attacks ' + Battle.nm(ctx.ally) + '.' }, own);
     if (ctx.kind === 'cast' && ctx.foe) yield* this.readyOn('cast', { foe: ctx.foe, effect: ctx.effect, why: Battle.nm(ctx.foe, true) + ' casts ' + (D.magic.data(ctx.spell) ? D.magic.data(ctx.spell).name : 'a spell') + '.' }, own);
     for (var i = 0; i < downs.length; i++) yield* this.readyOn('down', { ally: downs[i], foe: ctx.foe && G.hostile(ctx.foe, downs[i]) ? ctx.foe : null, why: Battle.nm(downs[i], true) + ' goes down.' }, own);
+    // the friends' four (11-13): a blow that hit (ctx.hit: the one struck -- told to the striker's friends), a spell done (to the caster's), a turn closed (to that one's)
+    if (ctx.kind === 'ally' && ctx.hit && ctx.foe && G.hostile(ctx.foe, ctx.hit)) yield* this.readyOn('strike', { foe: ctx.hit, ally: ctx.foe, why: Battle.nm(ctx.foe, true) + ' hits ' + Battle.nm(ctx.hit) + '.' }, own);
+    if (ctx.kind === 'cast' && ctx.foe) { var ef = ctx.effect || {}, cf = (ef.units || []).filter(function (x) { return G.hostile(ctx.foe, x) && G.standing(x); })[0] || null; yield* this.readyOn('fcast', { ally: ctx.foe, foe: cf, seen: ctx.effect, why: Battle.nm(ctx.foe, true) + ' casts ' + (D.magic.data(ctx.spell) ? D.magic.data(ctx.spell).name : 'a spell') + '.' }, own); }
+    if (ctx.turnOf && !ctx.kind && !ctx.turnOf.dead && ctx.turnOf.hp > 0 && !ctx.turnOf.object) yield* this.readyOn('turn', { ally: ctx.turnOf, foe: null, why: Battle.nm(ctx.turnOf, true) + ' ends the turn.' }, own);
+  };
+  // A FRIEND HARRIES A FOE (11-13): told at the end of every command, attack and spell (the seams below) from a look taken at its start -- a foe of the one acting that
+  // wears a condition it did not (Battle.HARRY: the SRD's, and the spells' holds), or was set down by force (forced: a shove, a push, a pull). Looked at only while a
+  // 'harry' ready is armed; an inner seam's look is the outer's too, so one landing is told once
+  Battle.HARRY = { prone: 'prone', grappled: 'grappled', restrained: 'restrained', pinned: 'pinned', stunned: 'stunned', paralyzed: 'paralyzed', blinded: 'blinded', deafened: 'deafened', frightened: 'frightened', charmed: 'charmed', poisoned: 'poisoned', incapacitated: 'incapacitated', asleep: 'asleep', slowed: 'slowed', dancing: 'dancing', laughing: 'laughing', hypnotized: 'entranced', confused: 'confused', faerie: 'outlined in light' };
+  Battle.prototype.harryArmed = function () { return this.units.some(function (w) { return w.ready && w.ready.trigger === 'harry' && w.reaction > 0; }); };
+  Battle.prototype.harrySnap = function () {
+    if (!this.harryArmed()) { this.harrySeen = null; return; }
+    var s = this.harrySeen = {}; this.harryPushed = [];
+    this.units.forEach(function (w) { if (w.dead || w.hp <= 0) return; var c = s[w.id] = {}; Object.keys(w.conds || {}).forEach(function (k) { if (Battle.HARRY[k] && w.conds[k]) c[k] = 1; }); });
+  };
+  Battle.prototype.harryTold = function* (actor) {
+    var seen = this.harrySeen, pushed = this.harryPushed || [];
+    if (!seen || !actor || !this.harryArmed() || this.over()) return;
+    var got = [];
+    this.units.forEach(function (w) {
+      if (!seen[w.id] || w === actor || !G.hostile(actor, w) || !G.standing(w)) return;
+      var k = Object.keys(w.conds || {}).filter(function (c) { return Battle.HARRY[c] && w.conds[c] && !seen[w.id][c]; })[0];
+      if (k || pushed.indexOf(w) >= 0) got.push({ w: w, k: k });
+    });
+    this.harrySnap();
+    for (var i = 0; i < got.length; i++) yield* this.readyOn('harry', { foe: got[i].w, ally: actor, why: Battle.nm(actor, true) + (got[i].k ? ' has ' + Battle.nm(got[i].w) + ' ' + Battle.HARRY[got[i].k] : ' shoves ' + Battle.nm(got[i].w)) + '.' });
   };
   Battle.prototype.readyOn = function* (kind, ctx, own) {
     var self = this, rs = this.units.filter(function (w) { return w.ready && w.ready.trigger === kind && w.reaction > 0 && RU.canAct(w) && G.standing(w) && w !== (own || self.active); });
@@ -3248,8 +3292,20 @@
       // (you see it cast: the caster in sight, or what it does -- a creature it lands on (you too), a square of what it lays. 10-02, Griz: "could we 'you see a spell cast'
       // then target based on readied action (i.e the spell effect if eligible, the caster for a bow shot)" -- "2 - yes")
       if (kind === 'cast' && (!G.hostile(w, ctx.foe) || !(D.magic.sees(self, w, ctx.foe) || Battle.sawEffect(self, w, ctx.effect)))) continue;
-      if (!this.readyCan(w, w.ready, ctx, kind)) continue; // (out of its reach: not asked, and it waits for the next -- readyCan)
-      yield* this.readySpring(w, w.ready, ctx);
+      // (the friends' four, 11-13: the one acting is a friend and not you; a strike or a harrying, at a foe of yours still up, one of the two in your sight; a friend's
+      // spell seen as a foe's is -- the caster, or what it did)
+      var fr = kind === 'strike' || kind === 'harry' || kind === 'fcast' || kind === 'turn', cx = ctx;
+      if (fr && (!cx.ally || cx.ally === w || G.hostile(w, cx.ally))) continue;
+      if ((kind === 'strike' || kind === 'harry') && (!cx.foe || !G.hostile(w, cx.foe) || !G.standing(cx.foe) || !(D.magic.sees(self, w, cx.foe) || D.magic.sees(self, w, cx.ally)))) continue;
+      if (kind === 'fcast' && !(D.magic.sees(self, w, cx.ally) || Battle.sawEffect(self, w, cx.seen))) continue;
+      // (a friend's spell or turn's end points at no foe of its own: the held blade, shot or spell goes at the nearest one it can reach -- a player aims it anyway)
+      if ((kind === 'fcast' || kind === 'turn') && !this.readyCan(w, w.ready, cx, kind)) {
+        var near = this.units.filter(function (x) { return G.hostile(w, x) && G.standing(x) && !x.ethereal && !x.under; }).sort(function (a, b) { return G.dist(w, a) - G.dist(w, b); })
+          .filter(function (x) { return self.readyCan(w, w.ready, Object.assign({}, ctx, { foe: x }), kind); })[0];
+        if (near) cx = Object.assign({}, ctx, { foe: near });
+      }
+      if (!this.readyCan(w, w.ready, cx, kind)) continue; // (out of its reach: not asked, and it waits for the next -- readyCan)
+      yield* this.readySpring(w, w.ready, cx);
     }
   };
   // WITHIN REACH (11-05, his record of the Wet's Crawler, R1-R2: Lymen's readied Longsword, "a foe attacks one of us", was offered at the Crawler 20 ft off and refused it as out of
@@ -3362,12 +3418,14 @@
   var attack0 = Battle.prototype.attack;
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     var throws0 = this.thrownLeft(att, atk);
+    o = o || {}; this.harrySnap(); // (o.struck: the one the blow hit -- "a friend strikes a foe"; harrySnap: the look "a friend harries a foe" is told from, 11-13)
     yield* attack0.call(this, att, tgt, atk, o);
     if (this.flying && this.flying.u === att) this.landThrow(); // (the thrown weapon on the floor, or gone: 11-10)
     if (throws0 > 0 && throws0 !== Infinity && !this.thrownLeft(att, atk)) this.card(['{g}(' + Battle.nm(att) + ' has thrown ' + (att.side === 'foe' && !att.named ? 'its' : 'the') + ' last ' + atk.name.toLowerCase().replace(/^thrown /, '') + '){/}'], 160); // (spendThrow)
     yield* this.readyForced();
     if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); // (WHAT FALLS, FEEDS: a player's Green Return paladin is asked once the blow that dropped one is done -- js/features.js F.greenAsk; a seam here since 11-03, F.greenHook wrapped this from outside)
-    if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
+    if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt, hit: o.struck });
+    yield* this.harryTold(att);
   };
   // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that
   // haven't first-turned"): with the Attack action at one that has not had its first turn, one more attack at it, its damage the weapon's dice alone -- no ability modifier,
@@ -3386,7 +3444,7 @@
   // Wind, Repelling Blast, a shove: magic.js M.push), a rider pulled off or thrown off and dropped beside (dismount), a cushion shoved out from under a fall (landOn), one knocked over
   // a ledge (knockOff) -- goes on B.shoved where it lands, and the readied strikes are asked of it once the action that moved it is done: the end of every exec, of every attack, and
   // the AI's own shove (ai.js shoveOff). The Keeper's Wave asks the hook itself (keeper.js, the pattern this follows); asked twice, the second finds nothing new (readyHook's `had`)
-  Battle.prototype.forced = function (w) { if (w && !w.dead) (this.shoved = this.shoved || []).push(w); };
+  Battle.prototype.forced = function (w) { if (w && !w.dead) { (this.shoved = this.shoved || []).push(w); if (this.harrySeen) (this.harryPushed = this.harryPushed || []).push(w); } }; // (harryPushed: "a friend harries a foe", harryTold -- 11-13)
   Battle.prototype.readyForced = function* () {
     var s = this.shoved; if (!s || !s.length) return;
     this.shoved = [];
@@ -3394,7 +3452,7 @@
     for (var i = 0; i < s.length; i++) if (s.indexOf(s[i]) === i && G.standing(s[i])) yield* this.readyHook(s[i]);
   };
   var exec0 = Battle.prototype.exec;
-  Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); yield* this.readyForced(); if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); /* (WHAT FALLS, FEEDS, as in attack above: the command done) */ return r; };
+  Battle.prototype.exec = function* (u, c) { this.harrySnap(); var r = yield* exec0.apply(this, arguments); yield* this.readyForced(); yield* this.harryTold(u); /* (a shove, a grapple, a feature that lays a condition: "a friend harries a foe", 11-13) */ if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); /* (WHAT FALLS, FEEDS, as in attack above: the command done) */ return r; };
   var cast0 = D.magic.cast, ZK = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'];
   D.magic.cast = function* (B, u, id, slot, t) {
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
@@ -3404,6 +3462,7 @@
     // aimed at, or one it hurt or laid something on (an area's catch), ends the caster's ward; a spell on friends keeps it
     var ward = u && u.conds && u.conds.sanctuary && B && B.units ? { hp: {}, c: {} } : null;
     if (ward) B.units.forEach(function (w) { if (!G.hostile(u, w)) return; ward.hp[w.id] = w.hp; ward.c[w.id] = Object.assign({}, w.conds); });
+    if (B && B.harrySnap && B.units) B.harrySnap(); // ("a friend harries a foe": the look before the spell -- harryTold below, 11-13)
     var r = yield* cast0.apply(this, arguments);
     if (ward && u.conds.sanctuary && D.magic.unward) {
       var aimed = t && t.units ? t.units : t && t.hp != null ? [t] : [];
@@ -3418,6 +3477,7 @@
       }
       yield* B.readyAfter({ kind: 'cast', foe: u, spell: id, effect: ef });
     }
+    if (B && B.harryTold && B.units) yield* B.harryTold(u);
     if (B && D.features && D.features.greenAsk) yield* D.features.greenAsk(B); // (WHAT FALLS, FEEDS, as in attack above: the spell done)
     return r;
   };

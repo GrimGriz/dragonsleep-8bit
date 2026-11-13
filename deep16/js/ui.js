@@ -72,7 +72,8 @@
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
       if (UI.style(B) !== 'window' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
       // READY's trigger asked (battle.js exec 'ready'): the wheel of what can be held for it
-      if (B.readying && B.readying.who === req.turn) { B.tool = 'menu'; B.list = readyRing(B, req.turn); B.ringB = null; B.ringStill = false; B.clearCards(); B.card([D.keys('{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- what do you hold for it?  {g}X back{/}')], 100000); }
+      // (WHEN? first, a ring of the eight triggers -- whenRing, 11-13 -- and on its pick the ring of what can be held; a trigger already named goes straight to that)
+      if (B.readying && B.readying.who === req.turn) { B.tool = 'menu'; B.list = B.readying.trigger ? readyRing(B, req.turn) : whenRing(B, req.turn); B.ringB = null; B.ringStill = false; readyCard(B); }
       else B.readying = null;
     }
     B.readyAim = req.aim || null;
@@ -413,7 +414,24 @@
     if (req.turn) return turnInput(B, req.turn);
   };
   // ------------------------------------------------------------------ READY (battle.js exec 'ready', readySpring; 10-02): the wheel of what can be held, and the aim when it springs
-  function readyWhenText(trig) { return trig === 'ally' ? 'when a foe attacks one of us in sight' : trig === 'down' ? 'when one of us goes down' : trig === 'cast' ? 'when a foe in sight casts a spell' : 'when a foe comes within reach (for a bow or a spell: into sight, or one in sight moves)'; }
+  // WHEN? AS A RING (11-13, the READY lane §3.1; Griz, 10-06: "if you put ready on the ring, the expanded text shows below when it highlights, when the person picks the
+  // thing that text could have the 'next' instruction"): the eight triggers (battle.js Battle.READY_TRIGGERS) placed as the ACTIONS ring's entries are, each one's long
+  // words (Battle.readyWhen) and where the held thing goes below it while it is the highlighted one; on the pick the card says what is next, and the ring turns to
+  // readyRing (WHAT?), X from there back to WHEN?. Keys, the pad and the sticks are the other rings' (listInput); in WINDOW it is the window's list, as theirs are
+  function readyWhenText(trig) { return D.Battle.readyWhen({ trigger: trig }); }
+  function whenRing(B, u) {
+    var items = D.Battle.READY_TRIGGERS.map(function (t) { var w = readyWhenText(t.id); return { kind: 'readywhen', id: t.id, icon: t.icon, tint: t.tint || '', name: t.label, label: t.label, ok: true, note: w.charAt(0).toUpperCase() + w.slice(1) + (t.hint ? ' -- ' + t.hint : '') + '.' }; });
+    return { kind: 'when', items: items, sel: 0, title: 'READY: WHEN?' };
+  }
+  UI.whenRing = whenRing; // (dev/bench16.js ready1002b)
+  // the card over READY's two rings: what is asked now, and after WHEN?'s pick what is next
+  function readyCard(B) {
+    B.clearCards();
+    B.card([D.keys(B.readying && B.readying.trigger ? '{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- {y}now: what you hold for it.{/}  {g}X back to WHEN?{/}' : '{y}READY{/}: when? Pick what springs it -- then what you hold for it.  {g}Readied, your turn ends.  X back{/}')], 100000);
+  }
+  // X (or the right button) out of a ring: back on WHEN? from WHAT?, the trigger is unpicked and the card says so
+  function readyBack(B) { if (B.readying && B.list && B.list.kind === 'when' && B.readying.trigger) { B.readying.trigger = null; B.ringB = null; readyCard(B); } }
+  UI.pickList = function (B, u, i) { return pickListItem(B, u, B.list && B.list.items[i], i); }; // (a list's row picked, as the click on it: dev/bench16.js ready1002b)
   // only what can be readied is on it (Griz: "we'll just not have buttons they can't click (except the grayed out level tier buttons (i.e. willem)"): the weapon, the
   // other one, SPELLS (the spells that take an action, by level), MOVE
   function readiable(e) { return !!(e && e.ok && e.g && e.g.time === 'A'); }
@@ -430,7 +448,7 @@
     B.commands(u).forEach(function (c) { if (c.cost === 'A' && (c.ok || c.ready) && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: (c.ready ? (c.ready.self ? 'held for the trigger, on whoever it reaches then: ' : 'held for one that comes within ' + c.ready.range + ' ft' + (c.ready.see ? ', in sight' : '') + ': ') : '') + c.note }); });
     // and an item (Griz: "Add usable items beyond potions as well"): a potion for the one who falls, a flask for the foe who comes
     if (B.itemList(u).some(function (e) { return e.ok && e.id !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
-    return { kind: 'ready', items: items, sel: 0, title: 'READY' };
+    return { kind: 'ready', items: items, sel: 0, title: B.readying && B.readying.trigger ? 'READY: WHAT?' : 'READY' };
   }
   UI.readyRing = readyRing; // (dev/bench16.js ready1005)
   // the spell levels, as the SPELLS ring has them -- a tier with no slot (or nothing to ready) greyed, never hidden -- and in each only the spells that can be readied
@@ -682,7 +700,7 @@
     // The pad's INFO and a long press still inspect (rclick without rbtn)
     B.peek = B.tool === 'spell' && B.spell ? underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y) || null : null;
     // (a ring deeper in -- a list on the wheel, a spell level's spells -- goes back one ring, as B does: 10-02, Griz: "should similarly up a level if you're on a deeper level of the ring")
-    if (I.mouse.rbtn && B.list && B.hoverBtn < 0) { D.sfx('cancel'); B.list = B.list.back || null; return; }
+    if (I.mouse.rbtn && B.list && B.hoverBtn < 0) { D.sfx('cancel'); B.list = B.list.back || null; readyBack(B); return; }
     if (I.mouse.rbtn && B.tool === 'menu' && B.hoverBtn < 0) { D.sfx('cancel'); B.tool = rest() === 'menu' ? 'move' : rest(); B.spell = null; B.picks = []; B.clearCards(); return; }
     if (I.mouse.rbtn && B.tool === 'spell') {
       // (an "up to N" pick with someone picked: the right button casts with the picks and never drops one -- 10-21 night, his "right click doing anything at that
@@ -861,12 +879,14 @@
     if (L.sel !== sel0 || (e && e.slot !== slot0)) D.sfx('cursor');
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && L.items[k - 1]) return pickListItem(B, u, L.items[k - 1], k - 1);
     if (I.pressed('a')) return pickListItem(B, u, e, L.sel);
-    if (I.pressed('b')) { D.sfx('cancel'); B.list = L.back || null; return; }
+    if (I.pressed('b')) { D.sfx('cancel'); B.list = L.back || null; readyBack(B); return; }
   }
   function pickListItem(B, u, e, i) {
     if (!e) return;
     B.list.sel = i;
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    // READY's WHEN? (whenRing, 11-13): the trigger kept, the card says what is next, and the ring turns to what can be held -- X from there comes back here
+    if (B.readying && e.kind === 'readywhen') { D.sfx('confirm'); B.readying.trigger = e.id; var wr = readyRing(B, u); wr.back = B.list; B.list = wr; B.ringB = null; B.ringStill = false; readyCard(B); return; }
     // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
     if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }
     if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok && x.id !== 'rope'; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
@@ -2701,7 +2721,9 @@
   // a list (spells, items) as a popup: the BAR style's, and the WINDOW style's second window
   function listPopup(ctx, B, u, x, yBottom, w, win) {
     var L = B.list, rows = L.items, vis = Math.min(rows.length, 10), start = D.clamp(L.sel - 5, 0, Math.max(0, rows.length - vis));
-    var h = vis * 11 + 26, y = yBottom - h;   // the rows, then the summary line clear of the last one
+    // (READY's WHEN?, 11-13: its long words run past one line -- wrapped, the box as tall as the longest needs so it does not jump as the hand moves)
+    var whenL = L.kind === 'when' ? rows.map(function (r) { return D.wrap(r.note || '', w - 12).slice(0, 3); }) : null, extra = whenL ? (Math.max.apply(null, whenL.map(function (l) { return l.length; })) - 1) * 9 : 0;
+    var h = vis * 11 + 26 + extra, y = yBottom - h;   // the rows, then the summary line clear of the last one
     win ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h, R('glow', 1));
     B.uiRects.push({ x: x, y: y, w: w, h: h });
     var spT = L.kind === 'spells' ? L.title || 'SPELLS' : ''; // (its slots as the bar says them: UI.slotLine, in the room the title leaves)
@@ -2714,7 +2736,8 @@
       D.text(ctx, e.kind === 'cmd' ? costTag(e.cost) : slotText(e) + (e.g ? '  ' + costTag(e.g.time) : ''), r.x + r.w - 3, r.y + 2, e.ok ? R('silver', 5) : R('stone', 4), 'right');
     }
     var cur = rows[L.sel];
-    var sy = y + h - 10;
+    var sy = y + h - 10 - extra;
+    if (whenL && cur) { whenL[L.sel].forEach(function (l, k) { D.text(ctx, '{g}' + l + '{/}', x + 6, sy + k * 9, R('accent', 2)); }); return; }
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.typeText(D.magic.summary(cur, u)) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + D.typeText(cur.note, true) + '{/}', x + 6, sy, R('accent', 2));
@@ -2746,7 +2769,7 @@
       if (i === B.cmdSel && (focus || on)) hand(ctx, x + 1, r.y + 1);
     });
     ctx.globalAlpha = 1;
-    if (B.list) listPopup(ctx, B, u, x - 206, y + h, 202, true);
+    if (B.list) { var lw = B.list.kind === 'when' ? 300 : 202; listPopup(ctx, B, u, x - lw - 4, y + h, lw, true); } // (WHEN?'s list wider, for its words: 11-13)
   }
 
   // ------------------------------------------------------------------ RING: Secret of Mana's ring of icons round the hero
