@@ -374,7 +374,7 @@
   function hexTopH(q, r) { var e = M.hex[K(q, r)]; if (e) return e.h; if (M.near) { var c = hc(q, r), pw = atw(c[0], c[1], MS.world.w), ew = MS.world.hex[K(pw[0], pw[1])]; if (ew) return ew.h; } return 0; } // (past the area's edge: THE WORLD's hex there)
   // A CLICK ON A PLACE (11-13 later, the world map seat; his note on eyes-world-innroad-1113d: "i clicked on the halfway inn hex at a zoom too far out and it took me to two
   // hexes west of the inn on a closer zoom (when i got there)"): the hex under the pixel is read on the raised land, and a place's mark is drawn on the ground at its own point,
-  // so at the far zooms the two parted -- 47 of the area's 234 place-and-zoom clicks went to another hex. A click within a few pixels of a place's drawn mark, or on its name,
+  // so at the far zooms the two parted -- 15 of the area's 117 drawn place-and-zoom clicks went to another hex. A click within a few pixels of a place's drawn mark, or on its name,
   // is that place: its own hex, the walk to its mark (World.prototype.update)
   World.prototype.pickPlace = function (mx, my) {
     var cam = this.camObj(), best = null, bd = 1e9, r = Math.max(6, Math.min(12, cam.z * 0.6));
