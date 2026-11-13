@@ -24,7 +24,7 @@
   // each gate [x, y, facing], and whether a SAVE is had there (the first game's own rule: its mouths save, its worked floors below are `save: false`)
   M.FLOORS = {
     warrens: { src: 'warrens_a', door: 'warrens', place: 'The Crawler Warrens', sub: 'the mouth camp', save: true, out: 'silverton', outdoors: true, // (outdoors: open to the sky, drawn by the hour -- M.skyAt; not `sky`, which is a map's ceiling in ft, js/grid.js G.skyFt)
-      gates: { feed: [20, 17, [0, -1]] } }, // (in off the feed track on the road below the bridge, where the first game's world warp sets the party down: content/maps/world.json)
+      sheds: true, gates: { feed: [20, 17, [0, -1]], west: [1, 17, [1, 0]] } }, // (feed: on the road below the bridge, where the first game's world warp sets the party down: content/maps/world.json; west: in from Silverton by the feed track, on the road at the camp's west edge -- M.campWest)
     warrens_b: { src: 'warrens_b', place: 'The Crawler Warrens', sub: 'the stalls and the lit galleries', save: false },
     warrens_c: { src: 'warrens_c', place: 'The Crawler Warrens', sub: 'the abandoned workings', save: false },
     galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world', outdoors: true,
@@ -132,6 +132,11 @@
       for (var yu = y - 1; !ch && yu >= 0 && g[yu][x] === 'B'; yu--) ch = M.ROOF[nm(x, yu)] || null;
       g[y][x] = ch || 'n';
     }
+    // THE SHEDS (11-13, his ear file of 11-03 on the mouth camp's three lone wall squares below the road: "Best guess for the square walls is stuff the farms use - sheds or
+    // something near the river"): on a floor with `sheds`, a wall of the first game's that stands alone -- no building's square beside it -- is a shed: a shut door on its
+    // face under its roof (a def's faceDoors, a look only: js/topview.js artRoof draws the bunkhouse's door there; no way in, no word)
+    var sheds = {};
+    if (F.sheds) for (y = 0; y < h; y++) for (x = 0; x < w; x++) if (T.ROOFS[g[y][x]] && nm(x, y) === 'wall' && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(function (o) { var r = g[y + o[1]]; return !r || !T.ROOFS[r[x + o[0]]]; })) sheds[x + ',' + y] = 1;
     // a door's threshold: the square south of it, dressed stone (js/topview.js draws the door in the wall above it)
     var doors8 = {};
     for (y = 0; y < h - 1; y++) for (x = 0; x < w; x++) if (nm(x, y) === 'door' && OPENCH.indexOf(g[y + 1][x]) >= 0) { g[y + 1][x] = 'd'; lk[y + 1][x] = ' '; doors8[x + ',' + y] = [x, y + 1]; }
@@ -201,7 +206,7 @@
     var def = D.MAPS[key] = {
       name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!(m8.dark || F.dark), ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
       clock: !!F.clock, hour: hour, outdoors: !!F.outdoors, skyLights: F.outdoors ? M.skyLamps(r8, leg, marks.doors) : null, ownLights: m8.lights || M.lampLights(key, F, { rows: r8, legend: leg }, people, hour), // (the working gallery's mouth and hooded lamps: M.MOUTHLIGHT) (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
-      view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
+      view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: sheds,
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, faceLadders: faceLad, // (faceLadders: a rock square's face with a ladder up it -> the first game's square it stood on, M.LEDGES) // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
@@ -1258,6 +1263,15 @@
     if (def && def.mine && trig.town === 'talk' && M.SCENES[trig.npc]) { yield* M.talk(B, trig.npc); return; }
     yield* fire0(B, trig, at);
   };
+  // THE CAMP'S WEST EDGE (11-13, his ear file of 11-03 on the mouth camp: "leaving to the left north of the river puts you in the right place in silverton, but leaving silverton
+  // from there puts you mid-south warrens instead of coming in from the left side"): Silverton's feed track brings the party in at the camp's west edge, a step in and facing
+  // east -- on the row they left by (the floor's flag campWest, kept in the save with the rest), else on the road. It had set them down at the `feed` gate, on the road below
+  // the bridge in the middle of the floor, whichever way they had gone
+  M.CAMPROAD = 17;
+  M.campWest = function (flags) {
+    var g = M.FLOORS.warrens.gates.west, m8 = DS.DATA.maps[M.FLOORS.warrens.src], y = flags && flags.campWest, r = y != null && m8 && m8.rows[y];
+    g[1] = r && /[,"P.]/.test(r.charAt(1)) && /[,"P.]/.test(r.charAt(0)) ? y : M.CAMPROAD; return g;
+  };
   var way0 = T.wayOut; // (js/world.js's: a town's road off its floor onto THE WORLD)
   T.wayOut = function* (B, sq) {
     var def = D.roam.def || {}, k = sq[0] + ',' + sq[1];
@@ -1266,8 +1280,8 @@
       if (wp) { yield* M.warp(B, wp); return; }
       if (def.key === 'galleries') yield* M.daceMouth(B); // (out of the mine onto THE WORLD: Dace stops at the mouth -- he never leaves the mountain with the party)
       if (def.edges) { yield* M.edgeOut(B, sq); return; }
-      if (def.out === 'silverton') { yield* M.cross(B, 'silverton', 'east', [M.FEED[0] - 1, M.FEED[1]], M.LINES.toTown); return; }
-    } else if (def.key === 'silverton' && !def.room && /feed track/.test((def.wayName || {})[k] || '')) { yield* M.cross(B, 'warrens', 'feed', null, M.LINES.toCamp); return; }
+      if (def.out === 'silverton') { if (sq[0] === 0) B.roam.flags.campWest = sq[1]; else delete B.roam.flags.campWest; yield* M.cross(B, 'silverton', 'east', [M.FEED[0] - 1, M.FEED[1]], M.LINES.toTown); return; }
+    } else if (def.key === 'silverton' && !def.room && /feed track/.test((def.wayName || {})[k] || '')) { M.campWest(B.roam.flags); yield* M.cross(B, 'warrens', 'west', null, M.LINES.toCamp); return; }
     yield* way0(B, sq);
   };
   // ANY EDGE (10-27, his eye on the Glowseep: "Edge to the west should kick you out back to the world map - don't label the road. Any edge walk "return to world map?""): a

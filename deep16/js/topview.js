@@ -652,7 +652,7 @@
     var hgt = TV.ART.tall ? (/[buB]/.test(s.ch) ? TV.FACEPX.tall : TV.FACEPX.low) : iso.roofPx(m, s.ch), door = !!(sb && sb.ch === 'd'), shut = !door && !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]);
     var sign = (m.def.signs && m.def.signs[s.x + ',' + s.y]) || '', v = NZ.h2(s.x, s.y, 41) * 4 | 0;
     var wall = P === 'mine' ? 'bunkhouse_wall' : /[Bq]/.test(s.ch) ? 'face_stone_' : 'face_' + ['plaster', 'plaster', 'shutter', 'lit_window'][v] + '_', size = hgt > 26 ? 'tall' : 'low';
-    var pos = eW && eE ? 1 : eW ? 0 : eE ? 2 : 1, wn = P === 'mine' ? (door ? 'bunkhouse_door' : 'bunkhouse_wall') : wall + size, wp = TV.piece(wn, P === 'mine' ? 0 : pos, P);
+    var pos = eW && eE ? 1 : eW ? 0 : eE ? 2 : 1, wn = P === 'mine' ? (door || shut ? 'bunkhouse_door' : 'bunkhouse_wall') : wall + size, wp = TV.piece(wn, P === 'mine' ? 0 : pos, P);
     if (!roof || (eS && !wp)) return null;
     var key = 'R' + s.ch + pc + (ns ? 't' : '') + (eS ? 'F' + wn + pos : '') + (door ? 'D' : '') + (shut ? 'X' : '') + sign + ':' + hgt;
     return stash(m, key, function () {
