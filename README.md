@@ -59,4 +59,4 @@ The game stands on the register, but it is its own telling. Where the register h
 
 ## Credits
 
-World, story, people and names: **Griz (GrimGriz)**. Spec: Griz with the Cowork seat. Built by Claude (Anthropic) in Claude Code. Rules material from the SRD 5.1 under CC BY 4.0 — see [LICENSE-SRD.md](LICENSE-SRD.md).
+World, story, people and names: **Griz (GrimGriz)**. Spec: Griz with the Cowork seat. Built by Claude (Anthropic) in Claude Code. Rules material from the SRD 5.1 under CC BY 4.0 — see [LICENSE-SRD.md](LICENSE-SRD.md). The code and the world are Griz's, free to share and build on, not to sell: CC BY-NC-SA 4.0 — see [LICENSE.md](LICENSE.md); borrowed art keeps its own licences, [deep16/CREDITS.md](deep16/CREDITS.md).
