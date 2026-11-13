@@ -2169,7 +2169,7 @@
       if (have.length && have[0].follower && have[0].bystander && have[0].hp <= 0) { /* (hit points gone: a scene's own swap of her figure is not a death) */ In.gone(B, have[0]); R0.follower = null; In.childLost(f, function (l) { B.card(D.roam.wrap([l]), 420); }); return null; } // (killed in a fight on this floor: the errand is over -- In.childLost)
       if (have.length) { if (have[0].follower) R0.follower = have[0]; return have[0]; } // (the scene's own child, or the follower already stood)
       var u = In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [t.x, t.y], name: f.glamourBroken ? 'Nell' : 'The goblin', face: [0, 1] }), q = In.beside(B, u, t);
-      u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; u.bystander = true; R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u; // (bystander: nobody's target in a fight, RULED 11-12 -- an area still catches her)
+      u.x = q[0]; u.y = q[1]; u.tween = null; u.follower = true; u.bystander = true; u.noArea = true; /* (THE DESK'S CALL, 11-13, on Griz's "give it your desk call on the two with no lean :)": one rule for her and the gulch's children -- nobody's target AND left out of every area, js/grid.js G.inArea's `noArea`; his reason for them, "making them viable targets isn't worth the effort and scripting", fits her the same. It replaces 11-12's "an area can still kill her"; her death ending the errand stays in the code for anything that ever does kill her) */ R0.follower = u; G.setup(B.map, B.units); B.cache = null; return u; // (bystander: nobody's target in a fight, RULED 11-12 -- an area still catches her)
     };
     T.people = function (B) { var r = people0.apply(this, arguments); In.layFollower(B); return r; };
     Rm.step = function* (B, u, to) {
@@ -2262,7 +2262,7 @@
     var u = In.unit(b, { id: 'campKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: [cp[0], cp[1]], name: f.glamourBroken ? 'The girl' : 'The goblin', face: [-1, 0] });
     var q = spots.filter(function (q0) { return G.canStand(u, q0[0], q0[1]) && !b.units.some(function (w) { return w !== u && w.x === q0[0] && w.y === q0[1]; }); })[0];
     if (!q) { In.gone(b, u); return null; }
-    u.x = q[0]; u.y = q[1]; u.bystander = true; G.setup(b.map, b.units); b.cache = null; In.campKidU = u; return u;
+    u.x = q[0]; u.y = q[1]; u.bystander = true; u.noArea = true; G.setup(b.map, b.units); b.cache = null; In.campKidU = u; return u; // (noArea: no area catches her by the fire either -- the desk's call, 11-13, In.layFollower)
   };
   // THE CHILD IN A FIGHT (RULED 11-12, Griz, on "what happens in fights wrt to her? game over if she dies built in?" and the seat's lean: "1 - lean, add 250 xp and magic
   // item reward (seat's choice from SRD) to the successful delivery of the child to the house"): she is NOBODY'S TARGET anywhere (a bystander on a floor as by a camp's
