@@ -1,0 +1,39 @@
+{
+ "image": "art/mirrorworg_p1.png",
+ "fw": 120,
+ "fh": 122,
+ "ax": 60,
+ "ay": 98,
+ "top": 66,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 120,
+   "fh": 122,
+   "ax": 60,
+   "ay": 98,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 976,
+   "fw": 120,
+   "fh": 122,
+   "ax": 60,
+   "ay": 98,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1952,
+   "fw": 120,
+   "fh": 122,
+   "ax": 60,
+   "ay": 98,
+   "frames": 8,
+   "fps": 12,
+   "release": 2
+  }
+ },
+ "source": "drawn by the art desk (MIRROR-WORG-SOURCE-SHEETS, 11-13: the Normal state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of the regular worg), cut by tools/mirrorworg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorworg"
+}
