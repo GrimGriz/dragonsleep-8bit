@@ -683,7 +683,7 @@
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
   M.eggDraw = function (line, hue) { return function (ctx, t, W, H) { // (each egg its own line under it, and its own colour: the joke's red, the darkness's purple -- 10-02; the dunking booth's blue, the four blues and bone for the glint -- 10-05)
     var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data, V = hue === 'violet';
-    var RED = (V ? P.violet.slice(1) : hue === 'blue' ? P.blue.concat([P.bone[0]]) : P.red).map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
+    var YL = hue === 'yellow', RED = (V ? P.violet.slice(1) : hue === 'blue' ? P.blue.concat([P.bone[0]]) : YL ? P.gold : P.red).map(hex), /* (yellow: the gold ramp's five -- the Bucket List, 11-13) */ WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
     var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
     for (var i = 0; i < w * h; i++) {
       var c = null, l = eg.lvl[i];
@@ -699,9 +699,9 @@
     // the fight, dim beneath; a red glow behind
     var fade = Math.min(1, t / 10);
     ctx.save();
-    ctx.fillStyle = (V ? 'rgba(10,6,18,' : 'rgba(14,4,8,') + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = (V ? 'rgba(10,6,18,' : YL ? 'rgba(14,10,4,' : 'rgba(14,4,8,') + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
     var cxs = W / 2, cys = H / 2 - 27, gr = ctx.createRadialGradient(cxs, cys, 8, cxs, cys, 160);
-    gr.addColorStop(0, (V ? 'rgba(138,92,180,' : 'rgba(184,52,40,') + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    gr.addColorStop(0, (V ? 'rgba(138,92,180,' : YL ? 'rgba(220,162,56,' : 'rgba(184,52,40,') + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
     // the egg: pops in (over and back), then bobs and rocks a little
     var K = 2.5, k = K;
@@ -728,7 +728,7 @@
       var DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
       ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
       ctx.translate(Math.round(W / 2 - tw), Math.round(cys + h * K / 2 + 16)); ctx.scale(2, 2);
-      DS.text(ctx, line, 1, 1, V ? P.violet[2] : P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
+      DS.text(ctx, line, 1, 1, V ? P.violet[2] : YL ? P.gold[1] : P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
       ctx.restore();
     }
   }; };
@@ -737,7 +737,10 @@
   // 8-bit game with the fight's others (B.flags8, js/embed.js), and each shows once a save -- "1 per customer". js/events.js EV.EGGS lists them
   // (the darkness's: RULED 10-02, Griz: "Make the egg purple and call it \"stare into the void long enough\"" -- set in the joke's case)
   M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Stare Into the Void Long Enough', hue: 'violet' },
-    dunk: { flag: 'eggDunk', line: 'Dunking Booth', hue: 'blue' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
+    dunk: { flag: 'eggDunk', line: 'Dunking Booth', hue: 'blue' },
+    // (THE BUCKET LIST, 11-13, Griz: "elsbeth bucketing you should be an easter egg the whole-party sleeping will be so rare :) Pick a color and a name"; on the lanes desk's pick, a
+    // yellow egg named Bucket List, "your call I said, good or not with me :)" -- found on a floor, not in a fight: js/secondact.js A.bucketEgg keeps its flag in the save's own flags)
+    bucket: { flag: 'eggBucket', line: 'Bucket List', hue: 'yellow' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
   M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = M.jokeFlags ? M.jokeFlags(B) : (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); }; // (the house's save too, 11-05: js/house.js keeps an egg found -- once a save)
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;

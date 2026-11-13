@@ -382,6 +382,20 @@
   // names nobody; the black lifts on the stone in the dark with Elsbeth alone beside it, the kitchen bucket in her hands (her figure on the floor: A.ELS_STONE)
   A.ELS_STONE = [43, 19]; A.GEN_STONE = [45, 17]; // (Gennet at the water's edge by the stone on the no-tell night, 11-12)
   A.wakeLine = function (us) { return A.LINES.dragWake.split('{names}').join(us.map(function (u) { return u.name; }).join(' and ')).split(' come awake').join(us.length === 1 ? ' comes awake' : ' come awake'); }; // (one "comes", two "come": it had said "Vivian come awake", 11-12)
+  // THE BUCKET LIST (11-13, Griz to the lanes desk: "elsbeth bucketing you should be an easter egg the whole-party sleeping will be so rare :) Pick a color and a name"; on the
+  // desk's pick, a yellow egg named Bucket List, "your call I said, good or not with me :)"). On the no-tell night, the WHOLE party put to sleep and carried to the stone,
+  // as Elsbeth empties the kitchen bucket over them: her portrait splashed mid-screen before the words (his ruling of 11-12), the bucket's box on the layer over it (his
+  // 0404Z note), the throw's splash on the synth, and then the yellow egg with its name under it, drawn as the fights' eggs are (js/grimoire.js M.eggDraw, M.EGGS.bucket)
+  // and kept as they are: its flag in the save's flags, once a save, shown with the title's eggs (js/house.js H.EGGS -- an entry of its own, not the sixth slot).
+  // ITS REWARD (his words: "and they wouldn't have the cloak of the manta ray from the other way, so put that in their 'kill it' after elsbeth bucket in place of what is
+  // normally another ring of protection"): f.bucketNight, read at the kill -- A.meet gives the Cloak of the Manta Ray where it would give In.giftId's
+  A.wholeAsleep = function (B) { var us = B.roam.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; }); return us.length > 0 && us.every(function (u) { return !!(u.conds && u.conds.asleep); }); };
+  A.bucketEgg = function* (B) {
+    var f = B.roam.flags, Mg = D.magic, e = Mg && Mg.EGGS && Mg.EGGS.bucket; if (!e || !Mg.eggDraw || f[e.flag]) return false;
+    f[e.flag] = 1; A.trail('THE BUCKET LIST: the yellow egg, the whole party asleep under Elsbeth\'s bucket');
+    yield { scene: { draw: Mg.eggDraw(e.line, e.hue), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: 'bucket' } }; // (the floor holds while it is up, as a fight does: js/ui.js scene)
+    return true;
+  };
   A.drag = function* (B, party, seat) {
     var R0 = B.roam, f = R0.flags, P = A.POISON, n = Math.round(P.dragMin / P.dragEvery), bonus = {}, C3 = D.counter, SO3 = C3 && C3.SHEETOF;
     if (seat && C3 && C3.Counter) { // (her line at the table, nobody risen)
@@ -424,10 +438,12 @@
       // played, THEN her words in the floor's own blue box that takes an OK; the splash down, and the open screen at the left for Gennet's look. THE BUCKET DOWN (his
       // "switch to cut without barrel after narration says 'puts bucket down' or edit narration"): from the look on she is on the cut without it
       var lead = party[0], ew = { name: 'Elsbeth', unit: Y.elsStone || null, side: 'left', sheet: In.elsbethCut(false) };
-      A.sing(); A.trail('the singing stops at the bucket'); In.splash(B, In.elsbethCut(true)); yield 56;
-      yield* In.ask(B, 'ELSBETH', ['Elsbeth, with the kitchen bucket. All of it, over ' + lead.name + '.', '"Wake up! You\'re supposed to stop it!"'], ['OK']);
+      var whole = A.wholeAsleep(B); // (every one of the party asleep on the stone as she throws it: the Bucket List's night)
+      A.sing(); A.trail('the singing stops at the bucket'); In.splash(B, In.elsbethCut(true)); yield 24; D.sfx('bucket'); yield 32; // (the throw's own sound, on the synth: js/audio.js `bucket`, 11-13)
+      yield* In.ask(B, 'ELSBETH', ['Elsbeth, with the kitchen bucket. All of it, over ' + (whole && party.length > 1 ? 'the party' : lead.name) + '.', '"Wake up! You\'re supposed to stop it!"'], ['OK']);
       A.trail('Elsbeth\'s water on the stone: the portrait centred, then "Wake up!" in the box');
       In.splash(B);
+      if (whole) { f.bucketNight = 1; yield* A.bucketEgg(B); } // (the yellow egg, once a save; and the mark the lake's kill reads for its reward -- A.meet)
       var sc3 = new C3.Counter(B, { id: 'dragwater', name: 'Elsbeth', place: 'The point', what: 'the flat stone', room: true, open: true, bg: In.roomShot(B), script: function (s3) { return (function* () {
         if (Y.genStone) { var SO3g = C3.SHEETOF, gw = { name: In.named(f), unit: Y.genStone, side: 'right', sheet: SO3g && SO3g.gennet ? SO3g.gennet({ flags: f }) : null }; yield s3.lookAt(gw, [A.LINES.gennetLook.split('{name}').join(In.named(f))], ew); } /* (ruling 19's look, back 11-12) */
         yield s3.lookAt(ew, [A.LINES.elsbethRuns]);
@@ -738,7 +754,7 @@
     if (o === 'lost') return o;
     if (f.gennetTaken && Y.chuul && Y.chuul.fled) { A.trail('the inn lady taken: it went down with her'); return 'taken'; }
     if (Y.preyTaken && Y.chuul && Y.chuul.fled) { A.trail('the one on the stone taken: it went down'); return 'taken'; } // (the no-tell night's take, 11-12) // (it has its offering: down with her, the frog's fight its own end)
-    if (o === 'won') { f.lakeDone = 1; A.trail('the thing in the lake killed' + (ring ? '' : ', no ring')); yield* In.card(B, [].concat(L('lake.after')), 480); if (!f.lakeGiftGot) { var id = In.giftId(st); D.counter.give(st, id, 1); f.lakeGiftGot = 1; D.sfx('chest'); yield* In.card(B, [L('lake.corpseGift'), L('g.got', { item: DS.DATA.items[id].name })], 420); } }
+    if (o === 'won') { f.lakeDone = 1; A.trail('the thing in the lake killed' + (ring ? '' : ', no ring')); yield* In.card(B, [].concat(L('lake.after')), 480); if (!f.lakeGiftGot) { var id = f.bucketNight && DS.DATA.items.cloakmantaray ? 'cloakmantaray' : In.giftId(st); /* (11-13, the bucket's party: the Cloak of the Manta Ray here, which the other road -- Elsbeth's gift after the chase, js/inn.js In.giftId -- never gave them) */ D.counter.give(st, id, 1); f.lakeGiftGot = 1; D.sfx('chest'); yield* In.card(B, [L('lake.corpseGift'), L('g.got', { item: DS.DATA.items[id].name })], 420); } }
     else { A.trail('the party got clear of the lake'); }
     return o;
   };

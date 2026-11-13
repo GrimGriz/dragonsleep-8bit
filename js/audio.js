@@ -353,6 +353,8 @@
     // a bell's toll, low and long (DEEP16's knellback sounds its bell-shell, 11-10): the strike, the hum and its partials dying away under it
     knell: function (t) { noise(sfxBus, t, 0.06, 0.25, 2500, 1); [[43, 1.6, 0.24], [55, 1.3, 0.14], [62, 0.9, 0.09], [67, 0.6, 0.06], [74, 0.35, 0.04]].forEach(function (p) { tone(sfxBus, 'triangle', p[0], t, p[1], p[2]); }); },
     splash: function (t) { noise(sfxBus, t, 0.5, 0.35, 700, 0.4); },
+    // (Elsbeth's kitchen bucket emptied over the sleepers on the stone, 11-13: the throw's hiss, the slap of it landing, the run-off -- the Bucket List egg, deep16/js/secondact.js A.drag)
+    bucket: function (t) { noise(sfxBus, t, 0.2, 0.16, 2200, 0.9); tone(sfxBus, 'triangle', 38, t + 0.19, 0.1, 0.28, null, -10); noise(sfxBus, t + 0.19, 0.14, 0.5, 480, 0.6); noise(sfxBus, t + 0.25, 0.7, 0.3, 950, 0.5); noise(sfxBus, t + 0.5, 0.9, 0.1, 3000, 1.3); },
     grab: function (t) { tone(sfxBus, 'pulse', 43, t, 0.12, 0.2, 0.5, 5); noise(sfxBus, t, 0.1, 0.3, 800, 0.6); },
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
     error: function (t) { tone(sfxBus, 'pulse', 50, t, 0.12, 0.14, 0.5); },

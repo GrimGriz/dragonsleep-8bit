@@ -1091,7 +1091,8 @@
   // change selected save"): the first game's six, in its order and hues (first/js/events.js EV.EGGS), each by the flag its egg leaves in a save -- three each side of the box, for the save
   // the cursor is on. Found: its colour, bobbing, a glint going round the found. Not found, or not built yet: a shadow
   H.EGGS = [{ id: 'joke', flag: 'eggJoke', hue: 'red' }, { id: 'darkness', flag: 'eggDarkness', hue: 'violet' }, { id: 'dunk', flag: 'eggDunk', hue: 'blue' },
-    { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' }, { id: 'sixth', flag: null, hue: null }];
+    { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' }, { id: 'sixth', flag: null, hue: null },
+    { id: 'bucket', flag: 'eggBucket', hue: 'yellow' }]; // (THE BUCKET LIST, 11-13: an entry of its own, NOT the sixth slot -- whether it is the sixth egg or a seventh is Griz's to say; drawn under the box, and only once found: H.drawEggs)
   H.eggsOf = function (rec) { var fl = (rec && rec.flags) || {}; return H.EGGS.map(function (e) { return e.flag && fl[e.flag] ? e.hue : null; }); };
   var EGG_ART = ['...ooo...', '..ollbo..', '.olhlbbo.', '.olhbbbo.', 'olbbbbbdo', 'olbbbbbdo', 'obbbbbddo', 'obbbbbddo', '.obbbddo.', '..odddo..', '...ooo...'];
   var EGG_HUES = { // (the NES palette's own steps, the first game's: outline, shade, body, light, shine)
@@ -1100,6 +1101,7 @@
     blue: { o: '#00186C', d: '#0000BC', b: '#0058F8', l: '#3CBCFC', h: '#A4E4FC' },
     orange: { o: '#502000', d: '#A83C00', b: '#E45C10', l: '#FCA044', h: '#FCE0A8' },
     green: { o: '#003000', d: '#007800', b: '#00A800', l: '#58D854', h: '#B8F8B8' },
+    yellow: { o: '#503000', d: '#AC7C00', b: '#F8B800', l: '#F8D878', h: '#FCFCD8' },
     shadow: { o: '#3C3E6C', d: '#0A0B20', b: '#0A0B20', l: '#0E1028', h: '#121430' } // (a dim rim round a darker egg than the night behind it)
   };
   var EGG_K = 2, eggCache = {};
@@ -1114,6 +1116,7 @@
     var EW = 9 * EGG_K, EH = 11 * EGG_K, gap = 6, col = 3 * EH + 2 * gap, y0 = Math.round(b.y + (b.h - col) / 2), lit = [];
     eggs.forEach(function (hue, i) {
       var side = i < 3 ? 0 : 1, k = i % 3, x = side ? b.x + b.w + 14 : b.x - 14 - EW, y = y0 + k * (EH + gap) + (hue ? Math.round(Math.sin(t / 11 + i * 1.3) * 1.5) : 0);
+      if (i >= 6) { if (!hue) return; x = Math.round(b.x + b.w / 2 - EW / 2) + (i - 6) * (EW + gap); y = b.y + b.h + 8 + Math.round(Math.sin(t / 11 + i * 1.3) * 1.5); } // (past the six: under the box, and no shadow for one not found -- the Bucket List, 11-13)
       ctx.drawImage(eggImage(hue || 'shadow'), x, y);
       if (hue) lit.push([x, y]);
     });
