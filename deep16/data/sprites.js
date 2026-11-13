@@ -9689,6 +9689,49 @@
 "source": "deep16/_src/lucia/ART-110/ART-110_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "shop:lucia"
 },
+"lymen_check_p2": {
+"image": "art/lymen_check_p2.png?v=777e092d13",
+"fw": 34,
+"fh": 80,
+"ax": 17,
+"ay": 74,
+"top": 52.76190476190476,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 34,
+"fh": 80,
+"ax": 17,
+"ay": 74,
+"frames": 1,
+"fps": 1,
+"drawn": [
+1,
+7
+]
+},
+"attack": {
+"y": 640,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3,
+"drawn": [
+1,
+7
+]
+}
+},
+"name": "Lymen (SE checkpoint)",
+"hold": [
+"a review sheet: the art desk's SE checkpoint (V2) of Lymen's base attack, one view, for Griz's go before the other four are drawn -- worn by nobody",
+"frame 5: the shield's outward travel partly hidden by SE foreshortening (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-MC-LYMEN-BASE-ATTACK-SE-CHECKPOINT-V2, 11-13: SE over Griz's re-posed longsword-and-shield slash), cut by tools/lymen-check-sheet.py over tools/vivian-sheet.py; SW mirrored"
+},
 "lymen_p0": {
 "image": "art/lymen_p0.png?v=d8ba57d585",
 "fw": 64,
