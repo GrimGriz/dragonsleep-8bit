@@ -331,12 +331,13 @@
     var u = In.unit(B, { id: 'doranWait', kind: 'commoner', at: A.WAIT_AT.slice(), name: 'Doran Waterby', face: [-1, 0], lantern: true });
     if (D.counter.dress && D.counter.dress(u, 'doranYard')) u.facing = D.spr.facingFor(-1, 0); u.bystander = true; return u;
   };
-  A.waitLive = function (f, d, h) { var c = (f.doranWaits || 0) - 1; return c >= 0 && ((d === In.dueDay(c) && h >= 17) || (d === In.dueDay(c) + 1 && h < 6)); };
+  A.DAWN = 5; // (the hour the light changes, night to dawn: js/world.js W.todAt -- RULED 11-13, his "before dawn (lighting change time)"; it had been six)
+  A.waitLive = function (f, d, h) { var c = (f.doranWaits || 0) - 1; return c >= 0 && ((d === In.dueDay(c) && h >= 17) || (d === In.dueDay(c) + 1 && h < A.DAWN)); };
   A.followDoran = function* (B) {
     var Rm = R(), R0 = B.roam, f = R0.flags, dw = A.waitDoran(B), Y = {};
     if (dw) dw.leading = true;
     var liveF = A.waitLive(f, In.day(D.roam.q), In.hourOf(B)); delete f.doranWaits; A.trail('the party follows Doran out by the lake door' + (liveF ? '' : ', the due\'s own night past: the clock left where it is'));
-    if (liveF) In.passTo(B, A.DUE_HOUR); // (on the due's own night, on to its hour; followed later -- a long rest got some other way -- the fight is at the hour it is)
+    if (liveF && In.hourOf(B) >= 17) In.passTo(B, A.DUE_HOUR); // (followed in the evening: on to the due's hour; followed past midnight -- back from a rest on the road before dawn -- the fight is at the hour it is, never a day on)
     yield* In.card(B, [A.LINES.followOut + (f.gennetDead ? '' : ' ' + A.LINES.followGennet)], 300);
     yield* In.walk(B, dw, A.LEAD_AT, [1, 0]);
     yield* Rm.walkTo(B, [A.STONE[0] - 2, A.STONE[1]]);
@@ -362,7 +363,7 @@
     if (!ev && def && def.key === In.UP && In.duePlay && In.duePlay.stage === 'room' && In.duePlay.woke && t && t.x >= A.WINDOW.x && t.x <= A.WINDOW.x + 1 && t.y <= 9) { In.duePlay.stage = 'lake'; In.duePlay.win = [t.x, t.y]; In.upShot(); A.trail('the due night: at the big room\'s window'); yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'window'; } // (the window on the lake: the camera's one move is on the house's own floor)
     // (11-13, his note on eyes-sacrifice-yield-1112f: "gennet did let the party sleep, doran was still out back in the morning and timetraveled back into the night to the fight
     // when the party approached the next morning" -- his wait is the night's: past it (A.waitLive) the flags are let go and nobody is followed anywhere)
-    // (his wait is no longer over with the night: RULED 11-13 -- THE BED WITH DORAN WAITING)
+    if (def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && !A.waitLive(R0.flags, In.day(D.roam.q), In.hourOf(B))) { A.waitGone(R0.flags, 'dawn: the fight is missed'); B.units.filter(function (u) { return u.scripted === 'doranWait' && !u.leading; }).forEach(function (u) { In.gone(B, u); }); } // (dawn on the inn's floor: his wait is over with the night -- THE BED WITH DORAN WAITING)
     if (!ev && def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && t && t.x >= In.STEP.lake[0] && Math.abs(t.y - In.DOORS.lake[1]) <= 3 && !In.inHouse(t.x, t.y)) { yield* A.followDoran(B); return 'followed'; }
     return ev;
   };
@@ -373,12 +374,13 @@
   // followed, the lake unfed, his figure gone from the path's head
   // THE BED WITH DORAN WAITING (RULED 11-13, Griz, on the poison-dinner walk's finding `bedafter` -- with Doran out at the lake door the inn lady sold a room a second time,
   // told an ordinary supper and gave the ordinary morning: "4 - refused with Doran's waiting for you, back to normal if they return (don't kill it somehow) (new month
-  // countdown should have started), if they pull off a long-rest before triggering the fight he'll probably still be waiting"). So: while he waits the inn lady REFUSES the
-  // bed, her words pointing at him (js/inn.js In.gennet, A.LINES.bedRefused -- the seat's draft); his wait is NOT let go by the clock or by a night's sleep any more -- he is
-  // at the path's head until he is followed; a party that LEAVES the inn for THE WORLD and comes back finds the house as on any day -- nobody waiting, Doran behind his bar,
-  // the lake unfed (f.dueUnfed), the count running to the next month's due (A.waitGone, from js/inn.js's H.toTown). THE SEAT'S CALLS, his to overrule: "return" is read as
-  // leaving by the floor's edge and coming in again, not a walk round the yard; and a party that follows him after the due's own night is past fights the thing at the hour
-  // it is -- the clock is not run on to the next one o'clock (his 11-13 "timetraveled back into the night")
+  // countdown should have started), if they pull off a long-rest before triggering the fight he'll probably still be waiting"). The inn seat first built that as a wait with
+  // no end but the following, and a return from THE WORLD as its end; HE CORRECTED IT the same day, verbatim: "not intended. The night ending is them missing the fight,
+  // only not feeding it Doran as it'll be a rare exception and isn't worth the usage" and "normal on return - clock based, they might leave and try long rest before fight
+  // and if they make it back before dawn (lighting change time) let him still be waiting". So, AS RULED: while he waits the inn lady REFUSES the bed, her words pointing at
+  // him (js/inn.js In.gennet, A.LINES.bedRefused -- the seat's draft); HIS WAIT IS THE NIGHT'S, by the clock (A.waitLive): until dawn, the hour the light changes (five,
+  // js/world.js W.todAt); a party that leaves and is back before dawn -- a rest taken out on the road -- finds him still waiting; at dawn the fight is missed: nobody waits,
+  // Doran behind his bar, the lake unfed (f.dueUnfed), the count running to the next month's due. The lake takes nobody for the missed night (his "only not feeding it Doran")
   A.waitGone = function (f, why) { // (the flags' half: the party left the inn and came back)
     if (!f || !f.doranWaits) return false; f.dueUnfed = f.doranWaits - 1; delete f.doranWaits; delete f.doranOut; A.trail('nobody followed Doran out: the lake unfed' + (why ? ' (' + why + ')' : '')); return true;
   };
@@ -392,7 +394,8 @@
     var r = peopleA0.apply(this, arguments), def = D.roam && D.roam.def, f = B.roam && B.roam.flags;
     if (def && def.key === In.KEY && f && !f.doranWaits && B.units.some(function (u) { return u.scripted === 'doranWait' && !u.leading; })) B.units.filter(function (u) { return u.scripted === 'doranWait' && !u.leading; }).forEach(function (u) { In.gone(B, u); }); /* (the wait let go: his figure with it, at the next lay -- not while he leads the party to the stone, A.followDoran) */
     if (!def || def.key !== In.KEY || !f || !f.doranWaits) return r;
-    A.waitDoran(B); // (while the flag stands, whatever the hour: RULED 11-13, "he'll probably still be waiting" -- THE BED WITH DORAN WAITING, above)
+    if (A.waitLive(f, In.day(D.roam.q), In.hourOf(B))) A.waitDoran(B); // (his wait is the night's, by the clock: THE BED WITH DORAN WAITING, above)
+    else { A.waitGone(f, 'the night is over'); B.units.filter(function (u) { return u.scripted === 'doranWait' && !u.leading; }).forEach(function (u) { In.gone(B, u); }); }
     return r;
   };
   // THE BACK ROOM (RULED 11-12, Griz, asked the readied wand or the back room: "back room with children"): in the supper's fight Elsbeth is off the field, in the

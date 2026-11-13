@@ -366,7 +366,6 @@
   var toTown0 = D.house && D.house.toTown;
   if (toTown0) D.house.toTown = function (id, gate) {
     var Hh = D.house, at0 = Hh.cur && Hh.cur.at, up = id === In.SITE && at0 && at0.town === In.SITE && at0.up && at0.up.sq ? at0.up : null;
-    if (id === In.SITE && !(at0 && at0.town) && Hh.cur && Hh.cur.flags && D.secondact && D.secondact.waitGone) D.secondact.waitGone(Hh.cur.flags, 'the party left the inn and came back'); // (in from THE WORLD, not a load: nobody waits any more -- RULED 11-13)
     if (!up) return toTown0.apply(this, arguments);
     Hh.trail('town', id + ', upstairs where it saved (' + up.sq.join(',') + ')');
     W.inDoor = { site: Hh.siteOf(id), gate: gate };
@@ -1146,7 +1145,7 @@
   In.sleep = function* (B, line) {
     if (B.roam.flags.invest && In.investOf(B)) return yield* In.investGo(B, 'to a bed'); // (INVESTIGATE's wait, and a bed taken instead: the night as watched -- its own morning and sleep, In.wagonRest)
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
-    // (Doran's wait is no longer ended by the party's night: RULED 11-13, "if they pull off a long-rest before triggering the fight he'll probably still be waiting" -- js/secondact.js THE BED WITH DORAN WAITING)
+    // (Doran's wait is the clock's, till dawn, not ended by a sleep as such: RULED 11-13 -- js/secondact.js THE BED WITH DORAN WAITING)
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
     var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
     var def = D.roam.def, rm = In.ROOM[In.roomOf(B.roam.flags)];
