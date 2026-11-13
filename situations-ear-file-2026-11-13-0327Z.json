@@ -1,0 +1,83 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-13T03:27:35.078Z",
+ "previous_save": "2026-11-13T03:01:58.896Z",
+ "items": [
+  {
+   "id": "eyes-chase-southmouth-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CATCH AT THE SOUTH MOUTH: Willem fast in the silk, Amara running; strike him and she turns back (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; RULED by your answers to the reading page: ruling 55; deep16/js/chase.js Ch.mouthCatch) -- your \"Prefer instant combat (they're caught in the web at the gulch entrance), if they strike him she'd turn back to fight til he was free, then try to escape - have them get exit squares like the party does on a roam, and if they hit him dismount them both to fight a round with the horses at the northern exit squares\"",
+   "url": "deep16/?innshow&beat=southmouth&fresh=1112fg",
+   "verdict": "unclear",
+   "note": "amara turned back the round after willem was hit (her turn that round she ran past the horses) - the book reward should come in the gulch as part of the victory screen, if the children rescue xp happens at return to inn it should go in victory box before gennet talks",
+   "at": "2026-11-13T03:14:49.300Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-chase-back-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "BACK FROM THE CHASE: the yard empty, only his book, Gennet at the step, the big room, the Cloak of the Manta Ray (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; RULED by your answers to the reading page: rulings 51-54; deep16/js/inn.js In.chaseBack, In.giftId) -- your \"leans 1 - yes, 2 - a, 3 yes, 4 - at return, heroes get it once kat is gone and wagon isn't coming\"",
+   "url": "deep16/?innshow&beat=chaseback&fresh=1112fh",
+   "verdict": "unclear",
+   "note": "Kat's letter says the thing is going specific places - north is all she knows. warn silverton... warn the dwarves - is good for how serious a threat it is without her knowing it's intent (which is technically the seat not silverton)",
+   "at": "2026-11-13T03:09:34.614Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-kat-visit-1112f",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA BEFORE THE INK: one thing a visit, by one hero's shaded line (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat of 11-12; RULED by your answers to the reading page: ruling 57, \"all leans\"; deep16/js/inn.js In.katVisit) -- your \"Kat spills all the beans immediately\"",
+   "url": "deep16/?innshow&beat=katvisit&fresh=1112fj",
+   "verdict": "broken",
+   "note": "'that's all she gives today' (unless you talk to her again immediately with the other real question(lymen then aurdin in this case) - also, lymen's 'you came from the south road' is a presumption and silly if she was traveling with people who then turned around and went to the pit (his question differently could keep the same answer)",
+   "at": "2026-11-13T03:06:17.597Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-walks-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN: the walks move WHILE their line is up; TELL ME ABOUT IT on the room-and-board line; her name asked on portraits (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.barnYard, In.BY.nameAsk, In.BY.tellBoard) -- your \"have the walks animate when the message comes up (i.e. doran back to the woodpile)\", \"room and board line given a 'tell me more' button\", \"line 'child is asked her name' use char player used as party voice most often during encounter or vivian and do that bit in portraits by the door\"",
+   "url": "deep16/?innshow&beat=barnunseen&fresh=1112c",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-13T03:27:29.683Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-between-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "OUT OF THE BARN, Doran away: Barley STEPS BETWEEN, and Elsbeth on her tub portrait (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.barnYard acts.between) -- your \"barley 'steps between' narratively but does not\" and \"we're using a cut of the tub portrait for elsbeth in scenes like this aren't we?\"",
+   "url": "deep16/?innshow&beat=barnaway&fresh=1112d",
+   "verdict": "works",
+   "note": "only note is goblin portrait in the box on first interaction",
+   "at": "2026-11-13T03:24:32.456Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-child-in-tow-1112",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CHILD IN TOW: Doran's line changed, Elsbeth sends you to the Pit, no room at the inn -- the nights counted to the due (11-12)",
+   "pt": "the inn lane, 2026-11-12 (the inn seat; deep16/js/inn.js In.CHILD, In.noStay) -- your \"that line should change after this encounter (the girl will be safest at the pit, come back in x nights)\", \"have elsbeth point them toward the pit when they have the child, make it a dialog with option to ask her to come, staying with father just be back in x days\", \"with girl in tow, no inn-stay (if you're not back in x days)\"",
+   "url": "deep16/?innshow&beat=childtow&fresh=1112f",
+   "verdict": "broken",
+   "note": "the 30 nights is too weird, use the closer night if it hasn't happened yet. road to the world puts me on a hex west of half-way inni - clicking travel to tarlyn's pit still goes the the long way around the lake, is the road not less travel? do you have to enter the pit hex from a certain side (took me 3 tries)",
+   "at": "2026-11-13T03:21:00.908Z",
+   "new_since_last_save": true
+  }
+ ]
+}
