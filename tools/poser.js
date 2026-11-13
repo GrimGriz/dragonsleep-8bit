@@ -155,6 +155,10 @@ class Rig {
     const M = this.solve(d, lift, shift, sway);
     for (const s of 'ab') J['sh' + s] = posOf(M[this.ARM[s][1]]);
     J.head = posOf(M[this.HEAD]); J.face = this.face(M); J.neck = posOf(M[this.NECK[0]]);
+    // the bars (11-13): which way the hips and the top of the spine are turned -- each bone's whole turn off the artist's pose
+    const turn = (n) => new THREE.Quaternion().setFromRotationMatrix(M[n].clone().setPosition(0, 0, 0).multiply(this.P0rot[n].clone().transpose()));
+    if (this.ROOTS && this.ROOTS.length) { J.hipc = posOf(M[this.ROOTS[0]]); J.hipq = turn(this.ROOTS[0]); }
+    if (this.SPINE && this.SPINE.length) J.chestq = turn(this.SPINE[this.SPINE.length - 1]);
     return { M, J };
   }
   face(M) {
@@ -171,9 +175,10 @@ function fit(P, keys, point, T, lim) {
     if (e.length() < 0.05) break;
     const J = keys.map((k) => point({ ...P, [k]: (P[k] || 0) + 1 }).sub(p0));
     const A = keys.map((_, i) => keys.map((_, j) => J[i].dot(J[j]) + (i === j ? 0.02 : 0))), b = keys.map((_, i) => J[i].dot(e));
-    const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+    const one = keys.length === 1;                 // (a bar's end turns one number: the hips' turn, or the waist's twist)
+    const det = one ? A[0][0] : A[0][0] * A[1][1] - A[0][1] * A[1][0];
     if (Math.abs(det) < 1e-9) break;
-    const dl = [(b[0] * A[1][1] - b[1] * A[0][1]) / det, (A[0][0] * b[1] - A[1][0] * b[0]) / det];
+    const dl = one ? [b[0] / det] : [(b[0] * A[1][1] - b[1] * A[0][1]) / det, (A[0][0] * b[1] - A[1][0] * b[0]) / det];
     keys.forEach((k, i) => { P[k] = Math.max(-lim, Math.min(lim, (P[k] || 0) + Math.max(-12, Math.min(12, dl[i])))); });
   }
   keys.forEach((k) => { P[k] = Math.round(P[k] * 10) / 10; });
@@ -302,9 +307,27 @@ const H = {
   hda: handle('hda', CA, 1.6, 'diamond'), hdb: handle('hdb', CB, 1.6, 'diamond'), hip: handle('hip', 0xffffff, 2.0),
   sha: handle('sha', CA, 1.7, 'box'), shb: handle('shb', CB, 1.7, 'box'), look: handle('look', 0xffe066, 1.9, 'diamond'), neck: handle('neck', 0xffffff, 1.7),
 };
+// THE BARS (11-13, Griz: "that white dot i get for the hip, can we give it a 'bar' with handles on each end for hip 'twisting'?", then "yes to hip
+// and shoulder bars"): a bar across the hips whose ends turn the hips (bodyyaw), and one across the shoulders at the top of the spine whose ends
+// turn the waist (twist), the shoulders against the hips. A green of their own and a violet: not the orange and blue of his left and right.
+const CHIP = 0x5fe08a, CSHO = 0xc88cff, BARS = {};
+const HASHIP = !!(rig.ROOTS && rig.ROOTS.length), HASSPINE = HASHIP && !!(rig.SPINE && rig.SPINE.length);
+const SHW = rig.P0t[rig.ARM.a[1]].distanceTo(rig.P0t[rig.ARM.b[1]]) / 2 || 8;      // (half the shoulders' width at rest: the bars stand out past the body)
+const BARW = { hip: SHW * 1.25, sho: SHW * 1.55 };
+function bar(name, color) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1, 10), new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.95 }));
+  m.renderOrder = 9; scene.add(m); BARS[name] = m;
+  H['bar' + name + 'a'] = handle('bar' + name + 'a', color, 1.4); H['bar' + name + 'b'] = handle('bar' + name + 'b', color, 1.4);
+}
+// where a bar's end is on a pose: the bar's middle, and half its length out to his left (a) or his right (b), turned as the bone is
+function barEnd(name, s, J) {
+  const c = name === 'hip' ? J.hipc : J.neck, q = name === 'hip' ? J.hipq : J.chestq;
+  return new THREE.Vector3(s === 'a' ? 1 : -1, 0, 0).applyQuaternion(q).multiplyScalar(BARW[name]).add(c);
+}
 const lineMat = new THREE.LineBasicMaterial({ color: 0x8890a0, depthTest: false, transparent: true, opacity: 0.6 });
 const poleLines = new THREE.LineSegments(new THREE.BufferGeometry(), lineMat); poleLines.renderOrder = 9; scene.add(poleLines);
 const POLE_R = 10, HAND_R = 9, LOOK_R = 14;
+bar('hip', CHIP); bar('sho', CSHO);
 
 let last = null, LOW = 0;     // (the last solve: the joints, for the handles and the drag; the lowest point)
 function refresh() {
@@ -340,6 +363,15 @@ function refresh() {
   H.sha.position.copy(J.sha); H.shb.position.copy(J.shb); H.neck.position.copy(J.neck); lines.push(H.hip.position.clone(), J.neck);
   const lk = J.head.clone().addScaledVector(J.face, LOOK_R); H.look.position.copy(lk); lines.push(J.head, lk);
   poleLines.geometry.setFromPoints(lines);
+  for (const name of ['hip', 'sho']) {
+    const ok = name === 'hip' ? HASHIP : HASSPINE, a = H['bar' + name + 'a'], b = H['bar' + name + 'b'], m = BARS[name];
+    a.visible = b.visible = m.visible = ok;
+    if (!ok) continue;
+    a.position.copy(barEnd(name, 'a', J)); b.position.copy(barEnd(name, 'b', J));
+    const d = a.position.clone().sub(b.position);
+    m.position.copy(a.position).add(b.position).multiplyScalar(0.5); m.scale.set(1, d.length(), 1);
+    m.quaternion.setFromUnitVectors(PY, d.normalize());
+  }
   syncSliders(P); syncFrames(); status(low);
 }
 
@@ -358,6 +390,7 @@ canvas.addEventListener('pointerdown', (ev) => {
   if (!hit) return;
   const h = hit.object, n = new THREE.Vector3();
   if (ev.shiftKey) n.copy(PZ); else cam.getWorldDirection(n);
+  if (h.userData.key.startsWith('bar') && Math.abs(n.z) > 0.25) n.copy(PZ);     // (a bar's end goes round its middle: dragged level, in any view that looks down on it)
   drag = { key: h.userData.key, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(n, h.position.clone()), off: h.position.clone().sub(hit.point) };
   controls.enabled = false; canvas.setPointerCapture(ev.pointerId); ev.preventDefault();
 });
@@ -374,7 +407,11 @@ canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointerc
 const r2 = (x) => Math.round(x * 100) / 100;
 function moveHandle(key, at) {
   const P = curP(), J = last.J, s = key.slice(-1);
-  if (key.startsWith('ank')) {
+  if (key.startsWith('barhip')) {      // an end of the hip bar: the hips' turn (all of the body about the hip), the white dot left where it is
+    fit(P, ['bodyyaw'], (Q_) => barEnd('hip', s, rig.pose(Q_).J), at, 60);
+  } else if (key.startsWith('barsho')) {      // an end of the shoulder bar: the waist's twist, the shoulders against the hips
+    fit(P, ['twist'], (Q_) => barEnd('sho', s, rig.pose(Q_).J), at, 60);
+  } else if (key.startsWith('ank')) {
     const l = P.legs[s]; P.legs[s] = [r2(at.x), r2(at.y), r2(at.z - (J['raise' + s] || 0)), l[3], l[4]];
   } else if (key.startsWith('wr')) {
     const d = at.clone().sub(J['sh' + s]); P.arms[s] = [r2(d.x), r2(d.y), r2(d.z)];
