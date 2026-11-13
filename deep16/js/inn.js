@@ -1913,8 +1913,8 @@
     BY.endWalk = function (S, k) { return k === 'e' && !S.doran && S.tier >= 3 ? 'elsbethOut' : null; }; // (a walk that comes before an end's words)
     // what is said as each end falls (the fight itself, and what the house does after, are In.barnYard's)
     BY.END = function (S, k) {
-      if (k === 'a') { S.look('gennet', `Gennet takes the child up onto her hip, the way a woman does who has carried many.`, 'child', 'carry'); S.by('gennet', S.seen ? `"There. You've good sense, the lot of you. She'll want for nothing."` : `"There. You've good sense, the lot of you. It'll want for nothing."`);
-        S.by('gennet', `"Supper's at eight. There's fish."`); S.look('child', (S.seen ? `The child` : `The goblin`) + ` looks back at ` + S.holder + ` over Gennet's shoulder, all the way to the ` + (S.seen ? `house door.` : `barn door.`) + ` Elsbeth goes in.`, null, 'elsIn'); } // (carried, and seen to be: the child rides on Gennet's hip to the door -- 11-12, Griz: "narrative says she's carried, animation is walks in first")
+      if (k === 'a') { S.look('gennet', `Gennet takes the child up onto her hip, the way a woman does who has carried many.`, 'child', 'lift'); S.by('gennet', S.seen ? `"There. You've good sense, the lot of you. She'll want for nothing."` : `"There. You've good sense, the lot of you. It'll want for nothing."`);
+        S.by('gennet', `"Supper's at eight. There's fish."`); S.look('child', (S.seen ? `The child` : `The goblin`) + ` looks back at ` + S.holder + ` over Gennet's shoulder, all the way to the ` + (S.seen ? `house door.` : `barn door.`) + ` Elsbeth goes in.`, null, 'carryIn'); } // (carried, and seen to be: the child rides on Gennet's hip to the door -- 11-12, Griz: "narrative says she's carried, animation is walks in first")
       else if (k === 'b') { S.look('gennet', S.big ? `Gennet puts the green purse into the party's hands without counting it.` : `Gennet counts the old silver out, coin by coin.`); S.by('gennet', `"There. And nobody's the worse."`);
         S.look('elsbeth', `Elsbeth is in the house door. She has seen the coin change hands. She goes in.`, null, 'elsIn'); S.look('gennet', `Gennet takes the child by the wrist and walks ` + it(S) + (S.seen ? ` in at the house door.` : ` back into the barn.`) + ` The child does not pull.`, 'child', 'pair'); }
       else if (k === 'c') { S.narr(`Gennet lets go of the child. The child backs up against the barn wall.`, 'kidWall'); S.look('elsbeth', `Elsbeth is in the house door with the wand in her hand. Orrin and Pell are inside, behind her.`, null, 'elsDoor'); } // (ruling 13: with the boys, the wand on nobody who does not come at them)
@@ -2023,11 +2023,21 @@
       gennetIn: function* () { yield* out(Y.gennet, HOUSE); Y.gennet = null; }, elsIn: elsIn, doranOff: doranOff, join: join,
       elsDoor: function* () { if (onFloor(Y.elsbeth)) yield* In.walk(B, Y.elsbeth, HOUSE, [-1, -1]); },
       kidWall: function* () { if (onFloor(Y.child)) yield* In.walk(B, Y.child, P.wall); },
-      carry: function* () {
-        var g = Y.gennet, k = Y.child; if (!onFloor(g) || !onFloor(k)) return;
+      // (SHE LEAVES AFTER HER WORDS, 11-13, his 0515Z note on eyes-barn-carried-1112: "works but plays early, gennet leaves and then still says things" -- the one act had
+      // lifted the child AND walked the two in at the door under the stage's first line, with her "There. You've good sense..." and "Supper's at eight." still to say.
+      // Now the first line only lifts the child to her hip (`lift`); she says her two lines standing there; the walk to the door is under the last line, the child
+      // looking back, Elsbeth in after them (`carryIn`). `carry` is the whole of it still, for a stage that ends with the two on the floor)
+      carryIn: function* () { yield* acts.carry(); yield* elsIn(); },
+      lift: function* () {
+        var g = Y.gennet, k = Y.child; if (!onFloor(g) || !onFloor(k) || k.lift) return;
         if (!near(g, k)) { var q = In.beside(B, g, k); yield* In.walk(B, g, q); }
         g.facing = D.spr.facingFor(k.x - g.x, k.y - g.y); yield 8;
-        BY.exits.push({ id: 'barnKid', x: g.x, y: g.y, how: 'carried' }); k.lift = BY.hip; k.onCounter = true; k.x = g.x; k.y = g.y; k.tween = null; k.anim = 'idle'; B.units = [k].concat(B.units.filter(function (u) { return u !== k; })); D.grid.setup(B.map, B.units); B.cache = null; yield 12; // (up in her arms: drawn BEHIND her and raised, the head and shoulders over Gennet's -- 11-12, Griz: "Can probably just attach girl sprite to Gennet sprite with head/shoulders appearing over gennet")
+        BY.exits.push({ id: 'barnKid', x: g.x, y: g.y, how: 'carried' }); k.lift = BY.hip; k.onCounter = true; k.x = g.x; k.y = g.y; k.tween = null; k.anim = 'idle'; B.units = [k].concat(B.units.filter(function (u) { return u !== k; })); D.grid.setup(B.map, B.units); B.cache = null; In.trail('the barn: the child lifted to her hip'); yield 12; // (up in her arms: drawn BEHIND her and raised, the head and shoulders over Gennet's -- 11-12, Griz: "Can probably just attach girl sprite to Gennet sprite with head/shoulders appearing over gennet")
+      },
+      carry: function* () {
+        var g = Y.gennet, k = Y.child; if (!onFloor(g) || !onFloor(k)) return;
+        if (!k.lift) yield* acts.lift();
+        In.trail('the barn: she carries the child in');
         yield* In.walk(B, g, dest(), null, k); gone(k, 'door'); Y.child = null; gone(g, 'door'); Y.gennet = null;
       },
       pair: function* () {
