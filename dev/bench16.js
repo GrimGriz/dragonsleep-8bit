@@ -9743,9 +9743,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (!RP) throw new Error('no D.ripples: the rest cannot run');
       // (a fight driven by hand to the card: what it asked on the way, and where it stopped)
       var driveRP = function (B) {
-        var asks = [], v, k = 0, stop = 'ran out';
-        while (B.co && k++ < 200000) { var r = B.co.next(v); v = undefined; if (r.done) { stop = 'done'; break; } var y = r.value; if (y === 1e9) { stop = 'held'; break; } if (y && typeof y === 'object' && !y.fx) { if (y.entry) continue; asks.push(Object.keys(y).join('+')); if (y.turn) { stop = 'menu'; break; } if (y.prompt) v = y.prompt.opts[0].value; } }
-        return { asks: asks, stop: stop };
+        var asks = [], dead = [], deadHeld = true, v, k = 0, stop = 'ran out';
+        while (B.co && k++ < 200000) { var r = B.co.next(v); v = undefined; if (r.done) { stop = 'done'; break; } var y = r.value; if (y === 1e9) { stop = 'held'; break; }
+          // (the turn that is not one: the request stands for its frames whatever is pressed -- every frame but the last asked of the input here, with E held down -- and the M menu stays shut)
+          if (y && y.ripplesDead) { dead.push(y.ripplesDead); B.req = y; var ed0 = D.input.edge; D.input.edge = { a: true, end: true, menu: true }; for (var dk = 0; dk < y.ripplesDead - 1; dk++) D.ui.input(B, y); D.ui.openMenu(B); D.input.edge = ed0; if (B.req !== y || !y.turn || B.menu) deadHeld = false; B.req = null; continue; }
+          if (y && typeof y === 'object' && !y.fx) { if (y.entry) continue; asks.push(Object.keys(y).join('+')); if (y.turn) { stop = 'menu'; break; } if (y.prompt) v = y.prompt.opts[0].value; } }
+        return { asks: asks, stop: stop, dead: dead, deadHeld: deadHeld };
       };
       var showRP = function (q, tag, first) {
         D.seed = 1113; D.scenes.length = 0; var B = RP.make(q); D.push(B); D.battle = B;
@@ -9755,8 +9758,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var idle = L.filter(function (x) { return /^idle:/.test(x); }).length, cutAt = L.indexOf('cut:' + (firstHero && firstHero.name));
         okRP(tag + ' the order: ' + (B.order || []).map(function (u) { return u.name + ' ' + u.initRoll; }).join(', ') + ' (he is ' + (first ? 'first' : 'last') + ')', !!r0 && (first ? ord[0] === r0.name : ord[ord.length - 1] === r0.name));
         okRP(tag + (first ? ' his turn: nothing -- one idle turn before the cut (' + idle + '), no blow struck (the heroes whole: ' + hero0.map(function (u) { return u.hp + '/' + u.maxhp; }).join(' ') + '), he stands where he stood facing south (' + r0.facing + ')'
-          : ' he never has a turn (' + idle + ' idle turns), the heroes whole'), (first ? idle === 1 && L[0] === 'idle:' + r0.name && cutAt === 1 : idle === 0 && cutAt === 0) && hero0.every(function (u) { return u.hp === u.maxhp; }) && r0.facing === 0 && r0.anim === 'idle');
-        okRP(tag + ' the cut starts at the first hero\'s turn (' + (firstHero && firstHero.name) + '), no menu offered (asked on the way: ' + (dr.asks.join(',') || 'nothing') + '; stopped: ' + dr.stop + ')', cutAt >= 0 && dr.asks.length === 0 && dr.stop === 'held');
+          : ' he never has a turn (' + idle + ' idle turns), the heroes whole'), (first ? idle === 1 && L[0] === 'idle:' + r0.name && cutAt === 2 : idle === 0 && cutAt === 1) && hero0.every(function (u) { return u.hp === u.maxhp; }) && r0.facing === 0 && r0.anim === 'idle');
+        okRP(tag + ' the first hero\'s turn (' + (firstHero && firstHero.name) + ') stands as a turn for ' + dr.dead.join(',') + ' frames (want one, 180 to 300: his "three to five seconds"), its menu dead -- E and END held down every frame and M pressed, nothing answered (' + dr.deadHeld + ') -- then the cut (log ' + L[cutAt - 1] + ', ' + L[cutAt] + '); no live menu on the way (asked: ' + (dr.asks.join(',') || 'nothing') + '; stopped: ' + dr.stop + ')',
+          cutAt >= 1 && L[cutAt - 1] === 'menu:' + firstHero.name && dr.dead.length === 1 && dr.dead[0] >= 180 && dr.dead[0] <= 300 && dr.deadHeld && dr.asks.length === 0 && dr.stop === 'held');
         var shots = L.filter(function (x) { return /^shot:/.test(x); }), alt = shots.every(function (x, i) { return x === (i % 2 ? 'shot:face' : 'shot:him'); });
         okRP(tag + ' the cut goes back and forth, him then the face, ' + shots.length + ' shots (want ' + RP.T.shots.length + ', alternating: ' + alt + ')', shots.length === RP.T.shots.length && alt);
         var mi = L.indexOf('mirror:' + (firstHero && firstHero.name)), rest = hero0.filter(function (u) { return u !== firstHero; });
@@ -9794,6 +9798,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // (the encounter's card and the fight it opens, OPTIONS' RANDOM FIGHTS at SIMPLE)
       D.house.worldDoor('?world&fresh&noenc&far'); var scR = D.top(), S2 = WK.state(); S2.t = tRP(6, 12); S2.at = vR.hex.slice(); var M2 = WK.M(), e2 = M2.hex[WK.K(S2.at[0], S2.at[1])];
       var simple0 = D.simple && D.simple.on();
+      // (THE CAMP, his "as long as the encounter happens because he is moving that night and they're in the hex he's moving to, not 'camping nearby and he's on the random
+      // encounter list'": a watch never rolls him; he comes when his walk has him in the camp's hex in that watch's hours, and then for certain)
+      okRP('4 the camp: he walks at noon of day 6 (' + RP.walking(tRP(6, 12)) + '), not at 22:00 (' + RP.walking(tRP(6, 22)) + '), not before dawn of day 2 (' + RP.walking(tRP(2, 5)) + '), not once held at the Warded Fort (day 13 noon: ' + RP.walking(tRP(13, 12)) + ')',
+        RP.walking(tRP(6, 12)) === true && RP.walking(tRP(6, 22)) === false && RP.walking(tRP(2, 5)) === false && RP.walking(tRP(13, 12)) === false);
+      RP.ODDS = 1; D.seed = 9; var pC = WK.pick(zR, false, vR.pt, 'camp'); RP.ODDS = odds0;
+      okRP('4 the camp: a watch\'s own roll at his feet, his odds at 1, is never him (' + (pC && pC.list) + ')', !!pC && !pC.ripples && pC.list.indexOf('ripples') < 0);
+      var cDay = RP.campPick(zR, tRP(6, 11), tRP(6, 13.6)), vN = WK.vesselAt(tRP(6, 22)); S2.at = vN.hex.slice(); var cNight = RP.campPick(zR, tRP(6, 21), tRP(6, 23.6)), cDawn = RP.campPick(zR, tRP(7, 4), tRP(7, 6.6)); S2.at = vR.hex.slice();
+      okRP('4 the camp: a rest in his hex over his noon walk -- he comes (' + (cDay && cDay.list) + '); a camp in the hex he stands in at night, the 21:00 watch -- he does not (' + cNight + '); the same camp\'s watch over the dawn he sets out -- he comes (' + (cDawn && cDawn.list) + ')',
+        !!cDay && cDay.ripples === true && cDay.list.join() === 'ripples' && cNight === null && !!cDawn && cDawn.ripples === true);
+      S2.t = tRP(6, 11); S2.zone = WK.zoneOf(e2); S2.count = 1e6; scR.cards.length = 0; D.house.runNight(scR, D.house.watchDefault(D.house.cur.party));
+      var cdC = scR.cards[scR.cards.length - 1], txtC = cdC ? cdC.lines.join(' | ').replace(/\{\/?[a-z]*\}/g, '') : '';
+      okRP('4 the camp: the night run from 11:00 in his hex, the count nowhere near a fight -- the first watch is him, his own card, one way on: ' + txtC, !!cdC && cdC.keys.length === 1 && /THE FIRST WATCH/.test(txtC) && /A gnoll, alone/.test(txtC) && !/Ripples/.test(txtC));
+      S2.at = vN.hex.slice(); var e2n = M2.hex[WK.K(S2.at[0], S2.at[1])]; S2.t = tRP(6, 21); S2.zone = WK.zoneOf(e2n); S2.count = 0.001; RP.ODDS = 1; scR.cards.length = 0; D.house.runNight(scR, D.house.watchDefault(D.house.cur.party)); RP.ODDS = odds0;
+      var cdN = scR.cards[scR.cards.length - 1], txtN = cdN ? cdN.lines.join(' | ').replace(/\{\/?[a-z]*\}/g, '') : '';
+      okRP('4 the camp: the night run from 21:00 in the hex he stands in, a fight due, his odds at 1 -- an ordinary watch\'s fight, not him: ' + txtN.slice(0, 90), !!cdN && cdN.keys.length === 2 && /WATCH/.test(txtN) && !/A gnoll, alone/.test(txtN));
+      scR.cards.length = 0; S2.at = vR.hex.slice(); S2.t = tRP(6, 12);
       scR.cards.length = 0; scR.encounter(pR, e2); var cdR = scR.cards[scR.cards.length - 1], txtR = cdR ? cdR.lines.join(' | ') : '';
       okRP('4 the encounter\'s card names no one and offers one way on (' + (cdR && cdR.keys ? cdR.keys.length : 0) + ' key): ' + txtR.replace(/\{\/?[a-z]*\}/g, ''), !!cdR && cdR.keys.length === 1 && /A gnoll, alone/.test(txtR) && !/Ripples/.test(txtR));
       if (cdR) { scR.cards.length = 0; cdR.keys[0][1](); }

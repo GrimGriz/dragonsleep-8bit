@@ -255,7 +255,10 @@
       var sky = W.todAt(S.t % 24), night = sky === 'night', lit = night ? 'the dark' : sky === 'dawn' || sky === 'dusk' ? 'the half-light' : 'the daylight';
       if (S.zone !== zone || S.count == null) W.resetCount(zone);
       S.count -= wh * W.PACE * (night ? W.NIGHTX : 1) * H.WATCHX * (W.mirrorRate ? W.mirrorRate() : 1); // (near the made things the count runs faster: js/world.js THE VESSEL'S ROAD)
-      var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, night)) : null;
+      // (Mr. Ripples comes to a camp only when his walk brings him into its hex in this watch's hours, and then for certain; a watch's own roll is never him -- RULED 11-13,
+      // Griz: "as long as the encounter happens because he is moving that night and they're in the hex he's moving to, not 'camping nearby and he's on the random encounter
+      // list'"; js/ripplesfight.js THE CAMP)
+      var p = (D.ripples && D.ripples.campPick && D.ripples.campPick(zone, t0 + (k - 1) * wh, t0 + k * wh)) || (S.count <= 0 ? (W.resetCount(zone), W.pick(zone, night, undefined, 'camp')) : null);
       if (!p || !p.list.length) { next(); return; }
       var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });
       var so = H.sleepersOff(H.living(H.cur), on), who = p.list.length + ' come out of ' + lit;
@@ -273,6 +276,7 @@
               next();
             } });
       };
+      if (p.ripples && D.ripples && D.ripples.campCard) { D.ripples.campCard(scene, k, names, function () { go(false); }); return; } // (his own card, one way on, the grid: js/ripplesfight.js)
       scene.card(['{r}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}: ' + who + '.', (names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
         [['a', function () { go(simple); }, 'FIGHT']].concat(D.simple ? [['rec', function () { go(!simple); }, other]] : []));
     };

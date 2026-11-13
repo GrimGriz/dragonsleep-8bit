@@ -7,9 +7,9 @@
    THE ENCOUNTER (RF.pick, over js/world.js W.pick): a road's fight that the count has already brought, rolled while the party stands where his hidden road has him that hour
    (W.vesselAt: within RF.NEAR miles of his point, a hex of THE WORLD from its middle to its corner; from the dawn he sets out), is Mr. Ripples alone RF.ODDS of the time -- one D.rand(), rolled only
    there, so every other hex's dice fall as they did. It opens ON THE GRID whatever OPTIONS' RANDOM FIGHTS says (his "grid only": no simple fight, no figure on the map,
-   nothing on a floor). The seat's numbers, his to tune.
-   THE FIGHT: initiative as in any fight. His turn, if it comes first: nothing (RF.idleTurn; he stands in his idle, facing south). The first hero's turn, before any menu:
-   THE CUT (RF.scene) -- the map's own camera in on him (Battle.camTo's way), cut against that hero's face coming slowly closer, the cuts shorter each time; at the top of
+   nothing on a floor). The seat's numbers, his to tune. A CAMP never rolls him: he comes to it only when his walk brings him into its hex (RF.comes, below; his word).
+   THE FIGHT: initiative as in any fight. His turn, if it comes first: nothing (RF.idleTurn; he stands in his idle, facing south). The first hero's turn: four seconds of a
+   turn like any other, its menu dead (his "three to five seconds of it looking like a normal fight"), then THE CUT (RF.scene) -- the map's own camera in on him (Battle.camTo's way), cut against that hero's face coming slowly closer, the cuts shorter each time; at the top of
    it the hero's eyes go to mirrors (the sound `mirroreye`, js/audio.js); then each other hero's face in three frames and its eyes (`mirroreye2`); then the card
    (RF.Found): the found line, two lines and a beat, "Game Over.", and the game over's rows as js/seep.js S.gameOver has them -- CONTINUE FROM A SAVE or the title.
    THE FACES: a hero's talking portrait at the keepers' bust where the art desk drew one (RF.FACE: the eyes' boxes read off the art), else the figure's own head off its
@@ -33,7 +33,7 @@
   };
   // the cut's clock, in the fight's steps (a `yield 1`: two frames, a thirtieth of a second): each pair of shots (him, then the face), shorter as it goes; the hold at the
   // top; a frame of the others' three, and their hold; the dark. The card's own (frames at 60 a second): the beat before "Game Over.", and the rows
-  RF.T = { shots: [44, 44, 36, 36, 28, 28, 21, 21, 15, 15, 11, 11, 8, 18], top: 56, frame: 4, other: 16, out: 22, beat: 110, rows: 230 };
+  RF.T = { shots: [44, 44, 36, 36, 28, 28, 21, 21, 15, 15, 11, 11, 8, 18], top: 56, frame: 4, other: 16, out: 22, beat: 110, rows: 230, menu: 240 }; // (menu: the first hero's turn standing as any turn does, dead, in frames: four seconds)
 
   RF.of = function (B) { return B && B.units ? B.units.filter(function (u) { return u.kind === RF.KIND && !u.dead; })[0] || null : null; };
   function heroes(B) { return B.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.object && !u.ally && !u.summon && !u.dead; }); }
@@ -41,12 +41,14 @@
   function ease(q) { q = Math.max(0, Math.min(1, q)); return q * q * (3 - 2 * q); }
 
   // ------------------------------------------------------------------ the faces
-  // a hero's portrait at the keepers' bust, by the hero (the eyes' boxes [x0, y0, x1, y1] in the frame's own pixels, the nearer eye first -- read off the art, 11-13)
+  // a hero's portrait at the keepers' bust, by the hero (the eyes' boxes [x0, y0, x1, y1] in the frame's own pixels, the nearer eye first -- read off the art, 11-13; a
+  // fifth entry is the eye's own shape inside its box, a row at a time [y, x0, x1]: Vivian's and Barley's, re-read a pixel at a time on his look that evening -- "Vivians
+  // mirror eyes look a little off, barley's moreso - think lymen and aurdin are good": hers had a row of cheek under the white, his sat on the brow)
   RF.FACE = {
     lymen: { sheet: 'pt_lymen_full', eyes: [[74, 34, 80, 36], [89, 34, 91, 36]] },
-    vivian: { sheet: 'pt_vivian_full', eyes: [[64, 34, 69, 36], [79, 37, 82, 39]] },
+    vivian: { sheet: 'pt_vivian_full', eyes: [[64, 34, 69, 36, [[34, 64, 69], [35, 64, 69], [36, 67, 68]]], [79, 37, 82, 39, [[37, 79, 81], [38, 79, 82], [39, 79, 82]]]] },
     aurdin: { sheet: 'pt_aurdin_red_full', eyes: [[62, 36, 67, 38], [75, 37, 78, 38]], by: { aurdin_p2: { sheet: 'pt_aurdin_ochre_full', eyes: [[62, 36, 68, 38], [76, 37, 80, 39]] } } },
-    barley: { sheet: 'pt_barley_coat_full', eyes: [[66, 35, 71, 37], [80, 35, 83, 36]] },
+    barley: { sheet: 'pt_barley_coat_full', eyes: [[67, 36, 71, 37, [[36, 67, 71], [37, 67, 70]]], [79, 37, 81, 38, [[37, 79, 81], [38, 79, 80]]]] },
     ingrith: { sheet: 'pt_ingrith', eyes: [[66, 31, 70, 32], [57, 30, 60, 31]] }
   };
   RF.faceOf = function (u) {
@@ -93,7 +95,8 @@
         if (fc.mirror > 0) eyes.forEach(function (e, n) { // the mirrors, a pixel of the art at a time: pale and cold, lighter at the top, a glint that moves
           var w = e[2] - e[0] + 1, h = e[3] - e[1] + 1, gl = Math.floor(S.t / 7 + n * 2) % (w + 3);
           for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) {
-            if (w >= 4 && h >= 3 && (xx === 0 || xx === w - 1) && (yy === 0 || yy === h - 1)) continue; // (the corners off a big eye: its shape)
+            if (e[4]) { if (!e[4].some(function (rw) { return rw[0] === e[1] + yy && e[0] + xx >= rw[1] && e[0] + xx <= rw[2]; })) continue; } // (the eye's own shape, read off the art)
+            else if (w >= 4 && h >= 3 && (xx === 0 || xx === w - 1) && (yy === 0 || yy === h - 1)) continue; // (the corners off a big eye: its shape)
             ctx.fillStyle = xx === gl ? MIRROR[0] : yy === 0 ? MIRROR[1] : yy === h - 1 && h > 1 ? MIRROR[3] : MIRROR[2];
             ctx.globalAlpha = Math.min(1, fc.mirror); ctx.fillRect(e[0] - ex + xx, e[1] - ey + yy, 1, 1);
           }
@@ -191,7 +194,21 @@
   var turn0 = AI.turn;
   AI.turn = function* (B, u) { if (u.kind === RF.KIND) return yield* RF.idleTurn(B, u); return yield* turn0.apply(this, arguments); };
   var hero0 = BP.heroTurn;
-  BP.heroTurn = function* (u) { if (!this.ripplesDone && RF.of(this)) { yield* RF.scene(this, u); return; } return yield* hero0.apply(this, arguments); };
+  // THE TURN THAT IS NOT ONE (11-13, Griz, on the show: "need three to five seconds of it looking like a normal fight, but their menu doesn't actually work at the front"):
+  // the first hero's turn opens as any turn does -- the turn started, the camera on the hero, the turn's chime, the bar and the menu or the grid as OPTIONS has them -- and
+  // for RF.T.menu frames no key and no click does anything (the request is the turn's own with `ripplesDead` on it: js/ui.js draws it as a turn, and the input below
+  // answers nothing); then the cut. The M menu stays shut for the whole fight: it holds the way back to the road
+  BP.heroTurn = function* (u) {
+    if (this.ripplesDone || !RF.of(this)) return yield* hero0.apply(this, arguments);
+    D.rules.startTurn(u); if (this.reloadAtStart) this.reloadAtStart(u); this.focus(u); D.sfx('popup'); this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
+    note(this, 'menu:' + u.name);
+    yield { turn: u, ripplesDead: RF.T.menu, n: 0 };
+    yield* RF.scene(this, u);
+  };
+  var input0 = D.ui.input;
+  D.ui.input = function (B, req) { if (!req || !req.ripplesDead) return input0.apply(this, arguments); if (++req.n >= req.ripplesDead) B.answer(null); };
+  var openMenu0 = D.ui.openMenu;
+  D.ui.openMenu = function (B) { if (B && B.ripplesFight) return; return openMenu0.apply(this, arguments); };
 
   // ------------------------------------------------------------------ the card, and the game over (js/seep.js S.gameOver's rows: js/mines.js RoostFail's)
   function Found() { var RFl = D.mines && D.mines.RoostFail; if (RFl) RFl.call(this); this.kind = 'ripplesfound'; this.bats = []; this.lines = [RF.LINES.found, '', '', RF.LINES.over]; }
@@ -242,10 +259,25 @@
       var V = W.VESSEL, v = W.vesselAt(t); if (!v || t < (V.day0 - 1) * 24 + V.dawn) return false;
       return Math.hypot(pt[0] - v.pt[0], pt[1] - v.pt[1]) <= RF.NEAR;
     };
+    // THE CAMP (RULED 11-13, Griz, on the seat's "camp night fights can roll him too": "they'd have to be camping on his path"; then "as long as the encounter happens
+    // because he is moving that night and they're in the hex he's moving to, not 'camping nearby and he's on the random encounter list'"): a camp's watch never ROLLS him.
+    // He comes to a camp (RF.comes) when he is WALKING -- dawn to dusk from day 2, not held at the Warded Fort: js/world.js THE VESSEL'S ROAD -- and his walk has him in
+    // the camp's hex at some hour of that watch; then the watch's fight is him, for certain, whatever the count (js/house.js H.runNight asks RF.campPick first). By his
+    // road's hours a camp in the dark never meets him: it is the one lying on his path when he sets out at dawn, or a rest taken by day where he walks
+    RF.walking = function (t) { var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24, v = W.vesselAt(t); return !!v && !v.held && d >= V.day0 && h >= V.dawn && h < V.dusk; };
+    RF.comes = function (t0, t1, pt) { // (does his walk bring him into the party's hex between t0 and t1: looked at every half hour)
+      if (!D.FOES || !D.FOES[RF.KIND] || !(RF.ODDS > 0)) return false;
+      for (var t = t0; t <= t1 + 1e-9; t += 0.5) if (RF.walking(t) && RF.here(pt, t)) return true;
+      return false;
+    };
+    RF.campPick = function (zone, t0, t1) { return RF.comes(t0, t1) ? { zone: zone, Z: null, grp: { ripples: true }, list: [RF.KIND], mirror: false, made: null, ripples: true, camp: true } : null; };
+    RF.campCard = function (scene, k, names, go) { // (the watch's card when it is him: the road's words, no name, one way on)
+      scene.card(['{p}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}, ' + W.timeOfDay() + ':'].concat(RF.LINES.meet).concat([(names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: go on')]), null, [['a', go, 'GO ON']]);
+    };
     var pick0 = W.pick;
-    W.pick = function (zone, night, pt) {
+    W.pick = function (zone, night, pt, how) { // (how 'camp': a watch's roll -- never him, above)
       var p = pick0.apply(this, arguments);
-      if (!p || !p.list || !p.list.length || !D.FOES || !D.FOES[RF.KIND] || !(RF.ODDS > 0) || !RF.here(pt)) return p;
+      if (how === 'camp' || !p || !p.list || !p.list.length || !D.FOES || !D.FOES[RF.KIND] || !(RF.ODDS > 0) || !RF.here(pt)) return p;
       if (D.rand() >= RF.ODDS) return p;
       return { zone: p.zone, Z: p.Z, grp: { ripples: true }, list: [RF.KIND], mirror: false, made: null, ripples: true };
     };
