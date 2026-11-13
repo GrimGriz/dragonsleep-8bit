@@ -1129,9 +1129,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       runY(B1.exec(f1, { do: 'ready', pick: 'weapon' }));
       okY('readied: ' + JSON.stringify(f1.ready && { what: f1.ready.what, name: f1.ready.name }) + ', the action spent ' + (f1.turn.action === 0) + ', had ' + JSON.stringify(f1.ready && f1.ready.had), !!f1.ready && f1.ready.what === 'weapon' && f1.turn.action === 0);
       D.rules.startTurn(gb); var n1 = (B1.log || []).length; D.d = function (s) { return Math.min(s, 18); };
-      runY(B1.moveAlong(gb, [[9, 5], [9, 6], [9, 7], [9, 8]], { spend: true })); D.d = d0Y;
+      var sfxY = [], sfx0Y = D.sfx, fl0Y = D.fx.list.length; D.sfx = function (id) { sfxY.push(id); };
+      runY(B1.moveAlong(gb, [[9, 5], [9, 6], [9, 7], [9, 8]], { spend: true })); D.d = d0Y; D.sfx = sfx0Y;
       var l1 = logY(B1, n1);
       okY('the goblin walks up: the readied strike ' + /readied/.test(l1) + ', the reaction spent ' + (f1.reaction === 0) + ', the ready gone ' + !f1.ready + ' -- ' + l1.slice(0, 160), /readied/.test(l1) && f1.reaction === 0 && !f1.ready);
+      // (11-13, his 10-13 "An indicator on screen with a sound when a readied action fires": READY! over the one who held it, a ring, the sound `ready` before the blow's own)
+      var flY = D.fx.list.filter(function (f) { return f.kind === 'float' && f.u === f1; }), iRdY = sfxY.indexOf('ready'), iHitY = Math.max(sfxY.indexOf('hit'), sfxY.indexOf('crit'), sfxY.indexOf('miss'));
+      okY('the ready fires seen and heard: READY! floated over the fighter (' + flY.length + '), the sound `ready` (' + sfxY.join(' ') + ') before the blow\'s own, the fight\'s mark of it (' + JSON.stringify(B1.readyFired) + '), the sound in js/audio.js ' + !!(window.DS && window.DS.audio && window.DS.audio.has ? window.DS.audio.has('ready') : true), flY.length >= 1 && iRdY >= 0 && (iHitY < 0 || iRdY < iHitY) && !!B1.readyFired && B1.readyFired.who === f1.id && B1.readyFired.n === 1);
       // 2 the Breach itself (data/fights.js bulette: under the road's torn slabs at [12,1] since 10-29, at [9,1] before), the four at their places: the class AI readies (Barley his flail, Aurdin his Fire Bolt)
       var B2 = new D.Battle({ ladder: true, fight: 'bulette', bench: true }); D.battle = B2; B2.enter(); while (!B2.order.length) B2.co.next();
       var bl = B2.units.filter(function (u) { return u.side === 'foe'; })[0], p2 = B2.units.filter(function (u) { return u.side === 'party'; }), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], w2 = p2.filter(function (u) { return u.cls === 'wizard'; })[0];

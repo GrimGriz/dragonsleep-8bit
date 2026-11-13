@@ -349,6 +349,8 @@
     ko: function (t) { [64, 60, 57, 52].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.08, 0.09, 0.12, 0.5); }); },
     coin: function (t) { tone(sfxBus, 'pulse', 88, t, 0.05, 0.12, 0.25); tone(sfxBus, 'pulse', 93, t + 0.05, 0.12, 0.12, 0.25); },
     save: function (t) { [79, 84, 91].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.09, 0.14, 0.2); }); },
+    // a readied action springs (DEEP16, 11-13: his "An indicator on screen with a sound when a readied action fires"): three quick rising notes under a bright snap
+    ready: function (t) { noise(sfxBus, t, 0.03, 0.12, 5200, 2); [[79, 0], [86, 0.07], [91, 0.14]].forEach(function (p) { tone(sfxBus, 'square', p[0], t + p[1], 0.09, 0.14); }); },
     ring: function (t) { [84, 91, 96, 91, 96, 103].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.05, 0.1, 0.18); }); },
     // a bell's toll, low and long (DEEP16's knellback sounds its bell-shell, 11-10): the strike, the hum and its partials dying away under it
     knell: function (t) { noise(sfxBus, t, 0.06, 0.25, 2500, 1); [[43, 1.6, 0.24], [55, 1.3, 0.14], [62, 0.9, 0.09], [67, 0.6, 0.06], [74, 0.35, 0.04]].forEach(function (p) { tone(sfxBus, 'triangle', p[0], t, p[1], p[2]); }); },

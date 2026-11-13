@@ -3295,6 +3295,9 @@
       var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : rd.what === 'cmd' ? cmd.do === rd.cmd : rd.what === 'item' ? cmd.do === 'item' && cmd.id === rd.item : cmd.do === 'cast');
       if (!fit) { if (!byAI(w)) this.card(['{g}' + w.name + ' holds the readied ' + rd.name + '.{/}'], 120); return false; }
       w.reaction = 0; delete w.ready;
+      // THE READY FIRES, SEEN AND HEARD (11-13, his 10-13 "An indicator on screen with a sound when a readied action fires"): READY! in gold over the one who held it, a gold
+      // ring at their feet and a sound of its own (js/audio.js `ready`), as it springs -- a hero's or a foe's, before the blow's own card and sounds
+      this.readyFired = { who: w.id, t: this.t, n: ((this.readyFired && this.readyFired.n) || 0) + 1 }; FX.float('READY!', w, D.PAL.ramps.gold[4], true); if (FX.ring) FX.ring(w, 'gold', 30); D.sfx('ready');
       if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
       var tn = cmd.target && cmd.target.id != null ? cmd.target : cmd.target && cmd.target.units && cmd.target.units[0];
       this.card(['{o}' + w.name + '{/}: the readied ' + (rd.what === 'move' ? 'move' : rd.what === 'cmd' ? rd.name.toUpperCase() : rd.name) + (tn && tn !== w ? ', at ' + Battle.nm(tn) : '') + '.  {g}(' + ctx.why + '){/}']);
