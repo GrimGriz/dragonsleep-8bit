@@ -945,12 +945,12 @@
     return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
   };
   W.partyPt = function () { return S && M ? hc(S.at[0], S.at[1]) : null; }; // (the party's hex's middle in miles: one plane for both maps)
-  W.mirrorAt = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now), and the making it comes from -- the strongest there)
-    var no = { w: 0, m: null }; pt = pt || W.partyPt(); if (!pt) return no; var V = W.VESSEL, w = 0, mm = null, pts = W.vesselRoad(); if (!pts) return no;
+  W.mirrorAt = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now), the making it comes from -- the strongest there -- and `all`, every making whose reach holds the point with its own weight there: WHERE THEY OVERLAP, below)
+    var no = { w: 0, m: null, all: [] }, all = []; pt = pt || W.partyPt(); if (!pt) return no; var V = W.VESSEL, w = 0, mm = null, pts = W.vesselRoad(); if (!pts) return no;
     var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
     if (pts[bi][2] > W.vesselAt(t).mi + 1) return no; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
-    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach && V.peak * (1 - d / m.reach) > w) { w = V.peak * (1 - d / m.reach); mm = m; } });
-    return { w: w, m: mm };
+    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) { var wm = V.peak * (1 - d / m.reach); all.push({ m: m, w: wm }); if (wm > w) { w = wm; mm = m; } } });
+    return { w: w, m: mm, all: all };
   };
   W.mirrorWeight = function (pt, t) { return W.mirrorAt(pt, t).w; };
   // THE MAKINGS BY THEIR GROUND (RULED 11-13, Griz: "there should be a path of Mr Ripples that the player doesn't see that determines when/where he makes creatures - these
@@ -969,8 +969,13 @@
   // the hyena alone (the seat's reading of "should bring mirror hyena back")
   W.MADE = { glowseep: { wisp: 'mirrorwisp', stirge: 'mirrorstirge' }, doors: { wolf: 'mirrorwolf', worg: 'mirrorworg' }, gnollhills: { hyena: 'mirrorhyena' } };
   W.makingZone = function (m) { var MW = MS.world, e = MW && m && MW.hex[K(m.hex[0], m.hex[1])]; return e ? W.zoneOf(e, MW) : null; }; // (the table of the ground he stood on)
-  W.madeAt = function (pt, t) { // (the making that counts at a point, its ground's table, the two made on it and that table's groups of them: null where a ground has no list)
-    var a = W.mirrorAt(pt, t); if (!a.m) return null; var zone = W.makingZone(a.m), mk = W.MADE[zone], Z = tables()[zone]; if (!mk || !Z) return null;
+  // WHERE THEY OVERLAP (RULED 11-13, Griz: "where the zones overlap party random encounters could include either"): at a point inside more than one making's reach a
+  // mirror-made draw is of ONE of them, each making drawn in proportion to its own weight there (W.mirrorAt's `all`; roll: D.rand, once, only where they overlap). How
+  // OFTEN a mirror-made thing is met is not changed by it: the entry's weight on the table and the road's faster count are still the strongest making's alone, not the sum
+  W.madeAt = function (pt, t, roll) { // (the making drawn at a point -- the strongest, or with roll one of those overlapping by weight -- its ground's table, what is made on it and that table's groups of them: null where a ground has no list)
+    var a = W.mirrorAt(pt, t); if (!a.m) return null; var mkg = a.m;
+    if (roll && a.all.length > 1) { var tw = 0; a.all.forEach(function (x) { tw += x.w; }); var rr = D.rand() * tw; for (var ia = 0; ia < a.all.length; ia++) { rr -= a.all[ia].w; if (rr < 0) { mkg = a.all[ia].m; break; } } }
+    a = { m: mkg }; var zone = W.makingZone(a.m), mk = W.MADE[zone], Z = tables()[zone]; if (!mk || !Z) return null;
     var gs = Z.groups.filter(function (g) { return !g.cond && g.e.every(function (x) { return mk[x[0]] && D.FOES && D.FOES[mk[x[0]]]; }); });
     return gs.length ? { making: a.m, zone: zone, made: mk, groups: gs } : null;
   };
@@ -1005,7 +1010,7 @@
     var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond; }).map(nightW), mw = W.mirrorWeight(pt); if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
     if (mw > 0) gs.push({ w: mw, mirror: true });
     var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
-    var md = grp.mirror ? W.madeAt(pt) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
+    var md = grp.mirror ? W.madeAt(pt, null, true) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
     src.e.forEach(function (e) { var n = e[1] + D.rint(e[2] - e[1] + 1); for (var k = 0; k < n; k++) list.push(grp.mirror ? ((md && md.made[e[0]]) || W.MIRROR[e[0]] || e[0]) : e[0]); });
     return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone } : null };
   };
