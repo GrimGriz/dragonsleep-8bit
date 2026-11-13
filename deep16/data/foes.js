@@ -570,18 +570,18 @@
     src: 'SRD 5.1 Veteran (CR 3: AC 17, 58 HP; Multiattack two longswords +5 1d8+3 and the shortsword +5 1d6+3; the heavy crossbow +3 1d10+1 100/400 -- the last two his since 11-12), a dwarf; content/npcs.json drillmaster'
   },
   // THE ROAD PATROL (11-12, the garrison seat): the SRD 5.1 Scout as a dwarf (srd/20-npcs.md: AC 13 leather, 16 HP, Perception +5 (passive 15), Stealth +6, Keen Hearing and Sight,
-  // Multiattack two melee or two ranged, the shortsword +4 1d6+2, the longbow +4 1d8+2 150/600; CR 1/2), speed 25, darkvision 60, Dwarven Resilience as the troopers. No look of its
-  // own yet: the garrison trooper's old helmed sheet (trooper_p0), as the file leader
+  // Multiattack two melee or two ranged, the shortsword +4 1d6+2, the longbow +4 1d8+2 150/600; CR 1/2), speed 25, darkvision 60, Dwarven Resilience as the troopers. Its own look
+  // since 11-13: the art desk's road patrol, roadpatrol_p2 (art-wanted section 56; tools/roadpatrol-fight-sheet.py) -- the shortsword stab and the longbow's `shoot`
   roadpatrol: {
-    name: 'Road Patrol', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Road Patrol', type: 'humanoid', sheet: 'roadpatrol_p2', humanoid: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 11, dex: 14, con: 12, int: 11, wis: 13, cha: 11 }, init: 2, perception: 15, stealth: 6, keen: 'hearing and sight',
     saves: { str: 0, dex: 2, con: 1, int: 0, wis: 1, cha: 0 },
     attacks: {
       shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
-      longbow: { name: 'Longbow', atk: 4, dice: '1d8', mod: 2, type: 'piercing', ranged: true, range: [150, 600] }
+      longbow: { name: 'Longbow', atk: 4, dice: '1d8', mod: 2, type: 'piercing', ranged: true, range: [150, 600], row: 'shoot' } // (roadpatrol_p2's `shoot`, loosed on frame 4; the Shortsword plays its `attack`, the stab -- 11-13)
     },
     multi: ['shortsword', 'shortsword'], rangedMulti: ['longbow', 'longbow'], resist: ['poison'], resilient: true,
-    src: 'SRD 5.1 Scout (CR 1/2: AC 13 leather, 16 HP, Perception +5, Stealth +6, Keen Hearing and Sight, two shortswords +4 1d6+2 or two longbow arrows +4 1d8+2 150/600) as a dwarf of the road; on trooper_p0 till a look of its own'
+    src: 'SRD 5.1 Scout (CR 1/2: AC 13 leather, 16 HP, Perception +5, Stealth +6, Keen Hearing and Sight, two shortswords +4 1d6+2 or two longbow arrows +4 1d8+2 150/600) as a dwarf of the road; on its own drawn sheet (roadpatrol_p2, 11-13)'
   },
   robber: {
     name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, armor: 'leather armor', hp: 11, speed: 30, size: 1, reach: 5,

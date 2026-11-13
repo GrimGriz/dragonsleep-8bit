@@ -22144,6 +22144,87 @@ true
 },
 "source": "drawn by the art desk (2026-10-19, ART-74: five views, six rows each), cut and snapped by tools/ratswarm-sheet.py; each frame's swarm middle on its square's middle"
 },
+"roadpatrol_p2": {
+"image": "art/roadpatrol_p2.png?v=c495b24cde",
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"shoot": {
+"y": 1920,
+"fw": 46,
+"fh": 80,
+"ax": 23,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 46,
+"fh": 80,
+"ax": 23,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Road Patrol",
+"hold": [
+"attack: the North stab foreshortened and largely hidden on contact; cross-action bow and sword swap timing (the art desk's own notes)",
+"shoot: the longbow string and nocked arrow thin at native scale; the North bow's projected aim (the art desk's own notes)"
+],
+"source": "drawn by the art desk (SOLSKAFT-ROAD-PATROL-COMBAT, 11-12: art-wanted section 56 block 2, the road patrol in five views, the Attack and Shoot over the mannequin's guides), cut by tools/roadpatrol-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "roper_p1": {
 "image": "art/roper_p1.png?v=5ba6ef055a",
 "fw": 108,
