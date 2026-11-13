@@ -26,7 +26,7 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 
 2. **Find a model.**
    - Search `<creature> STL` across Thingiverse, Printables, MyMiniFactory, Cults3D and Sketchfab.
-   - **Licence:** CC0 or CC BY. NC is tolerable while the game is free. SA would make the sheets SA too, as the LPC ones already are. Read each listing's own: MZ4250's older bestiary is CC BY, his "Roper 2025" is CC BY-SA.
+   - **Licence:** CC0 or CC BY. NC is fine: the game is non-commercial and stays so (Griz, 2026-11-13: *"games always gonna be free, don't want people changing two lines and charging for it"*; *"non-commerical always seem more the vibe i'm aiming for"*). SA would make the sheets SA too, as the LPC ones already are. Read each listing's own: MZ4250's older bestiary is CC BY, his "Roper 2025" is CC BY-SA.
    - **Best:** a listing that ships the artist's own `.blend`. MZ4250's free D&D bestiary on Thingiverse (CC BY) ships a base mesh and a sculpt for each model, so try it first.
    - **Also good:** a kit cut up for a home printer (the roper's: a body with sockets, one loose straight tendril, and the creature in a second pose). Separate parts rig more easily than parts sculpted together, and a second pose can be a state (see *Without a base mesh* below).
    - Skip anything ripped from an official miniature.
