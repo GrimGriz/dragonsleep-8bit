@@ -226,7 +226,7 @@
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
     if (In.barnGoblinOn(flags || {}, dd)) npcs.push({ id: 'barnGoblin', x: In.BARN[0], y: In.BARN[1], look: 'goblin', dir: 'down' }); // (the one handed over, chained in the end stall till the due: 11-05)
-    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [45, 18, 4, 2], on: 'use', script: 'inn:point' }, /* (11-13, his "make only the 4 squares straight out from the rock do the 'yellow box click popup' about things not coming up from the deep": the four straight out from the flat stone, x 45-48 on its two rows -- it had been the whole water off the point) */
+    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [48, 17, 1, 4], on: 'use', script: 'inn:point' }, /* (11-13, his 0404Z note on eyes-lake-rock-1113b: "have the 4 pop-up squares be the 48 row that sticks out (right now 2 on 48 and 2 on 47)" -- column 48 is knee-shallow on rows 17 to 20 only, the four that stand out past the shallows north and south of them; it had been 45-48 on the stone's two rows) */ /* (11-13, his "make only the 4 squares straight out from the rock do the 'yellow box click popup' about things not coming up from the deep": the four straight out from the flat stone, x 45-48 on its two rows -- it had been the whole water off the point) */
       { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' },
       { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
     if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
@@ -400,11 +400,16 @@
     if (!draught) { yield* talk(); In.rise(B, seat); return; }
     // SACRIFICE NIGHT, the house with no offering: the talk steps aside while Elsbeth walks the bowls round (S.pending), and opens again where it stopped
     var els = seat.folk.elsbeth, home = els ? [els.x, els.y] : null, T = In.TABLE;
-    var stops = seat.four.map(function (u) { return [u.x, u.y < T.y ? u.y - 1 : u.y + 1]; }); // (behind each hero's chair: the north side from the north, the south from the south)
+    // (11-13, his 0404Z note on eyes-supper-kitchen-1113b, BROKEN: "elsbeth still shows popping in behind barley (center of screen) and then teleporting to where she starts
+    // walking". What it was: "behind each chair" on the table's north side is the house's north wall -- no way there, and In.walk SETS a figure at a goal it cannot reach: she was
+    // set behind the first north chair, set again behind the second, and only then walked to the south side. Her stops now: at the outer elbow of a north-side chair, on its own
+    // row; behind a south-side chair as before. She is stood in the kitchen BEFORE the supper's first screen, and a stop with no way to it is passed by, never jumped to)
+    var stops = seat.four.map(function (u) { return u.y < T.y ? [u.x + (u.x < T.mid ? -1 : 1), u.y] : [u.x, u.y + 1]; }), faces = seat.four.map(function (u) { return u.y < T.y ? [u.x < T.mid ? 1 : -1, 0] : [0, -1]; });
+    if (els) { var K0 = In.KITCHEN; if (D.grid.canStand(els, K0[0], K0[1])) { els.x = K0[0]; els.y = K0[1]; els.tween = null; els.facing = D.spr.facingFor(-1, 0); D.grid.setup(B.map, B.units); B.cache = null; } }
     var walks = {
       // (11-13, his note on the sacrifice supper: "elsbeth starts serving dinner from the wall behind the table, should come from the kitchen and maybe walk a little slower";
       // and before it, "did elsbeth teleport in from outside before serving the food?" -- she is stood in the kitchen by the tub first, and walks out from there at half again a step's time)
-      bowls: function* () { if (!els) return; var p0 = In.PACE, K = In.KITCHEN; if (D.grid.canStand(els, K[0], K[1]) || (els.x === K[0] && els.y === K[1])) { els.x = K[0]; els.y = K[1]; els.tween = null; D.grid.setup(B.map, B.units); B.cache = null; } In.PACE = Math.round(p0 * 1.5); try { for (var i = 0; i < stops.length; i++) { yield* In.walk(B, els, stops[i], [0, stops[i][1] < T.y ? 1 : -1]); yield 18; } } finally { In.PACE = p0; } },
+      bowls: function* () { if (!els) return; var p0 = In.PACE, K = In.KITCHEN; if (D.grid.canStand(els, K[0], K[1]) || (els.x === K[0] && els.y === K[1])) { els.x = K[0]; els.y = K[1]; els.tween = null; D.grid.setup(B.map, B.units); B.cache = null; } In.PACE = Math.round(p0 * 1.5); try { for (var i = 0; i < stops.length; i++) { if (!(els.x === stops[i][0] && els.y === stops[i][1]) && !D.Battle.route(els, stops[i], false)) { In.trail('Elsbeth serves: no way to ' + stops[i].join(',') + ', passed by'); continue; } if (!i) In.trail('Elsbeth serves: out of the kitchen from ' + els.x + ',' + els.y + ', her stops ' + stops.map(function (q) { return q.join(','); }).join(' ')); yield* In.walk(B, els, stops[i], faces[i]); yield 18; } } finally { In.PACE = p0; } },
       kitchen: function* () { if (els) yield* In.walk(B, els, home, [1, 0]); }
     };
     for (var g = 0; g < 8; g++) { yield* talk(); var w = seat.S && seat.S.pending; if (!w) break; seat.S.pending = null; if (walks[w]) yield* walks[w](); }
@@ -478,7 +483,7 @@
     var r = drawF0.apply(this, arguments), F = B && B.innFade, SP = B && B.innSplash;
     // (A PORTRAIT SPLASHED MID-SCREEN over the floor, 11-13: B.innSplash { sheet, t0, s } -- Elsbeth with the bucket, his "have the portrait centered mid-screen, it plays before
     // the text comes up"; its row played once and held on its last frame; In.splash sets it, In.splash(B) takes it down)
-    if (SP && D.SHEETS && D.SHEETS[SP.sheet] && D.counter && D.counter.drawPortraitAt) { var sh = D.SHEETS[SP.sheet], an = sh.anims.idle, k = SP.s || 1, fr = Math.min(an.frames - 1, Math.floor((B.t - SP.t0) / 14)), left = Math.round((D.W - sh.fw * k) / 2), foot = Math.round(D.H / 2 + sh.fh * k / 2) - 6; D.counter.drawPortraitAt(ctx, SP.sheet, 'idle', fr, left + sh.ax * k, foot - (sh.fh - sh.ay) * k, k); SP.drawn = (SP.drawn || 0) + 1; SP.at = [left, foot]; }
+    if (SP && D.SHEETS && D.SHEETS[SP.sheet] && D.counter && D.counter.drawPortraitAt) { var sh = D.SHEETS[SP.sheet], an = sh.anims.idle, k = SP.s || 1, fr = Math.min(an.frames - 1, Math.floor((B.t - SP.t0) / 14)), left = Math.round((D.W - sh.fw * k) / 2), foot = Math.round(D.H / 2 + sh.fh * k / 2) - 6; D.counter.drawPortraitAt(ctx, SP.sheet, 'idle', fr, left + sh.ax * k, foot - (sh.fh - sh.ay) * k, k); SP.drawn = (SP.drawn || 0) + 1; SP.at = [left, foot]; if (B.req && B.req.prompt && D.ui.drawReq) { D.ui.drawReq(ctx, B, { prompt: B.req.prompt }); SP.boxOver = (SP.boxOver || 0) + 1; } /* (11-13, his 0404Z note on eyes-stone-take-1113: "water bucket popup on the layer on top of the portrait" -- the box that takes the OK is drawn again after the portrait, so it lies over it) */ }
     if (!F || !(F.k > 0)) return r;
     ctx.save(); ctx.globalAlpha = Math.min(1, F.k); ctx.fillStyle = '#05060c'; ctx.fillRect(0, 0, D.W, D.H);
     if (F.k >= 1 && F.lines.length) { ctx.globalAlpha = 1; var ls = []; F.lines.forEach(function (l) { D.wrap(l, D.W - 80).forEach(function (x) { ls.push(x); }); }); ls.forEach(function (l, i) { D.text(ctx, l, Math.round(D.W / 2), Math.round(D.H / 2 - ls.length * 6 + i * 12), '#c8c8d8', 'center'); }); }
@@ -1106,6 +1111,7 @@
   In.sleepsHere = function () { return In.bedHere != null ? !!In.bedHere : !!(In.stay || D.benchPage); }; // (D.benchPage: dev/bench16.js's own page)
   In.sleep = function* (B, line) {
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
+    if (D.secondact && D.secondact.waitOver) D.secondact.waitOver(B, 'the party went to bed'); // (Doran's wait by the lake door ends with the party's night, not at six: js/secondact.js A.waitOver, 11-13)
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
     var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
     var def = D.roam.def, rm = In.ROOM[In.roomOf(B.roam.flags)];

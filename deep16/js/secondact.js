@@ -334,6 +334,16 @@
     if (!ev && def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && t && t.x >= In.STEP.lake[0] && Math.abs(t.y - In.DOORS.lake[1]) <= 3 && !In.inHouse(t.x, t.y)) { yield* A.followDoran(B); return 'followed'; }
     return ev;
   };
+  // HIS WAIT ENDS WHEN THE PARTY GOES TO BED (11-13, his 0404Z note on eyes-supper-kitchen-1113b, BROKEN: "doran still out back in the morning"; before it, 0301Z: "doran was still
+  // out back in the morning and timetraveled back into the night"). What it was: a room taken with supper at six sleeps eleven hours and wakes at FIVE, and the wait was let go
+  // only from six (A.waitLive) -- so he still stood at the lake door as the party woke, and a step out there followed him: the clock run on to the next night. The 11-13 fix
+  // asked the same clock at the step, and held nothing. Now the wait is over as the party takes its night's sleep (js/inn.js In.sleep), whatever the hour it wakes: nobody
+  // followed, the lake unfed, his figure gone from the path's head
+  A.waitOver = function (B, why) {
+    var f = B && B.roam && B.roam.flags; if (!f || !f.doranWaits) return false;
+    f.dueUnfed = f.doranWaits - 1; delete f.doranWaits; delete f.doranOut; B.units.filter(function (u) { return u.scripted === 'doranWait'; }).forEach(function (u) { In.gone(B, u); });
+    A.trail('nobody followed Doran out: the lake unfed' + (why ? ' (' + why + ')' : '')); return true;
+  };
   var peopleA0 = D.town.people;
   D.town.people = function (B) { // (laid from the flag; let go by the morning)
     var r = peopleA0.apply(this, arguments), def = D.roam && D.roam.def, f = B.roam && B.roam.flags;
@@ -368,6 +378,7 @@
       var sc0 = new C3.Counter(B, { id: 'dragtable', name: In.named(f), place: 'The Halfway Inn', what: 'the long table', room: true, open: true, bg: In.roomShot(B), script: function (s0) { return (function* () { yield s0.by(gT, [A.LINES.drifting]); })(); } });
       D.push(sc0); while (!sc0.done) yield 1;
     } else yield* In.card(B, [A.LINES.poisonAll], 420);
+    A.sing(A.WINDOW.vol.stone, true); // (11-13, his 0404Z note on eyes-stone-take-1113: "start the singing when the screen goes dark and end at water bucket" -- it starts with the fade and runs, looped, until her bucket; it had played once on the black)
     yield* In.fade(B, 1, 40);
     if (seat) In.rise(B, seat);
     A.backRoomClear(B);
@@ -382,7 +393,6 @@
     // she stands at the water's edge by the stone, the words she says to the lake heard on the black; ruling 19's silencing look goes back in after Elsbeth's bucket; then she
     // finishes and walks back up the path, in at the lake door, before the thing is on the rocks (the seat's call, kept small: no rite is staged, and she is not in the fight)
     if (!f.gennetDead && !f.gennetTaken) { Y.genStone = In.unit(B, { id: 'gennetStone', kind: 'gennet', at: A.GEN_STONE.slice(), name: In.named(f), face: [1, 0] }); Y.genStone.bystander = true; }
-    A.sing(A.WINDOW.vol.stone, false); // ("Somebody is saying the same few words over": the singing, once, on the black)
     In.fadeSay(B, [A.LINES.dragStone]); yield 150;
     yield* In.fade(B, 0, 50);
     yield* A.surface(B, Y);
@@ -402,7 +412,7 @@
       // played, THEN her words in the floor's own blue box that takes an OK; the splash down, and the open screen at the left for Gennet's look. THE BUCKET DOWN (his
       // "switch to cut without barrel after narration says 'puts bucket down' or edit narration"): from the look on she is on the cut without it
       var lead = party[0], ew = { name: 'Elsbeth', unit: Y.elsStone || null, side: 'left', sheet: In.elsbethCut(false) };
-      In.splash(B, In.elsbethCut(true)); yield 56;
+      A.sing(); A.trail('the singing stops at the bucket'); In.splash(B, In.elsbethCut(true)); yield 56;
       yield* In.ask(B, 'ELSBETH', ['Elsbeth, with the kitchen bucket. All of it, over ' + lead.name + '.', '"Wake up! You\'re supposed to stop it!"'], ['OK']);
       A.trail('Elsbeth\'s water on the stone: the portrait centred, then "Wake up!" in the box');
       In.splash(B);
