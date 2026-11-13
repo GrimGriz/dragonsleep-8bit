@@ -435,7 +435,7 @@ def rows_slash(R):
     # the shield arm, a frame (11-13): (up, fo, az, faz) -- the elbow down at his left side, the forearm level across his front, the shield's
     # face to the target. It holds its place: the numbers move only to undo what the hips' turn would do to it. The seventh is the idle's.
     GUARD = (-80, 4, 10, -72)          # (the upper arm nearly straight down: the shield stands near upright, its top a little back toward his shoulder)
-    SHIELDARM = [GUARD, (-74, 6, 6, -66), (-78, 5, 8, -70), GUARD, (-76, 6, 0, -82), GUARD, GUARD]; SEEN = []
+    SHIELDARM = [GUARD, (-74, 6, 6, -66), (-78, 5, 8, -70), GUARD, (-72, 6, 35, -45), GUARD, GUARD]; SEEN = []      # (5, his 11-13: "the left arm needs to move away from body center more than a shield raise (to the side of the arm it's in)" -- the elbow out to his left, the shield carried clear of the blade's path)
     SL = [
         P(-0.04, lean=3),                                                                                            # 1 POSITION ONE: the blade up in front, as the maces are held
         P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-12, 2, -4)),                 # 2 the hips turned, his LEFT side forward and the left arm out ahead; the right hand to the ear
