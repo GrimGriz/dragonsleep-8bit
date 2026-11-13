@@ -523,22 +523,25 @@
   // HOLDING -- STR DC 11 or its concentration ends, and it stays on its feet; one holding no spell goes down as under any wolf. The worg's bite does the same at DC 13: the
   // mirror worg's tears out A SPELL NOT YET CAST -- STR DC 13 or the lowest spell slot left is gone, and it stays on its feet; one with no slot goes down as under any worg.
   // The rider is js/seep.js S.mirrorBite, called where battle.js reads the knockdown (`unspell`). The mirror worg goes for the one with magic left (`seeksMagic`); the mirror
-  // wolves hunt as a pack does. Their looks are STAND-INS: the wolf's and the worg's own sheets under the mirror ripple, the mirror eye; no art asked. The seat's calls, for his overrule
+  // wolves hunt as a pack does. Their looks (11-13, the cutter of the wolves): the art desk's own pages, a paint-over of its wolf and its worg with Mr. Ripples' starfield fixed in the coat --
+  // mirrorwolf_p1 and mirrorworg_p1 (tools/mirrorwolf-sheet.py, tools/mirrorworg-sheet.py); the moving ripple and the mirror eye stay the engine's. Each came in THREE STATES, Normal,
+  // Emaciated (three days without magic) and Overcharged: the two others are cut and registered as <sheet>_emaciated_p1 and <sheet>_overcharged_p1 on the same cell and foot, and NOTHING
+  // WEARS THEM -- the makings' withering (the clock lane, held) is not built; deep16/?madeshow&state=emaciated shows one. The seat's calls, for his overrule
   mirrorwolf: {
-    name: 'Mirror Wolf', type: 'beast', sheet: 'wolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
+    name: 'Mirror Wolf', type: 'beast', sheet: 'mirrorwolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
     abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13, stealth: 4,
     saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11, unspell: 'conc' } },
     multi: 1, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
-    src: 'ours (11-13): the SRD 5.1 Wolf made over by Mr. Ripples -- the bite\'s knockdown falls on the spell its prey holds (STR DC 11 or its concentration ends, and no fall; one holding no spell is knocked prone as by any wolf); Pack Tactics, Keen Hearing and Smell as the wolf\'s; the mirror eye, the ripple; on the wolf sheet as a stand-in -- SENSES (ours, 11-10): Stealth +4, because it is the wolf, made over, and the SRD Wolf has Stealth +4; passive Perception 13, because the wolf\'s own: 10 + Perception +3'
+    src: 'ours (11-13): the SRD 5.1 Wolf made over by Mr. Ripples -- the bite\'s knockdown falls on the spell its prey holds (STR DC 11 or its concentration ends, and no fall; one holding no spell is knocked prone as by any wolf); Pack Tactics, Keen Hearing and Smell as the wolf\'s; the mirror eye, the ripple; on its own sheet since 11-13, mirrorwolf_p1 (the art desk\'s Normal state) -- SENSES (ours, 11-10): Stealth +4, because it is the wolf, made over, and the SRD Wolf has Stealth +4; passive Perception 13, because the wolf\'s own: 10 + Perception +3'
   },
   mirrorworg: {
-    name: 'Mirror Worg', type: 'monstrosity', sheet: 'worg_p1', cr: '1/2', ac: 13, hp: 26, speed: 50, size: 2, reach: 5, darkvision: 60,
+    name: 'Mirror Worg', type: 'monstrosity', sheet: 'mirrorworg_p1', cr: '1/2', ac: 13, hp: 26, speed: 50, size: 2, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 13, int: 7, wis: 11, cha: 8 }, init: 1, perception: 14,
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13, unspell: 'slot' } },
     multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
-    src: 'ours (11-13): the SRD 5.1 Worg made over by Mr. Ripples -- the bite\'s knockdown falls on a spell not yet cast (STR DC 13 or the lowest spell slot left is torn out, and no fall; one with no slot is knocked prone as by any worg); Keen Hearing and Smell as the worg\'s; the mirror eye, the ripple; on the worg sheet as a stand-in -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because the SRD Worg it is made from has no Stealth; passive Perception 14, because the worg\'s own: 10 + Perception +4'
+    src: 'ours (11-13): the SRD 5.1 Worg made over by Mr. Ripples -- the bite\'s knockdown falls on a spell not yet cast (STR DC 13 or the lowest spell slot left is torn out, and no fall; one with no slot is knocked prone as by any worg); Keen Hearing and Smell as the worg\'s; the mirror eye, the ripple; on its own sheet since 11-13, mirrorworg_p1 (the art desk\'s Normal state) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because the SRD Worg it is made from has no Stealth; passive Perception 14, because the worg\'s own: 10 + Perception +4'
   },
   firebeetle: {
     name: 'Fire Beetle', type: 'beast', sheet: 'firebeetle_p1', cr: '0', ac: 13, hp: 4, speed: 30, size: 1, reach: 5, blindsight: 30, glow: { bright: 10, dim: 10, color: 'fire' },

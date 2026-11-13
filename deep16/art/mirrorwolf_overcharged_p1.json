@@ -1,0 +1,39 @@
+{
+ "image": "art/mirrorwolf_overcharged_p1.png",
+ "fw": 96,
+ "fh": 96,
+ "ax": 48,
+ "ay": 77,
+ "top": 37,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 96,
+   "ax": 48,
+   "ay": 77,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 768,
+   "fw": 96,
+   "fh": 96,
+   "ax": 48,
+   "ay": 77,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 96,
+   "fh": 96,
+   "ax": 48,
+   "ay": 77,
+   "frames": 8,
+   "fps": 12,
+   "release": 2
+  }
+ },
+ "source": "drawn by the art desk (MIRROR-WOLF-THREE-STATE-SOURCES, 11-13: the Overcharged state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of its redrawn wolf), cut by tools/mirrorwolf-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorwolf (HELD: no state is chosen by the engine yet)"
+}

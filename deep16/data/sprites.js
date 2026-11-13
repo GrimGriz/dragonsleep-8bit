@@ -10482,6 +10482,240 @@
 }
 }
 },
+"mirrorwolf_emaciated_p1": {
+"image": "art/mirrorwolf_emaciated_p1.png?v=5152684948",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 36,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WOLF-THREE-STATE-SOURCES, 11-13: the Emaciated state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of its redrawn wolf), cut by tools/mirrorwolf-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorwolf (HELD: no state is chosen by the engine yet)"
+},
+"mirrorwolf_overcharged_p1": {
+"image": "art/mirrorwolf_overcharged_p1.png?v=fc51154a09",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 37,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WOLF-THREE-STATE-SOURCES, 11-13: the Overcharged state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of its redrawn wolf), cut by tools/mirrorwolf-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorwolf (HELD: no state is chosen by the engine yet)"
+},
+"mirrorwolf_p1": {
+"image": "art/mirrorwolf_p1.png?v=9361f42925",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 36,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WOLF-THREE-STATE-SOURCES, 11-13: the Normal state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of its redrawn wolf), cut by tools/mirrorwolf-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorwolf"
+},
+"mirrorworg_emaciated_p1": {
+"image": "art/mirrorworg_emaciated_p1.png?v=1934ce1fbd",
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"top": 67,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WORG-SOURCE-SHEETS, 11-13: the Emaciated state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of the regular worg), cut by tools/mirrorworg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorworg (HELD: no state is chosen by the engine yet)"
+},
+"mirrorworg_overcharged_p1": {
+"image": "art/mirrorworg_overcharged_p1.png?v=6fbdaf6f08",
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"top": 68,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WORG-SOURCE-SHEETS, 11-13: the Overcharged state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of the regular worg), cut by tools/mirrorworg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorworg (HELD: no state is chosen by the engine yet)"
+},
+"mirrorworg_p1": {
+"image": "art/mirrorworg_p1.png?v=162d512cc6",
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"top": 66,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 12,
+"release": 2
+}
+},
+"source": "drawn by the art desk (MIRROR-WORG-SOURCE-SHEETS, 11-13: the Normal state, Idle 8, Walk 8, Bite 8 in five views, a paint-over of the regular worg), cut by tools/mirrorworg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- deep16/data/foes.js mirrorworg"
+},
 "mouther_p1": {
 "image": "art/mouther_p1.png?v=12cc0bd0e5",
 "fw": 96,
@@ -30841,12 +31075,12 @@ true
 }
 },
 "worg_p1": {
-"image": "art/worg_p1.png?v=1c680e8e0f",
+"image": "art/worg_p1.png?v=33342565ce",
 "fw": 120,
 "fh": 122,
 "ax": 60,
 "ay": 98,
-"top": 59,
+"top": 66,
 "anims": {
 "idle": {
 "y": 0,
@@ -30873,9 +31107,11 @@ true
 "ax": 60,
 "ay": 98,
 "frames": 8,
-"fps": 12
+"fps": 12,
+"release": 2
 }
-}
+},
+"source": "drawn by the art desk (WORG-SOURCE-SHEETS, 11-13: Idle 8, Walk 8, Bite 8 in five views), cut by tools/worg-sheet.py through tools/wolfpages.py; SW W NW mirrored -- the SRD 5.1 Worg: deep16/data/foes.js worg"
 },
 "wynn_p1": {
 "image": "art/wynn_p1.png?v=da3ccd8618",

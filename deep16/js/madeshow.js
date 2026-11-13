@@ -31,6 +31,9 @@
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cls = function (c) { return party.filter(function (w) { return w.cls === c; })[0]; }, kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
     var cleric = cls('cleric'), wizard = cls('wizard'), fighter = cls('fighter'), mwolf = kind('mirrorwolf'), mworg = kind('mirrorworg');
+    // (&state=emaciated or overcharged, 11-13, the cutter of the wolves: the art desk drew each in three states and no rule chooses between them yet -- the two wear
+    // that state's sheet for the show; a look, the blocks and the beats unchanged)
+    var state = get('state'); if (state === 'emaciated' || state === 'overcharged') [mwolf, mworg].forEach(function (w) { var sh = w && w.kind + '_' + state + '_p1'; if (w && D.SHEETS && D.SHEETS[sh]) { w.sheet = sh; if (D.spr.prefetch) D.spr.prefetch([sh]); } });
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, slots: w.slots ? w.slots.slice() : null }; });
     var cx = Math.floor(G.map.w / 2), cy = Math.floor(G.map.h / 2);
     var report = B.madeReport = [];
@@ -120,8 +123,8 @@
     }
 
     var BEATS = [
-      { id: 'mirrorwolf', name: 'The mirror wolf: its bite pulls the spell down', what: 'Yours, 11-13: "choose two creatures from each random encounter list to have him mirror-make". The Doors\' table has two, the wolf and the worg. The SRD Wolf whole; its bite\'s knockdown falls on the spell its prey holds. On the wolf\'s own sheet under the mirror ripple. The seat\'s call.', run: mirrorWolf },
-      { id: 'mirrorworg', name: 'The mirror worg: its bite tears out a slot', what: 'The SRD Worg whole; its bite\'s knockdown falls on a spell not yet cast: the lowest slot left. On the worg\'s own sheet under the mirror ripple. The seat\'s call.', run: mirrorWorg }
+      { id: 'mirrorwolf', name: 'The mirror wolf: its bite pulls the spell down', what: 'Yours, 11-13: "choose two creatures from each random encounter list to have him mirror-make". The Doors\' table has two, the wolf and the worg. The SRD Wolf whole; its bite\'s knockdown falls on the spell its prey holds. On its own sheet since 11-13, the art desk\'s, under the mirror ripple. The seat\'s call.', run: mirrorWolf },
+      { id: 'mirrorworg', name: 'The mirror worg: its bite tears out a slot', what: 'The SRD Worg whole; its bite\'s knockdown falls on a spell not yet cast: the lowest slot left. On its own sheet since 11-13, the art desk\'s, under the mirror ripple. The seat\'s call.', run: mirrorWorg }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id; }); });
