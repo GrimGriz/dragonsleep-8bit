@@ -9829,6 +9829,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       aC2.equip.armor = 'robes'; var so1 = HH.sleepersOff(so0.data, ['barley']), aR = so1.data.party.filter(function (h) { return h.id === 'aurdin'; })[0]; // (Aurdin in his robes: slept in)
       okH('a watch fight\'s party (RULED: "go with the sleeping in light and robes, let them have the shield on the way"): Vivian asleep in her ' + vC2.equip.armor + ', Aurdin in his robes, Lymen out of his ' + lArm + ' but with his shield',
         vC2.equip.armor === HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0].equip.armor && aR.equip.armor === 'robes' && !lC.equip.armor && lC.equip.shield === lSh && !!lArm && !!lSh);
+      // the numbers of it (11-13, the lead from his 18 fights of 11-03: "Lymen's AC 12 in one camp fight and 19 the next" -- both right, and no bug): at the 2nd level on watch
+      // 19 = chain mail 16 + shield 2 + Defense 1; woken with the mail off 12 = 10 + DEX 0 + shield 2, and no Defense with no armour worn (SRD 5.1, Fighting Style: Defense)
+      var lUp = Object.assign(JSON.parse(JSON.stringify(lN)), { lvl: 2 }), lDn = Object.assign(JSON.parse(JSON.stringify(lC)), { lvl: 2 });
+      okH('Lymen at the 2nd level in a watch fight: on watch AC ' + RH.ac(lUp) + ' (chain mail, shield, Defense), woken AC ' + RH.ac(lDn) + ' (the shield alone)', RH.ac(lUp) === 19 && RH.ac(lDn) === 12);
       lN.hp = Math.max(1, lN.hp - 6); var SN = WH.state(); SN.zone = WH.zoneOf(WH.M().hex[WH.K(SN.at[0], SN.at[1])]); SN.count = 0.5; HH.runNight(wC, { vivian: 1, lymen: 2, barley: 3, aurdin: 3 });
       var cN = wC.cards[0], okCard = !!(cN && cN.keys && /FIRST WATCH/.test(cN.lines[0]) && cN.keys[0][2] === 'FIGHT');
       okH('the first watch\'s check finds them: ' + (cN ? cN.lines[0] : 'no card') + ' (a FIGHT button)', okCard);
