@@ -78,7 +78,8 @@
     }
     B.readyAim = req.aim || null;
     if (req.aim) aimStart(B, req.aim);
-    if (req.prompt) { B.sel = 0; D.sfx('popup'); if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
+    if (req.prompt) { B.sel = 0; if (!req.prompt.quiet) D.sfx('popup'); // (quiet: a readied thing's NOW / HOLD -- the `ready` ping is its sound, battle.js readySpring, 11-13)
+      if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
     if (req.prompt && req.prompt.squares && req.prompt.pick.length) { // (a pick of squares -- Rootdrag's drag, 10-30: the view on the middle of them, so none sits under the prompt's box)
       var pq = req.prompt.pick, mx = Math.round(pq.reduce(function (s, q) { return s + q.x; }, 0) / pq.length), my = Math.round(pq.reduce(function (s, q) { return s + q.y; }, 0) / pq.length);
       D.iso.lookAt(mx, my, G.map.gz(mx, my));
@@ -489,7 +490,7 @@
       B.tool = 'spell';
     }
     var how = rd.what === 'weapon' ? 'click the foe to strike' : rd.what === 'move' ? 'click the square to move to' : rd.what === 'item' ? 'click who it is for' : 'aim it as you would on your turn';
-    D.sfx('popup'); B.clearCards();
+    B.clearCards(); // (no popup sound: the `ready` ping is the ask's -- battle.js readySpring, 11-13, his "the 'ready' ping should play when i get the choice to use it or not")
     B.card([D.keys('{o}' + u.name + '{/}, the readied ' + (rd.what === 'move' ? 'move' : rd.name) + ': ' + a.ctx.why + '  ' + how + '.  {g}X or the right button holds it{/}')], 100000);
   }
   function holdAim(B) { D.sfx('cancel'); B.readyAim = null; B.tool = rest(); B.spell = null; B.picks = []; B.clearCards(); B.answer(null); }

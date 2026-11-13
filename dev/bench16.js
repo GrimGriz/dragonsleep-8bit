@@ -1435,6 +1435,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       springQ('turn', ['strike', 'fcast', 'prone', 'foeturn', 'ownturn'], 'turn');
       var o6 = mkQ('turn'); o6.c.hp = 0; EV.turn(o6);
       okQ('a fallen friend\'s turn: not sprung ' + heldQ(o6), heldQ(o6));
+      // 6b THE PING AT THE ASK (11-13 evening, Griz: "the 'ready' ping should play when i get the choice to use it or not"): a player's hero hears `ready` once as the aim comes
+      // up, before any answer; held, it has still sounded and nothing has fired; used, it does not sound a second time; the AI's sounds as it fires
+      var sfx0P = D.sfx, heardP = [], atAskP = -1; D.sfx = function (id) { heardP.push(id); };
+      var oP = mkQ('strike'); oP.B.active = oP.c; D.rules.startTurn(oP.c); hitQ();
+      var gP = oP.B.attack(oP.c, oP.g, oP.c.weapon), stP = gP.next(), kP = 0; while (!stP.done && kP++ < 4000 && !(stP.value && stP.value.aim)) stP = gP.next(stP.value && stP.value.prompt ? stP.value.prompt.opts[0].value : undefined);
+      var askedP = !stP.done && !!stP.value.aim, nAsk = heardP.filter(function (x) { return x === 'ready'; }).length, firedAsk = !!oP.B.readyFired;
+      stP = gP.next(null); kP = 0; while (!stP.done && kP++ < 4000) stP = gP.next();
+      var nHeld = heardP.filter(function (x) { return x === 'ready'; }).length, heldP = heldQ(oP) && !oP.B.readyFired;
+      heardP = []; hitQ(); runQ(oP.B.attack(oP.c, oP.g, oP.c.weapon)); var nUsed = heardP.filter(function (x) { return x === 'ready'; }).length, usedP = !oP.f.ready && !!oP.B.readyFired;
+      heardP = []; var oA = mkQ('strike'); oA.f.guest = true; oA.f.classAI = true; EV.strike(oA); var nAI = heardP.filter(function (x) { return x === 'ready'; }).length;
+      D.sfx = sfx0P; D.d = d0Q;
+      okQ('the ping at the ask: asked ' + askedP + ', `ready` heard ' + nAsk + ' before any answer (fired yet ' + firedAsk + ', the fight\'s mark ' + JSON.stringify(oP.B.readyAsked && oP.B.readyAsked.n) + '); held: still ' + nHeld + ', nothing fired ' + heldP + '; asked again and used: ' + nUsed + ' ping, fired ' + usedP + '; the AI\'s as it fires: ' + nAI,
+        askedP && nAsk === 1 && !firedAsk && nHeld === 1 && heldP && nUsed === 1 && usedP && nAI === 1);
       // 7 the old four keep to their own: a readied blade for A FOE ATTACKS US, A FOE CASTS and ONE OF US DOWN sits through a friend's hit, spell, shove and turn's end
       var old = ['ally', 'cast', 'down'].map(function (t) { var o = mkQ(t); ['strike', 'fcast', 'prone', 'turn'].forEach(function (e) { EV[e](o); }); return t + ' ' + (heldQ(o) ? 'held' : 'SPRUNG'); });
       okQ('the old triggers through a friend\'s hit, spell, shove and turn\'s end: ' + old.join(', '), old.every(function (x) { return / held$/.test(x); }));

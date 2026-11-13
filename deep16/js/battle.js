@@ -3347,16 +3347,20 @@
       // (a readied special centred on its user -- Group Hug, the Fountain -- with no one it would mend now: held on for the next trigger, the reaction kept. 10-08, Griz: "Just checked
       // and Goose can't ready Group Hug"; sprung on a miss it would have spent the special on nobody)
       if (rd.what === 'cmd' && rd.self && !this.commands(w).some(function (x) { return x.id === rd.cmd && x.ok; })) return false;
+      // THE PING AT THE ASK (11-13 evening, Griz, playing it: "the 'ready' ping should play when i get the choice to use it or not"): a player's hero hears `ready` as the
+      // choice comes up -- the aim, or NOW / HOLD -- whether it is then used or held; it is the ask's one sound (`quiet`: no popup under it; js/ui.js aimStart says none).
+      // READY! and the gold ring still mark the firing, below; the AI's, never asked, sounds as it fires
+      var asked = !byAI(w); if (asked) { D.sfx('ready'); this.readyAsked = { who: w.id, t: this.t, n: ((this.readyAsked && this.readyAsked.n) || 0) + 1 }; }
       if (byAI(w)) cmd = this.readyAuto(w, rd, ctx);
-      else if (g && g.shape === 'self') cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
-      else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd, target: rd.range ? ctx.foe : undefined } }, { label: 'HOLD', value: null }] } }; // (a readied special goes at the one that sprang it)
+      else if (g && g.shape === 'self') cmd = yield { prompt: { quiet: true, who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
+      else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { quiet: true, who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd, target: rd.range ? ctx.foe : undefined } }, { label: 'HOLD', value: null }] } }; // (a readied special goes at the one that sprang it)
       else cmd = yield { aim: { who: w, rd: rd, ctx: ctx } };
       var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : rd.what === 'cmd' ? cmd.do === rd.cmd : rd.what === 'item' ? cmd.do === 'item' && cmd.id === rd.item : cmd.do === 'cast');
       if (!fit) { if (!byAI(w)) this.card(['{g}' + w.name + ' holds the readied ' + rd.name + '.{/}'], 120); return false; }
       w.reaction = 0; delete w.ready;
       // THE READY FIRES, SEEN AND HEARD (11-13, his 10-13 "An indicator on screen with a sound when a readied action fires"): READY! in gold over the one who held it, a gold
       // ring at their feet and a sound of its own (js/audio.js `ready`), as it springs -- a hero's or a foe's, before the blow's own card and sounds
-      this.readyFired = { who: w.id, t: this.t, n: ((this.readyFired && this.readyFired.n) || 0) + 1 }; FX.float('READY!', w, D.PAL.ramps.gold[4], true); if (FX.ring) FX.ring(w, 'gold', 30); D.sfx('ready');
+      this.readyFired = { who: w.id, t: this.t, n: ((this.readyFired && this.readyFired.n) || 0) + 1 }; FX.float('READY!', w, D.PAL.ramps.gold[4], true); if (FX.ring) FX.ring(w, 'gold', 30); if (!asked) D.sfx('ready'); // (a player's heard it at the ask, above)
       if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
       var tn = cmd.target && cmd.target.id != null ? cmd.target : cmd.target && cmd.target.units && cmd.target.units[0];
       this.card(['{o}' + w.name + '{/}: the readied ' + (rd.what === 'move' ? 'move' : rd.what === 'cmd' ? rd.name.toUpperCase() : rd.name) + (tn && tn !== w ? ', at ' + Battle.nm(tn) : '') + '.  {g}(' + ctx.why + '){/}']);
