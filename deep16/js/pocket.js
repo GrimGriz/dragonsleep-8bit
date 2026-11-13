@@ -619,6 +619,17 @@
     this.go('title');
   };
   Pocket.prototype.say = function (text, frames) { this.msg = { text: text, t: frames || 180 }; };
+  /* A QUESTION ASKED IN THE GAME, NOT BY THE BROWSER (2026-11-13, Griz: the Pocket DM's CLEAR RECORD "doesn't work in pane" -- it and eight other buttons asked through
+     window.confirm, and the app's pane shows no such box, so every one of them answered no). The first press says what it will do on the screen's own line; the same button
+     pressed again within eight seconds does it. A bench's `ask` still answers for itself */
+  D.askTwice = function (host, q) {
+    var now = Date.now(), st = D.askTwice.st || (D.askTwice.st = {});
+    if (st.q === q && st.host === host && now - st.at < 8000) { D.askTwice.st = {}; return true; }
+    D.askTwice.st = { q: q, host: host, at: now };
+    if (host && host.say) host.say('PRESS IT AGAIN TO CONFIRM  --  ' + String(q).split(/[?.]/)[0] + '?', 480);
+    if (D.sfx) D.sfx('error');
+    return false;
+  };
   // ^ and v under a list that runs past its page, as THE MARKET's (10-17): a page a press, the wheel as before, 'a-b of n' beside them; key is the list's
   // scroll ('scroll', or 'scroll2' for a screen's second list). Every list of both tables has them since 10-27 (Griz: "menu on pocket DM doors is broken same
   // as other, requires mousewheel and doesn't scroll properly"); text false leaves the count to the caller
@@ -1157,7 +1168,7 @@
   Pocket.prototype.startModule = function (m) {
     if (!m || !m.slots || !m.slots.length) return null;
     if (!this.ready()) { this.go('party'); this.say('every seat wants a character first: then the module again', 300); return null; }
-    var here = this.st.run, ask = this.ask || function (q) { return window.confirm(q); };
+    var here = this.st.run, ask = this.ask || D.askTwice.bind(null, this);
     if (here && !ask('A ' + (here.module ? 'module' : 'ladder') + ' is under way (' + (here.trial ? 'the trial' : (here.module ? 'fight ' : 'rung ') + here.rung) + '). Put it away for ' + m.name + '?')) { this.say('kept the one under way', 240); return null; }
     var levels = this.levels(), plan = m.slots.map(function (s) { return Object.assign(JSON.parse(JSON.stringify(s)), { cr8: PK.sum8(s.foes), mine: 0, units: [] }); });
     this.st.run = { rung: 1, trial: false, base8: plan[0].cr8, carry: null, hd: levels.slice(), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), plan: plan,
@@ -1406,7 +1417,7 @@
     var file = null; try { file = JSON.parse(text); } catch (e) { /* (not JSON) */ }
     if (file && file.game === 'DRAGONSLEEP' && file.kind === PK.FILE_KIND) return this.takeRoster(text);
     if (!file || file.game !== 'DRAGONSLEEP' || (file.kind !== PK.TABLE_KIND && file.kind !== PK.CAMPAIGN_KIND) || !Array.isArray(file.roster)) { this.msg = { text: 'that file is not a Pocket DM campaign or roster', t: 300, bad: true }; return null; }
-    var st = this.st, here = st.run, ask = this.ask || function (q) { return window.confirm(q); }, whole = !(file.v >= 3); // (v3: the campaign alone -- the seats and a run stay as they are here)
+    var st = this.st, here = st.run, ask = this.ask || D.askTwice.bind(null, this), whole = !(file.v >= 3); // (v3: the campaign alone -- the seats and a run stay as they are here)
     if (whole && here && JSON.stringify(here) !== JSON.stringify(file.run || null) && !ask('A ladder is under way here (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for the file\'s ' + (file.run ? 'ladder (' + (file.run.trial ? 'the trial' : 'rung ' + file.run.rung) + ')' : 'table, with no ladder') + '?')) { this.say('kept the ladder here; nothing taken', 240); return { declined: true }; }
     // the roster: each of the file's characters found here (the same word and name) or added; its seats re-pointed to where each now stands
     var at = [], added = 0, bad = 0;
@@ -1787,7 +1798,7 @@
   };
   // DROP on a made card (10-21): asked first, then off the roster for good (PK.dropMade)
   Pocket.prototype.dropMade = function (i) {
-    var c = this.st.roster[i], ask = this.ask || function (q) { return window.confirm(q); }; if (!c) return;
+    var c = this.st.roster[i], ask = this.ask || D.askTwice.bind(null, this); if (!c) return;
     var wins = (c.loot || []).length;
     if (!ask('Take ' + c.name + ' off the roster for good?' + (wins ? ' ' + (wins > 1 ? 'Their ' + wins + ' winnings go' : 'Their winning goes') + ' to the pack.' : '') + ' Their seat stands empty. (SAVE THE PARTY first keeps them in a file.)')) return;
     var r = PK.dropMade(this.st, i);
@@ -2411,7 +2422,7 @@
       var ry = by + 22;
       if (rest && rest.short) { this.btn(ctx, rest.took ? 'SHORT REST: ' + (rest.took === 'long' ? 'NO NEED' : 'TAKEN') : 'SHORT REST', rx, ry, rw, 15, function () { self.campRest('short'); }, { dis: !!rest.took, why: rest.took === 'long' ? 'the long rest is taken: everyone is whole' : 'the short rest is taken: GO ON' }); ry += 19; }
       if (rest && rest.long) { this.btn(ctx, rest.took === 'long' ? 'LONG REST: TAKEN' : rest.trial ? 'LONG REST FOR THE TRIAL' : 'LONG REST', rx, ry, rw, 15, function () { self.campRest('long'); }, { dis: rest.took === 'long', why: 'the long rest is taken: GO ON' }); ry += 19; }
-      this.btn(ctx, 'PUT IT AWAY', rx, ry, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
+      this.btn(ctx, 'PUT IT AWAY', rx, ry, rw, 15, function () { var ask = self.ask || D.askTwice.bind(null, self); if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
     } else {
       this.btn(ctx, 'SINGLE FIGHT', rx, by, rw, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
       this.btn(ctx, 'RANDOM LADDER', rx, by + 22, rw, 16, function () { self.dayLevels(); self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
@@ -2585,7 +2596,7 @@
   Pocket.prototype.takeParty = function (text) {
     var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
     if (!f || f.game !== 'DRAGONSLEEP' || f.kind !== PK.PARTY_KIND || !Array.isArray(f.party) || !f.party.length) { this.msg = { text: 'that file is not a party', t: 300, bad: true }; return null; }
-    var st = this.st, ask = this.ask || function (q) { return window.confirm(q); };
+    var st = this.st, ask = this.ask || D.askTwice.bind(null, this);
     if (st.run && !ask('A ' + (st.run.module ? 'module' : 'ladder') + ' is under way. Put it away for this party?')) { this.say('kept the party as it was', 240); return null; }
     st.roster = st.roster || [];
     var party = f.party.slice(0, 6).map(function (slot) {
@@ -2748,7 +2759,7 @@
   };
   Pocket.prototype.clearRecord = function () {
     var R = D.rec, nc = R && R.clearable ? R.clearable() : 0; if (!nc) return false;
-    var since = R.count() - nc, ask = this.ask || function (q) { return window.confirm(q); };
+    var since = R.count() - nc, ask = this.ask || D.askTwice.bind(null, this);
     if (!ask('Clear the record? The ' + nc + ' fight' + (nc === 1 ? '' : 's') + ' in ' + (R.lastFile() || 'the file') + ' leave this browser; the file keeps ' + (nc === 1 ? 'it' : 'them') + '.' + (since > 0 ? ' ' + since + ' played since ' + (since === 1 ? 'stays' : 'stay') + '.' : '') + ' The Pocket DM\'s fights in the list are not touched.')) return false;
     var r = R.clear(); D.sfx(r ? 'confirm' : 'error');
     this.say(r ? r.gone + ' fight' + (r.gone === 1 ? '' : 's') + ' cleared; ' + r.file + ' keeps ' + (r.gone === 1 ? 'it' : 'them') : 'the browser would not clear it', 240);

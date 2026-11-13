@@ -690,7 +690,7 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'FROM A FILE', 86, 236, 90, 15, function () { PK.readJSON(function (text) { var x = self.readModule(text); if (!x) return; var t = PD.takeModule(st, x); if (!t) { self.say(PD.MODULES_MAX + ' modules already', 300); return; } self.dmSel = t.id; self.keep(); self.say(t.name + ': ' + t.slots.length + ' fights, yours to change', 300); }); });
     this.btn(ctx, 'COPY', 182, 236, 54, 15, function () { var c = PD.copyModule(st, m.id); if (c) { self.dmSel = c.id; self.keep(); } }, { dis: !m, small: true });
-    this.btn(ctx, 'LET GO', 242, 236, 62, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Let ' + m.name + ' go? It cannot be had back (but a file of it can).')) { PD.dropModule(st, m.id); self.keep(); } }, { dis: !m, small: true });
+    this.btn(ctx, 'LET GO', 242, 236, 62, 15, function () { var ask = self.ask || D.askTwice.bind(null, self); if (ask('Let ' + m.name + ' go? It cannot be had back (but a file of it can).')) { PD.dropModule(st, m.id); self.keep(); } }, { dis: !m, small: true });
     this.btn(ctx, 'OPEN ON BUILD', D.W - 130, 236, 110, 15, function () { cp.edit = m.id; self.scroll = 0; self.keep(); self.go('build'); }, { pri: true, dis: !m, why: 'no module picked' });
   };
   // a shop: its creatures priced top to bottom, or by name, or the dearest first
@@ -841,7 +841,7 @@
       // W: WALK IT -- the fight's floor, the elder mage, LAY THE RUNE (js/runes.js RN.floor; his 11-10, "seats on the DM placing his bound units on specific locations in the map")
       self.btn(ctx, 'W', px + pw - 98, yy + 7, 12, 9, function () { if (!D.runes || !D.MAPS[sl.map]) return; self.keep(); D.push(D.runes.floor(self, m, i)); }, { small: true, on: !!nR });
       self.btn(ctx, 'R', px + pw - 84, yy + 7, 12, 9, function () {
-        var ask = self.ask || function (q) { return window.confirm(q); };
+        var ask = self.ask || D.askTwice.bind(null, self);
         if (nR && !ask('Fight ' + (i + 1) + ' is its ' + nR + ' rune' + (nR === 1 ? '' : 's') + '. Clear them and roll its CR again?')) return; // (R on a laid fight asks first: it clears the runes -- his 7 of 11-07)
         if (nR) sl.runes = [];
         var f = PD.fill(self, sl.map, sl.cr8, PD.placed(m.slots, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep();
@@ -855,7 +855,7 @@
     if (!m.slots.length) D.text(ctx, 'click a map on the left: it is fight 1', px + pw / 2, 90, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'THE LOCATIONS', 86, 236, 100, 15, function () { self.scroll = 0; self.go('locations'); }, { small: true });
-    this.btn(ctx, 'CLEAR IT', 192, 236, 64, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Take every fight off ' + m.name + '?')) { m.slots = []; self.keep(); } }, { dis: !m.slots.length, small: true });
+    this.btn(ctx, 'CLEAR IT', 192, 236, 64, 15, function () { var ask = self.ask || D.askTwice.bind(null, self); if (ask('Take every fight off ' + m.name + '?')) { m.slots = []; self.keep(); } }, { dis: !m.slots.length, small: true });
     this.btn(ctx, 'SAVE TO THE FOLDER', D.W - 150, 236, 130, 15, function () { PD.saveModule(self, m); }, { pri: true, dis: !m.slots.length, why: 'no fights yet' }); // (into the modules folder, THE CAMP's LOAD MODULE reads it; a download without one)
   };
   // DOORS: every door of URLS.md (10-08 and before), opened in a tab of its own so the table stays where it is
