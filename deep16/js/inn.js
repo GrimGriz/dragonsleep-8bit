@@ -343,6 +343,7 @@
     var f = (B.roam && B.roam.flags) || {};
     B.units.forEach(function (u) { if (typeof u.npc === 'string' && In.NAME[u.npc]) u.name = In.NAME[u.npc](f); });
     B.units.forEach(function (u) { if (u.npc === 'katarina') In.katSits(u); });
+    In.edge = f.insightEdge || null; if (In.edge && In.day(D.roam.q) > In.edge.day + 1) { delete f.insightEdge; In.edge = null; } // (the insight's +1, the save's: that night and the day after -- In.edgeSet)
   };
   // KATARINA SAT WRITING BY THE FIRE (11-05, the Katarina seat, on cutter-1105's offer: her figure katarina_p1 has a sit row all round, "writing on a bench; the bench is drawn
   // with her"): on her square by the big fire (In.FOLK, 26,20, bare boards) she sits and writes, facing the hearth; spoken to, she turns to whoever speaks and stays sat
@@ -468,7 +469,7 @@
     var nearest = function (e) { var best = null; four.forEach(function (o) { if (o === e || !eating(o)) return; var dd = Math.abs(o.u.x - e.u.x) + Math.abs(o.u.y - e.u.y); if (!best || dd < best.d) best = { e: o, d: dd }; }); return best && best.e; };
     var give = function (id, skill, dc, text, pool) { // (a read is ONE hero's: the best passive among those it could be)
       var best = null; pool.forEach(function (e) { if (S.read[e.key]) return; var pv = In.passive(e.h, skill); if (pv >= dc && (!best || pv > best.pv)) best = { e: e, pv: pv }; });
-      if (best) { S.read[best.e.key] = { id: id, text: text }; S.stopped[best.e.key] = 1; In.trail(best.e.hero.name + ' passive ' + skill + ' ' + best.pv + ' vs DC ' + dc + ', read: ' + id + ' -- stops eating'); } };
+      if (best) { S.read[best.e.key] = { id: id, text: text }; S.stopped[best.e.key] = 1; if (skill === 'Insight') In.edgeSet(S.f, best.e.key, best.e.hero.name); In.trail(best.e.hero.name + ' passive ' + skill + ' ' + best.pv + ' vs DC ' + dc + ', read: ' + id + ' -- stops eating'); } };
     var ended = null;
     while (S.round < SC.TURNS && !ended) {
       S.round++; var r = S.round;
@@ -852,6 +853,7 @@
         S.cur[best.e.key] = id; if (r.opens) (S.opened[best.e.key] = S.opened[best.e.key] || {})[r.opens] = 1; });
       var list = four.map(function (e) { var id = S.cur[e.key], r = id && SU.READS[id], ops = optsOf(e); return { e: e, hero: e.hero, side: e.side, key: e.key, rid: id || null, reads: r ? [typeof r.text === 'function' ? r.text(S) : r.text] : [], ops: ops,
         opts: ops.map(function (p) { return p.label; }), marks: ops.map(function (p) { return p.shade ? { shade: true, tag: p.tag } : null; }), ids: ops.map(function (p) { return p.o ? p.o.id : 'bed'; }), shaded: ops.filter(function (p) { return p.shade; }).length }; }); // (ids, shaded: a bench's -- dev/bench16.js flipPick, the two rules' checks)
+      list.forEach(function (x) { if (x.rid && SU.READS[x.rid].skill === 'Insight') In.edgeSet(S.f, x.key, x.hero.name); });
       list.forEach(function (x) { if (x.rid) In.trail(x.hero.name + ' passive ' + SU.READS[x.rid].skill + ' ' + In.passive(x.e.h, SU.READS[x.rid].skill) + ' vs DC ' + SU.dc(SU.READS[x.rid]) + ', read: ' + x.rid); });
       var at0 = Math.max(0, list.map(function (x) { return x.key; }).indexOf(S.lastKey));
       var pk = yield sc.flip(who(prompt.by), [prompt.line], list, at0), x = list[pk && pk.at != null ? pk.at : at0] || list[0], p = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
@@ -1230,7 +1232,7 @@
     };
   };
   In.who = function (name, line) { return '{y}' + name + ':{/} ' + line; };
-  In.perceives = function (h, dc, bonus) { var r = In.d20(), v = DS.R.skill(h, 'Perception', 'wis') + (bonus || 0), ok = r + v >= dc; In.trail((h.name || h.id) + ' Perception ' + r + ' + ' + v + ' vs DC ' + dc + (ok ? ', saw' : ', did not')); return ok; };
+  In.perceives = function (h, dc, bonus) { var e = In.edge, plus = e && !e.used && e.key === (h.key || h.id) ? 1 : 0, r = In.d20(), v = DS.R.skill(h, 'Perception', 'wis') + (bonus || 0), ok = r + v + plus >= dc; if (plus) { e.used = 1; In.edgeUsed = { name: h.name || e.name }; } /* (the insight's +1, once: In.edgeSet, 11-13) */ In.trail((h.name || h.id) + ' Perception ' + r + ' + ' + v + (plus ? ' + 1 (the insight)' : '') + ' vs DC ' + dc + (ok ? ', saw' : ', did not')); return ok; };
   In.saw = function (st, f) { if (f.glamourSeen) return false; f.glamourSeen = 1; D.sfx('magic'); return true; };
   // the confrontation, the glamour seen through (the road's by day -- js/wagon.js, on the counter screen): Lymen's word and steel; else the word, Amara's gold or steel
   // (noBribe: a cycle whose gold was taken on the road already gets no second offer)
@@ -1498,6 +1500,38 @@
   // DOWN FROM UPSTAIRS (11-13; his note on eyes-watch-yard-roofed-1112m: "the problem with what the card loads, can't move anyone" -- a figure on a lit square at the edge of
   // the roof, "a way out: LEAVE THE FIGHT from here"): a scene watched from upstairs is laid with the house under its roof (11-12), and the party coming down was stood at
   // the stair's foot on THAT lay -- inside a roofed house, where the grid gives no way to walk. Coming down, the house is laid as its inside again, the token at the stair's foot
+  // THE INSIGHTS ON PORTRAITS (11-13, the inn seat of 11-13, third; Griz, 11-11 10:01Z: "insights as portraits talking to themselves that give +1 to vs illusion check"; its
+  // shape the lanes desk's call on his "give it your desk call on the two with no lean", standing for his overrule): where an (insight) line showed at the inn as a card on
+  // the floor it is said by ONE hero, to themself, on that hero's own talking portrait -- the one with the best Insight of those the read is made for, ties to the lead
+  // (In.insightHero). The line is the line as written. A hero with no talking portrait in hand (js/counter.js C.HERO_PT) shows it as the card it was. THE +1: the first
+  // insight of a night gives its hero +1, once, on that hero's own roll against the glamour (In.perceives: the watcher's look, the yard's) or on that hero's passive at the
+  // barn's LOOK CLOSER and TOUCH IT (In.edgeRead, spent only where the plain read fails); kept in the save's flags (f.insightEdge) through the next day; and a card says
+  // where the +1 came from when it is used (In.edgeCard). The supper's and the barn yard's reads were on their hero's own bubble already: they arm the +1 too
+  In.insightHero = function (B, among) {
+    var R0 = B.roam, lead = R0.lead0 || R0.token, us = among && among.length ? among : R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; }), best = null, bv = -99;
+    us.forEach(function (u) { if (!u || !u.src) return; var v = DS.R.skill(u.src, 'Insight', 'wis'); if (v > bv || (v === bv && u === lead)) { best = u; bv = v; } });
+    return best;
+  };
+  In.edgeSet = function (f, key, name) {
+    var d = In.day(D.roam.q); if (!f || !key) return null; if (f.insightEdge && f.insightEdge.day === d) { In.edge = f.insightEdge; return f.insightEdge; } // (once a night: the first insight's hero has it)
+    f.insightEdge = { key: key, name: name, day: d }; In.edge = f.insightEdge; In.trail('the insight is ' + name + '\'s: +1, once, on ' + name + '\'s own look against the glamour'); return In.edge;
+  };
+  In.insightSay = function* (B, line, among) {
+    var C = D.counter, u = In.insightHero(B, among), def = D.roam.def; if (u) In.edgeSet(B.roam.flags, u.src.key || u.src.id, u.name);
+    var pt = u && C && C.heroPortrait ? C.heroPortrait(In.heroOf(u)) : null;
+    if (!u || !pt || !C.Counter) { In.trail('the insight as a card' + (u ? ': ' + u.name + ' has no talking portrait in hand' : '')); yield* In.card(B, [line], 300); return null; }
+    var who = { name: u.name, unit: u, side: 'left', sheet: C.heroFull(pt) || pt };
+    In.trail('the insight on ' + u.name + '\'s own portrait (' + who.sheet + ')');
+    var sc = new C.Counter(B, { id: 'insight', name: u.name, place: 'The Halfway Inn', what: (def && def.sub) || 'the yard', room: true, open: true, bg: In.roomShot(B), script: function (s) { return (function* () { yield s.by(who, [line]); })(); } });
+    D.push(sc); while (!sc.done) yield 1;
+    return u;
+  };
+  In.edgeRead = function (st, skill, dc) { // (the +1 on that hero's passive, where the party's plain read has failed)
+    var e = In.edge; if (!e || e.used) return false; var h = st.party.filter(function (x) { return (x.key || x.id) === e.key && !x.dead && !x.ko; })[0]; if (!h) return false;
+    var p = In.passive(h, skill) + 1; if (p < dc) return false; e.used = 1; In.edgeUsed = { name: h.name }; In.trail(h.name + ' passive ' + skill + ' ' + (p - 1) + ' + 1 (the insight) vs DC ' + dc + ', read'); return true;
+  };
+  In.edgeLine = function () { var e = In.edgeUsed; In.edgeUsed = null; return e ? '{c}(insight){/} +1 to ' + e.name + '\'s look: ' + e.name + ' knew to look twice.' : null; }; // (the seat's draft, his to re-word)
+  In.edgeCard = function* (B) { var l = In.edgeLine(); if (l) yield* In.card(B, [l], 240); };
   In.comeDown = function (B) { In.upViewOff(B); In.offFloor(B, false); In.stage(B, In.WATCH.down, 'inn'); };
   In.offFloor = function (B, off) { var t = B.roam.token, i = B.units.indexOf(t); if (off && i >= 0) B.units.splice(i, 1); if (!off && i < 0) B.units.push(t); B.roam.tokenOff = !!off; D.grid.setup(B.map, B.units); B.cache = null; };
   In.wagonNight = function* (B, d, W2) {
@@ -1552,17 +1586,17 @@
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300);
     yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300);
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
-    if (Y.kat && In.read(st, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.card(B, [In.KL.knew], 300); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
+    if (Y.kat && In.read(st, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.insightSay(B, In.KL.knew); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
     // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
     Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
     yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);
     f.kidTaken = 1; // (the due three nights on since 11-05 -- In.DUE; what she keeps for it, by how the night goes: In.setOffering below)
-    if (In.read(st, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.card(B, [In.WN.suspect], 300); }
+    if (In.read(st, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.insightSay(B, In.WN.suspect); }
     yield* In.walk(B, Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); yield* In.walk(B, Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]);
     In.gone(B, Y.gennet); Y.gennet = null; In.gone(B, Y.kid); Y.kid = null; yield 10;
     // the watcher's look from the window (the first game's Perception 15; the handover's read sharpens it)
-    if (!paid && In.perceives(watcher.src, 15, f.glamourSuspect ? 5 : 0)) yield* In.breakGlamour(B, st, f, Y);
+    var sawW = !paid && In.perceives(watcher.src, 15, f.glamourSuspect ? 5 : 0); yield* In.edgeCard(B); if (sawW) yield* In.breakGlamour(B, st, f, Y);
     // 4. the choice, as the first game asked it: INVESTIGATE, WAKE THE PARTY, KEEP WATCH (a night already paid for on the road keeps to the room)
     var a = paid ? 2 : yield* In.ask(B, 'THE SECOND WATCH', [L('wagon.ask', { name: watcher.name })], ['INVESTIGATE', 'WAKE THE PARTY', 'KEEP WATCH']);
     var C = { B: B, d: d, Y: Y, w: w, st: st, party: party, watcher: watcher, keyOf: keyOf, paid: paid, upstairs: upstairs, a: a };
@@ -1591,12 +1625,12 @@
       if (a !== 0) { if (upstairs) In.comeDown(B); yield* In.card(B, [L('wagon.wake', { name: watcher.name })], 300); } // (WAKE THE PARTY: down the stair together and out; INVESTIGATE came down before its wait)
       else yield* In.card(B, [In.WN.investOut.split('{name}').join(watcher.name)], 240);
       yield* R.walkTo(B, [w[0] + 6, w[1]]); // (out the front door into the yard: a step out roofs the house as ever)
-      if (!f.glamourSeen && outside.some(function (u) { return In.perceives(u.src, 12, f.glamourSuspect ? 5 : 0); })) yield* In.breakGlamour(B, st, f, Y);
+      var sawY = !f.glamourSeen && outside.some(function (u) { return In.perceives(u.src, 12, f.glamourSuspect ? 5 : 0); }); yield* In.edgeCard(B); if (sawY) yield* In.breakGlamour(B, st, f, Y);
       if (!f.glamourSeen) {
         yield* In.card(B, [In.who('Amara', In.WN.lieYard)], 360);
         if (outside.some(function (u) { var r = In.d20(), v = DS.R.skill(u.src, 'Insight', 'wis'), ok = r + v >= 13; In.trail(u.name + ' Insight ' + r + ' + ' + v + ' vs DC 13 at the lie' + (ok ? ', heard' : ', not')); return ok; })) {
-          yield* In.card(B, [L('wagon.insight')], 360);
-          if (outside.some(function (u) { return In.perceives(u.src, 12, 5); })) yield* In.breakGlamour(B, st, f, Y);
+          yield* In.insightSay(B, L('wagon.insight'), outside); // (said by the one of those OUTSIDE with the best Insight)
+          var sawL = outside.some(function (u) { return In.perceives(u.src, 12, 5); }); yield* In.edgeCard(B); if (sawL) yield* In.breakGlamour(B, st, f, Y);
         }
       }
       if (!f.glamourSeen) { yield* In.card(B, [L('wagon.nothing')], 360); yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]); }
@@ -1874,10 +1908,13 @@
     var act = acts[yield sc.ask(BL.ask, opts)];
     if (act === 'leave') return;
     if (act === 'free') { f.barnFreed = 1; In.setOffering(f, c, 'none'); f.barnC = c; D.sfx('confirm'); In.trail('the barn: freed as a goblin, the glamour unseen'); yield sc.say([In.BY.freedIt]); return; }
-    var ok = act === 'magic' || In.read(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12);
+    var ok = act === 'magic' || In.read(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12) || In.edgeRead(st, act === 'look' ? 'Insight' : 'Perception', act === 'look' ? 13 : 12); // (the insight's +1 on its hero's passive, where the plain read fails)
     if (!ok) { yield sc.say([act === 'look' ? BL.lookNo : BL.touchNo]); return; }
     f.glamourBroken = 1; f.glamourSeen = 1; In.setOffering(f, c, 'kept'); f.barnC = c; In.trail('the barn: the glamour seen through (' + act + ')'); sc.sheet = In.childFace(true) || sc.sheet; /* (the child's own face from here) */
-    yield sc.say([act === 'look' ? BL.lookYes : act === 'touch' ? BL.touchYes : BL.magic, BL.child]);
+    var eL = In.edgeLine(); if (eL) yield sc.say([eL]);
+    var iu = act === 'look' && B && B.roam ? In.insightHero(B) : null, ipt = iu && D.counter.heroPortrait ? D.counter.heroPortrait(In.heroOf(iu)) : null; if (iu) In.edgeSet(f, iu.src.key || iu.src.id, iu.name);
+    if (iu && ipt) { In.trail('the insight on ' + iu.name + '\'s own portrait (the barn)'); yield sc.by({ name: iu.name, unit: iu, side: 'left', sheet: D.counter.heroFull(ipt) || ipt }, [BL.lookYes]); yield sc.say([BL.child]); } // (LOOK CLOSER's insight said by its hero, to themself: In.insightSay's rule on this screen)
+    else yield sc.say([act === 'look' ? BL.lookYes : act === 'touch' ? BL.touchYes : BL.magic, BL.child]);
     yield* freeAsk();
   };
   if (D.counter && D.counter.SHEETOF) D.counter.SHEETOF.barnGoblin = function (st) { return In.childFace(!!(st && st.flags && st.flags.glamourBroken)); };
@@ -2053,6 +2090,7 @@
         ok.forEach(function (o) { var sk = o.skill ? o.skill(S, e) : null; if (sk) { if (shaded) return; shaded++; } if (out.length < In.MEAL.CAP) out.push({ o: o, label: o.say(S, e), shade: !!sk, tag: sk || null }); }); return out; };
       var list = four.map(function (e) { var rid = cur[e.key] || null, ops = optsOf(e); return { e: e, hero: e.hero, side: 'left', key: e.key, rid: rid, reads: rid ? [BY.READS[rid].text(S)] : [], ops: ops, opts: ops.map(function (p) { return p.label; }), marks: ops.map(function (p) { return p.shade ? { shade: true, tag: p.tag } : null; }), ids: ops.map(function (p) { return p.o.id; }), shaded: ops.filter(function (p) { return p.shade; }).length }; }).filter(function (x) { return x.ops.length; });
       if (!list.length) { done('e'); return; }
+      list.forEach(function (x) { if (x.rid && BY.READS[x.rid].skill === 'Insight') In.edgeSet(B.roam.flags, x.key, x.hero.name); });
       list.forEach(function (x) { if (x.rid) In.trail(x.hero.name + ' passive ' + BY.READS[x.rid].skill + ' ' + In.passive(x.e.h, BY.READS[x.rid].skill) + ' vs DC ' + BY.READS[x.rid].dc + ', read: ' + x.rid); });
       var at0 = Math.max(0, list.map(function (x) { return x.key; }).indexOf(S.lastKey));
       var pk = yield sc.flip(S.who(prompt.by || 'gennet'), [prompt.line], list, at0), x = list[pk && pk.at != null ? pk.at : at0] || list[0], p = x.ops[pk && pk.k != null ? pk.k : 0] || x.ops[0], o = p.o, e = x.e;
