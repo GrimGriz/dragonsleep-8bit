@@ -9851,6 +9851,80 @@
 }
 }
 },
+"lymen_p2": {
+"image": "art/lymen_p2.png?v=46d379c168",
+"fw": 44,
+"fh": 84,
+"ax": 22,
+"ay": 76,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 44,
+"fh": 84,
+"ax": 22,
+"ay": 76,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 672,
+"fw": 54,
+"fh": 84,
+"ax": 27,
+"ay": 76,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1344,
+"fw": 118,
+"fh": 84,
+"ax": 59,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"hurt": {
+"y": 2016,
+"fw": 76,
+"fh": 84,
+"ax": 38,
+"ay": 76,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 2688,
+"fw": 58,
+"fh": 84,
+"ax": 29,
+"ay": 76,
+"frames": 2,
+"fps": 2
+},
+"cast": {
+"y": 3360,
+"fw": 46,
+"fh": 84,
+"ax": 23,
+"ay": 76,
+"frames": 6,
+"fps": 8
+}
+},
+"name": "Lymen",
+"hold": [
+"walk, SE E and rear NE: the art desk held these for the lead leg; the candidate worn is tools/lymen-sheet.py WALK's (E retry, NE retry, SE retry), what is left is on deep16-dream-polish.md",
+"cast: cut as it came -- the glow turns his mail and skin yellow-gold on 3 and 4 (Griz, 11-13: \"casting might make him turn yellow or something, it'll be fun to see\")",
+"hurt: the late frames turn toward the viewer in several facings (the art desk's own note); idle's breath is slight; the E cast turns toward the viewer on 3 to 6",
+"attack: S and N frame 4 are the redrawn standalones (ART-MC-LYMEN-ATTACK-S-N-FRAME-04), set by their boots at 45 px crown to sole",
+"his own rows (layonhands, divinesmite, greenagain, whatfallsfeeds, relentless) and flinch, prone, getup, defend, useitem, victory, interact, attack2 are not drawn yet (art-wanted section 59)"
+],
+"source": "drawn by the art desk (ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW and ART-MC-LYMEN-ATTACK-S-N-FRAME-04, 11-13: art-wanted sections 58 and 57; the attack ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS over GUIDE-2026-11-13b-longsword-and-shield), cut by tools/lymen-sheet.py; SW W NW mirrored; worn by Lymen (js/save.js SV.LOOK.lymen)"
+},
 "manticore_p1": {
 "image": "art/manticore_p1.png?v=d54cb3a66d",
 "fw": 160,
@@ -22238,6 +22312,35 @@ true
 "his size (80 rows, the gnoll matriarch's), which socket is empty (his left), no kit, the gold eye and the ripple's look are the seat's leans, put to Griz"
 ],
 "source": "built and rendered by tools/ripples-blend.py on the mannequin's bones (11-13), snapped and outlined by tools/pixelate.py; the hide, the stars and the mirror band laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored"
+},
+"ripples_p1": {
+"image": "art/ripples_p1.png?v=03ac91e9dd",
+"fw": 58,
+"fh": 94,
+"ax": 29,
+"ay": 89,
+"top": 80,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 58,
+"fh": 94,
+"ax": 29,
+"ay": 89,
+"frames": 8,
+"fps": 6,
+"drawn": [
+1,
+7
+]
+}
+},
+"name": "Mr. Ripples (the art desk's skin: idle, SE)",
+"hold": [
+"a review row: his idle as the art desk skinned the Blender figure, the SOUTH-EAST view only (SW its mirror) -- worn by nobody; no foe row exists for him",
+"the other four views (S, E, NE, N) did not come back; nor did the mirror band on frames 5 to 7 (the engine's own ripple can lay it: js/ripple.js 'body')"
+],
+"source": "drawn by the art desk over GUIDE-2026-11-13-mr-ripples-idle (the Blender seat's ripples_blend_p1), 11-13, one page, the SE view; cut by tools/ripples-drawn-sheet.py; SW mirrored"
 },
 "roadpatrol_p2": {
 "image": "art/roadpatrol_p2.png?v=c495b24cde",
