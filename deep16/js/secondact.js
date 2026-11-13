@@ -326,7 +326,7 @@
   var arriveA0 = D.roam.arrive;
   D.roam.arrive = function* (B) {
     var ev = yield* arriveA0.apply(this, arguments), def = D.roam.def, R0 = B.roam, t = R0 && R0.token;
-    if (!ev && def && def.key === In.UP && In.duePlay && In.duePlay.stage === 'room' && In.duePlay.woke && t && t.x >= A.WINDOW.x && t.x <= A.WINDOW.x + 1 && t.y <= 9) { In.duePlay.stage = 'lake'; A.trail('the due night: at the big room\'s window'); yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'window'; } // (the window on the lake: the camera's one move is on the house's own floor)
+    if (!ev && def && def.key === In.UP && In.duePlay && In.duePlay.stage === 'room' && In.duePlay.woke && t && t.x >= A.WINDOW.x && t.x <= A.WINDOW.x + 1 && t.y <= 9) { In.duePlay.stage = 'lake'; In.duePlay.win = [t.x, t.y]; In.upShot(); A.trail('the due night: at the big room\'s window'); yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'window'; } // (the window on the lake: the camera's one move is on the house's own floor)
     if (!ev && def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && t && t.x >= In.STEP.lake[0] && Math.abs(t.y - In.DOORS.lake[1]) <= 3 && !In.inHouse(t.x, t.y)) { yield* A.followDoran(B); return 'followed'; }
     return ev;
   };
@@ -471,8 +471,8 @@
   A.wideZoom = function () { var zs = D.ui && D.ui.zooms ? D.ui.zooms() : [], i = zs.indexOf(D.iso.zoom); if (A.zoom0 == null) A.zoom0 = D.iso.zoom; return i >= 0 && i + 1 < zs.length ? zs[i + 1] : D.iso.zoom; }; // (one step wider, so the window and the point are on one screen; A.atWindow(B, false) gives the zoom back)
   A.atWindow = function (B, on) {
     var t = B.roam.token;
-    if (on) { In.stage(B, A.WINDOW.at, null); if (B.units.indexOf(t) < 0) In.offFloor(B, false); /* (laid as from outside: the house under its roof, opened round the party by their presence) */ t.upZ = A.WINDOW.up; t.facing = D.spr.facingFor(1, 0); t.anim = 'idle'; B.roam.atWindow = true; }
-    else { delete t.upZ; B.roam.atWindow = false; if (A.zoom0 != null) { D.iso.zoom = A.zoom0; A.zoom0 = null; } }
+    if (on) { In.stage(B, A.WINDOW.at, null); In.upView(B, { at: [A.WINDOW.at[0] - In.UPAT[0], A.WINDOW.at[1] - In.UPAT[1]], face: [1, 0] }); B.roam.atWindow = true; } // (laid as from outside, the big room's boards drawn over the house and the party on them: js/inn.js In.upView, 11-13 -- till then the roof opened round a figure drawn a storey up)
+    else { In.upViewOff(B); B.roam.atWindow = false; if (A.zoom0 != null) { D.iso.zoom = A.zoom0; A.zoom0 = null; } }
     B.cache = null;
   };
   // THE LUNGE THAT TAKES HER (RULED 11-12, Griz on the kept-child night: "have the disappearance of the girl be the chuul's lunge animation actually grabbing her with a quick

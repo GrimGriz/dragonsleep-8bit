@@ -1594,7 +1594,7 @@
       // ('lunge': a claw's grab, battle.js clawIn, 11-06 -- out to the one it seizes in two fifths of the beat, eased, and back to its own square in the rest, carrying them)
       if (tw.mode === 'lunge') { var lk = k < 0.4 ? Math.sin(k / 0.4 * Math.PI / 2) : Math.max(0, 1 - (k - 0.4) / 0.6); if (k >= 0.4) lk = lk * lk * (3 - 2 * lk); gx = tx + (tw.lx || 0) * lk; gy = ty + (tw.ly || 0) * lk; gz = G.gzAt(u, tx, ty); }
     }
-    var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y), dep = gx + gy + (s - 1) + 0.6;
+    var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y), dep = gx + gy + (s - 1) + 0.6 + (u.upZ ? 6000 : 0); // (upZ: a figure on the floor above, drawn after the roof it stands over -- js/inn.js In.upView, 11-13)
     if (onR) dep = Math.max(dep, onR.foot[0] + onR.foot[1] + 0.4); // (in front of the rope, ropeObjs: its foot's depth + 0.3)
     return { x: p.x, y: p.y, depth: dep, gz: gz };
   }

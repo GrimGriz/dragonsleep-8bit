@@ -1384,10 +1384,46 @@
     });
     G.setup(B.map, B.units); B.cache = null; return out;
   };
+  // THE GUEST FLOOR OVER THE HOUSE (11-13; Griz's own mock-up for the watch from upstairs, a screenshot cut and pasted: the yard whole, and the upstairs room with the party
+  // in it standing over the house -- "what I was aiming for with 'can we not overlay the second floor on top of the first floor'"; and on its height, "by short walls it looks
+  // like the exterior walls would be higher if the second floor was actually atop the first"). While a scene is watched from upstairs the house's floor is laid as from
+  // outside, and OVER THE HOUSE, a storey up (In.upZ: half the house's two storeys), the guest floor's own boards are drawn -- its floor as it was baked while the party
+  // stood on it (In.upShot, taken as they leave it), square for square over the house (the guest floor's 0,0 is the house's In.UPAT) -- with the party ON it as figures: the
+  // one at the window the token itself, the others lying where they slept, each drawn a storey up and after the roof (u.upZ: js/ui.js unitPos). A drawing: no rule reads
+  // it. NOT DRAWN YET: the guest floor's beds, its wall stubs and its chimney (the floor's props are laid by another map's dressing; the boards and the figures only)
+  In.UPAT = [19, 13];
+  In.upZ = function () { var m = D.iso.map, px = m && D.iso.roofPx ? D.iso.roofPx(m, 'I') : 0; return px ? Math.round(px / 2) : 44; };
+  In.upShot = function () {
+    var m = D.iso.map, bk = m && m.bake; In.upPic = null;
+    if (!m || !m.def || m.def.key !== In.UP || !bk || bk.paged || !bk.canvas || !bk.canvas.getContext) return null;
+    try { var cv = document.createElement('canvas'); cv.width = bk.canvas.width; cv.height = bk.canvas.height; cv.getContext('2d').drawImage(bk.canvas, 0, 0); In.upPic = { canvas: cv, x: bk.x, y: bk.y }; } catch (e) { In.upPic = null; }
+    return In.upPic;
+  };
+  In.upView = function (B, o) { // (o.at: the token's square on the guest floor; o.abed: [{ name, sheet, x, y }] the sleepers there)
+    var R0 = B.roam, t = R0.token, Z = In.upZ(), A0 = In.UPAT, G = D.grid; o = o || {};
+    In.upViewOff(B);
+    if (B.units.indexOf(t) < 0) In.offFloor(B, false);
+    var at = o.at || In.WATCH.window; t.x = A0[0] + at[0]; t.y = A0[1] + at[1]; t.tween = null; t.upZ = Z; t.anim = 'idle'; if (o.face) t.facing = D.spr.facingFor(o.face[0], o.face[1]); R0.path = null;
+    (o.abed || []).forEach(function (a, i) { var u = In.unit(B, { id: 'abedUp' + i, kind: 'commoner', at: [A0[0] + a.x, A0[1] + a.y], name: a.name, face: [0, 1] }); u.abed = true; u.bystander = true; u.upZ = Z; if (a.sheet) u.sheet = a.sheet; u.conds.asleep = { by: 'night' }; u.conds.prone = true; });
+    R0.upView = { z: Z, pic: In.upPic || null, n: (o.abed || []).length }; G.setup(B.map, B.units); B.cache = null; return R0.upView;
+  };
+  In.upViewOff = function (B) { var R0 = B.roam; if (!R0) return; if (R0.token) delete R0.token.upZ; B.units.filter(function (u) { return u.abed && u.upZ; }).forEach(function (u) { In.gone(B, u); }); R0.upView = null; B.cache = null; };
+  (function () {
+    var props0 = D.walls && D.walls.props; if (!props0) return;
+    D.walls.props = function (B) {
+      var out = props0.apply(this, arguments), V = B && B.roam && B.roam.upView, def = B && B.map && B.map.def;
+      if (!V || !V.pic || !def || def.key !== In.KEY) return out;
+      out.push({ depth: 5990, gz: V.z, layer: 0, upFloor: true, draw: function (ctx) {
+        var iso = D.iso, ch = iso.center(In.UPAT[0], In.UPAT[1], V.z), sh = iso.toScreen(ch.x, ch.y), cu = iso.center(0, 0, 0);
+        ctx.drawImage(V.pic.canvas, Math.round(sh.x - (cu.x - V.pic.x)), Math.round(sh.y - (cu.y - V.pic.y))); V.drawn = (V.drawn || 0) + 1;
+      } });
+      return out;
+    };
+  })();
   // DOWN FROM UPSTAIRS (11-13; his note on eyes-watch-yard-roofed-1112m: "the problem with what the card loads, can't move anyone" -- a figure on a lit square at the edge of
   // the roof, "a way out: LEAVE THE FIGHT from here"): a scene watched from upstairs is laid with the house under its roof (11-12), and the party coming down was stood at
   // the stair's foot on THAT lay -- inside a roofed house, where the grid gives no way to walk. Coming down, the house is laid as its inside again, the token at the stair's foot
-  In.comeDown = function (B) { In.offFloor(B, false); In.stage(B, In.WATCH.down, 'inn'); };
+  In.comeDown = function (B) { In.upViewOff(B); In.offFloor(B, false); In.stage(B, In.WATCH.down, 'inn'); };
   In.offFloor = function (B, off) { var t = B.roam.token, i = B.units.indexOf(t); if (off && i >= 0) B.units.splice(i, 1); if (!off && i < 0) B.units.push(t); B.roam.tokenOff = !!off; D.grid.setup(B.map, B.units); B.cache = null; };
   In.wagonNight = function* (B, d, W2) {
     var R = D.roam, R0 = B.roam, f = R0.flags, st = D.counter.state(B), H = D.house, W = D.world, upstairs = !!W2, onUp = R.def && R.def.key === In.UP;
@@ -1418,7 +1454,8 @@
       In.abed(B, party.filter(function (u) { return u !== watcher; })); // (the others asleep in the room behind the one at the window, 11-12: a gap the last seats named)
       yield* R.walkTo(B, In.WATCH.window); R0.token.facing = D.spr.facingFor(-1, 0); R0.token.anim = 'idle';
       yield* In.card(B, [In.WATCH.heard.split('{name}').join(watcher.name)], 360);
-      In.watching = { stage: 'yard', d: d, stay: R0.stay, watcher: keyOf(watcher), lead0: keyOf(lead0) };
+      In.upShot(); // (the guest floor's picture, for the yard: In.upView)
+      In.watching = { stage: 'yard', d: d, stay: R0.stay, watcher: keyOf(watcher), lead0: keyOf(lead0), win: [R0.token.x, R0.token.y], abed: B.units.filter(function (u) { return u.abed; }).map(function (u) { return { name: u.name, sheet: u.sheet, x: u.x, y: u.y }; }) };
       yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'up';
     }
     }
@@ -1428,7 +1465,7 @@
     // (11-12, his note on eyes-wagon-upstairs-1112f: "can we not overlay the second floor on top of the first floor, there's a view of the first floor with a second Gennet in her
     // usual position" -- the house's floor had been laid as its open inside for this, the fireside Gennet in it while the scene's own walked out to the wagon. Watched from
     // upstairs the house is laid as from OUTSIDE, under its roof: the yard is what the window shows; and whichever way it is laid, the floor's own Gennet goes while the scene's is out)
-    if (upstairs) { In.stage(B, In.WATCH.down, null); In.offFloor(B, true); } // (the party is upstairs: nobody of it on this floor while the yard plays)
+    if (upstairs) { In.stage(B, In.WATCH.down, null); if (In.upPic) In.upView(B, { at: W2.win || In.WATCH.window, face: [-1, 0], abed: W2.abed || [] }); else In.offFloor(B, true); } // (the party is upstairs: drawn there, over the house -- In.upView; with no picture of the floor, nobody of it on this floor)
     else In.stage(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]], 'inn');
     var Y = In.yardCast(B, f), w = In.WAGONAT; B.units.filter(function (u) { return u.npc === 'gennet'; }).forEach(function (u) { In.gone(B, u); }); // (one Gennet: the scene's)
     yield* In.cam(B, [w[0] + 2, w[1]], 30);
@@ -1478,7 +1515,7 @@
       }
     }
     if (how === 'quiet') {
-      In.leadBack(B); if (upstairs && a === 2) In.offFloor(B, true); // (kept to the window: still nobody downstairs)
+      In.leadBack(B); if (upstairs && a === 2 && !R0.upView) In.offFloor(B, true); // (kept to the window: still nobody downstairs)
       var seen = !!f.glamourSeen || paid; f.wagonOutcome = 'quiet'; f.katGone = 1; f.katRode = 1; if (seen) f.glamourBroken = 1;
       if (Y.kat) { yield* In.walk(B, Y.kat, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, Y.kat); Y.kat = null; }
       In.gone(B, Y.amara); In.gone(B, Y.willem); Y.amara = Y.willem = null;
@@ -1523,7 +1560,7 @@
     // (the lantern walks three nights on since 11-05, his "let's move the offering to 3 nights after wagon night": the due, the ring warm and the ring cold are the due's own night's --
     // js/secondact.js A.dueNight; this night keeps the yard, the watch, the handover and the chase)
     delete f.wagonIn; delete f.katYard; In.yardClear(B, Y);
-    In.stage(B, [24, 17], 'inn'); if (upstairs && R0.tokenOff) In.offFloor(B, true); // (to bed: the morning in the common room -- or straight back up, nobody having come down)
+    var stillUp = upstairs && (R0.tokenOff || !!R0.upView); In.upViewOff(B); In.stage(B, [24, 17], 'inn'); if (stillUp) In.offFloor(B, true); // (to bed: the morning in the common room -- or straight back up, nobody having come down)
     if ((yield* In.sleep(B, morning)) === 'up') return 'up';
     if (f.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
   };
@@ -2336,6 +2373,9 @@
     if (bt.world) { if (bt.run && W.scene) bt.run(W.scene); return; } // (bt.run: a scene staged on THE WORLD and run at once -- the child's road, 11-12)
     In.pinned = bt.dice ? bt.dice.slice() : null;
     In.carryFresh = false; In.duePlay = bt.due ? Object.assign({}, bt.due) : In.duePlay && bt.key ? null : In.duePlay; // (bt.due: a beat that opens inside the due's played night -- the rite at the window, 11-12; any other floor beat starts clean)
+    if (bt.due && bt.key === In.KEY) { // (a beat that opens at the big room's window: the guest floor laid once first, for its picture -- In.upShot, 11-13)
+      try { var ub = R.make('?roam=' + In.UP + '&at=16,3', { save: H.living(H.cur), opts: { at8: [16, 3] }, house: true }); D.push(ub); if (ub.baking) { ub.baking = false; ub.enter(); } In.upShot(); if (D.top() === ub) D.pop(); } catch (eU) { In.upPic = null; }
+    }
     var nb = R.make('?roam=' + bt.key + (bt.inside === 'barn' ? '&at=' + bt.at.join(',') : bt.inside ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true });
     D.push(nb);
   };
