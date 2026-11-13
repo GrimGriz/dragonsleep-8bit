@@ -366,6 +366,7 @@
   var toTown0 = D.house && D.house.toTown;
   if (toTown0) D.house.toTown = function (id, gate) {
     var Hh = D.house, at0 = Hh.cur && Hh.cur.at, up = id === In.SITE && at0 && at0.town === In.SITE && at0.up && at0.up.sq ? at0.up : null;
+    if (id === In.SITE && !(at0 && at0.town) && Hh.cur && Hh.cur.flags && D.secondact && D.secondact.waitGone) D.secondact.waitGone(Hh.cur.flags, 'the party left the inn and came back'); // (in from THE WORLD, not a load: nobody waits any more -- RULED 11-13)
     if (!up) return toTown0.apply(this, arguments);
     Hh.trail('town', id + ', upstairs where it saved (' + up.sq.join(',') + ')');
     W.inDoor = { site: Hh.siteOf(id), gate: gate };
@@ -977,7 +978,8 @@
     var st = sc.st, f = st.flags, cost = f.innFree > 0 ? 0 : In.PRICE * In.heads(B), A = D.secondact; // (innFree: the barn's bribe -- the rooms and the board hers, 11-11)
     if (f.innShut) { yield sc.say([].concat(M.words(B, 'gennet'), [In.BY.shut])); return false; } // (the child taken out of her yard at knifepoint, or after blows: no room from her)
     if (In.noStay(f, In.day(D.roam.q))) { yield sc.say([].concat(M.words(B, 'gennet'), In.CHILD.gennet)); return false; } // (the child in tow: no night under this roof -- In.CHILD)
-    if (f.dueStopped && A) { yield sc.say([].concat(M.words(B, 'gennet'), [A.LINES.gaveBack, A.LINES.noRoom])); return false; } // (the due stopped on the path: no room from her; Doran sells)
+    if (f.dueStopped && A) { yield sc.say([].concat(M.words(B, 'gennet'), [A.LINES.gaveBack, A.LINES.noRoom])); return false; }
+    if (f.doranWaits && A) { In.trail('the inn lady refuses the bed: Doran is waiting at the lake door'); yield sc.say([].concat(M.words(B, 'gennet'), [In.who(In.named(f), A.LINES.bedRefused)])); return false; } // (RULED 11-13: js/secondact.js THE BED WITH DORAN WAITING) // (the due stopped on the path: no room from her; Doran sells)
     var d = In.day(D.roam.q), soon = []; // (RULED 11-11, ruling 35, Griz: "gennet shouldn't open about a monthly wagon she's going to be coy about at supper if she gets a linen question" -- In.WN.soon is said nowhere now) // (any other night: the month's wagon named without being named -- the lane's 11-04 §3 (d))
     if (soon.length) f.wagonNamed = 1;
     if (!f.gennetNamed) { f.gennetNamed = 1; yield sc.say([].concat(M.words(B, 'gennet'), [In.LINES.name], soon)); }
@@ -1144,7 +1146,7 @@
   In.sleep = function* (B, line) {
     if (B.roam.flags.invest && In.investOf(B)) return yield* In.investGo(B, 'to a bed'); // (INVESTIGATE's wait, and a bed taken instead: the night as watched -- its own morning and sleep, In.wagonRest)
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
-    if (D.secondact && D.secondact.waitOver) D.secondact.waitOver(B, 'the party went to bed'); // (Doran's wait by the lake door ends with the party's night, not at six: js/secondact.js A.waitOver, 11-13)
+    // (Doran's wait is no longer ended by the party's night: RULED 11-13, "if they pull off a long-rest before triggering the fight he'll probably still be waiting" -- js/secondact.js THE BED WITH DORAN WAITING)
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
     var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
     var def = D.roam.def, rm = In.ROOM[In.roomOf(B.roam.flags)];
@@ -1512,6 +1514,7 @@
   // insight of a night gives its hero +1, once, on that hero's own roll against the glamour (In.perceives: the watcher's look, the yard's) or on that hero's passive at the
   // barn's LOOK CLOSER and TOUCH IT (In.edgeRead, spent only where the plain read fails); kept in the save's flags (f.insightEdge) through the next day; and a card says
   // where the +1 came from when it is used (In.edgeCard). The supper's and the barn yard's reads were on their hero's own bubble already: they arm the +1 too
+  In.readOf = function (u, skill, dc) { var p = u && u.src ? In.passive(u.src, skill) : 0, ok = p >= dc; In.trail((u ? u.name : 'nobody') + ' passive ' + skill + ' ' + p + ' vs DC ' + dc + (ok ? ', read' : ', not read') + ' (alone)'); return ok; }; // (one hero's own passive: the watcher at the window)
   In.insightHero = function (B, among) {
     var R0 = B.roam, lead = R0.lead0 || R0.token, us = among && among.length ? among : R0.members.filter(function (u) { return u.src && !u.src.guest && u.hp > 0 && !u.dead; }), best = null, bv = -99;
     us.forEach(function (u) { if (!u || !u.src) return; var v = DS.R.skill(u.src, 'Insight', 'wis'); if (v > bv || (v === bv && u === lead)) { best = u; bv = v; } });
@@ -1591,13 +1594,15 @@
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300);
     yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300);
     yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
-    if (Y.kat && In.read(st, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.insightSay(B, In.KL.knew); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
+    // (THE WATCHER'S ALONE, RULED 11-13, Griz, asked whether the wagon night's greeting reads should be the watcher's alone: "10 - yes"; and on whose insight speaks on the
+    // watch, those awake: "2, 3 - keep" -- the others are asleep in the room: the two reads at the greeting are the watcher's own passive Insight, and the watcher says them)
+    if (Y.kat && In.readOf(watcher, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.insightSay(B, In.KL.knew, [watcher]); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
     // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
     Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
     yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);
     f.kidTaken = 1; // (the due three nights on since 11-05 -- In.DUE; what she keeps for it, by how the night goes: In.setOffering below)
-    if (In.read(st, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.insightSay(B, In.WN.suspect); }
+    if (In.readOf(watcher, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.insightSay(B, In.WN.suspect, [watcher]); }
     yield* In.walk(B, Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); yield* In.walk(B, Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]);
     In.gone(B, Y.gennet); Y.gennet = null; In.gone(B, Y.kid); Y.kid = null; yield 10;
     // the watcher's look from the window (the first game's Perception 15; the handover's read sharpens it)
