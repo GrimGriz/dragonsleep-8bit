@@ -86,6 +86,42 @@
     if (!b) return 'won'; if (!a) return 'lost'; return null;
   };
 
+  // THE BEATS (11-13, Griz, on whether turns could run at once: "what if it's just the group that currently has initiative. I.e. gnoll with init 20, the 2 pallies
+  // with init 17 and 15, then the 3 gnolls with inits ranging 13 to 8, then the third pally at 7"): the fight is fought turn by turn as ever, and its record is cut
+  // into beats -- a beat is a run of one group's turns in the initiative order as rolled, a new beat where the group changes. Each turn in a beat: who (name, word),
+  // the cards the grid wrote on that turn (plain words), and the blows read off them -- `by`, `at`, `with` (a blow: "Name > Target  Weapon") and `hit` (HIT, CRIT or
+  // MISS). Each beat: who of either group went down or away in it. The player's playback is the Snoot page's, a beat at a time; this is what it reads.
+  var plain = function (s) { return String(s).replace(/\{\/?[a-z]?\}/g, ''); };
+  H.listen = function (B) {
+    var card0 = B.card, hl = B.hl; hl.beats = []; hl.stood = {};
+    B.units.forEach(function (u) { if (u.hgroup) hl.stood[u.id] = up(u); });
+    var close = function () { // who fell since the last look, into the beat that was running
+      var bt = hl.beats[hl.beats.length - 1];
+      B.units.forEach(function (u) { if (!u.hgroup || !hl.stood[u.id] || up(u)) return; hl.stood[u.id] = false; if (bt) bt.fell.push({ g: u.hgroup, name: u.name, word: u.hword, away: !!u.fled }); });
+    };
+    B.card = function (lines) {
+      var u = this.active;
+      if (u && u.hgroup) {
+        close();
+        var bt = hl.beats[hl.beats.length - 1];
+        if (!bt || bt.g !== u.hgroup || bt.round !== this.round) { bt = { round: this.round, g: u.hgroup, turns: [], fell: [] }; hl.beats.push(bt); }
+        var tn = bt.turns[bt.turns.length - 1];
+        if (!tn || tn.id !== u.id) { tn = { id: u.id, name: u.name, word: u.hword, cards: [], blows: [], last: [] }; bt.turns.push(tn); }
+        // (a card grows as its blow goes on -- the same lines come again with the next under them: only what is new is kept)
+        var ls = (lines || []).map(plain), n0 = tn.last.length <= ls.length && tn.last.every(function (x, i) { return x === ls[i]; }) ? tn.last.length : 0;
+        tn.last = ls;
+        ls.slice(n0).forEach(function (p) {
+          var m = /^(.+?) > (.+?)  +(.+?)(?:  |$)/.exec(p), h = /\b(CRIT|HIT|MISS)\b/.exec(p), bl = tn.blows[tn.blows.length - 1];
+          tn.cards.push(p);
+          if (m) tn.blows.push({ by: m[1], at: m[2], with: m[3], hit: null }); // (`by`: not always the one whose turn it is -- a blow at one who walks away is the other group's)
+          else if (h && bl && !bl.hit) bl.hit = h[1];
+        });
+      }
+      return card0.apply(this, arguments);
+    };
+    hl.close = close;
+  };
+
   // the field and the fight. spec: { a: { name, list, morale, never }, b: { ... }, level, seed, gap (ft) }; o: the Battle's own options ({ bench: true } unseen)
   H.make = function (spec, o) {
     var L = Math.max(1, Math.min(12, spec.level || 4)), NPC = D.npc;
@@ -120,6 +156,7 @@
       seat(mine, M + rA - 1, -1, 1); seat(Fo, M + rA - 1 + g, 1, -1);
       this.cache = null;
       this.over = function () { return H.over(this); };
+      H.listen(this);
     };
     return B;
   };
@@ -132,9 +169,11 @@
       var y = r.value; if (typeof y === 'number' || !y) continue;
       if (y.prompt) v = y.prompt.opts[0].value; else if (y.turn) v = { do: 'end' };
     }
+    if (B.hl.close) B.hl.close();
+    (B.hl.beats || []).forEach(function (bt) { bt.turns.forEach(function (tn) { delete tn.last; }); });
     var res = B.result && B.result.result ? B.result.result : (typeof B.result === 'string' ? B.result : H.over(B));
     if (!err && !H.men(B, 'a').some(up) && !H.men(B, 'b').some(up)) res = 'both'; // (the last of each down or away in the one round: nobody's)
-    return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, log: B.log || [] };
+    return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, beats: B.hl.beats || [], log: B.log || [] };
   };
   // THE JANKY HEAD: the same fight on the screen, both groups run by the AI --
   //   deep16/?headless&a=paladin:4,guard*12&b=gloryseeker*3,gnoll*9,hyena*6&seed=7   (&an= &bn= their names, &am= &bm= their morale ratings, &gap= ft, &lvl=)

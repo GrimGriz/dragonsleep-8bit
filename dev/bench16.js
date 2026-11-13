@@ -663,7 +663,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       for (var kH = 0; kH < +get('n', 5); kH++) {
         var rH = HL.run({ a: { name: get('an', 'Newland'), list: aH, morale: +get('am', 5) }, b: { name: get('bn', 'the band'), list: bH, morale: +get('bm', 7) }, level: +get('lv', 4), seed: seed0 * 7919 + kH * 104729 });
         if (get('log', '') && !repH.logs.length) repH.logs.push(rH.log.join(String.fromCharCode(10)));
-        delete rH.log; repH.fights.push(rH);
+        if (get('beats', '') && !repH.beats) repH.beats = rH.beats.slice(0, +get('beats', 8)); // (&beats=n: the first fight's first n beats)
+        rH.nbeats = rH.beats.length; delete rH.beats; delete rH.log; repH.fights.push(rH);
       }
     } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
     if (errs.length) repH.errors = repH.errors.concat(errs.slice(0, 5));
