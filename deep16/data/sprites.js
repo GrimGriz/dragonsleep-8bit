@@ -31067,12 +31067,12 @@ true
 }
 },
 "wolf_p1": {
-"image": "art/wolf_p1.png?v=424bd91b72",
+"image": "art/wolf_p1.png?v=5485ad5caa",
 "fw": 96,
 "fh": 96,
 "ax": 48,
 "ay": 77,
-"top": 30,
+"top": 36,
 "anims": {
 "idle": {
 "y": 0,
@@ -31099,9 +31099,11 @@ true
 "ax": 48,
 "ay": 77,
 "frames": 8,
-"fps": 12
+"fps": 12,
+"release": 2
 }
-}
+},
+"source": "drawn by the art desk (WOLF-P1-SELECTED-SOURCE-SHEETS, 11-13: Idle 8, Walk 8, Bite 8 in five views), cut by tools/wolf-sheet.py through tools/wolfpages.py; SW W NW mirrored -- the SRD 5.1 Wolf: deep16/data/foes.js wolf"
 },
 "wolfspider_p1": {
 "image": "art/wolfspider_p1.png?v=b02953fc79",

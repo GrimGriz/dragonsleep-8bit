@@ -51,7 +51,7 @@ def frame_map(folder):
         act = s.get('action') or s.get('source_action')
         wins = [tuple(f.get('window') or f.get('tile_xyxy')) for f in sorted(s['frames'], key=lambda f: f['frame'])]
         assert len(wins) == 8 and s['runtime_row'] == ROWS[act], s
-        out[(s['state'].lower(), s['facing'], ROWS[act])] = (os.path.join(folder, s.get('source') or s.get('path')), wins)
+        out[(s.get('state', 'regular').lower(), s['facing'], ROWS[act])] = (os.path.join(folder, s.get('source') or s.get('path')), wins)
     return out
 
 
