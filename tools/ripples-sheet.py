@@ -1,10 +1,10 @@
 """MR. RIPPLES' idle (tools/ripples-blend.py's renders) through the palette and outline step, then WHAT HE IS laid over the silhouette, and the
 sheet row. Plain Python (Pillow, numpy).
 
-    python tools/ripples-sheet.py            deep16/art/ripples_blend_p1.png/.json (idle 8, eight facings: S SE E NE N rendered, SW W NW mirrored;
+    python tools/ripples-sheet.py            deep16/art/ripples_blend_p1.png/.json (idle 8 and walk 8, eight facings: S SE E NE N rendered, SW W NW mirrored;
                                              worn by nobody -- deep16/?rows=ripples_blend_p1,mirrorgnoll_p1&beside) and
-                                             deep16/art-src/ripples/ripples-idle-views-4x.png (the five views, eight frames, 4x)
-    python tools/ripples-sheet.py guide      also the art desk's guide frames: deep16/_src/outbox/GUIDE-2026-11-13b-mr-ripples-tendrils/ (gitignored)
+                                             deep16/art-src/ripples/ripples-<idle|walk>-views-4x.png (the five views, eight frames, 4x)
+    python tools/ripples-sheet.py guide      also the art desk's guide frames: deep16/_src/outbox/GUIDE-2026-11-13c-mr-ripples-idle-and-walk/ (gitignored)
 
 The model is rendered in a violet guide colour so its form shows. After tools/pixelate.py snaps and outlines a frame, this script makes him
 the page's Mr. Ripples (wiki/the-trickster.md): "the hide black that gives back no light, with stars moving in it" and "he ripples mirrors".
@@ -78,39 +78,54 @@ def font(px):
 
 
 def main():
-    meta = json.load(open(os.path.join(SRC, 'meta.json'))); M = meta['rows']['idle']; n = M['frames']
-    raw = {v: [pix.pixelate(Image.open(os.path.join(SRC, 'idle', '%s_%02d.png' % (v, i))), meta['ss'], avoid=AVOID) for i in range(n)] for v in VIEWS}
-    tall = pix.top_of(raw['S'][:1], M['ay'])
-    C = {v: [become(raw[v][i], i, M['ay'], tall) for i in range(n)] for v in VIEWS}
-    by = {FACING[v]: C[v] for v in VIEWS}
-    for f, v in MIRROR.items():
-        by[f] = [fr[:, ::-1] for fr in C[v]]
-    pix.write_sheet('ripples_blend_p1', {'idle': [by[f] for f in range(8)]}, M['fw'], M['fh'], M['ax'], M['ay'], tall)
+    meta = json.load(open(os.path.join(SRC, 'meta.json'))); R = meta['rows']; ROWS = [r for r in ('idle', 'walk') if r in R]
+    raw = {r: {v: [pix.pixelate(Image.open(os.path.join(SRC, r, '%s_%02d.png' % (v, i))), meta['ss'], avoid=AVOID) for i in range(R[r]['frames'])] for v in VIEWS} for r in ROWS}
+    tall = pix.top_of(raw['idle']['S'][:1], R['idle']['ay'])
+    C = {r: {v: [become(raw[r][v][i], i, R[r]['ay'], tall) for i in range(R[r]['frames'])] for v in VIEWS} for r in ROWS}
+    frames = {}
+    for r in ROWS:
+        by = {FACING[v]: C[r][v] for v in VIEWS}
+        for f, v in MIRROR.items():
+            by[f] = [fr[:, ::-1] for fr in C[r][v]]
+        frames[r] = [by[f] for f in range(8)]
+    M = R['idle']
+    pix.write_sheet('ripples_blend_p1', frames, M['fw'], M['fh'], M['ax'], M['ay'], tall, {r: (R[r]['fw'], R[r]['fh'], R[r]['ax'], R[r]['ay']) for r in ROWS})
     p = os.path.join(ART, 'ripples_blend_p1.json'); j = json.load(open(p, encoding='utf-8'))
-    j.update(name='Mr. Ripples (Blender, first crack: idle)',
-             hold=['a review row: Mr. Ripples\' idle with his two tendrils (out of the shoulder blades on 2, lashing on 4 and 5, gone by 8), for Griz\'s eye and the art desk\'s paint-over -- worn by nobody; no foe row exists for him',
-                   'his size (80 rows, the gnoll matriarch\'s), which socket is empty (his left), no kit, the gold eye and the ripple\'s look are the seat\'s leans, put to Griz'],
-             source='built and rendered by tools/ripples-blend.py on the mannequin\'s bones (11-13), snapped and outlined by tools/pixelate.py; the hide, '
-                    'the stars and the mirror band laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored')
+    j.update(name='Mr. Ripples (Blender: idle, walk)',
+             hold=['a review sheet: Mr. Ripples\' idle with his two tendrils (out of the shoulder blades on 2, a full-square lash on 4 and 5, gone by 8) and his walk (no tendrils), '
+                   'for Griz\'s eye and the art desk\'s paint-over -- worn by nobody; no foe row exists for him',
+                   'his size (80 rows, the gnoll matriarch\'s), which socket is empty (his left), no kit, the gold eye are the seat\'s leans, put to Griz'],
+             source='built and rendered by tools/ripples-blend.py on the mannequin\'s bones (11-13), snapped and outlined by tools/pixelate.py; the hide and '
+                    'the stars laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored')
     json.dump(j, open(p, 'w', encoding='utf-8'), indent=1)
 
     os.makedirs(OUT, exist_ok=True); Z = 4; lab = 40; NAVY = (44, 52, 70)          # (a lighter ground than the game's navy: he is a hole, and a hole wants something to be a hole in)
-    pg = Image.new('RGB', (lab + M['fw'] * n * Z, M['fh'] * Z * 5), NAVY); d = ImageDraw.Draw(pg)
-    for k, v in enumerate(VIEWS):
-        s = Image.fromarray(np.concatenate(C[v], axis=1), 'RGBA'); bg = Image.new('RGBA', s.size, NAVY + (255,)); bg.alpha_composite(s)
-        pg.paste(bg.resize((s.width * Z, s.height * Z), Image.NEAREST).convert('RGB'), (lab, k * M['fh'] * Z)); d.text((6, k * M['fh'] * Z + 8), v, font=font(13), fill=(226, 232, 244))
-    pg.save(os.path.join(OUT, 'ripples-idle-views-4x.png'), optimize=True)
 
-    if 'guide' in sys.argv[1:]:          # what the art desk paints from: each view's eight frames large, the model as rendered (flat shapes, a clean line), and as he is at 6x
-        G = os.path.join(ROOT, 'deep16', '_src', 'outbox', 'GUIDE-2026-11-13b-mr-ripples-tendrils'); os.makedirs(G, exist_ok=True)
-        for v in VIEWS:
-            ims = [Image.open(os.path.join(SRC, 'idle', '%s_%02d.png' % (v, i))).convert('RGBA') for i in range(n)]
-            w, h = ims[0].size; pgm = Image.new('RGBA', (w * n, h + 40), (96, 104, 120, 255)); dd = ImageDraw.Draw(pgm)
-            for i, im in enumerate(ims):
-                pgm.alpha_composite(im, (i * w, 0)); dd.text((i * w + w // 2, h + 20), str(i + 1) + (' TENDRILS' if i in TEND else ''), font=font(22), fill=(240, 196, 64) if i in TEND else (226, 232, 244), anchor='mm')
-            pgm.convert('RGB').save(os.path.join(G, 'ripples-idle-model-%s.png' % v), optimize=True)
-            s = Image.fromarray(np.concatenate(C[v], axis=1), 'RGBA'); bg = Image.new('RGBA', s.size, NAVY + (255,)); bg.alpha_composite(s)
-            bg.resize((s.width * 6, s.height * 6), Image.NEAREST).convert('RGB').save(os.path.join(G, 'ripples-idle-as-he-is-%s-6x.png' % v), optimize=True)
+    def page(r, z):
+        m = R[r]; n = m['frames']; pg = Image.new('RGB', (lab + m['fw'] * n * z, m['fh'] * z * 5), NAVY); d = ImageDraw.Draw(pg)
+        for k, v in enumerate(VIEWS):
+            s = Image.fromarray(np.concatenate(C[r][v], axis=1), 'RGBA'); bg = Image.new('RGBA', s.size, NAVY + (255,)); bg.alpha_composite(s)
+            pg.paste(bg.resize((s.width * z, s.height * z), Image.NEAREST).convert('RGB'), (lab, k * m['fh'] * z)); d.text((6, k * m['fh'] * z + 8), v, font=font(13), fill=(226, 232, 244))
+        return pg
+    for r in ROWS:
+        page(r, Z).save(os.path.join(OUT, 'ripples-%s-views-4x.png' % r), optimize=True)
+
+    if 'guide' in sys.argv[1:]:          # what the art desk paints from: a folder a row -- each view's eight frames large, the model as rendered (flat shapes, a clean line), and as he is at 6x; the sheet and its json; the positions
+        import shutil
+        G = os.path.join(ROOT, 'deep16', '_src', 'outbox', 'GUIDE-2026-11-13c-mr-ripples-idle-and-walk')
+        for r in ROWS:
+            D = os.path.join(G, r); os.makedirs(D, exist_ok=True); n = R[r]['frames']
+            for v in VIEWS:
+                ims = [Image.open(os.path.join(SRC, r, '%s_%02d.png' % (v, i))).convert('RGBA') for i in range(n)]
+                w, h = ims[0].size; pgm = Image.new('RGBA', (w * n, h + 40), (96, 104, 120, 255)); dd = ImageDraw.Draw(pgm)
+                for i, im in enumerate(ims):
+                    mark = r == 'idle' and i in TEND
+                    pgm.alpha_composite(im, (i * w, 0)); dd.text((i * w + w // 2, h + 20), str(i + 1) + (' TENDRILS' if mark else ''), font=font(22), fill=(240, 196, 64) if mark else (226, 232, 244), anchor='mm')
+                pgm.convert('RGB').save(os.path.join(D, 'ripples-%s-model-%s.png' % (r, v)), optimize=True)
+                s = Image.fromarray(np.concatenate(C[r][v], axis=1), 'RGBA'); bg = Image.new('RGBA', s.size, NAVY + (255,)); bg.alpha_composite(s)
+                bg.resize((s.width * 6, s.height * 6), Image.NEAREST).convert('RGB').save(os.path.join(D, 'ripples-%s-as-he-is-%s-6x.png' % (r, v)), optimize=True)
+        for a, b in ((os.path.join(ART, 'ripples_blend_p1.png'), 'ripples_blend_p1.png'), (p, 'ripples_blend_p1.json'), (os.path.join(SRC, 'ripples-poses.json'), 'ripples-poses.json')):
+            shutil.copyfile(a, os.path.join(G, b))
         print('  guide frames: ' + G)
 
 

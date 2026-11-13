@@ -146,8 +146,8 @@ def build():
     sb = ad.bones['spine2']; pinv = (arm.matrix_world @ sb.matrix_local @ Matrix.Translation((0, sb.length, 0))).inverted()
     SHAPES = {'bud': [(0.03, 0.08, 0.05), (0.05, 0.12, 0.12)],
               'out': [(0.10, 0.14, 0.20), (0.28, 0.16, 0.42), (0.42, 0.05, 0.50), (0.48, -0.10, 0.42)],
-              'front': [(0.16, 0.12, 0.26), (0.34, -0.08, 0.36), (0.36, -0.42, 0.16), (0.22, -0.70, -0.06), (0.10, -0.82, 0.04)],
-              'side': [(0.18, 0.14, 0.18), (0.48, 0.06, 0.14), (0.74, -0.10, -0.10), (0.92, -0.16, -0.38), (0.98, -0.10, -0.52)],
+              'front': [(0.18, 0.14, 0.30), (0.40, -0.10, 0.46), (0.46, -0.60, 0.30), (0.34, -1.10, 0.02), (0.20, -1.42, -0.20), (0.10, -1.55, -0.12)],          # (a FULL SQUARE since 11-13, his "do a full square lash": the tip a square and a half from his middle, the far side of the square in front)
+              'side': [(0.20, 0.14, 0.22), (0.55, 0.06, 0.22), (0.90, -0.08, -0.02), (1.16, -0.16, -0.36), (1.28, -0.12, -0.58), (1.32, -0.04, -0.50)],
               'high': [(0.14, 0.18, 0.16), (0.36, 0.22, 0.30), (0.50, 0.12, 0.52), (0.40, 0.0, 0.66), (0.28, 0.04, 0.58)],
               'curl': [(0.07, 0.12, 0.10), (0.16, 0.17, 0.20), (0.18, 0.12, 0.31), (0.12, 0.09, 0.30)],
               'stub': [(0.03, 0.07, 0.04), (0.04, 0.10, 0.09)]}
@@ -173,15 +173,17 @@ def build():
         bmesh.ops.recalc_face_normals(tb, faces=tb.faces[:])
         return tb
     tmat = bpy.data.materials.new('rp_tendril'); tmat.diffuse_color = lin(COL['claw']) + (1,)
+    troot = bpy.data.objects.new('tendroot', None); scene.collection.objects.link(troot)          # (all of them hang from one empty on the bone: shrunk to nothing on every row but the idle -- R.use below)
+    troot.parent = arm; troot.parent_type = 'BONE'; troot.parent_bone = 'spine2'; troot.matrix_parent_inverse = pinv
     for s, x in (('L', 1), ('R', -1)):
         root = Vector((0.11 * X * x, 0.15, 1.42))
         for fr, shape in PLAN[s].items():
             pts = [root - Vector((0, 0.05, 0))] + [root + Vector((px * x, py, pz)) for px, py, pz in SHAPES[shape]]
-            tb = tube(pts, 0.048, 0.007); tme = bpy.data.meshes.new('tendril'); tb.to_mesh(tme); tb.free(); tme.materials.append(tmat)
+            tb = tube(pts, 0.054 if shape in ('front', 'side') else 0.048, 0.007); tme = bpy.data.meshes.new('tendril'); tb.to_mesh(tme); tb.free(); tme.materials.append(tmat)
             for p in tme.polygons:
                 p.use_smooth = True
             ob = bpy.data.objects.new('tendril%s%d' % (s, fr), tme); scene.collection.objects.link(ob)
-            ob.parent = arm; ob.parent_type = 'BONE'; ob.parent_bone = 'spine2'; ob.matrix_parent_inverse = pinv
+            ob.parent = troot
             for i in range(N):
                 ob.scale = (1, 1, 1) if i == fr else (1e-4,) * 3; ob.keyframe_insert('scale', frame=i + 1)
             tend['t%s%d' % (s, fr)] = ob
@@ -199,6 +201,11 @@ def build():
                                leg_a=[None, 'thigh.L', 'calf.L', 'foot.L', 'toe.L', 'toe.L'],
                                leg_b=[None, 'thigh.R', 'calf.R', 'foot.R', 'toe.R', 'toe.R'], roots=['hips'], still=['dummy']), log=LOG)
     R.ground()
+    _use = R.use
+
+    def use(name):
+        _use(name); troot.scale = (1, 1, 1) if name == 'idle' else (1e-4,) * 3; bpy.context.view_layer.update()
+    R.use = use
     return scene, arm, body, tend, dummy, R, vcol
 
 
@@ -220,7 +227,24 @@ def rows(R):
                     legs={'a': (0.155 * XK * U, -0.07 * U, za, 16, 0), 'b': (-0.155 * XK * U, 0.07 * U, zb, 24, 0)},
                     arms={'a': (0.10 * U, (-0.16 - 0.02 * br) * U, -hang), 'b': (-0.10 * U, (-0.13 + 0.02 * br) * U, -hang)},
                     epolea=(0.5, 0.6, -0.6), epoleb=(-0.5, 0.6, -0.6))
-    return [('idle', N, True, lambda i, n: (P(i), 0), 'ik'), (TW.ROW, 1, False, lambda i, n: (P(0), 0), 'ik')]
+    S = 0.20          # THE WALK (11-13, his "we'll need a walk as well i think"): eight frames, a loop, in place -- a foot slides back under him over four frames and swings through lifted over four; the hips bob twice, the shoulders turn against the hips, the long arms swing against the legs; hunched lower and further forward than he stands. No tendrils.
+
+    def foot(ph, sx, z0, yaw):
+        ph %= 1.0
+        if ph < 0.5:
+            return (sx, (-S + 4 * S * ph) * U, z0, yaw, 0)
+        u = (ph - 0.5) * 2; return (sx, (S - 2 * S * u) * U, z0 + 0.11 * U * math.sin(math.pi * u), yaw, 14 * math.sin(math.pi * u))
+
+    def Wk(i):
+        t = i / N; c = math.cos(2 * math.pi * t); hang = (L1 + L2) * 0.94
+        return dict(lift=(-0.135 + 0.018 * math.cos(4 * math.pi * t)) * U, shift=-0.03 * U, lean=21, bodyyaw=-5 * c, twist=8 * c, head=-14, hyaw=0,
+                    legs={'a': foot(t, 0.14 * XK * U, za, 10), 'b': foot(t + 0.5, -0.14 * XK * U, zb, 10)},
+                    arms={'a': (0.10 * U, (-0.14 + 0.15 * c) * U, -hang), 'b': (-0.10 * U, (-0.14 - 0.15 * c) * U, -hang)},
+                    epolea=(0.5, 0.6, -0.6), epoleb=(-0.5, 0.6, -0.6))
+    import json
+    os.makedirs(os.path.join(TW.WORK, 'render'), exist_ok=True)          # the positions, for the art desk's guide ({row: {frame: P}}, the poser's shape)
+    json.dump({'idle': {str(i): P(i) for i in range(N)}, 'walk': {str(i): Wk(i) for i in range(N)}}, open(os.path.join(TW.WORK, 'render', 'ripples-poses.json'), 'w'), indent=1)
+    return [('idle', N, True, lambda i, n: (P(i), 0), 'ik'), ('walk', N, True, lambda i, n: (Wk(i), 0), 'ik')]
 
 
 def look(scene):
@@ -243,6 +267,7 @@ MQ.frame_cam = frame_cam
 TW.build, TW.rows, MQ.look = build, rows, look
 TW.SLASH['ty'] = -1.4
 TW.ROWS_META['idle'] = dict(fps=6)
+TW.ROW = 'walk'; TW.ROWS_META['walk'] = dict(fps=10, release=3)
 
 if __name__ == '__main__':
     TW.main()
