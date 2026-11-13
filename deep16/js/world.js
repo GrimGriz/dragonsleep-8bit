@@ -858,15 +858,15 @@
   // of the zone as Mr. Ripples makes things -- the mirror hyena where there is one, else the creature with the Mirror's eyes -- weighing nothing the first day,
   // half a group more each day after, to six (the seat's numbers, his to tune).
   W.LEVEL = 5; W.HEXSTEPS = 4; W.MIRROR = { hyena: 'mirrorhyena' };
-  W.zoneOf = function (e) {
-    var inn = M.sites.filter(function (s) { return s.id === 'inn'; })[0];
-    var ss = M.siteAt[K(e.q, e.r)] || [];
+  W.zoneOf = function (e, m) { // (m: the map the hex is of, else the one up -- a making's ground is THE WORLD's whatever map the party walks: THE MAKINGS BY THEIR GROUND, below)
+    m = m || M; var inn = m.sites.filter(function (s) { return s.id === 'inn'; })[0];
+    var ss = m.siteAt[K(e.q, e.r)] || [];
     if (e.t === 'gulch' || (e.t2 === 'gulch' && e.sh2 >= 0.08) || ss.some(function (s) { return s.kind === 'gulch'; })) return 'gulch'; // (Web Gulch: his "gulch isn't gulching or a location")
     if (/^(black|gray|coastal)$/.test(e.t)) return 'doors';
     if (e.wet || e.t === 'bog') return 'glowseep';
     if (e.t === 'hills' || e.t === 'foothills') return 'gnollhills';
     if (e.t === 'verge') return 'verge';
-    return inn && hc(e.q, e.r)[1] > inn.y + 2 ? 'south' : 'north';
+    return inn && hcw(e.q, e.r, m.w)[1] > inn.y + 2 ? 'south' : 'north';
   };
   // THE VESSEL'S ROAD (RULED 11-12, Griz: "Only thing we really need in there is the vessel's road to determine made creature spawn and encounter rates - rest can hold";
   // ..\handoff-2026-10-13-the-clock.md, the vessel-road seat): Mr. Ripples walks the 11-05 beeline -- RULED, "I don't see the old-one as bothering to calculate terrain with a
@@ -923,12 +923,29 @@
     return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
   };
   W.partyPt = function () { return S && M ? hc(S.at[0], S.at[1]) : null; }; // (the party's hex's middle in miles: one plane for both maps)
-  W.mirrorWeight = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now))
-    pt = pt || W.partyPt(); if (!pt) return 0; var V = W.VESSEL, w = 0, pts = W.vesselRoad(); if (!pts) return 0;
+  W.mirrorAt = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now), and the making it comes from -- the strongest there)
+    var no = { w: 0, m: null }; pt = pt || W.partyPt(); if (!pt) return no; var V = W.VESSEL, w = 0, mm = null, pts = W.vesselRoad(); if (!pts) return no;
     var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
-    if (pts[bi][2] > W.vesselAt(t).mi + 1) return 0; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
-    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) w = Math.max(w, V.peak * (1 - d / m.reach)); });
-    return w;
+    if (pts[bi][2] > W.vesselAt(t).mi + 1) return no; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
+    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach && V.peak * (1 - d / m.reach) > w) { w = V.peak * (1 - d / m.reach); mm = m; } });
+    return { w: w, m: mm };
+  };
+  W.mirrorWeight = function (pt, t) { return W.mirrorAt(pt, t).w; };
+  // THE MAKINGS BY THEIR GROUND (RULED 11-13, Griz: "there should be a path of Mr Ripples that the player doesn't see that determines when/where he makes creatures - these
+  // would be ones made when he makes on seep tiles I think"; then "follow Mr Ripples path, determine the random encounter tables used for those types and choose two creatures
+  // from each random encounter list to have him mirror-make. Marsh should be similar enough to the seep that the wisp and stirge are on that list"): what a making leaves is
+  // two creatures of the table of the ground HE STOOD ON (W.zoneOf of his hex on THE WORLD), made over -- on the marsh (the Glowseep's table: days 5 and 7, the bog) the
+  // will-o'-wisp and the stirge, his word; in the mountains (the Doors' table: days 9 and 11, the Coldridge's black mountains) the wolf and the worg, the seat's call, the
+  // only two on that table. The mirror-made entry near a making draws from those: the groups of that ground's table made of the two alone, at the table's own weights and
+  // counts (and the night's), each turned to its mirror (data/foes.js) -- IN PLACE OF a group of the party's own zone with the Mirror in its eyes, which is still what a
+  // making on a ground with no list here leaves (none of the four is). So a party in the foothills by the Coldridge meets mirror wolves, and one on the plains by the marsh
+  // mirror stirges: the ground he made on, not the ground they walk. Nothing of it is player visible but the fight itself
+  W.MADE = { glowseep: { wisp: 'mirrorwisp', stirge: 'mirrorstirge' }, doors: { wolf: 'mirrorwolf', worg: 'mirrorworg' } };
+  W.makingZone = function (m) { var MW = MS.world, e = MW && m && MW.hex[K(m.hex[0], m.hex[1])]; return e ? W.zoneOf(e, MW) : null; }; // (the table of the ground he stood on)
+  W.madeAt = function (pt, t) { // (the making that counts at a point, its ground's table, the two made on it and that table's groups of them: null where a ground has no list)
+    var a = W.mirrorAt(pt, t); if (!a.m) return null; var zone = W.makingZone(a.m), mk = W.MADE[zone], Z = tables()[zone]; if (!mk || !Z) return null;
+    var gs = Z.groups.filter(function (g) { return !g.cond && g.e.every(function (x) { return mk[x[0]] && D.FOES && D.FOES[mk[x[0]]]; }); });
+    return gs.length ? { making: a.m, zone: zone, made: mk, groups: gs } : null;
   };
   W.mirrorRate = function (pt, t) { return 1 + W.VESSEL.rate * W.mirrorWeight(pt, t) / W.VESSEL.peak; }; // (the road's count runs this much faster near the made things)
   // THE DEBUG VIEW (deep16/?world&far&fresh&noenc&vessel, a seat's, never a player's: W.VESSEL.show is set only by that flag, World.enter): his road drawn on THE WORLD, the day's dusk marks, his mark now, each making's reach as a ring;
@@ -958,13 +975,12 @@
   W.isNight = function () { return W.timeOfDay() === 'night'; };
   W.pick = function (zone, night, pt) {
     var Z = tables()[zone]; if (!Z) return null;
-    var gs = Z.groups.filter(function (g) { return !g.cond; }).map(function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }), mw = W.mirrorWeight(pt); if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
+    var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond; }).map(nightW), mw = W.mirrorWeight(pt); if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
     if (mw > 0) gs.push({ w: mw, mirror: true });
-    var tot = 0; gs.forEach(function (g) { tot += g.w || 1; });
-    var r = D.rand() * tot, grp = gs[0]; for (var i = 0; i < gs.length; i++) { r -= gs[i].w || 1; if (r < 0) { grp = gs[i]; break; } }
-    var src = grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = [];
-    src.e.forEach(function (e) { var n = e[1] + D.rint(e[2] - e[1] + 1); for (var k = 0; k < n; k++) list.push(grp.mirror ? (W.MIRROR[e[0]] || e[0]) : e[0]); });
-    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror };
+    var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
+    var md = grp.mirror ? W.madeAt(pt) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
+    src.e.forEach(function (e) { var n = e[1] + D.rint(e[2] - e[1] + 1); for (var k = 0; k < n; k++) list.push(grp.mirror ? ((md && md.made[e[0]]) || W.MIRROR[e[0]] || e[0]) : e[0]); });
+    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone } : null };
   };
   W.onStep = function (scene, st) {
     if (/[?&]noenc\b/.test(scene.q)) return false;

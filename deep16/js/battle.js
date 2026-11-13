@@ -3041,7 +3041,10 @@
     // (atk.knockOff: the same save against being knocked back off the edge it stands on -- the Skylights' male giant's rocks, 10-05, Griz: "the male throws his two rocks at people on
     // the edge (once he's made it to the window) with a save vs knockback off the edge": failed, 5 ft straight back from the thrower and down, the fall's 1d6 a 10 ft, prone)
     var offSq = atk.knockOff && atk.prone && !tgt.dead && tgt.hp > 0 ? Battle.knockSq(att, tgt) : null;
-    if (atk.prone && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
+    // (atk.unspell: a made thing's knockdown falls on its prey's magic, not its body -- the mirror wolf's on a spell held, the mirror worg's on a slot; true when it had magic to
+    // fall on, and then there is no knockdown: js/seep.js S.mirrorBite, 11-13)
+    var unsp = atk.unspell && atk.prone && !tgt.dead && tgt.hp > 0 && D.seep && D.seep.mirrorBite ? yield* D.seep.mirrorBite(this, att, tgt, atk) : false;
+    if (!unsp && atk.prone && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
       if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, tgt, 'prone'))) tgt.conds.prone = true; D.sfx('hit'); }

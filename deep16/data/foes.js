@@ -504,6 +504,30 @@
     multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
     src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on the stirge sheet as a stand-in -- SENSES (ours, 11-10): Stealth none, its DEX check (+3), because the SRD Stirge it is made from has no Stealth; passive Perception 9, because it is the stirge, made over: 10 + WIS -1'
   },
+  // THE MIRROR WOLF and THE MIRROR WORG (11-13, ours; the makings seat, on Griz's "choose two creatures from each random encounter list to have him mirror-make": the two of
+  // the Doors' table, where he makes on days 9 and 11 -- js/world.js W.MADE). THE FAMILY'S RULE, the one the mirror wisp and the mirror stirge were built by: the SRD block
+  // whole, and its ONE RIDER turned from the body to the magic -- the same trigger, the same save, the same DC; and one with no magic for it to take gets the original's rider
+  // (as the mirror stirge drinks blood from one with no slot). The wolf's bite pulls a body down (STR DC 11 or prone): the mirror wolf's pulls down THE SPELL ITS PREY IS
+  // HOLDING -- STR DC 11 or its concentration ends, and it stays on its feet; one holding no spell goes down as under any wolf. The worg's bite does the same at DC 13: the
+  // mirror worg's tears out A SPELL NOT YET CAST -- STR DC 13 or the lowest spell slot left is gone, and it stays on its feet; one with no slot goes down as under any worg.
+  // The rider is js/seep.js S.mirrorBite, called where battle.js reads the knockdown (`unspell`). The mirror worg goes for the one with magic left (`seeksMagic`); the mirror
+  // wolves hunt as a pack does. Their looks are STAND-INS: the wolf's and the worg's own sheets under the mirror ripple, the mirror eye; no art asked. The seat's calls, for his overrule
+  mirrorwolf: {
+    name: 'Mirror Wolf', type: 'beast', sheet: 'wolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
+    abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13, stealth: 4,
+    saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11, unspell: 'conc' } },
+    multi: 1, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
+    src: 'ours (11-13): the SRD 5.1 Wolf made over by Mr. Ripples -- the bite\'s knockdown falls on the spell its prey holds (STR DC 11 or its concentration ends, and no fall; one holding no spell is knocked prone as by any wolf); Pack Tactics, Keen Hearing and Smell as the wolf\'s; the mirror eye, the ripple; on the wolf sheet as a stand-in -- SENSES (ours, 11-10): Stealth +4, because it is the wolf, made over, and the SRD Wolf has Stealth +4; passive Perception 13, because the wolf\'s own: 10 + Perception +3'
+  },
+  mirrorworg: {
+    name: 'Mirror Worg', type: 'monstrosity', sheet: 'worg_p1', cr: '1/2', ac: 13, hp: 26, speed: 50, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 16, dex: 13, con: 13, int: 7, wis: 11, cha: 8 }, init: 1, perception: 14,
+    saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13, unspell: 'slot' } },
+    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
+    src: 'ours (11-13): the SRD 5.1 Worg made over by Mr. Ripples -- the bite\'s knockdown falls on a spell not yet cast (STR DC 13 or the lowest spell slot left is torn out, and no fall; one with no slot is knocked prone as by any worg); Keen Hearing and Smell as the worg\'s; the mirror eye, the ripple; on the worg sheet as a stand-in -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because the SRD Worg it is made from has no Stealth; passive Perception 14, because the worg\'s own: 10 + Perception +4'
+  },
   firebeetle: {
     name: 'Fire Beetle', type: 'beast', sheet: 'firebeetle_p1', cr: '0', ac: 13, hp: 4, speed: 30, size: 1, reach: 5, blindsight: 30, glow: { bright: 10, dim: 10, color: 'fire' },
     abil: { str: 8, dex: 10, con: 12, int: 1, wis: 7, cha: 3 }, init: 0, perception: 8,
@@ -1341,7 +1365,7 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 // `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
 // hound, the weres...) have no sheet yet; the owlbear took its line 11-11, the werewolf the same day, the griffon 11-12: a new sheet of one takes its line here
 (function (F) {
-  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell', griffon: 'sight' };
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', mirrorwolf: 'hearing and smell', mirrorworg: 'hearing and smell', /* (the made wolf and worg keep the SRD blocks' senses, 11-13) */grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell', griffon: 'sight' };
   Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,

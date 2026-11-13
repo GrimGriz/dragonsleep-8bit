@@ -93,6 +93,26 @@
     return true;
   };
 
+  // ------------------------------------------------------------------ the mirror wolf's and the mirror worg's bite (battle.js, where the knockdown is read: atk.unspell)
+  // THE FAMILY'S RULE (data/foes.js, above the mirror wolf): the wolf's knockdown, the same save at the same DC (STR, atk.prone), falls on the magic -- 'conc' the spell the
+  // bitten one is holding, 'slot' its lowest slot left. Returns true when there was magic for it to fall on (saved or not: no knockdown then), false when there was none
+  // (and the bite knocks prone as the original's does)
+  S.mirrorBite = function* (B, att, tgt, atk) {
+    var how = atk.unspell, lv = how === 'slot' ? S.lowSlot(tgt) : 0, held = how === 'conc' && tgt.conc ? tgt.conc.name : null;
+    if (!(how === 'slot' ? lv : held)) return false;
+    var sv = RU.save(tgt, 'str', atk.prone), head = '{r}' + tgt.name + '{/}: STR save  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ';
+    if (sv.ok) { B.card([head + '{n}HOLDS{/}  {g}' + (how === 'slot' ? tgt.name + ' keeps every slot.' : tgt.name + ' keeps hold of ' + held + '.') + '{/}']); yield 24; return true; }
+    FX.sparkle(tgt, 'violet', 10); D.sfx('poison');
+    if (how === 'slot') {
+      tgt.slots[lv - 1]--; FX.float('-1 slot', tgt, D.PAL.ramps.violet[5]);
+      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} tears it out: {p}a level ' + lv + ' spell slot{/} of ' + tgt.name + '\'s, gone.  {g}(the worg\'s knockdown, fallen on the magic: ' + tgt.name + ' stays up){/}']);
+    } else {
+      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} pulls it down: {p}' + held + '{/}.  {g}(the wolf\'s knockdown, fallen on the spell: ' + tgt.name + ' stays up){/}']);
+      D.magic.endConc(B, tgt, 'pulled down');
+    }
+    yield 24; return true;
+  };
+
   // ------------------------------------------------------------------ Variable Illumination (a bonus action)
   S.vary = function (B, u, ft, quiet) {
     var g = u.glow, T = u.turn; if (!g || !g.vary || g.bright === ft || !T || !(T.bonus > 0)) return false;

@@ -9229,6 +9229,70 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preVR);
     return;
   }
+  // THE MAKINGS BY THEIR GROUND, 11-13 (mode=made1113; the makings seat -- Griz: "there should be a path of Mr Ripples that the player doesn't see that determines when/where
+  // he makes creatures - these would be ones made when he makes on seep tiles I think"; "follow Mr Ripples path, determine the random encounter tables used for those types
+  // and choose two creatures from each random encounter list to have him mirror-make. Marsh should be similar enough to the seep that the wisp and stirge are on that list"):
+  // 1. the four makings, the ground he stood on, its table, the two made there; 2. the mirror-made entry near a making draws those two and nothing else, whatever ground the
+  // party walks; far from every making nothing is made; 3. the blocks: the mirror wolf and the mirror worg are the wolf and the worg but for the rider and the look; 4. the
+  // show's beats (deep16/?madeshow&fast, headless); 5. nothing of the road is drawn for a player still
+  if (get('mode', '') === 'made1113') {
+    var repMK = { checks: [], errors: [], notes: [] }, memMK = {}, stGMK = D.store.get, stSMK = D.store.set, WK = D.world, d0MK = D.d;
+    function okMK(what, v) { repMK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memMK[k] ? JSON.parse(memMK[k]) : null; }; D.store.set = function (k, v) { memMK[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1113); WK.index(); WK.use('world'); var SK = WK.load('?fresh&far'), VK = WK.VESSEL, MK = WK.M(), tK2 = function (d, h) { return (d - 1) * 24 + h; };
+      var ENC = ((window.DS || {}).DATA || {}).encounters || {}, F = D.FOES, all = WK.makings(tK2(30, 12));
+      // 1. the four makings
+      var WANT = { 5: ['15,10', 'bog', 'glowseep', 'mirrorstirge,mirrorwisp'], 7: ['18,8', 'bog', 'glowseep', 'mirrorstirge,mirrorwisp'], 9: ['19,6', 'black', 'doors', 'mirrorwolf,mirrorworg'], 11: ['17,6', 'black', 'doors', 'mirrorwolf,mirrorworg'] };
+      okMK('1 four makings, days ' + all.map(function (m) { return m.day; }).join(', ') + ' (want 5, 7, 9, 11)', all.map(function (m) { return m.day; }).join() === '5,7,9,11');
+      all.forEach(function (m) {
+        var e = MK.hex[WK.K(m.hex[0], m.hex[1])], z = WK.makingZone ? WK.makingZone(m) : '(no W.makingZone)', mk = (WK.MADE || {})[z] || {}, two = Object.keys(mk).map(function (k) { return mk[k]; }).sort().join(','), w = WANT[m.day] || [];
+        var onT = Object.keys(mk).every(function (k) { return ENC[z] && ENC[z].groups.some(function (g) { return g.e.some(function (x) { return x[0] === k; }); }); });
+        repMK.notes.push('day ' + m.day + ' | hex ' + m.hex + ' | ' + (e && e.t) + (e && e.wet ? ' (wet)' : '') + ' (' + (e && MK.terr[e.t].name) + ') | table ' + z + ' | made ' + two);
+        okMK('1 day ' + m.day + ': he stands at ' + m.hex + ' on ' + (e && MK.terr[e.t].name) + ', the table ' + z + ', the two made ' + two + ' (want ' + w.join(' / ') + '), both originals on that table (' + onT + '), both mirrors built (' + two.split(',').every(function (k) { return !!F[k]; }) + ')',
+          m.hex.join() === w[0] && !!e && e.t === w[1] && z === w[2] && two === w[3] && onT && two.split(',').every(function (k) { return !!F[k]; }));
+      });
+      var gl = ENC.glowseep ? ENC.glowseep.groups.map(function (g) { return g.e.map(function (x) { return x[0]; }).join('+'); }) : [];
+      okMK('1 the marsh\'s table (the Glowseep\'s) carries the will-o\'-wisp and the stirge: ' + gl.join(', '), gl.indexOf('wisp') >= 0 && gl.indexOf('stirge') >= 0);
+      // 2. the mirror-made entry by the ground he made on
+      var tally = function (zone, pt, t, n, night) { SK.t = t; var c = { mirror: 0, kinds: {}, made: {}, n: 0 }; for (var i = 0; i < n; i++) { var p = WK.pick(zone, !!night, pt); if (!p) continue; c.n++; if (p.mirror) { c.mirror++; p.list.forEach(function (k) { c.kinds[k] = (c.kinds[k] || 0) + 1; }); if (p.made) c.made[p.made.zone + '@' + p.made.day] = 1; } } return c; };
+      var keysOf = function (o) { return Object.keys(o).sort().join(','); }, by = function (d) { return all.filter(function (m) { return m.day === d; })[0]; };
+      D.seed = 1113; var a5 = tally('glowseep', by(5).pt, tK2(6, 12), 400);
+      okMK('2 by the day-5 making (the marsh), on its own ground, 400 picks on day 6: ' + a5.mirror + ' mirror-made, of ' + keysOf(a5.kinds) + ' (want mirrorstirge,mirrorwisp), from ' + keysOf(a5.made), a5.mirror > 40 && keysOf(a5.kinds) === 'mirrorstirge,mirrorwisp' && keysOf(a5.made) === 'glowseep@5');
+      D.seed = 1113; var a5n = tally('north', [by(5).pt[0] + 3, by(5).pt[1] - 3], tK2(6, 12), 400);
+      okMK('2 3 mi off it, the party on the plains (the north\'s table): ' + a5n.mirror + ' mirror-made, of ' + keysOf(a5n.kinds) + ' (want the marsh\'s two: no rat, wolf or bandit with the Mirror in its eyes)', a5n.mirror > 20 && keysOf(a5n.kinds) === 'mirrorstirge,mirrorwisp');
+      D.seed = 1113; var a11 = tally('doors', by(11).pt, tK2(11, 13), 400);
+      okMK('2 by the day-11 making (the Coldridge by the Warded Fort), 400 picks that afternoon: ' + a11.mirror + ' mirror-made, of ' + keysOf(a11.kinds) + ' (want mirrorwolf,mirrorworg), from ' + keysOf(a11.made), a11.mirror > 40 && keysOf(a11.kinds) === 'mirrorwolf,mirrorworg' && keysOf(a11.made) === 'doors@11');
+      repMK.notes.push('the day-9 making\'s own place weighs ' + WK.mirrorWeight(by(9).pt, tK2(9, 13)).toFixed(1) + ' at 13:00 that day, ' + WK.mirrorWeight(by(9).pt, tK2(9, 18)).toFixed(1) + ' at dusk, ' + WK.mirrorWeight(by(9).pt, tK2(10, 12)).toFixed(1) + ' at noon of day 10, ' + WK.mirrorWeight(by(9).pt, tK2(12, 12)).toFixed(1) + ' on day 12 (the falloff\'s ahead-of-him rule on the Route\'s switchbacks: the vessel-road seat\'s, not changed here)');
+      D.seed = 1113; var a9h = tally('gnollhills', by(9).pt, tK2(12, 22), 400, true);
+      okMK('2 by the day-9 making on day 12, the party\'s table the gnoll hills\', at night: ' + a9h.mirror + ' mirror-made, of ' + keysOf(a9h.kinds) + ' (want mirrorwolf,mirrorworg: no mirror hyena, no gnoll)', a9h.mirror > 40 && keysOf(a9h.kinds) === 'mirrorwolf,mirrorworg');
+      var pitK = MK.sites.filter(function (s) { return s.id === 'pit'; })[0]; D.seed = 1113; var far = tally('north', [pitK.x, pitK.y], tK2(30, 12), 200);
+      okMK('2 by the Pit on day 30: ' + far.mirror + ' mirror-made of ' + far.n + ' picks (want 0); the morning of day 5 at the day-5 place: ' + tally('glowseep', by(5).pt, tK2(5, 11), 100).mirror + ' (want 0)', far.mirror === 0 && far.n === 200 && tally('glowseep', by(5).pt, tK2(5, 11), 100).mirror === 0);
+      // 3. the blocks: the original's whole but for the rider, the look and the name
+      var same = function (a, b, skip) { return Object.keys(F[a]).filter(function (k) { return skip.indexOf(k) < 0 && JSON.stringify(F[a][k]) !== JSON.stringify((F[b] || {})[k]); }); };
+      var sk = ['name', 'src', 'attacks'], dW = F.mirrorwolf ? same('wolf', 'mirrorwolf', sk) : ['(no mirrorwolf)'], dG = F.mirrorworg ? same('worg', 'mirrorworg', sk) : ['(no mirrorworg)'];
+      var bite = function (k) { var b = Object.assign({}, ((F[k] || {}).attacks || {}).bite); delete b.unspell; return JSON.stringify(b); };
+      okMK('3 the mirror wolf is the SRD wolf but for its rider and its look (differs in: ' + (dW.join(', ') || 'nothing') + '; the bite the wolf\'s own but for unspell ' + (F.mirrorwolf && F.mirrorwolf.attacks.bite.unspell) + ')', !dW.length && !!F.mirrorwolf && bite('wolf') === bite('mirrorwolf') && F.mirrorwolf.attacks.bite.unspell === 'conc' && F.mirrorwolf.mirrorEye && !!F.mirrorwolf.ripple && F.mirrorwolf.sheet === 'wolf_p1');
+      okMK('3 the mirror worg is the SRD worg but for its rider and its look (differs in: ' + (dG.join(', ') || 'nothing') + '; unspell ' + (F.mirrorworg && F.mirrorworg.attacks.bite.unspell) + ', seeks magic ' + !!(F.mirrorworg && F.mirrorworg.seeksMagic) + ')', !dG.length && !!F.mirrorworg && bite('worg') === bite('mirrorworg') && F.mirrorworg.attacks.bite.unspell === 'slot' && F.mirrorworg.mirrorEye && !!F.mirrorworg.ripple && F.mirrorworg.sheet === 'worg_p1');
+      // 4. the show
+      if (!D.madeshow) okMK('4 the show: deep16/js/madeshow.js is loaded', false);
+      else {
+        var BM = D.madeshow.make('?madeshow&fast'); D.battle = BM; BM.enter();
+        var vM, kM = 0;
+        while (BM.co && kM++ < 400000) { var rM = BM.co.next(vM); vM = undefined; if (rM.done) break; var yM = rM.value; if (yM && yM.prompt) vM = yM.prompt.opts[0].value; }
+        (BM.madeReport || []).forEach(function (b) { okMK('4 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+        okMK('4 the show ran ' + (BM.madeReport || []).length + ' beats (want 2)', (BM.madeReport || []).length === 2);
+      }
+      D.d = d0MK;
+      // 5. nothing player visible: THE WORLD's door on day 12 draws none of the road
+      D.house.worldDoor('?world&fresh&noenc&far'); var scK = D.top(); WK.state().t = tK2(12, 12); var cvK = document.createElement('canvas'); cvK.width = D.W; cvK.height = D.H; VK.drawn = null; scK.draw(cvK.getContext('2d'));
+      okMK('5 nothing of his road drawn for a player on day 12 (show ' + VK.show + ', drawn ' + VK.drawn + ')', VK.show === null && VK.drawn === null);
+    } catch (eMK) { repMK.errors.push(String(eMK && eMK.stack || eMK).slice(0, 900)); }
+    D.d = d0MK; D.store.get = stGMK; D.store.set = stSMK; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preMK = document.createElement('pre'); preMK.id = 'out'; preMK.textContent = 'BENCH16 ' + JSON.stringify(repMK);
+    document.body.appendChild(preMK);
+    return;
+  }
   // THE ROAD FROM THE HALFWAY INN TO TARLYN'S PIT, 11-13 (mode=world1113; the world map seat "world-leads" -- his ear file of 11-13 0327Z on eyes-child-in-tow-1112: "road to
   // the world puts me on a hex west of half-way inni - clicking travel to tarlyn's pit still goes the the long way around the lake, is the road not less travel? do you have
   // to enter the pit hex from a certain side (took me 3 tries)"): the inn's road edge out onto THE WORLD; the way to the Pit as THE WORLD counts it; the Pit's hex by every side
