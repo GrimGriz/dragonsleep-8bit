@@ -155,8 +155,8 @@ SHIELD_R = 0.215
 LYSHIELD_R = 0.30        # Lymen's: 0.60 m across (about 24 in), a third of his height, as on lymen_p0
 if KIT in ('axe+shield', 'handaxe'):
     _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
-    PIECES += [('egg', 'fore.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),
-               ('egg', 'fore.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
+    PIECES += [('egg', 'hand.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),      # (on the HAND bone since 11-13, where it sat: rigid with the forearm until a frame aims the left hand, and then the shield turns with it -- his "give that freedom of movement to the other shields we have in the poser")
+               ('egg', 'hand.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
 elif SWSH:                     # Lymen's round shield (11-13): the same disc, bigger -- his sheet's covers him from the shoulder to the hip.
     # It rides the left HAND bone, not the forearm (the garrison's way): the hand is aimed where the shield FACES and rolled so the shield
     # lies back along the forearm (rows_slash, `face`), which is the forearm's own roll -- so the arm can reach out and the face still be
