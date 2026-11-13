@@ -112,7 +112,7 @@
       heroes: [{ type: 'superhero', name: 'Barley' }, { type: 'superhero', name: 'Aurdin' }, { type: 'superhero', name: 'Vivian' }, { type: 'superhero', name: 'Lymen' }],
       sheets: ['barley_p1', 'aurdin_p1', 'vivian_p1', 'lymen_p1'], note: 'Every fight they stand in is fought on the grid (DEEP16), and the men of ours in their hex fight beside them.' },
     { id: 'greyfang', side: 'ours', name: "GreyFang's pit fighters", kind: 'the pit', cls: 'HF', def: 'HF', figs: 40, at: [9, 8], move: 3, // (Heavy Foot, trained fighters -- RULED 10-15, his "yes - heavy foot the tarlyn's pit troops"; they were Light Foot levies, the lane §3's first reading)
-      heroes: [{ type: 'superhero', name: 'GreyFang', fated: true }], sheets: ['greyfang_p1', 'npcfighter_p0'],
+      heroes: [{ type: 'superhero', name: 'GreyFang', fated: true }, { type: 'hero', name: 'Katarina' }], sheets: ['greyfang_p1', 'npcfighter_p0'], // (Katarina with them, 11-13, Griz: "add katarina to greyfang's group" -- a Hero: the desk's reading, his to change; on the headless field she is the grid's katarina, deep16/js/headless.js H.HEROES)
       note: 'GreyFang, ranger 11 of the Grey Road, and the Pit\'s forty fighters: a Super-hero (p.30). The Snoot\'s quarry: the Harbinger hunts him.' },
     { id: 'patrol', side: 'ours', name: "Newland's road patrol", kind: 'Newland', cls: 'HF', def: 'HF', at: [9, 8], wagon: true,
       groups: [{ cls: 'HF', def: 'HF', n: 12, name: 'heavy foot' }, { cls: 'MH', def: 'MH', n: 4, mounted: true, name: 'horse', sheets: ['newlandrider_p1'] }], // (the horse on ART-69's sheet, 10-17; the wagon ART-71's Newland variant, js/view.js V.wagonOf)

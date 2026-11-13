@@ -150,8 +150,8 @@
     ok(mrows.length >= 2 && mrows[0].cls0 === 'HF' && mrows[1].cls0 === 'MH' && Math.abs(SN.rating(pu) - (12 * 5 + 4 * 8) / 16) < 0.06 && SN.moveOf(pu) === 3 && !SN.foot(pu),
       'p.15: a mixed unit rolls each type on its own row (the patrol\'s heavy foot, then its horse), its morale by type, its pace its slowest\'s; no square with horse in it (' + mrows.map(function (b) { return b.cls0; }).join(' ') + ')');
     ok(tk(function () { var sc = SN.newGame(62); sc.party8 = null; SN.dawn(sc); var a = SN.unit(sc, 'patrol'), g = SN.unit(sc, 'greyfang'), big = SN.combine(sc, a, g);
-      return big && big.id === 'greyfang' && big.figs === 56 && big.groups.length === 2 && big.groups[0].n === 52 && SN.heroesOf(big).length === 2 && a.state === 'merged' && !SN.alive(a) && !big.reformed && SN.greyfang(sc) === big; }),
-      'COMBINE: the patrol joins GreyFang\'s fighters -- one mixed unit of 56 men, the heavy foot together (52) and the horse, both heroes; GreyFang\'s keeps him (the quarry); free on Day 14');
+      return big && big.id === 'greyfang' && big.figs === 56 && big.groups.length === 2 && big.groups[0].n === 52 && SN.heroesOf(big).length === 3 && a.state === 'merged' && !SN.alive(a) && !big.reformed && SN.greyfang(sc) === big; }),
+      'COMBINE: the patrol joins GreyFang\'s fighters -- one mixed unit of 56 men, the heavy foot together (52) and the horse, the three heroes (GreyFang, Katarina with him since 11-13, the paladin); GreyFang\'s keeps him (the quarry); free on Day 14');
     ok(tk(function () { var sa = SN.newGame(63); sa.party8 = null; SN.dawn(sa); var al = SN.allies(sa, SN.PIT), P = SN.unit(sa, 'party'), b = SN.unit(sa, 'sg1'); b.at = SN.PIT.slice();
       var req = SN.band(sa, [b], SN.PIT); SN.partyResult(sa, P, [b], req, { result: 'won', share: 0.5, dead: 10, allyDead: { patrol: 2 } }, SN.PIT);
       return al.length === 6 && al.every(function (x) { return x.unit === 'greyfang' || x.unit === 'patrol'; }) && req.enemies.length === 18 && req.contrib[0].n === 18 && b.figs === 8 && SN.unit(sa, 'patrol').figs === 14; }),
