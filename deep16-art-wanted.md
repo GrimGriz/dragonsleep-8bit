@@ -462,3 +462,32 @@ Both: 16-bit pixel-art cut-scene portrait, comparable to the attached pages and 
 Where: two new rows of `pt_dwarf`, `roadpatrol` and `fileleader`. The file leader's marks are the engine side's own (a brass comb, one chevron): say if a different mark reads better at small size. No fight sheet is asked for the file leader: the cutter paints the brass comb onto the trooper's sheets.
 
 ### 2. The road patrol fighting -- IN HAND 2026-11-13 (`roadpatrol_p2`, `0587bbb8`); the block is on `deep16-art-in-hand.md`
+
+## 57. Lymen's base attack, a follow-up to ART-MC-LYMEN: SOUTH frame 4 and NORTH frame 4 redrawn, two frames and nothing else (added 11-13, the garrison cutter, on his word via the lanes desk) -- IN THE OUTBOX 2026-11-13, waiting to go (`deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/` and its `.zip`)
+
+From the engine side (the garrison cutter, for the lanes desk), for the art desk. The same Lymen and the same six-frame attack you drew in five views over GUIDE-2026-11-13b-longsword-and-shield. Two frames of it are asked again; everything else is kept. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 57.
+
+His words, to the lanes desk 2026-11-13, on the cutter's question whether to ask these two frames again or set them aside: *"think cutter wants to give the art desk another shot, since it's lymen we'll try that instead of straight to dream list"*.
+
+What is in hand (cut 11-13, `0082646a`, the review row `lymen_check_p2` in all eight facings at 48 px crown to sole): your five views. In SE, E and rear NE the cut lands on frame 4: the sword arm thrown out, the blade striking at the enemy's neck and shoulder, readable at game size. Two frames do not match that beat:
+- SOUTH frame 4: the camera looks straight down the blade, so at 48 px the blade all but vanishes and the frame reads as a pose with no cut.
+- NORTH frame 4: the sword is still straight up overhead, so the cut reads a beat late, on frame 5.
+
+Both follow the mannequin guide faithfully: the guide's own S frame 4 points the blade at the camera, and its own N frame 4 holds the sword upright. So this ask departs from the guide in those two frames on purpose, to match the beat the other three views show.
+
+What holds and is KEPT, unchanged: frames 1, 2, 3, 5 and 6 of SOUTH and of NORTH; all six frames of SE, E and rear NE; the size (each view's guard at the scale you drew it -- the cutter scales each view from its guard); Lymen himself, his kit and his colours; the right-hand longsword and the round shield on his left forearm.
+
+### 1. Lymen's attack, frame 4, redrawn in SOUTH and in NORTH -- two drawings
+ATTACH `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/LYMEN-ATTACK-S-AS-DRAWN-frame4-marked.png` and `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/LYMEN-ATTACK-N-AS-DRAWN-frame4-marked.png` (your two pages as drawn, frame 4 boxed in yellow: the only frame to redraw on each), `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/LYMEN-ATTACK-E-AS-DRAWN-frame4-right.png` (your East page, whose frame 4 is the beat to match), `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/GUIDE-2026-11-13b-LONGSWORD-AND-SHIELD-HUMAN-S.png` and `deep16/_src/outbox/ASK-2026-11-13-lymen-attack-s-and-n-frame-4/attach/GUIDE-2026-11-13b-LONGSWORD-AND-SHIELD-HUMAN-N.png` (the guide's South and North strips, for the body, the hips and the feet; NOT for the blade on frame 4).
+```text
+Attached: two pages of Lymen's six-frame longsword-and-shield attack you drew, SOUTH and NORTH, each with frame 4 boxed in yellow; your EAST page of the same attack, whose frame 4 is right; and the mannequin guide's South and North strips. Redraw ONLY the boxed frame 4 on each of the two pages -- two new drawings. Every other frame on every page is kept exactly as it is.
+
+FRAME 4 is THE CUT: the descending blow landing. On your East page frame 4 shows it -- the sword arm thrown out and forward at shoulder height, the longsword angled down and across toward the enemy's neck and left shoulder, the hips turned into the blow, the shield arm swept down and out to his left. Draw that same moment in the two views below.
+
+SOUTH, frame 4 (seen from the front, Lymen facing the viewer): today the blade points straight at the camera and nearly vanishes. Instead turn the blow so the longsword is seen at a clear diagonal -- the blade running from his right fist out to screen right and down, its full length visible, the edge cutting across the front of his body, never pointing at the viewer. The arm thrown out, the hips and knees as in the guide's South frame 4, the feet where they are in frames 3 and 5.
+
+NORTH, frame 4 (seen from behind, Lymen facing away): today the sword is still upright overhead, so the blow lands a beat late. Instead show the blow landed: the sword arm thrown out and forward past his right shoulder, the blade angled down and across beyond his body -- visible past his shoulder and to screen left, not hidden behind his back and not held overhead. The shield arm swept down and out to his left. The feet where they are in frames 3 and 5.
+
+Both: the same Lymen as the attached pages -- the half-orc paladin, green skin, swept dark hair, tusks, chain mail with leather straps, the green collar, the right-hand LONGSWORD (a little over half his height) and the round wooden shield on his LEFT forearm. Exactly the size, camera, line and colours of the frames beside it on the same page, the feet on the same baseline, so the new frame drops into the row with no jump. 16-bit pixel-art sprite frame, SNES-era tactics style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees. Flat dark navy background (a deep blue, not grey and not black). Deliver each as its own image, one drawing, the frame number 4 under it, nothing else on the page.
+```
+Where: `lymen_check_p2` (the review row; tools/lymen-check-sheet.py), SOUTH and NORTH frame 4 (runtime index 3) replaced. Cut as: each drawing scaled with its own view's page (the view's guard at 48 px crown to sole) and placed on the view's sole line; SW, W and NW stay the mirrors of SE, E and NE.
