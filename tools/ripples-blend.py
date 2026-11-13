@@ -137,6 +137,59 @@ def build():
     vcol = np.zeros((len(me.vertices), 3))
     body.parent = arm; body.parent_type = 'OBJECT'
     body.modifiers.new('arm', 'ARMATURE').object = arm
+    # ---- THE TENDRILS (11-13, Griz: "add two tendrils (where wings would come out on an angelic figure) that aren't there in frame 1 or frame 8,
+    # but ... verb... out of his shoulder blades and lash nearby during idle"). The verb is the seat's: they UNSPOOL -- a bud on 2, paid out up
+    # and over on 3, the lash on 4 and 5 (one over the shoulder to the front while the other cracks out to its side, then the two trade), drawn
+    # back in a curl on 6, a stub on 7, gone on 8. Each frame's tendril is a tube of its own along a curve, riding the upper spine's bone and
+    # there on that frame alone (its size keyed, the kit's way for a thing held on some frames); no bones, so the rig's rows are untouched.
+    tend = {}
+    sb = ad.bones['spine2']; pinv = (arm.matrix_world @ sb.matrix_local @ Matrix.Translation((0, sb.length, 0))).inverted()
+    SHAPES = {'bud': [(0.03, 0.08, 0.05), (0.05, 0.12, 0.12)],
+              'out': [(0.10, 0.14, 0.20), (0.28, 0.16, 0.42), (0.42, 0.05, 0.50), (0.48, -0.10, 0.42)],
+              'front': [(0.16, 0.12, 0.26), (0.34, -0.08, 0.36), (0.36, -0.42, 0.16), (0.22, -0.70, -0.06), (0.10, -0.82, 0.04)],
+              'side': [(0.18, 0.14, 0.18), (0.48, 0.06, 0.14), (0.74, -0.10, -0.10), (0.92, -0.16, -0.38), (0.98, -0.10, -0.52)],
+              'high': [(0.14, 0.18, 0.16), (0.36, 0.22, 0.30), (0.50, 0.12, 0.52), (0.40, 0.0, 0.66), (0.28, 0.04, 0.58)],
+              'curl': [(0.07, 0.12, 0.10), (0.16, 0.17, 0.20), (0.18, 0.12, 0.31), (0.12, 0.09, 0.30)],
+              'stub': [(0.03, 0.07, 0.04), (0.04, 0.10, 0.09)]}
+    PLAN = {'L': {1: 'bud', 2: 'out', 3: 'front', 4: 'side', 5: 'curl', 6: 'stub'}, 'R': {1: 'bud', 2: 'out', 3: 'side', 4: 'front', 5: 'high', 6: 'stub'}}
+
+    def tube(pts, r0, r1, seg=8, sub=6):
+        P_ = [pts[0]] + pts + [pts[-1]]; path = []
+        for k in range(1, len(P_) - 2):          # Catmull-Rom through the points
+            for j in range(sub):
+                t = j / sub; a, b, c, d = P_[k - 1], P_[k], P_[k + 1], P_[k + 2]
+                path.append(0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t ** 3))
+        path.append(pts[-1])
+        tb = bmesh.new(); rings = []; n = len(path); up = Vector((0, 0, 1))
+        for k, p in enumerate(path):
+            tg = (path[min(k + 1, n - 1)] - path[max(k - 1, 0)]).normalized()
+            a = tg.cross(up); a = a.normalized() if a.length > 1e-3 else Vector((1, 0, 0)); b = tg.cross(a)
+            r = r0 + (r1 - r0) * (k / (n - 1)) ** 0.8
+            rings.append([tb.verts.new((p + (a * math.cos(2 * math.pi * q / seg) + b * math.sin(2 * math.pi * q / seg)) * r) * U) for q in range(seg)])
+        for a, b in zip(rings, rings[1:]):
+            for q in range(seg):
+                tb.faces.new((a[q], a[(q + 1) % seg], b[(q + 1) % seg], b[q]))
+        tb.faces.new(rings[0][::-1]); tb.faces.new(rings[-1])
+        bmesh.ops.recalc_face_normals(tb, faces=tb.faces[:])
+        return tb
+    tmat = bpy.data.materials.new('rp_tendril'); tmat.diffuse_color = lin(COL['claw']) + (1,)
+    for s, x in (('L', 1), ('R', -1)):
+        root = Vector((0.11 * X * x, 0.15, 1.42))
+        for fr, shape in PLAN[s].items():
+            pts = [root - Vector((0, 0.05, 0))] + [root + Vector((px * x, py, pz)) for px, py, pz in SHAPES[shape]]
+            tb = tube(pts, 0.048, 0.007); tme = bpy.data.meshes.new('tendril'); tb.to_mesh(tme); tb.free(); tme.materials.append(tmat)
+            for p in tme.polygons:
+                p.use_smooth = True
+            ob = bpy.data.objects.new('tendril%s%d' % (s, fr), tme); scene.collection.objects.link(ob)
+            ob.parent = arm; ob.parent_type = 'BONE'; ob.parent_bone = 'spine2'; ob.matrix_parent_inverse = pinv
+            for i in range(N):
+                ob.scale = (1, 1, 1) if i == fr else (1e-4,) * 3; ob.keyframe_insert('scale', frame=i + 1)
+            tend['t%s%d' % (s, fr)] = ob
+    if MQ.OPT.get('tendrils', '1') == '0':
+        for ob in tend.values():
+            bpy.data.objects.remove(ob)
+        tend = {}
+
     dme = bpy.data.meshes.new('target'); dme.from_pydata([(0, 0, 0), (0.01, 0, 0), (0, 0.01, 0)], [], [(0, 1, 2)])
     dummy = bpy.data.objects.new('target', dme); scene.collection.objects.link(dummy)
     dummy.parent = arm; dummy.parent_type = 'BONE'; dummy.parent_bone = 'dummy'
@@ -146,7 +199,7 @@ def build():
                                leg_a=[None, 'thigh.L', 'calf.L', 'foot.L', 'toe.L', 'toe.L'],
                                leg_b=[None, 'thigh.R', 'calf.R', 'foot.R', 'toe.R', 'toe.R'], roots=['hips'], still=['dummy']), log=LOG)
     R.ground()
-    return scene, arm, body, {}, dummy, R, vcol
+    return scene, arm, body, tend, dummy, R, vcol
 
 
 N = 8
