@@ -83,7 +83,7 @@ def build():
     put(capsule((0.18 * X, 0.03, 1.45), (-0.18 * X, 0.03, 1.45), 0.105), 'spine2', 'hide')
     put(sphere((0, -0.13, 1.30), (0.15 * X, 0.07, 0.13)), 'spine2', 'pale')                # the chest's paler front: where the glass is closed over
     put(capsule((0, 0.01, 1.45), (0, -0.05, 1.60), 0.095, 0.08), 'neck', 'hide')
-    put(capsule((0, 0.11, 0.97), (0, 0.27, 0.80), 0.042, 0.016), 'hips', 'hided')
+    put(capsule((0, 0.10, 0.96), (0, 0.19, 0.72), 0.040, 0.018), 'hips', 'hided')
     # the mane: a crest of spines from the crown down the back
     for bone, p, r in (('head', (0, 0.05, 1.80), 0.050), ('head', (0, 0.11, 1.72), 0.055), ('neck', (0, 0.10, 1.58), 0.060), ('spine2', (0, 0.17, 1.47), 0.062),
                        ('spine2', (0, 0.19, 1.36), 0.058), ('spine1', (0, 0.15, 1.22), 0.050), ('spine1', (0, 0.13, 1.10), 0.040)):
@@ -95,7 +95,7 @@ def build():
     put(sphere((0, -0.355, 1.635), (0.034, 0.030, 0.028)), 'head', 'mane')
     put(capsule((0, -0.10, 1.585), (0, -0.285, 1.555), 0.045, 0.032), 'head', 'hided')
     for x in (1, -1):
-        put(sphere((0.115 * x, 0.045, 1.80), (0.050, 0.026, 0.075)), 'head', 'hided')
+        put(capsule((0.095 * x, 0.04, 1.76), (0.150 * x, 0.065, 1.895), 0.046, 0.020), 'head', 'hided')
         for y in (-0.20, -0.25, -0.30):
             put(capsule((0.040 * x, y, 1.60), (0.040 * x, y, 1.572), 0.011, 0.004), 'head', 'tooth')
     put(sphere((-0.062, -0.150, 1.715), (0.022, 0.016, 0.018)), 'head', 'eye')                 # his right eye

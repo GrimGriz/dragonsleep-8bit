@@ -22214,6 +22214,31 @@ true
 },
 "source": "drawn by the art desk (2026-10-19, ART-74: five views, six rows each), cut and snapped by tools/ratswarm-sheet.py; each frame's swarm middle on its square's middle"
 },
+"ripples_blend_p1": {
+"image": "art/ripples_blend_p1.png?v=35aeb92bf5",
+"fw": 58,
+"fh": 94,
+"ax": 29,
+"ay": 89,
+"top": 80,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 58,
+"fh": 94,
+"ax": 29,
+"ay": 89,
+"frames": 8,
+"fps": 6
+}
+},
+"name": "Mr. Ripples (Blender, first crack: idle)",
+"hold": [
+"a review row: Mr. Ripples' idle, a first crack for Griz's eye and the art desk's paint-over -- worn by nobody; no foe row exists for him",
+"his size (80 rows, the gnoll matriarch's), which socket is empty (his left), no kit, the gold eye and the ripple's look are the seat's leans, put to Griz"
+],
+"source": "built and rendered by tools/ripples-blend.py on the mannequin's bones (11-13), snapped and outlined by tools/pixelate.py; the hide, the stars and the mirror band laid by tools/ripples-sheet.py; S SE E NE N rendered, SW W NW mirrored"
+},
 "roadpatrol_p2": {
 "image": "art/roadpatrol_p2.png?v=c495b24cde",
 "fw": 48,
