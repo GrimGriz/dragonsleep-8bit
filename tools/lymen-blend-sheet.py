@@ -1,16 +1,15 @@
 """The Blender Lymen's renders (tools/lymen-blend.py) through the pipeline's own palette and outline step (tools/pixelate.py `pixelate`), laid as a
 REVIEW sheet in the game's row shape, and the comparison stills beside the art desk's drawn row. Plain Python (Pillow, numpy).
 
-    python tools/lymen-blend-sheet.py [griz]
+    python tools/lymen-blend-sheet.py
 
 Reads deep16/_src/lymen-blend/render/ (gitignored); writes
     deep16/art/lymen_blend_p2.png/.json     idle 1 and attack 6 (release 3), eight facings: S SE E NE N rendered, SW W NW their mirrors. Worn by
                                             nobody: the row gallery shows it beside the drawn checkpoint, deep16/?rows=lymen_blend_p2,lymen_check_p2&beside
     deep16/art-src/lymen-blend/
         lymen-blend-views-4x.png            the five rendered views, six beats each, at 4x on the game's navy
-        lymen-blend-vs-drawn-SE.png         like for like: the rendered SE row over the art desk's drawn SE row (lymen_check_p2), at 1x and at 4x
-        lymen-blend-griz-vs-drawn-SE.png    (`griz`, when deep16/_src/lymen-blend-griz/ is rendered) the same figure on the very poser file the
-                                            art desk drew over (his 11-13 00:12 frames), over the drawn row: fidelity frame by frame
+        lymen-blend-vs-drawn-<view>.png     like for like: each rendered view over the art desk's drawn row at that facing (lymen_check_p2, drawn over
+                                            the same guide), at 1x and at 4x
 """
 import importlib.util, json, os, sys
 import numpy as np
@@ -57,9 +56,9 @@ def drawn_row(name='lymen_check_p2', f=7):
     return im.crop((0, a['y'] + f * a['fh'], a['fw'] * a['frames'], a['y'] + (f + 1) * a['fh'])), a
 
 
-def versus(mine, M, path, label):
+def versus(mine, M, path, label, f=7):
     """the rendered SE row over the drawn SE row: at 1x, then at 4x, the feet on one line, numbered, the cut gold"""
-    dr, a = drawn_row(); n = 6
+    dr, a = drawn_row(f=f); n = 6
     cw = max(M['fw'], a['fw']); up = max(M['ay'], a['ay']); dn = max(M['fh'] - M['ay'], a['fh'] - a['ay']); ch = up + dn
 
     def row(im, fw, ax, ay):
@@ -71,7 +70,7 @@ def versus(mine, M, path, label):
     F, F2 = font(13), font(11); lab = 150; Z = 4
     W = lab + cw * n * Z; H = 26 + ch * 2 + 14 + (ch * Z + 22) * 2
     pg = Image.new('RGB', (W, H), NAVY); d = ImageDraw.Draw(pg); y = 22
-    d.text((6, 4), 'LYMEN, LONGSWORD SLASH BEHIND THE SHIELD, SE: ' + label, font=F, fill=INK)
+    d.text((6, 4), 'LYMEN, LONGSWORD SLASH BEHIND THE SHIELD, %s: the rig on main, rendered, over the art desk\'s drawn row' % label, font=F, fill=INK)
     for im, t in ((A, 'BLENDER 1x'), (B, 'DRAWN 1x')):
         pg.paste(im.convert('RGB'), (lab, y)); d.text((6, y + ch // 2), t, font=F2, fill=INK); y += ch
     y += 14
@@ -101,7 +100,7 @@ def main():
     j.update(name='Lymen (Blender, on the mannequin)',
              hold=["a review sheet: the EXPERIMENT of 11-13 -- Lymen modelled on the mannequin's own bones and rendered from the rig, to judge beside "
                    "the art desk's drawn row -- worn by nobody",
-                   'the rows are the rig\'s as it stands on main (his gist, re-posed after the art desk drew its checkpoint): the poses differ a little from the drawn row\'s'],
+                   'the rows are the rig\'s as it stands on main, the guide the art desk drew lymen_check_p2 over: the same six beats, the cut on frame 4'],
              source='built and rendered by tools/lymen-blend.py over tools/twinmace-blend.py kit=sword+shield (11-13), snapped and outlined by '
                     'tools/pixelate.py, laid by tools/lymen-blend-sheet.py; S SE E NE N rendered, SW W NW mirrored')
     json.dump(j, open(p, 'w', encoding='utf-8'), indent=1)
@@ -114,11 +113,8 @@ def main():
         pg.paste(bg.resize((s.width * Z, s.height * Z), Image.NEAREST).convert('RGB'), (lab, k * M['fh'] * Z)); d.text((6, k * M['fh'] * Z + 8), v, font=F, fill=INK)
     pg.save(os.path.join(OUT, 'lymen-blend-views-4x.png'), optimize=True)
 
-    versus(strip(C['slash']['SE']), M, os.path.join(OUT, 'lymen-blend-vs-drawn-SE.png'), 'the rig on main (his gist) over the drawn checkpoint')
-    if 'griz' in sys.argv[1:]:
-        G, gm = cells('lymen-blend-griz')
-        versus(strip(G['slash']['SE']), gm['rows']['slash'], os.path.join(OUT, 'lymen-blend-griz-vs-drawn-SE.png'),
-               'the very frames the art desk drew over (his 11-13 00:12 poser file)')
+    for v in VIEWS:          # like for like: each rendered view over the art desk's drawn row at that facing (drawn over the same guide, GUIDE-2026-11-13b)
+        versus(strip(C['slash'][v]), M, os.path.join(OUT, 'lymen-blend-vs-drawn-%s.png' % v), v, FACING[v])
 
 
 if __name__ == '__main__':

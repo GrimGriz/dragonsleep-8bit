@@ -9720,7 +9720,7 @@
 "name": "Lymen (Blender, on the mannequin)",
 "hold": [
 "a review sheet: the EXPERIMENT of 11-13 -- Lymen modelled on the mannequin's own bones and rendered from the rig, to judge beside the art desk's drawn row -- worn by nobody",
-"the rows are the rig's as it stands on main (his gist, re-posed after the art desk drew its checkpoint): the poses differ a little from the drawn row's"
+"the rows are the rig's as it stands on main, the guide the art desk drew lymen_check_p2 over: the same six beats, the cut on frame 4"
 ],
 "source": "built and rendered by tools/lymen-blend.py over tools/twinmace-blend.py kit=sword+shield (11-13), snapped and outlined by tools/pixelate.py, laid by tools/lymen-blend-sheet.py; S SE E NE N rendered, SW W NW mirrored"
 },
