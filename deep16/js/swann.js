@@ -51,9 +51,13 @@
     var out = this.cards(), b = [];
     if (this.state === 'deck') b.push({ label: 'TURN THE NEXT CARD', go: 'next', w: 124 });
     if (this.state === 'end') b.push({ label: 'DEAL SIX MORE', go: 'deal', w: 124, off: !T.order().length });
+    /* FIGHTS (2026-11-13, Griz: "I have to go to the 'fights' page on the pocket DM to download the fights (unless I can do it from sylvias and didn't realize)"; a button
+       for it here, on his "2 - yes"): the play record's own save (js/record.js REC.save: every fight this browser kept, the fresh ones marked), beside his ear file's */
+    var nf = D.rec && D.rec.count ? D.rec.count() : 0;
     b.push({ label: 'SAVE', go: 'save', w: 58 }, { label: 'LEAVE', go: 'leave', w: 58 });
     var x = RX; b.forEach(function (q) { q.x = x; q.y = BY; q.h = 16; x += q.w + 6; out.push(q); });
     out.push({ x: RX + RW - 74, y: 7, w: 74, h: 12, label: 'BOOTH ' + (T.tester() ? 'ON' : 'OFF'), go: 'switch', small: true });
+    out.push({ x: RX + RW - 74 - 6 - 84, y: 7, w: 84, h: 12, label: 'FIGHTS' + (nf ? ' (' + nf + ')' : ''), go: 'fights', small: true, off: !nf }); // (beside the booth's switch: the bottom row has no room for a fourth)
     return out;
   };
   Table.prototype.press = function (b) {
@@ -63,6 +67,7 @@
     if (b.go === 'next') { var nx = T.nextCard(this.d, -1); if (nx < 0) return; T.nav(T.cardHref((DS.EYES || {})[this.d.ids[nx]], nx)); return; }
     if (b.go === 'deal') { var d = T.deal(); this.d = d; this.state = d ? 'deck' : 'empty'; this.line = d ? T.LINES.deal : T.LINES.empty; this.setFace(d ? 'work' : 'welcoming'); this.flips = []; this.cur = -1; return; }
     if (b.go === 'save') { this.save(); return; }
+    if (b.go === 'fights') { var fn = null; try { fn = D.rec.save(); } catch (e) { fn = null; } this.saved = { t: this.t, text: fn ? '{y}FIGHTS SAVED{/} ' + fn + ' -- put it in play-records/' : '{r}no fights saved{/}: the Pocket DM\'s FIGHTS page saves the same' }; if (!fn) D.sfx('error'); return; }
     if (b.go === 'switch') { T.setTester(!T.tester()); return; }
     if (b.go === 'leave') { if (this.o.from === 'booth') { this.done = true; if (D.top() === this) D.pop(); } else T.nav(T.root + S.TOP); }
   };
