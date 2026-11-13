@@ -481,7 +481,7 @@
     multi: 1, immune: ['lightning', 'poison'], resist: ['acid', 'cold', 'fire', 'necrotic', 'thunder', 'mundane'],
     condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
     mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
-    src: "ours (11-13): the SRD 5.1 Will-o'-Wisp made over by Mr. Ripples -- Consume Magic for Consume Life (a bonus action, within 5 ft, CON DC 10 or the highest spell slot left is eaten; it regains 1d6 a slot level), the mirror eye, the ripple; drawn in code (tools/mirrorwisp-sheet.py)"
+    src: "ours (11-13): the SRD 5.1 Will-o'-Wisp made over by Mr. Ripples -- Consume Magic for Consume Life (a bonus action, within 5 ft, CON DC 10 or the highest spell slot left is eaten; it regains 1d6 a slot level), the mirror eye, the ripple; drawn in code (tools/mirrorwisp-sheet.py) -- SENSES (ours, 11-10): Stealth none, its DEX check (+9), because the SRD Will-o'-Wisp it is made from has no Stealth; passive Perception 12, because the wisp's own: 10 + WIS +2"
   },
   // the three bugs of the 8-bit's Glowseep (10-05, Griz: "Let's try code drawn"; tools/bugs-sheet.py), SRD 5.1 blocks as content/monsters.json has them
   stirge: {
@@ -502,7 +502,7 @@
     saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
     attacks: { drain: { name: 'Magic Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true, slots: true } },
     multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
-    src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on the stirge sheet as a stand-in'
+    src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on the stirge sheet as a stand-in -- SENSES (ours, 11-10): Stealth none, its DEX check (+3), because the SRD Stirge it is made from has no Stealth; passive Perception 9, because it is the stirge, made over: 10 + WIS -1'
   },
   firebeetle: {
     name: 'Fire Beetle', type: 'beast', sheet: 'firebeetle_p1', cr: '0', ac: 13, hp: 4, speed: 30, size: 1, reach: 5, blindsight: 30, glow: { bright: 10, dim: 10, color: 'fire' },
