@@ -189,6 +189,7 @@
     // the bestiary's own turn-taking (js/traits.js): the broodmother in the rock
     var handled = u.side === 'foe' && D.traits && D.traits.turn ? yield* D.traits.turn(B, u) : false;
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    if (D.aidark) yield* D.aidark.first(B, u); // (the AI's own light, 11-13: put out when it wants the dark, struck -- the action -- when the dark is one-sided against it; js/aidark.js)
     if (u.traces) yield* traces(B, u);
     else if (u.familiar && D.familiar) yield* D.familiar.turn(B, u); // a wizard's familiar: Help, and the owl flies back out (js/familiar.js)
     else if (u.script && D.scripts && D.scripts[u.script]) yield* D.scripts[u.script](B, u); // a named NPC's own turn (js/pyro.js: Pyro's measure, 09-30)
@@ -204,6 +205,7 @@
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     if (u.post && D.postures && !u.dead && u.hp > 0) yield* D.postures.after(B, u); // (a holder's handed-over turn with the action unspent: the Ready -- js/postures.js)
+    if (D.aidark && !u.dead && u.hp > 0) yield* D.aidark.after(B, u); // (a light burning on the floor beside one that wants the dark: stamped out -- js/aidark.js, 11-13)
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
     if (u.side === 'foe' && B.fight && B.fight.whistler === u.id && !u.whistled) yield* whistle(B, u); // (the Skylights: Hallvör's call, the turn she first stands on the roof)
     // (the sweep of what it laid till the end of its next turn: AI.turn's `finally`, above -- however the turn ended)
@@ -636,13 +638,14 @@
       if (!(yield* volley(B, u))) { B.card(['{g}' + u.name + ' makes for the way out.{/}']); yield 16; }
       return;
     }
-    if (G.foesNear(u, u.x, u.y, 5).length || !visibleFrom(u, u.x, u.y, hs).length) {
+    // (a shooter with eyes for the dark that a mark can see looks for a square where none of them sees it -- the SRD's unseen attacker: js/aidark.js AD.perch, 11-13)
+    if (G.foesNear(u, u.x, u.y, 5).length || !visibleFrom(u, u.x, u.y, hs).length || (D.aidark && D.aidark.wantsPerch(B, u, hs))) {
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand) return;
         var vis = visibleFrom(u, e.x, e.y, hs); if (!vis.length) return;
         var near = Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); }));
-        var s = -G.foesNear(u, e.x, e.y, 5).length * 20 - Math.abs(near - Math.min(far, 30)) / 5 - e.cost / 10;
+        var s = -G.foesNear(u, e.x, e.y, 5).length * 20 - Math.abs(near - Math.min(far, 30)) / 5 - e.cost / 10 + (D.aidark ? D.aidark.perch(B, u, e.x, e.y, vis) : 0);
         if (s > ps) { ps = s; pick = e; }
       });
       if (pick && (pick.x !== u.x || pick.y !== u.y)) { yield* walkTo(B, u, pick); if (u.dead || u.hp <= 0) return; }

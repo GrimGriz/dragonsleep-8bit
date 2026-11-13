@@ -208,7 +208,7 @@
       shortsword: { name: 'Shortsword', atk: 6, dice: '1d6', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } },
       crossbow: { name: 'Light Crossbow', atk: 6, dice: '1d8', mod: 3, type: 'piercing', range: [80, 320], ranged: true, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } }
     },
-    multi: ['shortsword', 'shortsword'], sneak: '4d6', assassinate: true, resist: ['poison'], evasion: true,
+    multi: ['shortsword', 'shortsword'], sneak: '4d6', assassinate: true, worksDark: true, /* (worksDark: an ambusher walks in with no light and strikes none -- js/aidark.js, 11-13) */ resist: ['poison'], evasion: true,
     src: 'content/monsters.json assassin (the SRD 5.1 Assassin as the sect\'s blade, CR 8): two shortsword cuts with CON 15 poison, Sneak Attack 4d6, Assassinate (a critical on a creature caught unaware); the Light Crossbow +6 1d8+3 80/320 with the same CON 15 7d6 poison (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); Evasion is DATA ONLY (evasion: true, SRD 5.1)', todo: 'Evasion is not read: RU.evasion (js/rules.js) answers only a rogue or monk of level 7, and battle.js makeFoe does not carry d.evasion'
   },
   // the stone giant's camp (deep.js S.giant): the giant and three duergar
@@ -414,7 +414,7 @@
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { bar: { name: 'Pry-bar', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: ['bar', 'bar'], packTactics: true, src: 'content/monsters.json crewman (the SRD 5.1 Thug); Pack Tactics (SRD 5.1 Thug, 10-02 runner); the Thug\'s heavy crossbow not given: the crew carry pry-bars'
+    multi: ['bar', 'bar'], packTactics: true, lightKit: 'lantern', src: 'content/monsters.json crewman (the SRD 5.1 Thug); Pack Tactics (SRD 5.1 Thug, 10-02 runner); the Thug\'s heavy crossbow not given: the crew carry pry-bars'
   },
   // holding the stair at the siphon (deep.js S.holdStair): the night crews come down the daytime way
   crewboss: {
@@ -422,7 +422,7 @@
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, packTactics: true, src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet; Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
+    multi: 1, packTactics: true, lightKit: 'lantern', src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet; Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
   },
   thug: {
     name: 'Thug', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
@@ -588,7 +588,7 @@
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { knife: { name: 'Knife', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5 } },
-    multi: 1, src: 'content/monsters.json robber (the SRD 5.1 Bandit with a knife)'
+    multi: 1, lightKit: 'lantern', /* (the night crew's light is a hooded lantern, SRD 5.1 -- js/aidark.js, 11-13) */ src: 'content/monsters.json robber (the SRD 5.1 Bandit with a knife)'
   },
   // ------------------------------------------------------------------ batch five (09-27): the snared lad, the grick den, the bulette, the cloaker, the wagon yard
   wolfspider: {

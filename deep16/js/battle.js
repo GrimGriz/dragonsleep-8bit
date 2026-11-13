@@ -163,6 +163,9 @@
       this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = D.light.isLantern(torchKind) ? D.light.make(torchKind, !!F.roost) : { lit: true }; D.light.regrip(u); torchHeld = true; } });
       if (!torchHeld && D.light.isLantern(torchKind)) { var lp = this.inv.filter(function (s) { return s.id === torchKind; })[0]; if (lp) lp.n++; else this.inv.push({ id: torchKind, n: 1 }); this.lampReturned = torchKind; }
     }
+    // the sides the AI runs walk in lit where they need it (11-13, Griz 09-29: "the various participants should already be holding torch, lantern, or someone glowing with
+    // Light as logical" -- js/aidark.js AD.prelight: the foes, and a band of ours the AI runs; never the player's own four)
+    if (D.aidark) D.aidark.prelight(this);
     // strung webs a fight starts with (Web Gulch, the nest): difficult ground for all but the web-walkers, and a hazard (RULED 09-30,
     // Griz: "for purposes of Pocket GM Horizon goal best to use the hazard people will expect"): entering them the first time in a
     // turn, or starting a turn in them, DEX or restrained; an action's STR check tears free -- the SRD Web spell's shape (magic.js
@@ -2561,6 +2564,9 @@
     if (att.torch && att.weapon && atk && !atk.spell && (atk === att.weapon || atk.name === att.weapon.name) && (att.weapon.props || []).indexOf('two-handed') >= 0) {
       var ltW = D.light.word(att.torch), twoW = att.weapon.name; D.light.dropTorch(this, att, true); // (twoW: named before the drop -- its regrip (light.js L.regrip) puts the sheet's own weapon back in u.weapon, and the line named Gennet's Dagger as she raised the crossbow: 11-06, his record)
       this.card(['{y}' + nameOf(att) + '{/} lets the ' + ltW + ' fall to take the ' + twoW + ' in both hands.  {g}(it burns where it fell){/}'], 220);
+    } else if (att.torch && D.aidark && D.aidark.twoHands(att, atk)) { // (a sheet foe the same: its crossbow, its bow, its greataxe -- js/aidark.js, 11-13)
+      var ltF = D.light.word(att.torch); D.light.dropTorch(this, att, true);
+      this.card(['{y}' + nameOf(att) + '{/} lets the ' + ltF + ' fall to take the ' + String(atk.name).toLowerCase() + ' in both hands.  {g}(it burns where it fell){/}'], 220);
     }
     // Sanctuary (SRD 5.1): "any creature who targets the warded creature with an attack ... must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the
     // attack" -- the save, then a new target (an AI picks the weakest other foe it can reach; a player's pick is asked) or the attack is lost (10-03; before, a failed save only lost it)

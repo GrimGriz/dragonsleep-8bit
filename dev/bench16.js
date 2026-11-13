@@ -16,6 +16,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   if (get('toy', '') !== '') D.TOY = get('toy') === '1'; // (his toying forced on or off -- js/traits.js toying)
   if (get('laugh', '') !== '') D.LAUGH = get('laugh') === '1'; // (the mirror hyenas' laugh at a fall, on or off -- js/traits.js packLaugh)
   D.PACE = +get('pace', 1); // (10-01: the pace is for people watching -- the AI's waits and message times, battle.js Battle.prototype.pace; this drives the coroutine and never waits, so it is unaffected either way: pace=1.5 in the query proves it; 1 by default)
+  if (get('aidark', '') === '0') D.AIDARK = false; // (the AI's light and dark off: the fights as they were before 11-13 -- deep16/js/aidark.js)
   var L = +get('lvl', 5), n = +get('n', 10), seed0 = +get('seed', 1), foes = get('foes', 'fighter').split(','), vs = get('vs', ''), wantLog = get('log', '');
   var errs = [], stats = { won: 0, lost: 0, other: 0, rounds: 0, dealt: {}, taken: {}, casts: {}, down: {}, fights: [] };
   var M = D.magic, B0 = D.Battle.prototype, hurt0 = B0.hurt, cast0 = M.cast;
@@ -267,6 +268,139 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     rep2.errors = rep2.errors.concat(errs);
     var pre2 = document.createElement('pre'); pre2.id = 'out'; pre2.textContent = 'BENCH16 ' + JSON.stringify(rep2);
     document.body.appendChild(pre2);
+    return;
+  }
+  // the AI lights up (mode=ailights1113; 11-13, the AI and the dark 2.1-2.5). census=1: every fight entered, who on it cannot see in the dark
+  if (get('mode', '') === 'ailights1113' && get('census', '')) {
+    var repC = { checks: [], errors: [], rows: [] };
+    D.FIGHTS.forEach(function (F) {
+      try {
+        var Bc = new D.Battle({ ladder: true, fight: F.id, bench: true }); D.battle = Bc; Bc.enter();
+        if (!Bc.dark) return;
+        var blindOf = function (side) { return Bc.units.filter(function (u) { return u.side === side && !u.object && !u.bystander && !(u.darkvision || u.blindsight || u.truesight || u.blind); }).map(function (u) { return (u.kind || u.id) + (u.torch ? '*T' : '') + (u.conds && u.conds.light ? '*L' : ''); }); };
+        var all = Bc.units.filter(function (u) { return u.side === 'foe' && !u.object; }).length;
+        repC.rows.push(F.id + (F.story ? ' [story]' : '') + ' map=' + (Bc.map.def.name || F.map) + ' lights=' + (Bc.lights || []).length + (F.roost ? ' ROOST' : '') + ' foes ' + all + ' blind-in-dark: ' + (blindOf('foe').join(',') || '-') + ' | party: ' + (blindOf('party').join(',') || '-'));
+      } catch (eC) { repC.errors.push(F.id + ': ' + String(eC).slice(0, 120)); }
+    });
+    var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);
+    document.body.appendChild(preC);
+    return;
+  }
+  // the AI lights up (mode=ailights1113; 11-13, the ai-lights seat: the AI and the dark 2.1-2.5 -- deep16/js/aidark.js). Section 1 the pre-lit sides, 2 a light struck and
+  // weighed, 3 going dark, 4 hands and the lantern. Every check reads D.aidark, so on a tree without the file each is a FAIL
+  if (get('mode', '') === 'ailights1113') {
+    var repA = { checks: [], errors: [] }, AD = D.aidark, LtA = D.light, GA = D.grid;
+    var okA = function (what, v) { repA.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    var runA = function (g) { var v, k = 0; while (g && k++ < 4000) { var st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+    // a dark class floor: foes and a band, everyone the AI's
+    var mkA = function (foes, party, o) { D.seed = 77; var Bx = new D.Battle(Object.assign({ bench: true, npc: { foes: foes, party: party }, fightDef: Object.assign(D.classFight(5, { dark: true }), (o && o.fight) || {}) }, (o && o.battle) || {})); D.battle = Bx; Bx.enter(); return Bx; };
+    var foesA = function (Bx) { return Bx.units.filter(function (u) { return u.side === 'foe'; }); }, oursA = function (Bx) { return Bx.units.filter(function (u) { return u.side === 'party' && !u.familiar; }); };
+    var heldA = function (us) { return us.filter(function (u) { return u.torch && u.torch.lit; }); };
+    var floorA = function (Bx) { return (Bx.lights || []).filter(function (l) { return l.kind === 'torch' || l.kind === 'lantern'; }); };
+    var putA = function (Bx, u, x, y) { u.x = x; u.y = y; GA.setup(Bx.map, Bx.units); if (Bx.lightMap) Bx.lightMap = null; Bx.cache = null; };
+    var turnA = function (Bx, u) { Bx.round = Math.max(1, Bx.round); Bx.active = u; runA(D.ai.turn(Bx, u)); Bx.active = null; };
+    var HUM = ['fighter:5:human', 'rogue:5:human'], DWF = ['fighter:5:dwarf', 'cleric:5:dwarf'];
+    try {
+      if (!AD) throw new Error('D.aidark is not loaded');
+      // ---- 1. pre-lit
+      var B1 = mkA(['bandit', 'bandit'], HUM), f1 = foesA(B1), h1 = heldA(f1);
+      okA('1a two bandits on dark ground walk in with one torch in a hand: ' + JSON.stringify(B1.prelit.foe) + ', held ' + h1.length, !!B1.prelit.foe && B1.prelit.foe.how === 'torch' && h1.length === 1 && LtA.kindOf(h1[0].torch) === 'torch');
+      var other1 = f1.filter(function (u) { return !u.torch; })[0];
+      okA('1a the holder spent his kit, the other keeps his: ' + (h1[0] && h1[0].lightKit) + ' / ' + (other1 && other1.lightKit), !!h1[0] && !h1[0].lightKit && !!other1 && other1.lightKit === 'torch');
+      okA('1a the torch lights its holder: ' + (h1[0] ? LtA.name(LtA.levelOf(B1, h1[0])) : '?'), !!h1[0] && LtA.levelOf(B1, h1[0]) === 2);
+      var B1b = mkA(['hobgoblin', 'goblin'], HUM);
+      okA('1b a side that all sees in the dark walks in dark: ' + JSON.stringify(B1b.prelit.foe || null) + ', held ' + heldA(foesA(B1b)).length + ', floor ' + floorA(B1b).length, !B1b.prelit.foe && !heldA(foesA(B1b)).length && !floorA(B1b).length);
+      var B1c = mkA(['wolf', 'wolf'], HUM);
+      okA('1c wolves (no eyes for the dark, no hands) carry nothing: ' + JSON.stringify(B1c.prelit.foe || null), !B1c.prelit.foe && !heldA(foesA(B1c)).length && !floorA(B1c).length);
+      var B1d = mkA(['dominion', 'dominion'], HUM), fl1d = floorA(B1d);
+      okA('1d sword and shield, every hand full: a torch burning on the floor at the front man: ' + JSON.stringify(B1d.prelit.foe) + ', floor ' + fl1d.length + ', held ' + heldA(foesA(B1d)).length, !!B1d.prelit.foe && B1d.prelit.foe.how === 'floor' && fl1d.length === 1 && !heldA(foesA(B1d)).length);
+      var B1e = mkA(['assassin'], HUM);
+      okA('1e the sect\'s blade works dark: no light, no kit: ' + JSON.stringify(B1e.prelit.foe || null) + ' kit ' + foesA(B1e)[0].lightKit, !B1e.prelit.foe && !heldA(foesA(B1e)).length && !foesA(B1e)[0].lightKit);
+      var B1f = mkA(['cleric:5:human', 'fighter:5:human'], HUM), lit1f = foesA(B1f).filter(function (u) { return u.conds.light; });
+      okA('1f one of them knows Light: it glows on the front man, no hand spent: ' + JSON.stringify(B1f.prelit.foe) + ', glowing ' + lit1f.length + ', held ' + heldA(foesA(B1f)).length, !!B1f.prelit.foe && B1f.prelit.foe.how === 'light' && lit1f.length === 1 && !heldA(foesA(B1f)).length);
+      var B1g = mkA(['goblin'], ['cleric:5:human', 'fighter:5:human']);
+      okA('1g a band the AI runs, a cleric in it: Light on its front man: ' + JSON.stringify(B1g.prelit.party || null), !!B1g.prelit.party && B1g.prelit.party.how === 'light' && oursA(B1g).filter(function (u) { return u.conds.light; }).length === 1);
+      var B1h = mkA(['goblin'], HUM, { battle: { pack: [{ id: 'torch', n: 2 }] } }), pk1h = (B1h.inv.filter(function (s) { return s.id === 'torch'; })[0] || {}).n;
+      okA('1h a band with torches in its pack and no Light: one in a hand, out of the pack: ' + JSON.stringify(B1h.prelit.party || null) + ', pack ' + pk1h, !!B1h.prelit.party && B1h.prelit.party.how === 'torch' && heldA(oursA(B1h)).length === 1 && pk1h === 1);
+      var B1i = mkA(['goblin'], HUM, { battle: { pack: [{ id: 'torch', n: 2 }, { id: 'lantern', n: 1 }] } }), h1i = heldA(oursA(B1i))[0];
+      okA('1i a lantern in the pack before a torch, hood up: ' + JSON.stringify(h1i && h1i.torch), !!h1i && LtA.kindOf(h1i.torch) === 'lantern' && !h1i.torch.hood);
+      var B1j = mkA(['goblin'], DWF, { battle: { pack: [{ id: 'torch', n: 2 }] } });
+      okA('1j a band of dwarves lights nothing: ' + JSON.stringify(B1j.prelit.party || null), !B1j.prelit.party && !heldA(oursA(B1j)).length && !oursA(B1j).some(function (u) { return u.conds.light; }));
+      var B1k = mkA(['bandit', 'robber'], HUM, { fight: { roost: true } }), h1k = heldA(foesA(B1k))[0];
+      okA('1k under a roost: no torch; the night crew\'s lantern, hood down: ' + JSON.stringify(B1k.prelit.foe || null) + ' ' + JSON.stringify(h1k && h1k.torch), !!h1k && h1k.kind === 'robber' && LtA.kindOf(h1k.torch) === 'lantern' && h1k.torch.hood === true && heldA(foesA(B1k)).length === 1);
+      var B1l = mkA(['robber'], HUM), h1l = heldA(foesA(B1l))[0];
+      okA('1l off the roost the lantern walks in hood up, bright 30: ' + JSON.stringify(h1l && h1l.torch), !!h1l && LtA.kindOf(h1l.torch) === 'lantern' && !h1l.torch.hood && LtA.carried(h1l)[0].bright === 30);
+      var Bp = new D.Battle({ ladder: true, fight: 'trolls', bench: true }); D.battle = Bp; Bp.enter();
+      okA('1m the player\'s own four are the player\'s: nothing lit for them (' + Bp.fight.name + ', dark ' + Bp.dark + '): ' + JSON.stringify(Bp.prelit.party || null), Bp.dark && !Bp.prelit.party && !heldA(oursA(Bp)).length && !oursA(Bp).some(function (u) { return u.conds.light; }));
+      D.AIDARK = false; var B1n = mkA(['bandit', 'bandit'], HUM); D.AIDARK = undefined;
+      okA('1n D.AIDARK = false: the fights as they were: ' + JSON.stringify(B1n.prelit) + ', held ' + heldA(foesA(B1n)).length, !B1n.prelit.foe && !heldA(foesA(B1n)).length);
+      var Bl = mkA(['bandit', 'bandit'], HUM, { fight: { dark: false } });
+      okA('1o a lit floor: nobody lights anything: dark ' + Bl.dark + ', held ' + heldA(foesA(Bl)).length, !Bl.dark && !heldA(foesA(Bl)).length);
+      // ---- 2. a light struck, and what it is worth
+      var B2 = mkA(['bandit'], DWF), b2 = foesA(B2)[0], d2 = oursA(B2)[0];
+      delete b2.torch; b2.lightKit = 'torch'; B2.prelit = {}; putA(B2, b2, 6, 6); oursA(B2).forEach(function (u, i) { putA(B2, u, 6 + i, 10); });
+      var see2 = D.magic.sees(B2, b2, d2), seen2 = D.magic.sees(B2, d2, b2);
+      okA('2a the dark one-sided: the bandit sees the dwarf ' + see2 + ', the dwarf sees him ' + seen2, !see2 && seen2);
+      var n2 = (B2.logEntries || []).length; turnA(B2, b2);
+      var log2 = (B2.logEntries || []).slice(n2).map(function (e) { return e.text; }).join(' | ');
+      okA('2a the bandit strikes a light with his action: torch ' + JSON.stringify(b2.torch) + ', kit ' + b2.lightKit + ', the action ' + b2.turn.action, !!(b2.torch && b2.torch.lit) && !b2.lightKit && !b2.turn.action);
+      okA('2a and now he sees the dwarf: ' + D.magic.sees(B2, b2, d2) + '  [' + log2.slice(0, 160) + ']', D.magic.sees(B2, b2, d2) || GA.dist(b2, d2) > 40);
+      var B2b = mkA(['bandit'], HUM), b2b = foesA(B2b)[0]; delete b2b.torch; b2b.lightKit = 'torch'; putA(B2b, b2b, 6, 6); oursA(B2b).forEach(function (u, i) { putA(B2b, u, 6 + i, 10); });
+      turnA(B2b, b2b);
+      okA('2b both sides blind (the two cancel, SRD): no light struck, the kit kept: torch ' + JSON.stringify(b2b.torch || null) + ', kit ' + b2b.lightKit, !b2b.torch && b2b.lightKit === 'torch');
+      var B2c = mkA(['hobgoblin'], ['cleric:5:human', 'fighter:5:human']), c2 = oursA(B2c).filter(function (u) { return u.cls === 'cleric'; })[0], g2 = oursA(B2c).filter(function (u) { return u.cls === 'fighter'; })[0], hb2 = foesA(B2c)[0];
+      oursA(B2c).forEach(function (u) { delete u.conds.light; }); B2c.prelit = {}; putA(B2c, hb2, 6, 5); putA(B2c, c2, 6, 10); putA(B2c, g2, 7, 10);
+      D.rules.startTurn(c2); B2c.round = 1; B2c.active = c2;
+      var pl2 = D.tactics.plans(B2c, c2), li2 = pl2.filter(function (p) { return p.kind === 'spell' && /light/i.test(p.id || p.why || ''); })[0];
+      okA('2c the class AI weighs the Light cantrip in a one-sided dark: ' + (li2 ? li2.why + ' ' + li2.score.toFixed(1) : 'no plan') + '  (top: ' + (pl2[0] ? pl2[0].why + ' ' + pl2[0].score.toFixed(1) : '-') + ')', !!li2 && li2.score > 0.5);
+      okA('2c what a light is worth here: ' + AD.worth(B2c, c2, g2, 40).toFixed(1) + '; with the hobgoblin already lit, nothing', AD.worth(B2c, c2, g2, 40) > 0);
+      D.AIDARK = false; var pl2x = D.tactics.plans(B2c, c2).filter(function (p) { return p.kind === 'spell' && /light/i.test(p.id || p.why || ''); })[0]; D.AIDARK = undefined;
+      okA('2c the switch off: no such plan: ' + (pl2x ? pl2x.why : 'none'), !pl2x);
+      turnA(B2c, c2);
+      okA('2c his turn: someone of his side glows: ' + oursA(B2c).filter(function (u) { return u.conds.light; }).map(function (u) { return u.name; }).join(','), oursA(B2c).some(function (u) { return u.conds.light; }));
+      var B2d = mkA(['hobgoblin'], HUM, { battle: { pack: [{ id: 'torch', n: 1 }] } }), r2d = oursA(B2d).filter(function (u) { return u.cls === 'rogue'; })[0], f2d = oursA(B2d).filter(function (u) { return u.cls === 'fighter'; })[0];
+      oursA(B2d).forEach(function (u) { if (u.torch) { delete u.torch; } }); B2d.inv = [{ id: 'torch', n: 1 }]; B2d.prelit = {}; putA(B2d, foesA(B2d)[0], 6, 5); putA(B2d, r2d, 6, 10); putA(B2d, f2d, 7, 10);
+      var who2d = [r2d, f2d].filter(function (u) { return AD.hand(u); })[0];
+      if (who2d) { D.rules.startTurn(who2d); B2d.active = who2d; var tp2 = D.tactics.plans(B2d, who2d).filter(function (p) { return p.kind === 'item' && p.id === 'torch' && /strikes a light/.test(p.why); })[0];
+        okA('2d a torch in the pack and a hand for it (' + who2d.name + '): the plan "' + (tp2 ? tp2.why + '" ' + tp2.score.toFixed(1) : 'none'), !!tp2 && tp2.score > 0.5);
+        if (tp2) { runA(tp2.go()); okA('2d taken: the torch in hand ' + JSON.stringify(who2d.torch) + ', the pack ' + LtA.inPack(B2d, 'torch') + ', the action ' + who2d.turn.action, !!(who2d.torch && who2d.torch.lit) && LtA.inPack(B2d, 'torch') === 0 && !who2d.turn.action); }
+      } else okA('2d one of the band has a hand for a torch', false);
+      // ---- 3. going dark
+      var B3 = mkA(['hobgoblin'], HUM), hb3 = foesA(B3)[0]; putA(B3, hb3, 6, 6); oursA(B3).forEach(function (u, i) { putA(B3, u, 12 + i, 12); });
+      B3.lights = (B3.lights || []).concat([{ id: 'torchX', kind: 'torch', x: 7, y: 6, bright: 20, dim: 20, color: 'gold', flame: true, by: oursA(B3)[0].id }]); B3.lightMap = null;
+      okA('3a wantsDark: a hobgoblin against humans ' + AD.wantsDark(B3, hb3) + '; a human against it ' + AD.wantsDark(B3, oursA(B3)[0]), AD.wantsDark(B3, hb3) && !AD.wantsDark(B3, oursA(B3)[0]));
+      D.rules.startTurn(hb3); runA(AD.after(B3, hb3));
+      okA('3a a torch burning on the floor beside it: stamped out (the free hand): floor ' + floorA(B3).length + ', freeObj ' + hb3.turn.freeObj, !floorA(B3).length && hb3.turn.freeObj === true);
+      var B3b = mkA(['bandit'], HUM), bd3 = foesA(B3b)[0]; B3b.lights = (B3b.lights || []).concat([{ id: 'torchY', kind: 'torch', x: bd3.x + 1, y: bd3.y, bright: 20, dim: 20, color: 'gold', flame: true }]);
+      D.rules.startTurn(bd3); runA(AD.after(B3b, bd3));
+      okA('3b a bandit, who needs it, leaves a torch burning: floor ' + floorA(B3b).length, floorA(B3b).length === 1);
+      var B3c = mkA(['goblin'], HUM), gb3 = foesA(B3c)[0]; gb3.torch = { lit: true }; gb3.lightKit = null; B3c.lightMap = null;
+      turnA(B3c, gb3);
+      okA('3c a goblin with a torch in its hand against humans puts it out: ' + JSON.stringify(gb3.torch || null) + ', kit ' + gb3.lightKit, !gb3.torch && gb3.lightKit === 'torch');
+      var B3d = mkA(['goblin'], HUM), gb4 = foesA(B3d)[0], hu4 = oursA(B3d)[0]; putA(B3d, gb4, 6, 4); oursA(B3d).forEach(function (u, i) { delete u.torch; delete u.conds.light; putA(B3d, u, 6 + i, 12); }); B3d.lights = []; B3d.lightMap = null;
+      var un4 = AD.unseenAt(B3d, gb4, 6, 4, [hu4]), p4 = AD.perch(B3d, gb4, 6, 4, [hu4]);
+      B3d.lights = [{ id: 'torchZ', kind: 'torch', x: 6, y: 5, bright: 20, dim: 20, color: 'gold', flame: true }]; B3d.lightMap = null;
+      var lit4 = AD.unseenAt(B3d, gb4, 6, 4, [hu4]), p4b = AD.perch(B3d, gb4, 6, 4, [hu4]);
+      okA('3d a shooter\'s perch: in the dark unseen ' + un4 + ' (worth ' + p4 + '); beside a torch unseen ' + lit4 + ' (worth ' + p4b + ')', un4 && p4 > 0 && !lit4 && p4b === 0);
+      okA('3d it looks for one when a mark sees it: lit ' + AD.wantsPerch(B3d, gb4, [hu4]), AD.wantsPerch(B3d, gb4, [hu4]) === true);
+      // ---- 4. hands, and the lantern
+      var B4 = mkA(['dominion', 'hask', 'bandit', 'thug'], HUM, { fight: { dark: false } }), k4 = function (k) { return foesA(B4).filter(function (u) { return u.kind === k; })[0]; };
+      okA('4a a hand for a light: the soldier\'s shield ' + AD.hand(k4('dominion')) + ', Hask\'s bar and knife ' + AD.hand(k4('hask')) + ', a bandit ' + AD.hand(k4('bandit')), !AD.hand(k4('dominion')) && !AD.hand(k4('hask')) && AD.hand(k4('bandit')));
+      var bt4 = k4('bandit'); bt4.torch = { lit: true };
+      okA('4a and none with one in it already: ' + AD.hand(bt4), !AD.hand(bt4));
+      var th4 = k4('thug'), tg4 = oursA(B4)[0]; th4.torch = { lit: true }; putA(B4, th4, 6, 4); putA(B4, tg4, 6, 12);
+      okA('4b two hands: the thug\'s heavy crossbow ' + AD.twoHands(th4, th4.attacks.crossbow) + ', his mace ' + AD.twoHands(th4, th4.attacks.mace), AD.twoHands(th4, th4.attacks.crossbow) && !AD.twoHands(th4, th4.attacks.mace));
+      D.rules.startTurn(th4); B4.active = th4; runA(B4.attack(th4, tg4, th4.attacks.crossbow)); B4.active = null;
+      var fl4 = floorA(B4).filter(function (l) { return l.x === th4.x && l.y === th4.y; });
+      okA('4b the crossbow raised: the torch let fall, burning at his feet: hand ' + JSON.stringify(th4.torch || null) + ', floor ' + fl4.length, !th4.torch && fl4.length === 1);
+      var bm4 = k4('bandit'); bm4.torch = { lit: true }; putA(B4, bm4, 10, 4); var tg5 = oursA(B4)[1]; putA(B4, tg5, 10, 5);
+      D.rules.startTurn(bm4); B4.active = bm4; runA(B4.attack(bm4, tg5, bm4.attacks.scimitar)); B4.active = null;
+      okA('4c a scimitar in one hand: the torch stays in the other: ' + JSON.stringify(bm4.torch || null), !!(bm4.torch && bm4.torch.lit));
+    } catch (eA) { repA.errors.push(String(eA && eA.stack || eA).slice(0, 900)); }
+    D.AIDARK = undefined;
+    if (D.lastError) repA.errors.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
+    var preA = document.createElement('pre'); preA.id = 'out'; preA.textContent = 'BENCH16 ' + JSON.stringify(repA);
+    document.body.appendChild(preA);
     return;
   }
   // the hooded lantern (mode=lantern; 09-29): walked in on a dark fight, hood down and up, set down, taken up, doused and relit from the
