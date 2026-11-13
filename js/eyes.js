@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE INN SEAT OF 11-13, THIRD: the walkthrough bench's findings, INVESTIGATE's wait, the Bucket List egg, the insights on portraits -- level 3 doors
+    'eyes-lantern-one-gennet-1113j': { pri: 2, group: G2, title: 'THE DUE\'S NIGHT, THE LANTERN from the big room\'s window: one Gennet on the way down (level 3) (11-13)', pt: 'the inn lane, 2026-11-13 (the inn seat of 11-13, third; the walkthrough bench\'s finding 4; deep16/js/secondact.js the T.people wrap above D.roam.arrive)',
+      url: 'deep16/?innshow&beat=rite&fresh=1113u',
+      look: 'The walkthrough bench found two Gennets here: pick THE LANTERN at the fork, and as the party comes down the stair the house is laid open with its evening people, the fireside Gennet among them, while the scene\'s Gennet is out on the path with the lantern. Now the common room has no Gennet in it while she walks the path. Benched by the walkthrough (walk1113, nobody twice at every floor laid). NOT WATCHED by me. The other three findings (a SAVE upstairs loading on the yard, by morning and mid-night, and the night after that load) have no door: a staged show keeps no save. They are yours on a real save: SAVE in a room upstairs, LOAD, and you stand where you saved.' },
     // THE INN SEAT OF 11-13, fourth round: the rest of his 0404Z notes and his 0515Z asks, on level 3 doors
     'eyes-wagon-noflash-1113g': { pri: 1, group: G2, title: 'THE WAGON NIGHT from upstairs: no flash to the stair\'s foot as the yard opens (level 3) (11-13)', pt: 'the inn lane, 2026-11-13 (the inn seat of 11-13, fourth round; your 0404Z note on eyes-watch-down-1113; deep16/js/inn.js In.blackHold, In.wagonNight)',
       url: 'deep16/?innshow&beat=wagon&fresh=1113t',

@@ -324,6 +324,17 @@
     if (A.wiped(B)) return;
     yield* A.dueMorning(B, 'none');
   };
+  // ONE GENNET WHILE THE LANTERN WALKS (11-13, the walkthrough bench's finding 4: "Two Gennets on THE LANTERN's way down" -- In.comeDown lays the house as its inside with its
+  // evening people, the fireside Gennet among them, while the scene's Gennet is on the path with the lantern): however the floor is laid while the scene's own Gennet
+  // (A.cast's `gennetPath`) stands on it, the floor's Gennet is not stood; she is laid again by the first lay after the scene's is gone
+  (function () {
+    var T = D.town, peopleA0 = T && T.people; if (!peopleA0) return;
+    T.people = function (B) {
+      var r = peopleA0.apply(this, arguments), def = D.roam && D.roam.def;
+      if (def && def.key === In.KEY && B && B.units && B.units.some(function (u) { return u.scripted === 'gennetPath' && u.hp > 0 && !u.dead; }) && B.units.some(function (u) { return u.npc === 'gennet'; })) { B.units = B.units.filter(function (u) { return u.npc !== 'gennet'; }); G.setup(B.map, B.units); B.cache = null; } // (not In.gone: she has not left, she is the one on the path)
+      return r;
+    };
+  })();
   var arriveA0 = D.roam.arrive;
   D.roam.arrive = function* (B) {
     var ev = yield* arriveA0.apply(this, arguments), def = D.roam.def, R0 = B.roam, t = R0 && R0.token;
@@ -510,7 +521,7 @@
     var P = In.duePlay, R0 = B.roam, f = R0.flags, st = D.counter.state(B); if (P.stay) R0.stay = P.stay;
     In.passTo(B, A.DUE_HOUR);
     if (!In.read(st, 'Perception', A.DUE_WAKE)) { P.stage = 'lake'; P.asleep = true; yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'up'; } // (slept through: the walk, on the yard's floor)
-    f.warmup = 2; P.woke = true; A.trail('the due night: woken in the big room by the singing');
+    f.warmup = 2; P.woke = true; delete P.resumed; In.carrySync(B); A.trail('the due night: woken in the big room by the singing'); // (the wake into the save at once, 11-13: the walkthrough bench found the carry saying `woke: false` -- it was set after the floor's last sync)
     A.sing(A.WINDOW.vol.boards, true); // (up through the boards)
     yield* In.card(B, [A.LINES.roomWoke], 360);
     yield* In.card(B, [A.LINES.roomWindow], 300);
@@ -1034,6 +1045,7 @@
     var def = D.roam.def; if (def && def.key === In.KEY && B.roam && B.roam.flags && B.roam.flags.secondAct) yield* A.resume(B);
     var dp = In.duePlay; // (the due's night played from the big room: A.dueRoom upstairs, A.dueLake on the house's floor -- at the window, or down the stair on their own feet)
     if (dp && def && B.roam && def.key === In.UP && dp.stage === 'room' && !dp.woke) { if ((yield* A.dueRoom(B)) === 'up') return; }
+    else if (dp && def && B.roam && def.key === In.UP && dp.stage === 'room' && dp.resumed) { delete dp.resumed; if (dp.stay) B.roam.stay = dp.stay; A.sing(A.WINDOW.vol.boards, true); yield* In.card(B, [A.LINES.roomWindow], 300); } // (a game LOADED in the big room, woken and mid-night, 11-13: the singing up through the boards again and the word of the window; the night goes on from the room)
     else if (dp && def && B.roam && def.key === In.KEY) { if ((yield* A.dueLake(B)) === 'up') return; }
     yield* script0.apply(this, arguments);
   };

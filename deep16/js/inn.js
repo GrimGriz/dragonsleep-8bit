@@ -356,8 +356,20 @@
   var atOf0 = D.house && D.house.atOf;
   if (atOf0) D.house.atOf = function (B) {
     var def = D.roam.def, t = B && B.roam && B.roam.token, b = def && t && def.key === In.KEY ? In.inHouse(t.x, t.y) : null, st = def && def.key === In.UP ? In.STEP.front : b ? In.STEP[b === 'barn' ? 'barn' : 'front'] : null;
+    // (UPSTAIRS, 11-13, the walkthrough bench's findings 1 and 2 -- "A SAVE upstairs loads on the yard", "The same mid-night": the guest floor's own square rides the save
+    // beside the front step, `up`, and the load lays the guest floor on it -- H.toTown below. A save written before this has no `up` and loads on the step as it did)
+    if (st && def.key === In.UP) return { town: In.SITE, gate: 'west', sq: [st[0], st[1]], dir: st[2], up: { sq: [t.x, t.y], dir: D.roam.DIR8[B.roam.fw[0] + ',' + B.roam.fw[1]] || null } };
     if (st) return { town: In.SITE, gate: 'west', sq: [st[0], st[1]], dir: st[2] };
     return atOf0.apply(this, arguments);
+  };
+  var toTown0 = D.house && D.house.toTown;
+  if (toTown0) D.house.toTown = function (id, gate) {
+    var Hh = D.house, at0 = Hh.cur && Hh.cur.at, up = id === In.SITE && at0 && at0.town === In.SITE && at0.up && at0.up.sq ? at0.up : null;
+    if (!up) return toTown0.apply(this, arguments);
+    Hh.trail('town', id + ', upstairs where it saved (' + up.sq.join(',') + ')');
+    W.inDoor = { site: Hh.siteOf(id), gate: gate };
+    Hh.cur.at = { town: id, gate: gate, sq: null, dir: null };
+    D.push(D.roam.make('?roam=' + In.UP + '&at=' + up.sq[0] + ',' + up.sq[1], { save: Hh.living(Hh.cur), opts: { at8: up.sq.slice(), dir: up.dir || null }, house: true }));
   };
 
   // ---------------------------------------------------------------- THE MEAL: supper at the long table (its words and its turns are below, THE SUPPER AS RULED, 11-11)
@@ -2027,7 +2039,7 @@
     };
     // THE CHILD WALKS BESIDE THE PARTY, a figure of her own, never into the token (RULED 11-11 night, Griz: "let's not have the kid join the party token, constant reminder
     // they're on an escort mission now"): she walks to a square by the token and from then on takes the square the token just left (In.follow; D.roam.step below)
-    var join = function* () { if (!Y.child) return; var t = R0.token, q = In.beside(B, Y.child, t); yield* In.walk(B, Y.child, q, [t.x - q[0], t.y - q[1]]); Y.child.follower = true; Y.child.name = f.glamourBroken ? 'The child' : 'The goblin'; R0.follower = Y.child; BY.exits.push({ id: 'barnKid', x: q[0], y: q[1], how: 'follows' }); Y.child = null; }; // (her name on her plate once she has said it: the close, below)
+    var join = function* () { if (!Y.child) return; var t = R0.token, q = In.beside(B, Y.child, t); yield* In.walk(B, Y.child, q, [t.x - q[0], t.y - q[1]]); Y.child.follower = true; Y.child.noArea = true; Y.child.name = f.glamourBroken ? 'The child' : 'The goblin'; R0.follower = Y.child; BY.exits.push({ id: 'barnKid', x: q[0], y: q[1], how: 'follows' }); Y.child = null; }; // (her name on her plate once she has said it: the close, below)
     var dest = function () { return Y.S && Y.S.seen ? HOUSE : BARN; };
     // THE WALK COMES UP WITH ITS WORDS (11-12, the inn seat; Griz at Sylvia's table, 11-11 2329Z: "have the walks animate when the message comes up (i.e. doran back to the
     // woodpile)"; and on the seen-through end, "narrative says she's carried, animation is walks in first"; on Doran away, "barley 'steps between' narratively but does
@@ -2305,7 +2317,7 @@
   };
   In.carryBack = function (B) {
     var f = B && B.roam && B.roam.flags, c = f && f.nightCarry; if (!c || In.duePlay || In.watching) return false;
-    if (c.due) In.duePlay = JSON.parse(JSON.stringify(c.due)); else if (c.watch) In.watching = JSON.parse(JSON.stringify(c.watch)); else return false;
+    if (c.due) { In.duePlay = JSON.parse(JSON.stringify(c.due)); In.duePlay.resumed = true; /* (taken up from a save: the big room's script starts the singing again -- js/secondact.js) */ } else if (c.watch) In.watching = JSON.parse(JSON.stringify(c.watch)); else return false;
     if (D.house && D.house.trail) D.house.trail('check', 'a played night taken up again from the save: ' + (c.due ? 'the due, ' + c.due.stage : 'the watch, ' + c.watch.stage));
     return true;
   };
