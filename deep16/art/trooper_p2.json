@@ -1,0 +1,81 @@
+{
+ "image": "art/trooper_p2.png",
+ "fw": 46,
+ "fh": 80,
+ "ax": 23,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 46,
+   "fh": 80,
+   "ax": 23,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 44,
+   "fh": 80,
+   "ax": 22,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 50,
+   "fh": 80,
+   "ax": 25,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "throw": {
+   "y": 1920,
+   "fw": 48,
+   "fh": 80,
+   "ax": 24,
+   "ay": 74,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2560,
+   "fw": 42,
+   "fh": 80,
+   "ax": 21,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3200,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3840,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Trooper",
+ "hold": [
+  "throw: some wrist loops pass behind the arm or belt, and the release hand overlaps the small axe in projection (the art desk's own note)",
+  "attack: the mannequin's guard holds the axe higher than the low combat Idle -- the Idle to Attack and Attack to Idle joins (the art desk's own note); passing steps close in the rear walks"
+ ],
+ "source": "drawn by the art desk (ART-142-TROOPER-COMBAT, 11-12: art-wanted section 55 block 2, the garrison trooper with battleaxe and shield in five views, the Attack and Throw over the mannequin's guides), cut by tools/trooper-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

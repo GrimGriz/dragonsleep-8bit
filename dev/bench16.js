@@ -12342,6 +12342,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okGA('5 the drill-sergeant beside him: ' + j5(d5b) + ' (want Longsword+Longsword+Shortsword: the SRD Veteran with his shortsword drawn)', j5(d5b) === 'Longsword+Longsword+Shortsword');
       okGA('5 the trooper: ' + j5(d5c) + '; the crossbow trooper: ' + j5(d5d) + '; the gate watch: ' + j5(d5e) + ' (want Battleaxe, Battleaxe, Spear)', j5(d5c) === 'Battleaxe' && j5(d5d) === 'Battleaxe' && j5(d5e) === 'Spear');
     } catch (eGA5) { repGA.errors.push('5: ' + String(eGA5 && eGA5.stack || eGA5).slice(0, 400)); }
+    // 5b. THE DRAWN KIT (11-13, the garrison cutter: the art desk's ART-142, art-wanted section 55): the trooper and the file leader on the battleaxe sheet, the handaxe
+    // thrown on its `throw` row (the axe let go on frame 4), the gate watch on his spear
+    try {
+      var SH = D.SHEETS || {}, an5 = function (s, r) { return SH[s] && SH[s].anims && SH[s].anims[r]; }, th5 = an5('trooper_p2', 'throw');
+      okGA('5b the sheets: trooper ' + F.trooper.sheet + ', file leader ' + F.fileleader.sheet + ', gate watch ' + F.gatewatch.sheet + '; trooper_p2 throw ' + (th5 ? th5.frames + ' frames, release ' + th5.release : 'MISSING') + ', the handaxes name ' + F.trooper.attacks.handaxe.row + '/' + F.fileleader.attacks.handaxe.row + ' (want trooper_p2, trooper_p2, gatewatch_p2; 6 frames, release 3; throw/throw)',
+        F.trooper.sheet === 'trooper_p2' && F.fileleader.sheet === 'trooper_p2' && F.gatewatch.sheet === 'gatewatch_p2' && !!th5 && th5.frames === 6 && th5.release === 3 && F.trooper.attacks.handaxe.row === 'throw' && F.fileleader.attacks.handaxe.row === 'throw');
+    } catch (eGA5b) { repGA.errors.push('5b: ' + String(eGA5b && eGA5b.stack || eGA5b).slice(0, 400)); }
     // 6. THE HUMANOIDS SHELF: every row on it, priced 100 sp a CR, the two of one name told apart (pocketdm.js drawShop's label: a kind's LAST blow)
     try {
       var PDg = D.pocketdm, shG = PDg.SHOPS.filter(function (s) { return s.id === 'humanoids'; })[0], lsG = PDg.shelf(shG, 'cheap'), ksG = Object.keys(WANT);

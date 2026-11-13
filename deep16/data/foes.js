@@ -499,8 +499,8 @@
   // a shield +2, the battleaxe 1d8 versatile, the handaxe 1d6 thrown 20/60, the heavy crossbow 1d10 100/400 loading, leather AC 11 + Dex, the shortsword 1d6, the longbow 1d8 150/600),
   // the dwarf off srd/01-races.md (speed 25, darkvision 60, Dwarven Resilience: advantage on saves against poison -- `resilient`, RU.vsPoison -- and resistance to its damage; Dwarven
   // Combat Training: the battleaxe and the handaxe). A CR the SRD gives is the SRD's; a row it does not give takes its CR beside the SRD's own blocks (the DMG's table is not in the SRD),
-  // each named in its src. Until the art desk's ART-142 comes back (art-wanted section 55: `trooper_p2`, `trooperxbow_p2`, `trooper_p1`) the troopers fight on the gate watch's figure,
-  // the spear in his hands while the row swings an axe -- known. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
+  // each named in its src. Since 11-13 the art desk's ART-142 (art-wanted section 55): the Trooper and the File Leader fight on `trooper_p2` (battleaxe and shield, the
+  // handaxe's `throw` row; tools/trooper-fight-sheet.py), the town's troopers walk on `trooper_p1`; till then they fought on the gate watch's spear. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
   // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own
   gatewatch: {
     name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
@@ -513,12 +513,12 @@
   // +3 1d8+1; two handaxes to throw, +3 1d6+1 20/60, two and then none (battle.js spendThrow). CR 1/4, set beside the SRD's blocks: the Guard (1/8) is this body at AC 16 and 1d6+1; the
   // Hobgoblin (1/2) is the same 11 HP and +3, AC 18 chain mail and shield, the longsword 1d8+1 -- and Martial Advantage's 2d6 besides, which the trooper has not; between them, 1/4
   trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/4', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, cr: '1/4', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
       battleaxe: { name: 'Battleaxe', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
-      handaxe: { name: 'Thrown Handaxe', atk: 3, dice: '1d6', mod: 1, type: 'slashing', range: [20, 60], ranged: true, count: 2 } // (two; thrown, gone -- battle.js spendThrow)
+      handaxe: { name: 'Thrown Handaxe', atk: 3, dice: '1d6', mod: 1, type: 'slashing', range: [20, 60], ranged: true, count: 2, row: 'throw' } // (two; thrown, gone -- battle.js spendThrow; trooper_p2's `throw` row, the axe let go on frame 4, 11-13)
     },
     multi: 1, resist: ['poison'], resilient: true,
     src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +3 1d8+1, two handaxes thrown +3 1d6+1 20/60 (srd/04-equipment.md); CR 1/4 beside the Guard and the Hobgoblin; content/npcs.json drill1-4 (the Troopers)'
@@ -543,15 +543,15 @@
   // shield AC 18 -- STR 15 carries chain mail's Str 13 -- the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60), the dwarf. CR 1, beside the SRD's: the Thug (1/2) is these HP and two
   // blows at AC 11; the Knight (3) is AC 18 with 52 HP and two 2d6+3 blows; the Bugbear (1) is AC 16, 27 HP, one 2d8+2 blow -- the file leader stands with the Bugbear
   fileleader: {
-    name: 'File Leader', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1', ac: 18, metalArmor: 'chain mail', shield: true, hp: 32, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'File Leader', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, cr: '1', ac: 18, metalArmor: 'chain mail', shield: true, hp: 32, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: {
       battleaxe: { name: 'Battleaxe', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 },
-      handaxe: { name: 'Thrown Handaxe', atk: 4, dice: '1d6', mod: 2, type: 'slashing', range: [20, 60], ranged: true, count: 2 }
+      handaxe: { name: 'Thrown Handaxe', atk: 4, dice: '1d6', mod: 2, type: 'slashing', range: [20, 60], ranged: true, count: 2, row: 'throw' }
     },
     multi: ['battleaxe', 'battleaxe'], resist: ['poison'], resilient: true,
-    src: 'SRD 5.1 Thug (CR 1/2) for the body (32 HP, two melee attacks at +4; no Pack Tactics) as a dwarf in the trooper\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60; CR 1 beside the Thug, the Bugbear and the Knight; on the garrison trooper\'s old helmed sheet (trooper_p0)'
+    src: 'SRD 5.1 Thug (CR 1/2) for the body (32 HP, two melee attacks at +4; no Pack Tactics) as a dwarf in the trooper\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60; CR 1 beside the Thug, the Bugbear and the Knight; on the trooper\'s battleaxe sheet (trooper_p2, 11-13) till a look of his own'
   },
   // THE DRILL-SERGEANT: the SRD 5.1 Veteran as he is (srd/20-npcs.md: AC 17 splint, 58 HP, Multiattack two longswords "If it has a shortsword drawn, it can also make a shortsword
   // attack", the longsword +5 1d8+3, the shortsword +5 1d6+3, the heavy crossbow +3 1d10+1 100/400) -- till 11-12 he carried the longswords alone; the garrison seat gave him the
