@@ -57,6 +57,13 @@ longbow and a short-sword stab (with shield if applicable)"): the SRD Scout as a
                 forearm, so the thrust rises from the hip.
 What they add to the figure: a hand can be ROLLED about its aim (blender_pose's `handsup`: an axe's edge and a crossbow's bow must face
 somewhere; a bar and a ball did not care), and a held thing can be there on some frames and gone on others (its size keyed).
+
+LYMEN'S SLASH (11-13, Griz to the lanes desk: "default lymen is shield and longsword, can we get a mannequin with a shield working the slash ?"):
+    ... -- poser kit=sword+shield         the ONE-HANDED SLASH above, its frames as they are, with Lymen's round shield on the LEFT forearm
+                        (deep16/_src/slashshield/, tools/poser.html?fig=slashshield; the human build, sized to barley_p3). The shield is
+                        the one his fight sheet carries (deep16/art/lymen_p0.png: round, rimmed and bossed, shoulder to hip -- LYSHIELD_R),
+                        bigger than the garrison's. Only the left arm differs from kit=sword: it holds the shield between him and the
+                        target on every frame (SHIELDARM), and the cut goes over its rim and down outside it.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -81,6 +88,9 @@ KIT = MQ.OPT.get('kit', 'maces')          # maces: a mace a fist, the twin strik
 ROW = 'twinmace' if KIT == 'maces' else 'slash'
 if KIT == 'sword':
     WORK = os.path.join(ROOT, 'deep16', '_src', 'slash1h'); LOG = '[slash1h]'
+SWSH = KIT == 'sword+shield'              # Lymen's (11-13): the same slash, a round shield on the left forearm
+if SWSH:
+    WORK = os.path.join(ROOT, 'deep16', '_src', 'slashshield'); LOG = '[slashshield]'
 GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab')}     # the garrison's kits (11-12): the folder and the row
 if KIT in GARR:
     WORK = os.path.join(ROOT, 'deep16', '_src', GARR[KIT][0]); ROW = GARR[KIT][1]; LOG = '[%s]' % GARR[KIT][0]
@@ -141,10 +151,15 @@ for s, x in (('L', 1), ('R', -1)):
 # the garrison's round shield (11-12): a domed disc strapped on the outside of the LEFT forearm (it faces the way the forearm's back does: across
 # his front when the forearm lies across him), or slung flat on his back for the crossbow. A piece of the body, on its bone.
 SHIELD_R = 0.215
+LYSHIELD_R = 0.30        # Lymen's: 0.60 m across (about 24 in), a third of his height, as on lymen_p0
 if KIT in ('axe+shield', 'handaxe'):
     _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
     PIECES += [('egg', 'fore.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),
                ('egg', 'fore.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
+elif SWSH:                     # Lymen's round shield (11-13): the same disc, bigger -- his sheet's covers him from the shoulder to the hip
+    _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
+    PIECES += [('egg', 'fore.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.028, LYSHIELD_R, LYSHIELD_R))),
+               ('egg', 'fore.L', 'boss', ((_c.x + 0.112, _c.y, _c.z), (0.034, 0.075, 0.075)))]
 elif KIT == 'crossbow':
     _c = pm((0, 0.0, 1.27))
     PIECES += [('egg', 'spine2', 'shield', ((0, _c[1] + 0.185, _c[2]), (SHIELD_R, 0.026, SHIELD_R))),
@@ -398,21 +413,29 @@ def rows_slash(R):
     L1, L2 = R.BN['arm.L'].length / U, R.BN['fore.L'].length / U
     rad = math.radians
 
-    def arm(sg, up, fo, az, out):
+    def arm(sg, up, fo, az, out, faz=None):
         fw = (math.sin(rad(az)), -math.cos(rad(az)))
         u = (fw[0] * math.cos(rad(up)), fw[1] * math.cos(rad(up)), math.sin(rad(up)))
+        if faz is not None:            # (the shield arm, 11-13: the forearm lies across him, pointing its own way on the floor)
+            fw = (math.sin(rad(faz)), -math.cos(rad(faz)))
         f = (fw[0] * math.cos(rad(fo)), fw[1] * math.cos(rad(fo)), math.sin(rad(fo)))
         w = tuple((u[k] * L1 + f[k] * L2) * U for k in range(3)); w = (w[0] + sg * out * U, w[1], w[2])
-        pole = (sg * 0.22 + u[0], u[1], u[2]) if abs(fo - up) > 40 else (sg * 0.30, 0.3, -1.0)
+        pole = (sg * 0.22 + u[0], u[1], u[2]) if (abs(fo - up) > 40 or faz is not None) else (sg * 0.30, 0.3, -1.0)
         return w, pole
 
     def P(lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, heel=0, sh=0, R_=(-62, 18, 0), L_=(-70, -25, 8), at=None):
-        wr, pr = arm(-1, R_[0], R_[1], R_[2], 0.02); wl, pl = arm(1, L_[0], L_[1], L_[2], 0.03)
+        if SWSH:                       # (Lymen's: this frame's left arm is the shield arm's, whatever the free hand did)
+            L_ = SHIELDARM[len(SEEN)]; SEEN.append(1)
+        wr, pr = arm(-1, R_[0], R_[1], R_[2], 0.02); wl, pl = arm(1, L_[0], L_[1], L_[2], 0.03, *L_[3:])
         return dict(lift=lift * U * HK, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupb=sh,
                     legs={'a': (0.13 * XK * U, -0.12 * U, za, 10, 0), 'b': (-0.13 * XK * U, 0.10 * U, zb, 28, heel)},
                     arms={'a': wl, 'b': wr}, epolea=pl, epoleb=pr, _at=at)
 
     IN3 = 0.076                                                       # (three inches)
+    # the shield arm, a frame (11-13): (up, fo, az, faz) -- the elbow down at his left side, the forearm level across his front, the shield's
+    # face to the target. It holds its place: the numbers move only to undo what the hips' turn would do to it. The seventh is the idle's.
+    GUARD = (-80, 4, 10, -72)          # (the upper arm nearly straight down: the shield stands near upright, its top a little back toward his shoulder)
+    SHIELDARM = [GUARD, (-74, 6, 6, -66), (-78, 5, 8, -70), GUARD, (-76, 6, 0, -82), GUARD, GUARD]; SEEN = []
     SL = [
         P(-0.04, lean=3),                                                                                            # 1 POSITION ONE: the blade up in front, as the maces are held
         P(-0.04, shift=0.01, yaw=-32, twist=-14, hyaw=30, sh=10, R_=(22, 128, -18), L_=(-12, 2, -4)),                 # 2 the hips turned, his LEFT side forward and the left arm out ahead; the right hand to the ear

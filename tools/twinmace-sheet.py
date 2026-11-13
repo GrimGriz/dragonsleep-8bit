@@ -4,6 +4,7 @@ Plain Python (Pillow).
     python tools/twinmace-sheet.py            the human striker (with the target, and alone)
     python tools/twinmace-sheet.py dwarf      the dwarf-proportioned striker, no target (deep16/_src/twinmace-dwarf/ -> twinmace-dwarf-*.png)
     python tools/twinmace-sheet.py sword [dwarf]   the one-handed slash (deep16/_src/slash1h[-dwarf]/ -> deep16/art-src/slash1h/slash1h-*.png)
+    python tools/twinmace-sheet.py swordshield                  Lymen's longsword slash behind a round shield (deep16/art-src/slashshield/), the human build
     python tools/twinmace-sheet.py longbow|stab dwarf           the road patrol's two (deep16/art-src/longbow/, stab/), laid the same way
     python tools/twinmace-sheet.py axe|handaxe|crossbow dwarf   the garrison's three (11-12: deep16/_src/<axeshield|handaxe|crossbow>-dwarf/ ->
                                               deep16/art-src/<name>/<name>-dwarf-<view>.png the striker alone, <name>-dwarf-target-<view>.png with
@@ -27,6 +28,7 @@ MOVE = 'ONE-HANDED SLASH' if SWORD else 'TWIN STRIKE, TWO MACES'
 HIT = 'THE CUT' if SWORD else 'HIT'
 GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT'), 'handaxe': ('handaxe', 'throw', 'HANDAXE THROW', 'RELEASE'),
         'crossbow': ('crossbow', 'shoot', 'HEAVY CROSSBOW SHOT', 'LOOSE'),           # the garrison's three (11-12)
+        'swordshield': ('slashshield', 'slash', 'LONGSWORD SLASH, ROUND SHIELD', 'THE CUT'),      # Lymen's (11-13), the human build: slashshield-<view>.png with the target, slashshield-alone-<view>.png
         'longbow': ('longbow', 'shoot', 'LONGBOW SHOT', 'LOOSE'), 'stab': ('stab', 'stab', 'SHORTSWORD STAB', 'THE STAB')}      # the road patrol's two
 for _k in GARR:
     if _k in sys.argv[1:]:
@@ -85,6 +87,8 @@ def main():
         b = strip('render', meta['rows'][ROW], f, n, rel, 4, 'MANNEQUIN - %s - %s - the striker alone' % (MOVE, NAMES[f]))
         b.convert('RGB').save(os.path.join(OUT, NAME + '-alone-%s.png' % f), optimize=True)
         small.append(strip('model', meta['model'][ROW], f, n, rel, 2, NAMES[f]))
+        if NAME == 'slashshield':      # (11-13: a page of the striker alone as well -- what goes to the art desk carries no target)
+            withT.append(strip('render', meta['rows'][ROW], f, n, rel, 2, NAMES[f]))
     W = max(s.width for s in small); H = sum(s.height for s in small)
     pg = Image.new('RGB', (W, H), NAVY); y = 0
     for s in small:
@@ -94,7 +98,7 @@ def main():
         W = max(s.width for s in withT); pg = Image.new('RGB', (W, sum(s.height for s in withT)), NAVY); y = 0
         for s in withT:
             pg.paste(s.convert('RGB'), ((W - s.width) // 2, y)); y += s.height
-        pg.save(os.path.join(OUT, NAME + '-dwarf-target-all.png'), optimize=True)
+        pg.save(os.path.join(OUT, NAME + ('-dwarf-target-all.png' if DWARF else '-alone-all.png')), optimize=True)
     print('twinmace-sheet: %s -- twinmace-{%s}.png, twinmace-alone-*.png, twinmace-all.png' % (OUT, ','.join(meta['facings'])))
 
 
