@@ -9311,6 +9311,54 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // THE ROAD FROM THE HALFWAY INN TO TARLYN'S PIT, 11-13 (mode=world1113; the world map seat "world-leads" -- his ear file of 11-13 0327Z on eyes-child-in-tow-1112: "road to
   // the world puts me on a hex west of half-way inni - clicking travel to tarlyn's pit still goes the the long way around the lake, is the road not less travel? do you have
   // to enter the pit hex from a certain side (took me 3 tries)"): the inn's road edge out onto THE WORLD; the way to the Pit as THE WORLD counts it; the Pit's hex by every side
+  // THE TRAVEL RECORD (mode=travel1113; 11-13, the small-ready seat, the world map lane's "the travel record, his word" -- "i don't suppose we record world map travel"): a walk
+  // on THE WORLD is a `walk` line of the house's trail (js/world.js W.travel) -- a click's pixel, zoom, hex and plan as it begins; where it stopped, the hours and why as it ends;
+  // steps by the arrows one line, counted; a walk an encounter breaks closed before the fight's own line; the line in his NOTES file. RED on the old world.js: no line at all
+  if (get('mode', '') === 'travel1113') {
+    var repTv = { checks: [], errors: [] }, memTv = {}, stGTv = D.store.get, stSTv = D.store.set, WTv = D.world, onStepTv = WTv.onStep;
+    function okTv(what, v) { repTv.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memTv[k] ? JSON.parse(memTv[k]) : null; }; D.store.set = function (k, v) { memTv[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; WTv.onStep = null;
+    try {
+      D.seed = 1113; D.house.worldDoor('?world&fresh&noenc'); var scV = D.top(), SV2 = WTv.state(), HV = D.house, mV = D.input.mouse;
+      var walksV = function () { return (HV.cur.trail || []).filter(function (e) { return e.k === 'walk'; }); };
+      var driveV = function () { for (var k = 0; k < 20000; k++) { if (D.top() !== scV) return 'pushed'; if (scV.cards.length) { var cd = scV.cards.shift(); if (cd.keys) cd.keys[0][1](); else if (cd.then) cd.then(); continue; } if (!scV.walk) { scV.update(); return 'stopped'; } scV.update(); } };
+      SV2.today = 0; SV2.todayHex = 0; SV2.pushing = true; scV.cards = []; scV.update();
+      // 1. a click: the pixel of a hex two or three off, found by the scene's own pick
+      var at0 = SV2.at.slice(), pxV = null, t0V = SV2.t;
+      for (var yV = 40; yV < D.H - 30 && !pxV; yV += 3) for (var xV = 20; xV < D.W - 20 && !pxV; xV += 3) { var hV = scV.pick(xV, yV), plV = hV && !scV.pickPlace(xV, yV) ? WTv.planTo(WTv.hc ? WTv.hc(hV[0], hV[1]) : null) : null; if (plV && plV.hexes.length >= 2 && plV.hexes.length <= 3) pxV = [xV, yV, hV, plV.hexes.length]; }
+      okTv('a hex two or three off under a pixel of the screen (' + (pxV ? pxV.slice(0, 2) + ' picks ' + pxV[2] + ', ' + pxV[3] + ' hexes' : 'none') + ')', !!pxV);
+      if (pxV) {
+        mV.x = pxV[0]; mV.y = pxV[1]; mV.inside = true; mV.click = true; scV.hovK = null; scV.update(); mV.click = false; mV.inside = false;
+        okTv('the click sets the walk (' + (scV.walk ? scV.walk.path.length + ' hexes' : 'none') + ')', !!scV.walk);
+        scV.update(); var w1 = walksV(), l1 = w1[w1.length - 1];
+        okTv('as it begins, a `walk` line: the pixel, the zoom, the hex picked, where from, the hexes planned ("' + (l1 && l1.s) + '")', w1.length === 1 && l1.s.indexOf('click ' + pxV[0] + ',' + pxV[1] + ' at zoom ' + (scV.zi + 1) + '/') === 0 && l1.s.indexOf('picked ' + pxV[2][0] + ',' + pxV[2][1]) > 0 && l1.s.indexOf('from ' + at0[0] + ',' + at0[1]) > 0 && /\d hexes planned$/.test(l1.s) && l1.t === t0V && !!l1.at);
+        var r1 = driveV(), w1b = walksV(), l1b = w1b[w1b.length - 1];
+        okTv('as it ends, the same line says where, the hours and why (' + r1 + ': "' + l1b.s.slice(l1b.s.indexOf(' -- ')) + '")', w1b.length === 1 && l1b === l1 && l1b.s.indexOf(' -- stopped at ' + SV2.at[0] + ',' + SV2.at[1] + ' on the ') > 0 && / after [\d.]+ h, /.test(l1b.s) && /: (the walk done|a card up)$/.test(l1b.s) && SV2.at.join() !== at0.join());
+      }
+      // 2. the arrows: three steps, one line
+      var nV = walksV().length, atA = SV2.at.slice(), stepsV = 0, DIRV = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]];
+      for (var kA = 0; kA < 3; kA++) { var nxV = DIRV.map(function (d) { return [SV2.at[0] + d[0], SV2.at[1] + d[1]]; }).filter(function (h) { return WTv.stepHours(SV2.at, h); })[0]; if (!nxV) break; scV.walk = { path: [nxV], f: 0 }; scV.plan = null; driveV(); stepsV++; }
+      var wA = walksV(), lA = wA[wA.length - 1];
+      okTv('three steps by the arrows are one line, counted ("' + (lA && lA.s) + '")', stepsV === 3 && wA.length === nV + 1 && lA.s.indexOf('by the arrows from ' + atA[0] + ',' + atA[1] + ' -- 3 hexes to ' + SV2.at[0] + ',' + SV2.at[1]) === 0);
+      // 3. an encounter breaks a walk: its line is closed before the fight's
+      var nxE = DIRV.map(function (d) { return [SV2.at[0] + d[0], SV2.at[1] + d[1]]; }).filter(function (h) { return WTv.stepHours(SV2.at, h); })[0], nE = walksV().length;
+      SV2.today = 0; SV2.todayHex = 0; SV2.pushing = true; // (the day's march new: no card of its own before the step)
+      HV.trail('talk', 'a word between'); WTv.onStep = function () { return true; }; scV.walk = { path: [nxE], f: 0 }; scV.plan = null; scV.update();
+      for (var kE = 0; kE < 400 && scV.walk; kE++) scV.update();
+      var trE = HV.cur.trail, lE = trE[trE.length - 1]; WTv.onStep = null; scV.arrivePend = null;
+      okTv('a walk an encounter breaks is closed at once, before the fight could write its own line ("' + lE.s + '")', walksV().length === nE + 1 && lE.k === 'walk' && /: an encounter on the way$/.test(lE.s));
+      // 4. the NOTES file carries the trail
+      var nfV = HV.notesFile ? HV.notesFile('bench') : null, inV = nfV && JSON.stringify(nfV).indexOf('by the arrows from') > 0;
+      okTv('his NOTES file carries the walks (js/house.js H.notesFile: the trail)', !!inV);
+      okTv('the trail keeps its ' + HV.TRAIL + ' lines at most (' + trE.length + ')', trE.length <= HV.TRAIL);
+      okTv('nothing logged an error' + (D.lastError ? ' (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')' : ''), !D.lastError);
+    } catch (eTv) { repTv.errors.push(String(eTv && eTv.stack || eTv).slice(0, 900)); }
+    WTv.onStep = onStepTv; D.store.get = stGTv; D.store.set = stSTv;
+    var preTv = document.createElement('pre'); preTv.id = 'out'; preTv.textContent = 'BENCH16 ' + JSON.stringify(repTv);
+    document.body.appendChild(preTv);
+    return;
+  }
   if (get('mode', '') === 'world1113') {
     var repT = { checks: [], errors: [], notes: [] }, memT = {}, stGT = D.store.get, stST = D.store.set, WT = D.world, InT = D.inn, onStepT = WT.onStep;
     function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

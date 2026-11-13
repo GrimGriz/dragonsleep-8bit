@@ -392,8 +392,29 @@
     for (var i = 0; i < 6; i++) { y = (my - cam.H / 2 + h / 5280 * cam.z * cam.E) / (cam.z * TILT) + cam.cy; var a = at(x, y); h = hexTopH(a[0], a[1]); }
     return at(x, y);
   };
+  // THE TRAVEL RECORD (11-13, the small-ready seat; his word on the inn's road row: "i don't suppose we record world map travel, i clicked on the halfway inn hex at a zoom
+  // too far out and it took me to two hexes west of the inn"): each walk on THE WORLD is one line of the house's trail (js/house.js H.trail, kind `walk`: kept in the save and
+  // written into his NOTES file with the game's clock and the wall's) -- as it begins, the click that set it (the pixel, the zoom, the hex and the place picked, the hexes
+  // planned) or the arrows; as it ends, where the party stands, the hours it took and what stopped it. Steps by the arrows one after another are one line, counted, so a
+  // walk by hand never pushes the fights and the talks off the trail. Seen once a frame from update, and where a fight breaks a walk (arrive), so the fight's line comes after
+  W.travel = function (sc, why) {
+    var H = D.house; if (!W.house() || !H.trail || !S) return;
+    var hx = function (a) { return a[0] + ',' + a[1]; }, tr = H.cur.trail || [], tw = sc.tw;
+    if (sc.walk && !tw) {
+      var c = sc.clicked; sc.clicked = null; var arrows = !c && sc.walk.path.length === 1 && !sc.walk.goal, ta = sc.twArrows;
+      if (arrows && ta && tr[tr.length - 1] === ta.e) { sc.tw = ta; return; } // (the next step by the arrows: the same line)
+      var base = c ? 'click ' + c.x + ',' + c.y + ' at zoom ' + (c.zi + 1) + '/' + c.zn + ' on the ' + (M.near ? 'area' : 'world') + ' map: picked ' + hx(c.hex) + (c.place ? ' (' + c.place + ')' : '') + ', from ' + hx(S.at) + ', ' + sc.walk.path.length + ' hexes planned'
+        : arrows ? 'by the arrows from ' + hx(S.at) : 'the walk taken up again from ' + hx(S.at);
+      H.trail('walk', base); tr = H.cur.trail; sc.tw = { e: tr[tr.length - 1], base: base, t0: S.t, n: 0, arrows: arrows }; sc.twArrows = arrows ? sc.tw : null;
+    } else if (!sc.walk && tw) {
+      var ss = (M.siteAt[K(S.at[0], S.at[1])] || []).map(function (s) { return s.name; }), hrs = Math.round((S.t - tw.t0) * 10) / 10; tw.n++;
+      tw.e.s = tw.base + ' -- ' + (tw.arrows ? tw.n + ' hex' + (tw.n > 1 ? 'es' : '') + ' to ' : 'stopped at ') + hx(S.at) + ' on the ' + (M.near ? 'area' : 'world') + ' map' + (ss.length ? ' (' + ss.join(', ') + ')' : '') + ' after ' + hrs + ' h, ' + W.timeOfDay() +
+        ': ' + (why || (sc.cards.length ? 'a card up' : tw.arrows ? 'stepped' : 'the walk done'));
+      sc.tw = null;
+    }
+  };
   World.prototype.update = function () {
-    this.t++; if (this.msg) this.msg.t++;
+    this.t++; if (this.msg) this.msg.t++; W.travel(this);
     if (this.pm) { this.pm.update(D.ui.menuKeys()); if (this.pm && this.pm.closed) this.pm = null; return; } // (the one menu over the world: the party's, or a level's picks -- js/house.js)
     var m = I.mouse;
     if (this.cards.length) { // (a card waits for its key)
@@ -440,7 +461,7 @@
     // where the mouse points: the hex, and the way there
     var pp = m.inside ? this.pickPlace(m.x, m.y) : null, hv = pp ? pp.hex.slice() : m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) + (pp ? '|' + pp.id : '') : null; // (a place's mark or name: that place -- pickPlace)
     if (hk !== this.hovK) { this.hovK = hk; this.hov = hv; this.plan = hv ? W.planTo(pp ? [pp.x, pp.y] : hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
-    if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.plan = null; D.sfx('confirm'); return; }
+    if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.clicked = { x: Math.round(m.x), y: Math.round(m.y), zi: this.zi, zn: ZS.length, hex: hv.slice(), place: pp ? pp.id : null }; this.plan = null; D.sfx('confirm'); return; } // (clicked: the travel record's -- W.travel)
     if (I.pressed('a')) this.here();
     if (I.pressed('end') && W.house()) { this.campCard(); return; }
     if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say(W.campSaid(ups)); }
@@ -506,7 +527,7 @@
     // from a certain side (took me 3 tries)"): no side -- every step onto the Pit's hex played the child's scene -- but a fight on the step in ate the arrival, the door's card
     // and the hooks on it (js/inn.js's WP.arrive, In.childPit, wants THE WORLD on top) with it, till E. Now the arrival waits under the fight and is finished once THE WORLD
     // is on top again with no card up (World.prototype.update): a door's card, a road's, and the hooks -- its own words not said again over the fight's
-    if (W.onStep && W.onStep(this, st)) { this.walk = null; this.arrivePend = { at: S.at.slice(), map: M.key, st: st }; return; }
+    if (W.onStep && W.onStep(this, st)) { this.walk = null; W.travel(this, "an encounter on the way"); this.arrivePend = { at: S.at.slice(), map: M.key, st: st }; return; }
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
     if (door && (!w || !w.path.length)) { this.walk = null; this.offerDoor(door); return; } // (a door where the walk ends; walked past, it is named -- the area's places sit on its roads: the Glowseep on the mile)
     if (sites && sites.length) this.say(sites.map(function (s) { return s.name; }).join(', ') + '.');
