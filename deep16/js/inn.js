@@ -67,6 +67,8 @@
   // entire coast (including where the deep currently breaks that pattern)"): the floor is four columns wider to the east (54 x 40); every lake square within four of the
   // land -- the sand, the reeds, the point's rocks -- is knee-shallow (W), and the deep (Y) is everything past that: from x 48 along the coast, from x 50 off the point,
   // rounded where the point meets the shore. The chuul comes up at the deep's edge and wades the four to the stone (js/secondact.js A.DEEP)
+  // (11-13, his note on eyes-lake-water-1112k: "can we knee-deep the 44 and 45 squares around the rock" -- the point's rocks in columns 44 and 45 are knee-shallow now, the
+  // flat stone (44,18-19) standing in them; the four and the deep by the same rule as before, so off the stone the shallows are x 45-48 and the deep from 49)
   In.ROWS = [
     ',,,"""""""""t""""""""""""""""""""""""""""""nWWWWYYYYYY', ',,,".............."""""""""""""""""""""""""nWWWWYYYYYY',
     ',,,................""""""""""""""""""""""""eWWWWYYYYYY', ',,,..AAAAAAAAAA....""""""""""""""""""""""""eWWWWYYYYYY',
@@ -74,13 +76,13 @@
     ',,,..AaoooooooD...."""""""""""""""""""t""""eWWWWYYYYYY', ',,,..Aoo|oo|ooA....""""""""""""""""""""""""eWWWWYYYYYY',
     ',,,..Awo|wo|woA....""""""""""""""""""""""""eWWWWYYYYYY', ',,,..AAAAAAAAAA....""""""t"""""""""""""""""eWWWWYYYYYY',
     ',,,................"""""""""""""""t""""""""nWWWWYYYYYY', ',,,................""""""""""""""""""""""""nWWWWYYYYYY',
-    ',,,..||||.........."""""""""""""""""""""t""nWWWWYYYYYY', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWWWWYYYYY',
-    ',,,................BoooooooocooHHHHcB""""""nWWWWWYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWWWWWYYYY',
-    ',,,................BooooooooooooKKooB"""""rrrrWWWWYYYY', ',,,s.............l.BooooooooCCjoooooB"""""rrrrWWWWYYYY',
-    ',,,................DooooobohCChoooooD,,,,,rrirWWWWYYYY', ',,,................BooooobohCChoooooB"""""rrirWWWWYYYY',
-    ',,,................BoomKmoooCCjoooooB"""""rrrrWWWWYYYY', ',,,................BooooooooooooooToB"""""rrrrWWWWYYYY',
-    ',,,................BoKKKKoooooooooooB""""""nWpWWWWYYYY', ',,,................BuSSSSSooooooooocB""""""nWWWWWYYYYY',
-    ',,,................BBBBBBBBBBBBoBBoBB""""""nWWWWWYYYYY', ',,,................""""""""""BoocBooB""t"""nWWWWYYYYYY',
+    ',,,..||||.........."""""""""""""""""""""t""nWWWWYYYYYY', ',,,...xx...........BBBBBBBBBBBBBBBBBB""""""nWWWWYYYYYY',
+    ',,,................BoooooooocooHHHHcB""""""nWWWWYYYYYY', ',,,........q.......BoKKKKKKoooooooooB"""""lnWWWWYYYYYY',
+    ',,,................BooooooooooooKKooB"""""rrWWWWYYYYYY', ',,,s.............l.BooooooooCCjoooooB"""""rrWWWWWYYYYY',
+    ',,,................DooooobohCChoooooD,,,,,rriWWWWYYYYY', ',,,................BooooobohCChoooooB"""""rriWWWWYYYYY',
+    ',,,................BoomKmoooCCjoooooB"""""rrWWWWWYYYYY', ',,,................BooooooooooooooToB"""""rrWWWWYYYYYY',
+    ',,,................BoKKKKoooooooooooB""""""nWpWWYYYYYY', ',,,................BuSSSSSooooooooocB""""""nWWWWYYYYYY',
+    ',,,................BBBBBBBBBBBBoBBoBB""""""nWWWWYYYYYY', ',,,................""""""""""BoocBooB""t"""nWWWWYYYYYY',
     ',,,..............kk""""""""""BoooBooB""""""nWWWWYYYYYY', ',,,..............kk"""""t""""BooofooB""""""eWWWWYYYYYY',
     ',,,................"t""""""""BoooBooB""""""eWWWWYYYYYY', ',,,................""""""""""BzooBozB""""""eWWWWYYYYYY',
     ',,,................""""""""""BBBBBBBB""""""eWWWWYYYYYY', ',,,................"""""""""""""""""""""t""eWWWWYYYYYY',
@@ -224,7 +226,7 @@
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
     if (In.barnGoblinOn(flags || {}, dd)) npcs.push({ id: 'barnGoblin', x: In.BARN[0], y: In.BARN[1], look: 'goblin', dir: 'down' }); // (the one handed over, chained in the end stall till the due: 11-05)
-    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [46, 10, 8, 19], on: 'use', script: 'inn:point' }, /* (the water off the point, as before: four columns wider with the floor, 11-12 -- E from the stone still reads the deep) */
+    var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [45, 18, 4, 2], on: 'use', script: 'inn:point' }, /* (11-13, his "make only the 4 squares straight out from the rock do the 'yellow box click popup' about things not coming up from the deep": the four straight out from the flat stone, x 45-48 on its two rows -- it had been the whole water off the point) */
       { id: 'lanternpost', rect: [42, 15, 1, 1], on: 'use', script: 'inn:sign', text: 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.' },
       { id: 'rowboat', rect: [45, 22, 1, 1], on: 'use', script: 'inn:rowboat' }]; // (the flat-bottomed rowboat drawn up off the point: the first game's S.rowboat -- js/secondact.js A.sound, 11-05)
     if (inside === 'inn') trig.push({ id: 'stair', rect: [In.STAIR[0], In.STAIR[1], 1, 1], on: 'step', script: 'inn:stair' });
@@ -293,7 +295,7 @@
     var h = hour != null ? hour : M.hourNow(q); if (flags && flags.doranAway && In.doranBack(flags, In.day(q), h)) { delete flags.doranAway; In.trail('Doran is back from the Pit road'); } // (ruling 29: home the evening before sacrifice night)
     var def = floor0.call(this, key, q, flags, h); flags = flags || {};
     def.under = In.under(In.ROWS, In.inHouse, function (x, y) { return !!In.inside && In.inHouse(x, y) === In.inside; }); // (the boards under the things inside, and under the walls of the house the party is in: In.under)
-    def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
+    def.noPoolEdge = true; /* (no dark rim where the shallows meet the deep, 11-13: his "get rid of the brown line between the shallow and deep" -- js/iso.js) */ def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = In.keptKind(); }); // (the chained one a child once the glamour is seen through)
@@ -389,6 +391,7 @@
     if (!D.SHEETS[k]) { var h = bucket ? 165 : 118, y = bucket ? 990 : 0; D.SHEETS[k] = { image: S0.image, fw: 166, fh: h, ax: 87, ay: bucket ? 162 : h, top: h, portrait: true, anims: { idle: { y: y, fw: 166, fh: h, ax: 87, ay: bucket ? 162 : h, frames: bucket ? 3 : 6, fps: 3 } } }; }
     return k;
   };
+  In.KITCHEN = [32, 21]; // (the kitchen floor beside the tub: where Elsbeth comes from with the bowls)
   In.mealScene = function* (B) { // (the first room taken: supper on the open screen over the room, then the bed)
     var C = D.counter, seat = In.sit(B), st = C.state(B), f = st.flags, d = In.day(D.roam.q); seat.flags = f;
     if (D.house && D.house.trail) D.house.trail('talk', 'meal');
@@ -399,7 +402,9 @@
     var els = seat.folk.elsbeth, home = els ? [els.x, els.y] : null, T = In.TABLE;
     var stops = seat.four.map(function (u) { return [u.x, u.y < T.y ? u.y - 1 : u.y + 1]; }); // (behind each hero's chair: the north side from the north, the south from the south)
     var walks = {
-      bowls: function* () { if (!els) return; for (var i = 0; i < stops.length; i++) { yield* In.walk(B, els, stops[i], [0, stops[i][1] < T.y ? 1 : -1]); yield 14; } },
+      // (11-13, his note on the sacrifice supper: "elsbeth starts serving dinner from the wall behind the table, should come from the kitchen and maybe walk a little slower";
+      // and before it, "did elsbeth teleport in from outside before serving the food?" -- she is stood in the kitchen by the tub first, and walks out from there at half again a step's time)
+      bowls: function* () { if (!els) return; var p0 = In.PACE, K = In.KITCHEN; if (D.grid.canStand(els, K[0], K[1]) || (els.x === K[0] && els.y === K[1])) { els.x = K[0]; els.y = K[1]; els.tween = null; D.grid.setup(B.map, B.units); B.cache = null; } In.PACE = Math.round(p0 * 1.5); try { for (var i = 0; i < stops.length; i++) { yield* In.walk(B, els, stops[i], [0, stops[i][1] < T.y ? 1 : -1]); yield 18; } } finally { In.PACE = p0; } },
       kitchen: function* () { if (els) yield* In.walk(B, els, home, [1, 0]); }
     };
     for (var g = 0; g < 8; g++) { yield* talk(); var w = seat.S && seat.S.pending; if (!w) break; seat.S.pending = null; if (walks[w]) yield* walks[w](); }
@@ -1683,7 +1688,7 @@
       if (!known && !noticed) { yield sc.say([EL.work]); return; }
       if (!byDay) { yield sc.say([EL.notNow]); return; }
       if (!known && !f.doranAway && !f.doranDead) { var a = yield sc.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']); if (a !== 0) return; }
-      if (known) yield sc.say([EL.monsters]);
+      if (known) { yield sc.say([EL.monsters]); if (!f.mealHad) return; } // (11-13, his note on eyes-elsbeth-day-1112f: "until after the first dinner, there should be no follow up to 'stopping the monsters'" -- the line alone till the party has had its first supper here)
     }
     if (!f.dishes) { // (the counting seen at supper and kept quiet: found alone at another hour, she adds the wagon's night -- RULED 11-11, his "the insight is to approach her privately, that's to be at not-dinner times"; In.meal's end)
       var dW = In.day(D.roam.q), nW = In.WAGON.first - dW, word = f.mealWrong && !f.mealGirlSaid && nW >= 0 && f.wagonCycle == null ? [nW === 0 ? In.LINES.elsbethWagon0 : In.LINES.elsbethWagon.split('{n}').join(In.WORDS[nW] || String(nW)).split('{s}').join(nW === 1 ? '' : 's')] : [];
@@ -2351,9 +2356,10 @@
     { id: 'childpit', label: 'THE CHILD\'S ROAD: Tarlyn\'s Pit, the chalked door of GreyFang\'s house (11-12)', note: 'Day 15, three in the afternoon, the party on the Pit\'s hex with the girl. The scene plays at once: the watch on the road, the door back of the fighting pit with the wolf\'s head chalked on it, the woman\'s count (Doran drove seven down: "That\'s eight, then."), and the girl is set down. After it E on the hex is the Pit as before (its map is not built). Back at the inn Doran has one line for it at the woodpile.', world: true, site: 'pit', hour: 15, day: 15, run: function (sc) { In.childPit(sc); },
       flags: { reachedInn: 1, gennetNamed: 1, wagonCycle: 0, wagonOutcome: 'quiet', barnFreed: 1, barnEnd: 'd', doranConfessed: 1, doranPit: 1, glamourBroken: 1, glamourSeen: 1, childGuest: 'child', childGuestDay: 13, childCamp: 1, childDue: 43, dueCycle: 0, dueOffC: 0, dueOff: 'none' } },
     { id: 'elsbethnoon', label: 'ELSBETH AFTER MIDDAY: Gennet in from the well, "Not now." (11-12)', note: 'One in the afternoon on day 6, renown 3. Gennet is by the fire: her hours at the well are the mornings, seven to midday. E on Elsbeth at the tub: "Not now. In the morning, when she\'s out at the well."', key: In.KEY, at: [32, 21], hour: 13, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1 } },
-    { id: 'lakeedge', label: 'THE LAKE\'S EDGE: four of knee-deep off the stone, then the deep (11-12)', note: 'Two in the afternoon on the flat stone. East of the rock the water is knee-deep for four squares, one depth, the shore\'s ground showing through one sheet of water; then the deep at once. Wade out: each square costs double, and a figure stands in it to the knee. The same four run the whole coast, north and south.', key: In.KEY, at: [45, 18], hour: 14 },
+    { id: 'lakeedge', label: 'THE LAKE\'S EDGE: four of knee-deep off the stone, then the deep (11-12)', note: 'Two in the afternoon on the rocks west of the flat stone. East of the stone the water is knee-deep for four squares, one depth, the shore\'s ground showing through one sheet of water; then the deep at once. Wade out: each square costs double, and a figure stands in it to the knee. The same four run the whole coast, north and south.', key: In.KEY, at: [43, 18], hour: 14 },
     { id: 'rite', label: 'THE RITE FROM THE BIG ROOM\'S WINDOW: the singing, the party overlooking the lake (11-12)', note: 'The due\'s own night with the child they kept, past midnight, the party woken in the big room and gone to its window. It plays at once: the party stands at the window upstairs, the roof and wall open round them, and the camera holds on them and the lake below. THE SINGING plays (sound on: a made voice, slow, with two more under it). The signs on the water, Gennet and the child out by the lake door with the lantern, the fork: THE LANTERN (down the stair) or LET IT BE (the due at the stone, watched from here; the singing stops with the water).', key: In.KEY, at: [35, 16], hour: 1, day: In.WAGON.first + In.DUE.after + 1, inside: true, dice: [14, 12, 15, 14], due: { stage: 'lake', d: In.WAGON.first + In.DUE.after, off: 'kept', woke: true },
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1, dueCycle: 0, dueTonight: 1, kidTaken: 1, bigRoom: 1 } },
+    { id: 'elsbethfirst', label: 'ELSBETH BY DAY, BEFORE THE FIRST DINNER: the one line (11-13)', note: 'Ten in the morning on day 6, renown 3, no supper had at the inn yet. E on Elsbeth: "You are the people stopping the monsters", her one line, and nothing after it; her telling waits for the first dinner.', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }

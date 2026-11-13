@@ -202,7 +202,7 @@
             var seam = fx < 0.04 || fy < 0.04 || (fx > 0.49 && fx < 0.53 && (Math.floor(gy + 0.5) % 2));
             col = seam ? silver[1] : rampPick(silver, 0.25 + n * 0.35, ix, iy);
           } else if (gch === '~' || gch === 'D') {                              // the still pool: black water, the cave's colour in it, a rare glint
-            var edge = Math.min(nearOpen(m, gx, gy, gch), 1); // (D, the deep water, drawn as the pool is)
+            var edge = m.def.noPoolEdge ? 1 : Math.min(nearOpen(m, gx, gy, gch), 1); // (noPoolEdge: a floor whose water meets water -- the Halfway Inn's shallows and deep, 11-13 -- paints no stone rim) // (D, the deep water, drawn as the pool is)
             var sheen = vnoise(gx * 2 + 0.3, gy * 5, seed + 9), glint = h2(Math.floor(gx * 11), Math.floor(gy * 22), seed + 8) > 0.992;
             col = edge < 0.1 ? stone[2] : edge < 0.2 ? stone[1] : glint ? silver[5] : sheen > 0.8 ? violet[2] : rampPick(blue, n * 0.22 + (1 - Math.min(1, edge * 2)) * 0.12, ix, iy);
           } else if (gch === 'G') {                              // a roof of glass (the Edifice, 10-04 night, Griz: "the skylight glass that should make up the majority of the 4th floor/3rd floor

@@ -20,7 +20,7 @@
   if (!M || !W || !In) return;
   var L = function (k, o) { return D.counter.L(k, o); };
   var R = function () { return D.roam; };
-  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [50, 17]; // (four further out since 11-12, ruling 60: four of knee-shallow between the stone and the deep -- it was 46,17) // (the deep: off the point, 11-05 -- it had been 44,16, a rock of the point; the lake knee-shallow elsewhere, js/inn.js) // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
+  A.STONE = [44, 18]; A.POST = [42, 15]; A.PATH = { head: [38, 18], half: [40, 18], foot: [43, 18] }; A.DEEP = [49, 17]; // (four further out since 11-12, ruling 60: four of knee-shallow between the stone and the deep -- it was 46,17) // (the deep: off the point, 11-05 -- it had been 44,16, a rock of the point; the lake knee-shallow elsewhere, js/inn.js) // (the floor's squares: js/inn.js In.ROWS -- the flat stone 'i' at 44,18-19, the post 'l', the path from the lake door east, the deep 'Y' from 46)
   A.SHORE = 5; // (squares from the stone: "a party at the shore" -- the point's end; the path's head by the lake door, seven off, is not)
   // ---------------------------------------------------------------- §10.1 the clock: six signs, each a card with its read beside it (the §4 shape: the house reads in silence)
   A.SIGNS = [
@@ -259,6 +259,7 @@
     try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; }
     var o = R0.lastOutcome;
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
+    try { D.music((D.roam.def && D.roam.def.music) || 'inn'); A.musicBack = (A.musicBack || 0) + 1; } catch (eM) { } // (11-13, his "Combat music that starts at dinner should turn off at yield (and start back up when party token breaks to fight monster)": the house's own again; the thing's fight starts its own, A.lakeFight)
     var doranUp = A.standing(B, Y.doran), gennetUp = A.standing(B, Y.gennet);
     if (!gennetUp) f.gennetDead = 1; if (!doranUp) f.doranDead = 1;
     if (!doranUp) { A.clear(B, Y); A.backRoomClear(B); In.lay(B, 'inn', true); yield* In.card(B, [A.LINES.poisonNoConfess], 420); f.dueUnfed = In.dueCycle(In.day(D.roam.q)); yield* A.dueMorning(B, 'none'); return; }
@@ -327,6 +328,9 @@
   D.roam.arrive = function* (B) {
     var ev = yield* arriveA0.apply(this, arguments), def = D.roam.def, R0 = B.roam, t = R0 && R0.token;
     if (!ev && def && def.key === In.UP && In.duePlay && In.duePlay.stage === 'room' && In.duePlay.woke && t && t.x >= A.WINDOW.x && t.x <= A.WINDOW.x + 1 && t.y <= 9) { In.duePlay.stage = 'lake'; In.duePlay.win = [t.x, t.y]; In.upShot(); A.trail('the due night: at the big room\'s window'); yield* M.go(B, In.KEY, In.WATCH.down, [0, -1]); return 'window'; } // (the window on the lake: the camera's one move is on the house's own floor)
+    // (11-13, his note on eyes-sacrifice-yield-1112f: "gennet did let the party sleep, doran was still out back in the morning and timetraveled back into the night to the fight
+    // when the party approached the next morning" -- his wait is the night's: past it (A.waitLive) the flags are let go and nobody is followed anywhere)
+    if (def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && !A.waitLive(R0.flags, In.day(D.roam.q), In.hourOf(B))) { delete R0.flags.doranWaits; delete R0.flags.doranOut; B.units.filter(function (u) { return u.scripted === 'doranWait'; }).forEach(function (u) { In.gone(B, u); }); A.trail('Doran\'s wait by the lake door is over with the night'); }
     if (!ev && def && def.key === In.KEY && R0.flags && R0.flags.doranWaits && t && t.x >= In.STEP.lake[0] && Math.abs(t.y - In.DOORS.lake[1]) <= 3 && !In.inHouse(t.x, t.y)) { yield* A.followDoran(B); return 'followed'; }
     return ev;
   };
@@ -520,6 +524,7 @@
     if (!win) yield* B.camTo({ gx: A.DEEP[0], gy: A.DEEP[1], gz: 0 }, D.iso.zoom, 50);
     if (D.fx) D.fx.sparkle({ x: A.DEEP[0] + 2, y: A.DEEP[1], size: 1 }, 'blue', 40);
     yield* In.card(B, [sign(4)], 280);
+    A.sing(); // (11-13, his note on the rite: "the singing should stop just before she brings the girl outside alone")
     var Y = A.cast(B, f, [lake[0] + 1, lake[1]]);
     if (!win) yield* B.camTo({ gx: A.PATH.head[0], gy: A.PATH.head[1], gz: 0 }, D.iso.zoom, 70);
     yield* A.walkAll(B, Y, A.PATH.half);
