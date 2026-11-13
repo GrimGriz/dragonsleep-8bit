@@ -127,7 +127,7 @@
     var hv = m.inside ? OV.tileOf([(m.x - D.W / 2) / pxmi + ov.cam[0], (m.y - D.H / 2) / pxmi + ov.cam[1]]) : null;
     if (hv && (!ov.hov || hv[0] !== ov.hov[0] || hv[1] !== ov.hov[1])) { ov.hov = hv; ov.plan = Math.abs(hv[0] - OV.tileOf(S.pos)[0]) + Math.abs(hv[1] - OV.tileOf(S.pos)[1]) < 400 ? OV.route(OV.tileOf(S.pos), hv) : null; }
     if (!hv) ov.hov = null;
-    if (m.click && m.inside && ov.plan) { ov.walk = { path: ov.plan.tiles.slice(), f: 0 }; ov.plan = null; ov.free = false; D.sfx('confirm'); return; }
+    if (m.click && m.inside && ov.plan) { ov.walk = { path: ov.plan.tiles.slice(), f: 0 }; sc.clicked = { x: Math.round(m.x), y: Math.round(m.y), zi: ov.zi, zn: OV.ZOOMS.length, tile: hv.slice(), hex: S.at.slice() }; ov.plan = null; ov.free = false; D.sfx('confirm'); return; }
     if (I.pressed('a')) { var here = OV.doorHere(), rt = OV.routeHere(); if (here) sc.offerDoor(here, ov.last || null); else if (rt) sc.offerRoute(rt); else OV.look(sc); }
     if (I.pressed('end') && W.house()) { sc.campCard(); return; } // (the house's camp: the night's three watches, or an hour -- js/world.js campCard)
     if (I.pressed('end')) { var upsC = W.camp(); D.sfx('confirm'); sc.say(W.campSaid(upsC)); }
@@ -156,7 +156,7 @@
   // the step's end: the road's chance of a fight, a door, the places here, and the walk's end (w: the walk, its path what is left)
   OV.arrive = function (sc, st, next, w) {
     var ov = sc.ov; if (w !== ov.walk && w.path.length) ov.walk = { path: w.path, f: 0, arrows: w.arrows };
-    if (W.onStep && W.onStep(sc, st)) { ov.walk = null; return; } // (a fight on the way)
+    if (W.onStep && W.onStep(sc, st)) { ov.walk = null; if (W.travel) W.travel(sc, 'an encounter on the way'); return; } // (a fight on the way; the walk's line closed before the fight's)
     var door = OV.doorHere(), ss = SITES[next[0] + ',' + next[1]];
     if (door) { ov.walk = null; sc.offerDoor(door, ov.last); return; }
     if (ss && !w.arrows) sc.say(ss.map(function (s) { return s.name; }).join(', ') + '.');

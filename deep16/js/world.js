@@ -400,15 +400,16 @@
   W.travel = function (sc, why) {
     var H = D.house; if (!W.house() || !H.trail || !S) return;
     var hx = function (a) { return a[0] + ',' + a[1]; }, tr = H.cur.trail || [], tw = sc.tw;
-    if (sc.walk && !tw) {
-      var c = sc.clicked; sc.clicked = null; var arrows = !c && sc.walk.path.length === 1 && !sc.walk.goal, ta = sc.twArrows;
-      if (arrows && ta && tr[tr.length - 1] === ta.e) { sc.tw = ta; return; } // (the next step by the arrows: the same line)
-      var base = c ? 'click ' + c.x + ',' + c.y + ' at zoom ' + (c.zi + 1) + '/' + c.zn + ' on the ' + (M.near ? 'area' : 'world') + ' map: picked ' + hx(c.hex) + (c.place ? ' (' + c.place + ')' : '') + ', from ' + hx(S.at) + ', ' + sc.walk.path.length + ' hexes planned'
-        : arrows ? 'by the arrows from ' + hx(S.at) : 'the walk taken up again from ' + hx(S.at);
-      H.trail('walk', base); tr = H.cur.trail; sc.tw = { e: tr[tr.length - 1], base: base, t0: S.t, n: 0, arrows: arrows }; sc.twArrows = arrows ? sc.tw : null;
-    } else if (!sc.walk && tw) {
+    var td = sc.view === 'tiles', wk = td ? sc.ov && sc.ov.walk : sc.walk, un = td ? 'tile' : 'hex'; // (the top-down tiles' walk too, js/overworld.js: counted in tiles, the hex under the party named -- 11-13 later)
+    if (wk && !tw) {
+      var c = sc.clicked; sc.clicked = null; var arrows = td ? !!wk.arrows : !c && wk.path.length === 1 && !wk.goal, ta = sc.twArrows;
+      if (arrows && ta && ta.td === td && tr[tr.length - 1] === ta.e) { sc.tw = ta; return; } // (the next step by the arrows: the same line)
+      var base = (td ? 'top-down: ' : '') + (c ? 'click ' + c.x + ',' + c.y + ' at zoom ' + (c.zi + 1) + '/' + c.zn + ' on the ' + (M.near ? 'area' : 'world') + ' map: picked ' + (c.tile ? 'the tile ' + hx(c.tile) : hx(c.hex)) + (c.place ? ' (' + c.place + ')' : '') + ', from ' + hx(S.at) + ', ' + wk.path.length + ' ' + un + (wk.path.length === 1 ? '' : td ? 's' : 'es') + ' planned'
+        : arrows ? 'by the arrows from ' + hx(S.at) : 'the walk taken up again from ' + hx(S.at));
+      H.trail('walk', base); tr = H.cur.trail; sc.tw = { e: tr[tr.length - 1], base: base, t0: S.t, n: 0, arrows: arrows, td: td }; sc.twArrows = arrows ? sc.tw : null;
+    } else if (!wk && tw) {
       var ss = (M.siteAt[K(S.at[0], S.at[1])] || []).map(function (s) { return s.name; }), hrs = Math.round((S.t - tw.t0) * 10) / 10; tw.n++;
-      tw.e.s = tw.base + ' -- ' + (tw.arrows ? tw.n + ' hex' + (tw.n > 1 ? 'es' : '') + ' to ' : 'stopped at ') + hx(S.at) + ' on the ' + (M.near ? 'area' : 'world') + ' map' + (ss.length ? ' (' + ss.join(', ') + ')' : '') + ' after ' + hrs + ' h, ' + W.timeOfDay() +
+      tw.e.s = tw.base + ' -- ' + (tw.arrows ? tw.n + ' ' + un + (tw.n > 1 ? (td ? 's' : 'es') : '') + ' to ' : 'stopped at ') + hx(S.at) + ' on the ' + (M.near ? 'area' : 'world') + ' map' + (ss.length ? ' (' + ss.join(', ') + ')' : '') + ' after ' + hrs + ' h, ' + W.timeOfDay() +
         ': ' + (why || (sc.cards.length ? 'a card up' : tw.arrows ? 'stepped' : 'the walk done'));
       sc.tw = null;
     }
@@ -543,7 +544,7 @@
     var self = this, r = o.r, to = r.ends[1 - o.end], up = o.end === 0;
     this.card(['{y}' + r.name.charAt(0).toUpperCase() + r.name.slice(1) + '{/}', (up ? 'Up into the mountains' : 'Down out of the mountains') + ': ' + r.days + ' days to ' + to.name + '.', '{g}(its own roam is to come: for now the days pass){/}', '',
       D.keys('{g}E{/}: go ' + (up ? 'up' : 'down') + ' it    {g}X{/}: stay')], null,
-      [['a', function () { var fr = S.at.slice(); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }, up ? 'GO UP IT' : 'GO DOWN IT'],
+      [['a', function () { var fr = S.at.slice(); if (W.house() && D.house.trail) D.house.trail('walk', (up ? 'up ' : 'down ') + r.name + ' from ' + fr[0] + ',' + fr[1] + ' (' + r.ends[o.end].name + ') to ' + to.hex[0] + ',' + to.hex[1] + ' (' + to.name + '): ' + r.days + ' days'); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }, up ? 'GO UP IT' : 'GO DOWN IT'],
        ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }, 'STAY']]);
   };
   World.prototype.here = function () { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); };

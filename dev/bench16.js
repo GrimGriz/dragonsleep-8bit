@@ -9371,6 +9371,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       for (var kE = 0; kE < 400 && scV.walk; kE++) scV.update();
       var trE = HV.cur.trail, lE = trE[trE.length - 1]; WTv.onStep = null; scV.arrivePend = null;
       okTv('a walk an encounter breaks is closed at once, before the fight could write its own line ("' + lE.s + '")', walksV().length === nE + 1 && lE.k === 'walk' && /: an encounter on the way$/.test(lE.s));
+      // 3b. the top-down tiles (V) and a mountain road (11-13 later, the seat's own two leftovers): tiles by the arrows one line, counted in tiles; a click there its own
+      // line; a walk there an encounter breaks closed at once; a road up or down, its days, one line
+      var xtV = new XMLHttpRequest(); xtV.open('GET', '../deep16/data/world-tiles.js', false); xtV.send(); (0, eval)(xtV.responseText);
+      scV.cards = []; SV2.today = 0; SV2.todayHex = 0; SV2.pushing = true; SV2.pos = null; scV.update(); WTv.OV.open(scV); var ovV = scV.ov, OVv = WTv.OV;
+      var tileStep = function () { var p = OVv.tileOf(SV2.pos); return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(function (d) { return [p[0] + d[0], p[1] + d[1]]; }).filter(function (b) { return OVv.step(p, b) && OVv.step(b, p) && !WTv.M().siteAt[WTv.K(WTv.hexOf(OVv.centre(b)[0], OVv.centre(b)[1])[0], WTv.hexOf(OVv.centre(b)[0], OVv.centre(b)[1])[1])]; })[0]; };
+      var runOv = function () { for (var k = 0; k < 400 && ovV.walk; k++) { if (scV.cards.length) scV.cards.shift(); scV.update(); } scV.cards = []; scV.update(); };
+      var nT = walksV().length, tilesV = 0;
+      for (var kT = 0; kT < 4; kT++) { var nbT = tileStep(); if (!nbT) break; ovV.walk = { path: [nbT], f: 0, arrows: true }; scV.update(); runOv(); tilesV++; }
+      var wT = walksV(), lT = wT[wT.length - 1];
+      okTv('top-down, four tiles by the arrows are one line, counted in tiles (' + scV.view + ': "' + (lT && lT.s) + '")', scV.view === 'tiles' && tilesV === 4 && wT.length === nT + 1 && /^top-down: by the arrows from \d+,\d+ -- 4 tiles to \d+,\d+ on the /.test(lT.s));
+      var p1V = OVv.tileOf(SV2.pos), nb1 = tileStep(), nC = walksV().length;
+      HV.trail('talk', 'a word between'); ovV.walk = { path: [nb1], f: 0 }; scV.clicked = { x: 100, y: 90, zi: ovV.zi, zn: OVv.ZOOMS.length, tile: nb1.slice(), hex: SV2.at.slice() }; scV.update(); runOv();
+      var wC = walksV(), lC = wC[wC.length - 1];
+      okTv('top-down, a click\'s walk is its own line: the pixel, the zoom, the tile, the tiles planned, where it stopped ("' + (lC && lC.s) + '")', wC.length === nC + 1 && lC.s.indexOf('top-down: click 100,90 at zoom ' + (ovV.zi + 1) + '/' + OVv.ZOOMS.length) === 0 && lC.s.indexOf('picked the tile ' + nb1[0] + ',' + nb1[1]) > 0 && /1 tile planned -- stopped at \d+,\d+ on the /.test(lC.s));
+      var srcOv = String(OVv.update), clickLine = /sc\.clicked = \{ x: Math\.round\(m\.x\), y: Math\.round\(m\.y\), zi: ov\.zi, zn: OV\.ZOOMS\.length, tile: hv\.slice\(\)/.test(srcOv);
+      okTv('and the view\'s own click writes that note (js/overworld.js OV.update)', clickLine);
+      HV.trail('talk', 'another word'); var nbE = tileStep(), nE2 = walksV().length; WTv.onStep = function () { return true; }; ovV.walk = { path: [nbE], f: 0, arrows: true }; scV.update(); for (var kE2 = 0; kE2 < 400 && ovV.walk; kE2++) scV.update();
+      var trE2 = HV.cur.trail, lE2 = trE2[trE2.length - 1]; WTv.onStep = null; scV.arrivePend = null; scV.cards = [];
+      okTv('top-down, a walk an encounter breaks is closed at once ("' + lE2.s + '")', walksV().length === nE2 + 1 && lE2.k === 'walk' && /^top-down: .*: an encounter on the way$/.test(lE2.s));
+      OVv.close(scV); scV.update();
+      var rtV = WTv.Mworld(), r0V = (rtV.routes || [])[0] || (rtV.held || [])[0]; // (the Coldridge Route is held off the map today, W.ROUTES_ON: its card is asked here by hand)
+      if (r0V) {
+        if (WTv.M() !== rtV) { WTv.use('world'); SV2.map = null; } SV2.at = r0V.ends[0].hex.slice(); SV2.pos = null; scV.cards = []; var nR = walksV().length, tR = SV2.t;
+        scV.offerRoute({ r: r0V, end: 0 }); var cdR = scV.cards.shift(); cdR.keys[0][1](); var wR = walksV(), lR = wR[wR.length - 1];
+        okTv('a mountain road taken is one line: which, from where to where, its days ("' + (lR && lR.s) + '")', wR.length === nR + 1 && lR.s.indexOf('up ' + r0V.name + ' from ' + r0V.ends[0].hex.join(',')) === 0 && lR.s.indexOf(r0V.ends[1].name) > 0 && lR.s.indexOf(': ' + r0V.days + ' days') > 0 && lR.t === tR && SV2.at.join() === r0V.ends[1].hex.join());
+      } else okTv('a mountain road on the map to take', false);
       // 4. the NOTES file carries the trail
       var nfV = HV.notesFile ? HV.notesFile('bench') : null, inV = nfV && JSON.stringify(nfV).indexOf('by the arrows from') > 0;
       okTv('his NOTES file carries the walks (js/house.js H.notesFile: the trail)', !!inV);
