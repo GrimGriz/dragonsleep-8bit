@@ -244,6 +244,29 @@ def push(argv, top, d):
         sys.exit(4)
     release(d, top)
     print('land: LANDED on main %s:\n%s' % (git('rev-parse', '--short=8', 'HEAD'), landing or '  (nothing new)'))
+    ci_line()
+
+
+def ci_line():
+    """The full gate's last word from GitHub Actions, printed at every landing (2026-11-13, Griz: "1 push prints it"): seats
+    land on the QUICK gate, the full one runs only in CI and at a desk's close, and a RED there stood ten hours unseen (a
+    portrait check, from bc4b57ff). The newest FINISHED run on main is for an earlier push than this one; it never blocks."""
+    try:
+        p = subprocess.run(['gh', 'run', 'list', '--branch', 'main', '--workflow', 'gate.yml', '--limit', '8',
+                            '--json', 'status,conclusion,headSha,createdAt'], capture_output=True, timeout=25)
+        runs = [r for r in json.loads(p.stdout.decode('utf-8', 'replace') or '[]') if r.get('status') == 'completed']
+    except Exception:
+        runs = None
+    if not runs:
+        print('land: CI (the full gate on GitHub): could not be read -- `gh run list --limit 3` by hand')
+        return
+    r = runs[0]
+    if r.get('conclusion') == 'success':
+        print('land: CI (the full gate on GitHub) was GREEN at %s (%s)' % (r['headSha'][:8], r['createdAt']))
+    else:
+        print('land: CI (the full gate on GitHub) is RED -- %s at %s (%s). The quick gate you passed does not run every check:'
+              % (r.get('conclusion'), r['headSha'][:8], r['createdAt']))
+        print('land:   read it (`gh run view --log-failed`), and if it is yours fix it now; if not, tell the desk in your report.')
 
 
 def status(d):
