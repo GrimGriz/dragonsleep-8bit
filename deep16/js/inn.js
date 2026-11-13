@@ -1130,8 +1130,19 @@
       In.watching = null; if (wt.stay) B.roam.stay = wt.stay;
       if ((yield* In.wagonNight(B, wt.d, wt.stage === 'yard' ? wt : null)) === 'up') return;
     }
-    if (def && def.key === In.UP && bd && B.roam) { In.bedding = null; bd.o.before = function () { M.lightNow(B); }; In.woke = bd.room; yield* D.house.sleepOnFloor(B, bd.o); if (B.roam.flags.wagonGift) yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); }); }
+    if (def && def.key === In.UP && bd && B.roam) { In.bedding = null; bd.o.before = function () { M.lightNow(B); }; In.woke = bd.room; yield* D.house.sleepOnFloor(B, bd.o); if (B.roam.flags.wagonGift) B.roam.flags.giftDown = 1; /* (her gift waits for them downstairs: In.giftWalk) */ }
+    if (def && def.key === In.KEY && B.roam && B.roam.flags.wagonGift && B.roam.flags.giftDown) yield* In.giftWalk(B);
     yield* scriptBed0.apply(this, arguments);
+  };
+  // ELSBETH COMES TO THEM (11-13, his 0515Z note on eyes-wagon-seethrough-1112: "have elsbeth walk to the party when they come downstairs (finds the party sends to winters
+  // bit)"): the morning after the wagon was stopped the party wakes upstairs, and her bundle and her word of Winters had been said there, on the guest floor, with her
+  // nowhere on it. Now the gift waits (f.giftDown) until the party is down the stair: she walks from her tub to them, gives it and says it on her own screen, and walks back
+  In.giftWalk = function* (B) {
+    var R0 = B.roam, f = R0.flags, t = R0.token, els = B.units.filter(function (u) { return u.npc === 'elsbeth'; })[0], home = els ? [els.x, els.y] : null, face0 = els ? els.facing : null;
+    delete f.giftDown;
+    if (els) { var q = In.beside(B, els, t); In.trail('Elsbeth comes to the party with the bundle: from ' + home.join(',') + ' to ' + q.join(',')); yield* In.walk(B, els, q, [t.x - q[0], t.y - q[1]]); }
+    yield* M.talk(B, 'elsbeth', function (sc) { return In.gift(sc, B); });
+    if (els && B.units.indexOf(els) >= 0) { yield* In.walk(B, els, home); els.facing = face0; }
   };
   // a night at the inn: THE WAGON NIGHT on a WAGON DAY's evening, else the bed
   In.night = function* (B) {
@@ -1262,9 +1273,14 @@
   };
   In.gone = function (B, u) { if (!u) return; B.units = B.units.filter(function (x) { return x !== u; }); D.grid.setup(B.map, B.units); B.cache = null; };
   In.hop = function (B, u, nx) { u.tween = { fx: u.x, fy: u.y, fz: D.grid.gzAt(u, u.x, u.y), t: 0, dur: In.PACE, mode: null }; u.facing = D.spr.facingFor(nx[0] - u.x, nx[1] - u.y); if (u.anim !== 'walk') { u.anim = 'walk'; u.animT = B.t; } u.x = nx[0]; u.y = nx[1]; }; // (one step of a figure's, no wait)
+  In.walkWay = function (u, to) { var Rw = D.roam, p = null; if (Rw && Rw.walkRoute && Rw.def) { try { p = Rw.walkRoute(u, to); } catch (e) { p = null; } } return p || D.Battle.route(u, to, false); };
   In.walk = function* (B, u, to, face, rider) { // (a figure along the floor to a square, a step a time; no way there, it is set there. `rider`: one carried -- it goes where the walker goes, square for square, looking back the way they came: the child on Gennet's hip, 11-12)
     if (!u) return;
-    var p = u.x === to[0] && u.y === to[1] ? [] : D.Battle.route(u, to, false);
+    // (THE PARTY'S OWN WAY, 11-13, his 0404Z note on eyes-upstairs-over-house-1113: "NPC walking is the same as old player walking (tendency for diagnols, gennet does north
+    // then west L instead of following path to the door)" -- a scene's figure walks by the route the party's token walks by since 10-29, js/roam.js R.walkRoute: the fewest
+    // squares and, of those, the straightest, no first-diagonal-found zig-zag. That search goes round whoever stands in the way; where it finds nothing -- a figure in a
+    // doorway -- the fight's route as before, through them, In.walkWay)
+    var p = u.x === to[0] && u.y === to[1] ? [] : In.walkWay(u, to);
     if (!p) { u.x = to[0]; u.y = to[1]; u.tween = null; if (rider) { rider.x = to[0]; rider.y = to[1]; rider.tween = null; } }
     else while (p.length) { var nx = p.shift(), dx = nx[0] - u.x, dy = nx[1] - u.y; In.hop(B, u, nx); if (rider) { In.hop(B, rider, nx); rider.anim = 'idle'; rider.facing = D.spr.facingFor(-dx, -dy); } D.grid.setup(B.map, B.units); yield In.PACE; }
     u.anim = 'idle'; u.animT = B.t; if (face) u.facing = D.spr.facingFor(face[0], face[1]); B.cache = null;

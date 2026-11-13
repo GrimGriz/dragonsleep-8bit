@@ -344,6 +344,7 @@
     "childGuest": "set: deep16/js/inn.js In.barnYard (the child counted with the party, as 'child' or still looking a 'goblin'); read: deep16/js/inn.js In.noStay, In.doranYard, M.SCENES.elsbeth, In.layFollower (the road with her is not built)",
     "childGuestDay": "set: deep16/js/inn.js In.barnYard (the day the child joined the party); read: nothing yet",
     "childDue": "set: deep16/js/inn.js In.childTaken (the day of the NEAREST due's night not yet walked as she is taken -- 11-13, his 'use the closer night if it hasn't happened yet'; it was the one a month on, ruling 59); read: deep16/js/inn.js In.childLate (In.CHILD.left counts by In.nightsToDue and no longer reads it)",
+    "giftDown": "set: deep16/js/inn.js the guest floor's script (Elsbeth's gift owed and the party woken upstairs: it waits for them down the stair, 11-13); read: the inn floor's script, In.giftWalk (she walks to them)",
     "katGaveDay": "set: deep16/js/inn.js In.katVisit (the day Katarina last gave a thing before the ink: 'that is all she gives today' made true, 11-13); read: the same (no shaded line at her table again that day)",
     "nightCarry": "set: deep16/js/inn.js In.carrySync (a played night mid-way -- the due from the big room, the watch upstairs -- mirrored from memory so a save holds it); read: deep16/js/inn.js In.carryBack (taken up again on the first floor after a load)",
     "childDead": "set: deep16/js/inn.js In.childLost (the day the child was killed on the road: the errand over, not the game); read: deep16/js/inn.js In.doranYard",
