@@ -491,3 +491,78 @@ NORTH, frame 4 (seen from behind, Lymen facing away): today the sword is still u
 Both: the same Lymen as the attached pages -- the half-orc paladin, green skin, swept dark hair, tusks, chain mail with leather straps, the green collar, the right-hand LONGSWORD (a little over half his height) and the round wooden shield on his LEFT forearm. Exactly the size, camera, line and colours of the frames beside it on the same page, the feet on the same baseline, so the new frame drops into the row with no jump. 16-bit pixel-art sprite frame, SNES-era tactics style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees. Flat dark navy background (a deep blue, not grey and not black). Deliver each as its own image, one drawing, the frame number 4 under it, nothing else on the page.
 ```
 Where: `lymen_check_p2` (the review row; tools/lymen-check-sheet.py), SOUTH and NORTH frame 4 (runtime index 3) replaced. Cut as: each drawing scaled with its own view's page (the view's guard at 48 px crown to sole) and placed on the view's sole line; SW, W and NW stay the mirrors of SE, E and NE.
+
+## 58. Lymen's fight sheet, the standard rows (idle, walk, hurt, sit, cast) -- what retires the old LPC figure, DRAW FIRST (added 11-13, the garrison cutter, on his word via the lanes desk) -- IN THE OUTBOX 2026-11-13, waiting to go (`deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/` and its `.zip`)
+
+From the engine side (the garrison cutter, for the lanes desk), for the art desk. Lymen, the half-orc paladin, whose six-frame attack you drew in five views (ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS, in hand). This ask is the rest of the rows he needs before his old composed LPC figure (`lymen_p0`) can be retired. It is ONE of two asks for him: this one first; the second (`ASK-2026-11-13-lymen-paladin-rows`) is his own paladin's rows and the extras. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 58.
+
+His words, to the lanes desk 2026-11-13: *"yeah, we're only doing the mannequins for the weapon variant attack style variant yada yada, the regular stuff the art dept guesses at well enough"*; *"well it shouldn't be barley's, he needs lymen uniques"*, *"but like barleys format for the engine is correct"*; and *"separate the paladin asks for what we need to be done with the LPC lymen into different asks"*.
+
+So: NO MANNEQUIN GUIDES for these rows -- the mannequin is for a weapon's or an attack style's own move; the ordinary rows are yours to draw. The rows are in the shape the engine plays for Barley, the party's fighter (`barley_p3`: his frame counts).
+
+What is in hand: the attack, six frames in S, SE, E, rear NE and N (its S and N frame 4 are asked again separately, `ASK-2026-11-13-lymen-attack-s-and-n-frame-4`). It is NOT asked again here.
+
+Why these rows and no others: the old figure has idle, walk, attack, hurt, sit and cast, and the engine plays exactly those for him today. A sheet without flinch, prone or get-up still plays (it falls back on the hurt row's last frame for a body on the ground, and plays nothing extra for a flinch or a get-up), so those wait for the second ask. THE MINIMUM to retire `lymen_p0` is the five rows below with the attack in hand.
+
+### 1. Lymen's standard rows -- idle, walk, hurt, sit, cast -- in all five views
+ATTACH `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/ART-MC-LYMEN-BASE-ATTACK-06-S.png`, `-SE.png`, `-E.png`, `-NE.png`, `-N.png` (your attack pages: Lymen, his kit, his guard on frame 1, and the camera), `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/pt_lymen-portrait-sheet.png` (his portrait: the same face), `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/LYMEN-ATTACK-AS-CUT-4x-over-the-old-LPC-figure.png` (the attack as cut at game size, 4x, every facing, over the old figure it replaces), `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/barley_p3-the-format-reference.png` (Barley's sheet: the format, rows and frame counts), `deep16/_src/outbox/ASK-2026-11-13-lymen-fight-sheet-standard/attach/PALETTE-2026-10-28-deep16-64-colours.png` (the game's 64 colours).
+```text
+Attached: the six-frame attack you drew of Lymen in five views, his portrait, the attack cut at game size, a sheet of the party's fighter for the format, and the game's palette. Draw the rest of Lymen's fight sheet in the same five views: the rows below. No pose guides: these are yours to draw.
+
+LYMEN: the same half-orc paladin as the attached pages -- green skin, swept dark hair, small tusks, chain mail with leather straps, the green collar, a LONGSWORD in his RIGHT hand and the round wooden shield with an iron rim and boss on his LEFT forearm in every frame. His guard is the attack's frame 1.
+
+SIZE: ONE size for every row and every view: 48 pixels from sole to crown at game size, a grown human's height, the same as his attack's guard. (The attack's five pages came in at five different sizes; please draw these all at one scale.) Draw it large; the cutter brings it down. Feet on one baseline.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows:
+Idle (6: on guard as in the attack's frame 1, the shield before him and the sword ready, a slow breath, a blink on 4);
+Walk (8: a steady, armoured walk with the shield held forward and the sword low and ready; animate in place, not travelling across the sheet);
+Hurt (6: struck down -- he staggers, drops to a knee and falls to lie on the ground, the sword and the shield still in his hands; the last frame is how he lies);
+Sit (2: sitting at rest on the ground, the shield set down beside him and the sword across his knees, a slow breath);
+Cast (6: a paladin's prayer -- the sword lowered, his left hand with the shield lifted and his head bowed, a gentle green-gold light gathering at his chest on 3 and 4 and fading on 5 and 6).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the camera of the attached attack pages. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). One action a page is fine: labelled rows of frames, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The longsword in his RIGHT hand and the shield on his LEFT arm in every view, the views from behind included. No scenery.
+```
+Where: Lymen's new fight sheet `lymen_p2` (the attack in hand, these rows beside it), worn by Lymen in every fight, camp and road scene in place of `lymen_p0`. Cut as: the garrison's fight sheets (tools/trooper-fight-sheet.py), one scale for every row and view at 48 px; SW, W and NW mirrored from SE, E and NE.
+
+## 59. Lymen's own rows (lay on hands, divine smite, green again, what falls feeds, relentless) and the standard extras, SECOND (added 11-13, the garrison cutter, on his word via the lanes desk) -- IN THE OUTBOX 2026-11-13, waiting to go (`deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/` and its `.zip`)
+
+From the engine side (the garrison cutter, for the lanes desk), for the art desk. The same Lymen as `ASK-2026-11-13-lymen-fight-sheet-standard`, which comes first: this ask is what he does that only he does, and the standard rows the engine can live without. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 59.
+
+His words, to the lanes desk 2026-11-13: *"well it shouldn't be barley's, he needs lymen uniques"*, *"but like barleys format for the engine is correct"*; *"separate the paladin asks for what we need to be done with the LPC lymen into different asks"*; on the smite, *"smites an after effect a player has to choose on a hit, otherwise we'd just make the hit glow"*; and on guides, *"we're only doing the mannequins for the weapon variant attack style variant yada yada, the regular stuff the art dept guesses at well enough"* -- so NO MANNEQUIN GUIDES here either.
+
+His rows are taken from what Lymen holds in the game (the paladin of the Oath of the Green Return, a half-orc), each keyed by the feature and worded from the feature's own text. Left out: nothing he holds that shows has been left out; his Fighting Style (Defense) and his darkvision are passive with nothing to see.
+
+### 1. Lymen's own rows and the standard extras -- in all five views
+ATTACH as the standard ask: `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/ART-MC-LYMEN-BASE-ATTACK-06-S.png`, `-SE.png`, `-E.png`, `-NE.png`, `-N.png`, `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/pt_lymen-portrait-sheet.png`, `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/LYMEN-ATTACK-AS-CUT-4x-over-the-old-LPC-figure.png`, `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/barley_p3-the-format-reference.png`, `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: the six-frame attack you drew of Lymen in five views, his portrait, the attack cut at game size, the party fighter's sheet for the format, and the game's palette. Draw these rows of Lymen in the same five views, at the same one size as his standard rows (48 pixels sole to crown at game size, every row and view at one scale). No pose guides.
+
+LYMEN: the half-orc paladin of the attached pages -- green skin, swept dark hair, small tusks, chain mail with leather straps, the green collar, the LONGSWORD in his RIGHT hand, the round shield on his LEFT forearm. His guard is the attack's frame 1, and every row below starts and ends in it unless it says otherwise. The light of his oath is green-gold (the Green Return: what falls, grows again).
+
+HIS OWN ROWS:
+Layonhands (6: LAY ON HANDS -- "an action, a touch: heal": he steps to a friend beside him, sets the sword's point down, lays his left hand on them with the shield slung forward, a soft green-gold light passing from his palm on 3 and 4, back to guard on 6);
+Divinesmite (6: DIVINE SMITE -- chosen after a blow has already landed, "2d8 radiant damage": from the guard his attack ends in, he drives the blade forward again into the same foe and it flares with white-gold radiance on 3 and 4, the light bursting off the edge, back to guard on 6. It is NOT a glowing swing; it answers a hit already made);
+Greenagain (6: GREEN AGAIN -- "Channel Divinity: one of yours at 0 HP ... stands": he raises the sword's hilt before his face like a holy symbol, the shield lowered, and calls; green-gold light rises from the ground in front of him on 3 to 5; he sags a little on 6, as he gives his own strength);
+Whatfallsfeeds (4: WHAT FALLS, FEEDS -- his reaction when a creature falls near him: he turns his head and lifts his left hand toward it, a ring of small green-gold motes spreading outward on 2 and 3, back on 4);
+Relentless (6: RELENTLESS ENDURANCE, the half-orc's -- "refuses to fall": struck down, he buckles to one knee on 2 and 3, plants the sword on 4 and drives himself back up onto his feet, bloodied, into his guard on 6).
+
+THE STANDARD EXTRAS (Barley's rows, not needed for him to wear his sheet, wanted after):
+Flinch (4: struck, rocked back behind the shield, recovering);
+Prone (5: lying on the ground and the small movements of lying there -- the last is how he lies);
+Getup (6: from lying on the ground, rising to his feet into his guard);
+Defend (4: the shield raised high and braced, the sword held back, set to take a blow);
+Useitem (4: the sword lowered, the left hand bringing a small flask to his mouth past the shield, drinking, lowering it);
+Victory (6: the fight won: he lifts the sword high, the shield lowered, then plants its point down and rests both hands on the pommel);
+Interact (6: reaching out with his left hand to work something at arm's height -- a lever, a latch -- then back to guard);
+Attack2 (6: a second blow, different from the first: a straight thrust over the shield's rim, the shield staying high, the blow on frame 4).
+
+HEAD 1 -- from the front, facing the viewer (south). Every row above.
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner. HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind. HEAD 5 -- straight from behind, facing away. The same rows each.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of the attached pages; the whole figure head to foot; flat dark navy background (a deep blue, not grey and not black); labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the sword in his RIGHT hand and the shield on his LEFT arm in every view. No scenery.
+```
+Where: Lymen's fight sheet `lymen_p2`, rows keyed `layonhands`, `divinesmite`, `greenagain`, `whatfallsfeeds`, `relentless`, and the standard `flinch`, `prone`, `getup`, `defend`, `useitem`, `victory`, `interact`, `attack2`. Cut as the standard ask. The engine plays the standard extras already (as Barley's); it does not yet play a row for any of his own five -- the wiring is a seat's job when they come back.
