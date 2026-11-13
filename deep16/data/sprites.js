@@ -9690,47 +9690,39 @@
 "door": "shop:lucia"
 },
 "lymen_check_p2": {
-"image": "art/lymen_check_p2.png?v=777e092d13",
-"fw": 34,
-"fh": 80,
-"ax": 17,
-"ay": 74,
-"top": 52.76190476190476,
+"image": "art/lymen_check_p2.png?v=7960b8c425",
+"fw": 84,
+"fh": 84,
+"ax": 42,
+"ay": 76,
+"top": 48,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 34,
-"fh": 80,
-"ax": 17,
-"ay": 74,
+"fw": 84,
+"fh": 84,
+"ax": 42,
+"ay": 76,
 "frames": 1,
-"fps": 1,
-"drawn": [
-1,
-7
-]
+"fps": 1
 },
 "attack": {
-"y": 640,
-"fw": 68,
-"fh": 80,
-"ax": 34,
-"ay": 74,
+"y": 672,
+"fw": 118,
+"fh": 84,
+"ax": 59,
+"ay": 76,
 "frames": 6,
 "fps": 10,
-"release": 3,
-"drawn": [
-1,
-7
-]
+"release": 3
 }
 },
-"name": "Lymen (SE checkpoint)",
+"name": "Lymen (attack checkpoint)",
 "hold": [
-"a review sheet: the art desk's SE checkpoint (V2) of Lymen's base attack, one view, for Griz's go before the other four are drawn -- worn by nobody",
-"frame 5: the shield's outward travel partly hidden by SE foreshortening (the art desk's own note)"
+"a review row: the art desk's six-frame attack in five drawn views, for Griz's eye before a whole sheet is drawn -- worn by nobody",
+"S frame 4 looks nearly down the blade; N frame 5 hides most of the blade; rear NE's guard shows more shield rim than the mannequin; S and N stances squarer than the guide (the art desk's own notes)"
 ],
-"source": "drawn by the art desk (ART-MC-LYMEN-BASE-ATTACK-SE-CHECKPOINT-V2, 11-13: SE over Griz's re-posed longsword-and-shield slash), cut by tools/lymen-check-sheet.py over tools/vivian-sheet.py; SW mirrored"
+"source": "drawn by the art desk (ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS, 11-13, over GUIDE-2026-11-13b-longsword-and-shield), cut by tools/lymen-check-sheet.py; SW W NW mirrored"
 },
 "lymen_p0": {
 "image": "art/lymen_p0.png?v=d8ba57d585",
