@@ -502,7 +502,7 @@ All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dar
 ```
 Where: Lymen's fight sheet `lymen_p2`, rows keyed `layonhands`, `divinesmite`, `greenagain`, `whatfallsfeeds`, `relentless`, and the standard `flinch`, `prone`, `getup`, `defend`, `useitem`, `victory`, `interact`, `attack2`. Cut as the standard ask. The engine plays the standard extras already (as Barley's); it does not yet play a row for any of his own five -- the wiring is a seat's job when they come back.
 
-## 62. The Mirror Stirge in two more states: WITHERED and CHARGED (a follow-up to ART-143) (added 11-14, the lanes desk, on his word: *"Art request for withered and charged mirror striges to outbox please?"*) -- IN THE OUTBOX 2026-11-14, waiting to go (`deep16/_src/outbox/ASK-2026-11-14-mirror-stirge-withered-and-charged/` and its `.zip`)
+## 62. The Mirror Stirge in two more states: WITHERED and CHARGED (a follow-up to ART-143) (added 11-14, the lanes desk, on his word: *"Art request for withered and charged mirror striges to outbox please?"*) -- sent 2026-11-14 (`deep16/_src/art-desk/sent/ASK-2026-11-14-mirror-stirge-withered-and-charged/` and its `.zip`; his *"sendable in outbox sent"*)
 
 From the engine side (the lanes desk), for the art desk. One ask: your ART-143 Mirror Stirge, drawn twice more, as you drew the Mirror Wolf and the Mirror Worg in three states. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-14-mirror-stirge-withered-and-charged/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 62.
 
@@ -543,7 +543,7 @@ Where: two new sheets, `mirrorstirge_emaciated_p1` and `mirrorstirge_overcharged
 
 What is sourced and what is the desk's: the two states and what they mean in the game are his rulings of 11-13 and 11-14; that the Mirror Stirge gets them is his word above. The look of each state (clouded and cracked; lit facets and sparks) is the desk's wording, drawn from your own Emaciated and Overcharged wolf and from the ART-143 brief. Draw past it where your wolf did.
 
-## 63. The Mirror Hyena on a sheet of its own, in three states: NORMAL, WITHERED and CHARGED (new; on the hyena's frame, ART-30) (added 11-14, the lanes desk, on his word: *"What other mirror randoms do we need art for?"*, and to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?", *"Yes, ask for it"*) -- IN THE OUTBOX 2026-11-14, waiting to go (`deep16/_src/outbox/ASK-2026-11-14-mirror-hyena-three-states/` and its `.zip`)
+## 63. The Mirror Hyena on a sheet of its own, in three states: NORMAL, WITHERED and CHARGED (new; on the hyena's frame, ART-30) (added 11-14, the lanes desk, on his word: *"What other mirror randoms do we need art for?"*, and to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?", *"Yes, ask for it"*) -- sent 2026-11-14 (`deep16/_src/art-desk/sent/ASK-2026-11-14-mirror-hyena-three-states/` and its `.zip`; his *"sendable in outbox sent"*)
 
 From the engine side (the lanes desk), for the art desk. One ask: the hyena you finished in ART-30, remade as a mirror creature, in the three states you drew the Mirror Wolf and the Mirror Worg in. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-14-mirror-hyena-three-states/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 63.
 
