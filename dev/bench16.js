@@ -9864,6 +9864,88 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preVR);
     return;
   }
+  // THE SNOOT'S ROAD, 11-14 (mode=snootroad1114; the clock seat -- RULED 11-14, Griz, typed to the seat: "I'd like each playthrough to get it's own snoot, in that the
+  // snoot markers have a % chance of finding a farm and which direction they go is now less static. Party and snoot marker in the same hex should be more than random
+  // encounter, perception checks to see if they notice the snooting gnolls in time to interrupt movement and retreat"; "roll to find a farm in each hex, percentage
+  // based on # of farms in that hex, snoots it for a day if found - survivors make for nearest silverton, inn or pit"; "shifting gossip time based on how it rolls out
+  // for that playthrough (not necessarily 7)"; "we'll try it with the dust cloud."): js/snootroad.js. salt= the save's seed, saves= the seeds surveyed
+  if (get('mode', '') === 'snootroad1114') {
+    var repQ = { checks: [], errors: [], notes: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, WQ = D.world, SRq = D.snootroad, HGq = D.hunger;
+    function okQ2(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    try {
+      if (!SRq || !SRq.sim || !HGq) throw new Error('no snoot road: js/snootroad.js SR.sim');
+      D.seed = +get('seed', 1114); WQ.index(); WQ.use('world'); var SQq = WQ.load('?fresh&far'), MQ = WQ.M(), tQ = function (d, h) { return (d - 1) * 24 + h; }, KQ = WQ.K;
+      var saltQ = +get('salt', 7), NQ = +get('saves', 200), adjQ = function (a, b) { var dq = b[0] - a[0], dr = b[1] - a[1]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (d) { return d[0] === dq && d[1] === dr; }); };
+      var siteQ = function (id) { return MQ.sites.filter(function (s) { return s.id === id; })[0]; }, tB = tQ(SRq.BOARD, 0), refK = {}; ['inn', 'pit', 'silverton'].forEach(function (id) { var s = siteQ(id); refK[KQ(s.hex[0], s.hex[1])] = id; });
+      SQq.seed = saltQ; SQq.snootLoss = {}; HGq.on = false; // (the made things' markers off: their survivors are mode=hunger1114's)
+      // 1. who is out, from where, from when
+      var st1 = SRq.BANDS.map(function (b) { return b.id + ' from ' + SRq.start(b) + ' day ' + b.out[0] + ' ' + b.out[1] + 'h'; }).join('; '), moot = siteQ('moot');
+      okQ2('the bands out: ' + st1 + '; none on THE WORLD before its hour (' + SRq.bands(tQ(1, 5)).length + ' at five on day 1, ' + SRq.bands(tQ(1, 7)).map(function (x) { return x.id; }) + ' at seven)',
+        SRq.BANDS.length === 4 && SRq.start(SRq.BANDS[0]).join() === moot.hex.join() && SRq.start(SRq.BANDS[1]).join() === '11,12' && SRq.bands(tQ(1, 5)).length === 0 && SRq.bands(tQ(1, 7)).length === 1);
+      // 2. a band's road: a hex beside the last at each step, three a day at most, never a refuge's own hex, 24 hours where it finds a farm; the same every time
+      var a1Q = JSON.stringify(SRq.sim(tB).by.gk1.trail), a2Q = JSON.stringify(SRq.sim(tB).by.gk1.trail); SQq.seed = saltQ + 1; var b1Q = JSON.stringify(SRq.sim(tB).by.gk1.trail); SQq.seed = saltQ;
+      var bad = [], sv = { rolls: 0, found: 0, burned: [], ref: 0, inn: 0, pit: 0, sil: 0, rum: [], never: 0, arrOk: 0, pit14: 0, moved: 0, ways: {} };
+      for (var sq = 1; sq <= NQ; sq++) {
+        SQq.seed = sq; var Rq = SRq.sim(tB); sv.rolls += Rq.rolls; sv.found += Rq.found; sv.burned.push(Object.keys(Rq.burned).length);
+        SRq.BANDS.forEach(function (b) { var x = Rq.by[b.id], prev = SRq.start(b), perDay = {}, hold = -1;
+          x.trail.forEach(function (s) { var dd = Math.floor(s.T / 24); perDay[dd] = (perDay[dd] || 0) + 1; if (!adjQ(prev, s.hex) || refK[KQ(s.hex[0], s.hex[1])] || perDay[dd] > SRq.HEXES || s.T < hold || s.T < x.out) bad.push(sq + ':' + b.id + '@' + s.T); if (s.found) hold = s.T + SRq.HOLD; prev = s.hex; });
+          if (b.id === 'gk1' && x.trail.length > 5) sv.ways[x.trail.slice(0, 6).map(function (s) { return s.hex.join('.'); }).join(' ')] = 1; });
+        Rq.ref.forEach(function (r) { sv.ref++; sv[r.to === 'silverton' ? 'sil' : r.to]++; var dd2 = Math.hypot(r.toPt[0] - r.from[0], r.toPt[1] - r.from[1]); if (Math.abs(r.arrive - (r.t0 + dd2 / HGq.CART * 24)) < 1e-6 && r.zone === 'snoot' && r.n >= 1) sv.arrOk++; });
+        var rdQ = SRq.rumorDay('inn', tB); if (rdQ == null) sv.never++; else sv.rum.push(rdQ);
+        var pitS = siteQ('pit'); SRq.bands(tB).forEach(function (x) { if (Math.hypot(x.pt[0] - pitS.x, x.pt[1] - pitS.y) <= 15) sv.pit14++; });
+      }
+      SQq.seed = saltQ; var midQ = function (l) { l = l.slice().sort(function (a, b) { return a - b; }); return l.length ? l[0] + ', ' + l[l.length >> 1] + ', ' + l[l.length - 1] : 'never'; };
+      okQ2('a band\'s road in ' + NQ + ' saves: each step to a hex beside the last, ' + SRq.HEXES + ' a day at most, none before its hour, none into the inn\'s, the Pit\'s or Silverton\'s own hex, none in the 24 hours after a finding (' + (bad.length ? 'off: ' + bad.slice(0, 6).join(' ') : 'all') + '); asked twice the same (' + (a1Q === a2Q) + '), another save another way (' + (a1Q !== b1Q) + '; ' + Object.keys(sv.ways).length + ' different first days of the young blood)',
+        !bad.length && a1Q === a2Q && a1Q !== b1Q && Object.keys(sv.ways).length > 20);
+      okQ2('a farm found ' + sv.found + ' times in ' + sv.rolls + ' rolls (' + (sv.found / sv.rolls * 100).toFixed(1) + '%; ' + (SRq.FIND * 100) + ' each, so a hex of five is found in ' + ((1 - Math.pow(1 - SRq.FIND, 5)) * 100).toFixed(0) + ' in 100)', sv.rolls > 500 && Math.abs(sv.found / sv.rolls - SRq.FIND) < 0.03);
+      okQ2('their people: ' + sv.ref + ' bands of survivors in ' + NQ + ' saves (to the inn ' + sv.inn + ', the Pit ' + sv.pit + ', Silverton ' + sv.sil + '), one a finding, each to the nearest of the three at a cart\'s pace (' + sv.arrOk + ')', sv.ref > 0 && sv.arrOk === sv.ref);
+      repQ.notes.push('over ' + NQ + ' saves to the dawn of day ' + SRq.BOARD + ': farms burned a save (lowest, middle, highest) ' + midQ(sv.burned) + '; the farmers\' word at the inn on day ' + midQ(sv.rum) + ', never in ' + sv.never + '; bands within 15 miles of the Pit that morning, ' + (sv.pit14 / NQ).toFixed(1) + ' a save of ' + SRq.BANDS.length);
+      var R7 = SRq.sim(tB); repQ.notes.push('seed ' + saltQ + ': ' + SRq.BANDS.map(function (b) { var x = R7.by[b.id]; return b.id + ': ' + x.trail.map(function (s) { return s.hex.join('.') + (s.found ? '*' + s.found : ''); }).join(' '); }).join(' | ') + ' (*n: farms found and burned there)');
+      repQ.notes.push('seed ' + saltQ + ' survivors: ' + R7.ref.map(function (r) { return r.n + ' ' + r.kind + (r.n > 1 ? 's' : '') + ' day ' + (Math.floor(r.t0 / 24) + 1) + ' at ' + r.hex0 + ' by ' + r.band + ' to ' + r.to + ' day ' + (Math.floor(r.arrive / 24) + 1); }).join('; '));
+      // 3. the supper's farmers' word by the rolls; a test door with no game keeps day 7
+      okQ2('the farmers\' word at the inn by the rolls: day ' + midQ(sv.rum) + ' (lowest, middle, highest), never in ' + sv.never + ' of ' + NQ + '; no game up, the supper keeps its own day (' + D.inn.SUP.dayOf({ id: 'heardFarmers', day: 7 }) + ')', sv.rum.length > NQ / 2 && D.inn.SUP.dayOf({ id: 'heardFarmers', day: 7 }) === 7);
+      // 4. the survivors on the road with the made things': the same meeting, their own words
+      var rf = null, rs = 0; for (var s4 = 1; s4 <= 400 && !rf; s4++) { SQq.seed = s4; rf = SRq.sim(tB).ref.filter(function (r) { return r.arrive - r.t0 > 6; })[0] || null; rs = s4; }
+      SQq.seed = rs; SQq.metRef = []; SQq.snootMet = {}; SQq.snootSign = {}; SQq.t = rf.t0 + 3; var liveQ = HGq.refugees().filter(function (r) { return r.id === rf.id; })[0]; HGq.on = true; var liveQ2 = HGq.refugees().filter(function (r) { return r.id === rf.id; })[0]; HGq.on = false;
+      var txtQ = liveQ2 ? HGq.card(liveQ2).join(' ') : '';
+      okQ2('save ' + rs + ': the people of ' + rf.n + ' burned ' + rf.kind + (rf.n > 1 ? 's' : '') + ' are on the road with the made things\' survivors (' + !!liveQ2 + ', off with the hunger off ' + !liveQ + '), in ' + (liveQ2 && liveQ2.hex) + ' three hours on, their card their own: ' + txtQ.slice(0, 260), !!liveQ2 && !liveQ && /Gnolls in the barley/.test(txtQ) && txtQ.indexOf(rf.toName) >= 0);
+      // 5. THE RUN-IN: the party in a band's hex -- Perception made, FIGHT or BACK AWAY; missed, FIGHT alone; once a band a day; the DCs
+      SQq.seed = saltQ; SQq.snootLoss = {}; SQq.snootMet = {}; SQq.snootSign = {}; var tM = tQ(5, 11), xb = SRq.bands(tM).filter(function (x) { return !x.busy; })[0] || SRq.bands(tM)[0];
+      var fighter = { name: 'Barley', id: 'barley', abil: { wis: 12 }, lvl: 3, prof: 2, skills: ['Perception'] }, d20s = [], d0 = D.inn.d20, cardsQ = [], saysQ = [], fights = [], scQ = { q: '', card: function (l, t, k) { cardsQ.push({ l: l, k: k || [] }); }, say: function (s) { saysQ.push(s); }, fight: function (p, e, o) { fights.push({ p: p, o: o }); }, afterFight: function () { }, encounter: function () { } };
+      SRq.testParty = [fighter]; D.inn.d20 = function () { return d20s.shift(); };
+      SQq.t = tM; SQq.at = xb.hex.slice(); SQq.pos = null; SQq.from = [xb.hex[0] - 1, xb.hex[1]]; d20s = [19];
+      var g1 = WQ.onStep(scQ, { mi: 5 }), c1 = cardsQ[0], t1 = c1 ? c1.l.join(' ').replace(/\{\/?[a-z]*\}/g, '') : '', again = SRq.here(scQ);
+      okQ2('seed ' + saltQ + ', day 5 at eleven, the party in ' + xb.id + '\'s hex ' + xb.hex + ' (' + xb.n + ' of them): the step is the run-in (' + g1 + '), a 19 on the die sees them first -- ' + (c1 ? c1.k.map(function (k) { return k[2]; }).join(' / ') : 'no card') + '; not again that day (' + (again === null) + '): ' + t1.slice(0, 300),
+        g1 === true && !!c1 && c1.k.length === 2 && c1.k[1][2] === 'BACK AWAY' && again === null && /have not seen the party/.test(t1) && /Perception 19/.test(t1));
+      if (c1 && c1.k[1]) c1.k[1][1](); okQ2('BACK AWAY: the party a hex back the way it came (' + SQq.at + '), "' + (saysQ[0] || '') + '"', SQq.at.join() === [xb.hex[0] - 1, xb.hex[1]].join() && saysQ.length === 1);
+      SQq.snootMet = {}; SQq.at = xb.hex.slice(); SQq.pos = null; cardsQ = []; d20s = [2]; WQ.onStep(scQ, { mi: 5 }); var c2 = cardsQ[0], t2 = c2 ? c2.l.join(' ').replace(/\{\/?[a-z]*\}/g, '') : '';
+      okQ2('a 2 on the die and they have seen the party first: ' + (c2 ? c2.k.map(function (k) { return k[2]; }).join(' / ') : 'no card') + ' alone', !!c2 && c2.k.length === 1 && c2.k[0][2] === 'FIGHT' && /seen the party first/.test(t2));
+      // 6. the fight is the nearest hands of the band, never the war-band; what the party kills comes off it, win or run; a band with nobody left is gone
+      if (c2) c2.k[0][1](); var fq = fights[0], shareQ = fq ? fq.p.list : [];
+      okQ2('the fight: ' + shareQ.join(', ') + ' (' + shareQ.length + ' of ' + xb.n + ', ' + SRq.SHARE + ' at most; a leader first)', !!fq && shareQ.length === Math.min(SRq.SHARE, xb.n) && shareQ.length <= SRq.SHARE && /^gloryseeker/.test(shareQ[0]) && !!fq.o.after && /of 18/.test(fq.o.intro));
+      var deadK = shareQ.slice(0, 4), fakeB = { units: shareQ.map(function (k, i) { return { side: 'foe', kind: k, hp: i < 4 ? 0 : 5, dead: i < 4 }; }).concat([{ side: 'party', kind: 'fighter', hp: 0, dead: true }]) };
+      if (fq) fq.o.after('escaped', fakeB); var left1 = SRq.bands(tM + 1).filter(function (x) { return x.id === xb.id; })[0];
+      okQ2('the party kills four and gets clear: the band is ' + (left1 && left1.n) + ' (' + JSON.stringify(left1 && left1.left) + '), the loss kept in the save (' + JSON.stringify(SQq.snootLoss[xb.id]) + ')', !!left1 && left1.n === xb.n - 4 && !left1.gone && SQq.snootLoss[xb.id].length === 1);
+      SQq.snootLoss[xb.id].push({ t: tM + 2, k: Object.assign({}, left1.left) }); var goneQ = SRq.bands(tM + 3).filter(function (x) { return x.id === xb.id; })[0], stepsAfter = SRq.sim(tB).by[xb.id].trail.filter(function (s) { return s.T >= tM + 2; }).length; SQq.t = tM + 3; SQq.snootMet = {};
+      okQ2('the rest killed: the band is gone (' + (goneQ && goneQ.gone) + '), walks no further (' + stepsAfter + ' steps after), and is nobody\'s run-in (' + (SRq.here(scQ) === null) + ')', !!goneQ && goneQ.gone && stepsAfter === 0 && SRq.here(scQ) === null);
+      okQ2('the DCs: by day ' + SRq.DC.day + ', after dark ' + SRq.DC.night + ', a band busy at a farm ' + SRq.DC.busy, SRq.DC.day === 10 && SRq.DC.night === 15 && SRq.DC.busy === -5);
+      // 7. DUST from a hex beside a band on the move by day, SMOKE from one at a farm; once a band a day; not at night for dust
+      SQq.snootLoss = {}; SQq.snootMet = {}; SQq.snootSign = {}; var dustAt = null, smokeAt = null;
+      for (var d7 = 2; d7 < SRq.BOARD && !(dustAt && smokeAt); d7++) [11, 15].forEach(function (h7) { SRq.bands(tQ(d7, h7)).forEach(function (x) { if (x.moving && !dustAt) dustAt = { t: tQ(d7, h7), x: x }; if (x.busy && !smokeAt) smokeAt = { t: tQ(d7, h7), x: x }; }); });
+      var signAt = function (o) { SQq.snootSign = {}; SQq.t = o.t; SQq.at = [o.x.hex[0] - 1, o.x.hex[1]]; SQq.pos = null; var s1 = SRq.signs(scQ), s2 = SRq.signs(scQ); return [s1, s2]; };
+      var du = dustAt ? signAt(dustAt) : [null, null], sm = smokeAt ? signAt(smokeAt) : [null, null];
+      okQ2('a hex west of ' + (dustAt && dustAt.x.id) + ' on the move: "' + du[0] + '", once (' + (du[1] === null) + '); west of ' + (smokeAt && smokeAt.x.id) + ' at a farm: "' + sm[0] + '"', /^Dust to the east/.test(du[0] || '') && du[1] === null && (!smokeAt || /^Smoke to the east/.test(sm[0] || '')));
+      // 8. the board's hand-over: each band's hex (and the board's offset columns), what is left, the farms burned
+      SQq.t = tB + 6; var bd = SRq.board(), frozen = JSON.stringify(SRq.bands(tB + 6).map(function (x) { return x.hex; })) === JSON.stringify(SRq.bands(tB + 200).map(function (x) { return x.hex; }));
+      okQ2('SR.board() on day ' + SRq.BOARD + ': ' + bd.bands.map(function (x) { return x.id + ' at ' + x.hex + ' (offset ' + x.offset + '), ' + Object.keys(x.left).map(function (k) { return x.left[k]; }).join('+') + ', ' + x.burned + ' farms'; }).join('; ') + '; ' + bd.burned.length + ' farms burned; from that day the markers stand (' + frozen + ') and are nobody\'s run-in (' + (SRq.here(scQ) === null) + ')', bd.bands.length === 4 && frozen && SRq.here(scQ) === null && bd.bands.every(function (x) { return x.offset[0] === x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2; }));
+      D.inn.d20 = d0; SRq.testParty = null; HGq.on = true;
+    } catch (eQ2) { repQ.errors.push(String(eQ2 && eQ2.stack || eQ2).slice(0, 900)); }
+    D.store.get = stGQ; D.store.set = stSQ; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // THE HUNGER, 11-14 (mode=hunger1114; the clock seat -- RULED 11-14, Griz, typed to the seat: "percentage hex entered seems good match for our marker system", "5 - yes";
   // "odds (they feed) in squares without farms, road etc around 5% - resets days only save mirror hyenas, which don't spawn fleeing farmers and become charged. Other
   // mirror entities just feed and spawn fleeing survivors."; "3 - 60% on the farms, 90% hamlet"; "4 - it doesn't stay put, otherwise yes"; "the withered would weight
@@ -9876,7 +9958,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (!HG || !HG.sim || !WH.encPct) throw new Error('no hunger: js/hunger.js HG.sim, js/world.js W.encPct');
       D.seed = +get('seed', 1114); WH.index(); WH.use('world'); var SH = WH.load('?fresh&far'), VH = WH.VESSEL, MH = WH.M(), tH = function (d, h) { return (d - 1) * 24 + h; }, KH = WH.K;
       var salt0 = +get('salt', 7), NS = +get('saves', 200), adj = function (a, b) { var dq = b[0] - a[0], dr = b[1] - a[1]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (d) { return d[0] === dq && d[1] === dr; }); };
-      SH.seed = salt0;
+      SH.seed = salt0; if (D.snootroad) D.snootroad.on = false; // (the made things' own survivors: the snooting bands' are mode=snootroad1114's)
       // 1. the farms by their hex: the scatter's farms and hamlets, and the farmland hexes that hold none of them
       var FMh = HG.farms(), nS = 0, nHam = 0, nT = 0, hamK = null, farmK = null; Object.keys(FMh).forEach(function (k) { FMh[k].forEach(function (f) { if (f.id.charAt(0) === 's') { nS++; if (f.kind === 'hamlet') { nHam++; hamK = k; } } else nT++; }); if (!farmK && FMh[k][0].kind === 'farm') farmK = k; });
       var roadK = Object.keys(MH.road).filter(function (k) { return !FMh[k]; })[0], wildK = Object.keys(MH.hex).filter(function (k) { return !FMh[k] && !MH.road[k] && MH.hex[k].t === 'hills'; })[0];

@@ -110,7 +110,7 @@
   // THE SURVIVORS: where each band is at an hour -- on its way (a straight line to its refuge at a cart's pace), at the refuge for HG.STAY hours, then gone on
   HG.refugees = function (t) {
     var S = W.state(), MW = W.Mworld(); if (!HG.on || !S || !MW) return []; if (t == null) t = S.t;
-    return HG.sim(t).ref.filter(function (r) { return t >= r.t0 && t < r.arrive + HG.STAY; }).map(function (r) {
+    return HG.sim(t).ref.concat(HG.more ? HG.more(t) : []).filter(function (r) { return t >= r.t0 && t < r.arrive + HG.STAY; }).map(function (r) { // (HG.more: the people the snooting bands burn out, js/snootroad.js)
       var f = Math.min(1, (t - r.t0) / Math.max(1e-6, r.arrive - r.t0)), pt = [r.from[0] + (r.toPt[0] - r.from[0]) * f, r.from[1] + (r.toPt[1] - r.from[1]) * f];
       return Object.assign({}, r, { pt: pt, hex: hexOf(pt[0], pt[1], MW.w), there: t >= r.arrive });
     });
@@ -126,6 +126,7 @@
     said: {
       glowseep: '"It stood over the bed. Lights in it, like the bog at night, and eyes that gave me my own face. Come morning she could not lift the boy."',
       doors: '"Wolves, I would have said. Wolves do not stand at the foot of a bed and wait. He has not lifted his arms since."',
+      snoot: '"Gnolls in the barley. Young ones, laughing, and no chief over them. We did not stay to count them."', // (burned out by a snooting band: js/snootroad.js)
       other: '"It stood over us till the sun was up. It never bit. Look at him. He cannot carry his own coat."'
     },
     going: 'They are making for {to}. They do not stop.'
