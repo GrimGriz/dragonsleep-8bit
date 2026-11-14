@@ -180,6 +180,9 @@
     if (t.conds.marked && t.conds.marked.by === u.id && !(M.zoneGlobed && M.zoneGlobed(B, t.conds.marked, t))) d += 3.5; // (a mark on one inside a Globe of Invulnerability it was cast from outside of adds nothing)
     var sneak = 0;
     if (u.cls === 'rogue' && (wp.finesse || wp.ranged) && e.net >= 0 && (e.net > 0 || B.units.some(function (w) { return w !== u && w.side === u.side && G.standing(w) && G.dist(w, t) <= 5; }))) sneak = avg(RU.sneakDice(u));
+    // a hit on one asleep or paralyzed from within 5 ft is a critical hit (SRD 5.1, unconscious and paralyzed; battle.js attack): the dice twice, the sneak too (11-14, the AI lane's
+    // 11-03 item 3 -- wut threw a handaxe at a sleeping hobgoblin from long range instead of closing for the sure critical)
+    if ((t.conds.asleep || t.conds.paralyzed) && G.dist(u, t, x, y) <= 5) { d += avg(wp.dice); sneak *= 2; }
     return { p: p, d: d, sneak: sneak, net: e.net };
   }
   // the best weapon plan: from the squares it can walk to this turn, the target and weapon worth most

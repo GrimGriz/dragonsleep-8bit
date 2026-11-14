@@ -350,6 +350,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       repLD.notes.push('3 the fighter 55 ft from the goblin: plans ' + (pl3.slice(0, 2).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | ') || '(none)'));
       var rs3 = null; if (D.rec.start && !B3.rec) D.rec.start(B3, { fight: 'aileads1114', name: 'the bench', level: 3 }); if (B3.rec && D.rec.aiTurn) { ft3.turn = null; D.rec.aiTurn(B3, ft3); var st3 = B3.rec.steps[B3.rec.steps.length - 1]; rs3 = st3 && st3.turnStart && st3.turnStart.ai; }
       okLD('3 nothing in reach: the AI would "' + why3 + '"; the watched turn\'s record reads ' + JSON.stringify(rs3), /toward|closes on/.test(why3 || '') && /Goblin/i.test(why3 || '') && !!rs3 && rs3.length > 0 && rs3[0].why === why3);
+      // 5. the sure critical (the lane's 11-03 item 3): a fighter with a greatsword and handaxes, a hobgoblin asleep 25 ft off -- it closes for the critical rather than throw
+      var B5 = mkLD('?npc=hobgoblin&vs=fighter:3&lvl=3'), hb5 = B5.units.filter(function (u) { return u.kind === 'hobgoblin'; })[0], ft5 = B5.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      placeLD(B5, [[ft5, 4, 6], [hb5, 9, 6]]); hb5.conds.asleep = { by: 'bench' }; D.rules.startTurn(ft5);
+      var pl5 = D.tactics.plans(B5, ft5), top5 = pl5[0] || {}, sh5 = pl5.filter(function (p) { return /^shoots/.test(p.why); })[0];
+      delete hb5.conds.asleep; hb5.conds.restrained = { by: 'bench' }; D.rules.startTurn(ft5); var st5 = D.tactics.plans(B5, ft5).filter(function (p) { return /^strikes/.test(p.why); })[0]; delete hb5.conds.restrained;
+      okLD('5 a hobgoblin asleep 25 ft off: the fighter would ' + top5.why + ' ' + (top5.score || 0).toFixed(1) + (sh5 ? ' over ' + sh5.why + ' ' + sh5.score.toFixed(1) : '') + '; the same strike at it restrained (advantage alike, no critical) ' + (st5 ? st5.score.toFixed(1) : '-') + ' -- the critical priced', /^strikes/.test(top5.why || '') && (!sh5 || top5.score > sh5.score) && !!st5 && top5.score > st5.score + 2);
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
