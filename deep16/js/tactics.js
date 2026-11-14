@@ -194,6 +194,11 @@
     // leaves the reach of swings as it goes -- half a round of its blows, none when it disengaged (as a caster's step is weighed: castFrom, below)
     var press0 = T.disengaged ? [] : G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w) && w.reaction !== 0; });
     var oaOf = function (e) { return press0.reduce(function (s, w) { return s + (G.dist(u, w, e.x, e.y) > G.reachOf(w) ? TX.dpr(w) * 0.5 : 0); }, 0); };
+    // PROTECTION in the AI's hands (11-14, the AI lane §2.11: "the AI never stands a Protection fighter beside a friend" -- benched four fights, it stood 30-50 ft off every time):
+    // a square within 5 ft of a friend that foes are on is worth the reaction's disadvantage there -- about a quarter of the hardest blow coming at that friend (battle.js attack's
+    // `prot`: a shield-bearer of its side within 5 ft of the one attacked, who sees the attacker)
+    var guards = u.style === 'protection' && u.src && u.src.equip && u.src.equip.shield && u.reaction !== 0 ? alliesOf(B, u).filter(function (w) { return w !== u && !w.object; }) : [];
+    var guardOf = function (e) { var v = 0; guards.forEach(function (w) { if (G.dist(u, w, e.x, e.y) > 5) return; G.foesNear(w, w.x, w.y, 5).forEach(function (f) { v = Math.max(v, TX.dpr(f) * 0.25); }); }); return v; };
     var squares = [here];
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y)) squares.push(e); });
     weapons(u).forEach(function (wp) {
@@ -210,7 +215,7 @@
           if (u.combo && wp === u.combo[0]) dmg = u.combo.slice(0, n).reduce(function (a, w) { var sw = swing(B, u, t, w, e.x, e.y); return a + sw.p * sw.d; }, 0); // (claw, claw, bite: each swing its own dice)
           var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not
-          sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0) + (e === here ? 0 : oaOf(e));
+          sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0) + (e === here ? 0 : oaOf(e)) - (guards.length ? guardOf(e) : 0);
           if (!best || sc > best.score) best = { score: sc, t: t, e: e, wp: wp, why: (wp.ranged ? 'shoots ' : 'strikes ') + t.name };
         });
       });

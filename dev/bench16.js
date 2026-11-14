@@ -379,6 +379,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var w8a = D.tactics.readyWanted(B8, ft8), why8 = D.tactics.idleWhy(B8, ft8);
       gb8.hp = 0; gb8.dead = true; var w8b = D.tactics.readyWanted(B8, ft8); gb8.dead = false; gb8.hp = gb8.maxhp;
       okLD('8 a bulette under and a goblin in sight ' + D.grid.dist(ft8, gb8) + ' ft off: READY wanted ' + w8a + ', the AI would "' + why8 + '"; the goblin gone, READY wanted ' + w8b, w8a === false && /toward Goblin/.test(why8 || '') && w8b === true);
+      // 9. PROTECTION in the AI's hands (the lane's §2.11): a fighter with the style and a shield, an ogre on the wizard 25 ft off -- the strike at the ogre is worth more from
+      // a square beside the wizard by a quarter of the ogre's round (the reaction's disadvantage); without the style, nothing
+      var B9L = mkLD('?npc=ogre&vs=fighter:3,wizard:3&lvl=3'), og9 = B9L.units.filter(function (u) { return u.kind === 'ogre'; })[0], ft9L = B9L.units.filter(function (u) { return u.cls === 'fighter'; })[0], wz9 = B9L.units.filter(function (u) { return u.cls === 'wizard'; })[0];
+      placeLD(B9L, [[wz9, 6, 5], [og9, 7, 5], [ft9L, 6, 10]]); if (ft9L.src && ft9L.src.equip) ft9L.src.equip.shield = ft9L.src.equip.shield || 'shield';
+      var str9 = function () { D.rules.startTurn(ft9L); var p9 = D.tactics.plans(B9L, ft9L).filter(function (p) { return p.kind === 'weapon' && /Ogre/.test(p.why) && /^strikes/.test(p.why); })[0]; return p9 ? p9.score : null; };
+      var fl0 = D.grid.flank; D.grid.flank = function () { return null; }; // (flanking off for the check: from the ogre's far side the fighter flanks with the wizard, worth about what the guard is)
+      var st0 = ft9L.style; ft9L.style = 'protection'; ft9L.reaction = 1; var s9p = str9(); ft9L.style = null; var s9n = str9(); ft9L.style = st0; D.grid.flank = fl0;
+      okLD('9 a Protection fighter 25 ft from the ogre on the wizard: the strike from beside the wizard ' + (s9p == null ? '-' : s9p.toFixed(1)) + ', without the style ' + (s9n == null ? '-' : s9n.toFixed(1)) + ' (the guard worth a quarter of the ogre\'s round, ' + (D.tactics.dpr(og9) * 0.25).toFixed(1) + '; flanking off for the check)',
+        s9p != null && s9n != null && Math.abs((s9p - s9n) - D.tactics.dpr(og9) * 0.25) < 0.3 && s9p - s9n > 1);
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
