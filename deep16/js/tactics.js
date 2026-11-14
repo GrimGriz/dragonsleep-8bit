@@ -714,7 +714,7 @@
     // attack cantrip (SRD 5.1 Ready; 10-02, handoff-2026-10-01-the-tendrils-and-ready: the class AI readying against a burrower). Else close on the nearest, as before
     if (T.action && !u.ready && TX.readyWanted(B, u)) { yield* TX.readyUp(B, u); return; }
     // nothing in reach: close on the nearest (a Dash if it has nothing at range)
-    var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    var near = fs.filter(function (t) { return !t.under && !t.ethereal; }).concat(fs.filter(function (t) { return t.under || t.ethereal; })).sort(function (a, b) { return (!!(a.under || a.ethereal) - !!(b.under || b.ethereal)) || G.dist(u, a) - G.dist(u, b); })[0]; // (one on the field before one under the ground, 11-14)
     if (!near) return;
     // the fight above it, up a face (10-05, Griz, the Skylights benched: "bench party doesn't climb, even with a rope already up"): the brute's way up (ai.js ropeUp) -- a rope
     // hanging from up there, or its own thrown from the foot under the lip nearest the foe, or one out of the bucket first; the walk, below, is for a foe on its own level
@@ -733,7 +733,7 @@
     var T = u.turn, fs = foesOf(B, u);
     if (!T || (!T.action && !T.attacksLeft)) return null;
     if (T.action && !u.ready && TX.readyWanted(B, u)) return 'readies';
-    var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    var near = fs.slice().sort(function (a, b) { return (!!(a.under || a.ethereal) - !!(b.under || b.ethereal)) || G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return 'nothing it knows of: looks about';
     var rm = G.reach(u, T.move), e = AI.approach(u, near, rm, G.armOf(u));
     return (e && G.dist(u, near, e.x, e.y) <= G.armOf(u) ? 'closes on ' : T.action ? 'dashes toward ' : 'walks toward ') + near.name;
@@ -1118,7 +1118,9 @@
   TX.readyWanted = function (B, u) {
     var T = u.turn;
     if (!B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && (w.ethereal || w.under); })) return false;
-    return !foesOf(B, u).some(function (t) { return G.dist(u, t) <= T.move + G.reachOf(u); });
+    // (11-14, the AI lane's §2.8: a far foe in sight and a burrower under at once sent it to READY, not toward the far one -- it readies now only when no foe it can see stands
+    // anywhere; one in sight but out of a walk and a swing is gone toward, as act() closes on the nearest)
+    return !foesOf(B, u).some(function (t) { return !t.under && !t.ethereal && (!M.sees || M.sees(B, u, t)); });
   };
   TX.readyUp = function* (B, u) {
     var pick = 'weapon';
