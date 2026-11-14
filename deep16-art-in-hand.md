@@ -7,6 +7,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-14 · The Mirror Stirge's two more states, art-wanted section 62 whole (the art desk's ART-143-WITHERED-AND-CHARGED-SUPPLEMENT: Withered and Charged, each Idle 8, Fly 8, Magicdrain 8, Flinch 6, Death 8, Latched 8 in five views, 60 pages) -- cut whole into `mirrorstirge_emaciated_p1` and `mirrorstirge_overcharged_p1` on the Normal's own registration, worn by rule; `31783013` (the hyena-stirge seat, on his *"Art landed in Fresh"*). The block below.
 - 2026-11-14 · The Mirror Hyena on a sheet of its own in three states, art-wanted section 63 whole (the art desk's MIRROR-HYENA-THREE-STATE-SOURCES: Normal, Withered and Charged, each Idle 8, Walk 8, Bite 8, Death 8, Flinch 6, Laugh 10 in five views, 720 drawings native on hyena_p2's cell by its FRAME-MAP) · `deep16/_src/mirrorhyena/2026-11-14-mirror-hyena-three-state-sources/` (the zip beside it) · cut into `mirrorhyena_p1`, `mirrorhyena_emaciated_p1`, `mirrorhyena_overcharged_p1` by `tools/mirrorhyena-sheet.py`, worn by the Mirror Hyena and its states, `dadffde8` · *"Yes, ask for it"*
 - 2026-11-13 · Sólskaft's road patrol, the Dwarf Scout, art-wanted section 56 block 2 (the art desk's SOLSKAFT-ROAD-PATROL-COMBAT: five views of Idle 4, Walk 8, Attack 8 (the shortsword stab) and Shoot 6 (the longbow) over the mannequin's guides, Flinch 4, Fall 6, Prone 1; the superseding pages only, its "checkpoint" drafts not in the zip) · `deep16/_src/SOLSKAFT-ROAD-PATROL-COMBAT/` (the zip beside it) · cut into `roadpatrol_p2` by `tools/roadpatrol-fight-sheet.py` (42 px; SW, W, NW mirrored), worn by the Road Patrol (`deep16/data/foes.js` roadpatrol, `row: 'shoot'`) in place of `trooper_p0` · `0587bbb8`, by the garrison cutter, on the desk's relay of *"scout is in fresh, says it 'superceded' checkpoint so might have some better than current"* · return `deep16/_src/outbox/ENGINE-RETURN-2026-11-13d-road-patrol-combat.md`; block 1 (the two portrait stills) still wanted
 - 2026-11-13 · Sólskaft's garrison in its real kit, art-wanted section 55 block 3, its last (the art desk's ART-142-CROSSBOW-COMBAT: five views of Idle 4, Walk 8, Shoot 6 over the mannequin's guide, Span 6) · `deep16/_src/ART-142-CROSSBOW-COMBAT/` (the zip beside it) · cut into `trooperxbow_p2` by `tools/trooperxbow-fight-sheet.py` (42 px; SW, W, NW mirrored; flinch, fall, prone and a battleaxe attack from ART-142-TROOPER-COMBAT, as the ask said; `span` on the sheet, held: no place in the engine between shots), worn by the crossbow Trooper (`deep16/data/foes.js` trooperxbow, `row: 'shoot'`) · `c3f651b6`, by the garrison cutter, on the desk's relay · return `deep16/_src/outbox/ENGINE-RETURN-2026-11-13c-crossbow-combat.md`; nothing of section 55 is still wanted; its block is below
@@ -3709,3 +3710,44 @@ All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark out
 Where: three new sheets, `mirrorhyena_p1`, `mirrorhyena_emaciated_p1`, `mirrorhyena_overcharged_p1` (named as the wolf's and the worg's are), on `hyena_p2`'s cell and foot (96 x 80, the foot at 48, 72), rows `idle`, `walk`, `attack`, `hurt`, `flinch`, `rofl`; a cutter's `tools/mirrorhyena-sheet.py` over the hyena's cut; `deep16/data/foes.js` `mirrorhyena` moves from `hyena_p2` to `mirrorhyena_p1` and keeps its `drawScale` 1.25, the engine's ripple and mirror eye staying or going on his eye. The engine picks the state's sheet (the made-states seat's build, 11-14).
 
 What is sourced and what is the desk's: that the Mirror Hyena gets a sheet of its own in three states is his word above; the states' meaning is his rulings of 11-14; "mirror eyes" is the game's own block. The rest of the look (the starfield flecks, the shard mane, silver teeth, each state's detail) is the desk's wording, taken from your own Mirror Wolf pages and their ART-MIRROR-WOLF notes' three states. Draw past it where your wolf did.
+
+## 62. The Mirror Stirge in two more states: WITHERED and CHARGED (a follow-up to ART-143) (added 11-14, the lanes desk, on his word: *"Art request for withered and charged mirror striges to outbox please?"*) -- sent 2026-11-14 (`deep16/_src/art-desk/sent/ASK-2026-11-14-mirror-stirge-withered-and-charged/` and its `.zip`; his *"sendable in outbox sent"*) -- **IN HAND 2026-11-14, `31783013`**
+
+From the engine side (the lanes desk), for the art desk. One ask: your ART-143 Mirror Stirge, drawn twice more, as you drew the Mirror Wolf and the Mirror Worg in three states. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-14-mirror-stirge-withered-and-charged/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 62.
+
+What holds and is KEPT: your ART-143 Mirror Stirge, every row and every view. It is in the game as you drew it (`mirrorstirge_p1`) and it is the NORMAL state. Your Mirror Wolf and Mirror Worg in their three states are in the game too.
+
+What the states are in the game (ruled 11-14): a mirror-made creature that has gone three days without eating magic is WITHERED -- weaker, slower, and gone for good a day later. One that has just eaten magic in a fight is CHARGED -- tougher and hitting harder for the rest of that fight. The game swaps the sheet in the middle of a fight, so each state must be the same creature on the same frame: same size, same pose, frame for frame.
+
+### THE MIRROR STIRGE, WITHERED and CHARGED -- in all five views
+ATTACH `ART-143-SE-Idle-8.png`, `ART-143-SE-Fly-8.png`, `ART-143-SE-Magicdrain-8.png`, `ART-143-SE-Flinch-6.png`, `ART-143-SE-Death-8.png`, `ART-143-SE-Latched-8.png`, `ART-143-S-Idle-8.png`, `ART-143-N-Idle-8.png` (your own Mirror Stirge pages: the Normal state, the frame to draw on), `MIRROR-WOLF_HEAD-1_SE_IDLE-8_NORMAL.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_EMACIATED.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_OVERCHARGED.png` (your own Mirror Wolf in its three states: how far apart the states should read), `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: your Mirror Stirge pages (ART-143), your Mirror Wolf in its three states, and the game's 64 colours. Draw the Mirror Stirge in two more states, WITHERED and CHARGED, on its exact frame: same size, same poses, same wing-beat, frame for frame with your ART-143 pages, so the game can swap one for another in the middle of a fight.
+
+WITHERED (your wolf's Emaciated): the Mirror Stirge after three days with no magic to drink. It is starving and going out.
+- its smoked-glass body is dull and clouded, the silver sheen gone to flat grey, with a few facets missing along the ridge and hairline cracks across the body;
+- it is thinner: the belly drawn in and hollow, never swollen;
+- its pane wings are frayed and chipped at the edges, a rib or two showing bare, and the glint that crosses a wing is gone;
+- its violet eyes are dim, two faint points, flickering out on a frame or two of the Idle loop;
+- in Magicdrain and Latched the violet thread up the needle is thin and broken, and the belly lights one facet at most.
+It hovers a little unsteadily: the same hover line as Normal, but the body dips on one frame of the Idle loop.
+
+CHARGED (your wolf's Overcharged): the Mirror Stirge just after it has drunk magic. It is full and bright.
+- its body is at its blackest and most polished, every facet along the ridge lit violet from within, the belly round and glowing violet in every row (not only at the end of Latched);
+- violet light runs along the silver ribs of its wings, and each wing-beat leaves two or three small violet sparks behind it that are gone by the next frame;
+- its eyes are bright violet with a small white core;
+- its needle glows violet-white at the tip;
+- in Magicdrain the thread up the needle is thick and bright from the stab frame on.
+No larger than Normal: the same silhouette, only lit. The sparks stay close to the body so every frame still stands apart.
+
+Both states, the same rows as ART-143, in each view:
+Idle (8), Fly (8), Magicdrain (8), Flinch (6), Death (8), Latched (8).
+Death, Withered: it crumbles to grey dust and a few dull shards. Death, Charged: it shatters with a small burst of violet light on the shatter frame, then lies as dark shards with two or three still faintly lit.
+
+HEAD 1 -- from the front, facing the viewer (south). HEAD 2 -- from the bottom-right, front three-quarter, every frame facing the bottom-right corner. HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind. HEAD 5 -- straight from behind, facing away. The same rows each, as your ART-143 pages.
+
+All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of your ART-143 pages; the whole creature in every frame, hovering, no ground shadow; flat slate background; labelled rows, numbered frames, every number once; every frame apart; the hover at one height along a row; the same size as your Mirror Stirge in every view. Use only the attached 64 colours: blacks and greys from the silver ramp, lights from the violet ramp and white. No red, no gold. No scenery.
+```
+Where: two new sheets, `mirrorstirge_emaciated_p1` and `mirrorstirge_overcharged_p1` (named as the wolf's and the worg's are), on `mirrorstirge_p1`'s cell and foot, rows `idle`, `walk`, `attack`, `flinch`, `hurt`, `latched`; cut by `tools/mirrorstirge-sheet.py` through `tools/stirgepages.py` as ART-143 was, each view scaled to the Normal state's idle frame 1 in that view. The engine picks the sheet by the creature's state (the made-states seat's build, 11-14).
+
+What is sourced and what is the desk's: the two states and what they mean in the game are his rulings of 11-13 and 11-14; that the Mirror Stirge gets them is his word above. The look of each state (clouded and cracked; lit facets and sparks) is the desk's wording, drawn from your own Emaciated and Overcharged wolf and from the ART-143 brief. Draw past it where your wolf did.
