@@ -293,6 +293,7 @@
   var GOODS = ['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'];
   // (a ritual's component the camp's casting burns -- Find Familiar's Calling Herbs, 11-14, Pocket.campFamiliar: a `part` by its kind, sold with the goods)
   PK.COMPONENTS = ['callingherbs'];
+  PK.MAKER_FIG = [398, -6]; // (the maker's figure: its middle and its top, right of the title -- drawMaker, 11-14)
   PK.goodKind = function (id) { var it = DS.DATA.items[id]; return !it ? null : PK.COMPONENTS.indexOf(id) >= 0 ? 'use' : it.kind; };
   PK.tierOf = function (id) {
     var it = DS.DATA.items[id], A = D.CAMP_ARMOURY || []; if (!it) return 99;
@@ -1969,6 +1970,14 @@
     var names = ['', 'RACE AND CLASS', 'THE SCORES', 'THE LEVEL', 'THE GEAR', 'THE SPELLS', 'A NAME'];
     var caster = !!(R.CLASSES[m.cls].caster), steps = caster ? 6 : 5, showStep = step === 6 && !caster ? 5 : step;
     head(ctx, 'A NEW CHARACTER', 'step ' + Math.min(showStep, steps) + ' of ' + steps + ': ' + names[step]);
+    // THE FIGURE (11-14, Griz: "1 - yes", to the desk's "Draw the figure on the maker's card?"): the class's and race's own LPC figure (js/classes.js NPC.lookOf: npc<class>_<race>_p0
+    // where one is drawn, else the class's), fetched as it is first wanted, three dots while it comes -- as THE PARTY's cards draw theirs. Beside the title, on every step
+    var mLook = null; try { mLook = NPC.lookOf(this.mkSpec()); } catch (eL) { mLook = null; } this.mkLook = mLook;
+    if (mLook) {
+      if (D.spr.ensure) D.spr.ensure([mLook]);
+      if (D.spr.has(mLook)) D.spr.draw(ctx, mLook, 'idle', 0, this.t, PK.MAKER_FIG[0], PK.MAKER_FIG[1] + Math.min(D.spr.top(mLook), 46), {});
+      else if (!D.spr.failed(mLook)) D.text(ctx, ['.', '..', '...'][(this.t >> 4) % 3], PK.MAKER_FIG[0], PK.MAKER_FIG[1] + 20, P('stone', 5), 'center');
+    }
     var y = 40;
     if (step === 1) {
       D.text(ctx, '{y}RACE{/}', 30, y, P('bone', 1)); D.text(ctx, '{y}CLASS{/}', 250, y, P('bone', 1));
