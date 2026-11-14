@@ -610,8 +610,12 @@
   // parties south, the Pit), the MADE THINGS (the thing no one names, the things over the beds). A supper gives one: a thread not yet had, at that day's telling -- or, of a
   // thread had before, only what has moved since (a garble corrected, a word new). What was told and when is kept on the save (f.supThreads: thread -> the day)
   In.MEAL.THREADS = { moot: ['heardMoot', 'heardDominion'], gnolls: ['heardTribes', 'heardFarmers', 'heardReach', 'heardPit'], made: ['heardHarbinger', 'heardMade'] };
-  In.SUP.stageOf = function (b, d) { return d == null || d < b.day ? null : b.garble && d < b.day + b.lag ? 'garble' : 'ok'; };
-  In.SUP.bandsOf = function (th, d) { var ids = In.MEAL.THREADS[th]; return In.MEAL.bands.filter(function (b) { return ids.indexOf(b.id) >= 0 && d >= b.day; }); };
+  // a band's day: its own, but in a game the made things' word (heardMade) comes the day the dawn rolls bring it (js/hunger.js HG.rumorDay, 11-14, Griz: "rumors based
+  // off actual marker movement") -- never, if nobody has fled a made thing yet; a test door with no game keeps the band's own day
+  In.SUP.ROLLED = { heardMade: 1 };
+  In.SUP.dayOf = function (b) { var HG = D.hunger, W = D.world; if (!In.SUP.ROLLED[b.id] || !HG || !HG.on || !W || !W.house || !W.house() || !W.state()) return b.day; var r = HG.rumorDay('inn'); return r == null ? Infinity : r; };
+  In.SUP.stageOf = function (b, d) { var bd = In.SUP.dayOf(b); return d == null || d < bd ? null : b.garble && d < bd + b.lag ? 'garble' : 'ok'; };
+  In.SUP.bandsOf = function (th, d) { var ids = In.MEAL.THREADS[th]; return In.MEAL.bands.filter(function (b) { return ids.indexOf(b.id) >= 0 && d >= In.SUP.dayOf(b); }); };
   In.SUP.threadOpen = function (S, th) { // ('new': not yet had; 'fix': had, and its telling has moved since; null: nothing to say of it tonight)
     var SU = In.SUP, bs = SU.bandsOf(th, S.d); if (!bs.length) return null;
     var told = (S.f.supThreads || {})[th]; if (told == null) return 'new';

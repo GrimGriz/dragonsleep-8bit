@@ -21,7 +21,8 @@
 (function () {
   var D = window.D16, W = D.world, HG = D.hunger = {}, SQ3 = Math.sqrt(3);
   HG.on = true;
-  HG.ODDS = { hamlet: 0.9, farm: 0.6, bare: 0.05 }; // (his: 90, 60, "around 5%")
+  HG.ODDS = { hamlet: 0.9, farm: 0.6, road: 0.2, bare: 0.05 }; // (his: 90, 60, "around 5%"; a road's hex 20 -- the seat's number, his "You had stated 25% for the roads I think, and I was agreeing with it": the seat had said 20)
+  HG.AVOID = ['silverton']; // (RULED 11-14, Griz: "1 - they avoid silverton": no marker enters the town's own hex, and its farmland there is nobody's meal)
   HG.DAWN = 6; HG.CART = 17; HG.STAY = 48; HG.CHARGE = 24; HG.TERRFARMS = 3; // (the dawn's hour; a cart's miles a day; hours the survivors keep at a refuge; hours a fed hyena making is charged; the farms a farmland hex with none of the scatter's holds)
   HG.REFUGES = ['inn', 'pit', 'silverton'];
   HG.HYENA = 'gnollhills'; // (the making whose ground's table is the gnoll hills': the mirror hyenas)
@@ -44,13 +45,15 @@
     var MW = W.Mworld(), B = D.WORLD || {}; if (!MW) return {}; if (FARMS.src === MW) return FARMS.by;
     var by = {}, sc = B.scatter, kinds = (sc && sc.kinds) || [];
     ((sc && sc.feats) || []).forEach(function (f, i) { var kd = kinds[f[0]]; if (kd !== 'farm' && kd !== 'hamlet') return; var k = K(f[3], f[4]); (by[k] = by[k] || []).push({ id: 's' + i, kind: kd }); });
-    Object.keys(MW.hex).forEach(function (k) { var e = MW.hex[k]; if (e.t === 'farms' && !by[k]) { by[k] = []; for (var i = 0; i < HG.TERRFARMS; i++) by[k].push({ id: 't' + k + '#' + i, kind: 'farm' }); } });
+    var shun = HG.shunned(MW); Object.keys(shun).forEach(function (k) { delete by[k]; });
+    Object.keys(MW.hex).forEach(function (k) { var e = MW.hex[k]; if (e.t === 'farms' && !by[k] && !shun[k]) { by[k] = []; for (var i = 0; i < HG.TERRFARMS; i++) by[k].push({ id: 't' + k + '#' + i, kind: 'farm' }); } });
     Object.keys(by).forEach(function (k) { by[k].sort(function (a, b) { return (a.kind === 'hamlet' ? 0 : 1) - (b.kind === 'hamlet' ? 0 : 1); }); }); // (a hamlet first: the bigger light)
     FARMS.src = MW; FARMS.by = by; return by;
   };
   HG.food = function (k, hit) { var l = HG.farms()[k]; if (!l) return null; for (var i = 0; i < l.length; i++) if (!hit[l[i].id]) return l[i]; return null; }; // (the first farm of a hex not yet hit)
-  HG.oddsAt = function (k, hit) { var f = HG.food(k, hit || {}); return f ? HG.ODDS[f.kind] : HG.ODDS.bare; }; // (a dawn's chance of a feeding in a hex)
-  function walkable(MW, q, r) { var e = MW.hex[K(q, r)], T = e && MW.terr[e.t]; return !!(T && +T.cost > 0); }
+  HG.oddsAt = function (k, hit) { var f = HG.food(k, hit || {}), MW = W.Mworld(); return f ? HG.ODDS[f.kind] : MW && MW.road[k] ? HG.ODDS.road : HG.ODDS.bare; }; // (a dawn's chance of a feeding in a hex)
+  HG.shunned = function (MW) { var o = {}; (MW.sites || []).forEach(function (s) { if (HG.AVOID.indexOf(s.id) >= 0 && s.hex) o[K(s.hex[0], s.hex[1])] = s.id; }); return o; };
+  function walkable(MW, q, r) { var e = MW.hex[K(q, r)], T = e && MW.terr[e.t]; return !!(T && +T.cost > 0) && !HG.shunned(MW)[K(q, r)]; }
   HG.refuge = function (pt) { var MW = W.Mworld(), best = null; MW.sites.forEach(function (s) { if (HG.REFUGES.indexOf(s.id) < 0) return; var d = Math.hypot(s.x - pt[0], s.y - pt[1]); if (!best || d < best.d) best = { id: s.id, name: s.name, pt: [s.x, s.y], d: d }; }); return best; };
 
   var CACHE = { key: null, res: null };
@@ -141,6 +144,20 @@
   HG.meet = function (scene, r) {
     var S = W.state(); (S.metRef = S.metRef || []).push(r.id); W.save(); if (D.sfx) D.sfx('confirm');
     scene.card(['{y}On the way{/}, ' + W.timeOfDay() + ':', ''].concat(HG.card(r)).concat([D.keys ? D.keys('{g}E{/}: go on') : 'E: go on']));
+  };
+  // THE COUNCIL'S FLAGS (RULED 11-14, Griz: "i need a council flag set after the second and fourth farms survivors make silverton"): the bands off a farm or a hamlet
+  // that have reached Silverton by the hour; at two and at four a flag in the save (madeSurvivors2 and madeSurvivors4, named in the content's register of them), set as the walk is kept. Nothing reads them yet
+  HG.COUNCIL = [[2, 'madeSurvivors2'], [4, 'madeSurvivors4']];
+  HG.farmBands = function (site, t) { var S = W.state(); if (!HG.on || !S) return 0; if (t == null) t = S.t; return HG.sim(t).ref.filter(function (r) { return r.to === site && r.arrive <= t && (r.kind === 'farm' || r.kind === 'hamlet'); }).length; };
+  HG.flags = function () { if (!W.house() || !D.house.cur || !D.house.cur.flags) return; var f = D.house.cur.flags, n = HG.farmBands('silverton'); HG.COUNCIL.forEach(function (c) { if (n >= c[0] && !f[c[1]]) f[c[1]] = W.day(); }); };
+  var save0 = W.save; W.save = function () { try { HG.flags(); } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
+  // THE RUMOR'S DAY (RULED 11-14, Griz: "3 - yes, rumors based off actual marker movement"): the day word of what stood over the beds reaches a place -- the day the
+  // first band of survivors walks in there, or walks in at another refuge and the word comes on down the road at a cart's pace; null if no band has fled yet
+  HG.rumorDay = function (site, t) {
+    var S = W.state(), MW = W.Mworld(); if (!HG.on || !S || !MW) return null; if (t == null) t = S.t;
+    var at = MW.sites.filter(function (s) { return s.id === site; })[0], best = null; if (!at) return null;
+    HG.sim(t).ref.forEach(function (r) { var h = r.arrive + (r.to === site ? 0 : Math.hypot(at.x - r.toPt[0], at.y - r.toPt[1]) / HG.CART * 24); if (best == null || h < best) best = h; });
+    return best == null ? null : Math.floor(best / 24) + 1;
   };
   var step0 = W.onStep;
   W.onStep = function (scene, st) {

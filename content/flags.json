@@ -295,6 +295,8 @@
     "wagonChase": "set: deep16/js/chase.js Ch.start (the chase's one record: horses, willem, leg, gap, on, back, willemDead), cleared by deep16/js/inn.js In.chaseBack; read: deep16/js/chase.js",
     "wagonFought": "set: deep16/js/roam.js R.after (the yard fight on the floor won: its group's flag, deep16/js/inn.js In.yardFight); read: nothing yet",
     "wagonCycle": "set: deep16/js/inn.js In.wagonNight (the cycle whose wagon night was had, 0 the first), deep16/js/wagon.js Wg.afterFight (a cycle's wagon stopped on the road: no night that cycle); read: deep16/js/inn.js In.wagonTonight, In.gennet",
+    "madeSurvivors2": "set: deep16/js/hunger.js HG.flags (the day the second band of survivors off a farm a made thing fed on reached Silverton); read: nothing yet (the council's, his 11-14)",
+    "madeSurvivors4": "set: deep16/js/hunger.js HG.flags (the day the fourth such band reached Silverton); read: nothing yet (the council's, his 11-14)",
     "wagonMet": "set: deep16/js/wagon.js Wg.markMet (the road meetings had, 'c<cycle>south' or 'c<cycle>north', comma-joined); read: deep16/js/wagon.js Wg.met",
     "wagonRoad": "set: deep16/js/wagon.js (the last road meeting's end: met, let, bribe, fight, escaped, fled, won); read: the record",
     "wagonBribed": "set: deep16/js/wagon.js Wg.meet (Amara's gold taken on the road, 'c<cycle>'); read: deep16/js/wagon.js Wg.roadScene, deep16/js/inn.js In.wagonNight (no second watch, no second gold)",
