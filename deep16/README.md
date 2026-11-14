@@ -470,7 +470,7 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   from the pack (THE MARKET's goods); the familiar is the seat's (`slot.fam`), named on the camp's line, seated beside its caster in each fight
   (`Pocket.famList` to the fight's `o.familiars`) till it falls in one. **EQUIP in a fight** (*"Check how we did away with ALT to make sure it's still true, then
   fix."*): a weapon drawn into an empty main or off hand is the turn's free object interaction (`T.freeObj`: the one PUT AWAY, a light and a throw's draw
-  spend), the action only when that is spent; a swap and a shield are the action still (`battle.js` gearOptions' `free`, swapGear). **Ingrith** (*"Switch"*): the
+  spend), the action only when that is spent, and stowing the off hand's weapon alone is the same free one (*"Yes, free"*); a swap and a shield are the action still (`battle.js` gearOptions' `free`, swapGear). **Ingrith** (*"Switch"*): the
   word at her register's 4 is her first-game sheet (`classes.js` spec0 to `NPC.heroUnit`); at any other level the generator's Life cleric, by her name and
   in her figure. **EMAIL GRIZ** is gone from a fight's NOTES (*"Pull it."*). **The maker's figure** (*"1 - yes"*): the class's and race's own LPC figure
   (`NPC.lookOf`) right of the title on every step of MAKE (`PK.MAKER_FIG`), three dots while it is fetched.

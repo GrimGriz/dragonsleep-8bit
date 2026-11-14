@@ -4094,7 +4094,8 @@
       if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo && !u.torch && !h.equip.offhand, why: busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the torch is in that hand' : h.equip.offhand ? 'the ' + this.itemName(h.equip.offhand).toLowerCase() + ' is in the off hand' : '') });
     }
     // the OFFHAND's weapon (RULED 10-15): into the pack, or one from it -- one-handed and melee -- each the action, as a weapon from the pack is (a light one swings as the off-hand attack)
-    if (h.equip.offhand) out.push({ kind: 'offhandoff', label: 'OFF HAND: STOW ' + this.itemName(h.equip.offhand).toUpperCase(), note: 'into the pack', ok: !busy, why: busy });
+    // (stowing alone is the free interaction too -- 11-14, Griz: "Yes, free", to "Make stowing alone through EQUIP in a fight free too?": "draw or sheathe a sword", SRD 5.1; as the ring's PUT AWAY)
+    if (h.equip.offhand) out.push({ kind: 'offhandoff', label: 'OFF HAND: STOW ' + this.itemName(h.equip.offhand).toUpperCase(), note: 'into the pack' + (freeNow ? '; free: the turn\'s one object interaction' : ''), ok: freeNow || !busy, why: freeNow ? '' : busy, free: freeNow });
     else if (!h.equip.shield) this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id]; if (!it || s.n <= 0 || !R.offhandWeapon || !R.offhandWeapon(it) || !R.canEquip(h, it)) return;
       var why = (freeNow ? '' : busy) || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the ' + D.light.word(u.torch) + ' is in that hand' : ''); // (the off hand is empty here: a draw, 11-14)
@@ -4132,7 +4133,7 @@
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
     u.baseAC = ac; u.armored = R.armored(h);
     var did = { weapon: (freeDraw ? 'takes up the ' : 'stows one weapon and takes up the ') + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
-    this.card(['{y}' + u.name + '{/} ' + did + (freeDraw ? ' (free: the turn\'s one draw).  AC ' : ' (the action).  AC ') + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
+    this.card(['{y}' + u.name + '{/} ' + did + (freeDraw ? (o.kind === 'offhandoff' ? ' (free: the turn\'s one object interaction).  AC ' : ' (free: the turn\'s one draw).  AC ') : ' (the action).  AC ') + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
   // ------------------------------------------------------------------ leaving: out the way the party came in. Stepping off the map leaves any foe's reach,

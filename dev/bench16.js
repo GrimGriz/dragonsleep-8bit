@@ -22975,6 +22975,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B8f = mkQ('?npc=goblin&lvl=4&vs=' + BARE), u8f = heroQ(B8f); B8f.inv.push({ id: 'longsword', n: 1 });
       var o8f = optQ(B8f, u8f, 'weapon', 'longsword'); var fr8f = !!o8f && o8f.free; B8f.swapGear(u8f, o8f);
       okQ(fr8f && BTq.acts(u8f.turn) && u8f.turn.freeObj === true && u8f.src.equip.weapon === 'longsword' && u8f.weapon.name === 'Longsword', '8f an empty main hand, the turn fresh: the longsword from the pack is drawn free, the action whole');
+      // (stowing alone, his "Yes, free"): the off hand's weapon into the pack is the free interaction; with it spent, the action
+      var TWOQ = '~fighter.4.halforc.18-12-15-8-12-10.scimitar_scalemail_______.Harley..twf+off:scimitar';
+      var B8g = mkQ('?npc=goblin&lvl=4&vs=' + TWOQ), u8g = heroQ(B8g), o8g = optQ(B8g, u8g, 'offhandoff'), fr8g = !!o8g && o8g.free === true && o8g.ok; if (o8g) B8g.swapGear(u8g, o8g);
+      var said8g = DS.stripCodes(String(((B8g.logEntries || []).slice(-1)[0] || {}).text || ''));
+      okQ(fr8g && BTq.acts(u8g.turn) && u8g.turn.freeObj === true && !u8g.src.equip.offhand && /free/.test(said8g), '8g OFF HAND: STOW with the turn fresh: free, the action whole, the free interaction spent (' + said8g.slice(0, 80) + ')');
+      var B8h = mkQ('?npc=goblin&lvl=4&vs=' + TWOQ), u8h = heroQ(B8h); u8h.turn.freeObj = true; var o8h = optQ(B8h, u8h, 'offhandoff'), a8h = !!o8h && !o8h.free && o8h.ok; if (o8h) B8h.swapGear(u8h, o8h);
+      okQ(a8h && !BTq.acts(u8h.turn) && !u8h.src.equip.offhand, '8h the stow with the free interaction already spent: the action');
       // 2. A MADE CHARACTER'S SPELLS: the SRD's list for its class on its pick pages, the class's own still the default
       var SLq = D.SPELL_LISTS || {}, CLq = NPq.CLASSES, ownOf = function (cls, L) { return (CLq[cls].spells && CLq[cls].spells[L]) || []; };
       var regW1 = NPq.registerList('wizard', 1), newW1 = regW1.filter(function (id) { return ownOf('wizard', 1).indexOf(id) < 0; });
