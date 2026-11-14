@@ -252,19 +252,26 @@
     if (!hs.length) return;
     if (u.ethereal) {
       // unseen, it walks the Ethereal to the weakest, and steps out of the rock at their side (a bonus action)
-      var tgt = hs.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
+      var byWeak = hs.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; }), tgt = byWeak[0];
       var rm = G.reach(u, T.move, { ghost: true }), best = null, bs = Infinity;
-      Object.keys(rm).forEach(function (k) {
+      var sqFor = function (w) { var b0 = null, s0 = Infinity; Object.keys(rm).forEach(function (k) {
         var e = rm[k];
         if (!G.canStand(u, e.x, e.y)) return; // must come out where there's room
-        var d = G.dist(u, tgt, e.x, e.y), s = (d <= 5 ? 0 : 1000 + d * 10) + e.cost;
-        if (s < bs) { bs = s; best = e; }
-      });
+        var d = G.dist(u, w, e.x, e.y), s = (d <= 5 ? 0 : 1000 + d * 10) + e.cost;
+        if (s < s0) { s0 = s; b0 = e; }
+      }); return { e: b0, s: s0 }; };
+      // the weakest it can come out beside this turn (11-14); none -- the weakest's way, unseen
+      for (var wi = 0; wi < byWeak.length; wi++) { var o = sqFor(byWeak[wi]); if (o.e && o.s < 1000) { tgt = byWeak[wi]; best = o.e; bs = o.s; break; } }
+      if (!best) best = sqFor(tgt).e;
       if (best) { u.x = best.x; u.y = best.y; T.move -= best.cost; }
+      // not beside the one it hunts by the end of the walk: it stays in the Ethereal and comes on next turn (11-14, the Game Show lane's head 3; Griz, 10-15, on the east
+      // cavern: "They phase in near no-one and say that they're near a character" -- it stepped out wherever its walk ended, 40 ft off, "near" her. SRD 5.1's Ethereal Jaunt
+      // is the spider's to take or not, a bonus action either way)
+      if (G.dist(u, tgt) > 5) { B.card(['{g}Something moves in the rock, unseen.{/}'], 120); yield 12; return; }
       T.bonus = 0; u.ethereal = false; D.sfx('magic');
       B.focus(u);
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
-      B.card(['{r}The phase spider{/} steps out of the rock ' + (G.dist(u, tgt) <= 5 ? 'beside ' : 'near ') + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
+      B.card(['{r}The phase spider{/} steps out of the rock beside ' + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
       yield 30;
       if (B.readyHook) { yield* B.readyHook(u); if (u.dead || u.hp <= 0) return; } // (out of the Ethereal into a readier's reach or sight: the readied strikes, 10-02)
       if (G.dist(u, tgt) <= G.reachOf(u) && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
