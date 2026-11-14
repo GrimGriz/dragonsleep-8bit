@@ -1336,7 +1336,7 @@
       // taken up off the floor, out of the barrel or the pack (his find: "torches cannot be equipped") -- each the ring's own command, with its cost and its why
       fightEquip: function () {
         if (!gu) return [];
-        var out = B.gearOptions(gu).map(function (o) { o.cost = 'A'; return o; }), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 }; // (a change of gear: the action)
+        var out = B.gearOptions(gu).map(function (o) { o.cost = o.free ? 'F' : 'A'; return o; }), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 }; // (a change of gear: the action)
         B.commands(gu).forEach(function (c) {
           if (c.id === 'puton') out.push({ kind: 'cmd', slot: c.slot || 'ring', cmd: c, cost: c.cost, label: window.DS.DATA.items[c.item] ? window.DS.DATA.items[c.item].name : c.label, short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why }); // (a Ring of Flying from the pack: EQUIP's RING row, the standard ring -- 10-13, js/flight-ai.js)
           if (c.id === 'drawoffhand') out.push({ kind: 'cmd', slot: 'offhand', cmd: c, cost: c.cost, label: '(draw it)', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why }); // (the OFFHAND's weapon, put away for a light: 10-15)

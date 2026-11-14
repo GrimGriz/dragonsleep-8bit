@@ -3834,7 +3834,8 @@
   // ------------------------------------------------------------------ gear in the fight: the MENU's EQUIP, not a ring button (Griz, 09-27: "Don't add
   // a button for gear swapping, but ... apply the action cost for weapon swaps"). A swap is stowing one weapon and drawing
   // another: the turn's one free object interaction and a second one, which takes the action (SRD 5.1, Use an Object),
-  // so a swap costs the action. A shield on or off is an action too; armour doesn't change in a fight.
+  // so a swap costs the action. A shield on or off is an action too; armour doesn't change in a fight. A weapon drawn into an EMPTY
+  // hand is the free interaction alone (11-14: gearOptions).
   Battle.prototype.itemName = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
   function packOf(B, id) { return B.inv.filter(function (x) { return x.id === id; })[0]; }
   Battle.prototype.ammoLeft = function (u) { var s = packOf(this, u.weapon.ammo); return s ? s.n : 0; };
@@ -4064,20 +4065,25 @@
     if (!h || u.guest || !T || !h.equip) return out;
     var busy = Battle.acts(T) && !T.attacksLeft ? '' : 'the action is spent', cur = R.item(h.equip.weapon); // (Haste's action may Use an Object: 10-13)
     var curTwo = cur && cur.weapon && (cur.weapon.props || []).indexOf('two-handed') >= 0;
+    // THE DRAW INTO AN EMPTY HAND (11-14, Griz: "Check how we did away with ALT to make sure it's still true, then fix." -- probed: THE THROW of 11-11 made a carried weapon's draw the
+    // turn's free object interaction, EQUIP's ALT row took NONE, and EQUIP here still charged the action for every change): a weapon taken up in a hand that holds none is one
+    // interaction with an object -- "draw or sheathe a sword", SRD 5.1 -- so it is the turn's free one (T.freeObj, the same one PUT AWAY, the throw's draw and a torch spend);
+    // with that spent it is the action, as a second interaction is. A swap (one stowed, one drawn) and a shield stay the action. o.free marks it for swapGear and the menu
+    var emptyHand = !h.equip.weapon || !!u.sheathed, freeNow = !T.freeObj, FREEW = '; free: the turn\'s one draw';
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
-      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : two && h.equip.offhand ? 'two hands: the off hand empties first' : ''); // (with a torch it is carried in one hand, and the torch falls when it swings: battle.js attack, 10-05)
+      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, drawW = emptyHand && freeNow, why = (drawW ? '' : busy) || (two && h.equip.shield ? 'two hands: the shield comes off first' : two && h.equip.offhand ? 'two hands: the off hand empties first' : ''); // (with a torch it is carried in one hand, and the torch falls when it swings: battle.js attack, 10-05)
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
-      out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
+      out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo + (drawW ? FREEW : ''), ok: !why, why: why, free: drawW });
     });
     // THE SECOND WEAPON CARRIED (11-10, the loans pulled -- it was put in the fight's pack, 10-01c): the hero's own `alt` (not an ALT named from the pack), and a swap trades
     // the two -- the carried one in hand, the one in hand carried (swapGear; kept after a Pocket DM fight, js/pocket.js PK.fightKept). The action, as any swap (his "2 - hold")
     var aIt = h.alt && !h.altPack && h.alt !== h.equip.weapon ? window.DS.DATA.items[h.alt] : null, aWd = aIt && aIt.kind === 'weapon' && aIt.weapon;
     if (aWd && R.canEquip(h, aIt) && !out.some(function (o) { return o.kind === 'weapon' && o.id === h.alt; })) {
-      var aTwo = (aWd.props || []).indexOf('two-handed') >= 0, aWhy = busy || (aTwo && h.equip.shield ? 'two hands: the shield comes off first' : aTwo && h.equip.offhand ? 'two hands: the off hand empties first' : '');
+      var aTwo = (aWd.props || []).indexOf('two-handed') >= 0, drawA = emptyHand && freeNow, aWhy = (drawA ? '' : busy) || (aTwo && h.equip.shield ? 'two hands: the shield comes off first' : aTwo && h.equip.offhand ? 'two hands: the off hand empties first' : '');
       var aAmmo = aWd.ammo ? ', ' + (packOf(B, aWd.ammo) ? packOf(B, aWd.ammo).n : 0) + ' ' + B.itemName(aWd.ammo).toLowerCase() : '';
-      out.push({ kind: 'weapon', id: h.alt, own: true, label: aIt.name + ' (carried)', note: aWd.dmg + ' ' + aWd.type + (aWd.range ? ', ' + aWd.range.join('/') + ' ft' : ', melee') + aAmmo + '; the ' + (R.item(h.equip.weapon) || { name: 'hand' }).name.toLowerCase() + ' carried', ok: !aWhy, why: aWhy });
+      out.push({ kind: 'weapon', id: h.alt, own: true, label: aIt.name + ' (carried)', note: aWd.dmg + ' ' + aWd.type + (aWd.range ? ', ' + aWd.range.join('/') + ' ft' : ', melee') + aAmmo + (h.equip.weapon ? '; the ' + R.item(h.equip.weapon).name.toLowerCase() + ' carried' : '') + (drawA ? FREEW : ''), ok: !aWhy, why: aWhy, free: drawA });
     }
     // armour: never in a fight (SRD 5.1, Getting Into and Out of Armor: a minute or more to don or doff, a shield an action -- RULED 10-07, Griz: "SRD everywhere",
     // "I suspect my ladder exception was prior to the camp or an oversight"; the ladder's ARMOUR OFF and WEAR of 09-27 cut, and with them the ?fight= doors' that
@@ -4091,8 +4097,8 @@
     if (h.equip.offhand) out.push({ kind: 'offhandoff', label: 'OFF HAND: STOW ' + this.itemName(h.equip.offhand).toUpperCase(), note: 'into the pack', ok: !busy, why: busy });
     else if (!h.equip.shield) this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id]; if (!it || s.n <= 0 || !R.offhandWeapon || !R.offhandWeapon(it) || !R.canEquip(h, it)) return;
-      var why = busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the ' + D.light.word(u.torch) + ' is in that hand' : '');
-      out.push({ kind: 'offhandon', id: s.id, label: 'OFF HAND: ' + it.name, note: R.offhandWord ? R.offhandWord(Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id }) }), s.id) : 'in the off hand', ok: !why, why: why });
+      var why = (freeNow ? '' : busy) || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the ' + D.light.word(u.torch) + ' is in that hand' : ''); // (the off hand is empty here: a draw, 11-14)
+      out.push({ kind: 'offhandon', id: s.id, label: 'OFF HAND: ' + it.name, note: (R.offhandWord ? R.offhandWord(Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id }) }), s.id) : 'in the off hand') + (freeNow ? FREEW : ''), ok: !why, why: why, free: freeNow });
     });
     return out;
   };
@@ -4110,7 +4116,9 @@
     function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
     if (!u.equip0) { u.equip0 = JSON.parse(JSON.stringify(h.equip || {})); u.alt0 = h.altPack ? undefined : (h.alt || null); } // (as it stood before the first swap: the Pocket DM keeps what the fight changed, js/pocket.js PK.fightKept -- 11-10; alt0: its own second weapon)
-    Battle.payAction(u.turn); D.sfx('confirm');
+    var freeDraw = !!o.free && !u.turn.freeObj; // (a draw into an empty hand: the turn's one free object interaction -- gearOptions, 11-14)
+    if (freeDraw) u.turn.freeObj = true; else Battle.payAction(u.turn);
+    D.sfx('confirm');
     if (o.kind === 'weapon' && o.own) { var held = h.equip.weapon || null; h.equip.weapon = h.alt; h.alt = held; u.alt = Battle.altUnit(h); delete u.conds.ablaze; } // (the carried one in hand, the one in hand carried: 11-10)
     else if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
@@ -4123,8 +4131,8 @@
     if (R.armored(h) && (u.conds.mageArmor || (h.conds && h.conds.mageArmor))) { delete u.conds.mageArmor; if (h.conds) delete h.conds.mageArmor; }
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
     u.baseAC = ac; u.armored = R.armored(h);
-    var did = { weapon: 'stows one weapon and takes up the ' + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
-    this.card(['{y}' + u.name + '{/} ' + did + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
+    var did = { weapon: (freeDraw ? 'takes up the ' : 'stows one weapon and takes up the ') + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
+    this.card(['{y}' + u.name + '{/} ' + did + (freeDraw ? ' (free: the turn\'s one draw).  AC ' : ' (the action).  AC ') + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
   // ------------------------------------------------------------------ leaving: out the way the party came in. Stepping off the map leaves any foe's reach,
