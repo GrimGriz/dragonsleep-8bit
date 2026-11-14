@@ -3,7 +3,7 @@
    fall one way (its card says so). The shape is js/seepshow.js's: at the end of each beat the show waits -- ENTER (or E, or a click) plays it again, RIGHT the next, LEFT
    the one before.
 
-     deep16/?madeshow              every beat, in order · &only=mirrorwolf, mirrorworg, withered, fed, charged, mirrorwisp or mirrorhyena keeps to those · &beat=N starts at the Nth ·
+     deep16/?madeshow              every beat, in order · &only=mirrorwolf, mirrorworg, withered, fed, charged, mirrorwisp, hyenafear or mirrorhyena keeps to those · &beat=N starts at the Nth ·
                                    &fast no pauses (the bench)
 
    THE STATES (2026-11-14, the made-states seat; RULED that day -- js/seep.js THE MADE THINGS' STATES has his words): four more beats. `withered`, a mirror worg met
@@ -22,7 +22,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 3;
-    var B = new D.Battle({ npc: { foes: ['mirrorwolf', 'mirrorworg', 'mirrorwisp', 'mirrorhyena'], party: ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['mirrorwolf', 'mirrorworg', 'mirrorwisp', 'mirrorhyena', 'mirrorhyena', 'mirrorhyena'], party: ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The made things of the Coldridge, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.madeshow = true;
     var enter0 = B.enter;
@@ -55,11 +55,12 @@
       if (D.battle === B && n === 20) {
         var ab = inSave[inSave.length - 1];
         if (ab && pin.saves && pin.saves[ab] != null) return pin.saves[ab];
+        if (!ab && pin.q && pin.q.length) return pin.q.shift(); // (a queue of d20s outside a save: a Shove's contest, the hyenas' beat)
         if (!ab && pin.hit != null) return pin.hit;
       }
       return d0.apply(this, arguments);
     };
-    function setPin(hit, saves) { pin.hit = hit; pin.saves = saves || null; }
+    function setPin(hit, saves) { pin.hit = hit; pin.saves = saves || null; pin.q = null; }
 
     function stage(list, at) {
       keep.forEach(function (s) {
@@ -181,6 +182,23 @@
       var sheets = seen.join() === 'mirrorhyena_p1,mirrorhyena_emaciated_p1,mirrorhyena_overcharged_p1', laughs = rofl.every(Boolean);
       return [sheets && laughs, 'the sheets ' + seen.join(' > ') + ' (' + sheets + '); the laugh rolled in each (' + rofl.join(', ') + ')'];
     }
+    function* hyenaFear() { // (11-14, the todo-pairs seat: the show beat the made-states seat left for the hyenas' feeding -- made1114 section 9's pins, run by the engine)
+      var hy = foes.filter(function (w) { return w.kind === 'mirrorhyena'; }).slice(0, 3);
+      stage([fighter, cleric].concat(hy), [[0, 0], [0, 3], [1, 0], [2, 1], [3, 2]]); fighter.maxhp = fighter.hp = 120; cleric.maxhp = cleric.hp = 120;
+      var hpF = fighter.hp, hpC = cleric.hp; setPin(null, null); pin.q = [18, 2, 18, 2];
+      say(['Yours, 11-14: "they\'ll knock prone without killing til all are fed to charged". Three mirror hyenas, none fed. They toy: each SHOVES one of yours still on their feet and bites no one (the contests pinned 18 against 2).']); yield W(130);
+      var n = mark(); yield* go(hy[0]); yield W(70); var l1 = since(n);
+      n = mark(); yield* go(hy[1]); yield W(70); var l2 = since(n);
+      var toyed = !!fighter.conds.prone && fighter.hp === hpF && cleric.hp === hpC && /SHOVE/.test(l1) && !/Bite/.test(l1 + l2);
+      RU.fearSet(fighter, 1, hy[0].id, 13); RU.fearSet(cleric, 1, hy[0].id, 13); B.fellSeen = {}; B.laughRound = null; pin.q = null; setPin(null, { wis: 1 });
+      say(['Someone fell: at the turn\'s end the pack LAUGHS -- a WIS save or a step up the fear scale (both of yours are shaken already; the saves pinned at 1). One carried to FRIGHTENED feeds two of the pack: CHARGED, 5 temporary hit points, a bigger bite.']); yield W(140);
+      n = mark(); yield* fire(D.traits.packLaughRun(B)); yield W(140); var l3 = since(n);
+      var lit = hy.every(function (h) { return h.madeState === 'charged'; }), fr = RU.fearLvl(fighter) >= 2 && RU.fearLvl(cleric) >= 2;
+      setPin(15, null); RU.startTurn(hy[0]);
+      say(['All three charged: now they bite.']); yield W(70);
+      n = mark(); yield* go(hy[0]); yield W(90); var l4 = since(n), bites = /Bite/.test(l4) && !/SHOVE/.test(l4);
+      return [toyed && lit && fr && bites, (toyed ? 'two Shoves, the fighter prone, no hit point lost' : 'the toying NOT as it should be: ' + (l1 + ' || ' + l2).slice(0, 160)) + '; the laugh: fear ' + RU.fearLvl(fighter) + ',' + RU.fearLvl(cleric) + ', the pack ' + hy.map(function (h) { return h.madeState; }).join(',') + ' (' + (lit && fr) + '); then a bite (' + bites + ')'];
+    }
     function* mirrorWispStates() {
       stage([wizard, mwisp, fighter], [[0, 0], [1, 0], [5, 2]]); wizard.maxhp = wizard.hp = 120; wizard.reaction = 0;
       var sk = mwisp.attacks[Object.keys(mwisp.attacks)[0]], base = { hp: mwisp.maxhp, sp: mwisp.speed, atk: sk.atk, dice: sk.dice };
@@ -203,6 +221,7 @@
       { id: 'fed', name: 'Fed: withered to normal, normal to charged', what: 'Yours, 11-14: "1 - good" -- on the desk\'s lean that fed is its rider landing, and it changes sheet right there in the fight. The mirror wolf, twice: the sheet changes on screen each time.', run: fed },
       { id: 'charged', name: 'Charged: the bigger bite', what: 'Yours, 11-14: "3 - rather than 1d6 force on the bite, HP as you said, +2 to hit, damage die steps up 1 (i.e. 1d6 becomes 1d8)". For the rest of the fight. On the art desk\'s Overcharged sheet.', run: charged },
       { id: 'mirrorwisp', name: 'The mirror wisp: its three states, drawn in code', what: 'Yours, 11-14: "0a - wisp is code drawn so we should be able to do the withered and charged variants". Its fed is Consume Magic landing (the family\'s rule, the desk\'s reading).', run: mirrorWispStates },
+      { id: 'hyenafear', name: 'The mirror hyenas feed on fear', what: 'Yours, 11-14: "requires frightened, and that feeds two  - and they\'ll knock prone without killing til all are fed to charged". A pack not all fed shoves and bites no one; the laugh carrying one of yours to frightened feeds two; all charged, they bite. Their sheets are as the hyena\'s are today.', run: hyenaFear },
       { id: 'mirrorhyena', name: 'The mirror hyena: its three sheets', what: 'Yours, 11-14, to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?": "Yes, ask for it". The art desk\'s Normal, Withered and Charged, cut 11-14 on the plain hyena\'s cell; each laughs its rolling laugh. A look: its feeding on fear is mode=made1114\'s.', run: mirrorHyenaStates }
     ];
 
