@@ -251,7 +251,7 @@
     var r = B.rec;
     flush(B);
     r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
-    r.partyEnd = B.units.filter(ours).map(function (w) { var o = { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; if (w.slots) o.slots = w.slots.slice(); var e = worn(w); if (e) o.equip = e; return o; }); // (the slots and the gear it ends with, 11-10)
+    r.partyEnd = B.units.filter(ours).map(function (w) { var o = { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || (w.dead && !w.left)), left: w.left ? true : undefined }; /* (11-14, the play records lane 10: Battle.leave marks one who gets out `dead` beside `left`, so the getaway wrote Barley down at 26/26 -- out on their feet is not down) */ if (w.slots) o.slots = w.slots.slice(); var e = worn(w); if (e) o.equip = e; return o; }); // (the slots and the gear it ends with, 11-10)
     r.packEnd = packOf(B);
     r.log = (B.logEntries || []).slice(r.logFrom || 0).map(logText);
     try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
