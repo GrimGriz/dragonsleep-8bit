@@ -542,3 +542,43 @@ All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark out
 Where: two new sheets, `mirrorstirge_emaciated_p1` and `mirrorstirge_overcharged_p1` (named as the wolf's and the worg's are), on `mirrorstirge_p1`'s cell and foot, rows `idle`, `walk`, `attack`, `flinch`, `hurt`, `latched`; cut by `tools/mirrorstirge-sheet.py` through `tools/stirgepages.py` as ART-143 was, each view scaled to the Normal state's idle frame 1 in that view. The engine picks the sheet by the creature's state (the made-states seat's build, 11-14).
 
 What is sourced and what is the desk's: the two states and what they mean in the game are his rulings of 11-13 and 11-14; that the Mirror Stirge gets them is his word above. The look of each state (clouded and cracked; lit facets and sparks) is the desk's wording, drawn from your own Emaciated and Overcharged wolf and from the ART-143 brief. Draw past it where your wolf did.
+
+## 63. The Mirror Hyena on a sheet of its own, in three states: NORMAL, WITHERED and CHARGED (new; on the hyena's frame, ART-30) (added 11-14, the lanes desk, on his word: *"What other mirror randoms do we need art for?"*, and to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?", *"Yes, ask for it"*) -- IN THE OUTBOX 2026-11-14, waiting to go (`deep16/_src/outbox/ASK-2026-11-14-mirror-hyena-three-states/` and its `.zip`)
+
+From the engine side (the lanes desk), for the art desk. One ask: the hyena you finished in ART-30, remade as a mirror creature, in the three states you drew the Mirror Wolf and the Mirror Worg in. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-14-mirror-hyena-three-states/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 63.
+
+What holds and is KEPT: your ART-30 hyena, every row and view (`hyena_p2`). The plain hyena keeps wearing it.
+
+What is in the game today (`deep16/data/foes.js` `mirrorhyena`): the MIRROR HYENA is the giant hyena as Mr. Ripples, the Vessel, makes things along his road: a pack hunter with mirror eyes. It is the oldest of his made things and the only one with no drawing of its own -- it wears your plain hyena, drawn a quarter larger, with the game's small moving mirror facets laid over it. The Mirror Wolf, Worg, Stirge and Wisp each have their own sheet now.
+
+What the states are in the game (ruled 11-14): a mirror-made creature three days without eating magic is WITHERED -- weaker, slower, and gone for good a day later. One that has just fed in a fight is CHARGED -- tougher and hitting harder for the rest of that fight. The game swaps the sheet in the middle of a fight, so the three states must be one creature on one frame: same size, same poses, frame for frame.
+
+### THE MIRROR HYENA -- three states, in all five views
+ATTACH `ART-30_HEAD-1_PAGE-1.png`, `ART-30_HEAD-1_PAGE-2.png`, `ART-30_HEAD-2_PAGE-1.png`, `ART-30_HEAD-2_PAGE-2.png`, `ART-30_HEAD-2_PAGE-3.png`, `ART-30_HEAD-3_PAGE-1.png`, `ART-30_HEAD-5_PAGE-1.png` (your own hyena pages: the frame to draw on, pose for pose), `MIRROR-WOLF_HEAD-1_SE_IDLE-8_NORMAL.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_EMACIATED.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_OVERCHARGED.png` (your own Mirror Wolf in its three states: the mirror-made look, and how far apart the states should read), `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: your hyena pages (ART-30), your Mirror Wolf in its three states, and the game's 64 colours. Draw a new creature on the hyena's exact frame: THE MIRROR HYENA, in three states. Same body plan and the same poses as your hyena, frame for frame, so the game can swap one state for another in the middle of a fight.
+
+THE MIRROR HYENA, NORMAL: a giant hyena remade by a thing that turns living creatures into mirrors, the pack-mate of your Mirror Wolf. A paint-over of your hyena, as your Mirror Wolf is a paint-over of your wolf:
+- the same heavy-shouldered, sloping-backed hyena, its coat gone dark, with the Vessel's starfield fixed in it -- small flat mirror flecks and facets where the hyena's spots were, catching light at different angles;
+- the stiff mane along its neck and back a ridge of small mirror shards;
+- its EYES are mirrors: two bright, pale, reflective points that must read at small size in every view that shows them;
+- its teeth and the wet of its mouth bright silver;
+- nothing warm on it, no red, no gold.
+It should read at a glance as the hyena's mirror twin and as kin to your Mirror Wolf: same silhouette as the hyena, the wolf's colours and flecks.
+
+WITHERED (your wolf's Emaciated): the same creature after three days with no magic to feed on. Ribs and hips showing, the belly tucked up, the head hanging lower in the Idle; the coat dull and clouded, half its flecks gone dark, a few facets missing along the mane; the mirror eyes dim.
+
+CHARGED (your wolf's Overcharged): the same creature just after it has fed. Every fleck and the whole mane lit from within, light running along its back and down its legs, the eyes at their brightest with a small white core, two or three small sparks thrown off the mane on the bite and gone by the next frame. No larger than Normal: the same silhouette, only lit.
+
+Rows, in each view and each state, as your ART-30 hyena has them:
+Idle (8); Walk (8); Bite (8); Death (8: Normal and Charged fall and crack like dark glass, Withered crumbles to grey dust and dull shards); Flinch (6); Laugh (10: the hyena's rolling laugh, your ART-30 roll row -- in the mirror hyena the laugh shakes light off its flecks).
+
+HEAD 1 -- from the front, facing the viewer (south). HEAD 2 -- from the bottom-right, front three-quarter, every frame facing the bottom-right corner. HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind. HEAD 5 -- straight from behind, facing away. The same rows each.
+
+If the whole is too much for one pass, this order: NORMAL in every row and view first; then WITHERED and CHARGED with Idle, Walk and Bite (as your wolf's states have); then their Death, Flinch and Laugh.
+
+All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of your hyena pages; the whole creature nose to tail in every frame; the background of your Mirror Wolf pages; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the same size as your hyena in every view and every state. Use only the attached 64 colours. No scenery.
+```
+Where: three new sheets, `mirrorhyena_p1`, `mirrorhyena_emaciated_p1`, `mirrorhyena_overcharged_p1` (named as the wolf's and the worg's are), on `hyena_p2`'s cell and foot (96 x 80, the foot at 48, 72), rows `idle`, `walk`, `attack`, `hurt`, `flinch`, `rofl`; a cutter's `tools/mirrorhyena-sheet.py` over the hyena's cut; `deep16/data/foes.js` `mirrorhyena` moves from `hyena_p2` to `mirrorhyena_p1` and keeps its `drawScale` 1.25, the engine's ripple and mirror eye staying or going on his eye. The engine picks the state's sheet (the made-states seat's build, 11-14).
+
+What is sourced and what is the desk's: that the Mirror Hyena gets a sheet of its own in three states is his word above; the states' meaning is his rulings of 11-14; "mirror eyes" is the game's own block. The rest of the look (the starfield flecks, the shard mane, silver teeth, each state's detail) is the desk's wording, taken from your own Mirror Wolf pages and their ART-MIRROR-WOLF notes' three states. Draw past it where your wolf did.
