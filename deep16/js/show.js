@@ -46,7 +46,7 @@
     return r;
   };
   function see(B, u, row) {
-    var t = B.showTally[u.sheet] = B.showTally[u.sheet] || {};
+    var sk = (u.made0 && u.made0.sheet) || u.sheet, t = B.showTally[sk] = B.showTally[sk] || {}; // (a made thing that feeds in the show changes sheet mid-fight -- js/seep.js, 11-14: its rows are tallied under the sheet it was made on, the same rows on the same cell)
     t[row] = (t[row] || 0) + 1;
     (u.showSeen = u.showSeen || {})[row] = (u.showSeen[row] || 0) + 1;
   }
