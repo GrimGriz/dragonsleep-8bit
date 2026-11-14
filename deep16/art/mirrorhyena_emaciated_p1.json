@@ -1,0 +1,65 @@
+{
+ "image": "art/mirrorhyena_emaciated_p1.png",
+ "fw": 96,
+ "fh": 80,
+ "ax": 48,
+ "ay": 72,
+ "top": 43,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 8,
+   "fps": 5
+  },
+  "walk": {
+   "y": 640,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 8,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 1920,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 8,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 2560,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 6,
+   "fps": 12
+  },
+  "rofl": {
+   "y": 3200,
+   "fw": 96,
+   "fh": 80,
+   "ax": 48,
+   "ay": 72,
+   "frames": 10,
+   "fps": 8
+  }
+ },
+ "source": "drawn by the art desk (MIRROR-HYENA-THREE-STATE-SOURCES, 11-14, art-wanted section 63: the Withered state, Idle 8, Walk 8, Bite 8, Death 8, Flinch 6, Laugh 10 in five views, a paint-over of hyena_p2 on its own cell), cut by tools/mirrorhyena-sheet.py; SW W NW mirrored -- deep16/data/foes.js mirrorhyena (worn when WITHERED: js/seep.js S.stateSheet)"
+}
