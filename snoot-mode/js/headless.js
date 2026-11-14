@@ -206,7 +206,7 @@
     var UI = SN.UI, V = SN.V, st = SN.newGame(seed);
     var find = function (id) { // (a unit of the day-14 board, or one of the Dominion's wagons, which are not on it till they come)
       var u = SN.unit(st, id), d = u ? null : (SN.DOMINION || []).filter(function (x) { return x.id === id; })[0];
-      if (d) { u = JSON.parse(JSON.stringify(d)); u.at = [8, 6]; u.figs0 = u.figs; u.form = 'line'; st.units.push(u); }
+      if (d) { u = JSON.parse(JSON.stringify(d)); u.at = SN.BESIDE.slice(); u.figs0 = u.figs; u.form = 'line'; st.units.push(u); }
       return u;
     };
     var a = find(m[1]), b = find(m[2]);

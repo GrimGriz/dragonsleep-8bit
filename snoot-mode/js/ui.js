@@ -24,7 +24,8 @@
   UI.title = function () {
     var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { saved = null; }
     var b = [{ label: 'NEW BATTLE', go: true, fn: function () { UI.newGame(); } }];
-    if (saved && saved.units && !saved.over && !/[?&]fresh\b/.test(Q)) b.unshift({ label: 'CONTINUE (Day ' + saved.day + ')', go: true, fn: function () { UI.load(saved); } });
+    if (saved && saved.units && !saved.over && (saved.map || 'fixture') === SN.MAPNAME && !/[?&]fresh\b/.test(Q)) // (a battle saved on another map is not offered: its hexes are not this map's, 11-14)
+      b.unshift({ label: 'CONTINUE (Day ' + saved.day + ')', go: true, fn: function () { UI.load(saved); } });
     b.push({ label: 'HOW IT PLAYS', fn: function () { UI.help(true); } });
     if (ROAD) b.push({ label: 'BACK TO THE ROAD', fn: function () { location.href = '../'; } });
     if (INN) b.push({ label: 'BACK TO THE INN', fn: function () { location.href = '../deep16/'; } }); // (INN: come from the second game's Halfway Inn, its runner in the yard -- deep16/js/inn.js, 11-04)

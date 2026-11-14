@@ -81,7 +81,10 @@
     var best = AI.mark(st, u);
     if (best) { go(st, u, best.at, true); return; }
     // nothing to hunt: down toward the road and the Pit, where the young blood is seen
-    if ((u.tribe === 'skull' || u.youngblood || st.day >= 17) && SN.dist(u.at, SN.PIT) > 2) { go(st, u, SN.dist(u.at, [8, 5]) > 1 ? [8, 5] : [7, 6], true); return; } // (down toward the road above the Pit, where the young blood is seen -- not into the four)
+    // (THE FARMS, 11-14; his 10-17 "ravaging what's not protected while the metal men hide inside": with no mark it can win, a band goes for the fields it can
+    // see -- AI.fields -- and stays in them while a farm it has not found may stand)
+    if (u.tribe === 'skull' || u.youngblood || st.day >= 17) { var fh = AI.fields(st, u); if (fh) { if (!SN.same(fh, u.at)) go(st, u, fh, true); return; } }
+    if ((u.tribe === 'skull' || u.youngblood || st.day >= 17) && SN.dist(u.at, SN.PIT) > 2) { go(st, u, (SN.dist(u.at, SN.ROADPT) > 1 ? SN.ROADPT : SN.BESIDE).slice(), true); return; } // (down toward the road above the Pit, where the young blood is seen -- not into the four)
     u.order = { type: 'support' };
   };
   // the mark: of ours within three days, not the four and not where they stand, the one with the most gnoll figures that could reach it
@@ -99,6 +102,17 @@
     });
     return best;
   };
+  // the fields a band can see: a hex with three farms or more standing (fields enough to see from a hill), or one where farms have burned and more may
+  // stand; none of ours in it; within three days; the nearest. A lone farm is found only by a band that happens through its hex. The seat's reading.
+  AI.fields = function (st, u) {
+    if (!st.farms) return null; var best = null, bd = 99;
+    Object.keys(st.farms).forEach(function (k) {
+      var F = st.farms[k], left = F.n - F.burned; if (left <= 0 || (left < 3 && !F.burned)) return;
+      var h = k.split(',').map(Number); if (SN.unitsAt(st, h).some(function (x) { return x.side !== 'gnoll'; })) return;
+      var d = SN.same(h, u.at) ? 0 : daysTo(u, h); if (d <= 3 && d < bd) { bd = d; best = h; }
+    });
+    return best;
+  };
   AI.harbinger = function (st, u) {
     u.order = { type: 'hold' };
     if (st.huntDay == null || u.beaten || st.head) return;
@@ -109,7 +123,7 @@
     u.order = { type: 'hold' };
     var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.worth(x) <= 8; })[0]; // (what is small: a handful of men -- eight Line Guards' worth, SN.WORTH)
     if (near) { go(st, u, near.at); return; }
-    var inn = [8, 3];
+    var inn = SN.INN.slice();
     if (!SN.same(u.at, inn) && SN.dist(u.at, inn) > 1) go(st, u, inn);
     else u.order = { type: 'avoid' }; // (they came to watch, not to fight: Book III's evasion, RULED 10-15)
   };

@@ -31,7 +31,7 @@
   SN.key = function (h) { return h[0] + ',' + h[1]; };
   SN.same = function (a, b) { return !!a && !!b && a[0] === b[0] && a[1] === b[1]; };
   var ROAD = null;
-  SN.road = function (h) { if (!ROAD) { ROAD = {}; SN.ROADS.forEach(function (r) { r.hexes.forEach(function (x) { ROAD[SN.key(x)] = 1; }); }); } return !!ROAD[SN.key(h)]; };
+  SN.road = function (h) { if (!ROAD || SN._roadv !== SN.mapv) { SN._roadv = SN.mapv; ROAD = {}; SN.ROADS.forEach(function (r) { r.hexes.forEach(function (x) { ROAD[SN.key(x)] = 1; }); }); } return !!ROAD[SN.key(h)]; };
   SN.cost = function (h) { var t = SN.TERRAIN[SN.ter(h[0], h[1])]; if (!t || t.water) return 99; return SN.road(h) ? 1 : t.cost; };
   // the cheapest way from a to b (Dijkstra; 99 is no way): the hexes after a, in order, or null
   SN.path = function (a, b, avoid) {
@@ -204,15 +204,16 @@
     var st = { v: 1, seed: seed >>> 0, rs: seed >>> 0, day: SN.DAY0, units: [], log: [], head: null, huntDay: null, domDay: null, pitFell: false, over: false,
       tally: null, gone: {}, events: [], orders: {}, rec: [], stats: { killed: {}, lost: {}, prisoners: {}, beaten: 0, witness: 0 } };
     SN.FORCES.forEach(function (f) { st.units.push(SN.make(f, !f.arrive)); });
+    st.map = SN.MAPNAME; st.farms = {}; Object.keys(SN.FARMS).forEach(function (k) { st.farms[k] = { n: SN.FARMS[k], burned: 0 }; }); st.stats.farms = 0;
     SN.say(st, 'Day ' + st.day + '. The four come down the road to Tarlyn\'s Pit two days after the giants. The Snoot burns in the hills.', 'day');
     return st;
   };
   SN.make = function (f, on) {
     var u = JSON.parse(JSON.stringify(f));
     if (u.groups) { u.groups.forEach(function (g) { g.n0 = g.n; }); SN.sync(u); }
-    u.figs0 = u.figs; u.on = !!on; u.state = 'ok'; u.at = (u.at || SN.WEST).slice(); u.home = u.at.slice(); u.lost = 0; u.rounds = 0; u.order = { type: 'hold' };
+    u.figs0 = u.figs; u.on = !!on; u.state = 'ok'; u.at = ((SN.START && SN.START[u.id]) || u.at || SN.WEST).slice(); u.home = u.at.slice(); u.lost = 0; u.rounds = 0; u.order = { type: 'hold' }; // (START: where it stands on the map in use, js/data.js SN.useMap)
     (u.heroes || []).forEach(function (h) { h.dead = false; });
-    if (u.tribe === 'skull') u.home = [7, 1]; else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = [0, 1];
+    if (u.tribe === 'skull') u.home = SN.SEATS.skull.slice(); else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = SN.SEATS.wall.slice();
     if (u.side === 'dominion') u.home = SN.WEST.slice();
     // the formation each unit takes the field in: the death-watch in square round the Mane, the Dominion and Newland's battalions on the march in
     // column, the rest in line; ours face the hills (NW), the gnolls the road and the Pit (SE), the plains the hills (W), the Dominion east
@@ -999,6 +1000,22 @@
   };
 
   // ---------------------------------------------------------------- the day ends: rally, rest, the cleric, the Pit, home, the end
+  // THE FARMS (11-14, Griz: "give snooting gnolls a % chance of discovering those farms when they enter that 5 miles square"; 10-17, "ravaging what's not
+  // protected while the metal men hide inside"): a band of the tribes that ends its day in a hex with farms still standing, none of ours standing in it,
+  // rolls for each farm -- SN.FIND in a hundred -- and what it finds it burns. Not the death-watch, not the Harbinger's pack, not a band that fought there
+  // today or is running. What a burned farm costs or gives beyond the count is not ruled: nothing yet.
+  SN.ravage = function (st) {
+    if (!st.farms) return;
+    st.units.forEach(function (u) {
+      if (u.side !== 'gnoll' || !SN.alive(u) || !u.on || u.state !== 'ok' || u.watch || u.harbinger || u.fought) return;
+      var F = st.farms[SN.key(u.at)]; if (!F || F.burned >= F.n) return;
+      if (SN.unitsAt(st, u.at).some(function (x) { return x.side === 'ours'; })) return;
+      var k = 0; for (var i = F.burned; i < F.n; i++) if (SN.rng(st) * 100 < SN.FIND) k++;
+      if (!k) return;
+      F.burned += k; st.stats.farms = (st.stats.farms || 0) + k; u.ravaged = st.day;
+      SN.say(st, u.name + ' find ' + (k === 1 ? 'a farm' : k + ' farms') + ' at ' + SN.placeName(u.at) + ' and burn ' + (k === 1 ? 'it' : 'them') + (F.burned < F.n ? '' : ': nothing is left standing there') + '.', 'farm', u.at);
+    });
+  };
   SN.dusk = function (st) {
     st.shock = []; st.surp = null;
     st.units.forEach(function (u) {
@@ -1026,10 +1043,11 @@
     if (st.head) st.units.forEach(function (u) { if (u.side === 'gnoll' && SN.alive(u) && !u.watch && !u.harbinger && u.state !== 'withdraw') u.state = 'withdraw'; });
     var inPit = SN.unitsAt(st, SN.PIT);
     if (!st.pitFell && inPit.some(function (u) { return u.side !== 'ours'; }) && !inPit.some(function (u) { return u.side === 'ours'; })) { st.pitFell = st.day; SN.say(st, 'The Pit falls: there is no one of ours in it.', 'head', SN.PIT); }
+    SN.ravage(st);
     // the end: the head taken and the Dominion gone; or nothing of ours left; or the season
     var dom = st.units.filter(function (u) { return u.side === 'dominion' && SN.alive(u); });
     var oursLeft = st.units.some(function (u) { return u.side === 'ours' && SN.alive(u) && !u.party; }) || !!SN.party(st);
-    if ((st.head && st.domIn && !dom.length) || !oursLeft || st.day >= SN.LAST) { st.over = true; st.tally = SN.tallyOf(st); SN.say(st, 'The battle is over.', 'end'); }
+    if ((st.head && st.domIn && !dom.length) || !oursLeft || st.day >= SN.LAST) { st.over = true; st.tally = SN.tallyOf(st); if (st.farms && Object.keys(st.farms).length) { var fN = 0; Object.keys(st.farms).forEach(function (k) { fN += st.farms[k].n; }); SN.say(st, (st.stats.farms || 0) + ' of the ' + fN + ' farms round the Pit were found and burned.', 'farm'); } SN.say(st, 'The battle is over.', 'end'); }
     else st.day++;
   };
   SN.placeName = function (h) {

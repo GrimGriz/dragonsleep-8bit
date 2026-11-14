@@ -104,6 +104,7 @@ def main():
         print('wrote deep16/data/world.js: %d hexes, %d places, %d roads and rivers, from %s' % (len(W['hexes']), len(W['sites']), len(W['paths']), W['from']))
     else: print('deep16/data/world.js unchanged (%s)' % W['from'])
     subprocess.call([sys.executable, os.path.join(HERE, 'near-build.py')]) # (THE SILVERTON AREA, 10-22: tools/near-build.py, from the files just written)
+    subprocess.call([sys.executable, os.path.join(HERE, 'snoot-map.py')], stdout=subprocess.DEVNULL); subprocess.call([sys.executable, os.path.join(HERE, 'snoot-build.py')]) # (THE SNOOT'S MAP, 11-14: tools/snoot-map.py cuts it from the world just written, then its stamps)
     print('the fill: %d hexes not painted took the paint beside them, %d with only a lake, a cut or a town of his in a corner took it as their ground (his place their second); guessed %d'
           % (W.get('filled', 0), W.get('parted', 0), W.get('guessed', 0)))
     return 0

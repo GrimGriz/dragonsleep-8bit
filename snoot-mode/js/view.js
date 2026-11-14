@@ -20,8 +20,8 @@
   V.anim = null; // { steps, t0, dur } while the day's moves play
   V.sel = null; V.hover = null; V.flash = [];
   var SIDE = { ours: '#3aa38e', gnoll: '#d0623c', dominion: '#9a6ad6' };
-  var GROUND = { '.': '#78864a', v: '#8c9a50', h: '#86683f', w: '#2c5a7a', g: '#6a5636', P: '#6a5a46', i: '#78864a', m: '#86683f', s: '#86683f', l: '#86683f' };
-  var ELEV = { '.': 0.1, v: 0.1, h: 0.3, m: 0.36, s: 0.34, l: 0.34, g: 0.05, w: -0.03, P: 0.08, i: 0.1 }; // (a hex's ground above the plain, in hex radii)
+  var GROUND = { '.': '#78864a', v: '#8c9a50', h: '#86683f', w: '#2c5a7a', g: '#6a5636', P: '#6a5a46', i: '#78864a', m: '#86683f', s: '#86683f', l: '#86683f', f: '#a89a4c', t: '#476e38', b: '#586a40', x: '#5c5662' }; // (f t b x: the world's farmland, woods, bog and mountains, 11-14)
+  var ELEV = { '.': 0.1, v: 0.1, h: 0.3, m: 0.36, s: 0.34, l: 0.34, g: 0.05, w: -0.03, P: 0.08, i: 0.1, f: 0.1, t: 0.16, b: 0.04, x: 0.8 }; // (a hex's ground above the plain, in hex radii)
   // a sheet facing (S, SW, W, NW, N, NE, E, SE: 0..7) for each hex side (E, NE, NW, W, SW, SE) on the map: the side views, as the screenshot he
   // pasted draws its stacks -- NE and NW turn to E and W, since a sheet's back rows read as a grey lump at this size
   var FACE = [6, 6, 2, 2, 1, 7];
@@ -59,7 +59,7 @@
   V.terAt = function (h) {
     if (SN.on(h)) return SN.ter(h[0], h[1]);
     var ch = SN.ter(Math.max(0, Math.min(SN.W - 1, h[0])), Math.max(0, Math.min(SN.H - 1, h[1])));
-    ch = { P: '.', i: '.', m: 'h', s: 'h', l: 'h', w: '.', g: 'h' }[ch] || ch;
+    ch = { P: '.', i: '.', m: 'h', s: 'h', l: 'h', w: '.', g: 'h', f: '.' }[ch] || ch; if (ch === 'x' || ch === 't' || ch === 'b') return ch;
     var n = noise(h[0], h[1], 5); if (ch !== 'h' && n > 0.86) ch = 'h'; else if (ch === 'h' && n < 0.14) ch = '.';
     return ch;
   };
@@ -128,6 +128,7 @@
   // ---------------------------------------------------------------- the frame: V.render draws the map through any camera (the show flies it)
   V.draw = function (st, t) { if (cx) V.render(cx, cv.width, cv.height, V.cam, st, t, { ui: true }); };
   V.render = function (c, W, H, cam, st, t, opt) {
+    CUR = st || null;
     opt = opt || {};
     var p = V.proj(cam, W, H), z = cam.z, r, col;
     c.imageSmoothingEnabled = false;
@@ -179,6 +180,19 @@
   V.center0 = function (p, h) { var w = V.world(h); return p(w[0], w[1], V.elev(h)); };
   function label(c, txt, x, y, col) { c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.8)'; c.strokeText(txt, x, y); c.fillStyle = col; c.fillText(txt, x, y); }
 
+  // THE FARMS in a hex (11-14): a small square each along the hex's north side, to nine -- gold while it stands, black with an ember once a band has found
+  // and burned it (the burned first). The player sees every farm: it is his own country
+  var CUR = null;
+  function farms(c, p, w, e, z, col, r) {
+    var F = CUR && CUR.farms && CUR.farms[col + ',' + r]; if (!F) return;
+    var n = Math.min(9, F.n), s = Math.max(2, Math.min(z * 0.075, 26)), i;
+    if (z < 34) { // (from far up: one mark a hex, bigger with more farms; gold standing, an ember once any has burned, black when none stands)
+      var q0 = p(w[0], w[1] - 0.55, e), s0 = Math.max(3, Math.min(7, 2.5 + F.n * 0.35));
+      c.fillStyle = F.burned >= F.n ? '#1a1410' : F.burned ? '#c0401a' : '#e8c84a'; c.fillRect(q0[0] - s0 / 2, q0[1] - s0 / 2, s0, s0); c.strokeStyle = 'rgba(30,20,6,0.85)'; c.lineWidth = 1; c.strokeRect(q0[0] - s0 / 2, q0[1] - s0 / 2, s0, s0); return;
+    }
+    for (i = 0; i < n; i++) { var q = p(w[0] + (i - (n - 1) / 2) * 0.17, w[1] - 0.62, e), burned = i < Math.round(F.burned * n / F.n);
+      c.fillStyle = burned ? '#1a1410' : '#e8c84a'; c.fillRect(q[0] - s / 2, q[1] - s / 2, s, s); c.strokeStyle = burned ? '#c0401a' : 'rgba(40,30,8,0.8)'; c.lineWidth = 1; c.strokeRect(q[0] - s / 2, q[1] - s / 2, s, s); }
+  }
   // a tile: its south walls, its top, its ground; past the map's edge, dimmer the further out
   function tile(c, p, z, col, r) {
     var h = [col, r], ch = V.terAt(h), w = V.world(h), e = V.elev(h), base = GROUND[ch] || '#555', top = corners(p, w, e, 1), low = corners(p, w, -0.18, 1);
@@ -187,12 +201,13 @@
     [[1, 2, 0.58], [2, 3, 0.72]].forEach(function (ed) { poly(c, [top[ed[0]], top[ed[1]], low[ed[1]], low[ed[0]]]); c.fillStyle = shade(ch === 'w' ? '#1e3a50' : base, ed[2]); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 1; c.stroke(); });
     poly(c, top); c.fillStyle = shade(base, 0.92 + 0.14 * noise(col, r, 1)); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.3)'; c.lineWidth = 1; c.stroke();
     ground(c, ch, p, w, e, z, col, r);
+    if (!out) farms(c, p, w, e, z, col, r);
     if (out) { c.fillStyle = 'rgba(16,12,22,' + Math.min(0.8, 0.34 + 0.08 * out) + ')'; poly(c, top); c.fill(); [[1, 2], [2, 3]].forEach(function (ed) { poly(c, [top[ed[0]], top[ed[1]], low[ed[1]], low[ed[0]]]); c.fill(); }); }
   }
   // the roads that run off the map, carried on past its edge (the west road west, the south road south, the pirate road east)
   var NBV = [[[1, 0], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]], [[1, 0], [1, -1], [0, -1], [-1, 0], [0, 1], [1, 1]]], ROADOUT = null;
   function roadsOut() {
-    if (ROADOUT) return ROADOUT; ROADOUT = [];
+    if (ROADOUT && V._mapv === SN.mapv) return ROADOUT; V._mapv = SN.mapv; ROADOUT = [];
     var count = {}; SN.ROADS.forEach(function (rd) { rd.hexes.forEach(function (x) { count[SN.key(x)] = (count[SN.key(x)] || 0) + 1; }); });
     SN.ROADS.forEach(function (rd) {
       var hx = rd.hexes, ends = [[hx[0], hx[1]], [hx[hx.length - 1], hx[hx.length - 2]]];
@@ -209,13 +224,14 @@
   // the ground's marks, in the world so they lie on the slant (the more the zoom, the more of them: the show's hex is a field, not a tile)
   function ground(c, ch, p, w, e, z, col, r) {
     var k = Math.min(z / 40, 3), at = function (dx, dy) { return p(w[0] + dx, w[1] + dy, e); }, i, q, n;
-    if (ch === 'h' || ch === 'm' || ch === 's' || ch === 'l') {
+    if (ch === 'h' || ch === 'm' || ch === 's' || ch === 'l' || ch === 'x') {
       n = 3 + Math.min(6, Math.floor(z / 80));
       for (i = 0; i < n; i++) { q = at((noise(col, r, i + 2) - 0.5) * 1.2, (noise(col, r, i + 7) - 0.5) * 1.0); var rw = (0.16 + 0.1 * noise(col, r, i + 31)) * z;
         c.fillStyle = 'rgba(60,40,20,0.35)'; c.beginPath(); c.ellipse(q[0], q[1], rw, rw * SQ * 0.9, 0, Math.PI, Math.PI * 2); c.fill();
         c.strokeStyle = 'rgba(40,26,12,0.55)'; c.lineWidth = 1.5 * Math.min(k, 2); c.beginPath(); c.ellipse(q[0], q[1], rw, rw * SQ * 0.9, 0, Math.PI * 1.05, Math.PI * 1.95); c.stroke(); }
     }
-    if (ch === 'v' || ch === '.' || ch === 'i') {
+    if (ch === 't') { n = 5 + Math.min(10, Math.floor(z / 40)); for (i = 0; i < n; i++) { q = at((noise(col, r, i + 51) - 0.5) * 1.3, (noise(col, r, i + 57) - 0.5) * 1.2); var tw = (0.07 + 0.04 * noise(col, r, i + 61)) * z; c.fillStyle = 'rgba(24,52,22,0.7)'; c.beginPath(); c.moveTo(q[0] - tw, q[1]); c.lineTo(q[0], q[1] - tw * 2.2); c.lineTo(q[0] + tw, q[1]); c.closePath(); c.fill(); } }
+    if (ch === 'v' || ch === '.' || ch === 'i' || ch === 'f') {
       n = 4 + Math.min(14, Math.floor(z / 30)); var tl = Math.min(14, 5 * k);
       c.strokeStyle = 'rgba(30,50,10,0.38)'; c.lineWidth = Math.max(1, Math.min(2, k * 0.6));
       for (i = 0; i < n; i++) { q = at((noise(col, r, i + 11) - 0.5) * 1.4, (noise(col, r, i + 17) - 0.5) * 1.3); c.beginPath(); c.moveTo(q[0], q[1]); c.lineTo(q[0] - tl * 0.35, q[1] - tl); c.moveTo(q[0], q[1]); c.lineTo(q[0] + tl * 0.35, q[1] - tl); c.stroke(); }

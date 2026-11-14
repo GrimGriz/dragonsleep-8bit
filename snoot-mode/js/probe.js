@@ -24,6 +24,27 @@
     ok(SN.ROWS.length === SN.H && SN.ROWS.every(function (r) { return r.length === SN.W; }), 'the map is ' + SN.W + ' by ' + SN.H);
     ok(SN.ROADS.every(function (r) { return r.hexes.every(function (h) { return SN.on(h) && SN.cost(h) === 1; }); }), 'every road hex is on the map and costs 1');
     ok(!!SN.path(SN.WEST, SN.PIT) && !!SN.path([14, 4], SN.PIT) && !!SN.path(SN.SOUTH, SN.MOOT), 'the west road, the Verge and the south road all reach the Pit and the moot');
+    // ---- the world's map (js/map.js, 11-14): these checks stand on the fixture; the game's own map is tried here and put back
+    (function () {
+      var M = SN.WORLDMAP; ok(!!M, 'js/map.js loaded: the Snoot' + "'" + 's map fed from the world'); if (!M) return;
+      SN.useMap(M);
+      try {
+        ok(SN.ROWS.length === SN.H && SN.ROWS.every(function (r) { return r.length === SN.W; }) && SN.ROWS.join('').split('').every(function (ch) { return !!SN.TERRAIN[ch]; }), 'the world map is ' + SN.W + ' by ' + SN.H + ', every hex a ground the rules know');
+        ok(SN.ROADS.every(function (rd) { return rd.hexes.every(function (x, i) { return SN.on(x) && SN.cost(x) === 1 && (!i || SN.dist(x, rd.hexes[i - 1]) === 1); }); }), 'the world map: every road hex on it, costing 1, hex to neighbouring hex');
+        ok(!!SN.path(SN.WEST, SN.PIT) && !!SN.path(SN.START.bb1, SN.PIT) && !!SN.path(SN.SOUTH, SN.MOOT) && !!SN.path(SN.SEATS.wall, SN.PIT) && !!SN.path(SN.SEATS.skull, SN.INN), 'the world map: the west road, the Verge, the south road and the two seats all reach the Pit, the moot and the inn');
+        var w = SN.newGame(7); w.party8 = null;
+        ok(w.map === 'world' && w.units.every(function (u) { return SN.on(u.at) && SN.cost(u.at) < 99; }) && SN.same(SN.unit(w, 'gkw').at, SN.MOOT) && SN.same(SN.unit(w, 'party').at, SN.INN) && SN.same(SN.unit(w, 'sg1').home, SN.SEATS.skull), 'the world map: every unit stands on ground it can walk, the death-watch on the moot, the four at the inn, a Skull-Gate band' + "'" + 's home its seat');
+        var fn = 0; Object.keys(w.farms).forEach(function (k) { fn += w.farms[k].n; });
+        ok(fn > 50 && Object.keys(w.farms).every(function (k) { return SN.on(k.split(',').map(Number)); }), 'the world map: THE SCATTER' + "'" + 's farms are on it (' + fn + ' in ' + Object.keys(w.farms).length + ' hexes)');
+        var b = SN.unit(w, 'sg3'), fk = Object.keys(w.farms).sort(function (x, y) { return w.farms[y].n - w.farms[x].n; })[0], f0;
+        b.at = fk.split(',').map(Number); w.units.forEach(function (u) { if (u.side === 'ours' && SN.same(u.at, b.at)) u.at = SN.PIT.slice(); }); if (SN.same(b.at, SN.PIT)) { fk = Object.keys(w.farms).filter(function (k) { return k !== SN.key(SN.PIT); })[0]; b.at = fk.split(',').map(Number); }
+        SN.FIND = 100; SN.ravage(w); f0 = w.farms[fk].burned; var g = SN.unit(w, 'greyfang'); w.farms[fk].burned = 0; g.at = b.at.slice(); SN.ravage(w); SN.FIND = 35;
+        ok(f0 === w.farms[fk].n && w.stats.farms === f0 && w.farms[fk].burned === 0, 'a band alone in a hex of farms finds and burns them (' + f0 + ' at a sure roll); with one of ours standing there it burns none');
+        var t0 = SN.AI.fields(w, b); g.at = SN.PIT.slice(); var t1 = SN.AI.fields(w, b);
+        ok(!!t1 && SN.same(t1, b.at) && !(t0 && SN.same(t0, b.at)), 'the computer' + "'" + 's band stays in fields it can see while farms stand there, and not where ours stand guard');
+      } catch (e) { ok(false, 'the world map: threw ' + e.message); }
+      SN.useMap(SN.FIXTURE);
+    })();
     ok(SN.cost([9, 3]) >= 99, 'no one walks on Halfway Lake');
     // ---- the forces (his rulings 10-14)
     var nl = SN.FORCES.filter(function (f) { return f.kind === 'Newland'; });
