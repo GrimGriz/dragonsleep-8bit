@@ -9589,6 +9589,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = function (k) { return memVR[k] ? JSON.parse(memVR[k]) : null; }; D.store.set = function (k, v) { memVR[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1112); WR.index(); WR.use('world'); var SR = WR.load('?fresh&far'), VR = WR.VESSEL, MR = WR.M(), hcR = function (h) { return WR.hc(h[0], h[1]); };
+      // (11-14, THE MADE THINGS' CLOCK: this mode's subject is his road, the falloff and the reach -- read with the made things never withering, as they stood when it
+      // was cut; what the clock takes away is mode=made1114's. Re-pointed, not loosened: every want below is as it was)
+      var clockVR = [VR.wither, VR.gone]; VR.wither = Infinity; VR.gone = Infinity;
       var tR = function (d, h) { return (d - 1) * 24 + h; }, hexR = function (d, h) { return WR.vesselAt(tR(d, h)).hex.join(','); };
       // 1. his hex at dawn and dusk against the table: days 2, 4, 7, 12 named, and the rest
       [2, 4, 7, 12].filter(function (d) { return VR.table[d]; }).forEach(function (d) { var got = [hexR(d, VR.dawn), hexR(d, VR.dusk)], want = VR.table[d].map(function (h) { return h.join(','); });
@@ -9637,9 +9640,115 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         show0 === null && drawn0 === null && !!VR.drawn && VR.drawn.day === 9 && VR.drawn.makings === 4 && VR.drawn.x > 0 && VR.drawn.x < D.W && VR.drawn.y > 0 && VR.drawn.y < D.H);
       VR.show = null;
     } catch (eVR) { repVR.errors.push(String(eVR && eVR.stack || eVR).slice(0, 900)); }
+    if (typeof clockVR !== 'undefined' && clockVR) { WR.VESSEL.wither = clockVR[0]; WR.VESSEL.gone = clockVR[1]; }
     D.store.get = stGVR; D.store.set = stSVR; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preVR = document.createElement('pre'); preVR.id = 'out'; preVR.textContent = 'BENCH16 ' + JSON.stringify(repVR);
     document.body.appendChild(preVR);
+    return;
+  }
+  // THE MADE THINGS' STATES, 11-14 (mode=made1114; the made-states seat -- RULED 11-14, Griz to the lanes desk: "1 - good" (fed is its rider landing, and it changes
+  // sheet right there in the fight: withered goes to normal, normal goes to charged); "2 - more than 3 days without feeding they poof out of existence. Approved."
+  // (withered: half HP, speed -10, -2 to hit); "3 - rather than 1d6 force on the bite, HP as you said, +2 to hit, damage die steps up 1 (i.e. 1d6 becomes 1d8)"):
+  // 1. the numbers of each state on each of the five, the block never touched, the sheet by what is registered; 2. the die's steps; 3. the transitions and the
+  // temporary hit points; 4. the clock: normal under three days unfed, withered on the third, gone from the fourth, a gone making drawn by no table; 5. feeding
+  // feeds the making; 6. the road's fight lays the state on and its feeding reaches the clock; 7. the riders that are not a bite (the stirge's drink); 8. the show
+  if (get('mode', '') === 'made1114') {
+    var repMS = { checks: [], errors: [], notes: [] }, memMS = {}, stGMS = D.store.get, stSMS = D.store.set, WS = D.world, SE = D.seep, d0MS = D.d, vw0 = WS.VESSEL.wither, vg0 = WS.VESSEL.gone;
+    function okMS(what, v) { repMS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memMS[k] ? JSON.parse(memMS[k]) : null; }; D.store.set = function (k, v) { memMS[k] = JSON.stringify(v); return true; };
+    try {
+      if (!SE || !SE.setState || !SE.fed || !WS.madeStateAt) throw new Error('no made things\' states: js/seep.js S.setState / S.fed, js/world.js W.madeStateAt');
+      var FM = D.FOES, KINDS = ['mirrorwisp', 'mirrorstirge', 'mirrorwolf', 'mirrorworg', 'mirrorhyena'], strip = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); };
+      var UP = { mirrorwisp: '2d10', mirrorstirge: '1d6', mirrorwolf: '2d6', mirrorworg: '2d8', mirrorhyena: '2d6' }; // (his "damage die steps up 1 (i.e. 1d6 becomes 1d8)"; the desk's three: the stirge's 1d4 to 1d6, the wolf's 2d4 to 2d6, the worg's 2d6 to 2d8)
+      var SHEET = { mirrorwisp: ['mirrorwisp_emaciated_p1', 'mirrorwisp_overcharged_p1'], mirrorwolf: ['mirrorwolf_emaciated_p1', 'mirrorwolf_overcharged_p1'], mirrorworg: ['mirrorworg_emaciated_p1', 'mirrorworg_overcharged_p1'] };
+      // 1. the numbers
+      var BN = D.npcFight('?npc=' + KINDS.join(',') + '&vs=fighter:3,cleric:3,wizard:3&lvl=3', {}); D.battle = BN; BN.enter(); var kN = 0; while (!BN.order.length && kN++ < 400) BN.co.next();
+      var unit = function (k) { return BN.units.filter(function (u) { return u.kind === k; })[0]; }, first = function (u) { return u.attacks[Object.keys(u.attacks)[0]]; };
+      KINDS.forEach(function (k) {
+        var u = unit(k), d = FM[k], blk = JSON.stringify(d.attacks), a0 = d.attacks[Object.keys(d.attacks)[0]], sp0 = u.speed, hp0 = u.maxhp;
+        var n0 = u.madeState === 'normal' && u.maxhp === d.hp && first(u).atk === a0.atk && first(u).dice === a0.dice && u.sheet === d.sheet;
+        SE.setState(BN, u, 'withered'); var w = { hp: u.maxhp, cur: u.hp, sp: u.speed, atk: first(u).atk, dice: first(u).dice, sheet: u.sheet, cond: strip(D.ui.condText(u)) };
+        SE.setState(BN, u, 'charged'); var c = { hp: u.maxhp, sp: u.speed, atk: first(u).atk, dice: first(u).dice, sheet: u.sheet, cond: strip(D.ui.condText(u)) };
+        SE.setState(BN, u, 'normal'); var back = u.maxhp === hp0 && u.speed === sp0 && first(u).atk === a0.atk && first(u).dice === a0.dice && u.sheet === d.sheet && !/WITHERED|CHARGED/.test(strip(D.ui.condText(u)));
+        var wantS = SHEET[k] || [d.sheet, d.sheet];
+        okMS('1 ' + d.name + ': made ' + d.hp + ' HP, speed ' + sp0 + ', ' + a0.name + ' ' + a0.atk + ' ' + a0.dice + ' (normal ' + n0 + '); WITHERED ' + w.hp + ' HP, speed ' + w.sp + ', +' + w.atk + ' ' + w.dice + ' on ' + w.sheet + ', its card "' + w.cond.trim() + '"; CHARGED ' + c.hp + ' HP, speed ' + c.sp + ', +' + c.atk + ' ' + c.dice + ' on ' + c.sheet + ', its card "' + c.cond.trim() + '"; back to normal (' + back + '); the block untouched (' + (JSON.stringify(d.attacks) === blk) + ')',
+          !!d.madeStates && n0 && w.hp === Math.max(1, Math.floor(d.hp / 2)) && w.cur === w.hp && w.sp === sp0 - 10 && w.atk === a0.atk - 2 && w.dice === a0.dice && w.sheet === wantS[0] && /WITHERED/.test(w.cond) &&
+          c.hp === d.hp && c.sp === sp0 && c.atk === a0.atk + 2 && c.dice === UP[k] && c.sheet === wantS[1] && /CHARGED/.test(c.cond) && back && JSON.stringify(d.attacks) === blk);
+      });
+      // the mirror stirge's two sheets are asked of the art desk (art-wanted 62): worn the day they are registered, nothing to wire
+      var hadE = D.SHEETS.mirrorstirge_emaciated_p1, hadO = D.SHEETS.mirrorstirge_overcharged_p1, now = [SE.stateSheet('mirrorstirge_p1', 'withered'), SE.stateSheet('mirrorstirge_p1', 'charged')];
+      D.SHEETS.mirrorstirge_emaciated_p1 = hadE || D.SHEETS.mirrorstirge_p1; D.SHEETS.mirrorstirge_overcharged_p1 = hadO || D.SHEETS.mirrorstirge_p1;
+      var then = [SE.stateSheet('mirrorstirge_p1', 'withered'), SE.stateSheet('mirrorstirge_p1', 'charged'), SE.stateSheet('mirrorstirge_p1', 'normal')];
+      if (!hadE) delete D.SHEETS.mirrorstirge_emaciated_p1; if (!hadO) delete D.SHEETS.mirrorstirge_overcharged_p1;
+      okMS('1 the mirror stirge\'s state sheets: today ' + now.join(', ') + ' (registered: ' + !!hadE + ', ' + !!hadO + '); once registered ' + then.join(', '), (hadE ? now[0] === 'mirrorstirge_emaciated_p1' : now[0] === 'mirrorstirge_p1') && then[0] === 'mirrorstirge_emaciated_p1' && then[1] === 'mirrorstirge_overcharged_p1' && then[2] === 'mirrorstirge_p1');
+      okMS('1 the mirror hyena: no rider on its bite, so nothing feeds it (unspell ' + FM.mirrorhyena.attacks.bite.unspell + ', slots ' + FM.mirrorhyena.attacks.bite.slots + ', consume ' + FM.mirrorhyena.consume + '); no state sheet of its own (' + SE.stateSheet(FM.mirrorhyena.sheet, 'withered') + ')', !FM.mirrorhyena.attacks.bite.unspell && !FM.mirrorhyena.consume && SE.stateSheet(FM.mirrorhyena.sheet, 'withered') === FM.mirrorhyena.sheet);
+      var plain = unit('mirrorwolf'), wolfB = D.npcFight('?npc=wolf&vs=fighter:3&lvl=3', {}); D.battle = wolfB; wolfB.enter(); var wu = wolfB.units.filter(function (u) { return u.kind === 'wolf'; })[0];
+      okMS('1 a wolf is no made thing: no state (' + wu.madeState + '), setState ' + SE.setState(wolfB, wu, 'withered') + ', fed ' + SE.fed(wolfB, wu, 3) + ', its attacks the block\'s own (' + (wu.attacks === FM.wolf.attacks) + ')', wu.madeState == null && SE.setState(wolfB, wu, 'withered') === false && SE.fed(wolfB, wu, 3) === null && wu.attacks === FM.wolf.attacks && !wu.temp);
+      D.battle = BN;
+      // 2. the die
+      var ups = ['1d4', '1d6', '1d8', '1d10', '1d12', '2d4', '2d6', '2d8'].map(function (x) { return x + '>' + SE.dieUp(x); }).join(' ');
+      okMS('2 the die one step up: ' + ups + ' (his "1d6 becomes 1d8"; a d12 has no step and stays)', ups === '1d4>1d6 1d6>1d8 1d8>1d10 1d10>1d12 1d12>1d12 2d4>2d6 2d6>2d8 2d8>2d10');
+      // 3. the transitions
+      var uT = plain; SE.setState(BN, uT, 'withered'); uT.hp = 3; uT.temp = 0; var hpW = uT.maxhp, l1 = strip(SE.fed(BN, uT, 3)), s1 = uT.madeState, t1 = uT.temp, hp1 = uT.hp + '/' + uT.maxhp;
+      var l2 = strip(SE.fed(BN, uT, 2)), s2 = uT.madeState, t2 = uT.temp, l3 = strip(SE.fed(BN, uT, 1)), t3 = uT.temp, l4 = strip(SE.fed(BN, uT, 3)), t4 = uT.temp, s4 = uT.madeState;
+      okMS('3 fed, withered: ' + s1 + ', ' + hp1 + ' (its ceiling back from ' + hpW + ', nothing mended), ' + t1 + ' temporary -- "' + l1 + '"', s1 === 'normal' && hp1 === '3/' + FM.mirrorwolf.hp && t1 === 0 && /has FED: withered no longer/.test(l1));
+      okMS('3 fed again, a level-2 spell: ' + s2 + ', ' + t2 + ' temporary (5 a level) -- "' + l2 + '"', s2 === 'charged' && t2 === 10 && /has FED: CHARGED for the rest of the fight/.test(l2) && /\+2 to hit/.test(l2) && /2d4 to 2d6/.test(l2));
+      okMS('3 charged and fed a level-1 spell: ' + t3 + ' temporary (the 10 stand: temporary hit points do not add); a level-3: ' + t4 + '; still ' + s4, t3 === 10 && t4 === 15 && s4 === 'charged' && /stand/.test(l3) && /15 temporary/.test(l4));
+      okMS('3 the level of a spell held: Bless with no level kept ' + SE.heldLevel({ id: 'bless', name: 'Bless' }) + ' (its own, 1), a cast kept at 3 ' + SE.heldLevel({ id: 'bless', level: 3 }) + ', an unknown one ' + SE.heldLevel({ id: 'no-such-spell' }) + ' (1), none ' + SE.heldLevel(null), SE.heldLevel({ id: 'bless', name: 'Bless' }) === 1 && SE.heldLevel({ id: 'bless', level: 3 }) === 3 && SE.heldLevel({ id: 'no-such-spell' }) === 1 && SE.heldLevel(null) === 0);
+      SE.setState(BN, uT, 'normal'); uT.temp = 0; uT.hp = uT.maxhp;
+      // 7. the stirge's drink and the wisp's Consume Magic are the same rule (the family's)
+      var st = unit('mirrorstirge'), wz = BN.units.filter(function (u) { return u.cls === 'wizard'; })[0], sl0 = wz.slots.slice(), lo = SE.lowSlot(wz); st.temp = 0; var drank = SE.drinkSlot(BN, st, wz), dl = strip((BN.log || []).slice(-2).join(' | '));
+      okMS('7 the mirror stirge drinks a level-' + lo + ' slot (' + sl0.join('/') + ' to ' + wz.slots.join('/') + '): ' + st.madeState + ', ' + st.temp + ' temporary, Magic Drain +' + first(st).atk + ' ' + first(st).dice + ' -- ' + dl.slice(-260), drank && st.madeState === 'charged' && st.temp === 5 * lo && first(st).atk === FM.mirrorstirge.attacks.drain.atk + 2 && first(st).dice === '1d6' && /has FED: CHARGED/.test(dl));
+      // 4. the clock
+      D.seed = +get('seed', 1114); WS.index(); WS.use('world'); var SS = WS.load('?fresh&far'), VS = WS.VESSEL, MM = WS.M(), tS = function (d, h) { return (d - 1) * 24 + h; };
+      var by = function (d, t) { return WS.makings(t == null ? tS(30, 12) : t).filter(function (m) { return m.day === d; })[0]; }, stAt = function (d, t) { var m = by(d, t); return m ? m.state : 'not made'; };
+      okMS('4 the days: wither ' + VS.wither + ', gone ' + VS.gone + ' (withered on the third unfed day, gone from the fourth: the desk\'s reading of "more than 3 days without feeding they poof")', VS.wither === 3 && VS.gone === 4);
+      var seq = [[9, 11], [9, 12], [10, 12], [11, 12], [12, 11], [12, 12], [13, 11], [13, 12], [14, 12], [30, 12]].map(function (x) { return 'd' + x[0] + ' ' + x[1] + 'h ' + stAt(9, tS(x[0], x[1])); }).join(', ');
+      okMS('4 the day-9 making, never fed: ' + seq, seq === 'd9 11h not made, d9 12h normal, d10 12h normal, d11 12h normal, d12 11h normal, d12 12h withered, d13 11h withered, d13 12h gone, d14 12h gone, d30 12h gone');
+      var m9 = by(9), in9 = function (t) { return WS.mirrorAt(m9.pt, t).all.some(function (x) { return x.m.day === 9; }); };
+      okMS('4 at its own place the day-9 making is on the table through its third day and off it from the fourth: day 12 at 13:00 ' + in9(tS(12, 13)) + ', day 13 at 11:00 ' + in9(tS(13, 11)) + ', day 13 at 12:00 ' + in9(tS(13, 12)) + ', day 20 ' + in9(tS(20, 12)), in9(tS(12, 13)) && in9(tS(13, 11)) && !in9(tS(13, 12)) && !in9(tS(20, 12)));
+      var tally = function (pt, t, n) { SS.t = t; var c = { mirror: 0, st: {}, n: 0 }; for (var i = 0; i < n; i++) { var p = WS.pick('doors', false, pt); if (!p) continue; c.n++; if (p.mirror && p.made) { c.mirror++; var k = p.made.zone + '@' + p.made.day + ':' + p.made.state; c.st[k] = (c.st[k] || 0) + 1; } } return c; }, keysS = function (o) { return Object.keys(o).sort().map(function (k) { return k + ' x' + o[k]; }).join(', '); };
+      D.seed = 1114; var pA = tally(m9.pt, tS(12, 13), 600), pB = tally(m9.pt, tS(13, 13), 600), pC = tally(m9.pt, tS(15, 13), 600);
+      okMS('4 600 picks at the day-9 place: day 12 at 13:00 ' + pA.mirror + ' mirror-made (' + keysS(pA.st) + '); day 13 at 13:00 ' + pB.mirror + ' (' + keysS(pB.st) + '); day 15 at 13:00 ' + pC.mirror + ' (want the day-9 making withered on day 12 and never drawn after, and nothing at all once the day-11 making is gone)',
+        pA.st['doors@9:withered'] > 20 && !pA.st['doors@9:normal'] && !Object.keys(pB.st).some(function (k) { return /@9:/.test(k); }) && pB.mirror > 20 && pC.mirror === 0);
+      var anyAt = function (t) { return Object.keys(MM.hex).some(function (k) { var e = MM.hex[k]; return WS.mirrorWeight(WS.hc(e.q, e.r), t) > 0; }); }, lastT = null; for (var hL = tS(3, 12); hL <= tS(20, 0); hL++) if (anyAt(hL)) lastT = hL;
+      okMS('4 unfed, the whole of THE WORLD is clean of made things after day ' + (Math.floor(lastT / 24) + 1) + ' at ' + (lastT % 24) + ':00 (the day-11 making, the last, gone at noon of day 15); day 30 ' + anyAt(tS(30, 12)), lastT === tS(15, 11) && !anyAt(tS(30, 12)));
+      var innS = MM.sites.filter(function (s) { return s.id === 'inn'; })[0], ipS = [innS.x, innS.y], innHours = [], run = null; for (var hI = tS(3, 12); hI <= tS(20, 0); hI++) { var on = WS.mirrorWeight(ipS, hI) > 0; if (on && run == null) run = hI; if (!on && run != null) { innHours.push([run, hI]); run = null; } }
+      var hm = function (t) { return 'day ' + (Math.floor(t / 24) + 1) + ' ' + (t % 24) + ':00'; };
+      repMS.notes.push('unfed, each making is withered / gone at: ' + [3, 5, 7, 9, 11].map(function (d) { var m = by(d); return 'day-' + d + ' ' + hm(m.t + VS.wither * 24) + ' / ' + hm(m.t + VS.gone * 24) + ' (its reach then ' + Math.min(VS.reach[2], VS.reach[0] + VS.reach[1] * VS.gone) + ' mi)'; }).join('; '));
+      repMS.notes.push('the Halfway Inn\'s road, unfed: made things in reach ' + (innHours.length ? innHours.map(function (r) { return hm(r[0]) + ' to ' + hm(r[1]); }).join(', and ') : 'never') + ' (before the clock: from day 6 at 21:00 on, for good)');
+      // 5. feeding feeds the making
+      SS.t = tS(12, 14); delete SS.madeFed; var f0 = stAt(9, SS.t), fedOk = WS.madeFed(9), f1 = stAt(9, SS.t), f2 = stAt(9, tS(15, 13)), f3 = stAt(9, tS(15, 14)), f4 = stAt(9, tS(16, 14)), other = stAt(5, SS.t);
+      okMS('5 the day-9 making fed on day 12 at 14:00 (' + f0 + ' then): ' + f1 + ' at once, ' + f2 + ' on day 15 at 13:00, ' + f3 + ' at 14:00, ' + f4 + ' on day 16 at 14:00; kept with the walk (S.madeFed[9] = ' + (SS.madeFed || {})[9] + '); the day-5 making, not fed, ' + other, f0 === 'withered' && fedOk === true && f1 === 'normal' && f2 === 'normal' && f3 === 'withered' && f4 === 'gone' && (SS.madeFed || {})[9] === tS(12, 14) && other === 'gone');
+      SS.t = tS(20, 12); var late = WS.madeFed(9), lateS = stAt(9, SS.t);
+      okMS('5 a making that is gone cannot be fed back: madeFed ' + late + ', ' + lateS, late === false && lateS === 'gone');
+      // 6. the road's fight
+      delete SS.madeFed; var topMS = function () { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; };
+      window.DS.autoPicks = true; D.music = function () { };
+      var wsM = WS.make('?world&fresh&noenc&far'); D.scenes.length = 0; D.push(wsM); wsM.enter(); var SW = WS.state(), eM = WS.M().hex[WS.K(SW.at[0], SW.at[1])]; SW.t = tS(12, 13); delete SW.madeFed;
+      var pW = { zone: 'doors', list: ['mirrorwolf', 'mirrorwolf', 'mirrorworg'], mirror: true, grp: { mirror: true }, made: { day: 9, zone: 'doors', state: WS.madeState(9) } };
+      wsM.fight(pW, eM, { simple: false }); var bW = topMS(); D.battle = bW; var fW = bW.units.filter(function (u) { return u.side === 'foe'; });
+      var allW = fW.length === 3 && fW.every(function (u) { return u.madeState === 'withered' && u.made && u.made.day === 9 && u.hp === u.maxhp && u.maxhp === Math.floor(FM[u.kind].hp / 2) && /emaciated/.test(u.sheet); });
+      okMS('6 a road fight of the day-9 making on day 12 at 13:00 (' + pW.made.state + '): ' + fW.map(function (u) { return u.name + ' ' + u.madeState + ' ' + u.hp + '/' + u.maxhp + ' speed ' + u.speed + ' on ' + u.sheet; }).join('; ') + '; its opening line "' + strip(bW.F && bW.F.intro || (bW.o.fightDef || {}).intro) + '"', pW.made.state === 'withered' && allW && /and withered/.test(String(bW.F && bW.F.intro || (bW.o.fightDef || {}).intro)));
+      var before = WS.madeState(9), lineW = strip(SE.fed(bW, fW[0], 1)), after = WS.madeState(9), rest = fW.slice(1).map(function (u) { return u.madeState; }).join(',');
+      okMS('6 one of them feeds in that fight: it is ' + fW[0].madeState + ' ("' + lineW + '"), the others still ' + rest + ' for this fight; its making ' + before + ' to ' + after + ' (S.madeFed[9] = ' + (SW.madeFed || {})[9] + ', the fight\'s hour ' + SW.t + ')', before === 'withered' && fW[0].madeState === 'normal' && rest === 'withered,withered' && after === 'normal' && (SW.madeFed || {})[9] === SW.t);
+      D.scenes.length = 0; D.push(wsM); delete SW.madeFed; SW.t = tS(10, 13);
+      wsM.fight({ zone: 'doors', list: ['mirrorwolf'], mirror: true, grp: { mirror: true }, made: { day: 9, zone: 'doors', state: WS.madeState(9) } }, eM, { simple: true }); var bN2 = topMS(), fN = bN2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      okMS('6 the same making met on day 10, in the simple fight: ' + fN.name + ' ' + fN.madeState + ' ' + fN.hp + '/' + fN.maxhp + ' on ' + fN.sheet + ', its making known (' + (fN.made && fN.made.day) + ')', fN.madeState === 'normal' && fN.maxhp === FM.mirrorwolf.hp && fN.sheet === 'mirrorwolf_p1' && fN.made && fN.made.day === 9);
+      D.scenes.length = 0;
+      // 8. the show's four beats of the states
+      if (!D.madeshow) okMS('8 the show: deep16/js/madeshow.js is loaded', false);
+      else {
+        var BM2 = D.madeshow.make('?madeshow&fast&only=withered,fed,charged,mirrorwisp'); D.battle = BM2; BM2.enter();
+        var vM2, kM2 = 0;
+        while (BM2.co && kM2++ < 400000) { var rM2 = BM2.co.next(vM2); vM2 = undefined; if (rM2.done) break; var yM2 = rM2.value; if (yM2 && yM2.prompt) vM2 = yM2.prompt.opts[0].value; }
+        (BM2.madeReport || []).forEach(function (b) { okMS('8 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+        okMS('8 the show ran ' + (BM2.madeReport || []).length + ' beats of the states (want 4)', (BM2.madeReport || []).length === 4);
+      }
+    } catch (eMS) { repMS.errors.push(String(eMS && eMS.stack || eMS).slice(0, 900)); }
+    D.d = d0MS; WS.VESSEL.wither = vw0; WS.VESSEL.gone = vg0; D.store.get = stGMS; D.store.set = stSMS; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preMS = document.createElement('pre'); preMS.id = 'out'; preMS.textContent = 'BENCH16 ' + JSON.stringify(repMS);
+    document.body.appendChild(preMS);
     return;
   }
   // THE MAKINGS BY THEIR GROUND, 11-13 (mode=made1113; the makings seat -- Griz: "there should be a path of Mr Ripples that the player doesn't see that determines when/where
@@ -9654,6 +9763,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = function (k) { return memMK[k] ? JSON.parse(memMK[k]) : null; }; D.store.set = function (k, v) { memMK[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1113); WK.index(); WK.use('world'); var SK = WK.load('?fresh&far'), VK = WK.VESSEL, MK = WK.M(), tK2 = function (d, h) { return (d - 1) * 24 + h; };
+      // (11-14, THE MADE THINGS' CLOCK: this mode's subject is WHERE the makings are and what each leaves -- its picks on days 8 to 30 are read with the made things never
+      // withering, as they stood when it was cut; what the clock takes away is mode=made1114's. Re-pointed, not loosened: every want below is as it was)
+      var clockMK = [VK.wither, VK.gone]; VK.wither = Infinity; VK.gone = Infinity;
       var ENC = ((window.DS || {}).DATA || {}).encounters || {}, F = D.FOES, all = WK.makings(tK2(30, 12));
       // 1. the four makings
       var WANT = { 3: ['11,12', 'hills', 'gnollhills', 'mirrorhyena'], 5: ['15,10', 'bog', 'glowseep', 'mirrorstirge,mirrorwisp'], 7: ['18,8', 'bog', 'glowseep', 'mirrorstirge,mirrorwisp'], 9: ['19,6', 'black', 'doors', 'mirrorwolf,mirrorworg'], 11: ['17,6', 'black', 'doors', 'mirrorwolf,mirrorworg'] };
@@ -9724,7 +9836,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. the show
       if (!D.madeshow) okMK('4 the show: deep16/js/madeshow.js is loaded', false);
       else {
-        var BM = D.madeshow.make('?madeshow&fast'); D.battle = BM; BM.enter();
+        var BM = D.madeshow.make('?madeshow&fast&only=mirrorwolf,mirrorworg'); D.battle = BM; BM.enter(); // (its own two beats: the states' four are mode=made1114's, 11-14)
         var vM, kM = 0;
         while (BM.co && kM++ < 400000) { var rM = BM.co.next(vM); vM = undefined; if (rM.done) break; var yM = rM.value; if (yM && yM.prompt) vM = yM.prompt.opts[0].value; }
         (BM.madeReport || []).forEach(function (b) { okMK('4 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
@@ -9735,7 +9847,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.house.worldDoor('?world&fresh&noenc&far'); var scK = D.top(); WK.state().t = tK2(12, 12); var cvK = document.createElement('canvas'); cvK.width = D.W; cvK.height = D.H; VK.drawn = null; scK.draw(cvK.getContext('2d'));
       okMK('5 nothing of his road drawn for a player on day 12 (show ' + VK.show + ', drawn ' + VK.drawn + ')', VK.show === null && VK.drawn === null);
     } catch (eMK) { repMK.errors.push(String(eMK && eMK.stack || eMK).slice(0, 900)); }
-    D.d = d0MK; D.store.get = stGMK; D.store.set = stSMK; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    D.d = d0MK; if (typeof clockMK !== 'undefined' && clockMK) { WK.VESSEL.wither = clockMK[0]; WK.VESSEL.gone = clockMK[1]; } D.store.get = stGMK; D.store.set = stSMK; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preMK = document.createElement('pre'); preMK.id = 'out'; preMK.textContent = 'BENCH16 ' + JSON.stringify(repMK);
     document.body.appendChild(preMK);
     return;

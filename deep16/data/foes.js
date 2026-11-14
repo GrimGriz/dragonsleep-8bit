@@ -381,6 +381,7 @@
     abil: { str: 16, dex: 14, con: 14, int: 2, wis: 12, cha: 7 }, init: 2, perception: 13,
     saves: { str: 3, dex: 2, con: 2, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d4', mod: 2, type: 'piercing', reach: 5 } },
+    madeStates: true, // (a made thing: normal, withered, charged -- js/seep.js THE MADE THINGS' STATES, 11-14. It has no rider on its bite, so nothing feeds it: withered by the clock, never charged; the hyena's Normal look in every state, no sheet asked)
     multi: 1, rampage: true, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, // (Medium and Pack Tactics since the swarm, 10-08: Large, they could not get past him)
     laugh: { dc: 13 }, // (the pack's laugh at one of the party on the ground: WIS or a step up the fear scale; dc for the pair that starts it, +1 a hyena past two -- js/traits.js packLaugh, rules.js RU.FEAR; Griz, 10-08: "reaction to party member falling prone, play one laugh, beat, play the others")
     src: 'the SRD 5.1 Giant Hyena made over by Mr. Ripples, ours (10-08): the mirror eyes, the ripple, the hyena sheet at 1.25; a swarm of four -- Medium, Pack Tactics, out at his flanks (Griz: "they just park behind him most of the fight instead of being a swarm of attackers"), lighter as his lever ("could making them mirrorhyena with different stats be the lever"): 34 HP (three quarters of the giant hyena), bite +5 2d4+2 (Griz: "Do Mirror Hyena bite +5 for 2d4+2 and call it good")'
@@ -492,7 +493,7 @@
     attacks: { shock: { name: 'Shock', atk: 4, dice: '2d8', mod: 0, type: 'lightning', reach: 5 } },
     multi: 1, immune: ['lightning', 'poison'], resist: ['acid', 'cold', 'fire', 'necrotic', 'thunder', 'mundane'],
     condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
-    mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
+    mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, madeStates: true, // (madeStates: withered and charged, drawn in code beside it -- mirrorwisp_emaciated_p1, mirrorwisp_overcharged_p1; js/seep.js, 11-14)
     src: "ours (11-13): the SRD 5.1 Will-o'-Wisp made over by Mr. Ripples -- Consume Magic for Consume Life (a bonus action, within 5 ft, CON DC 10 or the highest spell slot left is eaten; it regains 1d6 a slot level), the mirror eye, the ripple; drawn in code (tools/mirrorwisp-sheet.py) -- SENSES (ours, 11-10): Stealth none, its DEX check (+9), because the SRD Will-o'-Wisp it is made from has no Stealth; passive Perception 12, because the wisp's own: 10 + WIS +2"
   },
   // the three bugs of the 8-bit's Glowseep (10-05, Griz: "Let's try code drawn"; tools/bugs-sheet.py), SRD 5.1 blocks as content/monsters.json has them
@@ -513,7 +514,7 @@
     abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
     saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
     attacks: { drain: { name: 'Magic Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true, slots: true } },
-    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
+    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true, madeStates: true, // (madeStates: on its Normal sheet in every state till mirrorstirge_emaciated_p1 and mirrorstirge_overcharged_p1 come back -- deep16-art-wanted.md section 62; worn the day they are registered, nothing to wire: js/seep.js S.stateSheet, 11-14)
     src: 'ours (11-13): the SRD 5.1 Stirge made over by Mr. Ripples -- latched, it eats the lowest spell slot left each turn (5 a level toward its 10) and no blood, blood only from one with no magic; the mirror eye, the ripple; on its own sheet since 11-13, mirrorstirge_p1 (the art desk\'s ART-143: smoked glass and silver, cut by tools/mirrorstirge-sheet.py) -- SENSES (ours, 11-10): Stealth none, its DEX check (+3), because the SRD Stirge it is made from has no Stealth; passive Perception 9, because it is the stirge, made over: 10 + WIS -1'
   },
   // THE MIRROR WOLF and THE MIRROR WORG (11-13, ours; the makings seat, on Griz's "choose two creatures from each random encounter list to have him mirror-make": the two of
@@ -525,14 +526,15 @@
   // The rider is js/seep.js S.mirrorBite, called where battle.js reads the knockdown (`unspell`). The mirror worg goes for the one with magic left (`seeksMagic`); the mirror
   // wolves hunt as a pack does. Their looks (11-13, the cutter of the wolves): the art desk's own pages, a paint-over of its wolf and its worg with Mr. Ripples' starfield fixed in the coat --
   // mirrorwolf_p1 and mirrorworg_p1 (tools/mirrorwolf-sheet.py, tools/mirrorworg-sheet.py); the moving ripple and the mirror eye stay the engine's. Each came in THREE STATES, Normal,
-  // Emaciated (three days without magic) and Overcharged: the two others are cut and registered as <sheet>_emaciated_p1 and <sheet>_overcharged_p1 on the same cell and foot, and NOTHING
-  // WEARS THEM -- the makings' withering (the clock lane, held) is not built; deep16/?madeshow&state=emaciated shows one. The seat's calls, for his overrule
+  // Emaciated (three days without magic) and Overcharged: the two others are cut and registered as <sheet>_emaciated_p1 and <sheet>_overcharged_p1 on the same cell and foot, and since
+  // 11-14 THEY ARE WORN: Emaciated by a WITHERED one, Overcharged by a CHARGED one (`madeStates`; RULED 11-14 -- js/seep.js THE MADE THINGS' STATES, js/world.js THE MADE
+  // THINGS' CLOCK; deep16/?madeshow shows one withered, one fed on screen, one charged). The seat's calls, for his overrule
   mirrorwolf: {
     name: 'Mirror Wolf', type: 'beast', sheet: 'mirrorwolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
     abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13, stealth: 4,
     saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11, unspell: 'conc' } },
-    multi: 1, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
+    multi: 1, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, madeStates: true,
     src: 'ours (11-13): the SRD 5.1 Wolf made over by Mr. Ripples -- the bite\'s knockdown falls on the spell its prey holds (STR DC 11 or its concentration ends, and no fall; one holding no spell is knocked prone as by any wolf); Pack Tactics, Keen Hearing and Smell as the wolf\'s; the mirror eye, the ripple; on its own sheet since 11-13, mirrorwolf_p1 (the art desk\'s Normal state) -- SENSES (ours, 11-10): Stealth +4, because it is the wolf, made over, and the SRD Wolf has Stealth +4; passive Perception 13, because the wolf\'s own: 10 + Perception +3'
   },
   mirrorworg: {
@@ -540,7 +542,7 @@
     abil: { str: 16, dex: 13, con: 13, int: 7, wis: 11, cha: 8 }, init: 1, perception: 14,
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13, unspell: 'slot' } },
-    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true,
+    multi: 1, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, seeksMagic: true, madeStates: true,
     src: 'ours (11-13): the SRD 5.1 Worg made over by Mr. Ripples -- the bite\'s knockdown falls on a spell not yet cast (STR DC 13 or the lowest spell slot left is torn out, and no fall; one with no slot is knocked prone as by any worg); Keen Hearing and Smell as the worg\'s; the mirror eye, the ripple; on its own sheet since 11-13, mirrorworg_p1 (the art desk\'s Normal state) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because the SRD Worg it is made from has no Stealth; passive Perception 14, because the worg\'s own: 10 + Perception +4'
   },
   firebeetle: {

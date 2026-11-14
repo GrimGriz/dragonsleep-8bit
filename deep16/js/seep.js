@@ -62,6 +62,7 @@
       if (d.consume) u.consume = d.consume;
       if (d.seeksMagic) u.seeksMagic = true;
       if (d.glow && d.glow.vary) u.glow = Object.assign({}, d.glow); // (its own: Variable Illumination changes it)
+      if (d.madeStates) S.madeInit(u, d); // (a made thing: normal, withered or charged -- THE MADE THINGS' STATES, below)
     }
     return u;
   };
@@ -89,7 +90,8 @@
     var lv = S.lowSlot(host); if (!lv) return false;
     host.slots[lv - 1]--; u.drained = (u.drained || 0) + 5 * lv;
     FX.sparkle(host, 'violet', 10); FX.float('-1 slot', host, D.PAL.ramps.violet[5]); D.sfx('poison');
-    B.card(['{r}' + the(B, u, true) + '{/} drinks: {p}a level ' + lv + ' spell slot{/} from ' + host.name + ', gone.  {g}(no blood; ' + Math.min(10, u.drained) + ' of 10' + (u.drained >= 10 ? ': full' : ' so far') + '){/}'], 160);
+    var fl = S.fed(B, u, lv);
+    B.card(['{r}' + the(B, u, true) + '{/} drinks: {p}a level ' + lv + ' spell slot{/} from ' + host.name + ', gone.  {g}(no blood; ' + Math.min(10, u.drained) + ' of 10' + (u.drained >= 10 ? ': full' : ' so far') + '){/}'].concat(fl ? [fl] : []), fl ? 260 : 160);
     return true;
   };
 
@@ -105,12 +107,72 @@
     FX.sparkle(tgt, 'violet', 10); D.sfx('poison');
     if (how === 'slot') {
       tgt.slots[lv - 1]--; FX.float('-1 slot', tgt, D.PAL.ramps.violet[5]);
-      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} tears it out: {p}a level ' + lv + ' spell slot{/} of ' + tgt.name + '\'s, gone.  {g}(the worg\'s knockdown, fallen on the magic: ' + tgt.name + ' stays up){/}']);
+      var fs = S.fed(B, att, lv);
+      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} tears it out: {p}a level ' + lv + ' spell slot{/} of ' + tgt.name + '\'s, gone.  {g}(the worg\'s knockdown, fallen on the magic: ' + tgt.name + ' stays up){/}'].concat(fs ? [fs] : []));
     } else {
-      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} pulls it down: {p}' + held + '{/}.  {g}(the wolf\'s knockdown, fallen on the spell: ' + tgt.name + ' stays up){/}']);
+      var fc = S.fed(B, att, S.heldLevel(tgt.conc)); // (a concentration ended counts as the level of the spell that was held)
+      B.card([head + '{o}FAILED{/}', '{r}' + the(B, att, true) + '{/} pulls it down: {p}' + held + '{/}.  {g}(the wolf\'s knockdown, fallen on the spell: ' + tgt.name + ' stays up){/}'].concat(fc ? [fc] : []));
       D.magic.endConc(B, tgt, 'pulled down');
     }
     yield 24; return true;
+  };
+
+  // ------------------------------------------------------------------ THE MADE THINGS' STATES (2026-11-14, the made-states seat; the clock lane's last sections)
+  // RULED 11-14, Griz to the lanes desk, verbatim:
+  //   "1 - good" -- to the desk's lean: FED is its rider landing (the mirror wolf ends a concentration, the mirror worg tears out a slot; by THE FAMILY'S RULE the mirror
+  //     wisp's Consume Magic and the mirror stirge's drink are the same thing -- the desk's reading), and it changes sheet right there in the fight: withered goes to
+  //     normal, normal goes to charged.
+  //   "2 - more than 3 days without feeding they poof out of existence. Approved." -- to the lean: WITHERED is one met three or more days after its making day with
+  //     nothing eaten: half HP, speed -10, -2 to hit. (The days are js/world.js W.madeState: THE MADE THINGS' CLOCK.)
+  //   "3 - rather than 1d6 force on the bite, HP as you said, +2 to hit, damage die steps up 1 (i.e. 1d6 becomes 1d8)" -- CHARGED, for the rest of the fight: 5 temporary
+  //     hit points a level of the spell it took, +2 to hit, its damage die one step up. No force rider.
+  //   11-13, to the cutter of the wolves: "grid will adjust stats and such for withered and charged states".
+  // A made thing is a block with `madeStates` (data/foes.js: the mirror wisp, stirge, wolf, worg and hyena). It stands NORMAL unless the clock says otherwise (the road's
+  // fight sets it as the fight opens: js/world.js World.fight). The numbers are laid on the unit, never the block: its attacks are its own copies. The sheet is the art
+  // desk's for the state where one is cut (<sheet>_emaciated_p1, <sheet>_overcharged_p1 on the same cell and foot), else the Normal sheet in every state.
+  // THE SEAT'S CALLS, each standing for his overrule: a withered one that feeds has its full hit-point ceiling back and its hit points as they stood (nothing mended by
+  // the change itself), and no temporary hit points -- those are the charged state's; a charged one that feeds again stays charged and takes the new temporary hit points
+  // only if they are more (the SRD: temporary hit points do not add); "speed" is its flying speed too; the die steps d4, d6, d8, d10, d12 and a d12 stays; half of an odd
+  // number of hit points rounds down, never under 1; a spell held with no level known counts as its own level, else 1; a cantrip held is level 0: charged, no hit points
+  S.MADE = { hp: 0.5, speed: -10, hit: -2, chargedHit: 2, temp: 5, sheet: { withered: 'emaciated', charged: 'overcharged' } };
+  S.DIE = [4, 6, 8, 10, 12];
+  S.dieUp = function (dice) { return String(dice).replace(/d(\d+)/, function (m, n) { var i = S.DIE.indexOf(+n); return 'd' + (i >= 0 && i < S.DIE.length - 1 ? S.DIE[i + 1] : n); }); };
+  S.stateSheet = function (base, state) { var tag = S.MADE.sheet[state], sh = tag ? String(base).replace(/_p(\d+)$/, '_' + tag + '_p$1') : base; return sh !== base && D.SHEETS && D.SHEETS[sh] ? sh : base; };
+  S.madeInit = function (u, d) {
+    u.madeState = 'normal'; u.made0 = { hp: u.maxhp, sheet: u.sheet, attacks: d.attacks, spd: 0 };
+    var more = ['withered', 'charged'].map(function (st) { return S.stateSheet(u.sheet, st); }).filter(function (sh) { return sh !== u.sheet; });
+    if (more.length && D.spr && D.spr.prefetch) { try { D.spr.prefetch(more); } catch (e) { /* (a look: the fight goes on without it) */ } }
+  };
+  S.setState = function (B, u, state) { // (the state's numbers and its sheet laid on the unit: 'normal', 'withered' or 'charged'. True when it changed)
+    if (!u || !u.made0 || u.madeState === state || !/^(normal|withered|charged)$/.test(state)) return false;
+    var K = S.MADE, m0 = u.made0, hit = state === 'withered' ? K.hit : state === 'charged' ? K.chargedHit : 0, spd = state === 'withered' ? K.speed : 0, at = {};
+    Object.keys(m0.attacks || {}).forEach(function (k) { var a = Object.assign({}, m0.attacks[k]); if (a.atk != null && !a.noRoll) a.atk += hit; if (state === 'charged' && a.dice) a.dice = S.dieUp(a.dice); at[k] = a; });
+    u.attacks = at;
+    var dv = spd - m0.spd; u.speed = Math.max(0, (u.speed || 0) + dv); if (u.walkSpeed != null) u.walkSpeed = Math.max(0, u.walkSpeed + dv); m0.spd = spd;
+    var mx = state === 'withered' ? Math.max(1, Math.floor(m0.hp * K.hp)) : m0.hp; u.maxhp = mx; if (u.hp > mx) u.hp = mx;
+    u.sheet = S.stateSheet(m0.sheet, state); u.madeState = state; if (B) B.cache = null;
+    return true;
+  };
+  S.heldLevel = function (conc) { // (the level of a spell held: the cast's own where the engine kept it, else the spell's)
+    if (!conc) return 0; if (conc.level != null) return conc.level; if (conc.lv != null) return conc.lv;
+    var sp = (((window.DS || {}).DATA || {}).spells || {})[conc.id]; return sp && sp.level != null ? sp.level : 1;
+  };
+  // FED: its rider landed, and it took a spell of level lv. Returns the line for the rider's own card (null for one that is no made thing). The making it came from is
+  // fed with it (js/world.js W.madeFed: no one beast is tracked between fights, so the count is the making's -- the desk's reading)
+  S.fed = function (B, u, lv) {
+    if (!u || !u.made0) return null;
+    var K = S.MADE, was = u.madeState, who = '{r}' + the(B, u, true) + '{/}'; lv = Math.max(0, lv | 0); u.fedN = (u.fedN || 0) + 1;
+    if (u.made && u.made.day != null && D.world && D.world.madeFed) { try { D.world.madeFed(u.made.day); } catch (e) { /* (the clock must never stop a fight) */ } }
+    FX.ring(u, 'violet', 26); if (D.ripple) D.ripple(u, { region: 'body', dur: 40 });
+    if (was === 'withered') {
+      S.setState(B, u, 'normal');
+      return who + ' has FED: {p}withered no longer{/}.  {g}(its hit points out of ' + u.maxhp + ' again, its speed ' + u.speed + ' ft, its aim its own){/}';
+    }
+    var t = K.temp * lv, a0 = u.made0.attacks || {}, k0 = Object.keys(a0).filter(function (k) { return a0[k].dice; })[0], more = t > (u.temp || 0);
+    if (more) u.temp = t;
+    if (was === 'charged') return who + ' feeds again: ' + (more ? '{p}' + t + ' temporary hit points{/}' : 'its ' + (u.temp || 0) + ' temporary hit points stand') + '.  {g}(' + K.temp + ' a level of the level-' + lv + ' spell it took; still charged){/}';
+    S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff');
+    return who + ' has FED: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points, ' + K.temp + ' a level of the level-' + lv + ' spell it took; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}';
   };
 
   // ------------------------------------------------------------------ Variable Illumination (a bonus action)
@@ -156,9 +218,10 @@
     var sv = RU.save(t, C.ab || 'con', C.dc, false, null);
     if (sv.ok) { B.card(['{r}' + t.name + '{/}: CON save  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  {n}SAVED{/}  {g}' + t.name + ' keeps every slot.{/}'], 280); u.anim = 'idle'; yield 30; return true; }
     t.slots[lv - 1]--;
+    var fm = S.fed(B, u, lv); // (fed before it mends: a withered one's hit points are its own again, and the slot's dice count against those)
     var dice = lv + 'd' + String(C.healPer || '1d6').replace(/^\d*d/, ''), h = D.roll(dice), got = mended(B, u, h.total);
     FX.float('-1 slot', t, D.PAL.ramps.violet[5]);
-    B.card(['{r}' + t.name + '{/}: CON save  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  {o}FAILED{/}', '{p}' + t.name + ' loses a level ' + lv + ' spell slot: eaten.{/}  {g}(' + the(B, u, true) + ' regains ' + dice + ' ' + RU.fmtRolls(h.rolls) + ' = ' + h.total + (got < h.total ? ', ' + got + ' of it' : '') + ' hit points){/}'], 400);
+    B.card(['{r}' + t.name + '{/}: CON save  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  {o}FAILED{/}', '{p}' + t.name + ' loses a level ' + lv + ' spell slot: eaten.{/}  {g}(' + the(B, u, true) + ' regains ' + dice + ' ' + RU.fmtRolls(h.rolls) + ' = ' + h.total + (got < h.total ? ', ' + got + ' of it' : '') + ' hit points){/}'].concat(fm ? [fm] : []), 400);
     u.anim = 'idle'; yield 36; return true;
   };
 

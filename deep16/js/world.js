@@ -902,11 +902,12 @@
   // (1 + W.VESSEL.rate * weight / 6) times as fast, 1.5 at a making. THE WARDED FORT (RULED 11-12, Griz: "1 - he's supposed to hold at the warded fort"): he walks the Route at the table's pace
   // to the Warded Fort's mark (W.VESSEL.hold, read off the map) and is held THERE from that hour; no making after it, no reach grows after it; he never goes on to the Doors. What comes after (RULED 11-07,
   // his "gets his butt kicked at the warded place, he'll head down to the underground route after licking his wounds for a while"): how long, where -- OPEN, his. Made things
-  // never fade (RULED 11-12, "2 - for now"). NOTHING OF IT IS PLAYER VISIBLE (RULED 11-12, Griz: "vessel's road - should be nothing to watch, this is all background to
+  // faded never 11-12 to 11-14 (RULED 11-12, "2 - for now"); since 11-14 they WITHER AND ARE GONE unless they feed -- THE MADE THINGS' CLOCK, below. NOTHING OF IT IS PLAYER VISIBLE (RULED 11-12, Griz: "vessel's road - should be nothing to watch, this is all background to
   // determine random encounters and achieve for party, nothing player visible"): only the weights; the drawing below is a seats' debug view behind the &vessel flag alone
   W.VESSEL = {
     from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
     makings: [3, 5, 7, 9, 11, 13], makeHour: 12, /* (3: THE HARBINGER'S DAY, a making like the rest -- THE MAKINGS BY THEIR GROUND, below) */ reach: [10, 6, 40], peak: 6, rate: 0.5,
+    wither: 3, gone: 4, /* (THE MADE THINGS' CLOCK, below: days unfed) */
     // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
     // as the table; 9 to 11 a hex behind it (the climb slower); then held at the Warded Fort from 12:30 on day 11 (the table walked him on to the Doors late on day 12)
     table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
@@ -942,14 +943,28 @@
   W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var E = VR.holdE, n = Math.floor(E / V.mpd); return (V.day0 + n - 1) * 24 + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }; // (S.t at the Warded Fort: he is held from it)
   W.makings = function (t) { // (the makings made by S.t: each its day, its place, its reach now)
     if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tA = W.vesselArrives(), tg = Math.min(t, tA);
-    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean);
+    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean)
+      .map(function (m) { m.fed = W.madeFedAt(m, t); m.state = W.madeStateAt(m, t); return m; }); // (THE MADE THINGS' CLOCK, below: 'normal', 'withered' or 'gone' -- a gone making is still listed here, and weighs nothing)
   };
+  // THE MADE THINGS' CLOCK (RULED 11-14, Griz to the lanes desk: "2 - more than 3 days without feeding they poof out of existence. Approved." -- to the desk's lean that
+  // WITHERED is one met three or more days after its making day with nothing eaten: half HP, speed -10, -2 to hit; and "1 - good" -- FED is its rider landing. This replaces
+  // the 11-12 "2 - for now", made things never fading). The desk's readings, standing for his overrule: withered on the third unfed day, gone from the fourth; fed is
+  // counted BY THE MAKING, not by one beast, since no beast is tracked between fights -- a made thing of a making that feeds in a fight (js/seep.js S.fed) feeds the
+  // making, and its three days start again from that hour. The seat's reading of "days": whole days of twenty-four hours from the hour of the making (noon) or of the last
+  // feeding -- under three, normal; three, withered; four and it is gone, for good (nothing is left to feed). A gone making weighs nothing on any table and quickens no
+  // road: W.mirrorAt passes it over, so W.mirrorWeight, W.madeAt and W.pick never draw it. A made thing already in a fight stays (a fight is one hour of the clock).
+  // What a withered one's numbers are is the fight's (js/seep.js S.setState); World.fight lays the state on as the fight opens. The fed hours are kept with the walk
+  // (S.madeFed, by the making's day): in the house, in the save
+  W.madeFedAt = function (m, t) { var f = S && S.madeFed ? S.madeFed[m.day] : null; return f != null && f > m.t && f <= t ? f : m.t; }; // (the hour its count runs from: its making, or its last feeding by t)
+  W.madeStateAt = function (m, t) { var V = W.VESSEL, d = (t - W.madeFedAt(m, t)) / 24; return d >= V.gone ? 'gone' : d >= V.wither ? 'withered' : 'normal'; };
+  W.madeState = function (day, t) { if (t == null) t = S ? S.t : 0; var m = W.makings(t).filter(function (x) { return x.day === day; })[0]; return m ? m.state : null; }; // (a making's state by its day: null before it is made)
+  W.madeFed = function (day, t) { if (!S || day == null) return false; if (t == null) t = S.t; var m = W.makings(t).filter(function (x) { return x.day === day; })[0]; if (!m || m.state === 'gone') return false; (S.madeFed = S.madeFed || {})[day] = t; W.save(); return true; };
   W.partyPt = function () { return S && M ? hc(S.at[0], S.at[1]) : null; }; // (the party's hex's middle in miles: one plane for both maps)
   W.mirrorAt = function (pt, t) { // (THE FALLOFF, above: the mirror-made entry's weight at a point in miles (default the party's) at S.t (default now), the making it comes from -- the strongest there -- and `all`, every making whose reach holds the point with its own weight there: WHERE THEY OVERLAP, below)
     var no = { w: 0, m: null, all: [] }, all = []; pt = pt || W.partyPt(); if (!pt) return no; var V = W.VESSEL, w = 0, mm = null, pts = W.vesselRoad(); if (!pts) return no;
     var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
     if (pts[bi][2] > W.vesselAt(t).mi + 1) return no; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
-    W.makings(t).forEach(function (m) { var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) { var wm = V.peak * (1 - d / m.reach); all.push({ m: m, w: wm }); if (wm > w) { w = wm; mm = m; } } });
+    W.makings(t).forEach(function (m) { if (m.state === 'gone') return; /* (THE MADE THINGS' CLOCK: four days unfed and nothing of it is met) */ var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) { var wm = V.peak * (1 - d / m.reach); all.push({ m: m, w: wm }); if (wm > w) { w = wm; mm = m; } } });
     return { w: w, m: mm, all: all };
   };
   W.mirrorWeight = function (pt, t) { return W.mirrorAt(pt, t).w; };
@@ -989,15 +1004,16 @@
     g.strokeStyle = 'rgba(200,120,255,.55)'; g.lineWidth = 2; g.beginPath(); pts.forEach(function (p, i) { var q = gp(p[0], p[1]); if (!i) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }); g.stroke(); g.lineWidth = 1;
     for (var d = W.VESSEL.day0; d <= 13; d++) { var a = W.vesselAt((d - 1) * 24 + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
     W.makings().forEach(function (m) {
+      if (m.state === 'gone') return; // (THE MADE THINGS' CLOCK: nothing left to ring)
       g.strokeStyle = 'rgba(232,80,200,.8)'; g.fillStyle = 'rgba(232,80,200,.12)'; g.beginPath();
       for (var k = 0; k <= 36; k++) { var an = k / 36 * Math.PI * 2, q = gp(m.pt[0] + Math.cos(an) * m.reach, m.pt[1] + Math.sin(an) * m.reach); if (!k) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }
-      g.fill(); g.stroke(); var c = gp(m.pt[0], m.pt[1]); D.text(g, 'day ' + m.day + ' made', Math.round(c[0]) - 18, Math.round(c[1]) + 4, '#ffb0f0');
+      g.fill(); g.stroke(); var c = gp(m.pt[0], m.pt[1]); D.text(g, 'day ' + m.day + ' made' + (m.state === 'withered' ? ', withered' : ''), Math.round(c[0]) - 18, Math.round(c[1]) + 4, '#ffb0f0');
     });
     var v = W.vesselAt(), p = gp(v.pt[0], v.pt[1]), x = Math.round(p[0]), y = Math.round(p[1]);
     g.strokeStyle = '#ff60e0'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 4, y - 4); g.lineTo(x + 4, y + 4); g.moveTo(x + 4, y - 4); g.lineTo(x - 4, y + 4); g.stroke(); g.lineWidth = 1;
     var hr = Math.floor(W.hour()), cap = 'THE VESSEL\'S ROAD -- day ' + W.day() + ', ' + (hr < 10 ? '0' : '') + hr + ':00 -- at ' + v.hex.join(',') + (v.held ? ' (held at the Warded Fort)' : '') + ' -- the made things here: ' + W.mirrorWeight().toFixed(1);
     D.win8(g, 4, D.H - 66, D.textWidth(cap) + 10, 14); D.text(g, cap, 9, D.H - 63, '#ffb0f0');
-    W.VESSEL.drawn = { x: x, y: y, day: W.day(), makings: W.makings().length }; // (for the bench's eye)
+    W.VESSEL.drawn = { x: x, y: y, day: W.day(), makings: W.makings().filter(function (m) { return m.state !== 'gone'; }).length }; // (for the bench's eye)
   };
   function tables() { return ((window.DS || {}).DATA || {}).encounters || {}; }
   W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS * 5; S.zone = zone; }; // (in miles: a hex 5, a tile half of one)
@@ -1012,7 +1028,7 @@
     var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
     var md = grp.mirror ? W.madeAt(pt, null, true) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
     src.e.forEach(function (e) { var n = e[1] + D.rint(e[2] - e[1] + 1); for (var k = 0; k < n; k++) list.push(grp.mirror ? ((md && md.made[e[0]]) || W.MIRROR[e[0]] || e[0]) : e[0]); });
-    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone } : null };
+    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone, state: md.making.state } : null }; // (state: THE MADE THINGS' CLOCK -- 'normal' or 'withered'; a gone making is never drawn)
   };
   W.onStep = function (scene, st) {
     if (/[?&]noenc\b/.test(scene.q)) return false;
@@ -1031,7 +1047,7 @@
     D.sfx('encounter');
     // FIGHT the way OPTIONS' RANDOM FIGHTS says (simple, the first game's screen, by default: js/simple.js), or the other way for this fight alone (RULED 10-21, Griz: "yes")
     var simple = !D.simple || D.simple.on(), other = simple ? 'ON THE GRID' : 'SIMPLE';
-    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
+    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' + (p.made && p.made.state === 'withered' ? ', and withered' : '') : '') + '.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
       [['a', function () { self.fight(p, e); }, 'FIGHT']].concat(D.simple ? [['rec', function () { self.fight(p, e, { simple: !simple }); }, other]] : []));
   };
   // the field: 16 x 7 squares of the hex's ground, the lineup's squares kept open (x 3 to 10), the road along the middle where the hex has one
@@ -1102,7 +1118,7 @@
     W.field(e, simple ? D.simple.fieldOpts() : LU); D.MAPS['world-field'].gap = LU ? LU.gap : null;
     var fire = camp ? (simple ? D.simple.CAMP : LU.camp).slice() : null;
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
-      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
+      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made' + (p.made && p.made.state === 'withered' ? ', and withered' : '') + ': ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: simple ? D.simple.seat(p.list) : LU.foes, wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/flight-ai.js FA.on, 10-21 night)
     // (the fight's play record closes with its result where the fight ends -- 11-03, the desk's read of his records: the road and camp fights read 'restarted' though won, since this onDone
     // has a door of its own and js/record.js P.finish leaves such a fight's record to it; the menu's BACK TO THE ROAD calls onDone(null): 'left'. As js/roam.js and js/hex.js close theirs)
@@ -1114,6 +1130,8 @@
       // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x) -- in the simple fight
       // across the screen, the four to its left and the foes to its right (js/simple.js S.FACE)
       this.units.forEach(function (u) { var f = simple ? D.simple.FACE[u.side === 'party' ? 0 : 1] : [u.side === 'party' ? -1 : 1, 0]; u.facing = D.spr.facingFor(f[0], f[1]); });
+      // (THE MADE THINGS' CLOCK, above: each made thing knows its making, so its feeding feeds it; met on the third unfed day it is withered -- js/seep.js S.setState, 11-14)
+      if (p.made && D.seep && D.seep.setState) this.units.forEach(function (u) { if (u.side === 'foe' && u.made0) { u.made = { day: p.made.day }; if (p.made.state === 'withered') D.seep.setState(b, u, 'withered'); } });
       if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } }); if (p.mirror && D.house && D.house.cur && D.house.cur.flags) D.house.cur.flags.mirrorFought = 1; // (the supper asks: js/inn.js In.SUP.fought, 11-11)
     };
     D.push(b);

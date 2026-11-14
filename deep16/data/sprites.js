@@ -10492,6 +10492,118 @@
 }
 }
 },
+"mirrorwisp_emaciated_p1": {
+"image": "art/mirrorwisp_emaciated_p1.png?v=fe8a13b3e8",
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"top": 70,
+"source": "drawn in code by tools/mirrorwisp-sheet.py: the wisp's sheet (tools/wisp-sheet.py) with its bone and glow ramps turned to silver and violet (11-13); the WITHERED state (11-14): the outer halo gone, each band darker, the heart grey",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1024,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 8
+},
+"attack": {
+"y": 2048,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 10
+},
+"hurt": {
+"y": 3072,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 7
+},
+"flinch": {
+"y": 4096,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"mirrorwisp_overcharged_p1": {
+"image": "art/mirrorwisp_overcharged_p1.png?v=ee90622523",
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"top": 70,
+"source": "drawn in code by tools/mirrorwisp-sheet.py: the wisp's sheet (tools/wisp-sheet.py) with its bone and glow ramps turned to silver and violet (11-13); the CHARGED state (11-14): each band brighter, a silver ring, a wider dithered halo",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1024,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 8
+},
+"attack": {
+"y": 2048,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 10
+},
+"hurt": {
+"y": 3072,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 7
+},
+"flinch": {
+"y": 4096,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "mirrorwisp_p1": {
 "image": "art/mirrorwisp_p1.png?v=cf2327c4ae",
 "fw": 96,

@@ -2551,6 +2551,7 @@
   }
   function conds(w) {
     var c = [];
+    if (w.madeState === 'withered') c.push('{g}WITHERED{/}'); else if (w.madeState === 'charged') c.push('{p}CHARGED{/}'); // (a made thing's state: js/seep.js THE MADE THINGS' STATES, 11-14)
     if (w.under) c.push('{o}under the ground{/}'); // (a burrower: out of reach till it comes up, js/ai.js)
     else if (w.ethereal && !(w.conds.stoning && w.conds.stoning.done)) c.push('{p}ethereal{/}'); // (a hero turned to stone is out of the world too, but says stone below)
     if (w.conds.poisoned) c.push('{n}poisoned{/}');
