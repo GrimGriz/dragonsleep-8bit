@@ -18,7 +18,7 @@
   HL.sent = function (u) { return SN.heroesOf(u).filter(function (h) { return !!HL.wordOf(h); }); };
   HL.comp = function (u) { return SN.compNow(u); };
   HL.pack = function (u, plus, seat) {
-    return { id: u.id, form: u.form || 'line', asp: seat && seat.asp || 'front', cover: !!(seat && seat.cover), charge: !!(seat && seat.charge), glory: !!(seat && seat.glory), name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
+    return { id: u.id, form: u.form || 'line', asp: seat && seat.asp || 'front', cover: !!(seat && seat.cover), charge: !!(seat && seat.charge), glory: !!(seat && seat.glory), bless: !!u.ritual, name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
       groups: u.groups ? u.groups.map(function (g) { return { n: g.n, mounted: !!g.mounted, volley: !!g.volley }; }) : null,
       heroes: HL.sent(u).map(function (h) { return { name: h.name, grid: HL.wordOf(h) }; }),
       rating: SN.rating(u) + (plus || 0), never: SN.nevers(u) };
@@ -167,6 +167,7 @@
   // band of its own tribe, and with none in reach routs as it did), and the ones who never run stand where the men were
   HL.apply = function (st, h, O, T, res) {
     var byId = {}, sent = {}; O.concat(T).forEach(function (u) { byId[u.id] = u; sent[u.id] = HL.sent(u); });
+    O.concat(T).forEach(function (u) { if (u.ritual) { u.ritual = false; SN.say(st, u.name + ' fight under the morning\'s laugh: Bless on every one of them this fight (1d4 on their attacks and their saves).', 'info', h); } }); // (the day's first fight spends it)
     var stat = function (u, cls) { var k = u.side === 'ours' ? 'lost' : 'killed'; st.stats[k][u.side + ':' + cls] = (st.stats[k][u.side + ':' + cls] || 0) + 1; };
     SN.say(st, 'On the grid, unseen: ' + res.rounds + ' rounds, the ranks ' + res.gapFt + ' ft apart.', 'roll', h);
     if (res.seat) { var odd = O.concat(T).filter(function (u) { var q = res.seat[u.id]; return q && (q.asp !== 'front' || q.cover || (u.form && u.form !== 'line')); });

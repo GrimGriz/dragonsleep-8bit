@@ -175,8 +175,8 @@
     var isClass = function (w) { return !!(NPC.spec && NPC.spec(w, L)); };
     var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never, form: sd.form, asp: sd.asp, cover: sd.cover, charge: sd.charge, glory: sd.glory, nh: sd.nh }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
     var SA = norm(spec.a, 'a'), SB = norm(spec.b, 'b'), A = [], Au = [], Ah = [], Bl = [], Bu = [], Bh = [], hu = {};
-    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
-    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
+    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory, bless: !!x.bless }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
+    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory, bless: !!x.bless }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
     var aClass = A.filter(isClass), ph = !aClass.length;
     var steps = Math.round((H.GAP[1] - H.GAP[0]) / 5) + 1, gap = spec.gap || (H.GAP[0] + 5 * Math.floor(D.rand() * steps)), g = Math.round(gap / 5);
     // THE SEATING (11-14, Griz: "think about the formation settings from the snoot that was and the surprise and walls lines"; on the seat's lean, "Yes, all
@@ -246,6 +246,10 @@
         // THE WALLS (the board's holding ground: the Pit's and the inn's walls, the tribes' seats): the ones who hold are behind half cover from every shot
         // (SRD 5.1, Cover: +2 to AC -- js/battle.js reads u.hcover), with the +1 on their morale the board already sends
         if (hu[u.hunit] && hu[u.hunit].cover) u.hcover = true;
+        // THE MORNING RITUAL (11-15, Griz: "give the laughers a morning ritual stat bonus they recast each day"; "paladin bless for their first combat of the day
+        // (24 h if no combat), only if females remain in that group"): a unit the board sends blessed has the SRD's Bless on every body for this fight -- 1d4 on
+        // its attack rolls and its saves (js/battle.js, js/rules.js read conds.blessed) -- with nobody's concentration to break. Every body and the whole fight are the seat's reading
+        if (hu[u.hunit] && hu[u.hunit].bless && u.conds) u.conds.blessed = { by: u.id, ritual: true };
         // SURPRISE (the board's die, Book III): the side caught unready is surprised as the grid has it (SRD 5.1: no turn in the first round)
         if (spec.surprised && u.hgroup === spec.surprised && u.conds) u.conds.surprised = true;
         // THE CHARGE (11-14, Griz: "grant the 'charging' units a free dash?", then "yes to all four"): the ones that marched into the hex that day come on at a
@@ -284,7 +288,7 @@
   // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
   H.serve = function () {
     var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
-    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover, charge: !!u.charge, glory: !!u.glory }; }) }; };
+    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover, charge: !!u.charge, glory: !!u.glory, bless: !!u.bless }; }) }; };
     window.addEventListener('message', function (e) {
       var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
       try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }); delete r.log; delete r.frames; post({ type: 'd16h:done', id: m.id, res: r }); }

@@ -33,6 +33,7 @@
     m: { name: 'the moot ground', cost: 2, hill: true, seat: 'gray' }, s: { name: "the Skull-Gate's seat", cost: 2, hill: true, seat: 'skull' },
     l: { name: "the Wall-Laugh's seat", cost: 2, hill: true, seat: 'wall' },
     // (the world's own grounds, 11-14: the map fed from the second game's world, js/map.js -- Book III's going: a wood twice, a swamp three times; no one crosses the mountains but by a road)
+    k: { name: "the Gray Keeping's home", cost: 2, hill: true, seat: 'gray' }, // (11-15, his "their home-place, which is south and closer in the hills near rhollor's ruins")
     f: { name: 'farmland', cost: 1 }, t: { name: 'woods', cost: 2, rough: true }, b: { name: 'the bog', cost: 3, rough: true }, x: { name: 'the mountains', cost: 99, hill: true }
   };
   SN.ROWS = ROWS;
@@ -186,7 +187,8 @@
   SN.useMap = function (M) {
     SN.MAPNAME = M.name; SN.W = M.W; SN.H = M.H; SN.ROWS = M.rows; SN.ROADS = M.roads; SN.PLACES = M.places;
     SN.PIT = M.pit; SN.MOOT = M.moot; SN.WEST = M.west; SN.SOUTH = M.south; SN.INN = M.inn; SN.SEATS = M.seats; SN.ROADPT = M.roadpt; SN.BESIDE = M.beside;
-    SN.START = M.start || null; SN.FARMS = M.farms || {}; SN.OTHER = M.other || {}; SN.LAST = M.last || 28; SN.mapv++;
+    SN.START = M.start || null; SN.FORCEOV = M.forces || null; SN.DROP = M.drop || []; SN.FARMS = M.farms || {}; // (FORCEOV, DROP: what a map changes of SN.FORCES, by a unit's id -- js/rules.js SN.make, SN.newGame)
+     SN.OTHER = M.other || {}; SN.LAST = M.last || 28; SN.mapv++;
   };
   SN.useMap(SN.FIXTURE);
 })();

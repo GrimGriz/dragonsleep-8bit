@@ -20,8 +20,8 @@
   V.anim = null; // { steps, t0, dur } while the day's moves play
   V.sel = null; V.hover = null; V.flash = [];
   var SIDE = { ours: '#3aa38e', gnoll: '#d0623c', dominion: '#9a6ad6' };
-  var GROUND = { '.': '#78864a', v: '#8c9a50', h: '#86683f', w: '#2c5a7a', g: '#6a5636', P: '#6a5a46', i: '#78864a', m: '#86683f', s: '#86683f', l: '#86683f', f: '#a89a4c', t: '#476e38', b: '#586a40', x: '#5c5662' }; // (f t b x: the world's farmland, woods, bog and mountains, 11-14)
-  var ELEV = { '.': 0.1, v: 0.1, h: 0.3, m: 0.36, s: 0.34, l: 0.34, g: 0.05, w: -0.03, P: 0.08, i: 0.1, f: 0.1, t: 0.16, b: 0.04, x: 0.8 }; // (a hex's ground above the plain, in hex radii)
+  var GROUND = { '.': '#78864a', v: '#8c9a50', h: '#86683f', w: '#2c5a7a', g: '#6a5636', P: '#6a5a46', i: '#78864a', m: '#86683f', s: '#86683f', l: '#86683f', k: '#86683f', f: '#a89a4c', t: '#476e38', b: '#586a40', x: '#5c5662' }; // (f t b x: the world's farmland, woods, bog and mountains, 11-14)
+  var ELEV = { '.': 0.1, v: 0.1, h: 0.3, m: 0.36, s: 0.34, l: 0.34, g: 0.05, w: -0.03, P: 0.08, i: 0.1, k: 0.34, f: 0.1, t: 0.16, b: 0.04, x: 0.8 }; // (a hex's ground above the plain, in hex radii)
   // a sheet facing (S, SW, W, NW, N, NE, E, SE: 0..7) for each hex side (E, NE, NW, W, SW, SE) on the map: the side views, as the screenshot he
   // pasted draws its stacks -- NE and NW turn to E and W, since a sheet's back rows read as a grey lump at this size
   var FACE = [6, 6, 2, 2, 1, 7];
@@ -59,7 +59,7 @@
   V.terAt = function (h) {
     if (SN.on(h)) return SN.ter(h[0], h[1]);
     var ch = SN.ter(Math.max(0, Math.min(SN.W - 1, h[0])), Math.max(0, Math.min(SN.H - 1, h[1])));
-    ch = { P: '.', i: '.', m: 'h', s: 'h', l: 'h', w: '.', g: 'h', f: '.' }[ch] || ch; if (ch === 'x' || ch === 't' || ch === 'b') return ch;
+    ch = { P: '.', i: '.', m: 'h', s: 'h', l: 'h', k: 'h', w: '.', g: 'h', f: '.' }[ch] || ch; if (ch === 'x' || ch === 't' || ch === 'b') return ch;
     var n = noise(h[0], h[1], 5); if (ch !== 'h' && n > 0.86) ch = 'h'; else if (ch === 'h' && n < 0.14) ch = '.';
     return ch;
   };
@@ -224,7 +224,7 @@
   // the ground's marks, in the world so they lie on the slant (the more the zoom, the more of them: the show's hex is a field, not a tile)
   function ground(c, ch, p, w, e, z, col, r) {
     var k = Math.min(z / 40, 3), at = function (dx, dy) { return p(w[0] + dx, w[1] + dy, e); }, i, q, n;
-    if (ch === 'h' || ch === 'm' || ch === 's' || ch === 'l' || ch === 'x') {
+    if (ch === 'h' || ch === 'm' || ch === 's' || ch === 'l' || ch === 'k' || ch === 'x') {
       n = 3 + Math.min(6, Math.floor(z / 80));
       for (i = 0; i < n; i++) { q = at((noise(col, r, i + 2) - 0.5) * 1.2, (noise(col, r, i + 7) - 0.5) * 1.0); var rw = (0.16 + 0.1 * noise(col, r, i + 31)) * z;
         c.fillStyle = 'rgba(60,40,20,0.35)'; c.beginPath(); c.ellipse(q[0], q[1], rw, rw * SQ * 0.9, 0, Math.PI, Math.PI * 2); c.fill();
@@ -249,7 +249,7 @@
     }
     if (ch === 'i') { q = at(0, 0); var hw = Math.min(0.24 * z, 120); c.fillStyle = '#6a4a2a'; c.fillRect(q[0] - hw, q[1] - hw * 0.6, hw * 2, hw * 1.2); c.fillStyle = '#9a3a2a'; c.beginPath(); c.moveTo(q[0] - hw * 1.2, q[1] - hw * 0.6); c.lineTo(q[0], q[1] - hw * 1.4); c.lineTo(q[0] + hw * 1.2, q[1] - hw * 0.6); c.fill(); c.fillStyle = '#ffd27a'; c.fillRect(q[0] - hw * 0.2, q[1] - hw * 0.1, hw * 0.4, hw * 0.4); }
     if (ch === 'm') { for (i = 0; i < 10; i++) { var am = i / 10 * Math.PI * 2; q = at(Math.cos(am) * 0.5, Math.sin(am) * 0.5); var sw = Math.min(0.06 * z, 30), sh2 = Math.min(0.16 * z, 80); c.fillStyle = '#c9c0a8'; c.fillRect(q[0] - sw / 2, q[1] - sh2, sw, sh2); c.fillStyle = '#8a8270'; c.fillRect(q[0] - sw / 2, q[1] - sh2 * 0.15, sw, sh2 * 0.15); } }
-    if (ch === 's' || ch === 'l') { for (i = 0; i < 4; i++) { q = at(-0.45 + i * 0.3, -0.35); var ph = Math.min(0.32 * z, 140); c.fillStyle = '#4a3420'; c.fillRect(q[0] - ph * 0.04, q[1] - ph, ph * 0.08, ph); c.fillStyle = '#e8e0cc'; c.beginPath(); c.arc(q[0], q[1] - ph, ph * 0.12, 0, Math.PI * 2); c.fill(); } }
+    if (ch === 's' || ch === 'l' || ch === 'k') { for (i = 0; i < 4; i++) { q = at(-0.45 + i * 0.3, -0.35); var ph = Math.min(0.32 * z, 140); c.fillStyle = '#4a3420'; c.fillRect(q[0] - ph * 0.04, q[1] - ph, ph * 0.08, ph); c.fillStyle = '#e8e0cc'; c.beginPath(); c.arc(q[0], q[1] - ph, ph * 0.12, 0, Math.PI * 2); c.fill(); } }
   }
 
   // ---------------------------------------------------------------- the selected unit's day, and the orders' arrows

@@ -42,6 +42,16 @@
         ok(f0 === w.farms[fk].n && w.stats.farms === f0 && w.farms[fk].burned === 0, 'a band alone in a hex of farms finds and burns them (' + f0 + ' at a sure roll); with one of ours standing there it burns none');
         var t0 = SN.AI.fields(w, b); g.at = SN.PIT.slice(); var t1 = SN.AI.fields(w, b);
         ok(!!t1 && SN.same(t1, b.at) && !(t0 && SN.same(t0, b.at)), 'the computer' + "'" + 's band stays in fields it can see while farms stand there, and not where ours stand guard');
+        // ---- the clans as he ruled them, 11-15 (js/map.js forces; the fixture's forces are as they were)
+        var c = SN.newGame(9); c.party8 = null; var cu = function (id) { return SN.unit(c, id); }, fem = function (id) { return SN.females(cu(id)); }, men = function (id) { var m = SN.compNow(cu(id)), n = 0; Object.keys(m).forEach(function (k) { if (!/female$|hyena/.test(k)) n += m[k]; }); return n; };
+        ok(!cu('sg4') && c.units.filter(function (u) { return u.tribe === 'skull'; }).length === 3 && SN.dist(cu('sg3').at, cu('harb').at) === 1, 'the Skull-Gate is three groups, its glory-seekers beside the Harbinger' + "'" + 's pack');
+        ok(['sg1', 'sg2', 'gk1', 'gk2', 'wl1', 'wl2'].every(function (id) { var f = fem(id), m = men(id); return f > 0 && Math.abs(f - m / 6) <= 0.5; }) && fem('sg3') === 0 && fem('gkw') === 0, 'a woman of the band for every six males in each band (sg1 ' + fem('sg1') + ' to ' + men('sg1') + ', wl2 ' + fem('wl2') + ' to ' + men('wl2') + '); none with the glory-seekers, the death-watch as it was');
+        ok(fem('harb') === 0 && cu('harb').comp.gnoll > 0 && cu('harb').figs === 12, 'the Harbinger has gnolls with him, never a woman (' + cu('harb').comp.gnoll + ' gnolls, six mirror hyenas)');
+        ok(SN.same(cu('gk1').home, SN.SEATS.gray) && !SN.same(SN.SEATS.gray, SN.MOOT) && SN.TERRAIN[SN.ter(SN.SEATS.gray[0], SN.SEATS.gray[1])].seat === 'gray' && SN.same(cu('harb').home, SN.MOOT), 'the Gray Keeping' + "'" + 's home is its home-place by Rhollor' + "'" + 's Ruins, not the moot ground; the Harbinger' + "'" + 's is the moot');
+        SN.dawn(c); var r1 = cu('wl1').ritual, pk = SN.Headless.pack(cu('wl1'), null, null).bless; cu('wl1').comp = { gnoll: 12, hyena: 6 }; SN.dawn(c);
+        ok(r1 === true && pk === true && cu('wl1').ritual === false && cu('sg1').ritual === false, 'the Wall-Laugh' + "'" + 's morning ritual is on them at dawn and goes to the grid as a blessing; with no woman left there is none, and no other tribe has it');
+        var br = cu('sg1'), hb = cu('harb'), g0 = hb.comp.gnoll, f0h = hb.figs, m0 = men('sg1'); br.at = [hb.at[0], hb.at[1]]; c.units.forEach(function (u) { if (u.tribe === 'skull' && u !== br) u.at = SN.SEATS.wall.slice(); }); br.at = SN.nbrs(hb.at).filter(function (x) { return SN.cost(x) < 99; })[0]; SN.breakUp(c, br, false);
+        ok(hb.comp.gnoll === g0 + m0 && hb.figs === f0h + m0 && SN.females(hb) === 0, 'a band that breaks beside the Harbinger with none of its own to run to: its ' + m0 + ' males go to him, its women and hyenas do not');
       } catch (e) { ok(false, 'the world map: threw ' + e.message); }
       SN.useMap(SN.FIXTURE);
     })();

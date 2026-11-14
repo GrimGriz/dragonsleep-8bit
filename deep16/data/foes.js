@@ -1319,6 +1319,18 @@ window.D16.FOES.stonegiantm = Object.assign({}, window.D16.FOES.stonegiant, { sh
 // shelves, one of each there (js/pocketdm.js PD.OUT).
 window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'graykeeping_p2', seatAs: 'gnoll',
   src: window.D16.FOES.gnoll.src + '; the look of the Gray Keeping (graykeeping_p2, 10-15): the same block' });
+// THE WOMEN OF THE BANDS (11-15, Griz to the clock seat: "stat wise we need to add stronger female gnolls included in their group (save the harbingers)"; to the
+// Snoot seat: "some of the gnolls in the groups will have better stats (female) without different graphics", "one for every 6 males"): the gnoll's own sheet and
+// name, a heavier body (wiki/gnoll-hills.md: "females larger and fiercer"). THE NUMBERS ARE THE SEAT'S, his to change: Str 16 and Con 14 where the gnoll has
+// 14 and 11, 5d8+10 (32) hit points for its 22, +5 to hit and +3 damage for +4 and +2; all else the SRD gnoll's. Sent to the grid by the Snoot's bands
+// (snoot-mode/js/map.js forces: gnollfemale, gnollgrayfemale); not on the DM's shelves.
+(function () {
+  var g = window.D16.FOES.gnoll, at = {};
+  Object.keys(g.attacks).forEach(function (k) { at[k] = Object.assign({}, g.attacks[k], { atk: g.attacks[k].atk + 1, mod: g.attacks[k].mod + 1 }); });
+  window.D16.FOES.gnollfemale = Object.assign({}, g, { cr: '1', hp: 32, seatAs: 'gnoll', abil: Object.assign({}, g.abil, { str: 16, con: 14 }), saves: Object.assign({}, g.saves, { str: 3, con: 2 }), attacks: at,
+    src: g.src + '; a woman of the band (11-15, his "stronger female gnolls"): Str 16, Con 14, 32 hp, +5 to hit and +3 damage -- ours, not the SRD' });
+  window.D16.FOES.gnollgrayfemale = Object.assign({}, window.D16.FOES.gnollfemale, { sheet: 'graykeeping_p2' });
+})();
 window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker, { sheet: 'graykeeping_p2', seatAs: 'gloryseeker',
   src: window.D16.FOES.gloryseeker.src + '; the young blood of the Gray Keeping (graykeeping_p2, 10-15: at the size of a gnoll, one gray sheet for both): the same block' });
 // the Gray Keeping's matriarch-clerics (10-16, Griz: "let's give one group a superhero matriarch and the other hero ... Give the superhero entangle?"; then

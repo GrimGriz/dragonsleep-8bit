@@ -139,10 +139,12 @@
   // (deep16/data/foes.js) and three bench results (a band beat the patrol eight of eight; a Dominion wagon beat a band thirteen of thirteen; the paladins
   // at level 4): the benches are to rewrite them, here and only here. The words are the grid's (deep16/js/headless.js H.BODY, H.bodyOf -- the same reading).
   SN.WORTH = { guard: 1, bandit: 1, berserker: 6, dominion: 4, patrollady: 10, 'paladin:4': 8, greyfang: 20, katarina: 8, harbinger: 25, mirrorhyena: 2,
-    hyena: 0.5, gnoll: 2.5, gloryseeker: 5, gnollgray: 2.5, gloryseekergray: 5, gnollmatriarch: 4, gnollmatriarchguard: 5, gnollmatriarcheldest: 20, gnollmatriarchlama: 10 };
+    hyena: 0.5, gnoll: 2.5, gloryseeker: 5, gnollgray: 2.5, gloryseekergray: 5, gnollfemale: 3.5, gnollgrayfemale: 3.5, gnollmatriarch: 4, gnollmatriarchguard: 5, gnollmatriarcheldest: 20, gnollmatriarchlama: 10 };
   SN.WORTH_OTHER = 2; SN.WORTH_FOUR = 60; // (a word the table does not have; the four together, who fight their own fight)
   // a hero's word on the grid, and a unit's make-up cut to the men it has left (js/headless.js sends the same)
   SN.gridWord = function (h) { return h.grid || { GreyFang: 'greyfang', Katarina: 'katarina', 'the Harbinger': 'harbinger' }[h.name] || (h.paladin ? 'paladin:4' : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null); };
+  // the women still with a band (11-15: a band's make-up is cut to the men it has left share for share, SN.compNow, so they thin as the band does)
+  SN.females = function (u) { if (!u.comp) return 0; var c = SN.compNow(u), n = 0; Object.keys(c).forEach(function (k) { if (/female$/.test(k)) n += c[k]; }); return n; };
   SN.compNow = function (u) {
     var c = u.comp, ks = Object.keys(c), tot = ks.reduce(function (t, k) { return t + c[k]; }, 0) || 1, n = Math.max(0, u.figs || 0), out = {}, got = 0;
     ks.forEach(function (k) { out[k] = Math.floor(n * c[k] / tot); got += out[k]; });
@@ -203,17 +205,18 @@
   SN.newGame = function (seed) {
     var st = { v: 1, seed: seed >>> 0, rs: seed >>> 0, day: SN.DAY0, units: [], log: [], head: null, huntDay: null, domDay: null, pitFell: false, over: false,
       tally: null, gone: {}, events: [], orders: {}, rec: [], stats: { killed: {}, lost: {}, prisoners: {}, beaten: 0, witness: 0 } };
-    SN.FORCES.forEach(function (f) { st.units.push(SN.make(f, !f.arrive)); });
+    SN.FORCES.forEach(function (f) { if (SN.DROP.indexOf(f.id) < 0) st.units.push(SN.make(f, !f.arrive)); });
     st.map = SN.MAPNAME; st.farms = {}; Object.keys(SN.FARMS).forEach(function (k) { st.farms[k] = { n: SN.FARMS[k], burned: 0 }; }); st.stats.farms = 0;
     SN.say(st, 'Day ' + st.day + '. The four come down the road to Tarlyn\'s Pit two days after the giants. The Snoot burns in the hills.', 'day');
     return st;
   };
   SN.make = function (f, on) {
-    var u = JSON.parse(JSON.stringify(f));
+    var u = JSON.parse(JSON.stringify(f)), ov = SN.FORCEOV && SN.FORCEOV[u.id];
+    if (ov) Object.keys(ov).forEach(function (k) { u[k] = JSON.parse(JSON.stringify(ov[k])); }); // (the map's own word on this unit: its men, its name -- js/map.js forces)
     if (u.groups) { u.groups.forEach(function (g) { g.n0 = g.n; }); SN.sync(u); }
     u.figs0 = u.figs; u.on = !!on; u.state = 'ok'; u.at = ((SN.START && SN.START[u.id]) || u.at || SN.WEST).slice(); u.home = u.at.slice(); u.lost = 0; u.rounds = 0; u.order = { type: 'hold' }; // (START: where it stands on the map in use, js/data.js SN.useMap)
     (u.heroes || []).forEach(function (h) { h.dead = false; });
-    if (u.tribe === 'skull') u.home = SN.SEATS.skull.slice(); else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = SN.SEATS.wall.slice();
+    if (u.tribe === 'skull') u.home = SN.SEATS.skull.slice(); else if (u.tribe === 'gray') u.home = (SN.SEATS.gray || SN.MOOT).slice(); else if (u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = SN.SEATS.wall.slice();
     if (u.side === 'dominion') u.home = SN.WEST.slice();
     // the formation each unit takes the field in: the death-watch in square round the Mane, the Dominion and Newland's battalions on the march in
     // column, the rest in line; ours face the hills (NW), the gnolls the road and the Pit (SE), the plains the hills (W), the Dominion east
@@ -237,6 +240,11 @@
       if (!u.on && u.arrive && u.arrive <= st.day && !u.arrived) { u.arrived = true; u.on = true; u.arrivedOn = st.day; u.at = SN.freeNear(st, u.at, u); SN.say(st, u.name + ' arrive' + (u.kind === 'the plains' ? ' off the Verge' : ' up the south road') + '.', 'arrive', u.at); st.events.push({ kind: 'arrive', id: u.id }); }
       u.rounds = 0; u.moved = false; u.charged = false; u.berserkOrder = false; u.held = false; u.fought = false; u.lostToday = false; u.wonToday = false; u.drawn = false;
       u.came = null; u.reformed = false; u.formDawn = u.form; u.blessed = false; u.entangled = false; // (the matriarchs' prayers last the day: SN.pray)
+      // THE WALL-LAUGH'S MORNING RITUAL (11-15, Griz: "give the laughers a morning ritual stat bonus they recast each day"; "paladin bless for their first combat of
+      // the day (24 h if no combat), only if females remain in that group"): recast every dawn while a woman of the band is left; spent on the day's first fight
+      // (js/headless.js HL.pack sends it, HL.apply spends it)
+      u.ritual = u.tribe === 'wall' && SN.alive(u) && u.on && SN.females(u) > 0;
+      if (u.ritual && !st.ritualSaid) { st.ritualSaid = true; SN.say(st, 'The Wall-Laugh laugh the morning in, the women leading it: a blessing on their first fight of the day, every day a woman of theirs is left to lead it.', 'info', u.at); }
       if (u.out && u.out <= st.day) { u.out = 0; SN.say(st, 'The four are on their feet again.', 'party'); }
     });
     // the hunt: the Harbinger holds in the hills till the exchange (Day 18) -- or till GreyFang comes within two hexes of him (RULED 10-14, lean 1)
@@ -843,6 +851,13 @@
       SN.beat(st, { t: 'wit', kind: 'rally', from: u.id, fromName: u.name, to: to.id, toName: to.name, n: n, sheets: (u.sheets || []).slice() });
       SN.say(st, u.name + ' break: ' + n + ' men run to ' + to.name + ' and join them (' + to.name + ' now ' + to.figs + ').', 'morale', h);
     } else if (n > 0) {
+      // THE HARBINGER GATHERS THE DISPERSED (11-15, Griz: "Harbinger should have some gnolls with him also (some joining from nearby units, some picking up
+      // dispersed also) - never females"): a band of the tribes that breaks with none of its own to run to, his pack within two hexes -- its males go to him
+      // (not its women, not its hyenas), and the rest scatter. Two hexes is the seat's, as the tribes' own rally is
+      var hp = u.side === 'gnoll' && !u.harbinger && !u.watch && u.comp ? st.units.filter(function (x) { return x.harbinger && x.gathers && SN.alive(x) && x.state === 'ok' && SN.dist(x.at, h) <= 2; })[0] : null;
+      if (hp) { var cn = SN.compNow(u), m = 0; Object.keys(cn).forEach(function (k) { if (!/female$|hyena|matriarch/.test(k)) m += cn[k]; });
+        if (m > 0) { hp.comp.gnoll = (hp.comp.gnoll || 0) + m; hp.figs += m; hp.figs0 = Math.max(hp.figs0 || 0, hp.figs); u.figs -= m; n -= m;
+          SN.say(st, u.name + ' break: ' + m + ' of their males go to the Harbinger (' + hp.name + ' now ' + hp.figs + ').', 'morale', h); } }
       st.stats.fled = st.stats.fled || {}; SN.take(st, u, n, u.side === 'ours' ? 'lost' : 'fled');
       SN.say(st, u.name + ' break with no steady friends within two hexes: ' + n + ' men scatter for home' + (hs.length ? '.' : ', and the unit is gone.'), 'morale', h);
     }
