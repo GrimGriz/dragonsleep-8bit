@@ -13,7 +13,7 @@
 1. **The todo's head** -- `..\dragonsleep-todo-2026-10-03.md`: START HERE (the last desk's hand-over: main and live, what is running, what is first) and the lanes table under it. A primer the last desk left is named there.
 2. **The history** -- `dragonsleep-history-by-week.md`, whole, every time: it is a page (his word above; RULED 2026-11-07, *"Yes, the game's orient"*; two desks of 11-10 and 11-11 wrote that they had not read it at the door).
 3. **The last desk's daily and the bolt's last entry** -- the newest `narrative-memory-*` (at `..\` until it is swept, then `..\source-texts\daily-narrative-memories\`: look in both -- on 11-05 a desk looked only at the root and told him a daily was unwritten) and the tail of `..\weaving-room\dragonsleep-8bit.md`. The card in `..\weaving-room\thread-build.md` is priming; the bolt is the record.
-4. **The inboxes** -- `play-records/` (his NOTES saves, play records and ear files newer than the last fold in `receipts/`), Fresh (the art inbox: this file has never said where it is -- the next desk that knows writes its path on this line), and `deep16/_src/outbox/` (what waits for him to carry).
+4. **The inboxes** -- `play-records/` (his NOTES saves, play records and ear files newer than the last fold in `receipts/`), Fresh (the art inbox: `deep16/_src/Fresh/` -- the path his word, 2026-11-14), and `deep16/_src/outbox/` (what waits for him to carry).
 5. **The room** -- `git status -sb`, `git log --oneline -10`, `origin/main` against `origin/live`, `git worktree list`, `python dev/land.py status`, which seats are running, and the usage window as he gives it.
 
 Then tell him what you found as a short list and start what is first. Read a lane when an item touches it; a desk does not read every lane at the door.
