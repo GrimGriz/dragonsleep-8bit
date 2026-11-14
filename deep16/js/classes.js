@@ -18,9 +18,9 @@
     halforc: { name: 'Half-orc', abil: { str: 2, con: 1 }, dv: 60, relentless: true, savage: true },
     dwarf: { name: 'Dwarf', abil: { con: 2, wis: 1 }, dv: 60, speed: 25, resist: ['poison'], poisonAdv: true, hpLevel: 1 }, // (the hill dwarf; Dwarven Resilience, SRD 5.1: resistance to poison damage AND advantage on saves against poison -- poisonAdv, js/rules.js RU.poisonAdv, 11-03)
     elf: { name: 'Elf', abil: { dex: 2, int: 1 }, dv: 60, fey: true },                                   // (the high elf: Fey Ancestry, no magic sleep)
-    halfling: { name: 'Halfling', abil: { dex: 2, cha: 1 }, speed: 25 },
+    halfling: { name: 'Halfling', abil: { dex: 2, cha: 1 }, speed: 25, lucky: true, brave: true },   // (Lucky and Brave, SRD 5.1 srd/01-races.md -- 11-14, the races lane 12: rules.js RU.lucky, RU.save)
     halfelf: { name: 'Half-elf', abil: { cha: 2, con: 1, dex: 1 }, dv: 60, fey: true },
-    gnome: { name: 'Gnome', abil: { int: 2, con: 1 }, dv: 60, speed: 25 },
+    gnome: { name: 'Gnome', abil: { int: 2, con: 1 }, dv: 60, speed: 25, gnomeCunning: true },        // (Gnome Cunning, SRD 5.1: advantage on INT, WIS and CHA saves against magic -- 11-14, rules.js RU.save)
     tiefling: { name: 'Tiefling', abil: { cha: 2, int: 1 }, dv: 60, resist: ['fire'] },
     dragonborn: { name: 'Dragonborn', abil: { str: 2, cha: 1 } }
   };
@@ -633,6 +633,7 @@
     if (race.poisonAdv) u.poisonAdv = true; // (Dwarven Resilience's advantage on saves against poison: rules.js RU.poisonAdv)
     if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
     if (race.savage) u.savage = true;
+    if (race.lucky) u.lucky = true; if (race.brave) u.brave = true; if (race.gnomeCunning) u.gnomeCunning = true; // (the halfling's and the gnome's, 11-14: rules.js)
     if (h.mirrorEye) u.mirrorEye = true;
     if (h.lupine) { u.darkvision = Math.max(u.darkvision || 0, 60); u.keenSenses = true; u.raceName = 'Lupine'; } // (a Lupine, GreyFang's people, 10-08: darkvision 60, keen hearing and smell -- battle.js search)
     if (h.grimlock) { u.blindsight = Math.max(u.blindsight || 0, 30); u.keenSenses = true; u.raceName = 'Half-elf, grimlock-made'; } // (the General's grimlock twist, 11-10: the SRD grimlock's blindsight 30 ft and Keen Hearing and Smell)

@@ -2687,7 +2687,7 @@
     if (att.conds.trueStrike && att.conds.trueStrike.ready && att.conds.trueStrike.at === tgt.id) { delete att.conds.trueStrike; if (att.conc && att.conc.id === 'truestrike') D.magic.endConc(this, att, 'the swing'); } // (True Strike: the first attack roll at it on the next turn -- advantage, and the spell is spent: rules.js edges, magic.js startTurn)
     var sacred = att.conds.sacred && !atk.spell ? att.conds.sacred.atk : 0; // (Sacred Weapon: the weapon he holds, a bow as well as a blade -- SRD 5.1; 10-06, it was melee only)
     var baneR = att.conds.baned ? D.d(4) : 0;
-    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = (e.pen || 0) - baneR, total = nat + atk.atk + bless + sacred + pen;
+    var r = RU.d20(e.net, att), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = (e.pen || 0) - baneR, total = nat + atk.atk + bless + sacred + pen;
     if (baneR && !e.pen) e.penWhy = 'bane';
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac)
@@ -2703,7 +2703,7 @@
     var glass = '';
     if (hit && tgt.conds.glassHand && G.hostile(att, tgt)) {
       delete tgt.conds.glassHand;
-      var r2 = RU.d20(e.net); nat = r2.pick; total = nat + atk.atk + bless + sacred + pen;
+      var r2 = RU.d20(e.net, att); nat = r2.pick; total = nat + atk.atk + bless + sacred + pen;
       hit = nat === 20 || (nat !== 1 && total >= ac);
       glass = '  {p}the glass takes it: again, d20 ' + nat + ' = ' + total + '{/}';
     }
@@ -2712,7 +2712,7 @@
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
     var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin === true /* (a TWIN STRIKE blow; a foe's `twin: 'spear'` names its other attack -- data/foes.js the gnoll, 11-12, his record: "Thrown Spear (twin strike: a swing and the bonus)") */ ? ' {c}(twin strike: ' + (atk.twinPay === 'swings' ? 'two swings' : 'a swing and the bonus') + '){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
-    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
+    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '') + ((r2 || r).lucky ? '  {y}lucky: a 1 rolled again{/}' : ''); // (the halfling's Lucky, rules.js RU.d20 -- 11-14)
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)
     if (hit && nat !== 20 && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && (tgt.known || []).indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && (!tgt.guest || tgt.classAI)) {
@@ -3141,7 +3141,7 @@
     var los = G.los(att, held), cover = melee && G.dist(att, held) <= 5 ? 0 : los.cover, ac = t.ac + cover;
     var e = RU.edges(att, st, atk); // (the attacker's own edges -- restrained, prone, blinded, the dark; a thing is never flanked, helped or prone: the stub has no conds)
     e.adv = e.adv.filter(function (a) { return !/flanking/.test(a); }); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0;
-    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, sacred = att.conds.sacred && !atk.ranged ? att.conds.sacred.atk : 0, pen = e.pen || 0, total = nat + atk.atk + bless + sacred + pen;
+    var r = RU.d20(e.net, att), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, sacred = att.conds.sacred && !atk.ranged ? att.conds.sacred.atk : 0, pen = e.pen || 0, total = nat + atk.atk + bless + sacred + pen;
     var hit = nat === 20 || (nat !== 1 && total >= ac), crit = hit && nat >= (att.crit || 20);
     var head = '{y}' + nameOf(att) + '{/} > {r}' + st.name + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : '');
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + t.ac + (cover ? ' {c}+' + cover + ' cover{/}' : '');

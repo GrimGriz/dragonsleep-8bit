@@ -280,6 +280,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(pre2);
     return;
   }
+  // THE RACES' TRAITS, 11-14 (mode=races1114; the todo-pairs seat, the Pocket DM and the races lane 12, built as SRD 5.1 settles them, srd/01-races.md): the halfling's Lucky
+  // (a 1 on the d20 of an attack or a save rolled again, the new one kept) and Brave (advantage on saves against being frightened); the gnome's Gnome Cunning (advantage on INT,
+  // WIS and CHA saves against magic). The dice queued; each against a human, who has none of it
+  if (get('mode', '') === 'races1114') {
+    var repRC = { checks: [], errors: [] }, d0RC = D.d, qRC = [];
+    function okRC(what, v) { repRC.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.d = function (n) { return n === 20 && qRC.length ? qRC.shift() : d0RC.apply(this, arguments); };
+    try {
+      var BR = D.npcFight('?npc=goblin&vs=fighter:3:halfling,wizard:3:gnome,cleric:3:human&lvl=3', {}); D.battle = BR; BR.enter(); var kR = 0; while (!BR.order.length && kR++ < 400) BR.co.next();
+      var hf = BR.units.filter(function (u) { return u.cls === 'fighter'; })[0], gn = BR.units.filter(function (u) { return u.cls === 'wizard'; })[0], hu = BR.units.filter(function (u) { return u.cls === 'cleric'; })[0];
+      okRC('the made: a halfling fighter (lucky ' + !!hf.lucky + ', brave ' + !!hf.brave + '), a gnome wizard (cunning ' + !!gn.gnomeCunning + '), a human cleric (none: ' + !(hu.lucky || hu.brave || hu.gnomeCunning) + ')', hf.race === 'halfling' && hf.lucky && hf.brave && gn.gnomeCunning && !(hu.lucky || hu.brave || hu.gnomeCunning));
+      qRC = [1, 14]; var sL = D.rules.save(hf, 'dex', 12); qRC = [1, 14]; var sH = D.rules.save(hu, 'dex', 12);
+      okRC('Lucky on a save: the halfling\'s 1 rolled again, ' + sL.d20 + ' kept (' + (sL.ok ? 'saved' : 'failed') + '; "' + D.rules.saveText(sL) + '"); the human keeps the 1 (' + sH.d20 + ')', sL.d20 === 14 && sL.lucky === 1 && sL.ok && sH.d20 === 1 && !sH.lucky && /lucky/.test(D.rules.saveText(sL)));
+      qRC = [1, 12]; var aL = D.rules.d20(0, hf); qRC = [1, 12]; var aH = D.rules.d20(0, hu); qRC = [1, 7, 1, 9]; var aA = D.rules.d20(1, hf);
+      okRC('Lucky on an attack roll: ' + aL.pick + ' for the halfling (a 1 again), ' + aH.pick + ' for the human; with advantage both 1s rolled again: ' + aA.rolls.join(',') + ' (' + aA.lucky + ' rerolled)', aL.pick === 12 && aL.lucky === 1 && aH.pick === 1 && aA.lucky === 2 && aA.rolls.indexOf(1) < 0);
+      qRC = [3, 17]; var bB = D.rules.save(hf, 'wis', 13, false, 'frightened'); qRC = [3, 17]; var bH = D.rules.save(hu, 'wis', 13, false, 'frightened'); qRC = [];
+      okRC('Brave: the halfling\'s save against being frightened takes two dice, ' + bB.rolls.join(',') + ' -- "' + D.rules.saveText(bB) + '"; the human\'s one, ' + bH.rolls.join(','), bB.rolls.length === 2 && bB.d20 === 17 && bB.brave === 1 && bH.rolls.length === 1 && /brave/.test(D.rules.saveText(bB)));
+      BR.castLevel = 1; qRC = [4, 16]; var gC = D.rules.save(gn, 'wis', 13); qRC = [4, 16]; var gI = D.rules.save(gn, 'int', 13); qRC = [4, 16]; var gD = D.rules.save(gn, 'dex', 13); qRC = [4, 16]; var gH = D.rules.save(hu, 'wis', 13); BR.castLevel = null; qRC = [4, 16]; var gN = D.rules.save(gn, 'wis', 13); qRC = [];
+      okRC('Gnome Cunning: against a spell being cast the gnome\'s WIS and INT saves take two dice (' + gC.rolls.join(',') + ', ' + gI.rolls.join(',') + ' -- "' + D.rules.saveText(gC) + '"); a DEX save one (' + gD.rolls.join(',') + '); the human one (' + gH.rolls.join(',') + '); no spell, one (' + gN.rolls.join(',') + ')',
+        gC.rolls.length === 2 && gC.cunning === 1 && gI.rolls.length === 2 && gD.rolls.length === 1 && gH.rolls.length === 1 && gN.rolls.length === 1 && /gnome cunning/.test(D.rules.saveText(gC)));
+    } catch (eRC) { repRC.errors.push(String(eRC && eRC.stack || eRC).slice(0, 900)); }
+    D.d = d0RC;
+    var preRC = document.createElement('pre'); preRC.id = 'out'; preRC.textContent = 'BENCH16 ' + JSON.stringify(repRC);
+    document.body.appendChild(preRC);
+    return;
+  }
   // THE AI LANE'S THREE LEADS, 11-14 (mode=aileads1114; the todo-pairs seat, on the lanes desk's brief): 1. the giant bat that "paces: it cannot get at anyone" with every square
   // beside the nearest hero held by the other bats' 2 x 2 bodies (Griz, 11-13: "Giant bat pacing is what they think it is, don't burn usage confirming") -- it bites another it can
   // reach; 2. a caster with a foe beside it steps off before its ray, not "dis: in melee" at the 1 hp one beside it (his record of 11-03, the patrol ladies); 3. a watched turn's
@@ -9847,11 +9873,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 8. the show's four beats of the states
       if (!D.madeshow) okMS('8 the show: deep16/js/madeshow.js is loaded', false);
       else {
-        var BM2 = D.madeshow.make('?madeshow&fast&only=withered,fed,charged,mirrorwisp,mirrorhyena'); D.battle = BM2; BM2.enter();
+        var BM2 = D.madeshow.make('?madeshow&fast&only=withered,fed,charged,mirrorwisp,hyenafear,mirrorhyena'); D.battle = BM2; BM2.enter();
         var vM2, kM2 = 0;
         while (BM2.co && kM2++ < 400000) { var rM2 = BM2.co.next(vM2); vM2 = undefined; if (rM2.done) break; var yM2 = rM2.value; if (yM2 && yM2.prompt) vM2 = yM2.prompt.opts[0].value; }
         (BM2.madeReport || []).forEach(function (b) { okMS('8 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
-        okMS('8 the show ran ' + (BM2.madeReport || []).length + ' beats of the states (want 5)', (BM2.madeReport || []).length === 5);
+        okMS('8 the show ran ' + (BM2.madeReport || []).length + ' beats of the states (want 6: the hyenas\' fear since 11-14)', (BM2.madeReport || []).length === 6);
       }
     } catch (eMS) { repMS.errors.push(String(eMS && eMS.stack || eMS).slice(0, 900)); }
     D.d = d0MS; WS.VESSEL.wither = vw0; WS.VESSEL.gone = vg0; D.store.get = stGMS; D.store.set = stSMS; if (D.house) { D.house.playing = false; D.house.cur = null; }

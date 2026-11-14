@@ -194,10 +194,14 @@
     var resil = !!(u.resilient && ((D.battle && (D.battle.castLevel != null || D.battle.spellRun === u) && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
+    var brave = !!(u.brave && against && /^(frightened|feared)$/.test(against)); // (Brave, the halfling's, SRD 5.1: "advantage on saving throws against being frightened" -- 11-14)
+    var cunning = !!(u.gnomeCunning && /^(int|wis|cha)$/.test(ab) && against !== 'concentration' && D.battle && (D.battle.castLevel != null || D.battle.spellRun === u)); // (Gnome Cunning, SRD 5.1: "advantage on all Intelligence, Wisdom, and Charisma saving throws against magic" -- a spell being cast, or one already running on it: as the duergar's Resilience reads it, above)
     var dwf = !!(RU.poisonAdv(u) && (adv0 === 'poison' || (against && /^poison(ed)?$/.test(against)))); // (Dwarven Resilience, RU.poisonAdv: a damage save from poison rides in as adv0 'poison', a condition's as `against`)
-    var adv = !!adv0 || counter || pfp || pfg || resil || heads || dwf || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || RU.exhaustion(u) >= 3 || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var adv = !!adv0 || counter || pfp || pfg || resil || heads || dwf || brave || cunning || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || RU.exhaustion(u) >= 3 || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.petrified || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
-    var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
+    var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, lk = 0;
+    if (u.lucky) { if (r1 === 1) { r1 = D.d(20); lk++; } if (r2 === 1) { r2 = D.d(20); lk++; } } // (Lucky, the halfling's: a 1 on the d20 rolled again, the new roll kept -- 11-14)
+    var d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
@@ -205,7 +209,8 @@
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0, atx: atx, resil: resil && adv && !dis ? 1 : 0, heads: heads && adv && !dis ? 1 : 0 };
     if (shk) res.shaken = shk;
-    if (dwf && !pfp && adv && !dis) res.dwarf = 1; // (named on the card, RU.saveText -- unless the ward or the antitoxin already is)
+    if (dwf && !pfp && adv && !dis) res.dwarf = 1;
+    if (lk) res.lucky = lk; if (brave && adv && !dis) res.brave = 1; if (cunning && adv && !dis) res.cunning = 1; // (named on the card, RU.saveText) // (named on the card, RU.saveText -- unless the ward or the antitoxin already is)
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Fortune's Due (a feat of ours, 10-30 -- js/features.js F.fortuneSave): spent on a failed save by the rule, when the Dues' average (2.5 each) reaches the DC
@@ -371,15 +376,18 @@
     if (sv.legendary != null) bits.push('LEGENDARY RESISTANCE: it succeeds instead, ' + sv.legendary + ' left'); // (js/traits.js, 10-08)
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push(sv.atx ? 'advantage: antitoxin' : 'advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     if (sv.dwarf) bits.push('advantage: dwarven resilience');
+    if (sv.brave) bits.push('advantage: brave'); if (sv.cunning) bits.push('advantage: gnome cunning'); if (sv.lucky) bits.push('lucky: a 1 rolled again');
     // (both dice when it rolled two, as an attack's line shows them: the cast's own advantage -- Dominate's "it is being fought" -- had read as one die in the gallery; the grid's rules §2c, 10-08)
     var kept = sv.indomitable ? sv.first : sv.d20, die = sv.rolls && sv.rolls.length === 2 ? '[' + sv.rolls.join(',') + ']>' + kept : kept; // (and Indomitable's reroll after the die it had kept, not after the first rolled)
     return 'd20 ' + die + (sv.indomitable ? ', again ' + sv.indomitable : '') + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
-  RU.d20 = function (net) {
-    var a = D.d(20);
-    if (!net) return { rolls: [a], pick: a };
+  RU.d20 = function (net, who) {
+    var a = D.d(20), lk = 0;
+    if (who && who.lucky && a === 1) { a = D.d(20); lk++; } // (Lucky, the halfling's, SRD 5.1: "When you roll a 1 on the d20 for an attack roll ... you can reroll the die and must use the new roll" -- 11-14)
+    if (!net) return { rolls: [a], pick: a, lucky: lk };
     var b = D.d(20);
-    return { rolls: [a, b], pick: net > 0 ? Math.max(a, b) : Math.min(a, b) };
+    if (who && who.lucky && b === 1) { b = D.d(20); lk++; }
+    return { rolls: [a, b], pick: net > 0 ? Math.max(a, b) : Math.min(a, b), lucky: lk };
   };
   RU.damage = function (dice, mod, o) {
     var r = D.roll(dice + (mod ? (mod > 0 ? '+' : '') + mod : ''), o);
