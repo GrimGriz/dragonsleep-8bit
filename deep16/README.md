@@ -461,6 +461,18 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   Down (`PK.unlevelMade`) takes exactly what the level's box holds, its increase, and the subclass below the class's level for it. A level with no box -- a
   card made before 11-12, or a list changed by hand on the maker's THE SPELLS -- is the guess: what is past the lower level's reach, then the last learned,
   down to that level's counts. The arrows stand while a ladder or module is under way. **Bench:** `mode=pocketmade1112` (in both gates).
+- **His answers of 11-14** (the lane's ten open words; `mode=pocket1114`, in both gates). **A made character's spells** (*"Made characters can be imports where they
+  choose their spells, by level when they're done setting the level"*): its level pages and the maker's THE SPELLS offer every built spell the SRD 5.1 gives its
+  class at that level, after the class's own list, whose picks stay marked as the default. The lists are `data/spell-lists.js`, written by
+  `python tools/spell-lists.py` from `srd/10-spell-lists.md` (`check` is in both gates); `NPC.registerList(cls, level)` reads them, for a made spec only
+  (`spec.custom`). A made cleric, druid or paladin prepares from the whole list at THE LONG REST; a wizard's day is as it was. **Find Familiar at THE CAMP**
+  (*"Let them cast it at camp?"*, built as the smallest reading): THE MENU, MAGIC, WHAT SHAPE? (all seven: the table has no ground), a bundle of Calling Herbs
+  from the pack (THE MARKET's goods); the familiar is the seat's (`slot.fam`), named on the camp's line, seated beside its caster in each fight
+  (`Pocket.famList` to the fight's `o.familiars`) till it falls in one. **EQUIP in a fight** (*"Check how we did away with ALT to make sure it's still true, then
+  fix."*): a weapon drawn into an empty main or off hand is the turn's free object interaction (`T.freeObj`: the one PUT AWAY, a light and a throw's draw
+  spend), the action only when that is spent; a swap and a shield are the action still (`battle.js` gearOptions' `free`, swapGear). **Ingrith** (*"Switch"*): the
+  word at her register's 4 is her first-game sheet (`classes.js` spec0 to `NPC.heroUnit`); at any other level the generator's Life cleric, by her name and
+  in her figure. **EMAIL GRIZ** is gone from a fight's NOTES (*"Pull it."*).
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 
