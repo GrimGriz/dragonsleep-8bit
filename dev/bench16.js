@@ -22814,6 +22814,112 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePm);
     return;
   }
+  // HIS ANSWERS OF 11-14 (mode=pocket1114; the Pocket DM lane's 2026-11-14 section, his words by its numbers): 4 "Switch" -- Ingrith from her own Life Domain build, the first
+  // game's sheet, at her register's 4; 7 "Leans" -- Amara the Tome, the patrol ladies the Blade (built 10-17, held here); 8 "Check how we did away with ALT to make sure it's
+  // still true, then fix." -- EQUIP's draw into an empty hand the turn's free object interaction; 2 "Made characters can be imports where they choose their spells, by level when
+  // they're done setting the level" -- the SRD's list for its class on a made one's pick pages, the class's own the default; 3 "Let them cast it at camp?" -- Find Familiar at
+  // THE CAMP, the seat's familiar in the fights till it falls. On a stand-in store
+  if (get('mode', '') === 'pocket1114') {
+    var repQ = { checks: [], errors: [] }, okQ = function (c, s) { repQ.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memQ = {}, stGQ = D.store.get, stSQ = D.store.set, sc0Q = D.scenes.slice();
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    try {
+      var NPq = D.npc, PKq = D.pocket;
+      var RUq = D.rules, BTq = D.Battle;
+      var mkQ = function (q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; };
+      var heroQ = function (Bx) { var u = Bx.units.filter(function (w) { return w.side === 'party'; })[0]; RUq.startTurn(u); Bx.active = u; return u; };
+      var optQ = function (Bx, u, kind, id) { return Bx.gearOptions(u).filter(function (o) { return o.kind === kind && (!id || o.id === id); })[0]; };
+      // 4. INGRITH: her own build at her register's 4
+      var i4 = NPq.build('ingrith:4', 4, 'party'), i4b = NPq.build('ingrith', 9, 'party'), i6 = NPq.build('ingrith:6', 6, 'party'), i2 = NPq.build('ingrith:2', 2, 'party'), hdI = DS.DATA.heroes.ingrith;
+      okQ(!!i4 && i4.hero === 'ingrith' && i4.name === 'Ingrith' && i4.sheet === 'ingrith_p0' && i4.lvl === 4 && i4.maxhp === hdI.hp && i4.subclass === 'Life Domain' && i4.known.join() === hdI.spells.join() && i4.slots.join() === '4,3',
+        '4a "ingrith:4" is her own sheet (the first game\'s: hero ' + (i4 && i4.hero) + ', ' + (i4 && i4.name) + ', ' + (i4 && i4.sheet) + ', HP ' + (i4 && i4.maxhp) + ', ' + (i4 && i4.subclass) + ', her drafted list in its order, slots ' + (i4 && i4.slots.join('/')) + ')');
+      okQ(!!i4b && i4b.hero === 'ingrith' && i4b.lvl === 4, '4b the bare word stands at her register\'s 4 whatever the floor\'s level, on her own sheet (level ' + (i4b && i4b.lvl) + ')');
+      okQ(!!i6 && !i6.hero && i6.lvl === 6 && i6.name === 'Ingrith' && i6.sheet === 'ingrith_p0' && i6.known.indexOf('spiritguardians') >= 0 && !!i2 && !i2.hero && i2.lvl === 2 && i2.name === 'Ingrith' && i2.slots.join() === '3',
+        '4c at 6 and at 2 (no sheet of hers there) the generator\'s Life cleric stands in, by her name and in her figure (6: ' + (i6 && i6.known.length) + ' spells with Spirit Guardians; 2: slots ' + (i2 && i2.slots.join('/')) + ')');
+      var Pi = new D.Pocket(); Pi.enter(); Pi.st.party = [{ w: 'ingrith', lvl: 4, loot: [] }]; Pi.st.roster = []; Pi.st.run = null; Pi.cache = {};
+      var hI = PKq.sheetOf(PKq.specOf(Pi.st, Pi.st.party[0]));
+      okQ(!!hI && hI.name === 'Ingrith' && hI.id === 'ingrith' && hI.maxhp === hdI.hp, '4d the Pocket DM\'s card for her at 4 builds from it (' + (hI && hI.name) + ', id ' + (hI && hI.id) + ', HP ' + (hI && hI.maxhp) + ')');
+      // 7. THE MIRROR'S PACT: Amara the Tome, the patrol ladies the Blade (built 10-17; his "Leans" 11-14)
+      var am = NPq.build('amara', 5, 'party'), pl = NPq.build('patrolladyw', 5, 'foe');
+      okQ(!!am && am.pact === 'tome' && (am.tome || []).length === 3 && am.subclass === 'The Mirror', '7a Amara: Pact of the Tome (' + (am && am.pact) + ', her book\'s three cantrips ' + (am && (am.tome || []).join(', ')) + '), ' + (am && am.subclass));
+      okQ(!!pl && pl.pact === 'blade' && !!pl.weapon && pl.weapon.pact === true && /pact/.test(pl.weapon.name) && pl.subclass === 'The Mirror', '7b a patrol lady: Pact of the Blade (' + (pl && pl.pact) + ', in hand ' + (pl && pl.weapon && pl.weapon.name) + '), ' + (pl && pl.subclass));
+      // 8. EQUIP IN A FIGHT: a weapon drawn into an empty hand is the turn's free object interaction; a swap, a shield and a second draw the action
+      var HARQ = '~fighter.4.halforc.18-12-15-8-12-10.scimitar_scalemail_______.Harley..twf';
+      var B8 = mkQ('?npc=goblin&lvl=4&vs=' + HARQ), u8 = heroQ(B8); B8.inv.push({ id: 'scimitar', n: 1 }, { id: 'longsword', n: 1 }, { id: 'shield', n: 1 });
+      var o8 = optQ(B8, u8, 'offhandon', 'scimitar'), w8 = optQ(B8, u8, 'weapon', 'longsword'), s8 = optQ(B8, u8, 'shieldon');
+      okQ(!!o8 && o8.free === true && o8.ok && /free/.test(o8.note) && !!w8 && !w8.free && !!s8 && !s8.free, '8a Harley, a scimitar in hand, the off hand empty: OFF HAND: Scimitar is free ("' + (o8 && o8.note) + '"); the longsword for the scimitar (a swap) and SHIELD ON are not');
+      var act8 = BTq.acts(u8.turn); B8.swapGear(u8, o8); var said8 = DS.stripCodes(String(((B8.logEntries || []).slice(-1)[0] || {}).text || ''));
+      okQ(act8 && BTq.acts(u8.turn) && u8.turn.freeObj === true && u8.src.equip.offhand === 'scimitar' && !!u8.offhand, '8b drawn: the off hand holds it, the action still whole, the free interaction spent (' + said8.slice(0, 90) + ')');
+      var w8b = optQ(B8, u8, 'weapon', 'longsword'); B8.swapGear(u8, w8b);
+      okQ(!w8b.free && !BTq.acts(u8.turn) && u8.src.equip.weapon === 'longsword', '8c then the swap (scimitar stowed, longsword drawn): the action');
+      var B8d = mkQ('?npc=goblin&lvl=4&vs=' + HARQ), u8d = heroQ(B8d); B8d.inv.push({ id: 'scimitar', n: 1 }); BTq.payAction(u8d.turn);
+      var o8d = optQ(B8d, u8d, 'offhandon', 'scimitar'); var fr8d = !!o8d && o8d.free && o8d.ok; B8d.swapGear(u8d, o8d);
+      okQ(fr8d && u8d.src.equip.offhand === 'scimitar' && u8d.turn.freeObj === true, '8d with the action already spent the draw is still there to take (free, and taken)');
+      var BARE = '~fighter.4.human.16-14-15-9-13-11._chainmail_______.Bare..';
+      var B8e = mkQ('?npc=goblin&lvl=4&vs=' + BARE), u8e = heroQ(B8e); B8e.inv.push({ id: 'longsword', n: 1 }); u8e.turn.freeObj = true;
+      var o8e = optQ(B8e, u8e, 'weapon', 'longsword'), was8e = !!o8e && !o8e.free && o8e.ok; B8e.swapGear(u8e, o8e);
+      okQ(was8e && !BTq.acts(u8e.turn) && u8e.src.equip.weapon === 'longsword', '8e an empty main hand, the free interaction already spent this turn: the draw is the action (a second interaction, SRD 5.1)');
+      var B8f = mkQ('?npc=goblin&lvl=4&vs=' + BARE), u8f = heroQ(B8f); B8f.inv.push({ id: 'longsword', n: 1 });
+      var o8f = optQ(B8f, u8f, 'weapon', 'longsword'); var fr8f = !!o8f && o8f.free; B8f.swapGear(u8f, o8f);
+      okQ(fr8f && BTq.acts(u8f.turn) && u8f.turn.freeObj === true && u8f.src.equip.weapon === 'longsword' && u8f.weapon.name === 'Longsword', '8f an empty main hand, the turn fresh: the longsword from the pack is drawn free, the action whole');
+      // 2. A MADE CHARACTER'S SPELLS: the SRD's list for its class on its pick pages, the class's own still the default
+      var SLq = D.SPELL_LISTS || {}, CLq = NPq.CLASSES, ownOf = function (cls, L) { return (CLq[cls].spells && CLq[cls].spells[L]) || []; };
+      var regW1 = NPq.registerList('wizard', 1), newW1 = regW1.filter(function (id) { return ownOf('wizard', 1).indexOf(id) < 0; });
+      okQ(Object.keys(SLq).join() === 'bard,cleric,druid,paladin,ranger,sorcerer,warlock,wizard' && regW1.length > 0 && newW1.length > 0 && regW1.every(function (id) { var s = D.magic.data(id); return s && s.level === 1; }),
+        '2a the register\'s lists (data/spell-lists.js): eight classes; a wizard\'s 1st level ' + regW1.length + ' built spells, ' + newW1.length + ' of them past the class\'s own ' + ownOf('wizard', 1).length + ' (' + newW1.slice(0, 5).join(', ') + ' ...)');
+      var Pz = new D.Pocket(); Pz.enter(); Pz.ask = function () { return true; }; D.scenes.length = 0; D.scenes.push(Pz);
+      Pz.st.party = [{ w: 'new' }, { w: 'new' }, { w: 'new' }]; Pz.st.roster = []; Pz.st.run = null; Pz.st.pack = []; Pz.cache = {};
+      Pz.makeNew(0, null); Pz.mk.cls = 'wizard'; Pz.kitUp(); Pz.mk.lvl = 3; Pz.mk.name = 'Reg';
+      var spW = Object.assign(Pz.mkSpec(), { name: 'Reg' }), aC = NPq.levelAsks(spW, 1, { known: [], classDefaults: true }), aN = NPq.levelAsks(Object.assign({}, spW, { custom: false }), 1, { known: [], classDefaults: true });
+      var askOf = function (a, k) { return a.asks.filter(function (x) { return x.kind === k; })[0] || { rows: [], took: [] }; }, idsOf = function (x) { return x.rows.map(function (r) { return r.id; }); };
+      var sC = askOf(aC, 'spells'), sN = askOf(aN, 'spells'), cC = askOf(aC, 'cantrip'), cN = askOf(aN, 'cantrip');
+      okQ(idsOf(sC).length > idsOf(sN).length && newW1.every(function (id) { return idsOf(sC).indexOf(id) >= 0; }) && idsOf(sN).every(function (id, i) { return idsOf(sC)[i] === id; }) && idsOf(cC).length > idsOf(cN).length,
+        '2b a made wizard\'s level-1 page: ' + idsOf(sC).length + ' spells to choose from (a class card\'s ' + idsOf(sN).length + ', first and in their order), ' + idsOf(cC).length + ' cantrips (' + idsOf(cN).length + ')');
+      okQ(sC.took.join() === sN.took.join() && cC.took.join() === cN.took.join() && sC.took.length === sC.need, '2c the page\'s marked picks are the class\'s own, as before (' + cC.took.concat(sC.took).join(', ') + '): CONFIRM accepts them');
+      var piN = NPq.prepInfo({ cls: 'wizard', lvl: 3, race: 'human' }), piC = NPq.prepInfo(NPq.decode('~wizard.3.human.10-10-10-16-10-10'));
+      okQ(newW1.every(function (id) { return piN.pool.indexOf(id) < 0; }) && newW1.every(function (id) { return piC.pool.indexOf(id) >= 0; }), '2d a class card\'s list is as it was (' + piN.pool.length + ' in its pool); a made one\'s takes the register\'s (' + piC.pool.length + ')');
+      var infW = Pz.spellInfo(); Pz.mk.walked = 3; Pz.mk.known = infW.defC.concat(infW.def); Pz.saveMade(); var rW = Pz.st.roster[0], pickId = newW1[0];
+      okQ(infW.pool.indexOf(pickId) >= 0 && infW.defC.join() === ownOf('wizard', 0).filter(function (id) { return !!D.magic.data(id); }).slice(0, infW.nc).join(), '2e the maker\'s THE SPELLS lists them too (' + infW.pool.length + ' spells, ' + infW.cpool.length + ' cantrips); THE CLASS\'S OWN is the class\'s');
+      PKq.levelMade(rW, 4, { spells: [pickId] }); var spW4 = NPq.decode(rW.code), uW4 = NPq.build(rW.code, 4, 'party');
+      okQ(rW.lvl === 4 && spW4.known.indexOf(pickId) >= 0 && ((rW.got || {})[4] || []).indexOf(pickId) >= 0 && !!uW4 && uW4.known.indexOf(pickId) >= 0, '2f level 4 taken with ' + pickId + ' (not on the class\'s own list): on his card, in level 4\'s box, known in the fight');
+      var srK = ['firebolt', 'shockinggrasp', 'chilltouch', 'poisonspray'].concat(NPq.registerList('sorcerer', 0).filter(function (id) { return ownOf('sorcerer', 0).indexOf(id) < 0; }).slice(0, 1)), regCan = srK[4];
+      var rS = { code: NPq.code({ cls: 'sorcerer', lvl: 4, race: 'human', abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 16 }, equip: {}, name: 'Sor', known: srK.concat(['magicmissile', 'shield', 'burninghands', 'scorchingray', 'mistystep']) }), name: 'Sor', cls: 'sorcerer', lvl: 4 };
+      PKq.unlevelMade(rS, 3); var kS = NPq.decode(rS.code).known || [], canS = kS.filter(function (id) { return D.magic.data(id).level === 0; }), levS = kS.filter(function (id) { return D.magic.data(id).level > 0; });
+      okQ(!!regCan && canS.length === 4 && levS.length === 4, '2g a level given back with no box counts a register cantrip (' + regCan + ') as a cantrip: 5 to ' + canS.length + ' cantrips, 5 to ' + levS.length + ' spells (a sorcerer 3\'s four and four)');
+      var piCl = NPq.prepInfo(NPq.decode('~cleric.3.human.10-10-10-10-16-10')), regC2 = NPq.registerList('cleric', 2).filter(function (id) { return ownOf('cleric', 2).indexOf(id) < 0 && piCl.always.indexOf(id) < 0; });
+      okQ(regC2.length === 0 || regC2.every(function (id) { return piCl.pool.indexOf(id) >= 0; }), '2h a made cleric prepares from the class\'s whole list (' + piCl.pool.length + ' in the pool' + (regC2.length ? ', ' + regC2[0] + ' among them' : '') + ')');
+      // 3. FIND FAMILIAR AT THE CAMP
+      var push0Q = D.push, FAMq = DS.R.FAMILIARS, spF = DS.DATA.spells.findfamiliar;
+      Pz.st.roster = []; Pz.st.party = [{ w: 'new' }, { w: 'barley', lvl: 3, loot: [] }];
+      Pz.makeNew(0, null); Pz.mk.cls = 'wizard'; Pz.kitUp(); Pz.mk.lvl = 3; Pz.mk.walked = 3; Pz.mk.name = 'Zed'; var infZ = Pz.spellInfo(); Pz.mk.known = infZ.defC.concat(['findfamiliar'], infZ.def.slice(0, Math.max(0, infZ.n - 1))); Pz.saveMade(); Pz.egg = null;
+      var stock3 = PKq.stock(3), hZ = PKq.sheetOf(PKq.specOf(Pz.st, Pz.st.party[0]));
+      okQ(stock3.indexOf('callingherbs') >= 0 && PKq.goodKind('callingherbs') === 'use' && hZ.known.indexOf('findfamiliar') >= 0, '3a THE MARKET sells Calling Herbs with the goods (' + DS.DATA.items.callingherbs.price + ' sp); Zed, a made wizard, has Find Familiar on his list');
+      Pz.go('hub'); Pz.openMenu(); var hostQ = Pz.pm && Pz.pm.host, hM = hostQ && hostQ.party()[0], noH = hostQ && hostQ.famForms(hM, spF);
+      PKq.packAdd(Pz.st, 'callingherbs', 2); var shapes = hostQ && hostQ.famForms(hM, spF);
+      okQ(typeof noH === 'string' && /MARKET/.test(noH) && Array.isArray(shapes) && shapes.length === Object.keys(FAMq).length && hostQ.famHad(hM) === null, '3b the camp\'s menu: with no herbs "' + noH + '"; with them WHAT SHAPE? offers ' + (shapes || []).join(', '));
+      var said3 = null; hostQ.run('cast', { h: hM, sp: spF, form: 'owl' }, function () { said3 = 1; });
+      okQ(said3 === 1 && Pz.st.party[0].fam && Pz.st.party[0].fam.kind === 'owl' && PKq.packN(Pz.st, 'callingherbs') === 1 && hostQ.famHad(hM) === 'owl' && /owl/i.test(Pz.msg.text), '3c cast from the menu, an owl: on his seat, one bundle burned, said: "' + String(Pz.msg.text).slice(0, 110) + '"');
+      hostQ.run('cast', { h: hM, sp: spF, form: 'bat' }, function () { });
+      okQ(Pz.st.party[0].fam.kind === 'bat' && PKq.packN(Pz.st, 'callingherbs') === 0 && /ripples/.test(Pz.msg.text), '3d cast again, a bat: the shape changed, the second bundle burned');
+      if (Pz.pm && Pz.pm.close) Pz.pm.close(); Pz.pm = null;
+      var fightQ = function () { Pz.foes = ['goblin']; Pz.cache = {}; var Bq = null; D.push = function (bb) { Bq = bb; }; try { Pz.launch(); } finally { D.push = push0Q; } D.battle = Bq; Bq.enter(); for (var g = 0; g < 400 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq; };
+      var Bf = fightQ(), fu = Bf.units.filter(function (u) { return u.familiar; })[0], zu = Bf.units.filter(function (u) { return fu && u.id === fu.familiar; })[0];
+      okQ(!!fu && !!zu && zu.cls === 'wizard' && zu.side === 'party' && fu.side === 'party' && /Zed's/.test(fu.name), '3e the next fight seats it beside him: ' + (fu && fu.name) + ' (its master ' + (fu && fu.familiar) + ', Zed\'s unit ' + (zu && zu.id) + ')');
+      Bf.o.onDone('won', null);
+      okQ(!!Pz.st.party[0].fam && !(Pz.result.rec || {}).famGone, '3f the fight won with the bat alive: it is his still');
+      Pz.result = null; Pz.go('hub'); Pz.seatTrade(0, 1);
+      okQ(!!Pz.st.party[1].fam && !Pz.st.party[0].fam, '3g seats traded: the familiar goes with his card'); Pz.seatTrade(0, 1);
+      var Bg = fightQ(), fg = Bg.units.filter(function (u) { return u.familiar; })[0]; if (fg) { fg.hp = 0; fg.dead = true; } Bg.o.onDone('won', null);
+      okQ(!!fg && !Pz.st.party[0].fam && /bat/i.test((Pz.result.rec || {}).famGone || ''), '3h a fight in which it fell: gone from his seat, the result says so (' + (Pz.result.rec || {}).famGone + ')');
+      var Bh = fightQ(), fh = Bh.units.filter(function (u) { return u.familiar; })[0];
+      okQ(!fh, '3i and the fight after seats none');
+
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 800)); }
+    finally { D.store.get = stGQ; D.store.set = stSQ; D.scenes.length = 0; sc0Q.forEach(function (s) { D.scenes.push(s); }); }
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // A MADE CARD LIKE THE REST OF THE ROSTER (mode=pocketmade1112; the Pocket DM lane, 11-12, Griz: "can we force 'made' spell entry into a box that let's us fix the guess for
   // anything made after today? it'd be really handy to have one interface once the characters are in the roster, I say build"): a made card's level arrows; the box (r.got)
   // written by a level's defaults, by its page and by the maker's save, and a level given back taking exactly it; the guess for a card with no box; EDIT and DROP on THE
