@@ -351,12 +351,10 @@
         yield* spellAttack(B, u, shots[i], x.sp, x.g, '1d10', { mod: a, fx: 'bolt', onHit: function (w) { if (rep && !w.dead && w.hp > 0 && (w.size || 1) <= 2) M.push(B, u, w, 2); } });
       }
     },
+    // (11-14, the AI lane's lead of 11-03 night: this read every beam at no edge and the weakest first -- the Snoot's patrol ladies blasted Barley, 1 hp and AC 19, "dis: in
+    // melee" some fourteen times. The beams are rays: weighed as Scorching Ray's are (js/tactics.js shape:rays -- the edges, cover, a step off a foe beside it), 1d10 and the agony)
     ai: function (B, u, e, slot, fs) {
-      var n = beams(u), d = 5.5 + agon(u), list = fs.filter(function (t) { return M.targetOK(B, u, Object.assign({}, e.g, { shape: 'rays' }), t); }).sort(function (a, b) { return a.hp - b.hp; });
-      if (!list.length) return null;
-      var units = [], sc = 0;
-      for (var k = 0; k < n; k++) { var t = list[Math.min(k, list.length - 1)]; if (t.hp > d * n) t = list[0]; units.push(t); sc += TX().worth(TX().pHit(u.spellAtk, RU.ac(t), 0) * d, t); }
-      return { score: sc, t: { units: units } };
+      return TX().EVAL['shape:rays'](B, u, Object.assign({}, e, { g: Object.assign({}, e.g, { shape: 'rays', n: beams(u) }), sp: Object.assign({}, e.sp, { dmg: '1d10' }), dmgAdd: agon(u) }), 0, fs);
     }
   };
   E.guidance = {

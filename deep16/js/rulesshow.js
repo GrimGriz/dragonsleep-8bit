@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures,ailights1113 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures,ailights1113,aileads1114 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear', 'bandit', 'robber', 'thug'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear', 'bandit', 'robber', 'thug', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'patrollady'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -647,6 +647,32 @@
       darkOn(false);
       return [hooded && noTorch && fell && !shield && free, 'under the roost: the lantern ' + (hooded ? 'hood down' : 'NOT HOODED') + ', the torch ' + (noTorch ? 'unlit' : 'LIT') + '; the crossbow: the torch ' + (fell ? 'let fall' : 'STILL IN HAND') + '; a hand for a light: the hobgoblin with its shield ' + shield + ', a bandit ' + free];
     }
+    // ---- the AI lane's leads of 11-14 (&only=aileads1114; the giant bats and a patrol lady joined the show's foes for them)
+    function* batBox() {
+      /* THE BAT WITH NO ROOM (11-14; Griz, 11-13: "Giant bat pacing is what they think it is, don't burn usage confirming"): his fights in the Guano Galleries' dens, where the last
+         bat in found every square beside the heroes held by the other bats' 2 x 2 bodies and "paces: it cannot get at anyone". The paladin boxed in by four, the fifth 15 ft off
+         him and 35 ft from the wizard; its turn the AI's own (js/ai.js), the d20s to hit pinned to 15 */
+      var bats = foes.filter(function (w) { return w.kind === 'giantbat'; }), p = bats[4];
+      stage([paladin, bats[0], bats[1], bats[2], bats[3], p, wizard], [[0, 0], [1, -1], [-2, -1], [-1, 1], [1, 1], [3, -4], [6, 4]]); setPin(15, null);
+      say(['Four giant bats round the paladin, every square beside him held by their bodies. The fifth comes: it bit no one and "paced" in your dens. Now it goes for one it can reach -- the wizard, 35 ft off.']); yield W(90);
+      var n = mark(), hp = wizard.hp; turn(p); yield* fire(D.ai.turn(B, p)); B.active = null; yield W(90);
+      var l = since(n), bit = G.dist(p, wizard) <= 5 && /Bite/.test(l) && !/paces/.test(l);
+      stage([paladin, bats[0], bats[1], bats[2], bats[3], p], [[0, 0], [1, -1], [-2, -1], [-1, 1], [1, 1], [3, -4]]); setPin(15, null);
+      say(['The same, the paladin alone: nowhere to bite from. It circles, waiting for an opening -- it does not pace.']); yield W(80);
+      var n2 = mark(); turn(p); yield* fire(D.ai.turn(B, p)); B.active = null; yield W(90);
+      var l2 = since(n2), circ = /circles, waiting for an opening/.test(l2) && !/paces/.test(l2);
+      return [bit && circ, (bit ? 'the fifth bat bit the wizard (' + hp + ' to ' + wizard.hp + ' hp)' : 'the fifth bat did NOT reach the wizard') + '; ' + (circ ? 'alone with the boxed paladin it circled' : 'alone with the boxed paladin: ' + l2.slice(0, 120))];
+    }
+    function* casterStep() {
+      /* THE CASTER STEPS OFF (11-14; his record of 11-03 night, the Snoot's patrol ladies: about fourteen Eldritch Blasts "dis: in melee" at Barley, 1 hp and AC 19, never a step
+         away nor another target): a patrol lady (a warlock 5 of the Mirror) with the paladin beside her at 1 hp and the bard 15 ft off; her turn the AI's own, the d20s pinned to 15 */
+      var la = foes.filter(function (w) { return w.kind === 'patrollady'; })[0];
+      stage([la, paladin, bard], [[0, 0], [1, 0], [0, 3]]); paladin.hp = 1; if (la.slots) la.slots = la.slots.map(function () { return 0; }); la.known = ['eldritchblast']; setPin(15, [4]); // (her slots spent, as in his fight's late rounds, and the blast her one cantrip for the show -- given Poison Spray she sprays the one beside her, a save, no disadvantage in it)
+      say(['A patrol lady, her spell slots spent and Eldritch Blast her one cantrip for the show, with the paladin beside her, 1 hp left. In your fight she cast at him at disadvantage, in melee, turn after turn. Now she steps off first -- his opportunity attack is the price -- and strikes from clear ground: the blast, or her dagger thrown.']); yield W(90);
+      var n = mark(); turn(la); yield* fire(D.ai.turn(B, la)); B.active = null; yield W(110);
+      var l = since(n), clear = G.foesNear(la, la.x, la.y, 5).length === 0, hit = /Patrol Lady > (Paladin|Bard) 5  ([A-Za-z ]+?)  /.exec(l), cast = !!hit, dis = /in melee/.test(l);
+      return [clear && cast && !dis, (clear ? 'she stepped clear' : 'she stayed beside a foe') + '; ' + (cast ? 'struck from there (' + hit[2] + ' at the ' + hit[1].toLowerCase() + ')' : 'struck NO ONE') + (dis ? ', one "in melee": ' + l.slice(Math.max(0, l.indexOf('in melee') - 260), l.indexOf('in melee') + 9) : ', none "in melee"') + (clear && cast && !dis ? '' : ' -- her turn: ' + l.slice(0, 500))];
+    }
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -669,6 +695,8 @@
       { id: 'shaketrance', group: 'gridfix1110', name: 'Shaken out of a Hypnotic Pattern', what: 'The wizard and the bard stand entranced. HELP from the cleric beside the wizard shakes him out of the stupor (SRD 5.1: "someone else uses an action to shake the creature out of its stupor"). The goblin\'s blow on the bard lands on 20 temporary hit points: still damage taken, and the trance breaks. (11-09, his stream\'s fight 2: Vivian stood entranced five rounds, friends beside her and a blow on her temporary hit points.)', run: shakeTrance },
       { id: 'chuultentacles', group: 'gridfix1110', name: 'The chuul\'s tentacles: a save, no roll', what: 'SRD 5.1: "One creature grappled by the chuul must succeed on a DC 13 Constitution saving throw or be poisoned for 1 minute. Until this poison ends, the target is paralyzed." No attack roll: the cleric\'s Protection is not asked, a d20 of 1 changes nothing, and there is no damage. (11-09, his record: Protection\'s prompt and a nat-1 HIT on the tentacles.)', run: chuulTentacles },
       { id: 'chuulheld', group: 'chuul1112', name: 'In the chuul\'s claw and paralyzed', what: 'Your fight with Aurdin in its claws (11-12): it kept its pincers for everyone else and its tentacles for him, again and again. Now, with one held and paralyzed, one pincer a turn goes at the one it carries -- a critical hit when it lands, from within 5 ft of a paralyzed creature (SRD 5.1) -- the other pincer reaches for someone new, and the tentacles go at the one just taken. ("if target held and paralyzed, pincer held, pincer new - hopefully tentacles new on successful new target pincer")', run: chuulHeld },
+      { id: 'batbox', group: 'aileads1114', name: 'A bat with no room beside anyone', what: 'Your fights in the Guano Galleries\' dens (11-06): the last giant bat in found every square beside your heroes held by the other bats\' bodies (a giant bat is 10 ft across) and "paced: it cannot get at anyone". Now it goes for one of yours it can reach, or, with no one, circles waiting for an opening. ("Giant bat pacing is what they think it is")', run: batBox },
+      { id: 'casterstep', group: 'aileads1114', name: 'A caster steps off before she casts', what: 'Your fight of 11-03 with the Snoot\'s patrol ladies: about fourteen Eldritch Blasts at Barley, 1 hp, "dis: in melee", never a step away. Now a caster with a foe beside her weighs a step to clear ground -- the opportunity attack its price, never taken where it could drop her -- and strikes from there -- her blast, or her dagger thrown. (Given a save cantrip, Poison Spray, she sprays the one beside her instead: a save has no disadvantage in it.)', run: casterStep },
       { id: 'spikeflier', group: 'gridfix1110', name: 'Spike Growth and a flier', what: 'Spike Growth is the ground\'s. A harpy 5 ft up crosses the spikes untouched; on the surface, no height held, the thorns reach it, 2d4 a square. (11-10, your rulings: "spiked shouldn\'t impact fliers over 5ft unless SRD contradicts", then "spare 5ft too, head cannon says it\'s about 3 ft deep".)', run: spikeFlier },
       { id: 'thrownpickup', group: 'gridfix1110', name: 'A thrown weapon picked up', what: 'A thrown weapon lands: a miss on the square past the target, a hit at its feet. Walked onto, one of the party takes it up (the hand on an object, free); the fight won, what still lies there is gathered into the pack. (11-10, your "pickup with auto-pack ground items at fight end".)', run: thrownPickup },
       { id: 'throwwheel', group: 'throw1111', name: 'THROW on the wheel', what: 'Your play of 11-11 ("couldn\'t figure out how to throw a dagger with drill") and your rulings that day: THROW under ACTIONS lists what can be thrown and from where -- a hand, or carried with a hand free, drawn with the turn\'s free draw. Thrown once, it sits on the first ring beside ATTACK for the fight and a click on a foe out of reach asks it; the last one, a magic one or the off hand\'s is warned first; none left, it drops off the first ring.', run: throwWheel },

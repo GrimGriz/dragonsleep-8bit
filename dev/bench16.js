@@ -285,49 +285,54 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // reach; 2. a caster with a foe beside it steps off before its ray, not "dis: in melee" at the 1 hp one beside it (his record of 11-03, the patrol ladies); 3. a watched turn's
   // "AI would:" is never blank: with nothing worth the action it names the walk, the Dash or READY
   if (get('mode', '') === 'aileads1114') {
-    var repAL = { checks: [], errors: [], notes: [] }, d0AL = D.d, stripAL = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); };
-    function okAL(what, v) { repAL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    var runAL = function (B, u) { var n0 = (B.log || []).length; D.rules.startTurn(u); B.active = u; var g = D.ai.turn(B, u), v, q = 0, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B.active = null; return stripAL((B.log || []).slice(n0).join(' | ')); };
-    var mkAL = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; };
-    var placeAL = function (B, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; p[0].conds = {}; p[0].fz = null; }); B.units.forEach(function (w) { if (list.every(function (p) { return p[0] !== w; })) { w.left = true; } }); D.grid.setup(D.grid.map, B.units.filter(function (w) { return !w.left; })); B.cache = null; };
-    var freeAL = function (B, x0, y0, x1, y1) { for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var s = D.grid.map.at(x, y); if (!s || !s.walk) return x + ',' + y; } return ''; };
+    var repLD = { checks: [], errors: [], notes: [] }, d0LD = D.d, stripLD = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); };
+    function okLD(what, v) { repLD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var runLD = function (B, u) { var n0 = (B.log || []).length; D.rules.startTurn(u); B.active = u; var g = D.ai.turn(B, u), v, q = 0, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B.active = null; return stripLD((B.log || []).slice(n0).join(' | ')); };
+    var mkLD = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; };
+    var placeLD = function (B, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; p[0].conds = {}; p[0].fz = null; }); B.units.forEach(function (w) { if (list.every(function (p) { return p[0] !== w; })) { w.left = true; } }); D.grid.setup(D.grid.map, B.units.filter(function (w) { return !w.left; })); B.cache = null; };
+    var freeLD = function (B, x0, y0, x1, y1) { for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var s = D.grid.map.at(x, y); if (!s || !s.walk) return x + ',' + y; } return ''; };
     try {
       // 1. five bats on the 18 x 14 floor, a fighter boxed in by four of them, the fifth 15 ft from the fighter and 35 ft from the cleric
-      var B1 = mkAL('?npc=giantbat,giantbat,giantbat,giantbat,giantbat&vs=fighter:3,cleric:3&lvl=3'), bats = B1.units.filter(function (u) { return u.kind === 'giantbat'; });
+      var B1 = mkLD('?npc=giantbat,giantbat,giantbat,giantbat,giantbat&vs=fighter:3,cleric:3&lvl=3'), bats = B1.units.filter(function (u) { return u.kind === 'giantbat'; });
       var ft1 = B1.units.filter(function (u) { return u.cls === 'fighter'; })[0], cl1 = B1.units.filter(function (u) { return u.cls === 'cleric'; })[0];
-      var wall1 = freeAL(B1, 2, 3, 15, 10); if (wall1) repAL.notes.push('1 the floor is not open at ' + wall1 + ' (the placement may be off)');
-      placeAL(B1, [[ft1, 4, 6], [bats[0], 5, 5], [bats[1], 2, 5], [bats[2], 3, 7], [bats[3], 5, 7], [bats[4], 7, 2], [cl1, 15, 10]]);
+      var wall1 = freeLD(B1, 2, 3, 15, 10); if (wall1) repLD.notes.push('1 the floor is not open at ' + wall1 + ' (the placement may be off)');
+      placeLD(B1, [[ft1, 4, 6], [bats[0], 5, 5], [bats[1], 2, 5], [bats[2], 3, 7], [bats[3], 5, 7], [bats[4], 7, 2], [cl1, 15, 10]]);
       var p1 = bats[4], hp1 = cl1.hp, free1 = Object.keys(D.grid.reach(p1, 60)).filter(function (k) { var e = D.grid.reach(p1, 60)[k]; return e.stand && D.grid.dist(p1, ft1, e.x, e.y) <= 5; }).length;
-      D.d = function (n) { return n === 20 ? 15 : d0AL.apply(this, arguments); };
-      var l1 = runAL(B1, p1); D.d = d0AL;
-      okAL('1 the fighter boxed in by four bats (' + free1 + ' squares the fifth could stand on beside them); the fifth, 2 x 2, goes for the cleric 35 ft off (the fighter 15 ft) and bites (' + D.grid.dist(p1, cl1) + ' ft from them, ' + hp1 + ' to ' + cl1.hp + ' hp) -- ' + l1.slice(0, 240),
+      D.d = function (n) { return n === 20 ? 15 : d0LD.apply(this, arguments); };
+      var l1 = runLD(B1, p1); D.d = d0LD;
+      okLD('1 the fighter boxed in by four bats (' + free1 + ' squares the fifth could stand on beside them); the fifth, 2 x 2, goes for the cleric 35 ft off (the fighter 15 ft) and bites (' + D.grid.dist(p1, cl1) + ' ft from them, ' + hp1 + ' to ' + cl1.hp + ' hp) -- ' + l1.slice(0, 240),
         free1 === 0 && D.grid.dist(p1, cl1) <= 5 && /Bite/.test(l1) && !/paces/.test(l1));
       // and alone with the boxed fighter, nothing else to reach: it waits, said as a flier -- not "paces"
-      placeAL(B1, [[ft1, 4, 6], [bats[0], 5, 5], [bats[1], 2, 5], [bats[2], 3, 7], [bats[3], 5, 7], [bats[4], 7, 2]]); cl1.left = true; cl1.hp = 0; cl1.dead = true;
-      var l1b = runAL(B1, p1);
-      okAL('1 with only the boxed fighter to reach, it circles, waiting for an opening (no "paces") -- ' + l1b.slice(0, 200), /circles, waiting for an opening/.test(l1b) && !/paces/.test(l1b));
+      placeLD(B1, [[ft1, 4, 6], [bats[0], 5, 5], [bats[1], 2, 5], [bats[2], 3, 7], [bats[3], 5, 7], [bats[4], 7, 2]]); cl1.left = true; cl1.hp = 0; cl1.dead = true;
+      var l1b = runLD(B1, p1);
+      okLD('1 with only the boxed fighter to reach, it circles, waiting for an opening (no "paces") -- ' + l1b.slice(0, 200), /circles, waiting for an opening/.test(l1b) && !/paces/.test(l1b));
       // 2. a patrol lady (a warlock 5 of the Mirror) with the fighter beside her and the cleric 15 ft off: a step off, then the blasts with no "in melee"
-      var B2 = mkAL('?npc=patrollady&vs=fighter:3,cleric:3&lvl=3'), la = B2.units.filter(function (u) { return u.side === 'foe' && !u.object; })[0];
+      var B2 = mkLD('?npc=patrollady&vs=fighter:3,cleric:3&lvl=3'), la = B2.units.filter(function (u) { return u.side === 'foe' && !u.object; })[0];
       var ft2 = B2.units.filter(function (u) { return u.cls === 'fighter'; })[0], cl2 = B2.units.filter(function (u) { return u.cls === 'cleric'; })[0];
-      placeAL(B2, [[la, 8, 8], [ft2, 9, 8], [cl2, 8, 11]]); ft2.hp = 1;
+      placeLD(B2, [[la, 8, 8], [ft2, 9, 8], [cl2, 8, 11]]); ft2.hp = 1;
       D.rules.startTurn(la); var pl2 = D.tactics.plans(B2, la), top2 = pl2[0] || {};
-      repAL.notes.push('2 her plans beside the fighter at 1 hp: ' + pl2.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '));
-      la.turn = null; var hpL = la.hp, l2 = runAL(B2, la), adj2 = D.grid.foesNear(la, la.x, la.y, 5).length;
-      okAL('2 the patrol lady steps off the fighter (' + adj2 + ' foes beside her after, ' + hpL + ' to ' + la.hp + ' hp) and casts her rays with no "in melee" -- ' + l2.slice(0, 600), adj2 === 0 && /Scorching Ray|Eldritch Blast/.test(l2) && !/in melee/.test(l2));
+      repLD.notes.push('2 her plans beside the fighter at 1 hp: ' + pl2.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '));
+      la.turn = null; var hpL = la.hp, l2 = runLD(B2, la), adj2 = D.grid.foesNear(la, la.x, la.y, 5).length;
+      okLD('2 the patrol lady steps off the fighter (' + adj2 + ' foes beside her after, ' + hpL + ' to ' + la.hp + ' hp) and casts her rays with no "in melee" -- ' + l2.slice(0, 600), adj2 === 0 && /Scorching Ray|Eldritch Blast/.test(l2) && !/in melee/.test(l2));
       // ... and with no feet to step, she casts where she stands (the step is weighed, never forced)
-      placeAL(B2, [[la, 8, 8], [ft2, 9, 8], [cl2, 8, 11]]); D.rules.startTurn(la); la.turn.move = 0; var pl2b = D.tactics.plans(B2, la), sp2b = pl2b.filter(function (p) { return p.kind === 'spell'; })[0];
-      okAL('2 with her move spent, the blast is still weighed from where she stands: ' + (sp2b ? sp2b.why + ' ' + sp2b.score.toFixed(1) : 'none'), !!sp2b);
+      [ft2, cl2].forEach(function (w) { w.dead = false; w.ko = false; w.hp = w.maxhp; }); placeLD(B2, [[la, 8, 8], [ft2, 9, 8], [cl2, 8, 11]]); D.rules.startTurn(la); la.turn.move = 0; var pl2b = D.tactics.plans(B2, la), sp2b = pl2b.filter(function (p) { return p.id === 'eldritchblast'; })[0];
+      okLD('2 with her move spent, Eldritch Blast is still weighed from where she stands: ' + (sp2b ? sp2b.why + ' ' + sp2b.score.toFixed(1) : 'none'), !!sp2b);
       // 3. the record's "AI would:" for a hero with no foe in reach
-      var B3 = mkAL('?npc=goblin&vs=fighter:3&lvl=3&watch'), gb = B3.units.filter(function (u) { return u.kind === 'goblin'; })[0], ft3 = B3.units.filter(function (u) { return u.cls === 'fighter'; })[0];
-      placeAL(B3, [[ft3, 4, 4], [gb, 15, 15]]);
+      var B3 = mkLD('?npc=goblin&vs=fighter:3&lvl=3&watch'), gb = B3.units.filter(function (u) { return u.kind === 'goblin'; })[0], ft3 = B3.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      placeLD(B3, [[ft3, 4, 4], [gb, 15, 15]]);
       D.rules.startTurn(ft3); var why3 = D.tactics.idleWhy(B3, ft3), pl3 = D.tactics.plans(B3, ft3);
-      repAL.notes.push('3 the fighter 55 ft from the goblin: plans ' + (pl3.slice(0, 2).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | ') || '(none)'));
+      repLD.notes.push('3 the fighter 55 ft from the goblin: plans ' + (pl3.slice(0, 2).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | ') || '(none)'));
       var rs3 = null; if (D.rec.start && !B3.rec) D.rec.start(B3, { fight: 'aileads1114', name: 'the bench', level: 3 }); if (B3.rec && D.rec.aiTurn) { ft3.turn = null; D.rec.aiTurn(B3, ft3); var st3 = B3.rec.steps[B3.rec.steps.length - 1]; rs3 = st3 && st3.turnStart && st3.turnStart.ai; }
-      okAL('3 nothing in reach: the AI would "' + why3 + '"; the watched turn\'s record reads ' + JSON.stringify(rs3), /toward|closes on/.test(why3 || '') && /Goblin/i.test(why3 || '') && !!rs3 && rs3.length > 0 && rs3[0].why === why3);
-    } catch (eAL) { repAL.errors.push(String(eAL && eAL.stack || eAL).slice(0, 900)); }
-    D.d = d0AL;
-    var preAL = document.createElement('pre'); preAL.id = 'out'; preAL.textContent = 'BENCH16 ' + JSON.stringify(repAL);
-    document.body.appendChild(preAL);
+      okLD('3 nothing in reach: the AI would "' + why3 + '"; the watched turn\'s record reads ' + JSON.stringify(rs3), /toward|closes on/.test(why3 || '') && /Goblin/i.test(why3 || '') && !!rs3 && rs3.length > 0 && rs3[0].why === why3);
+      // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
+      var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
+      var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
+      (B4.rulesReport || []).forEach(function (b) { okLD('4 the show: ' + b.name + ' -- ' + b.why + (b.ok ? '' : ' || LOG: ' + stripLD(b.log).slice(0, 900)), b.ok); });
+      okLD('4 the show ran ' + (B4.rulesReport || []).length + ' beats (want 2)', (B4.rulesReport || []).length === 2);
+    } catch (eLD) { repLD.errors.push(String(eLD && eLD.stack || eLD).slice(0, 900)); }
+    D.d = d0LD;
+    var preLD = document.createElement('pre'); preLD.id = 'out'; preLD.textContent = 'BENCH16 ' + JSON.stringify(repLD);
+    document.body.appendChild(preLD);
     return;
   }
   // the AI lights up (mode=ailights1113; 11-13, the AI and the dark 2.1-2.5). census=1: every fight entered, who on it cannot see in the dark

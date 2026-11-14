@@ -303,9 +303,11 @@
   function inRangeOf(u, g, w, x, y) { return (M.touchRange(g) || (g.range || 5) <= 5 ? G.dist : G.range)(u, w, x, y) <= (g.range || 5); } // (a touch by squares, a range by the true distance: magic.js targetOK)
   // the squares a ranged spell attack is weighed from (11-14, the AI lane's lead of 11-03 night: the Snoot's patrol ladies cast about fourteen Eldritch Blasts "dis: in melee" at
   // Barley, 1 hp and AC 19, never a step away nor another target): where it stands, and -- a foe beside it and feet left -- the nearest square on its walk with no foe beside it,
-  // that square's price the opportunity attacks the step gives (half a round of each one's blows, none when it disengaged), and no such step when those could drop it
+  // that square's price the opportunity attacks the step gives (half a round of each one's blows, none when it disengaged) -- weighed at half, since the step clears the turns
+  // after this one too, where staying is the same disadvantage again (the show's patrol lady at 5, a paladin beside her: one turn's gain never paid one blow) -- and no such
+  // step when those blows could drop it
   function castFrom(B, u, g) {
-    var out = [{ x: u.x, y: u.y, oa: 0, cost: 0 }], T = u.turn;
+    var out = [{ x: u.x, y: u.y, oa: 0, cost: 0, price: 0 }], T = u.turn;
     if (!g || !(g.range > 5) || !T || !(T.move > 0) || u.conds.restrained || u.conds.grappled || u.conds.dancing) return out;
     var press = G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w); });
     if (!press.length) return out;
@@ -313,7 +315,7 @@
     if (oa * 2 >= u.hp) return out;
     var rm = G.reach(u, T.move), off = null;
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand || (e.x === u.x && e.y === u.y) || G.foesNear(u, e.x, e.y, 5).length) return; if (!off || e.cost < off.cost) off = e; });
-    if (off) out.push({ x: off.x, y: off.y, oa: oa, cost: off.cost, e: off });
+    if (off) out.push({ x: off.x, y: off.y, oa: oa, cost: off.cost, price: oa * 0.5 + off.cost / 30, e: off });
     return out;
   }
   TX.castFrom = castFrom;
@@ -325,26 +327,28 @@
       fs.forEach(function (t) {
         if (!M.targetOK(B, u, g, t) || !castSees(u, g, t, q)) return;
         var ed = RU.edges(u, t, spec, q.x, q.y), p = TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t, q.x, q.y).cover, ed.net);
-        var sc = TX.worth(p * d, t) + (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].rider ? M.EFFECT[e.id].rider(B, u, t, p) : 0) - q.oa - q.cost / 30;
+        // (its chance times what a hit is worth, 11-14: TX.worth(p * d) took a 1 hp one's drop as sure at any chance -- the patrol lady's Chill Touch "dis: in melee" at the paladin beside her)
+        var sc = p * TX.worth(d, t) + (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].rider ? M.EFFECT[e.id].rider(B, u, t, p) : 0) - q.price;
         if (!best || sc > best.score) best = { score: sc, t: t, from: q.e };
       });
     });
     return best;
   };
   EV['shape:rays'] = function (B, u, e, slot, fs) {
-    var n = (e.g.n || 1) + Math.max(0, slot - e.level), d = avg(e.sp.dmg), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t); });
+    var n = (e.g.n || 1) + Math.max(0, slot - e.level), d = avg(e.sp.dmg) + (e.dmgAdd || 0), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t); }); // (dmgAdd: Eldritch Blast's agony, js/grimoire.js)
     if (!list.length) return null;
-    var spec = { spell: true, ranged: e.g.range > 5, range: [e.g.range, e.g.range] }, best = null;
+    var spec ={ spell: true, ranged: e.g.range > 5, range: [e.g.range, e.g.range] }, best = null;
     castFrom(B, u, e.g).forEach(function (q) {
       // each one by what a ray at it is worth from this square (its edges -- in melee, a prone one -- and its cover), the weakest first among equals (11-14: the hit's chance was
-      // read at no edge and the weakest always first, so a ray at disadvantage on the 1 hp halfling beside it outweighed one at the elf 18 hp across the room)
-      var ls = list.filter(function (t) { return castSees(u, e.g, t, q); }).map(function (t) { return { t: t, p: TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t, q.x, q.y).cover, RU.edges(u, t, spec, q.x, q.y).net) }; });
+      // read at no edge and the weakest always first, so a ray at disadvantage on the 1 hp halfling beside it outweighed one at the elf 18 hp across the room). A ray is worth its
+      // chance to hit times what a hit is worth: TX.worth(p * d) counted a 1 hp one's drop as certain whenever p * d reached 1, however poor the chance
+      var ls = list.filter(function (t) { return castSees(u, e.g, t, q); }).map(function (t) { var p = TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t, q.x, q.y).cover, RU.edges(u, t, spec, q.x, q.y).net); return { t: t, p: p, v: p * TX.worth(d, t) }; });
       if (!ls.length) return;
-      ls.sort(function (a, b) { return TX.worth(b.p * d, b.t) - TX.worth(a.p * d, a.t) || a.t.hp - b.t.hp; });
+      ls.sort(function (a, b) { return b.v - a.v || a.t.hp - b.t.hp; });
       // the rays at the best till it should be down, then the next
       var units = [], left = ls[0].t.hp, i = 0, sc = 0;
-      for (var k = 0; k < n; k++) { var o = ls[Math.min(i, ls.length - 1)]; units.push(o.t); sc += TX.worth(o.p * d, o.t) * 0.9; left -= o.p * d; if (left <= 0) { i++; left = (ls[i] || o).t.hp; } }
-      sc -= q.oa + q.cost / 30;
+      for (var k = 0; k < n; k++) { var o = ls[Math.min(i, ls.length - 1)]; units.push(o.t); sc += o.v * 0.9; left -= o.p * d; if (left <= 0) { i++; left = (ls[i] || o).t.hp; } }
+      sc -= q.price;
       if (!best || sc > best.score) best = { score: sc, t: { units: units }, from: q.e };
     });
     return best;
