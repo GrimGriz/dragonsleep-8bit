@@ -412,6 +412,9 @@
       // the blast: the spell does nothing to it, M.globed, js/grimoire.js)
       var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq) && !M.globeShuts(B, u, g, w); });
       if (!caught.some(function (w) { return G.hostile(u, w); })) return;
+      // never a spot that catches the caster in its own harm (11-14, the AI lane's 10-30 item 1; his note on eyes-burrow-road-1029, "but aurdin fireballs himself twice?" -- the caster
+      // caught counted x3 against the score, but a net gain still took it): a spell that hurts, asks a save, or sleeps
+      if (caught.indexOf(u) >= 0 && ((e.sp && (e.sp.dmg || e.sp.save)) || g.save || e.id === 'sleep')) return;
       var sc = weigh(caught, sq);
       if (!best || sc > best.score) best = { score: sc, t: { x: p[0], y: p[1], z: p[2] }, caught: caught };
     });
