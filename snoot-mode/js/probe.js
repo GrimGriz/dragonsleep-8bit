@@ -146,6 +146,8 @@
       FF('bat1').figs === 40 && FF('bat2').figs === 40 && FF('bat3').figs === 20 && [FF('bat1'), FF('bat2'), FF('bat3')].every(function (f) { return f.arrive === 18; }) &&
       FF('bb1').figs + FF('bb2').figs + FF('bb3').figs === 100 && FF('bb1').figs === 60 && FF('bb1').escort && FF('sg1').figs === 18 && FF('sg1').comp.gloryseeker === 3 && FF('sg1').comp.gnoll === 9 && FF('sg1').comp.hyena === 6 && FF('gk1').youngblood; }),
       'his numbers (10-15), one man a figure: the Pit 40 Heavy Foot; the road patrol a paladin, 12 heavy foot, 4 horse and a wagon; Newland\'s 40, 40 and 20 on Day 18; the plains 100, 60 the horse escort; a war-band 18; the Gray Keeping\'s young blood');
+    ok(tk(function () { var h = FF('harb'), sh = window.D16 && D16.SHEETS || {}; return h.sheets.indexOf('hyena_p2') < 0 && h.sheets[1] === 'mirrorhyena_p1' && SN.V.FULL8.mirrorhyena_p1 && sh.mirrorhyena_p1 && SN.FORCES.every(function (f) { return f.harbinger || (f.sheets || []).indexOf('mirrorhyena_p1') < 0; }); }),
+      'the Harbinger\'s six draw the Mirror Hyena\'s own sheet (11-14, art-wanted 63), in all eight facings; no other band wears it');
     var mx = fday(43, function (s) { var g = on(s, 'sg1', [8, 5]); g.face = 3; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     var mrows = mx.beats.filter(function (b) { return b.t === 'atk' && b.u === 'patrol' && b.round === 1 && !b.wiz; }), pu = SN.make(FF('patrol'), true);
     ok(mrows.length >= 2 && mrows[0].cls0 === 'HF' && mrows[1].cls0 === 'MH' && Math.abs(SN.rating(pu) - (12 * 5 + 4 * 8) / 16) < 0.06 && SN.moveOf(pu) === 3 && !SN.foot(pu),

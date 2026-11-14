@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE HYENA-STIRGE SEAT OF 11-14: the Harbinger's six on the Mirror Hyena's own sheet in the Snoot (snoot-mode/js/data.js harb, view.js V.FULL8)
+    'eyes-snoot-harb-mirrorhyena-1114': { pri: 1, group: G2, title: 'THE SNOOT: the Harbinger\'s six are Mirror Hyenas on the map and in the fight show (11-14)', pt: 'the Snoot mode, 2026-11-14 (the hyena-stirge seat; snoot-mode/js/data.js the harb unit\'s sheets; snoot-mode/js/view.js V.FULL8)',
+      url: 'snoot-mode/?headless=patrol,harb&seed=7&fresh=1114m',
+      look: 'A SHOW (the fight fought on the grid, then played). Your "the Harbinger\'s Mirror Hyenas need mapped to the new models". The road patrol meets the Harbinger\'s pack: the Harbinger walks in with six dark mirror hyenas -- the art desk\'s Mirror Hyena (cold points for spots, a shard ridge for a mane), not the plain tan hyena -- and they turn their true way in all eight facings. The same sheet stands under the pack on the map and in a day\'s fight (NEW BATTLE, TO THE MAP). On the grid (deep16/?headless) they already wore it, and change to Withered or Charged by the made things\' rules; the Snoot\'s map and show draw them Normal. The tribes\' plain hyenas are unchanged.' },
     // THE SNOOT SEAT OF 11-14: the board's fights fought on the grid, unseen, in place of the CHAINMAIL tables; morale of our own (snoot-mode/js/headless.js HL.day, HL.apply; deep16/js/headless.js H.morale)
     'eyes-snoot-threesides-1114': { pri: 2, group: G2, title: 'THE SNOOT: the tribes fight the Dominion\'s wagons too (11-14)', pt: 'the Snoot mode, 2026-11-14 (the Snoot seat; snoot-mode/js/rules.js SN.hostile, SN.pairAt, SN.fightHex, SN.fightPair; snoot-mode/js/ai.js AI.mark)',
       url: 'snoot-mode/?fresh=1114t',

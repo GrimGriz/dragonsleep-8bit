@@ -154,7 +154,7 @@
     { id: 'wl1', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 18, comp: { gnoll: 12, hyena: 6 }, at: [0, 1], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'wl2', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh\'s young blood', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 12, comp: { gnoll: 8, hyena: 4 }, at: [1, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'harb', side: 'gnoll', tribe: 'harbinger', harbinger: true, name: "the Harbinger's pack", kind: 'the Harbinger', cls: 'LH', def: 'LH', figs: 6, comp: { hyena: 6 }, at: [6, 6], move: 3, morale: 6,
-      heroes: [{ type: 'wraith', name: 'the Harbinger', harbinger: true }], sheets: ['mirrorgnoll_p1', 'hyena_p2'],
+      heroes: [{ type: 'wraith', name: 'the Harbinger', harbinger: true }], sheets: ['mirrorgnoll_p1', 'mirrorhyena_p1'], // (the six on the Mirror Hyena's own sheet since 11-14, Griz: "the Harbinger's Mirror Hyenas need mapped to the new models" -- art-wanted 63, the Normal state; the grid's fight wears the three states by its rules, js/seep.js)
       note: 'Mr. Ripples\' made gnoll, mirror eyes in both sockets: a Wraith on the books\' terms (pp.33-34), his six mirror hyenas giant wolves (p.37).' }
   ];
   // the Dominion (his word 10-14: "2 days after the Harbinger starts head hunting bring in 3 dominion units from the west road - kat's wagon
