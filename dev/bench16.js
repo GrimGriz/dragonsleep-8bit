@@ -662,8 +662,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var HL = D.headless, aH = HL.words(get('a', 'paladin:4*3,guard*12')), bH = HL.words(get('b', 'gloryseeker*3,gnoll*9,hyena*6'));
       for (var kH = 0; kH < +get('n', 5); kH++) {
         // (&a2= / &b2=, 11-14: a second unit on a side, as a stack in a hex sends it -- each unit its own morale and its own tally)
-        var sideH = function (k, nm, list, mor) { var l2 = get(k + '2', ''); var fm = get(k + 'f', '') || null, as = get(k + 'a', '') || null, cv = !!get(k + 'c', ''); // (&af= &aa= &ac=, &bf= ...: the seating, 11-14 -- formation, aspect, the walls)
-          return l2 ? { name: nm, units: [{ id: k + '1', name: nm, list: list, morale: mor, form: fm, asp: as, cover: cv }, { id: k + '2', name: nm + ' (the second)', list: HL.words(l2), morale: +get(k + '2m', mor), form: get(k + '2f', '') || null, asp: get(k + '2a', '') || null }] } : { name: nm, list: list, morale: mor, form: fm, asp: as, cover: cv }; };
+        var sideH = function (k, nm, list, mor) { var l2 = get(k + '2', ''); var fm = get(k + 'f', '') || null, as = get(k + 'a', '') || null, cv = !!get(k + 'c', ''), chg = !!get(k + 'ch', ''), gl = !!get(k + 'g', ''); // (&ach= &ag=: the charge, the outmatched glory-seekers)
+           // (&af= &aa= &ac=, &bf= ...: the seating, 11-14 -- formation, aspect, the walls)
+          return l2 ? { name: nm, units: [{ id: k + '1', name: nm, list: list, morale: mor, form: fm, asp: as, cover: cv, charge: chg, glory: gl, nh: +get(k + 'nh', 0) }, { id: k + '2', name: nm + ' (the second)', list: HL.words(l2), morale: +get(k + '2m', mor), form: get(k + '2f', '') || null, asp: get(k + '2a', '') || null }] } : { name: nm, list: list, morale: mor, form: fm, asp: as, cover: cv, charge: chg, glory: gl, nh: +get(k + 'nh', 0) }; };
         var rH = HL.run({ a: sideH('a', get('an', 'Newland'), aH, +get('am', 5)), b: sideH('b', get('bn', 'the band'), bH, +get('bm', 7)), level: +get('lv', 4), seed: seed0 * 7919 + kH * 104729, surprised: get('sur', '') || null });
         if (get('log', '') && !repH.logs.length) repH.logs.push(rH.log.join(String.fromCharCode(10)));
         if (get('beats', '') && !repH.beats) repH.beats = rH.beats.slice(0, +get('beats', 8)); // (&beats=n: the first fight's first n beats)

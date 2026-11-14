@@ -57,16 +57,33 @@
   };
 
   var up = function (u) { return !u.dead && !u.fled && u.hp > 0 && !u.hless; };
+  // (a turn's start on the headless field: the charge's Dash in the first round -- RU.startTurn is called as a turn opens, by the battle and again by the AI's own
+  // turn, so the feet are given each time it is, and never after round 1)
+  var RU = D.rules, startTurn0 = RU.startTurn;
+  RU.startTurn = function (u) {
+    var r = startTurn0.apply(this, arguments), B = D.battle;
+    if (B && B.hl && u && u.hdash) {
+      if (!(B.round > 1) && u.turn) { u.turn.move += D.Battle.dashFeet ? D.Battle.dashFeet(u) : (u.speed || 30); if (!u.hdashSaid) { u.hdashSaid = true; B.hl.charged = (B.hl.charged || 0) + 1; } }
+      else delete u.hdash;
+    }
+    if (B && B.hl && B.hl.frames && u && u.hgroup) { // (the replay's record, H.frame: once a turn, though the turn's start is called twice)
+      var fl = B.hl.frames[B.hl.frames.length - 1];
+      if (!fl || fl.id !== u.id || fl.round !== B.round) B.hl.frames.push({ id: u.id, i: B.hl.ids.indexOf(u.id), g: u.hgroup, round: B.round, struck: false, at: H.frame(B) });
+    }
+    return r;
+  };
+  // where every body of the fight is and how it stands, in the order the fight made them: [x, y, 0 up | 1 down | 2 away, hp]
+  H.frame = function (B) { return B.hl.ids.map(function (id) { var w = B.hl.byId[id]; return [w.x, w.y, up(w) ? 0 : w.fled ? 2 : 1, Math.max(0, w.hp || 0)]; }); };
   H.men = function (B, k) { return B.units.filter(function (u) { return u.hgroup === k; }); };
   H.tally = function (B, k) {
     var us = H.men(B, k), t = { name: B.hl[k].name, n: us.length, up: 0, away: 0, down: 0, broke: false, kinds: {}, units: {} };
     us.forEach(function (u) {
       var kd = u.hword, r = t.kinds[kd] = t.kinds[kd] || { n: 0, up: 0, away: 0, down: 0 }, w = up(u) ? 'up' : u.fled ? 'away' : 'down';
-      var g = B.hl.units[u.hunit] || {}, U = t.units[u.hunit] = t.units[u.hunit] || { name: g.name, n: 0, up: 0, away: 0, down: 0, broke: !!g.broke, kinds: {}, men: { n: 0, up: 0, away: 0, down: 0 }, heroes: [] }, ru = U.kinds[kd] = U.kinds[kd] || { n: 0, up: 0, away: 0, down: 0 };
+      var g = B.hl.units[u.hunit] || {}, U = t.units[u.hunit] = t.units[u.hunit] || { name: g.name, n: 0, up: 0, away: 0, down: 0, broke: !!g.broke, withdrew: !!g.withdrew, kinds: {}, men: { n: 0, up: 0, away: 0, down: 0 }, heroes: [] }, ru = U.kinds[kd] = U.kinds[kd] || { n: 0, up: 0, away: 0, down: 0 };
       r.n++; r[w]++; t[w]++; U.n++; U[w]++; ru.n++; ru[w]++;
       if (u.hhero != null) U.heroes[u.hhero] = w; else { U.men.n++; U.men[w]++; } // (heroes: the unit's own, in the order it sent them -- 'up', 'away' or 'down')
     });
-    t.broke = Object.keys(t.units).some(function (id) { return t.units[id].broke; });
+    t.broke = Object.keys(t.units).some(function (id) { return t.units[id].broke; }); t.withdrew = Object.keys(t.units).some(function (id) { return t.units[id].withdrew; });
     return t;
   };
 
@@ -80,6 +97,17 @@
   var STAYS = /^(paladin|greyfang|katarina|harbinger|gnollmatriarch)/, LEADS = /^(paladin|greyfang|katarina|harbinger|gnollmatriarch|patrollady)/;
   H.unitMen = function (B, id) { return B.units.filter(function (u) { return u.hunit === id; }); };
   H.morale = function (B) {
+    // (glory: a band with its kill goes, before anyone checks)
+    Object.keys(B.hl.units).forEach(function (id) {
+      var g = B.hl.units[id]; if (!g.glory || g.withdrew || g.broke) return;
+      var og = g.g === 'a' ? 'b' : 'a'; if (!(B.hl.lead0 && B.hl.lead0[og] > 0)) return;
+      var leads = B.units.filter(function (u) { return u.hgroup === og && u.hhero != null; });
+      if (leads.some(up) || !leads.some(function (u) { return !up(u) && !u.fled; })) return;
+      var us = H.unitMen(B, id).filter(up); if (!us.length) return;
+      g.withdrew = true; us.forEach(function (u) { u.dead = true; u.fled = true; u.deadT = B.t; }); B.cache = null;
+      var line = 'R' + B.round + ' GLORY  ' + g.name + ' have their kill and go (' + us.length + ' of them)';
+      if (B.log) B.log.push(line); B.hl.lines.push(line);
+    });
     Object.keys(B.hl.units).forEach(function (id) {
       var g = B.hl.units[id]; if (g.never || g.broke) return;
       var us = H.unitMen(B, id), n = us.length, st = us.filter(up).length; if (!st || !n) return;
@@ -129,7 +157,7 @@
         ls.slice(n0).forEach(function (p) {
           var m = /^(.+?) > (.+?)  +(.+?)(?:  |$)/.exec(p), h = /\b(CRIT|HIT|MISS)\b/.exec(p), bl = tn.blows[tn.blows.length - 1];
           tn.cards.push(p);
-          if (m) tn.blows.push({ by: m[1], at: m[2], with: m[3], hit: null }); // (`by`: not always the one whose turn it is -- a blow at one who walks away is the other group's)
+          if (m) { tn.blows.push({ by: m[1], at: m[2], with: m[3], hit: null }); var fr = hl.frames && hl.frames[hl.frames.length - 1]; if (fr && fr.id === u.id) fr.struck = true; } // (`by`: not always the one whose turn it is -- a blow at one who walks away is the other group's)
           else if (h && bl && !bl.hit) bl.hit = h[1];
         });
       }
@@ -145,10 +173,10 @@
     var L = Math.max(1, Math.min(12, spec.level || 4)), NPC = D.npc;
     if (spec.seed != null) D.seed = spec.seed | 0;
     var isClass = function (w) { return !!(NPC.spec && NPC.spec(w, L)); };
-    var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never, form: sd.form, asp: sd.asp, cover: sd.cover }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
+    var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never, form: sd.form, asp: sd.asp, cover: sd.cover, charge: sd.charge, glory: sd.glory, nh: sd.nh }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
     var SA = norm(spec.a, 'a'), SB = norm(spec.b, 'b'), A = [], Au = [], Ah = [], Bl = [], Bu = [], Bh = [], hu = {};
-    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
-    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
+    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
+    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover, charge: !!x.charge, glory: !!x.glory }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
     var aClass = A.filter(isClass), ph = !aClass.length;
     var steps = Math.round((H.GAP[1] - H.GAP[0]) / 5) + 1, gap = spec.gap || (H.GAP[0] + 5 * Math.floor(D.rand() * steps)), g = Math.round(gap / 5);
     // THE SEATING (11-14, Griz: "think about the formation settings from the snoot that was and the surprise and walls lines"; on the seat's lean, "Yes, all
@@ -220,7 +248,16 @@
         if (hu[u.hunit] && hu[u.hunit].cover) u.hcover = true;
         // SURPRISE (the board's die, Book III): the side caught unready is surprised as the grid has it (SRD 5.1: no turn in the first round)
         if (spec.surprised && u.hgroup === spec.surprised && u.conds) u.conds.surprised = true;
+        // THE CHARGE (11-14, Griz: "grant the 'charging' units a free dash?", then "yes to all four"): the ones that marched into the hex that day come on at a
+        // run -- in the first round each has a Dash's feet over its own and its action still to use (ours; the SRD's Dash is the action). Not one caught unready
+        if (hu[u.hunit] && hu[u.hunit].charge && spec.surprised !== u.hgroup) u.hdash = true;
+        // GLORY (11-14, Griz: "would glory seeking gnoll types do a kill the warlock and flee (assuming they can recognize superior force?)", "yes to all four"):
+        // a band that knows itself outmatched (the board says so: `glory`) sends its glory-seekers at the other side's leaders while one stands (js/ai.js u.hunts);
+        // when none of them stands and one at least is down, the band has its kill and goes -- H.morale, `withdrew`
+        if (hu[u.hunit] && hu[u.hunit].glory && /^gloryseeker/.test(u.hword)) u.hunts = function (w) { return w.hhero != null; };
       });
+      this.hl.ids = mine.concat(Fo).map(function (u) { return u.id; }); this.hl.byId = {}; mine.concat(Fo).forEach(function (u) { self.hl.byId[u.id] = u; }); if (spec.rec) this.hl.frames = [];
+      this.hl.lead0 = { a: mine.filter(function (u) { return u.hhero != null; }).length, b: Fo.filter(function (u) { return u.hhero != null; }).length };
       this.cache = null;
       this.over = function () { return H.over(this); };
       H.listen(this);
@@ -237,30 +274,92 @@
       if (y.prompt) v = y.prompt.opts[0].value; else if (y.turn) v = { do: 'end' };
     }
     if (B.hl.close) B.hl.close();
+    if (B.hl.frames) B.hl.frames.push({ end: true, at: H.frame(B) });
     (B.hl.beats || []).forEach(function (bt) { bt.turns.forEach(function (tn) { delete tn.last; }); });
     var res = B.result && B.result.result ? B.result.result : (typeof B.result === 'string' ? B.result : H.over(B));
     if (!err && !H.men(B, 'a').some(up) && !H.men(B, 'b').some(up)) res = 'both'; // (the last of each down or away in the one round: nobody's)
-    return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, beats: B.hl.beats || [], log: B.log || [] };
+    return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, charged: B.hl.charged || 0, frames: B.hl.frames || null, beats: B.hl.beats || [], log: B.log || [] };
   };
   // THE SNOOT'S ASK (deep16/?headlessrun, in a frame nobody sees: snoot-mode/js/headless.js HL.ask): 'd16h:ready' up to the page that holds the frame; its
   // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
   H.serve = function () {
     var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
-    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover }; }) }; };
+    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover, charge: !!u.charge, glory: !!u.glory }; }) }; };
     window.addEventListener('message', function (e) {
       var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
-      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }); delete r.log; post({ type: 'd16h:done', id: m.id, res: r }); }
+      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }); delete r.log; delete r.frames; post({ type: 'd16h:done', id: m.id, res: r }); }
       catch (err) { post({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); }
     });
     setTimeout(function () { post({ type: 'd16h:ready' }); }, 0);
     return { update: function () { }, draw: function () { } };
   };
-  // THE JANKY HEAD: the same fight on the screen, both groups run by the AI --
-  //   deep16/?headless&a=paladin:4,guard*12&b=gloryseeker*3,gnoll*9,hyena*6&seed=7   (&an= &bn= their names, &am= &bm= their morale ratings, &gap= ft, &lvl=)
+  // THE REPLAY (11-14, Griz: "i thought the one thing was going to let us animate an entire 'initiative group' at the same time in the janky viewer", then "yes to
+  // all four, build them"): the fight is fought whole, unseen, with a frame kept as each turn opens (H.frame); then the same field is made again to be looked at
+  // and the record played on it a BEAT at a time -- a beat the run of one side's turns in the initiative order, as the Snoot's show has it. In a beat every body
+  // that moved walks at once to where the beat left it, every one that struck swings at once, and the ones who went down or away in it go. Nothing is rolled in
+  // the replay: it is the fought fight's own record. The fight a turn at a time, as the engine plays it, is the door's &turns.
+  H.ZOOM = 0.6; H.WALK = 12; H.STEP = 3; H.SWING = 26; // (a beat's walk in steps, the ticks a step, the ticks a swing holds)
+  H.play = function* (B, rec) {
+    var hl = B.hl, us = hl.ids.map(function (id) { return hl.byId[id]; }), beats = [];
+    (rec.frames || []).forEach(function (f) {
+      var bt = beats[beats.length - 1];
+      if (f.end) { beats.push({ end: true, at: f.at }); return; }
+      if (!bt || bt.g !== f.g || bt.round !== f.round) { bt = { g: f.g, round: f.round, at: f.at, acts: 0, struck: [] }; beats.push(bt); }
+      bt.acts++; if (f.struck && f.i >= 0) bt.struck.push(f.i);
+    });
+    var set = function (st) { st.forEach(function (q, i) { var u = us[i]; if (!u) return; u.x = q[0]; u.y = q[1]; u.hp = q[3]; if (q[2]) { u.dead = true; u.fled = q[2] === 2; if (u.deadT == null) u.deadT = B.t; } }); B.cache = null; };
+    var faceTo = function (u, dx, dy) { if (D.spr && D.spr.facingFor && (dx || dy)) u.facing = D.spr.facingFor(dx, dy); };
+    if (D.iso && D.iso.zoom) D.iso.zoom = H.ZOOM; // (more of the field in the frame than a played fight wants; the wheel still zooms)
+    yield 30;
+    for (var k = 0; k < beats.length; k++) {
+      var bt = beats[k]; if (bt.end) break;
+      var nx = beats[k + 1], a0 = bt.at, a1 = nx.at; B.round = bt.round;
+      set(a0);
+      // (the camera on the middle of who is still up, a little toward the side whose beat it is)
+      var seen = []; us.forEach(function (u, i) { if (u && !a0[i][2]) seen.push(a0[i]); }); var mine = []; us.forEach(function (u, i) { if (u && !a0[i][2] && u.hgroup === bt.g) mine.push(a0[i]); });
+      if (seen.length && D.iso && D.iso.lookAt) { var avg = function (L, c) { return L.reduce(function (t, q) { return t + q[c]; }, 0) / L.length; }, mm = mine.length ? mine : seen; D.iso.lookAt(Math.round((avg(seen, 0) * 2 + avg(mm, 0)) / 3), Math.round((avg(seen, 1) * 2 + avg(mm, 1)) / 3)); }
+      B.card(['{y}R' + bt.round + '{/}  ' + hl[bt.g].name + ':  ' + bt.acts + (bt.acts > 1 ? ' turns' : ' turn') + ', ' + bt.struck.length + ' strike'], 200);
+      // the walk: everyone the beat moved, at once
+      var mv = []; us.forEach(function (u, i) { if (u && !a0[i][2] && (a0[i][0] !== a1[i][0] || a0[i][1] !== a1[i][1])) mv.push(i); });
+      if (mv.length) {
+        mv.forEach(function (i) { var u = us[i]; u.anim = 'walk'; u.animT = B.t; faceTo(u, a1[i][0] - a0[i][0], a1[i][1] - a0[i][1]); });
+        for (var sN = 1; sN <= H.WALK; sN++) { mv.forEach(function (i) { us[i].x = Math.round(a0[i][0] + (a1[i][0] - a0[i][0]) * sN / H.WALK); us[i].y = Math.round(a0[i][1] + (a1[i][1] - a0[i][1]) * sN / H.WALK); }); B.cache = null; yield H.STEP; }
+        mv.forEach(function (i) { us[i].anim = 'idle'; us[i].animT = B.t; });
+      }
+      // the blows: everyone who struck in it, at once, each turned to the nearest of the other side still up
+      if (bt.struck.length) {
+        bt.struck.forEach(function (i) {
+          var u = us[i], best = null, bd = 1e9; if (!u) return;
+          us.forEach(function (w, j) { if (!w || w.hgroup === u.hgroup || a0[j][2]) return; var d = Math.abs(a1[j][0] - u.x) + Math.abs(a1[j][1] - u.y); if (d < bd) { bd = d; best = j; } });
+          if (best != null) faceTo(u, a1[best][0] - u.x, a1[best][1] - u.y);
+          u.anim = 'attack'; u.animT = B.t;
+        });
+        yield H.SWING;
+        bt.struck.forEach(function (i) { if (us[i]) { us[i].anim = 'idle'; us[i].animT = B.t; } });
+      }
+      // who went down or away in it
+      var fell = 0, ran = 0; us.forEach(function (u, i) { if (u && !a0[i][2] && a1[i][2]) { if (a1[i][2] === 2) ran++; else fell++; } });
+      set(a1);
+      if (fell || ran) { B.card(['{y}R' + bt.round + '{/}  ' + (fell ? fell + ' down' : '') + (fell && ran ? ', ' : '') + (ran ? ran + ' away' : '')], 200); if (D.sfx && fell) D.sfx('die'); }
+      yield fell || ran ? 22 : 8;
+    }
+    var tl = function (g) { var t = rec[g]; return t.name + ' ' + t.up + ' of ' + t.n + ' standing' + (t.away ? ', ' + t.away + ' away' : ''); };
+    B.card(['{y}' + (rec.result === 'won' ? rec.a.name + ' hold the field' : rec.result === 'lost' ? rec.b.name + ' hold the field' : 'Nobody holds the field') + '{/}  (' + rec.rounds + ' rounds)', tl('a'), tl('b')].concat(rec.morale || []), 6000);
+    while (true) yield 600; // (the field as the fight left it: reload for it again, another &seed= for another)
+  };
+  H.replay = function (spec) {
+    var rec = H.run(Object.assign({}, spec, { rec: true }));
+    var B = H.make(Object.assign({}, spec, { gap: rec.gapFt, rec: false }), {}), enter1 = B.enter;
+    B.hrec = rec;
+    B.enter = function () { enter1.apply(this, arguments); if (rec.frames && rec.frames.length > 1 && rec.result !== 'error') this.co = H.play(this, rec); };
+    return B;
+  };
+  // THE JANKY HEAD: the fight on the screen, both groups run by the AI, replayed a beat at a time (H.replay); &turns for the engine's own turn at a time --
   H.door = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    // (11-14, the seating: &af= &bf= line | column | square; &aa= &ba= how each strikes the other, front | flank | rear; &ac=1 &bc=1 behind the walls; &sur=a | b caught unready)
-    return H.make({ a: { name: get('an') || 'the first', list: H.words(get('a') || 'paladin:4*3,guard*12'), morale: +get('am') || 5, form: get('af'), asp: get('aa'), cover: !!get('ac') }, b: { name: get('bn') || 'the second', list: H.words(get('b') || 'gloryseeker*3,gnoll*9,hyena*6'), morale: +get('bm') || 7, form: get('bf'), asp: get('ba'), cover: !!get('bc') },
-      level: +get('lvl') || 4, seed: get('seed') != null ? +get('seed') : null, gap: +get('gap') || 0, surprised: get('sur') }, {});
+    // (11-14, the seating: &af= &bf= line | column | square; &aa= &ba= how each strikes the other, front | flank | rear; &ac=1 &bc=1 behind the walls; &sur=a | b caught unready; &ach=1 &bch=1 it marched in: the charge; &ag=1 &bg=1 outmatched glory-seekers; &anh= &bnh= how many of the list's first are its leaders)
+    var specD = { a: { name: get('an') || 'the first', list: H.words(get('a') || 'paladin:4*3,guard*12'), morale: +get('am') || 5, form: get('af'), asp: get('aa'), cover: !!get('ac'), charge: !!get('ach'), glory: !!get('ag'), nh: +get('anh') || 0 }, b: { name: get('bn') || 'the second', list: H.words(get('b') || 'gloryseeker*3,gnoll*9,hyena*6'), morale: +get('bm') || 7, form: get('bf'), asp: get('ba'), cover: !!get('bc'), charge: !!get('bch'), glory: !!get('bg'), nh: +get('bnh') || 0 },
+      level: +get('lvl') || 4, seed: get('seed') != null ? +get('seed') : null, gap: +get('gap') || 0, surprised: get('sur') };
+    return /[?&]turns\b/.test(q) ? H.make(specD, {}) : H.replay(specD);
   };
 })();

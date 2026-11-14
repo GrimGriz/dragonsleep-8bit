@@ -258,8 +258,11 @@
     name: 'Line Guard', type: 'humanoid', sheet: 'guard_p1', cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
-    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
-    multi: 1, src: 'SRD 5.1 Guard (CR 1/8); content/monsters.json guard (the Line Guard)'
+    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 },
+      // (11-14, Griz: "do newland spear troopers get spears to throw?", then "yes to all four, build them - line guards aren't in any other fight": the SRD Guard's spear is
+      // "Melee or Ranged Weapon Attack ... range 20/60 ft."; ours carries two to throw and keeps the one in its hand -- the count the seat's, his to change)
+      throwspear: { name: 'Thrown Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', range: [20, 60], ranged: true, count: 2 } },
+    multi: 1, src: 'SRD 5.1 Guard (CR 1/8): spear, melee or thrown 20/60; content/monsters.json guard (the Line Guard)'
   },
   // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)
   hiredsword: {

@@ -18,7 +18,7 @@
   HL.sent = function (u) { return SN.heroesOf(u).filter(function (h) { return !!HL.wordOf(h); }); };
   HL.comp = function (u) { return SN.compNow(u); };
   HL.pack = function (u, plus, seat) {
-    return { id: u.id, form: u.form || 'line', asp: seat && seat.asp || 'front', cover: !!(seat && seat.cover), name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
+    return { id: u.id, form: u.form || 'line', asp: seat && seat.asp || 'front', cover: !!(seat && seat.cover), charge: !!(seat && seat.charge), glory: !!(seat && seat.glory), name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
       groups: u.groups ? u.groups.map(function (g) { return { n: g.n, mounted: !!g.mounted, volley: !!g.volley }; }) : null,
       heroes: HL.sent(u).map(function (h) { return { name: h.name, grid: HL.wordOf(h) }; }),
       rating: SN.rating(u) + (plus || 0), never: SN.nevers(u) };
@@ -123,7 +123,7 @@
     var sa = SN.snap(a, at), sb = SN.snap(b, at); sa.from = -1; if (sb.from < 0) sb.from = 0; sa.face = sb.from; sa.form = 'line'; sb.form = 'line'; // (the first holds the hex, facing the side the second comes in through)
     SN.beat(st, { t: 'fight', at: at.slice(), place: SN.placeName(at), ter: SN.ter(at[0], at[1]), road: SN.road(at), ours: [sa], theirs: [sb], hexes: true });
     HL.rounds(st, res, byId);
-    [['a', a], ['b', b]].forEach(function (x) { var t = res[x[0]]; if (!t.up) SN.beat(st, t.broke ? { t: 'fall', u: x[1].id, how: 'rout', dir: -1 } : { t: 'gone', u: x[1].id }); });
+    [['a', a], ['b', b]].forEach(function (x) { var t = res[x[0]]; if (!t.up) SN.beat(st, t.withdrew ? { t: 'fall', u: x[1].id, how: 'back', dir: -1 } : t.broke ? { t: 'fall', u: x[1].id, how: 'rout', dir: -1 } : { t: 'gone', u: x[1].id }); });
     var e = endWords(res); SN.beat(st, { t: 'hend', big: e.big, small: e.small });
     return [from, st.beats.length];
   };
@@ -151,7 +151,11 @@
         if (circling) asp = ring[i % ring.length];
         var hold = SN.holding(st, u, req.at); if (hold) plus[u.id] = 1;
         seat[u.id] = { asp: asp, cover: !!hold };
+        // (the charge: it marched into this hex today and was not the one caught unready -- a Dash's feet in the first round, the grid's)
+        seat[u.id].charge = !!u.came && !hold && !(sur && sur.side === pr[2]);
       });
+      // (glory: a gnoll band -- not the death-watch, not the Harbinger's pack -- that the one table weighs as outmatched goes for their leaders and leaves with its kill)
+      if (pr[2] === 'theirs' && SN.lean(pr[0], pr[1]).r < 0.87) pr[0].forEach(function (u) { if (u.side === 'gnoll' && !u.watch && !u.harbinger) seat[u.id].glory = true; });
     });
     HL.ask(O, T, { seed: req.seed, level: 4, plus: plus, seat: seat, surprised: sur ? (sur.side === 'ours' ? 'a' : 'b') : null }, function (res) {
       if (res) res.seat = seat; // (for the log: how each was seated)
@@ -170,7 +174,8 @@
     // (the hexes view, js/show.js: this fight's own `fight` beat is marked, so the show draws it a unit to its hex)
     for (var bi = (st.beats || []).length - 1; bi >= 0; bi--) { var fb = st.beats[bi]; if (fb.t === 'fight' && SN.same(fb.at, h)) { fb.hexes = true; break; } }
     HL.rounds(st, res, byId);
-    (res.morale || []).forEach(function (l) { SN.say(st, l.replace(/^R(\d+) MORALE\s+/, 'Morale, round $1: ').replace(/\s+/g, ' '), 'morale', h); });
+    (res.morale || []).forEach(function (l) { SN.say(st, l.replace(/^R(\d+) MORALE\s+/, 'Morale, round $1: ').replace(/^R(\d+) GLORY\s+/, 'Round $1: ').replace(/\s+/g, ' '), 'morale', h); });
+    if (res.charged) SN.say(st, 'The ones who marched in came on at a run: a Dash\'s feet in the first round (' + res.charged + ' bodies).', 'info', h);
     ['a', 'b'].forEach(function (g) {
       Object.keys(res[g].units || {}).forEach(function (id) {
         var u = byId[id], U = res[g].units[id]; if (!u || !SN.alive(u)) return;
@@ -183,6 +188,7 @@
         if (down) { SN.take(st, u, down); u.lost = (u.lost || 0) + down; u.lostToday = true; }
         SN.say(st, u.name + ': ' + down + ' down' + (away ? ', ' + away + ' ran' : '') + (fell.length ? '; ' + fell.join(' and ') + ' fell' : '') + ' (' + u.figs + ' left).', 'roll', h);
         if (harbDown) { SN.say(st, 'The Harbinger goes down -- and the mirror takes him back to the moot ground.', 'roll', h); SN.beatHarb(st, u); return; }
+        if (U.withdrew && SN.alive(u)) { SN.say(st, u.name + ' go with their kill: they fall back in good order.', 'morale', h); SN.fallBack(st, u, 'back'); return; }
         if (U.broke && u.figs > 0) { if (SN.menBreak(u) || SN.rallyTo(st, u)) SN.breakUp(st, u, true); else SN.fallBack(st, u, 'rout'); }
         if (!SN.alive(u) || !SN.same(u.at, h)) return;
         if (u.figs <= 0 && !SN.heroesOf(u).length && !u.party) { u.state = 'gone'; SN.beat(st, { t: 'gone', u: u.id }); SN.say(st, u.name + ' are destroyed.', 'roll', h); return; }
@@ -216,7 +222,7 @@
       st.beats = []; var r = HL.lay(st, a, b, at, res);
       SN.Show.skipDay = false;
       SN.Show.play(st, r[0], r[1], at, function () {
-        var row = function (g) { var t = res[g]; return '<p><b>' + t.name + '</b>: ' + t.up + ' of ' + t.n + ' standing' + (t.away ? ', ' + t.away + ' away' : '') + (t.broke ? ' (broke)' : '') + '</p>'; };
+        var row = function (g) { var t = res[g]; return '<p><b>' + t.name + '</b>: ' + t.up + ' of ' + t.n + ' standing' + (t.away ? ', ' + t.away + ' away' : '') + (t.withdrew ? ' (left with their kill)' : t.broke ? ' (broke)' : '') + '</p>'; };
         card('<h1>' + (res.result === 'won' ? a.name : res.result === 'lost' ? b.name : 'Nobody') + ' ' + (res.result === 'both' ? 'holds' : 'hold') + ' the field</h1>' + row('a') + row('b') + '<p>' + res.rounds + ' rounds, ' + res.beats.length + ' beats, the ranks ' + res.gapFt + ' ft apart. Seed ' + seed + '.</p>' + (res.morale || []).map(function (l) { return '<p>' + l.replace(/</g, '&lt;') + '</p>'; }).join(''),
           [{ label: 'AGAIN', go: true, fn: function () { play(res); } }, { label: 'ANOTHER SEED', fn: function () { location.search = Q.replace(/([?&])seed=\d+/, '').replace(/^\?&/, '?') + '&seed=' + (seed + 1); } }]);
       });

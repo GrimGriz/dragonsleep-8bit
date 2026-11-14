@@ -13,7 +13,8 @@
   // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   // (a holder's turn handed over by its posture -- standing, defending: js/postures.js, 11-10 -- goes at the foes of its pool alone, u.postPool, for that turn)
-  function heroes(B, u) { var hs = heroesAll(B, u), pl = u.postPool; return pl ? hs.filter(function (w) { return pl.indexOf(w.id) >= 0; }) : hs; }
+  // (u.hunts, 11-14: one that goes for a quarry first while any of it is to be had -- the Snoot's glory-seekers at the other side's leaders, js/headless.js)
+  function heroes(B, u) { var hs = heroesAll(B, u), pl = u.postPool; if (u.hunts) { var hq = hs.filter(u.hunts); if (hq.length) hs = hq; } return pl ? hs.filter(function (w) { return pl.indexOf(w.id) >= 0; }) : hs; }
   function heroesAll(B, u) {
     var ch = u.conds && u.conds.charmed, charmer = ch && ch.by; // (charmed: never its charmer -- SRD 5.1; Charm Person, Animal Friendship)
     // (a familiar riding its wizard is no one's target; a darkmantle riding the one it is attached to is -- battle.js mount: the class AI's foes too, tactics.js
