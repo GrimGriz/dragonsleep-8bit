@@ -404,6 +404,23 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       put10(false); var l10b = run10(), leapt10b = /leaps/.test(l10b);
       okLD('10 the Leap ready, the fighter boxed in by four bats: ' + (up10a ? 'up' : 'still under') + (leapt10a ? ', leapt' : ', no leap') + ' -- ' + l10a.slice(0, 140) + ' || with room beside the fighter: ' + (leapt10b ? 'it leaps' : 'NO leap') + ' -- ' + l10b.slice(0, 120),
         !(up10a && !leapt10a && !/Bite|Claw/.test(l10a)) && leapt10b);
+      // 11. no Fireball on itself (the lane's 10-30 item 1, his "but aurdin fireballs himself twice?"): a wizard of 5 with two goblins beside him and a third 30 ft off -- every
+      // spot that takes the two beside him takes him too; the Fireball he weighs catches only the far one, or none
+      var B11 = mkLD('?npc=goblin,goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), gb11 = B11.units.filter(function (u) { return u.kind === 'goblin'; }), wz11 = B11.units.filter(function (u) { return u.cls === 'wizard'; })[0], ft11 = B11.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      placeLD(B11, [[wz11, 5, 6], [gb11[0], 6, 6], [gb11[1], 5, 7], [gb11[2], 13, 4], [ft11, 2, 10]]); D.rules.startTurn(wz11);
+      if ((wz11.known || []).indexOf('fireball') < 0) wz11.known = (wz11.known || []).concat(['fireball']); if (wz11.slots && wz11.slots[2] < 1) wz11.slots[2] = 1;
+      var e11 = D.magic.list(B11, wz11).filter(function (x) { return x.id === 'fireball' && x.ok; })[0], ev11 = e11 && (D.tactics.EVAL.fireball || D.tactics.EVAL['shape:' + e11.g.shape]);
+      var r11 = ev11 ? ev11(B11, wz11, e11, 3, gb11, [wz11, ft11]) : null, c11 = r11 && r11.caught ? r11.caught.map(function (w) { return w.name; }) : [];
+      okLD('11 a wizard with two goblins beside him and one 30 ft off: his Fireball ' + (e11 ? 'weighed' : 'NOT castable') + ', catching ' + (c11.join(', ') || 'no one') + ' -- never himself', !!e11 && (!r11 || !r11.caught || r11.caught.indexOf(wz11) < 0));
+      // 12. a Light cast into a magical Darkness (the lane's 10-30 item 3): on the fighter standing in a Darkness, the Light goes out as it is made and says so; on the fighter
+      // out of it, the Light shines
+      var B12 = mkLD('?npc=goblin&vs=wizard:3,fighter:3&lvl=3'), wz12 = B12.units.filter(function (u) { return u.cls === 'wizard'; })[0], ft12 = B12.units.filter(function (u) { return u.cls === 'fighter'; })[0], gb12 = B12.units.filter(function (u) { return u.kind === 'goblin'; })[0];
+      placeLD(B12, [[wz12, 4, 4], [ft12, 6, 4], [gb12, 14, 10]]);
+      if ((wz12.known || []).indexOf('light') < 0) wz12.known = (wz12.known || []).concat(['light']);
+      var cast12 = function () { delete ft12.conds.light; D.rules.startTurn(wz12); var n0 = (B12.log || []).length; var g = B12.exec(wz12, { do: 'cast', id: 'light', slot: 0, target: ft12 }), q = 0, v, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return stripLD((B12.log || []).slice(n0).join(' | ')); };
+      B12.darks = [{ by: gb12.id, sq: D.grid.sphere(6, 4, 15), kind: 'darkness', lv: 2 }]; B12.lightMap = null; var l12a = cast12(), lit12a = !!ft12.conds.light;
+      B12.darks = []; B12.lightMap = null; var l12b = cast12(), lit12b = !!ft12.conds.light;
+      okLD('12 Light on the fighter in a Darkness: ' + (lit12a ? 'LIT' : 'gone') + ' -- ' + l12a.slice(0, 170) + ' || out of it: ' + (lit12b ? 'lit' : 'NOT lit'), !lit12a && /swallows it/.test(l12a) && lit12b);
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }

@@ -630,8 +630,15 @@
       } else if (id === 'light') {
         // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go; "The spell ends if you cast it again": the caster's other one let go (10-28)
         B.units.forEach(function (x) { if (x !== w2 && x.conds && x.conds.light && x.conds.light.by === u.id) delete x.conds.light; });
-        w2.conds.light = { by: u.id, from: B.castFrom || null, lv: 0 }; // (from and lv: where it was cast from, for a Globe of Invulnerability -- light.js L.map)
-        yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
+        // into a magical Darkness (SRD 5.1, Darkness: "If any of this spell's area overlaps with an area of light created by a spell of 2nd level or lower, the spell that created the
+        // light is dispelled"): the Light goes out as it is made (11-14, the AI lane's 10-30 item 3 -- his record, the Warrens 06:08Z, Light on Barley inside a live Darkness aura,
+        // nothing said; the Darkness checked only the lights there when it formed). The fog, the sleet and the rest are not a Darkness
+        var dkL = (B.darks || []).filter(function (dk) { return dk.kind === 'darkness' && G.foot(w2).some(function (p) { return M.darkSq(B, dk).some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0];
+        if (dkL) { var dkBy = B.units.filter(function (x) { return x.id === dkL.by; })[0]; D.sfx('magic'); B.card([head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': {p}the darkness' + (dkBy ? ' of ' + (dkBy.side === 'foe' ? B.shortName(dkBy) : dkBy.name) : '') + ' swallows it as it is made{/}  {g}(Darkness dispels a light of 2nd level or lower in it, SRD 5.1){/}'], 300); yield 20; }
+        else {
+          w2.conds.light = { by: u.id, from: B.castFrom || null, lv: 0 }; // (from and lv: where it was cast from, for a Globe of Invulnerability -- light.js L.map)
+          yield* M.brighten(B, u, 'light',head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
+        }
       } else if (id === 'continualflame') {
         w2.conds.continualFlame = { by: u.id, from: B.castFrom || null, lv: 2 }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
         yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
