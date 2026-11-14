@@ -22817,7 +22817,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // HIS ANSWERS OF 11-14 (mode=pocket1114; the Pocket DM lane's 2026-11-14 section, his words by its numbers): 4 "Switch" -- Ingrith from her own Life Domain build, the first
   // game's sheet, at her register's 4; 7 "Leans" -- Amara the Tome, the patrol ladies the Blade (built 10-17, held here); 8 "Check how we did away with ALT to make sure it's
   // still true, then fix." -- EQUIP's draw into an empty hand the turn's free object interaction; 2 "Made characters can be imports where they choose their spells, by level when
-  // they're done setting the level" -- the SRD's list for its class on a made one's pick pages, the class's own the default; 3 "Let them cast it at camp?" -- Find Familiar at
+  // they're done setting the level" -- the SRD's list for its class on a made one's pick pages, the class's own the default; 1 "1 - yes" -- the maker's figure; 3 "Let them cast it at camp?" -- Find Familiar at
   // THE CAMP, the seat's familiar in the fights till it falls. On a stand-in store
   if (get('mode', '') === 'pocket1114') {
     var repQ = { checks: [], errors: [] }, okQ = function (c, s) { repQ.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
@@ -22913,6 +22913,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okQ(!!fg && !Pz.st.party[0].fam && /bat/i.test((Pz.result.rec || {}).famGone || ''), '3h a fight in which it fell: gone from his seat, the result says so (' + (Pz.result.rec || {}).famGone + ')');
       var Bh = fightQ(), fh = Bh.units.filter(function (u) { return u.familiar; })[0];
       okQ(!fh, '3i and the fight after seats none');
+      // 1. THE MAKER'S FIGURE ("1 - yes"): the class's and race's own LPC figure asked for on every step
+      var cvQ = document.createElement('canvas'); cvQ.width = D.W; cvQ.height = D.H; var cxQ = cvQ.getContext('2d'), asked1 = [], ens0 = D.spr.ensure;
+      Pz.result = null; Pz.pm = null; Pz.makeNew(1, null); Pz.mk.cls = 'paladin'; Pz.mk.race = 'dragonborn'; Pz.kitUp();
+      D.spr.ensure = function (a) { asked1 = asked1.concat(a || []); return ens0 ? ens0.apply(D.spr, arguments) : null; };
+      try { Pz.btns = []; Pz.draw(cxQ); var lk1 = Pz.mkLook; Pz.mk.cls = 'wizard'; Pz.mk.race = 'human'; Pz.kitUp(); Pz.mk.step = 3; Pz.btns = []; Pz.draw(cxQ); } finally { D.spr.ensure = ens0; }
+      okQ(lk1 === 'npcpaladin_dragonborn_p0' && Pz.mkLook === 'npcwizard_p0' && asked1.indexOf(lk1) >= 0 && asked1.indexOf('npcwizard_p0') >= 0 && !!D.SHEETS[lk1], '1 the maker draws its figure: a dragonborn paladin ' + lk1 + ', then a human wizard ' + Pz.mkLook + ' on THE LEVEL -- each fetched as it is wanted');
 
     } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 800)); }
     finally { D.store.get = stGQ; D.store.set = stSQ; D.scenes.length = 0; sc0Q.forEach(function (s) { D.scenes.push(s); }); }
@@ -23342,7 +23348,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var st0 = PKk.load();
       okMk('A NEW TABLE: the purse ' + st0.purse + ' sp (want 100), the pack ' + JSON.stringify(st0.pack), st0.purse === 100 && Array.isArray(st0.pack) && !st0.pack.length);
       var s1 = PKk.stock(1), s5 = PKk.stock(5), s8 = PKk.stock(8), s11 = PKk.stock(11);
-      var priced = Object.keys(I8).filter(function (id) { var it = I8[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && ['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'].indexOf(it.kind) >= 0; });
+      var priced = Object.keys(I8).filter(function (id) { var it = I8[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && (['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'].indexOf(it.kind) >= 0 || (D.pocket.COMPONENTS || []).indexOf(id) >= 0); }); // (and a ritual's component, sold with the goods: Calling Herbs, 11-14)
       okMk('THE STOCK BY LEVEL: at 1 ' + s1.length + ' (a longsword ' + (s1.indexOf('longsword') >= 0) + ', a potion ' + (s1.indexOf('potion') >= 0) + ', no longsword +1 ' + (s1.indexOf('longsword1') < 0) + '), at 5 ' + s5.length + ' (the +1 ' + (s5.indexOf('longsword1') >= 0) + '), at 8 ' + s8.length + ' (dwarven plate ' + (s8.indexOf('dwarfplate') >= 0) + '), at 11 every priced thing (' + s11.length + ' of ' + priced.length + ')',
         s1.indexOf('longsword') >= 0 && s1.indexOf('potion') >= 0 && s1.indexOf('longsword1') < 0 && s5.indexOf('longsword1') >= 0 && s8.indexOf('dwarfplate') >= 0 && s5.indexOf('dwarfplate') < 0 && s11.length === priced.length);
       var lateMiss = ['threshingflail1', 'greyfangbow', 'macedisruption', 'banhammer', 'sunshaftstaff'].filter(function (id) { return PKk.LOOT_LATE.indexOf(id) < 0; });
