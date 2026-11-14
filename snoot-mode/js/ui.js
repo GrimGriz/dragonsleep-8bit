@@ -79,6 +79,11 @@
       return setTimeout(function () { V.anim = null; SN.contested(st).forEach(function (h) { V.flash.push({ at: h, t0: frame }); }); step(); }, 75 * 16.7 + 60);
     }
     if (v.show) { if (PROBE) return step(); return SN.Show.play(st, v.show.from, v.show.to, v.show.at, function () { UI.render(); step(); }); } // (the day's fights as a show: js/show.js)
+    if (v.headless) { // (the day's own fights, on the grid unseen: js/headless.js -- the probe's day runs in one breath, so there the tables stand in)
+      if (PROBE || !SN.Headless || !SN.Headless.day) return step(null);
+      UI.toast('The grid is fighting it at ' + SN.placeName(v.headless.at) + ' ...');
+      return SN.Headless.day(st, v.headless, function (res) { UI.render(); step(res); });
+    }
     if (v.deep) {
       var d = v.deep, what = d.kind === 'greyfang' ? '<h1>GREYFANG\'S PIT</h1><p>The Harbinger has reached GreyFang, and the four are there. The fight goes to the grid.</p>' :
         d.kind === 'harbinger' ? '<h1>THE HARBINGER</h1><p>The four stand in the Harbinger\'s way. The fight goes to the grid.</p>' :

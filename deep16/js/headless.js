@@ -32,13 +32,17 @@
     return (g || u).mounted ? H.BODY.horse : H.BODY.foot;
   };
   // a Snoot unit (snoot-mode/js/data.js SN.FORCES, as it stands that hour: figs, groups, comp scaled by the caller) as the grid's words, the heroes first
-  H.listOf = function (u) {
+  H.heroWords = function (u) {
     var out = [];
     (u.heroes || []).forEach(function (h) {
       if (h.dead) return;
       var w = h.grid || H.HEROES[h.name] || (h.paladin ? H.PALADIN : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null);
       if (w) out.push(w);
     });
+    return out;
+  };
+  H.listOf = function (u) {
+    var out = H.heroWords(u);
     if (u.comp) Object.keys(u.comp).forEach(function (k) { out = out.concat(rep(u.harbinger && k === 'hyena' ? H.BODY.mirror : k, u.comp[k])); });
     else if (u.groups && u.groups.length) u.groups.forEach(function (g) { out = out.concat(rep(H.bodyOf(u, g), g.n || 0)); });
     else out = out.concat(rep(H.bodyOf(u), u.figs || 0));
@@ -54,28 +58,39 @@
   var up = function (u) { return !u.dead && !u.fled && u.hp > 0 && !u.hless; };
   H.men = function (B, k) { return B.units.filter(function (u) { return u.hgroup === k; }); };
   H.tally = function (B, k) {
-    var us = H.men(B, k), t = { name: B.hl[k].name, n: us.length, up: 0, away: 0, down: 0, broke: !!B.hl[k].broke, kinds: {} };
+    var us = H.men(B, k), t = { name: B.hl[k].name, n: us.length, up: 0, away: 0, down: 0, broke: false, kinds: {}, units: {} };
     us.forEach(function (u) {
       var kd = u.hword, r = t.kinds[kd] = t.kinds[kd] || { n: 0, up: 0, away: 0, down: 0 }, w = up(u) ? 'up' : u.fled ? 'away' : 'down';
-      r.n++; r[w]++; t[w]++;
+      var g = B.hl.units[u.hunit] || {}, U = t.units[u.hunit] = t.units[u.hunit] || { name: g.name, n: 0, up: 0, away: 0, down: 0, broke: !!g.broke, kinds: {}, men: { n: 0, up: 0, away: 0, down: 0 }, heroes: [] }, ru = U.kinds[kd] = U.kinds[kd] || { n: 0, up: 0, away: 0, down: 0 };
+      r.n++; r[w]++; t[w]++; U.n++; U[w]++; ru.n++; ru[w]++;
+      if (u.hhero != null) U.heroes[u.hhero] = w; else { U.men.n++; U.men[w]++; } // (heroes: the unit's own, in the order it sent them -- 'up', 'away' or 'down')
     });
+    t.broke = Object.keys(t.units).some(function (id) { return t.units[id].broke; });
     return t;
   };
 
-  // MORALE (the seat's draft, his to change): a group checks at the end of a round in which it first stands at half its men or fewer, and again at a quarter --
-  // 2d6, and it breaks on a roll over its rating and two (the Snoot's own ratings: heavy foot 5, the gnolls 7; SN.rating there). A group that breaks is away:
-  // every one of it still standing leaves the field, and the fight is the other's. `never`: the ones the Snoot never checks (SN.nevers).
+  // MORALE (11-14, Griz: "sketch our own moral system for the snoot, look at how routing works and have the routed join nearby groups", then "go with your
+  // morale build" -- the Snoot seat's sketch, in place of CHAINMAIL's post-melee sum, its doubling under twenty and its instability). Each UNIT of a side
+  // checks for itself, at the end of a round: when it first stands at half its bodies or fewer, again at a quarter, and once when one who leads it is down.
+  // 2d6, and it breaks on a roll over its rating and two (the Snoot's own ratings, sent with the unit: heavy foot 5, the gnolls 7, +1 holding ground, +1
+  // blessed). One result, a break: its men still standing leave the field. The ones who never run (STAYS: a paladin, GreyFang, Katarina, the Harbinger, a
+  // matriarch) fight on where the men were; a patrol lady goes with her soldiers. `never`: the units the Snoot never checks (SN.nevers).
   H.STEPS = [0.5, 0.25];
+  var STAYS = /^(paladin|greyfang|katarina|harbinger|gnollmatriarch)/, LEADS = /^(paladin|greyfang|katarina|harbinger|gnollmatriarch|patrollady)/;
+  H.unitMen = function (B, id) { return B.units.filter(function (u) { return u.hunit === id; }); };
   H.morale = function (B) {
-    ['a', 'b'].forEach(function (k) {
-      var g = B.hl[k]; if (g.never || g.broke) return;
-      var us = H.men(B, k), n = us.length, st = us.filter(up).length; if (!st || !n) return;
-      while (g.step < H.STEPS.length && st <= n * H.STEPS[g.step]) {
-        g.step++;
+    Object.keys(B.hl.units).forEach(function (id) {
+      var g = B.hl.units[id]; if (g.never || g.broke) return;
+      var us = H.unitMen(B, id), n = us.length, st = us.filter(up).length; if (!st || !n) return;
+      var runners = us.filter(function (u) { return up(u) && !STAYS.test(u.hword) && !(u.hhero != null && !/^patrollady/.test(u.hword)); }); if (!runners.length) return;
+      var why = [];
+      if (!g.led && us.some(function (u) { return LEADS.test(u.hword) && !up(u) && !u.fled; })) { g.led = true; why.push('its leader down'); }
+      while (g.step < H.STEPS.length && st <= n * H.STEPS[g.step]) { g.step++; why.push(st + ' of ' + n + ' standing'); }
+      for (var i = 0; i < why.length && !g.broke; i++) {
         var d1 = 1 + Math.floor(D.rand() * 6), d2 = 1 + Math.floor(D.rand() * 6), need = (g.morale || 5) + 2, broke = d1 + d2 > need;
-        var line = 'R' + B.round + ' MORALE  ' + g.name + ' (' + st + ' of ' + n + ' standing)  2d6 [' + d1 + ',' + d2 + '] = ' + (d1 + d2) + '  vs ' + need + '  ' + (broke ? 'BREAKS' : 'HOLDS');
+        var line = 'R' + B.round + ' MORALE  ' + g.name + ' (' + why[i] + ')  2d6 [' + d1 + ',' + d2 + '] = ' + (d1 + d2) + '  vs ' + need + '  ' + (broke ? 'BREAKS' : 'HOLDS');
         if (B.log) B.log.push(line); B.hl.lines.push(line);
-        if (broke) { g.broke = true; us.filter(up).forEach(function (u) { u.dead = true; u.fled = true; u.deadT = B.t; }); B.cache = null; return; }
+        if (broke) { g.broke = true; runners.forEach(function (u) { u.dead = true; u.fled = true; u.deadT = B.t; }); B.cache = null; }
       }
     });
   };
@@ -97,7 +112,7 @@
     B.units.forEach(function (u) { if (u.hgroup) hl.stood[u.id] = up(u); });
     var close = function () { // who fell since the last look, into the beat that was running
       var bt = hl.beats[hl.beats.length - 1];
-      B.units.forEach(function (u) { if (!u.hgroup || !hl.stood[u.id] || up(u)) return; hl.stood[u.id] = false; if (bt) bt.fell.push({ g: u.hgroup, name: u.name, word: u.hword, away: !!u.fled }); });
+      B.units.forEach(function (u) { if (!u.hgroup || !hl.stood[u.id] || up(u)) return; hl.stood[u.id] = false; if (bt) bt.fell.push({ g: u.hgroup, unit: u.hunit, hero: u.hhero != null ? u.hhero : null, name: u.name, word: u.hword, away: !!u.fled }); });
     };
     B.card = function (lines) {
       var u = this.active;
@@ -106,7 +121,7 @@
         var bt = hl.beats[hl.beats.length - 1];
         if (!bt || bt.g !== u.hgroup || bt.round !== this.round) { bt = { round: this.round, g: u.hgroup, turns: [], fell: [] }; hl.beats.push(bt); }
         var tn = bt.turns[bt.turns.length - 1];
-        if (!tn || tn.id !== u.id) { tn = { id: u.id, name: u.name, word: u.hword, cards: [], blows: [], last: [] }; bt.turns.push(tn); }
+        if (!tn || tn.id !== u.id) { tn = { id: u.id, unit: u.hunit, hero: u.hhero != null, name: u.name, word: u.hword, cards: [], blows: [], last: [] }; bt.turns.push(tn); }
         // (a card grows as its blow goes on -- the same lines come again with the next under them: only what is new is kept)
         var ls = (lines || []).map(plain), n0 = tn.last.length <= ls.length && tn.last.every(function (x, i) { return x === ls[i]; }) ? tn.last.length : 0;
         tn.last = ls;
@@ -122,20 +137,26 @@
     hl.close = close;
   };
 
-  // the field and the fight. spec: { a: { name, list, morale, never }, b: { ... }, level, seed, gap (ft) }; o: the Battle's own options ({ bench: true } unseen)
+  // the field and the fight. spec: { a: { name, list, morale, never }, b: { ... }, level, seed, gap (ft) }; o: the Battle's own options ({ bench: true } unseen).
+  // A side may be several of the board's units (11-14, the day's own fights: a stack in a hex): { name, units: [{ id, name, list, morale, never }] } -- each
+  // body knows its unit (u.hunit), each unit checks its own morale, and the tally and the beats say whose each man is
   H.make = function (spec, o) {
     var L = Math.max(1, Math.min(12, spec.level || 4)), NPC = D.npc;
     if (spec.seed != null) D.seed = spec.seed | 0;
     var isClass = function (w) { return !!(NPC.spec && NPC.spec(w, L)); };
-    var A = spec.a.list.slice(), Bl = spec.b.list.slice(), aClass = A.filter(isClass), ph = !aClass.length;
+    var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
+    var SA = norm(spec.a, 'a'), SB = norm(spec.b, 'b'), A = [], Au = [], Ah = [], Bl = [], Bu = [], Bh = [], hu = {};
+    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0 }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
+    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0 }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
+    var aClass = A.filter(isClass), ph = !aClass.length;
     var steps = Math.round((H.GAP[1] - H.GAP[0]) / 5) + 1, gap = spec.gap || (H.GAP[0] + 5 * Math.floor(D.rand() * steps)), g = Math.round(gap / 5);
     var F = H.FILES, rA = Math.ceil(A.length / F), rB = Math.ceil(Bl.length / F), M = H.MARGIN;
     var w = Math.max(Math.min(F, A.length), Math.min(F, Bl.length)) + 2 * M, h = rA + rB + g - 1 + 2 * M, rows = [], hts = [];
     for (var y = 0; y < h; y++) { rows.push(new Array(w + 1).join('.')); hts.push(new Array(w + 1).join('0')); }
-    D.MAPS[H.FIELD] = Object.assign({}, D.MAPS.gnollhills, { name: 'The Field', sub: spec.a.name + ' and ' + spec.b.name, rows: rows, heights: hts });
+    D.MAPS[H.FIELD] = Object.assign({}, D.MAPS.gnollhills, { name: 'The Field', sub: SA.name + ' and ' + SB.name, rows: rows, heights: hts });
     var q = '?npc=' + Bl.join(',') + '&lvl=' + L + '&vs=' + (ph ? 'fighter:1' : aClass.join(',')) + '&map=' + H.FIELD + (o && o.bench ? '' : '&watch');
     var B = D.npcFight(q, o || {});
-    B.hl = { a: { name: spec.a.name, morale: spec.a.morale, never: !!spec.a.never, step: 0 }, b: { name: spec.b.name, morale: spec.b.morale, never: !!spec.b.never, step: 0 }, gap: g * 5, w: w, h: h, round: 0, lines: [] };
+    B.hl = { a: { name: SA.name }, b: { name: SB.name }, units: hu, gap: g * 5, w: w, h: h, round: 0, lines: [] };
     var enter0 = B.enter;
     B.enter = function () {
       enter0.apply(this, arguments);
@@ -146,9 +167,9 @@
         var u;
         if (isClass(wd)) { u = P[ci++]; if (u) { u.guest = true; u.classAI = true; } }
         else if (D.FOES[wd]) { u = self.makeFoe({ id: 'a' + i + '-' + wd, kind: wd, at: [0, 0], side: 'party', ally: true }); self.units.push(u); }
-        if (u) { u.hgroup = 'a'; u.hword = wd; mine.push(u); }
+        if (u) { u.hgroup = 'a'; u.hword = wd; u.hunit = Au[i]; u.hhero = Ah[i]; mine.push(u); }
       });
-      Fo.forEach(function (u, i) { u.hgroup = 'b'; u.hword = u.rword || Bl[i] || u.kind; });
+      Fo.forEach(function (u, i) { u.hgroup = 'b'; u.hword = u.rword || Bl[i] || u.kind; u.hunit = Bu[i]; u.hhero = Bh[i]; });
       var seat = function (us, front, dir, face) {
         var wide = Math.min(F, us.length), x0 = Math.floor((w - wide) / 2);
         us.forEach(function (u, i) { u.x = x0 + (i % F); u.y = front + dir * Math.floor(i / F); if (D.spr && D.spr.facingFor) u.facing = D.spr.facingFor(0, face); });
@@ -179,7 +200,7 @@
   // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
   H.serve = function () {
     var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
-    var side = function (u) { return { name: u.name, list: H.listOf(u), morale: u.rating, never: !!u.never }; };
+    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never }; }) }; };
     window.addEventListener('message', function (e) {
       var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
       try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed }); delete r.log; post({ type: 'd16h:done', id: m.id, res: r }); }

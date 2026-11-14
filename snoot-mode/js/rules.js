@@ -427,6 +427,17 @@
       SN.partyResult(st, P, foes, req, res, h);
       if (!ours().length || !theirs().length) return SN.after(st, h, P);
     }
+    // THE GRID, UNSEEN (11-14, Griz: "Yes, replace it"): every fight of the board but the four's own is fought whole on DEEP16's grid in a frame nobody
+    // sees, body for body, and what comes back is written onto the board (js/headless.js HL.day, HL.apply) -- in place of the Combat Tables, the Fantasy
+    // table, the wizard's missile, the post-melee morale and the three rounds a day. The seed is the battle's, the day's and the hex's, so a battle
+    // played again from its file fights the same fights. No answer (the gate's probe; a grid that would not come up): the tables below, as a stand-in.
+    var o0 = ours().filter(function (u) { return !u.party; }), t0 = theirs();
+    var hres = o0.length && t0.length ? yield { headless: { at: h.slice(), ours: o0.map(function (u) { return u.id; }), theirs: t0.map(function (u) { return u.id; }), seed: (((st.seed >>> 0) % 100003) * 9973 + st.day * 7919 + h[0] * 131 + h[1] * 17) % 2147483647 } } : null;
+    if (hres && hres.a && hres.b && hres.beats && SN.Headless) { // (only the grid's own answer: a driver that hands anything else back gets the tables)
+      SN.Headless.apply(st, h, o0, t0, hres);
+      if (ours().length && theirs().length) SN.nightfall(st, h, ours(), theirs());
+      return SN.after(st, h, null);
+    }
     // the tables: up to three rounds in a day (fatigue, p.11), morale after each
     var round = 0, decided = false;
     while (round < 3 && !decided) {
@@ -546,7 +557,7 @@
     if (winner === 'them') t.forEach(function (u) { u.wonToday = true; });
     if (winner === 'ours') o.forEach(function (u) { u.wonToday = true; });
     if (winner === 'them') t.filter(function (u) { return u.side === 'gnoll'; }).forEach(function (w) { SN.witness(st, w); });
-    st.units.forEach(function (u) { if (SN.alive(u) && u.figs0 && !u.unstable && !SN.nevers(u) && u.lost >= SN.UNSTABLE[u.def][0] * u.figs0 && u.figs > 0) SN.instability(st, u); });
+    st.units.forEach(function (u) { if (!st.hl && SN.alive(u) && u.figs0 && !u.unstable && !SN.nevers(u) && u.lost >= SN.UNSTABLE[u.def][0] * u.figs0 && u.figs > 0) SN.instability(st, u); }); // (st.hl: the grid fights this battle -- instability is out with the tables, 11-14)
   };
   // the witness (his rule): every gnoll unit within two hexes of a gnoll win gives up to half its figures to the winner, never past its starting size;
   // the Harbinger's pack counts (glory draws followers to him); the death-watch never leaves the Mane
@@ -742,12 +753,19 @@
   SN.menBreak = function (u) { return u.side !== 'gnoll' && !u.party; };
   // (stay: the heroes do not fall back -- an Insect Plague drives off the men alone, "less than three hit dice", SN.pray; a berserker's men, who only
   // ever rout by it, run to their own people, the plains tribes)
+  // who a broken unit's men run to: the nearest steady unit of their own side within two hexes, not in a fight -- for a gnoll band (11-14, the grid's
+  // breaks: "have the routed join nearby groups") a band of its own tribe, never the death-watch or the Harbinger's pack
+  SN.rallyTo = function (st, u) {
+    var h = u.at;
+    return st.units.filter(function (x) {
+      return x !== u && x.side === u.side && SN.alive(x) && x.state === 'ok' && !x.party && (u.berserk ? x.kind === u.kind : !x.berserk) && SN.dist(x.at, h) <= 2 && !SN.same(x.at, h) &&
+        (u.side !== 'gnoll' || (x.tribe === u.tribe && !x.watch && !x.harbinger)) &&
+        !SN.unitsAt(st, x.at).some(function (y) { return SN.hostile(x, y); });
+    }).sort(function (a, b) { return SN.dist(a.at, h) - SN.dist(b.at, h) || b.figs - a.figs; })[0] || null;
+  };
   SN.breakUp = function (st, u, stay) {
     var hs = SN.heroesOf(u).filter(function (x) { return x.type !== 'wizard'; }), wz = SN.heroesOf(u).filter(SN.isWiz), n = u.figs, h = u.at.slice();
-    var to = st.units.filter(function (x) {
-      return x !== u && x.side === u.side && SN.alive(x) && x.state === 'ok' && !x.party && (u.berserk ? x.kind === u.kind : !x.berserk) && SN.dist(x.at, h) <= 2 && !SN.same(x.at, h) &&
-        !SN.unitsAt(st, x.at).some(function (y) { return SN.hostile(x, y); });
-    }).sort(function (a, b) { return SN.dist(a.at, h) - SN.dist(b.at, h) || b.figs - a.figs; })[0];
+    var to = SN.rallyTo(st, u);
     SN.beat(st, { t: 'menrun', u: u.id, n: n, to: to ? to.id : null, toName: to ? to.name : null, heroes: hs.length > 0, word: to ? 'THEY RUN TO ' + to.name.toUpperCase() : 'THEY SCATTER' });
     if (to && n > 0) {
       SN.pour(to, u, false); if (u.groups) u.groups.forEach(function (g) { g.n = 0; }); u.figs = 0; SN.sync(u);
