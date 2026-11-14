@@ -2405,7 +2405,7 @@
     var yy = 36;
     sh.forEach(function (s, i) {
       if (!s.h) return; var slot = st.party[i], L = PK.lvlOf(st, slot), nx = R.XP_LEVEL[L + 1], e = PK.stockOf(slot), cc = run && run.carry && run.carry[i]; // (cc: what the last fight left -- HP as it stands, 11-03)
-      D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + (cc ? (cc.hp <= 0 ? '{r}' + cc.hp + '{/}{g}' : cc.hp) + '/' + cc.maxhp : s.h.maxhp) + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
+      D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + (cc ? (cc.hp <= 0 ? '{r}' + cc.hp + '{/}{g}' : cc.hp) + '/' + cc.maxhp : s.h.maxhp) + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (slot.fam && R.FAMILIARS[slot.fam.kind] ? '  {c}' + R.FAMILIARS[slot.fam.kind].name + '{/}' : '') + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11; // (its familiar, called at the camp: Pocket.campFamiliar, 11-14)
     });
     var ltH = st.light && this.lightOf(st.light.seat), ltS = ltH && sh[ltH.seat] && sh[ltH.seat].h; // (the light in hand, 10-17)
     D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things' + (ltS ? '  ·  {y}' + ltS.name + '{/} carries the ' + DS.DATA.items[ltH.id].name.toLowerCase() : ''), 24, yy + 3, P('silver', 5));
