@@ -1060,7 +1060,15 @@
   // his list RULED "fix": "The The thing in the lake falls")
   Battle.theName = function (u) { var s = shortName(u); return (u.named || /^the /i.test(s) ? '' : 'The ') + s; };
   Battle.theWord = function (u) { var s = shortName(u); return u.named ? s : /^the /i.test(s) ? 'the ' + s.slice(4) : 'the ' + s; }; // (the same mid-line: "swing at the thing in the lake", "at The Keeper" -- 11-10, his record: HELP's "at the The thing in the lake")
-  function shortName(u) { return u.side === 'foe' && !u.fname ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
+  var SHORT = { drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' };
+  // (11-14, the bestiary lane's §47 open 2: the Giant Spider read "Spider" with Wolf Spiders in the same fight -- the short word only while no other kind of foe there reads as it too)
+  function shortName(u) {
+    if (u.side !== 'foe' || u.fname) return u.name;
+    var sh = SHORT[u.kind]; if (!sh) return u.name;
+    var B = this && this.units ? this : D.battle;
+    if (B && (B.units || []).some(function (w) { return w !== u && w.side === 'foe' && w.kind !== u.kind && (SHORT[w.kind] === sh || (w.name || '').indexOf(sh) >= 0); })) return u.name;
+    return sh;
+  }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
   // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.

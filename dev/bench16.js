@@ -280,6 +280,29 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(pre2);
     return;
   }
+  // THE LANES' READY SMALLS, 11-14 (mode=sweep1114; the todo-pairs seat's sweep of the story lanes on the lanes desk's word): 1. the play records lane 10, a hero who got out
+  // is not written down; 2. the bestiary lane's §47, the Giant Spider's short name beside Wolf Spiders
+  if (get('mode', '') === 'sweep1114') {
+    var repSW = { checks: [], errors: [] };
+    function okSW(what, v) { repSW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var mkSW = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); return B; };
+    try {
+      // 1. the getaway: Barley leaves on his feet; the record's end says him not down
+      var B1 = mkSW('?npc=goblin&vs=fighter:3,cleric:3&lvl=3'), f1 = B1.units.filter(function (u) { return u.cls === 'fighter'; })[0], c1 = B1.units.filter(function (u) { return u.cls === 'cleric'; })[0];
+      if (D.rec && D.rec.start && !B1.rec) D.rec.start(B1, { fight: 'sweep1114', name: 'the bench', level: 3 });
+      f1.left = true; f1.dead = true; c1.hp = 0; c1.ko = true;
+      var wr1 = null; if (D.rec && D.rec.finish) { try { D.rec.finish(B1, 'escaped'); } catch (e1) { wr1 = String(e1); } }
+      var pe1 = B1.rec && B1.rec.partyEnd ? B1.rec.partyEnd : [], pf = pe1.filter(function (o) { return o.id === f1.id; })[0], pc = pe1.filter(function (o) { return o.id === c1.id; })[0];
+      okSW('1 the getaway: the fighter out on his feet ' + JSON.stringify(pf) + ', the cleric down ' + JSON.stringify(pc && { down: pc.down }) + (wr1 ? ' (write: ' + wr1 + ')' : ''), !!pf && pf.down === false && pf.left === true && !!pc && pc.down === true);
+      // 2. the short names
+      var B2 = mkSW('?npc=giantspider,wolfspider&vs=fighter:3&lvl=3'), gs2 = B2.units.filter(function (u) { return u.kind === 'giantspider'; })[0];
+      var n2 = B2.shortName(gs2), B3 = mkSW('?npc=giantspider,goblin&vs=fighter:3&lvl=3'), gs3 = B3.units.filter(function (u) { return u.kind === 'giantspider'; })[0], n3 = B3.shortName(gs3);
+      okSW('2 the Giant Spider beside a Wolf Spider reads "' + n2 + '"; beside a goblin "' + n3 + '"', n2 === gs2.name && /Giant/.test(n2) && n3 === 'Spider');
+    } catch (eSW) { repSW.errors.push(String(eSW && eSW.stack || eSW).slice(0, 900)); }
+    var preSW = document.createElement('pre'); preSW.id = 'out'; preSW.textContent = 'BENCH16 ' + JSON.stringify(repSW);
+    document.body.appendChild(preSW);
+    return;
+  }
   // THE RACES' TRAITS, 11-14 (mode=races1114; the todo-pairs seat, the Pocket DM and the races lane 12, built as SRD 5.1 settles them, srd/01-races.md): the halfling's Lucky
   // (a 1 on the d20 of an attack or a save rolled again, the new one kept) and Brave (advantage on saves against being frightened); the gnome's Gnome Cunning (advantage on INT,
   // WIS and CHA saves against magic). The dice queued; each against a human, who has none of it
