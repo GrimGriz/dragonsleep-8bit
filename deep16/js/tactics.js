@@ -443,13 +443,18 @@
     return best;
   };
   // Sleep: the pool against the weakest in the sphere
+  // (11-14, the AI lane's 11-03 item 2: it weighed the pool's AVERAGE, so a friend past the average counted nothing -- Drill in the sphere with 29.5 left, and the pool rolled
+  // high. Now each one in hit point order by the chance the rolled pool reaches it: SRD 5.1, the pool is spent on the lowest first and a creature is affected only if what is
+  // left covers it, so the k-th sleeps when the pool is at least the first k's hit points together)
+  function poolDist(n) { var p = [1]; for (var i = 0; i < n; i++) { var q = []; for (var s = 0; s < p.length; s++) for (var f = 1; f <= 8; f++) q[s + f] = (q[s + f] || 0) + p[s] / 8; p = q; } return p; } // (n d8: the chance of each total)
+  TX.sleepReach = function (n, hp) { var p = poolDist(n), t = 0; for (var s = Math.max(0, Math.ceil(hp)); s < p.length; s++) t += p[s] || 0; return t; };
   EV.sleep = function (B, u, e, slot, fs) {
-    var pool = avg((e.g.pool + e.g.poolUp * Math.max(0, slot - 1)) + 'd8');
+    var n = e.g.pool + e.g.poolUp * Math.max(0, slot - 1), dist = poolDist(n), atLeast = function (h) { var t = 0; for (var s = Math.max(0, Math.ceil(h)); s < dist.length; s++) t += dist[s] || 0; return t; };
     return TX.bestArea(B, u, e, fs, function (caught) {
-      var left = pool, sc = 0;
+      var used = 0, sc = 0;
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
-        if (w.fey || w.kind === 'drow' || RU.immuneTo(w, 'asleep') || RU.immuneTo(w, 'charmed') || w.hp > left) return;
-        left -= w.hp; sc += (G.hostile(u, w) ? 1 : -1.2) * (TX.dpr(w) * 2.2 + 2);
+        if (w.fey || w.kind === 'drow' || RU.immuneTo(w, 'asleep') || RU.immuneTo(w, 'charmed') || w.hp <= 0) return;
+        used += w.hp; sc += atLeast(used) * (G.hostile(u, w) ? 1 : -1.2) * (TX.dpr(w) * 2.2 + 2);
       });
       return sc;
     });
