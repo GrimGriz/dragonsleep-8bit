@@ -1278,7 +1278,7 @@
     sp.lvl = L;
     if (sp.known) { // (the guess, for what no box accounts for)
       var c = NPC.CLASSES[sp.cls], info = null; try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e2) { info = null; }
-      var cpool = (c.spells && c.spells[0]) || [], nc = c.cantrips ? c.cantrips[L - 1] || 0 : 0, can = [], lev = [];
+      var cpool = ((c.spells && c.spells[0]) || []).concat(NPC.registerList ? NPC.registerList(sp.cls, 0) : []), nc = c.cantrips ? c.cantrips[L - 1] || 0 : 0, can = [], lev = []; // (the SRD's cantrips too: a made one may have picked one, 11-14)
       sp.known.forEach(function (id) { if (cpool.indexOf(id) >= 0) can.push(id); else lev.push(id); });
       if (info) { lev = lev.filter(function (id) { var d = D.magic.data(id); return !d || (d.level || 0) <= info.top; }); lev = lev.slice(0, Math.max(0, info.n)); }
       sp.known = can.slice(0, nc).concat(lev);
@@ -1324,7 +1324,7 @@
       var bare = PK.sheetOf(Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null })); if (!bare) { out.cards.push(null); return; }
       var pi = null;
       if (sp.hero) { var n = R.prepCount(bare); if (n && bare.prepared) pi = { n: n, pool: R.prepPool(bare, SV.spell), always: R.oathSpells(bare) || [], def: bare.prepared.length ? bare.prepared.slice() : R.prepDefault(bare, SV.spell) }; } // (the build's own day by default: a morning left alone is the day the hero had)
-      else if (NPC.CLASSES[sp.cls] && NPC.CLASSES[sp.cls].prepares) { pi = NPC.prepInfo(sp); if (pi && !pi.n) pi = null; }
+      else if (NPC.CLASSES[sp.cls] && NPC.CLASSES[sp.cls].prepares) { pi = NPC.prepInfo(sp.cls === 'wizard' ? Object.assign({}, sp, { register: false }) : sp); if (pi && !pi.n) pi = null; } // (a made cleric, druid or paladin prepares from its class's whole SRD list, 11-14 -- NPC.registerList; a wizard's day is as it was: its own spells and the class's list, not every spell there is)
       var prepared = pi ? (m.prep[i] || pi.def).filter(function (id) { return pi.pool.indexOf(id) >= 0; }).slice(0, pi.n) : null;
       var h = PK.sheetOf(Object.assign({}, sp, { morning: true, mageArmor: false, prepared: prepared })) || bare;
       var ready = (pi ? prepared.concat(pi.always || []) : []).concat(h.known || []);
@@ -1555,8 +1555,8 @@
     try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e) { info = null; }
     if (!info) return null;
     var built = function (id) { return !!D.magic.data(id); };
-    var nc = c.cantrips ? c.cantrips[sp.lvl - 1] : 0, cpool = (c.spells && c.spells[0] ? c.spells[0] : []).filter(built);
-    return { nc: nc, cpool: cpool, n: info.n, pool: info.pool.filter(built), always: info.always, def: info.def, defC: cpool.slice(0, nc) };
+    var nc = c.cantrips ? c.cantrips[sp.lvl - 1] : 0, own0 = (c.spells && c.spells[0] ? c.spells[0] : []).filter(built), cpool = own0.concat(NPC.registerList ? NPC.registerList(sp.cls, 0) : []).filter(function (id, i, a) { return a.indexOf(id) === i; }); // (the SRD's cantrips for the class after its own, 11-14: NPC.registerList)
+    return { nc: nc, cpool: cpool, n: info.n, pool: info.pool.filter(built), always: info.always, def: info.def, defC: own0.slice(0, nc) };
   };
   Pocket.prototype.saveMade = function () {
     var sp = this.mkSpec(), code = NPC.code(sp), rec = { code: code, name: sp.name, cls: sp.cls, lvl: sp.lvl, made: Date.now() };

@@ -530,6 +530,11 @@
   // the tester ladder's camp (js/camp.js o.ours, 09-29): what one of ours may prepare at the spec's level -- the register's list, the
   // grow picks and the class's list to the highest slot, the built ones only (a spell not built yet is simply not on it); how many (the
   // class's count); the domain's always-prepared, uncounted; and the class's own default day. Null for one who casts nothing
+  // THE REGISTER'S LIST (11-14, Griz: "Made characters can be imports where they choose their spells, by level when they're done setting the level"): what a class may know or
+  // prepare at a spell level by the SRD 5.1 (data/spell-lists.js, written by tools/spell-lists.py from srd/10-spell-lists.md), the ones built on the grid. A made character's pick
+  // pages offer these after the class's own list (NPC.CLASSES[cls].spells: still the default the pages mark, and where our own spells live); a class card's and a named one's lists
+  // are as they were. spec.custom is the mark of a made one (NPC.decode, the maker's mkSpec)
+  NPC.registerList = function (cls, L) { var t = (D.SPELL_LISTS || {})[cls]; return ((t && t[L]) || []).filter(function (id) { var s = D.magic.data(id); return !!s && (s.level || 0) === L; }); };
   NPC.prepInfo = function (spec) {
     var c = C[spec.cls], RC = R.CLASSES[spec.cls];
     if (!c || !RC || !RC.caster || !(c.prepares || c.known)) return null;
@@ -540,6 +545,7 @@
     if (c.half && h.lvl < 2) n = 0;
     var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice();
     for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], sp[L] || []);
+    if (spec.custom && spec.register !== false) for (var Lr = 1; Lr <= top; Lr++) pool = pool.concat(NPC.registerList(spec.cls, Lr)); // (a made one: the SRD's list for its class after the class's own, 11-14)
     pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
     return { n: n, top: top, pool: pool, always: alw.filter(function (id) { return lv(id) >= 0 && lv(id) <= top; }), def: h.known.filter(function (id) { return lv(id) >= 1 && alw.indexOf(id) < 0; }) };
@@ -582,7 +588,7 @@
       var fresh = dL.filter(function (id) { return dP.indexOf(id) < 0 && have.indexOf(id) < 0; });
       var nc = function (x) { return c.cantrips ? c.cantrips[x - 1] || 0 : 0; }, kc = nc(L) - (L > 1 ? nc(L - 1) : 0);
       if (kc > 0) {
-        var cpool = ((c.spells && c.spells[0]) || []).filter(function (id) { return lv(id) === 0 && have.indexOf(id) < 0; });
+        var cpool = ((c.spells && c.spells[0]) || []).concat(spec.custom ? NPC.registerList(cls, 0) : []).filter(function (id, i, a) { return a.indexOf(id) === i && lv(id) === 0 && have.indexOf(id) < 0; }); // (a made one: the SRD's cantrips for its class too, 11-14)
         if (cpool.length) asks.push({ kind: 'cantrip', need: kc, took: fill(fresh.filter(function (id) { return cpool.indexOf(id) >= 0; }), cpool, kc), rows: cpool.map(row) });
       }
       var iL = NPC.prepInfo(Object.assign({}, dS, { lvl: L })), iP = L > 1 ? NPC.prepInfo(Object.assign({}, dS, { lvl: L - 1 })) : null, ks = iL ? iL.n - (iP ? iP.n : 0) : 0;
