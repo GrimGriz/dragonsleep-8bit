@@ -291,6 +291,9 @@
   // camp's armoury opens it (js/camp.js D.CAMP_ARMOURY), else by its price (under 1000 sp from 1, 4000 from 5, 8000 from 8, the rest from 11); the story's own gear,
   // priceless, is among the late winnings (PK.LOOT_LATE); the Game Show's supplies stay the Game Show's. A won fight pays 100 sp a CR beaten (the DM's shops' scale)
   var GOODS = ['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'];
+  // (a ritual's component the camp's casting burns -- Find Familiar's Calling Herbs, 11-14, Pocket.campFamiliar: a `part` by its kind, sold with the goods)
+  PK.COMPONENTS = ['callingherbs'];
+  PK.goodKind = function (id) { var it = DS.DATA.items[id]; return !it ? null : PK.COMPONENTS.indexOf(id) >= 0 ? 'use' : it.kind; };
   PK.tierOf = function (id) {
     var it = DS.DATA.items[id], A = D.CAMP_ARMOURY || []; if (!it) return 99;
     for (var i = 0; i < A.length; i++) if (A[i][1].indexOf(id) >= 0) return A[i][0];
@@ -298,8 +301,8 @@
   };
   PK.stock = function (L) {
     var I = DS.DATA.items;
-    return Object.keys(I).filter(function (id) { var it = I[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && GOODS.indexOf(it.kind) >= 0 && PK.tierOf(id) <= L; })
-      .sort(function (a, b) { return GOODS.indexOf(I[a].kind) - GOODS.indexOf(I[b].kind) || I[a].price - I[b].price || (I[a].name < I[b].name ? -1 : 1); });
+    return Object.keys(I).filter(function (id) { var it = I[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && GOODS.indexOf(PK.goodKind(id)) >= 0 && PK.tierOf(id) <= L; })
+      .sort(function (a, b) { return GOODS.indexOf(PK.goodKind(a)) - GOODS.indexOf(PK.goodKind(b)) || I[a].price - I[b].price || (I[a].name < I[b].name ? -1 : 1); });
   };
   PK.packN = function (st, id) { var s = (st.pack || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
   PK.packAdd = function (st, id, d) {
@@ -774,7 +777,8 @@
     var ltW = ltAt >= 0 ? fw[ltAt] : null, ltId = ltW ? (typeof ltW === 'string' ? 'p' + ltAt + '-' + String(ltW).split(':')[0].split('.')[0].split('+')[0] : ltW.id) : null; // (the unit's id as js/battle.js gives it)
     if (ltId) packIn.forEach(function (s) { if (s.id === lt.id) s.n--; });
     this.lightHeld = ltId ? lt.id : null;
-    var B = new D.Battle({ npc: { foes: kinds, party: fw }, runes: rn && rn.runes ? rn.runes : undefined, pack: packIn.filter(function (s) { return s.n > 0; }), torch: ltId || undefined, torchKind: ltId ? lt.id : undefined, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
+    var fams = this.famList(fw); this.famIn = fams; // (the camp's familiars, each beside its caster: Pocket.campFamiliar, 11-14)
+    var B = new D.Battle({ npc: { foes: kinds, party: fw }, runes: rn && rn.runes ? rn.runes : undefined, pack: packIn.filter(function (s) { return s.n > 0; }), torch: ltId || undefined, torchKind: ltId ? lt.id : undefined, familiars: fams.length ? fams.map(function (f) { return { kind: f.kind, by: f.by }; }) : undefined, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
       onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
@@ -808,6 +812,9 @@
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
     this.st.fights.unshift(rec); while (this.st.fights.length > KEEP) this.st.fights.pop();
     this.result = { res: res, rec: rec, end: end, loot: null };
+    // (a familiar that fell is gone from its seat: cast again at the camp -- 11-14)
+    var famGone = []; (B.units || []).forEach(function (u) { if (!u.familiar || !(u.dead || u.hp <= 0)) return; var f = (self.famIn || []).filter(function (x) { return x.by === u.familiar; })[0], sl = f && self.st.party[f.seat]; if (sl && sl.fam) { delete sl.fam; famGone.push(u.name); } });
+    if (famGone.length) { this.result.famGone = famGone; rec.famGone = famGone.join(', '); }
     var ammoBack = PK.packBack(this.st, B, res === 'won'); // (what the fight used comes off the pack, 10-17; won, half the arrows and bolts shot come back -- 11-10)
     if (Object.keys(ammoBack).length) { this.result.ammoBack = ammoBack; rec.ammoBack = Object.keys(ammoBack).map(function (id) { return ammoBack[id] + ' ' + (DS.DATA.items[id] || { name: id }).name.toLowerCase(); }).join(', '); }
     if (this.lightHeld) { if (!B.lampReturned) PK.packAdd(this.st, this.lightHeld, 1); this.lightHeld = null; } // (the light in hand back to the pack: it was never the fight's to spend -- a lantern nobody could take up came back by the fight's own pack)
@@ -1601,7 +1608,7 @@
     head(ctx, 'THE MARKET', 'the purse ' + st.purse + ' sp  ·  stock for level ' + L + '  ·  sold back at half');
     var y = 40;
     MARKET_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.marketTab = t[0]; self.scroll = 0; }, { on: tab === t, small: true }); });
-    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 8, from = Math.min(this.scroll, Math.max(0, list.length - per));
+    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(PK.goodKind(id)) >= 0; }), per = 8, from = Math.min(this.scroll, Math.max(0, list.length - per));
     this.scroll = from;
     var rowsAt = []; // (each row's button, for the line under the lists: the one under the mouse or the keys -- 10-17)
     D.text(ctx, '{y}FOR SALE{/}', 20, y + 20, P('bone', 1));
@@ -2229,6 +2236,7 @@
     var yy = y + 44;
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
     if (r.coin || r.xp || r.noXP) { yy += 4; D.text(ctx, '{y}' + [r.coin ? '+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp)' : '', r.xp ? '+' + r.xp + ' XP each' : '', r.noXP ? 'no XP: WATCH was on' : ''].filter(Boolean).join('  ·  ') + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17: the coin, and the XP -- none for a fight WATCH ran, Pocket.xpOn)
+    if (r.rec && r.rec.famGone) { yy += 4; D.text(ctx, r.rec.famGone + ' fell: Find Familiar at THE CAMP calls another', D.W / 2, yy, P('silver', 5), 'center'); yy += 6; } // (11-14)
     if (r.rec && r.rec.ammoBack) { yy += 4; D.text(ctx, 'searched the field: ' + r.rec.ammoBack + ' back in the pack', D.W / 2, yy, P('silver', 5), 'center'); yy += 6; } // (half the arrows and bolts shot, a won fight -- 11-10)
     if (r.levels && r.levels.length) { yy += 4; D.wrap('{y}' + r.levels.join(' ') + '{/}' + (this.st.editLevels ? ' The choices next (LEVEL-UPS: EDIT).' : ''), w - 30).slice(0, 2).forEach(function (t) { D.text(ctx, t, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); }
     if (r.loot) { // (into the pack; PUT IT ON is the player's word -- 10-17, his "rewards should go into pack and not-auto equip unless player confirms equip")
@@ -2459,6 +2467,9 @@
       give: give,
       take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
       canSave: function () { return false; },
+      // (Find Familiar's WHAT SHAPE? and A NEW SHAPE? -- js/menu.js MagicPage; every shape there is, the table having no ground: Pocket.campFamiliar, 11-14)
+      famForms: function (h, sp) { if (sp && sp.component && PK.packN(st, sp.component) <= 0) return 'The spell wants ' + DS.DATA.items[sp.component].name + ', and there is none in the pack: THE MARKET sells it.'; return Object.keys(R.FAMILIARS).filter(function (k) { return !!(D.FOES && D.FOES['fam_' + k]); }); },
+      famHad: function (h) { var sl = st.party[at[hs.indexOf(h)]]; return sl && sl.fam && R.FAMILIARS[sl.fam.kind] ? sl.fam.kind : null; },
       notes: D.pocketdm && D.pocketdm.notes ? function () { D.pocketdm.notes(null, self); } : null, // (NOTES after SAVE, the story game's box on the table's own notes: js/pocketdm.js PD.notes, 11-12)
       order: function () { self.say('the order is THE PARTY\'s: SWAP trades two seats', 240); },
       light: lh.light,
@@ -2478,14 +2489,14 @@
     });
   };
   // what the menu's ITEMS, MAGIC and SKILLS do at the camp: the second game's field rules (js/house.js H.field -- FD.item, FD.cast, FD.skill, the same words) over the camp's
-  // sheets, PK's pack for env.has / env.take. No tent here (Rope Trick, the Tiny Hut: the module's slot decides the rests), no road for a chalk ward, no Pocket DM seat for
-  // a familiar. Returns the lines to say, or null for a kind the camp does not run
+  // sheets, PK's pack for env.has / env.take. No tent here (Rope Trick, the Tiny Hut: the module's slot decides the rests), no road for a chalk ward. Find Familiar is the
+  // camp's own (campFamiliar, 11-14). Returns the lines to say, or null for a kind the camp does not run
   Pocket.prototype.campField = function (kind, a, hs, at) {
     var st = this.st, run = st.run, FD = D.house && D.house.field, c = a.h || null, ia = c ? at[hs.indexOf(c)] : -1;
     if (!FD) return ['The camp has nothing to use that on.'];
     var env = { where: 'camp', party: hs, tent: false, form: a.form, flags: null, has: function (id) { return PK.packN(st, id) > 0; }, take: function (id) { PK.packAdd(st, id, -1); }, give: function (id, n) { PK.packAdd(st, id, n || 1); }, ward: function () { }, longRest: function () { return []; } }; // (give: Goodberry's berries, 11-03)
     if (kind === 'cast' && c && a.sp) {
-      if (a.sp.kind === 'familiar') return ['No familiar comes to the Pocket DM\'s table: it is called up on the road.'];
+      if (a.sp.kind === 'familiar') return this.campFamiliar(c, a.sp, a.form, ia);
       return FD.cast(c, a.sp, a.t || null, env);
     }
     if (kind === 'skill' && c) {
@@ -2504,6 +2515,31 @@
       return FD.item(a.id, c || hs[0], env) || [it ? it.name + ': nothing to do with it here.' : 'Nothing to do with that here.'];
     }
     return null;
+  };
+  // FIND FAMILIAR AT THE CAMP (11-14, Griz, on a made wizard having no familiar: "Let them cast it at camp?" -- his lean as a question, built as the smallest reading and standing
+  // for his overrule): whoever has the spell on its MAGIC page casts it here as the story game does at its camps -- the menu's WHAT SHAPE? (js/menu.js MagicPage, the host's
+  // famForms / famHad below), a bundle of Calling Herbs from the pack (THE MARKET sells them: PK.COMPONENTS), no slot (the SRD's ritual). The familiar is the card's seat's
+  // (`slot.fam = { kind }`: it rides a seat trade, and goes when the card is put away), seated in every fight after it beside its caster (Pocket.famList to js/battle.js
+  // o.familiars, deep16/js/familiar.js FM.unit) till it falls in one (Pocket.done); then it is cast again. The table has no ground under it: every shape is offered
+  Pocket.prototype.campFamiliar = function (c, sp, form, seat) {
+    var st = this.st, FR = R.FAMILIARS[form], slot = st.party[seat], T = DS.DATA.text || {};
+    var say = function (k, o) { var t = T[k]; t = String((t && (t.t || t)) || ''); Object.keys(o || {}).forEach(function (q) { t = t.split('{' + q + '}').join(o[q]); }); return t; };
+    if (!FR || !slot) return ['Nothing happens.'];
+    if (sp.component && PK.packN(st, sp.component) <= 0) return [say('g.noComponent', { item: DS.DATA.items[sp.component].name })];
+    if (sp.component) PK.packAdd(st, sp.component, -1);
+    var had = slot.fam && R.FAMILIARS[slot.fam.kind] ? R.FAMILIARS[slot.fam.kind].name : null, an = function (w) { return (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; };
+    slot.fam = { kind: form }; this.keep(); D.sfx('magic');
+    return [say('fam.ritual'), had ? say('fam.change', { name: c.name, old: had, a: an(FR.name) }) : say('fam.come', { name: c.name, a: an(FR.name) }), 'It goes into the fights with ' + c.name + ' till it falls.'];
+  };
+  // the familiars the next fight seats: each seat's, by its caster's unit id as the fight will give it (js/battle.js: a plain word's `p<n>-<word>`, a carried one's own id)
+  Pocket.prototype.famList = function (fw) {
+    var st = this.st, out = [], wi = -1;
+    st.party.forEach(function (slot, seat) {
+      if (!PK.wordOf(st, slot)) return; wi++;
+      if (!slot.fam || !R.FAMILIARS[slot.fam.kind]) return;
+      var w = fw[wi]; out.push({ kind: slot.fam.kind, by: typeof w === 'string' ? 'p' + wi + '-' + String(w).split(':')[0].split('.')[0].split('+')[0] : w.id, seat: seat });
+    });
+    return out;
   };
   // a sheet's state as the menu opened it, and as it closes: what the camp can change on a card
   PK.campSnap = function (h) { return JSON.parse(JSON.stringify({ hp: h.hp, ko: !!h.ko, maxhp: h.maxhp, slots: h.slots || null, feats: h.feats || {}, conds: h.conds || {} })); };
