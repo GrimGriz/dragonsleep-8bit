@@ -274,6 +274,9 @@
     if (g && g.unarmored && w && w.conds && (w.armored || w.conds.mageArmor)) return w.conds.mageArmor ? 'already under Mage Armor' : 'in armour';
     // Magic Weapon (SRD 5.1: "You touch a nonmagical weapon" -- 10-03, it took a +1 to +2): not a blade that is magic already, nor an empty hand
     if (g && g.nonmagical && w) { if (!w.weapon || w.weapon.name === 'Unarmed Strike') return 'holding no weapon'; if (w.weapon.magic) return 'holding a weapon that is magic already (the spell takes a nonmagical one)'; }
+    // Branding Smite (SRD 5.1: the target "can't become invisible until the spell ends"): no Invisibility on one branded -- the foes' fade already obeyed it (89d3be97);
+    // this is the player's side and the class AI's (11-14, the second game's house lane, 11-03 open 5)
+    if (g && /^(invisibility|greaterinvisibility)$/.test(g.sid || '') && w && w.conds && w.conds.branded) return 'branded: it cannot become invisible while the brand lasts';
     var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
