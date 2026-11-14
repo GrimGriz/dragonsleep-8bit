@@ -11,7 +11,7 @@
    monsters we have in existence that add up to that CR"; Willem and Amara in the pot when not in the party, the rest of the story's named
    out), the four-rung ladder with SHORT REST FOR THE WICKED between (SRD hit dice, the fallen up first), LONG REST FOR THE TRIAL after the
    fourth and the double deadly, which unlocks Pyro ("they can play him but not see or change his gear"); a magic item to a random character
-   on each win; quit, retry or reroll a rung from what they went in with; the fights kept, with notes, saved to a file, sent by email or
+   on each win; quit, retry or reroll a rung from what they went in with; the fights kept, with notes, saved to a file, or taken to the
    Discord. The words the fights are made of: js/classes.js NPC.spec (`barley:5+dagger1`, `talmok:5:grown`, `~fighter.5.dwarf....`).
    The level cap is 8 (his: "Cap them at lvl 8 (but pyro full power if they unlock)"). */
 'use strict';
@@ -22,7 +22,6 @@
   var PK = D.pocket = {};
   PK.DISCORD = 'https://discord.gg/VDxa5hkA3x';
   PK.recordLine = function (n) { return '{y}THE RECORD{/}  ' + n + ' fight' + (n === 1 ? '' : 's') + ', every door'; }; // (FIGHTS' row: the ladder's R, 11-06 -- Pocket.prototype.drawFights)
-  PK.MAIL = 'grimgriz@gmail.com';
   PK.CAP = 8;
   // THE DM'S POCKET DM (10-09, Griz: "the DM's Pocket DM where the cool new stuff in URLs and the stuff in test runs unlocks"; the door and its screens: js/pocketdm.js):
   // no locks at that table -- the cap at 12, Pyro without the trial, the story's named on the shelves; st.dm is the switch, the front stays the release edition
@@ -953,7 +952,7 @@
     this.keep();
   };
 
-  // ------------------------------------------------------------------ the record: a file, the clipboard, an email, the Discord
+  // ------------------------------------------------------------------ the record: a file, the clipboard, the Discord
   Pocket.prototype.summary = function (rec) {
     var l = ['DRAGONSLEEP -- the Pocket DM (alpha)', new Date(rec.t).toLocaleString(), '', rec.result.toUpperCase() + ' in ' + rec.rounds + ' round' + (rec.rounds === 1 ? '' : 's') + (rec.downs ? ', ' + rec.downs + ' down' : '') + (rec.rung ? ' (rung ' + rec.rung + ')' : ''),
       'party: ' + rec.party.join(', '), 'foes: ' + rec.foes + ' (CR ' + rec.cr + ', ' + rec.diff + ')', 'map: ' + rec.mapName, rec.loot ? 'found: ' + rec.loot : '', '', 'URL: ' + PK.url(rec.q), '', 'NOTES: ' + (rec.notes || '(none)')];
@@ -1451,10 +1450,6 @@
     var self = this;
     try { navigator.clipboard.writeText(text).then(function () { self.say((what || 'copied') + ' to the clipboard'); }, function () { self.say('could not copy'); }); }
     catch (e) { this.say('could not copy'); }
-  };
-  Pocket.prototype.email = function (rec) {
-    var href = 'mailto:' + PK.MAIL + '?subject=' + encodeURIComponent('Pocket DM: ' + rec.result + ' vs ' + rec.foes) + '&body=' + encodeURIComponent(this.summary(rec) + '\n\n(the saved .json can be attached to this mail)');
-    try { var a = document.createElement('a'); a.href = href; document.body.appendChild(a); a.click(); a.remove(); } catch (e) { this.say('could not open the mail'); }
   };
   Pocket.prototype.open = function (url) { try { window.open(url, '_blank', 'noopener'); } catch (e) { location.href = url; } };
 
@@ -2775,9 +2770,8 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE A FILE', 90, 236, 90, 15, function () { self.saveFile(f); }, { pri: true });
     this.btn(ctx, 'COPY', 186, 236, 50, 15, function () { self.copy(self.summary(f), 'the summary'); });
-    this.btn(ctx, 'EMAIL GRIZ', 242, 236, 90, 15, function () { self.email(f); });
-    this.btn(ctx, 'THE DISCORD', 338, 236, 90, 15, function () { self.copy(self.summary(f), 'the summary'); self.open(PK.DISCORD); });
-    this.btn(ctx, 'URL', 434, 236, 30, 15, function () { self.copy(PK.url(f.q), 'the URL'); }, { small: true });
+    this.btn(ctx, 'THE DISCORD', 242, 236, 90, 15, function () { self.copy(self.summary(f), 'the summary'); self.open(PK.DISCORD); });
+    this.btn(ctx, 'URL', 338, 236, 30, 15, function () { self.copy(PK.url(f.q), 'the URL'); }, { small: true }); // (EMAIL GRIZ pulled 11-14, his "Pull it.": the ways out are a file and the Discord)
   };
 
   // ------------------------------------------------------------------ a map in little: its ground by character; a dark one greyed but for its lamps

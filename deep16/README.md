@@ -400,7 +400,7 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
 - **The record** (his: *"Save the fights and give them a way to send their fights with a notes section"*): every fight is recorded (`js/record.js`,
   `deep16.plays`) and summarised in `deep16.pocket` (the last 60): FIGHTS lists them; NOTES is a field over the canvas (the game hears no key
   while it is typed in: `core.js D.typing`); SAVE A FILE downloads the summary, the notes and the play record as one `.json`; COPY the summary;
-  EMAIL GRIZ opens a mail with it; THE DISCORD copies the summary and opens https://discord.gg/VDxa5hkA3x; URL copies the fight's.
+  THE DISCORD copies the summary and opens https://discord.gg/VDxa5hkA3x; URL copies the fight's.
   **On the tester ladder** (`?ladder&party=ours&play`): R saves every kept fight (the last 40) to `deep16-play-record-<date>-<time>.json`, and
   after a save **C / CLEAR RECORD** (top right, with a question first; E clears, X keeps; 10-04, his: *"add a 'clear record' after you save on the
   ladder"*) takes the fights that file holds out of the browser -- those and no fight played since, and nothing before a save. Each R writes
