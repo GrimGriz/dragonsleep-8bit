@@ -61,7 +61,7 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: Fly -> `fly` (new; waits on flight, the grid's rules §2.17), Bite -> `bite`, Claws -> `claws`, Tail Volley -> `spikes` (new: three a turn from its 24), Fall -> hurt, Prone -> prone; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored); a row on HEAD 1 only plays from it in every facing. Large.
 
-### The shambling mound (the bog: Glowseep)
+### The shambling mound (the bog: Glowseep) -- IN THE OUTBOX 2026-11-14, waiting to go (`deep16/_src/outbox/ASK-2026-11-14-shambling-mound/` and its `.zip`; the lanes desk's pick on his *"pick something in the beastiary and outbox a request for me to take with the engine returns"*; the block below with the 64 colours attached, one view, the foe not built)
 
 ```text
 THE SHAMBLING MOUND -- a foe for a tactics game, drawn on one sheet. A towering heap of rotting swamp plants, half again as tall as a man and roughly man-shaped: a hunched mass of wet vines, black roots, moss and leaf-mould, dripping mud, tapering at the top to a lump with no face at all; two thick ropy arms of twisted vines that reach to the ground; bits of what it has eaten stuck in it -- a bone, a rusted helmet, an old boot. Dark mossy green and rotten brown, glistening wet.
