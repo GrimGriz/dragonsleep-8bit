@@ -233,8 +233,23 @@
   // floor keeps its fights' law, no fire and no bright light, the first game's way on its own map -- a torch goes out as the party comes under it (and none is lit there, nor
   // taken up: R.menuAct), a lantern or the Ledger-Lamp stays lit hood down, dim 5 ft (RULED 09-29); and the Light cantrip on a hero let go. Said with the floor's hello
   R.ROOST_LINE = '{y}Overhead, the roost{/}: no fire, no bright light -- no torch here, a lantern only hood down.';
+  // (11-14, Griz: "pretty sure otille at the front of the cave confiscated perma-lit items in the first game, check for that and try it here" -- she did: the first game's
+  // S.roostDoor keeps what is always lit under her stool and gives it back at the mouth, and the second game's M.roostDoor does the same at the mouth. Under the roost by
+  // any other way -- the ladder up from the cloaker (the warrens lane's 11-03 "his answer 4's gap") -- the always lit goes into her keeping too, back at the mouth (M.giveBack))
+  function ottilieKeeps(B, out) {
+    if (!D.mines || !D.mines.alight || !D.counter || !B.roam) return;
+    var st = D.counter.state(B), lit = st ? D.mines.alight(st) : [];
+    if (!lit.length) return;
+    var held = st.flags.ottilieHolds = st.flags.ottilieHolds || [];
+    lit.forEach(function (y) {
+      var it = window.DS.DATA.items[y.id]; if (y.h) y.h.equip[y.slot] = null; else D.counter.take(st, y.id, 1); held.push(y.id);
+      out.push((y.h ? y.h.name + '\'s ' : 'The pack\'s ') + (it ? it.name : y.id) + ' goes into Ottilie\'s keeping: always lit, it would spook the roost. It waits for the party at the mouth.');
+    });
+    if (R.regear) R.regear(B);
+  }
   R.roostLights = function (B) {
     var out = [R.ROOST_LINE];
+    ottilieKeeps(B, out);
     B.roam.members.forEach(function (u) {
       var t = u.torch;
       if (t && t.lit !== false && L.kindOf(t) === 'lantern') { if (!t.hood) { t.hood = true; out.push(u.name + ' keeps the ' + L.word(t) + ' low, hood down.'); } }

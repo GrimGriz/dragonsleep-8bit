@@ -308,6 +308,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. the empty crib's words from content/text.json (the second game's house lane, 11-05 night open): read through R.say8, the key never shown
       var cr4 = D.roam && D.roam.say8 ? D.roam.say8('w.cradleEmpty') : '';
       okSW('4 the empty crib\'s card: "Cradle 2 ' + cr4 + '"', /stands empty: its crawler broke loose/.test(cr4) && cr4 !== 'w.cradleEmpty');
+      // 5. Ottilie's keeping under the roost by any way in (his "pretty sure otille at the front of the cave confiscated perma-lit items in the first game, check for that and try
+      // it here"): the dens' floor, the Sunshaft Staff in a hero's hands -- the roost's law takes it into her keeping; out at the mouth, it is back in the pack
+      var mem5 = {}, sg5 = D.store.get, ss5 = D.store.set; D.store.get = function (k) { return mem5[k] ? JSON.parse(mem5[k]) : null; }; D.store.set = function (k, v) { mem5[k] = JSON.stringify(v); return true; };
+      try {
+        var B5 = D.roam.make('?roam=galleries_g3'); D.scenes.length = 0; D.push(B5); var s5 = D.top(); if (s5 && s5.baking) { s5.baking = false; s5.enter(); } B5 = D.top();
+        var st5 = D.counter.state(B5), h5 = st5.party[0], w0 = h5.equip.weapon; h5.equip.weapon = 'sunshaftstaff';
+        var lines5 = D.roam.roostLights(B5).join(' | '), held5 = (st5.flags.ottilieHolds || []).slice(), eq5 = h5.equip.weapon;
+        var back5 = D.mines.giveBack(B5, 'galleries').join(' | '), inv5 = D.counter.count(st5, 'sunshaftstaff');
+        okSW('5 under the roost with the Sunshaft Staff in ' + h5.name + '\'s hands: "' + lines5.slice(-160) + '" -- in her keeping ' + JSON.stringify(held5) + ', the hand ' + eq5 + '; out at the mouth "' + back5 + '", in the pack ' + inv5,
+          held5.indexOf('sunshaftstaff') >= 0 && eq5 == null && /Ottilie/.test(lines5) && inv5 === 1 && /Sunshaft/.test(back5));
+        h5.equip.weapon = w0;
+      } finally { D.store.get = sg5; D.store.set = ss5; D.scenes.length = 0; }
     } catch (eSW) { repSW.errors.push(String(eSW && eSW.stack || eSW).slice(0, 900)); }
     var preSW = document.createElement('pre'); preSW.id = 'out'; preSW.textContent = 'BENCH16 ' + JSON.stringify(repSW);
     document.body.appendChild(preSW);
