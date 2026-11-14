@@ -32,7 +32,7 @@
       '<p><b>Chef:</b> Griz built this battle on the rules you cobbled together from CHAINMAIL and OD&amp;D -- the Combat Tables, post-melee morale, heroes and super-heroes, the wilderness day of five-mile hexes. It is a test, and your verdict is the point of it: what plays, what does not, what the old books would have done instead.</p>' +
       '<p>Two days after the giants came down, the four are at the Halfway Inn, on the road down to Tarlyn\'s Pit. The gnoll tribes are <b>snooting</b>: their king is dead and the Mane goes to whoever wins the most glory -- and nothing is more glorious than a Lupine\'s head. GreyFang, who runs the Pit\'s fighting pit, is the walking jackpot. And something with mirrors for eyes is hunting him.</p>' +
       '<p>You command the four, GreyFang and his pit men, and Newland\'s soldiers; the plains tribes ride in on their own to smash the Snoot (the computer moves them). A day is a turn; you write every unit\'s orders, then the day plays out. The battle is fought by CHAINMAIL\'s rules and OD&amp;D\'s wilderness: a playtest build, riffed off the old books.</p>' +
-      '<p><b>One battle</b> runs Day 14 to the fall of GreyFang\'s head and the Dominion after it: thirty to forty-five minutes. HOW IT PLAYS has the rules on one card; hover a march to see the odds before you send it.</p>' +
+      '<p><b>One battle</b> runs Day 14 to the fall of GreyFang\'s head and the Dominion after it: thirty to forty-five minutes. HOW IT PLAYS has the rules on one card; hover a march to see how the fight weighs before you send it.</p>' +
       '<p><b>Your notes</b> go to Griz: NOTES (top right, or N) any time -- it keeps what you write on this machine -- and it opens by itself when the battle ends. COPY FOR DISCORD, or SAVE FILE and send him the file (it carries every roll, so he can replay your battle).</p>', b);
   };
   UI.help = function (fromTitle) {
@@ -355,7 +355,7 @@
       ok(fb0 && fb0.ours.concat(fb0.theirs).every(function (u) { return u.form && u.face != null && u.from != null; }), 'a fight\'s units carry their formation, facing and the side they came in through, for the show to stand them in');
       // the pop-up: a march into an enemy names the fight and both sides' dice
       var s2 = SN.newGame(99); SN.dawn(s2); var pu = SN.unit(s2, 'patrol'), gs = SN.unit(s2, 'sg3'), pv = SN.preview(s2, pu, gs.at);
-      ok(pv && pv.hit && pv.lines.some(function (l) { return /dice, kill on \d\+/.test(l); }) && pv.lines.some(function (l) { return /Them:/.test(l); }), 'the pop-up: the patrol marching on the glory-seekers sees both sides\' dice');
+      ok(pv && pv.hit && pv.lines.some(function (l) { return /^You: \d+ bodies.*worth about [\d.]+ on the grid/.test(l); }) && pv.lines.some(function (l) { return /^Them: \d+ bodies, worth about [\d.]+\. The fight looks /.test(l); }), 'the pop-up: the patrol marching on the glory-seekers sees both sides\' bodies and their worth on the grid (the one table)');
       var pp = SN.preview(s2, SN.unit(s2, 'party'), gs.at);
       ok(pp && pp.lines.some(function (l) { return /grid/.test(l); }), 'the pop-up: the four marching on a band are told it goes to the grid');
       UI.closeCard();

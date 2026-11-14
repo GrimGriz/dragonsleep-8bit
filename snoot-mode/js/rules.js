@@ -113,6 +113,45 @@
     SN.sync(u); return got;
   };
   SN.addMen = function (u, n) { if (!u.groups) { u.figs += n; return; } var g = u.groups.filter(function (x) { return x.n < x.n0; })[0] || u.groups[0]; g.n += n; SN.sync(u); };
+  // ---------------------------------------------------------------- THE ONE TABLE (11-14, Griz, on the odds a player is shown and the computer's own weighing
+  // still reading the Combat Tables: "we'll rework that table with info from the benches when we're done fiddling, that can be wired now to stop having to
+  // juggle it"). SN.WORTH: what one body is worth in a fight on the grid, by the grid's word for it; SN.worth(u): a unit's bodies summed; SN.lean: two
+  // sides weighed. Everything that sizes up a fight before it is fought reads this and nothing else -- the pop-up on a march (SN.preview), the Snoot's choice
+  // of a mark and the Dominion's of what is small (js/ai.js). THE NUMBERS ARE PROVISIONAL, the Snoot seat's first guess from the bodies' sheets
+  // (deep16/data/foes.js) and three bench results (a band beat the patrol eight of eight; a Dominion wagon beat a band thirteen of thirteen; the paladins
+  // at level 4): the benches are to rewrite them, here and only here. The words are the grid's (deep16/js/headless.js H.BODY, H.bodyOf -- the same reading).
+  SN.WORTH = { guard: 1, bandit: 1, berserker: 6, dominion: 4, patrollady: 10, 'paladin:4': 8, greyfang: 20, katarina: 8, harbinger: 25, mirrorhyena: 2,
+    hyena: 0.5, gnoll: 2.5, gloryseeker: 5, gnollgray: 2.5, gloryseekergray: 5, gnollmatriarch: 4, gnollmatriarchguard: 5, gnollmatriarcheldest: 20, gnollmatriarchlama: 10 };
+  SN.WORTH_OTHER = 2; SN.WORTH_FOUR = 60; // (a word the table does not have; the four together, who fight their own fight)
+  // a hero's word on the grid, and a unit's make-up cut to the men it has left (js/headless.js sends the same)
+  SN.gridWord = function (h) { return h.grid || { GreyFang: 'greyfang', Katarina: 'katarina', 'the Harbinger': 'harbinger' }[h.name] || (h.paladin ? 'paladin:4' : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null); };
+  SN.compNow = function (u) {
+    var c = u.comp, ks = Object.keys(c), tot = ks.reduce(function (t, k) { return t + c[k]; }, 0) || 1, n = Math.max(0, u.figs || 0), out = {}, got = 0;
+    ks.forEach(function (k) { out[k] = Math.floor(n * c[k] / tot); got += out[k]; });
+    ks.slice().sort(function (x, y) { return (n * c[y] / tot - out[y]) - (n * c[x] / tot - out[x]); }).forEach(function (k) { if (got < n) { out[k]++; got++; } });
+    return out;
+  };
+  // a unit as the grid's words and how many of each: { word: n }
+  SN.gridBodies = function (u) {
+    var out = {}, add = function (w, n) { if (w && n > 0) out[w] = (out[w] || 0) + n; };
+    SN.heroesOf(u).forEach(function (h) { add(SN.gridWord(h), 1); });
+    var man = function (g) { return u.kind === 'the Dominion' ? 'dominion' : u.kind === 'the plains' ? (g.mounted ? 'bandit' : 'berserker') : g.volley ? 'bandit' : 'guard'; };
+    if (u.comp) { var c = SN.compNow(u); Object.keys(c).forEach(function (k) { add(u.harbinger && k === 'hyena' ? 'mirrorhyena' : k, c[k]); }); }
+    else if (u.groups && u.groups.length) u.groups.forEach(function (g) { add(man(g), g.n || 0); });
+    else add(man(u), u.figs || 0);
+    return out;
+  };
+  SN.worth = function (u) {
+    if (u.party) return SN.WORTH_FOUR;
+    var b = SN.gridBodies(u), w = 0; Object.keys(b).forEach(function (k) { w += b[k] * (SN.WORTH[k] != null ? SN.WORTH[k] : SN.WORTH_OTHER); });
+    return Math.round(w * 10) / 10;
+  };
+  SN.bodyCount = function (u) { var b = SN.gridBodies(u), n = 0; Object.keys(b).forEach(function (k) { n += b[k]; }); return n; };
+  // two sides weighed: { a, b: their worth, r: a over b, word: how it leans, for the one asking (a) }
+  SN.lean = function (A, B) {
+    var sum = function (U) { return Math.round(U.reduce(function (t, u) { return t + SN.worth(u); }, 0) * 10) / 10; }, a = sum(A), b = sum(B), r = a / Math.max(0.1, b);
+    return { a: a, b: b, r: r, word: r >= 1.5 ? 'strongly yours' : r >= 1.15 ? 'leaning yours' : r > 0.87 ? 'even' : r > 0.67 ? 'leaning theirs' : 'strongly theirs' };
+  };
   SN.fightFigs = function (u) { return u.figs + SN.heroesOf(u).reduce(function (s, h) { return s + ({ hero: 4, superhero: 8, wraith: 2, wizard: 2 }[h.type] || 0); }, 0); };
   // ---------------------------------------------------------------- formation and facing (CHAINMAIL p.10, p.16; RULED 10-15, his "3 - Formations" and
   // "4 - Round 1 have the player set the formation before play without cost, change formation half-day")
@@ -993,7 +1032,7 @@
       var near = []; SN.nbrs(end).forEach(function (h) { SN.unitsAt(st, h).forEach(function (x) { if (SN.hostile(u, x) && x.state === 'ok') near.push(x); }); });
       if (!near.length) return null;
       out.lines.push('No fight on the way, if they hold. Next to where you stop: ' + near.map(SN.label).join(', ') + ' -- they may charge you.');
-      near.slice(0, 2).forEach(function (x) { if (u.party) return; var o = SN.odds(st, x, u, end, { a: true, d: false }); out.lines.push(x.name + ' charging you: ' + o.n + ' dice, kill on ' + o.need + '+ -- about ' + o.kills + ' a round' + (o.imp ? ' (their charge die)' : '') + '.'); });
+      if (!u.party) { var ln = SN.lean([u], near); out.lines.push('If they all came: you ' + SN.bodyCount(u) + ' bodies, worth about ' + ln.a + ' on the grid; them worth about ' + ln.b + ' -- ' + ln.word + '.'); }
       return out;
     }
     var foes2 = hit.foes, H = foes2.filter(function (x) { return x.harbinger; })[0];
@@ -1008,12 +1047,14 @@
       var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);
       var asp = SN.aspect(st, { came: prev }, tg, hit.at), FN = { line: 'line', column: 'column', square: 'square' };
       out.lines.push('They stand in ' + FN[tg.form] + ', facing ' + SN.DIRS[tg.face || 0] + '; you come in from the ' + (side >= 0 ? SN.DIRS[side] : 'side') + ': ' + (asp === 'rear' ? 'their REAR -- you fight a class up, and they strike nothing back in the first round (p.16).' : asp === 'flank' ? 'their FLANK -- you fight a class up (p.16).' : 'their front.'));
-      var tgHolds = SN.holdsGround(tg, hit.at), me = SN.odds(st, u, tg, hit.at, { a: true, d: false, held: !!tgHolds }, asp);
-      if (tgHolds) out.lines.push('They hold ' + tgHolds + ': no charge die at them, your volleys halved (cover, CHAINMAIL p.12), and +1 on their morale.');
-      out.lines.push('You: ' + me.f + ' ' + me.cls + ' against their ' + me.dcls + ' -- ' + me.n + ' dice, kill on ' + me.need + '+, about ' + me.kills + ' kills a round' + (me.imp ? ' (with your charge die)' : me.held ? ' (no charge die: they hold their ground)' : me.hill ? ' (no charge die up here)' : tg.form === 'square' ? ' (no charge die against a square)' : '') + '.');
+      var tgHolds = SN.holdsGround(tg, hit.at);
+      if (tgHolds) out.lines.push('They hold ' + tgHolds + ': +1 on their morale.');
+      // (the one table, SN.WORTH: the fight is the grid's, so what is shown is each side's bodies and what they are worth there, with ours already in the hex)
+      var mine = [u].concat(SN.unitsAt(st, hit.at).filter(function (x) { return x !== u && x.side === u.side && !x.party; })), ln2 = SN.lean(mine, foes2);
+      var cnt = function (U) { return U.reduce(function (t, x) { return t + SN.bodyCount(x); }, 0); };
+      out.lines.push('You: ' + cnt(mine) + ' bodies' + (mine.length > 1 ? ' (with ' + mine.slice(1).map(function (x) { return x.name; }).join(', ') + ')' : '') + ', worth about ' + ln2.a + ' on the grid.');
+      out.lines.push('Them: ' + cnt(foes2) + ' bodies, worth about ' + ln2.b + '. The fight looks ' + ln2.word + '.');
       if (u.reformed) out.warn.push('You change formation today: caught in a fight, you count as flanked (p.10).');
-      var back = 0, bn = 0; foes2.forEach(function (x) { var o = SN.odds(st, x, u, hit.at, { a: false, d: true }); back += o.kills; bn += o.n; });
-      out.lines.push('Them: ' + bn + ' dice back -- about ' + Math.round(back * 10) / 10 + ' kills a round. You have ' + SN.fightFigs(u) + ' to lose.');
       var rt = foes2.reduce(function (s, x) { return s + SN.rating(x) + (SN.holdsGround(x, hit.at) ? 1 : 0); }, 0) / foes2.length;
       out.lines.push('Morale: yours ' + SN.rating(u) + (SN.nevers(u) ? ' (never checks)' : '') + ', theirs ' + Math.round(rt * 10) / 10 + (foes2.every(SN.nevers) ? ' (they never check)' : '') + '.');
     }

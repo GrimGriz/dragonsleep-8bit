@@ -92,9 +92,9 @@
       if (x.party || (P && SN.dist(P.at, x.at) <= 0)) return;
       var d = daysTo(u, x.at); if (d > 3) return;
       var pack = st.units.filter(function (g) { return g.side === 'gnoll' && SN.alive(g) && g.state === 'ok' && !g.watch && !g.harbinger && daysTo(g, x.at) <= 2; })
-        .reduce(function (s, g) { return s + g.figs; }, 0);
-      var score = pack / Math.max(1, SN.fightFigs(x)) - d * 0.15;
-      if (pack >= SN.fightFigs(x) * 1.1 && score > bs) { bs = score; best = x; }
+        .reduce(function (s, g) { return s + SN.worth(g); }, 0);
+      var score = pack / Math.max(1, SN.worth(x)) - d * 0.15; // (the one table, js/rules.js SN.WORTH: what each side's bodies are worth on the grid, 11-14)
+      if (pack >= SN.worth(x) * 1.1 && score > bs) { bs = score; best = x; }
     });
     return best;
   };
@@ -106,7 +106,7 @@
   };
   AI.dominion = function (st, u) {
     u.order = { type: 'hold' };
-    var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.fightFigs(x) <= 8; })[0]; // (what is small: a handful of men)
+    var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.worth(x) <= 8; })[0]; // (what is small: a handful of men -- eight Line Guards' worth, SN.WORTH)
     if (near) { go(st, u, near.at); return; }
     var inn = [8, 3];
     if (!SN.same(u.at, inn) && SN.dist(u.at, inn) > 1) go(st, u, inn);

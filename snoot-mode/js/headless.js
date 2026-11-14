@@ -14,14 +14,9 @@
   HL.SHOWN = 4; // (the rounds a fight is told in, however many the grid fought)
   // a unit as the grid's bodies need it (deep16/js/headless.js H.listOf), with its morale as the Snoot rates it. Its heroes go with the word the grid knows
   // each by (HL.wordOf), in the unit's own order, so what comes back says which of them is down; its make-up (comp) is cut to the men it has left
-  HL.wordOf = function (h) { return h.grid || { GreyFang: 'greyfang', Katarina: 'katarina', 'the Harbinger': 'harbinger' }[h.name] || (h.paladin ? 'paladin:4' : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null); };
+  HL.wordOf = function (h) { return SN.gridWord(h); }; // (js/rules.js, with the one table that reads the same words)
   HL.sent = function (u) { return SN.heroesOf(u).filter(function (h) { return !!HL.wordOf(h); }); };
-  HL.comp = function (u) {
-    var c = u.comp, ks = Object.keys(c), tot = ks.reduce(function (t, k) { return t + c[k]; }, 0) || 1, n = Math.max(0, u.figs || 0), out = {}, got = 0;
-    ks.forEach(function (k) { out[k] = Math.floor(n * c[k] / tot); got += out[k]; });
-    ks.slice().sort(function (x, y) { return (n * c[y] / tot - out[y]) - (n * c[x] / tot - out[x]); }).forEach(function (k) { if (got < n) { out[k]++; got++; } });
-    return out;
-  };
+  HL.comp = function (u) { return SN.compNow(u); };
   HL.pack = function (u, plus) {
     return { id: u.id, name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
       groups: u.groups ? u.groups.map(function (g) { return { n: g.n, mounted: !!g.mounted, volley: !!g.volley }; }) : null,
