@@ -306,7 +306,7 @@
       known: ['mageArmor', 'shield', 'protectionfromevilandgood', 'dispelmagic', 'counterspell', 'protectionfromenergy'],
       equip: { weapon: null, armor: null }, alt: null, grimlock: true, twoActions: true,
       naturals: { claw: { name: 'Claw', dice: '1d6', type: 'slashing' }, bite: { name: 'Bite', dice: '1d8', type: 'piercing' } }, combo: ['claw', 'claw', 'bite'] },
-    ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
+    ingrith: { overlay: true, name: 'Ingrith', named: true, look: 'ingrith_p0', cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
   };
@@ -718,6 +718,11 @@
   function spec0(word, lvl) {
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
+    // (Ingrith, 11-14, Griz: "Switch" -- she comes from her own Life Domain build, the first game's sheet (content/heroes.json, NPC.heroUnit: her name, her figure, her drafted list,
+    // the 8-bit's rules), not the generator's cleric with her numbers. That sheet is her register's cleric 4 and learns no spell past it (the first game never levels her list): at any
+    // other level there is no build of hers, and the generator's cleric stands in, by her name and in her figure)
+    var hdN = named && named.overlay && DS.DATA.heroes && DS.DATA.heroes[key];
+    if (hdN && hdN.cls === named.cls && (+bits[1] || named.lvl || L) === hdN.level) return { hero: key, cls: hdN.cls, lvl: hdN.level, name: hdN.name, named: true, guest: !!hdN.guest, look: (D.save.LOOK[key] || {}).sheet || key + '_p0' };
     // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
     if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls, named), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
     if (!C[key]) {
@@ -732,7 +737,7 @@
   // the 8-bit game's heroes and guests by name (content/heroes.json): the four as the ladder dresses them at a level (js/save.js SV.fixture: the
   // reward weapons, Barley's splint, Aurdin's morning Mage Armor; drawn back to 1 below their starts), a guest as the 8-bit game makes it
   // (R.makeHero at its register's level or higher: Brann, Hedda, Halldor, the trooper, Dace; Pyro at his 12, who fights his own way --
-  // js/pyro.js -- so the class AI runs him on the party's side too). Ingrith is NPC.NAMED's (a cleric by her register)
+  // js/pyro.js -- so the class AI runs him on the party's side too). Ingrith too at her register's 4 (11-14: spec0); at any other level NPC.NAMED's cleric
   NPC.HEROES = ['barley', 'aurdin', 'vivian', 'lymen'];
   NPC.heroSheet = function (sp) {
     var id = sp.hero, d = DS.DATA.heroes[id], L = Math.max(1, Math.min(12, sp.lvl || d.level)), h;
