@@ -201,6 +201,7 @@
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
+    else if (D.seep && D.seep.toys && D.seep.toys(B, u)) yield* D.seep.toyTurn(B, u); // (a pack of mirror hyenas not all fed: they shove, and bite nobody -- js/seep.js THE MIRROR HYENA FEEDS ON FEAR, 11-14)
     else if (D.seep && D.seep.wispy(u)) yield* D.seep.turn(B, u); // (the will-o'-wisp and its mirror: Consume Life or Consume Magic, the Shock, the fade, its light -- js/seep.js, 11-13)
     else if (u.side === 'foe' && u.flies && D.flightAI && D.flightAI.on(B.fight)) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
     else if (u.side === 'foe') yield* brute(B, u);
@@ -1039,7 +1040,7 @@
     o = o || {}; // (o.paid: a hero's SHOVE has paid its attack already -- battle.js exec 'shove'; o.how 'prone': knocked down, not pushed)
     var T = u.turn; if ((!T.action && !o.paid) || (w.size || 1) > (u.size || 1) + 1) return false;
     T.shoves = (T.shoves || 0) + 1; u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
-    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
+    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u) + (o.bonus || 0), /* (o.bonus: a charged mirror hyena's +2 -- js/seep.js S.toyTurn, 11-14) */ tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
     B.card([(u.side === 'foe' ? '{r}' + the(B, u) : '{y}' + u.name) + '{/} > ' + (w.side === 'foe' ? '{r}' + the(B, w) : '{y}' + w.name) + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
     D.sfx(won ? 'hit' : 'miss'); if (D.features && D.features.dueGain) D.features.dueGain(won ? w : u); yield 20; // (Fortune's Due: the contest's loser failed its check -- 10-30)
     // (pushed 5 ft away over an edge of 10 ft or more, it goes over and falls: the SRD's shove and the SRD's fall, 1d6 a 10 ft and prone, no save past the contest -- 10-13, Griz:

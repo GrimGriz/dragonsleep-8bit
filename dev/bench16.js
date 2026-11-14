@@ -9684,7 +9684,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var then = [SE.stateSheet('mirrorstirge_p1', 'withered'), SE.stateSheet('mirrorstirge_p1', 'charged'), SE.stateSheet('mirrorstirge_p1', 'normal')];
       if (!hadE) delete D.SHEETS.mirrorstirge_emaciated_p1; if (!hadO) delete D.SHEETS.mirrorstirge_overcharged_p1;
       okMS('1 the mirror stirge\'s state sheets: today ' + now.join(', ') + ' (registered: ' + !!hadE + ', ' + !!hadO + '); once registered ' + then.join(', '), (hadE ? now[0] === 'mirrorstirge_emaciated_p1' : now[0] === 'mirrorstirge_p1') && then[0] === 'mirrorstirge_emaciated_p1' && then[1] === 'mirrorstirge_overcharged_p1' && then[2] === 'mirrorstirge_p1');
-      okMS('1 the mirror hyena: no rider on its bite, so nothing feeds it (unspell ' + FM.mirrorhyena.attacks.bite.unspell + ', slots ' + FM.mirrorhyena.attacks.bite.slots + ', consume ' + FM.mirrorhyena.consume + '); its withered sheet today ' + SE.stateSheet(FM.mirrorhyena.sheet, 'withered') + ' (its own three are asked: art-wanted 63)', !FM.mirrorhyena.attacks.bite.unspell && !FM.mirrorhyena.consume);
+      okMS('1 the mirror hyena: no rider on its bite -- its rider is the pack\'s laugh, section 9 (laugh dc ' + (FM.mirrorhyena.laugh || {}).dc + '; unspell ' + FM.mirrorhyena.attacks.bite.unspell + ', slots ' + FM.mirrorhyena.attacks.bite.slots + ', consume ' + FM.mirrorhyena.consume + '); its withered sheet today ' + SE.stateSheet(FM.mirrorhyena.sheet, 'withered') + ' (its own three are asked: art-wanted 63)', !FM.mirrorhyena.attacks.bite.unspell && !FM.mirrorhyena.consume && !!FM.mirrorhyena.laugh);
       var plain = unit('mirrorwolf'), wolfB = D.npcFight('?npc=wolf&vs=fighter:3&lvl=3', {}); D.battle = wolfB; wolfB.enter(); var wu = wolfB.units.filter(function (u) { return u.kind === 'wolf'; })[0];
       okMS('1 a wolf is no made thing: no state (' + wu.madeState + '), setState ' + SE.setState(wolfB, wu, 'withered') + ', fed ' + SE.fed(wolfB, wu, 3) + ', its attacks the block\'s own (' + (wu.attacks === FM.wolf.attacks) + ')', wu.madeState == null && SE.setState(wolfB, wu, 'withered') === false && SE.fed(wolfB, wu, 3) === null && wu.attacks === FM.wolf.attacks && !wu.temp);
       D.battle = BN;
@@ -9702,6 +9702,42 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 7. the stirge's drink and the wisp's Consume Magic are the same rule (the family's)
       var st = unit('mirrorstirge'), wz = BN.units.filter(function (u) { return u.cls === 'wizard'; })[0], sl0 = wz.slots.slice(), lo = SE.lowSlot(wz); st.temp = 0; var drank = SE.drinkSlot(BN, st, wz), dl = strip((BN.log || []).slice(-2).join(' | '));
       okMS('7 the mirror stirge drinks a level-' + lo + ' slot (' + sl0.join('/') + ' to ' + wz.slots.join('/') + '): ' + st.madeState + ', ' + st.temp + ' temporary, Magic Drain +' + first(st).atk + ' ' + first(st).dice + ' -- ' + dl.slice(-260), drank && st.madeState === 'charged' && st.temp === 5 * lo && first(st).atk === FM.mirrorstirge.attacks.drain.atk + 2 && first(st).dice === '1d6' && /has FED: CHARGED/.test(dl));
+      // 9. THE MIRROR HYENA FEEDS ON FEAR (RULED 11-14, Griz in the seat's window: "requires frightened, and that feeds two  - and they'll knock prone without killing til
+      // all are fed to charged, 5 hp and up step damage die at charged (lone can't count)"; "1 - they spawn in charged"; "2 - yes"; "3 - good call, forgot about panicked.
+      // Let's have a single panicked turn off the prone-thing even if they aren't all fed"; "4 - yes"; "5 - yes, +2 applies if charged")
+      var pinQ = [], TRm = D.traits; D.d = function (n) { return n === 20 && pinQ.length ? pinQ.shift() : d0MS.apply(this, arguments); };
+      var B9 = D.npcFight('?npc=mirrorhyena,mirrorhyena,mirrorhyena&vs=fighter:3,cleric:3&lvl=3', {}); D.battle = B9; B9.enter(); var k9 = 0; while (!B9.order.length && k9++ < 400) B9.co.next();
+      var hy = B9.units.filter(function (u) { return u.kind === 'mirrorhyena'; }), ft9 = B9.units.filter(function (u) { return u.cls === 'fighter'; })[0], cl9 = B9.units.filter(function (u) { return u.cls === 'cleric'; })[0];
+      var turn9 = function (u) { var n0 = (B9.log || []).length; D.rules.startTurn(u); B9.active = u; var g = D.ai.turn(B9, u), v, q = 0, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B9.active = null; return strip((B9.log || []).slice(n0).join(' | ')); };
+      var put9 = function () { ft9.conds = {}; cl9.conds = {}; ft9.x = 6; ft9.y = 6; cl9.x = 6; cl9.y = 9; hy[0].x = 7; hy[0].y = 6; hy[1].x = 8; hy[1].y = 7; hy[2].x = 9; hy[2].y = 8; B9.units.forEach(function (u) { u.fz = null; }); D.grid.setup(D.grid.map, B9.units); B9.cache = null; B9.dark = false; };
+      put9(); var toys0 = SE.toys(B9, hy[0]); hy[1].left = true; hy[2].left = true; var lone = SE.toys(B9, hy[0]); hy[1].left = false; hy[2].left = false;
+      okMS('9 a pack of three mirror hyenas, none fed: they toy (' + toys0 + '); one alone does not (' + lone + ': the laugh takes a pair, his "lone can\'t count")', toys0 === true && lone === false);
+      var hp9 = ft9.hp; pinQ = [18, 2]; var lT = turn9(hy[0]);
+      okMS('9 its turn beside the fighter, the contest pinned 18 against 2: ' + (ft9.conds.prone ? 'knocked prone' : 'on their feet') + ', hit points ' + hp9 + ' to ' + ft9.hp + ', no bite -- ' + lT.slice(0, 260), !!ft9.conds.prone && ft9.hp === hp9 && /SHOVE/.test(lT) && /Athletics d20 18 \+3/.test(lT) && !/Bite/.test(lT));
+      pinQ = []; var lP = turn9(hy[1]);
+      okMS('9 the next of the pack leaves the fallen fighter alone and goes for the cleric, on their feet: ' + lP.slice(0, 200), !/Fighter 3\s+SHOVE/.test(lP) && !/Bite/.test(lP) && ft9.hp === hp9);
+      put9(); SE.setState(B9, hy[0], 'charged'); pinQ = [18, 2]; var lC = turn9(hy[0]); SE.setState(B9, hy[0], 'normal'); hy[0].temp = 0;
+      okMS('9 a charged one of a pack not all fed still shoves, at +2 ("+2 applies if charged"): ' + lC.slice(0, 160), /SHOVE/.test(lC) && /Athletics d20 18 \+5/.test(lC) && !/Bite/.test(lC));
+      // the laugh, run by the engine: the fighter on the ground, both of the party shaken already, every save pinned to fail
+      put9(); ft9.conds.prone = true; D.rules.fearSet(ft9, 1, hy[0].id, 13); D.rules.fearSet(cl9, 1, hy[0].id, 13); B9.fellSeen = {}; B9.laughRound = null; pinQ = [1, 1, 1, 1, 1, 1];
+      var n9 = (B9.log || []).length, g9 = TRm.packLaughRun(B9), q9 = 0; while (q9++ < 2000 && !g9.next().done) { } pinQ = [];
+      var l9 = strip((B9.log || []).slice(n9).join(' | ')), b0 = hy[0].attacks.bite;
+      okMS('9 the pack laughs and both go from shaken to frightened: the fear ' + D.rules.fearLvl(ft9) + ',' + D.rules.fearLvl(cl9) + '; the pack ' + hy.map(function (h) { return h.madeState + (h.temp ? ' +' + h.temp : ''); }).join(', ') + '; the laugher\'s bite +' + b0.atk + ' ' + b0.dice + '; still toying ' + SE.toys(B9, hy[0]) + ' -- ' + l9.slice(-420),
+        D.rules.fearLvl(ft9) === 2 && D.rules.fearLvl(cl9) === 2 && hy.every(function (h) { return h.madeState === 'charged' && h.temp === 5; }) && b0.atk === 7 && b0.dice === '2d6' && SE.toys(B9, hy[0]) === false && /has FED on .* fear: CHARGED/.test(l9) && !B9.packLit);
+      pinQ = [15]; var hpB = cl9.hp + ft9.hp, lB = turn9(hy[0]);
+      okMS('9 all fed, they bite: ' + lB.slice(0, 160), /Bite/.test(lB) && !/SHOVE/.test(lB));
+      hy.forEach(function (h) { SE.setState(B9, h, 'normal'); h.temp = 0; }); B9.packLit = false; var one = SE.fearFed(B9, hy[0], cl9, 2).length, mid = hy.map(function (h) { return h.madeState; }).join(','), t1 = SE.toys(B9, hy[2]);
+      okMS('9 one of the party frightened feeds two, the laugher and one more: ' + mid + ' (' + one + ' lines), the pack still toying (' + t1 + ')', mid === 'charged,charged,normal' && one === 2 && t1 === true && !B9.packLit);
+      hy.forEach(function (h) { SE.setState(B9, h, 'normal'); h.temp = 0; }); var pl = SE.fearFed(B9, hy[0], cl9, 3), t2 = SE.toys(B9, hy[2]);
+      okMS('9 one of the party PANICKED: two fed (' + hy.map(function (h) { return h.madeState; }).join(',') + ') and the toying over though one is not fed (toys ' + t2 + ', "' + strip(pl[pl.length - 1]) + '")', B9.packLit === true && t2 === false && hy[2].madeState === 'normal');
+      SE.setState(B9, hy[0], 'withered'); B9.packLit = false; hy[1].madeState; var wl = strip(SE.fearFed(B9, hy[1], cl9, 2).join(' | '));
+      okMS('9 the least fed is the second fed: a withered one beside a normal laugher -- ' + hy[0].madeState + ' ("' + wl.slice(-150) + '")', hy[0].madeState === 'normal' && /withered no longer/.test(wl));
+      // the Harbinger's four: "1 - they spawn in charged"
+      D.d = d0MS; var BHm = D.npcFight('?npc=harbinger&vs=fighter:9,cleric:9,wizard:9,rogue:9&lvl=9', {}); D.battle = BHm; BHm.enter(); var kHm = 0; while (!BHm.order.length && kHm++ < 400) BHm.co.next();
+      var hbM = BHm.units.filter(function (u) { return u.kind === 'harbinger'; })[0]; hbM.hp = Math.floor(hbM.maxhp * 0.4); D.rules.startTurn(hbM); BHm.active = hbM; var gHm = D.ai.turn(BHm, hbM), vHm, qHm = 0, sHm; while (qHm++ < 20000) { sHm = gHm.next(vHm); vHm = undefined; if (sHm.done) break; if (sHm.value && sHm.value.prompt) vHm = sHm.value.prompt.opts[0].value; }
+      var four = BHm.units.filter(function (u) { return u.kind === 'mirrorhyena'; });
+      okMS('9 the Harbinger\'s call: ' + four.length + ' mirror hyenas, ' + four.map(function (h) { return h.madeState + ' +' + h.temp + ' bite +' + h.attacks.bite.atk + ' ' + h.attacks.bite.dice; }).join('; ') + '; toying ' + (four[0] && SE.toys(BHm, four[0])), four.length === 4 && four.every(function (h) { return h.madeState === 'charged' && h.temp === 5 && h.attacks.bite.atk === 7 && h.attacks.bite.dice === '2d6'; }) && SE.toys(BHm, four[0]) === false);
+      D.battle = BN;
       // 4. the clock
       D.seed = +get('seed', 1114); WS.index(); WS.use('world'); var SS = WS.load('?fresh&far'), VS = WS.VESSEL, MM = WS.M(), tS = function (d, h) { return (d - 1) * 24 + h; };
       var by = function (d, t) { return WS.makings(t == null ? tS(30, 12) : t).filter(function (m) { return m.day === d; })[0]; }, stAt = function (d, t) { var m = by(d, t); return m ? m.state : 'not made'; };

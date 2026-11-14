@@ -159,20 +159,62 @@
   };
   // FED: its rider landed, and it took a spell of level lv. Returns the line for the rider's own card (null for one that is no made thing). The making it came from is
   // fed with it (js/world.js W.madeFed: no one beast is tracked between fights, so the count is the making's -- the desk's reading)
-  S.fed = function (B, u, lv) {
+  S.fed = function (B, u, lv, o) { // (o.fear: fed on a hero's fear, not a spell -- the mirror hyena's, below: the flat 5, and the line says so)
+    o = o || {};
     if (!u || !u.made0) return null;
     var K = S.MADE, was = u.madeState, who = '{r}' + the(B, u, true) + '{/}'; lv = Math.max(0, lv | 0); u.fedN = (u.fedN || 0) + 1;
     if (u.made && u.made.day != null && D.world && D.world.madeFed) { try { D.world.madeFed(u.made.day); } catch (e) { /* (the clock must never stop a fight) */ } }
     FX.ring(u, 'violet', 26); if (D.ripple) D.ripple(u, { region: 'body', dur: 40 });
     if (was === 'withered') {
       S.setState(B, u, 'normal');
-      return who + ' has FED: {p}withered no longer{/}.  {g}(its hit points out of ' + u.maxhp + ' again, its speed ' + u.speed + ' ft, its aim its own){/}';
+      return who + ' has FED' + (o.fear ? ' on ' + o.fear + '\'s fear' : '') + ': {p}withered no longer{/}.  {g}(its hit points out of ' + u.maxhp + ' again, its speed ' + u.speed + ' ft, its aim its own){/}';
     }
     var t = K.temp * lv, a0 = u.made0.attacks || {}, k0 = Object.keys(a0).filter(function (k) { return a0[k].dice; })[0], more = t > (u.temp || 0);
     if (more) u.temp = t;
+    if (o.fear) { if (was === 'charged') return who + ' feeds again on ' + o.fear + '\'s fear.  {g}(still charged){/}'; S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff'); return who + ' has FED on ' + o.fear + '\'s fear: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}'; }
     if (was === 'charged') return who + ' feeds again: ' + (more ? '{p}' + t + ' temporary hit points{/}' : 'its ' + (u.temp || 0) + ' temporary hit points stand') + '.  {g}(' + K.temp + ' a level of the level-' + lv + ' spell it took; still charged){/}';
     S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff');
     return who + ' has FED: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points, ' + K.temp + ' a level of the level-' + lv + ' spell it took; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}';
+  };
+
+  // ------------------------------------------------------------------ THE MIRROR HYENA FEEDS ON FEAR (2026-11-14, the made-states seat)
+  // Griz, 11-14, in the seat's own window, verbatim. On the mirror hyena having no rider to feed by: "Do they have that laugh makes people scared and we can use two steps
+  // on that scare table as their feeding?" Then his lean: "requires frightened, and that feeds two  - and they'll knock prone without killing til all are fed to charged,
+  // 5 hp and up step damage die at charged (lone can't count)". Then, on the seat's five questions: "1 - they spawn in charged" (the Harbinger's four); "2 - yes" (which
+  // two are fed: the one that laughed first, then the least-fed nearest it); "3 - good call, forgot about panicked. Let's have a single panicked turn off the prone-thing
+  // even if they aren't all fed" (each step a hero takes up to frightened or to panicked feeds two); "4 - yes" (charged is a flat 5 temporary hit points, the die a step
+  // up, +2 to hit); "5 - yes, +2 applies if charged" (the knockdown is the SRD's Shove).
+  // So: THE PACK'S LAUGH (js/traits.js packLaugh) is their rider. Each time it carries one of the party up to FRIGHTENED or to PANICKED, two of the pack are fed (S.fearFed).
+  // Till every one of the pack standing is charged THEY TOY (S.toys, S.toyTurn; ai.js gives them the turn): no bite -- each goes to one of the party on its feet and
+  // SHOVES it prone (SRD 5.1, Shoving a Creature: its Athletics against Athletics or Acrobatics; +2 if it is charged), and leaves the fallen alone, so the pack has its
+  // falls to laugh at. One of the party PANICKED ends the toying for the fight, fed or not. A lone one cannot laugh (the laugh takes a pair), so it cannot feed and
+  // does not toy: it bites. The Harbinger's four come charged (js/traits.js callPack), so they bite as they did.
+  // THE SEAT'S CALLS, for his overrule: the toying is the grid's -- in the simple fight's lineup they bite as before; a charged one of a pack not all fed still shoves
+  // (his "til all are fed to charged"); the pack is the made laughers standing on its side; one with nobody on their feet in reach of its move closes in and waits
+  S.pack = function (B, u) { return B.units.filter(function (w) { return w.made0 && w.laugh && w.side === u.side && G.standing(w) && !w.dominated && !w.left; }); };
+  S.toys = function (B, u) {
+    if (!u || !u.made0 || !u.laugh || u.side !== 'foe' || u.dominated || B.packLit || B.simple || (B.o && B.o.simple)) return false;
+    var p = S.pack(B, u); return p.length >= 2 && p.some(function (w) { return w.madeState !== 'charged'; });
+  };
+  S.toyTurn = function* (B, u) {
+    var T = u.turn, rch = G.reachOf ? G.reachOf(u) : 5, up = AI.heroes(B, u).filter(function (w) { return !w.object && G.standing(w) && w.hp > 0 && !w.conds.prone && (w.size || 1) <= (u.size || 1) + 1; });
+    if (!up.length || u.conds.prone && !(T.move > 0)) return; // (everyone is on the ground already: it waits for them to get up)
+    var tgt = up.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    if (G.dist(u, tgt) > rch && T.move > 0 && !u.conds.grappled && !u.conds.restrained) { var e = AI.approach(u, tgt, G.reach(u, T.move), rch); if (e && (e.x !== u.x || e.y !== u.y)) yield* AI.walkTo(B, u, e); if (u.dead || u.hp <= 0) return; }
+    tgt = up.filter(function (w) { return G.standing(w) && !w.conds.prone && G.dist(u, w) <= rch; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    if (!tgt || !(T.action > 0) || !RU.canAct(u)) return;
+    T.action = 0; yield* AI.shoveOff(B, u, tgt, { how: 'prone', paid: true, bonus: u.madeState === 'charged' ? S.MADE.chargedHit : 0 });
+  };
+  // the laugh carried `w` up to step n of the fear scale (2 frightened, 3 panicked): two of the pack are fed -- the one that laughed first, then the least fed nearest it.
+  // Returns the lines for the laugh's card
+  S.fearFed = function (B, by, w, n) {
+    if (!by || !(n >= 2)) return [];
+    if (n >= 3 && !B.packLit && S.pack(B, by).length) B.packLit = true; // (his "a single panicked turn off the prone-thing even if they aren't all fed")
+    var rank = { withered: 0, normal: 1, charged: 2 }, rest = S.pack(B, by).filter(function (h) { return h !== by; }).sort(function (a, b) { return rank[a.madeState] - rank[b.madeState] || G.dist(by, a) - G.dist(by, b); });
+    var two = (by.made0 ? [by] : []).concat(rest).slice(0, 2), lines = [];
+    two.forEach(function (h) { var l = S.fed(B, h, 1, { fear: w.name }); if (l) lines.push(l); });
+    if (n >= 3 && lines.length) lines.push('{o}' + w.name + ' is panicked: the pack is done playing.{/}');
+    return lines;
   };
 
   // ------------------------------------------------------------------ Variable Illumination (a bonus action)

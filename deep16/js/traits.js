@@ -314,6 +314,7 @@
       // and parked there (Griz, 10-08: "they just park behind him most of the fight instead of being a swarm of attackers")
       var side = k % 2 ? 1 : -1, far = 2 + Math.floor(k / 2), bx = mx + (-dy / dl) * side * far + dx / dl * 0.5, by = my + (dx / dl) * side * far + dy / dl * 0.5;
       var h = B.makeFoe({ id: 'mh' + (B.mhN = (B.mhN || 0) + 1), kind: c.kind }), best = null, bd = Infinity;
+      if (h.made0 && D.seep && D.seep.setState) { D.seep.setState(B, h, 'charged'); h.temp = D.seep.MADE.temp; } // (RULED 11-14, Griz, on the Harbinger's four: "1 - they spawn in charged" -- 5 temporary hit points, +2 to hit, the die a step up; so they bite, and do not toy)
       for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
         if (!G.canStand(h, x, y)) continue;
         var d = Math.hypot(x + (h.size - 1) / 2 - bx, y + (h.size - 1) / 2 - by);
@@ -419,6 +420,7 @@
   // with a Wisdom save, so Countercharm's advantage counts) or goes a level up the fear scale (js/rules.js RU.FEAR), afraid of
   // the one that laughed first. Once a round (the seat's call: a pack that laughed at every fall would climb the ladder in a turn); a fall is seen again once the fallen one is up
   function laughers(B) { return B.units.filter(function (w) { return w.laugh && w.side === 'foe' && G.standing(w) && RU.canAct(w) && !w.dominated && !w.left; }); }
+  TR.packLaughRun = function (B) { return packLaugh(B); }; // (the bench's: the laugh run by hand)
   function* packLaugh(B) {
     var L = laughers(B), seen = B.fellSeen || (B.fellSeen = {}), fell = [];
     B.units.forEach(function (w) {
@@ -437,7 +439,7 @@
     yield 40; // (the beat)
     TR.packLaugh(['gnollaugh', 'cackle2', 'cackle', 'gnollaugh'].slice(0, Math.min(4, rest.length)));
     rest.forEach(function (h, i) { if (i < 6) FX.float('HA', h, D.PAL.ramps.violet[4]); if (D.spr.anim(h.sheet, 'rofl')) { h.anim = 'rofl'; h.animT = B.t; } });
-    var lines = ['{r}The pack takes it up' + (rest.length > 1 ? ', ' + (rest.length + 1) + ' of them' : '') + '.{/}  {g}WIS DC ' + dc + ', or a step up the fear scale{/}'];
+    var fedL = [], lines = ['{r}The pack takes it up' + (rest.length > 1 ? ', ' + (rest.length + 1) + ' of them' : '') + '.{/}  {g}WIS DC ' + dc + ', or a step up the fear scale{/}'];
     B.units.forEach(function (w) {
       if (w.side !== 'party' || w.object || w.look || w.familiar || !G.standing(w) || !G.present(w)) return;
       if (w.conds.deafened) { lines.push('  ' + w.name + ': {n}hears none of it{/} (deafened)'); return; }
@@ -446,10 +448,12 @@
       var sv = RU.save(w, 'wis', dc, false, 'frightened');
       if (sv.ok) { lines.push('  ' + w.name + ': WIS ' + RU.saveText(sv) + '  {n}holds{/}'); return; }
       var n = RU.fearUp(w, by.id, dc); (B.laughFresh = B.laughFresh || {})[w.id] = true; // (not saved off at the end of a turn it was laid in: fearKeep)
+      if (n >= 2 && D.seep && D.seep.fearFed) fedL = fedL.concat(D.seep.fearFed(B, by, w, n)); // (the made hyenas feed on it: frightened or panicked feeds two -- js/seep.js, 11-14)
       lines.push('  ' + w.name + ': WIS ' + RU.saveText(sv) + '  {o}' + RU.FEAR[n].toUpperCase() + '{/}');
     });
     B.card(lines.slice(0, 9), 360);
     yield 44;
+    if (fedL.length) { B.card(fedL.slice(0, 6), 360); yield 40; }
     L.forEach(function (h) { if (h.anim === 'rofl') { h.anim = 'idle'; h.animT = B.t; } });
   }
   // the fear scale kept: one afraid of a laugher that is gone fears the nearest of the rest; none of them left standing, the fear goes (and at the end of its own turn, the WIS save
