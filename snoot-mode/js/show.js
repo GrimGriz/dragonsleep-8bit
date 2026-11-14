@@ -40,6 +40,7 @@
     cx.globalAlpha = 1;
   }
 
+  function downRow(name) { return hasRow(name, 'death') ? 'death' : 'hurt'; } // (the row a figure goes down on and is left lying on: its death, or its hurt)
   function hasRow(name, row) { var sh = window.D16 && window.D16.SHEETS && window.D16.SHEETS[name]; return !!(sh && sh.anims && sh.anims[row]); }
   var CHARGE = 0.5; // (the gallop in before a charging rider's blow, s)
 
@@ -85,9 +86,9 @@
   SH.scene = function (show, t) {
     var first = show.first, sc = { units: {}, order: { ours: [], theirs: [] }, ter: '.', road: false, place: '', banner: null, dice: [], fx: [], runners: [], dark: 0, head: null, t: t };
     if (first && first.t === 'fight') {
-      sc.ter = first.ter; sc.road = first.road; sc.place = first.place; sc.spread = first.spread || 0;
+      sc.ter = first.ter; sc.road = first.road; sc.place = first.place; sc.spread = first.spread || 0; sc.hexes = !!first.hexes;
       ['ours', 'theirs'].forEach(function (k) {
-        first[k].forEach(function (u) { sc.units[u.id] = { u: u, k: k, figs: u.figs, heroes: u.heroes.map(function (h) { return { name: h.name, type: h.type, dead: false }; }), fall: null, alpha: 1, anim: null, gone: false, hurt: 0 }; sc.order[k].push(u.id); });
+        first[k].forEach(function (u) { sc.units[u.id] = { u: u, k: k, figs: u.figs, figs0: u.figs, heroes: u.heroes.map(function (h) { return { name: h.name, type: h.type, dead: false }; }), fall: null, alpha: 1, anim: null, gone: false, hurt: 0 }; sc.order[k].push(u.id); });
       });
     }
     show.segs.forEach(function (s) {
@@ -130,11 +131,14 @@
         case 'head': sc.head = { b: b, p: p, local: local, now: now }; break;
         // the headless fight's beats (11-13, js/headless.js; Griz: "one beat would probably be x seconds of idle, appropriate attack animation, x seconds of idle"):
         // a run of one group's turns on the grid -- its figures stand, swing together, stand; what a turn did without a blow (a spell, a prayer) as a word over them
-        case 'hbeat': if (now && U) { if (local >= HIDLE && local <= DUR.hbeat - HIDLE) { U.anim = 'attack'; U.animT = local - HIDLE; U.only = { m: b.men || 0, h: b.heroes || 0, off: b.i || 0 }; }
-            if (b.words && b.words.length) sc.fx.push({ kind: 'word', u: b.u, text: b.words[0], p: p });
-            (b.fx || []).forEach(function (x) { var pf = Math.max(0, Math.min(1, (local - HIDLE) / (DUR.hbeat - 2 * HIDLE))); if (local < HIDLE || pf >= 1) return; // (its spells go off as it swings: a ring on its own, a bolt or a fire at the other)
-              if (x.kind === 'pray') sc.fx.push({ kind: 'pray', u: b.u, id: 'bless', p: pf }); else sc.fx.push({ kind: x.kind, u: b.foe, from: b.u, p: pf }); });
-            sc.banner = { big: '', small: b.name + '\'s turn: ' + b.n + (b.n > 1 ? ' act' : ' acts') + (b.swings ? ' -- ' + b.hits + ' of ' + b.swings + ' blows land' : ''), p: p, quick: true }; } break;
+        // (b.also, 11-14: the side's other units that acted in the turn -- a stack in a hex swings in the one beat, each unit only its own few)
+        case 'hbeat': if (now) { var tot = { n: 0, sw: 0, hit: 0 };
+            [b].concat(b.also || []).forEach(function (x1) { var U1 = sc.units[x1.u]; tot.n += x1.n || 0; tot.sw += x1.swings || 0; tot.hit += x1.hits || 0; if (!U1) return;
+              if (local >= HIDLE && local <= DUR.hbeat - HIDLE) { U1.anim = 'attack'; U1.animT = local - HIDLE; U1.only = { m: x1.men || 0, h: x1.heroes || 0, off: x1.i || 0 }; }
+              if (x1.words && x1.words.length) sc.fx.push({ kind: 'word', u: x1.u, text: x1.words[0], p: p });
+              (x1.fx || []).forEach(function (x) { var pf = Math.max(0, Math.min(1, (local - HIDLE) / (DUR.hbeat - 2 * HIDLE))); if (local < HIDLE || pf >= 1) return; // (its spells go off as it swings: a ring on its own, a bolt or a fire at the other)
+                if (x.kind === 'pray') sc.fx.push({ kind: 'pray', u: x1.u, id: 'bless', p: pf }); else sc.fx.push({ kind: x.kind, u: x1.foe, from: x1.u, p: pf }); }); });
+            sc.banner = { big: '', small: (b.side || b.name) + '\'s turn: ' + tot.n + (tot.n > 1 ? ' act' : ' acts') + (tot.sw ? ' -- ' + tot.hit + ' of ' + tot.sw + ' blows land' : ''), p: p, quick: true }; } break;
         case 'hend': if (now) sc.banner = { big: b.big, small: b.small, p: p }; break;
       }
     }
@@ -153,8 +157,13 @@
   // facing in; one that stood there holds the middle, on the far side from the enemies that came in (facing as it faced: taken from behind, its back
   // to them -- found 10-15 in his play: the plains came in behind a band and both stood on one side); a side's units from one way stand abreast; two
   // sides in through one side, the second a little further in
+  // THE HEXES VIEW (11-14, Griz: "Can we zoom in less, where a unit takes up it's whole hex and the fight shows the attackers coming in from their hexes?";
+  // then "Yes, build it"): a fight the grid fought (a `fight` beat marked `hexes`, js/headless.js) is seen from further up -- the fight's hex and the six
+  // round it. One that stood there holds the middle of the hex; one that came in starts at the middle of the hex it came from (HEXD, a hex away) and walks
+  // to just inside the side it came through (HEXIN), its ranks trailing back toward its own hex; units of a side from one way stand abreast, wider apart
+  var HEXD = Math.sqrt(3), HEXIN = 0.52, HEXZ = 0.4, HEXCAP = 20;
   function layout(sc) {
-    var V = SN.V, groups = {}, out = {}, came = { ours: [0, 0, 0], theirs: [0, 0, 0] }, used = {};
+    var V = SN.V, groups = {}, out = {}, came = { ours: [0, 0, 0], theirs: [0, 0, 0] }, used = {}, hx = !!sc.hexes;
     Object.keys(sc.units).forEach(function (id) { var U = sc.units[id], key = U.k + ':' + (U.u.from >= 0 ? U.u.from : 'c'); (groups[key] = groups[key] || []).push(id);
       if (U.u.from >= 0) { var c = came[U.k]; c[0] += V.DIRV[U.u.from][0]; c[1] += V.DIRV[U.u.from][1]; c[2]++; } });
     Object.keys(groups).forEach(function (key) {
@@ -166,29 +175,35 @@
         else if (foe[2] && fl > 0.2) base = [-foe[0] / fl * 0.24, -foe[1] / fl * 0.24];
         else base = [-f[0] * 0.14, -f[1] * 0.14];
         if (sc.spread) base = [-f[0] * sc.spread, -f[1] * sc.spread]; // (the headless fight's field, js/headless.js: each formation back from the middle by this, facing the other)
-        var o = (i - (n - 1) / 2) * 0.36, ax = base[0] + r[0] * o, ay = base[1] + r[1] * o;
-        if (from >= 0 && sc.enter > 0) { ax += V.DIRV[from][0] * 0.45 * sc.enter; ay += V.DIRV[from][1] * 0.45 * sc.enter; }
-        if (U.fall) { var fd = V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (face + 3) % 6]; ax += fd[0] * 1.1 * U.fall.p; ay += fd[1] * 1.1 * U.fall.p; }
-        out[id] = { ax: ax, ay: ay, f: f, r: r, face: face };
+        if (hx) base = from >= 0 ? [V.DIRV[from][0] * HEXIN, V.DIRV[from][1] * HEXIN] : (foe[2] && fl > 0.2 ? [-foe[0] / fl * 0.08, -foe[1] / fl * 0.08] : [0, 0]);
+        var o = (i - (n - 1) / 2) * (hx ? 0.62 : 0.36), ax = base[0] + r[0] * o, ay = base[1] + r[1] * o, ax0 = ax, ay0 = ay; // (ax0, ay0: where it fought -- its fallen lie there)
+        if (from >= 0 && sc.enter > 0) { var ein = hx ? HEXD - HEXIN : 0.45; ax += V.DIRV[from][0] * ein * sc.enter; ay += V.DIRV[from][1] * ein * sc.enter; }
+        if (U.fall) { var fd = V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (face + 3) % 6], far = hx ? HEXD : 1.1; ax += fd[0] * far * U.fall.p; ay += fd[1] * far * U.fall.p; }
+        out[id] = { ax: ax, ay: ay, ax0: ax0, ay0: ay0, f: f, r: r, face: face };
       });
     });
     return out;
   }
   SH.layout = layout;
   // a unit's figures in its formation (CHAINMAIL p.10): a line two ranks abreast, a column in file two wide, a square in a ring; its heroes before it
-  function figsOf(U, L) {
-    var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
+  // THE FALLEN STAY DOWN (11-14, Griz: "am I seeing prones? I see units go down and then fight again next round" -- the nine figures a unit drew stood
+  // for all its men, so two went down and nine stood again): in the hexes view (hx) a unit draws its men as the fight began, to HEXCAP figures, each in the
+  // place it began in; as its men fall the figures from the front go `down` and are left lying where the unit fought, and a hero who falls lies there too
+  function figsOf(U, L, hx) {
+    var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return hx || !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
     // (the spacing is the screen's: a rank running into the slant's depth is squashed to SQ, so it is spread the more in the world)
     var SQ = SN.V.SQ, sl = function (v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] * SQ * SQ) || 1; return [v[0] / l, v[1] / l]; };
-    var mt = U.u.mounted, n = U.u.party ? 0 : Math.min(mt ? 6 : 9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = mt ? 0.17 : 0.1, pts = [], i; // (horse stand wider and fewer: a rider is two men long, 10-17)
+    var mt = U.u.mounted, n = U.u.party ? 0 : Math.min(mt ? 6 : 9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = mt ? 0.17 : 0.1, pts = [], i, up = n;
+    if (hx && !U.u.party) { var f0 = Math.max(U.figs0 || 0, U.figs || 0); n = Math.min(mt ? 10 : HEXCAP, f0); up = U.figs > 0 ? Math.min(n, Math.max(1, Math.ceil(U.figs * n / (f0 || 1)))) : 0; sp = mt ? 0.2 : 0.115; } // (horse stand wider and fewer: a rider is two men long, 10-17)
     if (U.u.form === 'square' && n > 2) for (i = 0; i < n; i++) { var a = i / n * Math.PI * 2; pts.push([Math.cos(a) * 0.16, Math.sin(a) * 0.16]); }
     else if (U.u.form === 'column') { var files = n > 2 ? 2 : 1, ranks = Math.ceil(n / files); for (i = 0; i < n; i++) { var u2 = ((ranks - 1) / 2 - Math.floor(i / files)) * sp, v2 = (i % files - (files - 1) / 2) * sp * 0.9; pts.push([f[0] * u2 + r[0] * v2, f[1] * u2 + r[1] * v2]); } }
     else { var fl = n > 4 ? Math.ceil(n / 2) : n; for (i = 0; i < n; i++) { var v3 = (i % fl - (fl - 1) / 2) * sp, u3 = -Math.floor(i / fl) * sp * 0.85; pts.push([f[0] * u3 + r[0] * v3, f[1] * u3 + r[1] * v3]); } }
     var ts = SN.V.troopSheets(U.u, pts.length, hs); // (each group on its own sheet: the road patrol's horse beside its foot, 10-17)
-    pts.forEach(function (q, j) { out.push({ lx: L.ax + q[0], ly: L.ay + q[1], sheet: ts[j] || sh[0] }); });
+    pts.forEach(function (q, j) { var dn = hx && j < n - up; // (the front of the ranks falls first: the bodies lie where the lines met)
+       out.push({ lx: (dn ? L.ax0 : L.ax) + q[0], ly: (dn ? L.ay0 : L.ay) + q[1], sheet: ts[j] || sh[0], down: dn }); });
     if (U.u.wagon) { var wb = U.u.form === 'column' ? 0.3 : 0.24; out.push({ lx: L.ax - f[0] * wb, ly: L.ay - f[1] * wb, sheet: SN.V.wagonOf(U.u), wagon: true }); } // (its wagon behind the ranks)
-    var H = U.u.party ? (U.u.sheets || []).map(function (s) { return { sheet: s }; }) : heroes.map(function () { return { sheet: sh[0] }; });
-    H.forEach(function (h, m) { var v = (m - (H.length - 1) / 2) * 0.12, u = U.u.party || U.u.form === 'square' ? 0 : 0.11; out.push({ lx: L.ax + f[0] * u + r[0] * v, ly: L.ay + f[1] * u + r[1] * v, sheet: h.sheet, hero: true }); });
+    var H = U.u.party ? (U.u.sheets || []).map(function (s) { return { sheet: s }; }) : heroes.map(function (h) { return { sheet: sh[0], down: !!(hx && h.dead) }; });
+    H.forEach(function (h, m) { var v = (m - (H.length - 1) / 2) * 0.12, u = U.u.party || U.u.form === 'square' ? 0 : 0.11; out.push({ lx: (h.down ? L.ax0 : L.ax) + f[0] * u + r[0] * v, ly: (h.down ? L.ay0 : L.ay) + f[1] * u + r[1] * v, sheet: h.sheet, hero: true, down: !!h.down }); });
     return out;
   }
   function die(cx, x, y, s, v, hl, dim) {
@@ -202,6 +217,7 @@
   // from env.cam0 over the opening ZIN seconds and back out as env.out goes 0 to 1, the map's own units (env.st) under it
   SH.draw = function (cx, Wc, Hc, show, t, env) {
     var V = SN.V, sc = SH.scene(show, t), first = show.first || {}, at = first.at || [7, 5], camF = V.camTo(at, Wc, Hc), f = 1;
+    if (first.hexes) { var zh = camF.z * HEXZ; camF = { x: camF.x, y: V.world(at)[1] - V.elev(at) / V.SQ + (Hc * 0.04) / (zh * V.SQ), z: zh }; } // (the hexes view: the fight's hex and the six round it)
     if (env && env.cam0) { f = ease(Math.min(1, Math.max(0, (t - (env.t0 || 0)) / ZIN))); if (env.out != null) f = Math.min(f, 1 - ease(Math.min(1, env.out))); }
     var cam = f < 1 ? V.lerpCam(env.cam0, camF, f) : camF, mix = Math.max(0, Math.min(1, (f - 0.78) / 0.22)), ids = {};
     Object.keys(sc.units).forEach(function (id) { ids[id] = 1; }); if (first.t === 'head') { if (first.g) ids[first.g.id] = 1; if (first.h) ids[first.h.id] = 1; }
@@ -218,22 +234,26 @@
   };
   // the fight's figures and effects on the hex, in the canvas's own pixels
   function scene(cx, Wc, Hc, cam, sc, at) {
-    var V = SN.V, pr = V.proj(cam, Wc, Hc), hw = V.world(at), he = V.elev(at), z = cam.z, figH = z * 0.17, kk = figH / 56, zs = z / 440, i;
+    var V = SN.V, pr = V.proj(cam, Wc, Hc), hw = V.world(at), he = V.elev(at), z = cam.z, hx = !!sc.hexes, figH = z * (hx ? 0.28 : 0.17), kk = figH / 56, zs = z / (hx ? 300 : 440), i;
     var P = function (lx, ly) { return pr(hw[0] + lx, hw[1] + ly, he); };
     cx.imageSmoothingEnabled = false;
     if (sc.head) { drawHead(cx, sc, P, kk); return; }
     var L = layout(sc), all = [];
     Object.keys(sc.units).forEach(function (id) {
-      var U = sc.units[id], Lu = L[id]; if (!Lu || (U.gone && U.alpha <= 0)) return;
-      var face = sheetDir(U.fall ? V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (Lu.face + 3) % 6] : Lu.f), lunge0 = U.anim === 'attack' ? 0.035 * Math.sin(Math.min(1, (U.animT || 0) * 2) * Math.PI) : 0;
+      var U = sc.units[id], Lu = L[id]; if (!Lu || (!hx && U.gone && U.alpha <= 0)) return;
+      var face0 = sheetDir(Lu.f), face = sheetDir(U.fall ? V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (Lu.face + 3) % 6] : Lu.f), lunge0 = U.anim === 'attack' ? 0.035 * Math.sin(Math.min(1, (U.animT || 0) * 2) * Math.PI) : 0;
       // the headless fight's beats (11-13, Griz: "It seems to me the animations play for the entire side attacking and the entire side falling down?"): only as
       // many of the unit's figures swing as acted in the beat (U.only: its men and its heroes, to the scale of the figures shown, a different few each beat), and
       // only as many go down as fell (U.hurtN, from the rear of the ranks); every other fight's beats move the whole unit as ever
-      var figs = figsOf(U, Lu), menF = figs.filter(function (g) { return !g.hero && !g.wagon; }), heroF = figs.filter(function (g) { return g.hero; });
+      var figs = figsOf(U, Lu, hx), menF = figs.filter(function (g) { return !g.hero && !g.wagon && !g.down; }), heroF = figs.filter(function (g) { return g.hero && !g.down; });
       var shown = function (k) { return k > 0 ? Math.min(menF.length, Math.max(1, Math.round(k * menF.length / Math.max(1, U.figs)))) : 0; };
       if (U.only) { var mk = shown(U.only.m); menF.forEach(function (g, i) { g.act = menF.length ? ((i + menF.length - (U.only.off % menF.length)) % menF.length) < mk : false; }); heroF.forEach(function (g, i) { g.act = i < U.only.h; }); }
-      if (U.hurtN != null) { var hk = shown(U.hurtN); menF.forEach(function (g, i) { g.hit = i >= menF.length - hk; }); heroF.forEach(function (g) { g.hit = false; }); }
+      if (U.hurtN != null) { var hk = shown(U.hurtN); menF.forEach(function (g, i) { g.hit = hx ? i < hk : i >= menF.length - hk; }); heroF.forEach(function (g) { g.hit = false; }); }
       figs.forEach(function (fg, j) {
+        if (fg.down) { // (one who fell: lying where the unit fought, whatever the unit does after)
+          var qd = P(fg.lx, fg.ly); all.push({ y: qd[1] - 1, draw: function () { figure(cx, fg.sheet, downRow(fg.sheet), face0, qd[0], qd[1], kk * (fg.hero ? 1.12 : 1), 99, true, 1); } }); return;
+        }
+        if (hx && U.gone && U.alpha <= 0) return;
         var uAnim = fg.act === false ? null : U.anim, uHurt = fg.hit === false ? 0 : U.hurt;
         // a charge (the round's impetus, CHAINMAIL p.17): a figure whose sheet has a gallop rides in on it for CHARGE s, then strikes (10-17, the horse)
         var gallop = uAnim === 'attack' && U.charge && !fg.wagon && hasRow(fg.sheet, 'charge'), tA = U.animT || 0;
@@ -241,7 +261,7 @@
         var q = P(fg.lx + Lu.f[0] * lunge, fg.ly + Lu.f[1] * lunge), shake = U.shake ? Math.sin(sc.t * 60 + j) * 4 * U.shake * zs : 0;
         all.push({ y: q[1], draw: function () {
           var anim = uAnim || (U.fall ? 'walk' : sc.enter > 0.02 && U.u.from >= 0 ? 'walk' : 'idle'), tt = uAnim ? U.animT : sc.t + j * 0.13;
-          if (uHurt > 0 && !uAnim) { anim = 'hurt'; tt = (1 - uHurt) * 0.6; }
+          if (uHurt > 0 && !uAnim) { anim = hx && fg.hit ? downRow(fg.sheet) : 'hurt'; tt = (1 - uHurt) * 0.6; }
           if (gallop) { if (tA < CHARGE) anim = 'charge'; else tt = tA - CHARGE; }
           if (anim === 'hurt' && uHurt > 0 && !fg.wagon && hasRow(fg.sheet, 'charge')) anim = 'flinch'; // (a rider whose men are hit shies; his hurt row is the horse going down)
           if (fg.wagon) { // (the wagon: it rolls with its unit, jolts when its men are hit, and wrecks as the last of them go)
@@ -249,7 +269,7 @@
             else if (anim === 'hurt') anim = 'flinch';
             else if (anim !== 'walk') { anim = 'idle'; tt = sc.t; }
           }
-          figure(cx, fg.sheet, anim, face, q[0] + shake, q[1], kk * (fg.hero ? 1.12 : 1), tt + (fg.wagon ? 0 : j * 0.05), anim === 'attack' || anim === 'hurt' || anim === 'flinch', fg.wagon && U.figs <= 0 ? 1 : U.alpha);
+          figure(cx, fg.sheet, anim, face, q[0] + shake, q[1], kk * (fg.hero ? 1.12 : 1), tt + (fg.wagon ? 0 : j * 0.05), anim === 'attack' || anim === 'hurt' || anim === 'death' || anim === 'flinch', fg.wagon && U.figs <= 0 ? 1 : U.alpha);
         } });
       });
     });

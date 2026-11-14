@@ -11,7 +11,7 @@
 (function () {
   var SN = window.SN, HL = SN.Headless = {};
   HL.READY_MS = 30000; HL.RUN_MS = 120000;
-  HL.SPREAD = 0.4; // (each formation's middle from the hex's, in hex radii)
+  HL.SHOWN = 4; // (the rounds a fight is told in, however many the grid fought)
   // a unit as the grid's bodies need it (deep16/js/headless.js H.listOf), with its morale as the Snoot rates it. Its heroes go with the word the grid knows
   // each by (HL.wordOf), in the unit's own order, so what comes back says which of them is down; its make-up (comp) is cut to the men it has left
   HL.wordOf = function (h) { return h.grid || { GreyFang: 'greyfang', Katarina: 'katarina', 'the Harbinger': 'harbinger' }[h.name] || (h.paladin ? 'paladin:4' : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null); };
@@ -72,8 +72,12 @@
     Object.keys(byId).forEach(function (id) { men[id] = byId[id].figs || 0; names[id] = HL.sent(byId[id]).map(function (h) { return h.name; }); });
     ['a', 'b'].forEach(function (g) { Object.keys(res[g].units || {}).forEach(function (id) { sideOf[id] = g; }); });
     var heroUp = {}; Object.keys(names).forEach(function (id) { heroUp[id] = names[id].length; });
+    // FOUR ROUNDS SHOWN (11-14, Griz: "are the fight visualizations amenable to being reduced to 4 displayed 'rounds'"; "Yes, build it"): the grid's rounds,
+    // however many it fought, are told as four at most -- each shown round a run of the grid's, every blow and every fall in them kept
+    var rs = []; (res.beats || []).forEach(function (bt) { if (rs.indexOf(bt.round) < 0) rs.push(bt.round); });
+    var NP = Math.min(HL.SHOWN, rs.length), phaseOf = {}; rs.forEach(function (r, i) { phaseOf[r] = Math.floor(i * NP / rs.length) + 1; });
     (res.beats || []).forEach(function (bt) {
-      var R = byR[bt.round]; if (!R) { R = byR[bt.round] = { n: bt.round, order: [], g: {} }; rounds.push(R); }
+      var pn = phaseOf[bt.round], R = byR[pn]; if (!R) { R = byR[pn] = { n: pn, order: [], g: {} }; rounds.push(R); }
       var S = R.g[bt.g]; if (!S) { S = R.g[bt.g] = { order: [], u: {}, fell: [] }; R.order.push(bt.g); }
       bt.turns.forEach(function (tn) {
         var X = S.u[tn.unit]; if (!X) { X = S.u[tn.unit] = { ids: {}, men: 0, heroes: 0, swings: 0, hits: 0, words: [], fx: {} }; S.order.push(tn.unit); }
@@ -84,17 +88,20 @@
       S.fell = S.fell.concat(bt.fell);
     });
     var standing = function (g) { return Object.keys(sideOf).filter(function (id) { return sideOf[id] === g && byId[id] && (men[id] > 0 || heroUp[id] > 0); }); };
+    var sideName = function (g) { var us = Object.keys(sideOf).filter(function (id) { return sideOf[id] === g && byId[id]; }); return us.length === 1 ? byId[us[0]].name : (byId[us[0]] && byId[us[0]].side === 'ours' ? 'OURS' : 'THEIRS'); };
     rounds.forEach(function (R) {
       SN.beat(st, { t: 'round', n: R.n });
       R.order.forEach(function (g) {
-        var S = R.g[g], og = g === 'a' ? 'b' : 'a';
+        var S = R.g[g], og = g === 'a' ? 'b' : 'a', acts = [];
         S.order.forEach(function (id) {
           var X = S.u[id], U = byId[id]; if (!U) return;
           var foe = standing(og)[0] || Object.keys(sideOf).filter(function (k) { return sideOf[k] === og; })[0];
           // (men, heroes: how many of each acted, so only that many of the unit's figures swing -- js/show.js U.only; i: which few; fx: its spells' lights, on whom)
-          SN.beat(st, { t: 'hbeat', u: id, foe: foe, n: X.men + X.heroes, men: X.men, heroes: X.heroes, i: nb++, swings: X.swings, hits: X.hits, words: X.words.slice(0, 1), name: U.name,
+          acts.push({ u: id, foe: foe, n: X.men + X.heroes, men: X.men, heroes: X.heroes, i: nb++, swings: X.swings, hits: X.hits, words: X.words.slice(0, 1), name: U.name,
             fx: Object.keys(X.fx).map(function (k) { return { kind: k, on: X.fx[k] }; }) });
         });
+        // (one beat a side: its first unit's, the rest of its stack riding in `also` -- js/show.js swings them together)
+        if (acts.length) { var b0 = acts[0]; b0.t = 'hbeat'; b0.side = sideName(g); b0.also = acts.slice(1); SN.beat(st, b0); }
         var ids = []; S.fell.forEach(function (x) { if (ids.indexOf(x.unit) < 0) ids.push(x.unit); });
         ids.sort(function (x, y) { return (sideOf[x] === og ? 0 : 1) - (sideOf[y] === og ? 0 : 1); });
         ids.forEach(function (id) {
@@ -109,16 +116,17 @@
     return men;
   };
   var endWords = function (res) {
-    var tl = function (g) { var t = res[g]; return t.name + ': ' + t.up + ' of ' + t.n + ' standing' + (t.away ? ', ' + t.away + ' away' : ''); };
-    return { big: res.result === 'won' ? res.a.name.toUpperCase() + ' HOLD THE FIELD' : res.result === 'lost' ? res.b.name.toUpperCase() + ' HOLD THE FIELD' : 'NOBODY HOLDS THE FIELD',
-      small: tl('a') + ' -- ' + tl('b') + ' (' + res.rounds + ' rounds, the ranks ' + res.gapFt + ' ft apart)' + (res.morale && res.morale.length ? ' -- ' + res.morale.filter(function (l) { return /BREAKS/.test(l); }).length + ' broke' : '') };
+    // (a side of several units is named by its first unit and a count: the banner is one line wide)
+    var nm = function (g) { var t = res[g], ids = Object.keys(t.units || {}); return ids.length > 1 ? t.units[ids[0]].name + ' and ' + (ids.length - 1) + ' more' : t.name; };
+    var tl = function (g) { var t = res[g]; return t.up + ' of ' + t.n + ' standing' + (t.away ? ', ' + t.away + ' ran' : ''); };
+    return { big: res.result === 'won' ? nm('a').toUpperCase() + ' HOLD THE FIELD' : res.result === 'lost' ? nm('b').toUpperCase() + ' HOLD THE FIELD' : 'NOBODY HOLDS THE FIELD',
+      small: tl('a') + ' -- ' + tl('b') + ' (' + res.rounds + ' rounds on the grid)' + (res.morale && res.morale.length ? ' -- ' + res.morale.filter(function (l) { return /BREAKS/.test(l); }).length + ' broke' : '') };
   };
   // the door's fight, two units in a hex of its own making: st.beats gains the fight from `at`; returns [from, to)
   HL.lay = function (st, a, b, at, res) {
     var from = (st.beats || []).length, byId = {}; byId[a.id] = a; byId[b.id] = b;
-    // (spread: the two formations this far either side of the hex's middle, facing -- js/show.js layout; his "Try tuning", on their standing close together)
-    var sa = SN.snap(a, at), sb = SN.snap(b, at); sa.from = -1; sb.from = -1; sa.face = 0; sb.face = 3; sa.form = 'line'; sb.form = 'line';
-    SN.beat(st, { t: 'fight', at: at.slice(), place: SN.placeName(at), ter: SN.ter(at[0], at[1]), road: SN.road(at), ours: [sa], theirs: [sb], spread: HL.SPREAD });
+    var sa = SN.snap(a, at), sb = SN.snap(b, at); sa.from = -1; if (sb.from < 0) sb.from = 0; sa.face = sb.from; sa.form = 'line'; sb.form = 'line'; // (the first holds the hex, facing the side the second comes in through)
+    SN.beat(st, { t: 'fight', at: at.slice(), place: SN.placeName(at), ter: SN.ter(at[0], at[1]), road: SN.road(at), ours: [sa], theirs: [sb], hexes: true });
     HL.rounds(st, res, byId);
     [['a', a], ['b', b]].forEach(function (x) { var t = res[x[0]]; if (!t.up) SN.beat(st, t.broke ? { t: 'fall', u: x[1].id, how: 'rout', dir: -1 } : { t: 'gone', u: x[1].id }); });
     var e = endWords(res); SN.beat(st, { t: 'hend', big: e.big, small: e.small });
@@ -145,6 +153,8 @@
     var byId = {}, sent = {}; O.concat(T).forEach(function (u) { byId[u.id] = u; sent[u.id] = HL.sent(u); });
     var stat = function (u, cls) { var k = u.side === 'ours' ? 'lost' : 'killed'; st.stats[k][u.side + ':' + cls] = (st.stats[k][u.side + ':' + cls] || 0) + 1; };
     SN.say(st, 'On the grid, unseen: ' + res.rounds + ' rounds, the ranks ' + res.gapFt + ' ft apart.', 'roll', h);
+    // (the hexes view, js/show.js: this fight's own `fight` beat is marked, so the show draws it a unit to its hex)
+    for (var bi = (st.beats || []).length - 1; bi >= 0; bi--) { var fb = st.beats[bi]; if (fb.t === 'fight' && SN.same(fb.at, h)) { fb.hexes = true; break; } }
     HL.rounds(st, res, byId);
     (res.morale || []).forEach(function (l) { SN.say(st, l.replace(/^R(\d+) MORALE\s+/, 'Morale, round $1: ').replace(/\s+/g, ' '), 'morale', h); });
     ['a', 'b'].forEach(function (g) {
