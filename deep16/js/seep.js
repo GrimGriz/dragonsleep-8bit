@@ -171,7 +171,7 @@
     }
     var t = K.temp * lv, a0 = u.made0.attacks || {}, k0 = Object.keys(a0).filter(function (k) { return a0[k].dice; })[0], more = t > (u.temp || 0);
     if (more) u.temp = t;
-    if (o.fear) { if (was === 'charged') return who + ' feeds again on ' + o.fear + '\'s fear.  {g}(still charged){/}'; S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff'); return who + ' has FED on ' + o.fear + '\'s fear: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}'; }
+    if (o.fear) { if (was === 'charged') { u.temp = Math.max(u.temp || 0, t); return who + ' feeds again on ' + o.fear + '\'s fear: its ' + t + ' temporary hit points are fresh.  {g}(still charged){/}'; } S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff'); return who + ' has FED on ' + o.fear + '\'s fear: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}'; }
     if (was === 'charged') return who + ' feeds again: ' + (more ? '{p}' + t + ' temporary hit points{/}' : 'its ' + (u.temp || 0) + ' temporary hit points stand') + '.  {g}(' + K.temp + ' a level of the level-' + lv + ' spell it took; still charged){/}';
     S.setState(B, u, 'charged'); if (D.sfx) D.sfx('buff');
     return who + ' has FED: {p}CHARGED{/} for the rest of the fight.  {g}(' + t + ' temporary hit points, ' + K.temp + ' a level of the level-' + lv + ' spell it took; +' + K.chargedHit + ' to hit' + (k0 ? '; its ' + a0[k0].name + ' ' + a0[k0].dice + ' to ' + u.attacks[k0].dice : '') + '){/}';
@@ -189,29 +189,37 @@
   // SHOVES it prone (SRD 5.1, Shoving a Creature: its Athletics against Athletics or Acrobatics; +2 if it is charged), and leaves the fallen alone, so the pack has its
   // falls to laugh at. One of the party PANICKED ends the toying for the fight, fed or not. A lone one cannot laugh (the laugh takes a pair), so it cannot feed and
   // does not toy: it bites. The Harbinger's four come charged (js/traits.js callPack), so they bite as they did.
-  // THE SEAT'S CALLS, for his overrule: the toying is the grid's -- in the simple fight's lineup they bite as before; a charged one of a pack not all fed still shoves
-  // (his "til all are fed to charged"); the pack is the made laughers standing on its side; one with nobody on their feet in reach of its move closes in and waits
+  // RE-CUT the same night on his answers to the seat's calls: "1 - is giving them a shove on simple a problem?" (it is not: the simple fight runs this engine and the
+  // party has SHOVE there already -- so THEY TOY IN THE SIMPLE FIGHT TOO, the Shove struck across the lines as every blow there is, nobody walking); "2 - yes" (a charged
+  // one of a pack not all fed still shoves); "3 - nah, they have it hard enough, first unfed (nearest laugher) and second nearest unfed, if hits a charged one refreshes
+  // temp hp" (WHICH TWO: the unfed ones nearest the laugher, the laugher itself first if it is unfed; only when fewer than two are unfed does a feeding fall on a charged
+  // one, and then its 5 temporary hit points are fresh); "4 - the withered state still impacts the contest, -2" (a withered one Shoves at -2). And, for a lane to come:
+  // "travelers and farms will grant feeding opportunities - handled later in a lane" -- nothing of that is here.
+  // THE SEAT'S CALLS, for his overrule: the pack is the made laughers standing on its side; one with nobody on their feet in reach of its move closes in and waits
   S.pack = function (B, u) { return B.units.filter(function (w) { return w.made0 && w.laugh && w.side === u.side && G.standing(w) && !w.dominated && !w.left; }); };
   S.toys = function (B, u) {
-    if (!u || !u.made0 || !u.laugh || u.side !== 'foe' || u.dominated || B.packLit || B.simple || (B.o && B.o.simple)) return false;
+    if (!u || !u.made0 || !u.laugh || u.side !== 'foe' || u.dominated || B.packLit) return false;
     var p = S.pack(B, u); return p.length >= 2 && p.some(function (w) { return w.madeState !== 'charged'; });
   };
   S.toyTurn = function* (B, u) {
     var T = u.turn, rch = G.reachOf ? G.reachOf(u) : 5, up = AI.heroes(B, u).filter(function (w) { return !w.object && G.standing(w) && w.hp > 0 && !w.conds.prone && (w.size || 1) <= (u.size || 1) + 1; });
     if (!up.length || u.conds.prone && !(T.move > 0)) return; // (everyone is on the ground already: it waits for them to get up)
     var tgt = up.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    var simple = !!(B.simple || (B.o && B.o.simple)); // (the simple fight: nobody walks, and a blow is struck across the lines -- js/simple.js)
+    if (simple) { if (!(T.action > 0) || !RU.canAct(u)) return; T.action = 0; yield* AI.shoveOff(B, u, tgt, { how: 'prone', paid: true, bonus: S.shoveBonus(u) }); return; }
     if (G.dist(u, tgt) > rch && T.move > 0 && !u.conds.grappled && !u.conds.restrained) { var e = AI.approach(u, tgt, G.reach(u, T.move), rch); if (e && (e.x !== u.x || e.y !== u.y)) yield* AI.walkTo(B, u, e); if (u.dead || u.hp <= 0) return; }
     tgt = up.filter(function (w) { return G.standing(w) && !w.conds.prone && G.dist(u, w) <= rch; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!tgt || !(T.action > 0) || !RU.canAct(u)) return;
-    T.action = 0; yield* AI.shoveOff(B, u, tgt, { how: 'prone', paid: true, bonus: u.madeState === 'charged' ? S.MADE.chargedHit : 0 });
+    T.action = 0; yield* AI.shoveOff(B, u, tgt, { how: 'prone', paid: true, bonus: S.shoveBonus(u) });
   };
+  S.shoveBonus = function (u) { return u.madeState === 'charged' ? S.MADE.chargedHit : u.madeState === 'withered' ? S.MADE.hit : 0; }; // (his "+2 applies if charged"; "the withered state still impacts the contest, -2")
   // the laugh carried `w` up to step n of the fear scale (2 frightened, 3 panicked): two of the pack are fed -- the one that laughed first, then the least fed nearest it.
   // Returns the lines for the laugh's card
   S.fearFed = function (B, by, w, n) {
     if (!by || !(n >= 2)) return [];
     if (n >= 3 && !B.packLit && S.pack(B, by).length) B.packLit = true; // (his "a single panicked turn off the prone-thing even if they aren't all fed")
-    var rank = { withered: 0, normal: 1, charged: 2 }, rest = S.pack(B, by).filter(function (h) { return h !== by; }).sort(function (a, b) { return rank[a.madeState] - rank[b.madeState] || G.dist(by, a) - G.dist(by, b); });
-    var two = (by.made0 ? [by] : []).concat(rest).slice(0, 2), lines = [];
+    var near = function (a, b) { return (b === by) - (a === by) || G.dist(by, a) - G.dist(by, b); }, pk = S.pack(B, by), unfed = pk.filter(function (h) { return h.madeState !== 'charged'; }).sort(near), lit = pk.filter(function (h) { return h.madeState === 'charged'; }).sort(near);
+    var two = unfed.concat(lit).slice(0, 2), lines = []; // (the unfed nearest the laugher first; a charged one only when fewer than two are unfed)
     two.forEach(function (h) { var l = S.fed(B, h, 1, { fear: w.name }); if (l) lines.push(l); });
     if (n >= 3 && lines.length) lines.push('{o}' + w.name + ' is panicked: the pack is done playing.{/}');
     return lines;

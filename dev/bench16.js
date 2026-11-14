@@ -9730,8 +9730,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okMS('9 one of the party frightened feeds two, the laugher and one more: ' + mid + ' (' + one + ' lines), the pack still toying (' + t1 + ')', mid === 'charged,charged,normal' && one === 2 && t1 === true && !B9.packLit);
       hy.forEach(function (h) { SE.setState(B9, h, 'normal'); h.temp = 0; }); var pl = SE.fearFed(B9, hy[0], cl9, 3), t2 = SE.toys(B9, hy[2]);
       okMS('9 one of the party PANICKED: two fed (' + hy.map(function (h) { return h.madeState; }).join(',') + ') and the toying over though one is not fed (toys ' + t2 + ', "' + strip(pl[pl.length - 1]) + '")', B9.packLit === true && t2 === false && hy[2].madeState === 'normal');
-      SE.setState(B9, hy[0], 'withered'); B9.packLit = false; hy[1].madeState; var wl = strip(SE.fearFed(B9, hy[1], cl9, 2).join(' | '));
-      okMS('9 the least fed is the second fed: a withered one beside a normal laugher -- ' + hy[0].madeState + ' ("' + wl.slice(-150) + '")', hy[0].madeState === 'normal' && /withered no longer/.test(wl));
+      hy.forEach(function (h) { SE.setState(B9, h, 'normal'); h.temp = 0; }); SE.setState(B9, hy[0], 'charged'); B9.packLit = false; var fl3 = SE.fearFed(B9, hy[0], cl9, 2).length, st3 = hy.map(function (h) { return h.madeState + '+' + (h.temp || 0); }).join(',');
+      okMS('9 a charged laugher and two unfed: the two unfed are fed, not the laugher ("first unfed (nearest laugher) and second nearest unfed") -- ' + st3, st3 === 'charged+0,charged+5,charged+5' && fl3 === 2);
+      hy.forEach(function (h) { h.temp = 0; }); hy[1].temp = 2; var fr3 = strip(SE.fearFed(B9, hy[0], cl9, 2).join(' | ')), st4 = hy.map(function (h) { return h.temp || 0; }).join(',');
+      okMS('9 all charged already: a feeding refreshes the temporary hit points of the laugher and the nearest ("if hits a charged one refreshes temp hp") -- ' + st4 + ' -- ' + fr3.slice(0, 120), st4 === '5,5,0' && /temporary hit points are fresh/.test(fr3));
+      hy.forEach(function (h) { SE.setState(B9, h, 'normal'); h.temp = 0; }); SE.setState(B9, hy[0], 'withered'); put9(); pinQ = [18, 2]; var lW = turn9(hy[0]); pinQ = [];
+      okMS('9 a withered one Shoves at -2 ("the withered state still impacts the contest, -2"): ' + lW.slice(0, 120), /Athletics d20 18 \+1 /.test(lW) && /SHOVE/.test(lW));
       // the Harbinger's four: "1 - they spawn in charged"
       D.d = d0MS; var BHm = D.npcFight('?npc=harbinger&vs=fighter:9,cleric:9,wizard:9,rogue:9&lvl=9', {}); D.battle = BHm; BHm.enter(); var kHm = 0; while (!BHm.order.length && kHm++ < 400) BHm.co.next();
       var hbM = BHm.units.filter(function (u) { return u.kind === 'harbinger'; })[0]; hbM.hp = Math.floor(hbM.maxhp * 0.4); D.rules.startTurn(hbM); BHm.active = hbM; var gHm = D.ai.turn(BHm, hbM), vHm, qHm = 0, sHm; while (qHm++ < 20000) { sHm = gHm.next(vHm); vHm = undefined; if (sHm.done) break; if (sHm.value && sHm.value.prompt) vHm = sHm.value.prompt.opts[0].value; }
@@ -9774,6 +9778,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.scenes.length = 0; D.push(wsM); delete SW.madeFed; SW.t = tS(10, 13);
       wsM.fight({ zone: 'doors', list: ['mirrorwolf'], mirror: true, grp: { mirror: true }, made: { day: 9, zone: 'doors', state: WS.madeState(9) } }, eM, { simple: true }); var bN2 = topMS(), fN = bN2.units.filter(function (u) { return u.side === 'foe'; })[0];
       okMS('6 the same making met on day 10, in the simple fight: ' + fN.name + ' ' + fN.madeState + ' ' + fN.hp + '/' + fN.maxhp + ' on ' + fN.sheet + ', its making known (' + (fN.made && fN.made.day) + ')', fN.madeState === 'normal' && fN.maxhp === FM.mirrorwolf.hp && fN.sheet === 'mirrorwolf_p1' && fN.made && fN.made.day === 9);
+      D.scenes.length = 0;
+      // 9. the simple fight (his "1 - is giving them a shove on simple a problem?": it is not -- they toy there too)
+      D.scenes.length = 0; D.push(wsM); delete SW.madeFed; SW.t = tS(4, 13);
+      wsM.fight({ zone: 'gnollhills', list: ['mirrorhyena', 'mirrorhyena', 'mirrorhyena'], mirror: true, grp: { mirror: true }, made: { day: 3, zone: 'gnollhills', state: WS.madeState(3) } }, eM, { simple: true }); var bS9 = topMS(); D.battle = bS9; if (bS9.o.simple && !bS9.simple && D.simple.setup) D.simple.setup(bS9);
+      var hS = bS9.units.filter(function (u) { return u.kind === 'mirrorhyena'; }), pS = bS9.units.filter(function (u) { return u.side === 'party'; }), hpS = pS.reduce(function (a, u) { return a + u.hp; }, 0), pq = [18, 2], dS = D.d; D.d = function (n) { return n === 20 && pq.length ? pq.shift() : dS.apply(this, arguments); };
+      var nS = (bS9.log || []).length; D.rules.startTurn(hS[0]); bS9.active = hS[0]; var gS = D.ai.turn(bS9, hS[0]), vS, qS = 0, sS; while (qS++ < 20000) { sS = gS.next(vS); vS = undefined; if (sS.done) break; if (sS.value && sS.value.prompt) vS = sS.value.prompt.opts[0].value; } bS9.active = null; D.d = dS;
+      var lS = strip((bS9.log || []).slice(nS).join(' | ')), downS = pS.filter(function (u) { return u.conds.prone; }).length;
+      okMS('9 in the simple fight a pack of three toys too (' + SE.toys(bS9, hS[1]) + ', simple ' + !!(bS9.simple || bS9.o.simple) + '): its turn is a Shove across the lines, ' + downS + ' of the party knocked prone, their hit points ' + hpS + ' to ' + pS.reduce(function (a, u) { return a + u.hp; }, 0) + ' -- ' + lS.slice(0, 200), !!(bS9.simple || bS9.o.simple) && SE.toys(bS9, hS[1]) === true && /SHOVE/.test(lS) && !/Bite/.test(lS) && downS === 1 && pS.reduce(function (a, u) { return a + u.hp; }, 0) === hpS);
       D.scenes.length = 0;
       // 8. the show's four beats of the states
       if (!D.madeshow) okMS('8 the show: deep16/js/madeshow.js is loaded', false);
