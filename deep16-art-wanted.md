@@ -501,3 +501,44 @@ HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corn
 All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of the attached pages; the whole figure head to foot; flat dark navy background (a deep blue, not grey and not black); labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the sword in his RIGHT hand and the shield on his LEFT arm in every view. No scenery.
 ```
 Where: Lymen's fight sheet `lymen_p2`, rows keyed `layonhands`, `divinesmite`, `greenagain`, `whatfallsfeeds`, `relentless`, and the standard `flinch`, `prone`, `getup`, `defend`, `useitem`, `victory`, `interact`, `attack2`. Cut as the standard ask. The engine plays the standard extras already (as Barley's); it does not yet play a row for any of his own five -- the wiring is a seat's job when they come back.
+
+## 62. The Mirror Stirge in two more states: WITHERED and CHARGED (a follow-up to ART-143) (added 11-14, the lanes desk, on his word: *"Art request for withered and charged mirror striges to outbox please?"*) -- IN THE OUTBOX 2026-11-14, waiting to go (`deep16/_src/outbox/ASK-2026-11-14-mirror-stirge-withered-and-charged/` and its `.zip`)
+
+From the engine side (the lanes desk), for the art desk. One ask: your ART-143 Mirror Stirge, drawn twice more, as you drew the Mirror Wolf and the Mirror Worg in three states. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-14-mirror-stirge-withered-and-charged/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 62.
+
+What holds and is KEPT: your ART-143 Mirror Stirge, every row and every view. It is in the game as you drew it (`mirrorstirge_p1`) and it is the NORMAL state. Your Mirror Wolf and Mirror Worg in their three states are in the game too.
+
+What the states are in the game (ruled 11-14): a mirror-made creature that has gone three days without eating magic is WITHERED -- weaker, slower, and gone for good a day later. One that has just eaten magic in a fight is CHARGED -- tougher and hitting harder for the rest of that fight. The game swaps the sheet in the middle of a fight, so each state must be the same creature on the same frame: same size, same pose, frame for frame.
+
+### THE MIRROR STIRGE, WITHERED and CHARGED -- in all five views
+ATTACH `ART-143-SE-Idle-8.png`, `ART-143-SE-Fly-8.png`, `ART-143-SE-Magicdrain-8.png`, `ART-143-SE-Flinch-6.png`, `ART-143-SE-Death-8.png`, `ART-143-SE-Latched-8.png`, `ART-143-S-Idle-8.png`, `ART-143-N-Idle-8.png` (your own Mirror Stirge pages: the Normal state, the frame to draw on), `MIRROR-WOLF_HEAD-1_SE_IDLE-8_NORMAL.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_EMACIATED.png`, `MIRROR-WOLF_HEAD-1_SE_IDLE-8_OVERCHARGED.png` (your own Mirror Wolf in its three states: how far apart the states should read), `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: your Mirror Stirge pages (ART-143), your Mirror Wolf in its three states, and the game's 64 colours. Draw the Mirror Stirge in two more states, WITHERED and CHARGED, on its exact frame: same size, same poses, same wing-beat, frame for frame with your ART-143 pages, so the game can swap one for another in the middle of a fight.
+
+WITHERED (your wolf's Emaciated): the Mirror Stirge after three days with no magic to drink. It is starving and going out.
+- its smoked-glass body is dull and clouded, the silver sheen gone to flat grey, with a few facets missing along the ridge and hairline cracks across the body;
+- it is thinner: the belly drawn in and hollow, never swollen;
+- its pane wings are frayed and chipped at the edges, a rib or two showing bare, and the glint that crosses a wing is gone;
+- its violet eyes are dim, two faint points, flickering out on a frame or two of the Idle loop;
+- in Magicdrain and Latched the violet thread up the needle is thin and broken, and the belly lights one facet at most.
+It hovers a little unsteadily: the same hover line as Normal, but the body dips on one frame of the Idle loop.
+
+CHARGED (your wolf's Overcharged): the Mirror Stirge just after it has drunk magic. It is full and bright.
+- its body is at its blackest and most polished, every facet along the ridge lit violet from within, the belly round and glowing violet in every row (not only at the end of Latched);
+- violet light runs along the silver ribs of its wings, and each wing-beat leaves two or three small violet sparks behind it that are gone by the next frame;
+- its eyes are bright violet with a small white core;
+- its needle glows violet-white at the tip;
+- in Magicdrain the thread up the needle is thick and bright from the stab frame on.
+No larger than Normal: the same silhouette, only lit. The sparks stay close to the body so every frame still stands apart.
+
+Both states, the same rows as ART-143, in each view:
+Idle (8), Fly (8), Magicdrain (8), Flinch (6), Death (8), Latched (8).
+Death, Withered: it crumbles to grey dust and a few dull shards. Death, Charged: it shatters with a small burst of violet light on the shatter frame, then lies as dark shards with two or three still faintly lit.
+
+HEAD 1 -- from the front, facing the viewer (south). HEAD 2 -- from the bottom-right, front three-quarter, every frame facing the bottom-right corner. HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind. HEAD 5 -- straight from behind, facing away. The same rows each, as your ART-143 pages.
+
+All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, the camera of your ART-143 pages; the whole creature in every frame, hovering, no ground shadow; flat slate background; labelled rows, numbered frames, every number once; every frame apart; the hover at one height along a row; the same size as your Mirror Stirge in every view. Use only the attached 64 colours: blacks and greys from the silver ramp, lights from the violet ramp and white. No red, no gold. No scenery.
+```
+Where: two new sheets, `mirrorstirge_emaciated_p1` and `mirrorstirge_overcharged_p1` (named as the wolf's and the worg's are), on `mirrorstirge_p1`'s cell and foot, rows `idle`, `walk`, `attack`, `flinch`, `hurt`, `latched`; cut by `tools/mirrorstirge-sheet.py` through `tools/stirgepages.py` as ART-143 was, each view scaled to the Normal state's idle frame 1 in that view. The engine picks the sheet by the creature's state (the made-states seat's build, 11-14).
+
+What is sourced and what is the desk's: the two states and what they mean in the game are his rulings of 11-13 and 11-14; that the Mirror Stirge gets them is his word above. The look of each state (clouded and cracked; lit facets and sparks) is the desk's wording, drawn from your own Emaciated and Overcharged wolf and from the ART-143 brief. Draw past it where your wolf did.
