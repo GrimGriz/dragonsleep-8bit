@@ -86,7 +86,7 @@
   SH.scene = function (show, t) {
     var first = show.first, sc = { units: {}, order: { ours: [], theirs: [] }, ter: '.', road: false, place: '', banner: null, dice: [], fx: [], runners: [], dark: 0, head: null, t: t };
     if (first && first.t === 'fight') {
-      sc.ter = first.ter; sc.road = first.road; sc.place = first.place; sc.spread = first.spread || 0; sc.hexes = !!first.hexes;
+      sc.ter = first.ter; sc.road = first.road; sc.place = first.place; sc.spread = first.spread || 0; sc.hexes = !!first.hexes; sc.labels = first.labels || null;
       ['ours', 'theirs'].forEach(function (k) {
         first[k].forEach(function (u) { sc.units[u.id] = { u: u, k: k, figs: u.figs, figs0: u.figs, heroes: u.heroes.map(function (h) { return { name: h.name, type: h.type, dead: false }; }), fall: null, alpha: 1, anim: null, gone: false, hurt: 0 }; sc.order[k].push(u.id); });
       });
@@ -317,7 +317,7 @@
     var rolling = {}; sc.dice.forEach(function (dd) { rolling[dd.u] = 1; });
     ['ours', 'theirs'].forEach(function (side) {
       var ids = sc.order[side], y = 112, x = side === 'ours' ? 16 : W0 - 16, al = side === 'ours' ? 'left' : 'right';
-      text(cx, side === 'ours' ? 'OURS' : 'THEIRS', x, y - 4, 13, side === 'ours' ? '#9ff0dc' : '#ffb898', al);
+      text(cx, sc.labels ? sc.labels[side] : side === 'ours' ? 'OURS' : 'THEIRS', x, y - 4, 13, side === 'ours' ? '#9ff0dc' : '#ffb898', al);
       ids.forEach(function (id, i) {
         var U = sc.units[id], nm = U.u.party ? 'the four' : U.u.name, hs = U.heroes.filter(function (h) { return !h.dead; }).length;
         cx.globalAlpha = U.gone ? 0.35 : 1;

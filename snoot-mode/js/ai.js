@@ -88,7 +88,8 @@
   // within two days (this band's own among them) against its own strength; a band takes on what the Snoot together can beat
   AI.mark = function (st, u) {
     var P = SN.party(st), best = null, bs = 0;
-    ours(st).forEach(function (x) {
+    // (the Dominion's wagons are marks too, 11-14: "that'd be more glory for them" -- weighed as ours are, by the one table)
+    ours(st).concat(st.units.filter(function (x) { return x.side === 'dominion' && SN.alive(x) && x.on; })).forEach(function (x) {
       if (x.party || (P && SN.dist(P.at, x.at) <= 0)) return;
       var d = daysTo(u, x.at); if (d > 3) return;
       var pack = st.units.filter(function (g) { return g.side === 'gnoll' && SN.alive(g) && g.state === 'ok' && !g.watch && !g.harbinger && daysTo(g, x.at) <= 2; })

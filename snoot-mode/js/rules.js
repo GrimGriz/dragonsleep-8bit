@@ -78,7 +78,25 @@
   // ---------------------------------------------------------------- the units
   SN.alive = function (u) { return u.on && (u.state === 'ok' || u.state === 'retreat' || u.state === 'rout' || u.state === 'withdraw'); };
   SN.heroesOf = function (u) { return (u.heroes || []).filter(function (h) { return !h.dead; }); };
-  SN.hostile = function (a, b) { return a.side !== b.side && (a.side === 'ours' || b.side === 'ours'); }; // (the gnolls and the Dominion do not fight each other: the Dominion lit this)
+  // WHO FIGHTS WHOM (11-14, Griz, 11-13: "honestly i was wrong about the gnolls not engaging dominion, that'd be more glory for them under the circumstances";
+  // 11-14, asked whether to make the gnolls and the Dominion hostile on the board: "Yes, build it"): ours against everyone; the tribes against the Dominion too.
+  // The Harbinger's pack is the Mirror's, as the wagons' ladies are (the Dominion lit this): it and the Dominion leave each other be -- the seat's reading.
+  SN.hostile = function (a, b) { if (a.side === b.side) return false; if (a.side === 'ours' || b.side === 'ours') return true; return !(a.harbinger || b.harbinger); };
+  // a hex's parties are its sides (ours, the gnolls, the Dominion). The grid fights two at a time, so a hex with three is fought in turn: the two the one table
+  // weighs heaviest first, then whoever holds the hex against the third (SN.fightHex). In a fight the first party stands where "ours" always stood and the second
+  // where "theirs" did (st.fightA, st.fightB): ours when they are in it, else the Dominion -- so the gnolls are always the second, as every rule of theirs expects
+  // (the witness, the matriarchs' prayers, glory).
+  SN.pairAt = function (st, h) {
+    var here = SN.unitsAt(st, h), by = {}; here.forEach(function (u) { (by[u.side] = by[u.side] || []).push(u); });
+    var ks = Object.keys(by), pairs = [];
+    ks.forEach(function (x, i) { ks.slice(i + 1).forEach(function (y) { if (by[x].some(function (a) { return by[y].some(function (b) { return SN.hostile(a, b); }); })) pairs.push([x, y]); }); });
+    if (!pairs.length) return null;
+    var w = function (k) { return by[k].reduce(function (t, u) { return t + SN.worth(u); }, 0); };
+    pairs.sort(function (p1, p2) { return (w(p2[0]) + w(p2[1])) - (w(p1[0]) + w(p1[1])); });
+    var pr = pairs[0], rank = { ours: 0, dominion: 1, gnoll: 2 };
+    return pr.slice().sort(function (x, y) { return (rank[x] == null ? 9 : rank[x]) - (rank[y] == null ? 9 : rank[y]); });
+  };
+  SN.SIDENAME = { ours: 'OURS', gnoll: 'THE GNOLLS', dominion: 'THE DOMINION' };
   SN.unitsAt = function (st, h) { return st.units.filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); };
   SN.unit = function (st, id) { return st.units.filter(function (u) { return u.id === id; })[0]; };
   SN.isWiz = function (h) { return h.type === 'wizard'; };
@@ -358,7 +376,7 @@
       st.units.forEach(function (u) {
         if (!SN.alive(u) || u.state !== 'ok' || u.moved || SN.same(u.at, h) || SN.dist(u.at, h) !== 1 || fighting[SN.key(u.at)]) return;
         var join = (u.order.type === 'support' && u.side === 'ours' && (sides.gnoll || sides.dominion)) ||
-          (u.side !== 'ours' && u.order.type === 'support' && sides.ours && sides[u.side]) || (u.berserk && sides.gnoll);
+          (u.side !== 'ours' && u.order.type === 'support' && sides[u.side] && (sides.ours || (!u.harbinger && (u.side === 'gnoll' ? sides.dominion : sides.gnoll)))) || (u.berserk && sides.gnoll);
         if (!join || !SN.room(st, h, u) || SN.cost(h) >= 99) return;
         SN.stepTo(u, h); u.drawn = true; u.moved = true;
         SN.say(st, u.name + (u.berserk ? ' will not wait: they run into the fight.' : ' are drawn into the fight.'), 'move', h);
@@ -423,12 +441,23 @@
 
   // ---------------------------------------------------------------- a contested hex: the shock, the grid for the party, then the tables
   SN.fightHex = function* (st, h) {
-    var here = function () { return SN.unitsAt(st, h); };
-    var ours = function () { return here().filter(function (u) { return u.side === 'ours'; }); }, theirs = function () { return here().filter(function (u) { return u.side !== 'ours'; }); };
+    for (var turn = 0; turn < 3; turn++) {
+      var pr = SN.pairAt(st, h); if (!pr) break;
+      if (turn) yield* SN.flush(st, h); // (the fight before it is shown first)
+      st.fightA = pr[0]; st.fightB = pr[1];
+      try { yield* SN.fightPair(st, h); } finally { st.fightA = null; st.fightB = null; }
+    }
+  };
+  SN.fightPair = function* (st, h) {
+    var A = st.fightA || 'ours', Bs = st.fightB, here = function () { return SN.unitsAt(st, h); };
+    // (only who has an enemy across the hex: the Harbinger's pack stands aside from a band's fight with a wagon)
+    var ofSide = function (k, other) { return here().filter(function (u) { return u.side === k && here().some(function (x) { return x.side === other && SN.hostile(u, x); }); }); };
+    var ours = function () { return ofSide(A, Bs); }, theirs = function () { return ofSide(Bs, A); };
     if (!ours().length || !theirs().length) return;
     var name = SN.placeName(h);
     SN.say(st, 'A fight at ' + name + ': ' + ours().map(SN.label).join(', ') + ' against ' + theirs().map(SN.label).join(', ') + '.', 'fight', h);
-    SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(function (u) { return SN.snap(u, h); }), theirs: theirs().map(function (u) { return SN.snap(u, h); }) });
+    SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(function (u) { return SN.snap(u, h); }), theirs: theirs().map(function (u) { return SN.snap(u, h); }),
+      labels: A === 'ours' ? null : { ours: SN.SIDENAME[A] || A.toUpperCase(), theirs: SN.SIDENAME[Bs] || Bs.toUpperCase() } }); // (labels: a fight none of ours is in -- the show's rosters and turns name the two)
     SN.surprise(st, h, ours(), theirs());
     SN.evasion(st, h, ours(), theirs());
     if (!ours().length || !theirs().length) return; // (it slipped away: no fight, and no one won one)
@@ -539,7 +568,8 @@
     var by = side === 'ours' ? T : O, circle = !!side && by.filter(function (u) { return !u.party; }).length >= 3;
     if (side) st.surp = { at: h.slice(), side: side, circle: circle };
     SN.beat(st, { t: 'surp', dO: dO, dT: dT, side: side, circle: circle, both: sO && sT });
-    SN.say(st, 'Surprise (Book III): ours roll ' + dO + ', theirs ' + dT + (side ? ' -- ' + (side === 'ours' ? 'ours are' : 'they are') + ' caught unready: they lose their first turn' + (circle ? ', and three or more come at them from every side' : '') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
+    var nA = !st.fightA || st.fightA === 'ours' ? null : [(SN.SIDENAME[st.fightA] || st.fightA).toLowerCase(), (SN.SIDENAME[st.fightB] || st.fightB).toLowerCase()];
+    SN.say(st, 'Surprise (Book III): ' + (nA ? nA[0] : 'ours') + ' roll ' + dO + ', ' + (nA ? nA[1] : 'theirs') + ' ' + dT + (side ? ' -- ' + (side === 'ours' ? (nA ? nA[0] + ' are' : 'ours are') : (nA ? nA[1] + ' are' : 'they are')) + ' caught unready: they lose their first turn' + (circle ? ', and three or more come at them from every side' : '') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
   };
   // evasion (OD&D Book III p.20; RULED 10-15, his "go on evasion" on the seat's lean): a unit under orders to AVOID that something comes at tries
   // to slip a hex away instead of fighting, on Book III's table -- the party's size (here the unit's figures; the four count four) against "the number
@@ -552,7 +582,7 @@
     var size = u.party ? 4 : SN.fightFigs(u), row = SN.EVADE.filter(function (r) { return size <= r[0]; })[0][1];
     var a = P.reduce(function (s, x) { return s + (x.figs || 0); }, 0), b = P.reduce(function (s, x) { return s + (x.figs0 || 0); }, 0), share = b ? a / b : 1;
     var c = row[share <= 0.25 ? 0 : share <= 0.6 ? 1 : 2], why = [size + (u.party ? ' of the four' : ' figures') + ' against ' + Math.round(share * 100) + '% of their strength: ' + c + '%'];
-    var mine = u.side === 'ours' ? 'ours' : 'theirs';
+    var mine = u.side === (st.fightA || 'ours') ? 'ours' : 'theirs';
     if (surp && surp.side && surp.side !== mine) { c *= 2; why.push('they were surprised: doubled'); }
     else if (surp && surp.side === mine) { if (SN.heroesOf(u).some(SN.casts)) why.push('surprised, but magic with them'); else { c = 0; why.push('caught unready: no chance'); } }
     var mu = SN.moveOf(u), mp = Math.max.apply(null, P.map(SN.moveOf));
@@ -586,12 +616,12 @@
     SN.say(st, 'Night falls on the fight at ' + SN.placeName(h) + ': ' + back.map(function (u) { return u.party ? 'the four' : u.name; }).join(' and ') + ' back off a hex in good order.', 'morale', h);
     SN.beat(st, { t: 'night', units: back.map(function (u) { return u.id; }) });
     tryBack(back);
-    var o2 = SN.unitsAt(st, h).filter(function (u) { return u.side === 'ours'; }), t2 = SN.unitsAt(st, h).filter(function (u) { return u.side !== 'ours'; });
+    var fA = st.fightA || 'ours', fB = st.fightB, o2 = SN.unitsAt(st, h).filter(function (u) { return u.side === fA; }), t2 = SN.unitsAt(st, h).filter(function (u) { return fB ? u.side === fB : u.side !== fA; });
     if (o2.length && t2.length) tryBack(back === O ? t2 : o2);
   };
   // after a hex's fight: who won it, the witness, instability
   SN.after = function (st, h, P) {
-    var left = SN.unitsAt(st, h), o = left.filter(function (u) { return u.side === 'ours'; }), t = left.filter(function (u) { return u.side !== 'ours'; });
+    var fA = st.fightA || 'ours', fB = st.fightB, left = SN.unitsAt(st, h), o = left.filter(function (u) { return u.side === fA; }), t = left.filter(function (u) { return fB ? u.side === fB : u.side !== fA; }); // (the fight's own two parties: a third in the hex is not in this count)
     var winner = o.length && !t.length ? 'ours' : t.length && !o.length ? 'them' : null;
     if (winner === 'them') t.forEach(function (u) { u.wonToday = true; });
     if (winner === 'ours') o.forEach(function (u) { u.wonToday = true; });
@@ -659,7 +689,7 @@
     var biggest = function (B) { return B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0]; }, rearOf = {};
     // a side caught unready (SN.surprise) is taken in the flank in the first round, or in the rear by a circle of three or more
     var sur = round === 1 && st.surp && SN.same(st.surp.at, h) ? st.surp : null;
-    var aspOf = function (a, tg) { var asp = SN.aspect(st, a, tg, h); if (sur && (tg.side === 'ours') === (sur.side === 'ours') && asp !== 'rear') asp = sur.circle ? 'rear' : 'flank'; if (tg.entangled && asp === 'front') asp = 'flank'; return asp; }; // (entangled: restrained, struck as from the flank -- SN.pray)
+    var aspOf = function (a, tg) { var asp = SN.aspect(st, a, tg, h); if (sur && (o.indexOf(tg) >= 0) === (sur.side === 'ours') && asp !== 'rear') asp = sur.circle ? 'rear' : 'flank'; if (tg.entangled && asp === 'front') asp = 'flank'; return asp; }; // (entangled: restrained, struck as from the flank -- SN.pray)
     if (round === 1) [[o, t], [t, o]].forEach(function (pr) { pr[0].forEach(function (a) { var tg = biggest(pr[1]); if (tg && aspOf(a, tg) === 'rear') (rearOf[tg.id] = rearOf[tg.id] || []).push(a.id); }); });
     function attack(a, B, volley) {
       if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
@@ -703,7 +733,7 @@
     // struck unit rolls its save -- heroes 9+, super-heroes 6+, wraiths 7+ (GreyFang is beaten back, never killed; the Harbinger is the mirror's)
     o.concat(t).forEach(function (a) {
       SN.heroesOf(a).filter(SN.casts).forEach(function (w) {
-        var B = (a.side === 'ours' ? t : o).filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); if (!B.length) return;
+        var B = (o.indexOf(a) >= 0 ? t : o).filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); if (!B.length) return;
         var light = w.missile === 'lightning', pick = B.slice().sort(function () { return SN.rng(st) - 0.5; }), tgs = light ? pick.slice(0, 2) : pick.slice(0, 1);
         var hitsOn = tgs.map(function (u) { return { tg: u.id, n: light ? 1 + Math.floor(SN.rng(st) * 6) : 2 + Math.floor(SN.rng(st) * 6) + Math.floor(SN.rng(st) * 6) }; }); // (one man a figure: a fire ball 2d6 men of the unit it falls on, a bolt 1d6 of each of two -- the seat's reading of the catapult's hit area)
         SN.beat(st, { t: 'fb', u: a.id, w: w.name, kind: light ? 'lightning' : 'fireball', tg: hitsOn[0].tg, n: hitsOn[0].n, tgs: hitsOn });
@@ -721,7 +751,7 @@
     });
     if (round === 1) {
       // missiles first (p.9): the crossbows' volley, nothing back
-      o.concat(t).filter(function (a) { return a.volley && a.figs > 0; }).forEach(function (a) { attack(a, a.side === 'ours' ? t : o, true); }); // (a mixed unit's missile troops alone)
+      o.concat(t).filter(function (a) { return a.volley && a.figs > 0; }).forEach(function (a) { attack(a, o.indexOf(a) >= 0 ? t : o, true); }); // (a mixed unit's missile troops alone)
     }
     o.forEach(function (a) { attack(a, t); });
     t.forEach(function (a) { attack(a, o); });

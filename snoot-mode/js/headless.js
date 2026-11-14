@@ -62,7 +62,7 @@
   // side's beats goes down, the other side's first. The beats themselves stay in the record (res.beats) and on the grid's own door.
   // byId: the board's units in the fight by id (a side may be several: the grid says whose each man is). Lays `round`, `hbeat`, `cas` and `herofall` into the
   // day's beats; the men who ran are not casualties (they leave at the end). Returns each unit's men left standing or away.
-  HL.rounds = function (st, res, byId) {
+  HL.rounds = function (st, res, byId, labels) {
     var men = {}, names = {}, sideOf = {}, nb = 0, rounds = [], byR = {};
     Object.keys(byId).forEach(function (id) { men[id] = byId[id].figs || 0; names[id] = HL.sent(byId[id]).map(function (h) { return h.name; }); });
     ['a', 'b'].forEach(function (g) { Object.keys(res[g].units || {}).forEach(function (id) { sideOf[id] = g; }); });
@@ -83,7 +83,7 @@
       S.fell = S.fell.concat(bt.fell);
     });
     var standing = function (g) { return Object.keys(sideOf).filter(function (id) { return sideOf[id] === g && byId[id] && (men[id] > 0 || heroUp[id] > 0); }); };
-    var sideName = function (g) { var us = Object.keys(sideOf).filter(function (id) { return sideOf[id] === g && byId[id]; }); return us.length === 1 ? byId[us[0]].name : (byId[us[0]] && byId[us[0]].side === 'ours' ? 'OURS' : 'THEIRS'); };
+    var sideName = function (g) { var us = Object.keys(sideOf).filter(function (id) { return sideOf[id] === g && byId[id]; }); return us.length === 1 ? byId[us[0]].name : labels ? labels[g === 'a' ? 'ours' : 'theirs'] : (g === 'a' ? 'OURS' : 'THEIRS'); };
     rounds.forEach(function (R) {
       SN.beat(st, { t: 'round', n: R.n });
       R.order.forEach(function (g) {
@@ -172,8 +172,8 @@
     if (res.seat) { var odd = O.concat(T).filter(function (u) { var q = res.seat[u.id]; return q && (q.asp !== 'front' || q.cover || (u.form && u.form !== 'line')); });
       if (odd.length) SN.say(st, 'Seated: ' + odd.map(function (u) { var q = res.seat[u.id]; return u.name + ' ' + (u.form && u.form !== 'line' ? 'in ' + u.form + ', ' : '') + (q.asp === 'flank' ? 'on their flank' : q.asp === 'rear' ? 'behind them' : 'at the front') + (q.cover ? ', behind their walls' : ''); }).join('; ') + '.', 'info', h); }
     // (the hexes view, js/show.js: this fight's own `fight` beat is marked, so the show draws it a unit to its hex)
-    for (var bi = (st.beats || []).length - 1; bi >= 0; bi--) { var fb = st.beats[bi]; if (fb.t === 'fight' && SN.same(fb.at, h)) { fb.hexes = true; break; } }
-    HL.rounds(st, res, byId);
+    var labs = null; for (var bi = (st.beats || []).length - 1; bi >= 0; bi--) { var fb = st.beats[bi]; if (fb.t === 'fight' && SN.same(fb.at, h)) { fb.hexes = true; labs = fb.labels || null; break; } }
+    HL.rounds(st, res, byId, labs);
     (res.morale || []).forEach(function (l) { SN.say(st, l.replace(/^R(\d+) MORALE\s+/, 'Morale, round $1: ').replace(/^R(\d+) GLORY\s+/, 'Round $1: ').replace(/\s+/g, ' '), 'morale', h); });
     if (res.charged) SN.say(st, 'The ones who marched in came on at a run: a Dash\'s feet in the first round (' + res.charged + ' bodies).', 'info', h);
     ['a', 'b'].forEach(function (g) {
