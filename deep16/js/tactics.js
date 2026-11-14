@@ -190,6 +190,10 @@
     var T = u.turn, out = [];
     if (!T.action && !T.attacksLeft) return out;
     var rm = G.reach(u, T.move), here = { x: u.x, y: u.y, cost: 0, stand: true };
+    // the blows a walk off costs (11-14, the AI lane's §2.8, "weaponPlans walks out of reach with no opportunity-attack cost"): each foe beside it now, able to react, that a square
+    // leaves the reach of swings as it goes -- half a round of its blows, none when it disengaged (as a caster's step is weighed: castFrom, below)
+    var press0 = T.disengaged ? [] : G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w) && w.reaction !== 0; });
+    var oaOf = function (e) { return press0.reduce(function (s, w) { return s + (G.dist(u, w, e.x, e.y) > G.reachOf(w) ? TX.dpr(w) * 0.5 : 0); }, 0); };
     var squares = [here];
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y)) squares.push(e); });
     weapons(u).forEach(function (wp) {
@@ -206,7 +210,7 @@
           if (u.combo && wp === u.combo[0]) dmg = u.combo.slice(0, n).reduce(function (a, w) { var sw = swing(B, u, t, w, e.x, e.y); return a + sw.p * sw.d; }, 0); // (claw, claw, bite: each swing its own dice)
           var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not
-          sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0);
+          sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0) + (e === here ? 0 : oaOf(e));
           if (!best || sc > best.score) best = { score: sc, t: t, e: e, wp: wp, why: (wp.ranged ? 'shoots ' : 'strikes ') + t.name };
         });
       });

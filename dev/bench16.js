@@ -365,6 +365,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       placeLD(B6, [[wz6, 3, 3], [gb6[0], 10, 6], [gb6[1], 11, 6], [ft6, 2, 10]]); var sOut = sl6();
       okLD('6 Sleep at two goblins of 7 hp: worth ' + (sIn == null ? '-' : sIn.toFixed(2)) + ' with the fighter (12 hp) beside them, ' + (sOut == null ? '-' : sOut.toFixed(2)) + ' with the fighter clear; 5d8 reaches 26 ' + Math.round(D.tactics.sleepReach(5, 26) * 100) + '% of the time, 14 ' + Math.round(D.tactics.sleepReach(5, 14) * 100) + '%, 41 ' + Math.round(D.tactics.sleepReach(5, 41) * 100) + '%',
         sIn != null && sOut != null && sOut > sIn + 0.5 && D.tactics.sleepReach(5, 41) === 0 && D.tactics.sleepReach(5, 5) > 0.999 && Math.abs(D.tactics.sleepReach(5, 26) - 0.29) < 0.06);
+      // 7. the walk off a foe priced (the lane's §2.8, "weaponPlans walks out of reach with no opportunity-attack cost"): a fighter beside an ogre, a goblin 25 ft off -- the
+      // strike at the goblin costs the ogre's swing as the fighter leaves it; with the ogre's reaction spent it costs nothing
+      var B7 = mkLD('?npc=ogre,goblin&vs=fighter:3&lvl=3'), og7 = B7.units.filter(function (u) { return u.kind === 'ogre'; })[0], gb7 = B7.units.filter(function (u) { return u.kind === 'goblin'; })[0], ft7 = B7.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      placeLD(B7, [[ft7, 6, 6], [og7, 7, 6], [gb7, 6, 11]]);
+      var top7 = function () { D.rules.startTurn(ft7); var p7 = D.tactics.plans(B7, ft7).filter(function (p) { return p.kind === 'weapon' && /^strikes/.test(p.why); })[0]; return p7 ? p7.why + ' ' + p7.score.toFixed(1) : '-'; };
+      og7.reaction = 1; var t7a = top7(); og7.reaction = 0; var t7b = top7(); og7.reaction = 1;
+      okLD('7 beside an ogre with a goblin 25 ft off: the fighter would ' + t7a + ' (the walk off costs the ogre\'s swing, half its round ' + (D.tactics.dpr(og7) * 0.5).toFixed(1) + '); with the ogre\'s reaction spent, ' + t7b, /Ogre/.test(t7a) && /Goblin/.test(t7b));
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
