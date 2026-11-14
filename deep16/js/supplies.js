@@ -537,7 +537,7 @@
     }
     if (WV.hit && WV.hit({ x: x, y: y })) return false;   // (the show's own buttons -- TO THE CHEST, ON TO THE BED, a rest's -- lie over the floor: the tower under one is not clicked)
     // the lamp: on its tower, or its box in the run's corner (always on the screen -- the tower is off it whenever the fight is elsewhere)
-    if (onLantern(B, x, y) || inR({ x: D.W - 132, y: D.H - 102, w: 128, h: 30 }, x, y)) { S.open = !S.open; D.sfx(S.open ? 'popup' : 'cancel'); return true; }
+    if (onLantern(B, x, y) || inR(WV.box(), x, y)) { S.open = !S.open; D.sfx(S.open ? 'popup' : 'cancel'); return true; }
     return false;
   };
 
@@ -553,9 +553,10 @@
     var S = B.su; BTN = {};
     if (!S || !usable(B)) return;
     var Wd = D.W, Hd = D.H;
-    // the lantern's buttons, over the run's box (bottom right: js/waves.js WV.hud)
+    // the lantern's buttons, coming down off the run's box (top right: js/waves.js WV.box -- 11-14, his "the dono tier box coming down off it")
+    var bxR = WV.box();
     if (S.open) {
-      var x = Wd - 132, y = Hd - 192, w = 128;
+      var x = bxR.x, y = bxR.y + bxR.h + 2, w = bxR.w;
       D.win8(ctx, x, y, w, 88); BTN.panel = { x: x, y: y, w: w, h: 88 };
       D.text(ctx, 'SUPPLIES', x + 6, y + 5, P('gold', 4)); D.text(ctx, score(S) + '/100', x + w - 20, y + 5, P('bone', 1), 'right');
       button(ctx, 'close', 'x', x + w - 16, y + 3, 12, 11, P('red', 1));
@@ -564,7 +565,7 @@
       });
     } else if (S.chest.length || S.score10) {
       var n = S.chest.length;
-      D.text(ctx, (n ? 'CHEST ' + n + '  ' : '') + 'SCORE ' + score(S), Wd - 6, Hd - 113, n ? P('gold', 4) : P('bone', 1), 'right');
+      D.text(ctx, (n ? 'CHEST ' + n + '  ' : '') + 'SCORE ' + score(S), bxR.x + bxR.w - 2, bxR.y + bxR.h + 3, n ? P('gold', 4) : P('bone', 1), 'right');
     }
     // the chest's moment: what came out of it, and a choice to make; on the lamp's turn, what is waiting in it
     if (B.gs.mode === 'chest' && S.at) chestPanel(ctx, B, S);

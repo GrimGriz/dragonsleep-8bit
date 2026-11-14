@@ -119,7 +119,9 @@
         if (hit === 'scores') { st.mode = st.mode === 'scores' ? 'title' : 'scores'; continue; }
         if (hit === 'name') { nameEdit(B); continue; }
         if (hit === 'tutorial') { st.tutorial = !st.tutorial; D.store.set(TUT, st.tutorial); D.sfx('cursor'); continue; }
-        if (hit === 'continue') { var sv = savedRun(st.name); if (sv) { GS.resume = sv; D.sfx('confirm'); break; } continue; }   // (the group's save: js/waves.js WV.save)
+        // (the group's saves, js/waves.js WV.save: one, CONTINUE takes it; more, CONTINUE lists them and a click on one takes it -- 11-14, his "lean 3")
+        if (hit === 'continue') { var svs = savedRuns(st.name); if (svs.length === 1) { GS.resume = svs[0]; D.sfx('confirm'); break; } if (svs.length) { st.pick = !st.pick; D.sfx('cursor'); } continue; }
+        if (hit && /^save\d$/.test(hit)) { var pk = savedRuns(st.name)[+hit.charAt(4)]; if (pk) { GS.resume = pk; st.pick = false; D.sfx('confirm'); break; } continue; }
         if (st.mode === 'title' && !st.editing) {
           var sq = D.iso.pick(ck.x, ck.y, 0);
           if (sq && sq.x === ctr[0] && sq.y === ctr[1]) break;      // the circle's centre: the show begins
@@ -230,6 +232,14 @@
   function* wake(B, sign, o) { var done = false; C.wake(B, sign, o, function () { done = true; }); while (!done) yield 1; }
   function* spin(B, sign, o) { var done = false; C.spin(B, sign, o, function () { done = true; }); while (!done) yield 1; }
   function* sink(B) { var done = false; C.sink(B, function () { done = true; }); while (!done) yield 1; }
+  // one jumping in with the circle spinning under them, not a still one that then sinks (11-14, the Game Show lane's head 1b; Griz, 10-15: "Portal doesn't spin when the king
+  // and ingrith go in, just sinks"): the circle set spinning as they leave their square, their fall waited on with it
+  function* spinIn(B, u, sign) {
+    var done = false; C.spin(B, sign, { turns: 1, T: 1.6 }, function () { done = true; });
+    jumpIn(B, u, 0);
+    for (var k = 0; !done && k < W(240); k++) yield 1;
+    yield W(20);
+  }
   function* fade(B, to, n) { var f0 = B.gs.fade; for (var i = 1; i <= n; i++) { B.gs.fade = f0 + (to - f0) * i / n; yield 1; } B.gs.fade = to; }
   function corners(at, n) { var r = (n - 1) / 2; return [[at[0] - r, at[1] - r], [at[0] + r, at[1] - r], [at[0] - r, at[1] + r], [at[0] + r, at[1] + r]]; }
   // a scripted walk to a square, no rules (the arrivals' way, battle.js walkIn): a step at a time by the route round what is solid
@@ -259,6 +269,9 @@
     // (the word 'ingrith' builds her cleric -- js/classes.js NPC.NAMED.ingrith, the stats -- with no name or figure of her own: hers are the 8-bit's)
     var ing = B.units.filter(function (u) { return u.side === 'party' && !u.mpmon && u !== pyro; })[0];
     if (ing) { ing.name = 'Ingrith'; if (D.SHEETS && D.SHEETS.ingrith_p0) ing.sheet = 'ingrith_p0'; }
+    // a return (CONTINUE) opens on the spinning circle with the four popping out, and the king and his cleric are not there (11-14, the Game Show lane's head 1b; Griz, 10-15:
+    // "No reason for them to be (back) there, opening on a spinning portal with the lobstamonkees popping out then "GANGOF4 are back at the Third Lamp" should be plenty")
+    if (GS.resume) { [pyro, ing].forEach(function (u) { var j = u ? B.units.indexOf(u) : -1; if (j >= 0) B.units.splice(j, 1); }); pyro = null; ing = null; }
     var four = ['denny', 'rascal', 'goose', 'beholda'].map(function (k) { return mascot(B, k); }).filter(Boolean);
     four.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); });    // (they are on the far side of the circle yet)
     if (pyro) { pyro.x = tower[0] - 1; pyro.y = tower[1] + 1; pyro.facing = 1; }
@@ -267,8 +280,7 @@
     C.run(B).a = 30 * Math.max(0, sh.rest.indexOf(st.sign));                  // (the circle rests on the sign the lighthouse landed on)
     hold(B, [tower[0], tower[1] + 3], 1.25); B.gs.lock = null;   // (the opening shot; the scene's camera moves from it)
     yield* fade(B, 0, W(40));
-    B.card(['{y}THIRD LAMP.{/}  The king and his cleric keep the light.'], 300);
-    yield W(90);
+    if (!GS.resume) { B.card(['{y}THIRD LAMP.{/}  The king and his cleric keep the light.'], 300); yield W(90); }
     // to the circle: she goes first, with the Ledger-Lamp
     yield* B.camTo({ gx: ctr[0], gy: ctr[1] - 1, gz: 0 }, 1.1, W(50));
     var cc = D.iso.center(ctr[0], ctr[1] - 1, 0); st.lock = { x: cc.x, y: cc.y - 20, zoom: 1.1 };   // (the shot held on the circle: the speaker never pulls the camera off it)
@@ -289,13 +301,13 @@
     yield W(four.length * 21 + 60);
     G.setup(G.map, B.units);
     // the king's charge (his lines as he wrote them; round them, the seat's)
-    if (pyro && GS.resume) { B.card(['{y}' + GS.resume.group + '{/} are back at Third Lamp: tier ' + GS.resume.tier + ', wave ' + ((GS.resume.wi || 0) + 1) + '.'], W(300)); jumpIn(B, pyro, 0); if (ing) { st.ledger = null; B.lights = B.lights.filter(function (l) { return l.id !== 'ledger'; }); jumpIn(B, ing, 0); } yield W(120); pyro = null; ing = null; } // (a return: no speeches)
+    if (GS.resume) { B.card(['{y}' + GS.resume.group + '{/} are back at Third Lamp: tier ' + GS.resume.tier + ', wave ' + ((GS.resume.wi || 0) + 1) + '.'], W(300)); yield W(120); } // (a return: no speeches, no king)
     if (pyro) {
       D.sfx('popup'); pyro.facing = 1;
       B.card(['{y}Pyro{/}: "The lamp is under heavy pressure, and Sólskaft is under attack on the surface. I am needed up there."'], W(420)); yield W(200);
       B.card(['{y}Pyro{/}: "Hold out here, Lobstamonkees, as long as you can."'], W(360)); yield W(170);
       B.card(['{y}Pyro{/}: "As long as the lamp stays lit, you\'re Virtually Not Alone."'], W(360)); yield W(190);
-      jumpIn(B, pyro, 0); yield W(60);
+      yield* spinIn(B, pyro, st.sign);
     }
     // the cleric's word on the chest, the circle open for her while she says it
     if (ing) {
@@ -310,7 +322,7 @@
       } else yield W(200);
       B.card(['{y}Ingrith{/}: "They\'re watching. Give them a show, and they\'ll keep you fed. Check it between waves."'], W(420)); yield W(200);
       st.ledger = null; B.lights = B.lights.filter(function (l) { return l.id !== 'ledger'; });
-      jumpIn(B, ing, 0); yield W(60);
+      yield* spinIn(B, ing, st.sign);
     }
     yield* sink(B);                                                                   // dormant again
     B.lights = B.lights.filter(function (l) { return l.id !== 'circle'; });
@@ -442,7 +454,9 @@
     D.win8(ctx, x, y, w, h, on ? P('red', 1) : null); D.text(ctx, label, x + w / 2, y + Math.round(h / 2) - 4, on ? P('gold', 4) : P('bone', 1), 'center');
     BTN[id] = { x: x, y: y, w: w, h: h };
   }
-  function savedRun(g) { return GS.wave && GS.wave.loadSave ? GS.wave.loadSave(g) : null; }   // (the group's save, js/waves.js; read each frame on the title: one key)
+  function savedRuns(g) { return GS.wave && GS.wave.saves ? GS.wave.saves(g) : []; }   // (the group's saves, newest first, js/waves.js; read each frame on the title: three keys)
+  function saveLine(sv) { return 'TIER ' + sv.tier + ' · WAVE ' + ((sv.wi || 0) + 1) + ' · ' + (sv.held || 0) + ' HELD'; }
+  function savedAt(sv) { var d = sv.saved ? new Date(sv.saved) : null; return d && !isNaN(d) ? (d.getMonth() + 1) + '/' + d.getDate() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) : ''; }
   function titleHit(B, ck) {
     var sx = ck.x, sy = ck.y;
     for (var id in BTN) { var b = BTN[id]; if (b && sx >= b.x && sx <= b.x + b.w && sy >= b.y && sy <= b.y + b.h) return id; }
@@ -474,8 +488,13 @@
       button(ctx, 'name', 'GROUP: ' + (st.name || '') + (st.editing && (B.t >> 4) & 1 ? '_' : ''), 12, Hd - 34, 220, 18, st.editing);
       button(ctx, 'tutorial', 'TUTORIAL ' + (st.tutorial ? 'ON' : 'OFF'), 240, Hd - 34, 120, 18, !!st.tutorial);
       button(ctx, 'scores', 'HIGH SCORES', Wd - 112, Hd - 34, 100, 18);
-      var sv = !st.editing && savedRun(st.name);
-      if (sv) button(ctx, 'continue', 'CONTINUE: TIER ' + sv.tier + ' · WAVE ' + ((sv.wi || 0) + 1) + ' · ' + (sv.held || 0) + ' HELD', Wd / 2 - 110, Hd - 62, 220, 18, true);
+      var svs = st.editing ? [] : savedRuns(st.name), sv = svs[0];
+      if (svs.length === 1) button(ctx, 'continue', 'CONTINUE: ' + saveLine(sv), Wd / 2 - 110, Hd - 62, 220, 18, true);
+      else if (svs.length) {
+        button(ctx, 'continue', 'CONTINUE: ' + svs.length + ' SAVES' + (st.pick ? ' (PICK ONE)' : ''), Wd / 2 - 110, Hd - 62, 220, 18, true);
+        if (st.pick) svs.forEach(function (s, i) { button(ctx, 'save' + i, saveLine(s) + '  ' + savedAt(s), Wd / 2 - 130, Hd - 62 - 22 * (svs.length - i), 260, 18, i === 0); });
+      }
+      if (!svs.length) st.pick = false;
       if ((B.t >> 5) & 1) D.text(ctx, sv ? 'CONTINUE, or the centre of the circle to start over' : 'click the centre of the circle to begin', Wd / 2, Hd - 12, P('bone', 1), 'center');
       var cp = st.caption;
       if (cp && B.t - cp.t0 < cp.life) { var tw = Math.min(Wd - 20, D.textWidth(cp.s) + 16); D.win8(ctx, Wd / 2 - tw / 2, 70, tw, 18); D.text(ctx, cp.s, Wd / 2, 75, P('bone', 1), 'center'); }

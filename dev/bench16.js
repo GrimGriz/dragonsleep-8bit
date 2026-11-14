@@ -25266,6 +25266,61 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
+  // THE GAME SHOW'S BUGS, 11-14 (mode=gsbugs1114; the todo-pairs seat, on the lane's head and §18): 1. several saves a group (his "lean 3"), a CONTINUE'd run writing a slot of
+  // its own; 2. the portal: a first run's king and Ingrith go in on a spinning circle, a return opens on it with no king and no speeches; 3. the east cavern's phase spider
+  // stays in the Ethereal till it can come out beside the one it hunts, and says "beside"; 4. the run's box top right, the supplies' box coming down off it; 5. free roam on
+  // the lamp's turn: a click on the floor walks the token there, the turn still his
+  if (get('mode', '') === 'gsbugs1114') {
+    var repGB = { checks: [], errors: [], notes: [] };
+    function okGB(what, v) { repGB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvGB = document.createElement('canvas'); cvGB.width = D.W; cvGB.height = D.H; D.ctx = cvGB.getContext('2d'); D.R = D.R || 1; }
+    var memGB = {}, stGGB = D.store.get, stSGB = D.store.set, clockGB = 1000, GSB = D.gameshow, WVB = GSB && GSB.wave, spin0GB = D.circles && D.circles.spin;
+    D.store.get = function (k) { return memGB[k] ? JSON.parse(memGB[k]) : null; }; D.store.set = function (k, v) { memGB[k] = JSON.stringify(v); return true; };
+    function stepGB(BW, fn, cap) { for (var k = 0; k < cap; k++) { clockGB += 17; D.loopStep(clockGB); if (fn()) return k; } return -1; }
+    try {
+      if (!WVB || !WVB.saves || !WVB.box) throw new Error('no WV.saves / WV.box: js/waves.js');
+      // 1. the saves
+      var mkS = function (tier, wi) { return { tier: tier, wi: wi, held: wi, count: wi, xp: {}, hd: {}, lampHP: 10, lampMax: 10, group: 'SLOTS' }; }, fakeB = { units: [], inv: [], su: null };
+      var r1 = mkS(1, 0); WVB.save(fakeB, r1); memGB[WVB.saveKey('SLOTS', 1)] = memGB[WVB.saveKey('SLOTS', 1)].replace(/"saved":"[^"]*"/, '"saved":"2026-11-14T01:00:00.000Z"');
+      r1.wi = 1; WVB.save(fakeB, r1); var one = WVB.saves('slots');
+      okGB('1 one run saves to one slot, wave after wave: ' + one.length + ' save, its wave ' + (one[0] && one[0].wi + 1) + ', slot ' + (one[0] && one[0].slot), one.length === 1 && one[0].wi === 1 && one[0].slot === 1);
+      var r2 = mkS(1, 2); r2.resumedFrom = 1; WVB.save(fakeB, r2); var two = WVB.saves('SLOTS');
+      okGB('1 a CONTINUE\'d run takes a slot of its own, the one it came from kept: ' + two.map(function (r) { return 'slot ' + r.slot + ' wave ' + (r.wi + 1); }).join(', ') + '; CONTINUE\'s newest is wave ' + (WVB.loadSave('slots').wi + 1), two.length === 2 && two[0].slot === 2 && two[1].slot === 1 && WVB.loadSave('slots').wi === 2);
+      var r3 = mkS(2, 0); WVB.save(fakeB, r3); var r4 = mkS(3, 0); WVB.save(fakeB, r4); var four4 = WVB.saves('SLOTS');
+      okGB('1 three a group at most: a fourth run takes the oldest slot -- ' + four4.map(function (r) { return 'slot ' + r.slot + ' tier ' + r.tier; }).join(', '), four4.length === 3 && four4[0].tier === 3 && four4.every(function (r) { return !(r.tier === 1 && r.wi === 1); }));
+      var old = JSON.parse(memGB[WVB.saveKey('SLOTS', 1)]);
+      okGB('1 the first slot is the old key (' + WVB.saveKey('SLOTS', 1) + '), the others .2 and .3 (' + WVB.saveKey('SLOTS', 2) + ')', WVB.saveKey('SLOTS', 1) === 'deep16.gameshow.save.SLOTS' && WVB.saveKey('SLOTS', 2) === 'deep16.gameshow.save.SLOTS.2' && !!old);
+      Object.keys(memGB).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memGB[k]; });
+      // 2. the portal: the lamp scene, run fast; the circle's spins counted
+      var spins = 0; D.circles.spin = function () { spins++; return spin0GB.apply(this, arguments); };
+      var runScene = function (q) { var BL = GSB.lamp('pisces'); D.scenes.length = 0; D.lastError = null; GSB.q = q; D.push(BL); var n0 = 0; stepGB(BL, function () { return BL.gs.mode === 'fight' || ++n0 > 30000; }, 30000); return BL; };
+      GSB.make('?gameshow&at=lamp&fast'); GSB.resume = null; spins = 0;
+      var BL1 = runScene('?gameshow&at=lamp&fast'), lg1 = (BL1.log || []).join(' | '), sp1 = spins;
+      okGB('2 a first run: the king speaks and goes in, Ingrith after him, the circle spinning under each (' + sp1 + ' spins: the wake\'s and one a jump) -- ' + (/Pyro/.test(lg1) ? 'Pyro\'s lines' : 'NO Pyro') + ', ' + (/Ingrith/.test(lg1) ? 'Ingrith\'s' : 'NO Ingrith'), sp1 >= 3 && /Hold out here/.test(lg1) && /Ingrith/.test(lg1));
+      spins = 0; GSB.resume = { v: 1, group: 'GANGOF4', tier: 2, wi: 1, held: 4 };
+      var BL2 = runScene('?gameshow&at=lamp&fast'), lg2 = (BL2.log || []).join(' | '), kingOn = BL2.units.some(function (u) { return u.name === 'Pyro' || u.name === 'Ingrith'; });
+      okGB('2 a return: the circle spins (' + spins + '), the four pop out, "' + ((/GANGOF4[^|]*/.exec(lg2) || [''])[0]).replace(/\{\/?[a-z]*\}/g, '') + '", no speeches (' + !/Hold out here|THIRD LAMP\.|Ledger-Lamp/.test(lg2) + '), the king and Ingrith not on the floor (' + !kingOn + ')',
+        spins >= 1 && /GANGOF4/.test(lg2) && /are back at Third Lamp/.test(lg2) && !/Hold out here|Ledger-Lamp/.test(lg2) && !kingOn);
+      GSB.resume = null; D.circles.spin = spin0GB;
+      // 3. the phase spider
+      var BP = D.npcFight('?npc=phasespider&vs=fighter:3,wizard:3&lvl=3', {}); D.battle = BP; BP.enter(); var kP = 0; while (!BP.order.length && kP++ < 400) BP.co.next();
+      var ps = BP.units.filter(function (u) { return u.kind === 'phasespider'; })[0], hf = BP.units.filter(function (u) { return u.cls === 'fighter'; })[0], hw = BP.units.filter(function (u) { return u.cls === 'wizard'; })[0];
+      var putP = function (sx, sy) { ps.x = sx; ps.y = sy; hf.x = 3; hf.y = 4; hw.x = 3; hw.y = 8; [ps, hf, hw].forEach(function (u) { u.conds = {}; }); D.grid.setup(D.grid.map, BP.units); BP.cache = null; BP.dark = false; ps.ethereal = true; };
+      var turnP = function () { var n0 = (BP.log || []).length; D.rules.startTurn(ps); BP.active = ps; var g = D.ai.turn(BP, ps), st, q = 0, v; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } BP.active = null; return (BP.log || []).slice(n0).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); };
+      repGB.notes.push('3 the floor ' + D.grid.map.w + ' x ' + D.grid.map.h);
+      putP(Math.min(D.grid.map.w - 3, 16), 4); var lp1 = turnP(), far1 = D.grid.dist(ps, hf);
+      okGB('3 a phase spider 60 ft off in the Ethereal, its walk 30: it stays in it (' + ps.ethereal + '), ' + far1 + ' ft off the fighter now, no "steps out" -- ' + lp1.slice(0, 160), ps.ethereal === true && !/steps out/.test(lp1));
+      var lp2 = turnP();
+      okGB('3 the next turn it comes out beside one: "' + lp2.slice(0, 170) + '" (' + Math.min(D.grid.dist(ps, hf), D.grid.dist(ps, hw)) + ' ft)', !ps.ethereal && /steps out of the rock beside/.test(lp2) && Math.min(D.grid.dist(ps, hf), D.grid.dist(ps, hw)) <= 5 && !/ near /.test(lp2));
+      // 4. the box
+      var bx = WVB.box();
+      okGB('4 the run\'s box top right: ' + JSON.stringify(bx) + ' on a ' + D.W + ' x ' + D.H + ' screen', bx.y < 20 && bx.x + bx.w >= D.W - 8);
+    } catch (eGB) { repGB.errors.push(String(eGB && eGB.stack || eGB).slice(0, 900)); }
+    finally { D.store.get = stGGB; D.store.set = stSGB; if (spin0GB) D.circles.spin = spin0GB; if (GSB) GSB.resume = null; D.scenes.length = 0; }
+    var preGB = document.createElement('pre'); preGB.id = 'out'; preGB.textContent = 'BENCH16 ' + JSON.stringify(repGB);
+    document.body.appendChild(preGB);
+    return;
+  }
   if (get('mode', '') === 'gswaves1007') {
     var repW = { checks: [], errors: [] };
     function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -25393,7 +25448,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           four: [{ k: 'denny', hp: 30 }] };
         Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
         memW['deep16.gameshow.save.TESTGROUP'] = JSON.stringify(recS);
-        var keyL = GSW.wave.saveKey('TESTGROUP'), keyO = GSW.wave.saveKey(GSW.group()), seen0 = !!memW[keyO]; // (a resumed run saves under its own group, whatever name is stored)
+        var keyL = GSW.wave.saveKey('TESTGROUP', 2), keyO = GSW.wave.saveKey(GSW.group()), seen0 = !!memW[keyO]; // (a resumed run saves under its own group, whatever name is stored)
         // (CONTINUE is a fresh page's: no ring's roll in WV.gains but the save's -- 10-08, the Game Show §16: the save had not kept it, so a CONTINUE'd Gains Ring gave nothing)
         GSW.wave.gains = {}; var chaR = D.npc.build('rascal:5+thermidorplate+flamewarclaw+gainsring', 5, 'party', { id: 'chr' }).abil.cha;
         GSW.resume = GSW.wave.loadSave('testgroup'); D.seed = 1007;
@@ -25404,6 +25459,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okW('the save: TESTGROUP resumed at tier ' + (SS && SS.tier) + ' wave ' + (SS && SS.wi + 1) + ', ' + (SS && SS.held) + ' held; Denny L' + (d5 && d5.lvl) + ' ' + (d5 && d5.hp) + ' HP in ' + (d5 && d5.weapon.name) + ', AC ' + (d5 && d5.baseAC) + ' (want ' + acD + '); Rascal\'s ' + (rz && rz.weapon.name) + '; the lamp ' + (SS && SS.lamp && SS.lamp.hp) + '/' + (SS && SS.lampMax) + '; bullets ' + (slS && slS.n) + '; the score ' + (BS.su && BS.su.score10) + '; its own save as the wave begins ' + (svS ? 'tier ' + svS.tier + ' wave ' + (svS.wi + 1) + ', Denny ' + ((svS.four || []).filter(function (f) { return f.k === 'denny'; })[0] || {}).hp + ' HP' : 'none') + ' (under TESTGROUP; none under the stored name ' + GSW.group() + ': ' + !memW[keyO] + ')',
           !!SS && SS.tier === 5 && SS.wi === 1 && SS.held === 10 && d5 && d5.lvl === 5 && d5.hp === 30 && d5.weapon.name === 'Play-Button Knuckles' && d5.baseAC === acD && rz && rz.weapon.name === 'Flame War Claw' &&
           SS.lamp.hp === 100 && SS.lampMax === 140 && slS && slS.n === 92 && BS.su.score10 === 39 && !seen0 && !memW[keyO] && !!svS && svS.group === 'TESTGROUP' && svS.four.length === 4 && svS.tier === 5 && svS.wi === 1 && svS.loot.denny.join() === 'doubledenim,playbuttonknuckles');
+        var kept1 = memW[GSW.wave.saveKey('TESTGROUP', 1)] ? JSON.parse(memW[GSW.wave.saveKey('TESTGROUP', 1)]) : null;
+        okW('the save it came from kept in the first slot (11-14, his "lean 3"): tier ' + (kept1 && kept1.tier) + ' wave ' + (kept1 && kept1.wi + 1) + ', ' + (kept1 && (kept1.four || []).length) + ' of the four written (the old save\'s 1); the group\'s saves ' + GSW.wave.saves('TESTGROUP').length, !!kept1 && kept1.tier === 5 && kept1.wi === 1 && (kept1.four || []).length === 1 && GSW.wave.saves('TESTGROUP').length === 2);
         okW('the save keeps the Gains Ring roll: Rascal CHA ' + (rz && rz.abil.cha) + ' (want ' + (chaR + 3) + ': the ring +3 on ' + chaR + '), written again ' + JSON.stringify(svS && svS.gains), !!rz && rz.abil.cha === chaR + 3 && !!svS && !!svS.gains && !!svS.gains.rascal && svS.gains.rascal.n === 3);
         Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
         var BS2 = lampFight('?gameshow&at=lamp&fast&auto'), w2S = stepW(BS2, function () { return GSW.run && BS2.order.length > 4; }, 6000);
@@ -25639,6 +25696,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var ltI = stepU(BI, function () { return BI.gs.mode === 'lamp'; }, 20000); stepU(BI, function () { return true; }, 20);
         var laL = SUU.lanternAt(BI), sentL = SI.sent[1]; clickI(laL.sx, laL.sy); var openL = SI.open, b1L = SUU.btn('tier1'); if (b1L) clickI(b1L.x + 10, b1L.y + 5);
         var stillL = BI.gs.mode === 'lamp', nChL = SI.chest.length;
+        // FREE ROAM on the lamp's turn (11-14, the lane's §18, his "Include lack of player free-roam between waves as gameshow bug"): a click on the floor three squares off walks
+        // the token there, and the turn is still the lamp's
+        var tokR = BI.gs.party && BI.gs.party.token, at0R = tokR ? tokR.x + ',' + tokR.y : '-', dstR = null, pkR = null, mdR = D.grid.map.def, offR = [mdR.tower, mdR.chest].concat(WVU.cots || [], [WVU.bed]);
+        if (tokR) [[3, 0], [-3, 0], [0, 3], [0, -3], [3, 3], [-3, 3], [3, -3], [-3, -3]].some(function (d) { var q = [tokR.x + d[0], tokR.y + d[1]], sR = D.grid.map.at(q[0], q[1]); if (sR && sR.walk && !offR.some(function (o) { return o && o[0] === q[0] && o[1] === q[1]; })) { dstR = q; return true; } });
+        if (dstR) { var cR = D.iso.center(dstR[0], dstR[1], D.grid.map.gz ? D.grid.map.gz(dstR[0], dstR[1]) : 0), scR = D.iso.toScreen(cR.x, cR.y); pkR = D.iso.pick(scR.x, scR.y, 0); clickI(scR.x, scR.y); stepU(BI, function () { return tokR.x === dstR[0] && tokR.y === dstR[1] && !tokR.tween && (GSU.run.trail || []).indexOf('roam') >= 0; }, 900); }
+        okU('lamp turn: free roam -- a click on the floor walks the token from ' + at0R + ' to ' + (tokR ? tokR.x + ',' + tokR.y : '-') + ' (want ' + dstR + '; the pick read ' + (pkR ? pkR.x + ',' + pkR.y : '-') + '), the turn still the lamp\'s (' + BI.gs.mode + '), the trail ' + (GSU.run.trail || []).join('>'),
+          !!dstR && tokR.x === dstR[0] && tokR.y === dstR[1] && BI.gs.mode === 'lamp' && (GSU.run.trail || []).indexOf('roam') >= 0);
         var tbx = D.W / 2 + 56, tby = 92, isTB = WVU.hit({ x: tbx, y: tby }) === 'tobed', nL1 = (BI.log || []).length;
         clickI(tbx, tby);
         var askL = BI.gs.mode === 'lamp' && /TO THE BED again skips it/.test((BI.log || []).slice(nL1).join(' '));

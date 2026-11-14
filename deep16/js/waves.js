@@ -118,18 +118,30 @@
   // start, a run played by hand (never &watch or &auto) writes where it stands -- the tier and the wave, the waves held, the XP and hit dice, the lamp, what each
   // Mascot wears (WV.loot) with its hit points and specials, the pack (B.inv), the supplies (B.su) -- under deep16.gameshow.save.<GROUP>; CONTINUE on the title
   // (js/gameshow.js) starts the run there. A game over leaves it: CONTINUE tries that wave again
+  // SEVERAL SAVES A GROUP (11-14, the Game Show lane's head 1a; Griz, 10-15: "so there are multiple save slots (i.e. if I load this one and get to the next wave and safe,
+  // putting the group name again will show how many saves to choose from (lean 3))"): three slots a group -- the first the old key, the others '.2' and '.3'. A run keeps
+  // one slot, written at each wave's start; a fresh run or a CONTINUE'd one takes a slot of its own at its first save (a free one, else the oldest), so the save it was
+  // loaded from stays to go back to. WV.saves(g) lists them newest first; WV.loadSave(g) is the newest
   var SAVE = 'deep16.gameshow.save.';
-  WV.saveKey = function (g) { return SAVE + String(g || '').toUpperCase(); };
+  WV.SLOTS = 3;
+  WV.saveKey = function (g, n) { return SAVE + String(g || '').toUpperCase() + (n > 1 ? '.' + n : ''); };
+  WV.saves = function (g) {
+    var out = [];
+    for (var n = 1; n <= WV.SLOTS; n++) { var r = D.store.get(WV.saveKey(g, n)); if (r && r.v && r.tier) { r.slot = n; out.push(r); } }
+    return out.sort(function (a, b) { return (b.seq || 0) - (a.seq || 0) || String(b.saved || '').localeCompare(String(a.saved || '')); }); // (seq: the group's count of saves, so two in one second never tie)
+  };
   WV.save = function (B, S) {
     if (!S || S.ai) return false;
-    var su = B.su, rec = { v: 1, group: S.group || GS.group(), saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
+    var grp = S.group || GS.group(), have = WV.saves(grp), seq = have.reduce(function (m, r) { return Math.max(m, r.seq || 0); }, 0) + 1;
+    if (!S.slot) { var used = have.map(function (r) { return r.slot; }), free = 0; for (var n = 1; n <= WV.SLOTS && !free; n++) if (used.indexOf(n) < 0) free = n; S.slot = free || have[have.length - 1].slot; }
+    var su = B.su, rec = { v: 1, group: grp, slot: S.slot, seq: seq, saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
       lampHP: S.lampHP, lampMax: S.lampMax, loot: WV.loot, gains: WV.gains || {}, inv: B.inv || [],   // (gains: the Gains Ring's roll, js/supplies.js -- unsaved till 10-08, a CONTINUE'd ring gave nothing)
       su: su ? { chest: su.chest, stash: su.stash, score10: su.score10, bonus: su.bonus, epic: su.epic, sent: su.sent, bed: su.bed, amulets: su.amulets } : null,
       four: four(B).map(function (u) { return { k: u.mpmon, hp: u.hp, feats: u.feats }; }) };
     try { rec = JSON.parse(JSON.stringify(rec)); } catch (e) { return false; }
-    return D.store.set(WV.saveKey(rec.group), rec);
+    return D.store.set(WV.saveKey(rec.group, S.slot), rec);
   };
-  WV.loadSave = function (g) { var r = D.store.get(WV.saveKey(g)); return r && r.v && r.tier ? r : null; };
+  WV.loadSave = function (g) { return WV.saves(g)[0] || null; };
   // a resumed run as it was saved: the XP and hit dice, each Mascot's hit points and specials (after the rebuild has put its gear on)
   function restore(B, S, RS) {
     Object.keys(RS.xp || {}).forEach(function (k) { S.xp[k] = RS.xp[k]; });
@@ -325,6 +337,7 @@
       var s = G.map.at(q[0], q[1]); return s && s.walk && !(not && q[0] === not[0] && q[1] === not[1]);
     })[0];
   }
+  function roamable(B, q) { var s = G.map.at(q.x, q.y), P0 = B.gs && B.gs.party; return !!(s && s.walk && P0 && P0.token && !(P0.token.x === q.x && P0.token.y === q.y)); }
   function onBed(q) { return (q.x === WV.bed[0] && q.y === WV.bed[1]) || (WV.cots || []).some(function (c) { return c[0] === q.x && c[1] === q.y; }); }
   function* afterWave(B, S, kind) {
     var st = B.gs;
@@ -348,6 +361,9 @@
           var h0 = WV.hit(c0), q0 = !h0 && D.iso.pick(c0.x, c0.y, 0);
           if (h0 === 'tochest' || (q0 && cs && q0.x === cs[0] && q0.y === cs[1])) { go = 'chest'; break; }
           if (h0 === 'tobed' || (q0 && onBed(q0))) { go = 'bed'; break; }
+          // FREE ROAM between waves (11-14, the Game Show lane's §18; Griz, 11-13: "Include lack of player free-roam between waves as gameshow bug"): a click on the floor
+          // walks the token there, the lamp's turn still his; the chest and the bed are clicked from wherever it stands
+          if (!h0 && q0 && roamable(B, q0)) { yield* GS.tokenWalk(B, [q0.x, q0.y]); S.trail.push('roam'); st.clicks = []; continue; }
         }
         if (S.auto && w0 > W(90)) break;
         yield 1;
@@ -456,13 +472,16 @@
   var BTN = {};
   WV.hit = function (ck) { for (var id in BTN) { var b = BTN[id]; if (b && ck.x >= b.x && ck.x <= b.x + b.w && ck.y >= b.y && ck.y <= b.y + b.h) return id; } return null; };
   function P(r, i) { return D.PAL.ramps[r][i]; }
+  // the run's box: the tier and wave, the lamp -- TOP RIGHT, the supplies' box coming down off it (11-14, the Game Show lane's head 4; Griz, 10-13: "Try tier wave marker top
+  // right with the dono tier box coming down off it"; it sat bottom right, over the unit panel, with the lamp's buttons opening over it). js/supplies.js reads it
+  WV.box = function () { return { x: D.W - 132, y: 14, w: 128, h: 30 }; }; // (y 14: under the initiative strip, which a full wave runs to the right edge -- js/ui.js strip)
   WV.hud = function (ctx, B) {
     var S = GS.run, st = B.gs; BTN = {};
     if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest' && st.mode !== 'chest' && st.mode !== 'lamp')) return;
     if (st.mode === 'chest' && S.chat) chestPanel(ctx, B, S);
     if (st.mode === 'lamp' && S.chat) lampPanel(ctx, B, S);
-    var Wd = D.W, waves = WV.tierWaves(S.tier) || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
-    D.win8(ctx, x, y, 128, 30);
+    var Wd = D.W, waves = WV.tierWaves(S.tier) || [], bx = WV.box(), x = bx.x, y = bx.y;
+    D.win8(ctx, x, y, bx.w, bx.h);
     D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
     var L = S.lamp, hp = L && B.units.indexOf(L) >= 0 ? L.hp : S.lampHP, mx = S.lampMax || 1, k = Math.max(0, Math.min(1, hp / mx));
     D.text(ctx, 'LAMP', x + 6, y + 17, P('bone', 1));
@@ -476,7 +495,7 @@
     var Wd = D.W, w = 236, x = Math.round(Wd / 2 - w / 2), y = 50;
     D.win8(ctx, x, y, w, 58);
     D.text(ctx, 'THE LAMP', Wd / 2, y + 5, P('gold', 4), 'center');
-    D.text(ctx, 'check in with chat', Wd / 2, y + 18, P('bone', 1), 'center');
+    D.text(ctx, 'check in with chat -- or walk: click the floor', Wd / 2, y + 18, P('bone', 1), 'center');
     var by = y + 33;
     D.win8(ctx, x + 10, by, 104, 18, P('red', 1)); D.text(ctx, 'TO THE CHEST', x + 62, by + 5, P('gold', 4), 'center');
     BTN.tochest = { x: x + 10, y: by, w: 104, h: 18 };
