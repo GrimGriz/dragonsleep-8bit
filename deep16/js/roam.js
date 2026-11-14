@@ -1257,7 +1257,7 @@
   R.cradle = function* (B, trig, at) {
     var R0 = B.roam, n = +String(trig.id).replace(/\D/g, '') || 0, c = null, CRd = D.cradle;
     // (a crib whose crawler broke loose stands empty for the rest of the game: no deep rate -- Tuesday 15, RULED 10-31 his "empty"; js/cradle.js CR.empty)
-    if (CRd && CRd.empty(R0.flags, n)) { D.sfx('miss'); B.card(R.wrap(['{y}Cradle ' + (n + 1) + '{/} stands empty: its crawler broke loose. Nothing to work at the deep rate here now.']), 220); yield 20; return; }
+    if (CRd && CRd.empty(R0.flags, n)) { D.sfx('miss'); B.card(R.wrap(['{y}Cradle ' + (n + 1) + '{/} ' + R.say8('w.cradleEmpty')]), 220); /* (its words content/text.json's, 11-14: the second game's house lane, 11-05 night open) */ yield 20; return; }
     if (R.emb && !R.house()) { var m = yield* R.handOut(B, 'cradle', { n: n }); c = m && m.cradle; } // (inside the 8-bit, as it was: nothing sends ds8:roam since the two games split, 10-20)
     else c = yield* R.deepTalk(B, n); // (the second game's own: the deep rate on the counter screen -- R.deepRate)
     if (!c || !c.roused) return;

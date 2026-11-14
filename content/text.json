@@ -157,6 +157,7 @@
   "w.deepAsk": { "t": "A deep-rate station. The animal in the harness is wild, and nobody has settled it. Three silver the sealed thimble, down here.", "src": "WarrensModule/crawler-warrens-DM.md (the deep rate; DC 15 at the wet); RULED 09-30g (un-settled)" },
   "w.deepPaid": { "t": "{n} sealed thimble(s) at the deep rate: {s} silver.", "src": "WarrensModule/crawler-warrens-DM.md (three silver a thimble)" },
   "w.deepRoused": { "t": "The feeler comes off the bar, and the rest of the animal comes after it. It is out of the harness.", "src": "RULED 09-30g (Griz: 'if player error makes a whip, start your combat'); the line invented: connective" },
+  "w.cradleEmpty": { "t": "stands empty: its crawler broke loose. Nothing to work at the deep rate here now.", "src": "Tuesday 15, RULED 10-31 his \"empty\" (js/cradle.js CR.empty); the words as drafted, his \"other leans fine\" (11-05 night); moved out of R.cradle 11-14" },
   "w.touchedDeep": { "t": "A tentacle finds {name}'s wrist. Everything goes stiff and far away, and there is no crew down here to drag anyone clear.", "src": "wiki/the-warrens.md (the touch: poisoned and paralyzed); the line invented: connective (09-30g)" },
   "w.cradle.paid": { "t": "{n} sealed at the board - {n} silver", "src": "wiki/the-warrens.md (1 sp a thimble above the wet)" },
   "w.drawPerfect": { "t": "A full thimble, sealed while it is still warm.", "src": "invented: connective" },

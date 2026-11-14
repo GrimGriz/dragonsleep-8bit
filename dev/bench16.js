@@ -298,6 +298,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B2 = mkSW('?npc=giantspider,wolfspider&vs=fighter:3&lvl=3'), gs2 = B2.units.filter(function (u) { return u.kind === 'giantspider'; })[0];
       var n2 = B2.shortName(gs2), B3 = mkSW('?npc=giantspider,goblin&vs=fighter:3&lvl=3'), gs3 = B3.units.filter(function (u) { return u.kind === 'giantspider'; })[0], n3 = B3.shortName(gs3);
       okSW('2 the Giant Spider beside a Wolf Spider reads "' + n2 + '"; beside a goblin "' + n3 + '"', n2 === gs2.name && /Giant/.test(n2) && n3 === 'Spider');
+      // 3. Branding Smite on our side (the second game's house lane, 11-03 open 5): Invisibility is no spell for one branded, and the picker says why; the brand gone, it is
+      var B4 = mkSW('?npc=goblin&vs=wizard:5,fighter:5&lvl=5'), wz4 = B4.units.filter(function (u) { return u.cls === 'wizard'; })[0], ft4 = B4.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      wz4.x = 4; wz4.y = 4; ft4.x = 5; ft4.y = 4; D.grid.setup(D.grid.map, B4.units); D.rules.startTurn(wz4);
+      var gI = D.magic.geo('invisibility'), gG = D.magic.geo('greaterinvisibility');
+      ft4.conds.branded = { by: 'bench' }; var why4 = D.magic.targetWhy(wz4, gI, ft4, B4), ok4 = D.magic.targetOK(B4, wz4, gI, ft4), okG4 = D.magic.targetOK(B4, wz4, gG, ft4);
+      delete ft4.conds.branded; var ok4b = D.magic.targetOK(B4, wz4, gI, ft4);
+      okSW('3 Invisibility on the branded fighter: refused (' + !ok4 + ', Greater ' + !okG4 + ') -- "' + why4 + '"; the brand gone, allowed (' + ok4b + ')', !ok4 && !okG4 && /branded/.test(why4) && ok4b);
+      // 4. the empty crib's words from content/text.json (the second game's house lane, 11-05 night open): read through R.say8, the key never shown
+      var cr4 = D.roam && D.roam.say8 ? D.roam.say8('w.cradleEmpty') : '';
+      okSW('4 the empty crib\'s card: "Cradle 2 ' + cr4 + '"', /stands empty: its crawler broke loose/.test(cr4) && cr4 !== 'w.cradleEmpty');
     } catch (eSW) { repSW.errors.push(String(eSW && eSW.stack || eSW).slice(0, 900)); }
     var preSW = document.createElement('pre'); preSW.id = 'out'; preSW.textContent = 'BENCH16 ' + JSON.stringify(repSW);
     document.body.appendChild(preSW);
