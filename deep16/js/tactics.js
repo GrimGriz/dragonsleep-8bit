@@ -301,25 +301,53 @@
   TX.EVAL = {};
   var EV = TX.EVAL;
   function inRangeOf(u, g, w, x, y) { return (M.touchRange(g) || (g.range || 5) <= 5 ? G.dist : G.range)(u, w, x, y) <= (g.range || 5); } // (a touch by squares, a range by the true distance: magic.js targetOK)
+  // the squares a ranged spell attack is weighed from (11-14, the AI lane's lead of 11-03 night: the Snoot's patrol ladies cast about fourteen Eldritch Blasts "dis: in melee" at
+  // Barley, 1 hp and AC 19, never a step away nor another target): where it stands, and -- a foe beside it and feet left -- the nearest square on its walk with no foe beside it,
+  // that square's price the opportunity attacks the step gives (half a round of each one's blows, none when it disengaged), and no such step when those could drop it
+  function castFrom(B, u, g) {
+    var out = [{ x: u.x, y: u.y, oa: 0, cost: 0 }], T = u.turn;
+    if (!g || !(g.range > 5) || !T || !(T.move > 0) || u.conds.restrained || u.conds.grappled || u.conds.dancing) return out;
+    var press = G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w); });
+    if (!press.length) return out;
+    var oa = T.disengaged ? 0 : press.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0);
+    if (oa * 2 >= u.hp) return out;
+    var rm = G.reach(u, T.move), off = null;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand || (e.x === u.x && e.y === u.y) || G.foesNear(u, e.x, e.y, 5).length) return; if (!off || e.cost < off.cost) off = e; });
+    if (off) out.push({ x: off.x, y: off.y, oa: oa, cost: off.cost, e: off });
+    return out;
+  }
+  TX.castFrom = castFrom;
+  function castSees(u, g, t, q) { return !q.e || (G.range(u, t, q.x, q.y) <= g.range && G.los(u, t, q.x, q.y).clear); }
   // a spell attack (Fire Bolt, Guiding Bolt ...)
   EV['shape:attack'] = function (B, u, e, slot, fs) {
-    var sp = e.sp, g = e.g, d = avg(M.dice(sp, u, slot)), best = null;
-    fs.forEach(function (t) {
-      if (!M.targetOK(B, u, g, t)) return;
-      var ed = RU.edges(u, t, { spell: true, ranged: g.range > 5, range: [g.range, g.range] }), p = TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t).cover, ed.net);
-      var sc = TX.worth(p * d, t) + (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].rider ? M.EFFECT[e.id].rider(B, u, t, p) : 0);
-      if (!best || sc > best.score) best = { score: sc, t: t };
+    var sp = e.sp, g = e.g, d = avg(M.dice(sp, u, slot)), best = null, spec = { spell: true, ranged: g.range > 5, range: [g.range, g.range] };
+    castFrom(B, u, g).forEach(function (q) {
+      fs.forEach(function (t) {
+        if (!M.targetOK(B, u, g, t) || !castSees(u, g, t, q)) return;
+        var ed = RU.edges(u, t, spec, q.x, q.y), p = TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t, q.x, q.y).cover, ed.net);
+        var sc = TX.worth(p * d, t) + (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].rider ? M.EFFECT[e.id].rider(B, u, t, p) : 0) - q.oa - q.cost / 30;
+        if (!best || sc > best.score) best = { score: sc, t: t, from: q.e };
+      });
     });
     return best;
   };
   EV['shape:rays'] = function (B, u, e, slot, fs) {
     var n = (e.g.n || 1) + Math.max(0, slot - e.level), d = avg(e.sp.dmg), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t); });
     if (!list.length) return null;
-    var t = list.sort(function (a, b) { return a.hp - b.hp; })[0], p = TX.pHit(u.spellAtk, RU.ac(t), 0), units = [];
-    // the rays at the weakest till it should be down, then the next
-    var left = t.hp, i = 0, sc = 0;
-    for (var k = 0; k < n; k++) { var tg = list[Math.min(i, list.length - 1)]; units.push(tg); sc += TX.worth(p * d, tg) * 0.9; left -= p * d; if (left <= 0) { i++; left = (list[i] || tg).hp; } }
-    return { score: sc, t: { units: units } };
+    var spec = { spell: true, ranged: e.g.range > 5, range: [e.g.range, e.g.range] }, best = null;
+    castFrom(B, u, e.g).forEach(function (q) {
+      // each one by what a ray at it is worth from this square (its edges -- in melee, a prone one -- and its cover), the weakest first among equals (11-14: the hit's chance was
+      // read at no edge and the weakest always first, so a ray at disadvantage on the 1 hp halfling beside it outweighed one at the elf 18 hp across the room)
+      var ls = list.filter(function (t) { return castSees(u, e.g, t, q); }).map(function (t) { return { t: t, p: TX.pHit(u.spellAtk, RU.ac(t) + G.los(u, t, q.x, q.y).cover, RU.edges(u, t, spec, q.x, q.y).net) }; });
+      if (!ls.length) return;
+      ls.sort(function (a, b) { return TX.worth(b.p * d, b.t) - TX.worth(a.p * d, a.t) || a.t.hp - b.t.hp; });
+      // the rays at the best till it should be down, then the next
+      var units = [], left = ls[0].t.hp, i = 0, sc = 0;
+      for (var k = 0; k < n; k++) { var o = ls[Math.min(i, ls.length - 1)]; units.push(o.t); sc += TX.worth(o.p * d, o.t) * 0.9; left -= o.p * d; if (left <= 0) { i++; left = (ls[i] || o).t.hp; } }
+      sc -= q.oa + q.cost / 30;
+      if (!best || sc > best.score) best = { score: sc, t: { units: units }, from: q.e };
+    });
+    return best;
   };
   EV['shape:darts'] = function (B, u, e, slot, fs) {
     var n = (e.g.n || 3) + Math.max(0, slot - e.level), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t) && !t.conds.shield; }).sort(function (a, b) { return a.hp - b.hp; }); // (a Shield up takes no damage from them, SRD 5.1 -- 10-03)
@@ -683,6 +711,17 @@
     if (e) yield* walk(B, u, e);
   }
   TX.act = act;
+  // what act() does with no plan worth its action, said for the play record (11-14, the AI lane's lead of 11-03 night: a turn's "AI would:" read blank with no foe in reach --
+  // js/record.js); the walk's words only, nothing done. The class's own TX.IDLE (the Mascots' formation) is not read here
+  TX.idleWhy = function (B, u) {
+    var T = u.turn, fs = foesOf(B, u);
+    if (!T || (!T.action && !T.attacksLeft)) return null;
+    if (T.action && !u.ready && TX.readyWanted(B, u)) return 'readies';
+    var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    if (!near) return 'nothing it knows of: looks about';
+    var rm = G.reach(u, T.move), e = AI.approach(u, near, rm, G.armOf(u));
+    return (e && G.dist(u, near, e.x, e.y) <= G.armOf(u) ? 'closes on ' : T.action ? 'dashes toward ' : 'walks toward ') + near.name;
+  };
   // the run (the shooter's, ai.js, for a class caster): her Darkness the turn she breaks (the 8-bit's "Amara throws darkness over the
   // yard!", paid from a slot when she has one); a step toward the way out (a stride in the 8-bit yard, fight.runWhenHurt or fledEnds);
   // gone at the edge; else the best spell or shot from where she stands

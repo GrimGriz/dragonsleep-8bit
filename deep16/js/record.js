@@ -53,7 +53,14 @@
   function freshTurn(u) { return { move: D.rules && D.rules.speedNow ? D.rules.speedNow(u) : u.speed || 30, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; }
   function plans(B, u, bonus, n, fresh) {
     var had = Object.prototype.hasOwnProperty.call(u, 'turn'), T0 = u.turn, swap = fresh || !T0;
-    try { if (swap) u.turn = freshTurn(u); return D.tactics.plans(B, u, bonus).slice(0, n).map(function (p) { return { why: p.why, score: Math.round(p.score * 100) / 100 }; }); }
+    try {
+      if (swap) u.turn = freshTurn(u);
+      var ps = D.tactics.plans(B, u, bonus).slice(0, n).map(function (p) { return { why: p.why, score: Math.round(p.score * 100) / 100 }; });
+      // no plan worth the action (11-14, the AI lane: "AI would:" read blank with no foe in reach): what the turn does instead -- the walk, the Dash, READY -- said first
+      var idle = !bonus && (!ps.length || ps[0].score <= 0.5) && D.tactics.idleWhy ? D.tactics.idleWhy(B, u) : null;
+      if (idle) ps.unshift({ why: idle, score: 0 });
+      return ps.slice(0, n);
+    }
     catch (e) { return [{ why: 'the AI could not weigh this turn: ' + e, score: 0 }]; }
     finally { if (swap) { if (had) u.turn = T0; else delete u.turn; } }
   }
