@@ -844,9 +844,19 @@
     if (!hs.length) { B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it.{/}'], 160); yield 16; return; }
     var m0 = T.move, cap = Math.min(m0, u.burrow), rm = G.reach(u, cap, { ghost: true }), leapNow = !!(L && L.ready && T.action);
     // where to come up: beside the weakest it can reach this turn (or, Leap ready, 15-30 ft off with a clear jump), the shortest dig first
+    // (11-14, the AI lane's §2.8, the Leap's pick: it came up 15-30 ft off for a leap that then found no landing -- its targets in a corridor among the fallen -- and stood there
+    // where the party could reach it, no attack, no dive. A target for the leap band now needs a free landing beside it, as leap() looks for one)
+    var lands = {};
+    function landsBeside(t) {
+      if (lands[t.id] != null) return lands[t.id];
+      var ok = false;
+      for (var y = t.y - u.size; y <= t.y + (t.size || 1) && !ok; y++) for (var x = t.x - u.size; x <= t.x + (t.size || 1) && !ok; x++) if (G.canStand(u, x, y) && G.dist(u, t, x, y) <= 5) ok = true;
+      return (lands[t.id] = ok);
+    }
     function pick(leapBand) {
       var best = null, bs = Infinity;
       hs.forEach(function (t) {
+        if (leapBand && !landsBeside(t)) return;
         Object.keys(rm).forEach(function (k) {
           var e = rm[k], d = G.dist(u, t, e.x, e.y);
           if (leapBand ? d < 15 || d > Math.min(30, L.range) : d > reachOf(u)) return;
@@ -871,6 +881,7 @@
       // (the Breach's road with three down round Vivian, 10-02, where it stayed under for good before)
       var stA = null, sA = Infinity;
       hs.forEach(function (t) {
+        if (!landsBeside(t)) return; // (no room for its body beside that one: up and walking it only stands there -- 11-14, the Leap's pick)
         Object.keys(rm).forEach(function (k) {
           var e = rm[k]; if (!e.stand || !G.canStand(u, e.x, e.y)) return;
           var need = Math.max(0, G.dist(u, t, e.x, e.y) - reachOf(u)); if (need > m0 - e.cost) return;

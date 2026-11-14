@@ -388,6 +388,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var st0 = ft9L.style; ft9L.style = 'protection'; ft9L.reaction = 1; var s9p = str9(); ft9L.style = null; var s9n = str9(); ft9L.style = st0; D.grid.flank = fl0;
       okLD('9 a Protection fighter 25 ft from the ogre on the wizard: the strike from beside the wizard ' + (s9p == null ? '-' : s9p.toFixed(1)) + ', without the style ' + (s9n == null ? '-' : s9n.toFixed(1)) + ' (the guard worth a quarter of the ogre\'s round, ' + (D.tactics.dpr(og9) * 0.25).toFixed(1) + '; flanking off for the check)',
         s9p != null && s9n != null && Math.abs((s9p - s9n) - D.tactics.dpr(og9) * 0.25) < 0.3 && s9p - s9n > 1);
+      // 10. the Leap's pick (the lane's §2.8): a bulette under, its Leap ready, and the one hero boxed in by four giant bats -- it does not come up 15-30 ft off for a leap
+      // with nowhere to land (it stood there, no attack, no dive); with a free landing beside the hero it comes up and leaps
+      var B10 = mkLD('?npc=bulette,giantbat,giantbat,giantbat,giantbat&vs=fighter:5&lvl=5&map=breach'), bu10 = B10.units.filter(function (u) { return u.kind === 'bulette'; })[0], bt10 = B10.units.filter(function (u) { return u.kind === 'giantbat'; }), ft10 = B10.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      // (on the Breach's dug ground, west of the made road -- the class floor forbids burrowing)
+      var put10 = function (box) { placeLD(B10, [[ft10, 3, 6], [bu10, 5, 10]].concat(box ? [[bt10[0], 4, 5], [bt10[1], 1, 5], [bt10[2], 2, 7], [bt10[3], 4, 7]] : [])); bu10.under = true; bu10.hp = bu10.maxhp; if (bu10.leap) bu10.leap.ready = true; ft10.hp = ft10.maxhp; };
+      var run10 = function () { var n0 = (B10.log || []).length, q = 0, v, st; D.rules.startTurn(bu10); bu10.turn.recharged = true; B10.active = bu10; var g = D.ai.turn(B10, bu10); while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B10.active = null; return stripLD((B10.log || []).slice(n0).join(' | ')); };
+      put10(true); var l10a = run10(), up10a = !bu10.under, leapt10a = /leaps/.test(l10a);
+      put10(false); var l10b = run10(), leapt10b = /leaps/.test(l10b);
+      okLD('10 the Leap ready, the fighter boxed in by four bats: ' + (up10a ? 'up' : 'still under') + (leapt10a ? ', leapt' : ', no leap') + ' -- ' + l10a.slice(0, 140) + ' || with room beside the fighter: ' + (leapt10b ? 'it leaps' : 'NO leap') + ' -- ' + l10b.slice(0, 120),
+        !(up10a && !leapt10a && !/Bite|Claw/.test(l10a)) && leapt10b);
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }
