@@ -174,6 +174,7 @@
     if (!(S.seeded && S.seeded.coldridge1103)) REWORKED = seedColdridgeRework();
     if (!(S.seeded && S.seeded.glowseep1105)) ROADSIDE = seedGlowseepRoad();
     if (!(S.seeded && S.seeded.going1105)) REGONE = seedGoingOnFoot();
+    if (!(S.seeded && S.seeded.scatter1114)) SCATTERED = seedScatter();
   }
   // THE COLDRIDGE'S THREE DAYS ON FOOT (11-05 night, tuesday-world; Griz 11-04: "feels a little fast - are we slowing their movement due to terrain?"; 11-05 night:
   // "check the mileage, the road/pathing has changed since the call was made, still aiming at 3 days but the distance may have changed and rate may need adjusting -
@@ -182,7 +183,7 @@
   // wagon-days over its length then (35.7 mi: 1.43); the road is longer now. The going again from the road's own length: three days at the foot pace (S.pace.foot,
   // the SRD's 24 mi), so the whole road, the Galleries junction to The DOORS, reads three days on foot. Under 2, so not the SRD's difficult: the mountain and
   // the weather are the reason (his 10-17 words)
-  var REGONE = false;
+  var REGONE = false, SCATTERED = false;
   function seedGoingOnFoot() {
     S.seeded = S.seeded || {}; S.seeded.going1105 = true; var n = 0;
     S.paths.forEach(function (P) {
@@ -1311,7 +1312,7 @@
     hcheck();
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = isW() ? '#141a1f' : '#24211d'; ctx.fillRect(0, 0, Wd, Ht);
     if (!isW()) S.under.forEach(drawUnder);
-    fills(); gridLines(); contours(); paths(); sites(); marks(); isoInset(); scaleBar();
+    fills(); gridLines(); contours(); paths(); scatterMarks(); sites(); marks(); isoInset(); scaleBar();
     $('lvl').innerHTML = '<b>LEVEL ' + view.L + '</b> · ' + esc(LV[view.L].long);
   }
 
@@ -1632,7 +1633,7 @@
     [['flat', 'flat'], ['relief', 'relief'], ['world', 'world (iso)']].forEach(function (l) { lk.appendChild(btn(l[1], S.opts.look === l[0], function () { setLook(l[0]); }, 'V: the next look')); });
     $('exag').value = S.opts.exag; $('conton').checked = !!S.opts.contours; $('isoon').checked = !!S.opts.iso;
     terrPanel(); infoPanel(); listPanels(); panelsMeasure(); underPanel();
-    $('pfoot').value = S.pace.foot; $('pcart').value = S.pace.cart; $('paintop').value = S.opts.paintOp; $('gridon').checked = !!S.opts.grid; $('labon').checked = !!S.opts.labels; $('fillon').checked = !!S.opts.fill;
+    $('pfoot').value = S.pace.foot; $('pcart').value = S.pace.cart; $('paintop').value = S.opts.paintOp; $('gridon').checked = !!S.opts.grid; $('labon').checked = !!S.opts.labels; $('scaton').checked = !!S.opts.scatter; $('scroll').value = +S.opts.roll || 0; $('fillon').checked = !!S.opts.fill;
   }
   function used(k) { var n = 0; [1, 2, 3].forEach(function (L) { for (var x in S.paint[L]) if (S.paint[L][x] === k) n++; }); return n; }
   function terrPanel() {
@@ -1792,6 +1793,9 @@
   $('paintop').oninput = function () { S.opts.paintOp = +this.value; draw(); }; $('paintop').onchange = save;
   $('gridon').onchange = function () { S.opts.grid = this.checked; draw(); save(); };
   $('labon').onchange = function () { S.opts.labels = this.checked; draw(); save(); };
+  $('scaton').onchange = function () { S.opts.scatter = this.checked; draw(); save(); scatterSay(); };
+  function scatterSay() { if (S.opts.scatter) { var n = scatter().n; msg('THE SCATTER, ' + (S.scatter ? 'frozen (roll 1, the canon): ' : 'roll ' + ((+S.opts.roll || 0) + 1) + ' of 3, a preview (nothing painted, nothing kept): ') + Object.keys(n).map(function (k) { return n[k] + ' ' + k; }).join(', ') + '. Yellow: a farm\'s mile hex (orange: a little group that is a cult); white a hamlet, red an orc-war fort, orange a watchtower, cyan a shrine, purple a lair, blue a pond.'); } };
+  $('scroll').onchange = function () { S.opts.roll = +this.value; draw(); save(); scatterSay(); };
   $('fillon').onchange = function () { S.opts.fill = this.checked; HC.clear(); LAYERKEY = ''; panels(); draw(); save(); };
   $('exag').oninput = function () { S.opts.exag = +this.value; LAYERKEY = ''; draw(); }; $('exag').onchange = save;
   $('conton').onchange = function () { S.opts.contours = this.checked; draw(); save(); };
@@ -1924,6 +1928,13 @@
     // THE BUILT SQUARES (11-03, his note 25 "attempt code draw of structures appropriate scale to maximum zoom (only at maximum zoom)", and "the edifice is the bundle at
     // the top marked town, the hex building is the hex marked town, and the curved row of town hexes is my estimate of town size based on 330' hexes as measuring tool"):
     // every 330 ft hex he painted town or farmland, by its own axial key, for deep16/js/worldfine.js F.built -- exact, where the land's 330 ft grid is squares
+    // THE SCATTER, engine side (11-14): what stands in each mile hex, for the game and never for the player's map -- [kind, the mile hex q, r, its 5-mile hex q, r,
+    // the group it is one of (0 none), the group's farms, 1 a cult, a pond's size]; `groups` counts them
+    if (S.scatter && S.scatter.feats) {
+      var SK = ['farm', 'hamlet', 'fort', 'tower', 'shrine', 'lair', 'pond'], gi = {}, gn = 0;
+      out.scatter = { v: 1, mi: LV[2].w, kinds: SK, feats: S.scatter.feats.map(function (f) { var g = f.group ? (gi[f.group] = gi[f.group] || ++gn) : 0; return [SK.indexOf(f.kind), f.q, f.r, f.hex[0], f.hex[1], g, f.of || 0, f.cult ? 1 : 0, f.size || 0]; }) }; // (the last: a pond's size, 1 to 3)
+      out.scatter.groups = gn;
+    }
     out.built = { mi: LV[3].w, town: [], farms: [] };
     Object.keys(S.paint[3]).forEach(function (k) { var t = S.paint[3][k]; if (out.built[t]) out.built[t].push(unK(k)); });
     S.paths.forEach(function (P) {
@@ -2030,11 +2041,137 @@
     return { v: 1, mi: mi, x0: x0, y0: y0, w: w, h: h, hs: hs, hw: hw, hh: hh, keys: keys, ms: Date.now() - t0, b64: btoa(bin) };
   }
 
+  // ---------------------------------------------------------------- THE SCATTER (11-14, the Snoot seat; Griz: "determine some percentage chance something would be in a
+  // level 2 hex (ruin forts and fortifications from the old orc war, farms, etc) and map those out, then give snooting gnolls a % chance of discovering those farms when they
+  // enter that 5 miles square, with you repainting the hex map to sort all this out when we're done"). What stands in each mile hex round Tarlyn's Pit and in the hills,
+  // rolled by the hex's own name (the same map every time: his "freeze and call it canon, these are DM/engine side locations and don't appear on the map other than hex
+  // paint corrections to the player"). His shape: farms thin with the miles from the Pit and from a road; "the rarest would be on the edges of the foot hills level 1
+  // hexes west of the halfway in, none further than 4 hexes either side of the road, if an isolated farm drops a roll with a % that it's 1d4 farms in a little group/cult.
+  // up to 3 hexes deep in the NE quadarant, anywhere in the SE"; the kinds his "add monster lair (gnolls won't interact ...) - small ponds and such?" and, of the hills,
+  // "other than orc war remnants, the only ruins are Rhollor's Ruins, remnants yes". EVERY NUMBER IN SC IS THE SEAT'S FIRST GUESS, his to change. A PREVIEW until he says
+  // freeze: scatter() only reads the map; nothing is painted and nothing is kept.
+  var SC = { salt: 1114, roads: ['pitroad', 'pirate', 'newland'], side: 20, neDeep: 15, north: 5, // (miles: 4 hexes either side of a road; 3 hexes deep north-east; how far north of the inn)
+    p0: 0.9, pit: 22, road: 5, quad: { SE: 1, SW: 0.6, NE: 0.5, NW: 0.4 }, seFloor: 0.04, edge: 0.005, // (a farm: p0 at the Pit's door, falling by e each `pit` miles from it and each `road` miles from a road)
+    group: 0.25, cult: 1 / 3, hamlet: 0.12, shrine: 0.006, fort: 0.0015, tower: 0.0035, lair: [0.002, 0.006], hillLair: 0.004, pond: 0.004, neFort: 0.15 }; // (11-14, his "fewer ponds, much less fort NE quadrant - otherwise looks good": a pond a third as often, a fort north-east of the Pit about one in seven of what it was; the watchtowers left)
+  var ARABLE = { plains: 1, verge: 1, farms: 1 }, HILLY = { hills: 1, foothills: 1 };
+  function scRnd(q, r, ch) { var h = (Math.imul(q, 374761393) + Math.imul(r, 668265263) + Math.imul(ch + 1, 974634777) + SC.salt + SCROLL) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; h = Math.imul(h, 2246822519); h ^= h >>> 15; return (h >>> 0) / 4294967296; }
+  var SCC = null, SCV = -1, SCROLL = 0; // (SCROLL: which roll -- his "Do 3 rolls total after tune": 0, 1, 2, S.opts.roll, for him to choose between; the one frozen is the canon)
+  function scatter() {
+    if (S.scatter && S.scatter.feats) { // (FROZEN: the canon, as kept in his map; no roll reads the paint again)
+      if (SCC && SCC.frozen === S.scatter) return SCC;
+      var fz = { feats: S.scatter.feats, by5: {}, n: {}, frozen: S.scatter };
+      fz.feats.forEach(function (f) { var k5 = K(f.hex[0], f.hex[1]); fz.n[f.kind] = (fz.n[f.kind] || 0) + 1; (fz.by5[k5] = fz.by5[k5] || {})[f.kind] = (fz.by5[k5][f.kind] || 0) + 1; });
+      return (SCC = fz);
+    }
+    var roll = +S.opts.roll || 0; if (SCC && SCV === VER && SCROLL === roll) return SCC;
+    SCROLL = roll; hcheck();
+    var pit = SB.pit, inn = SB.inn; if (!pit || !inn) return (SCC = { feats: [], by5: {}, n: {} });
+    var roads = SC.roads.map(pathBy).filter(Boolean).map(ptsOf), F = fillOf(paintBox()), w = LV[2].w, hh = w * SQ3 / 2;
+    var dRoad = function (c) { var d = 1e9; roads.forEach(function (pp) { for (var i = 0; i + 1 < pp.length; i++) d = Math.min(d, segD(c, pp[i], pp[i + 1])[0]); }); return d; };
+    var ground = function (q, r, c) { return domT(2, q, r) || fillAt(F, c[0], c[1]); };
+    var b = paintBox(), cells = {}, keys = [], taken = S.sites.map(function (s) { return [s.x, s.y]; });
+    for (var r = Math.floor(b[1] / hh); r <= Math.ceil(b[3] / hh); r++) for (var q = Math.floor(b[0] / w - r / 2); q <= Math.ceil(b[2] / w - r / 2); q++) {
+      var c = hc(2, q, r), t = ground(q, r, c); if (!ARABLE[t] && !HILLY[t]) continue;
+      if (taken.some(function (s) { return Math.hypot(s[0] - c[0], s[1] - c[1]) < 1.2; })) continue; // (a place of his own stands there)
+      var dr = dRoad(c), se = c[1] >= pit.y && c[0] >= pit.x, zone = (dr <= SC.side || (se && ARABLE[t])) && c[1] >= inn.y - SC.north; if (!zone && !HILLY[t]) continue; // (his "anywhere in the SE")
+      var k = K(q, r); cells[k] = { q: q, r: r, x: c[0], y: c[1], t: t, dr: dr, dp: Math.hypot(c[0] - pit.x, c[1] - pit.y), zone: zone, quad: (c[1] >= pit.y ? 'S' : 'N') + (c[0] >= pit.x ? 'E' : 'W') }; keys.push(k);
+    }
+    var pFarm = function (e) {
+      if (!e.zone) return 0;
+      if (HILLY[e.t]) { // (the rarest: the edge of the foothills' 5-mile hexes west of the road)
+        if (e.quad.charAt(1) !== 'W') return 0;
+        var p5 = up(2, e.q, e.r); return DIRS.some(function (o) { return ARABLE[F.g[K(p5[0] + o[0], p5[1] + o[1])]]; }) ? SC.edge : 0;
+      }
+      if (e.quad === 'NE' && e.dr > SC.neDeep) return 0;
+      var p = SC.p0 * Math.exp(-e.dp / SC.pit) * Math.exp(-e.dr / SC.road) * SC.quad[e.quad];
+      return e.quad === 'SE' ? Math.max(p, SC.seFloor) : p;
+    };
+    var farm = {}, kind = {}, grp = {};
+    keys.forEach(function (k) { var e = cells[k]; if (scRnd(e.q, e.r, 0) < pFarm(e)) farm[k] = 1; });
+    var nearFarm = function (e, R) { for (var dq = -R; dq <= R; dq++) for (var d2 = -R; d2 <= R; d2++) if ((dq || d2) && Math.abs(dq + d2) <= R && farm[K(e.q + dq, e.r + d2)]) return true; return false; };
+    var lone = keys.filter(function (k) { return farm[k] && !nearFarm(cells[k], 2); }); // (isolated: no other farm within two miles; read before any group is laid, so the order does not matter)
+    lone.forEach(function (k) {
+      var e = cells[k]; if (scRnd(e.q, e.r, 1) >= SC.group) return;
+      var n = 1 + Math.floor(scRnd(e.q, e.r, 2) * 4), cult = scRnd(e.q, e.r, 3) < SC.cult, id = 'g' + k.replace(',', '_'); grp[k] = { id: id, n: n, cult: cult };
+      DIRS.map(function (o, i) { return [scRnd(e.q, e.r, 10 + i), K(e.q + o[0], e.r + o[1])]; }).sort(function (a, c2) { return a[0] - c2[0]; }).forEach(function (o) {
+        if (n > 1 && cells[o[1]] && !farm[o[1]] && cells[o[1]].t === e.t) { farm[o[1]] = 1; grp[o[1]] = { id: id, n: grp[k].n, cult: cult }; n--; }
+      });
+    });
+    keys.forEach(function (k) {
+      var e = cells[k];
+      if (farm[k]) { var nb = 0; DIRS.forEach(function (o) { if (farm[K(e.q + o[0], e.r + o[1])]) nb++; }); kind[k] = nb >= 4 && scRnd(e.q, e.r, 4) < SC.hamlet ? 'hamlet' : 'farm'; return; }
+      var x = scRnd(e.q, e.r, 5), hill = !!HILLY[e.t], a = 0;
+      var is = function (p) { a += p; return x < a; };
+      if (is(SC.fort * (e.quad === 'NE' ? SC.neFort : 1))) kind[k] = 'fort'; else if (is(SC.tower)) kind[k] = 'tower';
+      else if (e.zone && !hill && is(e.dr <= 1 || nearFarm(e, 1) ? SC.shrine : 0)) kind[k] = 'shrine';
+      else if (is(hill ? SC.hillLair : e.zone ? SC.lair[0] + SC.lair[1] * Math.min(1, e.dr / SC.side) : 0)) kind[k] = 'lair';
+      else if (is(SC.pond)) kind[k] = 'pond';
+    });
+    var out = { feats: [], by5: {}, n: {}, cells: keys.length, F: F, arable: keys.filter(function (k) { return cells[k].zone && ARABLE[cells[k].t]; }).map(function (k) { return [k, cells[k].t]; }) };
+    keys.forEach(function (k) {
+      if (!kind[k]) return; var e = cells[k], p5 = up(2, e.q, e.r), k5 = K(p5[0], p5[1]), f = { id: 's' + k.replace(',', '_'), kind: kind[k], q: e.q, r: e.r, x: +e.x.toFixed(3), y: +e.y.toFixed(3), hex: [p5[0], p5[1]], ground: e.t };
+      if (grp[k]) { f.group = grp[k].id; f.of = grp[k].n; if (grp[k].cult) f.cult = true; }
+      out.feats.push(f); out.n[f.kind] = (out.n[f.kind] || 0) + 1; (out.by5[k5] = out.by5[k5] || {})[f.kind] = (out.by5[k5][f.kind] || 0) + 1;
+    });
+    SCC = out; SCV = VER; return out;
+  }
+  // THE FREEZE AND THE REPAINT (11-14; his "roll 1 is good", "freeze and call it canon", "yes" to farmland with no farm in it turning to plains, and of the
+  // ponds "I feel as though the ponds should be painted in as well", "maybe give them 3 sizes randomly first"): once on load, on his map only (a map with the
+  // Pit, the inn and his mile paint). Roll 1 is kept in the map as S.scatter -- its EXPORT carries it and the bake hands it to the game, engine side. Then the
+  // paint is made to agree, in the scatter's own country (round the Pit; the farms the Dominion took in the far west and the Doors' farm valley are not it):
+  //   1 THE PIN: a 5-mile hex he never painted at 5 miles, before anything is painted inside it, is painted the ground THE FILL was giving it (plains where
+  //     that was farmland). A mile of paint inside an unpainted 5-mile hex would else become that whole hex's ground and THE FILL's source -- the first try
+  //     turned the Verge and the sea to plains so, and was thrown away.
+  //   2 each farm's and hamlet's mile hex is painted farmland;
+  //   3 a mile hex that read farmland and holds no farm is painted plains, so the farmland thins outward as the farms do;
+  //   4 each pond is painted lake at 330 ft in one of three sizes by its own roll -- one hex (330 ft across), seven (about 1,000 ft) or nineteen (about
+  //     1,650 ft) -- a little off its mile hex's middle, never over 330 ft paint of his; its `size` and spot are kept on it. The thirds are the seat's.
+  // A fort, a watchtower, a shrine and a lair are never painted: places the engine knows and the map does not show.
+  function seedScatter() {
+    S.seeded = S.seeded || {};
+    if (!SB.pit || !SB.inn || Object.keys(S.paint[2]).length < 5000) return false; // (not his map: nothing is frozen, and the key is left for the day it is)
+    S.seeded.scatter1114 = true; delete S.scatter; SCC = null;
+    var B0 = paintBox(), was = S.opts.roll; S.opts.roll = 0; var sc = scatter(), F0 = sc.F; S.opts.roll = was; // (read whole before a hex is painted)
+    var K5 = function (q, r) { var p5 = up(2, q, r); return K(p5[0], p5[1]); }, has = {}, pin = {}, T = { v: 1, roll: 1, salt: SC.salt, frozen: '2026-11-14', feats: sc.feats, pinned: 0, painted: 0, unfarmed: 0, ponded: 0 };
+    sc.feats.forEach(function (f) { if (f.kind === 'farm' || f.kind === 'hamlet') has[K(f.q, f.r)] = 1; if (f.kind === 'farm' || f.kind === 'hamlet' || f.kind === 'pond') pin[K(f.hex[0], f.hex[1])] = 1; });
+    sc.arable.forEach(function (a) { var h = unK(a[0]); if (a[1] === 'farms') pin[K5(h[0], h[1])] = 1; });
+    Object.keys(pin).forEach(function (k5) { if (S.paint[1][k5] || !F0.g[k5]) return; rawSet(1, k5, F0.g[k5] === 'farms' ? 'plains' : F0.g[k5]); T.pinned++; });
+    Object.keys(has).forEach(function (k) { if (S.paint[2][k] !== 'farms') { rawSet(2, k, 'farms'); T.painted++; } });
+    reindex(); rebuildDC();
+    sc.arable.forEach(function (a) { var h = unK(a[0]); if (!has[a[0]] && a[1] === 'farms' && domT(2, h[0], h[1]) === 'farms') { rawSet(2, a[0], 'plains'); T.unfarmed++; } });
+    sc.feats.forEach(function (f) {
+      if (f.kind !== 'pond') return;
+      var size = 1 + Math.floor(scRnd(f.q, f.r, 6) * 3), R = size - 1, px = f.x + (scRnd(f.q, f.r, 7) - 0.5) * 0.5, py = f.y + (scRnd(f.q, f.r, 8) - 0.5) * 0.5, c = at(3, px, py);
+      f.size = size; f.px = +px.toFixed(3); f.py = +py.toFixed(3);
+      for (var dq = -R; dq <= R; dq++) for (var dr = -R; dr <= R; dr++) if (Math.abs(dq + dr) <= R) { var k3 = K(c[0] + dq, c[1] + dr); if (!S.paint[3][k3]) { rawSet(3, k3, 'lake'); T.ponded++; } }
+    });
+    // 5 THE FILL HELD: the pins are new paint, and THE FILL reads paint -- a hex still unpainted whose filled ground moved because of them (the sea on the
+    //   east edge went to the Verge on the second try) is pinned to what it was, round and round until nothing moves. Outside the scatter's country
+    //   the map then bakes as it did.
+    reindex(); rebuildDC();
+    for (var pass = 0; pass < 8; pass++) {
+      var F1 = fillOf(paintBox()), moved = 0;
+      F0.box.forEach(function (k5) { if (F0.own[k5] || S.paint[1][k5] || !F0.g[k5] || F1.g[k5] === F0.g[k5]) return; var h5 = unK(k5), c5 = hc(1, h5[0], h5[1]); if (c5[0] < B0[0] || c5[1] < B0[1] || c5[0] > B0[2] || c5[1] > B0[3]) return; rawSet(1, k5, F0.g[k5]); moved++; }); // (never the ring past his paint's own box: a pin there would grow the map)
+      T.held = (T.held || 0) + moved; if (!moved) break; reindex(); rebuildDC();
+    }
+    S.scatter = T; reindex(); rebuildDC(); SCC = null; return true;
+  }
+  var SCOL = { farm: '#f2d24a', hamlet: '#ffffff', fort: '#e0483c', tower: '#ff9a3c', shrine: '#5fe0e0', lair: '#c070f0', pond: '#4aa0ff' };
+  function scatterMarks() { // (the preview: a farm's mile hex washed in farmland's colour, every other kind a dot; S.opts.scatter)
+    if (!S.opts.scatter) return;
+    var sc = scatter(), z = view.z;
+    sc.feats.forEach(function (f) {
+      var s = toS(f.x, f.y); if (s[0] < -30 || s[0] > Wd + 30 || s[1] < -30 || s[1] > Ht + 30) return;
+      if ((f.kind === 'farm' || f.kind === 'hamlet') && z >= 5 && !isW()) { ctx.beginPath(); hexPath(ctx, 2, f.q, f.r); ctx.fillStyle = f.cult ? 'rgba(242,150,74,.6)' : 'rgba(242,210,74,.55)'; ctx.fill(); if (f.kind === 'farm') return; }
+      var R = f.kind === 'farm' ? Math.max(1, z * 0.3) : Math.max(3, Math.min(7, z * 0.45));
+      ctx.beginPath(); ctx.arc(s[0], s[1], R, 0, Math.PI * 2); ctx.fillStyle = SCOL[f.kind]; ctx.fill(); if (f.kind !== 'farm') { ctx.lineWidth = 1.5; ctx.strokeStyle = '#1a1208'; ctx.stroke(); }
+    });
+  }
   // ---------------------------------------------------------------- go
   load();
   window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
     dbg: function (x, y) { hcheck(); var t = terrAtMi(x, y), raw = hRaw(x, y, t), lift = peaksAt(x, y); return { t: t, blend: bil(AR.A, x, y), raw: raw, lift: lift, bed: bedAt(x, y, raw) }; },
-    bake: bake, bakeFine: bakeFine, fill: function () { return fillOf(paintBox()); },
+    bake: bake, bakeFine: bakeFine, fill: function () { return fillOf(paintBox()); }, scatter: scatter, SC: SC,
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });
@@ -2042,6 +2179,7 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
+  else if (SCATTERED) { saveNow(); msg('THE SCATTER is frozen into this map (roll 1): ' + S.scatter.feats.length + ' places the engine knows; ' + S.scatter.painted + ' mile hexes painted farmland for their farms, ' + S.scatter.unfarmed + ' farmland mile hexes with no farm in them painted plains, the ponds painted in three sizes (' + S.scatter.ponded + ' hexes of 330 ft); ' + S.scatter.pinned + ' 5-mile hexes you had not painted hold the ground they showed (' + (S.scatter.held || 0) + ' more held so the fill beside them did not move). Forts, watchtowers, shrines and lairs are not painted. EXPORT is the save.'); }
   else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK || CLIMBED || HAIRPINNED || REGRADED || SITED || TERRACED || FOOTED || REWORKED || ROADSIDE || REGONE) { saveNow(); msg((REGONE ? 'The Coldridge Route reads three days on foot again over its road as it is now, the Galleries junction to the Doors (its going re-set from its length; still not difficult: the mountain and the weather). ' : '') + (ROADSIDE ? 'The Glowseep\'s mark is on the mile road now, 1.7 mi up from the fork, beside where it stood in the bog (your “the entrance/map position should be road adjacent”); the bog round it as you left it. ' : '') + (REWORKED ? 'The Coldridge climb is laid again across the 3291 ft hex and the two either side of it: hairpins from the lower east to the higher west and up onto the shelf, each of the game\'s hexes passed once, at an 8% grade (your own points kept on the road as drawn1103). ' : '') + (FOOTED ? 'The range east of Silverton is pulled back off the road to the Warrens: its foot along the north edge of the game\'s hexes there, the valley floor at 300 ft, the face rising behind it (L shows it: “the mountain’s foot”); your paint as you left it. ' : '') + (TERRACED ? 'The Edifice stands level on a terrace at 960 ft (L shows it: “the Edifice’s terrace”); the mountains behind it as you left them. ' : '') + (SITED ? 'Silverton\'s mark is on your Edifice now; the town\'s flat ground stays where the mark was (the dashed ring when Silverton is chosen; Shift-drag moves the two together), and the mile and the feed track still end there. ' : '') + (REGRADED ? 'The Coldridge climb is graded along your own line: the face and the road\'s ledge follow your hairpins from the junction to the shelf, evenly; your ten lifts by the shelf keep to their hex (a half-mile spread). ' : '') + (HAIRPINNED ? 'The Coldridge climb is in hairpins now: ten legs across one smooth face from the junction to the shelf, near an 11% grade, the road some 2 mi longer; the face\'s mile hexes painted by height. ' : '') + (CLIMBED ? 'The Coldridge climb is shaped: the road out of the Galleries junction graded evenly up to its shelf at about 5,400 ft, the shelf held flat for some 2 mi (the iso roam to come), the road\'s unpainted mile hexes painted by height (L shows the two levels). ' : '') + (RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
