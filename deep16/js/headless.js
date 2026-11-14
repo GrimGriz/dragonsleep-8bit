@@ -14,7 +14,8 @@
 (function () {
   var D = window.D16, H = D.headless = {};
   H.FIELD = 'headless-field';
-  H.FILES = 8;      // men across a rank
+  H.FILES = 8;      // men across a rank (a line)
+  H.COLUMN = 3;     // men across a column
   H.MARGIN = 3;     // squares of field round the ranks (his "3 more squares")
   H.GAP = [75, 105]; // the front ranks apart, ft (his "75 to 105 feet apart")
   // THE BODIES: what each of the Snoot's men is on the grid, from the bestiary's humanoids (data/foes.js). The seat's picks, his to change:
@@ -144,14 +145,52 @@
     var L = Math.max(1, Math.min(12, spec.level || 4)), NPC = D.npc;
     if (spec.seed != null) D.seed = spec.seed | 0;
     var isClass = function (w) { return !!(NPC.spec && NPC.spec(w, L)); };
-    var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
+    var norm = function (sd, k) { var us = sd.units && sd.units.length ? sd.units : [{ id: k, name: sd.name, list: sd.list, morale: sd.morale, never: sd.never, form: sd.form, asp: sd.asp, cover: sd.cover }]; return { name: sd.name || us.map(function (x) { return x.name; }).join(' and '), units: us }; };
     var SA = norm(spec.a, 'a'), SB = norm(spec.b, 'b'), A = [], Au = [], Ah = [], Bl = [], Bu = [], Bh = [], hu = {};
-    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0 }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
-    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0 }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
+    SA.units.forEach(function (x) { hu[x.id] = { g: 'a', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover }; (x.list || []).forEach(function (wd, j) { A.push(wd); Au.push(x.id); Ah.push(j < (x.nh || 0) ? j : null); }); });
+    SB.units.forEach(function (x) { hu[x.id] = { g: 'b', name: x.name, morale: x.morale, never: !!x.never, step: 0, cover: !!x.cover }; (x.list || []).forEach(function (wd, j) { Bl.push(wd); Bu.push(x.id); Bh.push(j < (x.nh || 0) ? j : null); }); });
     var aClass = A.filter(isClass), ph = !aClass.length;
     var steps = Math.round((H.GAP[1] - H.GAP[0]) / 5) + 1, gap = spec.gap || (H.GAP[0] + 5 * Math.floor(D.rand() * steps)), g = Math.round(gap / 5);
-    var F = H.FILES, rA = Math.ceil(A.length / F), rB = Math.ceil(Bl.length / F), M = H.MARGIN;
-    var w = Math.max(Math.min(F, A.length), Math.min(F, Bl.length)) + 2 * M, h = rA + rB + g - 1 + 2 * M, rows = [], hts = [];
+    // THE SEATING (11-14, Griz: "think about the formation settings from the snoot that was and the surprise and walls lines"; on the seat's lean, "Yes, all
+    // three"): what the board's formations and sides of entry were as dice is here where the bodies stand when the fight opens. A unit's FORMATION is its shape
+    // -- a line H.FILES abreast, a column H.COLUMN abreast and deep, a square a block with its shooters in the middle; a side's units stand abreast. Its ASPECT
+    // (`asp`, how it strikes the other side: the board's SN.aspect) is where it is seated -- 'front' across the gap from them, 'flank' off their side, 'rear'
+    // behind their last rank, each the same gap away. A unit with neither is a line at the front, as every fight was seated before.
+    var M = H.MARGIN, widthOf = function (x) { var n = (x.list || []).length; return Math.max(1, x.form === 'column' ? Math.min(H.COLUMN, n) : x.form === 'square' ? Math.ceil(Math.sqrt(n)) : Math.min(H.FILES, n)); };
+    var SHOOTS = /^(bandit|patrollady)/, cellsOf = function (x, ox, oy, dx, dy) { // (front-centre ox,oy; the ranks go back along dx,dy; the files along the other way)
+      var n = (x.list || []).length, W = widthOf(x), lx = dy ? 1 : 0, ly = dy ? 0 : 1, out = [], i;
+      for (i = 0; i < n; i++) { var off = (i % W) - Math.floor(W / 2), rk = Math.floor(i / W); out.push([ox + lx * off + dx * rk, oy + ly * off + dy * rk]); }
+      if (x.form === 'square' && n > 2) { // (the shooters in the middle of it)
+        var cx0 = out.reduce(function (t, c) { return t + c[0]; }, 0) / n, cy0 = out.reduce(function (t, c) { return t + c[1]; }, 0) / n;
+        var byIn = out.slice().sort(function (p1, p2) { return (Math.abs(p1[0] - cx0) + Math.abs(p1[1] - cy0)) - (Math.abs(p2[0] - cx0) + Math.abs(p2[1] - cy0)); });
+        var order = x.list.map(function (wd, j) { return j; }).sort(function (j1, j2) { return (SHOOTS.test(x.list[j2]) ? 1 : 0) - (SHOOTS.test(x.list[j1]) ? 1 : 0) || j1 - j2; }), sq = [];
+        order.forEach(function (j, k) { sq[j] = byIn[k]; }); out = sq;
+      }
+      return { cells: out, face: [-dx, -dy] };
+    };
+    var seatSide = function (S, y0, dy) { // (the ones at the front, abreast: the first rank on y0, the ranks going back by dy)
+      var us = S.units.filter(function (x) { return !x.asp || x.asp === 'front'; }), tot = us.reduce(function (t, x) { return t + widthOf(x) + 2; }, -2), cur = -Math.floor(tot / 2), box = { x0: 0, x1: 0, y0: y0, y1: y0 };
+      us.forEach(function (x, k) { var W = widthOf(x); x.seat = cellsOf(x, cur + Math.floor(W / 2), y0, 0, dy); cur += W + 2; });
+      var all = []; us.forEach(function (x) { all = all.concat(x.seat.cells); });
+      if (all.length) box = { x0: Math.min.apply(null, all.map(function (c) { return c[0]; })), x1: Math.max.apply(null, all.map(function (c) { return c[0]; })), y0: Math.min.apply(null, all.map(function (c) { return c[1]; })), y1: Math.max.apply(null, all.map(function (c) { return c[1]; })) };
+      return box;
+    };
+    var boxA = seatSide(SA, 0, -1), boxB = seatSide(SB, g, 1);
+    var seatRound = function (S, E, backY, backDy) { // (the ones on the other side's flank or behind it: E the other side's box, backY its last rank, backDy the way its ranks go back)
+      var nf = 0, nr = 0, my = Math.round((E.y0 + E.y1) / 2), mx = Math.round((E.x0 + E.x1) / 2);
+      S.units.forEach(function (x) {
+        if (x.asp === 'flank') { var left = nf % 2 === 0, k = Math.floor(nf / 2), W = widthOf(x); nf++; x.seat = cellsOf(x, left ? E.x0 - g : E.x1 + g, my + k * (W + 2), left ? -1 : 1, 0); }
+        else if (x.asp === 'rear') { var W2 = widthOf(x); x.seat = cellsOf(x, mx + nr * (W2 + 2), backY + backDy * g, 0, backDy); nr++; }
+      });
+    };
+    seatRound(SA, boxB, boxB.y1, 1); seatRound(SB, boxA, boxA.y0, -1);
+    var PA = [], PB = [], FA = [], FB = [];
+    SA.units.forEach(function (x) { (x.seat ? x.seat.cells : []).forEach(function (c) { PA.push(c); FA.push(x.seat.face); }); });
+    SB.units.forEach(function (x) { (x.seat ? x.seat.cells : []).forEach(function (c) { PB.push(c); FB.push(x.seat.face); }); });
+    var every = PA.concat(PB), minX = Math.min.apply(null, every.map(function (c) { return c[0]; })), minY = Math.min.apply(null, every.map(function (c) { return c[1]; }));
+    var taken = {}; every.forEach(function (c) { while (taken[c[0] + ',' + c[1]]) c[0]++; taken[c[0] + ',' + c[1]] = 1; }); // (never two on a square)
+    every.forEach(function (c) { c[0] += M - minX; c[1] += M - minY; });
+    var w = Math.max.apply(null, every.map(function (c) { return c[0]; })) + 1 + M, h = Math.max.apply(null, every.map(function (c) { return c[1]; })) + 1 + M, rows = [], hts = [];
     for (var y = 0; y < h; y++) { rows.push(new Array(w + 1).join('.')); hts.push(new Array(w + 1).join('0')); }
     D.MAPS[H.FIELD] = Object.assign({}, D.MAPS.gnollhills, { name: 'The Field', sub: SA.name + ' and ' + SB.name, rows: rows, heights: hts });
     var q = '?npc=' + Bl.join(',') + '&lvl=' + L + '&vs=' + (ph ? 'fighter:1' : aClass.join(',')) + '&map=' + H.FIELD + (o && o.bench ? '' : '&watch');
@@ -167,14 +206,17 @@
         var u;
         if (isClass(wd)) { u = P[ci++]; if (u) { u.guest = true; u.classAI = true; } }
         else if (D.FOES[wd]) { u = self.makeFoe({ id: 'a' + i + '-' + wd, kind: wd, at: [0, 0], side: 'party', ally: true }); self.units.push(u); }
-        if (u) { u.hgroup = 'a'; u.hword = wd; u.hunit = Au[i]; u.hhero = Ah[i]; mine.push(u); }
+        if (u) { u.hgroup = 'a'; u.hword = wd; u.hunit = Au[i]; u.hhero = Ah[i]; u.hseat = PA[i]; u.hface = FA[i]; mine.push(u); }
       });
-      Fo.forEach(function (u, i) { u.hgroup = 'b'; u.hword = u.rword || Bl[i] || u.kind; u.hunit = Bu[i]; u.hhero = Bh[i]; });
-      var seat = function (us, front, dir, face) {
-        var wide = Math.min(F, us.length), x0 = Math.floor((w - wide) / 2);
-        us.forEach(function (u, i) { u.x = x0 + (i % F); u.y = front + dir * Math.floor(i / F); if (D.spr && D.spr.facingFor) u.facing = D.spr.facingFor(0, face); });
-      };
-      seat(mine, M + rA - 1, -1, 1); seat(Fo, M + rA - 1 + g, 1, -1);
+      Fo.forEach(function (u, i) { u.hgroup = 'b'; u.hword = u.rword || Bl[i] || u.kind; u.hunit = Bu[i]; u.hhero = Bh[i]; u.hseat = PB[i]; u.hface = FB[i]; });
+      mine.concat(Fo).forEach(function (u) {
+        if (u.hseat) { u.x = u.hseat[0]; u.y = u.hseat[1]; if (D.spr && D.spr.facingFor && u.hface) u.facing = D.spr.facingFor(u.hface[0], u.hface[1]); }
+        // THE WALLS (the board's holding ground: the Pit's and the inn's walls, the tribes' seats): the ones who hold are behind half cover from every shot
+        // (SRD 5.1, Cover: +2 to AC -- js/battle.js reads u.hcover), with the +1 on their morale the board already sends
+        if (hu[u.hunit] && hu[u.hunit].cover) u.hcover = true;
+        // SURPRISE (the board's die, Book III): the side caught unready is surprised as the grid has it (SRD 5.1: no turn in the first round)
+        if (spec.surprised && u.hgroup === spec.surprised && u.conds) u.conds.surprised = true;
+      });
       this.cache = null;
       this.over = function () { return H.over(this); };
       H.listen(this);
@@ -200,10 +242,10 @@
   // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
   H.serve = function () {
     var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
-    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never }; }) }; };
+    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover }; }) }; };
     window.addEventListener('message', function (e) {
       var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
-      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed }); delete r.log; post({ type: 'd16h:done', id: m.id, res: r }); }
+      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }); delete r.log; post({ type: 'd16h:done', id: m.id, res: r }); }
       catch (err) { post({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); }
     });
     setTimeout(function () { post({ type: 'd16h:ready' }); }, 0);
@@ -213,7 +255,8 @@
   //   deep16/?headless&a=paladin:4,guard*12&b=gloryseeker*3,gnoll*9,hyena*6&seed=7   (&an= &bn= their names, &am= &bm= their morale ratings, &gap= ft, &lvl=)
   H.door = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    return H.make({ a: { name: get('an') || 'the first', list: H.words(get('a') || 'paladin:4*3,guard*12'), morale: +get('am') || 5 }, b: { name: get('bn') || 'the second', list: H.words(get('b') || 'gloryseeker*3,gnoll*9,hyena*6'), morale: +get('bm') || 7 },
-      level: +get('lvl') || 4, seed: get('seed') != null ? +get('seed') : null, gap: +get('gap') || 0 }, {});
+    // (11-14, the seating: &af= &bf= line | column | square; &aa= &ba= how each strikes the other, front | flank | rear; &ac=1 &bc=1 behind the walls; &sur=a | b caught unready)
+    return H.make({ a: { name: get('an') || 'the first', list: H.words(get('a') || 'paladin:4*3,guard*12'), morale: +get('am') || 5, form: get('af'), asp: get('aa'), cover: !!get('ac') }, b: { name: get('bn') || 'the second', list: H.words(get('b') || 'gloryseeker*3,gnoll*9,hyena*6'), morale: +get('bm') || 7, form: get('bf'), asp: get('ba'), cover: !!get('bc') },
+      level: +get('lvl') || 4, seed: get('seed') != null ? +get('seed') : null, gap: +get('gap') || 0, surprised: get('sur') }, {});
   };
 })();

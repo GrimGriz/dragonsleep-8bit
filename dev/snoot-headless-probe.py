@@ -30,6 +30,7 @@ READ = """
   return { day: st.day, over: !!st.over, hl: window.__hl, err: window.__err, bad: bad, broke: !!(card && /SOMETHING BROKE/.test(card.innerText || '')),
     grid: st.log.filter(l => /On the grid, unseen/.test(l.text || l.t || JSON.stringify(l))).length,
     tables: st.log.filter(l => /roll \\d+ di(e|ce), kill on/.test(l.text || l.t || JSON.stringify(l))).length,
+    seated: st.log.filter(l => /^Seated:/.test(l.text || l.t || '')).length,
     morale: st.log.filter(l => /Morale, round/.test(l.text || l.t || JSON.stringify(l))).map(l => l.text || l.t || '').slice(-6),
     units: st.units.filter(u => SN.alive(u)).length };
 })()
@@ -82,6 +83,7 @@ def main():
     check(len(last['hl']) > 0, 'the day asked the grid for its fights (%d in %d days, seed %d)' % (len(last['hl']), last['day'] - day0, seed))
     check(all(f['result'] in ('won', 'lost', 'both') for f in last['hl']), 'every fight came back fought')
     check(last['grid'] == len(last['hl']), 'each was written back onto the board (%d of %d)' % (last['grid'], len(last['hl'])))
+    check(last['seated'] > 0, 'the seating reached the grid (%d fights with a formation, a flank or the walls in them)' % last['seated'])
     check(last['tables'] == 0, 'the tables fought nothing (%d rolls)' % last['tables'])
     check(not last['bad'], 'no unit below nought or alive with nobody' + (': ' + '; '.join(last['bad'][:4]) if last['bad'] else ''))
     check(not last['broke'] and not errs and not last['err'], 'nothing threw' + (': ' + '; '.join((errs + last['err'])[:3]) if errs or last['err'] else ''))

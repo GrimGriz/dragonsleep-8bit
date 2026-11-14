@@ -13,6 +13,7 @@
     while (!r.done && n++ < 200) { var v = r.value, back; if (v && v.deep) { if (deepLog) deepLog.push(v.deep.kind); back = SN.standIn(st, v.deep); } r = g.next(back); }
   }
   SN.probe = function () {
+    ok(!!(SN.Headless && SN.Headless.day && SN.Headless.apply && SN.Headless.rounds), 'js/headless.js loaded: the day can ask the grid (a slip in that file leaves the tables to fight every fight, and nothing else here would say so -- 11-14)');
     // ---- the books' numbers (CHAINMAIL p.40, p.44, p.15-16)
     ok(eq(SN.CT.HH.LF, [4, 1, 5]), 'p.40: Heavy Horse against Light Foot, 4 dice a man, kills on 5-6');
     ok(eq(SN.CT.LF.HH, [1, 4, 6]), 'p.40: Light Foot against Heavy Horse, 1 die per four men, kills on 6');

@@ -2625,6 +2625,7 @@
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     if (atk.noRoll) { yield* this.noRollOn(att, tgt, atk, o); yield o.oa ? 16 : 24; att.anim = 'idle'; return; } // (no attack roll: the chuul's tentacles -- Battle.noRollOn)
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
+    if (!melee && tgt.hcover && cover < 2) cover = 2; // (the Snoot's headless field, js/headless.js: one who holds his walls is behind half cover from every shot -- SRD 5.1 Cover, 11-14)
     if (!melee && !atk.spell && cover === 2 && D.features && D.features.breathOn && D.features.breathOn(att)) cover = 0; // (Held Breath, a feat of ours: half cover ignored -- 10-30)
     if (att.conc && att.conc.id === 'calledtoaccount' && D.magic.accountedBy && G.hostile(att, tgt)) { var acT0 = D.magic.accountedBy(this, att); if (acT0 && acT0 !== tgt) D.magic.endConc(this, att, 'an attack at another'); } // (Called to Account ends: 10-30)
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);

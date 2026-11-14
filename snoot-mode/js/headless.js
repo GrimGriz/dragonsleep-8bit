@@ -17,8 +17,8 @@
   HL.wordOf = function (h) { return SN.gridWord(h); }; // (js/rules.js, with the one table that reads the same words)
   HL.sent = function (u) { return SN.heroesOf(u).filter(function (h) { return !!HL.wordOf(h); }); };
   HL.comp = function (u) { return SN.compNow(u); };
-  HL.pack = function (u, plus) {
-    return { id: u.id, name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
+  HL.pack = function (u, plus, seat) {
+    return { id: u.id, form: u.form || 'line', asp: seat && seat.asp || 'front', cover: !!(seat && seat.cover), name: u.name, kind: u.kind, figs: u.figs || 0, comp: u.comp ? HL.comp(u) : null, harbinger: !!u.harbinger, volley: !!u.volley, mounted: !!u.mounted,
       groups: u.groups ? u.groups.map(function (g) { return { n: g.n, mounted: !!g.mounted, volley: !!g.volley }; }) : null,
       heroes: HL.sent(u).map(function (h) { return { name: h.name, grid: HL.wordOf(h) }; }),
       rating: SN.rating(u) + (plus || 0), never: SN.nevers(u) };
@@ -27,11 +27,11 @@
   // a and b: a unit of the board each, or several (a stack in a hex: the day's own fights); o.plus: { id: +n on its rating } (holding ground)
   HL.ask = function (a, b, o, done) {
     var fr = document.createElement('iframe'), closed = false, timer = null, id = 'h' + Date.now();
-    var packs = function (x) { return (Array.isArray(x) ? x : [x]).map(function (u) { return HL.pack(u, o && o.plus && o.plus[u.id] || 0); }); };
+    var packs = function (x) { return (Array.isArray(x) ? x : [x]).map(function (u) { return HL.pack(u, o && o.plus && o.plus[u.id] || 0, o && o.seat && o.seat[u.id]); }); };
     function close(m) { if (closed) return; closed = true; clearTimeout(timer); window.removeEventListener('message', on); if (fr.parentNode) fr.parentNode.removeChild(fr); done(m && m.type === 'd16h:done' ? m.res : null, m); }
     function on(e) {
       if (e.source !== fr.contentWindow || !e.data) return; var m = e.data;
-      if (m.type === 'd16h:ready') { clearTimeout(timer); timer = setTimeout(function () { close({ type: 'd16h:crash', msg: 'no answer' }); }, HL.RUN_MS); fr.contentWindow.postMessage({ type: 'snh:fight', id: id, a: packs(a), b: packs(b), seed: o && o.seed, level: o && o.level }, '*'); }
+      if (m.type === 'd16h:ready') { clearTimeout(timer); timer = setTimeout(function () { close({ type: 'd16h:crash', msg: 'no answer' }); }, HL.RUN_MS); fr.contentWindow.postMessage({ type: 'snh:fight', id: id, a: packs(a), b: packs(b), seed: o && o.seed, level: o && o.level, surprised: o && o.surprised || null }, '*'); }
       if ((m.type === 'd16h:done' || m.type === 'd16h:crash') && (m.id === id || m.type === 'd16h:crash')) close(m);
     }
     window.addEventListener('message', on);
@@ -137,8 +137,25 @@
     var get = function (ids) { return (ids || []).map(function (id) { return SN.unit(st, id); }).filter(function (u) { return u && SN.alive(u); }); };
     var O = get(req.ours), T = get(req.theirs), plus = {};
     if (!O.length || !T.length) return done(null);
-    O.concat(T).forEach(function (u) { if (SN.holding(st, u, req.at)) plus[u.id] = 1; }); // (holding ground: +1 on its morale, as on the tables)
-    HL.ask(O, T, { seed: req.seed, level: 4, plus: plus }, function (res) { done(res && res.result !== 'error' && res.a && res.b ? res : null); });
+    // THE SEATING (11-14, "Yes, all three"): the board's formations, sides of entry, surprise and walls go to the grid as where the bodies stand, not as dice.
+    // Each unit's formation is its shape there; how it strikes the other side's biggest unit (SN.aspect: the side it came in through against their facing and
+    // formation, a unit that changed formation today taken in the flank, one held by Entangle too) is where it is seated -- front, flank or rear; the ones who
+    // hold their ground are behind half cover with +1 on their morale; the side the surprise die caught is surprised, and where three or more came at it
+    // they are seated round it -- front, both flanks, the rear
+    var seat = {}, big = function (U) { return U.slice().sort(function (x, y) { return SN.bodyCount(y) - SN.bodyCount(x); })[0]; };
+    var sur = st.surp && SN.same(st.surp.at, req.at) ? st.surp : null, ring = ['front', 'flank', 'flank', 'rear'];
+    [[O, T, 'ours'], [T, O, 'theirs']].forEach(function (pr) {
+      var tg = big(pr[1]), circling = sur && sur.circle && sur.side !== pr[2];
+      pr[0].forEach(function (u, i) {
+        var asp = SN.aspect(st, u, tg, req.at); if (tg.entangled && asp === 'front') asp = 'flank';
+        if (circling) asp = ring[i % ring.length];
+        var hold = SN.holding(st, u, req.at); if (hold) plus[u.id] = 1;
+        seat[u.id] = { asp: asp, cover: !!hold };
+      });
+    });
+    HL.ask(O, T, { seed: req.seed, level: 4, plus: plus, seat: seat, surprised: sur ? (sur.side === 'ours' ? 'a' : 'b') : null }, function (res) {
+      if (res) res.seat = seat; // (for the log: how each was seated)
+      done(res && res.result !== 'error' && res.a && res.b ? res : null); });
   };
   // what the grid's fight came to, written back onto the board: the show's beats (HL.rounds), each unit's men down off its figures man for man, its heroes
   // down by name -- GreyFang is beaten back, never killed (he is the Harbinger's); the Harbinger down is the mirror's, back to the moot ground -- and a unit
@@ -148,6 +165,8 @@
     var byId = {}, sent = {}; O.concat(T).forEach(function (u) { byId[u.id] = u; sent[u.id] = HL.sent(u); });
     var stat = function (u, cls) { var k = u.side === 'ours' ? 'lost' : 'killed'; st.stats[k][u.side + ':' + cls] = (st.stats[k][u.side + ':' + cls] || 0) + 1; };
     SN.say(st, 'On the grid, unseen: ' + res.rounds + ' rounds, the ranks ' + res.gapFt + ' ft apart.', 'roll', h);
+    if (res.seat) { var odd = O.concat(T).filter(function (u) { var q = res.seat[u.id]; return q && (q.asp !== 'front' || q.cover || (u.form && u.form !== 'line')); });
+      if (odd.length) SN.say(st, 'Seated: ' + odd.map(function (u) { var q = res.seat[u.id]; return u.name + ' ' + (u.form && u.form !== 'line' ? 'in ' + u.form + ', ' : '') + (q.asp === 'flank' ? 'on their flank' : q.asp === 'rear' ? 'behind them' : 'at the front') + (q.cover ? ', behind their walls' : ''); }).join('; ') + '.', 'info', h); }
     // (the hexes view, js/show.js: this fight's own `fight` beat is marked, so the show draws it a unit to its hex)
     for (var bi = (st.beats || []).length - 1; bi >= 0; bi--) { var fb = st.beats[bi]; if (fb.t === 'fight' && SN.same(fb.at, h)) { fb.hexes = true; break; } }
     HL.rounds(st, res, byId);

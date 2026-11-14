@@ -437,7 +437,7 @@
     if (st.walls) {
       var hw = here().filter(function (u) { return st.walls.ids[u.id]; });
       SN.beat(st, { t: 'walls', units: hw.map(function (u) { return u.id; }), names: hw.map(function (u) { return u.name; }), place: SN.TERRAIN[SN.ter(h[0], h[1])].name });
-      SN.say(st, hw.map(function (u) { return u.name; }).join(' and ') + ' hold ' + SN.TERRAIN[SN.ter(h[0], h[1])].name + ': no charge die against them, the volleys at them halved (cover, p.12), +1 on their morale.', 'info', h);
+      SN.say(st, hw.map(function (u) { return u.name; }).join(' and ') + ' hold ' + SN.TERRAIN[SN.ter(h[0], h[1])].name + ': half cover from every shot (+2 AC), +1 on their morale.', 'info', h);
     }
     // the shock: a super-hero's or a wraith's charge makes every enemy unit it reaches check as if over its line (p.30, p.34; p.18 for what failing is)
     (st.shock || []).filter(function (s) { return SN.same(s.at, h); }).forEach(function (s) {
@@ -539,7 +539,7 @@
     var by = side === 'ours' ? T : O, circle = !!side && by.filter(function (u) { return !u.party; }).length >= 3;
     if (side) st.surp = { at: h.slice(), side: side, circle: circle };
     SN.beat(st, { t: 'surp', dO: dO, dT: dT, side: side, circle: circle, both: sO && sT });
-    SN.say(st, 'Surprise (Book III): ours roll ' + dO + ', theirs ' + dT + (side ? ' -- ' + (side === 'ours' ? 'ours are' : 'they are') + ' caught unready: in the first round they are taken ' + (circle ? 'from the rear (three or more come at them, in a circle)' : 'in the flank') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
+    SN.say(st, 'Surprise (Book III): ours roll ' + dO + ', theirs ' + dT + (side ? ' -- ' + (side === 'ours' ? 'ours are' : 'they are') + ' caught unready: they lose their first turn' + (circle ? ', and three or more come at them from every side' : '') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
   };
   // evasion (OD&D Book III p.20; RULED 10-15, his "go on evasion" on the seat's lean): a unit under orders to AVOID that something comes at tries
   // to slip a hex away instead of fighting, on Book III's table -- the party's size (here the unit's figures; the four count four) against "the number
@@ -1046,15 +1046,15 @@
       var tg = foes2.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0];
       var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);
       var asp = SN.aspect(st, { came: prev }, tg, hit.at), FN = { line: 'line', column: 'column', square: 'square' };
-      out.lines.push('They stand in ' + FN[tg.form] + ', facing ' + SN.DIRS[tg.face || 0] + '; you come in from the ' + (side >= 0 ? SN.DIRS[side] : 'side') + ': ' + (asp === 'rear' ? 'their REAR -- you fight a class up, and they strike nothing back in the first round (p.16).' : asp === 'flank' ? 'their FLANK -- you fight a class up (p.16).' : 'their front.'));
+      out.lines.push('They stand in ' + FN[tg.form] + ', facing ' + SN.DIRS[tg.face || 0] + '; you come in from the ' + (side >= 0 ? SN.DIRS[side] : 'side') + ': ' + (asp === 'rear' ? 'their REAR -- you are seated behind their last rank.' : asp === 'flank' ? 'their FLANK -- you are seated off their side.' : 'their front.'));
       var tgHolds = SN.holdsGround(tg, hit.at);
-      if (tgHolds) out.lines.push('They hold ' + tgHolds + ': +1 on their morale.');
+      if (tgHolds) out.lines.push('They hold ' + tgHolds + ': half cover from your shots (+2 AC), +1 on their morale.');
       // (the one table, SN.WORTH: the fight is the grid's, so what is shown is each side's bodies and what they are worth there, with ours already in the hex)
       var mine = [u].concat(SN.unitsAt(st, hit.at).filter(function (x) { return x !== u && x.side === u.side && !x.party; })), ln2 = SN.lean(mine, foes2);
       var cnt = function (U) { return U.reduce(function (t, x) { return t + SN.bodyCount(x); }, 0); };
       out.lines.push('You: ' + cnt(mine) + ' bodies' + (mine.length > 1 ? ' (with ' + mine.slice(1).map(function (x) { return x.name; }).join(', ') + ')' : '') + ', worth about ' + ln2.a + ' on the grid.');
       out.lines.push('Them: ' + cnt(foes2) + ' bodies, worth about ' + ln2.b + '. The fight looks ' + ln2.word + '.');
-      if (u.reformed) out.warn.push('You change formation today: caught in a fight, you count as flanked (p.10).');
+      if (u.reformed) out.warn.push('You change formation today: caught in a fight, they are seated on your flank.');
       var rt = foes2.reduce(function (s, x) { return s + SN.rating(x) + (SN.holdsGround(x, hit.at) ? 1 : 0); }, 0) / foes2.length;
       out.lines.push('Morale: yours ' + SN.rating(u) + (SN.nevers(u) ? ' (never checks)' : '') + ', theirs ' + Math.round(rt * 10) / 10 + (foes2.every(SN.nevers) ? ' (they never check)' : '') + '.');
     }
@@ -1074,7 +1074,7 @@
     foes2.forEach(function (x) { var w = SN.relicHere(x) && !x.blessed && SN.prays(st, x, 'bless'); if (w) out.lines.push(w.name + ' with ' + x.name + ' blesses them as the fight begins (OD&D Book I): +1 to their dice and their morale.'); });
     var wag = foes2.filter(function (x) { return x.side === 'dominion'; })[0];
     if (wag) out.lines.push('The Dominion\'s wagons slip away if they can (Book III\'s evasion): about ' + SN.evadeChance(st, wag, [u], null).c + '% against you.');
-    if (!u.party) out.lines.push('Either side may be caught unready: a 1 or 2 on its die (OD&D Book III) -- then it is taken in the flank in the first round, in the rear if three or more units come at it.');
+    if (!u.party) out.lines.push('Either side may be caught unready: a 1 or 2 on its die -- then it loses its first turn, and three or more coming at it are seated all round it.');
     out.lines.push('Their orders are secret: they may move, or others may charge in.');
     return out;
   };
