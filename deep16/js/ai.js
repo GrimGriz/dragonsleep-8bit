@@ -1454,6 +1454,21 @@
       }
       if (yield* ropeUp(B, u, tgt)) return; // (the fight above it: up a rope, or a rope thrown, or one out of the bucket first -- 10-05)
       var e = belowIt(u, tgt) ? ledgeSq(B, u, tgt, hs, ranged[0]) : approach(u, tgt, G.reach(u, T.move), reachOf(u, hs)); // (held to the roof with the fight below: to the lip over it, a crossbow to a clear shot -- 10-05)
+      // no free square in reach of the nearest (11-14, the AI lane's giant bat: the last bat in found every square beside the heroes held by the other bats' 2 x 2 bodies and
+      // "paces: it cannot get at anyone" with heroes 10 ft off -- Griz, "Giant bat pacing is what they think it is, don't burn usage confirming"): a square to strike another
+      // from, the nearest such; else, standing where it is, the free square nearest any of them to wait at
+      if (!belowIt(u, tgt) && T.move > 0 && hs.length > 1 && (!e || G.dist(u, tgt, e.x, e.y) > reachOf(u, hs))) {
+        var rmP = G.reach(u, T.move), rP = reachOf(u, hs), strikeP = null, waitP = null, wd = e ? G.dist(u, tgt, e.x, e.y) : Infinity;
+        hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }).forEach(function (w) {
+          if (w === tgt) return;
+          var eP = approach(u, w, rmP, rP); if (!eP) return;
+          var dP = G.dist(u, w, eP.x, eP.y);
+          if (dP <= rP) { if (!strikeP || eP.cost < strikeP.e.cost) strikeP = { e: eP, w: w }; }
+          else if (dP < wd) { wd = dP; waitP = eP; }
+        });
+        if (strikeP) { e = strikeP.e; tgt = strikeP.w; }
+        else if (waitP && (!e || (e.x === u.x && e.y === u.y))) e = waitP;
+      }
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
         // a bound caster whose class turn picked "its attacks" on someone its pool never reaches (tactics.js weighs the bite by move + reach, not by where the water is) still has its
@@ -1463,7 +1478,7 @@
         if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
         B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}'], 260); yield 60; if (churn) { u.anim = 'idle'; u.animT = B.t; }
       }
-      else if (!ranged.length) { B.card(['{g}' + the(B, u) + (belowIt(u, tgt) ? ' holds the edge: no one below in reach.' : ' paces: it cannot get at anyone.') + '{/}']); yield 20; } // (at the lip over the fight, held to the roof: said as what it is doing -- 10-05)
+      else if (!ranged.length) { B.card(['{g}' + the(B, u) + (belowIt(u, tgt) ? ' holds the edge: no one below in reach.' : G.winged(u) && G.dist(u, tgt) <= T.move + reachOf(u, hs) + 10 ? ' circles, waiting for an opening: no room beside anyone.' : ' paces: it cannot get at anyone.') + '{/}']); yield 20; } // (at the lip over the fight, held to the roof: said as what it is doing -- 10-05)
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
