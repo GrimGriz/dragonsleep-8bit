@@ -164,7 +164,8 @@
   };
   // through a foe two sizes from yours (SRD 5.1, Moving Around Other Creatures: "you can move through a hostile creature's space only if the creature is at least two sizes larger or
   // smaller than you" -- 10-13, Griz, on "You'd think the giant could step over rats due to size differences": "seems like that'd be SRD"); never to end there (G.canStand)
-  G.passBy = function (u, w) { var sc = D.Battle && D.Battle.sizeCat; return !!sc && Math.abs(sc(u) - sc(w)) >= 2; };
+  // (and Halfling Nimbleness, SRD 5.1 srd/01-races.md: "You can move through the space of any creature that is of a size larger than yours" -- a made halfling's `nimble`, js/classes.js; 11-14)
+  G.passBy = function (u, w) { var sc = D.Battle && D.Battle.sizeCat; return !!sc && (Math.abs(sc(u) - sc(w)) >= 2 || (!!u.nimble && sc(w) > sc(u))); };
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)

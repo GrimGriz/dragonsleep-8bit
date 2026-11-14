@@ -300,6 +300,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       BR.castLevel = 1; qRC = [4, 16]; var gC = D.rules.save(gn, 'wis', 13); qRC = [4, 16]; var gI = D.rules.save(gn, 'int', 13); qRC = [4, 16]; var gD = D.rules.save(gn, 'dex', 13); qRC = [4, 16]; var gH = D.rules.save(hu, 'wis', 13); BR.castLevel = null; qRC = [4, 16]; var gN = D.rules.save(gn, 'wis', 13); qRC = [];
       okRC('Gnome Cunning: against a spell being cast the gnome\'s WIS and INT saves take two dice (' + gC.rolls.join(',') + ', ' + gI.rolls.join(',') + ' -- "' + D.rules.saveText(gC) + '"); a DEX save one (' + gD.rolls.join(',') + '); the human one (' + gH.rolls.join(',') + '); no spell, one (' + gN.rolls.join(',') + ')',
         gC.rolls.length === 2 && gC.cunning === 1 && gI.rolls.length === 2 && gD.rolls.length === 1 && gH.rolls.length === 1 && gN.rolls.length === 1 && /gnome cunning/.test(D.rules.saveText(gC)));
+      // Halfling Nimbleness ("You can move through the space of any creature that is of a size larger than yours"): the halfling passes an ogre (Large) and a human (Medium);
+      // the human passes neither (one size and none apart); no one ends there (G.canStand)
+      var BN = D.npcFight('?npc=ogre,bandit&vs=fighter:3:halfling,cleric:3:human&lvl=3', {}); D.battle = BN; BN.enter(); var kN = 0; while (!BN.order.length && kN++ < 400) BN.co.next();
+      var hN = BN.units.filter(function (u) { return u.cls === 'fighter'; })[0], cN = BN.units.filter(function (u) { return u.cls === 'cleric'; })[0], ogN = BN.units.filter(function (u) { return u.kind === 'ogre'; })[0], bdN = BN.units.filter(function (u) { return u.kind === 'bandit'; })[0];
+      var pg = D.grid.passBy;
+      okRC('Halfling Nimbleness: the halfling passes the ogre (' + pg(hN, ogN) + ') and the bandit, a size larger (' + pg(hN, bdN) + '); the human passes neither (' + pg(cN, ogN) + ', ' + pg(cN, bdN) + ')', hN.nimble === true && pg(hN, ogN) && pg(hN, bdN) && !pg(cN, ogN) && !pg(cN, bdN));
     } catch (eRC) { repRC.errors.push(String(eRC && eRC.stack || eRC).slice(0, 900)); }
     D.d = d0RC;
     var preRC = document.createElement('pre'); preRC.id = 'out'; preRC.textContent = 'BENCH16 ' + JSON.stringify(repRC);
