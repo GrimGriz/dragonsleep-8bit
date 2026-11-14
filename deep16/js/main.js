@@ -69,6 +69,7 @@
   else if (/[?&]isoshow\b/.test(q) && D.mines && D.mines.isoShow) D.push(D.mines.isoShow(q)); // the floors on the diamonds, 10-29: the deep gallery and the cloaker's field as the Wet is drawn, a NEW GAME staged (js/mines.js ON THE DIAMONDS)
   else if (/[?&]grimshow\b/.test(q) && D.general && D.general.show) D.push(D.general.show(q)); // GENERAL GRIMLOCK GRIM, 11-11: his monologue on the open screen over a cave floor, a NEW GAME staged (js/general.js; the fight not built)
   else if (/[?&]innshow\b/.test(q) && D.inn && D.inn.show) D.push(D.inn.show(q)); // THE HALFWAY INN, 11-04: the yard and the common room by day and by night, a NEW GAME staged (js/inn.js)
+  else if (/[?&]survivorsshow\b/.test(q) && D.survivors && D.survivors.show) D.push(D.survivors.show(q)); // THE SURVIVORS' TALK, 11-14: a band met on THE WORLD, in portraits (js/survivors.js)
   else if (/[?&]wagonshow\b/.test(q) && D.wagon && D.wagon.show) D.push(D.wagon.show(q)); // THE WAGON ON THE ROAD, 11-04: the mark on THE WORLD, the road by day, the road north (js/wagon.js)
   else if (/[?&]trueshow\b/.test(q) && D.trueword && D.trueword.show) D.push(D.trueword.show(q)); // THE GLORY-SEEKERS AND THE TRUE WORD, 11-11: the road south past the inn, the joke, the pin, the scales (js/trueword.js)
   else if (/[?&]company\b/.test(q) && D.company) D.push(D.company.show(q)); // the Company, 10-28: the first game's opening -- NEW GAME's lead pick, and a NEW GAME staged at each hire (js/company.js)

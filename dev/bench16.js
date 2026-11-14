@@ -9943,15 +9943,74 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       SH.seed = salt0; SH.madeFed = {}; var gone9 = WH.madeState(5, tH(9, 13)); SH.madeFed = { 5: tH(8, 20) }; var kept9 = WH.madeState(5, tH(9, 13)); SH.madeFed = {};
       repH.notes.push('seed ' + salt0 + ', the day-5 making on day 9 at 13h: ' + gone9 + ' with nobody fighting it, ' + kept9 + ' after a fight fed it at 20h on day 8');
       okH('a fight\'s feeding on day 8 keeps the day-5 making on day 9 (' + kept9 + ')', kept9 === 'normal');
-      // 7. THE MEETING: the party in the hex a band is crossing -- a card, once; not with &noenc
+      // 7. THE MEETING (re-cut 11-14 for THE SURVIVORS' TALK, js/survivors.js -- his "Portrait talk ... use the format from the inn supper where each party member might
+      // roll an insight, perception type check (compare proficiencies for best fit) - let the survivors have expository pieces a player can get to"): the party in the hex a
+      // band is crossing -- the talk on the open counter screen, once; not with &noenc; with no game up, the card as before. Then the talk itself: 7a the pieces, each on the
+      // hero best at its skill, shaded, one a hero an opening, WALK ON on every list; 7b the dice pinned high, every piece's made answer; 7c pinned low, the thinner ones;
+      // 7d the bands of 400 saves: the marsh's two and the mountains' two, the four kinds, each band's words its own; 7e a band of no making's ground: its road alone
       var band = null, bs = 0; for (var s7 = 1; s7 <= 400 && !band; s7++) { SH.seed = s7; var R7 = HG.sim(tH(40, 12)); band = R7.ref.filter(function (r) { return r.arrive - r.t0 > 6; })[0] || null; bs = s7; }
+      var SVh = D.survivors, CH = D.counter, InH = D.inn, HoH = D.house;
       if (!band) okH('a band of survivors to meet in 400 saves', false);
+      else if (!SVh || !SVh.open) okH('the survivors\' talk: js/survivors.js loaded', false);
       else {
         SH.seed = bs; SH.metRef = []; SH.t = band.t0 + 3; var live = HG.refugees().filter(function (r) { return r.id === band.id; })[0]; SH.at = live.hex.slice(); SH.pos = null;
-        var cards = [], sc7 = { q: '', card: function (l) { cards.push(l); }, encounter: function () { } }, quiet = HG.meeting({ q: '?world&noenc' }), m1 = WH.onStep(sc7, { mi: 5 }), again = HG.meeting(sc7);
-        var txt = (cards[0] || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
-        okH('save ' + bs + ', three hours after the dawn of day ' + (Math.floor(band.t0 / 24) + 1) + ', the party in ' + live.hex + ': the step is the meeting (' + m1 + '), one card (' + cards.length + '), met once (' + (again === null) + '), none with &noenc (' + (quiet === null) + '): ' + txt.slice(0, 420),
-          m1 === true && cards.length === 1 && again === null && quiet === null && txt.indexOf(band.toName) >= 0 && SH.metRef.indexOf(band.id) >= 0);
+        // no game up: the card, as before
+        var cards = [], sc7 = { q: '', card: function (l) { cards.push(l); }, encounter: function () { } }, quiet = HG.meeting({ q: '?world&noenc' }), m0 = WH.onStep(sc7, { mi: 5 }), txt0 = (cards[0] || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+        okH('no game up (a bare world): the step is the meeting (' + m0 + ') and the card stands in (' + cards.length + '), none with &noenc (' + (quiet === null) + '): ' + txt0.slice(0, 200), m0 === true && cards.length === 1 && quiet === null && txt0.indexOf(band.toName) >= 0);
+        // a game up: a NEW GAME's four at level 3 (the house's record, THE WORLD's state as the bench's)
+        var recH = HoH.fresh(); recH.party.forEach(function (h) { for (var g = 0; g < 20 && h.lvl < 3; g++) { DS.R.levelUp(h); DS.R.autoPicks(h); } h.hp = h.maxhp; }); HoH.cur = recH; HoH.playing = true;
+        var stepTalk = function (r) { SH.metRef = []; var cs = [], scn = { q: '', card: function (l) { cs.push(l); }, encounter: function () { } }; D.scenes.length = 0; var m = WH.onStep(scn, { mi: 5 }), top = D.top(); return { m: m, cards: cs, sc: top && top.id === 'survivors' ? top : null, again: HG.meeting(scn) }; };
+        // the talk driven: at each opening the first shaded line on any hero's list (else `plain`, else WALK ON); every flip list kept; every line seen
+        var driveT = function (sc, plain) {
+          var seen = [], lists = [], guard = 0;
+          while (!sc.done && guard++ < 200) {
+            var w = sc.wait || {};
+            if (w.flip) {
+              seen = seen.concat(w.ask || []); var L = w.flip.list; lists.push(L.map(function (x) { return { key: x.key, ids: x.ids.slice(), marks: x.marks.slice(), reads: x.reads.slice() }; }));
+              L.forEach(function (x) { x.reads.forEach(function (r) { seen.push('READ ' + x.key + ': ' + r); }); });
+              var at = -1, k = -1; L.forEach(function (x, i) { if (at < 0) { var j = x.marks.map(function (m) { return !!(m && m.shade); }).indexOf(true); if (j >= 0) { at = i; k = j; } } });
+              if (at < 0 && plain) L.forEach(function (x, i) { if (at < 0) { var j = x.ids.indexOf(plain); if (j >= 0) { at = i; k = j; } } });
+              if (at < 0) { at = 0; k = L[0].ids.length - 1; }
+              L.forEach(function (x, i) { sc.flipTo(i); }); sc.flipTo(at); // (every hero looked at: the read's follow-up stands)
+              seen.push('> ' + L[at].key + ': ' + L[at].opts[k]);
+              var bt = null; for (var pg = 0; pg < 6 && !bt; pg++) { bt = sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === k; })[0]; if (!bt) { var mb = sc.buttons().filter(function (b) { return b.go === 'more'; })[0]; if (!mb) break; sc.press(mb); } }
+              sc.press(bt);
+            } else if (w.say) { seen = seen.concat(w.say); sc.press(sc.buttons()[0]); }
+            else break;
+          }
+          return { seen: window.DS.stripCodes(seen.join(' / ')), lists: lists };
+        };
+        InH.pinned = [18, 18, 18, 18, 18, 18, 18, 18];
+        var t1 = stepTalk(live);
+        okH('a game up: the step is the meeting (' + t1.m + '), the talk on the open counter screen (' + !!(t1.sc && t1.sc.o.open) + ', the speaker ' + (t1.sc && t1.sc.o.name) + '), no card (' + t1.cards.length + '), met once (' + (t1.again === null) + ', ' + (SH.metRef.indexOf(band.id) >= 0) + ')',
+          t1.m === true && !!t1.sc && t1.sc.o.open && !t1.cards.length && t1.again === null && SH.metRef.indexOf(band.id) >= 0);
+        if (t1.sc) {
+          var bH7 = SVh.band(live), four7 = recH.party.filter(function (h) { return !h.dead; }).map(function (h) { return { h: h, key: h.key || h.id }; });
+          var d1 = driveT(t1.sc), L1 = d1.lists[0] || [], owners = {}, bad7 = [];
+          SVh.PIECES.forEach(function (p) { if (p.id === 'went' && !bH7.dir) return; owners[p.id] = SVh.best(four7, p.skill).e.key; });
+          // 7a. across the talk: each piece on its owner's list only, shaded with its skill; never two shaded on one hero's list; WALK ON last on every list
+          d1.lists.forEach(function (L) { L.forEach(function (x) { var sh = 0; x.ids.forEach(function (id, j) { var m = x.marks[j]; if (m && m.shade) sh++; var pc = SVh.PIECES.filter(function (p) { return p.id === id; })[0]; if (pc && (owners[id] !== x.key || !(m && m.tag === pc.skill))) bad7.push(x.key + ':' + id); }); if (sh > 1) bad7.push(x.key + ' two shaded'); if (x.ids[x.ids.length - 1] !== 'walk') bad7.push(x.key + ' no WALK ON'); }); });
+          var skills7 = {}; d1.lists.forEach(function (L) { L.forEach(function (x) { x.marks.forEach(function (m) { if (m && m.shade) skills7[m.tag] = 1; }); }); });
+          okH('7a the pieces of a ' + bH7.kind + ' band (' + bH7.cr + '): ' + Object.keys(owners).map(function (k) { return k + ' on ' + owners[k]; }).join(', ') + '; shaded skills offered ' + Object.keys(skills7).join(', ') + '; ' + (bad7.length ? 'off: ' + bad7.join(' ') : 'each on the best hero, shaded, one a list, WALK ON on every list'),
+            !bad7.length && Object.keys(skills7).length >= 3 && L1.length === four7.length);
+          var madeAll = SVh.PIECES.every(function (p) { if (!owners[p.id]) return true; return p.made(bH7).every(function (o) { return d1.seen.indexOf(window.DS.stripCodes(o.by || o.narr)) >= 0; }); });
+          okH('7b the dice pinned high: every piece asked and made (' + madeAll + '): ' + d1.seen.slice(0, 900), madeAll && d1.seen.indexOf(SVh.fill(SVh.GOING, bH7)) >= 0);
+          // 7c. the same band met again (the mark cleared) with the dice pinned low: every piece's thinner answer, none of the made ones
+          InH.pinned = [1, 1, 1, 1, 1, 1, 1, 1]; var t2 = stepTalk(live), d2 = t2.sc ? driveT(t2.sc) : { seen: '' };
+          var thin = SVh.PIECES.every(function (p) { if (!owners[p.id]) return true; var ms = p.missed(bH7).map(function (o) { return window.DS.stripCodes(o.by || o.narr); }), mk = p.made(bH7).map(function (o) { return window.DS.stripCodes(o.by || o.narr); }).filter(function (l) { return ms.indexOf(l) < 0; }); return ms.every(function (l) { return d2.seen.indexOf(l) >= 0; }) && mk.every(function (l) { return d2.seen.indexOf(l) < 0; }); });
+          okH('7c the dice pinned low: every piece answered thinner, none of the made words (' + thin + '): ' + d2.seen.slice(0, 600), thin);
+          InH.pinned = null;
+        }
+        // 7d. the bands of 400 saves: their grounds' two creatures each, the four kinds, and each band's words its own
+        var cr7 = {}, kd7 = {}, words7 = {}, nB7 = 0, dirs7 = 0;
+        for (var s7d = 1; s7d <= 400; s7d++) { SH.seed = s7d; HG.sim(tH(40, 12)).ref.forEach(function (r) { var bb = SVh.band(r); nB7++; if (bb.cr) cr7[r.zone + ':' + bb.cr] = 1; kd7[r.kind] = 1; if (bb.dir) dirs7++; words7[SVh.what(bb).join(' ') + '|' + bb.K.opener] = 1; }); }
+        okH('7d the bands of 400 saves (' + nB7 + '): creatures ' + Object.keys(cr7).sort().join(', ') + '; kinds ' + Object.keys(kd7).sort().join(', ') + '; ' + Object.keys(words7).length + ' different tellings; the way it went known for ' + dirs7,
+          cr7['glowseep:wisp'] && cr7['glowseep:stirge'] && cr7['doors:wolf'] && cr7['doors:worg'] && Object.keys(kd7).length >= 3 && Object.keys(words7).length >= 8 && dirs7 === nB7);
+        // 7e. a band of a ground no making stood on (the Snoot's own, the clock seat's next): the frame and its road alone
+        SH.seed = bs; var odd = Object.assign({}, live, { id: 'rsnoot-test', zone: 'pitlands' }); InH.pinned = null; SH.metRef = []; D.scenes.length = 0;
+        var okO = SVh.open(null, odd), scO = D.top(), dO = scO && scO.id === 'survivors' ? driveT(scO, 'bound') : { seen: '', lists: [] }, idsO = {}; dO.lists.forEach(function (L) { L.forEach(function (x) { x.ids.forEach(function (id) { idsO[id] = 1; }); }); });
+        okH('7e a band off no making\'s ground: the talk (' + okO + ') with only ' + Object.keys(idsO).join(', ') + ': ' + dO.seen.slice(0, 300), okO && Object.keys(idsO).sort().join() === 'bound,walk' && dO.seen.indexOf(live.toName) >= 0);
+        D.scenes.length = 0; HoH.playing = false; HoH.cur = null; SH.metRef = [];
         SH.t = band.arrive + 1; var atR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length; SH.t = band.arrive + HG.STAY + 1; var goneR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length;
         okH('the band at ' + band.toName + ' once it arrives (' + atR + '), gone on ' + HG.STAY + ' hours after (' + goneR + ')', atR === 1 && goneR === 0);
       }

@@ -119,10 +119,10 @@
 
   // THE MEETING: the party steps into the hex a band of survivors is crossing -- a card, once a band, no fight (his "fleeing farmer encounter needs to be added")
   HG.LINES = { // (the clock seat's drafts, his to cut)
-    farm: ['A cart on the {where}, everything a farm owns roped onto it. A man leads the ox. A woman walks behind with a child asleep on her shoulder.'],
-    hamlet: ['Carts, four of them, nose to tail on the {where}, and people walking beside them who do not talk. A whole hamlet, by the count of the children.'],
-    road: ['Two drovers on foot on the {where}, no beasts with them, one holding the other up by the arm.'],
-    wild: ['A man alone on the {where}, a snare-line still looped over his shoulder, walking as if he has been walking all night.'],
+    farm: ['A cart on the {where}, everything a farm owns roped onto it. A man leads the ox. A woman sits up on the load with a boy asleep against her, her hands in her lap.'], // (11-14, the survivors-talk seat: the cast its talk speaks for -- js/survivors.js SV.KINDS)
+    hamlet: ['Carts, four of them, nose to tail on the {where}, and people walking beside them who do not talk. A whole hamlet, by the count of the children. A big man walks at the back, his arms hanging.'],
+    road: ['Two drovers on foot on the {where}, no beasts with them. One carries both packs. The other walks with his arms hanging.'],
+    wild: ['A man alone on the {where}, a snare-line wound round his neck, walking as if he has been walking all night.'],
     said: {
       glowseep: '"It stood over the bed. Lights in it, like the bog at night, and eyes that gave me my own face. Come morning she could not lift the boy."',
       doors: '"Wolves, I would have said. Wolves do not stand at the foot of a bed and wait. He has not lifted his arms since."',
@@ -143,6 +143,7 @@
   };
   HG.meet = function (scene, r) {
     var S = W.state(); (S.metRef = S.metRef || []).push(r.id); W.save(); if (D.sfx) D.sfx('confirm');
+    if (D.survivors && D.survivors.open && D.survivors.open(scene, r)) return; // (THE SURVIVORS' TALK, 11-14, his "Portrait talk": js/survivors.js; the card below where no game is up)
     scene.card(['{y}On the way{/}, ' + W.timeOfDay() + ':', ''].concat(HG.card(r)).concat([D.keys ? D.keys('{g}E{/}: go on') : 'E: go on']));
   };
   // THE COUNCIL'S FLAGS (RULED 11-14, Griz: "i need a council flag set after the second and fourth farms survivors make silverton"): the bands off a farm or a hamlet
