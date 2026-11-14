@@ -87,8 +87,7 @@
    "ax": 20,
    "ay": 70,
    "frames": 8,
-   "fps": 8,
-   "held": true
+   "fps": 8
   },
   "towolf": {
    "y": 5472,
@@ -96,16 +95,14 @@
    "fh": 76,
    "ax": 27,
    "ay": 70,
-   "frames": 7,
-   "fps": 8,
-   "held": true
+   "frames": 8,
+   "fps": 8
   }
  },
  "name": "Werewolf",
  "hold": [
   "walk: SE, NE and E repeat the lead and passing poses in the second half -- a half-cycle twice, not an alternating stride (the art desk's own notes; held for a redraw there, cut as drawn here)",
-  "N prone a little oblique and the N fallen priest diagonal; S Bite and N Bite read as a dip of the head and shoulders (the art desk's own notes)",
-  "shift and towolf cut, HELD: no foe changes shape on the grid yet; towolf ends one frame short of wolf_p1's own idle cell"
+  "N prone a little oblique and the N fallen priest diagonal; S Bite and N Bite read as a dip of the head and shoulders (the art desk's own notes)"
  ],
  "source": "drawn by the art desk (ART-130-WEREWOLF-SOURCES, 11-11: art-wanted section 43), cut by tools/werewolf-sheet.py; SW W NW mirrored -- the SRD 5.1 Werewolf in its hybrid form: deep16/data/foes.js werewolf"
 }

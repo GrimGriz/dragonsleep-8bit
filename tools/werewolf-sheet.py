@@ -16,9 +16,9 @@ its frame 1 -- and the Prone page (one drawing) by its diagonal against Fall 5's
 their lowest row by their top's middle; Fall 4-6 and the Prone by the whole body's middle. Facings (RULED 10-14): S SE E NE N as drawn, SW W NW their mirrors.
 
 Rows: idle 4; walk 8; bite 6 and claws 6 (`release` 2: your frame 3 -- js/battle.js plays the row named for the attack); flinch 4; hurt 6 (Fall, held on
-6: the priest); prone 2 (Fall 3, then the Prone); getup 3 (the Prone, Fall 3, Fall 2). HELD, cut and not played (no foe changes shape on the grid yet):
-shift 8 (Shift-from-Man 1-7, then Idle 1 as the art desk's endpoint asks) and towolf 7 (Idle 1, then Shift-to-Wolf 2-7; its frame 8 is wolf_p1's own
-Idle 1 cell, to be joined when the shift is built).
+6: the priest); prone 2 (Fall 3, then the Prone); getup 3 (the Prone, Fall 3, Fall 2). shift 8 (Shift-from-Man 1-7, then Idle 1 as the art
+desk's endpoint asks; its frame 1 is the priest data/foes.js werewolfpriest stands as -- js/traits.js THE SHIFT, 11-14) and towolf 8 (Idle 1, then
+Shift-to-Wolf 2-7, then wolf_p1's own Idle 1 cell joined as frame 8 -- join_wolf, 11-14). Both played since 11-14 (held before: no foe changed shape).
 """
 import csv, importlib.util, json, math, os, sys
 
@@ -73,18 +73,47 @@ LOOKS = {
                               ('towolf', 8, [('p', 'idle', 0)] + [('p', 'wolf', i) for i in range(1, 7)])],
                         release={'bite': 2, 'claws': 2},
                         hold=['walk: SE, NE and E repeat the lead and passing poses in the second half -- a half-cycle twice, not an alternating stride (the art desk\'s own notes; held for a redraw there, cut as drawn here)',
-                              'N prone a little oblique and the N fallen priest diagonal; S Bite and N Bite read as a dip of the head and shoulders (the art desk\'s own notes)',
-                              'shift and towolf cut, HELD: no foe changes shape on the grid yet; towolf ends one frame short of wolf_p1\'s own idle cell'],
+                              'N prone a little oblique and the N fallen priest diagonal; S Bite and N Bite read as a dip of the head and shoulders (the art desk\'s own notes)'],
                         source='drawn by the art desk (ART-130-WEREWOLF-SOURCES, 11-11: art-wanted section 43), cut by tools/werewolf-sheet.py; SW W NW mirrored -- '
                                'the SRD 5.1 Werewolf in its hybrid form: deep16/data/foes.js werewolf'),
 }
 WEREWOLF = dict(SOURCES=SOURCES, GROUPS=GROUPS, TIE=TIE, GROUND=GROUND, TALL=TALL, AVOID=AVOID, LOOKS=LOOKS, NAME='Werewolf', SRCDIR='werewolf')
 
+def join_wolf(m):
+    """towolf's frame 8 (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both together"): wolf_p1's own Idle 1 cell, in each of the
+    eight facings, joined as the row's last frame -- the art desk's endpoint. Both sheets are drawn at the grid's one scale, so the wolf goes in pixel for
+    pixel, its foot on the row's foot; the row is widened (its anchor in the middle) to hold the wolf's length, and the atlas with it."""
+    from PIL import Image
+    art = os.path.join(ROOT, 'deep16', 'art')
+    im = Image.open(os.path.join(art, 'werewolf_p1.png')).convert('RGBA')
+    wm = json.load(open(os.path.join(art, 'wolf_p1.json'), encoding='utf-8')); wa = wm['anims']['idle']
+    wim = Image.open(os.path.join(art, 'wolf_p1.png')).convert('RGBA')
+    t = m['anims']['towolf']; fh, ay, fw0, ax0, n0 = t['fh'], t['ay'], t['fw'], t['ax'], t['frames']
+    cells, L, R, up, dn = [], 0, 0, 0, 0
+    for f in range(8):
+        c = wim.crop((0, wa['y'] + f * wa['fh'], wa['fw'], wa['y'] + (f + 1) * wa['fh'])); bb = c.getbbox(); cells.append((c, bb))
+        L, R = max(L, wa['ax'] - bb[0]), max(R, bb[2] - wa['ax']); up, dn = max(up, wa['ay'] - bb[1]), max(dn, bb[3] - wa['ay'])
+    assert up <= ay and dn <= fh - ay, ('the wolf does not fit the row', up, dn)
+    half = max(ax0, fw0 - ax0, L, R); fw = 2 * half; W = max(im.width, fw * (n0 + 1))
+    row = Image.new('RGBA', (W, 8 * fh), (0, 0, 0, 0))
+    for f in range(8):
+        for i in range(n0):
+            row.paste(im.crop((i * fw0, t['y'] + f * fh, (i + 1) * fw0, t['y'] + (f + 1) * fh)), (i * fw + half - ax0, f * fh))
+        c, bb = cells[f]
+        piece = c.crop(bb); row.paste(piece, (n0 * fw + half - wa['ax'] + bb[0], f * fh + ay - wa['ay'] + bb[1]), piece)
+    out = Image.new('RGBA', (W, im.height), (0, 0, 0, 0)); out.paste(im.crop((0, 0, im.width, t['y'])), (0, 0)); out.paste(row, (0, t['y']))
+    if im.height > t['y'] + 8 * fh:
+        out.paste(im.crop((0, t['y'] + 8 * fh, im.width, im.height)), (0, t['y'] + 8 * fh))
+    out.save(os.path.join(art, 'werewolf_p1.png'), optimize=True)
+    t.update(fw=fw, ax=half, frames=n0 + 1)
+    return fw
+
+
 if __name__ == '__main__':
     print('fits:', {a: {v: round(x, 3) for v, x in f.items()} for a, f in FIT.items()})
     DS.cut(WEREWOLF, 'werewolf_p1')
     p = os.path.join(ROOT, 'deep16', 'art', 'werewolf_p1.json'); m = json.load(open(p, encoding='utf-8'))
-    for r in ('shift', 'towolf'):
-        m['anims'][r]['held'] = True    # (cut, not played: js/show.js SH.wanted leaves a held row out)
+    # (11-14: both rows released -- the shift is built, js/traits.js THE SHIFT; towolf ends on wolf_p1's own Idle 1, joined here)
+    print('towolf, the wolf joined as frame 8: the row', join_wolf(m), 'px a frame')
     with open(p, 'w', encoding='utf-8', newline='\n') as f_:
         json.dump(m, f_, indent=1)

@@ -821,6 +821,32 @@
     }
     return yield* turnBr.apply(this, arguments);
   };
+  // ------------------------------------------------------------------ THE SHIFT (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both
+  // together"; his 11-11 ruling 3, "leans are solid": a story fight opens with the priest, who shifts to the hybrid as his first action). One standing as the man
+  // (a `shift` on its block, not yet `u.shifted`: data/foes.js werewolfpriest) spends the first action it can take on the SRD's Shapechanger action: its sheet's `shift`
+  // row plays, and it is the block `shift.to` names from then on -- its AC, its attacks and their routine, its form. Its hit points, conditions and square stay
+  // (the SRD: "Its statistics, other than its AC, are the same in each form"). THE SEAT'S CALLS, standing for his overrule: the shift ends his turn (its action
+  // spent, his move unused); one who cannot act that turn shifts on the next he can
+  TR.shiftNow = function* (B, u) {
+    var d = sh(u), to = d.shift && D.FOES[d.shift.to];
+    if (!to || u.shifted) return false;
+    var ac0 = RU.ac(u), was = Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k].name; }).join(' and ');
+    B.focus(u); u.anim = 'shift'; u.animT = B.t; u.shiftT = B.t; D.sfx('magic');
+    B.card(['{r}' + Nm(B, u) + '\'s back bows. The robe splits.{/}  {g}(the Shapechanger action){/}'], 240);
+    yield Math.max(40, D.spr.duration(u.sheet, d.shift.row || 'shift') || 60);
+    u.baseAC = to.ac; u.attacks = JSON.parse(JSON.stringify(to.attacks || {}));
+    u.multi = Array.isArray(to.multi) ? to.multi.slice() : to.multi; u.shifted = true; u.anim = 'idle'; u.animT = B.t;
+    if (u.turn) u.turn.action = 0;
+    var now = Object.keys(u.attacks).map(function (k) { return u.attacks[k].name; }).join(' and ');
+    B.card(['{r}' + Nm(B, u) + ' stands up a head taller, the wolf in him out.{/}', '{g}AC ' + ac0 + ' to ' + RU.ac(u) + '; ' + was + ' put down for ' + now + '.{/}'], 300);
+    B.cache = null; yield 30;
+    return true;
+  };
+  var turnSh = TR.turn;
+  TR.turn = function* (B, u) {
+    if (sh(u).shift && !u.shifted && u.side === 'foe' && u.hp > 0 && RU.canAct(u) && u.turn && u.turn.action) return yield* TR.shiftNow(B, u);
+    return yield* turnSh.apply(this, arguments);
+  };
   // the turn's start: the legendary actions back; a spent breath's recharge rolled
   var startLB = RU.startTurn;
   RU.startTurn = function (u) {

@@ -135,7 +135,7 @@
     return Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k];
       if (!f || /^fam_/.test(k) || PK.cr8(f.cr) <= 0) return false;
-      if (k === 'keeperold' || (!dm && PK.NAMED_OUT.indexOf(k) >= 0)) return false; // (dm: the DM's table deals the story's named too -- the old Keeper never: the new one stands)
+      if (k === 'keeperold' || k === 'werewolfpriest' || (!dm && PK.NAMED_OUT.indexOf(k) >= 0)) return false; // (dm: the DM's table deals the story's named too -- the old Keeper never: the new one stands)
       if ((k === 'willem' || k === 'amara' || dm) && (keys.indexOf(k) >= 0 || (f.build && keys.indexOf(f.build) >= 0))) return false; // (no one fights themself: at the DM's table GreyFang or Talmok in the party is out of the pot -- and the Eldest's block when the matriarch plays, by its `build`, 10-17)
       if (f.bound && !water) return false;
       return true;

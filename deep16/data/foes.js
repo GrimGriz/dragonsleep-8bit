@@ -797,6 +797,19 @@
     multi: ['bite', 'claws'], immune: ['mundane'], shapechanger: true, form: 'hybrid',
     src: 'SRD 5.1 Werewolf (CR 3, 700 XP; Medium humanoid (human, shapechanger), chaotic evil), in its hybrid form: AC 12 (natural armor; 11 as the man), 58 HP (9d8 + 18), speed 30 (40 as the wolf); STR 15 DEX 13 CON 14 INT 10 WIS 11 CHA 10; Perception +4, Stealth +3, passive Perception 14; immune to bludgeoning, piercing and slashing from nonmagical attacks not made with silvered weapons (the game has no silvered weapons yet: every plain weapon is turned); Shapechanger (not played yet: the hybrid fights, the man and the wolf are looks; it dies as the priest, its true form); Keen Hearing and Smell; Multiattack (hybrid) one Bite (+4, 1d8 + 2 piercing; a humanoid DC 12 CON or cursed with werewolf lycanthropy) and one Claws (+4, 2d4 + 2 slashing). The realm: Rhollor feeds off the prayers to the Empty Seat and gives the Black Mountain clerics the werewolf\'s shift (TarlynsPit/wiki/the-doors.md, The Empty Chair) -- no cleric spells: the SRD block only'
   },
+  // THE WEREWOLF AS THE PRIEST (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both together" -- his 11-11 ruling 3, "leans are solid":
+  // a story fight opens with the priest, who shifts to the hybrid as his first action; the road's random fights stay `werewolf`, the hybrid). The SRD 5.1 Werewolf
+  // in its humanoid form: AC 11, the Spear twice (Multiattack, humanoid form). No man rows were drawn: he stands on werewolf_p1's `shift` frame 1 (js/ui.js).
+  // His first turn he can act is the Shapechanger action (js/traits.js THE SHIFT): the `shift` row plays, and he is the `werewolf` block's hybrid from then on --
+  // AC 12, the Bite and Claws. His hit points carry over (the SRD: "Its statistics, other than its AC, are the same in each form").
+  werewolfpriest: {
+    name: 'Werewolf', type: 'humanoid', sheet: 'werewolf_p1', cr: '3', ac: 11, hp: 58, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 14, stealth: 3,
+    saves: { str: 2, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 2, immune: ['mundane'], shapechanger: true, form: 'man', shift: { to: 'werewolf', row: 'shift' },
+    src: 'SRD 5.1 Werewolf (CR 3) in its humanoid form: AC 11, the Spear (+4, 1d6 + 2 piercing; 1d8 + 2 two-handed, not used) twice; Shapechanger: as an action it becomes the hybrid (the werewolf block: AC 12, Bite and Claws); immune to nonmagical, unsilvered weapons in every form'
+  },
   // THE GRIFFON (11-12, cutter-pyro, on the lanes desk's relay of Griz's "pyro first pieces (and a griffon) are in fresh"; asked in art-wanted section 44, ART-131,
   // for the Coldridge route's random encounters, the flier off the crags by day): the SRD 5.1 Griffon as written, on the art desk's ART-131 cut into griffon_p1
   // (tools/griffon-sheet.py: idle, walk, fly, beak, claws (the Talons page), flinch, fall, prone in all eight facings). Its fly 80 the grid's wings, as the
@@ -1385,7 +1398,7 @@ window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sh
 // `keenSenses` (hearing and smell) reads the same. The SRD's other keen creatures (the bears, the cats, the hawks and owls, the jackal, the mastiff, the dire wolf, the hell
 // hound, the weres...) have no sheet yet; the owlbear took its line 11-11, the werewolf the same day, the griffon 11-12: a new sheet of one takes its line here
 (function (F) {
-  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', mirrorwolf: 'hearing and smell', mirrorworg: 'hearing and smell', /* (the made wolf and worg keep the SRD blocks' senses, 11-13) */grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell', griffon: 'sight' };
+  var KEEN = { wolf: 'hearing and smell', worg: 'hearing and smell', mirrorwolf: 'hearing and smell', mirrorworg: 'hearing and smell', /* (the made wolf and worg keep the SRD blocks' senses, 11-13) */grimlock: 'hearing and smell', troll: 'smell', giantrat: 'smell', ratswarm: 'smell', giantbat: 'hearing', batswarm: 'hearing', owlbear: 'sight and smell', werewolf: 'hearing and smell', werewolfpriest: 'hearing and smell', griffon: 'sight' };
   Object.keys(KEEN).forEach(function (k) { if (F[k]) F[k].keen = KEEN[k]; });
 })(window.D16.FOES);
 window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,

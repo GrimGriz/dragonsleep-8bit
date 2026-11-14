@@ -106,7 +106,10 @@
     Object.keys(D.FOES).forEach(function (fk) { var d = D.FOES[fk]; if (fk === kind || !d || d.sheet !== sheet) return; Object.keys(d.attacks || {}).forEach(function (k) { var r = rowOf(d.attacks[k], k); if (!own[r]) out[r] = 1; }); });
     return out;
   };
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && (an[r].same || an[r].held)) && !ob[r]; }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  // (nor a shapechanger's shift on a kind that does not shift: the werewolf's `shift` is the priest's, data/foes.js werewolfpriest -- the road's hybrid never
+  // plays it; nor the werewolf's `towolf`, which no fight plays yet -- the wolf form is not on the grid; the row gallery, ?gallery&shelf=creatures&rows=werewolf,
+  // plays both: 11-14, the hyena-stirge seat)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r]; }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 

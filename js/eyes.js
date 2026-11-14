@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE HYENA-STIRGE SEAT OF 11-14, ITS THIRD JOB: the werewolf's shift (data/foes.js werewolfpriest; js/traits.js THE SHIFT; tools/werewolf-sheet.py join_wolf)
+    'eyes-werewolf-shift-1114': { pri: 1, group: G2, title: 'THE WEREWOLF\'S SHIFT: the priest stands, and his first action is the change (11-14)', pt: 'the bestiary lane, 2026-11-14 (the hyena-stirge seat; data/foes.js werewolfpriest; js/traits.js THE SHIFT; js/ui.js; tools/werewolf-sheet.py)',
+      url: 'deep16/?show=werewolfpriest&fresh=1114w',
+      look: 'A SHOW. Your "leans are solid" (11-11: a story fight opens with the priest, who shifts to the hybrid as his first action) and "Lean: do both together". Two werewolves stand as the PRIEST, in his robe (the shift\'s first frame: no man rows were drawn). On his first turn each plays the shift, robe to hybrid, and the card reads "AC 11 to 12; Spear put down for Bite and Claws"; from then on he bites and claws as the road\'s werewolf does. Plain steel still does nothing to him. Then the row gallery, ?gallery&shelf=creatures&rows=werewolf: SHIFT and TOWOLF play one at a time in every facing (arrows turn him), TOWOLF ending on the regular wolf\'s own first idle frame. That last frame is a little larger and greyer than the art desk\'s frame 7, so it pops (on the dream list). Nothing in a fight turns him into the wolf yet.' },
     // THE HYENA-STIRGE SEAT OF 11-14: the Harbinger's six on the Mirror Hyena's own sheet in the Snoot (snoot-mode/js/data.js harb, view.js V.FULL8)
     'eyes-snoot-harb-mirrorhyena-1114': { pri: 1, group: G2, title: 'THE SNOOT: the Harbinger\'s six are Mirror Hyenas on the map and in the fight show (11-14)', pt: 'the Snoot mode, 2026-11-14 (the hyena-stirge seat; snoot-mode/js/data.js the harb unit\'s sheets; snoot-mode/js/view.js V.FULL8)',
       url: 'snoot-mode/?headless=patrol,harb&seed=7&fresh=1114m',

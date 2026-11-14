@@ -1805,6 +1805,12 @@
         if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb' || anim === 'fly') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // (the Harbinger risen, 10-08: once he has stood to his full height -- js/traits.js, his `ascend` row -- he stands upright between blows, on his `uprightidle` row)
         if (!down && u.upright && anim === 'idle' && has('uprightidle')) anim = 'uprightidle';
+        // (the werewolf as the priest, 11-14: no man rows were drawn, so one not yet shifted stands, walks and waits on its `shift` row's frame 1; the Shapechanger
+        // action plays the row once from js/traits.js TR.shiftNow's u.shiftT -- data/foes.js werewolfpriest)
+        if (!down && has('shift') && D.FOES && (D.FOES[u.kind] || {}).shift) {
+          var shA = D.spr.anim(u.sheet, 'shift'), shK = u.shiftT != null ? Math.floor((B.t - u.shiftT) * (shA.fps || 8) / 60) : 0;
+          if (u.shiftT != null ? shK < shA.frames : !u.shifted && (anim === 'idle' || anim === 'walk')) { anim = 'shift'; o.frame = Math.min(shK, shA.frames - 1); o.once = false; }
+        }
         // (held by the Harbinger's Kneel, 10-08 -- Griz: "since they're paralyzed anyway": drawn kneeling, the look only (the hold is Hold Person's paralysis). A sheet's
         // `kneel` frame of its fall row, or an LPC figure's fourth, on both knees with the head bowed; a sheet with neither stands held as before)
         if (!down && anim === 'idle' && u.conds.paralyzed && u.conds.paralyzed.by && has('hurt')) {

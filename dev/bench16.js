@@ -9775,6 +9775,34 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // 1. the numbers of each state on each of the five, the block never touched, the sheet by what is registered; 2. the die's steps; 3. the transitions and the
   // temporary hit points; 4. the clock: normal under three days unfed, withered on the third, gone from the fourth, a gone making drawn by no table; 5. feeding
   // feeds the making; 6. the road's fight lays the state on and its feeding reaches the clock; 7. the riders that are not a bite (the stirge's drink); 8. the show
+  // THE WEREWOLF'S SHIFT, 11-14 (mode=shift1114; the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both together"; his 11-11 ruling 3: a story
+  // fight opens with the priest, who shifts to the hybrid as his first action): 1. the priest stands as the man (AC 11, the Spear twice); 2. his first action is the
+  // shift (AC 12, the Bite and Claws, his hit points kept, the action spent, the block untouched); 3. he shifts once; 4. the road's werewolf never shifts;
+  // 5. both rows released on the sheet, towolf ending on wolf_p1's own Idle 1
+  if (get('mode', '') === 'shift1114') {
+    var repSH = { checks: [], errors: [], notes: [] };
+    function okSH(what, v) { repSH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var RUs = D.rules, BS = D.npcFight('?npc=werewolfpriest,werewolf&vs=fighter:3,cleric:3&lvl=3', {}); D.battle = BS; BS.enter(); var kS = 0; while (!BS.order.length && kS++ < 400) BS.co.next();
+      var PR = BS.units.filter(function (u) { return u.kind === 'werewolfpriest'; })[0], WW = BS.units.filter(function (u) { return u.kind === 'werewolf'; })[0];
+      var nmS = function (u) { return Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k].name; }).join(' and '); };
+      var drain = function (g) { var r, n = 0; do { r = g.next(); } while (!r.done && n++ < 5000); return r.value; };
+      okSH('1 the priest stands as the man: AC ' + RUs.ac(PR) + ', ' + nmS(PR) + ' x' + PR.multi + ', not shifted (want AC 11, Spear x2)', PR && RUs.ac(PR) === 11 && nmS(PR) === 'Spear' && PR.multi === 2 && !PR.shifted);
+      RUs.startTurn(PR); var hpS = PR.hp, r1 = drain(D.traits.turn(BS, PR));
+      okSH('2 his first action is the shift: AC ' + RUs.ac(PR) + ', ' + nmS(PR) + ' (' + JSON.stringify(PR.multi) + '), hp ' + PR.hp + ' of ' + hpS + ', action left ' + PR.turn.action + ' (want AC 12, Bite and Claws, the hp kept, the action spent)',
+        r1 === true && PR.shifted && RUs.ac(PR) === 12 && nmS(PR) === 'Bite and Claws' && JSON.stringify(PR.multi) === '["bite","claws"]' && PR.hp === hpS && !PR.turn.action &&
+        PR.attacks !== D.FOES.werewolf.attacks && D.FOES.werewolfpriest.ac === 11 && nmS(D.FOES.werewolfpriest) === 'Spear');
+      var t0S = PR.shiftT; RUs.startTurn(PR); var r2 = drain(D.traits.turn(BS, PR));
+      okSH('3 he shifts once: his next turn is his own (the trait hands it on: ' + r2 + '), AC ' + RUs.ac(PR), r2 !== true && PR.shiftT === t0S && RUs.ac(PR) === 12);
+      RUs.startTurn(WW); drain(D.traits.turn(BS, WW));
+      okSH('4 the road\'s werewolf is the hybrid from the start and never shifts: AC ' + RUs.ac(WW) + ', ' + nmS(WW), RUs.ac(WW) === 12 && nmS(WW) === 'Bite and Claws' && WW.shiftT == null && !WW.shifted);
+      var SA = D.SHEETS.werewolf_p1.anims, WA = D.SHEETS.wolf_p1.anims.idle;
+      okSH('5 the sheet: shift ' + SA.shift.frames + ' and towolf ' + SA.towolf.frames + ' frames, neither held (want 8 and 8)', SA.shift.frames === 8 && SA.towolf.frames === 8 && !SA.shift.held && !SA.towolf.held && !!WA);
+    } catch (eSH) { repSH.errors.push(String(eSH && eSH.stack || eSH).slice(0, 900)); }
+    var preSH = document.createElement('pre'); preSH.id = 'out'; preSH.textContent = 'BENCH16 ' + JSON.stringify(repSH);
+    document.body.appendChild(preSH);
+    return;
+  }
   if (get('mode', '') === 'made1114') {
     var repMS = { checks: [], errors: [], notes: [] }, memMS = {}, stGMS = D.store.get, stSMS = D.store.set, WS = D.world, SE = D.seep, d0MS = D.d, vw0 = WS.VESSEL.wither, vg0 = WS.VESSEL.gone;
     function okMS(what, v) { repMS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
