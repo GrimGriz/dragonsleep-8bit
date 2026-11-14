@@ -107,6 +107,7 @@
     }
     return null;
   };
+  Wg.mark = /[?&]wagonmark/.test((window.location && window.location.search) || ''); // (the mark on the map: a seat's eye only)
   Wg.flags = function () { return (W.house() && D.house.cur.flags) || Wg.testFlags || {}; };
   Wg.now = function () { var S = W.state && W.state(); return S ? Wg.at(S.t, Wg.flags()) : null; };
 
@@ -120,6 +121,7 @@
     g.fillStyle = '#1a1206'; g.beginPath(); g.arc(x - w / 2 + r + 1, y, r, 0, 7); g.fill(); g.beginPath(); g.arc(x + w / 2 - r - 1, y, r, 0, 7); g.fill();
   }
   W.drawWagon = function (g, cam, t) { // (the hex view: after the places, before the party's banner -- js/world.js World.draw)
+    if (!Wg.mark) return; // (NOT PLAYER VISIBLE since 11-14, Griz to the clock seat: "while we're messing with markers the wagon one shouldn't be player visible either" -- a seat's debug view, deep16/?world&wagonmark)
     var w = Wg.now(); if (!w || w.leg === 'inn' || !w.pt || !W.groundAt) return;
     var p = W.groundAt(cam, w.pt[0], w.pt[1]); if (p[0] < -20 || p[0] > cam.W + 20 || p[1] < -20 || p[1] > cam.H + 20) return;
     if (W.visAt && !W.visAt(p, w.pt[1])) return; // (THE FINE LAND: behind a ridge, not seen)
@@ -129,6 +131,7 @@
     Wg.drawn = { x: Math.round(p[0]), y: Math.round(p[1]) }; // (for the bench's eye)
   };
   W.drawWagonTop = function (g, sc, scr, ts, T) { // (the top-down view: the tiles' own scale -- js/overworld.js OV.draw)
+    if (!Wg.mark) return; // (as the hex view's)
     var w = Wg.now(); if (!w || w.leg === 'inn' || !w.pt) return;
     var px = ts / T.mi, cam = sc.ov.cam, x = Math.round((w.pt[0] - cam[0]) * px + D.W / 2), y = Math.round((w.pt[1] - cam[1]) * px + D.H / 2);
     glyph(g, x, y, Math.max(0.6, Math.min(2.2, ts / 16)), sc.t);

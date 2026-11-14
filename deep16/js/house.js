@@ -886,7 +886,7 @@
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;
     return { where: 'world', party: rec.party, tent: true, flags: (rec.flags = rec.flags || {}), has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); }, give: function (id, n) { add(rec.inv, id, n || 1); },
-      ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
+      ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; S.clear = (S.clear || 0) + steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
   }
   // a familiar called on a floor joins the walk at once (11-03 night, the house lane's Tuesday 2: it waited for the next floor -- R0.fam is made at the floor's setup, from the
   // flags the party brought in): its unit made as a fight makes it (deep16/js/familiar.js FM.unit), riding its caster (js/roam.js R.famPlace); the shape it had is sent away

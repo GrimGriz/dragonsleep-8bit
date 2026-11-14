@@ -3682,6 +3682,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // wagon and its children in the road, the wagon brought in to the inn), the gold taken on the road and the inn's night after it, THE ROAD NORTH the morning after (one fewer,
   // the traveler on the bench, Detect Magic), no second meeting of one wagon, the show
   if (get('mode', '') === 'wagon1104') {
+    if (D.wagon) D.wagon.mark = true; // (11-14: the mark is a seat's debug view now, deep16/?world&wagonmark -- drawn here to keep this mode's check of it; hidden by default is mode=hunger1114's)
     var repWg = { checks: [], errors: [] }, memWg = {}, stGWg = D.store.get, stSWg = D.store.set, HWg = D.house, CWg = D.counter, WWg = D.world, RWg = D.roam, InWg = D.inn, WgB = D.wagon, muWg = D.music;
     function okWg(what, v) { repWg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function driveWg(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
@@ -9740,6 +9741,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // encounter rates - rest can hold"): his hex by the day against the 11-05 table as re-walked (js/world.js W.VESSEL.table), on to the Doors and held there from day 14 (his "1 - hold at 14"); the makings where he was;
   // the ground ahead of him clean; the road's fights by his trail, the dice pinned; nothing drawn without the debug flag
   if (get('mode', '') === 'vessel1112') {
+    if (D.hunger) D.hunger.on = false; // (11-14, THE HUNGER, js/hunger.js: this mode's subject is the makings where he made them -- the markers and the dawn feedings are mode=hunger1114's)
     var repVR = { checks: [], errors: [] }, memVR = {}, stGVR = D.store.get, stSVR = D.store.set, WR = D.world;
     function okVR(what, v) { repVR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     D.store.get = function (k) { return memVR[k] ? JSON.parse(memVR[k]) : null; }; D.store.set = function (k, v) { memVR[k] = JSON.stringify(v); return true; };
@@ -9802,6 +9804,100 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preVR);
     return;
   }
+  // THE HUNGER, 11-14 (mode=hunger1114; the clock seat -- RULED 11-14, Griz, typed to the seat: "percentage hex entered seems good match for our marker system", "5 - yes";
+  // "odds (they feed) in squares without farms, road etc around 5% - resets days only save mirror hyenas, which don't spawn fleeing farmers and become charged. Other
+  // mirror entities just feed and spawn fleeing survivors."; "3 - 60% on the farms, 90% hamlet"; "4 - it doesn't stay put, otherwise yes"; "the withered would weight
+  // heavier for being hungry"; "the wagon one shouldn't be player visible either"): js/hunger.js and js/world.js W.encPct. salt= the save's seed, n= the seeds surveyed
+  if (get('mode', '') === 'hunger1114') {
+    var repH = { checks: [], errors: [], notes: [] }, memH = {}, stGH = D.store.get, stSH = D.store.set, WH = D.world, HG = D.hunger;
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memH[k] ? JSON.parse(memH[k]) : null; }; D.store.set = function (k, v) { memH[k] = JSON.stringify(v); return true; };
+    try {
+      if (!HG || !HG.sim || !WH.encPct) throw new Error('no hunger: js/hunger.js HG.sim, js/world.js W.encPct');
+      D.seed = +get('seed', 1114); WH.index(); WH.use('world'); var SH = WH.load('?fresh&far'), VH = WH.VESSEL, MH = WH.M(), tH = function (d, h) { return (d - 1) * 24 + h; }, KH = WH.K;
+      var salt0 = +get('salt', 7), NS = +get('saves', 200), adj = function (a, b) { var dq = b[0] - a[0], dr = b[1] - a[1]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (d) { return d[0] === dq && d[1] === dr; }); };
+      SH.seed = salt0;
+      // 1. the farms by their hex: the scatter's farms and hamlets, and the farmland hexes that hold none of them
+      var FMh = HG.farms(), nS = 0, nHam = 0, nT = 0, hamK = null, farmK = null; Object.keys(FMh).forEach(function (k) { FMh[k].forEach(function (f) { if (f.id.charAt(0) === 's') { nS++; if (f.kind === 'hamlet') { nHam++; hamK = k; } } else nT++; }); if (!farmK && FMh[k][0].kind === 'farm') farmK = k; });
+      var roadK = Object.keys(MH.road).filter(function (k) { return !FMh[k]; })[0], wildK = Object.keys(MH.hex).filter(function (k) { return !FMh[k] && !MH.road[k] && MH.hex[k].t === 'hills'; })[0];
+      okH('the farms: ' + nS + ' of the scatter (' + nHam + ' hamlets) in ' + Object.keys(FMh).length + ' hexes, ' + nT + ' stood in for farmland hexes with none', nS === 404 && nHam === 2 && nT > 0 && nT % HG.TERRFARMS === 0);
+      okH('a dawn\'s odds: a hamlet\'s hex ' + HG.oddsAt(hamK) + ', a farm\'s ' + HG.oddsAt(farmK) + ', a road\'s with no farm ' + HG.oddsAt(roadK) + ', the hills\' ' + HG.oddsAt(wildK), HG.oddsAt(hamK) === 0.9 && HG.oddsAt(farmK) === 0.6 && HG.oddsAt(roadK) === 0.05 && HG.oddsAt(wildK) === 0.05);
+      var hitOne = {}; FMh[farmK].forEach(function (f) { hitOne[f.id] = 1; });
+      okH('a hex with every farm hit feeds as bare ground (' + HG.oddsAt(farmK, hitOne) + ')', HG.oddsAt(farmK, hitOne) === 0.05);
+      // 2. THE ROAD'S PERCENT: a zone's base off its table, the road half, the night double; then walked
+      SH.t = tH(1, 12); var eH = MH.hex[KH(SH.at[0], SH.at[1])], zH = WH.zoneOf(eH), bH = WH.encBase(zH), rtH = ((window.DS || {}).DATA.encounters[zH] || {}).rate;
+      okH('the percent a hex entered in ' + zH + ' (its table\'s rate ' + rtH + '): ' + (bH * 100).toFixed(1) + '%; on a road ' + (WH.encPct(zH, true, false) * 100).toFixed(1) + '%, at night ' + (WH.encPct(zH, false, true) * 100).toFixed(1) + '%; north ' + (WH.encBase('north') * 100).toFixed(1) + ', gnollhills ' + (WH.encBase('gnollhills') * 100).toFixed(1) + ', doors ' + (WH.encBase('doors') * 100).toFixed(1),
+        Math.abs(bH - 8 / (rtH[0] + rtH[1])) < 1e-9 && Math.abs(WH.encPct(zH, true, false) - bH / 2) < 1e-9 && Math.abs(WH.encPct(zH, false, true) - bH * 2) < 1e-9 && Math.abs(WH.encBase('north') - 8 / 62) < 1e-9);
+      var nF = 0, nSt = 6000, clearBad = 0, fakeH = { q: '', encounter: function () { nF++; } }, on0 = HG.on; HG.on = false;
+      for (var iH = 0; iH < nSt; iH++) { SH.t = tH(1, 12); var c0 = SH.clear || 0, got = WH.onStep(fakeH, { mi: 5, road: false }); if (c0 > 0 && got) clearBad++; }
+      var wantH = bH / (1 + bH);
+      okH(nSt + ' hexes entered by day off the road: ' + nF + ' fights (' + (nF / nSt * 100).toFixed(1) + '% of steps; ' + (wantH * 100).toFixed(1) + '% wanted, the percent with a clear hex after each); a fight in the clear hex ' + clearBad + ' times', Math.abs(nF / nSt - wantH) < 0.02 && clearBad === 0);
+      var nHalf = 0; fakeH.encounter = function () { nHalf++; }; SH.clear = 0; for (var jH = 0; jH < nSt * 10; jH++) { SH.t = tH(1, 12); WH.onStep(fakeH, { mi: 0.5, road: false }); }
+      okH('walked on the tiles, half a mile a step: ' + nHalf + ' fights in ' + (nSt * 10 * 0.5) + ' miles, ' + (nHalf / nSt * 100).toFixed(1) + '% a hex\'s worth of miles', Math.abs(nHalf / nSt - wantH) < 0.03);
+      SH.encNow = 1; SH.clear = 5; var nNow = 0; fakeH.encounter = function () { nNow++; }; SH.t = tH(1, 12); WH.onStep(fakeH, { mi: 5 });
+      okH('S.encNow brings one on the next step (' + nNow + ')', nNow === 1 && !SH.encNow);
+      HG.on = on0; SH.clear = 0;
+      // 3. the withered weigh heavier (the hunger off: the makings where he made them)
+      HG.on = false; var m5 = WH.makings(tH(5, 13)).filter(function (m) { return m.day === 5; })[0], wN = WH.mirrorWeight(m5.pt, tH(7, 13)), wW = WH.mirrorWeight(m5.pt, tH(8, 13)), rW = WH.mirrorRate(m5.pt, tH(8, 13)); HG.on = true;
+      okH('the day-5 making at its own place: weight ' + wN.toFixed(2) + ' on day 7, ' + wW.toFixed(2) + ' withered on day 8 (' + VH.hungry + 'x); the road\'s percent there ' + rW.toFixed(2) + 'x', Math.abs(wN - VH.peak) < 1e-9 && Math.abs(wW - VH.peak * VH.hungry) < 1e-9 && Math.abs(rW - (1 + VH.rate * VH.hungry)) < 1e-9);
+      // 4. the markers: at the making's place till the first dawn; then a hex a day, never staying; the same every time asked
+      SH.seed = salt0; SH.madeFed = {};
+      var a1 = JSON.stringify(HG.sim(tH(16, 12))), a2 = JSON.stringify(HG.sim(tH(16, 12))), b1 = (SH.seed = salt0 + 1, JSON.stringify(HG.sim(tH(16, 12)))); SH.seed = salt0;
+      var mk3 = WH.makings(tH(3, 18)).filter(function (m) { return m.day === 3; })[0], mk4 = WH.makings(tH(4, 7)).filter(function (m) { return m.day === 3; })[0];
+      okH('the day-3 making stands where he made it (' + mk3.hex + ') till the dawn after, then is a hex on (' + mk4.hex + ', from ' + mk4.hex0 + '); asked twice the same (' + (a1 === a2) + '), another seed another road (' + (a1 !== b1) + ')', mk3.hex.join() === (mk3.hex0 || mk3.hex).join() && adj(mk4.hex0, mk4.hex) && a1 === a2);
+      var badTrail = [], R16 = HG.sim(tH(30, 12)), base30; HG.on = false; base30 = WH.makings(tH(30, 12)); HG.on = true;
+      base30.forEach(function (m) { var x = R16.by[m.day], prev = m.hex; x.trail.forEach(function (s, i) { if (!adj(prev, s.hex) || (i && s.dn !== x.trail[i - 1].dn + 1)) badTrail.push(m.day + '@' + s.dn); prev = s.hex; }); });
+      okH('every marker\'s road to day 30: each dawn one hex to a hex beside it, no dawn skipped while it lives (' + (badTrail.length ? 'off: ' + badTrail.join(' ') : 'all') + ')', !badTrail.length);
+      repH.notes.push('seed ' + salt0 + ': ' + base30.map(function (m) { var x = R16.by[m.day]; return 'day ' + m.day + ' from ' + m.hex + ': ' + x.trail.map(function (s) { return s.hex.join('.') + (s.fed ? '*' : ''); }).join(' ') + ' -> ' + x.state; }).join(' | ') + ' (* a dawn it fed)');
+      repH.notes.push('seed ' + salt0 + ' survivors: ' + (R16.ref.map(function (r) { return r.kind + ' of the day-' + r.day + ' making, day ' + (Math.floor(r.t0 / 24) + 1) + ' from ' + r.hex0 + ' to ' + r.to + ' day ' + (Math.floor(r.arrive / 24) + 1) + ' ' + (r.arrive % 24).toFixed(0) + 'h'; }).join('; ') || 'none'));
+      // 5. over many saves: the feedings, the clock they reset, the hyenas charged and nobody fleeing them, the survivors and their days
+      var sv = { fedAny: 0, hy: 0, hyRef: 0, ref: 0, inn: 0, pit: 0, sil: 0, alive14: 0, clean: [], hits14: 0, innDays: {}, resetOk: 0, resetN: 0, chargedOk: 0, chargedN: 0, arrOk: 0, twice: 0 }, zoneOfDay = {};
+      base30.forEach(function (m) { zoneOfDay[m.day] = WH.makingZone(m); });
+      for (var sd = 1; sd <= NS; sd++) {
+        SH.seed = sd; SH.madeFed = {}; var R = HG.sim(tH(40, 12)), hy = false, ids = {};
+        if (R.ref.length || Object.keys(R.hit).length) sv.fedAny++;
+        Object.keys(R.by).forEach(function (d) { var x = R.by[d]; x.trail.forEach(function (s) { if (!s.fed) return; var T = s.dn * 24 + HG.DAWN, mm = WH.makings(T + 23).filter(function (m) { return m.day === +d; })[0];
+          sv.resetN++; if (mm.state === 'normal' && mm.fed === T) sv.resetOk++;
+          if (zoneOfDay[d] === HG.HYENA) { hy = true; sv.chargedN++; var c1 = WH.makings(T + 1).filter(function (m) { return m.day === +d; })[0], c2 = WH.makings(T + HG.CHARGE + 1).filter(function (m) { return m.day === +d; })[0], fedNext = x.trail.some(function (s2) { return s2.fed && s2.dn === s.dn + 1; }); if (c1.charged && (fedNext || !c2.charged)) sv.chargedOk++; } }); });
+        if (hy) sv.hy++; R.ref.forEach(function (r) { if (zoneOfDay[r.day] === HG.HYENA) sv.hyRef++; sv.ref++; sv[r.to === 'silverton' ? 'sil' : r.to]++; if (ids[r.id]) sv.twice++; ids[r.id] = 1;
+          var dd = Math.hypot(r.toPt[0] - r.from[0], r.toPt[1] - r.from[1]); if (Math.abs(r.arrive - (r.t0 + dd / HG.CART * 24)) < 1e-6) sv.arrOk++;
+          if (r.to === 'inn') { var ad = Math.floor(r.arrive / 24) + 1; sv.innDays[ad] = (sv.innDays[ad] || 0) + 1; } });
+        if (WH.makings(tH(14, 12)).filter(function (m) { return m.state !== 'gone'; }).length) sv.alive14++;
+        Object.keys(R.hit).forEach(function (k) { if (R.hit[k] < tH(14, 12)) sv.hits14++; });
+        var cl = null; for (var dc = 12; dc <= 40 && cl == null; dc++) if (!WH.makings(tH(dc, 13)).filter(function (m) { return m.state !== 'gone'; }).length) cl = dc; sv.clean.push(cl == null ? 41 : cl);
+      }
+      sv.clean.sort(function (a, b) { return a - b; }); SH.seed = salt0;
+      okH('over ' + NS + ' saves: a dawn feeding starts its making\'s three days again (' + sv.resetOk + ' of ' + sv.resetN + ' normal 23 hours on, counted from that dawn)', sv.resetN > 0 && sv.resetOk === sv.resetN);
+      okH('the mirror hyenas\' making fed at a dawn is charged that day and not the next unless it feeds again (' + sv.chargedOk + ' of ' + sv.chargedN + '), and nobody flees it (' + sv.hyRef + ' bands)', sv.chargedOk === sv.chargedN && sv.hyRef === 0);
+      okH('the survivors: ' + sv.ref + ' bands in ' + NS + ' saves (to the inn ' + sv.inn + ', the Pit ' + sv.pit + ', Silverton ' + sv.sil + '), each to the nearest of the three at ' + HG.CART + ' miles a day (' + sv.arrOk + ' on the hour), none twice (' + sv.twice + ')', sv.ref > 0 && sv.arrOk === sv.ref && sv.twice === 0);
+      repH.notes.push('over ' + NS + ' saves, nobody fighting them: any dawn feeding in ' + sv.fedAny + '; the hyenas fed in ' + sv.hy + '; made things still about at noon of day 14 in ' + sv.alive14 + '; farms hit by day 14, ' + (sv.hits14 / NS).toFixed(1) + ' a save; the world clean of them from day (lowest, middle, highest; 41 = not by day 40) ' + sv.clean[0] + ', ' + sv.clean[NS >> 1] + ', ' + sv.clean[NS - 1] + '; bands reaching the inn by their day: ' + JSON.stringify(sv.innDays));
+      // 6. the party's own feeding still counts, with the dawns'
+      SH.seed = salt0; SH.madeFed = {}; var gone9 = WH.madeState(5, tH(9, 13)); SH.madeFed = { 5: tH(8, 20) }; var kept9 = WH.madeState(5, tH(9, 13)); SH.madeFed = {};
+      repH.notes.push('seed ' + salt0 + ', the day-5 making on day 9 at 13h: ' + gone9 + ' with nobody fighting it, ' + kept9 + ' after a fight fed it at 20h on day 8');
+      okH('a fight\'s feeding on day 8 keeps the day-5 making on day 9 (' + kept9 + ')', kept9 === 'normal');
+      // 7. THE MEETING: the party in the hex a band is crossing -- a card, once; not with &noenc
+      var band = null, bs = 0; for (var s7 = 1; s7 <= 400 && !band; s7++) { SH.seed = s7; var R7 = HG.sim(tH(40, 12)); band = R7.ref.filter(function (r) { return r.arrive - r.t0 > 6; })[0] || null; bs = s7; }
+      if (!band) okH('a band of survivors to meet in 400 saves', false);
+      else {
+        SH.seed = bs; SH.metRef = []; SH.t = band.t0 + 3; var live = HG.refugees().filter(function (r) { return r.id === band.id; })[0]; SH.at = live.hex.slice(); SH.pos = null;
+        var cards = [], sc7 = { q: '', card: function (l) { cards.push(l); }, encounter: function () { } }, quiet = HG.meeting({ q: '?world&noenc' }), m1 = WH.onStep(sc7, { mi: 5 }), again = HG.meeting(sc7);
+        var txt = (cards[0] || []).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+        okH('save ' + bs + ', three hours after the dawn of day ' + (Math.floor(band.t0 / 24) + 1) + ', the party in ' + live.hex + ': the step is the meeting (' + m1 + '), one card (' + cards.length + '), met once (' + (again === null) + '), none with &noenc (' + (quiet === null) + '): ' + txt.slice(0, 420),
+          m1 === true && cards.length === 1 && again === null && quiet === null && txt.indexOf(band.toName) >= 0 && SH.metRef.indexOf(band.id) >= 0);
+        SH.t = band.arrive + 1; var atR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length; SH.t = band.arrive + HG.STAY + 1; var goneR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length;
+        okH('the band at ' + band.toName + ' once it arrives (' + atR + '), gone on ' + HG.STAY + ' hours after (' + goneR + ')', atR === 1 && goneR === 0);
+      }
+      // 8. the wagon's mark: not drawn for a player
+      var WgH = D.wagon, shown = WgH && WgH.mark; if (WgH) { WgH.drawn = null; var errW = ''; try { WH.drawWagon(null, null, 0); } catch (eW) { errW = String(eW); } okH('the wagon\'s mark is a seat\'s eye only (show ' + shown + ', drawn ' + JSON.stringify(WgH.drawn || null) + (errW ? ', ' + errW : '') + ')', shown === false && !WgH.drawn && !errW); }
+      // 9. the hunger off: the makings as they were
+      HG.on = false; SH.seed = salt0; var offM = WH.makings(tH(8, 13)).map(function (m) { return m.day + ':' + m.hex + ':' + m.state + ':' + (m.hex0 ? 'moved' : 'stood'); }).join(' '); HG.on = true;
+      okH('HG.on = false gives the makings where he made them, a fight\'s feeding alone (' + offM + ')', !/moved/.test(offM) && /3:11,12:gone/.test(offM) && /5:15,10:withered/.test(offM));
+    } catch (eH2) { repH.errors.push(String(eH2 && eH2.stack || eH2).slice(0, 900)); }
+    D.store.get = stGH; D.store.set = stSH; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
   // THE MADE THINGS' STATES, 11-14 (mode=made1114; the made-states seat -- RULED 11-14, Griz to the lanes desk: "1 - good" (fed is its rider landing, and it changes
   // sheet right there in the fight: withered goes to normal, normal goes to charged); "2 - more than 3 days without feeding they poof out of existence. Approved."
   // (withered: half HP, speed -10, -2 to hit); "3 - rather than 1d6 force on the bite, HP as you said, +2 to hit, damage die steps up 1 (i.e. 1d6 becomes 1d8)"):
@@ -9837,6 +9933,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     return;
   }
   if (get('mode', '') === 'made1114') {
+    if (D.hunger) D.hunger.on = false; // (11-14, THE HUNGER, js/hunger.js: the clock with only a fight's feeding; the dawn feedings are mode=hunger1114's)
     var repMS = { checks: [], errors: [], notes: [] }, memMS = {}, stGMS = D.store.get, stSMS = D.store.set, WS = D.world, SE = D.seep, d0MS = D.d, vw0 = WS.VESSEL.wither, vg0 = WS.VESSEL.gone;
     function okMS(what, v) { repMS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     D.store.get = function (k) { return memMS[k] ? JSON.parse(memMS[k]) : null; }; D.store.set = function (k, v) { memMS[k] = JSON.stringify(v); return true; };
@@ -9991,6 +10088,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // party walks; far from every making nothing is made; 3. the blocks: the mirror wolf and the mirror worg are the wolf and the worg but for the rider and the look; 4. the
   // show's beats (deep16/?madeshow&fast, headless); 5. nothing of the road is drawn for a player still
   if (get('mode', '') === 'made1113') {
+    if (D.hunger) D.hunger.on = false; // (11-14, THE HUNGER, js/hunger.js: the makings where he made them; the markers are mode=hunger1114's)
     var repMK = { checks: [], errors: [], notes: [] }, memMK = {}, stGMK = D.store.get, stSMK = D.store.set, WK = D.world, d0MK = D.d;
     function okMK(what, v) { repMK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     D.store.get = function (k) { return memMK[k] ? JSON.parse(memMK[k]) : null; }; D.store.set = function (k, v) { memMK[k] = JSON.stringify(v); return true; };

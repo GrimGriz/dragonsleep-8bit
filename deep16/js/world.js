@@ -907,7 +907,7 @@
   W.VESSEL = {
     from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
     makings: [3, 5, 7, 9, 11, 13], makeHour: 12, /* (3: THE HARBINGER'S DAY, a making like the rest -- THE MAKINGS BY THEIR GROUND, below) */ reach: [10, 6, 40], peak: 6, rate: 0.5,
-    wither: 3, gone: 4, /* (THE MADE THINGS' CLOCK, below: days unfed) */
+    wither: 3, gone: 4, /* (THE MADE THINGS' CLOCK, below: days unfed) */ hungry: 1.5, /* (a withered making weighs this much heavier: RULED 11-14, Griz, "the withered would weight heavier for being hungry" -- the number the clock seat's) */
     // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
     // as the table; 9 to 11 a hex behind it (the climb slower); then held at the Warded Fort from 12:30 on day 11 (the table walked him on to the Doors late on day 12)
     table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
@@ -964,7 +964,7 @@
     var no = { w: 0, m: null, all: [] }, all = []; pt = pt || W.partyPt(); if (!pt) return no; var V = W.VESSEL, w = 0, mm = null, pts = W.vesselRoad(); if (!pts) return no;
     var bi = 0, bd = 1e9; for (var i = 0; i < pts.length; i += 4) { var dd = Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1]); if (dd < bd) { bd = dd; bi = i; } }
     if (pts[bi][2] > W.vesselAt(t).mi + 1) return no; // (AHEAD OF HIM: the nearest stretch of his road not walked yet -- clean, whatever wanders from behind)
-    W.makings(t).forEach(function (m) { if (m.state === 'gone') return; /* (THE MADE THINGS' CLOCK: four days unfed and nothing of it is met) */ var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) { var wm = V.peak * (1 - d / m.reach); all.push({ m: m, w: wm }); if (wm > w) { w = wm; mm = m; } } });
+    W.makings(t).forEach(function (m) { if (m.state === 'gone') return; /* (THE MADE THINGS' CLOCK: four days unfed and nothing of it is met) */ var d = Math.hypot(pt[0] - m.pt[0], pt[1] - m.pt[1]); if (d < m.reach) { var wm = V.peak * (1 - d / m.reach) * (m.state === 'withered' ? (V.hungry || 1) : 1); all.push({ m: m, w: wm }); if (wm > w) { w = wm; mm = m; } } });
     return { w: w, m: mm, all: all };
   };
   W.mirrorWeight = function (pt, t) { return W.mirrorAt(pt, t).w; };
@@ -983,7 +983,7 @@
   // What it leaves by the road is the mirror hyena: the gnoll he made over that day is the Harbinger himself, one of a kind and no road's fight, so the hills' list is
   // the hyena alone (the seat's reading of "should bring mirror hyena back")
   W.MADE = { glowseep: { wisp: 'mirrorwisp', stirge: 'mirrorstirge' }, doors: { wolf: 'mirrorwolf', worg: 'mirrorworg' }, gnollhills: { hyena: 'mirrorhyena' } };
-  W.makingZone = function (m) { var MW = MS.world, e = MW && m && MW.hex[K(m.hex[0], m.hex[1])]; return e ? W.zoneOf(e, MW) : null; }; // (the table of the ground he stood on)
+  W.makingZone = function (m) { var MW = MS.world, mh = m && (m.hex0 || m.hex), e = MW && mh && MW.hex[K(mh[0], mh[1])]; /* (hex0: where he made it -- its marker walks on, js/hunger.js) */ return e ? W.zoneOf(e, MW) : null; }; // (the table of the ground he stood on)
   // WHERE THEY OVERLAP (RULED 11-13, Griz: "where the zones overlap party random encounters could include either"): at a point inside more than one making's reach a
   // mirror-made draw is of ONE of them, each making drawn in proportion to its own weight there (W.mirrorAt's `all`; roll: D.rand, once, only where they overlap). How
   // OFTEN a mirror-made thing is met is not changed by it: the entry's weight on the table and the road's faster count are still the strongest making's alone, not the sum
@@ -1019,6 +1019,11 @@
   W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS * 5; S.zone = zone; }; // (in miles: a hex 5, a tile half of one)
   // THE NIGHT (RULED 10-21, Griz: "Random encounter tables increase encounter activity at night (selected appropriate monsters)"): after dark the road's count runs
   // W.NIGHTX as fast, and a group with a creature of the night in it weighs twice, one of the day's alone half (the seat's picks from the zones' tables, his to tune)
+  // THE ROAD'S PERCENT: a zone's chance of a fight a 5-mile hex entered, read off its table's old rate (the countdown's middle, so the road is as busy as it was: north and
+  // south 13%, the hills and the marsh 17%, the Coldridge 15%), half on a road, W.NIGHTX after dark, and W.mirrorRate near the made things; never over W.ENCMAX
+  W.ENCHEX = 5; W.ENCMAX = 0.9;
+  W.encBase = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; return 2 * W.HEXSTEPS / (rt[0] + rt[1]); };
+  W.encPct = function (zone, road, night, pt, t) { if (night == null) night = W.isNight(); return Math.min(W.ENCMAX, W.encBase(zone) * (road ? 0.5 : 1) * (night ? W.NIGHTX : 1) * W.mirrorRate(pt, t)); };
   W.NIGHTX = 2; W.NIGHT_KINDS = ['wolf', 'worg', 'hyena', 'gnoll', 'giantrat', 'stirge', 'giantspider', 'wolfspider', 'wisp', 'giantbat']; W.DAY_KINDS = ['bandit', 'axebeak', 'giantboar'];
   W.isNight = function () { return W.timeOfDay() === 'night'; };
   W.pick = function (zone, night, pt) {
@@ -1028,15 +1033,19 @@
     var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
     var md = grp.mirror ? W.madeAt(pt, null, true) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
     src.e.forEach(function (e) { var n = e[1] + D.rint(e[2] - e[1] + 1); for (var k = 0; k < n; k++) list.push(grp.mirror ? ((md && md.made[e[0]]) || W.MIRROR[e[0]] || e[0]) : e[0]); });
-    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone, state: md.making.state } : null }; // (state: THE MADE THINGS' CLOCK -- 'normal' or 'withered'; a gone making is never drawn)
+    return { zone: zone, Z: Z, grp: grp, list: list.slice(0, 8).filter(function (k) { return D.FOES && D.FOES[k]; }), mirror: !!grp.mirror, made: md ? { day: md.making.day, zone: md.zone, state: md.making.state, charged: !!md.making.charged } : null }; // (state: THE MADE THINGS' CLOCK -- 'normal' or 'withered'; a gone making is never drawn)
   };
   W.onStep = function (scene, st) {
     if (/[?&]noenc\b/.test(scene.q)) return false;
     var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e);
-    if (S.zone !== zone || S.count == null) W.resetCount(zone);
-    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1) * (W.isNight() ? W.NIGHTX : 1) * W.mirrorRate(); W.save(); // (after dark the count runs faster: THE NIGHT, above; and near the made things: THE VESSEL'S ROAD)
-    if (S.count > 0) return false;
-    W.resetCount(zone); W.save();
+    // A PERCENT A HEX ENTERED (RULED 11-14, Griz to the clock seat: "percentage hex entered seems good match for our marker system", and "5 - yes" on a percent a hex
+    // entered in place of the countdown of miles, one hex clear after a fight): W.encPct, below. A step shorter than a hex (the area's, the tiles') rolls its share of it
+    S.zone = zone; var mi = st.mi || M.w;
+    if (S.encNow) { S.encNow = 0; } else {
+      if (S.clear > 0) { S.clear = Math.max(0, S.clear - mi); W.save(); return false; } // (the hex after a fight: clear)
+      if (D.rand() >= 1 - Math.pow(1 - W.encPct(zone, st.road), mi / W.ENCHEX)) return false;
+    }
+    S.clear = W.ENCHEX; W.save();
     var p = W.pick(zone, W.isNight()); if (!p || !p.list.length) return false;
     scene.encounter(p, e); return true;
   };
@@ -1131,7 +1140,7 @@
       // across the screen, the four to its left and the foes to its right (js/simple.js S.FACE)
       this.units.forEach(function (u) { var f = simple ? D.simple.FACE[u.side === 'party' ? 0 : 1] : [u.side === 'party' ? -1 : 1, 0]; u.facing = D.spr.facingFor(f[0], f[1]); });
       // (THE MADE THINGS' CLOCK, above: each made thing knows its making, so its feeding feeds it; met on the third unfed day it is withered -- js/seep.js S.setState, 11-14)
-      if (p.made && D.seep && D.seep.setState) this.units.forEach(function (u) { if (u.side === 'foe' && u.made0) { u.made = { day: p.made.day }; if (p.made.state === 'withered') D.seep.setState(b, u, 'withered'); } });
+      if (p.made && D.seep && D.seep.setState) this.units.forEach(function (u) { if (u.side === 'foe' && u.made0) { u.made = { day: p.made.day }; if (p.made.state === 'withered') D.seep.setState(b, u, 'withered'); else if (p.made.charged) D.seep.setState(b, u, 'charged'); } }); // (charged: a mirror hyena making that fed at a dawn -- js/hunger.js, 11-14)
       if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } }); if (p.mirror && D.house && D.house.cur && D.house.cur.flags) D.house.cur.flags.mirrorFought = 1; // (the supper asks: js/inn.js In.SUP.fought, 11-11)
     };
     D.push(b);
