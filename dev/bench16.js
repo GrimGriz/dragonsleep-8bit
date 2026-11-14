@@ -10103,11 +10103,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 8. the show's four beats of the states
       if (!D.madeshow) okMS('8 the show: deep16/js/madeshow.js is loaded', false);
       else {
-        var BM2 = D.madeshow.make('?madeshow&fast&only=withered,fed,charged,mirrorwisp,hyenafear,mirrorhyena'); D.battle = BM2; BM2.enter();
+        var BM2 = D.madeshow.make('?madeshow&fast&only=withered,fed,charged,mirrorwisp,hyenafear,mirrorhyena,mirrorstirge'); D.battle = BM2; BM2.enter();
         var vM2, kM2 = 0;
         while (BM2.co && kM2++ < 400000) { var rM2 = BM2.co.next(vM2); vM2 = undefined; if (rM2.done) break; var yM2 = rM2.value; if (yM2 && yM2.prompt) vM2 = yM2.prompt.opts[0].value; }
         (BM2.madeReport || []).forEach(function (b) { okMS('8 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
-        okMS('8 the show ran ' + (BM2.madeReport || []).length + ' beats of the states (want 6: the hyenas\' fear since 11-14)', (BM2.madeReport || []).length === 6);
+        okMS('8 the show ran ' + (BM2.madeReport || []).length + ' beats of the states (want 7: the mirror stirge\'s sheets since 11-14 night; 6: the hyenas\' fear since 11-14)', (BM2.madeReport || []).length === 7);
       }
     } catch (eMS) { repMS.errors.push(String(eMS && eMS.stack || eMS).slice(0, 900)); }
     D.d = d0MS; WS.VESSEL.wither = vw0; WS.VESSEL.gone = vg0; D.store.get = stGMS; D.store.set = stSMS; if (D.house) { D.house.playing = false; D.house.cur = null; }

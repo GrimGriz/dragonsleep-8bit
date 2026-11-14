@@ -3,7 +3,7 @@
    fall one way (its card says so). The shape is js/seepshow.js's: at the end of each beat the show waits -- ENTER (or E, or a click) plays it again, RIGHT the next, LEFT
    the one before.
 
-     deep16/?madeshow              every beat, in order · &only=mirrorwolf, mirrorworg, withered, fed, charged, mirrorwisp, hyenafear or mirrorhyena keeps to those · &beat=N starts at the Nth ·
+     deep16/?madeshow              every beat, in order · &only=mirrorwolf, mirrorworg, withered, fed, charged, mirrorwisp, hyenafear, mirrorhyena or mirrorstirge keeps to those · &beat=N starts at the Nth ·
                                    &fast no pauses (the bench)
 
    THE STATES (2026-11-14, the made-states seat; RULED that day -- js/seep.js THE MADE THINGS' STATES has his words): four more beats. `withered`, a mirror worg met
@@ -22,7 +22,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 3;
-    var B = new D.Battle({ npc: { foes: ['mirrorwolf', 'mirrorworg', 'mirrorwisp', 'mirrorhyena', 'mirrorhyena', 'mirrorhyena'], party: ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['mirrorwolf', 'mirrorworg', 'mirrorwisp', 'mirrorhyena', 'mirrorhyena', 'mirrorhyena', 'mirrorstirge'], party: ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The made things of the Coldridge, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.madeshow = true;
     var enter0 = B.enter;
@@ -35,11 +35,11 @@
     var W = function (n) { return FAST ? 1 : n * 2; };
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cls = function (c) { return party.filter(function (w) { return w.cls === c; })[0]; }, kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
-    var cleric = cls('cleric'), wizard = cls('wizard'), fighter = cls('fighter'), mwolf = kind('mirrorwolf'), mworg = kind('mirrorworg'), mwisp = kind('mirrorwisp'), mhyena = kind('mirrorhyena');
+    var cleric = cls('cleric'), wizard = cls('wizard'), fighter = cls('fighter'), mwolf = kind('mirrorwolf'), mworg = kind('mirrorworg'), mwisp = kind('mirrorwisp'), mhyena = kind('mirrorhyena'), mstirge = kind('mirrorstirge');
     // (&state=emaciated or overcharged, 11-13, the cutter of the wolves: the art desk drew each in three states and no rule chooses between them yet -- the two wear
     // that state's sheet for the show; a look, the blocks and the beats unchanged)
     // (since 11-14 the states are RULED and worn by rule -- the four beats below; &state= is still the look alone, on the first two beats)
-    var state = get('state'), look = function () { if (state === 'emaciated' || state === 'overcharged') [mwolf, mworg, mhyena].forEach(function (w) { var sh = w && w.kind + '_' + state + '_p1'; if (w && D.SHEETS && D.SHEETS[sh]) { w.sheet = sh; if (D.spr.prefetch) D.spr.prefetch([sh]); } }); };
+    var state = get('state'), look = function () { if (state === 'emaciated' || state === 'overcharged') [mwolf, mworg, mhyena, mstirge].forEach(function (w) { var sh = w && w.kind + '_' + state + '_p1'; if (w && D.SHEETS && D.SHEETS[sh]) { w.sheet = sh; if (D.spr.prefetch) D.spr.prefetch([sh]); } }); };
     look();
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, slots: w.slots ? w.slots.slice() : null, glow: w.glow ? Object.assign({}, w.glow) : null }; });
     var cx = Math.floor(G.map.w / 2), cy = Math.floor(G.map.h / 2);
@@ -199,6 +199,19 @@
       n = mark(); yield* go(hy[0]); yield W(90); var l4 = since(n), bites = /Bite/.test(l4) && !/SHOVE/.test(l4);
       return [toyed && lit && fr && bites, (toyed ? 'two Shoves, the fighter prone, no hit point lost' : 'the toying NOT as it should be: ' + (l1 + ' || ' + l2).slice(0, 160)) + '; the laugh: fear ' + RU.fearLvl(fighter) + ',' + RU.fearLvl(cleric) + ', the pack ' + hy.map(function (h) { return h.madeState; }).join(',') + ' (' + (lit && fr) + '); then a bite (' + bites + ')'];
     }
+    function* mirrorStirgeStates() { // (11-14, the hyena-stirge seat: the art desk's Withered and Charged, art-wanted 62 -- each state stood up, then its drain and its latch, the rows the engine plays)
+      stage([wizard, mstirge], [[0, 0], [1, 0]]); wizard.maxhp = wizard.hp = 120;
+      var seen = [], rows = [];
+      for (var st of ['normal', 'withered', 'charged']) {
+        S.setState(B, mstirge, st); seen.push(mstirge.sheet); mstirge.anim = 'idle'; mstirge.animT = B.t;
+        say(plain(['The mirror stirge ' + st.toUpperCase() + ', on ' + mstirge.sheet + '. Then its drain, and its needle in.'])); yield W(80);
+        var ok = !!D.spr.anim(mstirge.sheet, 'attack') && !!D.spr.anim(mstirge.sheet, 'latched'); rows.push(ok);
+        if (ok) { mstirge.anim = 'attack'; mstirge.animT = B.t; yield W(Math.max(40, D.spr.duration(mstirge.sheet, 'attack') || 40)); mstirge.anim = 'latched'; mstirge.animT = B.t; yield W(Math.max(60, D.spr.duration(mstirge.sheet, 'latched') || 60)); }
+        mstirge.anim = 'idle'; mstirge.animT = B.t; yield W(30);
+      }
+      var sheets = seen.join() === 'mirrorstirge_p1,mirrorstirge_emaciated_p1,mirrorstirge_overcharged_p1';
+      return [sheets && rows.every(Boolean), 'the sheets ' + seen.join(' > ') + ' (' + sheets + '); its drain and latch in each (' + rows.join(', ') + ')'];
+    }
     function* mirrorWispStates() {
       stage([wizard, mwisp, fighter], [[0, 0], [1, 0], [5, 2]]); wizard.maxhp = wizard.hp = 120; wizard.reaction = 0;
       var sk = mwisp.attacks[Object.keys(mwisp.attacks)[0]], base = { hp: mwisp.maxhp, sp: mwisp.speed, atk: sk.atk, dice: sk.dice };
@@ -222,7 +235,8 @@
       { id: 'charged', name: 'Charged: the bigger bite', what: 'Yours, 11-14: "3 - rather than 1d6 force on the bite, HP as you said, +2 to hit, damage die steps up 1 (i.e. 1d6 becomes 1d8)". For the rest of the fight. On the art desk\'s Overcharged sheet.', run: charged },
       { id: 'mirrorwisp', name: 'The mirror wisp: its three states, drawn in code', what: 'Yours, 11-14: "0a - wisp is code drawn so we should be able to do the withered and charged variants". Its fed is Consume Magic landing (the family\'s rule, the desk\'s reading).', run: mirrorWispStates },
       { id: 'hyenafear', name: 'The mirror hyenas feed on fear', what: 'Yours, 11-14: "requires frightened, and that feeds two  - and they\'ll knock prone without killing til all are fed to charged". A pack not all fed shoves and bites no one; the laugh carrying one of yours to frightened feeds two; all charged, they bite. Their sheets are as the hyena\'s are today.', run: hyenaFear },
-      { id: 'mirrorhyena', name: 'The mirror hyena: its three sheets', what: 'Yours, 11-14, to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?": "Yes, ask for it". The art desk\'s Normal, Withered and Charged, cut 11-14 on the plain hyena\'s cell; each laughs its rolling laugh. A look: its feeding on fear is mode=made1114\'s.', run: mirrorHyenaStates }
+      { id: 'mirrorhyena', name: 'The mirror hyena: its three sheets', what: 'Yours, 11-14, to "Ask the art desk for a Mirror Hyena sheet of its own, in all three states?": "Yes, ask for it". The art desk\'s Normal, Withered and Charged, cut 11-14 on the plain hyena\'s cell; each laughs its rolling laugh. A look: its feeding on fear is mode=made1114\'s.', run: mirrorHyenaStates },
+      { id: 'mirrorstirge', name: 'The mirror stirge: its three sheets', what: 'Yours, 11-14: "Art request for withered and charged mirror striges to outbox please?", then "Art landed in Fresh". The art desk\'s ART-143 as cut 11-13 (Normal), and its Withered and Charged of 11-14, cut on the Normal\'s own registration; each drains and latches. A look: its feeding is mode=made1114\'s (the drink, a slot eaten).', run: mirrorStirgeStates }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id; }); });

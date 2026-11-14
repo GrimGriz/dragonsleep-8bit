@@ -23,10 +23,29 @@ LATCH = {'S': (48, 79), 'N': (48, 79), 'SE': (32, 80), 'E': (32, 80), 'NE': (32,
 SOURCE = ('drawn by the art desk (ART-143, 11-13: art-wanted section 61 -- Idle 8, Fly 8, Magicdrain 8, Flinch 6, Death 8, Latched 8 in five views), cut by '
           'tools/mirrorstirge-sheet.py through tools/stirgepages.py; SW W NW mirrored -- deep16/data/foes.js mirrorstirge')
 
+# THE TWO STATES (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Art landed in Fresh"; art-wanted section 62): the art desk's
+# ART-143-WITHERED-AND-CHARGED-SUPPLEMENT, 60 pages -- the same five views and six rows, each a paint-over of the Normal page on its own grid. Sorted to
+# deep16/_src/stirge/2026-11-14-ART-143-WITHERED-AND-CHARGED-SUPPLEMENT/. Cut the Normal's way, every drawing placed by its own number but with the
+# NORMAL page's offset and fall (stirgepages view_rows `ref`), so the three swap mid-fight with no jump; worn by rule (js/seep.js S.stateSheet).
+STATES = {'mirrorstirge_emaciated_p1': 'the Withered state', 'mirrorstirge_overcharged_p1': 'the Charged state'}
+
+
+def sheet(fmap, name, ref=None):
+    d = {v: SP.view_rows(fmap, name, v, ROWS, LATCH[v], ref=ref) for v in ('S', 'SE', 'E', 'NE', 'N')}
+    return {r: [d['S'][r], SP.mirror(d['SE'][r]), SP.mirror(d['E'][r]), SP.mirror(d['NE'][r]), d['N'][r], d['NE'][r], d['E'][r], d['SE'][r]] for r in ROWS}
+
+
 if __name__ == '__main__':
     fmap = SP.frame_map()
-    d = {v: SP.view_rows(fmap, NAME, v, ROWS, LATCH[v]) for v in ('S', 'SE', 'E', 'NE', 'N')}
-    frames = {r: [d['S'][r], SP.mirror(d['SE'][r]), SP.mirror(d['E'][r]), SP.mirror(d['NE'][r]), d['N'][r], d['NE'][r], d['E'][r], d['SE'][r]] for r in ROWS}
+    frames = sheet(fmap, NAME)
     SP.write(NAME, frames, ROWS, FPS, SOURCE, extra={'attack': {'release': 4}})
     if 'check' in sys.argv:
         SP.review(frames, ROWS, os.path.join(ROOT, 'deep16', 'art-src', 'mirrorstirge', NAME + '-review.png'))
+    smap = SP.frame_map(SP.STATES)
+    for nm, what in STATES.items():
+        fs = sheet(smap, nm, ref=(fmap, NAME))
+        SP.write(nm, fs, ROWS, FPS, 'drawn by the art desk (ART-143-WITHERED-AND-CHARGED-SUPPLEMENT, 11-14: art-wanted section 62 -- ' + what + ' of the Mirror Stirge, '
+                 'a paint-over of ART-143 on its own grid), cut by tools/mirrorstirge-sheet.py through tools/stirgepages.py on the Normal\'s registration; SW W NW '
+                 'mirrored -- worn by rule, js/seep.js THE MADE THINGS\' STATES', extra={'attack': {'release': 4}})
+        if 'check' in sys.argv:
+            SP.review(fs, ROWS, os.path.join(ROOT, 'deep16', 'art-src', 'mirrorstirge', nm + '-review.png'))

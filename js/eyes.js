@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE HYENA-STIRGE SEAT OF 11-14, ITS FOURTH JOB: the Mirror Stirge's Withered and Charged (art-wanted 62; tools/mirrorstirge-sheet.py; deep16/js/madeshow.js mirrorStirgeStates)
+    'eyes-mirror-stirge-states-1114': { pri: 2, group: G2, title: 'THE MIRROR STIRGE ON ITS THREE SHEETS: normal, withered, charged, each drains and latches (11-14)', pt: 'the bestiary lane, 2026-11-14 (the hyena-stirge seat; tools/mirrorstirge-sheet.py, tools/stirgepages.py; deep16/js/madeshow.js)',
+      url: 'deep16/?madeshow&only=mirrorstirge&fresh=1114s',
+      look: 'A SHOW. Your "Art request for withered and charged mirror striges to outbox please?" and "Art landed in Fresh". The art desk\'s Mirror Stirge in its three states, one after the other beside a wizard: NORMAL (smoked glass and silver, violet eyes), WITHERED (dark and dull, the panes clouded), CHARGED (violet belly and ribs). Each plays its drain (the needle\'s light on frame 5) and then its needle in, filling with light. The three sit on the same spot frame for frame, so a stirge that feeds mid-fight changes sheet without a jump (mode=made1114: its drink of a slot makes it Charged). &state=emaciated or &state=overcharged on ?madeshow wears a state from the start.' },
     // THE HYENA-STIRGE SEAT OF 11-14, ITS THIRD JOB: the werewolf's shift (data/foes.js werewolfpriest; js/traits.js THE SHIFT; tools/werewolf-sheet.py join_wolf)
     'eyes-werewolf-shift-1114': { pri: 1, group: G2, title: 'THE WEREWOLF\'S SHIFT: the priest stands, and his first action is the change (11-14)', pt: 'the bestiary lane, 2026-11-14 (the hyena-stirge seat; data/foes.js werewolfpriest; js/traits.js THE SHIFT; js/ui.js; tools/werewolf-sheet.py)',
       url: 'deep16/?show=werewolfpriest&fresh=1114w',

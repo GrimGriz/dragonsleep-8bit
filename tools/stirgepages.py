@@ -45,13 +45,16 @@ FAR, NEAR, CORE = 22, 8, 9                  # (page px: far from the slate; a pa
 ROW = {'Idle': 'idle', 'Fly': 'walk', 'Blooddrain': 'attack', 'Magicdrain': 'attack', 'Flinch': 'flinch', 'Death': 'hurt', 'Latched': 'latched'}
 
 
-def frame_map():
-    """-> {(sheet, facing, row): (page path, frames)} from the delivery's FRAME-MAP.csv"""
+STATES = os.path.join(pix.SRC, 'stirge', '2026-11-14-ART-143-WITHERED-AND-CHARGED-SUPPLEMENT')   # (art-wanted 62: the Mirror Stirge withered and charged)
+
+
+def frame_map(folder=FOLDER):
+    """-> {(sheet, facing, row): (page path, frames)} from a delivery's FRAME-MAP.csv"""
     out = {}
-    with open(os.path.join(FOLDER, 'FRAME-MAP.csv'), encoding='utf-8') as f:
+    with open(os.path.join(folder, 'FRAME-MAP.csv'), encoding='utf-8') as f:
         for r in csv.DictReader(f):
             assert r['engine_row'] == ROW[r['action']], r
-            out[(r['sheet'], r['facing'], r['engine_row'])] = (os.path.join(FOLDER, *r['file'].split('/')), int(r['frames']))
+            out[(r['sheet'], r['facing'], r['engine_row'])] = (os.path.join(folder, *r['file'].split('/')), int(r['frames']))
     return out
 
 
@@ -82,6 +85,9 @@ def cut(path, n):
         if cy[i] - cy[cur[-1]] > 30: lines.append(cur); cur = [i]
         else: cur.append(i)
     lines.append(cur)
+    # (11-14, the states' pages: a title's dash, "S IDLE -- WITHERED", is white but too short for a letter -- a mostly-white piece on a title line is lettering too)
+    tl = [(min(sl[i][0].start for i in l) - 8, max(sl[i][0].stop for i in l) + 8) for l in lines[:-2]]
+    text = text | ((wh >= 0.4 * area) & (area >= 6) & np.array([any(y0 <= y <= y1 for y0, y1 in tl) for y in cy], bool))
     nums = [sorted(l, key=lambda i: cx[i]) for l in lines[-2:]]
     if len(lines) < 3 or [len(l) for l in nums] != [n // 2, n // 2]:
         raise SystemExit('%s: the lettering fell into lines of %s (want a title and two lines of %d numbers)' % (os.path.basename(path), [len(l) for l in lines], n // 2))
@@ -137,14 +143,21 @@ def down(fr, d):
 def med(v): return float(np.median(v))
 
 
-def view_rows(fmap, sheet, facing, rows, latch_at, k_idle=None):
-    """-> ({row: [cells]}, the view's idle K) for one drawn view. `latch_at`: where the latch's first drawing's centroid goes."""
+def view_rows(fmap, sheet, facing, rows, latch_at, k_idle=None, ref=None):
+    """-> ({row: [cells]}, the view's idle K) for one drawn view. `latch_at`: where the latch's first drawing's centroid goes.
+    `ref` (11-14, the states: art-wanted 62): (fmap, sheet) of the Normal pages -- each row placed by the Normal page's own offset from its numbers, and the
+    death let down by the Normal's own fall, so a state's glow, dust or chips never move its anchor (the art desk: "Use the selected Normal ART-143 sheets
+    and existing mirrorstirge_p1 registration as the geometric authority ... Do not infer a new anchor from state glow, dust or chipped outline")"""
     out = {}
     idle = cut(*fmap[(sheet, facing, 'idle')]) if (sheet, facing, 'idle') in fmap else None
     for row in rows:
         path, n = fmap[(sheet, facing, row)]
         frs = cut(path, n)
         k = K
+        src = cut(*ref[0][(ref[1], facing, row)]) if ref else frs      # (the pages the anchor is read from)
+        if ref:
+            assert len(src) == len(frs), (sheet, facing, row)
+            frs0 = frs; frs = src
         if row == 'latched':
             off = (frs[0]['cen'][0] - frs[0]['num'][0], frs[0]['cen'][1] - frs[0]['num'][1]); at = latch_at
         elif row == 'hurt':
@@ -152,9 +165,13 @@ def view_rows(fmap, sheet, facing, rows, latch_at, k_idle=None):
         else:
             cs = [f for f in frs if f['core']]
             off = (med([f['core'][0] - f['num'][0] for f in cs]), med([f['core'][1] - f['num'][1] for f in cs])); at = HOVER
+        if ref:
+            low = np.where(cell(src[-1], k, (src[-1]['num'][0] + off[0], src[-1]['num'][1] + off[1]), at)[..., 3].any(axis=1))[0][-1] if row == 'hurt' else None
+            frs = frs0
         cells = [cell(f, k, (f['num'][0] + off[0], f['num'][1] + off[1]), at) for f in frs]
         if row == 'hurt':
-            low = np.where(cells[-1][..., 3].any(axis=1))[0][-1]
+            if not ref:
+                low = np.where(cells[-1][..., 3].any(axis=1))[0][-1]
             cells = [down(c, int(round(max(0, FLOOR - low) * d))) for c, d in zip(cells, DROP)]
         edge = sum(int((c[0, :, 3] > 0).sum() + (c[-1, :, 3] > 0).sum() + (c[:, 0, 3] > 0).sum() + (c[:, -1, 3] > 0).sum()) for c in cells)
         print('  %s %s %-7s K %.2f, off the number %+.0f,%+.0f page px%s' % (sheet, facing, row, k, off[0], off[1], ', ON THE CELL BORDER %d px' % edge if edge else ''))
