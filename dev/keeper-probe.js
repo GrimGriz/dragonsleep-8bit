@@ -64,6 +64,10 @@
     // ---- the hold that keeps
     put(P[1], 8, 1); force(false); P[1].hp = P[1].maxhp = 60; drain(K.flood(B, k, P[1])); cards.length = 0; var hk = k.hp; force(true); B.hurt(k, 4, 'bludgeoning'); unforce();
     ok('a held concentration keeps the hold (' + !!P[1].conds.restrained + ')', P[1].conds.restrained && /the hold keeps/.test(cards.join(' ')));
+    // (11-14, the AI lane's 11-06 lead 2: the one held dropped -- the swirl is over then, not at the Keeper's next turn; his record, "R9 Barley goes down." and the rise only at R10)
+    var hp1 = P[1].hp, fl1 = !!k.flooding; cards.length = 0; B.hurt(P[1], hp1 + 5, 'bludgeoning'); var fl2 = !!k.flooding;
+    ok('the held one dropped in the swirl (' + hp1 + ' to ' + P[1].hp + '): the Keeper rises at once (flooding ' + fl1 + ' to ' + fl2 + '; "' + cards.filter(function (c) { return /rises out of the water/.test(c); }).join('') + '")', fl1 && !fl2 && /no one is left in it/.test(cards.join(' ')));
+    P[1].hp = P[1].maxhp; delete P[1].ko; P[1].dead = false; P[1].conds = {}; put(P[1], 8, 1); force(false); drain(K.flood(B, k, P[1])); unforce(); // (held again, as the probe went on)
     // ---- climbing out: a head over the water ends the drowning
     put(P[1], 8, 3); delete P[1].conds.restrained; cards.length = 0; K.drownTick(B, P[1]); // (a hero that climbed out)
     ok('out of the deep: no more drowning', !P[1].conds.drowning && /gets a breath/.test(cards.join(' ')));

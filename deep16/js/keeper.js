@@ -201,6 +201,9 @@
         if (!sv.ok) { this.release(u, v); K.checkSwirl(this); } // (the hold broken by any blow, the class AI's too: it rises out of the swirl now, AC 13 again -- it had waited for a hero's command or its own turn; 10-03, the stream)
       }
     }
+    // the one held in the swirl dropped: the swirl is over now, as K.checkSwirl rules it ("no one is left in it") -- not a round later at the Keeper's own turn (11-14, the AI lane's
+    // 11-06 lead 2, his record 19:03:49Z: "R9 Barley goes down." and only at R10 "The Keeper rises out of the water (no one is left in it)")
+    if (this.kp && u && u.kind !== 'keeper' && hp0 > 0 && u.hp <= 0) { var kf = keeperOf(this); if (kf && kf.flooding && kf.flooding.vic === u.id) K.checkSwirl(this); }
     return r;
   };
 
