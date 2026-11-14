@@ -191,6 +191,10 @@
     var taken = {}; every.forEach(function (c) { while (taken[c[0] + ',' + c[1]]) c[0]++; taken[c[0] + ',' + c[1]] = 1; }); // (never two on a square)
     every.forEach(function (c) { c[0] += M - minX; c[1] += M - minY; });
     var w = Math.max.apply(null, every.map(function (c) { return c[0]; })) + 1 + M, h = Math.max.apply(null, every.map(function (c) { return c[1]; })) + 1 + M, rows = [], hts = [];
+    // A SQUARE FIELD (11-14, Griz, of a flank's field in his pane: "these grid fights aren't on squares and north-south looks like the map squeezes the number
+    // of units"; "i just meant the field in my pane was wider than long"): the field is as long as it is wide, the seating in the middle of it, so there is
+    // as much room to come round north and south as east and west
+    if (w !== h) { var side = Math.max(w, h), sx = Math.floor((side - w) / 2), sy = Math.floor((side - h) / 2); every.forEach(function (c) { c[0] += sx; c[1] += sy; }); w = h = side; }
     for (var y = 0; y < h; y++) { rows.push(new Array(w + 1).join('.')); hts.push(new Array(w + 1).join('0')); }
     D.MAPS[H.FIELD] = Object.assign({}, D.MAPS.gnollhills, { name: 'The Field', sub: SA.name + ' and ' + SB.name, rows: rows, heights: hts });
     var q = '?npc=' + Bl.join(',') + '&lvl=' + L + '&vs=' + (ph ? 'fighter:1' : aClass.join(',')) + '&map=' + H.FIELD + (o && o.bench ? '' : '&watch');

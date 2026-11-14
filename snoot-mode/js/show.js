@@ -190,11 +190,12 @@
   // for all its men, so two went down and nine stood again): in the hexes view (hx) a unit draws its men as the fight began, to HEXCAP figures, each in the
   // place it began in; as its men fall the figures from the front go `down` and are left lying where the unit fought, and a hero who falls lies there too
   function figsOf(U, L, hx) {
-    var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return hx || !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
+    var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
     // (the spacing is the screen's: a rank running into the slant's depth is squashed to SQ, so it is spread the more in the world)
     var SQ = SN.V.SQ, sl = function (v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] * SQ * SQ) || 1; return [v[0] / l, v[1] / l]; };
     var mt = U.u.mounted, n = U.u.party ? 0 : Math.min(mt ? 6 : 9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = mt ? 0.17 : 0.1, pts = [], i, up = n;
-    if (hx && !U.u.party) { var f0 = Math.max(U.figs0 || 0, U.figs || 0); n = Math.min(mt ? 10 : HEXCAP, f0); up = U.figs > 0 ? Math.min(n, Math.max(1, Math.ceil(U.figs * n / (f0 || 1)))) : 0; sp = mt ? 0.2 : 0.115; } // (horse stand wider and fewer: a rider is two men long, 10-17)
+    if (hx && !U.u.party) { var f0 = Math.max(U.figs0 || 0, U.figs || 0); n = Math.min(mt ? 10 : HEXCAP, f0); up = U.figs > 0 ? Math.min(n, Math.max(1, Math.ceil(U.figs * n / (f0 || 1)))) : 0; sp = mt ? 0.2 : 0.115;
+      n = up; } // (THE RANKS CLOSE, 11-14, Griz on the player's view: "remove the fallen and reform their selected formation with survivors (no real effect)" -- the ones who fall go down in their beat and are gone with it, and the unit stands in its formation again with who is left; the fallen were left lying for a few hours that night) // (horse stand wider and fewer: a rider is two men long, 10-17)
     if (U.u.form === 'square' && n > 2) for (i = 0; i < n; i++) { var a = i / n * Math.PI * 2; pts.push([Math.cos(a) * 0.16, Math.sin(a) * 0.16]); }
     else if (U.u.form === 'column') { var files = n > 2 ? 2 : 1, ranks = Math.ceil(n / files); for (i = 0; i < n; i++) { var u2 = ((ranks - 1) / 2 - Math.floor(i / files)) * sp, v2 = (i % files - (files - 1) / 2) * sp * 0.9; pts.push([f[0] * u2 + r[0] * v2, f[1] * u2 + r[1] * v2]); } }
     else { var fl = n > 4 ? Math.ceil(n / 2) : n; for (i = 0; i < n; i++) { var v3 = (i % fl - (fl - 1) / 2) * sp, u3 = -Math.floor(i / fl) * sp * 0.85; pts.push([f[0] * u3 + r[0] * v3, f[1] * u3 + r[1] * v3]); } }
