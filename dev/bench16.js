@@ -421,6 +421,17 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       B12.darks = [{ by: gb12.id, sq: D.grid.sphere(6, 4, 15), kind: 'darkness', lv: 2 }]; B12.lightMap = null; var l12a = cast12(), lit12a = !!ft12.conds.light;
       B12.darks = []; B12.lightMap = null; var l12b = cast12(), lit12b = !!ft12.conds.light;
       okLD('12 Light on the fighter in a Darkness: ' + (lit12a ? 'LIT' : 'gone') + ' -- ' + l12a.slice(0, 170) + ' || out of it: ' + (lit12b ? 'lit' : 'NOT lit'), !lit12a && /swallows it/.test(l12a) && lit12b);
+      // 13. the globe that freed it (the lane's §2.8, "the AI doesn't know to stay inside a globe that freed it", 10-01c): the globe bench's scene -- the fighter held by the foe wizard's Hold
+      // Person, cast from outside; Bob's Globe of Invulnerability beside him sets it aside; then the fighter's own turn, the class AI's
+      var MG13 = D.magic, B13 = D.npcFight('?npc=wizard:11&lvl=11&vs=fighter,wizard', {}); D.battle = B13; B13.enter(); var k13 = 0; while (!B13.order.length && k13++ < 400) B13.co.next();
+      var ps13 = B13.units.filter(function (u) { return u.side === 'party'; }), ft13 = ps13.filter(function (u) { return u.cls === 'fighter'; })[0], bob13 = ps13.filter(function (u) { return u.cls === 'wizard'; })[0], wz13 = B13.units.filter(function (u) { return u.side === 'foe'; })[0];
+      wz13.x = 9; wz13.y = 2; bob13.x = 9; bob13.y = 7; ft13.x = 10; ft13.y = 7; D.grid.setup(D.grid.map, B13.units); ft13.saves = Object.assign({}, ft13.saves, { wis: -30 });
+      var run13 = function (g) { var v, q = 0, st; while (g && q++ < 20000) { MG13.globeSync(B13); st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+      D.rules.startTurn(wz13); run13(MG13.cast(B13, wz13, 'holdperson', 2, ft13)); D.rules.startTurn(bob13); delete bob13.conc; run13(MG13.cast(B13, bob13, 'globeofinvulnerability', 6, bob13)); MG13.globeSync(B13);
+      var free13 = !ft13.conds.paralyzed && !!(MG13.shelved(ft13) || {}).paralyzed, at13 = ft13.x + ',' + ft13.y, n13 = (B13.log || []).length;
+      ft13.classAI = true; D.rules.startTurn(ft13); B13.active = ft13; run13(D.ai.turn(B13, ft13)); B13.active = null; MG13.globeSync(B13);
+      okLD('13 the globe that freed it: the fighter, freed of the Hold Person inside Bob\'s globe (' + free13 + '), keeps inside it on its turn -- at ' + ft13.x + ',' + ft13.y + ', held ' + !!ft13.conds.paralyzed + ', the hold still on the shelf ' + !!(MG13.shelved(ft13) || {}).paralyzed, free13 && !ft13.conds.paralyzed && !!(MG13.shelved(ft13) || {}).paralyzed);
+      repLD.notes.push('13 the globe: freed inside ' + free13 + ' at ' + at13 + '; after its turn at ' + ft13.x + ',' + ft13.y + ', held ' + !!ft13.conds.paralyzed + ', shelf ' + JSON.stringify(Object.keys(MG13.shelved(ft13) || {})) + ' -- ' + stripLD((B13.log || []).slice(n13).join(' | ')).slice(0, 400));
       // 4. the show's beats (js/eyes.js, deep16/?rulesshow&only=aileads1114): staged and run by the engine, headless with &fast
       var B4 = D.rulesshow.make('?rulesshow&fast&only=aileads1114'); D.battle = B4; B4.enter();
       var v4, k4 = 0; while (B4.co && k4++ < 400000) { var r4 = B4.co.next(v4); v4 = undefined; if (r4.done) break; var y4 = r4.value; if (y4 && y4.prompt) v4 = y4.prompt.opts[0].value; }

@@ -2452,6 +2452,17 @@
     return (B.globes || []).some(function (g) { return lv <= g.max && inGlobe(g, w) && !castIn(g, from); });
   }
   // the globes a spell cast now, by z standing where it stands, is cast inside of (a globe still swelling holds no one's casting yet)
+  // what stepping to (x, y) would bring back on u (11-14, the AI lane's §2.8, "the AI doesn't know to stay inside a globe that freed it"; probed: the fighter freed of a Hold
+  // Person inside Bob's globe walked out at the foe wizard and was held again): the harmful records set aside on it (M.shelved) when the square is outside every globe it
+  // stands in now -- their count, 0 when nothing harmful waits on the shelf or the square keeps it inside
+  var LEAVE_HARMS = /^(paralyzed|restrained|stunned|charmed|frightened|feared|blinded|deafened|poisoned|slowed|baned|cursed|hypnotized|incapacitated|asleep|dancing|confused|hexed|marked)$/;
+  M.globeLeaveHarm = function (B, u, x, y) {
+    var sh = M.shelved(u); if (!sh) return 0;
+    var bad = Object.keys(sh).filter(function (k) { return LEAVE_HARMS.test(k); }).length; if (!bad) return 0;
+    var here = (B.globes || []).filter(function (g) { return g.grow == null && inGlobe(g, u); }); if (!here.length) return 0;
+    var z = { x: x, y: y, size: u.size || 1 };
+    return here.some(function (g) { return inGlobe(g, z); }) ? 0 : bad;
+  };
   M.ginOf = function (B, z) { return (B.globes || []).filter(function (g) { return g.grow == null && inGlobe(g, z); }).map(function (g) { return g.n; }); };
   // "cast from outside the barrier": from where the caster stood when it was cast, not from where it is now. While a cast of the caster's is under way, B.castFrom says
   // (the wrapper below: the square it stood on -- or, for a spell used again, where the spell was FIRST cast); outside a cast, the caster's own square (a reaction, a

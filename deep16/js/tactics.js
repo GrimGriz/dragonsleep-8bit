@@ -200,7 +200,7 @@
     var guards = u.style === 'protection' && u.src && u.src.equip && u.src.equip.shield && u.reaction !== 0 ? alliesOf(B, u).filter(function (w) { return w !== u && !w.object; }) : [];
     var guardOf = function (e) { var v = 0; guards.forEach(function (w) { if (G.dist(u, w, e.x, e.y) > 5) return; G.foesNear(w, w.x, w.y, 5).forEach(function (f) { v = Math.max(v, TX.dpr(f) * 0.25); }); }); return v; };
     var squares = [here];
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y)) squares.push(e); });
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y) && !(M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) squares.push(e); }); // (never out of the globe that freed it: what it holds off takes hold again -- 11-14, the AI lane §2.8)
     weapons(u).forEach(function (wp) {
       var n = attacksWith(u, wp), rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach);
       var best = null;
@@ -326,7 +326,7 @@
     var oa = T.disengaged ? 0 : press.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0);
     if (oa * 2 >= u.hp) return out;
     var rm = G.reach(u, T.move), off = null;
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand || (e.x === u.x && e.y === u.y) || G.foesNear(u, e.x, e.y, 5).length) return; if (!off || e.cost < off.cost) off = e; });
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand || (e.x === u.x && e.y === u.y) || G.foesNear(u, e.x, e.y, 5).length || (M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) return; if (!off || e.cost < off.cost) off = e; });
     if (off) out.push({ x: off.x, y: off.y, oa: oa, cost: off.cost, price: oa * 0.5 + off.cost / 30, e: off });
     return out;
   }
@@ -730,6 +730,7 @@
     var bd = TX.bonusDash(u); // (the bonus action's Dash, Expeditious Retreat's or the rogue's Cunning Action: taken before the action's, which may keep)
     var rm = G.reach(u, T.move + (T.action ? u.speed : 0) + (bd ? u.speed : 0));
     var e = AI.approach(u, near, rm, G.armOf(u));
+    if (e && M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y)) { B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' keeps inside the globe: out of it, what it holds off takes hold again.{/}'], 200); yield 16; return; } // (11-14, the AI lane §2.8)
     if (e && bd && e.cost > T.move) yield* B.exec(u, { do: 'cdash' });
     if (e && T.action && e.cost > T.move && !u.conds.restrained && !u.conds.dancing) { T.action = 0; T.move += u.speed; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' dashes.{/}'], 160); }
     if (e) yield* walk(B, u, e);
@@ -849,7 +850,7 @@
     var off = function () { // (the square within the walk left with the fewest foes beside it: only one that frees it of some -- or, kiting, one that is out of reach of them all)
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
-        var e = rm[k]; if (!e.stand) return;
+        var e = rm[k]; if (!e.stand || (M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) return; // (not out of the globe that freed it, 11-14)
         var n = G.foesNear(u, e.x, e.y, 5).length, sees = fs.some(function (t) { return G.los(u, t, e.x, e.y).clear; });
         var far = chase.length > 0 && TX.outOfReach(u, chase, e.x, e.y);
         var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10 + (far ? 40 : 0);
