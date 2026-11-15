@@ -9233,15 +9233,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var st2 = WVc.state(), e2 = WVc.M().hex[WVc.K(st2.at[0], st2.at[1])], xp2 = HVc.cur.party.map(function (h) { return h.xp || 0; });
       ws2.fight({ list: ['wolf'], zone: 'north' }, e2); var b2 = D.top(), last2 = b2 !== ws2 ? winVc(b2) : [], pan2 = panVc(), said2 = [], say2 = ws2.say;
       ws2.say = function (s) { said2.push(String(s)); return say2.apply(this, arguments); };
-      if (D.top() === b2) D.pop(); b2.o.onDone(b2.result); ws2.say = say2;
+      // (11-15, his "4 closing victory pop-up back to world": the road's panel E goes straight back as the floor's does -- no last card, no E back to the road)
+      var auto2 = !!b2.autoBack; if (auto2) D.ui.resultInput(b2); else { if (D.top() === b2) D.pop(); b2.o.onDone(b2.result); } var back2 = D.top() === ws2; ws2.say = say2;
       var gain2 = HVc.cur.party.map(function (h, i) { return (h.xp || 0) - xp2[i]; });
       // (the spoils into the pack once each way: the floor's ledger by its gives, the save's pack by the road's)
       var give1 = (b1.pulledPay && b1.pulledPay.give) || [], led1 = (R1.ledger || []).filter(function (l) { return l.why === 'the spoils'; }), give2 = (b2.housePay && b2.housePay.give) || [];
       var inv2 = give2.map(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return g[0] + ' ' + (s ? s.n : 0); });
       okVc('the spoils once: the floor\'s ' + give1.map(function (g) { return g.join(' x'); }).join(', ') + ' in its ledger ' + led1.length + ' times; the road\'s in the save\'s pack ' + inv2.join(', '),
         give1.length > 0 && led1.length === give1.length && give2.length > 0 && give2.every(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return s && s.n === g[1]; }));
-      okVc('a road fight (' + b2.result + ', the house ' + !!HVc.playing + '): the VICTORY panel ' + pan2.title + ' "' + pan2.lines.join(' | ').slice(0, 100) + '"; its last card "' + last2.join(' | ').slice(0, 90) + '"; THE WORLD after "' + said2.join(' ').slice(0, 90) + '"; each one\'s XP up ' + gain2.join(','),
-        b2.result === 'won' && pan2.title === 'VICTORY' && pan2.lines.some(function (l) { return /gains \d+ XP/.test(l); }) && /E back to the road/.test(last2.join(' ')) && /The road is clear/.test(said2.join(' ')) && !/XP/.test(said2.join(' ')) && gain2.every(function (g) { return g > 0 && g === gain2[0]; }));
+      okVc('a road fight (' + b2.result + ', the house ' + !!HVc.playing + '): the VICTORY panel ' + pan2.title + ' "' + pan2.lines.join(' | ').slice(0, 100) + '"; its last card "' + last2.join(' | ').slice(0, 90) + '"; the panel\'s E straight back ' + auto2 + ' (on THE WORLD ' + back2 + '); THE WORLD after "' + said2.join(' ').slice(0, 90) + '"; each one\'s XP up ' + gain2.join(','),
+        b2.result === 'won' && pan2.title === 'VICTORY' && pan2.lines.some(function (l) { return /gains \d+ XP/.test(l); }) && auto2 && back2 && !last2.some(function (l) { return /XP|E back to|THE ROAD IS CLEAR/.test(l); }) && said2.join(' ').split(/road is clear/i).length === 2 && !/XP/.test(said2.join(' ')) && gain2.every(function (g) { return g > 0 && g === gain2[0]; }));
       HVc.playing = false; HVc.cur = null;
       // 3. THE LEDGES (his "the ladders are supposed to be going up to ledges? All ground is walkable and they look more like ladders down than up as placed"): the working gallery's seven
       // ladders off the floor -- the guano there, no ladder's look -- each up a rock face over open ground, one a face, none at the slide's lip; the art desk's ladder_up in hand
