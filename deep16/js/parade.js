@@ -20,6 +20,13 @@
         (its fall, lying there), it gets up where it has a getting-up row, and his last blow brings it down: its death row;
      5. ENTER (or E, or a click, or RIGHT): the next creature, with the next four townsfolk, the list going round again where there are fewer than four a creature.
         LEFT: the same creature again.
+   ITS OTHER ROWS (11-15, after his "hag was still code drawn or something is very very wrong" -- her beat had shown her Claws and nothing else of her sheet): one
+   with a borrowed face (a `still` and a `reveal` row: the green hag's old countrywoman, the lamia's way) stands in it while the four come in and drops it before
+   its first blow; a caster with a `cast` row plays it as a blow, named for its spell (her Vicious Mockery); one with Invisible Passage and a `vanish` row fades
+   out of sight and back after the second round of blows.
+   THE FIGURES FIRST (the same day): the show holds its first frame for every sheet it will wear -- each creature's, the crew boss's and every costume figure --
+   on the engine's own gate (js/sprites.js S.gate: THE FIGURES ARE COMING). They were fetched behind, a beat's four at a time, and a sheet still on its way draws
+   nothing: a bar and a shadow walking. A figure that never loads is named in red on its creature's card, and its turn reads NOT AS IT SHOULD BE.
    What is not on main yet is passed over without a word: a creature whose foe or sheet is not in (P.CREATURES names the ones being cut today), a costume whose figure is
    not cut (P.folk reads D.SHEETS for every folkman_<costume>_p1 and folkwoman_<costume>_p1; the townsfolk's own man and woman only if none is cut). So it fills in as the
    cutters land, with no change here. B.paradeReport holds what each creature showed (dev/bench16.js mode=parade1115 runs it headless).
@@ -78,6 +85,12 @@
       if (r) out.push({ name: a.name || k, row: r, a: a });
     });
     if (u.breath && D.spr.anim(u.sheet, 'breath')) out.push({ name: u.breath.name || 'Breath', row: 'breath', breath: u.breath });
+    // (a caster's spell on its cast row, where no blow of its own plays it already: the green hag's Vicious Mockery -- the class AI's cantrip, nothing in `attacks`)
+    var cs = (D.FOES[u.kind] || {}).caster || u.caster, kn = (cs && cs.known) || []; // (the block's own list: a unit made from it carries its spells its own way)
+    if (kn.length && D.spr.anim(u.sheet, 'cast') && !out.some(function (b) { return b.row === 'cast'; })) {
+      var nm = kn.map(function (id) { var sp = D.magic && D.magic.data ? D.magic.data(id) : null; return (sp && sp.name) || id; });
+      out.push({ name: nm.slice(0, 2).join(' / ') + (nm.length > 2 ? ' ...' : ''), row: 'cast', cast: true });
+    }
     return out;
   };
 
@@ -91,7 +104,13 @@
       fightDef: D.classFight(3, { map: 'paradefloor', name: 'The Parade', sub: 'the day\'s new art: the creatures, the townsfolk, the crew boss', what: 'the parade', intro: 'A creature at a time. ENTER for the next.' }) });
     B.parade = { kinds: cr.show, skipped: cr.skipped, folk: folk };
     var enter0 = B.enter;
-    B.enter = function () { enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST); };
+    B.enter = function () {
+      enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST);
+      // THE FIGURES FIRST: the fight's own gate holds its units' sheets (the creatures', the crew boss's, the townsfolk's own); the costume figures are worn a
+      // beat at a time after it, so they go on the same gate -- nothing moves till every one is in (or 20 s: S.held)
+      var mine = ((this.sheetGate && this.sheetGate.names) || []).concat(folk.map(function (f) { return f.sheet; }));
+      D.spr.gate(this, mine);
+    };
     return B;
   };
 
@@ -213,15 +232,23 @@
       people.forEach(function (w, j) { fresh(w); w.sheet = four[j].sheet; w.name = P.folkName(four[j]); if (D.spr.prefetch) D.spr.prefetch([w.sheet]); var c = P.CORNERS[j], s = spot(u, k + 7, c); w.x = s[0]; w.y = s[1]; w.facing = B.faceTo(w, u); at[w.id] = c; });
       B.units = [u].concat(people); settle(); B.round = 1; B.order = B.units.slice(); B.active = null;
       var zm = frame(u, k);
-      var bl = P.blows(u);
+      var bl = P.blows(u), extra = { reveal: 0, vanish: 0 };
+      var guise = !!(D.spr.anim(u.sheet, 'still') && D.spr.anim(u.sheet, 'reveal')); // (a borrowed face: js/ui.js draws `still` till it has woken or acted)
+      if (guise) { u.woken = false; u.acted = false; }
+      // (a sheet not in draws nothing, a sheet that failed a grey block: said here, in red -- never in the benches, which fetch none)
+      var late = D.spr.offline ? [] : [u.sheet].concat(four.map(function (f) { return f.sheet; })).concat(boss ? [boss.sheet] : []).filter(function (s, n, a) { return a.indexOf(s) === n && !D.spr.has(s); });
       B.clearCards();
-      B.card(['{y}THE PARADE  ' + (i + 1) + ' / ' + cre.length + ':  ' + u.name.toUpperCase() + '{/}', '{g}' + bl.map(function (b) { return b.name; }).join(', ') + '. Its reach ' + outOf(u) + ' ft; they stand ' + k * 5 + ' ft off. Nothing rolled, nobody hurt.{/}'], W(200));
+      B.card(['{y}THE PARADE  ' + (i + 1) + ' / ' + cre.length + ':  ' + u.name.toUpperCase() + '{/}', '{g}' + bl.map(function (b) { return b.name; }).join(', ') + '. Its reach ' + outOf(u) + ' ft; they stand ' + k * 5 + ' ft off. Nothing rolled, nobody hurt.{/}'].concat(late.length ? ['{r}NOT LOADED, so not drawn: ' + late.join(', ') + '{/}'] : []), W(late.length ? 400 : 200));
       yield W(110);
       // 1. in to the corners
       var seenN = {}, names = people.map(function (w) { return w.name; }).filter(function (n) { return seenN[n] ? false : (seenN[n] = true); });
       say(['Four come in, to the corners: ' + names.join(', ').replace(/the /g, '') + '.'], 160);
       yield* walk(people.map(function (w) { return [w, spot(u, k, at[w.id])]; }), 10, u);
       yield W(30);
+      if (guise) { // (the engine's own unmasking, js/ai.js: woken, its reveal row once, then itself)
+        say(['{y}' + u.name.toUpperCase() + '{/}: in its borrowed face as they came in. It drops it: its Reveal.'], 170); yield W(80);
+        u.woken = true; u.acted = true; u.anim = 'reveal'; u.animT = B.t; extra.reveal++; yield W(D.spr.duration(u.sheet, 'reveal') + 24); u.anim = 'idle'; u.animT = B.t; yield W(20);
+      }
       for (var j = 0; j < 4; j++) yield* volley(u, people[j], 'the ' + at[people[j].id], tally, k);
       // 2. to N, E, S, W
       say(['They go to N, E, S and W.'], 120);
@@ -230,6 +257,11 @@
       var home = people.map(function (w) { return at[w.id]; }).join();
       yield W(30);
       for (j = 0; j < 4; j++) yield* volley(u, people[j], 'the ' + at[people[j].id], tally, k);
+      if (u.invis && D.spr.anim(u.sheet, 'vanish')) { // (Invisible Passage, as js/ai.js fades it: invisible, its vanish row, then faint while unseen -- and back)
+        u.facing = 0; say(['{y}' + u.name.toUpperCase() + '{/}: its Invisible Passage. It fades out of sight (its Vanish), and comes back.'], 200); yield W(40);
+        u.conds.invisible = { ends: true }; u.anim = 'vanish'; u.animT = B.t; extra.vanish++; yield W(D.spr.duration(u.sheet, 'vanish') + 4); u.anim = 'idle'; u.animT = B.t; yield W(60);
+        delete u.conds.invisible; yield W(40);
+      }
       // 3. round the compass a place at a time, N to W, W to S, S to E, E to N; after each step it turns to the next point, N, E, S, W
       say(['Round they go, N to W, W to S, S to E, E to N. After each step it turns to the next point.'], 160);
       for (var s = 0; s < 4; s++) {
@@ -269,10 +301,12 @@
       var unhurt = people.every(function (w) { return w.hp === w.maxhp && !w.dead && !w.conds.prone; }) && people.every(function (w) { return (w.paraded || {}).walk; });
       var fell = !boss || (u.dead && u.hp === 0);
       var drawn = ['flinch', 'hurt'].filter(function (r) { return D.spr.anim(u.sheet, r); }).every(function (r) { return down[r] > 0; }) && (D.spr.proneFrame(u.sheet) < 0 || down.prone > 0) && (!D.spr.anim(u.sheet, 'getup') || down.getup > 0);
-      var ok = bl.length > 0 && tally.volleys === 12 && got === plays && want.every(function (r) { return tally.rows[r] >= 12; }) && !tally.inReach.length && !tally.cone && tally.steps === 4 && back && unhurt && fell && (!boss || drawn);
+      var rest = (!guise || extra.reveal === 1) && (!(u.invis && D.spr.anim(u.sheet, 'vanish')) || extra.vanish === 1) && !u.conds.invisible;
+      var ok = rest && !late.length && bl.length > 0 && tally.volleys === 12 && got === plays && want.every(function (r) { return tally.rows[r] >= 12; }) && !tally.inReach.length && !tally.cone && tally.steps === 4 && back && unhurt && fell && (!boss || drawn);
       var why = bl.length + ' blow' + (bl.length === 1 ? '' : 's') + ' (' + bl.map(function (b) { return b.name + ' on ' + b.row; }).join(', ') + '), ' + tally.volleys + ' volleys of 12, ' + got + ' plays of ' + plays +
         (tally.inReach.length ? '; IN ITS REACH: ' + tally.inReach.slice(0, 3).join('; ') : '; every one ' + k * 5 + ' ft off, out of its reach (' + reachOf(u) + ' ft' + (outOf(u) > reachOf(u) ? ', its breath ' + outOf(u) + ' ft' : '') + ')') + (tally.cone ? '; A BREATH OVER ' + tally.cone + ' OF THEM' : '') +
         '; round the compass ' + tally.steps + ' steps, home again (' + back + '); the four ' + people.map(function (w) { return w.sheet; }).join(', ') + ' walked and unhurt (' + unhurt + ')' +
+        (guise ? '; its borrowed face as they came in, its Reveal ' + extra.reveal : '') + (extra.vanish ? '; its Vanish ' + extra.vanish : '') + (late.length ? '; NOT LOADED: ' + late.join(', ') : '') +
         (boss ? '; the crew boss on ' + boss.sheet + ': flinch ' + down.flinch + ', prone ' + down.prone + ', getup ' + down.getup + ', its death ' + down.hurt + ', down (' + fell + ')' : '; no crew boss');
       return { id: u.kind, name: u.name, ok: ok, why: why, folk: four.map(function (f) { return f.sheet; }), ring: k, zoom: zm };
     }

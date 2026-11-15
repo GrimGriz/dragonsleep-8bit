@@ -1856,6 +1856,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var BP3 = runPA('?parade&fast&only=nosuchcreature');
         okPA('5 &only= with nothing landed: no creature, and the show says so rather than throwing (' + ((BP3.paradeReport || []).length) + ' shown)', (BP3.paradeReport || []).length === 0 && !BP3.ranOut);
         okPA('6 the floor is the show\'s own plain one (' + (D.MAPS.paradefloor || {}).name + ', ' + ((D.MAPS.paradefloor || {}).rows || []).length + ' rows, no post on it), laid when the door is made and not at load (' + loadPA + '): the Pocket DM deals every floor in D.MAPS as a location', !!D.MAPS.paradefloor && D.MAPS.paradefloor.rows.every(function (r) { return !/[^#=]/.test(r); }) && loadPA);
+        // 7. a creature's own rows past its blows (his "hag was still code drawn or something is very very wrong": her beat showed her Claws alone), where she is landed
+        var hagPA = rpPA.filter(function (r) { return r.id === 'greenhag'; })[0];
+        if (hagPA) okPA('7 the green hag: her Claws on claw and her Vicious Mockery on cast, her borrowed face as they came in and her Reveal once, her Vanish once and back -- ' + hagPA.why.slice(0, 60) + ' ... ' + (/its borrowed face[^;]*/.exec(hagPA.why) || [''])[0] + (/; its Vanish \d/.exec(hagPA.why) || [''])[0],
+          hagPA.ok && /Claws on claw, Vicious Mockery on cast/.test(hagPA.why) && /its Reveal 1/.test(hagPA.why) && /its Vanish 1/.test(hagPA.why));
+        else repPA.notes.push('7 the green hag is not landed here: her rows not checked');
+        // 8. THE FIGURES FIRST: the door's gate names every sheet the show wears -- each creature's, the crew boss's, every costume figure -- so nothing walks on as a bar and a shadow
+        var gPA = (BPA.sheetGate && BPA.sheetGate.names) || [], needPA = crPA.show.map(function (k) { return D.FOES[k].sheet; }).concat(fkPA.map(function (f) { return f.sheet; })).concat([D.FOES.crewboss.sheet]), lackPA = needPA.filter(function (s) { return gPA.indexOf(s) < 0; });
+        okPA('8 the figures first: the door holds for ' + gPA.length + ' sheets, every one the show wears among them (' + needPA.length + ' wanted' + (lackPA.length ? ', NOT GATED: ' + lackPA.join(', ') : '') + ')', needPA.length >= 5 && !lackPA.length);
         repPA.notes.push('rings: ' + rpPA.map(function (r) { return r.id + ' ' + (r.ring * 5) + ' ft'; }).join(', '));
       }
     } catch (ePA) { repPA.errors.push(String(ePA && ePA.stack || ePA).slice(0, 900)); }
