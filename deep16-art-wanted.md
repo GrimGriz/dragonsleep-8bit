@@ -451,3 +451,68 @@ Both: 16-bit pixel-art cut-scene portrait, comparable to the attached pages and 
 Where: two new rows of `pt_dwarf`, `roadpatrol` and `fileleader`. The file leader's marks are the engine side's own (a brass comb, one chevron): say if a different mark reads better at small size. No fight sheet is asked for the file leader: the cutter paints the brass comb onto the trooper's sheets.
 
 ### 2. The road patrol fighting -- IN HAND 2026-11-13 (`roadpatrol_p2`, `0587bbb8`); the block is on `deep16-art-in-hand.md`
+## 64. One for each empty shelf: a fiend, a construct, a celestial and a fey (added 11-15, the lanes desk, on his word: *"let's get one in each column and not waste art dept usage due to lack of input. a request for one fiend, construct, celestial and fey to the outbox please"*) -- IN THE OUTBOX 2026-11-15, waiting to go (`deep16/_src/outbox/ASK-2026-11-15-four-shelves/` and its `.zip`)
+
+From the engine side (the lanes desk), for the art desk. Four new creatures, one ask each, in any order. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-15-four-shelves/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 64.
+
+Why these four: counted on 11-15, the game has about 43 of the SRD 5.1's 201 monsters, and four whole kinds have none: no fiend of 23, no construct of 9, no celestial of 6, no fey of 5. These are the desk's picks, one a kind, each the plainest of its shelf to draw and to fight at the levels the game plays (3 to 9): the HELL HOUND (fiend, CR 3, a pack), the ANIMATED ARMOR (construct, CR 1), the PEGASUS (celestial, CR 2) and the GREEN HAG (fey, CR 3). None is in the game in any form and nothing plays on a stand-in for them: each is a new foe the engine builds from the SRD when its sheet is in hand.
+
+Each is drawn in the five views the game uses, the same rows in each: HEAD 1 from the front, facing the viewer (south); HEAD 2 from the bottom-right, front three-quarter, every frame facing the bottom-right corner; HEAD 3 from the right side in profile, facing right; HEAD 4 from the top-right, seen from behind; HEAD 5 straight from behind, facing away. The game mirrors HEADs 2, 3 and 4 for the left. If you deliver a page a row, as you did for the Mirror Stirge and the shambling mound, name each page by its view, row and frame count.
+
+ATTACH for all four: `PALETTE-2026-10-28-deep16-64-colours.png` (the game's 64 colours).
+
+### 1. THE HELL HOUND (fiend) -- five views
+```text
+Attached: the game's 64 colours.
+
+THE HELL HOUND -- a foe for a tactics game. A hound the size of a mastiff, gaunt and heavy in the shoulder, built to run: a short coat the colour of soot and old rust, the ribs showing, a thick neck, a blunt broad head with small upright ears. Its eyes are two coals, orange with a bright core. Its mouth is lit from inside: the gums and tongue glow like embers and a thread of dark smoke leaks from the corners of its jaws in every frame. Black claws. No collar, no chain, no horns, no wings: a dog, and wrong only where the fire shows.
+
+Rows, in each view: Idle (8: standing, head low, flanks working, smoke curling from the jaws, the glow in the mouth pulsing; frame 8 matches frame 1); Run (8: a long flat gallop, animated in place); Bite (8: it lunges and snaps; on the bite frame a flare of fire bursts from the closed jaws, then it pulls back); Fire Breath (8: it plants its forefeet, the chest swells and the glow climbs its throat, the jaws open wide and a widening cone of fire pours out ahead of it for three frames, then the jaws close on smoke -- draw the first body-length of the cone only, the game draws the rest); Flinch (6: struck, it yelps and twists away, sparks shaken from its mouth, then squares up again); Fall (8: it staggers, the legs go, it drops on its side; over the last three frames the glow in the mouth and eyes goes out and it lies dark); Prone (2: knocked flat but alive, on its side with the legs scrabbling, then up).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game; the whole creature nose to tail in every frame; flat dark navy background; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the same size in every view. Use only the attached 64 colours: the body from the dark and rust ramps, the fire from the orange and yellow ramps. No scenery.
+```
+Where: `hellhound_p1`, rows `idle`, `walk` (Run), `bite`, `breath` (the 15 ft cone, recharge 5-6, as the winter wolf's cold breath is played), `flinch`, `hurt` (Fall), `prone`. Medium. The SRD: Bite with fire on it, Fire Breath, Pack Tactics, immune to fire.
+
+### 2. THE ANIMATED ARMOR (construct) -- five views
+```text
+Attached: the game's 64 colours.
+
+THE ANIMATED ARMOR -- a foe for a tactics game. A full suit of plate armour standing with nobody in it: a closed helm with a dark eye-slit and nothing behind it, a breastplate, pauldrons, arm and leg plates and gauntlets, all of plain worn steel with darker rivets and a few old dents, held together by nothing -- thin gaps of darkness show at the neck, the elbows, the waist and the knees where a body would be. No weapon and no shield: it strikes with its gauntlets. No glow, no face, no cloth except the rotted stub of a plume on the helm. A man's height.
+
+Rows, in each view: Still (1: standing perfectly straight and square on its feet, arms at its sides, exactly as a suit of armour stands on a rack -- this is how it looks before anyone knows it is alive); Idle (8: awake: the helm turns a little, the gauntlets flex, the plates shift and settle with a small gap opening and closing at the waist; frame 8 matches frame 1); Walk (8: a stiff heavy march, each plate moving a beat late, animated in place); Slam (8: one gauntlet swings in a hammer blow and returns); Slam 2 (8: the other gauntlet, a backhand across the body, in the same breath); Flinch (6: struck, a plate is knocked askew and the whole suit rocks, then the plate slides back into place); Fall (8: the thing that holds it together lets go: the helm drops, the arms fall away, the suit folds at the waist and clatters down; the last frame is a heap of separate empty pieces on the ground); Prone (2: knocked over whole, on its back with the plates still joined, then levering itself up).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game; the whole figure in every frame; flat dark navy background; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the same size in every view. Use only the attached 64 colours: the steel ramp, with the darkest tone in the gaps. No scenery, no rack or stand.
+```
+Where: `animatedarmor_p1`, rows `still` (False Appearance, the gargoyle's and the roper's way), `idle`, `walk`, `slam`, `slam2` (Multiattack), `flinch`, `hurt` (Fall), `prone`. Medium. The SRD: two Slams, False Appearance, Antimagic Susceptibility (Dispel Magic drops it: the Fall row serves), blindsight.
+
+### 3. THE PEGASUS (celestial) -- five views
+```text
+Attached: the game's 64 colours.
+
+THE PEGASUS -- a creature for a tactics game. A winged horse, clean-limbed and a little larger than a riding horse: a white coat with pale grey shading, a long white mane and tail, dark hooves, a dark calm eye. From its shoulders rise two great feathered wings, white, the flight feathers tipped pale grey, each wing as long as the horse's body when spread. No horn, no saddle, no bridle, no rider, no glow.
+
+Rows, in each view: Idle (8: standing, wings folded along its back, ears and tail moving, one forefoot pawing once; frame 8 matches frame 1); Walk (8: a horse's walk, wings folded, animated in place); Fly (8: in the air, the wings in a full slow beat from high to low and back, legs gathered under it); Hooves (8: it rears, wings half open for balance, strikes down with both forefeet and comes back to four feet); Flinch (6: struck, it shies sideways with the wings flaring, then steadies); Fall (8: it stumbles, a wing buckles under it and it goes down on its side; the last frame lies still with one wing spread on the ground); Prone (2: down but alive, legs folded under it, then heaving up).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game; the whole creature in every frame, wingtips included; flat dark navy background (the white coat must read against it); labelled rows, numbered frames, every number once; every frame apart; feet on one baseline, the Fly row at one height above it; the same size in every view. Use only the attached 64 colours: the white and grey ramps. No scenery.
+```
+Where: `pegasus_p1`, rows `idle`, `walk`, `fly`, `hooves`, `flinch`, `hurt` (Fall), `prone`. Large. The SRD: Hooves, fly 90 ft; chaotic good, so more likely met than fought -- what it is in the game is his word.
+
+### 4. THE GREEN HAG (fey) -- five views, and her borrowed face
+```text
+Attached: the game's 64 colours.
+
+THE GREEN HAG -- a foe for a tactics game, drawn as two figures of the same size and stance.
+
+THE HAG: a tall old woman, stooped, taller than a man even bent over: skin the green of pond scum, mottled darker; a long sharp nose and chin, a wide thin mouth with a few long teeth; lank hair like wet weed hanging to her waist, with bits of reed and snail shell caught in it; long thin arms ending in hands with iron-dark claws as long as her fingers. She wears a shapeless dress of rotted grey-brown cloth, wet at the hem, and nothing on her feet. Pale yellow eyes.
+
+THE BORROWED FACE: the same body made to look like a harmless old countrywoman -- the same height and stoop, a plain brown shawl over grey hair, a patched skirt, a kind lined face, ordinary hands. Nothing green, no claws.
+
+Rows for THE HAG, in each view: Idle (8: stooped, swaying a little, the fingers working, the head tilting as if listening; frame 8 matches frame 1); Walk (8: a quick crabbed shuffle, animated in place); Claws (8: she rakes with one long arm, then the other, and draws back); Cast (8: she raises one crooked finger, her mouth opens in a jeer, and a small cold pale light flickers at the fingertip and goes out); Vanish (6: she turns invisible: her outline thins from the feet up until the last frame is completely empty -- draw nothing in frame 6); Flinch (6: struck, she hisses and hunches, an arm thrown up, then straightens); Fall (8: she crumples with a shriek, folds down on herself and lies in a heap of wet cloth and weed); Prone (2: knocked flat, then pushing up on her long arms).
+
+Rows for THE BORROWED FACE, in each view: Idle (8: an old woman standing with her hands folded, shifting her weight); Walk (8: a slow tired walk, animated in place); Unmask (6: frame 1 the old woman; over frames 2 to 5 the shawl and skin peel away like a reflection breaking on water, green showing through from the hands and face outward; frame 6 the hag exactly as her Idle frame 1).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game; the whole figure in every frame; flat dark navy background; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the two figures the same size as each other in every view. Use only the attached 64 colours: the greens for her skin, the brown and grey ramps for cloth. No scenery.
+```
+Where: `greenhag_p1` (rows `idle`, `walk`, `claws`, `cast`, `vanish` -- Invisible Passage, played backward to come back -- `flinch`, `hurt` (Fall), `prone`) and `greenhag_guise_p1` (rows `idle`, `walk`, `unmask` -- Illusory Appearance, as the lamia's human form is worn). Medium. The SRD: Claws, Illusory Appearance, Invisible Passage, Mimicry, the cantrips at will, amphibious.
+
+What is sourced and what is the desk's: the four creatures and what each does are the SRD 5.1's (`srd/monsters/`); the SRD gives no picture of any of them, so every look above is the desk's own wording of the common shape of each, written fresh for this ask. No realm page places any of the four: where each is met, and whether the armor is dwarf-made or the hag belongs to the Glowseep's bog, is Griz's word and is not asked of you. Draw past the words where your eye says so.
