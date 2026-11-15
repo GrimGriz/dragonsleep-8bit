@@ -222,7 +222,9 @@
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
   REC.start = function (B, what) {
     var n = (B.logEntries || []).length;
-    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, cardAt: {}, hp0: {}, slots0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above; slots0 its slots, 11-10)
+    // (simple: 11-15, the records seat's read of his fresh game -- every door passed `simple` and this dropped it, so a simple fight's SQUARES (each one's home in the lineup)
+    // read as blows struck at 20-40 ft; the record now says which way the fight was fought, `B.o.simple` the battle's own switch where a door passed none)
+    B.rec = { v: 1, fight: what.fight, name: what.name, level: what.level, simple: !!(what.simple || (B.o && B.o.simple)), started: new Date().toISOString(), party: [], steps: [], logAt: n, logFrom: n, seen: new WeakSet((B.logEntries || []).filter(function (e) { return e && typeof e === 'object'; })), cardTxt: {}, cardAt: {}, hp0: {}, slots0: {} }; // (seen: what the log held before this fight -- not its own) (hp0: each party unit's hit points as the fight begins, for the PARTY block -- startHp, above; slots0 its slots, 11-10)
     REC.snap(B);
   };
   // hp0 { id: hp }: written once a unit, never over (11-03, the desk's read of his Hex bout). REC.start runs at the top of Battle.enter, before the units are built, so this runs again as enter returns (below)

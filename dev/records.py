@@ -119,8 +119,11 @@ def cmd_list():
 def head(r, c, where):
     st = r.get('steps') or []
     n_ai = sum(1 for s in st if s.get('ai')); n_rf = sum(1 for s in st if s.get('refused') is not None)
-    return ('FIGHT %s  door=%s  name=%s  L%s  result=%s  rounds=%s  ended=%s  steps %d (answers %d, refused %d, AI turns %d)  (in %s)'
-            % (r.get('started'), r.get('fight'), r.get('name'), r.get('level'), r.get('result'), r.get('rounds'), r.get('ended'),
+    # the way it was fought (11-15, the records seat: deep16/js/record.js REC.start writes `simple` since then; a record before it does not say). A SIMPLE fight's SQUARES are
+    # each one's home in the lineup and a blow out of reach is struck from beside its target (deep16/js/simple.js), so a melee blow "at 40 ft" there is no fault
+    way = 'way=SIMPLE (SQUARES are the lineup\'s homes; anyone strikes anyone)' if r.get('simple') is True else 'way=grid' if r.get('simple') is False else 'way=unsaid (before 11-15)'
+    return ('FIGHT %s  door=%s  name=%s  L%s  %s  result=%s  rounds=%s  ended=%s  steps %d (answers %d, refused %d, AI turns %d)  (in %s)'
+            % (r.get('started'), r.get('fight'), r.get('name'), r.get('level'), way, r.get('result'), r.get('rounds'), r.get('ended'),
                len(st), len(st) - n_ai - n_rf, n_rf, n_ai, ', '.join(sorted(where))))
 
 

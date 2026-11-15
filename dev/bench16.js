@@ -282,6 +282,30 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(pre2);
     return;
   }
+  // THE RECORDS OF HIS FRESH GAME, 11-15 (mode=records1115; the records seat's read of his 23 fights, `handoff-2026-11-03-the-play-records.md`): 1. a simple fight's record
+  // says it was simple -- every door passed `simple` in its record and REC.start dropped it, so its SQUARES (the lineup's homes) read as blows at 20-40 ft; 2. the battle's
+  // own switch where a door said none; 3. a grid fight says grid; 4. the field kept in the saved record
+  if (get('mode', '') === 'records1115') {
+    var repR15 = { checks: [], errors: [] };
+    function okR15(what, v) { repR15.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var mkR15 = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); return B; };
+    var memR15 = {}, sgR15 = D.store.get, ssR15 = D.store.set; D.store.get = function (k) { return memR15[k] ? JSON.parse(memR15[k]) : null; }; D.store.set = function (k, v) { memR15[k] = JSON.stringify(v); return true; };
+    try {
+      var B1 = mkR15('?npc=goblin&vs=fighter:3&lvl=3'); B1.rec = null; D.rec.start(B1, { fight: 'records1115', name: 'the bench: simple', level: 3, simple: true });
+      okR15('1 a door\'s record { simple: true } keeps it: ' + B1.rec.simple, B1.rec.simple === true);
+      var B2 = mkR15('?npc=goblin&vs=fighter:3&lvl=3'); B2.rec = null; B2.o.simple = true; D.rec.start(B2, { fight: 'records1115', name: 'the bench: switch', level: 3 });
+      okR15('2 a battle fought simple with no word from its door: ' + B2.rec.simple, B2.rec.simple === true);
+      var B3 = mkR15('?npc=goblin&vs=fighter:3&lvl=3'); B3.rec = null; B3.o.simple = false; D.rec.start(B3, { fight: 'records1115', name: 'the bench: grid', level: 3, simple: false });
+      okR15('3 a grid fight: ' + B3.rec.simple, B3.rec.simple === false);
+      D.rec.finish(B1, 'won');
+      var kept = (D.store.get('deep16.plays') || []).filter(function (f) { return f.name === 'the bench: simple'; })[0];
+      okR15('4 the saved record carries it: ' + (kept && kept.simple), !!kept && kept.simple === true);
+    } catch (eR15) { repR15.errors.push(String(eR15 && eR15.stack || eR15).slice(0, 900)); }
+    finally { D.store.get = sgR15; D.store.set = ssR15; }
+    var preR15 = document.createElement('pre'); preR15.id = 'out'; preR15.textContent = 'BENCH16 ' + JSON.stringify(repR15);
+    document.body.appendChild(preR15);
+    return;
+  }
   // THE LANES' READY SMALLS, 11-14 (mode=sweep1114; the todo-pairs seat's sweep of the story lanes on the lanes desk's word): 1. the play records lane 10, a hero who got out
   // is not written down; 2. the bestiary lane's §47, the Giant Spider's short name beside Wolf Spiders
   if (get('mode', '') === 'sweep1114') {
