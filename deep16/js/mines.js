@@ -591,9 +591,12 @@
   M.penShift = function* (B, n) {
     var nm = 'The pens, mouth ' + n, pic = D.cradle && D.cradle.pic, job = yield* M.talk(B, 'pen' + n, function (sc) { return M.penAsk(sc, B, n); }, nm, pic);
     if (!job) return;
+    var shiftT = true; // (RULED 11-15, Griz on the quest walk's find that a shift took no time: "great way to do something other than WAIT, A+. make them 40 minutes each" -- M.SHIFT_HOURS on the clock once it is paid, below)
     var r = D.cradle && !D.cradle.STRAIGHT ? yield* D.roam.shiftPlay(B, job) : M.shiftRoll(job);
     yield* M.talk(B, 'pen' + n, function (sc) { return M.penPay(sc, B, job, r); }, nm, pic);
+    if (shiftT) { var loS = M.clockOn(B, M.SHIFT_HOURS), lnS = M.lightNow ? M.lightNow(B) : null; if (lnS) loS = [lnS].concat(loS); if (loS.length) { B.card(D.roam.wrap(loS), 240); yield 10; } }
   };
+  M.SHIFT_HOURS = 40 / 60; // (a shift at the pens, on the clock: RULED 11-15, his "make them 40 minutes each")
   M.penAsk = function* (sc, B, n) {
     var st = sc.st, f = st.flags, C = D.counter, Rr = DS.R;
     if (!f.tallyMet) { // (11-15, his playthrough NOTES at the mouth camp: "can't milk the crawlers should pin the mission if it's in your journal"; then, ruled: "the cradle telling me to check in ... we could just have that interaction with the cradle throw up its own arrow on the guy (that disappears if they leave the scene) rather than mess with journal pinning" -- the refusal puts a gold arrow over Edric on this floor, the JOURNAL's pin untouched: js/hours.js H16.penArrow)
@@ -661,7 +664,7 @@
   M.rescue = function* (B, trig, at) {
     var R = D.roam, f = B.roam.flags;
     B.card(R.wrap([].concat(L('g3.rescue1'))), 320); yield 60;
-    yield* R.encounter(B, 'set', { list: ['giantbat', 'giantbat', 'giantbat', 'giantbat'], at: at, flag: 'rescued', line: [].concat(L('g3.rescueIntro'))[0], how: 'under the roost', gap: 'rule' }); // (gap 'rule': 6 to 12 squares on the grid, not a set fight's 2 -- RULED 11-05, M.fieldDef)
+    yield* R.encounter(B, 'set', { list: ['giantbat', 'giantbat', 'giantbat', 'giantbat'], at: at, flag: 'rescued', line: [].concat(L('g3.rescueIntro'))[0], how: 'under the roost', gap: 'rule', zone: 'g3' }); // (zone 'g3': the four on the dens' own tally, so Sabeth pays for them by the head -- RULED 11-15, Griz on the quest walk's find: "go with the leans 1 and 2") // (gap 'rule': 6 to 12 squares on the grid, not a set fight's 2 -- RULED 11-05, M.fieldDef)
     if (!f.rescued) return;
     f.cullDone = 1;
     B.card(R.wrap([].concat(L('g3.rescue2'), D.counter.renown(D.counter.state(B), 1, 'renown.rescue'))), 360); yield 30;
@@ -942,7 +945,7 @@
     f.roostTold = 1; D.sfx('error'); B.card(D.roam.wrap([].concat(L('g.roostBroken'))), 480); yield 60;
   };
   M.fieldFight = function* (B, why, set) {
-    var R = D.roam, R0 = B.roam, t = R0.token, zone = set ? null : R.zoneAt(B, t.x, t.y) || R.def.zone8;
+    var R = D.roam, R0 = B.roam, t = R0.token, zone = set ? (set.zone || null) : R.zoneAt(B, t.x, t.y) || R.def.zone8; // (a set fight's own zone where it names one: the dens' rescue, 'g3' -- M.rescue, RULED 11-15)
     var p = set ? { list: set.list, grp: {} } : R.pick(zone, R0.flags);
     if (!p || !p.list.length) return;
     if (p.grp.flee && D.rand() < p.grp.flee) { B.card(['{g}Something scuttles off into the dark.{/}'], 200); yield 30; return; }

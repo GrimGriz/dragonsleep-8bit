@@ -44,11 +44,11 @@
     { id: 'cull', name: 'The Cull', show: 'flag:heardGalleries|flag:cullHired', done: 'flag:rescued',
       text: 'The guano mine, in the mountain west of town, hires cull hands: three silver a giant bat\'s head, a gold piece a darkmantle. Its one law: no fire and no noise under a roost.',
       steps: [{ 'if': '!flag:cullHired', npc: 'sabeth', where: 'Sabeth Pollard at the weigh-shed, the guano mine\'s mouth: out of Silverton by the west gate, then west on THE WORLD.' },
-        { site: 'mouth', where: 'The dens, down past the working gallery. Listen for Old Wynn\'s rattle.' }] },
+        { site: 'mouth', map: 'galleries_g3', trig: 'rescue', where: 'The dens, down past the working gallery. Listen for Old Wynn\'s rattle.' }] },
     { id: 'tail', show: 'flag:heardCloaker', done: 'flag:cloakerDone',
       text: 'Forty gold on Hessle\'s board for the cloaker in the guano mine\'s deep gallery. Nobody has ever collected. Bright light is its weakness.',
       steps: [{ 'if': 'has:cloakertail', key: 'tail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
-        { site: 'mouth', where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
+        { site: 'mouth', map: 'galleries_g4', where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
     // THE BRAIDING ETTERCAP (10-29, the story window, RULED on Griz's "Leans stand": a paper on Hessle's board is a mission once its ground is built -- his 10-28 "16 yes" -- and
     // Web Gulch's was, 10-28, js/gulch.js): the board read, the rumour, or the council's ask at a name made (H16.COUNCIL.looks) opens it; done when its fangs are paid at the scales
     { id: 'ettercap', name: 'The Braiding Ettercap', show: 'flag:heardEttercap', done: 'flag:ettercapDone',
@@ -59,8 +59,8 @@
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
       doneText: 'Dace climbed back up to the house to tell it everything.',
-      steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His dagger lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
-        { key: 'killed', site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
+      steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', map: 'galleries_g4', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His dagger lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
+        { key: 'killed', site: 'mouth', map: 'galleries_g4', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',
       // (11-05, the journal seat: the next bout on the card and its stake, not one fixed step -- the to-do's gap, the desk's "Fight Night's step names the next bout and the
@@ -148,6 +148,7 @@
     // (11-15, his playthrough NOTES at the mouth camp, Fight Night pinned: "i'm seeing the mission marker on the pellam girl" -- the marker sat on the `feed` gate, the square
     // in the middle of the camp where THE WORLD sets the party down, Linnet a step below it; since 11-13 the feed track to town runs off the camp's west edge, js/mines.js M.campWest)
     if (def.key === 'warrens' && !toW && (s.door || s.npc || s.site)) { var g = D.mines && D.mines.campWest ? D.mines.campWest(B.roam.flags) : null; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
+    if (s.map && id8 && /^galleries_/.test(s.map) && /^galleries_/.test(id8) && s.map !== id8) return H16.mineWay(B, s.map); // (inside the guano mine: its own ways, the slide only once found -- H16.mineWay)
     if (s.map && id8 && s.map !== id8) return H16.wayTo(B, s.map); // (another floor below: the way there)
     return null;
   };
@@ -161,6 +162,18 @@
       ((MP[q[i][0]] || {}).warps || []).forEach(function (w) { if (MP[w.to] && !seen[w.to] && D.roam.cond(w.cond, flags)) { seen[w.to] = 1; q.push([w.to, q[i][1] + 1]); } });
     }
     return null;
+  };
+  // THE GUANO MINE'S ARROWS (RULED 11-15, Griz, on the quest walk's find that the Cull showed none inside the mine: "add them but don't point to the slide until the characters
+  // have triggered it once"): the first game's warps floor by floor, the fewest maps, read bare (the mouth's warp up into the working gallery carries the cond "!lit:always",
+  // which H16.wayTo refuses: Ottilie's word at the warp is js/mines.js M.warp's), a slide only once flags.slideFound (M.warp sets it); the warp of the next floor nearest the party
+  H16.mineWay = function (B, map) {
+    var R = D.roam, def = R.def, here = def.src8 && def.src8.id, MP = (DS.DATA && DS.DATA.maps) || {}, f = (B.roam && B.roam.flags) || {}, t = B.roam.token, prev = {}, q = [here], ok = function (w) { return !w.slide || f.slideFound; };
+    prev[here] = null;
+    for (var i = 0; i < q.length && !(map in prev); i++) ((MP[q[i]] || {}).warps || []).forEach(function (w) { if (ok(w) && MP[w.to] && !(w.to in prev)) { prev[w.to] = q[i]; q.push(w.to); } });
+    if (!(map in prev)) return null;
+    var nx = map; while (prev[nx] !== here) nx = prev[nx];
+    var best = null; ((MP[here] || {}).warps || []).forEach(function (w) { if (w.to !== nx || !ok(w)) return; var sq = def.from8 ? def.from8(w.x, w.y) : [w.x, w.y], d = Math.abs(sq[0] - t.x) + Math.abs(sq[1] - t.y); if (!best || d < best.d) best = { d: d, sq: sq }; });
+    return best ? best.sq : null;
   };
   H16.wayTo = function (B, map) {
     var R = D.roam, def = R.def, t = B.roam.token, flags = B.roam.flags || {}, best = null;
@@ -1072,6 +1085,11 @@
     return { line: W8.how.replace('{band}', H16.band(h + toB)) + (toB > 1 + 1e-6 ? W8.far : W8.near) + (shut ? ' ' + Hs.longWhy(Hs.LONG_HOURS, false) : ''), opts: opts, toB: toB };
   };
   H16.waitHours = function (a, h) { var Hs = D.house; return a === 0 ? H16.toBell(h) : a === 4 ? Math.max(0, Hs.longWait(Hs.LONG_HOURS)) : 1; };
+  // THE DAY'S MARCH GIVEN BACK BY A WAIT (RULED 11-15, Griz, on the quest walk's find that only a sleep reset it: "let's divide travel per day into our bells and the party
+  // waiting til the next bell restore that much travel per day - then figure out that in hourly for if they wait different amounts of time"): a day's march (js/house.js H.DAYHEX)
+  // shared over the day's bells (H16.STARTS); NEXT BELL gives one bell's share back, any other wait its hours at the day's own rate (a twenty-fourth an hour); never more than the
+  // march walked. Returns the hexes given back
+  H16.marchBack = function (a, hrs) { var W = D.world, S = W && W.state && W.state(), Hs = D.house; if (!S || !Hs || !Hs.DAYHEX || !(S.todayHex > 0)) return 0; var was = S.todayHex, back = a === 0 ? Hs.DAYHEX / H16.STARTS.length : Hs.DAYHEX * (hrs || 0) / 24; S.todayHex = Math.max(0, was - back); if (S.todayHex < Hs.DAYHEX) S.pushing = false; if (W.save) W.save(); return was - S.todayHex; };
   H16.waitRests = function (a, hrs) { return a === 2 || ((a === 0 || a === 4) && hrs > 1 + 1e-6); };
   H16.waitPlay = function* (B) {
     B.roam.waitAsk = 0;
@@ -1084,6 +1102,7 @@
     if (a === 3) return;
     var tillAt = a === 4 ? D.house.longFrom(D.house.LONG_HOURS) : null;
     var hrs = H16.waitHours(a, h), rest = H16.waitRests(a, hrs), lines = (MN ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), [])), h2 = H16.hourNow(R.q, B), said = [];
+    H16.marchBack(a, hrs); // (the day's march given back by the wait: H16.marchBack)
     if (a === 4) said.push(W8.tillDone.replace('{when}', D.house.clockAt(tillAt)));
     // (what passed, one card: the street's turn where the hour turned it, else the bell's word (NEXT BELL) or the hour's (AN HOUR); off the street the floor's own line where
     // its day turned (js/mines.js M.lightNow); SHORT REST says the rest alone; then the rest's dice and any Light gone out)
@@ -1102,7 +1121,7 @@
     var ask = H16.waitAsk(S.t), W8 = H16.WAIT, keyOf = { 0: 'n1', 1: 'n2', 2: 'n3', 4: 'n4', 3: 'b' };
     var go = function (a) {
       var tillAt = a === 4 ? Hs.longFrom(Hs.LONG_HOURS) : null, hrs = H16.waitHours(a, S.t), rest = H16.waitRests(a, hrs);
-      S.t += hrs; Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null].filter(function (s) { return !!s; });
+      S.t += hrs; H16.marchBack(a, hrs); Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null].filter(function (s) { return !!s; });
       if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, a === 2 ? null : W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
       said = said.concat(Hs.lightsOut(null));
       Hs.trail('rest', 'WAIT on THE WORLD: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));

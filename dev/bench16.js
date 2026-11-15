@@ -7104,6 +7104,45 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // the chase; the poison dinner (the wagon stopped: no offering) with its supper fight, the yield and Doran's wait -- the 11-13 Elsbeth's walk and Doran's morning are THAT
   // night's; LET IT BE and STAND ASIDE; the kept child's night (the barn, the glamour); the child's road to the Pit. What it asserts at every join is the head of KNOWN below.
   // THE BARN'S ROAD TO THE DINNER is walked by mode=walkbarn1113, this same block (BARNK): its head is at THE BARN WALK below.
+  // THE QUEST WALK'S FINDINGS RULED, 11-15 (mode=rulings1115q; the quest-walk seat, on Griz's answers relayed by the lanes desk: "go with the leans 1 and 2"; the shift "make them 40
+  // minutes each and make sure hex fights burn at least 20 minutes"; "let's divide travel per day into our bells and the party waiting til the next bell restore that much travel per
+  // day - then figure out that in hourly for if they wait different amounts of time"; the mine's arrows "add them but don't point to the slide until the characters have triggered it
+  // once"): js/hours.js H16.mineWay and the Cull's and the deep gallery's steps, H16.marchBack; js/mines.js M.rescue's zone and M.SHIFT_HOURS; js/hex.js HX.BOUT_HOURS. The
+  // shift's and the bout's minutes on a played clock are the quest walk's to show (mode=questwalk1114's log)
+  if (get('mode', '') === 'rulings1115q') {
+    var repR = { checks: [], errors: [] }, memR = {}, stGR = D.store.get, stSR = D.store.set, H6R = D.hours, MR = D.mines;
+    var okR = function (what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    D.store.get = function (k) { return memR[k] ? JSON.parse(memR[k]) : null; }; D.store.set = function (k, v) { memR[k] = JSON.stringify(v); return true; };
+    var floorR = function (q) { var B = D.roam.make(q); D.scenes.length = 0; D.push(B); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return D.top(); };
+    try {
+      var mis = function (id) { return H6R.MISSIONS.filter(function (m) { return m.id === id; })[0]; }, cullS = mis('cull').steps[1], tailS = mis('tail').steps[1], at = function (q) { return q ? q.join(',') : 'none'; };
+      // 1. THE ARROWS inside the mine, floor by floor, the Cull's dens step
+      var B1 = floorR('?roam=galleries&flags=cullHired'), a1 = H6R.pinSq(B1, cullS), B2 = floorR('?roam=galleries_g2&flags=cullHired'), a2 = H6R.pinSq(B2, cullS), B3 = floorR('?roam=galleries_g3&flags=cullHired'), a3 = H6R.pinSq(B3, cullS);
+      okR('the Cull\'s dens step has an arrow on every floor of the mine: the mouth ' + at(a1) + ' (its warp up, 17,3), the working gallery ' + at(a2) + ' (the way east to the dens, 35,16-18), the dens ' + at(a3) + ' (the rescue, 25,5)',
+        at(a1) === '17,3' && a2 && a2[0] === 35 && a2[1] >= 16 && a2[1] <= 18 && at(a3) === '25,5');
+      // the slide: not pointed to till the party has gone down it once (flags.slideFound, js/mines.js M.warp)
+      var Bt = floorR('?roam=galleries_g2'); Bt.roam.token.x = 28; Bt.roam.token.y = 5; var t0 = H6R.pinSq(Bt, tailS); Bt.roam.flags.slideFound = 1; var t1 = H6R.pinSq(Bt, tailS);
+      okR('the deep gallery\'s step from the working gallery, beside the slide: ' + at(t0) + ' before the slide is found (the dens\' way, not the slide at 28,3), ' + at(t1) + ' once it has been (the slide)', at(t0) !== '28,3' && !!t0 && at(t1) === '28,3');
+      // 2. SABETH'S BATS: the rescue's four come in on the dens' own tally (zone g3)
+      var Bz = floorR('?roam=galleries_g3&flags=cullHired'), trz = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'rescue'; })[0], zone = null, pull0 = D.roam.pullIn;
+      D.roam.pullIn = function* (B, which, o) { zone = o && o.field ? o.field.zone : 'no field'; }; // (the field fight it pulls in, read and not fought: js/mines.js the floor's encounter)
+      var gz = MR.rescue(Bz, trz, [25, 5]); for (var k = 0; k < 600 && zone == null; k++) { var st = gz.next(); if (st.done) break; if (st.value && st.value.prompt) gz.next(0); }
+      D.roam.pullIn = pull0;
+      okR('the rescue under the roost: its four bats\' group on the dens\' tally, zone ' + zone + ' (Sabeth pays by kills of "g3:giantbat")', zone === 'g3');
+      // 3. the minutes
+      okR('a shift at the pens is ' + Math.round(MR.SHIFT_HOURS * 60) + ' minutes on the clock; a bout at the Hex at least ' + Math.round(D.hex.BOUT_HOURS * 60), Math.round(MR.SHIFT_HOURS * 60) === 40 && Math.round(D.hex.BOUT_HOURS * 60) === 20);
+      // 4. THE DAY'S MARCH given back by a wait
+      D.world.index(); D.world.use('world'); var Sm = D.world.load('?fresh&far'), HP0 = D.house.playing; D.house.playing = true;
+      Sm.todayHex = D.house.DAYHEX; var b1 = H6R.marchBack(0, 2), m1 = Sm.todayHex, b2 = H6R.marchBack(1, 3), m2 = Sm.todayHex, b3 = H6R.marchBack(4, 30), m3 = Sm.todayHex;
+      D.house.playing = HP0;
+      okR('the march given back: NEXT BELL ' + b1.toFixed(3) + ' hex (a day\'s ' + D.house.DAYHEX + ' over the ' + H6R.STARTS.length + ' bells), three hours ' + b2.toFixed(3) + ' (' + D.house.DAYHEX + '/24 an hour), thirty hours ' + b3.toFixed(3) + ' and no more than was walked (left ' + m3 + ')',
+        Math.abs(b1 - D.house.DAYHEX / 6) < 1e-9 && Math.abs(m1 - D.house.DAYHEX * 5 / 6) < 1e-9 && Math.abs(b2 - D.house.DAYHEX * 3 / 24) < 1e-9 && m3 === 0 && Math.abs(b3 - m2) < 1e-9);
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    D.store.get = stGR; D.store.set = stSR;
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // THE QUEST WALK TO DAY 16, 11-15 (mode=questwalk1114 &seed= &to=16 &order=cull; the quest-walk seat of 11-15, started by the lanes desk on Griz's word: "I like the clock's
   // hunger bench but wanted to try a party running around doing quests to see what they run into"; the route his, 11-14: "they should get a rope and drag up the five and/or feed
   // the landlord and/or work in the guano galleries killing bats - unless they have a reason to go south. most rational visit to the inn i've seen is post ettercap bounty

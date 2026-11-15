@@ -647,7 +647,9 @@
   };
 
   // ---------------------------------------------------------------- the bout: one hero on the Hex's own sand, the rest at the rail (js/roam.js R.pullIn0's shape: the floor's sheets in, back out)
+  HX.BOUT_HOURS = 20 / 60; // (RULED 11-15, Griz: "make sure hex fights burn at least 20 minutes" -- the clock topped up to it after a bout that took less)
   HX.bout = function* (B, r) {
+    var Sw = D.world && D.world.state && D.house && D.house.playing ? D.world.state() : null, t0w = Sw && Sw.t != null ? Sw.t : null;
     var R = D.roam, R0 = B.roam, u0 = r.u, c = r.c, done = null, simple = !!(D.simple && r.simple);
     var fld = HX.field(simple), mates = R0.members.filter(function (u) { return u !== u0 && u.sheet; }).map(function (u) { return { sheet: u.sheet, name: u.name }; });
     var F = { id: 'hexbout', map: 'hex-sand', level: u0.src.lvl || u0.lvl, name: 'The Hex', sub: c.label.toLowerCase(), dark: false, intro: D.counter.L('hex.intro.' + c.id, { name: u0.name }),
@@ -691,6 +693,7 @@
     R.packBack(B, b); R.regear(B);
     D.music('hex');
     HX.last.res = done;
+    if (t0w != null && Sw.t - t0w < HX.BOUT_HOURS && D.hours && D.hours.pass) D.hours.pass(B, HX.BOUT_HOURS - (Sw.t - t0w));
     return done;
   };
   // after the bout, Korvin's word on it (the first game's lines, in its order), the purse, the flags, the renown, and the XP and spoils of a won bout (the hero's alone, as the first game's solo)
