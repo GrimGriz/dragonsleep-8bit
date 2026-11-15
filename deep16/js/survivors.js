@@ -93,7 +93,7 @@
   // other kind of sign?"; on its "above": "that line also says 'above' which implies north, but it does say moot ground"): the game's own looks, the farmer's to tell and
   // History's to read the tribe from -- the Hills' blue cloth (gnoll_p2, RULED 09-28), the Snoot's young blood in the Desert tribe's red (gloryseeker_p2, the same ruling),
   // the Gray Keeping's dark gray cloth and grayer fur (graykeeping_p2, his "D - the darker cloth and grayer fur", 10-15). The death-watch never leaves the Mane and raids no
-  // farm, so no farmer saw it. The Wall-Laugh has no look of its own (its young blood are the Hills' blue): read by the blue with none of the red, and where it happened.
+  // farm, so no farmer saw it. The Wall-Laugh's (11-15, Griz: "The Wall-Laugh is the group Katarina visits in her book, read that section of it and decide what a good distinguisher might be"): serial-castegut installment 04 -- they meet you as a WALL, males shoulder to shoulder in a still line, and their laugh is "a rolling, passed-along laugh, one ring to the next"; the Hills' blue on them, none of the young blood's red. (The skull cairn at their seat is left out: skulls are the Skull-Gate's border sign too.)
   // The places by THE WORLD (deep16/data/world.js): the moot ground some 45 miles west of the Halfway Inn -- where the Gray Keeping's young blood set out from
   // (js/snootroad.js SR.start), not their home (his 11-14: "the Gray Keeping would withdraw to their home-place, which is south and closer in the hills near rhollor's ruins, the
   // moot was at special moot location"); the Skull-Gate's seat some ten miles west of Web Gulch (SR.SEATS.skull)
@@ -107,7 +107,7 @@
         burned: function () { return '"Every roof in the place. They went from door to door with the fire, laughing."'; } }
     },
     TRIBES: {
-      wall: '(history) The Hills\' blue, and none of the young blood\'s red among them; and where it happened: the Wall-Laugh\'s young blood. The tribe that laughs, whose seat faces the Castegut road.',
+      wall: '(history) The Hills\' blue; a line shoulder to shoulder, and the laugh passed down it one to the next: the Wall-Laugh\'s young blood. The tribe that laughs, whose seat faces the Castegut road.',
       gray: '(history) Gray cloth and gray fur: the Gray Keeping, the king\'s tribe. Its young blood, out from the moot ground west of the Halfway Inn.',
       skull: '(history) The Hills\' blue, and the big ones in red with them: a Skull-Gate band. The border tribe, the young blood\'s own, from the eastern seat by Web Gulch.'
     },
@@ -117,7 +117,7 @@
       if (gray) return '"Gray. Gray rags on them, and grayer in the fur than any gnoll I ever saw."';
       if (red && blue) return '"Blue rags on most of them. And the big ones in red, out in front."';
       if (red) return '"Big ones, in red."';
-      return '"Blue rags, every one of them."';
+      return b.r.tribe === 'wall' ? '"Blue rags. They came across the field in a line, shoulder to shoulder, like a wall. And the laugh went down the line, one to the next."' : '"Blue rags, every one of them."';
     },
     PIECES: [
       { id: 'count', skill: 'Perception', ask: 'How many were there? Think. What did you see?',
