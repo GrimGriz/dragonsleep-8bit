@@ -7183,7 +7183,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
-  // THE QUEST WALK TO DAY 16, 11-15 (mode=questwalk1114 &seed= &to=16 &order=cull; the quest-walk seat of 11-15, started by the lanes desk on Griz's word: "I like the clock's
+  // THE QUEST WALK TO DAY 16, 11-15 (mode=questwalk1114 &seed= &to=16 &order=cull|ned|nocard, two joined by a comma -- ned and nocard the second quest-walk seat's of 11-15; the quest-walk seat of 11-15, started by the lanes desk on Griz's word: "I like the clock's
   // hunger bench but wanted to try a party running around doing quests to see what they run into"; the route his, 11-14: "they should get a rope and drag up the five and/or feed
   // the landlord and/or work in the guano galleries killing bats - unless they have a reason to go south. most rational visit to the inn i've seen is post ettercap bounty
   // collect", "oh no, ned and the glowseep - but still that's not down to the inn", the card "in my playthroughs I get one fight and have to come back later leveled", and "once
@@ -7439,7 +7439,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (QUESTK) {
       // ================================================================ THE QUEST WALK (mode=questwalk1114): its head is at the block's condition
       repK.log = QL; var toQ = +get('to', 16), orderQ = get('order', 'five'), S0q = WK.state(); if (S0q) S0q.seed = +get('seed', 1113); hooksOnQ();
-      logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (orderQ === 'cull' ? 'the Cull before the Five' : 'the Five first') + ')');
+      var ordQ = String(orderQ).split(','); // (11-15, the second quest-walk seat: &order= takes cull, ned, nocard, or two of them joined by a comma -- his "run several variants please")
+      logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (ordQ.indexOf('ned') >= 0 ? 'Ned and the Glowseep first, then ' : '') + (ordQ.indexOf('cull') >= 0 ? 'the Cull before the Five' : 'the Five first') + (ordQ.indexOf('nocard') >= 0 ? '; the card left till the first level comes' : '') + ')');
       var legsQ = [], doneQ = {};
       // a LEG: a piece of the route from the last save; a loss that ends the game loads that save and the leg is walked again (twice), as a player would
       function legQ(name, fn) {
@@ -7498,6 +7499,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       function toCampQ() {
         if (RK.def && RK.def.key === 'warrens') return 'at the camp';
         if (RK.def && RK.def.hexIn) outOfHexQ();
+        if (D.top() === WK.scene || (RK.def && (RK.def.key !== 'silverton' || RK.def.room))) toTownQ(); // (11-15, the second quest-walk seat: from another site's floor -- order=ned's leg ends at the Glowseep when the bog gives no tongue -- to town first)
         if (!(RK.def && RK.def.key === 'silverton' && !RK.def.room)) return 'not on Silverton\'s street (' + whereQ() + ')';
         goK(topK(), D.mines.FEED, { dflt: /./, until: function () { return (RK.def && RK.def.key === 'warrens') || D.top() === WK.scene; } });
         var wq = ''; if (D.top() === WK.scene) wq = worldK('warrens', {}); // (the feed track runs off the street onto THE WORLD's near ground: the camp's door by it)
@@ -7550,6 +7552,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         }
         if (!tr) { logQ('REST wanted (' + why + ') on ' + whereQ() + ': no bed here'); return 'no bed'; }
         var s0 = silverQ(), seen = atTrigK(topK(), tr, { ans: ans, quiet: 200 });
+        if (k === 'silverton' && !/MORNING/.test(seen) && s0 === silverQ()) { // (11-15, the second quest-walk seat: her room not paid -- 14 sp to her 16 on order=ned's first morning -- the night refused; a player broke in town takes a bunk at the Warrens, 1 sp)
+          logQ('NO ROOM at Cassia\'s (' + why + '): ' + s0 + ' sp in the purse -- ' + seen.slice(-140) + '; to the Warrens\' bunkhouse');
+          if (RK.def.room) goOutQ(); var tcR = toCampQ(); if (!/at the camp/.test(tcR)) { logQ('REST wanted (' + why + '): no bunk reached (' + tcR.slice(0, 120) + ')'); return 'no bed'; }
+          floorQ(); tr = trigK('keeper:bunkhouse'); if (!tr) return 'no bed'; s0 = silverQ(); seen = atTrigK(topK(), tr, { ans: shut ? [/SHORT REST/] : [/LONG REST/], quiet: 200 });
+          logQ((shut ? 'A SHORT REST' : 'A LONG REST') + ' at ' + whereQ() + ' (' + why + '), ' + (s0 - silverQ()) + ' sp: ' + partyQ() + (/MORNING/.test(seen) ? ' -- ' + (seen.match(/MORNING[^/]*/) || [''])[0].slice(0, 200) : ''));
+          toTownQ(); return shut ? 'short' : 'long';
+        }
         logQ((shut ? 'A SHORT REST' : 'A LONG REST') + ' at ' + whereQ() + ' (' + why + '), ' + (s0 - silverQ()) + ' sp: ' + partyQ() + (/MORNING/.test(seen) ? ' -- ' + (seen.match(/MORNING[^/]*/) || [''])[0].slice(0, 200) : ''));
         if (RK.def.room) goOutQ();
         return shut ? 'short' : 'long';
@@ -7674,7 +7683,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // silver a head and the darkmantles at ten, paid at her shed; its one law, no fire and no noise under a roost; done when the one down there is brought up (flag rescued)
       function cullQ() {
         var r = '';
-        if (RK.def && RK.def.key !== 'galleries') { if (RK.def.key === 'warrens' || RK.def.room || RK.def.hexIn) { var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt; } if (D.top() !== WK.scene) r = gateOutQ('west'); if (D.top() === WK.scene) r = worldK('mouth', {}); }
+        if (RK.def && RK.def.key !== 'galleries') { if (D.top() !== WK.scene && (RK.def.key !== 'silverton' || RK.def.room || RK.def.hexIn)) { var tt = toTownQ(); /* (11-15, the second quest-walk seat: any floor not the street -- the Glowseep's too -- to town first) */ if (tt !== 'in town') return 'to town: ' + tt; } if (D.top() !== WK.scene && WK.timeOfDay() === 'night') byDayQ('before the guano mine, at night'); /* (11-15, the second quest-walk seat: the first seat's "set out for the guano mine by day too" -- a night only, the mine a short walk) */ if (D.top() !== WK.scene) r = gateOutQ('west'); if (D.top() === WK.scene) r = worldK('mouth', {}); }
         floorQ(); logQ('to the guano mine: ' + whereQ() + (r ? ' -- ' + r.slice(0, 200) : ''));
         if (!(RK.def && RK.def.key === 'galleries')) return 'not at the mine (' + whereQ() + ')';
         if (!flagQ('cullHired')) { var sb = talkQ('sabeth', { ans: [/^TAKE THE WORK$/] }); logQ('Sabeth Pollard: ' + sb.slice(-240) + ' -- cullHired ' + flagQ('cullHired')); }
@@ -7845,9 +7854,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         else if (shut) { logQ('the long rest shut in town (' + strip(shut).slice(0, 80) + '): the walk waits by the bell'); for (var i = 0; i < 6 && HK.longWhy(8, ''); i++) { if (!(H6K.canWait && H6K.canWait(topK()))) break; H6K.wait(topK()); playK({ ans: [/TILL A LONG REST|NEXT BELL/], dflt: /./, quiet: 120 }); } }
         return restQ('a level banked');
       }
-      legQ('the card at the start', function () { return cardQ('the first visit'); });
+      if (ordQ.indexOf('nocard') < 0) legQ('the card at the start', function () { return cardQ('the first visit'); }); // (&order=nocard: no card at the start -- the level-up's "the card, levelled" below is its first visit)
       var lvCardQ = levelsQ(), QUESTSQ = [['the Missing Five', fiveQ, 'warrens'], ['the Cull', cullQ, 'cull'], ['Ned\'s page and the Glowseep', seepQ, 'nedpage']];
-      if (orderQ === 'cull') { var c0q = QUESTSQ[0]; QUESTSQ[0] = QUESTSQ[1]; QUESTSQ[1] = c0q; }
+      if (ordQ.indexOf('cull') >= 0) { var c0q = QUESTSQ[0]; QUESTSQ[0] = QUESTSQ[1]; QUESTSQ[1] = c0q; }
+      if (ordQ.indexOf('ned') >= 0) QUESTSQ.unshift(QUESTSQ.pop()); // (&order=ned: Ned's page and the Glowseep at the head, the rest in their order)
       QUESTSQ.forEach(function (qq) {
         if (!HK.cur || HK.day() > toQ) return;
         var q0 = questQ(qq[2]); if (q0 && q0.done) return;
