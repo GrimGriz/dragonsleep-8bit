@@ -20,8 +20,8 @@
 'use strict';
 (function () {
   var D = window.D16, W = D.world, HG = D.hunger, SV = D.survivors = {};
-  SV.DC = { Insight: 12, Medicine: 12, Survival: 12, Arcana: 13, read: 13 }; // (the seat's numbers, the supper's band of them: a level-3 party's best makes them more often than not)
-  SV.AB = { Insight: 'wis', Medicine: 'wis', Survival: 'wis', Arcana: 'int', Perception: 'wis' };
+  SV.DC = { Insight: 12, Medicine: 12, Survival: 12, Arcana: 13, Perception: 12, History: 13, read: 13 }; // (the seat's numbers, the supper's band of them: a level-3 party's best makes them more often than not; Perception and History the Snoot's, 11-15)
+  SV.AB = { Insight: 'wis', Medicine: 'wis', Survival: 'wis', Arcana: 'int', Perception: 'wis', History: 'int' };
   SV.TURNS = 4; SV.CAP = 5; SV.WALK = 'WALK ON';
   SV.MADE = { glowseep: ['wisp', 'stirge'], doors: ['wolf', 'worg'] }; // (js/world.js W.MADE: the two of each ground's table he makes over; the gnoll hills' hyenas send nobody)
 
@@ -81,7 +81,46 @@
   SV.READ = { skill: 'Perception', text: function (b) { return b.K.self ? '(perception) The trapper has not once used his hands since you came up. The snare-line is wound round his neck.' : '(perception) ' + (b.kind === 'farm' ? 'The woman on the cart' : b.kind === 'hamlet' ? 'The big man at the back' : 'The other drover') + ' has not once used ' + b.K.pos + ' hands since you came up. They hang.'; } };
   SV.MORE = ['"Ask, if you\'re asking. We\'re not stopping."', '"Walk with us, then, if you want more."', '"Is that all?"'];
   SV.GOING = 'They are making for {to}. They do not stop.';
-  SV.NOTMADE = '"We\'re for {to}. Let us by."'; // (a band whose ground is no making's: the Snoot's own, the clock seat's next)
+  SV.NOTMADE = '"We\'re for {to}. Let us by."'; // (a band whose ground is no making's and is not the Snoot's: its road alone)
+
+  // ---------------------------------------------------------------- THE SNOOT'S BURNT-OUT (11-15, Griz: "The 'snoot survivors' only get a 'talks frame'?", then "yes, it has landed" to
+  // the lean to give them pieces of their own once js/snootroad.js was on main): a band of survivors off a farm or a hamlet a snooting band burned (SR.sim's ref, zone 'snoot').
+  // What they can tell is the engine's: which band it was (its tribe), how many gnolls and hyenas were in it at that hour (SR.left), which way it came (its trail's step
+  // before), how many farms it burned there, the hour; the tribes as the realm names them (TarlynsPit/wiki/gnoll-hills.md: the Wall-Laugh, "the tribe that laughs", the seat
+  // facing the Castegut road; the Gray Keeping, "the king's tribe", the moot ground three days above the Halfway Inn; the Skull-Gate, "the border tribe", the young blood's
+  // tribe, the eastern seat above Web Gulch); "young ones, laughing, and no chief over them" the supper's heardFarmers and the clock seat's card (HG.LINES.said.snoot)
+  SV.SNOOT = {
+    KINDS: {
+      farm: { name: 'The farmer', sheet: 'pt_genman', sight: 'A cart on the {where}, everything a farm owns roped onto it, and soot on all of it. A man leads the ox. A woman walks beside it with a boy by the hand.',
+        opener: '"Gnolls came {when}. Our farm\'s {back} back, what\'s left of it. We\'re for {to}."', back: '"Our farm\'s {back} back, what\'s left of it."',
+        burned: function (b) { return b.r.n > 1 ? '"Ours and the next farm over, the same hour. House, barn, the stacks. They threw fire on all of it and stood back to watch."' : '"The house. The barn. The stacks. They threw fire on all of it and stood back to watch."'; } },
+      hamlet: { name: 'A woman of the hamlet', sheet: 'pt_genwoman', sight: 'Carts nose to tail on the {where}, black with smoke, and people walking beside them who do not talk. A whole hamlet, by the count of the children.',
+        opener: '"Gnolls came {when}. The hamlet\'s {back} back, and burning yet. Every soul of us is on these carts, for {to}."', back: '"The hamlet\'s {back} back, and burning yet."',
+        burned: function () { return '"Every roof in the place. They went from door to door with the fire, laughing."'; } }
+    },
+    TRIBES: {
+      wall: '(history) By where it happened and the way they came: the Wall-Laugh\'s young blood. The tribe that laughs, whose seat faces the Castegut road.',
+      gray: '(history) By where it happened and the way they came: the Gray Keeping\'s young blood, out of the king\'s tribe, from the moot ground three days above the Halfway Inn.',
+      skull: '(history) By where it happened and the way they came: a Skull-Gate band. The border tribe, the young blood\'s own, from the eastern seat above Web Gulch.'
+    },
+    PIECES: [
+      { id: 'count', skill: 'Perception', ask: 'How many were there? Think. What did you see?',
+        made: function (b) { return [{ by: '"' + b.gn + ' of them. I counted them at the barley\'s edge. And ' + (b.hy ? b.hy + ' of their hyenas' : 'no hyenas') + '."' }]; },
+        missed: function () { return [{ by: '"Too many. We didn\'t stay to count them."' }]; } },
+      { id: 'came', skill: 'Survival', ask: 'Which way did they come at you from?',
+        made: function (b) { return [{ by: '"Out of the ' + b.came + '. Through the barley at a lope, all of them at once."' }]; },
+        missed: function () { return [{ by: '"We didn\'t see them come. We heard them."' }]; } },
+      { id: 'tribe', skill: 'History', ask: 'Did they carry anything? Paint, bones, a sign?',
+        made: function (b) { return [{ by: '"Gnolls. They all look the same to me."' }, { narr: SV.SNOOT.TRIBES[b.r.tribe] || SV.SNOOT.TRIBES.skull }]; },
+        missed: function () { return [{ by: '"Gnolls. They all look the same to me."' }, { narr: '(history) Gnolls of the hills. Which tribe, you cannot say.' }]; } },
+      { id: 'want', skill: 'Insight', ask: 'They let you go. Why?',
+        made: function () { return [{ by: '"They never came at us. Not once. They wanted the roofs."' }, { narr: '(insight) Nobody in this band is hurt. Whoever burned them out wanted the farm, not the people: the fire, and to be seen setting it.' }]; },
+        missed: function () { return [{ by: '"I don\'t know. We ran."' }]; } }
+    ],
+    READ: { skill: 'Perception', text: function () { return '(perception) Soot on every one of them, and the smell of smoke in their clothes. None of them is hurt.'; } },
+    OPENS: { id: 'burned', say: 'What did they burn?' }
+  };
+  SV.SNOOT.READ.opens = SV.SNOOT.OPENS;
 
   // ---------------------------------------------------------------- the band read off the engine
   function hash(s) { var h = 2166136261; s = String(s); for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -97,14 +136,31 @@
     if (!MW || !s) return null; var w = MW.w, c0 = [w * (r.hex0[0] + r.hex0[1] / 2), w * Math.sqrt(3) / 2 * r.hex0[1]], c1 = [w * (s.hex[0] + s.hex[1] / 2), w * Math.sqrt(3) / 2 * s.hex[1]];
     return SV.dirOf(c1[0] - c0[0], c1[1] - c0[1]);
   };
-  SV.when = function (r) { var d = W.day() - (Math.floor(r.t0 / 24) + 1); return d <= 0 ? 'this morning, at first light' : d === 1 ? 'yesterday, at first light' : d + ' mornings back, at first light'; };
-  SV.band = function (r) {
-    var K = SV.KINDS[r.kind] || SV.KINDS.farm, cr = SV.creature(r);
-    return { r: r, kind: SV.KINDS[r.kind] ? r.kind : 'farm', K: K, cr: cr, dir: cr ? SV.went(r) : null, when: SV.when(r), to: r.toName, back: SV.miles(SV.milesBack(r)) };
+  SV.when = function (r) { // (the day and the hour it happened: a made thing's at first light, the Snoot's at the hour of its step -- js/snootroad.js SR.HOURS)
+    var d = W.day() - (Math.floor(r.t0 / 24) + 1), h = ((r.t0 % 24) + 24) % 24, part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    if (h <= HG.DAWN) return d <= 0 ? 'this morning, at first light' : d === 1 ? 'yesterday, at first light' : d + ' mornings back, at first light';
+    return d <= 0 ? 'this ' + part : d === 1 ? 'yesterday ' + part : d + ' days back, in the ' + part;
   };
+  SV.snoot = function (r) { // (a Snoot band's own facts: its tribe, its numbers at that hour, the way it came)
+    var SR = D.snootroad; if (r.zone !== 'snoot' || !SR || !SR.BANDS) return null;
+    var bd = SR.BANDS.filter(function (x) { return x.id === r.band; })[0]; if (!bd) return null;
+    var left = SR.left(bd, r.t0), gn = 0, hy = left.hyena || 0; Object.keys(left).forEach(function (k) { if (k !== 'hyena') gn += left[k]; });
+    var x = SR.sim(r.t0).by[r.band], tr = x ? x.trail : [], i = -1; tr.forEach(function (s, j) { if (s.T === r.t0) i = j; });
+    var prev = i > 0 ? tr[i - 1].hex : SR.start(bd), MW = W.Mworld(), came = null;
+    if (MW && prev && r.hex0 && (prev[0] !== r.hex0[0] || prev[1] !== r.hex0[1])) { var w = MW.w, c0 = [w * (r.hex0[0] + r.hex0[1] / 2), w * Math.sqrt(3) / 2 * r.hex0[1]], c1 = [w * (prev[0] + prev[1] / 2), w * Math.sqrt(3) / 2 * prev[1]]; came = SV.dirOf(c1[0] - c0[0], c1[1] - c0[1]); }
+    return { gn: gn, hy: hy, came: came };
+  };
+  SV.band = function (r) {
+    var sn = SV.snoot(r), cr = sn ? null : SV.creature(r), K = sn ? SV.SNOOT.KINDS[r.kind] || SV.SNOOT.KINDS.farm : SV.KINDS[r.kind] || SV.KINDS.farm;
+    var b = { r: r, fam: sn ? 'snoot' : cr ? 'made' : null, kind: (sn ? SV.SNOOT.KINDS : SV.KINDS)[r.kind] ? r.kind : 'farm', K: K, cr: cr, dir: cr ? SV.went(r) : null, when: SV.when(r), to: r.toName, back: SV.miles(SV.milesBack(r)) };
+    if (sn) { b.gn = sn.gn; b.hy = sn.hy; b.came = sn.came; }
+    return b;
+  };
+  SV.piecesOf = function (b) { return b.fam === 'made' ? SV.PIECES.filter(function (p) { return p.id !== 'went' || b.dir; }) : b.fam === 'snoot' ? SV.SNOOT.PIECES.filter(function (p) { return p.id !== 'came' || b.came; }) : []; };
+  SV.readOf = function (b) { return b.fam === 'made' ? { skill: SV.READ.skill, text: SV.READ.text, opens: { id: 'hands', say: SV.ASKS.hands.say, back: function (bb) { return bb.K.hands; } } } : b.fam === 'snoot' ? { skill: SV.SNOOT.READ.skill, text: SV.SNOOT.READ.text, opens: { id: 'burned', say: SV.SNOOT.OPENS.say, back: function (bb) { return bb.K.burned(bb); } } } : null; };
   SV.fill = function (l, b) { return String(l).split('{back}').join(b.back).split('{to}').join(b.to).split('{when}').join(b.when).split('{over}').join(b.K.over).split('{obj}').join(b.K.obj).split('{in}').join(b.K.inside ? ' indoors' : ''); };
   SV.notMade = function (b) { var said = HG.LINES && HG.LINES.said && HG.LINES.said[b.r.zone]; return [said, b.K.back, SV.NOTMADE].filter(Boolean).join(' ').replace(/" "/g, ' '); }; // (a band off no making's ground -- the Snoot's burnt-out: js/snootroad.js gives HG.LINES.said.snoot, "Gnolls in the barley ..." -- its ground's line, the miles back, the road)
-  SV.what = function (b) { return b.cr ? [SV.fill(SV.CREATURES[b.cr], b), SV.EYES] : [SV.fill(SV.notMade(b), b)]; };
+  SV.what = function (b) { var said = HG.LINES && HG.LINES.said && HG.LINES.said.snoot; return b.cr ? [SV.fill(SV.CREATURES[b.cr], b), SV.EYES] : b.fam === 'snoot' && said ? [said] : [SV.fill(SV.notMade(b), b)]; };
   SV.trail = function (s) { if (D.house && D.house.trail) D.house.trail('check', 'THE SURVIVORS: ' + s); };
   SV.d20 = function () { var In = D.inn; return In && In.d20 ? In.d20() : D.roll('1d20').total; }; // (the supper's die: a show's In.pinned pins it)
   SV.skill = function (h, sk) { return DS.R.skill(h, sk, SV.AB[sk]); };
@@ -120,24 +176,24 @@
     var wait = function (o) { return o.narr ? sc.narr([o.narr]) : sc.by(sp, [o.by], 'concerned'); };
     SV.trail('the ' + b.kind + ' band of the day-' + r.day + ' making (' + (r.zone || 'no making') + ', ' + (b.cr || 'none') + '), bound for ' + r.toName + '; it went ' + (b.dir || '?') + ' at the dawn it fed');
     // the pieces this band has, each to the hero best at its skill
-    var pieces = b.cr ? SV.PIECES.filter(function (p) { return p.id !== 'went' || b.dir; }) : [], owner = {};
+    var pieces = SV.piecesOf(b), owner = {}, RD = SV.readOf(b);
     pieces.forEach(function (p) { var bb = four.length ? SV.best(four, p.skill) : null; if (bb) owner[p.id] = bb.e.key; });
     // the read: the party's best passive Perception against its DC, once, shown above that hero's lines at the first opening
-    if (b.cr && four.length) { var rb = SV.best(four, SV.READ.skill), pv = 10 + rb.v; SV.trail('passive Perception ' + pv + ' (' + rb.e.hero.name + ') vs DC ' + SV.DC.read + (pv >= SV.DC.read ? ', read' : ', not read')); if (pv >= SV.DC.read) T.read = rb.e.key; }
-    narr((HG.LINES[b.kind] || HG.LINES.farm)[0].split('{where}').join(SV.where(r)));
-    var prompt = { by: SV.fill(b.cr ? b.K.opener : SV.notMade(b), b) }; // (a band off no making's ground: nothing of a made thing said)
+    if (RD && four.length) { var rb = SV.best(four, RD.skill), pv = 10 + rb.v; SV.trail('passive Perception ' + pv + ' (' + rb.e.hero.name + ') vs DC ' + SV.DC.read + (pv >= SV.DC.read ? ', read' : ', not read')); if (pv >= SV.DC.read) T.read = rb.e.key; }
+    narr((b.fam === 'snoot' ? b.K.sight : (HG.LINES[b.kind] || HG.LINES.farm)[0]).split('{where}').join(SV.where(r)));
+    var prompt = { by: SV.fill(b.fam ? b.K.opener : SV.notMade(b), b) }; // (a band off no making's ground: nothing of a made thing said)
     for (var i = 0; i < T.out.length; i++) yield wait(T.out[i]);
     var optsOf = function (e) {
       var out = [], shaded = 0, add = function (id, label, sk) { if (out.length >= SV.CAP) return; if (sk) { if (shaded) return; shaded++; } out.push({ id: id, label: label, shade: !!sk, tag: sk || null }); };
-      if (b.cr && T.read === e.key && (T.turn === 1 || T.readSeen) && !T.asked.hands) add('hands', typeof SV.ASKS.hands.say === 'function' ? SV.ASKS.hands.say(b) : SV.ASKS.hands.say); // (what the read opens, at the head of the reader's list)
+      if (RD && T.read === e.key && (T.turn === 1 || T.readSeen) && !T.asked[RD.opens.id]) add(RD.opens.id, typeof RD.opens.say === 'function' ? RD.opens.say(b) : RD.opens.say); // (what the read opens, at the head of the reader's list)
       pieces.forEach(function (p) { if (T.asked[p.id] || owner[p.id] !== e.key) return; add(p.id, typeof p.ask === 'function' ? p.ask(b) : p.ask, p.skill); });
-      if (!T.asked.what && b.cr) add('what', SV.ASKS.what.say);
+      if (!T.asked.what && b.fam) add('what', SV.ASKS.what.say);
       if (!T.asked.bound) add('bound', SV.ASKS.bound.say);
       return out.concat([{ id: 'walk', label: SV.WALK, shade: false, tag: null }]);
     };
     var walked = false, k = 0;
     for (var turn = 1; turn <= SV.TURNS && four.length; turn++) {
-      T.turn = turn; var list = four.map(function (e) { var ops = optsOf(e); return { e: e, hero: e.hero, side: e.side, key: e.key, reads: turn === 1 && T.read === e.key ? [SV.READ.text(b)] : [], ops: ops,
+      T.turn = turn; var list = four.map(function (e) { var ops = optsOf(e); return { e: e, hero: e.hero, side: e.side, key: e.key, reads: turn === 1 && T.read === e.key ? [RD.text(b)] : [], ops: ops,
         opts: ops.map(function (p) { return p.label; }), marks: ops.map(function (p) { return p.shade ? { shade: true, tag: p.tag } : null; }), ids: ops.map(function (p) { return p.id; }), shaded: ops.filter(function (p) { return p.shade; }).length }; });
       var pk = yield sc.flip(sp, [prompt.by], list, 0), x = list[pk && pk.at != null ? pk.at : 0] || list[0], p = x.ops[pk && pk.k != null ? pk.k : x.ops.length - 1] || x.ops[x.ops.length - 1];
       if (turn === 1 && T.read) ((pk && pk.seen) || [0]).forEach(function (j) { if (list[j] && list[j].key === T.read) T.readSeen = true; }); // (the read's follow-up only where the player looked: the supper's way)
@@ -147,7 +203,7 @@
       SV.trail(e.hero.name + ': ' + p.label);
       if (p.id === 'what') SV.what(b).forEach(function (l) { by(l); });
       else if (p.id === 'bound') by(SV.ASKS.bound.back);
-      else if (p.id === 'hands') by(b.K.hands);
+      else if (RD && p.id === RD.opens.id) by(RD.opens.back(b));
       else { var pc = pieces.filter(function (q) { return q.id === p.id; })[0], ok = made(e, pc.skill); (ok ? pc.made(b) : pc.missed(b)).forEach(function (o) { if (o.by) by(o.by); else narr(o.narr); }); }
       var lo = T.out[T.out.length - 1], last = turn < SV.TURNS && lo && lo.by && lo.by.length <= 150 ? T.out.pop() : null; // (the last word the next opening's question, as the supper has it)
       for (i = 0; i < T.out.length; i++) yield wait(T.out[i]);
@@ -192,11 +248,12 @@
     { id: 'marshroad', label: 'THE MARSH, THE ROAD OR OPEN COUNTRY: drovers off a road, or a trapper alone', note: 'A making on the marsh fed at a road\'s fire or a trapper\'s camp. The dice pinned high.', zone: 'glowseep', kinds: ['road', 'wild'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'mountfarm', label: 'THE MOUNTAINS, A FARM: the wolf or the worg at a farm under the Coldridge', note: 'A making in the mountains (the wolf or the worg, the coat full of stars). The dice pinned high.', zone: 'doors', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'mountroad', label: 'THE MOUNTAINS, THE ROAD OR OPEN COUNTRY', note: 'A making in the mountains fed on the road or in the open. The dice pinned high.', zone: 'doors', kinds: ['road', 'wild'], dice: [18, 18, 18, 18, 18, 18] },
+    { id: 'snoot', label: 'BURNED OUT BY THE SNOOT: a farm or a hamlet a snooting band burned', note: 'People a gnoll band burned out (js/snootroad.js): Perception (how many gnolls and hyenas), Survival (which way they came), History (which tribe: the Wall-Laugh, the Gray Keeping, the Skull-Gate), Insight (they wanted the roofs, not the people); the Perception read (soot, nobody hurt) opens WHAT DID THEY BURN. The dice pinned high.', zone: 'snoot', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'missed', label: 'EVERY CHECK MISSED: the thinner answers (a marsh band)', note: 'The first marsh band again with the dice pinned at 1: every piece still answers, thinner and never false.', zone: 'glowseep', kinds: ['farm', 'hamlet', 'road', 'wild'], dice: [1, 1, 1, 1, 1, 1] }
   ];
   SV.LVL = 3;
   SV.find = function (zone, kinds, S) { // (a save's seed with a band of that ground and kind on the road: the first of 400)
-    for (var sd = 1; sd <= 400; sd++) { S.seed = sd; var R = HG.sim((40 - 1) * 24 + 12), r = R.ref.filter(function (x) { return x.zone === zone && kinds.indexOf(x.kind) >= 0 && x.arrive - x.t0 > 6; })[0]; if (r) return { seed: sd, r: r }; }
+    for (var sd = 1; sd <= 400; sd++) { S.seed = sd; var tF = (40 - 1) * 24 + 12, R = { ref: HG.sim(tF).ref.concat(HG.more ? HG.more(tF) : []) }, r = R.ref.filter(function (x) { return x.zone === zone && kinds.indexOf(x.kind) >= 0 && x.arrive - x.t0 > 6; })[0]; if (r) return { seed: sd, r: r }; }
     return null;
   };
   SV.play = function (bt) {
@@ -206,7 +263,8 @@
     var S = W.state(), f = SV.find(bt.zone, bt.kinds, S); if (!f) { if (W.scene) W.scene.say('No band of that ground and kind in 400 saves.'); return; }
     S.seed = f.seed; S.metRef = []; S.madeFed = {}; S.t = f.r.t0 + 3; S.today = 0; S.todayHex = 0;
     var live = HG.refugees().filter(function (x) { return x.id === f.r.id; })[0] || f.r; S.at = live.hex.slice(); S.pos = null; S.from = null; S.rv = null;
-    if (W.scene && W.scene.onMap) { try { W.scene.onMap(); } catch (e) { /* (the camera only) */ } }
+    var pt = W.hc ? W.hc(S.at[0], S.at[1]) : null; // (the party stood in the band's hex, the camera on it: THE WORLD behind the talk is the place it happened -- js/wagon.js Wg.play's way)
+    if (pt) { try { var sc0 = W.scene, lk = sc0.lookAt(pt[0], pt[1]); sc0.cam.cx = lk[0]; sc0.cam.cy = lk[1]; } catch (e) { /* (the camera only) */ } }
     W.save(); if (In) In.pinned = bt.dice ? bt.dice.slice() : null;
     HG.meet(W.scene, live);
   };

@@ -10107,6 +10107,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var stx = { flags: { survivorsTalks: 2 }, party: recH.party }, banked = 0, bank0 = HoH.bank; HoH.bank = function (n) { banked = n; return { line: '' }; }; var tl = TWh ? TWh.turnIn(stx) : []; HoH.bank = bank0;
         okH('7f the opener: ' + op7 + ' (' + bk7 + ' back, ' + SVh.milesBack(live).toFixed(2) + ' mi); tellings counted ' + n7 + ' (want 3); two tellings and the mirror-made at the scales: ' + xp7 + ' XP each one standing (want 300), banked ' + banked + ' for ' + recH.party.length + ' (' + tl.join(' ') + ')',
           op7.indexOf(bk7 + ' back') >= 0 && n7 === 3 && !!pc7 && xp7 === 2 * TWh.SURVIVOR_XP + TWh.XP && TWh.SURVIVOR_XP === 75 && banked === 2 * 75 * recH.party.length && tl[0].indexOf('2 bands') >= 0);
+        // 7g (11-15, his "The 'snoot survivors' only get a 'talks frame'?" and "yes, it has landed"): people a snooting band burned out (js/snootroad.js) get pieces of their
+        // own -- Perception (how many, SR.left at that hour), Survival (which way it came), History (the tribe), Insight; the read opens WHAT DID THEY BURN; dice high, then low
+        var SRg = D.snootroad;
+        if (!SRg) okH('7g the Snoot\'s burnt-out: js/snootroad.js loaded', false);
+        else {
+          SRg.on = true; var sb = null, sbs = 0; for (var s7g = 1; s7g <= 200 && !sb; s7g++) { SH.seed = s7g; sb = SRg.sim(tH(13, 12)).ref.filter(function (r) { return r.arrive - r.t0 > 6; })[0] || null; sbs = s7g; }
+          if (!sb) okH('7g a band burned out by the Snoot in 200 saves', false);
+          else {
+            SH.seed = sbs; SH.t = sb.t0 + 3; SH.metRef = []; var lvS = HG.refugees().filter(function (r) { return r.id === sb.id; })[0], bS = SVh.band(lvS);
+            InH.pinned = [18, 18, 18, 18, 18, 18, 18, 18]; D.scenes.length = 0; SVh.open(null, lvS); var dS = D.top() && D.top().id === 'survivors' ? driveT(D.top()) : { seen: '', lists: [] }, idsS = {};
+            dS.lists.forEach(function (L) { L.forEach(function (x) { x.ids.forEach(function (id, j) { var m = x.marks[j]; if (m && m.shade) idsS[id + ':' + m.tag] = 1; }); }); });
+            var wantS = ['count:Perception', 'tribe:History', 'want:Insight'].concat(bS.came ? ['came:Survival'] : []), haveAll = wantS.every(function (k) { return idsS[k]; });
+            var madeS = SVh.SNOOT.PIECES.every(function (p) { if (p.id === 'came' && !bS.came) return true; return p.made(bS).every(function (o) { return dS.seen.indexOf(window.DS.stripCodes(o.by || o.narr)) >= 0; }); });
+            InH.pinned = [1, 1, 1, 1, 1, 1, 1, 1]; D.scenes.length = 0; SVh.open(null, lvS); var dS2 = D.top() && D.top().id === 'survivors' ? driveT(D.top()) : { seen: '' };
+            var thinS = dS2.seen.indexOf('Too many. We didn\'t stay to count them.') >= 0 && dS2.seen.indexOf(bS.gn + ' of them. I counted') < 0 && dS2.seen.indexOf('Which tribe, you cannot say') >= 0;
+            okH('7g save ' + sbs + ', a ' + bS.kind + ' burned by ' + sb.band + ' (' + sb.tribe + '; ' + bS.gn + ' gnolls, ' + bS.hy + ' hyenas; came from the ' + bS.came + '; ' + bS.when + '): pieces ' + Object.keys(idsS).join(', ') + '; made (' + madeS + '), missed thinner (' + thinS + '): ' + dS.seen.slice(0, 700),
+              bS.fam === 'snoot' && haveAll && madeS && thinS && bS.gn > 0 && dS.seen.indexOf(SVh.SNOOT.TRIBES[sb.tribe].slice(10, 40)) >= 0);
+            InH.pinned = null;
+          }
+          SRg.on = false;
+        }
         D.scenes.length = 0; HoH.playing = false; HoH.cur = null; SH.metRef = [];
         SH.t = band.arrive + 1; var atR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length; SH.t = band.arrive + HG.STAY + 1; var goneR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length;
         okH('the band at ' + band.toName + ' once it arrives (' + atR + '), gone on ' + HG.STAY + ' hours after (' + goneR + ')', atR === 1 && goneR === 0);
