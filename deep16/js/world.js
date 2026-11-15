@@ -1037,7 +1037,7 @@
   W.isNight = function () { return W.timeOfDay() === 'night'; };
   W.pick = function (zone, night, pt) {
     var Z = tables()[zone]; if (!Z) return null;
-    var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond && (night || !g.night); }).map(nightW), mw = W.mirrorWeight(pt); // (g.night, 11-14: a group met only after dark -- the Glowseep's shambling mound, Griz: "night-only for the mound") if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
+    var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond && (night || !g.night) && (!night || !g.day) && !g.top; }).map(nightW), mw = W.mirrorWeight(pt); // (g.day, 11-15: a group met only by day -- the Coldridge's griffons; g.top: a group of the Coldridge road's top, not drawn till the road above the shelf opens -- the werewolves, the young frost giant) (g.night, 11-14: a group met only after dark -- the Glowseep's shambling mound, Griz: "night-only for the mound") if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
     if (mw > 0) gs.push({ w: mw, mirror: true });
     var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
     var md = grp.mirror ? W.madeAt(pt, null, true) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
@@ -1046,7 +1046,8 @@
   };
   W.onStep = function (scene, st) {
     if (/[?&]noenc\b/.test(scene.q)) return false;
-    var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e);
+    var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e), rdZ = M.road[K(S.at[0], S.at[1])];
+    if (rdZ && /coldridge/i.test(rdZ.name || '') && tables().coldridge) zone = 'coldridge'; // (THE COLDRIDGE ROUTE'S OWN TABLE, 11-15, Griz: "build it, and put grif, owlbear and wyvern as very rare on the route up to coldridge" -- a hex the Coldridge Route crosses draws from content/encounters.json coldridge; a making's ground and a camp's stay the mountains', W.zoneOf)
     // A PERCENT A HEX ENTERED (RULED 11-14, Griz to the clock seat: "percentage hex entered seems good match for our marker system", and "5 - yes" on a percent a hex
     // entered in place of the countdown of miles, one hex clear after a fight): W.encPct, below. A step shorter than a hex (the area's, the tiles') rolls its share of it
     S.zone = zone; var mi = st.mi || M.w;

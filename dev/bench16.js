@@ -10088,6 +10088,38 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preQ);
     return;
   }
+  // THE COLDRIDGE ROUTE'S TABLE, 11-15 (mode=coldridge1115; the lanes desk -- Griz: "build it, and put grif, owlbear and wyvern as very rare on the route up to coldridge"):
+  // content/encounters.json coldridge, drawn on a hex the Coldridge Route crosses (js/world.js W.onStep); the griffon by day only; the werewolf and the young frost giant
+  // are `top` groups, on the table and not drawn till the road above the shelf opens
+  if (get('mode', '') === 'coldridge1115') {
+    var repCo = { checks: [], errors: [], notes: [] }, memCo = {}, stGCo = D.store.get, stSCo = D.store.set, WCo = D.world;
+    function okCo(what, v) { repCo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memCo[k] ? JSON.parse(memCo[k]) : null; }; D.store.set = function (k, v) { memCo[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1115); WCo.index(); WCo.use('world'); var SCo = WCo.load('?fresh&far'), MCo = WCo.M(), ZCo = window.DS.DATA.encounters.coldridge;
+      if (D.hunger) D.hunger.on = false; // (this mode's subject is the table: no made thing's weight on it)
+      var kindsCo = ZCo ? ZCo.groups.map(function (g) { return g.e.map(function (x) { return x[0]; }).join('+') + (g.day ? ':day' : '') + (g.night ? ':night' : '') + (g.top ? ':top' : ''); }) : [];
+      okCo('the table: ' + kindsCo.join(', '), !!ZCo && ['griffon:day', 'owlbear', 'wyvern', 'werewolf:night:top', 'frostgiant:top'].every(function (k) { return kindsCo.indexOf(k) >= 0; }) && kindsCo.indexOf('wolf') >= 0 && kindsCo.indexOf('worg') >= 0);
+      var cnt = function (night) { var c = { n: 0 }; for (var i = 0; i < 6000; i++) { var p = WCo.pick('coldridge', night, [0, 0]); if (!p) continue; c.n++; var k = p.grp.e ? p.grp.e[0][0] : 'mirror'; c[k] = (c[k] || 0) + 1; } return c; }, cd = cnt(false), cn = cnt(true);
+      var rare = function (c) { return ((c.griffon || 0) + (c.owlbear || 0) + (c.wyvern || 0)) / c.n; };
+      okCo('6000 draws by day: griffon ' + (cd.griffon || 0) + ', owlbear ' + (cd.owlbear || 0) + ', wyvern ' + (cd.wyvern || 0) + ', werewolf ' + (cd.werewolf || 0) + ', frost giant ' + (cd.frostgiant || 0) + ' -- the three together ' + (100 * rare(cd)).toFixed(1) + '% of the route\'s fights',
+        cd.griffon > 0 && cd.owlbear > 0 && cd.wyvern > 0 && !cd.werewolf && !cd.frostgiant && rare(cd) < 0.15 && cd.griffon < 0.06 * cd.n && cd.owlbear < 0.06 * cd.n && cd.wyvern < 0.06 * cd.n);
+      okCo('6000 draws by night: griffon ' + (cn.griffon || 0) + ' (by day only), owlbear ' + (cn.owlbear || 0) + ', wyvern ' + (cn.wyvern || 0) + ', werewolf ' + (cn.werewolf || 0) + ' and frost giant ' + (cn.frostgiant || 0) + ' (the road\'s top, held)',
+        !cn.griffon && cn.owlbear > 0 && cn.wyvern > 0 && !cn.werewolf && !cn.frostgiant);
+      // the step: a hex the Coldridge Route crosses draws from the route's table; a mountain hex off it from the doors'
+      var xCo = new XMLHttpRequest(); xCo.open('GET', '../deep16/data/world-near.js', false); xCo.send(); (0, eval)(xCo.responseText); WCo.index(); // (the Silverton area: the benches' page leaves it out)
+      WCo.use('near'); MCo = WCo.map('near'); SCo = WCo.state(); SCo.map = 'near'; // (the area: the held road is a way only on its climb to the shelf, W.index)
+      var onK = Object.keys(MCo.road).filter(function (k) { return /coldridge/i.test(MCo.road[k].name || ''); }), offK = Object.keys(MCo.hex).filter(function (k) { return !MCo.road[k] && /^(black|gray|coastal)$/.test(MCo.hex[k].t); })[0];
+      var stepZone = function (k) { var q = k.split(','); SCo.at = [+q[0], +q[1]]; SCo.clear = 0; SCo.encNow = 1; var got = null; WCo.onStep({ q: '', encounter: function (p) { got = p; } }, { mi: MCo.w, road: !!MCo.road[k] }); return SCo.zone; };
+      var zOn = onK.length ? stepZone(onK[Math.floor(onK.length / 2)]) : null, zOff = offK ? stepZone(offK) : null;
+      okCo('the Coldridge Route\'s climb to the shelf crosses ' + onK.length + ' hexes of the area: a step on one rolls the zone ' + zOn + '; a mountain hex off the road ' + zOff, onK.length > 0 && zOn === 'coldridge' && zOff === 'doors');
+      okCo('the percent a hex entered on the route by day ' + (100 * WCo.encPct('coldridge', true, false, [0, 0], 0)).toFixed(1) + '% (the mountains\' rate, half on a road)', WCo.encPct('coldridge', true, false, [0, 0], 0) > 0 && WCo.encPct('coldridge', true, false, [0, 0], 0) < 0.1);
+    } catch (eCo) { repCo.errors.push(String(eCo && eCo.stack || eCo)); }
+    D.store.get = stGCo; D.store.set = stSCo; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preCo = document.createElement('pre'); preCo.id = 'out'; preCo.textContent = 'BENCH16 ' + JSON.stringify(repCo);
+    document.body.appendChild(preCo);
+    return;
+  }
   // THE HUNGER, 11-14 (mode=hunger1114; the clock seat -- RULED 11-14, Griz, typed to the seat: "percentage hex entered seems good match for our marker system", "5 - yes";
   // "odds (they feed) in squares without farms, road etc around 5% - resets days only save mirror hyenas, which don't spawn fleeing farmers and become charged. Other
   // mirror entities just feed and spawn fleeing survivors."; "3 - 60% on the farms, 90% hamlet"; "4 - it doesn't stay put, otherwise yes"; "the withered would weight
