@@ -11,8 +11,19 @@ rebases once, writes its records against hashes that will not move again, gates 
   python dev/land.py push [--all] [--dry-run]         holding it: the quick gate (--all: the full one), push HEAD:main, give the runway back
   python dev/land.py go [same flags]                  take, then push: a landing with no hash to write
   python dev/land.py release                          give the runway back without pushing (your ticket too)
-  python dev/land.py status                           who holds it and for how long, who waits
-  python dev/land.py break                            the desk's: clear the runway left by a seat that died, and the dead tickets
+  python dev/land.py gate [--who NAME] [--wait MIN]   THE GATE LOCK: wait in the gate's own line (40 min at most a call), then run the FULL gate
+                                                     (python dev/check.py all) here, alone on the machine, and give the gate back
+  python dev/land.py status                           who holds it and for how long, who waits (the runway, then the gate)
+  python dev/land.py break                            the desk's: clear the runway left by a seat that died, a dead gate, and the dead tickets
+
+THE GATE LOCK (11-15, Griz: "build the gate lock"). The full gate is the one that keeps RED off main (seats on the quick gate alone left
+"a lot of red and a lot of emails", his words), but it is a few dozen headless browsers: on 11-14 seven seats each ran their own at once and
+every one took half an hour where it takes a few minutes alone, and nothing landed for 43 minutes. So the full gate takes turns as landings
+do, on a lock of its own beside the runway (`.git/landing/gate/`): `gate` waits its turn, runs `check.py all` in this worktree as it
+stands (committed or not: it rebases nothing and does not touch the runway, so landings go on while a seat gates), and frees the gate when
+the check ends, GREEN or RED. A seat's order is: bench what you changed, `gate`, then `take`, the PATCHLOG line, `push` (the quick gate).
+Never run `check.py all` bare while other seats are live. The holder refreshes the lock every few seconds while its check runs, so a gate
+whose holder died is free to the next in line after three quiet minutes. Exit 0 GREEN, 1 RED, 3 still in line after --wait.
 
 Run it from your worktree's root, from PowerShell (the gate's benches answer nothing from the Bash sandbox). Exit 0 landed or done;
 1 refused, or the gate RED (the runway given back -- fix, then take again); 2 the rebase stopped on a conflict (you still hold the runway:
@@ -26,6 +37,7 @@ import json, os, subprocess, sys, time
 STALE_RUNWAY = 20 * 60   # (the full gate runs ~5 min, a records commit a few more)
 STALE_TICKET = 5 * 60    # (a waiter refreshes its ticket every poll; a seat whose take ran out has this long to take again)
 POLL = 5
+STALE_GATE = 3 * 60      # (the gate's holder refreshes it every POLL while its check runs: three quiet minutes is a holder that died)
 
 
 def git(*args, check=True):
@@ -145,6 +157,92 @@ def release(d, top):
     if mine(r, top):
         os.remove(runway_path(d))
     drop_ticket(d, top)
+
+
+def gate_dir(d):
+    g = os.path.join(d, 'gate')   # (the gate's own lock and line, beside the runway's: tickets(), ticket() and drop_ticket() serve both)
+    os.makedirs(os.path.join(g, 'tickets'), exist_ok=True)
+    return g
+
+
+def gate_path(g):
+    return os.path.join(g, 'gate.json')
+
+
+def try_gate(g, top, who, branch):
+    """The gate if it is free (or its holder died) and this worktree's ticket is the oldest live one; else None."""
+    r = read(gate_path(g))
+    if r and (mine(r, top) or time.time() - r.get('taken', 0) > STALE_GATE):
+        if not mine(r, top):
+            print('land: the gate held by %s went quiet %s ago -- freed' % (r.get('who'), age(r.get('taken', 0))), flush=True)
+        if read(gate_path(g)) == r:   # (still the same dead lock, or this worktree's own from a run that was cut off)
+            try:
+                os.remove(gate_path(g))
+            except OSError:
+                pass
+    elif r:
+        return None
+    live = [t for t in tickets(g) if not t['dead']]
+    if live and os.path.normcase(live[0].get('worktree', '')) != os.path.normcase(top):
+        return None
+    r = {'who': who, 'branch': branch, 'worktree': top, 'taken': time.time(), 'since': time.time(), 'pid': os.getpid()}
+    try:
+        fd = os.open(gate_path(g), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        return None
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        json.dump(r, f)
+    drop_ticket(g, top)
+    return r
+
+
+def gate(argv, top, d):
+    g = gate_dir(d)
+    branch = git('rev-parse', '--abbrev-ref', 'HEAD')
+    who = opt(argv, '--who', branch)
+    wait = float(opt(argv, '--wait', '40')) * 60
+    t0, said, told = time.time(), None, 0
+    while True:
+        r = try_gate(g, top, who, branch)
+        if r:
+            break
+        ticket(g, top, who, branch)
+        h = read(gate_path(g))
+        line = [t['who'] for t in tickets(g) if not t['dead']]
+        now = (h and h.get('who'), tuple(line))
+        if now != said or time.time() - told > 60:   # (say it when the line changes, else once a minute)
+            print('land: waiting for the gate -- it is %s; in line: %s' % (('%s\'s (%s)' % (h.get('who'), age(h.get('since', h.get('taken', 0))))) if h else 'free', ', '.join(line)), flush=True)
+            said, told = now, time.time()
+        if time.time() - t0 > wait:
+            print('land: still in the gate\'s line after %g min -- run gate again within 5 min to keep your place' % round(wait / 60, 1))
+            sys.exit(3)
+        time.sleep(POLL)
+    head = git('rev-parse', '--short=8', 'HEAD')
+    dirty = bool(git('status', '--porcelain', '--untracked-files=no'))
+    print('land: the gate is yours (%s) -- python dev/check.py all, on %s%s' % (who, head, ' with uncommitted changes' if dirty else ''), flush=True)
+    p, code = None, 1
+    try:
+        nap = os.environ.get('LAND_GATE_TEST_SLEEP')   # (the lock's own proof: a sleep in the check's place, so two waiters can be timed without two gates)
+        p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(%g)' % float(nap)] if nap else [sys.executable, os.path.join(top, 'dev', 'check.py'), 'all'], cwd=top)
+        while p.poll() is None:
+            r['taken'] = time.time()   # (the heartbeat: a holder that dies stops it, and the gate frees itself)
+            write(gate_path(g), r)
+            try:
+                p.wait(POLL)
+            except subprocess.TimeoutExpired:
+                pass
+        code = p.returncode
+    finally:
+        if p is not None and p.poll() is None:   # (cut off: the check goes with it, so the next in line gates alone)
+            p.kill()
+        if mine(read(gate_path(g)), top):
+            try:
+                os.remove(gate_path(g))
+            except OSError:
+                pass
+        drop_ticket(g, top)
+    print('land: the full gate is %s on %s after %s -- the gate given back%s' % ('RED' if code else 'GREEN', head, age(r['since']), '' if code else '; now take, write the PATCHLOG line, push'))
+    sys.exit(1 if code else 0)
 
 
 def clean_or_die():
@@ -280,6 +378,17 @@ def status(d):
         print('  %d. %s (%s), in line %s%s' % (n, t.get('who'), t.get('branch'), age(t.get('since', 0)), ' -- dead, skipped' if t['dead'] else ''))
     if not ts:
         print('  no one in line')
+    g = gate_dir(d)
+    r = read(gate_path(g))
+    if r:
+        print('gate: %s (%s), gating %s%s' % (r.get('who'), r.get('worktree'), age(r.get('since', r.get('taken', 0))), ' -- QUIET %s, free to the next' % age(r.get('taken', 0)) if time.time() - r.get('taken', 0) > STALE_GATE else ''))
+    else:
+        print('gate: free')
+    ts = tickets(g)
+    for n, t in enumerate(ts, 1):
+        print('  %d. %s (%s), in line %s%s' % (n, t.get('who'), t.get('branch'), age(t.get('since', 0)), ' -- dead, skipped' if t['dead'] else ''))
+    if not ts:
+        print('  no one in line')
 
 
 def brk(d):
@@ -291,6 +400,15 @@ def brk(d):
         if t['dead']:
             os.remove(t['file'])
             print('land: dead ticket cleared: %s' % t.get('who'))
+    g = gate_dir(d)
+    r = read(gate_path(g))
+    if r and time.time() - r.get('taken', 0) > STALE_GATE:   # (a live gate is never broken: its check is still running)
+        os.remove(gate_path(g))
+        print('land: dead gate cleared (it was %s\'s, quiet %s)' % (r.get('who'), age(r.get('taken', 0))))
+    for t in tickets(g):
+        if t['dead']:
+            os.remove(t['file'])
+            print('land: dead gate ticket cleared: %s' % t.get('who'))
 
 
 def main(argv):
@@ -298,12 +416,14 @@ def main(argv):
         sys.stdout.reconfigure(errors='replace')   # (commit subjects carry the house's dashes and middots; PowerShell's codepage may not)
     except AttributeError:
         pass
-    if not argv or argv[0] not in ('take', 'push', 'go', 'release', 'status', 'break'):
+    if not argv or argv[0] not in ('take', 'push', 'go', 'release', 'status', 'break', 'gate'):
         print(__doc__)
         sys.exit(1)
     top, d = here()
     cmd = argv[0]
-    if cmd == 'take':
+    if cmd == 'gate':
+        gate(argv, top, d)
+    elif cmd == 'take':
         take(argv, top, d)
     elif cmd == 'push':
         push(argv, top, d)
