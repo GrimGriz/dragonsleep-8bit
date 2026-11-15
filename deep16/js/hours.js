@@ -212,7 +212,23 @@
     ctx.fillStyle = '#1a1206'; ctx.beginPath(); ctx.moveTo(-7, -9); ctx.lineTo(7, -9); ctx.lineTo(0, 3); ctx.closePath(); ctx.fill();
     ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(0, 1); ctx.closePath(); ctx.fill(); ctx.restore();
   };
-  H16.LINES = { opened: '{y}In your JOURNAL:{/} {name}.', pinned: '{g}Pinned: the gold arrow marks the next step. M, then JOURNAL, to read it again.{/}', more: '{g}And: {names}.{/}' };
+  // THE PEN'S ARROW (11-15, Griz ruling his note "can't milk the crawlers should pin the mission if it's in your journal": "we could just have that interaction with the cradle
+  // throw up its own arrow on the guy (that disappears if they leave the scene) rather than mess with journal pinning"): a pen turning the party away for want of a name in
+  // Edric's book (js/mines.js M.penAsk) sets B.penArrow; a gold arrow over Edric while they stay on that floor, gone once they leave it or he has booked them
+  var pinPaintPen = C.paintPin;
+  C.paintPin = function (ctx, B) {
+    pinPaintPen.apply(this, arguments);
+    var pa = B && B.penArrow, def = D.roam && D.roam.def; H16.penMarked = null; if (!pa) return;
+    var st = C.state(B); if (!def || def.key !== pa.key || def.room || (st && st.flags.tallyMet)) { delete B.penArrow; return; }
+    if (B.menu || !B.roam || B.roam.mode !== 'walk') return;
+    var u = B.units.filter(function (x) { return x.npc === pa.npc; })[0]; if (!u) return; H16.penMarked = [u.x, u.y];
+    var iso = D.iso, c = iso.center(u.x, u.y, (B.map && B.map.gz ? B.map.gz(u.x, u.y) : 0) + 30), p = iso.toScreen(c.x, c.y);
+    var m = 14, x = Math.max(m, Math.min(D.W - m, p.x)), y = Math.max(m + 14, Math.min(D.H - 40, p.y)), off = x !== p.x || y !== p.y, bob = Math.sin(B.t / 10) * 2;
+    ctx.save(); ctx.translate(Math.round(x), Math.round(y + (off ? 0 : bob))); if (off) ctx.rotate(Math.atan2(p.y - y, p.x - x) - Math.PI / 2);
+    ctx.fillStyle = '#1a1206'; ctx.beginPath(); ctx.moveTo(-7, -9); ctx.lineTo(7, -9); ctx.lineTo(0, 3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(0, 1); ctx.closePath(); ctx.fill(); ctx.restore();
+  };
+  H16.LINES = { opened:'{y}In your JOURNAL:{/} {name}.', pinned: '{g}Pinned: the gold arrow marks the next step. M, then JOURNAL, to read it again.{/}', more: '{g}And: {names}.{/}' };
   H16.missionCard = function* (B) {
     var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
     nu.forEach(function (q) { f['q:' + q.id] = 1; if (q.step && q.step.key) f['k:' + q.id + ':' + q.step.key] = 1; }); // (a mission opening on a key step: its own card says it, not a second -- H16.keyCard)
@@ -616,7 +632,10 @@
   H16.layThird = function (b) { var HX = D.hex, rows = HX.rows(3), sp = HX.spiralSq()[0]; HX.lay(b, 3, HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), [0, 1]); };
   H16.tableSq = function () { return D.hex.sqAt(H16.TABLE.mid[0], H16.TABLE.mid[1]); };
   // the lamps low: a wash, and a warm pool at the table (p: its screen point)
-  H16.lowLamps = function (x, p) { var N = H16.SHOT; x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H); };
+  // (11-15, Griz on his note "do we need lamps on the third floor hex (for meetings/always)": "let's just have it lit like when a player is there without justification" --
+  // the third floor's night picture and its arrival drawn as the floor is on a visit, no wash and no glow; H16.LAMPS_LOW back on puts the old night look back)
+  H16.LAMPS_LOW = false;
+  H16.lowLamps = function (x, p) { if (!H16.LAMPS_LOW) return; var N = H16.SHOT; x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H); };
   H16.thirdShot = function (ids) {
     if (!D.ctx || !D.hex || !D.hex.lay || !D.ui || !D.ui.drawBattle) return null;
     var st = H16.stage(['hex3'], function (s, b) { b.roam.seat = H16.seatFor(ids); H16.layThird(b); }); // (the council in their seats: H16.atTable's night)

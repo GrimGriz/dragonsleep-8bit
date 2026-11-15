@@ -24,7 +24,7 @@
   // shop, js/scenes.js Shop; 'magic' only magic items, C.magic); `script` a scene of its own (Winters'); `own` Griz's own, waiting on his word. A new vendor is a line
   C.VENDORS = {
     winters: { sheet: 'pt_winters', shop: 'winters', buys: 'magic', script: 'winters' }, // (his errands, then his shelves; he buys magic items only -- his word above)
-    casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, aldric: { sheet: 'pt_aldric' },
+    casper: { sheet: 'pt_casper', wait: '' }, androit: { sheet: 'pt_androit', wait: '' }, aldric: { sheet: 'pt_aldric', wait: '' }, // (wait '': no "is to come" line -- 11-15, Griz on the counters' list, "leans": the seven with nothing a party would buy say their word and no more)
     warda: { sheet: 'pt_warda', wait: '' }, // (Warda of the Hex's third floor: the art desk's ART-123-WARDA, 10-29 -- her face for the portraits' show; her word on the floor stays the first game's card, js/hex.js HX.SCENES)
     harrow: { sheet: 'pt_harrow', wait: '' }, // (Ottak Harrow of the council: the art desk's ART-123-HARROW, 10-29, on Griz's "harrows in, might as well spin up another cutter for skarn" -- the council's sittings speak on his face by C.PT)
     skarn: { sheet: 'pt_skarn', wait: '' }, // (Skarn the Warrener at the Crawler Warrens' mouth camp: the art desk's ART-123-SKARN, 10-29, on Griz's "harrows in, might as well spin up another cutter for skarn" -- the camp's scenes speak on his face, js/mines.js M.talk by C.PT; he keeps no shop)
@@ -47,12 +47,12 @@
     dacedisp: { sheet: 'pt_dacedisp', wait: '', name: 'Corwen Dace, in the cloak of displacement' }, // (the art desk's ART-123-DACE-DISPLACEMENT, 10-29, on Griz's "Dace in Displacement Cloak sprites to follow": a second look, its cloak worn as the magic item -- no floor stands `dacedisp`; since his word, 10-29 later, Dace's own scenes wear this face till he gives the party the cloak, C.SHEETOF.dace)
     talmok: { sheet: 'pt_talmok', wait: '' }, // (Talmok, the Hex's champion by the sand: the art desk's ART-123-TALMOK, 10-29, on the lanes desk's "Take Talmok after Dace" -- his word in the Hex on his face, js/town.js T.fire by C.takes; he keeps no shop, and fights in his own talmok_p1)
     papa: { sheet: 'pt_papa', wait: '' }, // (Papa Urtusk in the Hex's front door: the art desk's ART-123-URTUSK, 10-29, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter" -- the council's sittings speak on his face (js/hours.js H16.sitting: C.PT), and his word at the door; no counter line, he keeps no shop)
-    falstaff: { sheet: 'pt_falstaff' }, // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
+    falstaff: { sheet: 'pt_falstaff', shop: 'falstaff', buys: 'sheets' }, // (11-15, Griz: "only give him one spell sheet to sell for now, and let him buy the ones the party finds" -- his shelf C.SHOP16.falstaff) // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
     pyro: { sheet: 'pt_pyro', script: 'pyro', allFaces: true }, // (Pyro, King of Solskaft, at his vault doors: the art desk's ART-141, cut 11-12 by cutter-pyro, tools/portrait-sheet.py pyro -- idle 6, attentive, welcoming, grave, stern, grieved; wired 11-12 by the inn seat on the lanes desk's relay: his word at the doors on his face, js/solskaft.js C.SCRIPTS.pyro -- his meeting is the story build's)
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
-    barber: { sheet: 'pt_barber' },
-    marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten', shop: 'kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now"; Kasten Wheal the chandler sells by his first-game shop since 10-22, his 10-21 close: "shops and the rest of NPC portraits next session")
+    barber: { sheet: 'pt_barber', wait: '' },
+    marin: { sheet: 'pt_marin', wait: '' }, kasten: { sheet: 'pt_kasten', shop: 'kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now"; Kasten Wheal the chandler sells by his first-game shop since 10-22, his 10-21 close: "shops and the rest of NPC portraits next session")
     lucia: { sheet: 'pt_lucia', name: 'Lucia', shop: 'lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama"; her first-game shelf since 10-22, Griz: "yes", on "Lucia also sells in 8 bit, dome whorls and calling herbs maybe?")
     sylvia: { sheet: 'pt_sylvia', own: true }, // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
     // the last six of art-wanted section 20, each on its first-game shop (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"; his "shops and the rest
@@ -66,12 +66,12 @@
     ned: { sheet: 'pt_ned', script: 'ned' }, // (Percy's partner, behind the same counter -- C.BESIDE; Percy's counter is Percy's face, Ned's own word his scene: C.ned)
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
-    mela: { sheet: 'pt_mela' }, mical: { sheet: 'pt_mical', wait: '' },
+    mela: { sheet: 'pt_mela', wait: '' }, mical: { sheet: 'pt_mical', wait: '' },
     merrick: { sheet: 'pt_merrick', wait: 'His window -- the sendings -- is to come.' }, // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
     // three more (10-22, Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith at his forge's door, his first-game talk (the
     // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
     // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
-    brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' }, // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
+    brennan: { sheet: 'pt_brennan', wait: '' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' }, // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
     // two more (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta Venn at her cook-stalls on the street, her first-game talk and her bat-wing pies (the first
     // game's S.marta: C.marta, 10-22); Madame Ondine Vess of the School, whose door neither game has yet -- her portrait for the show till it comes. (Tam Vere's, ART-100,
     // was held 10-22: drawn a man, and Tam is a woman; the re-roll came 10-28, below)
@@ -104,7 +104,12 @@
   // and Higertha's hatch (10-28 later, Griz: "Lucia is mama and is saying Higertha's line"): Mama's own jars at Mama's prices (`from`: the first game's lucia shelf), with the
   // first game's greeting and thanks there -- "Mama mixes, I sell", the apprentice's words, his "Higertha's line" -- where Lucia, who is Mama, no longer says them (C.GREET)
   C.SHOP16 = { concession: { name: 'The Cold-Food Concession', items: ['batpie'], prices: { batpie: 1 }, buys: false, greeting: 'Cold pies, by the piece.', thanks: ['Cold, mind.', 'There you go.'] },
-    higertha: { name: 'Mama\'s Pharmakaiea, the hatch', from: 'lucia' } };
+    higertha: { name: 'Mama\'s Pharmakaiea, the hatch', from: 'lucia' },
+    // Falstaff, the wizard-nation factor's clerk (11-15, Griz: "only give him one spell sheet to sell for now, and let him buy the ones the party finds"): Hideous Laughter on his
+    // shelf; the sheets the party finds bought at half -- a sheet 500 sp a spell level (the seat's call: the SRD's copying cost, 50 gp a level). His words the seat's draft,
+    // invented.json falstaff-shelf-words
+    falstaff: { name: 'The Factor\'s Clerk', keeper: 'Falstaff', items: ['sheet_hideouslaughter'], prices: { sheet_hideouslaughter: 500, sheet_grease: 500, sheet_findfamiliar: 500, sheet_mirrorimage: 1000 },
+      buyRate: 0.5, greeting: 'Tower paper. One sheet I can spare. Any of the Tower\'s you dig up, I buy, at half.', nothingText: 'Nothing of the Tower\'s on you.', thanks: ['Mind the ink.', 'Written for steadier hands. Yours now.'] } };
   C.shop16 = function () {
     var S = (window.DS && DS.DATA && DS.DATA.shops) || null; if (!S) return;
     Object.keys(C.SHOP16).forEach(function (k) { if (S[k]) return; var o = C.SHOP16[k], f = o.from && S[o.from]; S[k] = f ? Object.assign({}, f, o) : o; });
@@ -360,14 +365,14 @@
     this.msg = C.greeting(id) || 'Welcome.'; this.setFace('welcoming');
   };
   Counter.prototype.price = function (id) { var o = this.shop.prices && this.shop.prices[id]; return o != null ? o : DS.DATA.items[id].price; };
-  Counter.prototype.offer = function (it) { return Math.max(1, Math.floor(it.price * (this.shop.buyRate || 0.5))); };
+  Counter.prototype.offer = function (it, id) { var p = id && this.shop.prices && this.shop.prices[id] != null ? this.shop.prices[id] : it.price; return Math.max(1, Math.floor(p * (this.shop.buyRate || 0.5))); }; // (`id`: a shop's own price for what it buys -- Falstaff's sheets, 11-15)
   C.sellable = function (shop, it) { return it.kind !== 'key' && it.price > 0 && (!it.noSell || shop.buysNoSell) && (shop.buysKind ? shop.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); };
   // what a vendor takes in: its own rule (`buys`), else the first game's for its shop -- a quest's magic weapon is magic, so Winters takes it (the first game's buysNoSell)
-  C.buys = function (v, shop, id, it) { if (v && v.buys === 'magic') return it.kind !== 'key' && it.price > 0 && C.magic(id, it); return C.sellable(shop, it); };
+  C.buys = function (v, shop, id, it) { if (v && v.buys === 'sheets') return /^sheet_/.test(id) && !!(shop.prices && shop.prices[id] > 0); if (v && v.buys === 'magic') return it.kind !== 'key' && it.price > 0 && C.magic(id, it); return C.sellable(shop, it); };
   Counter.prototype.rows = function () {
     var self = this, st = this.st, d = this.shop, v = C.VENDORS[this.id];
     if (this.tab === 'buy') return (d.items || []).map(function (id) { var it = DS.DATA.items[id], p = self.price(id); return { id: id, label: it.name, right: p + ' sp', off: p > st.silver() }; });
-    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it) + ' sp' }; });
+    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it, s.id) + ' sp' }; });
   };
   // what a keeper says, buying a thing a quest wants: Percy, sold a snake tongue while Ned's is asked for, says so -- and buys it anyway, at his fifth (RULED 10-21
   // night, Griz: "looks good - have percy 'Didn't Ned want one of those?' while the quest is active, but will buy them anyway after saying it"; the house lane's
@@ -384,7 +389,7 @@
   };
   Counter.prototype.sell = function (id, k) {
     var st = this.st, it = DS.DATA.items[id];
-    take(st, id, k); st.silver(this.offer(it) * k); D.sfx('coin');
+    take(st, id, k); st.silver(this.offer(it, id) * k); D.sfx('coin');
     this.msg = this.remark(id) || pick(this.shop.boughtText || ['Done.']); this.setFace('work'); // (his acquisition: unwrapped, looked over, set on the counter)
   };
   // the first game's equip-it-now (js/scenes.js Shop.go): a two-hander takes the shield off, a shield will not go on beside one, what was worn goes to the pack
@@ -430,7 +435,7 @@
       var r = this.rows()[b.k]; if (!r) return; this.cur = b.k;
       var it = DS.DATA.items[r.id];
       if (this.tab === 'buy') { var p = this.price(r.id); if (stacks(it)) { var mx = Math.min(99, Math.floor(this.st.silver() / p)); if (mx > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: mx, price: p }; return; } } this.buy(r.id, 1); }
-      else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it), sell: true }; this.setFace('skeptical'); return; } this.sell(r.id, 1); }
+      else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it, r.id), sell: true }; this.setFace('skeptical'); return; } this.sell(r.id, 1); }
       return;
     }
     if (s && b.go === 'qminus') { s.n--; return; }

@@ -1637,15 +1637,28 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var dLi = mF && liF ? Math.max(Math.abs(mF[0] - liF.x), Math.abs(mF[1] - liF.y)) : null;
       okN('F. the mouth camp (' + defF.key + '), Fight Night pinned: the marker on ' + mF + ' -- the west edge ' + wF + ', not the feed square ' + feedF + '; Linnet at ' + (liF && [liF.x, liF.y]) + ', ' + dLi + ' squares off',
         defF.key === 'warrens' && !!mF && mF[0] === wF[0] && mF[1] === wF[1] && !(mF[0] === feedF[0] && mF[1] === feedF[1]) && (!liF || dLi > 2));
-      // H. "can't milk the crawlers should pin the mission if it's in your journal" (his note after the save, the mouth camp 6,9; the desk's relay): at a pen with no name in
-      // Edric's book, The Cradles in the JOURNAL and Fight Night pinned -- the refusal pins The Cradles and says so; with The Cradles not heard, the pin is left alone
-      var penH = function (fl) { var B = RN.make('?roam=warrens&flags=' + fl + '&watch'); D.scenes.length = 0; D.push(B); B = floorN(); B.roam.flags.pin = 'hex'; var st = CN.state(B), said = [];
-        var g = MN.penAsk({ st: st, say: function (l) { said = said.concat(l); return { say: [].concat(l) }; }, ask: function (p, o) { return { ask: [].concat(p), opts: o }; } }, B, 2), v, s, k = 0;
-        while (k++ < 50) { s = g.next(v); v = undefined; if (s.done) break; if (s.value && s.value.opts) v = 1; }
-        return { pin: B.roam.flags.pin, said: window.DS.stripCodes(said.join(' ')) }; };
-      var h1 = penH('heardHex,heardCradles'), h2 = penH('heardHex');
-      okN('H. a pen, no name in the book, The Cradles in the JOURNAL, Fight Night pinned: pinned ' + h1.pin + ' -- "' + h1.said.slice(0, 150) + '"; The Cradles not heard: pinned ' + h2.pin,
-        h1.pin === 'cradles' && /without a name in the book/.test(h1.said) && /Pinned/.test(h1.said) && h2.pin === 'hex' && !/Pinned/.test(h2.said));
+      // H. "can't milk the crawlers should pin the mission if it's in your journal", RULED 11-15: "we could just have that interaction with the cradle throw up its own arrow on
+      // the guy (that disappears if they leave the scene) rather than mess with journal pinning": at a pen with no name in Edric's book, Fight Night pinned -- the pin kept, a
+      // gold arrow over Edric on the floor; gone once off the floor, and gone once he has booked them
+      var BH = RN.make('?roam=warrens&flags=heardHex,heardCradles&watch'); D.scenes.length = 0; D.push(BH); BH = floorN(); BH.roam.mode = 'walk'; BH.roam.flags.pin = 'hex'; var stH = CN.state(BH), saidH = [];
+      var gH = MN.penAsk({ st: stH, say: function (l) { saidH = saidH.concat(l); return { say: [].concat(l) }; }, ask: function (p, o) { return { ask: [].concat(p), opts: o }; } }, BH, 2), vH, sH, kH = 0;
+      while (kH++ < 50) { sH = gH.next(vH); vH = undefined; if (sH.done) break; if (sH.value && sH.value.opts) vH = 1; }
+      var cxH = document.createElement('canvas').getContext('2d'), edH = BH.units.filter(function (u) { return u.npc === 'edric'; })[0];
+      H6N.penMarked = null; CN.paintPin(cxH, BH); var mH = H6N.penMarked;
+      var def0H = RN.def; RN.def = Object.assign({}, def0H, { key: 'silverton' }); CN.paintPin(cxH, BH); RN.def = def0H; var goneOff = !BH.penArrow; H6N.penMarked = null; CN.paintPin(cxH, BH); var mOff = H6N.penMarked;
+      BH.penArrow = { key: 'warrens', npc: 'edric' }; stH.flags.tallyMet = 1; H6N.penMarked = null; CN.paintPin(cxH, BH); var goneBk = !BH.penArrow && !H6N.penMarked;
+      okN('H. a pen, no name in the book, Fight Night pinned: "' + window.DS.stripCodes(saidH.join(' ')).slice(0, 80) + '...", the pin ' + BH.roam.flags.pin + ', the arrow over Edric ' + mH + ' (Edric at ' + (edH && [edH.x, edH.y]) + '); off the floor, gone (' + goneOff + ', ' + mOff + '); booked, gone (' + goneBk + ')',
+        /without a name in the book/.test(saidH.join(' ')) && !/Pinned/.test(saidH.join(' ')) && BH.roam.flags.pin === 'hex' && !!edH && !!mH && mH[0] === edH.x && mH[1] === edH.y && goneOff && !mOff && goneBk);
+      // E. the counters (RULED 11-15, "leans, but only give him one spell sheet to sell for now, and let him buy the ones the party finds"): the seven say their word with no "is to
+      // come"; Falstaff's shelf one sheet, buying the found ones at half their price; the quartermaster's shelf open, his line with no "to come"; Merrick's held line kept
+      var tailE = {}; ['brennan', 'casper', 'androit', 'aldric', 'barber', 'marin', 'mela', 'merrick'].forEach(function (id) { var out = []; var g = CN.keeper({ say: function (l) { out = out.concat(l); return {}; } }, BH, id), k = 0; while (k++ < 20 && !g.next().done) { } tailE[id] = /buying and selling -- is to come|the sendings -- is to come/.test(out.join(' ')); });
+      CN.shop16(); var shF = window.DS.DATA.shops.falstaff, vF = CN.VENDORS.falstaff, IT = window.DS.DATA.items, offF = function (id) { return CN.Counter.prototype.offer.call({ shop: shF }, IT[id], id); };
+      var qmS = window.D16.solskaft && window.D16.solskaft.WORDS ? window.D16.solskaft.WORDS.quartermaster() : null;
+      okN('E. "is to come" said by ' + JSON.stringify(tailE) + '; Falstaff sells ' + (shF && shF.items) + ' at ' + (shF && shF.prices.sheet_hideouslaughter) + ' sp, buys grease (' + CN.buys(vF, shF, 'sheet_grease', IT.sheet_grease) + ', ' + offF('sheet_grease') + ' sp) and mirror image (' + offF('sheet_mirrorimage') + ' sp), not a potion (' + CN.buys(vF, shF, 'potion', IT.potion) + '); the quartermaster takes ' + CN.takes('quartermaster') + ', his line ' + JSON.stringify(qmS),
+        ['brennan', 'casper', 'androit', 'aldric', 'barber', 'marin', 'mela'].every(function (id) { return tailE[id] === false; }) && tailE.merrick === true && !!shF && shF.items.join() === 'sheet_hideouslaughter' && CN.buys(vF, shF, 'sheet_grease', IT.sheet_grease) && offF('sheet_grease') === 250 && offF('sheet_mirrorimage') === 500 && !CN.buys(vF, shF, 'potion', IT.potion) && CN.takes('quartermaster') && (!qmS || !/to come/.test(qmS.join(' '))));
+      // G. "let's just have it lit like when a player is there without justification": the third floor's night picture and arrival get no wash and no glow
+      var cvG = document.createElement('canvas'); cvG.width = 40; cvG.height = 40; var xG = cvG.getContext('2d'); xG.fillStyle = '#ffffff'; xG.fillRect(0, 0, 40, 40); H6N.lowLamps(xG, { x: 20, y: 20 }); var pxG = xG.getImageData(5, 5, 1, 1).data;
+      okN('G. the third floor at night as on a visit: a white square under H16.lowLamps stays ' + [pxG[0], pxG[1], pxG[2]], pxG[0] === 255 && pxG[1] === 255 && pxG[2] === 255);
       HN.playing = false; HN.cur = null; D.scenes.length = 0;
     } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
     D.sfx = sfxN; D.store.get = stGN; D.store.set = stSN; window.DS.autoPicks = apN; if (D.house) { D.house.playing = false; D.house.cur = null; }
@@ -6455,7 +6468,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       atSk(B, from[0], from[1], [Math.sign(at[0] - from[0]), Math.sign(at[1] - from[1])]); var R0 = B.roam; B.cards = []; R0.keys.push('use'); driveSk(B.co, function () { return (B.cards || []).length > 0 || D.top() !== B; }, 400);
       var sc = D.top(); // (a dwarf in costume speaks on the counter's screen since 11-12, the generic dwarf -- js/solskaft.js SK.DWARF: its name and its word read there, the screen closed)
       if (D.counter && sc instanceof D.counter.Counter) {
-        var said = ((((window.DS.DATA.npcs || {})[sc.id] || {}).name) || sc.id) + ' [' + sc.sheet + ':' + sc.look + '] ' + (sc.wait && sc.wait.say ? sc.wait.say.join(' / ') : '');
+        var said = ((((window.DS.DATA.npcs || {})[sc.id] || {}).name) || sc.id) + ' [' + sc.sheet + ':' + sc.look + '] ' + (sc.wait && (sc.wait.say || sc.wait.ask) ? [].concat(sc.wait.say || sc.wait.ask).join(' / ') : ''); // (a question too: the quartermaster's counter opens on THE SHELVES since 11-15)
         sc.close(); driveSk(B.co, function () { return D.top() === B; }, 60); return window.DS.stripCodes(said);
       }
       return window.DS.stripCodes(cardsSk(B));
@@ -18105,7 +18118,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // (Marin Voss spoken to at her door: from 10-21 she stood beside it and was spoken to there, facing south; inside since 10-28 later, her word at the door on her portrait)
       var drMa = trigW('keeper:marin'), gMa = drMa ? TW.fire(B, drMa) : null; if (gMa) driveW(gMa, upW, 200); var scMa = D.top(), wMa = upW() ? readW(scMa) : []; if (gMa) driveW(gMa, null, 200);
       okW('Marin Voss at her door, inside since 10-28 later: her counter screen on her portrait (' + (scMa && scMa.sheet) + '), her first-game word ("' + String(wMa[0]).slice(0, 40) + '..."), no figure of hers on the street (' + !B.units.some(function (u) { return u.npc === 'marin'; }) + ')',
-        !!drMa && scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && /is to come/.test(wMa.join(' ')) && !upW() && !B.units.some(function (u) { return u.npc === 'marin'; }));
+        !!drMa && scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && !/is to come/.test(wMa.join(' ')) /* (no counter line since 11-15, his "leans" on the counters: mode=notes1115 E) */ && !upW() && !B.units.some(function (u) { return u.npc === 'marin'; }));
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
       var kuW = B.units.filter(function (u) { return u.npc === 'winters'; })[0];
       okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south at rest (facing ' + (kuW && kuW.facing) + ', holdFacing ' + (kuW && kuW.holdFacing) + ') and free to turn -- drawn in all eight facings since 10-28 (ART-121, `833ca06`; RULED, his "Keep turning")', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && !kuW.holdFacing);
@@ -18285,7 +18298,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // fighters' stables' door, spoken to at her figure: her word, the Hex card's rumour heard, and no counter line (she sells nothing)
       var gBr2 = TW.fire(B, trigW('keeper:brennan')); driveW(gBr2, upW, 200); var scBr2 = upW() ? D.top() : null, wBr2 = scBr2 ? readW(scBr2) : []; driveW(gBr2, null, 200);
       okW('Brennan again, the purse paid: his own first-game word ("' + String(wBr2[0]).slice(0, 40) + '..."), on his portrait, and "' + String(wBr2[wBr2.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
-        scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && /buying and selling -- is to come/.test(wBr2.join(' ')) && !upW());
+        scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && !/buying and selling -- is to come/.test(wBr2.join(' ')) /* (no counter line since 11-15: mode=notes1115 E) */ && !upW());
       // (her door her word on her portrait, no room behind it: from 10-22 she stood beside it, inside since 10-28 later -- his "Off the street unless it makes NPC sense"; for a round
       // on 10-28 the compound was her room, restored on his "restore 19 to before my confusion": mode=housefix1028b)
       // (what a person says in the second game, read before the word is had: its own branch first, C.TALK16, then the first game's -- since 10-28 the words pass and the

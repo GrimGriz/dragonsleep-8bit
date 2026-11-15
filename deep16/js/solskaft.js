@@ -189,7 +189,7 @@
   // the people's words: the first game's (content/npcs.json by T.say), and for the two whose first-game word is a scene, the line that stands when the scene is past
   SK.WORDS = {
     pyro: function () { return [SK.L('deep.pyro1'), '{g}(His meeting at the door is the story\'s scene, to come.){/}']; },
-    quartermaster: function () { var s = ((DS.DATA || {}).shops || {}).qm || {}; return [s.greeting || '', '{g}(The garrison stores\' counter is to come.){/}']; }
+    quartermaster: function () { var s = ((DS.DATA || {}).shops || {}).qm || {}; return [s.greeting || '']; } // (his counter open since 11-15: js/counter.js C.VENDORS.quartermaster)
   };
 
   // ---------------------------------------------------------------- the floor in the first game's shape (js/mines.js M.floor reads it): the light by the hour, the people, the squares' words
@@ -562,6 +562,7 @@
   (function () {
     var C = D.counter; if (!C || !C.VENDORS) return;
     Object.keys(SK.DWARF).forEach(function (id) { if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_dwarf', look: SK.DWARF[id], wait: '' }; });
+    C.VENDORS.quartermaster.shop = 'qm'; // (his counter open, the garrison stores' shelf: 11-15, Griz on the counters' list, "leans")
     if (C.FACES_LEFT) C.FACES_LEFT.pt_dwarf = 1;
     var words0 = C.words; // (a dwarf with a standing line of the floor's own says it on the counter's screen, as on his card)
     C.words = function (B, id) { return SK.DWARF[id] && SK.WORDS[id] ? SK.WORDS[id]() : words0.apply(this, arguments); };
