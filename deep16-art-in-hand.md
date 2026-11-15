@@ -3764,7 +3764,7 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: Shamble -> walk, Slam -> `slam`, Slam 2 -> `slam2`, Engulf -> `engulf` (the cube's), Charged -> `charged` (new: Lightning Absorption heals it), Fall -> hurt, Prone -> prone (SRD: not immune); HEAD 1 plays every facing (the left ones mirrored); no face: no back. Large.
 
-## 59. Lymen's own rows (lay on hands, divine smite, green again, what falls feeds, relentless) and the standard extras, SECOND (added 11-13, the garrison cutter, on his word via the lanes desk) -- IN HAND 2026-11-15, `e639c1b1` (the art desk's ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, every row in five views, cut into `lymen_p2` and played at his five features by the cutter of 1115; sent from `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/`)
+## 59. Lymen's own rows (lay on hands, divine smite, green again, what falls feeds, relentless) and the standard extras, SECOND (added 11-13, the garrison cutter, on his word via the lanes desk) -- IN HAND 2026-11-15, `ebacf479` (the art desk's ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, every row in five views, cut into `lymen_p2` and played at his five features by the cutter of 1115; sent from `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/`)
 
 From the engine side (the garrison cutter, for the lanes desk), for the art desk. The same Lymen as `ASK-2026-11-13-lymen-fight-sheet-standard`, which comes first: this ask is what he does that only he does, and the standard rows the engine can live without. Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-13-lymen-paladin-rows/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 59.
 
