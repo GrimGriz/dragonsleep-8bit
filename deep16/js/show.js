@@ -208,6 +208,12 @@
         u.anim = 'idle';
       }
     }
+    // one with Invisible Passage at will and a `vanish` row of its own (the green hag, 11-15) that has not faded twice by the end of its second turn: it
+    // fades again, its Vanish -- the AI fades only with no one in its reach (js/ai.js), and in the gate's whole line-up that came once
+    if (u.invis && u.invis.atWill && D.spr.anim(u.sheet, 'vanish') && (seen.vanish || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone) {
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' fades out of sight again (its Invisible Passage), to see it twice.'], 200);
+      u.conds.invisible = { ends: true }; delete u.conds.hidden; u.anim = 'vanish'; u.animT = B.t; yield D.spr.duration(u.sheet, 'vanish') + 4; u.anim = 'idle';
+    }
     // one with a thrown or shot blow of its own row it has not shown by the end of its second turn (the stone giant's rock: the AI throws only
     // with no one in its reach, and on the test ground a giant's 15 ft always has someone -- 10-06): one throw at the nearest watcher it sees,
     // through the engine's own attack
@@ -570,6 +576,7 @@
       if (a) return { say: 'Its ' + nm(a) + ' at the fighter, ' + (a.ranged ? 'from across the floor' : 'in its reach') + ': the blow lands.', go: function* () { if (standIn(u, a)) yield* blow(u, m, a); else { u.anim = r; u.animT = B.t; } } };
       if (r === 'flinch') return { say: "The fighter's blow at it: it flinches.", go: function* () { if (standIn(u, { reach: 5 })) yield* blow(m, u, m.weapon); } };
       if (r === 'stillflinch') return { say: "Standing as the robed woman, the fighter's blow at her: struck, she drops the disguise -- her Reveal after the flinch (battle.js hurt).", go: function* () { if (standIn(u, { reach: 5 })) { u.woken = false; u.acted = false; u.anim = 'idle'; yield 30; yield* blow(m, u, m.weapon); } } }; // (11-07, the art desk's ART-125 batch H)
+      if (r === 'vanish' && u.invis) return { say: 'Its Invisible Passage, at will: it fades out of sight (its Vanish) -- in a fight, when no one is in its reach (ai.js).', go: function* () { u.anim = 'vanish'; u.animT = B.t; yield D.spr.duration(u.sheet, 'vanish') + 4; u.anim = 'idle'; } }; // (the green hag's, 11-15: the AI's choice brought it once in the gate's whole line-up)
       if (r === 'catch' && u.rockCatch) return { say: 'A stone hurled at it, the d20 pinned so the save holds: it catches it.', go: function* () { if (standIn(u, { ranged: true, range: [20, 60] })) { m.facing = B.faceTo(m, u); yield* blow(m, u, STONE, 20); } } };
       if (r === 'hide' && B.hide) return { say: 'Its Hide, the d20 pinned and a Stealth no eye beats: the row held while it stays hidden.', go: function* () {
         D.rules.startTurn(u); if (u.turn) u.turn.bonus = 1;
