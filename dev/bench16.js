@@ -306,6 +306,36 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR15);
     return;
   }
+  // THE CLICK AFTER ACTION SURGE, 11-15 (mode=surge1115; his record, the Hex's FREEMAN CHALLENGE 02:04:33Z R2: after SURGE a click at 224,135 on the Stable Fighter walked
+  // Barley to 5,4, past it, an opportunity attack; his "i thought it was my misclick but if it's reading as a valid click..."): Barley beside a foe, his action spent and surged
+  // back -- what tool the turn comes up on, and what a click on the foe's upper body does with it
+  if (get('mode', '') === 'surge1115') {
+    var repSG = { checks: [], errors: [] };
+    function okSG(what, v) { repSG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var BS = D.npcFight('?npc=thug&vs=fighter:2&lvl=2', {}); D.battle = BS; BS.enter(); var kS = 0; while (!BS.order.length && kS++ < 400) BS.co.next();
+      var fS = BS.units.filter(function (u) { return u.cls === 'fighter'; })[0], tS = BS.units.filter(function (u) { return u.side !== fS.side; })[0];
+      BS.units.forEach(function (w) { if (w !== fS && w !== tS) { w.x = 1; w.y = 1 + BS.units.indexOf(w); } });
+      fS.x = 7; fS.y = 6; tS.x = 6; tS.y = 6; D.grid.setup(D.grid.map, BS.units); D.rules.startTurn(fS);
+      var TS = fS.turn; D.ui.onRequest(BS, { turn: fS }); var tool0 = BS.tool; // (the turn's start, beside the foe: MOVE, as ever -- his "they should be used to moving being up at turn start")
+      TS.action = 0; TS.attacksLeft = 0; fS.feats.actionSurge = 1; // (the swing spent)
+      var gS = BS.exec(fS, { do: 'surge' }), nS = 0; while (!gS.next().done && nS++ < 400) { }
+      D.ui.onRequest(BS, { turn: fS }); var toolS = BS.tool;
+      okSG('the turn\'s start beside the foe stays on "' + tool0 + '"', tool0 === 'move');
+      // the foe's figure on the screen: every pixel the pick gives to the foe, and of those, the ones whose tile is not its own square
+      var onFoe = [], behind = [];
+      for (var my = 0; my < D.H; my += 2) for (var mx = 0; mx < D.W; mx += 2) { if (D.ui.pickUnit(BS, mx, my, null) === tS) onFoe.push([mx, my]); }
+      onFoe.forEach(function (p) { var hp = D.ui.hoverPick(BS, fS, p[0], p[1]); if (!hp.unit) behind.push({ p: p, sq: hp.sq }); });
+      var sqs = {}; behind.forEach(function (b) { if (b.sq) sqs[b.sq.x + ',' + b.sq.y] = (sqs[b.sq.x + ',' + b.sq.y] || 0) + 1; });
+      okSG('after the surge the turn comes up on "' + toolS + '" with the foe in reach', toolS === 'attack');
+      okSG('of ' + onFoe.length + ' pixels on the foe\'s figure, ' + behind.length + ' give the walk a square instead: ' + JSON.stringify(sqs), onFoe.length > 0 && behind.length === 0);
+      D.ui.onRequest(BS, { turn: fS }); var tool2 = BS.tool;
+      okSG('asked again in the same turn (a walk taken instead), it is back to "' + tool2 + '"', tool2 === 'move');
+    } catch (eSG) { repSG.errors.push(String(eSG && eSG.stack || eSG).slice(0, 900)); }
+    var preSG = document.createElement('pre'); preSG.id = 'out'; preSG.textContent = 'BENCH16 ' + JSON.stringify(repSG);
+    document.body.appendChild(preSG);
+    return;
+  }
   // THE LANES' READY SMALLS, 11-14 (mode=sweep1114; the todo-pairs seat's sweep of the story lanes on the lanes desk's word): 1. the play records lane 10, a hero who got out
   // is not written down; 2. the bestiary lane's §47, the Giant Spider's short name beside Wolf Spiders
   if (get('mode', '') === 'sweep1114') {

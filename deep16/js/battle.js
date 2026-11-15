@@ -2189,7 +2189,7 @@
       }
       case 'surge': {
         D.sfx('buff');
-        u.feats.actionSurge = 0; T.action = 1;
+        u.feats.actionSurge = 0; T.action = 1; T.surgeUp = true; // (surgeUp: the turn comes back up on ATTACK with a foe in reach -- js/ui.js UI.onRequest, 11-15)
         var asRow = D.spr.anim(u.sheet, 'actionsurge'); if (asRow) { u.anim = 'actionsurge'; u.animT = this.t; } // (a sheet's Action Surge row: set for the extra action -- Barley's ART-75, 10-20)
         this.card(['{y}' + u.name + '{/}: ACTION SURGE -- a second action.']); FX.ring(u, 'gold', 30);
         yield asRow ? Math.max(20, D.spr.duration(u.sheet, 'actionsurge')) : 20; return;

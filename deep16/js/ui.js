@@ -66,7 +66,10 @@
     if (req.turn) {
       var T = req.turn.turn;
       // a second swing waits on the grid only while there's a foe to take it at; else back to rest (walk, or the ring)
-      B.tool = T.attacksLeft && B.foeInReach(req.turn) ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
+      // (and once after ACTION SURGE with a foe in reach -- 11-15, his record, the Hex's FREEMAN CHALLENGE: on MOVE, a click on the foe's upper body walked Barley past it into an
+      // opportunity attack; his "build after the surge, they should be used to moving being up at turn start". The turn's start stays on MOVE)
+      var surgeA = T.surgeUp && T.action > 0 && B.foeInReach(req.turn); T.surgeUp = false;
+      B.tool = (T.attacksLeft || surgeA) && B.foeInReach(req.turn) ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
       // on the ring, the grid gives way to it once there's nothing left there: no step to take, no swing at a foe in reach
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
