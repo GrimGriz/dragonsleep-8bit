@@ -23,7 +23,7 @@ HOME_EAST = 2
 # THE CLANS (RULED 11-15, his answers 3-6 to the Snoot seat): what the world's map changes of js/data.js SN.FORCES, by a unit's id. "some of the gnolls in the groups
 # will have better stats (female) without different graphics", "one for every 6 males" (a part of six over half makes one more: 15 males 3, 10 males 2, 7 males 1);
 # "other than the death-watch"; the Skull-Gate in three groups, the fourth band folded into the other two and its glory-seekers the group that followed the Harbinger
-# (his "5 - I like it"); "Harbinger should have some gnolls with him also ... never females" -- six, the seat's number.
+# (his "5 - I like it"); "Harbinger should have some gnolls with him also ... never females" -- six, the seat's number, RULED 11-15 (his "all are good").
 FORCES = {
     'sg1': {'figs': 27, 'comp': {'gloryseeker': 5, 'gnoll': 10, 'gnollfemale': 3, 'hyena': 9}},
     'sg2': {'figs': 27, 'comp': {'gloryseeker': 4, 'gnoll': 11, 'gnollfemale': 3, 'hyena': 9}},

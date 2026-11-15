@@ -1337,7 +1337,7 @@ window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'g
   src: window.D16.FOES.gnoll.src + '; the look of the Gray Keeping (graykeeping_p2, 10-15): the same block' });
 // THE WOMEN OF THE BANDS (11-15, Griz to the clock seat: "stat wise we need to add stronger female gnolls included in their group (save the harbingers)"; to the
 // Snoot seat: "some of the gnolls in the groups will have better stats (female) without different graphics", "one for every 6 males"): the gnoll's own sheet and
-// name, a heavier body (wiki/gnoll-hills.md: "females larger and fiercer"). THE NUMBERS ARE THE SEAT'S, his to change: Str 16 and Con 14 where the gnoll has
+// name, a heavier body (wiki/gnoll-hills.md: "females larger and fiercer"). The numbers are the seat's, RULED 11-15 (his "all are good"): Str 16 and Con 14 where the gnoll has
 // 14 and 11, 5d8+10 (32) hit points for its 22, +5 to hit and +3 damage for +4 and +2; all else the SRD gnoll's. Sent to the grid by the Snoot's bands
 // (snoot-mode/js/map.js forces: gnollfemale, gnollgrayfemale); not on the DM's shelves.
 (function () {

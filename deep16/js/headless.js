@@ -248,7 +248,7 @@
         if (hu[u.hunit] && hu[u.hunit].cover) u.hcover = true;
         // THE MORNING RITUAL (11-15, Griz: "give the laughers a morning ritual stat bonus they recast each day"; "paladin bless for their first combat of the day
         // (24 h if no combat), only if females remain in that group"): a unit the board sends blessed has the SRD's Bless on every body for this fight -- 1d4 on
-        // its attack rolls and its saves (js/battle.js, js/rules.js read conds.blessed) -- with nobody's concentration to break. Every body and the whole fight are the seat's reading
+        // its attack rolls and its saves (js/battle.js, js/rules.js read conds.blessed) -- with nobody's concentration to break. Every body and the whole fight where the spell blesses three: RULED 11-15, his "all are good, excuse for the third is that its a ritual" -- it is a ritual, not a casting
         if (hu[u.hunit] && hu[u.hunit].bless && u.conds) u.conds.blessed = { by: u.id, ritual: true };
         // SURPRISE (the board's die, Book III): the side caught unready is surprised as the grid has it (SRD 5.1: no turn in the first round)
         if (spec.surprised && u.hgroup === spec.surprised && u.conds) u.conds.surprised = true;

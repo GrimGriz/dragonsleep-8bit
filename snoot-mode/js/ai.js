@@ -62,7 +62,7 @@
     if (g[0] && SN.dist(g[0].at, u.at) <= 2) { go(st, u, g[0].at); u.berserkOrder = true; SN.say(st, u.name + ' have seen gnolls and will not be held back.', 'move', u.at); return; }
     if (st.head && !(g[0] && SN.dist(g[0].at, u.at) <= 4)) { if (!SN.same(u.at, u.home)) go(st, u, u.home); return; }
     if (g[0]) { go(st, u, g[0].at); return; }
-    if (!SN.same(u.at, SN.MANE)) go(st, u, SN.MANE.slice()); // (the stomp goes for the Mane, wherever the death-watch keeps it: the seat's reading, 11-15)
+    if (!SN.same(u.at, SN.MANE)) go(st, u, SN.MANE.slice()); // (the plains tribes march on the Mane, wherever the death-watch keeps it: the seat's reading, RULED 11-15, his "all are good")
   };
   AI.gnoll = function (st, u) {
     u.order = { type: 'hold' };
