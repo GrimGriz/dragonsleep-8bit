@@ -855,11 +855,14 @@
     B.card(['  {c}the double breaks to rime{/} over ' + nm(B, att) + ': {g}-10 ft till its turn is over{/}'], 200);
   };
   // RIME STEP (6): his illusion of the 1st level or more, cast, and he is ten feet off -- to the square farthest from the foes
-  var ILLUSION = ['silentimage', 'majorimage', 'mirrorimage', 'blur', 'invisibility', 'greaterinvisibility', 'hypnoticpattern', 'phantasmalkiller', 'mislead', 'disguiseself', 'colorspray'];
+  // (11-15, the lanes desk, on Griz's "that now then please": an illusion of the 1st level or more is read off the spell's own record
+  // (content/spells.json: school and level, as DS.DATA.spells carries it) in place of a hand list that named three spells the game
+  // doesn't have -- silent image, major image, disguise self -- and left out Fear and Weird; Color Spray is the 1st-level one he meant)
+  function illusion1(id) { var s = window.DS && DS.DATA && DS.DATA.spells && DS.DATA.spells[id]; return !!s && s.school === 'illusion' && (s.level || 0) >= 1; }
   var cast1 = M.cast;
   M.cast = function (B, u, id) {
     var g = cast1.apply(this, arguments);
-    if (!sub(u, 'the Rimeglass', 6) || ILLUSION.indexOf(id) < 0) return g;
+    if (!sub(u, 'the Rimeglass', 6) || !illusion1(id)) return g;
     return (function* () {
       var r = yield* g;
       if (u.dead || u.hp <= 0 || !hostileNear(B, u, 30).length) return r;
