@@ -52,12 +52,22 @@
   };
   // a hurled rock (a giant's Rock: data/foes.js fx 'rock' -- 10-08, with the stone giant's catch; it flew as a crossbow bolt's speck before): a lump of the
   // stone ramp turning in a high lob, from over the thrower's shoulder down to the target's chest, its shadow running along the ground under it
+  // (sized to the thrower's own boulder since 11-15, Griz at the parade: "the code drawn thrown rock from the giant closer to the size in the sprite if we can" -- the Rock's
+  //  `fxSize`, its width in px measured off the thrower's sheet (data/foes.js: the frost giant's boulder 34, as he holds it overhead; the stone giant's 21, the size of
+  //  her head -- her sheet's fist is empty, and tools/stonegiant-blend.py drew "a stone about the size of her head"), in its `fxRamp` (both the grey of their stone,
+  //  'silver'), drawn at the art's own pixel (boulder() below); a Rock with none keeps the old 7-px lump)
   function rockShot(from, to) {
+    var rA = from && from.attacks ? Object.keys(from.attacks).map(function (k) { return from.attacks[k]; }).filter(function (q) { return q && q.fx === 'rock'; })[0] : null;
+    var size = rA && rA.fxSize > 7 ? Math.round(rA.fxSize) : 0, ramp = (rA && rA.fxRamp && D.PAL.ramps[rA.fxRamp]) ? rA.fxRamp : 'stone';
     var a = FX.at(from), b = FX.at(to), dist = Math.hypot(a.gx - b.gx, a.gy - b.gy), dur = Math.max(12, Math.round(dist * 3.2));
     var ha = D.spr.unitTop(from) * 0.9, hb = D.spr.unitTop(to) * 0.6, arc = 12 + dist * 2;
-    return FX.add({ kind: 'proj', blocking: true, dur: dur, draw: function (ctx) {
+    return FX.add({ kind: 'proj', blocking: true, dur: dur, size: size || 7, draw: function (ctx) {
       var t = this.t / this.dur, gx = a.gx + (b.gx - a.gx) * t, gy = a.gy + (b.gy - a.gy) * t, g0 = a.gz + (b.gz - a.gz) * t;
       var s = scr(gx, gy, g0 + ha + (hb - ha) * t + Math.sin(t * Math.PI) * arc), sh = scr(gx, gy, g0), x = Math.round(s.x), y = Math.round(s.y);
+      if (size) { // (a boulder: its shadow, then the stone itself, the light turning as it tumbles -- slower than the little lump's)
+        var sw = Math.round(size * 0.7); ctx.globalAlpha = 0.35; ctx.fillStyle = P('outline', 0); ctx.fillRect(Math.round(sh.x) - (sw >> 1), Math.round(sh.y) - 1, sw, 3); ctx.globalAlpha = 1;
+        boulder(ctx, x, y, size, Math.floor(this.t / 4) % 4, ramp); return;
+      }
       ctx.globalAlpha = 0.35; ctx.fillStyle = P('outline', 0); ctx.fillRect(Math.round(sh.x) - 2, Math.round(sh.y) - 1, 5, 2); ctx.globalAlpha = 1;
       ctx.fillStyle = P('outline', 0); ctx.fillRect(x - 3, y - 2, 7, 5); ctx.fillRect(x - 2, y - 3, 5, 7);
       ctx.fillStyle = P('stone', 5); ctx.fillRect(x - 2, y - 2, 5, 5);
@@ -65,6 +75,23 @@
       ctx.fillStyle = P('stone', 7); ctx.fillRect(lx, ly, 2, 1); ctx.fillRect(lx + (lx > x ? 1 : 0), ly + 1, 1, 1);
       ctx.fillStyle = P('stone', 3); ctx.fillRect(lx > x ? x - 2 : x + 1, ly > y - 2 ? y - 2 : y + 2, 2, 1);
     } });
+  }
+  // a boulder d px wide about (x, y), drawn a row at a time at the art's own pixel: a disc a little flatter than round, outlined, its dark side under the mid stone
+  // and a light patch toward the side the tumble has turned up (k: 0 upper left, 1 upper right, 2 lower right, 3 lower left -- the little lump's turn), and a crack;
+  // in ramp r (its 2 the crack, 3 the dark, 5 the mid, its last the light)
+  function boulder(ctx, x, y, d, k, r) {
+    r = r || 'stone'; var RL = D.PAL.ramps[r].length - 1;
+    var disc = function (cx, cy, w, h, col) {
+      ctx.fillStyle = col;
+      for (var j = 0; j < h; j++) { var v = (j + 0.5) / h * 2 - 1, wr = Math.max(1, Math.round(w * Math.sqrt(Math.max(0, 1 - v * v)))); ctx.fillRect(Math.round(cx - wr / 2), Math.round(cy - h / 2) + j, wr, 1); }
+    };
+    var h = Math.max(5, Math.round(d * 0.84)), lx = k === 1 || k === 2 ? 1 : -1, ly = k >= 2 ? 1 : -1, q = Math.max(1, Math.round(d / 14));
+    disc(x, y, d, h, P('outline', 0));
+    disc(x, y, d - 2, h - 2, P(r, 3));
+    disc(x + lx * q, y + ly * q, d - 2 - 2 * q, h - 2 - 2 * q, P(r, 5));
+    disc(x + lx * Math.round(d * 0.17), y + ly * Math.round(h * 0.17), Math.round(d * 0.36), Math.round(h * 0.3), P(r, RL));
+    ctx.fillStyle = P(r, 2); // (a crack across the far side from the light)
+    for (var c = 0; c < Math.round(d * 0.3); c++) ctx.fillRect(x - lx * Math.round(d * 0.08) - lx * c, y - ly * Math.round(h * 0.12) + ly * (c >> 1), 1, 1);
   }
   // the fireball: the bead, then a bloom over every square of the template, square by square outward
   FX.bloom = function (cx, cy, squares, ramp, o) {

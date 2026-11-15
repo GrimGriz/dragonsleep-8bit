@@ -218,7 +218,7 @@
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
       greatclub: { name: 'Greatclub', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning', reach: 15 },
-      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', prone: 17, hurled: true } // (fx 'rock': a lump in a lob, js/fx.js -- a bolt's speck till 10-08; hurled: a rock a stone giant can catch)
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', prone: 17, hurled: true, fxSize: 21, fxRamp: 'silver' } // (fx 'rock': a lump in a lob, js/fx.js -- a bolt's speck till 10-08; hurled: a rock a stone giant can catch)
     },
     multi: ['greatclub', 'greatclub'],
     // Rock Catching (SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take no bludgeoning damage
@@ -904,7 +904,7 @@
     saves: { str: 6, dex: -1, con: 8, int: -1, wis: 3, cha: 4 },
     attacks: {
       greataxe: { name: 'Greataxe', atk: 9, dice: '3d12', mod: 6, type: 'slashing', reach: 10 },
-      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', hurled: true, row: 'throw' } // (thrown when no one is in his reach, the stone giant's way -- js/ai.js volley)
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', hurled: true, row: 'throw', fxSize: 34, fxRamp: 'silver' } // (thrown when no one is in his reach, the stone giant's way -- js/ai.js volley)
     },
     multi: ['greataxe', 'greataxe'], immune: ['cold'],
     exhale: 'frost', // (his breath fogs white in the cold, the engine's: js/looks.js LK.exhale -- the art desk's drawn fog stripped from his Idle, on Griz's "1-3 leans")

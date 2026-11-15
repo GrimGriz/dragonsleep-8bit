@@ -11422,6 +11422,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       for (var tFGX = 0; tFGX < 300; tFGX++) { var nFGX = LKX && LKX.exhale ? LKX.exhale(cxFGX, { t: tFGX }, GIX, { x: 120, y: 220 }) : 0; if (nFGX) onFGX++; else offFGX++; maxFGX = Math.max(maxFGX, nFGX); }
       okFG('6 his breath: mouths ' + JSON.stringify(MFGX) + ' (his top ' + topFGX + '); style ' + (D.FOES.frostgiant.exhale || 'none') + '; over 300 ticks motes on ' + onFGX + ', none on ' + offFGX + ' (up to ' + maxFGX + ' at once)',
         !!MFGX && MFGX.length === 8 && MFGX.every(function (m) { return m[1] < -0.6 * topFGX && m[1] > -topFGX && Math.abs(m[0]) < 40; }) && D.FOES.frostgiant.exhale === 'frost' && onFGX > 60 && offFGX > 60 && maxFGX >= 3);
+      // 7. the thrown rock at its own size (11-15, Griz at the parade: "the code drawn thrown rock from the giant closer to the size in the sprite if we can"): js/fx.js
+      // rockShot draws a boulder the Rock's `fxSize` wide at the art's own pixel (data/foes.js, measured off each sheet) -- his 34, the stone giant's head-sized
+      // 21; a Rock with none keeps the old 7-px lump. The lump's width and its shadow's, drawn on a pretend canvas
+      var lumpFGX = function (u) {
+        var e = D.fx.projectile(u, FIGX, 'rock'), sc = 1, xs = [], sh = 0, cx = { globalAlpha: 1, fillStyle: '', save: function () { }, restore: function () { sc = 1; }, translate: function () { }, scale: function (a) { sc = a; },
+          fillRect: function (x, y, w, h) { if (this.globalAlpha < 1) sh = Math.max(sh, w); else xs.push(x * sc, (x + w) * sc); } };
+        try { e.t = Math.floor(e.dur / 2); e.draw(cx); } finally { D.fx.list = D.fx.list.filter(function (f) { return f !== e; }); }
+        return [Math.max.apply(null, xs) - Math.min.apply(null, xs), sh];
+      };
+      var rkFGX = lumpFGX(GIX), rkSGX = lumpFGX(Object.assign({}, GIX, { attacks: D.FOES.stonegiant.attacks, sheet: 'stonegiant_p1' })), rk0X = lumpFGX(Object.assign({}, GIX, { attacks: { rock: { name: 'Rock', fx: 'rock' } } }));
+      okFG('7 the thrown rock: his ' + rkFGX[0] + ' px wide (fxSize ' + AFG.rock.fxSize + '), the stone giant\'s ' + rkSGX[0] + ' (fxSize ' + D.FOES.stonegiant.attacks.rock.fxSize + '), one with none ' + rk0X[0] + '; their shadows ' + rkFGX[1] + ', ' + rkSGX[1] + ', ' + rk0X[1] +
+        ' (want 34, 21, 7; 24, 15, 5)', rkFGX.join() === '34,24' && rkSGX.join() === '21,15' && rk0X.join() === '7,5');
     } catch (eFG) { repFG.errors.push(String(eFG && eFG.stack || eFG).slice(0, 900)); }
     D.d = d0FG;
     var preFG = document.createElement('pre'); preFG.id = 'out'; preFG.textContent = 'BENCH16 ' + JSON.stringify(repFG);
