@@ -10828,6 +10828,36 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE WINTER WOLF'S BREATH, 11-15 (mode=winterwolf1115; the cutter-fresh-1115 seat, on Griz's ruling on drawn breath -- "should be done with the engine like we're doing
+  // other things" -- and his "1-3 leans"): 1. its Cold Breath row with the drawn cone off -- every frame within its resting figure (Breath 1 and 6) and a few px;
+  // 2. the Idle's mouths, a facing each, at its head's height; 3. its breath on the air the engine's (js/looks.js LK.exhale, 'frost'), breathing and pausing;
+  // 4. the Cold Breath still plays its row and the cone blooms on the squares (js/traits.js M.breathe)
+  if (get('mode', '') === 'winterwolf1115') {
+    var repWW = { checks: [], errors: [], notes: [] }, d0WW = D.d;
+    function okWW(what, v) { repWW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var SWWX = D.SHEETS.winterwolf_p1, AWWX = SWWX && SWWX.anims.breath;
+      okWW('1 the Cold Breath row: ' + (AWWX ? AWWX.frames + ' frames, ' + AWWX.fw + ' wide; the cutter: ' + (AWWX.cone || 'no word') : 'no row') + ' (tools/winterwolf-sheet.py stops on a cone left: more than 4 px of a frame over 6 px off the resting wolf)',
+        !!AWWX && AWWX.frames === 6 && /^off/.test(AWWX.cone || ''));
+      var MWWX = SWWX && SWWX.anims.idle.mouth, topWWX = D.spr.top('winterwolf_p1');
+      okWW('2 its mouths ' + JSON.stringify(MWWX) + ' (its top ' + topWWX + ')', !!MWWX && MWWX.length === 8 && MWWX.every(function (m) { return m.length === 4 && m[1] < 0 && m[1] > -topWWX - 4 && Math.abs(m[0]) < 60; }));
+      var BWWX = D.npcFight('?npc=winterwolf&vs=fighter:5&lvl=5', {}); D.battle = BWWX; BWWX.enter(); var kWWX = 0; while (!BWWX.order.length && kWWX++ < 400) BWWX.co.next();
+      var WWX = BWWX.units.filter(function (u) { return u.kind === 'winterwolf'; })[0], cv2WWX = document.createElement('canvas'); cv2WWX.width = 240; cv2WWX.height = 200;
+      var onWWX = 0, offWWX = 0, c2WWX = cv2WWX.getContext('2d'); WWX.facing = 6;
+      for (var tWWX = 0; tWWX < 300; tWWX++) { if (D.looks && D.looks.exhale && D.looks.exhale(c2WWX, { t: tWWX }, WWX, { x: 120, y: 160 })) onWWX++; else offWWX++; }
+      okWW('3 its breath on the air: style ' + (D.FOES.winterwolf.exhale || 'none') + '; over 300 ticks motes on ' + onWWX + ', none on ' + offWWX, D.FOES.winterwolf.exhale === 'frost' && onWWX > 60 && offWWX > 60);
+      var FIWWX = BWWX.units.filter(function (u) { return u.side === 'party'; })[0]; BWWX.units.forEach(function (w) { if (w !== WWX && w !== FIWWX) w.left = true; });
+      FIWWX.x = WWX.x + 3; FIWWX.y = WWX.y; FIWWX.hp = FIWWX.maxhp = 300; D.grid.setup(D.grid.map, BWWX.units);
+      var MGWWX = D.magic, seenWWX = [], hp0WWX = FIWWX.hp, rWWX, nWWX = 0, vWWX;
+      var gWWX = MGWWX.breathe(BWWX, WWX, { x: FIWWX.x, y: FIWWX.y, z: MGWWX.aimAt(FIWWX, { shape: WWX.breath.shape || 'cone', len: WWX.breath.ft }) });
+      do { rWWX = gWWX.next(vWWX); vWWX = undefined; if (!rWWX.done && rWWX.value && rWWX.value.prompt) vWWX = rWWX.value.prompt.opts[0].value; if (WWX.anim && seenWWX.indexOf(WWX.anim) < 0) seenWWX.push(WWX.anim); } while (!rWWX.done && nWWX++ < 20000);
+      okWW('4 the Cold Breath plays its rows ' + seenWWX.join('/') + '; the fighter caught in the cone: ' + hp0WWX + ' to ' + FIWWX.hp, seenWWX.indexOf('breath') >= 0 && FIWWX.hp < hp0WWX);
+    } catch (eWW) { repWW.errors.push(String(eWW && eWW.stack || eWW).slice(0, 900)); }
+    D.d = d0WW;
+    var preWW = document.createElement('pre'); preWW.id = 'out'; preWW.textContent = 'BENCH16 ' + JSON.stringify(repWW);
+    document.body.appendChild(preWW);
+    return;
+  }
   // THE YOUNG FROST GIANT, 11-15 (mode=frostgiant1115; the cutter-fresh-1115 seat, on Griz's "Please start cutting Fresh one at a time"): the SRD 5.1 Frost Giant on
   // the art desk's ART-129, frostgiant_p1 (tools/frostgiant-sheet.py) -- 1. its block; 2. the Greataxe on `attack`, the Rock on its `throw` row, cold does nothing to him;
   // 3. its routine (js/ai.js): one in his reach, two Greataxes; nobody in reach and he cannot close, a Rock; 4. its sheet, every row and its strike frames; 5. the

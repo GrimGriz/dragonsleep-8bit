@@ -21,6 +21,9 @@ The pages' boxes read by the seat's probe (the numbers are white islands, the fr
 frost, so each digit is boxed (`own_strip`); SE's peak cone hangs down beside the flinch below it (`away`, each band its corner) and every cone
 goes to its own frame (`fix`: a loose crystal goes to the nearest body, and the next wolf is often nearer); S's and E's Flinch 2 yelp ticks
 are boxed out as lettering (the art desk: "Exclude ... small yelp ticks on S/E Flinch2 from creature masks").
+Since 11-15 (Griz on drawn breath, "should be done with the engine like we're doing other things", then "1-3 leans"): the Cold Breath row's drawn cone
+is off (uncone(), S holding its open-jawed Breath 2 -- the cone covered its chest) and the breath on the air is the engine's, js/looks.js LK.exhale from
+the Idle row's `mouth` -- where the art desk's idle puffs left its nose (mouths()); every other row byte for byte as it was.
 """
 import os, sys, json
 import importlib.util
@@ -215,6 +218,91 @@ def prone_targets():
     return out
 
 
+# THE CONE OFF, THE BREATH THE ENGINE'S (11-15, the cutter-fresh-1115 seat, on the lanes desk's relay of Griz's ruling on drawn breath -- "i thought it would look
+# silly like that animated and should be done with the engine like we're doing other things", "i recall it doing the winter wolf breath like that and it animating like
+# a static speech bubble" -- and his "1-3 leans": the winter wolf's drawn cone off its Cold Breath row, the open jaw kept; the cone is js/traits.js M.breathe's bloom on
+# the squares, and its breath on the air js/looks.js LK.exhale's, from where the art desk's own idle puffs left its nose -- the Idle row's `mouth`, a facing each.
+# The frost is drawn in the wolf's own whites (silver and bone) with glow and blue, so not by colour: on Breath 2-5 a piece is kept only where it joins the wolf as it
+# stands at Breath 1 and 6 (their figures, `NEAR` px round), the glow and blue left out of the joining; over the wolf (S's cone covers its chest), Breath 1's own pixels
+# go back where the frost-only colours lay
+FROST_ONLY = ('glow', 'blue')
+MOUTH = [None]
+CONE = {}
+HOLD2 = ('S',)                  # (S's cone falls over its chest and forelegs, and under it the wolf is not drawn: its Breath 3-5 hold its Breath 2, the jaw open, the frost off --
+                                #  Breath 1's legs pasted under them showed its resting head a second time)
+NEAR = 2
+_PALN = {}
+for _r, _cs in json.load(open(os.path.join(ROOT, 'deep16', 'palette.json'), encoding='utf-8'))['ramps'].items():
+    for _c in _cs:
+        _PALN[tuple(int(_c[i:i + 2], 16) for i in (1, 3, 5))] = _r
+
+
+def frost_only(a):
+    """the pixels of a frame drawn in a ramp only the frost uses (glow, blue)"""
+    al = a[..., 3] > 0; out = np.zeros(al.shape, bool)
+    ys, xs = np.where(al)
+    for y, x in zip(ys, xs):
+        if _PALN.get(tuple(int(v) for v in a[y, x, :3])) in FROST_ONLY:
+            out[y, x] = True
+    return out
+
+
+def uncone(seq, low=None):
+    """a view's breath row with its drawn cone off (frames 2-5): -> (the row, the cone's pixels each frame)"""
+    rest = (seq[0][..., 3] > 0) | (seq[-1][..., 3] > 0)
+    near = ndimage.binary_dilation(rest, iterations=NEAR)
+    ys = np.where(rest.any(1))[0]
+    out, cones = [seq[0]], [np.zeros(rest.shape, bool)]
+    for fr in seq[1:-1]:
+        al = fr[..., 3] > 0; fo = frost_only(fr)
+        lab, n = ndimage.label(al & ~fo, structure=np.ones((3, 3)))
+        keep = np.isin(lab, [k for k in range(1, n + 1) if ((lab == k) & rest).any()]) & near
+        g = fr.copy(); cone = al & ~keep
+        over = fo & rest                                                  # (frost over the wolf: its own pixels at rest back)
+        if low is not None:                                               # (S: below `low` of its height, Breath 1 whole)
+            lo = np.zeros(rest.shape, bool); lo[ys[0] + int(low * (ys[-1] - ys[0])):] = True
+            over |= lo & (al | (seq[0][..., 3] > 0)); cone &= ~lo
+        g[over] = seq[0][over]; g[over & ~(seq[0][..., 3] > 0), 3] = 0
+        g[cone & ~over, 3] = 0
+        out.append(g); cones.append((cone | over) & al & ~(seq[0][..., 3] > 0) | cone)
+    out.append(seq[-1]); cones.append(np.zeros(rest.shape, bool))
+    return out, cones
+
+
+def mouths(first, d):
+    """{facing: [x, y, dx, dy]}: where the art desk's idle puff (the first pass keeps them) leaves the nose, and the way it drifts -- the biggest puff of the
+    view's idles; a view with none takes its breath cone's root and way. Cell px from the anchor"""
+    out = {}
+    for v in ('S', 'SE', 'E', 'NE', 'N'):
+        best = None
+        for i, fr in enumerate(first[v]['idle']):                         # (the puff: what the first pass's idle has that the second's has not -- at game size it touches the
+            body = d[v]['idle'][i][..., 3] > 0; ys = np.where(body.any(1))[0]   # nose -- its biggest blob in the wolf's top 60%: a pass's pixel of shift elsewhere is no puff)
+            diff = (fr[..., 3] > 0) & ~ndimage.binary_dilation(body, iterations=1); diff[ys[0] + int(0.6 * (ys[-1] - ys[0])):] = False
+            lab, n = ndimage.label(diff, structure=np.ones((3, 3)))
+            if not n:
+                continue
+            sz = ndimage.sum(diff, lab, range(1, n + 1)); puff = lab == 1 + int(np.argmax(sz))
+            if puff.sum() >= 4 and (best is None or puff.sum() > best[0]):
+                best = (int(puff.sum()), body, puff)
+        if best is None:
+            continue
+        _, body, puff = best
+        dist = ndimage.distance_transform_edt(~body); fy, fx = np.where(puff); dv = dist[fy, fx]; nr = dv <= dv.min() + 1
+        ry, rx = fy[nr].mean(), fx[nr].mean(); cy, cx = fy.mean(), fx.mean()
+        dl = max(1e-6, float(np.hypot(cy - ry, cx - rx)))
+        out[v] = [int(round(rx - AX)), int(round(ry - AY)), round(float((cx - rx) / dl), 2), round(float((cy - ry) / dl), 2)]
+        print('  %s mouth %s (the idle puff, %d px)' % (v, out[v], best[0]))
+    if 'S' not in out:                   # (S drew no idle puff: its muzzle the middle of its head -- its top 30% -- at the SE's muzzle height; its way out a diagonal to
+        hb = d['S']['idle'][0][..., 3] > 0; ys = np.where(hb.any(1))[0]   # its right, there being no drawn way to read: straight at the eye it would sit on its white chest)
+        hd = hb.copy(); hd[ys[0] + int(0.3 * (ys[-1] - ys[0])):] = False
+        out['S'] = [int(round(np.median(np.where(hd)[1]) - AX)), out['SE'][1], 0.6, 0.8]
+        print('  S mouth %s (its head\'s middle at the SE\'s height)' % out['S'])
+    f = {0: out['S'], 4: out['N'], 5: out['NE'], 6: out['E'], 7: out['SE']}
+    for mf, sf in ((1, 7), (2, 6), (3, 5)):
+        x, y, dx, dy = f[sf]; f[mf] = [-x, y, -dx, dy]
+    return [f[i] for i in range(8)]
+
+
 def build():
     tg = prone_targets()
     cell = (FW, FH, AX, AY)
@@ -224,6 +312,17 @@ def build():
     _PUFF[0] = True                      # (the idles' puffs off in the second pass only: the first pass's idles stay the tone refs they were)
     d = AD.views(ROOT, 'winterwolf', 'ART-54', PAGES, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
     d = {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
+    for v in d:                          # (the drawn cone off -- above)
+        d[v]['_breath0'] = d[v]['breath']
+        d[v]['breath'], d[v]['_cones'] = uncone(d[v]['breath'])
+        if v in HOLD2:
+            d[v]['breath'] = d[v]['breath'][:2] + [d[v]['breath'][1].copy() for _ in range(3)] + d[v]['breath'][5:]
+        rest = (d[v]['breath'][0][..., 3] > 0) | (d[v]['breath'][-1][..., 3] > 0); far = ~ndimage.binary_dilation(rest, iterations=6)
+        left = [int(((fr[..., 3] > 0) & far).sum()) for fr in d[v]['breath']]
+        assert max(left) <= 4, (v, 'a cone left on the breath row', left)       # (the proof: no frame keeps more than 4 px over 6 px off the resting wolf)
+        CONE[v] = max(left)
+        print('  %s breath: cone off %s px' % (v, [int(c.sum()) for c in d[v]['_cones']]))
+    MOUTH[0] = mouths(first, d)
     frames = {}
     for an in ROWS:
         frames[an] = [d['S'][an], mirror(d['SE'][an]), mirror(d['E'][an]), mirror(d['NE'][an]), d['N'][an], d['NE'][an], d['E'][an], d['SE'][an]]
@@ -239,6 +338,8 @@ if __name__ == '__main__':
     meta = json.load(open(mp))
     for an, fps in FPS.items():
         meta['anims'][an]['fps'] = fps
+    meta['anims']['breath']['cone'] = 'off (11-15): at most %d px of a frame over 6 px off the resting wolf; S holds its Breath 2' % max(CONE.values())   # (the bench reads it: mode=winterwolf1115)
+    meta['anims']['idle']['mouth'] = MOUTH[0]    # (where its breath leaves it, a facing each: [x, y from the anchor, the drawn puff's way dx, dy] -- js/looks.js LK.exhale)
     meta['source'] = ('drawn by the art desk (ART-11 SE and NE, 10-10, SE page 1 his pick "Corrected winter wolf sprite sheet"; ART-54 S, E and N, '
                       '10-19), cut by tools/winterwolf-sheet.py through tools/artdesk.py (10-22)')
     json.dump(meta, open(mp, 'w'), indent=1)

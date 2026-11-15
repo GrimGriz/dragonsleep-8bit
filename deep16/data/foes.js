@@ -719,6 +719,7 @@
     attacks: { bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 4, type: 'piercing', reach: 5, prone: 14 } },
     breath: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, // (SRD 5.1 Cold Breath, Recharge 5-6: a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save -- js/traits.js M.breathe, its sheet's breath row)
     multi: 1, packTactics: true, keenSenses: true, immune: ['cold'],
+    exhale: 'frost', // (its breath on the air, the engine's: js/looks.js LK.exhale, from where the art desk's idle puffs left its nose -- the drawn puffs and its Cold Breath row's drawn cone off, on Griz's "1-3 leans", 11-15; the cone itself M.breathe's bloom on the squares)
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
   // the manticore (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
