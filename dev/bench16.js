@@ -1545,6 +1545,90 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preZ);
     return;
   }
+  // HIS SILVERTON NOTES OF 11-15 (mode=notes1115; the notes-silverton seat, from his playthrough NOTES save of 2026-11-15 0209Z, a fresh game on main): A -- Papa at the Hex's
+  // door, "Alone? should be a question, and should pause a beat before Lymen answers": the line a question, and on the screen Lymen's answer not begun through the beat after Papa's
+  // word is typed, begun after it; C -- at Winters', "'when your ready' ended up pinned instead of the one he just gave you to carry papers": the papers taken with Finding Work
+  // pinned (which they finish) pin Winters' Errands, and the ring's card that follows leaves it pinned; F -- at the mouth camp, "i'm seeing the mission marker on the pellam girl
+  // with 'fight night' pinned in the journal": a step in town pinned, the marker on the camp's west edge (the feed track to town since 11-13, js/mines.js M.campWest), not the
+  // `feed` square in the camp's middle with Linnet a step below it
+  if (get('mode', '') === 'notes1115') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, CN = D.counter, HN = D.house, H6N = D.hours, RN = D.roam, MN = D.mines, sfxN = D.sfx, apN = window.DS.autoPicks, IN = D.input;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveN(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topN() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function floorN() { var B = topN(); D.battle = B; if (B && B.co) driveN(B.co, null, 2); return B; }
+    function newN(lead) { HN.playing = false; HN.cur = null; var rec = HN.fresh(lead); HN.begin(rec, 0); return floorN(); }
+    function clickN(sc, b) { if (!b) return false; var mo = IN.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function nearN(B, who) { var p = B.units.filter(function (u) { return u.npc === who; })[0], t = B.roam.token, G = D.grid; if (!p) return false; for (var r = 2; r <= 3; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x = p.x + dx, y = p.y + dy; if (Math.max(Math.abs(dx), Math.abs(dy)) === r && G.canStand(t, x, y)) { t.x = x; t.y = y; B.roam.path = null; return true; } } return false; }
+    function beatN(B) { if (H6N.due(B)) driveN(H6N.beat(B), null, 600); }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    try {
+      D.sfx = function () { }; window.DS.autoPicks = false;
+      // A. PAPA'S "ALONE?" AND THE BEAT: the scene played on a fresh game, Barley leading; at Papa's question the screen typed to just past his word, then to the middle of the
+      // beat, then past its end -- what of Lymen's answer is drawn at each
+      var BA = newN('barley'); beatN(BA); var nrA = nearN(BA, 'papa'), dueA = H6N.due(BA), gA = dueA ? H6N.beat(BA) : null, P = H6N.PAPA, atA = null, kA = 0, vA, stA;
+      var drawnAt = function (sc, n) { sc.typeSync(); sc.typeAt.t0 = sc.t - n / CN.OPEN.cps; var out = [], tx0 = D.text; D.text = function (c, s) { out.push(window.DS.stripCodes(String(s))); return tx0.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; sc.draw(cv.getContext('2d')); } finally { D.text = tx0; } return out.filter(function (s) { return s.length && P.friends.indexOf(s) === 0; }).join('|'); };
+      while (gA && kA++ < 4000) {
+        var top = D.top();
+        if (top instanceof CN.Counter) {
+          var w = top.wait || {};
+          if (w.ask && !atA && [].concat(w.ask).join(' ') === P.alone) {
+            var nP = CN.typeLen(P.alone), bl = CN.beatLen ? CN.beatLen(w) : 0;
+            atA = { beat: w.beat || 0, bl: bl, total: top.typeTotal(), justP: drawnAt(top, nP + 1), mid: drawnAt(top, nP + Math.max(1, Math.floor(bl / 2))), after: drawnAt(top, nP + bl + 6), typedMid: (function () { top.typeAt.t0 = top.t - (nP + Math.floor(bl / 2)) / CN.OPEN.cps; return top.typed(); })() };
+          }
+          if (top.typed && !top.typed()) top.typeAt.t0 = -1e9;
+          var nx = top.buttons().filter(function (q) { return q.go === 'next'; })[0], op = top.buttons().filter(function (q) { return q.go === 'opt'; })[0];
+          if (nx) clickN(top, nx); else if (op) clickN(top, op); else break;
+          continue;
+        }
+        stA = gA.next(vA); vA = undefined; if (stA.done) break;
+        if (stA.value && stA.value.prompt) vA = 0; else if (typeof stA.value === 'number') BA.t += stA.value;
+      }
+      okN('A. Papa at the Hex\'s door (near ' + nrA + ', due ' + dueA + '): his line "' + P.alone + '" a question; on the screen ' + JSON.stringify(atA) + ' -- Lymen\'s answer not begun just past Papa\'s word nor in the middle of the beat, begun after it',
+        P.alone === 'Alone?' && !!atA && atA.beat >= CN.OPEN.pause && atA.bl > 0 && atA.justP === '' && atA.mid === '' && atA.typedMid === false && atA.after.length > 0 && P.friends.indexOf(atA.after) === 0);
+      HN.playing = false; HN.cur = null; D.scenes.length = 0;
+      // C. WINTERS' PAPERS OVER FINDING WORK: Lymen leading as he played it, Finding Work pinned, at Winters' -- WORK taken (TAKE IT); then the ring's card as the floor would
+      // play it on the way out
+      var BC = newN('lymen'), stC = CN.state(BC), fC = stC.flags;
+      fC.qSeen = 1; Object.assign(fC, { papaLymen: 1, heardWork: 1, 'work:winters': 1, 'q:company': 1, 'q:work': 1, kSeen: 1 }); fC.pin = 'work';
+      var liveC0 = CN.quests(stC).filter(function (q) { return q.id === fC.pin && !q.done; }).length;
+      fC.wintersMet = 1; // (his counter's door: the ring's When You're Ready shows from here)
+      var scC = { st: stC, say: function (l, f) { return { say: [].concat(l), face: f }; }, ask: function (p, o, f) { return { ask: [].concat(p), opts: o, face: f }; } };
+      var gC = CN.wintersWork(scC), vC, sC, kC = 0, asked = [];
+      while (kC++ < 200) { sC = gC.next(vC); vC = undefined; if (sC.done) break; if (sC.value && sC.value.opts) { asked.push(sC.value.opts.join('/')); vC = 0; } }
+      var pinC1 = fC.pin, workDone = CN.quests(stC).filter(function (q) { return q.id === 'work'; })[0], freshC = H6N.fresh(stC).map(function (q) { return q.id; });
+      driveN(H6N.missionCard(BC), null, 2000); var pinC2 = fC.pin;
+      okN('C. Winters\' WORK taken (' + asked.join(', ') + ') with Finding Work pinned (live ' + liveC0 + ', done after: ' + !!(workDone && workDone.done) + '): pinned ' + pinC1 + '; the card after for ' + freshC.join(',') + ', pinned ' + pinC2 + ' (When You\'re Ready not pinned)',
+        liveC0 === 1 && !!workDone && workDone.done && !!fC.wErrA && pinC1 === 'errands' && freshC.indexOf('ring') >= 0 && pinC2 === 'errands');
+      // and a pin still live is kept: Fight Night pinned, the papers taken -- Fight Night stays (his note's ask is the one just given over a done pin; a live pin is the player's)
+      var BC2 = newN('lymen'), stC2 = CN.state(BC2), fC2 = stC2.flags; fC2.qSeen = 1; Object.assign(fC2, { heardHex: 1, wintersMet: 1, kSeen: 1 }); fC2.pin = 'hex';
+      var gC2 = CN.wintersWork({ st: stC2, say: scC.say, ask: scC.ask }), vC2, sC2, kC2 = 0; while (kC2++ < 200) { sC2 = gC2.next(vC2); vC2 = undefined; if (sC2.done) break; if (sC2.value && sC2.value.opts) vC2 = 0; }
+      okN('   and Fight Night pinned (live), the papers taken: still ' + fC2.pin, fC2.pin === 'hex' && !!fC2.wErrA);
+      HN.playing = false; HN.cur = null; D.scenes.length = 0;
+      // F. THE MOUTH CAMP, A STEP IN TOWN PINNED: Fight Night (Korvin at the slate, in the Hex) -- the marker on the camp's west edge, the feed track to Silverton; not the
+      // feed square, and not over Linnet or a step from her
+      var BF = RN.make('?roam=warrens&flags=heardHex&watch'); D.scenes.length = 0; D.push(BF); BF = floorN(); BF.roam.mode = 'walk'; BF.roam.flags.pin = 'hex';
+      var defF = RN.def, cxF = document.createElement('canvas').getContext('2d'); H6N.marked = null; CN.paintPin(cxF, BF); var mF = H6N.marked;
+      var conv = function (g) { return defF.from8 ? defF.from8(g[0], g[1]) : [g[0], g[1]]; }, wF = conv(MN.campWest(BF.roam.flags)), feedF = conv(MN.FLOORS.warrens.gates.feed), liF = BF.units.filter(function (u) { return u.npc === 'linnet'; })[0];
+      var dLi = mF && liF ? Math.max(Math.abs(mF[0] - liF.x), Math.abs(mF[1] - liF.y)) : null;
+      okN('F. the mouth camp (' + defF.key + '), Fight Night pinned: the marker on ' + mF + ' -- the west edge ' + wF + ', not the feed square ' + feedF + '; Linnet at ' + (liF && [liF.x, liF.y]) + ', ' + dLi + ' squares off',
+        defF.key === 'warrens' && !!mF && mF[0] === wF[0] && mF[1] === wF[1] && !(mF[0] === feedF[0] && mF[1] === feedF[1]) && (!liF || dLi > 2));
+      // H. "can't milk the crawlers should pin the mission if it's in your journal" (his note after the save, the mouth camp 6,9; the desk's relay): at a pen with no name in
+      // Edric's book, The Cradles in the JOURNAL and Fight Night pinned -- the refusal pins The Cradles and says so; with The Cradles not heard, the pin is left alone
+      var penH = function (fl) { var B = RN.make('?roam=warrens&flags=' + fl + '&watch'); D.scenes.length = 0; D.push(B); B = floorN(); B.roam.flags.pin = 'hex'; var st = CN.state(B), said = [];
+        var g = MN.penAsk({ st: st, say: function (l) { said = said.concat(l); return { say: [].concat(l) }; }, ask: function (p, o) { return { ask: [].concat(p), opts: o }; } }, B, 2), v, s, k = 0;
+        while (k++ < 50) { s = g.next(v); v = undefined; if (s.done) break; if (s.value && s.value.opts) v = 1; }
+        return { pin: B.roam.flags.pin, said: window.DS.stripCodes(said.join(' ')) }; };
+      var h1 = penH('heardHex,heardCradles'), h2 = penH('heardHex');
+      okN('H. a pen, no name in the book, The Cradles in the JOURNAL, Fight Night pinned: pinned ' + h1.pin + ' -- "' + h1.said.slice(0, 150) + '"; The Cradles not heard: pinned ' + h2.pin,
+        h1.pin === 'cradles' && /without a name in the book/.test(h1.said) && /Pinned/.test(h1.said) && h2.pin === 'hex' && !/Pinned/.test(h2.said));
+      HN.playing = false; HN.cur = null; D.scenes.length = 0;
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    D.sfx = sfxN; D.store.get = stGN; D.store.set = stSN; window.DS.autoPicks = apN; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   // READY SPRUNG BY A FRIEND'S ACTION, AND WHEN? AS A RING (mode=ready1113; 11-13, Griz, from play: "During playthough I realized we need a set of readied actions triggered by
   // friendly actions (other than being downed) - at a table readied is often to follow up or set up a team combo"; the READY lane §3.1, his 10-06 "if you put ready on the ring, the
   // expanded text shows below when it highlights, when the person picks the thing that text could have the 'next' instruction"): eight triggers; WHEN? a ring of eight with the long

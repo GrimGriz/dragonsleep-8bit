@@ -145,7 +145,9 @@
     // the cull pinned isn't giving me an arrow to leave silverton or i'm missing it")
     var gk = s.site && H16.GATE_TO[s.site]; if (def.key === 'silverton' && !def.room && !toW && gk && def.marks && def.marks.gates && def.marks.gates[gk]) return def.marks.gates[gk].slice();
     // (a step in town, or out on THE WORLD -- the camp has no gate onto it: the feed track back to town first)
-    if (def.key === 'warrens' && !toW && (s.door || s.npc || s.site)) { var g = D.mines && D.mines.FLOORS && D.mines.FLOORS.warrens.gates.feed; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
+    // (11-15, his playthrough NOTES at the mouth camp, Fight Night pinned: "i'm seeing the mission marker on the pellam girl" -- the marker sat on the `feed` gate, the square
+    // in the middle of the camp where THE WORLD sets the party down, Linnet a step below it; since 11-13 the feed track to town runs off the camp's west edge, js/mines.js M.campWest)
+    if (def.key === 'warrens' && !toW && (s.door || s.npc || s.site)) { var g = D.mines && D.mines.campWest ? D.mines.campWest(B.roam.flags) : null; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
     if (s.map && id8 && s.map !== id8) return H16.wayTo(B, s.map); // (another floor below: the way there)
     return null;
   };
@@ -315,7 +317,7 @@
     door: 'Papa Urtusk fills the Hex\'s front door. A young man in show-armorer\'s chain mail is talking up at him, a green token at his throat.',
     doorLy: 'Papa Urtusk fills the Hex\'s front door, the way he always has.',
     gnolls: 'Gnolls on the road at night, Papa, north of the Gulch where they never come. And the Dominion\'s wagons have been down there talking to them all summer. Nobody\'s going to look. I am.',
-    alone: 'Alone.', friends: 'No. I\'ll find people who\'ll stand up. Friends.', few: 'There\'s a few standing about.',
+    alone: 'Alone?', friends: 'No. I\'ll find people who\'ll stand up. Friends.', few: 'There\'s a few standing about.',
     find: 'Make a name in this town first, then come and find me in the Hex. I\'m Lymen. Warda\'s youngest.', go: 'Then go and find some.',
     who: { barley: 'Barley\'s on the Hex\'s bench with ten silver and no sense.', vivian: 'Marta\'s girl sells candles on vice row.', aurdin: 'The farm boy sleeping on Aldwin\'s floor has a spellbook.' },
     work: 'Want a name? Winters pays for honest legs. Hessle\'s board pays for brave ones. The Warrens pay for strong backs. The sand pays for fools.',
@@ -367,7 +369,7 @@
       return (function* () {
         yield s.narr([lyLead ? P.doorLy : P.door]); // (the door in the middle first, no one standing: his "papa's first card should be centered to start the conversation - its narration not dialog")
         yield s.ask([], [P.gnolls], 'attentive'); // (Lymen speaks first)
-        yield s.ask([P.alone], [P.friends], 'skeptical');
+        var alone = s.ask([P.alone], [P.friends], 'skeptical'); alone.beat = C.OPEN.pause; yield alone; // (11-15, his playthrough NOTES at the Hex's door: "Alone? should be a question, and should pause a beat before Lymen answers" -- Papa's question typed, a beat (C.OPEN.pause, the "standing about" pause), then Lymen's answer: js/counter.js a wait's `beat`)
         // the lead in (10-30, his "one of lymen's lines is to barley, try throwing his portrait on the bottom right, lymen size, when papa says finishes saying 'there are some
         // standing around', then remove lymen while papa finishes what he says to barley", "little pause and maybe a code-drawn blush on barley after 'standing around' then cut
         // urtusks text box while he says his line to barley"): Papa's "There's a few standing about.", a pause, the lead bottom right and a blush; Lymen to the lead, Papa's box

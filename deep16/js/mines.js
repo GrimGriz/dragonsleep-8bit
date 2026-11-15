@@ -596,7 +596,11 @@
   };
   M.penAsk = function* (sc, B, n) {
     var st = sc.st, f = st.flags, C = D.counter, Rr = DS.R;
-    if (!f.tallyMet) { yield sc.say(L('w.penNoBook')); return null; }
+    if (!f.tallyMet) { // (11-15, his playthrough NOTES at the mouth camp: "can't milk the crawlers should pin the mission if it's in your journal" -- The Cradles, in the JOURNAL and not done, pinned here, its step Edric's book, and the card's pinned line)
+      var noBk = [].concat(L('w.penNoBook')), HQ = D.hours, qCr = C && C.quests(st).filter(function (q) { return q.id === 'cradles' && !q.done; })[0];
+      if (qCr && f.pin !== 'cradles') { f.pin = 'cradles'; if (HQ && HQ.LINES) noBk.push(D.keys ? D.keys(HQ.LINES.pinned) : HQ.LINES.pinned); }
+      yield sc.say(noBk); return null;
+    }
     if ((yield sc.ask(L('w.penAsk'), ['WORK A SHIFT', 'LEAVE'])) !== 0) return null;
     var up = st.party.filter(function (hh) { return !hh.dead && !hh.ko && hh.hp > 0; }); if (!up.length) return null;
     var hh = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!hh) return null;

@@ -683,11 +683,14 @@
   Counter.prototype.typeTotal = function () {
     var self = this; return inOpen(this, function () {
       var n = self.openRows().reduce(function (a, l) { return a + C.typeLen(l); }, 0);
-      if (self.bubbling()) self.bubbleButtons().forEach(function (q) { q.lines.forEach(function (l) { n += C.typeLen(l); }); });
+      if (self.bubbling()) { n += C.beatLen(self.wait); self.bubbleButtons().forEach(function (q) { q.lines.forEach(function (l) { n += C.typeLen(l); }); }); }
       return n;
     }, []);
   };
   Counter.prototype.typed = function () { return !this.o.open || this.typeN() >= this.typeTotal(); };
+  // A BEAT BEFORE THE ANSWER (11-15, his playthrough NOTES at the Hex's door: "Alone? should be a question, and should pause a beat before Lymen answers"): a wait's `beat`, in
+  // frames, held between the keeper's words typed out and the hero's answer starting -- counted as the characters the typing would have put out in that time; a click skips it
+  C.beatLen = function (w) { return w && w.beat ? Math.round(w.beat * C.OPEN.cps) : 0; };
   var update0 = Counter.prototype.update;
   Counter.prototype.update = function () {
     if (!this.o || !this.o.open) return update0.apply(this, arguments);
@@ -726,6 +729,7 @@
         }
         var lb = C.lookBox(this); ctx.fillStyle = C.LOOK.strip; ctx.fillRect(lb.x, lb.y, lb.w, lb.h); typed(rows, lb.x + 8, lb.y + 4, C.LOOK.col);
       }
+      if (this.bubbling()) left -= C.beatLen(w); // (the beat before the answer: the bubble waits it out -- C.beatLen)
       var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped(), hR = this.hSide() === 'right';
       var hfu = C.heroFull(pt); if (hfu) { pt = hfu; hs = O.papa.s; } // (the keepers' bust, the rule since 11-06 -- C.heroFull)
       var hsh = pt && D.SHEETS[pt], hfoot = hfu ? D.H - 14 : BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs, hW = hsh ? hsh.fw * hs : HB.w, hL = hR ? D.W - 2 - hW : O.hero.left; // (his hair just over the bubble's foot; his edge by his side)
@@ -983,7 +987,7 @@
       if (!(yield* C.offerWork(sc, L('winters.errandA'), 'attentive'))) { yield sc.say(C.LINES.notNow, 'attentive'); return; }
       f.wErrA = 1; give(st, 'estatepapers', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.estatepapers.name }));
-      if (!f.pin) f.pin = 'errands'; // (the first errand teaches the journal: the first game's playtest 09-25)
+      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done; })) f.pin = 'errands'; // (the first errand teaches the journal: the first game's playtest 09-25; and since 11-15 over a pin these papers just finished -- Finding Work, done on wErrA -- his playthrough NOTES at Winters': "'when your ready' ended up pinned instead of the one he just gave you to carry papers")
       f['q:errands'] = 1; // (his own word on the JOURNAL below: no card of its opening besides -- js/hours.js H16.missionDue)
       yield sc.say(D.keys(C.LINES.journalGrid));
       return 'leave';
