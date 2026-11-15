@@ -7104,7 +7104,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // the chase; the poison dinner (the wagon stopped: no offering) with its supper fight, the yield and Doran's wait -- the 11-13 Elsbeth's walk and Doran's morning are THAT
   // night's; LET IT BE and STAND ASIDE; the kept child's night (the barn, the glamour); the child's road to the Pit. What it asserts at every join is the head of KNOWN below.
   // THE BARN'S ROAD TO THE DINNER is walked by mode=walkbarn1113, this same block (BARNK): its head is at THE BARN WALK below.
-  if (get('mode', '') === 'walk1113' || get('mode', '') === 'walkpoison1113' || get('mode', '') === 'walkbarn1113') {
+  // THE QUEST WALK TO DAY 16, 11-15 (mode=questwalk1114 &seed= &to=16 &order=cull; the quest-walk seat of 11-15, started by the lanes desk on Griz's word: "I like the clock's
+  // hunger bench but wanted to try a party running around doing quests to see what they run into"; the route his, 11-14: "they should get a rope and drag up the five and/or feed
+  // the landlord and/or work in the guano galleries killing bats - unless they have a reason to go south. most rational visit to the inn i've seen is post ettercap bounty
+  // collect", "oh no, ned and the glowseep - but still that's not down to the inn", the card "in my playthroughs I get one fight and have to come back later leveled", and "once
+  // they're all built let's have some walks bat-cave before crawler" -- &order=cull). NEW GAME's four (walk1113's beat 1), then the Hex's card fought bout by bout till one is
+  // lost; Silverton's quests as the JOURNAL offers them, the nearest first, till a level comes at a long rest; back to the card; and on to the end of day `to`. NOTHING of the
+  // world is pinned or switched off: W.encPct's rolls, the hunger's markers (its seed the run's), the survivors' meetings, the Snoot's road. EVERY FIGHT IS FOUGHT: the four run by
+  // their class's own tactics (js/ai.js -> js/tactics.js, as the ladder's &watch runs them), the dice live, the result handed to the fight's real door -- so its XP, its spoils,
+  // its wounds and a loss are the game's own. A loss that ends the game (js/house.js H.lost) is written down and the walk loads its last save, as a player would (twice a leg).
+  // QL (the report's `log`) is the day-by-day log, a line an event with its day and hour. It asserts nothing of the route: a quest step that will not fire, a fight that cannot
+  // be won and the card's lost bout against his ruling are written in the log as FINDING lines. Not in either gate (it is long: run it alone, from PowerShell).
+  var QUESTK = get('mode', '') === 'questwalk1114';
+  if (get('mode', '') === 'walk1113' || get('mode', '') === 'walkpoison1113' || get('mode', '') === 'walkbarn1113' || QUESTK) {
     var POISK = get('mode', '') === 'walkpoison1113'; // (the poison-dinner walk, 11-13: the same road to the inn, then its own -- its head is at THE POISON DINNER WALK below)
     var BARNK = get('mode', '') === 'walkbarn1113'; // (the barn walk, 11-13: the same road to the inn, then the barn's -- its head is at THE BARN WALK below)
     var repK = { checks: [], errors: [], notes: [] }, memK = {}, stGK = D.store.get, stSK = D.store.set, HK = D.house, CK = D.counter, RK = D.roam, WK = D.world, InK = D.inn, AK = D.secondact, TK = D.town, HXK = D.hex, H6K = D.hours, muK = D.music, walk0K = InK.walk, gone0K = InK.gone, rkFight0K = D.roam.fight;
@@ -7164,8 +7176,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           continue;
         }
         if (s instanceof HK.Morning) { quiet = 0; seen.push(wakeK(s)); continue; }
+        if (QUESTK && D.cradle && D.cradle.Scene && s instanceof D.cradle.Scene) { quiet = 0; s.update(); continue; } // (the quest walk: a shift at the pens played by its own hands, R.shiftAuto -- js/cradle.js)
         if (s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = 1; }); s.go('begin'); continue; }
         if (s.kind === 'houseslots') { quiet = 0; if (!s.pickedK) { s.pickedK = 1; s.pick(slotK - 1); seen.push('SLOTS ' + s.mode + ': ' + s.msg); } else s.update(); continue; }
+        if (s instanceof D.Battle && !s.roam && QUESTK) { quiet = 0; var fidQ = (s.fight && s.fight.id) || '?', resQ = fightQ(s); fightsK.push(fidQ + ':' + resQ); seen.push('FIGHT ' + fidQ + ' on ' + (s.fight && s.fight.map) + ' -> ' + resQ + ' (fought)'); continue; } // (the quest walk: every fight fought -- fightQ below)
         if (s instanceof D.Battle && !s.roam) { quiet = 0; var fid = (s.fight && s.fight.id) || '?', res = typeof o.res === 'function' ? o.res(s) : (o.res || 'won'); fightsK.push(fid + ':' + res); seen.push('FIGHT ' + fid + ' on ' + (s.fight && s.fight.map) + ' -> ' + res); if (D.top() === s) D.pop(); s.o.onDone(res); continue; }
         if (s.roam) {
           if (s !== cur || s.map !== curMap) { cur = s; curMap = s.map; quiet = 0; layK++; layCheckK(s); }
@@ -7180,6 +7194,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           continue;
         }
         if (WK.scene && s === WK.scene) break;
+        if (QUESTK) { var pq = (s.kind || (s.constructor && s.constructor.name) || '?') + (s.lost ? '(lost)' : ''); seen.push('POPPED ' + pq); if (QL.length) QL.push(hhQ0() + ' (popped a ' + pq + ' screen, on ' + ((RK.def && RK.def.key) || '?') + ')'); }
         D.pop();
       }
       return strip(seen.join(' / '));
@@ -7255,6 +7270,81 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     }
     // the party can move: the token in walk mode with a square beside it it may step to (the watch door, 11-13: down from upstairs on a house laid under its roof, nobody could)
     function canMoveK(B) { var R0 = B && B.roam, t = R0 && R0.token; if (!t) return 'no token'; if (R0.mode !== 'walk') return 'mode ' + R0.mode; var n = 0; [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].forEach(function (d) { var p = RK.walkRoute(t, [t.x + d[0], t.y + d[1]]); if (p && p.length) n++; }); return n ? '' : 'no square to step to from ' + t.x + ',' + t.y + ' on ' + RK.def.key + (RK.def.inside ? ' (' + RK.def.inside + ')' : ' (roofed)'); }
+    // ---------------------------------------------------------------- THE QUEST WALK's log and its fights (mode=questwalk1114; its head is at the block's condition)
+    // QL: a line an event, "D<day> <hh:mm> ..." -- the first event of a day opens it with the party as it stands; a level is written as the sheet shows it; the road's rolls
+    // summed a day (hexes entered, their mean percent, the fights they brought); a hunger marker within a hex of the party once a day a making; each survivors' meeting
+    var QL = [], dayQ = -1, lvQ = {}, rollQ = { n: 0, mi: 0, pct: 0, fights: 0 }, passQ = {}, lastPctQ = 0, lastZoneQ = '?', fightNQ = 0, findQ = [], hooksQ = null;
+    function whereQ() { var t = D.top(); if (t && WK.scene && t === WK.scene) { var Sw = WK.state(); return 'THE WORLD ' + (Sw && Sw.at ? Sw.at.join(',') : '?'); } return (RK.def && (RK.def.room || (RK.def.hexIn ? 'the Hex ' + RK.def.hexIn : RK.def.key))) || '?'; }
+    function partyQ() {
+      var B = D.top(), ms = B && B.roam ? B.roam.members.filter(function (u) { return u.src && !u.src.guest; }) : null;
+      if (ms && ms.length) return ms.map(function (u) { return u.name.split(' ')[0] + ' L' + u.src.lvl + ' ' + Math.max(0, u.hp) + '/' + u.maxhp + (u.src.dead ? ' DEAD' : u.hp <= 0 ? ' down' : '') + ' ' + (u.src.xp || 0) + 'xp'; }).join(', ');
+      return ((HK.cur && HK.cur.party) || []).map(function (h) { return h.name.split(' ')[0] + ' L' + h.lvl + ' ' + Math.max(0, h.hp) + '/' + h.maxhp + (h.dead ? ' DEAD' : h.ko || h.hp <= 0 ? ' down' : '') + ' ' + (h.xp || 0) + 'xp'; }).join(', ');
+    }
+    function purseQ() { var B = D.top(); return (B && B.roam ? B.roam.silver : HK.cur ? HK.cur.silver : '?') + ' sp, renown ' + (HK.cur ? HK.cur.renown : '?'); }
+    function hhQ() { return 'D' + HK.day() + ' ' + HK.clockAt(HK.now()); }
+    function hhQ0() { try { return HK.cur ? hhQ() : 'D? --:--'; } catch (eH) { return 'D? --:--'; } }
+    function rollLineQ() { return rollQ.n ? 'the road that day: ' + rollQ.n + ' steps rolled over ' + rollQ.mi.toFixed(1) + ' miles at ' + (rollQ.pct / rollQ.n * 100).toFixed(1) + '% a hex on the mean, ' + rollQ.fights + ' fight' + (rollQ.fights === 1 ? '' : 's') + ' drawn' : ''; }
+    function tickQ() {
+      if (!HK.cur) return;
+      var d = HK.day();
+      if (d !== dayQ) { var rl = rollLineQ(); if (rl && dayQ >= 0) QL.push('   (' + rl + ')'); dayQ = d; rollQ = { n: 0, mi: 0, pct: 0, fights: 0 }; QL.push('DAY ' + d + ' -- ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ()); }
+      var ms = D.top() && D.top().roam ? D.top().roam.members.filter(function (u) { return u.src; }).map(function (u) { return u.src; }) : (HK.cur.party || []);
+      ms.forEach(function (h) { var k = h.key || h.id; if (lvQ[k] != null && h.lvl > lvQ[k]) QL.push(hhQ() + ' LEVEL UP: ' + h.name + ' to level ' + h.lvl + ' (' + h.maxhp + ' hp)'); lvQ[k] = h.lvl; });
+    }
+    function logQ(s) { tickQ(); QL.push(hhQ() + ' ' + s); }
+    function findingQ(id, s) { if (findQ.some(function (f) { return f.id === id; })) return; findQ.push({ id: id, s: s }); logQ('FINDING [' + id + '] ' + s); }
+    // a hex's distance on the axial grid (THE WORLD's S.at, a marker's hex)
+    function hexDQ(a, b) { var dq = a[0] - b[0], dr = a[1] - b[1]; return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2; }
+    function hooksOnQ() {
+      var HGq = D.hunger, onStep0 = WK.onStep, enc0 = WK.World.prototype.encounter, meet0 = HGq && HGq.meet;
+      hooksQ = { onStep: onStep0, enc: enc0, meet: meet0, hg: HGq && HGq.on, sr: D.snootroad && D.snootroad.on };
+      WK.onStep = function (scene, st) {
+        try {
+          var S = WK.state(), M0 = WK.M(), e = M0.hex[WK.K(S.at[0], S.at[1])], z = e ? WK.zoneOf(e) : '?', rd = M0.road && M0.road[WK.K(S.at[0], S.at[1])];
+          if (rd && /coldridge/i.test(rd.name || '') && ((window.DS.DATA || {}).encounters || {}).coldridge) z = 'coldridge';
+          lastZoneQ = z; lastPctQ = WK.encPct(z, st && st.road); rollQ.n++; rollQ.mi += (st && st.mi) || 5; rollQ.pct += lastPctQ;
+          if (HGq && HGq.on && HGq.sim) { var by = HGq.sim(S.t).by; Object.keys(by).forEach(function (d) { var x = by[d], k = d + '|' + HK.day(); if (x.state === 'gone' || passQ[k] || hexDQ(x.hex, S.at) > 1) return; passQ[k] = 1; logQ('PASSED the day-' + d + ' making\'s marker ' + (hexDQ(x.hex, S.at) ? 'a hex off' : 'in the party\'s hex') + ' at ' + x.hex.join(',') + ' (' + x.state + (x.charged ? ', charged' : '') + ')'); }); }
+        } catch (eS) { /* (the log must never stop the walk) */ }
+        return onStep0.apply(this, arguments);
+      };
+      WK.World.prototype.encounter = function (p, e) { rollQ.fights++; logQ('MET on THE WORLD (' + lastZoneQ + ', ' + (lastPctQ * 100).toFixed(0) + '% a hex, ' + WK.timeOfDay() + '): ' + p.list.join(', ') + (p.mirror ? ' -- MIRROR-MADE' + (p.made ? ', the day-' + p.made.day + ' making, ' + p.made.state : '') : '')); return enc0.apply(this, arguments); };
+      if (HGq && meet0) HGq.meet = function (scene, r) { logQ('SURVIVORS met on the ' + (r.kind || '?') + ' band\'s way: the day-' + r.day + ' making (' + r.zone + '), making for ' + r.toName); return meet0.apply(this, arguments); };
+      if (HGq) HGq.on = true; if (D.snootroad) D.snootroad.on = true;
+      // the game lost (js/house.js H.lost: the title, the last save stands) -- written down with what called it, and thrown back to the leg (legQ loads the last save)
+      var lost0 = HK.lost; hooksQ.lost = lost0; HK.lost = function () { var by = ''; try { by = String(new Error().stack || '').split('\n').slice(2, 5).map(function (l) { return l.trim().replace(/^at /, '').replace(/\(file:.*\/deep16\//, '(').replace(/\(file:.*\/dev\//, '(dev/'); }).join(' < '); QL.push(hhQ0() + ' THE GAME IS LOST on ' + whereQ() + ': ' + partyQ() + ' -- by ' + by); } catch (eL) { } lost0.apply(this, arguments); throw { qloss: true, fight: whereQ0(), res: 'lost', by: by }; };
+      // THE FOUR ON THEIR CLASS'S TACTICS in every fight -- a floor's own (js/roam.js: the Wet's, the dens', fought on the floor, B.heroTurn) as a pushed one's: the turn the AI's
+      // (js/ai.js AI.turn -> js/tactics.js), the Wet's own first word kept (js/wet.js W.first)
+      var BPq = D.Battle.prototype; hooksQ.heroTurn = BPq.heroTurn;
+      BPq.heroTurn = function* (u) { if (this.wet && D.wet && D.wet.first) yield* D.wet.first(this); var c = u.classAI; u.classAI = true; try { yield* D.ai.turn(this, u); } finally { u.classAI = c; } };
+      // a floor's fight written down at its end (js/roam.js R.after: the outcome, the foes, the four as it left them)
+      var after0 = RK.after; hooksQ.after = after0;
+      RK.after = function* (B, o, grp, foes) { try { fightNQ++; logQ('FIGHT on the floor (' + whereQ() + '): ' + (foes || []).map(function (u) { return (u.name || u.kind) + (u.dead || u.hp <= 0 ? '' : ' (standing)'); }).join(', ') + ' -> ' + String(o).toUpperCase() + ' in ' + (B.round || 0) + ' rounds; after it ' + B.roam.members.filter(function (m) { return m.src && !m.src.guest; }).map(function (m) { return m.name.split(' ')[0] + ' ' + Math.max(0, m.hp) + '/' + m.maxhp + (m.hp <= 0 ? ' down' : ''); }).join(', ')); } catch (eA) { } yield* after0.apply(this, arguments); };
+    }
+    function whereQ0() { try { return whereQ(); } catch (eW) { return '?'; } }
+    function hooksOffQ() { if (!hooksQ) return; if (hooksQ.lost) HK.lost = hooksQ.lost; if (hooksQ.heroTurn) D.Battle.prototype.heroTurn = hooksQ.heroTurn; if (hooksQ.after) RK.after = hooksQ.after; WK.onStep = hooksQ.onStep; WK.World.prototype.encounter = hooksQ.enc; if (hooksQ.meet) D.hunger.meet = hooksQ.meet; if (D.hunger) D.hunger.on = hooksQ.hg; if (D.snootroad) D.snootroad.on = hooksQ.sr; hooksQ = null; }
+    // A FIGHT FOUGHT: the battle on top driven to its end with the four on their class's tactics (guest and classAI for the fight, as the ladder's &watch: js/battle.js), every
+    // prompt its first answer, then handed to its own door with its result (D.pop, o.onDone -- the VICTORY panel's E: js/ui.js). A loss that ends the game is thrown (qloss)
+    function fightQ(s) {
+      D.battle = s; var F = s.fight || {}, held = [], foes = (s.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.object; }).map(function (u) { return u.name || u.kind; });
+      (s.units || []).forEach(function (u) { if (u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar && !u.object) { held.push([u, u.guest, u.classAI]); u.guest = true; u.classAI = true; } });
+      var v, guard = 0, err = null;
+      while (s.co && guard++ < 400000) {
+        var r; try { r = s.co.next(v); } catch (eF) { err = eF; break; }
+        v = undefined; if (r.done) break; var y = r.value;
+        if (typeof y === 'number' || !y) continue;
+        if (y.prompt) { v = y.prompt.opts[0].value; continue; }
+        if (y.turn) { v = { do: 'end' }; continue; }
+        if ((s.round || 0) > 120) break;
+      }
+      held.forEach(function (h) { h[0].guest = h[1]; h[0].classAI = h[2]; });
+      var res = s.result || (err ? 'error' : 'stalled'); fightNQ++;
+      var after = held.map(function (h) { var u = h[0]; return u.name.split(' ')[0] + ' ' + Math.max(0, u.hp) + '/' + u.maxhp + (u.slain || u.dead ? ' DEAD' : u.hp <= 0 ? ' down' : ''); });
+      logQ('FIGHT ' + (F.name || F.id) + (F.sub ? ' (' + F.sub + ')' : '') + (s.o && s.o.simple ? ', simple' : ', on the grid') + ': ' + foes.join(', ') + ' -> ' + String(res).toUpperCase() + ' in ' + (s.round || 0) + ' rounds; after it ' + after.join(', '));
+      if (err) repK.errors.push('fight ' + (F.id || '?') + ': ' + String(err && err.stack || err).slice(0, 800));
+      if (D.top() === s) D.pop(); s.o.onDone(res === 'error' || res === 'stalled' ? 'escaped' : res);
+      if (!HK.playing) throw { qloss: true, fight: F.name || F.id, res: res };
+      return res;
+    }
     D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
     try {
@@ -7265,6 +7355,288 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var recK = HK.fresh(); recK.newGame = 1; HK.begin(recK, 1); var B1 = topK(); playK({ quiet: 60 });
       okK('newgame', 'NEW GAME: the four on ' + RK.def.key + ' (' + B1.roam.token.x + ',' + B1.roam.token.y + '), day ' + HK.day() + ', renown ' + HK.cur.renown + ', not staged (' + !HK.cur.staged + '), ' + HK.cur.silver + ' silver',
         RK.def.key === 'silverton' && HK.cur.renown === 0 && !HK.cur.staged && HK.cur.party.length === 4);
+      if (QUESTK) {
+      // ================================================================ THE QUEST WALK (mode=questwalk1114): its head is at the block's condition
+      repK.log = QL; var toQ = +get('to', 16), orderQ = get('order', 'five'), S0q = WK.state(); if (S0q) S0q.seed = +get('seed', 1113); hooksOnQ();
+      logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (orderQ === 'cull' ? 'the Cull before the Five' : 'the Five first') + ')');
+      var legsQ = [], doneQ = {};
+      // a LEG: a piece of the route from the last save; a loss that ends the game loads that save and the leg is walked again (twice), as a player would
+      function legQ(name, fn) {
+        var sv = saveK(1), tries = 0; logQ('-- ' + name + (sv && /greyed/.test(sv) ? ' (' + sv.slice(0, 60) + ')' : ''));
+        for (;;) {
+          try { var r = fn(); legsQ.push(name + ': ' + (r || 'done')); return r || 'done'; }
+          catch (eL) {
+            if (!eL || !eL.qloss) throw eL;
+            tries++; QL.push(hhQ() + ' GAME OVER in ' + eL.fight + ' (' + eL.res + ')' + (tries <= 2 ? ': the last save loaded, the leg again' : ': the leg given up'));
+            if (!loadK(1)) { legsQ.push(name + ': lost, no save'); throw new Error('the quest walk: no save to load after a loss in ' + name); }
+            playK({ quiet: 60 }); dayQ = -1;
+            if (tries > 2) { legsQ.push(name + ': LOST three times'); return 'lost'; }
+          }
+        }
+      }
+      // ---------------------------------------------------------------- back onto Silverton's street from the Hex (its floors and its doors)
+      function outOfHexQ() {
+        for (var lv = 0; lv < 4 && RK.def && RK.def.hexIn > 1; lv++) { var dnT = trigWhereK(function (t) { return !!t.stair; }); if (!dnT) break; var lv1 = RK.def.hexIn; atTrigK(topK(), dnT, { ans: [/DOWN/], until: function () { return RK.def.hexIn !== lv1; } }); }
+        if (RK.def && RK.def.hexIn === 1) goK(topK(), HXK.DOORS.front[0], { until: function () { return !!(RK.def && !RK.def.hexIn && RK.def.key === 'silverton'); } });
+      }
+      // ---------------------------------------------------------------- THE CARD: in at the Hex's front doors, Korvin's slate, bout by bout till one is lost (his "one fight and have to
+      // come back later leveled"); the one who takes the sand the four's most hit points standing. A lost bout against his ruling of 11-14 ("you end up with 1 hp outside the hx
+      // and lose the 5 sp to compete"): the purse, the place and the one who fell, read off the game and written down
+      function cardQ(why) {
+        if (!(RK.def && RK.def.hexIn)) { var hxT = trigK('hex:front'); if (!hxT) return 'no way into the Hex from ' + whereQ(); atTrigK(topK(), hxT, { until: function () { return !!(RK.def && RK.def.hexIn); } }); }
+        if (!(RK.def && RK.def.hexIn)) return 'not in the Hex (' + whereQ() + ')';
+        if (RK.def.hexIn > 1) outOfHexQ();
+        logQ('THE CARD (' + why + ')');
+        for (var b = 0; b < 6; b++) {
+          var B = topK(), st = CK.state(B), nx = H6K.nextBout(st); if (!nx) { logQ('the card is all won'); return 'all won'; }
+          var able = B.roam.members.filter(function (u) { return u.hp > 0 && !u.dead && u.src && !u.src.guest; }).sort(function (a, c) { return c.hp - a.hp; }), who = able[0]; if (!who) return 'nobody standing';
+          var s0 = B.roam.silver, hp0 = who.hp, sl = trigK('talk:korvinSlate'); if (!sl) return 'no slate';
+          var ans = [new RegExp(nx.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))].concat(able.length > 1 ? [new RegExp('^' + who.name + ' L')] : []).concat([/^FIGHT$/]);
+          HXK.last = null; var seenC = atTrigK(B, sl, { ans: ans, quiet: 200 }), res = HXK.last && HXK.last.res, B2 = topK(), w2 = B2.roam ? B2.roam.members.filter(function (u) { return u.id === who.id; })[0] : null;
+          logQ('BOUT ' + nx.label + ' (' + (nx.stake ? nx.stake + ' sp in' : 'no stake') + '): ' + who.name + ' L' + who.src.lvl + ' ' + hp0 + '/' + who.maxhp + ' takes the sand -> ' + String(res || 'NO BOUT: ' + seenC.slice(-200)).toUpperCase() + '; the purse ' + s0 + ' -> ' + (B2.roam ? B2.roam.silver : '?') + ' sp');
+          if (res === 'lost') {
+            var outside = !!(RK.def && !RK.def.hexIn && RK.def.key === 'silverton'), paid = s0 - (B2.roam ? B2.roam.silver : s0), hpL = w2 ? w2.hp : null;
+            logQ('after the lost bout: outside the Hex ' + outside + ' (' + whereQ() + (B2.roam ? ' ' + B2.roam.token.x + ',' + B2.roam.token.y : '') + '), the stake gone ' + paid + ' sp, ' + who.name + ' ' + hpL + '/' + who.maxhp);
+            if (!(outside && paid === nx.stake && hpL === 1)) findingQ('lostbout', 'his ruling of 11-14, "you end up with 1 hp outside the hx and lose the 5 sp to compete": the game puts the party ' + (outside ? 'outside the Hex at Davos Kren\'s door' : 'NOT outside the Hex') + ', the ' + nx.stake + ' sp stake ' + (paid === nx.stake ? 'gone' : 'NOT gone (' + paid + ')') + ', and ' + who.name + ' on ' + hpL + '/' + who.maxhp + (hpL === 1 ? '' : ' -- stitched to half by Davos on the house, not left on 1 (deep16/js/hex.js HX.toDavos, his 10-28 "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)")'));
+            return 'lost ' + nx.id;
+          }
+          if (res !== 'won') return 'the bout came to ' + res;
+        }
+        return 'fought';
+      }
+      // ---------------------------------------------------------------- the ground: what each floor offers the first time the walk stands on it (for the next seat's drivers)
+      var floorsQ = {};
+      function floorQ() { var k = whereQ(); if (floorsQ[k]) return; floorsQ[k] = 1; noteK('FLOOR ' + k + ' (' + (RK.def && RK.def.src8 && RK.def.src8.id) + '): ' + ((RK.def && RK.def.src8 && RK.def.src8.triggers) || []).map(function (t) { return t.id + '@' + (t.rect || []).slice(0, 2).join(','); }).join(' ').slice(0, 900)); }
+      function talkQ(npc, o) { var tr = trigK('talk:' + npc); floorQ(); if (!tr) return 'no talk:' + npc + ' on ' + whereQ(); return atTrigK(topK(), tr, Object.assign({ dflt: /./, quiet: 120 }, o || {})); }
+      function questQ(id) { var B = topK(), st = B && B.roam ? CK.state(B) : null; return st ? CK.quests(st).filter(function (q) { return q.id === id; })[0] || null : null; }
+      function hasQ(id) { var B = topK(); return B && B.roam ? CK.count(CK.state(B), id) : 0; }
+      function flagQ(k) { var B = topK(); return B && B.roam ? B.roam.flags[k] : HK.cur && HK.cur.flags ? HK.cur.flags[k] : undefined; }
+      function silverQ() { var B = topK(); return B && B.roam ? B.roam.silver : HK.cur ? HK.cur.silver : 0; }
+      function keyQ() { return (RK.def && RK.def.key) + '|' + (RK.def && RK.def.src8 && RK.def.src8.id) + '|' + (RK.def && RK.def.room) + '|' + (RK.def && RK.def.hexIn); }
+      // off the street by the feed track to the Warrens' mouth camp (js/mines.js M.FEED)
+      function toCampQ() {
+        if (RK.def && RK.def.key === 'warrens') return 'at the camp';
+        if (RK.def && RK.def.hexIn) outOfHexQ();
+        if (!(RK.def && RK.def.key === 'silverton' && !RK.def.room)) return 'not on Silverton\'s street (' + whereQ() + ')';
+        goK(topK(), D.mines.FEED, { dflt: /./, until: function () { return (RK.def && RK.def.key === 'warrens') || D.top() === WK.scene; } });
+        var wq = ''; if (D.top() === WK.scene) wq = worldK('warrens', {}); // (the feed track runs off the street onto THE WORLD's near ground: the camp's door by it)
+        floorQ(); return RK.def && RK.def.key === 'warrens' && D.top() !== WK.scene ? 'at the camp' + (wq ? ' (' + wq.slice(0, 160) + ')' : '') : 'did not reach the camp (' + whereQ() + (wq ? ': ' + wq.slice(0, 300) : '') + ')';
+      }
+      // back to Silverton's street: out of a room by its door, off the camp by its west edge and THE WORLD, out of the Hex
+      function toTownQ() {
+        if (RK.def && RK.def.hexIn) outOfHexQ();
+        if (RK.def && RK.def.room) { var dq = RK.def.exitSq || null; floorQ(); goOutQ(); }
+        if (D.top() !== WK.scene && RK.def && RK.def.key === 'warrens') { var g = D.mines.campWest ? D.mines.campWest(topK().roam.flags) : null; if (g) goK(topK(), [0, g[1]], { /* (the west gate's square is a step inside the rim: the step onto x 0 is the way out, js/mines.js T.wayOut) */ dflt: /./, until: function () { return D.top() === WK.scene || (RK.def && RK.def.key === 'silverton'); } }); }
+        if (D.top() !== WK.scene && RK.def && /^galleries_g/.test((RK.def.src8 && RK.def.src8.id) || '') && RK.def.src8.id !== 'galleries_g1') downQ('galleries_g1');
+        if (D.top() !== WK.scene && RK.def && RK.def.key !== 'silverton') { var so = siteOutQ(); if (D.top() !== WK.scene) logQ('off ' + whereQ() + ': ' + so); }
+        if (D.top() !== WK.scene && RK.def && RK.def.key !== 'silverton') { var ex = (RK.def.src8 && RK.def.src8.warps || []).length; logQ('to town from ' + whereQ() + ': no way written for this floor (' + ex + ' warps)'); }
+        if (D.top() === WK.scene) worldK('silverton', {});
+        return RK.def && RK.def.key === 'silverton' && !RK.def.room && D.top() !== WK.scene ? 'in town' : 'not in town (' + whereQ() + ')';
+      }
+      // off a site's floor onto THE WORLD by one of its gates (js/mines.js M.FLOORS gates: [x, y, the step in] -- the rim a step out from it), RETURN to the world map asked
+      function siteOutQ() {
+        var gs = (D.mines.FLOORS[RK.def.key] || {}).gates || (RK.def && RK.def.marks && RK.def.marks.gates) || {}, ks = Object.keys(gs).filter(function (k) { return k !== 'feed'; }); if (!ks.length) return 'no gates on ' + whereQ();
+        var g = gs[ks.indexOf('east') >= 0 ? 'east' : ks[0]], dir = g[2] || [0, 0], rim = [g[0] - dir[0], g[1] - dir[1]];
+        goK(topK(), rim, { dflt: /./, until: function () { return D.top() === WK.scene; } });
+        return D.top() === WK.scene ? 'onto THE WORLD' : 'not off ' + whereQ();
+      }
+      // out of Silverton by a gate onto THE WORLD: the road's square on that rim (as walk1113 leaves by the east gate: def.wayName, not the feed track)
+      function gateOutQ(side) {
+        if (!(RK.def && RK.def.key === 'silverton' && !RK.def.room)) return 'not on the street';
+        var wn = RK.def.wayName || {}, ks = Object.keys(wn).filter(function (k) { var p = k.split(',').map(Number); return !/feed track/.test(wn[k]) && (side === 'west' ? p[0] <= 1 : side === 'east' ? p[0] >= RK.def.w - 2 : side === 'north' ? p[1] <= 1 : p[1] >= RK.def.h - 2); }).map(function (k) { return k.split(',').map(Number); });
+        if (!ks.length) return 'no ' + side + ' way on the street';
+        ks.sort(function (a, b) { return side === 'west' || side === 'east' ? a[1] - b[1] : a[0] - b[0]; }); var sq = ks[Math.floor(ks.length / 2)];
+        var g = goK(topK(), sq, { ans: [0], dflt: /./, until: function () { return D.top() === WK.scene; } });
+        return D.top() === WK.scene ? 'out by the ' + side + ' gate' : 'not out by the ' + side + ' gate (' + whereQ() + '): ' + g.slice(-160);
+      }
+      // out of a room on the street (a shop, Cassia's): its way out walked as a player walks out of the door (js/town.js T.goOut on the room's exit)
+      function goOutQ() { var B = topK(); if (!B || !B.roam || !RK.def.room) return; var k0 = keyQ(), gen = (function* () { yield* TK.goOut(B); })(); playK({ box: runK(B, gen), dflt: /./, until: function () { return keyQ() !== k0; } }); }
+      // REST where the party stands, as a player does who is hurt: the long rest where it is open (the camp's bunkhouse, Cassia's rooms), else the bunk's short rest; logged with the party
+      function hurtQ() { var B = topK(); return !!(B && B.roam && B.roam.members.some(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp < u.maxhp / 2; })); }
+      function restQ(why) {
+        var B = topK(); if (!B || !B.roam) return 'not on a floor';
+        var shut = HK.longWhy ? HK.longWhy(8, '') : '', k = RK.def.key, tr = null, ans = null, hp0 = partyQ();
+        if (k === 'warrens' || k === 'galleries') { tr = trigK(k === 'warrens' ? 'keeper:bunkhouse' : 'keeper:galbunk'); ans = shut ? [/SHORT REST/] : [/LONG REST/]; }
+        else if (k === 'silverton') {
+          if (shut) { logQ('REST wanted (' + why + '), the long rest shut: ' + strip(shut).slice(0, 120)); return 'shut'; }
+          if (RK.def.hexIn) outOfHexQ();
+          if (RK.def.room !== 'inn:cassia') atTrigK(topK(), trigK('inn:cassia'), { until: function () { return RK.def.room === 'inn:cassia'; } });
+          floorQ(); tr = trigK('talk:cassia'); ans = [/^STAY/];
+        }
+        if (!tr) { logQ('REST wanted (' + why + ') on ' + whereQ() + ': no bed here'); return 'no bed'; }
+        var s0 = silverQ(), seen = atTrigK(topK(), tr, { ans: ans, quiet: 200 });
+        logQ((shut ? 'A SHORT REST' : 'A LONG REST') + ' at ' + whereQ() + ' (' + why + '), ' + (s0 - silverQ()) + ' sp: ' + partyQ() + (/MORNING/.test(seen) ? ' -- ' + (seen.match(/MORNING[^/]*/) || [''])[0].slice(0, 200) : ''));
+        if (RK.def.room) goOutQ();
+        return shut ? 'short' : 'long';
+      }
+      // a fight that leaves one of the four down: M > WAIT on the floor, SHORT REST, where they stand (js/hours.js H16.wait, H16.waitPlay), as a player does before walking on
+      function downQ0() { var B = topK(); return !!(B && B.roam && B.roam.members.some(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp <= 0; })); }
+      function breatheQ(why) {
+        var B = topK(); if (!B || !B.roam || !H6K.canWait || !H6K.canWait(B)) { logQ('A SHORT REST wanted (' + why + ') on ' + whereQ() + ': no WAIT here'); return 'no wait'; }
+        H6K.wait(B); var seen = playK({ ans: [/SHORT REST/], dflt: /./, quiet: 120 });
+        logQ('A SHORT REST where they stand (' + why + '), M > WAIT: ' + partyQ() + (/Not with them coming/.test(seen) ? ' -- refused: "Not with them coming."' : ''));
+        return 'short';
+      }
+      // A SHIFT AT THE PENS (js/mines.js M.penShift): the one with the best Animal Handling or Nature milks, the hands as a player's -- mostly clean, now and then perfect, dry or spilt
+      function shiftQ() {
+        var B = topK(), Rr = window.DS.R, up = B.roam.members.filter(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp > 0; }), best = null, bs = -99;
+        up.forEach(function (u) { var s = Math.max(Rr.skill(u.src, 'Animal Handling', 'wis'), Rr.skill(u.src, 'Nature', 'int')) * 100 + u.hp; if (s > bs) { bs = s; best = u; } }); if (!best) return 'nobody to milk';
+        var picks = []; for (var i = 0; i < 8; i++) { var r = D.rand(); picks.push(r < 0.15 ? 'perfect' : r < 0.6 ? 'clean' : r < 0.8 ? 'dry' : 'spilt'); } RK.shiftAuto = picks;
+        var s0 = silverQ(), t0 = HK.clockAt(HK.now()), pen = trigK('pen2'), seen = pen ? atTrigK(B, pen, { ans: [/^WORK A SHIFT$/].concat(up.length > 1 ? [new RegExp('^' + best.name + '$')] : []), quiet: 120 }) : 'no pen2';
+        RK.shiftAuto = null; var hb = topK().roam.members.filter(function (u) { return u.id === best.id; })[0];
+        if (HK.clockAt(HK.now()) === t0 && pen) findingQ('shifttime', 'a shift at the pens passes no time on the clock: worked at ' + t0 + ' and done at ' + t0 + ' (deep16/js/mines.js M.penShift: the shift and its pay move nothing of THE WORLD\'s clock) -- a party can work as many as it likes in one minute');
+        logQ('A SHIFT at mouth two (' + t0 + ' on): ' + best.name + ' milks -> ' + (silverQ() - s0) + ' sp' + (hb && hb.src.conds && hb.src.conds.paralyzed ? ', TOUCHED' : '') + (/touched/i.test(seen) ? ' (the feeler touched)' : '') + '; ' + silverQ() + ' sp in the purse');
+        return silverQ() - s0;
+      }
+      // a SHOP's counter: in at its door, its keeper's screen, BUY as the button does (js/counter.js Counter.buy), out again
+      function buyQ(door, keeperTalk, id) {
+        if (toTownQ() !== 'in town') return 'not in town';
+        var tr = trigK(door); if (!tr) return 'no door ' + door;
+        atTrigK(topK(), tr, { until: function () { return RK.def.room === door; } }); floorQ();
+        var kt = trigK(keeperTalk) || trigWhereK(function (t) { return /^talk:|^keeper:|counter/.test(t.id || ''); }); if (!kt) { goOutQ(); return 'no keeper in ' + door; }
+        atTrigK(topK(), kt, { until: function () { var s = D.top(); return s instanceof CK.Counter && !!s.shop && !(s.wait && (s.wait.ask || s.wait.say)); }, dflt: /./ });
+        var sc = D.top(), out = '';
+        if (sc instanceof CK.Counter && sc.shop) { var s0 = silverQ(); sc.buy(id, 1); out = (sc.msg ? strip(sc.msg) : '') + ' (' + s0 + ' -> ' + sc.st.silver() + ' sp)'; var lv = sc.buttons().filter(function (b) { return /LEAVE|DONE|BACK|CLOSE|GOODBYE/.test(String(b.label || '')); })[0]; if (lv) sc.press(lv); else { out += ' [no leave button: ' + sc.buttons().map(function (b) { return b.label; }).join('|') + ']'; D.pop(); } }
+        else out = 'no shop screen (' + (sc && (sc.kind || sc.constructor && sc.constructor.name)) + ')';
+        playK({ quiet: 60 }); goOutQ();
+        return out;
+      }
+      // a trigger walked to and fired at a square of the grid's (the Wet's own triggers are in the first game's squares: js/roam.js def.from8)
+      function atSqQ(B, tr, sq, o) { var gen = (function* () { var t = B.roam.token, p = t.x === sq[0] && t.y === sq[1] ? [] : RK.walkRoute(t, sq); if (p) { if (yield* RK.walkTo(B, sq)) yield* RK.fire(B, tr, sq); } else if (yield* RK.walkBeside(B, sq)) yield* RK.fire(B, tr, sq); })(); return playK(Object.assign({ box: runK(B, gen) }, o || {})); }
+      // THE JOURNAL'S ARROW, floor by floor, for quest `qid`: H16.pinSq on each floor (the person, the trigger, the way to the next floor, the gate that opens for a use), walked
+      function arrowQ(qid, stop, o) {
+        o = o || {}; var said = [];
+        for (var i = 0; i < (o.hops || 12); i++) {
+          if (stop()) return 'there';
+          var B = topK(); if (!B || !B.roam || D.top() === WK.scene) return 'not on a floor (' + whereQ() + ')';
+          var q = questQ(qid); if (!q) return 'no ' + qid + ' in the JOURNAL'; if (q.done) return 'done'; CK.state(B).flags.pin = qid; floorQ();
+          var s = q.step, sq = s ? H6K.pinSq(B, s) : null; if (!sq) { findingQ('noarrow-' + qid + '-' + RK.def.key, 'the JOURNAL\'s arrow for ' + (q.name || qid) + ' shows nothing on ' + whereQ() + ' (its step: "' + String(q.where || '').slice(0, 120) + '")'); return 'no arrow on ' + whereQ(); }
+          var id8 = RK.def.src8 && RK.def.src8.id, tr = s.trig && (!s.map || s.map === id8) ? trigK(s.trig) : null, k0 = keyQ();
+          if (tr) { said.push(atSqQ(B, tr, sq, Object.assign({ dflt: /./, quiet: 200 }, o.play || {})).slice(-300)); return 'fired ' + s.trig + ': ' + said.join(' || '); }
+          if (s.npc && folkK(B, s.npc) && trigK('talk:' + s.npc)) { said.push(talkQ(s.npc).slice(-300)); return 'talked ' + s.npc + ': ' + said.join(' || '); }
+          if (!RK.walkRoute(B.roam.token, sq)) { // (the arrow on a square nobody stands on -- a gate shut across the way: walked beside and E pressed into it, as a player does)
+            var trA = trigWhereK(function (x) { var r8 = x.rect || [], p = RK.def.from8 ? RK.def.from8(r8[0], r8[1]) : r8; return x.on === 'use' && p[0] === sq[0] && p[1] === sq[1]; });
+            var fl0 = JSON.stringify({ skarnGateOpen: flagQ('skarnGateOpen'), house: HK.cur && HK.cur.flags ? HK.cur.flags.skarnGateOpen : '-' });
+            logQ('the arrow at ' + sq + ' on ' + whereQ() + ' has no way to it from ' + B.roam.token.x + ',' + B.roam.token.y + ' (the flags as it was laid: ' + fl0 + ')' + (trA ? ': ' + trA.id + ' used from beside it' : ': nothing to use there'));
+            if (trA) { atSqQ(B, trA, sq, { dflt: /./, quiet: 120 }); if (RK.walkRoute(topK().roam.token, sq) || keyQ() !== k0) findingQ('shut-' + trA.id, trA.id + ' on ' + whereQ() + ' stood shut across the JOURNAL\'s way when the party came back up to it from ' + (o.from || 'below') + ' (its flags then ' + fl0 + '; the floor lays it open on skarnGateOpen -- content warrens_b flagTiles, deep16/js/mines.js M.floor); a use from beside it opened it'); continue; }
+          }
+          var g = goK(B, sq, { dflt: /./, until: function () { return keyQ() !== k0 || stop(); } });
+          if (!topK() || !topK().roam) return 'off the floor after the walk to ' + sq + ' (' + whereQ() + ', ' + D.scenes.length + ' screens): ' + g.slice(-400);
+          if (keyQ() === k0 && !stop()) { // (at the arrow, the floor the same: a door or a gate that opens for a use -- E toward it, as a player presses into it)
+            var t = topK().roam.token, at = t.x === sq[0] && t.y === sq[1];
+            if (!at) { said.push('short of the arrow ' + sq + ' at ' + t.x + ',' + t.y + ': ' + g.slice(-160)); }
+            var u2 = useK(topK(), sq, { dflt: /./, quiet: 120 }); if (keyQ() === k0) { said.push('USE at ' + sq + ': ' + u2.slice(-160)); if (++o.stuck > 2 || i > 8) break; }
+          }
+          if (D.top() === WK.scene) return 'onto THE WORLD';
+        }
+        return 'stopped (' + whereQ() + '): ' + said.join(' || ').slice(-500);
+      }
+      // THE MISSING FIVE (js/hours.js H16.MISSIONS warrens): Edric's book, Skarn's gate, the rope from Marko's, the Wet's flooded stair, the tokens to Edric, Skarn's pay
+      function fiveQ() {
+        var r = toCampQ(); logQ('to the Warrens: ' + r); if (!/at the camp/.test(r)) return r;
+        if (!flagQ('tallyMet') || !flagQ('fiveKnown')) { var e1 = talkQ('edric'); logQ('Edric Pellam: ' + e1.slice(0, 200)); }
+        if (!flagQ('skarnOk')) { var k1 = talkQ('skarn'); logQ('Skarn: ' + k1.slice(-200)); }
+        var q = questQ('warrens'); logQ('THE MISSING FIVE in the JOURNAL: ' + (q ? (q.done ? 'done' : q.where) : 'not there') + '; the rope ' + hasQ('rope') + ', ' + silverQ() + ' sp');
+        if (hurtQ()) restQ('hurt before the Wet');
+        // the rope: 30 sp at Marko Thorne's, the Provisioner (content/shops.json marko); short of it, shifts at the pens first
+        var price = ((window.DS.DATA.items || {}).rope || {}).price || 30;
+        for (var sh = 0; sh < 8 && !hasQ('rope') && silverQ() < price; sh++) { if (shiftQ() === 'nobody to milk') break; if (hurtQ()) restQ('touched at the pens'); }
+        if (!hasQ('rope')) {
+          if (silverQ() < price) { logQ('NO ROPE: ' + silverQ() + ' sp after the shifts, the rope ' + price); return 'no rope money'; }
+          var b = buyQ('shop:marko', 'talk:marko', 'rope'); logQ('MARKO\'S, the rope: ' + b + ' -- the rope ' + hasQ('rope'));
+          if (!hasQ('rope')) return 'no rope bought';
+          r = toCampQ(); logQ('back to the Warrens: ' + r); if (!/at the camp/.test(r)) return r;
+        }
+        if (hurtQ()) restQ('hurt before the Wet');
+        var w = arrowQ('warrens', function () { return !!flagQ('fiveRecovered'); }, { play: { ans: [/^ROPE THEM OUT$/] }, hops: 14, stuck: 0 });
+        logQ('THE WET: ' + w.slice(0, 600) + ' -- fiveRecovered ' + flagQ('fiveRecovered') + ', the tokens ' + hasQ('fivetokens'));
+        if (!flagQ('fiveRecovered')) return 'not up: ' + w.slice(0, 120);
+        // the tokens up to Edric (his fifty, the Grease page, a point of renown), then Skarn's office box (sixty while the stock lives)
+        var s0 = silverQ(), r0 = HK.cur.renown, e2 = arrowQ('warrens', function () { return !!flagQ('fiveDone'); }, { hops: 10, stuck: 0 });
+        logQ('THE TOKENS TO EDRIC: ' + e2.slice(-240) + ' -- fiveDone ' + flagQ('fiveDone') + ', ' + s0 + ' -> ' + silverQ() + ' sp, renown ' + r0 + ' -> ' + HK.cur.renown + ', the Grease page ' + hasQ('sheet_grease'));
+        if (flagQ('fiveDone') && !flagQ('skarnPaid')) { var s1 = silverQ(), k2 = talkQ('skarn'); logQ('SKARN\'S OFFICE BOX: ' + (silverQ() - s1) + ' sp' + (flagQ('stockDead') ? ' (the stock dead: nothing)' : '') + ' -- ' + k2.slice(-160)); }
+        var qd = questQ('warrens'); logQ('THE MISSING FIVE ' + (qd && qd.done ? 'DONE' : 'not done: ' + (qd && qd.where)));
+        return qd && qd.done ? 'done' : 'the five up, not done';
+      }
+      // THE CULL (js/hours.js H16.MISSIONS cull): Sabeth Pollard at the guano mine's weigh-shed, west of Silverton on THE WORLD; the dens below the working gallery, the bats at three
+      // silver a head and the darkmantles at ten, paid at her shed; its one law, no fire and no noise under a roost; done when the one down there is brought up (flag rescued)
+      function cullQ() {
+        var r = '';
+        if (RK.def && RK.def.key !== 'galleries') { if (RK.def.key === 'warrens' || RK.def.room || RK.def.hexIn) { var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt; } if (D.top() !== WK.scene) r = gateOutQ('west'); if (D.top() === WK.scene) r = worldK('mouth', {}); }
+        floorQ(); logQ('to the guano mine: ' + whereQ() + (r ? ' -- ' + r.slice(0, 200) : ''));
+        if (!(RK.def && RK.def.key === 'galleries')) return 'not at the mine (' + whereQ() + ')';
+        if (!flagQ('cullHired')) { var sb = talkQ('sabeth', { ans: [/^TAKE THE WORK$/] }); logQ('Sabeth Pollard: ' + sb.slice(-240) + ' -- cullHired ' + flagQ('cullHired')); }
+        if (hurtQ()) restQ('hurt before the dens');
+        var w = arrowQ('cull', function () { return !!flagQ('rescued'); }, { hops: 12, stuck: 0 });
+        if (!flagQ('rescued')) { // (no arrow inside the mine: down by the floors' own ways, as the step's words say -- the working gallery, then the dens)
+          var dn = downQ('galleries_g3'); logQ('DOWN TO THE DENS: ' + dn);
+          if (RK.def && RK.def.src8 && RK.def.src8.id === 'galleries_g3') {
+            var tr = trigK('rescue'), sq = tr ? (RK.def.from8 ? RK.def.from8(tr.rect[0], tr.rect[1]) : tr.rect.slice(0, 2)) : null;
+            var rs = tr ? atSqQ(topK(), tr, sq, { dflt: /./, quiet: 200 }) : 'no rescue on the dens';
+            logQ('THE RESCUE under the roost (' + (sq || '-') + '): ' + rs.slice(-300));
+          }
+        }
+        var kb = function () { var ks = (topK() && topK().roam && topK().roam.kills) || {}, n = 0; return ks.giantbat || 0; }; // (the tally keeps each kill by its id, and again by its floor's zone where it has one: 'g3:giantbat')
+        logQ('THE DENS: rescued ' + flagQ('rescued') + ', roostBroken ' + flagQ('roostBroken') + ', giant bats killed ' + kb() + ' -- ' + partyQ());
+        if (downQ0()) breatheQ('after the rescue');
+        if (flagQ('rescued') || kb()) {
+          var up = downQ('galleries_g1'), s0 = silverQ(), kAll = JSON.stringify((topK().roam && topK().roam.kills) || {}), sp = up === 'there' ? talkQ('sabeth') : 'not up: ' + up, paid = silverQ() - s0;
+          logQ('SABETH\'S PAY: ' + paid + ' sp for ' + kb() + ' giant bats killed (the floor\'s tally ' + kAll + ')');
+          if (up === 'there' && kb() * 3 > paid && flagQ('rescued')) findingQ('sabethpay', 'Sabeth paid ' + paid + ' sp for ' + kb() + ' giant bats killed in the dens (the tally ' + kAll + '): her pay reads the dens\' own tally, "g3:giantbat" (deep16/js/mines.js M.SCENES.sabeth), and the rescue\'s four under the roost come in by R.encounter(B, \'set\', ...) with no zone of the dens (deep16/js/mines.js M.rescue), so they are not on it');
+          if (up === 'there' && hurtQ()) restQ('hurt after the dens');
+        }
+        var qd = questQ('cull'); return qd && qd.done ? 'done' : 'not done: ' + (qd ? qd.where : 'no quest');
+      }
+      // a mine's floors by their own ways (H16.wayTo: the first game's warps, the fewest maps), to the floor `id8`
+      function downQ(id8) {
+        for (var h = 0; h < 6; h++) {
+          if (RK.def && RK.def.src8 && RK.def.src8.id === id8) return 'there';
+          var B = topK(); if (!B || !B.roam || D.top() === WK.scene) return 'off the floors (' + whereQ() + ')';
+          var sq = H6K.wayTo(B, id8); floorQ();
+          if (!sq) { // (no way by H16.wayTo -- the mouth's warp up into the working gallery carries the cond "!lit:always": the first game's warps read bare, the next map on the fewest)
+            var MP = window.DS.DATA.maps || {}, here = RK.def.src8 && RK.def.src8.id, prev = {}, qq = [here]; prev[here] = null;
+            for (var qi = 0; qi < qq.length && !(id8 in prev); qi++) ((MP[qq[qi]] || {}).warps || []).forEach(function (w) { if (!(w.to in prev) && MP[w.to]) { prev[w.to] = qq[qi]; qq.push(w.to); } });
+            var nx = id8 in prev ? id8 : null; while (nx && prev[nx] !== here) nx = prev[nx];
+            var wq = nx ? ((MP[here] || {}).warps || []).filter(function (w) { return w.to === nx; })[0] : null;
+            if (wq) { sq = RK.def.from8 ? RK.def.from8(wq.x, wq.y) : [wq.x, wq.y]; logQ('no JOURNAL way off ' + whereQ() + ' toward ' + id8 + ' (H16.wayTo: ' + JSON.stringify((RK.def.warps || []).map(function (w) { return [w.to, w.cond || ''].join(' '); })) + '); the first game\'s warp to ' + nx + ' at ' + sq + ' walked'); }
+          }
+          if (!sq) return 'no way to ' + id8 + ' from ' + whereQ();
+          var k0 = keyQ(), g = goK(B, sq, { dflt: /./, until: function () { return keyQ() !== k0; } });
+          if (keyQ() === k0) return 'stuck on ' + whereQ() + ' short of ' + sq + ': ' + g.slice(-200);
+        }
+        return RK.def && RK.def.src8 && RK.def.src8.id === id8 ? 'there' : 'not there (' + whereQ() + ')';
+      }
+      // ---------------------------------------------------------------- THE ROUTE: the card; Silverton's quests the nearest first (or the Cull first, &order=cull: his "some walks
+      // bat-cave before crawler"); back to the card each time a level comes at a long rest
+      function sheetsQ() { var B = topK(); return B && B.roam ? B.roam.members.filter(function (u) { return u.src && !u.src.guest; }).map(function (u) { return u.src; }) : ((HK.cur && HK.cur.party) || []); }
+      function levelsQ() { return sheetsQ().reduce(function (n, h) { return n + (h.lvl || 0); }, 0); }
+      function levelDueQ() { var XL = window.DS.R.XP_LEVEL; return sheetsQ().some(function (h) { return !h.dead && XL[h.lvl + 1] != null && (h.xp || 0) >= XL[h.lvl + 1]; }); }
+      // XP over a level waits for a long rest (js/house.js H.bank): the long rest where they stand, or M > WAIT TILL A LONG REST first when one is shut (js/hours.js), then the bed
+      function restLevelQ() {
+        var B = topK(); if (!B || !B.roam) return 'not on a floor';
+        if (!RK.def.room && RK.def.key !== 'warrens' && RK.def.key !== 'galleries' && RK.def.key !== 'silverton') { var tt = toTownQ(); if (tt !== 'in town') return 'no bed: ' + tt; }
+        var shut = HK.longWhy ? HK.longWhy(8, '') : '';
+        if (shut && RK.def.key !== 'silverton' && H6K.canWait && H6K.canWait(topK())) { H6K.wait(topK()); var w = playK({ ans: [/TILL A LONG REST/], dflt: /./, quiet: 120 }); logQ('M > WAIT, TILL A LONG REST (' + strip(shut).slice(0, 80) + '): ' + w.slice(-160)); }
+        else if (shut) { logQ('the long rest shut in town (' + strip(shut).slice(0, 80) + '): the walk waits by the bell'); for (var i = 0; i < 6 && HK.longWhy(8, ''); i++) { if (!(H6K.canWait && H6K.canWait(topK()))) break; H6K.wait(topK()); playK({ ans: [/TILL A LONG REST|NEXT BELL/], dflt: /./, quiet: 120 }); } }
+        return restQ('a level banked');
+      }
+      legQ('the card at the start', function () { return cardQ('the first visit'); });
+      var lvCardQ = levelsQ(), QUESTSQ = [['the Missing Five', fiveQ, 'warrens'], ['the Cull', cullQ, 'cull']];
+      if (orderQ === 'cull') QUESTSQ.reverse();
+      QUESTSQ.forEach(function (qq) {
+        if (!HK.cur || HK.day() > toQ) return;
+        var q0 = questQ(qq[2]); if (q0 && q0.done) return;
+        legQ(qq[0], qq[1]);
+        if (HK.cur && levelDueQ()) legQ('a level banked: the long rest', function () { return restLevelQ(); });
+        if (HK.cur && levelsQ() > lvCardQ) { legQ('the card, levelled', function () { var r = toTownQ(); return r === 'in town' ? cardQ('a level came') : 'not in town: ' + r; }); lvCardQ = levelsQ(); }
+      });
+      var tailQ = rollLineQ(); if (tailQ) QL.push('   (' + tailQ + ')');
+      QL.push('END ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ() + ' -- ' + fightNQ + ' fights fought; the legs: ' + legsQ.join(' | '));
+      okK('questwalk', 'THE QUEST WALK walked without a throw: ' + legsQ.join(' | ') + ' -- ' + QL.length + ' lines in its log', QL.length > 2);
+      findQ.forEach(function (f) { noteK('FINDING [' + f.id + '] ' + f.s); });
+      hooksOffQ();
+      }
+      if (!QUESTK) {
       // ---------------------------------------------------------------- 2. THE HEX: in at its front doors, Korvin's slate, the card bout by bout
       var hexT = trigK('hex:front'), seenHx = hexT ? atTrigK(B1, hexT, { until: function () { return !!(RK.def && RK.def.hexIn); } }) : 'no hex:front';
       var Bh = topK(); noteK('2. into the Hex: ' + (RK.def && RK.def.key) + ' hexIn ' + (RK.def && RK.def.hexIn) + ', called ' + !!Bh.roam.flags.councilCalled + ' -- ' + seenHx.slice(-300));
@@ -7818,13 +8190,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okK('asleep', 'ASLEEP THROUGH THE SINGING (slot 2, A.DUE_WAKE past every passive): the due paid at the stone (duePaid ' + fs3.duePaid + '), the morning ' + /MORNING/.test(sl2) + ' on ' + RK.def.key + ' at ' + (Bs3.roam ? Bs3.roam.token.x + ',' + Bs3.roam.token.y : '-') + ' day ' + HK.day() + ' ' + HK.clockAt(HK.now()) + '; at every floor laid on the way nobody twice (' + (layBad.slice(l0s).join('; ') || 'none') + ') -- ' + sl2.slice(-300),
         fs3.duePaid === 1 && /MORNING/.test(sl2) && HK.day() === dueD + 1 && layBad.length === l0s);
       } // (walk1113's own road from the first morning; the poison-dinner walk's is above)
+      } // (!QUESTK: walk1113's road and its kin; the quest walk's is above)
       okK('pops', 'NOBODY POPS IN: every scene walk of the whole walk got where it went by a way there (' + (popsK.length ? popsK.join('; ') : 'none set at a goal with no way to it') + ')', !popsK.length);
       okK('placed', 'NOBODY WHERE THEY ARE NOT: at every floor laid (' + layK + ' of them) nobody off the floor and nobody twice (' + (layBad.length ? layBad.slice(0, 8).join('; ') : 'none') + ')', !layBad.length);
       okK('noway', "THE PARTY CAN ALWAYS GO WHERE IT IS SENT: no walk of its token, a scene's or a click's, from a square with no way to where it went (" +(noWayK.join('; ') || 'none') + ')', !noWayK.length);
       okK('answers', 'every answer the walk gave was on the screen it was given to (' + (missK.join('; ') || 'all') + ')', !missK.length);
       repK.notes.push('THE FIGHTS ' + fightsK.join(' '));
       repK.notes.push('TRAIL ' + JSON.stringify((HK.cur.trail || []).map(function (e) { return e.k + ':' + e.s; })).slice(0, 1500));
-    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 1500)); }
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 1500)); if (QUESTK) { repK.log = QL; QL.push('STOPPED by a throw at ' + (HK.cur ? hhQ() : '?') + ': ' + String(eK && eK.message || eK).slice(0, 300)); } }
+    if (QUESTK) hooksOffQ();
     InK.walk = walk0K; InK.gone = gone0K; RK.fight = rkFight0K; RK.walkTo = walkTo0K;
     HK.playing = false; HK.cur = null; if (InK) { InK.stay = false; InK.bedHere = null; InK.pinned = null; InK.duePlay = null; InK.watching = null; InK.bedding = null; }
     D.store.get = stGK; D.store.set = stSK; D.music = muK;
