@@ -102,7 +102,7 @@
       var x = R.by[b.id]; if (!x || !x.hex || t < x.out) return;
       var tr = x.trail.filter(function (s) { return s.T <= t; }), last = tr[tr.length - 1], hex = last ? last.hex : SR.start(b), left = SR.left(b, t), gone = x.gone != null && t >= x.gone;
       var busy = !!last && last.found > 0 && t < last.T + SR.HOLD, moved = !!last && !busy && t - last.T < 4 && t < (SR.BOARD - 1) * 24;
-      out.push({ id: b.id, tribe: b.tribe, name: b.name, hex: hex, pt: hcw(hex[0], hex[1], MW.w), left: left, n: total(left), gone: gone, busy: busy, moving: moved, burned: tr.reduce(function (n, s) { return n + s.found; }, 0), trail: tr });
+      out.push({ id: b.id, tribe: b.tribe, name: b.name, of: total(b.comp), hex: hex, pt: hcw(hex[0], hex[1], MW.w), left: left, n: total(left), gone: gone, busy: busy, moving: moved, burned: tr.reduce(function (n, s) { return n + s.found; }, 0), trail: tr });
     });
     return out;
   };
@@ -116,9 +116,9 @@
   };
   SR.board = function (t) { // (for the Snoot's board as it opens: each band's hex in the board's own offset columns too, what is left of it, the farms burned)
     var S = W.state(); if (!S) return null; if (t == null) t = S.t; var R = SR.sim(t);
-    return { day: W.day(), boardDay: SR.BOARD, bands: SR.bands(t).map(function (x) { return { id: x.id, tribe: x.tribe, hex: x.hex, offset: [x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2, x.hex[1]], left: x.left, gone: x.gone, busy: x.busy, burned: x.burned }; }), burned: Object.keys(R.burned).filter(function (id) { return R.burned[id] <= t; }) };
+    return { day: Math.floor(t / 24) + 1, boardDay: SR.BOARD, bands: SR.bands(t).map(function (x) { return { id: x.id, tribe: x.tribe, hex: x.hex, offset: [x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2, x.hex[1]], of: x.of, left: x.left, gone: x.gone, busy: x.busy, burned: x.burned }; }), burned: Object.keys(R.burned).filter(function (id) { return R.burned[id] <= t; }) };
   };
-  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) D.house.cur.snootRoad = SR.board(); } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
+  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) { var sr = SR.board(); sr.atBoard = SR.board((SR.BOARD - 1) * 24); D.house.cur.snootRoad = sr; } // (atBoard: the bands as they will stand at the dawn of SR.BOARD with what the party has killed by now, so a save kept days before it still opens the board right -- the Snoot seat's ask, 11-15; `of`: a band's whole size) } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
 
   // ---------------------------------------------------------------- the run-in
   SR.LINES = { // (the clock seat's drafts, his to cut)
