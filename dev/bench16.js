@@ -10929,7 +10929,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       try {
         D.seed = 1115; D.world.index(); D.world.use('world'); D.world.load('?fresh&far'); if (D.hunger) D.hunger.on = false;
         var drawWY = null; for (var iWY = 0; iWY < 6000 && !drawWY; iWY++) { var pWY = D.world.pick('coldridge', false, [0, 0]); if (pWY && pWY.grp.e && pWY.grp.e[0][0] === 'wyvern') drawWY = pWY; }
-        okWY('5 a Coldridge draw of the wyvern: ' + (drawWY ? '[' + drawWY.list.join(', ') + ']' : 'none in 6000') + ' (want [wyvern])', !!drawWY && drawWY.list.join() === 'wyvern');
+        okWY('5 a Coldridge draw of the wyvern: ' + (drawWY ? '[' + drawWY.list.join(', ') + ']' : 'none in 6000') + ' (want [wyvern, wyvern]: a pair, RULED 11-15, Griz: "3 we\'ll default to pairs (cutter leans wyvern)")', !!drawWY && drawWY.list.join() === 'wyvern,wyvern');
       } finally { D.store.get = stGWY; D.store.set = stSWY; }
     } catch (eWY) { repWY.errors.push(String(eWY && eWY.stack || eWY).slice(0, 900)); }
     D.d = d0WY;
