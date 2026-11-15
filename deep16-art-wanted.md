@@ -406,17 +406,7 @@ Each is drawn in the five views the game uses, the same rows in each: HEAD 1 fro
 
 ATTACH for all four: `PALETTE-2026-10-28-deep16-64-colours.png` (the game's 64 colours).
 
-### 1. THE HELL HOUND (fiend) -- five views
-```text
-Attached: the game's 64 colours.
-
-THE HELL HOUND -- a foe for a tactics game. A hound the size of a mastiff, gaunt and heavy in the shoulder, built to run: a short coat the colour of soot and old rust, the ribs showing, a thick neck, a blunt broad head with small upright ears. Its eyes are two coals, orange with a bright core. Its mouth is lit from inside: the gums and tongue glow like embers and a thread of dark smoke leaks from the corners of its jaws in every frame. Black claws. No collar, no chain, no horns, no wings: a dog, and wrong only where the fire shows.
-
-Rows, in each view: Idle (8: standing, head low, flanks working, smoke curling from the jaws, the glow in the mouth pulsing; frame 8 matches frame 1); Run (8: a long flat gallop, animated in place); Bite (8: it lunges and snaps; on the bite frame a flare of fire bursts from the closed jaws, then it pulls back); Fire Breath (8: it plants its forefeet, the chest swells and the glow climbs its throat, the jaws open wide and a widening cone of fire pours out ahead of it for three frames, then the jaws close on smoke -- draw the first body-length of the cone only, the game draws the rest); Flinch (6: struck, it yelps and twists away, sparks shaken from its mouth, then squares up again); Fall (8: it staggers, the legs go, it drops on its side; over the last three frames the glow in the mouth and eyes goes out and it lies dark); Prone (2: knocked flat but alive, on its side with the legs scrabbling, then up).
-
-16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game; the whole creature nose to tail in every frame; flat dark navy background; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline; the same size in every view. Use only the attached 64 colours: the body from the dark and rust ramps, the fire from the orange and yellow ramps. No scenery.
-```
-Where: `hellhound_p1`, rows `idle`, `walk` (Run), `bite`, `breath` (the 15 ft cone, recharge 5-6, as the winter wolf's cold breath is played), `flinch`, `hurt` (Fall), `prone`. Medium. The SRD: Bite with fire on it, Fire Breath, Pack Tactics, immune to fire.
+### 1. THE HELL HOUND (fiend) -- five views -- IN HAND 2026-11-15 (the art desk's ART-WANTED-64-HELL-HOUND, all five views, every row: cut into `hellhound_p1` in all eight facings and worn by the SRD Hell Hound, `c9151b35`, by the cutter-fresh-1115 seat; his words on its drawn smoke, 11-15: *"i thought it would look silly like that animated and should be done with the engine like we're doing other things"*; the smoke and the outer fire stripped, the engine's instead); the block is on `deep16-art-in-hand.md`
 
 ### 2. THE ANIMATED ARMOR (construct) -- five views
 ```text
