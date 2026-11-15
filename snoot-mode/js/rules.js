@@ -210,6 +210,37 @@
     SN.say(st, 'Day ' + st.day + '. The four come down the road to Tarlyn\'s Pit two days after the giants. The Snoot burns in the hills.', 'day');
     return st;
   };
+  // THE BOARD OPENS FROM THE ROAD'S MARKERS (11-15, Griz to the clock seat: "If snoot gets triggered it'll read marker location and status?"; to the Snoot
+  // seat: "It should open from those markers - it hold them in place on day 14 i think"). Before the player's Snoot the clock seat's markers walk four of the
+  // board's bands over THE WORLD (deep16/js/snootroad.js: gk1, sg1, sg2, wl2), hold them from the dawn of its board day, and keep them in the house's save as
+  // `snootRoad`: each band's hex in the world's offset columns, what is left of it, the farms burned. A battle entered from the inn (?from=inn) reads the save
+  // last kept (SN.readMarkers) and stands those bands there (SN.fromMarkers): a band the party destroyed is gone; one it thinned is short the bodies it lost,
+  // body for body (the road's bands are 18, 18, 18 and 12 -- SN.ROADMEN, till the markers say their own -- and the board's may be bigger); a hex off this map or
+  // that nobody walks gives the nearest that is; a farm the road burned is burned on the board. Every other unit keeps the map's own stand.
+  SN.ROADMEN = { gk1: 18, sg1: 18, sg2: 18, wl2: 12 };
+  SN.readMarkers = function () {
+    var best = null; try { for (var n = 0; n < 6; n++) { var raw = window.localStorage.getItem('deep16.game.' + n), d = raw ? JSON.parse(raw) : null; if (d && d.snootRoad && d.snootRoad.bands && (!best || (d.saved || 0) > (best.saved || 0))) best = d; } } catch (e) { best = null; }
+    return best ? (best.snootRoad.atBoard || best.snootRoad) : null; // (atBoard: the bands as they stand at the dawn of the board's day, when the save carries it -- asked of the clock seat, 11-15)
+  };
+  SN.fromMarkers = function (st, B) {
+    if (!B || !Array.isArray(B.bands) || !SN.BOX || SN.MAPNAME !== 'world') return false;
+    var C0 = SN.BOX[0], R0 = SN.BOX[1], said = [], gone = [], burned = 0;
+    B.bands.forEach(function (b) {
+      var u = SN.unit(st, b.id); if (!u || !b.offset) return;
+      var of = b.of != null ? b.of : SN.ROADMEN[b.id], left = 0; Object.keys(b.left || {}).forEach(function (k) { left += Math.max(0, b.left[k] || 0); });
+      var lost = of != null ? Math.max(0, of - left) : 0;
+      if (b.gone || (of != null && left <= 0)) { u.figs = 0; if (u.groups) u.groups.forEach(function (g) { g.n = 0; }); u.state = 'gone'; u.on = false; gone.push(u.name); return; }
+      if (lost) { u.figs = Math.max(1, u.figs - lost); u.lost = (u.lost || 0) + lost; }
+      var h = [Math.max(0, Math.min(SN.W - 1, b.offset[0] - C0)), Math.max(0, Math.min(SN.H - 1, b.offset[1] - R0))];
+      u.at = [-9, -9]; h = SN.freeNear(st, h, u); // (off the board while its hex is found, so it does not crowd itself)
+      if (SN.cost(h) >= 99) h = u.home.slice();
+      u.at = h; said.push(u.name + ' at ' + SN.placeName(h) + (lost ? ', ' + lost + ' short' : ''));
+    });
+    (B.burned || []).forEach(function (id) { var k = SN.FARMAT[String(id).replace(/^s/, '')], F = k && st.farms[k]; if (F && F.burned < F.n) { F.burned++; burned++; } });
+    st.stats.farms = (st.stats.farms || 0) + burned; st.markers = { day: B.day, boardDay: B.boardDay, burned: burned };
+    SN.say(st, 'The Snoot opens as the road left it' + (B.day != null && B.boardDay != null && B.day < B.boardDay ? ' (as last seen on Day ' + B.day + ')' : '') + ': ' + said.join('; ') + (gone.length ? '. ' + gone.join(' and ') + ' did not live to see it' : '') + '. ' + (burned ? burned + ' farm' + (burned === 1 ? '' : 's') + ' already burned.' : 'No farm burned yet.'), 'info');
+    return true;
+  };
   SN.make = function (f, on) {
     var u = JSON.parse(JSON.stringify(f)), ov = SN.FORCEOV && SN.FORCEOV[u.id];
     if (ov) Object.keys(ov).forEach(function (k) { u[k] = JSON.parse(JSON.stringify(ov[k])); }); // (the map's own word on this unit: its men, its name -- js/map.js forces)

@@ -52,6 +52,16 @@
         ok(r1 === true && pk === true && cu('wl1').ritual === false && cu('sg1').ritual === false, 'the Wall-Laugh' + "'" + 's morning ritual is on them at dawn and goes to the grid as a blessing; with no woman left there is none, and no other tribe has it');
         var br = cu('sg1'), hb = cu('harb'), g0 = hb.comp.gnoll, f0h = hb.figs, m0 = men('sg1'); br.at = [hb.at[0], hb.at[1]]; c.units.forEach(function (u) { if (u.tribe === 'skull' && u !== br) u.at = SN.SEATS.wall.slice(); }); br.at = SN.nbrs(hb.at).filter(function (x) { return SN.cost(x) < 99; })[0]; SN.breakUp(c, br, false);
         ok(hb.comp.gnoll === g0 + m0 && hb.figs === f0h + m0 && SN.females(hb) === 0, 'a band that breaks beside the Harbinger with none of its own to run to: its ' + m0 + ' males go to him, its women and hyenas do not');
+        // ---- the board from the road's markers (11-15): a pinned hand-over in the clock seat's shape (deep16/js/snootroad.js SR.board)
+        var mk = SN.newGame(11); mk.party8 = null; var C0 = SN.BOX[0], R0 = SN.BOX[1], fid = Object.keys(SN.FARMAT)[0], fkey = SN.FARMAT[fid], w2 = SN.unit(mk, 'wl2').at.slice(), s1 = SN.unit(mk, 'sg1').figs;
+        var okM = SN.fromMarkers(mk, { day: 14, boardDay: 14, burned: ['s' + fid, 's999999'], bands: [
+          { id: 'sg1', tribe: 'skull', offset: [C0 + 19, R0 + 7], left: { gloryseeker: 2, gnoll: 6, hyena: 4 }, gone: false },
+          { id: 'sg2', tribe: 'skull', offset: [C0 + 3, R0 + 3], left: { gloryseeker: 0, gnoll: 0, hyena: 0 }, gone: true },
+          { id: 'gk1', tribe: 'gray', offset: [C0 - 5, R0 + 30], left: { gloryseekergray: 3, gnollgray: 9, hyena: 6 }, gone: false }] });
+        var m1 = SN.unit(mk, 'sg1'), m2 = SN.unit(mk, 'sg2'), m3 = SN.unit(mk, 'gk1');
+        ok(okM && SN.same(m1.at, [19, 7]) && m1.figs === s1 - 6 && !SN.alive(m2) && SN.on(m3.at) && SN.cost(m3.at) < 99 && m3.figs === 18 && SN.same(SN.unit(mk, 'wl2').at, w2), 'the board opens from the road' + "'" + 's markers: a band stands on its marker' + "'" + 's hex six bodies short, a destroyed band is gone, a marker off the map gives the nearest ground, a band with no marker keeps its stand');
+        ok(mk.farms[fkey].burned === 1 && mk.stats.farms === 1 && mk.markers.burned === 1 && mk.log.some(function (l) { return /opens as the road left it/.test(l.text); }), 'a farm the road burned is burned on the board (one named, one unknown id passed over), and the log says how the board opened');
+        SN.useMap(SN.FIXTURE); var fx = SN.newGame(11); ok(SN.fromMarkers(fx, { bands: [{ id: 'sg1', offset: [20, 20], left: {} }] }) === false && !fx.markers, 'the fixture takes no markers'); SN.useMap(M);
       } catch (e) { ok(false, 'the world map: threw ' + e.message); }
       SN.useMap(SN.FIXTURE);
     })();
