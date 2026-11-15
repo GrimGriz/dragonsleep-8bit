@@ -908,7 +908,10 @@
     from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
     // THE STONE GIANTS' DAY (RULED 2026-11-15, Griz by the lanes desk: "cancel the day 11 making, have him make again at day 10 but that's the special encounter he had
     // with the stone giant by cannon and doesn't make anything else"; "and takes him an extra day to get to the warded fort"): no making on day 11. At noon of day 10,
-    // where he stands on the Coldridge, is his taking of the stone giants (TarlynsPit/wiki/the-trickster.md: the Skylights' two, Steinarr and Hallvor, dominated) -- it
+    // where he stands on the Coldridge, is his taking of STEINARR, the stone giant of the Skylights' window -- Steinarr alone (RULED 11-15, typed to the clock seat: "His
+    // taking of Steinarr is the thing on day 10, his day there is the sum of that unpoured encounter - he only 'makes' Steinarr, she follows rustles up the trolls and
+    // follows him out of loyalty - the DM handwave stealth if the players are between them and solskaft, but Ripples sends steinnarr there - we'll adjust their pacing to
+    // fit the skylight fight when we figure out what day we want it": Hallvor is not taken; their road to Solskaft is not on any clock yet, and never an encounter) -- it
     // makes nothing else: no made things, no marker, no reach on any table, nobody fleeing it. It holds him there `taking.hours`, a day of his walk, so he is held at the
     // Warded Fort a day later. Nothing meets the party of it. The clock seat's readings, his to overrule: the day is spent standing at the day-10 place, noon to noon
     taking: { day: 10, hours: 24 },
