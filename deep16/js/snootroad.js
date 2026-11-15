@@ -118,7 +118,7 @@
     var S = W.state(); if (!S) return null; if (t == null) t = S.t; var R = SR.sim(t);
     return { day: Math.floor(t / 24) + 1, boardDay: SR.BOARD, bands: SR.bands(t).map(function (x) { return { id: x.id, tribe: x.tribe, hex: x.hex, offset: [x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2, x.hex[1]], of: x.of, left: x.left, gone: x.gone, busy: x.busy, burned: x.burned }; }), burned: Object.keys(R.burned).filter(function (id) { return R.burned[id] <= t; }) };
   };
-  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) { var sr = SR.board(); sr.atBoard = SR.board((SR.BOARD - 1) * 24); D.house.cur.snootRoad = sr; } // (atBoard: the bands as they will stand at the dawn of SR.BOARD with what the party has killed by now, so a save kept days before it still opens the board right -- the Snoot seat's ask, 11-15; `of`: a band's whole size) } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
+  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) { var sr = SR.board(); sr.atBoard = SR.board((SR.BOARD - 1) * 24); D.house.cur.snootRoad = sr; } /* (atBoard: the bands as they will stand at the dawn of SR.BOARD with what the party has killed by now, so a save kept days before it still opens the board right -- the Snoot seat's ask, 11-15; `of`: a band's whole size) */ } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
 
   // ---------------------------------------------------------------- the run-in
   SR.LINES = { // (the clock seat's drafts, his to cut)
