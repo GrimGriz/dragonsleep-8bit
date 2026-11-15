@@ -10264,8 +10264,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
             okH('7g save ' + sbs + ', a ' + bS.kind + ' burned by ' + sb.band + ' (' + sb.tribe + '; ' + bS.gn + ' gnolls, ' + bS.hy + ' hyenas; came from the ' + bS.came + '; ' + bS.when + '): pieces ' + Object.keys(idsS).join(', ') + '; made (' + madeS + '), missed thinner (' + thinS + '): ' + dS.seen.slice(0, 700),
               bS.fam === 'snoot' && haveAll && madeS && thinS && bS.gn > 0 && dS.seen.indexOf(SVh.SNOOT.TRIBES[sb.tribe].slice(10, 40)) >= 0);
             InH.pinned = null;
+            // 7h (11-15, his "some other kind of sign?", "'above' which implies north", and his Insight line): what the farmer saw of each tribe, from the band as it
+            // was that hour -- the Gray Keeping gray, a Skull-Gate band the blue and the red, the Wall-Laugh the blue alone; no "above"; his line said whole
+            var looks = {}; for (var s7h = 1; s7h <= 120; s7h++) { SH.seed = s7h; SRg.sim(tH(13, 12)).ref.forEach(function (r) { var bb = SVh.band(r); if (bb.fam !== 'snoot') return; var lk = SVh.SNOOT.look(bb); (looks[r.tribe] = looks[r.tribe] || {})[lk] = 1; }); }
+            var lkOk = Object.keys(looks.gray || {}).every(function (l) { return /Gray/.test(l); }) && Object.keys(looks.skull || {}).every(function (l) { return /red/.test(l); }) && Object.keys(looks.wall || {}).every(function (l) { return !/red|Gray/.test(l); });
+            var noAbove = Object.keys(SVh.SNOOT.TRIBES).every(function (k) { return !/\babove\b/.test(SVh.SNOOT.TRIBES[k]); }) && /west of the Halfway Inn/.test(SVh.SNOOT.TRIBES.gray);
+            var hisLine = '"They burned everything... and they were taking trophies, we ran as fast as we could..."', wantP = SVh.SNOOT.PIECES.filter(function (p) { return p.id === 'want'; })[0];
+            okH('7h the tribes as the farmer saw them: ' + JSON.stringify(looks) + '; no "above", the moot ground west of the inn (' + noAbove + '); his line the Insight answer (' + (wantP.made()[0].by === hisLine) + ', seen ' + (dS.seen.indexOf(window.DS.stripCodes(hisLine)) >= 0) + ')',
+              lkOk && !!looks.gray && !!looks.skull && noAbove && wantP.made()[0].by === hisLine && dS.seen.indexOf(window.DS.stripCodes(hisLine)) >= 0);
           }
-          SRg.on = false;
+          SRg.on = false; SH.seed = bs; // (the save's seed back to the meeting's band: the checks after read it)
         }
         D.scenes.length = 0; HoH.playing = false; HoH.cur = null; SH.metRef = [];
         SH.t = band.arrive + 1; var atR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length; SH.t = band.arrive + HG.STAY + 1; var goneR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length;

@@ -87,8 +87,16 @@
   // the lean to give them pieces of their own once js/snootroad.js was on main): a band of survivors off a farm or a hamlet a snooting band burned (SR.sim's ref, zone 'snoot').
   // What they can tell is the engine's: which band it was (its tribe), how many gnolls and hyenas were in it at that hour (SR.left), which way it came (its trail's step
   // before), how many farms it burned there, the hour; the tribes as the realm names them (TarlynsPit/wiki/gnoll-hills.md: the Wall-Laugh, "the tribe that laughs", the seat
-  // facing the Castegut road; the Gray Keeping, "the king's tribe", the moot ground three days above the Halfway Inn; the Skull-Gate, "the border tribe", the young blood's
-  // tribe, the eastern seat above Web Gulch); "young ones, laughing, and no chief over them" the supper's heardFarmers and the clock seat's card (HG.LINES.said.snoot)
+  // facing the Castegut road; the Gray Keeping, "the king's tribe"; the Skull-Gate, "the border tribe", the young blood's tribe, the eastern seat); "young ones, laughing,
+  // and no chief over them" the supper's heardFarmers and the clock seat's card (HG.LINES.said.snoot).
+  // WHAT A FARMER SAW OF THEM (11-15, Griz on the seat's call 2: "it said the wiki didn't describe the tribe, but at least the death watch is visually distinct in game? some
+  // other kind of sign?"; on its "above": "that line also says 'above' which implies north, but it does say moot ground"): the game's own looks, the farmer's to tell and
+  // History's to read the tribe from -- the Hills' blue cloth (gnoll_p2, RULED 09-28), the Snoot's young blood in the Desert tribe's red (gloryseeker_p2, the same ruling),
+  // the Gray Keeping's dark gray cloth and grayer fur (graykeeping_p2, his "D - the darker cloth and grayer fur", 10-15). The death-watch never leaves the Mane and raids no
+  // farm, so no farmer saw it. The Wall-Laugh has no look of its own (its young blood are the Hills' blue): read by the blue with none of the red, and where it happened.
+  // The places by THE WORLD (deep16/data/world.js): the moot ground some 45 miles west of the Halfway Inn -- where the Gray Keeping's young blood set out from
+  // (js/snootroad.js SR.start), not their home (his 11-14: "the Gray Keeping would withdraw to their home-place, which is south and closer in the hills near rhollor's ruins, the
+  // moot was at special moot location"); the Skull-Gate's seat some ten miles west of Web Gulch (SR.SEATS.skull)
   SV.SNOOT = {
     KINDS: {
       farm: { name: 'The farmer', sheet: 'pt_genman', sight: 'A cart on the {where}, everything a farm owns roped onto it, and soot on all of it. A man leads the ox. A woman walks beside it with a boy by the hand.',
@@ -99,9 +107,17 @@
         burned: function () { return '"Every roof in the place. They went from door to door with the fire, laughing."'; } }
     },
     TRIBES: {
-      wall: '(history) By where it happened and the way they came: the Wall-Laugh\'s young blood. The tribe that laughs, whose seat faces the Castegut road.',
-      gray: '(history) By where it happened and the way they came: the Gray Keeping\'s young blood, out of the king\'s tribe, from the moot ground three days above the Halfway Inn.',
-      skull: '(history) By where it happened and the way they came: a Skull-Gate band. The border tribe, the young blood\'s own, from the eastern seat above Web Gulch.'
+      wall: '(history) The Hills\' blue, and none of the young blood\'s red among them; and where it happened: the Wall-Laugh\'s young blood. The tribe that laughs, whose seat faces the Castegut road.',
+      gray: '(history) Gray cloth and gray fur: the Gray Keeping, the king\'s tribe. Its young blood, out from the moot ground west of the Halfway Inn.',
+      skull: '(history) The Hills\' blue, and the big ones in red with them: a Skull-Gate band. The border tribe, the young blood\'s own, from the eastern seat by Web Gulch.'
+    },
+    // what the farmer saw on them, by the band as it was that hour (SR.left): the gray, the red, the blue
+    look: function (b) {
+      var L = b.left || {}, gray = (L.gnollgray || 0) + (L.gloryseekergray || 0) + (L.gnollgrayfemale || 0), red = L.gloryseeker || 0, blue = (L.gnoll || 0) + (L.gnollfemale || 0);
+      if (gray) return '"Gray. Gray rags on them, and grayer in the fur than any gnoll I ever saw."';
+      if (red && blue) return '"Blue rags on most of them. And the big ones in red, out in front."';
+      if (red) return '"Big ones, in red."';
+      return '"Blue rags, every one of them."';
     },
     PIECES: [
       { id: 'count', skill: 'Perception', ask: 'How many were there? Think. What did you see?',
@@ -110,11 +126,13 @@
       { id: 'came', skill: 'Survival', ask: 'Which way did they come at you from?',
         made: function (b) { return [{ by: '"Out of the ' + b.came + '. Through the barley at a lope, all of them at once."' }]; },
         missed: function () { return [{ by: '"We didn\'t see them come. We heard them."' }]; } },
-      { id: 'tribe', skill: 'History', ask: 'Did they carry anything? Paint, bones, a sign?',
-        made: function (b) { return [{ by: '"Gnolls. They all look the same to me."' }, { narr: SV.SNOOT.TRIBES[b.r.tribe] || SV.SNOOT.TRIBES.skull }]; },
-        missed: function () { return [{ by: '"Gnolls. They all look the same to me."' }, { narr: '(history) Gnolls of the hills. Which tribe, you cannot say.' }]; } },
-      { id: 'want', skill: 'Insight', ask: 'They let you go. Why?',
-        made: function () { return [{ by: '"They never came at us. Not once. They wanted the roofs."' }, { narr: '(insight) Nobody in this band is hurt. Whoever burned them out wanted the farm, not the people: the fire, and to be seen setting it.' }]; },
+      { id: 'tribe', skill: 'History', ask: 'What were they wearing? Anything you\'d know them by again?',
+        made: function (b) { return [{ by: SV.SNOOT.look(b) }, { narr: SV.SNOOT.TRIBES[b.r.tribe] || SV.SNOOT.TRIBES.skull }]; },
+        missed: function (b) { return [{ by: SV.SNOOT.look(b) }, { narr: '(history) Gnolls of the hills. Which tribe, you cannot say.' }]; } },
+      // (11-15, Griz on the seat's call 3: "they burned everything... and they were taking trophies, we ran as fast as we could..." -- his line, the farmer's; the narration
+      // under it says nothing his line does not)
+      { id: 'want', skill: 'Insight', ask: 'How did you get clear of them?',
+        made: function () { return [{ by: '"They burned everything... and they were taking trophies, we ran as fast as we could..."' }, { narr: '(insight) They got clear while the gnolls were at the burning and the trophies.' }]; },
         missed: function () { return [{ by: '"I don\'t know. We ran."' }]; } }
     ],
     READ: { skill: 'Perception', text: function () { return '(perception) Soot on every one of them, and the smell of smoke in their clothes. None of them is hurt.'; } },
@@ -148,12 +166,12 @@
     var x = SR.sim(r.t0).by[r.band], tr = x ? x.trail : [], i = -1; tr.forEach(function (s, j) { if (s.T === r.t0) i = j; });
     var prev = i > 0 ? tr[i - 1].hex : SR.start(bd), MW = W.Mworld(), came = null;
     if (MW && prev && r.hex0 && (prev[0] !== r.hex0[0] || prev[1] !== r.hex0[1])) { var w = MW.w, c0 = [w * (r.hex0[0] + r.hex0[1] / 2), w * Math.sqrt(3) / 2 * r.hex0[1]], c1 = [w * (prev[0] + prev[1] / 2), w * Math.sqrt(3) / 2 * prev[1]]; came = SV.dirOf(c1[0] - c0[0], c1[1] - c0[1]); }
-    return { gn: gn, hy: hy, came: came };
+    return { gn: gn, hy: hy, came: came, left: left };
   };
   SV.band = function (r) {
     var sn = SV.snoot(r), cr = sn ? null : SV.creature(r), K = sn ? SV.SNOOT.KINDS[r.kind] || SV.SNOOT.KINDS.farm : SV.KINDS[r.kind] || SV.KINDS.farm;
     var b = { r: r, fam: sn ? 'snoot' : cr ? 'made' : null, kind: (sn ? SV.SNOOT.KINDS : SV.KINDS)[r.kind] ? r.kind : 'farm', K: K, cr: cr, dir: cr ? SV.went(r) : null, when: SV.when(r), to: r.toName, back: SV.miles(SV.milesBack(r)) };
-    if (sn) { b.gn = sn.gn; b.hy = sn.hy; b.came = sn.came; }
+    if (sn) { b.gn = sn.gn; b.hy = sn.hy; b.came = sn.came; b.left = sn.left; }
     return b;
   };
   SV.piecesOf = function (b) { return b.fam === 'made' ? SV.PIECES.filter(function (p) { return p.id !== 'went' || b.dir; }) : b.fam === 'snoot' ? SV.SNOOT.PIECES.filter(function (p) { return p.id !== 'came' || b.came; }) : []; };
@@ -248,7 +266,7 @@
     { id: 'marshroad', label: 'THE MARSH, THE ROAD OR OPEN COUNTRY: drovers off a road, or a trapper alone', note: 'A making on the marsh fed at a road\'s fire or a trapper\'s camp. The dice pinned high.', zone: 'glowseep', kinds: ['road', 'wild'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'mountfarm', label: 'THE MOUNTAINS, A FARM: the wolf or the worg at a farm under the Coldridge', note: 'A making in the mountains (the wolf or the worg, the coat full of stars). The dice pinned high.', zone: 'doors', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'mountroad', label: 'THE MOUNTAINS, THE ROAD OR OPEN COUNTRY', note: 'A making in the mountains fed on the road or in the open. The dice pinned high.', zone: 'doors', kinds: ['road', 'wild'], dice: [18, 18, 18, 18, 18, 18] },
-    { id: 'snoot', label: 'BURNED OUT BY THE SNOOT: a farm or a hamlet a snooting band burned', note: 'People a gnoll band burned out (js/snootroad.js): Perception (how many gnolls and hyenas), Survival (which way they came), History (which tribe: the Wall-Laugh, the Gray Keeping, the Skull-Gate), Insight (they wanted the roofs, not the people); the Perception read (soot, nobody hurt) opens WHAT DID THEY BURN. The dice pinned high.', zone: 'snoot', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
+    { id: 'snoot', label: 'BURNED OUT BY THE SNOOT: a farm or a hamlet a snooting band burned', note: 'People a gnoll band burned out (js/snootroad.js): Perception (how many gnolls and hyenas), Survival (which way they came), History (which tribe: the Wall-Laugh, the Gray Keeping, the Skull-Gate), Insight (how they got clear: his line, the burning and the trophies); the Perception read (soot, nobody hurt) opens WHAT DID THEY BURN. The dice pinned high.', zone: 'snoot', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'missed', label: 'EVERY CHECK MISSED: the thinner answers (a marsh band)', note: 'The first marsh band again with the dice pinned at 1: every piece still answers, thinner and never false.', zone: 'glowseep', kinds: ['farm', 'hamlet', 'road', 'wild'], dice: [1, 1, 1, 1, 1, 1] }
   ];
   SV.LVL = 3;
