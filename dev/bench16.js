@@ -10828,6 +10828,51 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE YOUNG FROST GIANT, 11-15 (mode=frostgiant1115; the cutter-fresh-1115 seat, on Griz's "Please start cutting Fresh one at a time"): the SRD 5.1 Frost Giant on
+  // the art desk's ART-129, frostgiant_p1 (tools/frostgiant-sheet.py) -- 1. its block; 2. the Greataxe on `attack`, the Rock on its `throw` row, cold does nothing to him;
+  // 3. its routine (js/ai.js): one in his reach, two Greataxes; nobody in reach and he cannot close, a Rock; 4. its sheet, every row and its strike frames; 5. the
+  // Coldridge route's table holds him in a `top` group (not drawn till the road above the shelf opens)
+  if (get('mode', '') === 'frostgiant1115') {
+    var repFG = { checks: [], errors: [], notes: [] }, d0FG = D.d;
+    function okFG(what, v) { repFG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FFG = D.FOES.frostgiant, AFG = FFG && FFG.attacks;
+      okFG('1 the block: ' + (FFG ? FFG.name + ', ' + FFG.type + ', CR ' + FFG.cr + ', AC ' + FFG.ac + ', ' + FFG.hp + ' HP, speed ' + FFG.speed + ', size ' + FFG.size + ', reach ' + FFG.reach + ', immune ' + FFG.immune + '; Greataxe +' + AFG.greataxe.atk + ' ' + AFG.greataxe.dice + '+' + AFG.greataxe.mod + ' reach ' + AFG.greataxe.reach +
+        '; Rock +' + AFG.rock.atk + ' ' + AFG.rock.dice + '+' + AFG.rock.mod + ' ' + AFG.rock.range.join('/') + ' ft' : 'none'),
+        !!FFG && FFG.type === 'giant' && FFG.cr === '8' && FFG.ac === 15 && FFG.hp === 138 && FFG.speed === 40 && FFG.size === 3 && FFG.reach === 10 && JSON.stringify(FFG.immune) === '["cold"]' &&
+        AFG.greataxe.atk === 9 && AFG.greataxe.dice === '3d12' && AFG.greataxe.mod === 6 && AFG.greataxe.reach === 10 && AFG.rock.atk === 9 && AFG.rock.dice === '4d10' && AFG.rock.mod === 6 && AFG.rock.range.join() === '60,240' && AFG.rock.ranged &&
+        JSON.stringify(FFG.multi) === '["greataxe","greataxe"]' && FFG.saves.con === 8 && FFG.saves.wis === 3 && FFG.saves.cha === 4);
+      var BFGX = D.npcFight('?npc=frostgiant&vs=fighter:7,cleric:7&lvl=7', {}); D.battle = BFGX; BFGX.enter(); var kFGX = 0; while (!BFGX.order.length && kFGX++ < 400) BFGX.co.next();
+      var GIX = BFGX.units.filter(function (u) { return u.kind === 'frostgiant'; })[0], FIGX = BFGX.units.filter(function (u) { return u.side === 'party' && /fighter/i.test(u.cls || u.kind || u.name); })[0];
+      BFGX.units.forEach(function (w) { if (w !== GIX && w !== FIGX) w.left = true; });
+      var GGX = D.grid, rowsFGX = function (g) { var seen = [], r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; if (GIX.anim && seen.indexOf(GIX.anim) < 0) seen.push(GIX.anim); } while (!r.done && n++ < 20000); return seen; };
+      var drainFGX = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 20000); return r.value; };
+      FIGX.x = GIX.x + 3; FIGX.y = GIX.y; FIGX.fz = null; FIGX.hp = FIGX.maxhp = 300; GGX.setup(GGX.map, BFGX.units);
+      // 2. the rows, and the cold
+      D.d = function (n) { return n === 20 ? 19 : d0FG.apply(this, arguments); };
+      BFGX.active = GIX; D.rules.startTurn(GIX); var rowAX = rowsFGX(BFGX.attack(GIX, FIGX, GIX.attacks.greataxe)); D.rules.startTurn(GIX); var rowRX = rowsFGX(BFGX.attack(GIX, FIGX, GIX.attacks.rock)); D.d = d0FG;
+      var hpCX = GIX.hp; BFGX.hurt(GIX, 20, 'cold'); var coldX = hpCX - GIX.hp; GIX.hp = GIX.maxhp;
+      okFG('2 the Greataxe plays ' + rowAX.join('/') + ', the Rock ' + rowRX.join('/') + '; 20 cold takes ' + coldX, rowAX.indexOf('attack') >= 0 && rowRX.indexOf('throw') >= 0 && rowAX.indexOf('throw') < 0 && coldX === 0);
+      // 3. the routine
+      var usedFGX = [], atFGX0 = BFGX.attack; BFGX.attack = function (a, t, atk) { if (a === GIX) usedFGX.push(atk.name); return atFGX0.apply(this, arguments); };
+      var turnFGX = function (still) { usedFGX = []; FIGX.hp = FIGX.maxhp; BFGX.round = Math.max(1, BFGX.round); BFGX.active = GIX; var sp0X = GIX.speed; if (still) GIX.speed = 0; D.rules.startTurn(GIX); try { drainFGX(D.ai.turn(BFGX, GIX)); } finally { GIX.speed = sp0X; } BFGX.active = null; return usedFGX.slice(); };
+      FIGX.x = GIX.x + 3; FIGX.y = GIX.y; GGX.setup(GGX.map, BFGX.units); var nearX = turnFGX(false);
+      FIGX.x = GIX.x + 9; FIGX.y = GIX.y; GGX.setup(GGX.map, BFGX.units); var farDX = GGX.dist(GIX, FIGX), at0X = GIX.x + ',' + GIX.y, farX = turnFGX(true), at1X = GIX.x + ',' + GIX.y;
+      BFGX.attack = atFGX0;
+      okFG('3 his turn with the fighter beside him: ' + nearX.join(', ') + ' (want Greataxe, Greataxe); ' + farDX + ' ft off and his feet held (' + at0X + ' to ' + at1X + '): ' + farX.join(', ') + ' (want Rock)', nearX.join() === 'Greataxe,Greataxe' && farX.join() === 'Rock');
+      // 4. the sheet
+      var SFGX = D.SHEETS.frostgiant_p1 && D.SHEETS.frostgiant_p1.anims, wantFGX = ['idle', 'walk', 'attack', 'throw', 'flinch', 'hurt', 'prone', 'getup'];
+      okFG('4 its sheet: ' + (SFGX ? wantFGX.map(function (r) { return r + ' ' + (SFGX[r] ? SFGX[r].frames : 0); }).join(', ') + '; strikes attack ' + (SFGX.attack || {}).release + ', throw ' + (SFGX.throw || {}).release : 'none') + ' (want 4 8 6 6 4 6 2 3; 3, 3)',
+        !!SFGX && wantFGX.map(function (r) { return SFGX[r] ? SFGX[r].frames : 0; }).join() === '4,8,6,6,4,6,2,3' && SFGX.attack.release === 3 && SFGX.throw.release === 3 && GIX.sheet === 'frostgiant_p1');
+      // 5. the Coldridge table
+      var ZFGX = window.DS.DATA.encounters && window.DS.DATA.encounters.coldridge, gFGX = ZFGX && ZFGX.groups.filter(function (g) { return g.e.some(function (x) { return x[0] === 'frostgiant'; }); })[0];
+      okFG('5 the Coldridge table: the frost giant ' + (gFGX ? 'in a group of ' + gFGX.e.map(function (x) { return x.join(' '); }).join() + (gFGX.top ? ', top (held till the road above opens)' : '') : 'absent'), !!gFGX && !!gFGX.top && !!D.FOES.frostgiant);
+    } catch (eFG) { repFG.errors.push(String(eFG && eFG.stack || eFG).slice(0, 900)); }
+    D.d = d0FG;
+    var preFG = document.createElement('pre'); preFG.id = 'out'; preFG.textContent = 'BENCH16 ' + JSON.stringify(repFG);
+    document.body.appendChild(preFG);
+    return;
+  }
   // THE WYVERN, 11-15 (mode=wyvern1115; the cutter-fresh-1115 seat, on Griz's "Please start cutting Fresh one at a time"): the SRD 5.1 Wyvern on the art desk's ART-132,
   // wyvern_p1 (tools/wyvern-sheet.py) -- 1. its block; 2. the Stinger: a hit, then DC 15 CON, 7d6 poison, half on a save, on its own `sting` row; the Bite on `attack`,
   // the Claws on `rake`; 3. its routine (js/ai.js): on the ground the Bite and the Stinger, aloft beside one the Claws in the Bite's place (data/foes.js aloftMulti);

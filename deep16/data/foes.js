@@ -841,6 +841,22 @@
     multi: ['beak', 'claws'],
     src: 'SRD 5.1 Griffon (CR 2, 450 XP; Large monstrosity, unaligned): AC 12, 59 HP (7d10 + 21), speed 30, fly 80 (wings in every fight, js/flight-ai.js); STR 18 DEX 15 CON 16 INT 2 WIS 13 CHA 8; Perception +5, darkvision 60, passive Perception 15; Keen Sight (advantage on Perception by sight: js/rules.js RU.keen, the KEEN table); Multiattack, one Beak (+6, 1d8 + 4 piercing) and one Claws (+6, 2d6 + 4 slashing). No Stealth in its block'
   },
+  // THE YOUNG FROST GIANT (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue -- Griz: "Please start cutting Fresh one at a time"; asked in art-wanted section 42,
+  // ART-129, for the Coldridge route's random encounters at the road's top -- his "frost giant can be young rebellious adventurer type, still pretty rare"): the SRD 5.1
+  // Frost Giant as written, on the art desk's ART-129 cut into frostgiant_p1 (tools/frostgiant-sheet.py: idle, walk, attack, throw, flinch, fall, prone, getup in all
+  // eight facings, sized by the stone giant's standing). The Greataxe plays `attack`, the Rock its `throw` row (fx 'rock', the stone giant's lump in a lob; a rock the
+  // stone giant may catch). content/encounters.json coldridge holds it in a `top` group (77c2d9d3). Benched: mode=frostgiant1115; ?show=frostgiant
+  frostgiant: {
+    name: 'Frost Giant', type: 'giant', sheet: 'frostgiant_p1', cr: '8', ac: 15, armor: 'patchwork armor', hp: 138, speed: 40, size: 3, reach: 10,
+    abil: { str: 23, dex: 9, con: 21, int: 9, wis: 10, cha: 12 }, init: -1, perception: 13, athletics: 9,
+    saves: { str: 6, dex: -1, con: 8, int: -1, wis: 3, cha: 4 },
+    attacks: {
+      greataxe: { name: 'Greataxe', atk: 9, dice: '3d12', mod: 6, type: 'slashing', reach: 10 },
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', hurled: true, row: 'throw' } // (thrown when no one is in his reach, the stone giant's way -- js/ai.js volley)
+    },
+    multi: ['greataxe', 'greataxe'], immune: ['cold'],
+    src: 'SRD 5.1 Frost Giant (CR 8, 3,900 XP; Huge giant, neutral evil): AC 15 (patchwork armor), 138 HP (12d12 + 60), speed 40; STR 23 DEX 9 CON 21 INT 9 WIS 10 CHA 12; saves Con +8, Wis +3, Cha +4; Athletics +9, Perception +3, passive Perception 13; immune to cold; Giant; Multiattack, two Greataxe attacks (+9, reach 10, 3d12 + 6 slashing); Rock (+9, range 60/240, 4d10 + 6 bludgeoning), thrown when no one is in his reach. Drawn young and out on his own (art-wanted 42, his word)'
+  },
   // THE WYVERN (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue -- Griz: "Please start cutting Fresh one at a time"; asked in art-wanted section 45, ART-132,
   // for the Coldridge route's random encounters in the dragon's place -- his "Dragon is off the table for the way dragons are special here, swap in wyvern and add owl bear"):
   // the SRD 5.1 Wyvern as written, on the art desk's ART-132 cut into wyvern_p1 (tools/wyvern-sheet.py: idle, walk, fly, attack, sting, rake, flinch, fall, prone,

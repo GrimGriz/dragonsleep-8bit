@@ -1,0 +1,91 @@
+{
+ "image": "art/frostgiant_p1.png",
+ "fw": 136,
+ "fh": 162,
+ "ax": 68,
+ "ay": 155,
+ "top": 153,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 136,
+   "fh": 162,
+   "ax": 68,
+   "ay": 155,
+   "frames": 4,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1296,
+   "fw": 160,
+   "fh": 167,
+   "ax": 80,
+   "ay": 160,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2632,
+   "fw": 184,
+   "fh": 186,
+   "ax": 92,
+   "ay": 181,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "throw": {
+   "y": 4120,
+   "fw": 176,
+   "fh": 160,
+   "ax": 88,
+   "ay": 155,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 5400,
+   "fw": 176,
+   "fh": 160,
+   "ax": 88,
+   "ay": 155,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 6680,
+   "fw": 192,
+   "fh": 165,
+   "ax": 96,
+   "ay": 155,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 8000,
+   "fw": 194,
+   "fh": 103,
+   "ax": 97,
+   "ay": 100,
+   "frames": 2,
+   "fps": 8
+  },
+  "getup": {
+   "y": 8824,
+   "fw": 176,
+   "fh": 132,
+   "ax": 88,
+   "ay": 122,
+   "frames": 3,
+   "fps": 8
+  }
+ },
+ "name": "Frost Giant",
+ "hold": [
+  "walk: the lead-leg switch is subtle in SE (4-5, 8-1), NE and E -- check the alternation in playback (the art desk's own notes)",
+  "the pages are drawn at their own sizes (the Idles 537 to 624 px, the axe pages about 400): each fitted by a standing frame's height, the axe in it -- it tops his head by 3 to 6% in the idles, so a view can be a few percent off another",
+  "N greataxe: the axe reads to screen-right in the rear contact and recovery; N fall angles a little right (the art desk's own notes)"
+ ],
+ "source": "drawn by the art desk (ART-129-YOUNG-FROST-GIANT-SOURCES, 11-14: art-wanted section 42), cut by tools/frostgiant-sheet.py; SW W NW mirrored -- the SRD 5.1 Frost Giant: deep16/data/foes.js frostgiant"
+}
