@@ -1088,7 +1088,7 @@
   (function () {
     var E = (DS.DATA && DS.DATA.encounters) || {}, Z = E.glowseep; if (!Z) return;
     var wisp = function (g) { return g.e.some(function (x) { return x[0] === 'wisp'; }); }, up = function (g) { return g.e.some(function (x) { return x[0] === 'wisp' || x[0] === 'stirge'; }); };
-    E.glowseep_day = Object.assign({}, Z, { groups: Z.groups.filter(function (g) { return !wisp(g); }) });
+    E.glowseep_day = Object.assign({}, Z, { groups: Z.groups.filter(function (g) { return !wisp(g) && !g.night; }) }); // (g.night, 11-14: the table's night-only groups -- the shambling mound)
     E.glowseep_night = Object.assign({}, Z, { rate: Z.rate.map(function (r) { return Math.max(4, Math.round(r * M.SEEP.nightRate)); }), groups: Z.groups.map(function (g) { return up(g) ? Object.assign({}, g, { w: (g.w || 1) * M.SEEP.nightWeigh }) : g; }) });
   })();
   M.LINES.seep = {

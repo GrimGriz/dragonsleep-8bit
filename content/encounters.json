@@ -5,9 +5,9 @@
     { "w": 2, "e": [["stirge", 2, 3]] }, { "w": 1, "e": [["axebeak", 1, 1]] } ] },
   "doors": { "rate": [18, 34], "bg": "hills", "src": "road table d20-13 (worg pack, orc-war remnant line); d20-14 wolves", "groups": [
     { "w": 3, "e": [["wolf", 2, 3]] }, { "w": 2, "e": [["worg", 1, 2]] }, { "w": 1, "e": [["worg", 1, 1], ["wolf", 1, 2]] } ] },
-  "glowseep": { "rate": [16, 30], "bg": "bog", "music": "battle", "src": "road table Glowseep d8 (stirges 2d4; giant frogs / poisonous snake; swarm of insects; will-o'-wisp); the shambling mound added 11-14 on his word, one alone, the wisp's weight", "groups": [
+  "glowseep": { "rate": [16, 30], "bg": "bog", "music": "battle", "src": "road table Glowseep d8 (stirges 2d4; giant frogs / poisonous snake; swarm of insects; will-o'-wisp); the shambling mound added 11-14 on his word, one alone, the wisp's weight, by night only (his \"night-only for the mound\": a group's `night` is drawn only after dark, js/world.js W.pick, js/mines.js)", "groups": [
     { "w": 4, "e": [["stirge", 2, 4]] }, { "w": 3, "e": [["giantfrog", 1, 2]] }, { "w": 2, "e": [["snake", 2, 3]] },
-    { "w": 2, "e": [["firebeetle", 2, 4]] }, { "w": 2, "e": [["insectswarm", 1, 1]] }, { "w": 1, "e": [["wisp", 1, 1]] }, { "w": 1, "e": [["shamblingmound", 1, 1]] } ] },
+    { "w": 2, "e": [["firebeetle", 2, 4]] }, { "w": 2, "e": [["insectswarm", 1, 1]] }, { "w": 1, "e": [["wisp", 1, 1]] }, { "w": 1, "night": true, "e": [["shamblingmound", 1, 1]] } ] },
   "gulch": { "rate": [14, 26], "bg": "gulch", "src": "wiki/web-gulch.md (giant wolf spiders through giant spiders)", "groups": [
     { "w": 4, "e": [["wolfspider", 2, 3]] }, { "w": 2, "e": [["giantspider", 1, 1]] }, { "w": 1, "e": [["giantspider", 1, 1], ["wolfspider", 1, 2]] } ] },
   "gnollhills": { "rate": [16, 30], "bg": "gnoll", "src": "wiki/gnoll-hills.md; road table (the pocket; packs)", "groups": [

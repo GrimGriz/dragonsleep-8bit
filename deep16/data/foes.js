@@ -800,7 +800,7 @@
   // THE SHAMBLING MOUND (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Have it start the new art shambling mound (better prompt imo)"):
   // the SRD 5.1 Shambling Mound (srd/monsters/s.md), the art desk's SHAMBLING-MOUND-GLOWSEEP-SOURCES cut native into shamblingmound_p1 (tools/shamblingmound-
   // sheet.py: one view, mirrored). Engulf on the gelatinous cube's rule: a Slam that hits grips a Medium or smaller one (escape DC 14), and Engulf hits the
-  // one it holds. Lightning Absorption: lightning heals it, js/traits.js TR.absorbs (the `charged` row plays). ON THE GLOWSEEP'S TABLE since 11-14 (content/encounters.json glowseep: one alone, the wisp's weight -- Griz: "shambling mound needs added to
+  // one it holds. Lightning Absorption: lightning heals it, js/traits.js TR.absorbs (the `charged` row plays). ON THE GLOWSEEP'S TABLE since 11-14 (content/encounters.json glowseep: one alone, the wisp's weight, by night only -- Griz: "night-only for the mound"; "shambling mound needs added to
   // glowseep encounter table"; the weight and the count the desk's)
   shamblingmound: {
     name: 'Shambling Mound', type: 'plant', sheet: 'shamblingmound_p1', cr: '5', ac: 15, armor: 'natural armor', hp: 136, speed: 20, size: 2, reach: 5, blindsight: 60, blind: true,

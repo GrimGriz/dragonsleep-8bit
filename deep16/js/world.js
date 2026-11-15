@@ -1028,7 +1028,7 @@
   W.isNight = function () { return W.timeOfDay() === 'night'; };
   W.pick = function (zone, night, pt) {
     var Z = tables()[zone]; if (!Z) return null;
-    var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond; }).map(nightW), mw = W.mirrorWeight(pt); if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
+    var nightW = function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }, gs = Z.groups.filter(function (g) { return !g.cond && (night || !g.night); }).map(nightW), mw = W.mirrorWeight(pt); // (g.night, 11-14: a group met only after dark -- the Glowseep's shambling mound, Griz: "night-only for the mound") if (!gs.length) return null; // (pt: a point in miles, else the party's -- THE VESSEL'S ROAD)
     if (mw > 0) gs.push({ w: mw, mirror: true });
     var draw = function (l) { var tt = 0; l.forEach(function (g) { tt += g.w || 1; }); var r = D.rand() * tt; for (var i = 0; i < l.length; i++) { r -= l[i].w || 1; if (r < 0) return l[i]; } return l[0]; }, grp = draw(gs);
     var md = grp.mirror ? W.madeAt(pt, null, true) : null, src = md ? draw(md.groups.map(nightW)) : grp.mirror ? gs[D.rint(gs.length - 1)] : grp, list = []; // (md: THE MAKINGS BY THEIR GROUND, above)
