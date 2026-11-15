@@ -722,6 +722,21 @@
     exhale: 'frost', // (its breath on the air, the engine's: js/looks.js LK.exhale, from where the art desk's idle puffs left its nose -- the drawn puffs and its Cold Breath row's drawn cone off, on Griz's "1-3 leans", 11-15; the cone itself M.breathe's bloom on the squares)
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
+  // THE HELL HOUND (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; asked in art-wanted section 64, one for each empty shelf -- Griz: "let's get one in
+  // each column and not waste art dept usage due to lack of input"): the SRD 5.1 Hell Hound as written, on the art desk's ART-WANTED-64 cut into hellhound_p1
+  // (tools/hellhound-sheet.py: idle, walk, bite, breath, flinch, fall, prone, getup in all eight facings), its drawn smoke and outer fire off (his "should be done with
+  // the engine like we're doing other things"): its smoke on the air js/looks.js LK.exhale 'smoke', its Fire Breath's cone M.breathe's bloom. ON NO TABLE: where it is met
+  // is his word. On the Pocket DM's ETC shelf (a fiend). Benched: mode=hellhound1115; ?show=hellhound
+  hellhound: {
+    name: 'Hell Hound', type: 'fiend', sheet: 'hellhound_p1', cr: '3', ac: 15, armor: 'natural armor', hp: 45, speed: 50, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 17, dex: 12, con: 14, int: 6, wis: 13, cha: 6 }, init: 1, perception: 15,
+    saves: { str: 3, dex: 1, con: 2, int: -2, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', extra: '2d6', extraType: 'fire', reach: 5 } },
+    breath: { name: 'Fire Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '6d6', type: 'fire', recharge: 5 }, // (SRD 5.1 Fire Breath, Recharge 5-6: a 15-ft cone, DC 12 DEX, 6d6 fire, half on a save -- js/traits.js M.breathe, its sheet's breath row)
+    multi: 1, packTactics: true, keenSenses: true, immune: ['fire'],
+    exhale: 'smoke', // (a thread of dark smoke off its jaws, the engine's: js/looks.js LK.exhale -- the art desk's drawn smoke stripped, RULED 11-15)
+    src: 'SRD 5.1 Hell Hound (CR 3, 700 XP; Medium fiend, lawful evil): AC 15 (natural armor), 45 HP (7d8 + 14), speed 50; STR 17 DEX 12 CON 14 INT 6 WIS 13 CHA 6; Perception +5, darkvision 60, passive Perception 15; immune to fire; understands Infernal; Keen Hearing and Smell (advantage on Perception by hearing or smell: the KEEN table), Pack Tactics; Bite +5, 1d8 + 3 piercing plus 2d6 fire; Fire Breath (Recharge 5-6), a 15-ft cone, DC 12 DEX, 6d6 fire, half on a save'
+  },
   // the manticore (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Manticore from the mechanics the grid has; its sheet tools/manticore-sheet.py (the art desk's ART-12
   // SE and NE, ART-55 S, E and N). Its bite plays `attack`, its claws `claw`, its tail spikes `tailspike` (battle.js: a row named for the blow).

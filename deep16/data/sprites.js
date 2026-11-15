@@ -7855,6 +7855,145 @@
 }
 }
 },
+"hellhound_p1": {
+"image": "art/hellhound_p1.png?v=77aa9b1601",
+"fw": 62,
+"fh": 45,
+"ax": 31,
+"ay": 41,
+"top": 30,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 62,
+"fh": 45,
+"ax": 31,
+"ay": 41,
+"frames": 8,
+"fps": 6,
+"mouth": [
+[
+-3,
+-2,
+0.83,
+-0.56
+],
+[
+-8,
+-15,
+-0.51,
+-0.86
+],
+[
+-20,
+-18,
+-0.65,
+-0.76
+],
+[
+-15,
+-30,
+-0.24,
+-0.97
+],
+[
+-1,
+-31,
+0.77,
+-0.63
+],
+[
+15,
+-30,
+0.24,
+-0.97
+],
+[
+20,
+-18,
+0.65,
+-0.76
+],
+[
+8,
+-15,
+0.51,
+-0.86
+]
+]
+},
+"walk": {
+"y": 360,
+"fw": 104,
+"fh": 41,
+"ax": 52,
+"ay": 37,
+"frames": 8,
+"fps": 12
+},
+"bite": {
+"y": 688,
+"fw": 66,
+"fh": 49,
+"ax": 33,
+"ay": 45,
+"frames": 8,
+"fps": 10,
+"release": 3
+},
+"breath": {
+"y": 1080,
+"fw": 62,
+"fh": 54,
+"ax": 31,
+"ay": 51,
+"frames": 8,
+"fps": 8,
+"release": 3
+},
+"flinch": {
+"y": 1512,
+"fw": 66,
+"fh": 49,
+"ax": 33,
+"ay": 45,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1904,
+"fw": 62,
+"fh": 41,
+"ax": 31,
+"ay": 37,
+"frames": 8,
+"fps": 8
+},
+"prone": {
+"y": 2232,
+"fw": 62,
+"fh": 36,
+"ax": 31,
+"ay": 33,
+"frames": 2,
+"fps": 8
+},
+"getup": {
+"y": 2520,
+"fw": 38,
+"fh": 43,
+"ax": 19,
+"ay": 40,
+"frames": 1,
+"fps": 6
+}
+},
+"name": "Hell Hound",
+"hold": [
+"S and N Run: the head-on and rear views foreshorten the stride (the art desk's own notes)"
+],
+"source": "drawn by the art desk (ART-WANTED-64-HELL-HOUND, 11-15: art-wanted section 64), cut by tools/hellhound-sheet.py, its drawn smoke and outer fire off; SW W NW mirrored -- the SRD 5.1 Hell Hound: deep16/data/foes.js hellhound"
+},
 "hessle_p1": {
 "image": "art/hessle_p1.png?v=c0d861f461",
 "fw": 31,

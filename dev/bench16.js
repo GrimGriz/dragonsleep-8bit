@@ -10983,6 +10983,46 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE HELL HOUND, 11-15 (mode=hellhound1115; the cutter-fresh-1115 seat): the SRD 5.1 Hell Hound on the art desk's ART-WANTED-64, hellhound_p1 (tools/hellhound-sheet.py),
+  // its drawn smoke and fire off (Griz, 11-15: "should be done with the engine like we're doing other things") -- 1. its block; 2. the Bite on its `bite` row, 2d6 fire on
+  // the hit; fire does nothing to it; 3. its Fire Breath on its `breath` row, the cone catching the fighter; 4. its sheet, every row; 5. its smoke on the air (js/looks.js
+  // LK.exhale 'smoke'), a mouth a facing; 6. on no table (where it is met is his word)
+  if (get('mode', '') === 'hellhound1115') {
+    var repHH = { checks: [], errors: [], notes: [] }, d0HH = D.d;
+    function okHH(what, v) { repHH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FHHX = D.FOES.hellhound, AHHX = FHHX && FHHX.attacks;
+      okHH('1 the block: ' + (FHHX ? FHHX.name + ', ' + FHHX.type + ', CR ' + FHHX.cr + ', AC ' + FHHX.ac + ', ' + FHHX.hp + ' HP, speed ' + FHHX.speed + '; Bite +' + AHHX.bite.atk + ' ' + AHHX.bite.dice + '+' + AHHX.bite.mod + ' and ' + AHHX.bite.extra + ' ' + AHHX.bite.extraType + '; ' + FHHX.breath.name + ' ' + FHHX.breath.ft + ' ft DC ' + FHHX.breath.dc + ' ' + FHHX.breath.dice + ' ' + FHHX.breath.type + '; immune ' + FHHX.immune : 'none'),
+        !!FHHX && FHHX.type === 'fiend' && FHHX.cr === '3' && FHHX.ac === 15 && FHHX.hp === 45 && FHHX.speed === 50 && AHHX.bite.atk === 5 && AHHX.bite.dice === '1d8' && AHHX.bite.extra === '2d6' && AHHX.bite.extraType === 'fire' &&
+        FHHX.breath.ft === 15 && FHHX.breath.dc === 12 && FHHX.breath.dice === '6d6' && FHHX.breath.type === 'fire' && FHHX.packTactics && JSON.stringify(FHHX.immune) === '["fire"]');
+      var BHHX = D.npcFight('?npc=hellhound&vs=fighter:5&lvl=5', {}); D.battle = BHHX; BHHX.enter(); var kHHX = 0; while (!BHHX.order.length && kHHX++ < 400) BHHX.co.next();
+      var HHX = BHHX.units.filter(function (u) { return u.kind === 'hellhound'; })[0], FIHX = BHHX.units.filter(function (u) { return u.side === 'party'; })[0];
+      BHHX.units.forEach(function (w) { if (w !== HHX && w !== FIHX) w.left = true; });
+      FIHX.x = HHX.x + 1; FIHX.y = HHX.y; FIHX.hp = FIHX.maxhp = 300; D.grid.setup(D.grid.map, BHHX.units);
+      var rowsHHX = function (g) { var seen = [], r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; if (HHX.anim && seen.indexOf(HHX.anim) < 0) seen.push(HHX.anim); } while (!r.done && n++ < 20000); return seen; };
+      var typesHHX = [], hurtHH0 = BHHX.hurt; BHHX.hurt = function (u, n, type) { if (u === FIHX) typesHHX.push(type); return hurtHH0.apply(this, arguments); };
+      D.d = function (n) { return n === 20 ? 19 : d0HH.apply(this, arguments); };
+      BHHX.active = HHX; D.rules.startTurn(HHX); var rowBHX = rowsHHX(BHHX.attack(HHX, FIHX, HHX.attacks.bite)); D.d = d0HH;
+      var hpHHX = HHX.hp; BHHX.hurt(HHX, 20, 'fire'); var fireHHX = hpHHX - HHX.hp; HHX.hp = HHX.maxhp;
+      okHH('2 the Bite plays ' + rowBHX.join('/') + ', its hurts ' + typesHHX.join('+') + '; 20 fire takes ' + fireHHX, rowBHX.indexOf('bite') >= 0 && typesHHX.indexOf('fire') >= 0 && typesHHX.indexOf('piercing') >= 0 && fireHHX === 0);
+      BHHX.hurt = hurtHH0;
+      var hp0HHX = FIHX.hp, MGHX = D.magic, gHHX = MGHX.breathe(BHHX, HHX, { x: FIHX.x, y: FIHX.y, z: MGHX.aimAt(FIHX, { shape: 'cone', len: HHX.breath.ft }) }), rowFHX = rowsHHX(gHHX);
+      okHH('3 its Fire Breath plays ' + rowFHX.join('/') + '; the fighter in the cone ' + hp0HHX + ' to ' + FIHX.hp, rowFHX.indexOf('breath') >= 0 && FIHX.hp < hp0HHX);
+      var SHHX = D.SHEETS.hellhound_p1 && D.SHEETS.hellhound_p1.anims, wantHHX = ['idle', 'walk', 'bite', 'breath', 'flinch', 'hurt', 'prone', 'getup'];
+      okHH('4 its sheet: ' + (SHHX ? wantHHX.map(function (r) { return r + ' ' + (SHHX[r] ? SHHX[r].frames : 0); }).join(', ') + '; strikes bite ' + (SHHX.bite || {}).release + ', breath ' + (SHHX.breath || {}).release : 'none') + ' (want 8 8 8 8 6 8 2 1; 3, 3)',
+        !!SHHX && wantHHX.map(function (r) { return SHHX[r] ? SHHX[r].frames : 0; }).join() === '8,8,8,8,6,8,2,1' && SHHX.bite.release === 3 && SHHX.breath.release === 3);
+      var MHHX = SHHX && SHHX.idle.mouth, cvHHX = document.createElement('canvas'); cvHHX.width = 200; cvHHX.height = 160; var cxHHX = cvHHX.getContext('2d'), onHHX = 0, offHHX = 0; HHX.facing = 6;
+      for (var tHHX = 0; tHHX < 300; tHHX++) { if (D.looks && D.looks.exhale && D.looks.exhale(cxHHX, { t: tHHX }, HHX, { x: 100, y: 130 })) onHHX++; else offHHX++; }
+      okHH('5 its smoke on the air: style ' + (FHHX.exhale || 'none') + ', mouths ' + JSON.stringify(MHHX) + '; over 300 ticks motes on ' + onHHX + ', none on ' + offHHX,
+        FHHX.exhale === 'smoke' && !!MHHX && MHHX.length === 8 && MHHX.every(function (m) { return m.length === 4 && m[1] < 2 && m[1] > -40; }) && onHHX > 150 && offHHX > 10); // (a thread of smoke near-constant, the ask's "in every frame": LK.EXHALE.smoke 96 of every 110 ticks
+      var tabsHHX = window.DS.DATA.encounters || {}, onTabHHX = Object.keys(tabsHHX).filter(function (z) { return (tabsHHX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'hellhound'; }); }); });
+      okHH('6 on no table (where it is met is his word): ' + (onTabHHX.join(', ') || 'none'), !onTabHHX.length);
+    } catch (eHH) { repHH.errors.push(String(eHH && eHH.stack || eHH).slice(0, 900)); }
+    D.d = d0HH;
+    var preHH = document.createElement('pre'); preHH.id = 'out'; preHH.textContent = 'BENCH16 ' + JSON.stringify(repHH);
+    document.body.appendChild(preHH);
+    return;
+  }
   // THE WINTER WOLF'S BREATH, 11-15 (mode=winterwolf1115; the cutter-fresh-1115 seat, on Griz's ruling on drawn breath -- "should be done with the engine like we're doing
   // other things" -- and his "1-3 leans"): 1. its Cold Breath row with the drawn cone off -- every frame within its resting figure (Breath 1 and 6) and a few px;
   // 2. the Idle's mouths, a facing each, at its head's height; 3. its breath on the air the engine's (js/looks.js LK.exhale, 'frost'), breathing and pausing;
