@@ -5,16 +5,20 @@
     python tools/folk-costume-sheet.py lightcrew    # one
 
 Sources (the art desk's, in the main checkout's deep16/_src/folkcostumes/<piece>/ -- a worktree reads them there; sorted out of Fresh by
-_src/art-desk/art65-*-sort-*.py): each piece's FRAME-MAP.json names every frame's window on its SHEETS/ page (`cell_source_xywh`), its
-person (`runtime_target`), its view (`facing`) and its row (`action`, idle 4 or walk 8). The pages are native pixel art drawn at 3x on the
-navy (#07162E) on folkman_p1's own cell (72 x 64, anchor 36,60), every colour one of the 64: so no rescale and no snap -- each window is
-read one pixel in three (refused unless it is an exact 3x), the navy keyed out, every colour checked against deep16/palette.json.
-Placed as drawn (the art desk registered each view against the town figures), but each view stood so its Idle 1's lowest row is on AY, the
-view's walk moved with it (the E, NE and N pages draw the soles a pixel above the S and SE: the old townsfolk stand on 60 in every view).
+_src/art-desk/art<n>-*-sort-*.py). Each piece's frame map names every frame's window on its page, its person (the sheet), its view and its
+row (idle 4 or walk 8): FRAME-MAP.json (the light crew's: `sheets`, each frame's `cell_source_xywh`) or FRAME-MAP.csv (the shaft hand's:
+a row a frame, `target`, `facing`, `action`, `frame_index`, `source_page`, `crop_x/y/w/h`). The pages are native pixel art on folkman_p1's
+own cell (72 x 64, anchor 36,60), every colour one of the 64 -- the light crew drawn at 3x, the shaft hand at 1x -- so no rescale and no
+snap: each window is read one pixel in k (refused unless it is an exact k x), the piece's navy keyed out, every colour checked against
+deep16/palette.json. Placed as drawn (the art desk registered each view against the town figures). `stand`: each view moved so its Idle 1's
+lowest row is on AY, its walk with it -- the light crew's (its E, NE and N pages draw the soles a pixel above the S and SE; the old townsfolk
+stand on 60 in every view); not the shaft hand's (its notes: a forward boot in SE and NE projects a row below the ground, on purpose).
+`retone`: a view's colours moved to others of the 64 in a band of rows (the shaft hand's E ear, drawn in the fire ramp, to skin).
 Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE (RULED 10-14). Rows idle and walk at folkman_p1's fps.
-No drawn looping effect in these (the light crew's moss on the gloves is a still colour; RULED 11-15, drawn smoke and breath to the engine).
+No drawn looping effect in these (the light crew's moss on the gloves is a still colour; the shaft hand's candle is unlit; RULED 11-15,
+drawn smoke and breath to the engine).
 """
-import os, sys, json
+import os, sys, json, csv
 import importlib.util
 import numpy as np
 from PIL import Image
@@ -27,15 +31,37 @@ def _load(name):
 pix, AD = _load('pixelate'), _load('artdesk')
 
 FW, FH, AX, AY = 72, 64, 36, 60
-NAVY = (7, 22, 46)
 FPS = {'idle': 5, 'walk': 12}            # (folkman_p1's and folkwoman_p1's own)
 ROWS = ['idle', 'walk']
+COUNT = {'idle': 4, 'walk': 8}
 ORDER = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']   # (a sheet's eight facing rows; SW, W, NW the mirrors)
 MIRROR = {'SW': 'SE', 'W': 'E', 'NW': 'NE'}
-# costume -> its piece's folder under _src/folkcostumes/, and the art desk's piece name for the source line
+# costume -> its piece: its folder under _src/folkcostumes/, the art desk's name for the source line, its navy, and whether each view is stood
 PIECES = {
-    'lightcrew': ('2026-11-15-ART-WANTED-65-LIGHTCREW', 'ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15'),
+    'lightcrew': dict(folder='2026-11-15-ART-WANTED-65-LIGHTCREW', name='ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
+                      navy=(7, 22, 46), stand=True),
+    'shaft': dict(folder='2026-11-15-ART-WANTED-71-SHAFT-HAND', name='ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1\'s cell',
+                  navy=(16, 22, 52), stand=False,
+                  # (the E profile's ear and jaw drawn in the fire ramp, both people, every frame: at game size an orange patch by the head that
+                  # reads as a flame under the unlit candle -- the portraits have none; each fire step to the skin step beside it, the head's rows only)
+                  retone={'E': ((8, 30), {'#c85014': '#aa6c4a', '#f08c24': '#d49a72', '#f8c048': '#f0c8a0'})}),
 }
+
+
+def _rgb(h):
+    return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def retone(name, views, spec):
+    """a drawn view's colours moved to others of the 64, in a band of rows: {view: ((row0, row1), {'#from': '#to'})}"""
+    for v, ((r0, r1), m) in spec.items():
+        n = 0
+        for an in views[v]:
+            for fr in views[v][an]:
+                for a, b in m.items():
+                    hit = (fr[r0:r1, :, 3] > 0) & (fr[r0:r1, :, :3] == _rgb(a)).all(-1)
+                    fr[r0:r1][hit, :3] = _rgb(b); n += int(hit.sum())
+        print('  %s %s: %d px retoned in rows %d-%d' % (name, v, n, r0, r1 - 1))
 
 
 def palette():
@@ -48,55 +74,62 @@ def mirror(fr):
     return np.roll(fr[:, ::-1], 1, axis=1).copy()
 
 
+def frames_of(d):
+    """the piece's frame map -> [(sheet, view, row, index, page, (x, y, w, h))]"""
+    if os.path.exists(os.path.join(d, 'FRAME-MAP.json')):
+        fm = json.load(open(os.path.join(d, 'FRAME-MAP.json')))
+        return [(s['runtime_target'], s['facing'], s['action'], f['index'], s['file'], tuple(f['cell_source_xywh'])) for s in fm['sheets'] for f in s['frames']]
+    return [(r['target'], r['facing'], r['action'], int(r['frame_index']), r['source_page'], (int(r['crop_x']), int(r['crop_y']), int(r['crop_w']), int(r['crop_h'])))
+            for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8'))]
+
+
 def cut(costume):
     """-> {sheet name: {row: [8 facings of [RGBA frames]]}}"""
-    folder, _ = PIECES[costume]
-    d = os.path.join(AD.src_dir(ROOT), 'folkcostumes', folder)
-    fm = json.load(open(os.path.join(d, 'FRAME-MAP.json')))
-    pal, got = palette(), {}
-    for s in fm['sheets']:
-        name = s['runtime_target']
+    P = PIECES[costume]
+    d = os.path.join(AD.src_dir(ROOT), 'folkcostumes', P['folder'])
+    pal, got, pages = palette(), {}, {}
+    for name, v, an, idx, page, (x, y, w, h) in frames_of(d):
         if name not in ('folkman_%s_p1' % costume, 'folkwoman_%s_p1' % costume):
-            raise SystemExit('%s: a page for %s, not %s' % (s['file'], name, costume))
-        a = np.asarray(Image.open(os.path.join(d, s['file'])).convert('RGB'))
-        frames = []
-        for f in sorted(s['frames'], key=lambda f: f['index']):
-            x, y, w, h = f['cell_source_xywh']
-            k = w // FW
-            if (w, h) != (FW * k, FH * k):
-                raise SystemExit('%s %d: a window of %dx%d, not %d x the cell' % (s['file'], f['number'], w, h, k))
-            win = a[y:y + h, x:x + w]
-            sm = win[k // 2::k, k // 2::k]
-            if (np.repeat(np.repeat(sm, k, 0), k, 1) != win).any():
-                raise SystemExit('%s %d: not an exact %dx page' % (s['file'], f['number'], k))
-            fg = (sm != NAVY).any(-1)
-            off = {tuple(c) for c in sm[fg]} - pal
-            if off:
-                raise SystemExit('%s %d: %d colours off the 64 (%s)' % (s['file'], f['number'], len(off), sorted(off)[:4]))
-            fr = np.zeros((FH, FW, 4), np.uint8)
-            fr[fg, :3] = sm[fg]; fr[fg, 3] = 255
-            frames.append(fr)
-        if len(frames) != s['frame_count']:
-            raise SystemExit('%s: %d frames, the map says %d' % (s['file'], len(frames), s['frame_count']))
-        got.setdefault(name, {}).setdefault(s['facing'], {})[s['action']] = frames
+            raise SystemExit('%s: a frame for %s, not %s' % (page, name, costume))
+        if page not in pages:
+            pages[page] = np.asarray(Image.open(os.path.join(d, page)).convert('RGB'))
+        a, k = pages[page], w // FW
+        if (w, h) != (FW * k, FH * k):
+            raise SystemExit('%s %s %d: a window of %dx%d, not %d x the cell' % (page, an, idx + 1, w, h, k))
+        win = a[y:y + h, x:x + w]
+        sm = win[k // 2::k, k // 2::k]
+        if (np.repeat(np.repeat(sm, k, 0), k, 1) != win).any():
+            raise SystemExit('%s %s %d: not an exact %dx page' % (page, an, idx + 1, k))
+        fg = (sm != P['navy']).any(-1)
+        off = {tuple(c) for c in sm[fg]} - pal
+        if off:
+            raise SystemExit('%s %s %d: %d colours off the 64 (%s)' % (page, an, idx + 1, len(off), sorted(off)[:4]))
+        fr = np.zeros((FH, FW, 4), np.uint8)
+        fr[fg, :3] = sm[fg]; fr[fg, 3] = 255
+        got.setdefault(name, {}).setdefault(v, {}).setdefault(an, {})[idx] = fr
     out = {}
     for name, views in got.items():
         if set(views) != {'S', 'SE', 'E', 'NE', 'N'}:
             raise SystemExit('%s: views %s, not the five' % (name, sorted(views)))
-        for v, rows in views.items():               # each view stood on its Idle 1's lowest row
-            foot = int(np.where(rows['idle'][0][..., 3].any(axis=1))[0][-1])
-            dy = AY - foot
-            if dy:
-                for an in rows:
-                    for i, fr in enumerate(rows[an]):
-                        if dy > 0 and fr[FH - dy:, :, 3].any():
-                            raise SystemExit('%s %s %s %d: cut off by the stand' % (name, v, an, i + 1))
-                        rows[an][i] = np.roll(fr, dy, axis=0)
-                print('  %s %s: stood %+d px (its Idle 1 on row %d)' % (name, v, dy, AY))
+        for v in views:
+            for an, n in COUNT.items():
+                if sorted(views[v].get(an, {})) != list(range(n)):
+                    raise SystemExit('%s %s %s: frames %s, not %d' % (name, v, an, sorted(views[v].get(an, {})), n))
+                views[v][an] = [views[v][an][i] for i in range(n)]
+        if P.get('retone'):
+            retone(name, views, P['retone'])
+        if P['stand']:
+            for v, rows in views.items():               # each view stood on its Idle 1's lowest row
+                foot = int(np.where(rows['idle'][0][..., 3].any(axis=1))[0][-1])
+                dy = AY - foot
+                if dy:
+                    for an in rows:
+                        for i, fr in enumerate(rows[an]):
+                            if dy > 0 and fr[FH - dy:, :, 3].any():
+                                raise SystemExit('%s %s %s %d: cut off by the stand' % (name, v, an, i + 1))
+                            rows[an][i] = np.roll(fr, dy, axis=0)
+                    print('  %s %s: stood %+d px (its Idle 1 on row %d)' % (name, v, dy, AY))
         out[name] = {an: [[mirror(fr) for fr in views[MIRROR[f]][an]] if f in MIRROR else views[f][an] for f in ORDER] for an in ROWS}
-        for an in ROWS:
-            if len({len(fs) for fs in out[name][an]}) > 1:
-                raise SystemExit('%s %s: frame counts differ by facing' % (name, an))
     return out
 
 
@@ -108,5 +141,5 @@ if __name__ == '__main__':
             meta = json.load(open(mp))
             for an, fps in FPS.items():
                 meta['anims'][an]['fps'] = fps
-            meta['source'] = 'drawn by the art desk (%s: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell), cut by tools/folk-costume-sheet.py (11-15)' % PIECES[costume][1]
+            meta['source'] = 'drawn by the art desk (%s), cut by tools/folk-costume-sheet.py (11-15)' % PIECES[costume]['name']
             json.dump(meta, open(mp, 'w'), indent=1)

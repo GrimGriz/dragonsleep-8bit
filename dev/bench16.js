@@ -18653,10 +18653,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1115);
-      ['folkman_lightcrew_p1', 'folkwoman_lightcrew_p1'].forEach(function (n) {
-        var s = D.SHEETS[n], a = s && s.anims;
-        okK(n + ' cut (' + (s ? s.fw + 'x' + s.fh + ' at ' + s.ax + ',' + s.ay + ', ' + Object.keys(a).map(function (k) { return k + ' ' + a[k].frames; }).join(', ') : 'NONE') + '): idle 4 and walk 8 on folkman_p1\'s cell, all eight facings drawn (no `drawn`)',
-          !!s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64);
+      // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
+      var COSTK = ['lightcrew', 'shaft'];
+      COSTK.forEach(function (c) {
+        var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
+        var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });
+        okK('the ' + c + ' cut (' + ns.join(', ') + (bad.length ? ' -- off: ' + bad.join(', ') : '') + '): idle 4 and walk 8 on folkman_p1\'s cell, all eight facings drawn; worn by ' + who.join(', ') + (off.length ? ' -- NOT: ' + off.join(', ') : ''),
+          !bad.length && who.length > 0 && !off.length);
       });
       okK('C.folkFig: the light crew in their own (' + ['seepcrew1', 'seepcrew2', 'seepcrew3'].map(function (id) { return id + ' ' + (CK.folkFig ? CK.folkFig(id) : '?'); }).join(', ') + ')',
         !!CK.folkFig && CK.folkFig('seepcrew1') === 'folkwoman_lightcrew_p1' && CK.folkFig('seepcrew2') === 'folkman_lightcrew_p1' && CK.folkFig('seepcrew3') === 'folkman_lightcrew_p1');
@@ -18680,13 +18683,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       });
       D.house.begin(D.house.fresh(), 0); var BS = topK(), fS = folkK(BS), byS = {}; fS.forEach(function (u) { byS[u.npc] = u; });
       okK('NEW GAME, Silverton\'s street: the unnamed in the townsfolk\'s own figures, no fighter (' + fS.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
-        fS.length >= 5 && fS.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && byS.towns1 && byS.towns1.sheet === 'folkman_p1' && byS.towns2 && byS.towns2.sheet === 'folkwoman_p1' && byS.guard1 && byS.guard1.sheet === 'folkman_p1');
+        fS.length >= 5 && fS.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && byS.towns1 && byS.towns1.sheet === 'folkman_p1' && byS.towns2 && byS.towns2.sheet === 'folkwoman_p1' && byS.guard1 && byS.guard1.sheet === CK.folkFig('guard1'));
       var BH = floorK('?roam=hex&floor=2'), fH = folkK(BH), PH = D.hex.PEOPLE[2], faceH = {}; PH.forEach(function (p) { faceH[p.id] = D.spr.facingFor(p.face[0], p.face[1]); });
       okK('the Hex\'s gambling floor: the gamblers in the townsfolk\'s figures, each still facing as the floor stands them (' + fH.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH[u.npc]; }).join(', ') + ')',
         fH.length === 2 && fH.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH[u.npc]; }));
       var BW = floorK('?roam=warrens_b'), fW = folkK(BW);
-      okK('the Warrens: the shaft crew in the townsfolk\'s figures till theirs come (' + fW.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
-        fW.length >= 1 && fW.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }));
+      okK('the Warrens: the shaft crew in the shaft hand\'s figures (' + fW.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
+        fW.length >= 1 && fW.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && fW.some(function (u) { return u.sheet === 'folkman_shaft_p1' || u.sheet === 'folkwoman_shaft_p1'; }));
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
