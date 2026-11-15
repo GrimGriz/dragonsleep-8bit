@@ -855,6 +855,7 @@
       rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', hurled: true, row: 'throw' } // (thrown when no one is in his reach, the stone giant's way -- js/ai.js volley)
     },
     multi: ['greataxe', 'greataxe'], immune: ['cold'],
+    exhale: 'frost', // (his breath fogs white in the cold, the engine's: js/looks.js LK.exhale -- the art desk's drawn fog stripped from his Idle, on Griz's "1-3 leans")
     src: 'SRD 5.1 Frost Giant (CR 8, 3,900 XP; Huge giant, neutral evil): AC 15 (patchwork armor), 138 HP (12d12 + 60), speed 40; STR 23 DEX 9 CON 21 INT 9 WIS 10 CHA 12; saves Con +8, Wis +3, Cha +4; Athletics +9, Perception +3, passive Perception 13; immune to cold; Giant; Multiattack, two Greataxe attacks (+9, reach 10, 3d12 + 6 slashing); Rock (+9, range 60/240, 4d10 + 6 bludgeoning), thrown when no one is in his reach. Drawn young and out on his own (art-wanted 42, his word)'
   },
   // THE WYVERN (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue -- Griz: "Please start cutting Fresh one at a time"; asked in art-wanted section 45, ART-132,

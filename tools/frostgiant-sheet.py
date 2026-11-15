@@ -22,6 +22,10 @@ its median height). Every other page of a view is fitted to that view's Idle by 
 Greataxe 1, Flinch 1 and 4, Fall 1 (each stands as the Idle does); the Walk by its median height times WALK_DIP (a long stride stands a little lower); the
 Rock by its frame 6 (he straightens); the Prone, a crop of Fall 6, at the Fall's.
 
+THE BREATH (11-15, on the lanes desk's relay of Griz's "1-3 leans", after his ruling on drawn breath: "should be done with the engine like we're doing other things"):
+the art desk drew a puff, a cloud and its wisps on Idle 2-4; defog() takes them out, laid on Idle 1, and keeps where the cloud left his face and the way it drifted: the
+Idle row's `mouth`, a facing each, which deep16/js/looks.js LK.exhale breathes from (data/foes.js frostgiant `exhale: 'frost'`).
+
 Where each drawing stands: a standing frame by its FEET -- the middle of its lowest 12% (the two boots) on the ground line -- so the greataxe's swing does not
 slide him; a lying one (Fall 4-6, the Prone) by its whole body's middle. Each row its own cell, the anchor at the ground line's middle (the stone giant's rows
 are so: an overhead swing wants headroom). Facings (RULED 10-14): S SE E NE N as drawn, SW W NW their mirrors.
@@ -155,8 +159,49 @@ def drawings(act, v):
         if bd <= max(PAD, 0.15 * (b[0].stop - b[0].start)) and sl[0].start < b[0].stop - 4 and not (glyph(i) and low):   # (near -- a breath's fog drifts off his mouth -- and not a printed number: under the soles, or a light glyph low by them)
             frames[best].append(i)
     masks = [np.isin(fl, [j + 1 for j in frames[num]]) for num in range(1, n + 1)]
+    if act == 'idle':
+        pg = pg.copy(); defog(pg, masks, v)
     _CACHE[(act, v)] = (pg, masks)
     return _CACHE[(act, v)]
+
+
+ROOTS = {}                      # {view: [(y, x, frame, fog px, cloud y, cloud x): the drawn fog's root at the lips and its cloud's middle, page px, a fogged frame each]}
+
+
+def defog(pg, masks, v):
+    """THE BREATH FOG OUT (11-15, Griz on the hell hound's drawn smoke, "should be done with the engine like we're doing other things", then "1-3 leans": the giant's
+    drawn breath stripped, the engine draws it -- deep16/js/looks.js LK.exhale). Idle 2-4 draw a puff, a cloud and its wisps; Idle 1 draws none. Each later frame is
+    laid on Idle 1 by the body (the lower 60%: the middle of its columns, the soles); the fog is what is light and grey in its top 45% that Idle 1 has nowhere near
+    (5 px), and the soft edge round it that Idle 1 does not match; where the fog lay over him (the axe, the beard) Idle 1's own pixels go back, elsewhere it is navy.
+    Where the fog meets his face is kept (ROOTS): the engine's breath starts there. In place, on the page"""
+    lite = lambda a: (a.min(-1) > 140) & ((a.max(-1) - a.min(-1)) < 55)
+    y0r, y1r, x0r, x1r = tight(masks[0])
+
+    def body(m):
+        y0, y1, x0, x1 = tight(m); lo = m.copy(); lo[:y0 + int(0.4 * (y1 - y0))] = False
+        return y1, ndimage.center_of_mass(lo)[1]
+    sr, cr = body(masks[0])
+    ref_rgb = pg[y0r:y1r, x0r:x1r].copy(); ref_m = masks[0][y0r:y1r, x0r:x1r]
+    ROOTS[v] = []
+    for k in range(1, len(masks)):
+        m = masks[k]; sk_, ck = body(m); dy, dx = int(round(sk_ - sr)), int(round(ck - cr))
+        y0, y1, x0, x1 = tight(m); H = y1 - y0
+        R = np.zeros(m.shape, bool); Rrgb = np.zeros(pg.shape, np.float32)       # (Idle 1, moved onto this frame)
+        ty0, tx0 = y0r + dy, x0r + dx
+        ys0, xs0 = max(0, ty0), max(0, tx0); ys1, xs1 = min(m.shape[0], ty0 + ref_m.shape[0]), min(m.shape[1], tx0 + ref_m.shape[1])
+        R[ys0:ys1, xs0:xs1] = ref_m[ys0 - ty0:ys1 - ty0, xs0 - tx0:xs1 - tx0]; Rrgb[ys0:ys1, xs0:xs1] = ref_rgb[ys0 - ty0:ys1 - ty0, xs0 - tx0:xs1 - tx0]
+        top = np.zeros(m.shape, bool); top[:y0 + int(0.45 * H)] = True
+        fog = m & lite(pg) & ~ndimage.binary_dilation(R & lite(Rrgb), iterations=5) & top     # (the cloud's light body: its root is found by it)
+        if fog.sum() < 30:
+            continue
+        hair = R & (Rrgb.min(-1) > 200) & ((Rrgb.max(-1) - Rrgb.min(-1)) < 30); hair[y0 + int(0.25 * H):] = False
+        hy, hx = ndimage.center_of_mass(hair) if hair.any() else (y0, 0.5 * (x0 + x1))
+        fy, fx = np.where(fog); dd = np.hypot(fy - hy, fx - hx); near = dd <= dd.min() + 6
+        ROOTS[v].append((fy[near].mean(), fx[near].mean(), k, int(fog.sum()), fy.mean(), fx.mean()))   # (page px: the fog nearest the middle of his hair, and the cloud's middle -- the way it drifts)
+        out_ = m & top & ~ndimage.binary_dilation(R, iterations=4)                 # (in his head's height, outside Idle 1's figure: the fog and its dark outline, gone)
+        diff = m & top & R & (lite(pg) & ~lite(Rrgb) | (np.abs(pg - Rrgb).max(-1) > 60))  # (over him, what Idle 1 does not have there: Idle 1's own pixels back)
+        pg[diff] = Rrgb[diff]
+        m &= ~out_
 
 
 def tight(m):
@@ -184,6 +229,9 @@ def fits():
     return base, F, H
 
 
+MOUTH = {}
+
+
 def cut(check=False):
     base, F, H = fits()
     cells = {}
@@ -206,6 +254,14 @@ def cut(check=False):
                     ft = warm.copy(); ft[:foot - max(2, int(round((ys[-1] - ys[0]) * FEET)))] = False
                     cx = ndimage.center_of_mass(ft)[1]
                 cells[(DS.FACE[v], act, i)] = (o, cx, foot)
+                if act == 'idle':                                         # (the drawn fog's root on this frame, into the cell: x from the anchor, y from the ground line)
+                    for ry, rx, kf, npx, cy_, cx_ in sorted(ROOTS.get(v, []), key=lambda r: -r[3])[:1]:   # (the cloud's root, Idle 3's: a later frame's wisps drift off the lips)
+                        if kf == i:
+                            dl = max(1e-6, float(np.hypot(cy_ - ry, cx_ - rx)))
+                            MOUTH.setdefault(DS.FACE[v], []).append(((rx - x0) * k + 1 - cx, (ry - y0) * k + 1 - foot, (cx_ - rx) / dl, (cy_ - ry) / dl))
+    for mf, sf in DS.MIRROR.items():
+        if sf in MOUTH:
+            MOUTH[mf] = [(-x, y, -dx, dy) for x, y, dx, dy in MOUTH[sf]]
     for mf, sf in DS.MIRROR.items():
         for (f, act, i) in [c for c in list(cells) if c[0] == sf]:
             o, cx, foot = cells[(f, act, i)]
@@ -229,6 +285,9 @@ def cut(check=False):
         a = dict(y=y, fw=fw, fh=fh, ax=ax, ay=ay, frames=len(keys), fps=fps)
         if name in RELEASE:
             a['release'] = RELEASE[name]
+        if name == 'idle':                                                # (where his breath leaves him, a facing each: deep16/js/looks.js LK.exhale)
+            assert len(MOUTH) == 8, ('no drawn fog to find the mouth by in', sorted(MOUTH))
+            a['mouth'] = [[int(round(MOUTH[f][0][0])), int(round(MOUTH[f][0][1])), round(float(MOUTH[f][0][2]), 2), round(float(MOUTH[f][0][3]), 2)] for f in range(8)]   # ([x, y, the drawn cloud's way out: dx, dy])
         anims[name] = a; blocks.append(blk); y += 8 * fh
     W = max(b.shape[1] for b in blocks)
     sheet = np.zeros((y, W, 4), np.uint8); yy = 0

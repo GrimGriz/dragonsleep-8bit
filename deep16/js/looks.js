@@ -568,6 +568,7 @@
     if (u.conds.oiled) LKDRAW.set(u, { anim: anim, t: t, o: o }); // (the frame the figure is about to be drawn with: the oil's gloss draws it again, clipped, after -- overMore)
     if (u.hp <= 0) { if (u.conds.oiled && !u.dead) oilPool(ctx, B, u, p); return; } // (down at 0: ui.js asks only for the oil -- 10-06)
     if (u.regen > 0 && u.burned && u.hp > 0 && !u.dead) hairNote(B, u, anim, t, o); // (a burned troll's crown, off the frame about to be drawn: smoulder, below)
+    if (breathes(u, anim)) { EXH.set(u, B.t); var bf = (u.facing || 0) % 8; if (bf >= 3 && bf <= 5) exhale(ctx, B, u, p); } // (its breath on the air: facing away, behind its head -- BREATH ON THE AIR, below)
     // Longstrider and Expeditious Retreat (10-01b, Griz, of the green dashes off the heels: "looks like the guy is pooping lines of green?
     // Maybe green like the old bat sonar only in the tile he's in"): his own square glows green, a ring running out from his feet to its
     // edge and again -- the 09-30 sonar's tint and ping, kept to one square, under him
@@ -668,6 +669,42 @@
     }
     ctx.globalAlpha = 1;
   }
+  // ------------------------------------------------------------------ BREATH ON THE AIR (11-15, the cutter-fresh-1115 seat, on the lanes desk's relay of Griz's ruling: of the
+  // hell hound's drawn smoke, "i thought it would look silly like that animated and should be done with the engine like we're doing other things", "i recall it doing the winter
+  // wolf breath like that and it animating like a static speech bubble"; then, to the desk's leans for the frost giant's fog and the winter wolf's frost, "1-3 leans"). ONE
+  // emitter for every creature whose breath shows: data/foes.js `exhale` names its style here (the young frost giant 'frost'; the hell hound's 'smoke' and the winter wolf's
+  // frost to come). The mouth is read off the art desk's own drawing at the cut -- where its drawn breath met the face, a facing each -- and kept on the sheet: the Idle row's
+  // `mouth`, [x from the anchor, y from the ground line, and the drawn cloud's way out, dx, dy] (tools/frostgiant-sheet.py; the drawn breath itself stripped from the frames). A breath every `every` ticks while it stands
+  // on its Idle: a stream of motes off the lips, a little out the way it faces, then up -- in screen space, so it climbs the same way in every facing and never flips with the
+  // mirrored ones -- growing and fading as it goes. Facing away (NW N NE) it is drawn behind the figure, its head before it; else over it
+  LK.EXHALE = {
+    frost: { c: [['silver', 6], ['silver', 5]], a: 0.7, every: 150, life: 84, n: 9 }, // (white, faint: the frost giant's breath in the cold)
+    smoke: { c: [['stone', 3], ['stone', 2]], a: 0.6, every: 110, life: 96, n: 10 }  // (grey: for the hell hound, when its pages come)
+  };
+  var EXH = new WeakMap(); // (the row and tick LK.behind saw it drawn on, for LK.over)
+  var FACE_FWD = [[0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1]]; // (the way each facing looks, on the screen: 0 S, 1 SW .. 7 SE)
+  LK.mouthOf = function (u) { var sh = D.SHEETS && D.SHEETS[u.sheet], a = sh && sh.anims && sh.anims.idle, m = a && a.mouth; return m ? m[(u.facing || 0) % 8] || null : null; };
+  LK.exhaleOf = function (u) { var f = u && u.kind && D.FOES && D.FOES[u.kind]; return f && f.exhale && LK.EXHALE[f.exhale] || null; };
+  function exhale(ctx, B, u, p) {
+    var X = LK.exhaleOf(u), m = LK.mouthOf(u); if (!X || !m) return 0;
+    var sk = D.spr.scaleOf ? D.spr.scaleOf(u) : 1, face = (u.facing || 0) % 8, fw = m.length >= 4 ? [m[2], m[3] * 2] : FACE_FWD[face], ph = uph(u), c = (B.t + ph * 7) % X.every, drawn = 0; // (out the way the art desk drew it drifting, where the sheet keeps it; else the way it faces)
+    if (c >= X.life) return 0;
+    var mx = p.x + m[0] * sk, my = p.y + m[1] * sk, i, q, x, y;
+    ctx.save();
+    for (i = 0; i < X.n; i++) {
+      q = (c - i * 4) / (X.life - (X.n - 1) * 4); if (q < 0 || q > 1) continue; // (each mote leaves the lips four ticks after the one before)
+      var out = 3 + 20 * Math.sqrt(q), up = 12 * q * q + 2 * q, sway = Math.sin(q * 6 + i * 1.3 + ph) * (1 + 3 * q); // (out in front of the face as the drawn cloud was, about 20 px, then up)
+      x = mx + fw[0] * out + sway; y = my + fw[1] * out * 0.5 - up;
+      ctx.globalAlpha = X.a * Math.sin(Math.PI * Math.min(1, q * 1.4)) * (1 - 0.5 * q);
+      var col = P(X.c[q < 0.45 ? 0 : 1][0], X.c[q < 0.45 ? 0 : 1][1]), sz = q < 0.25 ? 2 : q < 0.6 ? 3 : 4, ga = ctx.globalAlpha;
+      px(ctx, x, y, col, sz); ctx.globalAlpha = ga * 0.6; px(ctx, x + (i % 2 ? 2 : -2), y + 1, col, sz - 1); px(ctx, x, y - sz + 1, col, sz - 1); // (a little cloud: a core and two softer lobes)
+      drawn++;
+    }
+    ctx.restore();
+    return drawn;
+  }
+  LK.exhale = exhale; // (dev/bench16.js mode=frostgiant1115 draws it on a canvas of its own)
+  function breathes(u, anim) { return anim === 'idle' && u.hp > 0 && !u.dead && !u.conds.prone && !u.conds.unconscious && !u.proneLook && LK.exhaleOf(u); }
   // how high over its foot, in screen pixels, the flames of a smouldering troll reach, or 0 for any other: what stands over a head (the HP bar, js/ui.js; the badges and the wheel, LK.over) is
   // lifted to clear of it. The crown is the one smoulder reads (HAIRAT, told by LK.behind this frame): facing north the head stands 30 px over the sheet's `top` and the bar, kept
   // at `top` + 5, lay across the head and its fire (10-07, the troll runner's find: "as before the flames"); where the crown is not known the flames start at `top`, so
@@ -765,6 +802,7 @@
     if (c.heroism && (t % 40) < 6) FX.star(ctx, hx, hy + 2, FX.EL.holy, 4);
     if (c.fireShield) { E = FX.EL.fire; for (var fs = 0; fs < 6; fs++) { var fa2 = t / 12 + fs * 1.05, fy = (t * 0.8 + fs * 5) % 10; px(ctx, p.x + Math.cos(fa2) * 12, p.y - top / 2 + Math.sin(fa2) * 6 - fy, fy < 4 ? E.c[0] : E.c[1], 2); } }
     if (u.regen > 0 && u.burned && u.hp > 0 && !u.dead) smoulder(ctx, B, u, p, top); // (a troll burned since its last turn: it will not knit at its next -- above)
+    if (EXH.get(u) === t) { var of_ = (u.facing || 0) % 8; if (of_ < 3 || of_ > 5) exhale(ctx, B, u, p); } // (its breath on the air, facing the eye: over it -- LK.behind saw it on its Idle this tick)
     overMore(ctx, B, u, p, top, hx, hy);
   };
 

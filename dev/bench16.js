@@ -10831,7 +10831,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // THE YOUNG FROST GIANT, 11-15 (mode=frostgiant1115; the cutter-fresh-1115 seat, on Griz's "Please start cutting Fresh one at a time"): the SRD 5.1 Frost Giant on
   // the art desk's ART-129, frostgiant_p1 (tools/frostgiant-sheet.py) -- 1. its block; 2. the Greataxe on `attack`, the Rock on its `throw` row, cold does nothing to him;
   // 3. its routine (js/ai.js): one in his reach, two Greataxes; nobody in reach and he cannot close, a Rock; 4. its sheet, every row and its strike frames; 5. the
-  // Coldridge route's table holds him in a `top` group (not drawn till the road above the shelf opens)
+  // Coldridge route's table holds him in a `top` group (not drawn till the road above the shelf opens); 6. his breath, the engine's (js/looks.js LK.exhale)
   if (get('mode', '') === 'frostgiant1115') {
     var repFG = { checks: [], errors: [], notes: [] }, d0FG = D.d;
     function okFG(what, v) { repFG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -10867,6 +10867,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 5. the Coldridge table
       var ZFGX = window.DS.DATA.encounters && window.DS.DATA.encounters.coldridge, gFGX = ZFGX && ZFGX.groups.filter(function (g) { return g.e.some(function (x) { return x[0] === 'frostgiant'; }); })[0];
       okFG('5 the Coldridge table: the frost giant ' + (gFGX ? 'in a group of ' + gFGX.e.map(function (x) { return x.join(' '); }).join() + (gFGX.top ? ', top (held till the road above opens)' : '') : 'absent'), !!gFGX && !!gFGX.top && !!D.FOES.frostgiant);
+      // 6. his breath on the air (11-15, on Griz's "1-3 leans": the drawn fog stripped, the engine's -- js/looks.js LK.exhale): a mouth on the sheet a facing each, at his head's
+      // height; on his Idle a stream of motes off it, then a pause till the next breath; none on another row
+      var MFGX = SFGX && SFGX.idle && SFGX.idle.mouth, topFGX = D.spr.top('frostgiant_p1'), LKX = D.looks;
+      var cvFGX = document.createElement('canvas'); cvFGX.width = 240; cvFGX.height = 240; var cxFGX = cvFGX.getContext('2d'), onFGX = 0, offFGX = 0, maxFGX = 0;
+      GIX.facing = 6; GIX.hp = GIX.maxhp; delete GIX.conds.prone;
+      for (var tFGX = 0; tFGX < 300; tFGX++) { var nFGX = LKX && LKX.exhale ? LKX.exhale(cxFGX, { t: tFGX }, GIX, { x: 120, y: 220 }) : 0; if (nFGX) onFGX++; else offFGX++; maxFGX = Math.max(maxFGX, nFGX); }
+      okFG('6 his breath: mouths ' + JSON.stringify(MFGX) + ' (his top ' + topFGX + '); style ' + (D.FOES.frostgiant.exhale || 'none') + '; over 300 ticks motes on ' + onFGX + ', none on ' + offFGX + ' (up to ' + maxFGX + ' at once)',
+        !!MFGX && MFGX.length === 8 && MFGX.every(function (m) { return m[1] < -0.6 * topFGX && m[1] > -topFGX && Math.abs(m[0]) < 40; }) && D.FOES.frostgiant.exhale === 'frost' && onFGX > 60 && offFGX > 60 && maxFGX >= 3);
     } catch (eFG) { repFG.errors.push(String(eFG && eFG.stack || eFG).slice(0, 900)); }
     D.d = d0FG;
     var preFG = document.createElement('pre'); preFG.id = 'out'; preFG.textContent = 'BENCH16 ' + JSON.stringify(repFG);
