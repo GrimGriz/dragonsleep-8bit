@@ -10316,6 +10316,42 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preSH);
     return;
   }
+  // LYMEN'S OWN ROWS, 11-15 (mode=lymen1115; the cutter of 1115, on Griz's "opus cutter one at a time from Fresh"): art-wanted 59 cut into lymen_p2 --
+  // 1. the sheet carries the thirteen rows at their counts; 2. each of his five features plays its row: Lay on Hands, Divine Smite (its beat after the hit),
+  // Green Again, What Falls, Feeds, Relentless
+  if (get('mode', '') === 'lymen1115') {
+    var repLy = { checks: [], errors: [] }, d0Ly = D.d, GRly = 'the Oath of the Green Return';
+    function okLy(what, v) { repLy.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runLy(g, u) { var v, k = 0, st, seen = {}; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (u && u.anim) seen[u.anim] = 1; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return seen; }
+    function mkLy() {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=paladin:5,fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), p = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== p; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      p.subclass = GRly; if (p.src) p.src.subclass = GRly; p.sheet = 'lymen_p2';
+      g.conds = {}; f.x = p.x + 1; f.y = p.y; if (!D.grid.canStand(f, f.x, f.y)) f.x = p.x - 1; g.x = p.x; g.y = p.y + 1; if (!D.grid.canStand(g, g.x, g.y)) g.y = p.y - 1;
+      D.grid.setup(B.map, B.units); D.rules.startTurn(p); B.active = p; p.feats.channel = 2; p.reaction = 1; p.anim = 'idle'; return { B: B, p: p, f: f, g: g };
+    }
+    try {
+      D.seed = 1115;
+      var SHly = D.SHEETS.lymen_p2 && D.SHEETS.lymen_p2.anims, wantLy = { layonhands: 6, divinesmite: 6, greenagain: 6, whatfallsfeeds: 4, relentless: 6, flinch: 4, prone: 5, getup: 6, defend: 4, useitem: 4, victory: 6, interact: 6, attack2: 6 };
+      okLy('1 lymen_p2 carries ' + Object.keys(wantLy).map(function (r) { return r + ' ' + (SHly && SHly[r] ? SHly[r].frames : 0); }).join(', ') + ' (attack2 release ' + (SHly && SHly.attack2 && SHly.attack2.release) + ')',
+        !!SHly && Object.keys(wantLy).every(function (r) { return SHly[r] && SHly[r].frames === wantLy[r]; }) && SHly.attack2.release === 3);
+      var h1 = mkLy(); h1.f.hp = Math.max(1, h1.f.maxhp - 8); var s1 = runLy(h1.B.layOnHands(h1.p, h1.f, false), h1.p);
+      okLy('2 Lay on Hands on the fighter: ' + h1.f.hp + '/' + h1.f.maxhp + ', played ' + Object.keys(s1).join(', '), !!s1.layonhands && h1.f.hp === h1.f.maxhp);
+      var h2 = mkLy(); h2.p.slots[0] = 2; D.d = function (n) { return n === 20 ? 18 : d0Ly.apply(this, arguments); }; var sl0 = h2.p.slots[0];
+      var s2 = runLy(h2.B.exec(h2.p, { do: 'attack', target: h2.g }), h2.p); D.d = d0Ly;
+      okLy('2 Divine Smite after a hit: a slot spent (' + sl0 + ' to ' + h2.p.slots[0] + '), played ' + Object.keys(s2).join(', '), !!s2.divinesmite && h2.p.slots[0] === sl0 - 1);
+      var h3 = mkLy(); h3.f.hp = 0; h3.f.ko = true; h3.f.conds.prone = true; var s3 = runLy(D.features.greenAgain(h3.B, h3.p, h3.f), h3.p);
+      okLy('2 Green Again on the fallen fighter: up at ' + h3.f.hp + ', played ' + Object.keys(s3).join(', '), !!s3.greenagain && h3.f.hp > 0);
+      var h4 = mkLy(); h4.f.hp = Math.max(1, h4.f.maxhp - 10); var feed = D.features.greenFeed(h4.B, h4.p, h4.g); D.features.greenGive(h4.B, h4.p, h4.g, feed);
+      okLy('2 What Falls, Feeds by the fallen goblin: ' + feed.list.length + ' fed, the paladin\'s row ' + h4.p.anim, h4.p.anim === 'whatfallsfeeds');
+      var h5 = mkLy(); h5.p.feats.relentless = 1; h5.B.hurt(h5.p, h5.p.hp + 6, 'slashing');
+      okLy('2 Relentless: a blow past his hit points leaves him at ' + h5.p.hp + ', the row ' + h5.p.anim, h5.p.hp === 1 && h5.p.anim === 'relentless');
+    } catch (eLy) { repLy.errors.push(String(eLy && eLy.stack || eLy).slice(0, 900)); }
+    D.d = d0Ly;
+    var preLy = document.createElement('pre'); preLy.id = 'out'; preLy.textContent = 'BENCH16 ' + JSON.stringify(repLy);
+    document.body.appendChild(preLy);
+    return;
+  }
   // THE SHAMBLING MOUND, 11-14 (mode=mound1114; the hyena-stirge seat, on Griz's "Have it start the new art shambling mound"): its two SRD 5.1 rules as built --
   // 1. Lightning Absorption: lightning heals it the damage dealt (to its maximum), no damage taken; fire is halved (it resists); 2. Engulf on the cube's rule:
   // a Slam that hits grips the fighter (escape DC 14), then Engulf lands on the one it holds; 3. its sheet, every row

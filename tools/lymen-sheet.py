@@ -25,7 +25,10 @@ THE WALK: S and N as drawn. SE, E and NE: WALK below names which of the two cand
 candidates page); what the legs still do wrong is on deep16-dream-polish.md, not asked again (every cutter's rule, 10-30).
 SW, W and NW the mirrors of SE, E and NE (RULED 10-14; the mirror puts the sword in the other hand, the house's convention).
 Rows (lymen_p0's, in barley_p3's frame counts): idle 6, walk 8, attack 6 (`release` 3), hurt 6, sit 2, cast 6.
-Worn by Lymen (js/save.js SV.LOOK.lymen.sheet). His own five rows and the standard extras (art-wanted section 59) have not come back.
+Worn by Lymen (js/save.js SV.LOOK.lymen.sheet).
+11-15, the cutter of 1115 (the lanes desk's start on Griz's "opus cutter one at a time from Fresh"): art-wanted section 59 came back as
+  ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59     65 strips, one action one view each, with FRAME-MAP.json (each frame's crop, anchor, the strip's scale reference,
+                                                the guard frames and getup 1's cut_from) -- extras() below; its rows follow the six above.
 """
 import importlib.util, json, os, sys
 import numpy as np
@@ -47,10 +50,15 @@ VS.BG_TOL = LC.VS.BG_TOL = 10          # (his swept dark hair stands 14 to 24 fr
 LOOK = 'lymen_p2'
 STD = os.path.join(VS.pix.SRC, 'lymen', 'ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW')
 F04 = os.path.join(VS.pix.SRC, 'lymen', 'ART-MC-LYMEN-ATTACK-S-N-FRAME-04')
+X59 = os.path.join(VS.pix.SRC, 'lymen', 'ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59')
 TALL, FH, AY = 48, 84, 76            # (lymen_check_p2's cell: the blade high over the head on attack 3)
 FACE = {'S': 0, 'SE': 7, 'E': 6, 'NE': 5, 'N': 4}
 MIRROR = {1: 7, 2: 6, 3: 5}
 ROWS = [('idle', 6, 6), ('walk', 10, 8), ('attack', 10, 6), ('hurt', 10, 6), ('sit', 2, 2), ('cast', 8, 6)]   # (name, fps, frames)
+# art-wanted section 59 (ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, 11-14; cut 11-15 by the cutter of 1115): his five own rows, then the standard extras at barley_p3's fps
+ROWS += [('layonhands', 8, 6), ('divinesmite', 10, 6), ('greenagain', 8, 6), ('whatfallsfeeds', 8, 4), ('relentless', 8, 6),
+         ('flinch', 12, 4), ('prone', 10, 5), ('getup', 10, 6), ('defend', 8, 4), ('useitem', 8, 4), ('victory', 8, 6), ('interact', 10, 6), ('attack2', 12, 6)]
+RELEASE = {'attack': 3, 'attack2': 3}
 GROUND = {('hurt', 3), ('hurt', 4), ('hurt', 5)}
 WALK = {'SE': 'retry', 'E': 'retry', 'NE': 'retry'}          # which candidate each held view wears: 'main' (the five-row page) or 'retry' (its strip)
 # the two redrawn frames (CUTTER-NOTES.md): crop x0 y0 x1 y1, crown y, sole y, the two soles' centres x
@@ -158,9 +166,64 @@ def attack():
     return out, scale
 
 
+def body(o):
+    """a cell's height with the blade left out: the rows 7 px wide or more"""
+    ys = np.where((o[..., 3] > 0).sum(1) >= 7)[0]; return ys[-1] - ys[0] + 1
+
+
+def extras(at):
+    """section 59's 65 strips by their FRAME-MAP.json: each frame its crop (cut off below its ground line, so the paper's frame number goes), the strip's one scale
+    (48 / scale_reference_source_px), stood on its own lowest row; across the strip the map's anchors keep the drawn displacement, and the whole strip is slid so its
+    guard frame (match_live_guard) stands where attack frame 1 stands in the live cell (CUTTER-NOTES: "Align the standing guard against the existing attack cell").
+    Prone has no guard: by its anchors alone. Get Up frame 1 is Prone frame 5's cell, the map's cut_from."""
+    fm = json.load(open(os.path.join(X59, 'FRAME-MAP.json'), encoding='utf-8'))
+    out, scales, pages = {}, {}, {}
+    for row in ('prone',) + tuple(r for r in fm['actions'] if r != 'prone'):
+        for view, d in fm['actions'][row].items():
+            f = FACE[view]; k = TALL / float(d['scale_reference_source_px']); scales['%s %s' % (row, view)] = k
+            if d['file'] not in pages:
+                pages[d['file']] = page(os.path.join(X59, d['file']))
+            pg = pages[d['file']]
+            def strip(k):
+                got, guard = {}, None
+                for fr in d['frames']:
+                    i = fr['runtime_index']
+                    if 'cut_from' in fr:
+                        cf = fr['cut_from']; got[i] = out[(FACE[cf['facing']], cf['action'], cf['frame'] - 1)]; continue
+                    x0, y0, x1, y1 = fr['crop_xyxy']; axs, ays = fr['approx_anchor_xy']
+                    y1 = min(y1, pg.shape[0], int(ays) + 6)
+                    a = pg[y0:y1, x0:x1]
+                    m = VS.figure(a, True)
+                    lab, nl = ndimage.label(m, structure=np.ones((3, 3)))
+                    objs = ndimage.find_objects(lab); big = objs[int(np.argmax(ndimage.sum(m, lab, range(1, nl + 1))))]
+                    for j, sl in enumerate(objs):     # (a paper frame number the crop reached -- small, wholly below the drawing's body, the N Get Up's: wiped)
+                        if (sl[0].stop - sl[0].start) < 0.2 * a.shape[0] and sl[0].start >= big[0].stop:
+                            m[lab == j + 1] = False
+                    o = VS.to1x(a, m, k)
+                    al = o[..., 3] > 0; foot = np.where(al.any(1))[0][-1]
+                    got[i] = (o, (axs - x0) * k + 1, foot)
+                    if fr.get('match_live_guard') and guard is None:
+                        guard = i
+                return got, guard
+            got, guard = strip(k)
+            if guard is not None:                       # (a strip whose guard stands more than 7% off the live guard's body, the blade left out, is cut again at the
+                gs = [fr['runtime_index'] for fr in d['frames'] if fr.get('match_live_guard')]     # scale that matches: the map's reference was off for N Get Up and N Relentless)
+                r = np.mean([body(got[i][0]) for i in gs]) / float(body(at[(f, 'attack', 0)][0]))
+                if abs(r - 1) > 0.07:
+                    k /= r; scales['%s %s' % (row, view)] = k; got, guard = strip(k)
+            if guard is not None:
+                o, cx, foot = got[guard]; lo, lcx, lfoot = at[(f, 'attack', 0)]
+                dx = (feet_mid(o, foot) - cx) - (feet_mid(lo, lfoot) - lcx)
+                got = {i: (v if (row == 'getup' and i == 0) else (v[0], v[1] + dx, v[2])) for i, v in got.items()}
+            for i, v in got.items():
+                out[(f, row, i)] = v
+    return out, scales
+
+
 def build(walk=None):
     cells, s1 = standard(walk)
     at, s2 = attack(); cells.update(at); s1.update(s2)
+    ex, s3 = extras(at); cells.update(ex); s1.update(s3)
     for mf, src in MIRROR.items():
         for (f, row, i) in [c for c in list(cells) if c[0] == src]:
             o, cx, foot = cells[(f, row, i)]
@@ -180,8 +243,8 @@ def build(walk=None):
             sub = o[sy:sy + hh, sx:sx + ww]; dst = blk[f * FH + max(0, dy):f * FH + max(0, dy) + hh, i * fw + max(0, dx):i * fw + max(0, dx) + ww]
             put = sub[..., 3] > 0; dst[put] = sub[put]
         a = dict(y=y, fw=fw, fh=FH, ax=ax, ay=AY, frames=n, fps=fps)
-        if name == 'attack':
-            a['release'] = 3
+        if name in RELEASE:
+            a['release'] = RELEASE[name]
         anims[name] = a; blocks.append(blk); y += 8 * FH
     W = max(b.shape[1] for b in blocks); sheet = np.zeros((y, W, 4), np.uint8); yy = 0
     for b in blocks:
@@ -210,8 +273,8 @@ def cut():
                       "cast: cut as it came -- the glow turns his mail and skin yellow-gold on 3 and 4 (Griz, 11-13: \"casting might make him turn yellow or something, it'll be fun to see\")",
                       "hurt: the late frames turn toward the viewer in several facings (the art desk's own note); idle's breath is slight; the E cast turns toward the viewer on 3 to 6",
                       "attack: S and N frame 4 are the redrawn standalones (ART-MC-LYMEN-ATTACK-S-N-FRAME-04), set by their boots at 45 px crown to sole",
-                      "his own rows (layonhands, divinesmite, greenagain, whatfallsfeeds, relentless) and flinch, prone, getup, defend, useitem, victory, interact, attack2 are not drawn yet (art-wanted section 59)"],
-                source="drawn by the art desk (ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW and ART-MC-LYMEN-ATTACK-S-N-FRAME-04, 11-13: art-wanted sections 58 and 57; the attack ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS "
+                      "section 59 (ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, cut 11-15): layonhands, divinesmite, greenagain, whatfallsfeeds, relentless, flinch, prone, getup, defend, useitem, victory, interact, attack2 -- each strip at its FRAME-MAP scale, slid so its guard frame stands where attack frame 1 does; getup 1 is prone 5"],
+                source="drawn by the art desk (ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW and ART-MC-LYMEN-ATTACK-S-N-FRAME-04, 11-13: art-wanted sections 58 and 57; ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, 11-14: section 59; the attack ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS "
                        "over GUIDE-2026-11-13b-longsword-and-shield), cut by tools/lymen-sheet.py; SW W NW mirrored; worn by Lymen (js/save.js SV.LOOK.lymen)")
     with open(os.path.join(ROOT, 'deep16', 'art', LOOK + '.json'), 'w', encoding='utf-8', newline='\n') as f_:
         json.dump(meta, f_, indent=1)

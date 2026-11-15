@@ -2898,6 +2898,7 @@
         var sm = D.roll(smN(lv) + 'd8', { crit: crit }); rad += sm.total;
         parts.push('{y}smite ' + smN(lv) + 'd8 ' + RU.fmtRolls(sm.rolls) + ' = ' + sm.total + ' radiant' + (smUF ? ' (+1d8: ' + tgt.type + ')' : '') + '{/}');
         FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 16);
+        var dsR = D.spr.anim(att.sheet, 'divinesmite'); if (dsR) { att.anim = 'divinesmite'; att.animT = this.t; yield Math.max(16, D.spr.duration(att.sheet, 'divinesmite')); } // (a sheet's own Divine Smite row, its beat after the hit: the radiance on 3 and 4 -- Lymen's, art-wanted 59, 11-15)
       }
     }
     } // (atk.plain: the riders skipped)
@@ -3675,6 +3676,7 @@
       // Relentless (the 8-bit game's own, js/battle.js: Lymen, once a day): the blow that would drop him leaves him at 1 (review 09-28 #3)
       // (a half-orc class NPC's Relentless Endurance too: js/classes.js)
       u.feats.relentless = 0; u.hp = 1; FX.ring(u, 'gold', 30); D.sfx('buff');
+      if (D.spr.anim(u.sheet, 'relentless')) { u.anim = 'relentless'; u.animT = this.t; } // (a sheet's own Relentless row: to a knee, the sword planted, up -- Lymen's, art-wanted 59, 11-15)
       this.card(['{y}' + u.name + ' refuses to fall!{/}  {g}(Relentless: once a day, at 1 HP){/}']);
       conc(this); hooks(this); // (hurt, and still up: the hooks as any blow's)
       return;
@@ -4698,6 +4700,7 @@
     }
     if (!cure && full) { if (u.side === 'party') D.sfx('error'); this.card([Battle.layNothing(tgt) || '{o}' + tgt.name + ' is at full hit points: Lay on Hands would mend nothing, and the pool (' + pool + ') is short of the 5 a poison takes.{/}  {g}(the action kept){/}'], 200); return; }
     T.action = 0;
+    var loh = D.spr.anim(u.sheet, 'layonhands'); if (loh) { u.anim = 'layonhands'; u.animT = this.t; } // (a sheet's own Lay on Hands row: the left palm lit on 3 and 4 -- Lymen's, art-wanted 59, 11-15)
     if (cure) {
       u.feats.lay -= 5; delete tgt.conds.poisoned;
       this.card(['{y}' + u.name + '{/} lays on hands: the poison goes out of ' + tgt.name + '. {g}(pool ' + u.feats.lay + '){/}']);
@@ -4708,7 +4711,7 @@
       this.card(['{y}' + u.name + '{/} lays on hands: {n}+' + got + '{/} to ' + tgt.name + '. {g}(pool ' + u.feats.lay + '){/}']);
     }
     FX.sparkle(tgt, 'gold', 18);
-    yield 30;
+    yield loh ? Math.max(30, D.spr.duration(u.sheet, 'layonhands')) : 30;
   };
 
   // ------------------------------------------------------------------ the camera: snap to a unit; recentre only when it nears the edge

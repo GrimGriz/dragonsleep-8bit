@@ -634,11 +634,12 @@
   F.greenDown = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && !w.dead && !w.slain && !w.object && !w.familiar && w.hp <= 0 && G.dist(u, w) <= 30 && M.sees(B, u, w); }); };
   F.greenAgain = function* (B, u, t) {
     var n = u.lvl; u.turn.action = 0; u.feats.channel--;
+    var gaR = D.spr.anim(u.sheet, 'greenagain'); if (gaR) { u.anim = 'greenagain'; u.animT = B.t; } // (a sheet's own Green Again row: the ground light rising, the sag on 6 -- Lymen's, art-wanted 59, 11-15)
     FX.ring(t, 'moss', 34); FX.sparkle(t, 'moss', 16); D.sfx('buff');
     B.heal(t, n); delete t.conds.prone;
     u.hp = Math.max(1, u.hp - n); FX.float('-' + n, u, D.PAL.ramps.moss[2]);
     B.card(['{y}' + Nm(B, u) + '{/}: {n}GREEN AGAIN{/} -- ' + nm(B, t) + ' stands with ' + t.hp + ' HP, and ' + u.name + ' gives ' + n + '.  {g}(Channel Divinity){/}'], 260);
-    yield 30;
+    yield gaR ? Math.max(30, D.spr.duration(u.sheet, 'greenagain')) : 30;
   };
   F.deepRoots = function (B, w) {
     return !!(B && B.units && w && !w.dead && w.hp > 0 && B.units.some(function (p) { return F.green(p, 7) && p.side === w.side && G.standing(p) && RU.canAct(p) && G.dist(p, w) <= (p.lvl >= 18 ? 30 : 10); }));
@@ -664,6 +665,7 @@
   // the heal itself: the reaction and the use spent, each friend's own roll, and the card says the hp each one gained (B.heal's return: capped at its maximum), not the roll
   F.greenGive = function (B, p, u, feed) {
     p.reaction = 0; p.feats.channel--;
+    if (D.spr.anim(p.sheet, 'whatfallsfeeds')) { p.anim = 'whatfallsfeeds'; p.animT = B.t; } // (a sheet's own What Falls, Feeds row: the motes in the left hand -- Lymen's, art-wanted 59, 11-15)
     var got = [];
     feed.list.forEach(function (q) { var r = D.roll('1d6').total + feed.cm, n = B.heal(q.w, r); if (n > 0) got.push(nm(B, q.w) + ' +' + n); });
     FX.ring(u, 'moss', 30);

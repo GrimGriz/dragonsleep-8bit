@@ -9852,7 +9852,7 @@
 }
 },
 "lymen_p2": {
-"image": "art/lymen_p2.png?v=46d379c168",
+"image": "art/lymen_p2.png?v=b1336e715a",
 "fw": 44,
 "fh": 84,
 "ax": 22,
@@ -9913,6 +9913,124 @@
 "ay": 76,
 "frames": 6,
 "fps": 8
+},
+"layonhands": {
+"y": 4032,
+"fw": 94,
+"fh": 84,
+"ax": 47,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"divinesmite": {
+"y": 4704,
+"fw": 92,
+"fh": 84,
+"ax": 46,
+"ay": 76,
+"frames": 6,
+"fps": 10
+},
+"greenagain": {
+"y": 5376,
+"fw": 90,
+"fh": 84,
+"ax": 45,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"whatfallsfeeds": {
+"y": 6048,
+"fw": 90,
+"fh": 84,
+"ax": 45,
+"ay": 76,
+"frames": 4,
+"fps": 8
+},
+"relentless": {
+"y": 6720,
+"fw": 96,
+"fh": 84,
+"ax": 48,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 7392,
+"fw": 110,
+"fh": 84,
+"ax": 55,
+"ay": 76,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 8064,
+"fw": 74,
+"fh": 84,
+"ax": 37,
+"ay": 76,
+"frames": 5,
+"fps": 10
+},
+"getup": {
+"y": 8736,
+"fw": 90,
+"fh": 84,
+"ax": 45,
+"ay": 76,
+"frames": 6,
+"fps": 10
+},
+"defend": {
+"y": 9408,
+"fw": 106,
+"fh": 84,
+"ax": 53,
+"ay": 76,
+"frames": 4,
+"fps": 8
+},
+"useitem": {
+"y": 10080,
+"fw": 102,
+"fh": 84,
+"ax": 51,
+"ay": 76,
+"frames": 4,
+"fps": 8
+},
+"victory": {
+"y": 10752,
+"fw": 108,
+"fh": 84,
+"ax": 54,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"interact": {
+"y": 11424,
+"fw": 100,
+"fh": 84,
+"ax": 50,
+"ay": 76,
+"frames": 6,
+"fps": 10
+},
+"attack2": {
+"y": 12096,
+"fw": 92,
+"fh": 84,
+"ax": 46,
+"ay": 76,
+"frames": 6,
+"fps": 12,
+"release": 3
 }
 },
 "name": "Lymen",
@@ -9921,9 +10039,9 @@
 "cast: cut as it came -- the glow turns his mail and skin yellow-gold on 3 and 4 (Griz, 11-13: \"casting might make him turn yellow or something, it'll be fun to see\")",
 "hurt: the late frames turn toward the viewer in several facings (the art desk's own note); idle's breath is slight; the E cast turns toward the viewer on 3 to 6",
 "attack: S and N frame 4 are the redrawn standalones (ART-MC-LYMEN-ATTACK-S-N-FRAME-04), set by their boots at 45 px crown to sole",
-"his own rows (layonhands, divinesmite, greenagain, whatfallsfeeds, relentless) and flinch, prone, getup, defend, useitem, victory, interact, attack2 are not drawn yet (art-wanted section 59)"
+"section 59 (ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, cut 11-15): layonhands, divinesmite, greenagain, whatfallsfeeds, relentless, flinch, prone, getup, defend, useitem, victory, interact, attack2 -- each strip at its FRAME-MAP scale, slid so its guard frame stands where attack frame 1 does; getup 1 is prone 5"
 ],
-"source": "drawn by the art desk (ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW and ART-MC-LYMEN-ATTACK-S-N-FRAME-04, 11-13: art-wanted sections 58 and 57; the attack ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS over GUIDE-2026-11-13b-longsword-and-shield), cut by tools/lymen-sheet.py; SW W NW mirrored; worn by Lymen (js/save.js SV.LOOK.lymen)"
+"source": "drawn by the art desk (ART-MC-LYMEN-STANDARD-FIGHT-SOURCE-REVIEW and ART-MC-LYMEN-ATTACK-S-N-FRAME-04, 11-13: art-wanted sections 58 and 57; ART-MC-LYMEN-PALADIN-AND-COMBAT-EXTRAS-59, 11-14: section 59; the attack ART-MC-LYMEN-BASE-ATTACK-06-FIVE-FACINGS over GUIDE-2026-11-13b-longsword-and-shield), cut by tools/lymen-sheet.py; SW W NW mirrored; worn by Lymen (js/save.js SV.LOOK.lymen)"
 },
 "manticore_p1": {
 "image": "art/manticore_p1.png?v=d54cb3a66d",
