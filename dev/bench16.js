@@ -10,6 +10,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   function get(k, d) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : d; }
   D.sfx = function () {}; D.music = function () {}; D.clip = function (u, done) { if (done) done(); };
   D.spr.offline = true; // (10-03, the lazy sheets: the fights here are never drawn, so no sheet is fetched and no fight waits on one -- mode=lazy1003 turns it back on)
+  // (11-14, the clock seat: THE HUNGER's markers and THE SNOOT'S ROAD's bands go by the save's seed, and a fresh save's seed is the clock's -- so in a bench that walks THE WORLD they would stand somewhere new every run (vessel1112 went RED one run in three). Off here; mode=hunger1114 and mode=snootroad1114 turn their own on)
+  if (D.hunger) D.hunger.on = false; if (D.snootroad) D.snootroad.on = false;
   if (get('callN', '') !== '') D.CALL_N = get('callN') === 'read' ? 'read' : +get('callN'); // (the Harbinger's pack held at a size for the pre-bench, or 'read' off the party, 10-08: js/traits.js nCall)
   if (get('reads', '') !== '') D.READS = get('reads') === '1'; // (the levers read off the party while the pack is held at callN -- dev/harbinger-pack.py)
   if (get('dbl', '') !== '') D.DOUBLE_FRAC = +get('dbl'); // (his mirror double forced on at a share, 0 off -- js/traits.js mirrorDouble)
@@ -9875,6 +9877,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
     try {
       if (!SRq || !SRq.sim || !HGq) throw new Error('no snoot road: js/snootroad.js SR.sim');
+      SRq.on = true;
       D.seed = +get('seed', 1114); WQ.index(); WQ.use('world'); var SQq = WQ.load('?fresh&far'), MQ = WQ.M(), tQ = function (d, h) { return (d - 1) * 24 + h; }, KQ = WQ.K;
       var saltQ = +get('salt', 7), NQ = +get('saves', 200), adjQ = function (a, b) { var dq = b[0] - a[0], dr = b[1] - a[1]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (d) { return d[0] === dq && d[1] === dr; }); };
       var siteQ = function (id) { return MQ.sites.filter(function (s) { return s.id === id; })[0]; }, tB = tQ(SRq.BOARD, 0), refK = {}; ['inn', 'pit', 'silverton'].forEach(function (id) { var s = siteQ(id); refK[KQ(s.hex[0], s.hex[1])] = id; });
@@ -9956,6 +9959,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = function (k) { return memH[k] ? JSON.parse(memH[k]) : null; }; D.store.set = function (k, v) { memH[k] = JSON.stringify(v); return true; };
     try {
       if (!HG || !HG.sim || !WH.encPct) throw new Error('no hunger: js/hunger.js HG.sim, js/world.js W.encPct');
+      HG.on = true;
       D.seed = +get('seed', 1114); WH.index(); WH.use('world'); var SH = WH.load('?fresh&far'), VH = WH.VESSEL, MH = WH.M(), tH = function (d, h) { return (d - 1) * 24 + h; }, KH = WH.K;
       var salt0 = +get('salt', 7), NS = +get('saves', 200), adj = function (a, b) { var dq = b[0] - a[0], dr = b[1] - a[1]; return [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].some(function (d) { return d[0] === dq && d[1] === dr; }); };
       SH.seed = salt0; if (D.snootroad) D.snootroad.on = false; // (the made things' own survivors: the snooting bands' are mode=snootroad1114's)
