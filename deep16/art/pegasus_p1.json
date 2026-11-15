@@ -1,0 +1,84 @@
+{
+ "image": "art/pegasus_p1.png",
+ "fw": 144,
+ "fh": 152,
+ "ax": 72,
+ "ay": 114,
+ "top": 66,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1216,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2432,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 8,
+   "fps": 10,
+   "release": 4
+  },
+  "hurt": {
+   "y": 3648,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 8,
+   "fps": 8
+  },
+  "fly": {
+   "y": 4864,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 8,
+   "fps": 10
+  },
+  "flinch": {
+   "y": 6080,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 6,
+   "fps": 12
+  },
+  "prone": {
+   "y": 7296,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 1,
+   "fps": 1
+  },
+  "getup": {
+   "y": 8512,
+   "fw": 144,
+   "fh": 152,
+   "ax": 72,
+   "ay": 114,
+   "frames": 1,
+   "fps": 4
+  }
+ },
+ "source": "drawn by the art desk (ART-WANTED-69 PEGASUS, 11-15: five views, native on a 144 x 152 cell), cut by tools/pegasus-sheet.py (11-15)"
+}

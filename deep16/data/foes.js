@@ -992,6 +992,17 @@
     caster: { lvl: 3, ab: 'cha', dc: 12, atk: 4, slots: [], known: ['viciousmockery'] },
     src: 'SRD 5.1 Green Hag (CR 3, Medium fey; AC 17 natural armor, 82 HP, speed 30; darkvision 60; Arcana +3, Deception +4, Perception +4, Stealth +3): Claws +6 2d8+4 slashing; Innate Spellcasting (CHA, DC 12): Vicious Mockery at will (Dancing Lights and Minor Illusion not given); Illusory Appearance as an old countrywoman till her first turn or a wound (the lamia\'s robed woman\'s way; the SRD\'s bonus action to end it is her first turn); Invisible Passage at will, till she attacks or casts (the duergar\'s Invisibility, js/ai.js -- her concentration not tracked); Amphibious and Mimicry not given (no water and no voices on the grid)'
   },
+  // the pegasus (11-15, the NPC cutter seat on Griz's "since people is done have it work the creature list backward"; asked 11-15, art-wanted
+  // 64, the celestial shelf's one): the SRD 5.1 Pegasus; its sheet tools/pegasus-sheet.py (the art desk's 69). Its Hooves play `attack`, aloft
+  // its `fly` (the grid's wings, as the griffon's). IN NO FIGHT, ON NO TABLE: where it is met is his word.
+  pegasus: {
+    name: 'Pegasus', type: 'celestial', sheet: 'pegasus_p1', cr: '2', ac: 12, hp: 59, speed: 60, fly: 90, size: 2, reach: 5,
+    abil: { str: 18, dex: 15, con: 16, int: 10, wis: 15, cha: 13 }, init: 2, perception: 16,
+    saves: { str: 4, dex: 4, con: 3, int: 0, wis: 4, cha: 3 },
+    attacks: { hooves: { name: 'Hooves', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 5 } },
+    multi: 1,
+    src: 'SRD 5.1 Pegasus (CR 2, Large celestial; AC 12, 59 HP, speed 60, fly 90; saves Dex +4, Wis +4, Cha +3; Perception +6): Hooves +6 2d6+4 bludgeoning. Its languages (understands Celestial, Common, Elvish and Sylvan, cannot speak) not given'
+  },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
   // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.

@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE NPC CUTTER SEAT (cutter-npc-1115), 11-15 (Opus; tools/pegasus-sheet.py; data/foes.js pegasus): the pegasus, art-wanted 64's celestial (the art desk's 69)
+    'eyes-pegasus-1115': { pri: 2, group: G2, title: 'THE PEGASUS: the celestial shelf\'s one, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the NPC cutter seat, cutter-npc-1115; tools/pegasus-sheet.py; data/foes.js pegasus)',
+      url: 'deep16/?show=pegasus&fresh=1115pg',
+      look: 'A SHOW (the watchers at level 3). Your "let\'s get one in each column and not waste art dept usage due to lack of input" -- the celestial. The art desk\'s pegasus: a white winged horse, Large, no tack and no rider. It walks in, takes to the air on beating wings (the grid lifts it, as the griffon), rears and strikes down with both forehooves, shies when struck, and falls onto its side with a wing spread; knocked down it lies breathing and gets up. It is on no table: where it is met is your word. The rows one at a time: ?gallery&shelf=creatures&rows=pegasus.' },
     // THE CUTTER-FRESH-1115 SEAT, 11-15, its sixth piece (Opus; tools/icemephit-sheet.py; data/foes.js icemephit): the ice mephit, a new creature
     'eyes-icemephit-1115': { pri: 2, group: G2, title: 'THE ICE MEPHIT: a small winged imp of ice, cut as the art desk drew it (11-15)', pt: 'the bestiary lane, 2026-11-15 (the cutter-fresh-1115 seat; tools/icemephit-sheet.py; data/foes.js icemephit)',
       url: 'deep16/?show=icemephit&fresh=1115im',
