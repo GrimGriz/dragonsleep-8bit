@@ -18454,6 +18454,60 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // THE UNNAMED HEAD TO FOOT, 11-15 (mode=folk1115; tools/folk-costume-sheet.py, js/counter.js C.folkFig and C.dress, js/town.js T.watch -- the NPC cutter seat, art-wanted
+  // 65's light crew, Griz from the Glowseep's floor: "are we missing art for the worldmap figures for these guys?"): the light crew's man and woman cut whole in all eight
+  // facings; the Glowseep's three in them by day and by night, facing as the floor stands them, turning to the party; every other unnamed in the townsfolk's own man or woman
+  // till their costume comes (no borrowed fighter): Silverton's street, the Hex's gamblers keeping their facing, the Warrens' shaft crew
+  if (get('mode', '') === 'folk1115') {
+    var repK = { checks: [], errors: [] }, memK = {}, stGK = D.store.get, stSK = D.store.set, CK = D.counter, TK = D.town;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topK() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function floorK(q) { var B = D.roam.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topK(); }
+    function folkK(B) { return B.units.filter(function (u) { return typeof u.npc === 'string' && CK.GENERIC[u.npc]; }); }
+    var FIGHTK = ['brawler_p1', 'crewman_p1', 'guard_p1', 'bandit_p1'];
+    D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1115);
+      ['folkman_lightcrew_p1', 'folkwoman_lightcrew_p1'].forEach(function (n) {
+        var s = D.SHEETS[n], a = s && s.anims;
+        okK(n + ' cut (' + (s ? s.fw + 'x' + s.fh + ' at ' + s.ax + ',' + s.ay + ', ' + Object.keys(a).map(function (k) { return k + ' ' + a[k].frames; }).join(', ') : 'NONE') + '): idle 4 and walk 8 on folkman_p1\'s cell, all eight facings drawn (no `drawn`)',
+          !!s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64);
+      });
+      okK('C.folkFig: the light crew in their own (' + ['seepcrew1', 'seepcrew2', 'seepcrew3'].map(function (id) { return id + ' ' + (CK.folkFig ? CK.folkFig(id) : '?'); }).join(', ') + ')',
+        !!CK.folkFig && CK.folkFig('seepcrew1') === 'folkwoman_lightcrew_p1' && CK.folkFig('seepcrew2') === 'folkman_lightcrew_p1' && CK.folkFig('seepcrew3') === 'folkman_lightcrew_p1');
+      var idsK = Object.keys(CK.GENERIC), offK = idsK.filter(function (id) { var g = CK.GENERIC[id], own = 'folk' + g[0] + (g[1] === 'idle' ? '' : '_' + g[1]) + '_p1', f = CK.folkFig ? CK.folkFig(id) : null; return f !== (D.SHEETS[own] ? own : 'folk' + g[0] + '_p1') || !D.SHEETS[f]; });
+      okK('C.folkFig: every one of the ' + idsK.length + ' unnamed on a figure the game has -- their costume\'s once cut, else their person\'s own clothes (towns1 ' + (CK.folkFig && CK.folkFig('towns1')) + ', towns2 ' + (CK.folkFig && CK.folkFig('towns2')) + ', guard1 ' + (CK.folkFig && CK.folkFig('guard1')) + ')' + (offK.length ? ' -- off: ' + offK.join(', ') : ''),
+        !!CK.folkFig && !offK.length && CK.folkFig('towns1') === 'folkman_p1' && CK.folkFig('towns2') === 'folkwoman_p1');
+      okK('no unnamed in C.FIG (the keepers\' show stays the keepers\')', idsK.every(function (id) { return !CK.FIG[id]; }));
+      [[12, 'day'], [22, 'night']].forEach(function (hw) {
+        var B = floorK('?roam=glowseep&hour=' + hw[0]), cr = folkK(B), byId = {}; cr.forEach(function (u) { byId[u.npc] = u; });
+        var want = { seepcrew1: 'folkwoman_lightcrew_p1', seepcrew2: 'folkman_lightcrew_p1', seepcrew3: 'folkman_lightcrew_p1' }, s0 = D.spr.facingFor(0, 1);
+        okK('the Glowseep by ' + hw[1] + ' (hour ' + hw[0] + '): the three in the light crew\'s figures, facing south as the floor stands them, free to turn (' + cr.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + (u.holdFacing ? ' held' : ''); }).join(', ') + ')',
+          Object.keys(want).every(function (id) { var u = byId[id]; return u && u.sheet === want[id] && u.facing === s0 && !u.holdFacing; }) && cr.length === 3);
+        if (hw[0] === 12) {
+          var u2 = byId.seepcrew2, t = B.roam.token, sq = null;
+          [[2, 0], [-2, 0], [0, 2], [0, -2], [2, 2], [-2, -2]].some(function (d) { var x = u2.x + d[0], y = u2.y + d[1], s = D.grid.map.at(x, y); if (s && s.open && !B.units.some(function (o) { return o.x === x && o.y === y; }) && TK.sees(u2, { x: x, y: y })) { sq = [x, y]; return true; } return false; });
+          if (sq) { t.x = sq[0]; t.y = sq[1]; TK.watch(B); }
+          var turned = u2.facing, wantT = sq ? D.spr.facingFor(sq[0] - u2.x, sq[1] - u2.y) : -1;
+          t.x = u2.x + 30; t.y = u2.y; TK.watch(B);
+          okK('the pole-hand turns to the party beside him (' + (sq ? sq.join(',') : 'no square') + ': facing ' + turned + ', want ' + wantT + ') and back south when it goes (' + u2.facing + ')', !!sq && turned === wantT && turned !== s0 && u2.facing === s0);
+        }
+      });
+      D.house.begin(D.house.fresh(), 0); var BS = topK(), fS = folkK(BS), byS = {}; fS.forEach(function (u) { byS[u.npc] = u; });
+      okK('NEW GAME, Silverton\'s street: the unnamed in the townsfolk\'s own figures, no fighter (' + fS.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
+        fS.length >= 5 && fS.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && byS.towns1 && byS.towns1.sheet === 'folkman_p1' && byS.towns2 && byS.towns2.sheet === 'folkwoman_p1' && byS.guard1 && byS.guard1.sheet === 'folkman_p1');
+      var BH = floorK('?roam=hex&floor=2'), fH = folkK(BH), PH = D.hex.PEOPLE[2], faceH = {}; PH.forEach(function (p) { faceH[p.id] = D.spr.facingFor(p.face[0], p.face[1]); });
+      okK('the Hex\'s gambling floor: the gamblers in the townsfolk\'s figures, each still facing as the floor stands them (' + fH.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH[u.npc]; }).join(', ') + ')',
+        fH.length === 2 && fH.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH[u.npc]; }));
+      var BW = floorK('?roam=warrens_b'), fW = folkK(BW);
+      okK('the Warrens: the shaft crew in the townsfolk\'s figures till theirs come (' + fW.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
+        fW.length >= 1 && fW.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }));
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // THE UNNAMED IN COSTUME, 10-28 evening (mode=generic1028; tools/portrait-sheet.py pt_genman and pt_genwoman, js/counter.js C.GENERIC -- the fourth cutter seat, the art
   // desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"): the generic man and woman cut whole, their own clothes' idle and a
   // still a costume; every unnamed id on its person's sheet in its costume, taken to the counter's screen; the townsman spoken to on the street, his idle; a drinker's

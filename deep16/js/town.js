@@ -498,7 +498,7 @@
     var R0 = B.roam, t = R0 && R0.token, C = D.counter, def = D.roam && D.roam.def; if (!t || !C || !C.FIG || !D.grid.map || !def || !def.town) return;
     var reach = def.room && !def.hexIn ? 99 : T.WATCH; // (a shop's room whole; the Hex's floors as the street)
     B.units.forEach(function (u) {
-      if (typeof u.npc !== 'string' || u.holdFacing || !u.sheet || C.FIG[u.npc] !== u.sheet) return;
+      if (typeof u.npc !== 'string' || u.holdFacing || !u.sheet || (C.FIG[u.npc] || (C.folkFig && C.folkFig(u.npc))) !== u.sheet) return; // (the unnamed in their own figures too: C.folkFig, 11-15)
       var dx = t.x - u.x, dy = t.y - u.y, sees = (dx || dy) && Math.max(Math.abs(dx), Math.abs(dy)) <= reach && T.sees(u, t);
       if (sees) { if (!u.watchHome) u.watchHome = [u.facing]; u.facing = D.spr.facingFor(dx, dy); }
       else if (u.watchHome) { u.facing = u.watchHome[0]; u.watchHome = null; }

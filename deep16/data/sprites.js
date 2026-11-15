@@ -4882,6 +4882,35 @@
 ],
 "source": "drawn by the art desk (ART-141-DWARF-TOWN, 11-12: art-wanted section 54, the generic dwarf's town figure in five views), cut by tools/folkdwarf-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"folkman_lightcrew_p1": {
+"image": "art/folkman_lightcrew_p1.png?v=f1a20814eb",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_p1": {
 "image": "art/folkman_p1.png?v=d056a0dd43",
 "fw": 72,
@@ -4910,6 +4939,35 @@
 }
 },
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
+"folkwoman_lightcrew_p1": {
+"image": "art/folkwoman_lightcrew_p1.png?v=b84510e91a",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_p1": {
 "image": "art/folkwoman_p1.png?v=67561787af",

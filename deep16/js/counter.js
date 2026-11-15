@@ -156,10 +156,15 @@
   // the warehouse, the smithy, the stables, the den, the flop-cellars -- so each is inside it, and a click on their door or E at it is their word on their portrait as it was
   // (T.fire: C.takes). A keeper whose trade is the street itself goes back in this list, `{ id, door }`
   C.AT_DOOR = [];
+  // THE UNNAMED HEAD TO FOOT (11-15, the NPC cutter seat, art-wanted 65; Griz from the Glowseep's floor: "are we missing art for the worldmap figures for these guys?"): each
+  // C.GENERIC id stands on its floor in its costume's own figure, folkman_<costume>_p1 or folkwoman_<costume>_p1 (tools/folk-costume-sheet.py: the light crew's first), and
+  // till its costume is cut in the townsfolk's own man or woman (folkman_p1, folkwoman_p1, the street's townsman and townswoman in their own clothes) -- not the borrowed
+  // fighter with a weapon in hand (js/town.js T.KIND). Drawn all round: they keep the way their floor stands them, and turn to the party as a keeper does (js/town.js T.watch)
+  C.folkFig = function (id) { var g = C.GENERIC[id]; if (!g) return null; var own = 'folk' + g[0] + (g[1] === 'idle' ? '' : '_' + g[1]) + '_p1'; return D.SHEETS && D.SHEETS[own] ? own : 'folk' + g[0] + '_p1'; };
   C.dress = function (u, id) {
-    var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
+    var f = C.FIG[id], folk = !f && C.folkFig(id); f = f || folk; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
     var an = D.SHEETS[f].anims && D.SHEETS[f].anims.idle;
-    u.sheet = f; u.holdFacing = !!(an && an.drawn); u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike; held there while south is all that is drawn -- a keeper the art desk drew all round, ART-121, turns to whoever speaks: js/town.js T.fire)
+    u.sheet = f; u.holdFacing = !!(an && an.drawn); if (!folk) u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike; held there while south is all that is drawn -- a keeper the art desk drew all round, ART-121, turns to whoever speaks: js/town.js T.fire)
     if (D.spr.prefetch) D.spr.prefetch([f]);
     return true;
   };
