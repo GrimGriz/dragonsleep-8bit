@@ -722,6 +722,19 @@
     exhale: 'frost', // (its breath on the air, the engine's: js/looks.js LK.exhale, from where the art desk's idle puffs left its nose -- the drawn puffs and its Cold Breath row's drawn cone off, on Griz's "1-3 leans", 11-15; the cone itself M.breathe's bloom on the squares)
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
+  // THE ICE MEPHIT (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; the art desk's ICE-MEPHIT-DEEP16-SOURCES, a new creature with no art-wanted section):
+  // the SRD 5.1 Ice Mephit on the grid's rules, cut as drawn into icemephit_p1 (tools/icemephit-sheet.py). False Appearance its `still` row (the shard) till it acts; Frost
+  // Breath the cone rule (`breath`, M.breathe). NOT ON THE GRID: Death Burst (its `hurt` row shatters; the 5-ft burst's damage is not dealt) and its innate Fog Cloud
+  // 1/day. ON NO TABLE: where it is met is his word. Benched: mode=icemephit1115; ?show=icemephit
+  icemephit: {
+    name: 'Ice Mephit', type: 'elemental', sheet: 'icemephit_p1', cr: '1/2', ac: 11, hp: 21, speed: 30, fly: 30, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 7, dex: 13, con: 10, int: 9, wis: 11, cha: 12 }, init: 1, perception: 12, stealth: 3,
+    saves: { str: -2, dex: 1, con: 0, int: -1, wis: 0, cha: 1 },
+    attacks: { claws: { name: 'Claws', atk: 3, dice: '1d4', mod: 1, type: 'slashing', extra: '1d4', extraType: 'cold', reach: 5 } },
+    breath: { name: 'Frost Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 10, dice: '2d4', type: 'cold', recharge: 6 }, // (SRD 5.1 Frost Breath, Recharge 6: a 15-ft cone, DC 10 DEX, 2d4 cold, half on a save)
+    multi: 1, vulnerable: ['bludgeoning', 'fire'], immune: ['cold', 'poison'], condImmune: ['poisoned'],
+    src: 'SRD 5.1 Ice Mephit (CR 1/2, 100 XP; Small elemental, neutral evil): AC 11, 21 HP (6d6), speed 30, fly 30; STR 7 DEX 13 CON 10 INT 9 WIS 11 CHA 12; Perception +2, Stealth +3, darkvision 60; vulnerable to bludgeoning and fire, immune to cold and poison and the poisoned condition; Claws +3, 1d4 + 1 slashing plus 1d4 cold; Frost Breath (Recharge 6), a 15-ft cone, DC 10 DEX, 2d4 cold, half on a save; False Appearance (its still row till it acts). Not on the grid yet: Death Burst (dying, each creature within 5 ft DC 10 DEX or 1d8 slashing -- its row plays, no damage) and Innate Spellcasting, fog cloud 1/day'
+  },
   // THE VIOLET FUNGUS (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; asked in art-wanted section 4, a creature for each biome -- the 10-08 scout's lean the
   // Guano Galleries, deep16-srd-not-yet.md section 6): the SRD 5.1 Violet Fungus as written, on the art desk's ART-15 (10-10, uncut till now) cut into violetfungus_p1
   // (tools/violetfungus-sheet.py, one view). False Appearance its `still` row till it acts (js/ui.js); its Multiattack 1d4 Rotting Touches (`multiDice`, js/ai.js).

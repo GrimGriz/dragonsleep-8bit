@@ -11063,6 +11063,40 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE ICE MEPHIT, 11-15 (mode=icemephit1115; the cutter-fresh-1115 seat): the SRD 5.1 Ice Mephit cut as drawn, icemephit_p1 -- 1. its block; 2. its Claws on the
+  // `claws` row, cold on the hit, cold does nothing, fire and bludgeoning doubled; 3. its Frost Breath on its `breath` row catching the fighter; 4. its `still` row before
+  // it acts; 5. its sheet; 6. on no table
+  if (get('mode', '') === 'icemephit1115') {
+    var repIM = { checks: [], errors: [], notes: [] }, d0IM = D.d;
+    function okIM(what, v) { repIM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FIMX = D.FOES.icemephit;
+      okIM('1 the block: ' + (FIMX ? FIMX.name + ', ' + FIMX.type + ', CR ' + FIMX.cr + ', AC ' + FIMX.ac + ', ' + FIMX.hp + ' HP, speed ' + FIMX.speed + ', fly ' + FIMX.fly + '; Claws +' + FIMX.attacks.claws.atk + ' ' + FIMX.attacks.claws.dice + '+' + FIMX.attacks.claws.mod + ' and ' + FIMX.attacks.claws.extra + ' ' + FIMX.attacks.claws.extraType + '; ' + FIMX.breath.name + ' DC ' + FIMX.breath.dc + ' ' + FIMX.breath.dice + ' recharge ' + FIMX.breath.recharge : 'none'),
+        !!FIMX && FIMX.cr === '1/2' && FIMX.ac === 11 && FIMX.hp === 21 && FIMX.fly === 30 && FIMX.attacks.claws.atk === 3 && FIMX.attacks.claws.extraType === 'cold' && FIMX.breath.dc === 10 && FIMX.breath.dice === '2d4' && FIMX.breath.recharge === 6);
+      var BIMX = D.npcFight('?npc=icemephit&vs=fighter:3&lvl=3', {}); D.battle = BIMX; BIMX.enter(); var kIMX = 0; while (!BIMX.order.length && kIMX++ < 400) BIMX.co.next();
+      var IMX = BIMX.units.filter(function (u) { return u.kind === 'icemephit'; })[0], FIIX = BIMX.units.filter(function (u) { return u.side === 'party'; })[0];
+      BIMX.units.forEach(function (w) { if (w !== IMX && w !== FIIX) w.left = true; });
+      var stillIMX = !IMX.woken && !IMX.acted && D.spr.anim(IMX.sheet, 'still') ? 'still' : 'no still';
+      IMX.fz = null; FIIX.x = IMX.x + 1; FIIX.y = IMX.y; FIIX.hp = FIIX.maxhp = 300; D.grid.setup(D.grid.map, BIMX.units);
+      var rowsIMX = function (g) { var seen = [], r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; if (IMX.anim && seen.indexOf(IMX.anim) < 0) seen.push(IMX.anim); } while (!r.done && n++ < 20000); return seen; };
+      var tyIMX = [], hu0IMX = BIMX.hurt; BIMX.hurt = function (u, n, type) { if (u === FIIX) tyIMX.push(type); return hu0IMX.apply(this, arguments); };
+      D.d = function (n) { return n === 20 ? 19 : d0IM.apply(this, arguments); };
+      BIMX.active = IMX; D.rules.startTurn(IMX); var rowCIX = rowsIMX(BIMX.attack(IMX, FIIX, IMX.attacks.claws)); D.d = d0IM; BIMX.hurt = hu0IMX;
+      var hIMX = IMX.hp; BIMX.hurt(IMX, 6, 'cold'); var coldIMX = hIMX - IMX.hp; IMX.hp = IMX.maxhp; BIMX.hurt(IMX, 3, 'fire'); var fireIMX = IMX.maxhp - IMX.hp; IMX.hp = IMX.maxhp;
+      okIM('2 the Claws play ' + rowCIX.join('/') + ', its hurts ' + tyIMX.join('+') + '; 6 cold takes ' + coldIMX + ', 3 fire takes ' + fireIMX, rowCIX.indexOf('claws') >= 0 && tyIMX.indexOf('cold') >= 0 && coldIMX === 0 && fireIMX === 6);
+      var hp0IMX = FIIX.hp, MGIX = D.magic, rowBIX = rowsIMX(MGIX.breathe(BIMX, IMX, { x: FIIX.x, y: FIIX.y, z: MGIX.aimAt(FIIX, { shape: 'cone', len: 15 }) }));
+      okIM('3 its Frost Breath plays ' + rowBIX.join('/') + '; the fighter in the cone ' + hp0IMX + ' to ' + FIIX.hp, rowBIX.indexOf('breath') >= 0 && FIIX.hp <= hp0IMX);
+      okIM('4 False Appearance: before it acts it shows ' + stillIMX, stillIMX === 'still');
+      var SIMX = D.SHEETS.icemephit_p1 && D.SHEETS.icemephit_p1.anims, wIMX = ['idle', 'still', 'walk', 'fly', 'claws', 'breath', 'flinch', 'hurt', 'prone'];
+      okIM('5 its sheet: ' + (SIMX ? wIMX.map(function (r) { return r + ' ' + (SIMX[r] ? SIMX[r].frames : 0); }).join(', ') : 'none') + ' (want 4 1 8 6 6 6 4 6 2)', !!SIMX && wIMX.map(function (r) { return SIMX[r] ? SIMX[r].frames : 0; }).join() === '4,1,8,6,6,6,4,6,2');
+      var tIMX = window.DS.DATA.encounters || {}, onIMX = Object.keys(tIMX).filter(function (z) { return (tIMX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'icemephit'; }); }); });
+      okIM('6 on no table (his word where): ' + (onIMX.join(', ') || 'none'), !onIMX.length);
+    } catch (eIM) { repIM.errors.push(String(eIM && eIM.stack || eIM).slice(0, 900)); }
+    D.d = d0IM;
+    var preIM = document.createElement('pre'); preIM.id = 'out'; preIM.textContent = 'BENCH16 ' + JSON.stringify(repIM);
+    document.body.appendChild(preIM);
+    return;
+  }
   // THE VIOLET FUNGUS, 11-15 (mode=violetfungus1115; the cutter-fresh-1115 seat): the SRD 5.1 Violet Fungus on the art desk's ART-15, violetfungus_p1 -- 1. its block;
   // 2. its turn: 1d4 Rotting Touches (multiDice) on its `touch` row, necrotic, from 10 ft; 3. False Appearance: its `still` row till it acts; 4. its sheet; 5. on no table
   if (get('mode', '') === 'violetfungus1115') {
