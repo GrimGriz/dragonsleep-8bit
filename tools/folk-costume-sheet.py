@@ -55,6 +55,8 @@ PIECES = {
                   navy=(16, 18, 40), stand=False),
     'crewboss': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD', name='ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                      navy=(17, 24, 45), stand=False),
+    'clerk': dict(folder='2026-11-15-ART-WANTED-79-CLERK', name='ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                  navy=(17, 24, 45), stand=False),
     # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
     # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
     'crewbossfight': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-MALE-FIGHT', name='ART-WANTED-78 CREW-BOSS-MALE-FIGHT, 11-15: five views, Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, native 4x on its 96 x 96 cell',

@@ -18694,7 +18694,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk'];
       // the crew boss man fights in his own figure (the art desk's 78; foes.js crewboss off Hask's hask_p1): its rows, the Mace landing on its frame 4, the night crew's lead
       var FB = D.FOES.crewboss, SB = FB && D.SHEETS[FB.sheet], aB = SB && SB.anims;
       okK('the crew boss fights in his own figure (' + (FB && FB.sheet) + ': ' + (aB ? Object.keys(aB).map(function (k) { return k + ' ' + aB[k].frames + (aB[k].release != null ? ' release ' + aB[k].release : ''); }).join(', ') : 'NONE') + '), leading the night crew down the daytime way (' + D.roam.HOLD_CREW.join(', ') + ')',
