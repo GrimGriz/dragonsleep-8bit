@@ -70,7 +70,74 @@ def run(params, timeout=600):
         errs = re.findall(r'LOADERR ([^<]*)', dom)
         return {'error': 'no result', 'load': errs[:5] or dom[-300:]}
     import html as H
-    return json.loads(H.unescape(m.group(1)))
+    r = json.loads(H.unescape(m.group(1)))
+    if isinstance(r, dict) and r.get('replay'):
+        try: r['replayFile'] = write_replay(r.pop('replay'), r.get('log'))
+        except Exception as e: r['replayFile'] = 'NOT WRITTEN: %s' % e
+    elif isinstance(r, dict) and 'replay' in r: r.pop('replay')
+    return r
+
+
+# THE MARKERS' REPLAY (11-15, the markers-replay seat, on Griz's "can I get a replay that shows those markers based of the quest walk runs?"): a report that carries `replay`
+# (dev/bench16.js mode=questwalk1114, its RQ) has it written to walk-replays/ in the SHARED checkout -- git's common dir's folder, whichever worktree the bench ran in, so the
+# page on 8923 finds it: deep16/?world&replay=<name> (js/replay.js) -- as <name>.json, the run's log beside it as <name>.log, and walk-replays/index.json listing them all.
+# Gitignored, as play-records/ is: a run's file is the bench's, not the game's. <name>: questwalk-<order>-seed<N>-<MMDD> (UTC), the same name again the same day overwritten
+REPLAYS = 'walk-replays'
+def replay_dir():
+    if os.environ.get('WALK_REPLAYS'): # (a folder of its own: a seat's trial runs, kept out of his list)
+        os.makedirs(os.environ['WALK_REPLAYS'], exist_ok=True)
+        return os.environ['WALK_REPLAYS']
+    base = ROOT
+    try:
+        cd = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True, timeout=30).stdout.strip()
+        if cd:
+            cd = cd if os.path.isabs(cd) else os.path.join(ROOT, cd)
+            base = os.path.dirname(os.path.normpath(cd))
+    except Exception:
+        pass
+    d = os.path.join(base, REPLAYS)
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def write_replay(rep, log=None):
+    import datetime
+    d = replay_dir()
+    when = datetime.datetime.now(datetime.timezone.utc)
+    mode = re.sub(r'\d+$', '', str(rep.get('mode', 'walk'))) or 'walk'
+    name = '%s-%s-seed%s-%s' % (mode, re.sub(r'[^a-z0-9]+', '', str(rep.get('order', '')).lower()) or 'walk', rep.get('seed', '0'), when.strftime('%m%d'))
+    rep['name'] = name
+    put(os.path.join(d, name + '.json'), json.dumps(rep, separators=(',', ':')))
+    if log:
+        put(os.path.join(d, name + '.log'), '\n'.join(log) + '\n')
+    index_replays(d)
+    return os.path.join(d, name + '.json')
+
+
+def put(path, text): # (whole or not at all: seeds run side by side, and one's index must never read another's file half written)
+    tmp = '%s.%d.tmp' % (path, os.getpid())
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
+def index_replays(d=None):
+    """walk-replays/index.json: every replay's name and what it is, newest first (the door's list: deep16/?world&replay)"""
+    d = d or replay_dir()
+    out = []
+    for fn in os.listdir(d):
+        if not fn.endswith('.json') or fn == 'index.json':
+            continue
+        try:
+            rep = json.load(open(os.path.join(d, fn), encoding='utf-8'))
+        except Exception:
+            continue
+        fr = rep.get('frames') or [{}]
+        out.append({'name': fn[:-5], 'mode': rep.get('mode'), 'seed': rep.get('seed'), 'order': rep.get('order'), 'made': rep.get('made'),
+                    'days': int(max([f.get('t', 0) for f in fr] + [0]) // 24) + 1, 'meets': len(rep.get('meets') or []), 'lost': len(rep.get('rewinds') or [])})
+    out.sort(key=lambda x: (x.get('made') or ''), reverse=True)
+    put(os.path.join(d, 'index.json'), json.dumps(out, indent=0))
+    return out
 
 
 def line(r):

@@ -60,6 +60,7 @@
   else if (/[?&]fallenshow\b/.test(q)) D.push(D.ui.fallenShow(q)); // THE LIVING OVER THE FALLEN, 11-11: a hero on a body, a body under a foe, a hero on a giant's back square (js/ui.js UI.fallenShow)
   else if (/[?&]skyshow\b/.test(q) && D.skyshow) D.push(D.skyshow.make(q)); // the Skylights, shown: today's beats of the Edifice fight, one after another (js/skyshow.js, 10-05 night)
   else if (/[?&]gameshow\b/.test(q) && D.gameshow) D.push(D.gameshow.make(q)); // the Monster Party Game Show: the lighthouse, the circles, Third Lamp (js/gameshow.js, 10-07)
+  else if (/[?&]world\b/.test(q) && /[?&]replay\b/.test(q) && D.replay) D.push(D.replay.make(q)); // THE MARKERS' REPLAY: a quest walk's run over THE WORLD bare, the hidden markers dawn by dawn -- a seats' view and his, never a player's (js/replay.js, 11-15)
   else if (/[?&]world\b/.test(q) && D.world) { if (D.house && D.house.worldDoor && !/[?&]bare\b/.test(q)) D.house.worldDoor(q); else D.push(D.world.make(q)); } // THE WORLD: the second game's world map, his hex map's 5-mile hexes walked as one token (js/world.js, 10-20); since 10-22 a NEW GAME's four on it (js/house.js H.worldDoor), &bare the door with no party
   else if (/[?&]keepers\b/.test(q) && D.counter) D.push(D.counter.keepersShow(q)); // Silverton's keepers standing, shown: their own figures facing south (js/counter.js, 10-21)
   else if (/[?&]portraits\b/.test(q) && D.counter) D.push(D.counter.portraitShow(q)); // the keepers' talking portraits, shown on their own counter screens, a face at a time (js/counter.js, 10-21 night)

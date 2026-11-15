@@ -18,6 +18,10 @@ deep16/_src/
 # tracked file would be served on the live site; the branch keeper-playtest-records on origin keeps its 35 Keeper logs off the PC)
 play-records/
 
+# THE MARKERS' REPLAY's files (11-15, the markers-replay seat): each quest walk's run as JSON and its log, written by dev/bench16.py to the shared checkout's walk-replays/
+# and opened on THE WORLD at deep16/?world&replay=<name> -- a bench's output, kept off the live site as play-records/ is
+walk-replays/
+
 # his own files at the root, kept off the live site (10-06, Griz: "go with your leans" -- a stray `git add .` would have published them):
 # the Pocket DM's saved rosters, the reading lamp, a short story
 /pocketDMRosters/

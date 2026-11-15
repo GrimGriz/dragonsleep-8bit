@@ -7372,10 +7372,57 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var ms = D.top() && D.top().roam ? D.top().roam.members.filter(function (u) { return u.src; }).map(function (u) { return u.src; }) : (HK.cur.party || []);
       ms.forEach(function (h) { var k = h.key || h.id; if (lvQ[k] != null && h.lvl > lvQ[k]) QL.push(hhQ() + ' LEVEL UP: ' + h.name + ' to level ' + h.lvl + ' (' + h.maxhp + ' hp)'); lvQ[k] = h.lvl; });
     }
-    function logQ(s) { tickQ(); QL.push(hhQ() + ' ' + s); }
+    function logQ(s) { tickQ(); rqSample(); QL.push(hhQ() + ' ' + s); }
     function findingQ(id, s) { if (findQ.some(function (f) { return f.id === id; })) return; findQ.push({ id: id, s: s }); logQ('FINDING [' + id + '] ' + s); }
     // a hex's distance on the axial grid (THE WORLD's S.at, a marker's hex)
     function hexDQ(a, b) { var dq = a[0] - b[0], dr = a[1] - b[1]; return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2; }
+    // ---------------------------------------------------------------- THE MARKERS' REPLAY (11-15, the markers-replay seat, started by the lanes desk on Griz's "there's the makings and
+    // the markers for the snoot hidden for the players that use rolls every dawn, can I get a replay that shows those markers based of the quest walk runs?"): the run kept as one JSON for
+    // deep16/?world&replay=<name> (js/replay.js). The party's hex on THE WORLD as it goes (W.partyPt read on THE WORLD's own grid: in the Silverton area S.at is the area's 1.5-mile hex),
+    // every meeting on its hex, and at each roll hour -- 06:00, the dawn the makings feed and move at (js/hunger.js), and 10:00 and 14:00, the snooting bands' other steps (js/snootroad.js
+    // SR.HOURS) -- a frame: each making's marker, its state, its reach and what it fed on that dawn, Mr. Ripples himself, every band of survivors, every snooting band, the farms fed on and
+    // burned. READ ONLY: it asks HG.sim and SR.sim, whose dice are hashes of the save's seed (never D.rand), and calls no W.save; &rec=0 walks without it (the proof: the same log with and
+    // without). A game lost and reloaded: what the lost try walked stays, marked `lost` with its reload's number; the frames it passed are taken again on the walk that stands. dev/bench16.py
+    // writes the report's `replay` to the shared checkout's walk-replays/ (gitignored) beside the log. The frame itself is js/replay.js RP.snap's (the gate's mode=replay1115 reads it too).
+    // track: [hour, THE WORLD's q, r, where (when it changes, else 0), the lost try's number (null on the walk that stands), x, y in miles]; meets: { t, k: road|mirror|survivors|snoot|
+    // fight|lost, hex, s, res }; frames: { t, made, hit, ripples, sv, snoot, burned }
+    var RQ = { on: QUESTK && get('rec', '1') !== '0' && !!D.replay, track: [], meets: [], frames: [], rewinds: [], next: null, lastT: null, cur: null, where: null, pt: null, memo: D.replay ? D.replay.memo() : null };
+    function rqT() { var S = WK.state(); return S && S.t != null ? S.t : null; }
+    function rqR(x) { return Math.round(x * 100) / 100; }
+    function rqHex() { var p = WK.partyPt(); return p ? WK.worldHexOf(p[0], p[1]) : null; } // (THE WORLD's 5-mile hex the party is in, whichever map it walks)
+    function rqHours() { var hs = ((D.snootroad && D.snootroad.HOURS) || [6, 10, 14]).slice(), dw = D.hunger ? D.hunger.DAWN : 6; if (hs.indexOf(dw) < 0) hs.push(dw); return hs.sort(function (a, b) { return a - b; }); }
+    function rqNext(t) { var hs = rqHours(); for (var d = Math.floor(t / 24); d < Math.floor(t / 24) + 3; d++) for (var i = 0; i < hs.length; i++) { var T = d * 24 + hs[i]; if (T > t + 1e-9) return T; } return t + 24; }
+    function rqFrame(T) { RQ.frames.push(D.replay.snap(T, RQ.memo)); } // (one roll hour: what js/hunger.js and js/snootroad.js say stands where -- js/replay.js RP.snap reads them)
+    function rqRewind(t) { // (a game lost, its last save loaded: the walk goes on from t -- what came after t is the lost try's)
+      var n = RQ.rewinds.length + 1; RQ.rewinds.push({ t: rqR(t), from: RQ.lastT == null ? null : rqR(RQ.lastT), ql: QL.length });
+      RQ.track.forEach(function (e) { if (e[0] > t + 1e-6 && e[4] == null) e[4] = n; });
+      RQ.meets.forEach(function (m) { if (m.t > t + 1e-6 && m.lost == null) m.lost = n; });
+      RQ.frames = RQ.frames.filter(function (f) { return f.t <= t + 1e-6; }); RQ.next = rqNext(t); RQ.pt = null;
+    }
+    function rqSample() { // (at every hex walked, every line of the log and every meeting: the party's place, and the frames of every roll hour passed since)
+      if (!RQ.on || !HK.cur) return; var t = rqT(); if (t == null) return;
+      try {
+        if (RQ.cur && HK.cur !== RQ.cur && RQ.lastT != null && t < RQ.lastT - 1e-6) rqRewind(t);
+        RQ.cur = HK.cur;
+        if (RQ.next == null) { rqFrame(t); RQ.next = rqNext(t); }
+        for (var g = 0; g < 400 && RQ.next <= t + 1e-9; g++) { rqFrame(RQ.next); RQ.next = rqNext(RQ.next); }
+        var p = WK.partyPt(), h = rqHex(), w = whereQ0().replace(/^THE WORLD .*$/, 'THE WORLD'); // (the area's own hex numbers left out: the replay names THE WORLD's)
+        if (p && h && (!RQ.pt || Math.abs(p[0] - RQ.pt[0]) + Math.abs(p[1] - RQ.pt[1]) > 0.05 || w !== RQ.where)) { RQ.track.push([rqR(t), h[0], h[1], w !== RQ.where ? w : 0, null, Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10]); RQ.pt = p.slice(); RQ.where = w; }
+        RQ.lastT = t;
+      } catch (eR) { repK.notes.push('the replay recorder stopped: ' + String(eR && eR.stack || eR).slice(0, 400)); RQ.on = false; }
+    }
+    function rqMeet(k, s, o) { if (!RQ.on || !HK.cur) return null; rqSample(); var t = rqT(); if (t == null) return null; var m = Object.assign({ t: rqR(t), k: k, hex: rqHex(), s: String(s).slice(0, 220) }, o || {}); RQ.meets.push(m); return m; }
+    function rqFought(name, res, where) { // (a fight's end: the road's, a band's -- onto its meeting -- or any other, on the hex it was fought in)
+      if (!RQ.on || !HK.cur) return; var t = rqT(), last = RQ.meets[RQ.meets.length - 1];
+      if (last && /^(road|mirror|snoot)$/.test(last.k) && !last.res && t != null && t - last.t < 4) { last.res = String(res); return; }
+      rqMeet('fight', name + ' -> ' + String(res).toUpperCase(), { res: String(res), where: where });
+    }
+    function rqOut(legs) {
+      if (!RQ.on) return null; rqSample(); var MW = WK.Mworld(), SR = D.snootroad;
+      return { v: 1, mode: 'questwalk1114', seed: +get('seed', 1113), order: get('order', 'five'), to: +get('to', 16), made: new Date().toISOString(), hexMi: MW.w, stay: D.hunger ? D.hunger.STAY : 48, hours: rqHours(), board: SR ? SR.BOARD : 14,
+        bands: SR ? SR.BANDS.map(function (b) { var n = 0; Object.keys(b.comp).forEach(function (k) { n += b.comp[k]; }); return { id: b.id, tribe: b.tribe, name: b.name, of: n }; }) : [],
+        track: RQ.track, meets: RQ.meets, frames: RQ.frames, refs: RQ.memo.refs, farms: D.replay.farmsUsed(RQ.memo), rewinds: RQ.rewinds, legs: (legs || []).slice(), log: QL.slice() };
+    }
     function hooksOnQ() {
       var HGq = D.hunger, onStep0 = WK.onStep, enc0 = WK.World.prototype.encounter, meet0 = HGq && HGq.meet;
       hooksQ = { onStep: onStep0, enc: enc0, meet: meet0, hg: HGq && HGq.on, sr: D.snootroad && D.snootroad.on };
@@ -7383,26 +7430,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         try {
           var S = WK.state(), M0 = WK.M(), e = M0.hex[WK.K(S.at[0], S.at[1])], z = e ? WK.zoneOf(e) : '?', rd = M0.road && M0.road[WK.K(S.at[0], S.at[1])];
           if (rd && /coldridge/i.test(rd.name || '') && ((window.DS.DATA || {}).encounters || {}).coldridge) z = 'coldridge';
-          lastZoneQ = z; lastPctQ = WK.encPct(z, st && st.road); rollQ.n++; rollQ.mi += (st && st.mi) || 5; rollQ.pct += lastPctQ;
-          if (HGq && HGq.on && HGq.sim) { var by = HGq.sim(S.t).by; Object.keys(by).forEach(function (d) { var x = by[d], k = d + '|' + HK.day(); if (x.state === 'gone' || passQ[k] || hexDQ(x.hex, S.at) > 1) return; passQ[k] = 1; logQ('PASSED the day-' + d + ' making\'s marker ' + (hexDQ(x.hex, S.at) ? 'a hex off' : 'in the party\'s hex') + ' at ' + x.hex.join(',') + ' (' + x.state + (x.charged ? ', charged' : '') + ')'); }); }
+          lastZoneQ = z; lastPctQ = WK.encPct(z, st && st.road); rollQ.n++; rollQ.mi += (st && st.mi) || 5; rollQ.pct += lastPctQ; rqSample();
+          // (the markers stand on THE WORLD's 5-mile hexes; in the Silverton area S.at is the area's own 1.5-mile hex, so the party's hex is read on THE WORLD's grid -- 11-15, the
+          // markers-replay seat: it read S.at bare before, and no marker was ever "passed" inside the area)
+          var phQ = rqHex() || S.at;
+          if (HGq && HGq.on && HGq.sim) { var by = HGq.sim(S.t).by; Object.keys(by).forEach(function (d) { var x = by[d], k = d + '|' + HK.day(); if (x.state === 'gone' || passQ[k] || hexDQ(x.hex, phQ) > 1) return; passQ[k] = 1; logQ('PASSED the day-' + d + ' making\'s marker ' + (hexDQ(x.hex, phQ) ? 'a hex off' : 'in the party\'s hex') + ' at ' + x.hex.join(',') + ' (' + x.state + (x.charged ? ', charged' : '') + ')'); }); }
         } catch (eS) { /* (the log must never stop the walk) */ }
         return onStep0.apply(this, arguments);
       };
-      WK.World.prototype.encounter = function (p, e) { rollQ.fights++; logQ('MET on THE WORLD (' + lastZoneQ + ', ' + (lastPctQ * 100).toFixed(0) + '% a hex, ' + WK.timeOfDay() + '): ' + p.list.join(', ') + (p.mirror ? ' -- MIRROR-MADE' + (p.made ? ', the day-' + p.made.day + ' making, ' + p.made.state : '') : '')); return enc0.apply(this, arguments); };
-      if (HGq && meet0) HGq.meet = function (scene, r) { logQ('SURVIVORS met on the ' + (r.kind || '?') + ' band\'s way: the day-' + r.day + ' making (' + r.zone + '), making for ' + r.toName); return meet0.apply(this, arguments); };
+      WK.World.prototype.encounter = function (p, e) { rollQ.fights++; logQ('MET on THE WORLD (' + lastZoneQ + ', ' + (lastPctQ * 100).toFixed(0) + '% a hex, ' + WK.timeOfDay() + '): ' + p.list.join(', ') + (p.mirror ? ' -- MIRROR-MADE' + (p.made ? ', the day-' + p.made.day + ' making, ' + p.made.state : '') : '')); rqMeet(p.mirror ? 'mirror' : 'road', p.list.join(', '), { pct: rqR(lastPctQ * 100), zone: lastZoneQ, made: p.made ? p.made.day : undefined }); return enc0.apply(this, arguments); };
+      if (HGq && meet0) HGq.meet = function (scene, r) { logQ('SURVIVORS met on the ' + (r.kind || '?') + ' band\'s way: the day-' + r.day + ' making (' + r.zone + '), making for ' + r.toName); rqMeet('survivors', 'a ' + (r.kind || '?') + ' band ' + (r.band ? 'burnt out by ' + r.band : 'off the day-' + r.day + ' making') + ', making for ' + r.toName, { ref: r.id }); return meet0.apply(this, arguments); };
+      // a snooting band in the party's hex (js/snootroad.js SR.meet: the Perception roll, then FIGHT or BACK AWAY) -- written down and kept on its hex (11-15, the markers-replay seat)
+      var SRq = D.snootroad, smeet0 = SRq && SRq.meet; hooksQ.smeet = smeet0;
+      if (SRq && smeet0) SRq.meet = function (scene, x) { var chk = smeet0.apply(this, arguments); try { logQ('A SNOOTING BAND met in the party\'s hex: ' + x.name + ' (' + x.id + ', ' + x.n + ' of ' + x.of + (x.busy ? ', at a farm' : '') + ') -- ' + (chk && chk.ok ? 'seen first' : 'they saw the party first')); rqMeet('snoot', x.name + ', ' + x.n + ' of ' + x.of + (chk && chk.ok ? ', seen first' : ', seen by them'), { band: x.id }); } catch (eSm) { } return chk; };
       if (HGq) HGq.on = true; if (D.snootroad) D.snootroad.on = true;
       // the game lost (js/house.js H.lost: the title, the last save stands) -- written down with what called it, and thrown back to the leg (legQ loads the last save)
-      var lost0 = HK.lost; hooksQ.lost = lost0; HK.lost = function () { var by = ''; try { by = String(new Error().stack || '').split('\n').slice(2, 5).map(function (l) { return l.trim().replace(/^at /, '').replace(/\(file:.*\/deep16\//, '(').replace(/\(file:.*\/dev\//, '(dev/'); }).join(' < '); QL.push(hhQ0() + ' THE GAME IS LOST on ' + whereQ() + ': ' + partyQ() + ' -- by ' + by); } catch (eL) { } lost0.apply(this, arguments); throw { qloss: true, fight: whereQ0(), res: 'lost', by: by }; };
+      var lost0 = HK.lost; hooksQ.lost = lost0; HK.lost = function () { var by = ''; try { by = String(new Error().stack || '').split('\n').slice(2, 5).map(function (l) { return l.trim().replace(/^at /, '').replace(/\(file:.*\/deep16\//, '(').replace(/\(file:.*\/dev\//, '(dev/'); }).join(' < '); QL.push(hhQ0() + ' THE GAME IS LOST on ' + whereQ() + ': ' + partyQ() + ' -- by ' + by); var lmQ = RQ.meets[RQ.meets.length - 1], tlQ = rqT(); if (!(lmQ && lmQ.k === 'lost' && tlQ != null && Math.abs(lmQ.t - tlQ) < 0.02)) rqMeet('lost', 'THE GAME IS LOST on ' + whereQ()); /* (once a loss: H.lost is called twice for one) */ } catch (eL) { } lost0.apply(this, arguments); throw { qloss: true, fight: whereQ0(), res: 'lost', by: by }; };
       // THE FOUR ON THEIR CLASS'S TACTICS in every fight -- a floor's own (js/roam.js: the Wet's, the dens', fought on the floor, B.heroTurn) as a pushed one's: the turn the AI's
       // (js/ai.js AI.turn -> js/tactics.js), the Wet's own first word kept (js/wet.js W.first)
       var BPq = D.Battle.prototype; hooksQ.heroTurn = BPq.heroTurn;
       BPq.heroTurn = function* (u) { if (this.wet && D.wet && D.wet.first) yield* D.wet.first(this); var c = u.classAI; u.classAI = true; try { yield* D.ai.turn(this, u); } finally { u.classAI = c; } };
       // a floor's fight written down at its end (js/roam.js R.after: the outcome, the foes, the four as it left them)
       var after0 = RK.after; hooksQ.after = after0;
-      RK.after = function* (B, o, grp, foes) { try { fightNQ++; logQ('FIGHT on the floor (' + whereQ() + '): ' + (foes || []).map(function (u) { return (u.name || u.kind) + (u.dead || u.hp <= 0 ? '' : ' (standing)'); }).join(', ') + ' -> ' + String(o).toUpperCase() + ' in ' + (B.round || 0) + ' rounds; after it ' + B.roam.members.filter(function (m) { return m.src && !m.src.guest; }).map(function (m) { return m.name.split(' ')[0] + ' ' + Math.max(0, m.hp) + '/' + m.maxhp + (m.hp <= 0 ? ' down' : ''); }).join(', ')); } catch (eA) { } yield* after0.apply(this, arguments); };
+      RK.after = function* (B, o, grp, foes) { try { fightNQ++; logQ('FIGHT on the floor (' + whereQ() + '): ' + (foes || []).map(function (u) { return (u.name || u.kind) + (u.dead || u.hp <= 0 ? '' : ' (standing)'); }).join(', ') + ' -> ' + String(o).toUpperCase() + ' in ' + (B.round || 0) + ' rounds; after it ' + B.roam.members.filter(function (m) { return m.src && !m.src.guest; }).map(function (m) { return m.name.split(' ')[0] + ' ' + Math.max(0, m.hp) + '/' + m.maxhp + (m.hp <= 0 ? ' down' : ''); }).join(', ')); rqFought((foes || []).map(function (u) { return u.name || u.kind; }).join(', '), o, whereQ()); } catch (eA) { } yield* after0.apply(this, arguments); };
     }
     function whereQ0() { try { return whereQ(); } catch (eW) { return '?'; } }
-    function hooksOffQ() { if (!hooksQ) return; if (hooksQ.lost) HK.lost = hooksQ.lost; if (hooksQ.heroTurn) D.Battle.prototype.heroTurn = hooksQ.heroTurn; if (hooksQ.after) RK.after = hooksQ.after; WK.onStep = hooksQ.onStep; WK.World.prototype.encounter = hooksQ.enc; if (hooksQ.meet) D.hunger.meet = hooksQ.meet; if (D.hunger) D.hunger.on = hooksQ.hg; if (D.snootroad) D.snootroad.on = hooksQ.sr; hooksQ = null; }
+    function hooksOffQ() { if (!hooksQ) return; if (hooksQ.smeet) D.snootroad.meet = hooksQ.smeet; if (hooksQ.lost) HK.lost = hooksQ.lost; if (hooksQ.heroTurn) D.Battle.prototype.heroTurn = hooksQ.heroTurn; if (hooksQ.after) RK.after = hooksQ.after; WK.onStep = hooksQ.onStep; WK.World.prototype.encounter = hooksQ.enc; if (hooksQ.meet) D.hunger.meet = hooksQ.meet; if (D.hunger) D.hunger.on = hooksQ.hg; if (D.snootroad) D.snootroad.on = hooksQ.sr; hooksQ = null; }
     // A FIGHT FOUGHT: the battle on top driven to its end with the four on their class's tactics (guest and classAI for the fight, as the ladder's &watch: js/battle.js), every
     // prompt its first answer, then handed to its own door with its result (D.pop, o.onDone -- the VICTORY panel's E: js/ui.js). A loss that ends the game is thrown (qloss)
     function fightQ(s) {
@@ -7421,6 +7474,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var res = s.result || (err ? 'error' : 'stalled'); fightNQ++;
       var after = held.map(function (h) { var u = h[0]; return u.name.split(' ')[0] + ' ' + Math.max(0, u.hp) + '/' + u.maxhp + (u.slain || u.dead ? ' DEAD' : u.hp <= 0 ? ' down' : ''); });
       logQ('FIGHT ' + (F.name || F.id) + (F.sub ? ' (' + F.sub + ')' : '') + (s.o && s.o.simple ? ', simple' : ', on the grid') + ': ' + foes.join(', ') + ' -> ' + String(res).toUpperCase() + ' in ' + (s.round || 0) + ' rounds; after it ' + after.join(', '));
+      rqFought((F.name || F.id || '?') + ': ' + foes.join(', '), res, whereQ0()); // (the replay: onto the road's or the band's meeting it ends, else a fight of its own on its hex)
       if (err) repK.errors.push('fight ' + (F.id || '?') + ': ' + String(err && err.stack || err).slice(0, 800));
       if (D.top() === s) D.pop(); s.o.onDone(res === 'error' || res === 'stalled' ? 'escaped' : res);
       if (!HK.playing) throw { qloss: true, fight: F.name || F.id, res: res };
@@ -7878,6 +7932,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       QL.push('END ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ() + ' -- ' + fightNQ + ' fights fought; the legs: ' + legsQ.join(' | '));
       okK('questwalk', 'THE QUEST WALK walked without a throw: ' + legsQ.join(' | ') + ' -- ' + QL.length + ' lines in its log', QL.length > 2);
       findQ.forEach(function (f) { noteK('FINDING [' + f.id + '] ' + f.s); });
+      repK.replay = rqOut(legsQ); // (THE MARKERS' REPLAY: dev/bench16.py writes it to walk-replays/ -- above, at RQ)
       hooksOffQ();
       }
       if (!QUESTK) {
@@ -10691,6 +10746,78 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // encounter, perception checks to see if they notice the snooting gnolls in time to interrupt movement and retreat"; "roll to find a farm in each hex, percentage
   // based on # of farms in that hex, snoots it for a day if found - survivors make for nearest silverton, inn or pit"; "shifting gossip time based on how it rolls out
   // for that playthrough (not necessarily 7)"; "we'll try it with the dust cloud."): js/snootroad.js. salt= the save's seed, saves= the seeds surveyed
+  // THE MARKERS' REPLAY'S DOOR, 11-15 (mode=replay1115; the markers-replay seat, on Griz's "there's the makings and the markers for the snoot hidden for the players that use rolls
+  // every dawn, can I get a replay that shows those markers based of the quest walk runs?"): a run recorded as the quest walk records one (js/replay.js RP.snap at each roll hour of
+  // days 1 to 16, the hunger and the Snoot's road on, the save's seed `salt`), a party walked by hand from Silverton down the road toward the inn with a lost try and its meetings;
+  // then the door, deep16/?world&replay, drawn at every frame and between: no throw, each look's marks on the screen while its markers are out, the key's words, the dawn steps,
+  // the hour's sky, a look turned off, the runs' list. And the recording is reading only: no die of D.rand drawn by it, the world's state untouched, the same frame asked twice
+  if (get('mode', '') === 'replay1115') {
+    var repRp = { checks: [], errors: [], notes: [] }, memRp = {}, stGRp = D.store.get, stSRp = D.store.set, WRp = D.world, RPp = D.replay, HGr = D.hunger, SRr = D.snootroad, hg0r = HGr && HGr.on, sr0r = SRr && SRr.on, tx0r = D.text;
+    function okRp(what, v) { repRp.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memRp[k] ? JSON.parse(memRp[k]) : null; }; D.store.set = function (k, v) { memRp[k] = JSON.stringify(v); return true; };
+    try {
+      if (!RPp || !RPp.snap || !HGr || !SRr) throw new Error('no replay: js/replay.js RP.snap (and js/hunger.js, js/snootroad.js)');
+      if (D.house) { D.house.playing = false; D.house.cur = null; }
+      D.seed = +get('seed', 1115); WRp.index(); WRp.use('world'); var Srp = WRp.load('?fresh&far'), MRp = WRp.M(), saltR = +get('salt', 3); Srp.seed = saltR; Srp.madeFed = {}; Srp.snootLoss = {};
+      HGr.on = true; SRr.on = true;
+      var siteR = function (id) { return MRp.sites.filter(function (s) { return s.id === id; })[0]; }, hcR = function (h) { return [MRp.w * (h[0] + h[1] / 2), MRp.w * Math.sqrt(3) / 2 * h[1]]; };
+      // 1. THE RECORDING: a frame at the start and at 06:00, 10:00 and 14:00 of every day to 16 -- read only
+      var memoR = RPp.memo(), framesR = [], seed0R = D.seed, st0R = JSON.stringify(Srp);
+      framesR.push(RPp.snap(7, memoR)); for (var dR = 1; dR <= 16; dR++) [6, 10, 14].forEach(function (h) { var T = (dR - 1) * 24 + h; if (T > 7) framesR.push(RPp.snap(T, memoR)); });
+      var againR = JSON.stringify(RPp.snap(5 * 24 + 6, RPp.memo())) === JSON.stringify(framesR.filter(function (f) { return f.t === 5 * 24 + 6; })[0]);
+      okRp('THE RECORDING READS ONLY: ' + framesR.length + ' frames of 16 days drew no die (D.seed ' + (D.seed === seed0R ? 'unmoved' : 'MOVED') + '), left the world\'s state as it was (' + (JSON.stringify(Srp) === st0R) + '), and day 6\'s dawn asked again is the same frame (' + againR + ')',
+        framesR.length === 48 && D.seed === seed0R && JSON.stringify(Srp) === st0R && againR);
+      var fedR = [], burnedR = 0, svR = 0, madeR = 0; framesR.forEach(function (f) { (f.made || []).forEach(function (m) { if (m.fed) fedR.push('day-' + m.d + ' ' + m.fed.on + ' D' + (Math.floor(f.t / 24) + 1)); }); burnedR = Math.max(burnedR, (f.burned || []).length); svR = Math.max(svR, (f.sv || []).length); madeR = Math.max(madeR, (f.made || []).length); });
+      okRp('the frames carry the markers: up to ' + madeR + ' makings, ' + fedR.length + ' dawn feedings (' + fedR.slice(0, 4).join(', ') + '), ' + burnedR + ' farms burned by day 16, up to ' + svR + ' bands of survivors out at once, the four snooting bands (' + framesR[framesR.length - 1].snoot.map(function (b) { return b.id + '@' + b.hex; }).join(' ') + '), Mr. Ripples ' + (framesR[framesR.length - 1].ripples.held ? 'held' : 'walking') + ' on day 16',
+        madeR >= 4 && fedR.length > 0 && burnedR > 0 && svR > 0 && framesR[framesR.length - 1].snoot.length === 4 && !!framesR[framesR.length - 1].ripples);
+      // 2. A PARTY: three days in Silverton, then down THE WORLD's road toward the inn a hex every two hours from day 4; a try lost on day 5 and walked again
+      var silR = siteR('silverton'), innR = siteR('inn'), rtR = WRp.route(silR.hex, innR.hex, MRp), hexesR = [silR.hex].concat(rtR ? rtR.hexes : [innR.hex]), trackR = [], meetsR = [], tR = 3 * 24 + 8;
+      var stepR = function (t, h, w, lost) { var p = hcR(h); trackR.push([t, h[0], h[1], w || 0, lost || null, Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10]); };
+      stepR(7, silR.hex, 'silverton'); meetsR.push({ t: 9, k: 'fight', hex: silR.hex, s: 'The Hex: Bar Brawler -> WON', res: 'won' });
+      var tLostR = tR + 2 * Math.min(4, hexesR.length - 1);
+      hexesR.forEach(function (h, i) { if (i) stepR(tR + 2 * i, h, i === 1 ? 'THE WORLD' : 0); });
+      var lostFromR = Math.min(4, hexesR.length - 1); for (var lr = 1; lr <= 3; lr++) { var hL = [hexesR[lostFromR][0] + lr, hexesR[lostFromR][1]]; stepR(tLostR + lr, hL, 0, 1); } // (the lost try: three hexes east, and the game lost)
+      meetsR.push({ t: tLostR + 3, k: 'lost', hex: [hexesR[lostFromR][0] + 3, hexesR[lostFromR][1]], s: 'THE GAME IS LOST on THE WORLD', lost: 1 });
+      var mh = function (i) { return hexesR[Math.min(i, hexesR.length - 1)]; }, refIdR = Object.keys(memoR.refs)[0];
+      meetsR.push({ t: tR + 2, k: 'road', hex: mh(1), s: 'Wolf, Wolf', pct: 12.9, zone: 'north', res: 'won' }); meetsR.push({ t: tR + 6, k: 'mirror', hex: mh(3), s: 'Mirror Wolf', pct: 20, zone: 'north', made: 9, res: 'won' });
+      meetsR.push({ t: tR + 8, k: 'survivors', hex: mh(4), s: 'a farm band off the day-5 making, making for Silverton', ref: refIdR }); meetsR.push({ t: tR + 10, k: 'snoot', hex: mh(5), s: 'a Skull-Gate band, 18 of 18, seen first', band: 'sg1', res: 'won' });
+      var dataR = { v: 1, mode: 'questwalk1114', seed: saltR, order: 'five', to: 16, made: new Date().toISOString(), hexMi: MRp.w, stay: HGr.STAY, hours: [6, 10, 14], board: SRr.BOARD, name: 'bench',
+        bands: SRr.BANDS.map(function (b) { var n = 0; Object.keys(b.comp).forEach(function (k) { n += b.comp[k]; }); return { id: b.id, tribe: b.tribe, name: b.name, of: n }; }),
+        track: trackR, meets: meetsR, frames: framesR, refs: memoR.refs, farms: RPp.farmsUsed(memoR), rewinds: [{ t: tLostR, from: tLostR + 3, ql: 3 }], legs: ['the bench'],
+        log: ['D1 07:00 NEW GAME, seed ' + saltR, 'DAY 4 -- D4 08:00 at silverton: the four', 'D4 08:00 -- down the road', 'D' + (Math.floor((tLostR + 3) / 24) + 1) + ' 12:00 GAME OVER in THE WORLD (lost)'] };
+      // 3. THE DOOR, deep16/?world&replay: drawn at every frame and two hours after each, every word on the screen read
+      var saidR = [], cvR = document.createElement('canvas'); cvR.width = D.W; cvR.height = D.H; var gR = cvR.getContext('2d');
+      D.text = function (c, s) { saidR.push(String(s)); return tx0r.apply(this, arguments); };
+      D.scenes.length = 0; var scR = RPp.make('?world&replay=bench', dataR); D.push(scR);
+      var drawR = function (t) { RPp.seek(t); saidR.length = 0; scR.update(); scR.draw(gR); return { said: saidR.join(' | '), hov: RPp.hovers.map(function (h) { return h.lines.join(' '); }) }; };
+      var badR = [], seenR = { made: 0, snoot: 0, sv: 0, party: 0, ripples: 0, lostTry: 0, burned: 0, hit: 0 }, keyR = '', missR = [];
+      framesR.concat(framesR.map(function (f) { return { t: f.t + 2, between: 1 }; })).forEach(function (f) {
+        var out; try { out = drawR(f.t); } catch (eD) { badR.push(f.t + ': ' + String(eD && eD.stack || eD).slice(0, 300)); return; }
+        var cnt = function (re) { return out.hov.filter(function (l) { return re.test(l); }).length; }; if (!keyR) keyR = out.said;
+        seenR.made += cnt(/THE DAY-\d+ MAKING/); seenR.snoot += cnt(/^\{o\}/); seenR.sv += cnt(/^\{c\}SURVIVORS\{\/\} \(/); seenR.party += cnt(/^\{y\}THE PARTY/); seenR.ripples += cnt(/MR\. RIPPLES/); seenR.lostTry += cnt(/a lost try/); seenR.burned += cnt(/burned\{\/\}/); seenR.hit += cnt(/fed on\{\/\}/);
+        if (!f.between) { var fr = RPp.frameAt(f.t), nm = (fr.made || []).filter(function (m) { return m.st !== 'gone'; }).length, ns = (fr.snoot || []).filter(function (b) { return !b.gone; }).length; if (cnt(/THE DAY-\d+ MAKING/) !== nm || cnt(/^\{o\}/) !== ns) missR.push('D' + (Math.floor(f.t / 24) + 1) + ' ' + RPp.stamp(f.t) + ': ' + cnt(/THE DAY-\d+ MAKING/) + '/' + nm + ' makings, ' + cnt(/^\{o\}/) + '/' + ns + ' bands'); }
+      });
+      okRp('THE DOOR drew all ' + framesR.length + ' frames and an hour two after each without a throw (' + (badR.length ? badR.slice(0, 2).join(' || ') : 'none') + ')', !badR.length);
+      okRp('every making\'s marker and every snooting band on the screen at its frame (' + (missR.length ? missR.slice(0, 3).join('; ') : 'all') + '); drawn: ' + JSON.stringify(seenR),
+        !missR.length && seenR.made > 0 && seenR.snoot > 0 && seenR.sv > 0 && seenR.party === framesR.length * 2 && seenR.ripples > 0 && seenR.lostTry > 0 && seenR.burned > 0);
+      var keyWords = ['THE KEY', 'THE PARTY', 'THE MAKINGS', 'THE SURVIVORS', 'THE SNOOT\'S ROAD', 'its track', 'a try lost, reloaded', 'a marker: its day', 'its reach', 'Mr. Ripples', 'a band on its way', 'a band: gnolls left', 'a farm burned', 'DAWN >', 'PLAY'].filter(function (w) { return keyR.indexOf(w) < 0; });
+      okRp('the key names each mark on the screen, with the buttons (' + (keyWords.length ? 'MISSING ' + keyWords.join(', ') : 'all fifteen words') + ')', !keyWords.length);
+      RPp.seek(2 * 24 + 9); RPp.dawnStep(1); var a1 = RPp.t; RPp.dawnStep(-1); var a2 = RPp.t; RPp.dawnStep(-1); var a3 = RPp.t; RPp.seek(4 * 24 + 15); scR.update(); var Sx = WRp.state();
+      okRp('DAWN > from day 3 09:00 to ' + RPp.stamp(a1) + ', < DAWN back to ' + RPp.stamp(a2) + ' and ' + RPp.stamp(a3) + '; the sky\'s hour is the replay\'s (' + Sx.t + ') and THE WORLD\'s own banner stood off the map (' + Sx.at + ')',
+        a1 === 3 * 24 + 6 && a2 === 2 * 24 + 6 && a3 === 24 + 6 && Sx.t === 4 * 24 + 15 && Sx.at[0] === -999);
+      RPp.looks[1] = false; var offR = drawR(5 * 24 + 7); RPp.looks[1] = true; var onR = drawR(5 * 24 + 7);
+      okRp('the makings\' look turned off (2) takes its marks away (' + offR.hov.filter(function (l) { return /MAKING|RIPPLES/.test(l); }).length + ' with it off, ' + onR.hov.filter(function (l) { return /MAKING|RIPPLES/.test(l); }).length + ' on) and the key says (off): ' + /THE MAKINGS {2}\{g\}\(off\)/.test(offR.said), offR.hov.filter(function (l) { return /MAKING|RIPPLES/.test(l); }).length === 0 && onR.hov.filter(function (l) { return /MAKING|RIPPLES/.test(l); }).length > 0);
+      var feedR = drawR(dataR.frames[dataR.frames.length - 1].t).said, evR = RPp.data.events.length;
+      okRp('the feed: ' + evR + ' events (the makings\' feedings, the burnings, the survivors setting out, the meetings, the log), the last on the screen at the end -- "' + (RPp.data.events[evR - 1] || {}).s + '"', evR > 10 && feedR.indexOf(String((RPp.data.events[evR - 1] || {}).s).slice(0, 20)) >= 0);
+      RPp.list = { items: [{ name: 'questwalk-five-seed1-1115', days: 17, meets: 30, lost: 2 }, { name: 'questwalk-five-seed2-1115', days: 17, meets: 41, lost: 0 }], sel: 1, top: 0 }; saidR.length = 0; scR.draw(gR);
+      okRp('the runs\' list (deep16/?world&replay alone) draws its rows: ' + /questwalk-five-seed2-1115/.test(saidR.join('|')), /questwalk-five-seed2-1115/.test(saidR.join('|')) && RPp.ui.filter(function (b) { return b.row != null; }).length === 2);
+      RPp.list = null;
+    } catch (eRp) { repRp.errors.push(String(eRp && eRp.stack || eRp)); }
+    D.text = tx0r; D.scenes.length = 0; if (RPp) RPp.on = false; if (HGr) HGr.on = hg0r; if (SRr) SRr.on = sr0r; D.store.get = stGRp; D.store.set = stSRp; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preRp = document.createElement('pre'); preRp.id = 'out'; preRp.textContent = 'BENCH16 ' + JSON.stringify(repRp);
+    document.body.appendChild(preRp);
+    return;
+  }
   if (get('mode', '') === 'snootroad1114') {
     var repQ = { checks: [], errors: [], notes: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, WQ = D.world, SRq = D.snootroad, HGq = D.hunger;
     function okQ2(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
