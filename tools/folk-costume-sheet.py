@@ -43,6 +43,8 @@ PIECES = {
                   navy=(16, 22, 52), stand=False),   # (its E ear in the fire ramp is the townsfolk's own head, folkman_p1's and folkwoman_p1's since 10-27, kept)
     'scraper': dict(folder='2026-11-15-ART-WANTED-72-GUANO-SCRAPER', name='ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                     navy=(17, 24, 45), stand=False),
+    'drinker': dict(folder='2026-11-15-ART-WANTED-73-DRINKER', name='ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                    navy=(17, 24, 45), stand=False),
 }
 
 

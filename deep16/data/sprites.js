@@ -4882,6 +4882,35 @@
 ],
 "source": "drawn by the art desk (ART-141-DWARF-TOWN, 11-12: art-wanted section 54, the generic dwarf's town figure in five views), cut by tools/folkdwarf-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"folkman_drinker_p1": {
+"image": "art/folkman_drinker_p1.png?v=af35534912",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_lightcrew_p1": {
 "image": "art/folkman_lightcrew_p1.png?v=f1a20814eb",
 "fw": 72,
@@ -4970,7 +4999,7 @@
 "source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_shaft_p1": {
-"image": "art/folkman_shaft_p1.png?v=96a1b7d32b",
+"image": "art/folkman_shaft_p1.png?v=dfb50891b9",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -4997,6 +5026,35 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"folkwoman_drinker_p1": {
+"image": "art/folkwoman_drinker_p1.png?v=6300b5c4d2",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_lightcrew_p1": {
 "image": "art/folkwoman_lightcrew_p1.png?v=b84510e91a",
@@ -5086,7 +5144,7 @@
 "source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_shaft_p1": {
-"image": "art/folkwoman_shaft_p1.png?v=f2e0c24fc5",
+"image": "art/folkwoman_shaft_p1.png?v=7b65591a57",
 "fw": 72,
 "fh": 64,
 "ax": 36,

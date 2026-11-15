@@ -18654,7 +18654,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft', 'scraper'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker'];
       COSTK.forEach(function (c) {
         var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
         var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });
@@ -18684,6 +18684,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.house.begin(D.house.fresh(), 0); var BS = topK(), fS = folkK(BS), byS = {}; fS.forEach(function (u) { byS[u.npc] = u; });
       okK('NEW GAME, Silverton\'s street: the unnamed in the townsfolk\'s own figures, no fighter (' + fS.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
         fS.length >= 5 && fS.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && byS.towns1 && byS.towns1.sheet === 'folkman_p1' && byS.towns2 && byS.towns2.sheet === 'folkwoman_p1' && byS.guard1 && byS.guard1.sheet === CK.folkFig('guard1'));
+      var BH1 = floorK('?roam=hex'), fH1 = folkK(BH1), faceH1 = {}; D.hex.PEOPLE[1].forEach(function (p) { faceH1[p.id] = D.spr.facingFor(p.face[0], p.face[1]); });
+      okK('the Hex\'s sand and bars: the drinkers and the barkeeps on their own figures once cut, each facing as the floor stands them (' + fH1.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH1[u.npc]; }).join(', ') + ')',
+        fH1.length === 4 && fH1.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH1[u.npc]; }) && fH1.some(function (u) { return /_drinker_p1$/.test(u.sheet); }));
       var BH = floorK('?roam=hex&floor=2'), fH = folkK(BH), PH = D.hex.PEOPLE[2], faceH = {}; PH.forEach(function (p) { faceH[p.id] = D.spr.facingFor(p.face[0], p.face[1]); });
       okK('the Hex\'s gambling floor: the gamblers in the townsfolk\'s figures, each still facing as the floor stands them (' + fH.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH[u.npc]; }).join(', ') + ')',
         fH.length === 2 && fH.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH[u.npc]; }));
