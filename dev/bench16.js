@@ -10059,6 +10059,33 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preSH);
     return;
   }
+  // THE SHAMBLING MOUND, 11-14 (mode=mound1114; the hyena-stirge seat, on Griz's "Have it start the new art shambling mound"): its two SRD 5.1 rules as built --
+  // 1. Lightning Absorption: lightning heals it the damage dealt (to its maximum), no damage taken; fire is halved (it resists); 2. Engulf on the cube's rule:
+  // a Slam that hits grips the fighter (escape DC 14), then Engulf lands on the one it holds; 3. its sheet, every row
+  if (get('mode', '') === 'mound1114') {
+    var repMD = { checks: [], errors: [], notes: [] }, d0MD = D.d;
+    function okMD(what, v) { repMD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var BMd = D.npcFight('?npc=shamblingmound&vs=fighter:5,cleric:5&lvl=5', {}); D.battle = BMd; BMd.enter(); var kMd = 0; while (!BMd.order.length && kMd++ < 400) BMd.co.next();
+      var MO = BMd.units.filter(function (u) { return u.kind === 'shamblingmound'; })[0], FI = BMd.units.filter(function (u) { return u.side === 'party' && /fighter/i.test(u.cls || u.kind || u.name); })[0] || BMd.units.filter(function (u) { return u.side === 'party'; })[0];
+      var drainMd = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 5000); return r.value; };
+      MO.hp = 100; BMd.hurt(MO, 12, 'lightning'); var hpL = MO.hp; MO.hp = MO.maxhp - 3; BMd.hurt(MO, 12, 'lightning'); var hpTop = MO.hp; MO.hp = 100; BMd.hurt(MO, 12, 'fire'); var hpF = MO.hp;
+      okMD('1 Lightning Absorption: 100 HP + 12 lightning = ' + hpL + ' (want 112); at ' + (MO.maxhp - 3) + ' of ' + MO.maxhp + ' it stops at ' + hpTop + '; 12 fire leaves ' + hpF + ' (want 94, resisted); its charged row ' + MO.anim, hpL === 112 && hpTop === MO.maxhp && hpF === 94);
+      MO.hp = MO.maxhp; FI.x = MO.x + 2; FI.y = MO.y; D.grid.setup(D.grid.map, BMd.units);
+      D.d = function (n) { return n === 20 ? 18 : d0MD.apply(this, arguments); };
+      BMd.active = MO; D.rules.startTurn(MO); drainMd(BMd.attack(MO, FI, MO.attacks.slam));
+      var gr = FI.conds.restrained && FI.conds.restrained.grapple ? FI.conds.restrained : null, held = (MO.holding || []).indexOf(FI) >= 0, hp0 = FI.hp;
+      drainMd(BMd.attack(MO, FI, MO.attacks.engulf)); var hp1 = FI.hp;
+      okMD('2 Engulf, the cube\'s rule: a Slam that hits grips the fighter (grappled ' + !!(gr && gr.by === MO.id) + ', held ' + held + ', escape DC ' + (gr && gr.dc) + '); Engulf lands on the one it holds: ' + hp0 + ' to ' + hp1 + ' HP',
+        !!(gr && gr.by === MO.id && gr.dc === 14) && held && hp1 < hp0 && !!MO.attacks.engulf.needsHeld);
+      var SM = D.SHEETS.shamblingmound_p1 && D.SHEETS.shamblingmound_p1.anims, want = ['idle', 'walk', 'slam', 'slam2', 'engulf', 'charged', 'flinch', 'hurt', 'prone'];
+      okMD('3 its sheet: ' + (SM ? want.map(function (r) { return r + ' ' + (SM[r] ? SM[r].frames : 0); }).join(', ') : 'none') + ' (want 6 8 6 6 8 6 4 6 2)', !!SM && want.map(function (r) { return SM[r] ? SM[r].frames : 0; }).join() === '6,8,6,6,8,6,4,6,2');
+    } catch (eMD) { repMD.errors.push(String(eMD && eMD.stack || eMD).slice(0, 900)); }
+    D.d = d0MD;
+    var preMD = document.createElement('pre'); preMD.id = 'out'; preMD.textContent = 'BENCH16 ' + JSON.stringify(repMD);
+    document.body.appendChild(preMD);
+    return;
+  }
   if (get('mode', '') === 'made1114') {
     if (D.hunger) D.hunger.on = false; // (11-14, THE HUNGER, js/hunger.js: the clock with only a fight's feeding; the dawn feedings are mode=hunger1114's)
     var repMS = { checks: [], errors: [], notes: [] }, memMS = {}, stGMS = D.store.get, stSMS = D.store.set, WS = D.world, SE = D.seep, d0MS = D.d, vw0 = WS.VESSEL.wither, vg0 = WS.VESSEL.gone;

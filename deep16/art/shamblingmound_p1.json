@@ -1,0 +1,95 @@
+{
+ "image": "art/shamblingmound_p1.png",
+ "fw": 96,
+ "fh": 120,
+ "ax": 48,
+ "ay": 109,
+ "top": 75,
+ "name": "Shambling Mound",
+ "source": "drawn by the art desk (SHAMBLING-MOUND-GLOWSEEP-SOURCES, 11-14: art-wanted section 4 -- Idle 6, Shamble 8, Slam 6, Slam 2 6, Engulf 8, Charged 6, Flinch 4, Fall 6, Prone 2, one view facing the bottom-right), cut native by tools/shamblingmound-sheet.py; SW W NW mirrored -- deep16/data/foes.js shamblingmound",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 120,
+   "ax": 48,
+   "ay": 109,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 960,
+   "fw": 96,
+   "fh": 120,
+   "ax": 48,
+   "ay": 109,
+   "frames": 8,
+   "fps": 8
+  },
+  "slam": {
+   "y": 1920,
+   "fw": 102,
+   "fh": 120,
+   "ax": 51,
+   "ay": 109,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "slam2": {
+   "y": 2880,
+   "fw": 110,
+   "fh": 120,
+   "ax": 55,
+   "ay": 109,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "engulf": {
+   "y": 3840,
+   "fw": 90,
+   "fh": 120,
+   "ax": 45,
+   "ay": 109,
+   "frames": 8,
+   "fps": 8
+  },
+  "charged": {
+   "y": 4800,
+   "fw": 94,
+   "fh": 120,
+   "ax": 47,
+   "ay": 109,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 5760,
+   "fw": 110,
+   "fh": 120,
+   "ax": 55,
+   "ay": 109,
+   "frames": 4,
+   "fps": 10
+  },
+  "hurt": {
+   "y": 6720,
+   "fw": 98,
+   "fh": 120,
+   "ax": 49,
+   "ay": 109,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 7680,
+   "fw": 100,
+   "fh": 120,
+   "ax": 50,
+   "ay": 109,
+   "frames": 2,
+   "fps": 4
+  }
+ }
+}

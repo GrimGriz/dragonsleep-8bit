@@ -847,6 +847,18 @@
     if (sh(u).shift && !u.shifted && u.side === 'foe' && u.hp > 0 && RU.canAct(u) && u.turn && u.turn.action) return yield* TR.shiftNow(B, u);
     return yield* turnSh.apply(this, arguments);
   };
+  // ------------------------------------------------------------------ ABSORPTION (11-14, the hyena-stirge seat: the shambling mound's Lightning Absorption, SRD 5.1:
+  // "Whenever the shambling mound is subjected to lightning damage, it takes no damage and regains a number of hit points equal to the lightning damage dealt").
+  // A block's `absorb` names the types; js/battle.js hurt asks here first and takes no damage when this says so. Its sheet's `charged` row plays
+  TR.absorbs = function (B, u, n, type) {
+    var ab = sh(u).absorb;
+    if (!ab || ab.indexOf(type) < 0 || u.dead || u.hp <= 0) return false;
+    var was = u.hp; u.hp = Math.min(u.maxhp, u.hp + n);
+    if (D.spr && D.spr.anim(u.sheet, 'charged')) { u.anim = 'charged'; u.animT = B.t; }
+    FX.float('+' + (u.hp - was), u, D.PAL.ramps.green ? D.PAL.ramps.green[4] : undefined); D.sfx('magic');
+    B.card(['{r}' + Nm(B, u) + '{/} drinks the ' + type + ': {n}' + n + ' damage heals it instead{/} (' + was + ' to ' + u.hp + ' of ' + u.maxhp + ').  {g}(' + (u.absorbWord || 'Lightning Absorption') + '){/}'], 220);
+    return true;
+  };
   // the turn's start: the legendary actions back; a spent breath's recharge rolled
   var startLB = RU.startTurn;
   RU.startTurn = function (u) {

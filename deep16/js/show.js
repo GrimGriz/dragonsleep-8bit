@@ -284,6 +284,14 @@
       try { yield* B.hide(u, true); } finally { D.d = d0; u.stealth = st0; }
       u.anim = 'idle'; u.animT = B.t;
     }
+    // one that drinks a damage type (`absorb`: the shambling mound's Lightning Absorption, 11-14) and has not shown its charged row twice by its second turn:
+    // a bolt of that type at it, as a spell would land it, through the engine's own hurt -- js/traits.js TR.absorbs heals it and plays the row
+    var abS = (D.FOES[u.kind] || {}).absorb;
+    if (abS && D.spr.anim(u.sheet, 'charged') && ((u.showSeen || {}).charged || 0) < 2 && u.showTurns >= 2 && u.hp > 0) {
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its charged row yet. A bolt of ' + abS[0] + ' at it (8 damage), to see what it does with it.'], 200);
+      u.hp = Math.max(1, u.hp - 8); B.hurt(u, 8, abS[0], { magic: true }); yield 50;
+      u.anim = 'idle'; u.animT = B.t;
+    }
     // one with a clamp row it has not shown by the end of its second turn (the darkmantle over a head, his sheet, 10-08): its Crush takes the head only with
     // advantage on one Medium or smaller (js/battle.js attack, perch 'over'; js/ui.js plays the row there), and the watchers rarely give it that -- one Crush
     // through the engine's own attack at the one it rides or the nearest such watcher in reach, the d20 pinned to a 20 and its edge set to advantage

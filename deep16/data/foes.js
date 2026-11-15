@@ -797,6 +797,22 @@
     multi: ['bite', 'claws'], immune: ['mundane'], shapechanger: true, form: 'hybrid',
     src: 'SRD 5.1 Werewolf (CR 3, 700 XP; Medium humanoid (human, shapechanger), chaotic evil), in its hybrid form: AC 12 (natural armor; 11 as the man), 58 HP (9d8 + 18), speed 30 (40 as the wolf); STR 15 DEX 13 CON 14 INT 10 WIS 11 CHA 10; Perception +4, Stealth +3, passive Perception 14; immune to bludgeoning, piercing and slashing from nonmagical attacks not made with silvered weapons (the game has no silvered weapons yet: every plain weapon is turned); Shapechanger (not played yet: the hybrid fights, the man and the wolf are looks; it dies as the priest, its true form); Keen Hearing and Smell; Multiattack (hybrid) one Bite (+4, 1d8 + 2 piercing; a humanoid DC 12 CON or cursed with werewolf lycanthropy) and one Claws (+4, 2d4 + 2 slashing). The realm: Rhollor feeds off the prayers to the Empty Seat and gives the Black Mountain clerics the werewolf\'s shift (TarlynsPit/wiki/the-doors.md, The Empty Chair) -- no cleric spells: the SRD block only'
   },
+  // THE SHAMBLING MOUND (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Have it start the new art shambling mound (better prompt imo)"):
+  // the SRD 5.1 Shambling Mound (srd/monsters/s.md), the art desk's SHAMBLING-MOUND-GLOWSEEP-SOURCES cut native into shamblingmound_p1 (tools/shamblingmound-
+  // sheet.py: one view, mirrored). Engulf on the gelatinous cube's rule: a Slam that hits grips a Medium or smaller one (escape DC 14), and Engulf hits the
+  // one it holds. Lightning Absorption: lightning heals it, js/traits.js TR.absorbs (the `charged` row plays). IN NO FIGHT AND ON NO TABLE: where in the
+  // Glowseep it is met is Griz's word, not asked yet
+  shamblingmound: {
+    name: 'Shambling Mound', type: 'plant', sheet: 'shamblingmound_p1', cr: '5', ac: 15, armor: 'natural armor', hp: 136, speed: 20, size: 2, reach: 5, blindsight: 60, blind: true,
+    abil: { str: 18, dex: 8, con: 16, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10, stealth: 2,
+    saves: { str: 4, dex: -1, con: 3, int: -3, wis: 0, cha: -3 },
+    attacks: {
+      slam: { name: 'Slam', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5, grapple: { dc: 14, max: 1, size: 'M' } },
+      engulf: { name: 'Engulf', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5, needsHeld: true, autoHitHeld: true }
+    },
+    multi: ['slam', 'slam', 'engulf'], resist: ['cold', 'fire'], absorb: ['lightning'], condImmune: ['blinded', 'deafened', 'exhaustion'],
+    src: 'SRD 5.1 Shambling Mound (CR 5, 1,800 XP; Large plant, unaligned): AC 15 (natural armor), 136 HP (16d10 + 48), speed 20 (swim 20: no swimming on the grid yet); STR 18 DEX 8 CON 16 INT 5 WIS 10 CHA 5; Stealth +2; resists cold and fire; Lightning Absorption (lightning heals it the damage dealt: js/traits.js TR.absorbs, read in js/battle.js hurt -- in place of its immunity); immune to blinded, deafened, exhaustion; blindsight 60 ft (blind beyond); Multiattack two Slams +7 2d8 + 4 bludgeoning. STAND-INS, the seat\'s, on the gelatinous cube\'s rule (js/battle.js grapple, ai.js needsHeld): one Slam that hits grips (escape DC 14, Medium or smaller), not both hitting; Engulf hits the one it holds on its turn for 2d8 + 4 with no DC 14 CON save, and the held one is restrained but not blinded or unable to breathe; it can hold one. Met nowhere yet: its place in the Glowseep is Griz\'s word'
+  },
   // THE WEREWOLF AS THE PRIEST (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both together" -- his 11-11 ruling 3, "leans are solid":
   // a story fight opens with the priest, who shifts to the hybrid as his first action; the road's random fights stay `werewolf`, the hybrid). The SRD 5.1 Werewolf
   // in its humanoid form: AC 11, the Spear twice (Multiattack, humanoid form). No man rows were drawn: he stands on werewolf_p1's `shift` frame 1 (js/ui.js).
