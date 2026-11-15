@@ -13,7 +13,6 @@ snap: each window is read one pixel in k (refused unless it is an exact k x), th
 deep16/palette.json. Placed as drawn (the art desk registered each view against the town figures). `stand`: each view moved so its Idle 1's
 lowest row is on AY, its walk with it -- the light crew's (its E, NE and N pages draw the soles a pixel above the S and SE; the old townsfolk
 stand on 60 in every view); not the shaft hand's (its notes: a forward boot in SE and NE projects a row below the ground, on purpose).
-`retone`: a view's colours moved to others of the 64 in a band of rows (the shaft hand's E ear, drawn in the fire ramp, to skin).
 Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE (RULED 10-14). Rows idle and walk at folkman_p1's fps.
 No drawn looping effect in these (the light crew's moss on the gloves is a still colour; the shaft hand's candle is unlit; RULED 11-15,
 drawn smoke and breath to the engine).
@@ -41,29 +40,10 @@ PIECES = {
     'lightcrew': dict(folder='2026-11-15-ART-WANTED-65-LIGHTCREW', name='ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
                       navy=(7, 22, 46), stand=True),
     'shaft': dict(folder='2026-11-15-ART-WANTED-71-SHAFT-HAND', name='ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1\'s cell',
-                  navy=(16, 22, 52), stand=False,
-                  # (the E profile's ear and jaw drawn in the fire ramp, both people, every frame: at game size an orange patch by the head that
-                  # reads as a flame under the unlit candle -- the portraits have none; each fire step to the skin step beside it, the head's rows only)
-                  retone={'E': ((8, 30), {'#c85014': '#aa6c4a', '#f08c24': '#d49a72', '#f8c048': '#f0c8a0'})}),
+                  navy=(16, 22, 52), stand=False),   # (its E ear in the fire ramp is the townsfolk's own head, folkman_p1's and folkwoman_p1's since 10-27, kept)
     'scraper': dict(folder='2026-11-15-ART-WANTED-72-GUANO-SCRAPER', name='ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                     navy=(17, 24, 45), stand=False),
 }
-
-
-def _rgb(h):
-    return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
-
-
-def retone(name, views, spec):
-    """a drawn view's colours moved to others of the 64, in a band of rows: {view: ((row0, row1), {'#from': '#to'})}"""
-    for v, ((r0, r1), m) in spec.items():
-        n = 0
-        for an in views[v]:
-            for fr in views[v][an]:
-                for a, b in m.items():
-                    hit = (fr[r0:r1, :, 3] > 0) & (fr[r0:r1, :, :3] == _rgb(a)).all(-1)
-                    fr[r0:r1][hit, :3] = _rgb(b); n += int(hit.sum())
-        print('  %s %s: %d px retoned in rows %d-%d' % (name, v, n, r0, r1 - 1))
 
 
 def palette():
@@ -125,8 +105,6 @@ def cut(costume):
                 if sorted(views[v].get(an, {})) != list(range(n)):
                     raise SystemExit('%s %s %s: frames %s, not %d' % (name, v, an, sorted(views[v].get(an, {})), n))
                 views[v][an] = [views[v][an][i] for i in range(n)]
-        if P.get('retone'):
-            retone(name, views, P['retone'])
         if P['stand']:
             for v, rows in views.items():               # each view stood on its Idle 1's lowest row
                 foot = int(np.where(rows['idle'][0][..., 3].any(axis=1))[0][-1])
