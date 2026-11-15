@@ -17130,7 +17130,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okF('pt_falstaff cut from ART-123-FALSTAFF (' + (pF ? pF.fw + 'x' + pF.fh + ', ' + Object.keys(aF).map(function (k) { return k + ' ' + aF[k].frames; }).join(', ') : 'NONE') + '): the idle and the work of six, the four stills',
         !!pF && pF.portrait && /ART-123-FALSTAFF/.test(pF.source) && aF.idle.frames === 6 && aF.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return aF[k] && aF[k].frames === 1; }));
       var vF = CF.VENDORS.falstaff;
-      okF('Falstaff a vendor on his face, speaking only (no shop in either game): ' + JSON.stringify(vF), !!vF && vF.sheet === 'pt_falstaff' && !vF.shop && CF.takes('falstaff'));
+      okF('Falstaff a vendor on his face, his shelf since 11-15 (one sheet sold, the found ones bought: mode=notes1115 E): ' + JSON.stringify(vF), !!vF && vF.sheet === 'pt_falstaff' && vF.shop === 'falstaff' && vF.buys === 'sheets' && CF.takes('falstaff'));
       var fF = D.SHEETS[CF.FIG.falstaff], iF = fF && fF.anims.idle;
       okF('falstaff_p1 his town figure, all eight since his NE from behind came (FALSTAFF-NE.png, 10-29 later: ' + (fF ? iF.fw + 'x' + iF.fh + ' top ' + fF.top + ', drawn ' + JSON.stringify(iF.drawn) + ', under ' + iF.under : 'NONE') + ')',
         !!fF && !iF.drawn && !iF.under && iF.frames === 14 && fF.top >= 45 && fF.top <= 54 && /its NE, FALSTAFF-NE\.png/.test(fF.source));
@@ -17139,7 +17139,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       HF.begin(HF.fresh(), 0); var BF = topF();
       okF('his door has no room behind it (js/town.js T.ROOMS: he speaks at the door), and no figure of his on the street', !TF.hasRoom('keeper:falstaff') && !BF.units.some(function (u) { return u.npc === 'falstaff'; }));
       driveF(TF.fire(BF, trigF('keeper:falstaff')), 600);
-      var scF = D.top(), wF = scF instanceof CF.Counter && scF.wait && scF.wait.say ? scF.wait.say : [];
+      var scF = D.top(), wF = scF instanceof CF.Counter && scF.wait && (scF.wait.say || scF.wait.ask) ? [].concat(scF.wait.say || scF.wait.ask) : []; // (his word may come as THE SHELVES' question since 11-15)
       okF('NEW GAME, at the factor house\'s door (keeper:falstaff, ' + D.roam.def.phase + '): his word on his face (' + (scF && scF.sheet) + '), "' + String(wF[0] || '').slice(0, 60) + '..."',
         scF instanceof CF.Counter && scF.sheet === 'pt_falstaff' && wF.some(function (l) { return /voice/i.test(l); }));
       if (scF instanceof CF.Counter) scF.close();
