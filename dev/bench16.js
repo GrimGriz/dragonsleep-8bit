@@ -18759,6 +18759,26 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // THE GREEN HAG, 11-15 (mode=greenhag1115; tools/greenhag-sheet.py, data/foes.js greenhag, js/ai.js the vanish -- the NPC cutter seat on Griz's "since people is
+  // done have it work the creature list backward", art-wanted 64's fey, the art desk's 70): the SRD 5.1 block; her sheet, both forms on it, the borrowed face's walk held;
+  // her rows played in a fight are the show's (check.py's show line-up: her unmask at her first turn, her vanish at will, her Vicious Mockery on `cast`)
+  if (get('mode', '') === 'greenhag1115') {
+    var repH = { checks: [], errors: [] };
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var GH = D.FOES.greenhag, SH0 = GH && D.SHEETS[GH.sheet], aH = SH0 && SH0.anims, cH = GH && GH.attacks.claws;
+      okH('the SRD 5.1 Green Hag (' + (GH ? 'AC ' + GH.ac + ', ' + GH.hp + ' HP, ' + GH.type + ', CR ' + GH.cr + '; Claws +' + cH.atk + ' ' + cH.dice + '+' + cH.mod + ' ' + cH.type + ' on `' + cH.row + '`; Invisible Passage ' + GH.invisibility + '; Vicious Mockery DC ' + GH.caster.dc : 'NONE') + ')',
+        !!GH && GH.ac === 17 && GH.hp === 82 && GH.type === 'fey' && GH.cr === '3' && GH.size === 1 && GH.speed === 30 && GH.darkvision === 60 && cH.atk === 6 && cH.dice === '2d8' && cH.mod === 4 && cH.row === 'claw' &&
+        GH.invisibility === 'atwill' && GH.caster.dc === 12 && GH.caster.known.join() === 'viciousmockery');
+      var wantH = { idle: 8, walk: 8, claw: 8, cast: 8, vanish: 6, flinch: 6, hurt: 8, prone: 1, getup: 1, still: 8, stillwalk: 8, reveal: 6 };
+      var offH = Object.keys(wantH).filter(function (k) { return !aH || !aH[k] || aH[k].frames !== wantH[k]; });
+      okH('her sheet (' + (GH && GH.sheet) + '): her own rows and her borrowed face\'s (still, stillwalk, reveal), ' + Object.keys(wantH).length + ' rows at their counts, the claws landing on frame 3' + (offH.length ? ' -- off: ' + offH.join(', ') : '') + '; the borrowed face walking held',
+        !!SH0 && SH0.fw === 88 && SH0.fh === 88 && !offH.length && !!aH.stillwalk.held && aH.claw.release === 2);
+    } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
   // THE UNNAMED HEAD TO FOOT, 11-15 (mode=folk1115; tools/folk-costume-sheet.py, js/counter.js C.folkFig and C.dress, js/town.js T.watch -- the NPC cutter seat, art-wanted
   // 65's light crew, Griz from the Glowseep's floor: "are we missing art for the worldmap figures for these guys?"): the light crew's man and woman cut whole in all eight
   // facings; the Glowseep's three in them by day and by night, facing as the floor stands them, turning to the party; every other unnamed in the townsfolk's own man or woman

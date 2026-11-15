@@ -1358,6 +1358,7 @@
     if (u.invis && !u.invis.used && !u.conds.invisible && !u.conds.faerie && !u.conds.pinned && !u.conds.branded && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
       T.action = 0; u.invis.used = !u.invis.atWill; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
       B.card(['{r}' + the(B, u) + '{/} fades out of sight.  {g}(Invisibility: till it attacks, casts or grows){/}'], 360);
+      if (D.spr.anim(u.sheet, 'vanish')) { u.anim = 'vanish'; u.animT = B.t; yield D.spr.duration(u.sheet, 'vanish') + 4; u.anim = 'idle'; } // (a sheet's own fading: the green hag's Invisible Passage, 11-15)
       yield 30;
       var closeOn = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, closeOn, G.reach(u, T.move), reachOf(u));
       if (e0 && (e0.x !== u.x || e0.y !== u.y)) yield* walkTo(B, u, e0);

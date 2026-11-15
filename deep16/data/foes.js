@@ -952,6 +952,21 @@
     caster: { lvl: 4, ab: 'cha', dc: 13, atk: 5, slots: [3, 3], known: ['charmperson', 'mirrorimage'] },
     src: 'SRD 5.1 Lamia (CR 4, Large; AC 13, 97 HP, speed 30; darkvision 60; Deception +7, Insight +4, Stealth +3): Multiattack, its Claws +5 2d10+3 slashing and its Dagger +5 1d4+3 piercing or Intoxicating Touch (+5 melee spell attack: cursed an hour -- the fight -- disadvantage on WIS saves and every ability check; Greater Restoration lifts it); Innate Spellcasting (CHA, DC 13): Charm Person and Mirror Image 3/day each, as slots the class AI spends (it may spend a 2nd-level one on a Charm Person). Disguise Self at will as its False Appearance: it stands as a robed woman till its first turn or a wound. Not on the grid, plain stand-ins: Major Image, Scrying, Suggestion and Geas -- none; Disguise Self\'s any humanoid form -- the one robed woman; seeing through it (Investigation) -- none'
   },
+  // the green hag (11-15, the NPC cutter seat on Griz's "since people is done have it work the creature list backward"; asked 11-15, art-wanted
+  // 64, the fey shelf's one): the SRD 5.1 Green Hag from the mechanics the grid has; her sheet tools/greenhag-sheet.py (the art desk's 70). She
+  // stands as an old countrywoman till her first turn or a wound (her borrowed face on `still`/`stillwalk`, the lamia's way) and her unmask
+  // plays (`reveal`); her claws play `claw`, her Vicious Mockery `cast`, her Invisible Passage `vanish`. IN NO FIGHT, ON NO TABLE: where she is
+  // met is his word.
+  greenhag: {
+    name: 'Green Hag', type: 'fey', sheet: 'greenhag_p1', cr: '3', ac: 17, hp: 82, speed: 30, size: 1, reach: 5, darkvision: 60, invisibility: 'atwill',
+    abil: { str: 18, dex: 12, con: 16, int: 13, wis: 14, cha: 14 }, init: 1, perception: 14, stealth: 3,
+    saves: { str: 4, dex: 1, con: 3, int: 1, wis: 2, cha: 2 },
+    attacks: { claws: { name: 'Claws', atk: 6, dice: '2d8', mod: 4, type: 'slashing', reach: 5, row: 'claw' } },
+    multi: 1,
+    // (Innate Spellcasting, CHA, DC 12: Vicious Mockery at will -- the class AI's cantrip; Dancing Lights and Minor Illusion not given)
+    caster: { lvl: 3, ab: 'cha', dc: 12, atk: 4, slots: [], known: ['viciousmockery'] },
+    src: 'SRD 5.1 Green Hag (CR 3, Medium fey; AC 17 natural armor, 82 HP, speed 30; darkvision 60; Arcana +3, Deception +4, Perception +4, Stealth +3): Claws +6 2d8+4 slashing; Innate Spellcasting (CHA, DC 12): Vicious Mockery at will (Dancing Lights and Minor Illusion not given); Illusory Appearance as an old countrywoman till her first turn or a wound (the lamia\'s robed woman\'s way; the SRD\'s bonus action to end it is her first turn); Invisible Passage at will, till she attacks or casts (the duergar\'s Invisibility, js/ai.js -- her concentration not tracked); Amphibious and Mimicry not given (no water and no voices on the grid)'
+  },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
   // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.

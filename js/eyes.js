@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE NPC CUTTER SEAT (cutter-npc-1115), 11-15 (Opus; tools/greenhag-sheet.py; data/foes.js greenhag; js/ai.js the vanish): the green hag, art-wanted 64's fey (the art desk's 70)
+    'eyes-greenhag-1115': { pri: 2, group: G2, title: 'THE GREEN HAG: the fey shelf\'s one, her borrowed face and her own, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the NPC cutter seat, cutter-npc-1115; tools/greenhag-sheet.py; data/foes.js greenhag)',
+      url: 'deep16/?show=greenhag&fresh=1115gh',
+      look: 'A SHOW (the watchers at level 3). Your "let\'s get one in each column and not waste art dept usage due to lack of input" -- the fey. The art desk\'s green hag stands first as a harmless old countrywoman (a brown shawl over grey hair, a patched skirt, a kind lined face); at her first turn, or the first blow, the shawl and skin peel away like a broken reflection and the hag is there: pond-green, stooped, lank weed-hair to her waist, iron-dark claws. She rakes with her claws, jeers with a raised finger (Vicious Mockery: no light drawn at the fingertip, as you asked), and at will sinks out of sight (Invisible Passage) till she strikes again. Struck she flinches; down, she folds into a heap of cloth and hair; knocked prone she pushes up on her long arms. She is on no table: where she is met is your word. The rows one at a time: ?gallery&shelf=creatures&rows=greenhag.' },
     // THE PARADE-SHOW SEAT (parade-show-1115), 11-15 (Fable, after a start on Opus; deep16/js/parade.js; dev/bench16.js mode=parade1115): one show for the day's new art
     'eyes-parade-1115': { pri: 1, group: G1, title: 'THE PARADE: the day\'s new creatures, the townsfolk in their new costumes round each, and the crew boss (11-15)', pt: 'the eyes lane, 2026-11-15 (the parade-show seat, parade-show-1115; deep16/js/parade.js; dev/bench16.js mode=parade1115)',
       url: 'deep16/?parade&fresh=1115pa',
