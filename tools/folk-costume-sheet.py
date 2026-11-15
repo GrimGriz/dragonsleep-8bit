@@ -45,6 +45,8 @@ PIECES = {
                   # (the E profile's ear and jaw drawn in the fire ramp, both people, every frame: at game size an orange patch by the head that
                   # reads as a flame under the unlit candle -- the portraits have none; each fire step to the skin step beside it, the head's rows only)
                   retone={'E': ((8, 30), {'#c85014': '#aa6c4a', '#f08c24': '#d49a72', '#f8c048': '#f0c8a0'})}),
+    'scraper': dict(folder='2026-11-15-ART-WANTED-72-GUANO-SCRAPER', name='ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                    navy=(17, 24, 45), stand=False),
 }
 
 
@@ -75,12 +77,19 @@ def mirror(fr):
 
 
 def frames_of(d):
-    """the piece's frame map -> [(sheet, view, row, index, page, (x, y, w, h))]"""
+    """the piece's frame map, whichever shape the art desk sent -> [(sheet, view, row, index, page, (x, y, w, h))]"""
     if os.path.exists(os.path.join(d, 'FRAME-MAP.json')):
-        fm = json.load(open(os.path.join(d, 'FRAME-MAP.json')))
-        return [(s['runtime_target'], s['facing'], s['action'], f['index'], s['file'], tuple(f['cell_source_xywh'])) for s in fm['sheets'] for f in s['frames']]
-    return [(r['target'], r['facing'], r['action'], int(r['frame_index']), r['source_page'], (int(r['crop_x']), int(r['crop_y']), int(r['crop_w']), int(r['crop_h'])))
-            for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8'))]
+        fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+        if 'sheets' in fm:                      # (the light crew's: `sheets`, each frame's `index` and `cell_source_xywh`)
+            return [(s['runtime_target'], s['facing'], s['action'], f['index'], s['file'], tuple(f['cell_source_xywh'])) for s in fm['sheets'] for f in s['frames']]
+        return [(p['target'], p['facing'], p['row'], f['frame'] - 1, p['png'], tuple(f['source_rect_xywh'])) for p in fm['pages'] for f in p['frames']]   # (the scraper's: `pages`)
+    out = []
+    for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8')):   # (a row a frame; its columns named four ways so far)
+        g = lambda *ks: next(r[k] for k in ks if r.get(k) not in (None, ''))
+        idx = int(g('frame_index', 'index')) if any(r.get(k) not in (None, '') for k in ('frame_index', 'index')) else int(g('frame_1based', 'frame', 'frame_number')) - 1
+        out.append((g('target', 'runtime_target'), r['facing'], g('action', 'row', 'runtime_row'), idx, g('source_page', 'source_png', 'png'),
+                    (int(g('crop_x', 'x')), int(g('crop_y', 'y')), int(g('crop_w', 'crop_width', 'width')), int(g('crop_h', 'crop_height', 'height')))))
+    return out
 
 
 def cut(costume):

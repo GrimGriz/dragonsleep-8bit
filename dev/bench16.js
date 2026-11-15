@@ -18654,7 +18654,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper'];
       COSTK.forEach(function (c) {
         var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
         var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });
@@ -18690,6 +18690,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var BW = floorK('?roam=warrens_b'), fW = folkK(BW);
       okK('the Warrens: the shaft crew in the shaft hand\'s figures (' + fW.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
         fW.length >= 1 && fW.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && fW.some(function (u) { return u.sheet === 'folkman_shaft_p1' || u.sheet === 'folkwoman_shaft_p1'; }));
+      var BG2 = floorK('?roam=galleries_g2'), fG2 = folkK(BG2);
+      okK('the Guano Galleries: the scrapers in the guano scraper\'s figures, the rest on their own or the townsfolk\'s (' + fG2.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
+        fG2.length >= 2 && fG2.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && fG2.some(function (u) { return /_scraper_p1$/.test(u.sheet); }));
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);

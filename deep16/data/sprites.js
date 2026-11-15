@@ -4940,6 +4940,35 @@
 },
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
+"folkman_scraper_p1": {
+"image": "art/folkman_scraper_p1.png?v=0758ca1314",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_shaft_p1": {
 "image": "art/folkman_shaft_p1.png?v=96a1b7d32b",
 "fw": 72,
@@ -5026,6 +5055,35 @@
 }
 },
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
+"folkwoman_scraper_p1": {
+"image": "art/folkwoman_scraper_p1.png?v=233d32726d",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_shaft_p1": {
 "image": "art/folkwoman_shaft_p1.png?v=f2e0c24fc5",
