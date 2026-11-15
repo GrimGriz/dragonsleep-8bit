@@ -49,6 +49,8 @@ PIECES = {
                     navy=(17, 24, 45), stand=False),
     'barkeep': dict(folder='2026-11-15-ART-WANTED-75-BARKEEP', name='ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                     navy=(17, 24, 45), stand=False),
+    'hired': dict(folder='2026-11-15-ART-WANTED-76-HIRED-HAND', name='ART-WANTED-76 HIRED-HAND, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                  navy=(17, 24, 45), stand=False),
 }
 
 

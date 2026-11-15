@@ -4969,6 +4969,35 @@
 },
 "source": "drawn by the art desk (ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
+"folkman_hired_p1": {
+"image": "art/folkman_hired_p1.png?v=1d99039cfe",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-76 HIRED-HAND, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_lightcrew_p1": {
 "image": "art/folkman_lightcrew_p1.png?v=f1a20814eb",
 "fw": 72,
@@ -5171,6 +5200,35 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"folkwoman_hired_p1": {
+"image": "art/folkwoman_hired_p1.png?v=67bb65fef8",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-76 HIRED-HAND, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_lightcrew_p1": {
 "image": "art/folkwoman_lightcrew_p1.png?v=b84510e91a",
