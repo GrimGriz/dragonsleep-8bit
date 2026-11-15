@@ -16477,12 +16477,12 @@ false
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dwarf": {
-"image": "art/pt_dwarf.png?v=8b4db3af1c",
+"image": "art/pt_dwarf.png?v=65c43bc6f7",
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
-"top": 154,
+"ay": 155,
+"top": 155,
 "portrait": true,
 "anims": {
 "idle": {
@@ -16490,7 +16490,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 6,
 "fps": 3,
 "ledge": [
@@ -16507,7 +16507,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16519,7 +16519,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16531,7 +16531,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16543,7 +16543,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16555,7 +16555,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16567,7 +16567,7 @@ true
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16579,7 +16579,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16591,7 +16591,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16603,7 +16603,7 @@ true
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16615,7 +16615,7 @@ false
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16627,7 +16627,7 @@ true
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -16639,11 +16639,35 @@ true
 "fw": 173,
 "fh": 157,
 "ax": 92,
-"ay": 154,
+"ay": 155,
 "frames": 1,
 "fps": 1,
 "ledge": [
 false
+]
+},
+"roadpatrol": {
+"y": 2041,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"fileleader": {
+"y": 2198,
+"fw": 173,
+"fh": 157,
+"ax": 92,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
 ]
 }
 },

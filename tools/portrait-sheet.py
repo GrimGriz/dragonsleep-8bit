@@ -298,7 +298,12 @@ PEOPLE = {
               # the art desk's ART-142, sorted to deep16/_src/ART-142-GARRISON-PORTRAITS-AND-TOWN/ -- the trooper redrawn with a bearded battleaxe, two throwing axes and
               # the full coat of mail (in place of ART-141's HEAD 2, the short axe, now in dwarf/PORTRAITS/superseded/), and the crossbowman, the shield slung, a heavy crossbow
               + [('ART-142-GARRISON-PORTRAITS-AND-TOWN/sources/portraits/ART-142-HEAD-%02d-PAGE-1-%s.png' % (h, pg), [1], [act]) for h, pg, act in [
-                  (1, 'TROOPER', 'trooper'), (2, 'CROSSBOWMAN', 'crossbowman')]],
+                  (1, 'TROOPER', 'trooper'), (2, 'CROSSBOWMAN', 'crossbowman')]]
+              # the road patrol and the file leader (11-15, the cutter of 1115, on the lanes desk's start, his "opus cutter one at a time from Fresh"; art-wanted section 56
+              # block 1, his "5 - ask follow up, does also have melee weapon?"): the art desk's SOLSKAFT-ROAD-PATROL-AND-FILE-LEADER-PORTRAITS, sorted to deep16/_src/ of that
+              # name -- the ranger of the road with the longbow over his head, the hood down; the trooper's kit with the brass comb on the cap and one yellow chevron
+              + [('SOLSKAFT-ROAD-PATROL-AND-FILE-LEADER-PORTRAITS/sources/SOLSKAFT-%s-PORTRAIT.png' % pg, [1], [act]) for pg, act in [
+                  ('ROAD-PATROL', 'roadpatrol'), ('FILE-LEADER', 'fileleader')]],
               'avoid': {'*': ['fire', '#e8624a'], 'gatewatch': ['#e8624a'], 'lampwarden': ['#e8624a']}}),
     # GENERAL GRIMLOCK GRIM (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "they can churn through fresh one at a time as they complete at your discretion
     # as to next cut"; the General of the road redraft from his Beholda stream table, his 10-28 "was decided re: General Grimlock Grim beholda scripting for road redraft"):
