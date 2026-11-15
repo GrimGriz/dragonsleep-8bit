@@ -7843,6 +7843,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (!(RK.def && RK.def.key === InK.KEY)) return 'not at the inn (' + whereQ() + ')';
         }
         for (var n = 0; n < 20 && HK.cur && HK.day() <= toQ; n++) {
+          if (RK.def.key === InK.UP) { var stU0 = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (stU0) atTrigK(topK(), stU0, { until: function () { return RK.def.key === InK.KEY; } }); } // (11-15, the second quest-walk seat: down the stair BEFORE the purse is counted -- woken upstairs with 19 sp, the walk asked for the room, was refused and waited out a whole day by the bell before it camped)
           if (silverQ() < 20 && RK.def.key !== InK.UP) { // (the room is twenty silver: short of it, a night camped by the road and back in at morning)
             var eo = edgeOutQ(); if (D.top() !== WK.scene) { logQ('the inn: ' + silverQ() + ' sp, no room, and no way off the floor: ' + eo); break; }
             campQ('no silver for a room, ' + silverQ() + ' sp'); var bk = worldK('inn', {}); if (!(RK.def && RK.def.key === InK.KEY)) { logQ('the inn: not back in after the camp (' + bk.slice(0, 160) + ')'); break; }
