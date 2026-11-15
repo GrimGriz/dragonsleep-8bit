@@ -888,7 +888,9 @@
       roost: !!def.roost, announce: def.roost ? [M.LINES.roost] : null };
   };
   M.LINES.roost = '{y}Overhead, the roost{/}: millions of sleeping wings. No fire. No bright light.';
-  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  // (the fight's own last card said THE WAY IS CLEAR. -- behind the VICTORY panel and after it -- so the floor does not say it a third time: 11-15, Griz, his NOTES from the Glowseep:
+  // "it says 'the way is clear' 3 different times, pretty sure at least one is excessive (the one after the victory popup?)"; a fight with its own last line keeps the floor's)
+  M.fieldBack = function (done, F) { return done === 'won' ? (F && /way is clear/i.test(F.won || '') ? ['{y}Back where the party stood.{/}'] : ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}']) : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
   // THE ROOST COMES DOWN (10-22, the lanes desk's call, standing for his overrule -- he was away -- on the seat's lean, "yes, match the first game"): a field fight that ends
   // 'roost' ends the run, as the first game's RoostFail does (RULED 09-24, Griz: "you wanted to make a name for yourself, but not this kind of name"): NOT THIS KIND OF NAME,
   // fail.roost's words, then CONTINUE FROM A SAVE or the title, and nothing saved (js/house.js H.lost's way). The test door: deep16/?roostfail

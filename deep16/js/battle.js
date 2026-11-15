@@ -3190,6 +3190,11 @@
     return this.units.filter(function (w) {
       if (!G.hostile(u, w) || !G.standing(w) || w.ethereal || w.under || (w.riding && !w.attached) || RU.charmedBy(u, w)) return false;
       if (rd && rd.range) return G.range(u, w) <= rd.range && (!rd.see || G.dist(u, w) <= 5 || (G.los(u, w).clear && D.magic.sees(self, u, w))); // (a readied special: its own reach, and sight where it aims by sight -- 10-08)
+      // a spell from the caster outward (a cone, a line, Thunderwave's cube): the one its length reaches, seen -- targetOK read it as touch, 5 ft, so a readied Burning Hands sprang
+      // only for one beside the wizard (11-15, Griz, his NOTES from the Glowseep: "should the 3rd snake making his first move have triggered aurdins burning hands ready?" -- it
+      // crawled into sight 15 ft off and nothing sprang; the first snake, a step beside him a round later, sprang it)
+      var reachG = g && (g.shape === 'cone' || g.shape === 'line' ? g.len : g.shape === 'wave' ? g.size : 0);
+      if (reachG) return G.range(u, w) <= reachG && (G.dist(u, w) <= 5 || (G.los(u, w).clear && D.magic.sees(self, u, w)));
       if (g) return !!D.magic.targetOK(self, u, g, w);
       if (wp && wp.ranged) return G.range(u, w) <= wp.range[1] && G.los(u, w).clear && (D.magic.sees(self, u, w) || G.dist(u, w) <= 5);
       return G.dist(u, w) <= G.reachOf(u, wp && wp.reach);

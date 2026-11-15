@@ -1082,7 +1082,7 @@
       }
     }
     B.focus(R0.token);
-    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which === 'wet' && done === 'won' && R0.flags.otyughDead && !b.units.some(function (u) { return u.side === 'party' && u.left; })) B.card(['{y}The landlord is dead.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which === 'wet' && done === 'won' && R0.flags.otyughDead && !b.units.some(function (u) { return u.side === 'party' && u.left; })) B.card(['{y}The landlord is dead.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done, fd.F) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed' || fd) { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk ' + (fd ? 'the floor' : 'the Wet') + ' again.'], 100000); return; }
     // the gather pays (R.pullPay above): what fell in there -- said here only when the fight had no last card to say it on (the Settling, a fight left by the menu) -- and the

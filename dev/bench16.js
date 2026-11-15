@@ -1792,6 +1792,33 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // READY ends the turn, springs only on another's, and no spell readied after a bonus-action spell (mode=ready1005; RULED 10-05, Griz: "Making yourself ready and
   // waiting to do it implies you've decided to wait for a trigger until your next turn and that you're done moving and using bonus actions - but the action stored as
   // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
+  // A READIED CONE SPRINGS AT ITS LENGTH (mode=glowseep1115; 11-15, Griz's NOTES from the Glowseep: "should the 3rd snake making his first move have triggered aurdins burning
+  // hands ready?" -- battle.js readyTargets read a cone's reach as touch, 5 ft): a goblin crawls to 15 ft of a wizard holding Burning Hands -- sprung, burned; at 20 ft, held
+  if (get('mode', '') === 'glowseep1115') {
+    var repN = { checks: [], errors: [] };
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runN(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } }
+    function mkN(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    try {
+      [[3, true], [4, false]].forEach(function (cs) {
+        var Bn = mkN('?npc=goblin&lvl=5&vs=wizard'), wz = Bn.units.filter(function (u) { return u.side === 'party'; })[0], gb = Bn.units.filter(function (u) { return u.side === 'foe'; })[0];
+        wz.x = 9; wz.y = 9; gb.x = 9; gb.y = 1; gb.hp = gb.maxhp = 200; if ((wz.known || []).indexOf('burninghands') < 0) wz.known = (wz.known || []).concat(['burninghands']);
+        GN_setup(Bn); D.rules.startTurn(wz); Bn.active = wz;
+        runN(Bn.exec(wz, { do: 'ready', trigger: 'near', what: 'spell', id: 'burninghands', slot: 1 }));
+        var had = JSON.stringify(wz.ready && wz.ready.had);
+        gb.y = 9 - cs[0]; GN_setup(Bn); Bn.active = gb; D.rules.startTurn(gb); var hp0 = gb.hp;
+        runN(Bn.readyHook(gb, 'move'));
+        var sprung = !wz.ready && wz.reaction === 0;
+        okN('Burning Hands readied, the goblin 40 ft off (had ' + had + '), then ' + cs[0] * 5 + ' ft off on its own turn: ' + (sprung ? 'sprung' : 'held') + ' (the goblin ' + hp0 + ' -> ' + gb.hp + ')',
+          sprung === cs[1] && (!cs[1] || gb.hp < hp0));
+      });
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    if (errs.length) repN.errors = repN.errors.concat(errs);
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
+  function GN_setup(Bx) { if (window.DS.G && window.DS.G.setup && window.DS.G.map) window.DS.G.setup(window.DS.G.map, Bx.units); }
   if (get('mode', '') === 'ready1005') {
     var repR = { checks: [], errors: [] };
     function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -8536,7 +8563,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1029);
       // 1. A FLOOR'S FIGHT (his "can we do victory (xp rewards, etc) on the fight screen instead of the roam screen after return from the fight?"): the dens, a giant bat on its field, simple;
-      // the last card says Victory! and the XP with the way back; E back: the floor says the way is clear and no Victory!, the XP paid once, the bank empty
+      // the last card says Victory! and the XP with the way back; E back: the floor says it is back where it stood and no Victory!, and not THE WAY IS CLEAR. again -- the fight's last card said it (11-15, his "it says 'the way is clear' 3 different times"), the XP paid once, the bank empty
       var B1 = testVc('?roam=galleries_g3&flags=cullHired&at=20,10'), R1 = B1.roam, xp1 = R1.members.map(function (u) { return (u.src && u.src.xp) || 0; });
       runVc(B1, MVc.fieldFight(B1, 'asked', { list: ['giantbat'], line: 'A bat.' })); driveVc(B1.co, function () { var s = D.top(); return s !== B1 && s instanceof D.Battle; }, 4000);
       var b1 = D.top(), last1 = b1 !== B1 ? winVc(b1) : [], pan1 = panVc(), ban1 = b1.simple && SVc.banner ? SVc.banner(b1).map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : [];
@@ -8545,7 +8572,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okVc('the dens\' fight (' + b1.result + ', simple ' + !!b1.simple + '): the VICTORY panel ' + pan1.title + ' "' + pan1.lines.join(' | ').slice(0, 120) + '"; its last card "' + last1.join(' | ').slice(0, 90) + '"; the simple screen\'s words ' + ban1.length + ' lines ("' + (ban1[ban1.length - 1] || '').slice(0, 40) + '")',
         b1.result === 'won' && pan1.title === 'VICTORY' && pan1.lines.some(function (l) { return /\d+ XP/.test(l); }) && !last1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(last1[last1.length - 1]) && !!b1.simple && !ban1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(ban1.join(' ')));
       okVc('back on the floor: "' + floor1.slice(0, 120) + '"; paid on the card ' + paid1 + ' and after it ' + (R1.xpPaid || 0) + ', each one\'s XP up ' + gain1.join(',') + ', the bank ' + R1.xpBank,
-        !/Victory!/.test(floor1) && /The way is clear/.test(floor1) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
+        !/Victory!/.test(floor1) && !/The way is clear/.test(floor1) && /Back where the party stood/.test(floor1) && /THE WAY IS CLEAR/.test(last1.join(' ')) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
       // 2. A ROAD FIGHT IN THE HOUSE (the same way everywhere): a NEW GAME on THE WORLD, a wolf on the road; the last card says Victory! and the XP; THE WORLD after says the road is
       // clear and no XP, each one's banked once
       HVc.worldDoor('?world&noenc'); var ws2 = D.top(); if (ws2 && ws2.baking) { ws2.baking = false; ws2.enter(); }
