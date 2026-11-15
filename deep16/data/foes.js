@@ -841,6 +841,24 @@
     multi: ['beak', 'claws'],
     src: 'SRD 5.1 Griffon (CR 2, 450 XP; Large monstrosity, unaligned): AC 12, 59 HP (7d10 + 21), speed 30, fly 80 (wings in every fight, js/flight-ai.js); STR 18 DEX 15 CON 16 INT 2 WIS 13 CHA 8; Perception +5, darkvision 60, passive Perception 15; Keen Sight (advantage on Perception by sight: js/rules.js RU.keen, the KEEN table); Multiattack, one Beak (+6, 1d8 + 4 piercing) and one Claws (+6, 2d6 + 4 slashing). No Stealth in its block'
   },
+  // THE WYVERN (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue -- Griz: "Please start cutting Fresh one at a time"; asked in art-wanted section 45, ART-132,
+  // for the Coldridge route's random encounters in the dragon's place -- his "Dragon is off the table for the way dragons are special here, swap in wyvern and add owl bear"):
+  // the SRD 5.1 Wyvern as written, on the art desk's ART-132 cut into wyvern_p1 (tools/wyvern-sheet.py: idle, walk, fly, attack, sting, rake, flinch, fall, prone,
+  // getup in all eight facings). Its fly 80 the grid's wings (js/flight-ai.js; aloft it plays its fly row, js/ui.js UI.aloftRow). The Bite plays `attack`, the
+  // Stinger its `sting` row; the Claws, its `rake`, only aloft: `aloftMulti` (js/ai.js, the SRD's "While flying, it can use its claws in place of one other attack").
+  // content/encounters.json coldridge draws it (the Coldridge table, 77c2d9d3). Benched: mode=wyvern1115; ?show=wyvern
+  wyvern: {
+    name: 'Wyvern', type: 'dragon', sheet: 'wyvern_p1', cr: '6', ac: 13, armor: 'natural armor', hp: 110, speed: 20, fly: 80, size: 2, reach: 10, darkvision: 60,
+    abil: { str: 19, dex: 10, con: 16, int: 5, wis: 12, cha: 6 }, init: 0, perception: 14,
+    saves: { str: 4, dex: 0, con: 3, int: -3, wis: 1, cha: -2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 7, dice: '2d6', mod: 4, type: 'piercing', reach: 10 },
+      stinger: { name: 'Stinger', atk: 7, dice: '2d6', mod: 4, type: 'piercing', reach: 10, row: 'sting', save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } },
+      claws: { name: 'Claws', atk: 7, dice: '2d8', mod: 4, type: 'slashing', reach: 5, row: 'rake' }
+    },
+    multi: ['bite', 'stinger'], aloftMulti: ['claws', 'stinger'], // (Multiattack: its Bite and its Stinger; aloft, with one in the Claws' reach, the Claws in the Bite's place -- js/ai.js)
+    src: 'SRD 5.1 Wyvern (CR 6, 2,300 XP; Large dragon, unaligned): AC 13 (natural armor), 110 HP (13d10 + 39), speed 20, fly 80 (wings in every fight, js/flight-ai.js); STR 19 DEX 10 CON 16 INT 5 WIS 12 CHA 6; Perception +4, darkvision 60, passive Perception 14; no languages; Multiattack, one Bite (+7, reach 10, 2d6 + 4 piercing) and one Stinger (+7, reach 10, 2d6 + 4 piercing, then DC 15 CON: 7d6 poison, half on a save); while flying, its Claws (+7, reach 5, 2d8 + 4 slashing) in place of one other attack -- here, aloft with one in the Claws\' reach, the Claws and the Stinger (js/ai.js aloftMulti)'
+  },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
   // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).

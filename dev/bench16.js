@@ -10454,6 +10454,62 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE WYVERN, 11-15 (mode=wyvern1115; the cutter-fresh-1115 seat, on Griz's "Please start cutting Fresh one at a time"): the SRD 5.1 Wyvern on the art desk's ART-132,
+  // wyvern_p1 (tools/wyvern-sheet.py) -- 1. its block; 2. the Stinger: a hit, then DC 15 CON, 7d6 poison, half on a save, on its own `sting` row; the Bite on `attack`,
+  // the Claws on `rake`; 3. its routine (js/ai.js): on the ground the Bite and the Stinger, aloft beside one the Claws in the Bite's place (data/foes.js aloftMulti);
+  // 4. its sheet, every row and its strike frames; 5. the Coldridge route's table draws a fight of it
+  if (get('mode', '') === 'wyvern1115') {
+    var repWY = { checks: [], errors: [], notes: [] }, d0WY = D.d;
+    function okWY(what, v) { repWY.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FWY = D.FOES.wyvern, AWX = FWY && FWY.attacks;
+      okWY('1 the block: ' + (FWY ? FWY.name + ', ' + FWY.type + ', CR ' + FWY.cr + ', AC ' + FWY.ac + ', ' + FWY.hp + ' HP, speed ' + FWY.speed + ', fly ' + FWY.fly + ', size ' + FWY.size + '; Bite +' + AWX.bite.atk + ' ' + AWX.bite.dice + '+' + AWX.bite.mod + ' reach ' + AWX.bite.reach +
+        '; Stinger +' + AWX.stinger.atk + ' ' + AWX.stinger.dice + '+' + AWX.stinger.mod + ' reach ' + AWX.stinger.reach + ', DC ' + AWX.stinger.save.dc + ' ' + AWX.stinger.save.ab + ' ' + AWX.stinger.save.dice + ' ' + AWX.stinger.save.type + '; Claws +' + AWX.claws.atk + ' ' + AWX.claws.dice + '+' + AWX.claws.mod + ' reach ' + AWX.claws.reach : 'none'),
+        !!FWY && FWY.type === 'dragon' && FWY.cr === '6' && FWY.ac === 13 && FWY.hp === 110 && FWY.speed === 20 && FWY.fly === 80 && FWY.size === 2 && AWX.bite.atk === 7 && AWX.bite.dice === '2d6' && AWX.bite.mod === 4 && AWX.bite.reach === 10 &&
+        AWX.stinger.atk === 7 && AWX.stinger.dice === '2d6' && AWX.stinger.reach === 10 && AWX.stinger.save.dc === 15 && AWX.stinger.save.ab === 'con' && AWX.stinger.save.dice === '7d6' && AWX.stinger.save.type === 'poison' && AWX.stinger.save.half && !AWX.stinger.save.zero &&
+        AWX.claws.atk === 7 && AWX.claws.dice === '2d8' && AWX.claws.reach === 5 && JSON.stringify(FWY.multi) === '["bite","stinger"]' && JSON.stringify(FWY.aloftMulti) === '["claws","stinger"]');
+      var BWyX = D.npcFight('?npc=wyvern&vs=fighter:7,cleric:7&lvl=7', {}); D.battle = BWyX; BWyX.enter(); var kWyX = 0; while (!BWyX.order.length && kWyX++ < 400) BWyX.co.next();
+      var WYX = BWyX.units.filter(function (u) { return u.kind === 'wyvern'; })[0], FIX = BWyX.units.filter(function (u) { return u.side === 'party' && /fighter/i.test(u.cls || u.kind || u.name); })[0];
+      BWyX.units.forEach(function (w) { if (w !== WYX && w !== FIX) w.left = true; });
+      var rowsWYX = function (g) { var seen = [], r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; if (WYX.anim && seen.indexOf(WYX.anim) < 0) seen.push(WYX.anim); } while (!r.done && n++ < 20000); return seen; };
+      var GWX = D.grid, drainWyX = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 20000); return r.value; };
+      WYX.fz = null; FIX.x = WYX.x + 2; FIX.y = WYX.y; FIX.fz = null; FIX.hp = FIX.maxhp = 300; GWX.setup(GWX.map, BWyX.units);
+      var hurtLogX = [], hurt0X = BWyX.hurt; BWyX.hurt = function (u, n, type) { if (u === FIX) hurtLogX.push([n, type]); return hurt0X.apply(this, arguments); };
+      var d20X = [], pinX = function (seq) { d20X = seq.slice(); D.d = function (n) { return n === 20 && d20X.length ? d20X.shift() : d0WY.apply(this, arguments); }; };
+      // 2. the Stinger, the save failed then made; the Bite; the Claws
+      var stingX = function (seq) { pinX(seq); hurtLogX = []; FIX.hp = FIX.maxhp; BWyX.active = WYX; D.rules.startTurn(WYX); var rowWYS = rowsWYX(BWyX.attack(WYX, FIX, WYX.attacks.stinger)); D.d = d0WY; return { row: rowWYS, log: hurtLogX.slice() }; };
+      var sumTX = function (log, t) { return log.filter(function (h) { return h[1] === t; }).reduce(function (a, h) { return a + h[0]; }, 0); };
+      var sFX = stingX([19, 1]), sSX = stingX([19, 20]), pFX = sumTX(sFX.log, 'poison'), pSX = sumTX(sSX.log, 'poison');
+      okWY('2 the Stinger hits: ' + sumTX(sFX.log, 'piercing') + ' piercing, the save failed ' + pFX + ' poison (7d6: 7-42), made ' + pSX + ' (half: 3-21); its rows ' + sFX.row.join('/'),
+        sumTX(sFX.log, 'piercing') >= 6 && sumTX(sFX.log, 'piercing') <= 16 && pFX >= 7 && pFX <= 42 && pSX >= 3 && pSX <= 21 && sFX.row.indexOf('sting') >= 0);
+      pinX([19]); BWyX.active = WYX; D.rules.startTurn(WYX); var rowBX = rowsWYX(BWyX.attack(WYX, FIX, WYX.attacks.bite)); pinX([19]); D.rules.startTurn(WYX); var rowCX = rowsWYX(BWyX.attack(WYX, FIX, WYX.attacks.claws)); D.d = d0WY;
+      okWY('2 the Bite plays ' + rowBX.join('/') + ', the Claws ' + rowCX.join('/'), rowBX.indexOf('attack') >= 0 && rowCX.indexOf('rake') >= 0 && rowBX.indexOf('rake') < 0 && rowCX.indexOf('attack') < 0);
+      // 3. the routine: its turn on the ground, then aloft 5 ft over its own squares beside the fighter
+      var usedX = [], at0X = BWyX.attack; BWyX.attack = function (a, t, atk) { if (a === WYX) usedX.push(atk.name); return at0X.apply(this, arguments); };
+      var turnWyX = function () { usedX = []; FIX.hp = FIX.maxhp; BWyX.round = Math.max(1, BWyX.round); BWyX.active = WYX; D.rules.startTurn(WYX); drainWyX(D.ai.turn(BWyX, WYX)); BWyX.active = null; return usedX.slice(); };
+      WYX.x = FIX.x - 2; WYX.y = FIX.y; WYX.fz = null; WYX.hp = WYX.maxhp; GWX.setup(GWX.map, BWyX.units); var onGX = turnWyX();
+      WYX.x = FIX.x - 2; WYX.y = FIX.y; WYX.hp = WYX.maxhp; WYX.fz = GWX.groundAt(WYX, WYX.x, WYX.y) + 2 * GWX.map.def.step; GWX.setup(GWX.map, BWyX.units); var aloftAtX = GWX.aloft(WYX), distAX = GWX.dist(WYX, FIX), upTX = turnWyX();
+      BWyX.attack = at0X; BWyX.hurt = hurt0X;
+      okWY('3 its turn on the ground: ' + onGX.join(', ') + ' (want Bite, Stinger); aloft ' + aloftAtX + ', ' + distAX + ' ft from the fighter: ' + upTX.join(', ') + ' (want Claws, Stinger)',
+        onGX.join() === 'Bite,Stinger' && aloftAtX && upTX.join() === 'Claws,Stinger');
+      // 4. the sheet
+      var SWX = D.SHEETS.wyvern_p1 && D.SHEETS.wyvern_p1.anims, wantWX = ['idle', 'walk', 'fly', 'attack', 'sting', 'rake', 'flinch', 'hurt', 'prone', 'getup'];
+      okWY('4 its sheet: ' + (SWX ? wantWX.map(function (r) { return r + ' ' + (SWX[r] ? SWX[r].frames : 0); }).join(', ') + '; strikes attack ' + (SWX.attack || {}).release + ', sting ' + (SWX.sting || {}).release + ', rake ' + (SWX.rake || {}).release : 'none') + ' (want 6 8 6 6 6 6 4 6 3 2; 2, 3, 2)',
+        !!SWX && wantWX.map(function (r) { return SWX[r] ? SWX[r].frames : 0; }).join() === '6,8,6,6,6,6,4,6,3,2' && SWX.attack.release === 2 && SWX.sting.release === 3 && SWX.rake.release === 2 && WYX.sheet === 'wyvern_p1');
+      // 5. the Coldridge route's table draws it (content/encounters.json coldridge, 77c2d9d3): js/world.js W.pick keeps only the kinds data/foes.js has, so a wyvern
+      // draw came back with nobody in it till this block -- now one wyvern, a fight
+      var memWY = {}, stGWY = D.store.get, stSWY = D.store.set; D.store.get = function (k) { return memWY[k] ? JSON.parse(memWY[k]) : null; }; D.store.set = function (k, v) { memWY[k] = JSON.stringify(v); return true; };
+      try {
+        D.seed = 1115; D.world.index(); D.world.use('world'); D.world.load('?fresh&far'); if (D.hunger) D.hunger.on = false;
+        var drawWY = null; for (var iWY = 0; iWY < 6000 && !drawWY; iWY++) { var pWY = D.world.pick('coldridge', false, [0, 0]); if (pWY && pWY.grp.e && pWY.grp.e[0][0] === 'wyvern') drawWY = pWY; }
+        okWY('5 a Coldridge draw of the wyvern: ' + (drawWY ? '[' + drawWY.list.join(', ') + ']' : 'none in 6000') + ' (want [wyvern])', !!drawWY && drawWY.list.join() === 'wyvern');
+      } finally { D.store.get = stGWY; D.store.set = stSWY; }
+    } catch (eWY) { repWY.errors.push(String(eWY && eWY.stack || eWY).slice(0, 900)); }
+    D.d = d0WY;
+    var preWY = document.createElement('pre'); preWY.id = 'out'; preWY.textContent = 'BENCH16 ' + JSON.stringify(repWY);
+    document.body.appendChild(preWY);
+    return;
+  }
   // THE SHAMBLING MOUND, 11-14 (mode=mound1114; the hyena-stirge seat, on Griz's "Have it start the new art shambling mound"): its two SRD 5.1 rules as built --
   // 1. Lightning Absorption: lightning heals it the damage dealt (to its maximum), no damage taken; fire is halved (it resists); 2. Engulf on the cube's rule:
   // a Slam that hits grips the fighter (escape DC 14), then Engulf lands on the one it holds; 3. its sheet, every row

@@ -1,0 +1,110 @@
+{
+ "image": "art/wyvern_p1.png",
+ "fw": 88,
+ "fh": 102,
+ "ax": 44,
+ "ay": 90,
+ "top": 60,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 88,
+   "fh": 102,
+   "ax": 44,
+   "ay": 90,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 816,
+   "fw": 108,
+   "fh": 102,
+   "ax": 54,
+   "ay": 90,
+   "frames": 8,
+   "fps": 8
+  },
+  "fly": {
+   "y": 1632,
+   "fw": 108,
+   "fh": 102,
+   "ax": 54,
+   "ay": 90,
+   "frames": 6,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2448,
+   "fw": 126,
+   "fh": 102,
+   "ax": 63,
+   "ay": 90,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "sting": {
+   "y": 3264,
+   "fw": 92,
+   "fh": 102,
+   "ax": 46,
+   "ay": 90,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "rake": {
+   "y": 4080,
+   "fw": 102,
+   "fh": 102,
+   "ax": 51,
+   "ay": 90,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "flinch": {
+   "y": 4896,
+   "fw": 92,
+   "fh": 102,
+   "ax": 46,
+   "ay": 90,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 5712,
+   "fw": 122,
+   "fh": 102,
+   "ax": 61,
+   "ay": 90,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 6528,
+   "fw": 124,
+   "fh": 102,
+   "ax": 62,
+   "ay": 90,
+   "frames": 3,
+   "fps": 8
+  },
+  "getup": {
+   "y": 7344,
+   "fw": 126,
+   "fh": 102,
+   "ax": 63,
+   "ay": 90,
+   "frames": 2,
+   "fps": 6
+  }
+ },
+ "name": "Wyvern",
+ "hold": [
+  "NE walk: frames 3 and 7 lift different hind feet, and 1 and 5 favour the same wing wrist -- the wing-brace cycle wants another look (the art desk's own note)",
+  "NE fall starts with the tail out past the idle's; NE flinch's wing half-opens subtly; N claws: the rear view foreshortens the rake (the art desk's own notes)",
+  "the head reads more dragon than the ask's \"narrow horned head\" (swept horns, a spiny crest): Griz's eye (the 11-14 review's one open point)"
+ ],
+ "source": "drawn by the art desk (ART-132-WYVERN-SOURCE-SHEETS, 11-14: art-wanted section 45), cut by tools/wyvern-sheet.py; SW W NW mirrored -- the SRD 5.1 Wyvern: deep16/data/foes.js wyvern"
+}

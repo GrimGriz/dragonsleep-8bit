@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE CUTTER-FRESH-1115 SEAT, 11-15 (Opus; tools/wyvern-sheet.py; data/foes.js wyvern; js/ai.js aloftMulti): the wyvern, art-wanted 45 (ART-132)
+    'eyes-wyvern-1115': { pri: 2, group: G2, title: 'THE WYVERN: the Coldridge route\'s flier with the sting, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the cutter-fresh-1115 seat; tools/wyvern-sheet.py; data/foes.js wyvern; js/ai.js aloftMulti)',
+      url: 'deep16/?show=wyvern&fresh=1115w',
+      look: 'A SHOW (the watchers at level 3). Your "Dragon is off the table for the way dragons are special here, swap in wyvern and add owl bear". The art desk\'s ART-132: a lean slate-and-brown wyvern, no front legs -- it walks on the claws at its wings\' bends -- a long neck, a horned head, the tail curled over its back with a green stinger, Large (the manticore\'s size). It lurches in on its hind legs and wing-claws, bites (the neck snaps out, the feet stay put), and stings (the tail arcs over its head and drives down): a hit there is a DC 15 CON save, 7d6 poison, half on a save. Aloft it beats its wings in place and, beside one, rakes with its hind talons in the bite\'s place (the SRD: claws only while flying). Struck it rears; down, it crashes onto its side on a crumpled wing. One open point from the art desk\'s review: is the head too dragon-like (swept horns, a spiny crest)? The Coldridge route\'s table draws it now, rarely. The rows one at a time: ?gallery&shelf=creatures&rows=wyvern.' },
     // THE SURVIVORS-TALK SEAT, 11-15 (Opus; deep16/js/survivors.js SV.SNOOT): the Snoot's burnt-out, re-cut on his answers
     'eyes-survivors-snoot-1115': { pri: 2, group: G2, title: 'THE SNOOT\'S BURNT-OUT IN THE SURVIVORS\' TALK: the tribes as a farmer saw them, your trophies line (11-15)', pt: 'the clock lane, 2026-11-15 survivors-talk sections (deep16/js/survivors.js SV.SNOOT)',
       url: 'deep16/?survivorsshow&beat=snoot',

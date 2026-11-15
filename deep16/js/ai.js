@@ -1530,6 +1530,9 @@
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
+    // (aloft, a routine of its own -- the wyvern, SRD 5.1: "While flying, it can use its claws in place of one other attack": data/foes.js `aloftMulti`, taken while
+    // it is aloft and one it would strike is in that routine's first blow's reach; else its ground routine, the Bite's reach 10 -- 11-15, the cutter-fresh-1115 seat)
+    if (Array.isArray(u.aloftMulti) && G.aloft(u) && u.attacks[u.aloftMulti[0]] && heroes(B, u).some(function (w) { return G.standing(w) && G.dist(u, w) <= G.reachOf(u, u.attacks[u.aloftMulti[0]].reach); })) routine = u.aloftMulti;
     // Action Surge (the Dominion line soldier), once, with two or more in its reach: the routine over again
     if (u.actionSurge && !u.surged && heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); }).length >= 2) {
       u.surged = true; routine = routine.concat(routine); D.sfx('buff'); B.card(['{r}' + the(B, u) + '{/} surges!  {g}(Action Surge){/}']); yield 16;
