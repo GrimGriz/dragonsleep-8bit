@@ -4977,6 +4977,35 @@
 },
 "source": "drawn by the art desk (ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
+"folkman_clerk_p1": {
+"image": "art/folkman_clerk_p1.png?v=1c79fc024b",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_crewboss_p1": {
 "image": "art/folkman_crewboss_p1.png?v=f3595d2396",
 "fw": 72,
@@ -5266,6 +5295,35 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"folkwoman_clerk_p1": {
+"image": "art/folkwoman_clerk_p1.png?v=91d3204397",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_crewboss_p1": {
 "image": "art/folkwoman_crewboss_p1.png?v=7a8cd46c86",
