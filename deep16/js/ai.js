@@ -1531,6 +1531,8 @@
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
+    // (a count of blows the dice give -- the violet fungus, SRD 5.1: "makes 1d4 Rotting Touch attacks": data/foes.js `multiDice`, rolled each turn -- 11-15, the cutter-fresh-1115 seat)
+    if (u.multiDice && !Array.isArray(u.multi)) { var nMD = Math.max(1, D.roll(u.multiDice).total); routine = []; for (var iMD = 0; iMD < nMD; iMD++) routine.push(names[0]); }
     // (aloft, a routine of its own -- the wyvern, SRD 5.1: "While flying, it can use its claws in place of one other attack": data/foes.js `aloftMulti`, taken while
     // it is aloft and one it would strike is in that routine's first blow's reach; else its ground routine, the Bite's reach 10 -- 11-15, the cutter-fresh-1115 seat)
     if (Array.isArray(u.aloftMulti) && G.aloft(u) && u.attacks[u.aloftMulti[0]] && heroes(B, u).some(function (w) { return G.standing(w) && G.dist(u, w) <= G.reachOf(u, u.attacks[u.aloftMulti[0]].reach); })) routine = u.aloftMulti;

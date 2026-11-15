@@ -722,6 +722,18 @@
     exhale: 'frost', // (its breath on the air, the engine's: js/looks.js LK.exhale, from where the art desk's idle puffs left its nose -- the drawn puffs and its Cold Breath row's drawn cone off, on Griz's "1-3 leans", 11-15; the cone itself M.breathe's bloom on the squares)
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
+  // THE VIOLET FUNGUS (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; asked in art-wanted section 4, a creature for each biome -- the 10-08 scout's lean the
+  // Guano Galleries, deep16-srd-not-yet.md section 6): the SRD 5.1 Violet Fungus as written, on the art desk's ART-15 (10-10, uncut till now) cut into violetfungus_p1
+  // (tools/violetfungus-sheet.py, one view). False Appearance its `still` row till it acts (js/ui.js); its Multiattack 1d4 Rotting Touches (`multiDice`, js/ai.js).
+  // ON NO TABLE: where it is met is his word. Benched: mode=violetfungus1115; ?show=violetfungus
+  violetfungus: {
+    name: 'Violet Fungus', type: 'plant', sheet: 'violetfungus_p1', cr: '1/4', ac: 5, hp: 18, speed: 5, size: 1, reach: 10, blindsight: 30, blind: true,
+    abil: { str: 3, dex: 1, con: 10, int: 1, wis: 3, cha: 1 }, init: -5, perception: 6,
+    saves: { str: -4, dex: -5, con: 0, int: -5, wis: -4, cha: -5 },
+    attacks: { touch: { name: 'Rotting Touch', atk: 2, dice: '1d8', mod: 0, type: 'necrotic', reach: 10, row: 'touch' } },
+    multi: 1, multiDice: '1d4', condImmune: ['blinded', 'deafened', 'frightened'],
+    src: 'SRD 5.1 Violet Fungus (CR 1/4, 50 XP; Medium plant, unaligned): AC 5, 18 HP (4d8), speed 5; STR 3 DEX 1 CON 10 INT 1 WIS 3 CHA 1; blindsight 30 (blind beyond), passive Perception 6; immune to blinded, deafened, frightened; False Appearance (motionless, an ordinary fungus: its still row till it acts); Multiattack, 1d4 Rotting Touch attacks (+2, reach 10, 1d8 necrotic)'
+  },
   // THE HELL HOUND (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; asked in art-wanted section 64, one for each empty shelf -- Griz: "let's get one in
   // each column and not waste art dept usage due to lack of input"): the SRD 5.1 Hell Hound as written, on the art desk's ART-WANTED-64 cut into hellhound_p1
   // (tools/hellhound-sheet.py: idle, walk, bite, breath, flinch, fall, prone, getup in all eight facings), its drawn smoke and outer fire off (his "should be done with

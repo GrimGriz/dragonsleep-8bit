@@ -31728,6 +31728,91 @@ true
 "source": "deep16/_src/vilar/ART-97/ART-97_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "shop:vilar"
 },
+"violetfungus_p1": {
+"image": "art/violetfungus_p1.png?v=4ccc9bbea3",
+"fw": 66,
+"fh": 55,
+"ax": 33,
+"ay": 52,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 66,
+"fh": 55,
+"ax": 33,
+"ay": 52,
+"frames": 6,
+"fps": 4
+},
+"still": {
+"y": 440,
+"fw": 58,
+"fh": 54,
+"ax": 29,
+"ay": 51,
+"frames": 1,
+"fps": 1
+},
+"walk": {
+"y": 872,
+"fw": 72,
+"fh": 54,
+"ax": 36,
+"ay": 51,
+"frames": 8,
+"fps": 6
+},
+"touch": {
+"y": 1304,
+"fw": 138,
+"fh": 58,
+"ax": 69,
+"ay": 55,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 1768,
+"fw": 64,
+"fh": 54,
+"ax": 32,
+"ay": 51,
+"frames": 4,
+"fps": 10
+},
+"hurt": {
+"y": 2200,
+"fw": 76,
+"fh": 55,
+"ax": 38,
+"ay": 52,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 2640,
+"fw": 104,
+"fh": 49,
+"ax": 52,
+"ay": 46,
+"frames": 2,
+"fps": 8
+},
+"getup": {
+"y": 3032,
+"fw": 86,
+"fh": 52,
+"ax": 43,
+"ay": 49,
+"frames": 1,
+"fps": 6
+}
+},
+"name": "Violet Fungus",
+"source": "drawn by the art desk (ART-15, 10-10: art-wanted section 4, the violet fungus), cut by tools/violetfungus-sheet.py, one view; SW W NW mirrored -- the SRD 5.1 Violet Fungus: deep16/data/foes.js violetfungus"
+},
 "vivian_p0": {
 "image": "art/vivian_p0.png?v=0c912242c3",
 "fw": 64,

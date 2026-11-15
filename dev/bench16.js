@@ -11063,6 +11063,41 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE VIOLET FUNGUS, 11-15 (mode=violetfungus1115; the cutter-fresh-1115 seat): the SRD 5.1 Violet Fungus on the art desk's ART-15, violetfungus_p1 -- 1. its block;
+  // 2. its turn: 1d4 Rotting Touches (multiDice) on its `touch` row, necrotic, from 10 ft; 3. False Appearance: its `still` row till it acts; 4. its sheet; 5. on no table
+  if (get('mode', '') === 'violetfungus1115') {
+    var repVF = { checks: [], errors: [], notes: [] };
+    function okVF(what, v) { repVF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FVFX = D.FOES.violetfungus;
+      okVF('1 the block: ' + (FVFX ? FVFX.name + ', ' + FVFX.type + ', CR ' + FVFX.cr + ', AC ' + FVFX.ac + ', ' + FVFX.hp + ' HP, speed ' + FVFX.speed + ', ' + FVFX.attacks.touch.name + ' +' + FVFX.attacks.touch.atk + ' ' + FVFX.attacks.touch.dice + ' ' + FVFX.attacks.touch.type + ' reach ' + FVFX.attacks.touch.reach + ', blows ' + FVFX.multiDice : 'none'),
+        !!FVFX && FVFX.type === 'plant' && FVFX.cr === '1/4' && FVFX.ac === 5 && FVFX.hp === 18 && FVFX.speed === 5 && FVFX.attacks.touch.atk === 2 && FVFX.attacks.touch.dice === '1d8' && FVFX.attacks.touch.type === 'necrotic' && FVFX.attacks.touch.reach === 10 && FVFX.multiDice === '1d4');
+      var BVFX = D.npcFight('?npc=violetfungus&vs=fighter:3&lvl=3', {}); D.battle = BVFX; BVFX.enter(); var kVFX = 0; while (!BVFX.order.length && kVFX++ < 400) BVFX.co.next();
+      var VFX = BVFX.units.filter(function (u) { return u.kind === 'violetfungus'; })[0], FIVX = BVFX.units.filter(function (u) { return u.side === 'party'; })[0];
+      BVFX.units.forEach(function (w) { if (w !== VFX && w !== FIVX) w.left = true; });
+      FIVX.x = VFX.x + 2; FIVX.y = VFX.y; FIVX.hp = FIVX.maxhp = 300; D.grid.setup(D.grid.map, BVFX.units);
+      var stillVFX = !VFX.woken && !VFX.acted && D.spr.anim(VFX.sheet, 'still') ? 'still' : 'no still';
+      var countsVFX = {}, rowsVFX = [], at0VFX = BVFX.attack, nTurnVFX = 0;
+      BVFX.attack = function (a, t, atk) { if (a === VFX) { nTurnVFX++; if (rowsVFX.indexOf(atk.row) < 0) rowsVFX.push(atk.row); } return at0VFX.apply(this, arguments); };
+      for (var tVFX = 0; tVFX < 24; tVFX++) {
+        nTurnVFX = 0; FIVX.hp = FIVX.maxhp; BVFX.round = Math.max(1, BVFX.round); BVFX.active = VFX; D.rules.startTurn(VFX);
+        var gVFX = D.ai.turn(BVFX, VFX), rVFX, vVFX, qVFX = 0; do { rVFX = gVFX.next(vVFX); vVFX = undefined; if (!rVFX.done && rVFX.value && rVFX.value.prompt) vVFX = rVFX.value.prompt.opts[0].value; } while (!rVFX.done && qVFX++ < 20000);
+        countsVFX[nTurnVFX] = (countsVFX[nTurnVFX] || 0) + 1; VFX.x = FIVX.x - 2; VFX.y = FIVX.y; D.grid.setup(D.grid.map, BVFX.units);
+      }
+      BVFX.attack = at0VFX;
+      var keysVFX = Object.keys(countsVFX).map(Number).sort();
+      okVF('2 its turns from 10 ft, 24 of them: blows a turn ' + JSON.stringify(countsVFX) + ' (want 1 to 4, more than one count seen), the rows ' + rowsVFX.join('/'), keysVFX.length >= 2 && keysVFX[0] >= 1 && keysVFX[keysVFX.length - 1] <= 4 && rowsVFX.join() === 'touch');
+      okVF('3 False Appearance: before it acts it shows ' + stillVFX, stillVFX === 'still');
+      var SVFX = D.SHEETS.violetfungus_p1 && D.SHEETS.violetfungus_p1.anims, wantVFX = ['idle', 'still', 'walk', 'touch', 'flinch', 'hurt', 'prone', 'getup'];
+      okVF('4 its sheet: ' + (SVFX ? wantVFX.map(function (r) { return r + ' ' + (SVFX[r] ? SVFX[r].frames : 0); }).join(', ') + '; touch strikes ' + (SVFX.touch || {}).release : 'none') + ' (want 6 1 8 6 4 6 2 1; 3)',
+        !!SVFX && wantVFX.map(function (r) { return SVFX[r] ? SVFX[r].frames : 0; }).join() === '6,1,8,6,4,6,2,1' && SVFX.touch.release === 3);
+      var tabsVFX = window.DS.DATA.encounters || {}, onVFX = Object.keys(tabsVFX).filter(function (z) { return (tabsVFX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'violetfungus'; }); }); });
+      okVF('5 on no table (his word where): ' + (onVFX.join(', ') || 'none'), !onVFX.length);
+    } catch (eVF) { repVF.errors.push(String(eVF && eVF.stack || eVF).slice(0, 900)); }
+    var preVF = document.createElement('pre'); preVF.id = 'out'; preVF.textContent = 'BENCH16 ' + JSON.stringify(repVF);
+    document.body.appendChild(preVF);
+    return;
+  }
   // THE HELL HOUND, 11-15 (mode=hellhound1115; the cutter-fresh-1115 seat): the SRD 5.1 Hell Hound on the art desk's ART-WANTED-64, hellhound_p1 (tools/hellhound-sheet.py),
   // its drawn smoke and fire off (Griz, 11-15: "should be done with the engine like we're doing other things") -- 1. its block; 2. the Bite on its `bite` row, 2d6 fire on
   // the hit; fire does nothing to it; 3. its Fire Breath on its `breath` row, the cone catching the fighter; 4. its sheet, every row; 5. its smoke on the air (js/looks.js
