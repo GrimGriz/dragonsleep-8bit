@@ -11299,7 +11299,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okVF('4 its sheet: ' + (SVFX ? wantVFX.map(function (r) { return r + ' ' + (SVFX[r] ? SVFX[r].frames : 0); }).join(', ') + '; touch strikes ' + (SVFX.touch || {}).release : 'none') + ' (want 6 1 8 6 4 6 2 1; 3)',
         !!SVFX && wantVFX.map(function (r) { return SVFX[r] ? SVFX[r].frames : 0; }).join() === '6,1,8,6,4,6,2,1' && SVFX.touch.release === 3);
       var tabsVFX = window.DS.DATA.encounters || {}, onVFX = Object.keys(tabsVFX).filter(function (z) { return (tabsVFX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'violetfungus'; }); }); });
-      okVF('5 on no table (his word where): ' + (onVFX.join(', ') || 'none'), !onVFX.length);
+      // (since 11-15 on his "5 - stow it off the dwarven road so we can quit thinking about it for a while :)": the road to Deepholm's first leg, hw1 -- one, rare, alone)
+      var gVFX = onVFX.length === 1 && onVFX[0] === 'hw1' ? tabsVFX.hw1.groups.filter(function (g) { return (g.e || []).some(function (e) { return e[0] === 'violetfungus'; }); }) : [];
+      okVF('5 its table (his "stow it off the dwarven road"): ' + (onVFX.join(', ') || 'none') + (gVFX.length ? ', ' + JSON.stringify(gVFX[0].e) + ' weight ' + gVFX[0].w : '') + ' (want hw1 alone, [["violetfungus",1,1]], rare: under 1)',
+        gVFX.length === 1 && JSON.stringify(gVFX[0].e) === '[["violetfungus",1,1]]' && gVFX[0].w < 1);
     } catch (eVF) { repVF.errors.push(String(eVF && eVF.stack || eVF).slice(0, 900)); }
     var preVF = document.createElement('pre'); preVF.id = 'out'; preVF.textContent = 'BENCH16 ' + JSON.stringify(repVF);
     document.body.appendChild(preVF);
