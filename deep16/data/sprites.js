@@ -303,6 +303,91 @@
 "source": "deep16/_src/androit/ART-80/ART-80_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:androit"
 },
+"animatedarmor_p1": {
+"image": "art/animatedarmor_p1.png?v=5295cfcc67",
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"top": 54,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 816,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 8,
+"fps": 9
+},
+"hurt": {
+"y": 1632,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 8,
+"fps": 8
+},
+"flinch": {
+"y": 2448,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 6,
+"fps": 12
+},
+"still": {
+"y": 3264,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 1,
+"fps": 2
+},
+"prone": {
+"y": 4080,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 2,
+"fps": 4
+},
+"slam": {
+"y": 4896,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 8,
+"fps": 10,
+"release": 3
+},
+"slam2": {
+"y": 5712,
+"fw": 110,
+"fh": 102,
+"ax": 55,
+"ay": 86,
+"frames": 8,
+"fps": 10,
+"release": 3
+}
+},
+"source": "drawn by the art desk (ART-WANTED-68 ANIMATED-ARMOR, 11-15: five views, native 2x on a 110 x 102 cell), cut by tools/animatedarmor-sheet.py (11-15)"
+},
 "ankheg_p1": {
 "image": "art/ankheg_p1.png?v=bc83b17f7d",
 "fw": 180,

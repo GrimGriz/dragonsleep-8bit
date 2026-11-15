@@ -1014,6 +1014,17 @@
     multi: 1,
     src: 'SRD 5.1 Pegasus (CR 2, Large celestial; AC 12, 59 HP, speed 60, fly 90; saves Dex +4, Wis +4, Cha +3; Perception +6): Hooves +6 2d6+4 bludgeoning. Its languages (understands Celestial, Common, Elvish and Sylvan, cannot speak) not given'
   },
+  // the animated armor (11-15, the NPC cutter seat on Griz's "since people is done have it work the creature list backward"; asked 11-15,
+  // art-wanted 64, the construct shelf's one): the SRD 5.1 Animated Armor; its sheet tools/animatedarmor-sheet.py (the art desk's 68). It stands
+  // empty on its stand till its first turn (its `still`: False Appearance); its two Slams play `slam` and `slam2`. IN NO FIGHT, ON NO TABLE.
+  animatedarmor: {
+    name: 'Animated Armor', type: 'construct', sheet: 'animatedarmor_p1', cr: '1', ac: 18, armor: 'natural armor', hp: 33, speed: 25, size: 1, reach: 5, blindsight: 60, blind: true,
+    abil: { str: 14, dex: 11, con: 13, int: 1, wis: 3, cha: 1 }, init: 0, perception: 6,
+    saves: { str: 2, dex: 0, con: 1, int: -5, wis: -4, cha: -5 },
+    attacks: { slam: { name: 'Slam', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: ['slam', 'slam'], immune: ['poison', 'psychic'], condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'paralyzed', 'petrified', 'poisoned'],
+    src: 'SRD 5.1 Animated Armor (CR 1, Medium construct; AC 18 natural armor, 33 HP, speed 25; blindsight 60, blind beyond): Multiattack, two Slams +4 1d6+2 bludgeoning; immune to poison and psychic damage, and blinded, charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned; False Appearance as a suit standing empty till its first turn (its still row). Antimagic Susceptibility not given (no antimagic field on the grid; Dispel Magic does not drop it yet)'
+  },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
   // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.

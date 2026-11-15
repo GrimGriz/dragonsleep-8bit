@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE NPC CUTTER SEAT (cutter-npc-1115), 11-15 (Opus; tools/animatedarmor-sheet.py; data/foes.js animatedarmor): the animated armor, art-wanted 64's construct (the art desk's 68)
+    'eyes-animatedarmor-1115': { pri: 2, group: G2, title: 'THE ANIMATED ARMOR: the construct shelf\'s one, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the NPC cutter seat, cutter-npc-1115; tools/animatedarmor-sheet.py; data/foes.js animatedarmor)',
+      url: 'deep16/?show=animatedarmor&fresh=1115aa',
+      look: 'A SHOW (the watchers at level 3). Your "let\'s get one in each column and not waste art dept usage due to lack of input" -- the construct. The art desk\'s animated armor: a suit of plate standing empty (False Appearance) till its first turn, then it moves -- marches in, slams twice (two Slams, the second its own swing), staggers when struck, and falls apart into its pieces. It is on no table: where it is met is your word. The rows one at a time: ?gallery&shelf=creatures&rows=animatedarmor.' },
     // THE MARKERS-REPLAY SEAT, 11-15 (Opus; deep16/js/replay.js; dev/bench16.js mode=questwalk1114's recorder RQ and mode=replay1115): the hidden markers, replayed off the quest walk's runs
     'eyes-markers-replay-1115': { pri: 1, group: G1, title: 'THE MARKERS\' REPLAY: a quest walk\'s run on THE WORLD against the makings, the survivors and the Snoot\'s bands, dawn by dawn (11-15)', pt: 'the clock lane, 2026-11-15 markers-replay section (deep16/js/replay.js; dev/bench16.js mode=questwalk1114, its recorder)',
       url: 'deep16/?world&replay=questwalk-five-seed3-1115',

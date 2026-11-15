@@ -19001,6 +19001,30 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // THE ANIMATED ARMOR, 11-15 (mode=armor1115; tools/animatedarmor-sheet.py, data/foes.js animatedarmor -- the NPC cutter seat, art-wanted 64's construct,
+  // the art desk's 68): the SRD 5.1 block; its sheet's rows, both Slams landing on frame 4; its rows in a fight are the show's (check.py's show line-up)
+  if (get('mode', '') === 'armor1115') {
+    var repA = { checks: [], errors: [] };
+    function okA(what, v) { repA.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var AA = D.FOES.animatedarmor, SA0 = AA && D.SHEETS[AA.sheet], aA = SA0 && SA0.anims, sA = AA && AA.attacks.slam;
+      okA('the SRD 5.1 Animated Armor (' + (AA ? 'AC ' + AA.ac + ', ' + AA.hp + ' HP, ' + AA.type + ', speed ' + AA.speed + ', CR ' + AA.cr + '; two Slams +' + sA.atk + ' ' + sA.dice + '+' + sA.mod + '; immune ' + AA.immune.join(', ') : 'NONE') + ')',
+        !!AA && AA.ac === 18 && AA.hp === 33 && AA.type === 'construct' && AA.speed === 25 && AA.cr === '1' && AA.blindsight === 60 && sA.atk === 4 && sA.dice === '1d6' && sA.mod === 2 &&
+        AA.multi.join() === 'slam,slam' && AA.immune.join() === 'poison,psychic' && AA.condImmune.length === 8);
+      var wantA = { still: 1, idle: 8, walk: 8, slam: 8, slam2: 8, flinch: 6, hurt: 8, prone: 2 };
+      var offA = Object.keys(wantA).filter(function (k) { return !aA || !aA[k] || aA[k].frames !== wantA[k]; });
+      okA('its sheet (' + (AA && AA.sheet) + '): ' + Object.keys(wantA).length + ' rows at their counts, both Slams landing on frame 4' + (offA.length ? ' -- off: ' + offA.join(', ') : ''),
+        !!SA0 && SA0.fw === 110 && SA0.fh === 102 && SA0.ay === 86 && !offA.length && aA.slam.release === 3 && aA.slam2.release === 3);
+      // its own show, alone (in the gate's shared line-up a new creature reshuffles the others' dice: the shambling mound's slam2 and engulf came once)
+      D.seed = 1115 * 7919;
+      var BA = D.show.fight('?show=animatedarmor&lvl=3', { bench: true }); D.battle = BA; BA.enter();
+      var resA = drive(BA), tA = (BA.showTally || {}).animatedarmor_p1 || {}, wA = D.show.wanted('animatedarmor_p1', 'animatedarmor'), lowA = wA.filter(function (r) { return (tA[r] || 0) < 2; });
+      okA('its show, alone: every row twice (' + wA.map(function (r) { return r + ' ' + (tA[r] || 0); }).join(', ') + '), the show ' + resA, wA.length >= 8 && !lowA.length && resA === 'won');
+    } catch (eA) { repA.errors.push(String(eA && eA.stack || eA).slice(0, 900)); }
+    var preA = document.createElement('pre'); preA.id = 'out'; preA.textContent = 'BENCH16 ' + JSON.stringify(repA);
+    document.body.appendChild(preA);
+    return;
+  }
   // THE PEGASUS, 11-15 (mode=pegasus1115; tools/pegasus-sheet.py, data/foes.js pegasus -- the NPC cutter seat, art-wanted 64's celestial, the art desk's 69):
   // the SRD 5.1 block; its sheet's rows, the Hooves landing on frame 5, the fly band stood on the ground line (the grid lifts a flier itself); its rows in a
   // fight are the show's (check.py's show line-up)
