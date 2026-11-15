@@ -698,6 +698,12 @@
     if (u.footSpeed != null) { u.speed = u.footSpeed; delete u.footSpeed; } /* (11-13, his fight of 03:09Z: Amara, come down off her grey at the south mouth, dashed 80 ft -- the grey's 40 a stride was still hers on foot) */
     u.mounted = false; if (B) B.cache = null;
   };
+  // the escaped fight's last line (11-15, Griz: "3 fix the line" -- at Web Gulch Vivian's LEAVE took the party out and the card said only OUT THE WAY THEY CAME IN.;
+  // a floor's fight has no leave card, noCards): where one out takes the party (Battle.takesParty), the line names the one who led them out
+  Battle.outLine = function (B) {
+    var r = B.retreat, u = r && B.takesParty() ? B.units.filter(function (w) { return w.id === r.by; })[0] : null;
+    return u ? u.name.toUpperCase() + ' GETS THE PARTY OUT THE WAY THEY CAME IN.' : 'OUT THE WAY THEY CAME IN.';
+  };
   // the VICTORY panel's request from a fight's pay lines (theirs start with the head, '{y}Victory!{/}' or '{y}What fell{/}'): null when there is no pay to show (js/ui.js victory)
   Battle.victoryOf = function (paid) {
     paid = [].concat(paid || []).filter(Boolean); if (!paid.length) return null;
@@ -1196,7 +1202,7 @@
     if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : this.roostBroken === 'fire' ? 'Fire' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); FX.swarm(); this.shakeT = 170; for (var sk = 0; sk < 17; sk++) { D.sfx('miss'); yield 10; } yield 30; }
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
-    var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : this.slainLost && this.slainLine ? this.slainLine : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}' + Battle.outLine(this) + '{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : this.slainLost && this.slainLine ? this.slainLine : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
     // one of the party dead for good in a game being played (Battle.prototype.lostForGood): the game is over on a card of its own, the line by name, then CONTINUE FROM A
     // SAVE or the title -- whatever fight it was, a story's, the road's, a floor's (js/seep.js S.gameOver; 11-13, Griz: "build it and have it end the game")
     if (o === 'lost' && this.slainLost && this.slainLine && D.seep && D.seep.gameOver && D.seep.playing()) { this.card([head], 1e9, 'fightend'); yield this.pace ? this.pace(150) : 150; D.seep.gameOver(this.slainLine); return; }

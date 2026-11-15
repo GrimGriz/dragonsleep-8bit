@@ -20160,6 +20160,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var cmd1 = (B1.commands(f1) || []).filter(function (c) { return c.id === 'leave'; })[0] || {};
       runLP(B1.leave(f1));
       okLP('THE CLASS FLOOR (story ' + B1.isStory() + '): LEAVE ' + cmd1.ok + ' -- "' + (cmd1.note || '').slice(0, 60) + '"; the fighter out ' + !!f1.left + ', the cleric still on the floor ' + !c1.left + ', the fight ' + B1.over() + ' (want false, true, the party goes too, true, true, escaped)', at1 && !B1.isStory() && cmd1.ok && /the party goes too/.test(cmd1.note || '') && !!f1.left && B1.over() === 'escaped');
+      // ... and the escaped fight's last line names the one who led the party out (11-15, his "3 fix the line": at Web Gulch the card said only OUT THE WAY THEY CAME IN.)
+      var out1 = D.Battle.outLine ? D.Battle.outLine(B1) : '(no Battle.outLine)';
+      okLP('THE CLASS FLOOR, the last line: "' + out1 + '" (want "' + f1.name.toUpperCase() + ' GETS THE PARTY OUT THE WAY THEY CAME IN.")', out1 === f1.name.toUpperCase() + ' GETS THE PARTY OUT THE WAY THEY CAME IN.');
       // ... still refused while one of the four is down
       var B2 = mkLP('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f2 = sideLP(B2, 'party')[0], c2 = sideLP(B2, 'party')[1];
       onExitLP(B2, f2); c2.hp = 0; D.rules.startTurn(f2); B2.active = f2; runLP(B2.leave(f2));
@@ -20168,6 +20171,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B3 = mkLP('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f3 = sideLP(B3, 'party')[0], c3 = sideLP(B3, 'party')[1]; B3.isStory = function () { return true; };
       onExitLP(B3, f3); D.rules.startTurn(f3); B3.active = f3; runLP(B3.leave(f3));
       okLP('A STORY FIGHT: the fighter out ' + !!f3.left + ', the cleric still in ' + !c3.left + ', the fight ' + B3.over() + ' (want true, true, null -- each walks out)', !!f3.left && !c3.left && B3.over() == null);
+      var out3 = D.Battle.outLine ? D.Battle.outLine(B3) : '(no Battle.outLine)';
+      okLP('A STORY FIGHT\'s last line stays "' + out3 + '" (want OUT THE WAY THEY CAME IN.: each walks out alone)', out3 === 'OUT THE WAY THEY CAME IN.');
     } catch (eLP) { repLP.errors.push(String(eLP && eLP.stack || eLP).slice(0, 900)); }
     if (errs.length) repLP.errors = repLP.errors.concat(errs);
     var preLP = document.createElement('pre'); preLP.id = 'out'; preLP.textContent = 'BENCH16 ' + JSON.stringify(repLP);
