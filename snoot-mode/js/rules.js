@@ -539,7 +539,8 @@
   //   of ours still there is held where it stands for the day: no charge die, struck as from the flank (restrained: attacked at advantage), no
   //   falling back till nightfall lets it go
   SN.PRAYER = { bless: 'BLESS', insectplague: 'INSECT PLAGUE', entangle: 'ENTANGLE' };
-  SN.relicHere = function (u) { return !!u.relic || SN.same(u.at, SN.MOOT); }; // (the Mane on the moot ground; a minor relic of the tribe carried)
+  SN.maneName = function () { return SN.same(SN.MANE, SN.MOOT) ? 'the moot ground' : 'the Gray Keeping\'s home'; };
+  SN.relicHere = function (u) { return !!u.relic || SN.same(u.at, SN.MANE); }; // (the Mane on the moot ground; a minor relic of the tribe carried)
   SN.prays = function (st, u, id) { return SN.heroesOf(u).filter(function (x) { return (x.prays || []).indexOf(id) >= 0 && !(x.prayed && x.prayed[id] === st.day); })[0] || null; };
   SN.pray = function (st, h, O, T) {
     var here = function (U) { return U.filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); };
@@ -554,12 +555,12 @@
     });
     var men = function () { return here(O).filter(function (u) { return !u.party && u.figs > 0; }).sort(function (a, b) { return b.figs - a.figs; }); };
     st.units.forEach(function (u) {
-      if (u.side !== 'gnoll' || !SN.alive(u) || !SN.same(u.at, SN.MOOT) || SN.dist(u.at, h) > 1) return;
+      if (u.side !== 'gnoll' || !SN.alive(u) || !SN.same(u.at, SN.MANE) || SN.dist(u.at, h) > 1) return;
       var w = SN.prays(st, u, 'insectplague'), tg = w && men()[0]; if (!tg) return;
-      said(u, w, 'insectplague', tg, w.name + ' prays Insect Plague from the moot ground (Book I): a cloud of insects drives ' + tg.name + ' off in rout' + (SN.heroesOf(tg).some(function (x) { return x.type !== 'wizard'; }) ? '; the heroes with them stand.' : '.'));
+      said(u, w, 'insectplague', tg, w.name + ' prays Insect Plague from ' + SN.maneName() + ' (Book I): a cloud of insects drives ' + tg.name + ' off in rout' + (SN.heroesOf(tg).some(function (x) { return x.type !== 'wizard'; }) ? '; the heroes with them stand.' : '.'));
       SN.breakUp(st, tg, true);
     });
-    if (!SN.same(h, SN.MOOT)) return;
+    if (!SN.same(h, SN.MANE)) return;
     here(T).forEach(function (u) {
       var w = SN.prays(st, u, 'entangle'), tg = w && here(O).filter(function (x) { return !x.party && !x.entangled; }).sort(function (a, b) { return SN.fightFigs(b) - SN.fightFigs(a); })[0]; if (!tg) return;
       tg.entangled = true; said(u, w, 'entangle', tg, w.name + ' prays Entangle: the ground takes ' + tg.name + ' by the legs -- no charge, struck as from the flank, and they cannot fall back today.');
@@ -1129,10 +1130,10 @@
     if (foes2.some(function (x) { return x.side === 'gnoll'; }) && wit.length) out.warn.push('If the gnolls win, the witness fills them from ' + wit.map(function (x) { return x.name + ' (' + x.figs + ')'; }).join(', ') + ' -- within two hexes.');
     // the matriarchs' prayers (10-16, SN.pray): what waits for you on the moot ground and next to it
     if (!u.party && u.figs > 0) st.units.forEach(function (x) {
-      if (x.side !== 'gnoll' || !SN.alive(x) || !SN.same(x.at, SN.MOOT) || SN.dist(x.at, hit.at) > 1) return;
-      var ip = SN.prays(st, x, 'insectplague'), en = SN.same(hit.at, SN.MOOT) && SN.prays(st, x, 'entangle');
-      if (ip) out.warn.push(ip.name + ' can pray Insect Plague from the moot ground (once a day, OD&D Book I): the biggest unit of men in the fight is driven off in rout -- the heroes with it stand.');
-      if (en) out.warn.push(en.name + ' can pray Entangle on the moot: the biggest unit of ours left is held for the day -- no charge die, struck as from the flank, no falling back.');
+      if (x.side !== 'gnoll' || !SN.alive(x) || !SN.same(x.at, SN.MANE) || SN.dist(x.at, hit.at) > 1) return;
+      var ip = SN.prays(st, x, 'insectplague'), en = SN.same(hit.at, SN.MANE) && SN.prays(st, x, 'entangle');
+      if (ip) out.warn.push(ip.name + ' can pray Insect Plague from ' + SN.maneName() + ' (once a day, OD&D Book I): the biggest unit of men in the fight is driven off in rout -- the heroes with it stand.');
+      if (en) out.warn.push(en.name + ' can pray Entangle ' + (SN.same(SN.MANE, SN.MOOT) ? 'on the moot' : 'at their home') + ': the biggest unit of ours left is held for the day -- no charge die, struck as from the flank, no falling back.');
     });
     foes2.forEach(function (x) { var w = SN.relicHere(x) && !x.blessed && SN.prays(st, x, 'bless'); if (w) out.lines.push(w.name + ' with ' + x.name + ' blesses them as the fight begins (OD&D Book I): +1 to their dice and their morale.'); });
     var wag = foes2.filter(function (x) { return x.side === 'dominion'; })[0];

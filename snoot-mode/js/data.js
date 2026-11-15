@@ -186,7 +186,8 @@
   SN.FIND = 35; SN.mapv = 0;
   SN.useMap = function (M) {
     SN.MAPNAME = M.name; SN.W = M.W; SN.H = M.H; SN.ROWS = M.rows; SN.ROADS = M.roads; SN.PLACES = M.places;
-    SN.PIT = M.pit; SN.MOOT = M.moot; SN.WEST = M.west; SN.SOUTH = M.south; SN.INN = M.inn; SN.SEATS = M.seats; SN.ROADPT = M.roadpt; SN.BESIDE = M.beside;
+    SN.PIT = M.pit; SN.MOOT = M.moot; SN.MANE = M.mane || M.moot; // (MANE: where the death-watch keeps the Mane -- the moot ground on the fixture; on the world's map their home-place, 11-15, his "the death watch take the mane back to their homeground")
+    SN.WEST = M.west; SN.SOUTH = M.south; SN.INN = M.inn; SN.SEATS = M.seats; SN.ROADPT = M.roadpt; SN.BESIDE = M.beside;
     SN.START = M.start || null; SN.FORCEOV = M.forces || null; SN.DROP = M.drop || []; SN.FARMS = M.farms || {}; // (FORCEOV, DROP: what a map changes of SN.FORCES, by a unit's id -- js/rules.js SN.make, SN.newGame)
      SN.OTHER = M.other || {}; SN.LAST = M.last || 28; SN.mapv++;
   };

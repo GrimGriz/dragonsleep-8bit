@@ -62,16 +62,16 @@
     if (g[0] && SN.dist(g[0].at, u.at) <= 2) { go(st, u, g[0].at); u.berserkOrder = true; SN.say(st, u.name + ' have seen gnolls and will not be held back.', 'move', u.at); return; }
     if (st.head && !(g[0] && SN.dist(g[0].at, u.at) <= 4)) { if (!SN.same(u.at, u.home)) go(st, u, u.home); return; }
     if (g[0]) { go(st, u, g[0].at); return; }
-    if (!SN.same(u.at, SN.MOOT)) go(st, u, SN.MOOT);
+    if (!SN.same(u.at, SN.MANE)) go(st, u, SN.MANE.slice()); // (the stomp goes for the Mane, wherever the death-watch keeps it: the seat's reading, 11-15)
   };
   AI.gnoll = function (st, u) {
     u.order = { type: 'hold' };
-    if (u.watch) { if (!SN.same(u.at, SN.MOOT)) go(st, u, SN.MOOT); return; } // (the death-watch: unto death, on the moot ground -- and back to it if a night drove it off)
+    if (u.watch) { if (!SN.same(u.at, SN.MANE)) go(st, u, SN.MANE.slice()); return; } // (the death-watch: unto death, on the moot ground -- and back to it if a night drove it off)
     if (u.harbinger) return AI.harbinger(st, u);
     if (u.tribe === 'wall' && st.day < 19) return; // (the Wall-Laugh holds -- and is despised for it at the tally)
     if (u.tribe === 'gray' && !u.youngblood) { // (the young blood are out for the Snoot from the first day: his word 10-15)
-      var plains = st.units.filter(function (x) { return x.kind === 'the plains' && SN.alive(x) && SN.dist(x.at, SN.MOOT) <= 3; });
-      if (plains.length) { if (SN.dist(u.at, SN.MOOT) > 1) go(st, u, SN.MOOT); else u.order = { type: 'support' }; return; } // (the stomp breaks on the Gray Keeping's wall)
+      var plains = st.units.filter(function (x) { return x.kind === 'the plains' && SN.alive(x) && SN.dist(x.at, SN.MANE) <= 3; });
+      if (plains.length) { if (SN.dist(u.at, SN.MANE) > 1) go(st, u, SN.MANE.slice()); else u.order = { type: 'support' }; return; } // (the stomp breaks on the Gray Keeping's wall)
       if (st.day < 16) { u.order = { type: 'support' }; return; }
     }
     // the hunt for glory: GreyFang if he is within two days and the four are not about him (the Snoot shies from a Lupine's guard; he is the
