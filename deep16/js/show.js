@@ -49,6 +49,9 @@
     var sk = (u.made0 && u.made0.sheet) || u.sheet, t = B.showTally[sk] = B.showTally[sk] || {}; // (a made thing that feeds in the show changes sheet mid-fight -- js/seep.js, 11-14: its rows are tallied under the sheet it was made on, the same rows on the same cell)
     t[row] = (t[row] || 0) + 1;
     (u.showSeen = u.showSeen || {})[row] = (u.showSeen[row] || 0) + 1;
+    // (a blow's flying row is that blow seen: the wyvern's airsting is its sting, played aloft -- js/battle.js, 11-15. Not wanted on its own; the parade flies it, js/parade.js ALOFT)
+    var gr = /^air./.test(row) && D.spr.anim(u.sheet, row.slice(3)) ? row.slice(3) : null;
+    if (gr) { t[gr] = (t[gr] || 0) + 1; u.showSeen[gr] = (u.showSeen[gr] || 0) + 1; }
   }
   // every set of u.anim bumps a count; the step after reads what it was left at
   function watch(u) {
@@ -109,7 +112,7 @@
   // (nor a shapechanger's shift on a kind that does not shift: the werewolf's `shift` is the priest's, data/foes.js werewolfpriest -- the road's hybrid never
   // plays it; nor the werewolf's `towolf`, which no fight plays yet -- the wolf form is not on the grid; the row gallery, ?gallery&shelf=creatures&rows=werewolf,
   // plays both: 11-14, the hyena-stirge seat)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r]; }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 

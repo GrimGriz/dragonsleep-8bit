@@ -2623,6 +2623,9 @@
       else if (rn > 1 && D.spr.anim(att.sheet, 'attack' + rn)) att.anim = 'attack' + rn; // (a sheet's attack2: the second blow of a turn where no row is named for the weapon -- Extra Attack, or the blow after an Action Surge: Barley's FlailOverhead, ART-75, 10-20)
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
       if (att.surprise && this.round === 1 && melee && rn === 1 && Battle.caught(tgt, att) && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush'; // (on one it surprised: Battle.caught, 11-10)
+      // (aloft, a blow's flying row where the sheet has one -- the wyvern's `airattack`, `airsting`: its ground rows with the legs cut off, 11-15, Griz at the parade:
+      //  "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the attacks and use those")
+      if (G.aloft(att) && D.spr.anim(att.sheet, 'air' + att.anim)) att.anim = 'air' + att.anim;
       // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
       // turn's Martial Advantage is unspent -- hit or miss, the drill shows either way; its dice are the hit's, below. The hobgoblins' sheets, 10-07)
       if (att.martial && melee && !(att.turn && att.turn.martialUsed) && D.spr.anim(att.sheet, 'martial') && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) att.anim = 'martial';

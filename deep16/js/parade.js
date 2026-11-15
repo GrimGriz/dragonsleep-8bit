@@ -24,6 +24,10 @@
    with a borrowed face (a `still` and a `reveal` row: the green hag's old countrywoman, the lamia's way) stands in it while the four come in and drops it before
    its first blow; a caster with a `cast` row plays it as a blow, named for its spell (her Vicious Mockery); one with Invisible Passage and a `vanish` row fades
    out of sight and back after the second round of blows.
+   ALOFT (11-15, the cutter-fresh-1115 seat, on Griz's "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the attacks and use
+   those"): a flier whose sheet has a blow's flying row (`air` + the row: the wyvern's airattack and airsting, its ground rows with the legs cut off) takes to the
+   air for step 3 and goes round the compass aloft, each blow on its flying row where it has one (as js/battle.js plays them while it flies), and lands for the
+   crew boss.
    THE FIGURES FIRST (the same day): the show holds its first frame for every sheet it will wear -- each creature's, the crew boss's and every costume figure --
    on the engine's own gate (js/sprites.js S.gate: THE FIGURES ARE COMING). They were fetched behind, a beat's four at a time, and a sheet still on its way draws
    nothing: a bar and a shadow walking. A figure that never loads is named in red on its creature's card, and its turn reads NOT AS IT SHOULD BE.
@@ -199,9 +203,10 @@
     }
     // one blow at t, nothing rolled: its row facing t, and on the row's release frame what flies or blooms
     function* strike(u, t, b, tally, onHit, k) {
-      u.facing = B.faceTo(u, t); u.anim = b.row; u.animT = B.t;
-      var an = D.spr.anim(u.sheet, b.row), dur = D.spr.duration(u.sheet, b.row) || 30, rel = an && an.release != null ? Math.ceil(an.release * 60 / (an.fps || 8)) : Math.round(dur / 2);
-      if (tally) { tally.rows[b.row] = (tally.rows[b.row] || 0) + 1; if (G.dist(u, t) <= outOf(u)) tally.inReach.push(b.name + ' at ' + t.name); }
+      var row = G.aloft(u) && D.spr.anim(u.sheet, 'air' + b.row) ? 'air' + b.row : b.row; // (aloft, its flying row where the sheet has one: ALOFT above)
+      u.facing = B.faceTo(u, t); u.anim = row; u.animT = B.t;
+      var an = D.spr.anim(u.sheet, row), dur = D.spr.duration(u.sheet, row) || 30, rel = an && an.release != null ? Math.ceil(an.release * 60 / (an.fps || 8)) : Math.round(dur / 2);
+      if (tally) { tally.rows[b.row] = (tally.rows[b.row] || 0) + 1; if (row !== b.row) tally.air = (tally.air || 0) + 1; if (G.dist(u, t) <= outOf(u)) tally.inReach.push(b.name + ' at ' + t.name); }
       yield W(Math.max(1, rel));
       if (b.breath) {
         var g = { shape: b.breath.shape || 'cone', len: b.breath.ft || 15 }, sq = D.magic.area(u, g, t.x, t.y, D.magic.aimAt ? D.magic.aimAt(t, g) : undefined);
@@ -262,7 +267,9 @@
         u.conds.invisible = { ends: true }; u.anim = 'vanish'; u.animT = B.t; extra.vanish++; yield W(D.spr.duration(u.sheet, 'vanish') + 4); u.anim = 'idle'; u.animT = B.t; yield W(60);
         delete u.conds.invisible; yield W(40);
       }
-      // 3. round the compass a place at a time, N to W, W to S, S to E, E to N; after each step it turns to the next point, N, E, S, W
+      // 3. round the compass a place at a time, N to W, W to S, S to E, E to N; after each step it turns to the next point, N, E, S, W -- a flier with flying rows aloft
+      var airN = (D.FOES[u.kind] || {}).fly && D.spr.anim(u.sheet, 'fly') ? bl.filter(function (b) { return D.spr.anim(u.sheet, 'air' + b.row); }).length : 0;
+      if (airN) { say(['{y}' + u.name.toUpperCase() + '{/} takes to the air: round the compass it strikes flying.'], 140); yield* B.flyTo(u, G.groundAt(u, u.x, u.y) + 2 * G.LAYER()); yield W(20); }
       say(['Round they go, N to W, W to S, S to E, E to N. After each step it turns to the next point.'], 160);
       for (var s = 0; s < 4; s++) {
         people.forEach(function (w) { at[w.id] = P.ROUND[at[w.id]]; });
@@ -273,6 +280,8 @@
         if (who) yield* volley(u, who, 'at the ' + pt, tally, k);
       }
       var back = people.map(function (w) { return at[w.id]; }).join() === home;
+      var aloftOK = !airN || (tally.air === 4 * airN && G.aloft(u));
+      if (airN) { yield W(20); yield* B.flyTo(u, G.groundAt(u, u.x, u.y), true); yield W(20); } // (down for the crew boss)
       // 4. the crew boss
       var down = { flinch: 0, prone: 0, getup: 0, hurt: 0 };
       if (boss) {
@@ -302,11 +311,11 @@
       var fell = !boss || (u.dead && u.hp === 0);
       var drawn = ['flinch', 'hurt'].filter(function (r) { return D.spr.anim(u.sheet, r); }).every(function (r) { return down[r] > 0; }) && (D.spr.proneFrame(u.sheet) < 0 || down.prone > 0) && (!D.spr.anim(u.sheet, 'getup') || down.getup > 0);
       var rest = (!guise || extra.reveal === 1) && (!(u.invis && D.spr.anim(u.sheet, 'vanish')) || extra.vanish === 1) && !u.conds.invisible;
-      var ok = rest && !late.length && bl.length > 0 && tally.volleys === 12 && got === plays && want.every(function (r) { return tally.rows[r] >= 12; }) && !tally.inReach.length && !tally.cone && tally.steps === 4 && back && unhurt && fell && (!boss || drawn);
+      var ok = rest && !late.length && bl.length > 0 && tally.volleys === 12 && got === plays && want.every(function (r) { return tally.rows[r] >= 12; }) && !tally.inReach.length && !tally.cone && tally.steps === 4 && back && unhurt && fell && (!boss || drawn) && aloftOK;
       var why = bl.length + ' blow' + (bl.length === 1 ? '' : 's') + ' (' + bl.map(function (b) { return b.name + ' on ' + b.row; }).join(', ') + '), ' + tally.volleys + ' volleys of 12, ' + got + ' plays of ' + plays +
         (tally.inReach.length ? '; IN ITS REACH: ' + tally.inReach.slice(0, 3).join('; ') : '; every one ' + k * 5 + ' ft off, out of its reach (' + reachOf(u) + ' ft' + (outOf(u) > reachOf(u) ? ', its breath ' + outOf(u) + ' ft' : '') + ')') + (tally.cone ? '; A BREATH OVER ' + tally.cone + ' OF THEM' : '') +
         '; round the compass ' + tally.steps + ' steps, home again (' + back + '); the four ' + people.map(function (w) { return w.sheet; }).join(', ') + ' walked and unhurt (' + unhurt + ')' +
-        (guise ? '; its borrowed face as they came in, its Reveal ' + extra.reveal : '') + (extra.vanish ? '; its Vanish ' + extra.vanish : '') + (late.length ? '; NOT LOADED: ' + late.join(', ') : '') +
+        (guise ? '; its borrowed face as they came in, its Reveal ' + extra.reveal : '') + (airN ? '; aloft round the compass, its flying rows ' + (tally.air || 0) + ' of ' + 4 * airN + ' (' + aloftOK + ')' : '') + (extra.vanish ? '; its Vanish ' + extra.vanish : '') + (late.length ? '; NOT LOADED: ' + late.join(', ') : '') +
         (boss ? '; the crew boss on ' + boss.sheet + ': flinch ' + down.flinch + ', prone ' + down.prone + ', getup ' + down.getup + ', its death ' + down.hurt + ', down (' + fell + ')' : '; no crew boss');
       return { id: u.kind, name: u.name, ok: ok, why: why, folk: four.map(function (f) { return f.sheet; }), ring: k, zoom: zm };
     }

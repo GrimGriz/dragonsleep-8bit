@@ -33409,7 +33409,7 @@ true
 "door": "npc:wynn"
 },
 "wyvern_p1": {
-"image": "art/wyvern_p1.png?v=3444583b4d",
+"image": "art/wyvern_p1.png?v=0e2a42a41b",
 "fw": 88,
 "fh": 102,
 "ax": 44,
@@ -33473,8 +33473,28 @@ true
 "fps": 10,
 "release": 2
 },
-"flinch": {
+"airattack": {
 "y": 4896,
+"fw": 126,
+"fh": 102,
+"ax": 63,
+"ay": 90,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"airsting": {
+"y": 5712,
+"fw": 92,
+"fh": 102,
+"ax": 46,
+"ay": 90,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 6528,
 "fw": 92,
 "fh": 102,
 "ax": 46,
@@ -33483,7 +33503,7 @@ true
 "fps": 12
 },
 "hurt": {
-"y": 5712,
+"y": 7344,
 "fw": 122,
 "fh": 102,
 "ax": 61,
@@ -33492,7 +33512,7 @@ true
 "fps": 8
 },
 "prone": {
-"y": 6528,
+"y": 8160,
 "fw": 124,
 "fh": 102,
 "ax": 62,
@@ -33501,7 +33521,7 @@ true
 "fps": 8
 },
 "getup": {
-"y": 7344,
+"y": 8976,
 "fw": 126,
 "fh": 102,
 "ax": 63,

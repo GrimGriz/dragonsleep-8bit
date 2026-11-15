@@ -30,6 +30,11 @@ Rows: idle 6; walk 8; fly 6 (in place of idle and walk while it is aloft); attac
 `release` 2: frame 3 the bite); sting 6 (the Stinger's own row, its `row`; `release` 3: frame 4 the sting); rake 6 (the Claws, aloft only -- deep16/data/foes.js
 wyvern `aloftMulti`; `release` 2: frame 3 the rake); flinch 4; hurt 6 (Fall, held on 6: on its side, a wing crumpled); prone 3 (Fall 5, 6, then Prone 1 --
 js/sprites.js S.proneRow); getup 2 (Prone 1, 2: heaving itself up).
+
+Aloft (11-15, Griz at the parade: "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the attacks and use those"; then, to the
+lanes desk, "1 - yeah"): airattack 6 and airsting 6 -- the Bite's and the Sting's frames with the legs cut off, everything CUT px and less over the ground line
+taken away (but a piece below the cut that carries the stinger's green -- its tip as it strikes low -- is kept), the cut's edge outlined; each frame where the ground row has it, so the body does not jump. js/battle.js plays `air` + the blow's row while the wyvern is aloft (G.aloft) and
+the sheet has one. The Claws (`rake`) stay as drawn: the art desk drew them in the air, wings spread and the talons forward -- the talons ARE the blow, aloft only.
 """
 import importlib.util, json, os, sys
 import numpy as np
@@ -53,12 +58,15 @@ AVOID = ['red', 'skin']         # (slate, mountain brown, a pale belly, a green 
 VIEWS = ['SE', 'NE', 'S', 'E', 'N']
 COUNT = {'idle': 6, 'walk': 8, 'fly': 6, 'attack': 6, 'sting': 6, 'rake': 6, 'flinch': 4, 'hurt': 6, 'prone': 2}
 AIR = ('fly', 'rake')
+LEGLESS = {'airattack': 'attack', 'airsting': 'sting'}     # (aloft: the ground blow's frames with the legs cut off -- legless() below)
+CUT = 14                        # (px over the ground line: the hind legs and the folded wings' wrists stand below it, the belly above, in every view at the one scale)
 LYING = {('hurt', 3), ('hurt', 4), ('hurt', 5), ('prone', 0), ('prone', 1)}
 ROWS = [('idle', 6, [('idle', i) for i in range(6)]), ('walk', 8, [('walk', i) for i in range(8)]), ('fly', 10, [('fly', i) for i in range(6)]),
         ('attack', 10, [('attack', i) for i in range(6)]), ('sting', 10, [('sting', i) for i in range(6)]), ('rake', 10, [('rake', i) for i in range(6)]),
+        ('airattack', 10, [('attack', i) for i in range(6)]), ('airsting', 10, [('sting', i) for i in range(6)]),
         ('flinch', 12, [('flinch', i) for i in range(4)]), ('hurt', 8, [('hurt', i) for i in range(6)]),
         ('prone', 8, [('hurt', 4), ('hurt', 5), ('prone', 0)]), ('getup', 6, [('prone', 0), ('prone', 1)])]
-RELEASE = {'attack': 2, 'sting': 3, 'rake': 2}                           # (the art desk's contacts: Bite 3, Sting 4, Claws 3 -- zero-based)
+RELEASE = {'attack': 2, 'sting': 3, 'rake': 2, 'airattack': 2, 'airsting': 3}                          # (the art desk's contacts: Bite 3, Sting 4, Claws 3 -- zero-based)
 HOLD = ['NE walk: frames 3 and 7 lift different hind feet, and 1 and 5 favour the same wing wrist -- the wing-brace cycle wants another look (the art desk\'s own note)',
         'NE fall starts with the tail out past the idle\'s; NE flinch\'s wing half-opens subtly; N claws: the rear view foreshortens the rake (the art desk\'s own notes)',
         'the head reads more dragon than the ask\'s "narrow horned head" (swept horns, a spiny crest): Griz\'s eye (the 11-14 review\'s one open point)']
@@ -120,6 +128,24 @@ def crop(act, v, i):
     return a[sl], m[sl], floor - (Y0 + sl[0].stop)
 
 
+def legless(c):
+    """one placed frame's cell, in place: the legs off -- every piece below the cut goes but the stinger's (its green), the cut's edge outlined"""
+    al = c[..., 3] > 0
+    below = al.copy(); below[:AY - CUT + 1] = False
+    ol = (c[..., :3] == np.array(DS.OUTL, np.uint8)).all(-1)
+    lab, n = ndimage.label(below & ~ol)                                    # (pieces by their colour, the outline between them not joining them: the stinger's tip touches a foot as it strikes)
+    keep = np.zeros_like(al)
+    for k in range(1, n + 1):
+        px = c[lab == k].astype(int)
+        if ((px[:, 1] > px[:, 0] + 8) & (px[:, 1] > px[:, 2] + 8)).any():   # (green in it: the stinger; a leg, a foot or a wing's wrist has none)
+            keep |= lab == k
+    keep |= below & ol & ndimage.binary_dilation(keep, np.ones((3, 3), bool))  # (and its own outline)
+    c[below & ~keep] = 0
+    now = c[..., 3] > 0
+    edge = np.zeros_like(al); edge[:-1] = now[:-1] & ~now[1:] & al[1:]
+    c[edge, :3] = DS.OUTL; c[edge, 3] = 255
+
+
 def cut(check=False):
     F = fits()
     base = None
@@ -161,6 +187,8 @@ def cut(check=False):
                 assert dy >= 0 and dy + h <= FH and dx >= 0 and dx + w <= fw, (name, f, k_, 'a frame past its cell', dx, dy, w, h)
                 dst = blk[f * FH + dy:f * FH + dy + h, j * fw + dx:j * fw + dx + w]
                 put = o[..., 3] > 0; dst[put] = o[put]
+                if name in LEGLESS:
+                    legless(blk[f * FH:(f + 1) * FH, j * fw:(j + 1) * fw])
         a = dict(y=y, fw=fw, fh=FH, ax=ax, ay=AY, frames=len(keys), fps=fps)
         if name in RELEASE:
             a['release'] = RELEASE[name]
