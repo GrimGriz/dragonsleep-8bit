@@ -495,3 +495,52 @@ Rows for THE BORROWED FACE, in each view: Idle (8: an old woman standing with he
 Where: `greenhag_p1` (rows `idle`, `walk`, `claws`, `cast`, `vanish` -- Invisible Passage, played backward to come back -- `flinch`, `hurt` (Fall), `prone`) and `greenhag_guise_p1` (rows `idle`, `walk`, `unmask` -- Illusory Appearance, as the lamia's human form is worn). Medium. The SRD: Claws, Illusory Appearance, Invisible Passage, Mimicry, the cantrips at will, amphibious.
 
 What is sourced and what is the desk's: the four creatures and what each does are the SRD 5.1's (`srd/monsters/`); the SRD gives no picture of any of them, so every look above is the desk's own wording of the common shape of each, written fresh for this ask. No realm page places any of the four: where each is met, and whether the armor is dwarf-made or the hag belongs to the Glowseep's bog, is Griz's word and is not asked of you. Draw past the words where your eye says so.
+
+## 65. The generic man and woman, walking: a world figure for each costume their portraits wear, the Glowseep's light-crew first (the non-combat set) (added 11-15, the lanes desk, on his word, relayed by the Glowseep notes seat: *"forward that off topic art stuff to the lanes desk and tell it to include the glowseep NPC portraits we have in art requests for their world models we need (non-combat set)"*; his note from the Glowseep's floor that night: *"are we missing art for the worldmap figures for these guys?"*) -- IN THE OUTBOX 2026-11-15, waiting to go (`deep16/_src/outbox/ASK-2026-11-15-generic-world-figures/` and its `.zip`)
+
+From the engine side (the lanes desk), for the art desk. One ask in several pieces: the two townsfolk figures you drew (ART-09 and ART-52), re-dressed in the costumes you drew for their talking portraits (ART-122). Everything named ATTACH is in `deep16/_src/outbox/ASK-2026-11-15-generic-world-figures/attach/` beside this file. The register copy is `deep16-art-wanted.md` section 65.
+
+What holds and is KEPT: your generic man and generic woman portraits in every costume (`pt_genman`, `pt_genwoman`: every unnamed person who talks wears one), and your townsfolk man and woman walking in their own clothes (`folkman_p1`, `folkwoman_p1`, all eight facings).
+
+What is missing: the costumes exist only from the waist up. When one of these people stands on a floor or walks a street, the game has no figure in that costume, so each stands as a borrowed FIGHTER (a brawler, a crewman, a bandit, a guard) with a weapon in hand. A player talks to the light-crew's eldest and sees your woman in her oilcloth cape; on the Glowseep's floor the same person is a brawler. This ask closes that: the same two people, head to foot, in each costume, standing and walking. NOT fighting: no weapon rows, no flinch, no fall. These people never fight.
+
+The order, most wanted first. If the whole is too much for one pass, stop after any numbered piece: each stands alone.
+
+1. THE LIGHT-CREW HAND -- the woman and the man. (The Glowseep's three: its eldest is the woman, the pole-hand and the quiet one the man.)
+2. THE SHAFT HAND and THE GUANO SCRAPER -- the woman and the man each.
+3. THE DRINKER, THE GAMBLER and THE BARKEEP -- the woman and the man each. (The Hex's floors.)
+4. THE HIRED HAND and THE GUARD -- the woman and the man each.
+5. THE CREW BOSS and THE CLERK -- the woman only. THE DRIVE SPEAR and THE FACTOR'S AGENT -- the man only.
+6. THE CRAWLER HAND -- the man and the woman. (No one wears it yet; last.)
+
+### THE GENERIC MAN AND WOMAN AS WORLD FIGURES -- one costume a sheet, in all five views
+ATTACH `folkman_p1.png`, `folkwoman_p1.png` (your own two townsfolk walking in their own clothes, as the game wears them: the body, the size, the camera and the walk to keep), `pt_genman.png`, `pt_genwoman.png` (your portraits in every costume, as cut for the game, a row a costume), `ART-122-MAN_HEAD-1_PAGE-2.png` to `PAGE-14.png` and `ART-122-WOMAN_HEAD-1_PAGE-2.png` to `PAGE-14.png` (your own portrait pages at full size, a costume a page: the costume to put on the figure), `REF-2026-10-21-town-figure-size.png` (the size a town figure stands at), `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: your two townsfolk figures (a man and a woman, walking, in their own clothes), your talking portraits of the same two people in fourteen costumes, a size reference and the game's 64 colours.
+
+Draw the same man and the same woman as whole figures, head to foot, in each costume their portraits wear: the same face, hair, build and height as the attached walking figures, the same camera and the same walk, re-dressed. One costume a sheet. A world figure: standing and walking only, nobody fights.
+
+The costumes, each exactly as its attached portrait page shows it, carried down to the feet:
+- THE LIGHT-CREW HAND: a damp oilcloth cape with a hood down the back, a dark tunic belted under it, long boots wet to the knee, heavy gloves with a faint green glow of moss on them, and a long pole carried upright in one hand or over the shoulder.
+- THE SHAFT HAND: a dusty leather jerkin, a candle-stub helmet pushed back, grime to the knees, a pick or nothing in the hands.
+- THE GUANO SCRAPER: a cloth tied at the throat (pulled down), a hooded lamp at the belt, a long-handled scraper carried over the shoulder, everything powdered pale grey-brown.
+- THE DRINKER: a stained work shirt open at the collar, a clay mug in one hand, a little unsteady in the Idle.
+- THE GAMBLER: a good coat gone shiny at the cuffs over a waistcoat, rings, hands free.
+- THE BARKEEP: sleeves rolled, a leather barman's apron to the knee, a rag over one shoulder.
+- THE HIRED HAND: a sweat-stained shirt, a coil of rope over one shoulder.
+- THE GUARD: a padded jack and an iron cap, a spear carried upright at the shoulder (carried, never levelled).
+- THE CREW BOSS (the woman): a tally stick in one hand, a hooded lamp at the belt, a whistle on a cord.
+- THE CLERK (the woman): sleeve-guards and a plain waistcoat, a pen behind the ear, a wax tablet under one arm.
+- THE DRIVE SPEAR (the man): a leather cap and shoulder guard, a short spear carried upright.
+- THE FACTOR'S AGENT (the man): a dark well-cut coat and a high collar, gloved, a sealed letter in one hand.
+- THE CRAWLER HAND: leather gloves to the elbow, a milking thimble on a thong at the throat, a plain smock.
+
+Rows, the same on every sheet and in every view: Idle (4: standing in the costume's own way -- the light-crew hand leaning a little on the pole, the drinker swaying, the guard at rest -- a small breath; frame 4 matches frame 1); Walk (8: an easy walk, whatever is carried kept still in the hand or on the shoulder; animate in place, not travelling across the sheet).
+
+HEAD 1 -- from the front, facing the viewer (south). HEAD 2 -- from the bottom-right, front three-quarter, every frame facing the bottom-right corner. HEAD 3 -- from the right side in profile, facing right. HEAD 4 -- from the top-right, seen from behind. HEAD 5 -- straight from behind, facing away. Idle (4) and Walk (8) each.
+
+All: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size; isometric three-quarter view from above at about thirty degrees, as in a tactics game -- the camera of the attached walking figures; the whole figure head to foot in every frame, the pole or spear included; the same height as the attached figures (a grown human stands about 50 pixels sole to crown at game size: draw it large, the cutter brings it down); flat dark navy background; labelled rows, numbered frames, every number once; every frame apart; feet on one baseline. Use only the attached 64 colours. No scenery. Name each page by the person, the costume and the view.
+```
+Where: a sheet a costume and person on `folkman_p1`'s and `folkwoman_p1`'s cell (72 x 64), rows `idle` and `walk`, all eight facings (the three left ones mirrored), named `folkman_<costume>_p1` and `folkwoman_<costume>_p1` (`lightcrew`, `shaft`, `scraper`, `drinker`, `gambler`, `barkeep`, `hired`, `guard`, `crewboss`, `clerk`, `drivespear`, `agent`, `crawlerhand`); `deep16/js/town.js` T.KIND then stands each unnamed id in its own costume in place of the borrowed fighter, by `deep16/js/counter.js` C.GENERIC (who is the man, who the woman, which costume). Until a costume comes back, its people can wear the two townsfolk figures in their own clothes.
+
+What is sourced and what is the desk's: that the costumes' world figures are wanted, the Glowseep's crew among them and non-combat, is his word above. Each costume's words are the art desk's own portrait pages and their ask (art-in-hand, the generic man and woman, 10-28), carried below the waist by the desk: the boots, the apron's length, what is in which hand on a walk are the desk's reading of the attached pages. The order is the desk's: the light-crew first because he asked from the Glowseep's floor, then by how many people on a floor wear each. Draw past the words where your portrait shows otherwise.
