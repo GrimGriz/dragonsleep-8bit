@@ -1836,6 +1836,25 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okN('Burning Hands readied, the goblin 40 ft off (had ' + had + '), then ' + cs[0] * 5 + ' ft off on its own turn: ' + (sprung ? 'sprung' : 'held') + ' (the goblin ' + hp0 + ' -> ' + gb.hp + ')',
           sprung === cs[1] && (!cs[1] || gb.hp < hp0));
       });
+      // THE M MENU AND A CARRIED LIGHT IN A SIMPLE FIGHT (11-15, Griz: "the place you actually hover the mouse to get the 'hovering on menu item' effects is misplaced";
+      // "whole field dim for everyone, + carried light on hero carrying it"): a road fight by night, simple; the menu drawn where the mouse reads it (no band's shift), and
+      // Barley's Light drawn on Barley as drawn while his square stands by the foes for a blow
+      var memN = {}, stGN = D.store.get, stSN = D.store.set, muN = D.music; D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; }; D.music = function () { };
+      try {
+        var wsN = D.world.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsN); wsN.enter(); var eN2 = D.world.M().hex[D.world.K(D.world.state().at[0], D.world.state().at[1])];
+        wsN.fight({ zone: 'north', list: ['goblin', 'goblin'], mirror: false }, eN2, { dark: true, simple: true }); var bS = D.top(); if (bS.baking) { bS.baking = false; bS.enter(); } D.battle = bS; if (bS.o.simple && !bS.simple) D.simple.setup(bS);
+        var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var cx = cv.getContext('2d'), f0 = cx.getTransform().f, fM = null, dm0 = D.ui.drawMenu;
+        D.ui.openMenu(bS); D.ui.drawMenu = function (c) { fM = c.getTransform().f; return dm0.apply(this, arguments); };
+        try { D.ui.drawBattle(cx, bS); } finally { D.ui.drawMenu = dm0; }
+        okN('the M menu in a simple fight: open ' + !!(bS.menu && bS.menu.m) + ', drawn at a shift of ' + fM + ' (the screen ' + f0 + '; the mouse reads it unshifted)', !!(bS.menu && bS.menu.m) && fM === f0);
+        bS.menu = null;
+        var bar = bS.units.filter(function (u) { return u.side === 'party' && !u.guest && !u.familiar; })[0], foe = bS.units.filter(function (u) { return u.side === 'foe'; })[0];
+        bar.conds.light = { by: 'aurdin' }; D.simple.place(bS); var home = { x: bar.drawAt.x, y: bar.drawAt.y };
+        bar.x = foe.x - 1; bar.y = foe.y; bS.cache = null;
+        var lg = D.light.all(bS).filter(function (l) { return l.unit === bar && l.kind === 'light'; })[0], at = lg && D.light.drawnAt ? D.light.drawnAt(lg) : lg;
+        okN('Barley\'s Light, his square by the foe for a blow (' + bar.x + ',' + bar.y + '): drawn at ' + (at && at.x) + ',' + (at && at.y) + ', where he is drawn ' + home.x + ',' + home.y + '; the field ' + D.light.fieldLevel(bS),
+          !!at && at.x === home.x && at.y === home.y && D.light.fieldLevel(bS) === 1);
+      } finally { D.store.get = stGN; D.store.set = stSN; D.music = muN; }
     } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
     if (errs.length) repN.errors = repN.errors.concat(errs);
     var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
@@ -8587,16 +8606,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1029);
       // 1. A FLOOR'S FIGHT (his "can we do victory (xp rewards, etc) on the fight screen instead of the roam screen after return from the fight?"): the dens, a giant bat on its field, simple;
-      // the last card says Victory! and the XP with the way back; E back: the floor says it is back where it stood and no Victory!, and not THE WAY IS CLEAR. again -- the fight's last card said it (11-15, his "it says 'the way is clear' 3 different times"), the XP paid once, the bank empty
+      // the last card says Victory! and the XP with the way back; the panel's E goes straight back (no last card, no E back: 11-15, his "VICTORY - popup straight back to the floor, line when you're back on the floor"); the floor says THE WAY IS CLEAR. and no Victory!, the XP paid once, the bank empty
       var B1 = testVc('?roam=galleries_g3&flags=cullHired&at=20,10'), R1 = B1.roam, xp1 = R1.members.map(function (u) { return (u.src && u.src.xp) || 0; });
       runVc(B1, MVc.fieldFight(B1, 'asked', { list: ['giantbat'], line: 'A bat.' })); driveVc(B1.co, function () { var s = D.top(); return s !== B1 && s instanceof D.Battle; }, 4000);
       var b1 = D.top(), last1 = b1 !== B1 ? winVc(b1) : [], pan1 = panVc(), ban1 = b1.simple && SVc.banner ? SVc.banner(b1).map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : [];
-      var paid1 = R1.xpPaid || 0; if (D.top() === b1) D.pop(); b1.o.onDone(b1.result); B1.cards = []; driveVc(B1.co, function () { return !R1.pulling && D.top() === B1; }, 4000); driveVc(B1.co, null, 60);
+      var paid1 = R1.xpPaid || 0, auto1 = !!b1.autoBack; if (auto1) D.ui.resultInput(b1); else { if (D.top() === b1) D.pop(); b1.o.onDone(b1.result); } var back1 = D.top() === B1 && !b1.autoBack; B1.cards = []; driveVc(B1.co, function () { return !R1.pulling && D.top() === B1; }, 4000); driveVc(B1.co, null, 60);
       var floor1 = (B1.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), gain1 = R1.members.map(function (u, i) { return ((u.src && u.src.xp) || 0) - xp1[i]; });
       okVc('the dens\' fight (' + b1.result + ', simple ' + !!b1.simple + '): the VICTORY panel ' + pan1.title + ' "' + pan1.lines.join(' | ').slice(0, 120) + '"; its last card "' + last1.join(' | ').slice(0, 90) + '"; the simple screen\'s words ' + ban1.length + ' lines ("' + (ban1[ban1.length - 1] || '').slice(0, 40) + '")',
-        b1.result === 'won' && pan1.title === 'VICTORY' && pan1.lines.some(function (l) { return /\d+ XP/.test(l); }) && !last1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(last1[last1.length - 1]) && !!b1.simple && !ban1.some(function (l) { return /XP/.test(l); }) && /E back to/.test(ban1.join(' ')));
-      okVc('back on the floor: "' + floor1.slice(0, 120) + '"; paid on the card ' + paid1 + ' and after it ' + (R1.xpPaid || 0) + ', each one\'s XP up ' + gain1.join(',') + ', the bank ' + R1.xpBank,
-        !/Victory!/.test(floor1) && !/The way is clear/.test(floor1) && /Back where the party stood/.test(floor1) && /THE WAY IS CLEAR/.test(last1.join(' ')) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
+        b1.result === 'won' && pan1.title === 'VICTORY' && pan1.lines.some(function (l) { return /\d+ XP/.test(l); }) && !last1.some(function (l) { return /XP|E back to|THE WAY IS CLEAR/.test(l); }) && auto1 && !!b1.simple && !ban1.some(function (l) { return /XP|E back to/.test(l); }));
+      okVc('back on the floor by the panel\'s E alone (' + auto1 + ', on the floor ' + back1 + '): "' + floor1.slice(0, 120) + '"; paid on the card ' + paid1 + ' and after it ' + (R1.xpPaid || 0) + ', each one\'s XP up ' + gain1.join(',') + ', the bank ' + R1.xpBank,
+        auto1 && back1 && !/Victory!/.test(floor1) && /THE WAY IS CLEAR/.test(floor1) && /Back where the party stood/.test(floor1) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
       // 2. A ROAD FIGHT IN THE HOUSE (the same way everywhere): a NEW GAME on THE WORLD, a wolf on the road; the last card says Victory! and the XP; THE WORLD after says the road is
       // clear and no XP, each one's banked once
       HVc.worldDoor('?world&noenc'); var ws2 = D.top(); if (ws2 && ws2.baking) { ws2.baking = false; ws2.enter(); }

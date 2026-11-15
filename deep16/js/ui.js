@@ -1393,6 +1393,7 @@
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
   UI.resultInput = function (B) {
     UI.camera(B);
+    if (B.autoBack && B.o.onDone) { B.autoBack = false; D.pop(); B.o.onDone(B.result); return; } // (a floor's fight: the VICTORY panel's E is the way back -- battle.js finish, o.straightBack)
     if (I.pressed('a') || (I.mouse.click && !overUI(B))) {
       D.sfx('confirm');
       if (B.o.onDone) { D.pop(); B.o.onDone(B.result); return; } // back to the ladder with the result

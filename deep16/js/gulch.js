@@ -140,10 +140,10 @@
     if (a !== 0) { if (o.step) M.stepBack(B); return; }
     var F = Object.assign({}, F0, { level: (R.party0 && R.party0.level) || F0.level, noCards: true });
     R0.fights++; // (THE WORLD's hour counts it: M.tick)
-    R.party0.backTo = R.def.sub;
+    R.party0.backTo = R.def.sub; R.party0.straightBack = true;
     var rec = R.house() ? { fight: o.fight, name: 'Web Gulch: ' + F.name, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
     yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: false, zone: 'gulch', flag: 'trig:' + o.trig, trig: o.trig, back: M.fieldBack, record: rec } }, [t.x, t.y]);
-    delete R.party0.backTo;
+    delete R.party0.backTo; delete R.party0.straightBack;
     if (R0.pulled === 'won' && o.after) yield* o.after(B);
   };
   // the snared lad (S.snared): two wolf spiders and a giant spider coming for a shape in the silk; cut down, a few coins pressed on you

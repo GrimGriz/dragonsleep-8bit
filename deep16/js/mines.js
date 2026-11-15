@@ -763,13 +763,13 @@
     var sf = D.fight ? D.fight('cloaker') : {}, F = M.fieldDef(R.def, ['cloaker'], false, { line: sf.intro }, [t.x, t.y]);
     Object.assign(F, { story: true, gimmick: sf.gimmick || 'darkness', music: sf.music || 'boss', name: sf.name || 'The Cloaker', sub: sf.sub || 'the deep gallery', won: sf.won || F.won,
       intro: sf.intro || F.intro, oneLeavesAll: true }); // (oneLeavesAll: a getaway takes the party, as the floors' fights do -- js/battle.js takesParty)
-    R.party0.backTo = R.def.sub; R0.fights = (R0.fights || 0) + 1; // (on THE WORLD's clock: M.tick, 10-30)
+    R.party0.backTo = R.def.sub; R.party0.straightBack = true; R0.fights = (R0.fights || 0) + 1; // (on THE WORLD's clock: M.tick, 10-30)
     var fb = null, rec = R.house() ? { fight: 'cloaker', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
     var watch = /[?&]watch\b/.test(R.q || '');
     var enter = function (b) { fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
     yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: false, zone: null, flag: 'cloakerKilled', trig: null, back: M.fieldBack, enter: enter, record: rec,
       ends: function (d) { return d === 'lost' && M.vitalDown(fb); } } }, [t.x, t.y]);
-    delete R.party0.backTo;
+    delete R.party0.backTo; delete R.party0.straightBack;
     if (R0.pulled === 'lost' && M.vitalDown(fb)) { yield* M.daceFail(B); return; }
     if (R0.pulled === 'escaped') { B.card(R.wrap([].concat(L('g4.ranUp'))), 360); yield 60; yield* M.go(B, 'galleries_g3', [50, 9], M.FACE.left); return; }
     if (R0.pulled !== 'won') return;
@@ -888,9 +888,9 @@
       roost: !!def.roost, announce: def.roost ? [M.LINES.roost] : null };
   };
   M.LINES.roost = '{y}Overhead, the roost{/}: millions of sleeping wings. No fire. No bright light.';
-  // (the fight's own last card said THE WAY IS CLEAR. -- behind the VICTORY panel and after it -- so the floor does not say it a third time: 11-15, Griz, his NOTES from the Glowseep:
-  // "it says 'the way is clear' 3 different times, pretty sure at least one is excessive (the one after the victory popup?)"; a fight with its own last line keeps the floor's)
-  M.fieldBack = function (done, F) { return done === 'won' ? (F && /way is clear/i.test(F.won || '') ? ['{y}Back where the party stood.{/}'] : ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}']) : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  // (the fight's own line, THE WAY IS CLEAR. or a set fight's, said here and not on the fight's screen: the VICTORY panel goes straight back to the floor -- 11-15, Griz, his NOTES
+  // from the Glowseep, "it says 'the way is clear' 3 different times", then "VICTORY - popup straight back to the floor, line when you're back on the floor"; js/battle.js finish)
+  M.fieldBack = function (done, F) { return done === 'won' ? ['{y}' + ((F && F.won) || 'The way is clear.') + '{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
   // THE ROOST COMES DOWN (10-22, the lanes desk's call, standing for his overrule -- he was away -- on the seat's lean, "yes, match the first game"): a field fight that ends
   // 'roost' ends the run, as the first game's RoostFail does (RULED 09-24, Griz: "you wanted to make a name for yourself, but not this kind of name"): NOT THIS KIND OF NAME,
   // fail.roost's words, then CONTINUE FROM A SAVE or the title, and nothing saved (js/house.js H.lost's way). The test door: deep16/?roostfail
@@ -959,7 +959,7 @@
       opts: [{ label: 'FIGHT', value: 0 }].concat(D.simple ? [{ label: simple ? 'ON THE GRID' : 'SIMPLE', value: 1 }] : []) } };
     if (a === 1) simple = !simple; // (the other way, for this fight alone -- the road's card, RULED 10-21, Griz: "yes")
     var F = M.fieldDef(R.def, list, simple, set, [t.x, t.y]);
-    R.party0.backTo = R.def.sub; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
+    R.party0.backTo = R.def.sub; R.party0.straightBack = true; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
     var watch = /[?&]watch\b/.test(R.q || ''); // (the test door's &watch: the four run by the class AI in there too, as on the floor)
     var fb = null, enter = function (b) {
       fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
@@ -968,7 +968,7 @@
     // its play record in the house, as the road's fights keep theirs (js/record.js; the house lane's 10-19 note 6, "the floor's fights keep no play record")
     var rec = R.house() ? { fight: 'minefield', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: simple } : null;
     yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec, ends: function (d) { return d === 'roost' || (d === 'lost' && M.vitalDown(fb)); } } }, [t.x, t.y]);
-    delete R.party0.backTo;
+    delete R.party0.backTo; delete R.party0.straightBack;
     if (R0.pulled === 'roost') { yield* M.roostFail(B); return; }
     if (R0.pulled === 'lost' && M.vitalDown(fb)) { yield* M.daceFail(B); return; } // (the guest the party swore to bring back fell in it: M.daceFail)
     if (R0.pulled === 'won' && fb && fb.firedRoost) yield* M.roostBroke(B);

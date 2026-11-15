@@ -709,11 +709,14 @@
     if (!B.o || !B.o.simple) return draw0.apply(this, arguments);
     if (!B.simple) S.setup(B);
     S.place(B); S.camera(B);
-    var req = B.req, cards = B.cards, cur = B.cursor, cine = B.cine, ins = I.mouse.inside, act = B.active;
+    var req = B.req, cards = B.cards, cur = B.cursor, cine = B.cine, ins = I.mouse.inside, act = B.active, mnu = B.menu; B.menu = null; // (the M menu drawn after, unshifted: below)
     B.req = null; B.cards = []; B.cursor = { x: -99, y: -99 }; B.cine = true; I.mouse.inside = false; B.active = null; // (no ring, bar, strip, cursor, active square, hover or cards of the grid's: the windows, the words and the turn order are this file's)
     ctx.save(); ctx.translate(0, OFF);
-    try { draw0.call(this, ctx, B); } finally { ctx.restore(); B.req = req; B.cards = cards; B.cursor = cur; B.cine = cine; I.mouse.inside = ins; B.active = act; }
+    try { draw0.call(this, ctx, B); } finally { ctx.restore(); B.req = req; B.cards = cards; B.cursor = cur; B.cine = cine; I.mouse.inside = ins; B.active = act; B.menu = mnu; }
     S.draw(ctx, B);
+    // the M menu where its keys and its mouse look for it (11-15, Griz: "It's the main menu that's problematic when opened during a simple fight. the place you actually hover the
+    // mouse to get the 'hovering on menu item' effects is misplaced"): it was drawn inside the picture's band, OFF lower, and read the mouse unshifted (js/ui.js menuInput)
+    if (mnu && mnu.m && UI.drawMenu) UI.drawMenu(ctx, mnu.m);
     var my = I.mouse.y;
     if (req && req.victory && UI.victory) UI.victory(ctx, B, req.victory); // (the VICTORY panel, 11-05: the middle of the whole screen, over the windows)
     else if (req && (req.prompt || req.entry || req.scene) && UI.drawReq) { // (the grid's own window -- a prompt, the entry card -- over the windows, a band lower as the picture is)

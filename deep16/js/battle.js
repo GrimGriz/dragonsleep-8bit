@@ -1206,9 +1206,13 @@
     // (the pay in the VICTORY panel in the middle, closed with E -- 11-05, Griz: "still would prefer end of fight reward text as a popup in the middle rather than an additional
     // line at the top"; "4&5 yes" -- the card at the top the ending alone while it is up, then the way on under it; the pay in the log and the record as it was)
     var vic = Battle.victoryOf(paid);
+    // STRAIGHT BACK TO THE FLOOR (11-15, Griz, on his Glowseep note "it says 'the way is clear' 3 different times": "VICTORY - popup straight back to the floor, line when you're
+    // back on the floor"): a floor's fight (o.straightBack -- js/mines.js, js/gulch.js) closes the VICTORY panel onto the floor at once; its line said there (js/mines.js M.fieldBack)
+    var straight = !!(vic && this.o.onDone && this.o.straightBack);
     if (vic) {
-      this.card([head], 1e9, 'fightend'); this.logOnly(paid);
+      if (straight) this.logOnly([head]); else this.card([head], 1e9, 'fightend'); this.logOnly(paid);
       yield { victory: vic };
+      if (straight) { this.autoBack = true; return; }
     }
     this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.backTo ? 'E back to ' + this.o.backTo : this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : this.o.world ? 'E back to the road' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9, 'fightend');
   };

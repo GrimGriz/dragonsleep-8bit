@@ -464,6 +464,9 @@
   // a square whose rhombus lies wholly off the canvas being drawn (W by H, the world canvas) is skipped in the pass's two floor sweeps: a huge floor is thousands of
   // them a frame, most off the screen (10-04 night, the huge maps)
   function inView(iso, x, y, gz, W, H) { var c = iso.center(x, y, gz), s = iso.toScreen(c.x, c.y); return s.x > -40 && s.x < W + 40 && s.y > -40 && s.y < H + 40; }
+  // where the picture draws a carried light: on its carrier as drawn (a simple fight draws each one at home, u.drawAt, while its square jumps to the foe for a blow -- 11-15, Griz:
+  // "it looked like barleys light working was visible when he attacked (the enemy lit up) but he seemed dark on the player side"); the rules read lg.x, lg.y as ever
+  L.drawnAt = function (lg) { var u = lg.unit, d = u && u.drawAt; if (!d) return lg; var sz = u.size || 1; return { x: d.x + (sz - 1) / 2, y: d.y + (sz - 1) / 2 }; };
   L.pass = function (ctx, B, W, H) {
     if (!B || !B.dark || !B.map) return;
     var FL = L.fieldLevel(B); if (FL === 2) return; // (a simple fight's field under Daylight: no night on it -- L.fieldLevel)
@@ -487,7 +490,7 @@
     for (var yd = 0; yd < m.h; yd++) for (var xd = 0; xd < m.w; xd++) { var id = yd * m.w + xd, sd = m.sq[id]; if (!sd.open || !(pm.v[id] === 1 || (dvSq && dvSq[id] && lmD && lmD.lv[id] === 1)) || !inView(iso, xd, yd, sd.gz, W, H)) continue; iso.rhombus(l, xd, yd, sd.gz, 0); l.fill(); }
     var lights = L.all(B);
     lights.forEach(function (lg) {
-      var gx = Math.round(lg.x), gy = Math.round(lg.y), c = iso.center(lg.x, lg.y, m.gz(gx, gy)), s = iso.toScreen(c.x, c.y);
+      var at = L.drawnAt(lg), gx = Math.round(at.x), gy = Math.round(at.y), c = iso.center(at.x, at.y, m.gz(gx, gy)), s = iso.toScreen(c.x, c.y);
       var f = lg.flame ? flick(t + gx * 7 + gy * 3) : 0, hw = iso.TW / 2;
       var rb = (lg.bright / 5) * hw * (1 + f * 0.05), rd = ((lg.bright + lg.dim) / 5) * hw * (1 + f * 0.03);
       if (rd <= 0) return;
@@ -512,10 +515,14 @@
     // every turn draws what the party sees together, lit or not -- the 09-30 own-eyes filter in a room with no light is gone -- and the one
     // whose turn it is keeps its own senses on top (the sonar, the tongue); the mouse on one of ours still shows the dark by that one's eyes
     B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
+    // A CARRIED LIGHT ON ITS CARRIER in a simple fight's dim field (11-15, Griz: "my lean is whole field dim for everyone, + carried light on hero carrying it"): the rule
+    // stays one dim field (L.fieldLevel); the picture keeps a light's bright squares round whoever carries it out of the grey and the wash -- Barley under Aurdin's Light read
+    // dark on the party's side at the Glowseep, his glow greyed with the rest
+    var carry = {}; if (FL === 1) lights.forEach(function (lg) { if (!lg.unit || !(lg.bright > 0)) return; var at = L.drawnAt(lg), r = Math.floor(lg.bright / 5), gx = Math.round(at.x), gy = Math.round(at.y); for (var cy = gy - r; cy <= gy + r; cy++) for (var cx = gx - r; cx <= gx + r; cx++) if (cx >= 0 && cy >= 0 && cx < m.w && cy < m.h) carry[cy * m.w + cx] = 1; });
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
-    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2 || !inView(iso, x, y, s2.gz, W, H)) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2 || carry[y * m.w + x] || !inView(iso, x, y, s2.gz, W, H)) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,' + LK.hover + ')' : 'rgba(6,6,16,' + LK.wash + ')';
-    for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2] || !inView(iso, x2, y2, s3.gz, W, H)) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
+    for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2] || carry[y2 * m.w + x2] || !inView(iso, x2, y2, s3.gz, W, H)) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
     var sn = va || own; // (whose senses ride on top: the hovered one's, else the one whose turn it is)
     if (sn) { if (sn.sense === 'tongue') tongue(ctx, B, sn, t, sn.blindsight || 0); else sonar(ctx, B, sn, t); if (sn.senseHidden) tongue(ctx, B, sn, t, sn.senseHidden); }
     ctx.restore();
