@@ -906,12 +906,18 @@
   // determine random encounters and achieve for party, nothing player visible"): only the weights; the drawing below is a seats' debug view behind the &vessel flag alone
   W.VESSEL = {
     from: [7, 15], to: 'jct', route: 'pmvbkme9a', mpd: 12, dawn: 6, dusk: 18, day0: 2, hold: 'smvbkn0zk',
-    makings: [3, 5, 7, 9, 11, 13], makeHour: 12, /* (3: THE HARBINGER'S DAY, a making like the rest -- THE MAKINGS BY THEIR GROUND, below) */ reach: [10, 6, 40], peak: 6, rate: 0.5,
+    // THE STONE GIANTS' DAY (RULED 2026-11-15, Griz by the lanes desk: "cancel the day 11 making, have him make again at day 10 but that's the special encounter he had
+    // with the stone giant by cannon and doesn't make anything else"; "and takes him an extra day to get to the warded fort"): no making on day 11. At noon of day 10,
+    // where he stands on the Coldridge, is his taking of the stone giants (TarlynsPit/wiki/the-trickster.md: the Skylights' two, Steinarr and Hallvor, dominated) -- it
+    // makes nothing else: no made things, no marker, no reach on any table, nobody fleeing it. It holds him there `taking.hours`, a day of his walk, so he is held at the
+    // Warded Fort a day later. Nothing meets the party of it. The clock seat's readings, his to overrule: the day is spent standing at the day-10 place, noon to noon
+    taking: { day: 10, hours: 24 },
+    makings: [3, 5, 7, 9, 13], makeHour: 12, /* (3: THE HARBINGER'S DAY, a making like the rest -- THE MAKINGS BY THEIR GROUND, below) */ reach: [10, 6, 40], peak: 6, rate: 0.5,
     wither: 3, gone: 4, /* (THE MADE THINGS' CLOCK, below: days unfed) */ hungry: 1.5, /* (a withered making weighs this much heavier: RULED 11-14, Griz, "the withered would weight heavier for being hungry" -- the number the clock seat's) */
     // the 11-05 table's dawn and dusk hexes, re-walked on THE WORLD as baked 11-05 (the Coldridge's going 1.8 since the 11-05 night, 1.43 when the table was cut): days 2 to 8
     // as the table; 9 to 11 a hex behind it (the climb slower); then held at the Warded Fort from 12:30 on day 11 (the table walked him on to the Doors late on day 12)
     table: { 2: [[7, 15], [10, 13]], 3: [[10, 13], [13, 11]], 4: [[13, 11], [14, 10]], 5: [[14, 10], [16, 9]], 6: [[16, 9], [17, 8]], 7: [[17, 8], [19, 7]], 8: [[19, 7], [19, 7]],
-      9: [[19, 7], [19, 6]], 10: [[19, 6], [18, 6]], 11: [[18, 6], [17, 6]], 12: [[17, 6], [17, 6]] }
+      9: [[19, 7], [19, 6]], 10: [[19, 6], [18, 6]], 11: [[18, 6], [18, 6]], 12: [[18, 6], [17, 6]] } // (11 and 12 re-cut 11-15: THE STONE GIANTS' DAY, noon of 10 to noon of 11 stood in (18,6); held at the Warded Fort from 12:30 on day 12)
   };
   var VR = { src: null, pts: null };
   W.vesselRoad = function () { // (his road as one line of miles on THE WORLD: [x, y, the walk's miles to here] -- the ground's going counted in)
@@ -929,7 +935,10 @@
     if (fs) for (var k = 1; k < pts.length; k++) { var p0 = pts[k - 1], p1 = pts[k], vx = p1[0] - p0[0], vy = p1[1] - p0[1], L2 = vx * vx + vy * vy, u = L2 ? Math.max(0, Math.min(1, ((fs.x - p0[0]) * vx + (fs.y - p0[1]) * vy) / L2)) : 0, dk = Math.hypot(fs.x - p0[0] - u * vx, fs.y - p0[1] - u * vy); if (dk < hd) { hd = dk; hE = p0[2] + (p1[2] - p0[2]) * u; } }
     VR.src = MW; VR.pts = pts; VR.holdE = hE; VR.holdOff = hd; return pts;
   };
-  W.vesselMiles = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk; vesselAt holds him at the Warded Fort)
+  W.vesselPause = function () { var V = W.VESSEL, k = V.taking; if (!k || !(k.hours > 0)) return null; var p0 = (k.day - 1) * 24 + V.makeHour; return [p0, p0 + k.hours]; }; // (THE STONE GIANTS' DAY: the hours he stands)
+  W.vesselTaking = function (t) { var P = W.vesselPause(); if (t == null) t = S ? S.t : 0; if (!P || t < P[0]) return null; var at = W.vesselAt(P[0]); return at ? { day: W.VESSEL.taking.day, t: P[0], until: P[1], pt: at.pt, hex: at.hex, over: t >= P[1] } : null; }; // (the taking, once it has begun: where, and whether he has walked on)
+  W.vesselMiles = function (t) { var P = W.vesselPause(); if (!P || t <= P[0]) return W.vesselWalked(t); return W.vesselWalked(Math.max(t, P[1])) - (W.vesselWalked(P[1]) - W.vesselWalked(P[0])); }; // (the walk with the stone giants' day out of it)
+  W.vesselWalked = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk; vesselAt holds him at the Warded Fort)
     var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24;
     if (d < V.day0) return 0; // (no cap here: vesselAt holds him at the Warded Fort -- RULED 11-12, "1 - he's supposed to hold at the warded fort")
     return (d - V.day0) * V.mpd + V.mpd * Math.max(0, Math.min(1, (h - V.dawn) / (V.dusk - V.dawn)));
@@ -940,7 +949,7 @@
     for (var i = 1; i < pts.length; i++) if (pts[i][2] >= e) { var a = pts[i - 1], b = pts[i], f = b[2] > a[2] ? (e - a[2]) / (b[2] - a[2]) : 0; p = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; break; }
     return { pt: [p[0], p[1]], hex: atw(p[0], p[1], MS.world.w), mi: e, held: e >= VR.holdE, end: VR.holdE, fortOff: VR.holdOff };
   };
-  W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var E = VR.holdE, n = Math.floor(E / V.mpd); return (V.day0 + n - 1) * 24 + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }; // (S.t at the Warded Fort: he is held from it)
+  W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var when = function (E) { var n = Math.floor(E / V.mpd); return (V.day0 + n - 1) * 24 + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }, P = W.vesselPause(), t0 = when(VR.holdE); return P && t0 > P[0] ? when(VR.holdE + W.vesselWalked(P[1]) - W.vesselWalked(P[0])) : t0; }; // (S.t at the Warded Fort: he is held from it)
   W.makings = function (t) { // (the makings made by S.t: each its day, its place, its reach now)
     if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tA = W.vesselArrives(), tg = Math.min(t, tA);
     return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean)
