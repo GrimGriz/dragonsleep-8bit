@@ -7209,6 +7209,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // its wounds and a loss are the game's own. A loss that ends the game (js/house.js H.lost) is written down and the walk loads its last save, as a player would (twice a leg).
   // QL (the report's `log`) is the day-by-day log, a line an event with its day and hour. It asserts nothing of the route: a quest step that will not fire, a fight that cannot
   // be won and the card's lost bout against his ruling are written in the log as FINDING lines. Not in either gate (it is long: run it alone, from PowerShell).
+  // THE INN A STOP ON THE ROAD (11-15, the third quest-walk seat, started by the lanes desk on Griz's "seems like half of it is them bouncing at the inn for the last two weeks"
+  // and "we need to remove their original purpose (check all the inn supper dialog) so they don't sit there I suspect"): the walk no longer stays a night at a time under her roof
+  // to day `to` (walk1113's purpose, kept in walk1113): a night when the road brings the party there, Kat and the first supper as they come, the late route's legs on &order=late,
+  // then north to Silverton's work -- the guano galleries' dens at Sabeth's pay -- and the card each time a level comes, to day `to`; never back to the inn for the wagon's night or
+  // the due. WHERE lines on days 4, 12 and 16; the replays named questwalk-<order>stop-seed<N>-<MMDD>
   var QUESTK = get('mode', '') === 'questwalk1114';
   if (get('mode', '') === 'walk1113' || get('mode', '') === 'walkpoison1113' || get('mode', '') === 'walkbarn1113' || QUESTK) {
     var POISK = get('mode', '') === 'walkpoison1113'; // (the poison-dinner walk, 11-13: the same road to the inn, then its own -- its head is at THE POISON DINNER WALK below)
@@ -7378,10 +7383,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function hhQ() { return 'D' + HK.day() + ' ' + HK.clockAt(HK.now()); }
     function hhQ0() { try { return HK.cur ? hhQ() : 'D? --:--'; } catch (eH) { return 'D? --:--'; } }
     function rollLineQ() { return rollQ.n ? 'the road that day: ' + rollQ.n + ' steps rolled over ' + rollQ.mi.toFixed(1) + ' miles at ' + (rollQ.pct / rollQ.n * 100).toFixed(1) + '% a hex on the mean, ' + rollQ.fights + ' fight' + (rollQ.fights === 1 ? '' : 's') + ' drawn' : ''; }
+    // WHERE THE PARTY STANDS on the inn's days (11-15, the third quest-walk seat, for his day-pacing question -- "see if we have to move the party's day zero and edit their
+    // intros (and whether we need to move the chuul or wagon nights)": Kat from day 4, the wagon's night on day 12, the walk's end on day 16): the place, THE WORLD's 5-mile hex
+    // and the hexes from the inn's, once at the day's first line and once at the first line of its evening (eight o'clock on). The replay's track has every hour between
+    var WHEREQ = { 4: 'Kat at the inn from today', 12: 'the wagon\'s night', 16: 'the walk\'s last day' }, whereSaidQ = {};
+    function innHexQ() { try { var s = (WK.map('world').sites || []).filter(function (x) { return x.id === InK.SITE; })[0]; return s ? (s.hex ? s.hex.slice() : WK.worldHexOf(s.x, s.y)) : null; } catch (eI) { return null; } } // (a site's hex is s.hex; s.x, s.y are its miles -- js/world.js)
+    function standQ() { var h = null; try { h = rqHex(); } catch (eH) { } var ih = innHexQ(), dd = h && ih ? hexDQ(h, ih) : null; if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) dd = 0; /* (on her floors the party's hex is the door's it came in by, a hex off the site's own: at the inn) */ return whereQ() + (h ? ', THE WORLD\'s hex ' + h.join(',') : '') + (dd != null ? ', ' + (dd ? dd + ' hex' + (dd === 1 ? '' : 'es') + ' from the inn' : 'the inn\'s own hex') : ''); }
+    function whereDayQ(d) {
+      if (!QUESTK || !WHEREQ[d]) return;
+      if (!whereSaidQ[d]) { whereSaidQ[d] = 1; QL.push('WHERE ON DAY ' + d + ' (' + WHEREQ[d] + '), ' + hhQ() + ': ' + standQ()); }
+      if (whereSaidQ[d] === 1 && WK.hour() >= 20) { whereSaidQ[d] = 2; QL.push('WHERE ON THE EVENING OF DAY ' + d + ' (' + WHEREQ[d] + '), ' + hhQ() + ': ' + standQ()); }
+    }
     function tickQ() {
       if (!HK.cur) return;
       var d = HK.day();
       if (d !== dayQ) { var rl = rollLineQ(); if (rl && dayQ >= 0) QL.push('   (' + rl + ')'); dayQ = d; rollQ = { n: 0, mi: 0, pct: 0, fights: 0 }; QL.push('DAY ' + d + ' -- ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ()); }
+      whereDayQ(d);
       var ms = D.top() && D.top().roam ? D.top().roam.members.filter(function (u) { return u.src; }).map(function (u) { return u.src; }) : (HK.cur.party || []);
       ms.forEach(function (h) { var k = h.key || h.id; if (lvQ[k] != null && h.lvl > lvQ[k]) QL.push(hhQ() + ' LEVEL UP: ' + h.name + ' to level ' + h.lvl + ' (' + h.maxhp + ' hp)'); lvQ[k] = h.lvl; });
     }
@@ -7432,7 +7449,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     }
     function rqOut(legs) {
       if (!RQ.on) return null; rqSample(); var MW = WK.Mworld(), SR = D.snootroad;
-      return { v: 1, mode: 'questwalk1114', seed: +get('seed', 1113), order: get('order', 'five'), to: +get('to', 16), made: new Date().toISOString(), hexMi: MW.w, stay: D.hunger ? D.hunger.STAY : 48, hours: rqHours(), board: SR ? SR.BOARD : 14,
+      return { v: 1, mode: 'questwalk1114', seed: +get('seed', 1113), order: get('order', 'five') + ',stop', /* (11-15, the third quest-walk seat: the inn a stop on the road -- its replays questwalk-<order>stop-seed<N>-<MMDD>, beside the walks that sat at the inn) */ to: +get('to', 16), made: new Date().toISOString(), hexMi: MW.w, stay: D.hunger ? D.hunger.STAY : 48, hours: rqHours(), board: SR ? SR.BOARD : 14,
         bands: SR ? SR.BANDS.map(function (b) { var n = 0; Object.keys(b.comp).forEach(function (k) { n += b.comp[k]; }); return { id: b.id, tribe: b.tribe, name: b.name, of: n }; }) : [],
         track: RQ.track, meets: RQ.meets, frames: RQ.frames, refs: RQ.memo.refs, farms: D.replay.farmsUsed(RQ.memo), rewinds: RQ.rewinds, legs: (legs || []).slice(), log: QL.slice() };
     }
@@ -7507,7 +7524,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // ================================================================ THE QUEST WALK (mode=questwalk1114): its head is at the block's condition
       repK.log = QL; var toQ = +get('to', 16), orderQ = get('order', 'five'), S0q = WK.state(); if (S0q) S0q.seed = +get('seed', 1113); hooksOnQ();
       var ordQ = String(orderQ).split(','); // (11-15, the second quest-walk seat: &order= takes cull, ned, nocard, or two of them joined by a comma -- his "run several variants please")
-      logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (ordQ.indexOf('ned') >= 0 ? 'Ned and the Glowseep first, then ' : '') + (ordQ.indexOf('cull') >= 0 ? 'the Cull before the Five' : 'the Five first') + (ordQ.indexOf('nocard') >= 0 ? '; the card left till the first level comes' : '') + (ordQ.indexOf('late') >= 0 ? '; after the bounty the late route: Kat\'s ink, the true word, Hessle' : '') + ')');
+      logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (ordQ.indexOf('ned') >= 0 ? 'Ned and the Glowseep first, then ' : '') + (ordQ.indexOf('cull') >= 0 ? 'the Cull before the Five' : 'the Five first') + (ordQ.indexOf('nocard') >= 0 ? '; the card left till the first level comes' : '') + '; after the bounty the Halfway Inn, a stop on the road' + (ordQ.indexOf('late') >= 0 ? '; then the late route: Kat\'s ink, the true word, Hessle' : '') + '; then north to the guano galleries\' work and the card to the end of day ' + toQ + ')');
       var legsQ = [], doneQ = {};
       // a LEG: a piece of the route from the last save; a loss that ends the game loads that save and the leg is walked again (twice), as a player would
       function legQ(name, fn) {
@@ -7523,7 +7540,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
             if (!eL || !eL.qloss) throw eL;
             tries++; QL.push(hhQ() + ' GAME OVER in ' + eL.fight + ' (' + eL.res + ')' + (tries <= 2 ? ': the last save loaded, the leg again' : ': the leg given up'));
             if (!loadK(1)) { legsQ.push(name + ': lost, no save'); throw new Error('the quest walk: no save to load after a loss in ' + name); }
-            playK({ quiet: 60 }); dayQ = -1;
+            playK({ quiet: 60 }); dayQ = -1; Object.keys(whereSaidQ).forEach(function (k) { if (HK.cur && +k >= HK.day()) delete whereSaidQ[k]; }); // (the WHERE lines said again on the walk that stands: a lost try's are its own)
             if (tries > 2) { legsQ.push(name + ': LOST three times'); return 'lost'; }
           }
         }
@@ -7782,6 +7799,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       }
       // a mine's floors by their own ways (H16.wayTo: the first game's warps, the fewest maps), to the floor `id8`
       function downQ(id8) {
+        var viaD = [(RK.def && RK.def.src8 && RK.def.src8.id) || whereQ()]; // (11-15, the third quest-walk seat: the floors it walked when it does not get there -- a trial walk could not get up from the dens, galleries_g3 > g4 > g3 > g4, and walked it six times)
         for (var h = 0; h < 6; h++) {
           if (RK.def && RK.def.src8 && RK.def.src8.id === id8) return 'there';
           var B = topK(); if (!B || !B.roam || D.top() === WK.scene) return 'off the floors (' + whereQ() + ')';
@@ -7796,8 +7814,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (!sq) return 'no way to ' + id8 + ' from ' + whereQ();
           var k0 = keyQ(), g = goK(B, sq, { dflt: /./, until: function () { return keyQ() !== k0; } });
           if (keyQ() === k0) return 'stuck on ' + whereQ() + ' short of ' + sq + ': ' + g.slice(-200);
+          var nowD = (RK.def && RK.def.src8 && RK.def.src8.id) || whereQ(); if (viaD.indexOf(nowD) >= 0) { viaD.push(nowD); return 'not there: a bounce (the floors walked: ' + viaD.join(' > ') + ')'; } viaD.push(nowD);
         }
-        return RK.def && RK.def.src8 && RK.def.src8.id === id8 ? 'there' : 'not there (' + whereQ() + ')';
+        return RK.def && RK.def.src8 && RK.def.src8.id === id8 ? 'there' : 'not there (' + whereQ() + '; the floors walked: ' + viaD.join(' > ') + ')';
       }
       // THE COUNCIL SENDS FOR YOU (js/hours.js H16.lookDue: renown 2, on the street or in the Hex -- Papa's runner; then up the spirals to the third floor, C2)
       function councilQ() {
@@ -7840,8 +7859,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         return flagQ('ettercapDone') ? 'done' : 'not paid';
       }
       // THE HALFWAY INN (his "most rational visit to the inn i've seen is post ettercap bounty collect"): out by the east gate, down the road through Web Gulch by THE WORLD, pushed on
-      // to a roof by nightfall; in at the front door, the inn lady, a room with supper (walk1113's beat 7, its answers); then a night at a time under her roof to the end of day `to`,
-      // every supper and night the inn brings played as it comes (its reads and dice live: nothing pinned), the morning's floor handed back each day
+      // to a roof by nightfall; in at the front door, the inn lady, a room with supper (walk1113's beat 7, its answers). A STOP ON THE ROAD since 11-15 (the third quest-walk seat,
+      // on Griz's "seems like half of it is them bouncing at the inn for the last two weeks" and "we need to remove their original purpose (check all the inn supper dialog) so
+      // they don't sit there I suspect"): the walk stayed a night at a time under her roof to the end of day `to`, walk1113's purpose (a bench built to play every supper), and a
+      // party sat there 61-70% of the 16 days on every route. Now it sleeps there a night when the road brings it there (innStopQ, and the late route's nights by her door), meets
+      // Kat and the first supper as they come, and walks on -- north to Silverton's work and the card (northQ, densQ); it never walks back to her for the wagon's night or the due
       var ROOMQ = /^STAY THE NIGHT$|^SLEEP TILL|^WAIT|^STAY TILL RESTED/;
       // THE WORLD to a site's door; stopped short on the road (a forced march walked out, a party down -- the late route's first seed), the party camps where it stands and walks
       // on, twice at most (11-15, the second quest-walk seat)
@@ -7862,31 +7884,107 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var w = worldToQ('inn', 'the road south'); floorQ(); logQ('DOWN THE ROAD TO THE HALFWAY INN: ' + w.slice(0, 300) + (why ? ' [' + why + ']' : '')); // (camped when the day's march is walked, pushed on only when the door is five hexes off or less: worldK's rule, as a player who will not force the march)
         return RK.def && RK.def.key === InK.KEY && D.top() !== WK.scene ? 'at the inn' : 'not at the inn (' + whereQ() + ')';
       }
-      function innQ() {
-        if (!(RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP))) { var ti = toInnQ(); if (ti !== 'at the inn') return ti; }
-        for (var n = 0; n < 20 && HK.cur && HK.day() <= toQ; n++) {
-          if (RK.def.key === InK.UP) { var stU0 = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (stU0) atTrigK(topK(), stU0, { until: function () { return RK.def.key === InK.KEY; } }); } // (11-15, the second quest-walk seat: down the stair BEFORE the purse is counted -- woken upstairs with 19 sp, the walk asked for the room, was refused and waited out a whole day by the bell before it camped)
-          if (silverQ() < 20 && RK.def.key !== InK.UP) { // (the room is twenty silver: short of it, a night camped by the road and back in at morning)
-            var eo = edgeOutQ(); if (D.top() !== WK.scene) { logQ('the inn: ' + silverQ() + ' sp, no room, and no way off the floor: ' + eo); break; }
-            campQ('no silver for a room, ' + silverQ() + ' sp'); var bk = worldK('inn', {}); if (!(RK.def && RK.def.key === InK.KEY)) { logQ('the inn: not back in after the camp (' + bk.slice(0, 160) + ')'); break; }
-            continue;
-          }
-          if (RK.def.key === InK.UP) { var stU = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (stU) atTrigK(topK(), stU, { until: function () { return RK.def.key === InK.KEY; } }); }
-          if (RK.def.key === InK.KEY && RK.def.inside !== 'inn') goK(topK(), InK.DOORS.front, { dflt: /./, until: function () { return RK.def.inside === 'inn'; } });
-          var gT = trigK('talk:gennet'); if (!gT) { logQ('the inn: no talk:gennet on ' + whereQ() + ' at ' + HK.clockAt(HK.now())); break; }
-          var d0 = HK.day(), s0 = silverQ(), tr0 = ((HK.cur && HK.cur.trail) || []).length, seen = atTrigK(topK(), gT, { dflt: ROOMQ, quiet: 300 });
-          var trN = ((HK.cur && HK.cur.trail) || []).slice(tr0).filter(function (e) { return /^(act|check|fight|rest)$/.test(e.k) && !/the wait to|the people of the floor/.test(e.s); }).map(function (e) { return e.s; }); // (the house's own record of the night: THE MEAL's reads, THE SECOND ACT's beats, its fights and rests)
-          if (trN.length) logQ('   the night as the house kept it: ' + trN.join(' / ').slice(0, 900));
-          var cards = (seen.match(/CARD [^/]{0,140}/g) || []).filter(function (c) { return !/^CARD (THE HALFWAY INN|The Halfway Inn) --/.test(c); }).slice(0, 14).join(' | '), asks = (seen.match(/(PROMPT [^/]{0,110}|ASK [^/]{0,90}\/ > [^/]{0,40})/g) || []).slice(0, 10).join(' | '); // (the night's own beats: every card but the floors' names, every choice and the answer given)
-          logQ('THE INN, a night (' + (s0 - silverQ()) + ' sp): supper ' + flagQ('supCount') + ' (' + (flagQ('supKind') || '-') + ')' + (asks ? '; asked: ' + asks : '') + (cards ? '; ' + cards : '') + ' -- ' + partyQ());
-          if (HK.day() === d0 && !/MORNING/.test(seen)) { // (the night handed back unslept -- the wagon's night upstairs: the floor's own way to bed, tried as a player tries it)
-            floorQ(); var bed = trigWhereK(function (t) { return /bed|sleep|room/i.test((t.id || '') + ' ' + (t.script || '')); }), bs = bed ? atTrigK(topK(), bed, { dflt: /SLEEP|STAY|BED|./, quiet: 300 }) : '';
-            logQ('the inn: the night handed back unslept at ' + HK.clockAt(HK.now()) + ' on ' + whereQ() + (bed ? '; ' + bed.id + ' used: ' + bs.slice(-240) : '; no bed trigger on this floor') + ' (last seen: ' + seen.slice(-200) + ')');
-            for (var wb = 0; wb < 8 && HK.day() === d0 && !/MORNING/.test(bs) && H6K.canWait && topK() && H6K.canWait(topK()); wb++) { H6K.wait(topK()); var ws = playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 300 }); bs += ' / ' + ws; logQ('the inn, unslept: M > WAIT, NEXT BELL, on ' + whereQ() + ' -> ' + HK.clockAt(HK.now()) + ': ' + ws.replace(/CARD THE HALFWAY INN -- upstairs[^/]*/g, '').slice(-260)); }
-            if (HK.day() === d0 && !/MORNING/.test(bs)) break;
-          }
+      // ONE NIGHT under her roof (the body of the old night-at-a-time loop, 11-15, the third quest-walk seat): down the stair before the purse is counted (the second quest-walk
+      // seat's fix); short of the room's twenty silver, out by the nearest edge and a night camped by the road at her door (and on from there in the morning -- not back in); else
+      // in at the front door, the inn lady, a room with supper, the night as it comes (its reads and dice live), and the floor handed back in the morning; a night handed back
+      // unslept (the wagon's, upstairs) tried as a player tries it, the floor's own way to bed and the bell
+      function innNightQ(why) {
+        if (D.top() === WK.scene || !(RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP))) return 'not at the inn (' + whereQ() + ')';
+        if (RK.def.key === InK.UP) { var stU0 = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (stU0) atTrigK(topK(), stU0, { until: function () { return RK.def.key === InK.KEY; } }); } // (11-15, the second quest-walk seat: down the stair BEFORE the purse is counted -- woken upstairs with 19 sp, the walk asked for the room, was refused and waited out a whole day by the bell before it camped)
+        if (silverQ() < 20 && RK.def.key !== InK.UP) { // (the room is twenty silver: short of it, a night camped by the road)
+          var eo = edgeOutQ(); if (D.top() !== WK.scene) { logQ('the inn: ' + silverQ() + ' sp, no room, and no way off the floor: ' + eo); return 'no room, no way out'; }
+          var cq = campQ('no silver for a room at the inn (' + why + '), ' + silverQ() + ' sp'); return 'no room: ' + cq + ' by the road';
         }
-        return 'to day ' + HK.day();
+        if (RK.def.key === InK.KEY && RK.def.inside !== 'inn') goK(topK(), InK.DOORS.front, { dflt: /./, until: function () { return RK.def.inside === 'inn'; } });
+        var gT = trigK('talk:gennet'); if (!gT) { logQ('the inn: no talk:gennet on ' + whereQ() + ' at ' + HK.clockAt(HK.now())); return 'no Gennet'; }
+        var d0 = HK.day(), s0 = silverQ(), tr0 = ((HK.cur && HK.cur.trail) || []).length, seen = atTrigK(topK(), gT, { dflt: ROOMQ, quiet: 300 });
+        var trN = ((HK.cur && HK.cur.trail) || []).slice(tr0).filter(function (e) { return /^(act|check|fight|rest)$/.test(e.k) && !/the wait to|the people of the floor/.test(e.s); }).map(function (e) { return e.s; }); // (the house's own record of the night: THE MEAL's reads, THE SECOND ACT's beats, its fights and rests)
+        if (trN.length) logQ('   the night as the house kept it: ' + trN.join(' / ').slice(0, 900));
+        var cards = (seen.match(/CARD [^/]{0,140}/g) || []).filter(function (c) { return !/^CARD (THE HALFWAY INN|The Halfway Inn) --/.test(c); }).slice(0, 14).join(' | '), asks = (seen.match(/(PROMPT [^/]{0,110}|ASK [^/]{0,90}\/ > [^/]{0,40})/g) || []).slice(0, 10).join(' | '); // (the night's own beats: every card but the floors' names, every choice and the answer given)
+        logQ('THE INN, a night (' + why + '; ' + (s0 - silverQ()) + ' sp): supper ' + flagQ('supCount') + ' (' + (flagQ('supKind') || '-') + ')' + (asks ? '; asked: ' + asks : '') + (cards ? '; ' + cards : '') + ' -- ' + partyQ());
+        if (HK.day() === d0 && !/MORNING/.test(seen)) { // (the night handed back unslept -- the wagon's night upstairs: the floor's own way to bed, tried as a player tries it)
+          floorQ(); var bed = trigWhereK(function (t) { return /bed|sleep|room/i.test((t.id || '') + ' ' + (t.script || '')); }), bs = bed ? atTrigK(topK(), bed, { dflt: /SLEEP|STAY|BED|./, quiet: 300 }) : '';
+          logQ('the inn: the night handed back unslept at ' + HK.clockAt(HK.now()) + ' on ' + whereQ() + (bed ? '; ' + bed.id + ' used: ' + bs.slice(-240) : '; no bed trigger on this floor') + ' (last seen: ' + seen.slice(-200) + ')');
+          for (var wb = 0; wb < 8 && HK.day() === d0 && !/MORNING/.test(bs) && H6K.canWait && topK() && H6K.canWait(topK()); wb++) { H6K.wait(topK()); var ws = playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 300 }); bs += ' / ' + ws; logQ('the inn, unslept: M > WAIT, NEXT BELL, on ' + whereQ() + ' -> ' + HK.clockAt(HK.now()) + ': ' + ws.replace(/CARD THE HALFWAY INN -- upstairs[^/]*/g, '').slice(-260)); }
+          if (HK.day() === d0 && !/MORNING/.test(bs)) return 'unslept';
+        }
+        return 'slept';
+      }
+      // a night by her door when the road has brought the party there late (five in the afternoon to five in the morning): the late route's waits for dawn and for the glory-seekers'
+      // hours were bells waited out in the common room; a player passing through takes the room
+      function nightHereQ(why) {
+        if (D.top() === WK.scene || !(RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP))) return '';
+        var h = WK.hour(); if (!(h >= 17 || h < 5)) return '';
+        return innNightQ(why);
+      }
+      // THE INN AS A STOP ON THE ROAD: down the road from the bounty, Kat at her table if she is in the house (a short rest first when one of the four is down: her errand wants
+      // Barley standing -- the second quest-walk seat's late seed 8), and a night
+      function innStopQ() {
+        var ti = toInnQ('the bounty paid, or the road walked: a stop'); if (ti !== 'at the inn') return ti;
+        if (downQ0()) breatheQ('in from the road, before the common room');
+        var k = katQ('as she comes: in from the road', 'THE INN: ');
+        var n = innNightQ('a night on the road');
+        return 'Kat: ' + k + '; the night: ' + n;
+      }
+      // BACK NORTH: off her floors at dawn (a night first when it is late), THE WORLD to Silverton's door, onto the street
+      function northQ(why) {
+        if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { nightHereQ('before the road north'); if (RK.def.key === InK.UP) innDoorQ(); if (downQ0() || hurtQ()) breatheQ('before the road north'); dawnQ('before the road north (' + why + ')'); edgeOutQ(); }
+        if (D.top() === WK.scene) logQ('NORTH to Silverton (' + why + '): ' + worldToQ('silverton', why).slice(0, 200));
+        var t = toTownQ(); return t;
+      }
+      // SILVERTON'S WORK: the guano galleries, a round (his 11-14 "work in the guano galleries killing bats"; Sabeth pays by the head off the dens' tally, every head since her last
+      // pay -- js/mines.js M.SCENES.sabeth): to the mine by day; the hands' bunkhouse when it is night or one of the four is under half -- its long rest, waited for by the bell when
+      // it is shut (as restLevelQ: a trial walk short-rested by the hour all day with Aurdin on 1 hp); down to the dens, the floor walked square by square as the bog is (seepQ),
+      // never a square by a warp or a trigger (a trial walk wandered down to the deep gallery's cloaker), till four fights, a level, or one under half; up to her shed and her pay
+      function bunkQ(why) {
+        if (RK.def.key !== 'galleries') { var u = downQ('galleries_g1'); if (u !== 'there') { logQ('the bunkhouse wanted (' + why + '): not up -- ' + u); return 'not up'; } }
+        var shut = HK.longWhy ? HK.longWhy(8, '') : '';
+        if (shut && H6K.canWait && H6K.canWait(topK())) { H6K.wait(topK()); playK({ ans: [/TILL A LONG REST/], dflt: /./, quiet: 120 }); var sh2 = HK.longWhy(8, ''); logQ('M > WAIT at the mouth, TILL A LONG REST (' + why + '): ' + (sh2 ? 'still shut: ' + strip(sh2).slice(0, 80) : 'open at ' + HK.clockAt(HK.now()))); }
+        return restQ(why);
+      }
+      function densSqQ(B) { // (a square of the dens the party can walk to by a way that steps on no warp and no trigger, nor beside one: the dens' two holes, pit19 and pit30, drop a party into the deep gallery -- a trial walk fell through them and fought the cloaker)
+        var haz = {}, s8 = RK.def.src8 || {}, f8 = function (x, y) { return RK.def.from8 ? RK.def.from8(x, y) : [x, y]; }, mark = function (q) { for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) haz[(q[0] + dx) + ',' + (q[1] + dy)] = 1; };
+        (s8.warps || []).forEach(function (w) { mark(f8(w.x, w.y)); }); (RK.def.warps || []).forEach(function (w) { if (w.at) mark(w.at); });
+        (s8.triggers || []).forEach(function (t) { var r8 = t.rect || []; if (r8.length < 2) return; for (var ix = 0; ix < (r8[2] || 1); ix++) for (var iy = 0; iy < (r8[3] || 1); iy++) mark(f8(r8[0] + ix, r8[1] + iy)); });
+        var xy = function (q) { return Array.isArray(q) ? q[0] + ',' + q[1] : q && q.x != null ? q.x + ',' + q.y : ''; };
+        for (var tq = 0; tq < 60; tq++) {
+          var c = [1 + Math.floor(D.rand() * (RK.def.w - 2)), 1 + Math.floor(D.rand() * (RK.def.h - 2))], cl = B.map && B.map.at ? B.map.at(c[0], c[1]) : null;
+          if (!cl || cl.walk === false || haz[c[0] + ',' + c[1]]) continue;
+          var pr = RK.walkRoute(B.roam.token, c); if (!pr || !pr.length || pr.some(function (q) { return haz[xy(q)]; })) continue;
+          return c;
+        }
+        return null;
+      }
+      function densQ() {
+        if (flagQ('roostBroken')) return 'the roost broken: Sabeth has no more work for them';
+        var r = '', onG = function () { return !!(RK.def && D.top() !== WK.scene && /^galleries/.test(RK.def.key || '')); };
+        if (!onG()) {
+          if (D.top() !== WK.scene && (RK.def.key !== 'silverton' || RK.def.room || RK.def.hexIn)) { var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt; }
+          if (D.top() !== WK.scene && WK.timeOfDay() === 'night') byDayQ('before the guano mine, at night');
+          if (D.top() !== WK.scene) r = gateOutQ('west'); if (D.top() === WK.scene) r = worldK('mouth', {});
+          logQ('to the guano mine for work: ' + whereQ() + (r ? ' -- ' + r.slice(0, 160) : ''));
+        }
+        if (!onG()) return 'not at the mine (' + whereQ() + ')';
+        if (RK.def.key !== 'galleries' && RK.def.key !== 'galleries_g3') downQ('galleries_g1');
+        if (RK.def.key === 'galleries_g3' && hurtQ()) bunkQ('hurt in the dens');
+        if (RK.def.key === 'galleries') {
+          if (!flagQ('cullHired')) { var sb = talkQ('sabeth', { ans: [/^TAKE THE WORK$/] }); logQ('Sabeth Pollard: ' + sb.slice(-160) + ' -- cullHired ' + flagQ('cullHired')); }
+          if (hurtQ() || WK.timeOfDay() === 'night') bunkQ(hurtQ() ? 'hurt before the dens' : 'the night, before the dens');
+        }
+        var dn = downQ('galleries_g3'); if (dn !== 'there') return 'not down to the dens: ' + dn;
+        var f0 = fightNQ, t0 = HK.clockAt(HK.now()), off = [], kb = function () { var ks = (topK() && topK().roam && topK().roam.kills) || {}; return (ks['g3:giantbat'] || 0) + '+' + (ks['g3:darkmantle'] || 0); }, k0 = kb();
+        for (var i = 0; i < 16 && fightNQ - f0 < 4 && topK() && topK().roam && !hurtQ() && !levelDueQ(); i++) {
+          if (RK.def.key !== 'galleries_g3') { off.push(whereQ()); var bk = downQ('galleries_g3'); if (bk !== 'there') break; } // (off the dens by a way the walk did not mean: back down)
+          if (downQ0()) breatheQ('in the dens');
+          var B = topK(), sq = densSqQ(B); if (!sq) break;
+          goK(B, sq, { dflt: /./ });
+        }
+        logQ('THE DENS, a round (' + t0 + ' on): ' + (fightNQ - f0) + ' fight' + (fightNQ - f0 === 1 ? '' : 's') + ', bats+darkmantles on the dens\' tally ' + k0 + ' -> ' + kb() + (off.length ? ', off the dens to ' + off.join(', ') + ' and back' : '') + ' -- ' + partyQ());
+        if (downQ0()) breatheQ('in the dens, after the round');
+        var up = downQ('galleries_g1'), s0 = silverQ(), sp = up === 'there' ? talkQ('sabeth') : 'not up: ' + up, paid = silverQ() - s0;
+        logQ('SABETH\'S PAY: ' + paid + ' sp -- ' + sp.slice(-140) + '; ' + silverQ() + ' sp in the purse');
+        if (up === 'there' && (hurtQ() || WK.timeOfDay() === 'night')) bunkQ(hurtQ() ? 'hurt after the dens' : 'the night, after the dens');
+        return (fightNQ - f0) + ' fights, ' + paid + ' sp';
       }
       // NED'S PAGE AND THE GLOWSEEP (his "oh no, ned and the glowseep"; js/counter.js C.ned): Ned behind Percy's counter -- his job opens only on Aurdin's silent Insight, DC 12,
       // once a visit (the page is otherwise fifty silver: the walk does not buy it, it wants his job); the Glowseep's bog off the east gate, its fights walked into till a snake's
@@ -7963,27 +8061,30 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // Barley's first time at her table before the wagon's night, and she asks for a bottle; the ink at Lisbet's in Silverton, content/shops.json lisbet, 100 sp; given, the
       // vision and the Sheet, In.katVision); THE TRUE WORD (js/trueword.js: the glory-seekers on the Pit road south of the inn, by day from day 5 -- the card's FIGHT, the grid's
       // `snoot`; won, the anchor-pin); its TURN-IN at Hessle's scales (js/counter.js C.hessle: the pin for 500 sp). Each step a LATE line in the log; the inn's nights after
-      function dawnQ(why) { var n = 0; while (n < 8 && !(WK.hour() >= 5 && WK.hour() < 8) && H6K.canWait && topK() && H6K.canWait(topK())) { H6K.wait(topK()); playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 120 }); n++; } if (n) logQ('LATE: waited ' + n + ' bell' + (n > 1 ? 's' : '') + ' to set out at dawn (' + why + '; Web Gulch lies on the road north, and the first seed\'s party died in it at dusk): day ' + HK.day() + ' ' + HK.clockAt(HK.now())); }
+      // (11-15, the third quest-walk seat: any morning hour sets out, five to noon -- back at the inn at half past nine with the anchor-pin, the walk waited by the bell for the next
+      // dawn, a day in the common room; from five in the afternoon a night under her roof first, nightHereQ, not the bells)
+      function dawnQ(why) { var n = 0; while (n < 10 && !(WK.hour() >= 5 && WK.hour() < 12) && H6K.canWait && topK() && topK().roam && H6K.canWait(topK())) { var nh = (WK.hour() >= 17 || WK.hour() < 5) ? nightHereQ(why) : ''; if (nh) { if (/^slept/.test(nh)) continue; break; } H6K.wait(topK()); playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 120 }); n++; } if (n) logQ((ordQ.indexOf('late') >= 0 ? 'LATE: ' : '') + 'waited ' + n + ' bell' + (n > 1 ? 's' : '') + ' to set out at dawn (' + why + '; Web Gulch lies on the road north, and the first seed\'s party died in it at dusk): day ' + HK.day() + ' ' + HK.clockAt(HK.now())); }
       function pinQ() { var B = topK(); if (B && B.roam) return hasQ('anchorpin'); return ((HK.cur && HK.cur.inv) || []).filter(function (s) { return s.id === 'anchorpin'; }).reduce(function (n, s) { return n + (s.n || 0); }, 0); }
       function innDoorQ() { // (down from the guest floor, in at the front door: the common room, where she writes)
         if (RK.def.key === InK.UP) { var stI = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (stI) atTrigK(topK(), stI, { until: function () { return RK.def.key === InK.KEY; } }); }
         if (RK.def.key === InK.KEY && RK.def.inside !== 'inn') goK(topK(), InK.DOORS.front, { dflt: /./, until: function () { return RK.def.inside === 'inn'; } });
         return RK.def.key === InK.KEY && RK.def.inside === 'inn';
       }
-      function katQ(why) {
+      function katQ(why, tag) {
+        tag = tag || 'LATE: '; // (11-15, the third quest-walk seat: the inn stop meets her too, its lines 'THE INN: ')
         var ti = toInnQ('Kat'); if (ti !== 'at the inn') return ti;
         if (!innDoorQ()) return 'not in the house (' + whereQ() + ')';
-        var kt = trigK('talk:katarina'); if (!kt) { logQ('LATE: KAT is not in the house, day ' + HK.day() + ' (' + why + '; js/inn.js In.katHere: day 4 to the wagon\'s)'); return 'no Kat'; }
+        var kt = trigK('talk:katarina'); if (!kt) { logQ(tag + 'KAT is not in the house, day ' + HK.day() + ' (' + why + '; js/inn.js In.katHere: day 4 to the wagon\'s)'); return 'no Kat'; }
         var s = atTrigK(topK(), kt, { quiet: 120 }); // (each ask its last answer: the errand and the vision are hers to say, not a choice -- In.katVisit)
-        logQ('LATE: KAT at the table for two (' + why + '): the ink asked ' + !!flagQ('katInk') + ', the vision ' + !!flagQ('katVision') + ', ink in the pack ' + hasQ('ink') + ' -- ' + s.slice(-220));
+        logQ(tag + 'KAT at the table for two (' + why + '): the ink asked ' + !!flagQ('katInk') + ', the vision ' + !!flagQ('katVision') + ', ink in the pack ' + hasQ('ink') + ' -- ' + s.slice(-220));
         return flagQ('katVision') ? 'the vision' : flagQ('katInk') ? 'the ink asked' : 'no errand';
       }
       function inkQ() {
-        var k1 = katQ('the first visit'); if (flagQ('katVision')) return 'the vision';
+        var k1 = flagQ('katInk') ? 'asked at the inn stop' : katQ('the first visit'); if (flagQ('katVision')) return 'the vision';
         if (!flagQ('katInk')) return 'no errand: ' + k1;
         if (!hasQ('ink')) {
           if (silverQ() < 100) { logQ('LATE: the ink is 100 sp at Lisbet\'s; ' + silverQ() + ' sp in the purse'); return 'no silver for the ink'; }
-          if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { if (RK.def.key === InK.UP) innDoorQ(); if (downQ0() || hurtQ()) breatheQ('before the road north'); dawnQ('before the road north for the ink'); edgeOutQ(); }
+          if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { nightHereQ('the late route: before the road north for the ink'); if (RK.def.key === InK.UP) innDoorQ(); if (downQ0() || hurtQ()) breatheQ('before the road north'); dawnQ('before the road north for the ink'); edgeOutQ(); }
           if (D.top() === WK.scene) logQ('LATE: north for the ink: ' + worldToQ('silverton', 'north for the ink').slice(0, 200));
           var b = buyQ('shop:lisbet', 'talk:lisbet', 'ink'); logQ('LATE: LISBET\'S, the ink: ' + b + ' -- the ink ' + hasQ('ink') + ', ' + silverQ() + ' sp');
           if (!hasQ('ink')) return 'no ink';
@@ -7993,6 +8094,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       function truewordQ() {
         if (flagQ('snootDone')) return 'won before';
         if (D.top() === WK.scene || !(RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP))) { var ti = toInnQ('the true word'); if (ti !== 'at the inn') return ti; }
+        nightHereQ('the late route: before the Pit road'); // (11-15, the third quest-walk seat: a night under her roof, not bells in the common room, when the road brought them late)
         if (RK.def.key === InK.UP) innDoorQ();
         if (downQ0() || hurtQ()) breatheQ('before the Pit road');
         var TWq = D.trueword || {}, from = TWq.FROM_DAY || 5, n = 0; // (out on the road from day 5, seven to seven: js/trueword.js TW.FROM_DAY, TW.HOURS -- a party at the inn on day 4 waits for it)
@@ -8007,7 +8109,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (flagQ('snootWord')) return 'paid';
         if (!pinQ()) return 'no anchor-pin';
         if (D.top() === WK.scene) { var bi = toInnQ('back from the Pit road'); logQ('LATE: back to the inn with the anchor-pin: ' + bi); } // (a night under her roof before the road north: Web Gulch at dusk killed the first seed's party on the way)
-        if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { if (RK.def.key === InK.UP) innDoorQ(); if (downQ0() || hurtQ()) breatheQ('before the road north'); dawnQ('before the road north with the anchor-pin'); edgeOutQ(); }
+        if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { nightHereQ('the late route: back from the Pit road'); if (RK.def.key === InK.UP) innDoorQ(); if (downQ0() || hurtQ()) breatheQ('before the road north'); dawnQ('before the road north with the anchor-pin'); edgeOutQ(); }
         if (D.top() === WK.scene) logQ('LATE: north with the anchor-pin: ' + worldToQ('silverton', 'north with the anchor-pin').slice(0, 200));
         var t2 = toTownQ(); if (t2 !== 'in town') return 'not in town: ' + t2;
         var hs = trigK('keeper:hessle'); if (hs) atTrigK(topK(), hs, { until: function () { return RK.def.room === 'keeper:hessle'; } });
@@ -8021,8 +8123,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (!hasQ('ink')) { if (silverQ() < 100) return 'no silver'; var b = buyQ('shop:lisbet', 'talk:lisbet', 'ink'); logQ('LATE: LISBET\'S, the ink (after the turn-in): ' + b + ' -- the ink ' + hasQ('ink') + ', ' + silverQ() + ' sp'); if (!hasQ('ink')) return 'no ink'; }
         var k = katQ('with the ink, after the turn-in'); return flagQ('katVision') ? 'the vision' : 'no vision: ' + k;
       }
+      if (HK.cur && HK.day() <= toQ) legQ('the Halfway Inn, a stop on the road', innStopQ); // (11-15, the third quest-walk seat: a night, Kat and the first supper as they come -- the late route's legs from her floor, else north)
       if (ordQ.indexOf('late') >= 0) [['the late route: Kat\'s ink', inkQ], ['the late route: the true word on the Pit road and to Hessle', function () { var t = truewordQ(); return t === 'won' || t === 'won before' ? t + '; ' + hessleWordQ() : t; }], ['the late route: the ink after the turn-in', inkAgainQ]].forEach(function (lg) { if (HK.cur && HK.day() <= toQ) legQ(lg[0], lg[1]); });
-      if (HK.cur && HK.day() <= toQ) legQ('the Halfway Inn, to the end of day ' + toQ, innQ);
+      // THEN NORTH TO SILVERTON'S WORK AND THE CARD, to the end of day `to` (11-15, the third quest-walk seat, the desk's smallest grind: the guano galleries' bats at Sabeth's pay and
+      // the card each time a level comes, no new quest); the inn never walked back to on the walk's own account -- not for the wagon's night (day 12), not for the due
+      if (HK.cur && HK.day() <= toQ) legQ('north to Silverton\'s work', function () { return northQ('the inn behind them'); });
+      for (var gq = 0; gq < 80 && HK.cur && HK.day() <= toQ; gq++) {
+        if (levelDueQ()) legQ('a level banked: the long rest', function () { return restLevelQ(); });
+        if (HK.cur && levelsQ() > lvCardQ) { legQ('the card, levelled', function () { var r = toTownQ(); return r === 'in town' ? cardQ('a level came') : 'not in town: ' + r; }); lvCardQ = levelsQ(); continue; }
+        if (!HK.cur || HK.day() > toQ) break;
+        var tg0 = HK.now(), rg = legQ('Silverton\'s work: the guano galleries, round ' + (gq + 1), densQ);
+        if (rg === 'lost' || /^the roost broken|^not at the mine|^to town|^not down/.test(rg) || !HK.cur || HK.now() === tg0) { logQ('THE WORK STOPS: ' + rg); break; }
+      }
       var tailQ = rollLineQ(); if (tailQ) QL.push('   (' + tailQ + ')');
       QL.push('END ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ() + ' -- ' + fightNQ + ' fights fought; the legs: ' + legsQ.join(' | '));
       okK('questwalk', 'THE QUEST WALK walked without a throw: ' + legsQ.join(' | ') + ' -- ' + QL.length + ' lines in its log', QL.length > 2);
