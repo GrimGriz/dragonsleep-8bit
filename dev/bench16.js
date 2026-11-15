@@ -10010,6 +10010,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         SH.seed = bs; var odd = Object.assign({}, live, { id: 'rsnoot-test', zone: 'pitlands' }); InH.pinned = null; SH.metRef = []; D.scenes.length = 0;
         var okO = SVh.open(null, odd), scO = D.top(), dO = scO && scO.id === 'survivors' ? driveT(scO, 'bound') : { seen: '', lists: [] }, idsO = {}; dO.lists.forEach(function (L) { L.forEach(function (x) { x.ids.forEach(function (id) { idsO[id] = 1; }); }); });
         okH('7e a band off no making\'s ground: the talk (' + okO + ') with only ' + Object.keys(idsO).join(', ') + ': ' + dO.seen.slice(0, 300), okO && Object.keys(idsO).sort().join() === 'bound,walk' && dO.seen.indexOf(live.toName) >= 0);
+        // 7f (11-15, his "have the survivors with a 'my 'farm'(whatever) x miles back'" and "each talk should count toward the true word quest, 75 xp"): the opener says
+        // how far back it happened; every talk with a question asked is a telling (7b, 7c, 7e: three), and at the scales each is TW.SURVIVOR_XP to each one standing
+        SH.t = band.t0 + 3; var bk7 = SVh.miles(SVh.milesBack(live)), op7 = SVh.fill(SVh.band(live).K.opener, SVh.band(live)), TWh = D.trueword, n7 = recH.flags.survivorsTalks || 0;
+        var pc7 = TWh && TWh.PIECES.filter(function (p) { return p.id === 'survivors'; })[0], fx = { survivorsTalks: 2, sawMirror: 1 }, gx = TWh ? TWh.gathered(fx) : [], xp7 = gx.reduce(function (a, p) { return a + (p.xp ? p.xp(fx) : TWh.XP); }, 0);
+        var stx = { flags: { survivorsTalks: 2 }, party: recH.party }, banked = 0, bank0 = HoH.bank; HoH.bank = function (n) { banked = n; return { line: '' }; }; var tl = TWh ? TWh.turnIn(stx) : []; HoH.bank = bank0;
+        okH('7f the opener: ' + op7 + ' (' + bk7 + ' back, ' + SVh.milesBack(live).toFixed(2) + ' mi); tellings counted ' + n7 + ' (want 3); two tellings and the mirror-made at the scales: ' + xp7 + ' XP each one standing (want 300), banked ' + banked + ' for ' + recH.party.length + ' (' + tl.join(' ') + ')',
+          op7.indexOf(bk7 + ' back') >= 0 && n7 === 3 && !!pc7 && xp7 === 2 * TWh.SURVIVOR_XP + TWh.XP && TWh.SURVIVOR_XP === 75 && banked === 2 * 75 * recH.party.length && tl[0].indexOf('2 bands') >= 0);
         D.scenes.length = 0; HoH.playing = false; HoH.cur = null; SH.metRef = [];
         SH.t = band.arrive + 1; var atR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length; SH.t = band.arrive + HG.STAY + 1; var goneR = HG.at(band.to).filter(function (r) { return r.id === band.id; }).length;
         okH('the band at ' + band.toName + ' once it arrives (' + atR + '), gone on ' + HG.STAY + ' hours after (' + goneR + ')', atR === 1 && goneR === 0);

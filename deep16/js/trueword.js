@@ -107,8 +107,13 @@
     { id: 'vision', label: 'the traveler\'s vision of the moot', has: function (f) { return !!f.katVision; },
       told: '"A vision of the moot, and of something made there that walked away north." He writes it slowly, all of it.' },
     { id: 'book', label: 'Katarina\'s book, in Androit\'s hands', has: function (f) { return !!f.katBookAndroit; },
-      told: '"Androit has her book already? Then he\'ll swear to the rest of this." He turns back a page and adds a line.' }
+      told: '"Androit has her book already? Then he\'ll swear to the rest of this." He turns back a page and adds a line.' },
+    // THE SURVIVORS ON THE ROAD (11-15, the survivors-talk seat; Griz: "each talk should count toward the true word quest, 75 xp"): every band talked with on THE WORLD
+    // (js/survivors.js, f.survivorsTalks: a talk where the party asked anything) is a telling Hessle writes down, TW.SURVIVOR_XP to each one standing for each
+    { id: 'survivors', label: 'what the survivors on the road told you', has: function (f) { return (f.survivorsTalks || 0) > 0; }, xp: function (f) { return TW.SURVIVOR_XP * (f.survivorsTalks || 0); },
+      told: function (f) { var n = f.survivorsTalks || 0; return n === 1 ? '"One band off the farms, and you stopped to hear them." He writes their telling down.' : '"' + n + ' bands off the farms, and you heard every one of them." He writes each telling down, one under another.'; } }
   ];
+  TW.SURVIVOR_XP = 75; // (each one standing, a talk -- his "75 xp")
   TW.XP = 150; // (each one standing, a piece -- RULED 11-11, his "4 - lean"; the gold is static, at Hessle's scales: "3 - hessle")
   TW.gathered = function (f) { f = f || {}; return TW.PIECES.filter(function (p) { return p.has(f); }); };
   TW.TEXT = 'Fifty gold on Hessle\'s board for true word of the gnolls, sworn before Androit: what lit the Snoot, and who stood by when it caught. Their young blood are on the road south past the Halfway Inn, by day. Whatever else you learn of it, Hessle writes down.';
@@ -125,9 +130,9 @@
   TW.turnIn = function (st) {
     var f = st.flags, g = TW.gathered(f), lines = [], H = D.house; f.trueWordPieces = g.map(function (p) { return p.id; }).join(',') || 'none';
     if (!g.length) lines.push(TW.NONE);
-    g.forEach(function (p) { lines.push(p.told); });
-    var standing = st.party.filter(function (h) { return h.hp > 0 && !h.dead; });
-    if (g.length && H && H.bank && standing.length) { var bk = H.bank(TW.XP * g.length * standing.length, standing); if (bk.line) lines.push(bk.line); }
+    g.forEach(function (p) { lines.push(typeof p.told === 'function' ? p.told(f) : p.told); });
+    var standing = st.party.filter(function (h) { return h.hp > 0 && !h.dead; }), each = g.reduce(function (a, p) { return a + (p.xp ? p.xp(f) : TW.XP); }, 0); // (a piece its own XP where it says: the survivors' by the talk)
+    if (g.length && H && H.bank && standing.length) { var bk = H.bank(each * standing.length, standing); if (bk.line) lines.push(bk.line); }
     return lines;
   };
   TW.NONE = '"The pin\'s enough to pay on. It isn\'t much of a story." He writes one line.';

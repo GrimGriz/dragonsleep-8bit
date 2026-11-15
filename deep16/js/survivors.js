@@ -29,22 +29,22 @@
   // (sight: what the party sees as it comes up -- js/hunger.js HG.LINES[kind], the same words as the card that stands in where no game is up)
   SV.KINDS = {
     farm: { name: 'The farmer', sheet: 'pt_genman', who: 'his wife', obj: 'her', pos: 'her', Subj: 'She', over: 'over her bed', inside: true,
-      opener: '"It came {when}. We\'re for {to}, all we own on the cart, and we don\'t stop."',
+      opener: '"It came {when}. Our farm\'s {back} back. We\'re for {to}, all we own on the cart, and we don\'t stop."', back: '"Our farm\'s {back} back."',
       chose: '"It came in past the boy\'s cot. Past me. It went to her like it knew the way."',
       hands: '"She can\'t lift the boy. Since that morning she can\'t lift her own boy."',
       magic: '"Magic? She\'s a farmer\'s wife."' },
     hamlet: { name: 'A woman of the hamlet', sheet: 'pt_genwoman', who: 'the smith', obj: 'him', pos: 'his', Subj: 'He', over: 'over the smith\'s bed', inside: true,
-      opener: '"It came {when}. Every soul of us is on these carts, for {to}. Nobody stayed."',
+      opener: '"It came {when}. The hamlet\'s {back} back, and nobody left in it. Every soul of us is on these carts, for {to}."', back: '"The hamlet\'s {back} back, and nobody left in it."',
       chose: '"It went down the row past every door to his. Not the first house, not the nearest. His."',
       hands: '"Our smith. He can\'t lift his own hammer. He walks at the back so nobody sees."',
       magic: '"Him? He shoes horses."' },
     road: { name: 'The drover', sheet: 'pt_genman', who: 'my brother', obj: 'him', pos: 'his', Subj: 'He', over: 'over my brother where he lay by the fire', inside: false,
-      opener: '"It came {when}, at our fire on the road. The beasts ran. We\'re for {to} on foot."',
+      opener: '"It came {when}, at our fire, {back} back up the road. The beasts ran. We\'re for {to} on foot."', back: '"Our fire was {back} back up the road."',
       chose: '"Two of us at that fire, and it stepped over me to get to him."',
       hands: '"He can\'t carry his own pack. I carry both."',
       magic: '"Him? He can\'t read his own name."' },
     wild: { name: 'The trapper', sheet: 'pt_genman', who: 'me', obj: 'me', pos: 'my', Subj: 'I', self: true, over: 'over me where I lay', inside: false,
-      opener: '"It came {when}, out where I set my lines. I\'m for {to}. I don\'t know what else to do."',
+      opener: '"It came {when}, out where I set my lines, {back} back. I\'m for {to}. I don\'t know what else to do."', back: '"My lines are {back} back."',
       chose: '"I\'ve slept out thirty years. Nothing comes to a fire. This came to mine, and to me, like I was what it came for."',
       hands: '"I can\'t lift my own line. I\'ve wound it round my neck to carry it."',
       magic: '"Me? I trap rabbits."' }
@@ -85,7 +85,11 @@
 
   // ---------------------------------------------------------------- the band read off the engine
   function hash(s) { var h = 2166136261; s = String(s); for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-  SV.creature = function (r) { var two = SV.MADE[r.zone]; return two ? two[hash(r.id) % two.length] : null; }; // (which of its ground's two stood over this band: the band's own, the same every time)
+  SV.creature = function (r) { var two = SV.MADE[r.zone]; return two ? two[hash(r.id + '@' + (r.hex0 || []).join(',')) % two.length] : null; }; // (which of its ground's two stood over this band: the band's own and the hex it happened in -- 11-15, his "add hex it happened in to 4" -- the same every time)
+  // HOW FAR BACK IT HAPPENED (11-15, Griz: "have the survivors with a 'my 'farm'(whatever) x miles back'"): the miles from the hex it happened in (the band's `from`, its
+  // middle) to where the band is on its road this hour, the cart's straight line (js/hunger.js HG.refugees)
+  SV.milesBack = function (r) { var pt = r.pt; if (!pt) { var lv = HG.refugees().filter(function (x) { return x.id === r.id; })[0]; pt = lv ? lv.pt : r.from; } return r.from && pt ? Math.hypot(pt[0] - r.from[0], pt[1] - r.from[1]) : 0; };
+  SV.miles = function (n) { return n < 1.5 ? 'a mile' : Math.round(n) + ' miles'; };
   SV.COMPASS = ['east', 'north-east', 'north', 'north-west', 'west', 'south-west', 'south', 'south-east'];
   SV.dirOf = function (dx, dy) { var a = Math.atan2(-dy, dx); return SV.COMPASS[((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8]; }; // (THE WORLD's y runs south: Silverton's is the smallest)
   SV.went = function (r) { // (the marker's step at the dawn it fed this band: from hex0 to the trail's hex that dawn)
@@ -96,10 +100,11 @@
   SV.when = function (r) { var d = W.day() - (Math.floor(r.t0 / 24) + 1); return d <= 0 ? 'this morning, at first light' : d === 1 ? 'yesterday, at first light' : d + ' mornings back, at first light'; };
   SV.band = function (r) {
     var K = SV.KINDS[r.kind] || SV.KINDS.farm, cr = SV.creature(r);
-    return { r: r, kind: SV.KINDS[r.kind] ? r.kind : 'farm', K: K, cr: cr, dir: cr ? SV.went(r) : null, when: SV.when(r), to: r.toName };
+    return { r: r, kind: SV.KINDS[r.kind] ? r.kind : 'farm', K: K, cr: cr, dir: cr ? SV.went(r) : null, when: SV.when(r), to: r.toName, back: SV.miles(SV.milesBack(r)) };
   };
-  SV.fill = function (l, b) { return String(l).split('{to}').join(b.to).split('{when}').join(b.when).split('{over}').join(b.K.over).split('{obj}').join(b.K.obj).split('{in}').join(b.K.inside ? ' indoors' : ''); };
-  SV.what = function (b) { return b.cr ? [SV.fill(SV.CREATURES[b.cr], b), SV.EYES] : [SV.fill(SV.NOTMADE, b)]; };
+  SV.fill = function (l, b) { return String(l).split('{back}').join(b.back).split('{to}').join(b.to).split('{when}').join(b.when).split('{over}').join(b.K.over).split('{obj}').join(b.K.obj).split('{in}').join(b.K.inside ? ' indoors' : ''); };
+  SV.notMade = function (b) { var said = HG.LINES && HG.LINES.said && HG.LINES.said[b.r.zone]; return [said, b.K.back, SV.NOTMADE].filter(Boolean).join(' ').replace(/" "/g, ' '); }; // (a band off no making's ground -- the Snoot's burnt-out: js/snootroad.js gives HG.LINES.said.snoot, "Gnolls in the barley ..." -- its ground's line, the miles back, the road)
+  SV.what = function (b) { return b.cr ? [SV.fill(SV.CREATURES[b.cr], b), SV.EYES] : [SV.fill(SV.notMade(b), b)]; };
   SV.trail = function (s) { if (D.house && D.house.trail) D.house.trail('check', 'THE SURVIVORS: ' + s); };
   SV.d20 = function () { var In = D.inn; return In && In.d20 ? In.d20() : D.roll('1d20').total; }; // (the supper's die: a show's In.pinned pins it)
   SV.skill = function (h, sk) { return DS.R.skill(h, sk, SV.AB[sk]); };
@@ -120,7 +125,7 @@
     // the read: the party's best passive Perception against its DC, once, shown above that hero's lines at the first opening
     if (b.cr && four.length) { var rb = SV.best(four, SV.READ.skill), pv = 10 + rb.v; SV.trail('passive Perception ' + pv + ' (' + rb.e.hero.name + ') vs DC ' + SV.DC.read + (pv >= SV.DC.read ? ', read' : ', not read')); if (pv >= SV.DC.read) T.read = rb.e.key; }
     narr((HG.LINES[b.kind] || HG.LINES.farm)[0].split('{where}').join(SV.where(r)));
-    var prompt = { by: SV.fill(b.cr ? b.K.opener : SV.NOTMADE, b) }; // (a band off no making's ground: nothing of a made thing said)
+    var prompt = { by: SV.fill(b.cr ? b.K.opener : SV.notMade(b), b) }; // (a band off no making's ground: nothing of a made thing said)
     for (var i = 0; i < T.out.length; i++) yield wait(T.out[i]);
     var optsOf = function (e) {
       var out = [], shaded = 0, add = function (id, label, sk) { if (out.length >= SV.CAP) return; if (sk) { if (shaded) return; shaded++; } out.push({ id: id, label: label, shade: !!sk, tag: sk || null }); };
@@ -150,6 +155,9 @@
     }
     sc.echo = null; sc.hero = null;
     yield sc.narr([SV.fill(SV.GOING, b)]);
+    // THE TRUE WORD (11-15, Griz: "each talk should count toward the true word quest, 75 xp"): a talk where the party asked anything is a telling Hessle writes down
+    // (js/trueword.js TW.PIECES survivors: TW.SURVIVOR_XP to each one standing, a talk, paid at the scales)
+    if (Object.keys(T.asked).length && st.flags) { st.flags.survivorsTalks = (st.flags.survivorsTalks || 0) + 1; SV.trail('a telling for the true word (' + st.flags.survivorsTalks + ' talks)'); if (W.save) W.save(); }
     return { walked: walked, asked: Object.keys(T.asked) };
   };
   SV.where = function (r) { var MW = W.Mworld(), k = r.hex[0] + ',' + r.hex[1], e = MW.hex[k]; return MW.road[k] ? 'road' : (e && MW.terr[e.t] ? MW.terr[e.t].name.replace(/^the /i, '').replace(/ \(.*\)$/, '').replace(/ \/ .*$/, '') : 'track'); }; // (js/hunger.js HG.card's reading of the ground)
