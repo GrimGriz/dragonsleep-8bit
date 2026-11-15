@@ -45,6 +45,8 @@ PIECES = {
                     navy=(17, 24, 45), stand=False),
     'drinker': dict(folder='2026-11-15-ART-WANTED-73-DRINKER', name='ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                     navy=(17, 24, 45), stand=False),
+    'gambler': dict(folder='2026-11-15-ART-WANTED-74-GAMBLER', name='ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                    navy=(17, 24, 45), stand=False),
 }
 
 

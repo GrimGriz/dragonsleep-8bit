@@ -18654,7 +18654,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler'];
       COSTK.forEach(function (c) {
         var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
         var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });
@@ -18688,8 +18688,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okK('the Hex\'s sand and bars: the drinkers and the barkeeps on their own figures once cut, each facing as the floor stands them (' + fH1.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH1[u.npc]; }).join(', ') + ')',
         fH1.length === 4 && fH1.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH1[u.npc]; }) && fH1.some(function (u) { return /_drinker_p1$/.test(u.sheet); }));
       var BH = floorK('?roam=hex&floor=2'), fH = folkK(BH), PH = D.hex.PEOPLE[2], faceH = {}; PH.forEach(function (p) { faceH[p.id] = D.spr.facingFor(p.face[0], p.face[1]); });
-      okK('the Hex\'s gambling floor: the gamblers in the townsfolk\'s figures, each still facing as the floor stands them (' + fH.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH[u.npc]; }).join(', ') + ')',
-        fH.length === 2 && fH.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH[u.npc]; }));
+      okK('the Hex\'s gambling floor: the gamblers in the gambler\'s figures, each still facing as the floor stands them (' + fH.map(function (u) { return u.npc + ' ' + u.sheet + ' f' + u.facing + '/' + faceH[u.npc]; }).join(', ') + ')',
+        fH.length === 2 && fH.every(function (u) { return u.sheet === CK.folkFig(u.npc) && u.facing === faceH[u.npc] && /_gambler_p1$/.test(u.sheet); }));
       var BW = floorK('?roam=warrens_b'), fW = folkK(BW);
       okK('the Warrens: the shaft crew in the shaft hand\'s figures (' + fW.map(function (u) { return u.npc + ' ' + u.sheet; }).join(', ') + ')',
         fW.length >= 1 && fW.every(function (u) { return u.sheet === CK.folkFig(u.npc) && FIGHTK.indexOf(u.sheet) < 0; }) && fW.some(function (u) { return u.sheet === 'folkman_shaft_p1' || u.sheet === 'folkwoman_shaft_p1'; }));
