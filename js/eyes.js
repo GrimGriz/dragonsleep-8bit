@@ -29,6 +29,10 @@
     'eyes-icemephit-1115': { pri: 2, group: G2, title: 'THE ICE MEPHIT: a small winged imp of ice, cut as the art desk drew it (11-15)', pt: 'the bestiary lane, 2026-11-15 (the cutter-fresh-1115 seat; tools/icemephit-sheet.py; data/foes.js icemephit)',
       url: 'deep16/?show=icemephit&fresh=1115im',
       look: 'A SHOW (the watchers at level 3). The art desk\'s ice mephit, drawn at game size: it waits as a shard of ice till it acts, then flaps up, claws (cold on the hit) and breathes a cone of frost (the game blooms the cold on the squares; only flecks at its mouth are drawn). Fire and blows hurt it double; cold does nothing. When it dies it shatters into ice -- the SRD\'s Death Burst damage is not on the grid yet, nor its fog cloud. It is on no table: where it is met is yours.' },
+    // THE CUTTER-FRESH-1115 SEAT, 11-15, its seventh piece (Opus; tools/cockatrice-sheet.py; data/foes.js cockatrice): the cockatrice, a new creature
+    'eyes-cockatrice-1115': { pri: 2, group: G2, title: 'THE COCKATRICE: a small rooster-lizard whose bite turns flesh to stone (11-15)', pt: 'the bestiary lane, 2026-11-15 (the cutter-fresh-1115 seat; tools/cockatrice-sheet.py; data/foes.js cockatrice)',
+      url: 'deep16/?show=cockatrice&fresh=1115ck',
+      look: 'A SHOW (the watchers at level 3). The art desk\'s cockatrice: a small, mean rooster with a lizard\'s tail and bat-like wings. It struts in, flaps up, and pecks: a bitten hero who fails a DC 11 CON save begins to turn to stone (restrained), and saves again at the end of its next turn. Struck it flinches; down, it rolls onto its side. It is on no table: where it is met is yours.' },
     // THE NPC CUTTER SEAT (cutter-npc-1115), 11-15 (Opus; tools/greenhag-sheet.py; data/foes.js greenhag; js/ai.js the vanish): the green hag, art-wanted 64's fey (the art desk's 70)
     'eyes-greenhag-1115': { pri: 2, group: G2, title: 'THE GREEN HAG: the fey shelf\'s one, her borrowed face and her own, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the NPC cutter seat, cutter-npc-1115; tools/greenhag-sheet.py; data/foes.js greenhag)',
       url: 'deep16/?show=greenhag&fresh=1115gh',

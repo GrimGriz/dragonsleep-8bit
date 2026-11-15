@@ -11208,6 +11208,34 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLy);
     return;
   }
+  // THE COCKATRICE, 11-15 (mode=cockatrice1115; the cutter-fresh-1115 seat): the SRD 5.1 Cockatrice, cockatrice_p1 -- 1. its block; 2. its Bite on the `attack` row,
+  // a failed DC 11 CON save beginning the stone; 3. its sheet; 4. on no table
+  if (get('mode', '') === 'cockatrice1115') {
+    var repCK = { checks: [], errors: [], notes: [] }, d0CK = D.d;
+    function okCK(what, v) { repCK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var FCKX = D.FOES.cockatrice;
+      okCK('1 the block: ' + (FCKX ? FCKX.name + ', CR ' + FCKX.cr + ', AC ' + FCKX.ac + ', ' + FCKX.hp + ' HP, speed ' + FCKX.speed + ', fly ' + FCKX.fly + '; Bite +' + FCKX.attacks.bite.atk + ' ' + FCKX.attacks.bite.dice + '+' + FCKX.attacks.bite.mod + ', petrify DC ' + FCKX.attacks.bite.petrify.dc : 'none'),
+        !!FCKX && FCKX.cr === '1/2' && FCKX.ac === 11 && FCKX.hp === 27 && FCKX.speed === 20 && FCKX.fly === 40 && FCKX.attacks.bite.atk === 3 && FCKX.attacks.bite.petrify.dc === 11);
+      var BCKX = D.npcFight('?npc=cockatrice&vs=fighter:3&lvl=3', {}); D.battle = BCKX; BCKX.enter(); var kCKX = 0; while (!BCKX.order.length && kCKX++ < 400) BCKX.co.next();
+      var CKX = BCKX.units.filter(function (u) { return u.kind === 'cockatrice'; })[0], FICX = BCKX.units.filter(function (u) { return u.side === 'party'; })[0];
+      BCKX.units.forEach(function (w) { if (w !== CKX && w !== FICX) w.left = true; });
+      CKX.fz = null; FICX.x = CKX.x + 1; FICX.y = CKX.y; FICX.hp = FICX.maxhp = 300; D.grid.setup(D.grid.map, BCKX.units);
+      var seqCKX = [19, 1]; D.d = function (n) { return n === 20 && seqCKX.length ? seqCKX.shift() : d0CK.apply(this, arguments); };
+      var seenCKX = [], gCKX = BCKX.attack(CKX, FICX, CKX.attacks.bite), rCKX, vCKX, qCKX = 0; BCKX.active = CKX; D.rules.startTurn(CKX);
+      do { rCKX = gCKX.next(vCKX); vCKX = undefined; if (!rCKX.done && rCKX.value && rCKX.value.prompt) vCKX = rCKX.value.prompt.opts[0].value; if (CKX.anim && seenCKX.indexOf(CKX.anim) < 0) seenCKX.push(CKX.anim); } while (!rCKX.done && qCKX++ < 20000);
+      D.d = d0CK;
+      okCK('2 the Bite plays ' + seenCKX.join('/') + '; the fighter, his save failed: ' + Object.keys(FICX.conds).join(', '), seenCKX.indexOf('attack') >= 0 && !!(FICX.conds.stoning || FICX.conds.petrified));
+      var SCKX = D.SHEETS.cockatrice_p1 && D.SHEETS.cockatrice_p1.anims, wCKX = ['idle', 'walk', 'fly', 'attack', 'flinch', 'hurt', 'prone', 'getup'];
+      okCK('3 its sheet: ' + (SCKX ? wCKX.map(function (r) { return r + ' ' + (SCKX[r] ? SCKX[r].frames : 0); }).join(', ') : 'none') + ' (want 6 8 6 6 4 6 2 1)', !!SCKX && wCKX.map(function (r) { return SCKX[r] ? SCKX[r].frames : 0; }).join() === '6,8,6,6,4,6,2,1' && SCKX.attack.release === 2);
+      var tCKX = window.DS.DATA.encounters || {}, onCKX = Object.keys(tCKX).filter(function (z) { return (tCKX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'cockatrice'; }); }); });
+      okCK('4 on no table (his word where): ' + (onCKX.join(', ') || 'none'), !onCKX.length);
+    } catch (eCK) { repCK.errors.push(String(eCK && eCK.stack || eCK).slice(0, 900)); }
+    D.d = d0CK;
+    var preCK = document.createElement('pre'); preCK.id = 'out'; preCK.textContent = 'BENCH16 ' + JSON.stringify(repCK);
+    document.body.appendChild(preCK);
+    return;
+  }
   // THE ICE MEPHIT, 11-15 (mode=icemephit1115; the cutter-fresh-1115 seat): the SRD 5.1 Ice Mephit cut as drawn, icemephit_p1 -- 1. its block; 2. its Claws on the
   // `claws` row, cold on the hit, cold does nothing, fire and bludgeoning doubled; 3. its Frost Breath on its `breath` row catching the fighter; 4. its `still` row before
   // it acts; 5. its sheet; 6. on no table

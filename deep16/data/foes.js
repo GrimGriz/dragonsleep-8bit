@@ -722,6 +722,17 @@
     exhale: 'frost', // (its breath on the air, the engine's: js/looks.js LK.exhale, from where the art desk's idle puffs left its nose -- the drawn puffs and its Cold Breath row's drawn cone off, on Griz's "1-3 leans", 11-15; the cone itself M.breathe's bloom on the squares)
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
+  // THE COCKATRICE (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; the art desk's COCKATRICE-DEEP16-SOURCES, a new creature with no art-wanted section):
+  // the SRD 5.1 Cockatrice as written, cut into cockatrice_p1 (tools/cockatrice-sheet.py). Its Bite begins the stone: atk.petrify (js/battle.js, built for it 10-08).
+  // ON NO TABLE: where it is met is his word. Benched: mode=cockatrice1115; ?show=cockatrice
+  cockatrice: {
+    name: 'Cockatrice', type: 'monstrosity', sheet: 'cockatrice_p1', cr: '1/2', ac: 11, hp: 27, speed: 20, fly: 40, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 6, dex: 12, con: 12, int: 2, wis: 13, cha: 5 }, init: 1, perception: 11,
+    saves: { str: -2, dex: 1, con: 1, int: -4, wis: 1, cha: -3 },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5, petrify: { dc: 11 } } },
+    multi: 1,
+    src: 'SRD 5.1 Cockatrice (CR 1/2, 100 XP; Small monstrosity, unaligned): AC 11, 27 HP (6d6 + 6), speed 20, fly 40; STR 6 DEX 12 CON 12 INT 2 WIS 13 CHA 5; darkvision 60, passive Perception 11; Bite +3, 1d4 + 1 piercing, and DC 11 CON against being magically petrified: on a failure it begins to turn to stone and is restrained, the save again at the end of its next turn (js/grimoire.js M.stoneBegin)'
+  },
   // THE ICE MEPHIT (11-15, the cutter-fresh-1115 seat, on the lanes desk's queue; the art desk's ICE-MEPHIT-DEEP16-SOURCES, a new creature with no art-wanted section):
   // the SRD 5.1 Ice Mephit on the grid's rules, cut as drawn into icemephit_p1 (tools/icemephit-sheet.py). False Appearance its `still` row (the shard) till it acts; Frost
   // Breath the cone rule (`breath`, M.breathe). NOT ON THE GRID: Death Burst (its `hurt` row shatters; the 5-ft burst's damage is not dealt) and its innate Fog Cloud
