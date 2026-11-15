@@ -1824,6 +1824,46 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preQ);
     return;
   }
+  // THE PARADE (mode=parade1115; 11-15, the parade-show seat -- Griz: "let's script a 'show'. cam in the middle on a creature, then 4 of the new townspeople take up positions
+  // around it (out of reach) ... Then next creature, next 4 townspeople", and "we can have the crew boss come on and show his attacks and get the flinch and dead etc for each
+  // creature before we switch creatures"): deep16/js/parade.js run headless with &fast to its end. 1 it is loaded and the day's three landed creatures are in it; 2 every
+  // creature's turn finished as it should -- every blow played at all twelve stands, nobody in its reach, the four round the compass and home, no townsperson hurt, the creature
+  // down at the crew boss; 3 the townsfolk are the costume figures cut, four a creature, the list going round; 4 the crew boss wears the sheet his foe names; 5 what is not on
+  // main is passed over without a word (&only= with a name no foe has); 6 the door's line in js/main.js
+  if (get('mode', '') === 'parade1115') {
+    var repPA = { checks: [], errors: [], notes: [] };
+    function okPA(what, v) { repPA.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    // (the dice counted from the show's first step: the battle's own setting-up, its initiative, is before it)
+    function runPA(q) { var b = D.parade.make(q); D.battle = b; b.enter(); var d0 = D.d, r0 = D.roll, n = 0; D.d = function () { n++; return d0.apply(this, arguments); }; D.roll = function () { n++; return r0.apply(this, arguments); };
+      try { var v, k = 0; while (b.co && k++ < 400000) { var r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (y && y.prompt) v = y.prompt.opts[0].value; } } finally { D.d = d0; D.roll = r0; }
+      b.ranOut = k >= 400000; b.rolled = n; return b; }
+    try {
+      var PA = D.parade;
+      if (!PA) okPA('1 deep16/js/parade.js is loaded', false);
+      else {
+        var crPA = PA.creatures(null), fkPA = PA.folk(), loadPA = !D.MAPS.paradefloor; // (its floor laid when the door is made: never one of the Pocket DM's locations)
+        okPA('1 the show is loaded; of today\'s ' + PA.CREATURES.length + ' it shows ' + crPA.show.join(', ') + ' and passes over ' + (crPA.skipped.join(', ') || 'none') + ' (want the wyvern, the frost giant and the winter wolf in it)', ['wyvern', 'frostgiant', 'winterwolf'].every(function (k) { return crPA.show.indexOf(k) >= 0; }));
+        var BPA = runPA('?parade&fast'), rolledPA = BPA.rolled;
+        var rpPA = BPA.paradeReport || [];
+        rpPA.forEach(function (r) { okPA('2 ' + r.name + ' -- ' + r.why, r.ok); });
+        okPA('2 the show ran to its end: ' + rpPA.length + ' creatures of ' + crPA.show.length + ' (the coroutine done: ' + !BPA.ranOut + '), and not a die rolled in it (' + rolledPA + ')', rpPA.length === crPA.show.length && rpPA.length >= 3 && !BPA.ranOut && rolledPA === 0);
+        var usedPA = rpPA.map(function (r) { return (r.folk || []).join(','); }), wantPA = rpPA.map(function (r, i) { return [0, 1, 2, 3].map(function (j) { return fkPA[(4 * i + j) % fkPA.length].sheet; }).join(','); });
+        okPA('3 the townsfolk: ' + fkPA.length + ' costume figures cut (' + fkPA.map(function (f) { return f.sheet; }).join(', ') + '); four a creature, the list going round (' + usedPA.join(' | ') + '); the light crew among them; every one a folk<man|woman>_<costume>_p1 with a walk row', fkPA.length >= 2 && usedPA.join('|') === wantPA.join('|') && fkPA.some(function (f) { return f.costume === 'lightcrew'; }) && fkPA.every(function (f) { return /^folk(man|woman)_[a-z]+_p1$/.test(f.sheet) && !!D.spr.anim(f.sheet, 'walk') && !!D.spr.anim(f.sheet, 'idle'); }));
+        var bsPA = /the crew boss on ([a-z0-9_]+)/.exec((rpPA[0] || {}).why || '');
+        okPA('4 the crew boss wears the sheet his foe names (' + (D.FOES.crewboss || {}).sheet + '; the show had him on ' + (bsPA && bsPA[1]) + ')', !!bsPA && bsPA[1] === (D.FOES.crewboss || {}).sheet && rpPA.every(function (r) { return r.why.indexOf('the crew boss on ' + D.FOES.crewboss.sheet) >= 0; }));
+        var BP2 = runPA('?parade&fast&only=nosuchcreature,wyvern,hellhound_not_cut'), rp2 = BP2.paradeReport || [];
+        okPA('5 &only=nosuchcreature,wyvern,hellhound_not_cut: the wyvern alone (' + rp2.map(function (r) { return r.id; }).join() + '), the other two passed over without a word (' + (BP2.parade.skipped || []).join() + ')', rp2.length === 1 && rp2[0].id === 'wyvern' && rp2[0].ok && (BP2.parade.skipped || []).length === 2);
+        var BP3 = runPA('?parade&fast&only=nosuchcreature');
+        okPA('5 &only= with nothing landed: no creature, and the show says so rather than throwing (' + ((BP3.paradeReport || []).length) + ' shown)', (BP3.paradeReport || []).length === 0 && !BP3.ranOut);
+        okPA('6 the floor is the show\'s own plain one (' + (D.MAPS.paradefloor || {}).name + ', ' + ((D.MAPS.paradefloor || {}).rows || []).length + ' rows, no post on it), laid when the door is made and not at load (' + loadPA + '): the Pocket DM deals every floor in D.MAPS as a location', !!D.MAPS.paradefloor && D.MAPS.paradefloor.rows.every(function (r) { return !/[^#=]/.test(r); }) && loadPA);
+        repPA.notes.push('rings: ' + rpPA.map(function (r) { return r.id + ' ' + (r.ring * 5) + ' ft'; }).join(', '));
+      }
+    } catch (ePA) { repPA.errors.push(String(ePA && ePA.stack || ePA).slice(0, 900)); }
+    if (errs.length) repPA.errors = repPA.errors.concat(errs);
+    var prePA = document.createElement('pre'); prePA.id = 'out'; prePA.textContent = 'BENCH16 ' + JSON.stringify(repPA);
+    document.body.appendChild(prePA);
+    return;
+  }
   // the Skylights, shown (mode=skyshow; 10-05 night, Griz: "can you script a 'show me' like the art render windows do - where we test all the things we added/changed/reverted in
   // the edifice fight today (current only)"): deep16/js/skyshow.js's beats run headless, each beat's own check a line here (a FAIL for a beat that did not show)
   if (get('mode', '') === 'skyshow') {
