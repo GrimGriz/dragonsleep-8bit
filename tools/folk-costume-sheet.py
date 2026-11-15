@@ -53,6 +53,14 @@ PIECES = {
                   navy=(17, 24, 45), stand=False),
     'guard': dict(folder='2026-11-15-ART-WANTED-77-GUARD', name='ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
                   navy=(16, 18, 40), stand=False),
+    'crewboss': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD', name='ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
+                     navy=(17, 24, 45), stand=False),
+    # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
+    # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
+    'crewbossfight': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-MALE-FIGHT', name='ART-WANTED-78 CREW-BOSS-MALE-FIGHT, 11-15: five views, Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, native 4x on its 96 x 96 cell',
+                          navy=(17, 24, 45), stand=False, cell=(96, 96, 48, 76), targets={'proposed crewboss_p1': 'crewboss_p1'},
+                          rows=[('idle', 'idle', 4, 4, None), ('walk', 'walk', 8, 9, None), ('mace', 'attack', 6, 12, 3), ('flinch', 'flinch', 4, 12, None),
+                                ('fall', 'hurt', 6, 8, None), ('prone', 'prone', 1, 1, None)]),
 }
 
 
@@ -83,17 +91,24 @@ def frames_of(d):
 
 
 def cut(costume):
-    """-> {sheet name: {row: [8 facings of [RGBA frames]]}}"""
+    """-> {sheet name: {row: [8 facings of [RGBA frames]]}}. A fight piece says its own `cell` (fw, fh, ax, ay), its `targets` {the art
+    desk's target: the sheet} and its `rows` [(the art desk's row, the sheet's row, frames, fps, release)]; a costume takes folkman_p1's"""
     P = PIECES[costume]
+    fw, fh, ax, ay = P.get('cell', (FW, FH, AX, AY))
+    names = P.get('targets') or {'folkman_%s_p1' % costume: 'folkman_%s_p1' % costume, 'folkwoman_%s_p1' % costume: 'folkwoman_%s_p1' % costume}
+    rowmap = {r[0]: (r[1], r[2]) for r in P['rows']} if P.get('rows') else {an: (an, n) for an, n in COUNT.items()}
     d = os.path.join(AD.src_dir(ROOT), 'folkcostumes', P['folder'])
     pal, got, pages = palette(), {}, {}
     for name, v, an, idx, page, (x, y, w, h) in frames_of(d):
-        if name not in ('folkman_%s_p1' % costume, 'folkwoman_%s_p1' % costume):
+        if name not in names:
             raise SystemExit('%s: a frame for %s, not %s' % (page, name, costume))
+        if an not in rowmap:
+            raise SystemExit('%s: a row %s the piece does not name' % (page, an))
+        name, an = names[name], rowmap[an][0]
         if page not in pages:
             pages[page] = np.asarray(Image.open(os.path.join(d, page)).convert('RGB'))
-        a, k = pages[page], w // FW
-        if (w, h) != (FW * k, FH * k):
+        a, k = pages[page], w // fw
+        if (w, h) != (fw * k, fh * k):
             raise SystemExit('%s %s %d: a window of %dx%d, not %d x the cell' % (page, an, idx + 1, w, h, k))
         win = a[y:y + h, x:x + w]
         sm = win[k // 2::k, k // 2::k]
@@ -103,40 +118,47 @@ def cut(costume):
         off = {tuple(c) for c in sm[fg]} - pal
         if off:
             raise SystemExit('%s %s %d: %d colours off the 64 (%s)' % (page, an, idx + 1, len(off), sorted(off)[:4]))
-        fr = np.zeros((FH, FW, 4), np.uint8)
+        fr = np.zeros((fh, fw, 4), np.uint8)
         fr[fg, :3] = sm[fg]; fr[fg, 3] = 255
         got.setdefault(name, {}).setdefault(v, {}).setdefault(an, {})[idx] = fr
+    counts = {sr: n for sr, n in rowmap.values()}
     out = {}
     for name, views in got.items():
         if set(views) != {'S', 'SE', 'E', 'NE', 'N'}:
             raise SystemExit('%s: views %s, not the five' % (name, sorted(views)))
         for v in views:
-            for an, n in COUNT.items():
+            for an, n in counts.items():
                 if sorted(views[v].get(an, {})) != list(range(n)):
                     raise SystemExit('%s %s %s: frames %s, not %d' % (name, v, an, sorted(views[v].get(an, {})), n))
                 views[v][an] = [views[v][an][i] for i in range(n)]
         if P['stand']:
             for v, rows in views.items():               # each view stood on its Idle 1's lowest row
                 foot = int(np.where(rows['idle'][0][..., 3].any(axis=1))[0][-1])
-                dy = AY - foot
+                dy = ay - foot
                 if dy:
                     for an in rows:
                         for i, fr in enumerate(rows[an]):
-                            if dy > 0 and fr[FH - dy:, :, 3].any():
+                            if dy > 0 and fr[fh - dy:, :, 3].any():
                                 raise SystemExit('%s %s %s %d: cut off by the stand' % (name, v, an, i + 1))
                             rows[an][i] = np.roll(fr, dy, axis=0)
-                    print('  %s %s: stood %+d px (its Idle 1 on row %d)' % (name, v, dy, AY))
-        out[name] = {an: [[mirror(fr) for fr in views[MIRROR[f]][an]] if f in MIRROR else views[f][an] for f in ORDER] for an in ROWS}
+                    print('  %s %s: stood %+d px (its Idle 1 on row %d)' % (name, v, dy, ay))
+        out[name] = {an: [[mirror(fr) for fr in views[MIRROR[f]][an]] if f in MIRROR else views[f][an] for f in ORDER] for an in counts}
     return out
 
 
 if __name__ == '__main__':
     for costume in (sys.argv[1:] or list(PIECES)):
+        P = PIECES[costume]
+        fw, fh, ax, ay = P.get('cell', (FW, FH, AX, AY))
+        fps = {r[1]: r[3] for r in P['rows']} if P.get('rows') else FPS
+        rel = {r[1]: r[4] for r in P.get('rows', []) if r[4] is not None}
         for name, frames in sorted(cut(costume).items()):
-            pix.write_sheet(name, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))   # (S and E, as tools/townsfolk-sheet.py's)
+            pix.write_sheet(name, frames, fw, fh, ax, ay, pix.top_of(frames['idle'][0] + frames['idle'][6], ay))   # (S and E, as tools/townsfolk-sheet.py's)
             mp = os.path.join(ROOT, 'deep16', 'art', name + '.json')
             meta = json.load(open(mp))
-            for an, fps in FPS.items():
-                meta['anims'][an]['fps'] = fps
-            meta['source'] = 'drawn by the art desk (%s), cut by tools/folk-costume-sheet.py (11-15)' % PIECES[costume]['name']
+            for an, f in fps.items():
+                meta['anims'][an]['fps'] = f
+            for an, r in rel.items():
+                meta['anims'][an]['release'] = r
+            meta['source'] = 'drawn by the art desk (%s), cut by tools/folk-costume-sheet.py (11-15)' % P['name']
             json.dump(meta, open(mp, 'w'), indent=1)

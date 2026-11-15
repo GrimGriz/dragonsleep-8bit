@@ -434,11 +434,11 @@
   },
   // holding the stair at the siphon (deep.js S.holdStair): the night crews come down the daytime way
   crewboss: {
-    name: 'Crew Boss', type: 'humanoid', sheet: 'hask_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
+    name: 'Crew Boss', type: 'humanoid', sheet: 'crewboss_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, packTactics: true, lightKit: 'lantern', src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet; Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
+    multi: 1, packTactics: true, lightKit: 'lantern', src: 'content/monsters.json crewboss (a Thug with one blow); his own figure since 11-15, crewboss_p1 (the art desk\'s 78: the crew boss man with a flanged mace, the lamp at his hip unlit -- tools/folk-costume-sheet.py; Hask\'s hask_p1 before, till his "pasted to the art desk re Crew Boss"); Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
   },
   thug: {
     name: 'Thug', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,

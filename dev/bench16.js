@@ -18694,7 +18694,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss'];
+      // the crew boss man fights in his own figure (the art desk's 78; foes.js crewboss off Hask's hask_p1): its rows, the Mace landing on its frame 4, the night crew's lead
+      var FB = D.FOES.crewboss, SB = FB && D.SHEETS[FB.sheet], aB = SB && SB.anims;
+      okK('the crew boss fights in his own figure (' + (FB && FB.sheet) + ': ' + (aB ? Object.keys(aB).map(function (k) { return k + ' ' + aB[k].frames + (aB[k].release != null ? ' release ' + aB[k].release : ''); }).join(', ') : 'NONE') + '), leading the night crew down the daytime way (' + D.roam.HOLD_CREW.join(', ') + ')',
+        !!SB && FB.sheet === 'crewboss_p1' && SB.fw === 96 && SB.fh === 96 && SB.ax === 48 && SB.ay === 76 && aB.idle.frames === 4 && aB.walk.frames === 8 && aB.attack.frames === 6 && aB.attack.release === 3 &&
+        aB.flinch.frames === 4 && aB.hurt.frames === 6 && aB.prone.frames === 1 && !aB.idle.drawn && D.roam.HOLD_CREW[0] === 'crewboss');
       COSTK.forEach(function (c) {
         var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
         var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });
