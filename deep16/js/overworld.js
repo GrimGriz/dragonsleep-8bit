@@ -263,7 +263,7 @@
         var hk = T.keys[T.t[hi]], ss = (SITES[ov.hov[0] + ',' + ov.hov[1]] || []).map(function (s1) { return s1.name; });
         lines.push((ss.length ? ss.join(', ') + ' · ' : '') + (M0.terr[hk] ? M0.terr[hk].name : hk) + ' · about ' + (T.b[hi] * 500 + 250).toLocaleString() + ' ft');
         if (ov.plan) { var hrs = ov.plan.hours, cps = Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); lines.push((ov.plan.tiles.length * T.mi).toFixed(1) + ' mi · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (cps > 0 ? ' · ' + cps + ' camp' + (cps > 1 ? 's' : '') : '')); }
-        else if (MTN[hk]) lines.push('{g}the mountains: their roads are roams (to come){/}');
+        else if (MTN[hk]) lines.push('{g}the mountains: no way over them on foot{/}'); // (as THE WORLD's own hover since 11-16 -- not "their roads are roams (to come)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
         else if (!OV.passable(ov.hov[0], ov.hov[1])) lines.push('{r}no one walks it{/}');
         else if (ov.hov[0] !== t0[0] || ov.hov[1] !== t0[1]) lines.push('{r}no way there (a ledge, or too far to find){/}');
       }

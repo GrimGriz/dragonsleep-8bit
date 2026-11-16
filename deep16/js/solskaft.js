@@ -188,7 +188,7 @@
   };
   // the people's words: the first game's (content/npcs.json by T.say), and for the two whose first-game word is a scene, the line that stands when the scene is past
   SK.WORDS = {
-    pyro: function () { return [SK.L('deep.pyro1'), '{g}(His meeting at the door is the story\'s scene, to come.){/}']; },
+    pyro: function () { return [SK.L('deep.pyro1')]; }, // (no "(His meeting at the door is the story's scene, to come.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
     quartermaster: function () { var s = ((DS.DATA || {}).shops || {}).qm || {}; return [s.greeting || '']; } // (his counter open since 11-15: js/counter.js C.VENDORS.quartermaster)
   };
 
@@ -591,15 +591,15 @@
   SK.CDOORS = [
     { id: 'cRampUp', at: [[6, 1], [6, 2]], step: true, title: 'THE CART RAMP', say: ['Up the ramp to main street, inside the vault doors.'], to: 'the street level.', go: ['solskaft', 6, null, [1, 0]] }, // (11-12: one step east of its foot, onto the street's ramp beside its mouth)
     { id: 'cNarrowUp', at: [[36, 6]], step: true, title: 'THE NARROW RAMP', say: ['Up the narrow ramp to the street, beside the stable.'], to: 'the street level.', go: ['solskaft', 36, 5, [0, 1]] }, // (11-12: one step south of its foot, onto the street's ramp above its mouth)
-    { id: 'cGate', at: [[31, 26], [32, 26], [33, 26], [34, 26]], title: 'THE HIGHWAY GATE', say: [null], to: 'the highway: four days and three lamps to Deepholm\'s door (its legs are floors to come).' },
+    { id: 'cGate', at: [[31, 26], [32, 26], [33, 26], [34, 26]], title: 'THE HIGHWAY GATE', say: [null], to: 'the highway: four days and three lamps to Deepholm\'s door.' }, /* (no "(its legs are floors to come)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */
     { id: 'cTrade', at: [[30, 22]], title: 'THE TRADE HALL', say: [null], to: 'its hall (not yet built), boarded from this side.' },
     { id: 'mint', at: [[11, 18]], title: 'THE MINT', say: [null], to: 'nowhere: the king sealed it.' },
     { id: 'treasury', at: [[12, 18]], title: 'THE TREASURY', say8: 'deep.treasury', to: 'its room (not yet built).' }
   ];
   (function () { var o = SK.LABEL || (SK.LABEL = {}), S8 = SK.CS8, Ln = SK.CLINES; o[S8.smelters] = 'the smelters'; o[S8.cupel] = 'the cupel-hearth'; o[S8.rack] = 'the ledger-lamp rack'; o[S8.anvil] = 'the Forge-Father\'s anvil'; o[S8.shrooms] = 'the shroom beds';
     o[Ln.holding] = 'the wagon'; o[Ln.trap] = 'the hoist-trap'; o[Ln.drum] = 'the drum'; o[Ln.rackArm] = 'the armory\'s racks'; o[Ln.forgeAnvil] = 'the smith\'s anvil'; })();
-  SK.WORDS.smith = function () { var s = ((DS.DATA || {}).shops || {}).copperbottom || {}; return [s.greeting || '', '{g}(His shop and the Winnower are to come.){/}']; };
-  SK.WORDS.gatewatch = function () { return [SK.L('deep.gateShut'), '{g}(The gate and the muster are the story\'s, to come.){/}']; };
+  SK.WORDS.smith = function () { var s = ((DS.DATA || {}).shops || {}).copperbottom || {}; return [s.greeting || 'Welcome.']; }; /* (no "(His shop and the Winnower are to come.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */
+  SK.WORDS.gatewatch = function () { return [SK.L('deep.gateShut')]; }; // (no "(The gate and the muster are the story's, to come.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
   SK.cdoorSay = function (d) { return d.id === 'cGate' ? ['{y}' + d.title + '{/}', SK.CLINES.gate, '{g}Where it goes: ' + d.to + '{/}'] : d.id === 'cTrade' ? ['{y}' + d.title + '{/}', SK.CS8.trade, '{g}Where it goes: ' + d.to + '{/}'] : null; };
   SK.DRUM = function () { var out = []; SK.CROWS.forEach(function (row, y) { for (var x = 0; x < row.length; x++) if (row.charAt(x) === 'Q') out.push([x, y]); }); return out; };
   SK.clights = function () {
@@ -783,19 +783,19 @@
     hello: 'The funerary: a hallway each side and one across the north, the tiers stepping down between them to the bier; the chapel off the east hallway, the Warrens\' stair at its south end; the closed homes behind the west one.',
     grille: 'Through the bars: the closed street, ten doors along it, every one barred. The lintels, in the dark:',
     stair: 'The stair up to the temple off the hallway.',
-    graveGear: '{g}(The law of the line -- what may be taken, by whose warrant -- is the story\'s, to come.){/}'
+    graveGear: '' /* (no "(The law of the line -- what may be taken, by whose warrant -- is the story's, to come.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */
   };
   SK.BDOORS = [
     { id: 'bUpW', at: [[5, 13], [5, 14]], step: true, title: 'THE STAIR UP', say: ['Up to Rekknar\'s temple off the hallway.'], to: 'the street level.', go: ['solskaft', 8, 15, [1, 0]] }, // (PASS TWO, 11-12: the temples off the street's hallway; the stair's foot moved under the stair, r13-14, 11-12 later)
     { id: 'bUpE', at: [[32, 13], [32, 14]], step: true, title: 'THE STAIR UP', say: ['Up to the Dormant\'s temple off the hallway.'], to: 'the street level.', go: ['solskaft', 29, 15, [-1, 0]] },
-    { id: 'bWarrens', at: [[31, 1]], step: true, title: 'THE FLOODED STAIR', say: ['The stair from the Warrens comes in here, through a cut seal: down it, the water.'], to: 'the Wet, under the Crawler Warrens (the drained stair\'s coming up this way is the story\'s, to come).' }
+    { id: 'bWarrens', at: [[31, 1]], step: true, title: 'THE FLOODED STAIR', say: ['The stair from the Warrens comes in here, through a cut seal: down it, the water.'], to: 'the Wet, under the Crawler Warrens.' } /* (no "(the drained stair's coming up this way is the story's, to come)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */
   ];
   SK.blights = function () { var Y = SK.Y; return [{ id: 'bkBier', kind: 'map', x: 20, y: Y(11), bright: 10, dim: 25, color: 'fire', flame: true, seep: true }, { id: 'bkChapel', kind: 'map', x: 34, y: Y(8), bright: 5, dim: 15, color: 'fire', flame: true, seep: true }]; };
   SK.nicheSay = function (n) {
     if (n.kind === 'waits') return [SK.BS8.waits];
     var L8 = SK.L, line = SK.stone8(n.key8, [n.wi, n.ti, n.kind]);
     if (n.kind === 'pried') return [L8(SK.BT8.pried)];
-    if (n.kind === 'gear') return [line, L8(n.wi === 1 ? SK.BT8.shield : SK.BT8.hammer), SK.BLINES.graveGear];
+    if (n.kind === 'gear') return [line, L8(n.wi === 1 ? SK.BT8.shield : SK.BT8.hammer)].concat(SK.BLINES.graveGear ? [SK.BLINES.graveGear] : []); // (its "to come" line removed 11-16: none said)
     return [line, L8(SK.BT8.dead)];
   };
   SK.bmap = function () {

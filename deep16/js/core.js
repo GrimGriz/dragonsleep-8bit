@@ -426,7 +426,7 @@
     D.text(ctx, '{r}' + this.head + '{/}', D.W / 2, y + 10, D.WIN8.gold, 'center');
     bl.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 26 + i * 9, D.WIN8.text, 'center'); });
     D.text(ctx, 'Nothing was saved or changed. Reload the page to try its door again.', D.W / 2, y + 30 + bl.length * 9, '#b8b8d0', 'center');
-    D.text(ctx, D.keys('{g}E{/}') + ': back to the 8-bit title', D.W / 2, y + 42 + bl.length * 9, D.WIN8.gold, 'center');
+    D.text(ctx, D.keys('{g}E{/}') + ': back to the title', D.W / 2, y + 42 + bl.length * 9, D.WIN8.gold, 'center');
   };
   D.BrokeCard = BrokeCard;
   D.toTitle8 = function () { location.href = '../index.html'; }; // (the 8-bit game's title, beside deep16/ -- locally and on Pages alike)

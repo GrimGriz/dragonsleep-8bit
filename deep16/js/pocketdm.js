@@ -861,7 +861,7 @@
   // DOORS: every door of URLS.md (10-08 and before), opened in a tab of its own so the table stays where it is
   PD.DOORS = [
     ['STORY REALM GAME', './', 'the second game, from its title (11-06: the Pocket DM\'s way out, as the front page\'s button)'],
-    ['THE 8-BIT GAME', '../', 'the first game, the story from its title'],
+    ['THE FIRST GAME', '../', 'the first game, the story from its title'], // (not "THE 8-BIT GAME": 11-16, his "references to 8-bit as well")
     ['ROUND SIX', '../?round6', 'all four at 4th on Fountain Street, nearly every quest done'],
     ['LEVEL THREE', '../?lvl3', 'all four just made 3rd, the first two quests done'],
     ['DOWN TO THE WET', '../?at=wet3&lead=lymen', 'a level-3 party led by Lymen, the gates down to the Wet open'],

@@ -710,7 +710,8 @@
   R.scene8 = function* (B, trig, at) {
     var R0 = B.roam;
     if (R.SCENES[trig.script] && (!R.emb || R.house())) { yield* R.SCENES[trig.script](B, trig, at); return; } // (the second game's own: the drained stair's two, below)
-    if (!R.emb || R.house()) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- ' + (R.house() ? 'held till the floor is the second game\'s (the house lane).' : 'inside the game the floor hands the party back for it (?at=roam).')]), 300); D.sfx('popup'); yield 30; return; }
+    if (R.house()) return; // (in the game a scene the floor has not got says nothing -- not "the 8-bit's own scene ... held till the floor is the second game's" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
+    if (!R.emb) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- inside the game the floor hands the party back for it (?at=roam).']), 300); D.sfx('popup'); yield 30; return; } // (a test door's own words)
     var m = yield* R.handOut(B, 'script', { script: trig.script, arg: trig.arg != null ? trig.arg : null, trig: trig.id });
     if (m && !R0.out && R.tileSig(R.def.src8, R0.flags) !== R.def.sig) yield* R.leaveFloor(B, 'reopen', [R0.token.x, R0.token.y]);
   };
@@ -1258,7 +1259,7 @@
   // book scene, content/text.json kat.book: its opening line here, the pages with a book screen of the grid's), the rest the first game's "nothing happens" -- never the 8-bit's
   R.fieldLeft = function (B, a) {
     var it = a && a.id ? window.DS.DATA.items[a.id] : null, use = it && it.use;
-    if (use && use.effect === 'read') return ['{y}' + it.name.toUpperCase() + '{/}', [].concat(R.say8('kat.book'))[0], '{g}(Its pages read in the first game\'s book scene; the grid has no book screen yet.){/}'];
+    if (use && use.effect === 'read') return ['{y}' + it.name.toUpperCase() + '{/}', [].concat(R.say8('kat.book'))[0]]; // (no "(Its pages read in the first game's book scene; the grid has no book screen yet.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
     return [R.say8('g.nothingHappens')];
   };
   // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every

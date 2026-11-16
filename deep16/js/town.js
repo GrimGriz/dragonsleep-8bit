@@ -515,7 +515,7 @@
     if (t && t.say) return t.say.slice();
     var rs = ((window.DS.DATA || {}).rumors) || [], rid = (N.rumors || [])[0], r = rid && (Array.isArray(rs) ? rs.filter(function (z) { return z.id === rid; })[0] : rs[rid]);
     if (r) return [r.t || String(r)];
-    return [T.LINE[id] || '{g}(Their scene is the 8-bit\'s; on the grid it is to come.){/}'];
+    return T.LINE[id] ? [T.LINE[id]] : []; // (no word of their own: none -- not "Their scene is the 8-bit's; on the grid it is to come." (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
   };
   T.LINE = { // the floor's own words where the 8-bit's would be wrong here (invented.json silverton16-gate-hand)
     guard1: 'West gate. The road runs a mile to the fork: the Tower north of it, the Pit south down the long road. East gate\'s the farms and the coast. Nobody bothers the dwarves.'
@@ -679,7 +679,7 @@
       if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); // (a keeper drawn facing south only stays facing south: js/counter.js C.dress)
       if (D.counter && D.counter.takes(trig.npc)) { yield* D.counter.talk(B, trig.npc, trig.door); return; } // (a keeper with a portrait, and Winters: the counter's screen -- js/counter.js, 10-21)
       var kp = R.def.room && R.def.keeper && R.def.keeper.id === trig.npc ? R.def.keeper : null, said = trig.npc === 'guard1' ? [T.LINE.guard1] : D.counter ? D.counter.words(B, trig.npc) : T.say(B, trig.npc); // (the word with its doing: an errand's seal or signature -- js/counter.js C.words)
-      if (kp) said = (/^\{g\}\(Their scene/.test(said[0]) ? [] : said).concat(['{g}' + (kp.own ? 'Griz\'s own: the counter waits on his word.' : 'The counter -- buying and selling -- is to come.') + '{/}']); // (a room's keeper: the 8-bit's word where it has one, and the counter's screen to come)
+      if (kp && !said.length) said = ['Welcome.']; // (a room's keeper with no word of their own: a welcome -- no "The counter -- buying and selling -- is to come." or "Griz's own" line (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) // (a room's keeper: the 8-bit's word where it has one, and the counter's screen to come)
       B.card(R.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(said)), 420);
       D.sfx('popup'); yield 20; return;
     }

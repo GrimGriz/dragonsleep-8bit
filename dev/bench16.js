@@ -1685,7 +1685,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       CN.shop16(); var shF = window.DS.DATA.shops.falstaff, vF = CN.VENDORS.falstaff, IT = window.DS.DATA.items, offF = function (id) { return CN.Counter.prototype.offer.call({ shop: shF }, IT[id], id); };
       var qmS = window.D16.solskaft && window.D16.solskaft.WORDS ? window.D16.solskaft.WORDS.quartermaster() : null;
       okN('E. "is to come" said by ' + JSON.stringify(tailE) + '; Falstaff sells ' + (shF && shF.items) + ' at ' + (shF && shF.prices.sheet_hideouslaughter) + ' sp, buys grease (' + CN.buys(vF, shF, 'sheet_grease', IT.sheet_grease) + ', ' + offF('sheet_grease') + ' sp) and mirror image (' + offF('sheet_mirrorimage') + ' sp), not a potion (' + CN.buys(vF, shF, 'potion', IT.potion) + '); the quartermaster takes ' + CN.takes('quartermaster') + ', his line ' + JSON.stringify(qmS),
-        ['brennan', 'casper', 'androit', 'aldric', 'barber', 'marin', 'mela'].every(function (id) { return tailE[id] === false; }) && tailE.merrick === true && !!shF && shF.items.join() === 'sheet_hideouslaughter' && CN.buys(vF, shF, 'sheet_grease', IT.sheet_grease) && offF('sheet_grease') === 250 && offF('sheet_mirrorimage') === 500 && !CN.buys(vF, shF, 'potion', IT.potion) && CN.takes('quartermaster') && (!qmS || !/to come/.test(qmS.join(' '))));
+        ['brennan', 'casper', 'androit', 'aldric', 'barber', 'marin', 'mela', 'merrick'].every(function (id) { return tailE[id] === false; }) /* (Merrick's sendings line removed 11-16: words1116) */ && !!shF && shF.items.join() === 'sheet_hideouslaughter' && CN.buys(vF, shF, 'sheet_grease', IT.sheet_grease) && offF('sheet_grease') === 250 && offF('sheet_mirrorimage') === 500 && !CN.buys(vF, shF, 'potion', IT.potion) && CN.takes('quartermaster') && (!qmS || !/to come/.test(qmS.join(' '))));
       // G. "let's just have it lit like when a player is there without justification": the third floor's night picture and arrival get no wash and no glow
       var cvG = document.createElement('canvas'); cvG.width = 40; cvG.height = 40; var xG = cvG.getContext('2d'); xG.fillStyle = '#ffffff'; xG.fillRect(0, 0, 40, 40); H6N.lowLamps(xG, { x: 20, y: 20 }); var pxG = xG.getImageData(5, 5, 1, 1).data;
       okN('G. the third floor at night as on a visit: a white square under H16.lowLamps stays ' + [pxG[0], pxG[1], pxG[2]], pxG[0] === 255 && pxG[1] === 255 && pxG[2] === 255);
@@ -16873,6 +16873,23 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var hM = hovW(mtn), hG = hovW(gs);
       okWB('4 THE WORLD\'s hover: the mountains "' + hM + '"; a guessed hex "' + hG + '" (want "no way over them on foot", no "(to come)", no "v3")', /no way over them on foot/.test(hM) && !/to come|roams/.test(hM) && !/v3/.test(hG + hM));
     } catch (e4) { repWB.errors.push('4: ' + String(e4 && e4.stack || e4).slice(0, 400)); }
+    // 5. THE "TO COME" LINES REMOVED (11-16, Griz: "the is to come lines is either removed or built, not reworded", and of the 8-bit "yes and references to 8-bit as well"): every
+    // keeper with no shelf at Silverton's counters, Sólskaft's folk, its doors' and the funerary's lines, THE WORLD's mountain road -- none promising what is to come, none the 8-bit's
+    try {
+      var TOCOME = /to come|8-bit|not on the grid yet|no book screen yet|waits on his word/i, BW5 = floorWB('?roam=silverton&watch'), CC5 = D.counter, said5 = [], bad5 = [];
+      var sc5 = { st: CC5.state(BW5), say: function (l) { return { say: [].concat(l) }; } };
+      Object.keys(CC5.VENDORS).forEach(function (id) { var v = CC5.VENDORS[id]; if (v.shop || v.script) return; var g = CC5.keeper(sc5, BW5, id), st5 = g.next(), ls = st5.value && st5.value.say ? st5.value.say : []; said5.push(id); if (!ls.length) bad5.push(id + ': nothing'); ls.forEach(function (l) { if (!l || TOCOME.test(l)) bad5.push(id + ': "' + l + '"'); }); });
+      var tw5 = D.town.say(BW5, 'nosuchkeeper5');
+      okWB('5 the counters: ' + said5.length + ' keepers with no shelf (' + said5.join(', ') + ') say their words, their shop\'s greeting or a welcome' + (bad5.length ? ' -- ' + bad5.join('; ') : '') + '; one with no words at all: ' + JSON.stringify(tw5) + ' (want nothing to come, none empty; none)', said5.length > 0 && !bad5.length && tw5.length === 0);
+      floorWB('?roam=solskaft&watch'); var SK5 = D.solskaft, sk5 = [], nW5 = 0;
+      Object.keys(SK5.WORDS || {}).forEach(function (k) { var ls; try { ls = [].concat(SK5.WORDS[k]() || []); } catch (eW) { sk5.push(k + ' threw'); return; } nW5++; ls.forEach(function (l) { if (TOCOME.test(String(l))) sk5.push(k + ': "' + l + '"'); }); });
+      Object.keys(SK5).forEach(function (k) { var a = SK5[k]; if (Array.isArray(a)) a.forEach(function (d) { if (d && typeof d.to === 'string' && TOCOME.test(d.to)) sk5.push(k + ' ' + d.id + ': "' + d.to + '"'); }); });
+      [SK5.BLINES, SK5.LINES, SK5.CLINES, SK5.LLINES].forEach(function (o) { Object.keys(o || {}).forEach(function (k) { if (typeof o[k] === 'string' && TOCOME.test(o[k])) sk5.push('lines ' + k); }); });
+      okWB('5 Sólskaft: ' + nW5 + ' folk\'s words, its doors\' lines and the funerary\'s, none to come' + (sk5.length ? ' -- ' + sk5.join('; ') : ''), nW5 >= 4 && !sk5.length);
+      var WS5 = D.world.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(WS5); WS5.enter(); var MW5 = (D.world.map && D.world.map('world')) || D.world.M(), rt5 = (MW5.routes || [])[0] || (MW5.held || [])[0], card5 = '' /* (the Coldridge Route: held off THE WORLD till its road is on -- W.ROUTES_ON) */;
+      if (rt5) { WS5.cards.length = 0; WS5.offerRoute({ r: rt5, end: 0 }); card5 = plainWB((WS5.cards[0] || { lines: [] }).lines.join(' / ')); }
+      okWB('5 THE WORLD\'s mountain road: "' + card5.slice(0, 120) + '" (want its days, nothing to come)', !!rt5 && /days to/.test(card5) && !TOCOME.test(card5));
+    } catch (e5) { repWB.errors.push('5: ' + String(e5 && e5.stack || e5).slice(0, 500)); }
     D.store.get = stGWB; D.store.set = stSWB; D.text = dtWB;
     var preWB = document.createElement('pre'); preWB.id = 'out'; preWB.textContent = 'BENCH16 ' + JSON.stringify(repWB);
     document.body.appendChild(preWB);
@@ -16904,9 +16921,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okCP('2 rested at 08:00, CAMP at 20:00: [' + labsCP(p2) + ']; "' + why2 + '"; the greyed LONG REST pressed: refused ' + refused2 + ' (want LONG REST greyed, WAIT TILL A LONG REST: 00:00 (4 HOURS), SHORT REST, WALK ON; the line; nothing spent)',
         labsCP(p2) === 'LONG REST (off) | WAIT TILL A LONG REST: 00:00 (4 HOURS) | SHORT REST: AN HOUR | WALK ON' && why2 === 'No long rest yet: one a day. A long rest again from 00:00, night.' && refused2);
       // 3. SHORT REST: an hour, a hero at 1 HP spends his hit dice, the page kept
-      var h3 = HCP.cur.party[0]; h3.hp = 1; var hd3 = h3.hdLeft != null ? h3.hdLeft : h3.lvl; p2.offers().filter(function (r) { return r.id === 'short'; })[0].go();
-      okCP('3 SHORT REST: the clock ' + t2 + ' -> ' + WCP.state().t + '; ' + h3.name + ' 1 -> ' + h3.hp + ' HP, hit dice ' + hd3 + ' -> ' + h3.hdLeft + '; the page kept ' + (D.top() === p2) + '; it says "' + plainCP(p2.msg || '').slice(0, 90) + '" (want an hour on, his dice spent, the page up, the short rest\'s words)',
-        WCP.state().t === t2 + 1 && h3.hp > 1 && h3.hdLeft < hd3 && D.top() === p2 && /A short rest: an hour\./.test(p2.msg || ''));
+      var h3 = HCP.cur.party[0]; h3.hp = 1; var hd3 = h3.hdLeft != null ? h3.hdLeft : h3.lvl, S3 = WCP.state(); S3.todayHex = 5; p2.offers().filter(function (r) { return r.id === 'short'; })[0].go();
+      okCP('3 SHORT REST: the clock ' + t2 + ' -> ' + WCP.state().t + '; ' + h3.name + ' 1 -> ' + h3.hp + ' HP, hit dice ' + hd3 + ' -> ' + h3.hdLeft + '; the march 5 -> ' + S3.todayHex + ' hexes; the page kept ' + (D.top() === p2) + '; it says "' + plainCP(p2.msg || '').slice(0, 90) + '" (want an hour on, his dice spent, the march given back by the hour as M > WAIT\'s SHORT REST -- RULED 11-16, his "1 yes" -- the page up, the short rest\'s words)',
+        WCP.state().t === t2 + 1 && h3.hp > 1 && h3.hdLeft < hd3 && S3.todayHex < 5 && D.top() === p2 && /A short rest: an hour\./.test(p2.msg || ''));
       // 4. WAIT TILL A LONG REST: to 00:00, the march given back, the long rest asked
       var S4 = WCP.state(); S4.todayHex = 5; var hex4 = S4.todayHex; p2.offers().filter(function (r) { return r.id === 'wait'; })[0].go(); var tx4 = textsCP(p2);
       okCP('4 WAIT TILL A LONG REST: the clock ' + S4.t + ' (want 24); the march ' + hex4 + ' -> ' + S4.todayHex + ' hexes; it says "' + plainCP(p2.msg || '').slice(0, 120) + '"; asked "' + (tx4.indexOf('A long rest now?') >= 0) + '"; [' + labsCP(p2) + '] (want to 00:00, some march back, the wait\'s words, the ask, LONG REST open)',
@@ -18873,7 +18890,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okV('the board clear ("The old bounty papers are down"), his word on the five once ("' + fiveW.slice(-80) + '"), not again', /bounty papers are down/.test(fiveW) && /Five names off the book's dead side/.test(fiveW) && !/Five names off/.test(wH.join(' ')) && /bounty papers are down/.test(wH.join(' ')));
       // MERRICK: the first game has no sendings -- his word, and his window still to come
       outV(B); inV(B, 'keeper:merrick'); var gM = fireV(B, 'talk:merrick'), scM = D.top(), wM = upV() ? readV(scM) : []; driveV(gM, null, 200);
-      okV('Merrick: his word, said plainly since 10-28 (his "Dialogue review for vaguery reduction for new and younger players": mode=hours1028) ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /A dusk sending is cheaper/.test(wM.join(' ')) && /sendings -- is to come/.test(wM.join(' ')));
+      okV('Merrick: his word, said plainly since 10-28 (his "Dialogue review for vaguery reduction for new and younger players": mode=hours1028) ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /A dusk sending is cheaper/.test(wM.join(' ')) && !/is to come/.test(wM.join(' '))); // (his window's "is to come" removed 11-16, his "either removed or built, not reworded": words1116)
       // THE CAMP'S MORNING (his 10-22 note): a quiet night on THE WORLD wakes to the same morning
       D.scenes.length = 0; shV = CV.servicesShow('?services&beat=camp'); D.push(shV); shV.update(); var wC = topV(), SC = WV.state(), cA = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], cLv = cA.lvl;
       okV('the camp\'s beat: THE WORLD (' + (wC && wC.kind) + '), the four hurt, a quiet night', wC && wC.kind === 'world' && HV.cur.party.every(function (h) { return h.hp < h.maxhp; }) && SC.count > 1e6);

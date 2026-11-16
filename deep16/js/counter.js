@@ -67,7 +67,7 @@
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
     mela: { sheet: 'pt_mela', wait: '' }, mical: { sheet: 'pt_mical', wait: '' },
-    merrick: { sheet: 'pt_merrick', wait: 'His window -- the sendings -- is to come.' }, // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
+    merrick: { sheet: 'pt_merrick', wait: '' }, /* (no "His window -- the sendings -- is to come." (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */ // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
     // three more (10-22, Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith at his forge's door, his first-game talk (the
     // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
     // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
@@ -907,11 +907,11 @@
   // a keeper whose sales are to come: their word (and its doing) -- a shopkeeper with no word of their own says their first-game shop's greeting -- then a line
   // for the counter (js/town.js T.fire's, as before the screen)
   C.keeper = function* (sc, B, id) {
-    if (C.OWN[id]) { yield sc.say(['{g}Griz\'s own: the counter waits on his word.{/}'], 'welcoming'); return; }
-    var said = C.words(B, id), wait = /^\{g\}\(Their scene/.test(said[0] || ''), shop = (DS.DATA.shops || {})[id], v = C.VENDORS[id] || {};
-    if (wait && shop && shop.greeting) { said = [shop.greeting]; wait = false; }
-    var tail = v.wait != null ? v.wait : 'The counter -- buying and selling -- is to come.'; // (a vendor's own `wait` line; '' for none)
-    yield sc.say((wait ? [] : said).concat(wait ? ['{g}Their scene is the 8-bit\'s; on the grid it is to come.{/}'] : tail ? ['{g}' + tail + '{/}'] : []), wait ? 'attentive' : 'welcoming');
+    // (their words, else their shop's greeting, else a welcome: no "Their scene is the 8-bit's; on the grid it is to come.", "The counter -- buying and selling -- is to come."
+    // or "Griz's own: the counter waits on his word." since 11-16 (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat); a vendor's own `wait` line still said where it is one)
+    var said = C.words(B, id), shop = (DS.DATA.shops || {})[id], v = C.VENDORS[id] || {};
+    if (!said.length) said = [(shop && shop.greeting) || 'Welcome.'];
+    yield sc.say(said.concat(v.wait ? ['{g}' + v.wait + '{/}'] : []), 'welcoming');
   };
 
   // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen.
@@ -920,7 +920,7 @@
   C.oneBox = function (lines) { return Counter.prototype.paginate([].concat(lines)).length <= 1; };
   C.shopkeeper = function* (sc, B, id) {
     var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop], wings = C.VENDORS[id].shop === 'percy' && count(sc.st, 'batwings') > 0; // (the wings he won't have, sent on to Marta: the first game's S.percyShop)
-    if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [C.greeting(C.VENDORS[id].shop) || 'Welcome.'];
+    if (!said.length) said = [C.greeting(C.VENDORS[id].shop) || 'Welcome.']; // (no word of their own: the shop's greeting -- the placeholder line removed 11-16)
     var q = said.concat(wings ? L('percy.wings') : []), one = C.oneBox(q), face = wings && one ? 'skeptical' : 'welcoming';
     if (!one) { yield sc.say(said, 'welcoming'); if (wings) yield sc.say(L('percy.wings'), 'skeptical'); q = said[said.length - 1]; }
     while ((yield sc.ask(q, ['THE SHELVES', 'LEAVE'], face)) === 0) { yield sc.shelves(C.VENDORS[id].shop); face = 'welcoming'; }

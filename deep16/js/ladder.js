@@ -159,7 +159,7 @@
     // a faint rope of rungs up the left, for the look of it
     ctx.fillStyle = P('stone', 1); for (var y = 30; y < 250; y += 4) { ctx.fillRect(10, y, 1, 2); ctx.fillRect(22, y, 1, 2); }
     ctx.save(); ctx.translate(D.W / 2, 8); ctx.scale(2, 2); D.text(ctx, this.ours ? 'THE LADDER: OURS' : 'THE LADDER', 0, 0, P('gold', 4), 'center'); ctx.restore();
-    D.text(ctx, this.ours ? 'Talmok, Willem, Katarina and Torvald at each level -- ' + (this.play ? 'YOU play them, every move recorded' : 'the class AI runs both sides, you watch') : 'win the fight, go up a level -- the four from the 8-bit game, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
+    D.text(ctx, this.ours ? 'Talmok, Willem, Katarina and Torvald at each level -- ' + (this.play ? 'YOU play them, every move recorded' : 'the class AI runs both sides, you watch') : 'win the fight, go up a level -- the four from the story, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
     this.rows = [];
     var x = 32, w = 250;
     for (var L = 9; L >= this.lo; L--) {
@@ -243,7 +243,7 @@
     var lw = 300, lx = (D.W - lw) / 2;
     box(ctx, lx, 104, lw, 46);
     D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
-    D.text(ctx, 'back to the 8-bit game\'s title', D.W / 2, 124, P('bone', 1), 'center'); // (its title has the combat ladder; this page's VILLAINS / HEROES the other, 10-09)
+    D.text(ctx, 'back to the title', D.W / 2, 124, P('bone', 1), 'center'); /* (not "the 8-bit game's title": 11-16) */ // (its title has the combat ladder; this page's VILLAINS / HEROES the other, 10-09)
     D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
   };
   Ladder.prototype.drawClear = function (ctx) {

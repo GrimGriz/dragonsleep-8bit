@@ -591,7 +591,7 @@
     if (trig.script === 'badAir') { yield* M.badAir(B); return; }
     if (trig.script === 'rescue') { yield* M.rescue(B, trig, at); return; }
     if (trig.script === 'seepFire') { yield* M.seepFire(B); return; }
-    B.card(D.roam.wrap(['{y}' + trig.id + '{/}: the first game\'s scene (' + trig.script + ') -- not on the grid yet.']), 240); D.sfx('popup'); yield 20;
+    // (a scene the floor has not got says nothing -- not "the first game's scene (x) -- not on the grid yet." (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
   };
   // a shift at the pens (S.pen): on the counter screen Edric's book first, the ask, who milks, the draught (M.penAsk); then the shift itself, THE CRADLE (deep16/js/cradle.js,
   // the grid's own scene with the first game's rules -- the lanes desk's ruling 10-22 on his "Crawler game needs rebuilt for this engine"; js/roam.js R.shiftPlay); then the pay at

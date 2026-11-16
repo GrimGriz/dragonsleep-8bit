@@ -542,7 +542,7 @@
   };
   World.prototype.offerRoute = function (o) {
     var self = this, r = o.r, to = r.ends[1 - o.end], up = o.end === 0;
-    this.card(['{y}' + r.name.charAt(0).toUpperCase() + r.name.slice(1) + '{/}', (up ? 'Up into the mountains' : 'Down out of the mountains') + ': ' + r.days + ' days to ' + to.name + '.', '{g}(its own roam is to come: for now the days pass){/}', '',
+    this.card(['{y}' + r.name.charAt(0).toUpperCase() + r.name.slice(1) + '{/}', (up ? 'Up into the mountains' : 'Down out of the mountains') + ': ' + r.days + ' days to ' + to.name + '.', '', /* (no "(its own roam is to come: for now the days pass)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */
       D.keys('{g}E{/}: go ' + (up ? 'up' : 'down') + ' it    {g}X{/}: stay')], null,
       [['a', function () { var fr = S.at.slice(); if (W.house() && D.house.trail) D.house.trail('walk', (up ? 'up ' : 'down ') + r.name + ' from ' + fr[0] + ',' + fr[1] + ' (' + r.ends[o.end].name + ') to ' + to.hex[0] + ',' + to.hex[1] + ' (' + to.name + '): ' + r.days + ' days'); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }, up ? 'GO UP IT' : 'GO DOWN IT'],
        ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }, 'STAY']]);
@@ -560,8 +560,9 @@
   };
   // the camp's hour, the card's AN HOUR and the page's SHORT REST alike: an hour on the clock, the hit dice spent (js/house.js H.shortRest), a Light's hour up, SECOND DRAFT for
   // one with the feat. Its words, said on the map's line and returned
+  // (the day's march given back by the hour, as M > WAIT's SHORT REST gives it -- RULED 11-16, Griz: "1 yes", on "the camp's SHORT REST gives no march back ... Should they match?")
   World.prototype.campHour = function () {
-    S.t += 1; W.save(); var said = D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ');
+    S.t += 1; if (D.hours && D.hours.marchBack) D.hours.marchBack(2, 1); W.save(); var said = D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ');
     this.say(said); D.house.secondDraft(D.house.cur.party); return said;
   };
   // the camp's wait till a long rest -- M > WAIT's TILL A LONG REST (js/hours.js H16.worldWait), here for the page: to the hour a long rest may begin, a short rest in it past an

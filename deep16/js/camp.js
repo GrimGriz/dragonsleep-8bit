@@ -252,7 +252,7 @@
           ? { label: 'THE CLASS\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to how the class builds them: their own kits, the register\'s lists, Mage Armor on Willem, Light on the front man when the fight is dark.' }
           : this.o.climb
           ? { label: 'RESET THE MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'The day\'s spells back to the default picks from what they know, Mage Armor on Aurdin if he knows it, and today\'s gear changes undone.' }
-          : { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the 8-bit game\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' },
+          : { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the story\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' }, /* (not "the 8-bit game's": 11-16) */
         { label: this.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER', right: '', act: function () { self.leave(null); }, desc: '' }
       ].filter(Boolean) }; // (A FAMILIAR only when a wizard is in the party)
       case 'hero': return { title: 'EQUIP WHOM?', rows: hs.map(function (h) { return { label: h.name.toUpperCase(), right: 'AC ' + R.ac(h) + '  ' + R.weaponOf(h).name, act: go('slot', { hero: h.id }), hero: h.id }; }) };
