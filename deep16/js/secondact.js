@@ -133,6 +133,11 @@
   // as bystanders and lent the party flanking; Gennet carries the lantern herself, and Doran's way into the fight (a blow at a boy, A.fight) has no boy to answer now
   A.cast = function (B, f, at) {
     var Y = {}, kid = f.glamourBroken || f.glamourSeen;
+    // ONE GENNET, THE FLOOR LAID FIRST (11-16, the bug seat; the walks' "two Gennets on the due's night", five seed 2, day 16 01:00): woken in the big room and down the stair
+    // on their own feet, the house is laid inside with its evening people -- the fireside Gennet at 24,16 -- before the lantern is cast here, and the wrap of T.people below
+    // (ONE GENNET WHILE THE LANTERN WALKS) acts only on a lay AFTER the cast. The floor's Gennet off it now; not In.gone: she has not left, she is the one on the path, and the
+    // first lay after the scene's is gone stands her again
+    if (B.units.some(function (u) { return u.npc === 'gennet'; })) { B.units = B.units.filter(function (u) { return u.npc !== 'gennet'; }); G.setup(B.map, B.units); B.cache = null; }
     Y.gennet = In.unit(B, { id: 'gennetPath', kind: 'gennet', at: [at[0], at[1]], name: In.named(f), face: [1, 0], foe: true, lantern: true });
     Y.gennet.script = 'gennet'; Y.gennet.flees = false; Y.gennet.yields = true;
     Y.kid = In.unit(B, { id: 'dueChild', kind: kid ? In.keptKind() : 'glamourgoblin', at: [at[0] + 1, at[1]], name: kid ? 'A child' : 'A goblin', face: [1, 0] });

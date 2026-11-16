@@ -349,9 +349,9 @@
   // with her"): on her square by the big fire (In.FOLK, 26,20, bare boards) she sits and writes, facing the hearth; spoken to, she turns to whoever speaks and stays sat
   // (js/town.js T.fire turns a figure drawn all round). Without the sheet, the stand-in as before
   In.KAT_FIRE = [27, 19];     // (the hearth's common-room face she writes toward)
-  In.katSits = function (u) {
-    var sh = u.sheet && D.SHEETS && D.SHEETS[u.sheet]; if (!sh || !sh.anims || !sh.anims.sit) return false;
-    u.anim = 'sit'; u.animT = 0; u.facing = D.spr.facingFor(In.KAT_FIRE[0] - u.x, In.KAT_FIRE[1] - u.y); return true;
+  In.katSits = function (u, to) { // (to: what she faces, the hearth by default; the table for two at supper -- In.sit)
+    var sh = u.sheet && D.SHEETS && D.SHEETS[u.sheet]; if (!sh || !sh.anims || !sh.anims.sit) return false; to = to || In.KAT_FIRE;
+    u.anim = 'sit'; u.animT = 0; u.facing = D.spr.facingFor(to[0] - u.x, to[1] - u.y); return true;
   };
   // a SAVE in a building stands the party a step out of its door, as a room's on Silverton's street (js/house.js H.atOf): the house's and upstairs the front door's, the barn's its own
   var atOf0 = D.house && D.house.atOf;
@@ -384,19 +384,23 @@
   // THE TABLE OFF THE WALL (11-04, the Opus lanes desk; Griz after the supper on main: "Table is crammed up against a wall and everyone is on one side"): the long
   // table a row down (row 15, x 21-26) and sat on both sides, staggered -- the north side faces the camera (the lead, the inn lady in the middle, the second), the
   // south side shows its backs (the third, the fourth), the host at the west end; Gennet's own square by day (24,16) and the room beat's (24,17) stay free
-  In.TABLE = { y: 15, seats: [[22, 14], [26, 14], [23, 16], [25, 16]], doran: [20, 15], gennet: [24, 14], kat: [22, 20], focus: [21.5, 13], mid: 23.5 }; // (the four's places, the north side first; the camera north-west of the table so the table sits in the screen's lower half, under the words' boxes, the six centred across the screen)
+  // KATARINA AT THE TABLE FOR TWO ON HER OWN BENCH (11-16, the bug seat; the walks' `placed` check, "katarina on 22,20 off the floor", 5 of 24 and 14 of 32; Griz to the desk:
+  // "if I'm not mistaken half of her animations are already seated - is it putting her on top of furniture already there when using that?" -- it was: 22,20 is the table's
+  // west chair (In.ROWS 'm', a prop, not floor), and In.sit stood her figure on it in her idle row). Now she sits in her own sit row ("writing on a bench; the bench is drawn
+  // with her", In.katSits) on the bare boards on the table's north side, 23,19, facing the table (`two`); risen, back by the fire, sat as she was
+  In.TABLE = { y: 15, seats: [[22, 14], [26, 14], [23, 16], [25, 16]], doran: [20, 15], gennet: [24, 14], kat: [23, 19], two: [23, 20], focus: [21.5, 13], mid: 23.5 }; // (the four's places, the north side first; the camera north-west of the table so the table sits in the screen's lower half, under the words' boxes, the six centred across the screen)
   In.sideOf = function (x) { return x <= In.TABLE.mid ? 'left' : 'right'; };
   In.sit = function (B) { // (everyone to the table; what to put back after)
-    var R0 = B.roam, G = D.grid, kept = [], put = function (u, q, face) { if (!u) return; kept.push({ u: u, x: u.x, y: u.y, facing: u.facing }); u.x = q[0]; u.y = q[1]; u.tween = null; u.facing = D.spr.facingFor(face[0], face[1]); u.anim = 'idle'; u.animT = B.t; };
+    var R0 = B.roam, G = D.grid, kept = [], put = function (u, q, face) { if (!u) return; kept.push({ u: u, x: u.x, y: u.y, facing: u.facing, anim: u.anim }); u.x = q[0]; u.y = q[1]; u.tween = null; u.facing = D.spr.facingFor(face[0], face[1]); u.anim = 'idle'; u.animT = B.t; };
     var folk = {}; B.units.forEach(function (u) { if (typeof u.npc === 'string') folk[u.npc] = u; }); folk.gennet = folk.gennet || folk.gennetGrief;
     var four = [R0.token].concat(R0.rest || []).filter(function (u) { return u && u.src && !u.src.guest && u.hp > 0; }).slice(0, 4);
     four.forEach(function (u, i) { var q = In.TABLE.seats[i]; put(u, q, [0, q[1] < In.TABLE.y ? 1 : -1]); }); // (each faces the table: the north side south, the south side north)
-    put(folk.doranIn, In.TABLE.doran, [1, 0]); put(folk.gennet, In.TABLE.gennet, [0, 1]); put(folk.katarina, In.TABLE.kat, [1, 0]);
+    put(folk.doranIn, In.TABLE.doran, [1, 0]); put(folk.gennet, In.TABLE.gennet, [0, 1]); put(folk.katarina, In.TABLE.kat, [In.TABLE.two[0] - In.TABLE.kat[0], In.TABLE.two[1] - In.TABLE.kat[1]]); if (folk.katarina) In.katSits(folk.katarina, In.TABLE.two);
     var added = four.filter(function (u) { return B.units.indexOf(u) < 0; }); B.units = B.units.concat(added); // (the three who walk inside the token on a roam stand at their seats for the picture -- js/roam.js R.riding)
     R0.path = null; G.setup(B.map, B.units); B.focus({ x: In.TABLE.focus[0], y: In.TABLE.focus[1], size: 1 });
     return { four: four, folk: folk, kept: kept, added: added };
   };
-  In.rise = function (B, seat) { seat.kept.forEach(function (k) { k.u.x = k.x; k.u.y = k.y; k.u.facing = k.facing; k.u.tween = null; }); B.units = B.units.filter(function (u) { return seat.added.indexOf(u) < 0; }); D.grid.setup(B.map, B.units); B.focus(B.roam.token); };
+  In.rise = function (B, seat) { seat.kept.forEach(function (k) { k.u.x = k.x; k.u.y = k.y; k.u.facing = k.facing; k.u.tween = null; if (k.anim === 'sit') { k.u.anim = 'sit'; k.u.animT = B.t; } }); /* (one who was sat before the supper sat again: Katarina by the fire, 11-16 -- In.sit stood her in her idle row) */ B.units = B.units.filter(function (u) { return seat.added.indexOf(u) < 0; }); D.grid.setup(B.map, B.units); B.focus(B.roam.token); };
   In.roomShot = function (B) { // (the common room as the camera has it, live under the screen and dimmed -- js/hours.js H16.streetShot's way)
     return function (ctx, x, y, w, h, behind) {
       if (behind || !D.ui || !D.ui.drawBattle) return false;
@@ -2572,6 +2576,10 @@
     { id: 'rite', label: 'THE RITE FROM THE BIG ROOM\'S WINDOW: the singing, the party overlooking the lake (11-12)', note: 'The due\'s own night with the child they kept, past midnight, the party woken in the big room and gone to its window. It plays at once: the party stands at the window upstairs, the roof and wall open round them, and the camera holds on them and the lake below. THE SINGING plays (sound on: a made voice, slow, with two more under it). The signs on the water, Gennet and the child out by the lake door with the lantern, the fork: THE LANTERN (down the stair) or LET IT BE (the due at the stone, watched from here; the singing stops with the water).', key: In.KEY, at: [35, 16], hour: 1, day: In.WAGON.first + In.DUE.after + 1, inside: true, dice: [14, 12, 15, 14], due: { stage: 'lake', d: In.WAGON.first + In.DUE.after, off: 'kept', woke: true },
       flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 1, katGone: 1, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', kidAtInn: 1, glamourBroken: 1, glamourSeen: 1, dueCycle: 0, dueTonight: 1, kidTaken: 1, bigRoom: 1 } },
     { id: 'elsbethfirst', label: 'ELSBETH BY DAY, BEFORE THE FIRST DINNER: the one line (11-13)', note: 'Ten in the morning on day 6, renown 3, no supper had at the inn yet. E on Elsbeth: "You are the people stopping the monsters", her one line, and nothing after it; her telling waits for the first dinner.', key: In.KEY, at: [32, 21], hour: 10, day: 6, inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1 } },
+    // (11-16, the bug seat: the due's night down the stair on their own feet -- one Gennet, js/secondact.js A.cast; mode=inn1116 walks this beat)
+    { id: 'duestair', label: 'THE DUE\'S NIGHT, DOWN THE STAIR YOURSELF: one inn lady, on the path (11-16)', note: 'Six in the evening on the due\'s day (day ' + In.dueDay(0) + '), the child kept in the house. E on the inn lady: a room and supper, then the big room. The singing wakes you: walk down the stair yourself and look -- the inn lady is out on the path with the lantern and the child, and nobody is by the fire.', key: In.KEY, at: [24, 17], hour: 18, day: In.dueDay(0), inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, katRode: 1 } },
+    // (11-16, the bug seat: the inn lane's owed eyes row for HER WORD ABOUT THE NIGHT, In.elsbethQuiet, 11-13 -- a door that stands the party at her tub on the due's day)
+    { id: 'elsbethdue', label: 'ELSBETH ON THE DUE\'S DAY: her word about the night (11-16)', note: 'Ten in the morning on the due\'s own day (day ' + In.dueDay(0) + '), three days after the wagon came in the night and was let be. Her telling had (the dishes, the god an animal), no Ring of Binding on anyone. E on Elsbeth at the tub: she will not talk about it again, then "Tonight is a feeding night." (the day before it said "Tomorrow", before that how many nights off).', key: In.KEY, at: [32, 21], hour: 10, day: In.dueDay(0), inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'goblin', dishes: 1, elsbethTold: 1, elsbethTier: 2, katGone: 1, katRode: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }

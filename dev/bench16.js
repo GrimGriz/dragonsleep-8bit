@@ -4444,6 +4444,132 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+  // the table for two on her own bench, never on the chair; the wagon's night played from a bed taken on the wagon's day, by the morning's WAIT TIL DINNER as by the
+  // evening's room (the walks' "the night handed back unslept"); one Gennet on the due's night. Each walked as the game walks it: a NEW GAME staged in the house (In.play),
+  // E on the inn lady, the floors followed as they are laid (In.bedHere false: the guest floor's own script, as in the game)
+  if (get('mode', '') === 'inn1116') {
+    var repN = { checks: [], errors: [], notes: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN = D.house, CN = D.counter, RN = D.roam, InN = D.inn, WN = D.world, muN = D.music, AN = D.secondact;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function tN() { return WN.state().t; }
+    function hmN(t) { return 'day ' + (Math.floor(t / 24) + 1) + ' ' + (t % 24) + 'h'; }
+    function topN() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function stageN(day, hour, flags, at) { InN.play({ key: InN.KEY, at: at || [24, 17], hour: hour, day: day, inside: true, flags: Object.assign({ reachedInn: 1, gennetNamed: 1, mealHad: 1 }, flags || {}) }); var s = topN(); for (var k = 0; k < 4 && s && s.roam && s.co; k++) { var st = s.co.next(); if (st.done) break; } return topN(); }
+    function offFloorN(B) { var bad = []; (B.units || []).forEach(function (u) { if (!u.npc || u.dead || u.hp <= 0 || u.npc === 'barnGoblin') return; var c = B.map && B.map.at ? B.map.at(u.x, u.y) : null; if (!c || c.walk === false) bad.push(u.npc + '@' + u.x + ',' + u.y); }); return bad; }
+    // E on the inn lady (by day at the well, by night at her fire), every screen answered from `ans` by label, else its last; the floors followed; `look(B, key)` each frame of a floor
+    function nightN(B, ans, o) {
+      o = o || {}; var q = (ans || []).slice(), seen = [], floors = [], cs = {}, v, quiet = 0, lastF = {}, R0 = B.roam, hr = InN.hourOf(B), gn = B.units.filter(function (u) { return o.npc ? u.npc === o.npc : (u.npc === 'gennet' || u.npc === 'gennetGrief'); })[0]; /* (o.npc: another to speak to -- Elsbeth at her tub) */
+      if (!o.stay) { var t = R0.token, sq = gn ? (InN.beside ? InN.beside(B, gn, t) : [gn.x, gn.y + 1]) : (hr >= 7 && hr < 17 ? [9, 15] : [24, 17]); t.x = sq[0]; t.y = sq[1]; t.tween = null; if (gn) R0.fw = [gn.x - t.x, gn.y - t.y]; R0.path = null; D.grid.setup(B.map, B.units); B.cards = []; R0.keys.push('use'); } // (stay: the floor played on as it stands)
+      var pick = function (opts) { var a = q.length ? q[0] : null, i = typeof a === 'string' ? opts.indexOf(a) : -1; if (i >= 0) q.shift(); return i >= 0 ? i : opts.length - 1; };
+      for (var k = 0; k < 90000 && quiet < (o.quiet || +get('q', 900)); k++) {
+        var s = topN(); if (!s) break;
+        if (s instanceof CN.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { var lb = (w.opts || []).map(function (x) { return x && typeof x === 'object' ? String(x.label) : String(x); }), i0 = pick(lb); seen.push('[' + lb.join(' | ') + '] > ' + lb[i0]); var b0 = bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]; if (b0) s.press(b0); else if (w.flip) { s.press(bs.filter(function (b) { return b.go === 'opt'; }).slice(-1)[0] || bs[0]); } else s.press(bs[0]); } else if (w.say) { seen.push(String(s.o && s.o.id) + ': ' + [].concat(w.say).join(' ')); s.press(bs[0]); } else if (s.update) s.update(); continue; }
+        if (s instanceof HN.Morning) { seen.push('MORNING on ' + (RN.def && RN.def.key) + ' ' + hmN(tN())); break; }
+        if (s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = id === 'lymen' ? 2 : 1; }); seen.push('WATCHES'); s.go('begin'); continue; }
+        if (s.roam && s.co) {
+          var key = RN.def && RN.def.key; if (floors[floors.length - 1] !== key) { floors.push(key); quiet = 0; } lastF = s.roam.flags;
+          if (o.look) o.look(s, key);
+          (s.cards || []).forEach(function (c) { var tx = c.lines.join(' '), kk = c.t0 + ':' + tx; if (cs[kk]) return; cs[kk] = 1; seen.push('[' + key + '] ' + tx); quiet = 0; });
+          var st = s.co.next(v); v = undefined;
+          if (st.done) { if (D.top() !== s) continue; break; }
+          if (st.value && st.value.prompt) { var p = st.value.prompt, lb2 = p.opts.map(function (x) { return x.label; }), i2 = pick(lb2); seen.push('PROMPT ' + (p.title || '') + ' [' + lb2.join(' | ') + '] > ' + lb2[i2]); v = p.opts[i2].value; quiet = 0; continue; }
+          if (typeof st.value === 'number') s.t += Math.max(1, st.value);
+          var busy = (s.cards || []).some(function (c) { return s.t < c.t0 + (c.life || 300); }) || (s.units || []).some(function (u) { return u.tween && (u.tween.t || 0) < (u.tween.dur || 0); });
+          if (!busy) quiet++; continue;
+        }
+        if (s instanceof D.Battle && !s.roam) { seen.push('FIGHT ' + (s.fight && s.fight.id)); D.pop(); if (s.o && s.o.onDone) s.o.onDone('won'); continue; }
+        seen.push('POPPED ' + (s.kind || (s.constructor && s.constructor.name) || '?')); D.pop();
+      }
+      var top = topN();
+      return { seen: window.DS.stripCodes(seen.join(' / ')), floors: floors.join(' > '), at: (RN.def && RN.def.key) + ' ' + hmN(tN()), f: (top && top.roam && top.roam.flags) || lastF, B: top };
+    }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1116); InN.bedHere = false; // (the game's own way to bed: up the stair to the room -- In.sleepsHere)
+      var WD = InN.WAGON.first, KAT = InN.TABLE.kat;
+      // 1. KATARINA AT THE TABLE FOR TWO (the walks' `placed`: "katarina on 22,20 off the floor"): sat for supper, she is on a floor square at the table for two, on her own
+      // bench (her sit row: "writing on a bench; the bench is drawn with her"), facing the table; risen, she is back by the fire, sat as before
+      var B1 = stageN(6, 18, { supCount: 1, katLooked: 1 }), k1 = B1.units.filter(function (u) { return u.npc === 'katarina'; })[0], c1 = B1.map.at(KAT[0], KAT[1]), seat1 = InN.sit(B1);
+      var at1 = k1 ? k1.x + ',' + k1.y : 'none', anim1 = k1 && k1.anim, face1 = k1 && k1.facing, TWO = InN.TABLE.two || [23, 20], want1 = k1 ? D.spr.facingFor(TWO[0] - k1.x, TWO[1] - k1.y) : null, off1 = offFloorN(B1), sit1 = !!(k1 && k1.sheet && D.SHEETS[k1.sheet] && D.SHEETS[k1.sheet].anims && D.SHEETS[k1.sheet].anims.sit);
+      InN.rise(B1, seat1); var back1 = k1 ? k1.x + ',' + k1.y + ' ' + k1.anim : 'none';
+      okN('KATARINA AT THE TABLE FOR TWO: sat at ' + at1 + ' (' + (c1 && c1.walk === false ? 'NOT floor' : 'floor') + '), anim ' + anim1 + (sit1 ? '' : ' (no sit row on her sheet)') + ', facing ' + face1 + ' (the table: ' + want1 + '); off the floor at the table: ' + (off1.join(' ') || 'nobody') + '; risen: ' + back1,
+        !!k1 && at1 === KAT.join(',') && c1 && c1.walk !== false && !off1.length && face1 === want1 && (!sit1 || anim1 === 'sit') && back1 === '26,20 ' + (sit1 ? 'sit' : 'idle'));
+      HN.playing = false; HN.cur = null;
+      // 2. A SUPPER WITH KATARINA IN THE HOUSE, played: nobody stands off the floor at any frame of it (the walks' check, every frame here)
+      var off2 = [], B2 = stageN(7, 18, { supCount: 1, katLooked: 1 }), r2 = nightN(B2, ['STAY THE NIGHT'], { look: function (s, key) { if (key === InN.KEY) offFloorN(s).forEach(function (b) { if (off2.indexOf(b) < 0) off2.push(b); }); } });
+      okN('A SUPPER WITH KATARINA IN, played to the morning: off the floor at any frame on the house\'s floor: ' + (off2.join(' ') || 'nobody') + ' -- ' + r2.floors + ', ' + r2.at + ' / ' + r2.seen.slice(0, 200), !off2.length && /Supper|supper/.test(r2.seen) && /MORNING/.test(r2.seen));
+      HN.playing = false; HN.cur = null;
+      // 3-5. THE WAGON'S NIGHT FROM A BED (the walks' "the night handed back unslept at 20:00 on halfway_up": 18 of 32 that slept in the house on day 12): a room taken on the
+      // wagon's day -- in the evening; in the morning by WAIT TIL DINNER; in the morning after a night's long rest (the long rest shut: the room's which-sleep ask) --
+      // and the night is the wagon's: Lymen's feeling and the watches upstairs, the wagon in the yard, KEEP WATCH, the morning on the wagon's cycle
+      var wagonN = function (hour, flags, ans, shut) {
+        var Bw = stageN(WD, hour, flags); if (shut) HN.cur.restEnd = tN() - 1; var t0 = tN(), r = nightN(Bw, ans);
+        var feel = /feeling|Something sits/i.test(r.seen), turns = /a wagon turns in/.test(r.seen), unslept = r.B && r.B.roam && RN.def && RN.def.key === InN.UP && !/MORNING/.test(r.seen);
+        HN.playing = false; HN.cur = null; InN.watching = null; InN.bedding = null;
+        return { r: r, t0: t0, feel: feel, turns: turns, unslept: unslept, txt: 'from ' + hmN(t0) + ': ' + r.floors + ', ending ' + r.at + (unslept ? ' (HANDED BACK UNSLEPT upstairs)' : '') + '; the feeling ' + feel + ', the wagon in ' + turns + ', wagonCycle ' + r.f.wagonCycle + ' -- ' + r.seen.slice(0, 260) + ' ... ' + r.seen.slice(-260) };
+      };
+      var w3 = wagonN(18, { supCount: 1 }, ['STAY THE NIGHT', 'KEEP WATCH']);
+      okN('THE WAGON\'S NIGHT, a room at six in the evening on day ' + WD + ': ' + w3.txt, w3.feel && w3.turns && w3.r.f.wagonCycle === 0 && /MORNING/.test(w3.r.seen));
+      var w4 = wagonN(7, { supCount: 5 }, ['WAIT TIL DINNER', 'KEEP WATCH']);
+      okN('THE WAGON\'S NIGHT, the room at seven in the morning, WAIT TIL DINNER: ' + w4.txt, w4.feel && w4.turns && w4.r.f.wagonCycle === 0 && /MORNING/.test(w4.r.seen));
+      var w5 = wagonN(7, { supCount: 5 }, ['WAIT TIL DINNER', 'KEEP WATCH'], true);
+      okN('THE WAGON\'S NIGHT, the room at seven in the morning after a night\'s long rest (the long rest shut), WAIT TIL DINNER: ' + w5.txt, w5.feel && w5.turns && w5.r.f.wagonCycle === 0 && /MORNING/.test(w5.r.seen));
+      // 6. NIGHTS IN A ROW, as the walks sat them (day 8 to 12, "D12 07:00, morning at halfway_up"): a night upstairs, the morning there, down the stair, the room at seven,
+      // WAIT TIL DINNER, the supper, TO BED -- and on the wagon's day the night is the wagon's
+      var rowN = [], Bm = stageN(WD - 2, 7, { supCount: 3 }), wagonRow = null;
+      for (var nr = 0; nr < 4 && Bm && Bm.roam; nr++) {
+        var dN = Math.floor(tN() / 24) + 1, rN = nightN(Bm, ['WAIT TIL DINNER', 'KEEP WATCH']), m = D.top();
+        rowN.push('day ' + dN + ': ' + rN.floors + ', ' + rN.at + (/a wagon turns in/.test(rN.seen) ? ' THE WAGON' : '') + (/MORNING/.test(rN.seen) ? '' : ' (NO MORNING: ' + rN.seen.slice(-300) + ')'));
+        if (dN === WD) wagonRow = rN;
+        if (m instanceof HN.Morning) { for (var kz = 0; kz < 24 && !m.over; kz++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } }
+        var s6 = topN(); for (var kq = 0; kq < 600 && s6 && s6.roam && s6.co; kq++) { var st6 = s6.co.next(); if (st6.done) break; if (typeof st6.value === 'number') s6.t += Math.max(1, st6.value); s6 = topN(); }
+        s6 = topN(); if (!(s6 && s6.roam)) break;
+        if (RN.def && RN.def.key === InN.UP) { // (down the stair on their own feet: the guest floor's stair trigger)
+          var trS = ((RN.def.src8 && RN.def.src8.triggers) || []).filter(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); })[0];
+          if (!trS) { rowN.push('no stair on ' + RN.def.key); break; }
+          var sqS = [trS.rect[0], trS.rect[1]], co6 = s6.co, sS = s6; s6.co = (function* () { var tk = sS.roam.token, ok = (tk.x === sqS[0] && tk.y === sqS[1]) || (yield* RN.walkTo(sS, sqS)) || (yield* RN.walkBeside(sS, sqS)); if (ok) yield* RN.fire(sS, trS, sqS); yield* co6; })();
+          for (var kd = 0; kd < 4000; kd++) { var sD = topN(); if (!sD || !sD.roam || !sD.co) break; if (RN.def.key === InN.KEY && sD !== s6) break; var stD = sD.co.next(); if (stD.done) { if (D.top() !== sD) continue; break; } if (typeof stD.value === 'number') sD.t += Math.max(1, stD.value); }
+        }
+        Bm = topN(); if (Math.floor(tN() / 24) + 1 > WD) break;
+      }
+      okN('NIGHTS IN A ROW at the inn, the walks\' way (a night upstairs, down the stair, the room at seven, WAIT TIL DINNER): ' + rowN.join(' | '), !!wagonRow && /a wagon turns in/.test(wagonRow.seen) && /MORNING/.test(wagonRow.seen));
+      HN.playing = false; HN.cur = null; InN.watching = null; InN.bedding = null;
+      // 7. ONE GENNET ON THE DUE'S NIGHT, down the stair on their own feet (the walks' "two Gennets", five seed 2, day 16 01:00: the fireside Gennet at 24,16 and the path's at
+      // 37,18): a bed on the due's evening, woken in the big room by the singing, down the stair -- the house laid inside with its evening people, the fireside Gennet among
+      // them -- and the lantern cast at the lake door (A.cast). At no frame of the house's floor two of her; LET IT BE, the morning
+      var wake0N = AN.DUE_WAKE; // (the show's own level 3 four: the singing's read as it falls -- the door he walks, ?innshow&beat=duestair)
+      var dueD = InN.dueDay(0), most = 0, mostAt = '', twice = [], btD = InN.BEATS.filter(function (b) { return b.id === 'duestair'; })[0], Bd = null;
+      if (btD) { InN.play(btD); Bd = topN(); for (var kD = 0; kD < 4 && Bd && Bd.roam && Bd.co; kD++) { var stD0 = Bd.co.next(); if (stD0.done) break; } Bd = topN(); } else Bd = stageN(dueD, 18, { supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1 });
+      var gennetsN = function (s) { return s.units.filter(function (u) { return u.hp > 0 && !u.dead && ((typeof u.npc === 'string' && /^gennet/.test(u.npc)) || /^gennet|^dueLady/.test(u.scripted || '')); }); };
+      var lookG = function (s, key) { if (key !== InN.KEY) return; var g = gennetsN(s); if (g.length > most) { most = g.length; mostAt = g.map(function (u) { return (typeof u.npc === 'string' ? u.npc : u.scripted) + '@' + u.x + ',' + u.y; }).join(' '); } if (g.length > 1 && twice.length < 3) twice.push(g.map(function (u) { return (typeof u.npc === 'string' ? u.npc : u.scripted) + '@' + u.x + ',' + u.y; }).join(' ') + ' ' + hmN(tN())); };
+      var r7a = nightN(Bd, ['STAY THE NIGHT'], { look: lookG, quiet: 400 }), s7 = topN(), k7 = RN.def && RN.def.key, down7 = 'not upstairs';
+      if (s7 && s7.roam && k7 === InN.UP) { // (woken in the big room: down the stair on their own feet)
+        var tr7 = ((RN.def.src8 && RN.def.src8.triggers) || []).filter(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); })[0];
+        if (tr7) { var sq7 = [tr7.rect[0], tr7.rect[1]], co7 = s7.co, ss7 = s7; s7.co = (function* () { var tk = ss7.roam.token, ok = (tk.x === sq7[0] && tk.y === sq7[1]) || (yield* RN.walkTo(ss7, sq7)) || (yield* RN.walkBeside(ss7, sq7)); if (ok) yield* RN.fire(ss7, tr7, sq7); yield* co7; })(); down7 = 'down by ' + tr7.id; } else down7 = 'no stair';
+      }
+      var r7b = s7 && s7.roam ? nightN(s7, ['LET IT BE'], { look: lookG, quiet: 600, stay: true }) : { seen: '', floors: '', at: '' };
+      AN.DUE_WAKE = wake0N;
+      okN('ONE GENNET ON THE DUE\'S NIGHT (' + (btD ? 'the beat duestair' : 'NO BEAT, staged') + '), woken in the big room and down the stair (' + down7 + '): the most of her at once on the house\'s floor ' + most + ' (' + mostAt + ')' + (twice.length ? '; TWICE: ' + twice.join(' | ') : '') + ' -- ' + r7a.floors + ' then ' + r7b.floors + ', ' + r7b.at + ' / ' + (r7a.seen + ' // ' + r7b.seen).replace(/[^/]*The inn lady keeps[^/]*\//, '').slice(-500),
+        down7 !== 'not upstairs' && down7 !== 'no stair' && most === 1 && /lantern|LANTERN/.test(r7b.seen) && /MORNING/.test(r7b.seen));
+      HN.playing = false; HN.cur = null; InN.watching = null; InN.bedding = null; InN.duePlay = null;
+      // 8. ELSBETH ON THE DUE'S DAY (the eyes row's door, ?innshow&beat=elsbethdue): at her tub at ten, her telling had, no ring -- her word about the night is "Tonight"
+      var btE = InN.BEATS.filter(function (b) { return b.id === 'elsbethdue'; })[0], r8 = null;
+      if (btE) { InN.play(btE); var B8 = topN(); for (var k8 = 0; k8 < 4 && B8 && B8.roam && B8.co; k8++) { var st8 = B8.co.next(); if (st8.done) break; } B8 = topN(); r8 = nightN(B8, [], { npc: 'elsbeth', quiet: 300 }); }
+      okN('ELSBETH ON THE DUE\'S DAY (the show\'s beat elsbethdue' + (btE ? ', day ' + btE.day + ' ' + btE.hour + ':00' : ': NO BEAT') + '): ' + (r8 ? r8.seen.slice(0, 300) : '-'), !!r8 && /Tonight is a feeding night\./.test(r8.seen) && !/Supper|MORNING/.test(r8.seen));
+      HN.playing = false; HN.cur = null;
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    HN.playing = false; HN.cur = null; if (InN) { InN.stay = false; InN.pinned = null; InN.bedHere = null; InN.watching = null; InN.bedding = null; InN.duePlay = null; }
+    D.store.get = stGN; D.store.set = stSN; D.music = muN;
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
   // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
   // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)
