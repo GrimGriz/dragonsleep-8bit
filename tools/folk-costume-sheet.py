@@ -53,10 +53,13 @@ MIRROR = {'SW': 'SE', 'W': 'E', 'NW': 'NE'}
 PIECES = {
     'lightcrew': dict(folder='2026-11-15-ART-WANTED-65-LIGHTCREW', name='ART-WANTED-65 GLOWSEEP-LIGHTCREW, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
                       navy=(7, 22, 46), stand=True),
-    'shaft': dict(folder='2026-11-15-ART-WANTED-71-SHAFT-HAND', name='ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1\'s cell',
-                  navy=(16, 22, 52), stand=False),   # (its E ear in the fire ramp is the townsfolk's own head, folkman_p1's and folkwoman_p1's since 10-27, kept)
-    'scraper': dict(folder='2026-11-15-ART-WANTED-72-GUANO-SCRAPER', name='ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                    navy=(17, 24, 45), stand=False),
+    # (the shaft hand's and the scraper's first, code-drawn pages -- 2026-11-15-ART-WANTED-71-SHAFT-HAND, native 1x, navy (16, 22, 52); -72-GUANO-SCRAPER,
+    # native 4x, navy (17, 24, 45) -- replaced by their redraws: image-generated on the navy, each with the art desk's own native cut on the 64, taken
+    # as drawn but for the red and fire on their faces, `unred`; the scraper woman's red neckcloth below her face kept)
+    'shaft': dict(folder='2026-11-15-ART-WANTED-71-SHAFT-HAND-REDRAW', pages='CUT-SHEETS', name='ART-WANTED-71 SHAFT-HAND ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 3x on folkman_p1\'s cell',
+                  navy=(7, 22, 46), stand=False, unred=0),
+    'scraper': dict(folder='2026-11-15-ART-WANTED-72-GUANO-SCRAPER-REDRAW', name='ART-WANTED-72 GUANO-SCRAPER REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                    navy=None, stand=False, unred={'folkman_scraper_p1': 0, 'folkwoman_scraper_p1': 12}),
     # (the drinker's first, code-drawn pages -- folder 2026-11-15-ART-WANTED-73-DRINKER, native 4x, navy (17, 24, 45) -- replaced by the redraw)
     'drinker': dict(folder='2026-11-15-ART-WANTED-73-DRINKER-REDRAW', name='ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green',
                     lime=True, stand=False),
@@ -97,14 +100,37 @@ def frames_of(d):
         fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
         if 'sheets' in fm:                      # (the light crew's: `sheets`, each frame's `index` and `cell_source_xywh`)
             return [(s['runtime_target'], s['facing'], s['action'], f['index'], s['file'], tuple(f['cell_source_xywh'])) for s in fm['sheets'] for f in s['frames']]
+        if 'registered_row' in fm['pages'][0]:  # (the scraper's redraw: each row a transparent strip of cells, the art desk's own native cut)
+            return [(p['runtime_target'], p['facing'], p['action'], f['frame'] - 1, p['registered_row'], ((f['frame'] - 1) * 72, 0, 72, 64)) for p in fm['pages'] for f in p['frames']]
         return [(p['target'], p['facing'], p['row'], f['frame'] - 1, p['png'], tuple(f['source_rect_xywh'])) for p in fm['pages'] for f in p['frames']]   # (the scraper's: `pages`)
     out = []
     for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8')):   # (a row a frame; its columns named four ways so far)
         g = lambda *ks: next(r[k] for k in ks if r.get(k) not in (None, ''))
         idx = int(g('frame_index', 'index')) if any(r.get(k) not in (None, '') for k in ('frame_index', 'index')) else int(g('frame_1based', 'frame', 'frame_number')) - 1
-        out.append((g('target', 'runtime_target'), r['facing'], g('action', 'row', 'runtime_row'), idx, g('source_page', 'source_png', 'png'),
+        out.append((g('target', 'runtime_target', 'runtime'), r['facing'], g('action', 'row', 'runtime_row'), idx, g('source_page', 'source_png', 'png', 'cut_sheet'),
                     (int(g('crop_x', 'x')), int(g('crop_y', 'y')), int(g('crop_w', 'crop_width', 'width')), int(g('crop_h', 'crop_height', 'height')))))
     return out
+
+
+REDS = None
+
+
+def unred(fr, rows):
+    """a native cut's red and fire moved to the nearest of the other colours in Lab, in place: everywhere (`rows` 0), or only in the top
+    `rows` rows of the figure, crown down (the face: a red neckcloth below it kept) -- the art desk's snap gives a nose or a cheek the
+    lightest red or orange, a clown's nose at game size (the 10-29 cutters' "avoid red and fire", on a page already on the 64)"""
+    global REDS
+    if REDS is None:
+        REDS = {tuple(int(v) for v in c) for c, r in zip(pix.PAL_RGB, pix.PAL_RAMP) if r in ('red', 'fire')}
+    op = fr[..., 3] > 0
+    if not op.any():
+        return
+    top = int(np.where(op.any(1))[0][0])
+    band = np.zeros(op.shape, bool)
+    band[top:top + rows if rows else None] = True
+    hit = op & band & np.array([[tuple(c) in REDS for c in row] for row in fr[..., :3]])
+    if hit.any():
+        fr[hit, :3] = pix.snap(fr[hit, :3][None].astype(np.float32) / 255, ['red', 'fire'])[0]
 
 
 LIME_REDBAND = (330, 360, 0.25)        # (red and fire only on a crimson: hue from, to, and the least saturation)
@@ -179,8 +205,8 @@ def cut(costume):
         if an not in rowmap:
             raise SystemExit('%s: a row %s the piece does not name' % (page, an))
         name, an = names[name], rowmap[an][0]
-        if page not in pages:
-            pages[page] = np.asarray(Image.open(os.path.join(d, page)).convert('RGB'))
+        if page not in pages:     # (with its alpha: the scraper redraw's rows are transparent; an opaque page's alpha is 255 throughout)
+            pages[page] = np.asarray(Image.open(os.path.join(d, P.get('pages', ''), page)).convert('RGBA'))
         a, k = pages[page], w // fw
         if (w, h) != (fw * k, fh * k):
             raise SystemExit('%s %s %d: a window of %dx%d, not %d x the cell' % (page, an, idx + 1, w, h, k))
@@ -188,12 +214,19 @@ def cut(costume):
         sm = win[k // 2::k, k // 2::k]
         if (np.repeat(np.repeat(sm, k, 0), k, 1) != win).any():
             raise SystemExit('%s %s %d: not an exact %dx page' % (page, an, idx + 1, k))
-        fg = (sm != P['navy']).any(-1)
+        fg = sm[..., 3] > 0
+        if P.get('navy'):
+            fg &= (sm[..., :3] != P['navy']).any(-1)
+        sm = sm[..., :3]
         off = {tuple(c) for c in sm[fg]} - pal
         if off:
             raise SystemExit('%s %s %d: %d colours off the 64 (%s)' % (page, an, idx + 1, len(off), sorted(off)[:4]))
         fr = np.zeros((fh, fw, 4), np.uint8)
         fr[fg, :3] = sm[fg]; fr[fg, 3] = 255
+        u = P.get('unred')
+        u = u.get(name) if isinstance(u, dict) else u
+        if u is not None:
+            unred(fr, u)
         got.setdefault(name, {}).setdefault(v, {}).setdefault(an, {})[idx] = fr
     counts = {sr: n for sr, n in rowmap.values()}
     out = {}

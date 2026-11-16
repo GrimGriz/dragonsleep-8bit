@@ -5380,12 +5380,12 @@
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
 "folkman_scraper_p1": {
-"image": "art/folkman_scraper_p1.png?v=0758ca1314",
+"image": "art/folkman_scraper_p1.png?v=6a9b868718",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 57,
+"top": 49,
 "anims": {
 "idle": {
 "y": 0,
@@ -5406,15 +5406,15 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_shaft_p1": {
-"image": "art/folkman_shaft_p1.png?v=dfb50891b9",
+"image": "art/folkman_shaft_p1.png?v=d0616a4e44",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 55,
+"top": 52,
 "anims": {
 "idle": {
 "y": 0,
@@ -5435,7 +5435,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_barkeep_p1": {
 "image": "art/folkwoman_barkeep_p1.png?v=ff9045aa77",
@@ -5699,12 +5699,12 @@
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
 "folkwoman_scraper_p1": {
-"image": "art/folkwoman_scraper_p1.png?v=233d32726d",
+"image": "art/folkwoman_scraper_p1.png?v=53063fcd2b",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 53,
+"top": 48,
 "anims": {
 "idle": {
 "y": 0,
@@ -5725,15 +5725,15 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-72 GUANO-SCRAPER REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_shaft_p1": {
-"image": "art/folkwoman_shaft_p1.png?v=7b65591a57",
+"image": "art/folkwoman_shaft_p1.png?v=90c6469e27",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 53,
+"top": 52,
 "anims": {
 "idle": {
 "y": 0,
@@ -5754,7 +5754,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND, 11-15: five views, Idle 4 and Walk 8, native 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "fountains_p1": {
 "image": "art/fountains_p1.png?v=31fdc6c305",
