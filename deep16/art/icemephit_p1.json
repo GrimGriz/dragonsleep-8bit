@@ -91,5 +91,5 @@
   }
  },
  "name": "Ice Mephit",
- "source": "drawn by the art desk at game size (ICE-MEPHIT-DEEP16-SOURCES, 11-15), cut as drawn by tools/icemephit-sheet.py; SW W NW mirrored -- the SRD 5.1 Ice Mephit: deep16/data/foes.js icemephit"
+ "source": "drawn by the art desk (ICE-MEPHIT-ILLUSTRATED-SOURCES, 11-15: ImageGen pages, its own native cut at game size), cut as drawn by tools/icemephit-sheet.py; SW W NW mirrored -- the SRD 5.1 Ice Mephit: deep16/data/foes.js icemephit"
 }
