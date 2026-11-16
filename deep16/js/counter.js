@@ -1395,6 +1395,7 @@
   C.ned = function* (sc, B) {
     var st = sc.st, f = st.flags, NL = C.NED_LINES, AS = C.NED_REPLIES, au = C.nedAurdin(st), vis = C.nedVisit(B);
     var school = ((((DS.DATA.npcs || {}).ned || {}).talk || []).filter(function (e) { return e['if'] === 'hired:aurdin'; })[0] || {}).say || [];
+    var wd = C.nedWandDue(st); if (wd && !vis.wand) { vis.wand = 1; yield* C.nedWand(sc, B, wd); return; } // (the wand first, once a visit: C.nedWand, 11-16)
     sc.hero = au; // (Aurdin bottom left, his answers in his bubble; no one without him)
     if (!au || vis.laughed) { yield sc.say(NL.harvest, vis.laughed ? 'skeptical' : 'attentive'); return; } // (8: no Aurdin, or the bluff caught this visit)
     if (C.knowsFF(au)) { yield sc.say(school.concat([NL.learning], C.nedFam(st, au)), 'welcoming'); return; } // (2: he knows it -- none of the spell talk)
@@ -1436,6 +1437,60 @@
       }
     }
   };
+  // ---------------------------------------------------------------- NED'S WAND (RULED 2026-11-16, Griz to the lanes desk: "I think for the Web Wand we have Ned ask them about the ettercap
+  // bounty when they come into percy's, have him ask about the braid rumor and offer to make them the wand in exchange for the Ettercap braid"; its making time his "Yes" to the desk's
+  // lean: ready the morning after the party brings him the braid). The braid is the ettercap's Braided Cord (content/items.json cord), cut out of its web when it is beaten (js/gulch.js
+  // Gu.ettercap). Coming into Percy's (js/town.js T.goIn -> C.atDoor) Ned speaks up, once a visit, while he has something to say: the offer, the braid in the pack, the wand ready; E on
+  // him says it too (C.ned, first). Flags: nedWand (asked), nedBraid (THE WORLD's hour the braid came in), nedWandGot. Words the seat's drafts, invented.json ned-wand-1116
+  C.WAND = { item: 'wandofweb', braid: 'cord', morning: 6 }; // (ready from 06:00 the day after the braid came in: invented.json wand-morning-1116)
+  C.NED_WAND = {
+    ask: ['Ned looks up from the jar labels. "The ettercap in Web Gulch -- the paper on Hessle\'s board. Are you going after it?"',
+      '"The silk-cutters say it sits up on its strand and braids. Three strands, even-handed, all day long. Nobody knows what for."'],
+    offer: ['"Whatever it\'s making, it\'s made of its own silk, and I can\'t get that. I don\'t go out past the gate."',
+      '"Bring me the braid and I\'ll make you a wand out of it: a wand that throws web, the way the thing does. One night\'s work."'],
+    taken: ['"Good. Mind the webs -- they\'re the point of the thing."'],
+    later: ['"The offer keeps. So does the ettercap, I expect."'],
+    braidAsk: '"Is that the braid?"',
+    braid: ['Ned turns the braid over in the lamplight. "Even-handed. Patient." He winds it round two fingers and puts it in his coat.', '"Come back in the morning. It\'ll be ready."'],
+    keep: ['"It keeps. Bring it when you want the wand."'],
+    waiting: ['"Not yet. In the morning -- silk wants a night."'],
+    ready: ['"Morning." Ned sets a slim wand on the counter, grey and ridged, like a braid pulled tight.', '"Seven webs in it, and it finds a few more each dawn. It wants a spellcaster to hold it."'] };
+  C.NED_WAND_REPLIES = { yes: 'We\'ll bring it.', no: 'Not now.', give: 'Here it is.', keep: 'Not yet.' };
+  // a save that beat the ettercap before 11-16 was told "There is a braided cord in the web" and never given it: in the pack once, here
+  C.braidOwed = function (st) { var f = st.flags; if (!f.cordTaken && (f['trig:ettercap'] || f.ettercapDone) && !count(st, C.WAND.braid) && f.nedBraid == null && !f.nedWandGot) { give(st, C.WAND.braid, 1); f.cordTaken = 1; } };
+  C.wandReady = function (f) { var H = D.house, now = H && H.now ? H.now() : null; return now == null || f.nedBraid == null || now >= (Math.floor(f.nedBraid / 24) + 1) * 24 + C.WAND.morning; };
+  // what Ned has to say of the wand: 'offer', 'braid' (it is in the pack), 'waiting', 'ready', or null
+  C.nedWandDue = function (st) {
+    var f = st.flags; if (f.nedWandGot) return null; C.braidOwed(st);
+    if (f.nedBraid != null) return C.wandReady(f) ? 'ready' : 'waiting';
+    if (count(st, C.WAND.braid) > 0) return 'braid';
+    return f.nedWand ? null : 'offer';
+  };
+  C.nedWand = function* (sc, B, due) {
+    var st = sc.st, f = st.flags, NW = C.NED_WAND, AS = C.NED_WAND_REPLIES; sc.hero = C.leadOf(st); // (the one who leads answers: the wand is the party's, not Aurdin's alone)
+    if (due === 'waiting') { yield sc.say(NW.waiting, 'work'); return; }
+    if (due === 'ready') {
+      f.nedWandGot = 1; give(st, C.WAND.item, 1); D.sfx('chest'); if (f.pin === 'nedwand') delete f.pin;
+      yield sc.say(NW.ready.concat([L('g.got', { item: DS.DATA.items[C.WAND.item].name })]), 'welcoming'); return;
+    }
+    var first = !f.nedWand; f.nedWand = 1;
+    if (due === 'offer') {
+      var a = yield sc.ask(NW.ask.concat(NW.offer), [AS.yes, AS.no], 'attentive');
+      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done; })) f.pin = 'nedwand'; // (pinned unless another is: the card and its fly-in as the screen closes, as Ned's page -- js/hours.js H16.missionDue)
+      yield sc.say(a === 0 ? NW.taken : NW.later, 'welcoming'); return;
+    }
+    // the braid in the pack: he asks for it (the offer first, if he never made it)
+    if ((yield sc.ask((first ? NW.ask.concat(NW.offer) : []).concat([NW.braidAsk]), [AS.give, AS.keep], 'attentive')) !== 0) { yield sc.say(NW.keep, 'welcoming'); return; }
+    take(st, C.WAND.braid, 1); var H = D.house, now = H && H.now ? H.now() : null; f.nedBraid = now != null ? now : 0; D.sfx('confirm');
+    yield sc.say(NW.braid, 'work');
+  };
+  // coming into a room (js/town.js T.goIn, the room's first card said): a keeper's word before E -- Ned at Percy's, the wand, once a visit, in the house
+  C.atDoor = function* (B, def) {
+    if (!def || !def.keeper || def.keeper.id !== 'percy' || !(D.house && D.house.playing)) return;
+    var st = C.state(B), due = st && C.nedWandDue(st);
+    if (!due || due === 'waiting' || C.nedVisit(B).wand) return;
+    yield* C.talk(B, 'ned');
+  };
   // his rat on his shoulder on the counter screen (10: "on neds shoulder on counter screen"): the grid's rat familiar's sheet (js/rules.js R.FAMILIARS.rat), at the
   // portrait's pixels, on the shoulder away from his gaze (measured on pt_ned: every row's shoulder line within a pixel or two of the idle's)
   C.drawNedRat = function (ctx, x, y, t) {
@@ -1467,6 +1522,13 @@
   C.RING_WORDS = { text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The one who leads you is ready now, and Winters has something for you.',
     step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and he is ready.',
     doneText: 'The Ring of Water Walking, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
+  // NED'S WAND (C.nedWand, 11-16): asked of when he makes the offer, done with the wand in hand
+  C.OWN_QUESTS.push({ id: 'nedwand', name: 'Ned\'s Wand', show: 'flag:nedWand', done: 'flag:nedWandGot',
+    text: 'Ned Halloway, behind Percy\'s counter, will make a wand that throws web out of the ettercap\'s braid -- the cord it braids at Web Gulch\'s strung end. One night\'s work.',
+    doneText: 'The Wand of Web, out of the ettercap\'s braid. It wants a spellcaster to hold it.',
+    steps: [{ 'if': '!has:cord & !flag:nedBraid', site: 'webgulch', where: 'The ettercap\'s braid, out of its web at Web Gulch\'s strung end: out of Silverton by the east gate, then down the road on THE WORLD past the fork.' },
+      { 'if': 'has:cord & !flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the braid for the wand.' },
+      { 'if': 'flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned has the braid. The wand will be ready in the morning, at Percy\'s Particulars.' }] });
   C.OWN_QUESTS.push({ id: 'ring', doneText: C.RING_WORDS.doneText,
     text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? C.RING_WORDS.text : q.text; },
     steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });

@@ -653,6 +653,7 @@
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
     B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.{/}']), 360); // (no "(Griz's own: the room waits on his word.)" to a player since 11-16, the words-and-boxes seat)
     D.sfx('popup'); yield 10;
+    if (D.counter && D.counter.atDoor) yield* D.counter.atDoor(B, def); // (a word as the party comes in: Ned at Percy's, the wand -- js/counter.js C.atDoor, 11-16)
   };
   // out by the door: the room let go, the floor as it was, the party on the door's square facing the street
   T.goOut = function* (B) {

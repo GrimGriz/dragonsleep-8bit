@@ -92,7 +92,7 @@
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
   // (WHEN YOU'RE READY, Winters' ring, in the list since 11-05 -- content/quests.json `ring`, the second game's own content/ since the freeze, at the lead's 3rd level: RULED 10-29,
   // the difficulty, his "1 - change Winters requirement". Its Winters scene is not built yet: the Halfway Inn lane's item 8)
-  C.QUESTS = ['company', 'council', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'ring', 'nedpage'];
+  C.QUESTS = ['company', 'council', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'ring', 'nedpage', 'nedwand']; // (nedwand: Ned's Wand, 11-16 -- js/counter.js C.nedWand)
   // the next bout on Korvin's slate (js/hex.js HX.CARD: each opens the next; the first not yet won) and its words for Fight Night's step
   H16.nextBout = function (st) { var f = st.flags, HX = D.hex; return HX && HX.CARD ? HX.CARD.filter(function (c) { return (!c.need || f[c.need]) && !f['hex:' + c.id]; })[0] || null : null; };
   H16.BOUT_WORDS = { brawl: 'the brawl in the small sand', freeman: 'the Freeman Challenge, a stable\'s fighter', card: 'the card, a hired blade', talmok: 'Talmok, the champion', festival: 'the festival\'s visiting barbarian' };
@@ -502,7 +502,7 @@
     q: { company: 'You\'re short of hands. They\'re nearer than you think.', work: 'Coin\'s on Fountain Street, and on a wall, and over the river, and on the sand. Pick one.',
       errands: 'Paper, a seal, a number. An old man who keeps the dead in order.', warrens: 'Water, and a stair under it, and five who didn\'t come up. Take rope.',
       cradles: 'A pen, a pole, a thimble. Steady hands.', cull: 'Wings in the dark. Keep your voice down and your light hooded.', tail: 'Something that looks like a cloak and isn\'t. It hates the light.',
-      hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.',
+      hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.', nedwand: 'A braid out of a web, and a night\'s work. A wand for it.',
       ettercap: 'Silk across a road, and something braiding it. Go at noon, when the spiders sulk.', // (ettercap: 10-29, the story window -- the silk-cutters' noon, wiki/web-gulch.md)
       council: 'A stair that turns and turns, and a long table at the top of it. Don\'t keep them waiting.' }, // (council: 10-29 night, the story seat -- the runner's summons)
     // with nothing open to read, the work she opens first, in this order (each its JOURNAL's door: js/counter.js C.flagOn)

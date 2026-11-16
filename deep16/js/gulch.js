@@ -156,7 +156,7 @@
   Gu.ettercap = function* (B, step) {
     var f = B.roam.flags; if (!Gu.alive(f)) return;
     yield* Gu.set(B, { fight: 'ettercap', trig: 'ettercap', title: 'THE STRUNG END', lines: [].concat(L('gulch.ettercap')), away: 'BACK AWAY', step: step,
-      after: function* (B2) { D.counter.give(D.counter.state(B2), 'ettercapfangs', 1); D.sfx('chest'); M.relay(B2, null, true); B2.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; } });
+      after: function* (B2) { var st2 = D.counter.state(B2); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); /* (and its braid, the Braided Cord: Ned's wand, 11-16 -- js/counter.js C.nedWand) */ M.relay(B2, null, true); B2.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; } });
   };
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {

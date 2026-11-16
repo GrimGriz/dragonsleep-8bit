@@ -20489,7 +20489,41 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (rK) { BK.ropes = [rPl]; costPl = D.grid.stepCost(ftK, rPl.foot[0], rPl.foot[1], rPl.at[0], rPl.at[1]); stepsPl = D.Battle.ropeSteps(rPl, BK.map.gz(rPl.foot[0], rPl.foot[1]), true, 30, true); BK.ropes = [rK]; }
       okIS('P2 the knot: set "' + setK.slice(0, 360) + '" -- knot ' + (rK && rK.knot) + '; the whole 45 ft up it ' + costKn + ' ft of movement (a plain rope ' + costPl + '); 30 ft of move part way: ' + stepsKn + ' steps (' + (stepsKn * 2.5) + ' ft; a plain rope ' + stepsPl + ', ' + (stepsPl * 2.5) + ' ft)',
         !!rK && rK.knot === true && /knots itself/.test(setK) && /costs half/.test(setK) && costKn === 45 && costPl === 90 && stepsKn === 12 && stepsPl === 6);
-      // (more: the wand, the goggles)
+      // W1 the ettercap beaten: its fangs for Hessle's board, and its braid (the Braided Cord) into the pack -- Ned's wand
+      var CIS = D.counter, GuIS = D.gulch, set0IS = GuIS.set, relay0IS = D.mines.relay, cardsW1 = [];
+      var BW1 = { roam: { flags: {}, members: [], token: { x: 0, y: 0 } }, inv: [], units: [], card: function (l) { cardsW1.push([].concat(l).join(' ')); } };
+      GuIS.set = function* (B, o) { yield* o.after(B); }; D.mines.relay = function () {};
+      try { runIS(GuIS.ettercap(BW1, false)); } finally { GuIS.set = set0IS; D.mines.relay = relay0IS; }
+      var stW1 = CIS.state(BW1);
+      okIS('W1 the ettercap beaten: "' + cardsW1.join(' | ').slice(0, 300) + '" -- the pack ' + JSON.stringify(BW1.inv) + ', cordTaken ' + BW1.roam.flags.cordTaken,
+        CIS.count(stW1, 'ettercapfangs') === 1 && CIS.count(stW1, 'cord') === 1 && BW1.roam.flags.cordTaken === 1 && /Received: Braided Cord/.test(cardsW1.join(' ')));
+      // W2 Ned: the offer (the bounty, the braid rumor, the wand for the braid), the braid handed in at 20:00 on day 1, not ready at 05:00, ready from 06:00 the next morning (THE WORLD's hour pinned)
+      var now0IS = D.house.now, tIS = 20; D.house.now = function () { return tIS; };
+      var stW = { flags: {}, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', lvl: 3, equip: {} }], silver: function () { return 0; } }, saidW = [];
+      var scW = { st: stW, say: function (l) { saidW.push([].concat(l).join(' ')); return { lines: l }; }, ask: function (l, o) { saidW.push([].concat(l).join(' ') + ' [' + o.join(' | ') + ']'); return { prompt: { opts: o.map(function (x, i) { return { label: x, value: i }; }) } }; } };
+      var jW = function () { var q = CIS.quests(stW).filter(function (x) { return x.id === 'nedwand'; })[0]; return q ? (q.done ? 'done: ' + q.doneText : q.where || q.text) : 'none'; };
+      var dueW = [], jrW = [];
+      try {
+        jrW.push(jW()); dueW.push(CIS.nedWandDue(stW)); runIS(CIS.nedWand(scW, null, 'offer')); var offerW = saidW.join(' / '); jrW.push(jW());
+        dueW.push(CIS.nedWandDue(stW)); CIS.give(stW, 'cord', 1); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
+        saidW = []; runIS(CIS.nedWand(scW, null, 'braid')); var braidW = saidW.join(' / '); jrW.push(jW());
+        tIS = 29; dueW.push(CIS.nedWandDue(stW)); tIS = 30; dueW.push(CIS.nedWandDue(stW));
+        saidW = []; runIS(CIS.nedWand(scW, null, 'ready')); var readyW = saidW.join(' / '); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
+      } finally { D.house.now = now0IS; }
+      okIS('W2 Ned\'s wand: due ' + dueW.join(',') + '; the offer "' + offerW.slice(0, 640) + '"; the braid "' + braidW.slice(0, 260) + '" (nedBraid ' + stW.flags.nedBraid + '); ready "' + readyW.slice(0, 260) + '"; the pack ' + JSON.stringify(stW.inv) + '; the JOURNAL ' + jrW.join(' > '),
+        dueW.join() === 'offer,,braid,waiting,ready,' && /ettercap in Web Gulch/.test(offerW) && /Hessle/.test(offerW) && /braids/.test(offerW) && /Bring me the braid/.test(offerW) && /a wand that throws web/.test(offerW) &&
+        /Is that the braid/.test(braidW) && /Come back in the morning/.test(braidW) && stW.flags.nedBraid === 20 && /Received: Wand of Web/.test(readyW) &&
+        CIS.count(stW, 'wandofweb') === 1 && !CIS.count(stW, 'cord') && stW.flags.nedWandGot === 1 && jrW[0] === 'none' && /strung end/.test(jrW[1]) && /the braid for the wand/.test(jrW[2]) && /ready in the morning/.test(jrW[3]) && /^done: The Wand of Web/.test(jrW[4]));
+      // W3 an older save past the ettercap with no braid: it is in the pack at Ned's; and coming into Percy's in the house, Ned speaks up while he has something to say (js/town.js T.goIn -> C.atDoor), elsewhere not
+      var stO = { flags: { 'trig:ettercap': 1 }, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', equip: {} }] }, dueO = CIS.nedWandDue(stO);
+      var talk0IS = CIS.talk, play0IS = D.house.playing, talked = [];
+      var BW3 = function (fl) { return { roam: { flags: fl, members: [{ src: { id: 'lymen', key: 'lymen', name: 'Lymen', equip: {} } }], silver: 0 }, inv: [], townAway: {} }; };
+      CIS.talk = function* (B, id) { talked.push(id); }; D.house.playing = true;
+      try { runIS(CIS.atDoor(BW3({}), { keeper: { id: 'percy' } })); runIS(CIS.atDoor(BW3({}), { keeper: { id: 'marko' } })); runIS(CIS.atDoor(BW3({ nedWand: 1 }), { keeper: { id: 'percy' } })); var bOff = BW3({}); bOff.townAway.ned = { wand: 1 }; runIS(CIS.atDoor(bOff, { keeper: { id: 'percy' } })); }
+      finally { CIS.talk = talk0IS; D.house.playing = play0IS; }
+      okIS('W3 an older save past the ettercap: ' + dueO + ', the braid in the pack ' + CIS.count(stO, 'cord') + '; into Percy\'s (offer due), into Marko\'s, into Percy\'s offered and no braid, into Percy\'s after this visit\'s word: Ned speaks ' + JSON.stringify(talked),
+        dueO === 'braid' && CIS.count(stO, 'cord') === 1 && stO.flags.cordTaken === 1 && talked.join() === 'ned');
+      // (more: the goggles)
     } catch (eIS) { repIS.errors.push(String(eIS && eIS.stack || eIS).slice(0, 900)); }
     D.d = dIS;
     var preIS = document.createElement('pre'); preIS.id = 'out'; preIS.textContent = 'BENCH16 ' + JSON.stringify(repIS);
