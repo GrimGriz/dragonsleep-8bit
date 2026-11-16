@@ -52,6 +52,32 @@
     w._dpr = Math.max(1, v); w._dprT = D.battle && D.battle.round;
     return w._dpr;
   };
+  // THE ROGUE'S COVER HEDGE (RULED 2026-11-16, Griz: "Approved", on the lean in ..\handoff-2026-10-04-the-ai-and-the-dark.md "2026-11-16 evening" -- double the mean when a foe
+  // has a multiattack or a crit range that could drop her): w's bad round at one of hp hit points -- every blow of its routine landing (a class foe's attacks, a stat block's
+  // multiattack as TX.dpr counts them), its hardest a critical (the attack's dice rolled twice, SRD 5.1 "Critical Hits"), a save's dice failed -- and whether that drops her.
+  // The mean (TX.dpr) is what rogueCoverTurn weighs her way out of reach by; a foe that can crit her down is weighed at twice it (TX.coverOA)
+  TX.dicePart = function (expr) { var tot = 0; String(expr || '0').replace(/\s/g, '').replace(/(\d*)d(\d+)/g, function (m, n, f) { tot += (+(n || 1)) * (+f + 1) / 2; return m; }); return tot; };
+  TX.worstRound = function (w) {
+    if (!w || w.hp <= 0 || w.dead) return 0;
+    var v = 0, top = 0;
+    if (typeof w.attacks === 'number') {
+      var wp = w.weapon || {}, sn = w.cls === 'rogue' ? avg(RU.sneakDice(w)) : 0;
+      v = (w.attacksBase || w.attacks || 1) * (avg(wp.dice) + (wp.mod || 0)) + sn; top = TX.dicePart(wp.dice) + sn; // (her Sneak Attack's dice are the blow's too, doubled with it)
+    } else {
+      var at = w.attacks || {}, names = Object.keys(at), routine = Array.isArray(w.multi) ? w.multi : [];
+      if (!routine.length) for (var i = 0; i < (w.multi || 1); i++) routine.push(names[0]);
+      routine.forEach(function (k) { var a = at[k]; if (!a) return; v += avg(a.dice) + (a.mod || 0) + (a.save ? avg(a.save.dice) : 0); top = Math.max(top, TX.dicePart(a.dice)); });
+    }
+    return v + top;
+  };
+  TX.critDown = function (w, u) { return TX.worstRound(w) >= Math.max(1, u.hp); };
+  TX.coverHedge = !/[?&]nohedge\b/.test((window.location && window.location.search) || ''); // (false: the old judgement, the mean alone -- a door's &nohedge, to watch it the old way; dev/bench16.js mode=hedge1116 runs both)
+  // the blows she takes walking out of reach of `by` (each with its reaction): the mean, and the hedged weight she judges by (TX.coverLog, when a bench sets it, keeps each)
+  TX.coverOA = function (u, by) {
+    var mean = 0, two = 0, hedged = [];
+    by.forEach(function (f) { var d = TX.dpr(f), cd = TX.critDown(f, u); mean += d; two += cd ? 2 * d : d; if (cd) hedged.push(f.name); });
+    return { mean: mean, hedge: two, oa: TX.coverHedge ? two : mean, cap: u.hp * 0.45, hedged: hedged };
+  };
   function DS_R() { return window.DS.R; }
   // a kill is worth its HP and the rounds it will not act; a wound, its share
   TX.worth = function (dmg, w, burns) {
@@ -1210,8 +1236,10 @@
     // seen with a foe beside her: out to cover and Hide, taking the blows it gets as she leaves (no Disengage: the bonus action is the Hide) -- if she can stand them
     var adj = G.foesNear(u, u.x, u.y, 5);
     if (adj.length && !u.conds.hidden) {
-      var oa = adj.filter(function (f) { return f.reaction > 0 && RU.canAct(f); }).reduce(function (s, f) { return s + TX.dpr(f); }, 0);
-      if (oa > u.hp * 0.45) return false;
+      // (the hedge, RULED 11-16: a foe that can crit her down counts twice its mean -- TX.coverOA; she holds where the mean alone would have walked her out)
+      var oaJ = TX.coverOA(u, adj.filter(function (f) { return f.reaction > 0 && RU.canAct(f); }));
+      if (TX.coverLog) TX.coverLog.push({ u: u.name, hp: u.hp, round: B.round, mean: oaJ.mean, hedge: oaJ.hedge, cap: oaJ.cap, hedged: oaJ.hedged.slice(), was: oaJ.mean > oaJ.cap ? 'hold' : 'go', now: oaJ.hedge > oaJ.cap ? 'hold' : 'go', took: oaJ.oa > oaJ.cap ? 'hold' : 'go' }); // (was: the mean's choice; now: the hedge's; took: the one played)
+      if (oaJ.oa > oaJ.cap) return false;
     }
     var canHide = cun ? T.bonus > 0 : T.action > 0 && !T.attacksLeft, shots = rogueShots(B, u, all, fs, safe).sort(function (a, b) { return b.score - a.score; });
     // (before level 2 the shot is the end of her hiding: only from a square past every chaser's reach, if there is one)

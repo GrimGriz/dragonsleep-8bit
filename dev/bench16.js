@@ -1049,6 +1049,74 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preB);
     return;
   }
+  // THE ROGUE'S COVER HEDGE, 11-16 (mode=hedge1116; deep16/js/tactics.js TX.coverOA, TX.critDown, TX.worstRound -- the book-hedge seat, on Griz's "Approved" to the lanes desk's
+  // lean, ..\handoff-2026-10-04-the-ai-and-the-dark.md "2026-11-16 evening"): seen with a foe beside her, she walks out of reach to cover only if the blows she takes leaving are
+  // under 45% of her HP -- weighed by their mean, and since the hedge a foe that can crit her down at twice its mean. 1. the lane's own case: a 3d4+3 Slam against Vivian's 17
+  // (critted 6d4+3, 18 on the mean). 2. the same fights with the hedge off and on (TX.coverHedge), each judgement she meets kept (TX.coverLog): how often the choice changed
+  // (the mean let her go, the hedge holds her), and the first such judgement played both ways from one seed. &n= fights a cell (4), &set= (brute,pack; also chief, hobs, ogres, troll), &lv= (3,4,5),
+  // &party=1 her with a fighter, a cleric and a wizard of her level
+  if (get('mode', '') === 'hedge1116') {
+    var repH = { checks: [], errors: [], table: {}, total: {} }, TXH = D.tactics;
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var SETH = { brute: 'bugbear', pack: 'wolf,wolf,goblin', chief: 'bugbearchief', hobs: 'hobgoblin,hobgoblin,gnoll', ogres: 'ogre,bugbear,bugbear', troll: 'troll' }, LVH = get('lv', '3,4,5').split(',').map(Number), NH = +get('n', 4), WHH = get('set', 'brute,pack').split(','), PTH = !!get('party', '');
+    try {
+      // 1. the arithmetic, and the weight she judges by
+      var slamH = { name: 'the slam', hp: 30, maxhp: 30, attacks: { slam: { dice: '3d4', mod: 3, atk: 6 } }, multi: 1, conds: {} }, vivH = { name: 'Vivian', hp: 17, maxhp: 17, conds: {} };
+      var wrH = TXH.worstRound ? TXH.worstRound(slamH) : null, cdH = !!(TXH.critDown && TXH.critDown(slamH, vivH)), cd19 = !!(TXH.critDown && TXH.critDown(slamH, { hp: 19 }));
+      okH('1a a 3d4+3 Slam against 17 HP: its bad round ' + wrH + ' (want 18, 6d4+3 critted, on the mean); it can crit her down ' + cdH + ' (want true); at 19 HP ' + cd19 + ' (want false)', wrH === 18 && cdH && !cd19);
+      var ojH = TXH.coverOA ? TXH.coverOA(vivH, [slamH]) : null;
+      okH('1b walking out of its reach at 17 HP: the mean ' + (ojH && ojH.mean.toFixed(1)) + ', hedged ' + (ojH && ojH.hedge.toFixed(1)) + ' against 45% of her HP, ' + (ojH && ojH.cap.toFixed(2)) + ' (want the mean under it -- she went -- and the hedge over it -- she holds)', !!ojH && ojH.mean <= ojH.cap && ojH.hedge > ojH.cap && ojH.oa === ojH.hedge);
+      // 2. the fights, off and on
+      var allH = { judged: 0, changed: 0, offWon: 0, onWon: 0, offLost: 0, onLost: 0, fights: 0 }, firstH = [], badH = [];
+      WHH.forEach(function (wh) {
+        LVH.forEach(function (lv) {
+          var cell = {};
+          ['off', 'on'].forEach(function (pol) {
+            var row = { won: 0, lost: 0, other: 0, hpLeft: 0, fights: 0, judged: 0, changed: 0 }, logs = [];
+            for (var k = 0; k < NH; k++) {
+              D.seed = seed0 * 7919 + k * 104729 + lv * 31 + wh.length * 1000003; D.lastError = null;
+              TXH.coverHedge = pol === 'on'; TXH.coverLog = [];
+              var Bf = D.npcFight('?npc=' + SETH[wh] + '&lvl=' + lv + '&vs=rogue:' + lv + (PTH ? ',fighter:' + lv + ',cleric:' + lv + ',wizard:' + lv : ''), { bench: true }); D.battle = Bf; Bf.enter();
+              var me = Bf.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0]; if (!me) continue;
+              Bf.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+              var rs = drive(Bf); row[rs === 'won' || rs === 'lost' ? rs : 'other']++; row.hpLeft += Math.max(0, me.hp) / me.maxhp; row.fights++;
+              TXH.coverLog.forEach(function (j) { row.judged++; if (j.was !== j.now) row.changed++; if (!(isFinite(j.mean) && isFinite(j.hedge) && j.hedge >= j.mean) || (j.was === 'hold' && j.now === 'go')) badH.push(wh + ' ' + lv + ' ' + pol + ' #' + k + ' ' + JSON.stringify(j)); });
+              logs.push(TXH.coverLog);
+            }
+            row.hpLeft = Math.round(100 * row.hpLeft / Math.max(1, row.fights));
+            repH.table[wh + ' ' + lv + ' ' + pol] = row; cell[pol] = logs;
+            if (pol === 'off') { allH.judged += row.judged; allH.changed += row.changed; allH.offWon += row.won; allH.offLost += row.lost; allH.fights += row.fights; }
+            else { allH.onWon += row.won; allH.onLost += row.lost; }
+          });
+          // the first judgement the hedge changes, from one seed both ways: the same round and HP (nothing differs before it), the mean walked her out, the hedge held her
+          for (var k2 = 0; k2 < (cell.off || []).length; k2++) {
+            var off = cell.off[k2], on = (cell.on || [])[k2] || [], i = off.findIndex(function (j) { return j.was !== j.now; });
+            if (i < 0) continue;
+            var a = off[i], b = on[i];
+            firstH.push(wh + ' ' + lv + ' #' + k2 + ': round ' + a.round + ' at ' + a.hp + ' HP, the mean ' + a.mean.toFixed(1) + ' / hedged ' + a.hedge.toFixed(1) + ' against ' + a.cap.toFixed(1) + ' (' + a.hedged.join(', ') + '): off ' + a.took + ', on ' + (b ? b.took + ' (round ' + b.round + ' at ' + b.hp + ')' : 'no such judgement'));
+            if (!(a.took === 'go' && b && b.took === 'hold' && b.round === a.round && b.hp === a.hp)) badH.push('first change ' + wh + ' ' + lv + ' #' + k2 + ' not played both ways alike');
+            break;
+          }
+        });
+      });
+      repH.total = allH;
+      // (the table, printed by bench16.py ahead of the checks: each cell's judgements and the changed ones, the fights off and on -- won, lost, her HP left on the mean)
+      repH.report = Object.keys(repH.table).filter(function (k) { return / off$/.test(k); }).map(function (k) { var a = repH.table[k], b = repH.table[k.replace(/ off$/, ' on')] || {}, c = k.replace(/ off$/, '');
+        return (c + '          ').slice(0, 10) + ' judged ' + a.judged + ', changed ' + a.changed + ' | off: won ' + a.won + ' lost ' + a.lost + ' her HP ' + a.hpLeft + '% | on: won ' + b.won + ' lost ' + b.lost + ' her HP ' + b.hpLeft + '% (held ' + b.changed + ' of ' + b.judged + ')'; })
+        .concat(['all        judged ' + allH.judged + ', changed ' + allH.changed + ' | off: won ' + allH.offWon + ' lost ' + allH.offLost + ' | on: won ' + allH.onWon + ' lost ' + allH.onLost + ' (' + allH.fights + ' fights each)']);
+      okH('2a the fights reach her judgement: ' + allH.judged + ' judgements over ' + allH.fights + ' fights with the hedge off (want some)', allH.judged > 0);
+      okH('2b the hedge changes the choice at ' + allH.changed + ' of ' + allH.judged + ' (' + Math.round(100 * allH.changed / Math.max(1, allH.judged)) + '%) -- the mean walked her out, the hedge holds her (want at least one)', allH.changed > 0);
+      okH('2c the first change in a fight, played both ways from its seed: ' + firstH.length + ' (want at least one, each off "go" and on "hold" at the same round and HP) ' + firstH.slice(0, 3).join(' | '), firstH.length > 0 && !badH.some(function (s) { return /^first change/.test(s); }));
+      var badJ = badH.filter(function (s) { return !/^first change/.test(s); });
+      okH('2d no judgement where the hedge would let her go and the mean held her, none with a number not a number' + (badJ.length ? ': ' + badJ.slice(0, 3).join(' | ') : ''), !badJ.length);
+      repH.first = firstH;
+    } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+    TXH.coverHedge = true; TXH.coverLog = null;
+    if (errs.length) repH.errors = repH.errors.concat(errs.slice(0, 5));
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
   if (get('mode', '') === 'rogue4') {
     var repQ = { checks: [], errors: [], table: {}, logs: [] };
     var SETQ = { brute: 'bugbear', pack: 'wolf,wolf,goblin', gobs: 'goblin,goblin', rats: 'giantrat,giantrat,giantrat', chief: 'bugbearchief', hobs: 'hobgoblin,hobgoblin,gnoll', troll: 'troll', ogres: 'ogre,bugbear,bugbear' }, LVQ = get('lv', '3,4,5').split(',').map(Number), NQ = +get('n', 30), POLQ = get('pol', 'ai,new').split(','), WHQ = get('set', 'brute,pack').split(',');
