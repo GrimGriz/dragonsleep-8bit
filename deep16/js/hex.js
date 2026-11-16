@@ -592,7 +592,7 @@
   };
   // THE CARD (js/events.js CARD: the first game's five, each opening the next; stake in, the win out)
   HX.CARD = [
-    { id: 'brawl', label: 'BRAWL IN THE SMALL SAND', foe: 'brawler', stake: 0, win: 4, need: null },
+    { id: 'brawl', label: 'BRAWL IN THE SMALL SAND', foe: 'brawler', stake: 5, win: 10, need: null }, // (RULED 2026-11-16, Griz: "make them front 5 for that fight and win 5 like the regular ones" -- the first game's free brawl paid 4 and read as Barley's five short)
     { id: 'freeman', label: 'FREEMAN CHALLENGE', foe: 'stablefighter', stake: 5, win: 10, need: 'hex:brawl' },
     { id: 'card', label: 'THE CARD: A HIRED BLADE', foe: 'merc', stake: 5, win: 10, need: 'hex:freeman' },
     { id: 'talmok', label: 'TALMOK, THE CHAMPION', foe: 'talmok', stake: 5, win: 10, need: 'hex:card' },

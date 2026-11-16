@@ -901,6 +901,19 @@
   // ------------------------------------------------------------------ the class's own moves: before the action, among the actions, after it
   TX.FIRST = [];   // function* (B, u)
   TX.ACTIONS = []; // function (B, u, fs, allies) -> a plan, or a list of them
+  // DISENGAGE, THEN OUT OF REACH (RULED 2026-11-16, Griz: "1 - yes", on the bug seat's lean from his play records -- "the party's AI runs through opportunity attacks with
+  // Disengage to hand"): the action spent on Disengage and the walk taken out of every foe's reach, weighed against the action's other plans by what the swings it spares would
+  // cost (each foe beside it, able to react: half a round of its blows, as weaponPlans prices a walk off) -- worth it only when those swings are half or more of what it has left.
+  // Not for a rogue with Cunning Action (its bonus Disengage, js/features.js) nor one held; the walk to the square farthest from them that no foe reaches
+  TX.ACTIONS.push(function (B, u, fs) {
+    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || T.disengaged || !T.move || u.conds.restrained || (u.cls === 'rogue' && u.lvl >= 2)) return null; // (the party's AI: his word was about ours)
+    var press = G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w) && w.reaction !== 0; }); if (!press.length) return null;
+    var risk = press.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0); if (risk < u.hp * 0.5) return null;
+    var rm = G.reach(u, T.move), best = null, live = fs.filter(function (w) { return G.standing(w); });
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var near = Math.min.apply(null, live.map(function (w) { return G.dist(u, w, e.x, e.y) - G.reachOf(w); }).concat([999])); if (near <= 0) return; if (!best || near > best.near || (near === best.near && e.cost < best.cost)) best = { x: e.x, y: e.y, cost: e.cost, stand: true, near: near }; });
+    if (!best) return null;
+    return { kind: 'disengage', why: 'disengages from ' + press.length + ' and steps out of reach (the swings spared ' + risk.toFixed(1) + ' of ' + u.hp + ' hp)', score: risk * (risk >= u.hp ? 1.5 : 1), go: function* () { yield* B.exec(u, { do: 'disengage' }); if (u.turn.disengaged) yield* walk(B, u, best); } };
+  });
   TX.AFTER = [];   // function* (B, u)
   TX.IDLE = [];    // function* (B, u, fs) -> true when it spent the turn (nothing worth doing: before the class turn's Ready and its Dash to close)
 

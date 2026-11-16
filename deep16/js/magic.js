@@ -1286,6 +1286,13 @@
   // 09-30, Griz: "Yes, fire burns them"; the strung webs as a cast one). From a fire area (area()), fire on one standing in a web
   // (battle.js hurt), a thrown torch (light.js). A cast web burned away entire ends its caster's hold on it
   M.burnWebs = function (B, sqs, by) {
+    // THE WEBBING ON ONE WEBBED BURNS TOO (RULED 2026-11-16, Griz: "if area burns the webs the monsters are in, should for players too"): the ettercap's and the spider's webbing
+    // on a creature (js/battle.js Battle.webStub: vulnerable to fire) caught in the fire burns away and frees it, wherever it stands -- on the field's web or off it
+    if (B && sqs && sqs.length) {
+      var webbedF = (B.units || []).filter(function (w) { var r0 = w.conds && w.conds.restrained; return !!(r0 && r0.webbing && !w.dead && G.inArea(w, sqs)); });
+      webbedF.forEach(function (w) { delete w.conds.restrained; FX.sparkle(w, 'fire', 10); });
+      if (webbedF.length) { D.sfx('fire'); B.card(['{o}The webbing burns away{/}: {y}' + webbedF.map(function (w) { return w.side === 'foe' ? B.shortName(w) : w.name; }).join(', ') + ' ' + (webbedF.length > 1 ? 'are' : 'is') + ' free.{/}']); }
+    }
     if (!B || !(B.webs || []).length || !sqs || !sqs.length) return 0;
     var key = {}, burnt = [], gone = [];
     sqs.forEach(function (q) { key[q[0] + ',' + q[1]] = 1; });

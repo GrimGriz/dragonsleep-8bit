@@ -4759,6 +4759,46 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preW);
     return;
   }
+  // HIS ANSWERS OF 11-16 TO THE BUG SEAT, BUILT (mode=party1116): the brawl five in and ten out ("make them front 5 for that fight and win 5 like the regular ones"); fire burns
+  // the webbing on a webbed one as on the field's webs ("if area burns the webs the monsters are in, should for players too"); the party's AI Disengages when the swings a walk
+  // off would cost are half or more of what it has left ("1 - yes")
+  if (get('mode', '') === 'party1116') {
+    var repP = { checks: [], errors: [], notes: [] }, d0P = D.d, BAP = D.Battle, TXP = D.tactics;
+    function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkP(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function drainP(g) { for (var k = 0; k < 4000; k++) { var r = g.next(); if (r.done) return r.value; } }
+    function webOnP(w, by) { w.conds.restrained = { dc: 11, by: by.id, webbing: { ac: 10, hp: 5, max: 5, immune: ['bludgeoning', 'poison', 'psychic'], vuln: ['fire'] } }; }
+    try {
+      D.seed = 1116;
+      // 1. THE BRAWL'S PURSE: five in, ten out, as the bouts after it
+      var br = (D.hex.CARD || []).filter(function (c) { return c.id === 'brawl'; })[0] || {}, fr = (D.hex.CARD || []).filter(function (c) { return c.id === 'freeman'; })[0] || {};
+      okP('THE BRAWL IN THE SMALL SAND: ' + br.stake + ' in, ' + br.win + ' out (the Freeman Challenge: ' + fr.stake + ' in, ' + fr.win + ' out)', br.stake === 5 && br.win === 10 && fr.stake === br.stake && fr.win === br.win);
+      // 2. FIRE ON A WEBBED ONE: off the field's webs (no web squares on the floor), a fire area over the webbed fighter burns the webbing away; a fire blow on him does too
+      var B2 = mkP('?npc=ettercap&lvl=3&vs=fighter:3,wizard:3'), et = B2.units.filter(function (u) { return u.side === 'foe'; })[0], fi = B2.units.filter(function (u) { return u.cls === 'fighter'; })[0], wz = B2.units.filter(function (u) { return u.cls === 'wizard'; })[0];
+      B2.webs = []; webOnP(fi, et); D.magic.burnWebs(B2, [[fi.x, fi.y]], wz.id); var a1 = fi.conds.restrained ? 'still webbed' : 'free';
+      webOnP(fi, et); var hp0 = fi.hp; B2.hurt(fi, 2, 'fire', {}); var a2 = fi.conds.restrained ? 'still webbed' : 'free'; fi.hp = hp0;
+      webOnP(fi, et); D.magic.burnWebs(B2, [[fi.x + 3, fi.y + 3]], wz.id); var a3 = fi.conds.restrained ? 'still webbed' : 'free';
+      okP('FIRE ON A WEBBED HERO off the field\'s webs: a fire area over him -- ' + a1 + '; 2 fire on him -- ' + a2 + '; a fire area elsewhere -- ' + a3, a1 === 'free' && a2 === 'free' && a3 === 'still webbed');
+      // 3. DISENGAGE: the wizard between two hobgoblins at 4 hp -- the plan offered (the swings spared against what it has left), taken: out of reach and no swing; at full hit
+      // points beside one hobgoblin -- not offered
+      var turnOf = function (B, u) { var v; for (var k = 0; k < 4000; k++) { var r = B.co.next(v); v = undefined; if (r.done) return false; var y = r.value; if (typeof y === 'number' || !y) continue; if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; } if (y.turn) { if (y.turn === u) return true; v = { do: 'end' }; } } return false; };
+      var B3 = mkP('?npc=hobgoblin,hobgoblin&lvl=3&vs=wizard:3'), w3 = B3.units.filter(function (u) { return u.side === 'party'; })[0], o3 = B3.units.filter(function (u) { return u.side === 'foe'; });
+      var got3 = turnOf(B3, w3);
+      o3[0].x = w3.x + 1; o3[0].y = w3.y; o3[1].x = w3.x; o3[1].y = w3.y + 1; o3.forEach(function (o) { o.tween = null; }); D.grid.setup(B3.map, B3.units); w3.hp = 4;
+      var pl3 = got3 ? TXP.plans(B3, w3) : [], dg3 = pl3.filter(function (p) { return p.kind === 'disengage'; })[0];
+      var hpB = w3.hp, out3 = '-'; if (dg3) { drainP(dg3.go()); var still = o3.filter(function (o) { return D.grid.dist(w3, o) <= D.grid.reachOf(o); }).length; out3 = (w3.turn.disengaged ? 'disengaged' : 'NOT disengaged') + ', at ' + w3.x + ',' + w3.y + ', in ' + still + ' hobgoblins\' reach, ' + hpB + ' > ' + w3.hp + ' hp'; }
+      var B4 = mkP('?npc=hobgoblin&lvl=3&vs=wizard:3'), w4 = B4.units.filter(function (u) { return u.side === 'party'; })[0], o4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var got4 = turnOf(B4, w4); o4.x = w4.x + 1; o4.y = w4.y; o4.tween = null; D.grid.setup(B4.map, B4.units); w4.hp = w4.maxhp;
+      var dg4 = got4 ? TXP.plans(B4, w4).filter(function (p) { return p.kind === 'disengage'; })[0] : null;
+      repP.notes.push('the wizard at 4 hp between two hobgoblins, the plans: ' + pl3.slice(0, 4).map(function (p) { return p.kind + ' ' + p.score.toFixed(1); }).join(' | '));
+      okP('DISENGAGE: the wizard at 4 hp between two hobgoblins -- ' + (dg3 ? 'offered (' + dg3.why + ', ' + dg3.score.toFixed(1) + '), taken: ' + out3 : 'NOT OFFERED' + (got3 ? '' : ' (no turn)')) + '; at full hit points (' + w4.maxhp + ') beside one hobgoblin -- ' + (dg4 ? 'OFFERED' : 'not offered'),
+        !!dg3 && /^disengaged, .*, in 0 hobgoblins' reach, (\d+) > \1 hp$/.test(out3) && got4 && !dg4);
+    } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+    D.d = d0P;
+    var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
+    document.body.appendChild(preP);
+    return;
+  }
   // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
   // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
   // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)
@@ -10992,9 +11032,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okX('the bout on the simple screen (' + (bt1 && bt1.b.simple ? 'simple' : 'NOT simple') + ', no running: ' + (bt1 && !bt1.b.takesParty()) + ') on the Hex\'s sand (' + fd.ground + ', ' + fd.rows[SSX.C[1]].charAt(SSX.C[0]) + ' at the middle, the tiers up to ' + fd.heights[0].charAt(0) + '): ' + sn1.hero + ' against ' + sn1.foe + '; the crowd ' + sn1.crowd + ' round it, the party\'s three at the rail (' + sn1.mates + ')',
         !!bt1 && !!bt1.b.simple && !bt1.b.takesParty() && fd.ground === 'sand' && fd.rows[SSX.C[1]].charAt(SSX.C[0]) === '.' && fd.heights[0].charAt(0) === '3' && sn1.hero.length === 1 && sn1.foe.length === 1 && /^brawler@/.test(sn1.foe[0]) && sn1.crowd > 10 && sn1.mates === 3);
       okX('won (' + bt1.res + '): its card "' + bt1.card.slice(0, 50) + '"; Korvin\'s word "' + bt1.word.slice(0, 60) + '"; the purse ' + s0 + ' > ' + R1.silver + ', hex:brawl ' + R1.flags['hex:brawl'] + ', ' + hero1.name + ' ' + hero1.hp + '/' + hero1.maxhp + ', the log\'s bout lines ' + (B1.log || []).filter(function (l) { return /\[the Hex\]/.test(l); }).length,
-        bt1.res === 'won' && /THE ROOM ROARS/.test(bt1.card) && /E back to the Hex/.test(bt1.card) && bt1.word.indexOf(LX('hex.won', { name: hero1.name, n: 4 })) >= 0 && R1.silver === s0 + 4 && R1.flags['hex:brawl'] === 1 && hero1.hp >= 1 && D.top() === B1 && D.roam.def.hexIn === 1 && (B1.log || []).some(function (l) { return /\[the Hex\]/.test(l); }));
+        bt1.res === 'won' && /THE ROOM ROARS/.test(bt1.card) && /E back to the Hex/.test(bt1.card) && bt1.word.indexOf(LX('hex.won', { name: hero1.name, n: 10 })) >= 0 && R1.silver === s0 + (s0 >= 5 ? 5 : 10) && /* (11-16, his ruling: the brawl five in, ten out -- the crowd fronts a short purse's five) */ R1.flags['hex:brawl'] === 1 && hero1.hp >= 1 && D.top() === B1 && D.roam.def.hexIn === 1 && (B1.log || []).some(function (l) { return /\[the Hex\]/.test(l); }));
       var sl2 = useX(B1, kv, [1]);
-      okX('the slate again: the freeman challenge open now, the brawl starred (' + sl2.seen.split(' / ').filter(function (l) { return /^\[/.test(l); })[0] + '); WHO TAKES THE SAND? NOT NOW: no stake taken (' + R1.silver + ')', !!sl2.sc && /FREEMAN CHALLENGE -- 5 IN/.test(sl2.seen) && /\* BRAWL IN THE SMALL SAND/.test(sl2.seen) && /WHO TAKES THE SAND\?/.test(sl2.seen) && R1.silver === s0 + 4);
+      okX('the slate again: the freeman challenge open now, the brawl starred (' + sl2.seen.split(' / ').filter(function (l) { return /^\[/.test(l); })[0] + '); WHO TAKES THE SAND? NOT NOW: no stake taken (' + R1.silver + ')', !!sl2.sc && /FREEMAN CHALLENGE -- 5 IN/.test(sl2.seen) && /\* BRAWL IN THE SMALL SAND/.test(sl2.seen) && /WHO TAKES THE SAND\?/.test(sl2.seen) && R1.silver === s0 + (s0 >= 5 ? 5 : 10)); // (11-16: the brawl five in, ten out)
       // up the spiral to the gambling floor
       besideX(B1, [10, 6]); useX(B1, [10, 6]); var B2 = topX(), d2 = D.roam.def, f2 = folkX(B2);
       okX('E at the west spiral, up: the gambling floor (' + d2.key + '), on ' + B2.roam.token.x + ',' + B2.roam.token.y + '; its people (' + f2.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); the opening over the sand shut (' + chX(12, 13) + '), the ring and the bow boards (' + chX(1, 13) + chX(12, 8) + ')',
@@ -15378,7 +15418,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var hexW = function (fl) { var q = CJ.quests({ flags: Object.assign({ heardHex: 1 }, fl), inv: [], party: [] }).filter(function (x) { return x.id === 'hex'; })[0]; return q ? (q.done ? 'done' : q.where) : 'none'; };
       var w0 = hexW({}), w1 = hexW({ 'hex:brawl': 1 }), w3 = hexW({ 'hex:brawl': 1, 'hex:freeman': 1, 'hex:card': 1 }), w4 = hexW({ 'hex:brawl': 1, 'hex:freeman': 1, 'hex:card': 1, 'hex:talmok': 1, talmokBeaten: 1 });
       okJ('FIGHT NIGHT: "' + w0 + '" / then "' + w1.slice(-60) + '" / then "' + w3.slice(-50) + '" / Talmok beaten: ' + w4,
-        /Next on the card: the brawl in the small sand -- no stake; 4 silver to the one left standing\./.test(w0) && /the Freeman Challenge, a stable's fighter -- 5 silver in, 10 if you win\./.test(w1) && /Talmok, the champion -- 5 silver in, 10 if you win\./.test(w3) && w4 === 'done');
+        /Next on the card: the brawl in the small sand -- 5 silver in, 10 if you win\./.test(w0) && /the Freeman Challenge, a stable's fighter -- 5 silver in, 10 if you win\./.test(w1) && /Talmok, the champion -- 5 silver in, 10 if you win\./.test(w3) && w4 === 'done');
       // 13. WHEN YOU'RE READY in the second game's JOURNAL, at level 3 (content/quests.json -> data/data.js, the second game's; the first game reads first/content/)
       var qR = CJ.quests({ flags: { wintersMet: 1 }, inv: [], party: [] }).filter(function (x) { return x.id === 'ring'; })[0];
       okJ('WHEN YOU\'RE READY in the list: ' + (qR && qR.name) + ' -- "' + (qR && qR.text || '').slice(-50) + '", NEXT "' + (qR && qR.where || '').slice(0, 50) + '"; no level 4 in it (' + !/level 4/.test((qR && qR.text || '') + (qR && qR.where || '')) + ')',
