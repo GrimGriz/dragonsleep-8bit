@@ -16886,6 +16886,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       Object.keys(SK5).forEach(function (k) { var a = SK5[k]; if (Array.isArray(a)) a.forEach(function (d) { if (d && typeof d.to === 'string' && TOCOME.test(d.to)) sk5.push(k + ' ' + d.id + ': "' + d.to + '"'); }); });
       [SK5.BLINES, SK5.LINES, SK5.CLINES, SK5.LLINES].forEach(function (o) { Object.keys(o || {}).forEach(function (k) { if (typeof o[k] === 'string' && TOCOME.test(o[k])) sk5.push('lines ' + k); }); });
       okWB('5 Sólskaft: ' + nW5 + ' folk\'s words, its doors\' lines and the funerary\'s, none to come' + (sk5.length ? ' -- ' + sk5.join('; ') : ''), nW5 >= 4 && !sk5.length);
+      // 5b Pyro on his talking portrait (the counter's script, not SK.WORDS): every box a line, none undefined (11-16, Griz: "undefined second pyro block on live" -- the second box read w[1] after the "to come" line went)
+      var sc5 = { said: [], say: function (ls) { sc5.said.push([].concat(ls)); return null; } }, py5 = [];
+      try { var it5 = D.counter && D.counter.SCRIPTS && D.counter.SCRIPTS.pyro ? D.counter.SCRIPTS.pyro(sc5) : null; if (!it5) py5.push('no script'); for (var k5 = 0; it5 && k5 < 8 && !it5.next().done; k5++) {} } catch (eP5) { py5.push('threw ' + eP5.message); }
+      sc5.said.forEach(function (ls) { if (!ls.length || ls.some(function (l) { return l == null || l === '' || /undefined/.test(String(l)); })) py5.push(JSON.stringify(ls)); });
+      okWB('5b Pyro on his talking portrait: ' + sc5.said.length + ' box(es) ' + JSON.stringify(sc5.said).slice(0, 140) + ' (want each box a line, none undefined)' + (py5.length ? ' -- ' + py5.join('; ') : ''), sc5.said.length >= 1 && !py5.length);
       var WS5 = D.world.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(WS5); WS5.enter(); var MW5 = (D.world.map && D.world.map('world')) || D.world.M(), rt5 = (MW5.routes || [])[0] || (MW5.held || [])[0], card5 = '' /* (the Coldridge Route: held off THE WORLD till its road is on -- W.ROUTES_ON) */;
       if (rt5) { WS5.cards.length = 0; WS5.offerRoute({ r: rt5, end: 0 }); card5 = plainWB((WS5.cards[0] || { lines: [] }).lines.join(' / ')); }
       okWB('5 THE WORLD\'s mountain road: "' + card5.slice(0, 120) + '" (want its days, nothing to come)', !!rt5 && /days to/.test(card5) && !TOCOME.test(card5));

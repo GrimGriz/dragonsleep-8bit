@@ -322,7 +322,7 @@
     yield* fire0.apply(this, arguments);
   };
   // Pyro's word on his face (js/counter.js C.talk): the line grave -- "a compliment, and a warning" -- then the note that his meeting is to come, attentive
-  if (D.counter && D.counter.SCRIPTS) D.counter.SCRIPTS.pyro = function* (sc) { var w = SK.WORDS.pyro(); yield sc.say([w[0]], 'grave'); yield sc.say([w[1]], 'attentive'); };
+  if (D.counter && D.counter.SCRIPTS) D.counter.SCRIPTS.pyro = function* (sc) { var w = SK.WORDS.pyro(); yield sc.say([w[0]], 'grave'); if (w[1]) yield sc.say([w[1]], 'attentive'); }; // (a second box only when his words have a second line: since the "to come" line went (9f2245e4) the second box said "undefined" -- 11-16, Griz: "undefined second pyro block on live")
   // the squares: the signs, and the doors that say where they will go (a step onto a way off steps back)
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
