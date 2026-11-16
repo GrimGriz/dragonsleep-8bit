@@ -20523,6 +20523,26 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       finally { CIS.talk = talk0IS; D.house.playing = play0IS; }
       okIS('W3 an older save past the ettercap: ' + dueO + ', the braid in the pack ' + CIS.count(stO, 'cord') + '; into Percy\'s (offer due), into Marko\'s, into Percy\'s offered and no braid, into Percy\'s after this visit\'s word: Ned speaks ' + JSON.stringify(talked),
         dueO === 'braid' && CIS.count(stO, 'cord') === 1 && stO.flags.cordTaken === 1 && talked.join() === 'ned');
+      // W4 THE DOOR, in the house (deep16/?at=nedwand16): E at Percy's door -- in, and Ned's screen comes up on its own: the offer and "Is that the braid?"; HERE IT IS: the morning
+      var memW4 = {}, stGW4 = D.store.get, stSW4 = D.store.set, musW4 = D.music, HW4 = D.house;
+      function drvW4(g, until, cap) { var v, k = 0, s; while (k++ < (cap || 4000)) { if (until && until()) return true; s = g.next(v); v = undefined; if (s.done) return !!(until && until()); } return !!(until && until()); }
+      function upW4() { return D.top() instanceof CIS.Counter; }
+      function clkW4(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+      function goW4(sc, go, label) { return clkW4(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+      function readW4(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goW4(sc, 'next'); } return out; }
+      D.store.get = function (k) { return memW4[k] ? JSON.parse(memW4[k]) : null; }; D.store.set = function (k, v) { memW4[k] = JSON.stringify(v); return true; }; D.music = function () { };
+      try {
+        HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop();
+        D.sit16.open('nedwand16'); var B4 = D.top(); if (B4 && B4.baking) { B4.baking = false; B4.enter(); }
+        var trP = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'warp:percy'; })[0], g4 = trP ? D.town.fire(B4, trP) : null, up4 = g4 ? drvW4(g4, upW4, 900) : false, sc4 = D.top();
+        var pre4 = up4 ? readW4(sc4).join(' ') : '', ask4 = up4 && sc4.wait && sc4.wait.ask ? [].concat(sc4.wait.ask).join(' ') : '', optB4 = function () { return sc4.buttons().filter(function (q) { return q.go === 'opt'; }); }, pg4 = 0;
+        while (up4 && !optB4().length && pg4++ < 12) goW4(sc4, 'next'); // (the ask over pages: its choices on its last)
+        var opts4 = up4 ? sc4.buttons().filter(function (q) { return q.go === 'opt'; }).map(function (q) { return q.label; }).join(' | ') : '';
+        if (up4) goW4(sc4, 'opt', 'Here it is.'); var aft4 = up4 ? readW4(sc4).join(' ') : '', st4 = CIS.state(B4);
+        okIS('W4 into Percy\'s on the situation (' + (D.roam.def && D.roam.def.room) + '): Ned\'s screen up ' + up4 + ' -- "' + window.DS.stripCodes(pre4 + ' ' + ask4).slice(0, 500) + '" [' + opts4 + '] > HERE IT IS: "' + window.DS.stripCodes(aft4).slice(0, 200) + '" -- braid in the pack ' + CIS.count(st4, 'cord') + ', nedBraid ' + st4.flags.nedBraid,
+          up4 && /Hessle/.test(pre4 + ask4) && /Is that the braid/.test(ask4) && /Here it is\./.test(opts4) && /Come back in the morning/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
+        if (g4) drvW4(g4, null, 300);
+      } finally { HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop(); D.store.get = stGW4; D.store.set = stSW4; D.music = musW4; }
       // G1 the deep gallery: the cloaker's victim on the bones square 17,20 -- its `use` trigger laid by the floor's setup, had by E from beside it, its heap drawn (deep16/art/victim_p1, eight facings)
       var memG = {}, stG0 = D.store.get, stS0 = D.store.set, musG = D.music; D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; }; D.music = function () { };
       try {
