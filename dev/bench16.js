@@ -20179,7 +20179,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // THE PEGASUS, 11-15 (mode=pegasus1115; tools/pegasus-sheet.py, data/foes.js pegasus -- the NPC cutter seat, art-wanted 64's celestial, the art desk's 69):
   // the SRD 5.1 block; its sheet's rows, the Hooves landing on frame 5, the fly band stood on the ground line (the grid lifts a flier itself); its rows in a
   // fight are the show's (check.py's show line-up). RE-CUT 11-16 from the art desk's illustrated redraw (the redraw cutter seat): the idle at the standard 8
-  // (every other of its 16, his "only use the standard number of frames for the pegasus idle"), Prone 2 and no get-up, Rear Back HELD (his word where it plays), Take Flight played by js/battle.js flyTo on a rise from the ground, lifted by the row's own `rise`
+  // (every other of its 16, his "only use the standard number of frames for the pegasus idle"), Prone 2 and no get-up, Rear Back on its first sight of the party (his word, "first sees the party": js/ai.js turnOf), Take Flight played by js/battle.js flyTo on a rise
+  // from the ground, lifted by the row's own `rise` (his "take flight everywhere")
   if (get('mode', '') === 'pegasus1115') {
     var repP = { checks: [], errors: [] };
     function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -20192,8 +20193,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okP('its sheet (' + (PG && PG.sheet) + '): ' + Object.keys(wantP).length + ' rows at their counts (the idle the standard 8, Prone 2, Rear Back and Take Flight), no get-up, the Hooves landing on frame 5' + (offP.length ? ' -- off: ' + offP.join(', ') : ''),
         !!SP0 && SP0.fw === 144 && SP0.fh === 152 && SP0.ay === 114 && !offP.length && aP.attack.release === 4);
       var riseP = aP && aP.takeflight && aP.takeflight.rise;
-      okP('its Rear Back held for his word (' + (aP && aP.rearback && aP.rearback.held ? 'held' : 'NOT held') + ', so the show wants it not); its Take Flight\'s rise ' + JSON.stringify(riseP) + ' (from the ground to the top, never down)',
-        !!(aP && aP.rearback && aP.rearback.held) && !!riseP && riseP.length === 8 && riseP[0] === 0 && riseP[7] === 1 && riseP.every(function (v, i) { return !i || v >= riseP[i - 1]; }) && D.show.wanted(PG.sheet, 'pegasus').indexOf('rearback') < 0 && D.show.wanted(PG.sheet, 'pegasus').indexOf('takeflight') >= 0);
+      okP('its Rear Back no longer held (' + (aP && aP.rearback && aP.rearback.held ? 'STILL held' : 'played') + ': his "first sees the party"), so the show wants it; its Take Flight\'s rise ' + JSON.stringify(riseP) + ' (from the ground to the top, never down)',
+        !!(aP && aP.rearback && !aP.rearback.held) && D.show.wanted(PG.sheet, 'pegasus').indexOf('rearback') >= 0 && !!riseP && riseP.length === 8 && riseP[0] === 0 && riseP[7] === 1 && riseP.every(function (v, i) { return !i || v >= riseP[i - 1]; }) && D.show.wanted(PG.sheet, 'pegasus').indexOf('takeflight') >= 0);
       // the take-off: a pegasus on the ground rises 10 ft in place (js/battle.js flyTo), a tick at a time -- Take Flight from its first tick, the ground under it while
       // the row's first frames gather the wings, then up with the row's rise, aloft at the top on its fly row; down again on its walk, not the take-off
       var BPg = D.npcFight('?npc=pegasus&vs=fighter:3&lvl=3', {}); D.battle = BPg; BPg.enter(); var kPg = 0; while (!BPg.order.length && kPg++ < 400) BPg.co.next();
@@ -20208,6 +20209,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okP('the take-off: ' + tPg.length + ' ticks (the row ' + durPg + '), Take Flight throughout ' + allTk + ', on the ground till tick ' + firstUp + ' (its frames on the ground ' + (lastG + 1) + ': up from the start of the last, toward the next frame\'s height, at tick ' + gatherPg + '), only ever up ' + upOnly +
         '; at the top aloft on its fly row ' + topPg + '; down again on ' + downPg.join('/') + ', on the ground ' + (UPg.fz == null),
         tPg.length === durPg && allTk && firstUp === gatherPg && upOnly && topPg && downPg.indexOf('takeflight') < 0 && UPg.fz == null);
+      // REAR BACK on its first sight of the party (his word, 11-16: "first sees the party"; js/ai.js turnOf): the first of its turns with the fighter in view plays
+      // the row once, before anything else; its next turn does not; one that first sights them aloft does not rear (a standing pose), and never does after
+      var FPg = BPg.units.filter(function (w) { return w.side === 'party' && !w.familiar; })[0];
+      BPg.units.forEach(function (w) { if (w !== UPg && w !== FPg) w.left = true; });
+      var drainPg = function (g, rec) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; if (rec[rec.length - 1] !== UPg.anim) rec.push(UPg.anim); } while (!r.done && n++ < 20000); };
+      var turnPg = function () { var rec = []; FPg.hp = FPg.maxhp = 300; UPg.hp = UPg.maxhp; BPg.round = Math.max(1, BPg.round) + 1; BPg.active = UPg; D.rules.startTurn(UPg); drainPg(D.ai.turn(BPg, UPg), rec); BPg.active = null; return rec; };
+      UPg.fz = null; delete UPg.reared; FPg.x = UPg.x + 3; FPg.y = UPg.y; FPg.fz = null; GPg.setup(GPg.map, BPg.units);
+      var seesPg = D.magic.sees(BPg, UPg, FPg), r1Pg = turnPg(), r2Pg = turnPg();
+      delete UPg.reared; UPg.x = FPg.x - 3; UPg.y = FPg.y; UPg.fz = GPg.groundAt(UPg, UPg.x, UPg.y) + 2 * GPg.LAYER(); GPg.setup(GPg.map, BPg.units);
+      var r3Pg = turnPg(), mark3 = !!UPg.reared; UPg.fz = null; GPg.setup(GPg.map, BPg.units); var r4Pg = turnPg();
+      okP('Rear Back on first sight: it sees the fighter ' + seesPg + '; its first turn ' + r1Pg.join('/') + ', its second ' + r2Pg.join('/') + '; first sighting them aloft ' + r3Pg.join('/') + ' (marked ' + mark3 + '), then on the ground ' + r4Pg.join('/'),
+        seesPg && r1Pg[0] === 'rearback' && r1Pg.filter(function (a) { return a === 'rearback'; }).length === 1 && r2Pg.indexOf('rearback') < 0 && r3Pg.indexOf('rearback') < 0 && mark3 && r4Pg.indexOf('rearback') < 0);
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
     document.body.appendChild(preP);

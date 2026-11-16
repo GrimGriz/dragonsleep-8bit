@@ -19,8 +19,8 @@ Rows: Idle `idle` 8 -- the art desk drew 16 on his ask; on seeing its own 8-agai
 *"only use the standard number of frames for the pegasus idle"*: every other of the 16 (1, 3 .. 15, the art desk's own 8-phase sample, the film's
 left side; its frame 16 is frame 1 again) at the old 6 fps -- Walk `walk` 8, Hooves `attack` 8
 (the forehooves land on frame 5: `release` 4), Fall `hurt` 8, Fly `fly` 8, Flinch `flinch` 6, Prone `prone` 2 (frame 1 Fall 8's own pose,
-frame 2 the lying pose -- the grid lies on the row's last frame; no recovery is drawn, so no `getup`), Rear Back `rearback` 8 (HELD: no SRD
-action of the pegasus's is a rear, and where it plays is his word), Take Flight `takeflight` 8 (new: js/battle.js flyTo plays it on a rise from
+frame 2 the lying pose -- the grid lies on the row's last frame; no recovery is drawn, so no `getup`), Rear Back `rearback` 8 (no SRD
+action of the pegasus's is a rear; his word on where, 11-16: "first sees the party" -- js/ai.js plays it once, the first of its turns it sees the other side), Take Flight `takeflight` 8 (new: js/battle.js flyTo plays it on a rise from
 the ground; his word, 11-16: *"go ahead and get that ready even if we don't use it on the Pocket DM version, a pegasus encounter in game is
 likely to be scripted and we can use it then"*). FLY AND TAKE FLIGHT are drawn lifted (`lift_px`: Fly 17 throughout, Take Flight 0 0 0 4 8 12 15 17); the grid lifts a flier itself,
 so each frame is stood on the ground line by its own lift, the old fly band's way, and Take Flight's lift goes to the sheet as `rise` (the
@@ -54,7 +54,7 @@ PICK = {'idle': list(range(0, 16, 2))}   # (his "standard number of frames for t
 COUNT = {row: len(PICK.get(row, range(n))) for row, n in DRAWN.items()}
 FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'fly': 10, 'flinch': 12, 'prone': 1, 'rearback': 10, 'takeflight': 10}
 RELEASE = {'attack': 4}
-HELD = {'rearback': 'no SRD 5.1 action of the pegasus is a rear (its one blow is the Hooves, on `attack`): drawn by the art desk on his ask, where it plays is his word (11-16)'}
+HELD = {}       # (Rear Back held till his word, 11-16; then "first sees the party": js/ai.js turnOf)
 STOOD = ('fly', 'takeflight')        # (drawn lifted: each frame stood by its own lift_px)
 
 

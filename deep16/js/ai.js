@@ -118,6 +118,13 @@
     if (D.monsterRules && D.monsterRules.lured(B, u) && (yield* D.monsterRules.luredTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
+    // (a sheet's REAR BACK -- the pegasus's, the art desk's 11-16 redraw: Griz, asked where it plays, "first sees the party". The first of its turns that it sees one
+    // of the other side, it rears once, on the ground, before anything else -- a look, no action spent; first sighted while aloft it does not, the rear being a
+    // standing pose. u.reared marks the first sight either way, so it never rears again in that fight)
+    if (!u.reared && D.spr.anim(u.sheet, 'rearback') && B.units.some(function (w) { return w !== u && G.hostile(u, w) && G.standing(w) && !w.object && !w.conds.hidden && D.magic.sees(B, u, w); })) {
+      u.reared = true;
+      if (!G.aloft(u) && !u.conds.prone) { u.anim = 'rearback'; u.animT = B.t; yield D.spr.duration(u.sheet, 'rearback'); u.anim = 'idle'; u.animT = B.t; }
+    }
     // clinging to a face part way up (a slow climb speed: battle.js moveAlong, 10-04 night): the climb goes on before anything else; still on the face after, the turn is spent
     // ... unless it hunts climbers and one of ours still hangs within a column of it (the Skylights' spiders; 10-05 night, Griz: "get the spiders wall-crawling climbers (particularly
     // webbed ones)"): it holds the face and moves along it to their height instead (alongFace), and the turn goes on from there -- the bite
