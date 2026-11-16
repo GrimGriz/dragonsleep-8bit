@@ -362,6 +362,11 @@
     // ringing up out of it and held, a hiss of light; `mirroreye2` the short one, for each face after the first
     mirroreye: function (t) { tone(sfxBus, 'triangle', 33, t, 0.5, 0.3, null, -7); noise(sfxBus, t, 0.5, 0.22, 6500, 2.5); tone(sfxBus, 'soft', 89, t + 0.02, 1.3, 0.16); tone(sfxBus, 'soft', 96, t + 0.1, 1.2, 0.13); tone(sfxBus, 'soft', 100, t + 0.2, 1.1, 0.1); tone(sfxBus, 'triangle', 108, t + 0.02, 0.5, 0.07, null, 12); tone(sfxBus, 'pulse', 101, t + 0.3, 0.9, 0.035, 0.125); },
     mirroreye2: function (t) { tone(sfxBus, 'triangle', 36, t, 0.14, 0.24, null, -5); noise(sfxBus, t, 0.16, 0.14, 6500, 2.5); tone(sfxBus, 'soft', 96, t, 0.32, 0.14); tone(sfxBus, 'soft', 103, t + 0.04, 0.3, 0.1); },
+    // the black egg (the second game's, deep16/js/blackegg.js -- 11-15, Something Went By): `starsout` every star going out at once -- a high glitter falling away and a
+    // low breath under it, then nothing; `starsback` them coming back, a scatter of faint high pings; `eggstars` the egg itself, a low soft bell in place of the other eggs' rimshot
+    starsout: function (t) { [100, 97, 93, 88, 84, 79].forEach(function (m, i) { tone(sfxBus, 'soft', m, t + i * 0.035, 0.24 - i * 0.025, 0.07 - i * 0.008, null, -4); }); noise(sfxBus, t, 0.4, 0.07, 5200, 2); tone(sfxBus, 'triangle', 31, t + 0.06, 1.2, 0.13, null, -2); },
+    starsback: function (t) { [103, 98, 108, 100, 110, 96, 105].forEach(function (m, i) { tone(sfxBus, 'soft', m, t + i * 0.07 + (i % 2) * 0.03, 0.12, 0.035); }); },
+    eggstars: function (t) { tone(sfxBus, 'soft', 45, t, 1.6, 0.16); tone(sfxBus, 'soft', 57, t + 0.01, 1.3, 0.1); tone(sfxBus, 'triangle', 76, t + 0.02, 0.9, 0.05); tone(sfxBus, 'soft', 88, t + 0.3, 0.8, 0.04); },
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
     error: function (t) { tone(sfxBus, 'pulse', 50, t, 0.12, 0.14, 0.5); },
     popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); },

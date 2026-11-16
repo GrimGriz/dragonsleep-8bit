@@ -3598,7 +3598,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okWn('THE BUCKET LIST, the yellow egg: on the night above the egg ' + n22.f.eggBucket + ' and the night\'s mark ' + (cloakB ? 1 : 0) + ' (trail: ' + (n22.tr.filter(function (x) { return /BUCKET LIST/.test(x); })[0] || 'NONE') + '); ' + (n22.o.match(/All of it, over [^.]*\./) || ['no line'])[0] + '; under its plates the Cloak of the Manta Ray ' + cloakB + ' (rings of protection ' + ringB + '); asked again on that save: shown ' + !(againB.done && againB.value === false) + '; on a save without it: a scene, egg ' + (scB && scB.egg) + ', ' + (scB && scB.frames) + ' frames, its sounds ' + sfxB.join(' ') + ', then done ' + y2B.done + ' kept ' + y2B.value + ' flag ' + fakeB.roam.flags.eggBucket + '; its line "' + ME.line + '", ' + ME.hue + '; the title\'s eggs ' + JSON.stringify(eggsB) + ' (none found: ' + JSON.stringify(eggs0B) + '); a kill with NO bucket behind it: ' + idPlain + ' ' + nPlain0 + ' -> ' + nPlain1 + ', cloaks still ' + cloakPlain,
         n22.f.eggBucket === 1 && n22.tr.filter(function (x) { return /THE BUCKET LIST: the yellow egg/.test(x); }).length === 1 && /All of it, over the party\./.test(n22.o) && cloakB === 1 && againB.done === true && againB.value === false &&
         !!scB && scB.egg === 'bucket' && typeof scB.draw === 'function' && scB.frames === 230 && sfxB.join(' ') === 'rimshot shine' && y2B.done === true && y2B.value === true && fakeB.roam.flags.eggBucket === 1 && ME.line === 'Bucket List' && ME.hue === 'yellow' && ME.flag === 'eggBucket' &&
-        eggsB.length === 7 && eggsB[6] === 'yellow' && eggsB[5] === null && eggs0B.every(function (x) { return x === null; }) && idPlain !== 'cloakmantaray' && nPlain1 === nPlain0 + 1 && cloakPlain === cloakB);
+        eggsB.length === 8 && eggsB[6] === 'yellow' && eggsB[5] === null && eggsB[7] === null /* (the eighth: the black egg's own entry, 11-15 -- re-pointed, not loosened) */ && eggs0B.every(function (x) { return x === null; }) && idPlain !== 'cloakmantaray' && nPlain1 === nPlain0 + 1 && cloakPlain === cloakB);
       // A HERO OFF THE STONE, THE CHUUL WHOLE (11-13, the inn seat of 11-13; the last seat's list: the night's check above rises a chuul at 2 hit points, so the take on a hero
       // was benched only by its start). The same night with every save low -- nobody wakes on the water -- and the thing whole: it turns to the one on the stone, the grab
       // without harm, the carry through the shallows, down in the deep with him never disturbed; the cold wakes the rest; the morning says who is not with them
@@ -10890,6 +10890,121 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preN);
     return;
   }
+  // SOMETHING WENT BY, THE BLACK EGG, 11-15 (mode=blackegg1115; the black-egg seat -- Griz, 11-05: "Jot that one as the party being within 5 miles of the Vessel on its
+  // actual path without triggering an encounter (to be built later)"; 11-15: "that egg reward is going to have to come to the player after the event that triggers it (to not
+  // reveal old one's actual location), suggest reasonable reward delay", and "Yes, that delay"): js/blackegg.js. 1. the reading -- five miles, point to point, from the dawn he
+  // sets out; 2. the pass on THE WORLD: kept in the save, nothing on the screen, no die drawn; 3. a sleep begun under 24 hours after: nothing; 4. a sleep begun 24 hours or more
+  // after: paid, and the beat in the morning page's dark -- the stars out for a breath, back, the egg, its sounds; 5. once a save; 6. no sleep: the third dawn, on THE WORLD
+  // idle; 7. met: shut; 8. the title's black egg; 9. the show's three beats. survey=<file:///...json> (not the gate's): quest walk tracks against his road (the seat's report)
+  if (get('mode', '') === 'blackegg1115') {
+    var repBK = { checks: [], errors: [], notes: [] }, memBK = {}, stGBK = D.store.get, stSBK = D.store.set, ctx0BK = D.ctx, rand0BK = D.rand, sfx0BK = D.sfx, autoBK = window.DS.autoPicks;
+    function okBK(what, v) { repBK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memBK[k] ? JSON.parse(memBK[k]) : null; }; D.store.set = function (k, v) { memBK[k] = JSON.stringify(v); return true; };
+    try {
+      var BE = D.blackEgg, HB = D.house, WB = D.world, ME = D.magic && D.magic.EGGS && D.magic.EGGS.stars;
+      okBK('0 js/blackegg.js is loaded: D.blackEgg ' + !!BE + '; its egg in js/grimoire.js M.EGGS.stars ' + JSON.stringify(ME) + '; in js/house.js H.EGGS ' + JSON.stringify((HB.EGGS || []).filter(function (e) { return e.id === 'stars'; })[0] || null),
+        !!BE && !!ME && ME.flag === 'eggStars' && ME.line === 'Something Went By' && ME.hue === 'black' && (HB.EGGS || []).some(function (e) { return e.id === 'stars' && e.flag === 'eggStars' && e.hue === 'black'; }));
+      if (!BE) throw new Error('no D.blackEgg: the rest cannot run');
+      var cvBK = document.createElement('canvas'); cvBK.width = D.W; cvBK.height = D.H; var cxBK = cvBK.getContext('2d');
+      var randN = 0; D.rand = function () { randN++; return rand0BK.apply(this, arguments); };
+      var sfxL = []; D.sfx = function (id) { sfxL.push(id); };
+      window.DS.autoPicks = true;
+      WB.index(); var tp = BE.SHOW.t, V = WB.VESSEL, rec = function () { return WB.state().stars || {}; };
+      // a game on THE WORLD, the four at 3rd, no road fights; the party set at a point and an hour, the stars' record as given (the last look there, so the clock is read from here)
+      var game = function (pt, t, stars) { var r = HB.fresh(); r.at = { town: null }; if (D.save && D.save.fixture) r.party = D.save.fixture(3).party; HB.begin(r, 0, '?world&fresh&noenc&far'); var S = BE.stage(pt, t); var pp = WB.partyPt(); S.stars = stars || {}; if (stars) S.stars.last = [S.t, pp[0], pp[1]]; return WB.scene; };
+      var frames = function (sc, n) { for (var i = 0; i < n; i++) sc.update(); };
+      var wake = function () { var m = D.top(), k = 0; while (m instanceof HB.Morning && !m.over && k++ < 40) { if (m.phase === 'night' || m.phase === 'dawn') m.next(); else if (m.phase === 'picks') { if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } }; // (the morning walked through: no picks, no SAVE)
+      var camp = function (sc) { var S = WB.state(), e = WB.M().hex[WB.K(S.at[0], S.at[1])]; S.zone = WB.zoneOf(e); S.count = 1e9; HB.runNight(sc, HB.watchDefault(HB.cur.party.filter(function (h) { return !h.dead && h.hp > 0; }))); return D.top(); }; // (no watch's fight: the count held off)
+      var vAt = function (t) { return WB.vesselAt(t); }, mi = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+      // 1. the reading: five straight miles, his point to the party's; nothing before the dawn he sets out
+      var v0 = vAt(tp), sIn = {}, sOut = {}, sEarly = {}; BE.see(sIn, tp, [v0.pt[0] + 4.9, v0.pt[1]]); BE.see(sOut, tp, [v0.pt[0] + 5.1, v0.pt[1]]);
+      game(vAt(20).pt, 20, null); var S1 = WB.state(); S1.stars = {}; BE.tick(); var early = !!(S1.stars.pass); S1.t = BE.from() - 0.01; BE.tick(); var early2 = !!S1.stars.pass; S1.t = BE.from() + 0.5; BE.tick();
+      okBK('1 the reading: 4.9 mi from his point on day 7 at 15:00 a pass (' + JSON.stringify(sIn.pass || null) + '), 5.1 mi none (' + JSON.stringify(sOut.pass || null) + '); standing on him at ' + vAt(20).hex + ' on day 1 at 20:00 none (' + early + '), at 05:59 of day 2 none (' + early2 + '), at 06:30 a pass ' + JSON.stringify(S1.stars.pass || null) + ' (BE.MILES ' + BE.MILES + ', from ' + BE.from() + 'h)',
+        !!sIn.pass && sIn.pass.day === 7 && Math.abs(sIn.pass.d - 4.9) < 0.01 && !sOut.pass && !early && !early2 && !!S1.stars.pass && S1.stars.pass.day === 2 && BE.MILES === 5);
+      // 2. THE PASS on THE WORLD: the show's own point beside his road, the World's own frames -- recorded, and nothing on the screen
+      var ptP = BE.side(v0.pt, 4), scP = game(ptP, tp - 0.5, null), SP = WB.state(); SP.stars = {}; var pp0 = WB.partyPt(); SP.stars.last = [SP.t, pp0[0], pp0[1]];
+      var n0 = D.scenes.length, top0 = D.top(), msg0 = scP.msg ? scP.msg.s : null, cards0 = scP.cards.length; sfxL.length = 0; randN = 0;
+      SP.t = tp; frames(scP, 30); var stP = SP.stars, dP = mi(WB.partyPt(), v0.pt);
+      okBK('2 THE PASS: the party ' + dP.toFixed(2) + ' mi from him at ' + vAt(tp).hex + ' on day 7 at 15:00 (its hex ' + SP.at + '): kept in the save ' + JSON.stringify(stP.pass || null) + ' (the save\'s own walk ' + (HB.cur.world === SP) + '); on the screen: scenes ' + n0 + ' to ' + D.scenes.length + ', the top the same ' + (D.top() === top0) + ', cards ' + cards0 + ' to ' + scP.cards.length + ', the line the same ' + ((scP.msg ? scP.msg.s : null) === msg0) + ', sounds ' + JSON.stringify(sfxL) + ', dice drawn ' + randN + '; the flag ' + !!HB.cur.flags.eggStars,
+        !!stP.pass && stP.pass.day === 7 && stP.pass.d <= 5 && stP.pass.d > 2.9 && HB.cur.world === SP && D.scenes.length === n0 && D.top() === top0 && scP.cards.length === cards0 && (scP.msg ? scP.msg.s : null) === msg0 && !sfxL.length && randN === 0 && !HB.cur.flags.eggStars && stP.paid == null);
+      // ... and a step's hours followed: the party walked past him between two looks (the clock moved six hours at once) is a pass all the same
+      var far = [v0.pt[0] - 12, v0.pt[1]], far2 = [v0.pt[0] + 12, v0.pt[1]], st2 = { last: [tp - 3, far[0], far[1]] }, S2 = WB.state(); S2.stars = st2; S2.t = tp + 3; var at2 = S2.at; S2.at = WB.hexOf(far2[0], far2[1]); var pt2 = WB.partyPt(); BE.tick(); S2.at = at2;
+      okBK('2 between two looks six hours apart, the party from 12 mi one side of him to ' + mi(pt2, vAt(tp + 3).pt).toFixed(1) + ' mi the other: a pass ' + JSON.stringify(st2.pass || null) + ' (the clock followed every ' + BE.STEP + ' h)', !!st2.pass && st2.pass.d <= 5);
+      // 3. a sleep begun under 24 hours after the pass: nothing
+      var away = BE.away(), sc3 = game(away, tp + 6, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); D.ctx = cxBK; var m3 = camp(sc3), st3 = rec();
+      okBK('3 a camp begun 6 hours after the pass (day 7 at 21:00, ' + mi(WB.partyPt(), vAt(tp + 6).pt).toFixed(0) + ' mi from him): the morning page ' + (m3 instanceof HB.Morning) + ', the beat on it ' + !!(m3 && m3.stars) + ', paid ' + st3.paid + ', the flag ' + !!HB.cur.flags.eggStars,
+        m3 instanceof HB.Morning && !m3.stars && st3.paid == null && !HB.cur.flags.eggStars);
+      wake(); D.ctx = ctx0BK;
+      // 4. a sleep begun 24 hours or more after: paid -- in the morning page's dark, the beat
+      var sc4 = game(away, tp + 30, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); D.ctx = cxBK; sfxL.length = 0; randN = 0; var m4 = camp(sc4), st4 = rec(), tr4 = (HB.cur.trail || []).filter(function (x) { return /SOMETHING WENT BY/.test(x.s); });
+      var lit = function (y1) { var d = cxBK.getImageData(0, 0, D.W, y1).data, n = 0; for (var i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 330) n++; return n; }, shots = {}, phases = [], kB = 0;
+      while (m4 && m4.phase === 'night' && kB++ < 2000) { m4.update(); var tB = m4.stars ? m4.stars.t : -1; if (tB === 60 || tB === 150 || tB === 250 || tB === BE.T.egg + 40) { cxBK.clearRect(0, 0, D.W, D.H); m4.draw(cxBK); shots[tB] = lit(Math.round(D.H * 0.3)); } }
+      okBK('4 a camp begun 30 hours after the pass (day 8 at 21:00): paid at "' + st4.how + '" (the flag ' + HB.cur.flags.eggStars + ', the trail: ' + (tr4[0] ? tr4[0].s : 'NONE') + '); the morning page\'s night is the beat (' + !!(m4 && m4.stars) + '), ' + kB + ' frames; bright points in the sky at 60, 150 (the breath), 250 (back): ' + [shots[60], shots[150], shots[250]].join(', ') + ', and over the egg ' + shots[BE.T.egg + 40] + '; the sounds ' + sfxL.join(' ') + '; then ' + (m4 && m4.phase) + '; dice drawn ' + randN,
+        !!m4 && !!m4.stars && st4.paid != null && /sleep/.test(st4.how) && HB.cur.flags.eggStars === 1 && tr4.length === 1 && shots[60] > 20 && shots[150] === 0 && shots[250] > 20 && m4.phase === 'dawn' && sfxL.slice(0, 5).join(' ') === 'starsout starsback eggstars shine shine' && randN === 0 && st4.shown === true /* (then the dawn page's own confirm) */);
+      wake(); D.ctx = ctx0BK;
+      // 5. once a save: a second pass, a sleep 30 hours after it -- nothing more
+      var S5 = WB.state(), paid5 = S5.stars.paid; BE.stage(BE.side(vAt(tp + 40).pt, 4) || vAt(tp + 40).pt, tp + 40); frames(sc4, 3); var pass5 = JSON.stringify(S5.stars.pass); BE.stage(away, tp + 72); D.ctx = cxBK; var m5 = camp(sc4);
+      okBK('5 once a save: walked within four miles of him again on day 8 (the record ' + pass5 + ' unmoved), a camp 32 hours after it: the beat ' + !!(m5 && m5.stars) + ', paid still at ' + S5.stars.paid + ' (was ' + paid5 + '), the trail\'s egg lines ' + (HB.cur.trail || []).filter(function (x) { return /SOMETHING WENT BY/.test(x.s); }).length,
+        !(m5 && m5.stars) && S5.stars.paid === paid5 && (HB.cur.trail || []).filter(function (x) { return /SOMETHING WENT BY/.test(x.s); }).length === 1);
+      wake(); D.ctx = ctx0BK;
+      // 6. no sleep: the third dawn after the pass (06:00 of day 10 for 15:00 of day 7), on THE WORLD when it stands idle -- and with no screen, the flag alone
+      var d3 = BE.dawn3(tp), sc6 = game(away, d3 - 0.5, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); D.ctx = cxBK; frames(sc6, 3); var before6 = rec().paid; WB.state().t = d3 + 0.05; sfxL.length = 0; frames(sc6, 1); var top6 = D.top(), beat6 = top6 && top6.kind === 'blackegg', how6 = rec().how, k6 = 0;
+      while (D.top() === top6 && k6++ < 2000) top6.update(); var back6 = D.top() === sc6;
+      okBK('6 no sleep: the third dawn is day ' + (Math.floor(d3 / 24) + 1) + ' at ' + (d3 % 24) + ':00 (' + d3 + 'h); half an hour before, paid ' + before6 + '; just after, paid at "' + how6 + '", the beat over THE WORLD ' + beat6 + ' (' + k6 + ' frames, its sounds ' + sfxL.join(' ') + '), THE WORLD on top again ' + back6 + ', the flag ' + HB.cur.flags.eggStars,
+        d3 === 9 * 24 + 6 && before6 == null && how6 === 'the third dawn' && beat6 && back6 && HB.cur.flags.eggStars === 1 && sfxL.join(' ') === 'starsout starsback eggstars shine shine');
+      D.ctx = null; var sc6b = game(away, d3 + 0.05, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); frames(sc6b, 2);
+      okBK('6 the same with no screen (a bench page): paid ' + rec().how + ', no scene (' + (D.top() === sc6b) + '), marked seen ' + rec().shown, rec().how === 'the third dawn' && D.top() === sc6b && rec().shown === true && HB.cur.flags.eggStars === 1);
+      D.ctx = ctx0BK;
+      // 7. met: his card on the road, or his watch at a camp -- the egg shut for that save; a sleep 30 hours after the pass pays nothing
+      var sc7 = game(away, tp + 1, { pass: { t: tp, d: 4, day: 7, hour: 15 } }), e7 = WB.M().hex[WB.K(WB.state().at[0], WB.state().at[1])]; sc7.encounter({ zone: 'x', Z: null, grp: { ripples: true }, list: ['ripples'], mirror: false, made: null, ripples: true }, e7); var met7 = rec().met; sc7.cards.length = 0;
+      BE.stage(away, tp + 30); D.ctx = cxBK; var m7 = camp(sc7);
+      var sc7b = game(away, tp + 1, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); D.ripples.campCard(sc7b, 1, [], function () { }); var met7b = rec().met; sc7b.cards.length = 0;
+      okBK('7 met on the road (his card) at ' + met7 + 'h: a camp 30 hours after the pass -- the beat ' + !!(m7 && m7.stars) + ', the flag ' + !!(HB.cur && HB.cur.flags.eggStars) + '; met at a camp (his watch\'s card) at ' + met7b + 'h, shut the same (' + (rec().met != null) + ')',
+        met7 === tp + 1 && !(m7 && m7.stars) && met7b === tp + 1 && !HB.cur.flags.eggStars);
+      wake(); D.ctx = ctx0BK;
+      // 8. the title's eggs: the black one found -- the eighth entry, under the box, its rim and its stars; the stars gone for a breath
+      var e8 = HB.eggsOf({ flags: { eggStars: 1 } }), b8 = { x: 90, y: 60, w: 300, h: 86 }, px8 = function (t) { cxBK.clearRect(0, 0, D.W, D.H); HB.drawEggs(cxBK, e8, b8, t); var d = cxBK.getImageData(b8.x, b8.y + b8.h + 4, b8.w, 30).data, rim = 0, star = 0; for (var i = 0; i < d.length; i += 4) { if (d[i] === 0x5C && d[i + 1] === 0x5E && d[i + 2] === 0x98) rim++; if (d[i] === 0xE8 && d[i + 1] === 0xEC && d[i + 2] === 0xFC) star++; } return [rim, star]; }, a8 = px8(0), o8 = px8(400);
+      okBK('8 the title\'s eggs for a save with it: ' + JSON.stringify(e8) + '; under the box its rim ' + a8[0] + ' px, its stars ' + a8[1] + ' px; at the breath (t 400) the stars ' + o8[1] + ' px, the rim ' + o8[0],
+        e8.length === 8 && e8[7] === 'black' && e8.slice(0, 7).every(function (x) { return x === null; }) && a8[0] > 20 && a8[1] >= 8 && o8[1] === 0 && o8[0] === a8[0]);
+      // 9. the show: deep16/?starsshow -- its three beats
+      D.ctx = cxBK; var shw = BE.showDoor('?starsshow'); D.scenes.length = 0; D.push(shw); shw.draw(cxBK);
+      BE.play(BE.BEATS[0]); var scS = D.top(); frames(scS, 4); var sP = rec();
+      BE.play(BE.BEATS[1]); var mS = D.top(), sN = rec();
+      wake(); BE.play(BE.BEATS[2]); var scD = D.top(); frames(scD, 1); var bD = D.top();
+      okBK('9 the show\'s beats: ' + BE.BEATS.map(function (b) { return b.id; }).join(', ') + ' -- the pass kept ' + JSON.stringify(sP.pass || null) + ' and nothing paid (' + sP.paid + '); the night: the morning page with the beat ' + !!(mS && mS.stars) + ', paid "' + sN.how + '"; the dawn: the beat over THE WORLD ' + (bD && bD.kind) + ', paid "' + rec().how + '"; the party\'s level ' + HB.cur.party.map(function (h) { return h.lvl; }).join('/'),
+        BE.BEATS.length === 3 && !!sP.pass && sP.pass.d <= 5 && sP.paid == null && !!(mS && mS.stars) && /sleep/.test(sN.how) && bD && bD.kind === 'blackegg' && rec().how === 'the third dawn' && HB.cur.party.every(function (h) { return h.lvl === 3; }));
+      // 10. a bed on a floor (Silverton's street stands in for a room): a night's sleep with no long rest -- no morning page, so the beat first, then the morning card; and a
+      // long rest in a bed -- the beat in the morning page's dark, as the camp's
+      var floorBK = function (t) { var r = HB.fresh(); r.at = { town: 'silverton', gate: 'west', sq: null, dir: null }; HB.begin(r, 0); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; for (var q = 0; q < 2 && B.co; q++) { var r0 = B.co.next(); if (r0.done) break; } var S = WB.state(); S.t = t; var pp = WB.partyPt(); S.stars = { pass: { t: tp, d: 4, day: 7, hour: 15 }, last: [S.t, pp[0], pp[1]] }; return B; };
+      var B10 = floorBK(tp + 30), seq10 = [], card10 = B10.card; B10.card = function () { seq10.push('card'); return card10.apply(this, arguments); };
+      var g10 = HB.sleepOnFloor(B10, { noLong: true, hours: 8, title: 'MORNING' }), k10 = 0;
+      while (k10++ < 3000) { var t10 = D.top(); if (t10 && t10.kind === 'blackegg') { if (seq10[seq10.length - 1] !== 'beat') seq10.push('beat'); t10.update(); continue; } if (g10.next().done) break; }
+      B10.card = card10; var S10 = WB.state();
+      okBK('10 a bed with no long rest (a night\'s sleep inside the 24 hours), begun 30 hours after the pass: ' + seq10.join(' then ') + '; paid "' + rec().how + '", the flag on the save ' + HB.cur.flags.eggStars + ' and on the floor ' + B10.roam.flags.eggStars + ', the clock ' + (S10.t - (tp + 30)) + ' hours on',
+        seq10.join() === 'beat,card' && /sleep/.test(rec().how) && HB.cur.flags.eggStars === 1 && B10.roam.flags.eggStars === 1 && S10.t === tp + 38);
+      var B10b = floorBK(tp + 30), g10b = HB.sleepOnFloor(B10b, {}), k10b = 0, m10b = null;
+      while (k10b++ < 3000) { var t10b = D.top(); if (t10b instanceof HB.Morning) { if (!m10b) m10b = t10b; wake(); continue; } if (g10b.next().done) break; }
+      HB.fromFloor(B10b);
+      okBK('10 a long rest in a bed, begun 30 hours after the pass: the morning page\'s night the beat ' + !!(m10b && m10b.stars) + ', paid "' + rec().how + '"; the flag on the save after the floor hands its own back ' + HB.cur.flags.eggStars,
+        !!(m10b && m10b.stars) && /sleep/.test(rec().how) && HB.cur.flags.eggStars === 1);
+      D.ctx = ctx0BK;
+      // the survey (not the gate's): quest walk tracks against his road -- min miles, the passes, a meeting
+      var sv = get('survey', '');
+      if (sv) {
+        var xr = new XMLHttpRequest(); xr.open('GET', sv, false); xr.send(); var runs = JSON.parse(xr.responseText);
+        runs.forEach(function (r) {
+          var tr = r.track, best = { d: 1e9 }, passes = [], inR = false, metT = null;
+          (r.meets || []).forEach(function (m) { if (metT == null && /ripples/i.test(m.s || '')) metT = m.t; });
+          for (var j = 1; j < tr.length; j++) { var a = tr[j - 1], b = tr[j], n = Math.max(1, Math.ceil((b[0] - a[0]) / BE.STEP)); for (var k = 0; k <= n; k++) { var f = k / n, t = a[0] + (b[0] - a[0]) * f; if (t < BE.from()) continue; var p = [a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f], v = vAt(t), d = mi(p, v.pt); if (d < best.d) best = { d: d, t: t, hex: v.hex.join() }; if (d <= BE.MILES && !inR) { passes.push({ t: Math.round(t * 100) / 100, d: Math.round(d * 10) / 10 }); inR = true; } else if (d > BE.MILES) inR = false; } }
+          repBK.notes.push(r.name + ': closest ' + best.d.toFixed(1) + ' mi on day ' + (Math.floor(best.t / 24) + 1) + ' at ' + (best.t % 24).toFixed(2) + 'h (he at ' + best.hex + '); within 5 mi ' + (passes.length ? passes.map(function (x) { return 'day ' + (Math.floor(x.t / 24) + 1) + ' ' + (x.t % 24).toFixed(2) + 'h ' + x.d + 'mi'; }).join(', ') : 'never') + (metT != null ? '; MET him on day ' + (Math.floor(metT / 24) + 1) + ' at ' + (metT % 24).toFixed(2) + 'h' : ''));
+        });
+      }
+    } catch (eBK) { repBK.errors.push(String(eBK && eBK.stack || eBK).slice(0, 900)); }
+    D.store.get = stGBK; D.store.set = stSBK; D.ctx = ctx0BK; D.rand = rand0BK; D.sfx = sfx0BK; window.DS.autoPicks = autoBK; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preBK = document.createElement('pre'); preBK.id = 'out'; preBK.textContent = 'BENCH16 ' + JSON.stringify(repBK);
+    document.body.appendChild(preBK);
+    return;
+  }
   // THE VESSEL'S ROAD, 11-12 (mode=vessel1112; the vessel-road seat -- Griz: "Only thing we really need in there is the vessel's road to determine made creature spawn and
   // encounter rates - rest can hold"): his hex by the day against the 11-05 table as re-walked (js/world.js W.VESSEL.table), on to the Doors and held there from day 14 (his "1 - hold at 14"); the makings where he was;
   // the ground ahead of him clean; the road's fights by his trail, the dice pinned; nothing drawn without the debug flag
@@ -16110,7 +16225,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var cx1 = cv1.getContext('2d'), b1 = { x: 90, y: 90, w: 300, h: 86 };
       HHo.drawEggs(cx1, e1, b1, 0); var got1 = eggsAt(cx1, b1);
       okHo('1 a save with the darkness and dunking eggs: ' + JSON.stringify(e1) + '; drawn ' + got1.join(' ') + '; inside the box ' + pxHo(cx1, b1.x + 20, b1.y + 20) + ' (want shadow, violet, blue, three shadows; none inside)',
-        JSON.stringify(e1) === JSON.stringify([null, 'violet', 'blue', null, null, null, null]) && /* (the seventh: the Bucket List's own entry, 11-13 -- not found, not drawn; the six beside the box as they were) */ got1.join() === [SH, '#6844FC', '#0058F8', SH, SH, SH].join() && pxHo(cx1, b1.x + 20, b1.y + 20) === 'none');
+        JSON.stringify(e1) === JSON.stringify([null, 'violet', 'blue', null, null, null, null, null]) && /* (the seventh: the Bucket List's own entry, 11-13 -- not found, not drawn; the six beside the box as they were. The eighth: the black egg's, 11-15, the same) */ got1.join() === [SH, '#6844FC', '#0058F8', SH, SH, SH].join() && pxHo(cx1, b1.x + 20, b1.y + 20) === 'none');
       // ... and on CONTINUE FROM itself: a game saved to slot 1 with the laughing egg -- red first on the left
       var rec1 = HHo.fresh(); rec1.at = { town: null }; HHo.begin(rec1, 0); topHo(); HHo.cur.flags = HHo.cur.flags || {}; HHo.cur.flags.eggJoke = 1; HHo.cur.newGame = 1; HHo.cur.staged = false; var sv1 = HHo.saveTo(1);
       var sl1 = new HHo.Slots('load'); sl1.i = 0; var cv1b = document.createElement('canvas'); cv1b.width = D.W; cv1b.height = D.H; var cx1b = cv1b.getContext('2d'); sl1.draw(cx1b); var got1b = eggsAt(cx1b, sl1.box());

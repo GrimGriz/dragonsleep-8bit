@@ -1100,7 +1100,8 @@
   // the cursor is on. Found: its colour, bobbing, a glint going round the found. Not found, or not built yet: a shadow
   H.EGGS = [{ id: 'joke', flag: 'eggJoke', hue: 'red' }, { id: 'darkness', flag: 'eggDarkness', hue: 'violet' }, { id: 'dunk', flag: 'eggDunk', hue: 'blue' },
     { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' }, { id: 'sixth', flag: null, hue: null },
-    { id: 'bucket', flag: 'eggBucket', hue: 'yellow' }]; // (THE BUCKET LIST, 11-13: an entry of its own, NOT the sixth slot -- whether it is the sixth egg or a seventh is Griz's to say; drawn under the box, and only once found: H.drawEggs)
+    { id: 'bucket', flag: 'eggBucket', hue: 'yellow' }, // (THE BUCKET LIST, 11-13: an entry of its own, NOT the sixth slot -- whether it is the sixth egg or a seventh is Griz's to say; drawn under the box, and only once found: H.drawEggs)
+    { id: 'stars', flag: 'eggStars', hue: 'black' }]; // (SOMETHING WENT BY, 11-15, the black egg: deep16/js/blackegg.js. The clock lane's candidate for its third egg, never named the third by him -- so an entry of its own like the Bucket List's, under the box once found; the sixth slot is his to give it)
   H.eggsOf = function (rec) { var fl = (rec && rec.flags) || {}; return H.EGGS.map(function (e) { return e.flag && fl[e.flag] ? e.hue : null; }); };
   var EGG_ART = ['...ooo...', '..ollbo..', '.olhlbbo.', '.olhbbbo.', 'olbbbbbdo', 'olbbbbbdo', 'obbbbbddo', 'obbbbbddo', '.obbbddo.', '..odddo..', '...ooo...'];
   var EGG_HUES = { // (the NES palette's own steps, the first game's: outline, shade, body, light, shine)
@@ -1110,22 +1111,25 @@
     orange: { o: '#502000', d: '#A83C00', b: '#E45C10', l: '#FCA044', h: '#FCE0A8' },
     green: { o: '#003000', d: '#007800', b: '#00A800', l: '#58D854', h: '#B8F8B8' },
     yellow: { o: '#503000', d: '#AC7C00', b: '#F8B800', l: '#F8D878', h: '#FCFCD8' },
-    shadow: { o: '#3C3E6C', d: '#0A0B20', b: '#0A0B20', l: '#0E1028', h: '#121430' } // (a dim rim round a darker egg than the night behind it)
+    shadow: { o: '#3C3E6C', d: '#0A0B20', b: '#0A0B20', l: '#0E1028', h: '#121430' }, // (a dim rim round a darker egg than the night behind it)
+    black: { o: '#5C5E98', d: '#04040A', b: '#0C0C1C', l: '#14142C', h: '#1E1E3C', s: '#E8ECFC' }, // (the black egg, 11-15: a cold rim, the night inside, stars in it -- its own art, EGG_ART_OF)
+    blackout: { o: '#5C5E98', d: '#04040A', b: '#0C0C1C', l: '#14142C', h: '#1E1E3C', s: '#0C0C1C' } // (its stars gone for a breath: H.drawEggs)
   };
+  var EGG_ART_OF = { black: ['...ooo...', '..obbbo..', '.obbbsbo.', '.obsbbbo.', 'obbbbbbso', 'obbbsbbbo', 'osbbbbbbo', 'obbbbbsdo', '.obsbbdo.', '..odddo..', '...ooo...'] };
   var EGG_K = 2, eggCache = {};
   function eggImage(hue) {
     if (eggCache[hue]) return eggCache[hue];
-    var cv = document.createElement('canvas'), P = EGG_HUES[hue] || EGG_HUES.shadow, cx;
+    var cv = document.createElement('canvas'), P = EGG_HUES[hue] || EGG_HUES.shadow, cx, art = EGG_ART_OF[hue === 'blackout' ? 'black' : hue] || EGG_ART;
     cv.width = 9 * EGG_K; cv.height = 11 * EGG_K; cx = cv.getContext('2d');
-    EGG_ART.forEach(function (row, y) { for (var x = 0; x < row.length; x++) { var c = row[x]; if (c === '.') continue; cx.fillStyle = P[c]; cx.fillRect(x * EGG_K, y * EGG_K, EGG_K, EGG_K); } });
+    art.forEach(function (row, y) { for (var x = 0; x < row.length; x++) { var c = row[x]; if (c === '.') continue; cx.fillStyle = P[c]; cx.fillRect(x * EGG_K, y * EGG_K, EGG_K, EGG_K); } });
     return (eggCache[hue] = cv);
   }
   H.drawEggs = function (ctx, eggs, b, t) {
     var EW = 9 * EGG_K, EH = 11 * EGG_K, gap = 6, col = 3 * EH + 2 * gap, y0 = Math.round(b.y + (b.h - col) / 2), lit = [];
     eggs.forEach(function (hue, i) {
       var side = i < 3 ? 0 : 1, k = i % 3, x = side ? b.x + b.w + 14 : b.x - 14 - EW, y = y0 + k * (EH + gap) + (hue ? Math.round(Math.sin(t / 11 + i * 1.3) * 1.5) : 0);
-      if (i >= 6) { if (!hue) return; x = Math.round(b.x + b.w / 2 - EW / 2) + (i - 6) * (EW + gap); y = b.y + b.h + 8 + Math.round(Math.sin(t / 11 + i * 1.3) * 1.5); } // (past the six: under the box, and no shadow for one not found -- the Bucket List, 11-13)
-      ctx.drawImage(eggImage(hue || 'shadow'), x, y);
+      if (i >= 6) { if (!hue) return; var ex = eggs.slice(6).filter(Boolean).length, k6 = eggs.slice(6, i).filter(Boolean).length; x = Math.round(b.x + b.w / 2 - (ex * (EW + gap) - gap) / 2) + k6 * (EW + gap); y = b.y + b.h + 8 + Math.round(Math.sin(t / 11 + i * 1.3) * 1.5); } // (past the six: under the box, the found ones in a row centred, and no shadow for one not found -- the Bucket List, 11-13; the black egg, 11-15)
+      ctx.drawImage(eggImage(hue === 'black' && t % 420 >= 384 ? 'blackout' : hue || 'shadow'), x, y); // (the black egg's stars go out for a breath every seven seconds)
       if (hue) lit.push([x, y]);
     });
     if (!lit.length) return;

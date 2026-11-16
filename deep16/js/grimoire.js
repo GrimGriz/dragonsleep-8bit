@@ -679,9 +679,13 @@
     return EGG;
   }
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+  // (black: the black egg, Something Went By -- 11-15, deep16/js/blackegg.js: a night ramp with a cold sheen and a cold rim, stars laid in it by a hash that twinkle and,
+  // now and then, all go out for a breath -- the egg's own image)
+  var EGG_BLACK = { ramp: ['#04040a', '#0a0a16', '#121226', '#1c1c38', '#2a2c50'], sheen: ['#9aa0d0', '#4c5080', '#2a2c50'], out: '#5c5e98', star: ['#f0f4ff', '#8890c0'] };
   M.eggDraw = function (line, hue) { return function (ctx, t, W, H) { // (each egg its own line under it, and its own colour: the joke's red, the darkness's purple -- 10-02; the dunking booth's blue, the four blues and bone for the glint -- 10-05)
     var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data, V = hue === 'violet';
-    var YL = hue === 'yellow', RED = (V ? P.violet.slice(1) : hue === 'blue' ? P.blue.concat([P.bone[0]]) : YL ? P.gold : P.red).map(hex), /* (yellow: the gold ramp's five -- the Bucket List, 11-13) */ WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
+    var YL = hue === 'yellow', BK = hue === 'black', RED = (BK ? EGG_BLACK.ramp : V ? P.violet.slice(1) : hue === 'blue' ? P.blue.concat([P.bone[0]]) : YL ? P.gold : P.red).map(hex), /* (yellow: the gold ramp's five -- the Bucket List, 11-13) */ WHITE = hex(BK ? EGG_BLACK.sheen[0] : P.bone[2]), CREAM = hex(BK ? EGG_BLACK.sheen[1] : P.bone[0]), PINK = hex(BK ? EGG_BLACK.sheen[2] : P.accent[0]), OUT = hex(BK ? EGG_BLACK.out : P.outline[0]);
+    var STAR = BK ? EGG_BLACK.star.map(hex) : null, gone = BK && (t % 260) >= 200 && (t % 260) < 236; // (the black egg's stars: out for a breath every ~4 s)
     var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
     for (var i = 0; i < w * h; i++) {
       var c = null, l = eg.lvl[i];
@@ -689,6 +693,7 @@
         var gd = Math.abs(eg.diag[i] - g0), up = gd < 1.2 ? 2 : gd < 2.6 ? 1 : 0;
         c = RED[Math.min(4, l + up)];
         if (eg.spec[i] > 0.62 || (up === 2 && l >= 2)) c = WHITE; else if (eg.spec[i] > 0.36) c = CREAM; else if (eg.spec[i] > 0.2) c = PINK;
+        if (STAR && !gone) { var sh = Math.sin(i * 12.9898) * 43758.5453; sh -= Math.floor(sh); if (sh < 0.05 && ((t + sh * 997) % 50) < 44) c = STAR[sh < 0.022 ? 0 : 1]; }
       } else if (eg.out[i]) c = OUT;
       if (!c) continue;
       px[i * 4] = c[0]; px[i * 4 + 1] = c[1]; px[i * 4 + 2] = c[2]; px[i * 4 + 3] = 255;
@@ -697,9 +702,9 @@
     // the fight, dim beneath; a red glow behind
     var fade = Math.min(1, t / 10);
     ctx.save();
-    ctx.fillStyle = (V ? 'rgba(10,6,18,' : YL ? 'rgba(14,10,4,' : 'rgba(14,4,8,') + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = (BK ? 'rgba(2,2,8,' : V ? 'rgba(10,6,18,' : YL ? 'rgba(14,10,4,' : 'rgba(14,4,8,') + ((BK ? 0.5 : 0.74) * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); // (black: the night's stars still behind it)
     var cxs = W / 2, cys = H / 2 - 27, gr = ctx.createRadialGradient(cxs, cys, 8, cxs, cys, 160);
-    gr.addColorStop(0, (V ? 'rgba(138,92,180,' : YL ? 'rgba(220,162,56,' : 'rgba(184,52,40,') + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    gr.addColorStop(0, (BK ? 'rgba(84,96,176,' : V ? 'rgba(138,92,180,' : YL ? 'rgba(220,162,56,' : 'rgba(184,52,40,') + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
     // the egg: pops in (over and back), then bobs and rocks a little
     var K = 2.5, k = K;
@@ -718,7 +723,7 @@
       var ph = ((t + s[2]) % 48) / 48; if (t < 14 || ph > 0.6) return;
       var r = Math.round(Math.sin(ph / 0.6 * Math.PI) * 3), sx = Math.round(cxs + s[0]), sy = Math.round(cys + bob + s[1]);
       ctx.fillStyle = P.bone[2]; ctx.fillRect(sx, sy, 1, 1);
-      ctx.fillStyle = r > 1 ? P.gold[4] : P.accent[0];
+      ctx.fillStyle = r > 1 ? (BK ? '#c8d0ff' : P.gold[4]) : BK ? '#8890c0' : P.accent[0];
       for (var a = 1; a <= r; a++) { ctx.fillRect(sx + a, sy, 1, 1); ctx.fillRect(sx - a, sy, 1, 1); ctx.fillRect(sx, sy + a, 1, 1); ctx.fillRect(sx, sy - a, 1, 1); }
     });
     // the line, big, under it
@@ -726,7 +731,7 @@
       var DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
       ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
       ctx.translate(Math.round(W / 2 - tw), Math.round(cys + h * K / 2 + 16)); ctx.scale(2, 2);
-      DS.text(ctx, line, 1, 1, V ? P.violet[2] : YL ? P.gold[1] : P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
+      DS.text(ctx, line, 1, 1, BK ? '#3a3e78' : V ? P.violet[2] : YL ? P.gold[1] : P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
       ctx.restore();
     }
   }; };
@@ -738,7 +743,10 @@
     dunk: { flag: 'eggDunk', line: 'Dunking Booth', hue: 'blue' },
     // (THE BUCKET LIST, 11-13, Griz: "elsbeth bucketing you should be an easter egg the whole-party sleeping will be so rare :) Pick a color and a name"; on the lanes desk's pick, a
     // yellow egg named Bucket List, "your call I said, good or not with me :)" -- found on a floor, not in a fight: js/secondact.js A.bucketEgg keeps its flag in the save's own flags)
-    bucket: { flag: 'eggBucket', line: 'Bucket List', hue: 'yellow' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
+    bucket: { flag: 'eggBucket', line: 'Bucket List', hue: 'yellow' },
+    // (SOMETHING WENT BY, 11-15: the black egg -- within five miles of the Vessel on his road and never met; paid a day or more later, at a sleep or the third dawn,
+    // never at the pass: deep16/js/blackegg.js keeps its flag in the save's own flags)
+    stars: { flag: 'eggStars', line: 'Something Went By', hue: 'black' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
   M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = M.jokeFlags ? M.jokeFlags(B) : (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); }; // (the house's save too, 11-05: js/house.js keeps an egg found -- once a save)
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;

@@ -17,6 +17,10 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE BLACK-EGG SEAT, 11-15 night (Opus; deep16/js/blackegg.js; dev/bench16.js mode=blackegg1115): SOMETHING WENT BY, the black egg, on its own beat
+    'eyes-black-egg-1115': { pri: 1, group: G2, title: 'SOMETHING WENT BY, the black egg: the night it pays -- the stars go out for a breath (11-15)', pt: 'the clock lane, 2026-11-15 black-egg section (deep16/js/blackegg.js; js/grimoire.js M.eggDraw black; js/audio.js starsout, starsback, eggstars)',
+      url: 'deep16/?starsshow&beat=night&fresh=1115be',
+      look: 'A SHOW (the four at 3rd, the hours pinned, no fight). Your "that egg reward is going to have to come to the player after the event that triggers it" and "Yes, that delay": the pass is set at 15:00 on day 7 (four miles from him by the mile) and the party camps 30 hours later, far off on the inn\'s road. The watches go by; then the dark is the egg\'s: the night sky, every star goes out at once and the music with them, the first line in the dark, the stars back one by one, the second line, then the black egg -- stars in it that go out now and then, a low bell -- named Something Went By; then the morning. Lines and sounds are drafts. The show\'s page has the other two: THE PASS (your hands on THE WORLD within five miles of him: nothing shows, nothing is said) and THE THIRD DAWN (no sleep since the pass: the beat on THE WORLD at first light). CONTINUE FROM on a save with it: the black egg under the box, its stars out for a breath every seven seconds.' },
     // THE NPC CUTTER SEAT (cutter-npc-1115), 11-15 (Opus; tools/animatedarmor-sheet.py; data/foes.js animatedarmor): the animated armor, art-wanted 64's construct (the art desk's 68)
     'eyes-animatedarmor-1115': { pri: 2, group: G2, title: 'THE ANIMATED ARMOR: the construct shelf\'s one, in all eight facings (11-15)', pt: 'the bestiary lane, 2026-11-15 (the NPC cutter seat, cutter-npc-1115; tools/animatedarmor-sheet.py; data/foes.js animatedarmor)',
       url: 'deep16/?show=animatedarmor&fresh=1115aa',
