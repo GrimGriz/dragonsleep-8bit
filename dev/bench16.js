@@ -7562,6 +7562,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         for (var b = 0; b < 6; b++) {
           var B = topK(), st = CK.state(B), nx = H6K.nextBout(st); if (!nx) { logQ('the card is all won'); return 'all won'; }
           var able = B.roam.members.filter(function (u) { return u.hp > 0 && !u.dead && u.src && !u.src.guest; }).sort(function (a, c) { return c.hp - a.hp; }), who = able[0]; if (!who) return 'nobody standing';
+          if (who.hp < who.maxhp && hdLeftQ(who) > 0 && B.roam.silver >= 2 + (nx.stake || 0)) { // (THE HEX'S BAR between bouts, 11-16 -- Griz: "do they short rest at the bar between, barley using his skills?": a gallon and an hour off their feet, js/hours.js C.SCRIPTS.bar, before the sand when the one to take it is short of whole and has dice to spend)
+            var bt = trigK('talk:bartenderS') || trigK('talk:bartenderE'), hpB = who.hp, sB = B.roam.silver;
+            if (bt) { atTrigK(B, bt, { ans: [/SHORT REST OVER ALE/], dflt: /./, quiet: 120 }); B = topK(); able = B.roam.members.filter(function (u) { return u.hp > 0 && !u.dead && u.src && !u.src.guest; }).sort(function (a, c) { return c.hp - a.hp; }); who = able[0]; logQ('THE HEX\'S BAR before ' + nx.label + ': a gallon, ' + (sB - B.roam.silver) + ' sp, the one to take the sand ' + hpB + ' -> ' + (who ? who.name + ' ' + who.hp + '/' + who.maxhp : 'nobody') + ' -- ' + partyQ()); if (!who) return 'nobody standing'; }
+            else logQ('THE HEX\'S BAR wanted before ' + nx.label + ': no bartender on ' + whereQ());
+          }
           var s0 = B.roam.silver, hp0 = who.hp, sl = trigK('talk:korvinSlate'); if (!sl) return 'no slate';
           var ans = [new RegExp(nx.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))].concat(able.length > 1 ? [new RegExp('^' + who.name + ' L')] : []).concat([/^FIGHT$/]);
           HXK.last = null; var seenC = atTrigK(B, sl, { ans: ans, quiet: 200 }), res = HXK.last && HXK.last.res, B2 = topK(), w2 = B2.roam ? B2.roam.members.filter(function (u) { return u.id === who.id; })[0] : null;
@@ -7598,6 +7603,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // back to Silverton's street: out of a room by its door, off the camp by its west edge and THE WORLD, out of the Hex
       function toTownQ() {
         if (RK.def && RK.def.hexIn) outOfHexQ();
+        if (D.top() !== WK.scene && RK.def && (RK.def.key === InK.KEY || RK.def.key === InK.UP)) { if (RK.def.key === InK.UP) innDoorQ(); edgeOutQ(); if (D.top() === WK.scene) logQ('to town from the inn: ' + worldToQ('silverton', 'to town from the inn').slice(0, 200)); else logQ('to town from the inn: not off her floors (' + whereQ() + ')'); } /* (11-16, Griz: "not off halfway - fix the walk before it happens again" -- 5 of the first batch's 24 walks woke upstairs on halfway_up after a reload or the wagon's night handed back unslept, and the way to town knew the ground floor only: "no way written for this floor (0 warps)", the day lost. Now down the stair, out by her edge and THE WORLD's road, as northQ) */
         if (RK.def && (RK.def.room || /^(warp|shop|keeper|inn|leech|chapel):/.test(RK.def.key || ''))) { floorQ(); goOutQ(); }
         if (D.top() !== WK.scene && RK.def && RK.def.key === 'warrens') { var g = D.mines.campWest ? D.mines.campWest(topK().roam.flags) : null; if (g) goK(topK(), [0, g[1]], { /* (the west gate's square is a step inside the rim: the step onto x 0 is the way out, js/mines.js T.wayOut) */ dflt: /./, until: function () { return D.top() === WK.scene || (RK.def && RK.def.key === 'silverton'); } }); }
         if (D.top() !== WK.scene && RK.def && /^galleries_g/.test((RK.def.src8 && RK.def.src8.id) || '') && RK.def.src8.id !== 'galleries_g1') downQ('galleries_g1');
@@ -7628,6 +7634,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       function goOutQ() { var B = topK(); if (!B || !B.roam || !(RK.def.room || /^(warp|shop|keeper|inn|leech|chapel):/.test(RK.def.key || ''))) return; var k0 = keyQ(), gen = (function* () { yield* TK.goOut(B); })(); playK({ box: runK(B, gen), dflt: /./, until: function () { return keyQ() !== k0; } }); }
       // REST where the party stands, as a player does who is hurt: the long rest where it is open (the camp's bunkhouse, Cassia's rooms), else the bunk's short rest; logged with the party
       function hurtQ() { var B = topK(); return !!(B && B.roam && B.roam.members.some(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp < u.maxhp / 2; })); }
+      // UNDER HALF WITH THE DICE SPENT (11-16, Griz on the dens' rule: "define 'end a round' and 'under half' but leaning toward 'like a player would'"): one of the four under half its
+      // hit points (hurtQ's measure) whose hit dice are all spent, so a short rest cannot lift it (js/house.js H.shortRest spends a hurt one's dice till whole or out; h.hdLeft)
+      function hdLeftQ(u) { var h = u && u.src; return h ? (h.hdLeft != null ? h.hdLeft : (h.lvl || 1)) : 0; }
+      function spentQ() { var B = topK(); return !!(B && B.roam && B.roam.members.some(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp < u.maxhp / 2 && hdLeftQ(u) <= 0; })); }
       function restQ(why) {
         var B = topK(); if (!B || !B.roam) return 'not on a floor';
         var shut = HK.longWhy ? HK.longWhy(8, '') : '', k = RK.def.key, tr = null, ans = null, hp0 = partyQ();
@@ -7983,9 +7993,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var dn = downQ('galleries_g3'); if (dn !== 'there') return 'not down to the dens: ' + dn;
         var f0 = fightNQ, t0 = HK.clockAt(HK.now()), off = [], kb = function () { var ks = (topK() && topK().roam && topK().roam.kills) || {}; return (ks['g3:giantbat'] || 0) + '+' + (ks['g3:darkmantle'] || 0); }, k0 = kb();
         var endD = '', walkD = []; // (11-15, the third quest-walk seat: why a round ended, and the squares walked -- two of the 24 walks had a round with no fight and no time pass, and stopped the work on day 12 and 13)
-        for (var i = 0; i < 16 && fightNQ - f0 < 4 && topK() && topK().roam && !hurtQ() && !levelDueQ(); i++) {
+        for (var i = 0; i < 16 && fightNQ - f0 < 4 && topK() && topK().roam && !spentQ() && !levelDueQ(); i++) { /* (11-16, his "like a player would": the round goes on while a short rest can lift whoever is under half -- it ended at the first one under half, a fight or two, and the long rest's wait took the rest of the day) */
           if (RK.def.key !== 'galleries_g3') { off.push(whereQ()); var bk = downQ('galleries_g3'); if (bk !== 'there') { endD = 'not back down: ' + bk; break; } } // (off the dens by a way the walk did not mean: back down)
-          if (downQ0()) breatheQ('in the dens');
+          if (downQ0() || hurtQ()) { breatheQ(downQ0() ? 'in the dens' : 'in the dens, under half between fights'); if (spentQ()) break; }
           var B = topK(), tk0 = B.roam.token, at0 = tk0.x + ',' + tk0.y, sq = densSqQ(B); if (!sq) { endD = 'no square to walk to from ' + at0; break; }
           goK(B, sq, { dflt: /./ }); var tk1 = topK() && topK().roam ? topK().roam.token : null; walkD.push(at0 + '>' + sq.join(',') + (tk1 ? '=' + tk1.x + ',' + tk1.y : ''));
         }
@@ -7994,7 +8004,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (downQ0()) breatheQ('in the dens, after the round');
         var up = downQ('galleries_g1'), s0 = silverQ(), sp = up === 'there' ? talkQ('sabeth') : 'not up: ' + up, paid = silverQ() - s0;
         logQ('SABETH\'S PAY: ' + paid + ' sp -- ' + sp.slice(-140) + '; ' + silverQ() + ' sp in the purse');
-        if (up === 'there' && (hurtQ() || WK.timeOfDay() === 'night')) bunkQ(hurtQ() ? 'hurt after the dens' : 'the night, after the dens');
+        if (up === 'there' && hurtQ() && !spentQ() && WK.timeOfDay() !== 'night') breatheQ('at the mouth, after the round'); // (11-16: a short rest at the mouth while the dice last, as a player does, and down again)
+        if (up === 'there' && (spentQ() || WK.timeOfDay() === 'night')) bunkQ(spentQ() ? 'hurt after the dens, the dice spent' : 'the night, after the dens');
         return (fightNQ - f0) + ' fights, ' + paid + ' sp';
       }
       // NED'S PAGE AND THE GLOWSEEP (his "oh no, ned and the glowseep"; js/counter.js C.ned): Ned behind Percy's counter -- his job opens only on Aurdin's silent Insight, DC 12,
