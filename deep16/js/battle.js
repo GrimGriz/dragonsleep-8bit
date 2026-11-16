@@ -3756,6 +3756,21 @@
   // up or down in place to z, a frame at a time (`land`: to the ground under it, and on the surface)
   Battle.prototype.flyTo = function* (u, z, land) {
     var z0 = G.gzAt(u, u.x, u.y), n = Math.max(4, Math.round(Math.abs(z - z0) / 4));
+    // (a rise off the ground on a sheet with its own take-off -- the pegasus's `takeflight`, the art desk's 11-16 redraw (tools/pegasus-sheet.py): the row plays
+    // once while the rise lifts it by the row's own `rise`, the share of the climb drawn at each frame (its first frames still on the ground, the wings
+    // gathering); at the top it is aloft and its idle is its fly row (js/ui.js UI.aloftRow). The drawn lift was stripped at the cut: the grid's lift alone)
+    var tk = z > z0 && !G.aloft(u) && D.spr.anim(u.sheet, 'takeflight');
+    if (tk) {
+      var tkF = tk.frames, tkS = (tk.fps || 10) / 60, tkR = tk.rise || null, tkD = Math.ceil(tkF / tkS);
+      u.anim = 'takeflight'; u.animT = this.t;
+      for (var k = 1; k < tkD; k++) {
+        var tkP = k * tkS, tkI = Math.min(tkF - 1, Math.floor(tkP)), tkJ = Math.min(tkF - 1, tkI + 1);
+        var tkL = tkR ? tkR[tkI] + (tkR[tkJ] - tkR[tkI]) * (tkP - Math.floor(tkP)) : Math.min(1, tkP / (tkF - 1));
+        u.fz = z0 + (z - z0) * tkL; yield 1;
+      }
+      u.fz = land || z <= G.groundAt(u, u.x, u.y) ? null : z; u.anim = 'idle'; u.animT = this.t;
+      return;
+    }
     u.anim = 'walk'; u.animT = this.t;
     for (var i = 1; i <= n; i++) { u.fz = z0 + (z - z0) * i / n; yield 1; }
     u.fz = land || z <= G.groundAt(u, u.x, u.y) ? null : z; u.anim = 'idle'; u.animT = this.t;

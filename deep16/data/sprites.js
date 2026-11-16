@@ -15694,12 +15694,12 @@
 "door": "npc:papa"
 },
 "pegasus_p1": {
-"image": "art/pegasus_p1.png?v=97905d6c3f",
+"image": "art/pegasus_p1.png?v=6bf595f261",
 "fw": 144,
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"top": 66,
+"top": 74,
 "anims": {
 "idle": {
 "y": 0,
@@ -15707,8 +15707,8 @@
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"frames": 8,
-"fps": 6
+"frames": 16,
+"fps": 12
 },
 "walk": {
 "y": 1216,
@@ -15762,20 +15762,40 @@
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"frames": 1,
+"frames": 2,
 "fps": 1
 },
-"getup": {
+"rearback": {
 "y": 8512,
 "fw": 144,
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"frames": 1,
-"fps": 4
+"frames": 8,
+"fps": 10,
+"held": "no SRD 5.1 action of the pegasus is a rear (its one blow is the Hooves, on `attack`): drawn by the art desk on his ask, where it plays is his word (11-16)"
+},
+"takeflight": {
+"y": 9728,
+"fw": 144,
+"fh": 152,
+"ax": 72,
+"ay": 114,
+"frames": 8,
+"fps": 10,
+"rise": [
+0.0,
+0.0,
+0.0,
+0.235,
+0.471,
+0.706,
+0.882,
+1.0
+]
 }
 },
-"source": "drawn by the art desk (ART-WANTED-69 PEGASUS, 11-15: five views, native on a 144 x 152 cell), cut by tools/pegasus-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-69 PEGASUS ILLUSTRATED REDRAW, 11-16: five views, nine rows, image-generated, its native cut on a 144 x 152 cell), cut by tools/pegasus-sheet.py (11-15, re-cut 11-16)"
 },
 "percy_p1": {
 "image": "art/percy_p1.png?v=5cda525dae",

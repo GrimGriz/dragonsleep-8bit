@@ -19737,7 +19737,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   }
   // THE PEGASUS, 11-15 (mode=pegasus1115; tools/pegasus-sheet.py, data/foes.js pegasus -- the NPC cutter seat, art-wanted 64's celestial, the art desk's 69):
   // the SRD 5.1 block; its sheet's rows, the Hooves landing on frame 5, the fly band stood on the ground line (the grid lifts a flier itself); its rows in a
-  // fight are the show's (check.py's show line-up)
+  // fight are the show's (check.py's show line-up). RE-CUT 11-16 from the art desk's illustrated redraw (the redraw cutter seat): the idle 16, Prone 2 and
+  // no get-up, Rear Back HELD (his word where it plays), Take Flight played by js/battle.js flyTo on a rise from the ground, lifted by the row's own `rise`
   if (get('mode', '') === 'pegasus1115') {
     var repP = { checks: [], errors: [] };
     function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -19745,10 +19746,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var PG = D.FOES.pegasus, SP0 = PG && D.SHEETS[PG.sheet], aP = SP0 && SP0.anims, hP = PG && PG.attacks.hooves;
       okP('the SRD 5.1 Pegasus (' + (PG ? 'AC ' + PG.ac + ', ' + PG.hp + ' HP, ' + PG.type + ', size ' + PG.size + ', speed ' + PG.speed + ', fly ' + PG.fly + ', CR ' + PG.cr + '; Hooves +' + hP.atk + ' ' + hP.dice + '+' + hP.mod + ' ' + hP.type : 'NONE') + ')',
         !!PG && PG.ac === 12 && PG.hp === 59 && PG.type === 'celestial' && PG.size === 2 && PG.speed === 60 && PG.fly === 90 && PG.cr === '2' && hP.atk === 6 && hP.dice === '2d6' && hP.mod === 4 && hP.type === 'bludgeoning');
-      var wantP = { idle: 8, walk: 8, fly: 8, attack: 8, flinch: 6, hurt: 8, prone: 1, getup: 1 };
-      var offP = Object.keys(wantP).filter(function (k) { return !aP || !aP[k] || aP[k].frames !== wantP[k]; });
-      okP('its sheet (' + (PG && PG.sheet) + '): ' + Object.keys(wantP).length + ' rows at their counts, the Hooves landing on frame 5' + (offP.length ? ' -- off: ' + offP.join(', ') : ''),
+      var wantP = { idle: 16, walk: 8, fly: 8, attack: 8, flinch: 6, hurt: 8, prone: 2, rearback: 8, takeflight: 8 };
+      var offP = Object.keys(wantP).filter(function (k) { return !aP || !aP[k] || aP[k].frames !== wantP[k]; }).concat(aP && aP.getup ? ['getup (none drawn)'] : []);
+      okP('its sheet (' + (PG && PG.sheet) + '): ' + Object.keys(wantP).length + ' rows at their counts (the idle 16, Prone 2, Rear Back and Take Flight), no get-up, the Hooves landing on frame 5' + (offP.length ? ' -- off: ' + offP.join(', ') : ''),
         !!SP0 && SP0.fw === 144 && SP0.fh === 152 && SP0.ay === 114 && !offP.length && aP.attack.release === 4);
+      var riseP = aP && aP.takeflight && aP.takeflight.rise;
+      okP('its Rear Back held for his word (' + (aP && aP.rearback && aP.rearback.held ? 'held' : 'NOT held') + ', so the show wants it not); its Take Flight\'s rise ' + JSON.stringify(riseP) + ' (from the ground to the top, never down)',
+        !!(aP && aP.rearback && aP.rearback.held) && !!riseP && riseP.length === 8 && riseP[0] === 0 && riseP[7] === 1 && riseP.every(function (v, i) { return !i || v >= riseP[i - 1]; }) && D.show.wanted(PG.sheet, 'pegasus').indexOf('rearback') < 0 && D.show.wanted(PG.sheet, 'pegasus').indexOf('takeflight') >= 0);
+      // the take-off: a pegasus on the ground rises 10 ft in place (js/battle.js flyTo), a tick at a time -- Take Flight from its first tick, the ground under it while
+      // the row's first frames gather the wings, then up with the row's rise, aloft at the top on its fly row; down again on its walk, not the take-off
+      var BPg = D.npcFight('?npc=pegasus&vs=fighter:3&lvl=3', {}); D.battle = BPg; BPg.enter(); var kPg = 0; while (!BPg.order.length && kPg++ < 400) BPg.co.next();
+      var UPg = BPg.units.filter(function (u) { return u.kind === 'pegasus'; })[0], GPg = D.grid;
+      UPg.fz = null; GPg.setup(GPg.map, BPg.units);
+      var gPg = GPg.groundAt(UPg, UPg.x, UPg.y), zPg = gPg + 2 * GPg.LAYER(), tPg = [], itPg = BPg.flyTo(UPg, zPg), rPg, nPg = 0;
+      do { rPg = itPg.next(); tPg.push([UPg.anim, UPg.fz == null ? gPg : UPg.fz]); } while (!rPg.done && nPg++ < 2000);
+      var durPg = D.spr.duration(PG.sheet, 'takeflight'), firstUp = tPg.findIndex(function (e) { return e[1] > gPg + 1e-9; }), lastG = aP.takeflight.rise.lastIndexOf(0), gatherPg = Math.ceil(lastG * 60 / aP.takeflight.fps);
+      var upOnly = tPg.every(function (e, i) { return !i || e[1] >= tPg[i - 1][1] - 1e-9; }), allTk = tPg.slice(0, -1).every(function (e) { return e[0] === 'takeflight'; });
+      var topPg = GPg.aloft(UPg) && Math.abs(UPg.fz - zPg) < 1e-9 && UPg.anim === 'idle' && D.ui.aloftRow(UPg, 'idle') === 'fly';
+      var downPg = [], itD = BPg.flyTo(UPg, gPg, true), rD, nD = 0; do { rD = itD.next(); if (downPg.indexOf(UPg.anim) < 0) downPg.push(UPg.anim); } while (!rD.done && nD++ < 2000);
+      okP('the take-off: ' + tPg.length + ' ticks (the row ' + durPg + '), Take Flight throughout ' + allTk + ', on the ground till tick ' + firstUp + ' (its frames on the ground ' + (lastG + 1) + ': up from the start of the last, toward the next frame\'s height, at tick ' + gatherPg + '), only ever up ' + upOnly +
+        '; at the top aloft on its fly row ' + topPg + '; down again on ' + downPg.join('/') + ', on the ground ' + (UPg.fz == null),
+        tPg.length === durPg && allTk && firstUp === gatherPg && upOnly && topPg && downPg.indexOf('takeflight') < 0 && UPg.fz == null);
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
     document.body.appendChild(preP);

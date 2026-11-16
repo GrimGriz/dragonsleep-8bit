@@ -1,23 +1,35 @@
 """DEEP16: the pegasus (art-wanted 64's celestial, the art desk's §69) -> pegasus_p1 (11-15, the NPC cutter seat, on Griz's "since people is
-done have it work the creature list backward", the desk's relay).
+done have it work the creature list backward", the desk's relay; RE-CUT 11-16 from the art desk's illustrated redraw by the redraw cutter seat,
+cutter-redraw-1116, its brief's "Before you close, list Fresh again; if more has come, take it the same way (creatures one landing each)").
 
     python tools/pegasus-sheet.py
 
-Source (the art desk's, in the main checkout's deep16/_src/pegasus/2026-11-15-ART-WANTED-69-PEGASUS/ -- a worktree reads it there):
-FRAME-MAP.csv, 35 pages, each frame's window (`crop_x/y/w/h`, 144 x 152: native pixel art at 1x, the ground under the body at 72,114),
-every colour one of the 64. The page's ground, #0e1430, is also the 64's darkest blue, but the white pegasus uses none of it: the patches
-of it inside a figure are gaps (between the legs in the Fall, between the tail and a hind leg), looked at in a zoom -- so it is keyed
-everywhere, and the gaps not joined to the window's edge are counted. No rescale and no snap.
-Rows: Idle `idle` 8, Walk `walk` 8, Fly `fly` 8 (drawn 17 px lifted; the grid lifts a flier itself, so each view's fly band is stood with
-its lowest pixel on the ground line, as the griffon's and the wyvern's), Hooves `attack` 8 (both forehooves land on frame 5: `release` 4),
-Flinch `flinch` 6, Fall `hurt` 8, Prone 1 `prone` (down and breathing), Prone 2 `getup` (the recovery). Facings: the five views as drawn,
-SW, W and NW the mirrors of SE, E and NE (RULED 10-14).
+Source (the art desk's, in the main checkout's deep16/_src/pegasus/2026-11-16-ART-WANTED-69-PEGASUS-ILLUSTRATED-REDRAW/ -- a worktree reads
+it there; sorted by _src/art-desk/art69-pegasus-redraw-sort-2026-11-16.py): 45 image-generated pages (SELECTED/, the originals), and the art desk's
+own native cut of each, NATIVE/PEGASUS-<view>-<ACTION>-<n>.png, transparent 144 x 152 cells (the old cell, anchor 72,114) left to right then top
+to bottom, every colour one of the 64, binary alpha. Taken as drawn: no rescale, no snap, refused if a colour is off the 64. FRAME-MAP.csv names
+each frame's row (`runtime_row`) and the lift drawn into it (`lift_px`).
+
+The registration is the art desk's: each frame centred and its lowest pixel on row 113, the soles on the anchor line as the griffon's, the
+wyvern's and the winter wolf's stand (the 11-15 pegasus stood its body's middle on the anchor, the soles 4 to 16 px below it, by view). Its
+notes call the frame-to-frame registration diagnostic; measured on the torso band (the 18 rows 24 to 42 px above the soles), the idle, the walk
+and the flinch hold within 2 px of their frame 1 but for the flinch's own recoil, and kept as drawn.
+
+Rows: Idle `idle` 16 (the old 8 doubled, his ask to the art desk; 12 fps keeps the old 1.33 s breath), Walk `walk` 8, Hooves `attack` 8
+(the forehooves land on frame 5: `release` 4), Fall `hurt` 8, Fly `fly` 8, Flinch `flinch` 6, Prone `prone` 2 (frame 1 Fall 8's own pose,
+frame 2 the lying pose -- the grid lies on the row's last frame; no recovery is drawn, so no `getup`), Rear Back `rearback` 8 (HELD: no SRD
+action of the pegasus's is a rear, and where it plays is his word), Take Flight `takeflight` 8 (new: js/battle.js flyTo plays it on a rise from
+the ground). FLY AND TAKE FLIGHT are drawn lifted (`lift_px`: Fly 17 throughout, Take Flight 0 0 0 4 8 12 15 17); the grid lifts a flier itself,
+so each frame is stood on the ground line by its own lift, the old fly band's way, and Take Flight's lift goes to the sheet as `rise` (the
+share of the climb at each frame) for flyTo to lift it by. The art desk stood every Fly frame by its lowest pixel, and in SE and E the
+downstroke's wingtip is that pixel, so the body rode up 14 to 19 px on frames 4 to 6: `refly` lays each Fly frame's body (its warm pixels: the
+wings, mane and tail are the cool greys) back on frame 1's where it is 8 px or more off (SE 4 and 6, E 4 to 6), the wing hanging below the
+line there; the smaller bobs (about 6 px: S 6, SE 5) are left as drawn. Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE (RULED 10-14).
 """
 import os, sys, json, csv
 import importlib.util
 import numpy as np
 from PIL import Image
-from scipy import ndimage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def _load(name):
@@ -27,15 +39,18 @@ def _load(name):
 pix, AD = _load('pixelate'), _load('artdesk')
 
 FW, FH, AX, AY = 144, 152, 72, 114
-GROUND = (14, 20, 48)
 NAME = 'pegasus_p1'
-DIR = ('pegasus', '2026-11-15-ART-WANTED-69-PEGASUS')
+DIR = ('pegasus', '2026-11-16-ART-WANTED-69-PEGASUS-ILLUSTRATED-REDRAW')
 ORDER = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 MIRROR = {'SW': 'SE', 'W': 'E', 'NW': 'NE'}
-ROWS = {'idle': [('idle', range(8))], 'walk': [('walk', range(8))], 'fly': [('fly', range(8))], 'hooves': [('attack', range(8))],
-        'flinch': [('flinch', range(6))], 'hurt': [('hurt', range(8))], 'prone': [('prone', [0]), ('getup', [1])]}
-FPS = {'idle': 6, 'walk': 10, 'fly': 10, 'attack': 10, 'flinch': 12, 'hurt': 8, 'prone': 1, 'getup': 4}
+# the art desk's runtime_row -> the sheet's row (the art desk's own names, but its Hooves the grid's `attack`)
+ROWS = {'idle': 'idle', 'walk': 'walk', 'hooves': 'attack', 'hurt': 'hurt', 'fly': 'fly', 'flinch': 'flinch', 'prone': 'prone',
+        'rearback': 'rearback', 'takeflight': 'takeflight'}
+COUNT = {'idle': 16, 'walk': 8, 'attack': 8, 'hurt': 8, 'fly': 8, 'flinch': 6, 'prone': 2, 'rearback': 8, 'takeflight': 8}
+FPS = {'idle': 12, 'walk': 10, 'attack': 10, 'hurt': 8, 'fly': 10, 'flinch': 12, 'prone': 1, 'rearback': 10, 'takeflight': 10}
 RELEASE = {'attack': 4}
+HELD = {'rearback': 'no SRD 5.1 action of the pegasus is a rear (its one blow is the Hooves, on `attack`): drawn by the art desk on his ask, where it plays is his word (11-16)'}
+STOOD = ('fly', 'takeflight')        # (drawn lifted: each frame stood by its own lift_px)
 
 
 def palette():
@@ -48,47 +63,96 @@ def mirror(fr):
 
 
 def cut():
+    """-> ({row: [8 facings of [RGBA frames]]}, {row: [lift_px a frame]} of the S view)"""
     d = os.path.join(AD.src_dir(ROOT), *DIR)
-    pal, views, pages, inside = palette(), {}, {}, []
-    for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8')):
-        x, y, w, h = (int(r[k]) for k in ('crop_x', 'crop_y', 'crop_w', 'crop_h'))
-        if (w, h) != (FW, FH) or (int(r['anchor_x']), int(r['anchor_y'])) != (AX, AY):
-            raise SystemExit('%s %s: a window of %dx%d' % (r['source_png'], r['frame'], w, h))
-        if r['source_png'] not in pages:
-            pages[r['source_png']] = np.asarray(Image.open(os.path.join(d, r['source_png'])).convert('RGB'))
-        win = pages[r['source_png']][y:y + h, x:x + w]
-        g = (win == GROUND).all(-1)
-        lab, n = ndimage.label(g)
-        edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
-        bg = np.isin(lab, list(edge))
-        if (g & ~bg).sum():
-            inside.append(int((g & ~bg).sum()))
-        fg = ~g
-        off = {tuple(c) for c in win[fg]} - pal
+    pal, views, atlases, lifts = palette(), {}, {}, {}
+    rows = list(csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8')))
+    count = {}
+    for r in rows:
+        count[(r['facing'], r['action'])] = count.get((r['facing'], r['action']), 0) + 1
+    for r in rows:
+        v, act, row = r['facing'], r['action'], ROWS.get(r['runtime_row'])
+        if row is None:
+            raise SystemExit('%s %s: a row %s the tool does not name' % (v, act, r['runtime_row']))
+        if (int(r['cell_w']), int(r['cell_h']), int(r['anchor_x']), int(r['anchor_y'])) != (FW, FH, AX, AY):
+            raise SystemExit('%s %s %s: not the 144 x 152 cell on 72,114' % (v, act, r['frame']))
+        page = 'PEGASUS-%s-%s-%d.png' % (v, act.upper().replace('_', ''), count[(v, act)])
+        if page not in atlases:
+            atlases[page] = np.asarray(Image.open(os.path.join(d, 'NATIVE', page)).convert('RGBA'))
+        a, i = atlases[page], int(r['index'])
+        cols = a.shape[1] // FW
+        fr = a[(i // cols) * FH:(i // cols + 1) * FH, (i % cols) * FW:(i % cols + 1) * FW].copy()
+        if fr.shape[:2] != (FH, FW):
+            raise SystemExit('%s frame %d: outside the atlas' % (page, i + 1))
+        op = fr[..., 3] > 0
+        if set(np.unique(fr[..., 3]).tolist()) - {0, 255}:
+            raise SystemExit('%s frame %d: alpha not binary' % (page, i + 1))
+        off = {tuple(c) for c in fr[op][:, :3].tolist()} - pal
         if off:
-            raise SystemExit('%s %s: %d colours off the 64' % (r['source_png'], r['frame'], len(off)))
-        fr = np.zeros((FH, FW, 4), np.uint8); fr[fg, :3] = win[fg]; fr[fg, 3] = 255
-        views.setdefault(r['facing'], {}).setdefault(r['runtime_row'], {})[int(r['index'])] = fr
-    print('  gaps inside the figures keyed: %d px in %d frames' % (sum(inside), len(inside)))
+            raise SystemExit('%s frame %d: %d colours off the 64' % (page, i + 1, len(off)))
+        lift = int(r['lift_px'] or 0)
+        if row in STOOD and lift:
+            if fr[FH - lift:, :, 3].any():
+                raise SystemExit('%s frame %d: cut off by standing it' % (page, i + 1))
+            fr = np.roll(fr, lift, axis=0)
+        elif lift:
+            raise SystemExit('%s frame %d: a lift on a ground row' % (page, i + 1))
+        fr[fr[..., 3] == 0] = 0
+        views.setdefault(v, {}).setdefault(row, {})[i] = fr
+        if v == 'S':
+            lifts.setdefault(row, {})[i] = lift
+    if set(views) != {'S', 'SE', 'E', 'NE', 'N'}:
+        raise SystemExit('views %s' % sorted(views))
     out = {}
-    for v, rows in views.items():
+    for v, rs in views.items():
         out[v] = {}
-        for src, dst in ROWS.items():
-            for row, idx in dst:
-                out[v][row] = [rows[src][i] for i in idx]
-        lows = [int(np.where(f[..., 3].any(1))[0][-1]) for f in out[v]['fly']]
-        dy = AY - max(lows)
-        if dy > 0:
-            out[v]['fly'] = [np.roll(f, dy, axis=0) for f in out[v]['fly']]
-        print('  %s fly: stood %+d px (its band\'s lowest on row %d)' % (v, dy, AY))
-    if set(out) != {'S', 'SE', 'E', 'NE', 'N'}:
-        raise SystemExit('views %s' % sorted(out))
-    rows = list(out['S'])
-    return {an: [[mirror(fr) for fr in out[MIRROR[f]][an]] if f in MIRROR else out[f][an] for f in ORDER] for an in rows}
+        for row, n in COUNT.items():
+            if sorted(rs.get(row, {})) != list(range(n)):
+                raise SystemExit('%s %s: frames %s, not %d' % (v, row, sorted(rs.get(row, {})), n))
+            out[v][row] = [rs[row][i] for i in range(n)]
+            low = max(int(np.where(f[..., 3].any(1))[0][-1]) for f in out[v][row])
+            if low != AY - 1:
+                raise SystemExit('%s %s: its lowest pixel on row %d, not %d' % (v, row, low, AY - 1))
+        out[v]['fly'] = refly(v, out[v]['fly'])
+    return finish(out, lifts)
+
+
+REFLY = 8      # (a fly frame whose body sits this many px or more off frame 1's is moved back onto it)
+
+
+def warm(fr):
+    """the horse's body: its warm pixels (red over blue) -- the wings, mane and tail are drawn in the cool greys"""
+    c = fr.astype(int)
+    return (c[..., 3] > 0) & (c[..., 0] > c[..., 2] + 6)
+
+
+def refly(v, frames):
+    """the fly row stood by each frame's lowest pixel (the art desk's) rides the body up 16 px and more on the downstroke in SE and E, where the
+    wingtip is the lowest pixel: each frame's body (warm) laid on frame 1's by the best overlap, and a frame moved back down when it is off by
+    REFLY or more (the small bobs left as drawn; measured 11-16: SE frames 4 and 6, E 4 to 6)"""
+    w0, out = warm(frames[0]), [frames[0]]
+    for i, fr in enumerate(frames[1:], 2):
+        w, bs, bi = warm(fr), 0, -1
+        for dy in range(-24, 25):
+            b = np.roll(w, dy, 0); u = (b | w0).sum(); iou = (b & w0).sum() / u if u else 0
+            if iou > bi:
+                bi, bs = iou, dy
+        if abs(bs) >= REFLY:
+            if (bs > 0 and fr[FH - bs:, :, 3].any()) or (bs < 0 and fr[:-bs, :, 3].any()):
+                raise SystemExit('%s fly %d: cut off by moving it %+d px' % (v, i, bs))
+            fr = np.roll(fr, bs, axis=0)
+            print('  %s fly %d: its body laid back on frame 1\'s, %+d px' % (v, i, bs))
+        out.append(fr)
+    return out
+
+
+def finish(out, lifts):
+    frames = {row: [[mirror(fr) for fr in out[MIRROR[f]][row]] if f in MIRROR else out[f][row] for f in ORDER] for row in COUNT}
+    return frames, {row: [lifts[row][i] for i in range(COUNT[row])] for row in STOOD}
 
 
 if __name__ == '__main__':
-    frames = cut()
+    frames, lifts = cut()
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))
     mp = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(mp))
@@ -99,5 +163,10 @@ if __name__ == '__main__':
         meta['anims'][an]['fps'] = f
     for an, r in RELEASE.items():
         meta['anims'][an]['release'] = r
-    meta['source'] = 'drawn by the art desk (ART-WANTED-69 PEGASUS, 11-15: five views, native on a 144 x 152 cell), cut by tools/pegasus-sheet.py (11-15)'
+    for an, why in HELD.items():
+        meta['anims'][an]['held'] = why
+    top = max(lifts['takeflight'])
+    meta['anims']['takeflight']['rise'] = [round(l / top, 3) for l in lifts['takeflight']]
+    meta['source'] = 'drawn by the art desk (ART-WANTED-69 PEGASUS ILLUSTRATED REDRAW, 11-16: five views, nine rows, image-generated, its native cut on a 144 x 152 cell), cut by tools/pegasus-sheet.py (11-15, re-cut 11-16)'
     json.dump(meta, open(mp, 'w'), indent=1)
+    print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in frames)))
