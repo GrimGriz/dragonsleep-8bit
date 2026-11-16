@@ -154,8 +154,11 @@
     var FB = B.one.fb || (B.one.fb = fbGet()), out = [], k0 = (B.one.eyeK || 0) % rs.length;
     rs.forEach(function (id, k) {
       var f = FB[id] || {}, v = VERDICTS.filter(function (x) { return x[0] === f.v; })[0];
-      D.wrap('{o}YOUR EYE' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + E[id].title, COL - 12).forEach(function (l) { out.push(l); });
-      D.wrap(String(E[id].look || ''), COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); });
+      // (11-15, the lanes desk, on Griz's "do the two more things": the row's one-line obj leads, as on Sylvia's card; its title under it in grey, the builders' note
+      // (look) only where a row has no obj -- the card and situations.html keep the note folded)
+      var obj = String(E[id].obj || '').trim();
+      D.wrap('{o}YOUR EYE' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + (obj || E[id].title), COL - 12).forEach(function (l) { out.push(l); });
+      D.wrap(obj ? String(E[id].title || '') : String(E[id].look || ''), COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); });
       out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 ? '  {y}T{/} note' : '') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
       if (f.note) D.wrap('note: ' + f.note, COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); }); // (his words with it, 10-28)
       out.push('');
