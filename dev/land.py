@@ -22,6 +22,7 @@ every one took half an hour where it takes a few minutes alone, and nothing land
 do, on a lock of its own beside the runway (`.git/landing/gate/`): `gate` waits its turn, runs `check.py all` in this worktree as it
 stands (committed or not: it rebases nothing and does not touch the runway, so landings go on while a seat gates), and frees the gate when
 the check ends, GREEN or RED. A seat's order is: bench what you changed, `gate`, then `take`, the PATCHLOG line, `push` (the quick gate).
+A records-only landing (its commits touch only .md files) skips `gate` (11-16, Griz: "Yes, write it in"; CLAUDE.md's runway paragraph).
 Never run `check.py all` bare while other seats are live. The holder refreshes the lock every few seconds while its check runs, so a gate
 whose holder died is free to the next in line after three quiet minutes. Exit 0 GREEN, 1 RED, 3 still in line after --wait.
 
