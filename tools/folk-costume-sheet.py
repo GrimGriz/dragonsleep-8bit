@@ -29,6 +29,14 @@ saturation over 0.25: the woman's shawl) -- else the warm browns of hair, mug, b
 1x shows (the 10-29 cutters' "avoid red and fire", kept off the one cloth that is red); and a pale cloth (saturation under 0.55: the man's
 work shirt, the woman's apron and sleeves) kept off skin and gold as well -- else the shirt snaps to the skin ramp whole and he reads
 shirtless (the cutscene cutter's 10-29 "a cream cloth at the skin's hue ... kept out by the band"). Faces and hands run 0.6 and up.
+
+The ILLUSTRATED REDRAWS ON THE NAVY WITH NO NATIVE CUT (`illus`, 11-16; the redraw cutter seat, on the lanes desk's relay of Griz's "hired hand is in
+Fresh but I'm not sure it's complete - art dept hit ceiling, but it might have been on a redraw attempt and we can wishlist what's broken and use
+what's there if it included all the pieces"): the hired hand's FRAME-MAP.json gives each frame's crop (`source_xywh`), its size at 1x
+(`reduce_wh`) and its place in the cell (`paste_xy`); its CUTTER-NOTES.md the key -- the navy the channel-wise median of the crop's outermost three
+columns each side (the approved checkpoint page: its left 35, and its enclosed holes under 62 source pixels filled), the largest 4-connected piece
+whose largest channel stands more than 10 off it, Pillow BOX down, alpha at 124. Reproduced against the art desk's own 1x previews: the outline
+exact in all 120 frames. The colours by the house's two rules, the lime path's (`house_colours`), not the art desk's nearest-in-RGB.
 """
 import os, sys, json, csv
 import importlib.util
@@ -72,8 +80,11 @@ PIECES = {
                     navy=None, stand=False, unred={'folkman_gambler_p1': 12, 'folkwoman_gambler_p1': 12}),
     'barkeep': dict(folder='2026-11-16-ART-WANTED-75-BARKEEP-REDRAW', name='ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
                     navy=None, stand=False, unred={'folkman_barkeep_p1': 17, 'folkwoman_barkeep_p1': 0}),
-    'hired': dict(folder='2026-11-15-ART-WANTED-76-HIRED-HAND', name='ART-WANTED-76 HIRED-HAND, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                  navy=(17, 24, 45), stand=False),
+    # (the hired hand's first, code-drawn pages -- 2026-11-15-ART-WANTED-76-HIRED-HAND, native 4x, navy (17, 24, 45) -- replaced by its redraw, 11-16:
+    # image-generated on the navy with no native cut, `illus`; three walks the art desk held for a repeated lead (the man's E and NE, the woman's NE)
+    # cut as drawn on his "use what's there", on the dream list)
+    'hired': dict(folder='2026-11-16-ART-WANTED-76-HIRED-HAND-REDRAW', name='ART-WANTED-76 HIRED-HAND ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated on the navy',
+                  illus={'HIRED-HAND-WOMAN-SOUTH-IDLE-IMAGEGEN.png': (35, 62)}, stand=False),
     'guard': dict(folder='2026-11-15-ART-WANTED-77-GUARD', name='ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
                   navy=(16, 18, 40), stand=False),
     'crewboss': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD', name='ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
@@ -146,6 +157,19 @@ LIME_REDBAND = (330, 360, 0.25)        # (red and fire only on a crimson: hue fr
 LIME_CLOTH = 0.55                      # (under this saturation a pale cloth, kept off skin and gold too)
 
 
+def house_colours(rgb):
+    """reduced colours (0-1) -> the 64 by the house's two rules: red and fire only on a crimson; a pale cloth kept off skin and gold too"""
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    d = np.maximum(mx - mn, 1e-6)
+    hue = np.where(mx == rgb[..., 0], ((rgb[..., 1] - rgb[..., 2]) / d) % 6,
+                   np.where(mx == rgb[..., 1], (rgb[..., 2] - rgb[..., 0]) / d + 2, (rgb[..., 0] - rgb[..., 1]) / d + 4)) * 60
+    lo, hi, smin = LIME_REDBAND
+    sat = (mx - mn) / np.maximum(mx, 1e-6)
+    crim = (hue >= lo) & (hue < hi) & (sat > smin)
+    return np.where(crim[..., None], pix.snap(rgb),
+                    np.where((sat < LIME_CLOTH)[..., None], pix.snap(rgb, ['red', 'fire', 'skin', 'gold']), pix.snap(rgb, ['red', 'fire'])))
+
+
 def lime_frame(a, rw, rh):
     """one illustrated pose on the lime ground -> RGBA at rw x rh, every colour one of the 64 (the module's head: the art desk's recipe,
     despilled, red kept to the crimson)"""
@@ -160,15 +184,7 @@ def lime_frame(a, rw, rh):
     rgba = np.dstack([c.astype(np.uint8), (m * 255).astype(np.uint8)])
     r = np.asarray(Image.fromarray(rgba, 'RGBA').resize((rw, rh), Image.LANCZOS)).astype(np.float32)
     rgb, solid = r[..., :3] / 255, r[..., 3] >= 123
-    mx, mn = rgb.max(-1), rgb.min(-1)
-    d = np.maximum(mx - mn, 1e-6)
-    hue = np.where(mx == rgb[..., 0], ((rgb[..., 1] - rgb[..., 2]) / d) % 6,
-                   np.where(mx == rgb[..., 1], (rgb[..., 2] - rgb[..., 0]) / d + 2, (rgb[..., 0] - rgb[..., 1]) / d + 4)) * 60
-    lo, hi, smin = LIME_REDBAND
-    sat = (mx - mn) / np.maximum(mx, 1e-6)
-    crim = (hue >= lo) & (hue < hi) & (sat > smin)
-    sn = np.where(crim[..., None], pix.snap(rgb),
-                  np.where((sat < LIME_CLOTH)[..., None], pix.snap(rgb, ['red', 'fire', 'skin', 'gold']), pix.snap(rgb, ['red', 'fire'])))
+    sn = house_colours(rgb)
     out = np.zeros((rh, rw, 4), np.uint8)
     out[solid, :3] = sn[solid]; out[solid, 3] = 255
     return out
@@ -191,6 +207,43 @@ def lime_frames(d, fw, fh):
     return out
 
 
+def illus_frames(d, fw, fh, special):
+    """an illustrated redraw on the navy with no native cut -> [(sheet, view, row, index, RGBA cell)]: the art desk's crop, key, reduction and
+    place (the module's head), the house's colours; `special` {page: (edge columns from the left, holes under this filled)}"""
+    pages, out = {}, []
+    for e in json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8')):
+        p = e['source_png']
+        if p not in pages:
+            pages[p] = np.asarray(Image.open(os.path.join(d, p)).convert('RGB')).astype(np.int32)
+        x, y, w, h = e['source_xywh']
+        c = pages[p][y:y + h, x:x + w]
+        left, holes = special.get(os.path.basename(p), (None, 0))
+        edge = c[:, :left] if left else np.concatenate([c[:, :3], c[:, -3:]], 1)
+        navy = np.median(edge.reshape(-1, 3), axis=0)
+        fg = np.abs(c - navy).max(-1) > 10
+        lab, n = ndimage.label(fg)
+        if not n:
+            raise SystemExit('%s: no figure in the window' % p)
+        keep = lab == 1 + int(np.argmax(ndimage.sum(fg, lab, range(1, n + 1))))
+        if holes:
+            hl, hn = ndimage.label(ndimage.binary_fill_holes(keep) & ~keep)
+            for k, sz in enumerate(ndimage.sum(hl > 0, hl, range(1, hn + 1)), 1):
+                if sz < holes:
+                    keep |= hl == k
+        rw, rh = e['reduce_wh']
+        px, py = e['paste_xy'][:2]
+        if px < 0 or py < 0 or px + rw > fw or py + rh > fh:
+            raise SystemExit('%s %s %s %d: placed outside the cell' % (e['runtime_target'], e['facing'], e['runtime_row'], e['frame_1based']))
+        r = np.asarray(Image.fromarray(np.dstack([c.astype(np.uint8), (keep * 255).astype(np.uint8)]), 'RGBA').resize((rw, rh), Image.BOX)).astype(np.float32)
+        solid = r[..., 3] >= 124
+        sn = house_colours(r[..., :3] / 255)
+        cell = np.zeros((fh, fw, 4), np.uint8)
+        cell[py:py + rh, px:px + rw][solid, :3] = sn[solid]
+        cell[py:py + rh, px:px + rw][solid, 3] = 255
+        out.append((e['runtime_target'], e['facing'], e['runtime_row'], int(e['frame_1based']) - 1, cell))
+    return out
+
+
 def cut(costume):
     """-> {sheet name: {row: [8 facings of [RGBA frames]]}}. A fight piece says its own `cell` (fw, fh, ax, ay), its `targets` {the art
     desk's target: the sheet} and its `rows` [(the art desk's row, the sheet's row, frames, fps, release)]; a costume takes folkman_p1's"""
@@ -200,15 +253,15 @@ def cut(costume):
     rowmap = {r[0]: (r[1], r[2]) for r in P['rows']} if P.get('rows') else {an: (an, n) for an, n in COUNT.items()}
     d = os.path.join(AD.src_dir(ROOT), 'folkcostumes', P['folder'])
     pal, got, pages = palette(), {}, {}
-    if P.get('lime'):
-        for name, v, an, idx, fr in lime_frames(d, fw, fh):
+    if P.get('lime') or P.get('illus'):
+        for name, v, an, idx, fr in (illus_frames(d, fw, fh, P['illus']) if P.get('illus') else lime_frames(d, fw, fh)):
             if name not in names or an not in rowmap:
                 raise SystemExit('a frame for %s %s, not %s' % (name, an, costume))
             off = {tuple(c) for c in fr[fr[..., 3] > 0][:, :3]} - pal
             if off:
                 raise SystemExit('%s %s %s %d: %d colours off the 64' % (name, v, an, idx + 1, len(off)))
             got.setdefault(names[name], {}).setdefault(v, {}).setdefault(rowmap[an][0], {})[idx] = fr
-    for name, v, an, idx, page, (x, y, w, h) in ([] if P.get('lime') else frames_of(d)):
+    for name, v, an, idx, page, (x, y, w, h) in ([] if P.get('lime') or P.get('illus') else frames_of(d)):
         if name not in names:
             raise SystemExit('%s: a frame for %s, not %s' % (page, name, costume))
         if an not in rowmap:
