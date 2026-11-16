@@ -11426,7 +11426,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var MHHX = SHHX && SHHX.idle.mouth, cvHHX = document.createElement('canvas'); cvHHX.width = 200; cvHHX.height = 160; var cxHHX = cvHHX.getContext('2d'), onHHX = 0, offHHX = 0; HHX.facing = 6;
       for (var tHHX = 0; tHHX < 300; tHHX++) { if (D.looks && D.looks.exhale && D.looks.exhale(cxHHX, { t: tHHX }, HHX, { x: 100, y: 130 })) onHHX++; else offHHX++; }
       okHH('5 its smoke on the air: style ' + (FHHX.exhale || 'none') + ', mouths ' + JSON.stringify(MHHX) + '; over 300 ticks motes on ' + onHHX + ', none on ' + offHHX,
-        FHHX.exhale === 'smoke' && !!MHHX && MHHX.length === 8 && MHHX.every(function (m) { return m.length === 4 && m[1] < 2 && m[1] > -40; }) && onHHX > 150 && offHHX > 10); // (a thread of smoke near-constant, the ask's "in every frame": LK.EXHALE.smoke 96 of every 110 ticks
+        FHHX.exhale === 'smoke' && !!MHHX && MHHX.length === 8 && MHHX.every(function (m) { return m.length === 4 && m[1] < 2 && m[1] > -60; /* (the 43 px redraw: its N mouth at -43, 11-15 night) */ }) && onHHX > 150 && offHHX > 10); // (a thread of smoke near-constant, the ask's "in every frame": LK.EXHALE.smoke 96 of every 110 ticks
       var tabsHHX = window.DS.DATA.encounters || {}, onTabHHX = Object.keys(tabsHHX).filter(function (z) { return (tabsHHX[z].groups || []).some(function (g) { return (g.e || []).some(function (e) { return e[0] === 'hellhound'; }); }); });
       okHH('6 on no table (where it is met is his word): ' + (onTabHHX.join(', ') || 'none'), !onTabHHX.length);
     } catch (eHH) { repHH.errors.push(String(eHH && eHH.stack || eHH).slice(0, 900)); }

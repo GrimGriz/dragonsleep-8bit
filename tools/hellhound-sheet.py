@@ -242,6 +242,100 @@ def cut(check=False):
     return sheet, anims
 
 
+FOLDER43 = os.path.join(os.path.dirname(FOLDER), '2026-11-15-ART-WANTED-64-HELL-HOUND-43PX-ILLUSTRATED')
+EMBER = (0xc8, 0x50, 0x14)     # (the art desk's muzzle ember, mapped from the illustration: the smoke's mouth is read off it)
+# the 30 px cut's Idle `mouth`, a facing each (S SW W NW N NE E SE), as cut() read it off the first delivery's drawn smoke (main till the redraw, c9151b35)
+MOUTH30 = [[-3, -2, 0.83, -0.56], [-8, -15, -0.51, -0.86], [-20, -18, -0.65, -0.76], [-15, -30, -0.24, -0.97], [-1, -31, 0.77, -0.63],
+           [15, -30, 0.24, -0.97], [20, -18, 0.65, -0.76], [8, -15, 0.51, -0.86]]
+SOURCE43 = ('drawn by the art desk (ART-WANTED-64-HELL-HOUND-43PX-ILLUSTRATED, 11-15: ImageGen pages, its own native cut at 43 px, approved on its SE Idle and '
+            'S Fire Breath checkpoint), cut by tools/hellhound-sheet.py; SW W NW mirrored -- the SRD 5.1 Hell Hound: deep16/data/foes.js hellhound')
+
+
+def cut43():
+    """THE 43 PX REDRAW (11-15 night, the redraw cutter seat, on the lanes desk's relay of Griz's "All that's in Fresh is all we're getting from the art dept
+    for a while, the cutter can work through those ones"; the art desk's notes: "Griz approved the 43 px scale on the SE Idle and South Fire Breath
+    checkpoint"). ART-WANTED-64-HELL-HOUND-43PX-ILLUSTRATED, claimed out of Fresh to deep16/_src/hellhound/ (the zip beside it): 35 ImageGen pages on navy,
+    each frame reduced by the art desk itself (its frame-map.json: `native_png` strips, each frame's `native_strip_box_xyxy` in a cell with its own
+    `ground_anchor_xy` -- 112 x 78 at (56, 68), the two checkpoint pages 80 x 56 at (40, 51) and 80 x 64 at (40, 59)), every colour one of the 64, the eyes
+    and the muzzle's ember on the fire ramp as drawn, no smoke or flame drawn off the body. Taken as drawn, each frame stood on its page's anchor; each row
+    its own cell, wide and tall enough for every facing's frames about one anchor (as the 30 px cut). Same rows as before: idle 8, walk 8 (Run), bite 8
+    (`release` 3), breath 8 (`release` 3; S's own drawings for 4-6 now, no hold), flinch 6, hurt 8 (Fall), prone 2 (Fall 6, Prone 1), getup 1 (Prone 2).
+    The Idle row's `mouth` (RULED 11-15, his "1 keep"): where the muzzle's ember sits on each view's Idle 1 (the art desk's own SE socket, (+24, -21), is
+    its ember too), the smoke's way out each facing's as the 30 px cut read it off the drawn smoke; a view with no ember showing (N: the head turned away)
+    keeps the 30 px mouth, scaled to the new Idle's height."""
+    fm = json.load(open(os.path.join(FOLDER43, 'frame-map.json'), encoding='utf-8'))
+    pal = {tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for r in json.load(open(os.path.join(ROOT, 'deep16', 'palette.json'), encoding='utf-8'))['ramps'].values() for c in r}
+    act_of = {'Idle': 'idle', 'Run': 'walk', 'Bite': 'bite', 'Fire Breath': 'breath', 'Flinch': 'flinch', 'Fall': 'hurt', 'Prone': 'prone'}
+    # every frame on one big canvas about one anchor first (CW x CH at CX, CY), then each row cut to what its frames need
+    CW, CH, CX, CY = 200, 140, 100, 110
+    cells, strips = {}, {}
+    for s in fm['sheets']:
+        if s['facing'] not in FACE:
+            continue
+        p = s['native_png']
+        if p not in strips:
+            strips[p] = np.asarray(Image.open(os.path.join(FOLDER43, *p.split('/'))).convert('RGBA'))
+        ax0, ay0 = s['ground_anchor_xy']
+        for f in s['frames']:
+            x0, y0, x1, y1 = f['native_strip_box_xyxy']
+            c = strips[p][y0:y1, x0:x1]
+            if not set(np.unique(c[..., 3]).tolist()) <= {0, 255}:
+                raise SystemExit('%s %d: alpha not hard' % (p, f['frame']))
+            off = {tuple(int(v) for v in px) for px in c[c[..., 3] > 0][:, :3]} - pal
+            if off:
+                raise SystemExit('%s %d: %d colours off the 64' % (p, f['frame'], len(off)))
+            big = np.zeros((CH, CW, 4), np.uint8)
+            dx, dy = CX - ax0, CY - ay0
+            big[dy:dy + c.shape[0], dx:dx + c.shape[1]] = c
+            cells[(FACE[s['facing']], act_of[s['action']], f['index'])] = big
+    for v in VIEWS:
+        fr = cells[(FACE[v], 'idle', 0)]
+        em = (fr[..., :3] == EMBER).all(-1) & (fr[..., 3] > 0)
+        o = MOUTH30[FACE[v]]
+        if em.any():
+            ys, xs = np.where(em)
+            MOUTH[FACE[v]] = [int(round(xs.mean() - CX)), int(round(ys.mean() - CY)), o[2], o[3]]
+        else:
+            rows = np.where(fr[..., 3].any(1))[0]
+            k = (CY - rows[0]) / float(TALL)
+            MOUTH[FACE[v]] = [int(round(o[0] * k)), int(round(o[1] * k)), o[2], o[3]]
+    for mf, sf in MIRROR.items():
+        x, y, dx, dy = MOUTH[sf]; MOUTH[mf] = [-x, y, -dx, dy]
+        for (f, act, i) in [c for c in list(cells) if c[0] == sf]:
+            cells[(mf, act, i)] = np.roll(cells[(f, act, i)][:, ::-1], 1, axis=1).copy()   # (a flip, then a pixel right: the anchor column stays put)
+    anims, blocks, y, tops = {}, [], 0, []
+    for name, fps, keys in ROWS:
+        got = [cells[(f,) + tuple(k_)] for f in range(8) for k_ in keys]
+        al = np.any([g[..., 3] > 0 for g in got], axis=0)
+        ys, xs = np.where(al)
+        reach = int(max(CX - xs.min(), xs.max() + 1 - CX)) + 2
+        up, dn = int(CY - ys.min()) + 2, int(ys.max() - CY) + 2
+        fw, fh, ax, ay = 2 * reach, up + dn + 1, reach, up
+        blk = np.zeros((8 * fh, len(keys) * fw, 4), np.uint8)
+        for f in range(8):
+            for j, k_ in enumerate(keys):
+                blk[f * fh:(f + 1) * fh, j * fw:(j + 1) * fw] = cells[(f,) + tuple(k_)][CY - up:CY - up + fh, CX - reach:CX + reach]
+        a = dict(y=y, fw=fw, fh=fh, ax=ax, ay=ay, frames=len(keys), fps=fps)
+        if name in RELEASE:
+            a['release'] = RELEASE[name]
+        if name == 'idle':
+            a['mouth'] = [MOUTH[f] for f in range(8)]
+            tops = [int(CY - np.where(g[..., 3].any(1))[0][0]) for g in got]
+        anims[name] = a; blocks.append(blk); y += 8 * fh
+    W = max(b.shape[1] for b in blocks)
+    sheet = np.zeros((y, W, 4), np.uint8); yy = 0
+    for b in blocks:
+        sheet[yy:yy + b.shape[0], :b.shape[1]] = b; yy += b.shape[0]
+    Image.fromarray(sheet, 'RGBA').save(os.path.join(ROOT, 'deep16', 'art', NAME + '.png'), optimize=True)
+    i0 = anims['idle']
+    meta = dict(image='art/%s.png' % NAME, fw=i0['fw'], fh=i0['fh'], ax=i0['ax'], ay=i0['ay'], top=max(tops), anims=anims, name='Hell Hound', source=SOURCE43)
+    with open(os.path.join(ROOT, 'deep16', 'art', NAME + '.json'), 'w', encoding='utf-8', newline='\n') as f_:
+        json.dump(meta, f_, indent=1)
+    print('%s: %dx%d, top %d, rows %s' % (NAME, W, y, max(tops), ', '.join('%s %d@%dx%d' % (n_, a_['frames'], a_['fw'], a_['fh']) for n_, a_ in anims.items())))
+    print('  mouths %s' % [MOUTH[f] for f in range(8)])
+    return sheet, anims
+
+
 def debug(out):
     """each view's Idle, Bite and Fire Breath page drawings, smoke taken marked red, outer fire yellow, kept as drawn: a strip a row"""
     os.makedirs(out, exist_ok=True)
@@ -264,5 +358,7 @@ def debug(out):
 if __name__ == '__main__':
     if 'debug' in sys.argv:
         debug(sys.argv[sys.argv.index('debug') + 1] if len(sys.argv) > sys.argv.index('debug') + 1 else os.path.join(ROOT, 'deep16', 'art-src', 'hellhound'))
-    else:
+    elif 'old' in sys.argv:          # (the 30 px cut of the first delivery, 11-15, as it stood on main till the redraw)
         cut('check' in sys.argv)
+    else:
+        cut43()

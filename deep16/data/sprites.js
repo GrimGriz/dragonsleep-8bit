@@ -8330,143 +8330,140 @@
 }
 },
 "hellhound_p1": {
-"image": "art/hellhound_p1.png?v=77aa9b1601",
-"fw": 62,
-"fh": 45,
-"ax": 31,
-"ay": 41,
-"top": 30,
+"image": "art/hellhound_p1.png?v=9878b4548a",
+"fw": 82,
+"fh": 51,
+"ax": 41,
+"ay": 48,
+"top": 46,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 62,
-"fh": 45,
-"ax": 31,
-"ay": 41,
+"fw": 82,
+"fh": 51,
+"ax": 41,
+"ay": 48,
 "frames": 8,
 "fps": 6,
 "mouth": [
 [
--3,
--2,
+0,
+-21,
 0.83,
 -0.56
 ],
 [
--8,
--15,
+-23,
+-21,
 -0.51,
 -0.86
 ],
 [
--20,
--18,
+-32,
+-25,
 -0.65,
 -0.76
 ],
 [
--15,
--30,
+-24,
+-29,
 -0.24,
 -0.97
 ],
 [
 -1,
--31,
+-43,
 0.77,
 -0.63
 ],
 [
-15,
--30,
+24,
+-29,
 0.24,
 -0.97
 ],
 [
-20,
--18,
+32,
+-25,
 0.65,
 -0.76
 ],
 [
-8,
--15,
+23,
+-21,
 0.51,
 -0.86
 ]
 ]
 },
 "walk": {
-"y": 360,
-"fw": 104,
-"fh": 41,
-"ax": 52,
-"ay": 37,
+"y": 408,
+"fw": 100,
+"fh": 60,
+"ax": 50,
+"ay": 57,
 "frames": 8,
 "fps": 12
 },
 "bite": {
-"y": 688,
-"fw": 66,
-"fh": 49,
-"ax": 33,
-"ay": 45,
+"y": 888,
+"fw": 92,
+"fh": 55,
+"ax": 46,
+"ay": 52,
 "frames": 8,
 "fps": 10,
 "release": 3
 },
 "breath": {
-"y": 1080,
-"fw": 62,
-"fh": 54,
-"ax": 31,
-"ay": 51,
+"y": 1328,
+"fw": 84,
+"fh": 55,
+"ax": 42,
+"ay": 52,
 "frames": 8,
 "fps": 8,
 "release": 3
 },
 "flinch": {
-"y": 1512,
-"fw": 66,
+"y": 1768,
+"fw": 90,
 "fh": 49,
-"ax": 33,
-"ay": 45,
+"ax": 45,
+"ay": 46,
 "frames": 6,
 "fps": 12
 },
 "hurt": {
-"y": 1904,
-"fw": 62,
-"fh": 41,
-"ax": 31,
-"ay": 37,
+"y": 2160,
+"fw": 88,
+"fh": 47,
+"ax": 44,
+"ay": 44,
 "frames": 8,
 "fps": 8
 },
 "prone": {
-"y": 2232,
-"fw": 62,
-"fh": 36,
-"ax": 31,
-"ay": 33,
+"y": 2536,
+"fw": 82,
+"fh": 35,
+"ax": 41,
+"ay": 32,
 "frames": 2,
 "fps": 8
 },
 "getup": {
-"y": 2520,
-"fw": 38,
-"fh": 43,
-"ax": 19,
-"ay": 40,
+"y": 2816,
+"fw": 88,
+"fh": 36,
+"ax": 44,
+"ay": 33,
 "frames": 1,
 "fps": 6
 }
 },
 "name": "Hell Hound",
-"hold": [
-"S and N Run: the head-on and rear views foreshorten the stride (the art desk's own notes)"
-],
-"source": "drawn by the art desk (ART-WANTED-64-HELL-HOUND, 11-15: art-wanted section 64), cut by tools/hellhound-sheet.py, its drawn smoke and outer fire off; SW W NW mirrored -- the SRD 5.1 Hell Hound: deep16/data/foes.js hellhound"
+"source": "drawn by the art desk (ART-WANTED-64-HELL-HOUND-43PX-ILLUSTRATED, 11-15: ImageGen pages, its own native cut at 43 px, approved on its SE Idle and S Fire Breath checkpoint), cut by tools/hellhound-sheet.py; SW W NW mirrored -- the SRD 5.1 Hell Hound: deep16/data/foes.js hellhound"
 },
 "hessle_p1": {
 "image": "art/hessle_p1.png?v=c0d861f461",
