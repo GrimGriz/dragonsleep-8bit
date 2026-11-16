@@ -15,11 +15,14 @@ wyvern's and the winter wolf's stand (the 11-15 pegasus stood its body's middle 
 notes call the frame-to-frame registration diagnostic; measured on the torso band (the 18 rows 24 to 42 px above the soles), the idle, the walk
 and the flinch hold within 2 px of their frame 1 but for the flinch's own recoil, and kept as drawn.
 
-Rows: Idle `idle` 16 (the old 8 doubled, his ask to the art desk; 12 fps keeps the old 1.33 s breath), Walk `walk` 8, Hooves `attack` 8
+Rows: Idle `idle` 8 -- the art desk drew 16 on his ask; on seeing its own 8-against-16 film he ruled, relayed by the lanes desk 11-16,
+*"only use the standard number of frames for the pegasus idle"*: every other of the 16 (1, 3 .. 15, the art desk's own 8-phase sample, the film's
+left side; its frame 16 is frame 1 again) at the old 6 fps -- Walk `walk` 8, Hooves `attack` 8
 (the forehooves land on frame 5: `release` 4), Fall `hurt` 8, Fly `fly` 8, Flinch `flinch` 6, Prone `prone` 2 (frame 1 Fall 8's own pose,
 frame 2 the lying pose -- the grid lies on the row's last frame; no recovery is drawn, so no `getup`), Rear Back `rearback` 8 (HELD: no SRD
 action of the pegasus's is a rear, and where it plays is his word), Take Flight `takeflight` 8 (new: js/battle.js flyTo plays it on a rise from
-the ground). FLY AND TAKE FLIGHT are drawn lifted (`lift_px`: Fly 17 throughout, Take Flight 0 0 0 4 8 12 15 17); the grid lifts a flier itself,
+the ground; his word, 11-16: *"go ahead and get that ready even if we don't use it on the Pocket DM version, a pegasus encounter in game is
+likely to be scripted and we can use it then"*). FLY AND TAKE FLIGHT are drawn lifted (`lift_px`: Fly 17 throughout, Take Flight 0 0 0 4 8 12 15 17); the grid lifts a flier itself,
 so each frame is stood on the ground line by its own lift, the old fly band's way, and Take Flight's lift goes to the sheet as `rise` (the
 share of the climb at each frame) for flyTo to lift it by. The art desk stood every Fly frame by its lowest pixel, and in SE and E the
 downstroke's wingtip is that pixel, so the body rode up 14 to 19 px on frames 4 to 6: `refly` lays each Fly frame's body (its warm pixels: the
@@ -46,8 +49,10 @@ MIRROR = {'SW': 'SE', 'W': 'E', 'NW': 'NE'}
 # the art desk's runtime_row -> the sheet's row (the art desk's own names, but its Hooves the grid's `attack`)
 ROWS = {'idle': 'idle', 'walk': 'walk', 'hooves': 'attack', 'hurt': 'hurt', 'fly': 'fly', 'flinch': 'flinch', 'prone': 'prone',
         'rearback': 'rearback', 'takeflight': 'takeflight'}
-COUNT = {'idle': 16, 'walk': 8, 'attack': 8, 'hurt': 8, 'fly': 8, 'flinch': 6, 'prone': 2, 'rearback': 8, 'takeflight': 8}
-FPS = {'idle': 12, 'walk': 10, 'attack': 10, 'hurt': 8, 'fly': 10, 'flinch': 12, 'prone': 1, 'rearback': 10, 'takeflight': 10}
+DRAWN = {'idle': 16, 'walk': 8, 'attack': 8, 'hurt': 8, 'fly': 8, 'flinch': 6, 'prone': 2, 'rearback': 8, 'takeflight': 8}
+PICK = {'idle': list(range(0, 16, 2))}   # (his "standard number of frames for the pegasus idle": every other of the 16, the art desk's 8-phase sample)
+COUNT = {row: len(PICK.get(row, range(n))) for row, n in DRAWN.items()}
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'fly': 10, 'flinch': 12, 'prone': 1, 'rearback': 10, 'takeflight': 10}
 RELEASE = {'attack': 4}
 HELD = {'rearback': 'no SRD 5.1 action of the pegasus is a rear (its one blow is the Hooves, on `attack`): drawn by the art desk on his ask, where it plays is his word (11-16)'}
 STOOD = ('fly', 'takeflight')        # (drawn lifted: each frame stood by its own lift_px)
@@ -106,10 +111,10 @@ def cut():
     out = {}
     for v, rs in views.items():
         out[v] = {}
-        for row, n in COUNT.items():
+        for row, n in DRAWN.items():
             if sorted(rs.get(row, {})) != list(range(n)):
                 raise SystemExit('%s %s: frames %s, not %d' % (v, row, sorted(rs.get(row, {})), n))
-            out[v][row] = [rs[row][i] for i in range(n)]
+            out[v][row] = [rs[row][i] for i in PICK.get(row, range(n))]
             low = max(int(np.where(f[..., 3].any(1))[0][-1]) for f in out[v][row])
             if low != AY - 1:
                 raise SystemExit('%s %s: its lowest pixel on row %d, not %d' % (v, row, low, AY - 1))

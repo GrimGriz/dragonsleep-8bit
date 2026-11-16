@@ -19737,8 +19737,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   }
   // THE PEGASUS, 11-15 (mode=pegasus1115; tools/pegasus-sheet.py, data/foes.js pegasus -- the NPC cutter seat, art-wanted 64's celestial, the art desk's 69):
   // the SRD 5.1 block; its sheet's rows, the Hooves landing on frame 5, the fly band stood on the ground line (the grid lifts a flier itself); its rows in a
-  // fight are the show's (check.py's show line-up). RE-CUT 11-16 from the art desk's illustrated redraw (the redraw cutter seat): the idle 16, Prone 2 and
-  // no get-up, Rear Back HELD (his word where it plays), Take Flight played by js/battle.js flyTo on a rise from the ground, lifted by the row's own `rise`
+  // fight are the show's (check.py's show line-up). RE-CUT 11-16 from the art desk's illustrated redraw (the redraw cutter seat): the idle at the standard 8
+  // (every other of its 16, his "only use the standard number of frames for the pegasus idle"), Prone 2 and no get-up, Rear Back HELD (his word where it plays), Take Flight played by js/battle.js flyTo on a rise from the ground, lifted by the row's own `rise`
   if (get('mode', '') === 'pegasus1115') {
     var repP = { checks: [], errors: [] };
     function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -19746,9 +19746,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var PG = D.FOES.pegasus, SP0 = PG && D.SHEETS[PG.sheet], aP = SP0 && SP0.anims, hP = PG && PG.attacks.hooves;
       okP('the SRD 5.1 Pegasus (' + (PG ? 'AC ' + PG.ac + ', ' + PG.hp + ' HP, ' + PG.type + ', size ' + PG.size + ', speed ' + PG.speed + ', fly ' + PG.fly + ', CR ' + PG.cr + '; Hooves +' + hP.atk + ' ' + hP.dice + '+' + hP.mod + ' ' + hP.type : 'NONE') + ')',
         !!PG && PG.ac === 12 && PG.hp === 59 && PG.type === 'celestial' && PG.size === 2 && PG.speed === 60 && PG.fly === 90 && PG.cr === '2' && hP.atk === 6 && hP.dice === '2d6' && hP.mod === 4 && hP.type === 'bludgeoning');
-      var wantP = { idle: 16, walk: 8, fly: 8, attack: 8, flinch: 6, hurt: 8, prone: 2, rearback: 8, takeflight: 8 };
+      var wantP = { idle: 8, walk: 8, fly: 8, attack: 8, flinch: 6, hurt: 8, prone: 2, rearback: 8, takeflight: 8 };
       var offP = Object.keys(wantP).filter(function (k) { return !aP || !aP[k] || aP[k].frames !== wantP[k]; }).concat(aP && aP.getup ? ['getup (none drawn)'] : []);
-      okP('its sheet (' + (PG && PG.sheet) + '): ' + Object.keys(wantP).length + ' rows at their counts (the idle 16, Prone 2, Rear Back and Take Flight), no get-up, the Hooves landing on frame 5' + (offP.length ? ' -- off: ' + offP.join(', ') : ''),
+      okP('its sheet (' + (PG && PG.sheet) + '): ' + Object.keys(wantP).length + ' rows at their counts (the idle the standard 8, Prone 2, Rear Back and Take Flight), no get-up, the Hooves landing on frame 5' + (offP.length ? ' -- off: ' + offP.join(', ') : ''),
         !!SP0 && SP0.fw === 144 && SP0.fh === 152 && SP0.ay === 114 && !offP.length && aP.attack.release === 4);
       var riseP = aP && aP.takeflight && aP.takeflight.rise;
       okP('its Rear Back held for his word (' + (aP && aP.rearback && aP.rearback.held ? 'held' : 'NOT held') + ', so the show wants it not); its Take Flight\'s rise ' + JSON.stringify(riseP) + ' (from the ground to the top, never down)',

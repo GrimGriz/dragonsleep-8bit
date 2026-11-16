@@ -15694,12 +15694,12 @@
 "door": "npc:papa"
 },
 "pegasus_p1": {
-"image": "art/pegasus_p1.png?v=6bf595f261",
+"image": "art/pegasus_p1.png?v=e619802c62",
 "fw": 144,
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"top": 74,
+"top": 73,
 "anims": {
 "idle": {
 "y": 0,
@@ -15707,8 +15707,8 @@
 "fh": 152,
 "ax": 72,
 "ay": 114,
-"frames": 16,
-"fps": 12
+"frames": 8,
+"fps": 6
 },
 "walk": {
 "y": 1216,
