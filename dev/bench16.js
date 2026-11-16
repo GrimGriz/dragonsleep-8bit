@@ -13666,7 +13666,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       HHs.fromFloor(B); var pSave = (HHs.cur.inv || []).filter(function (s) { return s.id === 'batpie'; })[0];
       okHs('the floor\'s pack into the house\'s save: ' + (pSave ? pSave.n : 0) + ' Bat-Wing Pies, no wings', !!pSave && pSave.n === 9 && !(HHs.cur.inv || []).some(function (s) { return s.id === 'batwings' && s.n > 0; }));
       // PERCY and the wings he won't have (the first game's S.percyShop)
-      B = beatHs('percy'); R0 = B.roam;
+      B = beatHs('percy'); R0 = B.roam; R0.flags.nedWandGot = 1; // (Ned's wand already had: his word on the way in is mode=items1116's, 11-16)
       okHs('Percy\'s beat: at his door with two wings', packHs(B, 'batwings') === 2 && inHs(B, 'warp:percy'));
       var gP = fireHs(B, 'talk:percy'), scP = D.top(), wP = upHs() ? readHs(scP) : [];
       okHs('E at his counter: his word, then the wings sent on -- "' + wP.slice(-1).join('') + '", then ' + askHs(scP), upHs() && /Wings\? Not in my jars\. Take them to Marta Venn/.test(wP.join(' ')) && scP.wait.opts.join() === 'THE SHELVES,LEAVE');
@@ -13969,7 +13969,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         /In your JOURNAL/.test(cardE0 || '') && !!tailE && seenE && fresh0E === 0 && pinE0 !== 'tail' && !!rE.un && rE.screen && rE.took && rE.saw && rE.flying && rE.cards.length === 1 && rE.flew === 1 && /The Forty-Gold Tail/.test(flyE) && CHw.journal(BE).pin === 'tail');
       // 6d. NED'S PAGE, THE SAME (10-30, the same report of him): Ned's own word said the JOURNAL and marked the page as seen, so no card and no fly-in came when his counter closed.
       // Aurdin at Percy's, Ned's story told and the Insight made on an earlier visit: the Insight's choice, "Deal.", out -- the card and the fly-in as the screen closes, once
-      var BN = newHw('aurdin'); beatHw(BN); driveHw(THw.fire(BN, trigHw('warp:percy')), null, 2000); var inNP = RHw.def.room === 'warp:percy'; Object.assign(BN.roam.flags, { nedStory: 1, nedSaw: 1 });
+      var BN = newHw('aurdin'); beatHw(BN); BN.roam.flags.nedWandGot = 1; /* (Ned's wand already had: nothing of it on the way in -- 11-16, mode=items1116) */ driveHw(THw.fire(BN, trigHw('warp:percy')), null, 2000); var inNP = RHw.def.room === 'warp:percy'; Object.assign(BN.roam.flags, { nedStory: 1, nedSaw: 1 });
       var nedQ0 = !!qHw(BN, 'nedpage'), rN = nedRunHw(BN), flyN = rN.cards.length ? rN.cards[0] : '', nedQ1 = qHw(BN, 'nedpage');
       okHw('Ned\'s page, the same: Aurdin in Percy\'s (' + inNP + '), the page not in the JOURNAL before (' + !nedQ0 + '), the deal struck at his counter (' + rN.took + ', ' + (nedQ1 ? nedQ1.name : 'no quest') + ' in it now); once the screen is closed the floor gives the card by itself (' + rN.saw + ', the fly-in up ' + rN.flying + '), ' + rN.cards.length + ' card and ' + rN.flew + ' fly-in ("' + flyN.slice(0, 44) + '"), pinned ' + CHw.journal(BN).pin,
         inNP && !nedQ0 && !!rN.un && rN.screen && rN.took && !!nedQ1 && rN.saw && rN.flying && rN.cards.length === 1 && rN.flew === 1 && /In your JOURNAL: Ned's Page/.test(flyN) && CHw.journal(BN).pin === 'nedpage');
@@ -19302,7 +19302,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
+      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116', nedwand16: 'items1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
