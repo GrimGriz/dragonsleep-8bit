@@ -1112,6 +1112,9 @@
     if (a.blindsight && G.dist(a, b) <= a.blindsight && !(a.tremor && G.aloft(b))) return { ok: true }; // (`tremor`: the sheet's blindsight is tremorsense -- nothing aloft is felt: the bulette, the xorn, the earth elemental; the grid's rules §2.7, 10-08)
     // Mirror's Gaze (RULED 09-28, invented.json #mirrors-gaze): the marked one cannot hide from her; unseen, it gains nothing against her
     if (b.conds && b.conds.marked && b.conds.marked.gaze && b.conds.marked.by === a.id) return { ok: true };
+    // WEB SENSE (SRD 5.1, the ettercap's and the giant spider's: "While in contact with a web, the ettercap knows the exact location of any other creature in contact with the same
+    // web"; 11-16, the bug seat, the grid's rules lane 11-03): on the field's web, it knows where anyone else on it is -- the field's webs read as one web (the seat's call)
+    if (a.webSense && M.webbed && M.webbed(B, a.x, a.y) && b.x != null && M.webbed(B, b.x, b.y)) return { ok: true };
     if (a.conds && a.conds.blinded) return { ok: false, why: 'blinded' };
     if (a.conds && a.conds.averted && a.conds.averted.from.indexOf(b.id) >= 0) return { ok: false, why: 'eyes averted' }; // (from a gaze, till its next turn: js/traits.js M.avert, 10-08)
     if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };

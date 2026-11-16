@@ -372,7 +372,7 @@
       hp: f.hp || d.hp, maxhp: f.hp || d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
       init: d.init, perception: d.perception, athletics: d.athletics != null ? d.athletics : undefined, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
-      fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5, inorganic: !!d.inorganic, // (inorganic: stone, crystal or metal -- Shatter's save at disadvantage, js/magic.js; 10-06)
+      fey: !!d.fey, webWalker: !!d.webWalker, webSense: !!d.webSense, regen: d.regen || 0, conds: {}, lvl: 5, inorganic: !!d.inorganic, // (inorganic: stone, crystal or metal -- Shatter's save at disadvantage, js/magic.js; 10-06)
       // (`armor`: the leather, studded leather or hide its block's AC names -- the pudding's Corrosive Form eats any plain armour, traits.js; 10-22, the grid's rules seat. Armoured, either way: no Mage Armor on it, magic.js)
       armor: d.armor || undefined, armored: d.armor || d.metalArmor ? true : undefined,
       metalArmor: d.metalArmor || undefined, shield: !!d.shield, // (the armour the SRD block's AC names, when it is metal -- Heat Metal, Shocking Grasp, the pudding's and the ooze's corrosion: grimoire.js M.metalArmor, 10-21 night; `shield`: kept when the armour is eaten through, traits.js acWithout)
@@ -1445,6 +1445,7 @@
   // the roper's tendril on w (SRD 5.1 Grasping Tendrils; 10-02): a grip that carries `tendril` -- w held by it, its holder standing and hostile to u, w not (or w is u). The thing u
   // strikes at or breaks: a target of its own (tendrilStub) on w's square, never a unit of the fight (grid.js knows nothing of it)
   Battle.tendrilOn = function (u, w, units) {
+    var r0 = w && w.conds && w.conds.restrained; if (r0 && r0.webbing && r0.webbing.hp > 0 && (w === u || !G.hostile(u, w)) && G.standing(w)) return Battle.webStub(w, units.filter(function (x) { return x.id === r0.by; })[0] || null); // (the webbing: struck at as the tendril is, its maker standing or not -- 11-16)
     var r = w && w.conds && w.conds.restrained; if (!r || !r.grapple || !r.tendril || (w !== u && G.hostile(u, w)) || !G.standing(w)) return null;
     var h = units.filter(function (x) { return x.id === r.by; })[0];
     return h && G.hostile(u, h) && G.standing(h) ? Battle.tendrilStub(w, h) : null;
@@ -1454,8 +1455,21 @@
     Object.defineProperty(s, 'x', { get: function () { return held.x; }, enumerable: true }); Object.defineProperty(s, 'y', { get: function () { return held.y; }, enumerable: true });
     return s;
   };
-  // the held ones u could break the tendril off (BREAK THE TENDRIL: the one held, or anyone beside it -- SRD 5.1, "a creature takes an action")
-  Battle.breakable = function (u, units) { return units.filter(function (w) { return (w === u || (!G.hostile(u, w) && G.dist(u, w) <= 5)) && Battle.tendrilOn(u, w, units); }); };
+  // THE WEBBING ON ONE WEBBED (SRD 5.1, the ettercap's and the giant spider's Web; 11-16, the bug seat): a thing as the tendril is -- AC 10, 5 hit points, vulnerable to fire,
+  // immune to bludgeoning, poison and psychic -- on the webbed one's square; at 0 it is cut away and the webbed one is free (webGone). Its maker need not be standing
+  Battle.webStub = function (held, maker) {
+    var t = held.conds.restrained.webbing, s = { tendril: true, web: true, held: held, by: maker, name: 'the webbing on ' + held.name, side: maker ? maker.side : 'foe', size: 1, hp: t.hp, maxhp: t.max, ac: t.ac, conds: {}, abil: {}, blindsight: 999, immune: t.immune, vuln: t.vuln };
+    Object.defineProperty(s, 'x', { get: function () { return held.x; }, enumerable: true }); Object.defineProperty(s, 'y', { get: function () { return held.y; }, enumerable: true });
+    return s;
+  };
+  Battle.prototype.webGone = function (held, how) {
+    delete held.conds.restrained;
+    if (this.active === held && held.turn) { var T0 = held.turn; T0.move = held.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : held.speed) - (T0.moved || 0)); } // (cut on its own turn: the walk the turn would have had)
+    FX.sparkle(held, 'bone', 10); D.sfx('hit');
+    this.card(['{n}The webbing is ' + how + ':{/} ' + nameOf(held) + ' is free.'], 260);
+  };
+  // the held ones u could break the tendril off (BREAK THE TENDRIL: the one held, or anyone beside it -- SRD 5.1, "a creature takes an action"); not the webbing, whose STR check is the webbed one's own (BREAK FREE)
+  Battle.breakable = function (u, units) { return units.filter(function (w) { var st = (w === u || (!G.hostile(u, w) && G.dist(u, w) <= 5)) && Battle.tendrilOn(u, w, units); return !!st && !st.web; }); };
   // a tendril cut through or broken: the grip ends with it, and its holder is one tendril short till its next turn (rules.js startTurn: tendrilsLost back to 0)
   Battle.prototype.tendrilGone = function (holder, held, how) {
     var blind0 = !!(held.conds.blinded && held.conds.blinded.held && held.conds.blinded.by === holder.id);
@@ -2125,7 +2139,7 @@
       }
       case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
         // the one it holds (at disadvantage on STR checks while held: `weak`) or anyone beside; Athletics, as breakFree and PULL IT OFF read it. 10-02
-        var hw = c.target, st2 = hw && Battle.tendrilOn(u, hw, this.units); if (!st2) return;
+        var hw = c.target, st2 = hw && Battle.tendrilOn(u, hw, this.units); if (!st2 || st2.web) return;
         var tn = hw.conds.restrained.tendril, dc2 = tn.breakDC || 15, en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
         var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down) || (u.conds.restrained && u.conds.restrained.weak)) || ce2.dis.length > 0;
         var b1 = D.d(20), b2 = D.d(20), bd20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
@@ -3162,10 +3176,10 @@
   // head (RULED 10-01, Griz: "only hurt ally on natural 1")
   Battle.prototype.strikeTendril = function* (att, st, atk, o) {
     o = o || {};
-    var held = st.held, holder = st.by, t = held.conds.restrained && held.conds.restrained.tendril;
-    if (!t || !G.standing(held) || !G.standing(holder) || held.conds.restrained.by !== holder.id) return;
+    var held = st.held, holder = st.by, web = !!st.web, t = held.conds.restrained && (web ? held.conds.restrained.webbing : held.conds.restrained.tendril);
+    if (!t || !G.standing(held) || (!web && (!G.standing(holder) || held.conds.restrained.by !== holder.id))) return;
     if (this.thrownLeft(att, atk) <= 0) return;
-    this.spendThrow(att, atk, holder); // (a handaxe thrown at a tendril is thrown: spendThrow)
+    this.spendThrow(att, atk, holder || held); // (a handaxe thrown at a tendril is thrown: spendThrow)
     if (!o.oa && !o.ready) this.noteHeard(att);
     var melee = !atk.ranged, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (held !== att) this.turnTo(att, faceTo(att, held));
@@ -3197,13 +3211,15 @@
     var fire = 0;
     if (atk.flame && att.conds.ablaze) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
     if ((t.immune || []).indexOf(atk.type) >= 0) { parts.push('{g}immune to ' + atk.type + '{/}'); dmg = 0; }
+    if ((t.vuln || []).indexOf(atk.type) >= 0) { dmg *= 2; parts.push('{o}vulnerable to ' + atk.type + ': x2{/}'); } // (the webbing and fire, 11-16)
+    if (fire && (t.vuln || []).indexOf('fire') >= 0) { fire *= 2; parts.push('{o}the webbing burns: fire x2{/}'); }
     var all = dmg + fire;
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + all + '{/}'], 300, cid);
     if (melee) FX.slash(held, crit ? D.PAL.ramps.gold[4] : null);
     t.hp = Math.max(0, t.hp - all);
     FX.float('-' + all, held, D.PAL.ramps.bone[2]);
-    if (t.hp <= 0) this.tendrilGone(holder, held, 'cut through');
-    else this.card(['{g}the tendril: ' + t.hp + ' of ' + t.max + ' left{/}'], 200);
+    if (t.hp <= 0) { if (web) this.webGone(held, 'cut away'); else this.tendrilGone(holder, held, 'cut through'); }
+    else this.card(['{g}' + (web ? 'the webbing' : 'the tendril') + ': ' + t.hp + ' of ' + t.max + ' left{/}'], 200);
     yield o.oa ? 18 : 26;
     att.anim = 'idle';
   };

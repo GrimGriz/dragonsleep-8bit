@@ -63,7 +63,7 @@
     attacks: {
       bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true, zero: true } }
     },
-    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true, spiderClimb: true,
+    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true, webSense: true, spiderClimb: true,
     src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider. Web is read (09-27, ai.js webShot): a ranged attack, restrained, escape DC 12, recharge 5-6. Spider Climb (10-05 night): the climb speed up or down any face with no check, and (ours) no blow shakes it off the face -- battle.js hurt; a push still does. Web Walker: grid.js stepCost, a web never slows it. The SRD gives it no faster climb on a web: Griz\'s "spider spiderclimb faster on web per SRD" read as these two traits, the seat\'s read'
   },
   // ------------------------------------------------------------------ the 8-bit game's bosses, set pieces for the ladder (09-27, the ladder seat)
@@ -77,7 +77,7 @@
       bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', extra: '1d8', extraType: 'poison', reach: 5, poison: { dc: 11, repeat: true } },
       claws: { name: 'Claws', atk: 4, dice: '2d4', mod: 2, type: 'slashing', reach: 5 }
     },
-    multi: ['bite', 'claws'], web: { atk: 4, range: [30, 60], dc: 11, recharge: 5 }, webWalker: true,
+    multi: ['bite', 'claws'], web: { atk: 4, range: [30, 60], dc: 11, recharge: 5 }, webWalker: true, webSense: true,
     src: 'SRD 5.1 Ettercap (CR 2); content/monsters.json ettercap (wiki/web-gulch.md, the braiding ettercap). Spider Climb read as its climb speed (`climbs`): up and down any cliff on a map that lets them be climbed, at no extra cost and with no check -- 10-04'
   },
   // The landlord of the Warrens' deepest pool (events.js: "It rises from its pool... It will not leave the water").
@@ -676,7 +676,7 @@
     abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13, stealth: 7,
     saves: { str: 1, dex: 3, con: 1, int: -4, wis: 1, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true, zero: true } } },
-    multi: 1, webWalker: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
+    multi: 1, webWalker: true, webSense: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
   },
   grick: {
     name: 'Grick', type: 'monstrosity', sheet: 'grick_p1', cr: '2', ac: 14, hp: 27, speed: 30, climbs: 30, size: 1, reach: 5, darkvision: 60,

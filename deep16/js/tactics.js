@@ -109,7 +109,7 @@
       if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' held, out of reach: the throw ' + th.toFixed(1) + ' | the escape ' + es.toFixed(1));
       if (th >= es) return 'fight';
     }
-    var t = r && r.tendril;
+    var t = r && (r.tendril || r.webbing); // (the webbing on it, 11-16: cut it, or the STR check)
     if (!t) return 'escape';
     var st = D.Battle.tendrilOn(u, u, B.units); if (!st) return 'escape';
     var pS = TX.pCut(B, u, st, u.weapon);
@@ -134,10 +134,11 @@
   // and the odds of landing that many (from square (x, y) when given: the AI weighing a move)
   TX.pCut = function (B, u, st, wp, x, y) {
     if (!wp || !wp.name || u.conds.disarmed || !st || !st.held.conds.restrained) return 0;
-    var t = st.held.conds.restrained.tendril, e = RU.edges(u, st, wp, x, y), ac = t.ac + (wp.ranged ? G.los(u, st, x, y).cover : 0);
+    var t = st.held.conds.restrained.tendril || st.held.conds.restrained.webbing, e = RU.edges(u, st, wp, x, y), ac = t.ac + (wp.ranged ? G.los(u, st, x, y).cover : 0);
     e.adv = e.adv.filter(function (a) { return !/flanking/.test(a); }); var net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0;
     var n = attacksWith(u, wp), p = TX.pHit(wp.atk + (e.pen || 0) + (u.conds.blessed ? 2.5 : 0), ac, net), d = avg(wp.dice) + (wp.mod || 0) + (u.conds.raging && !wp.ranged ? 2 : 0) + (wp.flame && u.conds.ablaze ? avg(wp.flame) : 0);
     if ((t.immune || []).indexOf(wp.type) >= 0) return 0;
+    if ((t.vuln || []).indexOf(wp.type) >= 0) d *= 2; // (the webbing and fire, 11-16)
     var need = Math.max(1, Math.ceil(t.hp / Math.max(0.1, d))), pr = 0;
     for (var k = need; k <= n; k++) pr += choose(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
     return pr;
@@ -1091,14 +1092,14 @@
     allies.forEach(function (w) {
       if (w === u || !G.standing(w)) return;
       var st = D.Battle.tendrilOn(u, w, B.units); if (!st) return;
-      var h = st.by, t = w.conds.restrained.tendril;
-      var ta = Object.keys(h.attacks || {}).map(function (k) { return h.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0];
-      var spare = !!ta && (h.holding || []).length + (h.tendrilsLost || 0) < ((ta.grapple || {}).max || 1), regrab = spare ? Math.min(0.9, TX.pHit(ta.atk, RU.ac(w), 0)) : 0;
-      var worth = (TX.dpr(w) * 0.8 + (G.dist(h, w) <= 5 ? 2 : 6)) * (1 - regrab) + 1.5;
+      var h = st.by, web = !!st.web, t = web ? w.conds.restrained.webbing : w.conds.restrained.tendril; // (the webbing on a friend, 11-16: cut, never broken -- its STR check is the webbed one's)
+      var ta = h && !web ? Object.keys(h.attacks || {}).map(function (k) { return h.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0] : null;
+      var spare = !!ta && (h.holding || []).length + (h.tendrilsLost || 0) < ((ta.grapple || {}).max || 1), regrab = web ? (h && G.standing(h) && h.web && h.web.ready ? Math.min(0.9, TX.pHit(h.web.atk, RU.ac(w), 0)) : 0) : spare ? Math.min(0.9, TX.pHit(ta.atk, RU.ac(w), 0)) : 0;
+      var worth = (TX.dpr(w) * 0.8 + (h && G.standing(h) && G.dist(h, w) <= 5 ? 2 : 6)) * (1 - regrab) + 1.5;
       rm = rm || G.reach(u, T.move);
       // BREAK: from beside the held one
       var from = G.dist(u, w) <= 5 ? { x: u.x, y: u.y, cost: 0 } : AI.approach(u, w, rm, 5);
-      if (from && G.dist(u, w, from.x, from.y) <= 5) {
+      if (!web && from && G.dist(u, w, from.x, from.y) <= 5) {
         var ce = RU.checkEdges(u, 'str'), en = u.conds.enlarged, adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (en && en.down)) || ce.dis.length > 0;
         var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), p = clamp((21 - ((t.breakDC || 15) - pb)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
         out.push({ kind: 'break', score: p * worth - from.cost / 30, why: 'breaks the tendril on ' + w.name, go: (function (fr) { return function* () { yield* walk(B, u, fr); if (G.dist(u, w) <= 5 && u.turn.action && D.Battle.tendrilOn(u, w, B.units)) yield* B.exec(u, { do: 'breaktendril', target: w }); }; })(from) });
@@ -1111,7 +1112,7 @@
           var pc = TX.pCut(B, u, st, wp, e.x, e.y), sc = pc * worth - e.cost / 30 - (wp.ranged && G.foesNear(u, e.x, e.y, 5).length ? 2 : 0);
           if (!best || sc > best.score) best = { score: sc, e: e, wp: wp };
         });
-        if (best) out.push({ kind: 'cut', score: best.score, why: 'cuts the tendril on ' + w.name, go: (function (b) { return function* () {
+        if (best) out.push({ kind: 'cut', score: best.score, why: 'cuts the ' + (web ? 'webbing' : 'tendril') + ' on ' + w.name, go: (function (b) { return function* () {
           yield* walk(B, u, b.e);
           var s2 = D.Battle.tendrilOn(u, w, B.units), keep = u.weapon; u.weapon = b.wp;
           while (s2 && (u.turn.action || u.turn.attacksLeft) && !u.dead && u.hp > 0) { yield* B.exec(u, { do: 'attack', target: s2 }); s2 = D.Battle.tendrilOn(u, w, B.units); }

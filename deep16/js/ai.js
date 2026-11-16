@@ -537,7 +537,10 @@
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '') + (e.pen ? '  {o}' + e.penWhy + ' ' + e.pen + '{/}' : '');
     B.card(['{r}' + u.name + '{/} > {y}' + tgt.name + '{/}  WEB (recharge ' + W.recharge + '-6)', 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + r.pick + ' ' + RU.sign(W.atk) + ' = ' + tot + '  vs AC ' + ac + '  ' + (hit ? '{n}HIT{/}: {o}RESTRAINED{/} {g}(escape DC ' + W.dc + ', an action){/}' : '{g}MISS{/}') + why], 360);
     D.sfx(hit ? 'hit' : 'miss');
-    if (hit) { tgt.conds.restrained = { dc: W.dc, by: u.id }; FX.ring(tgt, 'bone', 26); FX.sparkle(tgt, 'bone', 12); }
+    // THE WEBBING, THE SRD'S (11-16, the bug seat; the grid's rules lane 11-03, "READY by the SRD"): "The effect also ends if the webbing is destroyed. The webbing has AC 10,
+    // 5 hit points, vulnerability to fire damage, and immunity to bludgeoning, poison, and psychic damage" -- struck at through the webbed one's square as the roper's tendril is
+    // (battle.js Battle.tendrilOn, strikeTendril), by the webbed one or a friend beside; the escape still the DC's STR check, the webbed one's alone
+    if (hit) { tgt.conds.restrained = { dc: W.dc, by: u.id, webbing: { ac: 10, hp: 5, max: 5, immune: ['bludgeoning', 'poison', 'psychic'], vuln: ['fire'] } }; FX.ring(tgt, 'bone', 26); FX.sparkle(tgt, 'bone', 12); }
     else FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
     yield 34;
     u.anim = 'idle';
@@ -1437,7 +1440,7 @@
     var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u, hs); }).sort(function (a, b) { return a.hp - b.hp; }); // (reachOf with hs: a tendril no one in its reach can be held by counts for nothing, and it walks in to bite -- 10-02)
     // Web: at the start, or whenever no one is in reach -- the nearest free hero it can see, in range
     if (u.web && u.web.ready && T.action && (!near.length || B.round === 1)) {
-      var free = hs.filter(function (w) { return !w.conds.restrained && G.range(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+      var free = hs.filter(function (w) { return !w.conds.restrained && D.Battle.sizeCat(w) <= D.Battle.SIZE.L && G.range(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }); // (SRD 5.1: "one Large or smaller creature", 11-16)
       if (free.length) {
         yield* webShot(B, u, free[0]);
         if (u.dead || u.hp <= 0) return;

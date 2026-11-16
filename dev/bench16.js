@@ -4719,6 +4719,46 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preO);
     return;
   }
+  // THE ETTERCAP'S WEB, THE SRD'S, 11-16 (mode=web1116; the bug seat of 11-16, the grid's rules lane 11-03 "READY by the SRD"): "one Large or smaller creature"; the webbing
+  // "AC 10, 5 hit points, vulnerability to fire damage, and immunity to bludgeoning, poison, and psychic damage", struck at as the roper's tendril is, by the webbed one or a
+  // friend beside it (js/battle.js Battle.tendrilOn, Battle.webStub, strikeTendril); no friend's STR check on it (BREAK THE TENDRIL is the roper's); Web Sense (js/magic.js seeWhy)
+  if (get('mode', '') === 'web1116') {
+    var repW = { checks: [], errors: [], notes: [] }, d0W = D.d, BAW = D.Battle;
+    function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkW(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function runW(Bx, until, cap) { var v, k = 0; while (k++ < (cap || 20000)) { if (until && until()) return true; var r = Bx.co.next(v); v = undefined; if (r.done) return false; var y = r.value; if (typeof y === 'number' || !y) continue; if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; } if (y.turn) { v = { do: 'end' }; continue; } } return !!(until && until()); }
+    function webOn(w, by) { w.conds.restrained = { dc: 11, by: by.id, webbing: { ac: 10, hp: 5, max: 5, immune: ['bludgeoning', 'poison', 'psychic'], vuln: ['fire'] } }; }
+    try {
+      D.seed = 1116;
+      // 1. LARGE OR SMALLER: the ettercap's first turn, its web ready -- at a Medium fighter it shoots; at the same fighter made Huge it does not
+      var shotW = function (huge) { var B = mkW('?npc=ettercap&lvl=3&vs=fighter:3'), et = B.units.filter(function (u) { return u.side === 'foe'; })[0], f = B.units.filter(function (u) { return u.side === 'party'; })[0]; if (huge) f.size = 3; et.web.ready = true; var cards = []; var c0 = B.card; B.card = function (ls) { cards.push((ls || []).join(' ')); return c0.apply(this, arguments); }; runW(B, function () { return B.round > 1 || cards.some(function (c) { return /WEB \(recharge/.test(c); }); }, 20000); return { shot: cards.some(function (c) { return /WEB \(recharge/.test(c); }), size: BAW.sizeCat(f) }; };
+      var sM = shotW(false), sH = shotW(true);
+      okW('LARGE OR SMALLER: at a Medium fighter (size ' + sM.size + ') the web ' + (sM.shot ? 'shot' : 'NOT shot') + '; the fighter made Huge (size ' + sH.size + ') ' + (sH.shot ? 'SHOT' : 'not shot'), sM.shot && !sH.shot);
+      // 2. THE WEBBING, A THING: a webbed fighter, a paladin beside -- the webbing's stub (AC 10, 5 hp) is there to strike from beside and from inside; no BREAK THE TENDRIL on it
+      var B2 = mkW('?npc=ettercap&lvl=3&vs=fighter:3,paladin:3'), et2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0], fi = B2.units.filter(function (u) { return u.cls === 'fighter'; })[0], pa = B2.units.filter(function (u) { return u.cls === 'paladin'; })[0];
+      pa.x = fi.x + 1; pa.y = fi.y; D.grid.setup(B2.map, B2.units); webOn(fi, et2);
+      var stA = BAW.tendrilOn(pa, fi, B2.units), stS = BAW.tendrilOn(fi, fi, B2.units), brk = BAW.breakable(pa, B2.units).length;
+      okW('THE WEBBING ON A FRIEND: struck at from beside -- ' + (stA ? stA.name + ', AC ' + stA.ac + ', ' + stA.hp + '/' + stA.maxhp + ' hp, immune ' + stA.immune.join('/') + ', vulnerable ' + stA.vuln.join('/') : 'NONE') + '; from inside ' + !!stS + '; BREAK THE TENDRIL offered on it ' + brk,
+        !!stA && stA.web && stA.ac === 10 && stA.hp === 5 && stA.vuln[0] === 'fire' && stA.immune.indexOf('bludgeoning') >= 0 && !!stS && brk === 0);
+      // 3. CUT AWAY: a blade (slashing) cuts it through; a mace (bludgeoning) does nothing to it; fire twice over -- each a hit, the dice at their highest
+      var cutW = function (wp) { webOn(fi, et2); var st = BAW.tendrilOn(pa, fi, B2.units); D.d = function (s) { return s === 20 ? 19 : s; }; var g = B2.strikeTendril(pa, st, wp); for (var k = 0; k < 400; k++) { if (g.next().done) break; } D.d = d0W; var r = fi.conds.restrained; return r ? 'held, the webbing ' + r.webbing.hp + '/5' : 'free'; };
+      var cS = cutW({ name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing' }), cB = cutW({ name: 'Mace', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning' }), cF = cutW({ name: 'Fire Bolt', atk: 5, dice: '1d1', mod: 2, type: 'fire', ranged: true, range: [120, 120], fx: 'fire', spell: true });
+      okW('CUT AWAY: a longsword ' + cS + '; a mace ' + cB + '; 3 fire ' + cF + ' (x2 = 6 against its 5)', cS === 'free' && cB === 'held, the webbing 5/5' && cF === 'free');
+      // 4. ITS OWN WAY OUT: the webbed fighter's choice -- the STR check or a cut at its own webbing (at disadvantage, restrained) -- weighed (js/tactics.js TX.freeHow)
+      webOn(fi, et2); fi.classAI = true; var hw = D.tactics.freeHow ? D.tactics.freeHow(B2, fi) : '-', pE = D.tactics.pEscape ? D.tactics.pEscape(fi).toFixed(2) : '-', pC = D.tactics.pCut ? D.tactics.pCut(B2, fi, BAW.tendrilOn(fi, fi, B2.units), fi.weapon).toFixed(2) : '-';
+      repW.notes.push('the webbed fighter (' + (fi.weapon && fi.weapon.name + ', ' + fi.weapon.type) + '): the escape ' + pE + ', a cut at its own webbing ' + pC + ' -- ' + hw);
+      okW('ITS OWN WAY OUT, weighed: the escape ' + pE + ' against a cut ' + pC + ' -- ' + hw, hw === 'escape' || hw === 'strike' || hw === 'fight');
+      // 5. WEB SENSE: on the field's web, an invisible fighter on it is known to the ettercap standing on it; off the web, not
+      var B5 = mkW('?npc=ettercap&lvl=3&vs=fighter:3'), et5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0], f5 = B5.units.filter(function (u) { return u.side === 'party'; })[0];
+      f5.conds.invisible = { by: f5.id, rounds: 10 }; B5.webs = []; var off = D.magic.sees(B5, et5, f5);
+      B5.webs = [{ by: 'field', ground: true, sq: [[et5.x, et5.y], [f5.x, f5.y]], dc: 12 }]; var on = D.magic.sees(B5, et5, f5);
+      okW('WEB SENSE: the fighter invisible, off the web the ettercap ' + (off ? 'SEES him' : 'does not see him') + '; both on the web it ' + (on ? 'knows where he is' : 'DOES NOT know'), !off && on);
+    } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
+    D.d = d0W;
+    var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
+    document.body.appendChild(preW);
+    return;
+  }
   // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
   // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
   // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)
