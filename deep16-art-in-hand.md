@@ -3865,7 +3865,7 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: `tools/frostgiant-sheet.py` over `tools/sheetrows.py` into a new `frostgiant_p1` (HEAD 1 SE, 2 NE, 3 S, 4 E, 5 N; SW, W, NW their mirrors), sized by the stone giant's standing height; Greataxe -> `attack`, Rock -> `throw` (the stone giant's rock, the code drawing the stone in flight), Fall -> hurt. Huge.
 
-## 64.1 The hell hound (fiend), from section 64 (one for each empty shelf) -- IN HAND 2026-11-15, `c9151b35`
+## 64.1 The hell hound (fiend), from section 64 (one for each empty shelf) -- IN HAND 2026-11-15, `c9151b35`; REDRAWN at 43 px 2026-11-15 (the art desk's ART-WANTED-64-HELL-HOUND-43PX-ILLUSTRATED, its own native cut), `aae2c356`
 
 His words on its drawn smoke, 11-15: *"i thought it would look silly like that animated and should be done with the engine like we're doing other things"*; the smoke and the outer fire stripped, the engine's instead.
 
