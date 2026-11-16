@@ -373,7 +373,11 @@
   R.script = function* (B) {
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
-    if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello.concat(R0.roostLines || [])), 420); // (a floor of its own words: the mines' top floors, js/mines.js -- and under a roost its law, R.roostLights)
+    if (R.def.town && R.def.hello) { // (a floor of its own words: the mines' top floors, js/mines.js -- and under a roost its law, R.roostLights)
+      var tlF = R.def.helloClock ? R.timeLine(B) : '', hlF = R.def.hello.slice(); if (tlF) hlF[0] = hlF[0] + '  {g}' + tlF + '.{/}'; // (the hour on the place's line, as Silverton's card: 11-16, the words-and-boxes seat)
+      B.card(R.wrap(hlF.concat(R0.roostLines || [])), 420);
+      if (R.def.bunks && R.def.bunks.length) B.bunkBox = { key: R.def.key, card: B.cards[B.cards.length - 1] }; // (the bunkhouses' words in their boxes while this card is up: js/mines.js M.BUNKBOX)
+    }
     // (Silverton's card says where they stand: in at the gate, or at the door a CONTINUE or a show stands them at -- js/town.js T.whereAt)
     // (the words a player reads -- 11-04, the house lane's Tuesday 10 and 11, his "The Wet title and description at the top (uses the word token) are Grim facing not player facing" and
     // "See Silverton Location text (top when you enter) - player facing (where do we show time of day?)": where they stand and the hour, not the map's make)
@@ -2257,12 +2261,14 @@
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
       var tlH = R.timeLine(B); // (the top line in a player's words -- the place, where in it, the hour; the map's size and squares are in his NOTES stamp: 11-04, Tuesday 11)
-      D.text(ctx, R.def.town ? (R.def.room ? R.def.hud || 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + (R.def.where ? ', ' + R.def.where(p8[0], p8[1]) : '') + (tlH ? '   ' + tlH : '') : 'The Wet, the flooded floor' + (tlH ? '   ' + tlH : ''), 6, D.H - 30, '#e8d8a0');
+      var ftH = R.def.town ? (R.def.room ? R.def.hud || 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + (R.def.where ? ', ' + R.def.where(p8[0], p8[1]) : '') + (tlH ? '   ' + tlH : '') : 'The Wet, the flooded floor' + (tlH ? '   ' + tlH : '');
+      D.text(ctx, ftH.charAt(0).toUpperCase() + ftH.slice(1), 6, D.H - 30, '#e8d8a0'); // (a capital to open it: "the Halfway Inn, ..." -- 11-16, the words-and-boxes seat)
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)
     if (R0.mode === 'order' && R0.sel) { var s = D.iso.center(R0.sel.x, R0.sel.y, 0), p = D.iso.toScreen(s.x, s.y); ctx.strokeStyle = '#ffe080'; ctx.strokeRect(p.x - 8, p.y - 30, 16, 32); }
     if (R0.mode === 'walk' && D.counter) D.counter.paintPin(ctx, B); // (the pinned quest's next door, a gold marker, and its step in words -- js/counter.js, 10-21)
+    if (R0.mode === 'walk' && !B.menu && D.mines && D.mines.paintBunks) D.mines.paintBunks(ctx, B); // (the bunkhouses' boxes toward their doors while the floor's first card is up -- js/mines.js M.BUNKBOX, 11-16)
     if (R0.mode === 'over' && I.pressed('rec')) location.reload();
   };
 

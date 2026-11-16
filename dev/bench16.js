@@ -10275,7 +10275,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 1. THE DEEP GALLERY ON THE DIAMONDS: no north-up view, the Wet's stone, the hello says so; &view=top north up as it was; the floors above it north up still
       var B1 = testI('?roam=galleries_g4&at=9,3'), d1 = RI.def, m1 = B1.map, rows1 = d1.rows.join('|'), trig1 = JSON.stringify(d1.src8.triggers), warp1 = JSON.stringify(d1.warps), k1 = kindsI(m1);
       okI('the deep gallery on the diamonds (iso ' + d1.iso + ', view ' + d1.view + ', drawn north up ' + !!m1.top + ', ground ' + d1.ground + '): "' + d1.hello[0].slice(0, 110) + '"',
-        d1.iso === true && !d1.view && !m1.top && d1.ground == null && /diamonds as the Wet/.test(d1.hello[0]));
+        d1.iso === true && !d1.view && !m1.top && d1.ground == null && /^\{y\}THE GUANO GALLERIES\{\/\}, the deep gallery\.$/.test(d1.hello[0])); // (the hello a player's words since 11-16, not "on the grid's diamonds as the Wet is": words1116)
       var B1t = testI('?roam=galleries_g4&at=9,3&view=top'), d1t = RI.def;
       okI('&view=top: north up as it was (view ' + d1t.view + ', drawn north up ' + !!B1t.map.top + ', ground ' + d1t.ground + '); the same squares (' + (d1t.rows.join('|') === rows1) + '), triggers (' + (JSON.stringify(d1t.src8.triggers) === trig1) + ') and ways (' + (JSON.stringify(d1t.warps) === warp1) + ')',
         d1t.view === 'top' && !!B1t.map.top && d1t.ground === 'earth' && !d1t.iso && d1t.rows.join('|') === rows1 && JSON.stringify(d1t.src8.triggers) === trig1 && JSON.stringify(d1t.warps) === warp1);
@@ -10311,7 +10311,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var GI = D.gulch, B7 = testI('?roam=webgulch&hour=9&at=16,24'), d7 = RI.def, m7 = B7.map, rows7 = d7.rows.join('|'), z7 = D.iso.zoom;
       var B7t = testI('?roam=webgulch&hour=9&at=16,24&view=top'), d7t = RI.def;
       okI('Web Gulch on the diamonds (iso ' + d7.iso + ', drawn north up ' + !!m7.top + ', paged ' + !!(m7.bake && m7.bake.paged) + ', ground ' + d7.ground + ', zoom ' + z7 + '): "' + d7.hello[0].slice(0, 90) + '"; &view=top north up (' + !!B7t.map.top + ') on the same squares (' + (d7t.rows.join('|') === rows7) + ')',
-        d7.iso === true && !m7.top && !!(m7.bake && m7.bake.paged) && d7.ground === 'earth' && z7 === MI.ISOZOOM && /diamonds/.test(d7.hello[0]) && !!B7t.map.top && d7t.view === 'top' && d7t.rows.join('|') === rows7);
+        d7.iso === true && !m7.top && !!(m7.bake && m7.bake.paged) && d7.ground === 'earth' && z7 === MI.ISOZOOM && /^\{y\}WEB GULCH\{\/\}, the road down the cut\.$/.test(d7.hello[0]) /* (a player's words since 11-16: words1116) */ && !!B7t.map.top && d7t.view === 'top' && d7t.rows.join('|') === rows7);
       // 8. ITS PIECES: the grid's trees and the cocoon, the seat's tents (no woodpile drawn under them), the webs and bones on the floor, the crates as they were; the camp's fire in the sort
       B7 = testI('?roam=webgulch&hour=9&at=16,24'); m7 = B7.map; var k8 = kindsI(m7), tr8 = m7.sq.filter(function (s) { return s.stands === 'a tree'; }).length, te8 = m7.sq.filter(function (s) { return s.stands === 'the tent'; });
       var fi8 = (D.looks.props(B7) || []).filter(function (o) { return o.depth === GI.FIRE[0] + GI.FIRE[1] + 0.5 && o.draw; }).length, bl8 = m7.props.filter(function (p) { return p.kind === 'block' && te8.indexOf(p.sq) >= 0; }).length;
@@ -16769,6 +16769,74 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // squares -- picked, hovered, and a Fire Bolt, a Scorching Ray and an attack find it, not the goblin on its anchor square; 3 three stirges on one hero -- a seat of its own each (UI.perchPos), each
   // hovered and struck at through MOVE and ATTACK, by the hero beside and by the host himself; 4 a dart or a ray turned away says why (UI.actAt); 5 every aimed spell's words say what the click asks,
   // the walls' and Thunderwave's too (UI.aimWords); 6 Aurdin's owl on the shoulder opposite his staff, on the grid, drawn where the mouse picks it (UI.perchPos, sprites.js S.SHOULDER)
+  // THE PLACES' WORDS AND THE BUNKHOUSES' BOXES (mode=words1116; the words-and-boxes seat, 11-16, started by the lanes desk on Griz's word -- 10-30: "for every location the text at the
+  // top needs to be checked - still has phrases like 'first game's this or that' - needs player-facing revision" and "can we get the bunkhouse text in a box that's roughly in the
+  // direction of what it references (i.e. - the north of river in a square box top-right and the south of river in a square box due left on warrens)"; 11-16: "boxed and placed sort
+  // of the way we do the mission arrows, on the screen in the general direction of the bunkhouse"). 1 every place's door: its first card and its foot line in a player's words (the
+  // place, where, the hour; none of the builders' words), the foot not saying the sub twice, no bunkhouse on the card; 2 the Warrens' two bunkhouses and the Guano mine's one each in
+  // a box toward its door, on the screen under the cards, apart; 3 a door in sight: its box over it; the words by the flags; drawn, a gold point toward the door; gone with the card;
+  // 4 THE WORLD's hover over the mountains and over a guessed hex in a player's words
+  if (get('mode', '') === 'words1116') {
+    var repWB = { checks: [], errors: [] }, memWB = {}, stGWB = D.store.get, stSWB = D.store.set, dtWB = D.text, MWB = D.mines;
+    function okWB(what, v) { repWB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function floorWB(q) { var Bx = D.roam.make(q); D.scenes.length = 0; D.push(Bx); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } Bx = D.top(); D.battle = Bx; for (var k = 0; k < 6 && Bx.co; k++) Bx.co.next(); return Bx; }
+    function footWB(Bx) { var ft = ''; D.text = function (c, t, x, y) { if (y === D.H - 30) ft = String(t); return dtWB.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; Bx.roam.mode = 'walk'; Bx.menu = null; D.roam.paintOver(cv.getContext('2d'), Bx); } finally { D.text = dtWB; } return ft; }
+    function plainWB(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function scrWB(x, y) { var c = D.iso.center(x, y, 0); return D.iso.toScreen(c.x, c.y); }
+    function angWB(a, b) { var d = Math.abs(Math.atan2(a[1], a[0]) - Math.atan2(b[1], b[0])) * 180 / Math.PI; return d > 180 ? 360 - d : d; }
+    function pxWB(cx, x, y) { var d = cx.getImageData(Math.round(x), Math.round(y), 1, 1).data; return [d[0], d[1], d[2], d[3]]; }
+    var BAD = /first game|second game|8-bit|\d+ x \d+ squares|grid's diamonds|north up as|north up the screen|\btoken\b|RULED|the seat\b|Griz|\(to come\)|when it is built|\(the bed sign\)/i, CLOCK = /\d\d:\d\d, (night|dawn|morning|midday|afternoon|dusk)/;
+    D.store.get = function (k) { return memWB[k] ? JSON.parse(memWB[k]) : null; }; D.store.set = function (k, v) { memWB[k] = JSON.stringify(v); return true; };
+    // 1. EVERY PLACE'S DOOR: the first card's first line the place, where and the hour (the Hex's its floor), every card and the foot line clear of the builders' words
+    ['silverton', 'wet', 'warrens', 'warrens_b', 'warrens_c', 'galleries', 'galleries_g2', 'galleries_g3', 'galleries_g4', 'glowseep', 'webgulch', 'halfway', 'halfway_up', 'solskaft', 'solskaft_cart', 'solskaft_below', 'solskaft_asdis', 'hex', 'hex&floor=2', 'hex&floor=3'].forEach(function (dk) {
+      try {
+        var Bx = floorWB('?roam=' + dk + '&watch'), all = (Bx.cards || []).map(function (c) { return plainWB(c.lines.join(' / ')); }).join(' | '), first = plainWB(((Bx.cards[0] || {}).lines || [''])[0]), ft = footWB(Bx), hexW = /^hex/.test(dk);
+        var bad = (all + ' || ' + ft).match(BAD), twice = /([^,:]{4,}), \1(\s|$)/.exec(ft);
+        okWB('1 ' + dk + ': "' + first.slice(0, 80) + '" ... the foot "' + ft + '"' + (bad ? ' -- the builders\' "' + bad[0] + '"' : '') + (twice ? ' -- "' + twice[1] + '" twice' : '') + ' (want the place, where' + (hexW ? '' : ', the hour') + '; no builders\' words; the foot once over; no bunkhouse on the card)',
+          !bad && !twice && /^[A-ZÓÁÍ' ]+(, | -- |: )./.test(first) && (hexW || CLOCK.test(first)) && CLOCK.test(ft) && /^[A-Z]/.test(ft) && !/Bunkhouse|Barns/.test(all));
+      } catch (e1) { repWB.errors.push('1 ' + dk + ': ' + String(e1 && e1.stack || e1).slice(0, 400)); }
+    });
+    // 2. THE BOXES TOWARD THE BUNKHOUSES: the mouth camp in by the feed track (the bunkhouse north of the river, the Pellam barns south of it), the Guano mine's mouth in from the east
+    try {
+      var boxCase = function (q, want) {
+        var Bx = floorWB(q), bs = MWB.bunkBoxes(Bx), tk = Bx.roam.token, o = scrWB(tk.x, tk.y), cf = MWB.cardsFoot(Bx), def = D.roam.def, by = {};
+        bs.forEach(function (b) { var at = def.bunks.filter(function (z) { return z.id === b.id; })[0].at, p = scrWB(at[0], at[1]); b.off = angWB([b.x + b.w / 2 - o.x, b.y + b.h / 2 - o.y], [p.x - o.x, p.y - o.y]); b.onS = b.x >= 0 && b.y >= cf && b.x + b.w <= D.W && b.y + b.h <= D.H - 30; by[b.id] = b; });
+        var apart = bs.every(function (a, i) { return bs.every(function (b, j) { return i === j || a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y; }); });
+        return { B: Bx, bs: bs, by: by, tk: tk, cf: cf, apart: apart, say: bs.map(function (b) { return plainWB(b.lines[0]) + ' at ' + b.x + ',' + b.y + ' (' + b.w + 'x' + b.h + ', ' + Math.round(b.off) + ' deg off its door, on the screen ' + b.onS + ')'; }).join('; ') };
+      };
+      var cW = boxCase('?roam=warrens&gate=feed&watch'), bh = cW.by['keeper:bunkhouse'], bp = cW.by['keeper:pellambarn'];
+      okWB('2 the Warrens\' mouth camp, in by the feed track at ' + cW.tk.x + ',' + cW.tk.y + ': ' + cW.bs.length + ' boxes -- ' + cW.say + '; under the cards (' + cW.cf + '), apart ' + cW.apart + ' (want two: the Bunkhouse north of the river top right, the Pellam Barns south of it at the left, each within 45 deg of its door)',
+        cW.bs.length === 2 && !!bh && !!bp && bh.x + bh.w / 2 > D.W / 2 && bh.y + bh.h / 2 < D.H / 2 && bp.x + bp.w / 2 < D.W / 3 && bh.off <= 45 && bp.off <= 45 && bh.onS && bp.onS && cW.apart && !bh.seen && !bp.seen);
+      var cG = boxCase('?roam=galleries&gate=east&watch'), bg = cG.by['keeper:galbunk'];
+      okWB('2 the Guano mine\'s mouth, in from the east at ' + cG.tk.x + ',' + cG.tk.y + ': ' + cG.bs.length + ' box -- ' + cG.say + ' (want one, the hands\' bunkhouse, within 45 deg of its door)', cG.bs.length === 1 && !!bg && bg.off <= 45 && bg.onS);
+      var cN = boxCase('?roam=warrens_b&watch'); okWB('2 the stalls below: ' + cN.bs.length + ' boxes (want none: no bunkhouse there)', cN.bs.length === 0);
+      // 3. A DOOR IN SIGHT: the box over its door; THE WORDS by the flags; DRAWN, its gold point toward the door; GONE with the card
+      var cS = boxCase('?roam=warrens&at=33,10&watch'), bs3 = cS.by['keeper:bunkhouse'], at3 = D.roam.def.bunks.filter(function (z) { return z.id === 'keeper:bunkhouse'; })[0].at, p3 = scrWB(at3[0], at3[1]);
+      okWB('3 the party by the bunkhouse (' + cS.tk.x + ',' + cS.tk.y + '): its door on the screen at ' + Math.round(p3.x) + ',' + Math.round(p3.y) + ', its box at ' + (bs3 ? bs3.x + ',' + bs3.y + ' ' + bs3.w + 'x' + bs3.h + ', in sight ' + bs3.seen : 'NONE') + ' (want it over its door -- or under it where the cards leave no room -- its middle on the door, the door clear of it)',
+        !!bs3 && bs3.seen && Math.abs(bs3.x + bs3.w / 2 - p3.x) <= 3 && (bs3.y + bs3.h < p3.y || bs3.y > p3.y));
+      var wS = MWB.bunkWords('keeper:bunkhouse', {}).map(plainWB).join(' / '), wC = MWB.bunkWords('keeper:bunkhouse', { shifts: 1 }).map(plainWB).join(' / '), wG = MWB.bunkWords('keeper:galbunk', { cullHired: 1 }).map(plainWB).join(' / ');
+      okWB('3 the words: a stranger "' + wS + '"; crew "' + wC + '"; the house\'s hand "' + wG + '"', /^The Bunkhouse \/ A flop for the night\. \/ .*1 sp.*stranger.*No watch/.test(wS) && /free.*crew sleep free/.test(wC) && /^The Bunkhouse \/ Where the house's hands sleep\. \/ .*free/.test(wG));
+      var cv3 = document.createElement('canvas'); cv3.width = D.W; cv3.height = D.H; var cx3 = cv3.getContext('2d'), Bd = cW.B; D.battle = Bd; cW = boxCase('?roam=warrens&gate=feed&watch'); Bd = cW.B; bh = cW.by['keeper:bunkhouse'];
+      MWB.paintBunks(cx3, Bd); var inBox = pxWB(cx3, bh.x + 3, bh.y + bh.h - 3), mx = bh.x + bh.w / 2, my = bh.y + bh.h / 2, dx = bh.to[0] - mx, dy = bh.to[1] - my, sc = Math.min(dx ? (bh.w / 2) / Math.abs(dx) : 1e9, dy ? (bh.h / 2) / Math.abs(dy) : 1e9), ln = Math.hypot(dx, dy);
+      var tip = pxWB(cx3, mx + dx * sc + dx / ln * 4, my + dy * sc + dy / ln * 4), gold = D.WIN8.gold, gr = [parseInt(gold.slice(1, 3), 16), parseInt(gold.slice(3, 5), 16), parseInt(gold.slice(5, 7), 16)];
+      okWB('3 drawn: the box\'s ground ' + inBox.join(',') + ', past its edge toward the door ' + tip.join(',') + ' (want the card\'s dark, and the arrow\'s gold ' + gr.join(',') + ')', inBox[3] > 200 && inBox[0] < 40 && Math.abs(tip[0] - gr[0]) < 12 && Math.abs(tip[1] - gr[1]) < 12 && Math.abs(tip[2] - gr[2]) < 12 && tip[3] > 200);
+      var nAfter = Bd.cards.length; Bd.cards.push({ lines: ['{y}A word{/}'], t0: Bd.t, life: 300 }); var moved = MWB.bunkBoxes(Bd), stillW = moved.length, lowW = moved.every(function (b) { return b.y >= MWB.cardsFoot(Bd); });
+      Bd.cards = Bd.cards.filter(function (c) { return c !== Bd.bunkBox.card; }); var gone = MWB.bunkBoxes(Bd).length;
+      okWB('3 a second card under it: ' + stillW + ' boxes, under both cards ' + lowW + ' (of ' + nAfter + '+1); the floor\'s card gone: ' + gone + ' boxes (want two, under, then none)', stillW === 2 && lowW && gone === 0);
+    } catch (e2) { repWB.errors.push('2-3: ' + String(e2 && e2.stack || e2).slice(0, 600)); }
+    // 4. THE WORLD'S HOVER: over the mountains and a guessed hex, a player's words
+    try {
+      var WS = D.world.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(WS); WS.enter(); var MW = D.world.M(), mtn = null, gs = null;
+      Object.keys(MW.hex).forEach(function (k) { var e = MW.hex[k]; if (!mtn && D.world.MOUNTAIN[e.t]) mtn = e; if (!gs && e.guess) gs = e; });
+      var hovW = function (e) { if (!e) return '(none on this map)'; var got = []; WS.hov = [e.q, e.r]; WS.walk = null; WS.plan = null; WS.dev = false; D.text = function (c, t) { got.push(plainWB(t)); return dtWB.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; WS.hud(cv.getContext('2d')); } finally { D.text = dtWB; } return got.slice(2).join(' / '); };
+      var hM = hovW(mtn), hG = hovW(gs);
+      okWB('4 THE WORLD\'s hover: the mountains "' + hM + '"; a guessed hex "' + hG + '" (want "no way over them on foot", no "(to come)", no "v3")', /no way over them on foot/.test(hM) && !/to come|roams/.test(hM) && !/v3/.test(hG + hM));
+    } catch (e4) { repWB.errors.push('4: ' + String(e4 && e4.stack || e4).slice(0, 400)); }
+    D.store.get = stGWB; D.store.set = stSWB; D.text = dtWB;
+    var preWB = document.createElement('pre'); preWB.id = 'out'; preWB.textContent = 'BENCH16 ' + JSON.stringify(repWB);
+    document.body.appendChild(preWB);
+    return;
+  }
   // THE HOUSE, 11-04 (mode=house1104; the lanes desk): 1 the six eggs beside the title's save box, filled for the eggs the save under the cursor found (his "still need 6 egg-shadows
   // outside the box that fill if you have the associated egg achieved"); 2 an egg found in a road or camp fight is kept in the save (H.afterFight); 3 the Wet's and Silverton's card
   // and top line in a player's words, the hour on them (his Tuesday 10 and 11: "Grim facing not player facing", "where do we show time of day?")
@@ -17857,11 +17925,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // "bunkhouse where the hands sleep", a door the second game opens in the first game's wall; a bed's sign, its price on the mouseover, the first card; free once Sabeth's
       // work is taken (cullHired), a silver otherwise and after the roost is broken; slept, the house's long rest to the whole morning
       var BG = testN('?roam=galleries&gate=east'), dG = RN.def, thG = dG.marks.doors['keeper:galbunk'], kG = thG ? thG[0] + ',' + (thG[1] - 1) : '', r8G = DS.DATA.maps.galleries_g1.rows;
-      var pG = thG ? RN.walkRoute(BG.roam.token, thG) : null, helloG = (dG.hello || []).join(' ');
+      var pG = thG ? RN.walkRoute(BG.roam.token, thG) : null, helloG = (dG.bunks || []).some(function (b) { return b.id === 'keeper:galbunk'; }) ? D.mines.bunkWords('keeper:galbunk', (BG.roam && BG.roam.flags) || {}).join(' ') : ''; // (its box's words since 11-16: words1116)
       okN('the Guano Mine\'s mouth: the bunkhouse\'s door at ' + kG + ' (the first game\'s wall "' + r8G[12].charAt(3) + '", unwritten; the floor\'s square "' + (thG ? dG.rows[thG[1] - 1].charAt(thG[0]) : '') + '", its threshold "' + (thG ? dG.rows[thG[1]].charAt(thG[0]) : '') + '"), walked to from the east gate in ' + (pG ? pG.length : 'NO') + ' steps',
         !!thG && thG[0] === 3 && thG[1] === 13 && r8G[12].charAt(3) === 'W' && dG.rows[12].charAt(3) !== '.' && dG.rows[13].charAt(3) === 'd' && !!pG && pG.length > 0);
       var nm0 = TN.signName('keeper:galbunk');
-      okN('a bed\'s sign over it (' + dG.signs[kG] + ', ' + dG.signDoor[kG] + '), its mouseover "' + nm0.name + '" / "' + nm0.who + '"; the first card: "' + ((dG.hello || []).filter(function (l) { return /Bunkhouse/.test(l); })[0] || '').replace(/\{.\}|\{\/\}/g, '') + '"',
+      okN('a bed\'s sign over it (' + dG.signs[kG] + ', ' + dG.signDoor[kG] + '), its mouseover "' + nm0.name + '" / "' + nm0.who + '"; its box: "' + helloG.replace(/\{.\}|\{\/\}/g, '') + '"',
         dG.signs[kG] === 'bed' && dG.signDoor[kG] === 'keeper:galbunk' && /hands sleep/.test(nm0.name) && /1 sp/.test(nm0.who) && /stranger/.test(nm0.who) && /Bunkhouse.*1 sp/.test(helloG));
       BG.roam.flags.cullHired = 1; var nm1 = TN.signName('keeper:galbunk'); BG.roam.flags.roostBroken = 1; var nm2 = TN.signName('keeper:galbunk'); delete BG.roam.flags.roostBroken; delete BG.roam.flags.cullHired;
       okN('Sabeth\'s work taken: "' + nm1.who + '"; the roost broken after: "' + nm2.who + '"', /free/.test(nm1.who) && /hands sleep free/.test(nm1.who) && /1 sp/.test(nm2.who));
@@ -18184,8 +18252,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 7. THE FLOP-HOUSE FINDABLE (his "I didn't finish a shift but the available doors didn't look or talk about flophouse so I went back outside and camped"): the bunkhouse's
       // door under a bed's sign whose mouseover names it and its price, the mouth camp's first card saying where to sleep, its counter named for what it is
       HQ.playing = false; HQ.cur = null;
-      var BW = floorQ('?roam=warrens'), dW = RQ.def, thW = dW.marks.doors['keeper:bunkhouse'], kW = thW ? thW[0] + ',' + (thW[1] - 1) : '', nmW = TQ.signName('keeper:bunkhouse'), helloW = (dW.hello || []).join(' ');
-      okQ('the mouth camp: a bed\'s sign over the bunkhouse\'s door (' + kW + ': ' + dW.signs[kW] + ', ' + dW.signDoor[kW] + '); its mouseover "' + nmW.name + '" / "' + nmW.who + '"; the first card: "' + ((dW.hello || []).filter(function (l) { return /Bunkhouse/.test(l); })[0] || '').replace(/\{.\}|\{\/\}/g, '') + '"',
+      var BW = floorQ('?roam=warrens'), dW = RQ.def, thW = dW.marks.doors['keeper:bunkhouse'], kW = thW ? thW[0] + ',' + (thW[1] - 1) : '', nmW = TQ.signName('keeper:bunkhouse'), helloW = (dW.bunks || []).some(function (b) { return b.id === 'keeper:bunkhouse'; }) ? D.mines.bunkWords('keeper:bunkhouse', (BW.roam && BW.roam.flags) || {}).join(' ') : ''; // (its box's words since 11-16: words1116)
+      okQ('the mouth camp: a bed\'s sign over the bunkhouse\'s door (' + kW + ': ' + dW.signs[kW] + ', ' + dW.signDoor[kW] + '); its mouseover "' + nmW.name + '" / "' + nmW.who + '"; its box: "' + helloW.replace(/\{.\}|\{\/\}/g, '') + '"',
         dW.signs[kW] === 'bed' && dW.signDoor[kW] === 'keeper:bunkhouse' && /flop for the night/.test(nmW.name) && /1 sp/.test(nmW.who) && /Bunkhouse.*1 sp/.test(helloW));
       var trW = (dW.src8.triggers || []).filter(function (t) { return t.id === 'keeper:bunkhouse'; })[0], gW = TQ.fire(BW, trW), upW0 = driveQ(gW, upQ, 600), scW = D.top(), askW = upW0 ? readQ(scW).join(' ') : '';
       okQ('its door: the counter named "' + (scW.o && scW.o.name) + '", "' + askW.slice(0, 120) + '"', upW0 && /flop for the night/.test(scW.o.name) && /A bunk\? \(1 sp/.test(askW)); offQ(BW);
@@ -19047,8 +19115,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okN('his route: Silverton\'s street at night (' + nightS + ', ' + D.roam.def.hello[0].slice(0, 0) + 'THE WORLD at ' + (t0N % 24) + ':00), out by the feed track -- the Warrens\' mouth camp at the same hour (' + (dW && dW.key) + ', its hour ' + (dW && dW.hour) + ', THE WORLD\'s ' + WN.hour() + ', ' + (SN.t - t0N) + ' h spent on the way)',
         nightS && !!dW && dW.key === 'warrens' && dW.hour === 23 && WN.hour() === 23 && SN.t === t0N && BW && BW.roam);
       var tkW = BW && BW.roam && BW.roam.token, farW = tkW ? darkAt(BW, Math.max(0, tkW.x - 9), Math.max(0, tkW.y - 6)) : -1, nearW = tkW ? darkAt(BW, tkW.x, tkW.y) : -1, lampW = (dW.skyLights || []).filter(function (l) { return l.door; });
-      okN('the mouth camp drawn by the hour: night (' + dW.night + '), its hello and HUD say so ("' + String(dW.hello[0]).replace(/\{[a-z/]+\}/g, '').slice(-30) + '"), the dark wash away from the party (white left at ' + farW + ' of 765) and a pool round it (' + nearW + '); its doors lit, the bunkhouses\' among them (' + lampW.map(function (l) { return l.door; }).join(', ') + ')',
-        dW.night === true && !dW.dusk && /night\.$/.test(dW.hello[0]) && farW >= 0 && farW < 300 && nearW > 500 && lampW.some(function (l) { return l.door === 'keeper:bunkhouse'; }));
+      okN('the mouth camp drawn by the hour: night (' + dW.night + '), its card and HUD say so ("' + (BW ? D.roam.timeLine(BW) : '') + '"), the dark wash away from the party (white left at ' + farW + ' of 765) and a pool round it (' + nearW + '); its doors lit, the bunkhouses\' among them (' + lampW.map(function (l) { return l.door; }).join(', ') + ')',
+        dW.night === true && !dW.dusk && !!BW && /night$/.test(D.roam.timeLine(BW)) /* (the hour on the card is R.timeLine's since 11-16: words1116) */ && farW >= 0 && farW < 300 && nearW > 500 && lampW.some(function (l) { return l.door === 'keeper:bunkhouse'; }));
       // a bunk's night: the morning on the floor
       var innK = Object.keys(MN.INNS).filter(function (k) { return (dW.src8.triggers || []).some(function (t) { return t.id === k; }); })[0];
       if (innK) driveN(MN.sleep(BW, MN.INNS[innK]), null, 300); var dW2 = D.roam.def;

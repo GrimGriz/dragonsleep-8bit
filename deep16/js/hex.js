@@ -200,7 +200,7 @@
       name: 'The Hex', sub: HX.SUB[lv], key: 'hex' + lv, room: 'hex', hexIn: lv, town: true, wet: false, dark: false, step: 10, ground: 'earth',
       view: 'top', rows: rows, w: HX.W, h: HX.H, entry: [[11, 24]], face: [0, -1], doors: ways, stairUp: [], foes: [], marks: {}, people: people, keeper: null,
       src8: { id: 'hex' + lv, rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id, to8: id, sig: '', zone8: null,
-      music: 'hex', hud: 'the Hex: ' + HX.SUB[lv], hello: ['{y}THE HEX{/} -- ' + HX.SUB[lv] + '.', '{g}' + HX.HELLO[lv] + '{/}'], // (the floor's own words when it is the first: js/roam.js R.script)
+      music: 'hex', hud: 'The Hex', /* (the foot line the Hex and then where, HX.SUB -- not the floor's name twice: 11-16, the words-and-boxes seat) */ hello: ['{y}THE HEX{/} -- ' + HX.SUB[lv] + '.', '{g}' + HX.HELLO[lv] + '{/}'], // (the floor's own words when it is the first: js/roam.js R.script)
       underlay: function (cx, x0, y0) { cx.drawImage(HX.picture(lv), -x0, -y0); }, // (the floor's own picture under the pages: js/topview.js paintPage)
       onArt: function (m) { HX.dress(m, lv); }, // (the atlases landed, or the switch turned: the things that stand made again -- js/topview.js TV.repaint)
       where: function () { return HX.SUB[lv]; }

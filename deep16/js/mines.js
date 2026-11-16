@@ -212,9 +212,14 @@
       names8: { rows: r8.slice(), legend: leg }, faceLadders: faceLad, // (faceLadders: a rock square's face with a ladder up it -> the first game's square it stood on, M.LEDGES) // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
-      hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
-      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + (iso ? ', on the grid\'s diamonds as the Wet is (' : ', north up as Silverton is (') + w + ' x ' + h + ' squares)' + (F.clock || F.outdoors ? ', ' + W8tod(hour) : '') + '.',
-        ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], M.bunkLine(marks.doors, flags), ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
+      // THE PLACE'S WORDS AT THE TOP, A PLAYER'S (11-16, the words-and-boxes seat, on his 10-30 "for every location the text at the top needs to be checked - still has phrases like
+      // 'first game's this or that' - needs player-facing revision"): Silverton's shape since 11-04 -- the place, where in it, and the hour (js/roam.js R.script adds the clock to a
+      // `helloClock` floor's first line, as the foot line reads it, R.timeLine) -- not "the first game's floor, north up as Silverton is (40 x 27 squares)". The foot line the place
+      // and then where (def.where), not the sub twice ("the Crawler Warrens: the mouth camp, the mouth camp"). The bunkhouses' words off the card into their boxes (M.BUNKBOX)
+      hud: F.place,
+      hello: ['{y}' + F.place.toUpperCase() + '{/}, ' + F.sub + '.'
+        ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
+      helloClock: true, bunks: M.bunksOn ? M.bunksOn(marks.doors) : [],
       where: function () { return F.sub; }
     };
     M.skyAt(def, hour); // (a floor open to the sky: its night or dusk by the hour -- THE SKY OVER THE MOUTHS)
@@ -1005,7 +1010,59 @@
     say: ['The house\'s hands sleep here, in off the dens before the dusk river goes out. Bunks two high, scarves hung to dry on the posts, a hooded lamp by the door.'],
     sleep: 'The hands come in ahead of the wings; nobody talks over the roar of them leaving. Nobody stands a watch -- the house keeps its own door.', morning: 'Morning, and the river of wings coming home over the mouth.' };
   M.priceLine = function (inn, f) { var p = inn.price(f || {}); return 'A bunk for the night, ' + (p ? p + ' sp (' : 'free (') + inn.why(f || {}) + '). No watch: the staff keep the door.'; };
-  M.bunkLine = function (doors, f) { var ids = Object.keys(M.INNS).filter(function (k) { return doors[k]; }); return ids.map(function (k) { return '{y}' + M.INNS[k].name.split(':')[0] + '{/} (the bed sign): ' + M.priceLine(M.INNS[k], f).replace(/^A bunk/, 'a bunk'); }); };
+  // THE BUNKHOUSES' BOXES (11-16, the words-and-boxes seat, started by the lanes desk on Griz's word -- 10-30: "With the warrens two (and other locations) bunkhouses, rather than a
+  // wide bar across the top, can we get the bunkhouse text in a box that's roughly in the direction of what it references (i.e. - the north of river in a square box top-right and
+  // the south of river in a square box due left on warrens)"; 11-16: "when you go to the warrens it lists two, and the one for the guano mine - boxed and placed sort of the way we do
+  // the mission arrows, on the screen in the general direction of the bunkhouse"). Each bunkhouse on the floor (M.INNS, its door in marks.doors: def.bunks) its own box of words
+  // while the floor's first card is up, placed as the JOURNAL's arrow is (js/hours.js C.paintPin: the door's square put on the screen and held inside it) -- over its door when the
+  // door is in sight, else at the screen's edge on the line from the party toward it -- under the cards, over the foot lines, a gold point on its edge toward the door. The card's
+  // fade is theirs, and they go with it (js/roam.js R.script sets B.bunkBox; R.paintOver draws them)
+  M.BUNKBOX = { w: 112, m: 6, gap: 4, foot: 34, lift: 26 };
+  M.bunksOn = function (doors) { return Object.keys(M.INNS).filter(function (k) { return doors && doors[k]; }).map(function (k) { return { id: k, at: doors[k].slice() }; }); };
+  M.bunkWords = function (k, f) { // (the sign's words, short for a box: the name, what it is, the price and why, the watch -- "A bunk for the night" not said after "a flop for the night")
+    var inn = M.INNS[k], nm = inn.name.split(': '), p = inn.price(f || {});
+    return ['{y}' + nm[0] + '{/}'].concat(nm[1] ? [nm[1].charAt(0).toUpperCase() + nm[1].slice(1) + '.'] : [], ['A bunk, ' + (p ? p + ' sp' : 'free') + ' (' + inn.why(f || {}) + ').', 'No watch: the staff keep the door.']);
+  };
+  M.cardsFoot = function (B) { // (the bottom of the cards at the top, as js/ui.js cards() stacks them: from 15, a line 9, 5 more and 2 between)
+    var y = 15; (B.cards || []).forEach(function (c) { var n = 0; c.lines.filter(function (l) { return l; }).forEach(function (l) { n += D.textWidth(l) > D.W - 18 ? D.wrap(l, D.W - 18).length : 1; }); y += n * 9 + 5 + 2; }); return y;
+  };
+  M.bunkBoxes = function (B) {
+    var def = D.roam && D.roam.def, R0 = B && B.roam, bx = B && B.bunkBox; if (!def || !def.bunks || !def.bunks.length || !R0 || !R0.token || !bx || bx.key !== def.key || (B.cards || []).indexOf(bx.card) < 0) return [];
+    var Z = M.BUNKBOX, iso = D.iso, f = R0.flags || {}, out = [], scr = function (x, y) { var c = iso.center(x, y, (B.map && B.map.gz ? B.map.gz(x, y) : 0) + 16); return iso.toScreen(c.x, c.y); };
+    var top = M.cardsFoot(B) + Z.gap, bot = D.H - Z.foot, o = scr(R0.token.x, R0.token.y);
+    def.bunks.forEach(function (b) {
+      var lines = []; M.bunkWords(b.id, f).forEach(function (l) { (D.textWidth(l) > Z.w - 10 ? D.wrap(l, Z.w - 10) : [l]).forEach(function (s) { lines.push(s); }); });
+      var w = Z.w, h = lines.length * 9 + 6, p = scr(b.at[0], b.at[1]), x0 = Z.m, x1 = D.W - Z.m - w, y0 = top, y1 = Math.max(top, bot - h), bx0, by0, seen = p.x >= Z.m && p.x <= D.W - Z.m && p.y >= top && p.y <= bot;
+      if (seen) { bx0 = p.x - w / 2; by0 = p.y - Z.lift - h; if (by0 < y0) by0 = p.y + Z.lift / 2; } // (in sight: over its door, as the arrow stands over the square it marks -- under it when the cards leave no room over it)
+      else { // (out of sight: on the line from the party toward it, as far as the box goes and stays on the screen -- the arrow held at the edge)
+        var ox = Math.max(x0 + w / 2, Math.min(x1 + w / 2, o.x)), oy = Math.max(y0 + h / 2, Math.min(y1 + h / 2, o.y)), dx = p.x - ox, dy = p.y - oy, t = 1;
+        if (dx > 0) t = Math.min(t, (x1 + w / 2 - ox) / dx); else if (dx < 0) t = Math.min(t, (x0 + w / 2 - ox) / dx);
+        if (dy > 0) t = Math.min(t, (y1 + h / 2 - oy) / dy); else if (dy < 0) t = Math.min(t, (y0 + h / 2 - oy) / dy);
+        bx0 = ox + dx * Math.max(0, t) - w / 2; by0 = oy + dy * Math.max(0, t) - h / 2;
+      }
+      bx0 = Math.round(Math.max(x0, Math.min(x1, bx0))); by0 = Math.round(Math.max(y0, Math.min(y1, by0)));
+      out.forEach(function (q) { if (bx0 < q.x + q.w + 2 && bx0 + w + 2 > q.x && by0 < q.y + q.h + 2 && by0 + h + 2 > q.y) by0 = by0 + h / 2 >= q.y + q.h / 2 ? q.y + q.h + Z.gap : q.y - h - Z.gap; }); // (two the same way: one under the other)
+      by0 = Math.round(Math.max(y0, Math.min(y1, by0)));
+      out.push({ id: b.id, x: bx0, y: by0, w: w, h: h, lines: lines, to: [Math.round(p.x), Math.round(p.y)], seen: seen });
+    });
+    return out;
+  };
+  M.paintBunks = function (ctx, B) {
+    var bs = M.bunkBoxes(B); if (!bs.length) return;
+    var c = B.bunkBox.card, age = B.t - c.t0, fade = c.life - age < 30 ? Math.max(0, (c.life - age) / 30) : 1, RP = function (r, i) { return D.PAL.ramps[r][i]; };
+    ctx.save(); ctx.globalAlpha = fade;
+    bs.forEach(function (b) {
+      ctx.fillStyle = 'rgba(10,8,16,.86)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = RP('silver', 3); ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); // (the card's look: the words the card had, moved)
+      b.lines.forEach(function (l, k) { D.text(ctx, l, b.x + 5, b.y + 4 + k * 9, RP('bone', 1)); });
+      var mx = b.x + b.w / 2, my = b.y + b.h / 2, dx = b.to[0] - mx, dy = b.to[1] - my; if (Math.abs(dx) <= b.w / 2 && Math.abs(dy) <= b.h / 2) return; // (its door under it: no point)
+      var s = Math.min(dx ? (b.w / 2) / Math.abs(dx) : Infinity, dy ? (b.h / 2) / Math.abs(dy) : Infinity); // (where the line from its middle to the door leaves the box: the JOURNAL's arrow there, turned to the door)
+      // (the arrow's gold and its dark rim, drawn longer and narrower than the JOURNAL's: the JOURNAL's wide one turned to a slant lies one side flat and reads as pointing down)
+      ctx.save(); ctx.translate(Math.round(mx + dx * s), Math.round(my + dy * s)); ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2); ctx.translate(0, 9);
+      ctx.fillStyle = '#1a1206'; ctx.beginPath(); ctx.moveTo(-5, -9); ctx.lineTo(5, -9); ctx.lineTo(0, 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-3, -8); ctx.lineTo(3, -8); ctx.lineTo(0, 5); ctx.closePath(); ctx.fill(); ctx.restore();
+    });
+    ctx.restore();
+  };
   var signName0 = T.signName;
   T.signName = function (id) {
     var inn = M.INNS[id]; if (!inn) return signName0.apply(this, arguments);

@@ -298,7 +298,7 @@
       var du = floor0.apply(this, arguments);
       du.under = In.under(In.UPROWS, function () { return true; }, function () { return true; });
       du.roofs = Object.assign({}, du.roofs, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); du.hud = 'the Halfway Inn';
-      du.hello = ['{y}THE HALFWAY INN{/} -- upstairs, on the grid\'s diamonds (' + du.w + ' x ' + du.h + ' squares).', In.LINES.upstairs, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
+      du.hello = ['{y}THE HALFWAY INN{/}, upstairs.', In.LINES.upstairs, /* (a player's words, the hour added by js/roam.js R.script: 11-16, the words-and-boxes seat) */ '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
       return du;
     }
     if (key !== In.KEY) return floor0.apply(this, arguments);
@@ -312,7 +312,7 @@
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = In.keptKind(); }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
     var first = !flags.reachedInn; flags.reachedInn = 1;
-    def.hello = ['{y}THE HALFWAY INN{/} -- ' + def.sub + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(h) : '') + '.']
+    def.hello = ['{y}THE HALFWAY INN{/}, ' + def.sub + '.'] /* (a player's words, the hour added by js/roam.js R.script: 11-16, the words-and-boxes seat -- not "on the grid's diamonds (54 x 40 squares)") */
       .concat(first ? In.LINES.arrive : [], [In.inside === 'inn' ? In.LINES.inside : In.inside === 'barn' ? In.LINES.barn : In.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
     return def;
   };

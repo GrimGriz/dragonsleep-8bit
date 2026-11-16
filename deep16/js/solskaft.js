@@ -260,7 +260,8 @@
     def.people.forEach(function (p) { var f = SK.folkOf(p.id); if (f) p.kind = f.kind; });
     var h = hour != null ? hour : M.hourNow(q), first = !flags['seen:' + key]; flags['seen:' + key] = 1; // (the first-visit flag, by floor: the fog's small half -- seen:solskaft, seen:solskaft_cart)
     def.firstVisit = first;
-    def.hello = ['{y}SÓLSKAFT{/} -- ' + (lodge ? SK.LODGE[key].name : below ? 'the funerary, under the oathstone' : cart ? 'the cart level' : 'the street level') + ', on the grid\'s diamonds (' + def.w + ' x ' + def.h + ' squares), ' + (W && W.todAt ? W.todAt(h) : '') + '.']
+    // (a player's words, the hour added by js/roam.js R.script as on every floor's line: 11-16, the words-and-boxes seat -- not "on the grid's diamonds (38 x 32 squares)")
+    def.hello = ['{y}SÓLSKAFT{/}, ' + (lodge ? SK.LODGE[key].name : below ? 'the funerary, under the oathstone' : cart ? 'the cart level' : 'the street level') + '.']
       .concat(first ? (lodge ? SK.LLINES.arrive : below ? SK.BLINES.arrive : cart ? SK.CLINES.arrive : SK.LINES.arrive) : [], [lodge ? SK.LLINES.hello : below ? SK.BLINES.hello : cart ? SK.CLINES.hello : SK.LINES.hello, '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']);
     return def;
   };

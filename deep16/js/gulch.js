@@ -112,7 +112,8 @@
   M.floor = function (key) {
     var def = floor0.apply(this, arguments); if (key !== Gu.KEY) return def;
     def.people.forEach(function (p) { if (Gu.KINDS[p.id]) p.kind = Gu.KINDS[p.id]; });
-    def.hello = ['{y}WEB GULCH{/} -- the road down the cut, ' + (def.iso ? 'on the grid\'s diamonds, north up the screen\'s right' : 'north up') + ' (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(def.hour) : '') + '.', Gu.LINES.hello,
+    // (a player's words, the hour added by js/roam.js R.script as on every floor's line: 11-16, the words-and-boxes seat -- not "on the grid's diamonds, north up the screen's right (40 x 112 squares)")
+    def.hello = ['{y}WEB GULCH{/}, the road down the cut.', Gu.LINES.hello,
       '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
     return def;
   };

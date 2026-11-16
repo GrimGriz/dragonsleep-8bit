@@ -837,9 +837,9 @@
       if (past) he = past; // (past the area's edge: THE WORLD's hex there)
       if (he) {
         var ss = ((past ? MS.world : M).siteAt[K(he.q, he.r)] || []).map(function (s) { return s.name; });
-        lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess ? ' {g}(v3’s guess){/}' : '') + ' · ' + Math.round(he.h).toLocaleString() + ' ft' + (past ? ' {g}(THE WORLD){/}' : ''));
+        lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess && this.dev ? ' {g}(v3’s guess){/}' : '') /* (the map's own note, on the dev view only: 11-16, the words-and-boxes seat) */ + ' · ' + Math.round(he.h).toLocaleString() + ' ft' + (past ? ' {g}(THE WORLD){/}' : ''));
         if (this.plan) { var hrs = this.plan.hours, d = W.house() ? Math.floor(((S.todayHex || 0) + this.plan.march) / D.house.DAYHEX - 1e-6) : Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); /* (the camps the walk will ask for: the house's by the day's hexes) */ lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + (this.plan.beyond ? ' and ' + this.plan.beyond + ' of THE WORLD' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
-        else if (W.MOUNTAIN[he.t]) lines.push('{g}the mountains: their roads are roams (to come){/}');
+        else if (W.MOUNTAIN[he.t]) lines.push('{g}the mountains: no way over them on foot{/}'); // (a player's words, 11-16, the words-and-boxes seat -- not "their roads are roams (to come)")
         else if (!W.walkable(he)) lines.push('{r}no one walks it{/}');
         else if (K(this.hov[0], this.hov[1]) !== K(S.at[0], S.at[1])) lines.push('{r}no way there{/}');
       } else lines.push('{g}off the map{/}');
