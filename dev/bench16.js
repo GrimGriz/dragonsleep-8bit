@@ -18897,6 +18897,103 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preX);
     return;
   }
+  // MERRICK'S WINDOW, THE SENDINGS, 11-16 (mode=merrick1116; deep16/js/counter.js C.LANTERN, C.lantern, C.lanternSend, C.lanternSends, C.lanternMet, C.cols2; deep16/js/situations16.js
+  // merrick16, merrickmet16 -- the merrick-window seat, started by the lanes desk on Griz's "so for merrick we need for him to offer to send those messages at that prices - doors with
+  // a specific school submenu, the Pit, Capital City work for now. A suggested send for each hero and no in-game effect. Offer options about the Old One or Mirror creatures as send
+  // items after player has encountered them."). Every choice pressed by a click on its drawn box, as services1022 does; the party's flags, pack and sheets the same before and after
+  // each sending (only the purse moves); every answer's box on the screen, none over another, its label inside it
+  if (get('mode', '') === 'merrick1116') {
+    var repMw = { checks: [], errors: [] }, memMw = {}, stGMw = D.store.get, stSMw = D.store.set, HMw = D.house, CMw = D.counter, TMw = D.town, WMw = D.world, muMw = D.music;
+    function okMw(what, v) { repMw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveMw(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topMw() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upMw() { return D.top() instanceof CMw.Counter; }
+    function trigMw(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function clickMw(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function backMw(sc) { var mo = D.input.mouse, k = { rclick: mo.rclick, inside: mo.inside }; mo.rclick = true; mo.inside = true; sc.update(); Object.assign(mo, k); }
+    function optMw(sc, label) { return clickMw(sc, sc.buttons().filter(function (q) { return q.go === 'opt' && q.label === label; })[0]); }
+    function readMw(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); clickMw(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); } return out; }
+    function askMw(sc) { return sc.wait && sc.wait.ask ? sc.wait.ask.join(' ') : ''; }
+    function optsMw(sc) { return sc.wait && sc.wait.ask ? sc.wait.opts.map(function (o) { return typeof o === 'object' ? o.label + (o.off ? ' (x)' : '') : o; }) : []; }
+    function fireMw(B, id) { var g = TMw.fire(B, trigMw(id)); driveMw(g, upMw, 600); return g; }
+    function inMw(B, id) { driveMw(TMw.fire(B, trigMw(id)), null, 600); return D.roam.def.room === id; }
+    function boxesMw(sc) { var bs = sc.buttons().filter(function (q) { return q.go === 'opt'; }), bad = [];
+      bs.forEach(function (b, i) { if (b.x < 0 || b.y < 0 || b.y + b.h > D.H - 14 || b.x + b.w > D.W) bad.push(b.label + ' off the screen'); if (!b.lines && D.textWidth(b.label) > b.w - 4) bad.push(b.label + ' wider than its box');
+        bs.forEach(function (c, j) { if (j > i && b.x < c.x + c.w && c.x < b.x + b.w && b.y < c.y + c.h && c.y < b.y + b.h) bad.push(b.label + ' over ' + c.label); }); });
+      return bad; }
+    function keptMw(B) { var st = CMw.state(B); return JSON.stringify({ flags: st.flags, inv: st.inv, party: st.party }); }
+    // into the lantern house, E on Merrick: his word, read to the window's first question
+    function openMw(id) { HMw.playing = false; HMw.cur = null; while (D.scenes.length) D.pop(); D.sit16.open(id); var B = topMw(), st0 = D.roam.def.key + ' ' + B.roam.token.x + ',' + B.roam.token.y + ' (the door ' + D.roam.def.marks.doors['keeper:merrick'] + ')'; inMw(B, 'keeper:merrick'); var mu = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], st1 = D.roam.def.key + ' ' + B.roam.token.x + ',' + B.roam.token.y + ', Merrick ' + (mu ? mu.x + ',' + mu.y : '?'); var g = fireMw(B, 'talk:merrick'), sc = D.top(); var said = upMw() ? readMw(sc) : []; return { B: B, g: g, sc: sc, said: said, squares: st0 + '; in: ' + st1 }; }
+    D.store.get = function (k) { return memMw[k] ? JSON.parse(memMw[k]) : null; }; D.store.set = function (k, v) { memMw[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1116);
+      var LMw = CMw.LANTERN;
+      okMw('C.LANTERN: the rate card at 10 silver a gold (dusk ' + (LMw && LMw.price.dusk) + ', by day ' + (LMw && LMw.price.day) + ', the name off ' + (LMw && LMw.price.name) + '), the Doors\' ' + (LMw && LMw.SCHOOLS.length) + ' schools, sends for ' + (LMw && Object.keys(LMw.SENDS).join(', ')),
+        !!LMw && LMw.price.dusk === 100 && LMw.price.day === 250 && LMw.price.name === 250 && LMw.SCHOOLS.length === 8 && ['barley', 'aurdin', 'vivian', 'lymen', 'ingrith'].every(function (h) { return !!LMw.SENDS[h]; }) && /his own oath/.test(LMw.SENDS.lymen));
+      var allMw = JSON.stringify(LMw || {});
+      okMw('a player\'s words only: no "to come", no first game, no builders\' words in the window', !/to come|first game|8-bit|the seat|bench|Griz/i.test(allMw));
+      // 1. THE DOOR, merrick16: at the lantern house, level 3, 600 silver; in, E on Merrick
+      var o = openMw('merrick16'), B = o.B, R0 = B.roam, sc = o.sc;
+      okMw('merrick16: Silverton (' + o.squares + '), in the lantern house (' + D.roam.def.room + '), the four at level ' + R0.members.map(function (u) { return u.id + ' ' + (u.src && u.src.lvl); }).join(', ') + ', ' + R0.silver + ' silver',
+        D.roam.def.room === 'keeper:merrick' && D.roam.house() && R0.members.filter(function (u) { return u.src; }).every(function (u) { return u.src.lvl === 3; }) && R0.silver === 600);
+      okMw('E on Merrick: his portrait (' + (sc && sc.sheet) + '), his word ("' + (o.said.concat(sc.wait && sc.wait.ask || [])[0] || '') + '"), ' + optsMw(sc).join(' / '),
+        upMw() && sc.sheet === 'pt_merrick' && /A dusk sending is cheaper/.test(o.said.concat(sc.wait.ask || []).join(' ')) && optsMw(sc).join() === 'SEND WORD,LEAVE');
+      var k0 = keptMw(B);
+      // 2. SEND WORD: the prices said, where to
+      optMw(sc, 'SEND WORD');
+      okMw('SEND WORD: "' + askMw(sc).slice(0, 90) + '..." -- ' + optsMw(sc).join(' / ') + (boxesMw(sc).length ? ' BAD: ' + boxesMw(sc).join('; ') : ''),
+        /A hundred silver at dusk/.test(askMw(sc)) && /Two hundred and fifty more keeps your name off/.test(askMw(sc)) && optsMw(sc).join() === 'THE DOORS,TARLYN\'S PIT,CAPITAL CITY,BACK' && !boxesMw(sc).length);
+      // 3. THE DOORS: the eight schools two to a row, BACK across the foot
+      optMw(sc, 'THE DOORS'); var bD = sc.buttons().filter(function (q) { return q.go === 'opt'; }), xsD = bD.map(function (b) { return b.x; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
+      okMw('THE DOORS: "' + askMw(sc) + '" -- ' + optsMw(sc).join(' / ') + '; two to a row (' + Math.max.apply(null, bD.map(function (b) { return b.y; })) + ' the lowest, BACK ' + bD[bD.length - 1].w + ' wide)' + (boxesMw(sc).length ? ' BAD: ' + boxesMw(sc).join('; ') : ''),
+        optsMw(sc).join() === 'CONJURATION,ENCHANTMENT,TRANSMUTATION,DIVINATION,ILLUSION,ABJURATION,NECROMANCY,EVOCATION,BACK' && sc.wait.cols === 2 && xsD.length === 2 && bD[0].y === bD[1].y && bD[bD.length - 1].w > bD[0].w && !boxesMw(sc).length);
+      // 4. NECROMANCY: what it says -- a send for each of the four, nothing met yet
+      optMw(sc, 'NECROMANCY');
+      okMw('NECROMANCY: "' + askMw(sc) + '" -- ' + optsMw(sc).join(' / ') + ' (no Old One, no mirror-made: none met)', optsMw(sc).join() === 'FROM LYMEN,FROM BARLEY,FROM AURDIN,FROM VIVIAN,BACK' && !sc.wait.cols && !boxesMw(sc).length);
+      // 5. FROM LYMEN: the words to Valoran Vindicar, and when, at what price
+      optMw(sc, 'FROM LYMEN'); var mL = readMw(sc).concat(sc.wait && sc.wait.ask || []).join(' ');
+      okMw('FROM LYMEN: "' + mL.slice(0, 170) + '..." -- ' + optsMw(sc).join(' / ') + (boxesMw(sc).length ? ' BAD: ' + boxesMw(sc).join('; ') : ''),
+        /To Valoran Vindicar of Thresholding Hold, for Necromancy, at the Doors/.test(mL) && /Ser Corwin Ashby/.test(mL) && optsMw(sc).join() === 'AT DUSK: 100 SP,BY DAY, URGENT: 250 SP,AT DUSK, NAME OFF THE PAPER: 350 SP,BY DAY, NAME OFF THE PAPER: 500 SP,NOT THIS ONE' && !boxesMw(sc).length);
+      // 6. AT DUSK: it went -- 100 silver, and nothing else changed
+      optMw(sc, 'AT DUSK: 100 SP'); var wL = readMw(sc).join(' '), trL = (HMw.cur.trail || []).slice(-1)[0];
+      okMw('AT DUSK: "' + wL + '" -- ' + R0.silver + ' silver left; the flags, the pack and the four the same; the trail: ' + (trL && trL.s),
+        /dusk lanterns tonight/.test(wL) && /Sent to Valoran Vindicar/.test(wL) && !/name stays off/.test(wL) && R0.silver === 500 && keptMw(B) === k0 && !!trL && trL.k === 'lantern');
+      okMw('the window again: "' + askMw(sc) + '" -- ' + optsMw(sc).join(' / '), upMw() && /Anything else going out/.test(askMw(sc)) && optsMw(sc).join() === 'SEND WORD,LEAVE');
+      // 7. TARLYN'S PIT, Barley's word, by day with the name off: 500 silver
+      optMw(sc, 'SEND WORD'); optMw(sc, 'TARLYN\'S PIT'); optMw(sc, 'FROM BARLEY'); var mB = readMw(sc).concat(sc.wait && sc.wait.ask || []).join(' ');
+      optMw(sc, 'BY DAY, NAME OFF THE PAPER: 500 SP'); var wB = readMw(sc).join(' ');
+      okMw('TARLYN\'S PIT, FROM BARLEY ("' + mB.slice(0, 90) + '"), BY DAY with the name off: "' + wB + '" -- ' + R0.silver + ' silver left, nothing else changed',
+        /To the lantern at Tarlyn's Pit/.test(mB) && /the Grant took/.test(mB) && /Lit now, by day/.test(wB) && /name stays off the house's paper/.test(wB) && /Sent to the lantern at Tarlyn's Pit/.test(wB) && R0.silver === 0 && keptMw(B) === k0);
+      // 8. CAPITAL CITY with an empty purse: every price greyed and refused; X back a step at a time, then LEAVE
+      optMw(sc, 'SEND WORD'); optMw(sc, 'CAPITAL CITY'); optMw(sc, 'FROM AURDIN'); var mA = readMw(sc).concat(sc.wait && sc.wait.ask || []).join(' '), oA = optsMw(sc).join(' / ');
+      optMw(sc, 'AT DUSK: 100 SP'); var still = optsMw(sc).join(' / ') === oA && R0.silver === 0;
+      okMw('CAPITAL CITY, FROM AURDIN ("' + mA.slice(0, 100) + '") with no silver: ' + oA + '; AT DUSK refused (' + still + ')', /To the lantern at Capital City/.test(mA) && /my mother's brother/.test(mA) && /AT DUSK: 100 SP \(x\)/.test(oA) && /BY DAY, NAME OFF THE PAPER: 500 SP \(x\)/.test(oA) && still);
+      backMw(sc); var bk1 = optsMw(sc).join(); backMw(sc); var bk2 = optsMw(sc).join(); backMw(sc); var bk3 = optsMw(sc).join();
+      okMw('X, X, X: NOT THIS ONE (' + bk1 + '), BACK (' + bk2 + '), BACK (' + bk3 + ')', /^FROM LYMEN/.test(bk1) && /^THE DOORS/.test(bk2) && bk3 === 'SEND WORD,LEAVE');
+      optMw(sc, 'LEAVE'); driveMw(o.g, null, 200);
+      okMw('LEAVE: the screen down, the floor again (' + (D.top() === B) + '), 0 silver, the party as it came in', !upMw() && D.top() === B && R0.silver === 0 && keptMw(B) === k0);
+      // 9. merrickmet16: the black egg had (the stars went out) and the mirror-made met and fought -- two more sends, the list two to a row
+      o = openMw('merrickmet16'); B = o.B; R0 = B.roam; sc = o.sc; k0 = keptMw(B);
+      optMw(sc, 'SEND WORD'); optMw(sc, 'CAPITAL CITY'); var bM = sc.buttons().filter(function (q) { return q.go === 'opt'; });
+      okMw('merrickmet16, CAPITAL CITY: ' + optsMw(sc).join(' / ') + ', two to a row' + (boxesMw(sc).length ? ' BAD: ' + boxesMw(sc).join('; ') : ''),
+        optsMw(sc).join() === 'FROM LYMEN,FROM BARLEY,FROM AURDIN,FROM VIVIAN,THE STARS GONE OUT,THE MIRROR-EYED,BACK' && sc.wait.cols === 2 && bM[0].y === bM[1].y && !boxesMw(sc).length);
+      optMw(sc, 'THE STARS GONE OUT'); var mS = readMw(sc).concat(sc.wait && sc.wait.ask || []).join(' '); backMw(sc);
+      optMw(sc, 'THE MIRROR-EYED'); var mM = readMw(sc).concat(sc.wait && sc.wait.ask || []).join(' '); optMw(sc, 'AT DUSK: 100 SP'); var wM = readMw(sc).join(' ');
+      okMw('THE STARS GONE OUT ("' + mS.slice(0, 110) + '"); THE MIRROR-EYED ("' + mM.slice(0, 110) + '"), AT DUSK: ' + R0.silver + ' silver, the flags kept (eggStars ' + R0.flags.eggStars + ', sawMirror ' + R0.flags.sawMirror + ')',
+        /every star in the sky went out/.test(mS) && /mirrors where their eyes should be/.test(mM) && /dusk lanterns tonight/.test(wM) && R0.silver === 500 && keptMw(B) === k0 && R0.flags.eggStars === 1 && R0.flags.sawMirror === 1);
+      // 10. his card met (the black egg's record, js/blackegg.js BE.met): the Old One's send names the gnoll with stars; Ingrith in the party has her own
+      var S0Mw = WMw.state(), was = S0Mw.stars, curF = HMw.cur.flags; S0Mw.stars = { met: S0Mw.t }; HMw.cur.flags = {}; // (the save's own flags aside: this one's mirror-made are not asked about here)
+      var sendsMw = CMw.lanternSends({ flags: {}, party: [{ id: 'ingrith', name: 'Ingrith' }, { id: 'dace', name: 'Dace' }] });
+      S0Mw.stars = was; HMw.cur.flags = curF;
+      okMw('his card met: ' + sendsMw.map(function (s) { return s.label; }).join(' / ') + ' (Dace has none of his own)', sendsMw.map(function (s) { return s.label; }).join() === 'FROM INGRITH,THE GNOLL WITH STARS' && /Sólskaft/.test(sendsMw[0].say) && /stars in its hide/.test(sendsMw[1].say));
+      backMw(sc); optMw(sc, 'LEAVE'); driveMw(o.g, null, 200);
+    } catch (eMw) { repMw.errors.push(String(eMw && eMw.stack || eMw).slice(0, 900)); }
+    HMw.playing = false; HMw.cur = null; D.store.get = stGMw; D.store.set = stSMw; D.music = muMw;
+    var preMw = document.createElement('pre'); preMw.id = 'out'; preMw.textContent = 'BENCH16 ' + JSON.stringify(repMw);
+    document.body.appendChild(preMw);
+    return;
+  }
   // SILVERTON'S SERVICES, 10-22 (mode=services1022; deep16/js/counter.js C.inn, C.chapel, C.leech, C.hessle, the show ?services; deep16/js/house.js THE MORNING, H.sleepOnFloor,
   // H.atOf -- the lanes desk, on his word: "Start a seat on Silverton's services: Cassia's rooms, Aldwin's chapel sleep, Davos's leech-house, Hessle's board, Merrick's sendings,
   // from the first game's scenes"; his 10-22 note: "camping the night with no encounter doesn't prompt the same as 'you just stayed at inn' - can't tell it's morning, no
@@ -19021,9 +19118,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200);
       // (the council's word on the five only if the herd's council sat -- since 10-28, his "18 - yes, lantern warning same trigger as council meeting": mode=hours1028 -- here no herd thinned, so Hessle's plain word)
       okV('the board clear ("The old bounty papers are down"), his word on the five once ("' + fiveW.slice(-80) + '"), not again', /bounty papers are down/.test(fiveW) && /Five names off the book's dead side/.test(fiveW) && !/Five names off/.test(wH.join(' ')) && /bounty papers are down/.test(wH.join(' ')));
-      // MERRICK: the first game has no sendings -- his word, and his window still to come
-      outV(B); inV(B, 'keeper:merrick'); var gM = fireV(B, 'talk:merrick'), scM = D.top(), wM = upV() ? readV(scM) : []; driveV(gM, null, 200);
-      okV('Merrick: his word, said plainly since 10-28 (his "Dialogue review for vaguery reduction for new and younger players": mode=hours1028) ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /A dusk sending is cheaper/.test(wM.join(' ')) && !/is to come/.test(wM.join(' '))); // (his window's "is to come" removed 11-16, his "either removed or built, not reworded": words1116)
+      // MERRICK: his word, then his window (built 11-16: mode=merrick1116) -- SEND WORD / LEAVE; LEAVE puts the screen down
+      outV(B); inV(B, 'keeper:merrick'); var gM = fireV(B, 'talk:merrick'), scM = D.top(), wM = upV() ? readV(scM).concat(scM.wait && scM.wait.ask ? scM.wait.ask : []) : [], oM = upV() && scM.wait && scM.wait.opts ? scM.wait.opts.join() : '';
+      if (upV()) goV(scM, 'opt', 'LEAVE'); driveV(gM, null, 200);
+      okV('Merrick: his word, said plainly since 10-28 (his "Dialogue review for vaguery reduction for new and younger players": mode=hours1028) ("' + wM[0] + '"), then his window\'s ' + oM + ' (mode=merrick1116), LEAVE: the floor', /A dusk sending is cheaper/.test(wM.join(' ')) && !/is to come/.test(wM.join(' ')) && oM === 'SEND WORD,LEAVE' && !upV());
       // THE CAMP'S MORNING (his 10-22 note): a quiet night on THE WORLD wakes to the same morning
       D.scenes.length = 0; shV = CV.servicesShow('?services&beat=camp'); D.push(shV); shV.update(); var wC = topV(), SC = WV.state(), cA = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], cLv = cA.lvl;
       okV('the camp\'s beat: THE WORLD (' + (wC && wC.kind) + '), the four hurt, a quiet night', wC && wC.kind === 'world' && HV.cur.party.every(function (h) { return h.hp < h.maxhp; }) && SC.count > 1e6);
@@ -19204,7 +19302,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var elseSt = { camp16: 'campage1116', book16: 'book1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
+      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
@@ -20897,9 +20995,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okW('Kess at the flop-cellar\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuKs + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
         !kuKs && scKs && scKs.sheet === 'pt_kess' && wKs.join('|') === wantKs.join('|') && !/to come/.test(wKs.join(' ')) && !D.roam.def.room && !upW());
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
-      inW(B, 'keeper:merrick'); var wantMr = sayW('merrick'), kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
-      okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
-        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && facedW(kuMr, R0) && kuMr.holdFacing === !!D.SHEETS[kuMr.sheet].anims.idle.drawn && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === wantMr.join('|') && R0.flags['heard:r-lantern'] === 1 && !/is to come/.test(wMr.join(' ')) && !upW()); // (his window's "is to come" removed 11-16, his "either removed or built, not reworded": words1116)
+      inW(B, 'keeper:merrick'); var wantMr = sayW('merrick'), kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr).concat(scMr.wait && scMr.wait.ask ? scMr.wait.ask : []) : [], oMr = upW() && scMr.wait && scMr.wait.opts ? scMr.wait.opts.join() : ''; if (upW()) goW(scMr, 'opt', 'LEAVE'); driveW(gMr, null, 200); // (his window since 11-16: SEND WORD / LEAVE after his word -- mode=merrick1116)
+      okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and his window\'s ' + oMr,
+        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && facedW(kuMr, R0) && kuMr.holdFacing === !!D.SHEETS[kuMr.sheet].anims.idle.drawn && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === wantMr.join('|') && R0.flags['heard:r-lantern'] === 1 && !/is to come/.test(wMr.join(' ')) && oMr === 'SEND WORD,LEAVE' && !upW()); // (his window's "is to come" removed 11-16, his "either removed or built, not reworded": words1116)
       // (her reading since 10-28, his "9 - yes, in the case of no pinned messages a consult will pin one first": her first word, then READ (5 SP) / LEAVE -- left here; mode=hours1028 reads)
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS), askS = scS && scS.wait && scS.wait.ask ? scS.wait.opts.join() : ''; if (upW()) goW(scS, 'opt', 'LEAVE'); driveW(gS, null, 200);
       var kuSy = B.units.filter(function (u) { return u.npc === 'sylvia'; })[0];

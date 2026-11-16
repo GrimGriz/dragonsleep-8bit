@@ -67,7 +67,7 @@
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
     mela: { sheet: 'pt_mela', wait: '' }, mical: { sheet: 'pt_mical', wait: '' },
-    merrick: { sheet: 'pt_merrick', wait: '' }, /* (no "His window -- the sendings -- is to come." (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat)) */ // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
+    merrick: { sheet: 'pt_merrick', script: 'lantern' }, // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends -- BUILT 11-16, C.LANTERN below, on Griz's "so for merrick we need for him to offer to send those messages at that prices"; the "is to come" line it replaces was removed 11-16 by the words-and-boxes seat)
     // three more (10-22, Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith at his forge's door, his first-game talk (the
     // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
     // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
@@ -1031,7 +1031,8 @@
   // adding functionality to silverton NPCs (the Inn, the Free church sleep, etc?)", then "Start a seat on Silverton's services: Cassia's rooms, Aldwin's chapel sleep, Davos's
   // leech-house, Hessle's board, Merrick's sendings, from the first game's scenes"). The first game's own scenes (js/events.js S.inn, S.chapel, S.leech, S.hessle) on the
   // counter screen, in its words (content/text.json; content/shops.json cassia; content/npcs.json aldwin); a night slept wakes to the house's morning (js/house.js
-  // H.sleepOnFloor: the night's bonds, the day's spells, the save). Merrick's window stays to come: the first game has no sendings -- his talk and a rumour only
+  // H.sleepOnFloor: the night's bonds, the day's spells, the save). Merrick's window: the first game has no sendings (his talk and a rumour only); the second game's is
+  // C.LANTERN below (11-16, his word)
   C.SCRIPTS = {};
   // a night slept on the floor once the screen is down (the first game's EV.rest('inn'): the inn's tune through the night, at the inn and on the chapel's floor)
   C.sleep = function* (B) { if (B && B.roam && D.house && D.house.sleepOnFloor) yield* D.house.sleepOnFloor(B, { music: 'inn' }); };
@@ -1151,6 +1152,97 @@
     if (lines.length === 1) lines.push(M.none);
     D.sfx('chest');
     yield sc.say(lines, 'work');
+  };
+  // ---------------------------------------------------------------- MERRICK'S WINDOW: THE SENDINGS (11-16, the merrick-window seat, started by the lanes desk; the second game's
+  // house lane, "2026-11-16 evening, later -- MERRICK'S WINDOW RULED"). Griz, verbatim: "so for merrick we need for him to offer to send those messages at that prices - doors with
+  // a specific school submenu, the Pit, Capital City work for now. A suggested send for each hero and no in-game effect. Offer options about the Old One or Mirror creatures as
+  // send items after player has encountered them."
+  // THE PRICES: the realm's rate card (TarlynsPit/wiki/the-lantern-network.md, CANON 08-25: dusk ~10 gp, midday ~25 gp, the paper-suppression premium +~25 gp) at the house's ten
+  // silver a gold -- 100 sp at dusk, 250 sp by day (his talk's "a noon sending tells everyone it's urgent"), 250 sp more to keep the sender's name off the house's paper.
+  // WHERE: the Doors, by school -- the eight of the Doors' Council, one delegate a school (the-doors.md, PROPOSED 11-09), the sending to the delegate's door; Tarlyn's Pit's
+  // lantern; Capital City's (his name, "for now"). WHAT: a send drafted for each hero in the party (their realm pages: barley.md, aurdin.md, vivian.md, the-urtusks.md, solskaft.md),
+  // and, once met in play, one about the Old One (the black egg's pass, eggStars, or his own card met: js/blackegg.js S.stars.met) and one about the mirror-made (THE WORLD's
+  // sawMirror / mirrorFought: js/trueword.js, js/world.js). NO IN-GAME EFFECT: the coin is spent and the window says it went -- no flag, no item, no answer; the play record's
+  // trail notes it (H.trail). The words are the seat's drafts (invented.json merrick-window-1116, merrick-send-*-1116). Door deep16/?at=merrick16 / merrickmet16; bench merrick1116
+  C.LANTERN = { price: { dusk: 100, day: 250, name: 250 },
+    again: 'Anything else going out?',
+    where: 'Where to? A hundred silver at dusk, with the evening\'s word. Two hundred and fifty to light it by day, and everyone on the line knows it\'s urgent. Two hundred and fifty more keeps your name off the house\'s paper.',
+    doors: 'The Doors. Eight schools, and a delegate each on their Council. Name the school and it goes to the delegate\'s door.',
+    what: 'What does it say? Here\'s how I\'d write it for each of you.',
+    when: 'When does it go?',
+    went: { dusk: 'It goes up with the dusk lanterns tonight.', day: 'Lit now, by day. Every keeper on the line will know somebody paid to hurry.', name: 'Your name stays off the house\'s paper.' },
+    sentTo: '{g}Sent to {to}.{/}',
+    PLACES: [{ id: 'doors', label: 'THE DOORS' }, { id: 'pit', label: 'TARLYN\'S PIT', to: 'the lantern at Tarlyn\'s Pit' }, { id: 'capital', label: 'CAPITAL CITY', to: 'the lantern at Capital City' }],
+    SCHOOLS: [{ id: 'conjuration', label: 'CONJURATION', to: 'Maren Sedge, senior Doorwarden, for Conjuration' }, { id: 'enchantment', label: 'ENCHANTMENT', to: 'Ysabet Rusk, keyholder of the valley, for Enchantment' },
+      { id: 'transmutation', label: 'TRANSMUTATION', to: 'Orren Flint, for Transmutation' }, { id: 'divination', label: 'DIVINATION', to: 'Maud Fenwick, senior reader, for Divination' },
+      { id: 'illusion', label: 'ILLUSION', to: 'Sera Pell, for Illusion' }, { id: 'abjuration', label: 'ABJURATION', to: 'Hadrik Cairn, Sealward captain, for Abjuration' },
+      { id: 'necromancy', label: 'NECROMANCY', to: 'Valoran Vindicar of Thresholding Hold, for Necromancy' }, { id: 'evocation', label: 'EVOCATION', to: 'Dagna Ash of the Furnace, for Evocation' }],
+    // a hero's own send, by the hero's id (who they are on their realm page: what they would put on a lantern, to whoever holds it at the other end)
+    SENDS: { barley: 'From Barley, off the farm the Grant took. Still standing. Tell whoever asks.',
+      aurdin: 'From Aurdin, wizard, sixteen, off the farms by Newland. My spellbook was my uncle\'s, my mother\'s brother. Did anyone there know him?',
+      vivian: 'From V. Candles, good tallow, by the crate or the stub. Crews going under, ask for the candle-girl at Silverton\'s lantern house.',
+      lymen: 'From Lymen of the Hex, in Silverton, sworn to Kalindel by his own oath. He asks after Ser Corwin Ashby, last known in the Bogs. Is he living?',
+      ingrith: 'From Ingrith Scalebeam, who keeps Sólskaft\'s ledger in Rekknar\'s name. The dwarves of Sólskaft would trade with the surface again: ingots and lead going up, salt, timber and charcoal coming down. Honest carters will be heard.' },
+    // once met: the Old One (his card met, else the stars going out as he passed) and the mirror-made
+    MET: { met: { label: 'THE GNOLL WITH STARS', say: 'Word from the Silverton road: a gnoll walks it alone, unhurried, with stars in its hide. It does not turn aside. Keep your people off its road.' },
+      stars: { label: 'THE STARS GONE OUT', say: 'Word from the Silverton road: one night every star in the sky went out at once, and came back. Something old walks that road. Keep your people off it.' },
+      mirror: { label: 'THE MIRROR-EYED', say: 'Word from the Silverton road: beasts with mirrors where their eyes should be. They were ordinary beasts once. Something is making them. Watch your roads.' } } };
+  // what the party has met (the save's flags, the floor's over them; the black egg's record of his card met)
+  C.lanternMet = function (st) {
+    var f = (st && st.flags) || {}, hf = (D.house && D.house.cur && D.house.cur.flags) || {}, S = null;
+    try { S = D.world && D.world.state ? D.world.state() : null; } catch (e) { S = null; }
+    var met = !!(S && S.stars && S.stars.met != null);
+    return { oldOne: met ? 'met' : (f.eggStars || hf.eggStars) ? 'stars' : null, mirror: !!(f.sawMirror || f.mirrorFought || hf.sawMirror || hf.mirrorFought) };
+  };
+  // the sends on offer: each standing hero's own, then the met ones -- [{ label, say, who }]
+  C.lanternSends = function (st) {
+    var L0 = C.LANTERN, out = [], m = C.lanternMet(st);
+    st.party.forEach(function (h) { var id = h.key || h.id, s = h && !h.dead && L0.SENDS[id]; if (s) out.push({ label: 'FROM ' + String(h.name || id).toUpperCase(), say: s, who: id }); });
+    if (m.oldOne) out.push({ label: L0.MET[m.oldOne].label, say: L0.MET[m.oldOne].say, who: 'oldone' });
+    if (m.mirror) out.push({ label: L0.MET.mirror.label, say: L0.MET.mirror.say, who: 'mirror' });
+    return out;
+  };
+  // an ask's answers two to a row (its `cols`), the odd last one across the foot: the Doors' eight schools and BACK, and a long list of sends -- on this screen only (the
+  // counter's own buttons, then laid out again; Counter.prototype.buttons untouched)
+  C.cols2 = function (sc) {
+    if (sc.cols2) return; sc.cols2 = true; var base = sc.buttons;
+    sc.buttons = function () {
+      var out = base.call(this), w = this.wait || {}; if (!w.cols || this.sub || this.shop || this.hero) return out;
+      var ops = out.filter(function (b) { return b.go === 'opt'; }), n = ops.length, cw = Math.floor((RW - 16 - 6) / 2);
+      ops.forEach(function (b, i) { var across = i === n - 1 && n % 2 === 1, r = Math.floor(i / 2), c = i % 2; b.x = RX + 8 + (across ? 0 : c * (cw + 6)); b.w = across ? RW - 16 : cw; b.y = WY + WH + 8 + r * 19; b.h = 16; b.lines = null; });
+      return out;
+    };
+  };
+  function cols(w) { w.cols = 2; return w; }
+  C.SCRIPTS.lantern = C.lantern = function* (sc, B) {
+    var L0 = C.LANTERN, out = D.hours && D.hours.outWords ? D.hours.outWords('merrick') : null; C.cols2(sc);
+    if (out) { yield sc.say(out, 'welcoming'); return; } // (out at his evening spot on the street at dusk: his evening word, as every keeper out says -- js/hours.js H16.outWords; the window is shut)
+    var said = C.words(B, 'merrick'), q = said.length ? said : [L0.again];
+    if (!C.oneBox(q)) { yield sc.say(q.slice(0, -1), 'welcoming'); q = q.slice(-1); }
+    while ((yield sc.ask(q, ['SEND WORD', 'LEAVE'], 'welcoming')) === 0) { yield* C.lanternSend(sc); q = [L0.again]; }
+  };
+  // SEND WORD: where, then what, then when -- BACK a step at each; true when it went
+  C.lanternSend = function* (sc) {
+    var L0 = C.LANTERN, st = sc.st, P = L0.price;
+    while (true) {
+      var a = yield sc.ask(L0.where, L0.PLACES.map(function (p) { return p.label; }).concat(['BACK']), 'attentive');
+      if (a == null || a >= L0.PLACES.length) return false;
+      var pl = L0.PLACES[a], to = pl.to;
+      if (pl.id === 'doors') { var k = yield cols(sc.ask(L0.doors, L0.SCHOOLS.map(function (s) { return s.label; }).concat(['BACK']), 'attentive')); if (k == null || k >= L0.SCHOOLS.length) continue; to = L0.SCHOOLS[k].to + ', at the Doors'; }
+      while (true) {
+        var sends = C.lanternSends(st), w = sc.ask(L0.what, sends.map(function (s) { return s.label; }).concat(['BACK']), 'attentive');
+        var p = yield (sends.length + 1 > 6 ? cols(w) : w); if (p == null || p >= sends.length) break;
+        var sd = sends[p], msg = ['To ' + to + ':', '"' + sd.say + '"'], purse = st.silver();
+        var opts = [['dusk', false, 'AT DUSK'], ['day', false, 'BY DAY, URGENT'], ['dusk', true, 'AT DUSK, NAME OFF THE PAPER'], ['day', true, 'BY DAY, NAME OFF THE PAPER']].map(function (o) { var c = P[o[0]] + (o[1] ? P.name : 0); return { label: o[2] + ': ' + c + ' SP', off: c > purse, cost: c, when: o[0], name: o[1] }; });
+        var ask = msg; if (!C.oneBox(msg)) { yield sc.say(msg, 'attentive'); ask = [L0.when]; }
+        var c0 = yield sc.ask(ask, opts.concat(['NOT THIS ONE']), 'attentive'); if (c0 == null || c0 >= opts.length) continue;
+        var o = opts[c0]; if (o.cost > st.silver()) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); continue; }
+        st.silver(-o.cost); D.sfx('coin');
+        if (D.house && D.house.trail) D.house.trail('lantern', 'Merrick sent ' + sd.who + '\'s word to ' + to + ' (' + o.when + (o.name ? ', name off' : '') + ', ' + o.cost + ' sp)');
+        yield sc.say([L0.went[o.when]].concat(o.name ? [L0.went.name] : [], [L0.sentTo.replace('{to}', to)]), 'work');
+        return true;
+      }
+    }
   };
   // the services, shown (deep16/?services -- the eyes row's door, 10-22): a NEW GAME staged by the beat -- the four hurt, a level banked, a ring that wants a bond, the
   // fallen, the bounties' proofs -- and stood at the door (the camp's on THE WORLD), the rest in the player's hands: a click on the door (or E), E at the counter.
