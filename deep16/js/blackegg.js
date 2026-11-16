@@ -5,10 +5,10 @@
      then, on the desk's suggestion, "Yes, that delay" -- RULED: it pays at the party's first sleep that begins at least 24 hours after the closest pass (the inn, a room or a
      camp); with no sleep, at the third dawn after the pass. Once a save. (The desk's why: by then he has walked on 2-3 hexes and the party has moved too, so the payout
      points at a day of road, not a hex.)
-   THE PASS (BE.tick, BE.see): the party's point (js/world.js W.partyPt -- its hex's middle, THE WORLD's or the Silverton area's) within BE.MILES straight miles of his point on his
-   hidden road that hour (W.vesselAt), from the dawn he sets out (day 2, as js/ripplesfight.js RF.here has it); held at the Warded Fort counts too (the end of his road).
-   The seat's reading of "within 5 miles", his to overrule: MILES, not hexes -- on THE WORLD's 5-mile hexes that is his own hex and the near half of a neighbour's, with the
-   meeting's own reach (RF.NEAR, 2.9) inside it. The clock is followed between looks: from where the party was looked at last to where it is now, its point carried straight,
+   THE PASS (BE.tick, BE.see): the party's hex on THE WORLD (the world hex its point lies in -- js/world.js W.partyPt, W.worldHexOf; its spot's on the Silverton area) a
+   NEIGHBOUR of the hex his hidden road has him in that hour (W.vesselAt), never his own hex, from the dawn he sets out (day 2, as js/ripplesfight.js RF.here has it); held
+   at the Warded Fort counts too (the end of his road). RULED 11-15 night, Griz (by the lanes desk), on the seat's first reading -- straight miles, which took his own hex in:
+   "game ends if same hex, i thought 5 miles to mean adjacent hex without running into him". A moment in his own hex is not a pass (nor does it shut the egg). The clock is followed between looks: from where the party was looked at last to where it is now, its point carried straight,
    his point by the hour, every BE.STEP of an hour -- so a step, a camp, a floor's hours and a day lost are all read, wherever the look comes from. Kept QUIETLY in the save
    (S.stars, beside THE WORLD's clock and hex, which the house saves): the hour of the closest approach (a tie goes to the later hour, so a party that stays beside him is
    still passing), its day and hour, the miles. Nothing is drawn, said or sounded.
@@ -28,7 +28,9 @@
   var BE = D.blackEgg = {};
   var ME = (D.magic && D.magic.EGGS && D.magic.EGGS.stars) || {};
   BE.FLAG = ME.flag || 'eggStars'; BE.LINE = ME.line || 'Something Went By'; BE.HUE = ME.hue || 'black'; // (js/grimoire.js M.EGGS.stars)
-  BE.MILES = 5;      // (his "within 5 miles": straight miles, point to point -- the seat's reading)
+  BE.RING = 1;       // (RULED 11-15 night: "5 miles" is the adjacent hex -- a neighbour of his hex on THE WORLD, never his own: "game ends if same hex")
+  BE.hexD = function (a, b) { var dq = a[0] - b[0], dr = a[1] - b[1]; return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2; }; // (THE WORLD's hexes, axial: js/world.js DIRS)
+  BE.NB = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
   BE.STEP = 0.25;    // (hours between looks when the clock is followed)
   BE.DELAY = 24;     // (RULED 11-15: the first sleep that begins at least 24 hours after the closest pass)
   BE.DAWN = 6; BE.DAWNS = 3; // (RULED 11-15: else the third dawn after the pass -- 06:00, the hour the makings feed)
@@ -49,7 +51,8 @@
   // ------------------------------------------------------------------ the pass, quietly
   BE.see = function (st, t, p) {
     var v = W.vesselAt(t); if (!v) return;
-    var d = Math.hypot(p[0] - v.pt[0], p[1] - v.pt[1]); if (d > BE.MILES) return;
+    if (BE.hexD(W.worldHexOf(p[0], p[1]), v.hex) !== BE.RING) return; // (a neighbour of his hex; his own is not a pass)
+    var d = Math.hypot(p[0] - v.pt[0], p[1] - v.pt[1]); // (the miles: which moment of the pass was the closest)
     var ps = st.pass, at = { t: t, d: Math.round(d * 100) / 100, day: Math.floor(t / 24) + 1, hour: Math.round((t % 24) * 100) / 100 };
     if (!ps || d < ps.d - BE.TIE) st.pass = at; // (the closest so far)
     else if (d <= ps.d + BE.TIE) { at.d = Math.min(ps.d, at.d); st.pass = at; } // (as close: the later hour)
@@ -189,18 +192,17 @@
   H.begin = function () { BE.open = null; return begin0.apply(this, arguments); }; // (a game begun or loaded: no sleep is open)
 
   // ------------------------------------------------------------------ the show: deep16/?starsshow -- the four at 3rd, the hours pinned, no road fights
-  BE.SHOW = { t: 6 * 24 + 15, miles: 4 }; // (day 7 at 15:00: he is crossing the mile, the fork to Silverton, by the 11-05 table)
+  BE.SHOW = { t: 6 * 24 + 15 }; // (day 7 at 15:00: he is crossing the mile, the fork to Silverton, by the 11-05 table)
   BE.BEATS = [
-    { id: 'pass', label: 'THE PASS: within five miles of him on his road -- and nothing shows (his hands)', note: 'Day 7 at 15:00, the four at 3rd on THE WORLD about four miles from where his hidden road has him, walking. No road fights (so he is never met). Walk where you like: nothing is drawn, said or sounded. The pass is in the save, quietly.', pass: true },
+    { id: 'pass', label: 'THE PASS: in the hex beside his on his road -- and nothing shows (his hands)', note: 'Day 7 at 15:00, the four at 3rd on THE WORLD in a hex beside the one his hidden road has him in, walking. No road fights (so he is never met). Walk where you like: nothing is drawn, said or sounded. The pass is in the save, quietly.', pass: true },
     { id: 'night', label: 'THE NIGHT IT PAYS: the first sleep 24 hours after the pass (the engine camps)', note: 'The pass recorded at 15:00 on day 7; day 8 at 21:00, the party camped far off on the inn\'s road. The night\'s three watches, no fight; then the dark: the stars go out for a breath, the two lines, the black egg. Then the morning.', night: true },
     { id: 'dawn', label: 'THE THIRD DAWN: no sleep since the pass -- the beat on THE WORLD at first light', note: 'The pass recorded at 15:00 on day 7 and the party never slept: day 10, just past 06:00, the third dawn after it, the party on the inn\'s road. The beat at once, on THE WORLD.', dawn: true }
   ];
-  BE.side = function (vpt, mi) { // (a walkable hex of THE WORLD whose middle is about `mi` miles from his point -- never his own hex)
-    var k0 = W.mapKey; W.use('world'); var Mw = W.M(), best = null, bd = 1e9, own = W.hexOf(vpt[0], vpt[1]).join();
-    Object.keys(Mw.hex).forEach(function (k) { var e = Mw.hex[k], c = W.hc(e.q, e.r), d = Math.hypot(c[0] - vpt[0], c[1] - vpt[1]); if (d > BE.MILES - 0.3 || d < RFNEAR() + 0.4 || [e.q, e.r].join() === own || !W.walkable(e) || (W.MOUNTAIN && W.MOUNTAIN[e.t])) return; if (Math.abs(d - mi) < bd) { bd = Math.abs(d - mi); best = c; } });
+  BE.side = function (vpt) { // (the middle of a walkable hex of THE WORLD beside his -- the one nearest his point; never his own hex)
+    var k0 = W.mapKey; W.use('world'); var Mw = W.M(), vh = W.worldHexOf(vpt[0], vpt[1]), best = null, bd = 1e9;
+    BE.NB.forEach(function (o) { var q = vh[0] + o[0], r = vh[1] + o[1], e = Mw.hex[W.K(q, r)]; if (!e || !W.walkable(e) || (W.MOUNTAIN && W.MOUNTAIN[e.t])) return; var c = W.hc(q, r), d = Math.hypot(c[0] - vpt[0], c[1] - vpt[1]); if (d < bd) { bd = d; best = c; } });
     W.use(k0); return best;
   };
-  function RFNEAR() { return D.ripples && D.ripples.NEAR || 2.9; }
   BE.away = function () { var Mw = W.Mworld(), inn = Mw.sites.filter(function (s) { return s.id === 'inn'; })[0]; return inn ? [inn.x, inn.y - 4] : W.hc(16, 13); }; // (the inn's road, north of it: far from his road all the game)
   BE.stage = function (pt, t) { var S = W.state(); S.t = t; S.today = 0; S.todayHex = 0; S.pos = pt.slice(); S.from = null; if (W.place(pt) && W.scene) W.scene.onMap(); var sc = W.scene; if (sc && sc.lookAt) { var lk = sc.lookAt(pt[0], pt[1]); sc.cam.cx = lk[0]; sc.cam.cy = lk[1]; } W.save(); return S; };
   BE.play = function (bt) {
@@ -209,11 +211,11 @@
     H.begin(rec, 0, '?world&noenc&nowagon');
     var tp = BE.SHOW.t, v = W.vesselAt(tp), S;
     if (bt.pass) {
-      var pt = BE.side(v.pt, BE.SHOW.miles) || v.pt; S = BE.stage(pt, tp); S.stars = {};
-      var pp = W.partyPt(); W.scene.say('THE PASS (a show): day 7, 15:00 -- he is ' + Math.hypot(pp[0] - v.pt[0], pp[1] - v.pt[1]).toFixed(1) + ' mi off on his road; nothing will show. Walk as you like.');
+      var pt = BE.side(v.pt) || v.pt; S = BE.stage(pt, tp); S.stars = {};
+      var pp = W.partyPt(); W.scene.say('THE PASS (a show): day 7, 15:00 -- he is in the next hex, ' + Math.hypot(pp[0] - v.pt[0], pp[1] - v.pt[1]).toFixed(1) + ' mi off on his road; nothing will show. Walk as you like.');
       return;
     }
-    var pass = { t: tp, d: BE.SHOW.miles, day: 7, hour: 15 };
+    var pass = { t: tp, d: 4, day: 7, hour: 15 };
     if (bt.night) {
       S = BE.stage(BE.away(), tp + 30); var pn = W.partyPt(); S.stars = { pass: pass, last: [S.t, pn[0], pn[1]] };
       var e = W.M().hex[W.K(S.at[0], S.at[1])]; S.zone = W.zoneOf(e); S.count = 1e9; // (the watches bring no fight)

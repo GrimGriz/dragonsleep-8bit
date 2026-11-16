@@ -1099,9 +1099,9 @@
   // change selected save"): the first game's six, in its order and hues (first/js/events.js EV.EGGS), each by the flag its egg leaves in a save -- three each side of the box, for the save
   // the cursor is on. Found: its colour, bobbing, a glint going round the found. Not found, or not built yet: a shadow
   H.EGGS = [{ id: 'joke', flag: 'eggJoke', hue: 'red' }, { id: 'darkness', flag: 'eggDarkness', hue: 'violet' }, { id: 'dunk', flag: 'eggDunk', hue: 'blue' },
-    { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' }, { id: 'sixth', flag: null, hue: null },
-    { id: 'bucket', flag: 'eggBucket', hue: 'yellow' }, // (THE BUCKET LIST, 11-13: an entry of its own, NOT the sixth slot -- whether it is the sixth egg or a seventh is Griz's to say; drawn under the box, and only once found: H.drawEggs)
-    { id: 'stars', flag: 'eggStars', hue: 'black' }]; // (SOMETHING WENT BY, 11-15, the black egg: deep16/js/blackegg.js. The clock lane's candidate for its third egg, never named the third by him -- so an entry of its own like the Bucket List's, under the box once found; the sixth slot is his to give it)
+    { id: 'counted', flag: 'eggOrange', hue: 'orange' }, { id: 'witness', flag: 'eggWitness', hue: 'green' },
+    { id: 'stars', flag: 'eggStars', hue: 'black' }, // (THE SIXTH SLOT: SOMETHING WENT BY, the black egg, deep16/js/blackegg.js -- the clock lane's third egg. RULED 11-15 night, Griz, by the lanes desk, on the black-egg seat's lean: "give it the sixth slot on his word, since it's the clock lane's own third egg. That's a one-line change." It stood under the box as an entry of its own from 9e314c6b till then)
+    { id: 'bucket', flag: 'eggBucket', hue: 'yellow' }]; // (THE BUCKET LIST, 11-13: an entry of its own, NOT the sixth slot -- whether it is the sixth egg or a seventh is Griz's to say; drawn under the box, and only once found: H.drawEggs)
   H.eggsOf = function (rec) { var fl = (rec && rec.flags) || {}; return H.EGGS.map(function (e) { return e.flag && fl[e.flag] ? e.hue : null; }); };
   var EGG_ART = ['...ooo...', '..ollbo..', '.olhlbbo.', '.olhbbbo.', 'olbbbbbdo', 'olbbbbbdo', 'obbbbbddo', 'obbbbbddo', '.obbbddo.', '..odddo..', '...ooo...'];
   var EGG_HUES = { // (the NES palette's own steps, the first game's: outline, shade, body, light, shine)
