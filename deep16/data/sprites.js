@@ -5206,7 +5206,7 @@
 "source": "drawn by the art desk (ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_drinker_p1": {
-"image": "art/folkman_drinker_p1.png?v=af35534912",
+"image": "art/folkman_drinker_p1.png?v=7ccff93a31",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -5232,7 +5232,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_gambler_p1": {
 "image": "art/folkman_gambler_p1.png?v=4cda7405ba",
@@ -5525,7 +5525,7 @@
 "source": "drawn by the art desk (ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_drinker_p1": {
-"image": "art/folkwoman_drinker_p1.png?v=6300b5c4d2",
+"image": "art/folkwoman_drinker_p1.png?v=d4e1b125cc",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -5551,7 +5551,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-73 DRINKER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_gambler_p1": {
 "image": "art/folkwoman_gambler_p1.png?v=0758e68a8b",
