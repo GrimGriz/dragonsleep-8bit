@@ -5119,12 +5119,12 @@
 "source": "drawn by the art desk (ART-141-DWARF-TOWN, 11-12: art-wanted section 54, the generic dwarf's town figure in five views), cut by tools/folkdwarf-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "folkman_barkeep_p1": {
-"image": "art/folkman_barkeep_p1.png?v=50de44ff29",
+"image": "art/folkman_barkeep_p1.png?v=b8a022f782",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 50,
+"top": 51,
 "anims": {
 "idle": {
 "y": 0,
@@ -5145,7 +5145,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_clerk_p1": {
 "image": "art/folkman_clerk_p1.png?v=1c79fc024b",
@@ -5235,7 +5235,7 @@
 "source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_gambler_p1": {
-"image": "art/folkman_gambler_p1.png?v=4cda7405ba",
+"image": "art/folkman_gambler_p1.png?v=ff3610ef67",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -5261,7 +5261,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-74 GAMBLER ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_guard_p1": {
 "image": "art/folkman_guard_p1.png?v=8b0a29163e",
@@ -5438,12 +5438,12 @@
 "source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_barkeep_p1": {
-"image": "art/folkwoman_barkeep_p1.png?v=ff9045aa77",
+"image": "art/folkwoman_barkeep_p1.png?v=216c1c40d9",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 47,
+"top": 48,
 "anims": {
 "idle": {
 "y": 0,
@@ -5464,7 +5464,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_clerk_p1": {
 "image": "art/folkwoman_clerk_p1.png?v=91d3204397",
@@ -5554,12 +5554,12 @@
 "source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_gambler_p1": {
-"image": "art/folkwoman_gambler_p1.png?v=0758e68a8b",
+"image": "art/folkwoman_gambler_p1.png?v=b7b2ec6500",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 47,
+"top": 49,
 "anims": {
 "idle": {
 "y": 0,
@@ -5580,7 +5580,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-74 GAMBLER ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_guard_p1": {
 "image": "art/folkwoman_guard_p1.png?v=05f6adaae4",

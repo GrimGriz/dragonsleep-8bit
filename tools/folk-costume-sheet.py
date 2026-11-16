@@ -63,10 +63,15 @@ PIECES = {
     # (the drinker's first, code-drawn pages -- folder 2026-11-15-ART-WANTED-73-DRINKER, native 4x, navy (17, 24, 45) -- replaced by the redraw)
     'drinker': dict(folder='2026-11-15-ART-WANTED-73-DRINKER-REDRAW', name='ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green',
                     lime=True, stand=False),
-    'gambler': dict(folder='2026-11-15-ART-WANTED-74-GAMBLER', name='ART-WANTED-74 GAMBLER, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                    navy=(17, 24, 45), stand=False),
-    'barkeep': dict(folder='2026-11-15-ART-WANTED-75-BARKEEP', name='ART-WANTED-75 BARKEEP, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                    navy=(17, 24, 45), stand=False),
+    # (the gambler's and the barkeep's first, code-drawn pages -- 2026-11-15-ART-WANTED-74-GAMBLER and -75-BARKEEP, native 4x, navy (17, 24, 45) --
+    # replaced by their redraws, 11-16: image-generated on the navy, each with the art desk's own native cut on the 64 (02-native-rows, 1x), taken as
+    # drawn but for the red and fire on their faces, `unred` -- the gambler man's crimson waistcoat and the woman's dress trim and choker kept below
+    # the face (12 rows); the barkeep man's to his open collar (17 rows: the source draws skin at the throat, the 1x red), the red-striped rag on his
+    # shoulder kept below; the barkeep woman wears no red cloth (her rag is slate-blue), so everywhere, as the shaft hand)
+    'gambler': dict(folder='2026-11-16-ART-WANTED-74-GAMBLER-REDRAW', name='ART-WANTED-74 GAMBLER ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                    navy=None, stand=False, unred={'folkman_gambler_p1': 12, 'folkwoman_gambler_p1': 12}),
+    'barkeep': dict(folder='2026-11-16-ART-WANTED-75-BARKEEP-REDRAW', name='ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                    navy=None, stand=False, unred={'folkman_barkeep_p1': 17, 'folkwoman_barkeep_p1': 0}),
     'hired': dict(folder='2026-11-15-ART-WANTED-76-HIRED-HAND', name='ART-WANTED-76 HIRED-HAND, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                   navy=(17, 24, 45), stand=False),
     'guard': dict(folder='2026-11-15-ART-WANTED-77-GUARD', name='ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
@@ -98,6 +103,10 @@ def frames_of(d):
     """the piece's frame map, whichever shape the art desk sent -> [(sheet, view, row, index, page, (x, y, w, h))]"""
     if os.path.exists(os.path.join(d, 'FRAME-MAP.json')):
         fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+        if 'sheets' in fm and 'source_png' in fm['sheets'][0]:   # (the gambler's and barkeep's redraws, 11-16: `sheets` map each row to its
+            # illustrated source; the art desk's own native cut of that row is 02-native-rows/<the source's name>-1X.png, a transparent strip of cells)
+            return [(s['target'], s['facing'], s['action'], f['frame_index'], '02-native-rows/' + os.path.basename(s['source_png'])[:-4] + '-1X.png',
+                     (f['frame_index'] * 72, 0, 72, 64)) for s in fm['sheets'] for f in s['frames']]
         if 'sheets' in fm:                      # (the light crew's: `sheets`, each frame's `index` and `cell_source_xywh`)
             return [(s['runtime_target'], s['facing'], s['action'], f['index'], s['file'], tuple(f['cell_source_xywh'])) for s in fm['sheets'] for f in s['frames']]
         if 'registered_row' in fm['pages'][0]:  # (the scraper's redraw: each row a transparent strip of cells, the art desk's own native cut)
