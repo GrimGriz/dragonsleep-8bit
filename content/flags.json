@@ -319,6 +319,7 @@
     "wintersAsked": "set: js/events.js, deep16/js/counter.js C.winters (Elsbeth's errand said); read: js/events.js, deep16/js/counter.js C.winters",
     "wintersLooked": "set: deep16/js/counter.js C.winters (his not-ready look said at the lead's level, once a level below the 3rd -- 11-05, the Winters seat); read: deep16/js/counter.js C.winters",
     "wintersMet": "set: js/events.js, js/scenes.js; read: content/quests.json, js/events.js",
+    "gogglesFound": "set: deep16/js/mines.js M.victim (the Goggles of Night taken off the cloaker's victim in the deep gallery, 11-16); read: M.victim",
     "nedWand": "set: deep16/js/counter.js C.nedWand (Ned asked about the ettercap's braid and offered the Wand of Web for it, 11-16); read: C.nedWandDue, the JOURNAL's Ned's Wand",
     "nedBraid": "set: deep16/js/counter.js C.nedWand (THE WORLD's hour the braid was handed in); read: C.wandReady (ready from 06:00 the next day), the JOURNAL",
     "nedWandGot": "set: deep16/js/counter.js C.nedWand (the Wand of Web given); read: the JOURNAL's Ned's Wand done",

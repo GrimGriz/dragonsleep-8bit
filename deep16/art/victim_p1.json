@@ -1,0 +1,19 @@
+{
+ "image": "art/victim_p1.png",
+ "fw": 96,
+ "fh": 96,
+ "ax": 48,
+ "ay": 84,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 96,
+   "ax": 48,
+   "ay": 84,
+   "frames": 1,
+   "fps": 6
+  }
+ }
+}

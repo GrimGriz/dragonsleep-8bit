@@ -174,6 +174,7 @@
     });
     // ONE DACE (RULED 10-28, Griz: "all 5 leans"): the first game's second Dace at the dens' shaft head, who only talked (his 10-19 "There's a Dace at the entrance to the deep pit
     // not interested in coming with you"), is not stood -- his words are Dace's own as the party passes the mark with him (M.daceShaft)
+    if (key === 'galleries_g4') trig.push({ id: 'victim', rect: M.VICTIM.at.concat([1, 1]), on: 'use', script: 'victim', town: 'mine' }); // (the cloaker's victim, E beside it: M.victim, 11-16 -- the floor's own, the first game's map frozen)
     if (key === 'galleries_g3') trig.push({ id: 'daceShaft', rect: M.SHAFT.slice(), on: 'step', script: 'daceShaft', cond: 'flag:daceWith & !flag:daceShaft', town: 'mine', walkOn: true });
     // the people where the first game stands them, by its conditions on the floor's flags
     var people = [];
@@ -585,6 +586,7 @@
   };
   // the floor's own squares (the first game's triggers): the pens' shifts, Skarn's gate, the dens' pits, their bad air, the rescue
   M.trigger = function* (B, trig, at) {
+    if (trig.script === 'victim') { yield* M.victim(B, trig, at); return; } // (the cloaker's victim and the Goggles of Night, 11-16: M.victim)
     if (trig.script === 'pen') { yield* M.penShift(B, trig.arg); return; }
     if (trig.script === 'skarnGate') { yield* M.skarnGate(B); return; }
     if (trig.script === 'pit') { yield* M.pit(B); return; }
@@ -767,6 +769,38 @@
   M.PIT_TITLE = 'THE FLOOR GIVES WAY';
   // a guest the party swore to bring back, down in a fight just ended (js/battle.js's `vital`: the fight ends 'lost' on it)
   M.vitalDown = function (b) { return !!(b && (b.units || []).some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })); };
+  // THE CLOAKER'S VICTIM AND THE GOGGLES OF NIGHT (RULED 2026-11-16, Griz to the lanes desk: "Goggle on cloaker victim is good, need interactable skeleton tile and text"): on one
+  // of the deep gallery's bones squares (the first game's 'b', 17,20 -- its 25,17 holds the first game's chest), a heap of bones in a torn cloak -- the skeleton's own CC0 model (KayKit Skeletons, the Skeleton figure's
+  // pack) in its lying pose, rendered by the house's pipeline (tools/deep16-figures.json `victim`: render-sprites.py, pixelate.py -> deep16/art/victim_p1) -- and E beside it (a `use`
+  // trigger the floor lays, `victim`, M.floor): its words, TAKE THE GOGGLES, the Goggles of Night into the pack (gogglesFound). The cavern's whole floor wakes
+  // the cloaker first, so it is had after the fight, or on a way back. Words the seat's drafts, invented.json cloaker-victim-1116
+  M.VICTIM = { at: [17, 20], facing: 6, sheet: 'victim_p1' };
+  if (D.roam.USE_NAME) D.roam.USE_NAME.victim = 'the bones'; // (the foot line's "E: the bones" -- js/roam.js R.USE_NAME, not the trigger's id)
+  M.VICTIM_LINES = {
+    see: ['Someone lies here who came down without a light, or lost it: a heap of bones in a torn cloak, picked clean.', 'A strap still rings the skull: a pair of goggles, dark glass in brass rims, pushed up off the eyes.'],
+    took: ['You work the strap free of the skull. The glass is dark to look at and clear to look through.'],
+    worn: '{g}Wear them in EYES (M, then EQUIP): darkvision 60 ft, or 60 ft more for one who has it.{/}',
+    left: ['The bones in their torn cloak. Whoever they were, the dark had them first.'] };
+  M.victim = function* (B, trig, at) {
+    var R = D.roam, R0 = B.roam, f = R0.flags, t = R0.token, VL = M.VICTIM_LINES;
+    t.facing = D.spr.facingFor(M.VICTIM.at[0] - t.x, M.VICTIM.at[1] - t.y); t.anim = 'idle'; t.animT = B.t; R0.path = null;
+    if (f.gogglesFound) { B.card(R.wrap(VL.left), 300); yield 20; return; }
+    var a = yield { prompt: { who: t, title: 'THE BONES', lines: R.wrap(VL.see), opts: [{ label: 'TAKE THE GOGGLES', value: 0 }, { label: 'LEAVE THEM', value: 1, no: true }] } };
+    if (a !== 0) return;
+    f.gogglesFound = 1; R.give(B, 'gogglesnight', 1, 'the bones'); D.sfx('chest');
+    B.card(R.wrap(VL.took.concat([L('g.got', { item: DS.DATA.items.gogglesnight.name }), VL.worn])), 420); yield 40;
+  };
+  // the heap drawn on its square (a prop by js/walls.js W.props, as the flooded stair's floating one is: js/roam.js R.floatProp)
+  M.victimProp = function (B) {
+    var V = M.VICTIM, gz = B.map.gz(V.at[0], V.at[1]);
+    return { victim: true, depth: V.at[0] + V.at[1] + 0.1, gz: gz, draw: function (ctx) { var c = D.iso.center(V.at[0], V.at[1], gz), s = D.iso.toScreen(c.x, c.y); D.spr.draw(ctx, V.sheet, 'idle', V.facing, 0, Math.round(s.x), Math.round(s.y), {}); } };
+  };
+  var propsV = D.walls && D.walls.props;
+  if (propsV) D.walls.props = function (B) {
+    var out = propsV.apply(this, arguments), R = D.roam;
+    if (B && B.roam && B.map && R && R.def && R.def.key === 'galleries_g4') out.push(M.victimProp(B));
+    return out;
+  };
   // THE CLOAKER (the first game's S.cloaker; RULED 10-28, Griz: "all 5 leans" -- the story's own cloaker, its grip and its egg, as ruled 10-06: "Story Cloaker is riding as is for
   // the time being, it's an easter egg one"; on the grid whatever OPTIONS' RANDOM FIGHTS says; on a field cut from the deep gallery round the party, as the floors' fights are
   // since his "the grid in the fights should pull from the roam itself"; a getaway up the ladder to the dens, the first game's "The way out is UP"). The grid's story fight's

@@ -20523,7 +20523,24 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       finally { CIS.talk = talk0IS; D.house.playing = play0IS; }
       okIS('W3 an older save past the ettercap: ' + dueO + ', the braid in the pack ' + CIS.count(stO, 'cord') + '; into Percy\'s (offer due), into Marko\'s, into Percy\'s offered and no braid, into Percy\'s after this visit\'s word: Ned speaks ' + JSON.stringify(talked),
         dueO === 'braid' && CIS.count(stO, 'cord') === 1 && stO.flags.cordTaken === 1 && talked.join() === 'ned');
-      // (more: the goggles)
+      // G1 the deep gallery: the cloaker's victim on the bones square 17,20 -- its `use` trigger laid by the floor's setup, had by E from beside it, its heap drawn (deep16/art/victim_p1, eight facings)
+      var memG = {}, stG0 = D.store.get, stS0 = D.store.set, musG = D.music; D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; }; D.music = function () { };
+      try {
+        var RG = D.roam, BG = RG.make('?roam=galleries_g4&at=16,20&flags=cloakerKilled&lvl=3'); D.scenes.length = 0; D.push(BG); var sG = D.top(); if (sG && sG.baking) { sG.baking = false; sG.enter(); }
+        var kG = 0; while (kG++ < 2) BG.co.next();
+        var tkG = BG.roam.token; tkG.x = 16; tkG.y = 20; BG.roam.fw = [1, 0];
+        var trG = RG.triggerAt(BG, 17, 20, 'use'), unG = RG.useNear(BG), prG = D.walls.props(BG).filter(function (p) { return p.victim; }), shG = D.SHEETS && D.SHEETS.victim_p1;
+        okIS('G1 the deep gallery (' + (RG.def && RG.def.key) + '): the trigger at 17,20 ' + JSON.stringify(trG) + '; E from 16,20 facing it: ' + (unG && unG.trig.id) + '; the heap drawn ' + prG.length + ' (the sheet ' + (shG ? shG.image + ', idle ' + shG.anims.idle.frames + ' frame' : 'NONE') + ')',
+          RG.def && RG.def.key === 'galleries_g4' && RG.USE_NAME.victim === 'the bones' && !!trG && trG.script === 'victim' && !!unG && unG.trig.id === 'victim' && prG.length === 1 && !!shG && !!shG.anims.idle);
+        // G2 E on it: THE BONES, TAKE THE GOGGLES -- the Goggles of Night into the pack, once; again, the bones alone
+        var lgG0 = (BG.log || []).length, promptG = null, gG = RG.fire(BG, unG.trig, unG.sq), vG, stp, kk = 0;
+        while (kk++ < 400) { stp = gG.next(vG); vG = undefined; if (stp.done) break; if (stp.value && stp.value.prompt) { promptG = stp.value.prompt; vG = 0; } }
+        var invG1 = (BG.inv || []).filter(function (s) { return s.id === 'gogglesnight'; }).map(function (s) { return s.n; }).join(), lgG1 = (BG.log || []).slice(lgG0).join(' | ');
+        var lgG2s = (BG.log || []).length; runIS(RG.fire(BG, unG.trig, unG.sq)); var lgG2 = (BG.log || []).slice(lgG2s).join(' | '), invG2 = (BG.inv || []).filter(function (s) { return s.id === 'gogglesnight'; }).map(function (s) { return s.n; }).join();
+        okIS('G2 E on the bones: ' + (promptG ? promptG.title + ' "' + [].concat(promptG.lines).join(' ').replace(/\{[a-z]\}|\{\/\}/g, '') + '" [' + promptG.opts.map(function (o) { return o.label; }).join(' | ') + ']' : 'no prompt') + ' > TAKE: "' + lgG1.slice(0, 300) + '" -- goggles ' + invG1 + ', gogglesFound ' + BG.roam.flags.gogglesFound + '; again: "' + lgG2.slice(0, 200) + '" -- goggles ' + invG2,
+          !!promptG && promptG.title === 'THE BONES' && /heap of bones in a torn cloak/.test([].concat(promptG.lines).join(' ')) && /goggles/.test([].concat(promptG.lines).join(' ')) && promptG.opts[0].label === 'TAKE THE GOGGLES' &&
+          invG1 === '1' && BG.roam.flags.gogglesFound === 1 && /Goggles of Night/.test(lgG1) && /Wear them in EYES/.test(lgG1) && invG2 === '1' && /the dark had them first/.test(lgG2));
+      } finally { D.store.get = stG0; D.store.set = stS0; D.music = musG; }
     } catch (eIS) { repIS.errors.push(String(eIS && eIS.stack || eIS).slice(0, 900)); }
     D.d = dIS;
     var preIS = document.createElement('pre'); preIS.id = 'out'; preIS.textContent = 'BENCH16 ' + JSON.stringify(repIS);

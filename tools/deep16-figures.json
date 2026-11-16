@@ -2,6 +2,7 @@
   "_note": "DEEP16 pipeline 1: which CC0 model each figure is, which parts show, which atlas cells are recoloured (cell = [column, row] of the KayKit gradient atlas, 128x256 px each; colours follow the 8-bit game's looks in js/sprites.js), which actions are idle and walk. yaw: extra turn (degrees) if a model's forward is not -Y.",
   "human_px": 56,
   "figures": {
+    "victim": {"_note": "the cloaker's victim in the deep gallery (11-16, the items-story seat: the Goggles of Night on it, Griz's \"Goggle on cloaker victim is good, need interactable skeleton tile and text\") -- KayKit Skeletons pack (CC0, _src/kaykit-skeletons), the skeleton's own model, Skeleton_Minion with no glowing eyes, its lying pose Skeletons_Inactive_Floor_Pose as the one row: one frame, eight facings", "file": "kaykit-skeletons/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Minion.glb", "show": ["Skeleton_Minion_ArmLeft", "Skeleton_Minion_ArmRight", "Skeleton_Minion_Body", "Skeleton_Minion_Cloak", "Skeleton_Minion_Head", "Skeleton_Minion_Jaw", "Skeleton_Minion_LegLeft", "Skeleton_Minion_LegRight"], "anims": {"idle": "Skeletons_Inactive_Floor_Pose"}},
     "barley": {
       "file": "kaykit/Barbarian.glb",
       "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight"],

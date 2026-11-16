@@ -32072,6 +32072,25 @@ true
 }
 }
 },
+"victim_p1": {
+"image": "art/victim_p1.png?v=428debf2dc",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 1,
+"fps": 6
+}
+}
+},
 "vilar_p1": {
 "image": "art/vilar_p1.png?v=1627bb649a",
 "fw": 35,
