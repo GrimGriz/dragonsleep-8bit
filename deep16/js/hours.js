@@ -168,11 +168,15 @@
   // which H16.wayTo refuses: Ottilie's word at the warp is js/mines.js M.warp's), a slide only once flags.slideFound (M.warp sets it); the warp of the next floor nearest the party
   H16.mineWay = function (B, map) {
     var R = D.roam, def = R.def, here = def.src8 && def.src8.id, MP = (DS.DATA && DS.DATA.maps) || {}, f = (B.roam && B.roam.flags) || {}, t = B.roam.token, prev = {}, q = [here], ok = function (w) { return !w.slide || f.slideFound; };
+    // (11-15, the lanes desk, on Griz's "tell lanes desk to do the mines line g3/g4 bounce check": an exit off THIS floor is one the grid's floor really has -- its own
+    // def.warps, where it has any. The deep gallery's grid floor has the one ladder (9,1) to the dens; the first game's second way up, (3,2) to the working gallery, is
+    // rock here, and the arrow pointed into it from every square, so a walk following it went back down the ladder and up again)
+    var real = def.warps && def.warps.length ? def.warps : null, has = function (w) { if (!real) return true; var sq = def.from8 ? def.from8(w.x, w.y) : [w.x, w.y]; return real.some(function (r) { return r.to === w.to && r.at && r.at[0] === sq[0] && r.at[1] === sq[1]; }); };
     prev[here] = null;
-    for (var i = 0; i < q.length && !(map in prev); i++) ((MP[q[i]] || {}).warps || []).forEach(function (w) { if (ok(w) && MP[w.to] && !(w.to in prev)) { prev[w.to] = q[i]; q.push(w.to); } });
+    for (var i = 0; i < q.length && !(map in prev); i++) ((MP[q[i]] || {}).warps || []).forEach(function (w) { if (ok(w) && MP[w.to] && !(w.to in prev) && (q[i] !== here || has(w))) { prev[w.to] = q[i]; q.push(w.to); } });
     if (!(map in prev)) return null;
     var nx = map; while (prev[nx] !== here) nx = prev[nx];
-    var best = null; ((MP[here] || {}).warps || []).forEach(function (w) { if (w.to !== nx || !ok(w)) return; var sq = def.from8 ? def.from8(w.x, w.y) : [w.x, w.y], d = Math.abs(sq[0] - t.x) + Math.abs(sq[1] - t.y); if (!best || d < best.d) best = { d: d, sq: sq }; });
+    var best = null; ((MP[here] || {}).warps || []).forEach(function (w) { if (w.to !== nx || !ok(w) || !has(w)) return; var sq = def.from8 ? def.from8(w.x, w.y) : [w.x, w.y], d = Math.abs(sq[0] - t.x) + Math.abs(sq[1] - t.y); if (!best || d < best.d) best = { d: d, sq: sq }; });
     return best ? best.sq : null;
   };
   H16.wayTo = function (B, map) {
