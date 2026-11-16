@@ -1530,8 +1530,11 @@
   // a hang is on a mark every 5 ft (two steps) above the foot's ground, never a half step; each step along the rope is still 5 ft of movement (each foot climbed costs one more: 10 a mark).
   // Battle.ropeSteps: the steps a climber at height z0 goes toward the top (up) or the foot with `move` ft -- the whole way if the move pays it (unless `part`: part way only), else to the
   // farthest mark it reaches, an odd 5 ft of movement left unspent; 0 none. Battle.ropeMark: the mark nearest a height, the ends included (exec 'ropeclimb' with z; ui.js ropeRung's rungs)
+  // (a knotted Rope of Climbing, 11-16: 2.5 ft of movement a step, half -- Battle.ropeFt; a whole climb's cost rounded up to the 5, Battle.ropeCost)
+  Battle.ropeFt = function (r) { return r && r.knot ? 2.5 : 5; };
+  Battle.ropeCost = function (r, steps) { return Math.ceil(steps * Battle.ropeFt(r) / 5) * 5; };
   Battle.ropeSteps = function (r, z0, up, move, part) {
-    var st = G.map.def.step, zf = G.map.gz(r.foot[0], r.foot[1]), n = Math.round((G.map.gz(r.at[0], r.at[1]) - zf) / st), h = Math.round((z0 - zf) / st), a = Math.floor(Math.max(0, move || 0) / 5), m;
+    var st = G.map.def.step, zf = G.map.gz(r.foot[0], r.foot[1]), n = Math.round((G.map.gz(r.at[0], r.at[1]) - zf) / st), h = Math.round((z0 - zf) / st), a = Math.floor(Math.max(0, move || 0) / Battle.ropeFt(r)), m;
     if (up) { if (!part && h + a >= n) return Math.max(0, n - h); m = Math.floor(Math.min(h + a, n - 1) / 2) * 2; return m > h ? m - h : 0; }
     if (!part && h - a <= 0) return Math.max(0, h); m = Math.ceil(Math.max(h - a, 1) / 2) * 2; return m < h ? h - m : 0;
   };
@@ -1765,9 +1768,12 @@
           this.card(['{y}' + nameOf(u) + '{/} throws the grapple up ' + rq.ft + ' ft: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC ' + tdc + '  ' + (rt >= tdc ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
           yield 20; if (rt < tdc) { u.anim = 'idle'; return; }
         }
-        if (ownR) u.ownRope--; else rs0.n--; this.ropes.push(rcR ? { at: rq.at.slice(), foot: rq.foot.slice(), hp: rcR.hp, ac: rcR.ac, item: rid, by: u.id } : { at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
         var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;
-        if (rcR) this.card(['{y}' + nameOf(u) + '{/} speaks the word' + (rq.top ? ' and the rope fastens itself at the lip and lets itself down' : ': the far end of the silk climbs the face by itself and fastens at the lip') + ': ' + rFt + ' ft of it down the face.  {g}(the Rope of Climbing: no throw; AC 20, 20 hit points; climbed with no check){/}'], 300);
+        // THE KNOT (RULED 2026-11-16, Griz: "half the movement cost for characters climbing the self-knotting rope as our invention"): the Rope of Climbing knots itself as it is set on a face no taller than its
+        // knotted length (the SRD's 50 ft), and a climb on a knotted rope costs half -- a foot of movement a foot climbed, not two (Battle.ropeFt). Ours; invented.json rope-knot-1116
+        var knR = !!(rcR && rFt <= (rcR.knotFt || 50));
+        if (ownR) u.ownRope--; else rs0.n--; this.ropes.push(rcR ? { at: rq.at.slice(), foot: rq.foot.slice(), hp: rcR.hp, ac: rcR.ac, item: rid, by: u.id, knot: knR } : { at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
+        if (rcR) this.card(['{y}' + nameOf(u) + '{/} speaks the word' + (rq.top ? ' and the rope fastens itself at the lip and lets itself down' : ': the far end of the silk climbs the face by itself and fastens at the lip') + ': ' + rFt + ' ft of it down the face' + (knR ? ', and it knots itself as it hangs' : '') + '.  {g}(the Rope of Climbing: no throw; AC 20, 20 hit points; climbed with no check' + (knR ? '; knotted, a climb on it costs half' : '') + '){/}'], 300);
         else this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
         u.anim = 'idle'; yield 16; return;
       }
@@ -2343,12 +2349,12 @@
       var stopR = !!(rpS && o && o.spend && stopZr != null) && Math.round(Math.abs(stopZr - z0) / stZ) < Math.round(Math.abs(z1 - z0) / stZ);
       if (rpS && o && o.spend && (stopR || (o.partial && T.move < cost))) {
         var upR = z1 > z0, stpR = stopR ? Math.round(Math.abs(stopZr - z0) / stZ) : Battle.ropeSteps(rpS, z0, upR, T.move, true);
-        if (stopR && stopZr === capS && T.move < stpR * 5) stpR = Battle.ropeSteps(rpS, z0, upR, T.move, true); // (short of the cap by the move: as far as the move goes)
-        if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; } // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark; an odd 5 ft left unspent -- 10-05)
+        if (stopR && stopZr === capS && T.move < Battle.ropeCost(rpS, stpR)) stpR = Battle.ropeSteps(rpS, z0, upR, T.move, true); // (short of the cap by the move: as far as the move goes)
+        if (stpR < 1 || T.move < Battle.ropeCost(rpS, stpR)) { u.anim = 'idle'; return; } // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark; an odd 5 ft left unspent -- 10-05)
         var zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
         u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
-        if (o.spend) { T.move -= stpR * 5; T.moved = (T.moved || 0) + stpR * 5; }
+        if (o.spend) { var rcS = Battle.ropeCost(rpS, stpR); T.move -= rcS; T.moved = (T.moved || 0) + rcS; } // (half on a knotted Rope of Climbing, 11-16)
         this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.'], 260);
         this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle';
         if (this.readyArmed()) yield* this.readyHook(u, 'move'); // (part way up a rope is a move too -- 10-05)

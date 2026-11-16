@@ -475,6 +475,9 @@
         C.take(st, 'fivetokens', 1); f.fiveDone = 1;
         yield sc.say(L('w.edricFive')); st.silver(50); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 50 }));
         yield sc.say(L('w.edricPage')); C.give(st, 'sheet_grease', 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items.sheet_grease.name }));
+        // THE ROPE OF CLIMBING, the five's reward (RULED 2026-11-16, Griz: "Reward for the 5 in the Keeper's Stairs is good placement for the rope"): the crew's own rope off the board, in Edric's
+        // words (the seat's draft, js/hours.js w16.edricRope; invented.json five-rope-1116)
+        yield sc.say(L('w16.edricRope')); C.give(st, 'ropeclimbing', 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items.ropeclimbing.name }));
         yield sc.say(C.renown(st, 1, 'renown.five')); return;
       }
       if (f.fiveDone) { yield sc.say([].concat(L('w16.edricAfter'), !f.skarnPaid && !f.stockDead ? L('w16.edricOffice') : [])); return; }

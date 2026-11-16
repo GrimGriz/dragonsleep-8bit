@@ -20471,7 +20471,25 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okIS('R3 round 1, the fighter beside it and the ring\'s wearer four squares off: "' + turn1.slice(0, 300) + '"; the story fight\'s ring ' + JSON.stringify(Fch && Fch.ring) + ', the ladder\'s ' + JSON.stringify(Fld && Fld.ring),
         /turns on .*Wizard.*: it goes for the ring/i.test(turn1.replace(/\{[a-z]\}|\{\/\}/g, '')) && !/the ring binds it/.test(turn1) &&
         !!Fch && Fch.ring.con === 0 && Fch.ring.why === D.secondact.RING_WHY && !!Fld && Fld.ring.con === 3);
-      // (more: the rope, the wand, the goggles)
+      // P1 the Missing Five's reward: Edric takes the five's gear, pays, gives Pete's page -- and the crew's rope, the Rope of Climbing
+      var saidE = [], stE = { flags: { heardPete: 1, fiveRecovered: 1 }, inv: [{ id: 'fivetokens', n: 1 }], party: [], silver: function (d) { if (d) this.s = (this.s || 0) + d; return this.s || 0; } };
+      var scE = { st: stE, say: function (l) { saidE.push([].concat(l).join(' ')); return { lines: l }; }, ask: function (l, o) { saidE.push([].concat(l).join(' ')); return { prompt: { opts: o.map(function (x, i) { return { label: x, value: i }; }) } }; } };
+      runIS(D.mines.SCENES.edric(scE, null)); var wE = saidE.join(' / ');
+      okIS('P1 Edric with the five\'s gear: "' + wE.slice(0, 700) + '" -- the pack ' + JSON.stringify(stE.inv) + ', silver ' + stE.silver() + ', fiveDone ' + stE.flags.fiveDone,
+        /The crew's climbing rope/.test(wE) && /Received: Rope of Climbing/.test(wE) && D.counter.count(stE, 'ropeclimbing') === 1 && D.counter.count(stE, 'sheet_grease') === 1 && !D.counter.count(stE, 'fivetokens') && stE.flags.fiveDone === 1 && stE.silver() === 50);
+      // P2 THE KNOT: set on the Edifice's 45 ft face (its knotted 50 ft or less) it knots itself, and a climb on it costs half -- 45 ft of movement for the 45 ft, not 90; part way, 30 ft of move climbs 30 ft, not 15
+      var BK = D.npcFight('?npc=goblin&lvl=3&vs=rogue:3,fighter:3&map=edifice', {}); D.battle = BK; BK.enter(); var kK = 0; while (!BK.order.length && kK++ < 400) BK.co.next();
+      var ftK = BK.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rgK = BK.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0];
+      rgK.x = 18; rgK.y = 16; ftK.x = 20; ftK.y = 20; D.grid.setup(BK.map, BK.units); BK.inv = [{ id: 'ropeclimbing', n: 1 }]; D.rules.startTurn(rgK); BK.active = rgK;
+      var logK0 = (BK.log || []).length; runIS(BK.exec(rgK, { do: 'rope', x: 18, y: 15, item: 'ropeclimbing' })); var setK = (BK.log || []).slice(logK0).join(' | ');
+      var rK = (BK.ropes || []).filter(function (r) { return r.item === 'ropeclimbing' && !r.cut; })[0];
+      var costKn = rK ? (ftK.x = rK.foot[0], ftK.y = rK.foot[1], D.grid.setup(BK.map, BK.units), D.grid.stepCost(ftK, rK.foot[0], rK.foot[1], rK.at[0], rK.at[1])) : null;
+      var stepsKn = rK ? D.Battle.ropeSteps(rK, BK.map.gz(rK.foot[0], rK.foot[1]), true, 30, true) : null;
+      var rPl = rK ? { at: rK.at.slice(), foot: rK.foot.slice(), hp: 2 } : null, costPl = null, stepsPl = null;
+      if (rK) { BK.ropes = [rPl]; costPl = D.grid.stepCost(ftK, rPl.foot[0], rPl.foot[1], rPl.at[0], rPl.at[1]); stepsPl = D.Battle.ropeSteps(rPl, BK.map.gz(rPl.foot[0], rPl.foot[1]), true, 30, true); BK.ropes = [rK]; }
+      okIS('P2 the knot: set "' + setK.slice(0, 360) + '" -- knot ' + (rK && rK.knot) + '; the whole 45 ft up it ' + costKn + ' ft of movement (a plain rope ' + costPl + '); 30 ft of move part way: ' + stepsKn + ' steps (' + (stepsKn * 2.5) + ' ft; a plain rope ' + stepsPl + ', ' + (stepsPl * 2.5) + ' ft)',
+        !!rK && rK.knot === true && /knots itself/.test(setK) && /costs half/.test(setK) && costKn === 45 && costPl === 90 && stepsKn === 12 && stepsPl === 6);
+      // (more: the wand, the goggles)
     } catch (eIS) { repIS.errors.push(String(eIS && eIS.stack || eIS).slice(0, 900)); }
     D.d = dIS;
     var preIS = document.createElement('pre'); preIS.id = 'out'; preIS.textContent = 'BENCH16 ' + JSON.stringify(repIS);
