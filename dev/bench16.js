@@ -6639,7 +6639,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       } catch (eS) { repF5.errors.push('section 5: ' + String(eS && eS.stack || eS).slice(0, 400)); }
       try { // (secF5: each section its own, so one that throws hides none after it)
       // 6. THE NIGHT UNDER THE MENU (the mouth camp by night, his "darkness impacts menu here"): the M menu's squares the same with the night on as off; the night still on the floor
-      var B6 = testF5('?roam=warrens&hour=22'), d6 = RF5.def, ctx06 = D.ctx, cv6 = document.createElement('canvas'); cv6.width = D.W; cv6.height = D.H; D.R = D.R || 1;
+      var B6 = testF5('?roam=warrens&hour=22'); B6.bunkBox = null; /* (the bunkhouses' boxes off for the shots: drawn with no menu, hidden under it -- words1116, 11-16) */ var d6 = RF5.def, ctx06 = D.ctx, cv6 = document.createElement('canvas'); cv6.width = D.W; cv6.height = D.H; D.R = D.R || 1;
       var shot6 = function (menu, night) { d6.night = night; if (menu && !B6.menu) UF5.openMenu(B6); if (!menu && B6.menu) B6.menu = null; D.ctx = cv6.getContext('2d'); D.ctx.setTransform(1, 0, 0, 1, 0, 0); D.ctx.clearRect(0, 0, cv6.width, cv6.height); try { D.draw(); } finally { D.ctx = ctx06; } return cv6.getContext('2d').getImageData(0, 0, cv6.width, cv6.height).data.slice(); };
       var night6 = !!d6.night, outd6 = !!d6.outdoors, A6 = shot6(false, true), Bm6 = shot6(true, true), Cm6 = shot6(true, false), D6 = shot6(false, false); B6.menu = null; d6.night = night6;
       var inMenu6 = 0, same6 = 0, washed6 = 0, all6 = A6.length / 4;
@@ -7592,6 +7592,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         }
         if (s instanceof HK.Morning) { quiet = 0; seen.push(wakeK(s)); continue; }
         if (QUESTK && D.cradle && D.cradle.Scene && s instanceof D.cradle.Scene) { quiet = 0; s.update(); continue; } // (the quest walk: a shift at the pens played by its own hands, R.shiftAuto -- js/cradle.js)
+        if (s.kind === 'worldcamp') { quiet = 0; var roK = s.offers().filter(function (r) { return !r.off; }), prK = roK.filter(function (r) { return r.id === 'long'; })[0] || roK.filter(function (r) { return r.id === 'wait'; })[0] || roK[0]; seen.push('CAMP PAGE > ' + prK.label); prK.go(); continue; } // (THE WORLD's camp page, 11-16: its night, or the wait till the night is open and then the night, as the card's -- campage1116)
         if (s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = 1; }); s.go('begin'); continue; }
         if (s.kind === 'houseslots') { quiet = 0; if (!s.pickedK) { s.pickedK = 1; s.pick(slotK - 1); seen.push('SLOTS ' + s.mode + ': ' + s.msg); } else s.update(); continue; }
         if (s instanceof D.Battle && !s.roam && QUESTK) { quiet = 0; var fidQ = (s.fight && s.fight.id) || '?', resQ = fightQ(s); fightsK.push(fidQ + ':' + resQ); seen.push('FIGHT ' + fidQ + ' on ' + (s.fight && s.fight.map) + ' -> ' + resQ + ' (fought)'); continue; } // (the quest walk: every fight fought -- fightQ below)
@@ -13226,7 +13227,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       SD.todayHex = 4.95; SD.today = 8.25; SD.pushing = false; tX = SD.t; wd.cards = []; ovX.walk = { path: [tbX.slice(), p0X.slice()], f: 0 }; wd.update(); cX = cardX(wd, /DAY'S MARCH/);
       okX('the top-down view past the day\'s march asks too (' + (cX ? cX.lines[0] : 'no card') + '): no camp on its own, the night\'s watches not skipped (the clock ' + (SD.t === tX ? 'where it was' : 'moved ' + (SD.t - tX).toFixed(1) + ' h') + ')', !!cX && SD.t === tX && !ovX.walk);
       if (cX) { wd.cards.shift(); cX.keys[0][1](); } okX('PUSH ON there takes the top-down walk up again', !!ovX.walk && ovX.walk.path.length === 2); ovX.walk = null; wd.cards = [];
-      tX = SD.t; keyX(wd, 'end'); cX = cardX(wd, /CAMP/); okX('SPACE on the top-down view: the house\'s camp card (' + (cX ? cX.lines[0] : 'no card') + '), the night not had without its watches', !!cX && SD.t === tX); wd.cards = [];
+      tX = SD.t; keyX(wd, 'end'); var pgX = !!(D.top() && D.top().kind === 'worldcamp'); if (pgX) D.pop(); okX('SPACE on the top-down view: the camp\'s page (' + pgX + '), the night not had without its watches', pgX && SD.t === tX); wd.cards = []; // (the page since 11-16, not the card: campage1116)
       WX.OV.close(wd);
       okX('the way\'s camps counted as the house asks them: by the day\'s hexes (W.route\'s march ' + (WX.route(SD.at, nX[0] || SD.at) || {}).march + ')', (WX.route(SD.at, nbX(SD.at)[0]) || {}).march >= 1);
       // 6. the bare door (&bare: no party): the day's walk asks; M says the menu is the game's
@@ -19013,7 +19014,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
+      var elseSt = { camp16: 'campage1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
