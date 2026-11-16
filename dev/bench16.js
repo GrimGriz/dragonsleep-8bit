@@ -20534,14 +20534,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       try {
         HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop();
         D.sit16.open('nedwand16'); var B4 = D.top(); if (B4 && B4.baking) { B4.baking = false; B4.enter(); }
+        var at4 = D.roam.def.key + ' ' + B4.roam.token.x + ',' + B4.roam.token.y; // (where the eyes row's steps walk: the street by Percy's door)
         var trP = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'warp:percy'; })[0], g4 = trP ? D.town.fire(B4, trP) : null, up4 = g4 ? drvW4(g4, upW4, 900) : false, sc4 = D.top();
         var pre4 = up4 ? readW4(sc4).join(' ') : '', ask4 = up4 && sc4.wait && sc4.wait.ask ? [].concat(sc4.wait.ask).join(' ') : '', optB4 = function () { return sc4.buttons().filter(function (q) { return q.go === 'opt'; }); }, pg4 = 0;
         while (up4 && !optB4().length && pg4++ < 12) goW4(sc4, 'next'); // (the ask over pages: its choices on its last)
         var opts4 = up4 ? sc4.buttons().filter(function (q) { return q.go === 'opt'; }).map(function (q) { return q.label; }).join(' | ') : '';
         if (up4) goW4(sc4, 'opt', 'Here it is.'); var aft4 = up4 ? readW4(sc4).join(' ') : '', st4 = CIS.state(B4);
-        okIS('W4 into Percy\'s on the situation (' + (D.roam.def && D.roam.def.room) + '): Ned\'s screen up ' + up4 + ' -- "' + window.DS.stripCodes(pre4 + ' ' + ask4).slice(0, 500) + '" [' + opts4 + '] > HERE IT IS: "' + window.DS.stripCodes(aft4).slice(0, 200) + '" -- braid in the pack ' + CIS.count(st4, 'cord') + ', nedBraid ' + st4.flags.nedBraid,
+        var ned4 = (D.roam.def.key || '') + ' ' + JSON.stringify(((D.roam.def.beside || {}).ned || {}).at);
+        okIS('W4 into Percy\'s on the situation (' + (D.roam.def && D.roam.def.room) + '; the street ' + at4 + ', Ned in the room ' + ned4 + '): Ned\'s screen up ' + up4 + ' -- "' + window.DS.stripCodes(pre4 + ' ' + ask4).slice(0, 500) + '" [' + opts4 + '] > HERE IT IS: "' + window.DS.stripCodes(aft4).slice(0, 200) + '" -- braid in the pack ' + CIS.count(st4, 'cord') + ', nedBraid ' + st4.flags.nedBraid,
           up4 && /Hessle/.test(pre4 + ask4) && /Is that the braid/.test(ask4) && /Here it is\./.test(opts4) && /Come back in the morning/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
         if (g4) drvW4(g4, null, 300);
+        HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop(); D.sit16.open('winters3'); var B5 = D.top(); if (B5 && B5.baking) { B5.baking = false; B5.enter(); }
+        okIS('W5 (where his ring\'s row walks) Winters\' door on the situation winters3: ' + D.roam.def.key + ' ' + B5.roam.token.x + ',' + B5.roam.token.y, !!B5.roam && D.roam.def.key === 'silverton');
       } finally { HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop(); D.store.get = stGW4; D.store.set = stSW4; D.music = musW4; }
       // G1 the deep gallery: the cloaker's victim on the bones square 17,20 -- its `use` trigger laid by the floor's setup, had by E from beside it, its heap drawn (deep16/art/victim_p1, eight facings)
       var memG = {}, stG0 = D.store.get, stS0 = D.store.set, musG = D.music; D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; }; D.music = function () { };
