@@ -675,6 +675,7 @@
   function foeWanted(B, u) {
     var g = B.tool === 'spell' && B.spell && B.spell.g, it = B.tool === 'item' && window.DS.DATA.items[B.itemId];
     var foe = B.tool === 'attack' || !!(it && it.use && it.use.effect === 'damage') || !!(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape))), aimed = !!(g && AIMED.test(g.shape));
+    if (B.tool === 'lay') return function (w) { return !G.hostile(u, w) && !w.dead ? 1 : 0; }; // (11-16, the bug seat, his record's "Lay on Hands refused twice at the Ochre Jelly's square": a Large foe's cube over the ally's tile outranked the ally -- the touch wants one of ours)
     if (!foe && !aimed) return null;
     return function (w) { if (aimed && D.magic.targetOK(B, u, g, w)) return 2; return foe && G.hostile(u, w) && G.standing(w) ? 1 : 0; };
   }

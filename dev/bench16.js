@@ -4697,6 +4697,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var seatT = Bu && Bu.roam ? D.familiar.unit(Bu, { flags: Bu.roam.flags }, Bu.roam.members) : null; // (the next fight pulled in from this floor seats one from the save's flag: js/roam.js, FM.unit)
       okO('THE OWL STRUCK DOWN STAYS GONE: seated on the inn\'s floor ' + had + '; struck down, the save\'s familiar ' + (flagGone ? 'gone' : 'STILL THERE') + '; up the stair on ' + (D.roam.def && D.roam.def.key) + ', seated: ' + (famUp.join(', ') || 'none') + '; the next fight from there seats ' + (seatT ? seatT.name + ' at ' + seatT.hp + ' hp' : 'none'), had && flagGone && !famUp.length && !seatT && D.roam.def && D.roam.def.key === InO.UP);
       HO.playing = false; HO.cur = null; while (D.scenes.length) D.pop();
+      // 7. LAY ON HANDS ON THE ALLY BESIDE A LARGE JELLY (his record's "Lay on Hands refused twice at the Ochre Jelly's square"; js/ui.js D.ui.pickUnit, foeWanted): a spot on
+      // the fighter's own figure where the jelly's cube is drawn over it -- with the tool 'lay' the click is the fighter's
+      var Bl = mkO('?npc=ochrejelly&lvl=5&vs=paladin:5,fighter:5'), jel = Bl.units.filter(function (u) { return u.side === 'foe'; })[0], pal = Bl.units.filter(function (u) { return u.side === 'party' && u.cls === 'paladin'; })[0] || Bl.units.filter(function (u) { return u.side === 'party'; })[0], al = Bl.units.filter(function (u) { return u.side === 'party' && u !== pal; })[0], spotL = null;
+      if (jel && pal && al) {
+        var z = D.iso.zoom, sJ = jel.size || 1;
+        for (var ax = jel.x - 1; ax <= jel.x + sJ && !spotL; ax++) for (var ay = jel.y - 1; ay <= jel.y + sJ && !spotL; ay++) {
+          if (ax >= jel.x && ax < jel.x + sJ && ay >= jel.y && ay < jel.y + sJ) continue; var ox = al.x, oy = al.y; al.x = ax; al.y = ay; if (!D.grid.canStand(al, ax, ay)) { al.x = ox; al.y = oy; continue; } D.grid.setup(Bl.map, Bl.units);
+          var p = D.ui.unitPos(Bl, al), top = D.spr.unitTop(al) * z;
+          for (var dy = 0; dy <= top && !spotL; dy += 2) for (var dx = -10; dx <= 10 && !spotL; dx += 2) { var mx = p.x + dx * z, my = p.y - dy; if (D.ui.pickUnit(Bl, mx, my, null) === jel) spotL = { at: ax + ',' + ay, mx: mx, my: my }; }
+          if (!spotL) { al.x = ox; al.y = oy; D.grid.setup(Bl.map, Bl.units); }
+        }
+      }
+      var pickL = null; if (spotL) { Bl.tool = 'lay'; pickL = D.ui.pickUnit(Bl, spotL.mx, spotL.my, D.ui.foeWanted(Bl, pal)); Bl.tool = null; }
+      okO('LAY ON HANDS BESIDE THE OCHRE JELLY: ' + (spotL ? 'the fighter at ' + spotL.at + ', a spot on his figure the jelly\'s cube covers (no tool: the jelly) -- with LAY ON HANDS the click is ' + (pickL ? pickL.name : 'nobody') : 'NO SPOT FOUND where the jelly covers the fighter'), !!spotL && pickL === al);
+      while (D.scenes.length) D.pop();
     } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
     HO.playing = false; HO.cur = null; if (InO) { InO.stay = false; InO.pinned = null; }
     D.store.get = stGO; D.store.set = stSO; D.music = muO;
