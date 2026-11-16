@@ -933,24 +933,28 @@
   // (winters.askLake), "you are not yet ready" below it (winters.watching, his words 09-25), then "Now you're ready." and the ring, put on whoever has a finger free (the lead
   // first); not ready, his look as the talk ends names level 3 (winters.notReady). invented.json winters-ring-at-3-1105
   C.RING_LVL = 3;
+  // WINTERS' RING IS THE RING OF WATER WALKING (RULED 2026-11-16, Griz: "We could script the chuul to target that ring wearer and have Winters make it the ring he was holding for someone ready for the chuul", then "Yes to both."): the SRD's ring (content/items.json ringwaterwalking,
+  // js/grid.js G.waterWalker), and the thing in the lake goes for its wearer on the rounds the Ring of Binding named (js/secondact.js A.lakeFight). Every check of
+  // Winters' ring reads C.WRING; an older save's Ring of Binding becomes it as the save is read (js/house.js H.ringNow). invented.json winters-ring-waterwalking-1116
+  C.WRING = 'ringwaterwalking';
   C.leadOf = function (st) { var rec = D.house && D.house.playing && D.house.cur, k = rec && rec.lead, p = st.party.filter(function (h) { return h && !h.dead; }); return p.filter(function (h) { return (h.key || h.id) === k; })[0] || p[0] || st.party[0] || null; };
   C.ringReady = function (st) { var ld = C.leadOf(st); return !!ld && (ld.lvl || 1) >= C.RING_LVL; };
   C.wintersRing = function* (sc) {
     var st = sc.st, f = st.flags, ld = C.leadOf(st);
     yield sc.say(L('winters.ready'), 'welcoming');
-    D.sfx('ring'); give(st, 'ringofbinding', 1); f.wintersRing = 1;
+    D.sfx('ring'); give(st, C.WRING, 1); f.wintersRing = 1;
     yield sc.say(L('winters.ring'), 'attentive');
     var free = function (h) { return h && h.equip && !h.dead && (!h.equip.ring || !h.equip.ring2); }; // (two ring fingers on the grid: camp.js SLOTS ring, ring2)
     var who = free(ld) ? ld : st.party.filter(free)[0] || ld;
     if (who && who.equip && (yield sc.ask(L('winters.equipAsk', { name: who.name }), ['YES', 'NO'], 'attentive')) === 0) {
       var slot = !who.equip.ring ? 'ring' : !who.equip.ring2 ? 'ring2' : 'ring';
       if (who.equip[slot]) give(st, who.equip[slot], 1);
-      who.equip[slot] = 'ringofbinding'; take(st, 'ringofbinding', 1); sc.regear = true; D.sfx('confirm');
+      who.equip[slot] = C.WRING; take(st, C.WRING, 1); sc.regear = true; D.sfx('confirm');
     }
-    if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Binding' + (who && who.equip && (who.equip.ring === 'ringofbinding' || who.equip.ring2 === 'ringofbinding') ? ', on ' + who.name : ', to the pack') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
+    if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Water Walking' + (who && who.equip && (who.equip.ring === C.WRING || who.equip.ring2 === C.WRING) ? ', on ' + who.name : ', to the pack') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
   };
   C.winters = function* (sc) {
-    var st = sc.st, f = st.flags, ld = C.leadOf(st), had = function () { return count(st, 'ringofbinding') > 0 || st.party.some(function (h) { return h.equip && (h.equip.ring === 'ringofbinding' || h.equip.ring2 === 'ringofbinding'); }); };
+    var st = sc.st, f = st.flags, ld = C.leadOf(st), had = function () { return count(st, C.WRING) > 0 || st.party.some(function (h) { return h.equip && (h.equip.ring === C.WRING || h.equip.ring2 === C.WRING); }); };
     if (!f.wintersMet) {
       f.wintersMet = 1;
       yield sc.say(L('winters.first'), 'attentive');
@@ -1462,7 +1466,7 @@
   // in Winters' words (winters.ring: "For the thing in the lake"). invented.json winters-ring-at-3-1105
   C.RING_WORDS = { text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The one who leads you is ready now, and Winters has something for you.',
     step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and he is ready.',
-    doneText: 'The Ring of Binding, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
+    doneText: 'The Ring of Water Walking, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
   C.OWN_QUESTS.push({ id: 'ring', doneText: C.RING_WORDS.doneText,
     text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? C.RING_WORDS.text : q.text; },
     steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });

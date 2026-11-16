@@ -12,7 +12,14 @@
   H.SLOTS = 3; H.V = 1; H.HEROES = ['barley', 'aurdin', 'vivian', 'lymen'];
   H.key = function (n) { return 'deep16.game.' + n; };
   H.cur = null; H.slot = 0; H.playing = false;
-  H.read = function (n) { var d = D.store.get(H.key(n)); return d && d.v && Array.isArray(d.party) && d.party.length ? d : null; };
+  H.read = function (n) { var d = D.store.get(H.key(n)); if (!(d && d.v && Array.isArray(d.party) && d.party.length)) return null; H.ringNow(d); return d; };
+  // Winters' ring is the Ring of Water Walking since 2026-11-16 (js/counter.js C.WRING): a save written before it, the Ring of Binding on a finger or in the pack, reads as it
+  H.ringNow = function (d) {
+    var was = 'ringofbinding', now = 'ringwaterwalking';
+    (d.party || []).concat(d.guests || []).forEach(function (h) { var e = h && h.equip; if (e) Object.keys(e).forEach(function (k) { if (e[k] === was) e[k] = now; }); });
+    (d.inv || []).forEach(function (s) { if (Array.isArray(s)) { if (s[0] === was) s[0] = now; } else if (s && s.id === was) s.id = now; });
+    return d;
+  };
   function add(inv, id, n) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else if (n > 0) inv.push({ id: id, n: n }); for (var i = inv.length - 1; i >= 0; i--) if (inv[i].n <= 0) inv.splice(i, 1); }
   H.add = add;
   // THE TRAIL (10-28, the lanes desk; Griz: "build the notes button in"): the last H.TRAIL things that happened -- a fight and how it ended, a town gone into, a talk,

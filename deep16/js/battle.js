@@ -183,7 +183,7 @@
       ring = wr ? Object.assign({}, ring, { hero: wr.id, con: 0 }) : null;
       this.intro = wr ? (F.introRing || F.intro).replace('{ring}', wr.name) : F.introNoRing || F.intro;
     }
-    if (ring) { var rw = party.filter(function (u) { return u.id === ring.hero; })[0]; if (rw) { rw.saves = Object.assign({}, rw.saves); rw.saves.con += ring.con || 0; rw.ring = true; this.taunt = { u: rw, rounds: ring.rounds }; } }
+    if (ring) { var rw = party.filter(function (u) { return u.id === ring.hero; })[0]; if (rw) { rw.saves = Object.assign({}, rw.saves); rw.saves.con += ring.con || 0; rw.ring = true; this.taunt = { u: rw, rounds: ring.rounds, why: ring.why }; } }
     FX.clear();
     this.t = 0; this.cards = []; this.round = 0; this.order = []; this.active = null;
     this.tool = 'move'; this.cursor = { x: 5, y: 10 }; this.req = null; this.wait = 0; this.waitFx = false; this.result = null;

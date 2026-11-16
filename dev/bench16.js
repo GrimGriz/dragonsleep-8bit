@@ -3262,7 +3262,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         !/Orrin|Pell/.test(o2) && /Stand out of the light/.test(o2) && /> STRIKE/.test(o2) && /INITIATIVE/.test(o2) && /It gave back\. It always gave back/.test(o2) && /> TAKE THE CHILD/.test(o2) && /takes the child's hand/.test(o2) && /The water off the point heaves/.test(o2) && /The child's hand is in yours/.test(o2) && /> TAKE HER INSIDE/.test(o2) && /It comes up out of the shallows onto the path to where she sits/.test(o2) && /You'll want the road/.test(o2) && hp2 === 33 && f2.gennetYield === 1 && f2.offeringSaved === 1 && f2.dueStopped === 1 && f2.chuulSeen === 1 && f2.secondActDone === 1 && f2.gennetTaken === 1 && f2.gennetLet === 1 && !f2.lakeDone); // (11-05, RULED: the child taken with the inn lady alive on the path, she is the nearest offering -- taken inside, the lake let have her; the rest of its ways are mode=winters1105's)
       // 3. THE RISE WITH THE RING WARM: the lead wearing the Ring of Binding, the party at the stone -- it turns toward the ring, the fight on the point with its frog (their hit points pinned low), the ring's rounds; won: the deep is only water, the corpse's gift, the morning's lake
       var unit0 = InAc.unit; InAc.unit = function (B, o) { var u = unit0.apply(this, arguments); if (o.kind === 'chuul' || o.kind === 'giantfrog') u.hp = 2; return u; };
-      var B3 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; });
+      var B3 = stageAc('?roam=halfway&hour=23&day=' + D.inn.WAGON.first + '&at=42,18&flags=' + BASE + ',offeringSaved,dueStopped,gennetYield', { secondAct: { beat: 'rise' } }, function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringwaterwalking'; });
       var o3 = flowAc(B3, []), f3 = B3.roam.flags, st3 = CAc.state(B3), i3 = o3.indexOf('It turns toward the ring');
       InAc.unit = unit0;
       okAc('the rise with the ring warm: ' + o3.slice(Math.max(0, i3 - 300), i3 + 1200) + ' -- lake done ' + f3.lakeDone + ', the gift ' + f3.lakeGiftGot + ' (' + (B3.inv || []).map(function (s) { return s.id; }).join(',') + '), the god seen ' + f3.chuulSeen,
@@ -3533,7 +3533,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       return strip(seen.join(' / '));
     }
     var BASEWn = 'wagonIn,dueTonight,kidTaken,glamourBroken,glamourSeen,wagonStopped,kidAtInn,doranAway,katGone,reachedInn,mealHad,gennetNamed';
-    var ringOn = function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringofbinding'; };
+    var ringOn = function (B) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringwaterwalking'; }; // (Winters' ring, the Ring of Water Walking since 11-16)
     var pairDown = function (lb, B) { if (/WAKE/.test(lb)) B.units.forEach(function (u) { if ((u.kind === 'amara' || u.kind === 'willem') && u.side === 'foe') { u.hp = u.maxhp = 1; u.speed = 0; } }); };
     var sl = function (o, re, n) { var i = o.search(re); return i < 0 ? o.slice(0, n || 400) : o.slice(Math.max(0, i - 60), i + (n || 900)); };
     D.store.get = function (k) { return memWn[k] ? JSON.parse(memWn[k]) : null; }; D.store.set = function (k, v) { memWn[k] = JSON.stringify(v); return true; };
@@ -3560,11 +3560,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         !!ld2 && ld2.lvl === 3 && !!q2 && !q2.done && q2.step && q2.step.key === 'ready' && /level 3 now, and he is ready/.test(q2.where) && /is ready now/.test(q2.text) && due2 && /In your JOURNAL: When You're Ready, the next step\./.test(strip(fly2)) && !H6Wn.keyDue(B2) && f2['k:ring:ready'] === 1);
       var in2 = inWn(B2, 'warp:winters'), g2 = fireWn(B2, 'talk:winters'), sc2 = D.top(), w2 = readWn(sc2).map(strip), ask2 = askWn(sc2);
       goWn(sc2, 'opt', 'YES'); readWn(sc2); if (g2) driveWn(g2, null, 200);
-      var on2 = !!ld2 && (ld2.equip.ring === 'ringofbinding' || ld2.equip.ring2 === 'ringofbinding'), q2d = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0];
-      okWn('in at his door at the 3rd: "' + w2.join(' / ').slice(0, 460) + '" [' + ask2 + '] > YES -- on ' + (ld2 && ld2.name) + ' ' + on2 + ', in the pack ' + CWn.count(st2, 'ringofbinding') + ', the talk over ' + !upWn() + ', given ' + f2.wintersRing + '; the JOURNAL: ' + (q2d && (q2d.done ? 'done -- ' + q2d.doneText : 'open')),
-        in2 && /Lymen: "Elsbeth/.test(w2.join(' ')) && !/not yet ready/.test(w2.join(' ')) && /Now you're ready/.test(w2.join(' ')) && /RING OF BINDING/.test(w2.join(' ')) && /\+3 to CON saves/.test(w2.join(' ')) && /Put it on Lymen\?/.test(ask2) && on2 && !CWn.count(st2, 'ringofbinding') && !upWn() && f2.wintersRing === 1 && !!q2d && q2d.done && /for the thing in the lake/.test(q2d.doneText));
+      var on2 = !!ld2 && (ld2.equip.ring === 'ringwaterwalking' || ld2.equip.ring2 === 'ringwaterwalking'), q2d = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0];
+      okWn('in at his door at the 3rd: "' + w2.join(' / ').slice(0, 460) + '" [' + ask2 + '] > YES -- on ' + (ld2 && ld2.name) + ' ' + on2 + ', in the pack ' + CWn.count(st2, 'ringwaterwalking') + ', the talk over ' + !upWn() + ', given ' + f2.wintersRing + '; the JOURNAL: ' + (q2d && (q2d.done ? 'done -- ' + q2d.doneText : 'open')),
+        in2 && /Lymen: "Elsbeth/.test(w2.join(' ')) && !/not yet ready/.test(w2.join(' ')) && /Now you're ready/.test(w2.join(' ')) && /RING OF WATER WALKING/.test(w2.join(' ')) && /It knows this ring/.test(w2.join(' ')) && /Deep water is ground to whoever wears it/.test(w2.join(' ')) && !/\+3 to CON/.test(w2.join(' ')) && /Put it on Lymen\?/.test(ask2) && on2 && !CWn.count(st2, 'ringwaterwalking') && !upWn() && f2.wintersRing === 1 && !!q2d && q2d.done && /for the thing in the lake/.test(q2d.doneText));
       g2 = fireWn(B2, 'talk:winters'); sc2 = D.top(); var w2c = readWn(sc2).map(strip), ask2c = askWn(sc2); goWn(sc2, 'opt', 'LEAVE'); var w2d = readWn(sc2).map(strip); if (g2) driveWn(g2, null, 200);
-      okWn('in again with it on: "' + ask2c + '" -- no second ring, no look as you go ("' + (w2d.join(' ') || 'nothing') + '")', /glances at the ring on your hand/.test(ask2c) && !/Now you're ready/.test(w2c.join(' ')) && !/Not ready/.test(w2d.join(' ')) && !CWn.count(st2, 'ringofbinding') && on2);
+      okWn('in again with it on: "' + ask2c + '" -- no second ring, no look as you go ("' + (w2d.join(' ') || 'nothing') + '")', /glances at the ring on your hand/.test(ask2c) && !/Now you're ready/.test(w2c.join(' ')) && !/Not ready/.test(w2d.join(' ')) && !CWn.count(st2, 'ringwaterwalking') && on2);
       HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
       // 3-6. THE RING WARM ON THE DUE'S OWN NIGHT (day 15 since 11-05, his "let's move the offering to 3 nights after wagon night"): a room with supper, the one they kept for the stone.
       // Asleep through it (the singing's read failed), the walk, then the ring warm -- GO DOWN TO THE POINT: the water heaves, it turns toward the ring, the fight (the chuul and its frog
@@ -20438,6 +20438,44 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = dMI;
     var preMI = document.createElement('pre'); preMI.id = 'out'; preMI.textContent = 'BENCH16 ' + JSON.stringify(repMI);
     document.body.appendChild(preMI);
+    return;
+  }
+
+  // THE FOUR MAGIC ITEMS MET IN THE STORY, 11-16 (mode=items1116; the items-story seat, on Griz's 11-16 words to the lanes desk -- the house lane's "2026-11-16 later" and
+  // "2026-11-16 evening" sections): Winters' ring the Ring of Water Walking and the thing in the lake going for its wearer; the Rope of Climbing the Missing Five's reward and
+  // its knot; the Wand of Web Ned's for the Ettercap's braid, ready the morning after; the Goggles of Night on the cloaker's victim
+  if (get('mode', '') === 'items1116') {
+    var repIS = { checks: [], errors: [] };
+    function okIS(what, v) { repIS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runIS(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    var dIS = D.d;
+    try {
+      // R1 Winters' ring is the Ring of Water Walking: the id the checks read, his words, the JOURNAL
+      var TXIS = window.DS.DATA.text || {}, wr = [].concat((TXIS['winters.ring'] || {}).t || []).join(' '), qRing = (window.DS.DATA.quests || []).filter(function (q) { return q.id === 'ring'; })[0];
+      okIS('R1 Winters\' ring: C.WRING ' + (D.counter && D.counter.WRING) + '; his words "' + wr.slice(0, 260) + '"; the JOURNAL\'s done ' + (qRing && qRing.done) + ' -- "' + (qRing && qRing.doneText) + '"',
+        !!D.counter && D.counter.WRING === 'ringwaterwalking' && /RING OF WATER WALKING/.test(wr) && /It knows this ring/.test(wr) && /Deep water is ground/.test(wr) && !/BINDING|\+3/.test(wr) &&
+        !!qRing && qRing.done === 'has:ringwaterwalking' && /Water Walking/.test(qRing.doneText));
+      // R2 an older save's Ring of Binding becomes it, on a finger and in the pack
+      var oldRec = { v: 1, party: [{ id: 'lymen', equip: { ring2: 'ringofbinding', ring: 'ringofprotection' } }, { id: 'barley', equip: {} }], inv: [{ id: 'ringofbinding', n: 1 }, ['ringofbinding', 1], { id: 'rope', n: 1 }] };
+      var nowRec = D.house && D.house.ringNow ? D.house.ringNow(JSON.parse(JSON.stringify(oldRec))) : null;
+      okIS('R2 an older save read: ' + (nowRec ? JSON.stringify(nowRec.party[0].equip) + ' ' + JSON.stringify(nowRec.inv) : 'no H.ringNow'),
+        !!nowRec && nowRec.party[0].equip.ring2 === 'ringwaterwalking' && nowRec.party[0].equip.ring === 'ringofprotection' && nowRec.inv[0].id === 'ringwaterwalking' && nowRec.inv[1][0] === 'ringwaterwalking' && nowRec.inv[2].id === 'rope');
+      // R3 the thing in the lake goes for the ring's wearer on its round, with the story's words (js/ai.js brute, js/secondact.js A.RING_WHY); and on a round not named, not bound to it
+      var BC = D.npcFight('?npc=chuul&lvl=4&vs=fighter:4,wizard:4', {}); D.battle = BC; BC.enter(); var kC = 0; while (!BC.order.length && kC++ < 400) BC.co.next();
+      var chC = BC.units.filter(function (u) { return u.kind === 'chuul'; })[0], ftC = BC.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], wzC = BC.units.filter(function (u) { return u.side === 'party' && u.cls === 'wizard'; })[0];
+      var log0IS = (BC.log || []).length;
+      chC.x = 5; chC.y = 5; ftC.x = 6; ftC.y = 5; wzC.x = 9; wzC.y = 5; D.grid.setup(BC.map, BC.units);
+      BC.taunt = { u: wzC, rounds: [1, 4, 7, 10], why: D.secondact && D.secondact.RING_WHY }; BC.round = 1; BC.active = chC; D.rules.startTurn(chC);
+      runIS(D.ai.brute(BC, chC)); var turn1 = (BC.log || []).slice(log0IS).join(' | ');
+      var Fch = D.fight ? D.fight('chuul') : null, Fld = D.fight ? D.fight('chuul-ladder') : null;
+      okIS('R3 round 1, the fighter beside it and the ring\'s wearer four squares off: "' + turn1.slice(0, 300) + '"; the story fight\'s ring ' + JSON.stringify(Fch && Fch.ring) + ', the ladder\'s ' + JSON.stringify(Fld && Fld.ring),
+        /turns on .*Wizard.*: it goes for the ring/i.test(turn1.replace(/\{[a-z]\}|\{\/\}/g, '')) && !/the ring binds it/.test(turn1) &&
+        !!Fch && Fch.ring.con === 0 && Fch.ring.why === D.secondact.RING_WHY && !!Fld && Fld.ring.con === 3);
+      // (more: the rope, the wand, the goggles)
+    } catch (eIS) { repIS.errors.push(String(eIS && eIS.stack || eIS).slice(0, 900)); }
+    D.d = dIS;
+    var preIS = document.createElement('pre'); preIS.id = 'out'; preIS.textContent = 'BENCH16 ' + JSON.stringify(repIS);
+    document.body.appendChild(preIS);
     return;
   }
   // THE ANIMATED ARMOR, 11-15 (mode=armor1115; tools/animatedarmor-sheet.py, data/foes.js animatedarmor -- the NPC cutter seat, art-wanted 64's construct,

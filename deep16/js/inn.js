@@ -1851,7 +1851,7 @@
     var id = In.giftId(st); yield sc.say(L('wagon.gift'));
     D.counter.give(st, id, 1); D.sfx('chest'); f.lakeGiftGot = 1;
     yield sc.say(L('g.got', { item: DS.DATA.items[id].name }));
-    if (!In.has(st, 'ringofbinding')) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); }
+    if (!In.has(st, D.counter.WRING)) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); }
   };
   // Willem Glass's book (the lane's item 5; the house lane's item 7, 09-30c: a drop when the party kills him): the seat's draft, invented.json halfway-wagon-night
   if (DS && DS.DATA && DS.DATA.items && !DS.DATA.items.willembook) DS.DATA.items.willembook = { name: 'Willem\'s Book', kind: 'key', price: 0, noSell: true,
@@ -1871,7 +1871,7 @@
       return;
     }
     if (f.barnLet && !f.glamourBroken && !f.barnHinted && ((f.elsbethTier || 0) >= 1 || In.renown() >= 5)) { f.barnHinted = 1; yield sc.say([In.BY.hint]); return; } // (the party let Gennet keep what it took for a goblin: one more chance before the due -- 11-11, the barn's END A)
-    if (f.doranAway && !In.has(st, 'ringofbinding') && (f.dishes || !In.elsOpen(f))) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); return; } // (her first telling comes before her word of Winters where she will tell at all: his "same stuff without dishes when he's gone", ruling 58)
+    if (f.doranAway && !In.has(st, D.counter.WRING) && (f.dishes || !In.elsOpen(f))) { f.elsbethSent = 1; yield sc.say(L('inn.elsbethWinters')); return; } // (her first telling comes before her word of Winters where she will tell at all: his "same stuff without dishes when he's gone", ruling 58)
     if (f.chuulSeen && (f.elsbethTier || 0) < 3) { f.dishes = 1; f.elsbethTold = 1; f.elsbethTier = 3; yield sc.say([].concat(L('inn.elsbeth2'), In.elsbethQuiet(f, In.day(D.roam.q)))); return; } // (the god seen: her third tier for nothing)
     // HER FRONT END, HIS SHAPE (RULED 11-12, ruling 58, Griz: "at the renown that the supper acknowledges, she'll talk without mentioning dish help with \"you're the people
     // stopping the monsters\" after viv notices at dinner (if she doesn't mention noticing to gennet) they get the dishes stuff when they talk to her when her father
@@ -1897,7 +1897,7 @@
       f.elsbethTold = 1; f.elsbethTier = 2; yield sc.say(L('inn.elsbeth2')); return;
     }
     f.elsbethTier = 3;
-    if (!In.has(st, 'ringofbinding')) { yield sc.say(In.elsbethQuiet(f, In.day(D.roam.q))); return; }
+    if (!In.has(st, D.counter.WRING)) { yield sc.say(In.elsbethQuiet(f, In.day(D.roam.q))); return; }
     // (the ring on the hand: "Tonight" on the due's own night, else how many nights off -- 11-08, his record: "elsbeth saying tonight with a girl skipping stones and
     // nothing for multiple days": she said it from the wagon's night on, three nights before the lantern walks)
     var nx = In.nightsToDue(f, In.day(D.roam.q));
@@ -2579,7 +2579,7 @@
     // (11-16, the bug seat: the due's night down the stair on their own feet -- one Gennet, js/secondact.js A.cast; mode=inn1116 walks this beat)
     { id: 'duestair', label: 'THE DUE\'S NIGHT, DOWN THE STAIR YOURSELF: one inn lady, on the path (11-16)', note: 'Six in the evening on the due\'s day (day ' + In.dueDay(0) + '), the child kept in the house. E on the inn lady: a room and supper, then the big room. The singing wakes you: walk down the stair yourself and look -- the inn lady is out on the path with the lantern and the child, and nobody is by the fire.', key: In.KEY, at: [24, 17], hour: 18, day: In.dueDay(0), inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, katRode: 1 } },
     // (11-16, the bug seat: the inn lane's owed eyes row for HER WORD ABOUT THE NIGHT, In.elsbethQuiet, 11-13 -- a door that stands the party at her tub on the due's day)
-    { id: 'elsbethdue', label: 'ELSBETH ON THE DUE\'S DAY: her word about the night (11-16)', note: 'Ten in the morning on the due\'s own day (day ' + In.dueDay(0) + '), three days after the wagon came in the night and was let be. Her telling had (the dishes, the god an animal), no Ring of Binding on anyone. E on Elsbeth at the tub: she will not talk about it again, then "Tonight is a feeding night." (the day before it said "Tomorrow", before that how many nights off).', key: In.KEY, at: [32, 21], hour: 10, day: In.dueDay(0), inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'goblin', dishes: 1, elsbethTold: 1, elsbethTier: 2, katGone: 1, katRode: 1 } },
+    { id: 'elsbethdue', label: 'ELSBETH ON THE DUE\'S DAY: her word about the night (11-16)', note: 'Ten in the morning on the due\'s own day (day ' + In.dueDay(0) + '), three days after the wagon came in the night and was let be. Her telling had (the dishes, the god an animal), no ring from Winters on anyone. E on Elsbeth at the tub: she will not talk about it again, then "Tonight is a feeding night." (the day before it said "Tomorrow", before that how many nights off).', key: In.KEY, at: [32, 21], hour: 10, day: In.dueDay(0), inside: true, renown: 3, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'goblin', dishes: 1, elsbethTold: 1, elsbethTier: 2, katGone: 1, katRode: 1 } },
     { id: 'shore', label: 'THE SHORE BY DAY: the point, the boat, the floats (11-05)', note: 'Two in the afternoon on the path to the point: the rowboat drawn up, the lantern post, the flat stone with its cairn, the floats bobbing out on the shallows and the deep beyond. Walk out to the flat stone.', key: In.KEY, at: [40, 18], hour: 14 },
     { id: 'snoot', label: 'DAY 14: THE SNOOT\'S RUNNER by the well', note: 'The Snoot at the Pit: a runner off the Pit road by the well. E on him: TO THE SNOOT opens the Snoot\'s own page (its BACK TO THE INN comes home), or NOT NOW.', key: In.KEY, at: [13, 16], hour: 10, day: 14 },
     { id: 'world', label: 'THE WORLD AT THE INN: its door', note: 'A NEW GAME on THE WORLD on the inn\'s hex. E: the inn\'s door -- GO IN by the gate the party faces.', world: true, hour: 15 }

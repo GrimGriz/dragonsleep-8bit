@@ -319,7 +319,7 @@
     "wintersAsked": "set: js/events.js, deep16/js/counter.js C.winters (Elsbeth's errand said); read: js/events.js, deep16/js/counter.js C.winters",
     "wintersLooked": "set: deep16/js/counter.js C.winters (his not-ready look said at the lead's level, once a level below the 3rd -- 11-05, the Winters seat); read: deep16/js/counter.js C.winters",
     "wintersMet": "set: js/events.js, js/scenes.js; read: content/quests.json, js/events.js",
-    "wintersRing": "set: deep16/js/counter.js C.wintersRing (Winters gave the Ring of Binding at the lead's 3rd, RULED 10-29 -- 11-05, the Winters seat); read: the record",
+    "wintersRing": "set: deep16/js/counter.js C.wintersRing (Winters gave his ring at the lead's 3rd -- the Ring of Water Walking since 11-16 -- RULED 10-29 -- 11-05, the Winters seat); read: the record",
     "innRegard": "set: deep16/js/inn.js In.meal (the Waterbys' regard for the party, the one hidden scale with a supper's warmth: 0 cold, 1 civil, 2 warm -- the step the last supper ended on); read: deep16/js/inn.js In.supStart",
     "supCount": "set: deep16/js/inn.js In.meal (suppers had at the Halfway Inn); read: deep16/js/inn.js In.supKind (none yet: the first supper)",
     "supKind": "set: deep16/js/inn.js In.meal (the last supper's kind: first, later, amara, alone, sacrifice); read: the benches",

@@ -251,8 +251,8 @@
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeperold', at: [8, 4], hidden: true }], wave: null },
     { id: 'chuul', story: true, level: 4, ladder: false, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
-      ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
-      intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
+      ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 0, why: 'it goes for the ring' }, // (Winters' ring, the Ring of Water Walking since 11-16: no +3, the rounds as they were -- js/secondact.js A.lakeFight)
+      intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Water Walking.)',
       // inside the 8-bit game (js/embed.js): the ring on whoever wears it, or on nobody (the 8-bit S.lakeFight's lake.rises / risesNoRing)
       introRing: 'It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on them.)', // (the 8-bit box has said the water heaves)
       introNoRing: 'Nobody wears the Ring of Binding. It turns toward whoever is nearest the water.',

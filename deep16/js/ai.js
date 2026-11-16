@@ -1433,7 +1433,7 @@
     if (!hs.length) return;
     // the Ring of Binding (the chuul, rounds 1/4/7/10): it must turn on whoever wears the ring
     if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && hs.indexOf(B.taunt.u) >= 0) {
-      hs = [B.taunt.u]; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + B.taunt.u.name + '{/}: the ring binds it  {g}(round ' + B.round + '){/}']); yield 20;
+      hs = [B.taunt.u]; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + B.taunt.u.name + '{/}: ' + (B.taunt.why || 'the ring binds it') + '  {g}(round ' + B.round + '){/}']); yield 20; // (why: the story's ring, the Ring of Water Walking since 11-16 -- js/secondact.js A.RING_WHY)
     } else if (u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, hs)) { // (taunted by an MPMon, js/mpmon.js: only at him, when it can)
       hs = [D.mpmon.tauntTarget(B, u, hs)];
     } else if (u.wantsOffering && hs.some(function (w) { return w.offering; })) { // (the nearest offering -- the thing in the lake, cheated of the stone, and the inn lady on the path: js/secondact.js A.offerGennet, 11-05 RULED, Griz's "yes the lean")
