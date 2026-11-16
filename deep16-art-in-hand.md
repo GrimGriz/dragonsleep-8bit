@@ -3915,7 +3915,7 @@ Rows, in each view: Still (1: standing perfectly straight and square on its feet
 ```
 Where: `animatedarmor_p1`, rows `still` (False Appearance, the gargoyle's and the roper's way), `idle`, `walk`, `slam`, `slam2` (Multiattack), `flinch`, `hurt` (Fall), `prone`. Medium. The SRD: two Slams, False Appearance, Antimagic Susceptibility (Dispel Magic drops it: the Fall row serves), blindsight.
 
-### 3. THE PEGASUS (celestial) -- five views -- IN HAND 2026-11-15 (`4c107257`: `pegasus_p1`, the SRD Pegasus)
+### 3. THE PEGASUS (celestial) -- five views -- IN HAND 2026-11-15 (`4c107257`: `pegasus_p1`, the SRD Pegasus) -- REDRAWN 2026-11-16 (the art desk's ART-WANTED-69 PEGASUS ILLUSTRATED REDRAW, with Rear Back and Take Flight on his ask: `pegasus_p1` re-cut, the idle at the standard 8 on his word, `3554cdfc` `c09cd856`, by the redraw cutter seat of 11-16)
 ```text
 Attached: the game's 64 colours.
 
