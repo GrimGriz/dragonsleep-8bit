@@ -7373,6 +7373,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     // ---------------------------------------------------------------- THE QUEST WALK's log and its fights (mode=questwalk1114; its head is at the block's condition)
     // QL: a line an event, "D<day> <hh:mm> ..." -- the first event of a day opens it with the party as it stands; a level is written as the sheet shows it; the road's rolls
     // summed a day (hexes entered, their mean percent, the fights they brought); a hunger marker within a hex of the party once a day a making; each survivors' meeting
+    var ripQ = { min: null, near: 0, waits: 0 }, jokeHandQ = null, fedQ = null, PLAYQ = false, COMPQ = false, hasFQ = function () { return 0; }, flagFQ = function () { return undefined; }; // (11-16, the third quest-walk seat: the Vessel's nearest, Aurdin's joke by hand, the landlord's bucket, &order=player and &order=complete)
     var QL = [], dayQ = -1, lvQ = {}, rollQ = { n: 0, mi: 0, pct: 0, fights: 0 }, passQ = {}, lastPctQ = 0, lastZoneQ = '?', fightNQ = 0, findQ = [], hooksQ = null;
     function whereQ() { var t = D.top(); if (t && WK.scene && t === WK.scene) { var Sw = WK.state(); return 'THE WORLD ' + (Sw && Sw.at ? Sw.at.join(',') : '?'); } return (RK.def && (RK.def.room || (RK.def.hexIn ? 'the Hex ' + RK.def.hexIn : RK.def.key))) || '?'; }
     function partyQ() {
@@ -7466,6 +7467,17 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           // markers-replay seat: it read S.at bare before, and no marker was ever "passed" inside the area)
           var phQ = rqHex() || S.at;
           if (HGq && HGq.on && HGq.sim) { var by = HGq.sim(S.t).by; Object.keys(by).forEach(function (d) { var x = by[d], k = d + '|' + HK.day(); if (x.state === 'gone' || passQ[k] || hexDQ(x.hex, phQ) > 1) return; passQ[k] = 1; logQ('PASSED the day-' + d + ' making\'s marker ' + (hexDQ(x.hex, phQ) ? 'a hex off' : 'in the party\'s hex') + ' at ' + x.hex.join(',') + ' (' + x.state + (x.charged ? ', charged' : '') + ')'); }); }
+          // MR. RIPPLES, THE VESSEL (11-16, the third quest-walk seat): his point at the step (js/world.js W.vesselAt) and the party's hex middle (W.partyPt), in miles; the nearest
+          // written down, and the first time within five miles (the black egg's condition, his 11-05 "within 5 miles of the Vessel on its actual path without triggering an
+          // encounter (to be built later)" -- unbuilt, the walk only writes it); a road roll within 2.9 miles may be him (js/ripplesfight.js RF.NEAR). The knowing player waits
+          // the hour out where it stands while he walks within 3.4 miles, the clock on and the day's march given back as any wait (js/hours.js H16.marchBack), twelve hours at most
+          if (WK.vesselAt && WK.partyPt && D.ripples) {
+            var dvQ = function () { var vs = WK.vesselAt(WK.state().t), pp = WK.partyPt(); return vs && vs.pt && pp ? { d: Math.sqrt(Math.pow(vs.pt[0] - pp[0], 2) + Math.pow(vs.pt[1] - pp[1], 2)), held: !!vs.held } : null; };
+            var dv = HK.day() >= 2 ? dvQ() : null;
+            if (dv && PLAYQ && dv.d < 3.4 && !dv.held) { var wn = 0, d0 = dv.d; while (wn < 12 && dv && dv.d < 3.4 && !dv.held) { WK.state().t += 1; if (H6K.marchBack) H6K.marchBack(1, 1); wn++; dv = dvQ(); } ripQ.waits += wn; logQ('MR. RIPPLES: the knowing player waits ' + wn + ' hour' + (wn === 1 ? '' : 's') + ' at ' + phQ.join(',') + ': the Vessel ' + d0.toFixed(1) + ' mi off, then ' + (dv ? dv.d.toFixed(1) : '?') + ' mi'); }
+            if (dv) { if (ripQ.min == null || dv.d < ripQ.min) { ripQ.min = dv.d; ripQ.minAt = 'D' + HK.day() + ' ' + HK.clockAt(HK.now()) + ' at ' + phQ.join(','); }
+              if (dv.d <= 5 && !ripQ.near) { ripQ.near = 1; logQ('MR. RIPPLES: within ' + dv.d.toFixed(1) + ' mi of the Vessel (' + (dv.held ? 'held' : 'on his road') + ') at ' + phQ.join(',') + ', not met -- the black egg\'s condition (his 11-05, unbuilt)'); } }
+          }
         } catch (eS) { /* (the log must never stop the walk) */ }
         return onStep0.apply(this, arguments);
       };
@@ -7480,7 +7492,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // THE FOUR ON THEIR CLASS'S TACTICS in every fight -- a floor's own (js/roam.js: the Wet's, the dens', fought on the floor, B.heroTurn) as a pushed one's: the turn the AI's
       // (js/ai.js AI.turn -> js/tactics.js), the Wet's own first word kept (js/wet.js W.first)
       var BPq = D.Battle.prototype; hooksQ.heroTurn = BPq.heroTurn;
-      BPq.heroTurn = function* (u) { if (this.wet && D.wet && D.wet.first) yield* D.wet.first(this); var c = u.classAI; u.classAI = true; try { yield* D.ai.turn(this, u); } finally { u.classAI = c; } };
+      BPq.heroTurn = function* (u) { if (fedQ && fedQ.s === this) { if (this.wet && D.wet && D.wet.first) yield* D.wet.first(this); fedQ.ready = true; return; } if (jokeHandQ && jokeHandQ.u === u && !jokeHandQ.done) { jokeHandQ.done = true; yield* hooksQ.heroTurn.call(this, u); return; } /* (11-16: the Settling's first word and the bucket's turn; Aurdin's own turn by hand for the joke -- fightQ) */ if (this.wet && D.wet && D.wet.first) yield* D.wet.first(this); var c = u.classAI; u.classAI = true; try { yield* D.ai.turn(this, u); } finally { u.classAI = c; } };
       // a floor's fight written down at its end (js/roam.js R.after: the outcome, the foes, the four as it left them)
       var after0 = RK.after; hooksQ.after = after0;
       RK.after = function* (B, o, grp, foes) { try { fightNQ++; logQ('FIGHT on the floor (' + whereQ() + '): ' + (foes || []).map(function (u) { return (u.name || u.kind) + (u.dead || u.hp <= 0 ? '' : ' (standing)'); }).join(', ') + ' -> ' + String(o).toUpperCase() + ' in ' + (B.round || 0) + ' rounds; after it ' + B.roam.members.filter(function (m) { return m.src && !m.src.guest; }).map(function (m) { return m.name.split(' ')[0] + ' ' + Math.max(0, m.hp) + '/' + m.maxhp + (m.hp <= 0 ? ' down' : ''); }).join(', ')); rqFought((foes || []).map(function (u) { return u.name || u.kind; }).join(', '), o, whereQ()); } catch (eA) { } yield* after0.apply(this, arguments); };
@@ -7491,17 +7503,55 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     // prompt its first answer, then handed to its own door with its result (D.pop, o.onDone -- the VICTORY panel's E: js/ui.js). A loss that ends the game is thrown (qloss)
     function fightQ(s) {
       D.battle = s; var F = s.fight || {}, held = [], foes = (s.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.object; }).map(function (u) { return u.name || u.kind; });
-      (s.units || []).forEach(function (u) { if (u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar && !u.object) { held.push([u, u.guest, u.classAI]); u.guest = true; u.classAI = true; } });
+      // MR. RIPPLES ENDS THE GAME (11-16, the third quest-walk seat, on the Ned-and-owl reader's find): his fight's cut is in the hand's turn (js/ripplesfight.js), which the walk's
+      // hook gives the AI, so the four beat him like a gnoll ("Mr. Ripples -> WON in 2 rounds", cull seed 4 and late seed 5 of the inn-stop walks). Now the game over as the
+      // game has it (RF.gameOver), the leg loaded again
+      if ((s.units || []).some(function (u) { return u.side === 'foe' && D.ripples && u.kind === D.ripples.KIND; })) {
+        fightNQ++; logQ('MR. RIPPLES: met on THE WORLD, the Walking Old One -- the game over (deep16/js/ripplesfight.js RF.gameOver), as the game has it');
+        if (D.top() === s) D.pop(); try { D.ripples.gameOver(); } catch (eRp) { }
+        QL.push(hhQ0() + ' THE GAME IS LOST on THE WORLD: Mr. Ripples, the Walking Old One found'); try { rqMeet('lost', 'Mr. Ripples: the Walking Old One found'); } catch (eRq) { }
+        throw { qloss: true, fight: 'Mr. Ripples (the Walking Old One)', res: 'found' };
+      }
+      // AURDIN'S JOKE (the knowing player): a fight with a gnoll and his day ready for it (js/grimoire.js M.jokeReady: Kat's vision, Hideous Laughter in his book and his day, not
+      // the class AI's) -- his first turn by hand, the spell at himself; the egg counted as it comes up (M.jokeEgg)
+      var auJ = null, castJ = -1, eggJ = 0, kindJ = '', cmdJ = null, darkJ = null;
+      if (PLAYQ && D.magic) {
+        var au0 = (s.units || []).filter(function (u) { return u.id === 'aurdin' && u.side === 'party' && !u.guest && !u.classAI; })[0];
+        if (au0 && D.magic.jokeReady && D.magic.jokeReady(s, au0)) { auJ = au0; kindJ = 'joke'; cmdJ = function () { return { do: 'cast', id: 'hideouslaughter', slot: 1, target: auJ }; }; }
+        // MAGIC MISSILE AT THE DARKNESS (the knowing player, 11-16 -- Griz: "cull will know to magic missile the cloaker before using any light"): the cloaker's fight (its gimmick
+        // 'darkness', js/mines.js M.cloaker); no light struck before Aurdin's first turn -- the AI's dark tactics off (js/aidark.js D.AIDARK) and Lymen's Channel Divinity held
+        // (Sacred Weapon's bright light, js/features.js) -- then his darts at its unseen square, one a dart (js/magic.js M.missileDark, the cutscene and the violet egg), and the
+        // lights let go after
+        else if (au0 && F.gimmick === 'darkness' && !s.gimmickDone) {
+          var ckJ = (s.units || []).filter(function (u) { return u.side === 'foe' && /cloaker/i.test(String(u.kind || u.name || '')); })[0];
+          if (ckJ) { auJ = au0; kindJ = 'darkness'; darkJ = { aidark: D.AIDARK, ch: [], back: false };
+            D.AIDARK = false; (s.units || []).forEach(function (u) { if (u.side === 'party' && u.feats && u.feats.channel > 0) { darkJ.ch.push([u, u.feats.channel]); u.feats.channel = 0; } });
+            cmdJ = function () { var sl = 1; try { sl = (D.magic.slotLevels(auJ, 1) || [])[0] || 1; } catch (eSl) { } try { darkJ.ok = D.magic.missileDark ? !!D.magic.missileDark(s, auJ, D.magic.geo('magicmissile'), ckJ.x, ckJ.y) : null; } catch (eMd) { darkJ.ok = 'unasked'; } darkJ.slot = sl; var n = 3 + Math.max(0, sl - 1), ds = []; for (var di = 0; di < n; di++) ds.push({ x: ckJ.x, y: ckJ.y, dark: true }); return { do: 'cast', id: 'magicmissile', slot: sl, target: { units: ds } }; }; }
+        }
+        if (auJ) jokeHandQ = { u: auJ, done: false };
+      }
+      var darkBackJ = function () { if (!darkJ || darkJ.back) return; darkJ.back = true; D.AIDARK = darkJ.aidark; darkJ.ch.forEach(function (c) { c[0].feats.channel = c[1]; }); };
+      // THE LANDLORD FED (the completionist): the Settling with the bucket carried -- its first word heard, then the bucket lowered at the rim and the Settling ended as the game's
+      // own update hook ends a fed one (js/roam.js R.pullIn0 'fed'; the bench's own precedent, the roam seat's landlordStep check): the walk's fights never step s.update
+      var fedS = COMPQ && s.wet && (s.units || []).some(function (u) { return u.wet === 'landlord' && !u.fed; }) && (hasFQ('bucket') || flagFQ('bucketBy') || D.scenes.some(function (z) { return z && z.roam && ((z.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; }) || (z.roam.flags || {}).bucketBy); })) ? (fedQ = { s: s, ready: false }) : null;
+      (s.units || []).forEach(function (u) { if (u === auJ || fedS) return; if (u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar && !u.object) { held.push([u, u.guest, u.classAI]); u.guest = true; u.classAI = true; } });
       var v, guard = 0, err = null;
       while (s.co && guard++ < 400000) {
         var r; try { r = s.co.next(v); } catch (eF) { err = eF; break; }
         v = undefined; if (r.done) break; var y = r.value;
+        if (fedS && fedS.ready) break;
         if (typeof y === 'number' || !y) continue;
+        if (y.scene) { if (D.magic && y.scene.draw === D.magic.jokeEgg) eggJ++; continue; }
         if (y.prompt) { v = y.prompt.opts[0].value; continue; }
-        if (y.turn) { v = { do: 'end' }; continue; }
+        if (darkJ && !darkJ.back && castJ >= 0 && (s.gimmickDone || (s.round || 0) > castJ)) darkBackJ();
+        if (y.turn) { if (auJ && y.turn === auJ && castJ < 0) { castJ = s.round || 0; v = cmdJ(); continue; } v = { do: 'end' }; continue; }
         if ((s.round || 0) > 120) break;
       }
-      held.forEach(function (h) { h[0].guest = h[1]; h[0].classAI = h[2]; });
+      held.forEach(function (h) { h[0].guest = h[1]; h[0].classAI = h[2]; }); jokeHandQ = null;
+      if (fedS) { fedQ = null; if (fedS.ready) { s.flags8 = Object.assign(s.flags8 || {}, { otyughFed: 1 }); (s.units || []).forEach(function (u) { if (u.wet === 'landlord') u.fed = true; }); s.result = 'fed'; logQ('THE LANDLORD FED: the bucket lowered at the rim, the Settling ended fed'); } }
+      darkBackJ();
+      if (auJ && kindJ === 'joke') logQ('THE JOKE: Aurdin ' + (castJ >= 0 ? 'cast Hideous Laughter at himself in round ' + castJ : 'never had his turn') + '; the egg ' + (eggJ ? 'came up' : 'did not come up'));
+      if (auJ && kindJ === 'darkness') { var egD = false; try { egD = !!(D.magic.eggFound && D.magic.eggFound(s, 'darkness')) || !!(s.flags8 && s.flags8.eggDarkness); } catch (eEg) { } logQ('THE DARKNESS: Aurdin ' + (castJ >= 0 ? 'cast Magic Missile at the darkness in round ' + castJ + ' (a level-' + (darkJ.slot || '?') + ' slot; no light up: ' + darkJ.ok + ')' : 'never had his turn') + '; the cutscene ' + !!s.gimmickDone + ', the egg ' + (egD ? 'came up' : 'did not come up')); }
       var res = s.result || (err ? 'error' : 'stalled'); fightNQ++;
       var after = held.map(function (h) { var u = h[0]; return u.name.split(' ')[0] + ' ' + Math.max(0, u.hp) + '/' + u.maxhp + (u.slain || u.dead ? ' DEAD' : u.hp <= 0 ? ' down' : ''); });
       logQ('FIGHT ' + (F.name || F.id) + (F.sub ? ' (' + F.sub + ')' : '') + (s.o && s.o.simple ? ', simple' : ', on the grid') + ': ' + foes.join(', ') + ' -> ' + String(res).toUpperCase() + ' in ' + (s.round || 0) + ' rounds; after it ' + after.join(', '));
@@ -7525,6 +7575,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // ================================================================ THE QUEST WALK (mode=questwalk1114): its head is at the block's condition
       repK.log = QL; var toQ = +get('to', 16), orderQ = get('order', 'five'), S0q = WK.state(); if (S0q) S0q.seed = +get('seed', 1113); hooksOnQ();
       var ordQ = String(orderQ).split(','); // (11-15, the second quest-walk seat: &order= takes cull, ned, nocard, or two of them joined by a comma -- his "run several variants please")
+      // THE KNOWING PLAYER (&order=player) and THE COMPLETIONIST (&order=complete; 11-16, Griz: "take one and craft it as you would as someone who knows the game and is playing the
+      // playthrough - i.e. best order (probably ned and glowseep and getting an owl) with knowledge enough to get the walking near ripples without dying to him achievement ... knows
+      // to get the ink before going to the inn"; "make sure one is going the back way down to the wet and finding the grappling hook. Make sure a variant is also feeding the landlord";
+      // "make sure some of the variants are completionist, i.e. doing Winters Errands"; "the knowledgeable one will know to have aurdin get the page from kat for the ink and have
+      // hideous laughter ready to cast on himself for the glory seeker true word fight down the road"): the player takes Ned first and the late route's legs
+      PLAYQ = ordQ.indexOf('player') >= 0; COMPQ = ordQ.indexOf('complete') >= 0; hasFQ = hasQ; flagFQ = flagQ; // (the quest's own readers handed out to fightQ, which stands outside its block)
+      if (PLAYQ) { if (ordQ.indexOf('ned') < 0) ordQ.push('ned'); if (ordQ.indexOf('late') < 0) ordQ.push('late'); }
       logQ('NEW GAME, seed ' + get('seed', 1113) + ' (the dice and the hunger\'s markers), on ' + RK.def.key + ' at ' + B1.roam.token.x + ',' + B1.roam.token.y + ' (the order: ' + (ordQ.indexOf('ned') >= 0 ? 'Ned and the Glowseep first, then ' : '') + (ordQ.indexOf('cull') >= 0 ? 'the Cull before the Five' : 'the Five first') + (ordQ.indexOf('nocard') >= 0 ? '; the card left till the first level comes' : '') + '; after the bounty the Halfway Inn, a stop on the road' + (ordQ.indexOf('late') >= 0 ? '; then the late route: Kat\'s ink, the true word, Hessle' : '') + '; then north to the guano galleries\' work and the card to the end of day ' + toQ + ')');
       var legsQ = [], doneQ = {};
       // a LEG: a piece of the route from the last save; a loss that ends the game loads that save and the leg is walked again (twice), as a player would
@@ -7702,12 +7759,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       function shiftQ() {
         var B = topK(), Rr = window.DS.R, up = B.roam.members.filter(function (u) { return u.src && !u.src.guest && !u.src.dead && u.hp > 0; }), best = null, bs = -99;
         up.forEach(function (u) { var s = Math.max(Rr.skill(u.src, 'Animal Handling', 'wis'), Rr.skill(u.src, 'Nature', 'int')) * 100 + u.hp; if (s > bs) { bs = s; best = u; } }); if (!best) return 'nobody to milk';
-        var picks = []; for (var i = 0; i < 8; i++) { var r = D.rand(); picks.push(r < 0.15 ? 'perfect' : r < 0.6 ? 'clean' : r < 0.8 ? 'dry' : 'spilt'); } RK.shiftAuto = picks;
+        RK.shiftAuto = 'perfect'; var d20S = D.mines.d20, strS = D.cradle ? D.cradle.STRAIGHT : null; D.mines.d20 = function () { return 20; }; if (D.cradle) D.cradle.STRAIGHT = true; // (CRAWLER MILKING AUTO-SUCCESS, 11-16 -- Griz: "give them crawler milking auto-success as silver and time spend (all variants)": the table rule rolled straight, the die at 20 -- six thimbles, no feeler; the forty minutes as ever)
         var s0 = silverQ(), t0 = HK.clockAt(HK.now()), pen = trigK('pen2'), seen = pen ? atTrigK(B, pen, { ans: [/^WORK A SHIFT$/].concat(up.length > 1 ? [new RegExp('^' + best.name + '$')] : []), quiet: 120 }) : 'no pen2';
-        RK.shiftAuto = null; var hb = topK().roam.members.filter(function (u) { return u.id === best.id; })[0];
+        RK.shiftAuto = null; D.mines.d20 = d20S; if (D.cradle) D.cradle.STRAIGHT = strS; var hb = topK().roam.members.filter(function (u) { return u.id === best.id; })[0];
         if (HK.clockAt(HK.now()) === t0 && pen) findingQ('shifttime', 'a shift at the pens passes no time on the clock: worked at ' + t0 + ' and done at ' + t0 + ' (deep16/js/mines.js M.penShift: the shift and its pay move nothing of THE WORLD\'s clock) -- a party can work as many as it likes in one minute');
         logQ('A SHIFT at mouth two (' + t0 + ' on): ' + best.name + ' milks -> ' + (silverQ() - s0) + ' sp' + (hb && hb.src.conds && hb.src.conds.paralyzed ? ', TOUCHED' : '') + (/touched/i.test(seen) ? ' (the feeler touched)' : '') + '; ' + silverQ() + ' sp in the purse');
+        logQ('   (MILKING: ' + (silverQ() - s0) + ' sp earned, auto-success)');
         return silverQ() - s0;
+      }
+      // MILKING FOR A NEED (11-16): the pens' shifts till the purse holds `need` -- the Missing Five's Edric first where the tally is not met (the pens want his book)
+      function milkQ(need, why) {
+        if (silverQ() >= need) return 'enough';
+        var r = toCampQ(); if (!/at the camp/.test(r)) return 'not at the camp: ' + r;
+        if (!flagQ('tallyMet')) talkQ('edric');
+        var s0 = silverQ(), n = 0, dry = 0; for (; n < 30 && silverQ() < need && dry < 3; n++) { var g = shiftQ(); if (g === 'nobody to milk') break; dry = g > 0 ? 0 : dry + 1; }
+        logQ('MILKING for ' + why + ': ' + n + ' shift(s), ' + s0 + ' -> ' + silverQ() + ' sp (the need ' + need + ')');
+        return silverQ() >= need ? 'enough' : 'short';
       }
       // a SHOP's counter: in at its door, its keeper's screen, BUY as the button does (js/counter.js Counter.buy), out again
       function buyQ(door, keeperTalk, id) {
@@ -7753,12 +7820,39 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         return 'stopped (' + whereQ() + '): ' + said.join(' || ').slice(-500);
       }
       // THE MISSING FIVE (js/hours.js H16.MISSIONS warrens): Edric's book, Skarn's gate, the rope from Marko's, the Wet's flooded stair, the tokens to Edric, Skarn's pay
+      // THE KNOWING PLAYER'S ROPE (11-16, Griz: "make sure one is going the back way down to the wet and finding the grappling hook"): the Rope & Grapple in the old workings' chest at
+      // 13,14 (content/maps/warrens_c.json; the game's own hint, content/text.json w.noRope: "There may be some in the old workings") -- in by the camp's mouth to the workings, the
+      // chest opened from 13,13, the workings' stair down to the Wet after it (the JOURNAL's arrow)
+      function hookQ() {
+        if (!(RK.def && RK.def.key === 'warrens')) { var r = toCampQ(); if (!/at the camp/.test(r)) return 'not at the camp: ' + r; }
+        var t = topK().roam.token, MP8 = window.DS.DATA.maps || {}, w8 = ((MP8[(RK.def.src8 || {}).id] || {}).warps || []).filter(function (w) { return w.to === 'warrens_c'; }).sort(function (a, b) { return (Math.abs(a.x - t.x) + Math.abs(a.y - t.y)) - (Math.abs(b.x - t.x) + Math.abs(b.y - t.y)); })[0];
+        if (!w8) return 'no way to the old workings from ' + whereQ();
+        var sq = RK.def.from8 ? RK.def.from8(w8.x, w8.y) : [w8.x, w8.y]; goK(topK(), sq, { dflt: /./, until: function () { return !!(RK.def && RK.def.src8 && RK.def.src8.id === 'warrens_c'); } }); floorQ();
+        if (!(RK.def && RK.def.src8 && RK.def.src8.id === 'warrens_c')) return 'not in the old workings (' + whereQ() + ')';
+        goK(topK(), [13, 13], { dflt: /./ }); var tk = topK().roam.token; if (!(tk.x === 13 && tk.y === 13)) return 'not at the chest (' + tk.x + ',' + tk.y + ')';
+        var seen = useK(topK(), [13, 14], { dflt: /./, quiet: 120 });
+        return hasQ('rope') ? 'found in the old workings\' chest (13,14), day ' + HK.day() + ' ' + HK.clockAt(HK.now()) : 'the chest gave no rope -- ' + seen.slice(-160);
+      }
+      // THE LANDLORD FED (the completionist, 11-16, his "Make sure a variant is also feeding the landlord"): on the Wet the carrion bucket off the crate (3,7), the rim stepped onto
+      // (8,8), the Settling (js/wet.js) -- its fight fed in fightQ
+      function landlordQ() {
+        if (!(RK.def && RK.def.src8 && RK.def.src8.id === 'warrens_d')) return 'not on the Wet (' + whereQ() + ')';
+        var f8 = function (x, y) { return RK.def.from8 ? RK.def.from8(x, y) : [x, y]; };
+        var hasB = function () { var B = topK(); return hasQ('bucket') > 0 || !!(B && (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; })); };
+        var bt = trigK('bucket'), tried = [];
+        if (!hasB() && bt) tried.push('the crate at ' + f8(3, 7) + ' ' + useBesideQ(topK(), f8(3, 7)));
+        if (!hasB()) return 'no bucket (the trigger ' + (bt ? 'there' : 'NOT ON THE FLOOR') + ', bucketBy ' + ((topK() && topK().roam && topK().roam.flags) || {}).bucketBy + ', the top ' + (D.top() && (D.top().kind || (D.top().constructor && D.top().constructor.name))) + '; ' + tried.join(' / ') + ')';
+        var ls = trigK('landlordStep'); if (!ls) return 'no rim';
+        var rim = f8(8, 8), swR = safeWalkQ(topK(), rim); if (topK() && topK().roam) atSqQ(topK(), ls, rim, { dflt: /./, quiet: 200 });
+        return 'the rim at ' + rim + ' (' + (swR || 'no clear way') + '), otyughFed ' + !!flagQ('otyughFed') + ', its XP ' + !!flagQ('otyughFedXp') + ' -- ' + partyQ();
+      }
       function fiveQ() {
         var r = toCampQ(); logQ('to the Warrens: ' + r); if (!/at the camp/.test(r)) return r;
         if (!flagQ('tallyMet') || !flagQ('fiveKnown')) { var e1 = talkQ('edric'); logQ('Edric Pellam: ' + e1.slice(0, 200)); }
         if (!flagQ('skarnOk')) { var k1 = talkQ('skarn'); logQ('Skarn: ' + k1.slice(-200)); }
         var q = questQ('warrens'); logQ('THE MISSING FIVE in the JOURNAL: ' + (q ? (q.done ? 'done' : q.where) : 'not there') + '; the rope ' + hasQ('rope') + ', ' + silverQ() + ' sp');
         if (hurtQ()) restQ('hurt before the Wet');
+        if (PLAYQ && !hasQ('rope')) logQ('THE GRAPPLING HOOK: ' + hookQ());
         // the rope: 30 sp at Marko Thorne's, the Provisioner (content/shops.json marko); short of it, shifts at the pens first
         var price = ((window.DS.DATA.items || {}).rope || {}).price || 30;
         for (var sh = 0; sh < 8 && !hasQ('rope') && silverQ() < price; sh++) { if (shiftQ() === 'nobody to milk') break; if (hurtQ()) restQ('touched at the pens'); }
@@ -7772,6 +7866,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var w = arrowQ('warrens', function () { return !!flagQ('fiveRecovered'); }, { play: { ans: [/^ROPE THEM OUT$/] }, hops: 14, stuck: 0 });
         logQ('THE WET: ' + w.slice(0, 600) + ' -- fiveRecovered ' + flagQ('fiveRecovered') + ', the tokens ' + hasQ('fivetokens'));
         if (!flagQ('fiveRecovered')) return 'not up: ' + w.slice(0, 120);
+        logQ('THE FIVE: ' + (floorsQ['warrens_c'] ? 'the back way, through the old workings and their stair' : 'the front way, through Skarn\'s gate and the drift'));
+        if (COMPQ && !flagQ('otyughFed')) logQ('THE LANDLORD: ' + landlordQ());
         // the tokens up to Edric (his fifty, the Grease page, a point of renown), then Skarn's office box (sixty while the stock lives)
         var s0 = silverQ(), r0 = HK.cur.renown, e2 = arrowQ('warrens', function () { return !!flagQ('fiveDone'); }, { hops: 10, stuck: 0 });
         logQ('THE TOKENS TO EDRIC: ' + e2.slice(-240) + ' -- fiveDone ' + flagQ('fiveDone') + ', ' + s0 + ' -> ' + silverQ() + ' sp, renown ' + r0 + ' -> ' + HK.cur.renown + ', the Grease page ' + hasQ('sheet_grease'));
@@ -7781,6 +7877,44 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       }
       // THE CULL (js/hours.js H16.MISSIONS cull): Sabeth Pollard at the guano mine's weigh-shed, west of Silverton on THE WORLD; the dens below the working gallery, the bats at three
       // silver a head and the darkmantles at ten, paid at her shed; its one law, no fire and no noise under a roost; done when the one down there is brought up (flag rescued)
+      // THE CLOAKER AND CORWEN DACE (the knowing player, 11-16 -- Griz: "cull will know to magic missile the cloaker before using any light and to take the guy up top down the
+      // slide after, and take his cloak as reward"): rested at the hands' bunkhouse; the working gallery's slide (28,3) to the deep gallery; the cloaker (the darts at the darkness:
+      // fightQ); up by the ladder; Dace by the beam, TAKE HIM; down the slide with him, THE CLOAK at the deep gallery (js/mines.js M.daceDeep); up; the tail at Hessle's, 400 sp
+      function slideQ() {
+        if (!(RK.def && /^galleries/.test(RK.def.key || ''))) return 'not at the mine (' + whereQ() + ')';
+        if ((RK.def.src8 || {}).id !== 'galleries_g2') { var d2 = downQ('galleries_g2'); if (d2 !== 'there') return 'not on the working gallery: ' + d2; }
+        goK(topK(), [28, 3], { dflt: /./, until: function () { return !!(RK.def && RK.def.src8 && RK.def.src8.id === 'galleries_g4'); } }); playK({ dflt: /./, quiet: 60 }); floorQ();
+        return RK.def && RK.def.src8 && RK.def.src8.id === 'galleries_g4' ? 'down the slide (slideFound ' + !!flagQ('slideFound') + ')' : 'not down the slide (' + whereQ() + ')';
+      }
+      function onG4Q() { return !!(RK.def && RK.def.src8 && RK.def.src8.id === 'galleries_g4' && D.top() !== WK.scene); }
+      function cloakerQ() {
+        if (!(RK.def && /^galleries/.test(RK.def.key || '') && D.top() !== WK.scene)) return 'not at the mine (' + whereQ() + ')';
+        if (!flagQ('cloakerKilled') && !flagQ('cloakerDone') && !hasQ('cloakertail')) {
+          bunkQ('before the cloaker: rested, the slots full');
+          var sl = slideQ(); logQ('THE CLOAKER: ' + sl); if (!onG4Q()) return sl;
+          goK(topK(), [10, 9], { dflt: /./, until: function () { return !!flagQ('cloakerKilled') || !onG4Q(); } }); playK({ dflt: /./, quiet: 60 });
+          logQ('THE CLOAKER: killed ' + !!flagQ('cloakerKilled') + ', the tail ' + hasQ('cloakertail') + ', on ' + whereQ() + ' -- ' + partyQ());
+          if (!flagQ('cloakerKilled')) return 'the cloaker not killed';
+          var u1 = downQ('galleries_g1'); logQ('UP FROM THE DEEP GALLERY: ' + u1); if (u1 !== 'there') return 'not up: ' + u1;
+          if (hurtQ() || downQ0()) bunkQ('after the cloaker');
+        }
+        if (!flagQ('daceDone')) {
+          if ((RK.def.src8 || {}).id !== 'galleries_g1') { var u2 = downQ('galleries_g1'); if (u2 !== 'there') return 'not by the beam: ' + u2; }
+          var dt = talkQ('dace', { ans: [/^TAKE HIM$/], dflt: /^TAKE HIM$/, quiet: 120 });
+          logQ('CORWEN DACE by the beam: daceWith ' + !!flagQ('daceWith') + ', daceAfter ' + !!flagQ('daceAfter') + ' -- ' + dt.slice(-160));
+          if (!flagQ('daceWith')) return 'Dace not taken';
+          var sl2 = slideQ(); logQ('DACE DOWN THE SLIDE: ' + sl2); if (!onG4Q()) return sl2;
+          goK(topK(), [10, 9], { ans: [/^THE CLOAK$/], dflt: /^THE CLOAK$/, until: function () { return !!flagQ('daceDone'); } }); playK({ ans: [/^THE CLOAK$/], dflt: /./, quiet: 60 });
+          logQ('DACE\'S REWARD: daceDone ' + !!flagQ('daceDone') + ', THE CLOAK ' + (!!flagQ('daceCloak') || hasQ('cloakdisplacement') > 0) + ' -- ' + partyQ());
+          var u3 = downQ('galleries_g1'); logQ('UP AGAIN: ' + u3);
+        }
+        if (hasQ('cloakertail') && !flagQ('cloakerDone')) {
+          var tt3 = toTownQ();
+          if (tt3 === 'in town') { var hs = trigK('keeper:hessle'); if (hs) atTrigK(topK(), hs, { until: function () { return RK.def.room === 'keeper:hessle'; } }); var s0 = silverQ(), hsT = trigK('talk:hessle'), said = hsT ? atTrigK(topK(), hsT, { quiet: 120 }) : 'no talk:hessle'; logQ('THE TAIL AT HESSLE\'S SCALES: cloakerDone ' + !!flagQ('cloakerDone') + ', ' + s0 + ' -> ' + silverQ() + ' sp, renown ' + HK.cur.renown + ' -- ' + said.slice(-160)); if (RK.def.room) goOutQ(); }
+          else logQ('THE TAIL: not in town (' + tt3 + ')');
+        }
+        return 'the cloaker killed ' + !!flagQ('cloakerKilled') + ', the cloak ' + !!flagQ('daceCloak') + ', the tail paid ' + !!flagQ('cloakerDone');
+      }
       function cullQ() {
         var r = '';
         if (RK.def && RK.def.key !== 'galleries') { if (D.top() !== WK.scene && (RK.def.key !== 'silverton' || RK.def.room || RK.def.hexIn)) { var tt = toTownQ(); /* (11-15, the second quest-walk seat: any floor not the street -- the Glowseep's too -- to town first) */ if (tt !== 'in town') return 'to town: ' + tt; } if (D.top() !== WK.scene && WK.timeOfDay() === 'night') byDayQ('before the guano mine, at night'); /* (11-15, the second quest-walk seat: the first seat's "set out for the guano mine by day too" -- a night only, the mine a short walk) */ if (D.top() !== WK.scene) r = gateOutQ('west'); if (D.top() === WK.scene) r = worldK('mouth', {}); }
@@ -7810,11 +7944,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       }
       // a mine's floors by their own ways (H16.wayTo: the first game's warps, the fewest maps), to the floor `id8`
       function downQ(id8) {
-        var viaD = [(RK.def && RK.def.src8 && RK.def.src8.id) || whereQ()]; // (11-15, the third quest-walk seat: the floors it walked when it does not get there -- a trial walk could not get up from the dens, galleries_g3 > g4 > g3 > g4, and walked it six times)
+        var viaD = [(RK.def && RK.def.src8 && RK.def.src8.id) || whereQ()]; // (11-15, the third quest-walk seat: the floors it walked when it does not get there -- a trial walk could not get up from the dens, galleries_g3 > g4 > g3 > g4, and walked it six times; the cause the first game's ways counted for the grid's, found by the desk in the mine's arrow 11-16)
         for (var h = 0; h < 6; h++) {
           if (RK.def && RK.def.src8 && RK.def.src8.id === id8) return 'there';
           var B = topK(); if (!B || !B.roam || D.top() === WK.scene) return 'off the floors (' + whereQ() + ')';
-          var sq = H6K.wayTo(B, id8); floorQ();
+          var hereM = (RK.def && RK.def.src8 && RK.def.src8.id) || '';
+          if (hereM === 'galleries_g3' && /^galleries_g[12]$/.test(id8)) { var w3 = ((window.DS.DATA.maps.galleries_g3 || {}).warps || []).filter(function (w) { return w.to === 'galleries_g2'; })[0]; if (w3) { var to3 = RK.def.from8 ? RK.def.from8(w3.x, w3.y) : [w3.x, w3.y], sw3 = safeWalkQ(B, to3); logQ('THE DENS WEST to the working gallery (' + to3 + '): ' + (sw3 || 'no clear way -- ' + safeDiagQ)); B = topK(); if (sw3 && !/^off the floor/.test(sw3)) { var kW = keyQ(); goK(topK(), to3, { dflt: /./, until: function () { return keyQ() !== kW; } }); floorQ(); var nowW = (RK.def && RK.def.src8 && RK.def.src8.id) || whereQ(); if (nowW !== 'galleries_g3') { viaD.push(nowW); continue; } } } }
+          B = topK(); var sq = H6K.mineWay && /^galleries_/.test(hereM || '') && /^galleries_/.test(id8) ? H6K.mineWay(B, id8) || H6K.wayTo(B, id8) : H6K.wayTo(B, id8); floorQ(); /* (11-16: inside the guano mine the mine's own arrow, js/hours.js H16.mineWay -- the desk's fix of the g3/g4 bounce, 2fad8197; H16.wayTo still counts its hops on the first game's maps, and after the cloaker a walk went g3 > g4 > g3 by it) */
           if (!sq) { // (no way by H16.wayTo -- the mouth's warp up into the working gallery carries the cond "!lit:always": the first game's warps read bare, the next map on the fewest)
             var MP = window.DS.DATA.maps || {}, here = RK.def.src8 && RK.def.src8.id, prev = {}, qq = [here]; prev[here] = null;
             for (var qi = 0; qi < qq.length && !(id8 in prev); qi++) ((MP[qq[qi]] || {}).warps || []).forEach(function (w) { if (!(w.to in prev) && MP[w.to]) { prev[w.to] = qq[qi]; qq.push(w.to); } });
@@ -7960,6 +8096,31 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (shut && H6K.canWait && H6K.canWait(topK())) { H6K.wait(topK()); playK({ ans: [/TILL A LONG REST/], dflt: /./, quiet: 120 }); var sh2 = HK.longWhy(8, ''); logQ('M > WAIT at the mouth, TILL A LONG REST (' + why + '): ' + (sh2 ? 'still shut: ' + strip(sh2).slice(0, 80) : 'open at ' + HK.clockAt(HK.now()))); }
         return restQ(why);
       }
+      // A WAY CLEAR OF THE FLOOR'S TRAPS (11-16, the third quest-walk seat): a breadth-first way on the grid's own squares (B.map.at) to `to`, stepping on no warp and no trigger nor
+      // beside one -- but within a square of `to` itself -- walked a few squares at a time. After the cloaker the party came up the ladder at the dens' east end and the way west
+      // to the working gallery, as the walk took it, went back down the ladder (g3 > g4 > g3, the work stopped); the Wet's crate stands by the landlord's rim. Null: no such way
+      var safeDiagQ = '';
+      function safeWalkQ(B, to) {
+        var haz = {}, s8 = RK.def.src8 || {}, f8 = function (x, y) { return RK.def.from8 ? RK.def.from8(x, y) : [x, y]; }, mark = function (q) { for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) haz[(q[0] + dx) + ',' + (q[1] + dy)] = 1; };
+        (s8.warps || []).forEach(function (w) { mark(f8(w.x, w.y)); }); (RK.def.warps || []).forEach(function (w) { if (w.at) mark(w.at); });
+        (s8.triggers || []).forEach(function (t) { if (t.on === 'use' || t.walkOn || (t.cond && RK.cond && !RK.cond(t.cond, (B.roam && B.roam.flags) || {}))) return; var r8 = t.rect || []; if (r8.length < 2) return; for (var ix = 0; ix < (r8[2] || 1); ix++) for (var iy = 0; iy < (r8[3] || 1); iy++) { var q8 = f8(r8[0] + ix, r8[1] + iy); haz[q8[0] + ',' + q8[1]] = 1; } }); // (a trigger fires on its own squares when stepped on; one that wants a use, never by walking)
+        var tk = B.roam.token, wsq = {}; (s8.warps || []).forEach(function (w) { var qw = f8(w.x, w.y); wsq[qw[0] + ',' + qw[1]] = 1; }); (RK.def.warps || []).forEach(function (w) { if (w.at) wsq[w.at[0] + ',' + w.at[1]] = 1; });
+        for (var ux = -1; ux <= 1; ux++) for (var uy = -1; uy <= 1; uy++) { var kt = (to[0] + ux) + ',' + (to[1] + uy), kk = (tk.x + ux) + ',' + (tk.y + uy); if (!wsq[kt] || (ux === 0 && uy === 0)) delete haz[kt]; if (!wsq[kk]) delete haz[kk]; } // (the margin a warp keeps is let go beside the party and beside the end; a warp's own square stays shut)
+        var k0 = tk.x + ',' + tk.y, prev = {}, q = [[tk.x, tk.y]], found = false; prev[k0] = null;
+        var okSq = function (x, y) { if (x < 0 || y < 0 || x >= RK.def.w || y >= RK.def.h) return false; var c = B.map && B.map.at ? B.map.at(x, y) : null; return !!(c && c.walk !== false) && !haz[x + ',' + y]; };
+        for (var i = 0; i < q.length && !found; i++) { var c = q[i]; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = [c[0] + d[0], c[1] + d[1]], kn = n[0] + ',' + n[1]; if (kn in prev || !(okSq(n[0], n[1]) || (n[0] === to[0] && n[1] === to[1]))) return; prev[kn] = c; if (n[0] === to[0] && n[1] === to[1]) found = true; q.push(n); }); }
+        if (!found) { safeDiagQ = 'from ' + tk.x + ',' + tk.y + ' on a ' + RK.def.w + 'x' + RK.def.h + ' grid, ' + q.length + ' squares reached; beside it ' + [[1, 0], [-1, 0], [0, 1], [0, -1]].map(function (d) { var x = tk.x + d[0], y = tk.y + d[1], c = B.map && B.map.at ? B.map.at(x, y) : null; return x + ',' + y + (c ? (c.walk === false ? ' wall' : ' floor') : ' none') + (haz[x + ',' + y] ? ' shut' : ''); }).join('; '); return null; }
+        var path = [], cur = to; while (cur && !(cur[0] === tk.x && cur[1] === tk.y)) { path.unshift(cur); cur = prev[cur[0] + ',' + cur[1]]; }
+        var k1 = keyQ();
+        for (var j = 2; j < path.length - 1; j += 3) { goK(topK(), path[j], { dflt: /./, until: function () { return keyQ() !== k1; } }); if (keyQ() !== k1 || !(topK() && topK().roam)) return 'off the floor on the way (' + whereQ() + ')'; }
+        return path.length + ' squares, clear';
+      }
+      // a grid square used from beside it, the way there clear of the traps: the first walkable neighbour (B.map.at), the walk there (safeWalkQ), faced, E
+      function useBesideQ(B, at, o) {
+        var ns = [[at[0], at[1] + 1], [at[0] - 1, at[1]], [at[0] + 1, at[1]], [at[0], at[1] - 1]].filter(function (n) { var c = B.map && B.map.at ? B.map.at(n[0], n[1]) : null; return !!(c && c.walk !== false); });
+        for (var i = 0; i < ns.length; i++) { var sw = safeWalkQ(topK(), ns[i]); if (!sw) continue; goK(topK(), ns[i], { dflt: /./ }); var tk = topK().roam.token; if (tk.x !== ns[i][0] || tk.y !== ns[i][1]) continue; return 'from ' + ns[i] + ' (' + sw + '): ' + useK(topK(), at, o || { dflt: /./, quiet: 120 }).slice(-120); }
+        return 'no clear way beside ' + at;
+      }
       function densSqQ(B) { // (a square of the dens the party can walk to by a way that steps on no warp and no trigger, nor beside one: the dens' two holes, pit19 and pit30, drop a party into the deep gallery -- a trial walk fell through them and fought the cloaker)
         var haz = {}, s8 = RK.def.src8 || {}, f8 = function (x, y) { return RK.def.from8 ? RK.def.from8(x, y) : [x, y]; }, mark = function (q) { for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) haz[(q[0] + dx) + ',' + (q[1] + dy)] = 1; };
         (s8.warps || []).forEach(function (w) { mark(f8(w.x, w.y)); }); (RK.def.warps || []).forEach(function (w) { if (w.at) mark(w.at); });
@@ -8012,6 +8173,20 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // once a visit (the page is otherwise fifty silver: the walk does not buy it, it wants his job); the Glowseep's bog off the east gate, its fights walked into till a snake's
       // tongue drops (content/monsters.json parts); the crews' fire for the night; back to Ned with the tongue
       var NEDQ = { ans: [], dflt: /^No\.$|fascinating|^Deal\.$|snake's tongue/ }; // (one answer by what each screen offers: NO to "can you cast it", the insight's line, DEAL, the tongue; none of those, the last -- "We should get going.")
+      // THE OWL (the knowing player, 11-16, his "getting an owl"): Ned's page copied into Aurdin's book, the calling herbs at Mama's Pharmakaiea (50 sp; the pens first where the purse is
+      // short), Find Familiar cast on Silverton's street in the owl's shape (js/house.js H.fieldOnFloor, H.famForms: the street offers the rat and the owl)
+      function owlHasQ() { var B = topK(), f = (B && B.roam && B.roam.flags && B.roam.flags.familiar) || flagQ('familiar') || (HK.cur && HK.cur.flags && HK.cur.flags.familiar); return !!(f && /owl/.test(f.kind || '')); }
+      function owlQ() {
+        if (owlHasQ()) return 'has the owl';
+        var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
+        var B = topK(), au = auSheetQ(); if (!au) return 'no Aurdin';
+        if ((au.known || []).indexOf('findfamiliar') < 0) { if (!hasQ('sheet_findfamiliar')) return 'no page'; var l1 = D.house.fieldOnFloor(B, 'item', { id: 'sheet_findfamiliar', h: au }, unitOfQ(B)); logQ('THE OWL: Ned\'s page copied (' + strip([].concat(l1 || []).join(' ')).slice(0, 160) + ')'); }
+        if (!hasQ('callingherbs')) { if (silverQ() < 50) milkQ(50, 'the calling herbs'); if (silverQ() < 50) return 'no silver for the herbs (' + silverQ() + ')'; var b = buyQ('shop:lucia', 'talk:lucia', 'callingherbs'); logQ('THE OWL: the calling herbs at Mama\'s Pharmakaiea: ' + b); if (!hasQ('callingherbs')) return 'no herbs'; }
+        var tt2 = toTownQ(); if (tt2 !== 'in town') return 'to town: ' + tt2;
+        B = topK(); au = auSheetQ(); var l2 = D.house.fieldOnFloor(B, 'cast', { h: au, sp: window.DS.DATA.spells.findfamiliar, form: 'owl' }, unitOfQ(B));
+        logQ('THE OWL: ' + (owlHasQ() ? 'got' : 'NOT GOT') + ', Find Familiar on Silverton\'s street, day ' + HK.day() + ' (' + strip([].concat(l2 || []).join(' ')).slice(0, 200) + ')');
+        return owlHasQ() ? 'the owl' : 'no owl';
+      }
       function percyQ(why) {
         var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
         var wp = trigK('warp:percy'); if (!wp) return 'no way to Percy\'s';
@@ -8024,7 +8199,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         return flagQ('nedDone') ? 'the page' : flagQ('nedQuest') ? 'the job' : 'no job this visit';
       }
       function seepQ() {
-        if (!flagQ('nedQuest') || flagQ('nedDone')) { var p0 = percyQ('the first visit'); if (!flagQ('nedQuest')) return p0; }
+        if (!flagQ('nedQuest') || flagQ('nedDone')) { var p0 = percyQ('the first visit'); for (var pvQ = 0; PLAYQ && pvQ < 6 && !flagQ('nedQuest') && !flagQ('nedDone'); pvQ++) p0 = percyQ('again: the knowing player out and in, the Insight asked again (js/counter.js C.ned: once a visit)'); if (!flagQ('nedQuest')) return p0; }
         if (!hasQ('snaketongue')) {
           var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
           if (hurtQ()) restQ('hurt before the Glowseep');
@@ -8067,6 +8242,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (!HK.cur || HK.day() > toQ) return;
         var q0 = questQ(qq[2]); if (q0 && q0.done) return;
         legQ(qq[0], qq[1]);
+        if (PLAYQ && HK.cur && flagQ('nedDone') && !owlHasQ()) legQ('the owl (the knowing player)', owlQ);
+        if (PLAYQ && HK.cur && qq[2] === 'cull' && flagQ('rescued') && !(flagQ('daceDone') && flagQ('cloakerDone'))) legQ('the cloaker and Dace (the knowing player)', cloakerQ);
         if (HK.cur && levelDueQ()) legQ('a level banked: the long rest', function () { return restLevelQ(); });
         if (HK.cur && levelsQ() > lvCardQ) { legQ('the card, levelled', function () { var r = toTownQ(); return r === 'in town' ? cardQ('a level came') : 'not in town: ' + r; }); lvCardQ = levelsQ(); }
       });
@@ -8077,6 +8254,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (levelDueQ()) legQ('a level banked: the long rest', function () { return restLevelQ(); });
         if (HK.cur && levelsQ() > lvCardQ) { legQ('the card, levelled', function () { var r = toTownQ(); return r === 'in town' ? cardQ('a level came') : 'not in town: ' + r; }); lvCardQ = levelsQ(); }
         legQ(lg[0], lg[1]);
+        if (PLAYQ && HK.cur && flagQ('nedDone') && !owlHasQ()) legQ('the owl (the knowing player)', owlQ);
       });
       // THE LATE ROUTE (&order=late; 11-15, the second quest-walk seat, on his "have the questwalk consider cats ink a quest and cashing in the ettercap bounty, then going for
       // the true word question and turn in"): after Web Gulch and the bounty cashed at Hessle's (gulchQ above), before the inn's nights -- KAT'S INK (js/inn.js In.katVisit:
@@ -8101,6 +8279,49 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         logQ(tag + 'KAT at the table for two (' + why + '): the ink asked ' + !!flagQ('katInk') + ', the vision ' + !!flagQ('katVision') + ', ink in the pack ' + hasQ('ink') + ' -- ' + s.slice(-220));
         return flagQ('katVision') ? 'the vision' : flagQ('katInk') ? 'the ink asked' : 'no errand';
       }
+      function auSheetQ() { var B = topK(), u = B && B.roam ? B.roam.members.filter(function (m) { return m.src && m.src.id === 'aurdin'; })[0] : null; return u ? u.src : null; }
+      function unitOfQ(B) { return function (h) { return B.roam.members.filter(function (u) { return (u.src || u) === h; })[0] || null; }; }
+      // KAT'S PAGE (the knowing player): Hideous Laughter copied into Aurdin's book from the sheet she gives for the ink (js/inn.js In.katVision), on the floor where they stand
+      function hlLearnQ() {
+        var B = topK(); if (!(B && B.roam) || D.top() === WK.scene) return 'not on a floor';
+        var au = auSheetQ(); if (!au) return 'no Aurdin'; if ((au.known || []).indexOf('hideouslaughter') >= 0) return 'in his book already';
+        if (!hasQ('sheet_hideouslaughter')) return 'no page in the pack';
+        var l = D.house.fieldOnFloor(B, 'item', { id: 'sheet_hideouslaughter', h: au }, unitOfQ(B)); au = auSheetQ();
+        logQ('KAT\'S PAGE: Aurdin copies Hideous Laughter -- in his book ' + ((au.known || []).indexOf('hideouslaughter') >= 0) + ' (' + strip([].concat(l || []).join(' ')).slice(0, 160) + ')');
+        return (au.known || []).indexOf('hideouslaughter') >= 0 ? 'copied' : 'not copied';
+      }
+      // HIS DAY READIED FOR THE JOKE (the knowing player, before the Pit road): Hideous Laughter among the day's spells on the save's own sheet, as a player picks it at the morning --
+      // in place of the last one prepared that is not it, Magic Missile or Shield
+      function prepHLQ() {
+        var h = ((HK.cur && HK.cur.party) || []).filter(function (x) { return x.id === 'aurdin'; })[0]; if (!h) return 'no Aurdin';
+        if ((h.known || []).indexOf('hideouslaughter') < 0) return 'not in his book';
+        if (!h.prepared) return 'his day unprepared: all he knows is his';
+        if (h.prepared.indexOf('hideouslaughter') < 0) { var n = window.DS.R.prepCount ? window.DS.R.prepCount(h) : h.prepared.length + 1; h.prepared.push('hideouslaughter'); while (h.prepared.length > n) { var k = -1; for (var i = h.prepared.length - 1; i >= 0; i--) if (['hideouslaughter', 'magicmissile', 'shield'].indexOf(h.prepared[i]) < 0) { k = i; break; } if (k < 0) break; h.prepared.splice(k, 1); } }
+        return 'prepared: ' + h.prepared.join(', ');
+      }
+      // WINTERS' ERRANDS (the completionist; js/counter.js C.winters, C.wintersWork): the estate papers sealed at Androit's and valued at Casper's, back to Winters (12 sp, his
+      // shelves); the Pryor purse signed by Mical and paid to Brennan, back again (20 sp, a potion, a point of renown) -- and his ring when the lead is third level (YES to wear it)
+      function wintersQ() {
+        var FL = ['wErrA', 'wSealed', 'wValued', 'wErrADone', 'wErrB', 'wSigned', 'wPaid', 'wErrBDone', 'wintersRing'], fl = function () { return FL.filter(function (k) { return !!flagQ(k); }).join(' '); };
+        var WA = function () { return { ans: [/^WORK$/, /^TAKE IT$/], dflt: /^YES$|^LEAVE$|^NOT NOW$/, quiet: 120 }; };
+        var into = function (id) { if (RK.def.room === id) return true; if (RK.def.room) goOutQ(); var t = trigK(id); if (!t) return false; atTrigK(topK(), t, { until: function () { return RK.def.room === id; }, dflt: /./, quiet: 120 }); return RK.def.room === id; };
+        var door = function (id) { if (RK.def.room) goOutQ(); var t = trigK(id); return t ? atTrigK(topK(), t, { dflt: /./, quiet: 120 }) : 'no ' + id; };
+        var s0 = silverQ(), r0 = HK.cur.renown, last = '', same = 0;
+        for (var i = 0; i < 16 && !flagQ('wErrBDone'); i++) {
+          var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
+          var said = '';
+          if (flagQ('wErrA') && !flagQ('wErrADone') && !flagQ('wSealed')) { into('keeper:androit'); said = 'Androit: ' + talkQ('androit', { dflt: /./, quiet: 120 }).slice(-80); }
+          else if (flagQ('wErrA') && !flagQ('wErrADone') && !flagQ('wValued')) { into('keeper:casper'); said = 'Casper: ' + talkQ('casper', { dflt: /./, quiet: 120 }).slice(-80); }
+          else if (flagQ('wErrB') && !flagQ('wErrBDone') && !flagQ('wSigned')) said = 'Mical: ' + door('keeper:mical').slice(-80);
+          else if (flagQ('wErrB') && !flagQ('wErrBDone') && !flagQ('wPaid')) said = 'Brennan: ' + door('keeper:brennan').slice(-80);
+          else { if (!into('warp:winters')) return 'no way into Winters\'s'; said = 'Winters: ' + talkQ('winters', WA()).slice(-80); }
+          if (RK.def.room) goOutQ();
+          var now = fl(); logQ('WINTERS: ' + said.replace(/\s+/g, ' ') + ' -- ' + (now || 'no flags'));
+          if (now === last) { if (++same >= 2) break; } else same = 0; last = now;
+        }
+        if (flagQ('wErrADone')) logQ('WINTERS: done, the estate papers'); if (flagQ('wErrBDone')) logQ('WINTERS: done, the Pryor purse');
+        return (flagQ('wErrBDone') ? 'both errands done' : 'not done: ' + fl()) + '; ' + s0 + ' -> ' + silverQ() + ' sp, renown ' + r0 + ' -> ' + HK.cur.renown + (flagQ('wintersRing') ? ', the ring' : '');
+      }
       function inkQ() {
         var k1 = flagQ('katInk') ? 'asked at the inn stop' : katQ('the first visit'); if (flagQ('katVision')) return 'the vision';
         if (!flagQ('katInk')) return 'no errand: ' + k1;
@@ -8122,7 +8343,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var TWq = D.trueword || {}, from = TWq.FROM_DAY || 5, n = 0; // (out on the road from day 5, seven to seven: js/trueword.js TW.FROM_DAY, TW.HOURS -- a party at the inn on day 4 waits for it)
         while (n < 24 && !(HK.day() >= from && WK.hour() >= 7 && WK.hour() < 12) && H6K.canWait && topK() && H6K.canWait(topK())) { H6K.wait(topK()); playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 120 }); n++; }
         if (n) logQ('LATE: waited ' + n + ' bell' + (n > 1 ? 's' : '') + ' for the glory-seekers\' day and hours (from day ' + from + ', seven to seven, js/trueword.js TW.FROM_DAY, TW.HOURS): day ' + HK.day() + ' ' + HK.clockAt(HK.now()));
+        if (PLAYQ) { var hlQ = hlLearnQ(); if (hlQ !== 'in his book already') logQ('KAT\'S PAGE before the Pit road: ' + hlQ); }
         var eo = edgeOutQ(); if (D.top() !== WK.scene) return 'not off the inn: ' + eo;
+        if (PLAYQ) logQ('THE JOKE READIED: ' + prepHLQ());
         var f0 = fightNQ, r = worldK('pit', { stayOut: true, until: function () { return !!flagQ('snootDone'); } }); // (the card's first key is FIGHT; a beaten party backs away and meets them again a step on; past nightfall the walk goes on to the Pit's door and stays out)
         logQ('LATE: THE TRUE WORD on the Pit road: snootDone ' + !!flagQ('snootDone') + ', met ' + (flagQ('snootMet') || 0) + ' time(s), ' + (fightNQ - f0) + ' fight(s), the anchor-pin ' + pinQ() + ' -- ' + r.slice(0, 240));
         return flagQ('snootDone') ? 'won' : 'not won';
@@ -8145,7 +8368,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (!hasQ('ink')) { if (silverQ() < 100) return 'no silver'; var b = buyQ('shop:lisbet', 'talk:lisbet', 'ink'); logQ('LATE: LISBET\'S, the ink (after the turn-in): ' + b + ' -- the ink ' + hasQ('ink') + ', ' + silverQ() + ' sp'); if (!hasQ('ink')) return 'no ink'; }
         var k = katQ('with the ink, after the turn-in'); return flagQ('katVision') ? 'the vision' : 'no vision: ' + k;
       }
-      if (HK.cur && HK.day() <= toQ) legQ('the Halfway Inn, a stop on the road', innStopQ); // (11-15, the third quest-walk seat: a night, Kat and the first supper as they come -- the late route's legs from her floor, else north)
+      if (COMPQ && HK.cur && HK.day() <= toQ) legQ('Winters\' errands (the completionist)', wintersQ);
+      if (PLAYQ && HK.cur && HK.day() <= toQ) legQ('the ink, before the road south (the knowing player)', function () { if (flagQ('katVision') || hasQ('ink')) return 'not needed'; if (silverQ() < 100) milkQ(100, 'the ink'); if (silverQ() < 100) return 'no silver: ' + silverQ(); var b = buyQ('shop:lisbet', 'talk:lisbet', 'ink'); logQ('THE INK at Lisbet\'s before the road south: ' + b + ' -- the ink ' + hasQ('ink') + ', ' + silverQ() + ' sp'); return hasQ('ink') ? 'the ink' : 'no ink'; });
+      if (HK.cur && HK.day() <= toQ) legQ('the Halfway Inn, a stop on the road', innStopQ);
+      if (PLAYQ && HK.cur && flagQ('katVision')) legQ('Kat\'s page: Aurdin copies Hideous Laughter', hlLearnQ); // (11-15, the third quest-walk seat: a night, Kat and the first supper as they come -- the late route's legs from her floor, else north)
       if (ordQ.indexOf('late') >= 0) [['the late route: Kat\'s ink', inkQ], ['the late route: the true word on the Pit road and to Hessle', function () { var t = truewordQ(); return t === 'won' || t === 'won before' ? t + '; ' + hessleWordQ() : t; }], ['the late route: the ink after the turn-in', inkAgainQ]].forEach(function (lg) { if (HK.cur && HK.day() <= toQ) legQ(lg[0], lg[1]); });
       // THEN NORTH TO SILVERTON'S WORK AND THE CARD, to the end of day `to` (11-15, the third quest-walk seat, the desk's smallest grind: the guano galleries' bats at Sabeth's pay and
       // the card each time a level comes, no new quest); the inn never walked back to on the walk's own account -- not for the wagon's night (day 12), not for the due
@@ -8160,6 +8386,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (HK.now() === tg0) { zeroQ++; var zb = topK(); if (zb && zb.roam && H6K.canWait && H6K.canWait(zb)) { H6K.wait(zb); playK({ ans: [/NEXT BELL/], dflt: /./, quiet: 120 }); } logQ('a round with no fight and no time: a bell waited at the mouth (' + HK.clockAt(HK.now()) + '), and down again'); } else zeroQ = 0;
       }
       var tailQ = rollLineQ(); if (tailQ) QL.push('   (' + tailQ + ')');
+      QL.push('MR. RIPPLES: the nearest the walk came to the Vessel ' + (ripQ.min == null ? 'not measured' : ripQ.min.toFixed(1) + ' mi (' + ripQ.minAt + ')') + '; within five miles unmet ' + (ripQ.near ? 'yes' : 'no') + (ripQ.waits ? '; the knowing player waited ' + ripQ.waits + ' hour(s) for him' : ''));
       QL.push('END ' + hhQ() + ' at ' + whereQ() + ': ' + partyQ() + '; ' + purseQ() + ' -- ' + fightNQ + ' fights fought; the legs: ' + legsQ.join(' | '));
       okK('questwalk', 'THE QUEST WALK walked without a throw: ' + legsQ.join(' | ') + ' -- ' + QL.length + ' lines in its log', QL.length > 2);
       findQ.forEach(function (f) { noteK('FINDING [' + f.id + '] ' + f.s); });
