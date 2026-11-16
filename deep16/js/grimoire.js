@@ -1698,7 +1698,7 @@
   var onStartZ = M.onStart;
   M.onStart = function (B, u) { onStartZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'moonbeam' && G.inArea(u, zoneSq(z))) zoneHit(B, z, u, 'starts its turn in the moonbeam'); }); };
   var onEndZ = M.onEnd;
-  M.onEnd = function (B, u) { onEndZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'flamingsphere' && G.standing(u) && G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5) zoneHit(B, z, u, 'ends its turn beside the flaming sphere', true); }); };
+  M.onEnd = function (B, u) { onEndZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'flamingsphere' && G.standing(u) && !u.sunk && B.units.indexOf(u) >= 0 && G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5) zoneHit(B, z, u, 'ends its turn beside the flaming sphere', true); }); }; // (11-16, the bug seat, his play record's lead: not one sunk -- the Wet's landlord gone under the pool on its own turn, W.sink, off the field -- js/wet.js)
   var stepIntoZ = M.stepInto;
   M.stepInto = function (B, u) { var stop = stepIntoZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'moonbeam' && G.inArea(u, zoneSq(z))) zoneHit(B, z, u, 'steps into the moonbeam'); }); return stop || u.hp <= 0; };
   // Gust of Wind's: a creature that starts its turn in the line, STR or blown 15 ft along it; the caster's own turn, the line swept again (a cloud laid in it since, a torch lit)

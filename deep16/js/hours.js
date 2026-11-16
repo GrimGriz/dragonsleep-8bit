@@ -303,8 +303,11 @@
   H16.fly = function* (B, lines) {
     var R0 = B.roam, F = H16.FLY, jf = B.jfly = { lines: lines, t0: B.t, n: 0, go: null, end: null, chimed: false };
     var at = function () { return Math.max(B.t - jf.t0, jf.n); }, after = F.slide + F.fly + F.glow + F.out;
+    // (11-16, the bug seat: only a click or E ('use') pokes it -- the walks' "the save after Hessle's room fails the first time": the bounty's step flies into the JOURNAL as the party
+    // comes out of the room, and the fly-in took EVERY key in the floor's queue for a poke and emptied it, M > SAVE among them (and a menu's ACT). The rest stay queued for the floor after it)
+    var pokes = function () { var n = 0; if (R0 && R0.keys) for (var i = R0.keys.length - 1; i >= 0; i--) if (R0.keys[i] === 'use') { R0.keys.splice(i, 1); n++; } return n; };
     while (true) {
-      var e = at(), poke = R0 && ((R0.clicks && R0.clicks.length) || (R0.keys && R0.keys.length)); if (R0) { R0.clicks.length = 0; R0.keys.length = 0; }
+      var e = at(), poke = R0 && ((R0.clicks && R0.clicks.length) || pokes()); if (R0) R0.clicks.length = 0;
       if (jf.go == null && (poke || e >= F.read)) jf.go = e; else if (jf.go != null && poke) jf.n = jf.t0 = -1e6; // (a second poke: to the end)
       var s = jf.go == null ? -1 : at() - jf.go;
       if (s >= F.slide + F.fly + F.glow && !jf.chimed) { jf.chimed = true; D.sfx('journal'); }
@@ -312,7 +315,7 @@
       jf.n += 6; yield 6;
     }
     if (!jf.chimed) D.sfx('journal');
-    B.jfly = null; if (R0) { R0.clicks.length = 0; R0.keys.length = 0; }
+    B.jfly = null; if (R0) { R0.clicks.length = 0; pokes(); }
   };
   H16.drawFly = function (ctx, B) {
     var jf = B.jfly; if (!jf) return; var F = H16.FLY, e = Math.max(B.t - jf.t0, jf.n), s = jf.go == null ? -1 : e - jf.go;

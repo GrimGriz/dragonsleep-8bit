@@ -1047,6 +1047,7 @@
     });
     var famB = (b.units || []).filter(function (u) { return u.familiar && u.side === 'party'; })[0];
     if (R0.fam && famB) R0.fam.hp = Math.max(0, famB.dead ? 0 : famB.hp); // (the familiar as that fight left it: hurt, or fallen and off the floor -- R.famPlace)
+    if (famB && (famB.dead || famB.gone)) delete R0.flags.familiar; // (11-16, the bug seat: struck down, it is gone till Find Familiar is cast again -- the next floor seated it from the save's flag: his record's "the owl back with no recast")
     // a Light cast in a fight under a roost, carried back onto its floor by R.LASTING, let go as it is at the floor's door (10-28 later, his "check 'light' being cast in battle or
     // from the menu carrying over to whether they can go in the guano mines": R.roostLights)
     var roostL = R.def && R.def.roost ? R.roostLights(B).slice(1) : []; // (said on the card back on the floor, below)

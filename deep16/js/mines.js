@@ -382,6 +382,10 @@
     var R = D.roam, fl = JSON.parse(JSON.stringify(B.roam.flags || {})), inv = JSON.parse(JSON.stringify(B.inv || [])), sp = B.roam.silver || 0, watch = /[?&]watch\b/.test(R.q || '') ? '&watch' : '';
     // (its guests with them, as they walk -- hurt, and a Light still on one: the next floor's setup takes them into the token, M.carry; the house's ride in its save)
     M.carry = B.roam.members.filter(function (u) { return u.src && u.src.guest; }).map(function (u) { var h = JSON.parse(JSON.stringify(u.src)); h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.light)) delete h.conds.light; return h; });
+    // THE FOUR CARRIED WHOLE (11-16, the bug seat; Griz: "losing gear between iso and regular roams is broken" -- the desk's 10-30 probe: only on a TEST door, this one, which
+    // built a fresh four at the address's level on every floor while the house's floors carry the sheets in the save): each of the four as it stands -- its sheet (level, gear
+    // worn and held, spells, feats), its hit points and slots now, what lasts of its conditions -- laid on the next floor's four by name, then their gear read again (R.regear)
+    var four = B.roam.members.filter(function (u) { return u.src && !u.src.guest; }).map(function (u) { var h = JSON.parse(JSON.stringify(u.src)); h.hp = Math.max(0, Math.min(u.maxhp, u.hp)); h.slots = (u.slots || []).slice(); h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.light)) delete h.conds.light; return h; });
     M.off(B);
     var nb = R.make(q + watch), en = nb.enter; R.flags0 = fl;
     if (M.FLOORS[key]) R.def = M.floor(key, q + watch, fl);
@@ -389,6 +393,9 @@
     if (key === 'wet') R.def = R.wholeWet(fl); // (the Wet laid by the flags it is walked into with: the drained stair's tiles)
     nb.enter = function () {
       en.apply(this, arguments); this.inv = inv; this.roam.silver = sp;
+      var self = this, carried = 0;
+      this.roam.members.forEach(function (u) { if (!u.src || u.src.guest) return; var id = u.src.key || u.src.id, sh = four.filter(function (h) { return (h.key || h.id) === id; })[0]; if (!sh) return; if (sh.equip) u.src.equip = JSON.parse(JSON.stringify(sh.equip)); R.resheet(self, u, sh); carried++; });
+      if (carried) R.regear(this);
       if (a8) { var t = this.roam.token, e8 = R.def.from8(+a8[1], +a8[2]); if (D.grid.canStand(t, e8[0], e8[1])) { t.x = e8[0]; t.y = e8[1]; D.grid.setup(this.map, this.units); this.focus(t); } } // (on the first game's square the stair sets them down on, as the house's floor is: R.setup's at8)
     };
     return nb;

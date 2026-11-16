@@ -4570,6 +4570,140 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preN);
     return;
   }
+  // BARLEY'S FIVE, 11-16 (mode=barley1116; the bug seat of 11-16, on Griz's "Barley's 4 is 'you spot him 5', he bouts to join party, 4 is payout after he wins"):
+  // FRONT 5 SP at the Hex, his bout at once, won -- "Five in, ten out. He presses your five back into your hand.": the purse after is the purse before, on the simple
+  // screen and on the grid (his record of 11-15 0300Z: the bout on the grid)
+  if (get('mode', '') === 'barley1116') {
+    var repB = { checks: [], errors: [], notes: [] }, memB = {}, stGB = D.store.get, stSB = D.store.set, HB = D.house, RB = D.roam, CB = D.counter, COB = D.company, muB = D.music;
+    function okB(what, v) { repB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topB() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function stepB(B, n, until) { for (var k = 0; k < (n || 1); k++) { if (until && until()) return true; var s = topB(); if (!s || !s.roam || !s.co) return false; var st = s.co.next(); if (st.done) { if (D.top() !== s) continue; return false; } if (typeof st.value === 'number') s.t += Math.max(1, st.value); } return !!(until && until()); }
+    function answerB(sc, want, seen) { for (var k = 0; k < 60 && !sc.done && D.top() === sc; k++) { var w = sc.wait || {}, bs = sc.buttons(); if (w.ask) { var lb = (w.opts || []).map(String), i = -1; for (var j = 0; j < want.length && i < 0; j++) i = lb.indexOf(want[j]); if (i < 0) i = lb.length - 1; seen.push('[' + lb.join(' | ') + '] > ' + lb[i]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i; })[0]); } else { if (w.say) seen.push([].concat(w.say).join(' ')); sc.press(bs[0]); } } }
+    function hireB(grid) {
+      var seen = [], bt = (COB.BEATS || []).filter(function (b) { return b.id === 'barley'; })[0], rec = COB.stage(bt); rec.silver = 10; rec.flags.papaLymen = 1; HB.begin(rec, 0); /* (Papa and Lymen's talk at the door had: mode=opening1028's way) */
+      var B = topB(); stepB(B, 4);
+      var R0 = B.roam, hf = RB.def.marks && RB.def.marks.hexFront && RB.def.marks.hexFront[0], tk0 = R0.token; if (!hf) return { err: 'no Hex door on ' + (RB.def && RB.def.key) };
+      var nx = [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1]].map(function (o) { return [hf[0] + o[0], hf[1] + o[1]]; }).filter(function (q) { return D.grid.canStand(tk0, q[0], q[1]); })[0]; if (nx) { tk0.x = nx[0]; tk0.y = nx[1]; tk0.tween = null; D.grid.setup(B.map, B.units); } R0.fw = [Math.sign(hf[0] - tk0.x), Math.sign(hf[1] - tk0.y)]; R0.path = null; R0.keys.push('use'); // (in at the Hex's front doors, from beside them as opening1028 goes in; any word on the way answered)
+      for (var kd = 0; kd < 20; kd++) { stepB(B, 600, function () { return (RB.def && RB.def.hexIn && topB() && topB().roam) || D.top() instanceof CB.Counter; }); if (D.top() instanceof CB.Counter) { answerB(D.top(), [], seen); continue; } break; }
+      B = topB(); if (!B || !B.roam) return { err: 'not on a floor after the door (' + (B && (B.kind || B.constructor.name)) + ')' }; stepB(B, 30); var R1 = B.roam, bu = B.units.filter(function (u) { return u.npc === 'barleyBench'; })[0]; if (!bu) return { err: 'no Barley on the bench (' + (RB.def && RB.def.key) + ')' };
+      var t = R1.token, sq = [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1], [-1, -1], [1, -1]].map(function (o) { return [bu.x + o[0], bu.y + o[1]]; }).filter(function (q) { return D.grid.canStand(t, q[0], q[1]) && RB.walkRoute(t, q); })[0];
+      if (!sq) return { err: 'no square beside Barley' };
+      t.x = sq[0]; t.y = sq[1]; t.tween = null; D.grid.setup(B.map, B.units); R1.fw = [Math.sign(bu.x - t.x), Math.sign(bu.y - t.y)]; R1.path = null;
+      var s0 = R1.silver; R1.keys.push('use');
+      stepB(B, 400, function () { return D.top() instanceof CB.Counter; });
+      var sc = D.top(); if (!(sc instanceof CB.Counter)) return { err: 'no word with Barley', s0: s0 };
+      answerB(sc, ['FRONT 5 SP', grid ? 'ON THE GRID' : 'SIMPLE', grid ? '' : 'FIGHT'].filter(Boolean), seen); var sPaid = R1.silver;
+      // the bout: up on top; won by force -- the bruiser down at Barley's first turn
+      stepB(B, 600, function () { var s1 = D.top(); return !!s1 && s1 !== B && !!s1.fight; });
+      var b = D.top(); if (!b || b === B || !b.fight) return { err: 'no bout', s0: s0, seen: seen.join(' / ') }; if (b.baking) { b.baking = false; b.enter(); }
+      var v, g = 0; while (b.co && g++ < 100000) { var r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y) continue; if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; } if (y.turn) { b.units.forEach(function (z) { if (z.side === 'foe') { z.hp = 0; z.dead = true; } }); v = { do: 'end' }; continue; } }
+      var res = b.result; if (D.top() === b) D.pop(); if (b.o && b.o.onDone) b.o.onDone(res);
+      for (var k = 0; k < 6; k++) { stepB(B, 2000, function () { return D.top() instanceof CB.Counter; }); var sc2 = D.top(); if (sc2 instanceof CB.Counter) answerB(sc2, [], seen); else break; }
+      stepB(B, 120);
+      var out = { s0: s0, paid: sPaid, after: topB() && topB().roam ? topB().roam.silver : R1.silver, house: HB.cur ? HB.cur.silver : null, res: res, simple: !!b.simple, seen: window.DS.stripCodes(seen.join(' / ')) };
+      HB.playing = false; HB.cur = null; while (D.scenes.length) D.pop();
+      return out;
+    }
+    D.store.get = function (k) { return memB[k] ? JSON.parse(memB[k]) : null; }; D.store.set = function (k, v) { memB[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1116);
+      [false, true].forEach(function (grid) {
+        var h = hireB(grid);
+        okB('BARLEY\'S FIVE BACK, the bout ' + (grid ? 'ON THE GRID' : 'on the simple screen') + ': ' + (h.err ? 'NOT WALKED: ' + h.err : 'the purse ' + h.s0 + ', fronted ' + h.paid + ', the bout ' + h.res + ' (' + (h.simple ? 'simple' : 'grid') + '), after ' + h.after + ' (the save ' + h.house + ')') + ' -- ' + String(h.seen || '').slice(-240),
+          !h.err && h.res === 'won' && h.simple === !grid && h.paid === h.s0 - 5 && h.after === h.s0);
+      });
+    } catch (eB) { repB.errors.push(String(eB && eB.stack || eB).slice(0, 900)); }
+    HB.playing = false; HB.cur = null;
+    D.store.get = stGB; D.store.set = stSB; D.music = muB;
+    var preB = document.createElement('pre'); preB.id = 'out'; preB.textContent = 'BENCH16 ' + JSON.stringify(repB);
+    document.body.appendChild(preB);
+    return;
+  }
+  // THE OPENING'S LEADS, 11-16 (mode=opening1116; the bug seat of 11-16, the lanes order's items 4, 6 and 7, on Griz's "start the opus seat with barley's 4 added"):
+  // 1. A SAVE PRESSED WHILE THE JOURNAL'S FLY-IN PLAYS is kept and made after it (the walks' "the save after Hessle's room fails the first time", 8 of 98 reloads:
+  // the bounty paid puts a step in the JOURNAL, its fly-in (js/hours.js H16.fly) took every key in the floor's queue as a poke and emptied it -- M > SAVE among them)
+  if (get('mode', '') === 'opening1116') {
+    var repO = { checks: [], errors: [], notes: [] }, memO = {}, stGO = D.store.get, stSO = D.store.set, HO = D.house, RO = D.roam, InO = D.inn, H6O = D.hours, muO = D.music;
+    function okO(what, v) { repO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topO() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function stageO(day, hour, flags, at) { InO.play({ key: InO.KEY, at: at || [24, 17], hour: hour, day: day, inside: true, flags: Object.assign({ reachedInn: 1, gennetNamed: 1, mealHad: 1 }, flags || {}) }); var s = topO(); for (var k = 0; k < 4 && s && s.roam && s.co; k++) { var st = s.co.next(); if (st.done) break; } return topO(); }
+    D.store.get = function (k) { return memO[k] ? JSON.parse(memO[k]) : null; }; D.store.set = function (k, v) { memO[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1116);
+      // 1. SAVE DURING THE FLY-IN: the fly-in started on the floor, M > SAVE pressed ten frames in (js/roam.js: the M menu's SAVE pushes 'save' on the floor's keys), the floor
+      // played on -- the SAVE screen comes up once the words are in the JOURNAL; and an E (a poke) still moves the fly-in on as before
+      var flyO = function (pokeAt, key) {
+        var B = stageO(6, 10), R0 = B.roam, co0 = B.co, slots = null, flyT = null, t0 = B.t, keysLeft = null;
+        B.co = (function* () { yield* H6O.fly(B, ['A NEW MISSION: Testing the fly-in.']); flyT = B.t - t0; yield* co0; })();
+        for (var k = 0; k < 2400 && !slots; k++) {
+          var s = topO(); if (!s) break;
+          if (s.kind === 'houseslots') { slots = { at: k, mode: s.mode }; break; }
+          if (s !== B) { D.pop(); continue; }
+          if (k === pokeAt) R0.keys.push(key);
+          var st = B.co.next(); if (st.done) break; if (typeof st.value === 'number') B.t += Math.max(1, st.value); else B.t++;
+          if (flyT != null && keysLeft == null) keysLeft = R0.keys.slice();
+        }
+        HO.playing = false; HO.cur = null;
+        return { slots: slots, flyT: flyT, keysLeft: keysLeft };
+      };
+      var sv = flyO(10, 'save'), ev = flyO(10, 'use');
+      okO('SAVE PRESSED DURING THE JOURNAL\'S FLY-IN: the SAVE screen ' + (sv.slots ? 'came up (' + sv.slots.mode + ') after the fly-in\'s ' + sv.flyT + ' frames' : 'NEVER came up (the fly-in ' + sv.flyT + ' frames, the keys after it ' + JSON.stringify(sv.keysLeft) + ')') + '; an E at the same frame still hurries it: ' + ev.flyT + ' frames against ' + sv.flyT + ', nothing left queued ' + JSON.stringify(ev.keysLeft),
+        !!sv.slots && sv.slots.mode === 'save' && sv.flyT != null && ev.flyT != null && ev.flyT < sv.flyT && !(ev.keysLeft || []).length);
+      // 2. THE FOUR CARRIED WHOLE BETWEEN FLOORS ON A TEST DOOR (his "losing gear between iso and regular roams is broken"; js/mines.js M.testMake): the Warrens' mouth at
+      // level 3, Barley's armour taken off and his hit points down, a spell slot spent; down to the Wet (M.go) -- the same four come up: his armour still off, his hit points,
+      // the slot, the level 3 (the Wet's address names no level: a fresh four would be the door's level 5)
+      while (D.scenes.length) D.pop(); var MO = D.mines;
+      D.push(RO.make('?roam=warrens&lvl=3&watch')); var BG = topO(); for (var kg = 0; kg < 4 && BG.co; kg++) { if (BG.co.next().done) break; }
+      var byO = function (B, id) { return B.roam.members.filter(function (u) { return u.src && (u.src.key || u.src.id) === id; })[0]; };
+      var ba0 = byO(BG, 'barley'), au0 = byO(BG, 'aurdin'), arm0 = ba0 && ba0.src.equip ? ba0.src.equip.armor : 'none';
+      if (ba0) { if (ba0.src.equip) ba0.src.equip.armor = null; RO.regear(BG); ba0.hp = Math.max(1, ba0.hp - 7); }
+      if (au0 && au0.slots && au0.slots.length) au0.slots[0] = Math.max(0, au0.slots[0] - 1);
+      var want = { hp: ba0 && ba0.hp, ac: ba0 && ba0.baseAC, lvl: ba0 && ba0.src.lvl, slot0: au0 && au0.slots ? au0.slots[0] : null };
+      var gG = MO.go(BG, 'wet', [2, 12], MO.FACE.right); for (var k2 = 0; k2 < 600; k2++) { var s2 = gG.next(); if (s2.done) break; if (typeof s2.value === 'number') BG.t += s2.value; }
+      var BW = topO(), ba1 = BW && BW.roam ? byO(BW, 'barley') : null, au1 = BW && BW.roam ? byO(BW, 'aurdin') : null;
+      var got = { hp: ba1 && ba1.hp, ac: ba1 && ba1.baseAC, lvl: ba1 && ba1.src.lvl, slot0: au1 && au1.slots ? au1.slots[0] : null, armor: ba1 && ba1.src.equip ? ba1.src.equip.armor : 'none' };
+      okO('THE FOUR CARRIED WHOLE down a test door\'s stair (the Warrens\' mouth at level 3 to the Wet, M.go): Barley\'s armour (' + arm0 + ') off, ' + JSON.stringify(want) + ' -- on ' + (D.roam.def && D.roam.def.key) + ': ' + JSON.stringify(got),
+        !!ba1 && !!au1 && !got.armor && got.hp === want.hp && got.ac === want.ac && got.lvl === want.lvl && got.slot0 === want.slot0 && arm0 !== 'none' && !!arm0);
+      while (D.scenes.length) D.pop();
+      // 3. THE BAT WINGS (his "also not showing bat-wings from along the way"): a giant bat and a bat swarm fallen, the spoils as the floor pays them (js/roam.js R.spoils ->
+      // js/rules.js R.spoils: a part to whoever standing has its skill, Survival) -- on a test door's floor and on a game's floor, the wings in the pack and who harvests them
+      var batsO = function (B) { var fell = [{ m: window.DS.DATA.monsters.giantbat, id: 'giantbat' }, { m: window.DS.DATA.monsters.batswarm, id: 'batswarm' }]; var inv0 = JSON.stringify(B.inv || []), lines = RO.spoils(B, fell), w = (B.inv || []).filter(function (x) { return x.id === 'batwings'; })[0]; return { lines: lines.join(' '), wings: w ? w.n : 0, surv: B.roam.members.filter(function (u) { return u.src && u.src.skills && u.src.skills.Survival != null; }).map(function (u) { return u.name; }) }; };
+      D.push(RO.make('?roam=galleries&lvl=3&watch')); var BB = topO(); for (var kb = 0; kb < 4 && BB.co; kb++) { if (BB.co.next().done) break; } var bt1 = batsO(BB); while (D.scenes.length) D.pop();
+      var BB2 = stageO(6, 10), bt2 = batsO(BB2); HO.playing = false; HO.cur = null; while (D.scenes.length) D.pop();
+      okO('THE BAT WINGS from a giant bat and a bat swarm: on a test door (?roam=galleries&lvl=3) ' + bt1.wings + ' in the pack ("' + bt1.lines + '"; Survival: ' + (bt1.surv.join(', ') || 'nobody') + '); in a game ' + bt2.wings + ' ("' + bt2.lines + '"; Survival: ' + (bt2.surv.join(', ') || 'nobody') + ')',
+        bt1.wings === 2 && bt2.wings === 2);
+      // 4. THE SPHERE AND A SUNK LANDLORD (his record's lead "a sunk landlord takes the sphere's end-of-turn fire"; js/grimoire.js M.onEnd): an otyugh beside a Flaming Sphere
+      // ends its turn and burns; gone under the pool (js/wet.js W.sink: off the field, `sunk`) it does not
+      var mkO = function (q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; };
+      var sphereO = function (sink) { var Bs = mkO('?npc=otyugh&lvl=5&vs=wizard:5'), ot = Bs.units.filter(function (u) { return u.side === 'foe'; })[0], wz = Bs.units.filter(function (u) { return u.side === 'party'; })[0]; ot.hp = ot.maxhp; Bs.zones = [{ id: 'flamingsphere', by: wz.id, x: ot.x - 1, y: ot.y, dice: '2d6', dc: 30, save: 'dex', type: 'fire', hit: {} }]; if (sink) { ot.sunk = true; Bs.units = Bs.units.filter(function (u) { return u !== ot; }); } var h0 = ot.hp; D.magic.onEnd(Bs, ot); return h0 + ' > ' + ot.hp; };
+      var spA = sphereO(false), spB = sphereO(true);
+      okO('THE SPHERE\'S END-OF-TURN FIRE: an otyugh beside it ' + spA + '; the same otyugh sunk under the pool ' + spB, spA.split(' > ')[0] !== spA.split(' > ')[1] && spB.split(' > ')[0] === spB.split(' > ')[1]);
+      // 5. THE RECORD'S PARTY (his record's lead "town0 barnGoblin in the inn fight's PARTY, hp 4, never in initiative"; js/record.js): a floor's own person standing on its
+      // fight as an ally (js/town.js: side 'party', no hero's sheet) is not in PARTY, nor its hit points at the start
+      var Br = mkO('?npc=goblin&lvl=3&vs=fighter:3'), wr = Br.units.filter(function (u) { return u.side === 'party'; })[0], gob = Br.makeFoe({ id: 'town0', kind: 'goblin', at: [wr.x, wr.y + 3], side: 'party', ally: true }); gob.npc = 'barnGoblin'; gob.hp = gob.maxhp = 4; Br.units.push(gob);
+      D.rec.start(Br, { fight: 'bench', name: 'bench', level: 3 }); D.rec.snap(Br); D.rec.refused(Br, wr, 'bench', null);
+      var pty = (Br.rec.party || []).map(function (p) { return p.id; }), hp0 = Object.keys(Br.rec.hp0 || {});
+      okO('THE RECORD\'S PARTY with the barn\'s goblin standing on the fight as an ally: PARTY ' + JSON.stringify(pty) + ', the hit points at the start of ' + JSON.stringify(hp0), pty.length === 1 && pty[0] === wr.id && hp0.indexOf('town0') < 0 && hp0.indexOf(wr.id) >= 0);
+      while (D.scenes.length) D.pop();
+      // 6. THE OWL STRUCK DOWN STAYS GONE (his record's lead "Aurdin's owl back after 'struck down' with no recast"): the inn's floor with Aurdin's owl; struck down on its
+      // own floor's fight (js/familiar.js FM.vanish); up the stair to the guest floor -- no owl seated there; the save's familiar gone till Find Familiar
+      var Bf = stageO(6, 10, { familiar: { kind: 'owl', by: 'aurdin', hp: 1 } }), fam = Bf.roam.fam || Bf.units.filter(function (u) { return u.familiar && u.side === 'party'; })[0], had = !!fam;
+      if (fam) D.familiar.vanish(Bf, fam);
+      var flagGone = !Bf.roam.flags.familiar, gU = MO.go(Bf, InO.UP, InO.ROOM.big.at, InO.ROOM.big.face); for (var k6 = 0; k6 < 600; k6++) { var s6 = gU.next(); if (s6.done) break; if (typeof s6.value === 'number') Bf.t += s6.value; }
+      var Bu = topO(); if (Bu && Bu.roam && Bu.co) { for (var k7 = 0; k7 < 6; k7++) { if (Bu.co.next().done) break; } }
+      var famUp = Bu && Bu.units ? Bu.units.filter(function (u) { return u.familiar && u.side === 'party' && !u.dead; }).map(function (u) { return u.name; }) : ['NO FLOOR'];
+      var seatT = Bu && Bu.roam ? D.familiar.unit(Bu, { flags: Bu.roam.flags }, Bu.roam.members) : null; // (the next fight pulled in from this floor seats one from the save's flag: js/roam.js, FM.unit)
+      okO('THE OWL STRUCK DOWN STAYS GONE: seated on the inn\'s floor ' + had + '; struck down, the save\'s familiar ' + (flagGone ? 'gone' : 'STILL THERE') + '; up the stair on ' + (D.roam.def && D.roam.def.key) + ', seated: ' + (famUp.join(', ') || 'none') + '; the next fight from there seats ' + (seatT ? seatT.name + ' at ' + seatT.hp + ' hp' : 'none'), had && flagGone && !famUp.length && !seatT && D.roam.def && D.roam.def.key === InO.UP);
+      HO.playing = false; HO.cur = null; while (D.scenes.length) D.pop();
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    HO.playing = false; HO.cur = null; if (InO) { InO.stay = false; InO.pinned = null; }
+    D.store.get = stGO; D.store.set = stSO; D.music = muO;
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO);
+    document.body.appendChild(preO);
+    return;
+  }
   // THE ELDER MAGE (mode=eldermage1107; the desk of 11-07, on Griz's "can we squeeze him as a lvl whatever wizard with +10 resistances on the roster ... (with a ring of
   // flying and displacer cloak) onto live"): js/classes.js NPC.NAMED.eldermage on the DM's roster (js/pocketdm.js PK.STOCK), his sheet (tools/eldermage-sheet.py), +10 to every
   // save (js/rules.js R.saveBonus), and aloft in a fight by the ring (js/flight-ai.js)

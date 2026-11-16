@@ -42,7 +42,10 @@
   function worn(u) { var e = u.src && u.src.equip, o = {}; if (!e) return undefined; Object.keys(e).forEach(function (k) { if (e[k]) o[k] = e[k]; }); return o; }
   function packOf(B) { return (B.inv || []).filter(function (s) { return s && s.n > 0; }).map(function (s) { return { id: s.id, n: s.n }; }); }
   // ours in the party blocks: the heroes and the guests, a familiar -- not a summoned beast (11-10: Conjure Animals' eight wolves stood in PARTY END as party)
-  function ours(w) { return w.side === 'party' && !w.summon; }
+  // (11-16, the bug seat, his record's lead "town0 barnGoblin in the inn fight's PARTY": a floor's own people stand on its fights as allies, side 'party', with no hero's sheet
+  // -- js/town.js, the chained one in the inn's barn among them -- and are nobody's party)
+  function folk(w) { return typeof w.npc === 'string' && !w.src && !w.familiar; }
+  function ours(w) { return w.side === 'party' && !w.summon && !folk(w); }
   function sheet(u) {
     return { id: u.id, name: u.name, cls: u.cls, lvl: u.lvl, subclass: u.subclass, hp: startHp(u), maxhp: u.maxhp, ac: D.rules && D.rules.ac ? D.rules.ac(u) : u.baseAC,
       weapon: u.weapon && u.weapon.id, slots: startSlots(u), slotsMax: u.slotsMax && u.slotsMax.slice(), equip: worn(u), known: (u.known || []).slice(), darkvision: u.darkvision || 0 };
@@ -231,7 +234,7 @@
   REC.snap = function (B) {
     var r = B && B.rec; if (!r) return;
     r.hp0 = r.hp0 || {}; r.slots0 = r.slots0 || {};
-    (B.units || []).forEach(function (w) { if (w.side === 'party' && r.hp0[w.id] == null) r.hp0[w.id] = w.hp; if (w.side === 'party' && w.slots && r.slots0[w.id] == null) r.slots0[w.id] = w.slots.slice(); });
+    (B.units || []).forEach(function (w) { if (w.side !== 'party' || folk(w)) return; if (r.hp0[w.id] == null) r.hp0[w.id] = w.hp; if (w.slots && r.slots0[w.id] == null) r.slots0[w.id] = w.slots.slice(); });
   };
   REC.finish = function (B, result) {
     var r = B.rec;

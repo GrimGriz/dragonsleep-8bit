@@ -208,6 +208,7 @@
   FM.vanish = function (B, f) {
     FX.sparkle(f, 'glow', 14); D.sfx('magic');
     f.dead = true; f.left = true; f.gone = true; f.deadT = B.t; f.riding = false; delete f.order; delete f.carried; delete f.ko;
+    if (B.roam && B.roam.flags) delete B.roam.flags.familiar; // (11-16, the bug seat, his record's lead "the owl back after 'struck down' with no recast": gone till the ritual -- on a floor's own fight the floor's save forgets it; a pulled-in fight's, js/roam.js below the fight)
     B.card(['{o}' + f.name + ' is struck down, and is gone:{/} {g}no body, nothing left. Find Familiar brings it back.{/}']);
   };
 
