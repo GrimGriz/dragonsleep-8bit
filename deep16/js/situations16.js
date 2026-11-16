@@ -49,6 +49,13 @@
       open: ['cull'], done: ['company', 'work'], pin: 'cull',
       at: { town: 'mouth', gate: 'east' }, day: 1, hour: 10,
       look: 'Day 2, mid-morning, level 4: the four at the guano mine\'s mouth, Aurdin leading, with the feat Second Draft. Out by the east gate to THE WORLD, CAMP, then AN HOUR (R): the short rest\'s lines, and the SECOND DRAFT page -- SECOND DRAFT: AURDIN, a prepared spell to let go (X back), then one to take up in its place; the row then says DRAFTED, and MAGIC shows the new day. CAMP and AN HOUR again: no page (once a long rest). THE NIGHT, then an hour: the page again.' },
+    // (THE CAMP PAGE's door, 11-16 -- the words-and-boxes seat, on his 11-11 note "what about 'camp' on the world button reading the location and time and opening a page similar to
+    // 'camp' in the pocket DM", RULED 11-16 "thought we had built already, do": the four at level 3 on THE WORLD by the guano mine's mouth at evening, a little hurt)
+    camp16: { group: G, title: 'THE WORLD by the guano mine\'s mouth at evening, the four at level 3: CAMP opens the camp\'s page (11-16)', pt: 'the second game\'s house · the camp page · situations from a link',
+      lead: 'lymen', lvl: 3, kit: true, silver: 30, renown: 1, hurt: true, give: [['potion', 2], ['torch', 2]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1, heardGalleries: 1 },
+      open: ['cull'], done: ['company', 'work'], pin: 'cull',
+      at: { town: 'mouth', world: true }, day: 1, hour: 20,
+      look: 'Day 2, 20:00, level 3: the four on THE WORLD on the guano mine\'s hex, a little hurt. CAMP (the button, or SPACE): the camp\'s page -- where you are and the hour at its head, the four\'s hit points, AC and hit dice, the fire, THE MENU (M), and LONG REST: 8 HOURS, THREE WATCHES / SHORT REST: AN HOUR / WALK ON. Take the long rest, then CAMP again: LONG REST greyed with the hour it opens, WAIT TILL A LONG REST, and after the wait "A long rest now?".' },
     // (the four's own asks at 3, 11-03 -- the leveling lane item 13, RULED 10-31 "Agreed, when main story character classes are built out": the four at level 2 with the next level
     // banked, `bank`, so the night's rest levels them and the morning asks -- Barley's archetype, Lymen's oath)
     three16: { group: G, title: 'Silverton at evening, the four at level 2 with a level banked: the night\'s rest, then Barley\'s archetype and Lymen\'s oath asked at 3 (11-03)', pt: 'the leveling · the four\'s own asks · situations from a link',
@@ -98,6 +105,7 @@
     var ft = (s.feats || {})[id]; if (ft) h.featIds = (h.featIds || []).concat(ft).filter(function (x, i, a) { return a.indexOf(x) === i; }); // (`feats`: a feat over the build's, 10-31 -- Second Draft's door)
     R.refresh(h, true); // (what is worn bonds: R.attune)
     if (s.bank && R.XP_LEVEL[h.lvl + 1] != null) h.xp = R.XP_LEVEL[h.lvl + 1]; // (`bank`: the next level's XP, had at the next long rest -- js/house.js H.restSheets, 11-03)
+    if (s.hurt) h.hp = Math.max(1, Math.ceil(h.maxhp / 2)); // (`hurt`: each at half, a short rest's to mend -- the camp page's door, 11-16)
     return h;
   };
   // the square beside a Silverton person (js/company.js CO.stage's way), or on a mark
@@ -127,9 +135,10 @@
       (s.done || []).forEach(function (q) { S16.meet(st, q, 'show'); S16.meet(st, q, 'done'); });
       if (s.pin) rec.flags.pin = s.pin;
       rec.flags.qSeen = 1; C.quests(st).forEach(function (q) { rec.flags['q:' + q.id] = 1; }); // (the JOURNAL as it stands, seen: no card flies for what it opens with -- js/hours.js H16.missionDue)
+      // (`world`: on THE WORLD itself on the place's hex, no floor -- at.town names the place, 11-16, the words-and-boxes seat: the camp page's door, camp16)
       var at = s.at || {}, town = at.town || 'silverton', dr = W.DOORS[town], pl = null;
-      if (town === 'silverton' && (at.near || at.mark || at.door) && D.town && D.town.floor) pl = besideOn(D.town.floor('', rec.flags), at);
-      rec.at = { town: town, gate: at.gate || (dr ? Object.keys(dr.gates)[0] : 'west'), sq: at.sq || (pl && pl.sq) || null, dir: at.dir || (pl && pl.dir) || null };
+      if (town === 'silverton' && !at.world && (at.near || at.mark || at.door) && D.town && D.town.floor) pl = besideOn(D.town.floor('', rec.flags), at);
+      rec.at = at.world ? { town: null, gate: null, sq: null, dir: null } : { town: town, gate: at.gate || (dr ? Object.keys(dr.gates)[0] : 'west'), sq: at.sq || (pl && pl.sq) || null, dir: at.dir || (pl && pl.dir) || null };
       // THE WORLD under it: the place's hex (the Warrens have none of their own -- Silverton's feed track), the day and the hour
       if (W.index) W.index(); // (THE WORLD's map is indexed on its first look: js/world.js W.index)
       var Mw = W.map && W.map('world'), sid = dr && town !== 'warrens' ? town : 'silverton', site = Mw && (Mw.sites || []).filter(function (x) { return x.id === sid; })[0];

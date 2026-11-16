@@ -190,7 +190,7 @@
     if ((S.todayHex || 0) + H.marchCost(st) <= H.DAYHEX + 1e-9 || S.pushing) return false;
     var path = w.path.slice(); scene.walk = null;
     scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + H.hexes(S.todayHex) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
-      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { if (!H.longOpen(W.REST) && scene.campCard) scene.campCard(); else H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]); // (MAKE CAMP inside the 24 hours: the camp's card, its night greyed -- H.longOpen, 11-05)
+      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { if (!H.longOpen(W.REST) && scene.campPage) scene.campPage(); /* (the camp's page since 11-16: js/world.js) */ else if (!H.longOpen(W.REST) && scene.campCard) scene.campCard(); else H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]); // (MAKE CAMP inside the 24 hours: the camp's card, its night greyed -- H.longOpen, 11-05)
     return true;
   };
   H.marchHours = function (st) { return st.h / (H.pace() || 1); };

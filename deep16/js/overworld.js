@@ -129,7 +129,7 @@
     if (!hv) ov.hov = null;
     if (m.click && m.inside && ov.plan) { ov.walk = { path: ov.plan.tiles.slice(), f: 0 }; sc.clicked = { x: Math.round(m.x), y: Math.round(m.y), zi: ov.zi, zn: OV.ZOOMS.length, tile: hv.slice(), hex: S.at.slice() }; ov.plan = null; ov.free = false; D.sfx('confirm'); return; }
     if (I.pressed('a')) { var here = OV.doorHere(), rt = OV.routeHere(); if (here) sc.offerDoor(here, ov.last || null); else if (rt) sc.offerRoute(rt); else OV.look(sc); }
-    if (I.pressed('end') && W.house()) { sc.campCard(); return; } // (the house's camp: the night's three watches, or an hour -- js/world.js campCard)
+    if (I.pressed('end') && W.house()) { sc.campPage(); return; } // (the camp's page since 11-16: js/world.js World.campPage) // (the house's camp: the night's three watches, or an hour -- js/world.js campCard)
     if (I.pressed('end')) { var upsC = W.camp(); D.sfx('confirm'); sc.say(W.campSaid(upsC)); }
   };
   // a step a time, as the hex view's: past the day's march it asks, never camps on its own (10-22, his "Right now moving seems to be auto-camping" -- till then a camp

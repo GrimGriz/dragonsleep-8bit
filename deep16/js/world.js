@@ -464,7 +464,7 @@
     if (hk !== this.hovK) { this.hovK = hk; this.hov = hv; this.plan = hv ? W.planTo(pp ? [pp.x, pp.y] : hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.clicked = { x: Math.round(m.x), y: Math.round(m.y), zi: this.zi, zn: ZS.length, hex: hv.slice(), place: pp ? pp.id : null }; this.plan = null; D.sfx('confirm'); return; } // (clicked: the travel record's -- W.travel)
     if (I.pressed('a')) this.here();
-    if (I.pressed('end') && W.house()) { this.campCard(); return; }
+    if (I.pressed('end') && W.house()) { this.campPage(); return; } // (the camp's page since 11-16: World.campPage)
     if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say(W.campSaid(ups)); }
   };
   // a step a time: the hours spent at its end (past the day's 8, a camp first), the place there, and (pass B) the road's chance of a fight
@@ -555,9 +555,102 @@
   World.prototype.campCard = function () {
     var me = this, Hs = D.house, why = Hs && Hs.longWhy ? Hs.longWhy(W.REST, 'M: WAIT till then') : '';
     this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.'].concat(why ? D.wrap(why, 280).map(function (l) { return '{r}' + l + '{/}'; }) : [], ['', D.keys(why ? '{g}R{/}: an hour (a short rest)    {g}M{/}: wait    {g}X{/}: walk on' : '{g}E{/}: the night (three watches, eight hours, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')]), null,
-      [['a', function () { D.house.night(me); }, 'THE NIGHT', !!why], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); D.house.secondDraft(D.house.cur.party); }, 'AN HOUR']]
+      [['a', function () { D.house.night(me); }, 'THE NIGHT', !!why], ['rec', function () { me.campHour(); }, 'AN HOUR']]
         .concat(why && D.hours && D.hours.worldWait ? [['menu', function () { D.hours.worldWait(me); }, 'WAIT']] : [], [['b', function () { }, 'WALK ON']]));
   };
+  // the camp's hour, the card's AN HOUR and the page's SHORT REST alike: an hour on the clock, the hit dice spent (js/house.js H.shortRest), a Light's hour up, SECOND DRAFT for
+  // one with the feat. Its words, said on the map's line and returned
+  World.prototype.campHour = function () {
+    S.t += 1; W.save(); var said = D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ');
+    this.say(said); D.house.secondDraft(D.house.cur.party); return said;
+  };
+  // the camp's wait till a long rest -- M > WAIT's TILL A LONG REST (js/hours.js H16.worldWait), here for the page: to the hour a long rest may begin, a short rest in it past an
+  // hour, the day's march given back by its hours (H16.marchBack). Its words, said on the map's line and returned
+  World.prototype.campWait = function () {
+    var Hs = D.house, H16 = D.hours, W8 = H16.WAIT, tillAt = Hs.longFrom(Hs.LONG_HOURS), hrs = H16.waitHours(4, S.t), rest = H16.waitRests(4, hrs);
+    S.t += hrs; H16.marchBack(4, hrs); W.save();
+    var said = [W8.tillDone.replace('{when}', Hs.clockAt(tillAt))];
+    if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
+    said = said.concat(Hs.lightsOut(null)); Hs.trail('rest', 'WAIT on THE WORLD (the camp): ' + W8.till + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
+    this.say(said.join(' ')); return said.join(' ');
+  };
+  // where the camp is, as the map's own corner reads it: the place on the hex, or its ground, and the road it is on
+  World.prototype.campWhere = function () {
+    var k = K(S.at[0], S.at[1]), e = M.hex[k], ss = ((M.siteAt || {})[k] || []).map(function (s) { return s.name; }), rd = M.road && M.road[k];
+    return (ss.length ? ss.join(', ') : e && M.terr[e.t] ? M.terr[e.t].name : 'the road') + (rd ? ', on ' + rd.name.replace(/ \(.*\)$/, '') : '');
+  };
+  // THE CAMP PAGE (11-16, the words-and-boxes seat, started by the lanes desk on Griz's word -- his 11-11 note, "what about 'camp' on the world button reading the location and time
+  // and opening a page similar to 'camp' in the pocket DM"; RULED 11-16, "thought we had built already, do"). THE WORLD's CAMP -- the button, SPACE, the march's MAKE CAMP when the
+  // long rest is shut -- opens a page as the Pocket DM's THE CAMP is (js/pocket.js drawHub): the party at the fire (js/campfire.js), where they are and the day and hour at its head,
+  // each hero's hit points, AC and hit dice, THE MENU (M) over them, and THE REST OFFERS RULED 11-15 for every long-rest place (Silverton's hours and words lane, 2026-11-16, "1 rest
+  // options everywhere as above"): LONG REST: 8 HOURS, THREE WATCHES / SHORT REST: AN HOUR / WALK ON; inside the 24 hours LONG REST greyed under "No long rest yet: one a day. A
+  // long rest again from 23:00, night.", and WAIT TILL A LONG REST: 23:00 (14 HOURS) -- the wait where they stand (World.campWait), and at its end the page asks "A long rest now?"
+  // with LONG REST open. LONG REST is the card's THE NIGHT (the watches, then H.runNight), SHORT REST the card's AN HOUR (World.campHour); the card (World.campCard) stays as
+  // the benches' driver till the rest offers are built at every place (that lane's seat)
+  W.CAMPPAGE = { ask: 'A long rest now?', fire: [190, 204] }; // (the fire left of the Pocket DM's [232, 196]: the offers' column is wider, and clears the four at it)
+  function CampPage(world) { this.kind = 'worldcamp'; this.opaque = true; this.world = world; this.t = 0; this.msg = null; this.ask = false; this.pm = null; this.btns = []; }
+  CampPage.prototype.offers = function () {
+    var me = this, Hs = D.house, open = Hs.longOpen(W.REST), rows = [];
+    rows.push(open ? { id: 'long', label: 'LONG REST: ' + W.REST + ' HOURS, THREE WATCHES', key: 'a', pri: true, go: function () { me.night(); } } : { id: 'long', label: 'LONG REST', key: 'a', off: true, go: function () { D.sfx('error'); } });
+    if (!open) { var n = Math.max(1, Math.round(Hs.longWait(W.REST))); rows.push({ id: 'wait', label: 'WAIT TILL A LONG REST: ' + Hs.clockAt(Hs.longFrom(W.REST)).split(',')[0] + ' (' + n + ' HOUR' + (n === 1 ? '' : 'S') + ')', key: 'a', pri: true, go: function () { me.till(); } }); }
+    rows.push({ id: 'short', label: 'SHORT REST: AN HOUR', key: 'rec', go: function () { me.hour(); } });
+    rows.push({ id: 'leave', label: 'WALK ON', key: 'b', go: function () { me.leave(); } });
+    return rows;
+  };
+  CampPage.prototype.why = function () { return D.house.longWhy(W.REST, false); };
+  CampPage.prototype.night = function () { // (THE NIGHT's watches over the page: BACK comes back to it, BEGIN THE NIGHT closes it and the night runs on THE WORLD)
+    var Hs = D.house, world = this.world; if (!Hs.playing) return; if (!Hs.longOpen(W.REST)) { D.sfx('error'); return; }
+    var wt = new Hs.Watches(world); wt.go = function (what) { D.pop(); if (what === 'begin') { if (D.top() && D.top().kind === 'worldcamp') D.pop(); D.sfx('confirm'); Hs.runNight(world, this.asg); } else D.sfx('cancel'); };
+    D.push(wt);
+  };
+  CampPage.prototype.hour = function () { this.msg = this.world.campHour(); this.ask = false; D.sfx('confirm'); };
+  CampPage.prototype.till = function () { this.msg = this.world.campWait(); this.ask = D.house.longOpen(W.REST); D.sfx('confirm'); };
+  CampPage.prototype.leave = function () { if (D.top() === this) D.pop(); D.sfx('cancel'); };
+  CampPage.prototype.menu = function () { D.house.openMenu(this); D.sfx('confirm'); };
+  CampPage.prototype.say = function (s) { this.msg = s; this.world.say(s); }; // (the menu's casts and items say here: js/house.js H.openMenu's run)
+  CampPage.prototype.update = function () {
+    this.t++;
+    if (this.pm) { this.pm.update(D.ui.menuKeys()); if (this.pm && this.pm.closed) this.pm = null; return; } // (the one menu over the party, as THE WORLD's)
+    var m = I.mouse, rows = this.offers(), self = this;
+    if (m.click && m.inside) { var hit = this.btns.filter(function (b) { return m.x >= b.x && m.x < b.x + b.w && m.y >= b.y && m.y < b.y + b.h; })[0]; if (hit) { if (hit.off) D.sfx('error'); else hit.go(); return; } }
+    if (I.pressed('menu')) { this.menu(); return; }
+    for (var n = 1; n <= rows.length; n++) if (I.pressed('n' + n)) { if (rows[n - 1].off) D.sfx('error'); else rows[n - 1].go(); return; }
+    var byKey = function (k) { return rows.filter(function (r) { return r.key === k && !r.off; })[0]; };
+    if (I.pressed('a')) { var ra = byKey('a'); if (ra) ra.go(); return; }
+    if (I.pressed('rec')) { byKey('rec').go(); return; }
+    if (I.pressed('b') || m.rclick) { self.leave(); }
+  };
+  CampPage.prototype.party = function () {
+    var R8 = window.DS.R; return (D.house.cur ? D.house.cur.party : []).map(function (h) {
+      var cls = R8.CLASSES[h.cls], left = h.hdLeft != null ? h.hdLeft : h.lvl, down = !!h.ko || h.hp <= 0;
+      return '{y}' + h.name + '{/}  ' + (cls ? cls.name : h.cls) + ' ' + h.lvl + '   {g}HP{/} ' + (down ? '{r}' + Math.max(0, h.hp) + '{/}' : Math.max(0, h.hp)) + '/' + h.maxhp + '  {g}AC{/} ' + R8.ac(h) + '  {g}hit dice{/} ' + left + '/' + h.lvl + (h.dead ? '  {r}dead{/}' : down ? '  {r}down{/}' : '');
+    });
+  };
+  CampPage.prototype.draw = function (ctx) {
+    var self = this, Hs = D.house, RP = function (r, i) { return D.PAL.ramps[r][i]; }, S0 = W.state(), rows = this.offers(), why = this.why();
+    var hs = (Hs.cur ? Hs.cur.party : []).filter(function (h) { return !h.dead; }).map(function (h) { var lk = D.save && D.save.look ? D.save.look(h.id, null, h) : null; return { id: h.id, sheet: (lk && lk.sheet) || h.id + '_p0' }; });
+    var night = W.todAt(W.hour()) === 'night' ? 0.85 : W.todAt(W.hour()) === 'dusk' || W.todAt(W.hour()) === 'dawn' ? 0.55 : 0.2;
+    try { D.campfire.draw(ctx, { cx: W.CAMPPAGE.fire[0], cy: W.CAMPPAGE.fire[1], t: this.t, dim: night, heroes: hs }); } catch (e) { ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, D.W, D.H); }
+    ctx.fillStyle = 'rgba(4,3,10,.55)'; ctx.fillRect(0, 0, D.W, 94);
+    ctx.save(); ctx.translate(D.W / 2, 6); ctx.scale(2, 2); D.text(ctx, 'CAMP', 0, 0, RP('gold', 4), 'center'); ctx.restore(); // (the Pocket DM's page head)
+    D.text(ctx, this.world.campWhere() + '  ·  day ' + W.day() + ', ' + Hs.clockAt(S0.t), D.W / 2, 24, RP('silver', 5), 'center');
+    this.party().forEach(function (l, i) { D.text(ctx, l, 24, 38 + i * 11, RP('bone', 1)); });
+    if (why) D.text(ctx, '{r}' + why + '{/}', D.W / 2, 86, RP('bone', 1), 'center');
+    this.btns = [];
+    var lx = 20, rx = D.W - 216, rw = 206, by = 100;
+    var mb = { x: lx, y: by, w: 130, h: 16, label: 'THE MENU  (M)', go: function () { self.menu(); } }; this.btns.push(mb); W.button(ctx, mb);
+    rows.forEach(function (r, i) {
+      var b = { x: rx, y: by + i * 20, w: rw, h: 16, label: r.label, off: !!r.off, go: r.go }; self.btns.push(b); W.button(ctx, b);
+      if (r.pri && !r.off) { ctx.strokeStyle = D.WIN8.gold; ctx.strokeRect(b.x - 0.5, b.y - 0.5, b.w + 1, b.h + 1); }
+    });
+    var said = [].concat(this.msg ? D.wrap(this.msg, D.W - 40) : [], this.ask && Hs.longOpen(W.REST) ? [W.CAMPPAGE.ask] : []).slice(-4);
+    if (said.length) { var sy = D.H - 30 - said.length * 10; ctx.fillStyle = 'rgba(8,8,20,.82)'; ctx.fillRect(14, sy - 4, D.W - 28, said.length * 10 + 6); said.forEach(function (l, i) { D.text(ctx, l, D.W / 2, sy + i * 10, '#f6e9c5', 'center'); }); }
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17);
+    D.hint(ctx, D.keys('{g}E{/}: ' + (rows[0].off ? 'wait' : 'the long rest') + '   {g}R{/}: a short rest   {g}M{/}: the menu   {g}X{/}: walk on   {g}1-' + rows.length + '{/}: an offer'), D.W / 2, D.H - 12, '#9a96a8', 'center');
+    if (this.pm) { ctx.fillStyle = 'rgba(4,3,10,.6)'; ctx.fillRect(0, 0, D.W, D.H); D.ui.drawMenu(ctx, this.pm); }
+  };
+  W.CampPage = CampPage;
+  World.prototype.campPage = function () { if (!W.house() || !D.house.playing) return; D.push(new CampPage(this)); D.sfx('popup'); };
   // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
   // march does (js/house.js H.marchAsk): WALK ON (no more asking till a camp), MAKE CAMP, STAY. resume(path): the walk taken up again -- the top-down view's own
   World.prototype.dayAsk = function (st, path, resume) {
@@ -847,7 +940,7 @@
       ctx.fillStyle = 'rgba(8,8,20,.85)'; ctx.fillRect(bx, by, bw, 6 + lines.length * 10);
       lines.forEach(function (l, i) { D.text(ctx, l, bx + 4, by + 4 + i * 10, '#e8e4d8'); });
     }
-    var me = this; this.hudBtns = W.house() ? [['THE PARTY', function () { D.house.openMenu(me); }], ['CAMP', function () { me.campCard(); }], ['HERE', function () { me.here(); }]].map(function (q, i) { return { x: D.W - 4 - (3 - i) * 64, y: D.H - 50, w: 60, h: 13, label: q[0], go: q[1] }; }) : null; // (the keys as buttons: his 10-21 "playable by mouse only")
+    var me = this; this.hudBtns = W.house() ? [['THE PARTY', function () { D.house.openMenu(me); }], ['CAMP', function () { me.campPage(); }], ['HERE', function () { me.here(); }]].map(function (q, i) { return { x: D.W - 4 - (3 - i) * 64, y: D.H - 50, w: 60, h: 13, label: q[0], go: q[1] }; }) : null; // (the keys as buttons: his 10-21 "playable by mouse only")
     this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + (this.fineDoor ? 'F: ' + (W.FINE.on ? 'hex tops' : 'the land') + '  ' : '') + 'V: tiles  wheel: zoom');
     if (this.fineDoor && W.FINE.showLabel(this.t - (this.fineT == null ? -999 : this.fineT))) { var fl = W.FINE.label(), fw = D.textWidth(fl) + 10; D.win8(ctx, D.W - fw - 4, 4, fw, 16); D.text(ctx, fl, D.W - fw + 1, 8, W.FINE.on ? D.WIN8.gold : D.WIN8.text); } // (the look named on screen: as it unpacks, and a moment after F)
   };

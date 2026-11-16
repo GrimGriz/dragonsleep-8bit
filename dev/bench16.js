@@ -4207,14 +4207,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // Tiny Hut's night refused with nothing spent
       var sc6 = houseY(null, null, null, 20); HY.cur.restEnd = 8; sc6 = D.top(); sc6.cards.length = 0; sc6.campCard(); var cd6 = sc6.cards.shift() || { lines: [], keys: [] };
       HY.night(sc6); var night6 = D.top() === sc6 && !(D.top() && D.top().kind === 'housewatches'), msg6 = sc6.msg ? sc6.msg.s : '';
-      var S6 = WY.state(); S6.todayHex = HY.DAYHEX; S6.pushing = false; HY.marchAsk(sc6, { share: 1, h: 1 }, { path: [[0, 0]] }); var ma6 = sc6.cards.shift(), mk6 = ma6 && ma6.keys.filter(function (k) { return k[0] === 'rec'; })[0]; if (mk6) mk6[1](); var mc6 = sc6.cards.shift();
+      var S6 = WY.state(); S6.todayHex = HY.DAYHEX; S6.pushing = false; HY.marchAsk(sc6, { share: 1, h: 1 }, { path: [[0, 0]] }); var ma6 = sc6.cards.shift(), mk6 = ma6 && ma6.keys.filter(function (k) { return k[0] === 'rec'; })[0]; if (mk6) mk6[1](); var mc6 = sc6.cards.shift(), mcPage6 = !!(D.top() && D.top().kind === 'worldcamp'); if (mcPage6) D.pop(); // (the camp's page since 11-16, not a card: campage1116)
       HY.openMenu(sc6); var ent6 = sc6.pm && sc6.pm.root ? sc6.pm.root.entries.map(function (e) { return e[0]; }) : []; sc6.pm = null;
       var th = DS.DATA.spells.tinyhut, ar6 = HY.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0] || HY.cur.party[0], took6 = 0, rested6 = 0, hut6 = HY.field.cast(ar6, th, null, { where: 'world', party: HY.cur.party, tent: true, has: function () { return true; }, take: function () { took6++; }, ward: function () { }, longRest: function () { rested6++; return []; } });
       H6Y.worldWait(sc6); var wc6 = sc6.cards.shift() || { lines: [], keys: [] }, wk6 = wc6.keys.filter(function (k) { return /TILL A LONG REST/.test(k[2]); })[0]; if (wk6) wk6[1](); var oc6 = sc6.cards.shift() || { lines: [], keys: [] }, t6 = tY(), wm6 = window.DS.stripCodes(oc6.lines.join(' ')); // (since 11-06 the wait's words on its card, the camp's night offered -- his "at a camp, not the aldwin pointer": mode=pitword1106)
       sc6.campCard(); var cd6b = sc6.cards.shift() || { keys: [] };
-      okY('THE WORLD at 20:00: the camp "' + window.DS.stripCodes(cd6.lines.join(' / ')).slice(0, 170) + '" [' + cd6.keys.map(function (k) { return k[2] + (k[3] ? ' (off)' : ''); }).join(' | ') + ']; the night refused (' + night6 + ', "' + msg6.slice(0, 60) + '"); MAKE CAMP past the march: "' + (mc6 ? window.DS.stripCodes(mc6.lines[0]) : 'none') + '"; M\'s ' + ent6.join(',') + '; the Tiny Hut "' + (hut6 || []).join(' ').slice(0, 60) + '" (spent ' + took6 + ', rested ' + rested6 + ') // WAIT: [' + wc6.keys.map(function (k) { return k[2]; }).join(' | ') + '] -- the clock ' + t6 + ', "' + wm6.slice(0, 120) + '" // the camp again: THE NIGHT ' + (cd6b.keys[0] && cd6b.keys[0][3] ? 'off' : 'open'),
+      okY('THE WORLD at 20:00: the camp "' + window.DS.stripCodes(cd6.lines.join(' / ')).slice(0, 170) + '" [' + cd6.keys.map(function (k) { return k[2] + (k[3] ? ' (off)' : ''); }).join(' | ') + ']; the night refused (' + night6 + ', "' + msg6.slice(0, 60) + '"); MAKE CAMP past the march: "' + (mcPage6 ? 'the camp\'s page' : mc6 ? window.DS.stripCodes(mc6.lines[0]) : 'none') + '"; M\'s ' + ent6.join(',') + '; the Tiny Hut "' + (hut6 || []).join(' ').slice(0, 60) + '" (spent ' + took6 + ', rested ' + rested6 + ') // WAIT: [' + wc6.keys.map(function (k) { return k[2]; }).join(' | ') + '] -- the clock ' + t6 + ', "' + wm6.slice(0, 120) + '" // the camp again: THE NIGHT ' + (cd6b.keys[0] && cd6b.keys[0][3] ? 'off' : 'open'),
         cd6.keys.length === 4 && cd6.keys[0][2] === 'THE NIGHT' && cd6.keys[0][3] === true && cd6.keys[2][2] === 'WAIT' && /A long rest again from 00:00, night: M: WAIT till then\./.test(window.DS.stripCodes(cd6.lines.join(' '))) &&
-        night6 && /A long rest again from 00:00/.test(msg6) && !!mc6 && /CAMP/.test(mc6.lines[0]) && ent6.indexOf('WAIT') >= 0 && /No long rest yet/.test((hut6 || []).join(' ')) && took6 === 0 && rested6 === 0 &&
+        night6 && /A long rest again from 00:00/.test(msg6) && (mcPage6 || (!!mc6 && /CAMP/.test(mc6.lines[0]))) && ent6.indexOf('WAIT') >= 0 && /No long rest yet/.test((hut6 || []).join(' ')) && took6 === 0 && rested6 === 0 &&
         wc6.keys.map(function (k) { return k[2]; }).join('|') === '1 NEXT BELL|2 AN HOUR|3 SHORT REST|4 TILL A LONG REST|X NEVER MIND' && t6 === 24 && /The wait runs on to 00:00, night: a long rest is open again\. The wait is a short rest too/.test(wm6) && /Make camp for the night now\?/.test(wm6) && (oc6.keys || []).map(function (k) { return k[2]; }).join('|') === 'THE NIGHT|NOT NOW' && cd6b.keys[0] && !cd6b.keys[0][3]);
       // 7. THE HALFWAY INN (RULED, his "offer both"): at six on day 5, rested at 08:00 -- SLEEP TILL RESTED (awake 08:00, 14 hours) / A NIGHT'S SLEEP: 11 HOURS, NO LONG REST /
       // SHORT REST / NOT NOW; A NIGHT'S SLEEP eleven hours with no morning page; SLEEP TILL RESTED the morning at eight; a day since: STAY THE NIGHT as built
@@ -16835,6 +16835,63 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = stGWB; D.store.set = stSWB; D.text = dtWB;
     var preWB = document.createElement('pre'); preWB.id = 'out'; preWB.textContent = 'BENCH16 ' + JSON.stringify(repWB);
     document.body.appendChild(preWB);
+    return;
+  }
+  // THE CAMP PAGE (mode=campage1116; the words-and-boxes seat, 11-16, on Griz's 11-11 note "what about 'camp' on the world button reading the location and time and opening a page
+  // similar to 'camp' in the pocket DM", RULED 11-16 "thought we had built already, do"): THE WORLD's CAMP opens a page (js/world.js World.campPage, W.CampPage) -- 1 the long rest
+  // open: where and the hour at its head, the four's lines, LONG REST: 8 HOURS, THREE WATCHES / SHORT REST: AN HOUR / WALK ON; 2 inside the 24 hours: LONG REST greyed under its
+  // hour, WAIT TILL A LONG REST: 00:00 (4 HOURS), the greyed one refused; 3 SHORT REST: an hour, the hit dice spent, the page kept; 4 WAIT TILL A LONG REST: to 00:00, a short
+  // rest in it, the march given back, "A long rest now?" and LONG REST open; 5 LONG REST: the watches over the page, BACK to it, BEGIN closes it; 6 THE MENU over it; WALK ON;
+  // 7 the ways in: the CAMP button, MAKE CAMP past the march when the long rest is shut
+  if (get('mode', '') === 'campage1116') {
+    var repCP = { checks: [], errors: [] }, memCP = {}, stGCP = D.store.get, stSCP = D.store.set, HCP = D.house, WCP = D.world, dtCP = D.text;
+    function okCP(what, v) { repCP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function plainCP(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function worldCP(t, restEnd) { HCP.playing = false; HCP.cur = null; D.scenes.length = 0; var rec = HCP.fresh('barley'); rec.at = { town: null, gate: null, sq: null, dir: null }; HCP.begin(rec, 0); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } WCP.state().t = t; HCP.cur.restEnd = restEnd; return D.top(); }
+    function textsCP(sc) { var got = []; D.text = function (c, s) { got.push(plainCP(s)); return dtCP.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; sc.draw(cv.getContext('2d')); } finally { D.text = dtCP; } return got; }
+    function labsCP(pg) { return pg.offers().map(function (r) { return r.label + (r.off ? ' (off)' : ''); }).join(' | '); }
+    D.store.get = function (k) { return memCP[k] ? JSON.parse(memCP[k]) : null; }; D.store.set = function (k, v) { memCP[k] = JSON.stringify(v); return true; };
+    try {
+      // 1. THE LONG REST OPEN: 20:00 on day 1, nothing slept yet
+      var w1 = worldCP(20, null); w1.campPage(); var p1 = D.top(), tx1 = p1 && p1.kind === 'worldcamp' ? textsCP(p1) : [], head1 = tx1.filter(function (s) { return /day 1, 20:00, night/.test(s); })[0] || '', lines1 = tx1.filter(function (s) { return /HP \d+\/\d+ +AC \d+ +hit dice \d+\/\d+/.test(s); });
+      okCP('1 THE WORLD\'s CAMP at 20:00 on day 1: the page ' + (p1 && p1.kind) + '; its head "' + head1 + '"; ' + lines1.length + ' heroes ("' + (lines1[0] || '') + '"); [' + (p1 && p1.offers ? labsCP(p1) : '') + '] (want CAMP, where and day 1, 20:00, night; the four; LONG REST: 8 HOURS, THREE WATCHES | SHORT REST: AN HOUR | WALK ON)',
+        !!p1 && p1.kind === 'worldcamp' && tx1.indexOf('CAMP') >= 0 && /^.+  ·  day 1, 20:00, night$/.test(head1) && head1.indexOf(w1.campWhere()) === 0 && w1.campWhere().length > 2 && lines1.length === HCP.cur.party.length && lines1.length >= 1 &&
+        labsCP(p1) === 'LONG REST: 8 HOURS, THREE WATCHES | SHORT REST: AN HOUR | WALK ON' && !tx1.some(function (s) { return /No long rest yet/.test(s); }));
+      // 2. INSIDE THE 24 HOURS: rested at 08:00, 20:00 now -- a long rest from 00:00
+      var w2 = worldCP(20, 8); w2.campPage(); var p2 = D.top(), tx2 = textsCP(p2), why2 = tx2.filter(function (s) { return /No long rest yet/.test(s); })[0] || '', t2 = WCP.state().t;
+      p2.offers()[0].go(); var refused2 = D.top() === p2 && WCP.state().t === t2;
+      okCP('2 rested at 08:00, CAMP at 20:00: [' + labsCP(p2) + ']; "' + why2 + '"; the greyed LONG REST pressed: refused ' + refused2 + ' (want LONG REST greyed, WAIT TILL A LONG REST: 00:00 (4 HOURS), SHORT REST, WALK ON; the line; nothing spent)',
+        labsCP(p2) === 'LONG REST (off) | WAIT TILL A LONG REST: 00:00 (4 HOURS) | SHORT REST: AN HOUR | WALK ON' && why2 === 'No long rest yet: one a day. A long rest again from 00:00, night.' && refused2);
+      // 3. SHORT REST: an hour, a hero at 1 HP spends his hit dice, the page kept
+      var h3 = HCP.cur.party[0]; h3.hp = 1; var hd3 = h3.hdLeft != null ? h3.hdLeft : h3.lvl; p2.offers().filter(function (r) { return r.id === 'short'; })[0].go();
+      okCP('3 SHORT REST: the clock ' + t2 + ' -> ' + WCP.state().t + '; ' + h3.name + ' 1 -> ' + h3.hp + ' HP, hit dice ' + hd3 + ' -> ' + h3.hdLeft + '; the page kept ' + (D.top() === p2) + '; it says "' + plainCP(p2.msg || '').slice(0, 90) + '" (want an hour on, his dice spent, the page up, the short rest\'s words)',
+        WCP.state().t === t2 + 1 && h3.hp > 1 && h3.hdLeft < hd3 && D.top() === p2 && /A short rest: an hour\./.test(p2.msg || ''));
+      // 4. WAIT TILL A LONG REST: to 00:00, the march given back, the long rest asked
+      var S4 = WCP.state(); S4.todayHex = 5; var hex4 = S4.todayHex; p2.offers().filter(function (r) { return r.id === 'wait'; })[0].go(); var tx4 = textsCP(p2);
+      okCP('4 WAIT TILL A LONG REST: the clock ' + S4.t + ' (want 24); the march ' + hex4 + ' -> ' + S4.todayHex + ' hexes; it says "' + plainCP(p2.msg || '').slice(0, 120) + '"; asked "' + (tx4.indexOf('A long rest now?') >= 0) + '"; [' + labsCP(p2) + '] (want to 00:00, some march back, the wait\'s words, the ask, LONG REST open)',
+        S4.t === 24 && S4.todayHex < hex4 && /The wait runs on to 00:00, night: a long rest is open again\./.test(p2.msg || '') && tx4.indexOf('A long rest now?') >= 0 && labsCP(p2) === 'LONG REST: 8 HOURS, THREE WATCHES | SHORT REST: AN HOUR | WALK ON');
+      // 5. LONG REST: the watches over the page; BACK to the page; BEGIN THE NIGHT closes it and the night runs on THE WORLD
+      p2.offers()[0].go(); var wt5 = D.top(), over5 = !!wt5 && wt5.kind === 'housewatches' && D.scenes[D.scenes.length - 2] === p2; wt5.go('back'); var back5 = D.top() === p2;
+      p2.offers()[0].go(); var wt5b = D.top(); wt5b.go('begin'); var gone5 = !D.scenes.some(function (s) { return s.kind === 'worldcamp'; });
+      okCP('5 LONG REST: the watches over the page ' + over5 + '; BACK, the page again ' + back5 + '; BEGIN THE NIGHT: the page gone ' + gone5 + ', on top ' + (D.top() && (D.top().kind || '?')) + ', the clock ' + WCP.state().t + ' (want the watches, the page, then the night on THE WORLD)', over5 && back5 && gone5);
+      // 6. THE MENU over the page; WALK ON back to THE WORLD
+      var w6 = worldCP(9, null); w6.campPage(); var p6 = D.top(); p6.menu(); var pm6 = !!p6.pm; if (p6.pm && p6.pm.close) p6.pm.close(); else p6.pm = null; p6.update(); var shut6 = !p6.pm; p6.leave(); var left6 = D.top() === w6;
+      okCP('6 THE MENU over the page ' + pm6 + ', closed ' + shut6 + '; WALK ON: THE WORLD again ' + left6, pm6 && shut6 && left6);
+      // 7. THE WAYS IN: the CAMP button on THE WORLD's bar; the march's MAKE CAMP with the long rest shut
+      var w7 = worldCP(10, null), cv7 = document.createElement('canvas'); cv7.width = D.W; cv7.height = D.H; w7.cards.length = 0; w7.hud(cv7.getContext('2d')); var cb7 = (w7.hudBtns || []).filter(function (b) { return b.label === 'CAMP'; })[0]; if (cb7) cb7.go(); var byBtn7 = D.top() && D.top().kind === 'worldcamp'; if (byBtn7) D.pop();
+      HCP.cur.restEnd = 8; var S7 = WCP.state(); S7.todayHex = HCP.DAYHEX; S7.pushing = false; HCP.marchAsk(w7, { share: 1, h: 1 }, { path: [[0, 0]] }); var ma7 = w7.cards.shift(), mk7 = ma7 && ma7.keys.filter(function (k) { return k[0] === 'rec'; })[0]; if (mk7) mk7[1](); var byMarch7 = D.top() && D.top().kind === 'worldcamp';
+      okCP('7 the ways in: the CAMP button ' + byBtn7 + '; MAKE CAMP past the day\'s march, the long rest shut (' + (mk7 && mk7[2]) + ') ' + byMarch7 + ' (want the page by both)', byBtn7 && byMarch7);
+      // 8. HIS DOOR, ?at=camp16: THE WORLD on the guano mine's hex at 20:00 of day 2, the four at level 3 at half; CAMP: the page names the place
+      HCP.playing = false; HCP.cur = null; D.scenes.length = 0; D.sit16.open('camp16'); var w8 = D.top(); if (w8 && w8.baking) { w8.baking = false; w8.enter(); } w8 = D.top();
+      var pt8 = HCP.cur ? HCP.cur.party : [], at8 = WCP.state() ? WCP.state().at : null, site8 = (WCP.M().sites || []).filter(function (x) { return x.id === 'mouth'; })[0];
+      var ok8a = !!w8 && w8.kind === 'world' && pt8.length === 4 && pt8.every(function (h) { return h.lvl === 3 && h.hp < h.maxhp; }) && !!site8 && !!at8 && at8.join() === site8.hex.join() && WCP.state().t === 44;
+      if (w8 && w8.campPage) w8.campPage(); var p8 = D.top(), tx8 = p8 && p8.kind === 'worldcamp' ? textsCP(p8) : [], head8 = tx8.filter(function (s) { return /day 2, 20:00, night/.test(s); })[0] || '';
+      okCP('8 ?at=camp16: ' + (w8 && w8.kind) + ', ' + pt8.length + ' at ' + pt8.map(function (h) { return h.lvl + ':' + h.hp + '/' + h.maxhp; }).join(' ') + ', the hex ' + at8 + ' (the mouth ' + (site8 && site8.hex) + '), the clock ' + WCP.state().t + '; CAMP: "' + head8 + '" (want THE WORLD, four at 3 below their maximum, the mouth\'s hex, 44; the page naming it at 20:00 of day 2)',
+        ok8a && p8 && p8.kind === 'worldcamp' && !!head8 && head8.indexOf(w8.campWhere()) === 0);
+    } catch (eCP) { repCP.errors.push(String(eCP && eCP.stack || eCP).slice(0, 900)); }
+    D.store.get = stGCP; D.store.set = stSCP; D.text = dtCP; HCP.playing = false; HCP.cur = null;
+    var preCP = document.createElement('pre'); preCP.id = 'out'; preCP.textContent = 'BENCH16 ' + JSON.stringify(repCP);
+    document.body.appendChild(preCP);
     return;
   }
   // THE HOUSE, 11-04 (mode=house1104; the lanes desk): 1 the six eggs beside the title's save box, filled for the eggs the save under the cursor found (his "still need 6 egg-shadows
