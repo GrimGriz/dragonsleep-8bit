@@ -103,6 +103,7 @@
   "winters.ring": { "t": ["He sets a plain ring on the counter: the RING OF BINDING. \"For the thing in the lake. I've been holding it for whoever came along able to use it.\"", "+3 to CON saves. On the first, fourth, seventh and tenth rounds, the thing must turn on whoever wears it."], "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §4 (the Ring of Binding, RULED 09-23); his line seat draft 09-24" },
   "winters.equipAsk": { "t": "Put it on {name}?", "src": "invented: connective" },
   "winters.after": { "t": "Winters glances at the ring on your hand, then at you. \"Well?\"", "src": "seat draft 09-24" },
+  "winters.lakeDone": { "t": "For once he closes the ledger before he looks up. \"You're local heroes now, the world is calling.\"", "src": "Griz's line verbatim (story review §6.2, his '5 - You're local heroes now, the world is calling.'), on his 'after you kill the chuul winters saying same as before you did'; the first sentence the seat's dressing (PROPOSED §6.2), Hessle's notice left off (the first game has none)" },
 
   "hire.barleyAsk": { "t": "A stranger's five is fronted by customers, never the bar. Front his stake and walk out with him?", "src": "wiki/the-hex.md (the stake; a stranger's 5 fronted by customers); hire terms invented.json#hires" },
   "hire.barleyYes": { "t": ["Five silver to walk in. Ten silver to walk out.", "A flail doesn't stop. It comes round again."], "src": "book-thirty-silver/barley-I-name-in-the-sand.md (DRAFT lines, via ext-party)" },
@@ -782,7 +783,7 @@
   "g.lampLit": {"t": "{name} lights the Ledger-Lamp and carries it. Forty feet of the dark gives way.", "src": "RULED 09-30 (Griz: 'now should function like a lantern but better' -- '3 perfect'): the hooded lantern's law at 40/40, never spent (the g.lanternLit line at forty feet)"},
   "g.lampNoNeed": {"t": "It is light enough here to see by. The lamp will keep; it never runs dry.", "src": "invented: connective (the Ledger-Lamp, RULED 09-30: never runs dry)"},
   "g.darkvision": {"t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.", "src": "SRD 5.1 (Darkvision)"},
-  "g.continualFlame": {"t": "{name}'s weapon takes a flame with no heat in it, torch-bright. It will not go out.", "src": "SRD 5.1 (Continual Flame)"},
+  "g.continualFlame": {"t": "{name}'s {weapon} takes a flame with no heat in it, torch-bright. It will not go out.", "src": "SRD 5.1 (Continual Flame)"},
   "g.flameNothing": {"t": "Nothing in hand to put a flame on.", "src": "invented: connective"},
   "g.ropeTrick": {"t": "A rope climbs into the air and hangs there. One by one you go up it and pull it in after you. A short rest, out of the world.", "src": "invented: connective (the resting spells, RULED 09-28)"},
   "g.tinyHut": {"t": "The whorl breaks with a sound like a bell. A dome of shimmering force closes over the party for the night.", "src": "invented: connective (the resting spells, RULED 09-28)"},

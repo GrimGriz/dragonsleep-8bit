@@ -433,7 +433,8 @@
       else if (sp.buff === 'darkvision') { t.conds.darkvision = true; yield DS.say(L('g.darkvision', { name: t.name })); } // (till the long rest: R.refresh)
       else if (sp.buff === 'continualFlame') { // on the weapon in hand: it is always lit from now on (EV.alight; Ottilie stops it at the mouth)
         if (!t.equip.weapon) { if (slot) h.slots[slot - 1]++; yield DS.say(L('g.flameNothing')); return; }
-        t.conds.continualFlame = t.equip.weapon; yield DS.say(L('g.continualFlame', { name: t.name }));
+        t.conds.continualFlame = t.equip.weapon; var cfW = DS.DATA.items[t.equip.weapon]; // name the weapon it took on (his 10-20 read: "casts on the person")
+        yield DS.say(L('g.continualFlame', { name: t.name, weapon: cfW ? cfW.name.toLowerCase() : 'weapon' }));
       }
       return;
     }
@@ -635,7 +636,7 @@
       }
     }
     while (true) {
-      var a = yield DS.ask(L(g.has('ringofbinding') ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE'], W);
+      var a = yield DS.ask(L(g.flags.lakeDone ? 'winters.lakeDone' : g.has('ringofbinding') ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE'], W); // after the chuul, not "Well?" again (his 10-13 note)
       if (a === 0) { if ((yield* S.wintersWork()) === 'leave') break; } // a job in hand ends the talk (playtest 09-25: no 'lifted pen' loop)
       else if (a === 1) {
         if (!g.flags.wErrADone) { yield DS.say(L('winters.shelvesShut'), W); continue; }
