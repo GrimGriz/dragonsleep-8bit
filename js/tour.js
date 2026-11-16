@@ -16,7 +16,12 @@
    card is UP on arrival -- what should happen (the row's look) over the top of the page, and every key the card's: 1 works, 2 broken, 3 unclear, 4 too hard,
    5 too easy (situations.html's five), N a note, P PASS, the arrows the deck's other cards; Enter or Esc lays it down (a click on the game too) and the page's
    keys are the game's again; H brings it back up. 2 and 3 open the note at once (what broke, in his words, then and there: the gallery's rule). An answer
-   goes on to the next card face down; the last sends him to her table (deep16/?cards). */
+   goes on to the next card face down; the last sends him to her table (deep16/?cards).
+   THE CARD'S HEAD (11-15, the card-text seat, started by the lanes desk; his words: "review the situations page/syvia's deck. Particularly the text. Where you
+   can, draft a version where what they want eyes on is a quest objective. ..."; then "that'll help so much, start a seat for the card text"): her line, then the
+   row's `obj` -- one line, what to do and where, then what to judge -- as the headline, the row's title under it small, and the builders' note (the row's look
+   and its pt) folded behind a toggle, shut on every card: a click on it, or B. A row with no obj is the card as before (its title, its note open). The bar's
+   line, with the card down, is the obj too. */
 'use strict';
 (function () {
   var DS = window.DS = window.DS || {};
@@ -155,7 +160,11 @@
     '#swann-card{position:fixed;top:40px;left:0;right:0;z-index:39;max-height:56vh;overflow:auto;box-sizing:border-box;padding:8px 16px 10px 66px;' +
     'background:rgba(22,12,38,.97);border-bottom:1px solid #6a5488;font:14px/1.45 system-ui,sans-serif;color:#f0e8d8}' +
     '#swann-card .her{color:#f8d878;font-style:italic;margin:0 0 3px}' +
-    '#swann-card h2{font:600 15px/1.35 system-ui,sans-serif;margin:0 0 4px}' +
+    '#swann-card h2{font:600 16px/1.35 system-ui,sans-serif;margin:0 0 3px;max-width:52em}' +
+    '#swann-card .ttl{font-size:12px;color:#b8a8d0;margin:0 0 5px}' + // (the row's title, under the obj: 11-15)
+    '#swann-card .bn{background:none;border:0;padding:0;margin:0 0 6px;color:#c8a040;font:12px system-ui,sans-serif;cursor:pointer}' +
+    '#swann-card .bn:hover{color:#f8d878}' +
+    '#swann-card .bnote{border-left:2px solid #6a5488;padding-left:10px;margin:0 0 6px}' +
     '#swann-card .look{margin:0 0 6px;max-width:62em}' +
     '#swann-card .pt{font-size:12px;color:#9a8eb0;margin:0 0 6px}' +
     '#swann-card .now{font-size:13px;margin:0 0 6px}' +
@@ -166,6 +175,7 @@
   var ORD = ['first', 'second', 'third', 'fourth', 'fifth', 'last'];
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function vName(v) { var x = T.VERDICTS.filter(function (q) { return q[0] === v; })[0]; return x ? x[1] : ''; }
+  T.head = function (r) { return r ? String(r.obj || '').trim() || r.title || '' : ''; }; // (a row's headline: its obj, else its title -- 11-15)
   // her face: the idle's first frame of her talking portrait (deep16/art/pt_sylvia.png), head and owl
   function face(cv) {
     var sh = window.D16 && window.D16.SHEETS && window.D16.SHEETS.pt_sylvia, src = T.root + 'deep16/' + (sh ? sh.image : 'art/pt_sylvia.png');
@@ -207,8 +217,8 @@
   };
   function draw(B) {
     var FB = T.fb(), cs = T.cards(B.d, null, FB), here = B.row(), r = here && here.r, f = (here && FB[here.id]) || {}, p = r ? T.place(r.url) : null, n = cs.length;
-    var deck = cs.map(function (c, i) { var col = !c.up ? '' : c.pass ? T.COLORS.pass : c.v ? T.COLORS[c.v] : T.COLORS.note; return '<i data-card="' + i + '"' + (i === B.k ? ' class="here"' : '') + ' title="' + esc((c.row ? c.row.title : 'cut since the deal') + (c.up ? ' -- ' + (c.pass ? 'passed' : vName(c.v) || 'noted') : '')) + '"' + (col ? ' style="background:' + col + '"' : '') + '></i>'; }).join('');
-    var title = !B.d ? esc(T.LINES.none) : !r ? 'This card was cut from the list since the deal.' : '<b>CARD ' + (B.k + 1) + '/' + n + '</b> <span class="pl">' + esc(p.name) + '</span> &middot; ' + esc(r.title);
+    var deck = cs.map(function (c, i) { var col = !c.up ? '' : c.pass ? T.COLORS.pass : c.v ? T.COLORS[c.v] : T.COLORS.note; return '<i data-card="' + i + '"' + (i === B.k ? ' class="here"' : '') + ' title="' + esc((c.row ? T.head(c.row) : 'cut since the deal') + (c.up ? ' -- ' + (c.pass ? 'passed' : vName(c.v) || 'noted') : '')) + '"' + (col ? ' style="background:' + col + '"' : '') + '></i>'; }).join('');
+    var title = !B.d ? esc(T.LINES.none) : !r ? 'This card was cut from the list since the deal.' : '<b>CARD ' + (B.k + 1) + '/' + n + '</b> <span class="pl">' + esc(p.name) + '</span> &middot; ' + esc(T.head(r));
     var keys = T.VERDICTS.slice(0, 3).map(function (v) { return '<button data-k="' + v[0] + '"' + (f.v === v[0] ? ' class="on"' : '') + ' title="' + v[1] + '">' + v[2] + ' ' + v[1] + '</button>'; }).join('') +
       '<button data-k="note" title="a note in your words">N note</button><button data-k="pass" title="don\'t need to see it"' + (T.passed(FB, here && here.id) ? ' class="on"' : '') + '>P pass</button>' +
       '<button data-k="card" title="H: the card up or down">' + (B.up ? '▴' : '▾ H') + '</button><button data-k="table" title="her table">table</button>';
@@ -217,10 +227,14 @@
     B.card.className = B.up && B.d && r ? '' : 'down';
     if (!(B.up && B.d && r)) { B.card.innerHTML = ''; return; }
     var now = (f.v ? 'Marked: <b>' + esc(vName(f.v)) + '</b>' : '') + (String(f.note || '').trim() ? (f.v ? ' &middot; ' : '') + 'note: ' + esc(f.note) : '');
-    B.card.innerHTML = '<p class="her">' + esc((T.LINES.card[B.k] || ('Card ' + (B.k + 1) + '.')) + ' ' + cap(p.name) + '.') + '</p><h2>' + esc(r.title) + '</h2><p class="look">' + esc(r.look || '') + '</p>' +
-      '<p class="pt">' + esc(r.pt || '') + '</p>' + (now ? '<p class="now">' + now + '</p>' : '') +
+    // the obj leads, the title under it small, the builders' note shut till a click or B (11-15); a row with no obj: its title, its note open, as before
+    var obj = String(r.obj || '').trim(), open = obj ? !!B.noteOpen : true;
+    var note = '<p class="look">' + esc(r.look || '') + '</p><p class="pt">' + esc(r.pt || '') + '</p>';
+    B.card.innerHTML = '<p class="her">' + esc((T.LINES.card[B.k] || ('Card ' + (B.k + 1) + '.')) + ' ' + cap(p.name) + '.') + '</p><h2>' + esc(obj || r.title) + '</h2>' +
+      (obj ? '<p class="ttl">' + esc(r.title) + '</p><button class="bn" data-k="bnote" title="B: the builders\' note, open or shut">' + (open ? '&#9662;' : '&#9656;') + ' the builders\' note</button>' + (open ? '<div class="bnote">' + note + '</div>' : '') : note) +
+      (now ? '<p class="now">' + now + '</p>' : '') +
       (B.noting ? '<input id="swann-note" type="text" maxlength="800" autocomplete="off" placeholder="what you saw -- Enter keeps it, Esc leaves it">' : '') +
-      '<p class="keys">' + T.VERDICTS.map(function (v) { return '<kbd>' + v[2] + '</kbd>' + v[1]; }).join(' ') + ' <kbd>N</kbd>a note <kbd>P</kbd>pass (don\'t need to see it) <kbd>&larr;</kbd><kbd>&rarr;</kbd>the other cards' +
+      '<p class="keys">' + T.VERDICTS.map(function (v) { return '<kbd>' + v[2] + '</kbd>' + v[1]; }).join(' ') + ' <kbd>N</kbd>a note <kbd>P</kbd>pass (don\'t need to see it) <kbd>&larr;</kbd><kbd>&rarr;</kbd>the other cards' + (obj ? ' <kbd>B</kbd>the builders\' note' : '') +
       ' <kbd>Enter</kbd>lay the card down and look (<kbd>H</kbd>brings it back)</p>';
     if (B.noting) noteField(B);
   }
@@ -257,6 +271,7 @@
     if (k === 'broken' || k === 'unclear') { T.mark(here.id, k); B.up = true; B.noting = { then: true }; draw(B); return; } // (what broke, in his words, then and there)
     if (k === 'note') { B.up = true; B.noting = { then: false }; draw(B); return; }
     if (k === 'pass') { T.pass(here.id); answered(B, 'pass'); return; }
+    if (k === 'bnote') { if (String(here.r.obj || '').trim()) { B.noteOpen = !B.noteOpen; draw(B); } return; } // (the builders' note, open or shut: 11-15)
     if (k === 'card') { if (B.up) lower(B); else raise(B); return; }
     if (k === 'table') { go(T.tableHref()); return; }
     if (k === 'prev' || k === 'next') { var n = B.d.ids.length, to = (B.k + (k === 'next' ? 1 : -1) + n) % n, r = (DS.EYES || {})[B.d.ids[to]]; go(r ? T.cardHref(r, to) : T.tableHref()); }
@@ -268,7 +283,7 @@
     if (e.target.closest && e.target.closest('.t, canvas')) act(B, 'card');
   }
   var KEYS = { Digit1: 'works', Numpad1: 'works', Digit2: 'broken', Numpad2: 'broken', Digit3: 'unclear', Numpad3: 'unclear', Digit4: 'hard', Numpad4: 'hard', Digit5: 'easy', Numpad5: 'easy',
-    KeyN: 'note', KeyP: 'pass', ArrowLeft: 'prev', ArrowRight: 'next', Enter: 'card', NumpadEnter: 'card', Escape: 'card', KeyH: 'card' };
+    KeyN: 'note', KeyP: 'pass', KeyB: 'bnote', ArrowLeft: 'prev', ArrowRight: 'next', Enter: 'card', NumpadEnter: 'card', Escape: 'card', KeyH: 'card' };
   function keydown(B, e) {
     var t = e.target, D = window.D16;
     if (B.noting && t === B.noting.el) return; // (the note's own: its keys stop there)

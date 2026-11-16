@@ -24644,6 +24644,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       BW = TW.mount(5); navW.length = 0; key('Digit5', '5');
       okW((FBW()['eyes-npc-b-1109'] || {}).v === 'easy' && navW.length === 1 && ends(navW[0], 'deep16/?cards') && TW.done(TW.deck()), '5 too easy on the last card face down: to her table (' + navW[0] + '), the deck done');
       TW.unmount(); okW(!document.getElementById('swann-bar') && !document.getElementById('swann-card') && !D.barH, 'the bar comes off the page whole');
+      // THE CARD'S HEAD (11-15, the card-text seat; his "review the situations page/syvia's deck. Particularly the text."): a row's obj leads, its title under it
+      // small, the builders' note shut till B (and B again shuts it); the bar's line the obj; the rows above, with no obj, are the card as before
+      EW['eyes-obj-a-1115'] = { pri: 2, title: 'obj a', pt: 'the lab', obj: 'Watch the stand-in goblin fight — does the line lead the card?', look: 'the long builders note', url: 'deep16/?npc=goblin&lvl=3' };
+      navW.length = 0; var BO = TW.mount(0, { deck: { no: 9, ids: ['eyes-obj-a-1115'], shown: [] } }), cO = document.getElementById('swann-card'), barO = document.getElementById('swann-bar');
+      var h2O = cO.querySelector('h2'), ttlO = cO.querySelector('.ttl'), shutO = !cO.querySelector('.look') && !!cO.querySelector('.bn') && !/the long builders note/.test(cO.textContent);
+      key('KeyB', 'b'); var openO = !!cO.querySelector('.bnote .look') && /the long builders note/.test(cO.textContent) && /the lab/.test(cO.textContent) && BO.up && !navW.length;
+      key('KeyB', 'b'); var shutO2 = !cO.querySelector('.look'); IW.clear();
+      okW(!!h2O && h2O.textContent === EW['eyes-obj-a-1115'].obj && !!ttlO && ttlO.textContent === 'obj a' && shutO && openO && shutO2 && /Watch the stand-in goblin fight/.test(barO.textContent),
+        'a row with an obj: the card\'s head "' + (h2O && h2O.textContent) + '", the title under it ("' + (ttlO && ttlO.textContent) + '"), the builders\' note shut (' + shutO + '), B opens it (' + openO + ') and shuts it (' + shutO2 + '); the bar\'s line the obj');
+      TW.unmount(); delete EW['eyes-obj-a-1115'];
       // situations.html's store, as it reads it, and the ear file
       var FBs = FBW(), notedS = function (id) { var f = FBs[id]; return !!(f && (f.v || (f.note || '').trim())); };
       okW(dW.ids.every(notedS) && Object.keys(FBs).every(function (id) { var f = FBs[id]; return Object.keys(f).every(function (k) { return k === 'v' || k === 'note' || k === 'at'; }) && typeof f.at === 'string'; }),

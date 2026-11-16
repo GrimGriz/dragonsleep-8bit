@@ -32,6 +32,13 @@
   .item h3 a:hover { text-decoration:underline; }
   .meta { font:13px system-ui,sans-serif; color:var(--dim); margin:0 0 .35rem; }
   .look { margin:.2rem 0 .5rem; }
+  .item .ttl { font:13px system-ui,sans-serif; color:var(--dim); margin:0 0 .3rem; }
+  .bnote { margin:.1rem 0 .45rem; }
+  .bnote summary { font:13px system-ui,sans-serif; color:var(--accent); cursor:pointer; list-style:none; width:max-content; }
+  .bnote summary::-webkit-details-marker { display:none; }
+  .bnote summary::before { content:'\25B8  '; } .bnote[open] summary::before { content:'\25BE  '; }
+  .bnote[open] { border-left:2px solid var(--rule); padding-left:.6rem; }
+  .bnote[open] summary { margin-bottom:.3rem; }
   .ask { margin:.1rem 0 .5rem; font-style:italic; opacity:.8; }
   .row { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; font:13px system-ui,sans-serif; }
   .row code { font-size:12px; }
@@ -146,10 +153,14 @@
     ROWS.slice(pg * PER, pg * PER + PER).forEach(function (r, k) {
       var id = r.id, s = r.s, i = pg * PER + k, url = BASES[base] + (s.url || '?at=' + id), f = FB[id] || {};
       if (s.group !== group) { group = s.group; html += '<h2>' + esc(group || '') + '</h2>'; }
+      // an eyes row's obj leads (11-15, the card-text seat; his "review the situations page/syvia's deck. Particularly the text. Where you can, draft a version
+      // where what they want eyes on is a quest objective"): the title under it small, the builders' note (pt and look) folded shut; a row with no obj as before
+      var obj = String(s.obj || '').trim();
       html += '<div class="item' + (s.url && /deep16/.test(s.url) ? ' deep' : '') + (noted(id) ? ' noted' : '') + '" data-id="' + esc(id) + '">' +
-        '<h3><span class="n">' + (i + 1) + '</span><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(s.title) + '</a></h3>' +
+        '<h3><span class="n">' + (i + 1) + '</span><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(obj || s.title) + '</a></h3>' +
+        (obj ? '<p class="ttl">' + esc(s.title) + '</p><details class="bnote"><summary>the builders\' note</summary>' : '') +
         '<p class="meta">' + esc(s.pt || '') + (s.lvl ? ' · level ' + s.lvl : '') + '</p>' +
-        '<p class="look">' + esc(s.look || '') + '</p>' +
+        '<p class="look">' + esc(s.look || '') + '</p>' + (obj ? '</details>' : '') +
         (r.eyes ? '' : '<p class="ask">' + esc(ASK) + '</p>') +
         '<div class="row"><code>' + esc(url) + '</code>' +
         '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">OPEN</a>' +

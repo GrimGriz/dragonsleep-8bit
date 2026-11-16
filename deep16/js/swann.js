@@ -161,7 +161,7 @@
     var ci = focus >= 0 ? cs[focus] : null;
     if (ci) {
       var p2 = ci.row ? T.place(ci.row.url).name : '';
-      D.wrap(ci.row ? ci.row.title : 'cut from the list since the deal', RW - 18).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, RX + 9, INFO.y + 5 + i * 10, W8.text); });
+      D.wrap(ci.row ? (T.head ? T.head(ci.row).split(' — ')[0] : ci.row.title) : 'cut from the list since the deal', RW - 18).slice(0, 2) /* (11-15: the row's obj, what to do -- its judge is on the card) */.forEach(function (l, i) { D.text(ctx, l, RX + 9, INFO.y + 5 + i * 10, W8.text); });
       var ans = !ci.up ? '{g}face down{/} · ' + p2 : ci.pass ? '{g}passed{/}' : (ci.v ? '{y}' + (T.VERDICTS.filter(function (v) { return v[0] === ci.v; })[0] || [0, ci.v])[1] + '{/}' : '{y}noted{/}') + (ci.note && !ci.pass ? ': ' + ci.note : '');
       D.text(ctx, D.wrap(ans, RW - 18)[0] || '', RX + 9, INFO.y + 27, '#c8c0d8');
     } else D.text(ctx, d ? 'Point at a card to read it; click it to go in.' : 'Nothing in hand.', RX + 9, INFO.y + 6, '#9c90b4');
