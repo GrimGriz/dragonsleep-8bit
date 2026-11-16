@@ -823,13 +823,13 @@
   // OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
   // slot"): SHIELD's place holds the one thing the other hand holds -- a shield, a weapon, or the light (js/rules.js R.offhandOf); the LIGHT row that stood under the
   // places is in it now. A two-handed weapon empties it; a shield on or off in a fight is the action (SRD 5.1: "Shield 1 action 1 action")
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['offhand', 'OFFHAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['offhand', 'OFFHAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND'], ['eyes', 'EYES']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
   function offSlot(sl) { return sl === 'shield' || sl === 'torch' ? 'offhand' : sl; } // (a shield's place, and the light's, is the OFFHAND)
   function offhandThing(h, host) { var o = R().offhandOf(h); if (!o) return null; if (o.kind === 'light') { var lt = host && host.light ? host.light(h) : null; return { kind: 'light', id: lt ? lt.id : 'torch', name: lt ? lt.name : 'Torch', hooded: !!(lt && lt.hooded) }; } var it = item(o.id); return it ? { kind: o.kind, id: o.id, name: it.name } : null; }
   MN.offhandThing = offhandThing;
   function mainTwo(h) { var w = item(h.equip.weapon); return !!(w && w.weapon && (w.weapon.props || []).indexOf('two-handed') >= 0); }
   function offWord(h, id) { return R().offhandWord ? R().offhandWord(h, id) : 'off hand'; } // (what a weapon there does: its off-hand swing, or held -- R.offhandWord)
-  function fitsSlot(it, slot) { if (slot === 'offhand') return !!it && (it.kind === 'shield' || R().offhandWeapon(it)); if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck' || slot === 'wand') return it.kind === 'worn' && it.place === slot; return it.kind === slot; }
+  function fitsSlot(it, slot) { if (slot === 'offhand') return !!it && (it.kind === 'shield' || R().offhandWeapon(it)); if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck' || slot === 'wand' || slot === 'eyes') return it.kind === 'worn' && it.place === slot; return it.kind === slot; }
   // the bond's mark beside a worn thing: a gold diamond bonded, a dim one waiting for a rest (the font has no hollow diamond)
   function bondMark(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'bonded' ? '◆' : b === 'unbonded' ? '◆' : null; }
   function bondColor(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'unbonded' ? C.dim : b === 'bonded' ? C.gold : null; }

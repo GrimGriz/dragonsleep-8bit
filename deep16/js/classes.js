@@ -509,7 +509,7 @@
   // list of bonds (a story hero's) takes up what it wears at once, as at a rest)
   NPC.wear = function (h, ids) {
     (ids || []).forEach(function (id) {
-      var off = /^no(weapon|armor|shield|offhand|ring|ring2|cloak|feet|neck|wand)$/.exec(id); if (off) { h.equip[off[1]] = null; return; } // (a card's GEAR: the place's own taken off, 10-17; any worn place too, his "removing it from barley doesn't take - doesn't go in pack, is on him again when you hit 'gear'")
+      var off = /^no(weapon|armor|shield|offhand|ring|ring2|cloak|feet|neck|wand|eyes)$/.exec(id); if (off) { h.equip[off[1]] = null; return; } // (a card's GEAR: the place's own taken off, 10-17; any worn place too, his "removing it from barley doesn't take - doesn't go in pack, is on him again when you hit 'gear'")
       var ao = /^altown:(.+)$/.exec(id); if (ao) { if (DS.DATA.items[ao[1]] && DS.DATA.items[ao[1]].weapon) { h.alt = ao[1]; h.altPack = false; } return; } if (id === 'noalt') { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = null; h.altNone = true; return; } /* (NONE on EQUIP's ALT row, 11-11: js/menu.js altCands) */ // (its own second weapon, traded in a fight: js/battle.js swapGear -- 11-10)
       var al = /^alt:(.+)$/.exec(id); if (al) { var ia = DS.DATA.items[al[1]]; if (ia && ia.weapon) { if (h.altOwn === undefined) h.altOwn = h.alt || null; h.alt = al[1]; h.altPack = true; } return; } // (EQUIP's ALT row: a thrown weapon from the pack, thrown from its stack -- js/battle.js; altOwn: what the word carried -- 11-10)
       var oh = /^off:(.+)$/.exec(id); if (oh) { var io = DS.DATA.items[oh[1]]; if (io && R.offhandWeapon && R.offhandWeapon(io) && R.canEquip(h, io)) { h.equip.offhand = oh[1]; h.equip.shield = null; } return; } // (a weapon in the off hand: the second sword)
@@ -627,7 +627,7 @@
     u.id = o.id || h.id; u.name = h.name; u.named = !!o.named || !!h.named;
     u.sheet = o.sheet || classLook(h.cls, h.race); u.race = h.race; u.type = 'humanoid';
     u.speed = (race.speed || 30) + (h.cls === 'monk' && h.lvl >= 2 ? (h.lvl >= 6 ? 15 : 10) : 0) + (h.cls === 'barbarian' && h.lvl >= 5 ? 10 : 0);
-    u.darkvision = Math.max(race.dv || 0, u.darkvision || 0);
+    u.dvBase = Math.max(race.dv || 0, u.dvBase || 0); u.darkvision = R.darkvisionWith ? R.darkvisionWith(h, u.dvBase) : Math.max(race.dv || 0, u.darkvision || 0); // (the race's, then the Goggles of Night over it: 11-15)
     if (h.invocations && h.invocations.indexOf('devilsight') >= 0) u.devilSight = true; // Devil's Sight: sees in any dark, the magical too, to 120 ft
     if (race.resist) u.resist = (u.resist || []).concat(race.resist).filter(function (x, i, a) { return a.indexOf(x) === i; }); // (beside what is worn: a Ring of Resistance, save.js unitOf)
     if (race.poisonAdv) u.poisonAdv = true; // (Dwarven Resilience's advantage on saves against poison: rules.js RU.poisonAdv)

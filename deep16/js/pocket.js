@@ -215,7 +215,7 @@
   // the plus-ones and the two SRD items the ladder's armoury already carries, by what the class may wear; the +2s from the third rung and the trial
   // (10-06: and the worn things -- the Ring of Resistance (fire), the Boots of Elvenkind, the Periapt of Proof against Poison; any class may wear them: R.canEquip)
   PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement', 'ringresistfire', 'bootselvenkind', 'periaptpoison',
-    'ringwaterwalking', 'wandofweb']; // (11-15, the magic-items seat: the Ring of Water Walking and the Wand of Web, winnings as the worn things are -- the Wand only for one who casts, R.casts; the Rope of Climbing is the market's, a thing for the pack)
+    'ringwaterwalking', 'wandofweb', 'gogglesnight']; // (and the Goggles of Night, never sold, a winning only) (11-15, the magic-items seat: the Ring of Water Walking and the Wand of Web, winnings as the worn things are -- the Wand only for one who casts, R.casts; the Rope of Climbing is the market's, a thing for the pack)
   PK.LOOT_LATE = ['longsword2', 'dagger2', 'staff2', 'flametongue', 'doorshield', 'dwarfplate',
     // (10-17, his "Make sure all the items we have in the game end up as fight rewards or in those stores": the story's own gear, priceless -- the king's plate and
     // mantle and the Game Show's supplies left to their owners)

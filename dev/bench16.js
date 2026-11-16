@@ -19384,7 +19384,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       hWz.equip.wand = 'wandofweb'; hWz.attuned = []; hFt.equip.wand = 'wandofweb'; hFt.attuned = [];
       var saidW = RMI.attune(hWz).join(' '), saidF = RMI.attune(hFt).join(' '), bare = JSON.parse(JSON.stringify(hFt)); delete bare.attuned;
       okMI('2 the WAND place (' + RMI.PLACES.join(',') + '; the wand\'s slot ' + RMI.slotFor({ equip: {} }, wwMI) + ', the ring\'s ' + RMI.slotFor({ equip: {} }, rwMI) + '); held at a rest, Aurdin: "' + saidW + '"; Barley: "' + saidF + '"; a sheet with no list of bonds (a class card\'s) bonds it only if it casts: Barley ' + RMI.bonded(bare, 'wandofweb') + ', Aurdin ' + RMI.bonded(Object.assign({}, hWz, { attuned: undefined }), 'wandofweb'),
-        RMI.PLACES[RMI.PLACES.length - 1] === 'wand' && RMI.PLACE_NAME.wand === 'WAND' && RMI.slotFor({ equip: {} }, wwMI) === 'wand' && RMI.slotFor({ equip: {} }, rwMI) === 'ring' &&
+        RMI.PLACES.indexOf('wand') === 5 && RMI.PLACE_NAME.wand === 'WAND' && RMI.slotFor({ equip: {} }, wwMI) === 'wand' && RMI.slotFor({ equip: {} }, rwMI) === 'ring' &&
         hWz.attuned.indexOf('wandofweb') >= 0 && hFt.attuned.indexOf('wandofweb') < 0 && /wants a spellcaster/.test(saidF) && RMI.casts(hWz) && !RMI.casts(hFt) && !RMI.bonded(bare, 'wandofweb') && RMI.bonded(Object.assign({}, hWz, { attuned: undefined }), 'wandofweb'));
       var npW = D.npc.build('wizard:3+wandofweb', 3, 'party'), npF = D.npc.build('fighter:3+ringwaterwalking', 3, 'party');
       okMI('2 a class word carries them: wizard:3+wandofweb holds it in the WAND place (' + (npW && npW.src && npW.src.equip.wand) + '), fighter:3+ringwaterwalking wears it (' + (npF && npF.src && [npF.src.equip.ring, npF.src.equip.ring2].join(',')) + ') and walks on water ' + (npF && D.grid.waterWalker(npF)),
@@ -19416,6 +19416,46 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var logR2 = (BR.log || []).join(' | ');
       okMI('4 at 3 hit points and struck (a 17, ' + (17 + atkR.atk) + ' against AC 20): it parts and is destroyed -- cut ' + rS.cut + ', the rogue off it ' + !rgR.hang + ', nothing back in the pack (' + ((BR.inv[0] || {}).n) + ')',
         rS.cut && !rgR.hang && BR.inv[0].n === 0 && /vs AC 20/.test(logR2) && /silk is destroyed/.test(logR2));
+      // 4 a fight won with the silk still fastened: it coils itself back into the pack (Battle.gatherThrown); a Rope & Grapple left on a face stays there
+      BR.inv = [{ id: 'ropeclimbing', n: 1 }, { id: 'rope', n: 1 }]; BR.ropes = BR.ropes.filter(function (r) { return r.fixed; }); BR.ground = [];
+      rgR.x = 18; rgR.y = 16; delete rgR.hang; D.rules.startTurn(rgR); runMI(BR.exec(rgR, { do: 'rope', x: 18, y: 15, item: 'ropeclimbing' }));
+      var lineG = D.Battle.prototype.gatherThrown.call(BR, 'won'), nG = BR.inv.filter(function (s) { return s.id === 'ropeclimbing'; })[0].n, leftG = BR.ropes.filter(function (r) { return r.item === 'ropeclimbing'; }).length;
+      okMI('4 the fight won with the silk fastened: back in the pack ' + nG + ', none left on the face ' + (leftG === 0) + ' ("' + String(lineG).replace(/\{\/?[a-z]*\}/g, '') + '")', nG === 1 && leftG === 0 && /coils itself back/.test(lineG));
+      // 4b the walked floor: the party's token crosses deep water only when all four wear the ring (grid.js G.waterWalker); in a fight each by its own
+      var wA = { src: { equip: { ring: 'ringwaterwalking' } } }, wB = { src: { equip: { ring2: 'ringwaterwalking' } } }, wC = { src: { equip: {} } }, B0w = D.battle;
+      D.battle = { roam: { token: wA, members: [wA, wB, wC], rest: [wB, wC], mode: 'walk' } }; var tok1 = D.grid.waterWalker(wA), mem1 = D.grid.waterWalker(wB);
+      wC.src.equip.ring = 'ringwaterwalking'; var tok2 = D.grid.waterWalker(wA); wC.src.equip = {}; D.battle.roam.mode = 'fight'; var tok3 = D.grid.waterWalker(wA); D.battle = B0w;
+      okMI('4 on a walked floor the token walks on water with one ring of three: ' + tok1 + ' (the wearer behind it, by its own: ' + mem1 + '); all three wearing one: ' + tok2 + '; in a fight the token\'s wearer by its own: ' + tok3, !tok1 && mem1 && tok2 && tok3);
+      // 4c a hand's click up a face it could climb by hand (a check over 5 ft), the silk in the pack and no Rope & Grapple: the CLIMB? ask offers the silk, and its answer sets it with no throw and climbs it
+      var BC = D.npcFight('?npc=goblin&lvl=3&vs=rogue:3&map=climbfloor', {}); D.battle = BC; BC.enter(); var kC = 0; while (!BC.order.length && kC++ < 400) BC.co.next(); // (the climbing floor: faces 7.5 to 30 ft -- the Edifice has none a hand can climb)
+      var rgC = BC.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0];
+      var GM = D.grid, mM = GM.map, faceM = null;
+      for (var yM = 1; yM < mM.h - 1 && !faceM; yM++) for (var xM = 1; xM < mM.w - 1 && !faceM; xM++) {
+        var sM = mM.at(xM, yM); if (!sM || !sM.walk || sM.deep || GM.occupant(xM, yM)) continue;
+        [[0, -1], [1, 0], [-1, 0], [0, 1]].forEach(function (dM) {
+          if (faceM) return; var tx = xM + dM[0], ty = yM + dM[1], tM = mM.at(tx, ty); if (!tM || !tM.walk || GM.occupant(tx, ty)) return;
+          var up = (mM.gz(tx, ty) - mM.gz(xM, yM)) / mM.def.step; if (up < 3 || up > mM.def.climb) return; // (over 5 ft, within a hand's climb: a check, so the ask)
+          rgC.x = xM; rgC.y = yM; if (D.Battle.ropeSq(BC, rgC, tx, ty, [xM, yM], 'ropeclimbing')) faceM = { from: [xM, yM], to: [tx, ty], ft: up * 2.5 };
+        });
+      }
+      var askM = null, setM = false, upM = false;
+      if (faceM) {
+        BC.ropes = BC.ropes.filter(function (r) { return r.fixed; }); BC.inv = [{ id: 'ropeclimbing', n: 1 }]; delete rgC.hang;
+        rgC.x = faceM.from[0]; rgC.y = faceM.from[1]; GM.setup(GM.map, BC.units); D.rules.startTurn(rgC); BC.active = rgC; BC.cache = null; rgC.guest = false; rgC.classAI = false;
+        var gM = BC.exec(rgC, { do: 'move', x: faceM.to[0], y: faceM.to[1] }), vM, kM = 0;
+        while (kM++ < 4000) { var rM = gM.next(vM); vM = undefined; if (rM.done) break; var yv = rM.value; if (yv && yv.prompt) { if (!askM) askM = yv.prompt.opts.map(function (o) { return o.value; }); var so = yv.prompt.opts.filter(function (o) { return o.value === 'silk'; })[0]; vM = (so || yv.prompt.opts[0]).value; } }
+        var rpM = BC.ropes.filter(function (r) { return r.item === 'ropeclimbing' && !r.cut; })[0];
+        setM = !!rpM && rpM.ac === 20 && !/throws the grapple/.test((BC.log || []).slice(-12).join(' | '));
+        upM = (rgC.x === faceM.to[0] && rgC.y === faceM.to[1]) || !!(rgC.hang && rgC.hang.rope === rpM);
+      }
+      okMI('4 a click up a ' + (faceM ? faceM.ft + ' ft face (' + faceM.from.join(',') + ' to ' + faceM.to.join(',') + ')' : 'face -- NONE FOUND') + ' with only the silk in the pack: the ask offers ' + (askM || []).join(', ') + '; the silk set with no throw ' + setM + ', and the climb up it ' + upM,
+        !!faceM && !!askM && askM.indexOf('silk') >= 0 && askM.indexOf('grapple') < 0 && setM && upM);
+      // 7 the Goggles of Night (11-15 later, his "goggles in this seat too"): darkvision 60, or 60 more; on a story sheet, a class card, the Pocket DM's winnings, never sold
+      var gNI = IMI.gogglesnight, hLy = RMI.makeHero('lymen', 3), hBa = RMI.makeHero('barley', 3); hLy.equip.eyes = 'gogglesnight'; hBa.equip.eyes = 'gogglesnight';
+      var uLy = D.save.unitOf(hLy, false, null), uBa = D.save.unitOf(hBa, false, null), uBa0 = D.save.unitOf(RMI.makeHero('barley', 3), false, null), cOr = D.npc.build('paladin:3:halforc+gogglesnight', 3, 'party'), cHu = D.npc.build('fighter:3:human+gogglesnight', 3, 'party');
+      okMI('7 the Goggles of Night: ' + (gNI ? 'worn in the ' + gNI.place + ' place, darkvision ' + gNI.darkvision + ', never sold ' + !!gNI.noSell + ', no bond ' + !gNI.attune : 'NONE') + '; Lymen (a half-orc, 60) with them ' + uLy.darkvision + ' ft, Barley (human) ' + uBa0.darkvision + ' ft and with them ' + uBa.darkvision + '; a class card, a half-orc ' + (cOr && cOr.darkvision) + ', a human ' + (cHu && cHu.darkvision) + '; the Pocket DM: a winning ' + (D.pocket.LOOT.indexOf('gogglesnight') >= 0) + ', on the market at 11th ' + (D.pocket.stock(11).indexOf('gogglesnight') >= 0),
+        !!gNI && gNI.kind === 'worn' && gNI.place === 'eyes' && gNI.darkvision === 60 && gNI.noSell && !gNI.attune && /SRD 5\.1/.test(gNI.src) && RMI.PLACES.indexOf('eyes') >= 0 && RMI.slotFor({ equip: {} }, gNI) === 'eyes' &&
+        uLy.darkvision === 120 && uLy.dvBase === 60 && uBa0.darkvision === 0 && uBa.darkvision === 60 && !!cOr && cOr.darkvision === 120 && !!cHu && cHu.darkvision === 60 && D.pocket.LOOT.indexOf('gogglesnight') >= 0 && D.pocket.stock(11).indexOf('gogglesnight') < 0);
       // 5 the Pocket DM: the market and the winnings
       var PKm = D.pocket, s1 = PKm.stock(1), s5 = PKm.stock(5), wzS = D.npc.build('wizard:5', 5, 'party').src, ftS = D.npc.build('fighter:5', 5, 'party').src;
       var lW = PKm.lootFor(wzS, false, 5), lF = PKm.lootFor(ftS, false, 5);
@@ -19426,7 +19466,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var vS, kS = 0;
       while (BS.co && kS++ < 400000) { var rS2 = BS.co.next(vS); vS = undefined; if (rS2.done) break; var yS = rS2.value; if (yS && yS.prompt) vS = yS.prompt.opts[0].value; }
       (BS.itemReport || []).forEach(function (b) { okMI('6 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
-      okMI('6 the show ran ' + (BS.itemReport || []).length + ' beats (want 6: rope, ring, wand, lastcharge, dawn, bond)', (BS.itemReport || []).length === 6);
+      okMI('6 the show ran ' + (BS.itemReport || []).length + ' beats (want 7: rope, ring, wand, lastcharge, dawn, bond, goggles -- the goggles since 11-15 later)', (BS.itemReport || []).length === 7);
     } catch (eMI) { repMI.errors.push(String(eMI && eMI.stack || eMI).slice(0, 900)); }
     D.d = dMI;
     var preMI = document.createElement('pre'); preMI.id = 'out'; preMI.textContent = 'BENCH16 ' + JSON.stringify(repMI);

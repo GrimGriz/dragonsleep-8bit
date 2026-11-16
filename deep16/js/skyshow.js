@@ -297,6 +297,23 @@
           setPin(15, null); if (p && p.length) yield* fire(B.moveAlong(C.troll1, p, { spend: true })); setPin(null, null); B.active = null; yield W(30);
           var lg = logFrom(n), sprung = /\(readied\)/.test(lg) && C.barley.reaction === 0;
           return [ended && sprung, 'one ask, then over ' + (o.asked === 1) + ', move left ' + C.barley.turn.move + '; the readied blow on the troll\'s turn ' + sprung];
+        } },
+      { id: 'silk', name: 'The Rope of Climbing up the facade', what: 'Added 11-15 (the magic-items seat; his "note the rope will be used in the skylight fight if that means an edit for that fight" -- it needed none: it is set from the item wheel as the Rope & Grapple is). Lymen in the street under the 45-ft face, the silk in the pack: its far end climbs to the lip by itself, no throw where the grapple\'s is DC 16, and he climbs it with no check. A troll on the street goes for it while he hangs there: AC 20 and 20 hit points, where a Rope & Grapple is AC 11 and 2. Pinned: every d20 15.',
+        run: function* () {
+          stage([[C.lymen, 18, 16], [C.troll1, 21, 19]], 6);
+          var tS = spotNear(C.troll1, 18, 16, 5, 10, false); if (tS) { C.troll1.x = tS[0]; C.troll1.y = tS[1]; G.setup(G.map, B.units); }
+          B.inv = [{ id: 'ropeclimbing', n: 1 }];
+          var plain = D.Battle.ropeSq(B, C.lymen, 18, 15), n = (B.log || []).length;
+          B.active = C.lymen; B.focus(C.lymen);
+          yield* fire(B.exec(C.lymen, { do: 'rope', x: 18, y: 15, item: 'ropeclimbing' }));
+          var rp = (B.ropes || []).filter(function (r) { return r.item === 'ropeclimbing' && !r.cut; })[0];
+          if (rp) yield* fire(B.exec(C.lymen, { do: 'ropeclimb', x: 18, y: 15 })); // (as far up it as his move pays, and he hangs there: CLIMB THE ROPE?'s CLIMB)
+          B.active = null; yield W(30);
+          var lg = logFrom(n), set = !!rp && rp.ac === 20 && rp.hp === 20 && !/throws the grapple/.test(lg) && /climbs the face by itself/.test(lg) && !!plain && plain.dc === 16, up = ftUp(C.lymen);
+          var claw = Object.keys(C.troll1.attacks).map(function (k) { return C.troll1.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
+          setPin(15, null); RU.startTurn(C.troll1); B.active = C.troll1; if (rp && claw) yield* fire(B.cutRope(C.troll1, rp, claw)); B.active = null; setPin(null, null); yield W(40);
+          var held = !!rp && !rp.cut && rp.hp > 0 && rp.hp < 20 && /vs AC 20/.test(logFrom(n)) && ftUp(C.lymen) === up;
+          return [set && up > 0 && held, 'set from the street with no throw (the grapple\'s would be DC ' + (plain && plain.dc) + ') ' + set + '; Lymen ' + up + ' ft up it; the troll\'s blow (' + (claw && (15 + claw.atk)) + ' against AC 20) hits and the rope holds with ' + (rp && rp.hp) + ' of 20, Lymen still on it ' + held];
         } }
     ];
 

@@ -144,13 +144,15 @@
       athletics: h.skills && h.skills.Athletics != null ? R.skill(h, 'Athletics', 'str') : undefined, acrobatics: h.skills && h.skills.Acrobatics != null ? R.skill(h, 'Acrobatics', 'dex') : undefined,
       // what he sees the dark by (torchdark 09-28): his blood (the 8-bit sheet's race: Lymen the half-orc, the dwarves), or the
       // Darkvision spell cast on him that day (the 8-bit's conds, till the long rest)
-      darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0),
+      // (and the Goggles of Night over it, 11-15: js/rules.js R.darkvisionWith -- dvBase, the sight without them, for EQUIP's change on the floor, js/roam.js)
+      dvBase: SV.dvBase(h), darkvision: R.darkvisionWith ? R.darkvisionWith(h, SV.dvBase(h)) : SV.dvBase(h),
       // his blood's Savage Attacks (battle.js attack: a melee critical rolls one more weapon die) and the fighting style he fights by (battle.js
       // reads 'protection'; the rest are in his numbers, js/rules.js) -- 10-06: the grid never gave Lymen his (Griz: "inconceivable!")
       savage: R.savage(h), style: R.style(h),
       initAdv: h.cls === 'rogue' && h.subclass === 'Cutthroat' && h.lvl >= 9 // (Opening Night, Cutthroat's 9th: advantage on initiative -- battle.js run reads it; 11-03)
     };
   }
+  SV.dvBase = function (h) { return Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0); };
   SV.unitOf = unitOf; // (the class NPCs are made units the same way: js/classes.js)
   // (a Cloak of Displacement works only for one bonded with it -- js/rules.js R.bonded, 10-06; unbonded it is a cloak)
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement && R.bonded(h, h.equip.cloak)); };

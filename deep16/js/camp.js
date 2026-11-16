@@ -14,7 +14,7 @@
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var KEY = 'deep16.camp';
   // (10-06: the worn places -- js/rules.js R.PLACES -- two rings, the cloak, the feet, the neck; a thing's own place is R.slotFor)
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['ring2', 'RING (2ND)'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['ring2', 'RING (2ND)'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND'], ['eyes', 'EYES']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
 
   // the armoury a rung offers: the 8-bit game's gear by then. Silverton's racks (the Show-Armorer, the Pawnbroker) from the
   // start; from 5, after the lake, its hoard given back and Winters' cases; from 6 what's behind the fountains; plate at 8
@@ -45,6 +45,7 @@
     if (it.resist) bits.push('resists ' + it.resist.join(', '));
     if (it.immune) bits.push('immune ' + it.immune.join(', '));
     if (it.adv) bits.push('adv. ' + it.adv.join(', '));
+    if (it.darkvision) bits.push('darkvision ' + it.darkvision + ' ft'); // (the Goggles of Night, 11-15)
     return bits.join('; ');
   }
   function twoHanded(id) { var it = item(id); return !!(it && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0); }
@@ -222,7 +223,7 @@
     if (slot === 'cloak') { var ck = id && item(id) && item(id).cloak; return !ck ? '' : ck.displacement ? 'foes at disadvantage' : ck.spellSave ? '+' + ck.spellSave + ' saves vs spells' : wornWords(item(id)); } // (each cloak its own: the King's Mantle read "foes at disadvantage" -- the wearables runner, 10-06)
     var wi = id && item(id), ww = wi && wornWords(wi);
     if (ww) return ww; // (10-06: a worn thing says what it gives -- a ring of AC still says its AC)
-    if (slot === 'feet' || slot === 'neck') return '';
+    if (slot === 'feet' || slot === 'neck' || slot === 'wand' || slot === 'eyes') return '';
     if (slot === 'weapon') { var w = R.weaponOf(h2), dm = R.damageExpr(h2, w); return D.rules.sign(R.attackBonus(h2, w)) + ' ' + dm.dice + (dm.mod ? D.rules.sign(dm.mod) : ''); }
     return 'AC ' + R.ac(h2);
   }

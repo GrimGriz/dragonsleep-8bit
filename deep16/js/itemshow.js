@@ -1,9 +1,10 @@
 /* DEEP16 -- three magic items of the SRD, shown (2026-11-15, the magic-items seat): the Rope of Climbing, the Ring of Water Walking and the Wand of Web (js/magicitems.js),
+   and since later that night the Goggles of Night (the lanes desk's pick for the galleries, his "goggles in this seat too"),
    played where the engine plays them, a beat at a time, on the Edifice (a 45 ft face to climb, the channel's deep water, the street), by a party of level 3, the dice pinned
    where a beat needs them to fall one way (its card says so). The shape is js/madeshow.js's: at the end of each beat the show waits -- ENTER (or E, or a click) plays it again,
    RIGHT the next, LEFT the one before.
 
-     deep16/?itemshow              every beat, in order · &only=rope,ring,wand,lastcharge,dawn,bond keeps to those · &beat=N starts at the Nth · &fast no pauses (the bench)
+     deep16/?itemshow              every beat, in order · &only=rope,ring,wand,lastcharge,dawn,bond,goggles keeps to those · &beat=N starts at the Nth · &fast no pauses (the bench)
 
    Each beat is staged (who stands where, what each holds, as its card says) and then run by the engine itself -- the rope set by exec 'rope', struck by Battle.cutRope, taken
    up by exec 'takerope'; the walk by exec 'move'; the wand by exec 'wand', its Web the engine's M.cast; the dawn by js/rules.js R.refresh -- so what it shows is what a fight
@@ -191,13 +192,35 @@
       return [ok, fighter.name + ': "' + said.join(' ') + '", the ring\'s button grey (' + (cF && cF.why) + '); ' + wizard.name + ': "' + saidW.join(' ') + '"'];
     }
 
+    function* goggles() {
+      // four watchers made from words as the Pocket DM's cards are (the engine's own unit, js/classes.js NPC.build): a human and a half-orc, each without and with the goggles
+      var mk = function (w, id) { var u = D.npc.build(w, 3, 'party'); if (u) { u.id = id; u.name = w.replace(/:3:/, ' 3, ').replace('+gogglesnight', ', the goggles'); } return u; };
+      var hu = mk('fighter:3:human', 'gw-hu'), huG = mk('fighter:3:human+gogglesnight', 'gw-hug'), or = mk('paladin:3:halforc', 'gw-or'), orG = mk('paladin:3:halforc+gogglesnight', 'gw-org');
+      var row = null;
+      for (var yg = 2; yg < m.h - 3 && !row; yg++) for (var xg = 1; xg < m.w - 20 && !row; xg++) {
+        var okg = true; for (var k = 0; k <= 18 && okg; k++) okg = open(xg + k, yg, 0);
+        if (okg && open(xg, yg - 1, 0) && open(xg, yg + 1, 0) && open(xg, yg + 2, 0)) row = [xg, yg];
+      }
+      if (!row || !hu || !huG || !or || !orG) return [false, 'no dark street row of 95 ft, or no watchers'];
+      var near = gobs[0], far = gobs[1];
+      stage([hu, huG, or, orG, near, far], [[row[0], row[1] - 1], [row[0], row[1]], [row[0], row[1] + 1], [row[0], row[1] + 2], [row[0] + 8, row[1]], [row[0] + 18, row[1]]]);
+      var dark0 = B.dark, lights0 = B.lights; B.dark = true; B.lights = []; B.lightMap = null;
+      var lit = D.light.levelOf(B, near) + D.light.levelOf(B, far), sees = function (a) { return [D.light.seesBy(B, a, near).ok ? 'the near one' : null, D.light.seesBy(B, a, far).ok ? 'the far one' : null].filter(Boolean).join(' and ') || 'nothing'; };
+      var dv = [hu, huG, or, orG].map(function (u) { return u.darkvision || 0; }), saw = [hu, huG, or, orG].map(sees);
+      say(['The Goggles of Night: darkvision 60 ft, or 60 ft more to one who has it. The street put dark, no light anywhere: a goblin 40 ft off and another 90 ft off. A human sees ' + saw[0] + '; with the goggles, ' + saw[1] + ' (' + dv[1] + ' ft). A half-orc (' + dv[2] + ' ft, as Lymen) sees ' + saw[2] + '; with the goggles, ' + saw[3] + ' (' + dv[3] + ' ft).']); yield W(170);
+      B.dark = dark0; B.lights = lights0; B.lightMap = null;
+      var ok = lit === 0 && dv.join() === '0,60,60,120' && saw.join('|') === 'nothing|the near one|the near one|the near one and the far one';
+      return [ok, 'darkvision ' + dv.join(', ') + ' ft (a human, with the goggles, a half-orc, with them); in the dark at 40 and 90 ft they see: ' + saw.join('; ')];
+    }
+
     var BEATS = [
       { id: 'rope', name: 'The Rope of Climbing: set with no throw, AC 20 and 20 hit points', what: 'SRD 5.1 Rope of Climbing (wondrous, uncommon): 60 ft of silk; its far end goes where it is told and fastens; AC 20, 20 hit points. Your route words for the Missing Five: "they should get a rope and drag up the five". Where it is met is your word.', run: rope },
       { id: 'ring', name: 'The Ring of Water Walking: deep water is ground', what: 'SRD 5.1 Ring of Water Walking (ring, uncommon): "you can stand on and move across any liquid surface as if it were solid ground". For Halfway Lake and the Wet. Where it is met is your word.', run: ring },
       { id: 'wand', name: 'The Wand of Web: an action and a charge, DC 15', what: 'SRD 5.1 Wand of Web (wand, uncommon, requires attunement by a spellcaster): 7 charges; an action and a charge cast Web from it at save DC 15. For Web Gulch and the Braiding Ettercap. Where it is met is your word.', run: wand },
       { id: 'lastcharge', name: 'The wand\'s last charge: the d20', what: 'SRD 5.1: "If you expend the wand\'s last charge, roll a d20. On a 1, the wand crumbles into ashes and is destroyed."', run: lastCharge },
       { id: 'dawn', name: 'The wand at dawn: 1d6 + 1 back', what: 'SRD 5.1: "The wand regains 1d6 + 1 expended charges daily at dawn." The game\'s dawn is the long rest.', run: dawn },
-      { id: 'bond', name: 'The wand\'s bond: a spellcaster\'s only', what: 'SRD 5.1: "requires attunement by a spellcaster". A bond is made at a rest while it is held (the game\'s attunement since 10-06).', run: bond }
+      { id: 'bond', name: 'The wand\'s bond: a spellcaster\'s only', what: 'SRD 5.1: "requires attunement by a spellcaster". A bond is made at a rest while it is held (the game\'s attunement since 10-06).', run: bond },
+      { id: 'goggles', name: 'The Goggles of Night: 60 ft in the dark, or 60 more', what: 'SRD 5.1 Goggles of Night (wondrous, uncommon): "you have darkvision out to a range of 60 feet. If you already have darkvision, wearing the goggles increases its range by 60 feet." For the galleries, where the roost forbids fire. Barley, Aurdin and Vivian are human; Lymen is a half-orc with 60. Where it is met is your word.', run: goggles }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id; }); });

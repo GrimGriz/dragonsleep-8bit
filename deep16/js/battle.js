@@ -1654,13 +1654,15 @@
     return !(G.tall() && G.overFloor(u.x, u.y, ez, x, y, z + 2 * st));
   };
   // the first climb on a hand's path that takes a check, while the pack has a Rope & Grapple and the action is free: where the grapple could go instead (exec 'move' asks USE GRAPPLE)
-  Battle.prototype.grappleAt = function (u, path) {
-    var T = u.turn, s = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
+  // (`item`: the Rope of Climbing in the pack instead, 11-15 -- its far end climbs to the lip by itself, no throw: tdc 0. Battle.silkIn names the pack's)
+  Battle.silkIn = function (B) { var s = ((B && B.inv) || []).filter(function (x) { return x.n > 0 && Battle.ropeItem(x.id); })[0]; return s ? s.id : null; };
+  Battle.prototype.grappleAt = function (u, path, item) {
+    var T = u.turn, idG = item && Battle.ropeItem(item) ? item : 'rope', s = (this.inv || []).filter(function (x) { return x.id === idG && x.n > 0; })[0];
     if (!s || !T || !T.action || T.attacksLeft || !G.map.def.climb || (u.size || 1) > 1) return null;
     var x = u.x, y = u.y;
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], cs = G.climbsUp(u, x, y, nx, ny), dc = G.climbDC(cs, u, G.faceKind(nx, ny));
-      if (dc) { var gq = Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y]); return gq ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc, tdc: gq.top ? 0 : gq.dc } : null; } // (tdc: the throw's own DC, 10-05)
+      if (dc) { var gq = Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y], idG !== 'rope' ? idG : null); return gq ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc, tdc: gq.top || idG !== 'rope' ? 0 : gq.dc, item: idG !== 'rope' ? idG : null } : null; } // (tdc: the throw's own DC, 10-05)
       x = nx; y = ny;
     }
     return null;
@@ -1713,21 +1715,22 @@
         var rm = G.reach(u, T.move), path = G.path(rm, c.x, c.y);
         if (!path || !path.length || !rm[c.x + ',' + c.y].stand) return;
         if (!byAI(u)) { // (a hand's click that would fall, or risk it: asked first -- fallLines; and a climb that takes a check, a Rope & Grapple in the pack: USE GRAPPLE -- 10-04, Griz)
-          var fLs = this.fallLines(u, path), fDrop = fLs.some(function (s) { return /^A drop/.test(s); }), gA = this.grappleAt(u, path);
-          if (gA && !fLs.some(function (s) { return /^A climb/.test(s); })) fLs.push('A climb of ' + gA.ft + ' ft: Athletics DC ' + gA.dc + ', and a miss slides back prone.');
+          var fLs = this.fallLines(u, path), fDrop = fLs.some(function (s) { return /^A drop/.test(s); }), gA = this.grappleAt(u, path), sIdM = Battle.silkIn(this), gS = sIdM ? this.grappleAt(u, path, sIdM) : null; // (gS: the Rope of Climbing's offer beside the grapple's, 11-15)
+          if ((gA || gS) && !fLs.some(function (s) { return /^A climb/.test(s); })) fLs.push('A climb of ' + (gA || gS).ft + ' ft: Athletics DC ' + (gA || gS).dc + ', and a miss slides back prone.');
           if (fLs.length) {
             var cdPath = null; // (a drop of 10 ft or more: CLIMB DOWN too, where the move can pay it -- the SRD's cost of a climb, a check over 5 ft, a miss a fall)
             if (fDrop) { u.cdown = true; try { var rmD = G.reach(u, T.move), pD = G.path(rmD, c.x, c.y); if (pD && pD.length && rmD[c.x + ',' + c.y].stand) cdPath = pD; } finally { delete u.cdown; } }
-            var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (cdPath) mOpts.push({ label: 'CLIMB DOWN', value: 'down' }); if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
-            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(cdPath ? ['CLIMB DOWN: 5 ft of movement a step, a Strength (Athletics) check over 5 ft; a miss falls.'] : []).concat(gA ? ['USE GRAPPLE: ' + (gA.tdc ? 'throw it up first (DC ' + gA.tdc + ' DEX)' : 'tie it off first (no roll)') + ', then climb the rope with no check.'] : []), opts: mOpts } };
+            var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (cdPath) mOpts.push({ label: 'CLIMB DOWN', value: 'down' }); if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); if (gS) mOpts.push({ label: 'USE THE ROPE OF CLIMBING (your action)', value: 'silk' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
+            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(cdPath ? ['CLIMB DOWN: 5 ft of movement a step, a Strength (Athletics) check over 5 ft; a miss falls.'] : []).concat(gA ? ['USE GRAPPLE: ' + (gA.tdc ? 'throw it up first (DC ' + gA.tdc + ' DEX)' : 'tie it off first (no roll)') + ', then climb the rope with no check.'] : []).concat(gS ? ['THE ROPE OF CLIMBING: told, its far end climbs to the lip and fastens (no roll), then climb it with no check.'] : []), opts: mOpts } };
             if (!mAns) return;
             if (mAns === 'down') { u.cdown = true; try { yield* this.moveAlong(u, cdPath, { spend: true }); } finally { delete u.cdown; } return; }
-            if (mAns === 'grapple') { // to the foot of the face, the grapple up, and on up the rope -- part way, if the move runs out
-              if (gA.i) yield* this.moveAlong(u, path.slice(0, gA.i), { spend: true });
-              if (u.x !== gA.foot[0] || u.y !== gA.foot[1] || u.hp <= 0 || u.dead) return;
-              yield* this.exec(u, { do: 'rope', x: gA.at[0], y: gA.at[1], foot: gA.foot });
-              if (!G.ropeOn(u, u.x, u.y, gA.at[0], gA.at[1])) return;
-              yield* this.moveAlong(u, path.slice(gA.i), { spend: true, partial: true });
+            if (mAns === 'grapple' || mAns === 'silk') { // to the foot of the face, the grapple up (or the silk told up: 11-15), and on up the rope -- part way, if the move runs out
+              var gX = mAns === 'silk' ? gS : gA;
+              if (gX.i) yield* this.moveAlong(u, path.slice(0, gX.i), { spend: true });
+              if (u.x !== gX.foot[0] || u.y !== gX.foot[1] || u.hp <= 0 || u.dead) return;
+              yield* this.exec(u, { do: 'rope', x: gX.at[0], y: gX.at[1], foot: gX.foot, item: gX.item || null });
+              if (!G.ropeOn(u, u.x, u.y, gX.at[0], gX.at[1])) return;
+              yield* this.moveAlong(u, path.slice(gX.i), { spend: true, partial: true });
               return;
             }
           }

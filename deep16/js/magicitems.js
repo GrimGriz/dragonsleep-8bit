@@ -31,6 +31,21 @@
   };
   MI.setCharges = function (u, id, n) { var it = item(id); if (!it || !it.wand) return; u.feats = u.feats || {}; var k = R().chargeKey(id); if (n >= it.wand.charges) delete u.feats[k]; else u.feats[k] = Math.max(0, n); };
 
+  // ------------------------------------------------------------------ the Rope of Climbing at the fight's end
+  // a held field (as the thrown weapons are gathered, Battle.gatherThrown): a Rope of Climbing still fastened on a face is told to come down and coils itself back into the
+  // pack -- a magic item is not left hanging on the Edifice (a Rope & Grapple left on a face stays there, as it always has)
+  var gather0 = Battle.prototype.gatherThrown;
+  Battle.prototype.gatherThrown = function (o) {
+    var line = gather0.apply(this, arguments), self = this;
+    if (o !== 'won' && o !== 'yielded' && o !== 'fled') return line;
+    var back = (this.ropes || []).filter(function (r) { return !r.cut && r.item && Battle.ropeItem(r.item); });
+    if (!back.length) return line;
+    back.forEach(function (r) { r.cut = true; var s = (self.inv = self.inv || []).filter(function (x) { return x.id === r.item; })[0]; if (s) s.n = (s.n || 0) + 1; else self.inv.push({ id: r.item, n: 1 }); });
+    this.ropes = (this.ropes || []).filter(function (r) { return back.indexOf(r) < 0; });
+    var said = '{g}The Rope of Climbing is told to come down: it coils itself back into the pack.{/}';
+    return line ? line + ' ' + said : said;
+  };
+
   // ------------------------------------------------------------------ the ring: WAND OF WEB n/7
   var cmds0 = Battle.prototype.commands;
   Battle.prototype.commands = function (u) {

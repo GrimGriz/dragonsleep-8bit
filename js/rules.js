@@ -654,8 +654,9 @@
   // `attuned` list (a class NPC's, the Pocket DM's made ones) wears its kit bonded, as the SRD's built characters come
   // (11-15, the magic-items seat: and a wand, held in a place of its own -- the Wand of Web, SRD 5.1 "while holding it"; an item of kind `worn`, place `wand`. Last, so
   // every list made of these before it reads as it did)
-  R.PLACES = ['ring', 'ring2', 'cloak', 'feet', 'neck', 'wand'];
-  R.PLACE_NAME = { ring: 'RING', ring2: 'RING', cloak: 'CLOAK', feet: 'FEET', neck: 'NECK', wand: 'WAND' };
+  // (and the eyes, 11-15 later: the Goggles of Night's dark lenses, an item of kind `worn`, place `eyes`)
+  R.PLACES = ['ring', 'ring2', 'cloak', 'feet', 'neck', 'wand', 'eyes'];
+  R.PLACE_NAME = { ring: 'RING', ring2: 'RING', cloak: 'CLOAK', feet: 'FEET', neck: 'NECK', wand: 'WAND', eyes: 'EYES' };
   R.ATTUNE_MAX = 3;
   // the slot an item goes in (a ring: the first free hand, else the first)
   R.slotFor = function (h, it) {
@@ -667,6 +668,9 @@
   R.bonded = function (h, id) { var it = R.item(id); return !!it && (!it.attune || !h || ((!h.attuned || h.attuned.indexOf(id) >= 0) && !(it.attune === 'caster' && !R.casts(h)))); };
   // "requires attunement by a spellcaster" (SRD 5.1, the Wand of Web; an item's `attune: 'caster'`, 11-15): one who casts spells -- slots of the class's, as a feat that wants
   // spellcasting reads it (R.featWant). Anyone else never bonds with it, and it never works for them, a sheet with no list of bonds included
+  // GOGGLES OF NIGHT (SRD 5.1: "you have darkvision out to a range of 60 feet. If you already have darkvision, wearing the goggles increases its range by 60 feet"; an item's
+  // `darkvision`, 11-15): the sight in the dark a sheet has with what it wears, over `base` -- its blood's or a spell's (Lymen the half-orc's 60 to 120; a human's none to 60)
+  R.darkvisionWith = function (h, base) { var add = 0; R.gear(h).forEach(function (g) { if (g.darkvision) add = Math.max(add, g.darkvision); }); base = base || 0; return !add ? base : base > 0 ? base + add : add; };
   R.casts = function (h) { return !!(h && h.cls && R.CLASSES[h.cls] && R.slotsFor(h).length > 0); };
   // A WAND'S CHARGES (SRD 5.1, the Wand of Web: "This wand has 7 charges ... regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll a d20.
   // On a 1, the wand crumbles into ashes and is destroyed"; 11-15): kept on the sheet of the one holding it, among its uses (`feats`, so every fight's write-back and the Pocket

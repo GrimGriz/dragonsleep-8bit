@@ -2019,6 +2019,7 @@
       u.baseAC = ac; u.armored = Rr.armored(h);
       L.regrip(u);
       u.wings = R.ringWings(u); u.flies = B.roam.mode === 'fight' && u.wings; // (a ring put on or taken off by EQUIP: its wings with it, spread only in a fight)
+      if (u.dvBase != null && Rr.darkvisionWith) u.darkvision = Rr.darkvisionWith(h, u.dvBase); // (the Goggles of Night put on or taken off by EQUIP, 11-15)
     });
   };
   // a Ring of Flying on a finger (content/items.json ring.fly; js/flight-ai.js reads the same two fingers)
