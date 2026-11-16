@@ -56,6 +56,13 @@
       open: ['cull'], done: ['company', 'work'], pin: 'cull',
       at: { town: 'mouth', world: true }, day: 1, hour: 20,
       look: 'Day 2, 20:00, level 3: the four on THE WORLD on the guano mine\'s hex, a little hurt. CAMP (the button, or SPACE): the camp\'s page -- where you are and the hour at its head, the four\'s hit points, AC and hit dice, the fire, THE MENU (M), and LONG REST: 8 HOURS, THREE WATCHES / SHORT REST: AN HOUR / WALK ON. Take the long rest, then CAMP again: LONG REST greyed with the hour it opens, WAIT TILL A LONG REST, and after the wait "A long rest now?".' },
+    // (KATARINA'S BOOK ON ITS OWN PAGE, 11-16 -- the book-hedge seat, on his "Kat's book screen needs done.": a fresh save, the four at level 3 on THE WORLD at Silverton's hex, her
+    // book in the pack, the book opened at once -- `read`, S16.open -- as the show; closed, the pack's READ opens it again. js/book.js; dev/bench16.js mode=book1116)
+    book16: { group: G, title: 'KATARINA\'S BOOK on its own page: the four at level 3 on THE WORLD by Silverton, her book open (11-16)', pt: 'the second game\'s house · Katarina\'s book · situations from a link',
+      lead: 'lymen', lvl: 3, kit: true, silver: 30, renown: 1, give: [['katbook', 1], ['potion', 2]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1 },
+      open: [], done: ['company', 'work'], read: 'katbook',
+      at: { town: 'silverton', world: true }, day: 13, hour: 9,
+      look: 'Day 14, nine in the morning, level 3: the four on THE WORLD on Silverton\'s hex, Katarina\'s Book in the pack -- and the book open at its first two pages, BOOK ONE over each, her words in her own order to "Now the first thing." E or RIGHT turns the page (E on the last closes it), LEFT back, X closes. Then M, ITEMS, QUEST, KATARINA\'S BOOK, E: it opens again; walk into Silverton and read it there from M the same way.' },
     // (the four's own asks at 3, 11-03 -- the leveling lane item 13, RULED 10-31 "Agreed, when main story character classes are built out": the four at level 2 with the next level
     // banked, `bank`, so the night's rest levels them and the morning asks -- Barley's archetype, Lymen's oath)
     three16: { group: G, title: 'Silverton at evening, the four at level 2 with a level banked: the night\'s rest, then Barley\'s archetype and Lymen\'s oath asked at 3 (11-03)', pt: 'the leveling · the four\'s own asks · situations from a link',
@@ -152,6 +159,7 @@
     var rec = S16.save(id); if (!rec) return false;
     DS.G = { flags: rec.flags };
     H.begin(rec, 0); H.trail('situation', id + ' (deep16/?at=' + id + ')');
+    var s = DS.SIT16[id]; if (s.read && D.book) D.book.open(s.read); // (`read`: the item opened on its page over the place at once -- the show of book16, 11-16)
     return true;
   };
 })();

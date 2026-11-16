@@ -812,9 +812,11 @@
     if (lvl && !((h.slotsMax || x.slotsMax || [])[lvl - 1] > 0)) return h.name + ' cannot cast spells of its level yet.';
     return '';
   };
-  // an item from the pack (null: not the field's -- a light on THE WORLD, Katarina's book)
+  // an item from the pack (null: not the field's -- a light on THE WORLD). A book (Katarina's) opens on its own page, its words every page (js/book.js -- 11-16, Griz: "Kat's
+  // book screen needs done."): no line after it, as the first game says none (first/js/events.js 'read')
   FD.item = function (id, h, env) {
     var it = DS.DATA.items[id], use = it && it.use; if (!use) return null;
+    if (use.effect === 'read') return D.book && D.book.open(id) ? [] : null;
     var R = DS.R;
     if (h.dead && (use.effect === 'heal' || use.effect === 'revive' || use.effect === 'cure')) return [h.name + ' is dead: beyond any of that.'];
     if (use.effect === 'heal') { if (h.hp >= h.maxhp) return [say('g.fullHP', { name: h.name })]; env.take(id); D.sfx('heal'); return healed(h, FD.heal(h, D.roll(use.dice).total)); }

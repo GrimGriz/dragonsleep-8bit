@@ -990,6 +990,65 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preT);
     return;
   }
+  // KATARINA'S BOOK ON ITS OWN PAGE, 11-16 (mode=book1116; deep16/js/book.js, js/house.js FD.item, js/roam.js R.fieldLeft and R.menuAct, js/situations16.js book16 -- the
+  // book-hedge seat, on Griz's "Kat's book screen needs done."): every page of content/text.json kat.book, paged as the first game's book scene, drawn as a book lying open;
+  // turned by E, the arrows and the mouse, closed by X and a right-click; opened by the pack's READ on THE WORLD and on a floor with no card after; his door ?at=book16
+  if (get('mode', '') === 'book1116') {
+    var repB = { checks: [], errors: [] }, memB = {}, stGB = D.store.get, stSB = D.store.set, HB = D.house, IB = D.input, BKB = D.book, dtB = D.text, dsTB = window.DS.text;
+    function okB(what, v) { repB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topB() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function pressB(b) { IB.edge[b] = true; var s = D.top(); if (s && s.update) s.update(); IB.clear(); }
+    function clickB(x, right) { var m = IB.mouse; m.inside = true; m.x = x; m.y = 120; if (right) m.rclick = true; else m.click = true; var s = D.top(); if (s && s.update) s.update(); IB.clear(); }
+    function drawB(sc) { var pg = [], hint = [], inH = false; window.DS.text = function (c, s) { if (!inH) pg.push(String(s)); return dsTB.apply(this, arguments); }; D.text = function (c, s) { hint.push(window.DS.stripCodes(String(s))); inH = true; try { return dtB.apply(this, arguments); } finally { inH = false; } }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; sc.draw(cv.getContext('2d')); } finally { window.DS.text = dsTB; D.text = dtB; } return { pg: pg, hint: hint.join(' | ') }; }
+    D.store.get = function (k) { return memB[k] ? JSON.parse(memB[k]) : null; }; D.store.set = function (k, v) { memB[k] = JSON.stringify(v); return true; };
+    var BUILDERS = /to come|8-bit|first game|the grid|seat|bench|lane|griz|undefined/i;
+    try {
+      okB('0 the book screen loaded (deep16/js/book.js, D.book)', !!(BKB && BKB.open && BKB.pages));
+      // 1. THE PAGES: every word of kat.book in its order, wrapped to the page, 19 lines a page at most, no page opening on the blank between paragraphs
+      var parasB = [].concat(window.DS.DATA.text['kat.book'].t), pagesB = BKB.pages(parasB), P = BKB.PAGE;
+      var wordsIn = parasB.join(' ').split(/\s+/).filter(Boolean), wordsOut = [].concat.apply([], pagesB).join(' ').split(/\s+/).filter(Boolean);
+      var wideB = [].concat.apply([], pagesB).filter(function (l) { return window.DS.textWidth(l) > P.w - 2 * P.pad && l.indexOf(' ') >= 0; });
+      okB('1 the pages: ' + pagesB.length + ' of at most ' + P.lines + ' lines (' + pagesB.map(function (p) { return p.length; }).join(',') + '), ' + wordsOut.length + ' words of ' + wordsIn.length + ' in their order, ' + wideB.length + ' lines past the measure, ' + pagesB.filter(function (p, i) { return i && p[0] === ''; }).length + ' opening blank (want them all, none past, none)',
+        pagesB.length >= 2 && wordsOut.join(' ') === wordsIn.join(' ') && !wideB.length && pagesB.every(function (p) { return p.length <= P.lines; }) && !pagesB.some(function (p, i) { return i && p[0] === ''; }));
+      // 2. HIS DOOR, ?at=book16: the four at level 3 on THE WORLD by Silverton, the book in the pack and open over it
+      HB.playing = false; HB.cur = null; D.scenes.length = 0; D.sit16.open('book16'); var bk2 = D.top(), w2 = D.scenes[D.scenes.length - 2]; if (w2 && w2.baking) { w2.baking = false; w2.enter(); }
+      var pt2 = HB.cur ? HB.cur.party : [], has2 = HB.cur && HB.cur.inv.some(function (s) { return s.id === 'katbook' && s.n > 0; });
+      okB('2 ?at=book16: on top ' + (bk2 && bk2.kind) + ' over ' + (w2 && w2.kind) + ' (' + D.scenes.length + ' scenes); the four ' + pt2.map(function (h) { return h.id + ':' + h.lvl; }).join(' ') + '; the book in the pack ' + has2 + ' (want the book over THE WORLD, level 3, the book)',
+        !!bk2 && bk2.kind === 'book' && D.scenes.length === 2 && pt2.length === 4 && pt2.every(function (h) { return h.lvl === 3; }) && has2);
+      // 3. EVERY SPREAD DRAWN, TURNED BY E: each page's lines on its spread, the foot line in a player's words, E on the last closes and THE WORLD is in front again
+      var seenB = [], hintsB = [], turnsB = 0;
+      for (var sp = 0; sp < bk2.spreads; sp++) { var dr = drawB(bk2); seenB = seenB.concat(dr.pg.filter(function (s) { return s !== bk2.title && !/^\d+$/.test(s); })); hintsB.push(dr.hint); if (bk2.p !== sp) break; pressB('a'); turnsB++; }
+      var allLines = [].concat.apply([], bk2.pages).filter(Boolean);
+      okB('3 the spreads: ' + bk2.spreads + ' turned by E (' + turnsB + '), ' + seenB.filter(Boolean).length + ' of ' + allLines.length + ' lines drawn in their order, BOOK ONE over each page; the foot "' + hintsB[0] + '" ... "' + hintsB[hintsB.length - 1] + '"; closed by E on the last: THE WORLD in front ' + (D.top() === w2) + ' (want every line, the turn and the close said, no builder\'s words)',
+        seenB.filter(Boolean).join('\n') === allLines.join('\n') && /E turn the page/.test(hintsB[0]) && /E close the book/.test(hintsB[hintsB.length - 1]) && !hintsB.some(function (h) { return BUILDERS.test(h); }) && D.top() === w2 && turnsB === bk2.spreads);
+      // 4. THE ARROWS AND THE MOUSE: RIGHT on, LEFT back (not before the first), a click on the right page on and the left back, the wheel, a right-click closes; X closes
+      BKB.open('katbook'); var bk4 = D.top(), tr4 = [];
+      pressB('left'); tr4.push(bk4.p); pressB('right'); tr4.push(bk4.p); pressB('left'); tr4.push(bk4.p); clickB(D.W - 60); tr4.push(bk4.p); clickB(60); tr4.push(bk4.p); IB.mouse.wheel = 1; bk4.update(); IB.clear(); tr4.push(bk4.p); IB.mouse.wheel = -1; bk4.update(); IB.clear(); tr4.push(bk4.p);
+      clickB(200, true); var gone4 = D.top() === w2; BKB.open('katbook'); pressB('b'); var gone4b = D.top() === w2;
+      okB('4 LEFT, RIGHT, LEFT, a click right, a click left, the wheel down and up: the spread ' + tr4.join(',') + ' (want 0,1,0,1,0,1,0); a right-click closes ' + gone4 + ', X closes ' + gone4b, tr4.join(',') === '0,1,0,1,0,1,0' && gone4 && gone4b);
+      // 5. THE PACK'S READ on THE WORLD (M, ITEMS, QUEST): the book opens over THE WORLD and its menu, nothing said; closed, the menu waits where it was
+      var said5 = [], say0 = w2.say; w2.say = function (s) { said5.push(s); return say0.apply(this, arguments); };
+      HB.openMenu(w2); var pm5 = w2.pm; pm5.host.run('item', { id: 'katbook' }, function () { }); var bk5 = D.top();
+      pressB('b'); w2.say = say0;
+      okB('5 THE WORLD\'s M, ITEMS, Katarina\'s Book: on top ' + (bk5 && bk5.kind) + ', said ' + JSON.stringify(said5) + '; X: THE WORLD again ' + (D.top() === w2) + ', its menu still open ' + (w2.pm === pm5) + ' (want the book, nothing said, the menu)', !!bk5 && bk5.kind === 'book' && !said5.length && D.top() === w2 && w2.pm === pm5);
+      w2.pm = null;
+      // 6. ON A FLOOR (Silverton's street): the floor's M, ITEMS, the book -- open over the floor, no card on it after; and a test floor's field (R.fieldLeft) opens it too
+      HB.toTown('silverton', 'west'); var BT = topB(); D.battle = BT; var nc6 = BT.cards.length, lead6 = BT.roam.members[0];
+      var r6 = D.roam.menuAct(BT, 'item', { id: 'katbook', h: lead6 && lead6.src }, function (h) { return BT.roam.members.filter(function (u) { return u.src === h; })[0] || null; }), bk6 = D.top(), under6 = D.scenes[D.scenes.length - 2] === BT;
+      pressB('b'); var back6 = D.top() === BT, cards6 = BT.cards.length - nc6;
+      var lf6 = D.roam.fieldLeft(BT, { kind: 'item', id: 'katbook' }), bk6b = D.top(); pressB('b');
+      okB('6 a floor\'s M, ITEMS, the book: handled ' + r6 + ', on top ' + (bk6 && bk6.kind) + ' over the floor ' + under6 + '; X: the floor again ' + back6 + ', cards after it ' + cards6 + '; a test floor\'s field: ' + JSON.stringify(lf6) + ', ' + (bk6b && bk6b.kind) + ' (want the book over the floor, no card, [] and the book)',
+        r6 === true && !!bk6 && bk6.kind === 'book' && under6 && back6 && cards6 === 0 && Array.isArray(lf6) && !lf6.length && !!bk6b && bk6b.kind === 'book' && D.top() === BT);
+      // 7. THE FIELD'S RULE (the Pocket DM's camp reads it too): [] for the book and it opens; a potion still the field's; a key with no book, null
+      var env7 = { party: HB.cur.party, take: function () { }, give: function () { }, ward: function () { } }, fi7 = HB.field.item('katbook', HB.cur.party[0], env7), bk7 = D.top(); if (bk7 && bk7.kind === 'book') pressB('b');
+      okB('7 the field\'s rule on the book: ' + JSON.stringify(fi7) + ', ' + (bk7 && bk7.kind) + '; D.book.open of a potion ' + BKB.open('potion') + ' (want [], the book; false)', Array.isArray(fi7) && !fi7.length && !!bk7 && bk7.kind === 'book' && !BKB.open('potion'));
+    } catch (eB) { repB.errors.push(String(eB && eB.stack || eB).slice(0, 900)); }
+    D.store.get = stGB; D.store.set = stSB; window.DS.text = dsTB; D.text = dtB; if (HB) { HB.playing = false; HB.cur = null; }
+    if (errs.length) repB.errors = repB.errors.concat(errs.slice(0, 5));
+    var preB = document.createElement('pre'); preB.id = 'out'; preB.textContent = 'BENCH16 ' + JSON.stringify(repB);
+    document.body.appendChild(preB);
+    return;
+  }
   if (get('mode', '') === 'rogue4') {
     var repQ = { checks: [], errors: [], table: {}, logs: [] };
     var SETQ = { brute: 'bugbear', pack: 'wolf,wolf,goblin', gobs: 'goblin,goblin', rats: 'giantrat,giantrat,giantrat', chief: 'bugbearchief', hobs: 'hobgoblin,hobgoblin,gnoll', troll: 'troll', ogres: 'ogre,bugbear,bugbear' }, LVQ = get('lv', '3,4,5').split(',').map(Number), NQ = +get('n', 30), POLQ = get('pol', 'ai,new').split(','), WHQ = get('set', 'brute,pack').split(',');
@@ -18691,7 +18750,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // D. THE FIELD: what the house's field has no rule for answered on the floor, never the 8-bit's
       var BF = wetX({}, [15, 7]), RF = BF.roam, uF = RF.token, idF = function (h) { return h; }; BF.cards = [];
       RX.menuAct(BF, 'cast', { h: uF, sp: window.DS.DATA.spells.light, t: uF }, idF); RX.menuAct(BF, 'item', { id: 'katbook', h: uF }, idF);
-      okX('the M menu on the Wet: Light cast on ' + uF.name + ' (conds.light ' + !!(uF.conds && uF.conds.light) + '), Katarina\'s book opened (' + cardsX(BF).slice(0, 80) + '...)', !!(uF.conds && uF.conds.light) && /KATARINA|BOOK/i.test(cardsX(BF)) && !/field menu/.test(cardsX(BF)));
+      var bkF = D.top(), bookF = !!bkF && bkF.kind === 'book' && D.scenes[D.scenes.length - 2] === BF; if (bkF && bkF.kind === 'book') D.pop(); // (her book on its own page since 11-16, the book-hedge seat: js/book.js -- no card of its first line)
+      okX('the M menu on the Wet: Light cast on ' + uF.name + ' (conds.light ' + !!(uF.conds && uF.conds.light) + '), Katarina\'s book opened on its own page over the floor (' + (bkF && bkF.kind) + '; the cards "' + cardsX(BF).slice(0, 80) + '...")', !!(uF.conds && uF.conds.light) && bookF && !/field menu/.test(cardsX(BF)));
       // F. THE LANTERN MAN (his "send a warning with a lantern man ... when they've killed (I think 3 out of 6 before trigger?)"): two of the herd dead, nobody comes; the third,
       // Jory Slade down the stalls' stair with a lantern lit, to the party, Skarn's word on the counter screen, then back up; once, and never on the test door
       HX.cur.kills = { crawler: 2 }; var BL = wetX({}, [6, 12]), RL = BL.roam; driveX(BL.co, null, 60);
@@ -19076,7 +19136,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var elseSt = { camp16: 'campage1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
+      var elseSt = { camp16: 'campage1116', book16: 'book1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();

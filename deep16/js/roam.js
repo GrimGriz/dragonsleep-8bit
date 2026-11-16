@@ -1248,18 +1248,18 @@
   // hand-back from where the party stands; each hero comes back as it left them (R.resheet). Named by id: the hero, the spell, the one it is cast on
   R.actOut = function (B, a, unitOf) {
     var R0 = B.roam, idOf = function (h) { var u = h && unitOf ? unitOf(h) : null; return u && u.src ? (u.src.key || u.src.id) : h && h.id || null; };
-    if (!R.emb || R.house()) { B.card(R.wrap(R.fieldLeft(B, a)), 300); return true; } // (nothing to the 8-bit: what the house's field (js/house.js H.field) left unanswered, answered here)
+    if (!R.emb || R.house()) { var lnL = R.fieldLeft(B, a); if (lnL.length) B.card(R.wrap(lnL), 300); return true; } // (nothing to the 8-bit: what the house's field (js/house.js H.field) left unanswered, answered here; a book opened says nothing after)
     var spells = window.DS.DATA.spells || {}, spId = a.sp ? (a.sp.id || Object.keys(spells).filter(function (k) { return spells[k] === a.sp; })[0] || null) : null;
     (R0.acts = R0.acts || []).push({ kind: a.kind, h: idOf(a.h), id: a.id || null, sp: spId, s: a.s != null ? a.s : null, t: idOf(a.t) });
     R0.keys.push('act'); B.menu = null; if (B.menuClosed) B.menuClosed();
     return true;
   };
   R.act = function* (B) { var R0 = B.roam, a = (R0.acts || []).shift(); if (a) yield* R.handOut(B, 'act', { act: a }); };
-  // a field action the house's field has no rule for (10-22, the Wet seat): Katarina's book opened where they stand (the first game's EV.useFieldItem 'read' pages it in its
-  // book scene, content/text.json kat.book: its opening line here, the pages with a book screen of the grid's), the rest the first game's "nothing happens" -- never the 8-bit's
+  // a field action the house's field has no rule for (10-22, the Wet seat): Katarina's book opened where they stand -- every page on its own page, the grid's book screen
+  // (js/book.js, 11-16, Griz: "Kat's book screen needs done."; the card of its first line it replaces), the rest the first game's "nothing happens" -- never the 8-bit's
   R.fieldLeft = function (B, a) {
     var it = a && a.id ? window.DS.DATA.items[a.id] : null, use = it && it.use;
-    if (use && use.effect === 'read') return ['{y}' + it.name.toUpperCase() + '{/}', [].concat(R.say8('kat.book'))[0]]; // (no "(Its pages read in the first game's book scene; the grid has no book screen yet.)" (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
+    if (use && use.effect === 'read' && D.book && D.book.open(a.id)) return [];
     return [R.say8('g.nothingHappens')];
   };
   // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every
@@ -1993,7 +1993,7 @@
         if (!u || u.hp > 0) { B.card(['{g}' + (u ? u.name + ' is not down.' : 'Whom?') + '{/}'], 160); return true; }
         u.hp = it.use.hp || 1; u.ko = false; take(); D.sfx('heal'); B.card(['{y}' + u.name + '{/} is up (' + u.hp + ' HP).'], 200); return true;
       }
-      if (R.house()) { var lnI = D.house.fieldOnFloor(B, 'item', a, unitOf); if (lnI) { B.card(R.wrap(lnI), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
+      if (R.house()) { var lnI = D.house.fieldOnFloor(B, 'item', a, unitOf); if (lnI) { if (lnI.length) B.card(R.wrap(lnI), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field; a book opened on its page says nothing after)
       return R.actOut(B, { kind: 'item', id: a.id, h: a.h || null }, unitOf); // (the tent, a sheet to learn, the rest: the 8-bit's own -- R.actOut)
     }
     if (kind === 'light-off' && u && u.torch) {
