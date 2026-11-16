@@ -214,7 +214,8 @@
   // ------------------------------------------------------------------ the winnings (his: "pick a random character on victory and give magic item appropriate to class" -- not Pyro)
   // the plus-ones and the two SRD items the ladder's armoury already carries, by what the class may wear; the +2s from the third rung and the trial
   // (10-06: and the worn things -- the Ring of Resistance (fire), the Boots of Elvenkind, the Periapt of Proof against Poison; any class may wear them: R.canEquip)
-  PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement', 'ringresistfire', 'bootselvenkind', 'periaptpoison'];
+  PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement', 'ringresistfire', 'bootselvenkind', 'periaptpoison',
+    'ringwaterwalking', 'wandofweb']; // (11-15, the magic-items seat: the Ring of Water Walking and the Wand of Web, winnings as the worn things are -- the Wand only for one who casts, R.casts; the Rope of Climbing is the market's, a thing for the pack)
   PK.LOOT_LATE = ['longsword2', 'dagger2', 'staff2', 'flametongue', 'doorshield', 'dwarfplate',
     // (10-17, his "Make sure all the items we have in the game end up as fight rewards or in those stores": the story's own gear, priceless -- the king's plate and
     // mantle and the Game Show's supplies left to their owners)
@@ -234,6 +235,7 @@
       if (L != null && PK.lootTier(id) > L) return;
       var slot = R.slotFor(h, it); if (!slot) return; // (a ring: the first free hand of two; boots, a periapt: their own place -- js/rules.js R.slotFor)
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
+      if (it.attune === 'caster' && !R.casts(h)) return; // (the Wand of Web to one who casts spells: SRD 5.1, "requires attunement by a spellcaster" -- 11-15)
       if (R.wears(h, id)) return; // (one of a thing is enough: it is not a gift twice)
       // a weapon is a gift only in the kind already in hand (a longsword for a longsword): a greatsword's man is not handed a dagger
       if (it.kind === 'weapon') { var inHand = DS.DATA.items[h.equip.weapon]; if (inHand && inHand.weapon && (inHand.weapon.kind || inHand.weapon.group) !== (it.weapon.kind || '')) return; if (!inHand || h.equip.weapon === 'unarmed') return; }

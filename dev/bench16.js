@@ -19363,6 +19363,76 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preHo);
     return;
   }
+  // THREE MAGIC ITEMS OF THE SRD, 11-15 (mode=magicitems1115; the magic-items seat, on the lanes desk's picks on Griz's "pick 3 more magic items to add from the SRD and have a
+  // seat start those"): the Rope of Climbing, the Ring of Water Walking and the Wand of Web -- their records at the SRD 5.1's numbers, the WAND place and the spellcaster's bond
+  // (js/rules.js), the charges and the dawn with the die pinned, the Rope of Climbing's 60 ft with no throw and its destruction at 0, the Pocket DM's market and winnings, and
+  // deep16/?itemshow run headless (&fast): the rope's AC 20 and 20 hit points, the ring on deep water, the wand's charges, its last charge's d20 and its crumble, the dawn, the bond
+  if (get('mode', '') === 'magicitems1115') {
+    var repMI = { checks: [], errors: [] };
+    function okMI(what, v) { repMI.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runMI(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    var dMI = D.d;
+    try {
+      var IMI = window.DS.DATA.items, RMI = window.DS.R, rcMI = IMI.ropeclimbing, rwMI = IMI.ringwaterwalking, wwMI = IMI.wandofweb;
+      okMI('1 the records at the SRD 5.1\'s numbers: the Rope of Climbing ' + (rcMI ? rcMI.ropeClimbing.ft + ' ft, knotted ' + rcMI.ropeClimbing.knotFt + ', AC ' + rcMI.ropeClimbing.ac + ', ' + rcMI.ropeClimbing.hp + ' HP, no bond' : 'NONE') + '; the Ring of Water Walking ' + (rwMI ? 'a ring, waterWalk ' + rwMI.ring.waterWalk + ', no bond' : 'NONE') + '; the Wand of Web ' + (wwMI ? 'held in the ' + wwMI.place + ' place, ' + wwMI.wand.charges + ' charges, ' + wwMI.wand.spell + ' at DC ' + wwMI.wand.dc + ', ' + wwMI.wand.dawn.join('d+').replace('6d', '1d6') + ' at dawn, crumbles on a ' + wwMI.wand.crumble + ', a bond: ' + wwMI.attune : 'NONE'),
+        !!rcMI && rcMI.kind === 'tool' && rcMI.ropeClimbing.ft === 60 && rcMI.ropeClimbing.knotFt === 50 && rcMI.ropeClimbing.ac === 20 && rcMI.ropeClimbing.hp === 20 && !rcMI.attune &&
+        !!rwMI && rwMI.kind === 'ring' && rwMI.ring.waterWalk === true && !rwMI.attune &&
+        !!wwMI && wwMI.kind === 'worn' && wwMI.place === 'wand' && wwMI.attune === 'caster' && wwMI.wand.spell === 'web' && wwMI.wand.slot === 2 && wwMI.wand.dc === 15 && wwMI.wand.charges === 7 && wwMI.wand.dawn.join() === '6,1' && wwMI.wand.crumble === 1 &&
+        [rcMI, rwMI, wwMI].every(function (it) { return /SRD 5\.1/.test(it.src) && it.price > 0 && !it.noSell; }));
+      // 2 the WAND place and the bond: a spellcaster's only
+      var hWz = RMI.makeHero('aurdin', 3), hFt = RMI.makeHero('barley', 3);
+      hWz.equip.wand = 'wandofweb'; hWz.attuned = []; hFt.equip.wand = 'wandofweb'; hFt.attuned = [];
+      var saidW = RMI.attune(hWz).join(' '), saidF = RMI.attune(hFt).join(' '), bare = JSON.parse(JSON.stringify(hFt)); delete bare.attuned;
+      okMI('2 the WAND place (' + RMI.PLACES.join(',') + '; the wand\'s slot ' + RMI.slotFor({ equip: {} }, wwMI) + ', the ring\'s ' + RMI.slotFor({ equip: {} }, rwMI) + '); held at a rest, Aurdin: "' + saidW + '"; Barley: "' + saidF + '"; a sheet with no list of bonds (a class card\'s) bonds it only if it casts: Barley ' + RMI.bonded(bare, 'wandofweb') + ', Aurdin ' + RMI.bonded(Object.assign({}, hWz, { attuned: undefined }), 'wandofweb'),
+        RMI.PLACES[RMI.PLACES.length - 1] === 'wand' && RMI.PLACE_NAME.wand === 'WAND' && RMI.slotFor({ equip: {} }, wwMI) === 'wand' && RMI.slotFor({ equip: {} }, rwMI) === 'ring' &&
+        hWz.attuned.indexOf('wandofweb') >= 0 && hFt.attuned.indexOf('wandofweb') < 0 && /wants a spellcaster/.test(saidF) && RMI.casts(hWz) && !RMI.casts(hFt) && !RMI.bonded(bare, 'wandofweb') && RMI.bonded(Object.assign({}, hWz, { attuned: undefined }), 'wandofweb'));
+      var npW = D.npc.build('wizard:3+wandofweb', 3, 'party'), npF = D.npc.build('fighter:3+ringwaterwalking', 3, 'party');
+      okMI('2 a class word carries them: wizard:3+wandofweb holds it in the WAND place (' + (npW && npW.src && npW.src.equip.wand) + '), fighter:3+ringwaterwalking wears it (' + (npF && npF.src && [npF.src.equip.ring, npF.src.equip.ring2].join(',')) + ') and walks on water ' + (npF && D.grid.waterWalker(npF)),
+        !!npW && npW.src.equip.wand === 'wandofweb' && !!npF && npF.src.equip.ring === 'ringwaterwalking' && D.grid.waterWalker(npF) && !D.grid.waterWalker(npW));
+      // 3 the charges and the dawn, the d6 pinned
+      var hC = RMI.makeHero('aurdin', 3); hC.equip.wand = 'wandofweb'; var kC = RMI.chargeKey('wandofweb');
+      var c0 = RMI.charges(hC, 'wandofweb'); hC.feats[kC] = 0; var d1 = RMI.wandDawn(hC, function () { return 4; }), c1 = RMI.charges(hC, 'wandofweb');
+      hC.feats[kC] = 5; RMI.wandDawn(hC, function () { return 4; }); var c2 = RMI.charges(hC, 'wandofweb'), full2 = !(kC in hC.feats);
+      hC.feats[kC] = 1; D.d = function (n) { return n === 6 ? 2 : dMI.apply(this, arguments); }; RMI.refresh(hC, true); D.d = dMI; var c3 = RMI.charges(hC, 'wandofweb');
+      hC.feats[kC] = 2; RMI.refresh(hC, false); var c4 = RMI.charges(hC, 'wandofweb');
+      okMI('3 the charges: a new wand ' + c0 + '; at dawn (the d6 pinned at 4) 0 -> ' + c1 + ', 5 -> ' + c2 + ' (full, nothing written: ' + full2 + '); the long rest is the dawn (a 2): 1 -> ' + c3 + '; a short rest none: 2 -> ' + c4,
+        c0 === 7 && d1.length === 1 && c1 === 5 && c2 === 7 && full2 && c3 === 4 && c4 === 2);
+      // 4 the rope: 60 ft and no throw, from the street under the Edifice's 45 ft face; at 0 it is destroyed, not coiled
+      var BR = D.npcFight('?npc=goblin&lvl=3&vs=rogue:3,fighter:3&map=edifice', {}); D.battle = BR; BR.enter(); var kR = 0; while (!BR.order.length && kR++ < 400) BR.co.next();
+      var rgR = BR.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], gbR = BR.units.filter(function (u) { return u.side === 'foe'; })[0], far = null;
+      for (var yR = 16; yR < 34 && !far; yR++) { rgR.x = 18; rgR.y = yR; if (!D.Battle.ropeSq(BR, rgR, 18, 15) && D.Battle.ropeSq(BR, rgR, 18, 15, null, 'ropeclimbing')) far = { y: yR, q: D.Battle.ropeSq(BR, rgR, 18, 15, null, 'ropeclimbing') }; }
+      rgR.x = 18; rgR.y = 16; var qP = D.Battle.ropeSq(BR, rgR, 18, 15), qS = D.Battle.ropeSq(BR, rgR, 18, 15, null, 'ropeclimbing');
+      okMI('4 from the street under the 45 ft face: the Rope & Grapple a throw at DC ' + (qP && qP.dc) + ', the Rope of Climbing no throw (DC ' + (qS && qS.dc) + ', its item ' + (qS && qS.item) + '); out past the rope\'s 50 ft and inside the silk\'s 60 (' + (far ? '18,' + far.y + ': ' + far.q.ft + ' ft' : 'none found') + ') only the silk reaches',
+        !!qP && qP.dc === 16 && !!qS && qS.dc === 0 && qS.item === 'ropeclimbing' && !!far && far.q.ft >= 50 && far.q.ft <= 60); // (its ft floored to 5s, as the throw's DC reads it: 51.5 ft reads 50)
+      BR.inv = [{ id: 'ropeclimbing', n: 1 }]; D.rules.startTurn(rgR); BR.active = rgR;
+      var ringR = BR.itemList(rgR).filter(function (e) { return e.id === 'ropeclimbing'; })[0];
+      runMI(BR.exec(rgR, { do: 'rope', x: 18, y: 15, item: 'ropeclimbing' }));
+      var rS = BR.ropes.filter(function (r) { return r.item === 'ropeclimbing' && !r.cut; })[0], logR = (BR.log || []).join(' | ');
+      okMI('4 on the item wheel (' + (ringR && ringR.name + ', ' + ringR.use.effect + ', ' + ringR.ok) + '); set from the street with no throw: AC ' + (rS && rS.ac) + ', ' + (rS && rS.hp) + ' HP, out of the pack (' + ((BR.inv[0] || {}).n) + '), the action spent ' + (rgR.turn.action === 0),
+        !!ringR && ringR.ok && ringR.use.item === 'ropeclimbing' && !!rS && rS.ac === 20 && rS.hp === 20 && BR.inv[0].n === 0 && rgR.turn.action === 0 && !/throws the grapple/.test(logR) && /far end of the silk climbs/.test(logR));
+      rgR.hang = { rope: rS, z: D.grid.map.gz(18, 16) + 4 * D.grid.map.def.step }; rS.hp = 3;
+      var atkR = Object.keys(gbR.attacks).map(function (k) { return gbR.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
+      D.d = function (n) { return n === 20 ? 17 : dMI.apply(this, arguments); }; D.rules.startTurn(gbR); runMI(BR.cutRope(gbR, rS, atkR)); D.d = dMI;
+      var logR2 = (BR.log || []).join(' | ');
+      okMI('4 at 3 hit points and struck (a 17, ' + (17 + atkR.atk) + ' against AC 20): it parts and is destroyed -- cut ' + rS.cut + ', the rogue off it ' + !rgR.hang + ', nothing back in the pack (' + ((BR.inv[0] || {}).n) + ')',
+        rS.cut && !rgR.hang && BR.inv[0].n === 0 && /vs AC 20/.test(logR2) && /silk is destroyed/.test(logR2));
+      // 5 the Pocket DM: the market and the winnings
+      var PKm = D.pocket, s1 = PKm.stock(1), s5 = PKm.stock(5), wzS = D.npc.build('wizard:5', 5, 'party').src, ftS = D.npc.build('fighter:5', 5, 'party').src;
+      var lW = PKm.lootFor(wzS, false, 5), lF = PKm.lootFor(ftS, false, 5);
+      okMI('5 the Pocket DM\'s market: the rope from 1st (' + (s1.indexOf('ropeclimbing') >= 0) + '), the ring and the wand from 5th (' + (s1.indexOf('ringwaterwalking') < 0 && s5.indexOf('ringwaterwalking') >= 0) + ', ' + (s1.indexOf('wandofweb') < 0 && s5.indexOf('wandofweb') >= 0) + '); the winnings at 5th: a wizard may win the wand ' + (lW.indexOf('wandofweb') >= 0) + ' and the ring ' + (lW.indexOf('ringwaterwalking') >= 0) + ', a fighter the ring ' + (lF.indexOf('ringwaterwalking') >= 0) + ' and never the wand ' + (lF.indexOf('wandofweb') < 0),
+        s1.indexOf('ropeclimbing') >= 0 && s1.indexOf('ringwaterwalking') < 0 && s5.indexOf('ringwaterwalking') >= 0 && s1.indexOf('wandofweb') < 0 && s5.indexOf('wandofweb') >= 0 && PKm.LOOT.indexOf('ringwaterwalking') >= 0 && PKm.LOOT.indexOf('wandofweb') >= 0 && lW.indexOf('wandofweb') >= 0 && lF.indexOf('wandofweb') < 0 && lF.indexOf('ringwaterwalking') >= 0);
+      // 6 the show, headless: every beat SHOWN
+      var BS = D.itemshow.make('?itemshow&fast'); D.battle = BS; BS.enter();
+      var vS, kS = 0;
+      while (BS.co && kS++ < 400000) { var rS2 = BS.co.next(vS); vS = undefined; if (rS2.done) break; var yS = rS2.value; if (yS && yS.prompt) vS = yS.prompt.opts[0].value; }
+      (BS.itemReport || []).forEach(function (b) { okMI('6 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+      okMI('6 the show ran ' + (BS.itemReport || []).length + ' beats (want 6: rope, ring, wand, lastcharge, dawn, bond)', (BS.itemReport || []).length === 6);
+    } catch (eMI) { repMI.errors.push(String(eMI && eMI.stack || eMI).slice(0, 900)); }
+    D.d = dMI;
+    var preMI = document.createElement('pre'); preMI.id = 'out'; preMI.textContent = 'BENCH16 ' + JSON.stringify(repMI);
+    document.body.appendChild(preMI);
+    return;
+  }
   // THE ANIMATED ARMOR, 11-15 (mode=armor1115; tools/animatedarmor-sheet.py, data/foes.js animatedarmor -- the NPC cutter seat, art-wanted 64's construct,
   // the art desk's 68): the SRD 5.1 block; its sheet's rows, both Slams landing on frame 4; its rows in a fight are the show's (check.py's show line-up)
   if (get('mode', '') === 'armor1115') {

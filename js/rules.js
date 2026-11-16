@@ -126,6 +126,7 @@
       if (h.id === 'lymen') f.relentless = 1;
     }
     if (!h.slots) { h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice(); }
+    if (long && h.equip && h.feats) R.wandDawn(h); // (a wand's charges at dawn: 1d6 + 1 back -- the Wand of Web, 11-15)
     if (h.attuned) R.attune(h); // (any rest: what is worn bonds, what was taken off lets go -- 10-06, the menus' attunement)
     if (h.equip) R.ward(h); // (and a condition a worn thing bars ends on him -- the Periapt against a poison he carried to it, 10-07; after the bonds, which decide what works)
   };
@@ -651,8 +652,10 @@
   // rest while the item is worn (the SRD's short rest spent on it), and a bond to a thing no longer worn lets go at the next rest (the SRD's
   // 24 hours apart, or another taking it up). Unbonded it is only what it looks like: a sword still cuts, a cloak is a cloak. A sheet with no
   // `attuned` list (a class NPC's, the Pocket DM's made ones) wears its kit bonded, as the SRD's built characters come
-  R.PLACES = ['ring', 'ring2', 'cloak', 'feet', 'neck'];
-  R.PLACE_NAME = { ring: 'RING', ring2: 'RING', cloak: 'CLOAK', feet: 'FEET', neck: 'NECK' };
+  // (11-15, the magic-items seat: and a wand, held in a place of its own -- the Wand of Web, SRD 5.1 "while holding it"; an item of kind `worn`, place `wand`. Last, so
+  // every list made of these before it reads as it did)
+  R.PLACES = ['ring', 'ring2', 'cloak', 'feet', 'neck', 'wand'];
+  R.PLACE_NAME = { ring: 'RING', ring2: 'RING', cloak: 'CLOAK', feet: 'FEET', neck: 'NECK', wand: 'WAND' };
   R.ATTUNE_MAX = 3;
   // the slot an item goes in (a ring: the first free hand, else the first)
   R.slotFor = function (h, it) {
@@ -661,7 +664,27 @@
     if (it.kind === 'ring') return h && h.equip && h.equip.ring && !h.equip.ring2 ? 'ring2' : 'ring';
     return /^(weapon|armor|shield|cloak)$/.test(it.kind) ? it.kind : null;
   };
-  R.bonded = function (h, id) { var it = R.item(id); return !!it && (!it.attune || !h || !h.attuned || h.attuned.indexOf(id) >= 0); };
+  R.bonded = function (h, id) { var it = R.item(id); return !!it && (!it.attune || !h || ((!h.attuned || h.attuned.indexOf(id) >= 0) && !(it.attune === 'caster' && !R.casts(h)))); };
+  // "requires attunement by a spellcaster" (SRD 5.1, the Wand of Web; an item's `attune: 'caster'`, 11-15): one who casts spells -- slots of the class's, as a feat that wants
+  // spellcasting reads it (R.featWant). Anyone else never bonds with it, and it never works for them, a sheet with no list of bonds included
+  R.casts = function (h) { return !!(h && h.cls && R.CLASSES[h.cls] && R.slotsFor(h).length > 0); };
+  // A WAND'S CHARGES (SRD 5.1, the Wand of Web: "This wand has 7 charges ... regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll a d20.
+  // On a 1, the wand crumbles into ashes and is destroyed"; 11-15): kept on the sheet of the one holding it, among its uses (`feats`, so every fight's write-back and the Pocket
+  // DM's carry take them with the rest), by the item's id; none written is a wand full. The dawn is the long rest (R.refresh); the spend and the crumble are the grid's
+  // (deep16/js/magicitems.js). A wand handed to another comes to that hand full: the count is the holder's, not the wand's (the seat's smallest reading, said in its report)
+  R.chargeKey = function (id) { return 'charges_' + id; };
+  R.charges = function (h, id) { var it = R.item(id), w = it && it.wand; if (!w) return 0; var v = h && h.feats ? h.feats[R.chargeKey(id)] : null; return typeof v === 'number' ? Math.max(0, Math.min(w.charges, v)) : w.charges; };
+  R.wandDawn = function (h, roll) {
+    var out = [], e = (h && h.equip) || {};
+    Object.keys(e).forEach(function (s) {
+      var id = e[s], it = s !== 'torch' && typeof id === 'string' ? R.item(id) : null, w = it && it.wand; if (!w || !h.feats) return;
+      var k = R.chargeKey(id), had = R.charges(h, id); if (had >= w.charges) { delete h.feats[k]; return; }
+      var d = (w.dawn && w.dawn[0]) || 6, add = (roll ? roll(d) : window.D16 && window.D16.d ? window.D16.d(d) : 1 + Math.floor(Math.random() * d)) + ((w.dawn && w.dawn[1]) || 0); // (1d6 + 1)
+      var now = Math.min(w.charges, had + add); if (now >= w.charges) delete h.feats[k]; else h.feats[k] = now;
+      out.push({ id: id, was: had, got: now - had, now: now });
+    });
+    return out;
+  };
   // everything worn or held that works (a light in the hand aside), each item once
   R.gear = function (h) {
     var seen = {}, out = [];
@@ -696,6 +719,7 @@
     worn.forEach(function (id) {
       if (a.indexOf(id) >= 0 || (h.noBond && h.noBond.indexOf(id) >= 0)) return;
       var nm = R.item(id).name.replace(/\.$/, ''); // ("Ring of Prot." ends in its own stop)
+      if (R.item(id).attune === 'caster' && !R.casts(h)) { msgs.push(h.name + ' cannot bond with the ' + nm + ': it wants a spellcaster.'); return; } // (the Wand of Web's, 11-15)
       if (a.length >= R.ATTUNE_MAX) { msgs.push(h.name + ' cannot bond with the ' + nm + ': three bonds already.'); return; }
       a.push(id); msgs.push(h.name + ' bonds with the ' + nm + '.');
     });

@@ -417,10 +417,13 @@
     var carry = M.touchRange(g) && D.familiar && D.familiar.carries(B, u, t); // (a touch spell the familiar carries: its turn's movement, RULED 09-30)
     if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
     if (g.time === 'B') { T.bonus = 0; if (!g.move && !g.again) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
-    if (sp.level && !g.free) u.slots[slot - 1]--;
-    var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
-    var dc = u.spellDC, n = up(sp, slot);
-    if (u.famPerk) dc += (id === 'web' ? u.famPerk('webDC') : 0) + (window.DS.R.CHARM_SPELLS.indexOf(id) >= 0 ? u.famPerk('charmDC') : 0); // (the spider's and the snake's, js/familiar.js)
+    // a spell cast FROM AN ITEM (11-15, the magic-items seat: the Wand of Web, SRD 5.1 "expend 1 of its charges to cast the web spell (save DC 15) from it"; js/magicitems.js
+    // sets B.itemCast for the one cast): no slot spent, the item's own DC (no familiar's perk on it), its name on the card; the rest is the spell as any caster casts it
+    var ic = B.itemCast && B.itemCast.by === u.id && B.itemCast.spell === id ? B.itemCast : null;
+    if (sp.level && !g.free && !ic) u.slots[slot - 1]--;
+    var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (ic ? ' (' + ic.name + ')' : sp.level ? ' (L' + slot + ')' : '');
+    var dc = ic ? ic.dc : u.spellDC, n = up(sp, slot);
+    if (u.famPerk && !ic) dc += (id === 'web' ? u.famPerk('webDC') : 0) + (window.DS.R.CHARM_SPELLS.indexOf(id) >= 0 ? u.famPerk('charmDC') : 0); // (the spider's and the snake's, js/familiar.js)
     if (g.shape !== 'self' && g.shape !== 'touch' && g.shape !== 'around') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a caster's own pose where the sheet has one: the spell animation pass, 09-28h)
     if (D.spr.anim(u.sheet, 'castup') && /^(self|allies|sphere|cube|wall|teleport|around|none)$/.test(g.shape)) u.anim = 'castup'; // (a sheet's second casting gesture, the hand lifted, for a spell aimed at no one creature -- himself, the party, an area: Aurdin's ART-72 CastOverhead, 10-18; the aimed ones keep the cast row's hand along the facing)
@@ -680,7 +683,7 @@
 
   // every area spell: the squares, one damage roll, each creature's save (Evasion for a DEX save), conditions
   function* area(B, u, id, sp, g, slot, cx, cy, head, cz) {
-    var sq = M.area(u, g, cx, cy, cz), dc = u.spellDC;
+    var sq = M.area(u, g, cx, cy, cz), dc = B.itemCast && B.itemCast.by === u.id && B.itemCast.spell === id ? B.itemCast.dc : u.spellDC; // (a spell from an item: its own DC -- the Wand of Web's 15, 11-15)
     var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'acid' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around';

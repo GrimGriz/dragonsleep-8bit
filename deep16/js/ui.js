@@ -461,7 +461,7 @@
     // (`ready` on a command: a Mascot's special that may be held with no one in range yet -- the trigger's reach is its own; js/mpmon.js, battle.js exec 'ready' -- 10-08, Griz: "why can't I ready cannonball and other Denny LM abilities that cost 1 action?")
     B.commands(u).forEach(function (c) { if (c.cost === 'A' && (c.ok || c.ready) && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: (c.ready ? (c.ready.self ? 'held for the trigger, on whoever it reaches then: ' : 'held for one that comes within ' + c.ready.range + ' ft' + (c.ready.see ? ', in sight' : '') + ': ') : '') + c.note }); });
     // and an item (Griz: "Add usable items beyond potions as well"): a potion for the one who falls, a flask for the foe who comes
-    if (B.itemList(u).some(function (e) { return e.ok && e.id !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
+    if (B.itemList(u).some(function (e) { return e.ok && e.use.effect !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
     return { kind: 'ready', items: items, sel: 0, title: B.readying && B.readying.trigger ? 'READY: WHAT?' : 'READY' };
   }
   UI.readyRing = readyRing; // (dev/bench16.js ready1005)
@@ -904,7 +904,7 @@
     if (B.readying && e.kind === 'readywhen') { D.sfx('confirm'); B.readying.trigger = e.id; var wr = readyRing(B, u); wr.back = B.list; B.list = wr; B.ringB = null; B.ringStill = false; readyCard(B); return; }
     // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
     if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }
-    if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok && x.id !== 'rope'; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
+    if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok && x.use.effect !== 'rope'; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
     if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
     if (e.kind === 'cmd') { var back = B.list; B.list = null; return pickCommand(B, u, e.cmd, null, back); } // (it says its own confirm; `back`: a group inside a group -- SCUTTLE on the bonuses, ITEM on the actions -- comes back to this ring on X)
     D.sfx('confirm');
@@ -918,7 +918,8 @@
     // (the bucket and a light are his own: used at once, no target to pick -- 09-30d, Griz: "bucket asks for self-or nearby target like a potion")
     if (e.use.effect === 'bucket' || e.use.effect === 'light') return UI.command(B, u, { do: 'item', id: e.id, target: u, putAway: !!e.putAway, cost: e.cost }); // (putAway: PUT AWAY WEAPON? asked first -- battle.js exec 'item', 10-15)
     // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
-    if (e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
+    if (e.use.effect === 'rope' && e.use.item) { B.tool = 'rope'; B.ropeWith = e.use.item; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- from up there it fastens itself, from below its far end climbs the face to the lip, as far as it is long, 60 ft: no throw.{/}'], 100000); return; } // (the Rope of Climbing, 11-15)
+    if (e.use.effect === 'rope') { B.tool = 'rope'; B.ropeWith = null; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
     B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240);
   }
   // what the picked spell asks of its target, in words (spellAim's card). A spell whose SRD words say "that you can see" (data/spells.js `see`) says so -- "a foe you can see within
@@ -997,7 +998,7 @@
       if (ropeEnd(B, u, x, y, rc)) return 'rope'; // (a rope's far end, past the move: climb part way and hang -- exec 'ropeclimb', 10-04)
       return 'no';
     }
-    if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
+    if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y, null, B.ropeWith) ? 'ok' : 'no';
     if (tool === 'throw') { var thS = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick), thV = thS && thS.atk; return foe && thV && G.standing(foe) && G.range(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
     if (tool === 'grapple') return foe && D.Battle.grabbable(u, foe) ? 'ok' : 'no'; // (a hero's grapple: a foe beside, no more than one size larger -- 10-15)
@@ -1213,7 +1214,7 @@
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
     }
-    if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
+    if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y, item: B.ropeWith || null }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe, src: B.toolSrc || u.throwPick || null }); var thC = D.Battle.throwSrc(B, u, B.toolSrc || u.throwPick); return B.card(['{o}Throw: a foe within ' + (thC ? thC.atk.range[1] : 60) + ' ft, in sight.{/}'], 120); }
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
     if (tool === 'grapple') { if (v === 'ok') return UI.command(B, u, { do: 'grapple', target: foe }); return B.card(['{o}Grapple: a foe beside you, no more than one size larger.{/}'], 120); }
@@ -1300,7 +1301,7 @@
       fight: calm ? null : { hero: turn,
         ring: function (kind) {
           if (!gu) return [];
-          if (kind === 'items') { var fastI = gu.subclass === 'Thief' && gu.turn.bonus > 0; return B.itemList(gu).map(function (e) { e.cost = e.cost || (e.id !== 'rope' && fastI ? 'B' : 'A'); return e; }); } // (its cost, for the menu's colour: Fast Hands the bonus -- battle.js commands' ITEM)
+          if (kind === 'items') { var fastI = gu.subclass === 'Thief' && gu.turn.bonus > 0; return B.itemList(gu).map(function (e) { e.cost = e.cost || (e.use.effect !== 'rope' && fastI ? 'B' : 'A'); return e; }); } // (its cost, for the menu's colour: Fast Hands the bonus -- battle.js commands' ITEM)
           if (kind === 'spells') return D.magic.list(B, gu);
           return B.commands(gu).filter(function (c) { return CHANNEL[c.id] || SKILLS[c.id] || c.skill || FRONT[gu.cls] === c.id; }); // (the ring's SKILLS and CHANNEL DIVINITY, and a martial's feature off the first ring: UI.cmds)
         },
@@ -1608,8 +1609,14 @@
   // on a rope: drawn on its line -- the edge between its top and its foot, a little out from the face -- not in the middle of the foot's square (10-05, Griz: "climbing shows left of
   // rope, but when they get up they seem to step on tile right of rope first"); the sort keeps it in front of the rope
   function ropeLine(r) { return [r.at[0] + (r.foot[0] - r.at[0]) * 0.65, r.at[1] + (r.foot[1] - r.at[1]) * 0.65]; }
+  // one who walks on water stands on its surface (11-15, the Ring of Water Walking): on a map whose water is one flat sheet over steps (`waterLevel`, the Flooded Stair) the
+  // figure is drawn up at the sheet, not on the step under it -- a drawing only, as UI.wading's cut is
+  UI.waterLift = function (u, x, y) {
+    var d = G.map && G.map.def, s = G.map && G.map.at(x, y); if (!d || d.waterLevel == null || !s || !(s.ch === '~' || s.deep) || !G.waterWalker || !G.waterWalker(u) || G.aloft(u)) return 0;
+    return Math.max(0, d.waterLevel - G.map.gz(x, y));
+  };
   function unitPos(B, u) {
-    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy) + (u.upZ || 0); // (drawAt: where a caster stands while his floating weapon swings; upZ: a figure drawn a storey up, no rule in it -- the party at the big room's window, js/secondact.js A.atWindow, 11-12)
+    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy) + (u.upZ || 0) + UI.waterLift(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings; upZ: a figure drawn a storey up, no rule in it -- the party at the big room's window, js/secondact.js A.atWindow, 11-12)
     var hangR = u.hang && u.hang.rope && G.hanging(u) ? u.hang.rope : null, onR = hangR;
     if (hangR && !u.tween) { var L0 = ropeLine(hangR); gx = L0[0]; gy = L0[1]; }
     if (u.tween) {
@@ -1729,6 +1736,7 @@
   UI.wading = function (B, u) {
     var s = G.map && G.map.at(u.x, u.y); if (D.keeper && D.keeper.iced && D.keeper.iced(B, u.x, u.y)) return null; // (on ice: on top of it, not in the water -- js/keeper.js)
     if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
+    if (G.waterWalker && G.waterWalker(u)) return null; // (a Ring of Water Walking: on the water, not in it -- 11-15; UI.waterLift draws it on the surface)
     var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.inClaws || u.ethereal || u.under) return null; // (inClaws: lifted in a chuul's claws, 11-06)
     var def = G.map.def || {}, cut = def.waterLevel != null ? Math.min(Math.max(2, def.waterLevel - G.map.gz(u.x, u.y)), Math.round(D.spr.unitTop(u) * 0.8)) : def.wadeAt ? def.wadeAt(u.x, u.y) : def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1); // (a map's `waterLevel`: one flat sheet, so the depth is the sheet less the floor under it -- the Flooded Stair's steps; a drawing only)
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
@@ -2335,7 +2343,7 @@
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
     // a torch's throw: the squares within 20 ft it may land on
     // the Rope & Grapple's picks: the tops of faces it can be tied to or thrown up to (the rope's 50 ft: ten squares out -- 10-05)
-    if (u && B.tool === 'rope') for (var ry = u.y - 10; ry <= u.y + 10; ry++) for (var rx = u.x - 10; rx <= u.x + 10; rx++) if (D.Battle.ropeSq(B, u, rx, ry)) lineSq(ctx, rx, ry, R('gold', 3), 0.6, 4);
+    if (u && B.tool === 'rope') for (var ry = u.y - 10; ry <= u.y + 10; ry++) for (var rx = u.x - 10; rx <= u.x + 10; rx++) if (D.Battle.ropeSq(B, u, rx, ry, null, B.ropeWith)) lineSq(ctx, rx, ry, R('gold', 3), 0.6, 4);
     if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
     // a pick on the grid (pickInput): the ones it may go to in gold, brighter under the cursor
@@ -2509,8 +2517,8 @@
       }
       if (G.aloft(w)) lines.push('{c}aloft{/}: ' + Math.round((w.fz - G.groundAt(w, w.x, w.y)) / G.map.def.step * 2.5) + ' ft up'); // (flight at a height, 10-08)
     } else if (u && B.tool === 'rope') { // (the Rope & Grapple's pick under the cursor: the throw and its DC -- 10-05, Griz: "go with +2 DC per 5 beyond 30")
-      var rqT = D.Battle.ropeSq(B, u, B.cursor.x, B.cursor.y);
-      lines.push(rqT ? (rqT.top ? '{y}tie the rope off here{/}: no roll' : '{y}throw the grapple up{/}: ' + rqT.ft + ' ft, {n}DEX DC ' + rqT.dc + '{/}  {g}(10 to 30 ft, 2 more each 5 ft past; 50 ft of rope){/}') : '{g}no top of a face the rope reaches from here{/}');
+      var rqT = D.Battle.ropeSq(B, u, B.cursor.x, B.cursor.y, null, B.ropeWith);
+      lines.push(rqT && rqT.item ? (rqT.top ? '{y}it fastens itself here{/}: no roll' : '{y}its far end climbs up to here{/}: ' + rqT.ft + ' ft, no throw  {g}(60 ft of silk){/}') : rqT ? (rqT.top ? '{y}tie the rope off here{/}: no roll' : '{y}throw the grapple up{/}: ' + rqT.ft + ' ft, {n}DEX DC ' + rqT.dc + '{/}  {g}(10 to 30 ft, 2 more each 5 ft past; 50 ft of rope){/}') : '{g}no top of a face the rope reaches from here{/}');
     } else if (u && B.tool === 'item' && B.itemId === 'oil' && D.oil) { // (the flask aimed: at whom, or at the ground -- js/oil.js, 10-05)
       var owT = G.occupant(B.cursor.x, B.cursor.y), lit0 = D.oil.lit(u);
       if (owT && B.itemTargetOK(u, 'oil', owT)) lines.push('{y}throw it at ' + D.Battle.nm(owT) + '{/}: an improvised ranged attack, ' + (lit0 ? 'lit -- {o}5 fire{/} on a hit' : 'a hit coats it (the next fire, 5 more)') + '; a miss oils its square');

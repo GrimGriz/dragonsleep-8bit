@@ -317,7 +317,7 @@
       for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) {
         var q = m.at(x + i, y + j), k = (x + i) + ',' + (y + j);
         if (!q || taken[k] || (anyReach && !reach[k])) return false;
-        if (!q.walk && !(q.deep && (aloft || u.flies || u.swims || (u.bound && u.bound.indexOf(q.ch) >= 0)))) return false;
+        if (!q.walk && !(q.deep && (aloft || u.flies || u.swims || (u.bound && u.bound.indexOf(q.ch) >= 0) || G.waterWalker(u)))) return false; // (a Ring of Water Walking, 11-15: grid.js G.waterWalker)
         if (u.bound && u.bound.indexOf(q.ch) < 0) return false;
         var z = m.gz(x + i, y + j); lo = Math.min(lo, z); hi = Math.max(hi, z);
       }
@@ -1571,7 +1571,9 @@
   // setter's own) and no rope there yet -- on a map whose cliffs can be climbed. From up there (on it, or beside it at its height) it is tied off with no roll; from below the
   // grapple is thrown up to it, as far as the rope is long and in sight (Battle.seesFrom, Battle.throwDC: 10-05; it was 30 ft at most), a Dexterity check, DC 10 to 30 ft (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
   // rule). `foot`: the square it is to hang to (a climb's own); else the nearest, square-on before corner-wise. { at, foot, top } or null
-  Battle.ropeSq = function (B, u, x, y, foot) {
+  // (`item`: a rope that is an item of its own -- the Rope of Climbing, 11-15: Battle.ropeItem -- reaches as far as it is long, 60 ft, and from below its far end climbs the face
+  // and fastens itself at the lip: no throw, so no DC. Left out, the Rope & Grapple's 50 ft and its throw, as ever)
+  Battle.ropeSq = function (B, u, x, y, foot, item) {
     var d = G.map.def, top = G.map.at(x, y); if (!d.climb || !top || !top.walk || (u.size || 1) > 1) return null;
     if ((B.ropes || []).some(function (r) { return !r.cut && r.at[0] === x && r.at[1] === y; })) return null;
     var zt = G.map.gz(x, y), feet = [];
@@ -1580,16 +1582,19 @@
     if (!feet.length) return null;
     feet.sort(function (a, b) { return (a.diag - b.diag) || (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })); }); // (square-on first, straight down the face; corner-wise only where nothing is square under it -- 10-05, Griz: "climbing shows left of rope, but when they get up they seem to step on tile right of rope first": Vivian's from the fountain rim hung corner-wise)
     var uz = G.gzAt(u, u.x, u.y);
-    if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
+    var rcI = Battle.ropeItem(item), lenI = rcI ? rcI.ft : Battle.ROPE_FT;
+    if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true, item: rcI ? item : null };
     // (the throw's reach is the straight line to the lip, across and up -- 10-05, Griz: "especially if that means throw from the bottom": a rim 45 ft up and 45 ft out is some 64 ft
     // off, past a 50 ft rope, where the grid's distance read 45; the DC by the line in whole 5s, rounded down: the 45 ft facade from its foot still 45 ft, DC 16)
     var hzF = Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) * 5, vzF = Math.max(0, (zt - uz) / d.step * 2.5), lineF = Math.sqrt(hzF * hzF + vzF * vzF), tFt = Math.floor(lineF / 5 + 1e-9) * 5;
-    if (uz < zt && lineF <= Battle.ROPE_FT + 1e-9 && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false, ft: tFt, dc: Battle.throwDC(tFt) };
+    if (uz < zt && lineF <= lenI + 1e-9 && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false, ft: tFt, dc: rcI ? 0 : Battle.throwDC(tFt), item: rcI ? item : null };
     return null;
   };
   // the throw's reach and its DC (10-05, Griz: "go with +2 DC per 5 beyond 30"): as far as the rope is long (fifty feet, content/items.json rope), DC 10 to 30 ft and 2 more for each
   // 5 ft past it -- 35 ft 12, 40 ft 14, 45 ft 16, 50 ft 18 (the Edifice's 45 ft facade from the street, 16)
   Battle.ROPE_FT = 50;
+  // a rope that is an item of its own (content/items.json `ropeClimbing`: the Rope of Climbing, SRD 5.1 -- 60 ft, AC 20 and 20 hit points; 11-15, the magic-items seat): its numbers, or null
+  Battle.ropeItem = function (id) { var it = id && window.DS && DS.DATA && DS.DATA.items[id]; return it && it.ropeClimbing ? it.ropeClimbing : null; };
   Battle.throwDC = function (ft) { return 10 + 2 * Math.max(0, Math.ceil((ft - 30) / 5)); };
   // in sight for a throw, from where the thrower is -- a hanger's eye at its hang, not at the rope's foot -- to a square's floor at height z (10-05, Griz: "2 yes" to: sight read from the
   // thrower's own height, and the top edge of a face you stand under counts as seen). ropeSq asks it of the top and of the squares under it the rope would hang to: nothing overhangs a
@@ -1666,9 +1671,10 @@
   Battle.prototype.cutRope = function* (w, r, atk) {
     var T = w.turn; if (T) { T.action = 0; T.attacksLeft = 0; }
     w.facing = D.spr.facingFor(r.at[0] - w.x, r.at[1] - w.y); w.anim = 'attack'; w.animT = this.t; D.sfx('hit'); yield 12;
-    var d20 = D.d(20), tot = d20 + (atk.atk || 0), hit = d20 === 20 || (d20 !== 1 && tot >= 11), dmg = hit && atk.type !== 'poison' && atk.type !== 'psychic' ? Math.max(1, D.roll(atk.dice).total + (atk.mod || 0)) : 0;
+    var acR = r.ac || 11; // (the Rope of Climbing's AC 20 and 20 hit points, 11-15; a plain rope's AC 11 and 2)
+    var d20 = D.d(20), tot = d20 + (atk.atk || 0), hit = d20 === 20 || (d20 !== 1 && tot >= acR), dmg = hit && atk.type !== 'poison' && atk.type !== 'psychic' ? Math.max(1, D.roll(atk.dice).total + (atk.mod || 0)) : 0;
     r.hp -= dmg;
-    this.card(['{r}' + nameOf(w) + '{/} goes for the rope: ' + (atk.name || 'a blow') + ' d20 ' + d20 + ' ' + RU.sign(atk.atk || 0) + ' = ' + tot + ' vs AC 11  ' + (!hit ? 'MISS' : r.hp <= 0 ? '{o}it parts!{/}' : '{o}' + dmg + '{/}, and it holds')], 220);
+    this.card(['{r}' + nameOf(w) + '{/} goes for the rope: ' + (atk.name || 'a blow') + ' d20 ' + d20 + ' ' + RU.sign(atk.atk || 0) + ' = ' + tot + ' vs AC ' + acR + '  ' + (!hit ? 'MISS' : r.hp <= 0 ? (r.item ? '{o}it parts, and the silk is destroyed!{/}' : '{o}it parts!{/}') : '{o}' + dmg + '{/}, and it holds' + (r.item ? ' (' + r.hp + ' hit points left)' : ''))], 220);
     w.anim = 'idle'; yield 20;
     if (r.hp > 0) return;
     r.cut = true;
@@ -1731,19 +1737,21 @@
         return;
       }
       case 'rope': { // a Rope & Grapple set on a face (10-04, Griz: "as an item on the item wheel"; Battle.ropeSq): tied off from up there with no roll, or the grapple thrown up from below
-        var rq = Battle.ropeSq(this, u, c.x, c.y, c.foot), rs0 = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
-        var ownR = u.ownRope != null; // (a lent ally's own Rope & Grapple, never the party's pack -- 10-05, Griz: "do the 'each trooper get one grappling hook' we did for the guests using party inventory - had to send barley back coz the troopers kept throwing them")
+        var rid = c.item && Battle.ropeItem(c.item) ? c.item : 'rope', rcR = Battle.ropeItem(rid); // (the Rope of Climbing, 11-15: its own stack, its own length, no throw)
+        var rq = Battle.ropeSq(this, u, c.x, c.y, c.foot, rcR ? rid : null), rs0 = (this.inv || []).filter(function (x) { return x.id === rid && x.n > 0; })[0];
+        var ownR = !rcR && u.ownRope != null; // (a lent ally's own Rope & Grapple, never the party's pack -- 10-05, Griz: "do the 'each trooper get one grappling hook' we did for the guests using party inventory - had to send barley back coz the troopers kept throwing them")
         if (!rq || (ownR ? !(u.ownRope > 0) : !rs0) || !T.action || T.attacksLeft) return;
         T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 10; // (a sheet's Interact row for a hand on a thing -- here and at the rope taken, the barrel, the bucket: Barley's ART-75, 10-20)
-        if (!rq.top) {
+        if (!rq.top && !rcR) {
           var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10) - RU.shaken(u), rt = rr + rb;
           var tdc = rq.dc || 10; // (10 to 30 ft, 2 more each 5 ft past: Battle.throwDC, 10-05)
           this.card(['{y}' + nameOf(u) + '{/} throws the grapple up ' + rq.ft + ' ft: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC ' + tdc + '  ' + (rt >= tdc ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
           yield 20; if (rt < tdc) { u.anim = 'idle'; return; }
         }
-        if (ownR) u.ownRope--; else rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
+        if (ownR) u.ownRope--; else rs0.n--; this.ropes.push(rcR ? { at: rq.at.slice(), foot: rq.foot.slice(), hp: rcR.hp, ac: rcR.ac, item: rid, by: u.id } : { at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
         var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;
-        this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
+        if (rcR) this.card(['{y}' + nameOf(u) + '{/} speaks the word' + (rq.top ? ' and the rope fastens itself at the lip and lets itself down' : ': the far end of the silk climbs the face by itself and fastens at the lip') + ': ' + rFt + ' ft of it down the face.  {g}(the Rope of Climbing: no throw; AC 20, 20 hit points; climbed with no check){/}'], 300);
+        else this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
         u.anim = 'idle'; yield 16; return;
       }
       case 'takerope': { // the rope's grapple taken up (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): from the ring, or a click on its square from beside it
@@ -1758,8 +1766,9 @@
         }
         T.action = 0; u.facing = D.spr.facingFor(rT.at[0] - u.x, rT.at[1] - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 10;
         rT.cut = true; var iT = this.ropes.indexOf(rT); if (iT >= 0) this.ropes.splice(iT, 1);
-        var rsT = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
-        D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
+        var idT = rT.item && Battle.ropeItem(rT.item) ? rT.item : 'rope'; // (the Rope of Climbing comes back as itself, 11-15)
+        var rsT = (this.inv || []).filter(function (x) { return x.id === idT; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: idT, n: 1 });
+        D.sfx('confirm'); this.card([idT !== 'rope' ? '{y}' + nameOf(u) + '{/} tells the rope to unfasten: it coils itself and goes back into the pack.' : '{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
         u.anim = 'idle'; yield 16; return;
       }
       case 'stand': { // up off the floor by a click on your own square (10-04 night, Griz: "if prone with move left and click on tile your end stand"): half the speed, from the move (rules.js RU.rise)
@@ -4314,6 +4323,7 @@
     return stacks.map(function (s) {
       var it = window.DS.DATA.items[s.id];
       // the Rope & Grapple (the 8-bit game's rope; 10-04, Griz: "as an item on the item wheel"): set on a face, an action -- exec 'rope', the tool picks the face's top (ui.js)
+      if (it && it.ropeClimbing && s.n > 0) { var clC = !!(G.map.def.climb && (u.size || 1) === 1); return { id: s.id, name: it.name, n: s.n, use: { effect: 'rope', item: s.id }, ok: clC && T.action > 0 && !T.attacksLeft && !u.guest, why: !clC ? 'no face here to climb' : T.action > 0 ? '' : 'the action is spent' }; } // (the Rope of Climbing, 11-15: set as the rope is, exec 'rope' with its item)
       if (s.id === 'rope' && s.n > 0) { var cl0 = !!(G.map.def.climb && (u.size || 1) === 1); return { id: 'rope', name: (it && it.name) || 'Rope & Grapple', n: s.n, use: { effect: 'rope' }, ok: cl0 && T.action > 0 && !T.attacksLeft && !u.guest, why: !cl0 ? 'no face here to climb' : T.action > 0 ? '' : 'the action is spent' }; }
       if (!it || !it.use || !(it.use.battle || it.use.grid) || !ITEM_OK[it.use.effect] || s.n <= 0) return null; // (use.grid: the grid's alone, never the 8-bit battle's list -- the steel mirror, 10-15)
       if (roost && it.use.effect === 'light' && !D.light.isLantern(s.id)) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' }; // (the torch, greyed as the first game greys it; the oil thrown there catches -- js/oil.js, 10-28 night, his "2 - as the first game")
@@ -4368,7 +4378,7 @@
     this.card(['{c}The ' + sh.name + ' protects the party.{/}  {g}(+3 AC to all, till ' + t.name + '\'s next turn){/}'], 320);
   };
   Battle.prototype.useItem = function* (u, id, w) {
-    if (id === 'rope') return; // (the Rope & Grapple is set with exec 'rope', on a face's top -- never as a target's item; a READY on it springs nothing)
+    if (id === 'rope' || Battle.ropeItem(id)) return; // (and the Rope of Climbing, 11-15) (the Rope & Grapple is set with exec 'rope', on a face's top -- never as a target's item; a READY on it springs nothing)
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
     if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
     if (D.spr.anim(u.sheet, 'useitem')) { u.anim = 'useitem'; u.animT = this.t; } // (a sheet's UseItem row: the thing out of the pouch, used, put away -- Aurdin's ART-72, 10-18)

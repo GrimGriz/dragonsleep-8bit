@@ -870,7 +870,7 @@
   R.ropeUse = function () { var it = window.DS.DATA.items.rope; if (it && !it.use) it.use = { field: true, target: 'party', effect: 'grapple', roam: true }; };
   R.ropeHaul = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags, t = R0.token;
-    if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
+    if (!(B.inv || []).some(function (x) { var it = window.DS.DATA.items[x.id]; return (x.id === 'rope' || !!(it && it.ropeClimbing)) && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; } // (a Rope of Climbing is a rope too: 11-15, the magic-items seat)
     if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig || { id: 'stair' }, at || R.def.from8(19, 21), 'rune', 'rope'); return; }
     var from = R.def.from8(R.FLOAT8[0], R.FLOAT8[1]), best = null, bd = Infinity;
     R.WADE8.forEach(function (q) { var g = R.def.from8(q[0], q[1]), d = Math.max(Math.abs(g[0] - t.x), Math.abs(g[1] - t.y)); if (d < bd) { bd = d; best = g; } });

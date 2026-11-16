@@ -29,7 +29,7 @@
     ['wildShape', 'Wild Shape', 'short rest'], ['ki', 'Ki points', 'short rest'], ['sorcery', 'Sorcery points', 'long rest'], ['inspiration', 'Bardic Inspiration', 'long rest'],
     ['lay', 'Lay on Hands (hit points)', 'long rest', true], ['divineSense', 'Divine Sense', 'long rest'], ['darkLuck', 'Dark One\'s Own Luck', 'short rest'],
     ['relentless', 'Relentless Endurance', 'long rest']];
-  var PLACES = [['weapon', 'WEAPON'], ['alt', 'SECOND WEAPON'], ['armor', 'ARMOR'], ['shield', 'SHIELD'], ['offhand', 'OFF HAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK']];
+  var PLACES = [['weapon', 'WEAPON'], ['alt', 'SECOND WEAPON'], ['armor', 'ARMOR'], ['shield', 'SHIELD'], ['offhand', 'OFF HAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND']];
   var plain = function (s) { return String(s == null ? '' : s).replace(/\{\/?[a-z]{0,2}\}/g, '').replace(/\s+/g, ' ').trim(); }; // (the game's colour marks off: {y}..{/})
   var sgn = function (n) { return (n >= 0 ? '+' : '') + n; };
   var item = function (id) { return id ? (DS.DATA.items[id] || null) : null; };

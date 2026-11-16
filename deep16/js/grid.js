@@ -107,8 +107,20 @@
     for (var i = 0; i < rs.length; i++) { var r = rs[i]; if (r.cut) continue; if ((r.at[0] === x0 && r.at[1] === y0 && r.foot[0] === x1 && r.foot[1] === y1) || (r.foot[0] === x0 && r.foot[1] === y0 && r.at[0] === x1 && r.at[1] === y1)) return r; }
     return null;
   };
-  // (deep water -- a map's `deepWater`, the Settling's pools, 09-30: only what lives there, bound to it or a swimmer, and a flier over it)
-  function walkable(x, y, u) { var s = G.map.at(x, y); return !!(s && (s.walk || (s.deep && u && (u.flies || u.swims || (u.bound && u.bound.indexOf(s.ch) >= 0))))); }
+  // A RING OF WATER WALKING (SRD 5.1: "While wearing this ring, you can stand on and move across any liquid surface as if it were solid ground"; content/items.json
+  // ringwaterwalking, `ring.waterWalk`; 11-15, the magic-items seat): on either ring finger, read off the sheet each time (as js/flight-ai.js and js/roam.js read the Ring of
+  // Flying's) -- deep water is floor to its wearer, and the still water ('~', the wading pools, the lake's edge) no longer slows it. On a floor the party walks as one figure
+  // (js/roam.js: the token carries the four) the token walks on water only when every one of them does: one ring does not carry the rest across. `u.waterWalk` too, for a unit
+  // given it outright
+  G.waterWalker = function (u) {
+    if (!u) return false;
+    var e = u.src && u.src.equip, I = window.DS && DS.DATA && DS.DATA.items, own = !!u.waterWalk || !!(e && I && [e.ring, e.ring2].some(function (id) { var it = id && I[id]; return !!(it && it.ring && it.ring.waterWalk); }));
+    if (!own) return false;
+    var R0 = D.battle && D.battle.roam; if (R0 && R0.token === u && R0.mode !== 'fight' && R0.rest && R0.rest.length) return R0.members.every(function (m) { return m === u || G.waterWalker(m); });
+    return true;
+  };
+  // (deep water -- a map's `deepWater`, the Settling's pools, 09-30: only what lives there, bound to it or a swimmer, and a flier over it -- and one who walks on water, 11-15)
+  function walkable(x, y, u) { var s = G.map.at(x, y); return !!(s && (s.walk || (s.deep && u && (u.flies || u.swims || (u.bound && u.bound.indexOf(s.ch) >= 0) || G.waterWalker(u))))); }
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
   // on open ground (pass: a square it may go through)
   // (Incorporeal Movement, the will-o'-wisp's and its mirror's, SRD 5.1: "can move through other creatures and objects as if they were difficult terrain" -- 11-13: the same
@@ -196,7 +208,7 @@
     // difficult terrain"): a friend's, or a foe's passed two sizes from yours (G.passBy), at the height the body would be (one hanging high over the square is not in it). Not an
     // object's (the lamp, the skylight), and not for a flier, which has returned above
     for (var c = 0; c < f.length; c++) { var oc = G.occupant(f[c][0], f[c][1], u, G.bodyAt(u, x1, y1)); if (oc && !oc.object) return 10 + extra; }
-    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && (s.ch === '~' || s.deep)) && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
+    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && (s.ch === '~' || s.deep)) && !((s.ch === '~' || s.deep) && G.waterWalker(u)) && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
     return 5 + extra;
   };
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];

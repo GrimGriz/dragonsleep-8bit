@@ -14,7 +14,7 @@
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var KEY = 'deep16.camp';
   // (10-06: the worn places -- js/rules.js R.PLACES -- two rings, the cloak, the feet, the neck; a thing's own place is R.slotFor)
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['ring2', 'RING (2ND)'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK']];
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['ring2', 'RING (2ND)'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
 
   // the armoury a rung offers: the 8-bit game's gear by then. Silverton's racks (the Show-Armorer, the Pawnbroker) from the
   // start; from 5, after the lake, its hoard given back and Winters' cases; from 6 what's behind the fountains; plate at 8
