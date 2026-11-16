@@ -191,7 +191,7 @@
     });
     if (!best) return null;
     if (R.walkRoute && !R.walkRoute(t, best.sq)) {
-      var gate = (def.src8.triggers || []).filter(function (g) { return g.opens && g.on === 'use' && R.cond(g.cond, flags) && R.cond(g.opens, flags); })[0];
+      var gate = (def.src8 && def.src8.triggers || []).filter(function (g) { return g.opens && g.on === 'use' && R.cond(g.cond, flags) && R.cond(g.opens, flags); })[0];
       if (gate) return def.from8 ? def.from8(gate.rect[0], gate.rect[1]) : gate.rect.slice(0, 2);
     }
     return best.sq;

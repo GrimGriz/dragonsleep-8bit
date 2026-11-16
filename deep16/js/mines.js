@@ -952,7 +952,7 @@
     var list = p.list.filter(function (k) { return D.FOES && D.FOES[k]; }).slice(0, 8); if (!list.length) return;
     R0.fights++; // (THE WORLD's hour on the Glowseep counts it: M.tick)
     var cnt = {}; list.forEach(function (k) { cnt[k] = (cnt[k] || 0) + 1; });
-    var who = Object.keys(cnt).map(function (k) { var nm = (D.FOES[k].name || k).toLowerCase(); return cnt[k] > 1 ? cnt[k] + ' ' + nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : 'a ' + nm; }).join(', ');
+    var who = Object.keys(cnt).map(function (k) { var nm = (D.FOES[k].name || k).toLowerCase(); return cnt[k] > 1 ? cnt[k] + ' ' + nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : (/^[aeiou]/.test(nm) ? 'an ' : 'a ') + nm; }).join(', '); // ("An insect swarm", not "A insect swarm": the lanes desk's hygiene 11-16)
     R0.last = { why: why, who: who, kinds: list.slice(), at: [t.x, t.y], field: true }; R0.log.push(R0.last);
     var simple = !D.simple || D.simple.on();
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
