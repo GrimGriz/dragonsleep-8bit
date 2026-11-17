@@ -223,7 +223,19 @@ WALK = r"""(a) => {
   var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var cx = cv.getContext('2d');
   function B() { return D.battle; }
   function drive(g) { for (var i = 0; i < 4000; i++) { var r = g.next(); if (r.done) return true; var b = B(); if (b && b.menu) { b.menu = null; } } return false; }
-  function put(x, y) { var b = B(), R0 = b.roam; (R0.members || []).forEach(function (u) { if (u.x != null) { u.x = x; u.y = y; } }); if (R0.token) { R0.token.x = x; R0.token.y = y; } R0.mode = 'walk'; b.menu = null; D.counter.paintPin(cx, b); }
+  // the party set where a player could stand: the square reached from where it stands (a walk over G.canPass) nearest the step, standable -- not on the
+  // step itself (a keeper behind a counter is two squares from where the word is had: a step on the keeper's own square never ticks from the front)
+  function spot(x, y) {
+    var b = B(), R0 = b.roam, G = D.grid, def = D.roam.def, W = def.w || def.rows[0].length, Hh = def.h || def.rows.length, u = (R0.members || []).filter(function (m) { return m.x != null; })[0], t = R0.token && R0.token.x != null ? R0.token : u;
+    var seen = {}, q = [[t.x, t.y]], best = null, bd = 99; seen[t.x + ',' + t.y] = 1;
+    while (q.length) { var c = q.shift(), d = Math.max(Math.abs(c[0] - x), Math.abs(c[1] - y)), st = false; try { st = G.canStand(u, c[0], c[1]) || (c[0] === t.x && c[1] === t.y); } catch (e) { }
+      if (st && d < bd) { bd = d; best = c; }
+      for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) { var nx = c[0] + dx, ny = c[1] + dy, k = nx + ',' + ny; if (seen[k] || nx < 0 || ny < 0 || nx >= W || ny >= Hh) continue; var ok = false; try { ok = G.canPass(u, nx, ny); } catch (e) { } if (ok) { seen[k] = 1; q.push([nx, ny]); } } }
+    return bd <= 1 ? { at: best, d: bd } : { at: [x, y], d: bd, unreached: true };
+  }
+  function put(x, y) { var b = B(), R0 = b.roam, sp = spot(x, y); if (sp.unreached) log.push('  (no square reached beside ' + x + ',' + y + ': nearest ' + sp.d + ' off; set on it)'); else if (sp.at[0] !== x || sp.at[1] !== y) log.push('  (stood at ' + sp.at.join(',') + ')');
+    (R0.members || []).forEach(function (u) { if (u.x != null) { u.x = sp.at[0]; u.y = sp.at[1]; } }); if (R0.token) { R0.token.x = sp.at[0]; R0.token.y = sp.at[1]; } R0.mode = 'walk'; b.menu = null; D.counter.paintPin(cx, b); unreached += sp.unreached ? 1 : 0; }
+  var unreached = 0;
   if (!T.bar || !T.bar.row || !T.bar.row() || T.bar.row().id !== id) { T.unmount && T.unmount(); T.mountRow(id); }
   T.bar.up = false;
   var prev = null;
@@ -240,7 +252,7 @@ WALK = r"""(a) => {
     if (!D.roam.def || D.roam.def.key !== s[0]) { log.push('step ' + (i + 1) + ': not on ' + s[0] + ' (on ' + D.roam.def.key + ')'); break; }
     put(s[1], s[2]); var w = T.walk(id); log.push('step ' + (i + 1) + ' ' + s[0] + ' ' + s[1] + ',' + s[2] + ': seen ' + JSON.stringify(w.done)); prev = s;
   }
-  var w2 = T.walk(id); return { done: w2.done, of: steps.length, xp: !!w2.xp, walked: !!(T.bar && T.bar.walked), log: log };
+  var w2 = T.walk(id); return { done: w2.done, of: steps.length, xp: !!w2.xp, walked: !!(T.bar && T.bar.walked), unreached: unreached, log: log };
 }"""
 
 async def do_walk(br, base, j):
@@ -251,7 +263,7 @@ async def do_walk(br, base, j):
     try: r = await pg.evaluate(WALK, {'id': j['id'], 'steps': j['steps']})
     except Exception as e: r = {'err': str(e)[:300]}
     await pg.close(); r['state'] = state; r['errs'] = errs[:3]
-    if 'done' in r: r['walk'] = '%d of %d seen, xp %s' % (len(r['done']), r['of'], r['xp'])
+    if 'done' in r: r['walk'] = '%d of %d seen, xp %s%s' % (len(r['done']), r['of'], r['xp'], (', %d set on a square no walk reached' % r['unreached']) if r.get('unreached') else '')
     return r
 
 async def do_rooms(br, base, j):
@@ -272,7 +284,8 @@ def apply_map(M):
             if src[a:b] != txt: src = src[:a] + txt + src[b:]; n += 1
             continue
         a, b = r['span']['url']; nl = src.index(LF, b)
-        assert src[b:nl].strip() in (',', ''), (r['id'], src[b:nl])
+        if src[b:nl].strip() not in (',', ''): # (a row whose url ends it on the same line: the steps go after the url, on that line)
+            src = src[:b] + ', ' + txt + src[b:]; n += 1; continue
         eol = CR + LF if src[nl - 1] == CR else LF
         src = src[:nl + 1] + '      ' + txt + ',' + eol + src[nl + 1:]; n += 1
     open(EO.EYES, 'w', encoding='utf-8', newline='').write(src)
