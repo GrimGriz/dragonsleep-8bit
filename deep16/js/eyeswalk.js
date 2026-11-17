@@ -31,6 +31,14 @@
     var R0 = B && B.roam, fu = R0 && R0.token && R0.token.x != null ? R0.token : members(B)[0]; EW.floated = null; if (!fu || !D.fx || !D.fx.float) return;
     try { var txt = '+' + EW.XP + ' XP'; D.fx.float(txt, fu, (D.PAL && D.PAL.ramps && D.PAL.ramps.gold && D.PAL.ramps.gold[4]) || '#ffd76a', true); if (D.fx.ring) D.fx.ring(fu, 'gold', 30); EW.floated = txt; } catch (e) { /* (no figure to float over) */ }
   };
+  // BACK IN THE GAME (his "the 'leave' sylvias table didn't hand off or notice of xp and hand off back to the game i talked to her with"): her table's LEAVE takes up the game
+  // that came to her booth (deep16/?resume=<slot>, js/main.js; deep16/js/swann.js), and the first thing on screen says what the cards earned it
+  EW.welcome = function () {
+    var e = T.walkTakeEarned ? T.walkTakeEarned() : null; EW.welcomed = e; if (!e) return null;
+    var lines = ['{y}SYLVIA\'S CARDS{/}: ' + e.cards + ' card' + (e.cards === 1 ? '' : 's') + ' walked.', 'Each one standing gained ' + e.each + ' XP.'];
+    setTimeout(function () { var s = D.top(); if (s && s.card) { s.card(lines, 360); if (D.sfx) D.sfx('chest'); } }, 700);
+    return lines;
+  };
   // a frame on the floor: a step reached is seen; the last one seen pays the XP and brings her card up
   EW.tick = function (B) {
     var h = EW.row(), def = D.roam && D.roam.def; if (!h || !def || !B) return null;
@@ -45,7 +53,7 @@
       var H = D.house, slot = T.walkFrom ? T.walkFrom() : null, rec = slot != null && H && H.read ? H.read(slot) : null, said = '';
       if (rec) {
         var standing = rec.party.filter(function (p) { return p.hp > 0 && !p.dead; }), bk = standing.length && H.bank ? H.bank(EW.XP * standing.length, standing) : null;
-        if (bk) { D.store.set(H.key(slot), rec); said = String(bk.line || '').replace(/\.?$/, '') + ' in your game.'; EW.paid = { slot: slot, each: bk.each }; EW.float(B); }
+        if (bk) { D.store.set(H.key(slot), rec); said = String(bk.line || '').replace(/\.?$/, '') + ' in your game.'; EW.paid = { slot: slot, each: bk.each }; EW.float(B); if (T.walkEarn) T.walkEarn(bk.each); }
       } else said = '{g}(No game came to her booth: the XP goes to one that does.){/}';
       lines.push('{y}EVERY STEP SEEN.{/} ' + said);
       if (D.sfx) D.sfx('chest');

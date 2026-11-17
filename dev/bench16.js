@@ -1043,6 +1043,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okEW('4 E: the note "' + fE.note + '", on to ' + wentE + ' (want "' + TEW.WALKED + '" and her table)', fE.note === TEW.WALKED && /\?cards$/.test(String(wentE || '')));
         TEW.unmount(); TEW.mountRow(IDEW); var r5 = TEW.bar && TEW.bar.row();
         okEW('5 &tourrow\'s mount: the bar on ' + (r5 && r5.id), !!r5 && r5.id === IDEW);
+        // 8 back to his game (his "the 'leave' sylvias table didn't hand off or notice of xp and hand off back to the game i talked to her with"): her table's LEAVE takes up
+        // slot 2 (deep16/?resume=2), the tally one card and 50 XP, and the way back in says so, once
+        var fr8 = JSON.parse(JSON.stringify(TEW.walkAll()._from || {})), went8 = null; TEW.nav = function (h) { went8 = h; };
+        var tb8 = new D.swann.Table({}); tb8.press({ go: 'leave' }); var wl8 = EWb.welcome(), again8 = TEW.walkTakeEarned();
+        okEW('8 back to his game: her table\'s LEAVE to ' + went8 + ' (want ?resume=2); the tally ' + fr8.cards + ' card(s), ' + fr8.earned + ' XP; on the way in ' + JSON.stringify(wl8) + ', then ' + JSON.stringify(again8),
+          /\?resume=2$/.test(String(went8 || '')) && fr8.cards === 1 && fr8.earned === 50 && !!wl8 && /1 card walked/.test(wl8.join(' ')) && /gained 50 XP/.test(wl8.join(' ')) && !again8);
       }
     } catch (eEW) { repEW.errors.push(String(eEW && eEW.stack || eEW).slice(0, 900)); }
     try { if (TEW) { TEW.unmount(); TEW.nav = navEW; TEW.navDelay = dlEW; } } catch (eU) { /* (no bar) */ }

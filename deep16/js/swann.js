@@ -69,7 +69,7 @@
     if (b.go === 'save') { this.save(); return; }
     if (b.go === 'fights') { var fn = null; try { fn = D.rec.save(); } catch (e) { fn = null; } this.saved = { t: this.t, text: fn ? '{y}FIGHTS SAVED{/} ' + fn + ' -- put it in play-records/' : '{r}no fights saved{/}: the Pocket DM\'s FIGHTS page saves the same' }; if (!fn) D.sfx('error'); return; }
     if (b.go === 'switch') { T.setTester(!T.tester()); return; }
-    if (b.go === 'leave') { if (this.o.from === 'booth') { this.done = true; if (D.top() === this) D.pop(); } else T.nav(T.root + S.TOP); }
+    if (b.go === 'leave') { if (this.o.from === 'booth') { this.done = true; if (D.top() === this) D.pop(); } else { var slL = T.walkFrom ? T.walkFrom() : null; T.nav(T.root + (slL != null && D.house && D.house.read && D.house.read(slL) ? 'deep16/?resume=' + slL : S.TOP)); } } // (a game came to her booth: back to it, deep16/?resume= -- 11-16 night)
   };
   // SAVE: his ear file, situations.html's (js/onegallery.js OG.earFile: every noted row still on this device, the save before it, what is new since)
   Table.prototype.save = function () {

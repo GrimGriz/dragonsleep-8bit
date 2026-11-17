@@ -123,6 +123,10 @@
   // the game that came to her booth (js/../deep16/js/swann.js: READ THE CARDS from a game in play, his slot): the one place a card's walk pays -- Griz, 11-16 night, "the only
   // thing that should carry back to the game for the player who enters via sylvia is the xp" (a card's door is a staged game: SAVE refuses, js/house.js H.saveTo). 12 hours good
   T.walkFrom = function () { var f = T.walkAll()._from; return f && f.slot != null && Date.now() - (f.at || 0) < 12 * 3600 * 1000 ? f.slot : null; };
+  // what the cards earned that game, said when it is taken up again (T.walkTakeEarned; deep16/js/eyeswalk.js EW.welcome) -- 11-16 night, his "the 'leave' sylvias table didn't
+  // hand off or notice of xp and hand off back to the game i talked to her with"
+  T.walkEarn = function (each) { var a = T.walkAll(), f = a._from; if (!f) return; f.cards = (f.cards || 0) + 1; f.earned = (f.earned || 0) + (each || 0); put(WKEY, JSON.stringify(a)); };
+  T.walkTakeEarned = function () { var a = T.walkAll(), f = a._from; if (!f || !f.cards) return null; var r = { cards: f.cards, each: f.earned || 0 }; f.cards = 0; f.earned = 0; put(WKEY, JSON.stringify(a)); return r; };
   T.setWalkFrom = function (slot) { var a = T.walkAll(); if (slot == null) delete a._from; else a._from = { slot: slot, at: Date.now() }; put(WKEY, JSON.stringify(a)); };
   T.walked = function () { var B = T.bar; if (!B) return; B.walked = true; if (B.el) raise(B); }; // (every step seen: her card up, E the next card)
   // ------------------------------------------------------------------ the doors
