@@ -16,7 +16,12 @@
   EW.BLUE = '#6fb7e0'; EW.DARK = '#0c1a24';
   // the row on her bar, when it has steps
   EW.row = function () { var b = T.bar, h = b && b.row && b.row(); return h && h.r && Array.isArray(h.r.steps) && h.r.steps.length ? h : null; };
-  function members(B) { return ((B && B.roam && B.roam.members) || []).filter(function (u) { return u && u.x != null && !u.dead && !(u.hp <= 0); }); }
+  // where the party stands: the party's token where the floor walks one (a town and its rooms: js/town.js T.goIn moves the token, the members keep the street's squares --
+  // his "broke when I entered a building"), else the members themselves
+  function members(B) {
+    var R0 = B && B.roam, t = R0 && R0.token; if (t && t.x != null) return [t];
+    return ((R0 && R0.members) || []).filter(function (u) { return u && u.x != null && !u.dead && !(u.hp <= 0); });
+  }
   EW.near = function (B, s) { return members(B).some(function (u) { return Math.max(Math.abs(u.x - s[1]), Math.abs(u.y - s[2])) <= 1; }); };
   // the step the arrow points at on this floor: the first not yet seen, in the row's order, that lies here
   EW.here = function (h, key) { var w = T.walk(h.id); for (var i = 0; i < h.r.steps.length; i++) if (w.done.indexOf(i) < 0 && h.r.steps[i][0] === key) return i; return -1; };
@@ -29,9 +34,14 @@
     var lines = hit.map(function (s) { return '{y}SEEN{/}: ' + s[3] + '.'; });
     if (w.done.length >= steps.length && !w.xp) {
       w.xp = true;
-      var st = C.state(B), standing = st ? st.party.filter(function (p) { return p.hp > 0 && !p.dead; }) : [], H = D.house;
-      var bk = standing.length && H && H.bank ? H.bank(EW.XP * standing.length, standing) : null;
-      lines.push('{y}EVERY STEP SEEN.{/} ' + (bk && bk.line ? String(bk.line).replace(/\.?$/, '.') : ''));
+      // the XP to the game that came to her booth, written into that save and nothing else -- never to the card's own staged party (his "the only thing that should carry
+      // back to the game for the player who enters via sylvia is the xp")
+      var H = D.house, slot = T.walkFrom ? T.walkFrom() : null, rec = slot != null && H && H.read ? H.read(slot) : null, said = '';
+      if (rec) {
+        var standing = rec.party.filter(function (p) { return p.hp > 0 && !p.dead; }), bk = standing.length && H.bank ? H.bank(EW.XP * standing.length, standing) : null;
+        if (bk) { D.store.set(H.key(slot), rec); said = String(bk.line || '').replace(/\.?$/, '') + ' in your game.'; EW.paid = { slot: slot, each: bk.each }; }
+      } else said = '{g}(No game came to her booth: the XP goes to one that does.){/}';
+      lines.push('{y}EVERY STEP SEEN.{/} ' + said);
       if (D.sfx) D.sfx('chest');
     } else if (D.sfx) D.sfx('confirm');
     T.walkPut(h.id, w);
@@ -49,6 +59,17 @@
     ctx.restore();
     EW.marked = [x, y];
   }
+  // THE CARD IN THE JOURNAL (his "can we put it in the journal with what the next thing we're looking at visible as the current step of the mission?"): while her bar is on
+  // a row with steps, SYLVIA'S CARD heads the JOURNAL's missions -- the card's headline, its current step the next thing to look at (where, and which of how many); every
+  // step seen, done. Nothing is written to the save: it is there while the card is.
+  EW.where = function (s) { return s[3] + ' -- ' + (s[0] === 'room' ? 'inside' : s[0]) + ', ' + s[1] + ',' + s[2]; };
+  var q0 = C.quests;
+  C.quests = function (st) {
+    var out = q0.apply(this, arguments), h = EW.row(); if (!h) return out;
+    var w = T.walk(h.id), steps = h.r.steps, i = -1; for (var k = 0; k < steps.length; k++) if (w.done.indexOf(k) < 0) { i = k; break; }
+    var s = i >= 0 ? steps[i] : null, step = s ? { where: EW.where(s) + ' (step ' + (i + 1) + ' of ' + steps.length + ')', eyes: true } : null;
+    return [{ id: 'swanncard', name: 'SYLVIA\'S CARD', text: T.head(h.r), doneText: 'Every step seen.' + (T.walkFrom() != null ? ' 50 XP to each one standing in your game.' : ''), done: !!w.xp, where: step && step.where, step: step }].concat(out);
+  };
   var pp0 = C.paintPin;
   C.paintPin = function (ctx, B) {
     pp0.apply(this, arguments);

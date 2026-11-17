@@ -190,6 +190,7 @@
     if (a === 0) { yield* cup(sc, B, id); return; }
     if (a !== 1) return;
     yield sc.say([T.LINES.booth, '{g}' + T.LINES.leave + '{/}'], 'work');
+    var Hb = D.house; if (T.setWalkFrom && Hb && Hb.playing && Hb.cur && !Hb.cur.staged && !Hb.cur.situation) T.setWalkFrom(Hb.slot); // (the walk's XP comes back to this game: js/tour.js T.walkFrom, 11-16 night)
     sc.next = function* () { var tb = S.open({ from: 'booth' }); while (!tb.done) yield 1; }; // (her table over the walk, once her counter is down: js/counter.js C.talk)
   };
 })();

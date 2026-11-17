@@ -1012,7 +1012,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         window.DS.EYES[IDEW] = { pri: 2, title: 'bench', obj: 'bench', url: 'deep16/?roam=galleries_g3', look: '', pt: '', steps: [[keyE, XE + 6, YE, 'the far one'], [keyE, XE, YE, 'the near one']] };
         TEW.mount(0, { deck: { ids: [IDEW], no: 1, shown: [] } }); TEW.bar.up = false;
         var cvE = document.createElement('canvas'); cvE.width = D.W; cvE.height = D.H; var cxE = cvE.getContext('2d');
-        function paintE(x, y) { memE.forEach(function (u) { u.x = x; u.y = y; }); BE.roam.mode = 'walk'; BE.menu = null; D.counter.paintPin(cxE, BE); }
+        function paintE(x, y) { memE.forEach(function (u) { u.x = x; u.y = y; }); if (BE.roam.token) { BE.roam.token.x = x; BE.roam.token.y = y; } BE.roam.mode = 'walk'; BE.menu = null; D.counter.paintPin(cxE, BE); }
         var xpOf = function () { return D.counter.state(BE).party.map(function (h) { return h.xp || 0; }); };
         paintE(XE + 20, YE);
         var w1 = TEW.walk(IDEW);
@@ -1020,11 +1020,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           !w1.done.length && !!EWb.marked && EWb.marked[0] === XE + 6 && EWb.marked[1] === YE);
         var xp0 = xpOf(); paintE(XE, YE + 1);
         var w2 = TEW.walk(IDEW), xp2 = xpOf();
+        var qE = D.counter.quests(D.counter.state(BE)), q6 = qE[0] || {};
+        okEW('6 the JOURNAL: ' + q6.id + ' "' + q6.name + '" first, its step "' + q6.where + '" (want SYLVIA\'S CARD, the far one, step 1 of 2)', q6.id === 'swanncard' && /the far one/.test(String(q6.where)) && /step 1 of 2/.test(String(q6.where)) && !q6.done);
+        // (the town's token, members left behind -- a room's: his "broke when I entered a building")
+        if (BE.roam.token) { var tk7 = BE.roam.token, kx = tk7.x, ky = tk7.y; memE.forEach(function (u) { u.x = XE + 6; u.y = YE; }); tk7.x = XE + 30; tk7.y = YE; var n7 = EWb.near(BE, [keyE, XE + 6, YE]); tk7.x = kx; tk7.y = ky;
+          okEW('7 the token where the floor walks one: a member on the step but the token away reads not there (' + n7 + ')', n7 === false); }
         okEW('2 beside the near one: seen ' + JSON.stringify(w2.done) + ', XP ' + xp0.join(',') + ' -> ' + xp2.join(',') + ' (want [1], nothing paid), the arrow still on the far one ' + JSON.stringify(EWb.marked),
           w2.done.join() === '1' && !w2.xp && xp2.join() === xp0.join() && !!EWb.marked && EWb.marked[0] === XE + 6);
-        paintE(XE + 6, YE); var w3 = TEW.walk(IDEW), xp3 = xpOf(); paintE(XE + 6, YE); var xp3b = xpOf();
-        okEW('3 on the far one: every step seen ' + JSON.stringify(w3.done) + ', paid ' + !!w3.xp + ', XP ' + xp0.join(',') + ' -> ' + xp3.join(',') + ' (once: ' + xp3b.join(',') + '), her card up ' + TEW.bar.up + ', walked ' + !!TEW.bar.walked,
-          w3.done.length === 2 && !!w3.xp && xp3.every(function (v, i) { return v === xp0[i] + 50; }) && xp3b.join() === xp3.join() && TEW.bar.up && !!TEW.bar.walked);
+        // (his game, come to her booth: a save in slot 2 -- the XP goes there and nowhere else, his "the only thing that should carry back to the game for the player who
+        // enters via sylvia is the xp")
+        var HE = D.house, slotE = 2, recE = { v: HE.V, party: JSON.parse(JSON.stringify(D.counter.state(BE).party)).map(function (h) { h.xp = 1000; h.hp = h.hp || 10; return h; }), inv: [], flags: {} };
+        memEW[HE.key(slotE)] = JSON.stringify(recE); TEW.setWalkFrom(slotE);
+        var savedXp = function () { var r = memEW[HE.key(slotE)] ? JSON.parse(memEW[HE.key(slotE)]) : null; return r ? r.party.map(function (h) { return h.xp; }) : []; };
+        paintE(XE + 6, YE); var w3 = TEW.walk(IDEW), xp3 = xpOf(), sv3 = savedXp(); paintE(XE + 6, YE); var sv3b = savedXp();
+        okEW('3 on the far one: every step seen ' + JSON.stringify(w3.done) + ', paid ' + !!w3.xp + '; his game\'s save (slot 2) XP 1000 -> ' + sv3.join(',') + ' (once: ' + sv3b.join(',') + '); the card\'s own party ' + xp0.join(',') + ' -> ' + xp3.join(',') + ' (want untouched); her card up ' + TEW.bar.up + ', walked ' + !!TEW.bar.walked,
+          w3.done.length === 2 && !!w3.xp && sv3.length && sv3.every(function (v) { return v === 1050; }) && sv3b.join() === sv3.join() && xp3.join() === xp0.join() && TEW.bar.up && !!TEW.bar.walked);
         var wentE = null; TEW.navDelay = 0; TEW.nav = function (h) { wentE = h; };
         window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true }));
         var fE = TEW.fb()[IDEW] || {};

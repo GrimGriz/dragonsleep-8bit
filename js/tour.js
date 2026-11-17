@@ -120,6 +120,10 @@
   T.walkAll = function () { try { return JSON.parse(get(WKEY) || '{}') || {}; } catch (e) { return {}; } };
   T.walk = function (id) { var w = T.walkAll()[id] || {}; w.done = w.done || []; return w; };
   T.walkPut = function (id, w) { var a = T.walkAll(); a[id] = w; put(WKEY, JSON.stringify(a)); if (T.bar && T.bar.el) draw(T.bar); };
+  // the game that came to her booth (js/../deep16/js/swann.js: READ THE CARDS from a game in play, his slot): the one place a card's walk pays -- Griz, 11-16 night, "the only
+  // thing that should carry back to the game for the player who enters via sylvia is the xp" (a card's door is a staged game: SAVE refuses, js/house.js H.saveTo). 12 hours good
+  T.walkFrom = function () { var f = T.walkAll()._from; return f && f.slot != null && Date.now() - (f.at || 0) < 12 * 3600 * 1000 ? f.slot : null; };
+  T.setWalkFrom = function (slot) { var a = T.walkAll(); if (slot == null) delete a._from; else a._from = { slot: slot, at: Date.now() }; put(WKEY, JSON.stringify(a)); };
   T.walked = function () { var B = T.bar; if (!B) return; B.walked = true; if (B.el) raise(B); }; // (every step seen: her card up, E the next card)
   // ------------------------------------------------------------------ the doors
   T.cardHref = function (row, k) { var u = String(row && row.url || ''); return T.root + u + (u.indexOf('?') >= 0 ? '&' : '?') + 'tour=' + (k + 1); };
@@ -242,7 +246,7 @@
     var steps = Array.isArray(r.steps) && r.steps.length ? r.steps : null, wk = steps ? T.walk(here.id) : null;
     if (wk && wk.xp) B.walked = true;
     if (steps) now += (now ? '</p><p class="now">' : '') + '<b>WALK AND LOOK</b> ' + wk.done.length + '/' + steps.length + ': ' + steps.map(function (s, i) { return (wk.done.indexOf(i) >= 0 ? '&#10003; ' : '&#9675; ') + esc(s[3]) + ' <span class="pl">(' + esc(s[0]) + ' ' + s[1] + ',' + s[2] + ')</span>'; }).join(' &middot; ') +
-      (B.walked ? '</p><p class="now"><b>Every step seen: 50 XP to each one standing.</b> <kbd>E</kbd> the next card, or answer as ever.' : '');
+      (B.walked ? '</p><p class="now"><b>Every step seen' + (T.walkFrom() != null ? ': 50 XP to each one standing in your game.' : '.') + '</b> <kbd>E</kbd> the next card, or answer as ever.' : '');
     B.card.innerHTML = '<p class="her">' + esc((T.LINES.card[B.k] || ('Card ' + (B.k + 1) + '.')) + ' ' + cap(p.name) + '.') + '</p><h2>' + esc(obj || r.title) + '</h2>' +
       (obj ? '<p class="ttl">' + esc(r.title) + '</p><button class="bn" data-k="bnote" title="B: the builders\' note, open or shut">' + (open ? '&#9662;' : '&#9656;') + ' the builders\' note</button>' + (open ? '<div class="bnote">' + note + '</div>' : '') : note) +
       (now ? '<p class="now">' + now + '</p>' : '') +
