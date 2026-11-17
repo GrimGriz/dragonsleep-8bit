@@ -186,7 +186,7 @@
   var cup = C.SCRIPTS && C.SCRIPTS.swann;
   if (cup) C.SCRIPTS.swann = function* (sc, B, id) {
     if (!T.tester()) { yield* cup(sc, B, id); return; }
-    var a = yield sc.ask('The cup, or the cards?', ['THE CUP (5 SP)', 'READ THE CARDS', 'LEAVE'], 'attentive');
+    var a = yield sc.ask('The cup, or the cards? Save your game before adventuring in the cards.', ['THE CUP (5 SP)', 'READ THE CARDS', 'LEAVE'], 'attentive'); // (his line, 11-16 night: "have sylvias text say 'save you game before adventuring in the cards'")
     if (a === 0) { yield* cup(sc, B, id); return; }
     if (a !== 1) return;
     yield sc.say([T.LINES.booth, '{g}' + T.LINES.leave + '{/}'], 'work');
