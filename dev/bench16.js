@@ -1035,6 +1035,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         paintE(XE + 6, YE); var w3 = TEW.walk(IDEW), xp3 = xpOf(), sv3 = savedXp(); paintE(XE + 6, YE); var sv3b = savedXp();
         okEW('3 on the far one: every step seen ' + JSON.stringify(w3.done) + ', paid ' + !!w3.xp + '; his game\'s save (slot 2) XP 1000 -> ' + sv3.join(',') + ' (once: ' + sv3b.join(',') + '); the card\'s own party ' + xp0.join(',') + ' -> ' + xp3.join(',') + ' (want untouched); her card up ' + TEW.bar.up + ', walked ' + !!TEW.bar.walked,
           w3.done.length === 2 && !!w3.xp && sv3.length && sv3.every(function (v) { return v === 1050; }) && sv3b.join() === sv3.join() && xp3.join() === xp0.join() && TEW.bar.up && !!TEW.bar.walked);
+        var fl3 = (D.fx && D.fx.list || []).filter(function (f) { return f.kind === 'float'; }).length;
+        okEW('3b the XP seen paid: "' + EWb.floated + '" floating over the party (' + fl3 + ' float(s) on the floor) -- his "is there any visual indication of the 50 xp award?"', EWb.floated === '+50 XP' && fl3 >= 1);
         var wentE = null; TEW.navDelay = 0; TEW.nav = function (h) { wentE = h; };
         window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true }));
         var fE = TEW.fb()[IDEW] || {};

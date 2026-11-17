@@ -25,6 +25,12 @@
   EW.near = function (B, s) { return members(B).some(function (u) { return Math.max(Math.abs(u.x - s[1]), Math.abs(u.y - s[2])) <= 1; }); };
   // the step the arrow points at on this floor: the first not yet seen, in the row's order, that lies here
   EW.here = function (h, key) { var w = T.walk(h.id); for (var i = 0; i < h.r.steps.length; i++) if (w.done.indexOf(i) < 0 && h.r.steps[i][0] === key) return i; return -1; };
+  // the XP seen paid (11-16 night, Griz: "is there any visual indication of the 50 xp award?", then "Yes, add it" to a gold float over the party): "+50 XP" floating up in
+  // gold over the party -- its token where the floor walks one, else the first standing -- and a gold ring at their feet, as READY! does (js/battle.js readySpring)
+  EW.float = function (B) {
+    var R0 = B && B.roam, fu = R0 && R0.token && R0.token.x != null ? R0.token : members(B)[0]; EW.floated = null; if (!fu || !D.fx || !D.fx.float) return;
+    try { var txt = '+' + EW.XP + ' XP'; D.fx.float(txt, fu, (D.PAL && D.PAL.ramps && D.PAL.ramps.gold && D.PAL.ramps.gold[4]) || '#ffd76a', true); if (D.fx.ring) D.fx.ring(fu, 'gold', 30); EW.floated = txt; } catch (e) { /* (no figure to float over) */ }
+  };
   // a frame on the floor: a step reached is seen; the last one seen pays the XP and brings her card up
   EW.tick = function (B) {
     var h = EW.row(), def = D.roam && D.roam.def; if (!h || !def || !B) return null;
@@ -39,7 +45,7 @@
       var H = D.house, slot = T.walkFrom ? T.walkFrom() : null, rec = slot != null && H && H.read ? H.read(slot) : null, said = '';
       if (rec) {
         var standing = rec.party.filter(function (p) { return p.hp > 0 && !p.dead; }), bk = standing.length && H.bank ? H.bank(EW.XP * standing.length, standing) : null;
-        if (bk) { D.store.set(H.key(slot), rec); said = String(bk.line || '').replace(/\.?$/, '') + ' in your game.'; EW.paid = { slot: slot, each: bk.each }; }
+        if (bk) { D.store.set(H.key(slot), rec); said = String(bk.line || '').replace(/\.?$/, '') + ' in your game.'; EW.paid = { slot: slot, each: bk.each }; EW.float(B); }
       } else said = '{g}(No game came to her booth: the XP goes to one that does.){/}';
       lines.push('{y}EVERY STEP SEEN.{/} ' + said);
       if (D.sfx) D.sfx('chest');
