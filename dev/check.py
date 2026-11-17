@@ -107,6 +107,30 @@ def script(cmd):
     return [' '.join(cmd) + ': ' + l[:300] for l in bad]
 
 
+PATCHLOG_LINE_MAX = 400  # (a line is a line, RULED 10-06 -- 20 of the first 55 ran past 400 characters)
+
+
+def patchlog_long():
+    """The new PATCHLOG lines past 400 characters -- a WARNING, never RED (RULED 2026-11-17, Griz: "warning", on a review of the
+    patchlog that counted 717 lines past 400 since the 10-06 rule). New = in this tree and not on origin/main, so a seat sees its
+    own lines at `land.py push`; on GitHub's clean checkout there are none. No origin/main, no git: no warning."""
+    try:
+        p = subprocess.run(['git', 'diff', '--no-color', '-U0', 'origin/main', '--', 'PATCHLOG.md'], cwd=ROOT, capture_output=True, timeout=60)
+    except Exception:
+        return []
+    if p.returncode:
+        return []
+    out = []
+    for l in p.stdout.decode('utf-8', 'replace').splitlines():
+        if l.startswith('+- ') and len(l) - 1 > PATCHLOG_LINE_MAX:
+            out.append('%d characters: %s...' % (len(l) - 1, l[1:110]))
+    return out
+
+
+def say(s):
+    print(s.encode(sys.stdout.encoding or 'utf-8', 'replace').decode(sys.stdout.encoding or 'utf-8'))  # (a PATCHLOG line's · or Ó never stops the gate on a cp1252 pipe)
+
+
 def main(argv):
     full = 'all' in argv
     jobs = [('spells', spells, None)] + [('fight', fight, p) for p in QUICK_FIGHTS] + [('mode ' + m, mode, m) for m in (ALL_MODES if full else QUICK_MODES)]
@@ -122,6 +146,11 @@ def main(argv):
         print(('RED   ' if lines else 'ok    ') + name)
     for line in red:
         print('  ' + line)
+    long_lines = patchlog_long()
+    if long_lines:
+        say('WARN  PATCHLOG.md: %d new line%s past %d characters -- a line is a line (the hash, one sentence of what, his words); trim the what, never his words' % (len(long_lines), '' if len(long_lines) == 1 else 's', PATCHLOG_LINE_MAX))
+        for line in long_lines:
+            say('  ' + line)
     print('%s  (%d checks, %.0f s)' % ('RED' if red else 'GREEN', len(jobs), time.time() - t0))
     sys.exit(1 if red else 0)
 
