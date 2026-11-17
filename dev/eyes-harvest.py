@@ -85,7 +85,7 @@ HARVEST = r"""() => {
   (B.units || []).forEach(function (u) { if (!u || u.x == null || mem.indexOf(u) >= 0 || u === t) return; named.push({ src: 'unit', id: u.npc || u.id, name: u.name || null, kind: u.kind, side: u.side, dead: !!(u.dead || u.hp <= 0), x: u.x, y: u.y }); });
   (def.people || []).forEach(function (p) { if (p && p.at) named.push({ src: 'people', id: p.id, look: p.look || null, x: p.at[0], y: p.at[1] }); });
   ((def.src8 && def.src8.triggers) || []).forEach(function (tr) { if (!tr || !tr.rect) return; var d0 = tr.door || {}; named.push({ src: 'trigger', id: tr.id, name: tr.label || d0.name || d0.what || tr.npc || tr.script || null, town: tr.town || null, on: tr.on, x: tr.rect[0], y: tr.rect[1], w: tr.rect[2], h: tr.rect[3] }); });
-  scan(def.marks, 'marks', 0); scan(def.gate, 'gate', 0); scan(def.entry, 'entry', 0); scan(def.stairUp, 'stairUp', 0); scan(def.board, 'board', 0); scan(def.across, 'across', 0); scan(def.beside, 'beside', 0);
+  scan(def.src8 && def.src8.chests, 'chests', 0); scan(def.marks, 'marks', 0); scan(def.gate, 'gate', 0); scan(def.entry, 'entry', 0); scan(def.stairUp, 'stairUp', 0); scan(def.board, 'board', 0); scan(def.across, 'across', 0); scan(def.beside, 'beside', 0);
   if (def.doors && def.doors.length < 40) scan(def.doors, 'doors', 0);
   if (def.warps && def.warps.length < 40) (def.warps || []).forEach(function (w, i) { if (w && w.rect) named.push({ src: 'warp', id: w.id || w.to || i, name: w.to || w.name || null, x: w.rect[0], y: w.rect[1] }); else scan(w, 'warps[' + i + ']', 1); });
   if (def.keeper && def.keeper.at) named.push({ src: 'keeper', id: def.keeper.id, name: def.keeper.name, x: def.keeper.at[0], y: def.keeper.at[1] });
