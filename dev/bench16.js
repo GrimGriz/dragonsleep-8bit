@@ -993,6 +993,55 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // KATARINA'S BOOK ON ITS OWN PAGE, 11-16 (mode=book1116; deep16/js/book.js, js/house.js FD.item, js/roam.js R.fieldLeft and R.menuAct, js/situations16.js book16 -- the
   // book-hedge seat, on Griz's "Kat's book screen needs done."): every page of content/text.json kat.book, paged as the first game's book scene, drawn as a book lying open;
   // turned by E, the arrows and the mouse, closed by X and a right-click; opened by the pack's READ on THE WORLD and on a floor with no card after; his door ?at=book16
+  // THE EYES ROWS WALKED, 11-16 night (mode=eyeswalk1116; deep16/js/eyeswalk.js, js/tour.js T.walk / T.walked / T.mountRow -- the lanes desk, on Griz: "2 - card takes you to
+  // place, you complete all the arrows, 50 xp and next card", "50 xp per card completed, for people who interface through sylvia's booth"): 0 the file; 1 a row's steps on
+  // her bar, the arrow over the first not seen on this floor; 2 a member beside the other step: seen, nothing paid; 3 every step seen: 50 XP to each one standing, once, her
+  // card up; 4 E: the note "(walked every step, no note)" and on to her table; 5 &tourrow='s mount: that row's card
+  if (get('mode', '') === 'eyeswalk1116') {
+    var repEW = { checks: [], errors: [] }, memEW = {}, stGEW = D.store.get, stSEW = D.store.set, TEW = window.DS.TOUR, lsEW = {}, navEW = TEW && TEW.nav, dlEW = TEW && TEW.navDelay;
+    function okEW(what, v) { repEW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memEW[k] ? JSON.parse(memEW[k]) : null; }; D.store.set = function (k, v) { memEW[k] = JSON.stringify(v); return true; };
+    ['dsl-eyeswalk:v1', 'dsl-situations-feedback:v1'].forEach(function (k) { try { lsEW[k] = window.localStorage.getItem(k); window.localStorage.removeItem(k); } catch (eL) { /* (no store) */ } });
+    var IDEW = 'eyes-bench-walk-1116';
+    try {
+      var EWb = D.eyeswalk; okEW('0 deep16/js/eyeswalk.js loaded: ' + !!EWb, !!EWb);
+      if (EWb) {
+        var BE = D.roam.make('?roam=galleries_g3'); D.scenes.length = 0; D.push(BE); var sE = D.top(); if (sE && sE.baking) { sE.baking = false; sE.enter(); } BE = D.top(); D.battle = BE;
+        for (var kE = 0; kE < 6 && BE.co; kE++) BE.co.next();
+        var keyE = D.roam.def.key, memE = BE.roam.members.filter(function (u) { return u.x != null; }), XE = memE[0].x, YE = memE[0].y;
+        window.DS.EYES[IDEW] = { pri: 2, title: 'bench', obj: 'bench', url: 'deep16/?roam=galleries_g3', look: '', pt: '', steps: [[keyE, XE + 6, YE, 'the far one'], [keyE, XE, YE, 'the near one']] };
+        TEW.mount(0, { deck: { ids: [IDEW], no: 1, shown: [] } }); TEW.bar.up = false;
+        var cvE = document.createElement('canvas'); cvE.width = D.W; cvE.height = D.H; var cxE = cvE.getContext('2d');
+        function paintE(x, y) { memE.forEach(function (u) { u.x = x; u.y = y; }); BE.roam.mode = 'walk'; BE.menu = null; D.counter.paintPin(cxE, BE); }
+        var xpOf = function () { return D.counter.state(BE).party.map(function (h) { return h.xp || 0; }); };
+        paintE(XE + 20, YE);
+        var w1 = TEW.walk(IDEW);
+        okEW('1 on the floor (' + keyE + '), the party away: nothing seen (' + JSON.stringify(w1.done) + '), the arrow over ' + JSON.stringify(EWb.marked) + ' (want the far one, ' + (XE + 6) + ',' + YE + ')',
+          !w1.done.length && !!EWb.marked && EWb.marked[0] === XE + 6 && EWb.marked[1] === YE);
+        var xp0 = xpOf(); paintE(XE, YE + 1);
+        var w2 = TEW.walk(IDEW), xp2 = xpOf();
+        okEW('2 beside the near one: seen ' + JSON.stringify(w2.done) + ', XP ' + xp0.join(',') + ' -> ' + xp2.join(',') + ' (want [1], nothing paid), the arrow still on the far one ' + JSON.stringify(EWb.marked),
+          w2.done.join() === '1' && !w2.xp && xp2.join() === xp0.join() && !!EWb.marked && EWb.marked[0] === XE + 6);
+        paintE(XE + 6, YE); var w3 = TEW.walk(IDEW), xp3 = xpOf(); paintE(XE + 6, YE); var xp3b = xpOf();
+        okEW('3 on the far one: every step seen ' + JSON.stringify(w3.done) + ', paid ' + !!w3.xp + ', XP ' + xp0.join(',') + ' -> ' + xp3.join(',') + ' (once: ' + xp3b.join(',') + '), her card up ' + TEW.bar.up + ', walked ' + !!TEW.bar.walked,
+          w3.done.length === 2 && !!w3.xp && xp3.every(function (v, i) { return v === xp0[i] + 50; }) && xp3b.join() === xp3.join() && TEW.bar.up && !!TEW.bar.walked);
+        var wentE = null; TEW.navDelay = 0; TEW.nav = function (h) { wentE = h; };
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true }));
+        var fE = TEW.fb()[IDEW] || {};
+        okEW('4 E: the note "' + fE.note + '", on to ' + wentE + ' (want "' + TEW.WALKED + '" and her table)', fE.note === TEW.WALKED && /\?cards$/.test(String(wentE || '')));
+        TEW.unmount(); TEW.mountRow(IDEW); var r5 = TEW.bar && TEW.bar.row();
+        okEW('5 &tourrow\'s mount: the bar on ' + (r5 && r5.id), !!r5 && r5.id === IDEW);
+      }
+    } catch (eEW) { repEW.errors.push(String(eEW && eEW.stack || eEW).slice(0, 900)); }
+    try { if (TEW) { TEW.unmount(); TEW.nav = navEW; TEW.navDelay = dlEW; } } catch (eU) { /* (no bar) */ }
+    delete window.DS.EYES[IDEW];
+    Object.keys(lsEW).forEach(function (k) { try { if (lsEW[k] == null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, lsEW[k]); } catch (eL) { /* (no store) */ } });
+    D.store.get = stGEW; D.store.set = stSEW;
+    if (errs.length) repEW.errors = repEW.errors.concat(errs.slice(0, 5));
+    var preEW = document.createElement('pre'); preEW.id = 'out'; preEW.textContent = 'BENCH16 ' + JSON.stringify(repEW);
+    document.body.appendChild(preEW);
+    return;
+  }
   if (get('mode', '') === 'book1116') {
     var repB = { checks: [], errors: [] }, memB = {}, stGB = D.store.get, stSB = D.store.set, HB = D.house, IB = D.input, BKB = D.book, dtB = D.text, dsTB = window.DS.text;
     function okB(what, v) { repB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

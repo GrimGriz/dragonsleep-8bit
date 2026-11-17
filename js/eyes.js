@@ -22,6 +22,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE LANES DESK, 11-16 night (Opus; deep16/js/eyeswalk.js; js/tour.js T.walk, T.walked, T.mountRow; dev/bench16.js mode=eyeswalk1116): Sylvia's cards walked -- the steps' arrows, 50 XP a card, E the next card
+    'eyes-eyeswalk-1116': { pri: 1, group: G2, title: 'SYLVIA\'S CARDS WALKED: a card\'s steps as blue eye-arrows on its floor, each seen as you reach it, 50 XP to each one standing when all are seen, E the next card (11-16)', pt: 'eyes on the screen, 2026-11-16 evening (the lanes desk; deep16/js/eyeswalk.js)',
+      obj: 'Follow the blue eye-arrows to Merrick\'s door and inside to him — does each step tick, 50 XP pay, E move on?',
+      url: 'deep16/?at=merrick16&tourrow=eyes-merrick-window-1116',
+      steps: [['silverton', 62, 17, 'the lantern house door'], ['room', 5, 2, 'Merrick behind his grille']],
+      look: 'Your "2 - card takes you to place, you complete all the arrows, 50 xp and next card" and "50 xp per card completed, for people who interface through sylvia\'s booth". This door opens Merrick\'s card on her bar (a deck of one). On the street a blue arrow with an eye -- not the JOURNAL\'s gold pin -- points at the lantern house door; standing beside it ticks it SEEN on a card and on her card\'s WALK AND LOOK line; inside, the next arrow is over Merrick. The last step seen: EVERY STEP SEEN, 50 XP to each one standing (banked for the long rest, once a card), her card comes up and E goes on (it notes "(walked every step, no note)", so the fold cuts the row) -- or answer it as ever. Only rows with steps walk: the four items\' rows and Merrick\'s tonight; every new row carries them since the steps rule.' },
     // THE BOOK-HEDGE SEAT (book-hedge-1116), 11-16 (Opus; deep16/js/tactics.js TX.coverOA, TX.critDown; dev/bench16.js mode=hedge1116): the rogue's cover hedge, a fight watched by its seed
     'eyes-rogue-hedge-1116': { pri: 2, group: G2, title: 'THE ROGUE\'S COVER HEDGE: beside a foe whose crit could drop her, she slips away instead of walking out through its blow (11-16)', pt: 'the AI and the dark, 2026-11-16 evening (the book-hedge seat; deep16/js/tactics.js TX.coverOA, TX.critDown, TX.worstRound, rogueCoverTurn; bench hedge1116) · eyes',
       obj: 'Watch the rogue against the bugbear — in round 4, hurt, does she slip away rather than take its swing walking out?',

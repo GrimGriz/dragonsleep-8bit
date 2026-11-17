@@ -113,6 +113,14 @@
   T.mark = function (id, v) { var FB = T.fb(), f = FB[id] = FB[id] || {}; f.v = v || ''; if (v && String(f.note || '').trim() === T.PASS) f.note = ''; stamp(f); T.fbPut(FB); return f; }; // (a verdict after a pass: he looked after all)
   T.note = function (id, text) { var FB = T.fb(), f = FB[id] = FB[id] || {}; f.note = String(text || '').trim(); stamp(f); T.fbPut(FB); return f; };
   T.pass = function (id) { var FB = T.fb(), f = FB[id] = FB[id] || {}; f.note = T.PASS; stamp(f); T.fbPut(FB); return f; };
+  // ------------------------------------------------------------------ the walk (11-16 night, the lanes desk: Griz, "2 - card takes you to place, you complete all the arrows,
+  // 50 xp and next card"): a row's `steps` seen on the floor (deep16/js/eyeswalk.js), kept per browser as the deck is: { <row id>: { done: [step indexes], xp: true once paid } }
+  var WKEY = 'dsl-eyeswalk:v1';
+  T.WALKED = '(walked every step, no note)'; // (E after every step seen: a note, so the deck goes on and the fold cuts the row -- his 11-13 "I walked past that with no note")
+  T.walkAll = function () { try { return JSON.parse(get(WKEY) || '{}') || {}; } catch (e) { return {}; } };
+  T.walk = function (id) { var w = T.walkAll()[id] || {}; w.done = w.done || []; return w; };
+  T.walkPut = function (id, w) { var a = T.walkAll(); a[id] = w; put(WKEY, JSON.stringify(a)); if (T.bar && T.bar.el) draw(T.bar); };
+  T.walked = function () { var B = T.bar; if (!B) return; B.walked = true; if (B.el) raise(B); }; // (every step seen: her card up, E the next card)
   // ------------------------------------------------------------------ the doors
   T.cardHref = function (row, k) { var u = String(row && row.url || ''); return T.root + u + (u.indexOf('?') >= 0 ? '&' : '?') + 'tour=' + (k + 1); };
   T.tableHref = function () { return T.root + 'deep16/?cards'; };
@@ -230,6 +238,11 @@
     // the obj leads, the title under it small, the builders' note shut till a click or B (11-15); a row with no obj: its title, its note open, as before
     var obj = String(r.obj || '').trim(), open = obj ? !!B.noteOpen : true;
     var note = '<p class="look">' + esc(r.look || '') + '</p><p class="pt">' + esc(r.pt || '') + '</p>';
+    // the walk: each step ticked as it is seen, the floor named where it is another's; every step seen, the 50 XP said and E the next card (deep16/js/eyeswalk.js)
+    var steps = Array.isArray(r.steps) && r.steps.length ? r.steps : null, wk = steps ? T.walk(here.id) : null;
+    if (wk && wk.xp) B.walked = true;
+    if (steps) now += (now ? '</p><p class="now">' : '') + '<b>WALK AND LOOK</b> ' + wk.done.length + '/' + steps.length + ': ' + steps.map(function (s, i) { return (wk.done.indexOf(i) >= 0 ? '&#10003; ' : '&#9675; ') + esc(s[3]) + ' <span class="pl">(' + esc(s[0]) + ' ' + s[1] + ',' + s[2] + ')</span>'; }).join(' &middot; ') +
+      (B.walked ? '</p><p class="now"><b>Every step seen: 50 XP to each one standing.</b> <kbd>E</kbd> the next card, or answer as ever.' : '');
     B.card.innerHTML = '<p class="her">' + esc((T.LINES.card[B.k] || ('Card ' + (B.k + 1) + '.')) + ' ' + cap(p.name) + '.') + '</p><h2>' + esc(obj || r.title) + '</h2>' +
       (obj ? '<p class="ttl">' + esc(r.title) + '</p><button class="bn" data-k="bnote" title="B: the builders\' note, open or shut">' + (open ? '&#9662;' : '&#9656;') + ' the builders\' note</button>' + (open ? '<div class="bnote">' + note + '</div>' : '') : note) +
       (now ? '<p class="now">' + now + '</p>' : '') +
@@ -260,7 +273,7 @@
   // an answer: a beat in the bar, then on to the next card face down, or her table
   function answered(B, what) {
     var FB = T.fb(), here = B.row(), f = FB[here.id] || {}, nx = T.nextCard(B.d, B.k, FB);
-    B.el.querySelector('.t').innerHTML = '<b>' + esc(what === 'pass' ? 'passed' : f.v ? vName(f.v) : 'noted') + '</b> &middot; ' + (nx < 0 ? 'to her table' : 'on to the ' + ORD[Math.min(nx, 5)] + ' card');
+    B.el.querySelector('.t').innerHTML = '<b>' + esc(what === 'pass' ? 'passed' : what === 'walked' ? 'walked' : f.v ? vName(f.v) : 'noted') + '</b> &middot; ' + (nx < 0 ? 'to her table' : 'on to the ' + ORD[Math.min(nx, 5)] + ' card');
     B.card.className = 'down'; B.leaving = true; // (no second answer in the beat before the door changes)
     go(T.onFrom(B.d, B.k));
   }
@@ -271,6 +284,7 @@
     if (k === 'broken' || k === 'unclear') { T.mark(here.id, k); B.up = true; B.noting = { then: true }; draw(B); return; } // (what broke, in his words, then and there)
     if (k === 'note') { B.up = true; B.noting = { then: false }; draw(B); return; }
     if (k === 'pass') { T.pass(here.id); answered(B, 'pass'); return; }
+    if (k === 'walked') { if (!B.walked) return; T.note(here.id, T.WALKED); answered(B, 'walked'); return; } // (every step seen: the next card -- deep16/js/eyeswalk.js)
     if (k === 'bnote') { if (String(here.r.obj || '').trim()) { B.noteOpen = !B.noteOpen; draw(B); } return; } // (the builders' note, open or shut: 11-15)
     if (k === 'card') { if (B.up) lower(B); else raise(B); return; }
     if (k === 'table') { go(T.tableHref()); return; }
@@ -292,7 +306,7 @@
     if (B.leaving) { e.stopImmediatePropagation(); e.preventDefault(); return; } // (answered: the next door is opening)
     if (!B.up) { if (e.code === 'KeyH') { e.preventDefault(); e.stopImmediatePropagation(); raise(B); } return; } // (the card down: every key the game's but H)
     e.stopImmediatePropagation(); // (the card up: the game hears none of it -- immediate, as the game listens on window too: deep16/js/core.js)
-    var k = KEYS[e.code]; if (!k) return;
+    var k = B.walked && e.code === 'KeyE' ? 'walked' : KEYS[e.code]; if (!k) return; // (every step seen: E the next card)
     e.preventDefault(); if (e.repeat) return;
     if (!B.row() || !B.row().r) { if (k === 'card') lower(B); return; }
     act(B, k);
@@ -300,4 +314,8 @@
   // on any page whose address carries &tour=<card>: the bar, once the page is there
   var tq = /[?&]tour=(\d+)/.exec(window.location.search || '');
   if (tq) { var k0 = Math.max(0, +tq[1] - 1); if (window.D16) window.D16.barH = 40; if (document.body) T.mount(k0); else document.addEventListener('DOMContentLoaded', function () { T.mount(k0); }); }
+  // &tourrow=<row id>: that one row's card on her bar, a deck of one (an eyes row's own door to its card -- 11-16 night, the walk's row; answered, on to her table)
+  T.mountRow = function (id) { return T.mount(0, { deck: { ids: [id], no: 0, shown: [] } }); };
+  var trq = !tq && /[?&]tourrow=([a-z0-9-]+)/.exec(window.location.search || '');
+  if (trq) { if (window.D16) window.D16.barH = 40; if (document.body) T.mountRow(trq[1]); else document.addEventListener('DOMContentLoaded', function () { T.mountRow(trq[1]); }); }
 })();
