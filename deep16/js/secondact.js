@@ -1014,7 +1014,8 @@
     if (D.fx) D.fx.sparkle(Y.chuul, 'blue', 30); D.sfx('splash'); yield 40;
     f.chuulSeen = 1;
     yield* In.card(B, [L(ring ? 'lake.rises' : 'lake.risesNoRing')].concat(ring ? [L('lake.senseMagic')] : []), 420);
-    if ((yield* A.meet(B, Y, ring)) === 'lost') return;
+    var o = yield* A.meet(B, Y, ring); if (o === 'lost') return;
+    if (f.lakeDone) f.lakeMorn = In.day(D.roam.q); // (THE ROWBOAT AND THE OTHER DOORS, 11-18: the lake's own morning after a kill by day, as every night's kill wakes to it -- js/inn.js In.lakeMornLine)
     A.clear(B, Y);
   };
   // ---------------------------------------------------------------- BEAT 5: the ends -- the flags set, the morning reads them (In.actMorning); back to bed

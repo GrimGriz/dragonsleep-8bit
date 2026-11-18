@@ -14650,6 +14650,95 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preD1);
     return;
   }
+  // THE ROWBOAT AND THE CHUUL'S OTHER DOORS (mode=rowboat1118; the clock-road seat, the Halfway Inn and the lake lane -- his 11-16 "no, but don't let me start drain the stairs
+  // until the rowboat is addressed", and 11-18: "the addressing is making sure the party doing the rowboat resolution plays nicely with all the other methods the chuul fight
+  // starts and the way those impact the NPC dialog, the stair drain untouched til that finishes"): every way the fight starts -- the rowboat by day (js/secondact.js A.sound),
+  // the ring warm after a paid due (A.ringWarm), the rise at the shore with the ring or without it (A.rise) -- to every end -- won, got clear, and the rowboat LEFT -- the fight's
+  // outcome pinned (A.lakeFight stubbed: the fight itself is innfights1106's and winters1105's), then the flags, the lake's later nights and every word after it
+  if (get('mode', '') === 'rowboat1118') {
+    var repRB = { checks: [], errors: [], notes: [] }, memRB = {}, stGRB = D.store.get, stSRB = D.store.set, HRB = D.house, CRB = D.counter, RRB = D.roam, InRB = D.inn, ARB = D.secondact, TRB = D.town, muRB = D.music, lf0RB = ARB.lakeFight;
+    function okRB(what, v) { repRB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topRB() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function stripRB(s) { return window.DS.stripCodes ? window.DS.stripCodes(String(s || '')) : String(s || ''); }
+    function stageRB(hour, day, flags, ring, inside) { var fl = Object.keys(flags || {}).filter(function (k) { return flags[k] === 1 || flags[k] === true; }); var B = RRB.make('?roam=halfway&hour=' + hour + '&day=' + day + (inside ? '&inside' : '&at=40,18') + '&watch' + (fl.length ? '&flags=' + fl.join(',') : '')); Object.assign(RRB.flags0, JSON.parse(JSON.stringify(flags || {}))); D.scenes.length = 0; D.push(B); topRB(); B = D.top(); D.battle = B; var co = B.co; for (var k = 0; k < 3; k++) co.next(); if (ring) { var ld = B.roam.members[0]; ld.src.equip = ld.src.equip || {}; ld.src.equip.ring = 'ringwaterwalking'; } return B; }
+    function atRB(B, x, y) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    // a generator run to its end: prompts and counter screens answered by label (none left: the last), every card and say kept
+    function runRB(B, g, ans) {
+      var seen = [], q = (ans || []).slice(), v, c0 = B.card, pick = function (ls) { var a = q.length ? q[0] : null, i = a instanceof RegExp ? ls.findIndex(function (l) { return a.test(l); }) : typeof a === 'string' ? ls.indexOf(a) : -1; if (i >= 0) q.shift(); return i >= 0 ? i : ls.length - 1; };
+      B.card = function (ls) { seen.push('CARD ' + [].concat(ls).join(' ')); return c0.apply(this, arguments); };
+      try {
+        for (var k = 0; k < 20000; k++) {
+          var s = D.top();
+          if (s instanceof CRB.Counter) { var w = s.wait || {}, bs = s.buttons(); if (w.ask) { var ol = w.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }), i0 = pick(ol); seen.push('ASK ' + [].concat(w.ask).join(' ') + ' [' + ol.join(' | ') + '] > ' + ol[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen.push('SAY ' + [].concat(w.say).join(' ')); s.press(bs[0]); } else if (w.flip) { s.press(bs[bs.length - 1]); } else s.press(bs[0]); if (s.done && D.top() === s) D.pop(); continue; }
+          if (s instanceof HRB.Morning) { var ls = []; for (var k2 = 0; k2 < 24 && !s.over; k2++) { if (s.phase === 'night') s.next(); else if (s.phase === 'dawn') { ls = s.dawnLines(); s.next(); } else if (s.phase === 'picks') { (s.due || []).forEach(window.DS.R.autoPicks); if (s.pm) s.pm.close(); s.update(); } else s.cancel(); } seen.push('MORNING ' + ls.join(' ')); continue; }
+          if (s && s.kind === 'housewatches') { s.go('begin'); continue; }
+          if (s !== B) { D.pop(); continue; }
+          var st = g.next(v); v = undefined; if (st.done) break;
+          if (typeof st.value === 'number') { B.t += Math.max(1, st.value); continue; }
+          if (st.value && st.value.prompt) { var p = st.value.prompt, pl = p.opts.map(function (o) { return o.label; }), pi = pick(pl); seen.push('PROMPT ' + (p.title || '') + ': ' + (p.lines || []).join(' ') + ' [' + pl.join(' | ') + '] > ' + pl[pi]); v = p.opts[pi].value; }
+        }
+      } finally { B.card = c0; }
+      return stripRB(seen.join(' / '));
+    }
+    // the words after: each of the inn's people present at that hour, E on them, every line said
+    function wordsRB(B) { var out = {}; B.units.filter(function (u) { return typeof u.npc === 'string' && u.hp > 0; }).forEach(function (u) { var tr = (RRB.def.src8.triggers || []).filter(function (t) { return t.id === 'talk:' + u.npc; })[0]; if (!tr) return; out[u.npc] = runRB(B, TRB.fire(B, tr), []).slice(0, 700); while (D.top() !== B && D.scenes.length > 1) D.pop(); }); return out; }
+    var KEEP = ['lakeDone', 'chuulSeen', 'duePaid', 'dueSeen', 'secondActDone', 'ringWarmNight', 'lakeGiftGot', 'gennetTaken', 'gennetDead', 'doranAway', 'elsbethTier'];
+    function flagsRB(f) { var o = {}; KEEP.forEach(function (k) { if (f[k] != null) o[k] = f[k]; }); return o; }
+    var BASE = { reachedInn: 1, gennetNamed: 1, mealHad: 1, innRegard: 2, wintersMet: 1, elsbethTold: 1 }, DUE = InRB.dueDay(0);
+    D.store.get = function (k) { return memRB[k] ? JSON.parse(memRB[k]) : null; }; D.store.set = function (k, v) { memRB[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    var SC = [];
+    try {
+      D.seed = +get('seed', 1118);
+      // the starts, each to each end the fight can have
+      var starts = [
+        { id: 'boat', day: 8, hour: 14, at: [45, 21], ring: false, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
+        { id: 'boatring', day: 8, hour: 14, at: [45, 21], ring: true, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
+        { id: 'warm', day: DUE + 1, hour: 1, at: [40, 18], ring: true, flags: { duePaid: 1, dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.ringWarm(B, {}, false), [ARB.LINES.opts.down]); } },
+        { id: 'rise', day: DUE + 1, hour: 1, at: [ARB.STONE[0] - 2, ARB.STONE[1]], ring: false, flags: { dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.rise(B, {}, null), []); } },
+        { id: 'risering', day: DUE + 1, hour: 1, at: [ARB.STONE[0] - 2, ARB.STONE[1]], ring: true, flags: { dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.rise(B, {}, null), []); } }
+      ];
+      ['won', 'escaped'].forEach(function (end) {
+        starts.forEach(function (s0) {
+          ARB.lakeFight = function* () { yield 1; return end; };
+          var B = stageRB(s0.hour, s0.day, Object.assign({}, BASE, s0.flags || {}), s0.ring); atRB(B, s0.at[0], s0.at[1]);
+          var said = s0.go(B), f = JSON.parse(JSON.stringify(B.roam.flags)), dA = s0.day + 1; var stQ = CRB.state(B), qs = CRB.quests(stQ).filter(function (q) { return q.id === 'ring' || q.id === 'lake'; }).map(function (q) { return q.id + (q.done ? ' DONE: ' + q.text : ': ' + (q.step ? q.step.where : '-')); });
+          ARB.lakeFight = lf0RB;
+          var morn = ARB.morning(f), dawn = stageRB(9, dA, f, s0.ring), wDay = wordsRB(dawn), dIn = stageRB(10, dA, f, s0.ring, true), wIn = wordsRB(dIn), eve = stageRB(18, dA, f, s0.ring, true), wEve = wordsRB(eve);
+          SC.push({ id: s0.id + ':' + end, said: said.slice(0, 900), flags: flagsRB(f), morning: morn, elsQuiet: InRB.elsbethQuiet(f, dA), dueOn: InRB.dueTonightOn(f, DUE), barnOn: InRB.barnGoblinOn(f, DUE - 1), quests: qs, day: wDay, dayIn: wIn, eve: wEve });
+        });
+      });
+      // the rowboat left: nothing woken, nothing set
+      var BL = stageRB(14, 8, BASE, false); atRB(BL, 45, 21); var sL = runRB(BL, ARB.sound(BL), ['LEAVE IT']); SC.push({ id: 'boat:left', said: sL, flags: flagsRB(BL.roam.flags) });
+      repRB.notes = SC;
+      var by = {}, wins = ['boat', 'boatring', 'warm', 'rise', 'risering']; SC.forEach(function (x) { by[x.id] = x; });
+      var E = function (x, k, who) { return ((x[k] || {})[who] || ''); };
+      // 1. THE FLAGS each end leaves: won -- the lake done, seen, its gift once; got clear -- seen, the lake alive; LEFT -- nothing
+      okRB('the flags: ' + SC.map(function (x) { return x.id + ' ' + JSON.stringify(x.flags); }).join('; '),
+        wins.every(function (w) { var a = by[w + ':won'].flags, b = by[w + ':escaped'].flags; return a.lakeDone === 1 && a.chuulSeen === 1 && a.lakeGiftGot === 1 && !b.lakeDone && b.chuulSeen === 1 && !b.lakeGiftGot; }) && !by['boat:left'].flags.lakeDone && !by['boat:left'].flags.chuulSeen && !/INITIATIVE|heaves/.test(by['boat:left'].said));
+      // 2. WON, BY EVERY DOOR, THE SAME HOUSE AFTER: Gennet grieving at the table, Elsbeth's back at the tub, Doran's mug, his yard line the lake's (not "Nobody draws from the lake"),
+      // her count of the nights only that the lake is quiet, no due, no goblin in the barn, the morning the lake's own
+      var wonSame = function (who, k) { var v = wins.map(function (w) { return E(by[w + ':won'], k, who); }); return v.every(function (t) { return !!t && t === v[0]; }) ? v[0] : 'DIFFER: ' + v.join(' || '); };
+      var gG = wonSame('gennetGrief', 'dayIn'), eA = wonSame('elsbeth', 'dayIn'), dI = wonSame('doranIn', 'eve'), dY = wonSame('doranYard', 'day');
+      okRB('won by every door: Gennet "' + gG.slice(0, 90) + '"; Elsbeth "' + eA.slice(0, 70) + '"; Doran in "' + dI.slice(0, 60) + '"; Doran in the yard "' + dY.slice(-70) + '"; the nights "' + by['boat:won'].elsQuiet + '"; the due, the barn ' + wins.map(function (w) { return by[w + ':won'].dueOn + '/' + by[w + ':won'].barnOn; }).join(',') + '; the morning ' + wins.map(function (w) { return by[w + ':won'].morning === ARB.LINES.mornLake; }).join(','),
+        /It gave back/.test(gG) && /She says nothing/.test(eA) && !/DIFFER/.test(dI) && /only water now/.test(dY) && !/Nobody draws from the lake/.test(dY) && /The lake is quiet\.$/.test(by['boat:won'].elsQuiet) &&
+        wins.every(function (w) { var x = by[w + ':won']; return x.dueOn === false && x.barnOn === false && x.morning === ARB.LINES.mornLake && !E(x, 'dayIn', 'gennet') && !E(x, 'day', 'gennet'); }));
+      // 3. GOT CLEAR OF IT BY DAY: the thing alive -- Gennet's own words, the due still to walk, the barn's goblin, Elsbeth's third tier for having seen it (the god an animal),
+      // her count of the nights to the due; Doran's yard line as ever
+      var bE = by['boat:escaped'];
+      okRB('got clear of it by day: Gennet "' + E(bE, 'day', 'gennet').slice(0, 80) + '"; Elsbeth "' + E(bE, 'dayIn', 'elsbeth').slice(0, 110) + '"; the due ' + bE.dueOn + ', the barn ' + bE.barnOn + '; Doran in the yard "' + E(bE, 'day', 'doranYard').slice(-50) + '"',
+        /It always gives back/.test(E(bE, 'day', 'gennet')) && /The god is an animal/.test(E(bE, 'dayIn', 'elsbeth')) && /six nights off/.test(E(bE, 'dayIn', 'elsbeth')) && bE.dueOn === true && bE.barnOn === true && /Nobody draws from the lake/.test(E(bE, 'day', 'doranYard')) && !E(bE, 'dayIn', 'gennetGrief'));
+      // 4. THE ROWBOAT'S MORNING: the first sleep at the inn after a kill by day wakes to the lake's own morning, as the nights' kills do; a day later, the inn's ordinary morning
+      var mornRB = function (dSleep) { var fl = Object.assign({}, BASE, { lakeDone: 1, chuulSeen: 1, lakeGiftGot: 1 }), B = stageRB(21, dSleep, fl, false, true); B.roam.flags.lakeMorn = 8; var o = runRB(B, InRB.sleep(B), []); return { o: o, left: B.roam.flags.lakeMorn }; };
+      var m8 = mornRB(8), m9 = mornRB(9), m11 = mornRB(11);
+      okRB('the rowboat\'s morning: that night "' + (m8.o.match(/Morning\. Up at the inn[^/]*/) || ['none'])[0].slice(0, 80) + '..." (kept ' + m8.left + '), the night after ' + /Doran walks down to the water/.test(m9.o) + ', three nights on ' + /Doran walks down to the water/.test(m11.o) + ' (' + (m11.o.match(/Morning on Halfway Lake[^/]*/) || ['?'])[0].slice(0, 40) + ')',
+        /Doran walks down to the water with a bucket/.test(m8.o) && m8.left == null && /Doran walks down to the water/.test(m9.o) && !/Doran walks down to the water/.test(m11.o) && /Morning on Halfway Lake/.test(m11.o));
+    } catch (eRB) { repRB.errors.push(String(eRB && eRB.stack || eRB).slice(0, 900)); }
+    ARB.lakeFight = lf0RB; D.store.get = stGRB; D.store.set = stSRB; D.music = muRB; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preRB = document.createElement('pre'); preRB.id = 'out'; preRB.textContent = 'BENCH16 ' + JSON.stringify(repRB);
+    document.body.appendChild(preRB);
+    return;
+  }
   // THE BANDS' ARRIVAL TIMES (mode=arrive1118; the clock-road seat, the clock lane's 11-16 ruling, Griz: "bands should have an arrival time and arrive while the player
   // is there"): js/survivors.js SV.arriveDue / SV.arrivePlay on js/hours.js H16.BEATS. A band whose hour falls while the party is on the inn's or Silverton's floors comes in
   // at the first free moment, once; one in before the party came, or while it was out on THE WORLD, does not; its talk's lines say it has come (SV.ARRIVED)

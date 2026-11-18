@@ -1166,12 +1166,18 @@
   In.ROOM = { road: { at: [2, 2], face: [0, 1] }, big: { at: [13, 2], face: [-1, 0] } };
   In.roomOf = function (f) { return f && f.bigRoom ? 'big' : 'road'; };
   In.sleepsHere = function () { return In.bedHere != null ? !!In.bedHere : !!(In.stay || D.benchPage); }; // (D.benchPage: dev/bench16.js's own page)
+  // THE LAKE'S MORNING AFTER THE ROWBOAT (11-18, the clock-road seat, on his "the addressing is making sure the party doing the rowboat resolution plays nicely with all the
+  // other methods the chuul fight starts and the way those impact the NPC dialog"): a kill on the night of the due, the ring warm or the rise, wakes to the lake's own
+  // morning (js/secondact.js A.morning: the lantern left on its hook, Doran drinking from the lake); the rowboat by day woke to the inn's ordinary morning. Now the first
+  // sleep at the inn after a kill by day, that night or the next, wakes to it too (f.lakeMorn, the kill's day: A.sound); later, the ordinary morning
+  In.lakeMornLine = function (f) { var A = D.secondact; if (!f || f.lakeMorn == null || !A) return null; var ok = In.day(D.roam.q) <= f.lakeMorn + 1; delete f.lakeMorn; return ok ? A.morning(f) : null; };
   In.sleep = function* (B, line) {
     if (B.roam.flags.invest && In.investOf(B)) return yield* In.investGo(B, 'to a bed'); // (INVESTIGATE's wait, and a bed taken instead: the night as watched -- its own morning and sleep, In.wagonRest)
     var stay = B.roam.stay, hours = null, wk = null; B.roam.stay = null;
     // (Doran's wait is the clock's, till dawn, not ended by a sleep as such: RULED 11-13 -- js/secondact.js THE BED WITH DORAN WAITING)
     if (stay) { hours = Math.max(1, stay.t0 + stay.hours - In.clock(B)); wk = M.wakeAt ? M.wakeAt((In.hourOf(B) + hours) % 24) : null; }
-    var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
+    var lakeM = !line && !(wk && wk.title === 'NIGHT') ? In.lakeMornLine(B.roam.flags) : null; // (the lake's morning after a kill by day: In.lakeMornLine)
+    var o = { line: line || (wk && wk.title === 'NIGHT' ? In.LINES.night : lakeM || In.LINES.morning), hours: hours, noLong: !!(stay && stay.long === false), title: wk ? wk.title : null, music: 'inn' }; // (noLong: A NIGHT'S SLEEP inside the 24 hours, 11-05)
     var def = D.roam.def, rm = In.ROOM[In.roomOf(B.roam.flags)];
     if (def && def.key === In.KEY && !In.sleepsHere()) { In.bedding = { o: o, room: In.roomOf(B.roam.flags) }; In.trail('to bed upstairs: the ' + (In.bedding.room === 'big' ? 'big room' : 'road-end room')); yield* M.go(B, In.UP, rm.at, rm.face); return 'up'; }
     o.before = function () { M.lightNow(B); };
@@ -1332,6 +1338,7 @@
     left: function (f, d) { f = f || {}; d = d == null ? In.day(D.roam.q) : d; return In.nightsToDue(f, d); }, // (THE NEARER NIGHT, RULED 11-13, Griz on eyes-child-in-tow-1112, 0327Z: "the 30 nights is too weird, use the closer night if it hasn't happened yet" -- the nights to the nearest due not yet walked, whatever f.childDue a save carries; it supersedes ruling 59's lean (a), the count to the due a month on)
     nights: function (f, d) { var n = In.CHILD.left(f, d); return n === 0 ? 'tonight' : n === 1 ? 'tomorrow night' : 'in ' + (In.WORDS[n] || n) + ' nights'; },
     days: function (f, d) { return In.CHILD.nights(f, d); }, // (RULED 11-12, Griz: "time til due in days or nights as needed, night preferred" -- Elsbeth counts nights too)
+    doranIdleLake: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"Draw from the lake if you like. It\'s only water now."'], // (the lake dead, by any door: the clock-road seat's draft, 11-18 -- invented.json doran-lake-water-1118)
     doranIdle: ['A big man gone quiet in the middle. He runs the yard. He sets the axe head down on the block.', '"The well\'s for drinking. Nobody draws from the lake."'], // (the realm's words for him, content/npcs.json doranYard, the second half now said by him)
     doranGirl: function (f, d) { return ['Doran lets the axe hang, and looks at the child before he looks at the party.', '"The girl will be safest at the Pit. Take her down. Come back ' + In.CHILD.nights(f, d) + '."']; }, // (HIS: "the girl will be safest at the pit, come back in x nights")
     elsbeth: ['Elsbeth looks at the child, and then at the yard door.', '"Take her to the Pit. Not Silverton. Silverton\'s where the wagon was going."'], // (ruling 40, her yard line said again at the tub)
@@ -1348,7 +1355,7 @@
   In.childTaken = function (f, d) { f.childDue = d + In.nightsToDue(f, d); return f.childDue; }; // (11-13: the nearer due, not the one a month on -- his "use the closer night if it hasn't happened yet")
   In.noStay = function (f, d) { return !!f.childGuest && !In.dueTonightOn(f, d); };
   In.childLate = function (f, d) { return !!f.childGuest && f.childDue != null && d > f.childDue; }; // (the due's night she was to be back for has passed; nothing reads it: what lateness costs is his to rule)
-  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childDead && !f.childDeadSaid) { f.childDeadSaid = 1; yield sc.say(In.ROAD.doranDead, 'axelow'); return; } /* (the child killed on the road: once, 11-12) */ if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(In.CHILD.doranIdle); };
+  In.doranYard = function* (sc, B) { var f = sc.st.flags; if (f.childDead && !f.childDeadSaid) { f.childDeadSaid = 1; yield sc.say(In.ROAD.doranDead, 'axelow'); return; } /* (the child killed on the road: once, 11-12) */ if (!f.childGuest && f.childAtPit && !f.doranPitHeard) { f.doranPitHeard = 1; yield sc.say(In.ROAD.doranBack(f), 'axelow'); return; } /* (ruling 59: back from the Pit without her, once) */ if (f.childGuest) { f.doranSent = 1; yield sc.say(In.CHILD.doranGirl(f), 'axelow'); return; } /* (pt_doranaxe's `axelow`: "Doran lets the axe hang") */ yield sc.say(f.lakeDone ? In.CHILD.doranIdleLake : In.CHILD.doranIdle); }; // (the lake dead, by any door: his own morning drinks from it -- js/secondact.js A.LINES.mornLake -- so not "Nobody draws from the lake", 11-18)
   // DORAN BEHIND HIS BAR ON HIS OWN FACE (11-18, his playthrough NOTES on the wagon night: "doran needs a portrait default interaction now that we have it"): a click on him
   // in the common room is his screen and his face (pt_doran, js/counter.js C.SHEETOF.doranIn), as at the woodpile -- the child's lines as there (In.doranYard's), and on the
   // wagon's night, with it in the yard, a word for the hour (the seat's draft, his to re-word: invented.json halfway-doran-bar-1118); else his own words (content/npcs.json)
