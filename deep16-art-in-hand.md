@@ -3927,7 +3927,7 @@ Rows, in each view: Idle (8: standing, wings folded along its back, ears and tai
 ```
 Where: `pegasus_p1`, rows `idle`, `walk`, `fly`, `hooves`, `flinch`, `hurt` (Fall), `prone`. Large. The SRD: Hooves, fly 90 ft; chaotic good, so more likely met than fought -- what it is in the game is his word.
 
-### 4. THE GREEN HAG (fey) -- five views, and her borrowed face -- IN HAND 2026-11-15 (`06de49d6`: `greenhag_p1`, both forms on one sheet)
+### 4. THE GREEN HAG (fey) -- five views, and her borrowed face -- IN HAND 2026-11-15 (`06de49d6`: `greenhag_p1`, both forms on one sheet) -- REDRAWN 2026-11-18 (the art desk's ART-WANTED-70 GREEN-HAG ILLUSTRATED REDRAW, after his *"hag was still code drawn or something is very very wrong"*: `greenhag_p1` re-cut from its own native cut, pixel for pixel, `49876f0d`, by the cutter seat cutter-1118)
 ```text
 Attached: the game's 64 colours.
 
