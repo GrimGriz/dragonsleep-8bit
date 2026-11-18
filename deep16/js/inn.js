@@ -1271,6 +1271,7 @@
     // young woman from upstairs comes down with a bag over her shoulder and climbs up on the bench beside Amara. The wagon turns in the yard and is gone up the road."
     // The seat's drafts, his to re-word: invented.json halfway-kat-stays-1118)
     bribeGone: 'The wagon turns in the yard and is gone up the road.',
+    sleptThrough: 'Morning. A wagon came in after dark and was gone again at first light: fresh ruts in the yard, a team\'s droppings by the trough. The young woman from upstairs went with it. Her room over the kitchen stands open, the bed made. The inn lady hums at the stove.', // (nobody on the second watch, 11-18: the seat's draft, invented.json halfway-slept-through-1118)
     bribeGoneKat: 'The wagon turns in the yard and is gone up the road. The young woman from upstairs is not on it.',
     katRun: '{who} comes across the yard at a run, up to the bench, and says something to Amara, low: a dozen words, no more.',
     katHeard: 'Amara hears her out. She nods once, and does not answer. {who} goes back into the house.',
@@ -1500,6 +1501,50 @@
     yield* In.card(B, [In.WN.katHeard.split('{who}').join(f.katLooked ? 'Katarina' : 'She')], 300);
     yield* In.walk(B, k, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); In.gone(B, k); Y.kat = null;
   };
+  // THE GREETING ON THEIR OWN FACES, CLOSE IN (RULED 11-18, Griz, "Inn questions - 1 lean", on the inn-night seat's lean to his own "or if the party couldn't actually
+  // overhear, zoom out then zoom in and pan and use portraits (player knowledge not character knowledge anyway?)": player knowledge): from the drawn-back view the camera goes
+  // in on the two at the wagon at his own zoom, and the inn lady's and Amara's three lines are said on their own portraits on the open screen over the yard -- the inn lady
+  // top right, Amara top left, as they stand; the caller draws the camera back out after (In.zoomOut) for what the window sees next and the watcher's choice
+  In.greeting = function* (B, Y, f) {
+    var C = D.counter, SO = C && C.SHEETOF, z1 = In.zoom0 != null ? In.zoom0 : D.iso.zoom, a = Y.amara, g = Y.gennet;
+    var mid = a && g ? [(a.x + g.x) / 2, (a.y + g.y) / 2] : [In.WAGONAT[0] + 3, In.WAGONAT[1]];
+    if (B.camTo && D.iso) yield* B.camTo({ gx: mid[0], gy: mid[1], gz: 0 }, z1, 30);
+    In.greeted = { zoom: D.iso.zoom, at: mid }; In.trail('the greeting close in on the wagon (zoom ' + (+D.iso.zoom.toFixed(3)) + '), on their own faces');
+    if (!C || !C.Counter) { yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300); yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300); yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300); return; }
+    var gw = { name: In.named(f), unit: g || null, side: 'right', sheet: SO && SO.gennetYard ? SO.gennetYard({ flags: f }) : null }, aw = { name: 'Amara', unit: a || null, side: 'left', sheet: D.SHEETS && D.SHEETS.pt_amara ? 'pt_amara' : null };
+    if (D.house && D.house.trail) D.house.trail('talk', 'greeting');
+    var sc = new C.Counter(B, { id: 'greeting', name: In.named(f), place: 'The Halfway Inn', what: 'the yard, by the wagon', room: true, open: true, bg: In.roomShot(B), script: function (s) { return (function* () {
+      yield s.by(gw, [L('wagon.greet1')]); yield s.by(aw, [L('wagon.greet2')]); yield s.by(gw, [L('wagon.greet3')]);
+    })(); } });
+    D.push(sc); while (!sc.done) yield 1;
+  };
+  // NOBODY ON THE SECOND WATCH (RULED 11-18, Griz, "2 yes but no warning", on the inn-night seat's lean -- "nobody at the window means nobody sees it -- the module's quiet
+  // night slept through ('A party that slept through it wakes to an ordinary inn, one goblin fewer')", with the picker's warning his "no"): with no one put on the second watch
+  // the window goes unwatched and the night is the room's own sleep (In.sleep) -- the wagon comes and goes in the dark unseen: the handover made, the one handed over a goblin to
+  // the eye in the barn's end stall, the traveler away on its bench at first light (f.katRode, as the quiet night). The morning's line the seat's draft
+  In.sleptThrough = function* (B, d, asg) {
+    var f = B.roam.flags; f.wagonOutcome = 'slept'; f.kidTaken = 1; f.katGone = 1; f.katRode = 1; delete f.katYard; delete f.wagonIn;
+    In.setOffering(f, In.cycle(d), 'goblin');
+    In.trail('the watches: ' + Object.keys(asg || {}).map(function (k) { return k + ' ' + asg[k]; }).join(', ') + ' -- nobody on the second watch: the night slept through, the wagon unseen');
+    return (yield* In.sleep(B, In.WN.sleptThrough)) === 'up' ? 'up' : 'slept';
+  };
+  // DORAN'S DRIVE ON HIS OWN FACE (RULED 11-18, with his "2 yes": the inn-night seat's lean -- "Doran comes out of the front door after the yard fight and says his drive on his
+  // own face (pt_doranaxe), the wagon's VICTORY panel before it"): he comes out of the house to the party, says it on his screen, walks to the wagon's bench and goes up; the
+  // drive itself is said after (content/text.json wagon.doranTakes, RULED 09-24). His words the seat's drafts (invented.json halfway-doran-drive-1118)
+  In.DORAN_DRIVE = ['"Leave them to me. I\'ll take them back down the road myself, tonight, while their own team\'s still in the traces."', '"Newland\'s a long road past the Pit. Best they\'re not in this yard come morning."'];
+  In.doranDrive = function* (B) {
+    var C = D.counter, SO = C && C.SHEETOF, t = B.roam.token, w = In.WAGONAT, bench = [w[0] + 1, w[1] - 1];
+    var dn = In.unit(B, { id: 'doranDrive', kind: 'commoner', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: 'Doran Waterby', face: [-1, 0] }); dn.bystander = true; if (C && C.dress) C.dress(dn, 'doranYard');
+    if (t && B.units.indexOf(t) >= 0) { var q = In.beside(B, dn, t); yield* In.walk(B, dn, q, [t.x - q[0], t.y - q[1]]); }
+    In.trail('Doran comes out to the wagon: his drive on his own face');
+    if (C && C.Counter) {
+      var who = { name: 'Doran Waterby', unit: dn, side: 'right', sheet: SO && SO.doranYard ? SO.doranYard() : null };
+      if (D.house && D.house.trail) D.house.trail('talk', 'doranDrive');
+      var sc = new C.Counter(B, { id: 'doranDrive', name: 'Doran Waterby', place: 'The Halfway Inn', what: 'the yard, by the wagon', room: true, open: true, bg: In.roomShot(B), script: function (s) { return (function* () { yield s.by(who, In.DORAN_DRIVE.slice()); })(); } });
+      D.push(sc); while (!sc.done) yield 1;
+    } else yield* In.card(B, [In.who('Doran', In.DORAN_DRIVE.join(' '))], 420);
+    yield* In.walk(B, dn, bench, [-1, 0]); In.gone(B, dn);
+  };
   // the lead back in front once the house is up (the watcher went first: the wagon night's opening)
   In.leadBack = function (B) { var R0 = B.roam, l0 = R0.lead0; R0.lead0 = null; if (l0 && R0.token !== l0 && R0.members.indexOf(l0) >= 0) In.lead(B, l0); };
   // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
@@ -1668,6 +1713,7 @@
     yield* In.feelingSay(B, ly || lead, ly ? In.WN.feeling : In.WN.feelingLead.split('{name}').join(lead.name));
     var sheets = party.map(function (u) { return { key: keyOf(u), name: u.name, hp: u.hp, maxhp: u.maxhp }; });
     var asg = (yield* In.watches(B, sheets)) || H.watchDefault(sheets);
+    if (!party.some(function (u) { return asg[keyOf(u)] === 2; })) return yield* In.sleptThrough(B, d, asg); // (nobody on the second watch: the window unwatched, the night slept through -- RULED 11-18)
     watcher = party.filter(function (u) { return asg[keyOf(u)] === 2; })[0] || party[0];
     In.trail('the watches: ' + Object.keys(asg).map(function (k) { return k + ' ' + asg[k]; }).join(', ') + '; ' + watcher.name + ' at the window');
     // 2. the lie-down to the second watch: the clock to the watch's middle (the night's own hours, In.REST: eleven after supper), the dark -- and the rest BY THE WATCH (11-05,
@@ -1707,9 +1753,8 @@
     yield* In.card(B, [In.WN.turnsIn.split('{name}').join(watcher.name)], 420);
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: In.named(f), face: [-1, 0], lantern: true });
     yield* In.walk(B, Y.gennet, [w[0] + 5, w[1]], [-1, 0]);
-    yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300);
-    yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300);
-    yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300);
+    yield* In.greeting(B, Y, f); // (close in on the two at the wagon, their words on their faces -- then drawn back again for what the window sees next: RULED 11-18)
+    yield* In.zoomOut(B, [[R0.token.x, R0.token.y, R0.upView ? R0.upView.z : 0], [w[0] - 3, w[1]], [w[0] + 5, w[1] + 1], [In.DOORS.front[0], In.DOORS.front[1]]], 30);
     // (THE WATCHER'S ALONE, RULED 11-13, Griz, asked whether the wagon night's greeting reads should be the watcher's alone: "10 - yes"; and on whose insight speaks on the
     // watch, those awake: "2, 3 - keep" -- the others are asleep in the room: the two reads at the greeting are the watcher's own passive Insight, and the watcher says them)
     if (Y.kat && In.readOf(watcher, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.insightSay(B, In.KL.knew, [watcher]); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
@@ -1923,6 +1968,7 @@
     if (B.logOnly) B.logOnly(['{y}The wagon{/}'].concat(pay));
     In.trail('the wagon\'s reward: ' + pay.join(' / '));
     yield { victory: { title: 'THE WAGON', lines: pay } };
+    yield* In.doranDrive(B); // (out of the house to the party, his drive on his own face, then up on the bench: RULED 11-18 -- it had been this card alone)
     yield* In.card(B, [L('wagon.doranTakes')], 420);
     // KATARINA GOES WITH THE WAGON (11-13, his 0515Z note on eyes-wagon-seethrough-1112: "Kat goes with the wagon as when we return from chase"): with the wagon stopped in
     // the yard she had stayed the night and given her book across the table the next day; now she rides south on the bench beside Doran, as she does when the party
