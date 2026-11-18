@@ -1286,7 +1286,8 @@
     // (11-12: on the ring only while something can pay for it -- Battle.twinPay; his 11-07 "pull twin-strike from the wheel once the bonus action is gone ... when it can't be used
     // pull from the wheel" -- and back when two swings can; its note names the cost)
     var twinC = Battle.twinOK(u), twinP = twinC && Battle.twinPay(u);
-    if (twinP) out.push({ id: 'twinstrike', twin: true, pay: twinP, icon: (u.weapon && u.weapon.icon) || null, label: 'TWIN STRIKE', cost: 'A', ok: foeNear || canWalk, why: 'no foe in reach, and no feet left', tool: 'attack', note: 'both weapons in one attack at +2 -- one roll, each weapon\'s own damage; ' + (twinP === 'swings' ? 'it takes two of the Attack\'s swings' : 'it takes a swing and the bonus action') });
+    // (its own glyph by the pair in hand -- 11-18, his 11-07 "two maces and one with two swords depending on char equip (blunt/slashing & piercing (for now)": js/icons.js twinmaces, twinswords)
+    if (twinP) out.push({ id: 'twinstrike', twin: true, pay: twinP, icon: Battle.twinIcon(u), label: 'TWIN STRIKE', cost: 'A', ok: foeNear || canWalk, why: 'no foe in reach, and no feet left', tool: 'attack', note: 'both weapons in one attack at +2 -- one roll, each weapon\'s own damage; ' + (twinP === 'swings' ? 'it takes two of the Attack\'s swings' : 'it takes a swing and the bonus action') });
     out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : !T.action && T.hasteAction ? 'ATTACK (HASTE)' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
     // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
@@ -2492,6 +2493,7 @@
   Battle.payAction = function (T) { if (T.action > 0) T.action = 0; else T.hasteAction = 0; };
   // the Attack opened: by the action (its attacks, or Slow's one), else by Haste's (one weapon attack). notHaste: a shove, which Haste's action cannot be
   // TWIN STRIKE (js/rules.js R.twinPair): a hero holding the pair, both in hand; open while the Attack's swing (not Haste's) and the bonus action are there, once a turn
+  Battle.twinIcon = function (u) { var t = String((u && u.weapon && u.weapon.type) || ''); return /bludgeon/.test(t) ? 'twinmaces' : 'twinswords'; }; // (TWIN STRIKE's glyph: a blunt pair the maces, a slashing or piercing pair the swords -- js/icons.js, 11-18)
   Battle.twinOK = function (u) { return !!(u && u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown && !u.sheathed && !(u.conds && u.conds.disarmed) && window.DS.R.twinPair(u.src)); };
   // What pays for it (11-12, RULED -- Griz: "they can do a twin-strike with 2 attacks the way they can with an attack and a bonus"; "3 attack only (can only use 2 attacks to do it if
   // you're doing twin strike #2? whichever way is cleanest mechanically)"; the three leans agreed: three attacks only, one such an Attack action, so Action Surge allows another):

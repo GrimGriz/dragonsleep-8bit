@@ -59,6 +59,10 @@
     lifeline: ['............', '.oo......oo.', 'oMMo....oMMo', 'oMMo....oMMo', '.ooMoooMoo..', '...oMMMo....', '....ooo.....', '............', '............', '............', '............', '............'],
     // THE POPUP RULE's (11-18, the popup-ring seat; js/ui.js promptRing): MORE, a pick's next page; COMMAND's words -- GROVEL (down, and SHOVE's KNOCK PRONE), HALT, DROP;
     // and DISPEL WHICH?'s spells by what each lays on the floor -- a ground (Grease, Spike Growth), a web, a cloud (Fog Cloud, a Moonbeam), a dark, a wall
+    // TWIN STRIKE's own (11-18; his note of 11-07 on `eyes-twinstrike-ring-1105`, "we'll need to have TWIN STRIKE have it's own logo - make one with two maces and one with two swords
+    // depending on char equip (blunt/slashing & piercing (for now)."): the ring's sword crossed with its mirror, and two flanged maces crossed (js/battle.js the command's icon)
+    twinswords: ['.oo......oo.', 'osSo....oSso', '.osSo..oSso.', '..osSooSso..', '.ooosSosooo.', '.ogoosSoogo.', '..ogoosogo..', '...ogoogo...', '..oLgoogLo..', '.oLoogoooLo.', 'oLo.oooo.oLo', '.o........o.'],
+    twinmaces: ['.ooo....ooo.', 'oSSSo..oSSSo', 'oSwSo..oSwSo', 'oSSSo..oSSSo', '.ooLo..oLoo.', '...oLooLo...', '....oLLo....', '...oLooLo...', '..oLo..oLo..', '.oLo....oLo.', 'oLo......oLo', '.o........o.'],
     more: ['............', '.oo...oo....', '.oGo..oGo...', '..oGo..oGo..', '...oGo..oGo.', '....oGo..oGo', '...oGo..oGo.', '..oGo..oGo..', '.oGo..oGo...', '.oo...oo....', '............', '............'],
     grovel: ['....oooo....', '....oRRo....', '....oRRo....', '....oRRo....', '.ooooRRoooo.', '.oRRRRRRRRo.', '..oRRRRRRo..', '...oRRRRo...', '....oRRo....', '.....oo.....', 'oooooooooooo', 'oLLLLLLLLLLo'],
     halt: ['...oooooo...', '..oRRRRRRo..', '.oRRRRRRRRo.', 'oRRRRRRRRRRo', 'oRRRRRRRRRRo', 'oRwwwwwwwwRo', 'oRwwwwwwwwRo', 'oRRRRRRRRRRo', 'oRRRRRRRRRRo', '.oRRRRRRRRo.', '..oRRRRRRo..', '...oooooo...'],

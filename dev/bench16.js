@@ -18177,11 +18177,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var box4 = (s4.B.cards || []).filter(function (c) { return c.lines.some(function (l) { return /twin strike/.test(l); }); }).map(function (c) { return window.DS.stripCodes(c.lines.join(' / ')); })[0] || '', both4 = /both (\d+)/.exec(box4);
       okFT('4 the card: one box holds the strike and the second longsword ' + /\+ the longsword/.test(box4) + ', "both" ' + (both4 && both4[1]) + ' (want true, ' + lost4 + ') -- ' + box4.slice(0, 220),
         /\+ the longsword/.test(box4) && !!both4 && +both4[1] === lost4);
-      // (11-05, his "twinstrike not on wheel (attack is), attack under actions for twinstriker properly equipped": the ring and RING2 both)
+      // (11-05, his "twinstrike not on wheel (attack is), attack under actions for twinstriker properly equipped": the ring and RING2 both; RE-CUT 11-18 on his note of 11-07,
+      // "Keep single attack on the wheel next to twinstrike": TWIN STRIKE after MOVE and ATTACK beside it, not under ACTIONS)
       var s4r = mk4(), ringIds4 = function (cs) { return cs.map(function (c) { return c.id; }); }, sub4 = function (cs, id) { var g = cs.filter(function (c) { return c.id === id; })[0]; return g && g.items ? ringIds4(g.items) : []; };
       var r4 = D.ui.cmds(s4r.B, s4r.f), r4b = D.ui.cmds2(s4r.B, s4r.f);
-      okFT('4 the ring: ' + ringIds4(r4).join(',') + '; ACTIONS ' + sub4(r4, 'actions').join(',') + ' | RING2: ' + ringIds4(r4b).join(',') + '; ACTIONS ' + sub4(r4b, 'actions').join(',') + ' (want TWIN STRIKE after MOVE, no ATTACK up front, ATTACK under ACTIONS, on both)',
-        ringIds4(r4)[1] === 'twinstrike' && ringIds4(r4).indexOf('attack') < 0 && sub4(r4, 'actions').indexOf('attack') >= 0 && ringIds4(r4b)[1] === 'twinstrike' && ringIds4(r4b).indexOf('attack') < 0 && sub4(r4b, 'actions').indexOf('attack') >= 0);
+      okFT('4 the ring: ' + ringIds4(r4).join(',') + '; ACTIONS ' + sub4(r4, 'actions').join(',') + ' | RING2: ' + ringIds4(r4b).join(',') + '; ACTIONS ' + sub4(r4b, 'actions').join(',') + ' (want TWIN STRIKE after MOVE, ATTACK beside it, not under ACTIONS, on both)',
+        ringIds4(r4)[1] === 'twinstrike' && ringIds4(r4)[2] === 'attack' && sub4(r4, 'actions').indexOf('attack') < 0 && ringIds4(r4b)[1] === 'twinstrike' && ringIds4(r4b)[2] === 'attack' && sub4(r4b, 'actions').indexOf('attack') < 0);
       var ids4b = s4.B.commands(f4).map(function (c) { return c.id; });
       okFT('4 after it: OFF HAND on the ring ' + (ids4b.indexOf('offhand') >= 0) + ' (want false: the bonus went with the Twin Strike)', ids4b.indexOf('offhand') < 0);
       var s4c = mk4(), f4c = s4c.f; D.d = function (n) { return n === 20 ? 12 : 4; }; try { runFT(s4c.B.exec(f4c, { do: 'attack', target: s4c.o })); } finally { D.d = d0FT; }
@@ -28247,6 +28248,58 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     if (errs.length) repHz.errors = repHz.errors.concat(errs);
     var preHz = document.createElement('pre'); preHz.id = 'out'; preHz.textContent = 'BENCH16 ' + JSON.stringify(repHz);
     document.body.appendChild(preHz);
+    return;
+  }
+  // THE RING OF 11-18 (mode=ring1118): 1 SHOVE beside GRAPPLE under ACTIONS on the classic RING (RULED 11-16, Griz on the lanes order's 23: "Y - consider whether we need subcategories
+  // on the ring."), and SHOVE there alone with no hand free to grapple; 2 TWIN STRIKE's own glyph by the pair (his 11-07, "two maces and one with two swords depending on char equip
+  // (blunt/slashing & piercing (for now)"), and ATTACK beside it up front (his 11-07, "Keep single attack on the wheel next to twinstrike"); 3 Pyro's own turn in phase 2 is one Twin
+  // Strike, his sheet's `twinstrike` row played once (RULED 11-16, the lanes order's 26, "yes" -- built 11-12, `8a5b136d`; twin1112 section 5 proves the turn at full)
+  if (get('mode', '') === 'ring1118') {
+    var repRg = { checks: [], errors: [] }, d0Rg = D.d;
+    function okRg(what, v) { repRg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRg(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkRg(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; D.ui.urlMenu = null; return Bx; }
+    function idsRg(cs) { return cs.map(function (c) { return c.id; }); }
+    function subRg(cs, id) { var g = cs.filter(function (c) { return c.id === id; })[0]; return g && g.items ? idsRg(g.items) : []; }
+    var GR = D.grid;
+    try {
+      // 1. SHOVE beside GRAPPLE: a fighter, sword in hand and the other hand free, a goblin beside him
+      var B1 = mkRg('?npc=goblin&lvl=5&vs=fighter:5'), f1 = B1.units.filter(function (w) { return w.side === 'party'; })[0], g1 = B1.units.filter(function (w) { return w.side === 'foe'; })[0];
+      B1.units.filter(function (w) { return w.side === 'foe' && w !== g1; }).forEach(function (w) { w.dead = true; w.hp = 0; });
+      f1.guest = false; f1.src.equip.weapon = 'longsword'; f1.src.equip.shield = null; f1.src.equip.offhand = null; f1.offhand = null; f1.weapon = D.save.weaponOf(f1.src); delete f1.torch;
+      g1.hp = g1.maxhp = 300; g1.x = f1.x + 1; g1.y = f1.y; delete g1.tween; GR.setup(GR.map, B1.units); D.rules.startTurn(f1); B1.active = f1; B1.req = { turn: f1 };
+      D.ui.opts.menu = 'ring'; var r1 = D.ui.cmds(B1, f1), a1 = subRg(r1, 'actions'), iG = a1.indexOf('grapple'), iS = a1.indexOf('shove');
+      okRg('1 the classic RING beside a goblin: ACTIONS ' + a1.join(',') + ' (want SHOVE right after GRAPPLE); the first ring ' + idsRg(r1).join(','), iG >= 0 && iS === iG + 1 && idsRg(r1).indexOf('shove') < 0);
+      var sh1 = (r1.filter(function (c) { return c.id === 'actions'; })[0].items || []).filter(function (c) { return c.id === 'shove'; })[0];
+      okRg('1 SHOVE there takes the shove\'s tool: ' + (sh1 && sh1.tool) + ', ok ' + (sh1 && sh1.ok), sh1 && sh1.tool === 'shove' && sh1.ok);
+      f1.src.equip.shield = 'shield'; var r1b = D.ui.cmds(B1, f1), a1b = subRg(r1b, 'actions'); f1.src.equip.shield = null;
+      okRg('1 a sword and a shield (no hand free to grapple): ACTIONS ' + a1b.join(',') + ' (want SHOVE, no GRAPPLE)', a1b.indexOf('shove') >= 0 && a1b.indexOf('grapple') < 0);
+      ['fighter', 'paladin', 'monk', 'rogue', 'barbarian', 'ranger'].forEach(function (cl) { try { var Bk = mkRg('?npc=goblin&lvl=3&vs=' + cl + ':3'), hk = Bk.units.filter(function (w) { return w.side === 'party'; })[0], gk = Bk.units.filter(function (w) { return w.side === 'foe'; })[0]; gk.x = hk.x + 1; gk.y = hk.y; delete gk.tween; GR.setup(GR.map, Bk.units); D.rules.startTurn(hk); repRg.checks.push('     the door ?npc=goblin&vs=' + cl + ':3: ' + hk.weapon.name + (hk.src.equip.shield ? ' and a shield' : '') + ' -- ACTIONS ' + subRg(D.ui.cmds(Bk, hk), 'actions').join(',')); } catch (eK) { repRg.checks.push('     ' + cl + ' ' + eK); } });
+      // 2. TWIN STRIKE's glyph by the pair, and ATTACK beside it: the Twin Swords fighter of 11-05, then the same with two maces
+      var spec = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric';
+      var B2 = mkRg('?npc=ogre&vs=' + spec + '&lvl=5'), f2 = B2.units.filter(function (w) { return w.side === 'party'; })[0], o2 = B2.units.filter(function (w) { return w.side === 'foe'; })[0];
+      o2.x = f2.x + 1; o2.y = f2.y; delete o2.tween; GR.setup(GR.map, B2.units); D.rules.startTurn(f2); B2.active = f2; B2.req = { turn: f2 };
+      var c2 = B2.commands(f2).filter(function (c) { return c.id === 'twinstrike'; })[0], r2 = idsRg(D.ui.cmds(B2, f2)), r2b = idsRg(D.ui.cmds2(B2, f2));
+      okRg('2 two longswords: TWIN STRIKE wears ' + (c2 && c2.icon) + ' (drawn ' + !!(c2 && D.icon(c2.icon)) + '); the ring ' + r2.slice(0, 3).join(',') + ' | RING2 ' + r2b.slice(0, 3).join(',') + ' (want twinswords; move, twinstrike, attack on both)',
+        c2 && c2.icon === 'twinswords' && !!D.icon('twinswords') && r2[1] === 'twinstrike' && r2[2] === 'attack' && r2b[1] === 'twinstrike' && r2b[2] === 'attack');
+      var B2m = mkRg('?npc=ogre&vs=' + spec.replace(/longsword/g, 'mace') + '&lvl=5'), f2m = B2m.units.filter(function (w) { return w.side === 'party'; })[0];
+      D.rules.startTurn(f2m); var c2m = B2m.commands(f2m).filter(function (c) { return c.id === 'twinstrike'; })[0];
+      okRg('2 two maces (' + f2m.weapon.name + ', ' + f2m.weapon.type + '): TWIN STRIKE wears ' + (c2m && c2m.icon) + ' (drawn ' + !!D.icon('twinmaces') + ') (want twinmaces)', c2m && c2m.icon === 'twinmaces' && !!D.icon('twinmaces'));
+      // 3. Pyro in phase 2 (held, both maces out): one Twin Strike, the row once, the rest let go
+      var B3 = mkRg('?npc=ogre&vs=pyro&lvl=12'), p3 = B3.units.filter(function (u) { return u.script === 'measure'; })[0], o3 = B3.units.filter(function (w) { return w.side === 'foe'; })[0];
+      B3.units.filter(function (w) { return w.side === 'foe' && w !== o3; }).forEach(function (w) { w.dead = true; w.hp = 0; });
+      o3.x = p3.x + 1; o3.y = p3.y; o3.baseAC = 5; o3.ac = 5; o3.hp = o3.maxhp = 400; delete o3.tween; GR.setup(GR.map, B3.units);
+      B3.pyro = { phase: 2, held: true, down: false, why: 'hurt' }; p3.offhandSheathed = false;
+      var dos3 = [], ex3 = B3.exec; B3.exec = function (u, c) { if (u === p3) dos3.push(c.do); return ex3.apply(this, arguments); };
+      D.rules.startTurn(p3); B3.active = p3; D.d = function (n) { return n === 20 ? 12 : 4; };
+      try { runRg(D.ai.turn(B3, p3)); } finally { D.d = d0Rg; delete B3.exec; }
+      var rows3 = (p3.turn.rowN || {}).twinstrike || 0;
+      okRg('3 Pyro in phase 2 on ' + p3.sheet + ': ' + (dos3.join(',') || 'nothing') + '; the `twinstrike` row ' + rows3 + 'x; the ogre lost ' + (400 - o3.hp) + ' (want twinstrike once, the row once)', dos3.join(',') === 'twinstrike' && rows3 === 1 && o3.hp < 400 && p3.sheet === 'pyro_p2');
+    } catch (eRg) { repRg.errors.push(String(eRg && eRg.stack || eRg).slice(0, 900)); }
+    D.d = d0Rg; D.ui.opts.menu = 'ring';
+    if (errs.length) repRg.errors = repRg.errors.concat(errs);
+    var preRg = document.createElement('pre'); preRg.id = 'out'; preRg.textContent = 'BENCH16 ' + JSON.stringify(repRg);
+    document.body.appendChild(preRg);
     return;
   }
   // the campfire (mode=campfire1014; 10-14, Griz: "Let's difficult terrain, 1d6 fire damage enter or start turn, and ignite nearby flamable (oiled squares) campfires as a matter

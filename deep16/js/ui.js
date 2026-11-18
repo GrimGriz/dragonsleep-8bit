@@ -231,7 +231,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, throw: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1, pin: 1, endconc: 1 }; // (endconc: END <the spell held>, free, beside LET GO -- 10-17) // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, throw: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, shove: 1, letgo: 1, pin: 1, endconc: 1 }; // (endconc: END <the spell held>, free, beside LET GO -- 10-17) // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -291,9 +291,11 @@
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // TWIN STRIKE up front and the one-weapon ATTACK under ACTIONS for the pair in hand (11-05, his "twinstrike not on wheel (attack is), attack under actions for twinstriker properly
     // equipped": it sat on `top` under a key this ring never drew, so the ring showed ATTACK alone; a click on a foe is still the strike while it is open -- actAt)
+    // ... and ATTACK back beside it (11-18, his note of 11-07 on that row: "Keep single attack on the wheel next to twinstrike (click with wheel closed defaults to twin-strike when
+    // it can), and pull twin-strike from the wheel once the bonus action is gone" -- the click and the pull were built 11-05 and 11-12; the one-weapon swing is up front again, after it)
     var tw = c.some(function (x) { return x.id === 'twinstrike'; });
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || ((q || tw) && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
@@ -302,6 +304,11 @@
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
+    // SHOVE beside GRAPPLE under ACTIONS (RULED 11-16, Griz on the lanes order's 23: "Y - consider whether we need subcategories on the ring."; the menus lane §2.8, found 10-16: SHOVE
+    // (10-13) was in neither ACTIONS nor the first ring's list, so the classic RING never showed it -- RING2 had it among the actions by its cost): the SRD's two special melee attacks
+    // side by side, each one attack of the Attack action; with no hand free for a grapple, SHOVE stands among the actions alone
+    var iSh = -1, iGr = -1; ac.forEach(function (x, i) { if (x.id === 'shove') iSh = i; else if (x.id === 'grapple') iGr = i; });
+    if (iSh >= 0 && iGr >= 0 && iSh !== iGr + 1) { var shX = ac.splice(iSh, 1)[0]; ac.splice(iGr + (iSh < iGr ? 0 : 1), 0, shX); }
     sk = foldUnder(sk);
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -323,7 +330,7 @@
       if (x.id === 'spells') return; // (SPELLS by the cost first: one on each ring, below)
       if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
       if (x.id === 'twinstrike') { top.twinstrike = x; return; }
-      if ((q || tw) && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it)
+      if (q && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it; beside TWIN STRIKE it is up front, 11-18 -- UI.cmds)
       if (FIRST2[x.id] && !x.skill && !x.under) { top[x.id] = x; return; } // (a rogue's HIDE up front; a Mascot's SCUTTLE: HIDE under its icon with the bonuses)
       (x.cost === 'A' ? A : Bn).push(x); // (cost 'B', 'F' and none: with the bonuses)
     });
