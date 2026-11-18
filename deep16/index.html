@@ -64,7 +64,43 @@
     <div class="pills"><div data-btn="menu">MENU</div><div data-btn="end">END</div></div>
   </div>
 </div>
-<script>window.DS = window.DS || {};</script>
+<script>window.DS = window.DS || {};
+// THE LOADING CHECK (11-18, RULED, Griz: "2 - lean", on his "D.hours.canWait is not a function" and "didn't finish loading makes sense"; the second game's house lane, its
+// 11-18 entries): every script below loaded and ran, and they are the page's own -- a page kept in the browser's cache while a ship went out lists the old stamps, and any
+// file it had not kept comes new (Pages reads no ?v=), so old and new mix and a fight breaks. Either way the game says "the game did not finish loading -- reload" in place of
+// a broken game. Here, inline, so it stands when any file fails. window.D16LOAD: { bad: [what], state: 'loading' | 'ok' | 'bad' } (dev/loadcheck-probe.py reads it)
+(function () {
+  var L = window.D16LOAD = { bad: [], state: 'loading' }, parsed = false;
+  var name = function (s) { return String(s || '').replace(/^.*?((?:\.\.\/)?(?:js|data)\/)/, '$1').split('?')[0]; };
+  window.addEventListener('error', function (e) { // (capturing: a script that would not load fires on its tag, not the window)
+    var t = e.target;
+    if (t && t.tagName === 'SCRIPT') L.bad.push(name(t.getAttribute('src')) + ' did not load');
+    else if (!parsed && e.filename && /\.js(\?|$)/.test(e.filename)) L.bad.push(name(e.filename) + ' broke as it loaded: ' + e.message);
+  }, true);
+  var stop = function () {
+    if (L.state === 'bad') return; L.state = 'bad';
+    var d = document.createElement('div'); d.id = 'loadcheck';
+    d.style.cssText = 'position:fixed;inset:0;z-index:99;background:#0a0810;color:#e8e4d8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:16px';
+    d.innerHTML = '<div style="font-size:16px">the game did not finish loading -- reload</div><button style="font:inherit;font-size:14px;padding:6px 18px;background:#3a3450;color:#e8e4d8;border:1px solid #e8e4d8;cursor:pointer">RELOAD</button><div style="color:#6e6a66;max-width:40em"></div>';
+    d.lastChild.textContent = L.bad.slice(0, 3).join(' · ');
+    d.querySelector('button').onclick = function () { location.reload(); };
+    window.addEventListener('keydown', function (e) { e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Enter' || e.key === 'r' || e.key === 'R') location.reload(); }, true);
+    document.body.appendChild(d);
+  };
+  document.addEventListener('DOMContentLoaded', function () {
+    parsed = true;
+    if (/[?&]loadfail\b/.test(location.search)) L.bad.push('a sample (?loadfail): the page that did not finish names its file here'); // (the card, shown, as ?broke shows the broken door's)
+    if (L.bad.length) return stop();
+    if (!/^https?:$/.test(location.protocol) || !window.fetch) { L.state = 'ok'; return; } // (a bench's own page from file: has nothing to ask)
+    var mine = {}; Array.prototype.forEach.call(document.scripts, function (s) { if (s.getAttribute('src')) mine[s.getAttribute('src')] = 1; });
+    fetch(location.href.split('#')[0], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.text() : null; }).then(function (html) {
+      // (\s+, not a space: dev/pages-probe.py reads this page's own tags with the plain pattern)
+      var re = /<script\s+src="([^"]+)"/g, m, old = []; while (html && (m = re.exec(html))) if (!mine[m[1]]) old.push(name(m[1]));
+      if (old.length) { L.bad.push('this page is older than the game (' + old.length + ' file' + (old.length > 1 ? 's' : '') + ' since, ' + old[0] + ' first)'); stop(); } else if (L.state !== 'bad') L.state = 'ok';
+    }).catch(function () { if (L.state !== 'bad') L.state = 'ok'; });
+  });
+})();
+</script>
 <script src="../js/font.js?v=86706ebeb2"></script>
 <script src="../data/data.js?v=b03c65b084"></script>
 <script src="../js/rules.js?v=390f1f6b98"></script>
@@ -192,7 +228,7 @@
 <script src="js/parade.js?v=d6c6aba1dc"></script>
 <script src="js/ripplesfight.js?v=06a2bb3211"></script>
 <script src="js/blackegg.js?v=a19c31ed0d"></script>
-<script src="../js/eyes.js?v=faa37b71c4"></script>
+<script src="../js/eyes.js?v=e06578ecdd"></script>
 <script src="../js/tour.js?v=3322cf191b"></script>
 <script src="js/onegallery.js?v=3995263797"></script>
 <script src="js/situations16.js?v=1ff6f3a9cf"></script>
