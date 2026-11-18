@@ -305,7 +305,7 @@
     people0.apply(this, arguments);
     var def = D.roam && D.roam.def; if (!def || !SK.isFloor(def.key)) return;
     var want = [];
-    B.units.forEach(function (u) { var sh = typeof u.npc === 'string' && SK.sheetOf(u.npc); if (sh && (!D.SHEETS || D.SHEETS[sh] !== undefined || true)) { u.sheet = sh; want.push(sh); } });
+    B.units.forEach(function (u) { var sh = typeof u.npc === 'string' && SK.sheetOf(u.npc); if (sh && (!D.SHEETS || D.SHEETS[sh] !== undefined || true)) { u.sheet = sh; want.push(sh); } if (typeof u.npc === 'string' && SK.JOB[u.npc]) u.name = SK.JOB[u.npc]; }); // (each by his job, not "Trooper": SK.JOB, 11-18)
     if (want.length && D.spr && D.spr.prefetch) D.spr.prefetch(want);
   };
   // a word with one of them: the first game's, or the standing line for the two whose first word is a scene
@@ -559,10 +559,14 @@
   SK.DWARF = { quartermaster: 'quartermaster', yardhand: 'yardhand', shaftwatch: 'shaftwatch', smith: 'smith', smelterhand: 'smelter', gatewatch: 'gatewatch', shroomer: 'shroom',
     drill1: 'trooper', drill2: 'trooper', drill3: 'trooper', drill4: 'trooper', drillmaster: 'sergeant' };
   SK.DWARFWALK = ['quartermaster', 'yardhand', 'shaftwatch', 'smith', 'smelterhand', 'shroomer'];
+  // EACH BY HIS JOB (11-18, his note from Sylvia's table: "Mushroom and other's say "Trooper" instead of job, whereas copperbottom smith is correct"): the first game named four of
+  // them "Trooper" (content/npcs.json, its names kept there); here they go by the job they stand at, on the figure and on the counter's screen, as the smith goes by his. The
+  // drill's four are troopers, and say so
+  SK.JOB = { yardhand: 'Yard hand', shaftwatch: 'Shaft watch', smelterhand: 'Smelter hand', shroomer: 'Shroom farmer' };
   SK.FOLK.concat(SK.CFOLK).forEach(function (p) { if (SK.DWARFWALK.indexOf(p.id) >= 0 && !p.sheet) p.sheet = 'folkdwarf_p1'; });
   (function () {
     var C = D.counter; if (!C || !C.VENDORS) return;
-    Object.keys(SK.DWARF).forEach(function (id) { if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_dwarf', look: SK.DWARF[id], wait: '' }; });
+    Object.keys(SK.DWARF).forEach(function (id) { if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_dwarf', look: SK.DWARF[id], wait: '' }; if (SK.JOB[id]) C.VENDORS[id].name = SK.JOB[id]; }); // (his job on the screen: SK.JOB, 11-18)
     C.VENDORS.quartermaster.shop = 'qm'; // (his counter open, the garrison stores' shelf: 11-15, Griz on the counters' list, "leans")
     if (C.FACES_LEFT) C.FACES_LEFT.pt_dwarf = 1;
     var words0 = C.words; // (a dwarf with a standing line of the floor's own says it on the counter's screen, as on his card)
@@ -710,6 +714,14 @@
   SK.PLACES = [['e', 2, 0], ['e', 6, 1], ['e', 11, 2], ['e', 15, 3], ['w', 6, 4], ['w', 2, 5], ['w', 11, 6], ['w', 15, 7]];
   SK.TIERX = { w: [8, 10, 12, 14], e: [29, 27, 25, 23] }; // (each side's niche columns, tier 0 -- the top, the newest dead -- down to tier 3, the patrons' base ring)
   SK.BSTAIR = 10; // (the row each hallway's stair runs down, to the bier)
+  // THE WAY BACK UP RISES THE WAY THE STAIR CAME DOWN (11-18, his note from live: "there's insufficient transparency upstairs - it LOOKs like single downstairs from Rekknar facing a
+  // different direction the stairs going up in the funerary"): each temple's stair comes down one square wide, going SOUTH from the door in the hall's back corner (SK.DOORS templeW,
+  // templeE); here its flight was drawn rising WEST into the hallway's wall, two squares side by side (the art desk's stair_up_y on the west wall, the treads stepping west). Now it
+  // is the same flight from below: one wide, two long (r13-14), rising NORTH into an arch in the rock at its head (the art desk's stair_up_x on that square's south face), and the
+  // party comes down to its foot (r12), facing south as it came, the way back up the step behind it
+  SK.BSTAIRUP = [[5, 15], [32, 15]]; // (x, r: the rock at each flight's head, the arch on its south face; stood whole as the temples' walls are -- SK.dressBelow)
+  SK.BLAND = { w: [5, 12], e: [32, 12] }; // (x, r: where the stair down from each temple sets the party, at its flight's foot)
+  [['templeW', 'w'], ['templeE', 'e']].forEach(function (p) { var d = SK.DOORS.filter(function (z) { return z.id === p[0]; })[0]; if (d) d.go = ['solskaft_below', SK.BLAND[p[1]][0], SK.BLAND[p[1]][1], [0, 1]]; }); // (down the temple's stair: to its flight's foot, facing south as the party came)
   SK.bbuild = function () {
     var g = [], x, r, Y = SK.Y;
     for (var y = 0; y < SK.H; y++) { g.push([]); for (x = 0; x < SK.W; x++) g[y].push('#'); }
@@ -721,6 +733,7 @@
     set(8, SK.BSTAIR, 14, SK.BSTAIR, '='); set(23, SK.BSTAIR, 29, SK.BSTAIR, '='); // each hallway's stair down the middle row, through the tiers
     set(18, 10, 19, 10, 'Z'); set(20, 11, 20, 11, 'Y');                     // the bier, under the oathstone; the one lamp, kept
     set(5, 13, 5, 14, 'U'); set(32, 13, 32, 14, 'U');                       // the temples' stairs' feet, each in its own hallway, beside where the stair down sets the party (r13-14, the street's stairs' own rows since PASS TWO -- 11-12, his note from live at 6,17: "no stairs I just came down to go back up"; they had stayed at r11-12, two squares off)
+    SK.BSTAIRUP.forEach(function (q) { set(q[0], q[1], q[0], q[1], '#'); }); // the rock each flight rises into, its arch on the south face (11-18: SK.BSTAIRUP)
     set(31, 1, 31, 1, 'z');                                                 // the flooded stair from the Warrens, at the east hallway's southern end
     set(34, 4, 36, 8, '='); set(33, 5, 33, 7, '=');                         // the Triad's chapel, the little shrines, off the east hallway
     set(36, 4, 36, 4, 'A'); set(36, 6, 36, 6, 'L'); set(34, 8, 34, 8, 'Y');  // the grave-anvil, Rekknar's ledger-stone, a lamp (the Dormant's cut in the north wall: SK.BCUT)
@@ -814,7 +827,7 @@
   (function () { var o = SK.LABEL, S8 = SK.BS8; o[S8.lamp] = 'the lamp'; o[S8.kneel] = 'the kneeling-stone'; o[S8.anvil] = 'the grave-anvil'; o[S8.ledger] = 'Rekknar\'s ledger-stone'; o[S8.cut] = 'the Dormant\'s cut'; o[S8.sealed] = 'a sealed door'; })();
   M.FLOORS[SK.BELOW] = { src: SK.BELOW, own: true, map: SK.bmap, door: null, place: 'Sólskaft', sub: 'the funerary, under the oathstone', save: false, clock: true, iso: true,
     rate: { squaresPerHour: 500, fightHours: 0.25 }, phase: M.seepPhase, phaseLine: function () { return ''; },
-    gates: { west: [6, SK.Y(13), [1, 0]], east: [31, SK.Y(13), [-1, 0]], warrens: [31, SK.Y(2), [0, -1]], bier: [17, SK.Y(10), [1, 0]] } }; // (save: false -- the first game's Burial had none)
+    gates: { west: [SK.BLAND.w[0], SK.Y(SK.BLAND.w[1]), [0, 1]], east: [SK.BLAND.e[0], SK.Y(SK.BLAND.e[1]), [0, 1]], warrens: [31, SK.Y(2), [0, -1]], bier: [17, SK.Y(10), [1, 0]] } }; // (save: false -- the first game's Burial had none; the west and east gates at the temple stairs' feet since 11-18, SK.BLAND)
   // the pieces: the niche faces the eye sees (the west tiers', toward the bier), the bier, the kept lamps, the grave-anvil, the ledger-stone, the empty cut, the kneeling-stone, the grille's bars
   SK.pic.niches = function (kind) { // (a column of niche faces on a tier's wall: the slabs' outlines, a pried one gaping, the gear one a glint)
     var cv = document.createElement('canvas'); cv.width = TW; cv.height = 170; var cx = cv.getContext('2d'), ox = TW / 2, oy = 150, st = D.iso.ramp('stone'), dk = D.iso.ramp('outline')[0];
@@ -845,7 +858,8 @@
     SK.ACCESS.forEach(function (r) { piece(5, r, function () { return SK.pic.face('sealed', 'w'); }, { d: -0.4 }); });
     for (var nx2 = 5; nx2 <= 32; nx2++) { var nq = sq(nx2, 20); if (nq) add({ kind: 'sk', sq: nq, depth: nq.x + nq.y - 0.4, gz: nq.gz }, function () { return SK.pic.face('names', 'n'); }); } // (the names along the north wall, toward the eye)
     [3, 6, 9, 12, 15].forEach(function (r) { var s = sq(1, r); if (s) add({ kind: 'sk', sq: s, depth: s.x + s.y - 0.4, gz: s.gz }, SK.pic.closedDoor); }); // (five of the ten on the wall the eye sees; the other five face away)
-    SK.BDOORS.filter(function (d) { return /^bUp/.test(d.id); }).forEach(function (d) { d.at.forEach(function (q) { piece(q[0], q[1], function () { return SK.pic.stepsUp(d.id === 'bUpW' ? 'w' : 'e'); }, { d: 0.1 }); }); }); // (the ways back up marked where the stair down sets the party: 11-12)
+    SK.BDOORS.filter(function (d) { return /^bUp/.test(d.id); }).forEach(function (d) { d.at.forEach(function (q) { piece(q[0], q[1], function () { return SK.pic.stepsUp('n'); }, { d: 0.1 }); }); }); // (the ways back up marked where the stair down sets the party: 11-12; rising north, the way the temple's stair came down, since 11-18)
+    SK.BSTAIRUP.forEach(function (q) { var s = sq(q[0], q[1]); if (s && !s.open) { s.rock = 'far'; s.skWhole = true; } }); // (the rock at each flight's head stands whole, its arch seen: with floor behind it the grid would cut it to a stub -- R.occlude still opens it while it hides the party)
   };
   SK.where3 = function (t) {
     var r = SK.H - 1 - t.y;
@@ -910,9 +924,13 @@
     var R = D.roam, t = B.roam.token, f = B.roam.flags, i = f.asdisIdx || 0, said = i ? [SK.L(['deep.asdis1', 'deep.asdis2', 'deep.asdis3'][(i - 1) % 3])] : [].concat(SK.L('deep.asdis0'));
     f.asdisIdx = i + 1; if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
     D.sfx('popup');
-    var a = yield { prompt: { who: t, title: (u && u.name ? u.name : 'ASDIS SCALEBEAM').toUpperCase(), lines: R.wrap(said.concat([SK.L('deep.asdisAsk')])), opts: [{ label: 'EAT AND SLEEP', value: 0 }, { label: 'NOT NOW', value: 1 }] } };
+    // (ONE LONG REST IN 24 HOURS, 11-18 -- his "only one long rest per 24 hour implementation not included in this sleep place": the house's own limiter, js/house.js H.longOpen, as
+    // the bunks and the crews' fire ask it (js/mines.js M.longWhy, the bunk's eight hours): inside the 24 hours her cot is not offered, and the line says the hour a long rest opens at.
+    // The roam's prompt greys no button (js/ui.js), so the offer goes rather than standing greyed as the counter's do)
+    var why = M.longWhy ? M.longWhy(M.BUNK.restHours) : ''; SK.asdisWhy = why;
+    var a = yield { prompt: { who: t, title: (u && u.name ? u.name : 'ASDIS SCALEBEAM').toUpperCase(), lines: R.wrap(said.concat([SK.L('deep.asdisAsk')], why ? [why] : [])), opts: why ? [{ label: 'NOT NOW', value: 1 }] : [{ label: 'EAT AND SLEEP', value: 0 }, { label: 'NOT NOW', value: 1 }] } };
     SK.lastSaid = said.join(' ');
-    if (a !== 0) return;
+    if (a !== 0 || why) return;
     f.asdisRested = (f.asdisRested || 0) + 1;
     B.card(R.wrap([SK.L('deep.asdisRest')]), 240); yield 30;
     yield* M.sleep(B, { morning: SK.LLINES.morning });

@@ -123,7 +123,7 @@
   use('solskaft', ['lodging_door_with_window_lit_y', 'store_shut_y', 'store_shut_with_window_dark_y', 'window_dark_y', 'plain_tall_y', 'window_dark_x', 'plain_tall_x', 'temple_lamp_lit', 'temple_lamp_unlit', 'stair_down_y']);
   // the pieces the code drew that the cells take over (the code's own when no sheet has come)
   ST.PIC = { oathstone: ['oathstone'], throne: ['throne', { lift: 8 }], stele: ['rekknar_ledger_stone'], scales: ['covered_assay_scales'], pillar: ['temple_pillar'] }; // (the pillar: ART-134 page 06, 11-12 -- the temples' four a side)
-  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'temple_pillar']);
+  use('solskaft', ['oathstone', 'throne', 'rekknar_ledger_stone', 'covered_assay_scales', 'temple_pillar', 'temple_pillar_stub']); // (the stub laid 11-18: A.pillarCut)
   // the things laid fresh where the code stood blocks: [name, x, r, opt] -- the counters, the desk, the stable's trough and fodder, the assay house's and the guardroom's
   ST.THINGS = [['trade_counter_x', 5, 3], ['quartermaster_counter_x', 6, 5], ['ledger_desk', 12, 24], ['water_trough_x', 33, 6], ['old_fodder', 34, 5], ['old_fodder', 29, 4],
     ['stall_partition_x', 29, 3], ['stall_partition_x', 30, 3], ['stall_partition_x', 33, 3], ['stall_partition_x', 34, 3], // (the stable's half-wall on the apron, the art desk's stall partition: 11-12, his "stable area with half-wall (hallway side, top open for ventilation) and a 2-square wide opening, small amount of hay somewhere")
@@ -206,7 +206,7 @@
   BE.KIND = { row: 'niche_sealed', patron: 'niche_patron', pried: 'niche_pried', waits: 'niche_awaits' };
   BE.wall = function (s, side) {
     var r = R(s.y), k = s.x + ',' + r, n = SK.NICHE[k];
-    if (side === 'R' && s.x === 4 && SK.BDOORS[0].at.some(function (q) { return q[1] === r; })) return 'stair_up_y'; // (the stair up to Rekknar's temple marked on the west hallway's wall beside its foot: 11-12, his "'stairs down' 'stairs up' tile"; the foot at r13-14 since his "no stairs I just came down to go back up")
+    if (side === 'L' && SK.BSTAIRUP.some(function (q) { return q[0] === s.x && q[1] === r; })) return 'stair_up_x'; // (the stair up to each temple, an arch on the south face of the rock its flight rises into: 11-18, his "facing a different direction" -- it had been stair_up_y on the west wall, rising west; 11-12, his "'stairs down' 'stairs up' tile")
     if (n) { // (a niche's face toward the bier: the west tiers' east faces; the east tiers' faces turn away, their backs blank stone)
       if (side === 'R' && s.x < 18) { var nm = n.kind === 'gear' ? (n.wi === 1 ? 'niche_gear_shield' : 'niche_gear_hammer') : BE.KIND[n.kind] || 'niche_sealed'; return nm + '_y'; }
       return side === 'L' ? 'niche_blank_x' : 'niche_blank_y';
@@ -217,7 +217,7 @@
     if (side === 'R' && s.x === 30 && r === 1) return 'flooded_stair_cut_seal_y';                                                    // (the Warrens' stair through its cut seal)
     return side === 'L' ? 'plain_x' : 'plain_y';
   };
-  use('solskaft_below', ['stair_up_y', 'niche_sealed_y', 'niche_patron_y', 'niche_pried_y', 'niche_awaits_y', 'niche_gear_shield_y', 'niche_gear_hammer_y', 'niche_blank_x', 'niche_blank_y',
+  use('solskaft_below', ['stair_up_x', 'niche_sealed_y', 'niche_patron_y', 'niche_pried_y', 'niche_awaits_y', 'niche_gear_shield_y', 'niche_gear_hammer_y', 'niche_blank_x', 'niche_blank_y',
     'name_wall_x_repeat', 'name_wall_x_short_row', 'dormants_cut_x', 'warranted_seal_whole_y', 'flooded_stair_cut_seal_y', 'plain_x', 'plain_y', 'bier_x', 'grave_anvil', 'chapel_ledger_stone',
     'kneeling_stone', 'barred_door_y', 'grille_y', 'kept_lamp_01', 'kept_lamp_02', 'kept_lamp_03', 'kept_lamp_04', 'flags_1', 'flags_2', 'flags_3', 'flags_4', 'edge_x_1', 'edge_y_1']);
   BE.PIC = { bier: ['bier_x'], anvil: ['grave_anvil'], stele: ['chapel_ledger_stone'], kneel: ['kneeling_stone', { first: true }], closedDoor: ['barred_door_y', { first: true }] };
@@ -259,18 +259,57 @@
     for (var x = b[0] - 1; x <= b[2] + 1; x++) add(x, b[1] - 1); for (var r = b[1]; r <= b[3] + 1; r++) add(b[2] + 1, r); return out; };
   // (installed when the street is first laid, wrapping whatever see-through the house has then -- the inn's, js/innprops.js IP.tick -- so a page that never
   // comes to Sólskaft keeps its own chain as it was)
+  // WHAT MAKES THE ROOM VISIBLE (11-18, the Sólskaft notes seat of 11-18, his notes from Sylvia's table of 11-17/18: in the assay house, "rekknar's pillars and 15,14 should be
+  // transparent when you're in there"; on the street, "the rekknar is good, but that wall from the room south of it should go too (wall 3 south of entrance to rekknar temple)"; and
+  // his 11-12 "when standing at 8, 20 transparency should but off for everything but what makes the temple interior visible"): in a room, its walls toward the eye and every whole
+  // wall, store or pillar standing between the eye and any square of its floor (a square s diagonal rows in front hides it when it stands taller than s - 1 rows: A.hides); a
+  // temple's stair down counted with its floor (SK.ROOMSEE: "insufficient transparency upstairs"), and a room's own pillars left standing ("the rekknar is good"). Nothing else.
+  A.hides = function (m, q, s) { var RF = m.def.roofs, hpx = RF && RF[q.ch] ? D.iso.roofPx(m, q.ch) : m.def.wallFt ? Math.round(m.def.wallFt / 2.5 * m.def.step) : (D.iso.WALL || 84); return (s - 1) * (D.iso.TH / 2) < hpx; };
+  A.inFront = function (m, sqs, k, each) { // (every square up to k diagonal rows in front of any of sqs, within a square of its line on the screen: each(q, s))
+    var seen = {};
+    sqs.forEach(function (f) { for (var dx = -1; dx <= k + 1; dx++) for (var dy = -1; dy <= k + 1; dy++) {
+      var s = dx + dy; if (s < 1 || s > k || Math.abs(dx - dy) > 1) continue;
+      var q = m.at(f[0] + dx, f[1] + dy); if (!q) continue; var key = q.x + ',' + q.y; if (seen[key] != null && seen[key] <= s) continue; seen[key] = s; each(q, s);
+    } });
+  };
+  A.ROOMSEE = {}; // (a temple's stair down and the door to it, x r: seen with the hall -- his funerary note, "there's insufficient transparency upstairs")
+  [['templeW', 'Rekknar\'s temple'], ['templeE', 'the Dormant\'s temple']].forEach(function (p) { var d = SK.doorById(p[0]); if (!d) return; var top = Math.max.apply(null, d.at.map(function (q) { return q[1]; })); A.ROOMSEE[p[1]] = d.at.concat([[d.at[0][0], top + 1]]); });
+  A.roomSquares = function (m, b) { var out = [], x, r; for (x = b[0]; x <= b[2]; x++) for (r = b[1]; r <= b[3]; r++) out.push([x, SK.Y(r)]); (A.ROOMSEE[b[4]] || []).forEach(function (q) { out.push([q[0], SK.Y(q[1])]); }); return out; };
+  // the pillars as props, cut to the art desk's stub (ART-134 page 06's, cut 11-12 and never laid) while they stand between the eye and the room the party is in
+  A.PILLARSTUB = 'temple_pillar_stub';
+  A.pillarCut = function (m, roomSq, b) {
+    var cut = {}, hall = {}; if (roomSq) A.inFront(m, roomSq, 10, function (q, s) { if (q.skPillarAt && s * (D.iso.TH / 2) < 150 && !(b && A.roomAt(q.x, q.y) === b)) { cut[q.x + ',' + q.y] = 1; var h = A.roomAt(q.x, q.y); if (h) hall[h[4]] = 1; } });
+    (m.props || []).forEach(function (p) { if (!p.skPillar) return; var h = A.roomAt(p.sq.x, p.sq.y), on = !!cut[p.sq.x + ',' + p.sq.y] || !!(h && hall[h[4]]); if (!!p.skCut !== on) { p.skCut = on; p.img = null; } }); // (a hall's pillars go together: his "rekknar's pillars")
+    return Object.keys(cut).length;
+  };
+  // out on main street and the court: the whole east store cut to its stub (his "that whole building in the bottom right can go transparent when you walk the main street (stub
+  // walls maybe)" -- 30 ft of it, the occluder's band had cut a stair of steps into it)
+  A.MAIN = [13, 1, 24, 13];          // (x0 r0 x1 r1: main street's south stretch and the court)
+  A.MAINCUT = [[23, 3, 27, 7]];      // (the east store, its block: x0 r0 x1 r1)
+  A.onMain = function (t) { var r = R(t.y); return t.x >= A.MAIN[0] && t.x <= A.MAIN[2] && r >= A.MAIN[1] && r <= A.MAIN[3]; };
   A.hookSee = function () {
   if (A.hooked || !D.roam || !D.roam.occlude) return; A.hooked = true;
   var occ1 = D.roam.occlude;
   D.roam.occlude = function (B) {
-    var res = occ1.apply(this, arguments), m = B && B.map, R0 = B && B.roam, def = D.roam.def; if (!m || !m.sq || !R0 || !R0.token || !def || def.key !== SK.KEY) return res;
-    var t = R0.token, b = A.roomAt(t.x, t.y); A.inRoom = b ? b[4] : null; if (!b) return res;
-    var want = {}, dirty = {}; A.roomFront(m, b).forEach(function (q) { want[q.x + ',' + q.y] = q; });
+    var m = B && B.map, R0 = B && B.roam, def = D.roam.def; if (!m || !m.sq || !R0 || !R0.token || !def || def.key !== SK.KEY) return occ1.apply(this, arguments);
+    var t = R0.token, b = A.roomAt(t.x, t.y), main = !b && A.onMain(t), res; A.inRoom = b ? b[4] : null;
+    if (b) m.occKey = null; else res = occ1.apply(this, arguments); // (in a room its rule stands alone: the occluder's own band not cut and taken back each step -- each a wall's picture made again; asked afresh when the party comes out)
+    var key = t.x + ',' + t.y + '|' + (b ? b[4] : main ? 'main' : '') + '|' + SK.WHOLE; if (m.skSeeKey === key && m.occCut && m.occCut === m.skSeeCut) return res; m.skSeeKey = key; // (made again when the party moves, or the occluder has made its own cut again: its list is new)
+    var want = {}, dirty = {}, rs = b ? A.roomSquares(m, b) : null;
+    if (b) {
+      A.roomFront(m, b).forEach(function (q) { want[q.x + ',' + q.y] = q; });
+      var RF = m.def.roofs, k = Math.ceil((Math.max(m.roofTop || 0, m.def.wallFt ? Math.round(m.def.wallFt / 2.5 * m.def.step) : 0) + D.iso.TH) / (D.iso.TH / 2));
+      A.inFront(m, rs, k, function (q, s) { if (!q.open && (q.rock === 'far' || q.occCut || (RF && RF[q.ch])) && A.hides(m, q, s)) want[q.x + ',' + q.y] = q; });
+    } else {
+      (m.occCut || []).forEach(function (q) { want[q.x + ',' + q.y] = q; }); // (on the street: the occluder's own band, as before)
+      if (main) A.MAINCUT.forEach(function (c) { for (var x = c[0]; x <= c[2]; x++) for (var r = c[1]; r <= c[3]; r++) { var q = m.at(x, SK.Y(r)); if (q && !q.open) want[q.x + ',' + q.y] = q; } });
+    }
+    A.pillarCut(m, rs, b);
     var mark = function (q) { for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) dirty[(q.x + xx) + ',' + (q.y + yy)] = 1; };
-    (m.occCut || []).forEach(function (q) { if (!want[q.x + ',' + q.y]) { q.rock = q.occWas; delete q.occCut; delete q.occWas; mark(q); } }); // (in a room: nothing else cut)
-    Object.keys(want).forEach(function (k) { var q = want[k]; if (!q.occCut) { q.occWas = q.rock; q.rock = 'near'; q.occCut = true; mark(q); } });
-    m.occCut = Object.keys(want).map(function (k) { return want[k]; });
-    Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; });
+    (m.occCut || []).forEach(function (q) { if (!want[q.x + ',' + q.y]) { q.rock = q.occWas; delete q.occCut; delete q.occWas; mark(q); } }); // (nothing else cut)
+    Object.keys(want).forEach(function (kk) { var q = want[kk]; if (!q.occCut) { q.occWas = q.rock; q.rock = 'near'; q.occCut = true; mark(q); } });
+    m.occCut = m.skSeeCut = Object.keys(want).map(function (kk) { return want[kk]; });
+    Object.keys(dirty).forEach(function (kk) { if (m.rockImgs) delete m.rockImgs[kk]; }); // (a store's square: its picture keyed by its cut already, js/iso.js roofCanvas)
     return res;
   };
   };
@@ -334,6 +373,10 @@
     var lay = function (s, name, opt, d) { if (!s) return; m.props.push({ skArt: true, kind: 'sk', skName: name, sq: s, depth: s.x + s.y + (d == null ? 0.5 : d), gz: s.gz, make: function () { return A.cell(name, opt) || A.blank(); } }); };
     if (fl === ST) {
       ST.OFF.forEach(function (q) { off(m, sq(q[0], q[1])); });
+      // (the temples' pillars, cut to their stub while they stand between the eye and the room the party is in: A.pillarCut, 11-18)
+      SK.PILLARS.forEach(function (q) { var s = sq(q[0], q[1]); if (s) s.skPillarAt = true; });
+      m.props.forEach(function (p) { if (p.kind !== 'sk' || p.skArt || p.skPillar || !p.sq || !p.sq.skPillarAt) return; p.skPillar = true;
+        var mk0 = p.make || (function (im) { return function () { return im; }; })(p.img); p.make = function () { return p.skCut ? (A.cell(A.PILLARSTUB, { first: true }) || mk0()) : mk0(); }; });
       ST.STAIRS.forEach(function (q) { var s = sq(q[0], q[1]); if (s) m.props.push({ skArt: true, kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, make: function () { return A.cell('stair_down_y', { first: true }) || A.blank(); } }); }); // (the temple stairs, along y since PASS TWO) // (the stairs down marked: 11-12, his "might need a 'stairs down' 'stairs up' tile, hard to tell they're there")
       ST.THINGS.forEach(function (t) { // (each laid on its first square, anchored there; its depth the far end's, so what stands beside it sorts right; every square's code block let go)
         var s = sq(t[1], t[2]), ny = (t[3] && t[3].alongY) || 0, n = ny ? 1 : (SK.art.FOOT[t[0]] || [1, 1])[0]; for (var i = 0; i < n; i++) off(m, sq(t[1] + i, t[2]));
