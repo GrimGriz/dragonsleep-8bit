@@ -5234,6 +5234,35 @@
 },
 "source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
 },
+"folkman_drivespear_p1": {
+"image": "art/folkman_drivespear_p1.png?v=c484b1952a",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-80 DRIVE SPEAR ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_gambler_p1": {
 "image": "art/folkman_gambler_p1.png?v=ff3610ef67",
 "fw": 72,
@@ -5552,6 +5581,35 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-73 DRINKER ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated on lime green), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"folkwoman_drivespear_p1": {
+"image": "art/folkwoman_drivespear_p1.png?v=ee6f2efad0",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-80 DRIVE SPEAR ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_gambler_p1": {
 "image": "art/folkwoman_gambler_p1.png?v=b7b2ec6500",
