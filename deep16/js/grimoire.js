@@ -415,13 +415,13 @@
     }
   };
   // Command (SRD 5.1): one word, WIS; the dead and those with no speech are deaf to it. The Mirror's asking (RULED 09-28)
-  var WORDS = [{ label: 'GROVEL (prone, its turn gone)', value: 'grovel' }, { label: 'HALT (no move, no action)', value: 'halt' }, { label: 'FLEE (away from you, its turn)', value: 'flee' }, { label: 'DROP (what it holds)', value: 'drop' }];
+  var WORDS = [{ label: 'GROVEL (prone, its turn gone)', value: 'grovel', icon: 'grovel', note: 'On its next turn it falls prone, and that turn ends.' }, { label: 'HALT (no move, no action)', value: 'halt', icon: 'halt', note: 'On its next turn it does not move and takes no action.' }, { label: 'FLEE (away from you, its turn)', value: 'flee', icon: 'dash', note: 'On its next turn it spends the move getting away from you, the fastest way it has.' }, { label: 'DROP (what it holds)', value: 'drop', icon: 'drop', note: 'On its next turn it drops whatever it holds, and that turn ends.' }]; // (icon, note: the word on the ring -- THE POPUP RULE, js/ui.js promptRing, 11-18)
   function deaf(w) { return w.type === 'undead' || (w.abil && w.abil.int <= 3) ? 'it does not understand' : ''; }
   E.command = {
     summary: function () { return 'a foe you can see within 60 ft · WIS · one word it obeys on its turn: GROVEL, HALT, FLEE, DROP'; },
     cast: function* (B, u, t, slot, head, x) {
       var word = x.word;
-      if (!word) word = (u.side !== 'party' || u.guest) ? E.command.pick(B, u, t) : yield { prompt: { who: u, title: u.name + ': COMMAND ' + nm(B, t).toUpperCase(), lines: ['One word, and it must obey (WIS DC ' + x.dc + ').'], opts: WORDS } };
+      if (!word) word = (u.side !== 'party' || u.guest) ? E.command.pick(B, u, t) : yield { prompt: { who: u, ring: true, title: u.name + ': COMMAND ' + nm(B, t).toUpperCase(), lines: ['One word, and it must obey (WIS DC ' + x.dc + ').'], opts: WORDS } }; // (ring: THE POPUP RULE, js/ui.js promptRing, 11-18)
       if (!word) word = 'halt';
       var extra = (t.units ? t.units : [t]);
       yield* saveAll(B, u, extra, 'wis', x.dc, null, '', false, head + ': "' + word.toUpperCase() + '!"', { skip: deaf, failText: 'obeys', cond: function (w) { w.conds.commanded = { word: word, by: u.id }; w.commandedBy = u.id; } });
@@ -1033,13 +1033,13 @@
     ai: function (B, u, e, slot, fs) { if (u.conc || !fs.some(function (t) { return G.dist(u, t) <= u.turn.move + 5; })) return null; return { score: 7 * 0.65 + (fs.some(function (t) { return t.conds.invisible; }) ? 5 : 0), t: u, keep: 3 }; }
   };
   var ASPECTS = [
-    { abil: 'con', label: 'BEAR\'S ENDURANCE  (2d6 temp HP, CON checks)', say: 'the bear\'s endurance' },
-    { abil: 'str', label: 'BULL\'S STRENGTH  (STR checks)', say: 'the bull\'s strength' },
-    { abil: 'dex', label: 'CAT\'S GRACE  (DEX checks)', say: 'the cat\'s grace' },
-    { abil: 'cha', label: 'EAGLE\'S SPLENDOR  (CHA checks)', say: 'the eagle\'s splendor' },
-    { abil: 'int', label: 'FOX\'S CUNNING  (INT checks)', say: 'the fox\'s cunning' },
-    { abil: 'wis', label: 'OWL\'S WISDOM  (WIS checks)', say: 'the owl\'s wisdom' }
-  ];
+    { abil: 'con', label: 'BEAR\'S ENDURANCE  (2d6 temp HP, CON checks)', say: 'the bear\'s endurance', icon: 'secondwind', note: 'Advantage on Constitution checks, and 2d6 temporary hit points.' },
+    { abil: 'str', label: 'BULL\'S STRENGTH  (STR checks)', say: 'the bull\'s strength', icon: 'fist', note: 'Advantage on Strength checks.' },
+    { abil: 'dex', label: 'CAT\'S GRACE  (DEX checks)', say: 'the cat\'s grace', icon: 'dash', note: 'Advantage on Dexterity checks.' },
+    { abil: 'cha', label: 'EAGLE\'S SPLENDOR  (CHA checks)', say: 'the eagle\'s splendor', icon: 'spotlight', note: 'Advantage on Charisma checks.' },
+    { abil: 'int', label: 'FOX\'S CUNNING  (INT checks)', say: 'the fox\'s cunning', icon: 'search', note: 'Advantage on Intelligence checks.' },
+    { abil: 'wis', label: 'OWL\'S WISDOM  (WIS checks)', say: 'the owl\'s wisdom', icon: 'eye', note: 'Advantage on Wisdom checks.' }
+  ]; // (icon, note: each aspect on the ring -- THE POPUP RULE, js/ui.js promptRing, 11-18)
   E.enhanceability = {
     summary: function () { return 'touch · you choose: Bear\'s Endurance (2d6 temporary HP, CON checks), Bull\'s Strength (STR), Cat\'s Grace (DEX), Eagle\'s Splendor (CHA), Fox\'s Cunning (INT) or Owl\'s Wisdom (WIS) -- advantage on checks of that ability (concentration)'; },
     // the six aspects (SRD 5.1: "Choose one of the following effects"), Bear's first -- the benches take a prompt's first option. `abil` is the ability
@@ -1047,7 +1047,7 @@
     // grip or web, Hide): the CHA, INT and WIS aspects have nothing to act on yet, and nothing falls here for Cat's Grace
     cast: function* (B, u, t, slot, head, x) {
       var abil = x && x.abil;
-      if (!abil) abil = (u.side !== 'party' || u.guest) ? E.enhanceability.pick(B, u, t) : yield { prompt: { who: u, title: u.name + ': ENHANCE ABILITY', lines: ['Which aspect does ' + nm(B, t) + ' take? Advantage on checks of its ability, until the spell ends.'], opts: ASPECTS.map(function (a) { return { label: a.label, value: a.abil }; }) } };
+      if (!abil) abil = (u.side !== 'party' || u.guest) ? E.enhanceability.pick(B, u, t) : yield { prompt: { who: u, ring: true, title: u.name + ': ENHANCE ABILITY', lines: ['Which aspect does ' + nm(B, t) + ' take? Advantage on checks of its ability, until the spell ends.'], opts: ASPECTS.map(function (a) { return { label: a.label, value: a.abil, icon: a.icon, note: a.note }; }) } }; // (ring: THE POPUP RULE, js/ui.js promptRing, 11-18)
       var a = ASPECTS.filter(function (s) { return s.abil === abil; })[0] || ASPECTS[0], rec = { by: u.id, abil: a.abil }, r = a.abil === 'con' ? D.roll('2d6') : null;
       if (r && r.total > (t.temp || 0)) { t.temp = r.total; rec.temp = r.total; } // (the temporary HP do not stack: the higher stands)
       t.conds.enhanced = rec;
@@ -1281,7 +1281,7 @@
   E.bestowcurse = {
     summary: function () { return 'touch · WIS or cursed: your attacks on it +1d8 necrotic, or its attacks at you at disadvantage (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var kind = (u.side !== 'party' || u.guest) ? ((u.attacksBase || 1) >= 2 || TX().caster(u) ? 'hurt' : 'dis') : yield { prompt: { who: u, title: u.name + ': BESTOW CURSE', lines: ['Which curse, if it fails WIS ' + x.dc + '?'], opts: [{ label: 'YOUR BLOWS +1D8 NECROTIC', value: 'hurt' }, { label: 'ITS ATTACKS AT YOU AT DISADVANTAGE', value: 'dis' }] } };
+      var kind = (u.side !== 'party' || u.guest) ? ((u.attacksBase || 1) >= 2 || TX().caster(u) ? 'hurt' : 'dis') : yield { prompt: { who: u, ring: true, title: u.name + ': BESTOW CURSE', lines: ['Which curse, if it fails WIS ' + x.dc + '?'], opts: [{ label: 'YOUR BLOWS +1D8 NECROTIC', value: 'hurt', icon: 'attack', note: 'If it fails WIS ' + x.dc + ': while it is cursed, your attacks that hit it deal an extra 1d8 necrotic.' }, { label: 'ITS ATTACKS AT YOU AT DISADVANTAGE', value: 'dis', icon: 'dodge', note: 'If it fails WIS ' + x.dc + ': while it is cursed, it has disadvantage on attack rolls against you.' }] } }; // (ring, icons, notes: THE POPUP RULE -- js/ui.js promptRing; the lanes desk's demo of 11-16, the game's since 11-18)
       var hit = false;
       yield* saveAll(B, u, [t], 'wis', x.dc, null, '', false, head + ' on ' + nm(B, t), { failText: 'cursed', cond: function (w) { hit = true; if (kind === 'hurt') w.conds.cursed = { by: u.id, dmg: true }; else w.conds.disAt = { id: u.id, why: 'cursed' }; } });
       if (hit) M.concentrate(B, u, 'bestowcurse', 'Bestow Curse', function () { if (t.conds.cursed && t.conds.cursed.by === u.id) delete t.conds.cursed; if (t.conds.disAt && t.conds.disAt.id === u.id) delete t.conds.disAt; }, [t]);
@@ -1379,6 +1379,11 @@
     }
     return false;
   };
+  // DISPEL WHICH?'s glyphs (11-18, the popup-ring seat; the lanes desk's demo of 11-16 showed Grease and Web the one star, told apart only by the label -- and both are
+  // conjuration with no element, so neither the school nor the element would part them): a spell by what it lays on the floor -- a ground (Grease, Spike Growth,
+  // Entangle), a web, a cloud (a zone: Fog Cloud, Moonbeam, Silence), a dark, a wall -- and the rest (an aura, a ward, a light) the star in its element's colours
+  var DISPEL_GLYPH = { grounds: 'slick', webs: 'web', zones: 'cloud', darks: 'dark', walls: 'wall' };
+  function elTint(id) { var sp = M.data(id) || {}; return { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || (sp.kind === 'heal' || sp.kind === 'cure' ? 'heal' : sp.kind === 'buff' ? 'buff' : 'force'); }
   E.dispelmagic = {
     summary: function (e) { return 'a creature within 120 ft, or a spell\'s area (an empty square in it) · its spells end: a hold, a web, a blessing, a haste, a ward, a darkness; ' + ordinal(Math.max(3, e.slot || 3)) + ' level and lower at once, a held spell above that needs your spellcasting check, DC 10 + its level'; },
     cast: function* (B, u, t, slot, head) {
@@ -1386,7 +1391,7 @@
       // a square of a spell's area: that spell (one of them, where two lie on the square: a player's caster is asked which)
       if (t && t.x != null && t.hp == null) {
         var efs = M.effectsAt(B, t.x, t.y), ef = efs[0];
-        if (efs.length > 1 && u.side === 'party' && !u.guest) ef = yield { prompt: { who: u, title: u.name + ': DISPEL WHICH?', lines: ['Two spells lie on that square.'], opts: efs.map(function (e) { return { label: e.name.toUpperCase() + ' (' + ordinal(e.lv) + ')', value: e }; }) } };
+        if (efs.length > 1 && u.side === 'party' && !u.guest) ef = yield { prompt: { who: u, ring: true, title: u.name + ': DISPEL WHICH?', lines: ['Two spells lie on that square.'], opts: efs.map(function (e) { var gl = DISPEL_GLYPH[e.k]; return { label: e.name.toUpperCase() + ' (' + ordinal(e.lv) + ')', value: e, icon: gl || 'spell', tint: gl ? '' : elTint(e.id), note: e.name + ', cast at ' + ordinal(e.lv) + ' level, lies on that square: dispel it.' }; }) } }; // (ring, icons, notes: THE POPUP RULE -- js/ui.js promptRing; the lanes desk's demo of 11-16, the game's since 11-18)
         if (!ef) { B.card([head + ': no spell lies on that square.']); yield 16; return; }
         var ok = ef.lv <= top, r0 = 0, tot0 = 0;
         if (!ok) { r0 = D.d(20); tot0 = r0 + M.mod(u); ok = tot0 >= 10 + ef.lv; }
@@ -2069,7 +2074,7 @@
         if (!P.length) { B.card([head + ': nothing answers.'], 200); yield 16; return; }
         var pick = aiRunU(u) ? bestSummon(P) : null;
         if (!pick) {
-          var ch = yield { prompt: { who: u, title: u.name + ': ' + D.SUMMON[id].name.toUpperCase(), lines: ['What answers? The most the spell allows of each.'], opts: P.map(function (p, i) { return { label: p.n + ' ' + plural(p.d.name.toUpperCase(), p.n) + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1 }; }) } };
+          var ch = yield { prompt: { who: u, ring: true, title: u.name + ': ' + D.SUMMON[id].name.toUpperCase(), lines: ['What answers? The most the spell allows of each.'], opts: P.map(function (p, i) { return { label: p.n + ' ' + plural(p.d.name.toUpperCase(), p.n) + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1, fig: p.d.sheet, icon: 'claw', note: p.n + ' ' + plural(p.d.name.toLowerCase(), p.n) + ', CR ' + p.cr + ': each ' + p.d.hp + ' HP, AC ' + p.d.ac + (p.d.speed ? ', ' + p.d.speed + ' ft' : '') + '; they fight at your word.' }; }) } }; // (ring, the creature's own figure, a page of eight past ten: THE POPUP RULE -- js/ui.js promptRing, 11-18)
           pick = P[Math.max(1, ch || 1) - 1];
         }
         yield* summon(B, u, id, pick, t, head);
@@ -2149,7 +2154,7 @@
       if (u.guest || u.side !== 'party') pick = foe ? ranked[0] : ranked[ranked.length - 1];
       else {
         var list = foe ? ranked : ranked.slice().reverse();
-        var ch = yield { prompt: { who: u, title: u.name + ': POLYMORPH', lines: [foe ? 'What does it become? (the weakest first)' : 'What does ' + t.name + ' become? (the strongest first)'], opts: list.map(function (p, i) { return { label: p.d.name.toUpperCase() + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1 }; }) } };
+        var ch = yield { prompt: { who: u, ring: true, title: u.name + ': POLYMORPH', lines: [foe ? 'What does it become? (the weakest first)' : 'What does ' + t.name + ' become? (the strongest first)'], opts: list.map(function (p, i) { return { label: p.d.name.toUpperCase() + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1, fig: p.d.sheet, icon: 'claw', note: (foe ? 'It becomes ' : t.name + ' becomes ') + (/^[aeiou]/i.test(p.d.name) ? 'an ' : 'a ') + p.d.name.toLowerCase() + ', CR ' + p.cr + ': ' + p.d.hp + ' HP of its own, AC ' + p.d.ac + (p.d.speed ? ', ' + p.d.speed + ' ft' : '') + '; no spells.' }; }) } }; // (ring, the beast's own figure, a page of eight past ten: THE POPUP RULE -- js/ui.js promptRing, 11-18)
         pick = list[Math.max(1, ch || 1) - 1];
       }
       D.features.morph(B, t, pick.kind, u);
@@ -2671,7 +2676,7 @@
   M.danceAsk = function* (B, u) {
     var dn = u.conds.dancing; if (u.turn) u.turn.danceAsk = false;
     if (!dn || !u.turn || u.hp <= 0 || u.dead) return;
-    var shake = yield { prompt: { who: u, title: u.name + ': IRRESISTIBLE DANCE', lines: ['No move; attacks and DEX saves at disadvantage; attacks at you have advantage.', 'WIS DC ' + dn.dc + ' as your action to regain control, or keep the action and dance on.'], opts: [{ label: 'SHAKE IT OFF (WIS save, your action)', value: true }, { label: 'FIGHT ON (keep the action, dance on)', value: false }] } };
+    var shake = yield { prompt: { who: u, ring: true, title: u.name + ': IRRESISTIBLE DANCE', lines: ['No move; attacks and DEX saves at disadvantage; attacks at you have advantage.', 'WIS DC ' + dn.dc + ' as your action to regain control, or keep the action and dance on.'], opts: [{ label: 'SHAKE IT OFF (WIS save, your action)', value: true, icon: 'surge', note: 'A WIS save against DC ' + dn.dc + ', and it spends your action: on a success the dance ends.' }, { label: 'FIGHT ON (keep the action, dance on)', value: false, icon: 'attack', note: 'No save: the action kept, still dancing -- no move, and your attacks at disadvantage.' }] } }; // (ring: THE POPUP RULE -- js/ui.js promptRing, 11-18)
     if (shake) M.danceSave(B, u);
     else B.card([u.name + ' dances in place and fights on: {g}no save, the action kept.{/}'], 200);
   };

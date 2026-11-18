@@ -1224,6 +1224,8 @@
   // The parts go at 0 HP (battle.js) or by SHED THE BEAST (a bonus action). No Wild Shape while a part is worn
   F.pelt = function (u) { return !!(u && u.cls === 'druid' && u.subclass === 'the Circle of the Pelt' && u.lvl >= 2); };
   F.PARTS = { claws: 'CLAWS', hide: 'HIDE', haunches: 'HAUNCHES' };
+  // (each part's words under WEAR THE BEAST's ring -- THE POPUP RULE, js/ui.js promptRing, 11-18)
+  var PART_NOTE = { claws: function (u) { return 'Your unarmed strikes deal 1d8 slashing, WIS for the hit and the damage' + (u.lvl >= 6 ? ', and are magical' : '') + '.'; }, hide: function (u) { return 'Your AC is at least 13 + WIS: ' + (13 + D.mod(u.abil.wis)) + '.'; }, haunches: function () { return '10 ft more speed.'; } };
   // HAUNCHES put on or shed on the druid's own turn: the speed changes then, and what is left of the turn's move with it (SRD 5.1's way with a speed that changes mid-turn,
   // as Haste cast on oneself adds its speed at once: grimoire.js; Battle.dashFeet, the speed after modifiers). 11-10, his record of 11-09 -- the beast worn mid-turn added nothing
   function peltMove(B, u, f) {
@@ -1380,7 +1382,7 @@
         B.card(['{r}' + u.name + ' swings recklessly.{/}  {g}(advantage on STR swings this turn; at him too till his next){/}'], 200); return;
       case 'wildshape': {
         var ks = F.beastsFor(u);
-        var pick = yield { prompt: { who: u, title: u.name + ': WILD SHAPE', lines: ['Which beast? Its hit points take the blows first; no spells while in it; a bonus action ends it.'], opts: ks.map(function (k, i) { var d = D.FOES[k]; return { label: d.name.toUpperCase() + ' (' + d.hp + ' HP, AC ' + d.ac + ', ' + d.speed + ' FT)', value: i + 1 }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
+        var pick = yield { prompt: { who: u, ring: true, title: u.name + ': WILD SHAPE', lines: ['Which beast? Its hit points take the blows first; no spells while in it; a bonus action ends it.'], opts: ks.map(function (k, i) { var d = D.FOES[k]; return { label: d.name.toUpperCase() + ' (' + d.hp + ' HP, AC ' + d.ac + ', ' + d.speed + ' FT)', value: i + 1, fig: d.sheet, icon: 'claw', note: (/^[aeiou]/i.test(d.name) ? 'An ' : 'A ') + d.name.toLowerCase() + ': ' + d.hp + ' HP of its own, AC ' + d.ac + ', ' + d.speed + ' ft' + (F.SHAPES.some(function (s) { return s.kind === k && s.flies; }) ? ', flying' : '') + '.' }; }).concat([{ label: 'NOT NOW', value: 0, icon: 'back', note: 'No shape taken: the use kept.' }]) } }; // (ring, the beast's own figure: THE POPUP RULE -- js/ui.js promptRing, 11-18)
         if (pick) yield* F.wildShape(B, u, ks[pick - 1]);
         return;
       }
@@ -1421,8 +1423,9 @@
         var picked = [], nP = u.lvl >= 6 ? 2 : 1;
         for (var iP = 0; iP < nP; iP++) {
           var optsP = Object.keys(F.PARTS).filter(function (k) { return picked.indexOf(k) < 0; }).map(function (k) { return { label: F.PARTS[k] + (k === 'claws' ? ': 1d8 slashing, WIS' : k === 'hide' ? ': AC ' + (13 + D.mod(u.abil.wis)) + ' at least' : ': 10 ft more speed'), value: k }; });
-          optsP.push({ label: iP ? 'NO SECOND' : 'NOT NOW', value: 0 });
-          var vP = yield { prompt: { who: u, title: u.name + ': WEAR THE BEAST' + (nP > 1 ? ' (' + (iP + 1) + ' of 2)' : ''), lines: ['A part of a beast on your own body, for the fight.'], opts: optsP } };
+          optsP.push({ label: iP ? 'NO SECOND' : 'NOT NOW', value: 0, no: true, icon: 'back', note: iP ? 'Only the one part worn.' : 'Nothing worn: the bonus action and the use kept.' });
+          optsP.forEach(function (o) { if (o.value) { o.icon = { claws: 'claw', hide: 'dodge', haunches: 'dash' }[o.value]; o.note = PART_NOTE[o.value] ? PART_NOTE[o.value](u) : ''; } }); // (each on the ring -- THE POPUP RULE, js/ui.js promptRing, 11-18)
+          var vP = yield { prompt: { who: u, ring: true, title: u.name + ': WEAR THE BEAST' + (nP > 1 ? ' (' + (iP + 1) + ' of 2)' : ''), lines: ['A part of a beast on your own body, for the fight.'], opts: optsP } };
           if (!vP) break; picked.push(vP);
         }
         if (picked.length) { F.wearBeast(B, u, picked); yield 10; }

@@ -57,6 +57,17 @@
     honk: ['............', '...oooo.....', '..oFFFFo....', '.oFFFFFFoo..', '.oFFFFFFFFo.', '..oFFFFFFFo.', '...ooFFFoo.c', '.....ooo..cc', '..........c.', '............', '............', '............'],
     fountain: ['............', '.....oo.....', '....oMMo....', '...oMMMMo...', '..oMMooMMo..', '.oMo....oMo.', 'oMo......oMo', '.oMo....oMo.', '..oMMooMMo..', '...oMMMMo...', '....oMMo....', '............'],
     lifeline: ['............', '.oo......oo.', 'oMMo....oMMo', 'oMMo....oMMo', '.ooMoooMoo..', '...oMMMo....', '....ooo.....', '............', '............', '............', '............', '............'],
+    // THE POPUP RULE's (11-18, the popup-ring seat; js/ui.js promptRing): MORE, a pick's next page; COMMAND's words -- GROVEL (down, and SHOVE's KNOCK PRONE), HALT, DROP;
+    // and DISPEL WHICH?'s spells by what each lays on the floor -- a ground (Grease, Spike Growth), a web, a cloud (Fog Cloud, a Moonbeam), a dark, a wall
+    more: ['............', '.oo...oo....', '.oGo..oGo...', '..oGo..oGo..', '...oGo..oGo.', '....oGo..oGo', '...oGo..oGo.', '..oGo..oGo..', '.oGo..oGo...', '.oo...oo....', '............', '............'],
+    grovel: ['....oooo....', '....oRRo....', '....oRRo....', '....oRRo....', '.ooooRRoooo.', '.oRRRRRRRRo.', '..oRRRRRRo..', '...oRRRRo...', '....oRRo....', '.....oo.....', 'oooooooooooo', 'oLLLLLLLLLLo'],
+    halt: ['...oooooo...', '..oRRRRRRo..', '.oRRRRRRRRo.', 'oRRRRRRRRRRo', 'oRRRRRRRRRRo', 'oRwwwwwwwwRo', 'oRwwwwwwwwRo', 'oRRRRRRRRRRo', 'oRRRRRRRRRRo', '.oRRRRRRRRo.', '..oRRRRRRo..', '...oooooo...'],
+    drop: ['.....oo.....', '....oLLo....', '..oooLLooo..', '..ogggggggo.', '..oooSsooo..', '.c..oSso..c.', '.c..oSso..c.', '....oSso....', '.c..oSso..c.', '....oSso....', '.....oo.....', '............'],
+    web: ['w....w....w.', '.w...w...w..', '..wwwwwww...', '..ww.w.ww...', '.w.w.w.w.w..', 'wwwwwwwwwww.', '.w.w.w.w.w..', '..ww.w.ww...', '..wwwwwww...', '.w...w...w..', 'w....w....w.', '............'],
+    slick: ['............', '............', '............', '....oooo....', '..ooLLLLoo..', '.oLLlLLLLLo.', 'oLLwwLLLLLLo', 'oLLLLLLlLLLo', '.oLLLLLLLLo.', '..ooLLLLoo..', '....oooo....', '............'],
+    cloud: ['............', '............', '....ooo.....', '...oSSSo.oo.', '.oooSwSSoSSo', 'oSSSSSSSSSSo', 'oSwSSSSSSSso', 'osSSSSSSSsso', '.osssssssso.', '..oooooooo..', '............', '............'],
+    dark: ['............', '....vvvv....', '..vvooooVv..', '.vooooooooV.', '.voooooooov.', 'voooooooooov', 'voooooooooov', '.voooooooov.', '.vooooooooV.', '..vvooooVv..', '....vvvv....', '............'],
+    wall: ['............', 'oooooooooooo', 'oSSSSoSSSSSo', 'oSSSSoSSSSSo', 'oooooooooooo', 'oSSoSSSSSoSo', 'oSSoSSSSSoSo', 'oooooooooooo', 'oSSSSoSSSSSo', 'oSSSSoSSSSSo', 'oooooooooooo', '............'],
     // READY: an hourglass, the action's gold running down -- held for the trigger (10-08, Griz: "i'd like the icon changed from the star one that we're using for spells"; it had no glyph)
     ready: ['.oooooooooo.', '.oLLLLLLLLo.', '..owwwwwwo..', '..owGGGGwo..', '...oGGGGo...', '....oGGo....', '....oGGo....', '...owGGwo...', '..owwGGwwo..', '..oGGGGGGo..', '.oLLLLLLLLo.', '.oooooooooo.'],
     // RING2's two rings (js/ui.js cmds2): ACTIONS in the action's yellow, BONUSES a B in the bonus action's blue
@@ -97,7 +108,8 @@
       if (k === 'buff' || k === 'teleport') return D.icon('spell', 'buff');
       return D.icon('spell', { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || 'force');
     }
-    if (e.kind === 'readywhen') return D.icon(e.icon, e.tint); // (READY's WHEN? ring: a trigger's glyph, a foe's spell in fire and a friend's in blue -- js/ui.js whenRing, 11-13)
+    if (e.kind === 'promptpick' && e.fig && D.spr && D.spr.figIcon) { var fg = D.spr.figIcon(e.fig); if (fg) return fg; } // (a creature's own figure on the ring: POLYMORPH's beasts, WILD SHAPE's, the summons -- js/sprites.js S.figIcon, 11-18)
+    if (e.kind === 'readywhen' || e.kind === 'promptpick' || e.kind === 'promptmore') return D.icon(e.icon, e.tint); // (promptpick: a prompt's option on the ring, THE POPUP RULE -- js/ui.js promptRing, 11-18) // (READY's WHEN? ring: a trigger's glyph, a foe's spell in fire and a friend's in blue -- js/ui.js whenRing, 11-13)
     if (e.kind === 'level') return D.icon('spell', ['thunder', 'cold', 'acid', 'lightning', 'fire', 'fire', 'force', 'force', 'force', 'force'][e.level] || 'force');
     if (e.kind === 'item') { // (an item with a glyph of its own -- by its id, the torch, the lantern, the bucket; or by its use, the rope -- else the flask in its effect's colours)
       var it = e.e || e, own = MAPS[it.id] ? it.id : it.use && MAPS[it.use.effect] ? it.use.effect : null;

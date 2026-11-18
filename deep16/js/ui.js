@@ -82,6 +82,7 @@
     B.readyAim = req.aim || null;
     if (req.aim) aimStart(B, req.aim);
     if (req.prompt) { B.sel = 0; if (!req.prompt.quiet) D.sfx('popup'); // (quiet: a readied thing's NOW / HOLD -- the `ready` ping is its sound, battle.js readySpring, 11-13)
+      if (ringPrompt(B, req.prompt)) { B.list = promptRing(B, req.prompt, 0); B.ringB = null; B.ringStill = false; ringInView(B, req.prompt.who, B.list); } // (a choice among things on your own turn: on the ring -- THE POPUP RULE, ringPrompt below)
       if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
     if (req.prompt && req.prompt.squares && req.prompt.pick.length) { // (a pick of squares -- Rootdrag's drag, 10-30: the view on the middle of them, so none sits under the prompt's box)
       var pq = req.prompt.pick, mx = Math.round(pq.reduce(function (s, q) { return s + q.x; }, 0) / pq.length), my = Math.round(pq.reduce(function (s, q) { return s + q.y; }, 0) / pq.length);
@@ -560,8 +561,82 @@
     if (I.mouse.click && !overUI(B)) { var pc = p.squares ? null : UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
     if (I.pressed('a')) return take(pickAt(B, p));
   }
+  // THE POPUP RULE (RULED 2026-11-16, Griz, on the lanes desk's demo of BESTOW CURSE and DISPEL WHICH? in the pane: "looks good, slate the pop-up for after weekly reset"; the
+  // READY lane, his 10-06 "So far the only time I really like the blue popup menus is for picking which of vivians dashs to use"): a choice among things on your own turn goes
+  // on the ring; a question the game asks you (a reaction, a confirm such as DASH THERE?) stays a popup. A prompt the game marks `ring` -- the summons' pick, POLYMORPH,
+  // WILD SHAPE, ENHANCE ABILITY, BESTOW CURSE, COMMAND, DISPEL WHICH?, LESSER RESTORATION, IRRESISTIBLE DANCE, LAY ON HANDS, THE ROPE, THE TORCH / LANTERN on the ground,
+  // SHOVE's push or prone and WEAR THE BEAST -- goes on its hero's ring in RING and RING2: its title over the ring, its question and keys above that, each option an icon
+  // (its `icon` and `tint`, or a creature's own figure, `fig`) with the option's words under the ring while it is the one at the front (`note`). The arrows, the wheel, the
+  // d-pad and the sticks turn it, E or a click takes one, 1-9 the one at that place; X or the right button is the popup's NO where it has one (NOT NOW) and nothing where it
+  // has none (the slot is spent by then: there is no backing out of the spell). A pick of more than ten goes in pages of eight (POLYMORPH's beasts, the summons): MORE turns
+  // to the next page, and X goes back a page before it is a NO. MENU STYLE: WINDOW keeps the popup
+  var PROMPT_PAGE = 8;
+  function ringPrompt(B, p) { return !!(p && p.ring && !p.pick && p.who && UI.style(B) !== 'window'); }
+  function promptRing(B, p, page) {
+    var no = noOf(p), picks = [], lines = p.lines || [];
+    p.opts.forEach(function (o, i) { if (i !== no) picks.push(i); });
+    var pages = picks.length > 10 ? Math.ceil(picks.length / PROMPT_PAGE) : 1, pg = ((page || 0) % pages + pages) % pages;
+    var on = pages > 1 ? picks.slice(pg * PROMPT_PAGE, pg * PROMPT_PAGE + PROMPT_PAGE) : p.opts.map(function (o, i) { return i; });
+    var entry = function (i) { var o = p.opts[i]; return { kind: 'promptpick', opt: i, value: o.value, icon: o.icon || (i === no ? 'back' : 'spell'), tint: o.tint || '', fig: o.fig || null, id: o.icon || 'spell', name: o.label, label: o.label, ok: o.ok !== false, why: o.why || '', note: o.note || (i === no ? 'Nothing taken.' : lines.join(' ')) }; };
+    var items = on.map(entry);
+    if (pages > 1) {
+      var nx = (pg + 1) % pages, from = nx * PROMPT_PAGE + 1, to = Math.min(picks.length, from + PROMPT_PAGE - 1);
+      items.push({ kind: 'promptmore', icon: 'more', id: 'more', name: 'MORE', label: 'MORE  (' + (pg + 1) + ' of ' + pages + ')', ok: true, note: 'The next ' + (to - from + 1) + ' of the ' + picks.length + ': ' + from + ' to ' + to + (nx ? '' : ', the first again') + '.' });
+      if (no >= 0) items.push(entry(no));
+    }
+    return { kind: 'prompt', prompt: p, title: p.title + (pages > 1 ? '  (' + (pg + 1) + ' of ' + pages + ')' : ''), sel: 0, page: pg, pages: pages, items: items };
+  }
+  UI.ringPrompt = ringPrompt; UI.promptRing = promptRing; // (dev/bench16.js popupring1118)
+  // the ring's hero in view (a spell aimed at the far end leaves the camera there; the popup sat at the screen's foot wherever it looked): the camera to the hero when it is
+  // off to a side, then up or down just enough that the question and the title above the ring clear the cards at the top (CARDS_Y) and the words below it clear the bar
+  var CARDS_Y = 46;
+  function askRows(L) { var n = 1; (L.prompt.lines || []).forEach(function (l) { n += D.wrap(String(l), 300).length; }); return Math.min(5, n); }
+  function ringInView(B, u, L) {
+    var s = u && B.focus && UI.unitPos(B, u); if (!s || !L) return;
+    if (s.x < 120 || s.x > D.W - 120) { B.focus(u); s = UI.unitPos(B, u); }
+    var z = D.iso.zoom || 1, ry = Math.max(28, L.items.length * 3.5), up = 26 * z + ry + 30 + askRows(L) * 9 + 6, down = ry - 26 * z + 16 + 12 + 34; // (cmdRing's and promptAsk's own sizes)
+    var lo = CARDS_Y + up, hi = BAR_Y - down, want = s.y < lo ? Math.min(lo, hi) : s.y > hi ? Math.max(hi, lo) : s.y;
+    if (want !== s.y) { D.iso.cam.y = Math.round(D.iso.cam.y - (want - s.y) / z); if (UI.clampCam) UI.clampCam(); }
+  }
+  function promptRingInput(B, p) {
+    var L = B.list, n = L.items.length, s0 = L.sel;
+    var turnTo = function (pg) { B.list = promptRing(B, p, pg); B.ringB = null; B.ringStill = false; };
+    var go = function (i) {
+      var e = L.items[i]; if (!e) return;
+      if (e.kind === 'promptmore') { D.sfx('confirm'); return turnTo(L.page + 1); }
+      if (!e.ok) { L.sel = i; D.sfx('error'); return; }
+      D.sfx('confirm'); B.list = null; B.answer(e.value);
+    };
+    var ls = ringStep(); if (!ls && I.repeat('up')) ls = -1; if (!ls && I.repeat('down')) ls = 1;
+    if (ls) L.sel = (L.sel + n + ls) % n;
+    if (I.mouse.moved) (B.buttons || []).forEach(function (r) { if (r.list != null && hit(r)) { L.sel = r.list; B.ringStill = true; } });
+    if (L.sel !== s0) { D.sfx('cursor'); if (ls) B.ringStill = false; }
+    for (var k = 1; k <= Math.min(9, n); k++) if (I.pressed('n' + k)) return go(k - 1);
+    if (I.pressed('a')) return go(L.sel);
+    if (I.mouse.click) { var hr = (B.buttons || []).filter(function (r) { return r.list != null && hit(r); })[0]; if (hr) return go(hr.list); }
+    if (I.mouse.rbtn || I.pressed('b')) {
+      if (L.page > 0) { D.sfx('cancel'); return turnTo(L.page - 1); } // (a page back first, as X goes back a ring)
+      var no = noOf(p); if (no >= 0) { D.sfx('cancel'); B.list = null; B.answer(p.opts[no].value); }
+    }
+  }
+  // the question over the ring: the prompt's own lines, and the keys -- what E does and what X does here
+  function promptAsk(ctx, B, L, cx, top) {
+    var p = L.prompt, no = noOf(p), ls = [];
+    (p.lines || []).forEach(function (l) { D.wrap(String(l), 300).forEach(function (s) { ls.push(s); }); });
+    ls = ls.slice(0, 4);
+    var keys = 'E or a click: take it' + (L.page > 0 ? '   X: back a page' : no >= 0 ? '   X: ' + p.opts[no].label.toLowerCase() : '');
+    var all = ls.concat([D.keys(keys)]), ww = Math.max.apply(null, all.map(function (s) { return D.textWidth(s); })) + 10, hh = all.length * 9 + 4;
+    var y = Math.max(2, top - hh - 2), x = Math.round(cx - ww / 2);
+    box(ctx, x, y, ww, hh, R('stone', 3));
+    ls.forEach(function (s, k) { D.text(ctx, s, cx, y + 2 + k * 9, R('bone', 2), 'center'); });
+    D.text(ctx, D.keys(keys), cx, y + 2 + ls.length * 9, R('accent', 2), 'center');
+  }
   function promptInput(B, p) {
     if (p.pick) return pickInput(B, p);
+    // (MENU STYLE switched with the prompt up -- the M menu: the ring made, or put down for the popup)
+    if (ringPrompt(B, p) && !(B.list && B.list.prompt === p)) { B.list = promptRing(B, p, 0); B.ringB = null; }
+    if (!ringPrompt(B, p) && B.list && B.list.kind === 'prompt') B.list = null;
+    if (ringPrompt(B, p)) return promptRingInput(B, p);
     var n = p.opts.length, s0 = B.sel, go = function (v) { D.sfx('confirm'); B.answer(v); };
     if (I.repeat('left') || I.repeat('up')) B.sel = (B.sel + n - 1) % n;
     if (I.repeat('right') || I.repeat('down')) B.sel = (B.sel + 1) % n;
@@ -1676,6 +1751,53 @@
       this.card(['{y}THE LIVING OVER THE FALLEN (11-11){/}', 'The cleric stands on a dead bugbear, the wizard lies at 0 under a standing one,', 'the fighter stands on the back square of a fallen stone giant: each drawn over what is under it.', '{g}held still to look: E or a click plays the fight on{/}']);
       var up = this.update, held = true, I0 = D.input; // (the staged moment held -- the bugbear's turn is first: E or a click lets the fight go on)
       this.update = function () { if (held) { this.t++; if (I0.pressed('a') || I0.mouse.click) { held = false; I0.clear && I0.clear(); } return; } return up.apply(this, arguments); };
+    };
+    return B;
+  };
+  // THE POPUP RULE, SHOWN (deep16/?ringshow, 11-18, the popup-ring seat; an eyes row's door): each choice on your own turn raised on its hero's ring, in a fight of its own --
+  // the class floor's six at level 9 beside a goblin, staged once it is set -- for his hands: the keys, the mouse or the pad answer it, the game's card says what it did, and
+  // E goes on to the next (&p=<n>, 1 to 14, starts at that one; after the last, the first again). MENU STYLE: WINDOW (the M menu) shows each as its popup instead
+  var RING_SHOW = [
+    { t: 'COMMAND', who: 'c', say: 'The cleric casts Command at the goblin: the word.', go: function (B, o) { return D.magic.cast(B, o.c, 'command', 1, o.g); } },
+    { t: 'ENHANCE ABILITY', who: 'c', say: 'The cleric touches the fighter: the aspect.', go: function (B, o) { return D.magic.cast(B, o.c, 'enhanceability', 2, o.f); } },
+    { t: 'BESTOW CURSE', who: 'c', say: 'The cleric touches the goblin: the curse.', go: function (B, o) { return D.magic.cast(B, o.c, 'bestowcurse', 3, o.g); } },
+    { t: 'DISPEL WHICH?', who: 'w', say: 'Grease and Web lie on one square: the wizard\'s Dispel Magic takes one.', go: function (B, o) { var q = o.sq; B.grounds = [{ kind: 'grease', castId: 'grease', sq: [q], by: o.w.id, lv: 1 }]; B.webs = [{ castId: 'web', x: q[0], y: q[1], sq: [q], by: o.w.id, lv: 2 }]; return D.magic.cast(B, o.w, 'dispelmagic', 3, { x: q[0], y: q[1] }); } },
+    { t: 'LESSER RESTORATION', who: 'c', say: 'The fighter is blind and poisoned: the cleric ends one.', go: function (B, o) { o.f.conds.blinded = { by: 'show' }; o.f.conds.poisoned = { by: 'show' }; return D.magic.cast(B, o.c, 'lesserrestoration', 2, o.f); } },
+    { t: 'CONJURE ANIMALS', who: 'd', say: 'The druid conjures: twenty to pick, eight a page (MORE turns it).', go: function (B, o) { return D.magic.cast(B, o.d, 'conjureanimals', 3, { x: o.pt[0], y: o.pt[1] }); } },
+    { t: 'POLYMORPH', who: 'w', say: 'The wizard polymorphs the fighter: twenty beasts, eight a page.', go: function (B, o) { return D.magic.cast(B, o.w, 'polymorph', 4, o.f); } },
+    { t: 'WILD SHAPE', who: 'd', say: 'The druid takes a beast\'s shape (NOT NOW: X).', go: function (B, o) { return D.features.exec(B, o.d, { do: 'wildshape' }); } },
+    { t: 'IRRESISTIBLE DANCE', who: 'f', say: 'The fighter starts the turn dancing: the save, or fight on.', go: function (B, o) { o.f.conds.dancing = { dc: 15, by: o.w.id }; D.rules.startTurn(o.f); return D.magic.danceAsk(B, o.f); } },
+    { t: 'LAY ON HANDS', who: 'p', say: 'The fighter is hurt and poisoned: the paladin heals, or cures.', go: function (B, o) { o.f.hp = Math.max(1, o.f.maxhp - 12); o.f.conds.poisoned = { by: 'show' }; return B.layOnHands(o.p, o.f); } },
+    { t: 'THE ROPE', who: 'f', say: 'A click on the fighter, standing on a rope\'s grapple: take it up (NOT NOW: X).', go: function (B, o) { B.ropes = [{ at: [o.f.x, o.f.y], foot: [o.f.x, o.f.y + 1], hp: 2, by: o.f.id }]; return B.exec(o.f, { do: 'takerope', x: o.f.x, y: o.f.y, ask: true }); } },
+    { t: 'THE TORCH', who: 'm', say: 'A click on a torch burning beside the monk: take it up, or step there (NOT NOW: X).', go: function (B, o) { o.m.torch = { kind: 'torch', bright: 20, dim: 20 }; D.light.dropTorch(B, o.m, true); var tx = o.m.x, ty = o.m.y; o.m.x += 1; B.cache = null; D.rules.startTurn(o.m); return B.exec(o.m, { do: 'pickuptorch', x: tx, y: ty }); } },
+    { t: 'SHOVE', who: 'f', say: 'The fighter shoves the goblin: push, or prone (NOT NOW: X).', go: function (B, o) { o.f.turn.attacksLeft = 1; o.f.turn.attackAction = true; return B.exec(o.f, { do: 'shove', target: o.g }); } },
+    { t: 'WEAR THE BEAST', who: 'd', say: 'The druid of the Pelt wears a beast\'s part: two at level 9 (NOT NOW / NO SECOND: X).', go: function (B, o) { o.d.subclass = 'the Circle of the Pelt'; o.d.feats.wildShape = Math.max(2, o.d.feats.wildShape || 0); D.rules.startTurn(o.d); return D.features.exec(B, o.d, { do: 'wearbeast' }); } }
+  ];
+  UI.RING_SHOW = RING_SHOW;
+  UI.ringShow = function (q, k) {
+    var n = RING_SHOW.length, pm = /[?&]p=(\d+)/.exec(q || ''), i = k != null ? k : pm ? Math.max(0, Math.min(n - 1, +pm[1] - 1)) : 0, c = RING_SHOW[i];
+    var B = D.npcFight('?npc=goblin&lvl=9&vs=cleric,wizard,druid,paladin,monk,fighter', {}), en = B.enter;
+    B.enter = function () {
+      en.apply(this, arguments); while (!this.order.length) this.co.next(); this.dark = false;
+      var m = G.map, at = null, us = this.units;
+      for (var y = 1; y + 8 < m.h && !at; y++) for (var x = 1; x + 9 < m.w && !at; x++) { var z = m.gz(x, y), ok = true; for (var j = 0; j < 8 && ok; j++) for (var ii = 0; ii < 9 && ok; ii++) { var s = m.at(x + ii, y + j); if (!s || !s.walk || m.gz(x + ii, y + j) !== z) ok = false; } if (ok) at = [x, y]; }
+      if (!at) at = [2, 2];
+      var X = at[0], Y = at[1], cl = function (k2) { return us.filter(function (u) { return u.side === 'party' && u.cls === k2; })[0]; };
+      var o = { c: cl('cleric'), w: cl('wizard'), d: cl('druid'), p: cl('paladin'), m: cl('monk'), f: cl('fighter'), g: us.filter(function (u) { return u.side === 'foe'; })[0], sq: [X + 6, Y + 3], pt: [X + 1, Y + 6] };
+      [[o.f, 2, 2], [o.g, 3, 2], [o.c, 1, 2], [o.p, 2, 3], [o.w, 2, 5], [o.d, 1, 4], [o.m, 4, 5]].forEach(function (r) { if (r[0]) { r[0].x = X + r[1]; r[0].y = Y + r[2]; } });
+      o.g.hp = o.g.maxhp = 90;
+      us.forEach(function (u) { D.rules.startTurn(u); u.reaction = 1; });
+      this.cache = null; G.setup(m, us);
+      var self = this, hero = o[c.who];
+      this.co = (function* () {
+        self.active = hero; self.focus(hero); self.clearCards();
+        self.card(['{y}THE POPUP RULE, ' + (i + 1) + ' of ' + n + ': ' + c.t + '{/}  {g}(the M menu\'s MENU STYLE: WINDOW, the popup){/}', c.say], 100000);
+        yield* c.go(self, o);
+        yield 30; // (the press that answered it let go first)
+        self.card([D.keys('{g}' + (i + 1) + ' of ' + n + ' done -- E for the next: ' + RING_SHOW[(i + 1) % n].t + '{/}')], 100000);
+        for (;;) { if (D.input.pressed('a') || D.input.mouse.click) break; yield 1; }
+        D.pop(); D.push(UI.ringShow(q, (i + 1) % n));
+      })();
     };
     return B;
   };
@@ -2845,6 +2967,7 @@
       if (o.c.kind === 'spell' && !front) D.text(ctx, initials(o.c.name), bx + 6, by + 6, o.c.ok ? R('bone', 2) : R('stone', 4), 'center');
     });
     if (B.list && B.list.title) { var tt = B.list.title, tw2 = D.textWidth(tt) + 10; box(ctx, Math.round(cx - tw2 / 2), Math.round(cy - ry - 30), tw2, 12, R('glow', 1)); D.text(ctx, tt, cx, Math.round(cy - ry - 28), R('gold', 4), 'center'); }
+    if (B.list && B.list.kind === 'prompt') promptAsk(ctx, B, B.list, cx, Math.round(cy - ry - 30)); // (a prompt on the ring: its question and keys over the title -- THE POPUP RULE)
     var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'item' ? '  ' + slotText(cur) : cur.kind === 'spell' && cur.level ? '  L' + cur.slot + (cur.levels.length > 1 ? ' ^v' : '') : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
@@ -2878,6 +3001,7 @@
       B.promptRects = [];
       return;
     }
+    if (ringPrompt(B, p) && B.list && B.list.prompt === p) { B.promptRects = []; cmdRing(ctx, B, p.who); return; } // (a choice on your own turn: on the ring, no popup -- THE POPUP RULE, ringPrompt)
     // in the 8-bit game's window, as the menus are (10-01, Griz: "Can you blue the dash confirmation call and still use that number choice
     // method (that's handy to click on) - check how long the rogues boxes get though"): the numbered buttons kept, the box as wide as its
     // words and buttons need (a rogue's CUNNING DASH, DASH and NOT THAT FAR ran past its edge), a second row of buttons when one won't fit

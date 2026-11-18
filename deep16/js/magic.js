@@ -385,11 +385,12 @@
   // paralyzed.poison: the spider's, the chuul's) is one ailment: ending it frees the creature
   function ailments(w) {
     var c = w.conds, out = [];
-    if (c.paralyzed) out.push(c.paralyzed.poison ? { label: 'the paralysing poison', end: function () { delete c.paralyzed; delete c.poisoned; } } : { label: 'paralysis', end: function () { delete c.paralyzed; } });
-    if (c.contagion) out.push({ label: 'the disease', end: function () { delete c.contagion; if (c.poisoned && c.poisoned.contagion) delete c.poisoned; if (c.blinded && c.blinded.by === 'contagion') delete c.blinded; } });
-    if (c.blinded && c.blinded.by !== 'contagion') out.push({ label: 'blindness', end: function () { delete c.blinded; delete c.blindedBy; } });
-    if (c.poisoned && !c.poisoned.contagion && !(c.paralyzed && c.paralyzed.poison)) out.push({ label: 'poison', end: function () { delete c.poisoned; } });
-    if (c.deafened) out.push({ label: 'deafness', end: function () { delete c.deafened; } });
+    // (icon: each on LESSER RESTORATION's ring -- THE POPUP RULE, js/ui.js promptRing, 11-18)
+    if (c.paralyzed) out.push(c.paralyzed.poison ? { label: 'the paralysing poison', icon: 'halt', end: function () { delete c.paralyzed; delete c.poisoned; } } : { label: 'paralysis', icon: 'halt', end: function () { delete c.paralyzed; } });
+    if (c.contagion) out.push({ label: 'the disease', icon: 'viral', end: function () { delete c.contagion; if (c.poisoned && c.poisoned.contagion) delete c.poisoned; if (c.blinded && c.blinded.by === 'contagion') delete c.blinded; } });
+    if (c.blinded && c.blinded.by !== 'contagion') out.push({ label: 'blindness', icon: 'gaze', end: function () { delete c.blinded; delete c.blindedBy; } });
+    if (c.poisoned && !c.poisoned.contagion && !(c.paralyzed && c.paralyzed.poison)) out.push({ label: 'poison', icon: 'item', tint: 'antitoxin', end: function () { delete c.poisoned; } });
+    if (c.deafened) out.push({ label: 'deafness', icon: 'honk', end: function () { delete c.deafened; } });
     return out;
   }
   M.ailments = ailments;
@@ -607,7 +608,7 @@
         // ONE thing ends (the docket, "Lesser Restoration ends one condition, chosen"): a player chooses where more than one afflicts the creature
         // (the worst is the first of the list, which the benches take); an NPC takes the worst
         var ail = ailments(w2), ap = ail[0];
-        if (ail.length > 1 && u.side === 'party' && !u.guest) { var ci = yield { prompt: { who: u, title: u.name + ': LESSER RESTORATION', lines: [w2.name + ' is afflicted with more than the spell can end. Which one?'], opts: ail.map(function (a, i) { return { label: a.label.toUpperCase(), value: i }; }) } }; ap = ail[ci] || ail[0]; }
+        if (ail.length > 1 && u.side === 'party' && !u.guest) { var ci = yield { prompt: { who: u, ring: true, title: u.name + ': LESSER RESTORATION', lines: [w2.name + ' is afflicted with more than the spell can end. Which one?'], opts: ail.map(function (a, i) { return { label: a.label.toUpperCase(), value: i, icon: a.icon, tint: a.tint, note: 'End ' + a.label + ' on ' + w2.name + '; the ' + (ail.length > 2 ? 'others stay' : 'other stays') + '.' }; }) } }; ap = ail[ci] || ail[0]; } // (ring: THE POPUP RULE -- js/ui.js promptRing, 11-18)
         if (ap) ap.end();
         B.card([head + ' on ' + w2.name + ': ' + (ap ? ap.label + ' ended.' + (ail.length > 1 ? ' {g}(one only: ' + ail.filter(function (a) { return a !== ap; }).map(function (a) { return a.label; }).join(', ') + ' stay' + (ail.length > 2 ? '' : 's') + '){/}' : '') : 'nothing to end.')]);
       } else if (id === 'mageArmor') {

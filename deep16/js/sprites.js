@@ -52,6 +52,26 @@
     else S.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? S.drawnTop(name) + 2 : S.portraitY(name, 0, hh), { frame: 0 }); // (STATUS's portrait: the head in it, a tall one's too -- GreyFang's, 10-14)
     return (cache[k] = cv);
   };
+  // a creature's whole figure in a square, for a ring's icon (11-18, the popup-ring seat, THE POPUP RULE: POLYMORPH's beasts, WILD SHAPE's and the summons each their own
+  // figure, where every one had been the one glyph -- js/ui.js promptRing, js/icons.js D.iconFor): the first idle frame drawn, cut to what it covers, and scaled whole into
+  // the square, pixels kept (a whole step up where it is small); null till the sheet is in, and fetched meanwhile
+  var figCv = {};
+  S.figIcon = function (name, n) {
+    n = n || 24; var k = name + ':' + n; if (figCv[k]) return figCv[k];
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return null;
+    if (!S.has(name)) { if (!S.offline && !S.failed(name) && S.load) S.load(sh.image); return null; }
+    try {
+      var Z = 192, big = document.createElement('canvas'); big.width = big.height = Z;
+      var bx = big.getContext('2d'); S.draw(bx, name, 'idle', 0, 0, Z / 2, Z - 16, { frame: 0 });
+      var px = bx.getImageData(0, 0, Z, Z).data, x0 = Z, y0 = Z, x1 = -1, y1 = -1;
+      for (var y = 0; y < Z; y++) for (var x = 0; x < Z; x++) if (px[(y * Z + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      if (x1 < 0) return null;
+      var w = x1 - x0 + 1, h = y1 - y0 + 1, s = n / Math.max(w, h); if (s >= 1) s = Math.floor(s);
+      var cv = document.createElement('canvas'); cv.width = cv.height = n; var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
+      cx.drawImage(big, x0, y0, w, h, Math.round((n - w * s) / 2), Math.round((n - h * s) / 2), Math.round(w * s), Math.round(h * s));
+      return (figCv[k] = cv);
+    } catch (e) { return null; }
+  };
   // true when every named sheet is settled (or there is nothing to fetch)
   S.ready =function (names) { return S.offline || srcsOf(names).every(settled); };
   S.failed = function (name) { var s = srcOf(name), im = s && D.images[s]; return !!(im && settled(s) && !im.naturalWidth); };

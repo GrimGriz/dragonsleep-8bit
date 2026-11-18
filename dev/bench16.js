@@ -1890,6 +1890,148 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preN);
     return;
   }
+  // THE POPUP RULE (mode=popupring1118; RULED 2026-11-16, Griz, on the lanes desk's demo in the pane: "looks good, slate the pop-up for after weekly reset"; the READY lane): a
+  // choice among things on your own turn goes on the ring -- every prompt the game marks `ring` (js/ui.js promptRing), each raised by its own spell or feature on a hero's
+  // turn: in RING it is a ring and no popup (its title, its question, an icon an option, the front one's words), drawn; WINDOW keeps the popup, its number key answers it,
+  // and the ring comes back on RING; the keys' pick answers it with that option and the game takes it; X is the popup's NO where it had one and nothing where it had none
+  // (the mouse's right button the same), a click on an icon takes it; past ten, pages of eight (MORE, X back a page, MORE on the last back to the first); the demo's
+  // &ringprompts switch gone; a prompt not marked (the asking kind: DASH THERE?, a reaction) stays a popup in RING
+  if (get('mode', '') === 'popupring1118') {
+    var repR = { checks: [], errors: [] }, d0R = D.d, um0R = D.ui.urlMenu, pr0R = D.input.pressed, rp0R = D.input.repeat, ms0R = D.input.mouse, tx0R = D.text;
+    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR(g, v) { var k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = null; } }
+    // a cleric, a wizard, a druid, a paladin, a monk and a fighter at level 9 beside a goblin of 90 HP (STR and DEX 1: it loses a shove)
+    function mkR() {
+      var Bx = D.npcFight('?npc=goblin&lvl=9&vs=cleric,wizard,druid,paladin,monk,fighter', {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false;
+      var P = Bx.units.filter(function (u) { return u.side === 'party'; }), cl = function (c) { return P.filter(function (u) { return u.cls === c; })[0]; };
+      var o = { B: Bx, c: cl('cleric'), w: cl('wizard'), d: cl('druid'), p: cl('paladin'), m: cl('monk'), f: cl('fighter'), g: Bx.units.filter(function (u) { return u.side === 'foe'; })[0] };
+      [[o.f, 9, 9], [o.g, 10, 9], [o.c, 8, 9], [o.p, 9, 10], [o.w, 9, 12], [o.d, 8, 11], [o.m, 11, 12]].forEach(function (q) { if (q[0]) { q[0].x = q[1]; q[0].y = q[2]; } });
+      o.g.hp = o.g.maxhp = 90; o.g.abil.str = 1; o.g.abil.dex = 1; o.f.abil.str = 30;
+      Bx.units.forEach(function (u) { D.rules.startTurn(u); u.reaction = 1; });
+      return o;
+    }
+    function raiseR(c) { var o = mkR(); o.B.active = c.who(o); var g = c.go(o), st = g.next(), k = 0; while (!st.done && k++ < 400 && !(st.value && st.value.prompt)) st = g.next(st.value && st.value.aim ? null : undefined); return { o: o, g: g, st: st, p: !st.done && st.value && st.value.prompt || null }; }
+    function keyR(B, k, rpt) { D.input.pressed = function (b) { return !rpt && b === k; }; D.input.repeat = function (b) { return !!rpt && b === k; }; try { D.ui.input(B, B.req); } finally { D.input.pressed = pr0R; D.input.repeat = rp0R; } }
+    function mouseR(B, m) { D.input.mouse = Object.assign({ x: D.W / 2, y: D.H / 2, click: false, rbtn: false, rclick: false, moved: false, inside: true }, m); D.input.pressed = function () { return false; }; D.input.repeat = function () { return false; }; try { D.ui.input(B, B.req); } finally { D.input.mouse = ms0R; D.input.pressed = pr0R; D.input.repeat = rp0R; } }
+    var cvR = document.createElement('canvas'); cvR.width = D.W; cvR.height = D.H; var saidR = [];
+    function drawR(B, style, tag) { saidR = []; D.ui.urlMenu = style; D.text = function (c, s) { saidR.push(String(s).replace(/\{\/?[a-z]*\}/g, '')); return tx0R.apply(this, arguments); }; var er = ''; try { D.ui.drawBattle(cvR.getContext('2d'), B); } catch (eD) { er = String(eD && eD.message || eD).slice(0, 160); } D.text = tx0R; if (get('shots', '') && tag) (repR.shots = repR.shots || {})[tag] = cvR.toDataURL('image/png'); return er; }
+    function upR(r, style) { var B = r.o.B, got = { n: 0, v: undefined }; B.answer = function (v) { got.n++; got.v = v; }; D.ui.urlMenu = style || 'ring'; B.req = r.st.value; D.ui.onRequest(B, B.req); return got; }
+    var dice1 = function () { return 1; }, dice10 = function () { return 10; };
+    function cast(who, id, slot, tgt) { return function (o) { return D.magic.cast(o.B, o[who], id, slot, typeof tgt === 'function' ? tgt(o) : o[tgt]); }; }
+    var CASES = [
+      { id: 'COMMAND', who: function (o) { return o.c; }, go: cast('c', 'command', 1, 'g'), dice: dice1,
+        check: function (o, v) { var cm = o.g.conds.commanded; return { ok: !!cm && cm.word === v && v === 'halt', say: 'the goblin commanded ' + JSON.stringify(cm && cm.word) + ' (picked ' + v + ')' }; } },
+      { id: 'ENHANCE ABILITY', who: function (o) { return o.c; }, go: cast('c', 'enhanceability', 2, 'f'),
+        check: function (o, v) { var en = o.f.conds.enhanced; return { ok: !!en && en.abil === v && v === 'str', say: 'the fighter enhanced: ' + JSON.stringify(en && en.abil) + ' (picked ' + v + ')' }; } },
+      { id: 'BESTOW CURSE', who: function (o) { return o.c; }, go: cast('c', 'bestowcurse', 3, 'g'), dice: dice1,
+        check: function (o, v) { return { ok: v === 'dis' && !!o.g.conds.disAt && !o.g.conds.cursed, say: 'picked ' + v + ': its attacks at the cleric at disadvantage ' + !!o.g.conds.disAt + ', the necrotic curse ' + !!o.g.conds.cursed }; } },
+      { id: 'DISPEL WHICH?', who: function (o) { return o.w; }, go: function (o) { o.B.grounds = [{ kind: 'grease', castId: 'grease', sq: [[12, 10]], by: o.w.id, lv: 1 }]; o.B.webs = [{ castId: 'web', x: 12, y: 10, sq: [[12, 10]], by: o.w.id, lv: 2 }]; return D.magic.cast(o.B, o.w, 'dispelmagic', 3, { x: 12, y: 10 }); },
+        check: function (o, v) { var gr = (o.B.grounds || []).length, wb = (o.B.webs || []).length; return { ok: !!v && v.id === 'web' && gr === 1 && wb === 0, say: 'picked ' + (v && v.name) + ': the grease left ' + gr + ', the web left ' + wb }; } },
+      { id: 'LESSER RESTORATION', who: function (o) { return o.c; }, go: function (o) { o.f.conds.blinded = { by: 'bench' }; o.f.conds.poisoned = { by: 'bench' }; return D.magic.cast(o.B, o.c, 'lesserrestoration', 2, o.f); },
+        check: function (o, v) { return { ok: v === 1 && !o.f.conds.poisoned && !!o.f.conds.blinded, say: 'picked ' + v + ': the poison ended ' + !o.f.conds.poisoned + ', the blindness stays ' + !!o.f.conds.blinded }; } },
+      { id: 'CONJURE ANIMALS', who: function (o) { return o.d; }, go: cast('d', 'conjureanimals', 3, function () { return { x: 8, y: 13 }; }), figs: true,
+        check: function (o, v) { var P = D.summonPool('conjureanimals', 3), k = P[v - 1] && P[v - 1].kind, n = o.B.units.filter(function (u) { return u.side === 'party' && u.kind === k && !u.dead; }).length; return { ok: v === 2 && n === P[1].n, say: 'picked ' + v + ': ' + n + ' ' + k + ' on the field (the spell allows ' + (P[1] && P[1].n) + ')' }; } },
+      { id: 'POLYMORPH', who: function (o) { return o.w; }, go: cast('w', 'polymorph', 4, 'f'), figs: true, paged: true,
+        check: function (o, v, p) { var bk = o.f.beast, nmB = bk && D.FOES[bk.kind] && D.FOES[bk.kind].name.toUpperCase(); return { ok: v === 2 && !!nmB && p.opts[1].label.indexOf(nmB) === 0, say: 'picked ' + v + ' "' + p.opts[1].label + '": the fighter is ' + (bk && bk.kind) }; } },
+      { id: 'WILD SHAPE', who: function (o) { return o.d; }, go: function (o) { return D.features.exec(o.B, o.d, { do: 'wildshape' }); }, figs: true,
+        check: function (o, v) { var ks = D.features.beastsFor(o.d), bk = o.d.beast; return { ok: v === 2 && !!bk && bk.kind === ks[1], say: 'picked ' + v + ': the druid is ' + (bk && bk.kind) + ' (want ' + ks[1] + ')' }; },
+        noCheck: function (o) { return { ok: !o.d.beast, say: 'no shape: ' + !o.d.beast }; } },
+      { id: 'IRRESISTIBLE DANCE', who: function (o) { return o.f; }, go: function (o) { o.f.conds.dancing = { dc: 15, by: o.w.id }; D.rules.startTurn(o.f); return D.magic.danceAsk(o.B, o.f); },
+        check: function (o, v) { var l = (o.B.log || []).join(' | '); return { ok: v === false && !!o.f.conds.dancing && /fights on/.test(l), say: 'picked FIGHT ON (' + v + '): still dancing ' + !!o.f.conds.dancing + ', said ' + /fights on/.test(l) }; } },
+      { id: 'LAY ON HANDS', who: function (o) { return o.p; }, go: function (o) { o.p.feats.lay = 20; o.f.hp = o.f.maxhp - 6; o.f.conds.poisoned = { by: 'bench' }; return o.B.layOnHands(o.p, o.f); },
+        check: function (o, v) { return { ok: v === true && !o.f.conds.poisoned && o.p.feats.lay === 15 && o.f.hp === o.f.maxhp - 6, say: 'picked CURE POISON (' + v + '): the poison gone ' + !o.f.conds.poisoned + ', the pool ' + o.p.feats.lay + ', the hurt untouched ' + (o.f.hp === o.f.maxhp - 6) }; } },
+      { id: 'LAY ON HANDS (whole)', who: function (o) { return o.p; }, go: function (o) { o.p.feats.lay = 20; o.f.conds.poisoned = { by: 'bench' }; return o.B.layOnHands(o.p, o.f); }, pick: 0,
+        check: function (o, v) { return { ok: v === true && !o.f.conds.poisoned && o.p.feats.lay === 15, say: 'picked CURE POISON (' + v + '): the poison gone ' + !o.f.conds.poisoned + ', the pool ' + o.p.feats.lay }; },
+        noCheck: function (o) { return { ok: !!o.f.conds.poisoned && o.p.turn.action === 1 && o.p.feats.lay === 20, say: 'NOT NOW: the poison stays ' + !!o.f.conds.poisoned + ', the action kept ' + (o.p.turn.action === 1) }; } },
+      { id: 'THE ROPE', who: function (o) { return o.f; }, go: function (o) { o.B.ropes = [{ at: [o.f.x, o.f.y], foot: [o.f.x, o.f.y + 1], hp: 2, by: o.f.id }]; return o.B.exec(o.f, { do: 'takerope', x: o.f.x, y: o.f.y, ask: true }); }, pick: 0,
+        check: function (o, v) { var left = o.B.ropes.filter(function (r) { return !r.cut; }).length; return { ok: v === 'take' && left === 0 && o.f.turn.action === 0, say: 'picked TAKE IT UP (' + v + '): ropes left ' + left + ', the action spent ' + (o.f.turn.action === 0) }; },
+        noCheck: function (o) { var left = o.B.ropes.filter(function (r) { return !r.cut; }).length; return { ok: left === 1 && o.f.turn.action === 1 && !!o.f.turn.selfNo, say: 'NOT NOW: the rope lies ' + (left === 1) + ', the action kept, the next click on him opens the ring ' + !!o.f.turn.selfNo }; } },
+      { id: 'THE TORCH', who: function (o) { return o.m; }, go: function (o) { o.m.torch = { kind: 'torch', bright: 20, dim: 20 }; D.light.dropTorch(o.B, o.m, true); o.tx = o.m.x; o.ty = o.m.y; o.m.x += 1; D.rules.startTurn(o.m); return o.B.exec(o.m, { do: 'pickuptorch', x: o.tx, y: o.ty }); },
+        check: function (o, v) { return { ok: v === 'step' && o.m.x === o.tx && o.m.y === o.ty && !o.m.torch && !!D.light.torchAt(o.B, o.tx, o.ty), say: 'picked STEP THERE (' + v + '): on its square ' + (o.m.x === o.tx && o.m.y === o.ty) + ', the torch still on the floor ' + !!D.light.torchAt(o.B, o.tx, o.ty) }; },
+        noCheck: function (o) { return { ok: !o.m.torch && !!D.light.torchAt(o.B, o.tx, o.ty) && o.m.x === o.tx + 1, say: 'NOT NOW: the torch lies ' + !!D.light.torchAt(o.B, o.tx, o.ty) + ', the monk unmoved ' + (o.m.x === o.tx + 1) }; } },
+      { id: 'SHOVE', who: function (o) { return o.f; }, go: function (o) { o.f.turn.attacksLeft = 1; o.f.turn.attackAction = true; return o.B.exec(o.f, { do: 'shove', target: o.g }); }, dice: dice10,
+        check: function (o, v) { return { ok: v === 'prone' && !!o.g.conds.prone && o.g.x === 10 && o.g.y === 9, say: 'picked KNOCK PRONE (' + v + '): prone ' + !!o.g.conds.prone + ', where it stood ' + (o.g.x === 10 && o.g.y === 9) }; },
+        noCheck: function (o) { return { ok: !o.g.conds.prone && o.f.turn.attacksLeft === 1, say: 'NOT NOW: not prone, the attack kept ' + (o.f.turn.attacksLeft === 1) }; } },
+      { id: 'WEAR THE BEAST', who: function (o) { return o.d; }, go: function (o) { o.d.subclass = 'the Circle of the Pelt'; o.d.feats.wildShape = 2; D.rules.startTurn(o.d); return D.features.exec(o.B, o.d, { do: 'wearbeast' }); },
+        check: function (o, v) { var pts = o.d.conds.pelt && o.d.conds.pelt.parts || []; return { ok: v === 'hide' && pts.join() === 'hide,claws', say: 'picked HIDE (' + v + '), then the second ring\'s first: worn ' + pts.join(', ') }; },
+        noCheck: function (o) { return { ok: !o.d.conds.pelt && o.d.turn.bonus > 0 && o.d.feats.wildShape === 2, say: 'NOT NOW: nothing worn, the bonus action and the use kept ' + (o.d.turn.bonus > 0 && o.d.feats.wildShape === 2) }; } }
+    ];
+    try {
+      okR('the demo\'s switch gone: D.ui.ringPrompts ' + typeof D.ui.ringPrompts + ', the ring the game\'s own (D.ui.promptRing ' + typeof D.ui.promptRing + ')', typeof D.ui.ringPrompts === 'undefined' && typeof D.ui.promptRing === 'function');
+      CASES.forEach(function (c) {
+        var r = raiseR(c), o = r.o, B = o.B, p = r.p;
+        if (!p) { okR(c.id + ': the prompt is raised -- ' + JSON.stringify(r.st && r.st.value || null).slice(0, 160), false); return; }
+        var no = D.ui.noOf(p), picks = p.opts.length - (no >= 0 ? 1 : 0), paged = picks > 10, nItems = paged ? 9 + (no >= 0 ? 1 : 0) : p.opts.length;
+        // 1 RING: up as a ring, no popup; drawn with its title, its question, the front one's words, an icon each (a creature's own figure where it has a sheet)
+        var got = upR(r, 'ring'), L = B.list || {}, it = L.items || [];
+        var er1 = drawR(B, 'ring', c.id), s1 = saidR.join(' '), btn1 = (B.buttons || []).filter(function (b) { return b.list != null; }).length, front = it[0] || {};
+        var icons = it.every(function (e) { var ic = D.iconFor(e); return !!ic && ic.width >= 12; }), figs = it.filter(function (e) { return e.kind === 'promptpick' && e.fig; }).length;
+        var q0 = String((p.lines || [''])[0]).slice(0, 18), n0 = String(front.note || '').slice(0, 14);
+        okR(c.id + ': RING -- ' + (er1 || 'drawn') + '; "' + L.title + '", ' + it.length + ' on it (want ' + nItems + '), ' + btn1 + ' icons' + (c.figs ? ' (' + figs + ' with a figure)' : '') + ', the popup\'s buttons ' + (B.promptRects || []).length + '; the front "' + front.label + '" with its words ' + (s1.indexOf(n0) >= 0) + ', the question ' + (s1.indexOf(q0) >= 0),
+          p.ring === true && !er1 && L.kind === 'prompt' && L.prompt === p && it.length === nItems && btn1 === nItems && !(B.promptRects || []).length && s1.indexOf(p.title) >= 0 && s1.indexOf(front.label) >= 0 && s1.indexOf(n0) >= 0 && s1.indexOf(q0) >= 0 && icons && (!c.figs || figs === it.filter(function (e) { return e.kind === 'promptpick' && e.opt !== no; }).length) && got.n === 0);
+        if (c.id === 'DISPEL WHICH?') okR(c.id + ': Grease and Web told apart by their glyphs -- ' + it.map(function (e) { return e.label + ' ' + e.icon; }).join(', '), it.length === 2 && it[0].icon === 'slick' && it[1].icon === 'web' && D.iconFor(it[0]) !== D.iconFor(it[1]));
+        // 2 WINDOW keeps the popup: drawn as ever, its 1 answers it, the ring put down
+        var er2 = drawR(B, 'window', c.id + ' (WINDOW)'), s2 = saidR.join(' '), rects2 = (B.promptRects || []).filter(Boolean).length;
+        D.ui.urlMenu = 'window'; keyR(B, 'n1'); var w2 = { n: got.n, v: got.v, list: B.list };
+        okR(c.id + ': WINDOW -- the popup (' + (er2 || 'drawn') + ', ' + rects2 + ' buttons of ' + p.opts.length + '), 1 answers it ' + (w2.v === p.opts[0].value) + ', the ring put down ' + !w2.list,
+          !er2 && rects2 === p.opts.length && s2.indexOf(p.title) >= 0 && w2.n === 1 && w2.v === p.opts[0].value && !w2.list);
+        got.n = 0; got.v = undefined;
+        // 3 back on RING the ring again; `pick` steps left from the front (left brings the next one round), E takes it
+        D.ui.urlMenu = 'ring'; keyR(B, 'none'); var L3 = B.list || {}, want = c.pick == null ? 1 : c.pick;
+        for (var i = 0; i < want; i++) keyR(B, 'left', true);
+        var sel3 = L3.sel, e3 = (L3.items || [])[sel3] || {}; keyR(B, 'a');
+        var shown = function (v) { return v && typeof v === 'object' ? v.name || v.id : v; };
+        okR(c.id + ': back on RING the ring again (' + L3.kind + '); left x' + want + ' -> "' + e3.label + '", E answers ' + JSON.stringify(shown(got.v)) + ', the ring down ' + !B.list,
+          L3.kind === 'prompt' && L3.prompt === p && sel3 === want && got.n === 1 && got.v === p.opts[e3.opt].value && !B.list);
+        // 4 the game takes the answer
+        var ans = got.v; delete B.answer; D.d = c.dice || d0R; try { runR(r.g, ans); } finally { D.d = d0R; }
+        var ck = c.check(o, ans, p); okR(c.id + ': the game takes it -- ' + ck.say, ck.ok);
+        // 5 X, and the mouse: a fresh one
+        var r5 = raiseR(c), B5 = r5.o.B, got5 = upR(r5, 'ring');
+        if (paged) {
+          var L5 = B5.list, pages = L5.pages, mi = L5.items.length - 1 - (no >= 0 ? 1 : 0);
+          L5.sel = mi; keyR(B5, 'a'); var Lp2 = B5.list || {}; keyR(B5, 'b'); var Lb = B5.list || {};
+          var moreAt = function () { var k = -1; (B5.list.items || []).forEach(function (e, i) { if (e.kind === 'promptmore') k = i; }); return k; };
+          B5.list = D.ui.promptRing(B5, r5.p, pages - 1); var lastN = B5.list.items.length; B5.list.sel = moreAt(); keyR(B5, 'a'); var wrap = B5.list && B5.list.page;
+          B5.list.sel = moreAt(); keyR(B5, 'a'); B5.list.sel = 0; keyR(B5, 'a');
+          var lastWant = picks - (pages - 1) * 8 + 1 + (no >= 0 ? 1 : 0);
+          okR(c.id + ': ' + picks + ' to pick, in pages of eight -- ' + pages + ' pages; MORE -> "' + Lp2.title + '", its first the ninth ' + ((Lp2.items || [])[0] || {}).opt + '; X -> back "' + Lb.title + '"; the last page ' + lastN + ' on it (want ' + lastWant + '), its MORE -> page ' + wrap + '; MORE, E on the first answers the ninth ' + (got5.v === r5.p.opts[8].value),
+            pages === Math.ceil(picks / 8) && Lp2.page === 1 && Lp2.items[0].opt === 8 && /\(2 of /.test(Lp2.title) && Lb.page === 0 && /\(1 of /.test(Lb.title) && lastN === lastWant && wrap === 0 && got5.n === 1 && got5.v === r5.p.opts[8].value);
+          r5 = raiseR(c); B5 = r5.o.B; got5 = upR(r5, 'ring');
+        } else if (c.paged) okR(c.id + ': ' + picks + ' to pick, past ten (the brief\'s long one)', false);
+        keyR(B5, 'b');
+        if (no >= 0) {
+          okR(c.id + ': X is ' + p.opts[no].label + ' -- answered ' + JSON.stringify(shown(got5.v)) + ', the ring down ' + !B5.list, got5.n === 1 && got5.v === r5.p.opts[no].value && !B5.list);
+          if (c.noCheck) { delete B5.answer; runR(r5.g, got5.v); var nk = c.noCheck(r5.o); okR(c.id + ': the game takes the NO -- ' + nk.say, nk.ok); }
+          // the right button: the NO too
+          var r6 = raiseR(c), B6 = r6.o.B, got6 = upR(r6, 'ring'); mouseR(B6, { rbtn: true, rclick: true });
+          okR(c.id + ': the right button is ' + p.opts[no].label + ' too -- ' + JSON.stringify(shown(got6.v)), got6.n === 1 && got6.v === r6.p.opts[no].value && !B6.list);
+        } else {
+          okR(c.id + ': no NO, so X does nothing (the slot is spent by then) -- answered ' + got5.n + ', the ring still up ' + !!(B5.list && B5.list.kind === 'prompt'), got5.n === 0 && !!(B5.list && B5.list.kind === 'prompt' && B5.list.prompt === r5.p));
+          mouseR(B5, { rbtn: true, rclick: true }); var rb = got5.n;
+          drawR(B5, 'ring'); var bt = (B5.buttons || []).filter(function (b) { return b.list === 1; })[0], e5 = B5.list && B5.list.items[1];
+          if (bt) mouseR(B5, { x: bt.x + bt.w / 2, y: bt.y + bt.h / 2, click: true, moved: true });
+          okR(c.id + ': the right button nothing either (' + rb + '); a click on the second icon takes "' + (e5 && e5.label) + '" -- ' + JSON.stringify(shown(got5.v)), rb === 0 && !!bt && got5.n === 1 && !!e5 && got5.v === e5.value && !B5.list);
+        }
+      });
+      // the show door (deep16/?ringshow, the eyes row's): each of its fourteen staged in a fight of its own raises its prompt on the ring; &p=7 starts at the seventh
+      D.ui.urlMenu = 'ring';
+      var stageR = function (q, i) { var Bs = D.ui.ringShow(q, i), er = ''; D.battle = Bs; try { Bs.enter(); for (var kS = 0; kS < 400 && Bs.co && !Bs.req; kS++) Bs.step(); } catch (eS) { er = String(eS && eS.message || eS).slice(0, 90); } var pq = Bs.req && Bs.req.prompt; return { er: er, p: pq, ring: !!(pq && pq.ring && Bs.list && Bs.list.kind === 'prompt' && Bs.list.prompt === pq) }; };
+      var shown14 = (D.ui.RING_SHOW || []).map(function (c, i) { var s = stageR('', i); return c.t + (s.er ? ' ERR ' + s.er : s.ring && s.p.title.indexOf(c.t.replace(/^CONJURE ANIMALS$/, 'CONJURE')) >= 0 ? ' ring' : ' NO RING (' + (s.p && s.p.title) + ')'); });
+      var s7 = stageR('?ringshow&p=7');
+      okR('the show door (?ringshow): ' + shown14.length + ' staged -- ' + shown14.join(', ') + '; &p=7 opens on "' + (s7.p && s7.p.title) + '"', shown14.length === 14 && shown14.every(function (s) { return / ring$/.test(s); }) && !!s7.p && /POLYMORPH/.test(s7.p.title));
+      // RING2 is a ring too; WINDOW not; and a prompt the game does not mark (the asking kind: DASH THERE?, a reaction) stays a popup in RING
+      var oA = mkR(), pA = { who: oA.f, title: oA.f.name + ': DASH THERE?', lines: ['That square is 40 ft away; 30 ft of move is left.'], opts: [{ label: 'DASH (THE ACTION)', value: 'dash' }, { label: 'NOT THAT FAR', value: false }] }, pR = { who: oA.f, ring: true, title: 'T', opts: [{ label: 'A', value: 1 }] };
+      D.ui.urlMenu = 'ring2'; var r2 = D.ui.ringPrompt(oA.B, pR); D.ui.urlMenu = 'window'; var rw = D.ui.ringPrompt(oA.B, pR); D.ui.urlMenu = 'ring';
+      oA.B.req = { prompt: pA }; D.ui.onRequest(oA.B, oA.B.req); var erA = drawR(oA.B, 'ring', 'DASH THERE?'), rA = (oA.B.promptRects || []).filter(Boolean).length;
+      okR('RING2 a ring ' + r2 + ', WINDOW not ' + !rw + '; DASH THERE? (not marked) in RING: no ring ' + !oA.B.list + ', the popup drawn with ' + rA + ' buttons (' + (erA || 'no error') + ')', r2 === true && rw === false && !oA.B.list && rA === 2 && !erA);
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    D.d = d0R; D.ui.urlMenu = um0R; D.input.pressed = pr0R; D.input.repeat = rp0R; D.input.mouse = ms0R; D.text = tx0R;
+    if (errs.length) repR.errors = repR.errors.concat(errs);
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // READY SPRUNG BY A FRIEND'S ACTION, AND WHEN? AS A RING (mode=ready1113; 11-13, Griz, from play: "During playthough I realized we need a set of readied actions triggered by
   // friendly actions (other than being downed) - at a table readied is often to follow up or set up a team combo"; the READY lane §3.1, his 10-06 "if you put ready on the ring, the
   // expanded text shows below when it highlights, when the person picks the thing that text could have the 'next' instruction"): eight triggers; WHEN? a ring of eight with the long
