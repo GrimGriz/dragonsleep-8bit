@@ -20797,33 +20797,33 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var stW1 = CIS.state(BW1);
       okIS('W1 the ettercap beaten: "' + cardsW1.join(' | ').slice(0, 300) + '" -- the pack ' + JSON.stringify(BW1.inv) + ', cordTaken ' + BW1.roam.flags.cordTaken,
         CIS.count(stW1, 'ettercapfangs') === 1 && CIS.count(stW1, 'cord') === 1 && BW1.roam.flags.cordTaken === 1 && /Received: Braided Cord/.test(cardsW1.join(' ')));
-      // W2 Ned: the offer (the bounty, the braid rumor, the wand for the braid), the braid handed in at 20:00 on day 1, not ready at 05:00, ready from 06:00 the next morning (THE WORLD's hour pinned)
+      // W2 Ned: nothing of the wand before the braid (11-18, his "Nothing from Ned regarding the wand until you have it"); the braid in the pack, his word on it, handed in at 20:00 on
+      // day 1, not ready at 05:00, ready from 06:00 the next morning (THE WORLD's hour pinned)
       var now0IS = D.house.now, tIS = 20; D.house.now = function () { return tIS; };
       var stW = { flags: {}, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', lvl: 3, equip: {} }], silver: function () { return 0; } }, saidW = [];
       var scW = { st: stW, say: function (l) { saidW.push([].concat(l).join(' ')); return { lines: l }; }, ask: function (l, o) { saidW.push([].concat(l).join(' ') + ' [' + o.join(' | ') + ']'); return { prompt: { opts: o.map(function (x, i) { return { label: x, value: i }; }) } }; } };
       var jW = function () { var q = CIS.quests(stW).filter(function (x) { return x.id === 'nedwand'; })[0]; return q ? (q.done ? 'done: ' + q.doneText : q.where || q.text) : 'none'; };
       var dueW = [], jrW = [];
       try {
-        jrW.push(jW()); dueW.push(CIS.nedWandDue(stW)); runIS(CIS.nedWand(scW, null, 'offer')); var offerW = saidW.join(' / '); jrW.push(jW());
-        dueW.push(CIS.nedWandDue(stW)); CIS.give(stW, 'cord', 1); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
+        jrW.push(jW()); dueW.push(CIS.nedWandDue(stW)); CIS.give(stW, 'cord', 1); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
         saidW = []; runIS(CIS.nedWand(scW, null, 'braid')); var braidW = saidW.join(' / '); jrW.push(jW());
         tIS = 29; dueW.push(CIS.nedWandDue(stW)); tIS = 30; dueW.push(CIS.nedWandDue(stW));
         saidW = []; runIS(CIS.nedWand(scW, null, 'ready')); var readyW = saidW.join(' / '); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
       } finally { D.house.now = now0IS; }
-      okIS('W2 Ned\'s wand: due ' + dueW.join(',') + '; the offer "' + offerW.slice(0, 640) + '"; the braid "' + braidW.slice(0, 260) + '" (nedBraid ' + stW.flags.nedBraid + '); ready "' + readyW.slice(0, 260) + '"; the pack ' + JSON.stringify(stW.inv) + '; the JOURNAL ' + jrW.join(' > '),
-        dueW.join() === 'offer,,braid,waiting,ready,' && /ettercap in Web Gulch/.test(offerW) && /Hessle/.test(offerW) && /braids/.test(offerW) && /Bring me the braid/.test(offerW) && /a wand that throws web/.test(offerW) &&
-        /Is that the braid/.test(braidW) && /Come back in the morning/.test(braidW) && stW.flags.nedBraid === 20 && /Received: Wand of Web/.test(readyW) &&
-        CIS.count(stW, 'wandofweb') === 1 && !CIS.count(stW, 'cord') && stW.flags.nedWandGot === 1 && jrW[0] === 'none' && /strung end/.test(jrW[1]) && /the braid for the wand/.test(jrW[2]) && /ready in the morning/.test(jrW[3]) && /^done: The Wand of Web/.test(jrW[4]));
+      okIS('W2 Ned\'s wand: due ' + dueW.join(',') + '; the braid "' + braidW.slice(0, 260) + '" (nedBraid ' + stW.flags.nedBraid + ', pinned ' + stW.flags.pin + '); ready "' + readyW.slice(0, 260) + '"; the pack ' + JSON.stringify(stW.inv) + '; the JOURNAL ' + jrW.join(' > '),
+        dueW.join() === ',braid,waiting,ready,' && /^"You killed the Ettercap\. My Rat says you have its braid\. I could make you a wand with that\." \[Here it is\. \| Not yet\.\]/.test(braidW) && !/Hessle|Is that the braid/.test(braidW) &&
+        /Come back in the morning/.test(braidW) && stW.flags.nedBraid === 20 && /Received: Wand of Web/.test(readyW) &&
+        CIS.count(stW, 'wandofweb') === 1 && !CIS.count(stW, 'cord') && stW.flags.nedWandGot === 1 && jrW[0] === 'none' && jrW[1] === 'none' && /ready in the morning/.test(jrW[2]) && /^done: The Wand of Web/.test(jrW[3]));
       // W3 an older save past the ettercap with no braid: it is in the pack at Ned's; and coming into Percy's in the house, Ned speaks up while he has something to say (js/town.js T.goIn -> C.atDoor), elsewhere not
       var stO = { flags: { 'trig:ettercap': 1 }, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', equip: {} }] }, dueO = CIS.nedWandDue(stO);
       var talk0IS = CIS.talk, play0IS = D.house.playing, talked = [];
       var BW3 = function (fl) { return { roam: { flags: fl, members: [{ src: { id: 'lymen', key: 'lymen', name: 'Lymen', equip: {} } }], silver: 0 }, inv: [], townAway: {} }; };
       CIS.talk = function* (B, id) { talked.push(id); }; D.house.playing = true;
-      try { runIS(CIS.atDoor(BW3({}), { keeper: { id: 'percy' } })); runIS(CIS.atDoor(BW3({}), { keeper: { id: 'marko' } })); runIS(CIS.atDoor(BW3({ nedWand: 1 }), { keeper: { id: 'percy' } })); var bOff = BW3({}); bOff.townAway.ned = { wand: 1 }; runIS(CIS.atDoor(bOff, { keeper: { id: 'percy' } })); }
+      try { runIS(CIS.atDoor(BW3({}), { keeper: { id: 'percy' } })); runIS(CIS.atDoor(BW3({ nedWand: 1 }), { keeper: { id: 'percy' } })); runIS(CIS.atDoor(BW3({ 'trig:ettercap': 1 }), { keeper: { id: 'marko' } })); runIS(CIS.atDoor(BW3({ 'trig:ettercap': 1 }), { keeper: { id: 'percy' } })); var bOff = BW3({ 'trig:ettercap': 1 }); bOff.townAway.ned = { wand: 1 }; runIS(CIS.atDoor(bOff, { keeper: { id: 'percy' } })); }
       finally { CIS.talk = talk0IS; D.house.playing = play0IS; }
-      okIS('W3 an older save past the ettercap: ' + dueO + ', the braid in the pack ' + CIS.count(stO, 'cord') + '; into Percy\'s (offer due), into Marko\'s, into Percy\'s offered and no braid, into Percy\'s after this visit\'s word: Ned speaks ' + JSON.stringify(talked),
+      okIS('W3 an older save past the ettercap: ' + dueO + ', the braid in the pack ' + CIS.count(stO, 'cord') + '; into Percy\'s with no braid, into Percy\'s offered once (an older save) and no braid, into Marko\'s with it, into Percy\'s with it, into Percy\'s after this visit\'s word: Ned speaks ' + JSON.stringify(talked),
         dueO === 'braid' && CIS.count(stO, 'cord') === 1 && stO.flags.cordTaken === 1 && talked.join() === 'ned');
-      // W4 THE DOOR, in the house (deep16/?at=nedwand16): E at Percy's door -- in, and Ned's screen comes up on its own: the offer and "Is that the braid?"; HERE IT IS: the morning
+      // W4 THE DOOR, in the house (deep16/?at=nedwand16): E at Percy's door -- in, and Ned's screen comes up on its own: his word on the braid (11-18); HERE IT IS: the morning
       var memW4 = {}, stGW4 = D.store.get, stSW4 = D.store.set, musW4 = D.music, HW4 = D.house;
       function drvW4(g, until, cap) { var v, k = 0, s; while (k++ < (cap || 4000)) { if (until && until()) return true; s = g.next(v); v = undefined; if (s.done) return !!(until && until()); } return !!(until && until()); }
       function upW4() { return D.top() instanceof CIS.Counter; }
@@ -20842,7 +20842,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (up4) goW4(sc4, 'opt', 'Here it is.'); var aft4 = up4 ? readW4(sc4).join(' ') : '', st4 = CIS.state(B4);
         var ned4 = (D.roam.def.key || '') + ' ' + JSON.stringify(((D.roam.def.beside || {}).ned || {}).at);
         okIS('W4 into Percy\'s on the situation (' + (D.roam.def && D.roam.def.room) + '; the street ' + at4 + ', Ned in the room ' + ned4 + '): Ned\'s screen up ' + up4 + ' -- "' + window.DS.stripCodes(pre4 + ' ' + ask4).slice(0, 500) + '" [' + opts4 + '] > HERE IT IS: "' + window.DS.stripCodes(aft4).slice(0, 200) + '" -- braid in the pack ' + CIS.count(st4, 'cord') + ', nedBraid ' + st4.flags.nedBraid,
-          up4 && /Hessle/.test(pre4 + ask4) && /Is that the braid/.test(ask4) && /Here it is\./.test(opts4) && /Come back in the morning/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
+          up4 && !/Hessle/.test(pre4 + ask4) && /You killed the Ettercap\. My Rat says you have its braid\./.test(ask4) && /Here it is\./.test(opts4) && /Come back in the morning/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
         if (g4) drvW4(g4, null, 300);
         HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop(); D.sit16.open('winters3'); var B5 = D.top(); if (B5 && B5.baking) { B5.baking = false; B5.enter(); }
         okIS('W5 (where his ring\'s row walks) Winters\' door on the situation winters3: ' + D.roam.def.key + ' ' + B5.roam.token.x + ',' + B5.roam.token.y, !!B5.roam && D.roam.def.key === 'silverton');

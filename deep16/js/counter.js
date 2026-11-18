@@ -1440,31 +1440,28 @@
   // ---------------------------------------------------------------- NED'S WAND (RULED 2026-11-16, Griz to the lanes desk: "I think for the Web Wand we have Ned ask them about the ettercap
   // bounty when they come into percy's, have him ask about the braid rumor and offer to make them the wand in exchange for the Ettercap braid"; its making time his "Yes" to the desk's
   // lean: ready the morning after the party brings him the braid). The braid is the ettercap's Braided Cord (content/items.json cord), cut out of its web when it is beaten (js/gulch.js
-  // Gu.ettercap). Coming into Percy's (js/town.js T.goIn -> C.atDoor) Ned speaks up, once a visit, while he has something to say: the offer, the braid in the pack, the wand ready; E on
+  // Gu.ettercap). Coming into Percy's (js/town.js T.goIn -> C.atDoor) Ned speaks up, once a visit, while he has something to say: the braid in the pack (since 11-18 no offer before it), the wand ready; E on
   // him says it too (C.ned, first). Flags: nedWand (asked), nedBraid (THE WORLD's hour the braid came in), nedWandGot. Words the seat's drafts, invented.json ned-wand-1116
   C.WAND = { item: 'wandofweb', braid: 'cord', morning: 6 }; // (ready from 06:00 the day after the braid came in: invented.json wand-morning-1116)
+  // RE-CUT 2026-11-18 (his NOTES of 11-16 night, Silverton 33,49: "Nothing from Ned regarding the wand until you have it, then happen to walk into Percy's. Then Ned interrupts like
+  // he's doing now with "You killed the Ettercap. My Rat says you have it's braid. I could make you a wand with that.""): no offer before the braid -- the bounty and the braid
+  // rumour lines are gone; the braid in the pack, coming into Percy's, his line (verbatim, "it's" its), then the braid handed over and the morning after as before
   C.NED_WAND = {
-    ask: ['Ned looks up from the jar labels. "The ettercap in Web Gulch -- the paper on Hessle\'s board. Are you going after it?"',
-      '"The silk-cutters say it sits up on its strand and braids. Three strands, even-handed, all day long. Nobody knows what for."'],
-    offer: ['"Whatever it\'s making, it\'s made of its own silk, and I can\'t get that. I don\'t go out past the gate."',
-      '"Bring me the braid and I\'ll make you a wand out of it: a wand that throws web, the way the thing does. One night\'s work."'],
-    taken: ['"Good. Mind the webs -- they\'re the point of the thing."'],
-    later: ['"The offer keeps. So does the ettercap, I expect."'],
+    heard: ['"You killed the Ettercap. My Rat says you have its braid. I could make you a wand with that."'],
     braidAsk: '"Is that the braid?"',
     braid: ['Ned turns the braid over in the lamplight. "Even-handed. Patient." He winds it round two fingers and puts it in his coat.', '"Come back in the morning. It\'ll be ready."'],
     keep: ['"It keeps. Bring it when you want the wand."'],
     waiting: ['"Not yet. In the morning -- silk wants a night."'],
     ready: ['"Morning." Ned sets a slim wand on the counter, grey and ridged, like a braid pulled tight.', '"Seven webs in it, and it finds a few more each dawn. It wants a spellcaster to hold it."'] };
-  C.NED_WAND_REPLIES = { yes: 'We\'ll bring it.', no: 'Not now.', give: 'Here it is.', keep: 'Not yet.' };
+  C.NED_WAND_REPLIES = { give: 'Here it is.', keep: 'Not yet.' };
   // a save that beat the ettercap before 11-16 was told "There is a braided cord in the web" and never given it: in the pack once, here
   C.braidOwed = function (st) { var f = st.flags; if (!f.cordTaken && (f['trig:ettercap'] || f.ettercapDone) && !count(st, C.WAND.braid) && f.nedBraid == null && !f.nedWandGot) { give(st, C.WAND.braid, 1); f.cordTaken = 1; } };
   C.wandReady = function (f) { var H = D.house, now = H && H.now ? H.now() : null; return now == null || f.nedBraid == null || now >= (Math.floor(f.nedBraid / 24) + 1) * 24 + C.WAND.morning; };
-  // what Ned has to say of the wand: 'offer', 'braid' (it is in the pack), 'waiting', 'ready', or null
+  // what Ned has to say of the wand: 'braid' (it is in the pack), 'waiting', 'ready', or null -- nothing before the braid (11-18, his "Nothing from Ned regarding the wand until you have it")
   C.nedWandDue = function (st) {
     var f = st.flags; if (f.nedWandGot) return null; C.braidOwed(st);
     if (f.nedBraid != null) return C.wandReady(f) ? 'ready' : 'waiting';
-    if (count(st, C.WAND.braid) > 0) return 'braid';
-    return f.nedWand ? null : 'offer';
+    return count(st, C.WAND.braid) > 0 ? 'braid' : null;
   };
   C.nedWand = function* (sc, B, due) {
     var st = sc.st, f = st.flags, NW = C.NED_WAND, AS = C.NED_WAND_REPLIES; sc.hero = C.leadOf(st); // (the one who leads answers: the wand is the party's, not Aurdin's alone)
@@ -1474,13 +1471,9 @@
       yield sc.say(NW.ready.concat([L('g.got', { item: DS.DATA.items[C.WAND.item].name })]), 'welcoming'); return;
     }
     var first = !f.nedWand; f.nedWand = 1;
-    if (due === 'offer') {
-      var a = yield sc.ask(NW.ask.concat(NW.offer), [AS.yes, AS.no], 'attentive');
-      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done; })) f.pin = 'nedwand'; // (pinned unless another is: the card and its fly-in as the screen closes, as Ned's page -- js/hours.js H16.missionDue)
-      yield sc.say(a === 0 ? NW.taken : NW.later, 'welcoming'); return;
-    }
-    // the braid in the pack: he asks for it (the offer first, if he never made it)
-    if ((yield sc.ask((first ? NW.ask.concat(NW.offer) : []).concat([NW.braidAsk]), [AS.give, AS.keep], 'attentive')) !== 0) { yield sc.say(NW.keep, 'welcoming'); return; }
+    if (first && !C.quests(st).some(function (q) { return q.id === f.pin && !q.done; })) f.pin = 'nedwand'; // (pinned unless another is: the card and its fly-in as the screen closes, as Ned's page -- js/hours.js H16.missionDue)
+    // the braid in the pack: the first time his word on it (the Rat told him), after that "Is that the braid?"
+    if ((yield sc.ask(first ? NW.heard : [NW.braidAsk], [AS.give, AS.keep], 'attentive')) !== 0) { yield sc.say(NW.keep, 'welcoming'); return; }
     take(st, C.WAND.braid, 1); var H = D.house, now = H && H.now ? H.now() : null; f.nedBraid = now != null ? now : 0; D.sfx('confirm');
     yield sc.say(NW.braid, 'work');
   };
@@ -1522,7 +1515,7 @@
   C.RING_WORDS = { text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The one who leads you is ready now, and Winters has something for you.',
     step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and he is ready.',
     doneText: 'The Ring of Water Walking, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
-  // NED'S WAND (C.nedWand, 11-16): asked of when he makes the offer, done with the wand in hand
+  // NED'S WAND (C.nedWand, 11-16): in the JOURNAL once he has spoken of the braid (11-18: no offer before it), done with the wand in hand
   C.OWN_QUESTS.push({ id: 'nedwand', name: 'Ned\'s Wand', show: 'flag:nedWand', done: 'flag:nedWandGot',
     text: 'Ned Halloway, behind Percy\'s counter, will make a wand that throws web out of the ettercap\'s braid -- the cord it braids at Web Gulch\'s strung end. One night\'s work.',
     doneText: 'The Wand of Web, out of the ettercap\'s braid. It wants a spellcaster to hold it.',
