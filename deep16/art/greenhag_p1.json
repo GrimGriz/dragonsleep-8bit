@@ -4,7 +4,7 @@
  "fh": 88,
  "ax": 44,
  "ay": 62,
- "top": 55,
+ "top": 56,
  "anims": {
   "idle": {
    "y": 0,
@@ -118,5 +118,5 @@
    "fps": 4
   }
  },
- "source": "drawn by the art desk (ART-WANTED-70 GREEN-HAG, 11-15: five views, her own rows and her borrowed face's, native 3x on an 88 x 88 cell), cut by tools/greenhag-sheet.py (11-15)"
+ "source": "drawn by the art desk (ART-WANTED-70 GREEN-HAG ILLUSTRATED REDRAW, 11-18: five views, her own rows and her borrowed face's, image-generated, its native cut 1x on the 88 x 88 cell), cut by tools/greenhag-sheet.py (11-18)"
 }

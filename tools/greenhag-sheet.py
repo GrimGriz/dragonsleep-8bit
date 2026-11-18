@@ -1,7 +1,11 @@
 """DEEP16: the green hag (art-wanted 64's fey, the art desk's §70) -> greenhag_p1, both her forms on one sheet (11-15, the NPC cutter seat, on
 Griz's "since people is done have it work the creature list backward", the desk's relay).
 
-    python tools/greenhag-sheet.py
+    python tools/greenhag-sheet.py          (the 11-18 redraw, cut_redraw(): the art desk's ART-WANTED-70 GREEN-HAG ILLUSTRATED REDRAW -- 55
+                                            image-generated pages, its own native cut a strip a page, taken as drawn, each frame its map's
+                                            SHA-256; pixel for pixel its own assembled runtime/greenhag_p1.png; after his 11-15 "hag was still
+                                            code drawn or something is very very wrong" -- the cutter seat cutter-1118, Griz's "all 3")
+    python tools/greenhag-sheet.py 1115     (the 11-15 cut, below, from the first pages)
 
 Source (the art desk's, in the main checkout's deep16/_src/greenhag/2026-11-15-ART-WANTED-70-GREEN-HAG/ -- a worktree reads it there):
 FRAME-MAP.json, 55 pages, each frame's window (`source_rect_px`, 264 x 264: native pixel art at 3x on an 88 x 88 cell, the ground at 44,62),
@@ -91,8 +95,50 @@ def cut():
     return {an: [[mirror(fr) for fr in views[MIRROR[f]][an]] if f in MIRROR else views[f][an] for f in ORDER] for an in rows}
 
 
+REDRAW = ('greenhag', '2026-11-18-ART-WANTED-70-GREEN-HAG-REDRAW')
+
+
+def cut_redraw():
+    """the 11-18 redraw (the art desk's ART-WANTED-70 GREEN-HAG ILLUSTRATED REDRAW): 55 image-generated pages with its own native cut on the 64, a strip
+    a page (native/, 88 x 88 cells on the ground at 44,62, display order) -- taken as drawn: each frame's cell where FRAME-MAP.json says
+    (`native_rect_xywh_px`), refused unless its RGBA is the map's own SHA-256, its alpha binary and every colour one of the 64; the rows as the 11-15
+    cut's (ROWS), her Vanish 6 empty as drawn"""
+    d = os.path.join(AD.src_dir(ROOT), *REDRAW)
+    fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+    assert tuple(fm['cell_wh_px']) == (FW, FH) and tuple(fm['anchor_xy_px']) == (AX, AY)
+    pal, views, matched, blanks = palette(), {}, 0, 0
+    for p in fm['pages']:
+        a = np.asarray(Image.open(os.path.join(d, p['native_strip'])).convert('RGBA'))
+        frames = {}
+        for f in p['frames']:
+            x, y, w, h = f['native_rect_xywh_px']
+            fr = np.ascontiguousarray(a[y:y + h, x:x + w])
+            if (w, h) != (FW, FH) or set(np.unique(fr[..., 3]).tolist()) - {0, 255}:
+                raise SystemExit('%s %d: not a binary %dx%d cell' % (p['native_strip'], f['number'], FW, FH))
+            if hashlib.sha256(fr.tobytes()).hexdigest() != f['native_rgba_sha256']:
+                raise SystemExit('%s %d: not the map\'s own pixels (SHA-256)' % (p['native_strip'], f['number']))
+            fg = fr[..., 3] > 0
+            off = {tuple(c) for c in fr[fg][:, :3]} - pal
+            if off:
+                raise SystemExit('%s %d: %d colours off the 64' % (p['native_strip'], f['number'], len(off)))
+            fr = fr.copy(); fr[~fg] = 0
+            matched += 1; blanks += not fg.any()
+            frames[f['index']] = fr
+        for row, idx in ROWS[(p['form'], p['action'])]:
+            views.setdefault(p['facing'], {})[row] = [frames[i] for i in idx]
+    print('  %s: %d frames, each the map\'s own SHA-256; %d drawn empty' % (NAME, matched, blanks))
+    if set(views) != {'S', 'SE', 'E', 'NE', 'N'}:
+        raise SystemExit('views %s' % sorted(views))
+    rows = sorted({r for v in views.values() for r in v})
+    for v in views:
+        if sorted(views[v]) != rows:
+            raise SystemExit('%s rows %s, not %s' % (v, sorted(views[v]), rows))
+    return {an: [[mirror(fr) for fr in views[MIRROR[f]][an]] if f in MIRROR else views[f][an] for f in ORDER] for an in rows}
+
+
 if __name__ == '__main__':
-    frames = cut()
+    first = sys.argv[1:] == ['1115']
+    frames = cut() if first else cut_redraw()
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))
     mp = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(mp))
@@ -105,5 +151,6 @@ if __name__ == '__main__':
         meta['anims'][an]['release'] = r
     for an, why in HELD.items():
         meta['anims'][an]['held'] = why
-    meta['source'] = 'drawn by the art desk (ART-WANTED-70 GREEN-HAG, 11-15: five views, her own rows and her borrowed face\'s, native 3x on an 88 x 88 cell), cut by tools/greenhag-sheet.py (11-15)'
+    meta['source'] = ('drawn by the art desk (ART-WANTED-70 GREEN-HAG, 11-15: five views, her own rows and her borrowed face\'s, native 3x on an 88 x 88 cell), cut by tools/greenhag-sheet.py (11-15)' if first else
+                      'drawn by the art desk (ART-WANTED-70 GREEN-HAG ILLUSTRATED REDRAW, 11-18: five views, her own rows and her borrowed face\'s, image-generated, its native cut 1x on the 88 x 88 cell), cut by tools/greenhag-sheet.py (11-18)')
     json.dump(meta, open(mp, 'w'), indent=1)
