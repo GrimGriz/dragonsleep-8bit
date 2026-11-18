@@ -267,6 +267,8 @@
     { id: 'mountfarm', label: 'THE MOUNTAINS, A FARM: the wolf or the worg at a farm under the Coldridge', note: 'A making in the mountains (the wolf or the worg, the coat full of stars). The dice pinned high.', zone: 'doors', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'mountroad', label: 'THE MOUNTAINS, THE ROAD OR OPEN COUNTRY', note: 'A making in the mountains fed on the road or in the open. The dice pinned high.', zone: 'doors', kinds: ['road', 'wild'], dice: [18, 18, 18, 18, 18, 18] },
     { id: 'snoot', label: 'BURNED OUT BY THE SNOOT: a farm or a hamlet a snooting band burned', note: 'People a gnoll band burned out (js/snootroad.js): Perception (how many gnolls and hyenas), Survival (which way they came), History (which tribe: the Wall-Laugh, the Gray Keeping, the Skull-Gate), Insight (how they got clear: his line, the burning and the trophies); the Perception read (soot, nobody hurt) opens WHAT DID THEY BURN. The dice pinned high.', zone: 'snoot', kinds: ['farm', 'hamlet'], dice: [18, 18, 18, 18, 18, 18] },
+    { id: 'inn', arrive: 'inn', label: 'A BAND IN AT THE HALFWAY INN WHILE YOU ARE THERE (11-18)', note: 'The four at level 3 in the common room, an hour after a band of survivors bound for the inn was due: they come in off the Pit road at the first free moment -- a card, then their talk over the inn, its lines "We came to", not "We\'re for". The dice pinned high.', dice: [18, 18, 18, 18, 18, 18] },
+    { id: 'town', arrive: 'silverton', label: 'A BAND IN AT SILVERTON WHILE YOU ARE THERE (11-18)', note: 'The four at level 3 on Silverton\'s street by Cassia\'s door, a little after a band bound for Silverton was due: in at the gate, a card, then their talk over the street. The dice pinned high.', dice: [18, 18, 18, 18, 18, 18] },
     { id: 'missed', label: 'EVERY CHECK MISSED: the thinner answers (a marsh band)', note: 'The first marsh band again with the dice pinned at 1: every piece still answers, thinner and never false.', zone: 'glowseep', kinds: ['farm', 'hamlet', 'road', 'wild'], dice: [1, 1, 1, 1, 1, 1] }
   ];
   SV.LVL = 3;
@@ -275,6 +277,7 @@
     return null;
   };
   SV.play = function (bt) {
+    if (bt.arrive) { SV.playArrive(bt); return; } // (THE BANDS' ARRIVAL TIMES, 11-18: staged on the place's floor, below)
     var H = D.house, In = D.inn, rec = H.fresh(); rec.at = { town: null }; rec.flags = { councilNotice: 1, councilSeen: 1 }; rec.silver = Math.max(rec.silver || 0, 60);
     var RL = DS.R; rec.party.forEach(function (h) { for (var g = 0; g < 20 && h.lvl < SV.LVL; g++) { RL.levelUp(h); RL.autoPicks(h); } if (RL.XP_LEVEL && RL.XP_LEVEL[h.lvl] != null) h.xp = Math.max(h.xp || 0, RL.XP_LEVEL[h.lvl]); h.hp = h.maxhp; if (h.slotsMax) h.slots = h.slotsMax.slice(); }); // (a level 3 party on every door: RULED 11-12, js/inn.js In.SHOW_LVL)
     H.begin(rec, 0, '?world');
@@ -286,5 +289,77 @@
     W.save(); if (In) In.pinned = bt.dice ? bt.dice.slice() : null;
     HG.meet(W.scene, live);
   };
+  // ---------------------------------------------------------------- THE BANDS' ARRIVAL TIMES (the clock-road seat, 2026-11-18; the clock lane's 11-16 section, RULED, Griz:
+  // "bands should have an arrival time and arrive while the player is there", on the lanes order's find that a party inside a place rolls no road percent, so the bands
+  // never reach the inn or Silverton while the party is in). Each band already has its hour (js/hunger.js r.arrive, a cart's pace; the Snoot's burnt-out the same,
+  // js/snootroad.js). Now one whose hour falls while the party is on that place's floors -- the Halfway Inn's (In.KEY, In.UP) or Silverton's street, rooms and Hex
+  // (H16.inSilverton) -- comes in there: at the first free moment after its hour (js/hours.js H16.BEATS asks SV.arriveDue each frame, as the Pit's word at its hour),
+  // a card and the survivors' talk on the open screen over the floor, the band counted met (S.metRef). The party's coming to a place is kept in the save (S.svAt: the
+  // place and the hour it came; THE WORLD's step clears it), so a band in before the party came, or one that came while it was out on THE WORLD, does not play. The
+  // talk's lines for a band that has arrived say so (SV.ARRIVED): "We came to", not "We're for". The card's and the turned lines are the seat's drafts (invented.json
+  // survivors-arrive-1118). The show: deep16/?survivorsshow&beat=inn / &beat=town. The bench: mode=arrive1118.
+  SV.ARRIVE = {
+    inn: { card: '{y}Into the yard{/}, {tod}: survivors, in off the Pit road.', at: 'Pit road, turning in at the yard', place: 'The Halfway Inn', what: 'in the yard' },
+    silverton: { card: '{y}In at the gate{/}, {tod}: survivors, in off the road.', at: 'road in at the gate', place: 'Silverton', what: 'at the gate' }
+  };
+  SV.ARRIVED = [ // (the talk's own lines, turned for a band that has come where it was going)
+    ['We\'re for {to}, all we own on the cart, and we don\'t stop.', 'We\'ve come to {to}, all we own on the cart.'],
+    ['Every soul of us is on these carts, for {to}.', 'Every soul of us came on these carts, to {to}.'],
+    ['We\'re for {to} on foot.', 'We came to {to} on foot.'],
+    ['I\'m for {to}. I don\'t know what else to do.', 'I\'ve come to {to}. I don\'t know what else to do.'],
+    ['We\'re for {to}.', 'We came to {to}.'],
+    ['"{to}. There\'s people there. After that, I don\'t know."', '"Here, for now. There\'s people here. After that, I don\'t know."'],
+    ['They are making for {to}. They do not stop.', 'They stay on at {to}, for now.']
+  ];
+  var fill0 = SV.fill;
+  SV.fill = function (l, b) { if (b && b.r && b.r.arrivedAt) SV.ARRIVED.forEach(function (p) { l = String(l).split(p[0]).join(p[1]); }); return fill0(l, b); };
+  var where0 = SV.where;
+  SV.where = function (r) { return r && r.arrivedAt && SV.ARRIVE[r.arrivedAt] ? SV.ARRIVE[r.arrivedAt].at : where0(r); };
+  SV.siteOf = function (def) { var In = D.inn, H6 = D.hours; if (!def) return null; if (In && (def.key === In.KEY || def.key === In.UP)) return 'inn'; return H6 && H6.inSilverton && H6.inSilverton(def) ? 'silverton' : null; };
+  SV.arrivals = function (site, from, to) { // (the bands bound for the site whose hour falls after `from` and by `to`, not met: the earliest first)
+    var S = W.state(); if (!HG.on || !S) return []; var met = S.metRef || [];
+    return HG.sim(to).ref.concat(HG.more ? HG.more(to) : []).filter(function (r) { return r.to === site && r.arrive > from && r.arrive <= to && met.indexOf(r.id) < 0; }).sort(function (a, b) { return a.arrive - b.arrive; });
+  };
+  SV.arriveDue = function (B) {
+    var R = D.roam, R0 = B && B.roam, S = W.state && W.state(); if (!R || !R.def || !R0 || !R.house || !R.house() || !S || S.t == null) return false;
+    var site = SV.siteOf(R.def); if (!site) return false;
+    if (!S.svAt || S.svAt.site !== site) { S.svAt = { site: site, since: S.t }; return false; } // (just come: the hour kept)
+    if (R0.mode !== 'walk' || R0.path) return false;
+    var r = SV.arrivals(site, S.svAt.since, S.t)[0]; if (!r) return false;
+    SV.next = r; return true;
+  };
+  SV.arrivePlay = function* (B) {
+    var r = SV.next, S = W.state(), site = SV.siteOf(D.roam.def), A = SV.ARRIVE[site]; SV.next = null; if (!r || !A) return;
+    (S.metRef = S.metRef || []).push(r.id); W.save();
+    var MW = W.Mworld(), sx = MW && MW.sites.filter(function (s) { return s.id === site; })[0];
+    var live = Object.assign({}, r, { pt: r.toPt.slice(), hex: sx && sx.hex ? sx.hex.slice() : (r.hex0 || [0, 0]).slice(), there: true, arrivedAt: site });
+    SV.trail('the ' + r.kind + ' band ' + r.id + ' in at ' + A.place + ' at ' + (D.house && D.house.clockAt ? D.house.clockAt(r.arrive) : r.arrive) + ', the party there (since ' + (D.house && D.house.clockAt ? D.house.clockAt(S.svAt.since) : S.svAt.since) + ')');
+    if (DS.autoPicks || !D.ctx) { SV.lastArrive = { id: r.id, site: site }; return; } // (no one to watch: counted met, nothing played)
+    D.sfx('confirm'); B.card(D.roam.wrap(A.card.split('{tod}').join(W.timeOfDay())), 140); yield 30;
+    var C = D.counter, st = C && C.state(B); if (!C || !st || !st.party) return;
+    var b = SV.band(live), shot = { draw: function (c) { if (D.ui && D.ui.drawBattle) D.ui.drawBattle(c, B); } };
+    var sc = new C.Counter(null, { id: 'survivors', name: b.K.name, place: A.place, what: A.what + ', ' + W.timeOfDay(), open: true, bg: SV.worldShot(shot),
+      script: function (s) { return (function* () { SV.lastArrive = { id: r.id, site: site, res: yield* SV.talk(s, live) }; })(); } });
+    D.push(sc); SV.last = sc;
+    while (!sc.done && D.scenes.indexOf(sc) >= 0) yield 1;
+    B.focus(B.roam.token); yield 1;
+  };
+  SV.findArrive = function (site, S) { // (a save's seed with a band bound for the site whose hour falls by day 30, not in the first morning: the first of 400)
+    for (var sd = 1; sd <= 400; sd++) { S.seed = sd; var tF = 30 * 24, r = HG.sim(tF).ref.concat(HG.more ? HG.more(tF) : []).filter(function (x) { return x.to === site && x.arrive > 30 && x.arrive < tF; }).sort(function (a, b) { return a.arrive - b.arrive; })[0]; if (r) return { seed: sd, r: r }; }
+    return null;
+  };
+  SV.raise = function (party) { var RL = DS.R; party.forEach(function (h) { for (var g = 0; g < 20 && h.lvl < SV.LVL; g++) { RL.levelUp(h); RL.autoPicks(h); } if (RL.XP_LEVEL && RL.XP_LEVEL[h.lvl] != null) h.xp = Math.max(h.xp || 0, RL.XP_LEVEL[h.lvl]); h.hp = h.maxhp; if (h.slotsMax) h.slots = h.slotsMax.slice(); }); };
+  SV.playArrive = function (bt) { // (the show's two: the place's floor a little after the band's hour, the party come an hour before it -- it plays at the first free moment)
+    var H = D.house, In = D.inn, C = D.counter, rec = H.fresh(); rec.at = { town: null }; H.begin(rec, 0, '?world');
+    var S0 = W.state(), f = SV.findArrive(bt.arrive, S0); if (!f) { if (W.scene) W.scene.say('No band bound there in 400 saves.'); return; }
+    var t = f.r.arrive + (bt.arrive === 'inn' ? 1 : 0.5);
+    if (bt.arrive === 'inn') In.play({ key: In.KEY, at: [24, 17], day: Math.floor(t / 24) + 1, hour: t % 24, inside: true, lvl: SV.LVL, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } });
+    else { C.servicePlay({ hours: 1, door: 'inn:cassia', t: t, flags: { councilNotice: 1, councilSeen: 1 } }); if (H.cur) SV.raise(H.cur.party); }
+    var S = W.state(); S.seed = f.seed; S.metRef = []; S.madeFed = {}; S.t = t; S.svAt = { site: bt.arrive, since: f.r.arrive - 1 }; W.save();
+    if (In) In.pinned = bt.dice ? bt.dice.slice() : null;
+  };
+  var stepA0 = W.onStep;
+  W.onStep = function (scene, st) { var S = W.state && W.state(); if (S && S.svAt) delete S.svAt; return stepA0 ? stepA0.apply(this, arguments) : false; }; // (out on THE WORLD: the place left)
+
   SV.show = function (q) { return new D.roam.WetShow(q, { kind: 'survivorsshow', beats: SV.BEATS, play: SV.play, title: '{y}THE SURVIVORS\' TALK, 11-14{/} -- a band met on THE WORLD, in portraits (a show)' }); };
 })();

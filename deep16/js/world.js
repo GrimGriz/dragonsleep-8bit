@@ -479,7 +479,7 @@
     this.approach(tx, ty); var ln = this.lean || [0, 0], lt = this.lookAt(tx, ty); this.cam.cx += (lt[0] + ln[0] - this.cam.cx) * 0.2; this.cam.cy += (lt[1] + ln[1] - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
-    w.f = 0; S.from = S.at; S.at = next; S.pos = (M.near && next.rv && W.passPt(next.rv)) || hc(next[0], next[1]); S.rv = M.near && next.rv ? next.rv.slice() : null; S.t += hrs; S.today += hrs; w.path.shift(); // (on a road, the road's own point for its pass)
+    w.f = 0; S.from = S.at; S.at = next; S.pos = (M.near && next.rv && W.passPt(next.rv)) || hc(next[0], next[1]); S.rv = M.near && next.rv ? next.rv.slice() : null; S.t += hrs; S.today += hrs; w.path.shift(); delete S.svAt; // (on a road, the road's own point for its pass; svAt: a step out on THE WORLD leaves a place -- js/survivors.js SV.arriveDue)
     var lo = W.house() && D.house.lightsOut ? D.house.lightsOut(null) : []; // (a Light's hour up on the walk: js/house.js H.lightsOut, 10-28)
     if (st.exit) { var fw = atw(hc(S.from[0], S.from[1])[0], hc(S.from[0], S.from[1])[1], MS.world.w); W.use('world'); S.map = null; S.at = st.exit.slice(); S.from = fw; S.pos = hc(S.at[0], S.at[1]); S.rv = null; } // (off the area's edge: THE WORLD's hex, from the 5-mile hex the area's covered)
     if (W.house()) { // (the forced march's saves, each hex past the day's: a failure stops the walk on a card till OK -- his 10-21 "probably need a quick popup every time someone moves a hex and loses the save"; the bottom line was written over by the next hex)

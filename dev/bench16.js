@@ -14650,6 +14650,52 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preD1);
     return;
   }
+  // THE BANDS' ARRIVAL TIMES (mode=arrive1118; the clock-road seat, the clock lane's 11-16 ruling, Griz: "bands should have an arrival time and arrive while the player
+  // is there"): js/survivors.js SV.arriveDue / SV.arrivePlay on js/hours.js H16.BEATS. A band whose hour falls while the party is on the inn's or Silverton's floors comes in
+  // at the first free moment, once; one in before the party came, or while it was out on THE WORLD, does not; its talk's lines say it has come (SV.ARRIVED)
+  if (get('mode', '') === 'arrive1118') {
+    var repAR = { checks: [], errors: [] }, memAR = {}, stGAR = D.store.get, stSAR = D.store.set, apAR = window.DS.autoPicks, muAR = D.music, HAR = D.house, WAR = D.world, SVA = D.survivors, InAR = D.inn, CAR = D.counter;
+    function okAR(what, v) { repAR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topAR() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) D.battle = s; return s; }
+    function runAR(g, cap) { var k = 0, st; while (k++ < (cap || 3000)) { st = g.next(); if (st.done) return true; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); var tp = D.top(); if (tp && tp.id === 'survivors' && tp instanceof CAR.Counter) { var q = 0; while (!tp.done && q++ < 80) { var bs = tp.buttons ? tp.buttons() : []; var nx = bs.filter(function (b) { return b.go === 'next'; })[0]; if (nx) tp.press(nx); else if (tp.wait && tp.wait.flip) { tp.press(bs.filter(function (b) { return /WALK ON/.test(b.label || ''); })[0] || bs[bs.length - 1]); } else if (bs.length) tp.press(bs[0]); else break; } if (D.top() === tp) D.pop(); } } return false; }
+    D.store.get = function (k) { return memAR[k] ? JSON.parse(memAR[k]) : null; }; D.store.set = function (k, v) { memAR[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { }; var hgAR = D.hunger.on; D.hunger.on = true; // (the benches turn it off at the page's load: the bands are this mode's subject)
+    try {
+      HAR.playing = false; HAR.cur = null; var rec0 = HAR.fresh('barley'); rec0.at = { town: null }; HAR.begin(rec0, 0, '?world');
+      var fI = SVA.findArrive('inn', WAR.state()), fS = SVA.findArrive('silverton', WAR.state());
+      function innAt(f, tCome) { HAR.playing = false; HAR.cur = null; InAR.play({ key: InAR.KEY, at: [24, 17], day: Math.floor(tCome / 24) + 1, hour: tCome % 24, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } }); var B = topAR(), S = WAR.state(); S.seed = f.seed; S.metRef = []; S.madeFed = {}; S.t = tCome; delete S.svAt; if (B && B.roam) { B.roam.mode = 'walk'; B.roam.path = null; } return B; }
+      function townAt(f, tCome) { HAR.playing = false; HAR.cur = null; CAR.servicePlay({ hours: 1, door: 'inn:cassia', t: tCome, flags: { councilNotice: 1, councilSeen: 1 } }); var B = topAR(), S = WAR.state(); S.seed = f.seed; S.metRef = []; S.madeFed = {}; S.t = tCome; delete S.svAt; if (B && B.roam) { B.roam.mode = 'walk'; B.roam.path = null; } return B; }
+      okAR('bands to find: the inn ' + (fI && fI.r.id + ' (seed ' + fI.seed + ', ' + fI.r.kind + ', in at day ' + (Math.floor(fI.r.arrive / 24) + 1) + ' ' + (fI.r.arrive % 24).toFixed(1) + 'h)') + '; Silverton ' + (fS && fS.r.id + ' (seed ' + fS.seed + ', ' + fS.r.kind + ', in at day ' + (Math.floor(fS.r.arrive / 24) + 1) + ' ' + (fS.r.arrive % 24).toFixed(1) + 'h)'), !!fI && !!fS);
+      // 1. THE INN: the party in two hours before the band's hour; the hour passes (a wait) -- due once, played (no screen: counted met), then not again
+      var BI = innAt(fI, fI.r.arrive - 2), SI = WAR.state(), d0 = SVA.arriveDue(BI), kept = SI.svAt && SI.svAt.site === 'inn' && SI.svAt.since === fI.r.arrive - 2, d1 = SVA.arriveDue(BI);
+      SI.t = fI.r.arrive + 0.5; var d2 = SVA.arriveDue(BI), who = SVA.next && SVA.next.id; repAR.dbg = { house: D.roam.house(), mode: BI.roam.mode, path: !!BI.roam.path, def: D.roam.def && D.roam.def.key, svAt: SI.svAt, t: SI.t, seed: SI.seed, on: D.hunger.on, a2: SVA.arrivals('inn', 216, 220).length, met: SI.metRef, f1: D.hunger.sim(SI.t).ref.filter(function (r) { return r.to === 'inn' && r.arrive > SI.svAt.since; }).length, f2: D.hunger.sim(SI.t).ref.filter(function (r) { return r.to === 'inn' && r.arrive <= SI.t; }).length, src: String(SVA.arrivals).slice(0, 300), same: WAR.state() === SI, mw: !!WAR.Mworld(), arr: SVA.arrivals('inn', SI.svAt ? SI.svAt.since : 0, SI.t).map(function (r) { return r.id; }), sim: D.hunger.sim(SI.t).ref.filter(function (r) { return r.to === 'inn'; }).map(function (r) { return r.id + '@' + r.arrive.toFixed(1); }) }; runAR(SVA.arrivePlay(BI)); var met = (SI.metRef || []).indexOf(fI.r.id) >= 0, d3 = SVA.arriveDue(BI);
+      okAR('the inn, the party in at ' + (fI.r.arrive - 2).toFixed(1) + ': its coming kept (' + kept + '), nothing before the hour (' + !d0 + ', ' + !d1 + '); at the hour + 0.5 the band due (' + d2 + ', ' + who + '), played and counted met (' + met + '), not again (' + !d3 + ')', !d0 && kept && !d1 && d2 && who === fI.r.id && met && !d3);
+      // 2. IN BEFORE THE PARTY CAME: the party at the inn from an hour after the band's hour -- never due
+      var BJ = innAt(fI, fI.r.arrive + 1), SJ = WAR.state(); SVA.arriveDue(BJ); SJ.t = fI.r.arrive + 9; var e1 = SVA.arriveDue(BJ);
+      okAR('the band in before the party came (the party at ' + (fI.r.arrive + 1).toFixed(1) + '): not due eight hours on (' + !e1 + ')', !e1);
+      // 3. WHILE IT WAS OUT ON THE WORLD: the place left at a step (the coming cleared), back after the hour -- not due
+      var BK = innAt(fI, fI.r.arrive - 3), SK = WAR.state(); SVA.arriveDue(BK); var kBK = !!SK.svAt; try { WAR.onStep({ q: '?noenc', say: function () { } }, {}); } catch (eK) { } var clearedA = kBK && !SK.svAt; SK.svAt = { site: 'inn', since: SK.t }; var wsK = WAR.scene; var srcK = String(WAR.World && WAR.World.prototype && Object.keys(WAR.World.prototype).map(function (k) { return String(WAR.World.prototype[k]); }).join('')); var cleared = clearedA && /S\.today \+= hrs; w\.path\.shift\(\); delete S\.svAt;/.test(srcK); delete SK.svAt; SK.t = fI.r.arrive + 2; var e2 = SVA.arriveDue(BK), e3 = SVA.arriveDue(BK);
+      okAR('the band in while the party was out on THE WORLD: THE WORLD\'s step clears its coming (' + cleared + '); back after the hour, kept fresh, never due (' + !e2 + ', ' + !e3 + ')', cleared && !e2 && !e3);
+      // 4. SILVERTON: on the street two hours before; the hour passes -- due, played, met; the inn's band not Silverton's
+      var BT = townAt(fS, fS.r.arrive - 2), ST = WAR.state(), site = SVA.siteOf(D.roam.def); SVA.arriveDue(BT); ST.t = fS.r.arrive + 0.25; var g1 = SVA.arriveDue(BT), gw = SVA.next && SVA.next.to; runAR(SVA.arrivePlay(BT)); var gm = (ST.metRef || []).indexOf(fS.r.id) >= 0;
+      okAR('Silverton (' + D.roam.def.key + ', the place ' + site + '): due at the hour (' + g1 + ', bound for ' + gw + '), played, met (' + gm + ')', site === 'silverton' && g1 && gw === 'silverton' && gm);
+      // 5. THE TALK'S WORDS for a band come where it was going: "We came to" / "We've come to", never "We're for"; the closing line stays, not goes on
+      var lines = Object.keys(SVA.KINDS).map(function (k) { var r = Object.assign({}, fI.r, { kind: k, arrivedAt: 'inn', hex: [0, 0] }), b = SVA.band(r); return SVA.fill(b.K.opener, b); }), bA = SVA.band(Object.assign({}, fI.r, { arrivedAt: 'inn', hex: [0, 0] })), bR = SVA.band(Object.assign({}, fI.r, { hex: [0, 0] }));
+      var goA = SVA.fill(SVA.GOING, bA), goR = SVA.fill(SVA.GOING, bR), bnA = SVA.fill(SVA.ASKS.bound.back, bA);
+      okAR('the arrived talk: ' + lines.map(function (l) { return '"' + l + '"'; }).join(' / ') + '; the close "' + goA + '" (on the road "' + goR + '"); where will you go: ' + bnA,
+        lines.every(function (l) { return !/re for|m for/.test(l) && /come to|came to|carts, to/.test(l); }) && /stay on at the Halfway Inn/.test(goA) && /making for/.test(goR) && /^"Here, for now/.test(bnA) && SVA.where(Object.assign({ arrivedAt: 'inn' }, fI.r)) === SVA.ARRIVE.inn.at);
+      // 6. ON A SCREEN: the card, then the talk on the open screen over the inn, its place and its first words
+      window.DS.autoPicks = false; var cvA = document.createElement('canvas'); cvA.width = D.W; cvA.height = D.H; var ctx0 = D.ctx; D.ctx = cvA.getContext('2d'); var sfx0 = D.sfx; D.sfx = function () { };
+      var BS = innAt(fI, fI.r.arrive - 2), SS = WAR.state(); SVA.arriveDue(BS); SS.t = fI.r.arrive + 0.5; var gS = SVA.arriveDue(BS), gen = SVA.arrivePlay(BS), seen = null, k = 0;
+      while (k++ < 200) { var stp = gen.next(); if (typeof stp.value === 'number') BS.t += stp.value; var tp = D.top(); if (tp && tp.id === 'survivors') { seen = { place: tp.o && tp.o.place, what: tp.o && tp.o.what, card: BS.cardLines ? String(BS.cardLines) : '' }; tp.draw(D.ctx); break; } if (stp.done) break; }
+      while (D.top() && D.top().id === 'survivors') D.pop(); D.ctx = ctx0; D.sfx = sfx0; window.DS.autoPicks = true;
+      okAR('on a screen: due (' + gS + '), the talk up over ' + (seen && seen.place) + ' (' + (seen && seen.what) + ')', gS && !!seen && seen.place === 'The Halfway Inn' && /^in the yard/.test(seen.what || ''));
+    } catch (eAR) { repAR.errors.push(String(eAR && eAR.stack || eAR).slice(0, 900)); }
+    D.hunger.on = hgAR; D.store.get = stGAR; D.store.set = stSAR; window.DS.autoPicks = apAR; D.music = muAR; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preAR = document.createElement('pre'); preAR.id = 'out'; preAR.textContent = 'BENCH16 ' + JSON.stringify(repAR);
+    document.body.appendChild(preAR);
+    return;
+  }
   // THE SMALL FIXES OF 11-18 (mode=fixes1118; the small-fixes seat, on the lanes desk's brief from his playthrough of 11-16 night and his fight records): G -- Finding Work a
   // collection of four, Papa's line finding none, Gull's Reward with Barley along and the rusty scale (js/hours.js H16.WORK H16.GULL C.TALK16.gull, RULED 11-16); T -- one article on a
   // foe's name, "The thing in the lake" (js/battle.js Battle.nm, Battle.prototype.theOf); S -- a stirge's letting go once (js/ai.js brute); R -- the road's and the camp's grid field 16 deep, the lineup in its middle (js/world.js W.deep)
