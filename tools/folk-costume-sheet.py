@@ -104,8 +104,17 @@ PIECES = {
     # cloth); `shared`: the map's frames for the other piece's figures passed over)
     'crewboss': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
                      navy=None, stand=False, unred=0, shared=True),
-    'clerk': dict(folder='2026-11-15-ART-WANTED-79-CLERK', name='ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                  navy=(17, 24, 45), stand=False),
+    # (the clerk's first, code-drawn pages -- 2026-11-15-ART-WANTED-79-CLERK, native 4x, navy (17, 24, 45) -- replaced by its redraw, 11-18: image-generated
+    # on the navy with the art desk's own native cut on the 64 (NATIVE/, a strip a row), taken as drawn but for the red and fire on faces and hands,
+    # `unred` everywhere -- no red cloth (a brown waistcoat, ivory sleeves, slate below; the warm streak at the head is the pen behind the ear, not red);
+    # five walks the art desk held (both SE and rear NE, the man's E), cut as drawn)
+    'clerk': dict(folder='2026-11-18-ART-WANTED-79-CLERK-REDRAW', name='ART-WANTED-79 CLERK ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                  navy=None, stand=False, unred=0),
+    # the drive spear (art-wanted 65's piece 5, the art desk's 80, 11-18; the first to come: the Galleries' bat-drive hands, a short spear upright in the
+    # right hand, one shoulder guard): its native cut taken as drawn, `unred` everywhere (no red cloth); the drive crew (C.GENERIC drivecrew) moves into
+    # the man as it lands; four walks the art desk held for LOOK (both SE and rear NE), cut as drawn
+    'drivespear': dict(folder='2026-11-18-ART-WANTED-80-DRIVE-SPEAR', name='ART-WANTED-80 DRIVE SPEAR ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                       navy=None, stand=False, unred=0),
     # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
     # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
     'crewbossfight': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: his fight figure, five views, Ready Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell',
@@ -132,6 +141,10 @@ def frames_of(d):
         if isinstance(fm, list):                # (the guard's redraw and its fight figures, 11-18: a list, a frame an entry, each naming its cell in the art
             # desk's own native strip -- the town pair's `native_file` at `native_xywh`, the fight pair's `native_png` at `native_crop_xywh`, by `person`)
             g = lambda e, *ks: next(e[k] for k in ks if e.get(k) not in (None, ''))
+            if 'figure' in fm[0] and 'native_file' not in fm[0]:   # (the clerk's redraw, 11-18: no strip named; its native cut of a row is
+                # NATIVE/<figure>-<view>-<row>.png, a transparent strip from frame 1)
+                return [(e['runtime_target'], e['facing'], e['action'], int(e['frame']) - 1, 'NATIVE/%s-%s-%s.png' % (e['figure'], e['facing'], e['action']),
+                         ((int(e['frame']) - 1) * e['cell'][0], 0, e['cell'][0], e['cell'][1])) for e in fm]
             return [(g(e, 'runtime_target', 'person'), e['facing'], g(e, 'action', 'row'), int(e['index']), g(e, 'native_file', 'native_png'),
                      tuple(int(v) for v in g(e, 'native_xywh', 'native_crop_xywh'))) for e in fm]
         if 'sheets' in fm and 'source_png' in fm['sheets'][0]:   # (the gambler's and barkeep's redraws, 11-16: `sheets` map each row to its
@@ -152,6 +165,10 @@ def frames_of(d):
             row = {'attack': 'mace', 'hurt': 'fall'}.get(r['action'], r['action'])
             out.append((r['target'], r['facing'], r['action'], int(r['frame_index']), '%s/NATIVE-PREVIEWS/%s-%s-1X.png' % (r['source_png'].split('/')[0], r['facing'], row),
                         (int(r['frame_index']) * w, 0, w, h)))
+            continue
+        if r.get('native_png'):         # (the drive spear, 11-18: each frame's own cell in the art desk's native strip, named)
+            out.append((r['runtime_target'], r['facing'], r['action'], int(r['frame_index']), r['native_png'],
+                        (int(r['native_x']), int(r['native_y']), int(r['cell_width']), int(r['cell_height']))))
             continue
         g = lambda *ks: next(r[k] for k in ks if r.get(k) not in (None, ''))
         idx = int(g('frame_index', 'index')) if any(r.get(k) not in (None, '') for k in ('frame_index', 'index')) else int(g('frame_1based', 'frame', 'frame_number')) - 1

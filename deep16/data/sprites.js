@@ -5148,7 +5148,7 @@
 "source": "drawn by the art desk (ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_clerk_p1": {
-"image": "art/folkman_clerk_p1.png?v=1c79fc024b",
+"image": "art/folkman_clerk_p1.png?v=b27e4d18bf",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -5174,7 +5174,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-79 CLERK ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_crewboss_p1": {
 "image": "art/folkman_crewboss_p1.png?v=3adc641785",
@@ -5467,7 +5467,7 @@
 "source": "drawn by the art desk (ART-WANTED-75 BARKEEP ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_clerk_p1": {
-"image": "art/folkwoman_clerk_p1.png?v=91d3204397",
+"image": "art/folkwoman_clerk_p1.png?v=b2362c72f1",
 "fw": 72,
 "fh": 64,
 "ax": 36,
@@ -5493,7 +5493,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-79 CLERK ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_crewboss_p1": {
 "image": "art/folkwoman_crewboss_p1.png?v=1573f7e3a1",
