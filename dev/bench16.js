@@ -4692,33 +4692,33 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.seed = +get('seed', 1105);
       // 1. THE RULE: a NEW GAME has none behind it (open); the crews' fire's long rest at noon ends at 20:00, kept on the save; the next may begin 16 hours after it (a night's
       // eight ending 24 hours after), its words the hour it opens at
-      var B1 = houseY('glowseep', 'east', [30, 11], 12), open1 = HY.longOpen(8), r1 = HY.cur.restEnd; runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS']);
+      var B1 = houseY('glowseep', 'east', [30, 11], 12), open1 = HY.longOpen(8), r1 = HY.cur.restEnd; runY(B1, MY.seepFire(B1), ['LONG REST: 8 HOURS']);
       var e1 = HY.cur.restEnd, f1 = HY.longFrom(8), w1 = HY.longWait(8), k1 = HY.longWake(8), y1 = HY.longWhy(8);
       okY('the rule: a NEW GAME open (' + open1 + ', restEnd ' + r1 + '); the fire\'s long rest from 12 kept at ' + e1 + '; then a night\'s may begin at ' + f1 + ' (wait ' + w1 + ', awake ' + k1 + '): "' + y1 + '"',
         open1 && r1 == null && e1 === 20 && f1 === 36 && w1 === 16 && k1 === 44 && !HY.longOpen(8) && HY.longOpen(0) === false && y1 === 'No long rest yet: one a day. A long rest again from 12:00, midday: WAIT till then.');
       // 2. THE FIRE INSIDE THE DAY: LONG REST greyed with its hour, pressed and refused (nothing slept); SHORT REST still the hour and the dice
-      hurtY(B1, 'barley'); var offs2 = [], o2 = runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS'], offs2), t2 = tY(), hp2 = unitY(B1, 'barley').hp, o2s = runY(B1, MY.seepFire(B1), ['SHORT REST, AN HOUR']), t2s = tY(), hp2s = unitY(B1, 'barley').hp;
+      hurtY(B1, 'barley'); var offs2 = [], o2 = runY(B1, MY.seepFire(B1), ['LONG REST'], offs2), t2 = tY(), hp2 = unitY(B1, 'barley').hp, o2s = runY(B1, MY.seepFire(B1), ['SHORT REST: AN HOUR']), t2s = tY(), hp2s = unitY(B1, 'barley').hp;
       okY('the fire at 20:00: ' + o2.slice(0, 240) + ' (the clock ' + t2 + ', Barley ' + hp2 + ', restEnd ' + HY.cur.restEnd + ') // SHORT REST: the clock ' + t2s + ', Barley ' + hp2s,
-        offs2.indexOf('LONG REST, 8 HOURS') >= 0 && /A long rest again from 12:00, midday: M > WAIT till then\./.test(o2) && /REFUSED/.test(o2) && !/WOKE/.test(o2) && t2 === 20 && hp2 === 1 && HY.cur.restEnd === 20 && t2s === 21 && hp2s > 1);
+        offs2.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 12:00 \(16 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o2) && /A long rest again from 12:00, midday\./.test(o2) && /REFUSED/.test(o2) && !/WOKE/.test(o2) && t2 === 20 && hp2 === 1 && HY.cur.restEnd === 20 && t2s === 21 && hp2s > 1);
       // 3. WAIT TILL A LONG REST (his "tell them to 'wait'"): the ask's fifth choice, the hour named; on to 12:00 next day, a short rest on the way; then the fire's long rest again
-      var bz3 = hurtY(B1, 'barley'); bz3.src.hdLeft = bz3.src.lvl; HY.cur.party.forEach(function (h) { if (h.id === 'barley') h.hdLeft = h.lvl; }); var o3 = runY(B1, H6Y.waitPlay(B1), ['TILL A LONG REST']), t3 = tY(), hp3 = unitY(B1, 'barley').hp, /* (his hit dice back by hand: check 2's short rest spent them) */ offs3 = [], o3f = runY(B1, MY.seepFire(B1), ['LONG REST, 8 HOURS'], offs3), t3f = tY();
+      var bz3 = hurtY(B1, 'barley'); bz3.src.hdLeft = bz3.src.lvl; HY.cur.party.forEach(function (h) { if (h.id === 'barley') h.hdLeft = h.lvl; }); var o3 = runY(B1, H6Y.waitPlay(B1), ['TILL A LONG REST']), t3 = tY(), hp3 = unitY(B1, 'barley').hp, /* (his hit dice back by hand: check 2's short rest spent them) */ offs3 = [], o3f = runY(B1, MY.seepFire(B1), ['LONG REST: 8 HOURS'], offs3), t3f = tY();
       okY('WAIT at 21:00: ' + o3.slice(0, 420) + ' (the clock ' + t3 + ', Barley ' + hp3 + ') // then the fire: ' + (offs3.length ? 'greyed ' + offs3.join() : 'open') + ', ' + o3f.slice(o3f.indexOf('WOKE'), o3f.indexOf('WOKE') + 30) + ' (the clock ' + t3f + ', restEnd ' + HY.cur.restEnd + ')',
         /\[NEXT BELL \| AN HOUR \| SHORT REST \| TILL A LONG REST \| NEVER MIND\] > TILL A LONG REST/.test(o3) && /A long rest again from 12:00, midday\./.test(o3) && /CARD: The wait runs on to 12:00, midday: a long rest is open again\./.test(o3) && /The wait is a short rest too/.test(o3) &&
         t3 === 36 && hp3 > 1 && !offs3.length && /WOKE/.test(o3f) && t3f === 44 && HY.cur.restEnd === 44);
       // 4. THE BUNKS: the Warrens' bunkhouse an hour after a long rest -- LONG REST greyed, its hour on the ask; the short rest still
-      var B4 = houseY('warrens', 'feed', null, 21, { shifts: 1 }); HY.cur.restEnd = 20; hurtY(B4, 'barley'); var offs4 = [], o4 = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['A BUNK: LONG REST, 8 HOURS'], offs4), t4 = tY();
-      var o4s = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['A BUNK: SHORT REST, AN HOUR']), t4s = tY(), hp4 = unitY(B4, 'barley').hp;
+      var B4 = houseY('warrens', 'feed', null, 21, { shifts: 1 }); HY.cur.restEnd = 20; hurtY(B4, 'barley'); var offs4 = [], o4 = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['LONG REST'], offs4), t4 = tY();
+      var o4s = runY(B4, D.town.fire(B4, trigY('keeper:bunkhouse')), ['SHORT REST: AN HOUR']), t4s = tY(), hp4 = unitY(B4, 'barley').hp;
       okY('the bunkhouse at 21:00, rested at 20:00: ' + o4.slice(o4.indexOf('A bunk?'), o4.indexOf('A bunk?') + 260) + ' (the clock ' + t4 + ') // the short rest: ' + t4s + ', Barley ' + hp4,
-        offs4.indexOf('A BUNK: LONG REST, 8 HOURS') >= 0 && /A long rest again from 12:00, midday: M > WAIT till then\./.test(o4) && /REFUSED/.test(o4) && !/WOKE/.test(o4) && t4 === 21 && t4s === 22 && hp4 > 1);
+        offs4.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 12:00 \(15 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o4) && /A long rest again from 12:00, midday\./.test(o4) && /REFUSED/.test(o4) && !/WOKE/.test(o4) && t4 === 21 && t4s === 22 && hp4 > 1);
       // 5. THE TOWN'S BEDS at 20:00, rested at 08:00: Aldwin's SLEEP greyed till midnight; Cassia's both sleeps -- A NIGHT'S SLEEP (eight hours, no morning page, the long rest's
       // end kept where it was, a short rest's dice), then STAY TILL RESTED (awake at 08:00 the day after: X = 12 hours, the morning, the end kept there)
-      var B5 = houseY('silverton', 'west', null, 20, null, 60); HY.cur.restEnd = 8; var offs5 = [], o5a = runY(B5, CY.talk(B5, 'aldwin'), ['SLEEP'], offs5), t5a = tY();
-      hurtY(B5, 'barley'); var o5n = runY(B5, CY.talk(B5, 'cassia'), ['A NIGHT\'S SLEEP: 8 HOURS, NO LONG REST']), t5n = tY(), hp5n = unitY(B5, 'barley').hp, e5n = HY.cur.restEnd;
-      WY.state().t = 20; var o5t = runY(B5, CY.talk(B5, 'cassia'), [0]), t5t = tY(), e5t = HY.cur.restEnd;
+      var B5 = houseY('silverton', 'west', null, 20, null, 60); HY.cur.restEnd = 8; var offs5 = [], o5a = runY(B5, CY.talk(B5, 'aldwin'), ['LONG REST'], offs5), t5a = tY();
+      hurtY(B5, 'barley'); var o5n = runY(B5, CY.talk(B5, 'cassia'), [2]), t5n = tY(), hp5n = unitY(B5, 'barley').hp, e5n = HY.cur.restEnd;
+      WY.state().t = 20; var o5t = runY(B5, CY.talk(B5, 'cassia'), [1, 0]), t5t = tY(), e5t = HY.cur.restEnd;
       okY('Aldwin\'s floor: ' + o5a.slice(o5a.indexOf('['), o5a.indexOf('[') + 60) + ' greyed ' + offs5.join() + ' (the clock ' + t5a + ') // Cassia\'s A NIGHT\'S SLEEP: ' + o5n.slice(o5n.indexOf('['), o5n.indexOf('[') + 140) + ' ... ' + o5n.slice(-140) + ' (the clock ' + t5n + ', Barley ' + hp5n + ', restEnd ' + e5n + ') // STAY TILL RESTED: ' + o5t.slice(o5t.indexOf('WOKE'), o5t.indexOf('WOKE') + 24) + ' (the clock ' + t5t + ', restEnd ' + e5t + ')',
-        offs5.indexOf('SLEEP') >= 0 && /A long rest again from 00:00, night: WAIT on the street till then\./.test(o5a) && t5a === 20 &&
-        /\[STAY TILL RESTED: AWAKE 08:00, MORNING \(12 HOURS\) \| A NIGHT'S SLEEP: 8 HOURS, NO LONG REST \| LEAVE\]/.test(o5n) && /CARD: NIGHT .*A night's sleep, and no long rest: one a day\./.test(o5n) && !/WOKE/.test(o5n) && t5n === 28 && hp5n > 1 && e5n === 8 &&
-        /WOKE MORNING/.test(o5t) && t5t === 32 && e5t === 32);
+        offs5.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 00:00 \(4 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o5a) && /A long rest again from 00:00, night\./.test(o5a) && t5a === 20 &&
+        /\[\(LONG REST\) \| WAIT TILL A LONG REST: 00:00 \(4 HOURS\) \| A NIGHT'S SLEEP: TILL THE DAWN BELL, \d+ SP \| SHORT REST: AN HOUR \| LEAVE\]/.test(o5n) && /CARD: \w+ .*A night's sleep, and no long rest: one a day\./.test(o5n) && !/WOKE/.test(o5n) && t5n === 29 && hp5n > 1 && e5n === 8 &&
+        /The wait runs on to 00:00, night: a long rest is open again\./.test(o5t) && /A long rest now\?.*\[LONG REST: 8 HOURS, \d+ SP \| SHORT REST: AN HOUR \| LEAVE\] > LONG REST/.test(o5t) && /WOKE MORNING/.test(o5t) && t5t === 32 && e5t === 32);
       // 6. THE WORLD (his "'wait' on world map works for short-rest or next bell"): at 20:00, rested at 08:00 -- CAMP's THE NIGHT greyed with its hour, WAIT beside it; the night
       // refused (no watches); MAKE CAMP past the day's march opens the camp's card; M > WAIT on THE WORLD, its five, TILL A LONG REST to midnight; then THE NIGHT open; the
       // Tiny Hut's night refused with nothing spent
@@ -4737,12 +4737,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // SHORT REST / NOT NOW; A NIGHT'S SLEEP eleven hours with no morning page; SLEEP TILL RESTED the morning at eight; a day since: STAY THE NIGHT as built
       var stageI = function (rest) { InY.play({ key: InY.KEY, at: [24, 17], hour: 18, day: 5, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } }); var B = topY(); if (rest != null) HY.cur.restEnd = rest; var t = B.roam.token; t.x = 24; t.y = 17; t.tween = null; B.roam.fw = [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); return B; };
       var gen = function (B) { return CY.talk ? D.town.fire(B, trigY('talk:gennet')) : null; };
-      var BI1 = stageI(4 * 24 + 8), o7n = runY(BI1, gen(BI1), ['A NIGHT\'S SLEEP: 11 HOURS, NO LONG REST']), t7n = tY(), e7n = HY.cur.restEnd; // (the inn lady's talk sleeps the night it gives: js/inn.js T.fire, In.night)
-      var BI2 = stageI(4 * 24 + 8), o7t = runY(BI2, gen(BI2), [0]), t7t = tY(), e7t = HY.cur.restEnd;
-      var BI3 = stageI(3 * 24 + 8), o7o = runY(BI3, gen(BI3), ['NO']);
-      okY('the inn at 18:00 on day 5, rested at 08:00: ' + o7n.slice(o7n.indexOf('['), o7n.indexOf('[') + 170) + ' -- A NIGHT\'S SLEEP: the clock ' + t7n + ', restEnd ' + e7n + ', woke ' + /WOKE/.test(o7n) + ' // SLEEP TILL RESTED: the clock ' + t7t + ', restEnd ' + e7t + ', ' + o7t.slice(o7t.indexOf('WOKE'), o7t.indexOf('WOKE') + 20) + ' // a day since: ' + o7o.slice(o7o.indexOf('['), o7o.indexOf('[') + 40),
-        /\[SLEEP TILL RESTED: AWAKE 08:00, MORNING \(14 HOURS\) \| A NIGHT'S SLEEP: 11 HOURS, NO LONG REST \| SHORT REST \| NOT NOW\]/.test(o7n) && /A long rest again from 21:00, night\./.test(o7n) && !/WOKE/.test(o7n) && /A night's sleep, and no long rest/.test(o7n) && t7n === 4 * 24 + 29 && e7n === 4 * 24 + 8 &&
-        /WOKE MORNING/.test(o7t) && t7t === 4 * 24 + 32 && e7t === 4 * 24 + 32 && /\[STAY THE NIGHT \| NO\]/.test(o7o));
+      var BI1 = stageI(4 * 24 + 8), o7n = runY(BI1, gen(BI1), [2]), t7n = tY(), e7n = HY.cur.restEnd; // (the inn lady's talk sleeps the night it gives: js/inn.js T.fire, In.night)
+      var BI2 = stageI(4 * 24 + 8), o7t = runY(BI2, gen(BI2), [1, 0]), t7t = tY(), e7t = HY.cur.restEnd;
+      var BI3 = stageI(3 * 24 + 8), o7o = runY(BI3, gen(BI3), ['NOT NOW']);
+      okY('the inn at 18:00 on day 5, rested at 08:00: ' + o7n.slice(o7n.indexOf('['), o7n.indexOf('[') + 170) + ' -- A NIGHT\'S SLEEP: the clock ' + t7n + ', restEnd ' + e7n + ', woke ' + /WOKE/.test(o7n) + ' // WAIT TILL A LONG REST, then the long rest: the clock ' + t7t + ', restEnd ' + e7t + ', ' + o7t.slice(o7t.indexOf('WOKE'), o7t.indexOf('WOKE') + 20) + ' // a day since: ' + o7o.slice(o7o.indexOf('['), o7o.indexOf('[') + 40),
+        /\[\(LONG REST\) \| WAIT TILL A LONG REST: 21:00 \(3 HOURS\) \| A NIGHT'S SLEEP: TILL THE DAWN BELL, \d+ SP \| SHORT REST: AN HOUR \| NOT NOW\]/.test(o7n) && /A long rest again from 21:00, night\./.test(o7n) && !/WOKE/.test(o7n) && /A night's sleep, and no long rest/.test(o7n) && t7n === 4 * 24 + 29 && e7n === 4 * 24 + 8 &&
+        /A long rest now\?.*\[LONG REST: 11 HOURS, \d+ SP \| SHORT REST: AN HOUR \| NOT NOW\] > LONG REST/.test(o7t) && /WOKE MORNING/.test(o7t) && t7t === 4 * 24 + 32 && e7t === 4 * 24 + 32 && /\[LONG REST: 11 HOURS, \d+ SP \| SHORT REST: AN HOUR \| NOT NOW\]/.test(o7o));
       // 8. THE WAGON NIGHT'S WATCHES READ THE STAY: the lie-down on a night's sleep with no long rest -- everyone the first watch's short rest (Aurdin's slots not back); on a
       // long rest's night -- the second and third watches the long rest's mechanics (Aurdin's slots back), as built; the long rest's end kept only at the morning (In.sleep)
       var asg8 = { barley: 1, aurdin: 2, vivian: 3, lymen: 3 }, lie8 = function (long) { var B = stageI(4 * 24 + 8); B.roam.stay = { t0: InY.clock(B), hours: 11, kind: 'dinner', long: long }; B.roam.members.forEach(function (u) { u.hp = 1; if (u.src) u.src.hp = 1; if (Array.isArray(u.slots)) u.slots = u.slots.map(function () { return 0; }); }); driveY(InY.lieDown(B, 5.5, 'THE SECOND WATCH', ['x'], asg8), 400); var a = unitY(B, 'aurdin'), v = unitY(B, 'vivian'), vs = HY.cur.party.filter(function (h) { return h.id === 'vivian'; })[0] || {}; return { aur: slotsY(a), viv: v.hp + '/' + v.maxhp, hd: vs.hdLeft, lvl: vs.lvl, e: HY.cur.restEnd }; }; // (the hit dice tell the rests apart: a short rest spends them, a long rest's mechanics give them back)
@@ -4846,24 +4846,24 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         /within the hour/.test(o5) && /CARD: The wait runs on to night\. Night comes down on the Glowseep/.test(o5) && !/short rest/.test(o5.split('CARD')[1] || '') && t5 === 20 && !dk5 && !!RZ.def.dark);
       // 6. THE CREWS' FIRE (the desk's lean 3; his "no short rest option on the campfire"): LONG REST, 8 HOURS / SHORT REST, AN HOUR / LEAVE; the short rest an hour and the dice,
       // no morning; the long rest eight hours, the morning
-      var B6 = houseZ('glowseep', 'east', [30, 11], 12); hurtZ(B6, 'barley'); var o6s = runZ(B6, MZ.seepFire(B6), ['SHORT REST, AN HOUR']), t6s = tZ(), hp6s = unitZ(B6, 'barley').hp;
-      hurtZ(B6, 'barley'); var o6l = runZ(B6, MZ.seepFire(B6), ['LONG REST, 8 HOURS']), t6l = tZ(), u6 = unitZ(B6, 'barley'), hp6l = u6.hp;
+      var B6 = houseZ('glowseep', 'east', [30, 11], 12); hurtZ(B6, 'barley'); var o6s = runZ(B6, MZ.seepFire(B6), ['SHORT REST: AN HOUR']), t6s = tZ(), hp6s = unitZ(B6, 'barley').hp;
+      hurtZ(B6, 'barley'); var o6l = runZ(B6, MZ.seepFire(B6), ['LONG REST: 8 HOURS']), t6l = tZ(), u6 = unitZ(B6, 'barley'), hp6l = u6.hp;
       okZ('the crews\' fire: ' + o6s.slice(0, 300) + ' (the clock 12 to ' + t6s + ', Barley ' + hp6s + ') // the long rest: the clock ' + t6l + ', Barley ' + hp6l + '/' + u6.maxhp + ' (' + o6l.slice(o6l.indexOf('WOKE'), o6l.indexOf('WOKE') + 60) + ')',
-        /The Veterans keep Watch\. \/ \[LONG REST, 8 HOURS \| SHORT REST, AN HOUR \| LEAVE\] > SHORT REST, AN HOUR/.test(o6s) && /An hour by the crews' fire/.test(o6s) && /A short rest: an hour\. Barley spends/.test(o6s) && !/WOKE/.test(o6s) && t6s === 13 && hp6s > 1 &&
+        /The Veterans keep Watch\. \/ \[LONG REST: 8 HOURS \| SHORT REST: AN HOUR \| LEAVE\] > SHORT REST: AN HOUR/.test(o6s) && /An hour by the crews' fire/.test(o6s) && /A short rest: an hour\. Barley spends/.test(o6s) && !/WOKE/.test(o6s) && t6s === 13 && hp6s > 1 &&
         /WOKE/.test(o6l) && t6l === 21 && hp6l === u6.maxhp);
       // 7. THE WARRENS' BUNKHOUSE AND THE PELLAM BARNS (the desk's lean 4; his "no short rest at bunk ... bunk cost how many hours?"): the hours on the choice; the short rest an
       // hour; the long rest eight hours from lying down (at noon: awake at night, not the next morning), the bunk's own word for the night; the barns a silver for either
-      var B7 = houseZ('warrens', 'feed', null, 12, { shifts: 1 }, 10); hurtZ(B7, 'barley'); var tb = trigZ('keeper:bunkhouse'), o7s = runZ(B7, D.town.fire(B7, tb), ['A BUNK: SHORT REST, AN HOUR']), t7s = tZ(), hp7s = unitZ(B7, 'barley').hp;
-      var o7l = runZ(B7, D.town.fire(B7, tb), ['A BUNK: LONG REST, 8 HOURS']), t7l = tZ(), u7 = unitZ(B7, 'barley'), hp7l = u7.hp;
-      var s7 = HZ.cur.silver, tp = trigZ('keeper:pellambarn'); hurtZ(B7, 'barley'); var o7p = tp ? runZ(B7, D.town.fire(B7, tp), ['A BUNK, 1 SP: SHORT REST, AN HOUR']) : 'NO DOOR', t7p = tZ(); HZ.fromFloor(B7); var s7p = HZ.cur.silver;
-      okZ('the Warrens\' bunkhouse to crew: ' + o7s.slice(0, 260) + ' (the clock 12 to ' + t7s + ', Barley ' + hp7s + ') // the long rest: the clock ' + t7l + ', ' + o7l.slice(o7l.indexOf('WOKE'), o7l.indexOf('WOKE') + 90) + ', Barley ' + hp7l + '/' + u7.maxhp + ' // the Pellam barns: ' + o7p.slice(0, 200) + ' (the clock ' + t7p + ', the purse ' + s7 + ' to ' + s7p + ')',
-        /A bunk\? \(free, crew sleep free\) \/ \[A BUNK: LONG REST, 8 HOURS \| A BUNK: SHORT REST, AN HOUR \| LEAVE\]/.test(o7s) && /An hour on a bunk/.test(o7s) && /Barley spends/.test(o7s) && !/WOKE/.test(o7s) && t7s === 13 && hp7s > 1 &&
+      var B7 = houseZ('warrens', 'feed', null, 12, { shifts: 1 }, 10); hurtZ(B7, 'barley'); var tb = trigZ('keeper:bunkhouse'), o7s = runZ(B7, D.town.fire(B7, tb), ['SHORT REST: AN HOUR']), t7s = tZ(), hp7s = unitZ(B7, 'barley').hp;
+      var o7l = runZ(B7, D.town.fire(B7, tb), ['LONG REST: 8 HOURS']), t7l = tZ(), u7 = unitZ(B7, 'barley'), hp7l = u7.hp;
+      var s7 = HZ.cur.silver, tp = trigZ('keeper:pellambarn'); hurtZ(B7, 'barley'); var o7p = tp ? runZ(B7, D.town.fire(B7, tp), ['SHORT REST: AN HOUR, 1 SP']) : 'NO DOOR', t7p = tZ(); HZ.fromFloor(B7); var s7p = HZ.cur.silver;
+      okZ('the Warrens\' bunkhouse to crew: ' + o7s.slice(0, 260) + ' (the clock 12 to ' + t7s + ', Barley ' + hp7s + ') // the long rest: the clock ' + t7l + ', ' + o7l.slice(o7l.indexOf('WOKE'), o7l.indexOf('WOKE') + 90) + ', Barley ' + hp7l + '/' + u7.maxhp + ' // the Pellam barns: ' + o7p.slice(0, 400) + ' (the clock ' + t7p + ', the purse ' + s7 + ' to ' + s7p + ')',
+        /A bunk\? \(free, crew sleep free\) \/ \[LONG REST: 8 HOURS \| SHORT REST: AN HOUR \| LEAVE\]/.test(o7s) && /An hour on a bunk/.test(o7s) && /Barley spends/.test(o7s) && !/WOKE/.test(o7s) && t7s === 13 && hp7s > 1 &&
         /WOKE NIGHT: /.test(o7l) && o7l.indexOf(MZ.LINES.bunk.wake.NIGHT) >= 0 && o7l.indexOf(MZ.LINES.bunk.morning) < 0 && t7l === 21 && hp7l === u7.maxhp &&
-        /\[A BUNK, 1 SP: LONG REST, 8 HOURS \| A BUNK, 1 SP: SHORT REST, AN HOUR \| LEAVE\]/.test(o7p) && t7p === 22 && s7p === s7 - 1);
+        /\[\(?LONG REST\)? \| WAIT TILL A LONG REST: 13:00 \(\d+ HOURS\) \| SHORT REST: AN HOUR, 1 SP \| LEAVE\]/.test(o7p) && t7p === 22 && s7p === s7 - 1);
       // 8. THE GALLERIES' BUNKHOUSE, the house's hands (cullHired): the long rest at eleven at night, eight hours -- awake at seven to its own morning
-      var B8 = houseZ('mouth', 'east', null, 23, { cullHired: 1 }); hurtZ(B8, 'barley'); var o8 = runZ(B8, D.town.fire(B8, trigZ('keeper:galbunk')), ['A BUNK: LONG REST, 8 HOURS']), t8 = tZ();
+      var B8 = houseZ('mouth', 'east', null, 23, { cullHired: 1 }); hurtZ(B8, 'barley'); var o8 = runZ(B8, D.town.fire(B8, trigZ('keeper:galbunk')), ['LONG REST: 8 HOURS']), t8 = tZ();
       okZ('the Galleries\' bunkhouse at eleven at night: ' + o8.slice(o8.indexOf('['), o8.indexOf('[') + 90) + ' ... ' + o8.slice(o8.indexOf('WOKE'), o8.indexOf('WOKE') + 100) + ' (the clock 23 to ' + t8 + ', ' + WZ.hour() + ':00)',
-        /\[A BUNK: LONG REST, 8 HOURS \| A BUNK: SHORT REST, AN HOUR \| LEAVE\]/.test(o8) && /WOKE MORNING: /.test(o8) && o8.indexOf(MZ.INNS['keeper:galbunk'].morning) >= 0 && t8 === 31 && WZ.hour() === 7);
+        /\[LONG REST: 8 HOURS \| SHORT REST: AN HOUR \| LEAVE\]/.test(o8) && /WOKE MORNING: /.test(o8) && o8.indexOf(MZ.INNS['keeper:galbunk'].morning) >= 0 && t8 === 31 && WZ.hour() === 7);
       // 9. THE HEX'S BAR (the desk's lean 5; his "should allow short rest here, maybe talking to bartender?" and "make them by the gallon of ale"): either bartender's word, then A
       // SHORT REST OVER ALE, 2 SP -- the purse two less, an hour on, the dice; the east bar's the same; with a silver, refused and nothing on the clock
       var B9 = houseZ('silverton', 'west', null, 11, null, 10); driveZ(D.hex.goIn(B9, 'front'), 600); hurtZ(B9, 'barley'); var s9 = B9.roam.silver, o9 = runZ(B9, D.town.fire(B9, trigZ('talk:bartenderS')), ['A SHORT REST OVER ALE, 2 SP']), t9 = tZ(), hp9 = unitZ(B9, 'barley').hp, s9b = B9.roam.silver;
@@ -4901,7 +4901,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var seen = [], q = (ans || []).slice(), quiet = 0, co = B.co, v, cardsSeen = {}, hrR = D.inn.hourOf(B); if (hrR >= 7 && hrR < 17) atR(B, 9, 15, [1, 0]); else atR(B, 24, 17, [0, -1]); B.cards = []; B.roam.keys.push('use'); // (by day the inn lady is out at the well, 10,15: 11-12, ruling 58)
       for (var k = 0; k < 60000 && quiet < 200; k++) {
         var s = D.top();
-        if (s instanceof CR.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + '] > ' + w.opts[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
+        if (s instanceof CR.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { seen = seen.concat(w.ask); var a0 = q.length ? q.shift() : w.opts.length - 1, i0 = typeof a0 === 'string' ? w.opts.indexOf(a0) : a0 instanceof RegExp ? w.opts.map(function (o) { return o && typeof o === 'object' ? o.label : String(o); }).findIndex(function (l) { return a0.test(l); }) : a0; if (i0 == null || i0 < 0) i0 = w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + '] > ' + w.opts[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); } else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]); continue; }
         if (s instanceof HR.Morning) { quiet = 0; seen.push(wakeR(B) + ' @ ' + hm(tR())); continue; }
         if (s && s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { if (asg && asg[id]) s.asg[id] = asg[id]; }); seen.push('WATCHES: ' + Object.keys(s.asg).map(function (id) { return id + ' ' + s.asg[id]; }).join(', ')); s.go('begin'); continue; }
         if (s !== B) { D.pop(); continue; }
@@ -4922,12 +4922,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var kinds = [0, 5, 6, 14, 15, 18, 21, 22, 23].map(function (h) { return h + ':' + InR.restKind(h); }).join(' ');
       okR('the hours: ' + JSON.stringify(InR.REST) + ' -- ' + kinds, kinds === '0:late 5:late 6:day 14:day 15:dinner 18:dinner 21:dinner 22:late 23:late' && InR.REST.dinnerHours === 11 && InR.REST.lateHours === 8 && InR.REST.dinnerAt + InR.REST.dinnerHours - 24 === 7);
       // 2. A ROOM AT SIX IN THE EVENING, day 5, supper had before (the plain supper): eleven hours -- awake at five on day 6
-      var B2 = stageR(5, 18), s2 = HR.cur.silver, o2 = runR(B2, ['STAY THE NIGHT']), t2 = tR();
+      var B2 = stageR(5, 18), s2 = HR.cur.silver, o2 = runR(B2, [/^LONG REST: \d+ HOURS/]), t2 = tR();
       okR('a room at six, supper: ' + o2.slice(0, 500) + ' -- the clock ' + hm(t2) + ', the purse ' + s2 + ' to ' + HR.cur.silver,
         /at the long table/.test(o2) && /WOKE: MORNING/.test(o2) && t2 === 4 * 24 + 18 + 11 && HR.cur.silver === s2 - InR.PRICE * 4);
       HR.playing = false; HR.cur = null;
       // 3. A ROOM AT ELEVEN AT NIGHT: the kitchen cold, no supper, eight hours -- awake at seven on day 6
-      var B3 = stageR(5, 23), o3 = runR(B3, ['STAY THE NIGHT']), t3 = tR();
+      var B3 = stageR(5, 23), o3 = runR(B3, [/^LONG REST: \d+ HOURS/]), t3 = tR();
       okR('a room at eleven at night: ' + o3.slice(0, 400) + ' -- the clock ' + hm(t3), /The kitchen is cold this late/.test(o3) && !/Supper at the long table/.test(o3) && /WOKE: MORNING/.test(o3) && t3 === 4 * 24 + 23 + 8);
       HR.playing = false; HR.cur = null;
       // 4. AT TEN IN THE MORNING: "Dinner is at eight." -- SHORT REST (an hour, the hit dice, nothing paid), NOT NOW, WAIT TIL DINNER (paid, eight o'clock, supper, awake at seven)
@@ -4943,7 +4943,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // alone in front; KEEP WATCH; the lead in front again; awake eleven hours from six
       var B5 = stageR(12, 18), snap = null; B5.roam.members.forEach(function (u) { u.hp = 1; if (u.src) u.src.hp = 1; if (Array.isArray(u.slots)) u.slots = u.slots.map(function () { return 0; }); });
       var ba0 = HR.cur.party.filter(function (h) { return h.id === 'barley'; })[0] || {}, hd0 = ba0.hdLeft != null ? ba0.hdLeft : ba0.lvl; InR.pinned = [2, 2, 2, 2];
-      var o5 = runR(B5, ['STAY THE NIGHT', 'KEEP WATCH'], { barley: 1, aurdin: 2, vivian: 3, lymen: 3 }, function (title, B) {
+      var o5 = runR(B5, [/^LONG REST: \d+ HOURS/, 'KEEP WATCH'], { barley: 1, aurdin: 2, vivian: 3, lymen: 3 }, function (title, B) {
         if (title !== 'THE SECOND WATCH' || snap) return;
         var by = {}; B.roam.members.forEach(function (u) { by[u.src ? (u.src.key || u.src.id) : u.id] = { hp: u.hp, max: u.maxhp, slots: (u.slots || []).reduce(function (a, b) { return a + b; }, 0) }; });
         snap = { by: by, token: B.roam.token.src && (B.roam.token.src.key || B.roam.token.src.id), t: tR(), hd: (HR.cur.party.filter(function (h) { return h.id === 'barley'; })[0] || {}).hdLeft };
@@ -4977,7 +4977,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function nightN(B, ans, o) {
       o = o || {}; var q = (ans || []).slice(), seen = [], floors = [], cs = {}, v, quiet = 0, lastF = {}, R0 = B.roam, hr = InN.hourOf(B), gn = B.units.filter(function (u) { return o.npc ? u.npc === o.npc : (u.npc === 'gennet' || u.npc === 'gennetGrief'); })[0]; /* (o.npc: another to speak to -- Elsbeth at her tub) */
       if (!o.stay) { var t = R0.token, sq = gn ? (InN.beside ? InN.beside(B, gn, t) : [gn.x, gn.y + 1]) : (hr >= 7 && hr < 17 ? [9, 15] : [24, 17]); t.x = sq[0]; t.y = sq[1]; t.tween = null; if (gn) R0.fw = [gn.x - t.x, gn.y - t.y]; R0.path = null; D.grid.setup(B.map, B.units); B.cards = []; R0.keys.push('use'); } // (stay: the floor played on as it stands)
-      var pick = function (opts) { var a = q.length ? q[0] : null, i = typeof a === 'string' ? opts.indexOf(a) : -1; if (i >= 0) q.shift(); return i >= 0 ? i : opts.length - 1; };
+      var pick = function (opts) { var a = q.length ? q[0] : null, i = typeof a === 'string' ? opts.indexOf(a) : a instanceof RegExp ? opts.map(function (o) { return o && typeof o === 'object' ? o.label : String(o); }).findIndex(function (l) { return a.test(l); }) : -1; if (i >= 0) q.shift(); return i >= 0 ? i : opts.length - 1; };
       for (var k = 0; k < 90000 && quiet < (o.quiet || +get('q', 900)); k++) {
         var s = topN(); if (!s) break;
         if (s instanceof CN.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(); if (w.ask) { var lb = (w.opts || []).map(function (x) { return x && typeof x === 'object' ? String(x.label) : String(x); }), i0 = pick(lb); seen.push('[' + lb.join(' | ') + '] > ' + lb[i0]); var b0 = bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]; if (b0) s.press(b0); else if (w.flip) { s.press(bs.filter(function (b) { return b.go === 'opt'; }).slice(-1)[0] || bs[0]); } else s.press(bs[0]); } else if (w.say) { seen.push(String(s.o && s.o.id) + ': ' + [].concat(w.say).join(' ')); s.press(bs[0]); } else if (s.update) s.update(); continue; }
@@ -5014,7 +5014,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         !!k1 && at1 === KAT.join(',') && c1 && c1.walk !== false && !off1.length && face1 === want1 && (!sit1 || anim1 === 'sit') && back1 === '26,20 ' + (sit1 ? 'sit' : 'idle'));
       HN.playing = false; HN.cur = null;
       // 2. A SUPPER WITH KATARINA IN THE HOUSE, played: nobody stands off the floor at any frame of it (the walks' check, every frame here)
-      var off2 = [], B2 = stageN(7, 18, { supCount: 1, katLooked: 1 }), r2 = nightN(B2, ['STAY THE NIGHT'], { look: function (s, key) { if (key === InN.KEY) offFloorN(s).forEach(function (b) { if (off2.indexOf(b) < 0) off2.push(b); }); } });
+      var off2 = [], B2 = stageN(7, 18, { supCount: 1, katLooked: 1 }), r2 = nightN(B2, [/^LONG REST: \d+ HOURS/], { look: function (s, key) { if (key === InN.KEY) offFloorN(s).forEach(function (b) { if (off2.indexOf(b) < 0) off2.push(b); }); } });
       okN('A SUPPER WITH KATARINA IN, played to the morning: off the floor at any frame on the house\'s floor: ' + (off2.join(' ') || 'nobody') + ' -- ' + r2.floors + ', ' + r2.at + ' / ' + r2.seen.slice(0, 200), !off2.length && /Supper|supper/.test(r2.seen) && /MORNING/.test(r2.seen));
       HN.playing = false; HN.cur = null;
       // 3-5. THE WAGON'S NIGHT FROM A BED (the walks' "the night handed back unslept at 20:00 on halfway_up": 18 of 32 that slept in the house on day 12): a room taken on the
@@ -5026,7 +5026,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         HN.playing = false; HN.cur = null; InN.watching = null; InN.bedding = null;
         return { r: r, t0: t0, feel: feel, turns: turns, unslept: unslept, txt: 'from ' + hmN(t0) + ': ' + r.floors + ', ending ' + r.at + (unslept ? ' (HANDED BACK UNSLEPT upstairs)' : '') + '; the feeling ' + feel + ', the wagon in ' + turns + ', wagonCycle ' + r.f.wagonCycle + ' -- ' + r.seen.slice(0, 260) + ' ... ' + r.seen.slice(-260) };
       };
-      var w3 = wagonN(18, { supCount: 1 }, ['STAY THE NIGHT', 'KEEP WATCH']);
+      var w3 = wagonN(18, { supCount: 1 }, [/^LONG REST: \d+ HOURS/, 'KEEP WATCH']);
       okN('THE WAGON\'S NIGHT, a room at six in the evening on day ' + WD + ': ' + w3.txt, w3.feel && w3.turns && w3.r.f.wagonCycle === 0 && /MORNING/.test(w3.r.seen));
       var w4 = wagonN(7, { supCount: 5 }, ['WAIT TIL DINNER', 'KEEP WATCH']);
       okN('THE WAGON\'S NIGHT, the room at seven in the morning, WAIT TIL DINNER: ' + w4.txt, w4.feel && w4.turns && w4.r.f.wagonCycle === 0 && /MORNING/.test(w4.r.seen));
@@ -5060,7 +5060,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (btD) { InN.play(btD); Bd = topN(); for (var kD = 0; kD < 4 && Bd && Bd.roam && Bd.co; kD++) { var stD0 = Bd.co.next(); if (stD0.done) break; } Bd = topN(); } else Bd = stageN(dueD, 18, { supCount: 2, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1 });
       var gennetsN = function (s) { return s.units.filter(function (u) { return u.hp > 0 && !u.dead && ((typeof u.npc === 'string' && /^gennet/.test(u.npc)) || /^gennet|^dueLady/.test(u.scripted || '')); }); };
       var lookG = function (s, key) { if (key !== InN.KEY) return; var g = gennetsN(s); if (g.length > most) { most = g.length; mostAt = g.map(function (u) { return (typeof u.npc === 'string' ? u.npc : u.scripted) + '@' + u.x + ',' + u.y; }).join(' '); } if (g.length > 1 && twice.length < 3) twice.push(g.map(function (u) { return (typeof u.npc === 'string' ? u.npc : u.scripted) + '@' + u.x + ',' + u.y; }).join(' ') + ' ' + hmN(tN())); };
-      var r7a = nightN(Bd, ['STAY THE NIGHT'], { look: lookG, quiet: 400 }), s7 = topN(), k7 = RN.def && RN.def.key, down7 = 'not upstairs';
+      var r7a = nightN(Bd, [/^LONG REST: \d+ HOURS/], { look: lookG, quiet: 400 }), s7 = topN(), k7 = RN.def && RN.def.key, down7 = 'not upstairs';
       if (s7 && s7.roam && k7 === InN.UP) { // (woken in the big room: down the stair on their own feet)
         var tr7 = ((RN.def.src8 && RN.def.src8.triggers) || []).filter(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); })[0];
         if (tr7) { var sq7 = [tr7.rect[0], tr7.rect[1]], co7 = s7.co, ss7 = s7; s7.co = (function* () { var tk = ss7.roam.token, ok = (tk.x === sq7[0] && tk.y === sq7[1]) || (yield* RN.walkTo(ss7, sq7)) || (yield* RN.walkBeside(ss7, sq7)); if (ok) yield* RN.fire(ss7, tr7, sq7); yield* co7; })(); down7 = 'down by ' + tr7.id; } else down7 = 'no stair';
@@ -5101,7 +5101,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     // `o.read`: a counter's line read for this many of its frames before it is pressed (the screen's own tick runs under it: the barn's walks)
     function walkQ(ans, o) {
       o = o || {}; var q = (ans || []).slice(), seen = [], floors = [], cs = {}, v, quiet = 0, ev = null, read = 0;
-      var pick = function (opts) { for (var j = 0; j < q.length; j++) { var i = opts.indexOf(q[j]); if (i >= 0) { q.splice(j, 1); return i; } } return opts.length - 1; };
+      var pick = function (opts) { for (var j = 0; j < q.length; j++) { var i = q[j] instanceof RegExp ? opts.map(function (o) { return o && typeof o === 'object' ? o.label : String(o); }).findIndex(function (l) { return q[j].test(l); }) : opts.indexOf(q[j]); if (i >= 0) { q.splice(j, 1); return i; } } return opts.length - 1; };
       for (var k = 0; k < 120000 && quiet < (o.quiet || 900); k++) {
         var s = topQ(); if (!s) break;
         if (o.stop && o.stop(s, ev)) { ev = 'stopped'; break; } ev = null;
@@ -5140,7 +5140,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // Lymen at the window -- between the window's card and the wagon's, no stair's sound and no place card for the yard; the camera drawn back to a farther step, and
       // his own zoom again by the morning
       var sfx1 = [], z01 = D.iso.zoom, mark1 = 0; D.sfx = function (k) { sfx1.push((mark1 ? 'Y:' : '') + k); return sfxQ.apply(this, arguments); };
-      var B1 = playQ('wagon', null, pinsQ(2)), e1 = useQ(B1, 'gennet'), r1 = walkQ(['STAY THE NIGHT', 'KEEP WATCH'], { look: function (s, key) { (s.cards || []).forEach(function (c) { if (/has the window of the road-end room/.test(c.lines.join(' '))) mark1 = 1; if (/a wagon turns in/.test(c.lines.join(' '))) mark1 = 0; }); } });
+      var B1 = playQ('wagon', null, pinsQ(2)), e1 = useQ(B1, 'gennet'), r1 = walkQ([/^LONG REST: \d+ HOURS/, 'KEEP WATCH'], { look: function (s, key) { (s.cards || []).forEach(function (c) { if (/has the window of the road-end room/.test(c.lines.join(' '))) mark1 = 1; if (/a wagon turns in/.test(c.lines.join(' '))) mark1 = 0; }); } });
       var stair1 = sfx1.filter(function (x) { return x === 'Y:stairs'; }).length, place1 = /The Halfway Inn -- the yard and the shore\./.test(r1.seen.split('has the window of the road-end room')[1] || ''), zd1 = InQ.zoomed || {};
       okQ('THE WINDOW TO THE YARD, KEEP WATCH: the stair\'s sound between the window and the wagon ' + stair1 + ', the place card ' + place1 + '; the camera drawn back from ' + zd1.from + ' to ' + zd1.to + '; his zoom ' + z01 + ' at the start, ' + D.iso.zoom + ' after (kept: ' + InQ.zoom0 + ') -- ' + r1.floors + ' / ' + r1.seen.slice(0, 160),
         stair1 === 0 && !place1 && zd1.to != null && zd1.to < zd1.from && D.iso.zoom === z01 && InQ.zoom0 == null && /a wagon turns in/.test(r1.seen) && /MORNING/.test(r1.seen));
@@ -5152,7 +5152,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       resetQ(); D.iso.zoom = z01;
       // 1c. NOBODY ON THE SECOND WATCH (RULED 11-18, his "2 yes but no warning"): the four on the first and third watches -- the window unwatched, the night slept through, the
       // wagon unseen: no wagon turning in, no choice, the morning's own line; the handover made (a goblin in the barn), the traveler away with it; and no warning at the picker
-      var B1c = playQ('wagon', null, pinsQ(19)), e1c = useQ(B1c, 'gennet'), r1c = walkQ(['STAY THE NIGHT', 'INVESTIGATE'], { watch: { lymen: 1, barley: 3, aurdin: 1, vivian: 3 }, quiet: 600, pastMorning: true }), f1c = r1c.f;
+      var B1c = playQ('wagon', null, pinsQ(19)), e1c = useQ(B1c, 'gennet'), r1c = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE'], { watch: { lymen: 1, barley: 3, aurdin: 1, vivian: 3 }, quiet: 600, pastMorning: true }), f1c = r1c.f;
       okQ('NOBODY ON THE SECOND WATCH, the night slept through: the wagon turned in ' + /a wagon turns in/.test(r1c.seen) + ', the choice asked ' + /THE SECOND WATCH \[/.test(r1c.seen) + ', the outcome ' + f1c.wagonOutcome + ', the handover ' + f1c.kidTaken + ', the offering ' + InQ.offering(f1c, 0) + ', the traveler rode ' + f1c.katRode + ' -- ' + r1c.floors + ' / ' + r1c.seen.slice(Math.max(0, r1c.seen.indexOf('WATCHES') - 10), r1c.seen.indexOf('WATCHES') + 260),
         !/a wagon turns in/.test(r1c.seen) && !/THE SECOND WATCH \[/.test(r1c.seen) && /MORNING/.test(r1c.seen) && f1c.wagonOutcome === 'slept' && f1c.kidTaken === 1 && InQ.offering(f1c, 0) === 'goblin' && f1c.katRode === 1 && f1c.wagonCycle === 0 && !f1c.wagonIn && !/nobody on the second|no one has the window|second watch is empty/i.test(r1c.seen));
       resetQ(); D.iso.zoom = z01;
@@ -5160,7 +5160,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // face with the wagon's word; then out of the door -- his "By Kalindel" on his own portrait once he is out on the field, and only he is; the other three out of the
       // front door on the second round
       var kats2 = null, doran2 = null, word3 = null, join4 = null;
-      var B2 = playQ('wagon', null, pinsQ(19)), e2 = useQ(B2, 'gennet'), r2 = walkQ(['STAY THE NIGHT', 'INVESTIGATE'], { quiet: 1200, pastMorning: false, stop: function (s, ev) {
+      var B2 = playQ('wagon', null, pinsQ(19)), e2 = useQ(B2, 'gennet'), r2 = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE'], { quiet: 1200, pastMorning: false, stop: function (s, ev) {
         if (!kats2 && InQ.invest && s.roam && RQ.def && RQ.def.key === InQ.KEY && RQ.def.inside === 'inn') {
           kats2 = s.units.filter(function (u) { return u.npc === 'katarina' || u.scripted === 'katYard'; }).map(function (u) { return (u.npc === 'katarina' ? 'katarina' : 'katYard') + '@' + u.x + ',' + u.y; });
           var dn = s.units.filter(function (u) { return u.npc === 'doranIn'; })[0];
@@ -5183,7 +5183,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // her message to Amara ... whichever of the waterby's likes them the most will tell them she went south - book in the nightstand, party gets big room"): Vivian at the
       // window, INVESTIGATE, the gold taken -- her two lines on her own portrait, Amara's offer on hers; Katarina runs to the bench and back in, the wagon goes without her; the
       // morning after, down the stair, the Waterby who thinks best of them says so and the big room is theirs, her book in its drawer
-      var B5 = playQ('wagon', null, pinsQ(19)), e5 = useQ(B5, 'gennet'), r5 = walkQ(['STAY THE NIGHT', 'INVESTIGATE', 'TAKE THE GOLD'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: true, stop: function (s) {
+      var B5 = playQ('wagon', null, pinsQ(19)), e5 = useQ(B5, 'gennet'), r5 = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'TAKE THE GOLD'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: true, stop: function (s) {
         if (InQ.invest && s.roam && RQ.def && RQ.def.key === InQ.KEY && RQ.def.inside === 'inn' && !s.q5) { s.q5 = 1; outQ(s); }
         if (s.roam && RQ.def && RQ.def.key === InQ.UP && s.roam.flags.wagonOutcome === 'bribe' && !s.down5 && !InQ.bedding && !InQ.watching && s.roam.flags.katTell) { s.down5 = 1; downQ(s); }
         return !!(s.roam && RQ.def && RQ.def.key === InQ.KEY && s.roam.flags.bigRoom && !s.roam.flags.katTell); } });
@@ -9264,7 +9264,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // the inn lady offers SLEEP TILL RESTED (awake when the long rest may land) or A NIGHT'S SLEEP (the night's hours, no long rest) -- the walk took SLEEP TILL RESTED every time
       // (walk1113's, a bench built to sit there), and a party in at night slept 21 to 24 hours and woke at 23:45, then took the room again: five days under her roof on cull seed 1,
       // nineteen nights on five seed 8. Now SLEEP TILL RESTED only when it wakes them at dawn or in the morning, inside a day; else A NIGHT'S SLEEP
-      var ROOMQ = /^STAY THE NIGHT$|^SLEEP TILL RESTED: AWAKE [0-9:]+, (DAWN|MORNING) \((1?[0-9]|2[0-3])(\.[0-9])? HOURS\)|^A NIGHT'S SLEEP|^WAIT/, nightAtQ = null;
+      var ROOMQ = /^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST: [0-9:]+ \([1-9] HOURS?\)|^A NIGHT'S SLEEP|^WAIT TIL DINNER$/, nightAtQ = null;
       // THE WORLD to a site's door; stopped short on the road (a forced march walked out, a party down -- the late route's first seed), the party camps where it stands and walks
       // on, twice at most (11-15, the second quest-walk seat)
       function worldToQ(id, why) {
@@ -9687,7 +9687,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var gT = trigK('talk:gennet'), g0 = folkK(Bi, 'gennet');
       noteK('7. in at the front door: inside ' + RK.def.inside + ', the inn lady ' + (g0 ? g0.x + ',' + g0.y : 'not here') + ', her trigger ' + (gT ? gT.rect : 'none') + ', ' + Bi.roam.silver + ' silver, day ' + HK.day() + ' ' + HK.clockAt(HK.now()));
       // (by the hour, as she offers it: a room with supper from three to ten; by day she offers the wait for supper; past ten a bed alone, and the supper the next evening)
-      var ROOMK = /^STAY THE NIGHT$|^SLEEP TILL|^WAIT/, sup1 = '', nightsK = 0;
+      var ROOMK = /^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST|^WAIT TIL DINNER$/, sup1 = '', nightsK = 0;
       for (var nt = 0; nt < 3 && !(topK().roam && topK().roam.flags.supCount); nt++) {
         if (RK.def.key === InK.UP) { var stU = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); noteK('7. down from ' + RK.def.key + ' by ' + (stU ? stU.id : 'NO STAIR: ' + (RK.def.src8.triggers || []).map(function (t) { return t.id; }).join(' '))); if (!stU) break; atTrigK(topK(), stU, { until: function () { return RK.def.key === InK.KEY; } }); }
         var gT2 = trigK('talk:gennet'); if (!gT2) { noteK('7. no talk:gennet on ' + RK.def.key + ' at ' + HK.clockAt(HK.now())); break; }
@@ -9727,7 +9727,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (ks.join(',').indexOf('chuul') >= 0) { r = 'won'; B.units.forEach(function (u) { if (u.side === 'foe' && /chuul|frog/.test(u.kind || '')) { u.hp = 0; u.dead = true; } }); }
         B.round = 1; fightsK.push('floor:' + ks.join(',') + ':' + r); yield 1; return r;
       };
-      var ROOMY = /^WAIT TIL DINNER$|^STAY THE NIGHT$|^SLEEP TILL/;
+      var ROOMY = /^WAIT TIL DINNER$|^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST/;
       var downY = function () { if (RK.def.key === InK.UP) { var st = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (st) { atTrigK(topK(), st, { until: function () { return RK.def.key === InK.KEY; } }); playK({ quiet: 60 }); } } return topK(); };
       var whoY = function (B) { var o = {}; ((B && B.units) || []).forEach(function (u) { var id = u.npc || u.scripted || ''; if (/gennet|doran|elsbeth/i.test(id) && !u.dead && u.hp > 0) o[id] = u.x + ',' + u.y; }); return Object.keys(o).map(function (k) { return k + '@' + o[k]; }).join(' '); };
       var sinceY = function (t0, re) { return trailY.slice(t0).filter(function (s) { return re.test(s); }); };
@@ -9915,7 +9915,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         else r = supResP;
         B.round = 1; fightsK.push('floor:' + ks.join(',') + ':' + r + (supResP === 'dorandead' ? '(Doran down)' : '')); yield 1; return r;
       };
-      var ROOMP = /^WAIT TIL DINNER$|^STAY THE NIGHT$|^SLEEP TILL/;
+      var ROOMP = /^WAIT TIL DINNER$|^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST/;
       var downP = function () { if (RK.def.key === InK.UP) { var st = trigWhereK(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); }); if (st) { atTrigK(topK(), st, { until: function () { return RK.def.key === InK.KEY; } }); playK({ quiet: 60 }); } } return topK(); }; // (down the stair, and the floor's own script played before any click, as the game runs it: Elsbeth's bundle waits for them there)
       var waitFigP = function (B) { return ((B && B.units) || []).filter(function (u) { return u.scripted === 'doranWait'; })[0] || null; };
       var whoP = function (B) { var o = {}; ((B && B.units) || []).forEach(function (u) { var id = u.npc || u.scripted || ''; if (/gennet|doran|elsbeth/i.test(id) && !u.dead && u.hp > 0) o[id] = u.x + ',' + u.y; }); return Object.keys(o).map(function (k) { return k + '@' + o[k]; }).join(' '); };
@@ -10127,7 +10127,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var fr = Br.roam.flags; noteK('11. back in on day ' + HK.day() + ' ' + HK.clockAt(HK.now()) + ': the offering ' + InK.offering(fr, InK.dueCycle(HK.day())) + ', due tonight ' + InK.dueTonightOn(fr, HK.day()) + ', ' + Br.roam.silver + ' silver -- ' + inSeen2.slice(0, 200));
       var svDue = saveK(2); noteK("11. saved to slot 2 in the common room before the due's supper: " + svDue.slice(-40));
       InK.pinned = [18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]; // (the inn's reads high: the singing heard, DC 13 -- js/secondact.js A.DUE_WAKE)
-      var gT3 = trigK('talk:gennet'), sup2 = gT3 ? atTrigK(Br, gT3, { dflt: /^WAIT TIL DINNER$|^STAY THE NIGHT$|^SLEEP TILL/, quiet: 200 }) : 'no talk:gennet';
+      var gT3 = trigK('talk:gennet'), sup2 = gT3 ? atTrigK(Br, gT3, { dflt: /^WAIT TIL DINNER$|^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST/, quiet: 200 }) : 'no talk:gennet';
       playK({ quiet: 120 }); var Bu = topK(), fu = Bu.roam ? Bu.roam.flags : {};
       okK('supper2', 'THE DUE\'S SUPPER (' + fu.supKind + ', supper ' + fu.supCount + ') and the night gone up to the big room: on ' + RK.def.key + ' at ' + (Bu.roam ? Bu.roam.token.x + ',' + Bu.roam.token.y : '-') + ', the night ' + JSON.stringify(InK.duePlay) + ' -- ' + sup2.slice(-500),
         fu.supKind === 'sacrifice' && RK.def.key === InK.UP && !!InK.duePlay && InK.duePlay.stage === 'room' && InK.duePlay.woke && /Something wakes you: low singing/.test(sup2));
@@ -10191,7 +10191,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // ---------------------------------------------------------------- AT EVERY JOIN, ALL THE WAY: nobody drawn where they are not; nobody twice
       // ---------------------------------------------------------------- 15. THE OTHER WAY THROUGH THE DUE'S NIGHT: slot 2 loaded (the common room, the due's day, before supper), the singing's read out of reach --
       // asleep through the singing upstairs, the walk at the stone as the night's cutscene on the house's floor with nobody of the party on it, the morning
-      var Bs2 = loadK(2); if (!RK.def.inside) goK(Bs2, InK.DOORS.front, { until: function () { return RK.def.inside === 'inn'; } }); var wake0K = AK.DUE_WAKE; AK.DUE_WAKE = 99; /* (the singing's read past every passive: asleep through it, the lever winters1105 pulls) */ var gs2 = trigK('talk:gennet'), l0s = layBad.length, sl2 = gs2 ? atTrigK(topK(), gs2, { dflt: /^WAIT TIL DINNER$|^STAY THE NIGHT$|^SLEEP TILL/, quiet: 600 }) : 'no talk:gennet'; AK.DUE_WAKE = wake0K;
+      var Bs2 = loadK(2); if (!RK.def.inside) goK(Bs2, InK.DOORS.front, { until: function () { return RK.def.inside === 'inn'; } }); var wake0K = AK.DUE_WAKE; AK.DUE_WAKE = 99; /* (the singing's read past every passive: asleep through it, the lever winters1105 pulls) */ var gs2 = trigK('talk:gennet'), l0s = layBad.length, sl2 = gs2 ? atTrigK(topK(), gs2, { dflt: /^WAIT TIL DINNER$|^LONG REST: \d+ HOURS|^WAIT TILL A LONG REST/, quiet: 600 }) : 'no talk:gennet'; AK.DUE_WAKE = wake0K;
       var Bs3 = topK(), fs3 = Bs3.roam ? Bs3.roam.flags : {}; noteK('15. after the asleep night: duePlay ' + JSON.stringify(InK.duePlay) + ', bedding ' + JSON.stringify(InK.bedding && InK.bedding.room) + ', the scenes ' + D.scenes.map(function (z) { return z.roam ? 'floor:' + (z.roam.key || (z.map && z.map.def && z.map.def.key)) + (z.co ? '' : '(no co)') : (z.kind || '?'); }).join(' > ') + ', the trail ' + JSON.stringify((HK.cur.trail || []).slice(-6).map(function (e) { return e.s; })));
       okK('asleep', 'ASLEEP THROUGH THE SINGING (slot 2, A.DUE_WAKE past every passive): the due paid at the stone (duePaid ' + fs3.duePaid + '), the morning ' + /MORNING/.test(sl2) + ' on ' + RK.def.key + ' at ' + (Bs3.roam ? Bs3.roam.token.x + ',' + Bs3.roam.token.y : '-') + ' day ' + HK.day() + ' ' + HK.clockAt(HK.now()) + '; at every floor laid on the way nobody twice (' + (layBad.slice(l0s).join('; ') || 'none') + ') -- ' + sl2.slice(-300),
         fs3.duePaid === 1 && /MORNING/.test(sl2) && HK.day() === dueD + 1 && layBad.length === l0s);
@@ -11553,7 +11553,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // rest. 'ok' box is superlative"): one box, his words over LONG REST and LEAVE, the fire where the portrait was
       var B1 = testG('?roam=glowseep&hour=22'), f1 = fireG(B1, null), w1 = f1.waits;
       okG('the crews\' fire asks at once, no box before it to OK (' + w1.map(function (w) { return w.ask ? 'ask "' + [].concat(w.ask).join(' ') + '" [' + w.opts.join(' | ') + ']' : 'say "' + [].concat(w.say).join(' ').slice(0, 40) + '" OK'; }).join(' / ') + ')',
-        !!f1.sc && w1.length === 1 && !!w1[0].ask && [].concat(w1[0].ask).join(' ') === 'The Veterans keep Watch.' && w1[0].opts.join('|') === 'LONG REST, 8 HOURS|SHORT REST, AN HOUR|LEAVE'); // (SHORT REST beside it since 11-05: mode=rests1105)
+        !!f1.sc && w1.length === 1 && !!w1[0].ask && [].concat(w1[0].ask).join(' ') === 'The Veterans keep Watch.' && w1[0].opts.join('|') === 'LONG REST: 8 HOURS|SHORT REST: AN HOUR|LEAVE'); // (SHORT REST beside it since 11-05: mode=rests1105)
       var LY = CG.LAYOUT.portrait, cy1 = LY[1] + LY[3] - 26, cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var c1 = cv1.getContext('2d'), px1 = null, er1 = null;
       try { if (f1.sc) { f1.sc.t = 40; f1.sc.draw(c1); px1 = c1.getImageData(Math.round(LY[0] + LY[2] / 2), cy1 - 20, 1, 1).data; } } catch (eD1) { er1 = String(eD1).slice(0, 120); }
       okG('the fire drawn where a keeper\'s portrait stands (its picture ' + !!(f1.sc && f1.sc.o.pic) + '; the box\'s middle over the counter ' + (px1 ? [px1[0], px1[1], px1[2]].join(',') : er1) + ': fire, not the waiting shape\'s blue)',
@@ -11572,7 +11572,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var vH = BH3.roam.members[0], sOf = function () { return HG.cur.party.filter(function (h) { return (h.key || h.id) === (vH.src.key || vH.src.id); })[0]; };
       vH.hp = 1; fireG(BH3, 0); tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sOf() && sOf().hp === sOf().maxhp);
       vH.hp = 1; var fxH = fireG(BH3, null), scH = fxH.sc, offH = scH ? scH.buttons().filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : null, whyH = scH && scH.wait && scH.wait.ask ? [].concat(scH.wait.ask).join(' ') : '';
-      if (scH) { scH.press(offH); scH.press(scH.buttons().filter(function (b) { return b.go === 'opt' && b.k === 2; })[0]); } driveG(BH3.co, function () { return D.top() === BH3; }, 300); tH.push(WG.state().t); var hpH = vH.hp;
+      if (scH) { scH.press(offH); scH.press(scH.buttons().filter(function (b) { return b.go === 'opt' && b.k === scH.wait.opts.length - 1; })[0]); } driveG(BH3.co, function () { return D.top() === BH3; }, 300); tH.push(WG.state().t); var hpH = vH.hp;
       WG.state().t = 46; vH.hp = 1; fireG(BH3, 0); tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sOf() && sOf().hp === sOf().maxhp);
       okG('in the house, one long rest in 24 hours: THE WORLD\'s clock ' + tH.join(' > ') + ' (the second ask "' + whyH.slice(0, 110) + '", LONG REST greyed ' + !!(offH && offH.off) + ', Vivian ' + hpH + ' after it), each long rest whole on the floor and in the save (' + okH.join(',') + ')',
         D.roam.house() && tH.join(',') === [22, 30, 30, 54].join(',') && !!(offH && offH.off) && /A long rest again from 22:00, night/.test(whyH) && hpH === 1 && okH.every(Boolean) && D.top() === BH3);
@@ -19192,7 +19192,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okN('as crew (cullHired): A BUNK free ("' + (bkS.seen.split(' / ').filter(function (l) { return /bunk/i.test(l); })[0] || '') + '"), its own night and morning, ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp + ', the purse ' + p0S + ' to ' + RS.silver + ', back on the mouth',
         !!bkS.sc && hurtS.hp === hurtS.maxhp && RS.silver === p0S && bkS.seen.indexOf(inn.say[0]) >= 0 && bkS.seen.indexOf(inn.sleep) >= 0 && bkS.seen.indexOf('MORNING: ') >= 0 && bkS.seen.indexOf(inn.morning) >= 0 && RN.def.key === 'galleries');
       var BX = testN('?roam=galleries'), RX = BX.roam; RX.silver = 3; walkN(BX, [3, 13]); var bkX = useN(BX, [3, 12], [0]); driveN(BX.co, null, 200);
-      okN('as a stranger: A BUNK, 1 SP -- the purse 3 to ' + RX.silver, !!bkX.sc && RX.silver === 2 && bkX.seen.indexOf('A BUNK, 1 SP') >= 0);
+      okN('as a stranger: A BUNK, 1 SP -- the purse 3 to ' + RX.silver, !!bkX.sc && RX.silver === 2 && bkX.seen.indexOf('LONG REST: 8 HOURS, 1 SP') >= 0);
       // 2. THE NIGHT'S SITTING OVER THE THIRD FLOOR (his "In the cutscene at night - perhaps try the third floor as background for the speaking parts"): C1's sitting at a rest
       // paints the Hex's third floor once, the council in their seats at the long table, behind the screen and the one speaking; the party's floor's shared things all put back
       var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctx0N = D.ctx; D.ctx = cvN.getContext('2d'); D.R = D.R || 1;
@@ -19357,14 +19357,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       HP.toTown('silverton', 'west'); var BS = floorP(), uS = auP(BS);
       okP('into Silverton by the west gate: Aurdin\'s sheet on the floor still exhausted (' + exhP(uS.src) + ')', RP.def.key === 'silverton' && exhP(uS.src) === 1);
       BS.roam.silver = 200; driveP(TP.fire(BS, trigP('inn:cassia')), null, 2000);
-      var inC = RP.def.room === 'inn:cassia', nightC = sleepP(BS, trigP('talk:cassia'), /^STAY/);
+      var inC = RP.def.room === 'inn:cassia', nightC = sleepP(BS, trigP('talk:cassia'), /^LONG REST: 8 HOURS/);
       okP('a room at Cassia\'s (' + inC + ', the night ' + nightC + '): Aurdin rested a level off -- the floor\'s sheet ' + exhP(uS.src) + ', the save\'s ' + exhP(curP('aurdin')) + ', his figure ' + ((uS.conds.exhaustion || {}).n || 0),
         inC && nightC && exhP(uS.src) === 0 && exhP(curP('aurdin')) === 0 && !uS.conds.exhaustion);
       // 2. EVERY SLEEP ANYWHERE A LONG REST, A LEVEL OFF (the SRD's long rest: one level, with food and drink -- his "IIRC Glowsleep sleeps didn't clear road fatigue on first build,
       // making sure that fix applied to the whole map"): each night below starts with the four exhausted 2 and ends with them at 1, on the floor and in the save
       var each = function (B) { var bad = []; B.roam.members.forEach(function (u) { if (!u.src) return; var c = curP(idP(u.src)); if (exhP(u.src) !== 1 || !c || exhP(c) !== 1 || ((u.conds.exhaustion || {}).n || 0) !== 1) bad.push(u.name + ' ' + exhP(u.src) + '/' + (c ? exhP(c) : '?') + '/' + ((u.conds.exhaustion || {}).n || 0)); }); return bad; };
       driveP(TP.goOut(BS), null, 400); wearP(BS, 2); driveP(TP.fire(BS, trigP('chapel:aldwin')), null, 2000);
-      var inA = RP.def.room === 'chapel:aldwin', nightA = sleepP(BS, trigP('talk:aldwin'), /^SLEEP/), badA = each(BS);
+      var inA = RP.def.room === 'chapel:aldwin', nightA = sleepP(BS, trigP('talk:aldwin'), /^LONG REST: 8 HOURS/), badA = each(BS);
       okP('Aldwin\'s chapel floor (' + inA + ', the night ' + nightA + '): each a level off' + (badA.length ? ' -- NOT: ' + badA.join('; ') : ''), inA && nightA && !badA.length);
       driveP(TP.goOut(BS), null, 400); wearP(BS, 2); var uM = BS.roam.members.filter(function (u) { return u.src; }), g0M = TP.fire(BS, trigP('talk:marta')); driveP(g0M, upP, 1200);
       var atM = upP(), ateM = false, kM = 0;
@@ -19374,9 +19374,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okP('Marta\'s hot meal on the street (her counter ' + atM + '): each who ate a level off (' + uM.map(function (u) { return u.name + ' ' + exhP(u.src); }).join(', ') + ')', atM && !badM.length);
       // the Warrens' mouth camp: the bunkhouse, and the Pellam barns
       wearP(BS, 2); HP.fromFloor(BS); while (D.scenes.length > 1) D.pop(); HP.toTown('warrens', 'feed'); var BW = floorP(); BW.roam.silver = 50;
-      var nightW = sleepP(BW, trigP('keeper:bunkhouse'), /^A BUNK/), badW = each(BW);
+      var nightW = sleepP(BW, trigP('keeper:bunkhouse'), /^LONG REST: 8 HOURS/), badW = each(BW);
       okP('the Warrens\' bunkhouse (the night ' + nightW + '): each a level off' + (badW.length ? ' -- NOT: ' + badW.join('; ') : ''), RP.def.key === 'warrens' && nightW && !badW.length);
-      var tPB = trigP('keeper:pellambarn'); wearP(BW, 2); var nightPB = tPB ? sleepP(BW, tPB, /^A BUNK/) : false, badPB = tPB ? each(BW) : ['no door'];
+      var tPB = trigP('keeper:pellambarn'); wearP(BW, 2); var nightPB = tPB ? sleepP(BW, tPB, /^LONG REST: 8 HOURS/) : false, badPB = tPB ? each(BW) : ['no door'];
       okP('the Pellam barns (the night ' + nightPB + '): each a level off' + (badPB.length ? ' -- NOT: ' + badPB.join('; ') : ''), nightPB && !badPB.length);
       // the Glowseep's crews' fire: the long rest by the clock
       wearP(BW, 2); HP.fromFloor(BW); while (D.scenes.length > 1) D.pop(); HP.toTown('glowseep', 'east'); var BG = floorP(), nightG = sleepP(BG, trigP('seepfire'), /^LONG REST/), badG = each(BG);
@@ -20014,7 +20014,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function trigV(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
     function clickV(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
     function rclickV(sc) { var mo = D.input.mouse, k = { rclick: mo.rclick, inside: mo.inside }; mo.rclick = true; mo.inside = true; sc.update(); Object.assign(mo, k); }
-    function goV(sc, go, label) { return clickV(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function goV(sc, go, label) { return clickV(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || (label instanceof RegExp ? label.test(q.label || '') : q.label === label)); })[0]); }
     function readV(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goV(sc, 'next'); } return out; }
     function askV(sc) { return sc.wait && sc.wait.ask ? sc.wait.ask.join(' ') + ' [' + sc.wait.opts.join('/') + ']' : ''; }
     function fireV(B, id) { var g = TV.fire(B, trigV(id)); driveV(g, upV, 600); return g; }
@@ -20037,13 +20037,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // CASSIA'S ROOMS (the first game's S.inn): her greeting and the long room's price, STAY / LEAVE
       okV('in at the inn\'s door: ' + D.roam.def.name, inV(B, 'inn:cassia') && D.roam.def.keeper.id === 'cassia');
       var gI = fireV(B, 'talk:cassia'), scI = D.top();
-      okV('E at her counter: her portrait (' + (scI && scI.sheet) + '), her greeting and the night\'s price for a company: ' + askV(scI), upV() && scI.sheet === 'pt_cassia' && /Eight silver the good bed/.test(askV(scI)) && /16 silver the night/.test(askV(scI)) && scI.wait.opts.join() === 'STAY,LEAVE');
+      okV('E at her counter: her portrait (' + (scI && scI.sheet) + '), her greeting and the night\'s price for a company: ' + askV(scI), upV() && scI.sheet === 'pt_cassia' && /Eight silver the good bed/.test(askV(scI)) && /16 silver the night/.test(askV(scI)) && scI.wait.opts.join() === 'LONG REST: 8 HOURS, 16 SP,SHORT REST: AN HOUR,LEAVE');
       goV(scI, 'opt', 'LEAVE'); driveV(gI, null, 200);
       okV('LEAVE: the floor again, nothing paid, no night (' + R0.silver + ' sp)', !upV() && !mornV() && D.top() === B && R0.silver === 40);
-      R0.silver = 10; gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', 'STAY'); var poorI = readV(scI); driveV(gI, null, 200);
+      R0.silver = 10; gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', /^LONG REST: 8 HOURS/); var poorI = readV(scI); driveV(gI, null, 200);
       okV('STAY with 10 sp: "' + poorI.join(' ') + '", no night', /Not enough silver/.test(poorI.join(' ')) && R0.silver === 10 && !mornV() && D.top() === B);
       R0.silver = 40; var t0I = WV.state().t, aU = unitV(B, 'aurdin'), lv0 = aU.lvl, sl0 = (aU.slots || []).slice();
-      gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', 'STAY'); driveV(gI, function () { return !!mornV(); }, 600); var mI = mornV();
+      gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', /^LONG REST: 8 HOURS/); driveV(gI, function () { return !!mornV(); }, 600); var mI = mornV();
       // (a bed in town the SRD's long rest, eight hours, since 10-28 -- his "in town sleeps seem to past days rather than long rest": mode=hours1028 -- not on to the next morning)
       okV('STAY: 16 sp paid (' + R0.silver + ' left), the screen down, the night over the floor (' + (mI && mI.phase) + '), THE WORLD\'s clock eight hours on (hour ' + t0I + ' to ' + WV.state().t + ', ' + WV.hour() + ':00)',
         R0.silver === 24 && !!mI && mI.phase === 'night' && WV.state().t === t0I + 8 && !upV());
@@ -20088,8 +20088,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okV('in at the chapel\'s door', inV(B, 'chapel:aldwin') && D.roam.def.keeper.id === 'aldwin');
       var kuA = B.units.filter(function (u) { return u.npc === 'aldwin'; })[0], gA = fireV(B, 'talk:aldwin'), scA = D.top(), fA = upV() && scA.face && scA.face.anim, wA = upV() ? readV(scA) : [];
       okV('E at Aldwin\'s counter: his portrait (' + (scA && scA.sheet) + ', the art desk\'s ART-114, 10-28) breaking the loaf on his word (' + fA + '), his figure behind the counter (' + (kuA && kuA.sheet) + ', facing ' + (kuA && kuA.facing) + '), "' + wA.join(' / ').slice(0, 150) + '", then ' + askV(scA) + ' (' + (scA && scA.face && scA.face.anim) + ')',
-        upV() && scA.sheet === 'pt_aldwin' && fA === 'work' && !!kuA && kuA.sheet === 'aldwin_p1' && kuA.facing === 0 && scA.o.name === 'Aldwin' && /Bread at six/.test(wA.join(' ')) && /looks at Aurdin/.test(wA.join(' ')) && /The floor's free/.test(askV(scA)) && scA.wait.opts.join() === 'SLEEP,LEAVE' && scA.face.anim === 'welcoming');
-      goV(scA, 'opt', 'SLEEP'); driveV(gA, function () { return !!mornV(); }, 600); var mA = mornV();
+        upV() && scA.sheet === 'pt_aldwin' && fA === 'work' && !!kuA && kuA.sheet === 'aldwin_p1' && kuA.facing === 0 && scA.o.name === 'Aldwin' && /Bread at six/.test(wA.join(' ')) && /looks at Aurdin/.test(wA.join(' ')) && /The floor's free/.test(askV(scA)) && scA.wait.opts.join() === 'LONG REST: 8 HOURS,SHORT REST: AN HOUR,LEAVE' && scA.face.anim === 'welcoming');
+      goV(scA, 'opt', /^LONG REST: 8 HOURS/); driveV(gA, function () { return !!mornV(); }, 600); var mA = mornV();
       okV('SLEEP: free (' + R0.silver + ' sp), the night', !!mA && R0.silver === silC);
       clickV(mA, { x: 10, y: 10, w: 2, h: 2 }); goV(mA, 'ok');
       okV('the morning: THE NIGHT\'S BONDS again, the ring held from the night before (' + rowsV(mA).filter(function (r) { return /VIVIAN/.test(r); }).join('') + ')', mA.phase === 'bonds' && rowsV(mA).some(function (r) { return /VIVIAN: Ring of Prot\. BONDED/.test(r); }));

@@ -1211,6 +1211,43 @@
   };
   var sign0 = T.signName;
   T.signName = function (id) { var o = sign0.apply(this, arguments); if (o && H16.shutNow(id)) { o = Object.assign({}, o); o.name = o.name + ' -- closed'; o.who = null; } return o; };
+  // THE REST OFFERS, ONE SET AT EVERY LONG-REST PLACE (RULED 2026-11-16, Griz, Silverton's hours and words lane: "rest lean - i'm for everything saying the same thing, what
+  // exactly are the options proposed to be shown everywhere?", then "1 rest options everywhere as above", "2 still offer as functional 'wait until dawn bell' at inns and take
+  // players silver for it", "3 or night's sleep as per 2"; THE WORLD's camp built 11-16, js/world.js CampPage; the rest the clock-road seat's, 11-18): the bunks (js/mines.js
+  // M.inn), the Glowseep's crews' fire (M.seepFire), Aldwin's floor (js/counter.js C.chapel), Cassia's rooms (C.inn), the Halfway Inn's room (js/inn.js In.room) -- the long rest
+  // open: LONG REST: 8 HOURS (the price where there is one) / SHORT REST: AN HOUR / LEAVE; inside the 24 hours LONG REST greyed under "No long rest yet: one a day. A long rest
+  // again from 23:00, night." and WAIT TILL A LONG REST: 23:00 (14 HOURS) -- the wait where they stand, a short rest in it past an hour, the day's march given back by its hours
+  // (H16.marchBack) -- and at its end the place asks "A long rest now?"; the two inns' A NIGHT'S SLEEP: TILL THE DAWN BELL besides, at the room's price: the clock to the next
+  // dawn bell (H16.STARTS), a short rest's worth, no long rest, the march back by its hours (js/house.js H.sleepOnFloor o.noLong). A paid room is paid for its long rest or its
+  // night, never for the wait. THE SEAT'S READINGS, his to overrule: the short rest keeps each place's own price (the bunks charge it, the inns' fire and Aldwin's floor do not)
+  H16.REST = { long: 'LONG REST: {n} HOURS', off: 'LONG REST', short: 'SHORT REST: AN HOUR', wait: 'WAIT TILL A LONG REST: {at} ({n} HOUR{s})', night: 'A NIGHT\'S SLEEP: TILL THE DAWN BELL', leave: 'LEAVE', again: 'A long rest now?' };
+  H16.restOffers = function (o) { // (o: { hours, price, shortPrice, night: the inns', leave (false: none), short: false for none, extra: after the hours })
+    var Hs = D.house, open = !Hs || !Hs.longOpen || Hs.longOpen(o.hours), R5 = H16.REST, sp = function (p) { return p ? ', ' + p + ' SP' : ''; }, rows = [];
+    rows.push(open ? { id: 'long', label: R5.long.replace('{n}', o.hours) + (o.extra || '') + sp(o.price) } : { id: 'long', label: R5.off, off: true });
+    if (!open) { var n = Math.max(1, Math.round(Hs.longWait(o.hours))); rows.push({ id: 'wait', label: R5.wait.replace('{at}', Hs.clockAt(Hs.longFrom(o.hours)).split(',')[0]).replace('{n}', n).replace('{s}', n === 1 ? '' : 'S') }); if (o.night) rows.push({ id: 'night', label: R5.night + sp(o.price) }); }
+    if (o.short !== false) rows.push({ id: 'short', label: R5.short + sp(o.shortPrice) });
+    if (o.leave !== false) rows.push({ id: 'leave', label: o.leave || R5.leave });
+    return { open: open, why: open ? '' : Hs.longWhy(o.hours, false), rows: rows, opts: rows.map(function (r) { return r.off ? { label: r.label, off: true } : r.label; }), idOf: function (a) { var r = rows[a]; return r && !r.off ? r.id : null; } };
+  };
+  // the floor laid for the hour the clock came to (the street's turn, else a mine floor's day or night), as WAIT's card has it; the lines to say
+  H16.landHour = function (B, h0) {
+    var R = D.roam, MN = D.mines, h2 = H16.hourNow(R.q, B), out = [];
+    if (R.def && R.def.hours) { var turned = H16.phaseOf(h2) !== R.def.phase; if (turned) { H16.relay(B, h2); H16.light(B); out.push(H16.TURN[R.def.phase]); } else R.def.hour = h2; }
+    else if (MN && MN.lightNow) { var ln = MN.lightNow(B); if (ln) out.push(ln); }
+    return out.filter(function (s) { return !!s; });
+  };
+  H16.placeTill = function (B, hours) { // (WAIT TILL A LONG REST at a place: the clock to the hour a rest of `hours` may begin, where they stand)
+    var Hs = D.house, W8 = H16.WAIT, MN = D.mines, at = Hs.longFrom(hours), hrs = Math.max(0, Hs.longWait(hours)), lines = MN && MN.clockOn ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), []);
+    H16.marchBack(4, hrs); var said = [W8.tillDone.replace('{when}', Hs.clockAt(at))].concat(H16.landHour(B));
+    if (hrs > 1 + 1e-6) said = said.concat(Hs.shortRestOnFloor(B, { head: W8.restToo }));
+    if (Hs.trail) Hs.trail('rest', 'WAIT TILL A LONG REST at ' + (D.roam.def && (D.roam.def.name || D.roam.def.key)) + ': ' + (Math.round(hrs * 100) / 100) + ' h' + (hrs > 1 + 1e-6 ? ', a short rest' : ''));
+    return said.concat(lines);
+  };
+  H16.placeHour = function (B) { // (SHORT REST: AN HOUR at a place that had none -- Cassia's rooms, Aldwin's floor: an hour on, the hit dice, the march by the hour, as the camp's)
+    var Hs = D.house, MN = D.mines, lines = MN && MN.clockOn ? MN.clockOn(B, 1) : (H16.pass(B, 1), []); H16.marchBack(2, 1);
+    return H16.landHour(B).concat(Hs.shortRestOnFloor(B), lines);
+  };
+  H16.toDawn = function (h) { var hh = ((h % 24) + 24) % 24, d = ((H16.STARTS[0] - hh) % 24 + 24) % 24; return d < 1e-6 ? 24 : d; }; // (the hours to the next dawn bell)
   // the bread line's loaf (his "13 yes, he'd give 4 to the party token"): a second game's own thing (content/items.json is the first game's), the SRD's day of rations as bread --
   // out of a fight it is eaten for a little; at Aldwin's in the early hours, a loaf a hero into the party's pack, once a morning
   if (DS.DATA && DS.DATA.items && !DS.DATA.items.missionbread) DS.DATA.items.missionbread = { name: 'Mission Bread', kind: 'use', price: 0, use: { effect: 'heal', dice: '1d2', target: 'ally', battle: false, field: true },

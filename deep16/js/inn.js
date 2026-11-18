@@ -954,16 +954,16 @@
   In.nightHours = function (kind) { return kind === 'dinner' ? In.REST.dinnerHours : In.REST.lateHours; };
   In.longShut = function (kind) { var H = D.house; return !!(H && H.longOpen && !H.longOpen(In.nightHours(kind))); };
   In.tillRested = function (kind) { var H = D.house, wake = H.longWake(In.nightHours(kind)); return { wake: wake, hours: wake - H.now() }; };
-  In.bothOpts = function (kind) { var H = D.house, tr = In.tillRested(kind), nh = In.nightHours(kind); return [In.LINES.opts.till.split('{when}').join(H.clockAt(tr.wake).toUpperCase()).split('{n}').join(Math.round(tr.hours * 10) / 10), In.LINES.opts.night.split('{n}').join(nh)]; };
   // ONE FREE STAY A MONTH (RULED 11-13, Griz, on the barn walk's catch -- a party too poor for the due's supper missed the poisoned dinner: "nice catch, if they can't
   // afford it (not if they can) - as \"we're trying a new marketing strategy of one free stay a month, congratulations!\""): on the due's night with no offering, a
   // party that cannot pay is given the room and its supper for nothing, on that line. THE SEAT'S READING, his to overrule: only the night the house needs them at
   // its table (no offering); a party that can pay pays; any other night is "Not enough silver." as before
   In.FREE_STAY = `"We're trying a new marketing strategy of one free stay a month. Congratulations!"`;
-  In.room = function* (sc, B, cost, noMeal) {
+  In.room = function* (sc, B, cost, noMeal, again) {
     // (the lake took the inn lady: no more suppers at the Waterbys' -- 11-05, his "dinners are over"; a room by Doran, eight hours)
     var st = sc.st, f = st.flags, kind = f.gennetTaken ? 'late' : In.restKind(In.hourOf(B)), dF = In.day(D.roam.q), freeNight = !f.gennetTaken && In.dueTonightOn(f, dF) && In.offering(f, In.dueCycle(dF)) === 'none', free = false, pay = function () { if (st.silver() < cost) { if (freeNight) { free = true; D.sfx('confirm'); if (D.house && D.house.trail) D.house.trail('rest', 'the Halfway Inn: the due\'s night, the party short of ' + cost + ' silver -- one free stay a month'); return true; } D.sfx('error'); return false; } st.silver(-cost); D.sfx('coin'); return true; };
-    var H = D.house, long = true, hours = null, both = function () { return In.bothOpts(kind); }; // (long: the night a long rest; hours: SLEEP TILL RESTED's own)
+    var H = D.house, H6 = D.hours, long = true, hours = null; // (long: the night a long rest; hours: the stay's own)
+    if (again && kind === 'day') kind = 'late'; // (back from WAIT TILL A LONG REST: the room, not the day's word about supper)
     if (kind === 'day') {
       var a = yield sc.ask(In.LINES.dinnerAt8.split('{n}').join(cost), [In.LINES.opts.short, In.LINES.opts.wait, In.LINES.opts.notNow]);
       if (a === 0) { var ls = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls)); return false; }
@@ -972,17 +972,23 @@
       if (free) { free = false; yield sc.say([In.FREE_STAY]); }
       In.waitTo(B, In.REST.dinnerAt); kind = 'dinner';
       yield sc.say(In.LINES.waited);
-      if (In.longShut(kind)) { var a1 = yield sc.ask([In.LINES.shut, H.longWhy(In.nightHours(kind), false)], both()); long = a1 === 0; if (long) hours = In.tillRested(kind).hours; } // (the room paid at supper: which sleep)
-    } else if (In.longShut(kind)) {
-      var a3 = yield sc.ask([L('inn.stayAsk', { n: cost }), H.longWhy(In.nightHours(kind), false)], both().concat([In.LINES.opts.short, In.LINES.opts.notNow]));
-      if (a3 === 2) { var ls3 = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls3)); return false; }
-      if (a3 !== 0 && a3 !== 1) return false;
-      if (!pay()) { yield sc.say(L('g.poor')); return false; }
-      long = a3 === 0; if (long) hours = In.tillRested(kind).hours;
+      if (In.longShut(kind)) { // (the room paid at supper, inside the 24 hours: the long rest greyed, the wait or the night -- THE SEAT'S READING, his to overrule: the wait here is
+        // supper, then the fire till the hour, then the long rest, as one stay -- the room's evening is the supper's, so it does not ask again)
+        var o1 = H6.restOffers({ hours: In.nightHours(kind), night: true, short: false, leave: false }), a1 = yield sc.ask([In.LINES.shut, o1.why], o1.opts), k1 = o1.idOf(a1) || 'night';
+        long = k1 === 'wait'; hours = long ? In.tillRested(kind).hours : H6.toDawn(In.hourOf(B));
+      }
     } else {
-      var a2 = yield sc.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO']);
-      if (a2 !== 0) return false;
+      // THE REST OFFERS (RULED 2026-11-16, Griz: "1 rest options everywhere as above", "2 still offer as functional 'wait until dawn bell' at inns and take players silver for
+      // it", "3 or night's sleep as per 2"; js/hours.js H16.restOffers -- the 11-05 SLEEP TILL RESTED gone): LONG REST: 8 HOURS (11 with supper) at her price / SHORT REST: AN
+      // HOUR / NOT NOW; inside the 24 hours the long rest greyed, WAIT TILL A LONG REST where they stand (then she asks again, "A long rest now?"), and A NIGHT'S SLEEP: TILL THE
+      // DAWN BELL at her price, no long rest
+      var o3 = H6.restOffers({ hours: In.nightHours(kind), price: cost, night: true, leave: In.LINES.opts.notNow });
+      var a3 = yield sc.ask([again ? H6.REST.again : L('inn.stayAsk', { n: cost })].concat(o3.why ? [o3.why] : []), o3.opts), k3 = o3.idOf(a3);
+      if (k3 === 'wait') { yield sc.say(H6.placeTill(B, In.nightHours(kind))); return yield* In.room(sc, B, cost, noMeal, true); } // (the wait is free: the room is paid for its night)
+      if (k3 === 'short') { var ls3 = In.shortRest(B); yield sc.say([In.LINES.shortRest].concat(ls3)); return false; }
+      if (k3 !== 'long' && k3 !== 'night') return false;
       if (!pay()) { yield sc.say(L('g.poor')); return false; }
+      long = k3 === 'long'; if (!long) hours = H6.toDawn(In.hourOf(B));
     }
     if (free) { free = false; yield sc.say([In.FREE_STAY]); }
     B.roam.stay = { t0: In.clock(B), hours: hours || In.nightHours(kind), kind: kind, long: long };

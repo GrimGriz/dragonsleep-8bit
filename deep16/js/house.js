@@ -647,9 +647,9 @@
     var R = D.roam, R0 = B.roam, W = D.world, house = !!(R.house() && H.playing), lines = [], sheets, done = false;
     R0.slept = (R0.slept || 0) + 1; // (a night slept on this floor: outside the house THE WORLD's march starts fresh when the party goes out -- js/mines.js M.carryClock)
     // A NIGHT'S SLEEP WITH NO LONG REST (o.noLong -- the inns' choice inside the 24 hours, RULED 11-05, his "offer both": H.longOpen): the clock o.hours on, the day's march
-    // fresh, the night's downtime a short rest (the hit dice: the SRD sets a short rest no limit), no morning page -- its picks, bonds and spells are the long rest's -- and a card
+    // back by its hours (since 11-18, the rest offers: the inns' A NIGHT'S SLEEP: TILL THE DAWN BELL -- js/hours.js H16.restOffers), not fresh; the night's downtime a short rest (the hit dice: the SRD sets a short rest no limit), no morning page -- its picks, bonds and spells are the long rest's -- and a card
     if (o.noLong && house) {
-      var S1 = W.state(); S1.t += o.hours || H.LONG_HOURS; S1.today = 0; S1.todayHex = 0; S1.pushing = false; W.save();
+      var S1 = W.state(), hN = o.hours || H.LONG_HOURS; S1.t += hN; if (D.hours && D.hours.marchBack) D.hours.marchBack(4, hN); W.save(); // (the march given back by its hours, as any wait's -- the rest offers, RULED 11-16: "2 still offer as functional 'wait until dawn bell' at inns"; the seat's reading, his to overrule)
       var ls1 = H.shortRestOnFloor(B, { head: H.NIGHT_SLEEP }), lo1 = H.lightsOut(B);
       if (o.before) o.before();
       D.sfx('popup'); B.card(R.wrap(['{y}' + (o.title || 'MORNING') + '{/}'].concat(o.line ? [o.line] : [], ls1, lo1)), 480); yield 30;

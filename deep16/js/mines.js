@@ -1118,17 +1118,20 @@
   // (one long rest in 24 hours -- RULED 11-05, Griz: "For the bunk and campfire long-rests we can grey it out and tell them to 'wait' (til bell x?) to benefit from another long rest":
   // js/house.js H.longOpen -- inside them the bunk's and the fire's LONG REST greyed, the hour it opens at on the ask, M > WAIT's TILL A LONG REST to it; short rests untouched)
   M.longWhy = function (hours) { var H = D.house; return H && H.longWhy ? H.longWhy(hours, 'M > WAIT till then') : ''; };
-  M.bunkOpts = function (p) { var hd = 'A BUNK' + (p ? ', ' + p + ' SP' : '') + ': ', lr = hd + 'LONG REST, ' + M.BUNK.restHours + ' HOURS'; return [M.longWhy(M.BUNK.restHours) ? { label: lr, off: true } : lr, hd + 'SHORT REST, AN HOUR', 'LEAVE']; };
+  M.bunkOpts = function (p) { var H6 = D.hours; return H6 && H6.restOffers ? H6.restOffers({ hours: M.BUNK.restHours, price: p, shortPrice: p }).opts : ['LONG REST: ' + M.BUNK.restHours + ' HOURS', 'SHORT REST: AN HOUR', 'LEAVE']; }; // (THE REST OFFERS, 11-16: js/hours.js H16.restOffers)
   M.inn = function* (sc, B, inn) {
-    var st = sc.st, f = st.flags, p = inn.price(f);
+    var st = sc.st, f = st.flags, p = inn.price(f), H6 = D.hours, head = M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', again = false;
     yield sc.say(inn.say || M.words(B, inn.id));
-    var why = M.longWhy(M.BUNK.restHours), a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')' + (why ? ' ' + why : ''), M.bunkOpts(p));
-    if ((a !== 0 && a !== 1) || (a === 0 && why)) return false; // (the greyed LONG REST never lands: refused on its button, js/counter.js o.off)
-    if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
-    if (p) { st.silver(-p); D.sfx('coin'); }
-    if (a === 1) { yield sc.say([M.LINES.bunk.short].concat(M.shortRestHere(B))); return false; } // (the hour on the bunk, said on its own screen as the inn's by the fire)
-    yield sc.say(inn.sleep || M.LINES.bunk.sleep);
-    return true;
+    while (true) { // (THE REST OFFERS, RULED 11-16, "1 rest options everywhere as above": js/hours.js H16.restOffers; WAIT TILL A LONG REST asks again after, "A long rest now?")
+      var o = H6.restOffers({ hours: M.BUNK.restHours, price: p, shortPrice: p }), a = yield sc.ask((again ? H6.REST.again : head) + (o.why ? ' ' + o.why : ''), o.opts), id = o.idOf(a);
+      if (id === 'wait') { yield sc.say(H6.placeTill(B, M.BUNK.restHours)); again = true; continue; } // (the wait is free: a bunk is paid for its rest)
+      if (id !== 'long' && id !== 'short') return false; // (the greyed LONG REST never lands: refused on its button, js/counter.js o.off)
+      if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
+      if (p) { st.silver(-p); D.sfx('coin'); }
+      if (id === 'short') { yield sc.say([M.LINES.bunk.short].concat(M.shortRestHere(B))); return false; } // (the hour on the bunk, said on its own screen as the inn's by the fire)
+      yield sc.say(inn.sleep || M.LINES.bunk.sleep);
+      return true;
+    }
   };
   // the night slept, on the house's one sleep for a floor (js/house.js H.sleepOnFloor -- 10-22, Griz: "3 move to whole mornings"): in the house the floor's party into the
   // save, THE WORLD's clock eight hours on (M.BUNK, 11-05 -- it went to the next morning) and the long rest on the save; on the test door the four rested in place, the floor's
@@ -1258,7 +1261,7 @@
   // option at Glowseep campfire for one": an hour by the fire, the hit dice spent, said on the fire's own screen; the hours on both choices, his "bunk cost how many hours?")
   M.LINES.seep.short = 'An hour by the crews\' fire, boots to the coals. The Veterans keep Watch.';
   M.seepFire = function* (B) {
-    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { var why = M.longWhy(M.SEEP.restHours), lr = 'LONG REST, ' + M.SEEP.restHours + ' HOURS', a = yield sc.ask([M.LINES.seep.fire].concat(why ? [why] : []), [why ? { label: lr, off: true } : lr, 'SHORT REST, AN HOUR', 'LEAVE']); if (a === 1) yield sc.say([M.LINES.seep.short].concat(M.shortRestHere(B))); return a === 0 && !why; })(); }, 'The crews\' fire', M.firePic);
+    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { var H6 = D.hours, again = false; while (true) { var o = H6.restOffers({ hours: M.SEEP.restHours }), a = yield sc.ask([again ? H6.REST.again : M.LINES.seep.fire].concat(o.why ? [o.why] : []), o.opts), id = o.idOf(a); if (id === 'wait') { yield sc.say(H6.placeTill(B, M.SEEP.restHours)); again = true; continue; } if (id === 'short') yield sc.say([M.LINES.seep.short].concat(M.shortRestHere(B))); return id === 'long'; } /* (THE REST OFFERS, 11-16: js/hours.js H16.restOffers) */ })(); }, 'The crews\' fire', M.firePic);
     if (!go) return;
     B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
     // a long rest by the clock (10-27, his "sleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time"): the SRD's eight hours on THE WORLD's
