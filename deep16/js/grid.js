@@ -213,7 +213,14 @@
   };
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
   // Dijkstra from where u stands out to `budget` feet: { 'x,y': { x, y, cost, prev, stand } }
+  // HARMFUL GROUND (2026-11-18; RULED 11-16, Griz on the lanes order's 22, "price a burning square in hit points, so the AI stops walking into fire, Spike Growth or Wall of
+  // Fire": "Y - more competent AI is good for benching"): while the AI walks a creature (B.aiMover), G.harmFor (js/ai.js) prices what it can see will hurt it on the way --
+  // `pen`, feet's worth of the hit points, on top of `cost` -- and the way to each square is the cheapest in both; `cost` alone is what the move pays, so a fire is priced, never
+  // a wall. `harm` the hit points along the way, `stayHp` those of ending there and `stay` their price (ai.js approach, tactics.js weaponPlans read them). No harm about: the
+  // search below, as it always was
   G.reach = function (u, budget, o) {
+    var hz = !(o && o.ghost) && G.harmFor ? G.harmFor(u) : null;
+    if (hz) return reachPriced(u, budget, o, hz);
     var out = {}, k0 = u.x + ',' + u.y, open = [{ x: u.x, y: u.y, cost: 0 }], fear = !!(G.map.def.climb && !(o && o.ghost) && (u.side !== 'party' || u.guest)); // (AI-run as battle.js byAI reads it: a hand's hero -- a ?npc= party's class NPCs too -- reckons its own falls)
     out[k0] = { x: u.x, y: u.y, cost: 0, prev: null, stand: true };
     while (open.length) {
@@ -236,6 +243,37 @@
     }
     return out;
   };
+  // the priced search: every way to a square that is cheaper in feet or in harm than the others found is kept (a label: 'x,y,n', hidden from Object.keys), so a way that
+  // costs more feet to skirt the fire never shuts out the shorter one through it that the move can still pay -- the troll at the oil's line (dev/bench16.js mode=harm1118 e);
+  // each square's own key is its label least in feet and price together, its `prev` that label's own (G.path walks it)
+  function reachPriced(u, budget, o, hz) {
+    var out = {}, labs = {}, n = 0, fear = !!(G.map.def.climb && !(o && o.ghost) && (u.side !== 'party' || u.guest));
+    var mk = function (x, y, cost, harm, prev) { var l = { x: x, y: y, cost: cost, prev: prev, stand: G.canStand(u, x, y, o), harm: harm, pen: hz.price(harm), stayHp: hz.stayHp(x, y) }; l.stay = l.stayHp ? hz.price(harm + l.stayHp) - l.pen : 0; l.key = x + ',' + y + ',' + (n++); return l; };
+    var hide = function (l) { Object.defineProperty(out, l.key, { value: l, enumerable: false, configurable: true }); };
+    var l0 = mk(u.x, u.y, 0, 0, null); l0.stand = true; hide(l0); labs[u.x + ',' + u.y] = [l0];
+    var open = [l0];
+    while (open.length) {
+      open.sort(function (a, b) { return (a.cost + a.pen) - (b.cost + b.pen); });
+      var c = open.shift();
+      if (c.dead) continue;
+      for (var i = 0; i < 8; i++) {
+        var nx = c.x + N8[i][0], ny = c.y + N8[i][1];
+        var sc = G.stepCost(u, c.x, c.y, nx, ny, o);
+        if (sc === Infinity) continue;
+        if (fear) sc += G.fallFear(u, c.x, c.y, nx, ny);
+        if (o && o.maxStep && sc > o.maxStep) continue;
+        var nc = c.cost + sc;
+        if (nc > budget) continue;
+        var k = nx + ',' + ny, nh = c.harm + hz.enter(c.x, c.y, nx, ny), np = hz.price(nh), L = labs[k] || (labs[k] = []);
+        if (L.some(function (l) { return !l.dead && l.cost <= nc && l.pen <= np; })) continue; // (no better in either)
+        L.forEach(function (l) { if (l.cost >= nc && l.pen >= np) l.dead = true; }); // (and what this beats in both is let go)
+        var nl = mk(nx, ny, nc, nh, c.key); hide(nl); L.push(nl); open.push(nl);
+      }
+    }
+    // each square's key: its best label (least feet and price together) -- dropped labels are still in `out` under their own keys, for the ways that run through them
+    Object.keys(labs).forEach(function (k) { var b = null; labs[k].forEach(function (l) { if (!b || l.cost + l.pen < b.cost + b.pen) b = l; }); out[k] = b; });
+    return out;
+  }
   // PRONE (SRD 5.1: "its only movement option is to crawl, unless it stands up"; standing "costs an amount of movement equal to half your speed",
   // a foot crawled costs 1 extra): a prone one that can pay the half stands first -- its reach is what is left (battle.js moveAlong stands it,
   // rules.js RU.rise) -- and one that cannot crawls, 5 ft more a square. (10-03, Griz after the stream: "prone too long?" -- knocked flat by an

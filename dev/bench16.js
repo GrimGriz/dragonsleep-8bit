@@ -28166,6 +28166,89 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preLp);
     return;
   }
+  // HARMFUL GROUND IN THE AI (mode=harm1118; RULED 11-16, Griz on the lanes order's 22, "price a burning square in hit points, so the AI stops walking into fire, Spike Growth or Wall
+  // of Fire": "Y - more competent AI is good for benching"; the AI lane's §10, the troll and the Cut Seal camp's fire): js/ai.js G.harmFor, js/grid.js G.reach's `pen`, ai.js approach,
+  // tactics.js weaponPlans. On the camp's floor, the fighter and a troll, squares of burning oil laid by hand: (a) nothing about, nothing priced and the reach as before; (b) oil on the
+  // near side, a dry square in reach round it -- the troll takes the way round, strikes, no fire; (c) every square beside the fighter burning -- it still walks in and strikes
+  // (priced, never barred: no freeze); (d) the same at 4 hit points, where the oil would drop it -- it stays out, and still comes nearer; (e) out of reach this turn, a line of oil
+  // across the straight way -- it goes round, no fire for 5 ft nearer; (f) a bench hero (a guest, the class tactics) beside oil ends dry; (g) a hand's own walk is priced nothing
+  if (get('mode', '') === 'harm1118') {
+    var repHz = { checks: [], errors: [] }, d0Hz = D.d;
+    function okHz(what, v) { repHz.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runHz(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkHz(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideHz(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function oilHz(Bx, sq, by) { Bx.oils = sq.map(function (q) { return { x: q[0], y: q[1], lit: Bx.round || 1, litBy: by.id }; }); Bx.cache = null; }
+    function onOil(Bx, u) { return (Bx.oils || []).some(function (o) { return o.x === u.x && o.y === u.y; }); }
+    var GH = D.grid;
+    // the fighter at (6,6) on the camp's floor, 300 HP so nothing ends; the troll set where each case wants it; the dice middling (no kills, no crits)
+    function setHz(tx, ty, thp) {
+      var Bx = mkHz('?npc=troll&lvl=5&vs=fighter:5&map=camp'), f = sideHz(Bx, 'party')[0], t = sideHz(Bx, 'foe')[0];
+      sideHz(Bx, 'foe').slice(1).forEach(function (w) { w.dead = true; w.hp = 0; });
+      f.x = 6; f.y = 6; f.hp = f.maxhp = 300; t.x = tx; t.y = ty; if (thp) t.hp = thp; delete f.tween; delete t.tween; Bx.round = 1;
+      GH.setup(GH.map, Bx.units); return { B: Bx, f: f, t: t };
+    }
+    function trollTurn(s) {
+      var t = s.t, h0 = t.hp, n0 = (s.B.log || []).length; D.rules.startTurn(t); s.B.active = t; s.B.req = { turn: t };
+      D.d = function (n) { return n === 20 ? 11 : Math.ceil(n / 2); };
+      try { runHz(D.ai.turn(s.B, t)); } finally { D.d = d0Hz; }
+      var lg = (s.B.log || []).slice(n0).join(' | ');
+      return { x: t.x, y: t.y, burnt: /burning oil/.test(lg), struck: s.f.hp < 300, lost: h0 - t.hp, log: lg };
+    }
+    try {
+      D.seed = 1118;
+      // (a) nothing about: no price, the reach the same with the AI walking it or not
+      var sa = setHz(10, 6), cfA = GH.map.campfires; GH.map.campfires = []; var rmA = GH.reach(sa.t, 30); sa.B.aiMover = sa.t; var hzA = GH.harmFor ? GH.harmFor(sa.t) : 'no G.harmFor', rmA2 = GH.reach(sa.t, 30); sa.B.aiMover = null; GH.map.campfires = cfA; // (the camp's own fire put out for this one)
+      var same = Object.keys(rmA).length === Object.keys(rmA2).length && Object.keys(rmA).every(function (k) { return rmA2[k] && rmA2[k].cost === rmA[k].cost && rmA2[k].prev === rmA[k].prev && !rmA2[k].pen; });
+      okHz('(a) no harmful ground: nothing priced (' + hzA + '), the troll\'s reach the same square for square (' + Object.keys(rmA).length + ' squares)', hzA === null && same);
+      // (b) oil on the troll's side of the fighter (7,5 7,6 7,7) and on the way (8,6); dry ground in reach round it, (6,5) and (5,6): the way round, a blow, no fire
+      var sb = setHz(10, 6); oilHz(sb.B, [[7, 5], [7, 6], [7, 7], [8, 6]], sb.f);
+      var rb = trollTurn(sb);
+      okHz('(b) oil on the near side: the troll ends at (' + rb.x + ',' + rb.y + '), on oil ' + onOil(sb.B, sb.t) + ', burnt ' + rb.burnt + ', struck ' + rb.struck + ' (want dry, not burnt, struck)',
+        !onOil(sb.B, sb.t) && !rb.burnt && rb.struck && GH.dist(sb.t, sb.f) <= 10);
+      // (c) every square beside the fighter burning: the blow is only to be had through it -- in and strike (no freeze)
+      var ring = [[5, 5], [6, 5], [7, 5], [5, 6], [7, 6], [5, 7], [6, 7], [7, 7]];
+      var sc = setHz(10, 6); oilHz(sc.B, ring, sc.f);
+      var rc = trollTurn(sc);
+      okHz('(c) a ring of fire round the fighter: the troll ends at (' + rc.x + ',' + rc.y + '), burnt ' + rc.burnt + ', struck ' + rc.struck + ' (want in and striking -- priced, not barred)', rc.struck);
+      // (d) the same ring, the troll at 4 hit points: 5 fire would drop it -- it stays out of the ring and still comes nearer
+      var sd = setHz(10, 6, 4); sd.t.regen = 0; oilHz(sd.B, ring, sd.f); var d0d = GH.dist(sd.t, sd.f); // (no knitting at its turn's start: the 4 stands)
+      var rd = trollTurn(sd);
+      okHz('(d) the ring, the troll at 4 hp: ends at (' + rd.x + ',' + rd.y + '), on oil ' + onOil(sd.B, sd.t) + ', ' + d0d + ' -> ' + GH.dist(sd.t, sd.f) + ' ft off (want out of it, nearer than it began)',
+        !onOil(sd.B, sd.t) && !rd.burnt && sd.t.hp > 0 && GH.dist(sd.t, sd.f) < d0d);
+      var se = setHz(14, 8); oilHz(se.B, [[11, 5], [11, 6], [11, 7], [11, 8], [11, 9]], se.f); var d0e = GH.dist(se.t, se.f);
+      var re = trollTurn(se);
+      okHz('(e) out of reach (a Large troll 40 ft off, its move 30), oil across the straight way: ends at (' + re.x + ',' + re.y + '), burnt ' + re.burnt + ', ' + d0e + ' -> ' + GH.dist(se.t, se.f) + ' ft off (want round it, no fire, nearer)',
+        !re.burnt && !onOil(se.B, se.t) && GH.dist(se.t, se.f) < d0e);
+      // (e2) walled in: the oil right across the floor (x 11, every row) -- dry up to it, then no dry way nearer, so it comes on through, priced (no freeze)
+      var wall = []; for (var yW = 0; yW < 14; yW++) wall.push([11, yW]);
+      var sw = setHz(14, 8); oilHz(sw.B, wall, sw.f); var d0w = GH.dist(sw.t, sw.f);
+      var rw = trollTurn(sw), d1w = GH.dist(sw.t, sw.f), at1 = '(' + rw.x + ',' + rw.y + ')'; sw.B.round = 2; var rw2 = trollTurn(sw);
+      okHz('(e2) walled in by the oil: its first turn dry up to it at ' + at1 + ' (' + d0w + ' -> ' + d1w + ' ft, burnt ' + rw.burnt + '), its second through it to (' + rw2.x + ',' + rw2.y + '), ' + GH.dist(sw.t, sw.f) + ' ft off, burnt ' + rw2.burnt + ' (want dry then through: no freeze)',
+        !rw.burnt && d1w < d0w && GH.dist(sw.t, sw.f) < d1w && rw2.x + (sw.t.size || 1) - 1 < 11);
+      // (f) a bench hero run by the class tactics (a guest): the fighter beside a goblin, the dry square and the burning one both in reach of it -- the fighter ends dry
+      var Bf = mkHz('?npc=goblin&lvl=5&vs=fighter:5&map=camp'), ff = sideHz(Bf, 'party')[0], gf = sideHz(Bf, 'foe')[0];
+      sideHz(Bf, 'foe').slice(1).forEach(function (w) { w.dead = true; w.hp = 0; });
+      ff.guest = true; ff.classAI = true; ff.x = 4; ff.y = 6; gf.x = 6; gf.y = 6; gf.hp = gf.maxhp = 300; delete ff.tween; delete gf.tween; Bf.round = 1; GH.setup(GH.map, Bf.units);
+      oilHz(Bf, [[5, 6], [5, 5]], gf);
+      D.rules.startTurn(ff); Bf.active = ff; Bf.req = { turn: ff }; var nf = (Bf.log || []).length;
+      D.d = function (n) { return n === 20 ? 11 : Math.ceil(n / 2); };
+      try { runHz(D.ai.turn(Bf, ff)); } finally { D.d = d0Hz; }
+      var lgf = (Bf.log || []).slice(nf).join(' | ');
+      okHz('(f) a bench hero (the class tactics) beside oil: the fighter ends at (' + ff.x + ',' + ff.y + '), on oil ' + onOil(Bf, ff) + ', burnt ' + /burning oil/.test(lgf) + ', struck ' + (gf.hp < 300) + ' (want dry and striking)',
+        !onOil(Bf, ff) && !/burning oil/.test(lgf) && gf.hp < 300);
+      // (g) a hand's own walk (no AI walking it): the oil is shown, never priced
+      var sg = setHz(10, 6); oilHz(sg.B, ring, sg.f); sg.B.aiMover = null;
+      var rmG = GH.reach(sg.f, 30);
+      okHz('(g) the fighter\'s own reach by the hand: nothing priced (' + (GH.harmFor ? GH.harmFor(sg.f) : 'no G.harmFor') + '), the burning squares reachable at their feet alone (5,6: ' + (rmG['5,6'] && rmG['5,6'].cost) + ' ft, pen ' + (rmG['5,6'] && rmG['5,6'].pen) + ')',
+        !!GH.harmFor && GH.harmFor(sg.f) === null && rmG['5,6'] && !rmG['5,6'].pen);
+    } catch (eHz) { repHz.errors.push(String(eHz && eHz.stack || eHz).slice(0, 900)); }
+    D.d = d0Hz;
+    if (errs.length) repHz.errors = repHz.errors.concat(errs);
+    var preHz = document.createElement('pre'); preHz.id = 'out'; preHz.textContent = 'BENCH16 ' + JSON.stringify(repHz);
+    document.body.appendChild(preHz);
+    return;
+  }
   // the campfire (mode=campfire1014; 10-14, Griz: "Let's difficult terrain, 1d6 fire damage enter or start turn, and ignite nearby flamable (oiled squares) campfires as a matter
   // of principle", then "adjacent oiled trolls, not adjacent unoiled trolls (unless they walk on it -(more than adjacent))" -- js/oil.js, the campfire): the Cut Seal camp's fire is
   // difficult ground; 1d6 fire to step into it, once a turn, and to start a turn in it; a troll beside it unoiled takes nothing, coated beside it catches (5 fire, the coat gone),

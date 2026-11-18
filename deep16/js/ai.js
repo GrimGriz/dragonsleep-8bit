@@ -30,13 +30,68 @@
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
+  // ------------------------------------------------------------------ HARMFUL GROUND (2026-11-18; RULED 11-16, Griz on the lanes order's 22, "price a burning square in hit
+  // points, so the AI stops walking into fire, Spike Growth or Wall of Fire": "Y - more competent AI is good for benching"; the AI lane's §10, found 10-14 when the troll stood in
+  // the campfire, his "he stood on the fire and took damage and stayed killable (as predicted in note to ai)"). While the AI walks a creature (B.aiMover: a foe, a guest, a hero
+  // on the bench -- never a hand's own walk), G.reach (js/grid.js) asks this what the way costs it: the hit points it should lose ENTERING ground that hurts (spikes each 5 ft,
+  // as the SRD has them; the rest once, on the step in) and ENDING or STARTING a turn there (`stay`), each the spell's or the fire's own dice at their mean, a save at its
+  // odds and halved where the spell halves it, its resistances and immunities counted (B.typed), what it holds or fells (the tentacles, the web, the grease) at a small price.
+  // Feet's worth: 2 ft a hit point, more for the frail (20/hp: a goblin's 7 makes it near 5); a way that would drop it is priced past any blow (2000) -- the one thing it will
+  // not do. Priced, never barred: no way is shut, so nothing freezes, and a blow that is only to be had through the fire is still had (approach: in reach beats out of it).
+  // What it can see: a blinded one weighs nothing, and a glyph (hidden) is never weighed. The seat's calls, his to overrule: every creature weighs it
+  // (no Intelligence floor); Spike Growth's camouflage is not modelled (all on the field saw it laid); a flier aloft is over the ground's (oil, the campfire, spikes, webs, grease)
+  AI.HARM_FT = 2; AI.HARM_FRAIL = 20; AI.HARM_LETHAL = 2000;
+  function harmBuild(B, u) {
+    var M = D.magic, TX = D.tactics, hz = [], pf = function (ab, dc) { return TX && dc ? TX.pFail(u, ab, dc) : 0.5; };
+    var dmg = function (dice, type, ab, dc, half) { var n = TX ? TX.avg(dice) : 0, p = ab ? pf(ab, dc) : 1; n = ab ? p * n + (1 - p) * (half ? n / 2 : 0) : n; return B.typed(u, n, type).n; };
+    var held = function (ab, dc) { return u.webWalker || RU.immuneTo(u, 'restrained') ? 0 : pf(ab, dc) * ((TX ? TX.dpr(u) : 4) * 0.6 + 4); };
+    var keys = function (sq) { var s = {}; sq.forEach(function (q) { s[q[0] + ',' + q[1]] = 1; }); return s; };
+    var add = function (sq, enter, stay, perSq) { if (sq && (enter > 0 || stay > 0)) hz.push({ s: keys(sq), enter: enter, stay: stay, per: !!perSq }); };
+    var ground = !G.aloft(u);
+    var lit = ground ? (B.oils || []).filter(function (o) { return o.lit != null; }).map(function (o) { return [o.x, o.y]; }) : []; // (the burning oil: once a turn, whatever square of it -- js/oil.js burn)
+    if (lit.length) { var nO = B.typed(u, (D.oil && D.oil.BURN) || 5, 'fire').n; add(lit, nO, nO); }
+    if (ground && (G.map.campfires || []).length) { var nC = B.typed(u, 3.5, 'fire').n; add(G.map.campfires, nC, nC); }
+    (B.grounds || []).forEach(function (g) {
+      if (g.kind === 'spikes' && ground) add(g.sq, B.typed(u, 5, 'piercing').n, 0, true);
+      else if (g.kind === 'insects') { var nI = dmg(g.dice || '4d10', 'piercing', 'con', g.dc, true); add(g.sq, nI, nI); }
+      else if (g.kind === 'tentacles') { var nT = dmg('3d6', 'bludgeoning', 'dex', g.dc, false) + held('dex', g.dc); add(g.sq, nT, nT); }
+      else if (g.kind === 'grease' && ground && !u.noProne && !RU.immuneTo(u, 'prone')) add(g.sq, pf('dex', g.dc) * 3, 0);
+    });
+    (B.darks || []).forEach(function (d) { if (d.kind === 'kill') { var nK = dmg(d.dice || '5d8', 'poison', 'con', d.dc, true); add(d.sq, nK, nK); } });
+    (B.zones || []).forEach(function (z) {
+      if (z.id === 'moonbeam' && M.zoneSq) { var nM = dmg(z.dice, z.type || 'radiant', 'con', z.dc, true); add(M.zoneSq(z), nM, nM); }
+      else if (z.id === 'flamingsphere') { var nF = dmg(z.dice, 'fire', 'dex', z.dc, true); add(G.sphere(z.x, z.y, 5), 0, nF); } // (a turn's end within 5 ft: its whole 3x3)
+    });
+    (B.walls || []).forEach(function (w) {
+      if (w.kind === 'fire') { var nW = B.typed(u, TX ? TX.avg(w.burn) : 0, 'fire').n, band = Object.keys(w.band || {}).map(function (k) { return k.split(',').map(Number); }); add(w.sq, nW, nW); add(band, 0, nW); }
+      else if (w.kind === 'thorns') { var nH = dmg(w.rake, 'slashing', 'dex', w.dc, true); add(w.sq, nH, nH); }
+    });
+    if (ground) (B.webs || []).forEach(function (wb) { if (wb.dc && !(u.turn && u.turn.webSaved)) add(wb.sq, held('dex', wb.dc), held('dex', wb.dc)); });
+    var aur = (B.auras || []).map(function (a) { var c = B.units.filter(function (w) { return w.id === a.by; })[0]; return c && G.hostile(c, u) && !c.dead ? { c: c, r: a.r, n: dmg(a.dice, a.type || 'radiant', 'wis', a.dc, true) } : null; }).filter(Boolean);
+    if (!hz.length && !aur.length) return null;
+    var within = function (h, x, y) { var f = G.foot(u, x, y); for (var i = 0; i < f.length; i++) if (h.s[f[i][0] + ',' + f[i][1]]) return true; return false; };
+    var inAura = function (a, x, y) { return G.dist(u, a.c, x, y) <= a.r; };
+    var hpU = Math.max(1, u.hp), k = AI.HARM_FT * Math.max(1, AI.HARM_FRAIL / hpU);
+    return {
+      enter: function (x0, y0, x1, y1) { var n = 0; hz.forEach(function (h) { if (h.enter && within(h, x1, y1) && (h.per || !within(h, x0, y0))) n += h.enter; }); aur.forEach(function (a) { if (inAura(a, x1, y1) && !inAura(a, x0, y0)) n += a.n; }); return n; },
+      stayHp: function (x, y) { var n = 0; hz.forEach(function (h) { if (h.stay && within(h, x, y)) n += h.stay; }); aur.forEach(function (a) { if (inAura(a, x, y)) n += a.n; }); return n; },
+      stay: function (x, y, hp0) { var n = this.stayHp(x, y); return n ? this.price(hp0 + n) - this.price(hp0) : 0; },
+      price: function (hp) { return hp > 0 ? hp * k + (hp >= hpU ? AI.HARM_LETHAL : 0) : 0; }
+    };
+  }
+  G.harmFor = function (u) { var B = D.battle; if (!B || B.aiMover !== u || !u.conds || u.conds.blinded || u.ethereal) return null; return harmBuild(B, u); };
+  AI.harmFor = harmBuild; // (dev/bench16.js mode=harm1118)
   // the square to walk to: in reach of the target for least movement, else as close as the move allows
+  // (and for the least harm: what the way in costs it, `pen`, and what ending there would, `stay` -- G.reach, harmful ground above; 0 with none about. In feet, as `cost` is,
+  // where the blow is to be had: the blow is the cause. Out of reach the score runs 10 a foot of distance still to go, and the harm is weighed at 10 a foot there too -- and
+  // while a way with no harm in it still brings it nearer, a harmed one is never taken only to be nearer (500 on it); walled in by the fire, it comes on through, priced)
   function approach(u, tgt, rm, reach) {
-    var best = null, bs = Infinity;
+    var best = null, bs = Infinity, rr = reach || G.reachOf(u), d0 = G.dist(u, tgt), dry = false;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.pen != null && e.stand && !e.pen && !e.stay && G.dist(u, tgt, e.x, e.y) < d0) dry = true; });
     Object.keys(rm).forEach(function (k) {
       var e = rm[k];
       if (!e.stand) return;
-      var d = G.dist(u, tgt, e.x, e.y), s = (d <= (reach || G.reachOf(u)) ? 0 : 1000 + d * 10) + e.cost;
+      var d = G.dist(u, tgt, e.x, e.y), inR = d <= rr, hp = (e.pen || 0) + (e.stay || 0), s = (inR ? 0 : 1000 + d * 10) + e.cost + (inR ? hp : hp * 10 + (dry && hp ? 500 : 0));
       if (s < bs) { bs = s; best = e; }
     });
     // nothing this turn's move reaches is in reach of the target, on a map with a high face (10-04, the Edifice: the AI stood at the foot of a 45 ft face, nearest the one it hunts, and
