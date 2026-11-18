@@ -2382,6 +2382,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okPA('9 the day\'s door (11-18): ' + rp8.map(function (r) { return r.id + (r.ok ? '' : ' NOT OK') + ' [' + (r.folk || []).join(',') + ']'; }).join(' | '),
           rp8.length === 3 && rp8.every(function (r) { return r.ok; }) && rp8.map(function (r) { return r.id; }).join() === 'guard,cockatrice,greenhag' && !!g8 &&
           (g8.folk || []).join() === 'folkman_hired_p1,folkwoman_hired_p1,folkman_guard_p1,folkwoman_guard_p1' && (rp8[1].folk || []).join().indexOf('folkman_crewboss_p1') === 0 && !D8.ranOut);
+        // 10. the 11-18 night cutter's door (cutter-1118b): &folk= keeps the townsfolk to the day's two new costumes, the factor's agent and the crawler hand, round the
+        // wyvern (its flying rows the art desk's own drawn Bite and Sting since then)
+        var D9 = runPA('?parade&fast&only=wyvern&folk=agent,crawlerhand'), rp9 = D9.paradeReport || [];
+        okPA('10 the night\'s door (11-18): ' + rp9.map(function (r) { return r.id + (r.ok ? '' : ' NOT OK') + ' [' + (r.folk || []).join(',') + ']'; }).join(' | '),
+          rp9.length === 1 && rp9[0].ok && rp9[0].id === 'wyvern' && (rp9[0].folk || []).join() === 'folkman_agent_p1,folkwoman_agent_p1,folkman_crawlerhand_p1,folkwoman_crawlerhand_p1' && !D9.ranOut);
       }
     } catch (ePA) { repPA.errors.push(String(ePA && ePA.stack || ePA).slice(0, 900)); }
     if (errs.length) repPA.errors = repPA.errors.concat(errs);
@@ -21430,6 +21435,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
       var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk', 'drivespear', 'agent'];
+      // the crawler hand (the art desk's 82, 11-18 night, art-wanted 65's last piece): the pair cut on the same cell and rows, worn by no one yet (no id in C.GENERIC
+      // stands in it: where the Warrens' pen hands stand is his word)
+      var CHs = ['folkman_crawlerhand_p1', 'folkwoman_crawlerhand_p1'], chBad = CHs.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
+      var chWho = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === 'crawlerhand'; });
+      okK('the crawler hand cut (' + CHs.join(', ') + (chBad.length ? ' -- off: ' + chBad.join(', ') : '') + '): idle 4 and walk 8 on folkman_p1\'s cell, all eight facings drawn; worn by no one yet (' + (chWho.join(', ') || 'none') + ')',
+        !chBad.length && !chWho.length);
       // the factor's agent woman (the art desk's 81, sent beside the man asked): cut, worn by no one -- towns7, the factor's man, is the man
       var agW = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][0] === 'woman' && CK.GENERIC[id][1] === 'agent'; });
       okK('the factor\'s agent: towns7 in the man (' + (CK.folkFig && CK.folkFig('towns7')) + '), the woman cut beside him and worn by no one yet (' + (agW.join(', ') || 'none') + ')',

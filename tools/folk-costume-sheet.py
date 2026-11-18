@@ -122,6 +122,11 @@ PIECES = {
     # (his 13 rows, hers 14) moved off red
     'agent': dict(folder='2026-11-18-ART-WANTED-81-FACTOR-AGENT', name='ART-WANTED-81 FACTOR-AGENT ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
                   navy=None, stand=False, unred={'folkman_agent_p1': 13, 'folkwoman_agent_p1': 14}),
+    # the crawler hand (art-wanted 65's piece 6, the last, the art desk's 82, 11-18 night; the cutter seat cutter-1118b): the Crawler Warrens' pen workers, the
+    # man and the woman, gloves to the elbow and a milking thimble at the throat -- no id wears it yet (C.GENERIC). Its own native atlas taken as drawn
+    # (NATIVE-ATLASES/, our grid); `unred` everywhere (no red cloth: a cream shirt or blouse, a brown apron or bodice; the reds stray single pixels)
+    'crawlerhand': dict(folder='2026-11-18-ART-WANTED-82-CRAWLER-HAND', name='ART-WANTED-82 CRAWLER-HAND ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                        navy=None, stand=False, unred=0),
     # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
     # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
     'crewbossfight': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: his fight figure, five views, Ready Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell',
@@ -158,6 +163,10 @@ def frames_of(d):
             # frame's cell in the art desk's own cut atlas CUTS/<target>.png, our town atlas grid -- S SW W NW N NE E SE, idle rows then walk 8 below)
             return [(s['runtime_target'], s['facing'], s['action'], int(f['frame']) - 1, 'CUTS/%s.png' % s['runtime_target'], tuple(int(v) for v in f['destination_atlas_xywh']))
                     for s in fm['sheets'] for f in s['frames']]
+        if 'sheets' in fm and 'native_atlas' in fm['sheets'][0]:   # (the crawler hand, 11-18: `sheets` by `person`, each frame's cell in the art desk's own
+            # native atlas NATIVE-ATLASES/<its native_atlas>, the same grid as the agent's)
+            return [('folk%s_crawlerhand_p1' % s['person'], s['facing'], s['action'], int(f['frame']) - 1, 'NATIVE-ATLASES/' + s['native_atlas'],
+                     tuple(int(v) for v in f['atlas_cell_xywh'])) for s in fm['sheets'] for f in s['frames']]
         if 'sheets' in fm and 'source_png' in fm['sheets'][0]:   # (the gambler's and barkeep's redraws, 11-16: `sheets` map each row to its
             # illustrated source; the art desk's own native cut of that row is 02-native-rows/<the source's name>-1X.png, a transparent strip of cells)
             return [(s['target'], s['facing'], s['action'], f['frame_index'], '02-native-rows/' + os.path.basename(s['source_png'])[:-4] + '-1X.png',
