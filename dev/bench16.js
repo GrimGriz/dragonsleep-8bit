@@ -26122,7 +26122,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       besideGr(gob, fg); RU2.startTurn(fg);
       D.ui.opts.menu = 'ring'; var r1 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring2'; var r2 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring';
       okGr('no foe beside: GRAPPLE shown ' + far + '; the goblin beside: RING ' + r1.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' | RING2 ' + r2.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' (SHOVE: RING ' + (r1.filter(function (x) { return /shove/.test(x); }).join(' ') || 'nowhere') + ', RING2 ' + (r2.filter(function (x) { return /shove/.test(x); }).join(' ') || 'nowhere') + ')',
-        !far && r1.indexOf('actions/grapple') >= 0 && r1.indexOf('actions/dodge') >= 0 && r1.indexOf('grapple') < 0 && r2.indexOf('actions/grapple') >= 0);
+        !far && (r1.indexOf('actions/grapple') >= 0 || r1.indexOf('actions/wrestle>/grapple') >= 0 || r1.indexOf('actions/wrestle/grapple') >= 0) && r1.indexOf('actions/dodge') >= 0 && r1.indexOf('grapple') < 0 && r2.indexOf('actions/grapple') >= 0); // (under ACTIONS' WRESTLE since 11-18 -- mode=ring1118)
       // no empty hand: a shield with the sword -- not shown; the ogre (Large, one size up) shown; the hill giant (Huge) not
       fg.src.equip.shield = 'shield'; var shS = Bg.commands(fg).some(function (c) { return c.id === 'grapple'; }); fg.src.equip.shield = null;
       var keepO = [ogre.x, ogre.y], keepG = giant ? [giant.x, giant.y] : null; ogre.x = fg.x + 1; ogre.y = fg.y; var gOgre = D.Battle.grabbable(fg, ogre) && G2.dist(fg, ogre) <= 5; ogre.x = keepO[0]; ogre.y = keepO[1]; if (giant) { giant.x = fg.x + 1; giant.y = fg.y; } var gGiant = giant ? D.Battle.grabbable(fg, giant) : false, dGiant = giant ? G2.dist(fg, giant) : null; if (giant) { giant.x = keepG[0]; giant.y = keepG[1]; } // (each set beside him in turn: the size rule, not the room on the map)
@@ -28607,6 +28607,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function mkRg(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; D.ui.urlMenu = null; return Bx; }
     function idsRg(cs) { return cs.map(function (c) { return c.id; }); }
     function subRg(cs, id) { var g = cs.filter(function (c) { return c.id === id; })[0]; return g && g.items ? idsRg(g.items) : []; }
+    function subRg2(cs, id) { var g = cs.filter(function (c) { return c.id === id; })[0]; return g && g.items ? g.items : []; }
     var GR = D.grid;
     try {
       // 1. SHOVE beside GRAPPLE: a fighter, sword in hand and the other hand free, a goblin beside him
@@ -28614,12 +28615,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       B1.units.filter(function (w) { return w.side === 'foe' && w !== g1; }).forEach(function (w) { w.dead = true; w.hp = 0; });
       f1.guest = false; f1.src.equip.weapon = 'longsword'; f1.src.equip.shield = null; f1.src.equip.offhand = null; f1.offhand = null; f1.weapon = D.save.weaponOf(f1.src); delete f1.torch;
       g1.hp = g1.maxhp = 300; g1.x = f1.x + 1; g1.y = f1.y; delete g1.tween; GR.setup(GR.map, B1.units); D.rules.startTurn(f1); B1.active = f1; B1.req = { turn: f1 };
-      D.ui.opts.menu = 'ring'; var r1 = D.ui.cmds(B1, f1), a1 = subRg(r1, 'actions'), iG = a1.indexOf('grapple'), iS = a1.indexOf('shove');
-      okRg('1 the classic RING beside a goblin: ACTIONS ' + a1.join(',') + ' (want SHOVE right after GRAPPLE); the first ring ' + idsRg(r1).join(','), iG >= 0 && iS === iG + 1 && idsRg(r1).indexOf('shove') < 0);
-      var sh1 = (r1.filter(function (c) { return c.id === 'actions'; })[0].items || []).filter(function (c) { return c.id === 'shove'; })[0];
+      // (RE-CUT 11-18 later on his "two new sub categories, yours and one for 'off hand' to include torches and weapon slots": GRAPPLE and SHOVE now under ACTIONS' WRESTLE)
+      D.ui.opts.menu = 'ring'; var r1 = D.ui.cmds(B1, f1), a1 = subRg(r1, 'actions'), w1 = subRg(subRg2(r1, 'actions'), 'wrestle'), iG = w1.indexOf('grapple'), iS = w1.indexOf('shove');
+      okRg('1 the classic RING beside a goblin: ACTIONS ' + a1.join(',') + '; WRESTLE ' + w1.join(',') + ' (want WRESTLE among the actions, SHOVE right after GRAPPLE in it); the first ring ' + idsRg(r1).join(','), a1.indexOf('wrestle') >= 0 && iG >= 0 && iS === iG + 1 && a1.indexOf('shove') < 0 && idsRg(r1).indexOf('shove') < 0);
+      var sh1 = subRg2(subRg2(r1, 'actions'), 'wrestle').filter(function (c) { return c.id === 'shove'; })[0];
       okRg('1 SHOVE there takes the shove\'s tool: ' + (sh1 && sh1.tool) + ', ok ' + (sh1 && sh1.ok), sh1 && sh1.tool === 'shove' && sh1.ok);
       f1.src.equip.shield = 'shield'; var r1b = D.ui.cmds(B1, f1), a1b = subRg(r1b, 'actions'); f1.src.equip.shield = null;
       okRg('1 a sword and a shield (no hand free to grapple): ACTIONS ' + a1b.join(',') + ' (want SHOVE, no GRAPPLE)', a1b.indexOf('shove') >= 0 && a1b.indexOf('grapple') < 0);
+      // 1b OFF HAND (his 11-18): a lit torch in the off hand -- DROP, THROW, PUT OUT folded under ACTIONS' OFF HAND; no hand free, so SHOVE stands alone among the actions
+      f1.torch = { lit: true }; var r1c = D.ui.cmds(B1, f1), a1c = subRg(r1c, 'actions'), o1c = subRg(subRg2(r1c, 'actions'), 'offhandset'); delete f1.torch;
+      okRg('1b a lit torch in hand: ACTIONS ' + a1c.join(',') + '; OFF HAND ' + o1c.join(',') + ' (want OFF HAND holding two or more of the torch, SHOVE alone, no WRESTLE)',
+        a1c.indexOf('offhandset') >= 0 && o1c.length >= 2 && o1c.every(function (i) { return /torch|hood|draw/.test(i); }) && a1c.indexOf('shove') >= 0 && a1c.indexOf('wrestle') < 0);
+      var oG = subRg2(r1c, 'actions').filter(function (c) { return c.id === 'offhandset'; })[0];
+      okRg('1b the group reads OFF HAND with the torch glyph: "' + (oG && oG.label) + '" ' + (oG && oG.icon), oG && oG.label === 'OFF HAND' && oG.icon === 'torch');
       ['fighter', 'paladin', 'monk', 'rogue', 'barbarian', 'ranger'].forEach(function (cl) { try { var Bk = mkRg('?npc=goblin&lvl=3&vs=' + cl + ':3'), hk = Bk.units.filter(function (w) { return w.side === 'party'; })[0], gk = Bk.units.filter(function (w) { return w.side === 'foe'; })[0]; gk.x = hk.x + 1; gk.y = hk.y; delete gk.tween; GR.setup(GR.map, Bk.units); D.rules.startTurn(hk); repRg.checks.push('     the door ?npc=goblin&vs=' + cl + ':3: ' + hk.weapon.name + (hk.src.equip.shield ? ' and a shield' : '') + ' -- ACTIONS ' + subRg(D.ui.cmds(Bk, hk), 'actions').join(',')); } catch (eK) { repRg.checks.push('     ' + cl + ' ' + eK); } });
       // 2. TWIN STRIKE's glyph by the pair, and ATTACK beside it: the Twin Swords fighter of 11-05, then the same with two maces
       var spec = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords..twf+^4a:fsymmetric';

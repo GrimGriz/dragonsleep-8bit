@@ -309,6 +309,14 @@
     // side by side, each one attack of the Attack action; with no hand free for a grapple, SHOVE stands among the actions alone
     var iSh = -1, iGr = -1; ac.forEach(function (x, i) { if (x.id === 'shove') iSh = i; else if (x.id === 'grapple') iGr = i; });
     if (iSh >= 0 && iGr >= 0 && iSh !== iGr + 1) { var shX = ac.splice(iSh, 1)[0]; ac.splice(iGr + (iSh < iGr ? 0 : 1), 0, shX); }
+    // THE RING'S SUBCATEGORIES (RULED 2026-11-18, Griz on the grid seat's question -- ACTIONS ran 8 to 10 beside a goblin, about 16 at the most: "two new sub categories, yours and
+    // one for 'off hand' to include torches and weapon slots (if that's feasible and straightforward)"): under ACTIONS, WRESTLE (GRAPPLE, SHOVE, PIN, LET GO -- the SRD's special
+    // melee attacks and the hold) and OFF HAND (the torch's and the lantern's hand: DROP, THROW, DOUSE, PICK UP, the hood; DRAW the weapon or the off-hand one), each folded as
+    // SCUTTLE is (foldUnder) only where two or more are there -- one alone stays among the actions, not a click deeper
+    var NEST = [{ set: { grapple: 1, shove: 1, pin: 1, letgo: 1 }, un: { id: 'wrestle', label: 'WRESTLE', icon: 'shove', note: 'grapple, shove, pin, let go: the special melee attacks and the hold' } },
+      { set: { droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, drawweapon: 1, drawoffhand: 1 }, un: { id: 'offhandset', label: 'OFF HAND', icon: 'torch', note: 'the light in the hand and the weapons to draw' } }];
+    NEST.forEach(function (nn) { if (ac.filter(function (x) { return nn.set[x.id] && !x.under; }).length >= 2) ac = ac.map(function (x) { return nn.set[x.id] && !x.under ? Object.assign({}, x, { under: nn.un }) : x; }); });
+    ac = foldUnder(ac);
     sk = foldUnder(sk);
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
