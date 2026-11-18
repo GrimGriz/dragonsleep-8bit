@@ -28,7 +28,7 @@
    animated armor, the ice mephit, the violet fungus) stands on it while the four come in and stirs before its first blow; a blow with a numbered row of its
    own (the animated armor's `slam2`, the second Slam of a turn -- js/battle.js) plays that one after it.
    ALOFT (11-15, the cutter-fresh-1115 seat, on Griz's "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the attacks and use
-   those"): a flier whose sheet has a blow's flying row (`air` + the row: the wyvern's airattack and airsting, its ground rows with the legs cut off) takes to the
+   those"): a flier whose sheet has a blow's flying row (`air` + the row: the wyvern's airattack and airsting, the art desk's drawn airborne Bite and Sting since 11-18) takes to the
    air for step 3 and goes round the compass aloft, each blow on its flying row where it has one (as js/battle.js plays them while it flies), and lands for the
    crew boss.
    THE FIGURES FIRST (the same day): the show holds its first frame for every sheet it will wear -- each creature's, the crew boss's and every costume figure --

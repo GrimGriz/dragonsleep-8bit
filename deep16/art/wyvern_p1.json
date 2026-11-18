@@ -65,19 +65,19 @@
   },
   "airattack": {
    "y": 4896,
-   "fw": 126,
+   "fw": 118,
    "fh": 102,
-   "ax": 63,
+   "ax": 59,
    "ay": 90,
    "frames": 6,
    "fps": 10,
-   "release": 2
+   "release": 3
   },
   "airsting": {
    "y": 5712,
-   "fw": 92,
+   "fw": 112,
    "fh": 102,
-   "ax": 46,
+   "ax": 56,
    "ay": 90,
    "frames": 6,
    "fps": 10,
@@ -124,7 +124,8 @@
  "hold": [
   "NE walk: frames 3 and 7 lift different hind feet, and 1 and 5 favour the same wing wrist -- the wing-brace cycle wants another look (the art desk's own note)",
   "NE fall starts with the tail out past the idle's; NE flinch's wing half-opens subtly; N claws: the rear view foreshortens the rake (the art desk's own notes)",
-  "the head reads more dragon than the ask's \"narrow horned head\" (swept horns, a spiny crest): Griz's eye (the 11-14 review's one open point)"
+  "the head reads more dragon than the ask's \"narrow horned head\" (swept horns, a spiny crest): Griz's eye (the 11-14 review's one open point)",
+  "N airattack and airsting: the rear view foreshortens the strikes, the Bite read from the neck and the Sting from the dropping barb (the art desk's own note, 11-18)"
  ],
- "source": "drawn by the art desk (ART-132-WYVERN-SOURCE-SHEETS, 11-14: art-wanted section 45), cut by tools/wyvern-sheet.py; SW W NW mirrored -- the SRD 5.1 Wyvern: deep16/data/foes.js wyvern"
+ "source": "drawn by the art desk (ART-132-WYVERN-SOURCE-SHEETS, 11-14: art-wanted section 45; its airborne Bite and Sting ART-132-WYVERN-AIRBORNE-BITE-AND-STING, 11-18), cut by tools/wyvern-sheet.py; SW W NW mirrored -- the SRD 5.1 Wyvern: deep16/data/foes.js wyvern"
 }

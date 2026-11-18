@@ -13144,17 +13144,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okWY('5 a Coldridge draw of the wyvern: ' + (drawWY ? '[' + drawWY.list.join(', ') + ']' : 'none in 6000') + ' (want [wyvern, wyvern]: a pair, RULED 11-15, Griz: "3 we\'ll default to pairs (cutter leans wyvern)")', !!drawWY && drawWY.list.join() === 'wyvern,wyvern');
       } finally { D.store.get = stGWY; D.store.set = stSWY; }
       // 6. aloft, its blows on their flying rows (11-15, Griz at the parade: "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the
-      // attacks and use those"): js/battle.js plays `air` + the blow's row while it flies -- the Bite airattack, the Stinger airsting, their ground rows with the legs cut off
-      // (tools/wyvern-sheet.py); the Claws keep their rake, drawn aloft; on the ground (2 above) the Bite and the Stinger keep attack and sting
+      // attacks and use those"): js/battle.js plays `air` + the blow's row while it flies -- the Bite airattack, the Stinger airsting (since 11-18 night the art desk's own
+      // drawn airborne Bite and Sting, both striking on frame 4, in place of the ground rows with the legs cut off; tools/wyvern-sheet.py); the Claws keep their rake, drawn
+      // aloft; on the ground (2 above) the Bite and the Stinger keep attack and sting
       D.battle = BWyX; WYX.x = FIX.x - 2; WYX.y = FIX.y; WYX.hp = WYX.maxhp; WYX.fz = GWX.groundAt(WYX, WYX.x, WYX.y) + 2 * GWX.map.def.step; GWX.setup(GWX.map, BWyX.units);
       var upAX = GWX.aloft(WYX), rowAirX = {};
       ['bite', 'stinger', 'claws'].forEach(function (k) { pinX([19, 20]); FIX.hp = FIX.maxhp; BWyX.active = WYX; D.rules.startTurn(WYX); rowAirX[k] = rowsWYX(BWyX.attack(WYX, FIX, WYX.attacks[k])); D.d = d0WY; });
       WYX.fz = null; GWX.setup(GWX.map, BWyX.units); BWyX.active = null;
       var aaX = SWX.airattack || {}, asX = SWX.airsting || {};
       okWY('6 aloft (' + upAX + '): the Bite plays ' + rowAirX.bite.join('/') + ', the Stinger ' + rowAirX.stinger.join('/') + ', the Claws ' + rowAirX.claws.join('/') + ' (want airattack, airsting, rake); the sheet: airattack ' +
-        (aaX.frames || 0) + ' striking on ' + aaX.release + ', airsting ' + (asX.frames || 0) + ' on ' + asX.release + ' (want 6 on 2, 6 on 3)',
+        (aaX.frames || 0) + ' striking on ' + aaX.release + ', airsting ' + (asX.frames || 0) + ' on ' + asX.release + ' (want 6 on 3, 6 on 3: the drawn rows, frame 4 each; the Sting\'s cell ' + asX.fw + ' wide, want 110 or more)',
         upAX && rowAirX.bite.indexOf('airattack') >= 0 && rowAirX.bite.indexOf('attack') < 0 && rowAirX.stinger.indexOf('airsting') >= 0 && rowAirX.stinger.indexOf('sting') < 0 &&
-        rowAirX.claws.indexOf('rake') >= 0 && aaX.frames === 6 && aaX.release === 2 && asX.frames === 6 && asX.release === 3);
+        rowAirX.claws.indexOf('rake') >= 0 && aaX.frames === 6 && aaX.release === 3 && asX.frames === 6 && asX.release === 3 && asX.fw >= 110);
     } catch (eWY) { repWY.errors.push(String(eWY && eWY.stack || eWY).slice(0, 900)); }
     D.d = d0WY;
     var preWY = document.createElement('pre'); preWY.id = 'out'; preWY.textContent = 'BENCH16 ' + JSON.stringify(repWY);

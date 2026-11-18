@@ -32,9 +32,16 @@ wyvern `aloftMulti`; `release` 2: frame 3 the rake); flinch 4; hurt 6 (Fall, hel
 js/sprites.js S.proneRow); getup 2 (Prone 1, 2: heaving itself up).
 
 Aloft (11-15, Griz at the parade: "see if the wyvern cutter needs attacks while in flight and if it can cut off the legs on the attacks and use those"; then, to the
-lanes desk, "1 - yeah"): airattack 6 and airsting 6 -- the Bite's and the Sting's frames with the legs cut off, everything CUT px and less over the ground line
-taken away (but a piece below the cut that carries the stinger's green -- its tip as it strikes low -- is kept), the cut's edge outlined; each frame where the ground row has it, so the body does not jump. js/battle.js plays `air` + the blow's row while the wyvern is aloft (G.aloft) and
-the sheet has one. The Claws (`rake`) stay as drawn: the art desk drew them in the air, wings spread and the talons forward -- the talons ARE the blow, aloft only.
+lanes desk, "1 - yeah"): airattack 6 and airsting 6, played by js/battle.js as `air` + the blow's row while the wyvern is aloft (G.aloft) and the sheet has one.
+Till 11-18 they were the Bite's and the Sting's ground frames with the legs cut off (14 px over the ground line and below taken away, the stinger's green kept);
+since 11-18 night (the cutter seat cutter-1118b) they are the art desk's own DRAWN airborne Bite and Sting, ART-132-WYVERN-AIRBORNE-BITE-AND-STING, sorted out
+of Fresh to deep16/_src/wyvern/2026-11-18-ART-132-AIRBORNE-BITE-AND-STING/ (the zip beside it): ten pages, a view and blow a page, six frames each, every
+pose drawn with its view's approved Fly. Cut here by the same figure and snap (no red, no skin), each row at the art desk's own scale (FRAME-MAP's
+`common_preview_scale`: the whole row fitted to our installed Fly's body) and each frame where the art desk registered it on its row's cell against our Fly by
+the torso or hip (`preview_xyxy` on a cell anchored at `preview_anchor_xy`, the ground line 90 the engine's): its box's middle on that box's middle, so the
+row plays Fly -> blow -> Fly without a jump. Both strike on frame 4 (`release` 3: the art desk's, on Griz's own frame-4 contact; the legless Bite struck on 3).
+The Sting's cell comes out wider than the legless one's 92 (the new wings), as the art desk's notes ask: at least 110, nothing scaled down or clipped.
+The Claws (`rake`) stay as drawn: the art desk drew them in the air, wings spread and the talons forward -- the talons ARE the blow, aloft only.
 """
 import importlib.util, json, os, sys
 import numpy as np
@@ -58,23 +65,28 @@ AVOID = ['red', 'skin']         # (slate, mountain brown, a pale belly, a green 
 VIEWS = ['SE', 'NE', 'S', 'E', 'N']
 COUNT = {'idle': 6, 'walk': 8, 'fly': 6, 'attack': 6, 'sting': 6, 'rake': 6, 'flinch': 4, 'hurt': 6, 'prone': 2}
 AIR = ('fly', 'rake')
-LEGLESS = {'airattack': 'attack', 'airsting': 'sting'}     # (aloft: the ground blow's frames with the legs cut off -- legless() below)
-CUT = 14                        # (px over the ground line: the hind legs and the folded wings' wrists stand below it, the belly above, in every view at the one scale)
+AIRDRAWN = ('airattack', 'airsting')    # (aloft: the art desk's drawn airborne Bite and Sting, air_cell() below -- 11-18 night, in place of the legless cut)
+AIRFOLDER = os.path.join(pix.SRC, 'wyvern', '2026-11-18-ART-132-AIRBORNE-BITE-AND-STING')
+if not os.path.isdir(AIRFOLDER) and '.claude' in ROOT.split(os.sep):
+    AIRFOLDER = os.path.join(ROOT.split(os.sep + '.claude' + os.sep)[0], 'deep16', '_src', 'wyvern', os.path.basename(AIRFOLDER))
 LYING = {('hurt', 3), ('hurt', 4), ('hurt', 5), ('prone', 0), ('prone', 1)}
 ROWS = [('idle', 6, [('idle', i) for i in range(6)]), ('walk', 8, [('walk', i) for i in range(8)]), ('fly', 10, [('fly', i) for i in range(6)]),
         ('attack', 10, [('attack', i) for i in range(6)]), ('sting', 10, [('sting', i) for i in range(6)]), ('rake', 10, [('rake', i) for i in range(6)]),
-        ('airattack', 10, [('attack', i) for i in range(6)]), ('airsting', 10, [('sting', i) for i in range(6)]),
+        ('airattack', 10, [('airattack', i) for i in range(6)]), ('airsting', 10, [('airsting', i) for i in range(6)]),
         ('flinch', 12, [('flinch', i) for i in range(4)]), ('hurt', 8, [('hurt', i) for i in range(6)]),
         ('prone', 8, [('hurt', 4), ('hurt', 5), ('prone', 0)]), ('getup', 6, [('prone', 0), ('prone', 1)])]
-RELEASE = {'attack': 2, 'sting': 3, 'rake': 2, 'airattack': 2, 'airsting': 3}                          # (the art desk's contacts: Bite 3, Sting 4, Claws 3 -- zero-based)
+RELEASE = {'attack': 2, 'sting': 3, 'rake': 2, 'airattack': 3, 'airsting': 3}                          # (the art desk's contacts: Bite 3, Sting 4, Claws 3 -- zero-based; the drawn airborne Bite and Sting both 4)
 HOLD = ['NE walk: frames 3 and 7 lift different hind feet, and 1 and 5 favour the same wing wrist -- the wing-brace cycle wants another look (the art desk\'s own note)',
         'NE fall starts with the tail out past the idle\'s; NE flinch\'s wing half-opens subtly; N claws: the rear view foreshortens the rake (the art desk\'s own notes)',
-        'the head reads more dragon than the ask\'s "narrow horned head" (swept horns, a spiny crest): Griz\'s eye (the 11-14 review\'s one open point)']
-SOURCE = ('drawn by the art desk (ART-132-WYVERN-SOURCE-SHEETS, 11-14: art-wanted section 45), cut by tools/wyvern-sheet.py; SW W NW mirrored -- '
+        'the head reads more dragon than the ask\'s "narrow horned head" (swept horns, a spiny crest): Griz\'s eye (the 11-14 review\'s one open point)',
+        'N airattack and airsting: the rear view foreshortens the strikes, the Bite read from the neck and the Sting from the dropping barb (the art desk\'s own note, 11-18)']
+SOURCE = ('drawn by the art desk (ART-132-WYVERN-SOURCE-SHEETS, 11-14: art-wanted section 45; its airborne Bite and Sting ART-132-WYVERN-AIRBORNE-BITE-AND-STING, 11-18), cut by tools/wyvern-sheet.py; SW W NW mirrored -- '
           'the SRD 5.1 Wyvern: deep16/data/foes.js wyvern')
 
 FM = json.load(open(os.path.join(FOLDER, 'FRAME-MAP.json'), encoding='utf-8')) if os.path.isdir(FOLDER) else {'rows': []}
 MAP = {(r['cutter_key'], r['facing']): r for r in FM['rows']}
+AIRFM = json.load(open(os.path.join(AIRFOLDER, 'FRAME-MAP.json'), encoding='utf-8')) if os.path.isdir(AIRFOLDER) else {'rows': []}
+AIRMAP = {(r['runtime_row'], r['facing']): r for r in AIRFM['rows']}
 
 
 def med(xs):
@@ -128,22 +140,31 @@ def crop(act, v, i):
     return a[sl], m[sl], floor - (Y0 + sl[0].stop)
 
 
-def legless(c):
-    """one placed frame's cell, in place: the legs off -- every piece below the cut goes but the stinger's (its green), the cut's edge outlined"""
-    al = c[..., 3] > 0
-    below = al.copy(); below[:AY - CUT + 1] = False
-    ol = (c[..., :3] == np.array(DS.OUTL, np.uint8)).all(-1)
-    lab, n = ndimage.label(below & ~ol)                                    # (pieces by their colour, the outline between them not joining them: the stinger's tip touches a foot as it strikes)
-    keep = np.zeros_like(al)
-    for k in range(1, n + 1):
-        px = c[lab == k].astype(int)
-        if ((px[:, 1] > px[:, 0] + 8) & (px[:, 1] > px[:, 2] + 8)).any():   # (green in it: the stinger; a leg, a foot or a wing's wrist has none)
-            keep |= lab == k
-    keep |= below & ol & ndimage.binary_dilation(keep, np.ones((3, 3), bool))  # (and its own outline)
-    c[below & ~keep] = 0
-    now = c[..., 3] > 0
-    edge = np.zeros_like(al); edge[:-1] = now[:-1] & ~now[1:] & al[1:]
-    c[edge, :3] = DS.OUTL; c[edge, 3] = 255
+def air_cell(act, v, i):
+    """a drawn airborne blow's frame (the art desk's 11-18 pages) -> (o, cx, foot) as cut() places them: the drawing keyed in its keyed box padded PAD a side,
+    snapped at its row's own scale, and stood where the art desk registered it against our Fly -- its box's middle on the middle of `preview_xyxy`, on a cell
+    whose anchor is `preview_anchor_xy` (the ground line AY)"""
+    r = AIRMAP[(act, v)]
+    f = r['frames'][i]
+    assert f['index'] == i, (act, v, i)
+    fn = os.path.join(AIRFOLDER, *r['source'].split('/'))
+    if fn not in _PAGES:
+        _PAGES[fn] = np.asarray(Image.open(fn).convert('RGB')).astype(np.float32)
+    pg = _PAGES[fn]
+    x0, y0, x1, y1 = f['source_keyed_xyxy']
+    X0, Y0, X1, Y1 = max(0, x0 - PAD), max(0, y0 - PAD), min(pg.shape[1], x1 + PAD), min(pg.shape[0], y1 + PAD)
+    a = pg[Y0:Y1, X0:X1]
+    m = DS.figure(a, below=True)
+    ys, xs = np.where(m)
+    sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
+    o = DS.to1x(a[sl], m[sl], r['common_preview_scale'], AVOID)
+    al = o[..., 3] > 0; oy = np.where(al.any(1))[0]; ox = np.where(al.any(0))[0]
+    px0, py0, px1, py1 = f['preview_xyxy']
+    pax, pay = r['preview_anchor_xy']
+    assert pay == AY, (act, v, 'the art desk\'s ground line is not ours', pay)
+    ocx, ocy = 0.5 * (ox[0] + ox[-1]), 0.5 * (oy[0] + oy[-1])
+    pcx, pcy = 0.5 * (px0 + px1 - 1), 0.5 * (py0 + py1 - 1)
+    return o, ocx - (pcx - pax), int(round(ocy + (AY - pcy)))
 
 
 def cut(check=False):
@@ -154,6 +175,9 @@ def cut(check=False):
         for (act, i) in keys:
             for v in VIEWS:
                 if (DS.FACE[v], act, i) in cells:
+                    continue
+                if act in AIRDRAWN:                                       # (the drawn airborne Bite and Sting: their own scale and place, air_cell())
+                    cells[(DS.FACE[v], act, i)] = air_cell(act, v, i)
                     continue
                 rgb, m, above = crop(act, v, i)
                 if base is None:
@@ -187,8 +211,6 @@ def cut(check=False):
                 assert dy >= 0 and dy + h <= FH and dx >= 0 and dx + w <= fw, (name, f, k_, 'a frame past its cell', dx, dy, w, h)
                 dst = blk[f * FH + dy:f * FH + dy + h, j * fw + dx:j * fw + dx + w]
                 put = o[..., 3] > 0; dst[put] = o[put]
-                if name in LEGLESS:
-                    legless(blk[f * FH:(f + 1) * FH, j * fw:(j + 1) * fw])
         a = dict(y=y, fw=fw, fh=FH, ax=ax, ay=AY, frames=len(keys), fps=fps)
         if name in RELEASE:
             a['release'] = RELEASE[name]
