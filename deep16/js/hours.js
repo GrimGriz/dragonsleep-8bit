@@ -76,19 +76,62 @@
   ];
   // FINDING WORK (RULED 10-28, his "sounds like an AND when we should make it an OR. Finding work as a quest fills up with options as you talk to various NPC, getting a quest
   // from where it points (winters, the board) completes the finding work quest"): an option a place, each added by the first word that names it (`work:<k>`, js/counter.js
-  // C.flagOn, in the order heard); done the moment the party takes up any one -- WORK from Winters, the board read, Edric's book, a bout on the slate
+  // C.flagOn, in the order heard). RE-CUT 2026-11-18 (RULED 11-16, Griz: "we need to make 'find work' not complete until it's all found - my last word was that starting work
+  // completed it, which means no Gull's reward. rename finding work to gull's reward if party contains barley and talks to gull ... Papa's lines quit counting toward
+  // completion. No arrows unless the "talk to people in silverton" doesn't cover the quest acquisition"; his 10-30 "a 'collect them all' (that are collected in this way)"):
+  // a collection of the four ways to turn a coin. A way is FOUND by a word in town that names it (`work:<k>`: Aldwin, Marta, Kess, Swann, the town's talk), by its own
+  // mission flown in off the town's talk (the cradles, the Hex), or by work taken up there (Winters met or his WORK, a paper off the board, Edric's book, a bout on the slate);
+  // Papa's line opens the mission and finds none. Done when all four are found -- or, once Gull has asked (Barley in the party), when Gull has paid (H16.GULL)
   H16.WORK = [
-    { k: 'winters', short: 'Winters\' papers (Fountain Street)', step: { npc: 'winters', where: 'Ambrose Winters, Acquisitions & Estates, on Fountain Street: ask him for WORK.' } },
-    { k: 'board', short: 'Hessle\'s board (the Weigh-House)', step: { door: 'hessle', where: 'Hessle\'s board, on the Weigh-House wall beside its door on Fountain Street: every paper on it is a bounty. Take one down.' } },
-    { k: 'cradles', short: 'the Warrens\' cradles (over the bridge)', step: { npc: 'edric', where: 'The Warrens: ' + EAST.replace('. The town map', ': Edric Pellam at the tally-house books hands for the cradles. The town map') } },
-    { k: 'slate', short: 'Korvin\'s slate (the Hex)', step: { map: 'hex', npc: 'korvinSlate', where: 'The Hex: Korvin at the slate. Five silver to fight, ten if you win.' } }
+    { k: 'winters', short: 'Winters\' papers (Fountain Street)', found: ['work:winters', 'wintersMet', 'wErrA'], step: { npc: 'winters', where: 'Ambrose Winters, Acquisitions & Estates, on Fountain Street: ask him for WORK.' } },
+    { k: 'board', short: 'Hessle\'s board (the Weigh-House)', found: ['work:board', 'boardRead'], step: { door: 'hessle', where: 'Hessle\'s board, on the Weigh-House wall beside its door on Fountain Street: every paper on it is a bounty. Take one down.' } },
+    { k: 'cradles', short: 'the Warrens\' cradles (over the bridge)', found: ['work:cradles', 'heardCradles', 'tallyMet'], step: { npc: 'edric', where: 'The Warrens: ' + EAST.replace('. The town map', ': Edric Pellam at the tally-house books hands for the cradles. The town map') } },
+    { k: 'slate', short: 'Korvin\'s slate (the Hex)', found: ['work:slate', 'heardHex', 'hex:brawl', 'hex:freeman', 'hex:card', 'hex:talmok', 'hex:festival'], step: { map: 'hex', npc: 'korvinSlate', where: 'The Hex: Korvin at the slate. Five silver to fight, ten if you win.' } }
   ];
   H16.workHeard = function (st) { var o = ((st && st.flags.workOrder) || '').split(',').filter(Boolean); return o.map(function (k) { return H16.WORK.filter(function (w) { return w.k === k; })[0]; }).filter(Boolean); };
-  H16.MISSIONS.unshift({ id: 'work', name: 'Finding Work', show: 'flag:heardWork',
-    done: 'flag:wErrA|flag:boardRead|flag:tallyMet|flag:hex:brawl|flag:hex:freeman|flag:hex:card|flag:hex:talmok|flag:hex:festival',
-    text: function (st) { var hd = H16.workHeard(st); return 'Silverton pays strangers who ask in the right places. Heard of so far: ' + (hd.length ? hd.map(function (w) { return w.short; }).join('; ') : 'nothing yet') + '. Take up any one.'; },
-    doneText: 'Work found. Its own line is in the JOURNAL.',
-    steps: function (st) { return H16.workHeard(st).map(function (w) { return w.step; }); } });
+  H16.isFound = function (st, w) { var f = (st && st.flags) || {}; return w.found.some(function (k) { return !!f[k]; }); };
+  // the ways found, in the order heard where a word named them, the rest in the table's order
+  H16.workFound = function (st) { var hd = H16.workHeard(st); return hd.concat(H16.WORK.filter(function (w) { return hd.indexOf(w) < 0; })).filter(function (w) { return H16.isFound(st, w); }); };
+  // all four found: `workAll` on the save (kept once set), read by the mission's done words and Gull's (H16.GULL) -- C.quests and C.words bring it up to date (below)
+  H16.workSync = function (st) { if (st && st.flags && !st.flags.workAll && H16.workFound(st).length >= H16.WORK.length) st.flags.workAll = 1; };
+  H16.GULL = {
+    name: 'Gull\'s Reward', item: 'rustyscale',
+    // his words (RULED 11-16), verbatim but for the commas and capitals
+    ask: ['Saw your fight, kid. You remind me of me.', 'There are a lot of different ways to turn a coin around here. If you prove to me you\'ve found them all, I got something for ya.'],
+    // his "(with appropriate success text)": the seat's drafts, invented.json gull-reward-words-1118
+    paid: ['Winters\' papers. Hessle\'s board. The Warrens\' cradles. The sand. You found every one, kid.', 'Gull reaches under the corner\'s bench and drags out a coat of scale, more rust than steel.', 'Kept me in one piece once. Rust and all. It\'s yours.'],
+    text: 'Gull saw Barley\'s fight in the Hex. "There are a lot of different ways to turn a coin around here," he says: find them all, and he has something for you.',
+    doneText: 'Gull paid up: a coat of rusty scale, out from under his bench.',
+    step: { npc: 'gull', where: 'Gull, at his corner at the end of the Shaft Rows: show him you\'ve found them all.' }
+  };
+  H16.MISSIONS.unshift({ id: 'work', name: function (st) { return st && st.flags.gullAsked ? H16.GULL.name : 'Finding Work'; }, show: 'flag:heardWork|flag:gullAsked',
+    done: 'flag:workAll & !flag:gullAsked|flag:gullPaid',
+    text: function (st) {
+      var fd = H16.workFound(st), all = fd.length >= H16.WORK.length, f = st.flags;
+      return (f.gullAsked ? H16.GULL.text : 'Silverton pays strangers who ask in the right places.') + ' Found so far (' + fd.length + ' of ' + H16.WORK.length + '): ' + (fd.length ? fd.map(function (w) { return w.short; }).join('; ') : 'nothing yet') + '.' + (all ? (f.gullAsked && !f.gullPaid ? ' Go and show Gull.' : '') : ' Talk to people in Silverton.');
+    },
+    doneText: function (st) { return st && st.flags.gullPaid ? H16.GULL.doneText : 'Work found: every way Silverton turns a coin. Each has its own line in the JOURNAL.'; },
+    // the next step: Gull, once all four are found and he has asked; till then the town's people, no marker (his "No arrows unless..."), and after it the ways heard of with
+    // no work taken up there and no mission of their own in the JOURNAL yet
+    steps: function (st) {
+      var f = st.flags; H16.workSync(st);
+      if (f.workAll && f.gullAsked && !f.gullPaid) return [H16.GULL.step];
+      var out = f.workAll ? [] : [{ where: 'Talk to people in Silverton: there are more ways to turn a coin.' }];
+      return out.concat(H16.workHeard(st).filter(function (w) { return !w.found.slice(1).some(function (k) { return !!f[k]; }); }).map(function (w) { return w.step; }));
+    } });
+  // Gull's word, Barley in the party (lead or hired): the mission renamed Gull's Reward and his ask; all four found, his reward -- in the one talk when they are found already.
+  // His first word keeps the Cull's pointer ahead of the ask (content/npcs.json gull's line, its rumour r-guanowages: The Cull), so a party with Barley loses nothing to it
+  (function () {
+    var G = H16.GULL, CULL = 'The guano mine\'s taking cull hands. Heard it at the corner this morning.', RU = 'r-guanowages',
+      withB = function (c) { return 'hired:barley & ' + c + '|lead:barley & ' + c; }, ask = function (c, say, set, give) {
+        return [{ 'if': withB(c + ' & !flag:heard:' + RU), say: [CULL].concat(say), set: set, give: give, rumor: RU }, { 'if': withB(c), say: say, set: set, give: give }];
+      };
+    C.TALK16.gull = [{ 'if': 'flag:gullAsked & flag:workAll & !flag:gullPaid', say: G.paid, set: 'gullPaid', give: G.item }]
+      .concat(ask('!flag:gullAsked & flag:workAll', G.ask.concat(G.paid), ['heardWork', 'gullAsked', 'gullPaid'], G.item))
+      .concat(ask('!flag:gullAsked', G.ask, ['heardWork', 'gullAsked']));
+    var words0 = C.words; C.words = function (B, id) { if (id === 'gull') H16.workSync(C.state(B)); return words0.apply(this, arguments); };
+    var quests0 = C.quests; C.quests = function (st) { H16.workSync(st); return quests0.apply(this, arguments); };
+  })();
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
   // (WHEN YOU'RE READY, Winters' ring, in the list since 11-05 -- content/quests.json `ring`, the second game's own content/ since the freeze, at the lead's 3rd level: RULED 10-29,
   // the difficulty, his "1 - change Winters requirement". Its Winters scene is not built yet: the Halfway Inn lane's item 8)
@@ -346,7 +389,7 @@
   // ---------------------------------------------------------------- PAPA AND LYMEN AT THE HEX'S DOOR (the lane's 4.3; RULED 10-28, his "6 - yes" on his own note: "Have
   // Urtusk and Lymen being Lymen telling Urtusk about finding friends to investigate the rumblings about gnolls on the road and activate company as active quest"). The first
   // time the party comes within H16.DOOR_FT of Papa in the Hex's front door, any lead: Lymen in the door with him (or, Lymen leading, Lymen himself -- he starts there,
-  // js/company.js CO.START), the talk played on the map's camera, a line a prompt; then the Company opens, pinned, and Finding Work beside it with Papa's four kinds of work.
+  // js/company.js CO.START), the talk played on the map's camera, a line a prompt; then the Company opens, pinned, and Finding Work beside it (his four kinds of work named, none found: 11-18).
   // The lines are the window's drafts (Papa and Lymen are reserved; the no-stubs law, RULED 09-24): invented.json company-papa-lymen
   H16.DOOR_FT = 90;
   H16.PAPA = {
@@ -422,7 +465,7 @@
       })();
     } });
     D.push(sc); while (!sc.done) yield 1;
-    ['work:winters', 'work:board', 'work:cradles', 'work:slate'].forEach(function (k) { C.flagOn(st, k); });
+    f.heardWork = 1; // (Finding Work opened, none of its four found: RULED 11-16, his "Papa's lines quit counting toward completion" -- H16.WORK. Till then his line set all four `work:`)
     f.cardEach = ['company', 'work']; f.pinWant = 'work'; // (the two cards in turn, Finding Work left active: H16.missionCard)
     if (ly && ly !== t) { B.units = B.units.filter(function (u) { return u !== ly; }); G.setup(G.map, B.units); B.card(R.wrap([P.inside]), 200); }
     B.focus(t); yield 10;
@@ -499,7 +542,7 @@
     first: ['A draped table, a cup of tea going cold, and an owl on a perch that watches your hands, not your face.', 'Five silver, and I\'ll tell you what comes next for you. Not the far future. Nobody can afford that.'],
     again: 'Five silver for the cup.', read: 'READ (5 SP)', poor: 'Five silver. The cup doesn\'t read on credit.', dry: 'The cup\'s dry. Come back when the town\'s moved.',
     next: '{g}Next:{/} {where}', walks: 'Her hand stops over the cup. "An old thing walks. Not your business yet." She won\'t say more, whatever you pay.',
-    q: { company: 'You\'re short of hands. They\'re nearer than you think.', work: 'Coin\'s on Fountain Street, and on a wall, and over the river, and on the sand. Pick one.',
+    q: { company: 'You\'re short of hands. They\'re nearer than you think.', work: 'Coin\'s on Fountain Street, and on a wall, and over the river, and on the sand. Find them all.',
       errands: 'Paper, a seal, a number. An old man who keeps the dead in order.', warrens: 'Water, and a stair under it, and five who didn\'t come up. Take rope.',
       cradles: 'A pen, a pole, a thimble. Steady hands.', cull: 'Wings in the dark. Keep your voice down and your light hooded.', tail: 'Something that looks like a cloak and isn\'t. It hates the light.',
       hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.', nedwand: 'A braid out of a web, and a night\'s work. A wand for it.',

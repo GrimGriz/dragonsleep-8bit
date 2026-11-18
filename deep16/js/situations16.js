@@ -20,11 +20,11 @@
   var G = 'The second game (from a link)';
   DS.SIT16 = {
     company16: { group: G, title: 'Silverton, the Company half made: Lymen and Aurdin, Vivian on vice row (10-30)', pt: 'the house lane · the Company · situations from a link',
-      lead: 'lymen', hired: ['lymen', 'aurdin'], silver: 5, flags: { papaLymen: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'work:slate': 1 }, open: ['company', 'work'], pin: 'company',
+      lead: 'lymen', hired: ['lymen', 'aurdin'], silver: 5, flags: { papaLymen: 1, heardWork: 1 }, open: ['company', 'work'], pin: 'company',
       at: { town: 'silverton', near: 'vivian' }, day: 0, hour: 11,
       look: 'Day 1, late morning, level 2: Lymen leads with Aurdin hired (20 silver paid at the chapel, 5 left), beside Vivian selling candles on vice row. The JOURNAL: the Company open and pinned (Barley and Vivian to find), Finding Work with its four places. Talk to Vivian -- she joins. SAVE says a situation keeps no save.' },
     taken16: { group: G, title: 'Silverton, the Company taken: the four at the Hex\'s doors (10-30)', pt: 'the house lane · the Company done · situations from a link',
-      lead: 'lymen', silver: 12, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'work:slate': 1 }, open: ['work'], done: ['company'], pin: 'work',
+      lead: 'lymen', silver: 12, renown: 1, flags: { papaLymen: 1, heardWork: 1 }, open: ['work'], done: ['company'], pin: 'work',
       at: { town: 'silverton', mark: 'hexFront' }, day: 0, hour: 15,
       look: 'Day 1, afternoon, level 2, renown 1: the four hired, at the Hex\'s front doors. The JOURNAL: the Company done (Four of you), Finding Work open and pinned with Winters, the board, the cradles and the slate. Take up any one and Finding Work is done.' },
     five16: { group: G, title: 'The Warrens\' mouth camp: the Missing Five open, Edric first (10-30)', pt: 'the house lane · the Missing Five · situations from a link',
@@ -66,7 +66,7 @@
     // (the four's own asks at 3, 11-03 -- the leveling lane item 13, RULED 10-31 "Agreed, when main story character classes are built out": the four at level 2 with the next level
     // banked, `bank`, so the night's rest levels them and the morning asks -- Barley's archetype, Lymen's oath)
     three16: { group: G, title: 'Silverton at evening, the four at level 2 with a level banked: the night\'s rest, then Barley\'s archetype and Lymen\'s oath asked at 3 (11-03)', pt: 'the leveling · the four\'s own asks · situations from a link',
-      lead: 'barley', bank: true, silver: 12, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'work:slate': 1 }, open: ['work'], done: ['company'], pin: 'work',
+      lead: 'barley', bank: true, silver: 12, renown: 1, flags: { papaLymen: 1, heardWork: 1 }, open: ['work'], done: ['company'], pin: 'work',
       at: { town: 'silverton', mark: 'hexFront' }, day: 0, hour: 18,
       look: 'Day 1, evening, level 2, the next level banked: the four at the Hex\'s front doors. Out the west gate to THE WORLD, CAMP, THE NIGHT: the morning says each is level 3, then the pick pages -- BARLEY: MARTIAL ARCHETYPE, nothing marked, the Champion, the Drillyard, the Threshing Floor (the Drillyard: CONFIRM, then PLAYS on the page again, three marked); LYMEN: SACRED OATH, Devotion or the Green Return; Aurdin\'s two spells; Vivian\'s archetype. M, STATUS: each one\'s features by the choice.' },
     // (the deep gallery's door, 10-30 -- eyes-deepgallery-1028's, a test floor at level 6 till then: the desk's "review situations.html and urls better than they knew to make", his word)
@@ -88,13 +88,18 @@
       lead: 'lymen', lvl: 3, silver: 30, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, wintersMet: 1, wErrA: 1, wErrADone: 1, elsbethSent: 1, reachedInn: 1, kSeen: 1 }, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring',
       at: { town: 'silverton', door: 'warp:winters' }, day: 6, hour: 10,
       look: 'Day 7, mid-morning, level 3, Lymen leading: at Winters\' door. As the street comes up the JOURNAL\'s card flies in -- When You\'re Ready, the next step: "the one who leads you is level 3 now, and he is ready." E at the door, E on Winters: Lymen says the girl at the dishes sent you; then "Now you\'re ready." and the RING OF WATER WALKING on the counter, "For the thing in the lake", "It knows this ring", deep water ground to its wearer, the rounds the thing must turn on them; "Put it on Lymen?" YES: M, EQUIP shows it on his hand. The JOURNAL: When You\'re Ready done -- "for the thing in the lake, Winters says. The Halfway Inn, down the road."' },
+    // (Gull's Reward, 11-18 -- the small-fixes seat, RULED 11-16: js/hours.js H16.WORK, H16.GULL, C.TALK16.gull; held by mode=fixes1118 G8)
+    gull16: { group: G, title: 'Silverton by day at Gull\'s corner, Barley in the party, three ways to turn a coin found: Gull\'s Reward (11-18)', pt: 'Silverton\'s hours and words · Finding Work, Gull\'s Reward · situations from a link',
+      lead: 'barley', lvl: 3, silver: 30, renown: 1, flags: { papaLymen: 1, heardWork: 1, 'work:winters': 1, 'work:board': 1, 'hex:brawl': 1, heardHex: 1 }, open: ['work'], done: ['company'], pin: 'work',
+      at: { town: 'silverton', near: 'gull' }, day: 1, hour: 10,
+      look: 'Day 2, mid-morning, level 3, Barley leading: beside Gull at his corner. The JOURNAL\'s Finding Work: three of four found (Winters\' papers, Hessle\'s board, Korvin\'s slate), "Talk to people in Silverton." E on Gull: the guano mine\'s cull hands, then "Saw your fight, kid. You remind me of me." -- the mission is Gull\'s Reward now. Kess at her door says the Warrens\' cradles: four of four, the next step Gull, marked. Back to Gull: the reward, the Rusty Scale (AC 13 + DEX, max 2), Barley\'s to wear.' },
     // (Merrick's window, the sendings, 11-16 -- the merrick-window seat, his "send those messages at that prices": js/counter.js C.LANTERN; held by mode=merrick1116)
     merrick16: { group: G, title: 'Silverton by day at the lantern house, the four at level 3 with 600 silver: Merrick\'s window sends (11-16)', pt: 'the second game\'s house · Merrick\'s window · situations from a link',
-      lead: 'lymen', lvl: 3, silver: 600, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'work:slate': 1 }, open: ['work'], done: ['company'], pin: 'work',
+      lead: 'lymen', lvl: 3, silver: 600, renown: 1, flags: { papaLymen: 1, heardWork: 1 }, open: ['work'], done: ['company'], pin: 'work',
       at: { town: 'silverton', door: 'keeper:merrick' }, day: 0, hour: 10,
       look: 'Day 1, mid-morning, level 3, 600 silver: on the street at the lantern house\'s door. In, E on Merrick behind his grille: his word, SEND WORD / LEAVE. SEND WORD: the prices, then THE DOORS (its eight schools, two to a row), TARLYN\'S PIT, CAPITAL CITY; then a send for each of the four (FROM LYMEN, ...); the words shown with AT DUSK 100 SP, BY DAY 250, the name off the paper 250 more. It goes; the purse is lighter and nothing else changes.' },
     merrickmet16: { group: G, title: 'The lantern house with the Old One\'s stars and the mirror-made met: two more sends (11-16)', pt: 'the second game\'s house · Merrick\'s window · situations from a link',
-      lead: 'lymen', lvl: 3, silver: 600, renown: 1, flags: { papaLymen: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'work:slate': 1, eggStars: 1, sawMirror: 1, mirrorFought: 1 }, open: ['work'], done: ['company'], pin: 'work',
+      lead: 'lymen', lvl: 3, silver: 600, renown: 1, flags: { papaLymen: 1, heardWork: 1, eggStars: 1, sawMirror: 1, mirrorFought: 1 }, open: ['work'], done: ['company'], pin: 'work',
       at: { town: 'silverton', door: 'keeper:merrick' }, day: 0, hour: 10,
       look: 'As merrick16, but the party has had the black egg (the stars went out as the Old One passed) and has met and fought the mirror-made on THE WORLD: after the four\'s own sends, THE STARS GONE OUT and THE MIRROR-EYED, the list two to a row.' }
   };

@@ -1001,7 +1001,7 @@
       if (!(yield* C.offerWork(sc, L('winters.errandA'), 'attentive'))) { yield sc.say(C.LINES.notNow, 'attentive'); return; }
       f.wErrA = 1; give(st, 'estatepapers', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.estatepapers.name }));
-      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done; })) f.pin = 'errands'; // (the first errand teaches the journal: the first game's playtest 09-25; and since 11-15 over a pin these papers just finished -- Finding Work, done on wErrA -- his playthrough NOTES at Winters': "'when your ready' ended up pinned instead of the one he just gave you to carry papers")
+      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done && q.id !== 'work'; })) f.pin = 'errands'; // (over Finding Work too, live or not: since 11-18 the papers no longer finish it -- a collection of four, js/hours.js H16.WORK -- and his 11-15 note C wants the errand pinned, as a paper off the board pins its own) (the first errand teaches the journal: the first game's playtest 09-25; and since 11-15 over a pin these papers just finished -- Finding Work, done on wErrA -- his playthrough NOTES at Winters': "'when your ready' ended up pinned instead of the one he just gave you to carry papers")
       f['q:errands'] = 1; // (his own word on the JOURNAL below: no card of its opening besides -- js/hours.js H16.missionDue)
       yield sc.say(D.keys(C.LINES.journalGrid));
       return 'leave';
@@ -1538,7 +1538,7 @@
     var by = {}; (DS.DATA.quests || []).forEach(function (q) { by[q.id] = q; }); C.OWN_QUESTS.forEach(function (q) { by[q.id] = by[q.id] ? Object.assign({}, by[q.id], q) : q; });
     return C.QUESTS.map(function (id) { return by[id]; }).filter(function (q) { return q && C.cond(q.show, st); }).map(function (q) {
       var done = C.cond(q.done, st), steps = typeof q.steps === 'function' ? q.steps(st) : q.steps || [], step = !done && steps.filter(function (s) { return C.cond(s['if'], st); })[0];
-      return { id: q.id, name: q.name, text: typeof q.text === 'function' ? q.text(st) : q.text, doneText: q.doneText, done: done, where: step && step.where, step: step || null };
+      return { id: q.id, name: typeof q.name === 'function' ? q.name(st) : q.name, text: typeof q.text === 'function' ? q.text(st) : q.text, doneText: typeof q.doneText === 'function' ? q.doneText(st) : q.doneText, done: done, where: step && step.where, step: step || null }; // (a name or done words by the save: Finding Work as Gull's Reward, 11-18 -- js/hours.js H16.GULL)
     });
   };
   C.journal = function (B) {

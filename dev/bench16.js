@@ -1836,6 +1836,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         P.alone === 'Alone?' && !!atA && atA.beat >= CN.OPEN.pause && atA.bl > 0 && atA.justP === '' && atA.mid === '' && atA.typedMid === false && atA.after.length > 0 && P.friends.indexOf(atA.after) === 0);
       HN.playing = false; HN.cur = null; D.scenes.length = 0;
       // C. WINTERS' PAPERS OVER FINDING WORK: Lymen leading as he played it, Finding Work pinned, at Winters' -- WORK taken (TAKE IT); then the ring's card as the floor would
+      // (since 11-18 Finding Work is a collection of four and the papers leave it open -- js/hours.js H16.WORK -- and the errand is pinned over it all the same)
       // play it on the way out
       var BC = newN('lymen'), stC = CN.state(BC), fC = stC.flags;
       fC.qSeen = 1; Object.assign(fC, { papaLymen: 1, heardWork: 1, 'work:winters': 1, 'q:company': 1, 'q:work': 1, kSeen: 1 }); fC.pin = 'work';
@@ -1847,7 +1848,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var pinC1 = fC.pin, workDone = CN.quests(stC).filter(function (q) { return q.id === 'work'; })[0], freshC = H6N.fresh(stC).map(function (q) { return q.id; });
       driveN(H6N.missionCard(BC), null, 2000); var pinC2 = fC.pin;
       okN('C. Winters\' WORK taken (' + asked.join(', ') + ') with Finding Work pinned (live ' + liveC0 + ', done after: ' + !!(workDone && workDone.done) + '): pinned ' + pinC1 + '; the card after for ' + freshC.join(',') + ', pinned ' + pinC2 + ' (When You\'re Ready not pinned)',
-        liveC0 === 1 && !!workDone && workDone.done && !!fC.wErrA && pinC1 === 'errands' && freshC.indexOf('ring') >= 0 && pinC2 === 'errands');
+        liveC0 === 1 && !!workDone && !workDone.done && !!fC.wErrA && pinC1 === 'errands' && freshC.indexOf('ring') >= 0 && pinC2 === 'errands');
       // and a pin still live is kept: Fight Night pinned, the papers taken -- Fight Night stays (his note's ask is the one just given over a done pin; a live pin is the player's)
       var BC2 = newN('lymen'), stC2 = CN.state(BC2), fC2 = stC2.flags; fC2.qSeen = 1; Object.assign(fC2, { heardHex: 1, wintersMet: 1, kSeen: 1 }); fC2.pin = 'hex';
       var gC2 = CN.wintersWork({ st: stC2, say: scC.say, ask: scC.ask }), vC2, sC2, kC2 = 0; while (kC2++ < 200) { sC2 = gC2.next(vC2); vC2 = undefined; if (sC2.done) break; if (sC2.value && sC2.value.opts) vC2 = 0; }
@@ -14233,15 +14234,17 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       WHw.state().t += 24; var said6b = []; for (var i7 = 0; i7 < 4; i7++) said6b.push(talkHw(B1, 'towns6')[0]);
       okHw('the warehouse clerk at Day 0, four words: no Snoot news (' + !snoot0 + '); a day on (Day ' + HWw.day() + '): "' + (said6b.filter(function (s) { return /gone Snoot/.test(s); })[0] || 'none').slice(0, 50) + '"',
         !snoot0 && said6b.some(function (s) { return /gone Snoot/.test(s); }));
-      // 5. Gull's word, the guano mine's wages: The Cull
-      talkHw(B1, 'gull'); var cu = qHw(B1, 'cull'), ccu = beatHw(B1);
-      okHw('Gull: The Cull open (' + !!cu + '), NEXT "' + String(cu && cu.where).slice(0, 60) + '...", its card', !!cu && /Sabeth Pollard/.test(cu.where) && /In your JOURNAL: The Cull/.test(ccu));
+      // 5. Gull's word, the guano mine's wages: The Cull. With Barley in the party (11-18, RULED 11-16, his "rename finding work to gull's reward if party contains barley and
+      // talks to gull"), his ask after the Cull's line: the mission Gull's Reward, none of its four found
+      var gu5 = talkHw(B1, 'gull'), cu = qHw(B1, 'cull'), ccu = beatHw(B1), gw5 = qHw(B1, 'work'), cards5 = B1.saidHw.join(' | ');
+      okHw('Gull: The Cull open (' + !!cu + '), NEXT "' + String(cu && cu.where).slice(0, 60) + '...", its card; Barley along, his ask ("' + String(gu5[1] || '').slice(0, 40) + '..."): ' + (gw5 && gw5.name) + ' (done ' + !!(gw5 && gw5.done) + '), "' + String(gw5 && gw5.text).slice(-60) + '"; the cards: ' + cards5.slice(-160),
+        !!cu && /Sabeth Pollard/.test(cu.where) && /In your JOURNAL: The Cull|And: The Cull/.test(cards5) && /In your JOURNAL: Gull's Reward/.test(cards5) && /cull hands/.test(gu5[0]) && /Saw your fight, kid/.test(gu5.join(' ')) && !!gw5 && gw5.name === 'Gull\'s Reward' && !gw5.done && /Found so far \(1 of 4\): the Warrens' cradles/.test(gw5.text)); /* (the Hand's word above found the cradles) */
       // 6. FINDING WORK, an OR that fills (his "sounds like an AND when we should make it an OR ... getting a quest from where it points (winters, the board) completes the finding
       // work quest"): the factor's man's word of Winters opens it with that one option; Hessle's board read adds nothing to it but is work taken -- it closes, and the cloaker's
       // paper is a mission of its own (his "Board adds each entry as pinnable area pointer mission in journal")
       var w7 = talkHw(B1, 'towns7'), fw = qHw(B1, 'work'), cfw = beatHw(B1);
       okHw('the factor\'s man ("' + String(w7[0]).slice(0, 40) + '..."): Finding Work open, "' + String(fw && fw.text).slice(0, 110) + '", NEXT "' + String(fw && fw.where).slice(0, 50) + '..."',
-        !!fw && !fw.done && /Winters' papers/.test(fw.text) && !/Hessle/.test(fw.text) && /Ambrose Winters/.test(fw.where) && /In your JOURNAL: Finding Work/.test(cfw));
+        !!fw && !fw.done && /Winters' papers/.test(fw.text) && !/Hessle/.test(fw.text) && /^Talk to people in Silverton/.test(fw.where) && !(fw.step.npc || fw.step.door)); /* (11-18: a collection of four, the next step the town's people with no marker -- his "No arrows unless...") */
       var CB = RHw.def; driveHw(THw.fire(B1, trigHw('keeper:hessle')), null, 2000); var inH = RHw.def.room === 'keeper:hessle', hs = inH ? talkHw(B1, 'hessle') : [];
       var tl0 = qHw(B1, 'tail'); driveHw(THw.goOut(B1), null, 400);
       // (since 10-29 Hessle's word opens nothing: the board on the Weigh-House wall outside, a paper taken down off it -- his "the way hessle reads the board should instead be
@@ -14251,7 +14254,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (gB) driveHw(gB, null, 800); offHw(B1);
       var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'), ctl = beatHw(B1) || lastHw(B1); /* (since 10-30 the card plays as the screen closes, in boardPlay: nothing left for the beat -- the last card said) */
       okHw('Hessle\'s word inside opens nothing (in ' + inH + ', the tail ' + !tl0 + '); the board outside (' + !!trB + '), the cloaker\'s paper taken: The Forty-Gold Tail a mission (' + !!tl + ', NEXT "' + String(tl && tl.where).slice(0, 50) + '..."), Finding Work done (' + !!(fw2 && fw2.done) + '); the card "' + String(ctl).slice(0, 70) + '"',
-        inH && !tl0 && !!trB && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && fw2.done && /The Forty-Gold Tail/.test(ctl));
+        inH && !tl0 && !!trB && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && !fw2.done && /Hessle's board/.test(fw2.text) && /The Forty-Gold Tail/.test(ctl)); /* (11-18: the board found, two of four -- not done) */
       // 6b. THE BOARD AS THE GAME PLAYS IT (10-30, his "hessle's board to give fancy 'in your journal now' after you close the board interface would be good"): E at the board
       // through the floor's own script, the cloaker's paper taken, the screen closed, the script run on asking its beats by itself (boardRunHw) -- the card and the JOURNAL's fly-in
       // come right there, once, the Tail pinned. Barley's NEW GAME: the Tail is not in the JOURNAL before the paper
@@ -14302,7 +14305,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B8 = newHw('barley'); beatHw(B8); var nr8 = near(B8, 'papa'), due8 = HWw.due(B8), sc8 = due8 ? scene(B8) : { lines: [] }, j8 = jHw(B8), c8 = beatHw(B8), fw8 = qHw(B8, 'work');
       okHw('Barley\'s party at the Hex\'s door (' + nr8 + ', due ' + due8 + '): ' + sc8.lines.length + ' lines, Lymen beside Papa ' + sc8.lymen + ' and gone in after (' + !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) + ') -- "' + (sc8.lines[1] || '').slice(0, 60) + '..."; the JOURNAL ' + j8.join(', ') + ', pinned ' + CHw.journal(B8).pin + '; the card "' + String(c8).slice(0, 80) + '"',
         due8 && sc8.lymen && !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) && /^LYMEN: Gnolls on the road/.test(sc8.lines[1]) && sc8.lines.some(function (l) { return /Barley/.test(l); }) === false && sc8.lines.some(function (l) { return /Marta's girl/.test(l) && /farm boy/.test(l); })
-          && j8.join(',') === 'company,work' && CHw.journal(B8).pin === 'work' && /In your JOURNAL: Finding Work/.test(c8) && /Pinned/.test(c8) && B8.saidHw.some(function (s) { return /In your JOURNAL: Company/.test(s) && !/Pinned/.test(s); }) /* (10-30, his "gives two missions? the one to winters to appear second and be left active": a card each, Finding Work second and pinned) */ && /Winters' papers.*Hessle's board.*cradles.*Korvin's slate/.test(fw8 && fw8.text));
+          && j8.join(',') === 'company,work' && CHw.journal(B8).pin === 'work' && /In your JOURNAL: Finding Work/.test(c8) && /Pinned/.test(c8) && B8.saidHw.some(function (s) { return /In your JOURNAL: Company/.test(s) && !/Pinned/.test(s); }) /* (10-30, his "gives two missions? the one to winters to appear second and be left active": a card each, Finding Work second and pinned) */ && /\(0 of 4\): nothing yet\. Talk to people in Silverton/.test(fw8 && fw8.text) && !['winters', 'board', 'cradles', 'slate'].some(function (k) { return B8.roam.flags['work:' + k]; })); /* (11-18, his "Papa's lines quit counting toward completion": Finding Work opened, none found) */
       okHw('and the Company\'s NEXT one of the three (' + String(qHw(B8, 'company').where).slice(0, 50) + '...); the scene once (due again ' + HWw.due(B8) + ')', !!qHw(B8, 'company').where && !HWw.due(B8));
       // 9. Lymen leading: Lymen himself at the door -- no second Lymen; Papa's "Then go and find some." and the three named
       var B9 = newHw('lymen'); beatHw(B9); near(B9, 'papa'); var sc9 = HWw.due(B9) ? scene(B9) : { lines: [] };
@@ -14337,12 +14340,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 10. THE PEOPLE BESIDE EACH LEAD'S START: Aldwin (Aurdin's), Marta (Vivian's), Kess (Barley's) -- each opens Finding Work with their own place first
       var B10 = newHw('aurdin'); beatHw(B10); driveHw(THw.fire(B10, trigHw('chapel:aldwin')), null, 2000); var al = RHw.def.room === 'chapel:aldwin' ? talkHw(B10, 'aldwin') : []; driveHw(THw.goOut(B10), null, 400);
       var fw10 = qHw(B10, 'work'), c10 = beatHw(B10);
-      okHw('Aurdin\'s start, Aldwin in the chapel ("' + String(al[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw10 && fw10.where).slice(0, 40) + '..."', !!fw10 && /Ambrose Winters/.test(fw10.where) && /Finding Work/.test(c10));
+      okHw('Aurdin\'s start, Aldwin in the chapel ("' + String(al[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw10 && fw10.where).slice(0, 40) + '..."', !!fw10 && /Winters' papers/.test(fw10.text) && /^Talk to people in Silverton/.test(fw10.where) && /Finding Work/.test(c10));
       var B11 = newHw('vivian'); beatHw(B11); var ma = talkHw(B11, 'marta'), fw11 = qHw(B11, 'work'), tl11 = qHw(B11, 'tail'), c11 = beatHw(B11);
-      okHw('Vivian\'s start, her mother at the stall ("' + String(ma[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw11 && fw11.where).slice(0, 30) + '...", and the cloaker\'s Tail (' + !!tl11 + ')', /You're up\. Eat\./.test(ma[0]) && !!fw11 && /Hessle's board/.test(fw11.where) && !!tl11 && /Finding Work/.test(c11));
+      okHw('Vivian\'s start, her mother at the stall ("' + String(ma[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw11 && fw11.where).slice(0, 30) + '...", and the cloaker\'s Tail (' + !!tl11 + ')', /You're up\. Eat\./.test(ma[0]) && !!fw11 && /Hessle's board/.test(fw11.text) && /^Talk to people in Silverton/.test(fw11.where) && !!tl11 && /Finding Work/.test(c11));
       var B12 = newHw('barley'); beatHw(B12); var trK = trigHw('keeper:kess'), ks = []; if (trK) { var gK = THw.fire(B12, trK); driveHw(gK, function () { return D.top() instanceof CHw.Counter; }, 800); var scK = D.top(); while (scK instanceof CHw.Counter && scK.wait && scK.wait.say && !scK.done) { ks = ks.concat(scK.wait.say); clickHw(scK, scK.buttons().filter(function (q) { return q.go === 'next'; })[0]); } driveHw(gK, null, 400); offHw(B12); }
       var fw12 = qHw(B12, 'work'), cr12 = qHw(B12, 'cradles'), c12 = beatHw(B12);
-      okHw('Barley\'s start, Kess at her door ("' + String(ks[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw12 && fw12.where).slice(0, 30) + '...", and The Cradles (' + !!cr12 + ')', !!fw12 && /The Warrens/.test(fw12.where) && !!cr12 && /Finding Work/.test(c12));
+      okHw('Barley\'s start, Kess at her door ("' + String(ks[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw12 && fw12.where).slice(0, 30) + '...", and The Cradles (' + !!cr12 + ')', !!fw12 && /the Warrens' cradles/.test(fw12.text) && /^Talk to people in Silverton/.test(fw12.where) && !!cr12 && /Finding Work/.test(c12));
       // 11. a save with its four: the Company still in its JOURNAL (done), no scene at the door
       HHw.playing = false; HHw.cur = null; var r13 = HHw.fresh(); HHw.begin(r13, 0); var B13 = floorHw(); cardsHw(B13); beatHw(B13); near(B13, 'papa'); var d13 = HWw.due(B13), q13 = qHw(B13, 'company');
       okHw('a save with its four: the Company in the JOURNAL (' + !!q13 + ', done ' + !!(q13 && q13.done) + '), no scene at the door (' + !d13 + ')', !!q13 && q13.done && !d13);
@@ -14373,10 +14376,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okHw('Swann with 2 silver: "' + String(sw0 && sw0[0]).slice(0, 40) + '...", READ refused ("' + String(sw0 && sw0[2]).slice(0, 40) + '"), the silver kept (' + BS.roam.silver + ')', !!sw0 && /draped table/.test(sw0[0]) && /on credit/.test(sw0[2]) && BS.roam.silver === 2);
       BS.roam.silver = 20; var sw1 = roomHw(BS, 'keeper:sylvia', 'sylvia', [/READ/]), pin1 = CHw.journal(BS).pin;
       okHw('with 20 and nothing in the JOURNAL: her reading "' + String(sw1 && sw1[1]).slice(0, 120) + '" -- pinned ' + pin1 + ', 5 paid (' + BS.roam.silver + '), no old thing at Day 0',
-        !!sw1 && /Coin's on Fountain Street/.test(sw1[1]) && /Next: Ambrose Winters/.test(sw1[1]) && pin1 === 'work' && BS.roam.silver === 15 && !/old thing/.test(sw1.join(' ')));
+        !!sw1 && /Coin's on Fountain Street/.test(sw1[1]) && /Next: Talk to people in Silverton/.test(sw1[1]) && pin1 === 'work' && BS.roam.silver === 15 && !/old thing/.test(sw1.join(' ')));
       talkHw(BS, 'pete'); delete BS.roam.flags.pin; WHw.state().t += 24; var sw2 = roomHw(BS, 'keeper:sylvia', 'sylvia', [/READ/, /READ/]), pin2 = CHw.journal(BS).pin;
       okHw('nothing pinned, the first morning on: she pins the first open (' + pin2 + ') and reads it -- "' + String(sw2 && sw2[1]).slice(0, 60) + '..."; the old thing once (' + ((sw2 || []).filter(function (s) { return /old thing/.test(s); }).length) + ' of two readings: ' + JSON.stringify(sw2).slice(0, 600) + ')',
-        !!sw2 && pin2 === 'work' && /Next: Ambrose Winters/.test(sw2[1]) && /^Her hand stops over the cup\. "An old thing walks/.test(sw2[2]) && sw2.filter(function (s) { return /old thing/.test(s); }).length === 1 && BS.roam.silver === 5); // (the old thing whole on her second card since 10-29 night, his "Swann's second part should all be together on her second card")
+        !!sw2 && pin2 === 'work' && /Next: Talk to people in Silverton/.test(sw2[1]) && /^Her hand stops over the cup\. "An old thing walks/.test(sw2[2]) && sw2.filter(function (s) { return /old thing/.test(s); }).length === 1 && BS.roam.silver === 5); // (the old thing whole on her second card since 10-29 night, his "Swann's second part should all be together on her second card")
       // 14. THE COUNCIL, C1 (his "Consider C1 a cutscene that plays for the player at the parties nearest (chronological) rest cycle"): Day 0 no sitting due, and Hessle's board
       // without the Snoot's paper; a night at Cassia's from Day 1's dusk -- the morning brings the sitting (a bench takes its flag: no one to watch), and the paper is up after
       // (since 11-06, his order -- "arrange for it to play around the time it happens" -- and his "council dream nightscene while you longrest": the morning brings it no
@@ -19599,7 +19602,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116', nedwand16: 'items1116' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
+      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116', nedwand16: 'items1116', gull16: 'fixes1118' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();
