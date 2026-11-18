@@ -43,6 +43,7 @@ async def main():
             br = await EH.launch(p)
             for u in DOORS:
                 r = await look(br, base, u)
+                if r['state'] != 'ok': r = await look(br, base, u) # (once more: under the full gate's load the probe's own little server can drop a file -- the check was right to say so, the page did lack it -- 11-18, js/madeshow.js on ?pocket)
                 ok(r['state'] == 'ok' and not r['card'], 'GREEN %-28s %s%s' % (u, r['state'], '' if not r['bad'] else ': ' + '; '.join(r['bad'])[:200]))
             async def withhold(pg): await pg.route(re.compile(r'/deep16/js/hours\.js'), lambda rt: asyncio.ensure_future(rt.abort()))
             async def broken(pg): await pg.route(re.compile(r'/deep16/js/hours\.js'), lambda rt: asyncio.ensure_future(rt.fulfill(status=200, content_type='application/javascript', body='(function () { var H = ;')))
