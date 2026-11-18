@@ -10,8 +10,13 @@
 (function () {
   var D = window.D16, DS = window.DS, C = D.counter, T = D.town, H16 = D.hours = {};
 
-  // ---------------------------------------------------------------- the day (THE WORLD's clock: js/world.js S.t, Day 0 the morning the game opens, the moot that night)
-  H16.day = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; if (S && S.t != null) return Math.floor(S.t / 24); var m = /[?&]day=(\d+)/.exec((window.location && location.search) || ''); return m ? +m[1] : 0; };
+  // ---------------------------------------------------------------- the day (THE WORLD's clock: js/world.js S.t; counted as W.day and In.day count it -- DAY 1 EVERYWHERE, RULED 2026-11-16,
+  // Griz: "Day 1 starts the sunrise after the gnoll king dies, gnoll kings death day is day 0, 1 is first day of player control"; and 11-18, "Day 1 is just clarifying the moot
+  // death and release of the mane is day 0 and characters start on day 1": S.t 0 is the morning of Day 1, the moot the night before play; a test door's &day= is Day 1-based too)
+  H16.day = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; if (S && S.t != null) return Math.floor(S.t / 24) + 1; var m = /[?&]day=(\d+)/.exec((window.location && location.search) || ''); return m ? +m[1] : 1; };
+  // the day the Pit's news is in town: the second day of play (RULED 2026-11-16, Griz, told that with the moot before play the news would reach town the first morning: "Let the news
+  // continue to get there on the second day, they don't have cell phones.")
+  H16.NEWS_DAY = 2;
 
   // ---------------------------------------------------------------- the missions (the lane's 4.2): the second game's records, each over the first game's of its id
   // (content/quests.json stays the first game's); `where` says the place and the way to it (the words pass, 4.9)
@@ -149,13 +154,13 @@
     skarn: 'Skarn, the Warrener, has one job past the pens that nobody takes: five of Warrens Pete\'s crew went down past the wet and never came up. Edric Pellam\'s book has their names.'
   };
 
-  // the rumours that point at work open their mission (the lane's 4.2; the rest stay lines in THE TALK); the Snoot's news is not in town till the morning after the moot
-  // (the realm's campaign-start.md: the Pit's word, Day 1, Lucia first) -- before it, the gnolls ranging north is the whole of it
+  // the rumours that point at work open their mission (the lane's 4.2; the rest stay lines in THE TALK); the Snoot's news is not in town till Day 2 (H16.NEWS_DAY)
+  // (the realm's campaign-start.md: the Pit's word, Lucia first) -- before it, the gnolls ranging north is the whole of it
   Object.assign(C.RUMOR_OPENS, { 'r-pete': 'heardPete', 'r-doserate': 'heardCradles', 'r-mouths': 'heardCradles', 'r-guanowages': 'heardGalleries', 'r-roost': 'heardGalleries',
     'r-cloaker': 'heardCloaker', 'r-cloakerNumber': 'heardCloaker', 'r-nobodyCollected': 'heardCloaker', 'r-hexcard': 'heardHex', 'r-talmok': 'heardHex', 'r-fronted': 'heardHex',
     'r-winters': 'work:winters', 'r-ettercap': 'heardEttercap' });
   H16.NEWS = { 'r-snoot': 1 };
-  C.rumorHeld = function (rid) { return !!H16.NEWS[rid] && H16.day() < 1; };
+  C.rumorHeld = function (rid) { return !!H16.NEWS[rid] && H16.day() < H16.NEWS_DAY; };
 
   // ---------------------------------------------------------------- the card a mission opens with (the lane's 4.1, 2): the moment it shows in the JOURNAL, its name and its
   // plain words, and the first pinned when nothing is. A save from before has its JOURNAL as it stood: what it shows at the first look is taken as seen, no cards
@@ -530,7 +535,7 @@
   };
   H16.luciaOpener = function (st, B) {
     var f = st.flags, Lc = H16.LUCIA, rec = D.house && D.house.playing && D.house.cur, lead = (rec && rec.lead) || '', names = st.party.map(function (h) { return h.key || h.id; });
-    if (H16.day() >= 1 && !f.luciaSnoot) { f.luciaSnoot = 1; C.heard(st, 'r-snoot'); return Lc.news.slice(); }
+    if (H16.day() >= H16.NEWS_DAY && !f.luciaSnoot) { f.luciaSnoot = 1; C.heard(st, 'r-snoot'); return Lc.news.slice(); }
     if (C.mealEaters(B).some(function (u) { return D.house.exh(u.src) > 0; })) return [Lc.worn];
     if (!f.luciaMet) { f.luciaMet = 1; if (Lc.first[lead]) return [Lc.first[lead], Lc.ask]; }
     if (lead !== 'lymen' && names.indexOf('lymen') >= 0 && !f.luciaLy) { f.luciaLy = 1; return [Lc.ly]; }
@@ -551,7 +556,7 @@
   // ---------------------------------------------------------------- SYLVIA SWANN'S READING, 5 SP (the lane's 4.7; RULED 10-28, his "9 - yes, in the case of no pinned messages a
   // consult will pin one first"; his note: "Swann dialogue pointing to next quest or upcoming part of existing quest for 5 sp - consult story wiki for timeline on when she reads
   // the old one's presence"). The register: her reading fired at the moot through the object on Gnash, the Owl's brief "An Old One Walks!" (TarlynsPit/wiki/the-wizard-networks.md,
-  // campaign-start.md, CANON 09-16/16b) -- the moot is the night of Day 0, so from the first morning she knows, and says so once. Her steer cap (RULED 08-29g, "won't send the
+  // campaign-start.md, CANON 09-16/16b) -- the moot is the night of Day 0; she says so once, from Day 2 (H16.NEWS_DAY, where the gate stood before Day 1 everywhere). Her steer cap (RULED 08-29g, "won't send the
   // Aurdin-class up the hill"): no reading names the Tower. Her lines the window's drafts (she is Griz's reserved; the no-stubs law), invented.json swann-reading
   H16.SWANN = { price: 5,
     first: ['A draped table, a cup of tea going cold, and an owl on a perch that watches your hands, not your face.', 'Five silver, and I\'ll tell you what comes next for you. Not the far future. Nobody can afford that.'],
@@ -582,7 +587,7 @@
       var m = H16.swannPick(st); if (!m) { q = S.dry; continue; }
       st.silver(-S.price); D.sfx('coin');
       var lines = [S.q[m.id] || m.text, S.next.replace('{where}', m.where || m.text)];
-      if (H16.day() >= 1 && !f.swannWalks) { f.swannWalks = 1; lines.push(S.walks); }
+      if (H16.day() >= H16.NEWS_DAY && !f.swannWalks) { f.swannWalks = 1; lines.push(S.walks); }
       var cards = H16.byBox(lines); for (var i = 0; i < cards.length; i++) yield sc.say(cards[i], 'work'); q = S.again;
     }
   };
@@ -600,7 +605,7 @@
   // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
   H16.WHO = { hessle: 'Hessle', androit: 'Aldwyn Androit', casper: 'Casper Venn', merrick: 'Merrick', papa: 'Papa Urtusk', harrow: 'Ottak Harrow', thrane: 'The east side\'s man', warda: 'Warda' };
   H16.COUNCIL = {
-    // C1: the night the Pit's word is in (Day 1; the realm's campaign-start.md, CANON 08-25: the notice funded, Merrick warned unexplained -- its "Papa struck the Lupine-head line"
+    // C1: the night the Pit's word is in (Day 2; the realm's campaign-start.md, CANON 08-25: the notice funded, Merrick warned unexplained -- its "Papa struck the Lupine-head line"
     // a stale fold: the 08-25 story's footer item 22, "the Lupine-head line and Urtusk's strike are CUT")
     // (10-30, Griz, on the Lupine's head: "we're wasting expository space. What actually came in from newland? Summed up as 'all the tribes gathered for a moot, and now they've
     // gone snoot - most savage as the new gnoll king' - spin up a seat to write the scripting - someone at the table that likes things explicit clarifying what's there vague for
@@ -641,8 +646,8 @@
     place: 'The Hex, the third floor', what: 'the council'
   };
   H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
-  H16.NOTICE_AT = 24 + 17; // (the council's night: Day 1, from dusk -- THE WORLD's S.t in hours)
-  H16.NOTICE_END = 48 + 5; // (and its end: Day 2's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
+  H16.NOTICE_AT = 24 + 17; // (the council's night: Day 2, from dusk -- THE WORLD's S.t in hours)
+  H16.NOTICE_END = 48 + 5; // (and its end: Day 3's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
   H16.clockT = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; return S && S.t != null ? S.t : null; };
   H16.noticeNight = function () { var t = H16.clockT(); return t != null && t >= H16.NOTICE_AT && t < H16.NOTICE_END; };
   H16.councilsDue = function (flags) {
@@ -1566,7 +1571,7 @@
     { hours: 1, id: 'papaly', near: 'papa', lead: 'lymen', label: 'PAPA AND LYMEN: Lymen leading', note: 'Lymen himself in front of Papa: "Then go and find some." -- Barley, Marta\'s girl, the farm boy named; the Company opens.' },
     { hours: 1, id: 'journal', near: 'pete', lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete, then the town\'s talk', note: 'A click on Pete: THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
     { hours: 1, id: 'lucia', door: 'shop:lucia', lead: 'aurdin', label: 'LUCIA AT MAMA\'S: Aurdin\'s first visit, CONSULT', note: 'In at the door, E at the counter: her word to Aurdin (the calling herbs), THE SHELVES / CONSULT / LEAVE; CONSULT on a whole party.' },
-    { hours: 1, id: 'swann', door: 'keeper:sylvia', lead: 'vivian', silver: 20, t: 31, label: 'SWANN, 5 SP: the first morning after the moot', note: 'In at her booth: READ (5 SP). Nothing in the JOURNAL: she opens Finding Work and pins it, her line, the plain next step -- and once, "An old thing walks."' },
+    { hours: 1, id: 'swann', door: 'keeper:sylvia', lead: 'vivian', silver: 20, t: 31, label: 'SWANN, 5 SP: the morning of Day 2', note: 'In at her booth: READ (5 SP). Nothing in the JOURNAL: she opens Finding Work and pins it, her line, the plain next step -- and once, "An old thing walks."' },
     { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. Step off the doorway and watch: every seven seconds the front one goes in, comes back out with a loaf, and walks down the street to another door; the line steps up, someone new joins behind. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT: the bells, bell to bell.' },
     { hours: 1, id: 'dusk', door: 'inn:cassia', t: 17.5, label: 'SILVERTON AT DUSK: the town comes out', note: 'One step: the bells go for dusk. Marin, the barber, Mela, Venn Hale, Aldric, Merrick and Tam out at their evening spots; their doors "Closed."' },
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
@@ -1574,11 +1579,11 @@
     { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The council\'s ask (10-29): Papa vouches, Harrow names the ettercap across Web Gulch, Hessle its forty and ten, Androit swears it to you, Merrick names the gnolls next; then The Braiding Ettercap in the JOURNAL, pinned.' },
     { hours: 1, id: 'about', door: 'shop:marko', label: 'TELL ME ABOUT IT: Marko the provisioner, and Fountain Street', note: 'In at Marko\'s door, E at the counter: TELL ME ABOUT IT beside THE SHELVES / LEAVE -- what wagons are for here; then back to his question. Next door Kasten, Calla, Kessler, Lisbet; the same at every keeper\'s counter and door.' },
     { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },
-    { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, pit: true, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Since 11-06 their sitting plays there and then, the party in the room (no picture behind it): the last page Hessle\'s board.' },
+    { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, pit: true, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 2 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Since 11-06 their sitting plays there and then, the party in the room (no picture behind it): the last page Hessle\'s board.' },
     // THE PIT'S WORD AT ITS HOUR (11-06, the pitword seat, his order "arrange for it to play around the time it happens (elsewhere... if they aren't in silverton) and just grab
-    // the camera if they happen to be in silverton at the time"): Day 1, the hour itself, out of town and on the street -- `pit`, the staged game takes it (H.cur.pitWord; mode=pitword1106)
-    { hours: 1, id: 'pitaway', at: ['glowseep', 'east', [30, 11], '-1,0'], t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, OUT OF TOWN: the Glowseep at dusk, Day 1 (11-06)', note: 'At the Glowseep\'s fire as the clock reaches Day 1\'s dusk: a card, ELSEWHERE... Meanwhile, in Silverton. Then the lamp lit by the Weigh-House, the council up the spiral, the sitting; its last page Hessle\'s board in the box (the Snoot\'s paper under its seal). Then back at the fire, as you were. No dream at the next rest.' },
-    { hours: 1, id: 'pittown', door: 'inn:cassia', t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, IN TOWN: Silverton\'s street at dusk, Day 1 (11-06)', note: 'At Cassia\'s door as the bells go for dusk: the street\'s own camera slides along to the Weigh-House, Hessle comes out and lights the lamp by his door, his card; then the cut to the Hex\'s third floor, the council up the spiral, the sitting, Hessle\'s board last. The camera slides back to the party; the lamp stays lit at the Weigh-House all night.' },
+    // the camera if they happen to be in silverton at the time"): Day 2, the hour itself, out of town and on the street -- `pit`, the staged game takes it (H.cur.pitWord; mode=pitword1106)
+    { hours: 1, id: 'pitaway', at: ['glowseep', 'east', [30, 11], '-1,0'], t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, OUT OF TOWN: the Glowseep at dusk, Day 2 (11-06)', note: 'At the Glowseep\'s fire as the clock reaches Day 2\'s dusk: a card, ELSEWHERE... Meanwhile, in Silverton. Then the lamp lit by the Weigh-House, the council up the spiral, the sitting; its last page Hessle\'s board in the box (the Snoot\'s paper under its seal). Then back at the fire, as you were. No dream at the next rest.' },
+    { hours: 1, id: 'pittown', door: 'inn:cassia', t: 41, pit: true, label: 'THE PIT\'S WORD AT ITS HOUR, IN TOWN: Silverton\'s street at dusk, Day 2 (11-06)', note: 'At Cassia\'s door as the bells go for dusk: the street\'s own camera slides along to the Weigh-House, Hessle comes out and lights the lamp by his door, his card; then the cut to the Hex\'s third floor, the council up the spiral, the sitting, Hessle\'s board last. The camera slides back to the party; the lamp stays lit at the Weigh-House all night.' },
     { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' },
     // (10-29, the story window, RULED on Griz's "Leans stand": his story notes of 10-29 1808Z, each a beat -- invented.json warrens-five-words-1029, hexboy-runner-1029)
     { hours: 1, id: 'council4', door: 'inn:cassia', sit: ['stock'], flags: { herdWarned: 1, councilHerd: 1, stockDead: 1 }, label: 'THE COUNCIL, C3: the stock dead', note: 'The cutscene: the east side\'s man comes up the spiral and stands at the table\'s end, the others at their places; the sitting with no card.' },
@@ -1655,7 +1660,7 @@
   // ---------------------------------------------------------------- THE PIT'S WORD AT ITS HOUR (11-06, Griz's order to the lanes desk: "we need to place the cinematic we play for
   // the player about the word from the Pit regarding the snoot - and arrange for it to play around the time it happens (elsewhere... if they aren't in silverton) and just grab
   // the camera if they happen to be in silverton at the time"; with his NOTES of the same day, "council dream nightscene while you longrest"). C1, the council's notice night,
-  // plays once THE WORLD's clock has passed its hour (H16.NOTICE_AT, Day 1's dusk), at the first free moment wherever the party is -- a floor's walk with no fight, no screen
+  // plays once THE WORLD's clock has passed its hour (H16.NOTICE_AT, Day 2's dusk), at the first free moment wherever the party is -- a floor's walk with no fight, no screen
   // or menu over it and no path being walked (js/roam.js R.script asks H16.due), or THE WORLD's map with no menu up, between hexes (World.update, below) -- not at the rest:
   //   - on Silverton's street on its night: the street's own camera, along to the Weigh-House; Hessle out of his door and the lamp lit beside it, his card; then the cut to
   //     the Hex's third floor, the council up the spiral (the Night's arrival alone), the sitting over it, and the camera back along to the party -- the lamp burning there

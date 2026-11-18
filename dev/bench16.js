@@ -14549,7 +14549,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.store.get = function (k) { return memPw[k] != null ? memPw[k] : null; }; D.store.set = function (k, v) { memPw[k] = v; };
       D.ctx = cvPw.getContext('2d'); D.R = D.R || 1; window.DS.autoPicks = false; D.sfx = function () { };
-      // 1. OUT OF TOWN, the hour crossed in play: the Glowseep's fire at 16:30 on Day 1 -- nothing; a fight or a path walked holds it; M > WAIT, NEXT BELL to dusk, and then
+      // 1. OUT OF TOWN, the hour crossed in play: the Glowseep's fire at 16:30 on Day 2 -- nothing; a fight or a path walked holds it; M > WAIT, NEXT BELL to dusk, and then
       // at the first free moment the cut-away: ELSEWHERE... "Meanwhile, in Silverton.", the lamp, the arrival, the sitting -- its last page Hessle's board -- and back at the fire
       var BA = stagePw(beatPw('pitaway'), 40.5), R0A = BA.roam, atA = [R0A.token.x, R0A.token.y]; drivePw(BA.co, 60, isNight); var early = !isNight() && D.top() === BA;
       WPw.state().t = 41; R0A.mode = 'fight'; var dFight = H6Pw.pitDue(BA); R0A.mode = 'walk'; R0A.path = [[atA[0], atA[1]]]; var dPath = H6Pw.pitDue(BA); R0A.path = null; var dFree = H6Pw.pitDue(BA);
@@ -14558,7 +14558,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var plA = nA ? nightPw(nA, true) : {}, pagesA = D.top() instanceof CPw.Counter ? sitPw(D.top()) : [];
       shotPw('png2', function (c) { var s2 = H6Pw.sitting(BA, ['notice'], [{ councilNotice: 1 }], true, true); for (var q = 0; q < 8 && !s2.done; q++) s2.press(s2.buttons()[0]); s2.draw(c); if (D.top() === s2) D.pop(); });
       drivePw(BA.co, 60, function () { return false; });
-      okPw('out of town (' + RPw.def.key + ', Day 1 16:30): nothing yet (' + early + '); at the hour a fight holds it (' + !dFight + '), a path walked (' + !dPath + '), free it is due (' + dFree + '); WAIT to ' + (Math.round(tA * 100) / 100) + ': the cut-away "' + plA.card + '", shots ' + (plA.ids || []).join(',') + ', ' + pagesA.length + ' pages, the first "' + ((pagesA[0] || {}).text || '').slice(0, 40) + '...", the last on ' + ((pagesA[pagesA.length - 1] || {}).name) + ' (a picture ' + !!(pagesA[pagesA.length - 1] || {}).pic + '); back at the fire (' + (D.top() === BA) + ', ' + RPw.def.key + ' ' + [R0A.token.x, R0A.token.y] + '), taken on the floor and the save (' + !!R0A.flags.councilNotice + ', ' + !!HPw.cur.flags.councilNotice + ')',
+      okPw('out of town (' + RPw.def.key + ', Day 2 16:30): nothing yet (' + early + '); at the hour a fight holds it (' + !dFight + '), a path walked (' + !dPath + '), free it is due (' + dFree + '); WAIT to ' + (Math.round(tA * 100) / 100) + ': the cut-away "' + plA.card + '", shots ' + (plA.ids || []).join(',') + ', ' + pagesA.length + ' pages, the first "' + ((pagesA[0] || {}).text || '').slice(0, 40) + '...", the last on ' + ((pagesA[pagesA.length - 1] || {}).name) + ' (a picture ' + !!(pagesA[pagesA.length - 1] || {}).pic + '); back at the fire (' + (D.top() === BA) + ', ' + RPw.def.key + ' ' + [R0A.token.x, R0A.token.y] + '), taken on the floor and the save (' + !!R0A.flags.councilNotice + ', ' + !!HPw.cur.flags.councilNotice + ')',
         RPw.def.key === 'glowseep' && early && !dFight && !dPath && dFree && tA >= 41 && tA < 41.1 && !!nA && plA.card === 'ELSEWHERE... Meanwhile, in Silverton.' && (plA.ids || []).join() === 'lamp,arrive' && plA.drawn === 3
           && /^"Word's come up the road from Tarlyn's Pit/.test((pagesA[0] || {}).text || '') && pagesA[0].name === 'Hessle' && pagesA.length === 9 && endOk(pagesA) && pagesA.every(function (p) { return p.bg; })
           && D.top() === BA && RPw.def.key === 'glowseep' && R0A.token.x === atA[0] && R0A.token.y === atA[1] && !!R0A.flags.councilNotice && !!HPw.cur.flags.councilNotice && !H6Pw.pitDue(BA));
@@ -14621,6 +14621,35 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   }
   // SILVERTON'S HOURS AND WORDS, 10-28 (mode=hours1028; the story window, its lane they live\handoff-2026-10-28-silvertons-hours-and-words.md, RULED whole with him 10-28 --
   // deep16/js/hours.js): the JOURNAL opened by words, each check one of his rulings
+  // DAY 1 EVERYWHERE (mode=day1118; the clock-road seat, the clock lane's ruling 5 -- Griz 11-16: "Day 1 starts the sunrise after the gnoll king dies, gnoll kings death day is
+  // day 0, 1 is first day of player control"; 11-18: "Day 1 is just clarifying the moot death and release of the mane is day 0 and characters start on day 1"; and 11-16: "Let the
+  // news continue to get there on the second day, they don't have cell phones."): the four counters (js/hours.js H16.day, js/world.js W.day, js/inn.js In.day, js/house.js H.day)
+  // one number at every hour; the Pit's news held on Day 1 and in town on Day 2 (H16.NEWS_DAY), Lucia's and the council's night with it; the wagon, Kat and the Snoot on that count
+  if (get('mode', '') === 'day1118') {
+    var repD1 = { checks: [], errors: [] }, memD1 = {}, stGD1 = D.store.get, stSD1 = D.store.set, apD1 = window.DS.autoPicks, muD1 = D.music, CD1 = D.counter, HD1 = D.house, H6D1 = D.hours, WD1 = D.world, InD1 = D.inn;
+    function okD1(what, v) { repD1.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memD1[k] ? JSON.parse(memD1[k]) : null; }; D.store.set = function (k, v) { memD1[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      HD1.playing = false; HD1.cur = null; var noClock = H6D1.day();
+      var recD1 = HD1.fresh('barley'); HD1.begin(recD1, 0); var sD = D.top(); if (sD && sD.baking) { sD.baking = false; sD.enter(); }
+      var S1 = WD1.state(), at = function (t) { S1.t = t; return [H6D1.day(), WD1.day(), InD1.day(null), HD1.day(HD1.cur)]; }, same = function (a, n) { return a.every(function (x) { return x === n; }); };
+      var rows = [[0, 1], [7, 1], [23.9, 1], [24.1, 2], [41, 2], [53, 3], [11 * 24 + 18, 12], [13 * 24 + 8, 14]].map(function (r) { var a = at(r[0]); return { t: r[0], want: r[1], got: a, ok: same(a, r[1]) }; });
+      okD1('the four counters (H16.day, W.day, In.day, H.day) at S.t ' + rows.map(function (r) { return r.t + ': ' + r.got.join('/') + (r.ok ? '' : ' (want ' + r.want + ')'); }).join('; ') + '; no clock, no door: ' + noClock,
+        rows.every(function (r) { return r.ok; }) && noClock === 1);
+      var held1 = (at(7), CD1.rumorHeld('r-snoot')), held2 = (at(31), CD1.rumorHeld('r-snoot')), other = (at(7), CD1.rumorHeld('r-pete'));
+      okD1('the Pit\'s news: NEWS_DAY ' + H6D1.NEWS_DAY + '; the Snoot\'s rumour held on Day 1 (' + held1 + '), in town on Day 2 (' + !held2 + '); another rumour never held (' + !other + ')', H6D1.NEWS_DAY === 2 && held1 && !held2 && !other);
+      var Bl = D.battle || sD, stL = CD1.state(Bl), lu1 = (at(9), stL.flags.luciaSnoot = 0, H6D1.luciaOpener(stL, Bl)), sn1 = !!stL.flags.luciaSnoot, lu2 = (at(33), H6D1.luciaOpener(stL, Bl)), sn2 = !!stL.flags.luciaSnoot;
+      okD1('Lucia: Day 1 no Snoot (' + !sn1 + ', "' + String(lu1 && lu1[0]).slice(0, 40) + '..."); Day 2 the Pit\'s word in her mouth (' + sn2 + ', "' + String(lu2 && lu2[0]).slice(0, 40) + '...")', !sn1 && sn2);
+      okD1('the council\'s night from dusk of Day ' + (Math.floor(H6D1.NOTICE_AT / 24) + 1) + ' (S.t ' + H6D1.NOTICE_AT + ') to the dawn of Day ' + (Math.floor(H6D1.NOTICE_END / 24) + 1), Math.floor(H6D1.NOTICE_AT / 24) + 1 === 2 && Math.floor(H6D1.NOTICE_END / 24) + 1 === 3);
+      okD1('on the one count: Kat at the inn from Day ' + InD1.KAT.from + ', the first wagon Day ' + InD1.WAGON.first + ' (D.wagon ' + (D.wagon ? D.wagon.day(0) : '-') + '), the Snoot\'s runner Day ' + InD1.SNOOT_DAY + ' (at S.t 13*24+8: ' + (at(13 * 24 + 8), InD1.snootOn(null)) + ', a day before: ' + (at(12 * 24 + 8), InD1.snootOn(null)) + ')',
+        InD1.KAT.from === 4 && InD1.WAGON.first === 12 && (!D.wagon || D.wagon.day(0) === 12) && InD1.SNOOT_DAY === 14 && (at(13 * 24 + 8), InD1.snootOn(null)) && !(at(12 * 24 + 8), InD1.snootOn(null)));
+    } catch (eD1) { repD1.errors.push(String(eD1 && eD1.stack || eD1).slice(0, 900)); }
+    D.store.get = stGD1; D.store.set = stSD1; window.DS.autoPicks = apD1; D.music = muD1; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preD1 = document.createElement('pre'); preD1.id = 'out'; preD1.textContent = 'BENCH16 ' + JSON.stringify(repD1);
+    document.body.appendChild(preD1);
+    return;
+  }
   // THE SMALL FIXES OF 11-18 (mode=fixes1118; the small-fixes seat, on the lanes desk's brief from his playthrough of 11-16 night and his fight records): G -- Finding Work a
   // collection of four, Papa's line finding none, Gull's Reward with Barley along and the rusty scale (js/hours.js H16.WORK H16.GULL C.TALK16.gull, RULED 11-16); T -- one article on a
   // foe's name, "The thing in the lake" (js/battle.js Battle.nm, Battle.prototype.theOf); S -- a stirge's letting go once (js/ai.js brute); R -- the road's and the camp's grid field 16 deep, the lineup in its middle (js/world.js W.deep)
@@ -14987,7 +15016,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         driveHw(g, null, 800); offHw(B); driveHw(THw.goOut(B), null, 400); return out;
       };
       // 12. LUCIA (his "8 - yes"; "Lucia wouldn't say "mama mixes" she'd say "I mix""): Barley's first visit his own opener and CONSULT; CONSULT on a hurt party names each fix;
-      // a later visit "I mix"; the first morning after the moot, the Pit's word in her own mouth, once
+      // a later visit "I mix"; the morning of Day 2, the Pit's word in her own mouth, once
       var BL = newHw('barley'); beatHw(BL); BL.roam.silver = 50; var lu1 = roomHw(BL, 'shop:lucia', 'lucia', [/CONSULT/]);
       okHw('Lucia, Barley\'s first visit: "' + String(lu1 && lu1[0]).slice(0, 70) + '..."; CONSULT on a whole party: "' + String(lu1 && lu1[1]).slice(0, 50) + '"',
         !!lu1 && /get up against Cutter/.test(lu1[0]) && /\[THE SHELVES\|CONSULT\|LEAVE\]/.test(lu1[0]) && /Nothing I can fix/.test(lu1[1]) && !/Mama mixes/.test(lu1.join(' ')));
@@ -14997,7 +15026,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         !!lu2 && /grey with it/.test(lu2[0]) && /Poison in Barley/.test(lu2[1]) && /Barley is worn/.test(lu2[1]) && /Barley has lost a lot of blood/.test(lu2[1]));
       hb.hp = hb.maxhp; HHw.exhaust(hb.src, -1); delete hb.conds.poisoned; var lu3 = roomHw(BL, 'shop:lucia', 'lucia', []);
       WHw.state().t += 24; var lu4 = roomHw(BL, 'shop:lucia', 'lucia', []), lu5 = roomHw(BL, 'shop:lucia', 'lucia', []);
-      okHw('a later visit: "' + String(lu3 && lu3[0]).slice(0, 40) + '..."; the first morning after the moot: "' + String(lu4 && lu4[0]).slice(0, 80) + '...", once (then "' + String(lu5 && lu5[0]).slice(0, 20) + '..."), the news in THE TALK',
+      okHw('a later visit: "' + String(lu3 && lu3[0]).slice(0, 40) + '..."; the morning of Day 2: "' + String(lu4 && lu4[0]).slice(0, 80) + '...", once (then "' + String(lu5 && lu5[0]).slice(0, 20) + '..."), the news in THE TALK',
         !!lu3 && /^\? I mix\. Higertha sells at the hatch/.test(lu3[0]) && !!lu4 && /never the gnolls they were after/.test(lu4.join(' ')) && !!lu5 && /^\? I mix/.test(lu5[0]) && !!BL.roam.flags['heard:r-snoot']);
       // 13. SWANN, 5 SP (his "9 - yes, in the case of no pinned messages a consult will pin one first"): no silver, no reading; nothing open, she opens Finding Work and pins it;
       // the reading her line and the plain step; Day 0 no word of the old thing, the first morning on once
