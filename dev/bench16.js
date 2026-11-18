@@ -7781,6 +7781,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okSk('his notes from Sylvia\'s table of 11-17/18: (1) the east store cut whole on main street ' + onMain33 + ' and in the court ' + court33 + ' of ' + store33.length + ', standing on the apron behind the party (' + apron33 + ' cut); in Rekknar\'s temple the stone in front of its stair down cut ' + front33 + ' of 3, its own pillars standing (' + own33 + ' cut); (2) in the assay house his 15,14 cut ' + wall33 + ', Rekknar\'s pillars to their stub ' + pill33 + ' of 4 (' + stub33 + '); (3, 6) clicked: ' + clk33.join('; ') + '; (4) each flight up an arch on the rock it rises into ' + fun33 + ' of 2, the west wall\'s stair module gone (' + westMod33 + ' left), the treads rising north ' + treads33 + ', down to ' + land33.map(function (l) { return l.at + ' facing ' + l.fw + ', the way up the step north ' + l.up; }).join(' / ') + '; (5) ' + names33.join(', ') + '; (6) Ásdís: fresh "' + a0.slice(0, 26) + '", two hours after a long rest "' + a1.slice(0, 120) + '", twenty after "' + a2.slice(0, 26) + '"; its why "' + (a1.match(/No long rest yet[^"]*$/) || ['none'])[0].slice(0, 90) + '"',
           onMain33 === 25 && court33 === 25 && apron33 === 0 && front33 === 3 && own33 === 0 && wall33 && pill33 === 4 && stub33 === 'temple_pillar_stub' && clkOk33 && fun33 === 2 && westMod33 === 0 && treads33 && landOk33 && namesOk33 && asdOk33);
       } catch (e33) { okSk('his notes from Sylvia\'s table of 11-17/18: THREW ' + String(e33).slice(0, 160), false); }
+      // 34. THE DRILL-SERGEANT ON THE TROOPER'S DRAWN FIGURE till his own comes (RULED 11-18, Griz: "4 and 5 leans", on the Sólskaft notes seat's lean after his "Drill sergeant first
+      // look figure is still LPC in the world"; art-wanted 66 asks for his own): on the cart level he stands on trooper_p1, his four's, and is still the drill-sergeant; his fights keep
+      // their own sheet (RED: on the LPC-composed drillsergeant_p0 in the world)
+      try {
+        var Bd34 = testSk('?roam=solskaft_cart&hour=10'), u34 = Bd34.units.filter(function (x) { return x.npc === 'drillmaster'; })[0], foe34 = (D.FOES || {}).drillsergeant || {};
+        okSk('the drill-sergeant in the world on ' + (u34 ? u34.sheet : 'nobody') + ' (his four on ' + SKk.sheetOf('drill1') + '), named ' + (u34 ? u34.name : '-') + ', his fights on ' + foe34.sheet,
+          !!u34 && u34.sheet === 'trooper_p1' && SKk.sheetOf('drill1') === 'trooper_p1' && u34.name === 'Drill-sergeant' && foe34.sheet === 'drillsergeant_p0');
+      } catch (e34) { okSk('the drill-sergeant on the trooper\'s figure: THREW ' + String(e34).slice(0, 160), false); }
     } catch (eSk) { repSk.errors.push(String(eSk && eSk.stack || eSk).slice(0, 900)); }
     HSk.playing = false; HSk.cur = null;
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;

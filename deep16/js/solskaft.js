@@ -549,7 +549,7 @@
     // (11-13, the garrison cutter: the drill's four on the trooper's town figure, trooper_p1 -- art-wanted section 55 block 4, the art desk's ART-142, tools/trooper-town-sheet.py)
     { id: 'drill1', at: [1, 3], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' }, { id: 'drill2', at: [3, 3], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' },
     { id: 'drill3', at: [1, 4], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' }, { id: 'drill4', at: [3, 4], dir: 'right', kind: 'trooper', sheet: 'trooper_p1' },
-    { id: 'drillmaster', at: [5, 4], dir: 'left', kind: 'drillsergeant' }
+    { id: 'drillmaster', at: [5, 4], dir: 'left', kind: 'drillsergeant', sheet: 'trooper_p1' } // (on the trooper's drawn town figure, his four's, till his own comes -- art-wanted 66, drillsergeant_p1 when cut; RULED 11-18, Griz: "4 and 5 leans", on the Sólskaft notes seat's lean, after his "Drill sergeant first look figure is still LPC in the world". His fights keep drillsergeant_p0)
   ];
   // THE GENERIC DWARF (11-12, the Ingrith cutter on the lanes desk's relay; art-wanted section 54, his "include a 'generic dwarf' like we did for generic NPC, various
   // costumes"): the art desk's ART-141-DWARF, one face, each of Solskaft's unnamed in the costume of the job they stand at -- pt_dwarf (tools/portrait-sheet.py dwarf),
