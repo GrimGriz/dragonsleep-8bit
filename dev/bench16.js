@@ -7829,7 +7829,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var useHop = function (key, from, at) { var Bh = testSk('?roam=' + key + '&hour=18'); useSk(Bh, from, at); driveSk(Bh.co, function () { return D.top() !== Bh; }, 400); var Bn4 = topSk(), t4 = Bn4 && Bn4.roam && Bn4.roam.token; return { key: RSk.def.key, at: t4 ? [t4.x, t4.y] : null, B: Bn4 }; };
       var u1 = useHop('solskaft', [15, Y(3)], [14, Y(3)]), dLW = RSk.def, Ba = u1.B, asd = folkSk(Ba, 'asdis'), hw = useSk(Ba, [2, 2], [2, 1]), ww = useSk(Ba, [6, 2], [7, 2]), cw = useSk(Ba, [6, 2], [6, 1]);
       var seenA = [], h0 = MSk.hourNow(RSk.q, Ba), slept = false;
-      if (asd) { atSk(Ba, 4, 2, [-1, 0]); Ba.cards = []; Ba.roam.keys.push('use'); for (var ka = 0; ka < 3000; ka++) { var top = D.top(); if (top !== Ba) { if (top && top.dawnLines) { slept = true; break; } D.pop(); continue; } var sta = Ba.co.next(seenA.pend); seenA.pend = undefined; if (sta.value && sta.value.prompt) { seenA.push(sta.value.prompt.lines.join(' ')); seenA.pend = 0; } if (typeof sta.value === 'number') Ba.t += sta.value; if (ka > 50 && !Ba.roam.keys.length && !sta.value) break; } }
+      if (asd) { atSk(Ba, 4, 2, [-1, 0]); Ba.cards = []; Ba.roam.keys.push('use'); for (var ka = 0; ka < 3000; ka++) { var top = D.top(); if (top !== Ba) { if (top && top.dawnLines) { slept = true; break; } if (D.counter && top instanceof D.counter.Counter) { /* (her first meal plays between the yes and the cot since 11-18, js/asdis.js -- mode=asdis1118 has it; here it is read through and TO BED taken) */ var wA = top.wait || {}, bA = top.buttons(); if (wA.ask) { var oA = bA.filter(function (b) { return b.go === 'opt'; }); top.press(oA[oA.length - 1]); } else if (wA.say) top.press(bA[0]); else if (top.update) top.update(); continue; } D.pop(); continue; } var sta = Ba.co.next(seenA.pend); seenA.pend = undefined; if (sta.value && sta.value.prompt) { seenA.push(sta.value.prompt.lines.join(' ')); seenA.pend = 0; } if (typeof sta.value === 'number') Ba.t += sta.value; if (ka > 50 && !Ba.roam.keys.length && !sta.value) break; } }
       var said = window.DS.stripCodes(seenA.join(' / ')), h1 = MSk.hourNow(RSk.q, Ba), asdis0 = [].concat(window.DS.DATA.text['deep.asdis0'].t)[0], ask = window.DS.DATA.text['deep.asdisAsk'].t;
       var uppers = Object.keys(SKk.LODGE).length, eastDoor = !!SKk.doorById('lodgeE'), stairPics = ((Bd.map && Bd.map.props) || []).filter(function (p) { return p.kind === 'sk' && p.sq && ((p.sq.x === 15 && p.sq.y === Y(3)) || (p.sq.x === 25 && p.sq.y === Y(2))) && p.depth > p.sq.x + p.sq.y - 0.35 && p.depth < p.sq.x + p.sq.y - 0.25; }).length;
       var d1 = hop('solskaft_asdis', [2, 3], [1, 3]);
@@ -8064,6 +8064,121 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = stGSk; D.store.set = stSSk; D.music = muSk;
     var preSk = document.createElement('pre'); preSk.id = 'out'; preSk.textContent = 'BENCH16 ' + JSON.stringify(repSk);
     document.body.appendChild(preSk);
+    return;
+  }
+  // ASDIS SCALEBEAM'S THREE MEALS (mode=asdis1118; js/asdis.js -- the asdis-meals seat, started by the lanes desk on Griz's word, 11-18: "Silent rolls on Asdis supper, go
+  // ahead and start a seat to build our first version"; "let's call it a vigil, and it's the fight amount of 'far'"). Each meal driven twice at her table from EAT AND SLEEP
+  // to the morning: with its read reached and its History made (the dice pinned high), and with both missed (WIS 6, the dice pinned low) -- the plain layer told either way,
+  // the blunt question answered. ONE read an opening, one hero's alone; ONE shaded answer a hero; no die on any line; every check in the play record; the vigil's ceiling
+  // (no line holds a word of js/asdis.js A.CEILING, and "vigil" is said only by the Insight answer and the question it lets be asked); the flags and the JOURNAL lines kept;
+  // after the third, no meal; her face her figure's till pt_asdis is cut, the sheet's from then; every line in its box; the show's beats
+  if (get('mode', '') === 'asdis1118') {
+    var repAs = { checks: [], errors: [] }, memAs = {}, stGAs = D.store.get, stSAs = D.store.set, muAs = D.music, SKa = D.solskaft, HAs = D.house, AA = D.asdis, CAs = D.counter;
+    var okAs = function (what, v) { repAs.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    D.store.get = function (k) { return memAs[k] ? JSON.parse(memAs[k]) : null; }; D.store.set = function (k, v) { memAs[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1118);
+      var boxAs = boxWatch(CAs), faceAs = [];
+      // her table from E on her to the morning: `had` the meals before tonight's; `picks` an answer an opening ('hero:id', 'READER:id' the hero the read went to, 'bed')
+      var mealAs = function (had, pins, picks, setup) {
+        D.scenes.length = 0; SKa.play({ key: 'solskaft_asdis', at: [4, 2], hour: 18, flags: had ? { asdisMeals: had, asdisIdx: had } : {} });
+        var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } AA.pinned = pins.slice(); if (setup) setup(B);
+        var t = B.roam.token; t.x = 4; t.y = 2; t.tween = null; B.roam.fw = [-1, 0]; B.roam.path = null; D.grid.setup(B.map, B.units); B.cards = []; B.roam.keys.push('use');
+        var seen = [], flips = [], q = picks.slice(), offer = '', v, end = 'cap', trail0 = (HAs.cur.trail || []).length;
+        for (var k = 0; k < 9000; k++) {
+          var s = D.top();
+          if (s instanceof CAs.Counter) {
+            var w = s.wait || {}, f = w.flip;
+            if (f) {
+              flips.push(f.list.map(function (x) { return { key: x.key, reads: (x.reads || []).slice(), shaded: (x.marks || []).filter(Boolean).length, tags: (x.marks || []).filter(Boolean).map(function (m) { return m.tag; }), ids: x.ids.slice(), labels: x.opts.map(String) }; }));
+              seen = seen.concat(w.ask || []); f.list.forEach(function (x) { (x.reads || []).forEach(function (r) { seen.push('READ ' + x.key + ': ' + r); }); x.opts.forEach(function (l) { seen.push('OPT ' + x.key + ': ' + l); }); });
+              var a = (q.length ? q.shift() : 'bed').split(':'), id = a[a.length - 1], i = a.length < 2 ? f.at : a[0] === 'READER' ? f.list.map(function (x) { return x.reads.length ? 1 : 0; }).indexOf(1) : f.list.map(function (x) { return x.key; }).indexOf(a[0]);
+              if (a[0] === 'READER' && i < 0) f.list.forEach(function (x, n) { if (i < 0 && x.ids.indexOf(id) >= 0) i = n; }); // (the read was an earlier opening's: the hero who holds what it opened)
+              if (i < 0) { seen.push('NO HERO ' + a.join(':')); i = f.at; }
+              s.flipTo(i); var j = f.list[i].ids.indexOf(id); if (j < 0) { seen.push('NO ANSWER ' + a.join(':') + ' (' + f.list[i].ids.join(',') + ')'); j = f.list[i].ids.length - 1; }
+              for (var pg = 0; pg < 6 && !s.buttons().some(function (b) { return b.go === 'opt' && b.k === j; }); pg++) { var mb = s.buttons().filter(function (b) { return b.go === 'more'; })[0]; if (!mb) break; s.press(mb); }
+              seen.push('> ' + f.list[i].key + ': ' + s.wait.opts[j]); s.press(s.buttons().filter(function (b) { return b.go === 'opt' && b.k === j; })[0]);
+            } else if (w.say) { if (w.who && !w.look) faceAs.push((CAs.spSheet(s) || 'none') + ':' + (CAs.openGeo(s).face ? 'figure' : 'sheet')); seen = seen.concat(w.say); s.press(s.buttons()[0]); }
+            else if (s.update) s.update();
+            continue;
+          }
+          if (s !== B) { end = s instanceof HAs.Morning ? 'morning' : 'other'; break; }
+          var st = B.co.next(v); v = undefined; if (st.done) { end = 'done'; break; }
+          if (typeof st.value === 'number') B.t += Math.max(1, st.value);
+          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); v = 0; }
+        }
+        var tr = (HAs.cur.trail || []).slice(trail0).filter(function (x) { return /ASDIS'S TABLE/.test(x.s); }).map(function (x) { return x.s; });
+        return { B: B, f: B.roam.flags, seen: window.DS.stripCodes(seen.join(' / ')), flips: flips, offer: offer, end: end, trail: tr, cards: ((B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ')) };
+      };
+      var hi = [18, 18, 18, 18, 18, 18], lo = [1, 1, 1, 1, 1, 1], dull = function (B) { B.roam.members.forEach(function (u) { if (u.src && u.src.abil) u.src.abil.wis = 6; }); };
+      var noDieAs = function (s) { return !/(History|Insight|Perception) \d+ ?[+-]|vs DC|\bd20\b|\d+ ?[+-] ?\d+ ?=/.test(s); };
+      var oneRead = function (g) { return g.flips.every(function (l) { return l.filter(function (x) { return x.reads.length; }).length <= 1 && l.every(function (x) { return x.reads.length <= 1 && x.shaded <= 1; }); }); };
+      var holders = function (g, id) { var o = {}; g.flips.forEach(function (l) { l.forEach(function (x) { if (x.ids.indexOf(id) >= 0) o[x.key] = 1; }); }); return Object.keys(o); };
+      var reader = function (g) { var k = ''; g.flips.forEach(function (l) { l.forEach(function (x) { if (!k && x.reads.length) k = x.key; }); }); return k; };
+      var vig = function (s) { return (s.match(/vigil/gi) || []).length; }, jr = function (g) { var j = CAs.journal(g.B); return j ? j.rumors.join(' ') : ''; };
+      var rolls = function (g, how) { return g.trail.filter(function (s) { return / History /.test(s) && new RegExp(how + ' \\(silent\\)').test(s); }).length; };
+      // 1. MEAL ONE, reached: the read is one hero's, the sharp History question shaded, the vigil named and no more
+      var g1 = mealAs(0, hi, ['READER:kept', 'aurdin:deep', 'lymen:over']), r1 = reader(g1);
+      okAs('MEAL ONE, the read reached and History made (offered "' + g1.offer + '"; the read ' + r1 + '\'s, what it opens held by ' + holders(g1, 'kept').join(',') + '): ' + g1.seen.slice(0, 2600) + ' -- flags street ' + g1.f.asdisStreet + ' seams ' + g1.f.asdisSeams + ' vigil ' + g1.f.asdisVigil + ' meals ' + g1.f.asdisMeals + '; ended in the ' + g1.end + '; the record: ' + g1.trail.join(' | ').slice(0, 700),
+        g1.offer === 'EAT AND SLEEP|NOT NOW' && g1.flips.length === 3 && !!r1 && holders(g1, 'kept').join() === r1 && oneRead(g1) && g1.flips[0].every(function (x) { return x.shaded === 1 && x.tags[0] === 'History' && x.ids.indexOf('deep') >= 0 && x.ids.indexOf('blunt') < 0; }) &&
+        /Forty families barred their doors and went back deep\. I keep the lamp/.test(g1.seen) && /READ \w+: \(insight\) She tells it without grief/.test(g1.seen) && /They went down to keep a vigil/.test(g1.seen) && /We did\./.test(g1.seen) && /The ore is where it always was/.test(g1.seen) && /> lymen: A vigil over what\? .*Eat your soup\./.test(g1.seen) &&
+        !/NO HERO|NO ANSWER/.test(g1.seen) && noDieAs(g1.seen) && !AA.CEILING.test(g1.seen) && vig(g1.seen) >= 2 && g1.f.asdisStreet === 1 && g1.f.asdisSeams === 1 && g1.f.asdisVigil === 1 && g1.f.asdisMeals === 1 && g1.f['heard:r-asdis-street'] === 1 && /forty families barred their doors/.test(jr(g1)) &&
+        g1.end === 'morning' && rolls(g1, 'made') === 4 && g1.trail.some(function (s) { return /passive Insight \d+ vs DC 13, read: duty/.test(s); }) && HAs.cur.flags.asdisMeals === 1);
+      // 2. MEAL ONE, missed: no read, no shaded answer, the blunt question answered, the plain layer told all the same -- and the word vigil never said
+      var g2 = mealAs(0, lo, ['aurdin:blunt', 'lymen:f_lymen', 'barley:eat'], dull);
+      okAs('MEAL ONE, the read missed (WIS 6) and History missed: ' + g2.seen.slice(0, 1800) + ' -- flags street ' + g2.f.asdisStreet + ' seams ' + g2.f.asdisSeams + ' vigil ' + g2.f.asdisVigil + ' meals ' + g2.f.asdisMeals + '; ended in the ' + g2.end + '; the record: ' + g2.trail.join(' | ').slice(0, 700),
+        g2.flips.length === 3 && !reader(g2) && !holders(g2, 'kept').length && !holders(g2, 'deep').length && !holders(g2, 'over').length && g2.flips.every(function (l) { return l.every(function (x) { return !x.shaded; }); }) &&
+        /Forty families barred their doors/.test(g2.seen) && /Called dead, I said\. Mind the word\./.test(g2.seen) && /A dark one is only a tunnel/.test(g2.seen) && /Spoons|Nobody talks|fills a bowl/.test(g2.seen) && vig(g2.seen) === 0 && !/NO HERO|NO ANSWER/.test(g2.seen) && noDieAs(g2.seen) && !AA.CEILING.test(g2.seen) &&
+        g2.f.asdisStreet === 1 && !g2.f.asdisSeams && !g2.f.asdisVigil && g2.f.asdisMeals === 1 && g2.end === 'morning' && rolls(g2, 'missed') === 4 && g2.trail.some(function (s) { return /not read by anyone: duty/.test(s); }));
+      // 3. MEAL TWO, reached, and TO BED at the third opening
+      var g3 = mealAs(1, hi, ['READER:forher', 'vivian:deep', 'bed']), r3 = reader(g3);
+      okAs('MEAL TWO, reached (the read ' + r3 + '\'s): ' + g3.seen.slice(0, 2400) + ' -- flags stayed ' + g3.f.asdisStayed + ' warrant ' + g3.f.asdisWarrant + ' for Ingrith ' + g3.f.asdisForIngrith + ' meals ' + g3.f.asdisMeals + '; ended in the ' + g3.end,
+        g3.flips.length === 3 && !!r3 && holders(g3, 'forher').join() === r3 && oneRead(g3) && /Ingrith would not leave her post/.test(g3.seen) && /It can't vote who I feed/.test(g3.seen) && /A post is kept\. So is kin/.test(g3.seen) && /She has sworn the next one every time/.test(g3.seen) && /> \w+: TO BED/.test(g3.seen) &&
+        !/NO HERO|NO ANSWER/.test(g3.seen) && noDieAs(g3.seen) && !AA.CEILING.test(g3.seen) && vig(g3.seen) === 0 && g3.f.asdisStayed === 1 && g3.f.asdisWarrant === 1 && g3.f.asdisForIngrith === 1 && g3.f.asdisMeals === 2 && g3.f['heard:r-asdis-stayed'] === 1 && g3.end === 'morning');
+      // 4. MEAL TWO, missed, and TO BED at once: the plain layer is had before the first opening
+      var g4 = mealAs(1, lo, ['bed'], dull);
+      okAs('MEAL TWO, missed, TO BED at the first opening: ' + g4.seen.slice(0, 1200) + ' -- flags stayed ' + g4.f.asdisStayed + ' warrant ' + g4.f.asdisWarrant + ' for Ingrith ' + g4.f.asdisForIngrith + ' meals ' + g4.f.asdisMeals + '; ended in the ' + g4.end,
+        g4.flips.length === 1 && !reader(g4) && !holders(g4, 'forher').length && /Ingrith would not leave her post/.test(g4.seen) && holders(g4, 'blunt').length === 4 && noDieAs(g4.seen) && !AA.CEILING.test(g4.seen) && g4.f.asdisStayed === 1 && !g4.f.asdisWarrant && !g4.f.asdisForIngrith && g4.f.asdisMeals === 2 && g4.end === 'morning');
+      // 5. MEAL THREE, reached: the other half, and the call she does not defend
+      var g5 = mealAs(2, hi, ['READER:right', 'aurdin:deep', 'aurdin:f_aurdin']), r5 = reader(g5);
+      okAs('MEAL THREE, reached (the read ' + r5 + '\'s): ' + g5.seen.slice(0, 2600) + ' -- flags burning ' + g5.f.asdisBurning + ' cistern ' + g5.f.asdisCistern + ' regret ' + g5.f.asdisRegret + ' meals ' + g5.f.asdisMeals + '; ended in the ' + g5.end,
+        g5.flips.length === 3 && !!r5 && holders(g5, 'right').join() === r5 && oneRead(g5) && /The water went bad, and the king brought us out to answer it\. One winter/.test(g5.seen) && /Tannery runoff/.test(g5.seen) && /one that fed a cistern\. Nobody meant it/.test(g5.seen) && /I have never once called it right/.test(g5.seen) && /It was necessary/.test(g5.seen) && /Bricked, with a red mark across it/.test(g5.seen) &&
+        !/NO HERO|NO ANSWER/.test(g5.seen) && noDieAs(g5.seen) && !AA.CEILING.test(g5.seen) && vig(g5.seen) === 0 && g5.f.asdisBurning === 1 && g5.f.asdisCistern === 1 && g5.f.asdisRegret === 1 && g5.f.asdisMeals === 3 && g5.f['heard:r-asdis-burning'] === 1 && g5.end === 'morning');
+      // 6. MEAL THREE, missed
+      var g6 = mealAs(2, lo, ['lymen:blunt', 'vivian:f_vivian', 'lymen:f_lymen'], dull);
+      okAs('MEAL THREE, missed: ' + g6.seen.slice(0, 1800) + ' -- flags burning ' + g6.f.asdisBurning + ' cistern ' + g6.f.asdisCistern + ' regret ' + g6.f.asdisRegret + ' meals ' + g6.f.asdisMeals + '; ended in the ' + g6.end,
+        g6.flips.length === 3 && !reader(g6) && !holders(g6, 'right').length && !holders(g6, 'deep').length && /Nobody you could hang/.test(g6.seen) && /That was what it bought/.test(g6.seen) && /To the soup, mostly/.test(g6.seen) && !/Tannery/.test(g6.seen) && !/NO HERO|NO ANSWER/.test(g6.seen) && noDieAs(g6.seen) && !AA.CEILING.test(g6.seen) &&
+        g6.f.asdisBurning === 1 && !g6.f.asdisCistern && !g6.f.asdisRegret && g6.f.asdisMeals === 3 && g6.end === 'morning');
+      // 7. AFTER THE THIRD: her offer and the night, no meal
+      var n7 = faceAs.length, g7 = mealAs(3, hi, []);
+      okAs('after the third meal: offered "' + g7.offer + '", ' + g7.flips.length + ' openings, ' + (faceAs.length - n7) + ' lines at a table, ended in the ' + g7.end + ', meals ' + g7.f.asdisMeals + ', rested ' + g7.f.asdisRested,
+        g7.offer === 'EAT AND SLEEP|NOT NOW' && !g7.flips.length && faceAs.length === n7 && g7.end === 'morning' && g7.f.asdisMeals === 3 && g7.f.asdisRested === 1 && !AA.due(g7.f));
+      // 8. THE VIGIL'S CEILING, read off the meals as written: no line of any layer holds a word of A.CEILING; "vigil" only in meal one's Insight answer and the question after it
+      var srcAs = [], vigAt = [];
+      AA.MEALS.forEach(function (ML) {
+        var put = function (where, s) { s = String(s); srcAs.push(s); if (/vigil/i.test(s.replace(/\/\/.*$/gm, ''))) vigAt.push(ML.id + '.' + where); };
+        put('open', ML.open); put('close', ML.close); Object.keys(ML.reads).forEach(function (k) { put('read.' + k, ML.reads[k].text); });
+        var S0 = { made: function () { return true; }, asked: {} };
+        ML.ask.forEach(function (o) { put(o.id, o.run); var e0 = { key: (o.who || ['lymen'])[0] }; try { put(o.id, o.say(S0, e0)); } catch (e) { put(o.id, o.say); } });
+      });
+      var ceil = srcAs.filter(function (s) { return AA.CEILING.test(s); });
+      okAs('the vigil\'s ceiling, off the meals as written: ' + srcAs.length + ' lines and scripts over ' + AA.MEALS.length + ' meals, holding a word past the ceiling ' + ceil.length + (ceil.length ? ' (' + ceil[0].slice(0, 80) + ')' : '') + '; "vigil" said at ' + vigAt.join(', '),
+        AA.MEALS.length === 3 && srcAs.length > 40 && !ceil.length && vigAt.join() === 'street.kept,street.over');
+      // 9. HER FACE: her figure's till pt_asdis is cut; the sheet's from then, with no change to the code (a stand-in sheet under that name)
+      var before = faceAs.slice(0), hadSh = D.SHEETS.pt_asdis; D.SHEETS.pt_asdis = D.SHEETS.pt_ingrith; var n9 = faceAs.length, g9 = mealAs(0, hi, ['bed']), after = faceAs.slice(n9); if (hadSh) D.SHEETS.pt_asdis = hadSh; else delete D.SHEETS.pt_asdis;
+      okAs('her face: with no pt_asdis cut (' + !hadSh + ') she speaks on ' + before[0] + ' over ' + before.length + ' lines; with a sheet under that name on ' + after[0] + ' over ' + after.length,
+        !!D.SHEETS.pt_ingrith && (hadSh ? before.every(function (x) { return x === 'pt_asdis:sheet'; }) : before.length > 20 && before.every(function (x) { return x === 'none:figure'; })) && after.length >= 2 && after.every(function (x) { return x === 'pt_asdis:sheet'; }) && g9.end === 'morning');
+      boxAs.off();
+      okAs('EVERY LINE IN ITS BOX: ' + boxAs.n + ' lines of text drawn over ' + boxAs.waits + ' waits of her table\'s screen (every page, every hero of a flip); outside its box: ' + (boxAs.bad.slice(0, 10).join(' | ') || 'none'), boxAs.n > 300 && boxAs.waits > 60 && !boxAs.bad.length);
+      // 10. THE SHOW'S BEATS: a beat a meal, the meals before it had, the dice pinned high
+      var bts = SKa.BEATS.filter(function (b) { return /^asdismeal\d$/.test(b.id); }), staged = bts.map(function (b) { D.scenes.length = 0; SKa.play(b); var Bb = D.top(); if (Bb && Bb.baking) { Bb.baking = false; Bb.enter(); } return D.roam.def.key + ':' + AA.had(Bb.roam.flags) + ':' + (AA.pinned || []).join(''); });
+      okAs('the show\'s beats: ' + bts.map(function (b) { return b.id; }).join(', ') + ' staged as ' + staged.join(' | '), bts.length === 3 && staged.join('|') === 'solskaft_asdis:0:18181818|solskaft_asdis:1:18181818|solskaft_asdis:2:18181818');
+    } catch (eAs) { repAs.errors.push(String(eAs && eAs.stack || eAs).slice(0, 900)); }
+    HAs.playing = false; HAs.cur = null; if (AA) AA.pinned = null;
+    D.store.get = stGAs; D.store.set = stSAs; D.music = muAs;
+    var preAs = document.createElement('pre'); preAs.id = 'out'; preAs.textContent = 'BENCH16 ' + JSON.stringify(repAs);
+    document.body.appendChild(preAs);
     return;
   }
   // THE INN SEAT'S 11-11 (mode=inn1111; js/inn.js In.lead, In.feelingSay, the yard's ask; js/chase.js Ch.done, Ch.backLine, Ch.forkLine; js/innprops.js IP.cutOn, the post at the

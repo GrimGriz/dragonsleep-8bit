@@ -933,6 +933,7 @@
     SK.lastSaid = said.join(' ');
     if (a !== 0 || why) return;
     f.asdisRested = (f.asdisRested || 0) + 1;
+    if (D.asdis && D.asdis.supper) yield* D.asdis.supper(B, u); // (HER THREE MEALS, 11-18, his "Silent rolls on Asdis supper": one a night between the yes and the sleep, in order -- js/asdis.js)
     B.card(R.wrap([SK.L('deep.asdisRest')]), 240); yield 30;
     yield* M.sleep(B, { morning: SK.LLINES.morning });
   };
