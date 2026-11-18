@@ -27,22 +27,29 @@ _sp = importlib.util.spec_from_file_location('vivian_sheet', os.path.join(ROOT, 
 VS = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(VS)
 
 SRC = 'ART-142-GARRISON-PORTRAITS-AND-TOWN'
+# THE DRILL-SERGEANT (art-wanted 66, 11-18 night, the cutter seat cutter-1118b on the lanes desk's brief): the same dwarf re-dressed as his portrait page shows him
+# (ART-141 HEAD 3) -- the trooper's steel cap and coat of mail, the sergeant's chevron band on the red quilted sleeve, the drill staff carried, no shield and no
+# axe. The art desk's DRILL-SERGEANT-TOWN-SOURCES, sorted out of Fresh to deep16/_src/drillsergeant/2026-11-18-ART-WANTED-66-DRILL-SERGEANT-TOWN/ (the zip beside
+# it): ten full pages on its approved South Idle, the trooper's FRAME-MAP shape (`pages`, each frame's `engine_index` and `window_xyxy`), its notes "match the
+# installed trooper_p1 scale, slot geometry and ground origin". Cut the trooper's way at the trooper's 38; worn on Sólskaft's cart level (deep16/js/solskaft.js
+# SK.CFOLK drillmaster) in place of the trooper's figure he stood on till it came; his fights keep drillsergeant_p0
+DRILL = os.path.join('drillsergeant', '2026-11-18-ART-WANTED-66-DRILL-SERGEANT-TOWN')
 ROW = {'Idle': 'idle', 'Walk': 'walk'}
 PAD = 14
 _pages = {}
 
 
-def page(fn):
-    if fn not in _pages:
-        _pages[fn] = np.asarray(Image.open(os.path.join(VS.pix.SRC, SRC, fn)).convert('RGB')).astype(np.float32)
-    return _pages[fn]
+def page(src, fn):
+    if (src, fn) not in _pages:
+        _pages[(src, fn)] = np.asarray(Image.open(os.path.join(VS.pix.SRC, src, fn)).convert('RGB')).astype(np.float32)
+    return _pages[(src, fn)]
 
 
-def frame_windows():
-    fm = json.load(open(os.path.join(VS.pix.SRC, SRC, 'FRAME-MAP.json'), encoding='utf-8'))
+def frame_windows(src=SRC, asset='trooper_p1'):
+    fm = json.load(open(os.path.join(VS.pix.SRC, src, 'FRAME-MAP.json'), encoding='utf-8'))
     out = []
     for pg in fm['pages']:
-        if pg.get('asset') != 'trooper_p1':
+        if pg.get('asset') != asset:
             continue                                                                   # (the two portrait stills are pt_dwarf's: tools/portrait-sheet.py)
         row = ROW[pg['action']]
         W, H = pg['source_size'] if 'source_size' in pg else pg['source_dimensions']
@@ -51,7 +58,7 @@ def frame_windows():
         for f in pg['frames']:
             x0, y0, x1, y1 = f['window_xyxy']
             cell = (max(0, x0 - PAD), max(0, y0 - PAD), min(W, x1 + PAD), min(H, y1 + PAD))
-            out.append(('', pg['facing'], row, f['engine_index'], pg['source'], FD.tight(page(pg['source']), cell)))
+            out.append(('', pg['facing'], row, f['engine_index'], pg['source'], FD.tight(page(src, pg['source']), cell)))
     return out
 
 
@@ -62,5 +69,13 @@ VS.LOOKS['trooper_p1'] = dict(
     source="drawn by the art desk (ART-142-GARRISON-PORTRAITS-AND-TOWN, 11-12: art-wanted section 55 block 4, the garrison trooper's town figure in five views), cut by "
            'tools/trooper-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored')
 
-if __name__ == '__main__':
-    VS.cut('trooper_p1')
+VS.LOOKS['drillsergeant_p1'] = dict(
+    src=DRILL, windows=frame_windows(DRILL, 'drillsergeant_p1') if os.path.isdir(os.path.join(VS.pix.SRC, DRILL)) else [], tall=38, avoid=['fire'], name='Drill-sergeant',
+    rows=[('idle', 4, 4), ('walk', 9, 8)], match={'walk': ('idle', 0)},
+    hold=[],
+    source="drawn by the art desk (DRILL-SERGEANT-TOWN-SOURCES, 11-18: art-wanted section 66, the drill-sergeant's town figure in five views, on its approved South Idle), cut by "
+           'tools/trooper-town-sheet.py over tools/vivian-sheet.py at the trooper\'s 38; SW W NW mirrored')
+
+if __name__ == '__main__':                            # (python tools/trooper-town-sheet.py [trooper_p1|drillsergeant_p1] [check]: the trooper with no name)
+    for lk in [a for a in sys.argv[1:] if a in ('trooper_p1', 'drillsergeant_p1')] or ['trooper_p1']:
+        VS.cut(lk)

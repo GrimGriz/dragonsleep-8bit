@@ -22,6 +22,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE CUTTER (cutter-1118b), 11-18 night (Opus; tools/trooper-town-sheet.py drillsergeant_p1; deep16/js/solskaft.js SK.CFOLK drillmaster): art-wanted 66, in place of
+    // eyes-solskaft-drillfig-1118 (his stand-in on the trooper's figure, replaced before it was seen)
+    'eyes-solskaft-drillsergeant-1118': { pri: 2, group: G2, title: 'SÓLSKAFT\'S DRILL-SERGEANT IN HIS OWN DRAWN FIGURE: the chevron band and the drill staff, art-wanted 66 (11-18)', pt: 'the story build lane, 2026-11-18 (the cutter, cutter-1118b; tools/trooper-town-sheet.py; deep16/art/drillsergeant_p1; deep16/js/solskaft.js SK.CFOLK drillmaster)',
+      obj: 'In the gallery, look over the drill-sergeant beside a trooper, chevron band and drill staff — does he read as the one in charge?',
+      url: 'deep16/?gallery&shelf=creatures&rows=drillsergeant_p1,trooper_p1&beside&fresh=1118z',
+      look: 'A LOOK, the gallery\'s CREATURES shelf, the drill-sergeant beside one of his four: his own town figure at last (art-wanted 66, your "Drill sergeant first look figure is still LPC in the world"), the art desk\'s, drawn on its approved South Idle -- the trooper\'s steel cap and coat of mail, the sergeant\'s chevron band on the red quilted sleeve, the drill staff carried, no shield and no axe. Cut the trooper\'s way at the trooper\'s height and ground, so he stands in line with his four. Till it came he stood on the trooper\'s own figure (your "4 and 5 leans"); that stand-in is gone. His mail reads warmer, browner, than the trooper\'s steel-blue, as the art desk\'s own 1x does. His fights keep their own sheet. In the world: deep16/?solskaft&beat=rampfoot, down the cart ramp to the drill in the wagon holding (solskaft_cart 5,27). Judge: does he read as the one in charge?' },
     // THE CUTTER (cutter-1118b), 11-18 night (Opus; tools/folk-costume-sheet.py agent, crawlerhand; deep16/art/folk{man,woman}_{agent,crawlerhand}_p1): art-wanted 65's last two
     'eyes-folk-agent-1118': { pri: 2, group: G2, title: 'THE FACTOR\'S AGENT: the factor\'s man in the art desk\'s illustrated figure, a dark coat and a sealed letter, and a woman beside him (11-18)', pt: 'the bestiary lane, 2026-11-18 (the cutter, cutter-1118b; tools/folk-costume-sheet.py; deep16/art/folk{man,woman}_agent_p1)',
       obj: 'In the gallery, look over the factor\'s agent pair, dark coat and sealed letter in the glove — do they read as their portraits?',
@@ -636,11 +642,6 @@
       url: 'deep16/?solskaft&beat=templestair&fresh=1118d',
       steps: [['solskaft', 7, 17, 'Rekknar\'s stair down, behind the back-corner door'], ['solskaft_below', 5, 19, 'the foot: the flight up rising north into its arch']],
       look: 'NEW, your "it LOOKs like single downstairs from Rekknar facing a different direction the stairs going up in the funerary": the temple\'s stair goes down one wide, heading south; below, the way up had been drawn rising WEST into the hallway\'s wall, two squares side by side. Now it is the same flight from below: one wide, two long, rising NORTH into an arch in the stone at its head (the art desk\'s stair-up module on that face), and the stair down sets you at its foot facing south as you came, the way up the step behind you. The Dormant\'s side the same, in the east hallway. JUDGE: up and down read as one stair.' },
-    'eyes-solskaft-drillfig-1118': { pri: 2, group: G2, title: 'SÓLSKAFT\'S DRILL-SERGEANT ON THE TROOPER\'S DRAWN FIGURE till his own comes, your "4 and 5 leans" (11-18)', pt: 'the story build lane, 2026-11-18 (the Sólskaft notes seat of 11-18; deep16/js/solskaft.js SK.CFOLK drillmaster)',
-      obj: 'Go down the cart ramp to the drill in the wagon holding — does the sergeant stand drawn among his four?',
-      url: 'deep16/?solskaft&beat=rampfoot&fresh=1118f',
-      steps: [['solskaft_cart', 5, 27, 'the drill-sergeant before his four']],
-      look: 'RULED, your "4 and 5 leans": till his own figure comes (art-wanted 66, in the outbox), the drill-sergeant stands on the trooper\'s drawn town figure, the same as his four, in place of the figure composed from stock (LPC) parts (your "Drill sergeant first look figure is still LPC in the world"). He is still the Drill-sergeant by name and on his portrait; his fights keep their own sheet. JUDGE: drawn, and still reads as the one in charge.' },
     'eyes-solskaft-jobs-1118': { pri: 2, group: G2, title: 'SÓLSKAFT\'S WORKERS BY THEIR JOBS, your note of 11-17/18: not "Trooper" (11-18)', pt: 'the story build lane, 2026-11-18 (the Sólskaft notes seat of 11-18; deep16/js/solskaft.js SK.JOB)',
       obj: 'Talk to the shroom farmer, the smelter hand, the yard hand and the shaft watch — does each go by his job?',
       url: 'deep16/?solskaft&beat=forge&fresh=1118e',

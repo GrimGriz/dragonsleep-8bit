@@ -4206,6 +4206,37 @@
 }
 }
 },
+"drillsergeant_p1": {
+"image": "art/drillsergeant_p1.png?v=0f3dea877d",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 8,
+"fps": 9
+}
+},
+"name": "Drill-sergeant",
+"hold": [],
+"source": "drawn by the art desk (DRILL-SERGEANT-TOWN-SOURCES, 11-18: art-wanted section 66, the drill-sergeant's town figure in five views, on its approved South Idle), cut by tools/trooper-town-sheet.py over tools/vivian-sheet.py at the trooper's 38; SW W NW mirrored"
+},
 "drow_p0": {
 "image": "art/drow_p0.png?v=f44c92b74c",
 "fw": 64,
