@@ -58,7 +58,7 @@ async def main():
                                          ('js/hours.js broken as it loads', broken, 'deep16/?skyshow', 'js/hours.js broke as it loaded'),
                                          ('the page older than the game', stale, 'deep16/?gallery', 'this page is older than the game')):
                 r = await look(br, base, url, rt)
-                ok(r['state'] == 'bad' and WORDS in r['card'] and any(needs in b for b in r['bad']), 'RED   %-32s %s: %s' % (what, r['state'], ('; '.join(r['bad']) or r['card'])[:200]))
+                ok(r['state'] == 'bad' and WORDS in r['card'] and any(needs in b for b in r['bad']), 'RED   %-32s %s: %s' % (what, r['state'], ('; '.join(b.split(':')[0] for b in r['bad']) or r['card'])[:200])) # (the throw's own words left out: they carry "Error", which dev/check.py reads as RED -- as dev/loaderr-probe.py)
             await br.close()
     finally: httpd.shutdown()
 
