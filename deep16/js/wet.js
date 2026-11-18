@@ -26,7 +26,7 @@
   // the party on the wet floor: anyone of theirs who can bleed (not a summoned thing, not a familiar)
   function ours(B) { return B.units.filter(function (w) { return w.side === 'party' && !w.summon && !w.familiar && !w.dominated && !w.loose; }); }
   function downed(B) { return ours(B).filter(function (w) { return !w.left && !w.dead && w.hp <= 0; }); }
-  function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'the ' + B.shortName(u)) : u.name; }
+  function Nm(B, u) { return B.theOf ? B.theOf(u) : u.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
   function inSet(list, x, y) { return (list || []).some(function (p) { return p[0] === x && p[1] === y; }); }
 
   // ------------------------------------------------------------------ the fight as it walks in

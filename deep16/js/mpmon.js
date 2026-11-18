@@ -33,7 +33,7 @@
   var D = window.D16, DS = window.DS, R = DS.R, G = D.grid, RU = D.rules, M = D.magic, FX = D.fx, AI = D.ai, TX = D.tactics, F = D.features, NPC = D.npc;
   var MP = D.mpmon = {};
   function mod(s) { return Math.floor(((s || 10) - 10) / 2); }
-  function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
+  function nm(B, w) { return B.theOf ? B.theOf(w) : w.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function standing(w) { return w && G.standing(w) && !w.object; }
 

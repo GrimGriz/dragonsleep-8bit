@@ -54,7 +54,7 @@
   RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.stride) s = Math.max(0, s - 10); if (u.conds && u.conds.pelt && u.conds.pelt.parts.indexOf('haunches') >= 0) s += 10; /* (the Pelt's HAUNCHES, 10-30) */ /* (the Drillyard's BREAK STRIDE, 10-30) */ if (u.conds && u.conds.grappled) return 0; if ((u.grappling || u.clawing) && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
   RU.exhaust = function (B, u, n, why) {
     if (!u || u.dead || RU.immuneTo(u, 'exhaustion')) return 0;
-    var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = u.side === 'foe' && B && B.shortName && !u.named ? 'The ' + B.shortName(u) : u.name;
+    var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = B && B.theOf ? B.theOf(u, true) : u.name;
     if (now === was) return 0;
     u.conds.exhaustion = { n: now };
     if (now >= 4 && was < 4) { u.exhaustCut = Math.floor(u.maxhp / 2); u.maxhp -= u.exhaustCut; if (u.hp > u.maxhp) u.hp = u.maxhp; }

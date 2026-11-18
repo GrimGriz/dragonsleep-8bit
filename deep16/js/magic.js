@@ -994,7 +994,7 @@
   M.dupesLit = function (B, u, lines) {
     if (!M.dupesUp(u) || !M.inBright(B, u)) return false;
     u.images = 0; FX.sparkle(u, 'bone', 16);
-    var l = '{c}' + (u.side === 'foe' && !u.named ? 'The ' + B.shortName(u) : u.name) + '\'s duplicates are gone in the bright light.{/}';
+    var l = '{c}' + B.theOf(u, true) + '\'s duplicates are gone in the bright light.{/}';
     if (lines) lines.push('  ' + l); else B.card([l], 240);
     return true;
   };
@@ -1014,7 +1014,7 @@
   // spell is spent on it, and "A duplicate has the cloaker's AC and uses its saving throws ... if a duplicate fails a saving throw against an effect that deals damage, the
   // duplicate disappears". True when the spell went at a duplicate
   M.dupeSpell = function (B, u, t, sp, dc, head) {
-    var dr = M.dupeRoll(t), nm = t.side === 'foe' && !t.named ? 'the ' + B.shortName(t) : t.name;
+    var dr = M.dupeRoll(t), nm = B.theOf(t);
     if (!dr.dupe) { B.card([head + ' at ' + nm + ': ' + dr.die + ', {y}the real one{/}, not a duplicate'], 200); return false; }
     var line = head + ' at ' + nm + ': ' + dr.die + ', {p}a duplicate{/}', burst = false;
     if (sp.save) { var sv = RU.save(t, sp.save, dc); line += '  ' + sp.save.toUpperCase() + ' ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}'); burst = !sv.ok && !!sp.dmg; }
@@ -1213,7 +1213,7 @@
     if (fell) {
       var ftF = Math.floor(fell / st) * 2.5, tlF = G.map.at(w.x, w.y), wet = !!(tlF && tlF.ch === '~'), fdF = D.roll(Math.max(1, Math.floor(ftF / (wet ? 20 : 10))) + 'd6'); // (into water, as the shove's: the dice for every 20 ft)
       if (!w.noProne && !RU.immuneTo(w, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(B, w, 'prone'))) w.conds.prone = true;
-      B.card(['{o}' + (w.side === 'foe' ? 'The ' + B.shortName(w) : w.name) + ' goes over the edge: ' + ftF + ' ft, ' + fdF.total + ' bludgeoning' + (wet ? ' -- the water took the rest' : '') + ', and lands prone.{/}'], 240);
+      B.card(['{o}' + B.theOf(w, true) + ' goes over the edge: ' + ftF + ' ft, ' + fdF.total + ' bludgeoning' + (wet ? ' -- the water took the rest' : '') + ', and lands prone.{/}'], 240);
       B.hurt(w, fdF.total, 'bludgeoning', {});
     }
   };
@@ -1267,7 +1267,7 @@
       // (10-01, Griz in the Fork: Barley broke free and walked off still blind, and the darkmantle's opportunity attack had advantage on him for it)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0], bl = u.conds.blinded, sawNot = !!(by && bl && bl.held && bl.by === by.id);
       if (by) B.release(by, u);
-      if (sawNot && !u.conds.blinded) B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' can see again.{/}'], 200);
+      if (sawNot && !u.conds.blinded) B.card(['{g}' + B.theOf(u, true) + ' can see again.{/}'], 200);
       // ... and a prone one gets up for it (SRD 5.1: standing "costs an amount of movement equal to half your speed"): rules.js startTurn would not stand it at the turn's
       // start -- restrained is no speed to pay with -- so it comes free still flat, and went on at the full move. Half its speed comes off, as startTurn takes it (the
       // slowed, the cold and the hasted halve and double the cost as they do the move: onStart, grimoire.js); not while it laughs or dances (startTurn's own noMove). 10-01
@@ -1275,7 +1275,7 @@
       if (cd.prone && u.hp > 0 && !u.dead && !(cd.laughing || cd.dancing || cd.paralyzed || cd.stunned || cd.asleep || cd.incapacitated || u.speed === 0)) {
         var fm = function (x) { if (cd.frosted) x = Math.max(0, x - 10); if (cd.slowed) x = Math.floor(x / 2); if (cd.hasted) x *= 2; return x; };
         delete cd.prone; T0.move = Math.max(0, T0.move - (fm(u.speed) - fm(Math.floor(u.speed / 2))));
-        B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' gets up (half the move).{/}'], 200);
+        B.card(['{g}' + B.theOf(u, true) + ' gets up (half the move).{/}'], 200);
       }
     }
     yield 30;

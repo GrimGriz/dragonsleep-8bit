@@ -7,7 +7,7 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, M = D.magic, AI = D.ai, TX = D.tactics;
   var F = D.features = {};
-  function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
+  function nm(B, w) { return B.theOf ? B.theOf(w) : w.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function feat(u, k) { return u.feats && u.feats[k] > 0; }
   function foesBeside(B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u) && !RU.charmedBy(u, w); }); } // (charmed: never its charmer)
@@ -56,7 +56,7 @@
       if (c && c.by && (k === 'feared' || (k === 'frightened' && hasFear) || c.dc) && !(src && src.conc)) return; // (a Fear that was let go)
       u.conds[k] = c; back.push(k);
     });
-    if (back.length) B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + '\'s rage is over: the ' + (hasFear ? 'terror' : back.join(' and ')) + ' comes back.{/}'], 240);
+    if (back.length) B.card(['{g}' + B.theOf(u, true) + '\'s rage is over: the ' + (hasFear ? 'terror' : back.join(' and ')) + ' comes back.{/}'], 240);
   };
   F.rage = function (B, u) {
     u.turn.bonus = 0; u.feats.rage--;

@@ -1106,6 +1106,10 @@
     yield 70;
   };
   Battle.prototype.shortName = shortName;
+  // a foe's name with its article, "the"/"The" (cap) -- none for a named one, and one only for a name that opens with its own: the thing in the lake, the webbing on a hero, the
+  // tendril (11-18: his records of 11-12, "REFUSED: The The thing in the lake is 10 ft away"; Battle.nm, the spells' and traits' own nm/Nm, the opportunity attack's words)
+  function artName(u, cap, s) { return u.named ? s : (cap ? 'The ' : 'the ') + (/^the /i.test(s) ? s.slice(4) : s); }
+  Battle.prototype.theOf = function (u, cap) { return u.side !== 'foe' ? u.name : artName(u, cap, this.shortName(u)); };
   // A hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)"): the one u holds; who may be seized (beside it, no more than one size larger, standing, not immune, not held by it already); the drag's half
   // speed (two or more sizes smaller: carried at its own); the grapple ended -- let go, escaped, out of reach, the grappler incapacitated (sweep)
   Battle.heldBy = function (B, u) { if (!u || !u.grappling) return null; var w = B.units.filter(function (x) { return x.id === u.grappling; })[0]; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
@@ -2317,7 +2321,7 @@
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
             if (!atk) continue; // (no card for a swing it has nothing to make: 11-08, his record -- "Aurdin's owl: an opportunity attack on Willem." and nothing after)
-            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + '.']);
+            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + this.theOf(u) + '.']);
             if (u.conds.hidden) { delete u.conds.hidden; delete u.hidTotal; this.card(['{o}' + nameOf(u) + ' gives the position away: no longer hidden.{/}  {g}(an opportunity attack breaks stealth){/}'], 200); } // (10-04, Griz)
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
@@ -3307,7 +3311,7 @@
     return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) || rd.see ?'into sight, or one in sight moves' : 'within reach');
   };
   Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
-  Battle.nm = function (w, cap) { return w.side === 'foe' ? (w.named ? '' : cap ? 'The ' : 'the ') + shortName(w) : w.name; };
+  Battle.nm = function (w, cap) { return w.side !== 'foe' ? w.name : artName(w, cap, shortName(w)); }; // (a name that has its own article keeps the one: "REFUSED: The thing in the lake is 10 ft away" -- 11-18, his records of 11-12 read "The The thing in the lake", as Battle.theWord was mended 11-10)
   // who stands now (the units up and about): "one of us goes down" is the one stood at the last look and down at this
   Battle.prototype.readySnap = function () { var s = this.upSeen = {}; this.units.forEach(function (w) { if (!w.dead && w.hp > 0) s[w.id] = 1; }); };
   Battle.prototype.readyArmed = function () { return this.units.some(function (w) { return w.ready && w.reaction > 0; }); };
@@ -3568,7 +3572,7 @@
       if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
       if (!take) continue;
       w.reaction = 0;
-      this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
+      this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + this.theOf(u) + ', ' + (why || 'leaving') + '.']);
       var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]];
       if (!atk) continue;
       yield* this.attack(w, u, atk, { oa: true });

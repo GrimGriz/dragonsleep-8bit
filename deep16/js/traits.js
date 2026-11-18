@@ -9,7 +9,7 @@
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, M = D.magic, AI = D.ai;
   var TR = D.traits = {};
   function sh(u) { return (u && D.FOES[u.kind]) || {}; }
-  function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
+  function Nm(B, u) { return B.theOf ? B.theOf(u, true) : u.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
   TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze', 'legendary', 'legendaryResist', 'breath', 'laugh', 'toy', 'double', 'aloftMulti', 'multiDice']; // (laugh: the mirror hyenas' at a fall; toy, double: the Harbinger's levers on a party read -- below, 10-08) (legendary, legendaryResist, breath: the rules before the bestiary's eleven -- below, 10-08) (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
@@ -135,7 +135,7 @@
         var ok = lv <= 3 && !m.showOverfill, r = 0, tot = 0;
         if (!ok && !m.showOverfill) { r = D.d(20); tot = r + M.mod(m); ok = tot >= 10 + lv; }
         m.showOverfill = false; // (the show's, js/show.js: this one is too much, to see him overfill)
-        var cn = u.side === 'foe' ? 'the ' + B.shortName(u) : u.name;
+        var cn = B.theOf(u);
         m.anim = ok ? 'drain' : 'overfill'; m.animT = B.t; D.sfx('magic'); FX.ring(m, 'silver', 30);
         B.card(['{r}' + Nm(B, m) + ' drinks the light{/} of ' + cn + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(m)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it goes out{/}' : '{o}too much: it overfills him and goes through{/}')], 280);
         yield Math.max(30, D.spr.duration(m.sheet, m.anim) || 40);
@@ -605,14 +605,14 @@
     var av = u.conds.averted;
     if (!av) av = u.conds.averted = { from: [], till: { who: u.id, at: 'start', n: 1 } };
     if (av.from.indexOf(m.id) < 0) av.from.push(m.id);
-    B.card(['{g}' + Nm(B, u) + ' looks away from ' + (m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name) + ' (it cannot be seen till the next turn).{/}'], 220);
+    B.card(['{g}' + Nm(B, u) + ' looks away from ' + B.theOf(m) + ' (it cannot be seen till the next turn).{/}'], 220);
   };
   M.gazeAsk = function* (B, u) {
     var ids = (u.turn && u.turn.gazeAsk) || []; if (u.turn) u.turn.gazeAsk = null;
     for (var i = 0; i < ids.length; i++) {
       var m = B.units.filter(function (w) { return w.id === ids[i]; })[0];
       if (!m || !G.standing(m) || u.dead || u.hp <= 0 || u.conds.stoning || u.conds.petrified) continue;
-      var nm = m.side === 'foe' && !m.named ? 'The ' + B.shortName(m) : m.name, g = m.gaze;
+      var nm = B.theOf(m, true), g = m.gaze;
       var look = yield { prompt: { who: u, title: u.name + ': ' + (g.title || 'THE GAZE'), lines: [nm + ' meets your eyes from ' + G.dist(m, u) + ' ft.', 'LOOK AWAY: no save; you cannot see it till your next turn (your blows at it at disadvantage, its blows at you with advantage).', 'MEET IT: ' + (g.ab || 'con').toUpperCase() + ' save, DC ' + g.dc + ', or begin to turn to stone.'], opts: [{ label: 'LOOK AWAY', value: 0 }, { label: 'MEET IT', value: 1 }] } };
       if (look) M.gazeSave(B, u, m); else M.avert(B, u, m);
     }
@@ -621,7 +621,7 @@
   // a look at it -- the hand's LOOK AT on the ring, or a blow it chooses to see (battle.js exec 'attack') -- ends the aversion from that one and makes the save at once
   M.lookAt = function (B, u, m) {
     var av = u.conds.averted; if (av) { av.from = av.from.filter(function (id) { return id !== m.id; }); if (!av.from.length) delete u.conds.averted; }
-    B.card(['{y}' + Nm(B, u) + '{/} looks at ' + (m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name) + '.'], 180);
+    B.card(['{y}' + Nm(B, u) + '{/} looks at ' + B.theOf(m) + '.'], 180);
     if (m.gaze && G.standing(m) && RU.canAct(m) && G.range(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u)) M.gazeSave(B, u, m);
   };
   // THE REFLECTION (SRD 5.1 the basilisk: "If the basilisk sees its reflection within 30 feet of it in bright light, it mistakes itself for a rival and targets itself with its
@@ -637,7 +637,7 @@
     return '';
   };
   M.mirror = function* (B, u, m) {
-    var why = M.mirrorWhy(B, u, m), nm = m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name;
+    var why = M.mirrorWhy(B, u, m), nm = B.theOf(m);
     if (why) { B.card(['{y}' + Nm(B, u) + '{/} holds up the mirror: ' + why + '.'], 200); yield 16; return; }
     FX.ring(m, 'silver', 24); D.sfx('magic');
     B.card(['{y}' + Nm(B, u) + '{/} holds up the mirror -- ' + nm + ' sees itself in it, takes it for a rival, and turns its gaze on itself!'], 260); yield 24;

@@ -10,7 +10,7 @@
   var E = M.EFFECT = M.EFFECT || {};
   var MAGIC = { magic: true }; // (B.hurt's fourth: a spell's damage is magical -- Stoneskin halves none of it, SRD 5.1 "nonmagical bludgeoning, piercing, and slashing"; 10-03)
   function TX() { return D.tactics; }
-  function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
+  function nm(B, w) { return B.theOf ? B.theOf(w) : w.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function up(sp, slot) { return Math.max(0, (slot || sp.level) - sp.level); }
   function more(expr, n) { return !n ? expr : String(expr).replace(/^(\d+)d/, function (m, k) { return (+k + n) + 'd'; }); } // (1d4 and 2 more: 3d4)
@@ -1362,7 +1362,7 @@
       var w = can[i]; if (w.reaction <= 0) continue;
       var lvls = []; for (var s = 3; s <= (w.slots || []).length; s++) if (w.slots[s - 1] > 0) lvls.push(s);
       if (!lvls.length) continue;
-      var pick = 0, cn = u.side === 'foe' ? 'The ' + B.shortName(u) : u.name;
+      var pick = 0, cn = B.theOf(u, true);
       if (w.side === 'party' && !w.guest) {
         pick = yield { prompt: { who: w, title: w.name + ': COUNTERSPELL?', lines: [cn + ' is casting ' + sp.name + (lv ? ' (' + ordinal(lv) + ')' : ' (a cantrip)') + '.'], opts: lvls.map(function (s) { return { label: 'COUNTERSPELL (L' + s + ')' + (lv <= s ? ': it fails' : ': a check, DC ' + (10 + lv)), value: s }; }).concat([{ label: 'LET IT GO', value: 0 }]) } };
       } else {
@@ -1373,7 +1373,7 @@
       w.reaction = 0; w.slots[pick - 1]--; D.sfx('magic'); FX.ring(w, 'silver', 30); FX.ring(u, 'silver', 24);
       var ok = lv <= pick, r = 0, tot = 0;
       if (!ok) { r = D.d(20); tot = r + M.mod(w); ok = tot >= 10 + lv; }
-      B.card(['{o}' + w.name + '{/}: COUNTERSPELL (L' + pick + ') at ' + (u.side === 'foe' ? 'the ' + B.shortName(u) : u.name) + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(w)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it fails{/}.' : '{g}it goes through{/}.')], 320);
+      B.card(['{o}' + w.name + '{/}: COUNTERSPELL (L' + pick + ') at ' + B.theOf(u) + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(w)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it fails{/}.' : '{g}it goes through{/}.')], 320);
       yield 30;
       if (ok) return true;
     }
@@ -2190,7 +2190,7 @@
         if (!t || t.hp <= 0 || !test(t)) { B.card([head + ': ' + (t ? nm(B, t) : 'that') + ' is not ' + what + '.'], 200); yield 16; return; }
         if (RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.'], 200); yield 16; return; }
         var sv = RU.save(t, 'wis', x.dc, G.hostile(u, t), 'charmed');
-        B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}' + (id === 'dominatebeast' ? 'it shakes him off' : 'shakes it off') + '{/}' : '{o}' + (id === 'dominatebeast' ? 'it is his' : 'goes over to ' + (u.side === 'foe' ? 'the ' + B.shortName(u) : u.name)) + '{/}')], 260);
+        B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}' + (id === 'dominatebeast' ? 'it shakes him off' : 'shakes it off') + '{/}' : '{o}' + (id === 'dominatebeast' ? 'it is his' : 'goes over to ' + B.theOf(u)) + '{/}')], 260);
         if (sv.ok) { yield 20; return; }
         t.dominated = { by: u.id, side0: t.side, guest0: t.guest, classAI0: t.classAI, dc: x.dc, spell: id };
         t.side = u.side; t.guest = true; t.conds.charmed = { by: u.id, dominated: true };

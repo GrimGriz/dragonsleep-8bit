@@ -19,7 +19,7 @@
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, M = D.magic, E = M.EFFECT;
   var W = D.walls = {};
   function TX() { return D.tactics; }
-  function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
+  function nm(B, w) { return B.theOf ? B.theOf(w) : w.name; } // (the article once: 11-18, battle.js Battle.prototype.theOf)
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function more(expr, n) { return !n ? expr : String(expr).replace(/^(\d+)d/, function (m, k) { return (+k + n) + 'd'; }); }
   var KIND = {
