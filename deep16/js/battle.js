@@ -751,8 +751,8 @@
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
   // entry, each on its own initiative
-  Battle.prototype.joinReserve = function* () {
-    var self = this, come = this.reserve, e0 = (this.entrySq || this.fight.entry || this.map.def.entry)[0], names = []; // (this.entrySq: the squares the party came in on -- a named start's, Battle.enter)
+  Battle.prototype.joinReserve = function* (from) { // (from: the square they come out by -- the inn's front door on the floor's own yard fight, js/roam.js R.fight, 11-18)
+    var self = this, come = this.reserve, e0 = from || ((this.entrySq || (this.fight && this.fight.entry) || this.map.def.entry) || [])[0], names = []; // (this.entrySq: the squares the party came in on -- a named start's, Battle.enter)
     this.reserve = [];
     come.forEach(function (u) {
       if (u.familiar) { self.units.push(u); return; } // (a familiar comes riding its wizard, and has no initiative of its own)

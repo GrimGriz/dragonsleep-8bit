@@ -339,7 +339,10 @@
   D.roam.script = function* (B) {
     var def = D.roam.def, c = Ch.state(B);
     if (c && def && def.key === Gu.KEY && !c.back) yield* Ch.run(B);
-    if (c && def && def.key === In.KEY && c.back && In.chaseBack) yield* In.chaseBack(B);
+    // (STOPPED WHEN THE PARTY HAS GONE UP, 11-18, the inn-night seat on his note at Sylvia's table on eyes-elsbeth-comes-1113g, "it seems she did not walk over with the
+    // bundle": back from the chase, In.chaseBack sends the party up the stair to bed -- and this floor's script went on below it with the guest floor's bed in hand, laid
+    // the morning on THIS floor's script under the guest floor, and was never stepped again: the guest floor woke with no gift waiting downstairs. Gone up, it ends here)
+    if (c && def && def.key === In.KEY && c.back && In.chaseBack && (yield* In.chaseBack(B)) === 'up') return;
     yield* script0.apply(this, arguments);
   };
   var arrive0 = D.roam.arrive;

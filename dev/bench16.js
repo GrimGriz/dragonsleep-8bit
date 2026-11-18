@@ -4896,12 +4896,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
-﻿  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
+  // THE INN'S THREE, 11-16 (mode=inn1116; the bug seat of 11-16, on the lanes order's items 1-3 and Griz's "start the opus seat with barley's 4 added"): Katarina sat at
   // the table for two on her own bench, never on the chair; the wagon's night played from a bed taken on the wagon's day, by the morning's WAIT TIL DINNER as by the
   // evening's room (the walks' "the night handed back unslept"); one Gennet on the due's night. Each walked as the game walks it: a NEW GAME staged in the house (In.play),
   // E on the inn lady, the floors followed as they are laid (In.bedHere false: the guest floor's own script, as in the game)
@@ -5020,6 +5015,142 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.store.get = stGN; D.store.set = stSN; D.music = muN;
     var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
     document.body.appendChild(preN);
+    return;
+  }
+  // THE WAGON NIGHT'S NOTES, 11-18 (mode=inn1118; the inn-night seat of 11-18, on his playthrough NOTES of 11-16 night and his notes at Sylvia's table of 11-17/18): the
+  // window to the yard with no stair's sound and the camera drawn back, not panned; one Katarina while the wagon is in; Doran on his own face; INVESTIGATE's one alone in the
+  // yard fight, the rest out of the front door on round two, and Lymen's word said on his face with him on the field; the bribe on the speakers' own faces, Katarina staying
+  // for it and told of the morning after, the big room given; Elsbeth's bundle walked from her tub when the lay has her nowhere; the kept child lifted where it shows, at
+  // the shoulder; Elsbeth's cut facing into the screen from the left. Each walked as the game walks it: the show's beat (In.play), the floors followed as they are laid
+  if (get('mode', '') === 'inn1118') {
+    var repQ = { checks: [], errors: [], notes: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, HQ = D.house, CQ = D.counter, RQ = D.roam, InQ = D.inn, WQ = D.world, muQ = D.music, sfxQ = D.sfx;
+    function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topQ() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function playQ(id, flags, pins) { var bt = InQ.BEATS.filter(function (b) { return b.id === id; })[0]; if (!bt) return null; if (flags) bt = Object.assign({}, bt, { flags: Object.assign({}, bt.flags || {}, flags) }); InQ.play(bt); if (pins) InQ.pinned = pins.slice(); var s = topQ(); for (var k = 0; k < 4 && s && s.roam && s.co; k++) { var st = s.co.next(); if (st.done) break; } return topQ(); }
+    function pinsQ(v, n) { var a = []; for (var i = 0; i < (n || 120); i++) a.push(v); return a; }
+    function useQ(B, npc) { var u = B.units.filter(function (x) { return x.npc === npc; })[0], t = B.roam.token; if (!u) return false; var q = InQ.beside(B, t, u); t.x = q[0]; t.y = q[1]; t.tween = null; B.roam.fw = [u.x - t.x, u.y - t.y]; B.roam.path = null; D.grid.setup(B.map, B.units); B.cards = []; B.roam.keys.push('use'); return true; }
+    function downQ(s) { var tr = ((RQ.def.src8 && RQ.def.src8.triggers) || []).filter(function (t) { return /stair|down/i.test((t.id || '') + ' ' + (t.script || '')); })[0]; if (!tr) return false; var sq = [tr.rect[0], tr.rect[1]], co0 = s.co; s.co = (function* () { var tk = s.roam.token, ok = (tk.x === sq[0] && tk.y === sq[1]) || (yield* RQ.walkTo(s, sq)) || (yield* RQ.walkBeside(s, sq)); if (ok) yield* RQ.fire(s, tr, sq); yield* co0; })(); return true; }
+    function outQ(s) { var to = [InQ.DOORS.front[0] - 1, InQ.DOORS.front[1]], co0 = s.co; s.co = (function* () { yield* RQ.walkTo(s, to); yield* co0; })(); }
+    function mornQ(m) { for (var kz = 0; kz < 24 && !m.over; kz++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } if (!m.over && m.finish) m.finish(); } // (a page that will not close on its last row -- a level 3 wizard's spells: done as it stands)
+    // the floors followed, every screen answered from `ans` (by label, else its last), the watches as `o.watch` has them, a hero's turn ended at once; `o.stop(s, ev)` may end it early;
+    // `o.read`: a counter's line read for this many of its frames before it is pressed (the screen's own tick runs under it: the barn's walks)
+    function walkQ(ans, o) {
+      o = o || {}; var q = (ans || []).slice(), seen = [], floors = [], cs = {}, v, quiet = 0, ev = null, read = 0;
+      var pick = function (opts) { for (var j = 0; j < q.length; j++) { var i = opts.indexOf(q[j]); if (i >= 0) { q.splice(j, 1); return i; } } return opts.length - 1; };
+      for (var k = 0; k < 120000 && quiet < (o.quiet || 900); k++) {
+        var s = topQ(); if (!s) break;
+        if (o.stop && o.stop(s, ev)) { ev = 'stopped'; break; } ev = null;
+        if (s instanceof CQ.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons(), who = w.who ? w.who.name + ':' + (w.who.sheet || '-') : (s.o && s.o.id) + ':' + (s.sheet || '-');
+          if (o.read && read < o.read) { read++; s.update(); continue; } read = 0;
+          if (w.flip && w.flip.list) { var fl = w.flip.list, fh = -1; for (var jq = 0; jq < q.length && fh < 0; jq++) for (var hq = 0; hq < fl.length && fh < 0; hq++) if ((fl[hq].opts || []).indexOf(q[jq]) >= 0) fh = hq; if (fh >= 0 && fh !== w.flip.at) { var fb = bs.filter(function (b) { return b.go === 'flip' && b.k === fh && b.label; })[0]; if (fb) { s.press(fb); continue; } } }
+          if (w.ask) { var lb = (w.opts || []).map(function (x) { return x && typeof x === 'object' ? String(x.label) : String(x); }), i0 = pick(lb); seen.push('{' + who + '} [' + [].concat(w.ask || []).join(' ') + '] > ' + lb[i0]); var b0 = bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]; if (b0) s.press(b0); else if (w.flip) s.press(bs.filter(function (b) { return b.go === 'opt'; }).slice(-1)[0] || bs[0]); else s.press(bs[0]); }
+          else if (w.say) { seen.push('{' + who + '} ' + [].concat(w.say).join(' ')); s.press(bs[0]); } else if (s.update) s.update(); continue; }
+        if (s instanceof HQ.Morning) { seen.push('MORNING on ' + (RQ.def && RQ.def.key)); if (!o.pastMorning) break; var ph0 = s.phase; mornQ(s); if (D.top() === s) { repQ.notes.push('the morning not closed: ' + ph0 + ' > ' + s.phase + ', over ' + s.over); D.pop(); if (s.o && s.o.done) s.o.done(); } continue; }
+        if (s.kind === 'housewatches') { quiet = 0; Object.keys(s.asg).forEach(function (id) { s.asg[id] = (o.watch || { lymen: 2 })[id] || 1; }); seen.push('WATCHES ' + JSON.stringify(s.asg)); s.go('begin'); continue; }
+        if (s.roam && s.co) {
+          var key = RQ.def && RQ.def.key; if (floors[floors.length - 1] !== key) { floors.push(key); quiet = 0; }
+          if (o.look) o.look(s, key);
+          (s.cards || []).forEach(function (c) { var tx = c.lines.join(' '), kk = c.t0 + ':' + tx; if (cs[kk]) return; cs[kk] = 1; seen.push('[' + key + '] ' + tx); quiet = 0; });
+          var st = s.co.next(v); v = undefined;
+          if (st.done) { if (D.top() !== s) continue; break; }
+          if (st.value && st.value.prompt) { var p = st.value.prompt, lb2 = p.opts.map(function (x) { return x.label; }), i2 = pick(lb2); seen.push('PROMPT ' + (p.title || '') + ' [' + lb2.join(' | ') + '] > ' + lb2[i2]); v = p.opts[i2].value; quiet = 0; continue; }
+          if (st.value && st.value.turn) { v = { do: 'end' }; quiet = 0; continue; }
+          if (st.value && st.value.victory) { seen.push('VICTORY ' + (st.value.victory.lines || []).join(' ')); continue; }
+          if (typeof st.value === 'number') s.t += Math.max(1, st.value);
+          var busy = (s.cards || []).some(function (c) { return s.t < c.t0 + (c.life || 300); }) || (s.units || []).some(function (u) { return u.tween && (u.tween.t || 0) < (u.tween.dur || 0); });
+          if (!busy) quiet++; continue;
+        }
+        if (s instanceof D.Battle && !s.roam) { seen.push('FIGHT ' + (s.fight && s.fight.id)); D.pop(); if (s.o && s.o.onDone) s.o.onDone('won'); continue; }
+        seen.push('POPPED ' + (s.kind || (s.constructor && s.constructor.name) || '?')); D.pop();
+      }
+      var top = topQ();
+      return { seen: window.DS.stripCodes(seen.join(' / ')), raw: seen, floors: floors.join(' > '), B: top, f: (top && top.roam && top.roam.flags) || {}, ev: ev };
+    }
+    function resetQ() { HQ.playing = false; HQ.cur = null; InQ.watching = null; InQ.bedding = null; InQ.invest = null; InQ.pinned = null; InQ.zoom0 = null; D.sfx = sfxQ; }
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1118); InQ.bedHere = false; // (the game's own way to bed: up the stair to the room -- In.sleepsHere)
+      // 1. THE WINDOW TO THE YARD (his "zoom out instead of panning to the wagon"; at Sylvia's table, "without doodledo sound and pan to downstairs spot"): KEEP WATCH with
+      // Lymen at the window -- between the window's card and the wagon's, no stair's sound and no place card for the yard; the camera drawn back to a farther step, and
+      // his own zoom again by the morning
+      var sfx1 = [], z01 = D.iso.zoom, mark1 = 0; D.sfx = function (k) { sfx1.push((mark1 ? 'Y:' : '') + k); return sfxQ.apply(this, arguments); };
+      var B1 = playQ('wagon', null, pinsQ(2)), e1 = useQ(B1, 'gennet'), r1 = walkQ(['STAY THE NIGHT', 'KEEP WATCH'], { look: function (s, key) { (s.cards || []).forEach(function (c) { if (/has the window of the road-end room/.test(c.lines.join(' '))) mark1 = 1; if (/a wagon turns in/.test(c.lines.join(' '))) mark1 = 0; }); } });
+      var stair1 = sfx1.filter(function (x) { return x === 'Y:stairs'; }).length, place1 = /The Halfway Inn -- the yard and the shore\./.test(r1.seen.split('has the window of the road-end room')[1] || ''), zd1 = InQ.zoomed || {};
+      okQ('THE WINDOW TO THE YARD, KEEP WATCH: the stair\'s sound between the window and the wagon ' + stair1 + ', the place card ' + place1 + '; the camera drawn back from ' + zd1.from + ' to ' + zd1.to + '; his zoom ' + z01 + ' at the start, ' + D.iso.zoom + ' after (kept: ' + InQ.zoom0 + ') -- ' + r1.floors + ' / ' + r1.seen.slice(0, 160),
+        stair1 === 0 && !place1 && zd1.to != null && zd1.to < zd1.from && D.iso.zoom === z01 && InQ.zoom0 == null && /a wagon turns in/.test(r1.seen) && /MORNING/.test(r1.seen));
+      resetQ(); D.iso.zoom = z01;
+      // 2-4. INVESTIGATE, Lymen alone (the dice high: the glamour seen): the wait downstairs -- ONE Katarina (the traveler in the yard; none by the fire), Doran's click on his own
+      // face with the wagon's word; then out of the door -- his "By Kalindel" on his own portrait once he is out on the field, and only he is; the other three out of the
+      // front door on the second round
+      var kats2 = null, doran2 = null, word3 = null, join4 = null;
+      var B2 = playQ('wagon', null, pinsQ(19)), e2 = useQ(B2, 'gennet'), r2 = walkQ(['STAY THE NIGHT', 'INVESTIGATE'], { quiet: 1200, pastMorning: false, stop: function (s, ev) {
+        if (!kats2 && InQ.invest && s.roam && RQ.def && RQ.def.key === InQ.KEY && RQ.def.inside === 'inn') {
+          kats2 = s.units.filter(function (u) { return u.npc === 'katarina' || u.scripted === 'katYard'; }).map(function (u) { return (u.npc === 'katarina' ? 'katarina' : 'katYard') + '@' + u.x + ',' + u.y; });
+          var dn = s.units.filter(function (u) { return u.npc === 'doranIn'; })[0];
+          if (dn) { var co0 = s.co; s.co = (function* () { yield* D.town.fire(s, { town: 'talk', npc: 'doranIn' }, [dn.x, dn.y]); })(); var sc = null; for (var kd = 0; kd < 40 && !sc; kd++) { var st = s.co.next(); if (D.top() instanceof CQ.Counter) sc = D.top(); if (st.done) break; } doran2 = sc ? { id: sc.o.id, sheet: sc.sheet, say: [].concat((sc.wait && sc.wait.say) || []).join(' ') } : { none: true }; if (sc) { for (var kp = 0; kp < 6 && !sc.done; kp++) sc.press(sc.buttons()[0]); } s.co = co0; }
+          else doran2 = { none: 'no Doran on the floor' };
+          outQ(s); return false;
+        }
+        if (s instanceof CQ.Counter && s.o && s.o.id === 'heroSay' && !word3) { var Bf = D.battle; word3 = { who: s.wait && s.wait.who ? s.wait.who.name + ':' + s.wait.who.sheet : '-', field: Bf.units.filter(function (u) { return u.side === 'party' && u.src && !u.src.guest && !u.familiar; }).map(function (u) { return u.name; }), reserve: (Bf.reserve || []).map(function (u) { return u.name; }), round: Bf.round, line: [].concat((s.wait && s.wait.say) || []).join(' ') }; return false; }
+        if (!join4 && D.battle && (D.battle.cards || []).some(function (c) { return /come out of the inn/.test(c.lines.join(' ')); })) { var Bj = D.battle; join4 = { round: Bj.round, field: Bj.units.filter(function (u) { return u.side === 'party' && u.src && !u.src.guest && !u.familiar; }).map(function (u) { return u.name + '@' + u.x + ',' + u.y; }) }; }
+        return false; } });
+      okQ('ONE KATARINA while the wagon is in (INVESTIGATE\'s wait, the common room laid inside): ' + JSON.stringify(kats2), !!kats2 && kats2.length === 1 && /^katYard/.test(kats2[0]));
+      okQ('DORAN ON HIS OWN FACE behind his bar, the wagon in the yard: ' + JSON.stringify(doran2), !!doran2 && doran2.id === 'doranIn' && doran2.sheet === 'pt_doran' && /good beer/.test(doran2.say));
+      okQ('"BY KALINDEL" AFTER THE SPLIT, on his face: ' + JSON.stringify(word3), !!word3 && /^Lymen:pt_lymen/.test(word3.who) && /By Kalindel/.test(word3.line) && word3.field.join(',') === 'Lymen' && word3.reserve.length === 3 && !/Lymen: Children/.test(r2.seen.split('steps out into the yard')[1] || ''));
+      okQ('INVESTIGATE ALONE: the rest out of the front door on round two: ' + JSON.stringify(join4) + ' -- ' + r2.seen.slice(r2.seen.indexOf('steps out into the yard'), r2.seen.indexOf('steps out into the yard') + 300), !!join4 && join4.round === 2 && join4.field.length === 4);
+      resetQ();
+      // 5. THE BRIBE ON THE SPEAKERS' OWN FACES, AND KATARINA STAYS (his "says barley speaking, shows amara"; "Kat wouldn't go if children were revealed, have her run up and deliver
+      // her message to Amara ... whichever of the waterby's likes them the most will tell them she went south - book in the nightstand, party gets big room"): Vivian at the
+      // window, INVESTIGATE, the gold taken -- her two lines on her own portrait, Amara's offer on hers; Katarina runs to the bench and back in, the wagon goes without her; the
+      // morning after, down the stair, the Waterby who thinks best of them says so and the big room is theirs, her book in its drawer
+      var B5 = playQ('wagon', null, pinsQ(19)), e5 = useQ(B5, 'gennet'), r5 = walkQ(['STAY THE NIGHT', 'INVESTIGATE', 'TAKE THE GOLD'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: true, stop: function (s) {
+        if (InQ.invest && s.roam && RQ.def && RQ.def.key === InQ.KEY && RQ.def.inside === 'inn' && !s.q5) { s.q5 = 1; outQ(s); }
+        if (s.roam && RQ.def && RQ.def.key === InQ.UP && s.roam.flags.wagonOutcome === 'bribe' && !s.down5 && !InQ.bedding && !InQ.watching && s.roam.flags.katTell) { s.down5 = 1; downQ(s); }
+        return !!(s.roam && RQ.def && RQ.def.key === InQ.KEY && s.roam.flags.bigRoom && !s.roam.flags.katTell); } });
+      var f5 = r5.f, d5 = InQ.day(RQ.q), heroLine5 = (r5.raw.filter(function (x) { return /Those aren't goblins/.test(x); })[0] || ''), offer5 = (r5.raw.filter(function (x) { return /Fifty gold/.test(x); })[0] || ''), told5 = (r5.raw.filter(function (x) { return /went at first light|South at first light|went south before/.test(x); })[0] || '');
+      okQ('THE BRIBE ON THEIR OWN FACES: ' + heroLine5.slice(0, 80) + ' / ' + offer5.slice(0, 70), /^\{Vivian:pt_vivian/.test(heroLine5) && /^\{Amara:pt_amara\}/.test(offer5) && f5.wagonOutcome === 'bribe');
+      okQ('KATARINA STAYS FOR THE BRIBE and is told of in the morning: rode ' + f5.katRode + ', south ' + f5.katSouth + ', gone ' + f5.katGone + ', the run ' + /a dozen words/.test(r5.seen) + ', the wagon without her ' + /is not on it/.test(r5.seen) + '; told: ' + told5.slice(0, 120) + '; the big room ' + f5.bigRoom + ', her book in the drawer on day ' + d5 + ' ' + InQ.bookInDrawer(f5, d5, null) + ' -- ' + r5.floors,
+        !f5.katRode && f5.katSouth === 1 && f5.katGone === 1 && /a dozen words/.test(r5.seen) && /is not on it/.test(r5.seen) && /^\{Gennet Waterby:pt_gennet\}|^\{gennet:pt_gennet\}/.test(told5) && f5.bigRoom === 1 && InQ.bookInDrawer(f5, d5, null) === true && !/beside Amara/.test(r5.seen));
+      resetQ();
+      // 6. ELSBETH WALKS WITH THE BUNDLE when the morning's lay has her nowhere on the floor (his "it seems she did not walk over with the bundle"): she is stood at her tub,
+      // walks to the party, says it, walks back and is gone again
+      InQ.play({ key: InQ.KEY, at: [20, 22], hour: 8, day: 13, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1, wagonCycle: 0, wagonOutcome: 'inn', wagonStopped: 'c0', doranAway: 1, katGone: 1, katRode: 1, kidAtInn: 1 } }); var B6 = topQ(); for (var k6 = 0; k6 < 4 && B6 && B6.roam && B6.co; k6++) { var st6 = B6.co.next(); if (st6.done) break; } B6 = topQ();
+      var e6 = B6.units.filter(function (u) { return u.npc === 'elsbeth'; })[0], had6 = !!e6; if (e6) InQ.gone(B6, e6); B6.roam.flags.wagonGift = 1; B6.roam.flags.giftDown = 1;
+      var tr6 = [], tr06 = HQ.trail; HQ.trail = function (k, x) { tr6.push(String(x)); return tr06.apply(this, arguments); };
+      var co6 = B6.co; B6.co = (function* () { yield* InQ.giftWalk(B6); yield* co6; })(); var r6 = walkQ([], { quiet: 300 }); HQ.trail = tr06;
+      var walk6 = tr6.filter(function (x) { return /comes to the party with the bundle/.test(x); })[0] || 'no walk', left6 = B6.units.filter(function (u) { return u.standIn; }).length;
+      // (6b: the eyes row's own door, ?innshow&beat=chaseback, as he walked it: back from the chase, Gennet at the step, to bed in the big room, the morning, down the stair)
+      resetQ(); var trB = [], tr0B = HQ.trail; HQ.trail = function (k, x) { trB.push(String(x)); return tr0B.apply(this, arguments); };
+      var B6b = playQ('chaseback'), r6b = walkQ([], { quiet: 1200, pastMorning: true, stop: function (s) { if (s.roam && RQ.def && RQ.def.key === InQ.UP && s.roam.flags.wagonGift && s.roam.flags.giftDown && !InQ.bedding && !s.down6) { s.down6 = 1; downQ(s); } return !!(s.roam && RQ.def && RQ.def.key === InQ.KEY && s.down6 === undefined && D.top() === s && !s.roam.flags.wagonGift && trB.some(function (x) { return /comes to the party with the bundle/.test(x); })); } }); HQ.trail = tr0B;
+      var walk6b = trB.filter(function (x) { return /comes to the party with the bundle/.test(x); })[0] || 'no walk';
+      okQ('ELSBETH WITH THE BUNDLE on his door (beat chaseback; the cause: js/chase.js went on below the party gone up, and the guest floor woke with no gift waiting): ' + walk6b + ' -- ' + r6b.floors + ' / ' + r6b.seen.slice(Math.max(0, r6b.seen.indexOf('MORNING') - 10), r6b.seen.indexOf('MORNING') + 260), /comes to the party with the bundle/.test(walk6b) && /It should go to somebody who stops things/.test(r6b.seen));
+      okQ('ELSBETH WITH THE BUNDLE, not on the floor as laid (she stood there first: ' + had6 + '): ' + walk6 + '; said: ' + r6.seen.slice(0, 120) + '; stood-ins left on the floor ' + left6, /stood for the walk/.test(walk6) && /It should go to somebody who stops things/.test(r6.seen) && left6 === 0 && !B6.roam.flags.wagonGift);
+      resetQ();
+      // 7. THE KEPT CHILD LIFTED WHERE IT SHOWS, AT THE SHOULDER (his "she picks up late ... looked like she was centered and shoulder would be more to the side"): the barn's
+      // end A, read as a player reads -- by the time "Gennet takes the child up onto her hip" has been read she is up on Gennet, risen, to the side; the camera eased to frame them
+      var B7 = playQ('barnseen'), lift7 = null, cam7 = null; useQ(B7, 'barnGoblin');
+      var r7 = walkQ(['FREE HER', 'Who sold her to you?', 'If she\'s cared for here, then here is where she stays.'], { read: 60, quiet: 600, stop: function (s) {
+        if (s instanceof CQ.Counter && !lift7) { var w = s.wait || {}; if (w.say && /takes the child up onto her hip/.test([].concat(w.say).join(' '))) { if (cam7 == null) cam7 = { y: D.iso.cam.y, n: 0 }; cam7.n++; var Bk = D.battle, k = Bk.units.filter(function (u) { return u.scripted === 'barnKid'; })[0], g = Bk.units.filter(function (u) { return u.scripted === 'gennetYard'; })[0]; if (k && cam7.n >= 58) lift7 = { lift: k.lift, liftX: k.liftX, on: !!g && k.x === g.x && k.y === g.y, camMoved: Math.round(D.iso.cam.y - cam7.y) }; } }
+        return false; } });
+      okQ('THE KEPT CHILD UP ON GENNET AS ITS LINE IS READ, AT THE SHOULDER: ' + JSON.stringify(lift7) + ' -- ' + r7.seen.slice(r7.seen.indexOf('takes the child up') - 20, r7.seen.indexOf('takes the child up') + 200), !!lift7 && lift7.lift === InQ.BY.hip && Math.abs(lift7.liftX || 0) === InQ.BY.shoulder && lift7.on);
+      resetQ();
+      // 8. ELSBETH'S CUT FACES INTO THE SCREEN FROM THE LEFT (his "elsbeth should be facing the other way when she catches gennets look (she's looking left like gennet is)"): the
+      // art desk's tub page looks screen left as cut -- on the left it is mirrored, as Gennet's is
+      okQ('ELSBETH\'S CUT ON THE LEFT, mirrored to face in: ' + CQ.faceFlip('pt_elsbethcut', 'left') + ' (on the right, as cut: ' + !CQ.faceFlip('pt_elsbethcut', 'right') + ')', CQ.faceFlip('pt_elsbethcut', 'left') && !CQ.faceFlip('pt_elsbethcut', 'right'));
+      // 9. DORAN'S DEFAULT ANY NIGHT (his "doran needs a portrait default interaction now that we have it"): an evening with no wagon -- his own words on his own face
+      InQ.play({ key: InQ.KEY, at: [24, 22], hour: 19, day: 6, inside: true, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } }); var B9 = topQ(); for (var k9 = 0; k9 < 4 && B9 && B9.roam && B9.co; k9++) { var st9 = B9.co.next(); if (st9.done) break; } B9 = topQ();
+      var dn9 = B9.units.filter(function (u) { return u.npc === 'doranIn'; })[0], sc9 = null; if (dn9) { B9.co = (function* () { yield* D.town.fire(B9, { town: 'talk', npc: 'doranIn' }, [dn9.x, dn9.y]); })(); for (var kd9 = 0; kd9 < 40 && !sc9; kd9++) { var st9b = B9.co.next(); if (D.top() instanceof CQ.Counter) sc9 = D.top(); if (st9b.done) break; } }
+      resetQ(); var B10 = playQ('wagonseen'), pin10 = (InQ.pinned || []).slice();
+      okQ('THE EYES ROWS\' DOOR ?innshow&beat=wagonseen: a floor ' + (B10 && B10.roam ? RQ.def.key + ' day ' + InQ.day(RQ.q) : 'NONE') + ', the inn\'s reads pinned ' + pin10.length + ' at ' + pin10[0], !!(B10 && B10.roam) && RQ.def.key === InQ.KEY && InQ.day(RQ.q) === InQ.WAGON.first && pin10.length >= 40 && pin10.every(function (x) { return x === 19; }));
+      resetQ();
+      okQ('DORAN BEHIND HIS BAR, ANY EVENING, ON HIS FACE: ' + (sc9 ? sc9.o.id + ' ' + sc9.sheet + ' "' + [].concat((sc9.wait && sc9.wait.say) || []).join(' ').slice(0, 80) + '"' : dn9 ? 'no screen' : 'no Doran'), !!sc9 && sc9.o.id === 'doranIn' && sc9.sheet === 'pt_doran' && /fills a mug/.test([].concat((sc9.wait && sc9.wait.say) || []).join(' ')));
+      resetQ();
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    resetQ(); if (InQ) { InQ.stay = false; InQ.bedHere = null; InQ.duePlay = null; }
+    D.store.get = stGQ; D.store.set = stSQ; D.music = muQ;
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
     return;
   }
   // BARLEY'S FIVE, 11-16 (mode=barley1116; the bug seat of 11-16, on Griz's "Barley's 4 is 'you spot him 5', he bouts to join party, 4 is payout after he wins"):

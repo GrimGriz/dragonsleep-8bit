@@ -2049,7 +2049,7 @@
           ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, wl, cw * 2, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
           var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5, rh = rw * 0.38; if (u.kind === 'keeper') { rw = 58 + Math.sin(B.t / 9) * 2; rh = 29 + Math.sin(B.t / 9); } /* (the Keeper's water line is the ellipse in its own 2x2: Griz 10-03, "the 2x2 centred on the circle around his thighs") */ ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rh, 0, 0, 7); ctx.stroke(); ctx.restore();
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
-        } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y - lift, body);
+        } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x + (lift && u.liftX ? u.liftX : 0), p.y - lift, body); // (u.liftX: one carried rides to the side, at the shoulder -- the inn's kept child, js/inn.js BY.shoulder, 11-18)
         // ?footprint: the Keeper's mechanical squares (what the grid, the ice and the area spells ask), their centre, and its water line, over the drawing (Griz 10-03: check the 2x2 against the ring)
         if (D.footprintDebug && u.kind === 'keeper' && !u.dead) {
           ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,60,60,0.9)';

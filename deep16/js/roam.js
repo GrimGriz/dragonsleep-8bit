@@ -1629,6 +1629,7 @@
     // the spill: the token's party out onto their formation, as near as the floor allows
     L0.spill = R.spill(B, {});
     if (grp && grp.onSpill) grp.onSpill(B); // (a set fight's own seating after the spill: the cradle's milker -- R.cradle)
+    if (grp && grp.afterSpill) yield* grp.afterSpill(B); // (a set fight's word said with the party out on the field, before initiative: Lymen's "By Kalindel" in the inn's yard -- js/inn.js In.yardFight, 11-18)
     B.exits = [];
     B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
     yield 50;
@@ -1800,6 +1801,7 @@
     while (true) {
       B.round++;
       if (B.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(B); // (kept as far as it has gone, each round, as battle.js does its own: 10-31)
+      if (B.reserve && B.reserve.length && B.round >= (B.joinRound || 2) && B.joinReserve) yield* B.joinReserve(B.joinFrom); // (the rest of the party come out to one who went alone: the inn's yard, js/inn.js In.yardFight's solo -- 11-18)
       if (B.round > 40) { foes.forEach(function (u) { if (!u.dead) { u.left = true; u.dead = true; } }); B.card(['{g}The rest of them slink back into the dark.{/}'], 300); yield 40; return 'won'; }
       for (var i = 0; i < B.order.length; i++) {
         var u = B.order[i];
@@ -1846,6 +1848,8 @@
     // the fight's own state off the four as it ends (the 8-bit's finish: "clear battle-only state" -- 10-14, his "handoff issues between fight and out of fight"): a spell held
     // ends, and of the conditions only what lasts stays (R.lasting: Mage Armor, the day's Darkvision, a Continual Flame, Aid) -- prone, poisoned, blessed and the rest do not walk on
     R0.members.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'the fight is over'); });
+    var kept = B.reserve && B.reserve.length ? B.reserve.slice() : []; B.reserve = []; // (a reserve the fight ended before it came out: still in the token, gathered where the token stands -- 11-18)
+    kept.forEach(function (u) { var t0 = R0.token; if (t0) { u.x = t0.x; u.y = t0.y; } u.tween = null; });
     R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } u.conds = R.lasting(u.conds); u.turn = null; if (B.units.indexOf(u) < 0) B.units.push(u); });
     R0.members.forEach(function (u) { u.wings = R.ringWings(u) || !!u.flies; u.flies = false; u.fz = 0; if (u.tween) u.tween.fz = 0; }); // (down out of the air as the fight ends: the floor is walked)
     G.setup(G.map, B.units); B.cache = null;
