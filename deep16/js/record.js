@@ -223,6 +223,19 @@
   };
 
   // (a fight on a floor's own squares starts mid-log, the walk's lines above it: logFrom keeps only its own -- js/roam.js R.engage, 10-31)
+  // A FOE'S WALK, IN THE RECORD ONLY (RULED 2026-11-18, Griz: "1-3 leans can stand", on the small-fixes seat's lean -- his record of 11-16, the Glowseep at 22:18:00Z: two fire beetles
+  // high in initiative walked their 30 ft and reached no one, and a walk logs nothing, so their turns read as none taken): a foe's turn that ends off the square it began on writes
+  // "R1 Fire Beetle's turn: 6,7 to 12,7 (30 ft)." into the transcript, ahead of what its turn logged -- never into the battle's log on the screen. foeFrom at the turn's top
+  // (the lines before it placed first), foeWalked at its end
+  REC.foeFrom = function (B, u) { if (!B || !B.rec || B.rec.done || !u || u.side === 'party') return null; flush(B); return [u.x, u.y]; };
+  REC.foeWalked = function (B, u, from) {
+    var r = B && B.rec; if (!r || r.done || !from || !u) return;
+    if (from[0] !== u.x || from[1] !== u.y) {
+      var line = 'R' + B.round + ' ' + (u.name || u.id) + '\'s turn: ' + from.join(',') + ' to ' + u.x + ',' + u.y + ' (' + Math.max(Math.abs(u.x - from[0]), Math.abs(u.y - from[1])) * 5 + ' ft).';
+      var dest = r.last || null; if (dest) dest.then = (dest.then || []).concat([line]); else r.opening = (r.opening || []).concat([line]);
+    }
+    flush(B); // (what its turn logged, after the walk)
+  };
   REC.start = function (B, what) {
     var n = (B.logEntries || []).length;
     // (simple: 11-15, the records seat's read of his fresh game -- every door passed `simple` and this dropped it, so a simple fight's SQUARES (each one's home in the lineup)

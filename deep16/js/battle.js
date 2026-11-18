@@ -1045,7 +1045,7 @@
         if (u.carriedBy) { this.active = null; continue; } // (carried: no turn of its own)
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
-        else { if (this.rec && D.rec && D.rec.aiTurn) { try { D.rec.aiTurn(this, u); } catch (eR) { /* (the record must never stop a turn) */ } } if (G.aloft(u) && !u.floats && !(D.flightAI && D.flightAI.on(this.fight) && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); } // (a watched fight's turns of ours are steps in its play record: js/record.js REC.aiTurn, 11-03 night) // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
+        else { var fromR = null; if (this.rec && D.rec && D.rec.aiTurn) { try { D.rec.aiTurn(this, u); fromR = D.rec.foeFrom ? D.rec.foeFrom(this, u) : null; } catch (eR) { /* (the record must never stop a turn) */ } } if (G.aloft(u) && !u.floats && !(D.flightAI && D.flightAI.on(this.fight) && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); if (fromR) { try { D.rec.foeWalked(this, u, fromR); } catch (eR2) { /* (as above) */ } } } // (a watched fight's turns of ours are steps in its play record: js/record.js REC.aiTurn, 11-03 night; a foe's walk a line of the record's own, REC.foeWalked, 11-18) // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
         this.active = null;
         this.flyCheck();
         this.noteSeen(); // (what each one sees of its enemies at this turn's end: where an AI that sees no one goes to look, lastSeenOf)
